@@ -1,14 +1,43 @@
+> Intermediate source-only update: the supplied HK416 was verified locally, but its model binary and new screenshots are not in this commit. The game uses its procedural fallback until the separately authorized single asset upload finishes.
+
 # VECTOR RANGE
 
 An original, standalone Rust movement and gunplay laboratory for `rust_duty`.
-One fictional **Kestrel-30** automatic rifle. One procedural UV-grid test range.
-No commercial game installation, code, models, textures, animations, or recordings.
+One automatic rifle and one procedural UV-grid test range. The supplied
+**untextured HK416A5** is stored in one game-specific VRMESH01 package and embedded
+in the executable. The original procedural rifle remains an explicit fallback.
+No original-game code or assets are included.
 
 The goal is a responsive late-2000s military-FPS feel. Movement starts from
-publicly documented reimplementation values; the rifle profile is newly authored.
+publicly documented reimplementation values. The default **M4A1-inspired candidate**
+uses published analyst timing values with explicitly authored unknowns; the original
+Kestrel-30 tuning remains selectable.
 **Retail MW2 fidelity is unverified. This is not a claim of indistinguishability.**
 
 ![Native Linux runtime capture](docs/screenshots/range.png)
+
+## Model conversion and tuning
+
+- [Python converter and binary format](docs/ASSET_FORMAT.md)
+- [Model rights and exact FBX preparation](assets/README.md)
+- [M4 candidate sources, assumptions and uncertainty](docs/M4_PROFILE.md)
+
+GLB is already binary. This converter creates actual game mesh records, rather
+than renaming/wrapping GLB, but **it does not prevent reconstruction or extraction**.
+Permission, not obfuscation, determines whether an asset may be distributed.
+
+```sh
+python tools/vrpack.py pack private-assets/weapon.glb private-assets/weapon.vrm
+python tools/vrpack.py inspect private-assets/weapon.vrm
+cargo run --release -- --weapon-asset=private-assets/weapon.vrm
+cargo run --release -- --profile=kestrel --procedural-weapon
+```
+
+`--profile=m4a1` is the default. It loads `settings.cfg` on top of the candidate.
+`--profile=kestrel` loads `profiles/kestrel.cfg` on top of the authored original.
+`--settings=PATH` chooses a different override file; F5/F6 save/reload that same path.
+The model choice is independent of the gameplay profile. Missing or invalid runtime
+model overrides fall back safely; `--procedural-weapon` explicitly selects primitives.
 
 ## Play
 
@@ -36,20 +65,27 @@ or anti-cheat interactions.
 | Control | Action |
 | --- | --- |
 | WASD / mouse | Move / look |
-| Left mouse / right mouse | Automatic fire / hold ADS |
+| Left mouse / right mouse | Hold automatic fire / press to toggle ADS |
 | Left Shift | Hold sprint |
-| Left Ctrl or C / Z | Hold crouch / hold prone |
+| Left Ctrl or C / Z | Press to toggle crouch / press to toggle prone |
 | Space | Jump; in a lower stance, request standing first |
 | R | Reload |
 | Escape / Enter or click | Pause / resume |
 | F1 / F2 | Telemetry overlay / reset range and inventory |
 | `[` / `]` | Lower / raise mouse sensitivity |
 | `-` / `=` | Lower / raise horizontal hip FOV |
-| F5 / F6 | Save / reload `settings.cfg` |
+| F5 / F6 | Save / reload selected settings file |
 | F8 | Start/stop local `telemetry.csv` recording; starting overwrites the old file |
 | M / F11 / F10 | Mute / fullscreen / quit |
 
-The first resume click does not fire. After a focus-switch keyboard shortcut or
+ADS, crouch, and prone use press-to-toggle by default. Press the same stance key
+again to stand, or the other stance key to switch directly. Space clears a toggled
+lower stance and requests standing first; clearance and smooth transitions still
+apply. A fresh Shift press cancels toggled ADS. Use `--hold-controls` to restore
+hold-to-ADS/crouch/prone. See [control behavior and checks](docs/CONTROLS.md).
+
+The first resume click does not fire. Pause, resume, reset, and detected focus loss
+clear ADS/stance intentions; held buttons must be released before reactivation. After a focus-switch keyboard shortcut or
 frame hitch longer than 250 ms, the prototype pauses instead of replaying stale
 shots. Escape remains the explicit pause control; see the focus-detection limit below.
 
@@ -59,11 +95,11 @@ shots. Escape remains the explicit pause control; see the focus-detection limit 
 - Acceleration, friction, directional speeds, limited air steering, jump/landing,
   four-second sprint budget, exhaustion latch, crouch/prone clearance, eased camera height
 - Original AABB collision and analytic wedge fixtures at 30, 45 and 50 degrees
-- Accumulated 90 ms fire schedule, independent recoil/spread random streams,
+- Accumulated 70 ms candidate / 90 ms original fire schedule, independent recoil/spread random streams,
   uniform-solid-angle spread, ADS in/out, hip bloom, separate camera and gun kick
 - Tactical/empty reload credit and ready milestones, safe tactical sprint cancellation,
   sprint-to-fire gate, ammo conservation, eye/muzzle obstruction checks
-- Procedural rifle, primitive targets, UV checks, meter floor grid, colored lanes,
+- Converted static weapon plus procedural fallback, primitive targets, UV checks, meter floor grid, colored lanes,
   step thresholds, clearance tunnels, dispersion board, hit feedback
 - Original in-memory synthesized shot, hit, footstep, and reload sounds
 - Live settings and local CSV telemetry; no telemetry is transmitted
@@ -71,6 +107,7 @@ shots. Escape remains the explicit pause control; see the focus-detection limit 
 ## Verify
 
 ```sh
+python -m unittest discover -s tools -p "test_*.py" -v
 cargo fmt --all -- --check
 cargo clippy --locked --all-targets -- -D warnings
 cargo test --locked
@@ -100,7 +137,9 @@ written implementation, not a strict legal clean-room certification.
 Single-player keyboard/mouse only. No networking, controller/aim assist, mantle,
 ladders, penetration, destruction, AI combat, attachments, or retail assets.
 Collision supports axis-aligned boxes and the authored wedge fixtures, not arbitrary
-mesh geometry. Presentation is diagnostic primitive art. The native engine does not
+mesh geometry. The level uses diagnostic primitive art; the untextured weapon uses simple diffuse
+shading, not full PBR. The model is static: reload motion is whole-weapon lowering,
+without rigged hands or mechanical magazine/bolt animations. The native engine does not
 expose a universal focus callback to this application: Alt/Super shortcuts and long
 hitches pause safely, but every OS focus-change path is not covered. Always press
 Escape before switching apps. Retail comparison and blinded feel testing remain open.

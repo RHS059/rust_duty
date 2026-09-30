@@ -4,3 +4,18 @@
 /capture*.png
 *.log
 .DS_Store
+
+# Licensed inputs AND converted packages must stay private/local.
+/private-assets/
+/licensed-assets/
+*.glb
+*.gltf
+*.vrm
+!tests/fixtures/triangle.vrm
+*.blend
+*.fbx
+# Explicitly authorized converted test weapon only; no original FBX/GLB.
+!assets/weapons/hk416a5.vrm
+
+__pycache__/
+*.pyc

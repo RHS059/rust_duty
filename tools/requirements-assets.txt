@@ -1,0 +1,2 @@
+# Optional: needed only when the GLB has embedded PNG/JPEG base-color textures.
+Pillow>=10.4,<13

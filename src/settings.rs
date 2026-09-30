@@ -1,6 +1,6 @@
 use std::{fs, path::Path};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Settings {
     pub sensitivity: f32,
     pub fov: f32,
@@ -8,6 +8,8 @@ pub struct Settings {
     pub walk_speed: f32,
     pub sprint_speed: f32,
     pub crouch_speed: f32,
+    /// Fully aimed speed as a fraction of the selected stance's normal speed.
+    pub ads_move_multiplier: f32,
     pub acceleration: f32,
     pub friction: f32,
     pub air_acceleration: f32,
@@ -35,6 +37,7 @@ impl Default for Settings {
             walk_speed: 4.826,
             sprint_speed: 7.239,
             crouch_speed: 3.1369,
+            ads_move_multiplier: 0.5,
             acceleration: 9.,
             friction: 5.5,
             air_acceleration: 1.,
@@ -56,8 +59,40 @@ impl Default for Settings {
     }
 }
 impl Settings {
+    /// Published-data M4A1-inspired candidate, separate from the authored default.
+    ///
+    /// Timing targets are provisional 2009 multiplayer values without perks or
+    /// attachments. Movement conversion, ADS exit, empty-reload credit, recoil,
+    /// and spread include explicitly authored assumptions: see docs/M4_PROFILE.md.
+    /// This settings choice does not select or depend on a visual weapon model.
+    pub fn m4_candidate() -> Self {
+        let base = Self::default();
+        Self {
+            fire_rpm: 60. / 0.070,
+            ads_time: 0.250,
+            ads_out_time: 0.250,
+            reload_credit: 1.100,
+            reload_time: 2.029,
+            empty_reload_time: 2.359,
+            // The separate empty ammunition-credit event is not established.
+            empty_reload_credit: 1.800,
+            sprint_out_time: 0.300,
+            walk_speed: base.walk_speed * 0.95,
+            sprint_speed: base.sprint_speed * 0.95,
+            crouch_speed: base.crouch_speed * 0.95,
+            // Published 0.38 and 0.95 refer to the same base: 0.38 / 0.95.
+            ads_move_multiplier: 0.40,
+            ..base
+        }
+    }
+
     pub fn load(path: impl AsRef<Path>) -> Self {
-        let mut s = Self::default();
+        Self::load_with_base(path, Self::default())
+    }
+
+    /// Apply a partial settings file to a selected profile. Missing files and
+    /// unknown/invalid entries retain the base values; finite values are clamped.
+    pub fn load_with_base(path: impl AsRef<Path>, mut s: Self) -> Self {
         if let Ok(text) = fs::read_to_string(path) {
             for line in text.lines() {
                 let line = line.split('#').next().unwrap_or("").trim();
@@ -73,6 +108,7 @@ impl Settings {
                             "walk_speed" => Some((&mut s.walk_speed, 1., 12.)),
                             "sprint_speed" => Some((&mut s.sprint_speed, 1., 18.)),
                             "crouch_speed" => Some((&mut s.crouch_speed, 0.5, 8.)),
+                            "ads_move_multiplier" => Some((&mut s.ads_move_multiplier, 0., 1.)),
                             "acceleration" => Some((&mut s.acceleration, 1., 120.)),
                             "friction" => Some((&mut s.friction, 1., 40.)),
                             "air_acceleration" => Some((&mut s.air_acceleration, 0., 20.)),
@@ -111,6 +147,7 @@ impl Settings {
             ("walk_speed", self.walk_speed),
             ("sprint_speed", self.sprint_speed),
             ("crouch_speed", self.crouch_speed),
+            ("ads_move_multiplier", self.ads_move_multiplier),
             ("acceleration", self.acceleration),
             ("friction", self.friction),
             ("air_acceleration", self.air_acceleration),
@@ -129,7 +166,7 @@ impl Settings {
             ("recoil_pitch", self.recoil_pitch),
             ("recoil_return", self.recoil_return),
         ];
-        let mut out = String::from("# Vector Range original tuning preset. F6 reloads, F5 saves.\n# Distances meters, times seconds, angles degrees. FOV is horizontal.\n");
+        let mut out = String::from("# Vector Range tuning settings. F6 reloads, F5 saves.\n# Distances meters, times seconds, angles degrees. FOV is horizontal.\n# ADS movement is a fraction of normal stance speed.\n");
         for (key, value) in fields {
             out.push_str(&format!("{key} = {value:.4}\n"));
         }

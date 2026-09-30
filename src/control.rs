@@ -1,4 +1,176 @@
-//! Presentation-to-simulation one-shot intent bridge. Pure and unit-testable.
+//! Pure presentation-to-simulation controls and one-shot intent bridge.
+//!
+//! Sample toggles once per render frame; read their intent for every fixed step.
+//! Gameplay eligibility, stance clearance, and transition timing stay in Simulation.
+
+/// Toggle is the normal player-facing mode; Hold preserves the original controls.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum ControlMode {
+    #[default]
+    Toggle,
+    Hold,
+}
+
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum DesiredStance {
+    #[default]
+    Standing,
+    Crouched,
+    Prone,
+}
+
+/// A physical button's state in one presentation frame. `pressed` also captures
+/// a short tap that was released before that frame was rendered.
+#[derive(Clone, Copy, Debug, Default)]
+pub struct ButtonInput {
+    pub pressed: bool,
+    pub down: bool,
+}
+
+#[derive(Clone, Copy, Debug, Default)]
+pub struct ControlSample {
+    pub ads: ButtonInput,
+    pub crouch: ButtonInput,
+    pub prone: ButtonInput,
+    pub sprint: ButtonInput,
+}
+
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct ControlIntent {
+    pub ads: bool,
+    pub stance: DesiredStance,
+}
+impl ControlIntent {
+    pub fn crouch(self) -> bool {
+        self.stance == DesiredStance::Crouched
+    }
+    pub fn prone(self) -> bool {
+        self.stance == DesiredStance::Prone
+    }
+}
+
+#[derive(Clone, Copy, Debug)]
+struct ButtonGate {
+    armed: bool,
+    was_down: bool,
+}
+impl Default for ButtonGate {
+    fn default() -> Self {
+        Self {
+            armed: true,
+            was_down: false,
+        }
+    }
+}
+impl ButtonGate {
+    fn clear(&mut self) {
+        self.armed = false;
+    }
+    /// Returns (new press, held). Reject auto-repeat while a button stays down,
+    /// and require release after a reset or a button press used while resuming.
+    fn sample(&mut self, input: ButtonInput, accept_input: bool) -> (bool, bool) {
+        if !input.pressed && !input.down {
+            self.armed = true;
+        } else if !accept_input {
+            self.armed = false;
+        }
+        let pressed = accept_input && self.armed && input.pressed && !self.was_down;
+        let held = accept_input && self.armed && input.down;
+        self.was_down = input.down;
+        (pressed, held)
+    }
+}
+
+#[derive(Clone, Copy, Debug, Default)]
+pub struct ControlState {
+    mode: ControlMode,
+    intent: ControlIntent,
+    ads: ButtonGate,
+    crouch: ButtonGate,
+    prone: ButtonGate,
+    sprint: ButtonGate,
+}
+impl ControlState {
+    pub fn new(mode: ControlMode) -> Self {
+        Self {
+            mode,
+            ..Self::default()
+        }
+    }
+    pub fn mode(&self) -> ControlMode {
+        self.mode
+    }
+    /// Clear persistent desires on reset, pause, resume, or focus loss. Buttons
+    /// held across that boundary cannot restore them until released and pressed.
+    pub fn clear(&mut self) {
+        self.intent = ControlIntent::default();
+        self.ads.clear();
+        self.crouch.clear();
+        self.prone.clear();
+        self.sprint.clear();
+    }
+    /// Call exactly once per presentation frame, including frames with no fixed
+    /// step. No toggle operation belongs inside the fixed-step loop.
+    pub fn sample(&mut self, sample: ControlSample, accept_input: bool) {
+        let (ads_press, ads_hold) = self.ads.sample(sample.ads, accept_input);
+        let (crouch_press, crouch_hold) = self.crouch.sample(sample.crouch, accept_input);
+        let (prone_press, prone_hold) = self.prone.sample(sample.prone, accept_input);
+        let (sprint_press, _) = self.sprint.sample(sample.sprint, accept_input);
+        if !accept_input {
+            self.intent = ControlIntent::default();
+            return;
+        }
+        match self.mode {
+            ControlMode::Toggle => {
+                if ads_press {
+                    self.intent.ads = !self.intent.ads;
+                }
+                // A fresh sprint press cancels toggle ADS. ADS can subsequently
+                // be pressed while Shift is held to aim and end the sprint.
+                if sprint_press {
+                    self.intent.ads = false;
+                }
+                // If both stance keys arrive together, prone wins deterministically.
+                let requested = if prone_press {
+                    Some(DesiredStance::Prone)
+                } else if crouch_press {
+                    Some(DesiredStance::Crouched)
+                } else {
+                    None
+                };
+                if let Some(stance) = requested {
+                    self.intent.stance = if self.intent.stance == stance {
+                        DesiredStance::Standing
+                    } else {
+                        stance
+                    };
+                }
+            }
+            ControlMode::Hold => {
+                self.intent.ads = ads_hold;
+                self.intent.stance = if prone_hold {
+                    DesiredStance::Prone
+                } else if crouch_hold {
+                    DesiredStance::Crouched
+                } else {
+                    DesiredStance::Standing
+                };
+            }
+        }
+    }
+    /// Apply when the latched jump is consumed, before composing that step's
+    /// simulation input. Space exits a toggled lower stance without re-entering
+    /// it next tick; Simulation still decides when standing/jumping is possible.
+    pub fn request_jump(&mut self) {
+        if self.mode == ControlMode::Toggle {
+            self.intent.stance = DesiredStance::Standing;
+        }
+    }
+    pub fn intent(&self) -> ControlIntent {
+        self.intent
+    }
+}
+
 #[derive(Clone, Copy, Debug)]
 pub struct IntentLatch {
     jump: bool,

@@ -1,7 +1,11 @@
 mod sound;
+mod weapon_model;
 use macroquad::prelude::*;
 use std::{fs::File, io::Write};
-use vector_range::{clock::FixedClock, control::IntentLatch};
+use vector_range::{
+    clock::FixedClock,
+    control::{ButtonInput, ControlMode, ControlSample, ControlState, IntentLatch},
+};
 use vector_range::{
     settings::Settings,
     sim::{Input, Shot, Simulation, FIXED_DT, SPRINT_DURATION},
@@ -189,7 +193,13 @@ fn world(sim: &Simulation, tex: &Texture2D) {
         draw_cube_wires(c, t.bounds.size() + Vec3::splat(0.008), INK);
     }
 }
-fn weapon(sim: &Simulation, rt: &RenderTarget, aspect: f32, time: f32) {
+fn weapon(
+    sim: &Simulation,
+    rt: &RenderTarget,
+    aspect: f32,
+    time: f32,
+    model: Option<&weapon_model::WeaponModel>,
+) {
     set_camera(&Camera3D {
         position: Vec3::ZERO,
         target: vec3(0., 0., -1.),
@@ -210,51 +220,57 @@ fn weapon(sim: &Simulation, rt: &RenderTarget, aspect: f32, time: f32) {
         0.
     };
     let o = vec3(
-        0.25 * (1. - p.ads),
-        -0.25 * (1. - p.ads) - 0.041 * p.ads + bob - reload - p.sprinting as u8 as f32 * 0.13,
+        if model.is_some() { 0.18 } else { 0.25 } * (1. - p.ads),
+        (if model.is_some() { -0.19 } else { -0.25 }) * (1. - p.ads) - 0.041 * p.ads + bob
+            - reload
+            - p.sprinting as u8 as f32 * 0.13,
         -0.32 + p.shot_kick * 0.045,
     );
-    let dark = Color::new(0.105, 0.14, 0.16, 1.);
-    let steel = Color::new(0.25, 0.31, 0.33, 1.);
-    let parts = [
-        (vec3(0., -0.026, -0.27), vec3(0.115, 0.12, 0.43), dark),
-        (vec3(0., -0.020, -0.59), vec3(0.094, 0.088, 0.24), steel),
-        (vec3(0., 0.010, -0.82), vec3(0.029, 0.029, 0.26), dark),
-        (vec3(0., 0.009, -0.96), vec3(0.049, 0.049, 0.07), steel),
-        (vec3(0., -0.078, -0.04), vec3(0.094, 0.11, 0.16), steel),
-        (vec3(0., -0.169, -0.21), vec3(0.070, 0.21, 0.12), dark),
-        (vec3(0., -0.125, -0.04), vec3(0.064, 0.14, 0.07), dark),
-        (vec3(0.061, -0.025, -0.25), vec3(0.004, 0.045, 0.13), ACCENT),
-        (vec3(0., 0.040, -0.38), vec3(0.065, 0.010, 0.28), steel),
-        (vec3(-0.027, 0.048, -0.20), vec3(0.014, 0.04, 0.019), dark),
-        (vec3(0.027, 0.048, -0.20), vec3(0.014, 0.04, 0.019), dark),
-        (vec3(0., 0.045, -0.77), vec3(0.008, 0.05, 0.014), INK),
-        (
-            vec3(-0.012, -0.123, -0.49),
-            vec3(0.11, 0.07, 0.16),
-            Color::new(0.48, 0.40, 0.30, 1.),
-        ),
-        (
-            vec3(0.055, -0.18, 0.005),
-            vec3(0.09, 0.13, 0.11),
-            Color::new(0.48, 0.40, 0.30, 1.),
-        ),
-    ];
-    for (pos, size, color) in parts {
-        draw_cube(o + pos, size, None, color);
-        draw_cube_wires(o + pos, size, Color::new(0.035, 0.05, 0.06, 1.));
-    }
-    for i in 0..6 {
-        draw_cube(
-            o + vec3(0., 0.047, -0.28 - i as f32 * 0.038),
-            vec3(0.073, 0.012, 0.014),
-            None,
-            dark,
-        );
+    if let Some(model) = model {
+        model.draw(o);
+    } else {
+        let dark = Color::new(0.105, 0.14, 0.16, 1.);
+        let steel = Color::new(0.25, 0.31, 0.33, 1.);
+        let parts = [
+            (vec3(0., -0.026, -0.27), vec3(0.115, 0.12, 0.43), dark),
+            (vec3(0., -0.020, -0.59), vec3(0.094, 0.088, 0.24), steel),
+            (vec3(0., 0.010, -0.82), vec3(0.029, 0.029, 0.26), dark),
+            (vec3(0., 0.009, -0.96), vec3(0.049, 0.049, 0.07), steel),
+            (vec3(0., -0.078, -0.04), vec3(0.094, 0.11, 0.16), steel),
+            (vec3(0., -0.169, -0.21), vec3(0.070, 0.21, 0.12), dark),
+            (vec3(0., -0.125, -0.04), vec3(0.064, 0.14, 0.07), dark),
+            (vec3(0.061, -0.025, -0.25), vec3(0.004, 0.045, 0.13), ACCENT),
+            (vec3(0., 0.040, -0.38), vec3(0.065, 0.010, 0.28), steel),
+            (vec3(-0.027, 0.048, -0.20), vec3(0.014, 0.04, 0.019), dark),
+            (vec3(0.027, 0.048, -0.20), vec3(0.014, 0.04, 0.019), dark),
+            (vec3(0., 0.045, -0.77), vec3(0.008, 0.05, 0.014), INK),
+            (
+                vec3(-0.012, -0.123, -0.49),
+                vec3(0.11, 0.07, 0.16),
+                Color::new(0.48, 0.40, 0.30, 1.),
+            ),
+            (
+                vec3(0.055, -0.18, 0.005),
+                vec3(0.09, 0.13, 0.11),
+                Color::new(0.48, 0.40, 0.30, 1.),
+            ),
+        ];
+        for (pos, size, color) in parts {
+            draw_cube(o + pos, size, None, color);
+            draw_cube_wires(o + pos, size, Color::new(0.035, 0.05, 0.06, 1.));
+        }
+        for i in 0..6 {
+            draw_cube(
+                o + vec3(0., 0.047, -0.28 - i as f32 * 0.038),
+                vec3(0.073, 0.012, 0.014),
+                None,
+                dark,
+            );
+        }
     }
     if p.shot_kick > 0.65 {
         draw_sphere(
-            o + vec3(0., 0.01, -1.04),
+            o + model.map(|m| m.muzzle).unwrap_or(vec3(0., 0.01, -1.04)),
             0.035 + p.shot_kick * 0.025,
             None,
             Color::new(1., 0.80, 0.32, 1.),
@@ -283,6 +299,7 @@ fn hud(
     recording: bool,
     notice: &str,
     notice_timer: f32,
+    weapon_label: &str,
 ) {
     let (w, h) = (screen_width(), screen_height());
     let p = &sim.player;
@@ -337,7 +354,7 @@ fn hud(
         }
     }
     panel(w - 250., h - 125., 226., 101.);
-    label("KESTREL-30 / AUTO", w - 231., h - 101., 16., MUTED);
+    label(weapon_label, w - 231., h - 101., 16., MUTED);
     label(
         &format!("{:02}", p.ammo),
         w - 232.,
@@ -451,7 +468,7 @@ fn hud(
         }
     }
 }
-fn pause_screen(cfg: &Settings, initial: bool) {
+fn pause_screen(cfg: &Settings, initial: bool, control_mode: ControlMode) {
     let (w, h) = (screen_width(), screen_height());
     draw_rectangle(0., 0., w, h, Color::new(0.015, 0.025, 0.035, 0.78));
     let x = w * 0.5 - 270.;
@@ -477,13 +494,23 @@ fn pause_screen(cfg: &Settings, initial: bool) {
         20.,
         ACCENT,
     );
-    let controls = [
-        "W A S D     Move          MOUSE     Look",
-        "LEFT CLICK  Fire         RIGHT     Hold ADS",
-        "SHIFT       Sprint       CTRL / C  Hold crouch",
-        "SPACE       Jump         R         Reload",
-        "Z           Hold prone   M         Mute audio",
-    ];
+    let controls = if control_mode == ControlMode::Hold {
+        [
+            "W A S D     Move          MOUSE     Look",
+            "LEFT CLICK  Fire         RIGHT     Hold ADS",
+            "SHIFT       Sprint       CTRL / C  Hold crouch",
+            "SPACE       Jump         R         Reload",
+            "Z           Hold prone   M         Mute audio",
+        ]
+    } else {
+        [
+            "W A S D     Move          MOUSE     Look",
+            "LEFT CLICK  Fire         RIGHT     Toggle ADS",
+            "SHIFT       Sprint       CTRL / C  Toggle crouch",
+            "SPACE       Jump / stand R         Reload",
+            "Z           Toggle prone M         Mute audio",
+        ]
+    };
     for (i, s) in controls.iter().enumerate() {
         label(s, x + 38., y + 192. + i as f32 * 27., 17., MUTED);
     }
@@ -518,13 +545,52 @@ fn pause_screen(cfg: &Settings, initial: bool) {
 }
 #[macroquad::main(config)]
 async fn main() {
-    let mut cfg = Settings::load("settings.cfg");
+    let args: Vec<String> = std::env::args().collect();
+    let control_mode = if args.iter().any(|s| s == "--hold-controls") {
+        ControlMode::Hold
+    } else {
+        ControlMode::Toggle
+    };
+    let mut controls = ControlState::new(control_mode);
+    let profile = args
+        .iter()
+        .find_map(|s| s.strip_prefix("--profile="))
+        .unwrap_or("m4a1");
+    let base = match profile {
+        "m4a1" => Settings::m4_candidate(),
+        "kestrel" => Settings::default(),
+        other => {
+            eprintln!("Unknown profile {other}; use m4a1 or kestrel");
+            return;
+        }
+    };
+    let settings_path = args
+        .iter()
+        .find_map(|s| s.strip_prefix("--settings="))
+        .unwrap_or(if profile == "kestrel" {
+            "profiles/kestrel.cfg"
+        } else {
+            "settings.cfg"
+        });
+    let weapon_label = if profile == "m4a1" {
+        "M4 / CANDIDATE"
+    } else {
+        "KESTREL-30 / AUTO"
+    };
+    let mut cfg = Settings::load_with_base(settings_path, base.clone());
     let mut audio = sound::SoundBank::new().await;
     let mut step_distance = 0.;
     let mut was_reloading = false;
     let mut sim = Simulation::new();
     let texture = grid_texture();
-    let target = render_target(1440, 900);
+    let target = render_target_ex(
+        1440,
+        900,
+        RenderTargetParams {
+            depth: true,
+            ..Default::default()
+        },
+    );
     target.texture.set_filter(FilterMode::Linear);
     let mut active = false;
     let mut initial = true;
@@ -541,7 +607,25 @@ async fn main() {
     let mut recording: Option<File> = None;
     let mut record_clock = 0.;
     let mut intents = IntentLatch::default();
-    let args: Vec<String> = std::env::args().collect();
+    let model_result =
+        if let Some(path) = args.iter().find_map(|s| s.strip_prefix("--weapon-asset=")) {
+            Some(vector_range::asset::WeaponAsset::load(path))
+        } else {
+            vector_range::EMBEDDED_WEAPON.map(vector_range::asset::WeaponAsset::decode)
+        };
+    let model = match model_result {
+        Some(Ok(asset)) => {
+            eprintln!("Loaded VRMESH01 weapon: {} mesh parts", asset.meshes.len());
+            Some(weapon_model::WeaponModel::from_asset(asset))
+        }
+        Some(Err(error)) => {
+            eprintln!("Weapon asset rejected ({error}); using procedural fallback");
+            notice = format!("Asset rejected: {error}. Using procedural rifle");
+            notice_timer = 12.;
+            None
+        }
+        None => None,
+    };
     let capture = args.iter().any(|s| s.starts_with("--capture"));
     let capture_ads = args.iter().any(|s| s == "--capture-ads");
     let capture_fixtures = args.iter().any(|s| s == "--capture-fixtures");
@@ -582,6 +666,7 @@ async fn main() {
             show_mouse(true);
             clock.clear();
             intents.clear();
+            controls.clear();
             sim.player.firing_sequence = false;
             notice = "Paused after focus shortcut or a long frame hitch".into();
             notice_timer = 4.;
@@ -594,6 +679,7 @@ async fn main() {
             active = !active;
             just_resumed = active;
             intents.clear();
+            controls.clear();
             sim.player.firing_sequence = false;
 
             initial = false;
@@ -606,6 +692,7 @@ async fn main() {
             active = true;
             just_resumed = true;
             intents.clear();
+            controls.clear();
             sim.player.firing_sequence = false;
 
             initial = false;
@@ -628,6 +715,7 @@ async fn main() {
         if is_key_pressed(KeyCode::F2) {
             sim.reset();
             intents.clear();
+            controls.clear();
             clock.clear();
             just_resumed = true;
             traces.clear();
@@ -652,15 +740,15 @@ async fn main() {
             cfg.fov = (cfg.fov + 2.).min(120.);
         }
         if is_key_pressed(KeyCode::F5) {
-            notice = match cfg.save("settings.cfg") {
-                Ok(_) => "Saved settings.cfg".into(),
+            notice = match cfg.save(settings_path) {
+                Ok(_) => format!("Saved {settings_path}"),
                 Err(e) => format!("Could not save preset: {e}"),
             };
             notice_timer = 4.;
         }
         if is_key_pressed(KeyCode::F6) {
-            cfg = Settings::load("settings.cfg");
-            notice = "Loaded settings.cfg (missing values use defaults)".into();
+            cfg = Settings::load_with_base(settings_path, base.clone());
+            notice = format!("Loaded {settings_path} with {profile} defaults");
             notice_timer = 4.;
         }
         if is_key_pressed(KeyCode::F8) {
@@ -705,6 +793,27 @@ async fn main() {
                 is_mouse_button_down(MouseButton::Left),
                 !just_resumed,
             );
+            controls.sample(
+                ControlSample {
+                    ads: ButtonInput {
+                        pressed: is_mouse_button_pressed(MouseButton::Right),
+                        down: is_mouse_button_down(MouseButton::Right),
+                    },
+                    crouch: ButtonInput {
+                        pressed: is_key_pressed(KeyCode::LeftControl) || is_key_pressed(KeyCode::C),
+                        down: is_key_down(KeyCode::LeftControl) || is_key_down(KeyCode::C),
+                    },
+                    prone: ButtonInput {
+                        pressed: is_key_pressed(KeyCode::Z),
+                        down: is_key_down(KeyCode::Z),
+                    },
+                    sprint: ButtonInput {
+                        pressed: is_key_pressed(KeyCode::LeftShift),
+                        down: is_key_down(KeyCode::LeftShift),
+                    },
+                },
+                !just_resumed,
+            );
             let mut input = Input {
                 movement: vec2(
                     (is_key_down(KeyCode::D) || is_key_pressed(KeyCode::D)) as u8 as f32
@@ -714,18 +823,13 @@ async fn main() {
                 ),
                 jump: false,
                 reload: false,
-                crouch: is_key_down(KeyCode::LeftControl) || is_key_down(KeyCode::C),
-                prone: is_key_down(KeyCode::Z),
+                crouch: false,
+                prone: false,
                 sprint: is_key_down(KeyCode::LeftShift),
-                ads: is_mouse_button_down(MouseButton::Right),
+                ads: false,
                 fire: false,
             };
-            if capture_ads {
-                input.ads = true;
-            }
             if demo {
-                input.ads = true;
-                input.fire = true;
                 sim.player.yaw = -std::f32::consts::FRAC_PI_2;
                 sim.player.pitch = 0.;
             }
@@ -734,6 +838,13 @@ async fn main() {
                 .unwrap_or(0);
             for _ in 0..steps {
                 let step = intents.take(is_mouse_button_down(MouseButton::Left));
+                if step.jump {
+                    controls.request_jump();
+                }
+                let control_intent = controls.intent();
+                input.ads = capture_ads || demo || control_intent.ads;
+                input.crouch = control_intent.crouch();
+                input.prone = control_intent.prone();
                 input.jump = step.jump;
                 input.reload = step.reload;
                 input.fire = demo || step.fire;
@@ -827,7 +938,7 @@ async fn main() {
         for i in &impacts {
             draw_sphere(i.point, 0.022, None, if i.target { CYAN } else { INK });
         }
-        weapon(&sim, &target, aspect, sim.time as f32);
+        weapon(&sim, &target, aspect, sim.time as f32, model.as_ref());
         hud(
             &sim,
             &cfg,
@@ -837,9 +948,10 @@ async fn main() {
             recording.is_some(),
             &notice,
             notice_timer,
+            weapon_label,
         );
         if !active {
-            pause_screen(&cfg, initial);
+            pause_screen(&cfg, initial, controls.mode());
         }
         if capture && frames == 8 {
             get_screen_data().export_png(output);

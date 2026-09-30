@@ -663,7 +663,7 @@ impl Simulation {
         } else {
             0.
         };
-        let speed = base_speed * directional_scale * (1. - p.ads * 0.5);
+        let speed = base_speed * directional_scale * (1. - p.ads * (1. - cfg.ads_move_multiplier));
         let launch = current == 0
             && input.jump
             && !p.jump_held

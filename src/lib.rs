@@ -5,3 +5,6 @@ pub mod sim;
 pub mod control;
 
 pub mod clock;
+
+pub mod asset;
+include!(concat!(env!("OUT_DIR"), "/weapon_embed.rs"));
