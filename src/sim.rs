@@ -465,7 +465,9 @@ impl Simulation {
                 p.reload_left = 0.;
             }
         }
-        let can_sprint = input.sprint
+        let can_sprint = !p.crouched
+            && !p.prone
+            && input.sprint
             && input.movement.y > 0.83
             && p.grounded
             && !input.crouch
@@ -1378,5 +1380,41 @@ mod tests {
                 s.player.speed()
             );
         }
+    }
+    #[test]
+    fn blocked_standing_cannot_cancel_tactical_reload() {
+        let mut s = Simulation::new();
+        run(
+            &mut s,
+            Input {
+                crouch: true,
+                ..Input::default()
+            },
+            30,
+        );
+        s.player.position = vec3(10., 0., -4.);
+        s.player.ammo = 7;
+        run(
+            &mut s,
+            Input {
+                crouch: true,
+                reload: true,
+                ..Input::default()
+            },
+            1,
+        );
+        run(
+            &mut s,
+            Input {
+                movement: vec2(0., 1.),
+                sprint: true,
+                ..Input::default()
+            },
+            8,
+        );
+        assert!(s.player.crouched);
+        assert!(!s.player.sprinting);
+        assert!(s.player.reload_left > 0.);
+        assert_eq!(s.player.ammo, 7);
     }
 }

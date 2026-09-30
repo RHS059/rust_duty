@@ -7,7 +7,7 @@
 - Rust stable 1.98.1, Linux x86-64
 - `cargo fmt --all -- --check`: passed
 - `cargo clippy --locked --all-targets -- -D warnings`: passed
-- `cargo test --locked`: 22 library and 29 black-box weapon tests passed
+- `cargo test --locked`: 27 library and 29 black-box weapon tests passed
 - Weapon contract tests also passed optimized (`--release`)
 - Native release build: passed
 - Native graphical launch and actual rendered frame exports: passed for normal,
@@ -16,6 +16,20 @@
   reports device-open failure while the game continues rendering. Audible quality
   and a physical audio output device were not tested. Use `--no-default-features`
   when building on an intentionally audio-less machine
+
+## Native input smoke test and review regressions
+
+Native Linux menu/start, telemetry toggle, a short W tap, a short mouse click,
+reload from29/90 to30/89, CSV start/stop, explicit pause, click-to-resume,
+reset to30/90, and clean quit were observed. A short-click latch bug found at low
+render rate was fixed: accepted clicks now survive until a simulation tick.
+Input bridge regressions cover short clicks, held triggers, no shot on resume,
+and reset requiring trigger release/repress. A crouch-tunnel regression verifies
+that a blocked stand-up cannot cancel a tactical reload.
+
+Windows and Linux GitHub Actions passed lint, tests and executable artifact builds
+on the initial draft commit. Check the latest PR checks for subsequent review fixes;
+a CI build is not a Windows gameplay test.
 
 ## Measured headless values
 

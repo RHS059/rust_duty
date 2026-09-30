@@ -1,6 +1,7 @@
 mod sound;
 use macroquad::prelude::*;
 use std::{fs::File, io::Write};
+use vector_range::control::IntentLatch;
 use vector_range::{
     settings::Settings,
     sim::{Input, Shot, Simulation, FIXED_DT, SPRINT_DURATION},
@@ -538,9 +539,7 @@ async fn main() {
     let mut notice_timer = 0.;
     let mut recording: Option<File> = None;
     let mut record_clock = 0.;
-    let mut pending_jump = false;
-    let mut pending_reload = false;
-    let mut fire_armed = true;
+    let mut intents = IntentLatch::default();
     let args: Vec<String> = std::env::args().collect();
     let capture = args.iter().any(|s| s.starts_with("--capture"));
     let capture_ads = args.iter().any(|s| s == "--capture-ads");
@@ -579,8 +578,7 @@ async fn main() {
             set_cursor_grab(false);
             show_mouse(true);
             accumulator = 0.;
-            pending_jump = false;
-            pending_reload = false;
+            intents.clear();
             sim.player.firing_sequence = false;
             notice = "Paused after focus shortcut or a long frame hitch".into();
             notice_timer = 4.;
@@ -592,10 +590,9 @@ async fn main() {
         if is_key_pressed(KeyCode::Escape) {
             active = !active;
             just_resumed = active;
-            pending_jump = false;
-            pending_reload = false;
+            intents.clear();
             sim.player.firing_sequence = false;
-            fire_armed = false;
+
             initial = false;
             set_cursor_grab(active);
             show_mouse(!active);
@@ -605,10 +602,9 @@ async fn main() {
         {
             active = true;
             just_resumed = true;
-            pending_jump = false;
-            pending_reload = false;
+            intents.clear();
             sim.player.firing_sequence = false;
-            fire_armed = false;
+
             initial = false;
             set_cursor_grab(true);
             show_mouse(false);
@@ -628,6 +624,9 @@ async fn main() {
         }
         if is_key_pressed(KeyCode::F2) {
             sim.reset();
+            intents.clear();
+            accumulator = 0.;
+            just_resumed = true;
             traces.clear();
             impacts.clear();
             notice = "Range reset. Fresh magazine, clean telemetry.".into();
@@ -678,9 +677,6 @@ async fn main() {
             notice_timer = 4.;
         }
         if active {
-            if !is_mouse_button_down(MouseButton::Left) {
-                fire_armed = true;
-            }
             let mouse = if just_resumed {
                 Vec2::ZERO
             } else {
@@ -699,20 +695,27 @@ async fn main() {
                     * cfg.sensitivity.to_radians()
                     * (1. - sim.player.ads * 0.35))
                 .clamp(-1.48, 1.48);
-            pending_jump |= is_key_pressed(KeyCode::Space);
-            pending_reload |= is_key_pressed(KeyCode::R);
+            intents.sample(
+                is_key_pressed(KeyCode::Space),
+                is_key_pressed(KeyCode::R),
+                is_mouse_button_pressed(MouseButton::Left),
+                is_mouse_button_down(MouseButton::Left),
+                !just_resumed,
+            );
             let mut input = Input {
                 movement: vec2(
-                    is_key_down(KeyCode::D) as u8 as f32 - is_key_down(KeyCode::A) as u8 as f32,
-                    is_key_down(KeyCode::W) as u8 as f32 - is_key_down(KeyCode::S) as u8 as f32,
+                    (is_key_down(KeyCode::D) || is_key_pressed(KeyCode::D)) as u8 as f32
+                        - (is_key_down(KeyCode::A) || is_key_pressed(KeyCode::A)) as u8 as f32,
+                    (is_key_down(KeyCode::W) || is_key_pressed(KeyCode::W)) as u8 as f32
+                        - (is_key_down(KeyCode::S) || is_key_pressed(KeyCode::S)) as u8 as f32,
                 ),
-                jump: pending_jump,
-                reload: pending_reload,
+                jump: false,
+                reload: false,
                 crouch: is_key_down(KeyCode::LeftControl) || is_key_down(KeyCode::C),
                 prone: is_key_down(KeyCode::Z),
                 sprint: is_key_down(KeyCode::LeftShift),
                 ads: is_mouse_button_down(MouseButton::Right),
-                fire: is_mouse_button_down(MouseButton::Left) && !just_resumed && fire_armed,
+                fire: false,
             };
             if capture_ads {
                 input.ads = true;
@@ -725,12 +728,12 @@ async fn main() {
             }
             accumulator += dt;
             while accumulator >= FIXED_DT {
+                let step = intents.take(is_mouse_button_down(MouseButton::Left));
+                input.jump = step.jump;
+                input.reload = step.reload;
+                input.fire = demo || step.fire;
                 sim.update(input, &cfg, FIXED_DT);
                 accumulator -= FIXED_DT;
-                input.jump = false;
-                input.reload = false;
-                pending_jump = false;
-                pending_reload = false;
             }
             if sim.player.reload_left > 0. && !was_reloading {
                 audio.play(3);
