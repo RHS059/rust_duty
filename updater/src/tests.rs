@@ -160,7 +160,18 @@ impl Server {
                     Ok((stream, _)) => {
                         let (b, r, h) = (b.clone(), r.clone(), h.clone());
                         thread::spawn(move || {
-                            let _ = serve(stream, b, r, h);
+                            if let Err(error) = serve(stream, b, r, h) {
+                                // Pausing, cancelling, and rejecting a response deliberately
+                                // close the client connection before the server finishes.
+                                if !matches!(
+                                    error.kind(),
+                                    std::io::ErrorKind::BrokenPipe
+                                        | std::io::ErrorKind::ConnectionReset
+                                        | std::io::ErrorKind::ConnectionAborted
+                                ) {
+                                    eprintln!("HTTP fixture handler failed: {error:?}");
+                                }
+                            }
                         });
                     }
                     Err(e) if e.kind() == std::io::ErrorKind::WouldBlock => {
@@ -203,6 +214,10 @@ fn serve(
     requests: Arc<Mutex<Vec<Request>>>,
     behavior: Arc<Mutex<Behavior>>,
 ) -> std::io::Result<()> {
+    // Winsock accepts inherit the listener's nonblocking mode. The handler uses
+    // blocking read_line/write_all, so explicitly normalize the accepted socket.
+    // https://learn.microsoft.com/en-us/windows/win32/api/winsock2/nf-winsock2-accept
+    stream.set_nonblocking(false)?;
     stream.set_read_timeout(Some(Duration::from_secs(3)))?;
     // Borrow the single socket instead of duplicating its Windows socket handle.
     let mut reader = BufReader::new(&mut stream);
@@ -976,4 +991,59 @@ fn ordinary_transfer_can_wait_longer_than_the_intentional_stall_budget() {
     let ready =
         download::download(&store.root, &server.source(), &version("1.1.0"), &artifact).unwrap();
     assert_eq!(fs::read(ready).unwrap(), body);
+}
+
+#[test]
+fn http_fixture_restores_blocking_mode_for_inherited_nonblocking_sockets() {
+    use std::sync::mpsc;
+
+    // Winsock accept inherits the listener's nonblocking mode. Force that state
+    // on every platform, and delay the request so a nonblocking read must fail.
+    let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+    let address = listener.local_addr().unwrap();
+    let body = random_bytes(512 * 1024);
+    let bodies = Arc::new(Mutex::new(HashMap::from([(
+        "fixture.rdb".into(),
+        body.clone(),
+    )])));
+    let (accepted_tx, accepted_rx) = mpsc::channel();
+    let (done_tx, done_rx) = mpsc::channel();
+    let worker = thread::spawn(move || {
+        let (stream, _) = listener.accept().unwrap();
+        stream.set_nonblocking(true).unwrap();
+        accepted_tx.send(()).unwrap();
+        let result = serve(
+            stream,
+            bodies,
+            Arc::new(Mutex::new(Vec::new())),
+            Arc::new(Mutex::new(Behavior::default())),
+        );
+        done_tx.send(result).unwrap();
+    });
+    let mut client = TcpStream::connect(address).unwrap();
+    client
+        .set_read_timeout(Some(Duration::from_secs(5)))
+        .unwrap();
+    accepted_rx.recv_timeout(Duration::from_secs(5)).unwrap();
+    match done_rx.recv_timeout(Duration::from_millis(100)) {
+        Err(mpsc::RecvTimeoutError::Timeout) => (),
+        other => panic!("handler must wait for request bytes, not exit: {other:?}"),
+    }
+    client
+        .write_all(b"GET /fixture.rdb HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n")
+        .unwrap();
+    client.shutdown(Shutdown::Write).unwrap();
+    let mut response = Vec::new();
+    client.read_to_end(&mut response).unwrap();
+    done_rx
+        .recv_timeout(Duration::from_secs(5))
+        .unwrap()
+        .unwrap();
+    worker.join().unwrap();
+    let split = response
+        .windows(4)
+        .position(|bytes| bytes == b"\r\n\r\n")
+        .unwrap()
+        + 4;
+    assert_eq!(&response[split..], body);
 }
