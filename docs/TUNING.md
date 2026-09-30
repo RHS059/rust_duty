@@ -8,7 +8,7 @@ fidelity claim. One reference unit = 0.0254 m is a prototype convention.
 Standing forward 4.826 m/s; sprint 7.239; side 80%; backward 70%; diagonal input
 is normalized and uses the largest requested direction's ratio. Crouch 65%, prone
 15%, full ADS 50% of the stance speed. Ground drive coefficient 9 (crouch12,
-prone19); friction5.5 with minimum control speed2.54m/s. Air drive coefficient1,
+prone19); friction5.5 with minimum control speed2.54m/s (capped at stance speed so prone crawl remains possible). Air drive coefficient1,
 with a105% cap relative to the greater of walk/takeoff speed.
 
 Gravity20.32m/s²; initial jump speed6.345m/s; desired apex0.9906m. Fresh standing

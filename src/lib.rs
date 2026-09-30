@@ -3,3 +3,5 @@ pub mod settings;
 pub mod sim;
 
 pub mod control;
+
+pub mod clock;

@@ -1,7 +1,7 @@
 mod sound;
 use macroquad::prelude::*;
 use std::{fs::File, io::Write};
-use vector_range::control::IntentLatch;
+use vector_range::{clock::FixedClock, control::IntentLatch};
 use vector_range::{
     settings::Settings,
     sim::{Input, Shot, Simulation, FIXED_DT, SPRINT_DURATION},
@@ -530,7 +530,8 @@ async fn main() {
     let mut initial = true;
     let mut debug = false;
     let mut fullscreen = false;
-    let mut accumulator = 0.;
+    let mut clock = FixedClock::default();
+    let mut last_frame = get_time();
     let mut traces: Vec<Trace> = Vec::new();
     let mut impacts: Vec<Impact> = Vec::new();
     let mut hit_timer = 0.;
@@ -563,12 +564,14 @@ async fn main() {
         debug = true;
     }
     loop {
-        let raw_dt = get_frame_time();
-        let dt = raw_dt.min(0.25);
+        let now = get_time();
+        let raw_dt = now - last_frame;
+        last_frame = now;
+        let dt = raw_dt.min(FixedClock::MAX_FRAME) as f32;
         frames += 1;
         if active
             && frames > 8
-            && (raw_dt > 0.25
+            && (raw_dt > FixedClock::MAX_FRAME
                 || is_key_down(KeyCode::LeftAlt)
                 || is_key_down(KeyCode::RightAlt)
                 || is_key_down(KeyCode::LeftSuper)
@@ -577,7 +580,7 @@ async fn main() {
             active = false;
             set_cursor_grab(false);
             show_mouse(true);
-            accumulator = 0.;
+            clock.clear();
             intents.clear();
             sim.player.firing_sequence = false;
             notice = "Paused after focus shortcut or a long frame hitch".into();
@@ -596,7 +599,7 @@ async fn main() {
             initial = false;
             set_cursor_grab(active);
             show_mouse(!active);
-            accumulator = 0.;
+            clock.clear();
         }
         if !active && (is_mouse_button_pressed(MouseButton::Left) || is_key_pressed(KeyCode::Enter))
         {
@@ -608,7 +611,7 @@ async fn main() {
             initial = false;
             set_cursor_grab(true);
             show_mouse(false);
-            accumulator = 0.;
+            clock.clear();
         }
         if is_key_pressed(KeyCode::M) {
             audio.muted = !audio.muted;
@@ -625,7 +628,7 @@ async fn main() {
         if is_key_pressed(KeyCode::F2) {
             sim.reset();
             intents.clear();
-            accumulator = 0.;
+            clock.clear();
             just_resumed = true;
             traces.clear();
             impacts.clear();
@@ -726,14 +729,15 @@ async fn main() {
                 sim.player.yaw = -std::f32::consts::FRAC_PI_2;
                 sim.player.pitch = 0.;
             }
-            accumulator += dt;
-            while accumulator >= FIXED_DT {
+            let steps = clock
+                .advance(raw_dt.min(FixedClock::MAX_FRAME))
+                .unwrap_or(0);
+            for _ in 0..steps {
                 let step = intents.take(is_mouse_button_down(MouseButton::Left));
                 input.jump = step.jump;
                 input.reload = step.reload;
                 input.fire = demo || step.fire;
                 sim.update(input, &cfg, FIXED_DT);
-                accumulator -= FIXED_DT;
             }
             if sim.player.reload_left > 0. && !was_reloading {
                 audio.play(3);

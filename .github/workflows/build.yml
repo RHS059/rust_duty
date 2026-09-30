@@ -35,6 +35,7 @@ jobs:
             settings.cfg
             README.md
             LICENSE
+            THIRD_PARTY_LICENSES.txt
             docs/PROVENANCE.md
           if-no-files-found: error
       - name: Upload Linux executable
@@ -47,5 +48,6 @@ jobs:
             settings.cfg
             README.md
             LICENSE
+            THIRD_PARTY_LICENSES.txt
             docs/PROVENANCE.md
           if-no-files-found: error

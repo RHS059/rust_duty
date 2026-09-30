@@ -41,5 +41,6 @@ Macroquad 0.4.14 (MIT/Apache-2.0), Miniquad and transitive crates are declared a
 locked through Cargo. These are ordinary rendering/input/audio/math dependencies;
 no reference-game code is linked. Macroquad supplies its own default UI font.
 Use `cargo metadata --locked` to inspect the complete version/license graph.
+THIRD_PARTY_LICENSES.txt bundles package notices and available upstream license texts, including the bundled font.
 Cargo package licenses remain applicable to their own code. The root MIT license
 covers newly authored project files only.

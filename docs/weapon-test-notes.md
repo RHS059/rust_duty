@@ -6,7 +6,7 @@ Verified on 2026-09-30 (UTC):
 
 - `cargo test --test weapon_contract`: **29 passed, 0 failed**
 - `cargo test --release --test weapon_contract`: **29 passed, 0 failed**
-- `cargo test`: **27 library tests and 29 integration tests passed**, with no binary or documentation test failures
+- `cargo test`: **37 library tests and 29 integration tests passed**, with no binary or documentation test failures
 - The integration-test file was formatted independently with `rustfmt --edition 2021 tests/weapon_contract.rs`
 
 The contract tests are independent of the production implementation. No external game code, source, or assets were used.

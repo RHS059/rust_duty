@@ -7,7 +7,7 @@
 - Rust stable 1.98.1, Linux x86-64
 - `cargo fmt --all -- --check`: passed
 - `cargo clippy --locked --all-targets -- -D warnings`: passed
-- `cargo test --locked`: 27 library and 29 black-box weapon tests passed
+- `cargo test --locked`: 37 library and 29 black-box weapon tests passed
 - Weapon contract tests also passed optimized (`--release`)
 - Native release build: passed
 - Native graphical launch and actual rendered frame exports: passed for normal,
@@ -60,14 +60,25 @@ ammo conservation, cadence/tap limits, delayed firing, ADS reversal, bloom/recov
 recoil recovery without overwriting look, deterministic random behavior, and15,000
 mixed-action ticks. See [detailed contract coverage](weapon-test-notes.md).
 
+## Additional review regressions executed
+
+The native app now uses the same f64 monotonic FixedClock that its endpoint tests
+exercise. Eight render rates from30 to240FPS produce the same1200 ticks at10seconds,
+including f32-rounded frame-delta input.100ms catch-up and250ms recovery budget are
+tested. No interpolation or universal input-latency claim is made.
+
+Steep wedges stay solid to airborne players and project motion downhill instead of
+removing collision. Walk-off-ledge momentum, exact ordinary/prone step thresholds,
+jump-intent reload cancellation, combined-pitch clamping, box/ramp muzzle obstruction,
+and10,000 narrow-cone samples have explicit passing regressions.
+
 ## Not yet established
 
 - Native Windows or macOS gameplay; CI build results are separate from runtime testing
 - Physical mouse-latency/360° sensitivity measurement or controller support
 - Every OS focus-loss route (explicit pause, Alt/Super shortcuts and long-hitch
   recovery exist; arbitrary focus callback coverage remains a renderer limitation)
-- Ten-thousand-sample statistical distribution fit, long-session manual playtest,
-  or arbitrary mesh collision. Cone-bounds tests and the sampling math are covered
+- A full distribution goodness-of-fit test, long-session manual playtest, or arbitrary mesh collision. A10,000-sample mean/radial-moment check and cone-bounds tests passed
 - Retail capture comparison, a chosen retail weapon's tuning, or blind A/B equivalence
 
 The public behavioral reference supplied a broader checklist; this record reports

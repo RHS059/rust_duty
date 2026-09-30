@@ -248,7 +248,10 @@ impl Player {
         self.position + vec3(0., self.eye_height - self.landing_kick, 0.)
     }
     pub fn direction(&self) -> Vec3 {
-        direction(self.yaw + self.recoil.y, self.pitch + self.recoil.x)
+        direction(
+            self.yaw + self.recoil.y,
+            (self.pitch + self.recoil.x).clamp(-1.55, 1.55),
+        )
     }
     pub fn height(&self) -> f32 {
         if self.prone {
@@ -465,7 +468,8 @@ impl Simulation {
                 p.reload_left = 0.;
             }
         }
-        let can_sprint = !p.crouched
+        let can_sprint = !input.jump
+            && !p.crouched
             && !p.prone
             && input.sprint
             && input.movement.y > 0.83
@@ -720,7 +724,7 @@ impl Simulation {
                     let candidate = vec3(p.position.x, b.bounds.max.y + 0.001, p.position.z);
                     if p.grounded
                         && step > 0.
-                        && step <= if p.prone { 0.254 } else { 0.4572 }
+                        && step <= if p.prone { 0.2541 } else { 0.4573 }
                         && !self
                             .blocks
                             .iter()
@@ -785,17 +789,30 @@ impl Simulation {
         }
         for ramp in &self.ramps {
             if let Some(surface) = ramp.surface(p.position.x, p.position.z) {
-                if ramp.slope() <= 1.0001 && p.position.y <= surface && p.velocity.y <= 0. {
+                if p.position.y <= surface && p.velocity.y <= 0. {
                     p.position.y = surface;
-                    p.grounded = true;
-                    if !p.previous_grounded {
-                        p.velocity.x *= 0.65;
-                        p.velocity.z *= 0.65;
-                        p.landing_kick = (-p.velocity.y * 0.012).min(0.15);
+                    if ramp.slope() <= 1.0001 {
+                        p.grounded = true;
+                        if !p.previous_grounded {
+                            p.velocity.x *= 0.65;
+                            p.velocity.z *= 0.65;
+                            p.landing_kick = (-p.velocity.y * 0.012).min(0.15);
+                        }
+                        p.velocity.y = 0.;
+                    } else {
+                        // Solid but unwalkable: remove inward normal speed and slide downhill.
+                        p.grounded = false;
+                        let normal = vec3(0., 1., ramp.slope()).normalize();
+                        let inward = p.velocity.dot(normal);
+                        if inward < 0. {
+                            p.velocity -= normal * inward;
+                        }
                     }
-                    p.velocity.y = 0.;
                 }
             }
+        }
+        if p.previous_grounded && !p.grounded {
+            p.air_speed_limit = p.speed().max(cfg.walk_speed) * 1.05;
         }
         self.stats.distance += vec2(p.position.x - old.x, p.position.z - old.z).length();
         if p.position.y < -10. {
@@ -816,9 +833,10 @@ impl Simulation {
         let right = forward.cross(Vec3::Y).normalize();
         let up = right.cross(forward);
         // Uniform solid angle: cos(theta) is uniformly distributed over the cone.
-        let cos_theta = 1. - u * (1. - spread.cos());
-        let sin_theta = (1. - cos_theta * cos_theta).max(0.).sqrt();
-        let ray = (forward * cos_theta + (right * angle.cos() + up * angle.sin()) * sin_theta)
+        let cos_theta = 1_f64 - u as f64 * (1. - (spread as f64).cos());
+        let sin_theta = (1. - cos_theta * cos_theta).max(0.).sqrt() as f32;
+        let ray = (forward * cos_theta as f32
+            + (right * angle.cos() + up * angle.sin()) * sin_theta)
             .normalize();
         let start = p.eye();
         let mut distance = 150.;
@@ -855,6 +873,14 @@ impl Simulation {
             {
                 blocked = Some(start + to_muzzle / muzzle_length * d);
                 break;
+            }
+        }
+        if blocked.is_none() {
+            for ramp in &self.ramps {
+                if let Some(d) = ramp.ray(start, to_muzzle / muzzle_length, muzzle_length) {
+                    blocked = Some(start + to_muzzle / muzzle_length * d);
+                    break;
+                }
             }
         }
         if blocked.is_none() {
@@ -1416,5 +1442,207 @@ mod tests {
         assert!(!s.player.sprinting);
         assert!(s.player.reload_left > 0.);
         assert_eq!(s.player.ammo, 7);
+    }
+    #[test]
+    fn step_thresholds_are_inclusive_at_declared_height() {
+        for (prone, units, allowed) in [
+            (false, 17., true),
+            (false, 18., true),
+            (false, 19., false),
+            (true, 10., true),
+            (true, 11., false),
+        ] {
+            let mut s = Simulation::new();
+            run(
+                &mut s,
+                Input {
+                    prone,
+                    ..Input::default()
+                },
+                90,
+            );
+            s.blocks = vec![
+                Block {
+                    bounds: Aabb::from_center(vec3(0., -0.25, 0.), vec3(20., 0.5, 20.)),
+                    kind: 0,
+                },
+                Block {
+                    bounds: Aabb::from_center(
+                        vec3(0., units * 0.0254 * 0.5, 0.),
+                        vec3(3., units * 0.0254, 2.),
+                    ),
+                    kind: 3,
+                },
+            ];
+            s.player.position = vec3(0., 0., if prone { 1.8 } else { 2. });
+            run(
+                &mut s,
+                Input {
+                    prone,
+                    movement: vec2(0., 1.),
+                    ..Input::default()
+                },
+                if prone { 120 } else { 60 },
+            );
+            assert_eq!(
+                s.player.position.y > 0.1,
+                allowed,
+                "prone={prone} units={units} pos={:?}",
+                s.player.position
+            );
+        }
+    }
+    #[test]
+    fn walking_off_a_ledge_preserves_sprint_momentum() {
+        let mut s = Simulation::new();
+        s.player.position = vec3(0., 1., 5.);
+        s.blocks.push(Block {
+            bounds: Aabb::from_center(vec3(0., 0.5, 4.), vec3(4., 1., 4.)),
+            kind: 3,
+        });
+        for _ in 0..120 {
+            s.update(
+                Input {
+                    movement: vec2(0., 1.),
+                    sprint: true,
+                    ..Input::default()
+                },
+                &Settings::default(),
+                FIXED_DT,
+            );
+            if !s.player.grounded {
+                break;
+            }
+        }
+        assert!(!s.player.grounded);
+        let speed = s.player.speed();
+        assert!(speed > 7.);
+        run(&mut s, Input::default(), 5);
+        assert!((s.player.speed() - speed).abs() < 0.001);
+    }
+    #[test]
+    fn upward_recoil_cannot_flip_the_view_over_vertical() {
+        let p = Player {
+            pitch: 1.48,
+            recoil: vec2(6_f32.to_radians(), 0.),
+            ..Player::default()
+        };
+        let d = p.direction();
+        assert!(d.y < 1.);
+        assert!(d.z < 0.);
+        assert!(d.is_finite());
+    }
+    #[test]
+    fn tiny_ads_cone_retains_radial_precision_and_unbiased_samples() {
+        let mut s = Simulation::new();
+        let cfg = Settings::default();
+        s.blocks.clear();
+        s.ramps.clear();
+        s.targets.clear();
+        s.player.ads = 1.;
+        let mut radial_sum = 0_f64;
+        let mut xs = 0_f64;
+        let mut ys = 0_f64;
+        for _ in 0..10000 {
+            s.player.recoil = Vec2::ZERO;
+            s.player.ammo = 30;
+            s.player.bloom = 0.;
+            s.fire(&cfg);
+            let d = s.events.pop().unwrap().direction;
+            let r = (d.x * d.x + d.y * d.y) as f64;
+            let max = (cfg.ads_spread as f64).to_radians().sin();
+            radial_sum += r / (max * max);
+            xs += d.x as f64 / max;
+            ys += d.y as f64 / max;
+        }
+        assert!((radial_sum / 10000. - 0.5).abs() < 0.02);
+        assert!((xs / 10000.).abs() < 0.02);
+        assert!((ys / 10000.).abs() < 0.02);
+    }
+    #[test]
+    fn jump_intent_is_not_an_eligible_tactical_reload_cancel() {
+        let mut s = Simulation::new();
+        s.player.ammo = 7;
+        run(
+            &mut s,
+            Input {
+                reload: true,
+                ..Input::default()
+            },
+            1,
+        );
+        run(
+            &mut s,
+            Input {
+                movement: vec2(0., 1.),
+                sprint: true,
+                jump: true,
+                ..Input::default()
+            },
+            1,
+        );
+        assert!(!s.player.sprinting);
+        assert!(s.player.reload_left > 0.);
+    }
+    #[test]
+    fn steep_wedge_is_solid_to_falling_players() {
+        let mut s = Simulation::new();
+        s.player.position = vec3(-8., 2., -18.5);
+        s.player.grounded = false;
+        let ramp = *s.ramps.iter().find(|r| r.slope() > 1.001).unwrap();
+        for _ in 0..120 {
+            s.update(Input::default(), &Settings::default(), FIXED_DT);
+            if let Some(h) = ramp.surface(s.player.position.x, s.player.position.z) {
+                assert!(
+                    s.player.position.y + 0.001 >= h,
+                    "feet {:?}, surface {h}",
+                    s.player.position
+                );
+            }
+        }
+    }
+    #[test]
+    fn logical_muzzle_cannot_fire_through_boxes_or_ramps_below_eye_line() {
+        for wedge in [false, true] {
+            let mut s = Simulation::new();
+            s.blocks.clear();
+            s.ramps.clear();
+            s.player.position = Vec3::ZERO;
+            s.targets = vec![Target {
+                bounds: Aabb::from_center(vec3(0., 1.524, -5.), vec3(1., 1., 0.2)),
+                health: 100.,
+                respawn: 0.,
+                flash: 0.,
+            }];
+            if wedge {
+                s.ramps.push(Ramp {
+                    x: 0.,
+                    z: 0.,
+                    width: 2.,
+                    length: 0.8,
+                    height: 1.45,
+                });
+            } else {
+                s.blocks.push(Block {
+                    bounds: Aabb::from_center(vec3(0., 1.3, -0.6), vec3(0.8, 0.3, 0.3)),
+                    kind: 2,
+                });
+            }
+            let cfg = Settings {
+                hip_spread: 0.,
+                ads_spread: 0.,
+                ..Settings::default()
+            };
+            s.update(
+                Input {
+                    fire: true,
+                    ..Input::default()
+                },
+                &cfg,
+                FIXED_DT,
+            );
+            assert_eq!(s.stats.shots, 1);
+            assert_eq!(s.stats.hits, 0, "wedge={wedge}");
+        }
     }
 }
