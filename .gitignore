@@ -1,0 +1,6 @@
+/target/
+/dist/
+/telemetry*.csv
+/capture*.png
+*.log
+.DS_Store
