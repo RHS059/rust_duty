@@ -37,13 +37,15 @@ priority over sprint and the simulation's Space-to-stand override.
 
 ## Reset and focus safety
 
-Pause, resume, F2 reset, and the existing detected focus-switch/long-frame pause
+Pause, resume, F2 reset, and detected focus-switch pause
 clear desired ADS and stance state along with pending fire/jump/reload work. A
 control held across that boundary must be released before it can reactivate.
 Resume clicks never fire. Standing after resume remains subject to headroom.
 
-Focus detection remains limited to the existing Alt/Super shortcut and >250 ms
-frame-hitch checks. Use Escape before switching applications.
+Fresh Alt/Super edges pause once; a held modifier cannot repeatedly re-pause.
+Frames above 250 ms discard stale timing/fire input without entering pause.
+Escape, Enter and click resume remain responsive after a hitch. Focus detection
+is not universal; use Escape before switching applications.
 
 ## Input and verification
 

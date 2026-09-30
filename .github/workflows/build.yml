@@ -45,6 +45,7 @@ jobs:
             docs/ASSET_FORMAT.md
             docs/M4_PROFILE.md
             assets/README.md
+            assets/weapons/*.vrm
             profiles/*.cfg
           if-no-files-found: error
       - name: Upload Linux executable
@@ -62,5 +63,6 @@ jobs:
             docs/ASSET_FORMAT.md
             docs/M4_PROFILE.md
             assets/README.md
+            assets/weapons/*.vrm
             profiles/*.cfg
           if-no-files-found: error

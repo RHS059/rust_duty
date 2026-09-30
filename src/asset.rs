@@ -35,6 +35,8 @@ pub struct AssetMesh {
 }
 #[derive(Debug, Clone)]
 pub struct WeaponAsset {
+    /// Header CRC identifies a known viewmodel rig; it is not an authenticity check.
+    pub payload_crc32: u32,
     pub meshes: Vec<AssetMesh>,
 }
 struct Reader<'a> {
@@ -205,7 +207,10 @@ impl WeaponAsset {
         if r.pos != bytes.len() {
             return Err(error("unexpected trailing data"));
         }
-        Ok(Self { meshes })
+        Ok(Self {
+            payload_crc32: checksum,
+            meshes,
+        })
     }
 }
 #[cfg(test)]

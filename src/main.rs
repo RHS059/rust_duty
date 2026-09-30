@@ -592,8 +592,8 @@ async fn main() {
         },
     );
     target.texture.set_filter(FilterMode::Linear);
-    let mut active = false;
     let mut initial = true;
+    let mut session = vector_range::session::SessionController::default();
     let mut debug = false;
     let mut fullscreen = false;
     let mut clock = FixedClock::default();
@@ -607,25 +607,34 @@ async fn main() {
     let mut recording: Option<File> = None;
     let mut record_clock = 0.;
     let mut intents = IntentLatch::default();
-    let model_result =
-        if let Some(path) = args.iter().find_map(|s| s.strip_prefix("--weapon-asset=")) {
-            Some(vector_range::asset::WeaponAsset::load(path))
-        } else {
-            vector_range::EMBEDDED_WEAPON.map(vector_range::asset::WeaponAsset::decode)
+    let executable =
+        std::env::current_exe().unwrap_or_else(|_| std::path::PathBuf::from("vector-range.exe"));
+    let explicit = args.iter().find_map(|s| s.strip_prefix("--weapon-asset="));
+    let model_source = vector_range::asset_path::resolve_weapon(
+        &executable,
+        explicit.map(std::path::Path::new),
+        args.iter().any(|s| s == "--procedural-weapon"),
+        vector_range::EMBEDDED_WEAPON.is_some(),
+    );
+    let mut model_error = None;
+    let model_missing = matches!(
+        &model_source,
+        vector_range::asset_path::WeaponSource::Missing(_)
+    );
+    let model =
+        match vector_range::asset_path::load_weapon(&model_source, vector_range::EMBEDDED_WEAPON) {
+            Ok(Some(asset)) => {
+                eprintln!("Loaded VRMESH01 weapon: {} mesh parts", asset.meshes.len());
+                Some(weapon_model::WeaponModel::from_asset(asset))
+            }
+            Err(error) => {
+                let message = format!("Weapon asset could not load: {error}");
+                eprintln!("{message}; source: {model_source:?}");
+                model_error = Some(message);
+                None
+            }
+            Ok(None) => None,
         };
-    let model = match model_result {
-        Some(Ok(asset)) => {
-            eprintln!("Loaded VRMESH01 weapon: {} mesh parts", asset.meshes.len());
-            Some(weapon_model::WeaponModel::from_asset(asset))
-        }
-        Some(Err(error)) => {
-            eprintln!("Weapon asset rejected ({error}); using procedural fallback");
-            notice = format!("Asset rejected: {error}. Using procedural rifle");
-            notice_timer = 12.;
-            None
-        }
-        None => None,
-    };
     let capture = args.iter().any(|s| s.starts_with("--capture"));
     let capture_ads = args.iter().any(|s| s == "--capture-ads");
     let capture_fixtures = args.iter().any(|s| s == "--capture-fixtures");
@@ -643,7 +652,7 @@ async fn main() {
     let demo = args.iter().any(|s| s == "--demo");
     let mut frames = 0;
     if capture || demo {
-        active = true;
+        session.set_active(true);
         initial = false;
         debug = true;
     }
@@ -653,53 +662,44 @@ async fn main() {
         last_frame = now;
         let dt = raw_dt.min(FixedClock::MAX_FRAME) as f32;
         frames += 1;
-        if active
-            && frames > 8
-            && (raw_dt > FixedClock::MAX_FRAME
-                || is_key_down(KeyCode::LeftAlt)
-                || is_key_down(KeyCode::RightAlt)
-                || is_key_down(KeyCode::LeftSuper)
-                || is_key_down(KeyCode::RightSuper))
-        {
-            active = false;
-            set_cursor_grab(false);
-            show_mouse(true);
-            clock.clear();
-            intents.clear();
-            controls.clear();
-            sim.player.firing_sequence = false;
-            notice = "Paused after focus shortcut or a long frame hitch".into();
-            notice_timer = 4.;
-        }
-        let mut just_resumed = false;
         if is_key_pressed(KeyCode::F10) {
             break;
         }
-        if is_key_pressed(KeyCode::Escape) {
-            active = !active;
-            just_resumed = active;
-            intents.clear();
-            controls.clear();
-            sim.player.firing_sequence = false;
-
+        let transition = session.step(vector_range::session::SessionInput {
+            esc_pressed: is_key_pressed(KeyCode::Escape),
+            esc_down: is_key_down(KeyCode::Escape),
+            enter_pressed: is_key_pressed(KeyCode::Enter),
+            enter_down: is_key_down(KeyCode::Enter),
+            click_pressed: is_mouse_button_pressed(MouseButton::Left),
+            click_down: is_mouse_button_down(MouseButton::Left),
+            focus_shortcut_pressed: is_key_down(KeyCode::LeftAlt)
+                || is_key_down(KeyCode::RightAlt)
+                || is_key_down(KeyCode::LeftSuper)
+                || is_key_down(KeyCode::RightSuper),
+            blocked: model_error.is_some(),
+            dt: raw_dt,
+        });
+        let active = transition.active;
+        let mut just_resumed = transition.resumed;
+        if transition.paused || transition.resumed {
             initial = false;
             set_cursor_grab(active);
             show_mouse(!active);
             clock.clear();
-        }
-        if !active && (is_mouse_button_pressed(MouseButton::Left) || is_key_pressed(KeyCode::Enter))
-        {
-            active = true;
-            just_resumed = true;
             intents.clear();
             controls.clear();
             sim.player.firing_sequence = false;
-
-            initial = false;
-            set_cursor_grab(true);
-            show_mouse(false);
-            clock.clear();
         }
+        if transition.discard_timing {
+            clock.clear();
+            intents.clear();
+            sim.player.firing_sequence = false;
+        }
+        let simulation_dt = if transition.discard_timing {
+            0.
+        } else {
+            raw_dt.min(FixedClock::MAX_FRAME)
+        };
         if is_key_pressed(KeyCode::M) {
             audio.muted = !audio.muted;
             notice = if audio.muted {
@@ -768,7 +768,7 @@ async fn main() {
             notice_timer = 4.;
         }
         if active {
-            let mouse = if just_resumed {
+            let mouse = if just_resumed || transition.discard_timing {
                 Vec2::ZERO
             } else {
                 mouse_delta_position()
@@ -791,7 +791,7 @@ async fn main() {
                 is_key_pressed(KeyCode::R),
                 is_mouse_button_pressed(MouseButton::Left),
                 is_mouse_button_down(MouseButton::Left),
-                !just_resumed,
+                !just_resumed && !transition.discard_timing,
             );
             controls.sample(
                 ControlSample {
@@ -833,9 +833,7 @@ async fn main() {
                 sim.player.yaw = -std::f32::consts::FRAC_PI_2;
                 sim.player.pitch = 0.;
             }
-            let steps = clock
-                .advance(raw_dt.min(FixedClock::MAX_FRAME))
-                .unwrap_or(0);
+            let steps = clock.advance(simulation_dt).unwrap_or(0);
             for _ in 0..steps {
                 let step = intents.take(is_mouse_button_down(MouseButton::Left));
                 if step.jump {
@@ -952,6 +950,32 @@ async fn main() {
         );
         if !active {
             pause_screen(&cfg, initial, controls.mode());
+        }
+        if let Some(error) = &model_error {
+            panel(24., screen_height() - 140., screen_width() - 48., 115.);
+            label(
+                &error.chars().take(105).collect::<String>(),
+                42.,
+                screen_height() - 108.,
+                19.,
+                RED,
+            );
+            label(
+                "Re-extract the whole game folder. Expected: assets/weapons/hk416a5.vrm",
+                42.,
+                screen_height() - 78.,
+                16.,
+                WHITE,
+            );
+            label(
+                "F10 exits. --procedural-weapon is an explicit diagnostic bypass.",
+                42.,
+                screen_height() - 48.,
+                16.,
+                MUTED,
+            );
+        } else if model_missing {
+            label("HK416 asset missing: extract the whole package beside the EXE (procedural fallback active)",24.,screen_height()-155.,16.,YELLOW);
         }
         if capture && frames == 8 {
             get_screen_data().export_png(output);

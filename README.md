@@ -1,4 +1,4 @@
-> Intermediate source-only update: the supplied HK416 was verified locally, but its model binary and new screenshots are not in this commit. The game uses its procedural fallback until the separately authorized single asset upload finishes.
+> Source-only repository update: the supplied HK416 is verified locally and included in the private playable bundle as one sidecar file. Its single-file GitHub upload is pending. An executable with that asset beside it now loads it automatically.
 
 # VECTOR RANGE
 
@@ -37,7 +37,10 @@ cargo run --release -- --profile=kestrel --procedural-weapon
 `--profile=kestrel` loads `profiles/kestrel.cfg` on top of the authored original.
 `--settings=PATH` chooses a different override file; F5/F6 save/reload that same path.
 The model choice is independent of the gameplay profile. Missing or invalid runtime
-model overrides fall back safely; `--procedural-weapon` explicitly selects primitives.
+model assets produce a visible fallback warning. Invalid model data blocks play with
+an actionable error instead of silently hiding it. `--procedural-weapon` explicitly
+selects primitives. Double-clicking the EXE automatically checks its adjacent
+`assets/weapons/hk416a5.vrm`, independent of the process working directory.
 
 ## Play
 
@@ -85,9 +88,10 @@ apply. A fresh Shift press cancels toggled ADS. Use `--hold-controls` to restore
 hold-to-ADS/crouch/prone. See [control behavior and checks](docs/CONTROLS.md).
 
 The first resume click does not fire. Pause, resume, reset, and detected focus loss
-clear ADS/stance intentions; held buttons must be released before reactivation. After a focus-switch keyboard shortcut or
-frame hitch longer than 250 ms, the prototype pauses instead of replaying stale
-shots. Escape remains the explicit pause control; see the focus-detection limit below.
+clear ADS/stance intentions; held buttons must be released before reactivation.
+A fresh Alt/Super shortcut pauses. Long frame hitches discard stale timing/input
+without changing pause state, so a slow frame cannot trap the game in pause.
+Escape toggles pause; Enter or a click also resumes.
 
 ## What's implemented
 
@@ -140,6 +144,6 @@ Collision supports axis-aligned boxes and the authored wedge fixtures, not arbit
 mesh geometry. The level uses diagnostic primitive art; the untextured weapon uses simple diffuse
 shading, not full PBR. The model is static: reload motion is whole-weapon lowering,
 without rigged hands or mechanical magazine/bolt animations. The native engine does not
-expose a universal focus callback to this application: Alt/Super shortcuts and long
-hitches pause safely, but every OS focus-change path is not covered. Always press
+expose a universal focus callback to this application: fresh Alt/Super shortcuts
+pause safely, but every OS focus-change path is not covered. Always press
 Escape before switching apps. Retail comparison and blinded feel testing remain open.

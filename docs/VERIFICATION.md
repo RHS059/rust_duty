@@ -1,4 +1,4 @@
-> Intermediate source-only update: the supplied HK416 was verified locally, but its model binary and new screenshots are not in this commit. The game uses its procedural fallback until the separately authorized single asset upload finishes.
+> Source-only repository update: the supplied HK416 is verified locally and included in the private playable bundle as one sidecar file. Its single-file GitHub upload is pending. An executable with that asset beside it now loads it automatically.
 
 # Verification record
 
@@ -105,3 +105,14 @@ all proposed acceptance cases or every platform passed.
 - Static mesh subset only. Skins, morphs and animations fail explicitly; no rig
   is silently discarded. Current renderer is simple diffuse/base-color rendering,
   not full PBR. CRC/version/bounds validate data, not authenticity or licensing
+
+## EXE loading and pause-loop hotfix
+
+182 Rust tests and 38 Python tests pass locally; formatting and all-target Clippy
+with warnings denied pass. The new coverage includes 7 packaged asset discovery
+cases, 28 session-state regressions and 8 complementary multi-mesh decoder tests.
+Native Linux smoke test used an executable in a folder containing spaces with
+`/tmp` as the working directory and no model command-line argument: HK416 loaded.
+Repeated Escape pause/resume, Enter resume, and click resume worked, with 30/90
+rounds preserved on the resume click. The slow cloud renderer did not re-pause.
+Windows runtime input remains untested; exact-head Windows CI is checked separately.

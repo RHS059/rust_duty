@@ -8,3 +8,7 @@ pub mod clock;
 
 pub mod asset;
 include!(concat!(env!("OUT_DIR"), "/weapon_embed.rs"));
+
+pub mod asset_path;
+
+pub mod session;
