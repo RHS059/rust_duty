@@ -316,17 +316,31 @@ fn serve(
     }
     Ok(())
 }
-fn wait_for_prefix(store: &Store) {
+fn wait_for_prefix(
+    store: &Store,
+    worker: thread::JoinHandle<Result<PathBuf>>,
+) -> thread::JoinHandle<Result<PathBuf>> {
     let deadline = Instant::now() + Duration::from_secs(30);
+    let mut last_status = String::from("not read yet");
     while Instant::now() < deadline {
-        if read_json::<download::Progress>(&store.root.join("status.json"))
-            .is_ok_and(|p| p.bytes > 0)
-        {
-            return;
+        let progress = read_json::<download::Progress>(&store.root.join("status.json"));
+        if progress.as_ref().is_ok_and(|p| p.bytes > 0) {
+            return worker;
+        }
+        last_status = format!("{progress:?}");
+        if worker.is_finished() {
+            let result = worker.join();
+            panic!(
+                "downloader exited before a durable prefix was observed: {result:?}; \
+                 last status read: {last_status}"
+            );
         }
         thread::sleep(Duration::from_millis(2));
     }
-    panic!("no downloaded prefix observed");
+    panic!(
+        "no downloaded prefix observed; worker finished={}; last status read: {last_status}",
+        worker.is_finished()
+    );
 }
 
 #[test]
@@ -618,9 +632,13 @@ fn pause_resume_and_cancel_are_persisted() {
     let (path, source, artifact) = (store.root.clone(), server.source(), asset.clone());
     let worker =
         thread::spawn(move || download::download(&path, &source, &version("1.1.0"), &artifact));
-    wait_for_prefix(&store);
+    let worker = wait_for_prefix(&store, worker);
     download::set_control(&store.root, Control::Paused).unwrap();
-    assert!(matches!(worker.join().unwrap(), Err(Error::Paused)));
+    let result = worker.join().unwrap();
+    assert!(
+        matches!(result, Err(Error::Paused)),
+        "pause result: {result:?}"
+    );
     let part = store
         .root
         .join("cache")

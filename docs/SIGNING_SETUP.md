@@ -10,7 +10,7 @@ To activate the update channel, the owner must personally complete local key/sec
 
 1. Your own Windows computer and an existing GitHub CLI installation from [GitHub CLI](https://cli.github.com/)
 2. Your existing `gh` login must already work for `github.com` and be authorized to set repository Actions secrets/variables in **RHS059/rust_duty**
-3. The reviewed Windows artifact **rust-duty-bootstrap-windows-unconfigured** from the updater CI, extracted into one folder
+3. The reviewed Windows artifact **rust-duty-signing-setup-windows** from the owner setup CI, extracted into one folder (the full unconfigured bootstrap kit also contains the same helper)
 4. Explicit approval for the dedicated signing key, the private local folder ACL and the repository signing secret/public variable
 
 Check your existing authentication yourself:
@@ -21,7 +21,7 @@ gh auth status --hostname github.com
 
 The script pins every request to `github.com`, verifies repository ID `1398577887`, and stops if authentication is missing. A custom `GH_HOST` cannot redirect private-key or asset transmission. It does not run `gh auth login`, refresh scopes, generate GitHub tokens, change repository permissions or ask an assistant for credentials. If you lack access, stop and resolve it personally with the repository owner.
 
-The artifact includes `rust-duty-release-sign.exe`, `setup-release-signing.ps1`, `publish-approved-weapon.ps1`, the launcher, documentation and updater-specific dependency licenses. No Rust or Python installation is needed to run the one-time Windows setup helper. A source-build alternative is `cargo build --manifest-path updater/Cargo.toml --locked --release --bins`.
+The setup-only artifact includes `rust-duty-release-sign.exe`, `setup-release-signing.ps1`, `publish-approved-weapon.ps1`, documentation and dependency licenses. It contains no game or updater launcher; launcher delivery is separately gated on its full Windows tests. No Rust or Python installation is needed to run the one-time Windows setup helper. A source-build alternative is `cargo build --manifest-path updater/Cargo.toml --locked --release --bins`.
 
 ## Exact owner-run command
 
