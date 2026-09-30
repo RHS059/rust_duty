@@ -10,8 +10,8 @@ use semver::Version;
 use std::{
     collections::HashMap,
     fs,
-    io::{BufRead, BufReader, Write},
-    net::{TcpListener, TcpStream},
+    io::{BufRead, BufReader, Read, Write},
+    net::{Shutdown, TcpListener, TcpStream},
     path::{Path, PathBuf},
     process::Command,
     sync::{
@@ -128,6 +128,7 @@ struct Behavior {
     change_etag: bool,
     wrong_range: bool,
     stall_once: bool,
+    delay_once: Option<Duration>,
     slow: bool,
 }
 struct Server {
@@ -203,7 +204,8 @@ fn serve(
     behavior: Arc<Mutex<Behavior>>,
 ) -> std::io::Result<()> {
     stream.set_read_timeout(Some(Duration::from_secs(3)))?;
-    let mut reader = BufReader::new(stream.try_clone()?);
+    // Borrow the single socket instead of duplicating its Windows socket handle.
+    let mut reader = BufReader::new(&mut stream);
     let mut first = String::new();
     reader.read_line(&mut first)?;
     let path = first.split_whitespace().nth(1).unwrap_or("").to_owned();
@@ -218,6 +220,7 @@ fn serve(
             headers.insert(key.to_ascii_lowercase(), value.trim().to_owned());
         }
     }
+    drop(reader);
     let name = path.rsplit('/').next().unwrap();
     let Some(body) = bodies.lock().unwrap().get(name).cloned() else {
         stream.write_all(
@@ -238,11 +241,18 @@ fn serve(
         start,
         if_range: headers.get("if-range").cloned(),
     });
-    let (cut, change, wrong, stall, slow) = {
+    let (cut, change, wrong, stall, delay, slow) = {
         let mut state = behavior.lock().unwrap();
         let cut = state.cut_once.take();
         let stall = std::mem::take(&mut state.stall_once);
-        (cut, state.change_etag, state.wrong_range, stall, state.slow)
+        (
+            cut,
+            state.change_etag,
+            state.wrong_range,
+            stall,
+            state.delay_once.take(),
+            state.slow,
+        )
     };
     let etag = if change {
         "\"version-two\""
@@ -270,6 +280,9 @@ fn serve(
         thread::sleep(Duration::from_millis(1600));
         return Ok(());
     }
+    if let Some(delay) = delay {
+        thread::sleep(delay);
+    }
     let end = cut.map_or(end + 1, |n| (start + n).min(end + 1));
     for chunk in body[start..end].chunks(16384) {
         stream.write_all(chunk)?;
@@ -277,10 +290,19 @@ fn serve(
             thread::sleep(Duration::from_millis(3));
         }
     }
+    // Perform an orderly half-close and allow the client to drain queued body bytes.
+    // Closing duplicate sockets with unread/pending data can surface as resets on Windows.
+    stream.shutdown(Shutdown::Write)?;
+    let mut remaining = [0; 256];
+    while let Ok(n) = stream.read(&mut remaining) {
+        if n == 0 {
+            break;
+        }
+    }
     Ok(())
 }
 fn wait_for_prefix(store: &Store) {
-    let deadline = Instant::now() + Duration::from_secs(5);
+    let deadline = Instant::now() + Duration::from_secs(30);
     while Instant::now() < deadline {
         if read_json::<download::Progress>(&store.root.join("status.json"))
             .is_ok_and(|p| p.bytes > 0)
@@ -652,7 +674,12 @@ fn stalled_server_times_out_without_losing_install() {
     server.put(&artifact.name, bytes);
     server.behavior.lock().unwrap().stall_once = true;
     assert!(matches!(
-        download::download(&store.root, &server.source(), &version("1.1.0"), &artifact),
+        download::download(
+            &store.root,
+            &Source::loopback_with_timeout(server.port, Duration::from_millis(1200)).unwrap(),
+            &version("1.1.0"),
+            &artifact
+        ),
         Err(Error::Network(_))
     ));
     assert_eq!(
@@ -935,4 +962,18 @@ fn automatic_launch_occurs_once_only_after_an_install_is_available() {
     let mut cancelled = launch::AutoPlayOnce::new(true);
     cancelled.cancel();
     assert!(!cancelled.take_if_installed(true));
+}
+
+#[test]
+fn ordinary_transfer_can_wait_longer_than_the_intentional_stall_budget() {
+    let root = tempfile::tempdir().unwrap();
+    let store = Store::open(root.path()).unwrap();
+    let body = random_bytes(64 * 1024);
+    let artifact = asset("delayed.rdb", &body);
+    let server = Server::new();
+    server.put(&artifact.name, body.clone());
+    server.behavior.lock().unwrap().delay_once = Some(Duration::from_millis(1600));
+    let ready =
+        download::download(&store.root, &server.source(), &version("1.1.0"), &artifact).unwrap();
+    assert_eq!(fs::read(ready).unwrap(), body);
 }

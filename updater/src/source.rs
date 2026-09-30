@@ -58,9 +58,15 @@ impl Source {
     }
     #[cfg(test)]
     pub(crate) fn loopback(port: u16) -> Result<Self> {
+        // Normal fixtures need the production-sized budget: response deadlines include
+        // the caller's durable checkpoint writes, which are slower on Windows CI.
+        Self::loopback_with_timeout(port, Duration::from_secs(30))
+    }
+    #[cfg(test)]
+    pub(crate) fn loopback_with_timeout(port: u16, timeout: Duration) -> Result<Self> {
         Ok(Self {
             client: Client::builder()
-                .timeout(Duration::from_millis(1200))
+                .timeout(timeout)
                 .redirect(Policy::none())
                 .build()
                 .unwrap(),
