@@ -1,0 +1,938 @@
+use super::*;
+use crate::{
+    download::{self, Control},
+    install::Store,
+    manifest::{Asset, Delta, Envelope, Manifest, Trust},
+    source::Source,
+};
+use ed25519_dalek::{Signer, SigningKey};
+use semver::Version;
+use std::{
+    collections::HashMap,
+    fs,
+    io::{BufRead, BufReader, Write},
+    net::{TcpListener, TcpStream},
+    path::{Path, PathBuf},
+    process::Command,
+    sync::{
+        atomic::{AtomicBool, Ordering},
+        Arc, Mutex,
+    },
+    thread,
+    time::{Duration, Instant},
+};
+
+// Deterministic local-only TEST key. Production cannot construct fixture trust.
+fn signing_key() -> SigningKey {
+    SigningKey::from_bytes(&[59; 32])
+}
+fn trust() -> Trust {
+    Trust::fixture(&signing_key().verifying_key())
+}
+fn sign(manifest: &Manifest) -> Vec<u8> {
+    let payload = serde_json::to_string(manifest).unwrap();
+    let signature = hex::encode(signing_key().sign(payload.as_bytes()).to_bytes());
+    serde_json::to_vec(&Envelope { payload, signature }).unwrap()
+}
+fn version(value: &str) -> Version {
+    Version::parse(value).unwrap()
+}
+fn asset(name: &str, data: &[u8]) -> Asset {
+    Asset {
+        name: name.into(),
+        size: data.len() as u64,
+        sha256: bytes_hash(data),
+    }
+}
+fn random_bytes(size: usize) -> Vec<u8> {
+    let mut state = 59u64;
+    (0..size)
+        .map(|_| {
+            state ^= state << 13;
+            state ^= state >> 7;
+            state ^= state << 17;
+            state as u8
+        })
+        .collect()
+}
+fn bundle_files(files: &[(&str, u8, &[u8])]) -> Vec<u8> {
+    let mut data = b"RDBND001".to_vec();
+    data.extend_from_slice(&(files.len() as u32).to_le_bytes());
+    for (path, mode, body) in files {
+        data.extend_from_slice(&(path.len() as u16).to_le_bytes());
+        data.extend_from_slice(path.as_bytes());
+        data.push(*mode);
+        data.extend_from_slice(&(body.len() as u64).to_le_bytes());
+        data.extend_from_slice(body);
+    }
+    data
+}
+fn bundle(data: &[u8]) -> Vec<u8> {
+    bundle_files(&[("data.bin", 0, data), ("game", 1, b"#!/bin/sh\nexit 0\n")])
+}
+fn manifest(full: &[u8]) -> Manifest {
+    Manifest {
+        schema: 1,
+        repository: REPOSITORY.into(),
+        version: version("1.1.0"),
+        sequence: 2,
+        target: TARGET.into(),
+        entrypoint: "game".into(),
+        bundle: asset("game-1.1.0.rdb", full),
+        deltas: vec![],
+    }
+}
+fn write(root: &Path, name: &str, data: &[u8]) -> PathBuf {
+    let path = root.join(name);
+    fs::write(&path, data).unwrap();
+    path
+}
+fn old_store(root: &Path, base: &[u8]) -> Store {
+    let store = Store::open(&root.join("install")).unwrap();
+    store
+        .install_local(&write(root, "base.rdb", base), version("1.0.0"), "game")
+        .unwrap();
+    store
+}
+fn make_patch(root: &Path, base: &[u8], new: &[u8]) -> Vec<u8> {
+    let base = write(root, "patch-base.rdb", base);
+    let new = write(root, "patch-new.rdb", new);
+    let output = root.join("patch.rdd");
+    let script = Path::new(env!("CARGO_MANIFEST_DIR")).join("../tools/release_update.py");
+    let result = Command::new("python")
+        .arg(script)
+        .args(["delta", "--base"])
+        .arg(base)
+        .arg("--new")
+        .arg(new)
+        .arg("--output")
+        .arg(&output)
+        .output()
+        .unwrap();
+    assert!(
+        result.status.success(),
+        "{}",
+        String::from_utf8_lossy(&result.stderr)
+    );
+    fs::read(output).unwrap()
+}
+#[derive(Clone, Debug)]
+struct Request {
+    path: String,
+    start: usize,
+    if_range: Option<String>,
+}
+#[derive(Default)]
+struct Behavior {
+    cut_once: Option<usize>,
+    change_etag: bool,
+    wrong_range: bool,
+    stall_once: bool,
+    slow: bool,
+}
+struct Server {
+    port: u16,
+    bodies: Arc<Mutex<HashMap<String, Vec<u8>>>>,
+    requests: Arc<Mutex<Vec<Request>>>,
+    behavior: Arc<Mutex<Behavior>>,
+    stop: Arc<AtomicBool>,
+    worker: Option<thread::JoinHandle<()>>,
+}
+impl Server {
+    fn new() -> Self {
+        let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+        listener.set_nonblocking(true).unwrap();
+        let port = listener.local_addr().unwrap().port();
+        let bodies = Arc::new(Mutex::new(HashMap::new()));
+        let requests = Arc::new(Mutex::new(Vec::new()));
+        let behavior = Arc::new(Mutex::new(Behavior::default()));
+        let stop = Arc::new(AtomicBool::new(false));
+        let (b, r, h, s) = (
+            bodies.clone(),
+            requests.clone(),
+            behavior.clone(),
+            stop.clone(),
+        );
+        let worker = thread::spawn(move || {
+            while !s.load(Ordering::Relaxed) {
+                match listener.accept() {
+                    Ok((stream, _)) => {
+                        let (b, r, h) = (b.clone(), r.clone(), h.clone());
+                        thread::spawn(move || {
+                            let _ = serve(stream, b, r, h);
+                        });
+                    }
+                    Err(e) if e.kind() == std::io::ErrorKind::WouldBlock => {
+                        thread::sleep(Duration::from_millis(2))
+                    }
+                    Err(e) => panic!("{e}"),
+                }
+            }
+        });
+        Self {
+            port,
+            bodies,
+            requests,
+            behavior,
+            stop,
+            worker: Some(worker),
+        }
+    }
+    fn source(&self) -> Source {
+        Source::loopback(self.port).unwrap()
+    }
+    fn put(&self, name: &str, body: Vec<u8>) {
+        self.bodies.lock().unwrap().insert(name.into(), body);
+    }
+    fn logs(&self) -> Vec<Request> {
+        self.requests.lock().unwrap().clone()
+    }
+}
+impl Drop for Server {
+    fn drop(&mut self) {
+        self.stop.store(true, Ordering::Relaxed);
+        if let Some(worker) = self.worker.take() {
+            worker.join().unwrap();
+        }
+    }
+}
+fn serve(
+    mut stream: TcpStream,
+    bodies: Arc<Mutex<HashMap<String, Vec<u8>>>>,
+    requests: Arc<Mutex<Vec<Request>>>,
+    behavior: Arc<Mutex<Behavior>>,
+) -> std::io::Result<()> {
+    stream.set_read_timeout(Some(Duration::from_secs(3)))?;
+    let mut reader = BufReader::new(stream.try_clone()?);
+    let mut first = String::new();
+    reader.read_line(&mut first)?;
+    let path = first.split_whitespace().nth(1).unwrap_or("").to_owned();
+    let mut headers = HashMap::new();
+    loop {
+        let mut line = String::new();
+        reader.read_line(&mut line)?;
+        if line == "\r\n" || line.is_empty() {
+            break;
+        }
+        if let Some((key, value)) = line.trim().split_once(':') {
+            headers.insert(key.to_ascii_lowercase(), value.trim().to_owned());
+        }
+    }
+    let name = path.rsplit('/').next().unwrap();
+    let Some(body) = bodies.lock().unwrap().get(name).cloned() else {
+        stream.write_all(
+            b"HTTP/1.1 404 Not Found\r\nContent-Length: 0\r\nConnection: close\r\n\r\n",
+        )?;
+        return Ok(());
+    };
+    let range = headers.get("range").map(|v| {
+        let (start, end) = v.trim_start_matches("bytes=").split_once('-').unwrap();
+        (
+            start.parse::<usize>().unwrap(),
+            end.parse::<usize>().unwrap(),
+        )
+    });
+    let (start, end) = range.unwrap_or((0, body.len() - 1));
+    requests.lock().unwrap().push(Request {
+        path,
+        start,
+        if_range: headers.get("if-range").cloned(),
+    });
+    let (cut, change, wrong, stall, slow) = {
+        let mut state = behavior.lock().unwrap();
+        let cut = state.cut_once.take();
+        let stall = std::mem::take(&mut state.stall_once);
+        (cut, state.change_etag, state.wrong_range, stall, state.slow)
+    };
+    let etag = if change {
+        "\"version-two\""
+    } else {
+        "\"version-one\""
+    };
+    let (status, start, end) =
+        if range.is_some() && headers.get("if-range").is_none_or(|s| s == etag) {
+            (206, start, end)
+        } else {
+            (200, 0, body.len() - 1)
+        };
+    let length = end - start + 1;
+    let content_range = if status == 206 {
+        format!(
+            "Content-Range: bytes {}-{end}/{}\r\n",
+            start + usize::from(wrong),
+            body.len()
+        )
+    } else {
+        String::new()
+    };
+    write!(stream, "HTTP/1.1 {status} OK\r\nContent-Length: {length}\r\nETag: {etag}\r\n{content_range}Connection: close\r\n\r\n")?;
+    if stall {
+        thread::sleep(Duration::from_millis(1600));
+        return Ok(());
+    }
+    let end = cut.map_or(end + 1, |n| (start + n).min(end + 1));
+    for chunk in body[start..end].chunks(16384) {
+        stream.write_all(chunk)?;
+        if slow {
+            thread::sleep(Duration::from_millis(3));
+        }
+    }
+    Ok(())
+}
+fn wait_for_prefix(store: &Store) {
+    let deadline = Instant::now() + Duration::from_secs(5);
+    while Instant::now() < deadline {
+        if read_json::<download::Progress>(&store.root.join("status.json"))
+            .is_ok_and(|p| p.bytes > 0)
+        {
+            return;
+        }
+        thread::sleep(Duration::from_millis(2));
+    }
+    panic!("no downloaded prefix observed");
+}
+
+#[test]
+fn signed_manifest_fails_closed_on_tampering_and_malformed_fields() {
+    let good = manifest(&bundle(b"hello"));
+    let signed = sign(&good);
+    assert!(trust().verify(&signed, TARGET).is_ok());
+    let mut envelope: Envelope = serde_json::from_slice(&signed).unwrap();
+    envelope.payload.push(' ');
+    assert!(trust()
+        .verify(&serde_json::to_vec(&envelope).unwrap(), TARGET)
+        .is_err());
+    assert!(trust().verify(b"not-json", TARGET).is_err());
+    assert!(trust().verify(&signed, "wrong-target").is_err());
+    let mut bad = good.clone();
+    bad.bundle.name = "../../evil.exe".into();
+    assert!(trust().verify(&sign(&bad), TARGET).is_err());
+    bad = good.clone();
+    bad.bundle.sha256 = "0".repeat(63);
+    assert!(trust().verify(&sign(&bad), TARGET).is_err());
+    bad = good.clone();
+    bad.repository = "attacker/rust_duty".into();
+    assert!(trust().verify(&sign(&bad), TARGET).is_err());
+    bad = good.clone();
+    bad.entrypoint = "../game".into();
+    assert!(trust().verify(&sign(&bad), TARGET).is_err());
+    bad = good;
+    bad.version = version("1.1.0-beta.1");
+    assert!(trust().verify(&sign(&bad), TARGET).is_err());
+}
+#[test]
+fn unconfigured_production_cannot_use_test_trust() {
+    if option_env!("RUST_DUTY_UPDATE_PUBLIC_KEY").is_none() {
+        assert!(matches!(Trust::production(), Err(Error::Unconfigured)));
+    }
+}
+#[test]
+fn redirect_and_windows_path_restrictions() {
+    for url in [
+        "https://github.com/RHS059/rust_duty/releases/download/v1/x",
+        "https://release-assets.githubusercontent.com/file",
+    ] {
+        assert!(source::redirect_allowed(url));
+    }
+    for url in [
+        "http://github.com/RHS059/rust_duty/releases/x",
+        "https://github.com/other/repo/releases/x",
+        "https://github.com.evil.test/RHS059/rust_duty/releases/x",
+        "https://evil.test/x",
+        "https://user:pass@github.com/RHS059/rust_duty/releases/x",
+    ] {
+        assert!(!source::redirect_allowed(url));
+    }
+    for path in [
+        "../x",
+        "/x",
+        "C:/x",
+        "x\\y",
+        "a//b",
+        "NUL.txt",
+        "COM1",
+        "name.",
+        "private-assets/key",
+        "settings.cfg",
+        "payload.rdb",
+        "version.json",
+    ] {
+        assert!(bundle::safe_path(path).is_err(), "{path}");
+    }
+}
+#[test]
+fn bundle_rejects_traversal_special_types_duplicate_paths_and_truncation() {
+    let root = tempfile::tempdir().unwrap();
+    for files in [
+        vec![("../game", 1, b"x".as_slice())],
+        vec![("game", 2, b"x".as_slice())],
+        vec![("game", 1, b"x".as_slice()), ("GAME", 1, b"y".as_slice())],
+    ] {
+        let destination = tempfile::tempdir_in(root.path()).unwrap();
+        assert!(bundle::unpack(
+            &write(root.path(), "bad.rdb", &bundle_files(&files)),
+            destination.path(),
+            "game"
+        )
+        .is_err());
+    }
+    let data = bundle(b"hi");
+    let destination = tempfile::tempdir_in(root.path()).unwrap();
+    assert!(bundle::unpack(
+        &write(root.path(), "truncated.rdb", &data[..data.len() - 1]),
+        destination.path(),
+        "game"
+    )
+    .is_err());
+    assert!(!root.path().join("game").exists());
+}
+#[test]
+#[cfg(unix)]
+fn refuses_symlink_install_and_bundle_targets() {
+    use std::os::unix::fs::symlink;
+    let root = tempfile::tempdir().unwrap();
+    let outside = tempfile::tempdir().unwrap();
+    symlink(outside.path(), root.path().join("install")).unwrap();
+    assert!(Store::open(&root.path().join("install")).is_err());
+    let destination = root.path().join("output");
+    fs::create_dir(&destination).unwrap();
+    symlink(outside.path().join("stolen"), destination.join("data.bin")).unwrap();
+    assert!(bundle::unpack(
+        &write(root.path(), "input.rdb", &bundle(b"x")),
+        &destination,
+        "game"
+    )
+    .is_err());
+    assert!(!outside.path().join("stolen").exists());
+}
+#[test]
+fn two_version_signed_http_delta_is_byte_identical_and_rolls_back_atomically() {
+    let root = tempfile::tempdir().unwrap();
+    let bytes = random_bytes(512 * 1024);
+    let base = bundle(&bytes);
+    let mut changed = b"inserted new bytes".to_vec();
+    changed.extend_from_slice(&bytes[..32000]);
+    changed.extend_from_slice(b"replacement");
+    changed.extend_from_slice(&bytes[34000..]);
+    let new = bundle(&changed);
+    let patch = make_patch(root.path(), &base, &new);
+    println!(
+        "Delta transfer: {} bytes versus {} full bundle bytes ({:.2}%)",
+        patch.len(),
+        new.len(),
+        100.0 * patch.len() as f64 / new.len() as f64
+    );
+    assert!(
+        patch.len() < new.len() / 10,
+        "actual patch must contain copies and substantially fewer transferred bytes"
+    );
+    let store = old_store(root.path(), &base);
+    fs::write(store.root.join("settings.cfg"), b"keep sensitivity=2.3").unwrap();
+    fs::create_dir(store.root.join("private-assets")).unwrap();
+    fs::write(store.root.join("private-assets/owned.bin"), b"keep private").unwrap();
+    let mut manifest = manifest(&new);
+    manifest.deltas.push(Delta {
+        base_version: version("1.0.0"),
+        base_sha256: bytes_hash(&base),
+        asset: asset("changes.rdd", &patch),
+    });
+    let server = Server::new();
+    server.put(&format!("update-{TARGET}.json"), sign(&manifest));
+    server.put("changes.rdd", patch);
+    server.put(&manifest.bundle.name, new.clone());
+    let verified = store.check(&server.source(), &trust(), TARGET).unwrap();
+    let staged = store.stage(&server.source(), &verified).unwrap();
+    assert_eq!(fs::read(store.bundle_path(&staged)).unwrap(), new);
+    assert_eq!(
+        fs::read(store.version_dir(&staged).join("data.bin")).unwrap(),
+        changed
+    );
+    assert_eq!(
+        store.state().unwrap().active.unwrap().version,
+        version("1.0.0")
+    );
+    assert!(
+        !server
+            .logs()
+            .iter()
+            .any(|r| r.path.ends_with(&manifest.bundle.name)),
+        "matching delta must avoid a full bundle request"
+    );
+    store.activate(staged.clone()).unwrap();
+    assert_eq!(
+        store.state().unwrap().active.unwrap().version,
+        version("1.1.0")
+    );
+    assert!(store.check_newer(&manifest).is_err());
+    let mut downgraded = manifest.clone();
+    downgraded.version = version("0.9.0");
+    downgraded.sequence = 3;
+    assert!(store.check_newer(&downgraded).is_err());
+    store.rollback().unwrap();
+    assert_eq!(
+        store.state().unwrap().active.unwrap().version,
+        version("1.0.0")
+    );
+    assert!(
+        store.activate(staged).is_err(),
+        "rollback must not lower anti-replay high-water mark"
+    );
+    assert_eq!(
+        fs::read(store.root.join("settings.cfg")).unwrap(),
+        b"keep sensitivity=2.3"
+    );
+    assert_eq!(
+        fs::read(store.root.join("private-assets/owned.bin")).unwrap(),
+        b"keep private"
+    );
+    println!("Verified signed local HTTP 1.0.0 -> 1.1.0 using a real patch; exact bundle and file bytes, atomic activation, rollback, and user data preservation passed");
+}
+#[test]
+fn bad_delta_falls_back_to_full_and_wrong_base_skips_delta() {
+    for bad_base in [false, true] {
+        let root = tempfile::tempdir().unwrap();
+        let base = bundle(&random_bytes(200000));
+        let new = bundle(&random_bytes(220000));
+        let store = old_store(root.path(), &base);
+        let patch = b"signed but malformed delta".to_vec();
+        let mut manifest = manifest(&new);
+        manifest.deltas.push(Delta {
+            base_version: version("1.0.0"),
+            base_sha256: if bad_base {
+                "0".repeat(64)
+            } else {
+                bytes_hash(&base)
+            },
+            asset: asset("bad.rdd", &patch),
+        });
+        let server = Server::new();
+        server.put("bad.rdd", patch);
+        server.put(&manifest.bundle.name, new.clone());
+        let staged = store.stage(&server.source(), &manifest).unwrap();
+        assert_eq!(fs::read(store.bundle_path(&staged)).unwrap(), new);
+        assert!(server
+            .logs()
+            .iter()
+            .any(|r| r.path.ends_with(&manifest.bundle.name)));
+        assert_eq!(
+            server.logs().iter().any(|r| r.path.ends_with("bad.rdd")),
+            !bad_base
+        );
+    }
+}
+#[test]
+fn disconnected_download_resumes_from_verified_prefix_after_process_restart() {
+    let root = tempfile::tempdir().unwrap();
+    let store = Store::open(root.path()).unwrap();
+    let bytes = random_bytes(3 * 1024 * 1024);
+    let asset = asset("payload.rdb", &bytes);
+    let server = Server::new();
+    server.put(&asset.name, bytes.clone());
+    server.behavior.lock().unwrap().cut_once = Some(131072);
+    assert!(matches!(
+        download::download(&store.root, &server.source(), &version("1.1.0"), &asset),
+        Err(Error::Network(_))
+    ));
+    let checkpoint = fs::metadata(
+        store
+            .root
+            .join("cache")
+            .join(format!("{}.part", asset.sha256)),
+    )
+    .unwrap()
+    .len();
+    assert!(checkpoint > 0 && checkpoint < asset.size);
+    // Reopen both install and HTTP client, as a new launcher process would.
+    let reopened = Store::open(root.path()).unwrap();
+    let ready =
+        download::download(&reopened.root, &server.source(), &version("1.1.0"), &asset).unwrap();
+    assert_eq!(fs::read(ready).unwrap(), bytes);
+    assert!(server.logs().iter().any(
+        |r| r.start == checkpoint as usize && r.if_range.as_deref() == Some("\"version-one\"")
+    ));
+}
+#[test]
+fn changed_etag_discards_old_prefix_instead_of_appending() {
+    let root = tempfile::tempdir().unwrap();
+    let store = Store::open(root.path()).unwrap();
+    let bytes = random_bytes(2 * 1024 * 1024);
+    let asset = asset("payload.rdb", &bytes);
+    let server = Server::new();
+    server.put(&asset.name, bytes.clone());
+    server.behavior.lock().unwrap().cut_once = Some(131072);
+    assert!(download::download(&store.root, &server.source(), &version("1.1.0"), &asset).is_err());
+    server.behavior.lock().unwrap().change_etag = true;
+    let ready =
+        download::download(&store.root, &server.source(), &version("1.1.0"), &asset).unwrap();
+    assert_eq!(fs::read(ready).unwrap(), bytes);
+    let logs = server.logs();
+    assert!(logs[1].start > 0);
+    assert_eq!(logs[2].start, 0);
+}
+#[test]
+fn pause_resume_and_cancel_are_persisted() {
+    let root = tempfile::tempdir().unwrap();
+    let store = Store::open(root.path()).unwrap();
+    let bytes = random_bytes(4 * 1024 * 1024);
+    let asset = asset("payload.rdb", &bytes);
+    let server = Server::new();
+    server.put(&asset.name, bytes.clone());
+    server.behavior.lock().unwrap().slow = true;
+    let (path, source, artifact) = (store.root.clone(), server.source(), asset.clone());
+    let worker =
+        thread::spawn(move || download::download(&path, &source, &version("1.1.0"), &artifact));
+    wait_for_prefix(&store);
+    download::set_control(&store.root, Control::Paused).unwrap();
+    assert!(matches!(worker.join().unwrap(), Err(Error::Paused)));
+    let part = store
+        .root
+        .join("cache")
+        .join(format!("{}.part", asset.sha256));
+    let checkpoint = part.metadata().unwrap().len();
+    assert!(checkpoint > 0);
+    assert_eq!(
+        download::control(&Store::open(root.path()).unwrap().root).unwrap(),
+        Control::Paused
+    );
+    assert!(matches!(
+        download::download(&store.root, &server.source(), &version("1.1.0"), &asset),
+        Err(Error::Paused)
+    ));
+    download::set_control(&store.root, Control::Running).unwrap();
+    let ready =
+        download::download(&store.root, &server.source(), &version("1.1.0"), &asset).unwrap();
+    assert_eq!(fs::read(ready).unwrap(), bytes);
+    assert!(server.logs().iter().any(|r| r.start == checkpoint as usize));
+    // A cancelled transfer remains cancelled across restart and deletes partial checkpoints.
+    fs::write(&part, b"partial").unwrap();
+    download::set_control(&store.root, Control::Cancelled).unwrap();
+    assert!(matches!(
+        download::download(&store.root, &server.source(), &version("1.1.0"), &asset),
+        Err(Error::Cancelled)
+    ));
+    assert!(!part.exists());
+    assert_eq!(download::control(root.path()).unwrap(), Control::Cancelled);
+}
+#[test]
+fn corrupted_prefix_restarts_and_hash_or_range_mismatch_never_installs() {
+    let root = tempfile::tempdir().unwrap();
+    let store = Store::open(root.path()).unwrap();
+    let bytes = random_bytes(2 * 1024 * 1024);
+    let asset = asset("payload.rdb", &bytes);
+    let server = Server::new();
+    server.put(&asset.name, bytes.clone());
+    server.behavior.lock().unwrap().cut_once = Some(65536);
+    assert!(download::download(&store.root, &server.source(), &version("1.1.0"), &asset).is_err());
+    let part = store
+        .root
+        .join("cache")
+        .join(format!("{}.part", asset.sha256));
+    let size = part.metadata().unwrap().len();
+    fs::write(&part, vec![0; size as usize]).unwrap();
+    let ready =
+        download::download(&store.root, &server.source(), &version("1.1.0"), &asset).unwrap();
+    assert_eq!(fs::read(&ready).unwrap(), bytes);
+    assert_eq!(server.logs()[1].start, 0);
+    fs::remove_file(ready).unwrap();
+    server.behavior.lock().unwrap().wrong_range = true;
+    assert!(download::download(&store.root, &server.source(), &version("1.1.0"), &asset).is_err());
+    server.behavior.lock().unwrap().wrong_range = false;
+    server.put(&asset.name, vec![0; bytes.len()]);
+    assert!(download::download(&store.root, &server.source(), &version("1.1.0"), &asset).is_err());
+    assert!(!part.exists());
+    assert!(store.state().unwrap().active.is_none());
+}
+#[test]
+fn stalled_server_times_out_without_losing_install() {
+    let root = tempfile::tempdir().unwrap();
+    let store = old_store(root.path(), &bundle(b"old"));
+    let bytes = random_bytes(100000);
+    let artifact = asset("new.rdb", &bytes);
+    let server = Server::new();
+    server.put(&artifact.name, bytes);
+    server.behavior.lock().unwrap().stall_once = true;
+    assert!(matches!(
+        download::download(&store.root, &server.source(), &version("1.1.0"), &artifact),
+        Err(Error::Network(_))
+    ));
+    assert_eq!(
+        store.state().unwrap().active.unwrap().version,
+        version("1.0.0")
+    );
+    assert!(
+        download::download(&store.root, &server.source(), &version("1.1.0"), &artifact).is_ok()
+    );
+}
+#[test]
+fn failed_staging_and_game_exit_restore_last_good_without_lowering_sequence() {
+    let root = tempfile::tempdir().unwrap();
+    let store = old_store(root.path(), &bundle(b"old"));
+    let server = Server::new();
+    let malformed = bundle_files(&[("../game", 1, b"bad")]);
+    let bad = manifest(&malformed);
+    server.put(&bad.bundle.name, malformed);
+    assert!(store.stage(&server.source(), &bad).is_err());
+    assert_eq!(
+        store.state().unwrap().active.unwrap().version,
+        version("1.0.0")
+    );
+    let new = bundle(b"new");
+    let manifest = manifest(&new);
+    server.put(&manifest.bundle.name, new);
+    let staged = store.stage(&server.source(), &manifest).unwrap();
+    let mut state = store.state().unwrap();
+    state.pending_launch = true;
+    store.save(&state).unwrap();
+    assert!(store.activate(staged.clone()).is_err());
+    assert!(store.recover().is_err());
+    store.finish_launch(true).unwrap();
+    store.activate(staged).unwrap();
+    store.finish_launch(false).unwrap();
+    let state = store.state().unwrap();
+    assert_eq!(state.active.unwrap().version, version("1.0.0"));
+    assert_eq!(state.highest_sequence, 2);
+}
+#[test]
+fn delta_rejects_copy_overflow_and_trailing_bytes() {
+    let root = tempfile::tempdir().unwrap();
+    let base = write(root.path(), "base", b"abc");
+    let mut patch = b"RDDLT001".to_vec();
+    patch.extend_from_slice(&3u64.to_le_bytes());
+    patch.extend_from_slice(&3u64.to_le_bytes());
+    patch.push(0);
+    patch.extend_from_slice(&u64::MAX.to_le_bytes());
+    patch.extend_from_slice(&3u64.to_le_bytes());
+    patch.push(255);
+    assert!(delta::apply(
+        &base,
+        &write(root.path(), "patch", &patch),
+        &root.path().join("out"),
+        3
+    )
+    .is_err());
+    let mut patch = b"RDDLT001".to_vec();
+    patch.extend_from_slice(&3u64.to_le_bytes());
+    patch.extend_from_slice(&3u64.to_le_bytes());
+    patch.push(1);
+    patch.extend_from_slice(&3u64.to_le_bytes());
+    patch.extend_from_slice(b"xyz");
+    patch.extend_from_slice(&[255, 0]);
+    assert!(delta::apply(
+        &base,
+        &write(root.path(), "patch2", &patch),
+        &root.path().join("out2"),
+        3
+    )
+    .is_err());
+}
+#[test]
+fn only_one_launcher_can_own_an_install() {
+    let root = tempfile::tempdir().unwrap();
+    let store = Store::open(root.path()).unwrap();
+    let lock = store.lock().unwrap();
+    assert!(store.lock().is_err());
+    drop(lock);
+    assert!(store.lock().is_ok());
+}
+
+#[test]
+#[cfg(unix)]
+fn launcher_waits_for_child_and_failed_new_game_restores_last_good() {
+    let root = tempfile::tempdir().unwrap();
+    let base = bundle_files(&[("game", 1, b"#!/bin/sh\nsleep 0.1\nexit 0\n")]);
+    let store = old_store(root.path(), &base);
+    let new = bundle_files(&[("game", 1, b"#!/bin/sh\nexit 3\n")]);
+    let release = manifest(&new);
+    let server = Server::new();
+    server.put(&release.bundle.name, new);
+    let staged = store.stage(&server.source(), &release).unwrap();
+    let mut game = store.launch(&[]).unwrap();
+    assert!(game.try_wait().unwrap().is_none());
+    assert!(store.activate(staged.clone()).is_err());
+    store.finish_launch(game.wait().unwrap().success()).unwrap();
+    store.activate(staged).unwrap();
+    let mut game = store.launch(&[]).unwrap();
+    store.finish_launch(game.wait().unwrap().success()).unwrap();
+    assert_eq!(
+        store.state().unwrap().active.unwrap().version,
+        version("1.0.0")
+    );
+}
+
+#[test]
+fn launch_mapping_discovers_stable_root_assets_and_preserves_explicit_arguments() {
+    let root = tempfile::tempdir().unwrap();
+    let store = Store::open(root.path()).unwrap();
+    fs::create_dir_all(store.root.join("private-assets")).unwrap();
+    fs::write(
+        store.root.join("private-assets/hk416a5.vrm"),
+        b"user weapon",
+    )
+    .unwrap();
+    fs::write(store.root.join("private-assets/fps-arms.vrs"), b"user arms").unwrap();
+    fs::write(store.root.join("settings.cfg"), b"user sensitivity").unwrap();
+    let config = launch::LaunchConfig::default();
+    let args = launch::mapped_arguments(&store.root, &config, &["--hold-controls".into()]).unwrap();
+    assert!(args.contains(&"--hold-controls".into()));
+    for (flag, path) in [
+        ("--settings=", "settings.cfg"),
+        ("--weapon-asset=", "private-assets/hk416a5.vrm"),
+        ("--arms-asset=", "private-assets/fps-arms.vrs"),
+    ] {
+        assert!(args.contains(&format!("{flag}{}", store.root.join(path).display())));
+    }
+    let configured = launch::LaunchConfig {
+        settings: Some("persistent/settings.cfg".into()),
+        weapon_asset: Some("private-assets/saved-weapon.vrm".into()),
+        arms_asset: Some("private-assets/saved-arms.vrs".into()),
+        game_args: vec!["--hold-controls".into(), "--settings=saved.cfg".into()],
+    };
+    launch::save(&store.root, &configured).unwrap();
+    assert_eq!(launch::load(&store.root).unwrap(), configured);
+    let args = launch::mapped_arguments(
+        &store.root,
+        &configured,
+        &[
+            "--profile=kestrel".into(),
+            "--settings=selected settings.cfg".into(),
+            "--weapon-asset=private-assets/selected.vrm".into(),
+        ],
+    )
+    .unwrap();
+    assert_eq!(&args[..2], &["--hold-controls", "--profile=kestrel"]);
+    assert_eq!(
+        args.iter().filter(|a| a.starts_with("--settings=")).count(),
+        1
+    );
+    assert_eq!(
+        args.iter()
+            .filter(|a| a.starts_with("--weapon-asset="))
+            .count(),
+        1
+    );
+    assert!(args.contains(&format!(
+        "--settings={}",
+        store.root.join("selected settings.cfg").display()
+    )));
+    assert!(args.contains(&format!(
+        "--weapon-asset={}",
+        store.root.join("private-assets/selected.vrm").display()
+    )));
+    assert!(args.contains(&format!(
+        "--arms-asset={}",
+        store.root.join("private-assets/saved-arms.vrs").display()
+    )));
+    let profile =
+        launch::mapped_arguments(&store.root, &config, &["--profile=kestrel".into()]).unwrap();
+    assert!(profile.contains(&format!(
+        "--settings={}",
+        store.root.join("profiles/kestrel.cfg").display()
+    )));
+    assert!(launch::mapped_arguments(
+        &store.root,
+        &config,
+        &["--weapon-asset=../outside.vrm".into()]
+    )
+    .is_err());
+}
+
+#[test]
+fn public_bundles_reject_private_assets_and_launch_configuration() {
+    for path in [
+        "launch.json",
+        "private-assets/hk416a5.vrm",
+        "assets/private-assets/hk416a5.vrm",
+        "fps-arms.vrs",
+        "assets/arms/fps-arms.vrs",
+    ] {
+        assert!(bundle::safe_path(path).is_err(), "{path}");
+    }
+}
+
+#[test]
+#[cfg(unix)]
+fn child_receives_absolute_stable_paths_after_version_switch_without_copying_private_data() {
+    let root = tempfile::tempdir().unwrap();
+    let script = br##"#!/bin/sh
+printf '%s\n' "$@" > received-args.txt
+exit 0
+"##;
+    let base = bundle_files(&[("game", 1, script)]);
+    let store = old_store(root.path(), &base);
+    fs::create_dir_all(store.root.join("private-assets")).unwrap();
+    fs::write(store.root.join("settings.cfg"), b"keep settings").unwrap();
+    fs::write(
+        store.root.join("private-assets/hk416a5.vrm"),
+        b"keep weapon",
+    )
+    .unwrap();
+    fs::write(store.root.join("private-assets/fps-arms.vrs"), b"keep arms").unwrap();
+    let config = launch::LaunchConfig {
+        game_args: vec!["--hold-controls".into()],
+        ..Default::default()
+    };
+    launch::save(&store.root, &config).unwrap();
+    let per_launch = vec!["--profile=kestrel".into(), "--settings=settings.cfg".into()];
+    let expected = launch::mapped_arguments(&store.root, &config, &per_launch).unwrap();
+    let mut game = store.launch(&per_launch).unwrap();
+    store.finish_launch(game.wait().unwrap().success()).unwrap();
+    assert_eq!(
+        fs::read_to_string(store.root.join("received-args.txt"))
+            .unwrap()
+            .lines()
+            .map(str::to_owned)
+            .collect::<Vec<_>>(),
+        expected
+    );
+    let new = bundle_files(&[("game", 1, script), ("public.txt", 0, b"new version")]);
+    let release = manifest(&new);
+    let server = Server::new();
+    server.put(&release.bundle.name, new);
+    let staged = store.stage(&server.source(), &release).unwrap();
+    let version_dir = store.version_dir(&staged);
+    store.activate(staged).unwrap();
+    let mut game = store.launch(&per_launch).unwrap();
+    store.finish_launch(game.wait().unwrap().success()).unwrap();
+    assert_eq!(
+        fs::read_to_string(store.root.join("received-args.txt"))
+            .unwrap()
+            .lines()
+            .map(str::to_owned)
+            .collect::<Vec<_>>(),
+        expected
+    );
+    assert!(!version_dir.join("private-assets").exists());
+    assert!(!version_dir.join("settings.cfg").exists());
+    assert!(!version_dir.join("launch.json").exists());
+    assert_eq!(
+        fs::read(store.root.join("settings.cfg")).unwrap(),
+        b"keep settings"
+    );
+    assert_eq!(
+        fs::read(store.root.join("private-assets/hk416a5.vrm")).unwrap(),
+        b"keep weapon"
+    );
+    assert_eq!(
+        fs::read(store.root.join("private-assets/fps-arms.vrs")).unwrap(),
+        b"keep arms"
+    );
+    assert_eq!(launch::load(&store.root).unwrap(), config);
+}
+
+#[test]
+fn automatic_launch_occurs_once_only_after_an_install_is_available() {
+    let mut auto = launch::AutoPlayOnce::new(true);
+    assert!(!auto.take_if_installed(false));
+    assert!(!auto.take_if_installed(false));
+    assert!(auto.take_if_installed(true));
+    assert!(
+        !auto.take_if_installed(true),
+        "a child exit must not trigger a relaunch loop"
+    );
+    assert!(!auto.take_if_installed(false));
+    let mut manual = launch::AutoPlayOnce::new(false);
+    assert!(!manual.take_if_installed(true));
+    let mut cancelled = launch::AutoPlayOnce::new(true);
+    cancelled.cancel();
+    assert!(!cancelled.take_if_installed(true));
+}

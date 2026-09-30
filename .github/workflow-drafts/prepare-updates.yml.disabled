@@ -1,0 +1,79 @@
+# DISABLED DRAFT. Not in .github/workflows and not a .yml file.
+# Review/approval required before enabling. Preparation only; NO signing/publishing.
+name: Prepare unsigned updater artifacts (manual draft)
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Stable version, for example 1.1.0
+        required: true
+      sequence:
+        description: Strictly increasing positive release sequence
+        required: true
+      previous_version:
+        description: Optional previous stable version for a supplied local baseline
+        required: false
+permissions:
+  contents: read
+jobs:
+  prepare:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            game: vector-range
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            game: vector-range.exe
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Linux audio headers
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libasound2-dev
+      - run: cargo test --manifest-path updater/Cargo.toml --locked
+      - run: python -m unittest discover -s tools -p test_release_update.py -v
+      - run: cargo build --locked --release
+      - run: cargo build --manifest-path updater/Cargo.toml --locked --release
+      - name: Prepare curated payload and optional true delta
+        shell: bash
+        env:
+          RELEASE_VERSION: ${{ inputs.version }}
+          RELEASE_SEQUENCE: ${{ inputs.sequence }}
+          PREVIOUS_VERSION: ${{ inputs.previous_version }}
+          RELEASE_TARGET: ${{ matrix.target }}
+          GAME_FILE: ${{ matrix.game }}
+        run: |
+          mkdir -p release-payload release-assets
+          cp "target/release/$GAME_FILE" release-payload/
+          cp LICENSE THIRD_PARTY_LICENSES.txt release-payload/
+          # Match the current game's executable-relative approved sidecar layout.
+          # Review redistribution rights before any future publication.
+          if [ -f assets/weapons/hk416a5.vrm ]; then
+            mkdir -p release-payload/assets/weapons
+            cp assets/weapons/hk416a5.vrm release-payload/assets/weapons/
+          fi
+          # A reviewed external preparation step may supply this old full bundle.
+          # Never commit private assets or credentials to provide it.
+          previous_args=()
+          if [ -f "release-baselines/$RELEASE_TARGET.rdb" ]; then
+            previous_args=(--previous "release-baselines/$RELEASE_TARGET.rdb" --previous-version "$PREVIOUS_VERSION")
+          fi
+          python tools/release_update.py prepare \
+            --input release-payload --output release-assets \
+            --version "$RELEASE_VERSION" --sequence "$RELEASE_SEQUENCE" \
+            --target "$RELEASE_TARGET" --entrypoint "$GAME_FILE" "${previous_args[@]}"
+          printf '%s\n' 'UNSIGNED: requires approved external signing and separate publication approval.' > release-assets/UNSIGNED-NOT-PUBLISHABLE.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: unsigned-update-${{ matrix.target }}
+          path: release-assets/
+          if-no-files-found: error
+# No release action, gh release command, contents: write, id-token: write,
+# signing secret, key generation, deployment, automatic trigger, or permissions grant.

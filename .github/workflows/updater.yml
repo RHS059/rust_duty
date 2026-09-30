@@ -1,0 +1,55 @@
+name: Updater checks and unconfigured bootstrap builds
+on:
+  pull_request:
+  push:
+    branches: [main, 'aella/**']
+permissions:
+  contents: read
+jobs:
+  updater:
+    name: Updater - ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            artifact: rust-duty-bootstrap-linux-unconfigured
+          - os: windows-latest
+            artifact: rust-duty-bootstrap-windows-unconfigured
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install cryptography
+      - run: cargo fetch --manifest-path updater/Cargo.toml --locked
+      - run: cargo fmt --manifest-path updater/Cargo.toml --all -- --check
+      - run: cargo clippy --manifest-path updater/Cargo.toml --locked --all-targets -- -D warnings
+      - run: cargo test --manifest-path updater/Cargo.toml --locked
+      - run: python -m unittest discover -s tools -p test_release_update.py -v
+      - name: Parse owner-run PowerShell scripts without executing them
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          foreach ($Script in @('tools/setup-release-signing.ps1', 'tools/publish-approved-weapon.ps1')) {
+            $Tokens = $null; $Errors = $null
+            [void][Management.Automation.Language.Parser]::ParseFile((Resolve-Path $Script), [ref]$Tokens, [ref]$Errors)
+            if ($Errors.Count -gt 0) { $Errors | Out-String | Write-Error; throw "Invalid PowerShell syntax" }
+          }
+      - name: Build bootstrap and owner signing helper without production trust or secrets
+        run: cargo build --manifest-path updater/Cargo.toml --locked --release --bins
+      - name: Collect actual updater dependency licenses
+        run: python tools/collect_updater_licenses.py
+      - name: Package only bootstrap, helper, scripts, documentation and notices
+        run: python tools/package_updater.py --output updater-artifact
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: updater-artifact/
+          if-no-files-found: error
+# No production key, secret references, release publication, workflow enablement,
+# signing operation, game asset upload, contents:write or id-token permissions.
