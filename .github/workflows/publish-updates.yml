@@ -90,12 +90,15 @@ jobs:
               assert binary.read_bytes().startswith(magic)
               payload=Path('payload')/osname;payload.mkdir(parents=True)
               # Exact allowlist: never enumerate models, settings or private assets.
-              for rel in [f'target/release/{game}','LICENSE','THIRD_PARTY_LICENSES.txt']:
+              for rel in [f'target/release/{game}','LICENSE','THIRD_PARTY_LICENSES.txt','updater/notices/THIRD_PARTY_UPDATER_LICENSES.txt']:
                   item=source/'game'/rel
                   assert item.is_file() and not item.is_symlink()
                   shutil.copy2(item,payload/item.name)
               Path('release-assets').mkdir(exist_ok=True)
               shutil.copy2(binary,Path('release-assets')/bootstrap)
+              # One-time adoption of an older build needs only the integrated
+              # game executable. Future checks and controls live inside it.
+              shutil.copy2(payload/game,Path('release-assets')/('vector-range.exe' if osname=='windows' else 'vector-range-linux-x64'))
           shutil.copy2('SOURCE_PROVENANCE.json','release-assets/SOURCE_PROVENANCE.json')
           PY
       - name: Prepare full bundles and real retained-base deltas
@@ -211,9 +214,33 @@ jobs:
             --expected-manifest "expected/update-$RELEASE_TARGET.json" \
             --baseline-version "$PREVIOUS_VERSION" --expected-version "$RELEASE_VERSION" \
             --target "$RELEASE_TARGET" --report "live-update-$RELEASE_TARGET.json"
+      - name: Check whether baseline contains the integrated game updater
+        id: game-updater-baseline
+        shell: bash
+        run: |
+          python - <<'PY'
+          import os
+          supported=tuple(map(int,os.environ['PREVIOUS_VERSION'].split('.'))) >= (0,1,2)
+          with open(os.environ['GITHUB_OUTPUT'],'a') as stream:
+              stream.write(f'available={str(supported).lower()}\n')
+          PY
+      - name: Verify actual game-entry update and same-path relaunch
+        if: steps.game-updater-baseline.outputs.available == 'true'
+        shell: bash
+        timeout-minutes: 8
+        run: |
+          python tools/smoke_game_update.py \
+            --launcher "expected/$LAUNCHER_ASSET" \
+            --bundle-a "baseline/rust-duty-$PREVIOUS_VERSION-$RELEASE_TARGET.rdb" \
+            --manifest-a "baseline/update-$RELEASE_TARGET.json" \
+            --manifest-b "expected/update-$RELEASE_TARGET.json" \
+            --version-a "$PREVIOUS_VERSION" --version-b "$RELEASE_VERSION" \
+            --target "$RELEASE_TARGET" --report "game-update-$RELEASE_TARGET.json"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: live-update-evidence-${{ matrix.target }}
-          path: live-update-${{ matrix.target }}.json
+          path: |
+            live-update-${{ matrix.target }}.json
+            game-update-${{ matrix.target }}.json
           if-no-files-found: warn
