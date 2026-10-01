@@ -90,10 +90,15 @@ jobs:
               assert binary.read_bytes().startswith(magic)
               payload=Path('payload')/osname;payload.mkdir(parents=True)
               # Exact allowlist: never enumerate models, settings or private assets.
-              for rel in [f'target/release/{game}','LICENSE','THIRD_PARTY_LICENSES.txt','updater/notices/THIRD_PARTY_UPDATER_LICENSES.txt']:
+              for rel in [f'target/release/{game}','LICENSE','THIRD_PARTY_LICENSES.txt']:
                   item=source/'game'/rel
                   assert item.is_file() and not item.is_symlink()
                   shutil.copy2(item,payload/item.name)
+              # The exact-source updater CI generates these registry notices;
+              # they are not checked into the game artifact's working tree.
+              notices=source/'launcher/THIRD_PARTY_UPDATER_LICENSES.txt'
+              assert notices.is_file() and not notices.is_symlink()
+              shutil.copy2(notices,payload/notices.name)
               Path('release-assets').mkdir(exist_ok=True)
               shutil.copy2(binary,Path('release-assets')/bootstrap)
               # One-time adoption of an older build needs only the integrated

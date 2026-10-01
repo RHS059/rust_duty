@@ -1,8 +1,8 @@
 {
-  "enabled": true,
-  "version": "0.1.2",
-  "sequence": 3,
-  "previous": "0.1.1",
-  "game_ref": "29f85203606c100eda101ff395635c3fd6455a32",
-  "launcher_ref": "29f85203606c100eda101ff395635c3fd6455a32"
+    "enabled": true,
+    "version": "0.1.2",
+    "sequence": 3,
+    "previous": "0.1.1",
+    "game_ref": "29f85203606c100eda101ff395635c3fd6455a32",
+    "launcher_ref": "29f85203606c100eda101ff395635c3fd6455a32"
 }
