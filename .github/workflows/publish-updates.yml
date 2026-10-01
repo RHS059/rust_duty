@@ -18,6 +18,7 @@ jobs:
       version: ${{ steps.plan.outputs.version }}
       game_ref: ${{ steps.plan.outputs.game_ref }}
       launcher_ref: ${{ steps.plan.outputs.launcher_ref }}
+      previous: ${{ steps.plan.outputs.previous }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -41,7 +42,7 @@ jobs:
           if p['previous']:
               assert tuple(map(int,p['previous'].split('.')))<tuple(map(int,p['version'].split('.')))
           with open(os.environ['GITHUB_OUTPUT'],'a') as f:
-              for k in ['version','game_ref','launcher_ref']: f.write(f'{k}={p[k]}\n')
+              for k in ['version','game_ref','launcher_ref','previous']: f.write(f'{k}={p[k]}\n')
           with open(os.environ['GITHUB_ENV'],'a') as f:
               for k in ['version','sequence','previous','game_ref','launcher_ref']: f.write(f'RELEASE_{k.upper()}={p[k]}\n')
           PY
@@ -159,3 +160,60 @@ jobs:
             --notes "Code-only game update with a standalone migration launcher. Trusts this GitHub repository over HTTPS and validates payload sizes/SHA256; no independent signing key. Private models and settings stay in the local install root. Game source: $GAME_REF. Launcher source: $LAUNCHER_REF."
           gh release upload "$tag" "${assets[@]}" --repo RHS059/rust_duty
           gh release edit "$tag" --repo RHS059/rust_duty --draft=false --latest
+
+  smoke:
+    needs: [prepare, publish]
+    if: needs.prepare.outputs.previous != ''
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            launcher: RustDuty-windows-x64.exe
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            launcher: RustDuty-linux-x64
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+    env:
+      RELEASE_VERSION: ${{ needs.prepare.outputs.version }}
+      PREVIOUS_VERSION: ${{ needs.prepare.outputs.previous }}
+      RELEASE_TARGET: ${{ matrix.target }}
+      LAUNCHER_ASSET: ${{ matrix.launcher }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Download published baseline, expected manifest and launcher
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p baseline expected
+          gh release download "v$PREVIOUS_VERSION" --repo RHS059/rust_duty \
+            --pattern "rust-duty-$PREVIOUS_VERSION-$RELEASE_TARGET.rdb" \
+            --pattern "update-$RELEASE_TARGET.json" --dir baseline
+          gh release download "v$RELEASE_VERSION" --repo RHS059/rust_duty \
+            --pattern "$LAUNCHER_ASSET" --pattern "update-$RELEASE_TARGET.json" --dir expected
+      - name: Verify real GitHub delta activation and local preservation
+        shell: bash
+        timeout-minutes: 5
+        run: |
+          python tools/smoke_live_update.py \
+            --launcher "expected/$LAUNCHER_ASSET" \
+            --baseline-bundle "baseline/rust-duty-$PREVIOUS_VERSION-$RELEASE_TARGET.rdb" \
+            --baseline-manifest "baseline/update-$RELEASE_TARGET.json" \
+            --expected-manifest "expected/update-$RELEASE_TARGET.json" \
+            --baseline-version "$PREVIOUS_VERSION" --expected-version "$RELEASE_VERSION" \
+            --target "$RELEASE_TARGET" --report "live-update-$RELEASE_TARGET.json"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: live-update-evidence-${{ matrix.target }}
+          path: live-update-${{ matrix.target }}.json
+          if-no-files-found: warn
