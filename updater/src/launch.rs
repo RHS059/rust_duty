@@ -124,6 +124,9 @@ pub fn mapped_arguments(
                 "private-assets/fps-arms.vrs",
                 "private-assets/arms/fps-arms.vrs",
                 "assets/arms/fps-arms.vrs",
+                // Private playable previews use this executable-relative name.
+                // Keep it anchored in the stable root after adopting the launcher.
+                "assets/arms/first-person.vrs",
             ],
         )?;
     }

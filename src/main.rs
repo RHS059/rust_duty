@@ -297,12 +297,23 @@ fn world(sim: &Simulation, tex: &Texture2D) {
         draw_cube_wires(c, t.bounds.size() + Vec3::splat(0.008), INK);
     }
 }
+fn locomotion_input(sim: &Simulation) -> vector_range::locomotion_presentation::LocomotionInput {
+    vector_range::locomotion_presentation::LocomotionInput {
+        sprint: if sim.player.sprinting || sim.player.mantle.is_some() {
+            1.
+        } else {
+            0.
+        },
+        speed: sim.player.speed(),
+        ads: sim.player.ads,
+    }
+}
 #[allow(clippy::too_many_arguments)]
 fn weapon(
     sim: &Simulation,
     rt: &RenderTarget,
     aspect: f32,
-    time: f32,
+    locomotion_state: &mut vector_range::locomotion_presentation::LocomotionPresentation,
     model: Option<&weapon_model::WeaponModel>,
     arms: Option<&mut vector_range::arms::ArmModel>,
     animation_state: &mut vector_range::view_animation::ViewAnimation,
@@ -327,7 +338,8 @@ fn weapon(
         Color::new(0., 0., 0., 0.)
     });
     let p = &sim.player;
-    let bob = (time * 10.).sin() * (p.speed() / 7.2) * 0.010 * (1. - p.ads);
+    let motion = locomotion_state.sample(sim.time, locomotion_input(sim));
+    let bob = motion.bob;
     let reload = if p.reload_left > 0. {
         (p.reload_left * 2.5).sin().abs() * 0.15 + 0.12
     } else {
@@ -337,7 +349,7 @@ fn weapon(
         if model.is_some() { 0.18 } else { 0.25 } * (1. - p.ads),
         (if model.is_some() { -0.19 } else { -0.25 }) * (1. - p.ads) - 0.041 * p.ads + bob
             - reload
-            - p.sprinting as u8 as f32 * 0.13,
+            - motion.sprint * 0.13,
         -0.32 + p.shot_kick * 0.045,
     );
     let mut muzzle_position = o + vec3(0., 0.01, -1.04);
@@ -373,11 +385,7 @@ fn weapon(
             empty_reload: p.reload_empty,
             ads: p.ads,
             recoil: p.shot_kick,
-            sprint: if p.sprinting || p.mantle.is_some() {
-                1.
-            } else {
-                0.
-            },
+            sprint: motion.sprint,
         };
         let mut animation = animation_state.sample_input(animation_input, completed, sim.time);
         if let Some(grip) = framing.left_grip_override {
@@ -787,6 +795,8 @@ async fn main() {
     let mut step_distance = 0.;
     let mut was_reloading = false;
     let mut animation_state = vector_range::view_animation::ViewAnimation::default();
+    let mut locomotion_state =
+        vector_range::locomotion_presentation::LocomotionPresentation::default();
     let mut sim = Simulation::new();
     let mut supply = vector_range::ammo_supply::AmmoSupply::default();
     register_supply(&mut sim, &supply);
@@ -1003,6 +1013,7 @@ async fn main() {
             supply.reset();
             register_supply(&mut sim, &supply);
             animation_state = vector_range::view_animation::ViewAnimation::default();
+            locomotion_state.reset(sim.time);
             intents.clear();
             controls.clear();
             clock.clear();
@@ -1136,6 +1147,9 @@ async fn main() {
                 input.reload = step.reload;
                 input.fire = demo || step.fire;
                 sim.update(input, &cfg, FIXED_DT);
+                // Cosmetic targets receive exact simulation timestamps; input
+                // and movement remain fully authoritative and immediate.
+                locomotion_state.sample(sim.time, locomotion_input(&sim));
                 let focus = supply_focus(&sim, &cfg, &supply, active);
                 if supply.tick(
                     &mut sim.player,
@@ -1281,7 +1295,7 @@ async fn main() {
             &sim,
             &target,
             aspect,
-            sim.time as f32,
+            &mut locomotion_state,
             model.as_ref(),
             arms.as_mut(),
             &mut animation_state,

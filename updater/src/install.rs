@@ -120,6 +120,13 @@ impl Store {
     }
     pub fn check_newer(&self, manifest: &Manifest) -> Result<()> {
         let state = self.state()?;
+        if state.active.as_ref().is_some_and(|active| {
+            manifest.version == active.version
+                && manifest.sequence == state.highest_sequence
+                && manifest.bundle.sha256 == active.bundle_sha256
+        }) {
+            return Err(Error::UpToDate);
+        }
         if manifest.sequence <= state.highest_sequence
             || state
                 .active
@@ -262,7 +269,7 @@ impl Store {
         Ok(())
     }
     /// Initial local install is explicit, offline, and trusts the user-provided initial bundle.
-    /// Network updates still require the compile-time production signing public key.
+    /// Network updates use the fixed GitHub HTTPS channel and verified hashes.
     pub fn install_local(&self, path: &Path, version: Version, entrypoint: &str) -> Result<()> {
         if self.state()?.active.is_some() {
             return Err(invalid("initial install already exists"));

@@ -1,3 +1,4 @@
+# Archived: production uses GitHub HTTPS and SHA256; no owner signing setup.
 name: Owner signing setup kit
 on:
   pull_request:

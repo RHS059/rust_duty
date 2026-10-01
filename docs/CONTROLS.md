@@ -10,6 +10,7 @@ The default controls are:
 | Space | From a lower stance, request standing and clear that stance toggle; from standing, jump |
 | Left Shift | Hold sprint; a new press cancels toggled ADS |
 | Left mouse | Hold automatic fire, unchanged |
+| F | Hold while near and looking at the ammo supply to refill |
 
 Crouch and prone are one exclusive desired stance. Pressing Z while crouched
 requests prone, and pressing Ctrl/C while prone requests crouch. If both stance
@@ -72,3 +73,14 @@ Manual runtime checks:
 7. Pause/resume, F2 reset, and trigger the supported focus-pause path while holding
    a control: there is no reactivation until release and a new press
 8. Launch with `--hold-controls`: ADS/crouch/prone end on release; labels say Hold
+
+## Mantle and ammo supply
+
+A fresh forward jump can mantle a supported clear ledge while standing. See [mantling](MANTLING.md). Behind spawn, the rear-wall supply requires direct aim, range and line of sight. Hold F for 1.5 seconds to refill the magazine and reserve; release, look away, move out of range or pause to cancel. The gold clockwise progress indicator follows the object and appears only during the hold. See [ammo interaction](AMMO_SUPPLY.md).
+
+Walking/running presentation now eases the weapon and attached hands in both
+sprint directions, with about240ms to95% of the cosmetic transition. Bob
+amplitude and cadence also change smoothly without resetting phase. Gameplay
+movement, firing eligibility and sprint input stay immediate; only presentation
+uses this smoothing. Pause freezes the simulation clock and F2 resets the
+presentation state.

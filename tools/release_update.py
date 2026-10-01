@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Prepare deterministic Rust Duty release bundles, REAL copy/add patches, and manifests.
+"""Prepare deterministic GitHub HTTPS release bundles, copy/add deltas and manifests.
 
-No network requests, uploads, key generation, or private signing keys. `seal` accepts
-an already-created Ed25519 signature and checks it against the approved public key.
+The fixed GitHub release channel supplies publisher identity. SHA-256 verifies
+payload integrity; there is no independent signing key or signing operation.
 """
 from __future__ import annotations
 import argparse
@@ -18,7 +18,7 @@ import tempfile
 
 REPOSITORY = "RHS059/rust_duty"
 MAX_SIZE = 2 * 1024**3
-PROTECTED = {"settings.cfg", "telemetry.csv", "private-assets", "user", "userdata", "saves", "cache", "versions", "install.json", "control.json", "payload.rdb", "version.json", "launcher.lock", "manifest.cache.json", "status.json", "launch.json", ".git"}
+PROTECTED = {"settings.cfg", "telemetry.csv", "private-assets", "user", "userdata", "saves", "cache", "versions", "install.json", "control.json", "payload.rdb", "version.json", "launcher.lock", "manifest.cache.json", "status.json", "launch.json", "launcher-location.json", ".git"}
 
 
 def stable_version(value):
@@ -36,7 +36,7 @@ def safe_path(value):
         stem = part.split(".")[0].upper()
         if stem in {"CON", "PRN", "AUX", "NUL"} or re.fullmatch(r"(COM|LPT)[0-9]", stem):
             raise ValueError(f"Windows device name: {value}")
-    if any(part.lower() in {"private-assets", "fps-arms.vrs"} for part in value.split("/")):
+    if any(part.lower() in {"private-assets", "fps-arms.vrs", "first-person.vrs"} for part in value.split("/")):
         raise ValueError(f"private asset path: {value}")
     if value.split("/")[0].lower() in PROTECTED:
         raise ValueError(f"protected path: {value}")
@@ -77,7 +77,7 @@ def pack(source, output, entrypoint):
         for name in sorted(names):
             path = Path(directory) / name
             relative = path.relative_to(source).as_posix()
-            if relative.split("/")[0].lower() in PROTECTED or name.lower() in {"fps-arms.vrs", "launch.json"}:
+            if relative.split("/")[0].lower() in PROTECTED or name.lower() in {"fps-arms.vrs", "first-person.vrs", "launch.json"}:
                 excluded.append(relative)
                 continue
             safe_path(relative)
@@ -216,56 +216,47 @@ def prepare(args):
         delta_info = make_delta(args.previous, bundle, patch)
         if patch.stat().st_size < bundle.stat().st_size:
             payload["deltas"].append({"base_version": args.previous_version, "base_sha256": sha(args.previous), "asset": asset(patch)})
-    payload_path = destination / f"update-{args.target}.payload.json"
+    payload_path = destination / f"update-{args.target}.json"
     payload_path.write_text(json.dumps(payload, sort_keys=True, separators=(",", ":")), encoding="utf-8")
-    return {"bundle": pack_info, "delta": delta_info, "unsigned_payload": str(payload_path), "next": "Have the approved offline Ed25519 signer sign these exact payload bytes, then use seal. Do not publish an unsigned channel."}
-
-
-def seal(args):
-    # Only public verification material is accepted by this tool.
-    try:
-        from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
-    except ImportError as error:
-        raise ValueError("seal needs the cryptography package for public signature verification") from error
-    payload = Path(args.payload).read_bytes()
-    signature = Path(args.signature).read_bytes()
-    if len(signature) != 64:
-        signature = bytes.fromhex(signature.decode("ascii").strip())
-    key = bytes.fromhex(Path(args.public_key).read_text().strip())
-    Ed25519PublicKey.from_public_bytes(key).verify(signature, payload)
-    parsed = json.loads(payload)
-    if parsed["repository"] != REPOSITORY:
-        raise ValueError("wrong repository")
-    envelope = {"payload": payload.decode("utf-8"), "signature": signature.hex()}
-    output = Path(args.output)
-    output.write_text(json.dumps(envelope, separators=(",", ":")), encoding="utf-8")
-    return {"signed_manifest": str(output), "sha256": sha(output)}
-
+    return {"bundle": pack_info, "delta": delta_info, "manifest": str(payload_path), "trust": "GitHub HTTPS + SHA256"}
 
 
 def verify_manifest(args):
-    from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
     encoded = Path(args.manifest).read_bytes()
     if len(encoded) > 1024**2: raise ValueError("oversized manifest")
-    envelope = json.loads(encoded)
-    if set(envelope) != {"payload", "signature"}: raise ValueError("unexpected envelope fields")
-    payload = envelope["payload"].encode("utf-8")
-    key = bytes.fromhex(Path(args.public_key).read_text().strip())
-    Ed25519PublicKey.from_public_bytes(key).verify(bytes.fromhex(envelope["signature"]), payload)
-    manifest = json.loads(payload)
+    manifest = json.loads(encoded)
+    expected = {"schema", "repository", "version", "sequence", "target", "entrypoint", "bundle", "deltas"}
+    if not isinstance(manifest, dict) or set(manifest) != expected: raise ValueError("unexpected manifest fields")
     if manifest["schema"] != 1 or manifest["repository"] != REPOSITORY or type(manifest["sequence"]) is not int or manifest["sequence"] < 1:
         raise ValueError("wrong manifest schema, repository or sequence")
     stable_version(manifest["version"])
     if args.version and manifest["version"] != args.version: raise ValueError("unexpected release version")
     if args.target and manifest["target"] != args.target: raise ValueError("unexpected release target")
     safe_path(manifest["entrypoint"])
+    if not isinstance(manifest["target"], str) or not re.fullmatch(r"[A-Za-z0-9_-]+", manifest["target"]):
+        raise ValueError("invalid target")
+    if not isinstance(manifest["deltas"], list) or len(manifest["deltas"]) > 32:
+        raise ValueError("invalid delta list")
+    bases = set()
+    for delta in manifest["deltas"]:
+        if not isinstance(delta, dict) or set(delta) != {"base_version", "base_sha256", "asset"}:
+            raise ValueError("unexpected delta fields")
+        if stable_version(delta["base_version"]) >= stable_version(manifest["version"]):
+            raise ValueError("delta base must be older")
+        if not isinstance(delta["base_sha256"], str) or not re.fullmatch(r"[0-9a-f]{64}", delta["base_sha256"]):
+            raise ValueError("invalid delta base hash")
+        base = (delta["base_version"], delta["base_sha256"])
+        if base in bases: raise ValueError("duplicate delta base")
+        bases.add(base)
     assets = [manifest["bundle"]]
     if not args.bundle_only: assets.extend(delta["asset"] for delta in manifest["deltas"])
-    for item in assets:
+    for item in [manifest["bundle"], *(delta["asset"] for delta in manifest["deltas"])]:
+        if not isinstance(item, dict) or set(item) != {"name", "size", "sha256"}:
+            raise ValueError("unexpected asset fields")
         if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]{0,149}", item["name"]) or not re.fullmatch(r"[0-9a-f]{64}", item["sha256"]):
             raise ValueError("unsafe asset name or hash")
-        if not 0 < item["size"] <= MAX_SIZE: raise ValueError("invalid asset size")
-        if args.assets_dir:
+        if type(item["size"]) is not int or not 0 < item["size"] <= MAX_SIZE: raise ValueError("invalid asset size")
+        if args.assets_dir and item in assets:
             path = Path(args.assets_dir) / item["name"]
             if path.is_symlink() or path.stat().st_size != item["size"] or sha(path) != item["sha256"]:
                 raise ValueError("release asset size/hash verification failed")
@@ -290,12 +281,8 @@ def main():
     release.add_argument("--sequence", type=int, required=True)
     release.add_argument("--previous")
     release.add_argument("--previous-version")
-    signing = subs.add_parser("seal")
-    for argument in ("payload", "signature", "public-key", "output"):
-        signing.add_argument(f"--{argument}", required=True)
     verifying = subs.add_parser("verify")
     verifying.add_argument("--manifest", required=True)
-    verifying.add_argument("--public-key", required=True)
     verifying.add_argument("--assets-dir")
     verifying.add_argument("--version")
     verifying.add_argument("--target")
@@ -305,7 +292,6 @@ def main():
         if args.command == "pack": result = pack(args.input, args.output, args.entrypoint)
         elif args.command == "delta": result = make_delta(args.base, args.new, args.output, args.block_size)
         elif args.command == "prepare": result = prepare(args)
-        elif args.command == "seal": result = seal(args)
         else: result = verify_manifest(args)
         print(json.dumps(result, indent=2))
     except Exception as error:

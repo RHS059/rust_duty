@@ -1,4 +1,5 @@
 use rust_duty_launcher::{
+    bootstrap,
     download::{self, Control},
     install::{Installed, Store},
     manifest::Trust,
@@ -45,12 +46,14 @@ Usage: rust-duty-launcher [--root PATH] [COMMAND] [-- GAME_ARGS]\n\
   cancel          Cancel and discard partial transfer; keep installed game\n\
   update          Check/download/stage/activate once, then exit\n\
   rollback        Return to retained last-good version while game is closed\n\
+  adopt PATH      Adopt an existing game folder once; preserve its models/settings\n\
+  licenses        Show the embedded project and dependency licenses\n\
   recover --game-closed   Recover after abnormal launcher termination\n\
   install-local BUNDLE VERSION ENTRYPOINT   Explicit one-time offline install\n\
   help            Show this help\n\
-Interactive controls: status, pause, resume, cancel, play, rollback, quit\n\
-Production updates need a reviewed build with a pinned public key and signed\n\
-assets in RHS059/rust_duty GitHub Releases. Trust is UNCONFIGURED by default.\n\
+Interactive controls: status, pause, resume, cancel, play, restart, rollback, quit\n\
+Updates trust RHS059/rust_duty on GitHub HTTPS. SHA-256 checks payload integrity.\n\
+No signing keys or repeated ZIP installation are required.\n\
 No service, scheduled polling, elevation, game termination or settings overwrite."
     );
 }
@@ -77,14 +80,7 @@ fn status(store: &Store) -> Result<()> {
             progress.phase, progress.bytes, progress.total, progress.message
         );
     }
-    println!(
-        "Signing trust: {}",
-        if Trust::production().is_ok() {
-            "configured"
-        } else {
-            "UNCONFIGURED"
-        }
-    );
+    println!("Update trust: GitHub HTTPS + SHA-256 (RHS059/rust_duty)");
     Ok(())
 }
 fn update(store: &Store) -> Result<Installed> {
@@ -100,7 +96,7 @@ fn update(store: &Store) -> Result<Installed> {
         "checking",
         None,
         0,
-        "Checking the signed GitHub release channel",
+        "Checking the GitHub release channel",
     )?;
     let manifest = store.check(&source, &trust, TARGET)?;
     store.stage(&source, &manifest)
@@ -110,6 +106,7 @@ fn update_thread(store: Store, result: mpsc::Sender<Result<Installed>>) -> threa
         let update = update(&store);
         if let Err(e) = &update {
             let phase = match e {
+                Error::UpToDate => "current",
                 Error::Paused => "paused",
                 Error::Cancelled => "cancelled",
                 Error::Network(_) => "stalled",
@@ -134,7 +131,9 @@ fn update_thread(store: Store, result: mpsc::Sender<Result<Installed>>) -> threa
 }
 fn run(store: &Store, auto_play: bool, game_args: Vec<String>) -> Result<()> {
     store.recover()?;
-    println!("Rust Duty launcher. Type status, pause, resume, cancel, play, rollback, or quit.");
+    println!(
+        "Rust Duty launcher. Type status, pause, resume, cancel, play, restart, rollback, or quit."
+    );
     println!("Install directory: {}", store.root.display());
     let (input_tx, input_rx) = mpsc::channel();
     thread::spawn(move || {
@@ -160,10 +159,11 @@ fn run(store: &Store, auto_play: bool, game_args: Vec<String>) -> Result<()> {
             Err(e) => eprintln!("Play: {e}"),
         }
     } else if auto_play {
-        println!("No game installed yet. The first verified download will launch once when ready; an unconfigured launcher needs the one-time local install first.");
+        println!("No game installed yet. The first verified download will launch once when ready.");
     }
     let mut pending = None;
     let mut quitting = false;
+    let mut restart_after_update = false;
     let mut last_control = download::control(&store.root)?;
     loop {
         if let Ok(result) = result_rx.try_recv() {
@@ -173,8 +173,12 @@ fn run(store: &Store, auto_play: bool, game_args: Vec<String>) -> Result<()> {
             match result {
                 Ok(installed) => {
                     println!("Version {} is ready", installed.version);
+                    if child.is_some() {
+                        println!("Close the game to apply this update. Type restart to relaunch automatically afterward.");
+                    }
                     pending = Some(installed);
                 }
+                Err(Error::UpToDate) => println!("Already up to date"),
                 Err(e) => {
                     let interrupted = matches!(e, Error::Paused | Error::Cancelled);
                     eprintln!("Update: {e}");
@@ -219,6 +223,10 @@ fn run(store: &Store, auto_play: bool, game_args: Vec<String>) -> Result<()> {
                 store.activate(installed)?;
                 println!("Update activated; old version retained for rollback");
             }
+            if restart_after_update && worker.is_none() {
+                automatic = rust_duty_launcher::launch::AutoPlayOnce::new(true);
+                restart_after_update = false;
+            }
         }
         if !quitting
             && child.is_none()
@@ -258,6 +266,10 @@ fn run(store: &Store, auto_play: bool, game_args: Vec<String>) -> Result<()> {
                     }
                 }
                 "play" => println!("The game is already running or the launcher is closing"),
+                "restart" if !quitting => {
+                    restart_after_update = true;
+                    println!("Restart queued. Close the game normally; it will relaunch after the update finishes. Resume first if the transfer is paused or cancelled.");
+                }
                 "rollback" if child.is_none() && worker.is_none() => match store.rollback() {
                     Ok(()) => println!("Restored last-good version"),
                     Err(e) => eprintln!("Rollback: {e}"),
@@ -278,7 +290,9 @@ fn run(store: &Store, auto_play: bool, game_args: Vec<String>) -> Result<()> {
                     }
                 }
                 "" => (),
-                _ => println!("Commands: status, pause, resume, cancel, play, rollback, quit"),
+                _ => println!(
+                    "Commands: status, pause, resume, cancel, play, restart, rollback, quit"
+                ),
             },
             Err(mpsc::RecvTimeoutError::Disconnected) => {
                 thread::sleep(Duration::from_millis(200));
@@ -297,7 +311,9 @@ fn main_result() -> Result<()> {
     } else {
         vec![]
     };
-    let mut root = default_root()?;
+    let metadata_root = default_root()?;
+    let mut root = metadata_root.clone();
+    let explicit_root = args.first().is_some_and(|s| s == "--root");
     if args.first().is_some_and(|s| s == "--root") {
         if args.len() < 2 {
             return Err(rust_duty_launcher::invalid("--root needs a path"));
@@ -311,15 +327,43 @@ fn main_result() -> Result<()> {
         return Ok(());
     }
     if command == "trust-status" {
-        match Trust::production() {
-            Ok(_) => println!(
-                "CONFIGURED {}",
-                option_env!("RUST_DUTY_UPDATE_PUBLIC_KEY").ok_or(Error::Unconfigured)?
-            ),
-            Err(Error::Unconfigured) => println!("UNCONFIGURED"),
-            Err(error) => return Err(error),
-        }
+        println!("GITHUB_HTTPS_SHA256 {}", rust_duty_launcher::REPOSITORY);
         return Ok(());
+    }
+    if command == "licenses" {
+        println!(
+            "{}\n{}",
+            include_str!("../../LICENSE"),
+            include_str!(concat!(env!("OUT_DIR"), "/UPDATER_LICENSES.txt"))
+        );
+        return Ok(());
+    }
+    let executable = std::env::current_exe()?;
+    if command == "adopt" {
+        if explicit_root || args.len() != 2 {
+            return Err(rust_duty_launcher::invalid(
+                "Use adopt PATH with the existing game folder",
+            ));
+        }
+        root = PathBuf::from(&args[1]);
+    } else if !explicit_root {
+        if let Some(existing) = bootstrap::find_root(&executable, &metadata_root)? {
+            root = existing;
+        } else if matches!(command, "open" | "run" | "play") {
+            println!("One-time setup: choose the existing game folder. Its models, settings and saves stay there.");
+            root = bootstrap::choose_existing_root()?;
+        }
+    }
+    if command == "adopt"
+        || (matches!(command, "open" | "run" | "play")
+            && !root.join("install.json").exists()
+            && root.join(bootstrap::GAME_FILE).is_file())
+    {
+        let adopted = bootstrap::adopt(&root)?;
+        root = adopted.root;
+        let launcher = bootstrap::install_launcher(&executable, &root)?;
+        bootstrap::remember_root(&metadata_root, &root)?;
+        println!("Setup complete. Open {} next time; updates download automatically. Your models and settings remain in {}.", launcher.display(), root.display());
     }
     let store = Store::open(&root)?;
     match command {
@@ -351,11 +395,17 @@ fn main_result() -> Result<()> {
     }
     let _lock = store.lock()?;
     match command {
-        "open" | "run" | "play" => run(&store, command != "run", game_args),
+        "open" | "run" | "play" | "adopt" => run(&store, command != "run", game_args),
         "update" => {
             store.recover()?;
-            let ready = update(&store)?;
-            store.activate(ready)
+            match update(&store) {
+                Ok(ready) => store.activate(ready),
+                Err(Error::UpToDate) => {
+                    println!("Already up to date");
+                    Ok(())
+                }
+                Err(error) => Err(error),
+            }
         }
         "rollback" => store.rollback(),
         "configure" => {
@@ -395,7 +445,7 @@ fn main_result() -> Result<()> {
                 .parse()
                 .map_err(|_| rust_duty_launcher::invalid("invalid stable version"))?;
             store.install_local(&PathBuf::from(&args[1]), version, &args[3])?;
-            println!("Initial local bundle installed. It was explicitly trusted locally; network updates remain signature-gated.");
+            println!("Initial local bundle installed. Network updates use GitHub HTTPS and SHA-256 integrity checks.");
             Ok(())
         }
         _ => {

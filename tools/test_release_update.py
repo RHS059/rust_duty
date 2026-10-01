@@ -57,6 +57,10 @@ class ReleaseTests(unittest.TestCase):
             (source / "private-assets" / "secret").write_text("not distributable")
             (source / "launch.json").write_text("private launch mappings")
             (source / "fps-arms.vrs").write_bytes(b"private arm skeleton")
+            (source / "assets" / "arms").mkdir(parents=True)
+            preview_arms = source / "assets" / "arms" / "first-person.vrs"
+            preview_arms.write_bytes(b"private preview skeleton")
+            (source / "FIRST-PERSON.VRS").write_bytes(b"uppercase private preview")
             (source / "nested" / "private-assets").mkdir(parents=True)
             (source / "nested" / "private-assets" / "secret").write_text("nested private source")
             release.pack(source, root / "first", "game.exe")
@@ -67,10 +71,13 @@ class ReleaseTests(unittest.TestCase):
             self.assertNotIn(b"distributable", content)
             self.assertNotIn(b"launch mappings", content)
             self.assertNotIn(b"arm skeleton", content)
+            self.assertNotIn(b"private preview", content)
+            self.assertNotIn(b"first-person", content.lower())
+            self.assertEqual(preview_arms.read_bytes(), b"private preview skeleton")
             self.assertNotIn(b"private source", content)
 
     def test_paths_and_symlinks(self):
-        for path in ("../x", "/x", "a\\b", "C:/x", "CON", "a/../b", "private-assets/x", "settings.cfg", "version.json", "x."):
+        for path in ("../x", "/x", "a\\b", "C:/x", "CON", "a/../b", "private-assets/x", "settings.cfg", "version.json", "x.", "assets/arms/first-person.vrs", "assets/arms/FIRST-PERSON.VRS"):
             with self.assertRaises(ValueError): release.safe_path(path)
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -79,11 +86,7 @@ class ReleaseTests(unittest.TestCase):
             (source / "game.exe").symlink_to(root / "elsewhere")
             with self.assertRaises(ValueError): release.pack(source, root / "out", "game.exe")
 
-    def test_public_signature_verification_and_asset_hashes(self):
-        from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
-        from cryptography.hazmat.primitives import serialization
-        # Public deterministic test fixture, never a production key or OS-random generation.
-        signing = Ed25519PrivateKey.from_private_bytes(bytes([59]) * 32)
+    def test_github_manifest_verification_and_asset_hashes(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             source = root / "input"
@@ -91,23 +94,41 @@ class ReleaseTests(unittest.TestCase):
             (source / "game.exe").write_bytes(b"test game")
             output = root / "assets"
             release.prepare(argparse.Namespace(input=source, output=output, version="1.1.0", sequence=2, target="test-target", entrypoint="game.exe", previous=None, previous_version=None))
-            payload = output / "update-test-target.payload.json"
-            signature = root / "fixture.sig"
-            signature.write_bytes(signing.sign(payload.read_bytes()))
-            public = root / "fixture-public.hex"
-            public.write_text(signing.public_key().public_bytes(serialization.Encoding.Raw, serialization.PublicFormat.Raw).hex())
-            envelope = output / "update-test-target.json"
-            release.seal(argparse.Namespace(payload=payload, signature=signature, public_key=public, output=envelope))
-            options = argparse.Namespace(manifest=envelope, public_key=public, assets_dir=output, version="1.1.0", target="test-target", bundle_only=True)
+            manifest_path = output / "update-test-target.json"
+            options = argparse.Namespace(manifest=manifest_path, assets_dir=output, version="1.1.0", target="test-target", bundle_only=True)
             verified = release.verify_manifest(options)
             self.assertEqual(verified["sequence"], 2)
+            self.assertNotIn("signature", verified)
             bundle = output / verified["bundle"]["name"]
             bundle.write_bytes(b"corruption")
             with self.assertRaises(ValueError): release.verify_manifest(options)
-            invalid = json.loads(envelope.read_text())
-            invalid["payload"] += " "
-            envelope.write_text(json.dumps(invalid))
-            with self.assertRaises(Exception): release.verify_manifest(options)
+            legacy = {"payload": manifest_path.read_text(), "signature": "00"}
+            manifest_path.write_text(json.dumps(legacy))
+            with self.assertRaises(ValueError): release.verify_manifest(options)
+
+    def test_prepare_two_versions_produces_real_delta_and_verified_plain_manifests(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = root / "input"
+            source.mkdir()
+            base = random.Random(61).randbytes(256 * 1024)
+            (source / "game.exe").write_bytes(base)
+            first = root / "first"
+            release.prepare(argparse.Namespace(input=source, output=first, version="1.0.0", sequence=1, target="test-target", entrypoint="game.exe", previous=None, previous_version=None))
+            old = first / "rust-duty-1.0.0-test-target.rdb"
+            (source / "game.exe").write_bytes(base[:128000] + b"new executable bytes" + base[128000:])
+            second = root / "second"
+            result = release.prepare(argparse.Namespace(input=source, output=second, version="1.1.0", sequence=2, target="test-target", entrypoint="game.exe", previous=old, previous_version="1.0.0"))
+            options = argparse.Namespace(manifest=second / "update-test-target.json", assets_dir=second, version="1.1.0", target="test-target", bundle_only=False)
+            manifest = release.verify_manifest(options)
+            self.assertEqual(len(manifest["deltas"]), 1)
+            self.assertLess(result["delta"]["size"], manifest["bundle"]["size"] / 10)
+            patch = second / manifest["deltas"][0]["asset"]["name"]
+            full = second / manifest["bundle"]["name"]
+            self.assertEqual(apply(old.read_bytes(), patch.read_bytes()), full.read_bytes())
+            manifest["deltas"][0]["asset"]["url"] = "https://other.example/patch"
+            options.manifest.write_text(json.dumps(manifest))
+            with self.assertRaises(ValueError): release.verify_manifest(options)
 
     def test_small_and_unrelated_inputs(self):
         for base, new in [(b"a", b"b"), (b"A" * 100000, b"B" * 100000), (b"A" * 8192, b"A" * 8192)]:

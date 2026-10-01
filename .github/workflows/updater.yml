@@ -1,4 +1,4 @@
-name: Updater checks and unconfigured bootstrap builds
+name: Updater checks and migration launcher builds
 on:
   pull_request:
   push:
@@ -13,9 +13,9 @@ jobs:
       matrix:
         include:
           - os: ubuntu-latest
-            artifact: rust-duty-bootstrap-linux-unconfigured
+            artifact: rust-duty-launcher-linux
           - os: windows-latest
-            artifact: rust-duty-bootstrap-windows-unconfigured
+            artifact: rust-duty-launcher-windows
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -47,25 +47,15 @@ jobs:
             }
           }
       - run: python -m unittest discover -s tools -p test_release_update.py -v
-      - name: Parse owner-run PowerShell scripts without executing them
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          foreach ($Script in @('tools/setup-release-signing.ps1', 'tools/publish-approved-weapon.ps1')) {
-            $Tokens = $null; $Errors = $null
-            [void][Management.Automation.Language.Parser]::ParseFile((Resolve-Path $Script), [ref]$Tokens, [ref]$Errors)
-            if ($Errors.Count -gt 0) { $Errors | Out-String | Write-Error; throw "Invalid PowerShell syntax" }
-          }
-      - name: Build bootstrap and owner signing helper without production trust or secrets
-        run: cargo build --manifest-path updater/Cargo.toml --locked --release --bins
       - name: Collect actual updater dependency licenses
         run: python tools/collect_updater_licenses.py
-      - name: Package only bootstrap, helper, scripts, documentation and notices
+      - name: Build standalone GitHub migration launcher
+        run: cargo build --manifest-path updater/Cargo.toml --locked --release --bin rust-duty-launcher
+      - name: Verify GitHub trust and stage launcher artifact
         run: python tools/package_updater.py --output updater-artifact
       - uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact }}
           path: updater-artifact/
           if-no-files-found: error
-# No production key, secret references, release publication, workflow enablement,
-# signing operation, game asset upload, contents:write or id-token permissions.
+# CI does not publish releases or import private game assets.

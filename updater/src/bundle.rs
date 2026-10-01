@@ -33,7 +33,9 @@ pub fn safe_path(value: &str) -> Result<PathBuf> {
         }
     }
     if value.split('/').any(|part| {
-        part.eq_ignore_ascii_case("private-assets") || part.eq_ignore_ascii_case("fps-arms.vrs")
+        part.eq_ignore_ascii_case("private-assets")
+            || part.eq_ignore_ascii_case("fps-arms.vrs")
+            || part.eq_ignore_ascii_case("first-person.vrs")
     }) {
         return Err(invalid(
             "private asset paths are forbidden in public update bundles",
@@ -58,6 +60,7 @@ pub fn safe_path(value: &str) -> Result<PathBuf> {
             | "manifest.cache.json"
             | "status.json"
             | "launch.json"
+            | "launcher-location.json"
     ) {
         return Err(invalid("bundle contains protected user/install data"));
     }

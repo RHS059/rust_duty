@@ -1,4 +1,5 @@
-//! Fail-closed updater. The production trust root is deliberately unconfigured.
+//! GitHub HTTPS updater with SHA-256 verified bundles and resumable copy/add deltas.
+pub mod bootstrap;
 pub mod bundle;
 pub mod delta;
 pub mod download;
@@ -26,8 +27,8 @@ pub const MAX_MANIFEST: u64 = 1024 * 1024;
 pub enum Error {
     #[error("{0}")]
     Invalid(String),
-    #[error("production update trust is UNCONFIGURED; install a reviewed launcher with the release signing public key pinned at build time")]
-    Unconfigured,
+    #[error("already up to date")]
+    UpToDate,
     #[error("download paused; use resume to continue")]
     Paused,
     #[error("download cancelled")]

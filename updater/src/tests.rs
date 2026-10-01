@@ -2,10 +2,9 @@ use super::*;
 use crate::{
     download::{self, Control},
     install::Store,
-    manifest::{Asset, Delta, Envelope, Manifest, Trust},
+    manifest::{Asset, Delta, Manifest, Trust},
     source::Source,
 };
-use ed25519_dalek::{Signer, SigningKey};
 use semver::Version;
 use std::{
     collections::HashMap,
@@ -22,17 +21,11 @@ use std::{
     time::{Duration, Instant},
 };
 
-// Deterministic local-only TEST key. Production cannot construct fixture trust.
-fn signing_key() -> SigningKey {
-    SigningKey::from_bytes(&[59; 32])
-}
 fn trust() -> Trust {
-    Trust::fixture(&signing_key().verifying_key())
+    Trust::production().unwrap()
 }
-fn sign(manifest: &Manifest) -> Vec<u8> {
-    let payload = serde_json::to_string(manifest).unwrap();
-    let signature = hex::encode(signing_key().sign(payload.as_bytes()).to_bytes());
-    serde_json::to_vec(&Envelope { payload, signature }).unwrap()
+fn manifest_bytes(manifest: &Manifest) -> Vec<u8> {
+    serde_json::to_vec(manifest).unwrap()
 }
 fn version(value: &str) -> Version {
     Version::parse(value).unwrap()
@@ -344,38 +337,44 @@ fn wait_for_prefix(
 }
 
 #[test]
-fn signed_manifest_fails_closed_on_tampering_and_malformed_fields() {
+fn github_manifest_rejects_malformed_fields_and_legacy_envelopes() {
     let good = manifest(&bundle(b"hello"));
-    let signed = sign(&good);
-    assert!(trust().verify(&signed, TARGET).is_ok());
-    let mut envelope: Envelope = serde_json::from_slice(&signed).unwrap();
-    envelope.payload.push(' ');
+    let encoded = manifest_bytes(&good);
+    assert!(trust().verify(&encoded, TARGET).is_ok());
+    let legacy = serde_json::json!({"payload": String::from_utf8(encoded.clone()).unwrap(), "signature": "00"});
     assert!(trust()
-        .verify(&serde_json::to_vec(&envelope).unwrap(), TARGET)
+        .verify(&serde_json::to_vec(&legacy).unwrap(), TARGET)
         .is_err());
     assert!(trust().verify(b"not-json", TARGET).is_err());
-    assert!(trust().verify(&signed, "wrong-target").is_err());
+    assert!(trust().verify(&encoded, "wrong-target").is_err());
+    let mut unknown: serde_json::Value = serde_json::from_slice(&encoded).unwrap();
+    unknown["url"] = "https://other.example/payload".into();
+    assert!(trust()
+        .verify(&serde_json::to_vec(&unknown).unwrap(), TARGET)
+        .is_err());
     let mut bad = good.clone();
     bad.bundle.name = "../../evil.exe".into();
-    assert!(trust().verify(&sign(&bad), TARGET).is_err());
+    assert!(trust().verify(&manifest_bytes(&bad), TARGET).is_err());
     bad = good.clone();
     bad.bundle.sha256 = "0".repeat(63);
-    assert!(trust().verify(&sign(&bad), TARGET).is_err());
+    assert!(trust().verify(&manifest_bytes(&bad), TARGET).is_err());
     bad = good.clone();
     bad.repository = "attacker/rust_duty".into();
-    assert!(trust().verify(&sign(&bad), TARGET).is_err());
+    assert!(trust().verify(&manifest_bytes(&bad), TARGET).is_err());
     bad = good.clone();
     bad.entrypoint = "../game".into();
-    assert!(trust().verify(&sign(&bad), TARGET).is_err());
+    assert!(trust().verify(&manifest_bytes(&bad), TARGET).is_err());
     bad = good;
     bad.version = version("1.1.0-beta.1");
-    assert!(trust().verify(&sign(&bad), TARGET).is_err());
+    assert!(trust().verify(&manifest_bytes(&bad), TARGET).is_err());
 }
 #[test]
-fn unconfigured_production_cannot_use_test_trust() {
-    if option_env!("RUST_DUTY_UPDATE_PUBLIC_KEY").is_none() {
-        assert!(matches!(Trust::production(), Err(Error::Unconfigured)));
-    }
+fn production_trust_needs_no_key_and_validates_raw_manifest() {
+    let manifest = manifest(&bundle(b"hello"));
+    assert!(Trust::production()
+        .unwrap()
+        .verify(&manifest_bytes(&manifest), TARGET)
+        .is_ok());
 }
 #[test]
 fn redirect_and_windows_path_restrictions() {
@@ -457,7 +456,7 @@ fn refuses_symlink_install_and_bundle_targets() {
     assert!(!outside.path().join("stolen").exists());
 }
 #[test]
-fn two_version_signed_http_delta_is_byte_identical_and_rolls_back_atomically() {
+fn two_version_github_http_delta_is_byte_identical_and_rolls_back_atomically() {
     let root = tempfile::tempdir().unwrap();
     let bytes = random_bytes(512 * 1024);
     let base = bundle(&bytes);
@@ -488,7 +487,7 @@ fn two_version_signed_http_delta_is_byte_identical_and_rolls_back_atomically() {
         asset: asset("changes.rdd", &patch),
     });
     let server = Server::new();
-    server.put(&format!("update-{TARGET}.json"), sign(&manifest));
+    server.put(&format!("update-{TARGET}.json"), manifest_bytes(&manifest));
     server.put("changes.rdd", patch);
     server.put(&manifest.bundle.name, new.clone());
     let verified = store.check(&server.source(), &trust(), TARGET).unwrap();
@@ -536,7 +535,7 @@ fn two_version_signed_http_delta_is_byte_identical_and_rolls_back_atomically() {
         fs::read(store.root.join("private-assets/owned.bin")).unwrap(),
         b"keep private"
     );
-    println!("Verified signed local HTTP 1.0.0 -> 1.1.0 using a real patch; exact bundle and file bytes, atomic activation, rollback, and user data preservation passed");
+    println!("Verified GitHub-style HTTPS-trust manifest over local HTTP, 1.0.0 -> 1.1.0 using a real patch; exact bytes, atomic activation, rollback and user data preservation passed");
 }
 #[test]
 fn bad_delta_falls_back_to_full_and_wrong_base_skips_delta() {
@@ -545,7 +544,7 @@ fn bad_delta_falls_back_to_full_and_wrong_base_skips_delta() {
         let base = bundle(&random_bytes(200000));
         let new = bundle(&random_bytes(220000));
         let store = old_store(root.path(), &base);
-        let patch = b"signed but malformed delta".to_vec();
+        let patch = b"hash-verified but malformed delta".to_vec();
         let mut manifest = manifest(&new);
         manifest.deltas.push(Delta {
             base_version: version("1.0.0"),
@@ -897,28 +896,114 @@ fn launch_mapping_discovers_stable_root_assets_and_preserves_explicit_arguments(
 }
 
 #[test]
+fn launcher_discovers_private_preview_arms_without_overriding_existing_mappings() {
+    let root = tempfile::tempdir().unwrap();
+    let store = Store::open(root.path()).unwrap();
+    fs::create_dir_all(store.root.join("assets/arms")).unwrap();
+    let preview = store.root.join("assets/arms/first-person.vrs");
+    fs::write(&preview, b"private preview arms").unwrap();
+    let config = launch::LaunchConfig::default();
+    let arms_argument = |config: &launch::LaunchConfig, per_launch: &[String]| {
+        launch::mapped_arguments(&store.root, config, per_launch)
+            .unwrap()
+            .into_iter()
+            .filter(|argument| argument.starts_with("--arms-asset="))
+            .collect::<Vec<_>>()
+    };
+    assert_eq!(
+        arms_argument(&config, &[]),
+        vec![format!("--arms-asset={}", preview.display())]
+    );
+
+    // Existing installations retain their prior discovery priority.
+    fs::create_dir_all(store.root.join("private-assets")).unwrap();
+    let existing = store.root.join("private-assets/fps-arms.vrs");
+    fs::write(&existing, b"existing private arms").unwrap();
+    assert_eq!(
+        arms_argument(&config, &[]),
+        vec![format!("--arms-asset={}", existing.display())]
+    );
+    let configured = launch::LaunchConfig {
+        arms_asset: Some("private-assets/selected.vrs".into()),
+        ..Default::default()
+    };
+    assert_eq!(
+        arms_argument(&configured, &[]),
+        vec![format!(
+            "--arms-asset={}",
+            store.root.join("private-assets/selected.vrs").display()
+        )]
+    );
+    assert_eq!(
+        arms_argument(
+            &configured,
+            &["--arms-asset=assets/arms/first-person.vrs".into()]
+        ),
+        vec![format!("--arms-asset={}", preview.display())]
+    );
+}
+
+#[test]
 fn public_bundles_reject_private_assets_and_launch_configuration() {
+    let root = tempfile::tempdir().unwrap();
     for path in [
         "launch.json",
+        "launcher-location.json",
         "private-assets/hk416a5.vrm",
         "assets/private-assets/hk416a5.vrm",
         "fps-arms.vrs",
         "assets/arms/fps-arms.vrs",
+        "first-person.vrs",
+        "assets/arms/first-person.vrs",
+        "assets/arms/FIRST-PERSON.VRS",
     ] {
         assert!(bundle::safe_path(path).is_err(), "{path}");
+        let destination = tempfile::tempdir_in(root.path()).unwrap();
+        let untrusted_bundle = bundle_files(&[
+            ("game", 1, b"game"),
+            (path, 0, b"private fixture must never be extracted"),
+        ]);
+        assert!(bundle::unpack(
+            &write(root.path(), "private.rdb", &untrusted_bundle),
+            destination.path(),
+            "game"
+        )
+        .is_err());
+        assert!(!destination.path().join(path).exists(), "{path}");
     }
 }
 
 #[test]
-#[cfg(unix)]
 fn child_receives_absolute_stable_paths_after_version_switch_without_copying_private_data() {
     let root = tempfile::tempdir().unwrap();
-    let script = br##"#!/bin/sh
-printf '%s\n' "$@" > received-args.txt
-exit 0
-"##;
-    let base = bundle_files(&[("game", 1, script)]);
-    let store = old_store(root.path(), &base);
+    let source = write(root.path(), "child_fixture.rs", br#"
+fn main() {
+    std::fs::write("received-args.txt", std::env::args().skip(1).collect::<Vec<_>>().join("\n")).unwrap();
+}
+"#);
+    let binary = root.path().join(bootstrap::GAME_FILE);
+    let compiled = Command::new("rustc")
+        .args(["--edition=2021", "--crate-name", "updater_child_fixture"])
+        .arg(&source)
+        .arg("-o")
+        .arg(&binary)
+        .output()
+        .unwrap();
+    assert!(
+        compiled.status.success(),
+        "{}",
+        String::from_utf8_lossy(&compiled.stderr)
+    );
+    let executable = fs::read(binary).unwrap();
+    let base = bundle_files(&[(bootstrap::GAME_FILE, 1, &executable)]);
+    let store = Store::open(&root.path().join("install")).unwrap();
+    store
+        .install_local(
+            &write(root.path(), "base.rdb", &base),
+            version("1.0.0"),
+            bootstrap::GAME_FILE,
+        )
+        .unwrap();
     fs::create_dir_all(store.root.join("private-assets")).unwrap();
     fs::write(store.root.join("settings.cfg"), b"keep settings").unwrap();
     fs::write(
@@ -926,7 +1011,9 @@ exit 0
         b"keep weapon",
     )
     .unwrap();
-    fs::write(store.root.join("private-assets/fps-arms.vrs"), b"keep arms").unwrap();
+    fs::create_dir_all(store.root.join("assets/arms")).unwrap();
+    let preview_arms = store.root.join("assets/arms/first-person.vrs");
+    fs::write(&preview_arms, b"keep arms").unwrap();
     let config = launch::LaunchConfig {
         game_args: vec!["--hold-controls".into()],
         ..Default::default()
@@ -934,6 +1021,7 @@ exit 0
     launch::save(&store.root, &config).unwrap();
     let per_launch = vec!["--profile=kestrel".into(), "--settings=settings.cfg".into()];
     let expected = launch::mapped_arguments(&store.root, &config, &per_launch).unwrap();
+    assert!(expected.contains(&format!("--arms-asset={}", preview_arms.display())));
     let mut game = store.launch(&per_launch).unwrap();
     store.finish_launch(game.wait().unwrap().success()).unwrap();
     assert_eq!(
@@ -944,8 +1032,12 @@ exit 0
             .collect::<Vec<_>>(),
         expected
     );
-    let new = bundle_files(&[("game", 1, script), ("public.txt", 0, b"new version")]);
-    let release = manifest(&new);
+    let new = bundle_files(&[
+        (bootstrap::GAME_FILE, 1, &executable),
+        ("public.txt", 0, b"new version"),
+    ]);
+    let mut release = manifest(&new);
+    release.entrypoint = bootstrap::GAME_FILE.into();
     let server = Server::new();
     server.put(&release.bundle.name, new);
     let staged = store.stage(&server.source(), &release).unwrap();
@@ -962,6 +1054,7 @@ exit 0
         expected
     );
     assert!(!version_dir.join("private-assets").exists());
+    assert!(!version_dir.join("assets/arms/first-person.vrs").exists());
     assert!(!version_dir.join("settings.cfg").exists());
     assert!(!version_dir.join("launch.json").exists());
     assert_eq!(
@@ -972,10 +1065,7 @@ exit 0
         fs::read(store.root.join("private-assets/hk416a5.vrm")).unwrap(),
         b"keep weapon"
     );
-    assert_eq!(
-        fs::read(store.root.join("private-assets/fps-arms.vrs")).unwrap(),
-        b"keep arms"
-    );
+    assert_eq!(fs::read(preview_arms).unwrap(), b"keep arms");
     assert_eq!(launch::load(&store.root).unwrap(), config);
 }
 
@@ -1279,4 +1369,161 @@ fn atomic_replace_handles_native_windows_reader_contention() {
         "{result:?}"
     );
     assert_eq!(fs::read(&path).unwrap(), b"new complete state");
+}
+
+#[test]
+fn existing_install_adoption_then_two_github_updates_preserve_private_data() {
+    let workspace = tempfile::tempdir().unwrap();
+    let root = workspace.path().join("existing game with spaces");
+    fs::create_dir_all(root.join("assets/arms")).unwrap();
+    fs::create_dir_all(root.join("assets/weapons")).unwrap();
+    let base_exe = random_bytes(256 * 1024);
+    fs::write(root.join(bootstrap::GAME_FILE), &base_exe).unwrap();
+    fs::write(
+        root.join("assets/arms/first-person.vrs"),
+        b"PRIVATE ARM FIXTURE",
+    )
+    .unwrap();
+    fs::write(
+        root.join("assets/weapons/hk416a5.vrm"),
+        b"PRIVATE WEAPON FIXTURE",
+    )
+    .unwrap();
+    fs::write(root.join("settings.cfg"), b"MY SETTINGS").unwrap();
+    let store = bootstrap::adopt(&root).unwrap();
+    let adopted = store.state().unwrap().active.unwrap();
+    assert_eq!(adopted.version, version("0.0.0"));
+    assert_eq!(
+        fs::read(store.version_dir(&adopted).join(bootstrap::GAME_FILE)).unwrap(),
+        base_exe
+    );
+    let original_bundle = fs::read(store.bundle_path(&adopted)).unwrap();
+    assert!(!original_bundle
+        .windows(b"PRIVATE".len())
+        .any(|w| w == b"PRIVATE"));
+    assert!(!store.version_dir(&adopted).join("assets").exists());
+    assert!(!store.version_dir(&adopted).join("settings.cfg").exists());
+    // Repeated adoption is idempotent and does not discard installation state.
+    assert_eq!(
+        bootstrap::adopt(&root)
+            .unwrap()
+            .state()
+            .unwrap()
+            .active
+            .unwrap()
+            .version,
+        version("0.0.0")
+    );
+    let metadata = workspace.path().join("launcher metadata");
+    bootstrap::remember_root(&metadata, &root).unwrap();
+    assert_eq!(
+        bootstrap::find_root(&workspace.path().join("Downloads/RustDuty.exe"), &metadata).unwrap(),
+        Some(store.root.clone())
+    );
+    let expected_paths =
+        launch::mapped_arguments(&store.root, &launch::LaunchConfig::default(), &[]).unwrap();
+    assert!(expected_paths.contains(&format!(
+        "--arms-asset={}",
+        store.root.join("assets/arms/first-person.vrs").display()
+    )));
+    assert!(expected_paths.contains(&format!(
+        "--weapon-asset={}",
+        store.root.join("assets/weapons/hk416a5.vrm").display()
+    )));
+
+    let server = Server::new();
+    let first_bundle = bundle_files(&[(bootstrap::GAME_FILE, 1, &base_exe)]);
+    let mut first = manifest(&first_bundle);
+    first.version = version("1.0.0");
+    first.sequence = 1;
+    first.entrypoint = bootstrap::GAME_FILE.into();
+    first.bundle = asset("game-1.0.0.rdb", &first_bundle);
+    server.put(&format!("update-{TARGET}.json"), manifest_bytes(&first));
+    server.put(&first.bundle.name, first_bundle.clone());
+    let checked = store
+        .check(&server.source(), &Trust::production().unwrap(), TARGET)
+        .unwrap();
+    let staged = store.stage(&server.source(), &checked).unwrap();
+    store.activate(staged).unwrap();
+    store.finish_launch(true).unwrap();
+
+    let mut updated_exe = base_exe.clone();
+    updated_exe.splice(10000..10020, b"NEW VERSION BYTES".iter().copied());
+    let second_bundle = bundle_files(&[(bootstrap::GAME_FILE, 1, &updated_exe)]);
+    let patch = make_patch(workspace.path(), &first_bundle, &second_bundle);
+    assert!(patch.len() < second_bundle.len() / 10);
+    let mut second = manifest(&second_bundle);
+    second.entrypoint = bootstrap::GAME_FILE.into();
+    second.deltas.push(Delta {
+        base_version: version("1.0.0"),
+        base_sha256: bytes_hash(&first_bundle),
+        asset: asset("game-1.0.0-to-1.1.0.rdd", &patch),
+    });
+    server.put(&format!("update-{TARGET}.json"), manifest_bytes(&second));
+    server.put(&second.deltas[0].asset.name, patch);
+    // Deliberately omit the full second bundle: delta must succeed independently.
+    let checked = store
+        .check(&server.source(), &Trust::production().unwrap(), TARGET)
+        .unwrap();
+    let staged = store.stage(&server.source(), &checked).unwrap();
+    assert_eq!(fs::read(store.bundle_path(&staged)).unwrap(), second_bundle);
+    store.activate(staged.clone()).unwrap();
+    assert_eq!(
+        fs::read(store.version_dir(&staged).join(bootstrap::GAME_FILE)).unwrap(),
+        updated_exe
+    );
+    assert_eq!(
+        launch::mapped_arguments(&store.root, &launch::LaunchConfig::default(), &[]).unwrap(),
+        expected_paths
+    );
+    assert!(!store.version_dir(&staged).join("assets").exists());
+    assert_eq!(
+        fs::read(root.join("assets/arms/first-person.vrs")).unwrap(),
+        b"PRIVATE ARM FIXTURE"
+    );
+    assert_eq!(
+        fs::read(root.join("assets/weapons/hk416a5.vrm")).unwrap(),
+        b"PRIVATE WEAPON FIXTURE"
+    );
+    assert_eq!(fs::read(root.join("settings.cfg")).unwrap(), b"MY SETTINGS");
+    assert!(!server
+        .logs()
+        .iter()
+        .any(|request| request.path.ends_with(&second.bundle.name)));
+    store.rollback().unwrap();
+    assert_eq!(
+        store.state().unwrap().active.unwrap().version,
+        version("1.0.0")
+    );
+    assert_eq!(store.state().unwrap().highest_sequence, 2);
+}
+
+#[test]
+fn bootstrap_does_not_scan_or_overwrite_existing_launcher() {
+    let workspace = tempfile::tempdir().unwrap();
+    let missing = workspace.path().join("missing");
+    assert!(bootstrap::adopt(&missing).is_err());
+    assert!(!missing.exists());
+    let root = workspace.path().join("game");
+    fs::create_dir(&root).unwrap();
+    let source = write(workspace.path(), "bootstrap", b"launcher fixture");
+    let installed = bootstrap::install_launcher(&source, &root).unwrap();
+    assert_eq!(fs::read(&installed).unwrap(), b"launcher fixture");
+    assert_eq!(
+        bootstrap::install_launcher(&source, &root).unwrap(),
+        installed
+    );
+    fs::write(&source, b"different executable").unwrap();
+    assert!(bootstrap::install_launcher(&source, &root).is_err());
+    assert_eq!(fs::read(&installed).unwrap(), b"launcher fixture");
+    // An unrelated sibling game folder is never searched.
+    fs::write(root.join(bootstrap::GAME_FILE), b"game").unwrap();
+    assert_eq!(
+        bootstrap::find_root(
+            &workspace.path().join("Downloads/bootstrap"),
+            &workspace.path().join("metadata")
+        )
+        .unwrap(),
+        None
+    );
 }

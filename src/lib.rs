@@ -25,3 +25,5 @@ pub mod ammo_supply_view;
 pub mod reference_motion;
 
 pub mod weapon_ik;
+
+pub mod locomotion_presentation;

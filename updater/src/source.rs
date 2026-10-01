@@ -94,7 +94,7 @@ impl Source {
             .map_err(|e| Error::Network(e.to_string()))?;
         if !response.status().is_success() {
             return Err(Error::Network(format!(
-                "manifest HTTP {} (a signed release channel may not exist yet)",
+                "manifest HTTP {} (the GitHub update channel may not exist yet)",
                 response.status()
             )));
         }

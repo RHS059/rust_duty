@@ -1,5 +1,4 @@
-use crate::{invalid, Error, Result, MAX_ASSET, MAX_MANIFEST, REPOSITORY};
-use ed25519_dalek::{Signature, VerifyingKey};
+use crate::{invalid, Result, MAX_ASSET, MAX_MANIFEST, REPOSITORY};
 use semver::Version;
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
@@ -30,51 +29,19 @@ pub struct Manifest {
     pub bundle: Asset,
     pub deltas: Vec<Delta>,
 }
-#[derive(Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct Envelope {
-    pub payload: String,
-    pub signature: String,
-}
-#[derive(Clone)]
-pub struct Trust(VerifyingKey);
+/// Publisher identity is the fixed repository delivered through GitHub HTTPS.
+/// SHA-256 verifies payload integrity, not an independent publisher signature.
+#[derive(Clone, Copy, Debug)]
+pub struct Trust;
 impl Trust {
     pub fn production() -> Result<Self> {
-        let value = option_env!("RUST_DUTY_UPDATE_PUBLIC_KEY").ok_or(Error::Unconfigured)?;
-        if value.is_empty() {
-            return Err(Error::Unconfigured);
-        }
-        Self::from_hex(value)
-    }
-    fn from_hex(value: &str) -> Result<Self> {
-        let bytes: [u8; 32] = hex::decode(value)
-            .map_err(|_| invalid("invalid pinned public key"))?
-            .try_into()
-            .map_err(|_| invalid("invalid pinned public key length"))?;
-        let key =
-            VerifyingKey::from_bytes(&bytes).map_err(|_| invalid("invalid pinned public key"))?;
-        if key.is_weak() {
-            return Err(invalid("weak pinned public key"));
-        }
-        Ok(Self(key))
-    }
-    #[cfg(test)]
-    pub(crate) fn fixture(key: &VerifyingKey) -> Self {
-        Self(*key)
+        Ok(Self)
     }
     pub fn verify(&self, bytes: &[u8], target: &str) -> Result<Manifest> {
         if bytes.len() as u64 > MAX_MANIFEST {
             return Err(invalid("oversized manifest"));
         }
-        let envelope: Envelope = serde_json::from_slice(bytes)?;
-        let signature =
-            hex::decode(&envelope.signature).map_err(|_| invalid("malformed signature"))?;
-        let signature =
-            Signature::from_slice(&signature).map_err(|_| invalid("malformed signature"))?;
-        self.0
-            .verify_strict(envelope.payload.as_bytes(), &signature)
-            .map_err(|_| invalid("manifest signature verification failed"))?;
-        let manifest: Manifest = serde_json::from_str(&envelope.payload)?;
+        let manifest: Manifest = serde_json::from_slice(bytes)?;
         manifest.validate(target)?;
         Ok(manifest)
     }

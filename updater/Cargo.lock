@@ -835,6 +835,7 @@ dependencies = [
  "sha2",
  "tempfile",
  "thiserror",
+ "windows-sys 0.61.2",
  "zeroize",
 ]
 
