@@ -10,15 +10,17 @@ signature.
 
 `.github/workflows/publish-updates.yml` runs publication only on the dedicated
 `aella/release-channel` branch. Its explicit `.github/release/plan.json` selects
-an immutable 40-character game commit, version, positive sequence and previous
+immutable40-character game and launcher commits, version, positive sequence and previous
 version. The checked-in plan is disabled. Publishing requires an explicitly
 enabled plan on that branch; ordinary feature commits and pull-request builds
 do not publish releases. This works without merging the game feature branch.
 The optional manual trigger uses the same branch restriction and plan.
 
-The workflow builds the game from the selected commit and the launcher/release
-tools from the release-channel commit. Both Windows and Linux must pass their
-checks. Release notes identify both source revisions. It creates a draft release,
+The workflow selects successful exact-source push CI runs for the pinned game
+and launcher commits, then reuses their already-tested Windows/Linux binaries.
+It validates the launcher trust marker and curates payloads with an exact file
+allowlist. SOURCE_PROVENANCE.json and release notes identify both source revisions
+and CI runs; pull-request merge-ref artifacts are not used. It creates a draft release,
 uploads complete immutable assets, then marks it public/latest; an existing
 version is never overwritten.
 

@@ -6,154 +6,142 @@ on:
     paths: ['.github/release/plan.json']
 permissions:
   contents: read
+  actions: read
 concurrency:
   group: rust-duty-release-channel
   cancel-in-progress: false
 jobs:
-  plan:
+  prepare:
     if: github.repository == 'RHS059/rust_duty' && github.ref == 'refs/heads/aella/release-channel'
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.plan.outputs.version }}
-      sequence: ${{ steps.plan.outputs.sequence }}
-      previous: ${{ steps.plan.outputs.previous }}
       game_ref: ${{ steps.plan.outputs.game_ref }}
+      launcher_ref: ${{ steps.plan.outputs.launcher_ref }}
     steps:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
       - id: plan
         name: Validate explicit release plan
         run: |
           python - <<'PY'
           import json, os, re
           p=json.load(open('.github/release/plan.json'))
-          assert set(p)=={'enabled','version','sequence','previous','game_ref'}
+          assert set(p)=={'enabled','version','sequence','previous','game_ref','launcher_ref'}
           assert p['enabled'] is True, 'Release plan is disabled'
           semver=r'(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)'
           assert re.fullmatch(semver,p['version'])
           assert type(p['sequence']) is int and p['sequence']>0
           assert p['previous']=='' or re.fullmatch(semver,p['previous'])
-          assert re.fullmatch(r'[0-9a-f]{40}',p['game_ref'])
+          for key in ['game_ref','launcher_ref']: assert re.fullmatch(r'[0-9a-f]{40}',p[key])
           if p['previous']:
               assert tuple(map(int,p['previous'].split('.')))<tuple(map(int,p['version'].split('.')))
           with open(os.environ['GITHUB_OUTPUT'],'a') as f:
-              for k in ['version','sequence','previous','game_ref']: f.write(f'{k}={p[k]}\n')
+              for k in ['version','game_ref','launcher_ref']: f.write(f'{k}={p[k]}\n')
+          with open(os.environ['GITHUB_ENV'],'a') as f:
+              for k in ['version','sequence','previous','game_ref','launcher_ref']: f.write(f'RELEASE_{k.upper()}={p[k]}\n')
           PY
-  build:
-    needs: plan
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - os: windows-latest
-            target: x86_64-pc-windows-msvc
-            game: vector-range.exe
-            launcher: rust-duty-launcher.exe
-            bootstrap: RustDuty-windows-x64.exe
-          - os: ubuntu-latest
-            target: x86_64-unknown-linux-gnu
-            game: vector-range
-            launcher: rust-duty-launcher
-            bootstrap: RustDuty-linux-x64
-    runs-on: ${{ matrix.os }}
-    env:
-      RELEASE_VERSION: ${{ needs.plan.outputs.version }}
-      RELEASE_SEQUENCE: ${{ needs.plan.outputs.sequence }}
-      PREVIOUS_VERSION: ${{ needs.plan.outputs.previous }}
-      RELEASE_TARGET: ${{ matrix.target }}
-      GAME_FILE: ${{ matrix.game }}
-      LAUNCHER_FILE: ${{ matrix.launcher }}
-      BOOTSTRAP_FILE: ${{ matrix.bootstrap }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ needs.plan.outputs.game_ref }}
-          path: game-source
-          persist-credentials: false
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          components: rustfmt, clippy
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - name: Linux audio headers
-        if: runner.os == 'Linux'
-        run: sudo apt-get update && sudo apt-get install -y libasound2-dev
-      - run: python -m pip install -r tools/requirements-assets.txt
-      - run: cargo fetch --manifest-path updater/Cargo.toml --locked
-      - run: cargo fmt --manifest-path updater/Cargo.toml -- --check
-      - run: cargo clippy --manifest-path updater/Cargo.toml --locked --all-targets -- -D warnings
-      - run: cargo test --manifest-path updater/Cargo.toml --locked
-      - run: python -m unittest discover -s tools -p test_release_update.py -v
-      - run: cargo test --manifest-path game-source/Cargo.toml --locked
-      - run: cargo build --manifest-path game-source/Cargo.toml --locked --release
-      - run: python tools/collect_updater_licenses.py
-      - run: cargo build --manifest-path updater/Cargo.toml --locked --release --bin rust-duty-launcher
-      - name: Check configured GitHub trust boundary
-        shell: bash
-        run: |
-          "updater/target/release/$LAUNCHER_FILE" trust-status | tee trust-status.txt
-          python - <<'PY'
-          from pathlib import Path
-          value=Path('trust-status.txt').read_text()
-          assert 'GITHUB_HTTPS_SHA256' in value and 'RHS059/rust_duty' in value
-          PY
-      - name: Retrieve exact previous bundle for a real delta
+      - name: Select successful exact-source push runs
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          mkdir -p baseline
-          if [ -n "$PREVIOUS_VERSION" ]; then
-            gh release download "v$PREVIOUS_VERSION" --repo RHS059/rust_duty \
-              --pattern "rust-duty-$PREVIOUS_VERSION-$RELEASE_TARGET.rdb" \
-              --pattern "update-$RELEASE_TARGET.json" --dir baseline
-            python tools/release_update.py verify --manifest "baseline/update-$RELEASE_TARGET.json" \
-              --assets-dir baseline --bundle-only --version "$PREVIOUS_VERSION" --target "$RELEASE_TARGET" > baseline/verified.json
-            python -c 'import json,os; assert int(os.environ["RELEASE_SEQUENCE"])>json.load(open("baseline/verified.json"))["sequence"]'
-          else
+          gh api -X GET repos/RHS059/rust_duty/actions/workflows/build.yml/runs \
+            -f head_sha="$RELEASE_GAME_REF" -f event=push -f status=success -f per_page=100 > game-runs.json
+          gh api -X GET repos/RHS059/rust_duty/actions/workflows/updater.yml/runs \
+            -f head_sha="$RELEASE_LAUNCHER_REF" -f event=push -f status=success -f per_page=100 > launcher-runs.json
+          python - <<'PY'
+          import json,os
+          selected={}
+          for kind in ['game','launcher']:
+              sha=os.environ['RELEASE_'+kind.upper()+'_REF']
+              runs=json.load(open(kind+'-runs.json'))['workflow_runs']
+              valid=[r for r in runs if r['head_sha']==sha and r['event']=='push' and r['status']=='completed' and r['conclusion']=='success']
+              assert valid, f'No successful exact-source push workflow for {kind} {sha}'
+              selected[kind]={'commit':sha,'run_id':valid[0]['id'],'run_url':valid[0]['html_url']}
+          json.dump(selected,open('SOURCE_PROVENANCE.json','w'),indent=2)
+          with open(os.environ['GITHUB_ENV'],'a') as f:
+              for kind,item in selected.items():f.write(f'{kind.upper()}_RUN_ID={item["run_id"]}\n')
+          PY
+      - name: Download tested binaries without rebuilding them
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download "$GAME_RUN_ID" --repo RHS059/rust_duty --name vector-range-windows-x64 --dir tested/windows/game
+          gh run download "$GAME_RUN_ID" --repo RHS059/rust_duty --name vector-range-linux-x64 --dir tested/linux/game
+          gh run download "$LAUNCHER_RUN_ID" --repo RHS059/rust_duty --name rust-duty-launcher-windows --dir tested/windows/launcher
+          gh run download "$LAUNCHER_RUN_ID" --repo RHS059/rust_duty --name rust-duty-launcher-linux --dir tested/linux/launcher
+      - name: Curate code-only payloads and validate standalone launchers
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import shutil
+          for osname,game,launcher,bootstrap,magic in [
+              ('windows','vector-range.exe','RustDuty.exe','RustDuty-windows-x64.exe',b'MZ'),
+              ('linux','vector-range','RustDuty','RustDuty-linux-x64',b'\x7fELF')]:
+              source=Path('tested')/osname
+              assert (source/'launcher/BOOTSTRAP_TRUST.txt').read_text().strip()=='GITHUB_HTTPS_SHA256 RHS059/rust_duty'
+              binary=source/'launcher'/launcher
+              assert binary.read_bytes().startswith(magic)
+              payload=Path('payload')/osname;payload.mkdir(parents=True)
+              # Exact allowlist: never enumerate models, settings or private assets.
+              for rel in [f'target/release/{game}','LICENSE','THIRD_PARTY_LICENSES.txt']:
+                  item=source/'game'/rel
+                  assert item.is_file() and not item.is_symlink()
+                  shutil.copy2(item,payload/item.name)
+              Path('release-assets').mkdir(exist_ok=True)
+              shutil.copy2(binary,Path('release-assets')/bootstrap)
+          shutil.copy2('SOURCE_PROVENANCE.json','release-assets/SOURCE_PROVENANCE.json')
+          PY
+      - name: Prepare full bundles and real retained-base deltas
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ -z "$RELEASE_PREVIOUS" ]; then
             count=$(gh api 'repos/RHS059/rust_duty/releases?per_page=100' --jq '[.[] | select(.draft == false) | .assets[]? | .name | select(startswith("update-") and endswith(".json"))] | length')
             test "$count" = 0 || { echo 'Existing channel requires previous version'; exit 1; }
           fi
-      - name: Curate code-only payload and standalone bootstrap
-        shell: bash
-        run: |
-          mkdir -p release-payload release-assets
-          cp "game-source/target/release/$GAME_FILE" release-payload/
-          cp game-source/LICENSE game-source/THIRD_PARTY_LICENSES.txt release-payload/
-          # Deliberately no model, settings, save, source-asset, or wildcard copy.
-          previous_args=()
-          if [ -n "$PREVIOUS_VERSION" ]; then
-            previous_args=(--previous "baseline/rust-duty-$PREVIOUS_VERSION-$RELEASE_TARGET.rdb" --previous-version "$PREVIOUS_VERSION")
-          fi
-          python tools/release_update.py prepare --input release-payload --output release-assets \
-            --version "$RELEASE_VERSION" --sequence "$RELEASE_SEQUENCE" --target "$RELEASE_TARGET" \
-            --entrypoint "$GAME_FILE" "${previous_args[@]}"
-          python tools/release_update.py verify --manifest "release-assets/update-$RELEASE_TARGET.json" \
-            --assets-dir release-assets --version "$RELEASE_VERSION" --target "$RELEASE_TARGET"
-          cp "updater/target/release/$LAUNCHER_FILE" "release-assets/$BOOTSTRAP_FILE"
+          for platform in windows linux; do
+            if [ "$platform" = windows ]; then target=x86_64-pc-windows-msvc; game=vector-range.exe; else target=x86_64-unknown-linux-gnu; game=vector-range; fi
+            previous_args=()
+            if [ -n "$RELEASE_PREVIOUS" ]; then
+              mkdir -p "baseline/$platform"
+              gh release download "v$RELEASE_PREVIOUS" --repo RHS059/rust_duty \
+                --pattern "rust-duty-$RELEASE_PREVIOUS-$target.rdb" --pattern "update-$target.json" --dir "baseline/$platform"
+              python tools/release_update.py verify --manifest "baseline/$platform/update-$target.json" \
+                --assets-dir "baseline/$platform" --bundle-only --version "$RELEASE_PREVIOUS" --target "$target" > verified-baseline.json
+              python -c 'import json,os; assert int(os.environ["RELEASE_SEQUENCE"])>json.load(open("verified-baseline.json"))["sequence"]'
+              previous_args=(--previous "baseline/$platform/rust-duty-$RELEASE_PREVIOUS-$target.rdb" --previous-version "$RELEASE_PREVIOUS")
+            fi
+            python tools/release_update.py prepare --input "payload/$platform" --output release-assets \
+              --version "$RELEASE_VERSION" --sequence "$RELEASE_SEQUENCE" --target "$target" --entrypoint "$game" "${previous_args[@]}"
+            python tools/release_update.py verify --manifest "release-assets/update-$target.json" \
+              --assets-dir release-assets --version "$RELEASE_VERSION" --target "$target"
+          done
       - uses: actions/upload-artifact@v4
         with:
-          name: prepared-update-${{ matrix.target }}
+          name: prepared-code-only-update
           path: release-assets/
           if-no-files-found: error
   publish:
-    needs: [plan, build]
+    needs: prepare
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      actions: read
     env:
-      RELEASE_VERSION: ${{ needs.plan.outputs.version }}
-      GAME_REF: ${{ needs.plan.outputs.game_ref }}
+      RELEASE_VERSION: ${{ needs.prepare.outputs.version }}
+      GAME_REF: ${{ needs.prepare.outputs.game_ref }}
+      LAUNCHER_REF: ${{ needs.prepare.outputs.launcher_ref }}
     steps:
       - uses: actions/download-artifact@v4
         with:
-          pattern: prepared-update-*
-          merge-multiple: true
+          name: prepared-code-only-update
           path: release-assets/
       - name: Publish immutable versioned assets atomically
         shell: bash
@@ -165,9 +153,9 @@ jobs:
             echo 'Version exists; refusing replacement'; exit 1
           fi
           mapfile -t assets < <(find release-assets -maxdepth 1 -type f | sort)
-          test "${#assets[@]}" -ge 6
+          test "${#assets[@]}" -ge 7
           gh release create "$tag" --repo RHS059/rust_duty --target "$GAME_REF" --draft \
             --title "Rust Duty $RELEASE_VERSION" \
-            --notes "Code-only game update with a standalone migration launcher. Trusts this GitHub repository over HTTPS and validates payload sizes/SHA256; no independent signing key. Private models and settings stay in the local install root. Game source: $GAME_REF. Launcher source: $GITHUB_SHA."
+            --notes "Code-only game update with a standalone migration launcher. Trusts this GitHub repository over HTTPS and validates payload sizes/SHA256; no independent signing key. Private models and settings stay in the local install root. Game source: $GAME_REF. Launcher source: $LAUNCHER_REF."
           gh release upload "$tag" "${assets[@]}" --repo RHS059/rust_duty
           gh release edit "$tag" --repo RHS059/rust_duty --draft=false --latest
