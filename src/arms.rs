@@ -3,6 +3,58 @@
 use crate::skinned_asset::SkinnedAsset;
 use macroquad::prelude::*;
 
+// The converter accepts REPEAT sampling, including UVs outside [0, 1]. Keep
+// construction and CPU regression checks on the same sampler configuration.
+fn texture_sampler() -> (
+    FilterMode,
+    macroquad::miniquad::TextureWrap,
+    macroquad::miniquad::TextureWrap,
+) {
+    (
+        FilterMode::Linear,
+        macroquad::miniquad::TextureWrap::Repeat,
+        macroquad::miniquad::TextureWrap::Repeat,
+    )
+}
+
+/// IK replaces joint orientations, so its accumulated transforms must be
+/// positive uniform similarities. Decomposing arbitrary affine matrices into
+/// scale/rotation would silently discard shear or a reflected basis.
+fn supported_uniform_scale(matrix: Mat4) -> Result<f32, &'static str> {
+    let determinant = matrix.determinant();
+    if !matrix.is_finite() || !determinant.is_finite() || determinant.abs() < 1e-10 {
+        return Err("invalid or singular transform");
+    }
+    let columns = [
+        matrix.x_axis.truncate(),
+        matrix.y_axis.truncate(),
+        matrix.z_axis.truncate(),
+    ];
+    let lengths = columns.map(Vec3::length);
+    if lengths.iter().any(|s| !s.is_finite() || *s <= 0.) {
+        return Err("invalid or singular transform");
+    }
+    let axes = std::array::from_fn::<_, 3, _>(|i| columns[i] / lengths[i]);
+    const TOLERANCE: f32 = 1e-4;
+    if axes[0].dot(axes[1]).abs() > TOLERANCE
+        || axes[0].dot(axes[2]).abs() > TOLERANCE
+        || axes[1].dot(axes[2]).abs() > TOLERANCE
+    {
+        return Err("shear");
+    }
+    if axes[0].cross(axes[1]).dot(axes[2]) < 0. {
+        return Err("reflection");
+    }
+    let largest = lengths.into_iter().fold(0., f32::max);
+    if lengths
+        .iter()
+        .any(|&s| (s - largest).abs() > largest * TOLERANCE)
+    {
+        return Err("nonuniform scale");
+    }
+    Ok(lengths[0])
+}
+
 /// Analytic two-bone solve with a stable bend plane and reachable endpoint.
 pub fn solve_two_bone(
     shoulder: Vec3,
@@ -110,10 +162,14 @@ impl ArmModel {
             .map(|b| Mat4::from_cols_array(&b.inverse_bind))
             .collect();
         let globals = global_matrices(&rest, &parents, Mat4::IDENTITY);
-        for matrix in &globals {
-            if !matrix.is_finite() || matrix.determinant().abs() < 1e-10 {
-                return Err("arm rig has invalid accumulated transform".into());
-            }
+        for (bone, &matrix) in asset.bones.iter().zip(&globals) {
+            supported_uniform_scale(matrix).map_err(|reason| {
+                format!(
+                    "arm rig bone {} has unsupported accumulated {reason}; bake transforms \
+                     into the mesh and re-export with orthogonal, positive uniform bone scales",
+                    bone.name
+                )
+            })?;
         }
         for side in ["l", "r"] {
             let upper = names[&format!("upperarm_{side}")];
@@ -143,7 +199,15 @@ impl ArmModel {
                     part.texture_height as u16,
                     &pixels,
                 );
-                t.set_filter(FilterMode::Linear);
+                let (filter, wrap_x, wrap_y) = texture_sampler();
+                t.set_filter(filter);
+                unsafe {
+                    get_internal_gl().quad_context.texture_set_wrap(
+                        t.raw_miniquad_id(),
+                        wrap_x,
+                        wrap_y,
+                    );
+                }
                 Some(t)
             };
             for chunk in part.indices.chunks(4998) {
@@ -242,7 +306,16 @@ impl ArmModel {
             * globals[lower];
         self.set_global(locals, &globals, lower, desired, root);
         globals = global_matrices(locals, &self.parents, root);
-        let desired = Mat4::from_rotation_translation(hand_rotation, desired_wrist);
+        // Retain inherited rig units when replacing the wrist orientation. A
+        // unit-scale hand would undo e.g. a 0.01 root scale through inverse bind
+        // skinning and inflate its vertices by 100x. Construction validates that
+        // the basis has only positive uniform scale; IK adds rigid rotations.
+        let hand_scale = globals[hand].x_axis.truncate().length();
+        let desired = Mat4::from_scale_rotation_translation(
+            Vec3::splat(hand_scale),
+            hand_rotation,
+            desired_wrist,
+        );
         self.set_global(locals, &globals, hand, desired, root);
     }
     pub fn draw(
@@ -334,6 +407,8 @@ impl ArmModel {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::skinned_asset::Bone;
+
     fn fixture() -> SkinnedAsset {
         let mut bones = Vec::new();
         for side in ["l", "r"] {
@@ -357,6 +432,144 @@ mod tests {
             meshes: Vec::new(),
         }
     }
+
+    // Original synthetic rig: both 0.28 m arm segments inherit the exporter's
+    // unit conversion from a shared root. Inverse binds are genuine rest-global
+    // inverses, so these tests exercise posed skinning, not just rest lengths.
+    fn scaled_fixture(scale: f32) -> SkinnedAsset {
+        let mut asset = fixture();
+        for (index, bone) in asset.bones.iter_mut().enumerate() {
+            bone.parent = Some(bone.parent.map_or(0, |p| p + 1));
+            let position = if index % 3 == 0 {
+                vec3(if index == 0 { -0.2 } else { 0.2 }, 1.4, 0.)
+            } else {
+                Vec3::X * 0.28
+            };
+            bone.rest_local = Mat4::from_translation(position / scale).to_cols_array();
+        }
+        asset.bones.insert(
+            0,
+            Bone {
+                name: "rig_root".into(),
+                parent: None,
+                rest_local: Mat4::from_scale_rotation_translation(
+                    Vec3::splat(scale),
+                    Quat::from_rotation_y(0.31),
+                    vec3(0.03, 0.1, -0.02),
+                )
+                .to_cols_array(),
+                inverse_bind: Mat4::IDENTITY.to_cols_array(),
+            },
+        );
+        let locals: Vec<_> = asset
+            .bones
+            .iter()
+            .map(|b| Mat4::from_cols_array(&b.rest_local))
+            .collect();
+        let parents: Vec<_> = asset.bones.iter().map(|b| b.parent).collect();
+        for (bone, global) in
+            asset
+                .bones
+                .iter_mut()
+                .zip(global_matrices(&locals, &parents, Mat4::IDENTITY))
+        {
+            bone.inverse_bind = global.inverse().to_cols_array();
+        }
+        asset
+    }
+
+    fn assert_posed_hand_radius(scale: f32) {
+        // An empty mesh list keeps GPU construction out of this CPU-only test.
+        let model = ArmModel::new(scaled_fixture(scale)).unwrap();
+        let bind = global_matrices(&model.rest, &model.parents, Mat4::IDENTITY);
+        let root = Mat4::from_rotation_translation(
+            Quat::from_rotation_y(std::f32::consts::PI),
+            vec3(0., -1.65, -0.11),
+        );
+        for side in ["l", "r"] {
+            for offset in [vec3(0.28, -0.13, -0.19), vec3(-0.18, 0.15, -0.31)] {
+                let mut locals = model.rest.clone();
+                let upper = model.names[&format!("upperarm_{side}")];
+                let hand = model.names[&format!("hand_{side}")];
+                let shoulder = root.transform_point3(bind[upper].w_axis.truncate());
+                let target = shoulder + offset;
+                let hand_rotation = Quat::from_rotation_x(0.43) * Quat::from_rotation_z(-0.61);
+                model.pose_arm(
+                    &mut locals,
+                    side,
+                    target,
+                    shoulder + Vec3::NEG_Y,
+                    hand_rotation,
+                    root,
+                );
+                let posed = global_matrices(&locals, &model.parents, root);
+                let wrist = posed[hand].w_axis.truncate();
+                assert!(wrist.distance(target) < 1e-5, "wrist must reach the target");
+                let palette = posed[hand] * model.inverse_bind[hand];
+                let bind_wrist = bind[hand].w_axis.truncate();
+                // Each point represents a vertex with 100% hand influence.
+                // Check all axes to catch anisotropic distortion as well.
+                for axis in [Vec3::X, Vec3::Y, Vec3::Z] {
+                    let source_vertex = bind_wrist + axis * 0.05;
+                    let skinned_vertex = palette.transform_point3(source_vertex);
+                    let radius = skinned_vertex.distance(wrist);
+                    assert!(
+                        (radius - 0.05).abs() < 1e-5,
+                        "{side} hand at inherited scale {scale}: 0.05 m became {radius} m"
+                    );
+                }
+                let expected = Mat4::from_scale_rotation_translation(
+                    Vec3::splat(scale),
+                    hand_rotation,
+                    target,
+                );
+                assert!(posed[hand].abs_diff_eq(expected, 1e-5));
+            }
+        }
+    }
+
+    #[test]
+    fn posed_hands_preserve_five_centimeter_radius_at_half_scale() {
+        assert_posed_hand_radius(0.5);
+    }
+
+    #[test]
+    fn posed_hands_preserve_five_centimeter_radius_at_centimeter_scale() {
+        assert_posed_hand_radius(0.01);
+    }
+
+    #[test]
+    fn rejects_unsupported_inherited_transforms_with_export_guidance() {
+        let shear = Mat4::from_cols(
+            Vec3::X.extend(0.),
+            vec3(0.2, 1., 0.).extend(0.),
+            Vec3::Z.extend(0.),
+            Vec4::W,
+        );
+        for (matrix, reason) in [
+            (Mat4::from_scale(vec3(1., 1.1, 1.)), "nonuniform scale"),
+            (shear, "shear"),
+            (Mat4::from_scale(vec3(-1., 1., 1.)), "reflection"),
+        ] {
+            let mut asset = scaled_fixture(1.);
+            asset.bones[0].rest_local = matrix.to_cols_array();
+            let error = ArmModel::new(asset).err().expect("unsupported arm rig");
+            assert!(
+                error.contains("rig_root") && error.contains(reason),
+                "{error}"
+            );
+            assert!(error.contains("bake transforms") && error.contains("re-export"));
+        }
+    }
+
+    #[test]
+    fn renderer_sampler_is_linear_repeat_on_both_axes() {
+        let (filter, wrap_x, wrap_y) = texture_sampler();
+        assert_eq!(filter, FilterMode::Linear);
+        assert_eq!(wrap_x, macroquad::miniquad::TextureWrap::Repeat);
+        assert_eq!(wrap_y, macroquad::miniquad::TextureWrap::Repeat);
+    }
+
     #[test]
     fn named_arm_validation_rejects_bad_chains_lengths_and_duplicate_names() {
         assert!(ArmModel::new(fixture()).is_ok());

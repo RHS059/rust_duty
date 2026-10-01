@@ -1,5 +1,5 @@
 //! Cosmetic reload cancellation crossfade. Never feeds movement, aim rays or ammo.
-use crate::weapon_animation::WeaponAnimationPose;
+use crate::weapon_animation::{sample_weapon_animation, AnimationInput, WeaponAnimationPose};
 use macroquad::math::{EulerRot, Mat4, Quat, Vec3};
 /// One frame shared by gun meshes, arm grip targets, and muzzle effects.
 #[derive(Clone, Copy)]
@@ -25,6 +25,38 @@ pub struct ViewAnimation {
     cancellation: Option<(WeaponAnimationPose, f64)>,
 }
 impl ViewAnimation {
+    /// Blend only residual reload motion, then compose current recoil/trigger.
+    /// Natural completion is authoritative from the simulation ready milestone.
+    pub fn sample_input(
+        &mut self,
+        input: AnimationInput,
+        completed: bool,
+        now: f64,
+    ) -> WeaponAnimationPose {
+        if completed && input.reload_progress.is_none() {
+            self.was_reloading = false;
+            self.cancellation = None;
+        }
+        let live = sample_weapon_animation(AnimationInput {
+            reload_progress: None,
+            ..input
+        });
+        let reload = sample_weapon_animation(AnimationInput {
+            reload_progress: input.reload_progress,
+            reload_credit_fraction: input.reload_credit_fraction,
+            empty_reload: input.empty_reload,
+            ..Default::default()
+        });
+        let mut pose = self.sample(reload, input.reload_progress.is_some(), now);
+        for i in 0..3 {
+            pose.weapon_translation[i] += live.weapon_translation[i];
+            pose.weapon_euler_yxz[i] += live.weapon_euler_yxz[i];
+            pose.magazine_translation[i] += live.magazine_translation[i];
+            pose.bolt_translation[i] += live.bolt_translation[i];
+        }
+        pose.trigger_pull = live.trigger_pull;
+        pose
+    }
     pub fn sample(
         &mut self,
         target: WeaponAnimationPose,
@@ -92,6 +124,110 @@ mod tests {
                 assert!(frame.point(muzzle).distance(base + muzzle) > 0.01);
                 let grip = Vec3::from_array(pose.right_grip);
                 assert_eq!(frame.point(grip), frame.matrix.transform_point3(grip));
+            }
+        }
+    }
+    #[test]
+    fn cancellation_never_suppresses_new_live_recoil_or_trigger() {
+        let mut state = ViewAnimation::default();
+        state.sample_input(
+            AnimationInput {
+                reload_progress: Some(0.5),
+                ..Default::default()
+            },
+            false,
+            1.,
+        );
+        for (now, recoil) in [(2., 1.), (2.03, 0.75), (2.06, 0.5)] {
+            let input = AnimationInput {
+                recoil,
+                ..Default::default()
+            };
+            let pose = state.sample_input(input, false, now);
+            assert_eq!(pose.trigger_pull, recoil);
+            let live = sample_weapon_animation(input);
+            let mut no_fire = state;
+            // The next independent comparison uses the same existing cancellation state.
+            let residual = no_fire.sample_input(AnimationInput::default(), false, now);
+            assert!(
+                (pose.weapon_translation[2]
+                    - residual.weapon_translation[2]
+                    - live.weapon_translation[2])
+                    .abs()
+                    < 1e-6
+            );
+            state = no_fire;
+        }
+    }
+    #[test]
+    fn natural_completion_with_held_fire_keeps_first_shot_presentation() {
+        use crate::{
+            settings::Settings,
+            sim::{Input, Simulation, FIXED_DT},
+        };
+        for ammo in [0, 15] {
+            for stride in [1, 4, 8] {
+                let cfg = Settings::default();
+                let mut sim = Simulation::new();
+                sim.player.ammo = ammo;
+                let mut state = ViewAnimation::default();
+                sim.update(
+                    Input {
+                        reload: true,
+                        ..Default::default()
+                    },
+                    &cfg,
+                    FIXED_DT,
+                );
+                state.sample_input(
+                    AnimationInput {
+                        reload_progress: Some(0.),
+                        ..Default::default()
+                    },
+                    false,
+                    sim.time,
+                );
+                let mut checked = false;
+                for i in 0..600 {
+                    sim.update(
+                        Input {
+                            fire: true,
+                            ..Default::default()
+                        },
+                        &cfg,
+                        FIXED_DT,
+                    );
+                    if i % stride != 0 {
+                        continue;
+                    }
+                    let p = &sim.player;
+                    let progress =
+                        (p.reload_left > 0.).then(|| 1. - p.reload_left / p.reload_total);
+                    let input = AnimationInput {
+                        reload_progress: progress,
+                        empty_reload: p.reload_empty,
+                        recoil: p.shot_kick,
+                        ads: p.ads,
+                        ..Default::default()
+                    };
+                    let completed = progress.is_none()
+                        && p.reload_ready_at > 0.
+                        && sim.time + 1e-6 >= p.reload_ready_at;
+                    let pose = state.sample_input(input, completed, sim.time);
+                    if sim.stats.shots > 0 {
+                        assert_eq!(
+                            pose,
+                            sample_weapon_animation(AnimationInput {
+                                reload_progress: None,
+                                ..input
+                            })
+                        );
+                        assert!(pose.trigger_pull > 0.);
+                        checked = true;
+                        break;
+                    }
+                }
+                assert!(checked);
             }
         }
     }

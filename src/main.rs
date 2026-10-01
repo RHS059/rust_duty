@@ -272,7 +272,7 @@ fn weapon(
     );
     let mut muzzle_position = o + vec3(0., 0.01, -1.04);
     if let Some(model) = model {
-        use vector_range::weapon_animation::{sample_weapon_animation, AnimationInput};
+        use vector_range::weapon_animation::AnimationInput;
         let progress = (p.reload_left > 0. && p.reload_total > 0.)
             .then(|| (1. - p.reload_left / p.reload_total).clamp(0., 1.));
         let credit = if p.reload_empty {
@@ -280,7 +280,7 @@ fn weapon(
         } else {
             cfg.reload_credit
         };
-        let animation = sample_weapon_animation(AnimationInput {
+        let animation_input = AnimationInput {
             reload_progress: progress,
             reload_credit_fraction: if p.reload_total > 0. {
                 credit / p.reload_total
@@ -295,8 +295,10 @@ fn weapon(
             } else {
                 0.
             },
-        });
-        let animation = animation_state.sample(animation, progress.is_some(), sim.time);
+        };
+        let completed =
+            progress.is_none() && p.reload_ready_at > 0. && sim.time + 1e-6 >= p.reload_ready_at;
+        let animation = animation_state.sample_input(animation_input, completed, sim.time);
         let base = vec3(
             0.12 * (1. - p.ads),
             -0.02 * (1. - p.ads) - 0.041 * p.ads + bob,
