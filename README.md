@@ -19,6 +19,7 @@ Kestrel-30 tuning remains selectable.
 ## Model conversion and tuning
 
 - [Python converter and binary format](docs/ASSET_FORMAT.md)
+- [Blender-first Actions/NLA export and opt-in playback](docs/BLENDER_AUTHORING_PIPELINE.md)
 - [Model rights and exact FBX preparation](assets/README.md)
 - [M4 candidate sources, assumptions and uncertainty](docs/M4_PROFILE.md)
 

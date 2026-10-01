@@ -94,6 +94,24 @@ impl WeaponModel {
             hk416_rig,
         }
     }
+    /// Draw exact exported actor transforms. This opt-in path never uses the
+    /// legacy weapon CRC, magazine indices, bolt offsets, or procedural pose.
+    pub fn draw_authored_parts(&self, transforms: &[Mat4], visible: &[bool]) {
+        for (part, mesh) in &self.meshes {
+            if visible.get(*part).copied().unwrap_or(false) {
+                if let Some(&matrix) = transforms.get(*part) {
+                    unsafe {
+                        get_internal_gl().quad_gl.push_model_matrix(matrix);
+                    }
+                    draw_mesh(mesh);
+                    unsafe {
+                        get_internal_gl().quad_gl.pop_model_matrix();
+                    }
+                }
+            }
+        }
+    }
+
     pub fn draw_pose_with_free_frame(
         &self,
         pose: Mat4,

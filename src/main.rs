@@ -1,3 +1,4 @@
+mod authored_viewmodel;
 mod game_update;
 mod sound;
 mod weapon_model;
@@ -322,6 +323,7 @@ fn weapon(
     aspect: f32,
     locomotion_state: &mut vector_range::locomotion_presentation::LocomotionPresentation,
     model: Option<&weapon_model::WeaponModel>,
+    authored: Option<&mut authored_viewmodel::AuthoredViewmodel>,
     arms: Option<&mut vector_range::arms::ArmModel>,
     animation_state: &mut vector_range::view_animation::ViewAnimation,
     cfg: &Settings,
@@ -344,6 +346,11 @@ fn weapon(
     } else {
         Color::new(0., 0., 0., 0.)
     });
+    if let Some(authored) = authored {
+        authored.draw(sim.time);
+        composite_viewmodel(rt);
+        return;
+    }
     let p = &sim.player;
     let motion = locomotion_state.sample(sim.time, locomotion_input(sim));
     let bob = motion.bob;
@@ -488,6 +495,9 @@ fn weapon(
             Color::new(1., 0.80, 0.32, 1.),
         );
     }
+    composite_viewmodel(rt);
+}
+fn composite_viewmodel(rt: &RenderTarget) {
     set_default_camera();
     draw_texture_ex(
         &rt.texture,
@@ -848,11 +858,46 @@ async fn main() {
         vector_range::EMBEDDED_WEAPON.is_some(),
     );
     let mut model_error = None;
-    let model_missing = matches!(
-        &model_source,
-        vector_range::asset_path::WeaponSource::Missing(_)
-    );
-    let model =
+    let authored_path = args
+        .iter()
+        .find_map(|s| s.strip_prefix("--viewmodel-asset="));
+    let authored_clip = args
+        .iter()
+        .find_map(|s| s.strip_prefix("--viewmodel-clip="))
+        .unwrap_or("neutral");
+    let authored_time = args
+        .iter()
+        .find_map(|s| s.strip_prefix("--viewmodel-time="));
+    let mut authored = if let Some(path) = authored_path {
+        let time = authored_time
+            .map(|value| {
+                value
+                    .parse::<f32>()
+                    .map_err(|_| "invalid --viewmodel-time".to_string())
+            })
+            .transpose();
+        match time
+            .and_then(|time| authored_viewmodel::AuthoredViewmodel::load(path, authored_clip, time))
+        {
+            Ok(viewmodel) => Some(viewmodel),
+            Err(error) => {
+                let message = format!("Authored viewmodel could not load: {error}");
+                eprintln!("{message}");
+                model_error = Some(message);
+                None
+            }
+        }
+    } else {
+        None
+    };
+    let model_missing = authored_path.is_none()
+        && matches!(
+            &model_source,
+            vector_range::asset_path::WeaponSource::Missing(_)
+        );
+    let model = if authored_path.is_some() {
+        None
+    } else {
         match vector_range::asset_path::load_weapon(&model_source, vector_range::EMBEDDED_WEAPON) {
             Ok(Some(asset)) => {
                 eprintln!("Loaded VRMESH01 weapon: {} mesh parts", asset.meshes.len());
@@ -865,17 +910,21 @@ async fn main() {
                 None
             }
             Ok(None) => None,
-        };
-    let arms_path = args
-        .iter()
-        .find_map(|s| s.strip_prefix("--arms-asset="))
-        .map(std::path::PathBuf::from)
-        .or_else(|| {
-            executable
-                .parent()
-                .map(|p| p.join("assets/arms/first-person.vrs"))
-                .filter(|p| p.exists())
-        });
+        }
+    };
+    let arms_path = if authored_path.is_some() {
+        None
+    } else {
+        args.iter()
+            .find_map(|s| s.strip_prefix("--arms-asset="))
+            .map(std::path::PathBuf::from)
+            .or_else(|| {
+                executable
+                    .parent()
+                    .map(|p| p.join("assets/arms/first-person.vrs"))
+                    .filter(|p| p.exists())
+            })
+    };
     let mut arms = if let Some(path) = arms_path {
         match vector_range::skinned_asset::SkinnedAsset::load(&path)
             .map_err(|error| error.to_string())
@@ -1330,18 +1379,28 @@ async fn main() {
         if capture_fire {
             sim.player.shot_kick = 1.;
         }
-        weapon(
-            &sim,
-            &target,
-            aspect,
-            &mut locomotion_state,
-            model.as_ref(),
-            arms.as_mut(),
-            &mut animation_state,
-            &cfg,
-            framing,
-            presentation_reload,
-        );
+        // An explicitly requested invalid authored asset never falls through
+        // to the legacy procedural renderer while its startup error is shown.
+        if authored_path.is_none() || authored.is_some() {
+            weapon(
+                &sim,
+                &target,
+                aspect,
+                &mut locomotion_state,
+                model.as_ref(),
+                authored.as_mut(),
+                arms.as_mut(),
+                &mut animation_state,
+                &cfg,
+                framing,
+                presentation_reload,
+            );
+        }
+        if let Some(error) = authored.as_ref().and_then(|viewmodel| viewmodel.error()) {
+            if model_error.is_none() {
+                model_error = Some(format!("Authored viewmodel: {error}"));
+            }
+        }
         hud(
             &sim,
             &cfg,
@@ -1380,14 +1439,22 @@ async fn main() {
                 RED,
             );
             label(
-                "Re-extract the whole game folder. Expected: assets/weapons/hk416a5.vrm",
+                if authored_path.is_some() {
+                    "Check the matching .vra/.vrs/.vrm files and the selected clip name."
+                } else {
+                    "Re-extract the whole game folder. Expected: assets/weapons/hk416a5.vrm"
+                },
                 42.,
                 screen_height() - 78.,
                 16.,
                 WHITE,
             );
             label(
-                "F10 exits. --procedural-weapon is an explicit diagnostic bypass.",
+                if authored_path.is_some() {
+                    "F10 exits. Remove --viewmodel-asset to return to the existing gameplay presentation."
+                } else {
+                    "F10 exits. --procedural-weapon is an explicit diagnostic bypass."
+                },
                 42.,
                 screen_height() - 48.,
                 16.,

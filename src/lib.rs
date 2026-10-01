@@ -27,3 +27,5 @@ pub mod reference_motion;
 pub mod weapon_ik;
 
 pub mod locomotion_presentation;
+
+pub mod viewmodel_animation;
