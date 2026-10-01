@@ -81,19 +81,20 @@ fn routed_frame(
 fn reviewed_tactical_key_poses_survive_the_ik_hierarchy_change() {
     // Native elapsed = frame * 1001 / 60000. The paired reference is source
     // frame 468 + native frame. Do not normalize source PTS a second time.
-    // Frames 102/108 retain the reviewed OPEN pose exactly. Frames 112/120
+    // Frames 102/108 retain the reviewed wrist positions with the accepted
+    // Trial1 open-hand preorientation for the underhand return. Frames 112/120
     // use the accepted candidate-2 underside-handguard support calibration;
     // those two expected transforms intentionally supersede the old side grip.
     let cases = [
         (
             102,
             [-0.061268516, -0.22377563, -0.5448383],
-            [-0.47585064, -0.40010983, 0.6997719, 0.35184887],
+            [0.7751243, 0.3011538, -0.48749068, 0.26616064],
         ),
         (
             108,
             [-0.03442742, -0.16111463, -0.5205663],
-            [-0.5295124, -0.20251197, 0.7208688, 0.39868996],
+            [0.7807078, 0.13258737, -0.25490323, 0.5549237],
         ),
         (
             112,

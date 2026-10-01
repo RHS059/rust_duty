@@ -1,5 +1,5 @@
 //! Behavior contracts for the weapon hierarchy and independent constraint layer.
-use macroquad::math::{Mat3, Mat4, Quat, Vec3};
+use macroquad::math::{Mat4, Quat, Vec3};
 use vector_range::weapon_animation::{HAND_MODE_ORIENTATIONS, LEFT_GRIP, RIGHT_GRIP};
 use vector_range::weapon_ik::{
     blend_hand_constraint, HandPose, WeaponIkRig, LEFT_HAND_WEAPON_IK, RIGHT_HAND_WEAPON_IK,
@@ -51,13 +51,11 @@ fn default_grips_preserve_the_calibrated_position_and_wrist_orientation() {
         targets.left.orientation,
         Quat::from_array(HAND_MODE_ORIENTATIONS[0]),
     );
-    let x = Vec3::new(0., 0.20, 0.980).normalize();
-    let z = -Vec3::X;
     close_orientation(
         targets.right.orientation,
-        Quat::from_mat3(&Mat3::from_cols(x, z.cross(x), z)),
+        Quat::from_xyzw(0.07290045, 0.7246968, -0.01205607, -0.6850947).normalize(),
     );
-    close_position(targets.right.orientation * Vec3::Z, -Vec3::X);
+    assert!((targets.right.orientation * Vec3::Z).dot(-Vec3::X) > 0.95);
 }
 
 #[test]

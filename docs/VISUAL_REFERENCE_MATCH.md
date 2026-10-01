@@ -119,8 +119,24 @@ quaternion interpolation. Finger-mode weights remain separate, so a change from
 open hand to receiver slap does not apply the wrist correction twice. Dense
 contracts verify the angular grip relation as well as the positional pivot.
 
-The user's delivered-video0:02 example maps to nativeframe120/elapsed2.002s and
-sourceframe588/PTS9.8098s. A support-only pose probe exposes a remaining late hand
-arrival: the old curve was still16.385% magazine grip. The corrected arrival and
-intervening open-hand key poses are being fitted; this checkpoint must not be
-represented as a completed visual match.
+The delivered-video 0:02 example maps to native frame 120 / elapsed 2.002 s
+and source frame 588 / PTS 9.8098 s. Full support now arrives at native 112,
+with a palm-up grip beneath the forward handguard rather than the former
+vertical grip at the receiver boundary. Side and underside inspection is part
+of acceptance; frontal landmark agreement alone had hidden that structural error.
+
+The revised open-to-wrap branch turns about 23.4 degrees over the final closure,
+rather than the former 155.9-degree flip. On the actual rig, 62 samples at 120 Hz
+have zero hand/weapon triangle crossings and retain at least 94.6 mm reach margin
+with the current body mount. The source glove/finger silhouette is still visibly
+larger/higher at intermediate frames. These geometry and continuity results are
+not a source-fidelity pass, and the source does not uniquely reveal hidden joint
+angles.
+
+The right hand uses a fitted pistol-grip wrist frame and independent digit curls.
+An exact 41-step trigger sweep clears the weapon geometry. A rigid, turned body
+mount preserves shoulder span and places the right elbow behind the wrist.
+Axial roll is aligned on the main forearm before wrist placement; twisting only
+a helper had caused either an angle-branch flip or linearly skinned volume
+collapse. Actual skin, side/underside views, joint reach and interruption tests
+are checked separately from reference similarity.

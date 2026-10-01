@@ -35,9 +35,9 @@ All calibration values use metres and the game's weapon frame: +X right, +Y up, 
 | Target | Weapon-local translation |
 | --- | --- |
 | `left_hand_weapon_ik` | `[-0.068, -0.112, -0.205]` |
-| `right_hand_weapon_ik` | `[0.037, -0.095, 0.153]` |
+| `right_hand_weapon_ik` | `[0.062053986, -0.108130604, 0.14318079]` |
 
-The left orientation is the normalized quaternion `[0.70147073, 0.089098096, -0.089098096, 0.70147073]`, with the support wrist below the fore-end and the palm facing upward. The right orientation has basis columns X=`normalize([0,0.20,0.980])`, Z=`[-1,0,0]`, Y=`Z × X`. These match the runtime support/trigger wrist frames. Calibrating a different arm bind pose may require new wrist bases; simply moving a palm mesh is not equivalent.
+The left orientation is the normalized quaternion `[0.70147073, 0.089098096, -0.089098096, 0.70147073]`, with the support wrist below the fore-end and the palm facing upward. The right orientation is the normalized quaternion `[0.07290045, 0.7246968, -0.012056069, -0.6850947]`, matching the calibrated pistol-grip wrist frame shared by the runtime arm solver and weapon target hierarchy. Calibrating a different arm bind pose may require new wrist bases; simply moving a palm mesh is not equivalent.
 
 ## Base motion plus the attachment layer
 
@@ -67,11 +67,11 @@ The headless checks inspect the dependency graph's evaluated pose matrices, rath
 
 The source action moves the left wrist by about 0.249 m. In the generated demonstration, its released frame-24 wrist is about 0.238 m from the moving weapon target, making release behavior visible rather than merely changing a control label.
 
-`validation.json` records the evaluated world matrices and residuals. On Blender 4.3.2, the maximum full-influence target position error is approximately 1.9e-7 m and the zero-influence base matrix error is exactly 0. Numerical tolerances in the script allow solver/platform floating-point variation.
+`validation.json` records the evaluated world matrices and residuals. On Blender 4.3.2, the maximum full-influence target position error is approximately 1.6e-7 m and the zero-influence base matrix error is exactly 0. Numerical tolerances in the script allow solver/platform floating-point variation.
 
 To check a saved file without rebuilding it, load that file headlessly and invoke `validate_fixture` from the helper against its `SyntheticArms`, `WeaponRig`, and `WeaponIKControls` objects. The helper's functions do not run `main()` when loaded with `runpy.run_path`.
 
-`reopen-validation.json` records the same checks after loading the saved file. The underhand recalibration also verifies that the saved target rest matrices match the default calibration and that all arm, weapon, and influence action channels and keyframe values are identical to their values before recalibration.
+`reopen-validation.json` records the same checks after loading the saved file. The wrist recalibration also verifies that the saved target rest matrices match the default calibration and that all arm, weapon, and influence action channels and keyframe values are identical to their values before recalibration.
 
 ## Ownership and provenance
 

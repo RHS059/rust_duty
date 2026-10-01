@@ -5,9 +5,11 @@
 //! blend it toward its grip target. An influence of zero leaves that authored
 //! pose independent of subsequent weapon motion, as required during a reload.
 
-use macroquad::math::{Mat3, Mat4, Quat, Vec3};
+use macroquad::math::{Mat4, Quat, Vec3};
 
 use crate::weapon_animation::{HAND_MODE_ORIENTATIONS, LEFT_GRIP, RIGHT_GRIP};
+
+pub const RIGHT_GRIP_ORIENTATION: [f32; 4] = [0.07290045, 0.7246968, -0.012056069, -0.6850947];
 
 pub const WEAPON_BONE: usize = 0;
 pub const LEFT_HAND_WEAPON_IK: usize = 1;
@@ -65,8 +67,6 @@ impl WeaponIkRig {
     pub fn default_grips() -> WeaponIkTargets {
         // Right bone-local +X runs opposite wrist-to-knuckle; its palm faces +Z.
         // Keep the rigid basis calibrated by arms::right_wrist_rotation.
-        let x = Vec3::new(0., 0.20, 0.980).normalize();
-        let z = -Vec3::X;
         WeaponIkTargets {
             left: HandPose::new(
                 Vec3::from_array(LEFT_GRIP),
@@ -74,7 +74,7 @@ impl WeaponIkRig {
             ),
             right: HandPose::new(
                 Vec3::from_array(RIGHT_GRIP),
-                Quat::from_mat3(&Mat3::from_cols(x, z.cross(x), z)),
+                Quat::from_array(RIGHT_GRIP_ORIENTATION),
             ),
         }
     }

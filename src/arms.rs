@@ -117,7 +117,7 @@ fn global_matrices(locals: &[Mat4], parents: &[Option<usize>], root: Mat4) -> Ve
 
 /// Weapon-local wrist anchors fitted to the HK416 grip surfaces. These are
 /// wrist joints, not palm centers; the animation sampler owns their trajectories.
-pub const FITTED_RIGHT_WRIST: [f32; 3] = [0.037, -0.095, 0.153];
+pub const FITTED_RIGHT_WRIST: [f32; 3] = crate::weapon_animation::RIGHT_GRIP;
 pub const FITTED_SUPPORT_WRIST: [f32; 3] = crate::weapon_animation::LEFT_GRIP;
 pub const FITTED_MAGAZINE_WRIST: [f32; 3] = [-0.046, -0.150, 0.010];
 pub const FITTED_RECEIVER_WRIST: [f32; 3] = [-0.041, -0.105, 0.008];
@@ -164,9 +164,7 @@ fn normalized_hand_modes(weights: [f32; 4]) -> [f32; 4] {
 // These are rigid, right-handed bases. Finger hinges are calibrated separately
 // from each actual bind chain rather than assuming all finger bone rolls match.
 fn right_wrist_rotation() -> Quat {
-    let x = vec3(0., 0.20, 0.980).normalize();
-    let z = -Vec3::X;
-    Quat::from_mat3(&Mat3::from_cols(x, z.cross(x), z))
+    Quat::from_array(crate::weapon_ik::RIGHT_GRIP_ORIENTATION).normalize()
 }
 fn left_wrist_rotations() -> [Quat; 4] {
     crate::weapon_animation::HAND_MODE_ORIENTATIONS.map(Quat::from_array)
@@ -220,11 +218,11 @@ const OPEN_CURL: [[f32; 3]; 5] = [
     [-0.10, 0.05, 0.02],
 ];
 const PISTOL_CURL: [[f32; 3]; 5] = [
-    [-0.80, 1.80, 1.25],
-    [0.54, 1.60, 1.15],
-    [0.62, 1.65, 1.15],
-    [0.68, 1.65, 1.15],
-    [0.20, 0.48, 0.25],
+    [-0.7196754, 1.7317524, 0.7871223],
+    [-0.10119829, 1.6106945, 0.93029094],
+    [0.08151749, 1.2048621, 1.4160256],
+    [-0.068384714, 1.064695, 0.69483125],
+    [0.18427947, 0.91346943, -0.27630535],
 ];
 fn finger_curls(left: bool, weights: [f32; 4], trigger: f32) -> [[f32; 3]; 5] {
     if !left {
@@ -480,6 +478,24 @@ impl ArmModel {
             * globals[lower];
         self.set_global(locals, &globals, lower, desired, root);
         globals = global_matrices(locals, &self.parents, root);
+        // Align pronation/supination on the main forearm before placing the
+        // wrist. Its helper then receives only residual roll, avoiding opposite
+        // skinning frames and the half-angle branch flip.
+        let axis = (desired_wrist - globals[lower].w_axis.truncate()).normalize();
+        let previous_hand = globals[hand].to_scale_rotation_translation().1;
+        let delta = hand_rotation * previous_hand.inverse();
+        let vector = vec3(delta.x, delta.y, delta.z);
+        let projected = axis * vector.dot(axis);
+        let twist = Quat::from_xyzw(projected.x, projected.y, projected.z, delta.w);
+        if twist.length_squared() > 1e-8 {
+            let pivot = globals[lower].w_axis.truncate();
+            let aligned = Mat4::from_translation(pivot)
+                * Mat4::from_quat(twist.normalize())
+                * Mat4::from_translation(-pivot)
+                * globals[lower];
+            self.set_global(locals, &globals, lower, aligned, root);
+            globals = global_matrices(locals, &self.parents, root);
+        }
         // Retain inherited rig units when replacing the wrist orientation. A
         // unit-scale hand would undo e.g. a 0.01 root scale through inverse bind
         // skinning and inflate its vertices by 100x. Construction validates that
@@ -491,9 +507,9 @@ impl ArmModel {
             desired_wrist,
         );
         self.set_global(locals, &globals, hand, desired, root);
-        // Distribute wrist roll across the optional forearm twist helper. Only
-        // twist about the forearm axis is shared; wrist swing stays at the wrist.
-        // This avoids a pinched cuff without changing either IK segment length.
+        // Distribute wrist roll across the optional forearm helper. The
+        // continuous anatomical roll refinement is reviewed separately; applying
+        // the entire roll only here collapses linearly blended forearm skin.
         if let Some(&twist) = self
             .names
             .get(&format!("lowerarm_twist_01_{side}"))
@@ -594,14 +610,21 @@ impl ArmModel {
         trigger_pull: f32,
         left_modes: [f32; 4],
     ) -> Vec<Mat4> {
-        let root = Mat4::from_translation(vec3(0., -1.65, -0.11))
+        // Rotate the whole upper-body mount, preserving shoulder span and
+        // sleeve attachment while placing the right elbow behind its grip.
+        let body_pivot = vec3(0., -0.1828231, -0.01436418);
+        let root = Mat4::from_translation(vec3(0., -0.06, 0.080))
+            * Mat4::from_translation(body_pivot)
+            * Mat4::from_rotation_y(-55_f32.to_radians())
+            * Mat4::from_translation(-body_pivot)
+            * Mat4::from_translation(vec3(0., -1.65, -0.11))
             * Mat4::from_rotation_y(std::f32::consts::PI);
         let mut locals = self.rest.clone();
         self.pose_arm(
             &mut locals,
             "r",
             right_position,
-            vec3(0.45, -0.40, 0.02),
+            vec3(0.35, -0.25, 0.40),
             right_rotation,
             root,
         );
@@ -753,7 +776,7 @@ mod tests {
         for (index, bone) in asset.bones.iter_mut().enumerate() {
             bone.parent = Some(bone.parent.map_or(0, |p| p + 1));
             let position = if index % 3 == 0 {
-                vec3(if index == 0 { -0.2 } else { 0.2 }, 1.4, 0.)
+                vec3(if index == 0 { 0.2 } else { -0.2 }, 1.4, 0.)
             } else {
                 Vec3::X * 0.28
             };
@@ -923,7 +946,7 @@ mod tests {
     #[test]
     fn grips_oppose_palm_surfaces_toward_the_weapon() {
         // Palm normals have opposite anatomical signs in this named rig.
-        assert!((right_wrist_rotation() * Vec3::Z).distance(-Vec3::X) < 1e-6);
+        assert!((right_wrist_rotation() * Vec3::Z).dot(-Vec3::X) > 0.95);
         for mode in 1..3 {
             let mut weights = [0.; 4];
             weights[mode] = 1.;
@@ -1041,6 +1064,43 @@ mod tests {
     }
 
     #[test]
+    fn forearm_roll_preserves_blended_radius_across_half_turn() {
+        let mut asset = fixture();
+        asset.bones.push(Bone {
+            name: "lowerarm_twist_01_l".into(),
+            parent: Some(1),
+            rest_local: Mat4::from_translation(vec3(0.14, 0., 0.)).to_cols_array(),
+            inverse_bind: Mat4::IDENTITY.to_cols_array(),
+        });
+        let model = ArmModel::new(asset).unwrap();
+        let mut previous = None;
+        for degrees in [175_f32, 179., 181., 185.] {
+            let mut locals = model.rest.clone();
+            model.pose_arm(
+                &mut locals,
+                "l",
+                vec3(0.50, 0., 0.),
+                vec3(0., -1., 0.),
+                Quat::from_rotation_x(degrees.to_radians()),
+                Mat4::IDENTITY,
+            );
+            let g = global_matrices(&locals, &model.parents, Mat4::IDENTITY);
+            let lower = g[1];
+            let helper = g[6];
+            let lower_rotation = lower.to_scale_rotation_translation().1;
+            let helper_rotation = helper.to_scale_rotation_translation().1;
+            // A representative half/half skin vertex must not collapse toward
+            // the axis or jump when the desired roll crosses 180 degrees.
+            let radial = (lower_rotation * Vec3::Y + helper_rotation * Vec3::Y) * 0.02;
+            assert!(radial.length() > 0.035);
+            if let Some(before) = previous {
+                assert!(radial.distance(before) < 0.006);
+            }
+            previous = Some(radial);
+        }
+    }
+
+    #[test]
     fn full_weapon_constraints_ignore_free_animation_and_preserve_rig_scale() {
         use crate::weapon_ik::WeaponIkRig;
         let frame = Mat4::from_rotation_translation(
@@ -1068,7 +1128,12 @@ mod tests {
                         target.orientation,
                         target.position,
                     );
-                    assert!(globals[hand].abs_diff_eq(expected, 1e-5));
+                    assert!(
+                        globals[hand].abs_diff_eq(expected, 1e-5),
+                        "side={side} scale={scale} actual={:?} expected={:?}",
+                        globals[hand],
+                        expected
+                    );
                 }
                 if let Some(before) = &baseline {
                     assert_eq!(before, &globals);

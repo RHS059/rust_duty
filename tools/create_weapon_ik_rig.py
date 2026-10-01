@@ -24,9 +24,6 @@ SAMPLE_FRAMES = (1, 12, 24, 36, 48)
 
 def default_calibration():
     """Original runtime wrist frames: metres, +X right, +Y up, -Z forward."""
-    x = Vector((0.0, 0.20, 0.980)).normalized()
-    z = Vector((-1.0, 0.0, 0.0))
-    right = Matrix((x, z.cross(x), z)).transposed().to_quaternion()
     return {
         "coordinate_system": "+X right, +Y up, -Z weapon forward; metres",
         "quaternion_order": "xyzw",
@@ -35,8 +32,8 @@ def default_calibration():
             "rotation_xyzw": [0.70147073, 0.089098096, -0.089098096, 0.70147073],
         },
         "right_hand_weapon_ik": {
-            "translation": [0.037, -0.095, 0.153],
-            "rotation_xyzw": [right.x, right.y, right.z, right.w],
+            "translation": [0.062053986, -0.108130604, 0.14318079],
+            "rotation_xyzw": [0.07290045, 0.7246968, -0.012056069, -0.6850947],
         },
     }
 

@@ -39,7 +39,7 @@ pub const ADS_SECONDS: f64 = 0.250;
 pub const SPRINT_OUT_SECONDS: f64 = 0.300;
 pub const TACTICAL_RELOAD_SECONDS: f64 = 2.029;
 pub const EMPTY_RELOAD_SECONDS: f64 = 2.359;
-pub const RIGHT_GRIP: [f32; 3] = [0.037, -0.095, 0.153];
+pub const RIGHT_GRIP: [f32; 3] = [0.062053986, -0.108130604, 0.14318079];
 pub const LEFT_GRIP: [f32; 3] = [-0.068, -0.112, -0.205];
 
 const HAND_SUPPORT: [f32; 4] = [1.0, 0.0, 0.0, 0.0];
@@ -314,7 +314,7 @@ pub fn sample_weapon_animation_with_timing(
             [0.; 3],
             HAND_OPEN,
         )
-        .with_hand_rotation([1.44868, 0.1921157, 0.8075417]),
+        .with_hand_rotation([0.10571034, -0.55879336, 1.0575957]),
         Key::new(
             settle_end + (support_arrival - settle_end) * 0.8576609,
             [-0.05842122, -0.1850402, -0.2121435],
@@ -322,7 +322,7 @@ pub fn sample_weapon_animation_with_timing(
             [0.; 3],
             HAND_OPEN,
         )
-        .with_hand_rotation([1.370396, 0.7523709, 0.5980197]),
+        .with_hand_rotation([-0.5738239, -0.6592049, 1.1428887]),
         Key::new(support_arrival, LEFT_GRIP, [0.0; 3], [0.0; 3], HAND_SUPPORT),
         Key::new(1.0, LEFT_GRIP, [0.0; 3], [0.0; 3], HAND_SUPPORT),
     ];
