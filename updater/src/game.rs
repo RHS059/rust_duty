@@ -424,14 +424,7 @@ fn mark_ready_sync(version: &str) -> Result<()> {
     let executable = std::env::current_exe()?.canonicalize()?;
     let version = stable_version(version)?;
     let sha256 = file_hash(&executable)?;
-    if executable != plan.target.canonicalize()?
-        || version != plan.installed.version
-        || sha256 != plan.new_sha256
-    {
-        return Err(invalid(
-            "replacement startup identity/version/hash mismatch",
-        ));
-    }
+    validate_startup_identity(&plan, &executable, &version, &sha256)?;
     atomic_json(
         &job_dir(&plan).join("startup-ready.json"),
         &StartupReady {
@@ -442,6 +435,41 @@ fn mark_ready_sync(version: &str) -> Result<()> {
             version,
         },
     )
+}
+
+fn validate_startup_identity(
+    plan: &Plan,
+    executable: &Path,
+    version: &Version,
+    sha256: &str,
+) -> Result<()> {
+    // Windows current_exe may omit the extended-length prefix that canonicalize adds.
+    // Resolve both absolute paths instead of weakening identity to a filename/string test.
+    reject_symlink(executable)?;
+    reject_symlink(&plan.target)?;
+    if !executable.is_absolute()
+        || executable.canonicalize()? != plan.target.canonicalize()?
+        || *version != plan.installed.version
+        || sha256 != plan.new_sha256
+    {
+        return Err(invalid(
+            "replacement startup identity/version/hash mismatch",
+        ));
+    }
+    Ok(())
+}
+
+fn validate_startup_ack(plan: &Plan, ack: &StartupReady, child_pid: u32) -> Result<bool> {
+    if ack.pid != child_pid {
+        return Ok(false);
+    }
+    if ack.token != plan.token {
+        return Err(invalid(
+            "replacement startup acknowledgement token mismatch",
+        ));
+    }
+    validate_startup_identity(plan, &ack.executable, &ack.version, &ack.sha256)?;
+    Ok(true)
 }
 
 fn stable_version(value: &str) -> Result<Version> {
@@ -1070,16 +1098,7 @@ fn launch_replacement(plan: &Plan) -> Result<()> {
         loop {
             if ack_path.is_file() {
                 let ack: StartupReady = read_json(&ack_path)?;
-                if ack.pid == child.id() {
-                    if ack.token != plan.token
-                        || ack.executable != plan.target
-                        || ack.sha256 != plan.new_sha256
-                        || ack.version != plan.installed.version
-                    {
-                        return Err(invalid(
-                            "replacement startup acknowledgement identity mismatch",
-                        ));
-                    }
+                if validate_startup_ack(plan, &ack, child.id())? {
                     acknowledged = true;
                     if !headless {
                         return Ok(());
@@ -1679,7 +1698,19 @@ mod tests {
         }
         wait_file(&received);
         let receipt = fs::read_to_string(&received).unwrap();
-        assert!(receipt.starts_with(&format!("{}\n{}\n", paths.target.display(), root.display())));
+        let mut receipt_lines = receipt.lines();
+        assert_eq!(
+            Path::new(receipt_lines.next().unwrap())
+                .canonicalize()
+                .unwrap(),
+            paths.target.canonicalize().unwrap()
+        );
+        assert_eq!(
+            Path::new(receipt_lines.next().unwrap())
+                .canonicalize()
+                .unwrap(),
+            root
+        );
         assert!(receipt.contains("--literal=two words"));
         assert!(receipt.contains(&format!(
             "--settings={}",
@@ -1722,6 +1753,56 @@ mod tests {
     fn helper_waits_for_headless_terminal_exit_after_startup_ack() {
         process_case(false, true);
     }
+
+    #[test]
+    fn startup_ack_accepts_equivalent_absolute_paths_but_keeps_all_identity_checks() {
+        let temp = tempfile::tempdir().unwrap();
+        let paths = fixture_paths(temp.path());
+        let store = Store::open(&paths.metadata).unwrap();
+        ensure_baseline(&store, &paths.executable, &stable_version("1.0.0").unwrap()).unwrap();
+        let installed = staged(&store, b"next executable");
+        let prepared = prepare_restart(
+            &paths,
+            &store,
+            &stable_version("1.0.0").unwrap(),
+            installed,
+            &[],
+            std::process::id(),
+        )
+        .unwrap();
+        let plan: Plan = read_json(&prepared.plan).unwrap();
+        let mut ack = StartupReady {
+            token: plan.token.clone(),
+            pid: 123,
+            // TempDir's native spelling differs from the canonical extended path on Windows.
+            executable: temp.path().join(GAME_FILE),
+            sha256: plan.new_sha256.clone(),
+            version: plan.installed.version.clone(),
+        };
+        assert!(validate_startup_ack(&plan, &ack, 123).unwrap());
+        assert!(!validate_startup_ack(&plan, &ack, 124).unwrap());
+        ack.token = "b".repeat(32);
+        assert!(validate_startup_ack(&plan, &ack, 123).is_err());
+        ack.token = plan.token.clone();
+        ack.sha256 = "0".repeat(64);
+        assert!(validate_startup_ack(&plan, &ack, 123).is_err());
+        ack.sha256 = plan.new_sha256.clone();
+        ack.version = stable_version("1.0.0").unwrap();
+        assert!(validate_startup_ack(&plan, &ack, 123).is_err());
+        ack.version = plan.installed.version.clone();
+        ack.executable = PathBuf::from(GAME_FILE);
+        assert!(validate_startup_ack(&plan, &ack, 123).is_err());
+        ack.executable = temp.path().join("different-game.exe");
+        fs::copy(&plan.target, &ack.executable).unwrap();
+        assert!(validate_startup_ack(&plan, &ack, 123).is_err());
+        #[cfg(unix)]
+        {
+            ack.executable = temp.path().join("linked-game");
+            std::os::unix::fs::symlink(&plan.target, &ack.executable).unwrap();
+            assert!(validate_startup_ack(&plan, &ack, 123).is_err());
+        }
+    }
+
     #[test]
     #[ignore]
     fn helper_process_entry() {
