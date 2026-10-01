@@ -34,17 +34,19 @@ pub fn safe_path(value: &str) -> Result<PathBuf> {
     }
     if value.split('/').any(|part| {
         part.eq_ignore_ascii_case("private-assets")
+            || part.eq_ignore_ascii_case(".rust-duty-updates")
             || part.eq_ignore_ascii_case("fps-arms.vrs")
             || part.eq_ignore_ascii_case("first-person.vrs")
     }) {
         return Err(invalid(
-            "private asset paths are forbidden in public update bundles",
+            "private asset and updater-state paths are forbidden in public update bundles",
         ));
     }
     let first = value.split('/').next().unwrap().to_ascii_lowercase();
     if matches!(
         first.as_str(),
         "settings.cfg"
+            | ".rust-duty-updates"
             | "telemetry.csv"
             | "private-assets"
             | "user"

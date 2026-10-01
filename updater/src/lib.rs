@@ -3,6 +3,7 @@ pub mod bootstrap;
 pub mod bundle;
 pub mod delta;
 pub mod download;
+pub mod game;
 pub mod install;
 pub mod launch;
 pub mod manifest;

@@ -77,7 +77,7 @@ class ReleaseTests(unittest.TestCase):
             self.assertNotIn(b"private source", content)
 
     def test_paths_and_symlinks(self):
-        for path in ("../x", "/x", "a\\b", "C:/x", "CON", "a/../b", "private-assets/x", "settings.cfg", "version.json", "x.", "assets/arms/first-person.vrs", "assets/arms/FIRST-PERSON.VRS"):
+        for path in (".rust-duty-updates/install.json", ".RUST-DUTY-UPDATES/jobs/plan.json", "nested/.rust-duty-updates/install.json", "../x", "/x", "a\\b", "C:/x", "CON", "a/../b", "private-assets/x", "settings.cfg", "version.json", "x.", "assets/arms/first-person.vrs", "assets/arms/FIRST-PERSON.VRS"):
             with self.assertRaises(ValueError): release.safe_path(path)
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

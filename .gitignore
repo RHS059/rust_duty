@@ -1,4 +1,5 @@
 /target/
+.rust-duty-updates/
 /dist/
 /telemetry*.csv
 /capture*.png

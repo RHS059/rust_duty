@@ -124,7 +124,7 @@ struct Behavior {
     delay_once: Option<Duration>,
     slow: bool,
 }
-struct Server {
+pub(crate) struct Server {
     port: u16,
     bodies: Arc<Mutex<HashMap<String, Vec<u8>>>>,
     requests: Arc<Mutex<Vec<Request>>>,
@@ -133,7 +133,14 @@ struct Server {
     worker: Option<thread::JoinHandle<()>>,
 }
 impl Server {
-    fn new() -> Self {
+    pub(crate) fn slow_transfers(&self) {
+        self.behavior.lock().unwrap().slow = true;
+    }
+    pub(crate) fn request_count(&self) -> usize {
+        self.requests.lock().unwrap().len()
+    }
+
+    pub(crate) fn new() -> Self {
         let listener = TcpListener::bind("127.0.0.1:0").unwrap();
         listener.set_nonblocking(true).unwrap();
         let port = listener.local_addr().unwrap().port();
@@ -183,10 +190,10 @@ impl Server {
             worker: Some(worker),
         }
     }
-    fn source(&self) -> Source {
+    pub(crate) fn source(&self) -> Source {
         Source::loopback(self.port).unwrap()
     }
-    fn put(&self, name: &str, body: Vec<u8>) {
+    pub(crate) fn put(&self, name: &str, body: Vec<u8>) {
         self.bodies.lock().unwrap().insert(name.into(), body);
     }
     fn logs(&self) -> Vec<Request> {
@@ -947,6 +954,9 @@ fn launcher_discovers_private_preview_arms_without_overriding_existing_mappings(
 fn public_bundles_reject_private_assets_and_launch_configuration() {
     let root = tempfile::tempdir().unwrap();
     for path in [
+        ".rust-duty-updates/install.json",
+        ".RUST-DUTY-UPDATES/jobs/plan.json",
+        "nested/.rust-duty-updates/install.json",
         "launch.json",
         "launcher-location.json",
         "private-assets/hk416a5.vrm",

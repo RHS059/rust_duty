@@ -71,8 +71,9 @@ or anti-cheat interactions.
 | Left mouse / right mouse | Hold automatic fire / press to toggle ADS |
 | Left Shift | Hold sprint |
 | Left Ctrl or C / Z | Press to toggle crouch / press to toggle prone |
-| Space | Jump; in a lower stance, request standing first |
+| Space | Jump or mantle a clear ledge while moving forward; lower stance requests standing first |
 | R | Reload |
+| F | Hold near and looking at the rear-wall ammo supply to refill |
 | Escape / Enter or click | Pause / resume |
 | F1 / F2 | Telemetry overlay / reset range and inventory |
 | `[` / `]` | Lower / raise mouse sensitivity |
@@ -99,6 +100,9 @@ Escape toggles pause; Enter or a click also resumes.
 - Acceleration, friction, directional speeds, limited air steering, jump/landing,
   four-second sprint budget, exhaustion latch, crouch/prone clearance, eased camera height
 - Original AABB collision and analytic wedge fixtures at 30, 45 and 50 degrees
+- Swept low/high mantle traversal with clearance checks and pause cancellation
+- Optional private skinned arms with original IK, authored reload staging and cancellation blending
+- Aim/range/occlusion-gated rear-wall ammo supply with hold-F progress and full refill
 - Accumulated 70 ms candidate / 90 ms original fire schedule, independent recoil/spread random streams,
   uniform-solid-angle spread, ADS in/out, hip bloom, separate camera and gun kick
 - Tactical/empty reload credit and ready milestones, safe tactical sprint cancellation,
@@ -111,6 +115,7 @@ Escape toggles pause; Enter or a click also resumes.
 ## Verify
 
 ```sh
+python -m pip install -r tools/requirements-assets.txt cryptography
 python -m unittest discover -s tools -p "test_*.py" -v
 cargo fmt --all -- --check
 cargo clippy --locked --all-targets -- -D warnings
@@ -138,12 +143,16 @@ written implementation, not a strict legal clean-room certification.
 
 ## Deliberate limits
 
-Single-player keyboard/mouse only. No networking, controller/aim assist, mantle,
+Single-player keyboard/mouse gameplay. No multiplayer, controller/aim assist,
 ladders, penetration, destruction, AI combat, attachments, or retail assets.
 Collision supports axis-aligned boxes and the authored wedge fixtures, not arbitrary
 mesh geometry. The level uses diagnostic primitive art; the untextured weapon uses simple diffuse
-shading, not full PBR. The model is static: reload motion is whole-weapon lowering,
-without rigged hands or mechanical magazine/bolt animations. The native engine does not
+shading, not full PBR. Optional private skinned arms use authored IK and reload motion;
+hand fit and animation remain provisional. See [arms](docs/FIRST_PERSON_ARMS.md),
+[mantling](docs/MANTLING.md), and [ammo interaction](docs/AMMO_SUPPLY.md).
+The ammo box is an original geometric placeholder pending the reference model.
+The game [checks for updates on launch](docs/UPDATER.md), with background downloads
+and pause/resume/cancel controls in its own menu. The native engine does not
 expose a universal focus callback to this application: fresh Alt/Super shortcuts
 pause safely, but every OS focus-change path is not covered. Always press
 Escape before switching apps. Retail comparison and blinded feel testing remain open.

@@ -14,7 +14,11 @@ const ADS_RESPONSE_SECONDS: f64 = 0.100;
 // (1 + x) * exp(-x) = 0.05 at this x.
 const SETTLE_95: f64 = 4.743_864_518_390_578;
 const WALK_ANGULAR_FREQUENCY: f64 = 10.;
-const RUN_ANGULAR_FREQUENCY: f64 = 14.;
+/// Dominant visible low-carry cycle in source frames 4452..4662 (74.2..77.7s):
+/// 36 manual samples, two-harmonic fit ~1.71 +/-0.04 Hz. This is weapon motion,
+/// not an inferred footstep cadence or gameplay speed. Ready cadence is retained.
+pub const LOW_CARRY_CYCLE_SECONDS: f64 = 0.584;
+const RUN_ANGULAR_FREQUENCY: f64 = TAU / LOW_CARRY_CYCLE_SECONDS;
 const REFERENCE_SPEED: f64 = 7.2;
 const MAX_SPEED: f64 = 18.;
 const BOB_METERS: f64 = 0.010;

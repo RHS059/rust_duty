@@ -145,6 +145,10 @@ impl HandPresentation {
 #[derive(Default)]
 pub struct ViewAnimation {
     visual_clock: crate::reference_motion::ReloadVisualClock,
+    previous_reload: Option<(f32, bool)>,
+    reload_ready_phase: Option<(bool, f32)>,
+    reload_origin: Option<(f64, bool)>,
+    restart_pending: bool,
     hand_presentation: HandPresentation,
     hand_cancellation: Option<(HandPresentation, f64)>,
     previous: WeaponAnimationPose,
@@ -167,6 +171,24 @@ impl ViewAnimation {
         completed: bool,
         now: f64,
     ) -> Option<f32> {
+        if progress.is_some() && duration.is_finite() && duration > 0. {
+            self.reload_ready_phase = Some((
+                empty,
+                duration / crate::reference_motion::visual_duration(empty),
+            ));
+        }
+        if let Some(phase) = progress {
+            let start = now - (phase * duration) as f64;
+            // Match the visual clock's session detection, including a render
+            // gap long enough for the replacement phase to exceed the old one.
+            self.restart_pending |= self.was_reloading
+                && self.reload_origin.is_some_and(|(previous, was_empty)| {
+                    (start - previous).abs() > 0.001 || empty != was_empty
+                });
+            self.reload_origin = Some((start, empty));
+        } else if !completed {
+            self.reload_origin = None;
+        }
         self.visual_clock
             .phase(progress, duration, empty, completed, now)
     }
@@ -180,7 +202,23 @@ impl ViewAnimation {
         now: f64,
     ) -> WeaponAnimationPose {
         let was_reloading = self.was_reloading;
-        if input.reload_progress.is_some() && !was_reloading && self.hand_cancellation.is_some() {
+        // The visual clock can observe a cancel/restart between renders, with
+        // Some on both sides. Recover from the last rendered pose on that edge
+        // too, including a new reload begun during the post-ready visual tail.
+        let replaced_reload = self.restart_pending
+            || match (self.previous_reload, input.reload_progress) {
+                (Some((previous, empty)), Some(phase)) => {
+                    phase + 1e-5 < previous || input.empty_reload != empty
+                }
+                _ => false,
+            };
+        self.restart_pending = false;
+        self.previous_reload = input
+            .reload_progress
+            .map(|phase| (phase, input.empty_reload));
+        if input.reload_progress.is_some()
+            && (replaced_reload || (!was_reloading && self.hand_cancellation.is_some()))
+        {
             let old = self.hand_presentation.frames(
                 Mat4::IDENTITY,
                 WeaponFrame::new(Vec3::ZERO, &self.last_output).matrix,
@@ -228,6 +266,23 @@ impl ViewAnimation {
             // only after arrival, rather than interpolating that motion twice.
             let arrival = if input.empty_reload { 0.955 } else { 0.8454902 };
             let release = if input.empty_reload { 0.14 } else { 0.1394118 };
+            let ready = self
+                .reload_ready_phase
+                .filter(|(empty, _)| *empty == input.empty_reload)
+                .map(|(_, phase)| phase)
+                .unwrap_or_else(|| {
+                    let duration = if input.empty_reload {
+                        crate::weapon_animation::EMPTY_RELOAD_SECONDS
+                    } else {
+                        crate::weapon_animation::TACTICAL_RELOAD_SECONDS
+                    };
+                    duration as f32 / crate::reference_motion::visual_duration(input.empty_reload)
+                });
+            // Once the authored hand reaches support, reacquire by gameplay
+            // ready so accepted recoil/sprint cannot separate it from the gun.
+            // Keep a continuous short ramp even if custom timing is earlier
+            // than the fitted arrival. The visual clip and release stay intact.
+            let arrival_end = ready.clamp(arrival + 0.03, 1.);
             let smooth = |t: f32| {
                 let t = t.clamp(0., 1.);
                 t * t * (3. - 2. * t)
@@ -235,7 +290,7 @@ impl ViewAnimation {
             let left = if phase <= release {
                 1. - smooth((phase - (release - 0.03)) / 0.03)
             } else if phase >= arrival {
-                smooth((phase - arrival) / (1. - arrival))
+                smooth((phase - arrival) / (arrival_end - arrival))
             } else {
                 0.
             };
@@ -341,8 +396,10 @@ impl ViewAnimation {
             let t = ((now - start).max(0.) / 0.14).clamp(0., 1.) as f32;
             if t >= 1. {
                 self.weapon_restart = None;
+                pose
+            } else {
+                blend(from, pose, t * t * (3. - 2. * t))
             }
-            blend(from, pose, t * t * (3. - 2. * t))
         } else {
             pose
         };

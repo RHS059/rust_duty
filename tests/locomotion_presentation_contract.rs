@@ -211,3 +211,21 @@ fn invalid_targets_clocks_and_extreme_finite_hitches_remain_safe() {
     assert_eq!(state.sample(-2., run()), LocomotionPose::default());
     finite(state.sample(f64::MAX, run()));
 }
+
+#[test]
+fn low_carry_frequency_matches_measured_reference_cycle() {
+    let mut state = LocomotionPresentation::default();
+    state.sample(0., run());
+    let held = state.sample(2., run());
+    let hz = held.bob_angular_frequency as f64 / TAU;
+    assert!((hz - 1.71).abs() < 0.04);
+    assert!(
+        (TAU / held.bob_angular_frequency as f64
+            - locomotion_presentation::LOW_CARRY_CYCLE_SECONDS)
+            .abs()
+            < 1e-6
+    );
+    assert_eq!(held, state.sample(2., walk()));
+    let returned = state.sample(4., walk());
+    assert!((returned.bob_angular_frequency - 10.).abs() < 1e-6);
+}

@@ -18,7 +18,7 @@ import tempfile
 
 REPOSITORY = "RHS059/rust_duty"
 MAX_SIZE = 2 * 1024**3
-PROTECTED = {"settings.cfg", "telemetry.csv", "private-assets", "user", "userdata", "saves", "cache", "versions", "install.json", "control.json", "payload.rdb", "version.json", "launcher.lock", "manifest.cache.json", "status.json", "launch.json", "launcher-location.json", ".git"}
+PROTECTED = {".rust-duty-updates", "settings.cfg", "telemetry.csv", "private-assets", "user", "userdata", "saves", "cache", "versions", "install.json", "control.json", "payload.rdb", "version.json", "launcher.lock", "manifest.cache.json", "status.json", "launch.json", "launcher-location.json", ".git"}
 
 
 def stable_version(value):
@@ -36,7 +36,7 @@ def safe_path(value):
         stem = part.split(".")[0].upper()
         if stem in {"CON", "PRN", "AUX", "NUL"} or re.fullmatch(r"(COM|LPT)[0-9]", stem):
             raise ValueError(f"Windows device name: {value}")
-    if any(part.lower() in {"private-assets", "fps-arms.vrs", "first-person.vrs"} for part in value.split("/")):
+    if any(part.lower() in {"private-assets", ".rust-duty-updates", "fps-arms.vrs", "first-person.vrs"} for part in value.split("/")):
         raise ValueError(f"private asset path: {value}")
     if value.split("/")[0].lower() in PROTECTED:
         raise ValueError(f"protected path: {value}")
@@ -73,7 +73,7 @@ def pack(source, output, entrypoint):
             if path.is_symlink():
                 raise ValueError(f"symlinks are forbidden: {path}")
         # Never put private assets, user settings, telemetry or updater state in a release.
-        dirs[:] = sorted(d for d in dirs if d.lower() != "private-assets" and (Path(directory) / d).relative_to(source).parts[0].lower() not in PROTECTED)
+        dirs[:] = sorted(d for d in dirs if d.lower() not in {"private-assets", ".rust-duty-updates"} and (Path(directory) / d).relative_to(source).parts[0].lower() not in PROTECTED)
         for name in sorted(names):
             path = Path(directory) / name
             relative = path.relative_to(source).as_posix()

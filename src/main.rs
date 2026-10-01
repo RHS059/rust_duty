@@ -1,3 +1,4 @@
+mod game_update;
 mod sound;
 mod weapon_model;
 use macroquad::prelude::*;
@@ -15,6 +16,12 @@ const ACCENT: Color = Color::new(0.98, 0.62, 0.22, 1.);
 const CYAN: Color = Color::new(0.33, 0.84, 0.87, 1.);
 const MUTED: Color = Color::new(0.62, 0.69, 0.72, 1.);
 fn config() -> Conf {
+    if let Some(code) = rust_duty_launcher::game::dispatch_helper() {
+        std::process::exit(code);
+    }
+    if let Some(code) = rust_duty_launcher::game::dispatch_headless(env!("CARGO_PKG_VERSION")) {
+        std::process::exit(code);
+    }
     let reference = std::env::args().any(|a| a == "--reference-viewport");
     Conf {
         window_title: "VECTOR RANGE | Original Rust FPS laboratory".into(),
@@ -758,6 +765,12 @@ fn pause_screen(cfg: &Settings, initial: bool, control_mode: ControlMode) {
 #[macroquad::main(config)]
 async fn main() {
     let args: Vec<String> = std::env::args().collect();
+    // Deterministic capture jobs never contact the release channel. Ordinary
+    // double-click launches always start the background checker automatically.
+    let update_enabled = !args
+        .iter()
+        .any(|arg| arg == "--no-update" || arg == "--demo" || arg.starts_with("--capture"));
+    let mut game_update = game_update::UpdatePanel::start(update_enabled);
     let framing = ViewmodelFraming::from_args(&args);
     let control_mode = if args.iter().any(|s| s == "--hold-controls") {
         ControlMode::Hold
@@ -888,15 +901,17 @@ async fn main() {
         .find_map(|a| a.strip_prefix("--capture-reload="))
         .and_then(|s| s.parse::<f32>().ok())
         .filter(|v| v.is_finite() && (0. ..=1.).contains(v));
+    let mut locomotion_capture_tick = 0_u64;
     let capture_sequence = args
         .iter()
         .find_map(|a| a.strip_prefix("--capture-sequence="))
-        .filter(|s| matches!(*s, "tactical" | "empty" | "ads"));
+        .filter(|s| matches!(*s, "tactical" | "empty" | "ads" | "locomotion"));
     let capture_empty =
         args.iter().any(|s| s == "--capture-empty") || capture_sequence == Some("empty");
     let sequence_duration = match capture_sequence {
         Some("empty") => vector_range::reference_motion::visual_duration(true),
         Some("tactical") => vector_range::reference_motion::visual_duration(false),
+        Some("locomotion") => 3.5,
         _ => cfg.ads_time,
     };
     if capture_sequence.is_some() && !framing.reference {
@@ -946,6 +961,11 @@ async fn main() {
         initial = false;
         debug = true;
     }
+    if model_error.is_none() {
+        if let Err(error) = rust_duty_launcher::game::mark_ready(env!("CARGO_PKG_VERSION")) {
+            eprintln!("Update startup acknowledgement: {error}");
+        }
+    }
     loop {
         let now = get_time();
         let raw_dt = now - last_frame;
@@ -955,13 +975,14 @@ async fn main() {
         if is_key_pressed(KeyCode::F10) {
             break;
         }
+        let update_pointer = game_update.consumes_pointer(!session.is_active());
         let transition = session.step(vector_range::session::SessionInput {
             esc_pressed: is_key_pressed(KeyCode::Escape),
             esc_down: is_key_down(KeyCode::Escape),
             enter_pressed: is_key_pressed(KeyCode::Enter),
             enter_down: is_key_down(KeyCode::Enter),
-            click_pressed: is_mouse_button_pressed(MouseButton::Left),
-            click_down: is_mouse_button_down(MouseButton::Left),
+            click_pressed: is_mouse_button_pressed(MouseButton::Left) && !update_pointer,
+            click_down: is_mouse_button_down(MouseButton::Left) && !update_pointer,
             focus_shortcut_pressed: is_key_down(KeyCode::LeftAlt)
                 || is_key_down(KeyCode::RightAlt)
                 || is_key_down(KeyCode::LeftSuper)
@@ -1243,6 +1264,24 @@ async fn main() {
         if capture_sequence == Some("ads") {
             sim.player.ads = sequence_phase;
         }
+        if capture_sequence == Some("locomotion") {
+            // Diagnostic presentation only: sample target changes on the same
+            // fixed clock used by gameplay, with camera/world movement frozen.
+            while locomotion_capture_tick as f64 / 120. <= sim.time {
+                let t = locomotion_capture_tick as f64 / 120.;
+                sim.player.sprinting = (1. ..2.).contains(&t);
+                let speed = if !(0.25..3.).contains(&t) {
+                    0.
+                } else if sim.player.sprinting {
+                    cfg.sprint_speed
+                } else {
+                    cfg.walk_speed
+                };
+                sim.player.velocity = vec3(speed, 0., 0.);
+                locomotion_state.sample(t, locomotion_input(&sim));
+                locomotion_capture_tick += 1;
+            }
+        }
         if let Some(ads) = capture_ads_fraction {
             sim.player.ads = ads;
         }
@@ -1328,6 +1367,9 @@ async fn main() {
         if !active {
             pause_screen(&cfg, initial, controls.mode());
         }
+        if game_update.draw(!active) {
+            break;
+        }
         if let Some(error) = &model_error {
             panel(24., screen_height() - 140., screen_width() - 48., 115.);
             label(
@@ -1384,6 +1426,12 @@ async fn main() {
             }
             if capture_sequence.is_some() {
                 let _ = std::fs::write(format!("{output}.time.json"), format!("{{\"elapsed_seconds\":{},\"normalized_phase\":{},\"visual_duration_seconds\":{},\"simulation_ready_seconds\":{},\"sampling_hz\":59.94005994}}", sequence_elapsed, sequence_phase, sequence_duration, if capture_empty { cfg.empty_reload_time } else if capture_sequence == Some("ads") { cfg.ads_time } else { cfg.reload_time }));
+            }
+            if capture_sequence == Some("locomotion") {
+                let motion = locomotion_state.sample(sim.time, locomotion_input(&sim));
+                let _ = std::fs::write(format!("{output}.motion.json"), format!(
+                    "{{\"elapsed\":{},\"target_sprint\":{},\"cosmetic_sprint\":{},\"bob\":{},\"bob_phase\":{},\"speed\":{}}}",
+                    sequence_elapsed, sim.player.sprinting, motion.sprint, motion.bob, motion.phase, sim.player.speed()));
             }
             if capture_sequence.is_none() || sequence_elapsed >= sequence_duration + 0.2 {
                 break;
