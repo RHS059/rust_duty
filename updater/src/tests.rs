@@ -1065,3 +1065,218 @@ fn http_fixture_restores_blocking_mode_for_inherited_nonblocking_sockets() {
         + 4;
     assert_eq!(&response[split..], body);
 }
+
+fn synced_test_tempfile(root: &Path, bytes: &[u8]) -> tempfile::NamedTempFile {
+    let mut file = tempfile::NamedTempFile::new_in(root).unwrap();
+    file.write_all(bytes).unwrap();
+    file.as_file().sync_all().unwrap();
+    file
+}
+
+#[test]
+fn atomic_replace_retries_only_windows_contention_and_retains_the_same_tempfile() {
+    let root = tempfile::tempdir().unwrap();
+    let path = write(root.path(), "state.json", b"old complete state");
+    let file = synced_test_tempfile(root.path(), b"new complete state");
+    let temporary_path = file.path().to_owned();
+    let mut attempts = 0;
+    let mut waits = Vec::new();
+    persist_with_retry(
+        file,
+        &path,
+        true,
+        |file, destination| {
+            attempts += 1;
+            assert_eq!(file.path(), temporary_path);
+            assert_eq!(fs::read(file.path()).unwrap(), b"new complete state");
+            assert_eq!(fs::read(destination).unwrap(), b"old complete state");
+            if attempts <= 2 {
+                Err(tempfile::PersistError {
+                    file,
+                    error: std::io::Error::from_raw_os_error(if attempts == 1 { 5 } else { 32 }),
+                })
+            } else {
+                file.persist(destination)
+            }
+        },
+        |delay| waits.push(delay),
+    )
+    .unwrap();
+    assert_eq!(attempts, 3);
+    assert_eq!(waits, vec![REPLACE_RETRY_DELAY; 2]);
+    assert_eq!(fs::read(&path).unwrap(), b"new complete state");
+    assert!(!temporary_path.exists());
+}
+
+#[test]
+fn atomic_replace_exhaustion_and_nonretry_errors_preserve_last_good_state() {
+    // The Windows classifier is tested through injection on every platform.
+    for (windows, code, expected_attempts) in [
+        (true, 5, REPLACE_RETRIES + 1),
+        (true, 32, REPLACE_RETRIES + 1),
+        (true, 2, 1),
+        (true, 112, 1), // ERROR_DISK_FULL is not transient sharing contention.
+        (false, 5, 1),  // Never interpret Unix errno as a Windows error code.
+        (false, 32, 1),
+    ] {
+        let root = tempfile::tempdir().unwrap();
+        let path = write(root.path(), "state.json", b"last good state");
+        let file = synced_test_tempfile(root.path(), b"replacement");
+        let temporary_path = file.path().to_owned();
+        let mut attempts = 0;
+        let mut waits = 0;
+        let result = persist_with_retry(
+            file,
+            &path,
+            windows,
+            |file, destination| {
+                attempts += 1;
+                assert_eq!(file.path(), temporary_path);
+                assert_eq!(fs::read(destination).unwrap(), b"last good state");
+                Err(tempfile::PersistError {
+                    file,
+                    error: std::io::Error::from_raw_os_error(code),
+                })
+            },
+            |_| waits += 1,
+        );
+        match result.unwrap_err() {
+            Error::Filesystem {
+                operation,
+                path: failed_path,
+                source,
+            } => {
+                assert_eq!(operation, "atomically replace state");
+                assert_eq!(failed_path, path);
+                assert_eq!(source.raw_os_error(), Some(code));
+            }
+            other => panic!("expected contextual filesystem error, got {other:?}"),
+        }
+        assert_eq!(attempts, expected_attempts);
+        assert_eq!(waits, expected_attempts - 1);
+        assert_eq!(fs::read(path).unwrap(), b"last good state");
+        assert!(
+            !temporary_path.exists(),
+            "failed tempfiles must not accumulate"
+        );
+    }
+}
+
+#[cfg(unix)]
+#[test]
+fn atomic_replace_rechecks_symlinks_after_contention_before_trying_again() {
+    let root = tempfile::tempdir().unwrap();
+    let path = write(root.path(), "state.json", b"old state");
+    let elsewhere = write(root.path(), "elsewhere.json", b"must remain unchanged");
+    let file = synced_test_tempfile(root.path(), b"new state");
+    let mut attempts = 0;
+    let result = persist_with_retry(
+        file,
+        &path,
+        true,
+        |file, _| {
+            attempts += 1;
+            Err(tempfile::PersistError {
+                file,
+                error: std::io::Error::from_raw_os_error(32),
+            })
+        },
+        |_| {
+            fs::remove_file(&path).unwrap();
+            std::os::unix::fs::symlink(&elsewhere, &path).unwrap();
+        },
+    );
+    assert!(matches!(result, Err(Error::Invalid(_))));
+    assert_eq!(
+        attempts, 1,
+        "the symlink must prevent a second persist call"
+    );
+    assert_eq!(fs::read(elsewhere).unwrap(), b"must remain unchanged");
+}
+
+#[test]
+fn concurrent_status_readers_and_atomic_writers_observe_complete_snapshots() {
+    let root = tempfile::tempdir().unwrap();
+    let path = root.path().join("status.json");
+    let snapshot = |generation| serde_json::json!({"generation": generation, "mirror": generation, "padding": "x".repeat(512)});
+    atomic_json(&path, &snapshot(0)).unwrap();
+    let stop = Arc::new(AtomicBool::new(false));
+    let start = Arc::new(std::sync::Barrier::new(3));
+    let readers: Vec<_> = (0..2)
+        .map(|_| {
+            let (path, stop, start) = (path.clone(), stop.clone(), start.clone());
+            thread::spawn(move || -> Result<usize> {
+                let mut reads = 0;
+                start.wait();
+                while !stop.load(Ordering::Acquire) {
+                    let value: serde_json::Value = read_json(&path)?;
+                    assert_eq!(value["generation"], value["mirror"]);
+                    assert_eq!(value["padding"].as_str().unwrap(), "x".repeat(512));
+                    reads += 1;
+                    thread::yield_now();
+                }
+                Ok(reads)
+            })
+        })
+        .collect();
+    start.wait();
+    let result = (1..=200).try_for_each(|generation| atomic_json(&path, &snapshot(generation)));
+    stop.store(true, Ordering::Release);
+    for reader in readers {
+        assert!(reader.join().unwrap().unwrap() > 0);
+    }
+    result.unwrap();
+    let final_state: serde_json::Value = read_json(&path).unwrap();
+    assert_eq!(final_state, snapshot(200));
+}
+
+#[cfg(windows)]
+#[test]
+fn atomic_replace_handles_native_windows_reader_contention() {
+    use std::os::windows::fs::OpenOptionsExt;
+
+    let root = tempfile::tempdir().unwrap();
+    let path = write(root.path(), "status.json", b"old complete state");
+    // Deliberately model an external reader that does not allow delete/rename.
+    // This changes this test handle's sharing mode, never file permissions.
+    let reader = fs::OpenOptions::new()
+        .read(true)
+        .share_mode(1 | 2)
+        .open(&path)
+        .unwrap();
+    let file = synced_test_tempfile(root.path(), b"new complete state");
+    let failure = file.persist(&path).unwrap_err();
+    assert!(
+        matches!(failure.error.raw_os_error(), Some(5 | 32)),
+        "{failure:?}"
+    );
+    assert_eq!(fs::read(&path).unwrap(), b"old complete state");
+    drop(failure);
+    let release = thread::spawn(move || {
+        thread::sleep(Duration::from_millis(150));
+        drop(reader);
+    });
+    let result = atomic_bytes(&path, b"new complete state");
+    release.join().unwrap();
+    result.unwrap();
+    assert_eq!(fs::read(&path).unwrap(), b"new complete state");
+
+    // A holder that never releases within the retry budget must fail safely.
+    let _reader = fs::OpenOptions::new()
+        .read(true)
+        .share_mode(1 | 2)
+        .open(&path)
+        .unwrap();
+    let result = atomic_bytes(&path, b"must not replace while denied");
+    assert!(
+        matches!(
+            result,
+            Err(Error::Filesystem {
+                operation: "atomically replace state",
+                ..
+            })
+        ),
+        "{result:?}"
+    );
+    assert_eq!(fs::read(&path).unwrap(), b"new complete state");
+}

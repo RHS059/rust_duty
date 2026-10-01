@@ -270,6 +270,7 @@ fn weapon(
             - p.sprinting as u8 as f32 * 0.13,
         -0.32 + p.shot_kick * 0.045,
     );
+    let mut muzzle_position = o + vec3(0., 0.01, -1.04);
     if let Some(model) = model {
         use vector_range::weapon_animation::{sample_weapon_animation, AnimationInput};
         let progress = (p.reload_left > 0. && p.reload_total > 0.)
@@ -301,15 +302,9 @@ fn weapon(
             -0.02 * (1. - p.ads) - 0.041 * p.ads + bob,
             -0.32,
         );
-        let rotation = animation.weapon_euler_yxz;
-        let transform =
-            Mat4::from_translation(base + Vec3::from_array(animation.weapon_translation))
-                * Mat4::from_quat(Quat::from_euler(
-                    EulerRot::YXZ,
-                    rotation[0],
-                    rotation[1],
-                    rotation[2],
-                ));
+        let frame = vector_range::view_animation::WeaponFrame::new(base, &animation);
+        let transform = frame.matrix;
+        muzzle_position = frame.point(model.muzzle);
         if let Some(arms) = arms {
             arms.draw(transform, &animation);
         }
@@ -360,7 +355,7 @@ fn weapon(
     }
     if p.shot_kick > 0.65 {
         draw_sphere(
-            o + model.map(|m| m.muzzle).unwrap_or(vec3(0., 0.01, -1.04)),
+            muzzle_position,
             0.035 + p.shot_kick * 0.025,
             None,
             Color::new(1., 0.80, 0.32, 1.),
@@ -763,6 +758,7 @@ async fn main() {
     let capture = args.iter().any(|s| s.starts_with("--capture"));
     let capture_ads = args.iter().any(|s| s == "--capture-ads");
     let capture_supply = args.iter().any(|s| s == "--capture-supply");
+    let capture_fire = args.iter().any(|s| s == "--capture-fire");
     let capture_fixtures = args.iter().any(|s| s == "--capture-fixtures");
     let output = args
         .iter()
@@ -1095,6 +1091,9 @@ async fn main() {
         }
         for i in &impacts {
             draw_sphere(i.point, 0.022, None, if i.target { CYAN } else { INK });
+        }
+        if capture_fire {
+            sim.player.shot_kick = 1.;
         }
         weapon(
             &sim,

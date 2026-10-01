@@ -239,7 +239,11 @@ pub fn download(root: &Path, source: &Source, version: &Version, asset: &Asset) 
         transfer.etag = tag;
         // Persist the entity validator before receiving any bytes.
         atomic_json(&meta, &transfer)?;
-        let mut file = OpenOptions::new().create(true).append(true).open(&part)?;
+        let mut file = OpenOptions::new()
+            .create(true)
+            .append(true)
+            .open(&part)
+            .map_err(|e| crate::io_at("open partial download", &part, e))?;
         let mut remaining = response_size;
         let mut buf = [0; 65536];
         while remaining > 0 {
@@ -253,8 +257,10 @@ pub fn download(root: &Path, source: &Source, version: &Version, asset: &Asset) 
                     "connection ended before the requested bytes arrived".into(),
                 ));
             }
-            file.write_all(&buf[..n])?;
-            file.sync_data()?;
+            file.write_all(&buf[..n])
+                .map_err(|e| crate::io_at("write partial download", &part, e))?;
+            file.sync_data()
+                .map_err(|e| crate::io_at("sync partial download", &part, e))?;
             hash.update(&buf[..n]);
             transfer.bytes += n as u64;
             remaining -= n as u64;

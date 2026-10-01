@@ -1,5 +1,23 @@
 //! Cosmetic reload cancellation crossfade. Never feeds movement, aim rays or ammo.
 use crate::weapon_animation::WeaponAnimationPose;
+use macroquad::math::{EulerRot, Mat4, Quat, Vec3};
+/// One frame shared by gun meshes, arm grip targets, and muzzle effects.
+#[derive(Clone, Copy)]
+pub struct WeaponFrame {
+    pub matrix: Mat4,
+}
+impl WeaponFrame {
+    pub fn new(base: Vec3, pose: &WeaponAnimationPose) -> Self {
+        let r = pose.weapon_euler_yxz;
+        Self {
+            matrix: Mat4::from_translation(base + Vec3::from_array(pose.weapon_translation))
+                * Mat4::from_quat(Quat::from_euler(EulerRot::YXZ, r[0], r[1], r[2])),
+        }
+    }
+    pub fn point(self, local: Vec3) -> Vec3 {
+        self.matrix.transform_point3(local)
+    }
+}
 #[derive(Default)]
 pub struct ViewAnimation {
     previous: WeaponAnimationPose,
@@ -53,6 +71,30 @@ fn blend(a: WeaponAnimationPose, b: WeaponAnimationPose, t: f32) -> WeaponAnimat
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn muzzle_and_grip_share_mesh_transform_in_hip_ads_and_reload() {
+        use crate::weapon_animation::{sample_weapon_animation, AnimationInput};
+        let muzzle = Vec3::new(0., 0.01, -0.8);
+        for ads in [0., 1.] {
+            for reload in [None, Some(0.5)] {
+                let pose = sample_weapon_animation(AnimationInput {
+                    ads,
+                    reload_progress: reload,
+                    recoil: 1.,
+                    ..Default::default()
+                });
+                let base = Vec3::new(0.12 * (1. - ads), -0.02 * (1. - ads) - 0.041 * ads, -0.32);
+                let frame = WeaponFrame::new(base, &pose);
+                let r = pose.weapon_euler_yxz;
+                let rotated = Quat::from_euler(EulerRot::YXZ, r[0], r[1], r[2]) * muzzle;
+                let expected = base + Vec3::from_array(pose.weapon_translation) + rotated;
+                assert!(frame.point(muzzle).distance(expected) < 1e-6);
+                assert!(frame.point(muzzle).distance(base + muzzle) > 0.01);
+                let grip = Vec3::from_array(pose.right_grip);
+                assert_eq!(frame.point(grip), frame.matrix.transform_point3(grip));
+            }
+        }
+    }
     #[test]
     fn cancellation_is_continuous_and_settles() {
         let mut state = ViewAnimation::default();
