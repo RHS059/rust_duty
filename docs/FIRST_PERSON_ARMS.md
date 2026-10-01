@@ -1,0 +1,13 @@
+# Optional first-person arms
+
+The renderer accepts a private VRSKIN02 arm rig through `--arms-asset=/absolute/path/first-person.vrs`, or discovers `assets/arms/first-person.vrs` beside the executable. Missing optional arms leave the weapon playable; a present but invalid arm package shows an actionable load error instead of silently discarding the rig. The launcher preserves an explicitly configured private arm path across game updates.
+
+Only the generic converter, decoder, original IK/animation code and original synthetic fixtures belong in the public repository. The supplied Soldier arm package is private and is not included in public CI/release payloads. Keep it outside the repository and configure its absolute path locally.
+
+VRSKIN02 preserves eight weighted influences, rest transforms, inverse binds, joint names, mesh geometry, UVs and base-color textures. Current rendering uses diffuse lighting; normal/roughness/metalness image maps are not evaluated by this renderer. Conversion rejects animation clips and unsupported material features explicitly. See SKINNED_ASSET_FORMAT.md for exact bounds and accepted subset.
+
+The current renderer supports the named UE-style upperarm/lowerarm/hand chains on both sides, uses original two-bone IK and authored finger curls, and validates the arm hierarchy and segment lengths. It is not a universal retargeter. Hand-grip targets follow the same weapon-local transform as the rifle. Magazine/bolt component motion is enabled only for the specifically identified converted HK416 geometry checksum; a checksum identifies geometry, not authenticity or security.
+
+Reload progress and ammo-credit timing come from the simulation. The empty/tactical flag is captured at reload start. Cosmetic cancellation blends back over 140 ms without changing firing eligibility, ammunition, collision or shot rays. Reset clears that blend. The authored motion is provisional; it must not be described as measured 2009 MW2 animation parity.
+
+Validation: original synthetic skin conversion/bind-pose tests, bounded malformed-input decoding, eight-influence preservation, IK length checks, cancellation continuity and render-partition-independent transition endpoints. The actual private arm rig has been visually checked in hip and ADS views on the native Linux test desktop. Windows gameplay and performance on a normal GPU remain unverified.

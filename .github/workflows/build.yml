@@ -44,6 +44,8 @@ jobs:
             docs/PROVENANCE.md
             docs/ASSET_FORMAT.md
             docs/M4_PROFILE.md
+            docs/FIRST_PERSON_ARMS.md
+            docs/MANTLING.md
             assets/README.md
             assets/weapons/*.vrm
             profiles/*.cfg
@@ -62,6 +64,8 @@ jobs:
             docs/PROVENANCE.md
             docs/ASSET_FORMAT.md
             docs/M4_PROFILE.md
+            docs/FIRST_PERSON_ARMS.md
+            docs/MANTLING.md
             assets/README.md
             assets/weapons/*.vrm
             profiles/*.cfg

@@ -12,3 +12,12 @@ include!(concat!(env!("OUT_DIR"), "/weapon_embed.rs"));
 pub mod asset_path;
 
 pub mod session;
+
+pub mod arms;
+pub mod skinned_asset;
+pub mod weapon_animation;
+
+pub mod view_animation;
+
+pub mod ammo_supply;
+pub mod ammo_supply_view;

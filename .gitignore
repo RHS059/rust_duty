@@ -19,3 +19,8 @@
 
 __pycache__/
 *.pyc
+# Private skinned source/converted rigs; only the original synthetic fixture is public.
+*.vrs
+!tests/fixtures/two_bone_triangle.vrs
+/updater-artifact/
+/signing-setup-artifact/

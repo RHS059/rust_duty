@@ -30,6 +30,22 @@ jobs:
       - run: cargo fmt --manifest-path updater/Cargo.toml --all -- --check
       - run: cargo clippy --manifest-path updater/Cargo.toml --locked --all-targets -- -D warnings
       - run: cargo test --manifest-path updater/Cargo.toml --locked
+      - name: Stress native Windows pause and status persistence (10 serial runs)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        timeout-minutes: 5
+        env:
+          RUST_BACKTRACE: '1'
+        run: |
+          for ($Iteration = 1; $Iteration -le 10; $Iteration++) {
+            Write-Host "::group::Windows pause/status stress $Iteration/10"
+            cargo test --manifest-path updater/Cargo.toml --locked --lib tests::pause_resume_and_cancel_are_persisted -- --exact --nocapture --test-threads=1
+            $TestExit = $LASTEXITCODE
+            Write-Host "::endgroup::"
+            if ($TestExit -ne 0) {
+              throw "Windows pause/status stress failed on iteration $Iteration (cargo exit $TestExit)"
+            }
+          }
       - run: python -m unittest discover -s tools -p test_release_update.py -v
       - name: Parse owner-run PowerShell scripts without executing them
         if: runner.os == 'Windows'

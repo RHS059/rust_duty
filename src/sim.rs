@@ -4,6 +4,66 @@ pub const FIXED_DT: f32 = 1. / 120.;
 pub const MAGAZINE: u32 = 30;
 pub const RADIUS: f32 = 0.381;
 pub const SPRINT_DURATION: f32 = 4.;
+/// Authored traversal limits in metres; unrelated to either weapon profile.
+pub const MANTLE_MIN_HEIGHT: f32 = 0.50;
+pub const MANTLE_LOW_HEIGHT: f32 = 1.20;
+pub const MANTLE_MAX_HEIGHT: f32 = 1.85;
+pub const MANTLE_REACH: f32 = 0.65;
+const STANDING_HEIGHT: f32 = 1.778;
+const MANTLE_LANDING_MARGIN: f32 = 0.03;
+const MANTLE_LIFT_CLEARANCE: f32 = 0.035;
+const MANTLE_MAX_TRAVEL: f32 = 1.85;
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum MantleKind {
+    Low,
+    High,
+}
+
+/// A fixed-step, feet-position traversal. Read this state for presentation only.
+#[derive(Debug, Clone, Copy)]
+pub struct MantleState {
+    pub kind: MantleKind,
+    pub start: Vec3,
+    pub landing: Vec3,
+    elapsed: f32,
+    duration: f32,
+    support: Aabb,
+}
+impl MantleState {
+    pub fn progress(self) -> f32 {
+        (self.elapsed / self.duration).clamp(0., 1.)
+    }
+    pub fn duration(self) -> f32 {
+        self.duration
+    }
+    fn raised_start(self) -> Vec3 {
+        vec3(
+            self.start.x,
+            self.landing.y + MANTLE_LIFT_CLEARANCE,
+            self.start.z,
+        )
+    }
+    fn raised_landing(self) -> Vec3 {
+        self.landing + Vec3::Y * MANTLE_LIFT_CLEARANCE
+    }
+    fn position_at(self, elapsed: f32) -> Vec3 {
+        let t = (elapsed / self.duration).clamp(0., 1.);
+        let (start, end, blend) = if t < 0.55 {
+            (self.start, self.raised_start(), t / 0.55)
+        } else if t < 0.90 {
+            (
+                self.raised_start(),
+                self.raised_landing(),
+                (t - 0.55) / 0.35,
+            )
+        } else {
+            (self.raised_landing(), self.landing, (t - 0.90) / 0.10)
+        };
+        let ease = blend * blend * (3. - 2. * blend);
+        start.lerp(end, ease)
+    }
+}
 
 #[derive(Debug, Clone, Copy)]
 pub struct Aabb {
@@ -196,6 +256,7 @@ pub struct Player {
     pub last_shot_at: f64,
     pub last_jump_at: f64,
     pub air_speed_limit: f32,
+    pub mantle: Option<MantleState>,
 }
 impl Default for Player {
     fn default() -> Self {
@@ -240,6 +301,7 @@ impl Default for Player {
             last_shot_at: -10.,
             last_jump_at: -10.,
             air_speed_limit: 5.0673,
+            mantle: None,
         }
     }
 }
@@ -259,7 +321,7 @@ impl Player {
         } else if self.crouched {
             1.27
         } else {
-            1.778
+            STANDING_HEIGHT
         }
     }
     pub fn bounds_at(&self, pos: Vec3) -> Aabb {
@@ -281,6 +343,70 @@ pub fn direction(yaw: f32, pitch: f32) -> Vec3 {
 }
 fn approach(current: f32, target: f32, step: f32) -> f32 {
     current + (target - current).clamp(-step, step)
+}
+
+// Exact continuous collision of the standing axis-aligned player box against
+// an AABB, expressed as a feet-point segment through its Minkowski expansion.
+// Open intervals permit contact at the floor/landing without treating it as
+// penetration. We test complete segments, never sampled positions alone.
+fn swept_standing_box(start: Vec3, end: Vec3, obstacle: Aabb) -> bool {
+    let min = obstacle.min - vec3(RADIUS, STANDING_HEIGHT, RADIUS);
+    let max = obstacle.max + vec3(RADIUS, 0., RADIUS);
+    let delta = end - start;
+    let mut enter: f32 = 0.;
+    let mut exit: f32 = 1.;
+    for axis in 0..3 {
+        if delta[axis].abs() < 1e-8 {
+            if start[axis] <= min[axis] || start[axis] >= max[axis] {
+                return false;
+            }
+        } else {
+            let a = (min[axis] - start[axis]) / delta[axis];
+            let b = (max[axis] - start[axis]) / delta[axis];
+            enter = enter.max(a.min(b));
+            exit = exit.min(a.max(b));
+            if enter >= exit {
+                return false;
+            }
+        }
+    }
+    enter < exit
+}
+// A ramp is a solid triangular prism. These planes describe its Minkowski
+// expansion by the standing player, including the extra horizontal top plane
+// needed when an AABB expands a sloped surface. Ramps obstruct traversal but
+// are not ledge candidates in this authored first implementation.
+fn swept_standing_ramp(start: Vec3, end: Vec3, r: Ramp) -> bool {
+    let slope = r.slope();
+    let planes = [
+        (Vec3::X, r.x + r.width * 0.5 + RADIUS),
+        (-Vec3::X, -r.x + r.width * 0.5 + RADIUS),
+        (Vec3::Z, r.z + RADIUS),
+        (-Vec3::Z, -r.z + r.length + RADIUS),
+        (-Vec3::Y, STANDING_HEIGHT),
+        (Vec3::Y, r.height),
+        (vec3(0., 1., slope), slope * (r.z + RADIUS)),
+    ];
+    let delta = end - start;
+    let mut enter: f32 = 0.;
+    let mut exit: f32 = 1.;
+    for (normal, boundary) in planes {
+        let distance = boundary - normal.dot(start);
+        let rate = normal.dot(delta);
+        if rate.abs() < 1e-8 {
+            if distance <= 0. {
+                return false;
+            }
+        } else if rate > 0. {
+            exit = exit.min(distance / rate);
+        } else {
+            enter = enter.max(distance / rate);
+        }
+        if enter >= exit {
+            return false;
+        }
+    }
+    enter < exit
 }
 
 pub struct Simulation {
@@ -468,7 +594,13 @@ impl Simulation {
                 p.reload_left = 0.;
             }
         }
-        let can_sprint = !input.jump
+        self.try_begin_mantle(input, cfg);
+        // Even the final traversal tick excludes weapon actions. Held fire can
+        // resume next tick; reload still requires its ordinary fresh press.
+        let mantling = self.player.mantle.is_some();
+        let p = &mut self.player;
+        let can_sprint = !mantling
+            && !input.jump
             && !p.crouched
             && !p.prone
             && input.sprint
@@ -485,7 +617,8 @@ impl Simulation {
             p.reload_credit_at = 0.;
             p.reload_ready_at = 0.;
         }
-        let valid_reload = input.reload
+        let valid_reload = !mantling
+            && input.reload
             && !p.reload_held
             && p.reload_left == 0.
             && p.ammo < MAGAZINE
@@ -511,7 +644,7 @@ impl Simulation {
                 p.recoil = Vec2::ZERO;
             }
         }
-        let ads_target = if input.ads && !p.sprinting && p.reload_left == 0. {
+        let ads_target = if !mantling && input.ads && !p.sprinting && p.reload_left == 0. {
             1.
         } else {
             0.
@@ -526,7 +659,7 @@ impl Simulation {
             },
         );
         let fire_eligible =
-            input.fire && !p.sprinting && p.sprint_out <= 1e-6 && p.reload_left <= 0.;
+            !mantling && input.fire && !p.sprinting && p.sprint_out <= 1e-6 && p.reload_left <= 0.;
         if !fire_eligible {
             p.firing_sequence = false;
         }
@@ -540,7 +673,210 @@ impl Simulation {
         self.player.sprint_out = (self.player.sprint_out - dt).max(0.);
         self.time += dt as f64;
     }
+    /// Cancel traversal without teleporting or retaining upward/forward momentum.
+    /// The last verified pose is retained; the next fixed step resolves support
+    /// or a normal fall. This is safe to call repeatedly (including while paused).
+    pub fn cancel_mantle(&mut self) {
+        if self.player.mantle.take().is_none() {
+            return;
+        }
+        let pos = self.player.position;
+        let supported = self.blocks.iter().any(|b| {
+            (pos.y - b.bounds.max.y).abs() < 0.00001
+                && pos.x + RADIUS > b.bounds.min.x
+                && pos.x - RADIUS < b.bounds.max.x
+                && pos.z + RADIUS > b.bounds.min.z
+                && pos.z - RADIUS < b.bounds.max.z
+        }) || self.ramps.iter().any(|r| {
+            r.slope() <= 1.0001
+                && r.surface(pos.x, pos.z)
+                    .is_some_and(|height| (pos.y - height).abs() < 0.00001)
+        });
+        let p = &mut self.player;
+        p.velocity = Vec3::ZERO;
+        p.sprinting = false;
+        p.grounded = supported;
+        p.previous_grounded = supported;
+        p.firing_sequence = false;
+        // Keep jump_held: cancel/focus changes must not re-arm a held jump.
+    }
+    fn mantle_sweep_clear(&self, start: Vec3, end: Vec3) -> bool {
+        !self
+            .blocks
+            .iter()
+            .any(|b| swept_standing_box(start, end, b.bounds))
+            && !self
+                .ramps
+                .iter()
+                .any(|r| swept_standing_ramp(start, end, *r))
+    }
+    fn try_begin_mantle(&mut self, input: Input, cfg: &Settings) {
+        let p = &self.player;
+        if p.mantle.is_some()
+            || !input.jump
+            || p.jump_held
+            || !p.grounded
+            || p.crouched
+            || p.prone
+            || p.stance_progress < 1.
+            || input.crouch
+            || input.prone
+            || input.movement.y <= 0.1
+            || input.movement.normalize_or_zero().y < 0.5
+            || self.time - p.last_jump_at < 0.5
+        {
+            return;
+        }
+        // Look direction selects the ledge. Strafe input never extends reach.
+        let forward = vec3(p.yaw.cos(), 0., p.yaw.sin());
+        let origin = vec3(p.position.x, 0., p.position.z);
+        let mut best: Option<(f32, MantleState)> = None;
+        for block in &self.blocks {
+            let b = block.bounds;
+            let height = b.max.y - p.position.y;
+            if !(MANTLE_MIN_HEIGHT..=MANTLE_MAX_HEIGHT).contains(&height) {
+                continue;
+            }
+            let approach = Aabb {
+                min: vec3(b.min.x - RADIUS, -1., b.min.z - RADIUS),
+                max: vec3(b.max.x + RADIUS, 1., b.max.z + RADIUS),
+            };
+            let Some(distance) = approach.ray(origin, forward, MANTLE_REACH) else {
+                continue;
+            };
+            // Require the entire standing footprint, plus a margin, on this
+            // actual top. Thin rails and empty space beyond an edge are invalid.
+            let inset = RADIUS + MANTLE_LANDING_MARGIN;
+            let interior = Aabb {
+                min: vec3(b.min.x + inset, -1., b.min.z + inset),
+                max: vec3(b.max.x - inset, 1., b.max.z - inset),
+            };
+            if interior.min.x >= interior.max.x || interior.min.z >= interior.max.z {
+                continue;
+            }
+            let Some(travel) = interior.ray(origin, forward, MANTLE_MAX_TRAVEL) else {
+                continue;
+            };
+            let landing = p.position + forward * travel;
+            let state = MantleState {
+                kind: if height <= MANTLE_LOW_HEIGHT {
+                    MantleKind::Low
+                } else {
+                    MantleKind::High
+                },
+                start: p.position,
+                landing: vec3(landing.x, b.max.y, landing.z),
+                elapsed: 0.,
+                duration: if height <= MANTLE_LOW_HEIGHT {
+                    0.60
+                } else {
+                    0.85
+                },
+                support: b,
+            };
+            // All three swept legs and the full landing volume must be clear.
+            // No collider is ignored, including the ledge being climbed.
+            if !self.mantle_sweep_clear(state.start, state.raised_start())
+                || !self.mantle_sweep_clear(state.raised_start(), state.raised_landing())
+                || !self.mantle_sweep_clear(state.raised_landing(), state.landing)
+                || !self.mantle_sweep_clear(state.landing, state.landing)
+            {
+                continue;
+            }
+            if best.as_ref().is_none_or(|(nearest, _)| distance < *nearest) {
+                best = Some((distance, state));
+            }
+        }
+        let Some((_, state)) = best else { return };
+        let p = &mut self.player;
+        p.mantle = Some(state);
+        p.velocity = Vec3::ZERO;
+        p.grounded = false;
+        p.previous_grounded = false;
+        p.last_jump_at = self.time;
+        p.air_speed_limit = cfg.walk_speed * 1.05;
+        if p.sprinting {
+            p.sprint_out = cfg.sprint_out_time;
+        }
+        p.sprinting = false;
+        p.firing_sequence = false;
+        // Traversal wins over a reload. Already-credited rounds remain; no
+        // uncredited rounds are granted and a held reload is not queued.
+        p.reload_left = 0.;
+        p.reload_credit_at = 0.;
+        p.reload_ready_at = 0.;
+        p.reload_total = 0.;
+        p.reload_credited = false;
+        p.reload_empty = false;
+    }
+    fn advance_mantle(&mut self, input: Input, cfg: &Settings, dt: f32) {
+        let Some(mut state) = self.player.mantle else {
+            return;
+        };
+        self.player.jump_held = input.jump;
+        let supported = self
+            .blocks
+            .iter()
+            .any(|b| b.bounds.min == state.support.min && b.bounds.max == state.support.max);
+        if !supported || !self.mantle_sweep_clear(state.landing, state.landing) {
+            self.cancel_mantle();
+            return;
+        }
+        let next_time = state.elapsed + dt;
+        // Round-off must not add a tick to authored 72/102-tick durations.
+        let end_time = if next_time + 1e-6 >= state.duration {
+            state.duration
+        } else {
+            next_time
+        };
+        // Split at phase boundaries before sweeping: a chord between phases
+        // could cut through the ledge or miss an obstruction at the corner.
+        for boundary in [state.duration * 0.55, state.duration * 0.90, state.duration] {
+            if boundary <= state.elapsed {
+                continue;
+            }
+            let next_time = boundary.min(end_time);
+            let next = state.position_at(next_time);
+            if !self.mantle_sweep_clear(self.player.position, next) {
+                self.cancel_mantle();
+                return;
+            }
+            self.stats.distance += vec2(
+                next.x - self.player.position.x,
+                next.z - self.player.position.z,
+            )
+            .length();
+            self.player.position = next;
+            state.elapsed = next_time;
+            if next_time >= end_time {
+                break;
+            }
+        }
+        let p = &mut self.player;
+        p.velocity = Vec3::ZERO;
+        p.sprinting = false;
+        p.sprint_recovery = (p.sprint_recovery - dt).max(0.);
+        if p.sprint_recovery == 0. {
+            p.stamina = (p.stamina + dt).min(SPRINT_DURATION);
+        }
+        if !input.sprint {
+            p.sprint_exhausted = false;
+        }
+        if state.elapsed >= state.duration {
+            p.position = state.landing;
+            p.mantle = None;
+            p.grounded = true;
+            p.previous_grounded = true;
+            p.air_speed_limit = cfg.walk_speed * 1.05;
+        } else {
+            p.mantle = Some(state);
+        }
+    }
     fn move_player(&mut self, input: Input, cfg: &Settings, dt: f32) {
+        if self.player.mantle.is_some() {
+            self.advance_mantle(input, cfg, dt);
+            return;
+        }
         let p = &mut self.player;
         if input.jump && !p.jump_held && p.crouched {
             p.stance_override = true;

@@ -3,11 +3,13 @@ use macroquad::prelude::*;
 use vector_range::asset::WeaponAsset;
 
 pub struct WeaponModel {
-    meshes: Vec<Mesh>,
+    meshes: Vec<(usize, Mesh)>,
+    hk416_rig: bool,
     pub muzzle: Vec3,
 }
 impl WeaponModel {
     pub fn from_asset(asset: WeaponAsset) -> Self {
+        let hk416_rig = asset.payload_crc32 == 0xfc786964;
         let front = asset
             .meshes
             .iter()
@@ -29,7 +31,7 @@ impl WeaponModel {
         let muzzle = vec3((low.x + high.x) * 0.5, (low.y + high.y) * 0.5, front - 0.01);
         let mut meshes = Vec::new();
         let light = vec3(-0.3, 0.8, 0.5).normalize();
-        for part in asset.meshes {
+        for (part_index, part) in asset.meshes.into_iter().enumerate() {
             let texture = if part.rgba.is_empty() {
                 None
             } else {
@@ -76,27 +78,40 @@ impl WeaponModel {
                         vertex
                     })
                     .collect::<Vec<_>>();
-                meshes.push(Mesh {
-                    vertices,
-                    indices,
-                    texture: texture.clone(),
-                });
+                meshes.push((
+                    part_index,
+                    Mesh {
+                        vertices,
+                        indices,
+                        texture: texture.clone(),
+                    },
+                ));
             }
         }
-        Self { meshes, muzzle }
+        Self {
+            meshes,
+            muzzle,
+            hk416_rig,
+        }
     }
-    pub fn draw(&self, offset: Vec3) {
-        // Matrix stack changes only the viewmodel draw; no unsafe pointer access.
-        unsafe {
-            get_internal_gl()
-                .quad_gl
-                .push_model_matrix(Mat4::from_translation(offset));
-        }
-        for mesh in &self.meshes {
+    pub fn draw_pose(&self, pose: Mat4, magazine_offset: Vec3, bolt_offset: Vec3) {
+        for (part, mesh) in &self.meshes {
+            let local = if self.hk416_rig && (22..=25).contains(part) {
+                magazine_offset
+            } else if self.hk416_rig && *part == 5 {
+                bolt_offset
+            } else {
+                Vec3::ZERO
+            };
+            unsafe {
+                get_internal_gl()
+                    .quad_gl
+                    .push_model_matrix(pose * Mat4::from_translation(local));
+            }
             draw_mesh(mesh);
-        }
-        unsafe {
-            get_internal_gl().quad_gl.pop_model_matrix();
+            unsafe {
+                get_internal_gl().quad_gl.pop_model_matrix();
+            }
         }
     }
 }

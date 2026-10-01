@@ -65,15 +65,55 @@ fn grid_texture() -> Texture2D {
     tex.set_filter(FilterMode::Linear);
     tex
 }
+fn supply_focus(
+    sim: &Simulation,
+    cfg: &Settings,
+    supply: &vector_range::ammo_supply::AmmoSupply,
+    active: bool,
+) -> Option<vector_range::ammo_supply::SupplyFocus> {
+    let viewport = vec2(screen_width(), screen_height());
+    let fov = cfg.fov + (cfg.ads_fov - cfg.fov) * sim.player.ads;
+    vector_range::ammo_supply::SupplyView::perspective(
+        sim.player.eye(),
+        sim.player.direction(),
+        h_fov_to_v(fov, viewport.x / viewport.y),
+        viewport,
+    )
+    .and_then(|view| supply.focus(sim, view, active))
+}
+fn register_supply(sim: &mut Simulation, supply: &vector_range::ammo_supply::AmmoSupply) {
+    sim.blocks.push(vector_range::sim::Block {
+        bounds: supply.bounds(),
+        kind: 4,
+    });
+}
 fn world(sim: &Simulation, tex: &Texture2D) {
     for b in &sim.blocks {
         let color = match b.kind {
             0 => Color::new(0.31, 0.38, 0.40, 1.),
             1 => Color::new(0.49, 0.60, 0.64, 1.),
             2 => Color::new(0.77, 0.54, 0.30, 1.),
+            4 => Color::new(0.22, 0.26, 0.28, 1.),
             _ => Color::new(0.43, 0.64, 0.66, 1.),
         };
         draw_cube(b.bounds.center(), b.bounds.size(), Some(tex), color);
+        if b.kind == 4 {
+            // Original geometric interaction fixture while reference art is pending.
+            for x in [-0.26, 0.26] {
+                draw_cube(
+                    b.bounds.center() + vec3(x, 0.257, 0.),
+                    vec3(0.06, 0.025, 0.51),
+                    None,
+                    ACCENT,
+                );
+            }
+            draw_cube(
+                b.bounds.center() + vec3(0., 0.04, -0.26),
+                vec3(0.22, 0.10, 0.025),
+                None,
+                ACCENT,
+            );
+        }
         draw_cube_wires(
             b.bounds.center(),
             b.bounds.size(),
@@ -193,12 +233,16 @@ fn world(sim: &Simulation, tex: &Texture2D) {
         draw_cube_wires(c, t.bounds.size() + Vec3::splat(0.008), INK);
     }
 }
+#[allow(clippy::too_many_arguments)]
 fn weapon(
     sim: &Simulation,
     rt: &RenderTarget,
     aspect: f32,
     time: f32,
     model: Option<&weapon_model::WeaponModel>,
+    arms: Option<&mut vector_range::arms::ArmModel>,
+    animation_state: &mut vector_range::view_animation::ViewAnimation,
+    cfg: &Settings,
 ) {
     set_camera(&Camera3D {
         position: Vec3::ZERO,
@@ -227,7 +271,53 @@ fn weapon(
         -0.32 + p.shot_kick * 0.045,
     );
     if let Some(model) = model {
-        model.draw(o);
+        use vector_range::weapon_animation::{sample_weapon_animation, AnimationInput};
+        let progress = (p.reload_left > 0. && p.reload_total > 0.)
+            .then(|| (1. - p.reload_left / p.reload_total).clamp(0., 1.));
+        let credit = if p.reload_empty {
+            cfg.empty_reload_credit
+        } else {
+            cfg.reload_credit
+        };
+        let animation = sample_weapon_animation(AnimationInput {
+            reload_progress: progress,
+            reload_credit_fraction: if p.reload_total > 0. {
+                credit / p.reload_total
+            } else {
+                0.542
+            },
+            empty_reload: p.reload_empty,
+            ads: p.ads,
+            recoil: p.shot_kick,
+            sprint: if p.sprinting || p.mantle.is_some() {
+                1.
+            } else {
+                0.
+            },
+        });
+        let animation = animation_state.sample(animation, progress.is_some(), sim.time);
+        let base = vec3(
+            0.12 * (1. - p.ads),
+            -0.02 * (1. - p.ads) - 0.041 * p.ads + bob,
+            -0.32,
+        );
+        let rotation = animation.weapon_euler_yxz;
+        let transform =
+            Mat4::from_translation(base + Vec3::from_array(animation.weapon_translation))
+                * Mat4::from_quat(Quat::from_euler(
+                    EulerRot::YXZ,
+                    rotation[0],
+                    rotation[1],
+                    rotation[2],
+                ));
+        if let Some(arms) = arms {
+            arms.draw(transform, &animation);
+        }
+        model.draw_pose(
+            transform,
+            Vec3::from_array(animation.magazine_translation),
+            Vec3::from_array(animation.bolt_translation),
+        );
     } else {
         let dark = Color::new(0.105, 0.14, 0.16, 1.);
         let steel = Color::new(0.25, 0.31, 0.33, 1.);
@@ -370,7 +460,9 @@ fn hud(
         MUTED,
     );
     label(
-        if p.reload_left > 0. {
+        if p.mantle.is_some() {
+            "MANTLING"
+        } else if p.reload_left > 0. {
             "RELOADING"
         } else if p.sprint_out > 0. {
             "RAISING WEAPON"
@@ -382,7 +474,9 @@ fn hud(
         13.,
         CYAN,
     );
-    if p.reload_left > 0. {
+    if let Some(mantle) = p.mantle {
+        draw_rectangle(w - 232., h - 20., 190. * mantle.progress(), 3., CYAN);
+    } else if p.reload_left > 0. {
         draw_rectangle(
             w - 232.,
             h - 20.,
@@ -392,7 +486,9 @@ fn hud(
         );
     }
     panel(24., h - 105., 248., 81.);
-    let stance = if !p.grounded {
+    let stance = if p.mantle.is_some() {
+        "MANTLING"
+    } else if !p.grounded {
         "AIRBORNE"
     } else if p.prone {
         "PRONE"
@@ -581,7 +677,10 @@ async fn main() {
     let mut audio = sound::SoundBank::new().await;
     let mut step_distance = 0.;
     let mut was_reloading = false;
+    let mut animation_state = vector_range::view_animation::ViewAnimation::default();
     let mut sim = Simulation::new();
+    let mut supply = vector_range::ammo_supply::AmmoSupply::default();
+    register_supply(&mut sim, &supply);
     let texture = grid_texture();
     let target = render_target_ex(
         1440,
@@ -635,8 +734,35 @@ async fn main() {
             }
             Ok(None) => None,
         };
+    let arms_path = args
+        .iter()
+        .find_map(|s| s.strip_prefix("--arms-asset="))
+        .map(std::path::PathBuf::from)
+        .or_else(|| {
+            executable
+                .parent()
+                .map(|p| p.join("assets/arms/first-person.vrs"))
+                .filter(|p| p.exists())
+        });
+    let mut arms = if let Some(path) = arms_path {
+        match vector_range::skinned_asset::SkinnedAsset::load(&path)
+            .map_err(|error| error.to_string())
+            .and_then(vector_range::arms::ArmModel::new)
+        {
+            Ok(asset) => Some(asset),
+            Err(error) => {
+                let message = format!("Arm asset could not load: {error}");
+                eprintln!("{message}; path: {}", path.display());
+                model_error = Some(message);
+                None
+            }
+        }
+    } else {
+        None
+    };
     let capture = args.iter().any(|s| s.starts_with("--capture"));
     let capture_ads = args.iter().any(|s| s == "--capture-ads");
+    let capture_supply = args.iter().any(|s| s == "--capture-supply");
     let capture_fixtures = args.iter().any(|s| s == "--capture-fixtures");
     let output = args
         .iter()
@@ -648,6 +774,16 @@ async fn main() {
     }
     if capture_ads {
         sim.player.ads = 1.;
+    }
+    if capture_supply {
+        sim.player.position = vec3(0., 0., 11.7);
+        sim.player.yaw = std::f32::consts::FRAC_PI_2;
+        sim.player.pitch = (supply.bounds().center() - sim.player.eye())
+            .normalize()
+            .y
+            .asin();
+        sim.player.ammo = 15;
+        sim.player.reserve = 30;
     }
     let demo = args.iter().any(|s| s == "--demo");
     let mut frames = 0;
@@ -681,6 +817,11 @@ async fn main() {
         });
         let active = transition.active;
         let mut just_resumed = transition.resumed;
+        if transition.paused {
+            // Includes Escape, focus-shortcut, and asset-block interruptions.
+            // A render hitch only discards time and must not cancel traversal.
+            sim.cancel_mantle();
+        }
         if transition.paused || transition.resumed {
             initial = false;
             set_cursor_grab(active);
@@ -695,7 +836,7 @@ async fn main() {
             intents.clear();
             sim.player.firing_sequence = false;
         }
-        let simulation_dt = if transition.discard_timing {
+        let simulation_dt = if transition.discard_timing || capture_supply {
             0.
         } else {
             raw_dt.min(FixedClock::MAX_FRAME)
@@ -714,6 +855,9 @@ async fn main() {
         }
         if is_key_pressed(KeyCode::F2) {
             sim.reset();
+            supply.reset();
+            register_supply(&mut sim, &supply);
+            animation_state = vector_range::view_animation::ViewAnimation::default();
             intents.clear();
             controls.clear();
             clock.clear();
@@ -847,6 +991,18 @@ async fn main() {
                 input.reload = step.reload;
                 input.fire = demo || step.fire;
                 sim.update(input, &cfg, FIXED_DT);
+                let focus = supply_focus(&sim, &cfg, &supply, active);
+                if supply.tick(
+                    &mut sim.player,
+                    focus,
+                    is_key_down(KeyCode::F),
+                    active,
+                    FIXED_DT,
+                ) == vector_range::ammo_supply::SupplyEvent::Refilled
+                {
+                    notice = "Ammunition replenished".into();
+                    notice_timer = 2.;
+                }
             }
             if sim.player.reload_left > 0. && !was_reloading {
                 audio.play(3);
@@ -910,6 +1066,10 @@ async fn main() {
                 }
             }
         }
+        let focus = supply_focus(&sim, &cfg, &supply, active);
+        if !active || transition.discard_timing || !is_key_down(KeyCode::F) || focus.is_none() {
+            supply.cancel();
+        }
         notice_timer = (notice_timer - dt).max(0.);
         clear_background(Color::new(0.66, 0.76, 0.78, 1.));
         let aspect = screen_width() / screen_height();
@@ -936,7 +1096,16 @@ async fn main() {
         for i in &impacts {
             draw_sphere(i.point, 0.022, None, if i.target { CYAN } else { INK });
         }
-        weapon(&sim, &target, aspect, sim.time as f32, model.as_ref());
+        weapon(
+            &sim,
+            &target,
+            aspect,
+            sim.time as f32,
+            model.as_ref(),
+            arms.as_mut(),
+            &mut animation_state,
+            &cfg,
+        );
         hud(
             &sim,
             &cfg,
@@ -948,6 +1117,17 @@ async fn main() {
             notice_timer,
             weapon_label,
         );
+        if let Some(focus) = focus {
+            vector_range::ammo_supply_view::draw_ammo_supply_hint(
+                focus,
+                if capture_supply {
+                    0.5
+                } else {
+                    supply.progress()
+                },
+                supply.ammo_full(&sim.player),
+            );
+        }
         if !active {
             pause_screen(&cfg, initial, controls.mode());
         }
