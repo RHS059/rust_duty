@@ -9,6 +9,8 @@
 //! Default visual timing reflects secondhand integrator notes from a newer-era
 //! BETA clip, not directly viewed footage or verified 2009 retail fidelity.
 //! Tactical release timing is authored where those notes provide no evidence.
+//! Left-hand modes are authored renderer blend hints, ordered as support,
+//! magazine, receiver, open; they do not encode gameplay or recovered poses.
 
 #[path = "../src/weapon_animation.rs"]
 mod weapon_animation;
@@ -19,10 +21,14 @@ use weapon_animation::{
     ADS_SECONDS, EMPTY_RELOAD_SECONDS, SPRINT_OUT_SECONDS, TACTICAL_RELOAD_SECONDS,
 };
 
-const RIGHT_GRIP: [f32; 3] = [0.025, -0.115, 0.035];
-const LEFT_GRIP: [f32; 3] = [-0.025, -0.120, -0.150];
-const MAGAZINE_SEAT_HAND: [f32; 3] = [-0.035, -0.175, 0.025];
-const RECEIVER_HAND: [f32; 3] = [-0.055, -0.025, 0.015];
+const RIGHT_GRIP: [f32; 3] = [0.037, -0.095, 0.153];
+const LEFT_GRIP: [f32; 3] = [-0.068, -0.112, -0.205];
+const MAGAZINE_SEAT_HAND: [f32; 3] = [-0.046, -0.150, 0.010];
+const RECEIVER_HAND: [f32; 3] = [-0.05519356, -0.1048773, -0.03914053];
+const SUPPORT_BLEND: [f32; 4] = [1.0, 0.0, 0.0, 0.0];
+const MAGAZINE_BLEND: [f32; 4] = [0.0, 1.0, 0.0, 0.0];
+const RECEIVER_BLEND: [f32; 4] = [0.0, 0.0, 1.0, 0.0];
+const OPEN_BLEND: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
 const EPSILON: f32 = 1.0e-6;
 
 fn close(actual: f32, expected: f32) {
@@ -38,7 +44,13 @@ fn close3(actual: [f32; 3], expected: [f32; 3]) {
     }
 }
 
-fn channels(pose: WeaponAnimationPose) -> [f32; 19] {
+fn close4(actual: [f32; 4], expected: [f32; 4]) {
+    for i in 0..4 {
+        close(actual[i], expected[i]);
+    }
+}
+
+fn channels(pose: WeaponAnimationPose) -> [f32; 23] {
     [
         pose.weapon_translation[0],
         pose.weapon_translation[1],
@@ -59,6 +71,10 @@ fn channels(pose: WeaponAnimationPose) -> [f32; 19] {
         pose.bolt_translation[1],
         pose.bolt_translation[2],
         pose.trigger_pull,
+        pose.left_hand_blend[0],
+        pose.left_hand_blend[1],
+        pose.left_hand_blend[2],
+        pose.left_hand_blend[3],
     ]
 }
 
@@ -76,6 +92,13 @@ fn bounded(pose: WeaponAnimationPose) {
         assert!(value.abs() <= 4.0, "unbounded animation output: {pose:?}");
     }
     assert!((0.0..=1.0).contains(&pose.trigger_pull));
+    for weight in pose.left_hand_blend {
+        assert!(
+            weight.is_finite() && (0.0..=1.0).contains(&weight),
+            "invalid left-hand blend weight: {pose:?}"
+        );
+    }
+    close(pose.left_hand_blend.iter().sum(), 1.0);
 }
 
 fn reload(t: f32, credit: f32, empty: bool) -> AnimationInput {
@@ -113,6 +136,8 @@ fn default_input_is_idle_with_documented_rest_grips() {
     close3(pose.bolt_translation, [0.0; 3]);
     close3(pose.right_grip, RIGHT_GRIP);
     close3(pose.left_grip, LEFT_GRIP);
+    close4(pose.left_hand_blend, SUPPORT_BLEND);
+    assert_eq!(pose, WeaponAnimationPose::default());
     bounded(pose);
 }
 
@@ -136,6 +161,155 @@ fn reload_endpoints_match_no_reload_with_the_same_other_channels() {
                     }),
                     idle,
                 );
+            }
+        }
+    }
+}
+
+#[test]
+fn inactive_completed_and_invalid_reload_progress_keep_the_support_hand_mode() {
+    for empty in [false, true] {
+        for progress in [
+            None,
+            Some(0.0),
+            Some(1.0),
+            Some(-1.0),
+            Some(2.0),
+            Some(-f32::MAX),
+            Some(f32::MAX),
+            Some(f32::NEG_INFINITY),
+            Some(f32::INFINITY),
+            Some(f32::NAN),
+        ] {
+            let pose = sample_weapon_animation(AnimationInput {
+                reload_progress: progress,
+                empty_reload: empty,
+                ads: 0.8,
+                recoil: 0.75,
+                sprint: 0.6,
+                ..AnimationInput::default()
+            });
+            bounded(pose);
+            close4(pose.left_hand_blend, SUPPORT_BLEND);
+        }
+    }
+}
+
+#[test]
+fn tactical_hand_modes_stage_support_open_pickup_then_return_without_receiver() {
+    for timing in [
+        ReloadVisualTiming::for_reload(false),
+        timing_from_fields([0.08, 0.16, 0.31, 0.43, 0.61, 0.82]),
+    ] {
+        let fetch_mid = timing.release_end + (timing.insert_start - timing.release_end) * 0.50;
+        let settle_end = timing.insert_end + (1.0 - timing.insert_end) * 0.27;
+        for t in [
+            fetch_mid,
+            timing.insert_start,
+            timing.insert_end,
+            settle_end,
+        ] {
+            let pose = sample_weapon_animation_with_timing(reload(t, 0.54, false), timing);
+            bounded(pose);
+            close4(pose.left_hand_blend, MAGAZINE_BLEND);
+        }
+        {
+            let t = timing.release_start * 0.50;
+            let pose = sample_weapon_animation_with_timing(reload(t, 0.54, false), timing);
+            bounded(pose);
+            close4(pose.left_hand_blend, [1.0, 0.0, 0.0, 0.0]);
+        }
+        // Observed initial release stays on the fore-end, then opens freely;
+        // the hand does not grasp the seated old magazine on its way downward.
+        {
+            let release_span = timing.release_end - timing.release_start;
+            let departure = timing.release_start + release_span * (0.0681 / 0.26);
+            let open = timing.release_start + release_span * (0.1682 / 0.26);
+            let pose = sample_weapon_animation_with_timing(reload(departure, 0.54, false), timing);
+            close4(pose.left_hand_blend, [1.0, 0.0, 0.0, 0.0]);
+            let pose = sample_weapon_animation_with_timing(reload(open, 0.54, false), timing);
+            close4(pose.left_hand_blend, [0.0, 0.0, 0.0, 1.0]);
+        }
+        for i in 0..=2000 {
+            let pose =
+                sample_weapon_animation_with_timing(reload(i as f32 / 2000.0, 0.54, false), timing);
+            bounded(pose);
+            close(pose.left_hand_blend[2], 0.0);
+        }
+    }
+}
+
+#[test]
+fn empty_hand_modes_support_through_discard_then_grip_replacement_and_receiver() {
+    for timing in [
+        ReloadVisualTiming::for_reload(true),
+        timing_from_fields([0.08, 0.16, 0.31, 0.43, 0.61, 0.82]),
+    ] {
+        let fetch_span = timing.insert_start - timing.release_end;
+        let open_end = timing.release_end + fetch_span * 0.30;
+        let replacement_grip = timing.release_end + fetch_span * 0.60;
+        let receiver_mid =
+            timing.receiver_start + (timing.receiver_end - timing.receiver_start) * 0.50;
+        for (t, expected) in [
+            (0.0, SUPPORT_BLEND),
+            (timing.release_start, SUPPORT_BLEND),
+            (timing.release_end, OPEN_BLEND),
+            (open_end, OPEN_BLEND),
+            (replacement_grip, MAGAZINE_BLEND),
+            (timing.insert_start, MAGAZINE_BLEND),
+            (timing.insert_end, MAGAZINE_BLEND),
+            (timing.receiver_start, RECEIVER_BLEND),
+            (receiver_mid, RECEIVER_BLEND),
+            (timing.receiver_end, RECEIVER_BLEND),
+            (1.0, SUPPORT_BLEND),
+        ] {
+            let pose = sample_weapon_animation_with_timing(reload(t, 0.54, true), timing);
+            bounded(pose);
+            close4(pose.left_hand_blend, expected);
+        }
+        for (t, expected) in [
+            (timing.release_start * 0.50, SUPPORT_BLEND),
+            (
+                timing.release_start + (timing.release_end - timing.release_start) * 0.50,
+                [0.5, 0., 0., 0.5],
+            ),
+            (
+                open_end + (replacement_grip - open_end) * 0.50,
+                [0.0, 0.5, 0.0, 0.5],
+            ),
+        ] {
+            let pose = sample_weapon_animation_with_timing(reload(t, 0.54, true), timing);
+            bounded(pose);
+            close4(pose.left_hand_blend, expected);
+        }
+    }
+}
+
+#[test]
+fn hand_modes_do_not_depend_on_ads_recoil_sprint_or_credit_metadata() {
+    for empty in [false, true] {
+        for i in 0..=1000 {
+            let input = reload(i as f32 / 1000.0, 0.54, empty);
+            let expected = sample_weapon_animation(input).left_hand_blend;
+            for value in [
+                0.0,
+                0.5,
+                1.0,
+                f32::NAN,
+                f32::NEG_INFINITY,
+                f32::INFINITY,
+                -f32::MAX,
+                f32::MAX,
+            ] {
+                let pose = sample_weapon_animation(AnimationInput {
+                    reload_credit_fraction: value,
+                    ads: value,
+                    recoil: value,
+                    sprint: value,
+                    ..input
+                });
+                bounded(pose);
+                assert_eq!(pose.left_hand_blend, expected);
             }
         }
     }
@@ -230,18 +404,18 @@ fn default_visual_timings_match_the_documented_secondhand_and_authored_presets()
     let tactical = ReloadVisualTiming::for_reload(false);
     let empty = ReloadVisualTiming::for_reload(true);
     for (actual, expected) in [
-        (tactical.release_start, 0.12),
-        (tactical.release_end, 0.25),
-        (tactical.insert_start, 0.45),
-        (tactical.insert_end, 0.55),
+        (tactical.release_start, 0.24 / 2.21),
+        (tactical.release_end, 0.50 / 2.21),
+        (tactical.insert_start, 0.9421 / 2.21),
+        (tactical.insert_end, 1.10 / 2.21),
         (tactical.receiver_start, 0.682),
         (tactical.receiver_end, 0.773),
         (empty.release_start, 0.14),
         (empty.release_end, 0.18),
-        (empty.insert_start, 0.455),
-        (empty.insert_end, 0.591),
-        (empty.receiver_start, 0.682),
-        (empty.receiver_end, 0.773),
+        (empty.insert_start, 1.0484 / 2.2),
+        (empty.insert_end, 1.2152 / 2.2),
+        (empty.receiver_start, 1.6823 / 2.2),
+        (empty.receiver_end, 1.7824 / 2.2),
     ] {
         close(actual, expected);
     }
@@ -265,14 +439,14 @@ fn normalized_visual_windows_recover_observation_notes_within_one_reference_fram
     let empty = ReloadVisualTiming::for_reload(true);
     let reference_frame_seconds = 1.0 / 59.94;
     for (phase, start, duration, observed) in [
-        (tactical.insert_start, 7.8, 2.0, 8.7),
-        (tactical.insert_end, 7.8, 2.0, 8.9),
+        (tactical.insert_start, 7.8, 2.21, 8.7421),
+        (tactical.insert_end, 7.8, 2.21, 8.9),
         (empty.release_start, 14.0, 2.2, 14.3),
         (empty.release_end, 14.0, 2.2, 14.4),
-        (empty.insert_start, 14.0, 2.2, 15.0),
-        (empty.insert_end, 14.0, 2.2, 15.3),
-        (empty.receiver_start, 14.0, 2.2, 15.5),
-        (empty.receiver_end, 14.0, 2.2, 15.7),
+        (empty.insert_start, 14.0, 2.2, 15.0484),
+        (empty.insert_end, 14.0, 2.2, 15.2152),
+        (empty.receiver_start, 14.0, 2.2, 15.6823),
+        (empty.receiver_end, 14.0, 2.2, 15.7824),
     ] {
         let reconstructed = start + f64::from(phase) * duration;
         assert!(
@@ -327,7 +501,12 @@ fn valid_timing_override_moves_visual_insertion_without_changing_credit_metadata
         close3(custom.left_grip, MAGAZINE_SEAT_HAND);
         let default = sample_weapon_animation(reload(timing.insert_end, 0.9, empty));
         assert!(
-            default.magazine_translation[1] < -0.001,
+            default
+                .magazine_translation
+                .iter()
+                .map(|v| v * v)
+                .sum::<f32>()
+                > 0.001_f32.powi(2),
             "override did not move insertion timing"
         );
         for i in 0..=1000 {
@@ -490,10 +669,10 @@ fn empty_reload_discards_magazine_left_and_releases_it_from_the_hand() {
         let t =
             timing.release_start + (timing.insert_start - timing.release_start) * i as f32 / 1000.0;
         let pose = sample_weapon_animation(reload(t, 0.54, true));
-        if pose.magazine_translation[0] < -0.4 {
+        if pose.seated_magazine_translation[0] < -0.25 {
             leftward_throw = true;
             let hand_relative_to_seat = pose.left_grip[0] - MAGAZINE_SEAT_HAND[0];
-            if (hand_relative_to_seat - pose.magazine_translation[0]).abs() > 0.15 {
+            if (hand_relative_to_seat - pose.seated_magazine_translation[0]).abs() > 0.15 {
                 released = true;
             }
         }
@@ -552,16 +731,10 @@ fn only_empty_reload_has_a_post_insertion_receiver_area_hand_gesture() {
             .zip(RECEIVER_HAND.iter())
             .map(|(a, b)| (a - b).powi(2))
             .sum();
-        let tactical_distance: f32 = tactical
-            .left_grip
-            .iter()
-            .zip(RECEIVER_HAND.iter())
-            .map(|(a, b)| (a - b).powi(2))
-            .sum();
         if empty_distance < 0.025_f32.powi(2) {
             empty_reached_receiver = true;
             assert!(
-                tactical_distance > 0.075_f32.powi(2),
+                tactical.left_hand_blend[2] == 0.0,
                 "tactical unexpectedly has a receiver gesture"
             );
         }
@@ -662,7 +835,7 @@ fn visual_timing_boundaries_are_continuous_from_both_sides() {
                 timing.release_end + fetch_span * 0.60,
                 timing.insert_start,
                 timing.insert_end,
-                timing.insert_end + (1.0 - timing.insert_end) * 0.12,
+                timing.insert_end + (1.0 - timing.insert_end) * 0.27,
                 timing.receiver_start,
                 timing.receiver_end,
                 timing.receiver_start + (timing.receiver_end - timing.receiver_start) * 0.50,

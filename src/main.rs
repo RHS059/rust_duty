@@ -15,13 +15,75 @@ const ACCENT: Color = Color::new(0.98, 0.62, 0.22, 1.);
 const CYAN: Color = Color::new(0.33, 0.84, 0.87, 1.);
 const MUTED: Color = Color::new(0.62, 0.69, 0.72, 1.);
 fn config() -> Conf {
+    let reference = std::env::args().any(|a| a == "--reference-viewport");
     Conf {
         window_title: "VECTOR RANGE | Original Rust FPS laboratory".into(),
-        window_width: 1440,
-        window_height: 900,
-        high_dpi: true,
+        window_width: if reference { 960 } else { 1440 },
+        window_height: if reference { 540 } else { 900 },
+        high_dpi: !reference,
         sample_count: 4,
         ..Default::default()
+    }
+}
+#[derive(Clone, Copy)]
+struct ViewmodelFraming {
+    hip: Vec3,
+    ads: Vec3,
+    hfov: f32,
+    hip_rotation: Quat,
+    ads_rotation: Quat,
+    reference: bool,
+    hand_modes: Option<[f32; 4]>,
+    left_grip_override: Option<[f32; 3]>,
+}
+impl ViewmodelFraming {
+    fn from_args(args: &[String]) -> Self {
+        fn vector(args: &[String], prefix: &str, default: Vec3) -> Vec3 {
+            args.iter()
+                .find_map(|a| a.strip_prefix(prefix))
+                .and_then(|s| {
+                    let values = s
+                        .split(',')
+                        .map(str::parse::<f32>)
+                        .collect::<Result<Vec<_>, _>>()
+                        .ok()?;
+                    (values.len() == 3 && values.iter().all(|v| v.is_finite() && v.abs() <= 5.))
+                        .then(|| Vec3::new(values[0], values[1], values[2]))
+                })
+                .unwrap_or(default)
+        }
+        let hip_ypr = vector(args, "--viewmodel-hip-ypr=", vec3(0.04118, -0.01252, 0.));
+        let ads_ypr = vector(args, "--viewmodel-ads-ypr=", Vec3::ZERO);
+        let hand_modes = args
+            .iter()
+            .find_map(|a| a.strip_prefix("--hand-modes="))
+            .and_then(|s| {
+                let v = s
+                    .split(',')
+                    .map(str::parse::<f32>)
+                    .collect::<Result<Vec<_>, _>>()
+                    .ok()?;
+                (v.len() == 4 && v.iter().all(|x| x.is_finite() && (0. ..=1.).contains(x)))
+                    .then(|| [v[0], v[1], v[2], v[3]])
+            });
+        Self {
+            reference: args.iter().any(|a| a == "--reference-viewport"),
+            hand_modes,
+            left_grip_override: args
+                .iter()
+                .any(|a| a.starts_with("--left-grip="))
+                .then(|| vector(args, "--left-grip=", Vec3::ZERO).to_array()),
+            hip_rotation: Quat::from_euler(EulerRot::YXZ, hip_ypr.x, hip_ypr.y, hip_ypr.z),
+            ads_rotation: Quat::from_euler(EulerRot::YXZ, ads_ypr.x, ads_ypr.y, ads_ypr.z),
+            hip: vector(args, "--viewmodel-hip=", vec3(0.05930, -0.04831, -0.30806)),
+            ads: vector(args, "--viewmodel-ads=", vec3(0., -0.03794, -0.2322)),
+            hfov: args
+                .iter()
+                .find_map(|a| a.strip_prefix("--viewmodel-fov="))
+                .and_then(|s| s.parse::<f32>().ok())
+                .filter(|v| v.is_finite() && (45. ..=120.).contains(v))
+                .unwrap_or(76.),
+        }
     }
 }
 struct Trace {
@@ -72,7 +134,9 @@ fn supply_focus(
     active: bool,
 ) -> Option<vector_range::ammo_supply::SupplyFocus> {
     let viewport = vec2(screen_width(), screen_height());
-    let fov = cfg.fov + (cfg.ads_fov - cfg.fov) * sim.player.ads;
+    let fov = cfg.fov
+        + (cfg.ads_fov - cfg.fov)
+            * vector_range::reference_motion::visual_world_ads(sim.player.ads);
     vector_range::ammo_supply::SupplyView::perspective(
         sim.player.eye(),
         sim.player.direction(),
@@ -243,19 +307,25 @@ fn weapon(
     arms: Option<&mut vector_range::arms::ArmModel>,
     animation_state: &mut vector_range::view_animation::ViewAnimation,
     cfg: &Settings,
+    framing: ViewmodelFraming,
+    presentation_override: Option<f32>,
 ) {
     set_camera(&Camera3D {
         position: Vec3::ZERO,
         target: vec3(0., 0., -1.),
         up: Vec3::Y,
-        fovy: h_fov_to_v(76., aspect),
+        fovy: h_fov_to_v(framing.hfov, aspect),
         render_target: Some(rt.clone()),
         aspect: Some(aspect),
         z_near: 0.01,
         z_far: 5.,
         ..Default::default()
     });
-    clear_background(Color::new(0., 0., 0., 0.));
+    clear_background(if framing.reference {
+        Color::new(0.14, 0.19, 0.24, 1.)
+    } else {
+        Color::new(0., 0., 0., 0.)
+    });
     let p = &sim.player;
     let bob = (time * 10.).sin() * (p.speed() / 7.2) * 0.010 * (1. - p.ads);
     let reload = if p.reload_left > 0. {
@@ -275,6 +345,19 @@ fn weapon(
         use vector_range::weapon_animation::AnimationInput;
         let progress = (p.reload_left > 0. && p.reload_total > 0.)
             .then(|| (1. - p.reload_left / p.reload_total).clamp(0., 1.));
+        let completed =
+            progress.is_none() && p.reload_ready_at > 0. && sim.time + 1e-6 >= p.reload_ready_at;
+        let progress = if let Some(phase) = presentation_override {
+            Some(phase)
+        } else {
+            animation_state.presentation_progress(
+                progress,
+                p.reload_total,
+                p.reload_empty,
+                completed,
+                sim.time,
+            )
+        };
         let credit = if p.reload_empty {
             cfg.empty_reload_credit
         } else {
@@ -296,24 +379,51 @@ fn weapon(
                 0.
             },
         };
-        let completed =
-            progress.is_none() && p.reload_ready_at > 0. && sim.time + 1e-6 >= p.reload_ready_at;
-        let animation = animation_state.sample_input(animation_input, completed, sim.time);
-        let base = vec3(
-            0.12 * (1. - p.ads),
-            -0.02 * (1. - p.ads) - 0.041 * p.ads + bob,
-            -0.32,
+        let mut animation = animation_state.sample_input(animation_input, completed, sim.time);
+        if let Some(grip) = framing.left_grip_override {
+            animation.left_grip = grip;
+        }
+        if let Some(modes) = framing.hand_modes {
+            animation.left_hand_blend = modes;
+            animation.left_hand_orientation_xyzw = None;
+            animation.left_hand_euler_yxz = [0.; 3];
+        }
+        let visual_ads = vector_range::reference_motion::visual_ads(p.ads);
+        let base = framing.hip.lerp(framing.ads, visual_ads) + vec3(0., bob, 0.);
+        let frame = vector_range::view_animation::WeaponFrame::with_orientation(
+            base,
+            framing.hip_rotation.slerp(framing.ads_rotation, visual_ads),
+            &animation,
         );
-        let frame = vector_range::view_animation::WeaponFrame::new(base, &animation);
         let transform = frame.matrix;
         muzzle_position = frame.point(model.muzzle);
+        let body_frame = Mat4::from_rotation_translation(
+            framing.hip_rotation.slerp(framing.ads_rotation, visual_ads),
+            base,
+        );
+        let hand_frames = animation_state
+            .hand_presentation()
+            .frames(body_frame, transform);
         if let Some(arms) = arms {
-            arms.draw(transform, &animation);
+            if framing.hand_modes.is_some() || framing.left_grip_override.is_some() {
+                arms.draw_with_hand_modes(transform, &animation, animation.left_hand_blend);
+            } else {
+                arms.draw_with_weapon_ik(
+                    &hand_frames.targets,
+                    hand_frames.free_frame,
+                    &animation,
+                    hand_frames.free_hands,
+                    hand_frames.influences,
+                    animation.left_hand_blend,
+                );
+            }
         }
-        model.draw_pose(
+        model.draw_pose_with_free_frame(
             transform,
-            Vec3::from_array(animation.magazine_translation),
-            Vec3::from_array(animation.bolt_translation),
+            animation_state
+                .hand_presentation()
+                .held_magazine_matrix(body_frame, transform),
+            &animation,
         );
     } else {
         let dark = Color::new(0.105, 0.14, 0.16, 1.);
@@ -419,7 +529,8 @@ fn hud(
     );
     let (x, y) = (w * 0.5, h * 0.5);
     if p.ads < 0.95 {
-        let fov = cfg.fov + (cfg.ads_fov - cfg.fov) * p.ads;
+        let fov = cfg.fov
+            + (cfg.ads_fov - cfg.fov) * vector_range::reference_motion::visual_world_ads(p.ads);
         let gap = (sim.spread_degrees(cfg).to_radians().tan() * w
             / (2. * (fov.to_radians() * 0.5).tan()))
         .max(2.);
@@ -639,6 +750,7 @@ fn pause_screen(cfg: &Settings, initial: bool, control_mode: ControlMode) {
 #[macroquad::main(config)]
 async fn main() {
     let args: Vec<String> = std::env::args().collect();
+    let framing = ViewmodelFraming::from_args(&args);
     let control_mode = if args.iter().any(|s| s == "--hold-controls") {
         ControlMode::Hold
     } else {
@@ -680,8 +792,8 @@ async fn main() {
     register_supply(&mut sim, &supply);
     let texture = grid_texture();
     let target = render_target_ex(
-        1440,
-        900,
+        if framing.reference { 960 } else { 1440 },
+        if framing.reference { 540 } else { 900 },
         RenderTargetParams {
             depth: true,
             ..Default::default()
@@ -761,6 +873,40 @@ async fn main() {
     let capture_ads = args.iter().any(|s| s == "--capture-ads");
     let capture_supply = args.iter().any(|s| s == "--capture-supply");
     let capture_fire = args.iter().any(|s| s == "--capture-fire");
+    let capture_reload = args
+        .iter()
+        .find_map(|a| a.strip_prefix("--capture-reload="))
+        .and_then(|s| s.parse::<f32>().ok())
+        .filter(|v| v.is_finite() && (0. ..=1.).contains(v));
+    let capture_sequence = args
+        .iter()
+        .find_map(|a| a.strip_prefix("--capture-sequence="))
+        .filter(|s| matches!(*s, "tactical" | "empty" | "ads"));
+    let capture_empty =
+        args.iter().any(|s| s == "--capture-empty") || capture_sequence == Some("empty");
+    let sequence_duration = match capture_sequence {
+        Some("empty") => vector_range::reference_motion::visual_duration(true),
+        Some("tactical") => vector_range::reference_motion::visual_duration(false),
+        _ => cfg.ads_time,
+    };
+    if capture_sequence.is_some() && !framing.reference {
+        eprintln!("--capture-sequence requires --reference-viewport");
+        return;
+    }
+    if capture_sequence.is_some() {
+        std::fs::create_dir_all(
+            args.iter()
+                .find_map(|a| a.strip_prefix("--output="))
+                .unwrap_or("capture-sequence"),
+        )
+        .expect("create capture sequence directory");
+    }
+
+    let capture_ads_fraction = args
+        .iter()
+        .find_map(|a| a.strip_prefix("--capture-ads-fraction="))
+        .and_then(|s| s.parse::<f32>().ok())
+        .filter(|v| v.is_finite() && (0. ..=1.).contains(v));
     let capture_fixtures = args.iter().any(|s| s == "--capture-fixtures");
     let output = args
         .iter()
@@ -834,11 +980,12 @@ async fn main() {
             intents.clear();
             sim.player.firing_sequence = false;
         }
-        let simulation_dt = if transition.discard_timing || capture_supply {
-            0.
-        } else {
-            raw_dt.min(FixedClock::MAX_FRAME)
-        };
+        let simulation_dt =
+            if transition.discard_timing || capture_supply || capture_sequence.is_some() {
+                0.
+            } else {
+                raw_dt.min(FixedClock::MAX_FRAME)
+            };
         if is_key_pressed(KeyCode::M) {
             audio.muted = !audio.muted;
             notice = if audio.muted {
@@ -1068,12 +1215,45 @@ async fn main() {
         if !active || transition.discard_timing || !is_key_down(KeyCode::F) || focus.is_none() {
             supply.cancel();
         }
+        // Deterministic presentation samples for comparison; only explicit capture flags use these.
+        let sequence_elapsed = ((frames - 8).max(0) as f32) / (60000. / 1001.);
+        let sequence_phase = (sequence_elapsed / sequence_duration).clamp(0., 1.);
+        let presentation_reload = if matches!(capture_sequence, Some("tactical" | "empty")) {
+            Some(sequence_phase)
+        } else {
+            capture_reload
+        };
+        if capture_sequence.is_some() {
+            sim.time = sequence_elapsed as f64;
+        }
+        if capture_sequence == Some("ads") {
+            sim.player.ads = sequence_phase;
+        }
+        if let Some(ads) = capture_ads_fraction {
+            sim.player.ads = ads;
+        }
+        if let Some(phase) = presentation_reload {
+            sim.player.reload_empty = capture_empty;
+            sim.player.reload_total = if capture_empty {
+                cfg.empty_reload_time
+            } else {
+                cfg.reload_time
+            };
+            sim.player.reload_left = sim.player.reload_total * (1. - phase);
+            sim.player.reload_ready_at = sim.time + sim.player.reload_left as f64;
+        }
         notice_timer = (notice_timer - dt).max(0.);
         clear_background(Color::new(0.66, 0.76, 0.78, 1.));
-        let aspect = screen_width() / screen_height();
+        let aspect = if framing.reference {
+            16. / 9.
+        } else {
+            screen_width() / screen_height()
+        };
         let eye = sim.player.eye();
         let forward = sim.player.direction();
-        let fov = cfg.fov + (cfg.ads_fov - cfg.fov) * sim.player.ads;
+        let fov = cfg.fov
+            + (cfg.ads_fov - cfg.fov)
+                * vector_range::reference_motion::visual_world_ads(sim.player.ads);
         set_camera(&Camera3D {
             position: eye,
             target: eye + forward,
@@ -1106,6 +1286,8 @@ async fn main() {
             arms.as_mut(),
             &mut animation_state,
             &cfg,
+            framing,
+            presentation_reload,
         );
         hud(
             &sim,
@@ -1158,9 +1340,40 @@ async fn main() {
         } else if model_missing {
             label("HK416 asset missing: extract the whole package beside the EXE (procedural fallback active)",24.,screen_height()-155.,16.,YELLOW);
         }
-        if capture && frames == 8 {
-            get_screen_data().export_png(output);
-            break;
+        if capture
+            && ((capture_sequence.is_none() && frames == 8)
+                || (capture_sequence.is_some() && frames >= 8))
+        {
+            let sequence_output;
+            let output = if capture_sequence.is_some() {
+                sequence_output = format!(
+                    "{}/{:04}.png",
+                    if output == "capture.png" {
+                        "capture-sequence"
+                    } else {
+                        output
+                    },
+                    frames - 8
+                );
+                sequence_output.as_str()
+            } else {
+                output
+            };
+            if framing.reference {
+                unsafe {
+                    get_internal_gl().flush();
+                }
+                target.texture.get_texture_data().export_png(output);
+                let _ = std::fs::write(format!("{output}.json"), format!("{{\"capture\":\"native offscreen viewmodel\",\"width\":960,\"height\":540,\"hfov\":{},\"ads\":{},\"reload_phase\":{}}}",framing.hfov,sim.player.ads,presentation_reload.map(|v|v.to_string()).unwrap_or_else(||"null".into())));
+            } else {
+                get_screen_data().export_png(output);
+            }
+            if capture_sequence.is_some() {
+                let _ = std::fs::write(format!("{output}.time.json"), format!("{{\"elapsed_seconds\":{},\"normalized_phase\":{},\"visual_duration_seconds\":{},\"simulation_ready_seconds\":{},\"sampling_hz\":59.94005994}}", sequence_elapsed, sequence_phase, sequence_duration, if capture_empty { cfg.empty_reload_time } else if capture_sequence == Some("ads") { cfg.ads_time } else { cfg.reload_time }));
+            }
+            if capture_sequence.is_none() || sequence_elapsed >= sequence_duration + 0.2 {
+                break;
+            }
         }
         next_frame().await;
     }

@@ -21,3 +21,7 @@ pub mod view_animation;
 
 pub mod ammo_supply;
 pub mod ammo_supply_view;
+
+pub mod reference_motion;
+
+pub mod weapon_ik;

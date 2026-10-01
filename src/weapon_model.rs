@@ -94,23 +94,64 @@ impl WeaponModel {
             hk416_rig,
         }
     }
-    pub fn draw_pose(&self, pose: Mat4, magazine_offset: Vec3, bolt_offset: Vec3) {
-        for (part, mesh) in &self.meshes {
-            let local = if self.hk416_rig && (22..=25).contains(part) {
-                magazine_offset
-            } else if self.hk416_rig && *part == 5 {
-                bolt_offset
-            } else {
-                Vec3::ZERO
-            };
+    pub fn draw_pose_with_free_frame(
+        &self,
+        pose: Mat4,
+        held_magazine_matrix: Mat4,
+        animation: &vector_range::weapon_animation::WeaponAnimationPose,
+    ) {
+        let draw = |mesh: &Mesh, root: Mat4, local: Mat4| {
             unsafe {
-                get_internal_gl()
-                    .quad_gl
-                    .push_model_matrix(pose * Mat4::from_translation(local));
+                get_internal_gl().quad_gl.push_model_matrix(root * local);
             }
             draw_mesh(mesh);
             unsafe {
                 get_internal_gl().quad_gl.pop_model_matrix();
+            }
+        };
+        for (part, mesh) in &self.meshes {
+            if self.hk416_rig && (22..=25).contains(part) {
+                let transforms = [
+                    (
+                        animation.seated_magazine_translation,
+                        animation.seated_magazine_euler_yxz,
+                        animation.seated_magazine_orientation_xyzw,
+                    ),
+                    (
+                        animation.magazine_translation,
+                        animation.magazine_euler_yxz,
+                        animation.magazine_orientation_xyzw,
+                    ),
+                ];
+                for (i, (offset, rotation, orientation)) in transforms.into_iter().enumerate() {
+                    if animation.magazine_visibility[i] {
+                        if i == 1 {
+                            draw(mesh, held_magazine_matrix, Mat4::IDENTITY);
+                            continue;
+                        }
+                        let local = if let Some(q) = orientation {
+                            vector_range::view_animation::magazine_frame_with_orientation(
+                                Mat4::IDENTITY,
+                                Vec3::from_array(offset),
+                                Quat::from_array(q),
+                            )
+                        } else {
+                            vector_range::view_animation::magazine_frame(
+                                Mat4::IDENTITY,
+                                Vec3::from_array(offset),
+                                Vec3::from_array(rotation),
+                            )
+                        };
+                        draw(mesh, pose, local);
+                    }
+                }
+            } else {
+                let local = if self.hk416_rig && *part == 5 {
+                    Mat4::from_translation(Vec3::from_array(animation.bolt_translation))
+                } else {
+                    Mat4::IDENTITY
+                };
+                draw(mesh, pose, local);
             }
         }
     }
