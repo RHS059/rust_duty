@@ -1,27 +1,27 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T16:53:57.524Z",
+  "updatedAt": "2026-10-03T17:03:42.271Z",
   "state": "active",
-  "task": "Coordinating Elara re-review of the live ADS v5 Trial 1 forward candidate and consistent neutral-studio reload Eevee previews. ADS v5 source/docs publication is blocked by automatic review; Hal owns the pending HIP r2 media transfer.",
-  "lastCompleted": "Gallery v54 published a separate 126-frame ADS v5 Trial 1 forward reference/Eevee comparison and six unscored raw sight witnesses. V5 review is pending. ADS v4 baseline scores remain forward 35, backward 32, left 34, right 33, all failed. PR #17 remains the verified e46f83d complete build.",
+  "task": "Coordinating the approved move of animation review to RHS059/rust_duty_updates, the ADS v6 forward revision, and reference-work handoffs. The previous ChatGPT Site is retired and its publishing is stopped. GitHub review media is being uploaded; frontend playback remains pending.",
+  "lastCompleted": "All seven Aella review-media IDs are resolved to verified Eevee paired MP4s. The renderer completed 12 decoded previews, including neutral-studio reload and pickup. ADS v5 received Fail51; ADS v6 Trial1 is locally committed. PR #17 remains the verified e46f83d complete build.",
   "agents": [
     {
       "slot": 1,
-      "state": "blocked",
-      "task": "Awaiting Elara feedback on ADS v5 Trial 1 forward; GitHub source/docs publication stopped after two automatic-review denials",
-      "lastCompleted": "ADS v5 Trial 1 committed locally and its full forward Eevee comparison published in gallery v54 for re-review. No v5 source PR exists; no v5 visual approval"
+      "state": "active",
+      "task": "Preparing the forward Eevee comparison for locally committed ADS v6 Trial1; source/docs remote publication remains stopped after two automatic-review denials",
+      "lastCompleted": "ADS v6 Trial1 at local commit a836c8b restores only vertical gain from 0.25 to 0.40 while preserving reduced lateral gain and 0.80 rate; its 486-frame packet is ready. V5 review was Fail51: sights locked and figure-eight removed, but motion too flat"
     },
     {
       "slot": 2,
       "state": "active",
-      "task": "Integrating pending neutral-studio reload Eevee replacements and verifying Hal HIP r2 media when received",
-      "lastCompleted": "Published gallery v54 with the separate 126-frame ADS v5 Trial 1 forward candidate and six unscored sight witnesses; preserved ADS v4 baseline videos and scores. HIP r2 media remains pending"
+      "task": "Publishing the seven verified Aella review MP4s to RHS059/rust_duty_updates while preserving non-video fields and other contributors' entries; GitHub commit and frontend playback verification are pending",
+      "lastCompleted": "Resolved all seven current media IDs with hashes, frames/FPS and provenance: four ADS v4 baselines, separate ADS v5 Trial1 forward, and fresh neutral-studio reload and pickup previews"
     },
     {
       "slot": 3,
-      "state": "active",
-      "task": "Rendering a consistent neutral-studio Eevee reload batch: full 157-frame reload, then 31-frame opening and static pickup",
-      "lastCompleted": "Delivered the 126-frame ADS v5 Trial 1 forward comparison at 60 fps with source, camera and Action unchanged checks; same-pose reload lighting witness passed"
+      "state": "idle",
+      "task": "Eevee renderer completed its media handoff; no rendering currently active",
+      "lastCompleted": "Completed and fully decoded 12 Eevee viewport previews: four HIP, four ADS v4, ADS v5 Trial1 forward, full 157-frame reload, 31-frame opening and pickup pose. Frozen source files, Actions and cameras remain unchanged; reload uses documented neutral-studio display lighting"
     }
   ]
 }
