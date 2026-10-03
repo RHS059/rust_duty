@@ -1122,7 +1122,7 @@ async fn main() {
             animation_state = vector_range::view_animation::ViewAnimation::default();
             locomotion_state.reset(sim.time);
             if let Some(viewmodel) = &mut authored {
-                viewmodel.update_locomotion(sim.time, sim.time, false);
+                viewmodel.reset_locomotion(sim.time);
             }
             intents.clear();
             controls.clear();
@@ -1263,6 +1263,7 @@ async fn main() {
                         authored_step_start,
                         sim.time,
                         sim.player.sprinting,
+                        locomotion_input(&sim),
                     );
                 }
                 // Cosmetic targets receive exact simulation timestamps; input
@@ -1377,7 +1378,7 @@ async fn main() {
                 sim.player.velocity = vec3(speed, 0., 0.);
                 locomotion_state.sample(t, locomotion_input(&sim));
                 if let Some(viewmodel) = &mut authored {
-                    viewmodel.update_locomotion(t, t, sim.player.sprinting);
+                    viewmodel.update_locomotion(t, t, sim.player.sprinting, locomotion_input(&sim));
                 }
                 locomotion_capture_tick += 1;
             }

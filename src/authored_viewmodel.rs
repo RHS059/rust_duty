@@ -1,7 +1,11 @@
-//! Opt-in playback adapter for Blender-baked viewmodels. No procedural posing.
+//! Playback adapter for Blender-baked poses with a shared cosmetic walk root.
 use macroquad::prelude::*;
 use vector_range::{
-    authored_locomotion_path::{AuthoredLocomotionPath, AuthoredLocomotionPathConfig},
+    authored_locomotion_path::{
+        AuthoredLocomotionPath, AuthoredLocomotionPathConfig, AuthoredLocomotionPathState,
+    },
+    authored_walk_presentation::AuthoredWalkPresentation,
+    locomotion_presentation::LocomotionInput,
     skinned_asset::SkinnedAsset,
     viewmodel_animation::{game_model_root, AnimationSet, ViewmodelPose},
 };
@@ -24,6 +28,7 @@ pub struct AuthoredViewmodel {
     fixed_time: Option<f32>,
     error: Option<String>,
     locomotion: Option<AuthoredLocomotionPath>,
+    walking: AuthoredWalkPresentation,
 }
 impl AuthoredViewmodel {
     /// Requires an initialized render context, like the existing mesh adapters.
@@ -140,6 +145,7 @@ impl AuthoredViewmodel {
             fixed_time,
             error: None,
             locomotion,
+            walking: AuthoredWalkPresentation::default(),
         })
     }
     pub fn error(&self) -> Option<&str> {
@@ -150,15 +156,34 @@ impl AuthoredViewmodel {
         &self.animation
     }
     /// Advance only on committed fixed ticks; render frequency never changes motion.
-    pub fn update_locomotion(&mut self, start: f64, end: f64, sprinting: bool) {
+    pub fn update_locomotion(
+        &mut self,
+        start: f64,
+        end: f64,
+        sprinting: bool,
+        walking: LocomotionInput,
+    ) {
         if self.error.is_some() {
             return;
         }
         if let Some(path) = &mut self.locomotion {
-            if let Err(error) = path
-                .update(&self.animation, start, sprinting, true)
-                .and_then(|_| path.update(&self.animation, end, sprinting, true))
-            {
+            for time in [start, end] {
+                if let Err(error) = path.update(&self.animation, time, sprinting, true) {
+                    self.error = Some(error.to_string());
+                    return;
+                }
+                self.walking.sample(
+                    time,
+                    path.state() == AuthoredLocomotionPathState::Ready,
+                    walking,
+                );
+            }
+        }
+    }
+    pub fn reset_locomotion(&mut self, simulation_time: f64) {
+        self.walking.reset(simulation_time);
+        if let Some(path) = &mut self.locomotion {
+            if let Err(error) = path.reset(&self.animation, simulation_time) {
                 self.error = Some(error.to_string());
             }
         }
@@ -175,7 +200,7 @@ impl AuthoredViewmodel {
     fn draw_checked(&mut self, simulation_time: f64) -> Result<(), String> {
         if let Some(path) = &self.locomotion {
             let pose = path.pose().clone();
-            return self.draw_pose(&pose);
+            return self.draw_pose_with_root(&pose, self.walking.model_root());
         }
         let time = self.fixed_time.unwrap_or(simulation_time as f32);
         let pose = if self.fixed_time.is_some() {
@@ -190,9 +215,12 @@ impl AuthoredViewmodel {
     /// adapter owns which presentation supplies it; no two pose owners are mixed
     /// here. Skin and actor dimension/transform validation is retained.
     pub fn draw_pose(&mut self, pose: &ViewmodelPose) -> Result<(), String> {
+        self.draw_pose_with_root(pose, game_model_root())
+    }
+    fn draw_pose_with_root(&mut self, pose: &ViewmodelPose, root: Mat4) -> Result<(), String> {
         let palette = self
             .animation
-            .skin_palette(pose, &self.skin.bones, game_model_root())
+            .skin_palette(pose, &self.skin.bones, root)
             .map_err(|e| e.to_string())?;
         let normals: Vec<_> = palette.iter().map(|m| m.inverse().transpose()).collect();
         let light = vec3(-0.3, 0.8, 0.5).normalize();
@@ -226,7 +254,7 @@ impl AuthoredViewmodel {
         }
         let actors = self
             .animation
-            .actor_matrices(pose, game_model_root())
+            .actor_matrices(pose, root)
             .map_err(|e| e.to_string())?;
         let mut transforms = vec![Mat4::IDENTITY; self.rigid_mesh_count];
         let mut visibility = vec![false; self.rigid_mesh_count];
