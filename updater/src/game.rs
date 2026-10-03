@@ -795,7 +795,10 @@ fn check_and_prepare(
         // prove that the installed build is current when discovery is offline.
         return Err(discovery_error.unwrap_or(Error::UpToDate));
     }
-    store.check_newer(&manifest)?;
+    store.check_newer(&manifest).map_err(|error| match error {
+        Error::UpToDate => invalid("A newer build is recorded locally; reopen the updated game"),
+        error => error,
+    })?;
     if manifest.entrypoint != GAME_FILE {
         return Err(invalid(
             "update must contain the game executable as its entrypoint",
@@ -1407,6 +1410,39 @@ mod tests {
         assert!(!state.ready);
         assert_eq!(server.request_count(), 1);
         assert_eq!(fs::read(paths.target).unwrap(), b"synthetic running game");
+    }
+
+    #[test]
+    fn newer_store_record_does_not_make_an_old_running_binary_current() {
+        let root = tempfile::tempdir().unwrap();
+        let paths = fixture_paths(root.path());
+        let server = Server::new();
+        let manifest = publish(&server, "1.1.0", 4096);
+        let store = Store::open(&paths.metadata).unwrap();
+        let installed = Installed {
+            version: manifest.version,
+            sequence: manifest.sequence,
+            bundle_sha256: manifest.bundle.sha256,
+            entrypoint: manifest.entrypoint,
+        };
+        store
+            .save(&crate::install::State {
+                active: Some(installed),
+                highest_sequence: manifest.sequence,
+                ..Default::default()
+            })
+            .unwrap();
+        let mut updater = GameUpdater::start_at(
+            paths,
+            stable_version("1.0.0").unwrap(),
+            vec![],
+            Some(server.source()),
+        )
+        .unwrap();
+        let state = await_snapshot(&mut updater, |s| !s.running);
+        assert_eq!(state.phase, UpdatePhase::Unavailable);
+        assert!(!state.ready);
+        assert!(!state.message.contains("is current"));
     }
 
     #[test]
