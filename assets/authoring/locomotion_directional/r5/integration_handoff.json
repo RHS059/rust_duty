@@ -1,0 +1,339 @@
+{
+  "schema": "rust-duty-hip-r5-local-integration-handoff/v1",
+  "status": "local handoff; review and Elara approval pending",
+  "approval_and_commit_owner": "Elara",
+  "git_writes_performed": false,
+  "production_activation_performed": false,
+  "rendering_performed_by_integrator": false,
+  "scoring_performed_by_integrator": false,
+  "public_parent_commit": "6bbfada1242d2d6c766c52cfc30c3ab511e41669",
+  "baseline_source_sha256": "d220162819fb7267aa6b93b209afc8ce5212a0692e6a4e02c5c43602b08907e3",
+  "baseline_source_is_uncommitted_r4": true,
+  "intended_new_folder": "assets/authoring/locomotion_directional/r5",
+  "source": {
+    "file": "halcyon_hip_directional_r5.blend",
+    "sha256": "36d76491c2cf6238b8a1e10069dddd5b0d63e199063e1f4012b34f3fd4b1e18d",
+    "bytes": 9922429,
+    "blender_version": "4.3.2",
+    "action_count": 82,
+    "new_action_count": 4,
+    "prior_actions_retained": 78,
+    "source_fps": 60,
+    "bake_hz": 480
+  },
+  "action_mapping": [
+    {
+      "name": "hip_walk_forward_r5",
+      "action": "hip_walk_forward_r5",
+      "frame_start": 1,
+      "frame_end": 39,
+      "duration_seconds": 0.6333333333333333,
+      "loop": true,
+      "role": "preview",
+      "pose_space": "absolute",
+      "additive": false,
+      "prior_revision_action": "hip_walk_forward_r4",
+      "timing_provenance": "r4 cycle lengths and phase retained; r5 needs separate visual review",
+      "reference_anchor": {
+        "video_id": "5KM0XSKxTWw",
+        "reference_sha256": "cff413d8d114b611bbe6f50cc553ef109d61eb8eb1fff960425f506b84d6767e",
+        "frame_range_half_open": [
+          48,
+          86
+        ],
+        "endpoint_witness_frame": 86,
+        "fps": 60,
+        "time_base": "1/15360",
+        "pts_ticks_per_frame": 256,
+        "pts_range_half_open": [
+          12288,
+          22016
+        ],
+        "endpoint_witness_pts": 22016,
+        "phase_policy": "r4 mapping unchanged; endpoint frame is closure witness only"
+      }
+    },
+    {
+      "name": "hip_walk_backward_r5",
+      "action": "hip_walk_backward_r5",
+      "frame_start": 1,
+      "frame_end": 46,
+      "duration_seconds": 0.75,
+      "loop": true,
+      "role": "preview",
+      "pose_space": "absolute",
+      "additive": false,
+      "prior_revision_action": "hip_walk_backward_r4",
+      "timing_provenance": "r4 cycle lengths and phase retained; r5 needs separate visual review",
+      "reference_anchor": {
+        "video_id": "5KM0XSKxTWw",
+        "reference_sha256": "cff413d8d114b611bbe6f50cc553ef109d61eb8eb1fff960425f506b84d6767e",
+        "frame_range_half_open": [
+          211,
+          256
+        ],
+        "endpoint_witness_frame": 256,
+        "fps": 60,
+        "time_base": "1/15360",
+        "pts_ticks_per_frame": 256,
+        "pts_range_half_open": [
+          54016,
+          65536
+        ],
+        "endpoint_witness_pts": 65536,
+        "phase_policy": "r4 mapping unchanged; endpoint frame is closure witness only"
+      }
+    },
+    {
+      "name": "hip_strafe_left_r5",
+      "action": "hip_strafe_left_r5",
+      "frame_start": 1,
+      "frame_end": 50,
+      "duration_seconds": 0.8166666666666667,
+      "loop": true,
+      "role": "preview",
+      "pose_space": "absolute",
+      "additive": false,
+      "prior_revision_action": "hip_strafe_left_r4",
+      "timing_provenance": "r4 cycle lengths and phase retained; r5 needs separate visual review",
+      "reference_anchor": {
+        "video_id": "5KM0XSKxTWw",
+        "reference_sha256": "cff413d8d114b611bbe6f50cc553ef109d61eb8eb1fff960425f506b84d6767e",
+        "frame_range_half_open": [
+          886,
+          935
+        ],
+        "endpoint_witness_frame": 935,
+        "fps": 60,
+        "time_base": "1/15360",
+        "pts_ticks_per_frame": 256,
+        "pts_range_half_open": [
+          226816,
+          239360
+        ],
+        "endpoint_witness_pts": 239360,
+        "phase_policy": "r4 mapping unchanged; endpoint frame is closure witness only"
+      }
+    },
+    {
+      "name": "hip_strafe_right_r5",
+      "action": "hip_strafe_right_r5",
+      "frame_start": 1,
+      "frame_end": 50,
+      "duration_seconds": 0.8166666666666667,
+      "loop": true,
+      "role": "preview",
+      "pose_space": "absolute",
+      "additive": false,
+      "prior_revision_action": "hip_strafe_right_r4",
+      "timing_provenance": "r4 cycle lengths and phase retained; r5 needs separate visual review",
+      "reference_anchor": {
+        "video_id": "9RRgXvRx43s",
+        "reference_sha256": "5b883e85d1179d06987509e4ede2b18fbc54433c4578b316af355e68d17becf5",
+        "frame_range_half_open": [
+          361,
+          410
+        ],
+        "endpoint_witness_frame": 410,
+        "fps": 60,
+        "time_base": "1/15360",
+        "pts_ticks_per_frame": 256,
+        "pts_range_half_open": [
+          92416,
+          104960
+        ],
+        "endpoint_witness_pts": 104960,
+        "phase_policy": "r4 mapping unchanged; endpoint frame is closure witness only"
+      }
+    }
+  ],
+  "rig": {
+    "armature": "Arms",
+    "complete_bone_count": 148,
+    "deform_bones": [
+      "root",
+      "pelvis",
+      "spine_01",
+      "spine_02",
+      "spine_03",
+      "neck_01",
+      "head",
+      "clavicle_l",
+      "upperarm_l",
+      "lowerarm_l",
+      "hand_l",
+      "index_01_l",
+      "index_02_l",
+      "index_03_l",
+      "thumb_01_l",
+      "thumb_02_l",
+      "thumb_03_l",
+      "middle_01_l",
+      "middle_02_l",
+      "middle_03_l",
+      "ring_01_l",
+      "ring_02_l",
+      "ring_03_l",
+      "pinky_01_l",
+      "pinky_02_l",
+      "pinky_03_l",
+      "lowerarm_twist_01_l",
+      "upperarm_twist_01_l",
+      "clavicle_r",
+      "upperarm_r",
+      "lowerarm_r",
+      "hand_r",
+      "index_01_r",
+      "index_02_r",
+      "index_03_r",
+      "thumb_01_r",
+      "thumb_02_r",
+      "thumb_03_r",
+      "middle_01_r",
+      "middle_02_r",
+      "middle_03_r",
+      "ring_01_r",
+      "ring_02_r",
+      "ring_03_r",
+      "pinky_01_r",
+      "pinky_02_r",
+      "pinky_03_r",
+      "lowerarm_twist_01_r",
+      "upperarm_twist_01_r",
+      "thigh_l",
+      "calf_l",
+      "foot_l",
+      "ball_l",
+      "calf_twist_01_l",
+      "thigh_twist_01_l",
+      "thigh_r",
+      "calf_r",
+      "foot_r",
+      "ball_r",
+      "calf_twist_01_r",
+      "thigh_twist_01_r",
+      "ik_foot_root",
+      "ik_foot_l",
+      "ik_foot_r",
+      "ik_hand_root",
+      "ik_hand_gun",
+      "ik_hand_l",
+      "ik_hand_r",
+      "righthand_prop",
+      "lefthand_prop",
+      "righthand_prop_righthand",
+      "righthand_prop_lefthand"
+    ],
+    "skin_objects": [
+      "Actual arms mesh 0",
+      "Actual arms mesh 1",
+      "Actual arms mesh 2"
+    ],
+    "rigid_actors": [
+      "hk416_weapon",
+      "hk416_magazine"
+    ],
+    "excluded_rigid_actor": "hk416_magazine_outgoing"
+  },
+  "source_pose_space": "absolute",
+  "additive": false,
+  "expected_runtime_basis": "Blender world C=(x,z,-y); receiving runtime applies Ry(pi) once; no runtime integration performed",
+  "assembly_recipe": {
+    "file": "assembly_recipe.json",
+    "sha256": "d9d07f77769924410bf7c8983e44b1e20629e03cd30f503484840a993cd871b0"
+  },
+  "validation_reports": {
+    "source_preservation.json": {
+      "sha256": "20d5eec3705178615236d061ff9866e93dc2417b9f06968ce4dedd383ee22f8c",
+      "bytes": 343189
+    },
+    "preserved_evaluation.json": {
+      "sha256": "a2832aab50b584efd41ed8d7a7077e6abeffeaad27d64a4dec550e6b025f705c",
+      "bytes": 128080
+    },
+    "preview_export_validation.json": {
+      "sha256": "6d61d895b352f89837effa9f945912a572c1d4a85834f098722f11998518f3c0",
+      "bytes": 4608
+    },
+    "validation/native_validation.json": {
+      "sha256": "93c054d466f7b4415e417660c8055e1072e85e010f2db9e1b5d6bcc68b407738",
+      "bytes": 4935
+    },
+    "assembly_report.json": {
+      "sha256": "cdf999c35fe44ae9a58a7ba216ed32a936964289d629775a3e698dc1f6a275dc",
+      "bytes": 974
+    },
+    "portable_reproduction.json": {
+      "sha256": "9ab7bb0e0cafabd065369a0cd037c729b6502d1d949cb6e887b9079c30e5bd25",
+      "bytes": 569
+    },
+    "baseline_readonly_verification.json": {
+      "sha256": "0ceabd00320ddfe7d202f7246a20e408de37d82e4db97a8601961e915d14c82b",
+      "bytes": 1492
+    },
+    "lane_validation/longitudinal/source_preservation.json": {
+      "sha256": "ec06575ec1ead5d8a9f0aadcac2f88dd1d2586af3fe03f9ac4bb1d75a711aec2",
+      "bytes": 336012
+    },
+    "lane_validation/longitudinal/preserved_evaluation.json": {
+      "sha256": "5cd6df7691c86534d143b62bcc200c6fa0c85d4360afda4017e247842fde515d",
+      "bytes": 128081
+    },
+    "lane_validation/longitudinal/combined_evaluation_identity.json": {
+      "sha256": "cd96bab61a012b4e8b0a63f80e0498f10ee5f74888406a1762832becf76a1e63",
+      "bytes": 5877
+    },
+    "lane_validation/lateral/source_preservation.json": {
+      "sha256": "6b430bf21a81eb338165b644c0ed9b40c45728e179e5bc7d3a3d17fae56dd245",
+      "bytes": 335662
+    },
+    "lane_validation/lateral/preserved_evaluation.json": {
+      "sha256": "995e97afd9b52a3989fb8f0c20f5b2a23c27432e0126e23cba92d8df3985c11e",
+      "bytes": 128076
+    },
+    "lane_validation/lateral/combined_evaluation_identity.json": {
+      "sha256": "8672356429c7a2104e2b265c4a424e98b1d59ff8c3ea4f96d8e6ef03f894590a",
+      "bytes": 5859
+    }
+  },
+  "independent_lane_validation": {
+    "source_checks_per_lane": 24,
+    "prior_clip_count_per_lane": 60,
+    "byte_identical_prior_arrays_per_lane": 302,
+    "combined_transfer_arrays_per_lane": 12,
+    "max_preserved_position_or_matrix_drift": 0
+  },
+  "combined_validation": {
+    "source_checks": 28,
+    "prior_clip_count": 60,
+    "byte_identical_prior_arrays": 302,
+    "contact_samples_480hz": 1452,
+    "fbx_curves_per_take": 675,
+    "fbx_keys_by_direction": [
+      305,
+      361,
+      393,
+      393
+    ]
+  },
+  "curated_creator_packets": {
+    "longitudinal": "creators/longitudinal/creator_subset_manifest.json",
+    "lateral": "creators/lateral/creator_subset_manifest.json"
+  },
+  "derived_fbx": {
+    "local_evidence_relative_path": "evidence/r5-preview-export/locomotion.fbx",
+    "sha256": "bb6c6af2f60e128d9b109333163edb467f76feb38ac877acc282db7935778960",
+    "included_in_patch": false,
+    "production_replacement": false
+  },
+  "earlier_reference_scores_reused_for_r5": false,
+  "new_reference_fidelity_claim": false,
+  "visual_review_status": "r5 unscored; genuine Eevee Viewport Render Animation and independent Elara review are separate",
+  "limits": [
+    "Old-motion evidence is sampled native evaluation, not exhaustive evaluation at all times",
+    "Numeric contact checks do not certify all hidden mesh intersections",
+    "No gameplay, ADS, transition or full-window reference acceptance",
+    "Input lane binaries and r4 baseline are omitted; portable script plus frozen designs reconstruct equivalent data",
+    "Third-party reference images/video and native inspection images are excluded from this patch"
+  ]
+}

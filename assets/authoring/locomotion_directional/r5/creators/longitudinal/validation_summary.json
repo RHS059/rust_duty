@@ -1,0 +1,443 @@
+{
+  "schema": "rust-duty-longitudinal-r5-constraint-check/v1",
+  "status": "Authored intent checks only; no reference match score or visual acceptance",
+  "candidate_sha256": "147541d32421e3e431946a9cf5a4209d6072bede97355238bd6180b2491fdae8",
+  "sweep_hz": 480,
+  "anchor_order": [
+    "muzzle_tip",
+    "receiver_center",
+    "support_cuff_surface"
+  ],
+  "actions": {
+    "hip_walk_forward_r5": {
+      "samples_per_revision": 305,
+      "retained_r4_projection_vs_prior_r4_evidence_max_error_pixels": 0.0,
+      "native_vs_authored_design_max_error_pixels": 0.000497371991741602,
+      "dense_primary_x_constraint_error_pixels": [
+        0.00152587890625,
+        0.00091552734375
+      ],
+      "dense_y_constraint_error_pixels": [
+        0.02277745135643272,
+        0.03765401073189878,
+        0.033952212494966716
+      ],
+      "vertical_constraint_anchor_indices": [
+        0,
+        1,
+        2
+      ],
+      "r4_native_ranges_xy_px": [
+        [
+          61.65496826171875,
+          25.243685245513916
+        ],
+        [
+          84.84588623046875,
+          43.80074143409729
+        ],
+        [
+          68.10684204101562,
+          30.497102737426758
+        ]
+      ],
+      "r5_native_ranges_xy_px": [
+        [
+          61.65489196777344,
+          27.916173934936523
+        ],
+        [
+          84.8065185546875,
+          49.01351809501648
+        ],
+        [
+          68.10714721679688,
+          34.91476535797119
+        ]
+      ],
+      "constrained_vertical_extrema_native_phase_sets_unchanged_at_0p002px_tie_tolerance": true,
+      "vertical_extrema_action_frame_sets": {
+        "r4": {
+          "min": [
+            [
+              22
+            ],
+            [
+              21
+            ],
+            [
+              21
+            ]
+          ],
+          "max": [
+            [
+              33
+            ],
+            [
+              12
+            ],
+            [
+              12
+            ]
+          ]
+        },
+        "r5": {
+          "min": [
+            [
+              22
+            ],
+            [
+              21
+            ],
+            [
+              21
+            ]
+          ],
+          "max": [
+            [
+              33
+            ],
+            [
+              12
+            ],
+            [
+              12
+            ]
+          ]
+        }
+      },
+      "native_min_action_frames_r4": [
+        [
+          22,
+          22
+        ],
+        [
+          22,
+          21
+        ],
+        [
+          22,
+          21
+        ]
+      ],
+      "native_min_action_frames_r5": [
+        [
+          22,
+          22
+        ],
+        [
+          22,
+          21
+        ],
+        [
+          22,
+          21
+        ]
+      ],
+      "native_max_action_frames_r4": [
+        [
+          5,
+          33
+        ],
+        [
+          5,
+          12
+        ],
+        [
+          5,
+          12
+        ]
+      ],
+      "native_max_action_frames_r5": [
+        [
+          5,
+          33
+        ],
+        [
+          5,
+          12
+        ],
+        [
+          5,
+          12
+        ]
+      ],
+      "dense_min_action_frames_r4": [
+        [
+          22.25,
+          21.5
+        ],
+        [
+          22.25,
+          20.875
+        ],
+        [
+          22.25,
+          21.25
+        ]
+      ],
+      "dense_min_action_frames_r5": [
+        [
+          22.25,
+          21.5
+        ],
+        [
+          22.25,
+          20.875
+        ],
+        [
+          22.25,
+          21.25
+        ]
+      ],
+      "dense_max_action_frames_r4": [
+        [
+          4.875,
+          32.5
+        ],
+        [
+          4.875,
+          11.75
+        ],
+        [
+          4.875,
+          11.625
+        ]
+      ],
+      "dense_max_action_frames_r5": [
+        [
+          4.875,
+          32.5
+        ],
+        [
+          4.875,
+          11.75
+        ],
+        [
+          4.875,
+          11.625
+        ]
+      ],
+      "max_receiver_x_change_pixels": 0.152587890625,
+      "tie_note": "Backward primary X equal-peak plateaus retain their trajectory; float differences below0.002px can change raw argmax among tied frames. Receiver is a coupled rigid-pose projection, not an independent control."
+    },
+    "hip_walk_backward_r5": {
+      "samples_per_revision": 361,
+      "retained_r4_projection_vs_prior_r4_evidence_max_error_pixels": 0.0,
+      "native_vs_authored_design_max_error_pixels": 0.0006548714752625528,
+      "dense_primary_x_constraint_error_pixels": [
+        0.0006866455078125,
+        0.001068115234375
+      ],
+      "dense_y_constraint_error_pixels": [
+        0.0007386595336811297,
+        0.0016215087191540078
+      ],
+      "vertical_constraint_anchor_indices": [
+        0,
+        2
+      ],
+      "r4_native_ranges_xy_px": [
+        [
+          14.785385131835938,
+          28.14922571182251
+        ],
+        [
+          36.80274963378906,
+          77.53269553184509
+        ],
+        [
+          22.9327392578125,
+          34.04984951019287
+        ]
+      ],
+      "r5_native_ranges_xy_px": [
+        [
+          14.785385131835938,
+          29.116215705871582
+        ],
+        [
+          36.15081787109375,
+          100.80023109912872
+        ],
+        [
+          22.932891845703125,
+          36.62916898727417
+        ]
+      ],
+      "constrained_vertical_extrema_native_phase_sets_unchanged_at_0p002px_tie_tolerance": true,
+      "vertical_extrema_action_frame_sets": {
+        "r4": {
+          "min": [
+            [
+              5
+            ],
+            [
+              5,
+              6
+            ]
+          ],
+          "max": [
+            [
+              30
+            ],
+            [
+              28
+            ]
+          ]
+        },
+        "r5": {
+          "min": [
+            [
+              5
+            ],
+            [
+              5,
+              6
+            ]
+          ],
+          "max": [
+            [
+              30
+            ],
+            [
+              28
+            ]
+          ]
+        }
+      },
+      "native_min_action_frames_r4": [
+        [
+          10,
+          5
+        ],
+        [
+          10,
+          5
+        ],
+        [
+          10,
+          6
+        ]
+      ],
+      "native_min_action_frames_r5": [
+        [
+          10,
+          5
+        ],
+        [
+          10,
+          4
+        ],
+        [
+          10,
+          5
+        ]
+      ],
+      "native_max_action_frames_r4": [
+        [
+          27,
+          30
+        ],
+        [
+          27,
+          31
+        ],
+        [
+          27,
+          28
+        ]
+      ],
+      "native_max_action_frames_r5": [
+        [
+          27,
+          30
+        ],
+        [
+          27,
+          31
+        ],
+        [
+          35,
+          28
+        ]
+      ],
+      "dense_min_action_frames_r4": [
+        [
+          9.75,
+          4.875
+        ],
+        [
+          9.75,
+          4.75
+        ],
+        [
+          9.75,
+          5.5
+        ]
+      ],
+      "dense_min_action_frames_r5": [
+        [
+          9.75,
+          4.875
+        ],
+        [
+          9.75,
+          4.125
+        ],
+        [
+          9.75,
+          5.5
+        ]
+      ],
+      "dense_max_action_frames_r4": [
+        [
+          27.0,
+          29.5
+        ],
+        [
+          26.875,
+          31.25
+        ],
+        [
+          27.0,
+          28.0
+        ]
+      ],
+      "dense_max_action_frames_r5": [
+        [
+          27.0,
+          29.5
+        ],
+        [
+          26.75,
+          31.375
+        ],
+        [
+          35.0,
+          28.0
+        ]
+      ],
+      "max_receiver_x_change_pixels": 1.563262939453125,
+      "tie_note": "Backward primary X equal-peak plateaus retain their trajectory; float differences below0.002px can change raw argmax among tied frames. Receiver is a coupled rigid-pose projection, not an independent control.",
+      "dense_barrel_angle_constraint_max_error_degrees": 0.00022809561771970722,
+      "r4_screen_barrel_angle_range_degrees": 6.966430618607847,
+      "r5_screen_barrel_angle_range_degrees": 10.601393087015595,
+      "barrel_angle_minmax_native_action_frames_r4": [
+        2,
+        32
+      ],
+      "barrel_angle_minmax_native_action_frames_r5": [
+        2,
+        32
+      ]
+    }
+  },
+  "contact_summary": {
+    "new_action_samples_480hz": 666,
+    "max_wrist_error_m": 7.165182144295007e-07,
+    "max_guard_error_degrees": 0,
+    "max_loop_endpoint_matrix_error": 0,
+    "invalid_drivers": []
+  }
+}

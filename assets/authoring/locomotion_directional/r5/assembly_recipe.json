@@ -1,0 +1,122 @@
+{
+  "schema": "rust-duty-r5-action-only-assembly-recipe/v1",
+  "baseline_sha256": "d220162819fb7267aa6b93b209afc8ce5212a0692e6a4e02c5c43602b08907e3",
+  "lanes": {
+    "longitudinal": {
+      "source_sha256": "147541d32421e3e431946a9cf5a4209d6072bede97355238bd6180b2491fdae8",
+      "independent_preservation_passed": true,
+      "source_checks": 24,
+      "prior_arrays_byte_identical": 302,
+      "actions": [
+        "hip_walk_backward_r5",
+        "hip_walk_forward_r5"
+      ],
+      "action_fingerprints": {
+        "hip_walk_backward_r5": "be23987d7297fb46261b413825520e92f828580bd487588712108ea5f771b2c7",
+        "hip_walk_forward_r5": "0d15d9f431c10653c901957d194975b51578a57f4a0568383a79cf1ef23ffbdd"
+      },
+      "action_metadata": {
+        "hip_walk_backward_r5": {
+          "use_fake_user": true,
+          "properties": {
+            "source_start_frame": 4419,
+            "source_end_frame": 4434,
+            "source_fps": 60.0,
+            "status": "Source-timed entry blocking; frames4422/4428 interpolated authoring poses; no source input recovery, no contact acceptance",
+            "reference_id": "5KM0XSKxTWw",
+            "reference_frame_start": 211,
+            "reference_frame_end_exclusive": 256,
+            "authoring_fps": 60,
+            "loop_period_frames": 45,
+            "presentation": "absolute native rig pose",
+            "acceptance_status": "WIP; independent visual and runtime review required",
+            "motion_reference": "R5 longitudinal motion-only feedback revision; native HK416 ready carry preserved",
+            "revision_notes": "Preserve every r4 muzzle/cuff lateral coordinate and its timing;45-frame period unchanged; Use measured screen-barrel-angle excursion: increase6.966486deg toward observed10.601394deg via a monotonic amplitude map preserving native angle-extreme phases; this is an optical constraint, not recovered3D roll; Broaden lower shoulders with normalized_down_position*(2-normalized_down_position); fixed added drops are one tenth of reference Y excursions at muzzle0.967014px and cuff2.579515px, rather than a blanket vertical gain; Solve twoX, twoY and barrel-angle constraints with translation,pitch,yaw,roll at zero depth; receiver trajectory follows the rigid pose and is not independently constrained; Corrected review range0.45-0.48s maps to Actions28-30/reference238-240; preserve these existing trough phases and repeat unchanged next loop",
+            "revision_of": "hip_walk_backward_r4"
+          }
+        },
+        "hip_walk_forward_r5": {
+          "use_fake_user": true,
+          "properties": {
+            "source_start_frame": 4419,
+            "source_end_frame": 4434,
+            "source_fps": 60.0,
+            "status": "Source-timed entry blocking; frames4422/4428 interpolated authoring poses; no source input recovery, no contact acceptance",
+            "reference_id": "5KM0XSKxTWw",
+            "reference_frame_start": 48,
+            "reference_frame_end_exclusive": 86,
+            "authoring_fps": 60,
+            "loop_period_frames": 38,
+            "presentation": "absolute native rig pose",
+            "acceptance_status": "WIP; independent visual and runtime review required",
+            "motion_reference": "R5 longitudinal motion-only feedback revision; native HK416 ready carry preserved",
+            "revision_notes": "Preserve r4 muzzle/cuff lateral paths exactly and retain 38-frame cadence and figure-8 phase; Deepen each existing low by one tenth of its smoothed frozen-scale reference Y excursion, weighted by normalized native down-position cubed; no percentage multiplier of the previous revision; Exact maximum extra drops: muzzle2.672267px, receiver5.212048px, cuff4.417134px; original tops and all native vertical extrema phases retained; Solve translation, pitch, yaw and roll compensation at unchanged zero depth for threeY and twoX constraints",
+            "revision_of": "hip_walk_forward_r4"
+          }
+        }
+      },
+      "actions_extended": {
+        "hip_walk_backward_r5": "71618454f399b74bb8f9279975fd6b48289b4db891ceea35cb0001e6252924cf",
+        "hip_walk_forward_r5": "88f32ef0645ca7a5eb196c4e788571719b0fd0ffd4a2ad70356ae362df9c2bba"
+      }
+    },
+    "lateral": {
+      "source_sha256": "681ffd12e6390b8811b273a5130fe5c74bfe2690da180f9daeadebf610728e44",
+      "independent_preservation_passed": true,
+      "source_checks": 24,
+      "prior_arrays_byte_identical": 302,
+      "actions": [
+        "hip_strafe_left_r5",
+        "hip_strafe_right_r5"
+      ],
+      "action_fingerprints": {
+        "hip_strafe_left_r5": "2e48c623a67b4568770eae8682579d414cbc5b47148a6f676d472f59f19b2d36",
+        "hip_strafe_right_r5": "bba61dbaa0aeda93fdeff426ef5af82db0bb39cd287dc7f0336cbee3a7b58590"
+      },
+      "action_metadata": {
+        "hip_strafe_left_r5": {
+          "use_fake_user": true,
+          "properties": {
+            "source_start_frame": 4419,
+            "source_end_frame": 4434,
+            "source_fps": 60.0,
+            "status": "Source-timed entry blocking; frames4422/4428 interpolated authoring poses; no source input recovery, no contact acceptance",
+            "reference_id": "5KM0XSKxTWw",
+            "reference_frame_start": 886,
+            "reference_frame_end_exclusive": 935,
+            "authoring_fps": 60,
+            "loop_period_frames": 49,
+            "presentation": "absolute native rig pose",
+            "acceptance_status": "WIP; independent visual and runtime review required",
+            "motion_reference": "R5 lateral-only motion feedback candidate; native HK416 ready carry preserved",
+            "revision_notes": "Increase inward yaw by0.75 degree and inward roll by2 degrees beyond r4 at native-key plateau, bringing additions over r3 to2 degrees yaw and4 degrees roll.; Keep the existing upswing envelope26\u201333/33\u201342/42\u201348 and all reference/key timing. Hold visible cuff XY, pitch and depth.; Screen-angle analysis is deliberately not an angle-gap fit: from0.40s to0.60s, r4 muzzle/receiver angle already changes more than the different reference weapon. The bounded authored orientation increment follows the reviewer direction; no recovered3D deficit is claimed.",
+            "revision_of": "hip_strafe_left_r4"
+          }
+        },
+        "hip_strafe_right_r5": {
+          "use_fake_user": true,
+          "properties": {
+            "source_start_frame": 4419,
+            "source_end_frame": 4434,
+            "source_fps": 60.0,
+            "status": "Source-timed entry blocking; frames4422/4428 interpolated authoring poses; no source input recovery, no contact acceptance",
+            "reference_id": "9RRgXvRx43s",
+            "reference_frame_start": 361,
+            "reference_frame_end_exclusive": 410,
+            "authoring_fps": 60,
+            "loop_period_frames": 49,
+            "presentation": "absolute native rig pose",
+            "acceptance_status": "WIP; independent visual and runtime review required",
+            "motion_reference": "R5 lateral-only motion feedback candidate; native HK416 ready carry preserved",
+            "revision_notes": "Deepen both existing dips by the measured relative cuff-range shortfall, retaining the identical r4 pulse windows and side-peak coverage.; Only camera-Y translation changes. Lateral paths, camera rotations and depth remain r4.; Choose additional plateau amplitude by solving the existing pulse shape to the smoothed reference cuff vertical range under the inherited fixed scale. Muzzle/receiver ranges already differ from reference and are reported, not fitted away.",
+            "revision_of": "hip_strafe_right_r4"
+          }
+        }
+      },
+      "actions_extended": {
+        "hip_strafe_left_r5": "a38356b1fb4d4e3163130f07b5af49d8e75a778fbaa9a3b73a3ca808397a6627",
+        "hip_strafe_right_r5": "a38356b1fb4d4e3163130f07b5af49d8e75a778fbaa9a3b73a3ca808397a6627"
+      }
+    }
+  }
+}

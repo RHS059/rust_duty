@@ -1,0 +1,89 @@
+{
+  "schema": "rust-duty-r5-curated-creator-subset/v1",
+  "lane_source_sha256": "147541d32421e3e431946a9cf5a4209d6072bede97355238bd6180b2491fdae8",
+  "files": {
+    "author_r5.py": {
+      "bytes": 7078,
+      "sha256": "0b79caf5986e74082f957b58ba08abf26c00f0e7daf48d5907238807ec34c120"
+    },
+    "source_integrity.py": {
+      "bytes": 2898,
+      "sha256": "d22ae8dcc117e29ffb7d746772efce015010407cbb1ddce22924a31746e831ca"
+    },
+    "build_design_r5.py": {
+      "bytes": 10908,
+      "sha256": "5511b3c47943bf26fba6e9caf2e891f4e474bb7294496e3afec85b5055a96ed0"
+    },
+    "directional_keyposes_r5.json": {
+      "bytes": 81387,
+      "sha256": "b8203a8075a843053c0c7b59d7b72cd83d52f1a1433546af54e914c7025d12a3"
+    },
+    "motion_changes_r5.json": {
+      "bytes": 7281,
+      "sha256": "b186666a8d23d4e637061122c3f9bdcd75d649a502e2c11ebdce62fea7c31e07"
+    },
+    "reference_gap_analysis.json": {
+      "bytes": 32996,
+      "sha256": "a092d2f091075f2f457825e6480359ce553ba901b08bc3cd94adc71fc0456205"
+    },
+    "validate_motion_r5.py": {
+      "bytes": 5456,
+      "sha256": "800338eb5953d94cc6ec0462a5d39ba63dcf6c36b1ad30e26765c03fd57b0996"
+    },
+    "summarize_validation_r5.py": {
+      "bytes": 5447,
+      "sha256": "348443ad00f2578f9cad97db04cd74b20738766e77921ee1a34f99f1bb350edd"
+    },
+    "check_action_structure.py": {
+      "bytes": 1845,
+      "sha256": "63713a3fa0deaf0c35f0c88d6569691a53c28780acffc682a60e4ec0d7edec78"
+    },
+    "halcyon_hip_longitudinal_r5_authored_root_keys.json": {
+      "bytes": 25232,
+      "sha256": "7381734d89b894cdd974885fb264db451e8b041b1aab98a0d4e16a3dc6f121d6"
+    },
+    "halcyon_hip_longitudinal_r5_authoring_preservation.json": {
+      "bytes": 408,
+      "sha256": "5504976523b9c4822afa9e0d22450e6c024581a8434352b112c160ea468be736"
+    },
+    "validation/candidate_tracks_480fps.csv": {
+      "bytes": 462923,
+      "sha256": "e8981ccce8c139494f17891fde2bbed0af5d6ee90db8f671b910eebe149890cf"
+    },
+    "validation/native_validation.json": {
+      "bytes": 3729,
+      "sha256": "28514f03953780300f24869e1f55cd02cecbb7f212e6cbf5e255f84a9e9fc3cc"
+    },
+    "validation_summary.json": {
+      "bytes": 8501,
+      "sha256": "b0ff2241638e1213e6c980cc5c4e24b516ea4a48d19aa308d765370a819225a9"
+    },
+    "action_structure_validation.json": {
+      "bytes": 4238,
+      "sha256": "d0c3ba9d62ade08559c1736ef6f746e98a65811903839495a55596121e19e233"
+    },
+    "review_timestamp_verification.json": {
+      "bytes": 2499,
+      "sha256": "225b9353cc7af070b920ad54b88ed1b9b60a40144d41e5fd5c21d6ea0e4f72f0"
+    },
+    "author_package_manifest.json": {
+      "bytes": 2174,
+      "sha256": "170163b05207b2b00b3ebb072589fe6369229ea6a6a3e797fb2d98889fbfb19a"
+    },
+    "README.md": {
+      "bytes": 8047,
+      "sha256": "0553cb6bbad486c1504912d6e2442900b36deab4bab562d1463cc82c8a9d14e8"
+    },
+    "CURATED_SHA256SUMS": {
+      "bytes": 1707,
+      "sha256": "5438215f3f9b34b028cf54db93db714b7ac4c6d2aab0740def7a1405a0e48f15"
+    }
+  },
+  "excludes": [
+    "reference/native inspection images",
+    "logs",
+    "redundant lane BLEND",
+    "creator full-lane SHA256SUMS"
+  ],
+  "original_author_manifest_covers_full_lane_not_this_subset": false
+}

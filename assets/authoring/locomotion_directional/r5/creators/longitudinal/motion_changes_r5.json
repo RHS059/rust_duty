@@ -1,0 +1,277 @@
+{
+  "status": "Unscored WIP; authored edits, not visual acceptance",
+  "point_order": [
+    "muzzle_tip",
+    "receiver_center",
+    "support_cuff_surface"
+  ],
+  "actions": {
+    "hip_walk_forward_r5": {
+      "notes": [
+        "Preserve r4 muzzle/cuff lateral paths exactly and retain 38-frame cadence and figure-8 phase",
+        "Deepen each existing low by one tenth of its smoothed frozen-scale reference Y excursion, weighted by normalized native down-position cubed; no percentage multiplier of the previous revision",
+        "Exact maximum extra drops: muzzle2.672267px, receiver5.212048px, cuff4.417134px; original tops and all native vertical extrema phases retained",
+        "Solve translation, pitch, yaw and roll compensation at unchanged zero depth for threeY and twoX constraints"
+      ],
+      "parameters": {
+        "muzzle_and_cuff_lateral_gain": 1.0,
+        "reference_vertical_fraction": 0.1,
+        "fixed_extra_down_pixels_by_anchor": [
+          2.672267127606464,
+          5.212048437705022,
+          4.417133532657531
+        ],
+        "down_weight": "normalized_native_down_position ** 3",
+        "vertical_anchors": [
+          "muzzle_tip",
+          "receiver_center",
+          "support_cuff_surface"
+        ],
+        "preserved_high_low_phases": true,
+        "no_phase_or_key_time_change": true
+      },
+      "max_solver_residual": 1.1368683772161603e-13,
+      "r4_range_xy_px": [
+        [
+          61.654922865689855,
+          25.24365666290612
+        ],
+        [
+          84.84585854540728,
+          43.80105968915632
+        ],
+        [
+          68.10682297731091,
+          30.497157348614394
+        ]
+      ],
+      "r5_predicted_range_xy_px": [
+        [
+          61.654922865689855,
+          27.91592379051258
+        ],
+        [
+          84.80658892146914,
+          49.0131081268612
+        ],
+        [
+          68.10682297731091,
+          34.91429088127188
+        ]
+      ],
+      "r4_screen_min_offsets": [
+        [
+          21,
+          21
+        ],
+        [
+          21,
+          20
+        ],
+        [
+          21,
+          20
+        ]
+      ],
+      "r4_screen_max_offsets": [
+        [
+          4,
+          32
+        ],
+        [
+          4,
+          11
+        ],
+        [
+          4,
+          11
+        ]
+      ],
+      "r5_screen_min_offsets": [
+        [
+          21,
+          21
+        ],
+        [
+          21,
+          20
+        ],
+        [
+          21,
+          20
+        ]
+      ],
+      "r5_screen_max_offsets": [
+        [
+          4,
+          32
+        ],
+        [
+          4,
+          11
+        ],
+        [
+          4,
+          11
+        ]
+      ],
+      "r4_roll_range_degrees": [
+        -0.3798369690724038,
+        0.5261667846702036
+      ],
+      "r5_roll_range_degrees": [
+        -0.37983889301298357,
+        1.1037316972566076
+      ],
+      "added_camera_roll_degrees_at_cuff_low": 0.6012219731390306,
+      "max_absolute_added_camera_roll_degrees": 0.6032570276583383,
+      "r4_screen_barrel_angle_range_degrees": 5.249841447741649,
+      "r5_screen_barrel_angle_range_degrees": 5.9113467225876475,
+      "max_y_trace_change_by_anchor_px": [
+        2.6722671276064602,
+        5.21204843770488,
+        4.4171335326575445
+      ],
+      "max_x_trace_change_by_anchor_px": [
+        1.1368683772161603e-13,
+        0.1504835191095708,
+        1.1368683772161603e-13
+      ]
+    },
+    "hip_walk_backward_r5": {
+      "notes": [
+        "Preserve every r4 muzzle/cuff lateral coordinate and its timing;45-frame period unchanged",
+        "Use measured screen-barrel-angle excursion: increase6.966486deg toward observed10.601394deg via a monotonic amplitude map preserving native angle-extreme phases; this is an optical constraint, not recovered3D roll",
+        "Broaden lower shoulders with normalized_down_position*(2-normalized_down_position); fixed added drops are one tenth of reference Y excursions at muzzle0.967014px and cuff2.579515px, rather than a blanket vertical gain",
+        "Solve twoX, twoY and barrel-angle constraints with translation,pitch,yaw,roll at zero depth; receiver trajectory follows the rigid pose and is not independently constrained",
+        "Corrected review range0.45-0.48s maps to Actions28-30/reference238-240; preserve these existing trough phases and repeat unchanged next loop"
+      ],
+      "parameters": {
+        "muzzle_and_cuff_lateral_gain": 1.0,
+        "reference_vertical_fraction": 0.1,
+        "fixed_extra_down_pixels_by_anchor": [
+          0.9670137374201979,
+          2.893733803665469,
+          2.5795152340755383
+        ],
+        "down_weight": "normalized_native_down_position * (2 - normalized_native_down_position)",
+        "vertical_anchors": [
+          "muzzle_tip",
+          "support_cuff_surface"
+        ],
+        "screen_barrel_angle_gain": 1.5217706686395263,
+        "screen_barrel_angle_target_range_degrees": 10.60139375507591,
+        "screen_barrel_angle_policy": "Preserve native minimum angle and min/max phases; transfer measured reference excursion amplitude only",
+        "preserved_primary_high_low_phases": true,
+        "no_phase_or_key_time_change": true
+      },
+      "max_solver_residual": 1.1368683772161603e-13,
+      "r4_range_xy_px": [
+        [
+          14.78532339078231,
+          28.149196339819014
+        ],
+        [
+          36.80265340888434,
+          77.53264165494807
+        ],
+        [
+          22.932581625719422,
+          34.04960108979719
+        ]
+      ],
+      "r5_predicted_range_xy_px": [
+        [
+          14.78532339078231,
+          29.116210077239202
+        ],
+        [
+          36.15071448550475,
+          100.800529340906
+        ],
+        [
+          22.932581625719422,
+          36.62911632387272
+        ]
+      ],
+      "r4_screen_min_offsets": [
+        [
+          9,
+          4
+        ],
+        [
+          9,
+          4
+        ],
+        [
+          9,
+          4
+        ]
+      ],
+      "r4_screen_max_offsets": [
+        [
+          26,
+          29
+        ],
+        [
+          26,
+          30
+        ],
+        [
+          26,
+          27
+        ]
+      ],
+      "r5_screen_min_offsets": [
+        [
+          9,
+          4
+        ],
+        [
+          9,
+          3
+        ],
+        [
+          9,
+          4
+        ]
+      ],
+      "r5_screen_max_offsets": [
+        [
+          34,
+          29
+        ],
+        [
+          26,
+          30
+        ],
+        [
+          26,
+          27
+        ]
+      ],
+      "r4_roll_range_degrees": [
+        -4.075662734288686,
+        2.4129230948772586
+      ],
+      "r5_roll_range_degrees": [
+        -6.911120410811037,
+        2.429430190204683
+      ],
+      "added_camera_roll_degrees_at_cuff_low": -2.625128497441452,
+      "max_absolute_added_camera_roll_degrees": 2.919779994057432,
+      "r4_screen_barrel_angle_range_degrees": 6.966485800750537,
+      "r5_screen_barrel_angle_range_degrees": 10.601393755075902,
+      "max_y_trace_change_by_anchor_px": [
+        0.9670137374201886,
+        24.037901173950104,
+        2.5795152340755294
+      ],
+      "max_x_trace_change_by_anchor_px": [
+        1.1368683772161603e-13,
+        1.5613618710963237,
+        1.1368683772161603e-13
+      ]
+    }
+  }
+}

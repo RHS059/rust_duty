@@ -1,0 +1,46 @@
+{
+  "schema": "rust-duty-r5-baseline-readonly-verification/v1",
+  "sources": {
+    "r4_original": {
+      "sha256": "d220162819fb7267aa6b93b209afc8ce5212a0692e6a4e02c5c43602b08907e3",
+      "bytes": 9823742
+    },
+    "r3_original": {
+      "sha256": "e4d1216e2535ac4d5c6cfb17476158eeb45a9c41f63dc6c67ff0fb8cdddceb07",
+      "bytes": 9698436
+    },
+    "r2_original": {
+      "sha256": "060ce16a6fd9e9a7718de81244e447ab4257af0df6b40f5db0a8f03cf6b386a2",
+      "bytes": 9580039
+    },
+    "r1_published": {
+      "sha256": "6d6d5c6a150bd8d74f24b29bf18b192e2f5fe2cd93a531c77b7a1e5ce93a8b35",
+      "bytes": 9485443
+    },
+    "longitudinal_lane": {
+      "sha256": "147541d32421e3e431946a9cf5a4209d6072bede97355238bd6180b2491fdae8",
+      "bytes": 9873754
+    },
+    "lateral_lane": {
+      "sha256": "681ffd12e6390b8811b273a5130fe5c74bfe2690da180f9daeadebf610728e44",
+      "bytes": 9869990
+    },
+    "final_combined": {
+      "sha256": "36d76491c2cf6238b8a1e10069dddd5b0d63e199063e1f4012b34f3fd4b1e18d",
+      "bytes": 9922429
+    }
+  },
+  "published_checkout_commit": "6bbfada1242d2d6c766c52cfc30c3ab511e41669",
+  "checks": {
+    "r4_original_unchanged": true,
+    "r3_original_unchanged": true,
+    "r2_original_unchanged": true,
+    "r1_published_unchanged": true,
+    "longitudinal_lane_unchanged": true,
+    "lateral_lane_unchanged": true,
+    "final_combined_unchanged": true,
+    "published_checkout_head_unchanged": true,
+    "published_checkout_clean": true
+  },
+  "passed": true
+}

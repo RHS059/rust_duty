@@ -1,0 +1,180 @@
+{
+  "schema": "rust-duty-preserved-native-evaluation/v1",
+  "baseline_sources_sha256": {
+    "halcyon_hip_lateral_r5.blend": "681ffd12e6390b8811b273a5130fe5c74bfe2690da180f9daeadebf610728e44"
+  },
+  "candidate_sources_sha256": {
+    "halcyon_hip_directional_r5.blend": "36d76491c2cf6238b8a1e10069dddd5b0d63e199063e1f4012b34f3fd4b1e18d"
+  },
+  "preserved_clip_count": 2,
+  "array_count": 12,
+  "byte_identical_arrays": 12,
+  "position_limit_m": 1e-06,
+  "matrix_component_limit": 1e-06,
+  "max_position_error_m": 0.0,
+  "max_matrix_component_error": 0.0,
+  "candidate_max_wrist_solve_error_m": 6.260822501824e-07,
+  "candidate_max_guard_error_degrees": 0.0,
+  "arrays": {
+    "hip_strafe_left_r5__bones": {
+      "shape": [
+        25,
+        72,
+        4,
+        4
+      ],
+      "byte_identical": true,
+      "max_absolute_difference": 0.0,
+      "max_position_error_m": 0.0,
+      "passed": true,
+      "baseline_sha256": "5fa67f00726e9e09e57ad31dcc161c31c922c91188e0f84efa3ec57d64b6d003",
+      "candidate_sha256": "5fa67f00726e9e09e57ad31dcc161c31c922c91188e0f84efa3ec57d64b6d003"
+    },
+    "hip_strafe_left_r5__actors": {
+      "shape": [
+        25,
+        2,
+        4,
+        4
+      ],
+      "byte_identical": true,
+      "max_absolute_difference": 0.0,
+      "max_position_error_m": 0.0,
+      "passed": true,
+      "baseline_sha256": "1da33e1acaf072d0c335f50f1aebdc69ea508b432fea82651f918b62a4e14cfb",
+      "candidate_sha256": "1da33e1acaf072d0c335f50f1aebdc69ea508b432fea82651f918b62a4e14cfb"
+    },
+    "hip_strafe_left_r5__skin_0": {
+      "shape": [
+        25,
+        5710,
+        3
+      ],
+      "byte_identical": true,
+      "max_absolute_difference": 0.0,
+      "max_position_error_m": 0.0,
+      "passed": true,
+      "baseline_sha256": "b5e7b5f393fa8abab22271d63621b4b67c4e49ba3450bf3051c62884f81e5e26",
+      "candidate_sha256": "b5e7b5f393fa8abab22271d63621b4b67c4e49ba3450bf3051c62884f81e5e26"
+    },
+    "hip_strafe_left_r5__skin_1": {
+      "shape": [
+        25,
+        3954,
+        3
+      ],
+      "byte_identical": true,
+      "max_absolute_difference": 0.0,
+      "max_position_error_m": 0.0,
+      "passed": true,
+      "baseline_sha256": "eeb96c8ad2bf08266f826014c5f096243ae5ac6ff0214e473a15308af9533c27",
+      "candidate_sha256": "eeb96c8ad2bf08266f826014c5f096243ae5ac6ff0214e473a15308af9533c27"
+    },
+    "hip_strafe_left_r5__skin_2": {
+      "shape": [
+        25,
+        570,
+        3
+      ],
+      "byte_identical": true,
+      "max_absolute_difference": 0.0,
+      "max_position_error_m": 0.0,
+      "passed": true,
+      "baseline_sha256": "f8449c014c9ab6f2661868b55f3febc690ae765363110298196c2a9712a02bc7",
+      "candidate_sha256": "f8449c014c9ab6f2661868b55f3febc690ae765363110298196c2a9712a02bc7"
+    },
+    "hip_strafe_right_r5__bones": {
+      "shape": [
+        25,
+        72,
+        4,
+        4
+      ],
+      "byte_identical": true,
+      "max_absolute_difference": 0.0,
+      "max_position_error_m": 0.0,
+      "passed": true,
+      "baseline_sha256": "150d4ae4e4249bc703cbd7246269e6c431b6b030464977acca9d4cb0b79cffc4",
+      "candidate_sha256": "150d4ae4e4249bc703cbd7246269e6c431b6b030464977acca9d4cb0b79cffc4"
+    },
+    "hip_strafe_right_r5__actors": {
+      "shape": [
+        25,
+        2,
+        4,
+        4
+      ],
+      "byte_identical": true,
+      "max_absolute_difference": 0.0,
+      "max_position_error_m": 0.0,
+      "passed": true,
+      "baseline_sha256": "31a704dd48e0fc18293e4a15db5dee71220b42115288fd003fc7dea51b381c99",
+      "candidate_sha256": "31a704dd48e0fc18293e4a15db5dee71220b42115288fd003fc7dea51b381c99"
+    },
+    "hip_strafe_right_r5__skin_0": {
+      "shape": [
+        25,
+        5710,
+        3
+      ],
+      "byte_identical": true,
+      "max_absolute_difference": 0.0,
+      "max_position_error_m": 0.0,
+      "passed": true,
+      "baseline_sha256": "0847eaa457bd2bf3a31ca1375298246f4712664a3c3a2faa1c1a5f996b12d975",
+      "candidate_sha256": "0847eaa457bd2bf3a31ca1375298246f4712664a3c3a2faa1c1a5f996b12d975"
+    },
+    "hip_strafe_right_r5__skin_1": {
+      "shape": [
+        25,
+        3954,
+        3
+      ],
+      "byte_identical": true,
+      "max_absolute_difference": 0.0,
+      "max_position_error_m": 0.0,
+      "passed": true,
+      "baseline_sha256": "ea186ae039c3e3331522dd1be231356c0d200ed9836bfaf6fa537b3e90cd5440",
+      "candidate_sha256": "ea186ae039c3e3331522dd1be231356c0d200ed9836bfaf6fa537b3e90cd5440"
+    },
+    "hip_strafe_right_r5__skin_2": {
+      "shape": [
+        25,
+        570,
+        3
+      ],
+      "byte_identical": true,
+      "max_absolute_difference": 0.0,
+      "max_position_error_m": 0.0,
+      "passed": true,
+      "baseline_sha256": "8ca175ce74fe1fa9e13fb806a684841e0383fa41afd34bc607fb2ceec869461b",
+      "candidate_sha256": "8ca175ce74fe1fa9e13fb806a684841e0383fa41afd34bc607fb2ceec869461b"
+    },
+    "hk416_weapon__local_vertices": {
+      "shape": [
+        79342,
+        3
+      ],
+      "byte_identical": true,
+      "max_absolute_difference": 0.0,
+      "max_position_error_m": 0.0,
+      "passed": true,
+      "baseline_sha256": "a2ad37299e2fef813490ee9d8dc4b857444f9e1a73687bfd1966028ea3bca423",
+      "candidate_sha256": "a2ad37299e2fef813490ee9d8dc4b857444f9e1a73687bfd1966028ea3bca423"
+    },
+    "hk416_magazine__local_vertices": {
+      "shape": [
+        5584,
+        3
+      ],
+      "byte_identical": true,
+      "max_absolute_difference": 0.0,
+      "max_position_error_m": 0.0,
+      "passed": true,
+      "baseline_sha256": "b578805bce845cab104cdbc53bfeffcfdcd7007be74e0904244a414e3aa86b01",
+      "candidate_sha256": "b578805bce845cab104cdbc53bfeffcfdcd7007be74e0904244a414e3aa86b01"
+    }
+  },
+  "passed": true,
+  "scope": "Fresh Blender native evaluated old clips; sampled numerical preservation. Not full visual contact certification or runtime blend acceptance."
+}
