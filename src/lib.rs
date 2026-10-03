@@ -33,3 +33,5 @@ pub mod viewmodel_animation;
 pub mod authored_locomotion_path;
 
 pub mod authored_locomotion_adapter;
+
+pub mod muzzle_fx;

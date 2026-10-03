@@ -9,6 +9,7 @@ use vector_range::{
     control::{ButtonInput, ControlMode, ControlSample, ControlState, IntentLatch},
 };
 use vector_range::{
+    muzzle_fx::MuzzleFx,
     settings::Settings,
     sim::{Input, Shot, Simulation, FIXED_DT, SPRINT_DURATION},
 };
@@ -329,6 +330,8 @@ fn weapon(
     cfg: &Settings,
     framing: ViewmodelFraming,
     presentation_override: Option<f32>,
+    muzzle_fx: &mut MuzzleFx,
+    barrel_flash: bool,
 ) {
     set_camera(&Camera3D {
         position: Vec3::ZERO,
@@ -367,6 +370,7 @@ fn weapon(
         -0.32 + p.shot_kick * 0.045,
     );
     let mut muzzle_position = o + vec3(0., 0.01, -1.04);
+    let mut barrel = -Vec3::Z;
     if let Some(model) = model {
         use vector_range::weapon_animation::AnimationInput;
         let progress = (p.reload_left > 0. && p.reload_total > 0.)
@@ -419,6 +423,10 @@ fn weapon(
         );
         let transform = frame.matrix;
         muzzle_position = frame.point(model.muzzle);
+        let barrel_local = frame.matrix.transform_vector3(-Vec3::Z);
+        if barrel_local.length_squared() > 1e-8 {
+            barrel = barrel_local.normalize();
+        }
         let body_frame = Mat4::from_rotation_translation(
             framing.hip_rotation.slerp(framing.ads_rotation, visual_ads),
             base,
@@ -487,13 +495,8 @@ fn weapon(
             );
         }
     }
-    if p.shot_kick > 0.65 {
-        draw_sphere(
-            muzzle_position,
-            0.035 + p.shot_kick * 0.025,
-            None,
-            Color::new(1., 0.80, 0.32, 1.),
-        );
+    if barrel_flash {
+        muzzle_fx.draw_barrel(muzzle_position, barrel);
     }
     composite_viewmodel(rt);
 }
@@ -819,6 +822,13 @@ async fn main() {
     } else {
         "KESTREL-30 / AUTO"
     };
+    // Both shipped rifles are 5.56-class. --caliber-mm= retunes the procedural flash.
+    let caliber_mm = args
+        .iter()
+        .find_map(|s| s.strip_prefix("--caliber-mm="))
+        .and_then(|s| s.parse::<f32>().ok())
+        .filter(|mm| mm.is_finite())
+        .unwrap_or(5.56);
     let mut cfg = Settings::load_with_base(settings_path, base.clone());
     let mut audio = sound::SoundBank::new().await;
     let mut step_distance = 0.;
@@ -847,6 +857,8 @@ async fn main() {
     let mut last_frame = get_time();
     let mut traces: Vec<Trace> = Vec::new();
     let mut impacts: Vec<Impact> = Vec::new();
+    let mut muzzle_fx = MuzzleFx::default();
+    muzzle_fx.set_caliber_mm(caliber_mm);
     let mut hit_timer = 0.;
     let mut head = false;
     let mut notice = String::new();
@@ -1130,6 +1142,7 @@ async fn main() {
             just_resumed = true;
             traces.clear();
             impacts.clear();
+            muzzle_fx.clear();
             notice = "Range reset. Fresh magazine, clean telemetry.".into();
             notice_timer = 3.;
         }
@@ -1303,6 +1316,7 @@ async fn main() {
                     life: 5.,
                     target: shot.hit_target,
                 });
+                muzzle_fx.spawn_shot(&shot);
             }
             if impacts.len() > 96 {
                 impacts.drain(0..impacts.len() - 96);
@@ -1316,6 +1330,7 @@ async fn main() {
                 i.life -= dt;
             }
             impacts.retain(|i| i.life > 0.);
+            muzzle_fx.update(dt, &sim.blocks, &sim.ramps);
             record_clock += dt;
             if record_clock >= 0.1 {
                 record_clock = 0.;
@@ -1427,6 +1442,7 @@ async fn main() {
         for i in &impacts {
             draw_sphere(i.point, 0.022, None, if i.target { CYAN } else { INK });
         }
+        muzzle_fx.draw_world(eye, authored_path.is_some());
         if capture_fire {
             sim.player.shot_kick = 1.;
         }
@@ -1445,6 +1461,8 @@ async fn main() {
                 &cfg,
                 framing,
                 presentation_reload,
+                &mut muzzle_fx,
+                authored_path.is_none(),
             );
         }
         if let Some(error) = authored.as_ref().and_then(|viewmodel| viewmodel.error()) {

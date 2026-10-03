@@ -206,6 +206,12 @@ pub struct Shot {
     pub end: Vec3,
     pub hit_target: bool,
     pub headshot: bool,
+    /// Cosmetic barrel pose captured at the shot. Hit detection still uses `start`/`end`.
+    pub muzzle: Vec3,
+    pub barrel_forward: Vec3,
+    pub barrel_right: Vec3,
+    pub barrel_up: Vec3,
+    pub carrier_velocity: Vec3,
 }
 #[derive(Default)]
 pub struct Stats {
@@ -1267,6 +1273,11 @@ impl Simulation {
             end,
             hit_target: hit.is_some(),
             headshot,
+            muzzle,
+            barrel_forward: forward,
+            barrel_right: right,
+            barrel_up: up,
+            carrier_velocity: self.player.velocity,
         });
         let p = &mut self.player;
         p.ammo -= 1;
