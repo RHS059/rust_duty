@@ -1,11 +1,11 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T19:03:16Z",
+  "updatedAt": "2026-10-03T19:13:32Z",
   "latestComplete": {
     "sha": "e46f83d84ece0c28ffbd10cf4504ed4ea0f91878",
     "downloadUrl": "https://github.com/RHS059/rust_duty/actions/runs/37130396740/artifacts/11277161595",
     "runUrl": "https://github.com/RHS059/rust_duty/actions/runs/37130396740",
-    "verifiedAt": "2026-10-03T15:12:41.039Z",
+    "verifiedAt": "2026-10-03T19:12:08Z",
     "completedAt": "2026-10-03T15:01:33Z"
   },
   "changes": [
@@ -14,11 +14,12 @@
     "Complete 83-file Windows package includes existing walk, sprint and full WIP reload assets plus the new HIP and ADS companions",
     "All three workflows passed; native Linux layered-input diagnostics passed at 30 and 60 Hz",
     "Windows ZIP integrity, SHA-256, PE executable and complete-package verification passed",
-    "Forward v7 source and comparison are complete and frozen, pending publication and review. Lateral Trial2 two-phase footfall diagnostics are preparing a 198-frame Eevee viewport capture; Trial1 remains Fail32 left and Fail31 right."
+    "HIP r5 source 36d76491 passed Elara's motion review: forward 82, backward 83, left 82 and right 81. Exact source handoff for game integration is underway; these revisions are not yet in the downloadable build.",
+    "Forward ADS v7 is complete and frozen, awaiting publication and visual review. Lateral Trial2 left Eevee capture is ready and the right capture is nearing completion; review remains pending."
   ],
   "currentBuild": {
     "state": "idle",
-    "task": "Windows build e46f83d remains available. All three workflows succeeded; its artifact digest was rechecked. Forward v7 publication and review are pending; lateral Trial2 diagnostics are underway.",
+    "task": "Windows build e46f83d remains available. All three workflows succeeded and its artifact digest was rechecked. HIP r5 source handoff is underway; the accepted revisions are not yet in this downloadable build.",
     "url": "https://github.com/RHS059/rust_duty/actions/runs/37130396740"
   }
 }
