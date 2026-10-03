@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T18:35:25Z",
+  "updatedAt": "2026-10-03T18:43:06Z",
   "latestComplete": {
     "sha": "e46f83d84ece0c28ffbd10cf4504ed4ea0f91878",
     "downloadUrl": "https://github.com/RHS059/rust_duty/actions/runs/37130396740/artifacts/11277161595",
@@ -14,11 +14,11 @@
     "Complete 83-file Windows package includes existing walk, sprint and full WIP reload assets plus the new HIP and ADS companions",
     "All three workflows passed; native Linux layered-input diagnostics passed at 30 and 60 Hz",
     "Windows ZIP integrity, SHA-256, PE executable and complete-package verification passed",
-    "ADS motion revisions remain in progress. Forward v6 is Fail53; lateral Trial1 is Fail32 left and Fail31 right. Both lateral comparison videos are live. Forward arm motion and lateral shape, sight alignment and cadence are being revised. Visual approval remains open."
+    "ADS motion revisions remain in progress. Forward v6 is Fail53; the v7 comparison is ready for publication and unscored. Lateral Trial1 is Fail32 left and Fail31 right; footfall, sway and cadence are being revised. Visual approval remains open."
   ],
   "currentBuild": {
     "state": "idle",
-    "task": "The latest verified Windows game build remains e46f83d. All three workflows passed; the Windows artifact is still available with its verified digest. ADS review videos are published separately while motion revisions continue.",
+    "task": "The latest verified Windows game build remains e46f83d. All three workflows passed; the Windows artifact remains available with its verified digest. Revised ADS comparisons are being prepared for review.",
     "url": "https://github.com/RHS059/rust_duty/actions/runs/37130396740"
   }
 }
