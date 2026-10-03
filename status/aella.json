@@ -1,27 +1,27 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T20:34:01Z",
+  "updatedAt": "2026-10-03T20:43:47Z",
   "state": "active",
-  "task": "Refining forward and lateral ADS while verifying HIP r5 game builds.",
-  "lastCompleted": "All four HIP r5 asset checks passed; the forward ADS v8 comparison is complete.",
+  "task": "Publishing lateral ADS Trial3 and verifying the reviewed HIP r5 Windows package.",
+  "lastCompleted": "Forward ADS v8 is live; lateral Trial3 comparisons and visual QA are complete; the Windows build passed.",
   "agents": [
     {
       "slot": 1,
-      "state": "active",
-      "task": "Testing a forward ADS output-bake correction; v8 awaits publication and review.",
-      "lastCompleted": "Forward ADS v8 comparison capture is complete using reviewed HIP r5 walking."
+      "state": "idle",
+      "task": "Forward ADS v8 awaits fresh motion review.",
+      "lastCompleted": "Forward ADS v8 publication, live playback checks and review handoff are complete."
     },
     {
       "slot": 2,
-      "state": "active",
-      "task": "Capturing the 396-frame lateral ADS Trial3 comparison in Eevee.",
-      "lastCompleted": "Left candidate and matching control captures are complete; 1,588 saved-scene transform checks passed. Visual review is pending."
+      "state": "idle",
+      "task": "Lateral ADS Trial3 awaits publication and independent shape review.",
+      "lastCompleted": "All 396 Eevee frames, both comparison videos, same-r5 controls and the source checkpoint are saved; visual QA passed."
     },
     {
       "slot": 3,
       "state": "active",
-      "task": "Checking exact HIP r5 build assets while Windows and Linux builds run.",
-      "lastCompleted": "All four asset checks, runtime contracts and updater checks passed for c60c53fe. The latest verified complete build remains e46f83d."
+      "task": "Verifying the c60c53fe Windows ZIP while Linux packaging and native checks continue.",
+      "lastCompleted": "All four asset jobs and Windows tests, build and packaging passed; Linux Python and Rust tests passed. Latest Complete remains e46f83d pending ZIP verification."
     }
   ]
 }
