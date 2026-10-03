@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T16:33:53Z",
+  "updatedAt": "2026-10-03T16:42:22Z",
   "latestComplete": {
     "sha": "e46f83d84ece0c28ffbd10cf4504ed4ea0f91878",
     "downloadUrl": "https://github.com/RHS059/rust_duty/actions/runs/37130396740/artifacts/11277161595",
@@ -14,11 +14,11 @@
     "Complete 83-file Windows package includes existing walk, sprint and full WIP reload assets plus the new HIP and ADS companions",
     "All three workflows passed; native Linux layered-input diagnostics passed at 30 and 60 Hz",
     "Windows ZIP integrity, SHA-256, PE executable and complete-package verification passed",
-    "Elara ADS baseline scores: forward 35, backward 32, left 34; review failed. ADS v5 Trial 1 is being checked. Reference fidelity, contact and artistic approval remain open; Windows gameplay unverified"
+    "Elara ADS v4 baseline scores: forward 35, backward 32, left 34, right 33; all four failed review. ADS v5 Trial 1 is authored and its forward Eevee comparison is rendering, not yet reviewed. Reference fidelity, contact and artistic approval remain open; Windows gameplay unverified"
   ],
   "currentBuild": {
     "state": "idle",
-    "task": "PR #17 stays at e46f83d; all 3 workflows passed. ADS v5 Trial 1 is awaiting forward Eevee review, not a new game build. Gallery v53 has 4 ADS/4 HIP baselines. Hal owns HIP r2 transfer; motion approval open.",
+    "task": "PR #17 remains at e46f83d with all 3 workflows passed. ADS v5 Trial 1 forward Eevee comparison is rendering and has not been reviewed; no new game build. Gallery v53 retains 4 ADS v4 and 4 HIP r1 baselines. Hal owns pending HIP r2 transfer.",
     "url": "https://github.com/RHS059/rust_duty/actions/runs/37130396740"
   }
 }
