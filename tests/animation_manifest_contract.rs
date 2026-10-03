@@ -74,3 +74,27 @@ fn ads_slots_are_revision_independent_and_unavailability_is_explicit() {
     )
     .is_err());
 }
+
+#[test]
+fn shared_layer_anchor_survives_an_unavailable_walk_slot() {
+    let text = MANIFEST
+        .lines()
+        .filter(|line| !line.starts_with("regular_walk."))
+        .collect::<Vec<_>>()
+        .join("\n")
+        + "\nregular_walk=unavailable\n";
+    let manifest = AnimationManifest::parse(&text, Path::new("assets")).unwrap();
+    assert!(manifest.regular_walk.is_none());
+    assert_eq!(manifest.layer_anchor_actor, "hk416_weapon");
+    let old = MANIFEST
+        .lines()
+        .filter(|line| !line.starts_with("layers.anchor_actor"))
+        .collect::<Vec<_>>()
+        .join("\n");
+    assert_eq!(
+        AnimationManifest::parse(&old, Path::new("assets"))
+            .unwrap()
+            .layer_anchor_actor,
+        "hk416_weapon"
+    );
+}

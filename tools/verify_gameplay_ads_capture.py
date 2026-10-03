@@ -7,6 +7,22 @@ import json
 from pathlib import Path
 
 
+def verify_layer_overlap(rows):
+    """Require rendered concurrent weights, not just sequential route names."""
+    if any('run_weight' not in row or not 0 <= row['run_weight'] <= 1 for row in rows):
+        raise ValueError('missing or invalid run-layer telemetry')
+    simultaneous = [row for row in rows if row['sprinting'] and row['route'] == 'ads.exit'
+                    and row['walk_weight'] > 0 and 0 < row['run_weight'] < 1]
+    if len(simultaneous) < 3:
+        raise ValueError('run entry did not overlap outgoing ADS and walk layers')
+    returning = [row for row in rows if row['segment'] == 'sprint_to_ads'
+                 and row['route'] == 'ads.entry' and row['run_weight'] > 0]
+    if not returning:
+        raise ValueError('ADS entry waited for run fade-out to finish')
+    return {'simultaneous_run_ads_walk_frames': len(simultaneous),
+            'ads_entry_during_run_return_frames': len(returning)}
+
+
 def verify(folder: Path):
     paths = sorted(folder.glob('*.gameplay.json'))
     if len(paths) < 530:
@@ -55,6 +71,7 @@ def verify(folder: Path):
         raise ValueError('ADS did not reacquire after authored reload')
     if rows[-1]['ammo'] != 30 or rows[-1]['ammo'] + rows[-1]['reserve'] + rows[-1]['shots'] != rows[0]['ammo'] + rows[0]['reserve']:
         raise ValueError('ADS replay broke reload ammunition conservation')
+    layer_overlap = verify_layer_overlap(rows)
     hashes = {route: set() for route in ['ads.entry', 'ads.hold', 'ads.exit']}
     for path, row in zip(paths, rows):
         image = Path(str(path).removesuffix('.gameplay.json')).read_bytes()
@@ -67,7 +84,7 @@ def verify(folder: Path):
     report = {'schema': 'rust-duty-native-ads-capture/v1', 'passed': True, 'frames': len(rows),
         'routes': dict(routes), 'reversal_frames': reversals,
         'distinct_ads_images': {key: len(values) for key, values in hashes.items()},
-        'aimed_walking_frames': len(aimed_walk),
+        'aimed_walking_frames': len(aimed_walk), **layer_overlap,
         'shots': rows[-1]['shots'], 'final_ammo': rows[-1]['ammo'], 'final_reserve': rows[-1]['reserve'],
         'returned_to_ready': True, 'reacquired_after_reload': True,
         'scope': 'Committed simulation input and native Linux rendered frames. Reload cuts remain documented WIP seams; Windows gameplay and aesthetic approval are separate.'}

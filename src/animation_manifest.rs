@@ -24,6 +24,7 @@ pub struct AnimationManifest {
     pub tactical: ClipReference,
     pub regular_walk: Option<ClipReference>,
     pub walk_anchor_actor: Option<String>,
+    pub layer_anchor_actor: String,
     pub empty: Option<ClipReference>,
     pub ads: Option<AdsReference>,
 }
@@ -142,6 +143,10 @@ impl AnimationManifest {
         } else {
             None
         };
+        let layer_anchor_actor = values
+            .remove("layers.anchor_actor")
+            .or_else(|| walk_anchor_actor.clone())
+            .ok_or("missing required animation slot: layers.anchor_actor")?;
         let tactical = reference(&mut values, "reload.tactical", directory)?;
         let empty = if values.contains_key("reload.empty") {
             policy(&mut values, "reload.empty", "unavailable")?;
@@ -158,6 +163,7 @@ impl AnimationManifest {
             tactical,
             regular_walk,
             walk_anchor_actor,
+            layer_anchor_actor,
             empty,
             ads,
         })
