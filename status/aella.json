@@ -1,21 +1,21 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T21:05:26Z",
+  "updatedAt": "2026-10-03T21:12:43Z",
   "state": "active",
-  "task": "Refining forward and lateral ADS motion; fixing in-game updates and preparing version 0.1.5 with release and asset-safety checks.",
-  "lastCompleted": "HIP r5 is in the complete c60c53fe Windows package; all three workflows passed. Lateral ADS Trial3 is live and awaiting review.",
+  "task": "Refining forward and lateral ADS timing; preparing the 0.1.5 updater fix for draft publication and full CI.",
+  "lastCompleted": "HIP r5 is in the verified c60c53fe complete build. Updater regression review passed; lateral ADS Trial3 scored Fail35 left and Fail36 right.",
   "agents": [
     {
       "slot": 1,
       "state": "active",
-      "task": "Measuring forearm and glove travel and testing stronger articulation after v8 received Fail54.",
-      "lastCompleted": "Forward ADS v8 is live; publication and playback checks passed, and the motion review returned Fail54."
+      "task": "Testing the next forward ADS pulse-timing trial while preserving native timing, horizontal motion and sight lock.",
+      "lastCompleted": "Forward ADS v8 is live at Fail54; the larger-articulation probe reduced forearm travel."
     },
     {
       "slot": 2,
       "state": "active",
-      "task": "Analyzing lateral ADS motion for the next revision; Trial3 remains unscored.",
-      "lastCompleted": "Both Trial3 comparisons and same-r5 controls are live and hash/playback verified; Trial3 is unscored."
+      "task": "Testing lateral timing and inherited arm articulation against measured forearm motion.",
+      "lastCompleted": "Trial3 is live and playback verified; independent review returned Fail35 left and Fail36 right."
     },
     {
       "slot": 3,
