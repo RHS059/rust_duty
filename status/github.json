@@ -1,24 +1,24 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T15:02:49.743Z",
+  "updatedAt": "2026-10-03T15:12:41.039Z",
   "latestComplete": {
-    "sha": "0423f0fd8c62ec451237bab256866b50cbf6cb78",
-    "downloadUrl": "https://github.com/RHS059/rust_duty/actions/runs/37124656435/artifacts/11274850983",
-    "runUrl": "https://github.com/RHS059/rust_duty/actions/runs/37124656435",
-    "verifiedAt": "2026-10-03T13:15:02.054Z",
-    "completedAt": "2026-10-03T13:09:57Z"
+    "sha": "e46f83d84ece0c28ffbd10cf4504ed4ea0f91878",
+    "downloadUrl": "https://github.com/RHS059/rust_duty/actions/runs/37130396740/artifacts/11277161595",
+    "runUrl": "https://github.com/RHS059/rust_duty/actions/runs/37130396740",
+    "verifiedAt": "2026-10-03T15:12:41.039Z",
+    "completedAt": "2026-10-03T15:01:33Z"
   },
   "changes": [
-    "ADS and walking fade out together as running begins; aiming and walking can return before the run blend finishes",
-    "Rapid interruptions preserve animation timing and current blend weights",
-    "Complete 70-file Windows package preserves existing walk, sprint, ADS and full WIP reload assets",
-    "No new reference-authored directional or ADS clips are included in this runtime checkpoint",
+    "Four source-authored WIP HIP directions and ADS v4 entry, hold and exit are active in this runtime checkpoint",
+    "Walking, ADS and running can overlap during transitions; rapid interruptions preserve animation timing and current blend weights",
+    "Complete 83-file Windows package includes existing walk, sprint and full WIP reload assets plus the new HIP and ADS companions",
     "All three workflows passed; native Linux layered-input diagnostics passed at 30 and 60 Hz",
-    "Windows ZIP integrity, executable and companion checks passed; Windows gameplay and artistic approval remain unverified"
+    "Windows ZIP integrity, SHA-256, PE executable and complete-package verification passed",
+    "Reference fidelity, contact quality and artistic approval remain WIP; Windows gameplay has not been verified"
   ],
   "currentBuild": {
-    "state": "waiting",
-    "task": "e46f83d passed all three workflows; Windows ZIP uploaded at 15:01:33 UTC. ZIP verification is pending. The previous verified download is retained. Animation development is stopped.",
+    "state": "idle",
+    "task": "e46f83d is the latest verified complete Windows download. All three workflows passed; animation development remains stopped. Gallery publication and Elara review are separate.",
     "url": "https://github.com/RHS059/rust_duty/actions/runs/37130396740"
   }
 }
