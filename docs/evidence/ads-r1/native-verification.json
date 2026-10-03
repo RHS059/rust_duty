@@ -1,0 +1,29 @@
+{
+  "schema": "rust-duty-native-ads-capture/v1",
+  "passed": true,
+  "frames": 553,
+  "routes": {
+    "ready": 67,
+    "ads.entry": 75,
+    "ads.hold": 117,
+    "ads.exit": 68,
+    "regular_walk": 10,
+    "locomotion": 60,
+    "reload.tactical": 156
+  },
+  "reversal_frames": {
+    "entry": 2,
+    "exit": 5
+  },
+  "distinct_ads_images": {
+    "ads.entry": 25,
+    "ads.hold": 5,
+    "ads.exit": 29
+  },
+  "shots": 3,
+  "final_ammo": 30,
+  "final_reserve": 69,
+  "returned_to_ready": true,
+  "reacquired_after_reload": true,
+  "scope": "Committed simulation input and native Linux rendered frames. Cross-owner walking/reload cuts remain documented WIP seams; Windows gameplay and aesthetic approval are separate."
+}

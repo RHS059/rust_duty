@@ -1,0 +1,165 @@
+{
+  "schema": "rust-duty-authored-ads-distribution/v1",
+  "clip_count": 47,
+  "clip_names": [
+    "normal_ready",
+    "normal_entry",
+    "normal_loop",
+    "normal_exit",
+    "normal_entry_connected",
+    "normal_loop_to_exit",
+    "normal_exit_connected",
+    "normal_exit_bridge_000",
+    "normal_exit_bridge_001",
+    "normal_exit_bridge_002",
+    "normal_exit_bridge_003",
+    "normal_exit_bridge_004",
+    "normal_exit_bridge_005",
+    "normal_exit_bridge_006",
+    "normal_exit_bridge_007",
+    "normal_exit_bridge_008",
+    "normal_exit_bridge_009",
+    "normal_exit_bridge_010",
+    "normal_exit_bridge_011",
+    "normal_exit_bridge_012",
+    "normal_exit_bridge_013",
+    "normal_exit_bridge_014",
+    "normal_exit_bridge_015",
+    "normal_exit_bridge_016",
+    "normal_exit_bridge_017",
+    "normal_exit_bridge_018",
+    "normal_exit_bridge_019",
+    "normal_exit_bridge_020",
+    "normal_exit_bridge_021",
+    "normal_exit_bridge_022",
+    "normal_exit_bridge_023",
+    "normal_exit_bridge_024",
+    "normal_exit_bridge_025",
+    "normal_exit_bridge_026",
+    "normal_exit_bridge_027",
+    "normal_exit_bridge_028",
+    "normal_exit_bridge_029",
+    "normal_exit_bridge_030",
+    "normal_exit_bridge_031",
+    "normal_exit_bridge_032",
+    "normal_exit_bridge_033",
+    "normal_exit_bridge_034",
+    "normal_settle",
+    "normal_walk_r1",
+    "ads_entry_r1",
+    "ads_hold_r1",
+    "ads_exit_r1"
+  ],
+  "ads_clips": [
+    {
+      "name": "ads_entry_r1",
+      "loop": false,
+      "duration": 0.25,
+      "action": "ads_entry_r1",
+      "frame_start": 1,
+      "frame_end": 16
+    },
+    {
+      "name": "ads_hold_r1",
+      "loop": true,
+      "duration": 1.0,
+      "action": "ads_hold_r1",
+      "frame_start": 1,
+      "frame_end": 61
+    },
+    {
+      "name": "ads_exit_r1",
+      "loop": false,
+      "duration": 0.25,
+      "action": "ads_exit_r1",
+      "frame_start": 1,
+      "frame_end": 16
+    }
+  ],
+  "source": {
+    "file": "assets/authoring/ads/ads.blend",
+    "bytes": 9446001,
+    "sha256": "3acdf3e2d04757d719ba59ede08decdf8bad48e2e87d9448046fe8edcbba4f58",
+    "fps": 60,
+    "bake_hz": 480,
+    "fbx": {
+      "bytes": 11725996,
+      "sha256": "4d01e1574f130123576c4fcbbe4776908d352c27481e583454815068eaff4057"
+    }
+  },
+  "files": {
+    "asset.vra": {
+      "bytes": 13928291,
+      "sha256": "a5c0df74499358a04122fd1eee284a7d15dcb3434576f17c59369b933daa50a0"
+    },
+    "asset.vrs": {
+      "bytes": 16663274,
+      "sha256": "b38b7f823ddf7bd6f032ed98d33f055cd444caf51558146911b7a678c6e3ce92"
+    },
+    "asset.vrm": {
+      "bytes": 10641724,
+      "sha256": "d11736162b2cda993db3cdd5d4015aff2b151ea6377b8b954370b54006e02d67"
+    }
+  },
+  "preservation": {
+    "original_walk_vra_sha256": "184b4c173efc8cca187c7f19a3572fbaa27d094b4cf79328fef0de69ffac789a",
+    "clip_payloads_byte_identical": 44,
+    "canonical_skin_byte_identical": true,
+    "canonical_rigid_byte_identical": true
+  },
+  "validation": {
+    "backend": "Rust CPU sampler",
+    "passed": true,
+    "clips": {
+      "ads_entry_r1": {
+        "samples": 25,
+        "maxima": {
+          "skin_error_m": 5.198328262675017e-06,
+          "visible_prop_origin_error_m": 4.26968268444687e-06,
+          "visible_rigid_vertex_error_m": 4.479599408022692e-06,
+          "visible_prop_matrix_error": 4.060301914216025e-06
+        },
+        "visibility_failures": 0
+      },
+      "ads_hold_r1": {
+        "samples": 25,
+        "maxima": {
+          "skin_error_m": 1.2330002246305617e-06,
+          "visible_prop_origin_error_m": 4.053260012283658e-09,
+          "visible_rigid_vertex_error_m": 1.7959387955864358e-07,
+          "visible_prop_matrix_error": 3.0187001798614503e-07
+        },
+        "visibility_failures": 0
+      },
+      "ads_exit_r1": {
+        "samples": 25,
+        "maxima": {
+          "skin_error_m": 5.249080902346825e-06,
+          "visible_prop_origin_error_m": 4.255285002285793e-06,
+          "visible_rigid_vertex_error_m": 4.472621541654372e-06,
+          "visible_prop_matrix_error": 4.03565940856887e-06
+        },
+        "visibility_failures": 0
+      }
+    }
+  },
+  "repository_transport": {
+    "asset.vrs": {
+      "file": "asset.vrs.gz",
+      "encoding": "gzip",
+      "bytes": 4088316,
+      "sha256": "93a536de71b537b3f319bf97fe9c77235af10884f949c328858ec6cdf61956d1",
+      "decoded_bytes": 16663274,
+      "decoded_sha256": "b38b7f823ddf7bd6f032ed98d33f055cd444caf51558146911b7a678c6e3ce92"
+    },
+    "asset.vra": {
+      "file": "asset.vra.gz",
+      "encoding": "gzip",
+      "bytes": 3874853,
+      "sha256": "dae0aa402e913585ab810c6922bcccda827f8dbccf38d327beed44ba992e234b",
+      "decoded_bytes": 13928291,
+      "decoded_sha256": "a5c0df74499358a04122fd1eee284a7d15dcb3434576f17c59369b933daa50a0"
+    }
+  },
+  "scope": "New source-authored ADS entry/hold/exit; source Actions and canonical walk44 retained. Numerical parity is not artistic approval."
+}

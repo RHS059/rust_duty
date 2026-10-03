@@ -29,14 +29,14 @@ def clip_offset(data):
     return p
 
 
-def merge(base, incoming, vrs, vrm, name='normal_walk_r1'):
+def merge(base, incoming, vrs, vrm, name='normal_walk_r1', expected_loop=True):
     original=vrview.decode_vra(base,vrs=vrs,vrm=vrm)
     new=vrview.decode_vra(incoming)
     require=vrpack.require
     require(name not in [c['name'] for c in original['clips']], 'walk already exists')
     matches=[c for c in new['clips'] if c['name']==name]
     require(len(matches)==1,'missing or ambiguous walk clip')
-    clip=copy.deepcopy(matches[0]);require(clip['loop'],'walk must loop')
+    clip=copy.deepcopy(matches[0]);require(clip['loop'] is expected_loop,'clip must loop' if expected_loop else 'clip must not loop')
     names=[n for n,_ in new['bones']]
     require(set(names)=={n for n,_ in original['bones']},'canonical bone names differ')
     for n,p in original['bones']:

@@ -70,7 +70,7 @@ def companion_bytes(root: Path, name: str, manifest: dict, asset_dir: Path = ASS
         if path.stat().st_size != record["bytes"]:
             raise ValueError(f"locomotion size mismatch: {name}")
         blob = path.read_bytes()
-    elif name == "asset.vrs":
+    elif name in manifest.get("repository_transport", {}):
         transport = manifest["repository_transport"][name]
         path = regular_file(root, asset_dir / transport["file"])
         if path.stat().st_size != transport["bytes"]:
@@ -235,7 +235,88 @@ def verify_walk(root: Path, folder: Path = WALK_DIR) -> dict:
             "source_sha256": source["sha256"], "parity_samples": parity["samples"]}
 
 
-def materialize(root: Path, include_walk: bool = False) -> dict:
+ADS_DIR = Path('assets/ads')
+ADS_CLIPS = ('ads_entry_r1', 'ads_hold_r1', 'ads_exit_r1')
+ADS_META = ('manifest.json', *(f'{kind}-{clip}.json' for clip in ADS_CLIPS for kind in ('parity', 'conversion')))
+
+
+def ads_bound(root: Path) -> bool:
+    path = root / 'assets/animations.cfg'
+    if not path.exists():
+        return False
+    lines = [line.strip() for line in path.read_text().splitlines()]
+    bindings = [line.split('=', 1)[1].strip() for line in lines if line.startswith('ads.asset=')]
+    if bindings and bindings != ['ads/asset.vra']:
+        raise ValueError('unsupported packaged ADS asset binding')
+    return bool(bindings)
+
+
+def verify_ads(root: Path, folder: Path = ADS_DIR) -> dict:
+    root = Path(root)
+    manifest = json.loads(regular_file(root, folder / 'manifest.json').read_text())
+    source = manifest.get('source', {})
+    names = [*CLIPS, 'normal_walk_r1', *ADS_CLIPS]
+    ads = manifest.get('ads_clips', [])
+    if (manifest.get('schema') != 'rust-duty-authored-ads-distribution/v1'
+            or manifest.get('clip_count') != 47 or manifest.get('clip_names') != names
+            or set(manifest.get('files', {})) != set(COMPANIONS)
+            or source.get('file') != 'assets/authoring/ads/ads.blend'
+            or source.get('fps') != 60 or source.get('bake_hz') != 480
+            or [c.get('name') for c in ads] != list(ADS_CLIPS)
+            or [c.get('loop') for c in ads] != [False, True, False]
+            or [c.get('duration') for c in ads] != [.25, 1., .25]
+            or any(c.get('frame_start') != 1 for c in ads)
+            or [c.get('frame_end') for c in ads] != [16, 61, 16]):
+        raise ValueError('invalid authored ADS manifest')
+    transports = manifest.get('repository_transport', {})
+    if set(transports) != {'asset.vra', 'asset.vrs'}:
+        raise ValueError('invalid ADS transport manifest')
+    for name, transport in transports.items():
+        if (transport.get('file') != name + '.gz' or transport.get('encoding') != 'gzip'
+                or type(transport.get('bytes')) is not int or not 0 < transport['bytes'] <= 128 * 1024**2
+                or transport.get('decoded_bytes') != manifest['files'][name]['bytes']
+                or transport.get('decoded_sha256') != manifest['files'][name]['sha256']):
+            raise ValueError('invalid ADS transport manifest')
+    blobs = {name: companion_bytes(root, name, manifest, folder) for name in COMPANIONS}
+    walk = json.loads(regular_file(root, WALK_DIR / 'manifest.json').read_text())
+    old = companion_bytes(root, 'asset.vra', walk, WALK_DIR); new = blobs['asset.vra']
+    old_offset, new_offset = clip_offset(old), clip_offset(new)
+    if (new[24:new_offset] != old[24:old_offset]
+            or new[new_offset + 4:new_offset + len(old) - old_offset] != old[old_offset + 4:]):
+        raise ValueError('ADS changed original walk44 clip bytes or bindings')
+    for name in ('asset.vrs', 'asset.vrm'):
+        if manifest['files'][name] != walk['files'][name]:
+            raise ValueError('ADS changed canonical companions')
+    pack = vrview.decode_vra(new, vrs=blobs['asset.vrs'], vrm=blobs['asset.vrm'])
+    if ([c['name'] for c in pack['clips']] != names
+            or [c['loop'] for c in pack['clips'][-3:]] != [False, True, False]
+            or [c['frames'][-1]['time'] for c in pack['clips'][-3:]] != [.25, 1., .25]):
+        raise ValueError('ADS clip contract mismatch')
+    samples = 0
+    for clip in ADS_CLIPS:
+        parity = json.loads(regular_file(root, folder / f'parity-{clip}.json').read_text())
+        conversion = json.loads(regular_file(root, folder / f'conversion-{clip}.json').read_text())
+        if (parity.get('backend') != 'Rust CPU sampler' or parity.get('passed') is not True
+                or parity.get('asset_sha256') != manifest['files']['asset.vra']['sha256']
+                or parity.get('source_sha256', {}).get('ads.blend') != source.get('sha256')
+                or parity.get('source_fbx_sha256') != source.get('fbx', {}).get('sha256')
+                or parity.get('clip') != clip or parity.get('samples', 0) < 25
+                or parity.get('visibility_failures') != 0
+                or conversion.get('authoring_master_sha256') != source.get('sha256')
+                or conversion.get('source_fbx_sha256') != source.get('fbx', {}).get('sha256')
+                or conversion.get('native_fps') != [60, 1] or conversion.get('source_take') != clip):
+            raise ValueError('ADS lacks matching successful source/Rust parity')
+        samples += parity['samples']
+    current_source = root / source['file']
+    if current_source.exists():
+        data = regular_file(root, source['file']).read_bytes()
+        if len(data) != source['bytes'] or hashlib.sha256(data).hexdigest() != source['sha256']:
+            raise ValueError('ADS differs from committed Blender source')
+    return {'clips': list(ADS_CLIPS), 'clip_count': 47, 'original_clips_preserved': 44,
+            'source_sha256': source['sha256'], 'parity_samples': samples}
+
+
+def materialize(root: Path, include_walk: bool = False, include_ads: bool = False) -> dict:
     """Decode verified repository transport for native tests/tools in this checkout."""
     root = Path(root)
     report = verify(root)
@@ -260,6 +341,14 @@ def materialize(root: Path, include_walk: bool = False) -> dict:
             if not target.exists():
                 target.write_bytes(companion_bytes(root, name, walk_manifest, WALK_DIR))
         verify_walk(root)
+    if include_ads and ads_bound(root):
+        report['ads'] = verify_ads(root)
+        ads_manifest = json.loads(regular_file(root, ADS_DIR / 'manifest.json').read_text())
+        for name in COMPANIONS:
+            target = root / ADS_DIR / name
+            if not target.exists():
+                target.write_bytes(companion_bytes(root, name, ads_manifest, ADS_DIR))
+        verify_ads(root)
     return report
 
 
@@ -318,6 +407,8 @@ def verify_generated(root: Path) -> dict:
     primary["selected_packs"] = len(reports)
     if walk_bound(root):
         primary["walk"] = verify_walk(root)
+    if ads_bound(root):
+        primary["ads"] = verify_ads(root)
     return primary
 
 
@@ -336,7 +427,13 @@ def stage(root: Path, binary: str, output: Path, update: bool = False, require_g
     walking = walk_bound(root)
     if walking:
         report["walk"] = verify_walk(root)
+    aiming = ads_bound(root)
+    if aiming:
+        report['ads'] = verify_ads(root)
     copies = [(regular_file(root, binary), Path(binary).name)]
+    if aiming:
+        for name in (*ADS_META, 'README.md'):
+            copies.append((regular_file(root, ADS_DIR / name), ADS_DIR / name))
     if walking:
         for name in WALK_META:
             copies.append((regular_file(root, WALK_DIR / name), WALK_DIR / name))
@@ -374,11 +471,17 @@ def stage(root: Path, binary: str, output: Path, update: bool = False, require_g
             for name in COMPANIONS:
                 (destination / WALK_DIR / name).write_bytes(companion_bytes(root, name, walk_manifest, WALK_DIR))
             verify_walk(destination)
+        if aiming:
+            ads_manifest = json.loads(regular_file(root, ADS_DIR / 'manifest.json').read_text())
+            for name in COMPANIONS:
+                target = destination / ADS_DIR / name
+                target.write_bytes(companion_bytes(root, name, ads_manifest, ADS_DIR))
+            verify_ads(destination)
         verify(destination)
         if generated:
             verify_generated(destination)
         destination.rename(output)
-    return {"output": str(output), "files_staged": len(copies) + len(COMPANIONS) + (len(COMPANIONS) if walking else 0), **report}
+    return {"output": str(output), "files_staged": len(copies) + len(COMPANIONS) + (len(COMPANIONS) if walking else 0) + (len(COMPANIONS) if aiming else 0), **report}
 
 
 def main():
@@ -390,6 +493,7 @@ def main():
     unpack = commands.add_parser("materialize")
     unpack.add_argument("--root", type=Path, default=Path("."))
     unpack.add_argument("--include-walk", action="store_true")
+    unpack.add_argument("--include-ads", action="store_true")
     walk = commands.add_parser("verify-walk")
     walk.add_argument("--root", type=Path, default=Path("."))
     walk.add_argument("--folder", type=Path, default=WALK_DIR)
@@ -403,7 +507,7 @@ def main():
     if args.command == "verify":
         report = verify(args.root)
     elif args.command == "materialize":
-        report = materialize(args.root, args.include_walk)
+        report = materialize(args.root, args.include_walk, args.include_ads)
     elif args.command == "verify-walk":
         report = verify_walk(args.root, args.folder)
     else:

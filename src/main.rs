@@ -1028,14 +1028,24 @@ async fn main() {
         .filter(|s| {
             matches!(
                 *s,
-                "tactical" | "empty" | "ads" | "locomotion" | "gameplay-reload" | "gameplay-walk"
+                "tactical"
+                    | "empty"
+                    | "ads"
+                    | "locomotion"
+                    | "gameplay-reload"
+                    | "gameplay-walk"
+                    | "gameplay-ads"
             )
         });
-    let gameplay_capture = matches!(capture_sequence, Some("gameplay-reload" | "gameplay-walk"));
+    let gameplay_capture = matches!(
+        capture_sequence,
+        Some("gameplay-reload" | "gameplay-walk" | "gameplay-ads")
+    );
     let mut gameplay_reload_issued = false;
     let capture_empty =
         args.iter().any(|s| s == "--capture-empty") || capture_sequence == Some("empty");
     let sequence_duration = match capture_sequence {
+        Some("gameplay-ads") => 9.0,
         Some("empty") => vector_range::reference_motion::visual_duration(true),
         Some("tactical") => vector_range::reference_motion::visual_duration(false),
         Some("locomotion" | "gameplay-walk") => 3.5,
@@ -1072,7 +1082,7 @@ async fn main() {
         .iter()
         .find_map(|s| s.strip_prefix("--output="))
         .unwrap_or("capture.png");
-    if capture_sequence == Some("gameplay-reload") {
+    if matches!(capture_sequence, Some("gameplay-reload" | "gameplay-ads")) {
         sim.player.ammo = 12;
     }
     if capture_fixtures {
@@ -1439,15 +1449,16 @@ async fn main() {
                         Vec2::ZERO
                     };
                 gameplay_reload_issued |= reload;
-                sim.update(
+                let input = if capture_sequence == Some("gameplay-ads") {
+                    vector_range::authored_ads::gameplay_ads_replay_input(start)
+                } else {
                     Input {
                         reload,
                         movement,
                         ..Input::default()
-                    },
-                    &cfg,
-                    FIXED_DT,
-                );
+                    }
+                };
+                sim.update(input, &cfg, FIXED_DT);
                 if let Some(model) = &mut authored {
                     model.committed_step(start, &sim);
                 }
@@ -1657,7 +1668,7 @@ async fn main() {
                 get_screen_data().export_png(output);
             }
             if capture_sequence.is_some() {
-                let _ = std::fs::write(format!("{output}.time.json"), format!("{{\"elapsed_seconds\":{},\"normalized_phase\":{},\"visual_duration_seconds\":{},\"simulation_ready_seconds\":{},\"sampling_hz\":59.94005994}}", sequence_elapsed, sequence_phase, sequence_duration, if capture_empty { cfg.empty_reload_time } else if capture_sequence == Some("ads") { cfg.ads_time } else { cfg.reload_time }));
+                let _ = std::fs::write(format!("{output}.time.json"), format!("{{\"elapsed_seconds\":{},\"normalized_phase\":{},\"visual_duration_seconds\":{},\"simulation_ready_seconds\":{},\"sampling_hz\":59.94005994}}", sequence_elapsed, sequence_phase, sequence_duration, if capture_empty { cfg.empty_reload_time } else if matches!(capture_sequence, Some("ads" | "gameplay-ads")) { cfg.ads_time } else { cfg.reload_time }));
             }
             if capture_sequence == Some("gameplay-reload") {
                 let sample = authored.as_ref().and_then(|model| model.reload_sample());
@@ -1672,6 +1683,28 @@ async fn main() {
                 let _ = std::fs::write(format!("{output}.gameplay.json"), format!(
                     "{{\"simulation_time\":{},\"accepted_r_issued\":{},\"route\":\"{}\",\"native_clip_seconds\":{},\"ammo\":{},\"reserve\":{},\"reload_left\":{},\"reload_credit_at\":{},\"reload_ready_at\":{}}}",
                     sim.time, gameplay_reload_issued, route, native, sim.player.ammo, sim.player.reserve, sim.player.reload_left, sim.player.reload_credit_at, sim.player.reload_ready_at));
+            }
+            if capture_sequence == Some("gameplay-ads") {
+                let model = authored.as_ref();
+                let sample = model.and_then(|model| model.ads_sample());
+                let native = sample
+                    .map(|sample| sample.seconds.to_string())
+                    .unwrap_or_else(|| "null".into());
+                let direction = sample.map_or(0, |sample| sample.direction);
+                let clip = model.and_then(|model| model.ads_clip()).unwrap_or("");
+                let duration = model
+                    .and_then(|model| model.ads_duration())
+                    .map(|value| value.to_string())
+                    .unwrap_or_else(|| "null".into());
+                let route = model.map_or("unavailable", |model| model.presentation_route());
+                let failed = model.is_none_or(|model| model.error().is_some());
+                let segment = vector_range::authored_ads::gameplay_ads_replay_segment(sim.time);
+                let _ = std::fs::write(format!("{output}.gameplay.json"), format!(
+                    "{{\"simulation_time\":{},\"segment\":\"{}\",\"route\":\"{}\",\"clip\":\"{}\",\"native_clip_seconds\":{},\"clip_duration\":{},\"direction\":{},\"ads_requested\":{},\"simulation_ads\":{},\"speed\":{},\"grounded\":{},\"sprinting\":{},\"mantling\":{},\"ammo\":{},\"reserve\":{},\"shots\":{},\"reload_left\":{},\"reload_credit_at\":{},\"reload_ready_at\":{},\"renderer_failed\":{}}}",
+                    sim.time, segment, route, clip, native, duration, direction, sim.player.ads_requested,
+                    sim.player.ads, sim.player.speed(), sim.player.grounded, sim.player.sprinting,
+                    sim.player.mantle.is_some(), sim.player.ammo, sim.player.reserve, sim.stats.shots,
+                    sim.player.reload_left, sim.player.reload_credit_at, sim.player.reload_ready_at, failed));
             }
             if capture_sequence == Some("gameplay-walk") {
                 let native = authored.as_ref().and_then(|model| model.walk_sample());

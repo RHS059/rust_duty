@@ -1,0 +1,67 @@
+{
+  "source_hash_verified": true,
+  "full_source_integrity_snapshot_matches": true,
+  "prior_action_fingerprints_match": 62,
+  "valid_driver_count": 185,
+  "source_camera_unchanged": true,
+  "endpoint_errors": {
+    "ready__entry_start": {
+      "bones": 0.0,
+      "actors": 0.0,
+      "Actual arms mesh 0": 0.0,
+      "Actual arms mesh 1": 0.0,
+      "Actual arms mesh 2": 0.0
+    },
+    "entry_end__hold_start": {
+      "bones": 0.0,
+      "actors": 0.0,
+      "Actual arms mesh 0": 0.0,
+      "Actual arms mesh 1": 0.0,
+      "Actual arms mesh 2": 0.0
+    },
+    "hold_start__hold_mid": {
+      "bones": 0.0,
+      "actors": 0.0,
+      "Actual arms mesh 0": 0.0,
+      "Actual arms mesh 1": 0.0,
+      "Actual arms mesh 2": 0.0
+    },
+    "hold_mid__hold_end": {
+      "bones": 0.0,
+      "actors": 0.0,
+      "Actual arms mesh 0": 0.0,
+      "Actual arms mesh 1": 0.0,
+      "Actual arms mesh 2": 0.0
+    },
+    "hold_end__exit_start": {
+      "bones": 0.0,
+      "actors": 0.0,
+      "Actual arms mesh 0": 0.0,
+      "Actual arms mesh 1": 0.0,
+      "Actual arms mesh 2": 0.0
+    },
+    "exit_end__ready": {
+      "bones": 0.0,
+      "actors": 0.0,
+      "Actual arms mesh 0": 0.0,
+      "Actual arms mesh 1": 0.0,
+      "Actual arms mesh 2": 0.0
+    }
+  },
+  "sight_alignment": {
+    "front": {
+      "pixel": [
+        639.9999618530273,
+        360.0
+      ],
+      "center_error_px": 3.814697265625e-05
+    },
+    "rear": {
+      "pixel": [
+        639.999885559082,
+        360.00004291534424
+      ],
+      "center_error_px": 0.00012222295396782204
+    }
+  }
+}

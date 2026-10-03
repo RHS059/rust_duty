@@ -1,0 +1,142 @@
+{
+  "schema": "rust-duty-fbx-segment-diagnostic/v1",
+  "status": "diagnostic",
+  "source_fbx_sha256": "4d01e1574f130123576c4fcbbe4776908d352c27481e583454815068eaff4057",
+  "authoring_master_sha256": "3acdf3e2d04757d719ba59ede08decdf8bad48e2e87d9448046fe8edcbba4f58",
+  "native_crop": [
+    0,
+    15
+  ],
+  "native_fps": [
+    60,
+    1
+  ],
+  "source_take": "ads_entry_r1",
+  "imported_frame_offset": 0.0,
+  "timing_policy": {
+    "kind": "explicit-rational-resampling",
+    "subdivisions": 8,
+    "switches": [],
+    "switch_neighbor_offset_native": [
+      1,
+      65536
+    ],
+    "float32_collision_policy": "reject",
+    "samples": 121
+  },
+  "bones": 72,
+  "actors": [
+    "hk416_weapon",
+    "hk416_magazine"
+  ],
+  "weights": {
+    "Actual arms mesh 1": {
+      "vertices": 3954,
+      "maximum_influences": 6,
+      "vertices_over_four": 93
+    },
+    "Actual arms mesh 0": {
+      "vertices": 5710,
+      "maximum_influences": 5,
+      "vertices_over_four": 4
+    },
+    "Actual arms mesh 2": {
+      "vertices": 570,
+      "maximum_influences": 3,
+      "vertices_over_four": 0
+    }
+  },
+  "importer_patches": {
+    "blen_read_animations": {
+      "sha256": "757bd21550d94e2190881ec6b0eb0ce80b275d2a230055cf7702044fe6dcc6e2",
+      "replacement_count": 1
+    },
+    "blen_store_keyframes_multi": {
+      "sha256": "793a389ebde0e71ec3cec54e731c861753aa08015355904777a8c39b70da3a4e",
+      "replacement_count": 1
+    }
+  },
+  "source_action_ranges": [
+    {
+      "name": "Arms|ads_entry_r1",
+      "frame_range": [
+        0.0,
+        15.0
+      ]
+    },
+    {
+      "name": "Arms|ads_exit_r1",
+      "frame_range": [
+        0.0,
+        15.0
+      ]
+    },
+    {
+      "name": "Arms|ads_hold_r1",
+      "frame_range": [
+        0.0,
+        60.0
+      ]
+    },
+    {
+      "name": "hk416_magazine|ads_entry_r1",
+      "frame_range": [
+        0.0,
+        15.0
+      ]
+    },
+    {
+      "name": "hk416_magazine|ads_exit_r1",
+      "frame_range": [
+        0.0,
+        15.0
+      ]
+    },
+    {
+      "name": "hk416_magazine|ads_hold_r1",
+      "frame_range": [
+        0.0,
+        60.0
+      ]
+    },
+    {
+      "name": "hk416_weapon|ads_entry_r1",
+      "frame_range": [
+        0.0,
+        15.0
+      ]
+    },
+    {
+      "name": "hk416_weapon|ads_exit_r1",
+      "frame_range": [
+        0.0,
+        15.0
+      ]
+    },
+    {
+      "name": "hk416_weapon|ads_hold_r1",
+      "frame_range": [
+        0.0,
+        60.0
+      ]
+    }
+  ],
+  "visibility_policy": "all-zero rigid scale maps to invisible STEP with identity placeholder; partial singular scale rejected",
+  "geometry_transport": "static GLB only; no sampled GLB animation",
+  "material_source_sha256": "3acdf3e2d04757d719ba59ede08decdf8bad48e2e87d9448046fe8edcbba4f58",
+  "files": {
+    "asset.vrs": {
+      "sha256": "08f4a46a2ccaf890159403dd79e88cda73082f049009ca809441bebdf219ac07",
+      "bytes": 13605994
+    },
+    "asset.vrm": {
+      "sha256": "e6d0afc10a9ccbb8e7a4c341fb2e11517f8aa0712075d86cc07d893a76aeeedf",
+      "bytes": 3901372
+    },
+    "asset.vra": {
+      "sha256": "56de7ddb0ed819b5d2959294721f5e85d6c3ee37aceb4779efdc748c1ffada96",
+      "bytes": 360420
+    }
+  },
+  "scope": "Explicitly selected source range converted as WIP. Review scope is recorded in the source-selection manifest. No runtime parity or gameplay visual approval is implied."
+}

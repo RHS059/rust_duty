@@ -11,12 +11,20 @@ pub struct ClipReference {
     pub clip: String,
 }
 #[derive(Clone, Debug)]
+pub struct AdsReference {
+    pub asset: PathBuf,
+    pub entry_clip: String,
+    pub hold_clip: String,
+    pub exit_clip: String,
+}
+#[derive(Clone, Debug)]
 pub struct AnimationManifest {
     pub locomotion_asset: PathBuf,
     pub locomotion: AuthoredLocomotionPathConfig,
     pub tactical: ClipReference,
     pub regular_walk: Option<ClipReference>,
     pub empty: Option<ClipReference>,
+    pub ads: Option<AdsReference>,
 }
 impl AnimationManifest {
     pub fn load(path: &Path) -> Result<Self, String> {
@@ -89,9 +97,21 @@ impl AnimationManifest {
         // Separate rigs are never blended. Native time is never scaled to weapon stats.
         policy(&mut values, "reload.route", "whole_model_cut")?;
         policy(&mut values, "reload.clock", "native_complete")?;
-        for slot in ["ads", "fire", "mantle"] {
+        for slot in ["fire", "mantle"] {
             policy(&mut values, slot, "unavailable")?;
         }
+        let ads = if values.contains_key("ads") {
+            policy(&mut values, "ads", "unavailable")?;
+            None
+        } else {
+            policy(&mut values, "ads.clock", "native_reversible")?;
+            Some(AdsReference {
+                asset: asset(&mut values, "ads.asset", directory)?,
+                entry_clip: take(&mut values, "ads.entry.clip")?,
+                hold_clip: take(&mut values, "ads.hold.clip")?,
+                exit_clip: take(&mut values, "ads.exit.clip")?,
+            })
+        };
         let locomotion_asset = asset(&mut values, "locomotion.asset", directory)?;
         let locomotion = AuthoredLocomotionPathConfig {
             ready_clip: take(&mut values, "ready.clip")?,
@@ -132,6 +152,7 @@ impl AnimationManifest {
             tactical,
             regular_walk,
             empty,
+            ads,
         })
     }
 }
