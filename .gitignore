@@ -28,3 +28,8 @@ __pycache__/
 
 # Baked authored clip packages are private rig-derived assets.
 *.vra
+
+# Specifically authorized frozen 43-clip Rust Duty distribution only.
+!assets/locomotion/asset.vra
+!assets/locomotion/asset.vrs.gz
+!assets/locomotion/asset.vrm
