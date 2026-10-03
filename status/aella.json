@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T22:32:22Z",
+  "updatedAt": "2026-10-03T22:42:55Z",
   "state": "active",
-  "task": "Refining ADS previews and coordinating their publication and independent motion review.",
+  "task": "Fixing Alt-Tab cursor focus, adding persistent per-weapon XYZ walking sliders, and automating patch releases after merged PRs.",
   "lastCompleted": "Version 0.1.5 is public. Real Windows/Linux 0.1.4 upgrades passed, verifying 70 managed files and preserving 85 root-file and synthetic private-data checks.",
   "agents": [
     {
       "slot": 1,
-      "state": "active",
-      "task": "Refining forward ADS timing and preview presentation; v9 awaits publication and independent motion review.",
+      "state": "unknown",
+      "task": "Forward ADS source preservation awaits a progress check; v9 awaits publication and independent motion review.",
       "lastCompleted": "Both 126-frame v9 videos passed capture, encoding and frame QA; v8 remains the scored candidate at Fail54."
     },
     {
@@ -19,8 +19,8 @@
     },
     {
       "slot": 3,
-      "state": "idle",
-      "task": "HIP r5 integration is released in 0.1.5; newer ADS, lateral and jump work is not integrated.",
+      "state": "active",
+      "task": "Fixing Alt-Tab cursor focus and adding persistent per-weapon XYZ walking-motion sliders.",
       "lastCompleted": "Complete Windows/Linux packages passed at eb886edb; 0.1.5 publication and real old-client upgrade checks passed."
     }
   ]
