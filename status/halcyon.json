@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T03:09:28Z",
+  "updatedAt": "2026-10-03T03:25:17Z",
   "state": "waiting",
   "task": "Awaiting combined game integration of the committed authored walking clip",
   "lastCompleted": "Committed normal_walk_r1 and reproducible export; published reference comparison",
