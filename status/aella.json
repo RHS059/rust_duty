@@ -1,27 +1,27 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T15:33:28Z",
+  "updatedAt": "2026-10-03T15:42:26Z",
   "state": "active",
-  "task": "Correcting the gallery to paired reference/render reviews and auditing Eevee previews; Elara motion review is pending. Animation development remains stopped since 14:48 UTC.",
-  "lastCompleted": "Published and deployment-verified gallery v44: 60 cards, 61 videos, all 52 primary clips and 3 reload alternates, plus 7 matched comparison stacks",
+  "task": "Refreshing the paired review gallery with Blender Eevee viewport previews and WIP motion feedback from Elara. Animation development remains stopped since 14:48 UTC.",
+  "lastCompleted": "Published gallery v45: main review queue has 6 motion pairs and 1 static pair; 53 unpaired items remain in the missing-reference inventory, including 47 of 52 primary clips awaiting a pair; 35 old previews hidden",
   "agents": [
     {
       "slot": 1,
       "state": "active",
-      "task": "Restricting the main review queue to matched reference/render pairs; moving unpaired clips to the missing-reference inventory and auditing Blender preview settings",
-      "lastCompleted": "Published gallery v44 from source 531eccb; 60 cards and 61 videos, 35 old previews hidden; all items pending Elara review"
+      "task": "Integrating four HIP Eevee viewport replacements, preparing phase-aligned ADS v4 reference stacks, and preserving the gallery details-dropdown change",
+      "lastCompleted": "Published gallery v45 with reference-above-render comparison-only queue and separate missing-reference inventory; all items remain WIP"
     },
     {
       "slot": 2,
-      "state": "unknown",
-      "task": "Eevee review-pair worker is running; detailed activity confirmation pending",
-      "lastCompleted": "Delivered and decode-validated 53 videos, including source previews and exact e46f83d runtime recordings; source files unchanged"
+      "state": "active",
+      "task": "Rendering four HIP sequences with Blender Eevee viewport rendering after the viewport smoke check passed",
+      "lastCompleted": "True Eevee viewport smoke check passed at 15:41:42 UTC; no animation edits or source saves"
     },
     {
       "slot": 3,
       "state": "idle",
       "task": "",
-      "lastCompleted": "PR #17 e46f83d passed all three workflows; complete Windows ZIP downloaded and package-verified; development stopped"
+      "lastCompleted": "PR #17 e46f83d passed all three workflows; complete 83-file Windows ZIP verified; animation development remains stopped"
     }
   ]
 }
