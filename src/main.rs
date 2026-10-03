@@ -995,7 +995,12 @@ async fn main() {
     let capture_sequence = args
         .iter()
         .find_map(|a| a.strip_prefix("--capture-sequence="))
-        .filter(|s| matches!(*s, "tactical" | "empty" | "ads" | "locomotion" | "gameplay-reload"));
+        .filter(|s| {
+            matches!(
+                *s,
+                "tactical" | "empty" | "ads" | "locomotion" | "gameplay-reload"
+            )
+        });
     let mut gameplay_reload_issued = false;
     let capture_empty =
         args.iter().any(|s| s == "--capture-empty") || capture_sequence == Some("empty");
@@ -1003,7 +1008,14 @@ async fn main() {
         Some("empty") => vector_range::reference_motion::visual_duration(true),
         Some("tactical") => vector_range::reference_motion::visual_duration(false),
         Some("locomotion") => 3.5,
-        Some("gameplay-reload") => authored.as_ref().and_then(|model| model.tactical_duration()).unwrap_or(f64::from(cfg.reload_time)).max(f64::from(cfg.reload_time)) as f32 + 0.75,
+        Some("gameplay-reload") => {
+            authored
+                .as_ref()
+                .and_then(|model| model.tactical_duration())
+                .unwrap_or(f64::from(cfg.reload_time))
+                .max(f64::from(cfg.reload_time)) as f32
+                + 0.75
+        }
         _ => cfg.ads_time,
     };
     if capture_sequence.is_some() && !framing.reference {
@@ -1386,8 +1398,17 @@ async fn main() {
                 let start = sim.time;
                 let reload = !gameplay_reload_issued && start >= 0.25;
                 gameplay_reload_issued |= reload;
-                sim.update(Input { reload, ..Input::default() }, &cfg, FIXED_DT);
-                if let Some(model) = &mut authored { model.committed_step(start, &sim); }
+                sim.update(
+                    Input {
+                        reload,
+                        ..Input::default()
+                    },
+                    &cfg,
+                    FIXED_DT,
+                );
+                if let Some(model) = &mut authored {
+                    model.committed_step(start, &sim);
+                }
             }
         }
         if capture_sequence == Some("ads") {
@@ -1582,8 +1603,14 @@ async fn main() {
             }
             if capture_sequence == Some("gameplay-reload") {
                 let sample = authored.as_ref().and_then(|model| model.reload_sample());
-                let route = if sample.is_some() { "reload.tactical" } else { "locomotion" };
-                let native = sample.map(|sample| sample.seconds.to_string()).unwrap_or_else(|| "null".into());
+                let route = if sample.is_some() {
+                    "reload.tactical"
+                } else {
+                    "locomotion"
+                };
+                let native = sample
+                    .map(|sample| sample.seconds.to_string())
+                    .unwrap_or_else(|| "null".into());
                 let _ = std::fs::write(format!("{output}.gameplay.json"), format!(
                     "{{\"simulation_time\":{},\"accepted_r_issued\":{},\"route\":\"{}\",\"native_clip_seconds\":{},\"ammo\":{},\"reserve\":{},\"reload_left\":{},\"reload_credit_at\":{},\"reload_ready_at\":{}}}",
                     sim.time, gameplay_reload_issued, route, native, sim.player.ammo, sim.player.reserve, sim.player.reload_left, sim.player.reload_credit_at, sim.player.reload_ready_at));
