@@ -1,21 +1,21 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T21:22:17Z",
+  "updatedAt": "2026-10-03T21:32:52Z",
   "state": "active",
-  "task": "Refining ADS timing and coordinating the 0.1.5 complete build, updater verification and release.",
-  "lastCompleted": "Updater fixes are published in draft PR #19 at eb886edb. Authored contracts, updater checks and all four asset jobs passed; complete platform builds are running.",
+  "task": "Coordinating ADS preview publication and review while completing the 0.1.5 build, release and old-client upgrade checks.",
+  "lastCompleted": "Forward v9 and lateral Trial4 capture checks are complete. PR #19 asset jobs, authored contracts and updater checks passed.",
   "agents": [
     {
       "slot": 1,
-      "state": "active",
-      "task": "Preparing the forward ADS v9 timing-trial preview for review; v8 remains Fail54.",
-      "lastCompleted": "Forward ADS v8 is live at Fail54; the larger-articulation probe reduced forearm travel."
+      "state": "idle",
+      "task": "Forward ADS v9 awaits publication and independent motion review.",
+      "lastCompleted": "Both 126-frame v9 videos passed capture, encoding and frame QA; v8 remains the scored candidate at Fail54."
     },
     {
       "slot": 2,
-      "state": "active",
-      "task": "Capturing the 198-frame lateral Trial4 timing diagnostic in Eevee.",
-      "lastCompleted": "Trial3 is live and playback verified; independent review returned Fail35 left and Fail36 right."
+      "state": "idle",
+      "task": "Lateral Trial4 awaits publication and independent motion review.",
+      "lastCompleted": "Trial4's 198-frame Eevee capture and QA are complete; Trial3 remains scored Fail35 left and Fail36 right."
     },
     {
       "slot": 3,
