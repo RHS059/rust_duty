@@ -1,27 +1,27 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T16:42:22Z",
+  "updatedAt": "2026-10-03T16:53:57.524Z",
   "state": "active",
-  "task": "Coordinating ADS v5 Trial 1 forward motion correction and Eevee comparison after all four ADS v4 baselines failed review; gallery v53 retains four ADS v4 and four HIP r1 baseline stacks. Hal owns the pending HIP r2 media transfer.",
-  "lastCompleted": "All four ADS v4 baselines reviewed: forward 35, backward 32, left 34, right 33; failed review, not approval. ADS v5 Trial 1 is authored and its forward Eevee comparison is in progress, not yet reviewed. PR #17 remains the verified e46f83d complete build.",
+  "task": "Coordinating Elara re-review of the live ADS v5 Trial 1 forward candidate and consistent neutral-studio reload Eevee previews. ADS v5 source/docs publication is blocked by automatic review; Hal owns the pending HIP r2 media transfer.",
+  "lastCompleted": "Gallery v54 published a separate 126-frame ADS v5 Trial 1 forward reference/Eevee comparison and six unscored raw sight witnesses. V5 review is pending. ADS v4 baseline scores remain forward 35, backward 32, left 34, right 33, all failed. PR #17 remains the verified e46f83d complete build.",
   "agents": [
     {
       "slot": 1,
-      "state": "active",
-      "task": "Authoring and checking ADS v5 Trial 1 forward motion correction while its Eevee comparison renders",
-      "lastCompleted": "Authored shared v5 Trial 1 preset with reduced lateral/vertical motion and phase rate 0.80; all 486 transforms passed numerical sight and rigid-preservation checks. Visual review pending"
+      "state": "blocked",
+      "task": "Awaiting Elara feedback on ADS v5 Trial 1 forward; GitHub source/docs publication stopped after two automatic-review denials",
+      "lastCompleted": "ADS v5 Trial 1 committed locally and its full forward Eevee comparison published in gallery v54 for re-review. No v5 source PR exists; no v5 visual approval"
     },
     {
       "slot": 2,
       "state": "active",
-      "task": "Preparing a separate ADS v5 Trial 1 forward comparison for gallery review, ahead of the neutral-studio reload rerender",
-      "lastCompleted": "Published gallery v53 with four HIP r1 and four ADS v4 baseline stacks; 10 motion pairs, one static pair and 49 separate unpaired items"
+      "task": "Integrating pending neutral-studio reload Eevee replacements and verifying Hal HIP r2 media when received",
+      "lastCompleted": "Published gallery v54 with the separate 126-frame ADS v5 Trial 1 forward candidate and six unscored sight witnesses; preserved ADS v4 baseline videos and scores. HIP r2 media remains pending"
     },
     {
       "slot": 3,
       "state": "active",
-      "task": "Rendering the prioritized ADS v5 Trial 1 forward Eevee viewport comparison before the consistent neutral-studio reload rerender",
-      "lastCompleted": "All four HIP r1 and four frozen ADS v4 viewport clips validated; saved-light reload audit completed"
+      "task": "Rendering a consistent neutral-studio Eevee reload batch: full 157-frame reload, then 31-frame opening and static pickup",
+      "lastCompleted": "Delivered the 126-frame ADS v5 Trial 1 forward comparison at 60 fps with source, camera and Action unchanged checks; same-pose reload lighting witness passed"
     }
   ]
 }
