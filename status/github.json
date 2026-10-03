@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T15:22:44.216Z",
+  "updatedAt": "2026-10-03T15:33:28Z",
   "latestComplete": {
     "sha": "e46f83d84ece0c28ffbd10cf4504ed4ea0f91878",
     "downloadUrl": "https://github.com/RHS059/rust_duty/actions/runs/37130396740/artifacts/11277161595",
@@ -14,11 +14,11 @@
     "Complete 83-file Windows package includes existing walk, sprint and full WIP reload assets plus the new HIP and ADS companions",
     "All three workflows passed; native Linux layered-input diagnostics passed at 30 and 60 Hz",
     "Windows ZIP integrity, SHA-256, PE executable and complete-package verification passed",
-    "Reference fidelity, contact quality and artistic approval remain WIP; Windows gameplay has not been verified"
+    "Elara motion review is pending; the prior geometry failure was withdrawn. Reference fidelity, contact and artistic approval remain WIP; Windows gameplay is unverified"
   ],
   "currentBuild": {
     "state": "idle",
-    "task": "e46f83d remains the latest verified complete Windows download. All three workflows passed. Gallery v44 is published; Elara review is pending and animation development remains stopped.",
+    "task": "No game build running. e46f83d is unchanged and all three workflows passed. Gallery pair/Eevee corrections are underway; Elara motion review is pending. Animation development remains stopped.",
     "url": "https://github.com/RHS059/rust_duty/actions/runs/37130396740"
   }
 }
