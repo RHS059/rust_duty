@@ -15,7 +15,7 @@ def main():
     args = parser.parse_args()
     package_game.verify(args.root)
     if args.kind == 'ads':
-        report = package_game.verify_ads(args.root, args.directory)
+        report = package_game.verify_ads(args.root, args.directory, require_transports=True)
     elif args.kind == 'walk':
         report = package_game.verify_walk(args.root, args.directory)
     else:

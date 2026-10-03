@@ -28,7 +28,7 @@ its shader/world lighting changes and the frozen walk/locomotion source.
   angular difference 0.00000268 rad, scale component difference 0.000000596
 - 467 Rust tests with real-asset contracts enabled, strict all-target Clippy,
   rustfmt and whitespace checks passed
-- 132 Python tests passed with one optional Blender smoke skipped; that separate
+- 134 Python tests passed with one optional Blender smoke skipped; that separate
   Blender-enabled suite then passed all 16 tests
 - Real-asset gameplay replay: 524 evaluated ADS poses and unchanged gameplay
   movement, accuracy fraction, reload/shot deadlines, ammunition and shot outcomes

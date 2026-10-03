@@ -65,26 +65,37 @@ def companion_bytes(root: Path, name: str, manifest: dict, asset_dir: Path = ASS
             or not 0 < record["bytes"] <= 128 * 1024**2):
         raise ValueError(f"invalid companion manifest: {name}")
     raw = root / asset_dir / name
+    decoded = None
+    transport = manifest.get("repository_transport", {}).get(name)
+    if transport:
+        packed_path = root / asset_dir / transport["file"]
+        # A staged game intentionally ships raw companions only. When a transport
+        # is present (checkout/cache), verify it even if raw bytes also exist.
+        if packed_path.exists() or packed_path.is_symlink() or not raw.exists():
+            path = regular_file(root, asset_dir / transport["file"])
+            if path.stat().st_size != transport["bytes"]:
+                raise ValueError("compressed companion size mismatch")
+            packed = path.read_bytes()
+            if hashlib.sha256(packed).hexdigest() != transport["sha256"]:
+                raise ValueError("compressed companion SHA-256 mismatch")
+            try:
+                with gzip.GzipFile(fileobj=io.BytesIO(packed)) as stream:
+                    decoded = stream.read(record["bytes"] + 1)
+            except (OSError, EOFError) as error:
+                raise ValueError("invalid compressed companion") from error
+            if len(decoded) != record["bytes"]:
+                raise ValueError("decompressed companion size mismatch")
+            if hashlib.sha256(decoded).hexdigest() != record["sha256"]:
+                raise ValueError("decompressed companion SHA-256 mismatch")
     if raw.exists() or raw.is_symlink():
         path = regular_file(root, asset_dir / name)
         if path.stat().st_size != record["bytes"]:
             raise ValueError(f"locomotion size mismatch: {name}")
         blob = path.read_bytes()
-    elif name in manifest.get("repository_transport", {}):
-        transport = manifest["repository_transport"][name]
-        path = regular_file(root, asset_dir / transport["file"])
-        if path.stat().st_size != transport["bytes"]:
-            raise ValueError("compressed locomotion size mismatch")
-        packed = path.read_bytes()
-        if hashlib.sha256(packed).hexdigest() != transport["sha256"]:
-            raise ValueError("compressed locomotion SHA-256 mismatch")
-        try:
-            with gzip.GzipFile(fileobj=io.BytesIO(packed)) as stream:
-                blob = stream.read(record["bytes"] + 1)
-        except (OSError, EOFError) as error:
-            raise ValueError("invalid compressed locomotion asset") from error
-        if len(blob) != record["bytes"]:
-            raise ValueError("decompressed locomotion size mismatch")
+        if decoded is not None and decoded != blob:
+            raise ValueError("raw and compressed companion bytes differ")
+    elif decoded is not None:
+        blob = decoded
     else:
         raise ValueError(f"required distribution file missing: {asset_dir / name}")
     if hashlib.sha256(blob).hexdigest() != record["sha256"]:
@@ -251,7 +262,7 @@ def ads_bound(root: Path) -> bool:
     return bool(bindings)
 
 
-def verify_ads(root: Path, folder: Path = ADS_DIR) -> dict:
+def verify_ads(root: Path, folder: Path = ADS_DIR, require_transports: bool = False) -> dict:
     root = Path(root)
     manifest = json.loads(regular_file(root, folder / 'manifest.json').read_text())
     source = manifest.get('source', {})
@@ -277,6 +288,9 @@ def verify_ads(root: Path, folder: Path = ADS_DIR) -> dict:
                 or transport.get('decoded_bytes') != manifest['files'][name]['bytes']
                 or transport.get('decoded_sha256') != manifest['files'][name]['sha256']):
             raise ValueError('invalid ADS transport manifest')
+    if require_transports:
+        for transport in transports.values():
+            regular_file(root, folder / transport['file'])
     blobs = {name: companion_bytes(root, name, manifest, folder) for name in COMPANIONS}
     walk = json.loads(regular_file(root, WALK_DIR / 'manifest.json').read_text())
     old = companion_bytes(root, 'asset.vra', walk, WALK_DIR); new = blobs['asset.vra']

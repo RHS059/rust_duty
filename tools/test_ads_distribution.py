@@ -38,6 +38,21 @@ class AdsDistributionTests(unittest.TestCase):
         self.assertEqual(vra.stat().st_size, expected['bytes'])
         self.assertEqual(hashlib.sha256(vra.read_bytes()).hexdigest(), expected['sha256'])
 
+    def test_raw_companions_cannot_hide_corrupt_compressed_transports(self):
+        for name in ('asset.vra.gz', 'asset.vrs.gz'):
+            path = self.root / package.ADS_DIR / name
+            original = path.read_bytes()
+            path.write_bytes(bytes([original[0] ^ 1]) + original[1:])
+            with self.assertRaisesRegex(ValueError, 'compressed companion SHA-256'):
+                package.verify_ads(self.root)
+            path.write_bytes(original)
+
+    def test_cache_requires_transports_but_raw_only_package_does_not(self):
+        (self.root / package.ADS_DIR / 'asset.vra.gz').unlink()
+        package.verify_ads(self.root)
+        with self.assertRaisesRegex(ValueError, 'missing'):
+            package.verify_ads(self.root, require_transports=True)
+
     def test_matching_rust_parity_required_for_every_clip(self):
         for clip in package.ADS_CLIPS:
             path = self.root / package.ADS_DIR / f'parity-{clip}.json'
