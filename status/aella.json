@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T19:34:15Z",
-  "state": "active",
-  "task": "Coordinating animation publication and review, and mapping jump and mantle references for the next task.",
-  "lastCompleted": "All four HIP r5 motions passed review at 82, 83, 82 and 81. Current ADS authoring and comparison captures are complete.",
+  "updatedAt": "2026-10-03T19:42:15Z",
+  "state": "idle",
+  "task": "Waiting for the HIP r5 source file and ADS publication and visual review.",
+  "lastCompleted": "All four HIP r5 motions passed review at 82, 83, 82 and 81. Current ADS authoring, comparison captures, and jump and mantle reference planning are complete.",
   "agents": [
     {
       "slot": 1,
@@ -15,7 +15,7 @@
       "slot": 2,
       "state": "idle",
       "task": "Lateral ADS Trial2 is awaiting publication and visual review.",
-      "lastCompleted": "Completed both lateral Trial2 component-isolation diagnostics and 198-frame Eevee captures; publication handoff is ready and scoring is pending."
+      "lastCompleted": "Completed both lateral Trial2 component-isolation diagnostics and 198-frame Eevee captures; scoring is pending."
     },
     {
       "slot": 3,
