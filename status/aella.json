@@ -1,21 +1,21 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T13:22:51.397Z",
+  "updatedAt": "2026-10-03T13:33:31.170Z",
   "state": "active",
-  "task": "Coordinating ADS composition and four-direction walk source review; new clip integration awaits accepted sources",
+  "task": "Coordinating sight-aligned ADS motion and four-direction walk review; clip integration awaits accepted sources",
   "lastCompleted": "Verified PR #17's complete Windows package and 30/60 Hz native layered-input diagnostics",
   "agents": [
     {
       "slot": 1,
       "state": "active",
-      "task": "Composing reusable ADS motion with the new four-direction hip-walk sources",
-      "lastCompleted": "Created the ADS candidate for independent motion review"
+      "task": "Testing constrained ADS motion that preserves sight alignment while walking",
+      "lastCompleted": "Tested ADS motion variants and identified remaining sight-clearance corrections"
     },
     {
       "slot": 2,
       "state": "active",
-      "task": "Independently reviewing the exact directional animation source and ADS composition",
-      "lastCompleted": "Checked the four-direction source handoff and reviewed existing-clip transition frames"
+      "task": "Independently reviewing directional motion, ADS composition and sight clearance",
+      "lastCompleted": "Reviewed the four-direction source handoff and existing-clip transition frames"
     },
     {
       "slot": 3,
