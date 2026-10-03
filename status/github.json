@@ -1,26 +1,26 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T22:22:56Z",
+  "updatedAt": "2026-10-03T22:32:22Z",
   "latestComplete": {
-    "sha": "c60c53fe3b4b3a995f41630e1746c2df336c7929",
-    "downloadUrl": "https://github.com/RHS059/rust_duty/actions/runs/37151455895/artifacts/11284770859",
-    "runUrl": "https://github.com/RHS059/rust_duty/actions/runs/37151455895",
-    "verifiedAt": "2026-10-03T22:22:56Z",
-    "completedAt": "2026-10-03T20:40:53Z"
+    "sha": "eb886edb9ed31ad6feae13541c4e34aa70362f2f",
+    "downloadUrl": "https://github.com/RHS059/rust_duty/releases/download/v0.1.5/Rust-Duty-0.1.5-Windows-x64.zip",
+    "runUrl": "https://github.com/RHS059/rust_duty/actions/runs/37154246170",
+    "verifiedAt": "2026-10-03T22:32:22Z",
+    "completedAt": "2026-10-03T22:23:20Z"
   },
   "changes": [
-    "Reviewed HIP r5 directions and stable animation bindings are included in PR #17 at c60c53fe.",
-    "Walking, ADS and running overlap through transitions while interruptions preserve animation timing and current blend weights.",
-    "CI strictly verified the complete 83-file Windows package; 488 Rust tests passed and 156 Python tests completed with one skipped.",
-    "All three workflows passed; native Linux layered-input diagnostics passed at 30 and 60 Hz.",
-    "Windows artifact size is 92,854,957 bytes. API and upload-log SHA-256 match: 20e2ad9ce279475e98ff9a27903394630ec50bf1fbcbbe0e5e37517e173d4478. The full ZIP was not independently inspected locally.",
-    "Forward ADS preview refinements are active; v9 and lateral Trial4 await publication and motion review. V8 remains Fail54; Trial3 scored Fail35 left and Fail36 right. Integrated ADS remains unreviewed.",
-    "PR #19 at eb886edb passed complete-build, authored-contract and updater CI. Preparing version 0.1.5 update delivery; publication recovery is underway. Old-client checks timed out waiting for the release, before upgrade execution. Latest Complete stays at verified 0.1.4.",
-    "Jump and mantle reference planning is complete; verified reference windows are still needed."
+    "Version 0.1.5 is public/latest at eb886edb, including HIP r5 directional motion, stable animation bindings and concurrent walk/ADS/run transitions.",
+    "Automatic updates deliver the complete managed runtime; verified bundle selection protects existing settings and private data.",
+    "Complete Windows/Linux package CI passed; 536 Rust tests passed and 175 Python tests completed with one skipped.",
+    "Real Windows and Linux 0.1.4-to-0.1.5 upgrades passed, including executable replacement, version confirmation and managed runtime selection.",
+    "Both upgrade checks verified all 70 managed files and confirmed 85 existing root-file and synthetic private-data checks remained unchanged. These are headless updater checks, not interactive gameplay tests.",
+    "All nine release assets match verified source provenance. Complete Windows release ZIP: 89,510,408 bytes; SHA-256 f5f51ea37f8903a9b1c65707b25ed3202a9890184a6e5ceb66d8252ec054a7a2.",
+    "Forward ADS refinements and lateral Trial4 remain outside this release and await publication/review. V8 remains Fail54; Trial3 scored Fail35 left and Fail36 right. Integrated ADS composition remains unreviewed.",
+    "New jump and mantle reference work is not integrated into 0.1.5."
   ],
   "currentBuild": {
-    "state": "active",
-    "task": "Preparing version 0.1.5 update delivery. Complete Windows/Linux builds passed; publication recovery is underway and old-client upgrade verification remains incomplete.",
-    "url": "https://github.com/RHS059/rust_duty/actions/runs/37154246170"
+    "state": "idle",
+    "task": "Version 0.1.5 is released and verified. Complete Windows/Linux builds and both real 0.1.4-to-0.1.5 upgrade checks passed.",
+    "url": "https://github.com/RHS059/rust_duty/actions/runs/37155024582/attempts/2"
   }
 }
