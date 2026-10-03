@@ -24,15 +24,23 @@ and CI runs; pull-request merge-ref artifacts are not used. It creates a draft r
 uploads complete immutable assets, then marks it public/latest; an existing
 version is never overwritten.
 
-The payload is curated from exactly the game executable, game license and game
-dependency notices. It imports no models, settings, saves, telemetry or wildcard
-asset directories. Existing user models/settings stay in the stable local root
-when the launcher switches version directories. The original/private preview
-ZIP must never be used as the input release directory.
+The payload is curated from the tested game executable, game license, dependency
+notices, and the exact authorized `assets/locomotion/asset.vra`, `asset.vrs` and
+`asset.vrm` companions with their sanitized manifest and asset notice. Both build
+and release staging fail if any companion is missing, has an unexpected hash, or
+fails the 43-clip binding contract. They never copy wildcard asset directories,
+user settings, saves, telemetry or unrelated private assets. Existing user
+models/settings stay in the stable local root when the launcher switches version
+directories. Original/private preview ZIPs are not release inputs.
+
+Complete build artifacts place the executable and `assets/locomotion/` together
+at the artifact root. Managed update payloads preserve that relative layout.
+`tools/package_game.py` provides the shared fail-closed staging implementation.
 
 ## Assets and deltas
 
-Each target publishes `update-TARGET.json`, `rust-duty-VERSION-TARGET.rdb`, an
+Each target publishes a complete `Rust-Duty-VERSION-Windows-x64.zip` or
+`Rust-Duty-VERSION-Linux-x64.zip`, plus `update-TARGET.json`, `rust-duty-VERSION-TARGET.rdb`, an
 optional smaller `.rdd`, and a standalone migration launcher (`RustDuty-windows-x64.exe`
 or `RustDuty-linux-x64`). CI artifact ZIPs are for developer transport; the player
 transition is one standalone launcher executable, followed by automatic updates.

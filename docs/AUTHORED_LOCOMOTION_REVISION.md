@@ -1,12 +1,12 @@
 # Authored locomotion revision
 
-Run the game with the private, matching animation pack:
+The complete game distribution includes the matching animation pack. The explicit diagnostic launch form is:
 
 ```
 vector-range --no-update --viewmodel-asset=assets/locomotion/asset.vra --viewmodel-clip=locomotion --viewmodel-fov=76
 ```
 
-The three companion files (`asset.vra`, `asset.vrs`, `asset.vrm`) must remain together. These rig-derived assets are delivered privately, not committed to the public source repository.
+The three companion files (`asset.vra`, `asset.vrs`, `asset.vrm`) must remain together. These exact converted companions are included in the repository and complete game builds under the project owner's authorization. Original source files and unrelated assets remain excluded.
 
 This revision wires the existing ready, entry, sprint-loop and exit animations into committed gameplay ticks. Shift/sprint drives entry and looping; releasing sprint uses the evaluated phase-specific exit. Repeated toggles retrace validated paths. The animation is not advanced by rendering. Restarting the range resets the path. Existing explicit single-clip/fixed-time capture modes remain available.
 

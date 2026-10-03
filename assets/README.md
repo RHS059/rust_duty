@@ -1,4 +1,9 @@
-> Intermediate source-only update: the supplied HK416 was verified locally, but its model binary and new screenshots are not in this commit. The game uses its procedural fallback until the separately authorized single asset upload finishes.
+# Packaged locomotion
+
+`locomotion/` contains the project-owner-authorized, unchanged 43-clip converted
+companions distributed with the complete Rust Duty game. See its README and
+sanitized manifest for scope, provenance and rights. That authorization is
+specific to these three files and does not cover other licensed source assets.
 
 # Asset rights are separate from source-code licensing
 
