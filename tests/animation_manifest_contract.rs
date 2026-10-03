@@ -29,7 +29,9 @@ fn missing_required_slots_typos_and_unsafe_paths_fail() {
         MANIFEST.replace("reload/asset.vra", "C:\\asset.vra"),
         MANIFEST.replace("native_complete", "fit_gameplay_duration"),
         MANIFEST.replace("whole_model_cut", "crossfade"),
-        MANIFEST.replace("ads=unavailable", "ads=pretend_authored"),
+        MANIFEST.replace("ads.clock=native_reversible", "ads.clock=pretend_authored"),
+        MANIFEST.replace("ads.entry.clip=ads_entry_r1", ""),
+        MANIFEST.replace("ads/asset.vra", "../ads.vra"),
     ] {
         assert!(
             AnimationManifest::parse(&text, Path::new("assets")).is_err(),
@@ -45,4 +47,30 @@ fn explicit_empty_clip_can_be_added_without_runtime_edits() {
     );
     let manifest = AnimationManifest::parse(&text, Path::new("assets")).unwrap();
     assert_eq!(manifest.empty.unwrap().clip, "empty_v1");
+}
+
+#[test]
+fn ads_slots_are_revision_independent_and_unavailability_is_explicit() {
+    let text = MANIFEST
+        .replace("ads_entry_r1", "ads_entry_r2")
+        .replace("ads/asset.vra", "new_ads/asset.vra");
+    let manifest = AnimationManifest::parse(&text, Path::new("bundle/assets")).unwrap();
+    let ads = manifest.ads.unwrap();
+    assert_eq!(ads.entry_clip, "ads_entry_r2");
+    assert_eq!(ads.asset, Path::new("bundle/assets/new_ads/asset.vra"));
+    let unavailable = MANIFEST
+        .lines()
+        .filter(|line| !line.starts_with("ads."))
+        .collect::<Vec<_>>()
+        .join("\n")
+        + "\nads=unavailable\n";
+    assert!(AnimationManifest::parse(&unavailable, Path::new("assets"))
+        .unwrap()
+        .ads
+        .is_none());
+    assert!(AnimationManifest::parse(
+        &(MANIFEST.to_owned() + "\nads=unavailable\n"),
+        Path::new("assets")
+    )
+    .is_err());
 }

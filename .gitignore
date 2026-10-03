@@ -44,3 +44,10 @@ __pycache__/
 !assets/walk/asset.vra
 !assets/walk/asset.vrm
 !assets/walk/asset.vrs.gz
+
+# Explicitly requested source-authored ADS, kept in this private game repository.
+!assets/authoring/ads/ads.blend
+!assets/ads/asset.vra.gz
+!assets/ads/asset.vrm
+!assets/ads/asset.vrs.gz
+/build-ads/

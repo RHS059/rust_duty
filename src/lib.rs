@@ -40,3 +40,5 @@ pub mod authored_reload;
 pub mod authored_walk;
 
 pub mod scene_lighting;
+
+pub mod authored_ads;

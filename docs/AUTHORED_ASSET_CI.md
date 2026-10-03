@@ -36,3 +36,21 @@ all required raw runtime companions; no separate updater executable is required.
 Linux additionally renders committed-input gameplay and uploads frame/metadata
 proof. Numerical and renderer checks do not constitute artistic approval of WIP
 hand contacts, transitions, or movement quality.
+
+## Authored ADS build
+
+`assets/authoring/ads/ads.blend` is a nondestructive copy of the canonical walking
+source with three additional versioned ADS Actions. Original Action curves and
+rig data are hash-audited. The ADS job consumes the same run's verified walk44
+pack, exports only the three explicit ADS takes through Blender 4.3.2/FBX, then
+appends them without reserializing any original clip record. Its 47-clip pack
+keeps the exact canonical geometry and bindings. Every take has an independent
+source-to-Rust skin/rigid/visibility parity report, including off-key samples.
+
+The ADS cache binds its source, selection, baseline walk outputs, exporter,
+converter, compiler, sampler, validation and toolchain inputs. Fresh outputs and
+cache hits both fail closed on stale source hashes, stale parity, wrong loops,
+wrong clip durations, changed original44 bytes, or mismatched companions.
+Windows and Linux package the same-run checked pack; Linux also renders committed
+ADS input, reversals, walk/sprint/reload interruptions and return-to-ready. Windows
+build success does not substitute for native Windows gameplay verification.

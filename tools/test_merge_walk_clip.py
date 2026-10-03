@@ -28,6 +28,16 @@ class WalkMergeTests(unittest.TestCase):
         self.assertLess(max(abs(x-y) for x,y in zip(actual,expected)),1e-6)
     def test_nonloop_rejected(self):
         with self.assertRaisesRegex(vrpack.AssetError,'must loop'):merge(self.base,self.incoming(False),self.vrs,self.vrm)
+    def test_nonloop_ads_can_append_without_altering_old_payloads(self):
+        raw = merge(self.base, self.incoming(False, 'ads_entry_r1'), self.vrs, self.vrm,
+                    name='ads_entry_r1', expected_loop=False)
+        before, after = clip_offset(self.base), clip_offset(raw)
+        self.assertEqual(raw[after+4:after+len(self.base)-before], self.base[before+4:])
+        self.assertFalse(vrview.decode_vra(raw)['clips'][-1]['loop'])
+    def test_ads_loop_contract_rejects_unexpected_loop(self):
+        with self.assertRaisesRegex(vrpack.AssetError, 'must not loop'):
+            merge(self.base, self.incoming(True, 'ads_entry_r1'), self.vrs, self.vrm,
+                  name='ads_entry_r1', expected_loop=False)
     def test_duplicate_rejected(self):
         with self.assertRaisesRegex(vrpack.AssetError,'already exists'):merge(self.incoming(),self.incoming(),self.vrs,self.vrm)
     def test_wrong_name_rejected(self):

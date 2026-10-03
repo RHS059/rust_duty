@@ -36,7 +36,7 @@ It never hands the two-actor locomotion pose to the three-actor reload rig.
   locomotion/ready model. It does not silently play tactical or procedural reload.
   To add it, replace that declaration with `reload.empty.asset=...` and
   `reload.empty.clip=...`.
-- Authored ADS, firing and mantle clips are unavailable and stated on screen. Their
+- Authored firing and mantle clips are unavailable and stated on screen. Their
   gameplay continues; there is no invented authored movement or legacy visual
   fallback. Extending playback to a new action needs a semantic event/controller;
   replacing any already-supported slot never does.
@@ -62,7 +62,7 @@ clip payloads and the canonical skin/rigid bytes. The entire
 matching companion pack is loaded and the named clip must be looping and have
 positive duration. This uses committed grounded movement above 0.1 m/s, not raw
 W input or the sprint boolean. Reload takes priority; sprint's authored exit must
-reach ready before walking can own the model. ADS, mantle and firing also suppress
+reach ready before walking can own the model. Active ADS (including its native exit), mantle and firing also suppress
 walk. Native seconds loop without speed warping; stop/reset clears its clock and
 pause freezes it. Whole-model cuts are explicit WIP transitions. No procedural
 walking motion is added when the authored slot is unavailable.
@@ -92,3 +92,80 @@ ready after movement decays below 0.1 m/s. Gun and arms use the complete authore
 pack. Start/stop currently make whole-model cuts; authored easing and phase-aware
 walk exits have NOT been implemented. This capture exposes those seams rather
 than hiding them with procedural bob or invented transitions.
+
+
+## Authored ADS slots
+
+The semantic manifest binds `ads.asset=ads/asset.vra`, `ads.entry.clip`,
+`ads.hold.clip`, `ads.exit.clip`, and `ads.clock=native_reversible`. A future clip
+revision changes only these bindings. Alternatively, `ads=unavailable` explicitly
+removes this visual action and displays the missing-slot warning. Partial slots,
+unknown policies, missing clips, nonpositive durations, wrong looping flags,
+incompatible companions and disconnected endpoints fail before gameplay rendering.
+The ADS companion pack preserves the canonical 44-clip walk pack and its skin and
+rigid companions. All arms and rigid actors retain one complete authored owner.
+
+`ads_entry_r1` and `ads_exit_r1` are non-looping native-time transitions.
+`ads_hold_r1` loops a static authored sight pose. Entry starts at `normal_ready`;
+entry end, every hold frame and exit start match; exit ends at `normal_ready`.
+These source connections are checked with decode-rounding tolerance, never
+corrected at runtime. No procedural ADS offsets, IK, hand posing or gameplay-phase
+retargeting are used. The existing camera, field-of-view and world lighting paths
+are unchanged. Playback uses the pack's own CRC-checked renderer companions.
+
+The simulation publishes `Player.ads_requested` from its existing eligibility
+calculation, after reload/mantle/sprint decisions. `AuthoredAds::committed_step`
+observes that committed signal once per fixed tick. It never sees mouse input and
+never changes simulation state, ammunition, readiness, recoil, movement or ADS/FOV
+timings. Visual entry/exit advance at one authored second per simulation second;
+weapon-profile `ads_time` and `ads_out_time` remain independent gameplay values.
+
+Releasing during entry retraces that same entry clip from its current sample.
+Re-aiming during exit retraces that same exit clip from its current sample. Another
+reversal changes only playback direction: it does not restart an endpoint or swap
+to a different source pose. This preserves pose continuity during rapid toggles.
+A reversal changes velocity direction immediately; no additional easing filter or
+procedural transition is claimed. Repeated rendering is read-only. Pause freezes
+sample and direction, and range reset clears the controller explicitly.
+
+Priority and interruptions:
+
+- An accepted reload immediately takes its existing explicit whole-model cut and
+  cancels ADS ownership. ADS cannot reacquire until the native reload tail and
+  gameplay reload both finish; held, accepted aim then starts a fresh entry
+- Sprint or mantle forces a native authored ADS return to ready. Sprint locomotion
+  begins only after ADS returns; a sprint exit already in progress must reach ready
+  before ADS enters. Gameplay movement/traversal never waits for these visuals
+- Regular movement while aiming keeps the full ADS pose. ADS suppresses regular
+  walk until its native exit finishes. Walk-to-ADS remains an explicit WIP model
+  cut to authored entry-start, consistent with the existing walk start/stop policy
+- Firing while aiming preserves authored ADS and normal shots/recoil authority.
+  There is no authored fire kick until a fire slot is supplied. A rejected reload
+  does not restart ADS; an automatic accepted empty reload cancels it normally
+- Mantle still has no authored slot; its gameplay proceeds while ADS returns to
+  ready. No mantle animation or procedural substitute is implied
+
+For native rendered evidence through the real committed controller:
+
+```
+vector-range --no-update --reference-viewport --capture-sequence=gameplay-ads --output=ads-gameplay
+```
+
+This 9.2-second input-only replay begins with 12 rounds and exercises a complete
+entry/hold/exit, mid-entry release/re-aim, mid-exit re-aim, regular walking, ADS
+while moving, sprint interruption/re-entry, actual shots while aiming, accepted
+reload interruption/reacquisition, and final return to ready. It sets no ADS phase,
+velocity, reload timer or animation clock. The same replay inputs are used by the
+real-export contract test. Each numbered native PNG has `.gameplay.json` containing
+simulation time, scenario segment, actual presentation route, source clip, native
+clip seconds and duration, playback direction, committed aim eligibility and ADS
+fraction, movement flags, ammo/reserve/shots, reload deadlines and renderer status.
+The old `--capture-sequence=ads` remains a normalized diagnostic and does not prove
+authored ADS gameplay integration.
+
+Unit contracts cover native timing independent of profile, exact reversal sample
+continuity, real reload/fire/sprint/walk/mantle input decisions, pending sprint
+handover, pause/repeated render/reset and invalid source contracts. The optional
+`RUST_DUTY_ANIMATION_MANIFEST` asset test evaluates actual canonical source poses
+and their skin/actor transforms across the shared gameplay replay, while comparing
+all relevant gameplay outcomes against an unobserved baseline simulation.
