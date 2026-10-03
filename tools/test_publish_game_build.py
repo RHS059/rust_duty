@@ -18,7 +18,7 @@ def environment(number=10, run_id=1000):
             "GITHUB_RUN_ID": str(run_id), "GITHUB_SHA": "a" * 40,
             "GITHUB_REF_NAME": "aella/automatic-game-updates-r1",
             "GITHUB_REF": "refs/heads/aella/automatic-game-updates-r1",
-            "GITHUB_EVENT_NAME": "push", "RUST_DUTY_BUILD_VERSION": "0.1.5",
+            "GITHUB_EVENT_NAME": "push", "RUST_DUTY_BUILD_VERSION": "0.1.7",
             "RUST_DUTY_BUILD_RESULT": "success"}
 
 
@@ -86,10 +86,10 @@ class FakeGitHub:
 class BuildIdentityTests(unittest.TestCase):
     def test_one_time_version_and_sequence_do_not_increment_for_draft_pushes(self):
         item = identity.context(environment(), publication=True)
-        self.assertEqual(item["version"], "0.1.5")
+        self.assertEqual(item["version"], "0.1.7")
         self.assertEqual(item["sequence"], 5)
         self.assertEqual(item["source"]["commit"], "a" * 40)
-        self.assertEqual(identity.context(environment(11, 1002))["version"], "0.1.5")
+        self.assertEqual(identity.context(environment(11, 1002))["version"], "0.1.7")
 
     def test_fail_closed_event_repository_branch_version_and_matrix_result(self):
         for key, value in [("GITHUB_EVENT_NAME", "pull_request"), ("GITHUB_EVENT_NAME", "workflow_dispatch"),
@@ -115,7 +115,7 @@ class BuildIdentityTests(unittest.TestCase):
                 root = Path(directory)
                 binary = root / executable
                 binary.write_bytes(magic + b"native fixture")
-                with mock.patch.object(identity.subprocess, "check_output", return_value="0.1.5\n") as run:
+                with mock.patch.object(identity.subprocess, "check_output", return_value="0.1.7\n") as run:
                     identity.stamp(root, platform, environment())
                 self.assertEqual(run.call_args.args[0], [str(binary.resolve()), "--build-version"])
                 identity.verify(root, platform, identity.context(environment()))
@@ -146,7 +146,7 @@ class PublicationTests(unittest.TestCase):
             source = self.tested / platform
             source.mkdir(parents=True)
             (source / executable).write_bytes(magic + b"native fixture")
-            with mock.patch.object(identity.subprocess, "check_output", return_value="0.1.5\n"):
+            with mock.patch.object(identity.subprocess, "check_output", return_value="0.1.7\n"):
                 identity.stamp(source, platform, environment())
         with mock.patch.object(publish.package_game, "stage", side_effect=self.fixture_stage) as stage:
             self.provenance = publish.prepare(self.tested, self.output, self.identity)
@@ -192,13 +192,13 @@ class PublicationTests(unittest.TestCase):
         for platform, (target, executable, label, _) in identity.TARGETS.items():
             manifest = json.loads((self.output / f"update-{target}.json").read_text())
             self.assertEqual(manifest["schema"], 1)
-            self.assertEqual(manifest["version"], "0.1.5")
+            self.assertEqual(manifest["version"], "0.1.7")
             self.assertEqual(manifest["sequence"], 5)
             self.assertEqual(manifest["deltas"], [])
             bundle = (self.output / manifest["bundle"]["name"]).read_bytes()
             self.assertIn(b"assets/reload/asset.vra", bundle)
             self.assertNotIn(b"settings.cfg", bundle)
-            with zipfile.ZipFile(self.output / f"Rust-Duty-0.1.5-{label}-x64.zip") as archive:
+            with zipfile.ZipFile(self.output / f"Rust-Duty-0.1.7-{label}-x64.zip") as archive:
                 self.assertIn("settings.cfg", archive.namelist())
                 self.assertEqual(archive.getinfo(executable).external_attr >> 16, 0o100755)
         again = self.root / "again"
@@ -239,7 +239,7 @@ class PublicationTests(unittest.TestCase):
         self.add_baseline()
         self.assertEqual(self.publish()["status"], "published")
         self.assertEqual(len(self.github.uploads), 9)
-        self.assertEqual(publish.latest_identity(self.github), {"version": "0.1.5", "sequence": 5})
+        self.assertEqual(publish.latest_identity(self.github), {"version": "0.1.7", "sequence": 5})
         self.assertTrue(all(r.get("draft") is False for r in self.github.releases.values()))
         before = copy.deepcopy(self.github.writes)
         self.assertEqual(self.publish()["status"], "already-published")
@@ -259,13 +259,13 @@ class PublicationTests(unittest.TestCase):
         self.assertEqual(len(set(self.github.uploads)), 9)
 
     def test_out_of_order_older_run_cannot_regress_latest(self):
-        self.add_baseline("0.1.6", 6)
+        self.add_baseline("0.1.8", 6)
         self.assertEqual(self.publish()["status"], "superseded")
         self.assertFalse(self.github.writes)
         self.assertFalse(self.github.uploads)
 
     def test_sequence_version_conflicts_fail_closed(self):
-        for version, sequence in [("0.1.6", 4), ("0.1.4", 6), ("0.1.5", 4), ("0.1.4", 5)]:
+        for version, sequence in [("0.1.8", 4), ("0.1.6", 6), ("0.1.7", 4), ("0.1.4", 5)]:
             with self.subTest(version=version, sequence=sequence), self.assertRaises(ValueError):
                 publish.publication_order(self.identity, {"version": version, "sequence": sequence})
 
@@ -283,7 +283,7 @@ class PublicationTests(unittest.TestCase):
             self.publish()
 
     def test_existing_tag_on_other_commit_is_never_repointed(self):
-        self.github.tags["v0.1.5"] = "b" * 40
+        self.github.tags["v0.1.7"] = "b" * 40
         with self.assertRaisesRegex(ValueError, "exact source"):
             self.publish()
         self.assertFalse(self.github.writes)
@@ -324,7 +324,7 @@ class PublicationTests(unittest.TestCase):
             nonlocal calls
             calls += 1
             if calls == 2:
-                return {"version": "0.1.6", "sequence": 6}
+                return {"version": "0.1.8", "sequence": 6}
             return original(github)
         with mock.patch.object(publish, "latest_identity", side_effect=latest):
             self.assertEqual(self.publish()["status"], "superseded-draft")

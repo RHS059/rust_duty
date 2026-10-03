@@ -46,3 +46,5 @@ pub mod scene_lighting;
 pub mod authored_ads;
 
 pub mod layered_locomotion;
+
+pub mod muzzle_fx;

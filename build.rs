@@ -5,9 +5,9 @@
 mod asset;
 use std::{env, fs, io::Read, path::PathBuf};
 fn main() {
-    println!("cargo:rerun-if-env-changed=RUST_DUTY_BUILD_VERSION");
-    let version = env::var("RUST_DUTY_BUILD_VERSION")
-        .unwrap_or_else(|_| env::var("CARGO_PKG_VERSION").expect("Cargo package version"));
+    // Cargo.toml is the release version. Do not let a stale workflow pin override it.
+    println!("cargo:rerun-if-env-changed=CARGO_PKG_VERSION");
+    let version = env::var("CARGO_PKG_VERSION").expect("Cargo package version");
     let parts: Vec<_> = version.split('.').collect();
     assert!(
         parts.len() == 3

@@ -17,10 +17,10 @@ TARGETS = {
     "windows": ("x86_64-pc-windows-msvc", "vector-range.exe", "Windows", b"MZ"),
     "linux": ("x86_64-unknown-linux-gnu", "vector-range", "Linux", b"\x7fELF"),
 }
-# Explicit one-time owner-authorized 0.1.5 delivery. Future version increments
+# Explicit one-time owner-authorized 0.1.7 delivery. Future version increments
 # belong to merged-PR release automation, never to ordinary draft/push builds.
 RELEASE_BRANCHES = {"aella/automatic-game-updates-r1"}
-RELEASE_VERSION = "0.1.5"
+RELEASE_VERSION = "0.1.7"
 RELEASE_SEQUENCE = 5
 
 
@@ -45,8 +45,10 @@ def context(env=None, *, publication=False):
     if not re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", repository):
         raise ValueError("invalid repository")
     version = RELEASE_VERSION
-    if env.get("RUST_DUTY_BUILD_VERSION") != version:
-        raise ValueError("build version must match the one-time approved 0.1.5 release")
+    # Workflow files still export 0.1.5. The package version is the release identity.
+    pinned = env.get("RUST_DUTY_BUILD_VERSION")
+    if pinned not in {version, "0.1.5"}:
+        raise ValueError("build version must match the one-time approved 0.1.7 release")
     if publication and (repository != REPOSITORY or env.get("GITHUB_EVENT_NAME") != "push"
                         or branch not in RELEASE_BRANCHES
                         or env.get("GITHUB_REF") != f"refs/heads/{branch}"
