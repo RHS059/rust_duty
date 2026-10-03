@@ -1,27 +1,27 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T11:43:11Z",
+  "updatedAt": "2026-10-03T11:52:34Z",
   "state": "active",
-  "task": "Obtaining movement reference videos: first MP4 verified; second download is in progress",
-  "lastCompleted": "Verified the first movement reference MP4 at 1280x720, 60 fps",
+  "task": "Preparing shared animation reference review and workflow; both movement reference videos are acquired",
+  "lastCompleted": "Verified both movement reference MP4s at 1280x720, 60 fps",
   "agents": [
     {
       "slot": 1,
       "state": "active",
-      "task": "Downloading the second movement reference video",
-      "lastCompleted": "Verified the first reference MP4 at 1280x720, 60 fps"
+      "task": "Preparing a reusable movement reference download workflow",
+      "lastCompleted": "Verified both movement reference MP4s at 1280x720, 60 fps"
     },
     {
       "slot": 2,
-      "state": "idle",
-      "task": "",
-      "lastCompleted": "Verified smooth walk start/stop transitions in PR #16"
+      "state": "active",
+      "task": "Coordinating reference annotations and animation task ownership before authoring",
+      "lastCompleted": ""
     },
     {
       "slot": 3,
       "state": "idle",
       "task": "",
-      "lastCompleted": "Verified walking during ADS and complete Windows package in PR #16"
+      "lastCompleted": "Verified smooth walk transitions, walking during ADS and the complete Windows package in PR #16"
     }
   ]
 }
