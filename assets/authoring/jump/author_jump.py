@@ -1,4 +1,4 @@
-"""Author three original first-person jump Actions into a separate frozen source copy.
+"""Author three reference-guided first-person jump Actions into a separate frozen source copy.
 Usage: blender --background --factory-startup --disable-autoexec BASE.blend --python author_jump.py -- jump_design.json OUTPUT.blend
 Never saves the input, overwrites a revision, edits existing Actions or renders.
 """
@@ -96,6 +96,27 @@ for name,entry in design['actions'].items():
    for row in rows:
     t=row['frame'];v=row[prop][i];d=row['slope_per_frame'][prop][i]
     k=f.keyframe_points.insert(t,v);k.interpolation='BEZIER';k.handle_left_type='FREE';k.handle_right_type='FREE';k.handle_left=(t-1/3,v-d/3);k.handle_right=(t+1/3,v+d/3)
+ if 'preserve_curve_action' in entry:
+  previous=bpy.data.actions[entry['preserve_curve_action']]
+  for fc in a.fcurves:
+   prior=next(c for c in previous.fcurves if c.data_path==fc.data_path and c.array_index==fc.array_index)
+   fc.keyframe_points.clear()
+   for old_key in prior.keyframe_points:
+    k=fc.keyframe_points.insert(old_key.co.x,old_key.co.y);k.interpolation=old_key.interpolation;k.handle_left_type=old_key.handle_left_type;k.handle_right_type=old_key.handle_right_type;k.handle_left=old_key.handle_left;k.handle_right=old_key.handle_right
+  for row in rows:
+   for prop in ready_local:
+    for i in range(3):
+     fc=next(c for c in a.fcurves if c.data_path==f'pose.bones["{root.name}"].{prop}' and c.array_index==i)
+     k=next(k for k in fc.keyframe_points if k.co.x==row['frame'])
+     row[prop][i]=float(k.co.y);row['slope_per_frame'][prop][i]=float((k.handle_right.y-k.co.y)/(k.handle_right.x-k.co.x))
+ if 'match_start_tangent_action' in entry:
+  previous=bpy.data.actions[entry['match_start_tangent_action']]
+  for fc in a.fcurves:
+   if fc.data_path not in root_paths:continue
+   prior=next(c for c in previous.fcurves if c.data_path==fc.data_path and c.array_index==fc.array_index)
+   old_key=prior.keyframe_points[-1];k=fc.keyframe_points[0]
+   k.handle_left=k.co+(old_key.handle_left-old_key.co);k.handle_right=k.co+(old_key.handle_right-old_key.co)
+   prop=fc.data_path.rsplit('.',1)[1];rows[0]['slope_per_frame'][prop][fc.array_index]=float((k.handle_right.y-k.co.y)/(k.handle_right.x-k.co.x))
  for b in entry['beats']:m=a.pose_markers.new(b['label']);m.frame=round(b['frame'])
  a['runtime_id']=entry['runtime_id'];a['authoring_fps']=60;a['duration_seconds']=entry['duration_seconds'];a['loop']=entry['loop'];a['pose_space']='absolute';a['base_action']=ready.name;a['base_frame']=1;a['motion_origin']=design['motion_origin'];a['reference_id']=design['reference']['youtube_id'];a['source_frame_start']=entry['source_frame_range_inclusive'][0];a['source_frame_end_inclusive']=entry['source_frame_range_inclusive'][1];a['hold_after_end']=entry['hold_after_end'];a['acceptance_status']='WIP; Elara review pending';a['animated_control']='righthand_prop only';a['camera_motion']='none';a['root_motion']=False;a['purpose']=entry['purpose']
  assert list(a.frame_range)==entry['frame_range']

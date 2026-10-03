@@ -17,6 +17,7 @@ reference_geometry.json
 measure_reference.py
 fit_reference.py
 reference_frame_map.json
+reference_refinement.json
 package_manifest.json
 PUBLICATION_FILES.txt
 SHA256SUMS

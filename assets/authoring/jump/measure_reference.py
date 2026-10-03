@@ -11,6 +11,8 @@ for n in range(start,end+1):
  ok,im=c.read();assert ok;frames.append(im)
 grays=[cv2.cvtColor(im,cv2.COLOR_BGR2GRAY) for im in frames]
 regions={
+ 'front_rail':{'polygon':[[682,397],[714,407],[734,442],[720,470],[701,456],[682,425]],'anchor':[705,433]},
+ 'cuff':{'polygon':[[592,577],[627,578],[671,601],[663,643],[628,667],[595,636],[577,610]],'anchor':[633,611]},
  'optic':{'polygon':[[747,350],[770,326],[830,315],[884,322],[916,346],[916,396],[885,423],[831,426],[777,408],[748,402]],'anchor':[856,372]},
  'receiver':{'polygon':[[793,552],[976,549],[1003,566],[1002,595],[793,606]],'anchor':[904,578]},
  'support_hand':{'polygon':[[657,470],[682,435],[710,458],[748,509],[744,546],[704,566],[672,536]],'anchor':[694,512]}
@@ -32,7 +34,7 @@ for label,reg in regions.items():
 # Annotated sample crops are local analysis evidence, not a substitute for source frames.
 for n in [4033,4038,4042,4048,4054,4060,4067,4072,4076,4080,4090,4095]:
  im=Image.fromarray(cv2.cvtColor(frames[n-start],cv2.COLOR_BGR2RGB));dr=ImageDraw.Draw(im)
- for label,color in [('optic','red'),('receiver','yellow'),('support_hand','cyan')]:
+ for label,color in [('optic','red'),('receiver','yellow'),('support_hand','cyan'),('front_rail','magenta'),('cuff','lime')]:
   x,y=records[n][label]['xy'];dr.ellipse((x-5,y-5,x+5,y+5),outline=color,width=2);dr.text((x+7,y),label,fill=color)
  im.crop((580,250,1110,720)).save(p/f'tracked_{n}.png')
 out={'schema':'cod-jump-weapon-tracks/v1','source_sha256':'491a1729aa0f32373025d35fff86da76c6c1c8f057c0c553d0fbb5fb6226ff46','fps':60,'frame_origin':0,'anchor_frame':anchor,'regions':regions,'features':features,'records':records,'method':'Foreground-only Lucas-Kanade tracks with forward-backward filtering; robust per-region similarity transform from fixed n4033 anchor. Coordinates are source pixels. Camera world motion is not applied to the held-rig track.'}

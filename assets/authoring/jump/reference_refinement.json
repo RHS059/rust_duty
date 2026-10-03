@@ -1,0 +1,66 @@
+{
+  "schema": "rust-duty-jump-reference-refinement/v1",
+  "revision": "r5",
+  "review_url": "https://github.com/RHS059/dot_chat/pull/1#issuecomment-5974449246",
+  "method": {
+    "revision": "r5",
+    "review_url": "https://github.com/RHS059/dot_chat/pull/1#issuecomment-5974449246",
+    "baseline_design_commit": "2333cef50554fd4408d4950c32fe201b78f21c86",
+    "new_guide": "Source forward-rail foreground track retargeted to existing forward-weapon guide",
+    "preserved_parameter_frames": [
+      [
+        4033,
+        4045
+      ],
+      [
+        4059,
+        4063
+      ]
+    ],
+    "influence_knots": [
+      [
+        4033,
+        0
+      ],
+      [
+        4045,
+        0
+      ],
+      [
+        4050,
+        1
+      ],
+      [
+        4054,
+        1
+      ],
+      [
+        4059,
+        0
+      ],
+      [
+        4063,
+        0
+      ],
+      [
+        4067,
+        1
+      ],
+      [
+        4095,
+        1
+      ]
+    ],
+    "reason": "Refine forward-weapon trough/recovery and middle path while retaining accepted takeoff and air-lift timing; no amplitude multiplier"
+  },
+  "checks": {
+    "entire_takeoff_action_curves_identical_to_r4": true,
+    "takeoff_parameter_frames_4033_4045_unchanged": true,
+    "air_lift_parameter_frames_4059_4063_unchanged": true,
+    "phase_ranges_and_stable_runtime_ids_unchanged": true,
+    "connected_seams_and_motion_technical_passed": true
+  },
+  "passed": true,
+  "candidate_sha256": "fe47ec2961214252d831e7da743d3145b3ab219043d5a8db9622d3c387b1fa53",
+  "artistic_acceptance": "Elara paired review pending; no author score"
+}

@@ -1,13 +1,13 @@
 {
   "schema": "rust-duty-jump-source-package/v1",
-  "revision": "r4",
-  "status": "Frozen COD reference-guided retarget WIP; paired Elara review and runtime integration pending",
+  "revision": "r5",
+  "status": "Frozen COD reference-guided retarget refinement WIP; paired Elara review and runtime integration pending",
   "source_file": "halcyon_jump.blend",
-  "source_sha256": "e6e59edeac62accc185d2b53a9fe5eab7d876b0a64a404bba1495b9875e2482e",
+  "source_sha256": "fe47ec2961214252d831e7da743d3145b3ab219043d5a8db9622d3c387b1fa53",
   "filename_policy": "Stable current filename; revision is recorded in this manifest and Action names. Prior standalone sources remain in Git history.",
-  "baseline_commit": "b8ecf1c2d7e1d20ce485a093527836f86470796c",
+  "baseline_commit": "2333cef50554fd4408d4950c32fe201b78f21c86",
   "baseline_path": "assets/authoring/jump/halcyon_jump.blend",
-  "baseline_sha256": "cad1c8e661bc10a8ac2db6017598c1cc0daafdec6b09576e9b78d85edf4f642f",
+  "baseline_sha256": "e6e59edeac62accc185d2b53a9fe5eab7d876b0a64a404bba1495b9875e2482e",
   "repository_destination": "assets/authoring/jump/",
   "branch": "halcyon/jump-r1",
   "blender": "4.3.2",
@@ -36,7 +36,7 @@
     "hk416_magazine": "hk416_magazineAction"
   },
   "runtime_mapping": {
-    "jump_takeoff_r4": {
+    "jump_takeoff_r5": {
       "runtime_id": "jump_takeoff",
       "frame_range": [
         1,
@@ -50,7 +50,7 @@
       "loop": false,
       "hold_after_end": false
     },
-    "jump_air_r4": {
+    "jump_air_r5": {
       "runtime_id": "jump_air",
       "frame_range": [
         1,
@@ -64,7 +64,7 @@
       "loop": false,
       "hold_after_end": true
     },
-    "jump_land_r4": {
+    "jump_land_r5": {
       "runtime_id": "jump_land",
       "frame_range": [
         1,
@@ -80,21 +80,26 @@
     }
   },
   "verification": {
-    "original_actions_preserved": 91,
+    "original_actions_preserved": 94,
     "new_actions": 3,
-    "total_actions": 94,
+    "total_actions": 97,
     "fresh_disk_preservation_passed": true,
     "technical_motion_contacts_passed": true,
     "reproduction_passed": true,
-    "max_wrist_error_m": 7.462776761213885e-07,
+    "reference_refinement_scope_passed": true,
+    "reference_measurement_and_fit_reproduction_exact": true,
+    "max_wrist_error_m": 5.17386363392903e-07,
     "no_camera_or_world_root_motion": true,
     "overall_endpoints_exact_ready": true,
     "phase_seams_connected_pose_and_velocity": true,
-    "air_nonlooping_transition_with_holdable_final_pose": true
+    "air_nonlooping_transition_with_holdable_final_pose": true,
+    "takeoff_action_curves_identical_to_r4": true,
+    "air_lift_frames_4059_4063_parameters_unchanged": true
   },
   "review": {
     "required_reviewer": "Elara",
-    "status": "r4 paired review pending",
+    "status": "r5 paired review pending",
+    "feedback_url": "https://github.com/RHS059/dot_chat/pull/1#issuecomment-5974449246",
     "render_method": "Eevee Viewport Render Animation",
     "layout": "COD top / Eevee below",
     "stable_preview_filename": "jump_animation.mp4",
@@ -115,23 +120,23 @@
   "file_list": [
     {
       "path": "halcyon_jump.blend",
-      "bytes": 10265575,
-      "sha256": "e6e59edeac62accc185d2b53a9fe5eab7d876b0a64a404bba1495b9875e2482e"
+      "bytes": 10356996,
+      "sha256": "fe47ec2961214252d831e7da743d3145b3ab219043d5a8db9622d3c387b1fa53"
     },
     {
       "path": "README.md",
-      "bytes": 8298,
-      "sha256": "d572148f53fc131e0346289165d7766d9cac4105bd3520a4894d138633ae77d0"
+      "bytes": 9430,
+      "sha256": "25d169daece775ea18038be8aa735c1ead458560b0724d338870483b430e3f9c"
     },
     {
       "path": "jump_design.json",
-      "bytes": 25545,
-      "sha256": "56970eeb885e799b45631f00700bc7ceadbdfde1ee1ecb0c57df3104df174727"
+      "bytes": 26039,
+      "sha256": "a7884ac42eb7e7cc6707c9fa2b426e9e7633f7d4e27b2d3b4b14ade25da8db57"
     },
     {
       "path": "author_jump.py",
-      "bytes": 9700,
-      "sha256": "b61770b93bcd3c90a6e04d86cca2c5879c287397fd4ffca133d28e392a89e782"
+      "bytes": 11230,
+      "sha256": "86a5c24b3785af2a3f0b19b4bbf789822c96c586bc6cc144ccb64e6e6c1e1521"
     },
     {
       "path": "source_integrity.py",
@@ -146,47 +151,47 @@
     {
       "path": "validate_jump.py",
       "bytes": 8934,
-      "sha256": "db5d78f772d698279ce4d17f526fc6fd563c6d0286dd2a97e2d313586e47e334"
+      "sha256": "5ec311bd509f2e068f4f9994f293bb5436e646e5385ccc7d66d6ba1b594e9cc2"
     },
     {
       "path": "authored_root_keys.json",
-      "bytes": 58363,
-      "sha256": "c88b6077a5026758a14112f3d238d3d495b6a60c6df385de8438a916058c4253"
+      "bytes": 58400,
+      "sha256": "076fc328a6d4d7a9b3ad1a220f65e1bb3bc09f7fa62b68bf5dfc7bb60c3f18ef"
     },
     {
       "path": "authoring_preservation.json",
       "bytes": 927,
-      "sha256": "0a185187dd2ad29c45349fdbb831f45f5cbc1c4acd9b5f12b06c11c11f081eac"
+      "sha256": "b9fd1d3909ba93268a1b48186f06a2855ea401f4b72f6d7aa4a49314d249c4cb"
     },
     {
       "path": "baseline_fingerprint.json",
-      "bytes": 342871,
-      "sha256": "30ee6e8bb06dc17f984e3ab2dfad801dc2c362d97c97055dee57c79f89f680f6"
+      "bytes": 346228,
+      "sha256": "1b3d870ed1346eec1525bf47e9721009ec3a74d09faa7f2728c8b24bba6d7ea5"
     },
     {
       "path": "source_preservation.json",
-      "bytes": 347260,
-      "sha256": "d9e67bac12bddfbd3e45e378279489ef34403d2393b612747f95915c116bc955"
+      "bytes": 350719,
+      "sha256": "a2add1e80ea239c822e4fd81694763e7493bb209521df58c45f681ee8fd7fc7b"
     },
     {
       "path": "jump_technical_validation.json",
-      "bytes": 123985,
-      "sha256": "60a729e5b28feb8d02781a55d770e10262f985016d48eb39c7c19ac2b6f6bb03"
+      "bytes": 123933,
+      "sha256": "dbb76f3d96503176f46209a7ba226ce2de5b1292871cbd3434c32db76811afb0"
     },
     {
       "path": "reproduction_check.json",
-      "bytes": 853,
-      "sha256": "dde482c2bb00de6c7c9b6cb83383fbf015707d7efa2c677b5a3167fc03ca8597"
+      "bytes": 827,
+      "sha256": "6a9093409de9eb8f70c6d4c51732a8d23de21d0354d2d3ea2246245963dce979"
     },
     {
       "path": "reference_weapon_tracks.json",
-      "bytes": 142286,
-      "sha256": "676f740d6fd7f86ed4fa104e0fdb0666f8d5c88f884fce6f80e4acff05c8b67f"
+      "bytes": 232735,
+      "sha256": "dabe74d6a82e5138d591a8305c836e0bb446c5c36c5934e83f1cf01a4504a80a"
     },
     {
       "path": "reference_retarget.json",
-      "bytes": 75277,
-      "sha256": "b16670565e452f2077f689695df68e7e184a766c74091f7291374df759d67f54"
+      "bytes": 91638,
+      "sha256": "090d43b105f03f34c8731fadb3aaf929d74a4532c2d48b07eb8ddeedcda78222"
     },
     {
       "path": "reference_geometry.json",
@@ -195,18 +200,23 @@
     },
     {
       "path": "measure_reference.py",
-      "bytes": 3929,
-      "sha256": "81230d3f67b88dd26598e057e8459a8c8aab51dd1a996666d1ec4838d1fa84d1"
+      "bytes": 4190,
+      "sha256": "1bd2e9ff6d77396b79dfe9ddc80fac533f12befd72a8de67d5db32595853aa8f"
     },
     {
       "path": "fit_reference.py",
-      "bytes": 4501,
-      "sha256": "457afcfc4d07307b2f93932f8d2109eb49b33a183c39ce80de31e2be5a67817c"
+      "bytes": 5924,
+      "sha256": "2255b4395a36ed8e863d48b1d64d3649b678b44e4c27fdc276b7143918b4c299"
     },
     {
       "path": "reference_frame_map.json",
       "bytes": 25973,
-      "sha256": "575413fb08edb41a100a39850b823202051dd8165e378d2b4917dede82e7bf64"
+      "sha256": "e12d0dd88a5d1b0c454ee534fa672a657a61dcdc42c1db7e973746ba296e8dab"
+    },
+    {
+      "path": "reference_refinement.json",
+      "bytes": 1592,
+      "sha256": "99b95d6adddfa444491db191b0e56d3ab67a1ecb8b06972456f1f8675f6da1cb"
     }
   ],
   "reference": {
