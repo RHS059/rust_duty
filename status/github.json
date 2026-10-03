@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T17:03:42.271Z",
+  "updatedAt": "2026-10-03T17:13:56.440Z",
   "latestComplete": {
     "sha": "e46f83d84ece0c28ffbd10cf4504ed4ea0f91878",
     "downloadUrl": "https://github.com/RHS059/rust_duty/actions/runs/37130396740/artifacts/11277161595",
@@ -14,11 +14,11 @@
     "Complete 83-file Windows package includes existing walk, sprint and full WIP reload assets plus the new HIP and ADS companions",
     "All three workflows passed; native Linux layered-input diagnostics passed at 30 and 60 Hz",
     "Windows ZIP integrity, SHA-256, PE executable and complete-package verification passed",
-    "ADS v4 baseline scores remain forward 35, backward 32, left 34, right 33, all failed. Separate ADS v5 Trial1 forward received Fail51: sights locked and figure-eight removed, but motion too flat; the prior v4 sight-break claim was corrected. ADS v6 Trial1 is a local forward revision awaiting Eevee comparison, with source/docs remote publication stopped. No v5/v6 runtime or visual-approval claim; reference fidelity, contact and artistic approval remain open; Windows gameplay unverified"
+    "ADS v4 baseline scores remain forward 35, backward 32, left 34, right 33, all failed. Separate ADS v5 Trial1 forward received Fail51: sights locked and figure-eight removed, but motion too flat; the prior v4 sight-break claim was corrected. ADS v6 Trial1 remains a local forward revision, with 126-sample preflight passed and Eevee viewport capture setup active; no v6 media are complete or reviewed. Source/docs remote publication remains stopped. No v5/v6 runtime or visual-approval claim; reference fidelity, contact and artistic approval remain open; Windows gameplay unverified."
   ],
   "currentBuild": {
     "state": "idle",
-    "task": "PR #17 remains at e46f83d with all three workflows passed; Windows artifact 11277161595 is unexpired and its SHA-256 still matches. No new game build. Animation-review migration to RHS059/rust_duty_updates is active: seven verified Aella MP4s are ready and publication is starting, with frontend playback pending. The previous ChatGPT Site is retired and publishing stopped. Eevee rendering is complete; ADS v6 forward comparison remains pending.",
+    "task": "PR #17 remains at e46f83d with all three workflows passed; Windows artifact 11277161595 is unexpired and its SHA-256 still matches a4b176913a82edf93dc8e1642259be2c6aadb0f3ece05693924ff10ae65eb3af. No new game build. Animation-review migration to https://rhs059.github.io/rust_duty_updates/ is complete: seven Aella MP4s published at fc54d8f, deployment 37139286287 succeeded, and exact bytes/hashes plus frontend playback are verified. The previous ChatGPT Site is retired and publishing stopped. ADS v6 forward Eevee capture setup is active; v6 remains unreviewed.",
     "url": "https://github.com/RHS059/rust_duty/actions/runs/37130396740"
   }
 }
