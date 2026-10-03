@@ -1,0 +1,98 @@
+{
+  "schema": "rust-duty-locomotion-distribution/v1",
+  "clip_count": 43,
+  "clip_names": [
+    "normal_ready",
+    "normal_entry",
+    "normal_loop",
+    "normal_exit",
+    "normal_entry_connected",
+    "normal_loop_to_exit",
+    "normal_exit_connected",
+    "normal_exit_bridge_000",
+    "normal_exit_bridge_001",
+    "normal_exit_bridge_002",
+    "normal_exit_bridge_003",
+    "normal_exit_bridge_004",
+    "normal_exit_bridge_005",
+    "normal_exit_bridge_006",
+    "normal_exit_bridge_007",
+    "normal_exit_bridge_008",
+    "normal_exit_bridge_009",
+    "normal_exit_bridge_010",
+    "normal_exit_bridge_011",
+    "normal_exit_bridge_012",
+    "normal_exit_bridge_013",
+    "normal_exit_bridge_014",
+    "normal_exit_bridge_015",
+    "normal_exit_bridge_016",
+    "normal_exit_bridge_017",
+    "normal_exit_bridge_018",
+    "normal_exit_bridge_019",
+    "normal_exit_bridge_020",
+    "normal_exit_bridge_021",
+    "normal_exit_bridge_022",
+    "normal_exit_bridge_023",
+    "normal_exit_bridge_024",
+    "normal_exit_bridge_025",
+    "normal_exit_bridge_026",
+    "normal_exit_bridge_027",
+    "normal_exit_bridge_028",
+    "normal_exit_bridge_029",
+    "normal_exit_bridge_030",
+    "normal_exit_bridge_031",
+    "normal_exit_bridge_032",
+    "normal_exit_bridge_033",
+    "normal_exit_bridge_034",
+    "normal_settle"
+  ],
+  "files": {
+    "asset.vra": {
+      "bytes": 10736787,
+      "sha256": "d02d04d4adb429b6493bf3347b302dc007bb7b99f4761da3c2b314e6d313c6ab"
+    },
+    "asset.vrm": {
+      "bytes": 10641724,
+      "sha256": "d11736162b2cda993db3cdd5d4015aff2b151ea6377b8b954370b54006e02d67"
+    },
+    "asset.vrs": {
+      "bytes": 16663274,
+      "sha256": "b38b7f823ddf7bd6f032ed98d33f055cd444caf51558146911b7a678c6e3ce92"
+    }
+  },
+  "source": {
+    "fbx_sha256": "1aede64bdf4be7bc7147e9ca930deb6e7a786d068dc8069e0533c548fe0dc3f8",
+    "fbx_bytes": 45375356,
+    "final_blend_sha256": "b8fc6b9ca7342fd70deb6479d1b699a91cc884edc446ae5f8ddc82145eed1e18",
+    "export_blend_sha256": "1c44a7660cfd67923a527f363c04c17f35aad2c460ae315484ad53f586f86f52",
+    "runtime_contract_commit": "9c7d1ce8a23c5da70c0bb0cf795b944f6f7d1138",
+    "converter_version": "0.2.0",
+    "parser_distribution": "ufbx",
+    "parser_version": "0.0.9+halcyon.1",
+    "parser_source_commit": "9eb1bd499c523b9fce4877c28dff395ed03dd994",
+    "evaluated_bake_hz": 480,
+    "selected_loop": "AngleFix",
+    "derivation": "42 validated source takes plus normal_settle copied from normal_exit_connected, with elapsed timestamps rebased"
+  },
+  "validation": {
+    "bones": 72,
+    "rigid_actors": 2,
+    "native_stored_samples": 538,
+    "native_between_key_samples": 496,
+    "maximum_between_key_skin_error_m": 0.00019581411431098924,
+    "maximum_between_key_rigid_error_m": 0.00023830917621797736,
+    "between_key_limit_m": 0.001,
+    "scope": "Frozen numerical parity evidence; not a gameplay visual-acceptance claim"
+  },
+  "rights": "Project-owner-authorized distribution of these exact converted files with Rust Duty. Original asset rights remain with their holders; the code MIT license does not grant a separate asset reuse license.",
+  "repository_transport": {
+    "asset.vrs": {
+      "file": "asset.vrs.gz",
+      "encoding": "gzip",
+      "bytes": 4088316,
+      "sha256": "d2bd669fe44644de6a536ddb4e6829fb9571a84b95b4d74166e3c055fce76760",
+      "decoded_bytes": 16663274,
+      "decoded_sha256": "b38b7f823ddf7bd6f032ed98d33f055cd444caf51558146911b7a678c6e3ce92"
+    }
+  }
+}
