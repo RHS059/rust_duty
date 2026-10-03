@@ -1,27 +1,27 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T14:13:24Z",
+  "updatedAt": "2026-10-03T14:25:29.316Z",
   "state": "active",
-  "task": "Integrating directional movement and ADS updates",
-  "lastCompleted": "Verified PR #17's complete Windows package and 30/60 Hz native layered-input diagnostics",
+  "task": "Integrating four-direction locomotion and ADS; reference review awaits gameplay captures",
+  "lastCompleted": "Validated four-direction export parity and ADS sight alignment and hand contact",
   "agents": [
     {
       "slot": 1,
       "state": "active",
-      "task": "Refining and preparing the new arm-and-weapon ADS motion for game integration",
-      "lastCompleted": "Whole-assembly ADS structural checks passed with sight alignment and grip preserved"
+      "task": "Saving the updated ADS animation source and configuration",
+      "lastCompleted": "Completed ADS v4 handoff and four-direction previews; sight and hand-contact checks passed"
     },
     {
       "slot": 2,
       "state": "active",
-      "task": "Reviewing ADS cadence, lateral motion and reference matching",
-      "lastCompleted": "Checked sight alignment and grip; full-window 80% motion matching remains unverified"
+      "task": "Finishing packaging regression tests for four directional walk clips",
+      "lastCompleted": "Passed all 100 export-to-runtime parity samples and generated-asset verification"
     },
     {
       "slot": 3,
       "state": "active",
-      "task": "Integrating four directional walk clips and new ADS motion into the playable game",
-      "lastCompleted": "Verified PR #17's layered runtime, complete Windows package and 30/60 Hz native diagnostics"
+      "task": "Preparing the combined directional locomotion and ADS revision for a game build",
+      "lastCompleted": "Enabled all four HIP clips and ADS v4 locally; compile and focused controller tests passed"
     }
   ]
 }
