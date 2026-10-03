@@ -376,8 +376,10 @@ fn weapon(
     } else {
         Color::new(0., 0., 0., 0.)
     });
+    // Saved viewmodel offset: +X right, +Y up. Applied before the gun is drawn.
+    let view_offset = vec3(cfg.viewmodel_x, cfg.viewmodel_y, 0.);
     if let Some(authored) = authored {
-        authored.draw(sim.time, lighting);
+        authored.draw(sim.time, lighting, view_offset);
         composite_viewmodel(rt);
         return;
     }
@@ -395,7 +397,7 @@ fn weapon(
             - reload
             - motion.sprint * 0.13,
         -0.32 + p.shot_kick * 0.045,
-    );
+    ) + view_offset;
     let mut muzzle_position = o + vec3(0., 0.01, -1.04);
     let mut barrel = -Vec3::Z;
     if let Some(model) = model {
@@ -442,7 +444,7 @@ fn weapon(
             animation.left_hand_euler_yxz = [0.; 3];
         }
         let visual_ads = vector_range::reference_motion::visual_ads(p.ads);
-        let base = framing.hip.lerp(framing.ads, visual_ads) + vec3(0., bob, 0.);
+        let base = framing.hip.lerp(framing.ads, visual_ads) + vec3(0., bob, 0.) + view_offset;
         let frame = vector_range::view_animation::WeaponFrame::with_orientation(
             base,
             framing.hip_rotation.slerp(framing.ads_rotation, visual_ads),
@@ -734,12 +736,89 @@ fn hud(
         }
     }
 }
+struct MenuGeom {
+    x: f32,
+    y: f32,
+    w: f32,
+    h: f32,
+}
+fn menu_geom() -> MenuGeom {
+    let (sw, sh) = (screen_width(), screen_height());
+    let w = 540.;
+    let h = 648.;
+    MenuGeom {
+        x: sw * 0.5 - w * 0.5,
+        y: (sh * 0.5 - h * 0.5).max(8.),
+        w,
+        h,
+    }
+}
+/// Hit boxes for the viewmodel sliders. Index 0 is left/right, 1 is up/down.
+fn viewmodel_slider_rects(geom: MenuGeom) -> [(f32, f32, f32, f32); 2] {
+    let left = geom.x + 38.;
+    let width = 464.;
+    [
+        (left, geom.y + 400., width, 56.),
+        (left, geom.y + 460., width, 56.),
+    ]
+}
+fn pointer_in_rect(rect: (f32, f32, f32, f32)) -> bool {
+    let (mx, my) = mouse_position();
+    mx >= rect.0 && mx <= rect.0 + rect.2 && my >= rect.1 && my <= rect.1 + rect.3
+}
+fn viewmodel_slider_under_pointer() -> Option<usize> {
+    viewmodel_slider_rects(menu_geom())
+        .into_iter()
+        .position(pointer_in_rect)
+}
+fn slider_value_from_pointer(rect: (f32, f32, f32, f32)) -> f32 {
+    let (mx, _) = mouse_position();
+    let t = ((mx - rect.0) / rect.2).clamp(0., 1.);
+    let limit = Settings::VIEWMODEL_OFFSET_LIMIT;
+    ((t * 2. - 1.) * limit).clamp(-limit, limit)
+}
+fn apply_viewmodel_slider(cfg: &mut Settings, axis: usize) {
+    let rect = viewmodel_slider_rects(menu_geom())[axis];
+    let value = slider_value_from_pointer(rect);
+    if axis == 0 {
+        cfg.set_viewmodel(value, cfg.viewmodel_y);
+    } else {
+        cfg.set_viewmodel(cfg.viewmodel_x, value);
+    }
+}
+fn draw_offset_slider(title: &str, value: f32, rect: (f32, f32, f32, f32)) {
+    label(
+        &format!("{title}   {value:+.3} m"),
+        rect.0,
+        rect.1 + 16.,
+        17.,
+        WHITE,
+    );
+    let track_y = rect.1 + 26.;
+    let track_h = 12.;
+    draw_rectangle(
+        rect.0,
+        track_y,
+        rect.2,
+        track_h,
+        Color::new(0.08, 0.12, 0.15, 1.),
+    );
+    let limit = Settings::VIEWMODEL_OFFSET_LIMIT;
+    let t = ((value / limit) + 1.) * 0.5;
+    let knob_x = rect.0 + t.clamp(0., 1.) * rect.2;
+    let mid = rect.0 + rect.2 * 0.5;
+    let fill_x = mid.min(knob_x);
+    let fill_w = (knob_x - mid).abs().max(1.);
+    draw_rectangle(fill_x, track_y, fill_w, track_h, ACCENT);
+    draw_rectangle(mid - 1., track_y - 3., 2., track_h + 6., CYAN);
+    draw_rectangle(knob_x - 5., track_y - 4., 10., track_h + 8., WHITE);
+}
 fn pause_screen(cfg: &Settings, initial: bool, control_mode: ControlMode) {
     let (w, h) = (screen_width(), screen_height());
     draw_rectangle(0., 0., w, h, Color::new(0.015, 0.025, 0.035, 0.78));
-    let x = w * 0.5 - 270.;
-    let y = (h * 0.5 - 250.).max(30.);
-    draw_rectangle(x, y, 540., 500., Color::new(0.035, 0.057, 0.074, 0.97));
+    let geom = menu_geom();
+    let (x, y) = (geom.x, geom.y);
+    draw_rectangle(x, y, geom.w, geom.h, Color::new(0.035, 0.057, 0.074, 0.97));
     draw_rectangle(x, y, 540., 3., ACCENT);
     label("VECTOR", x + 36., y + 68., 48., WHITE);
     label(
@@ -794,17 +873,34 @@ fn pause_screen(cfg: &Settings, initial: bool, control_mode: ControlMode) {
         18.,
         WHITE,
     );
+    let tracks = viewmodel_slider_rects(geom);
+    draw_offset_slider("LEFT / RIGHT", cfg.viewmodel_x, tracks[0]);
+    draw_offset_slider("UP / DOWN", cfg.viewmodel_y, tracks[1]);
+    label(
+        "Drag a slider. Range is plus or minus 0.20 m.",
+        x + 38.,
+        y + 536.,
+        14.,
+        MUTED,
+    );
     label(
         "F5 SAVE PRESET    F6 RELOAD PRESET    F10 QUIT",
         x + 38.,
-        y + 428.,
+        y + 564.,
         15.,
         CYAN,
     );
     label(
+        "F5 stores the viewmodel offset as the new default.",
+        x + 38.,
+        y + 590.,
+        14.,
+        MUTED,
+    );
+    label(
         "Provisional tuning. No original-game code or assets.",
         x + 38.,
-        y + 464.,
+        y + 614.,
         14.,
         MUTED,
     );
@@ -897,6 +993,7 @@ async fn main() {
     target.texture.set_filter(FilterMode::Linear);
     let mut initial = true;
     let mut session = vector_range::session::SessionController::default();
+    let mut viewmodel_drag: Option<usize> = None;
     let mut debug = false;
     let mut fullscreen = false;
     let mut clock = FixedClock::default();
@@ -1174,14 +1271,28 @@ async fn main() {
         }
         let startup_blocked = game_update.startup_blocked();
         let update_pointer = game_update.consumes_pointer(!session.is_active());
+        let menu_open = !session.is_active() && !startup_blocked && !update_pointer;
+        if !menu_open {
+            viewmodel_drag = None;
+        } else if is_mouse_button_pressed(MouseButton::Left) {
+            viewmodel_drag = viewmodel_slider_under_pointer();
+        } else if !is_mouse_button_down(MouseButton::Left) {
+            viewmodel_drag = None;
+        }
+        if let Some(axis) = viewmodel_drag {
+            apply_viewmodel_slider(&mut cfg, axis);
+        }
+        let allow_menu_click = viewmodel_drag.is_none();
         let transition = session.step(vector_range::session::SessionInput {
             esc_pressed: is_key_pressed(KeyCode::Escape),
             esc_down: is_key_down(KeyCode::Escape),
             enter_pressed: is_key_pressed(KeyCode::Enter),
             enter_down: is_key_down(KeyCode::Enter),
             click_pressed: is_mouse_button_pressed(MouseButton::Left)
+                && allow_menu_click
                 && (startup_blocked || !update_pointer),
             click_down: is_mouse_button_down(MouseButton::Left)
+                && allow_menu_click
                 && (startup_blocked || !update_pointer),
             focus_shortcut_pressed: is_key_down(KeyCode::LeftAlt)
                 || is_key_down(KeyCode::RightAlt)

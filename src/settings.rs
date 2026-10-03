@@ -4,6 +4,10 @@ use std::{fs, path::Path};
 pub struct Settings {
     pub sensitivity: f32,
     pub fov: f32,
+    /// Camera-space viewmodel offset in meters. Positive X is right, positive Y is up.
+    pub viewmodel_x: f32,
+    /// Camera-space viewmodel offset in meters. Positive X is right, positive Y is up.
+    pub viewmodel_y: f32,
     pub ads_fov: f32,
     pub walk_speed: f32,
     pub sprint_speed: f32,
@@ -33,6 +37,8 @@ impl Default for Settings {
         Self {
             sensitivity: 0.10,
             fov: 90.,
+            viewmodel_x: 0.,
+            viewmodel_y: 0.,
             ads_fov: 65.,
             walk_speed: 4.826,
             sprint_speed: 7.239,
@@ -59,6 +65,20 @@ impl Default for Settings {
     }
 }
 impl Settings {
+    /// Largest saved viewmodel offset on each axis, in meters.
+    pub const VIEWMODEL_OFFSET_LIMIT: f32 = 0.20;
+
+    /// Set the saved viewmodel offset. X is right, Y is up. Each axis clamps to +/- 0.20 m.
+    pub fn set_viewmodel(&mut self, x: f32, y: f32) {
+        let limit = Self::VIEWMODEL_OFFSET_LIMIT;
+        if x.is_finite() {
+            self.viewmodel_x = x.clamp(-limit, limit);
+        }
+        if y.is_finite() {
+            self.viewmodel_y = y.clamp(-limit, limit);
+        }
+    }
+
     /// Published-data M4A1-inspired candidate, separate from the authored default.
     ///
     /// Timing targets are provisional 2009 multiplayer values without perks or
@@ -104,6 +124,16 @@ impl Settings {
                         let slot = match key.trim() {
                             "sensitivity" => Some((&mut s.sensitivity, 0.01, 1.)),
                             "fov" => Some((&mut s.fov, 65., 120.)),
+                            "viewmodel_x" => Some((
+                                &mut s.viewmodel_x,
+                                -Self::VIEWMODEL_OFFSET_LIMIT,
+                                Self::VIEWMODEL_OFFSET_LIMIT,
+                            )),
+                            "viewmodel_y" => Some((
+                                &mut s.viewmodel_y,
+                                -Self::VIEWMODEL_OFFSET_LIMIT,
+                                Self::VIEWMODEL_OFFSET_LIMIT,
+                            )),
                             "ads_fov" => Some((&mut s.ads_fov, 35., 100.)),
                             "walk_speed" => Some((&mut s.walk_speed, 1., 12.)),
                             "sprint_speed" => Some((&mut s.sprint_speed, 1., 18.)),
@@ -143,6 +173,8 @@ impl Settings {
         let fields = [
             ("sensitivity", self.sensitivity),
             ("fov", self.fov),
+            ("viewmodel_x", self.viewmodel_x),
+            ("viewmodel_y", self.viewmodel_y),
             ("ads_fov", self.ads_fov),
             ("walk_speed", self.walk_speed),
             ("sprint_speed", self.sprint_speed),
@@ -190,6 +222,34 @@ mod tests {
         let roundtrip = Settings::load(&path);
         assert_eq!(roundtrip.fov, s.fov);
         assert_eq!(roundtrip.reload_time, s.reload_time);
+        fs::remove_file(path).unwrap();
+    }
+
+    #[test]
+    fn viewmodel_offset_clamps_and_roundtrips() {
+        let path = std::env::temp_dir().join(format!(
+            "vector-viewmodel-offset-{}.cfg",
+            std::process::id()
+        ));
+        fs::write(
+            &path,
+            "viewmodel_x = 0.05\nviewmodel_y = 9\nviewmodel_x = NaN\n",
+        )
+        .unwrap();
+        let loaded = Settings::load(&path);
+        assert_eq!(loaded.viewmodel_x, 0.05);
+        assert_eq!(loaded.viewmodel_y, Settings::VIEWMODEL_OFFSET_LIMIT);
+        let mut set = Settings::default();
+        set.set_viewmodel(1., -1.);
+        assert_eq!(set.viewmodel_x, Settings::VIEWMODEL_OFFSET_LIMIT);
+        assert_eq!(set.viewmodel_y, -Settings::VIEWMODEL_OFFSET_LIMIT);
+        set.set_viewmodel(f32::NAN, 0.01);
+        assert_eq!(set.viewmodel_x, Settings::VIEWMODEL_OFFSET_LIMIT);
+        assert_eq!(set.viewmodel_y, 0.01);
+        loaded.save(&path).unwrap();
+        let roundtrip = Settings::load(&path);
+        assert_eq!(roundtrip.viewmodel_x, loaded.viewmodel_x);
+        assert_eq!(roundtrip.viewmodel_y, loaded.viewmodel_y);
         fs::remove_file(path).unwrap();
     }
 }
