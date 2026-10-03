@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T20:53:48Z",
+  "updatedAt": "2026-10-03T21:05:26Z",
   "state": "active",
-  "task": "Improving forward ADS motion and connecting complete integration builds to the in-game update feed.",
+  "task": "Refining forward and lateral ADS motion; fixing in-game updates and preparing version 0.1.5 with release and asset-safety checks.",
   "lastCompleted": "HIP r5 is in the complete c60c53fe Windows package; all three workflows passed. Lateral ADS Trial3 is live and awaiting review.",
   "agents": [
     {
@@ -13,8 +13,8 @@
     },
     {
       "slot": 2,
-      "state": "idle",
-      "task": "Lateral ADS Trial3 awaits independent motion review.",
+      "state": "active",
+      "task": "Analyzing lateral ADS motion for the next revision; Trial3 remains unscored.",
       "lastCompleted": "Both Trial3 comparisons and same-r5 controls are live and hash/playback verified; Trial3 is unscored."
     },
     {
