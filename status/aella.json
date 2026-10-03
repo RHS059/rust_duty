@@ -1,27 +1,27 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T19:03:16Z",
+  "updatedAt": "2026-10-03T19:13:32Z",
   "state": "active",
-  "task": "Coordinating the lateral Trial2 capture and forward ADS v7 review.",
-  "lastCompleted": "Completed forward v7 source and the 126-frame Eevee comparison; publication and visual review are pending.",
+  "task": "Coordinating HIP r5 game integration and the forward and lateral ADS reviews.",
+  "lastCompleted": "All four HIP r5 motions passed Elara's review: forward 82, backward 83, left 82 and right 81. Game integration is pending.",
   "agents": [
     {
       "slot": 1,
       "state": "idle",
-      "task": "Forward v7 is frozen awaiting publication and review.",
-      "lastCompleted": "Completed forward v7 source, capture and reference comparison; the 1.6 mm joint-anchor caveat remains."
+      "task": "Forward v7 is frozen awaiting publication and visual review.",
+      "lastCompleted": "Completed forward v7 source and the 126-frame Eevee comparison; the 1.6 mm joint-anchor caveat remains."
     },
     {
       "slot": 2,
       "state": "active",
-      "task": "Preparing a 198-frame Eevee viewport capture for Trial2 two-phase footfall diagnostics.",
-      "lastCompleted": "Trial1 remains Fail32 left and Fail31 right; centered sight landmarks were verified."
+      "task": "Finishing the right-side Trial2 Eevee viewport capture.",
+      "lastCompleted": "The left-side Trial2 Eevee capture is ready; visual review remains pending."
     },
     {
       "slot": 3,
-      "state": "idle",
-      "task": "Game integration is idle at the local test checkpoint.",
-      "lastCompleted": "Local checkpoint 77a53ce passed 490 tests; latest verified published game build remains e46f83d."
+      "state": "active",
+      "task": "Preparing the exact HIP r5 source handoff for game integration.",
+      "lastCompleted": "HIP r5 source 36d76491 passed all four motion reviews; latest verified published game build remains e46f83d."
     }
   ]
 }
