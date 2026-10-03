@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T04:41:39Z",
+  "updatedAt": "2026-10-03T04:51:19Z",
   "state": "idle",
   "task": "",
-  "lastCompleted": "Verified the complete authored walking and reload build; walking start/stop easing remains unfinished. WIP merge confirmation is pending.",
+  "lastCompleted": "Confirmed ADS source is still absent and coordinated lighting/ADS ownership; complete walking and reload build remains verified",
   "agents": [
     {
       "slot": 1,
@@ -21,7 +21,7 @@
       "slot": 3,
       "state": "idle",
       "task": "",
-      "lastCompleted": "Validated authored walking conversion and preservation of all 43 existing clips"
+      "lastCompleted": "Checked committed ADS manifest and source Action inventories"
     }
   ]
 }
