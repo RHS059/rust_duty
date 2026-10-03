@@ -161,6 +161,26 @@ def verify(root: Path) -> dict:
     return {"clip_count": len(CLIPS), "files": manifest["files"]}
 
 
+def materialize(root: Path) -> dict:
+    """Decode verified repository transport for native tests/tools in this checkout."""
+    root = Path(root)
+    report = verify(root)
+    manifest = json.loads(regular_file(root, ASSET_DIR / "manifest.json").read_text())
+    for name in COMPANIONS:
+        destination = root / ASSET_DIR / name
+        if not destination.exists():
+            blob = companion_bytes(root, name, manifest)
+            with tempfile.NamedTemporaryFile(dir=destination.parent, prefix=".materialize-", delete=False) as stream:
+                temporary = Path(stream.name)
+                stream.write(blob)
+            try:
+                temporary.replace(destination)
+            finally:
+                temporary.unlink(missing_ok=True)
+    verify(root)
+    return report
+
+
 def verify_generated_pack(root: Path, folder: Path, expected_source=None) -> dict:
     """Bind shipped companions, successful Rust parity and canonical source hashes."""
     root = Path(root)
@@ -271,6 +291,8 @@ def main():
     check = commands.add_parser("verify")
     check.add_argument("--root", type=Path, default=Path("."))
     check.add_argument("--require-generated", action="store_true")
+    unpack = commands.add_parser("materialize")
+    unpack.add_argument("--root", type=Path, default=Path("."))
     packaging = commands.add_parser("stage")
     packaging.add_argument("--root", type=Path, default=Path("."))
     packaging.add_argument("--binary", required=True)
@@ -278,8 +300,12 @@ def main():
     packaging.add_argument("--update", action="store_true")
     packaging.add_argument("--require-generated", action="store_true")
     args = parser.parse_args()
-    report = (verify(args.root) if args.command == "verify"
-              else stage(args.root, args.binary, args.output, args.update, args.require_generated))
+    if args.command == "verify":
+        report = verify(args.root)
+    elif args.command == "materialize":
+        report = materialize(args.root)
+    else:
+        report = stage(args.root, args.binary, args.output, args.update, args.require_generated)
     if args.command == "verify" and args.require_generated:
         report["generated_reload"] = verify_generated(args.root)
     print(json.dumps(report, indent=2))

@@ -43,7 +43,9 @@ jobs:
         with:
           python-version: '3.12'
       - run: python -m pip install -r tools/requirements-assets.txt cryptography
-      - name: Verify required locomotion companions
+      - name: Materialize verified locomotion transport for native gameplay tests
+        run: python tools/package_game.py materialize --root .
+      - name: Verify all generated and committed companions
         run: python tools/package_game.py verify --root . --require-generated
       - run: python -m unittest discover -s tools -p "test_*.py" -v
       - name: Format and capture required source changes

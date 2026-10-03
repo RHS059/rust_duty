@@ -46,6 +46,16 @@ class PackageGameTests(unittest.TestCase):
         self.assertEqual((destination / package.ASSET_DIR / "asset.vrs").read_bytes(), expected)
         self.assertFalse((destination / package.ASSET_DIR / "asset.vrs.gz").exists())
 
+    def test_materialize_verifies_and_restores_raw_skin_for_native_runtime(self):
+        raw = self.root / package.ASSET_DIR / "asset.vrs"
+        expected = raw.read_bytes()
+        raw.unlink()
+        shutil.copy2(ROOT / package.ASSET_DIR / "asset.vrs.gz", self.root / package.ASSET_DIR / "asset.vrs.gz")
+        package.materialize(self.root)
+        self.assertEqual(raw.read_bytes(), expected)
+        package.materialize(self.root)
+        self.assertEqual(raw.read_bytes(), expected)
+
     def test_compressed_missing_and_corrupt_fail_closed(self):
         (self.root / package.ASSET_DIR / "asset.vrs").unlink()
         with self.assertRaisesRegex(ValueError, "missing"):
