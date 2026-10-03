@@ -1,27 +1,27 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T17:13:56.440Z",
+  "updatedAt": "2026-10-03T17:23:20Z",
   "state": "active",
-  "task": "Coordinating ADS v6 forward Eevee comparison and reference-animation review. The animation gallery has moved to https://rhs059.github.io/rust_duty_updates/: seven Aella review MP4s are published, exact bytes and hashes match, and frontend playback is verified. The previous ChatGPT Site is retired and publishing remains stopped.",
-  "lastCompleted": "Gallery media published at fc54d8fdc17010a57a87bd63ca82aa7b10e3449d with successful deployment 37139286287. ADS v6 numerical preflight passed for 126 samples, and the temporary Blender reload scene was preserved in a verified separate checkpoint. ADS v5 remains Fail51; v6 is unreviewed. PR #17 remains the verified e46f83d complete build.",
+  "task": "Coordinating publication and independent review of the completed ADS v6 forward Eevee comparison. Seven earlier Aella review MP4s remain live at https://rhs059.github.io/rust_duty_updates/. The v6 media are validated and uploaded as an unlinked Git blob, awaiting a separate gallery entry before publication. The previous ChatGPT Site is retired and publishing remains stopped.",
+  "lastCompleted": "ADS v6 forward comparison completed: 126 frames at 60 fps over 2.1 seconds, with matrix reproduction, exact reference timing, frame integrity, full decoding and source/Action/camera preservation checks passed. It remains unscored. The earlier seven gallery videos are live at fc54d8fdc17010a57a87bd63ca82aa7b10e3449d with deployment, exact bytes/hashes and frontend playback verified. ADS v5 remains separate at Fail51. PR #17 remains the verified e46f83d complete build.",
   "agents": [
     {
       "slot": 1,
       "state": "idle",
-      "task": "ADS v6 Trial1 source is frozen; awaiting the sole Eevee comparison and Elara's review, with no candidate source changes in progress. Source/docs publication remains blocked.",
-      "lastCompleted": "Local author commit a836c8b changes only vertical gain from 0.25 to 0.40; lateral gain 0.10 and phase rate 0.80 are unchanged. The 486-frame packet is complete and the renderer independently reproduced all 126 forward transforms. V5 remains Fail51; v6 is unreviewed."
+      "task": "ADS v6 Trial1 is frozen and unscored, awaiting independent review. HIP r2 source bytes and ranges are still pending; current ADS v6 remains on HIP r1. Source/docs publication remains stopped.",
+      "lastCompleted": "The completed v6 forward Eevee/reference pair was handed to the GitHub gallery publisher: 126 frames at 60 fps, exact reference frames 2298–2423 and unchanged phase 23/240 seconds. Source, Action, camera, frame integrity and decoding checks passed."
     },
     {
       "slot": 2,
-      "state": "idle",
-      "task": "Seven-video gallery publication and verification are complete; no publishing currently active",
-      "lastCompleted": "Published all seven Aella review MP4s at fc54d8fdc17010a57a87bd63ca82aa7b10e3449d. Deployment 37139286287 succeeded, all public media matched exact source hashes and bytes, and cloud-browser playback passed"
+      "state": "active",
+      "task": "Preparing the separate ADS v6 gallery publication. Exact media are validated and the Git blob is uploaded, but it is not yet linked or committed to main; awaiting the separate ads-v6-forward gallery entry. V5 remains untouched.",
+      "lastCompleted": "Validated v6 comparison: 126 frames, 60 fps, 960×1200, 2.1 seconds and full decoding passed; SHA-256 4e6a4f77a2f0cebfa7747011289d7464ba74acd1a784334e6c77361954df2e17. Seven earlier Aella MP4s remain live with exact byte/hash and frontend playback verification."
     },
     {
       "slot": 3,
-      "state": "active",
-      "task": "Setting up the sole ADS v6 forward Eevee viewport capture in foreground Blender; no v6 frames or media are complete yet",
-      "lastCompleted": "Passed v6 numerical preflight for 126 samples, preserved the temporary reload scene in a verified separate checkpoint, and loaded the frozen ADS source. The earlier 12 decoded Eevee previews and retired-gallery handoff are complete"
+      "state": "idle",
+      "task": "ADS v6 forward Eevee comparison is complete and handed off; no render is currently active. Independent motion review remains pending.",
+      "lastCompleted": "Rendered all 126 frames through the foreground Eevee viewport at 8 samples and completed the stacked reference comparison. Matrix reproduction, exact timing, every frame hash, full decoding and source/Action/camera preservation passed. All rendered-frame sheets were inspected for integrity. This is an unscored diagnostic, not visual approval."
     }
   ]
 }
