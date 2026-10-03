@@ -1,27 +1,27 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T18:43:06Z",
+  "updatedAt": "2026-10-03T18:52:35Z",
   "state": "active",
-  "task": "Preparing revised ADS comparisons for review.",
-  "lastCompleted": "Forward v7 capture and comparison passed playback checks and are ready for publication. Lateral Trial1 remains Fail32 left and Fail31 right.",
+  "task": "Coordinating the next lateral capture and ADS review handoff.",
+  "lastCompleted": "Completed forward v7 source and the 126-frame Eevee comparison; visual review is pending.",
   "agents": [
     {
       "slot": 1,
-      "state": "active",
-      "task": "Preparing forward v7 review evidence.",
-      "lastCompleted": "Completed and decoded the 126-frame Eevee viewport capture and reference comparison. Visual review is pending."
+      "state": "idle",
+      "task": "Forward v7 is frozen awaiting review.",
+      "lastCompleted": "Completed forward v7 source, capture and reference comparison; the 1.6 mm joint-anchor caveat remains."
     },
     {
       "slot": 2,
       "state": "active",
-      "task": "Testing lateral footfall and sway separation, motion direction and cadence.",
-      "lastCompleted": "Confirmed centered sight landmarks after Trial1 received Fail32 left and Fail31 right."
+      "task": "Testing lateral footfall shape across two motion samples.",
+      "lastCompleted": "Trial1 remains Fail32 left and Fail31 right; centered sight landmarks were verified."
     },
     {
       "slot": 3,
       "state": "idle",
-      "task": "Game integration is idle at the latest test checkpoint.",
-      "lastCompleted": "Latest game build e46f83d remains available; all three workflows passed."
+      "task": "Game integration is idle at the local test checkpoint.",
+      "lastCompleted": "Local checkpoint 77a53ce passed 490 tests; latest verified published game build remains e46f83d."
     }
   ]
 }
