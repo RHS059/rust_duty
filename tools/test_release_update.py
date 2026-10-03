@@ -1,4 +1,5 @@
 import argparse
+import hashlib
 import importlib.util
 import json
 from pathlib import Path
@@ -138,5 +139,39 @@ class ReleaseTests(unittest.TestCase):
                 (root / "new").write_bytes(new)
                 release.make_delta(root / "old", root / "new", root / "delta")
                 self.assertEqual(apply(base, (root / "delta").read_bytes()), new)
+
+
+    def test_content_delta_reuses_running_executable_without_redownload(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            executable = b"UNCHANGED-LAUNCHER" * 20000
+            old = root / "old-input"
+            (old / "assets").mkdir(parents=True)
+            (old / "game.exe").write_bytes(executable)
+            (old / "assets/note.txt").write_bytes(b"old content")
+            old_bundle = root / "old.rdb"
+            release.pack(old, old_bundle, "game.exe")
+            new = root / "new-input"
+            (new / "assets").mkdir(parents=True)
+            (new / "game.exe").write_bytes(executable)
+            (new / "assets/note.txt").write_bytes(b"new content for this update")
+            output = root / "out"
+            result = release.prepare(argparse.Namespace(
+                input=new, output=output, version="1.1.0", sequence=2, target="test-target",
+                entrypoint="game.exe", previous=old_bundle, previous_version="1.0.0"))
+            manifest = json.loads((output / "update-test-target.json").read_text())
+            self.assertEqual(len(manifest["deltas"]), 2)
+            running = next(item for item in manifest["deltas"] if "running-to-" in item["asset"]["name"])
+            patch = (output / running["asset"]["name"]).read_bytes()
+            full = (output / manifest["bundle"]["name"]).read_bytes()
+            baseline = release.one_file_executable("game.exe", executable)
+            self.assertEqual(running["base_sha256"], hashlib.sha256(baseline).hexdigest())
+            self.assertNotIn(executable, patch)
+            self.assertLess(len(patch), len(executable))
+            self.assertGreater(result["running_executable_delta"]["copied_bytes"], 0)
+            self.assertEqual(apply(baseline, patch), full)
+            # The installed version does not switch as part of preparing the patch.
+            self.assertEqual(manifest["version"], "1.1.0")
+            self.assertEqual(running["base_version"], "1.0.0")
 
 if __name__ == "__main__": unittest.main()

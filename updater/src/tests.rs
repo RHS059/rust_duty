@@ -1537,3 +1537,57 @@ fn bootstrap_does_not_scan_or_overwrite_existing_launcher() {
         None
     );
 }
+
+#[test]
+fn content_update_reuses_running_executable_and_does_not_switch_version() {
+    let root = tempfile::tempdir().unwrap();
+    let executable = b"UNCHANGED-LAUNCHER".repeat(20_000);
+    let installed = bundle_files(&[
+        ("assets/note.txt", 0, b"old content"),
+        ("game", 1, &executable),
+    ]);
+    let baseline = bundle_files(&[("game", 1, &executable)]);
+    let updated = bundle_files(&[
+        ("assets/note.txt", 0, b"new content for this update"),
+        ("game", 1, &executable),
+    ]);
+    assert_ne!(bytes_hash(&installed), bytes_hash(&baseline));
+    let patch = make_patch(root.path(), &baseline, &updated);
+    assert!(
+        patch.len() < executable.len(),
+        "content patch must be smaller than the running executable"
+    );
+    assert!(
+        !patch
+            .windows(executable.len())
+            .any(|window| window == executable.as_slice()),
+        "content patch must not embed another copy of the running executable"
+    );
+    let store = old_store(root.path(), &installed);
+    let mut release = manifest(&updated);
+    release.deltas.push(Delta {
+        base_version: version("1.0.0"),
+        base_sha256: bytes_hash(&baseline),
+        asset: asset("content.rdd", &patch),
+    });
+    let server = Server::new();
+    server.put(&format!("update-{TARGET}.json"), manifest_bytes(&release));
+    server.put("content.rdd", patch);
+    server.put(&release.bundle.name, updated.clone());
+    let verified = store.check(&server.source(), &trust(), TARGET).unwrap();
+    let staged = store.stage(&server.source(), &verified).unwrap();
+    assert_eq!(fs::read(store.bundle_path(&staged)).unwrap(), updated);
+    assert!(
+        !server
+            .logs()
+            .iter()
+            .any(|request| request.path.ends_with(&release.bundle.name)),
+        "matching content delta must not download a new copy of the bundle or its executable"
+    );
+    // Staging leaves the active version in place. Switching still happens only
+    // after the game process exits and the caller activates the staged build.
+    assert_eq!(
+        store.state().unwrap().active.unwrap().version,
+        version("1.0.0")
+    );
+}
