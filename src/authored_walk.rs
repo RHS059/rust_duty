@@ -106,6 +106,7 @@ pub struct WalkPoseLayer {
     ready: ViewmodelPose,
     bindings: PoseBindings,
     receiver_v4_wip: bool,
+    translation_gain: Vec3,
 }
 impl WalkPoseLayer {
     pub fn new(
@@ -130,10 +131,14 @@ impl WalkPoseLayer {
             ready: locomotion.sample_clamped(ready_clip, 0.)?,
             bindings,
             receiver_v4_wip: false,
+            translation_gain: Vec3::ONE,
         })
     }
     pub fn use_receiver_v4_wip(&mut self, active: bool) {
         self.receiver_v4_wip = active;
+    }
+    pub fn set_translation_adjustment(&mut self, value: crate::settings::WalkTranslation) {
+        self.translation_gain = value.gains();
     }
     pub fn pose(
         &self,
@@ -200,7 +205,16 @@ impl WalkPoseLayer {
             Quat::IDENTITY.slerp(rotation, weight),
             translation * weight,
         );
-        let output_anchor = offset * base_anchor;
+        let mut output_anchor = offset * base_anchor;
+        // The bound weapon actor and source righthand_prop share an origin.
+        // Scale its walking displacement about the current unwalked pose, not
+        // the absolute placement or the rigid offset's world-origin term.
+        // Applying the resulting anchor to ALL globals preserves hand contact.
+        if self.translation_gain != Vec3::ONE {
+            let neutral = base_anchor.w_axis.truncate();
+            let displacement = output_anchor.w_axis.truncate() - neutral;
+            output_anchor.w_axis = (neutral + displacement * self.translation_gain).extend(1.);
+        }
         let relative = |pose: &ViewmodelPose, anchor: Mat4| -> Result<ViewmodelPose> {
             let inverse = anchor.inverse();
             let globals = animation.bone_globals(pose, Mat4::IDENTITY)?;

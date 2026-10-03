@@ -6,6 +6,10 @@
 
 use crate::clock::FixedClock;
 
+#[path = "session_focus.rs"]
+mod focus;
+pub use focus::{FocusInput, FocusState};
+
 /// Sample once each render frame, including while paused or asset-blocked.
 /// `pressed` preserves a quick press/release between frames, whereas `down`
 /// detects a new physical press and prevents OS key repeat from toggling again.
@@ -20,6 +24,9 @@ pub struct SessionInput {
     /// May be a combined Alt/Super held state or a one-frame shortcut event.
     /// Only its rising edge pauses, so holding the modifier cannot undo resume.
     pub focus_shortcut_pressed: bool,
+    /// Actual native window focus, independent of keyboard shortcuts. Focus
+    /// loss always pauses; returning to the window never resumes by itself.
+    pub window_unfocused: bool,
     /// Startup updates are unresolved or required assets are invalid. No input can resume play.
     pub blocked: bool,
     /// Unclamped elapsed presentation time, in seconds.
@@ -51,7 +58,7 @@ impl PressEdge {
     }
 }
 
-/// Defaults to the paused title/menu state. No platform callbacks are needed.
+/// Defaults to the paused title/menu state. Feed native focus every frame.
 #[derive(Clone, Copy, Debug, Default)]
 pub struct SessionController {
     active: bool,
@@ -59,6 +66,7 @@ pub struct SessionController {
     enter: PressEdge,
     click: PressEdge,
     focus_was_down: bool,
+    window_was_unfocused: bool,
 }
 
 impl SessionController {
@@ -81,17 +89,19 @@ impl SessionController {
         let click = self.click.sample(input.click_pressed, input.click_down);
         let focus = input.focus_shortcut_pressed && !self.focus_was_down;
         self.focus_was_down = input.focus_shortcut_pressed;
+        let refocused = self.window_was_unfocused && !input.window_unfocused;
+        self.window_was_unfocused = input.window_unfocused;
 
         let was_active = self.active;
-        self.active = if input.blocked {
+        self.active = if input.blocked || input.window_unfocused || refocused {
             false
         } else if was_active {
             // A click/Enter while already playing is not a resume request and
             // must not cancel Escape (e.g. when pausing while firing).
             !(escape || focus)
         } else {
-            // Explicit resume wins a simultaneous focus notification. Focus
-            // and elapsed time are not allowed to immediately undo it.
+            // A shortcut hint can be superseded by deliberate resume. Actual
+            // OS focus loss and the refocus frame were rejected above.
             escape || enter || click
         };
 
@@ -103,7 +113,12 @@ impl SessionController {
             active: self.active,
             resumed,
             paused,
-            discard_timing: resumed || paused || input.blocked || invalid_time,
+            discard_timing: resumed
+                || paused
+                || input.blocked
+                || input.window_unfocused
+                || refocused
+                || invalid_time,
         }
     }
 }
@@ -329,6 +344,100 @@ mod tests {
         };
         assert!(session.step(shortcut).paused);
         assert_eq!(session.step(shortcut), SessionTransition::default());
+    }
+
+    #[test]
+    fn actual_focus_loss_pauses_without_a_shortcut_key() {
+        let mut session = running();
+        let lost = session.step(SessionInput {
+            window_unfocused: true,
+            ..idle()
+        });
+        assert!(lost.paused && lost.discard_timing);
+        assert!(!lost.active && !lost.resumed);
+    }
+
+    #[test]
+    fn actual_focus_loss_overrides_every_resume_button() {
+        for action in [escape(), enter(), click()] {
+            let mut session = SessionController::default();
+            for _ in 0..3 {
+                let blocked = session.step(SessionInput {
+                    window_unfocused: true,
+                    ..action
+                });
+                assert!(!blocked.active && !blocked.resumed);
+                assert!(blocked.discard_timing);
+            }
+        }
+    }
+
+    #[test]
+    fn refocusing_requires_another_deliberate_resume_after_release() {
+        for action in [escape(), enter(), click()] {
+            let mut session = running();
+            session.step(SessionInput {
+                window_unfocused: true,
+                ..idle()
+            });
+            let refocus = session.step(action);
+            assert!(!refocus.active && !refocus.resumed && refocus.discard_timing);
+            assert!(!session.step(action).active);
+            session.step(idle());
+            assert!(session.step(action).resumed);
+        }
+    }
+
+    #[test]
+    fn refocus_without_buttons_stays_paused_until_explicit_resume() {
+        let mut session = running();
+        session.step(SessionInput {
+            window_unfocused: true,
+            ..idle()
+        });
+        assert!(!session.step(idle()).active);
+        for _ in 0..10 {
+            assert_eq!(session.step(idle()), SessionTransition::default());
+        }
+        assert!(session.step(enter()).resumed);
+    }
+
+    #[test]
+    fn real_focus_loss_after_shortcut_pause_still_discards_input_and_time() {
+        let mut session = running();
+        assert!(
+            session
+                .step(SessionInput {
+                    focus_shortcut_pressed: true,
+                    ..idle()
+                })
+                .paused
+        );
+        let lost = session.step(SessionInput {
+            window_unfocused: true,
+            ..click()
+        });
+        assert!(!lost.active && !lost.paused && !lost.resumed && lost.discard_timing);
+        assert!(!session.step(idle()).active);
+        assert!(session.step(enter()).resumed);
+    }
+
+    #[test]
+    fn repeated_native_focus_cycles_stay_paused_and_resumable() {
+        let mut session = running();
+        for _ in 0..100 {
+            assert!(
+                session
+                    .step(SessionInput {
+                        window_unfocused: true,
+                        ..idle()
+                    })
+                    .paused
+            );
+            assert!(!session.step(idle()).active);
+            assert!(session.step(enter()).resumed);
+            session.step(idle());
+        }
     }
 
     #[test]

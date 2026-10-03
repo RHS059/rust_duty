@@ -198,6 +198,11 @@ pub struct LayeredLocomotion {
     receiver_ads_wip: bool,
 }
 impl LayeredLocomotion {
+    pub fn set_walk_translation(&mut self, value: crate::settings::WalkTranslation) {
+        if let Some(layer) = &mut self.walk_layer {
+            layer.set_translation_adjustment(value);
+        }
+    }
     pub fn new(
         sources: LayerSources<'_>,
         config: AuthoredLocomotionPathConfig,

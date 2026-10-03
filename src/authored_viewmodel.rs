@@ -37,6 +37,11 @@ pub struct AuthoredViewmodel {
     ads_index: Option<usize>,
 }
 impl AuthoredViewmodel {
+    pub fn set_walk_translation(&mut self, value: vector_range::settings::WalkTranslation) {
+        if let Some(layers) = &mut self.locomotion {
+            layers.set_walk_translation(value);
+        }
+    }
     /// Requires an initialized render context, like the existing mesh adapters.
     pub fn load(path: &str, clip: &str, fixed_time: Option<f32>) -> Result<Self, String> {
         if fixed_time.is_some_and(|time| !time.is_finite()) {

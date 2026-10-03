@@ -1,7 +1,37 @@
-use std::{fs, path::Path};
+use std::{collections::BTreeMap, fs, path::Path};
+
+/// Per-axis walking translation adjustment. Zero preserves authored motion;
+/// -1 removes that displacement and +1 doubles it. Rotation is unaffected.
+#[derive(Debug, Clone, Copy, Default, PartialEq)]
+pub struct WalkTranslation(pub [f32; 3]);
+
+impl WalkTranslation {
+    pub fn sanitized(self) -> Self {
+        Self(self.0.map(|value| {
+            if value.is_finite() {
+                value.clamp(-1., 1.)
+            } else {
+                0.
+            }
+        }))
+    }
+    pub fn gains(self) -> macroquad::math::Vec3 {
+        macroquad::math::Vec3::from_array(self.sanitized().0.map(|value| 1. + value))
+    }
+}
+
+pub fn valid_weapon_id(id: &str) -> bool {
+    !id.is_empty()
+        && id.len() <= 80
+        && id
+            .bytes()
+            .all(|c| c.is_ascii_alphanumeric() || matches!(c, b'_' | b'-'))
+}
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Settings {
+    /// Stable weapon IDs, independent of display labels and asset revisions.
+    pub walk_translation: BTreeMap<String, WalkTranslation>,
     pub sensitivity: f32,
     pub fov: f32,
     pub ads_fov: f32,
@@ -31,6 +61,7 @@ pub struct Settings {
 impl Default for Settings {
     fn default() -> Self {
         Self {
+            walk_translation: BTreeMap::new(),
             sensitivity: 0.10,
             fov: 90.,
             ads_fov: 65.,
@@ -59,6 +90,21 @@ impl Default for Settings {
     }
 }
 impl Settings {
+    pub fn walking_translation(&self, weapon_id: &str) -> WalkTranslation {
+        self.walk_translation
+            .get(weapon_id)
+            .copied()
+            .unwrap_or_default()
+            .sanitized()
+    }
+
+    pub fn set_walking_translation(&mut self, weapon_id: &str, value: WalkTranslation) {
+        if valid_weapon_id(weapon_id) {
+            self.walk_translation
+                .insert(weapon_id.to_owned(), value.sanitized());
+        }
+    }
+
     /// Published-data M4A1-inspired candidate, separate from the authored default.
     ///
     /// Timing targets are provisional 2009 multiplayer values without perks or
@@ -99,6 +145,21 @@ impl Settings {
                 if let Some((key, value)) = line.split_once('=') {
                     if let Ok(v) = value.trim().parse::<f32>() {
                         if !v.is_finite() {
+                            continue;
+                        }
+                        if let Some((id, axis)) = key
+                            .trim()
+                            .strip_prefix("walk_translation.")
+                            .and_then(|s| s.rsplit_once('.'))
+                        {
+                            if valid_weapon_id(id) {
+                                if let Some(index) =
+                                    ["x", "y", "z"].iter().position(|name| *name == axis)
+                                {
+                                    s.walk_translation.entry(id.into()).or_default().0[index] =
+                                        v.clamp(-1., 1.);
+                                }
+                            }
                             continue;
                         }
                         let slot = match key.trim() {
@@ -170,6 +231,14 @@ impl Settings {
         for (key, value) in fields {
             out.push_str(&format!("{key} = {value:.4}\n"));
         }
+        out.push_str("# Per-weapon walking translation: -1 = none, 0 = authored, +1 = double.\n");
+        for (id, value) in &self.walk_translation {
+            if valid_weapon_id(id) {
+                for (axis, value) in ["x", "y", "z"].into_iter().zip(value.sanitized().0) {
+                    out.push_str(&format!("walk_translation.{id}.{axis} = {value:.4}\n"));
+                }
+            }
+        }
         fs::write(path, out)
     }
 }
@@ -177,6 +246,44 @@ impl Settings {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn weapon_walk_axes_roundtrip_independently_and_reject_invalid_values() {
+        let path =
+            std::env::temp_dir().join(format!("vector-walk-settings-{}.cfg", std::process::id()));
+        fs::write(&path, "walk_translation.hk416a5.x = -9\nwalk_translation.hk416a5.y = 0.25\nwalk_translation.hk416a5.z = NaN\nwalk_translation.other.z = 9\nwalk_translation.bad/id.x = 1\nwalk_translation.hk416a5.q = 1\n").unwrap();
+        let mut settings = Settings::load(&path);
+        assert_eq!(
+            settings.walking_translation("hk416a5"),
+            WalkTranslation([-1., 0.25, 0.])
+        );
+        assert_eq!(
+            settings.walking_translation("other"),
+            WalkTranslation([0., 0., 1.])
+        );
+        assert_eq!(
+            settings.walking_translation("missing"),
+            WalkTranslation::default()
+        );
+        assert_eq!(settings.walk_translation.len(), 2);
+        settings.save(&path).unwrap();
+        assert_eq!(Settings::load(&path), settings);
+        settings.set_walking_translation("hk416a5", WalkTranslation::default());
+        assert_eq!(settings.walking_translation("other").0[2], 1.);
+        fs::remove_file(path).unwrap();
+    }
+    #[test]
+    fn walk_adjustments_map_minus_one_zero_one_to_zero_one_two() {
+        assert_eq!(
+            WalkTranslation([-1., 0., 1.]).gains().to_array(),
+            [0., 1., 2.]
+        );
+        assert_eq!(
+            WalkTranslation([f32::NAN, f32::INFINITY, -5.])
+                .gains()
+                .to_array(),
+            [1., 1., 0.]
+        );
+    }
     #[test]
     fn config_rejects_nonfinite_values_and_clamps_credit_to_ready() {
         let path = std::env::temp_dir().join(format!("vector-settings-{}.cfg", std::process::id()));
