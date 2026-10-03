@@ -1,3 +1,5 @@
+> Intermediate source-only update: the supplied HK416 was verified locally, but its model binary and new screenshots are not in this commit. The game uses its procedural fallback until the separately authorized single asset upload finishes.
+
 # Provenance and boundaries
 
 This project contains newly authored Rust gameplay, collision, rendering, UI,
@@ -44,3 +46,19 @@ Use `cargo metadata --locked` to inspect the complete version/license graph.
 THIRD_PARTY_LICENSES.txt bundles package notices and available upstream license texts, including the bundled font.
 Cargo package licenses remain applicable to their own code. The root MIT license
 covers newly authored project files only.
+
+
+## Authorized test weapon and candidate profile (2026-09-30 update)
+
+The user supplied an untextured third-party HK416A5 FBX and confirmed artist
+permission to include its specific converted test asset in this game's public
+repository. It is not a model from the original commercial game. Only the single converted
+VRMESH01 package is included; original FBX and GLB intermediates remain excluded.
+Asset rights are separate from the source MIT license: see [asset notice](../assets/README.md).
+The generic converter and decoder are original project code. Format conversion is
+reversible and is not a substitute for distribution permission.
+
+The selectable/default M4A1-inspired candidate uses a public analyst sheet's
+reported timings and modifiers, with unresolved conflicts and authored remainder.
+See [M4 profile](M4_PROFILE.md). Neither that candidate nor the independently
+selected HK416A5 visual establishes retail equivalence.

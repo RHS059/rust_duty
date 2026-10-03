@@ -1,6 +1,30 @@
 /target/
+.rust-duty-updates/
 /dist/
 /telemetry*.csv
 /capture*.png
 *.log
 .DS_Store
+
+# Licensed inputs AND converted packages must stay private/local.
+/private-assets/
+/licensed-assets/
+*.glb
+*.gltf
+*.vrm
+!tests/fixtures/triangle.vrm
+*.blend
+*.fbx
+# Explicitly authorized converted test weapon only; no original FBX/GLB.
+!assets/weapons/hk416a5.vrm
+
+__pycache__/
+*.pyc
+# Private skinned source/converted rigs; only the original synthetic fixture is public.
+*.vrs
+!tests/fixtures/two_bone_triangle.vrs
+/updater-artifact/
+/signing-setup-artifact/
+
+# Baked authored clip packages are private rig-derived assets.
+*.vra

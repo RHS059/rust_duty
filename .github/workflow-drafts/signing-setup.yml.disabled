@@ -1,0 +1,41 @@
+# Archived: production uses GitHub HTTPS and SHA256; no owner signing setup.
+name: Owner signing setup kit
+on:
+  pull_request:
+  push:
+    branches: [main, 'aella/**']
+permissions:
+  contents: read
+jobs:
+  setup-kit:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: cargo fetch --manifest-path updater/Cargo.toml --locked
+      - run: cargo fmt --manifest-path updater/Cargo.toml --all -- --check
+      - run: cargo clippy --manifest-path updater/Cargo.toml --locked --all-targets -- -D warnings
+      - name: Test signing helper using public deterministic fixtures only
+        run: cargo test --manifest-path updater/Cargo.toml --locked --lib signing::tests
+      - name: Parse owner-run scripts without executing or generating keys
+        shell: pwsh
+        run: |
+          foreach ($Script in @('tools/setup-release-signing.ps1', 'tools/publish-approved-weapon.ps1')) {
+            $Tokens = $null; $Errors = $null
+            [void][Management.Automation.Language.Parser]::ParseFile((Resolve-Path $Script), [ref]$Tokens, [ref]$Errors)
+            if ($Errors.Count -gt 0) { $Errors | Out-String | Write-Error; throw "Invalid PowerShell syntax" }
+          }
+      - run: cargo build --manifest-path updater/Cargo.toml --locked --release --bin rust-duty-release-sign
+      - run: python tools/collect_updater_licenses.py
+      - run: python tools/package_signing_setup.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rust-duty-signing-setup-windows
+          path: signing-setup-artifact/
+          if-no-files-found: error
+# No secrets, key generation, release publication, permissions changes or launcher.

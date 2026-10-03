@@ -1,3 +1,5 @@
+> Source-only repository update: the supplied HK416 is verified locally and included in the private playable bundle as one sidecar file. Its single-file GitHub upload is pending. An executable with that asset beside it now loads it automatically.
+
 # Verification record
 
 2026-09-30. Original prototype, not retail-equivalence validation.
@@ -84,3 +86,33 @@ and10,000 narrow-cone samples have explicit passing regressions.
 The public behavioral reference supplied a broader checklist; this record reports
 only checks actually executed against this prototype. It does not declare that
 all proposed acceptance cases or every platform passed.
+
+## Asset/profile/control update
+
+- 139 Rust tests pass: 45 library, 2 mesh-batching, 23 asset/build-contract,
+  18 M4-candidate, 22 toggle-control, and 29 existing weapon tests
+- 38 Python converter tests pass, including Pillow PNG/JPEG decoding
+- Formatting and Clippy with warnings denied pass; optimized M4 tests pass
+- User-supplied untextured HK416A5 was converted and rendered locally in hip/ADS
+  views. Full source FBX reimport reproduces the converted bytes exactly. Model
+  is stored in one converted package; original FBX/GLB inputs remain excluded
+- Native Linux input verified right-click ADS and crouch persist after release;
+  prone replaces crouch; detected hitch pause clears ADS on resuming; F2 restores
+  standing, hip fire and 30/90 rounds
+- Supplied 98,522-triangle model is heavier than primitives. Cloud software
+  rendering ran approximately 6–12 FPS during these checks; this is not a hardware
+  performance benchmark. Windows gameplay/performance remains untested
+- Static mesh subset only. Skins, morphs and animations fail explicitly; no rig
+  is silently discarded. Current renderer is simple diffuse/base-color rendering,
+  not full PBR. CRC/version/bounds validate data, not authenticity or licensing
+
+## EXE loading and pause-loop hotfix
+
+182 Rust tests and 38 Python tests pass locally; formatting and all-target Clippy
+with warnings denied pass. The new coverage includes 7 packaged asset discovery
+cases, 28 session-state regressions and 8 complementary multi-mesh decoder tests.
+Native Linux smoke test used an executable in a folder containing spaces with
+`/tmp` as the working directory and no model command-line argument: HK416 loaded.
+Repeated Escape pause/resume, Enter resume, and click resume worked, with 30/90
+rounds preserved on the resume click. The slow cloud renderer did not re-pause.
+Windows runtime input remains untested; exact-head Windows CI is checked separately.

@@ -1,7 +1,13 @@
+mod authored_viewmodel;
+mod game_update;
 mod sound;
+mod weapon_model;
 use macroquad::prelude::*;
 use std::{fs::File, io::Write};
-use vector_range::{clock::FixedClock, control::IntentLatch};
+use vector_range::{
+    clock::FixedClock,
+    control::{ButtonInput, ControlMode, ControlSample, ControlState, IntentLatch},
+};
 use vector_range::{
     settings::Settings,
     sim::{Input, Shot, Simulation, FIXED_DT, SPRINT_DURATION},
@@ -11,13 +17,81 @@ const ACCENT: Color = Color::new(0.98, 0.62, 0.22, 1.);
 const CYAN: Color = Color::new(0.33, 0.84, 0.87, 1.);
 const MUTED: Color = Color::new(0.62, 0.69, 0.72, 1.);
 fn config() -> Conf {
+    if let Some(code) = rust_duty_launcher::game::dispatch_helper() {
+        std::process::exit(code);
+    }
+    if let Some(code) = rust_duty_launcher::game::dispatch_headless(env!("CARGO_PKG_VERSION")) {
+        std::process::exit(code);
+    }
+    let reference = std::env::args().any(|a| a == "--reference-viewport");
     Conf {
         window_title: "VECTOR RANGE | Original Rust FPS laboratory".into(),
-        window_width: 1440,
-        window_height: 900,
-        high_dpi: true,
+        window_width: if reference { 960 } else { 1440 },
+        window_height: if reference { 540 } else { 900 },
+        high_dpi: !reference,
         sample_count: 4,
         ..Default::default()
+    }
+}
+#[derive(Clone, Copy)]
+struct ViewmodelFraming {
+    hip: Vec3,
+    ads: Vec3,
+    hfov: f32,
+    hip_rotation: Quat,
+    ads_rotation: Quat,
+    reference: bool,
+    hand_modes: Option<[f32; 4]>,
+    left_grip_override: Option<[f32; 3]>,
+}
+impl ViewmodelFraming {
+    fn from_args(args: &[String]) -> Self {
+        fn vector(args: &[String], prefix: &str, default: Vec3) -> Vec3 {
+            args.iter()
+                .find_map(|a| a.strip_prefix(prefix))
+                .and_then(|s| {
+                    let values = s
+                        .split(',')
+                        .map(str::parse::<f32>)
+                        .collect::<Result<Vec<_>, _>>()
+                        .ok()?;
+                    (values.len() == 3 && values.iter().all(|v| v.is_finite() && v.abs() <= 5.))
+                        .then(|| Vec3::new(values[0], values[1], values[2]))
+                })
+                .unwrap_or(default)
+        }
+        let hip_ypr = vector(args, "--viewmodel-hip-ypr=", vec3(0.04118, -0.01252, 0.));
+        let ads_ypr = vector(args, "--viewmodel-ads-ypr=", Vec3::ZERO);
+        let hand_modes = args
+            .iter()
+            .find_map(|a| a.strip_prefix("--hand-modes="))
+            .and_then(|s| {
+                let v = s
+                    .split(',')
+                    .map(str::parse::<f32>)
+                    .collect::<Result<Vec<_>, _>>()
+                    .ok()?;
+                (v.len() == 4 && v.iter().all(|x| x.is_finite() && (0. ..=1.).contains(x)))
+                    .then(|| [v[0], v[1], v[2], v[3]])
+            });
+        Self {
+            reference: args.iter().any(|a| a == "--reference-viewport"),
+            hand_modes,
+            left_grip_override: args
+                .iter()
+                .any(|a| a.starts_with("--left-grip="))
+                .then(|| vector(args, "--left-grip=", Vec3::ZERO).to_array()),
+            hip_rotation: Quat::from_euler(EulerRot::YXZ, hip_ypr.x, hip_ypr.y, hip_ypr.z),
+            ads_rotation: Quat::from_euler(EulerRot::YXZ, ads_ypr.x, ads_ypr.y, ads_ypr.z),
+            hip: vector(args, "--viewmodel-hip=", vec3(0.05930, -0.04831, -0.30806)),
+            ads: vector(args, "--viewmodel-ads=", vec3(0., -0.03794, -0.2322)),
+            hfov: args
+                .iter()
+                .find_map(|a| a.strip_prefix("--viewmodel-fov="))
+                .and_then(|s| s.parse::<f32>().ok())
+                .filter(|v| v.is_finite() && (45. ..=120.).contains(v))
+                .unwrap_or(76.),
+        }
     }
 }
 struct Trace {
@@ -61,15 +135,57 @@ fn grid_texture() -> Texture2D {
     tex.set_filter(FilterMode::Linear);
     tex
 }
+fn supply_focus(
+    sim: &Simulation,
+    cfg: &Settings,
+    supply: &vector_range::ammo_supply::AmmoSupply,
+    active: bool,
+) -> Option<vector_range::ammo_supply::SupplyFocus> {
+    let viewport = vec2(screen_width(), screen_height());
+    let fov = cfg.fov
+        + (cfg.ads_fov - cfg.fov)
+            * vector_range::reference_motion::visual_world_ads(sim.player.ads);
+    vector_range::ammo_supply::SupplyView::perspective(
+        sim.player.eye(),
+        sim.player.direction(),
+        h_fov_to_v(fov, viewport.x / viewport.y),
+        viewport,
+    )
+    .and_then(|view| supply.focus(sim, view, active))
+}
+fn register_supply(sim: &mut Simulation, supply: &vector_range::ammo_supply::AmmoSupply) {
+    sim.blocks.push(vector_range::sim::Block {
+        bounds: supply.bounds(),
+        kind: 4,
+    });
+}
 fn world(sim: &Simulation, tex: &Texture2D) {
     for b in &sim.blocks {
         let color = match b.kind {
             0 => Color::new(0.31, 0.38, 0.40, 1.),
             1 => Color::new(0.49, 0.60, 0.64, 1.),
             2 => Color::new(0.77, 0.54, 0.30, 1.),
+            4 => Color::new(0.22, 0.26, 0.28, 1.),
             _ => Color::new(0.43, 0.64, 0.66, 1.),
         };
         draw_cube(b.bounds.center(), b.bounds.size(), Some(tex), color);
+        if b.kind == 4 {
+            // Original geometric interaction fixture while reference art is pending.
+            for x in [-0.26, 0.26] {
+                draw_cube(
+                    b.bounds.center() + vec3(x, 0.257, 0.),
+                    vec3(0.06, 0.025, 0.51),
+                    None,
+                    ACCENT,
+                );
+            }
+            draw_cube(
+                b.bounds.center() + vec3(0., 0.04, -0.26),
+                vec3(0.22, 0.10, 0.025),
+                None,
+                ACCENT,
+            );
+        }
         draw_cube_wires(
             b.bounds.center(),
             b.bounds.size(),
@@ -189,77 +305,199 @@ fn world(sim: &Simulation, tex: &Texture2D) {
         draw_cube_wires(c, t.bounds.size() + Vec3::splat(0.008), INK);
     }
 }
-fn weapon(sim: &Simulation, rt: &RenderTarget, aspect: f32, time: f32) {
+fn locomotion_input(sim: &Simulation) -> vector_range::locomotion_presentation::LocomotionInput {
+    vector_range::locomotion_presentation::LocomotionInput {
+        sprint: if sim.player.sprinting || sim.player.mantle.is_some() {
+            1.
+        } else {
+            0.
+        },
+        speed: sim.player.speed(),
+        ads: sim.player.ads,
+    }
+}
+#[allow(clippy::too_many_arguments)]
+fn weapon(
+    sim: &Simulation,
+    rt: &RenderTarget,
+    aspect: f32,
+    locomotion_state: &mut vector_range::locomotion_presentation::LocomotionPresentation,
+    model: Option<&weapon_model::WeaponModel>,
+    authored: Option<&mut authored_viewmodel::AuthoredViewmodel>,
+    arms: Option<&mut vector_range::arms::ArmModel>,
+    animation_state: &mut vector_range::view_animation::ViewAnimation,
+    cfg: &Settings,
+    framing: ViewmodelFraming,
+    presentation_override: Option<f32>,
+) {
     set_camera(&Camera3D {
         position: Vec3::ZERO,
         target: vec3(0., 0., -1.),
         up: Vec3::Y,
-        fovy: h_fov_to_v(76., aspect),
+        fovy: h_fov_to_v(framing.hfov, aspect),
         render_target: Some(rt.clone()),
         aspect: Some(aspect),
         z_near: 0.01,
         z_far: 5.,
         ..Default::default()
     });
-    clear_background(Color::new(0., 0., 0., 0.));
+    clear_background(if framing.reference {
+        Color::new(0.14, 0.19, 0.24, 1.)
+    } else {
+        Color::new(0., 0., 0., 0.)
+    });
+    if let Some(authored) = authored {
+        authored.draw(sim.time);
+        composite_viewmodel(rt);
+        return;
+    }
     let p = &sim.player;
-    let bob = (time * 10.).sin() * (p.speed() / 7.2) * 0.010 * (1. - p.ads);
+    let motion = locomotion_state.sample(sim.time, locomotion_input(sim));
+    let bob = motion.bob;
     let reload = if p.reload_left > 0. {
         (p.reload_left * 2.5).sin().abs() * 0.15 + 0.12
     } else {
         0.
     };
     let o = vec3(
-        0.25 * (1. - p.ads),
-        -0.25 * (1. - p.ads) - 0.041 * p.ads + bob - reload - p.sprinting as u8 as f32 * 0.13,
+        if model.is_some() { 0.18 } else { 0.25 } * (1. - p.ads),
+        (if model.is_some() { -0.19 } else { -0.25 }) * (1. - p.ads) - 0.041 * p.ads + bob
+            - reload
+            - motion.sprint * 0.13,
         -0.32 + p.shot_kick * 0.045,
     );
-    let dark = Color::new(0.105, 0.14, 0.16, 1.);
-    let steel = Color::new(0.25, 0.31, 0.33, 1.);
-    let parts = [
-        (vec3(0., -0.026, -0.27), vec3(0.115, 0.12, 0.43), dark),
-        (vec3(0., -0.020, -0.59), vec3(0.094, 0.088, 0.24), steel),
-        (vec3(0., 0.010, -0.82), vec3(0.029, 0.029, 0.26), dark),
-        (vec3(0., 0.009, -0.96), vec3(0.049, 0.049, 0.07), steel),
-        (vec3(0., -0.078, -0.04), vec3(0.094, 0.11, 0.16), steel),
-        (vec3(0., -0.169, -0.21), vec3(0.070, 0.21, 0.12), dark),
-        (vec3(0., -0.125, -0.04), vec3(0.064, 0.14, 0.07), dark),
-        (vec3(0.061, -0.025, -0.25), vec3(0.004, 0.045, 0.13), ACCENT),
-        (vec3(0., 0.040, -0.38), vec3(0.065, 0.010, 0.28), steel),
-        (vec3(-0.027, 0.048, -0.20), vec3(0.014, 0.04, 0.019), dark),
-        (vec3(0.027, 0.048, -0.20), vec3(0.014, 0.04, 0.019), dark),
-        (vec3(0., 0.045, -0.77), vec3(0.008, 0.05, 0.014), INK),
-        (
-            vec3(-0.012, -0.123, -0.49),
-            vec3(0.11, 0.07, 0.16),
-            Color::new(0.48, 0.40, 0.30, 1.),
-        ),
-        (
-            vec3(0.055, -0.18, 0.005),
-            vec3(0.09, 0.13, 0.11),
-            Color::new(0.48, 0.40, 0.30, 1.),
-        ),
-    ];
-    for (pos, size, color) in parts {
-        draw_cube(o + pos, size, None, color);
-        draw_cube_wires(o + pos, size, Color::new(0.035, 0.05, 0.06, 1.));
-    }
-    for i in 0..6 {
-        draw_cube(
-            o + vec3(0., 0.047, -0.28 - i as f32 * 0.038),
-            vec3(0.073, 0.012, 0.014),
-            None,
-            dark,
+    let mut muzzle_position = o + vec3(0., 0.01, -1.04);
+    if let Some(model) = model {
+        use vector_range::weapon_animation::AnimationInput;
+        let progress = (p.reload_left > 0. && p.reload_total > 0.)
+            .then(|| (1. - p.reload_left / p.reload_total).clamp(0., 1.));
+        let completed =
+            progress.is_none() && p.reload_ready_at > 0. && sim.time + 1e-6 >= p.reload_ready_at;
+        let progress = if let Some(phase) = presentation_override {
+            Some(phase)
+        } else {
+            animation_state.presentation_progress(
+                progress,
+                p.reload_total,
+                p.reload_empty,
+                completed,
+                sim.time,
+            )
+        };
+        let credit = if p.reload_empty {
+            cfg.empty_reload_credit
+        } else {
+            cfg.reload_credit
+        };
+        let animation_input = AnimationInput {
+            reload_progress: progress,
+            reload_credit_fraction: if p.reload_total > 0. {
+                credit / p.reload_total
+            } else {
+                0.542
+            },
+            empty_reload: p.reload_empty,
+            ads: p.ads,
+            recoil: p.shot_kick,
+            sprint: motion.sprint,
+        };
+        let mut animation = animation_state.sample_input(animation_input, completed, sim.time);
+        if let Some(grip) = framing.left_grip_override {
+            animation.left_grip = grip;
+        }
+        if let Some(modes) = framing.hand_modes {
+            animation.left_hand_blend = modes;
+            animation.left_hand_orientation_xyzw = None;
+            animation.left_hand_euler_yxz = [0.; 3];
+        }
+        let visual_ads = vector_range::reference_motion::visual_ads(p.ads);
+        let base = framing.hip.lerp(framing.ads, visual_ads) + vec3(0., bob, 0.);
+        let frame = vector_range::view_animation::WeaponFrame::with_orientation(
+            base,
+            framing.hip_rotation.slerp(framing.ads_rotation, visual_ads),
+            &animation,
         );
+        let transform = frame.matrix;
+        muzzle_position = frame.point(model.muzzle);
+        let body_frame = Mat4::from_rotation_translation(
+            framing.hip_rotation.slerp(framing.ads_rotation, visual_ads),
+            base,
+        );
+        let hand_frames = animation_state
+            .hand_presentation()
+            .frames(body_frame, transform);
+        if let Some(arms) = arms {
+            if framing.hand_modes.is_some() || framing.left_grip_override.is_some() {
+                arms.draw_with_hand_modes(transform, &animation, animation.left_hand_blend);
+            } else {
+                arms.draw_with_weapon_ik(
+                    &hand_frames.targets,
+                    hand_frames.free_frame,
+                    &animation,
+                    hand_frames.free_hands,
+                    hand_frames.influences,
+                    animation.left_hand_blend,
+                );
+            }
+        }
+        model.draw_pose_with_free_frame(
+            transform,
+            animation_state
+                .hand_presentation()
+                .held_magazine_matrix(body_frame, transform),
+            &animation,
+        );
+    } else {
+        let dark = Color::new(0.105, 0.14, 0.16, 1.);
+        let steel = Color::new(0.25, 0.31, 0.33, 1.);
+        let parts = [
+            (vec3(0., -0.026, -0.27), vec3(0.115, 0.12, 0.43), dark),
+            (vec3(0., -0.020, -0.59), vec3(0.094, 0.088, 0.24), steel),
+            (vec3(0., 0.010, -0.82), vec3(0.029, 0.029, 0.26), dark),
+            (vec3(0., 0.009, -0.96), vec3(0.049, 0.049, 0.07), steel),
+            (vec3(0., -0.078, -0.04), vec3(0.094, 0.11, 0.16), steel),
+            (vec3(0., -0.169, -0.21), vec3(0.070, 0.21, 0.12), dark),
+            (vec3(0., -0.125, -0.04), vec3(0.064, 0.14, 0.07), dark),
+            (vec3(0.061, -0.025, -0.25), vec3(0.004, 0.045, 0.13), ACCENT),
+            (vec3(0., 0.040, -0.38), vec3(0.065, 0.010, 0.28), steel),
+            (vec3(-0.027, 0.048, -0.20), vec3(0.014, 0.04, 0.019), dark),
+            (vec3(0.027, 0.048, -0.20), vec3(0.014, 0.04, 0.019), dark),
+            (vec3(0., 0.045, -0.77), vec3(0.008, 0.05, 0.014), INK),
+            (
+                vec3(-0.012, -0.123, -0.49),
+                vec3(0.11, 0.07, 0.16),
+                Color::new(0.48, 0.40, 0.30, 1.),
+            ),
+            (
+                vec3(0.055, -0.18, 0.005),
+                vec3(0.09, 0.13, 0.11),
+                Color::new(0.48, 0.40, 0.30, 1.),
+            ),
+        ];
+        for (pos, size, color) in parts {
+            draw_cube(o + pos, size, None, color);
+            draw_cube_wires(o + pos, size, Color::new(0.035, 0.05, 0.06, 1.));
+        }
+        for i in 0..6 {
+            draw_cube(
+                o + vec3(0., 0.047, -0.28 - i as f32 * 0.038),
+                vec3(0.073, 0.012, 0.014),
+                None,
+                dark,
+            );
+        }
     }
     if p.shot_kick > 0.65 {
         draw_sphere(
-            o + vec3(0., 0.01, -1.04),
+            muzzle_position,
             0.035 + p.shot_kick * 0.025,
             None,
             Color::new(1., 0.80, 0.32, 1.),
         );
     }
+    composite_viewmodel(rt);
+}
+fn composite_viewmodel(rt: &RenderTarget) {
     set_default_camera();
     draw_texture_ex(
         &rt.texture,
@@ -283,6 +521,7 @@ fn hud(
     recording: bool,
     notice: &str,
     notice_timer: f32,
+    weapon_label: &str,
 ) {
     let (w, h) = (screen_width(), screen_height());
     let p = &sim.player;
@@ -315,7 +554,8 @@ fn hud(
     );
     let (x, y) = (w * 0.5, h * 0.5);
     if p.ads < 0.95 {
-        let fov = cfg.fov + (cfg.ads_fov - cfg.fov) * p.ads;
+        let fov = cfg.fov
+            + (cfg.ads_fov - cfg.fov) * vector_range::reference_motion::visual_world_ads(p.ads);
         let gap = (sim.spread_degrees(cfg).to_radians().tan() * w
             / (2. * (fov.to_radians() * 0.5).tan()))
         .max(2.);
@@ -337,7 +577,7 @@ fn hud(
         }
     }
     panel(w - 250., h - 125., 226., 101.);
-    label("KESTREL-30 / AUTO", w - 231., h - 101., 16., MUTED);
+    label(weapon_label, w - 231., h - 101., 16., MUTED);
     label(
         &format!("{:02}", p.ammo),
         w - 232.,
@@ -353,7 +593,9 @@ fn hud(
         MUTED,
     );
     label(
-        if p.reload_left > 0. {
+        if p.mantle.is_some() {
+            "MANTLING"
+        } else if p.reload_left > 0. {
             "RELOADING"
         } else if p.sprint_out > 0. {
             "RAISING WEAPON"
@@ -365,7 +607,9 @@ fn hud(
         13.,
         CYAN,
     );
-    if p.reload_left > 0. {
+    if let Some(mantle) = p.mantle {
+        draw_rectangle(w - 232., h - 20., 190. * mantle.progress(), 3., CYAN);
+    } else if p.reload_left > 0. {
         draw_rectangle(
             w - 232.,
             h - 20.,
@@ -375,7 +619,9 @@ fn hud(
         );
     }
     panel(24., h - 105., 248., 81.);
-    let stance = if !p.grounded {
+    let stance = if p.mantle.is_some() {
+        "MANTLING"
+    } else if !p.grounded {
         "AIRBORNE"
     } else if p.prone {
         "PRONE"
@@ -451,7 +697,7 @@ fn hud(
         }
     }
 }
-fn pause_screen(cfg: &Settings, initial: bool) {
+fn pause_screen(cfg: &Settings, initial: bool, control_mode: ControlMode) {
     let (w, h) = (screen_width(), screen_height());
     draw_rectangle(0., 0., w, h, Color::new(0.015, 0.025, 0.035, 0.78));
     let x = w * 0.5 - 270.;
@@ -477,13 +723,23 @@ fn pause_screen(cfg: &Settings, initial: bool) {
         20.,
         ACCENT,
     );
-    let controls = [
-        "W A S D     Move          MOUSE     Look",
-        "LEFT CLICK  Fire         RIGHT     Hold ADS",
-        "SHIFT       Sprint       CTRL / C  Hold crouch",
-        "SPACE       Jump         R         Reload",
-        "Z           Hold prone   M         Mute audio",
-    ];
+    let controls = if control_mode == ControlMode::Hold {
+        [
+            "W A S D     Move          MOUSE     Look",
+            "LEFT CLICK  Fire         RIGHT     Hold ADS",
+            "SHIFT       Sprint       CTRL / C  Hold crouch",
+            "SPACE       Jump         R         Reload",
+            "Z           Hold prone   M         Mute audio",
+        ]
+    } else {
+        [
+            "W A S D     Move          MOUSE     Look",
+            "LEFT CLICK  Fire         RIGHT     Toggle ADS",
+            "SHIFT       Sprint       CTRL / C  Toggle crouch",
+            "SPACE       Jump / stand R         Reload",
+            "Z           Toggle prone M         Mute audio",
+        ]
+    };
     for (i, s) in controls.iter().enumerate() {
         label(s, x + 38., y + 192. + i as f32 * 27., 17., MUTED);
     }
@@ -518,16 +774,67 @@ fn pause_screen(cfg: &Settings, initial: bool) {
 }
 #[macroquad::main(config)]
 async fn main() {
-    let mut cfg = Settings::load("settings.cfg");
+    let args: Vec<String> = std::env::args().collect();
+    // Deterministic capture jobs never contact the release channel. Ordinary
+    // double-click launches always start the background checker automatically.
+    let update_enabled = !args
+        .iter()
+        .any(|arg| arg == "--no-update" || arg == "--demo" || arg.starts_with("--capture"));
+    let mut game_update = game_update::UpdatePanel::start(update_enabled);
+    let framing = ViewmodelFraming::from_args(&args);
+    let control_mode = if args.iter().any(|s| s == "--hold-controls") {
+        ControlMode::Hold
+    } else {
+        ControlMode::Toggle
+    };
+    let mut controls = ControlState::new(control_mode);
+    let profile = args
+        .iter()
+        .find_map(|s| s.strip_prefix("--profile="))
+        .unwrap_or("m4a1");
+    let base = match profile {
+        "m4a1" => Settings::m4_candidate(),
+        "kestrel" => Settings::default(),
+        other => {
+            eprintln!("Unknown profile {other}; use m4a1 or kestrel");
+            return;
+        }
+    };
+    let settings_path = args
+        .iter()
+        .find_map(|s| s.strip_prefix("--settings="))
+        .unwrap_or(if profile == "kestrel" {
+            "profiles/kestrel.cfg"
+        } else {
+            "settings.cfg"
+        });
+    let weapon_label = if profile == "m4a1" {
+        "M4 / CANDIDATE"
+    } else {
+        "KESTREL-30 / AUTO"
+    };
+    let mut cfg = Settings::load_with_base(settings_path, base.clone());
     let mut audio = sound::SoundBank::new().await;
     let mut step_distance = 0.;
     let mut was_reloading = false;
+    let mut animation_state = vector_range::view_animation::ViewAnimation::default();
+    let mut locomotion_state =
+        vector_range::locomotion_presentation::LocomotionPresentation::default();
     let mut sim = Simulation::new();
+    let mut supply = vector_range::ammo_supply::AmmoSupply::default();
+    register_supply(&mut sim, &supply);
     let texture = grid_texture();
-    let target = render_target(1440, 900);
+    let target = render_target_ex(
+        if framing.reference { 960 } else { 1440 },
+        if framing.reference { 540 } else { 900 },
+        RenderTargetParams {
+            depth: true,
+            ..Default::default()
+        },
+    );
     target.texture.set_filter(FilterMode::Linear);
-    let mut active = false;
     let mut initial = true;
+    let mut session = vector_range::session::SessionController::default();
     let mut debug = false;
     let mut fullscreen = false;
     let mut clock = FixedClock::default();
@@ -541,9 +848,139 @@ async fn main() {
     let mut recording: Option<File> = None;
     let mut record_clock = 0.;
     let mut intents = IntentLatch::default();
-    let args: Vec<String> = std::env::args().collect();
+    let executable =
+        std::env::current_exe().unwrap_or_else(|_| std::path::PathBuf::from("vector-range.exe"));
+    let explicit = args.iter().find_map(|s| s.strip_prefix("--weapon-asset="));
+    let model_source = vector_range::asset_path::resolve_weapon(
+        &executable,
+        explicit.map(std::path::Path::new),
+        args.iter().any(|s| s == "--procedural-weapon"),
+        vector_range::EMBEDDED_WEAPON.is_some(),
+    );
+    let mut model_error = None;
+    let authored_path = args
+        .iter()
+        .find_map(|s| s.strip_prefix("--viewmodel-asset="));
+    let authored_clip = args
+        .iter()
+        .find_map(|s| s.strip_prefix("--viewmodel-clip="))
+        .unwrap_or("neutral");
+    let authored_time = args
+        .iter()
+        .find_map(|s| s.strip_prefix("--viewmodel-time="));
+    let mut authored = if let Some(path) = authored_path {
+        let time = authored_time
+            .map(|value| {
+                value
+                    .parse::<f32>()
+                    .map_err(|_| "invalid --viewmodel-time".to_string())
+            })
+            .transpose();
+        match time
+            .and_then(|time| authored_viewmodel::AuthoredViewmodel::load(path, authored_clip, time))
+        {
+            Ok(viewmodel) => Some(viewmodel),
+            Err(error) => {
+                let message = format!("Authored viewmodel could not load: {error}");
+                eprintln!("{message}");
+                model_error = Some(message);
+                None
+            }
+        }
+    } else {
+        None
+    };
+    let model_missing = authored_path.is_none()
+        && matches!(
+            &model_source,
+            vector_range::asset_path::WeaponSource::Missing(_)
+        );
+    let model = if authored_path.is_some() {
+        None
+    } else {
+        match vector_range::asset_path::load_weapon(&model_source, vector_range::EMBEDDED_WEAPON) {
+            Ok(Some(asset)) => {
+                eprintln!("Loaded VRMESH01 weapon: {} mesh parts", asset.meshes.len());
+                Some(weapon_model::WeaponModel::from_asset(asset))
+            }
+            Err(error) => {
+                let message = format!("Weapon asset could not load: {error}");
+                eprintln!("{message}; source: {model_source:?}");
+                model_error = Some(message);
+                None
+            }
+            Ok(None) => None,
+        }
+    };
+    let arms_path = if authored_path.is_some() {
+        None
+    } else {
+        args.iter()
+            .find_map(|s| s.strip_prefix("--arms-asset="))
+            .map(std::path::PathBuf::from)
+            .or_else(|| {
+                executable
+                    .parent()
+                    .map(|p| p.join("assets/arms/first-person.vrs"))
+                    .filter(|p| p.exists())
+            })
+    };
+    let mut arms = if let Some(path) = arms_path {
+        match vector_range::skinned_asset::SkinnedAsset::load(&path)
+            .map_err(|error| error.to_string())
+            .and_then(vector_range::arms::ArmModel::new)
+        {
+            Ok(asset) => Some(asset),
+            Err(error) => {
+                let message = format!("Arm asset could not load: {error}");
+                eprintln!("{message}; path: {}", path.display());
+                model_error = Some(message);
+                None
+            }
+        }
+    } else {
+        None
+    };
     let capture = args.iter().any(|s| s.starts_with("--capture"));
     let capture_ads = args.iter().any(|s| s == "--capture-ads");
+    let capture_supply = args.iter().any(|s| s == "--capture-supply");
+    let capture_fire = args.iter().any(|s| s == "--capture-fire");
+    let capture_reload = args
+        .iter()
+        .find_map(|a| a.strip_prefix("--capture-reload="))
+        .and_then(|s| s.parse::<f32>().ok())
+        .filter(|v| v.is_finite() && (0. ..=1.).contains(v));
+    let mut locomotion_capture_tick = 0_u64;
+    let capture_sequence = args
+        .iter()
+        .find_map(|a| a.strip_prefix("--capture-sequence="))
+        .filter(|s| matches!(*s, "tactical" | "empty" | "ads" | "locomotion"));
+    let capture_empty =
+        args.iter().any(|s| s == "--capture-empty") || capture_sequence == Some("empty");
+    let sequence_duration = match capture_sequence {
+        Some("empty") => vector_range::reference_motion::visual_duration(true),
+        Some("tactical") => vector_range::reference_motion::visual_duration(false),
+        Some("locomotion") => 3.5,
+        _ => cfg.ads_time,
+    };
+    if capture_sequence.is_some() && !framing.reference {
+        eprintln!("--capture-sequence requires --reference-viewport");
+        return;
+    }
+    if capture_sequence.is_some() {
+        std::fs::create_dir_all(
+            args.iter()
+                .find_map(|a| a.strip_prefix("--output="))
+                .unwrap_or("capture-sequence"),
+        )
+        .expect("create capture sequence directory");
+    }
+
+    let capture_ads_fraction = args
+        .iter()
+        .find_map(|a| a.strip_prefix("--capture-ads-fraction="))
+        .and_then(|s| s.parse::<f32>().ok())
+        .filter(|v| v.is_finite() && (0. ..=1.).contains(v));
     let capture_fixtures = args.iter().any(|s| s == "--capture-fixtures");
     let output = args
         .iter()
@@ -556,12 +993,27 @@ async fn main() {
     if capture_ads {
         sim.player.ads = 1.;
     }
+    if capture_supply {
+        sim.player.position = vec3(0., 0., 11.7);
+        sim.player.yaw = std::f32::consts::FRAC_PI_2;
+        sim.player.pitch = (supply.bounds().center() - sim.player.eye())
+            .normalize()
+            .y
+            .asin();
+        sim.player.ammo = 15;
+        sim.player.reserve = 30;
+    }
     let demo = args.iter().any(|s| s == "--demo");
     let mut frames = 0;
     if capture || demo {
-        active = true;
+        session.set_active(true);
         initial = false;
         debug = true;
+    }
+    if model_error.is_none() {
+        if let Err(error) = rust_duty_launcher::game::mark_ready(env!("CARGO_PKG_VERSION")) {
+            eprintln!("Update startup acknowledgement: {error}");
+        }
     }
     loop {
         let now = get_time();
@@ -569,50 +1021,51 @@ async fn main() {
         last_frame = now;
         let dt = raw_dt.min(FixedClock::MAX_FRAME) as f32;
         frames += 1;
-        if active
-            && frames > 8
-            && (raw_dt > FixedClock::MAX_FRAME
-                || is_key_down(KeyCode::LeftAlt)
-                || is_key_down(KeyCode::RightAlt)
-                || is_key_down(KeyCode::LeftSuper)
-                || is_key_down(KeyCode::RightSuper))
-        {
-            active = false;
-            set_cursor_grab(false);
-            show_mouse(true);
-            clock.clear();
-            intents.clear();
-            sim.player.firing_sequence = false;
-            notice = "Paused after focus shortcut or a long frame hitch".into();
-            notice_timer = 4.;
-        }
-        let mut just_resumed = false;
         if is_key_pressed(KeyCode::F10) {
             break;
         }
-        if is_key_pressed(KeyCode::Escape) {
-            active = !active;
-            just_resumed = active;
-            intents.clear();
-            sim.player.firing_sequence = false;
-
+        let update_pointer = game_update.consumes_pointer(!session.is_active());
+        let transition = session.step(vector_range::session::SessionInput {
+            esc_pressed: is_key_pressed(KeyCode::Escape),
+            esc_down: is_key_down(KeyCode::Escape),
+            enter_pressed: is_key_pressed(KeyCode::Enter),
+            enter_down: is_key_down(KeyCode::Enter),
+            click_pressed: is_mouse_button_pressed(MouseButton::Left) && !update_pointer,
+            click_down: is_mouse_button_down(MouseButton::Left) && !update_pointer,
+            focus_shortcut_pressed: is_key_down(KeyCode::LeftAlt)
+                || is_key_down(KeyCode::RightAlt)
+                || is_key_down(KeyCode::LeftSuper)
+                || is_key_down(KeyCode::RightSuper),
+            blocked: model_error.is_some(),
+            dt: raw_dt,
+        });
+        let active = transition.active;
+        let mut just_resumed = transition.resumed;
+        if transition.paused {
+            // Includes Escape, focus-shortcut, and asset-block interruptions.
+            // A render hitch only discards time and must not cancel traversal.
+            sim.cancel_mantle();
+        }
+        if transition.paused || transition.resumed {
             initial = false;
             set_cursor_grab(active);
             show_mouse(!active);
             clock.clear();
+            intents.clear();
+            controls.clear();
+            sim.player.firing_sequence = false;
         }
-        if !active && (is_mouse_button_pressed(MouseButton::Left) || is_key_pressed(KeyCode::Enter))
-        {
-            active = true;
-            just_resumed = true;
+        if transition.discard_timing {
+            clock.clear();
             intents.clear();
             sim.player.firing_sequence = false;
-
-            initial = false;
-            set_cursor_grab(true);
-            show_mouse(false);
-            clock.clear();
         }
+        let simulation_dt =
+            if transition.discard_timing || capture_supply || capture_sequence.is_some() {
+                0.
+            } else {
+                raw_dt.min(FixedClock::MAX_FRAME)
+            };
         if is_key_pressed(KeyCode::M) {
             audio.muted = !audio.muted;
             notice = if audio.muted {
@@ -627,7 +1080,15 @@ async fn main() {
         }
         if is_key_pressed(KeyCode::F2) {
             sim.reset();
+            supply.reset();
+            register_supply(&mut sim, &supply);
+            animation_state = vector_range::view_animation::ViewAnimation::default();
+            locomotion_state.reset(sim.time);
+            if let Some(viewmodel) = &mut authored {
+                viewmodel.update_locomotion(sim.time, sim.time, false);
+            }
             intents.clear();
+            controls.clear();
             clock.clear();
             just_resumed = true;
             traces.clear();
@@ -652,15 +1113,15 @@ async fn main() {
             cfg.fov = (cfg.fov + 2.).min(120.);
         }
         if is_key_pressed(KeyCode::F5) {
-            notice = match cfg.save("settings.cfg") {
-                Ok(_) => "Saved settings.cfg".into(),
+            notice = match cfg.save(settings_path) {
+                Ok(_) => format!("Saved {settings_path}"),
                 Err(e) => format!("Could not save preset: {e}"),
             };
             notice_timer = 4.;
         }
         if is_key_pressed(KeyCode::F6) {
-            cfg = Settings::load("settings.cfg");
-            notice = "Loaded settings.cfg (missing values use defaults)".into();
+            cfg = Settings::load_with_base(settings_path, base.clone());
+            notice = format!("Loaded {settings_path} with {profile} defaults");
             notice_timer = 4.;
         }
         if is_key_pressed(KeyCode::F8) {
@@ -680,7 +1141,7 @@ async fn main() {
             notice_timer = 4.;
         }
         if active {
-            let mouse = if just_resumed {
+            let mouse = if just_resumed || transition.discard_timing {
                 Vec2::ZERO
             } else {
                 mouse_delta_position()
@@ -703,6 +1164,27 @@ async fn main() {
                 is_key_pressed(KeyCode::R),
                 is_mouse_button_pressed(MouseButton::Left),
                 is_mouse_button_down(MouseButton::Left),
+                !just_resumed && !transition.discard_timing,
+            );
+            controls.sample(
+                ControlSample {
+                    ads: ButtonInput {
+                        pressed: is_mouse_button_pressed(MouseButton::Right),
+                        down: is_mouse_button_down(MouseButton::Right),
+                    },
+                    crouch: ButtonInput {
+                        pressed: is_key_pressed(KeyCode::LeftControl) || is_key_pressed(KeyCode::C),
+                        down: is_key_down(KeyCode::LeftControl) || is_key_down(KeyCode::C),
+                    },
+                    prone: ButtonInput {
+                        pressed: is_key_pressed(KeyCode::Z),
+                        down: is_key_down(KeyCode::Z),
+                    },
+                    sprint: ButtonInput {
+                        pressed: is_key_pressed(KeyCode::LeftShift),
+                        down: is_key_down(KeyCode::LeftShift),
+                    },
+                },
                 !just_resumed,
             );
             let mut input = Input {
@@ -714,30 +1196,53 @@ async fn main() {
                 ),
                 jump: false,
                 reload: false,
-                crouch: is_key_down(KeyCode::LeftControl) || is_key_down(KeyCode::C),
-                prone: is_key_down(KeyCode::Z),
+                crouch: false,
+                prone: false,
                 sprint: is_key_down(KeyCode::LeftShift),
-                ads: is_mouse_button_down(MouseButton::Right),
+                ads: false,
                 fire: false,
             };
-            if capture_ads {
-                input.ads = true;
-            }
             if demo {
-                input.ads = true;
-                input.fire = true;
                 sim.player.yaw = -std::f32::consts::FRAC_PI_2;
                 sim.player.pitch = 0.;
             }
-            let steps = clock
-                .advance(raw_dt.min(FixedClock::MAX_FRAME))
-                .unwrap_or(0);
+            let steps = clock.advance(simulation_dt).unwrap_or(0);
             for _ in 0..steps {
                 let step = intents.take(is_mouse_button_down(MouseButton::Left));
+                if step.jump {
+                    controls.request_jump();
+                }
+                let control_intent = controls.intent();
+                input.ads = capture_ads || demo || control_intent.ads;
+                input.crouch = control_intent.crouch();
+                input.prone = control_intent.prone();
                 input.jump = step.jump;
                 input.reload = step.reload;
                 input.fire = demo || step.fire;
+                let authored_step_start = sim.time;
                 sim.update(input, &cfg, FIXED_DT);
+                if let Some(viewmodel) = &mut authored {
+                    viewmodel.update_locomotion(
+                        authored_step_start,
+                        sim.time,
+                        sim.player.sprinting,
+                    );
+                }
+                // Cosmetic targets receive exact simulation timestamps; input
+                // and movement remain fully authoritative and immediate.
+                locomotion_state.sample(sim.time, locomotion_input(&sim));
+                let focus = supply_focus(&sim, &cfg, &supply, active);
+                if supply.tick(
+                    &mut sim.player,
+                    focus,
+                    is_key_down(KeyCode::F),
+                    active,
+                    FIXED_DT,
+                ) == vector_range::ammo_supply::SupplyEvent::Refilled
+                {
+                    notice = "Ammunition replenished".into();
+                    notice_timer = 2.;
+                }
             }
             if sim.player.reload_left > 0. && !was_reloading {
                 audio.play(3);
@@ -801,12 +1306,70 @@ async fn main() {
                 }
             }
         }
+        let focus = supply_focus(&sim, &cfg, &supply, active);
+        if !active || transition.discard_timing || !is_key_down(KeyCode::F) || focus.is_none() {
+            supply.cancel();
+        }
+        // Deterministic presentation samples for comparison; only explicit capture flags use these.
+        let sequence_elapsed = ((frames - 8).max(0) as f32) / (60000. / 1001.);
+        let sequence_phase = (sequence_elapsed / sequence_duration).clamp(0., 1.);
+        let presentation_reload = if matches!(capture_sequence, Some("tactical" | "empty")) {
+            Some(sequence_phase)
+        } else {
+            capture_reload
+        };
+        if capture_sequence.is_some() {
+            sim.time = sequence_elapsed as f64;
+        }
+        if capture_sequence == Some("ads") {
+            sim.player.ads = sequence_phase;
+        }
+        if capture_sequence == Some("locomotion") {
+            // Diagnostic presentation only: sample target changes on the same
+            // fixed clock used by gameplay, with camera/world movement frozen.
+            while locomotion_capture_tick as f64 / 120. <= sim.time {
+                let t = locomotion_capture_tick as f64 / 120.;
+                sim.player.sprinting = (1. ..2.).contains(&t);
+                let speed = if !(0.25..3.).contains(&t) {
+                    0.
+                } else if sim.player.sprinting {
+                    cfg.sprint_speed
+                } else {
+                    cfg.walk_speed
+                };
+                sim.player.velocity = vec3(speed, 0., 0.);
+                locomotion_state.sample(t, locomotion_input(&sim));
+                if let Some(viewmodel) = &mut authored {
+                    viewmodel.update_locomotion(t, t, sim.player.sprinting);
+                }
+                locomotion_capture_tick += 1;
+            }
+        }
+        if let Some(ads) = capture_ads_fraction {
+            sim.player.ads = ads;
+        }
+        if let Some(phase) = presentation_reload {
+            sim.player.reload_empty = capture_empty;
+            sim.player.reload_total = if capture_empty {
+                cfg.empty_reload_time
+            } else {
+                cfg.reload_time
+            };
+            sim.player.reload_left = sim.player.reload_total * (1. - phase);
+            sim.player.reload_ready_at = sim.time + sim.player.reload_left as f64;
+        }
         notice_timer = (notice_timer - dt).max(0.);
         clear_background(Color::new(0.66, 0.76, 0.78, 1.));
-        let aspect = screen_width() / screen_height();
+        let aspect = if framing.reference {
+            16. / 9.
+        } else {
+            screen_width() / screen_height()
+        };
         let eye = sim.player.eye();
         let forward = sim.player.direction();
-        let fov = cfg.fov + (cfg.ads_fov - cfg.fov) * sim.player.ads;
+        let fov = cfg.fov
+            + (cfg.ads_fov - cfg.fov)
+                * vector_range::reference_motion::visual_world_ads(sim.player.ads);
         set_camera(&Camera3D {
             position: eye,
             target: eye + forward,
@@ -827,7 +1390,31 @@ async fn main() {
         for i in &impacts {
             draw_sphere(i.point, 0.022, None, if i.target { CYAN } else { INK });
         }
-        weapon(&sim, &target, aspect, sim.time as f32);
+        if capture_fire {
+            sim.player.shot_kick = 1.;
+        }
+        // An explicitly requested invalid authored asset never falls through
+        // to the legacy procedural renderer while its startup error is shown.
+        if authored_path.is_none() || authored.is_some() {
+            weapon(
+                &sim,
+                &target,
+                aspect,
+                &mut locomotion_state,
+                model.as_ref(),
+                authored.as_mut(),
+                arms.as_mut(),
+                &mut animation_state,
+                &cfg,
+                framing,
+                presentation_reload,
+            );
+        }
+        if let Some(error) = authored.as_ref().and_then(|viewmodel| viewmodel.error()) {
+            if model_error.is_none() {
+                model_error = Some(format!("Authored viewmodel: {error}"));
+            }
+        }
         hud(
             &sim,
             &cfg,
@@ -837,13 +1424,99 @@ async fn main() {
             recording.is_some(),
             &notice,
             notice_timer,
+            weapon_label,
         );
-        if !active {
-            pause_screen(&cfg, initial);
+        if let Some(focus) = focus {
+            vector_range::ammo_supply_view::draw_ammo_supply_hint(
+                focus,
+                if capture_supply {
+                    0.5
+                } else {
+                    supply.progress()
+                },
+                supply.ammo_full(&sim.player),
+            );
         }
-        if capture && frames == 8 {
-            get_screen_data().export_png(output);
+        if !active {
+            pause_screen(&cfg, initial, controls.mode());
+        }
+        if game_update.draw(!active) {
             break;
+        }
+        if let Some(error) = &model_error {
+            panel(24., screen_height() - 140., screen_width() - 48., 115.);
+            label(
+                &error.chars().take(105).collect::<String>(),
+                42.,
+                screen_height() - 108.,
+                19.,
+                RED,
+            );
+            label(
+                if authored_path.is_some() {
+                    "Check the matching .vra/.vrs/.vrm files and the selected clip name."
+                } else {
+                    "Re-extract the whole game folder. Expected: assets/weapons/hk416a5.vrm"
+                },
+                42.,
+                screen_height() - 78.,
+                16.,
+                WHITE,
+            );
+            label(
+                if authored_path.is_some() {
+                    "F10 exits. Remove --viewmodel-asset to return to the existing gameplay presentation."
+                } else {
+                    "F10 exits. --procedural-weapon is an explicit diagnostic bypass."
+                },
+                42.,
+                screen_height() - 48.,
+                16.,
+                MUTED,
+            );
+        } else if model_missing {
+            label("HK416 asset missing: extract the whole package beside the EXE (procedural fallback active)",24.,screen_height()-155.,16.,YELLOW);
+        }
+        if capture
+            && ((capture_sequence.is_none() && frames == 8)
+                || (capture_sequence.is_some() && frames >= 8))
+        {
+            let sequence_output;
+            let output = if capture_sequence.is_some() {
+                sequence_output = format!(
+                    "{}/{:04}.png",
+                    if output == "capture.png" {
+                        "capture-sequence"
+                    } else {
+                        output
+                    },
+                    frames - 8
+                );
+                sequence_output.as_str()
+            } else {
+                output
+            };
+            if framing.reference {
+                unsafe {
+                    get_internal_gl().flush();
+                }
+                target.texture.get_texture_data().export_png(output);
+                let _ = std::fs::write(format!("{output}.json"), format!("{{\"capture\":\"native offscreen viewmodel\",\"width\":960,\"height\":540,\"hfov\":{},\"ads\":{},\"reload_phase\":{}}}",framing.hfov,sim.player.ads,presentation_reload.map(|v|v.to_string()).unwrap_or_else(||"null".into())));
+            } else {
+                get_screen_data().export_png(output);
+            }
+            if capture_sequence.is_some() {
+                let _ = std::fs::write(format!("{output}.time.json"), format!("{{\"elapsed_seconds\":{},\"normalized_phase\":{},\"visual_duration_seconds\":{},\"simulation_ready_seconds\":{},\"sampling_hz\":59.94005994}}", sequence_elapsed, sequence_phase, sequence_duration, if capture_empty { cfg.empty_reload_time } else if capture_sequence == Some("ads") { cfg.ads_time } else { cfg.reload_time }));
+            }
+            if capture_sequence == Some("locomotion") {
+                let motion = locomotion_state.sample(sim.time, locomotion_input(&sim));
+                let _ = std::fs::write(format!("{output}.motion.json"), format!(
+                    "{{\"elapsed\":{},\"target_sprint\":{},\"cosmetic_sprint\":{},\"bob\":{},\"bob_phase\":{},\"speed\":{}}}",
+                    sequence_elapsed, sim.player.sprinting, motion.sprint, motion.bob, motion.phase, sim.player.speed()));
+            }
+            if capture_sequence.is_none() || sequence_elapsed >= sequence_duration + 0.2 {
+                break;
+            }
         }
         next_frame().await;
     }

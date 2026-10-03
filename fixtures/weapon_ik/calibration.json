@@ -1,0 +1,30 @@
+{
+  "coordinate_system": "+X right, +Y up, -Z weapon forward; metres",
+  "quaternion_order": "xyzw",
+  "left_hand_weapon_ik": {
+    "translation": [
+      -0.068,
+      -0.112,
+      -0.205
+    ],
+    "rotation_xyzw": [
+      0.70147073,
+      0.089098096,
+      -0.089098096,
+      0.70147073
+    ]
+  },
+  "right_hand_weapon_ik": {
+    "translation": [
+      0.062053986,
+      -0.108130604,
+      0.14318079
+    ],
+    "rotation_xyzw": [
+      0.07290045,
+      0.7246968,
+      -0.012056069,
+      -0.6850947
+    ]
+  }
+}
