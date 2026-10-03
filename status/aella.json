@@ -1,27 +1,27 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T17:03:42.271Z",
+  "updatedAt": "2026-10-03T17:13:56.440Z",
   "state": "active",
-  "task": "Coordinating the approved move of animation review to RHS059/rust_duty_updates, the ADS v6 forward revision, and reference-work handoffs. The previous ChatGPT Site is retired and its publishing is stopped. GitHub review media is being uploaded; frontend playback remains pending.",
-  "lastCompleted": "All seven Aella review-media IDs are resolved to verified Eevee paired MP4s. The renderer completed 12 decoded previews, including neutral-studio reload and pickup. ADS v5 received Fail51; ADS v6 Trial1 is locally committed. PR #17 remains the verified e46f83d complete build.",
+  "task": "Coordinating ADS v6 forward Eevee comparison and reference-animation review. The animation gallery has moved to https://rhs059.github.io/rust_duty_updates/: seven Aella review MP4s are published, exact bytes and hashes match, and frontend playback is verified. The previous ChatGPT Site is retired and publishing remains stopped.",
+  "lastCompleted": "Gallery media published at fc54d8fdc17010a57a87bd63ca82aa7b10e3449d with successful deployment 37139286287. ADS v6 numerical preflight passed for 126 samples, and the temporary Blender reload scene was preserved in a verified separate checkpoint. ADS v5 remains Fail51; v6 is unreviewed. PR #17 remains the verified e46f83d complete build.",
   "agents": [
     {
       "slot": 1,
-      "state": "active",
-      "task": "Preparing the forward Eevee comparison for locally committed ADS v6 Trial1; source/docs remote publication remains stopped after two automatic-review denials",
-      "lastCompleted": "ADS v6 Trial1 at local commit a836c8b restores only vertical gain from 0.25 to 0.40 while preserving reduced lateral gain and 0.80 rate; its 486-frame packet is ready. V5 review was Fail51: sights locked and figure-eight removed, but motion too flat"
+      "state": "idle",
+      "task": "ADS v6 Trial1 source is frozen; awaiting the sole Eevee comparison and Elara's review, with no candidate source changes in progress. Source/docs publication remains blocked.",
+      "lastCompleted": "Local author commit a836c8b changes only vertical gain from 0.25 to 0.40; lateral gain 0.10 and phase rate 0.80 are unchanged. The 486-frame packet is complete and the renderer independently reproduced all 126 forward transforms. V5 remains Fail51; v6 is unreviewed."
     },
     {
       "slot": 2,
-      "state": "active",
-      "task": "Publishing the seven verified Aella review MP4s to RHS059/rust_duty_updates while preserving non-video fields and other contributors' entries; GitHub commit and frontend playback verification are pending",
-      "lastCompleted": "Resolved all seven current media IDs with hashes, frames/FPS and provenance: four ADS v4 baselines, separate ADS v5 Trial1 forward, and fresh neutral-studio reload and pickup previews"
+      "state": "idle",
+      "task": "Seven-video gallery publication and verification are complete; no publishing currently active",
+      "lastCompleted": "Published all seven Aella review MP4s at fc54d8fdc17010a57a87bd63ca82aa7b10e3449d. Deployment 37139286287 succeeded, all public media matched exact source hashes and bytes, and cloud-browser playback passed"
     },
     {
       "slot": 3,
-      "state": "idle",
-      "task": "Eevee renderer completed its media handoff; no rendering currently active",
-      "lastCompleted": "Completed and fully decoded 12 Eevee viewport previews: four HIP, four ADS v4, ADS v5 Trial1 forward, full 157-frame reload, 31-frame opening and pickup pose. Frozen source files, Actions and cameras remain unchanged; reload uses documented neutral-studio display lighting"
+      "state": "active",
+      "task": "Setting up the sole ADS v6 forward Eevee viewport capture in foreground Blender; no v6 frames or media are complete yet",
+      "lastCompleted": "Passed v6 numerical preflight for 126 samples, preserved the temporary reload scene in a verified separate checkpoint, and loaded the frozen ADS source. The earlier 12 decoded Eevee previews and retired-gallery handoff are complete"
     }
   ]
 }
