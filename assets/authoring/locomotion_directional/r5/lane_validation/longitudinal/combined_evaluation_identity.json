@@ -1,0 +1,180 @@
+{
+  "schema": "rust-duty-preserved-native-evaluation/v1",
+  "baseline_sources_sha256": {
+    "halcyon_hip_longitudinal_r5.blend": "147541d32421e3e431946a9cf5a4209d6072bede97355238bd6180b2491fdae8"
+  },
+  "candidate_sources_sha256": {
+    "halcyon_hip_directional_r5.blend": "36d76491c2cf6238b8a1e10069dddd5b0d63e199063e1f4012b34f3fd4b1e18d"
+  },
+  "preserved_clip_count": 2,
+  "array_count": 12,
+  "byte_identical_arrays": 12,
+  "position_limit_m": 1e-06,
+  "matrix_component_limit": 1e-06,
+  "max_position_error_m": 0.0,
+  "max_matrix_component_error": 0.0,
+  "candidate_max_wrist_solve_error_m": 5.995316285813004e-07,
+  "candidate_max_guard_error_degrees": 0.0,
+  "arrays": {
+    "hip_walk_forward_r5__bones": {
+      "shape": [
+        25,
+        72,
+        4,
+        4
+      ],
+      "byte_identical": true,
+      "max_absolute_difference": 0.0,
+      "max_position_error_m": 0.0,
+      "passed": true,
+      "baseline_sha256": "1aa035ad046fdb6d22cbc577be862979b1f6301cf55a0afecf5face6257dd9c7",
+      "candidate_sha256": "1aa035ad046fdb6d22cbc577be862979b1f6301cf55a0afecf5face6257dd9c7"
+    },
+    "hip_walk_forward_r5__actors": {
+      "shape": [
+        25,
+        2,
+        4,
+        4
+      ],
+      "byte_identical": true,
+      "max_absolute_difference": 0.0,
+      "max_position_error_m": 0.0,
+      "passed": true,
+      "baseline_sha256": "923c50d5be4dda5a935fa4f1b9174cb419f010c065045367dd17e1b0e7c0f12d",
+      "candidate_sha256": "923c50d5be4dda5a935fa4f1b9174cb419f010c065045367dd17e1b0e7c0f12d"
+    },
+    "hip_walk_forward_r5__skin_0": {
+      "shape": [
+        25,
+        5710,
+        3
+      ],
+      "byte_identical": true,
+      "max_absolute_difference": 0.0,
+      "max_position_error_m": 0.0,
+      "passed": true,
+      "baseline_sha256": "6b657dcf031d20a452c9f7bcddb25784c31932ae711840bf74e73cb549af9516",
+      "candidate_sha256": "6b657dcf031d20a452c9f7bcddb25784c31932ae711840bf74e73cb549af9516"
+    },
+    "hip_walk_forward_r5__skin_1": {
+      "shape": [
+        25,
+        3954,
+        3
+      ],
+      "byte_identical": true,
+      "max_absolute_difference": 0.0,
+      "max_position_error_m": 0.0,
+      "passed": true,
+      "baseline_sha256": "20f2190fc268e2c25e8b36688744695af02c83baa7837c260ae1a54b55df9ebf",
+      "candidate_sha256": "20f2190fc268e2c25e8b36688744695af02c83baa7837c260ae1a54b55df9ebf"
+    },
+    "hip_walk_forward_r5__skin_2": {
+      "shape": [
+        25,
+        570,
+        3
+      ],
+      "byte_identical": true,
+      "max_absolute_difference": 0.0,
+      "max_position_error_m": 0.0,
+      "passed": true,
+      "baseline_sha256": "3cb2ed0f75c2b805b1d905747c941c259dd65f71a9adae7fa176cdaa7bc495d3",
+      "candidate_sha256": "3cb2ed0f75c2b805b1d905747c941c259dd65f71a9adae7fa176cdaa7bc495d3"
+    },
+    "hip_walk_backward_r5__bones": {
+      "shape": [
+        25,
+        72,
+        4,
+        4
+      ],
+      "byte_identical": true,
+      "max_absolute_difference": 0.0,
+      "max_position_error_m": 0.0,
+      "passed": true,
+      "baseline_sha256": "01ac85b4cef5a0c062bbbf120b46d42fe8ada9e0cb8ad7b56092d9559239e46c",
+      "candidate_sha256": "01ac85b4cef5a0c062bbbf120b46d42fe8ada9e0cb8ad7b56092d9559239e46c"
+    },
+    "hip_walk_backward_r5__actors": {
+      "shape": [
+        25,
+        2,
+        4,
+        4
+      ],
+      "byte_identical": true,
+      "max_absolute_difference": 0.0,
+      "max_position_error_m": 0.0,
+      "passed": true,
+      "baseline_sha256": "4fc3107dbd70c13fc535d5d4a3653c14c0b775510e495b69fd9e2cb31b03f904",
+      "candidate_sha256": "4fc3107dbd70c13fc535d5d4a3653c14c0b775510e495b69fd9e2cb31b03f904"
+    },
+    "hip_walk_backward_r5__skin_0": {
+      "shape": [
+        25,
+        5710,
+        3
+      ],
+      "byte_identical": true,
+      "max_absolute_difference": 0.0,
+      "max_position_error_m": 0.0,
+      "passed": true,
+      "baseline_sha256": "5f862e15bd7c80c1591127665ba631e0df7a1542b5bf5120f243c955fb6cc88e",
+      "candidate_sha256": "5f862e15bd7c80c1591127665ba631e0df7a1542b5bf5120f243c955fb6cc88e"
+    },
+    "hip_walk_backward_r5__skin_1": {
+      "shape": [
+        25,
+        3954,
+        3
+      ],
+      "byte_identical": true,
+      "max_absolute_difference": 0.0,
+      "max_position_error_m": 0.0,
+      "passed": true,
+      "baseline_sha256": "603ea13fe1abfa0940f6e6c2f73e5503d626161f91eac60c2a0089748ff23c03",
+      "candidate_sha256": "603ea13fe1abfa0940f6e6c2f73e5503d626161f91eac60c2a0089748ff23c03"
+    },
+    "hip_walk_backward_r5__skin_2": {
+      "shape": [
+        25,
+        570,
+        3
+      ],
+      "byte_identical": true,
+      "max_absolute_difference": 0.0,
+      "max_position_error_m": 0.0,
+      "passed": true,
+      "baseline_sha256": "0206b899680926bdb8f7bae1023c1f14b244560189faf196ba5a153955ae5586",
+      "candidate_sha256": "0206b899680926bdb8f7bae1023c1f14b244560189faf196ba5a153955ae5586"
+    },
+    "hk416_weapon__local_vertices": {
+      "shape": [
+        79342,
+        3
+      ],
+      "byte_identical": true,
+      "max_absolute_difference": 0.0,
+      "max_position_error_m": 0.0,
+      "passed": true,
+      "baseline_sha256": "a2ad37299e2fef813490ee9d8dc4b857444f9e1a73687bfd1966028ea3bca423",
+      "candidate_sha256": "a2ad37299e2fef813490ee9d8dc4b857444f9e1a73687bfd1966028ea3bca423"
+    },
+    "hk416_magazine__local_vertices": {
+      "shape": [
+        5584,
+        3
+      ],
+      "byte_identical": true,
+      "max_absolute_difference": 0.0,
+      "max_position_error_m": 0.0,
+      "passed": true,
+      "baseline_sha256": "b578805bce845cab104cdbc53bfeffcfdcd7007be74e0904244a414e3aa86b01",
+      "candidate_sha256": "b578805bce845cab104cdbc53bfeffcfdcd7007be74e0904244a414e3aa86b01"
+    }
+  },
+  "passed": true,
+  "scope": "Fresh Blender native evaluated old clips; sampled numerical preservation. Not full visual contact certification or runtime blend acceptance."
+}

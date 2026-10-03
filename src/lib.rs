@@ -1,4 +1,6 @@
 //! Original deterministic simulation. No original-game source or assets are used.
+/// The release identity assigned to this exact CI build; local builds use Cargo's version.
+pub const BUILD_VERSION: &str = env!("RUST_DUTY_BUILD_VERSION");
 pub mod settings;
 pub mod sim;
 
@@ -33,5 +35,16 @@ pub mod viewmodel_animation;
 pub mod authored_locomotion_path;
 
 pub mod authored_locomotion_adapter;
+
+pub mod animation_manifest;
+pub mod authored_reload;
+
+pub mod authored_walk;
+
+pub mod scene_lighting;
+
+pub mod authored_ads;
+
+pub mod layered_locomotion;
 
 pub mod muzzle_fx;

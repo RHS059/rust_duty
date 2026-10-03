@@ -1,0 +1,266 @@
+{
+  "schema": "rust-duty-locomotion-walk-validation/v1",
+  "baseline_validation": {
+    "schema": "rust-duty-portable-locomotion-export-check/v1",
+    "portable_source_sha256": "52b0c0b0e2c0778ebf3cae7107f53b84d11bb8435bafd53c956cf16b9ac00a82",
+    "original_export_source_sha256": "1c44a7660cfd67923a527f363c04c17f35aad2c460ae315484ad53f586f86f52",
+    "native_array_count": 217,
+    "native_arrays_identical": true,
+    "sample_metadata_identical": true,
+    "contact_samples_identical": true,
+    "maximum_absolute_array_difference": 0.0,
+    "source_take_count": 43,
+    "source_fps": 60,
+    "bake_hz": 480,
+    "repeated_portable_exports_native_arrays_identical": true,
+    "repeated_portable_exports_sample_metadata_identical": true,
+    "repeated_portable_exports_contact_samples_identical": true,
+    "final_export_script_run_exit_code": 0,
+    "fbx_animation_stack_count": 43,
+    "fbx_take_selection_verified": true,
+    "fbx_embedded_texture_hashes_equal_source": true,
+    "decompressed_blend_private_path_scan_passed": true,
+    "python_scripts_parse": true,
+    "settle_derivation": {
+      "runtime_fixture_sha256": "d02d04d4adb429b6493bf3347b302dc007bb7b99f4761da3c2b314e6d313c6ab",
+      "gameplay_clip_count": 43,
+      "source_clip": "normal_exit_connected",
+      "derived_clip": "normal_settle",
+      "source_elapsed_start_seconds": 0.25,
+      "selected_frame_count": 73,
+      "frame_size_bytes": 2966,
+      "derived_frame_records_byte_identical": true,
+      "non_time_channel_bytes_unchanged": true,
+      "first_derived_seconds": 0.0,
+      "last_derived_seconds": 0.15000000596046448,
+      "source_exit_connected_frame_count": 193
+    },
+    "scope": "Source, FBX and native-oracle reproduction checked; common-workflow converter and live gameplay integration not executed here"
+  },
+  "new_source_sha256": "1b01f49d7fe92f39c7bd180823ee4556a0074dd9ff8ef9c10b3fb4d3f3059e43",
+  "new_walk_native_audit": {
+    "action": "normal_walk_r1",
+    "sample_hz": 480,
+    "sample_count": 353,
+    "frame_range": [
+      1,
+      45
+    ],
+    "unique_frame_range": [
+      1,
+      44
+    ],
+    "fps": 60,
+    "period_s": 0.7333333333333333,
+    "keypose_count": 23,
+    "max_wrist_solve_error_mm": 0.000599601067707683,
+    "max_guard_error_deg": 0.0,
+    "min_raw_guard_margin_deg": 1.9999628608463889,
+    "min_reach_margin_mm": 146.85657606951736,
+    "peaks": {
+      "wrist_step_mm_480hz": 0.5275270016558794,
+      "elbow_step_mm_480hz": 0.2288978386043135,
+      "weapon_step_mm_480hz": 0.313126606541001
+    },
+    "all_follow_one": true,
+    "seam": {
+      "l": {
+        "hand_position_mm": 0.0,
+        "elbow_position_mm": 0.0
+      },
+      "r": {
+        "hand_position_mm": 0.0,
+        "elbow_position_mm": 0.0
+      }
+    },
+    "rig_checks_pass": true
+  },
+  "new_walk_reopen_qa": {
+    "schema": "rust-duty-normal-walk-reopen-qa/v1",
+    "blender": "4.3.2",
+    "reopen_matches_saved_snapshot": true,
+    "prior_actions_unchanged": true,
+    "new_action_count": 62,
+    "prior_nla_tracks_unchanged": true,
+    "new_strip_muted": true,
+    "driver_count": 185,
+    "all_drivers_valid": true,
+    "seam": {
+      "0.5": {
+        "righthand_prop": {
+          "endpoint_position_mm": 0.0,
+          "endpoint_rotation_deg": 0.0,
+          "second_order_velocity_mismatch_mm_s": 0.3447705259757412
+        },
+        "hand_l": {
+          "endpoint_position_mm": 0.0,
+          "endpoint_rotation_deg": 0.0,
+          "second_order_velocity_mismatch_mm_s": 0.18512424489791476
+        },
+        "hand_r": {
+          "endpoint_position_mm": 0.0,
+          "endpoint_rotation_deg": 0.0,
+          "second_order_velocity_mismatch_mm_s": 0.5148048200469089
+        },
+        "MCH_lowerarm_l": {
+          "endpoint_position_mm": 0.0,
+          "endpoint_rotation_deg": 0.0,
+          "second_order_velocity_mismatch_mm_s": 0.10526127952821537
+        },
+        "MCH_lowerarm_r": {
+          "endpoint_position_mm": 0.0,
+          "endpoint_rotation_deg": 0.0,
+          "second_order_velocity_mismatch_mm_s": 0.17533342265051657
+        }
+      },
+      "0.1": {
+        "righthand_prop": {
+          "endpoint_position_mm": 0.0,
+          "endpoint_rotation_deg": 0.0,
+          "second_order_velocity_mismatch_mm_s": 0.17286149830507017
+        },
+        "hand_l": {
+          "endpoint_position_mm": 0.0,
+          "endpoint_rotation_deg": 0.0,
+          "second_order_velocity_mismatch_mm_s": 0.2707197592561674
+        },
+        "hand_r": {
+          "endpoint_position_mm": 0.0,
+          "endpoint_rotation_deg": 0.0,
+          "second_order_velocity_mismatch_mm_s": 0.31730027539399913
+        },
+        "MCH_lowerarm_l": {
+          "endpoint_position_mm": 0.0,
+          "endpoint_rotation_deg": 0.0,
+          "second_order_velocity_mismatch_mm_s": 0.07546816624462961
+        },
+        "MCH_lowerarm_r": {
+          "endpoint_position_mm": 0.0,
+          "endpoint_rotation_deg": 0.0,
+          "second_order_velocity_mismatch_mm_s": 0.24219429701456516
+        }
+      },
+      "0.05": {
+        "righthand_prop": {
+          "endpoint_position_mm": 0.0,
+          "endpoint_rotation_deg": 0.0,
+          "second_order_velocity_mismatch_mm_s": 0.6678646587246573
+        },
+        "hand_l": {
+          "endpoint_position_mm": 0.0,
+          "endpoint_rotation_deg": 0.0,
+          "second_order_velocity_mismatch_mm_s": 1.0181557250891478
+        },
+        "hand_r": {
+          "endpoint_position_mm": 0.0,
+          "endpoint_rotation_deg": 0.0,
+          "second_order_velocity_mismatch_mm_s": 0.5010779953909654
+        },
+        "MCH_lowerarm_l": {
+          "endpoint_position_mm": 0.0,
+          "endpoint_rotation_deg": 0.0,
+          "second_order_velocity_mismatch_mm_s": 0.7145848704345734
+        },
+        "MCH_lowerarm_r": {
+          "endpoint_position_mm": 0.0,
+          "endpoint_rotation_deg": 0.0,
+          "second_order_velocity_mismatch_mm_s": 0.4799122450050374
+        }
+      }
+    },
+    "root_curve_seam": [
+      {
+        "path": "pose.bones[\"righthand_prop\"].rotation_quaternion",
+        "axis": 0,
+        "endpoint_difference": 0.0,
+        "tangent_difference_per_frame": 0.0
+      },
+      {
+        "path": "pose.bones[\"righthand_prop\"].rotation_quaternion",
+        "axis": 1,
+        "endpoint_difference": 0.0,
+        "tangent_difference_per_frame": 0.0
+      },
+      {
+        "path": "pose.bones[\"righthand_prop\"].rotation_quaternion",
+        "axis": 2,
+        "endpoint_difference": 0.0,
+        "tangent_difference_per_frame": 0.0
+      },
+      {
+        "path": "pose.bones[\"righthand_prop\"].rotation_quaternion",
+        "axis": 3,
+        "endpoint_difference": 0.0,
+        "tangent_difference_per_frame": 0.0
+      },
+      {
+        "path": "pose.bones[\"righthand_prop\"].location",
+        "axis": 0,
+        "endpoint_difference": 0.0,
+        "tangent_difference_per_frame": -3.3764928413990147e-09
+      },
+      {
+        "path": "pose.bones[\"righthand_prop\"].location",
+        "axis": 1,
+        "endpoint_difference": 0.0,
+        "tangent_difference_per_frame": 1.6407644901485045e-10
+      },
+      {
+        "path": "pose.bones[\"righthand_prop\"].location",
+        "axis": 2,
+        "endpoint_difference": 0.0,
+        "tangent_difference_per_frame": -2.3156234109291286e-10
+      },
+      {
+        "path": "pose.bones[\"righthand_prop\"].rotation_euler",
+        "axis": 0,
+        "endpoint_difference": 0.0,
+        "tangent_difference_per_frame": 2.133873132229361e-09
+      },
+      {
+        "path": "pose.bones[\"righthand_prop\"].rotation_euler",
+        "axis": 1,
+        "endpoint_difference": 0.0,
+        "tangent_difference_per_frame": -4.56830029013644e-09
+      },
+      {
+        "path": "pose.bones[\"righthand_prop\"].rotation_euler",
+        "axis": 2,
+        "endpoint_difference": 0.0,
+        "tangent_difference_per_frame": -1.329933703854251e-10
+      }
+    ],
+    "hand_in_weapon_max_translation_drift_mm": 0.00046601877795265765,
+    "hand_in_weapon_max_angle_drift_deg": 0.0,
+    "magazine_in_weapon_max_matrix_element_drift": 5.960464477539062e-07,
+    "source_hash": "1b01f49d7fe92f39c7bd180823ee4556a0074dd9ff8ef9c10b3fb4d3f3059e43",
+    "claim_limit": "These tests establish inherited grip transforms and loop continuity. They do not establish hidden finger-to-surface contact or final game runtime behavior."
+  },
+  "revised_export_validation": {
+    "status": "passed",
+    "report": "walk_export_validation.json",
+    "source_take_count": 44,
+    "legacy_oracle_arrays_byte_identical": false,
+    "legacy_numerical_preservation_pass": true,
+    "walk_loop_all_five_endpoint_arrays_identical": true,
+    "shared_runtime_integration_executed": false
+  },
+  "scope": "New source/Action, root curves, native guard/attachment sweep and reopen/seam checked. Gameplay bindings and input transitions are owned separately.",
+  "preview_validation": {
+    "source_comparison_duration_seconds": 6.6,
+    "source_comparison_frames": 396,
+    "source_comparison_fps": 60,
+    "side_by_side_dimensions": [
+      1280,
+      430
+    ],
+    "vertical_dimensions": [
+      1080,
+      1348
+    ],
+    "full_decode_pass": true,
+    "render_kind": "Blender Eevee",
+    "not_gameplay_capture": true,
+    "native_loop_endpoint_hand_and_elbow_positions_equal": true
+  }
+}

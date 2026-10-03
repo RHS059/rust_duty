@@ -1,0 +1,449 @@
+{
+  "schema": "rust-duty-locomotion-fbx-parity/v1",
+  "backend": "Rust CPU sampler",
+  "passed": true,
+  "source_witnesses_sha256": "ee81c54f5e27d4c3e6d4e6f6c9cc5e886023d24f636c32377f92512470a062f5",
+  "asset_sha256": "a5c0df74499358a04122fd1eee284a7d15dcb3434576f17c59369b933daa50a0",
+  "samples": 25,
+  "clip": "ads_entry_r1",
+  "source_sha256": {
+    "ads.blend": "3acdf3e2d04757d719ba59ede08decdf8bad48e2e87d9448046fe8edcbba4f58"
+  },
+  "source_fbx_sha256": "4d01e1574f130123576c4fcbbe4776908d352c27481e583454815068eaff4057",
+  "maxima": {
+    "skin_error_m": 5.198328262675017e-06,
+    "visible_prop_origin_error_m": 4.26968268444687e-06,
+    "visible_rigid_vertex_error_m": 4.479599408022692e-06,
+    "visible_prop_matrix_error": 4.060301914216025e-06
+  },
+  "declared_position_limit_m": 0.001,
+  "visibility_failures": 0,
+  "records": [
+    {
+      "native_frame": 1.0,
+      "time": 0.0,
+      "skin_error_m": 1.08482841658432e-06,
+      "visible_prop_origin_error_m": 4.206223169306336e-09,
+      "visible_rigid_vertex_error_m": 9.572064259128764e-08,
+      "visible_prop_matrix_error": 3.4207000731978354e-07,
+      "visibility_matches": true,
+      "visible": [
+        1,
+        1
+      ],
+      "expected_visible": [
+        1,
+        1
+      ]
+    },
+    {
+      "native_frame": 1.0625,
+      "time": 0.0010416666666666667,
+      "skin_error_m": 1.4483868496942702e-06,
+      "visible_prop_origin_error_m": 2.3217344606074343e-07,
+      "visible_rigid_vertex_error_m": 2.860278207579264e-07,
+      "visible_prop_matrix_error": 2.2318439484025898e-07,
+      "visibility_matches": true,
+      "visible": [
+        1,
+        1
+      ],
+      "expected_visible": [
+        1,
+        1
+      ]
+    },
+    {
+      "native_frame": 2.25,
+      "time": 0.020833333333333332,
+      "skin_error_m": 1.3100104250582754e-06,
+      "visible_prop_origin_error_m": 3.709173777311381e-09,
+      "visible_rigid_vertex_error_m": 1.449803476418163e-07,
+      "visible_prop_matrix_error": 1.666455078097595e-07,
+      "visibility_matches": true,
+      "visible": [
+        1,
+        1
+      ],
+      "expected_visible": [
+        1,
+        1
+      ]
+    },
+    {
+      "native_frame": 2.3125,
+      "time": 0.021875,
+      "skin_error_m": 4.022063335345959e-06,
+      "visible_prop_origin_error_m": 2.8322132836790546e-06,
+      "visible_rigid_vertex_error_m": 3.043243650356333e-06,
+      "visible_prop_matrix_error": 2.703583564758749e-06,
+      "visibility_matches": true,
+      "visible": [
+        1,
+        1
+      ],
+      "expected_visible": [
+        1,
+        1
+      ]
+    },
+    {
+      "native_frame": 3.5,
+      "time": 0.041666666666666664,
+      "skin_error_m": 1.286896884776171e-06,
+      "visible_prop_origin_error_m": 8.201867875147246e-09,
+      "visible_rigid_vertex_error_m": 1.056174956608042e-07,
+      "visible_prop_matrix_error": 2.1198215484352634e-07,
+      "visibility_matches": true,
+      "visible": [
+        1,
+        1
+      ],
+      "expected_visible": [
+        1,
+        1
+      ]
+    },
+    {
+      "native_frame": 3.5625,
+      "time": 0.042708333333333334,
+      "skin_error_m": 4.969546024006434e-06,
+      "visible_prop_origin_error_m": 4.106965375249487e-06,
+      "visible_rigid_vertex_error_m": 4.34774182414361e-06,
+      "visible_prop_matrix_error": 3.887918205255914e-06,
+      "visibility_matches": true,
+      "visible": [
+        1,
+        1
+      ],
+      "expected_visible": [
+        1,
+        1
+      ]
+    },
+    {
+      "native_frame": 4.75,
+      "time": 0.0625,
+      "skin_error_m": 1.215952401459338e-06,
+      "visible_prop_origin_error_m": 4.8326209580172885e-09,
+      "visible_rigid_vertex_error_m": 1.618710504894143e-07,
+      "visible_prop_matrix_error": 2.1994504594870234e-07,
+      "visibility_matches": true,
+      "visible": [
+        1,
+        1
+      ],
+      "expected_visible": [
+        1,
+        1
+      ]
+    },
+    {
+      "native_frame": 4.8125,
+      "time": 0.06354166666666666,
+      "skin_error_m": 5.198328262675017e-06,
+      "visible_prop_origin_error_m": 4.24761854734764e-06,
+      "visible_rigid_vertex_error_m": 4.479599408022692e-06,
+      "visible_prop_matrix_error": 4.060301914216025e-06,
+      "visibility_matches": true,
+      "visible": [
+        1,
+        1
+      ],
+      "expected_visible": [
+        1,
+        1
+      ]
+    },
+    {
+      "native_frame": 6.0,
+      "time": 0.08333333333333333,
+      "skin_error_m": 1.0949498878933048e-06,
+      "visible_prop_origin_error_m": 3.2778316627680635e-09,
+      "visible_rigid_vertex_error_m": 1.9455795041967475e-07,
+      "visible_prop_matrix_error": 3.534729003940029e-07,
+      "visibility_matches": true,
+      "visible": [
+        1,
+        1
+      ],
+      "expected_visible": [
+        1,
+        1
+      ]
+    },
+    {
+      "native_frame": 6.0625,
+      "time": 0.084375,
+      "skin_error_m": 4.069970276986726e-06,
+      "visible_prop_origin_error_m": 3.19006875102826e-06,
+      "visible_rigid_vertex_error_m": 3.4039342550361293e-06,
+      "visible_prop_matrix_error": 3.0352933502175716e-06,
+      "visibility_matches": true,
+      "visible": [
+        1,
+        1
+      ],
+      "expected_visible": [
+        1,
+        1
+      ]
+    },
+    {
+      "native_frame": 7.25,
+      "time": 0.10416666666666667,
+      "skin_error_m": 1.1880188807237329e-06,
+      "visible_prop_origin_error_m": 2.0267172650945678e-09,
+      "visible_rigid_vertex_error_m": 1.225473482650804e-07,
+      "visible_prop_matrix_error": 1.5121440124360452e-07,
+      "visibility_matches": true,
+      "visible": [
+        1,
+        1
+      ],
+      "expected_visible": [
+        1,
+        1
+      ]
+    },
+    {
+      "native_frame": 7.3125,
+      "time": 0.10520833333333333,
+      "skin_error_m": 2.755327082201007e-06,
+      "visible_prop_origin_error_m": 1.7927708653237643e-06,
+      "visible_rigid_vertex_error_m": 1.9542847077266033e-06,
+      "visible_prop_matrix_error": 1.545711519237991e-06,
+      "visibility_matches": true,
+      "visible": [
+        1,
+        1
+      ],
+      "expected_visible": [
+        1,
+        1
+      ]
+    },
+    {
+      "native_frame": 8.5,
+      "time": 0.125,
+      "skin_error_m": 1.3533858057925256e-06,
+      "visible_prop_origin_error_m": 9.990866839859429e-09,
+      "visible_rigid_vertex_error_m": 1.3327367848340388e-07,
+      "visible_prop_matrix_error": 1.4346595764158643e-07,
+      "visibility_matches": true,
+      "visible": [
+        1,
+        1
+      ],
+      "expected_visible": [
+        1,
+        1
+      ]
+    },
+    {
+      "native_frame": 8.5625,
+      "time": 0.12604166666666666,
+      "skin_error_m": 1.8457624930140194e-06,
+      "visible_prop_origin_error_m": 1.085213013631482e-06,
+      "visible_rigid_vertex_error_m": 1.126133692492984e-06,
+      "visible_prop_matrix_error": 1.0727285766620742e-06,
+      "visibility_matches": true,
+      "visible": [
+        1,
+        1
+      ],
+      "expected_visible": [
+        1,
+        1
+      ]
+    },
+    {
+      "native_frame": 9.75,
+      "time": 0.14583333333333334,
+      "skin_error_m": 1.2243701884692465e-06,
+      "visible_prop_origin_error_m": 5.888075594469995e-09,
+      "visible_rigid_vertex_error_m": 1.0257342441490367e-07,
+      "visible_prop_matrix_error": 1.3160348892593543e-07,
+      "visibility_matches": true,
+      "visible": [
+        1,
+        1
+      ],
+      "expected_visible": [
+        1,
+        1
+      ]
+    },
+    {
+      "native_frame": 9.8125,
+      "time": 0.146875,
+      "skin_error_m": 2.693138193631588e-06,
+      "visible_prop_origin_error_m": 2.037844192820222e-06,
+      "visible_rigid_vertex_error_m": 2.1188302135307637e-06,
+      "visible_prop_matrix_error": 1.8273269901288025e-06,
+      "visibility_matches": true,
+      "visible": [
+        1,
+        1
+      ],
+      "expected_visible": [
+        1,
+        1
+      ]
+    },
+    {
+      "native_frame": 11.0,
+      "time": 0.16666666666666666,
+      "skin_error_m": 1.3702068867998274e-06,
+      "visible_prop_origin_error_m": 4.728500242161456e-09,
+      "visible_rigid_vertex_error_m": 2.904359763411734e-07,
+      "visible_prop_matrix_error": 3.695770263156817e-07,
+      "visibility_matches": true,
+      "visible": [
+        1,
+        1
+      ],
+      "expected_visible": [
+        1,
+        1
+      ]
+    },
+    {
+      "native_frame": 11.0625,
+      "time": 0.16770833333333332,
+      "skin_error_m": 4.407317336474869e-06,
+      "visible_prop_origin_error_m": 3.413938714412419e-06,
+      "visible_rigid_vertex_error_m": 3.527825115326952e-06,
+      "visible_prop_matrix_error": 3.14567055225215e-06,
+      "visibility_matches": true,
+      "visible": [
+        1,
+        1
+      ],
+      "expected_visible": [
+        1,
+        1
+      ]
+    },
+    {
+      "native_frame": 12.25,
+      "time": 0.1875,
+      "skin_error_m": 1.1491332016357353e-06,
+      "visible_prop_origin_error_m": 3.246759635609701e-09,
+      "visible_rigid_vertex_error_m": 2.3118753340656543e-07,
+      "visible_prop_matrix_error": 4.347663878911945e-07,
+      "visibility_matches": true,
+      "visible": [
+        1,
+        1
+      ],
+      "expected_visible": [
+        1,
+        1
+      ]
+    },
+    {
+      "native_frame": 12.3125,
+      "time": 0.18854166666666666,
+      "skin_error_m": 4.838592872367009e-06,
+      "visible_prop_origin_error_m": 4.26968268444687e-06,
+      "visible_rigid_vertex_error_m": 4.457213742386824e-06,
+      "visible_prop_matrix_error": 3.979201534271351e-06,
+      "visibility_matches": true,
+      "visible": [
+        1,
+        1
+      ],
+      "expected_visible": [
+        1,
+        1
+      ]
+    },
+    {
+      "native_frame": 13.5,
+      "time": 0.20833333333333334,
+      "skin_error_m": 1.1025213558202185e-06,
+      "visible_prop_origin_error_m": 3.4301221054328586e-09,
+      "visible_rigid_vertex_error_m": 1.6232683624189602e-07,
+      "visible_prop_matrix_error": 1.8996873855925411e-07,
+      "visibility_matches": true,
+      "visible": [
+        1,
+        1
+      ],
+      "expected_visible": [
+        1,
+        1
+      ]
+    },
+    {
+      "native_frame": 13.5625,
+      "time": 0.209375,
+      "skin_error_m": 4.388215288676632e-06,
+      "visible_prop_origin_error_m": 3.950680524608421e-06,
+      "visible_rigid_vertex_error_m": 4.240152707055677e-06,
+      "visible_prop_matrix_error": 3.7136442478180945e-06,
+      "visibility_matches": true,
+      "visible": [
+        1,
+        1
+      ],
+      "expected_visible": [
+        1,
+        1
+      ]
+    },
+    {
+      "native_frame": 14.75,
+      "time": 0.22916666666666666,
+      "skin_error_m": 1.1043907938657762e-06,
+      "visible_prop_origin_error_m": 3.5841641448431814e-09,
+      "visible_rigid_vertex_error_m": 1.6448282002545052e-07,
+      "visible_prop_matrix_error": 2.8108827641296666e-07,
+      "visibility_matches": true,
+      "visible": [
+        1,
+        1
+      ],
+      "expected_visible": [
+        1,
+        1
+      ]
+    },
+    {
+      "native_frame": 14.8125,
+      "time": 0.23020833333333332,
+      "skin_error_m": 3.494462820421546e-06,
+      "visible_prop_origin_error_m": 2.7545990616730546e-06,
+      "visible_rigid_vertex_error_m": 2.8729132508337935e-06,
+      "visible_prop_matrix_error": 2.5532171703338815e-06,
+      "visibility_matches": true,
+      "visible": [
+        1,
+        1
+      ],
+      "expected_visible": [
+        1,
+        1
+      ]
+    },
+    {
+      "native_frame": 16.0,
+      "time": 0.25,
+      "skin_error_m": 1.1484151306577845e-06,
+      "visible_prop_origin_error_m": 4.053260012283658e-09,
+      "visible_rigid_vertex_error_m": 1.7959387955864358e-07,
+      "visible_prop_matrix_error": 3.0187001798614503e-07,
+      "visibility_matches": true,
+      "visible": [
+        1,
+        1
+      ],
+      "expected_visible": [
+        1,
+        1
+      ]
+    }
+  ],
+  "scope": "Exact immutable source witness times, including off-key and switch neighborhoods. No visual, missing-gap or whole-clip approval."
+}

@@ -1,0 +1,16 @@
+{
+  "left": {
+    "nonroot_curves_preserved_exactly": 769,
+    "root_rotation_max_r4_r5_difference_radians_at480hz": 0.03491589426994324,
+    "max_loop_root_curve_tangent_numeric_error_per_frame": 8.657015122121026e-09,
+    "root_curve_endpoints_exact": true,
+    "root_curve_cycles_present": true
+  },
+  "right": {
+    "nonroot_curves_preserved_exactly": 769,
+    "root_rotation_max_r4_r5_difference_radians_at480hz": 0.0,
+    "max_loop_root_curve_tangent_numeric_error_per_frame": 2.5100296672728173e-08,
+    "root_curve_endpoints_exact": true,
+    "root_curve_cycles_present": true
+  }
+}

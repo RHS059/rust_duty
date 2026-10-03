@@ -1,0 +1,324 @@
+{
+  "schema": "rust-duty-directional-source-handoff/v1",
+  "baseline": {
+    "repository": "RHS059/rust_duty",
+    "commit": "7ffdd6eb1d6ae20d5e8e6445f07759a225c952eb",
+    "pull_request": 16,
+    "canonical_source": "assets/authoring/locomotion/locomotion.blend",
+    "canonical_source_sha256": "1b01f49d7fe92f39c7bd180823ee4556a0074dd9ff8ef9c10b3fb4d3f3059e43"
+  },
+  "source": {
+    "file": "halcyon_hip_directional_r1.blend",
+    "bytes": 9485443,
+    "sha256": "6d6d5c6a150bd8d74f24b29bf18b192e2f5fe2cd93a531c77b7a1e5ce93a8b35",
+    "blender_version": "4.3.2",
+    "source_fps": 60,
+    "bake_hz": 480,
+    "save_format": "native compressed BLEND"
+  },
+  "rig": {
+    "armature": "Arms",
+    "complete_bone_count": 148,
+    "deform_bone_count": 72,
+    "deform_bones": [
+      "root",
+      "pelvis",
+      "spine_01",
+      "spine_02",
+      "spine_03",
+      "neck_01",
+      "head",
+      "clavicle_l",
+      "upperarm_l",
+      "lowerarm_l",
+      "hand_l",
+      "index_01_l",
+      "index_02_l",
+      "index_03_l",
+      "thumb_01_l",
+      "thumb_02_l",
+      "thumb_03_l",
+      "middle_01_l",
+      "middle_02_l",
+      "middle_03_l",
+      "ring_01_l",
+      "ring_02_l",
+      "ring_03_l",
+      "pinky_01_l",
+      "pinky_02_l",
+      "pinky_03_l",
+      "lowerarm_twist_01_l",
+      "upperarm_twist_01_l",
+      "clavicle_r",
+      "upperarm_r",
+      "lowerarm_r",
+      "hand_r",
+      "index_01_r",
+      "index_02_r",
+      "index_03_r",
+      "thumb_01_r",
+      "thumb_02_r",
+      "thumb_03_r",
+      "middle_01_r",
+      "middle_02_r",
+      "middle_03_r",
+      "ring_01_r",
+      "ring_02_r",
+      "ring_03_r",
+      "pinky_01_r",
+      "pinky_02_r",
+      "pinky_03_r",
+      "lowerarm_twist_01_r",
+      "upperarm_twist_01_r",
+      "thigh_l",
+      "calf_l",
+      "foot_l",
+      "ball_l",
+      "calf_twist_01_l",
+      "thigh_twist_01_l",
+      "thigh_r",
+      "calf_r",
+      "foot_r",
+      "ball_r",
+      "calf_twist_01_r",
+      "thigh_twist_01_r",
+      "ik_foot_root",
+      "ik_foot_l",
+      "ik_foot_r",
+      "ik_hand_root",
+      "ik_hand_gun",
+      "ik_hand_l",
+      "ik_hand_r",
+      "righthand_prop",
+      "lefthand_prop",
+      "righthand_prop_righthand",
+      "righthand_prop_lefthand"
+    ],
+    "skin_objects": [
+      "Actual arms mesh 0",
+      "Actual arms mesh 1",
+      "Actual arms mesh 2"
+    ],
+    "rigid_actors": [
+      "hk416_weapon",
+      "hk416_magazine"
+    ],
+    "excluded_rigid_actor": "hk416_magazine_outgoing",
+    "blender_to_fbx_basis": "(x,y,z) -> (x,z,-y)",
+    "whole_model_runtime_rotation": "apply existing Ry(pi) exactly once"
+  },
+  "clips": [
+    {
+      "name": "hip_walk_forward_r1",
+      "action": "hip_walk_forward_r1",
+      "frame_start": 1,
+      "frame_end": 39,
+      "duration_seconds": 0.6333333333333333,
+      "loop": true,
+      "role": "preview",
+      "pose_space": "absolute",
+      "additive": false,
+      "unique_frames": 38,
+      "varying_native_control": "righthand_prop",
+      "varying_channels": [
+        "location.x",
+        "location.y",
+        "location.z",
+        "rotation_euler.x",
+        "rotation_euler.y",
+        "rotation_euler.z"
+      ],
+      "reference_periodic_core": {
+        "source_alias": "R2",
+        "source_id": "5KM0XSKxTWw",
+        "source_sha256": "cff413d8d114b611bbe6f50cc553ef109d61eb8eb1fff960425f506b84d6767e",
+        "start_frame": 48,
+        "end_frame_exclusive": 86,
+        "start_pts": 12288,
+        "end_pts_exclusive": 22016,
+        "fps": "60/1",
+        "time_base": "1/15360",
+        "endpoint_role": "excluded repeated closure witness only",
+        "claim": "in-sample periodic-core motion transfer only"
+      }
+    },
+    {
+      "name": "hip_walk_backward_r1",
+      "action": "hip_walk_backward_r1",
+      "frame_start": 1,
+      "frame_end": 46,
+      "duration_seconds": 0.75,
+      "loop": true,
+      "role": "preview",
+      "pose_space": "absolute",
+      "additive": false,
+      "unique_frames": 45,
+      "varying_native_control": "righthand_prop",
+      "varying_channels": [
+        "location.x",
+        "location.y",
+        "location.z",
+        "rotation_euler.x",
+        "rotation_euler.y",
+        "rotation_euler.z"
+      ],
+      "reference_periodic_core": {
+        "source_alias": "R2",
+        "source_id": "5KM0XSKxTWw",
+        "source_sha256": "cff413d8d114b611bbe6f50cc553ef109d61eb8eb1fff960425f506b84d6767e",
+        "start_frame": 211,
+        "end_frame_exclusive": 256,
+        "start_pts": 54016,
+        "end_pts_exclusive": 65536,
+        "fps": "60/1",
+        "time_base": "1/15360",
+        "endpoint_role": "excluded repeated closure witness only",
+        "claim": "in-sample periodic-core motion transfer only"
+      }
+    },
+    {
+      "name": "hip_strafe_left_r1",
+      "action": "hip_strafe_left_r1",
+      "frame_start": 1,
+      "frame_end": 50,
+      "duration_seconds": 0.8166666666666667,
+      "loop": true,
+      "role": "preview",
+      "pose_space": "absolute",
+      "additive": false,
+      "unique_frames": 49,
+      "varying_native_control": "righthand_prop",
+      "varying_channels": [
+        "location.x",
+        "location.y",
+        "location.z",
+        "rotation_euler.x",
+        "rotation_euler.y",
+        "rotation_euler.z"
+      ],
+      "reference_periodic_core": {
+        "source_alias": "R2",
+        "source_id": "5KM0XSKxTWw",
+        "source_sha256": "cff413d8d114b611bbe6f50cc553ef109d61eb8eb1fff960425f506b84d6767e",
+        "start_frame": 886,
+        "end_frame_exclusive": 935,
+        "start_pts": 226816,
+        "end_pts_exclusive": 239360,
+        "fps": "60/1",
+        "time_base": "1/15360",
+        "endpoint_role": "excluded repeated closure witness only",
+        "claim": "in-sample periodic-core motion transfer only"
+      }
+    },
+    {
+      "name": "hip_strafe_right_r1",
+      "action": "hip_strafe_right_r1",
+      "frame_start": 1,
+      "frame_end": 50,
+      "duration_seconds": 0.8166666666666667,
+      "loop": true,
+      "role": "preview",
+      "pose_space": "absolute",
+      "additive": false,
+      "unique_frames": 49,
+      "varying_native_control": "righthand_prop",
+      "varying_channels": [
+        "location.x",
+        "location.y",
+        "location.z",
+        "rotation_euler.x",
+        "rotation_euler.y",
+        "rotation_euler.z"
+      ],
+      "reference_periodic_core": {
+        "source_alias": "R1",
+        "source_id": "9RRgXvRx43s",
+        "source_sha256": "5b883e85d1179d06987509e4ede2b18fbc54433c4578b316af355e68d17becf5",
+        "start_frame": 361,
+        "end_frame_exclusive": 410,
+        "start_pts": 92416,
+        "end_pts_exclusive": 104960,
+        "fps": "60/1",
+        "time_base": "1/15360",
+        "endpoint_role": "excluded repeated closure witness only",
+        "claim": "in-sample periodic-core motion transfer only"
+      }
+    }
+  ],
+  "runtime_handoff": {
+    "owner": "receiving integrator",
+    "derive_additive_relative_to": "normal_ready complete evaluated pose",
+    "ads": "reuse base directional clips at reduced amplitude; no duplicate ADS Actions",
+    "run_transition": "fade directional layer out while run layer fades in; preserve evaluated start pose and phase",
+    "note": "Source pose-space flags describe the BLEND and FBX output; they are not runtime layering implementation"
+  },
+  "validation_reports": {
+    "source_preservation": {
+      "file": "source_preservation.json",
+      "sha256": "d019087fa3e28b40cca91d2bd4910d5c27ff8826d70c9acb4809a9aa2dcda01d",
+      "passed": true
+    },
+    "preserved_evaluation": {
+      "file": "preserved_evaluation.json",
+      "sha256": "539e36c060e7346c4549c2e81055bda35e893488c707520286182100bbbb400b",
+      "passed": true
+    },
+    "preview_export_validation": {
+      "file": "preview_export_validation.json",
+      "sha256": "4c4b45e11575686bb56f812a427776b3c49d47ec08e4f04091ad983324f35fb9",
+      "passed": true
+    },
+    "authoring_reproduction": {
+      "file": "authoring_reproduction.json",
+      "sha256": "f9d6eb84fc50016a21a7b5e1b5544eb9edc3f37789ba444a3010f44b4aa78d71",
+      "passed": true
+    }
+  },
+  "acceptance": {
+    "publication_status": "draft WIP",
+    "source_preservation_accepted": true,
+    "preview_export_accepted": true,
+    "runtime_integration_accepted": false,
+    "whole_reference_fidelity_claim": false,
+    "reference_motion_review": {
+      "file": "review/FINAL_REVIEW_V06.json",
+      "sha256": "0912ed7e6dccb403d43f21830557921ab1a521369d2a5ab9e64f8c1aebe81ce2",
+      "status": "WIP source handoff. Three narrow periodic cores pass; backward extrema timing is inconclusive. No all-four full-window/overall pose/runtime80% claim.",
+      "all_four_formal_core_pass": false,
+      "scores": {
+        "hip_walk_forward_r1": {
+          "earned": 60.0,
+          "denominator": 60,
+          "support_points": 60,
+          "category_minimum_pass": true,
+          "decision": "pass_for_narrow_in_sample_motion_core_only"
+        },
+        "hip_walk_backward_r1": {
+          "earned": 50.0,
+          "denominator": 60,
+          "support_points": 50,
+          "category_minimum_pass": false,
+          "decision": "inconclusive_due_flat_extremum; no formal pass"
+        },
+        "hip_strafe_left_r1": {
+          "earned": 60.0,
+          "denominator": 60,
+          "support_points": 60,
+          "category_minimum_pass": true,
+          "decision": "pass_for_narrow_in_sample_motion_core_only"
+        },
+        "hip_strafe_right_r1": {
+          "earned": 60.0,
+          "denominator": 60,
+          "support_points": 60,
+          "category_minimum_pass": true,
+          "decision": "pass_for_narrow_in_sample_motion_core_only"
+        }
+      },
+      "local_contact": "pass",
+      "local_continuity": "pass",
+      "full_window_motion_accepted": false
+    },
+    "footage_and_source_frames_in_public_repository": false
+  }
+}

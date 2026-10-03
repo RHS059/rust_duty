@@ -1,0 +1,10 @@
+# Generated diagnostics and authoring/editor scratch are not source assets.
+*.log
+*.blend1
+*.blend2
+__pycache__/
+geometry-inspection.json
+test_*.png
+test_*.py
+# Keep only final evidence crops/frames; no temporary render cache.
+renders/*.exr

@@ -1,0 +1,65 @@
+{
+  "schema": "rust-duty-ads-authoring-export/v1",
+  "blender_version": "4.3.2",
+  "source_file": "ads.blend",
+  "source_fps": 60,
+  "bake_hz": 480,
+  "armature": "Arms",
+  "skin_objects": [
+    "Actual arms mesh 0",
+    "Actual arms mesh 1",
+    "Actual arms mesh 2"
+  ],
+  "rigid_actors": [
+    "hk416_weapon",
+    "hk416_magazine"
+  ],
+  "excluded_rigid_actor": "hk416_magazine_outgoing",
+  "deform_bone_count": 72,
+  "source_take_count": 3,
+  "authored_gameplay_take_count": 3,
+  "runtime_gameplay_clip_count": 3,
+  "normal_ready": {
+    "name": "normal_ready",
+    "action": "RD_Locomotion_Normal_Entry_4419_4434_WIP2",
+    "frame_start": 1,
+    "frame_end": 2,
+    "freeze_at_source_frame": 1
+  },
+  "source_takes": [
+    {
+      "name": "ads_entry_r1",
+      "action": "ads_entry_r1",
+      "frame_start": 1,
+      "frame_end": 16,
+      "loop": false,
+      "role": "gameplay"
+    },
+    {
+      "name": "ads_hold_r1",
+      "action": "ads_hold_r1",
+      "frame_start": 1,
+      "frame_end": 61,
+      "loop": true,
+      "role": "gameplay"
+    },
+    {
+      "name": "ads_exit_r1",
+      "action": "ads_exit_r1",
+      "frame_start": 1,
+      "frame_end": 16,
+      "loop": false,
+      "role": "gameplay"
+    }
+  ],
+  "conversion_groups": [
+    [
+      "ads_entry_r1",
+      "ads_hold_r1",
+      "ads_exit_r1"
+    ]
+  ],
+  "runtime_derivation": {
+    "none": true
+  }
+}

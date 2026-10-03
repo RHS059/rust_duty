@@ -4,6 +4,10 @@ use std::{fs, path::Path};
 pub struct Settings {
     pub sensitivity: f32,
     pub fov: f32,
+    /// Camera-space viewmodel offset in meters. Positive X is right, positive Y is up.
+    pub viewmodel_x: f32,
+    /// Camera-space viewmodel offset in meters. Positive X is right, positive Y is up.
+    pub viewmodel_y: f32,
     pub ads_fov: f32,
     pub walk_speed: f32,
     pub sprint_speed: f32,
@@ -27,16 +31,14 @@ pub struct Settings {
     pub ads_spread: f32,
     pub recoil_pitch: f32,
     pub recoil_return: f32,
-    /// Viewmodel position offset in meters. Positive X is right, positive Y is up.
-    pub viewmodel_x: f32,
-    /// Viewmodel position offset in meters. Positive X is right, positive Y is up.
-    pub viewmodel_y: f32,
 }
 impl Default for Settings {
     fn default() -> Self {
         Self {
             sensitivity: 0.10,
             fov: 90.,
+            viewmodel_x: 0.,
+            viewmodel_y: 0.,
             ads_fov: 65.,
             walk_speed: 4.826,
             sprint_speed: 7.239,
@@ -59,8 +61,6 @@ impl Default for Settings {
             ads_spread: 0.08,
             recoil_pitch: 0.775,
             recoil_return: 21.,
-            viewmodel_x: 0.,
-            viewmodel_y: 0.,
         }
     }
 }
@@ -75,6 +75,17 @@ impl Settings {
         let limit = Self::VIEWMODEL_OFFSET_LIMIT;
         self.viewmodel_x = (self.viewmodel_x + x).clamp(-limit, limit);
         self.viewmodel_y = (self.viewmodel_y + y).clamp(-limit, limit);
+    }
+
+    /// Set the saved viewmodel offset. X is right, Y is up. Each axis clamps to +/- 0.20 m.
+    pub fn set_viewmodel(&mut self, x: f32, y: f32) {
+        let limit = Self::VIEWMODEL_OFFSET_LIMIT;
+        if x.is_finite() {
+            self.viewmodel_x = x.clamp(-limit, limit);
+        }
+        if y.is_finite() {
+            self.viewmodel_y = y.clamp(-limit, limit);
+        }
     }
 
     /// Published-data M4A1-inspired candidate, separate from the authored default.
@@ -122,6 +133,16 @@ impl Settings {
                         let slot = match key.trim() {
                             "sensitivity" => Some((&mut s.sensitivity, 0.01, 1.)),
                             "fov" => Some((&mut s.fov, 65., 120.)),
+                            "viewmodel_x" => Some((
+                                &mut s.viewmodel_x,
+                                -Self::VIEWMODEL_OFFSET_LIMIT,
+                                Self::VIEWMODEL_OFFSET_LIMIT,
+                            )),
+                            "viewmodel_y" => Some((
+                                &mut s.viewmodel_y,
+                                -Self::VIEWMODEL_OFFSET_LIMIT,
+                                Self::VIEWMODEL_OFFSET_LIMIT,
+                            )),
                             "ads_fov" => Some((&mut s.ads_fov, 35., 100.)),
                             "walk_speed" => Some((&mut s.walk_speed, 1., 12.)),
                             "sprint_speed" => Some((&mut s.sprint_speed, 1., 18.)),
@@ -144,16 +165,6 @@ impl Settings {
                             "ads_spread" => Some((&mut s.ads_spread, 0., 3.)),
                             "recoil_pitch" => Some((&mut s.recoil_pitch, 0., 5.)),
                             "recoil_return" => Some((&mut s.recoil_return, 2., 30.)),
-                            "viewmodel_x" => Some((
-                                &mut s.viewmodel_x,
-                                -Self::VIEWMODEL_OFFSET_LIMIT,
-                                Self::VIEWMODEL_OFFSET_LIMIT,
-                            )),
-                            "viewmodel_y" => Some((
-                                &mut s.viewmodel_y,
-                                -Self::VIEWMODEL_OFFSET_LIMIT,
-                                Self::VIEWMODEL_OFFSET_LIMIT,
-                            )),
                             _ => None,
                         };
                         if let Some((slot, min, max)) = slot {
@@ -171,6 +182,8 @@ impl Settings {
         let fields = [
             ("sensitivity", self.sensitivity),
             ("fov", self.fov),
+            ("viewmodel_x", self.viewmodel_x),
+            ("viewmodel_y", self.viewmodel_y),
             ("ads_fov", self.ads_fov),
             ("walk_speed", self.walk_speed),
             ("sprint_speed", self.sprint_speed),
@@ -193,10 +206,8 @@ impl Settings {
             ("ads_spread", self.ads_spread),
             ("recoil_pitch", self.recoil_pitch),
             ("recoil_return", self.recoil_return),
-            ("viewmodel_x", self.viewmodel_x),
-            ("viewmodel_y", self.viewmodel_y),
         ];
-        let mut out = String::from("# Vector Range tuning settings. F6 reloads, F5 saves.\n# Distances meters, times seconds, angles degrees. FOV is horizontal.\n# ADS movement is a fraction of normal stance speed.\n# Viewmodel offset is meters: +X right, +Y up.\n");
+        let mut out = String::from("# Vector Range tuning settings. F6 reloads, F5 saves.\n# Distances meters, times seconds, angles degrees. FOV is horizontal.\n# ADS movement is a fraction of normal stance speed.\n");
         for (key, value) in fields {
             out.push_str(&format!("{key} = {value:.4}\n"));
         }
@@ -226,27 +237,29 @@ mod tests {
     }
 
     #[test]
-    fn viewmodel_offset_loads_clamps_and_roundtrips() {
+    fn viewmodel_offset_clamps_and_roundtrips() {
         let path = std::env::temp_dir().join(format!(
-            "vector-viewmodel-offset-{}.cfg",
+            "vector-viewmodel-slider-{}.cfg",
             std::process::id()
         ));
         fs::write(
             &path,
-            "viewmodel_x = 0.125\nviewmodel_y = 9\nviewmodel_x = NaN\n",
+            "viewmodel_x = 0.05\nviewmodel_y = 9\nviewmodel_x = NaN\n",
         )
         .unwrap();
-        // The last finite viewmodel_x wins; NaN is ignored, so 0.125 remains.
         let loaded = Settings::load(&path);
-        assert_eq!(loaded.viewmodel_x, 0.125);
+        assert_eq!(loaded.viewmodel_x, 0.05);
         assert_eq!(loaded.viewmodel_y, Settings::VIEWMODEL_OFFSET_LIMIT);
-        let mut nudged = Settings::default();
-        nudged.nudge_viewmodel(Settings::VIEWMODEL_NUDGE, -Settings::VIEWMODEL_NUDGE);
-        assert_eq!(nudged.viewmodel_x, Settings::VIEWMODEL_NUDGE);
-        assert_eq!(nudged.viewmodel_y, -Settings::VIEWMODEL_NUDGE);
-        nudged.nudge_viewmodel(1., -1.);
-        assert_eq!(nudged.viewmodel_x, Settings::VIEWMODEL_OFFSET_LIMIT);
-        assert_eq!(nudged.viewmodel_y, -Settings::VIEWMODEL_OFFSET_LIMIT);
+        let mut set = Settings::default();
+        set.set_viewmodel(1., -1.);
+        assert_eq!(set.viewmodel_x, Settings::VIEWMODEL_OFFSET_LIMIT);
+        assert_eq!(set.viewmodel_y, -Settings::VIEWMODEL_OFFSET_LIMIT);
+        set.set_viewmodel(f32::NAN, 0.01);
+        assert_eq!(set.viewmodel_x, Settings::VIEWMODEL_OFFSET_LIMIT);
+        assert_eq!(set.viewmodel_y, 0.01);
+        set.nudge_viewmodel(Settings::VIEWMODEL_NUDGE, -Settings::VIEWMODEL_NUDGE);
+        assert_eq!(set.viewmodel_x, Settings::VIEWMODEL_OFFSET_LIMIT);
+        assert_eq!(set.viewmodel_y, 0.01 - Settings::VIEWMODEL_NUDGE);
         loaded.save(&path).unwrap();
         let roundtrip = Settings::load(&path);
         assert_eq!(roundtrip.viewmodel_x, loaded.viewmodel_x);

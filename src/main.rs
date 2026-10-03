@@ -4,6 +4,7 @@ mod sound;
 mod weapon_model;
 use macroquad::prelude::*;
 use std::{fs::File, io::Write};
+use vector_range::scene_lighting::SceneLighting;
 use vector_range::{
     clock::FixedClock,
     control::{ButtonInput, ControlMode, ControlSample, ControlState, IntentLatch},
@@ -18,10 +19,25 @@ const ACCENT: Color = Color::new(0.98, 0.62, 0.22, 1.);
 const CYAN: Color = Color::new(0.33, 0.84, 0.87, 1.);
 const MUTED: Color = Color::new(0.62, 0.69, 0.72, 1.);
 fn config() -> Conf {
+    if std::env::args().any(|arg| arg == "--build-version") {
+        println!("{}", vector_range::BUILD_VERSION);
+        std::process::exit(0);
+    }
+    if std::env::args().any(|arg| arg == "--verify-managed-assets") {
+        match rust_duty_launcher::game::managed_asset_executable(vector_range::BUILD_VERSION) {
+            Ok(Some(path)) => println!("{}", path.display()),
+            Ok(None) => println!("adjacent packaged assets"),
+            Err(error) => {
+                eprintln!("Managed game assets could not be verified: {error}");
+                std::process::exit(1);
+            }
+        }
+        std::process::exit(0);
+    }
     if let Some(code) = rust_duty_launcher::game::dispatch_helper() {
         std::process::exit(code);
     }
-    if let Some(code) = rust_duty_launcher::game::dispatch_headless(env!("CARGO_PKG_VERSION")) {
+    if let Some(code) = rust_duty_launcher::game::dispatch_headless(vector_range::BUILD_VERSION) {
         std::process::exit(code);
     }
     let reference = std::env::args().any(|a| a == "--reference-viewport");
@@ -161,6 +177,7 @@ fn register_supply(sim: &mut Simulation, supply: &vector_range::ammo_supply::Amm
     });
 }
 fn world(sim: &Simulation, tex: &Texture2D) {
+    let lighting = SceneLighting::range();
     for b in &sim.blocks {
         let color = match b.kind {
             0 => Color::new(0.31, 0.38, 0.40, 1.),
@@ -169,18 +186,18 @@ fn world(sim: &Simulation, tex: &Texture2D) {
             4 => Color::new(0.22, 0.26, 0.28, 1.),
             _ => Color::new(0.43, 0.64, 0.66, 1.),
         };
-        draw_cube(b.bounds.center(), b.bounds.size(), Some(tex), color);
+        lighting.draw_cube(b.bounds.center(), b.bounds.size(), Some(tex), color);
         if b.kind == 4 {
             // Original geometric interaction fixture while reference art is pending.
             for x in [-0.26, 0.26] {
-                draw_cube(
+                lighting.draw_cube(
                     b.bounds.center() + vec3(x, 0.257, 0.),
                     vec3(0.06, 0.025, 0.51),
                     None,
                     ACCENT,
                 );
             }
-            draw_cube(
+            lighting.draw_cube(
                 b.bounds.center() + vec3(0., 0.04, -0.26),
                 vec3(0.22, 0.10, 0.025),
                 None,
@@ -208,17 +225,17 @@ fn world(sim: &Simulation, tex: &Texture2D) {
         );
     }
     for x in [-13., -3.5, 3.5, 13.] {
-        draw_cube(vec3(x, 0.01, -9.), vec3(0.07, 0.015, 44.), None, ACCENT);
+        lighting.draw_cube(vec3(x, 0.01, -9.), vec3(0.07, 0.015, 44.), None, ACCENT);
     }
     for z in [7., -3., -13., -23., -33.] {
-        draw_cube(vec3(0., 0.014, z), vec3(6.6, 0.018, 0.10), None, CYAN);
+        lighting.draw_cube(vec3(0., 0.014, z), vec3(6.6, 0.018, 0.10), None, CYAN);
     }
     for z in [-30., -18., -6., 6.] {
         for x in [-15.4, 15.4] {
-            draw_cube(vec3(x, 3., z), vec3(0.35, 6., 0.35), None, INK);
-            draw_cube(vec3(x * 0.96, 3.9, z), vec3(0.10, 0.10, 3.4), None, CYAN);
+            lighting.draw_cube(vec3(x, 3., z), vec3(0.35, 6., 0.35), None, INK);
+            lighting.draw_cube(vec3(x * 0.96, 3.9, z), vec3(0.10, 0.10, 3.4), None, CYAN);
         }
-        draw_cube(
+        lighting.draw_cube(
             vec3(0., 5.8, z),
             vec3(31., 0.22, 0.25),
             None,
@@ -251,11 +268,20 @@ fn world(sim: &Simulation, tex: &Texture2D) {
         let mut vertices = Vec::new();
         let mut indices = Vec::new();
         for face in faces {
+            // Match the existing outward triangle winding.
+            let normal = (points[face[1]] - points[face[0]])
+                .cross(points[face[2]] - points[face[0]])
+                .normalize();
             for index in face {
                 indices.push(vertices.len() as u16);
                 let point = points[index];
                 vertices.push(Vertex::new(
-                    point.x, point.y, point.z, point.x, point.z, color,
+                    point.x,
+                    point.y,
+                    point.z,
+                    point.x,
+                    point.z,
+                    lighting.shade(color, normal),
                 ));
             }
         }
@@ -275,8 +301,8 @@ fn world(sim: &Simulation, tex: &Texture2D) {
     }
     for t in &sim.targets {
         let c = t.bounds.center();
-        draw_cube(vec3(c.x, 0.18, c.z), vec3(1.2, 0.36, 0.65), None, INK);
-        draw_cube(
+        lighting.draw_cube(vec3(c.x, 0.18, c.z), vec3(1.2, 0.36, 0.65), None, INK);
+        lighting.draw_cube(
             vec3(c.x, 1.10, c.z + 0.18),
             vec3(0.09, 2., 0.09),
             None,
@@ -285,19 +311,19 @@ fn world(sim: &Simulation, tex: &Texture2D) {
         if t.health <= 0. {
             continue;
         }
-        draw_cube(
+        lighting.draw_cube(
             c,
             t.bounds.size(),
             Some(tex),
             if t.flash > 0. { WHITE } else { ACCENT },
         );
-        draw_cube(
+        lighting.draw_cube(
             vec3(c.x, c.y - 0.05, c.z + 0.135),
             vec3(0.28, 0.42, 0.018),
             None,
             INK,
         );
-        draw_cube(
+        lighting.draw_cube(
             vec3(c.x, c.y + 0.64, c.z + 0.135),
             vec3(0.34, 0.30, 0.018),
             None,
@@ -323,7 +349,7 @@ fn weapon(
     rt: &RenderTarget,
     aspect: f32,
     locomotion_state: &mut vector_range::locomotion_presentation::LocomotionPresentation,
-    model: Option<&weapon_model::WeaponModel>,
+    model: Option<&mut weapon_model::WeaponModel>,
     authored: Option<&mut authored_viewmodel::AuthoredViewmodel>,
     arms: Option<&mut vector_range::arms::ArmModel>,
     animation_state: &mut vector_range::view_animation::ViewAnimation,
@@ -333,6 +359,7 @@ fn weapon(
     muzzle_fx: &mut MuzzleFx,
     barrel_flash: bool,
 ) {
+    let lighting = SceneLighting::range().in_view(sim.player.direction());
     set_camera(&Camera3D {
         position: Vec3::ZERO,
         target: vec3(0., 0., -1.),
@@ -352,7 +379,7 @@ fn weapon(
     // Saved viewmodel offset: +X right, +Y up. Applied before the gun is drawn.
     let view_offset = vec3(cfg.viewmodel_x, cfg.viewmodel_y, 0.);
     if let Some(authored) = authored {
-        authored.draw(sim.time, view_offset);
+        authored.draw(sim.time, lighting, view_offset);
         composite_viewmodel(rt);
         return;
     }
@@ -438,7 +465,12 @@ fn weapon(
             .frames(body_frame, transform);
         if let Some(arms) = arms {
             if framing.hand_modes.is_some() || framing.left_grip_override.is_some() {
-                arms.draw_with_hand_modes(transform, &animation, animation.left_hand_blend);
+                arms.draw_with_hand_modes(
+                    transform,
+                    &animation,
+                    animation.left_hand_blend,
+                    lighting,
+                );
             } else {
                 arms.draw_with_weapon_ik(
                     &hand_frames.targets,
@@ -447,6 +479,7 @@ fn weapon(
                     hand_frames.free_hands,
                     hand_frames.influences,
                     animation.left_hand_blend,
+                    lighting,
                 );
             }
         }
@@ -456,6 +489,7 @@ fn weapon(
                 .hand_presentation()
                 .held_magazine_matrix(body_frame, transform),
             &animation,
+            lighting,
         );
     } else {
         let dark = Color::new(0.105, 0.14, 0.16, 1.);
@@ -485,11 +519,11 @@ fn weapon(
             ),
         ];
         for (pos, size, color) in parts {
-            draw_cube(o + pos, size, None, color);
+            lighting.draw_cube(o + pos, size, None, color);
             draw_cube_wires(o + pos, size, Color::new(0.035, 0.05, 0.06, 1.));
         }
         for i in 0..6 {
-            draw_cube(
+            lighting.draw_cube(
                 o + vec3(0., 0.047, -0.28 - i as f32 * 0.038),
                 vec3(0.073, 0.012, 0.014),
                 None,
@@ -702,12 +736,89 @@ fn hud(
         }
     }
 }
+struct MenuGeom {
+    x: f32,
+    y: f32,
+    w: f32,
+    h: f32,
+}
+fn menu_geom() -> MenuGeom {
+    let (sw, sh) = (screen_width(), screen_height());
+    let w = 540.;
+    let h = 648.;
+    MenuGeom {
+        x: sw * 0.5 - w * 0.5,
+        y: (sh * 0.5 - h * 0.5).max(8.),
+        w,
+        h,
+    }
+}
+/// Hit boxes for the viewmodel sliders. Index 0 is left/right, 1 is up/down.
+fn viewmodel_slider_rects(geom: MenuGeom) -> [(f32, f32, f32, f32); 2] {
+    let left = geom.x + 38.;
+    let width = 464.;
+    [
+        (left, geom.y + 400., width, 56.),
+        (left, geom.y + 460., width, 56.),
+    ]
+}
+fn pointer_in_rect(rect: (f32, f32, f32, f32)) -> bool {
+    let (mx, my) = mouse_position();
+    mx >= rect.0 && mx <= rect.0 + rect.2 && my >= rect.1 && my <= rect.1 + rect.3
+}
+fn viewmodel_slider_under_pointer() -> Option<usize> {
+    viewmodel_slider_rects(menu_geom())
+        .into_iter()
+        .position(pointer_in_rect)
+}
+fn slider_value_from_pointer(rect: (f32, f32, f32, f32)) -> f32 {
+    let (mx, _) = mouse_position();
+    let t = ((mx - rect.0) / rect.2).clamp(0., 1.);
+    let limit = Settings::VIEWMODEL_OFFSET_LIMIT;
+    ((t * 2. - 1.) * limit).clamp(-limit, limit)
+}
+fn apply_viewmodel_slider(cfg: &mut Settings, axis: usize) {
+    let rect = viewmodel_slider_rects(menu_geom())[axis];
+    let value = slider_value_from_pointer(rect);
+    if axis == 0 {
+        cfg.set_viewmodel(value, cfg.viewmodel_y);
+    } else {
+        cfg.set_viewmodel(cfg.viewmodel_x, value);
+    }
+}
+fn draw_offset_slider(title: &str, value: f32, rect: (f32, f32, f32, f32)) {
+    label(
+        &format!("{title}   {value:+.3} m"),
+        rect.0,
+        rect.1 + 16.,
+        17.,
+        WHITE,
+    );
+    let track_y = rect.1 + 26.;
+    let track_h = 12.;
+    draw_rectangle(
+        rect.0,
+        track_y,
+        rect.2,
+        track_h,
+        Color::new(0.08, 0.12, 0.15, 1.),
+    );
+    let limit = Settings::VIEWMODEL_OFFSET_LIMIT;
+    let t = ((value / limit) + 1.) * 0.5;
+    let knob_x = rect.0 + t.clamp(0., 1.) * rect.2;
+    let mid = rect.0 + rect.2 * 0.5;
+    let fill_x = mid.min(knob_x);
+    let fill_w = (knob_x - mid).abs().max(1.);
+    draw_rectangle(fill_x, track_y, fill_w, track_h, ACCENT);
+    draw_rectangle(mid - 1., track_y - 3., 2., track_h + 6., CYAN);
+    draw_rectangle(knob_x - 5., track_y - 4., 10., track_h + 8., WHITE);
+}
 fn pause_screen(cfg: &Settings, initial: bool, control_mode: ControlMode) {
     let (w, h) = (screen_width(), screen_height());
     draw_rectangle(0., 0., w, h, Color::new(0.015, 0.025, 0.035, 0.78));
-    let x = w * 0.5 - 270.;
-    let y = (h * 0.5 - 284.).max(8.);
-    draw_rectangle(x, y, 540., 568., Color::new(0.035, 0.057, 0.074, 0.97));
+    let geom = menu_geom();
+    let (x, y) = (geom.x, geom.y);
+    draw_rectangle(x, y, geom.w, geom.h, Color::new(0.035, 0.057, 0.074, 0.97));
     draw_rectangle(x, y, 540., 3., ACCENT);
     label("VECTOR", x + 36., y + 68., 48., WHITE);
     label(
@@ -762,38 +873,34 @@ fn pause_screen(cfg: &Settings, initial: bool, control_mode: ControlMode) {
         18.,
         WHITE,
     );
+    let tracks = viewmodel_slider_rects(geom);
+    draw_offset_slider("LEFT / RIGHT", cfg.viewmodel_x, tracks[0]);
+    draw_offset_slider("UP / DOWN", cfg.viewmodel_y, tracks[1]);
     label(
-        &format!("LEFT / RIGHT ARROW  VIEWMODEL X  {:+.3} m", cfg.viewmodel_x),
+        "Drag a slider. Range is plus or minus 0.20 m.",
         x + 38.,
-        y + 420.,
-        17.,
-        WHITE,
-    );
-    label(
-        &format!("UP / DOWN ARROW     VIEWMODEL Y  {:+.3} m", cfg.viewmodel_y),
-        x + 38.,
-        y + 448.,
-        17.,
-        WHITE,
+        y + 536.,
+        14.,
+        MUTED,
     );
     label(
         "F5 SAVE PRESET    F6 RELOAD PRESET    F10 QUIT",
         x + 38.,
-        y + 486.,
+        y + 564.,
         15.,
         CYAN,
     );
     label(
         "F5 stores the viewmodel offset as the new default.",
         x + 38.,
-        y + 512.,
+        y + 590.,
         14.,
         MUTED,
     );
     label(
         "Provisional tuning. No original-game code or assets.",
         x + 38.,
-        y + 534.,
+        y + 614.,
         14.,
         MUTED,
     );
@@ -801,6 +908,18 @@ fn pause_screen(cfg: &Settings, initial: bool, control_mode: ControlMode) {
 #[macroquad::main(config)]
 async fn main() {
     let args: Vec<String> = std::env::args().collect();
+    let executable =
+        std::env::current_exe().unwrap_or_else(|_| std::path::PathBuf::from("vector-range.exe"));
+    let authored_executable =
+        match rust_duty_launcher::game::managed_asset_executable(vector_range::BUILD_VERSION) {
+            Ok(path) => path.unwrap_or_else(|| executable.clone()),
+            Err(error) => {
+                // No healthy startup acknowledgement: the existing helper will
+                // roll back the executable and active version together.
+                eprintln!("Managed game assets could not be verified: {error}");
+                std::process::exit(1);
+            }
+        };
     // Deterministic capture jobs never contact the release channel. Ordinary
     // double-click launches always start the background checker automatically.
     let update_enabled = !args
@@ -874,6 +993,7 @@ async fn main() {
     target.texture.set_filter(FilterMode::Linear);
     let mut initial = true;
     let mut session = vector_range::session::SessionController::default();
+    let mut viewmodel_drag: Option<usize> = None;
     let mut debug = false;
     let mut fullscreen = false;
     let mut clock = FixedClock::default();
@@ -889,8 +1009,6 @@ async fn main() {
     let mut recording: Option<File> = None;
     let mut record_clock = 0.;
     let mut intents = IntentLatch::default();
-    let executable =
-        std::env::current_exe().unwrap_or_else(|_| std::path::PathBuf::from("vector-range.exe"));
     let explicit = args.iter().find_map(|s| s.strip_prefix("--weapon-asset="));
     let model_source = vector_range::asset_path::resolve_weapon(
         &executable,
@@ -903,14 +1021,19 @@ async fn main() {
         .iter()
         .find_map(|s| s.strip_prefix("--viewmodel-asset="));
     let authored_path = vector_range::asset_path::resolve_viewmodel(
-        &executable,
+        &authored_executable,
         explicit_viewmodel.map(std::path::Path::new),
         args.iter().any(|s| {
             s == "--procedural-weapon"
                 || s.starts_with("--weapon-asset=")
                 || s.starts_with("--arms-asset=")
         }),
-    );
+    )
+    .or_else(|| {
+        args.iter()
+            .find_map(|arg| arg.strip_prefix("--animation-manifest="))
+            .map(std::path::PathBuf::from)
+    });
     let authored_clip = args
         .iter()
         .find_map(|s| s.strip_prefix("--viewmodel-clip="))
@@ -934,7 +1057,21 @@ async fn main() {
             let path = path
                 .to_str()
                 .ok_or_else(|| "viewmodel path is not valid Unicode".to_string())?;
-            authored_viewmodel::AuthoredViewmodel::load(path, authored_clip, time)
+            if authored_clip == "locomotion" && time.is_none() {
+                let manifest = args
+                    .iter()
+                    .find_map(|arg| arg.strip_prefix("--animation-manifest="))
+                    .map(std::path::PathBuf::from)
+                    .unwrap_or_else(|| {
+                        authored_executable
+                            .parent()
+                            .unwrap_or(std::path::Path::new("."))
+                            .join("assets/animations.cfg")
+                    });
+                authored_viewmodel::AuthoredViewmodel::load_manifest(&manifest)
+            } else {
+                authored_viewmodel::AuthoredViewmodel::load(path, authored_clip, time)
+            }
         }) {
             Ok(viewmodel) => Some(viewmodel),
             Err(error) => {
@@ -952,7 +1089,7 @@ async fn main() {
             &model_source,
             vector_range::asset_path::WeaponSource::Missing(_)
         );
-    let model = if authored_path.is_some() {
+    let mut model = if authored_path.is_some() {
         None
     } else {
         match vector_range::asset_path::load_weapon(&model_source, vector_range::EMBEDDED_WEAPON) {
@@ -998,6 +1135,17 @@ async fn main() {
     } else {
         None
     };
+    let capture_lighting = args.iter().any(|s| s == "--capture-lighting");
+    let capture_angle = |prefix: &str, default: f32| {
+        args.iter()
+            .find_map(|arg| arg.strip_prefix(prefix))
+            .and_then(|value| value.parse::<f32>().ok())
+            .filter(|v| v.is_finite())
+            .unwrap_or(default)
+            .to_radians()
+    };
+    let lighting_yaw = capture_angle("--capture-yaw=", -90.);
+    let lighting_pitch = capture_angle("--capture-pitch=", 0.).clamp(-1.5, 1.5);
     let capture = args.iter().any(|s| s.starts_with("--capture"));
     let capture_ads = args.iter().any(|s| s == "--capture-ads");
     let capture_supply = args.iter().any(|s| s == "--capture-supply");
@@ -1011,13 +1159,50 @@ async fn main() {
     let capture_sequence = args
         .iter()
         .find_map(|a| a.strip_prefix("--capture-sequence="))
-        .filter(|s| matches!(*s, "tactical" | "empty" | "ads" | "locomotion"));
+        .filter(|s| {
+            matches!(
+                *s,
+                "tactical"
+                    | "empty"
+                    | "ads"
+                    | "locomotion"
+                    | "gameplay-reload"
+                    | "gameplay-walk"
+                    | "gameplay-ads"
+                    | "gameplay-layered"
+            )
+        });
+    let gameplay_capture = matches!(
+        capture_sequence,
+        Some("gameplay-reload" | "gameplay-walk" | "gameplay-ads" | "gameplay-layered")
+    );
+    let mut gameplay_reload_issued = false;
+    let mut gameplay_capture_tick = 0_u64;
     let capture_empty =
         args.iter().any(|s| s == "--capture-empty") || capture_sequence == Some("empty");
+    let capture_hz = args
+        .iter()
+        .find_map(|arg| arg.strip_prefix("--capture-hz="))
+        .map(|hz| match hz {
+            "30" => 30.,
+            "60" => 60.,
+            _ => panic!("capture-hz must be 30 or 60"),
+        })
+        .unwrap_or(60000. / 1001.);
     let sequence_duration = match capture_sequence {
+        Some("gameplay-ads") => 9.0,
+        Some("gameplay-layered") => 11.0,
         Some("empty") => vector_range::reference_motion::visual_duration(true),
         Some("tactical") => vector_range::reference_motion::visual_duration(false),
-        Some("locomotion") => 3.5,
+        Some("locomotion" | "gameplay-walk") => 3.5,
+        Some("gameplay-reload") => {
+            authored
+                .as_ref()
+                .and_then(|model| model.tactical_duration())
+                .unwrap_or(f64::from(cfg.reload_time))
+                .max(f64::from(cfg.reload_time)) as f32
+                + 0.75
+        }
         _ => cfg.ads_time,
     };
     if capture_sequence.is_some() && !framing.reference {
@@ -1043,6 +1228,9 @@ async fn main() {
         .iter()
         .find_map(|s| s.strip_prefix("--output="))
         .unwrap_or("capture.png");
+    if matches!(capture_sequence, Some("gameplay-reload" | "gameplay-ads")) {
+        sim.player.ammo = 12;
+    }
     if capture_fixtures {
         sim.player.position = vec3(-18., 0., -12.);
         sim.player.yaw = -std::f32::consts::FRAC_PI_2;
@@ -1068,7 +1256,7 @@ async fn main() {
         debug = true;
     }
     if model_error.is_none() {
-        if let Err(error) = rust_duty_launcher::game::mark_ready(env!("CARGO_PKG_VERSION")) {
+        if let Err(error) = rust_duty_launcher::game::mark_ready(vector_range::BUILD_VERSION) {
             eprintln!("Update startup acknowledgement: {error}");
         }
     }
@@ -1083,14 +1271,28 @@ async fn main() {
         }
         let startup_blocked = game_update.startup_blocked();
         let update_pointer = game_update.consumes_pointer(!session.is_active());
+        let menu_open = !session.is_active() && !startup_blocked && !update_pointer;
+        if !menu_open {
+            viewmodel_drag = None;
+        } else if is_mouse_button_pressed(MouseButton::Left) {
+            viewmodel_drag = viewmodel_slider_under_pointer();
+        } else if !is_mouse_button_down(MouseButton::Left) {
+            viewmodel_drag = None;
+        }
+        if let Some(axis) = viewmodel_drag {
+            apply_viewmodel_slider(&mut cfg, axis);
+        }
+        let allow_menu_click = viewmodel_drag.is_none();
         let transition = session.step(vector_range::session::SessionInput {
             esc_pressed: is_key_pressed(KeyCode::Escape),
             esc_down: is_key_down(KeyCode::Escape),
             enter_pressed: is_key_pressed(KeyCode::Enter),
             enter_down: is_key_down(KeyCode::Enter),
             click_pressed: is_mouse_button_pressed(MouseButton::Left)
+                && allow_menu_click
                 && (startup_blocked || !update_pointer),
             click_down: is_mouse_button_down(MouseButton::Left)
+                && allow_menu_click
                 && (startup_blocked || !update_pointer),
             focus_shortcut_pressed: is_key_down(KeyCode::LeftAlt)
                 || is_key_down(KeyCode::RightAlt)
@@ -1132,12 +1334,15 @@ async fn main() {
             next_frame().await;
             continue;
         }
-        let simulation_dt =
-            if transition.discard_timing || capture_supply || capture_sequence.is_some() {
-                0.
-            } else {
-                raw_dt.min(FixedClock::MAX_FRAME)
-            };
+        let simulation_dt = if transition.discard_timing
+            || capture_supply
+            || capture_sequence.is_some()
+            || capture_lighting
+        {
+            0.
+        } else {
+            raw_dt.min(FixedClock::MAX_FRAME)
+        };
         if is_key_pressed(KeyCode::M) {
             audio.muted = !audio.muted;
             notice = if audio.muted {
@@ -1157,7 +1362,7 @@ async fn main() {
             animation_state = vector_range::view_animation::ViewAnimation::default();
             locomotion_state.reset(sim.time);
             if let Some(viewmodel) = &mut authored {
-                viewmodel.update_locomotion(sim.time, sim.time, false);
+                viewmodel.reset(sim.time);
             }
             intents.clear();
             controls.clear();
@@ -1310,11 +1515,7 @@ async fn main() {
                 let authored_step_start = sim.time;
                 sim.update(input, &cfg, FIXED_DT);
                 if let Some(viewmodel) = &mut authored {
-                    viewmodel.update_locomotion(
-                        authored_step_start,
-                        sim.time,
-                        sim.player.sprinting,
-                    );
+                    viewmodel.committed_step(authored_step_start, &sim);
                 }
                 // Cosmetic targets receive exact simulation timestamps; input
                 // and movement remain fully authoritative and immediate.
@@ -1401,15 +1602,55 @@ async fn main() {
             supply.cancel();
         }
         // Deterministic presentation samples for comparison; only explicit capture flags use these.
-        let sequence_elapsed = ((frames - 8).max(0) as f32) / (60000. / 1001.);
+        let sequence_elapsed = ((frames - 8).max(0) as f32) / capture_hz;
         let sequence_phase = (sequence_elapsed / sequence_duration).clamp(0., 1.);
         let presentation_reload = if matches!(capture_sequence, Some("tactical" | "empty")) {
             Some(sequence_phase)
         } else {
             capture_reload
         };
-        if capture_sequence.is_some() {
+        if capture_sequence.is_some() && !gameplay_capture {
             sim.time = sequence_elapsed as f64;
+        }
+        if gameplay_capture {
+            // Real fixed-step input replay: no pose, velocity, animation-clock,
+            // timer or normalized reload-phase overrides are used here.
+            let target_tick = vector_range::clock::capture_tick_target(
+                (frames - 8).max(0) as u64,
+                capture_hz as u32,
+            );
+            while target_tick.map_or(
+                sim.time + f64::from(FIXED_DT) <= f64::from(sequence_elapsed) + 1e-7,
+                |target| gameplay_capture_tick < target,
+            ) {
+                let start = sim.time;
+                let reload = capture_sequence == Some("gameplay-reload")
+                    && !gameplay_reload_issued
+                    && start >= 0.25;
+                let movement =
+                    if capture_sequence == Some("gameplay-walk") && (0.25..2.25).contains(&start) {
+                        Vec2::Y
+                    } else {
+                        Vec2::ZERO
+                    };
+                gameplay_reload_issued |= reload;
+                let input = if capture_sequence == Some("gameplay-ads") {
+                    vector_range::authored_ads::gameplay_ads_replay_input(start)
+                } else if capture_sequence == Some("gameplay-layered") {
+                    vector_range::layered_locomotion::gameplay_layered_replay_input(start)
+                } else {
+                    Input {
+                        reload,
+                        movement,
+                        ..Input::default()
+                    }
+                };
+                sim.update(input, &cfg, FIXED_DT);
+                gameplay_capture_tick += 1;
+                if let Some(model) = &mut authored {
+                    model.committed_step(start, &sim);
+                }
+            }
         }
         if capture_sequence == Some("ads") {
             sim.player.ads = sequence_phase;
@@ -1417,7 +1658,8 @@ async fn main() {
         if capture_sequence == Some("locomotion") {
             // Diagnostic presentation only: sample target changes on the same
             // fixed clock used by gameplay, with camera/world movement frozen.
-            while locomotion_capture_tick as f64 / 120. <= sim.time {
+            let capture_time = sim.time;
+            while locomotion_capture_tick as f64 / 120. <= capture_time {
                 let t = locomotion_capture_tick as f64 / 120.;
                 sim.player.sprinting = (1. ..2.).contains(&t);
                 let speed = if !(0.25..3.).contains(&t) {
@@ -1430,10 +1672,13 @@ async fn main() {
                 sim.player.velocity = vec3(speed, 0., 0.);
                 locomotion_state.sample(t, locomotion_input(&sim));
                 if let Some(viewmodel) = &mut authored {
-                    viewmodel.update_locomotion(t, t, sim.player.sprinting);
+                    sim.time = t;
+                    let start = locomotion_capture_tick.saturating_sub(1) as f64 / 120.;
+                    viewmodel.committed_step(start, &sim);
                 }
                 locomotion_capture_tick += 1;
             }
+            sim.time = capture_time;
         }
         if let Some(ads) = capture_ads_fraction {
             sim.player.ads = ads;
@@ -1447,6 +1692,12 @@ async fn main() {
             };
             sim.player.reload_left = sim.player.reload_total * (1. - phase);
             sim.player.reload_ready_at = sim.time + sim.player.reload_left as f64;
+        }
+        if capture_lighting {
+            sim.time = 0.;
+            sim.player.yaw = lighting_yaw;
+            sim.player.pitch = lighting_pitch;
+            sim.player.recoil = Vec2::ZERO;
         }
         notice_timer = (notice_timer - dt).max(0.);
         clear_background(Color::new(0.66, 0.76, 0.78, 1.));
@@ -1470,6 +1721,16 @@ async fn main() {
             ..Default::default()
         });
         world(&sim, &texture);
+        if capture_lighting && frames == 8 {
+            // Record the actual range pass before the overlay/HUD can cover it.
+            get_screen_data().export_png(&format!("{output}.world.png"));
+            let light = SceneLighting::range().in_view(forward);
+            let world = SceneLighting::range();
+            let _ = std::fs::write(format!("{output}.lighting.json"), format!(
+                "{{\"schema\":\"rust-duty-lighting-capture/v1\",\"yaw_degrees\":{},\"pitch_degrees\":{},\"world_light\":[{},{},{}],\"view_light\":[{},{},{}],\"ambient\":{},\"diffuse\":{},\"simulation_time\":{}}}",
+                lighting_yaw.to_degrees(), lighting_pitch.to_degrees(), world.direction_to_light.x, world.direction_to_light.y, world.direction_to_light.z,
+                light.direction_to_light.x, light.direction_to_light.y, light.direction_to_light.z, light.ambient, light.diffuse, sim.time));
+        }
         for t in &traces {
             draw_line_3d(
                 t.shot.start + forward * 0.6,
@@ -1492,7 +1753,7 @@ async fn main() {
                 &target,
                 aspect,
                 &mut locomotion_state,
-                model.as_ref(),
+                model.as_mut(),
                 authored.as_mut(),
                 arms.as_mut(),
                 &mut animation_state,
@@ -1502,6 +1763,9 @@ async fn main() {
                 &mut muzzle_fx,
                 authored_path.is_none(),
             );
+        }
+        if let Some(warning) = authored.as_ref().and_then(|viewmodel| viewmodel.warning()) {
+            label(warning, 24., screen_height() - 155., 15., YELLOW);
         }
         if let Some(error) = authored.as_ref().and_then(|viewmodel| viewmodel.error()) {
             if model_error.is_none() {
@@ -1599,7 +1863,89 @@ async fn main() {
                 get_screen_data().export_png(output);
             }
             if capture_sequence.is_some() {
-                let _ = std::fs::write(format!("{output}.time.json"), format!("{{\"elapsed_seconds\":{},\"normalized_phase\":{},\"visual_duration_seconds\":{},\"simulation_ready_seconds\":{},\"sampling_hz\":59.94005994}}", sequence_elapsed, sequence_phase, sequence_duration, if capture_empty { cfg.empty_reload_time } else if capture_sequence == Some("ads") { cfg.ads_time } else { cfg.reload_time }));
+                let _ = std::fs::write(format!("{output}.time.json"), format!("{{\"elapsed_seconds\":{},\"normalized_phase\":{},\"visual_duration_seconds\":{},\"simulation_ready_seconds\":{},\"sampling_hz\":{}}}", sequence_elapsed, sequence_phase, sequence_duration, if capture_empty { cfg.empty_reload_time } else if matches!(capture_sequence, Some("ads" | "gameplay-ads")) { cfg.ads_time } else { cfg.reload_time }, capture_hz));
+            }
+            if capture_sequence == Some("gameplay-reload") {
+                let sample = authored.as_ref().and_then(|model| model.reload_sample());
+                let route = if sample.is_some() {
+                    "reload.tactical"
+                } else {
+                    "locomotion"
+                };
+                let native = sample
+                    .map(|sample| sample.seconds.to_string())
+                    .unwrap_or_else(|| "null".into());
+                let _ = std::fs::write(format!("{output}.gameplay.json"), format!(
+                    "{{\"simulation_time\":{},\"accepted_r_issued\":{},\"route\":\"{}\",\"native_clip_seconds\":{},\"ammo\":{},\"reserve\":{},\"reload_left\":{},\"reload_credit_at\":{},\"reload_ready_at\":{}}}",
+                    sim.time, gameplay_reload_issued, route, native, sim.player.ammo, sim.player.reserve, sim.player.reload_left, sim.player.reload_credit_at, sim.player.reload_ready_at));
+            }
+            if capture_sequence == Some("gameplay-ads") {
+                let model = authored.as_ref();
+                let sample = model.and_then(|model| model.ads_sample());
+                let native = sample
+                    .map(|sample| sample.seconds.to_string())
+                    .unwrap_or_else(|| "null".into());
+                let direction = sample.map_or(0, |sample| sample.direction);
+                let clip = model.and_then(|model| model.ads_clip()).unwrap_or("");
+                let duration = model
+                    .and_then(|model| model.ads_duration())
+                    .map(|value| value.to_string())
+                    .unwrap_or_else(|| "null".into());
+                let route = model.map_or("unavailable", |model| model.presentation_route());
+                let failed = model.is_none_or(|model| model.error().is_some());
+                let segment = vector_range::authored_ads::gameplay_ads_replay_segment(sim.time);
+                let _ = std::fs::write(format!("{output}.gameplay.json"), format!(
+                    "{{\"simulation_time\":{},\"segment\":\"{}\",\"route\":\"{}\",\"clip\":\"{}\",\"native_clip_seconds\":{},\"clip_duration\":{},\"direction\":{},\"ads_requested\":{},\"simulation_ads\":{},\"speed\":{},\"grounded\":{},\"sprinting\":{},\"mantling\":{},\"ammo\":{},\"reserve\":{},\"shots\":{},\"reload_left\":{},\"reload_credit_at\":{},\"reload_ready_at\":{},\"renderer_failed\":{},\"walk_weight\":{},\"walk_seconds\":{},\"run_weight\":{},\"walk_min_rate\":{}}}",
+                    sim.time, segment, route, clip, native, duration, direction, sim.player.ads_requested,
+                    sim.player.ads, sim.player.speed(), sim.player.grounded, sim.player.sprinting,
+                    sim.player.mantle.is_some(), sim.player.ammo, sim.player.reserve, sim.stats.shots,
+                    sim.player.reload_left, sim.player.reload_credit_at, sim.player.reload_ready_at, failed,
+                    model.map_or(0., |m| m.walk_weight()), model.and_then(|m| m.walk_sample()).map_or("null".into(), |v| v.to_string()),
+                    model.map_or(0., |m| m.run_weight()), model.map_or(1., |m| m.walk_min_rate())));
+            }
+            if capture_sequence == Some("gameplay-layered") {
+                let model = authored.as_ref();
+                let route = model.map_or("unavailable", |model| model.presentation_route());
+                let failed = model.is_none_or(|model| model.error().is_some());
+                let segment =
+                    vector_range::layered_locomotion::gameplay_layered_replay_segment(sim.time);
+                let direction = model
+                    .and_then(|model| model.directional_weights())
+                    .map_or("null".into(), |weights| format!("{:?}", weights));
+                let walk_seconds = model
+                    .and_then(|model| model.walk_sample())
+                    .map_or("null".into(), |seconds| seconds.to_string());
+                let _ = std::fs::write(format!("{output}.gameplay.json"), format!(
+                    "{{\"simulation_time\":{},\"segment\":\"{}\",\"route\":\"{}\",\"sampling_hz\":{},\"renderer_failed\":{},\"pose_crc32\":{},\"walk_weight\":{},\"walk_seconds\":{},\"run_weight\":{},\"directional_weights\":{},\"sprinting\":{},\"ads_requested\":{},\"simulation_ads\":{},\"position\":[{},{},{}],\"velocity\":[{},{},{}],\"ammo\":{},\"shots\":{}}}",
+                    sim.time, segment, route, capture_hz, failed, model.and_then(|m| m.pose_crc32()).map_or("null".into(), |value| value.to_string()),
+                    model.map_or(0., |m| m.walk_weight()), walk_seconds, model.map_or(0., |m| m.run_weight()), direction,
+                    sim.player.sprinting, sim.player.ads_requested, sim.player.ads,
+                    sim.player.position.x, sim.player.position.y, sim.player.position.z,
+                    sim.player.velocity.x, sim.player.velocity.y, sim.player.velocity.z,
+                    sim.player.ammo, sim.stats.shots));
+            }
+            if capture_sequence == Some("gameplay-walk") {
+                let native = authored.as_ref().and_then(|model| model.walk_sample());
+                let route = if native.is_some() {
+                    "regular_walk"
+                } else {
+                    "locomotion"
+                };
+                let native = native
+                    .map(|seconds| seconds.to_string())
+                    .unwrap_or_else(|| "null".into());
+                let duration = authored
+                    .as_ref()
+                    .and_then(|model| model.walk_duration())
+                    .map(|seconds| seconds.to_string())
+                    .unwrap_or_else(|| "null".into());
+                let failed = authored
+                    .as_ref()
+                    .is_none_or(|model| model.error().is_some());
+                let _ = std::fs::write(format!("{output}.gameplay.json"), format!(
+                    "{{\"simulation_time\":{},\"route\":\"{}\",\"native_clip_seconds\":{},\"clip_duration\":{},\"speed\":{},\"grounded\":{},\"sprinting\":{},\"position\":[{},{},{}],\"renderer_failed\":{},\"walk_weight\":{}}}",
+                    sim.time, route, native, duration, sim.player.speed(), sim.player.grounded, sim.player.sprinting,
+                    sim.player.position.x, sim.player.position.y, sim.player.position.z, failed, authored.as_ref().map_or(0., |m| m.walk_weight())));
             }
             if capture_sequence == Some("locomotion") {
                 let motion = locomotion_state.sample(sim.time, locomotion_input(&sim));

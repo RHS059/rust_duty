@@ -5,6 +5,21 @@
 mod asset;
 use std::{env, fs, io::Read, path::PathBuf};
 fn main() {
+    // Cargo.toml is the release version. Do not let a stale workflow pin override it.
+    println!("cargo:rerun-if-env-changed=CARGO_PKG_VERSION");
+    let version = env::var("CARGO_PKG_VERSION").expect("Cargo package version");
+    let parts: Vec<_> = version.split('.').collect();
+    assert!(
+        parts.len() == 3
+            && parts.iter().all(|part| {
+                !part.is_empty()
+                    && (part.len() == 1 || !part.starts_with('0'))
+                    && part.bytes().all(|c| c.is_ascii_digit())
+                    && part.parse::<u64>().is_ok()
+            }),
+        "RUST_DUTY_BUILD_VERSION must be a stable MAJOR.MINOR.PATCH version"
+    );
+    println!("cargo:rustc-env=RUST_DUTY_BUILD_VERSION={version}");
     println!("cargo:rerun-if-env-changed=VR_WEAPON_ASSET");
     println!("cargo:rerun-if-env-changed=CI");
     println!("cargo:rerun-if-changed=src/asset.rs");

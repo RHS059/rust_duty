@@ -1,0 +1,245 @@
+{
+  "coordinate_system": "Unmodified hk416_weapon mesh-local artistic coordinates; camera local right/up/back",
+  "rear_landmark_local": [
+    -6.213411688804626e-05,
+    0.1584751009941101,
+    0.04693315923213959
+  ],
+  "front_landmark_local": [
+    -6.213411688804626e-05,
+    0.1584751158952713,
+    -0.31326428055763245
+  ],
+  "landmark_method": "The top-edge midpoint of the existing near central post and the center of the existing far circular aperture, each verified against original source mesh vertex indices. The supplied mesh has no far central post. Legacy front/rear keys are depth aliases only.",
+  "camera_world": [
+    [
+      -1.0,
+      -3.821371353845884e-15,
+      -8.742277657347586e-08,
+      0.0
+    ],
+    [
+      -8.742277657347586e-08,
+      4.371138828673793e-08,
+      1.0,
+      0.0
+    ],
+    [
+      0.0,
+      1.0,
+      -4.371138828673793e-08,
+      0.0
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "horizontal_fov_degrees": 75.99999983816295,
+  "camera_unchanged": true,
+  "runtime_viewmodel_fov_default_degrees": 76,
+  "runtime_mapping": "Blender (x,y,z) -> FBX (x,z,-y) -> game (-x,z,y), with camera at origin and game -Z forward",
+  "ready_weapon_camera": [
+    [
+      0.9990735054016113,
+      0.04086039587855339,
+      0.013518321327865124,
+      0.07701856642961502
+    ],
+    [
+      -0.04095612093806267,
+      0.9991374015808105,
+      0.006876788567751646,
+      -0.15368658304214478
+    ],
+    [
+      -0.013225666247308254,
+      -0.00742407375946641,
+      0.9998850226402283,
+      -0.30593857169151306
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "aimed_weapon_camera": [
+    [
+      1.0,
+      0.0,
+      0.0,
+      6.213411688804626e-05
+    ],
+    [
+      0.0,
+      1.0,
+      -0.0,
+      -0.1584751009941101
+    ],
+    [
+      0.0,
+      0.0,
+      1.0,
+      -0.2800000011920929
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "max_hold_optical_center_error_pixels_1280x720": 0.00012222295396782204,
+  "source_geometry_sha256": "378816366cd0d0a5a5999cd263b0ebb8be5c52a4328e7a27f4dcd5766d66cb87",
+  "verified_visual_sight_roles": {
+    "near_sight": "Circular surround with a central solid post/bridge. The actual top edge of that central post is at the optical center. Inherited source geometry places this assembly nearer the camera.",
+    "far_sight": "Circular aperture with no central post inside its approximately 2.43 mm artistic local-space inner radius. The aperture center is coaxial with the near post tip.",
+    "claim_limit": "The visual model does not have a conventional far-post/near-empty-aperture arrangement. This is a source-geometry fact, not a functional real-weapon specification. No missing post is invented and geometry is unchanged."
+  },
+  "measured_landmark_evidence": {
+    "near_sight_post_tip": {
+      "mesh_local": [
+        -6.213411688804626e-05,
+        0.1584751009941101,
+        0.04693315923213959
+      ],
+      "blender_world": [
+        4.838895151237921e-08,
+        -0.2330668717622757,
+        -1.9196420009137682e-09
+      ],
+      "camera_local": [
+        -2.8013598551979157e-08,
+        -1.2107318703158398e-08,
+        -0.2330668717622757
+      ],
+      "pixel_1280x720": [
+        639.999885559082,
+        360.00004291534424
+      ],
+      "radial_distance_to_optical_ray_m": 3.051800894572413e-08,
+      "depth_along_optical_ray_m": 0.2330668717622757
+    },
+    "far_sight_aperture_center": {
+      "mesh_local": [
+        -6.213411688804626e-05,
+        0.1584751158952713,
+        -0.31326428055763245
+      ],
+      "blender_world": [
+        7.992219508423659e-08,
+        -0.5932642817497253,
+        2.774175911213206e-08
+      ],
+      "camera_local": [
+        -2.8057385748070374e-08,
+        1.8093544440489495e-09,
+        -0.5932642817497253
+      ],
+      "pixel_1280x720": [
+        639.9999618530273,
+        360.0
+      ],
+      "radial_distance_to_optical_ray_m": 2.811566571362347e-08,
+      "depth_along_optical_ray_m": 0.5932642817497253
+    }
+  },
+  "optical_ray_blender_world": {
+    "origin": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "direction": [
+      8.742277657347586e-08,
+      -1.0,
+      4.371138828673793e-08
+    ]
+  },
+  "local_sight_clearance_ray_tests": {
+    "optical_center": {
+      "pixel": [
+        640,
+        360
+      ],
+      "hit": false,
+      "first_hit_local": null,
+      "distance_m": null,
+      "triangle_or_polygon_index": null
+    },
+    "above_tip_0_1px": {
+      "pixel": [
+        640,
+        359.9
+      ],
+      "hit": false,
+      "first_hit_local": null,
+      "distance_m": null,
+      "triangle_or_polygon_index": null
+    },
+    "above_tip_0_5px": {
+      "pixel": [
+        640,
+        359.5
+      ],
+      "hit": false,
+      "first_hit_local": null,
+      "distance_m": null,
+      "triangle_or_polygon_index": null
+    },
+    "below_tip_0_5px": {
+      "pixel": [
+        640,
+        360.5
+      ],
+      "hit": true,
+      "first_hit_local": [
+        -6.210610445123166e-05,
+        0.15833429992198944,
+        0.049285560846328735
+      ],
+      "distance_m": 0.23071449995040894,
+      "triangle_or_polygon_index": 90737
+    },
+    "left_of_tip_3px": {
+      "pixel": [
+        637,
+        360
+      ],
+      "hit": false,
+      "first_hit_local": null,
+      "distance_m": null,
+      "triangle_or_polygon_index": null
+    },
+    "right_of_tip_3px": {
+      "pixel": [
+        643,
+        360
+      ],
+      "hit": false,
+      "first_hit_local": null,
+      "distance_m": null,
+      "triangle_or_polygon_index": null
+    }
+  },
+  "far_aperture_interior_vertex_count_within_local_radius_0_0024": 0,
+  "sight_geometry_verified_without_source_modification": true,
+  "near_post_tip_local": [
+    -6.213411688804626e-05,
+    0.1584751009941101,
+    0.04693315923213959
+  ],
+  "far_aperture_center_local": [
+    -6.213411688804626e-05,
+    0.1584751158952713,
+    -0.31326428055763245
+  ],
+  "legacy_landmark_aliases": {
+    "rear_landmark_local": "near_post_tip_local",
+    "front_landmark_local": "far_aperture_center_local"
+  }
+}

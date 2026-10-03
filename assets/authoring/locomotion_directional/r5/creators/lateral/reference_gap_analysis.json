@@ -1,0 +1,119 @@
+{
+  "review_url": "https://github.com/RHS059/dot_chat/pull/1#issuecomment-5972182972",
+  "status": "Relative silhouette guide, not a shared-camera 3D solve or visual score",
+  "actions": {
+    "hip_strafe_left_r5": {
+      "smoothed_reference_range_xy_pixels": [
+        [
+          17.42857142857133,
+          8.228571428571456
+        ],
+        [
+          43.34285714285727,
+          32.74285714285702
+        ],
+        [
+          15.257142857142867,
+          32.514285714285734
+        ]
+      ],
+      "inherited_fixed_native_over_reference_scale": 0.9848832627343954,
+      "scaled_reference_range_xy_pixels": [
+        [
+          17.165108293370796,
+          8.10418227621448
+        ],
+        [
+          42.68765455908807,
+          32.247891974103226
+        ],
+        [
+          15.026504637147642,
+          32.02277579976408
+        ]
+      ],
+      "r4_native_key_range_xy_pixels": [
+        [
+          22.830801576770682,
+          11.46038776905715
+        ],
+        [
+          45.52323750234257,
+          60.80604256588663
+        ],
+        [
+          13.82160357665316,
+          29.276082998739355
+        ]
+      ],
+      "reference_barrel_angle_degrees_at_offsets": {
+        "24": 47.72631099390627,
+        "30": 42.34786786096274,
+        "34": 39.604735431786914,
+        "36": 39.431658160732795,
+        "38": 39.431658160732795,
+        "42": 41.872193878713844
+      },
+      "r4_barrel_angle_degrees_at_offsets": {
+        "24": 38.9794510533041,
+        "30": 31.17640098520957,
+        "34": 28.222105531062162,
+        "36": 28.570251749728243,
+        "38": 29.218936892648784,
+        "42": 31.688202916789415
+      },
+      "reference_barrel_angle_delta_0_4_to_0_6_degrees": -8.294652833173473,
+      "r4_barrel_angle_delta_0_4_to_0_6_degrees": -10.40919930357586,
+      "positive_projected_angle_deficit_identified": false,
+      "interpretation": "The projected barrel proxy is already more angular during this interval; there is no calibrated positive screen-angle deficit. Reference3D yaw/roll cannot be identified from these different weapons/cameras. Additional yaw/roll is a bounded reviewer-directed visual candidate."
+    },
+    "hip_strafe_right_r5": {
+      "smoothed_reference_range_xy_pixels": [
+        [
+          22.085714285714403,
+          8.085714285714289
+        ],
+        [
+          42.688520159040195,
+          33.43782958984366
+        ],
+        [
+          14.34285714285727,
+          31.257142857142753
+        ]
+      ],
+      "inherited_fixed_native_over_reference_scale": 0.8887616480535063,
+      "scaled_reference_range_xy_pixels": [
+        [
+          19.6289358270104,
+          7.1862727542612115
+        ],
+        [
+          37.939919529513894,
+          29.71826053360175
+        ],
+        [
+          12.747381352081831,
+          27.780149799158078
+        ]
+      ],
+      "r4_native_key_range_xy_pixels": [
+        [
+          39.25787165402062,
+          15.126892073064312
+        ],
+        [
+          98.27397059066084,
+          41.045596274397894
+        ],
+        [
+          60.890406138773415,
+          19.8761474456752
+        ]
+      ],
+      "r4_cuff_vertical_shortfall_pixels": 7.904002353482877,
+      "additional_pulse_amplitude_pixels": 8.031846653889014,
+      "interpretation": "Cuff range has a relative shortfall. Muzzle/receiver ranges are already larger than the inherited scaled reference guide, so the cuff target is not a claim of uniform agreement or calibrated depth."
+    }
+  }
+}

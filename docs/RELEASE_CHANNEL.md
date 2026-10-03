@@ -1,58 +1,124 @@
 # GitHub game-update channel
 
-The production launcher trusts `RHS059/rust_duty` over HTTPS and checks strict
-manifest fields, monotonic versions/sequences, payload size and SHA256. There is
-no owner signing-key setup. A compromised repository/release account is inside
-this trust boundary; a hash is corruption detection, not an independent author
-signature.
+The game trusts `RHS059/rust_duty` over HTTPS and checks strict schema-1 manifests,
+monotonic versions/sequences, payload sizes and SHA-256. No owner signing-key
+setup is required. A compromised repository/release account is inside this trust
+boundary; hashes detect corruption, not an independent publisher identity.
 
-## Reviewed release plan
+## Explicit one-time 0.1.5 delivery
 
-`.github/workflows/publish-updates.yml` runs publication only on the dedicated
-`aella/release-channel` branch. Its explicit `.github/release/plan.json` selects
-immutable40-character game and launcher commits, version, positive sequence and previous
-version. The checked-in plan is disabled. Publishing requires an explicitly
-enabled plan on that branch; ordinary feature commits and pull-request builds
-do not publish releases. This works without merging the game feature branch.
-The optional manual trigger uses the same branch restriction and plan.
+The owner has explicitly requested release 0.1.5 now so the current integrated
+game reaches existing installations. `.github/workflows/build.yml` implements
+that one-time exception after the entire Windows/Linux build matrix succeeds,
+for push events only on `aella/automatic-game-updates-r1` in `RHS059/rust_duty`.
 
-The workflow selects successful exact-source push CI runs for the pinned game
-and launcher commits, then reuses their already-tested Windows/Linux binaries.
-It validates the launcher trust marker and curates payloads with an exact file
-allowlist. SOURCE_PROVENANCE.json and release notes identify both source revisions
-and CI runs; pull-request merge-ref artifacts are not used. It creates a draft release,
-uploads complete immutable assets, then marks it public/latest; an existing
-version is never overwritten.
+The only permitted release identity is **version 0.1.5, sequence 5**. There is no
+run-number versioning and no automatic version increase on draft PRs or ordinary
+builds. The ongoing policy is to increase the patch version by one for each PR
+merged to `main` (0.1.5, 0.1.6, and so on); serialized merged-PR release automation
+is separate follow-on work and is not implemented by this exception. This path
+does not merge a PR or authorize additional releases.
 
-The payload is curated from the tested game executable, game license, dependency
-notices, and the exact authorized `assets/locomotion/asset.vra`, `asset.vrs` and
-`asset.vrm` companions with their sanitized manifest and asset notice. Both build
-and release staging fail if any companion is missing, has an unexpected hash, or
-fails the 43-clip binding contract. They never copy wildcard asset directories,
-user settings, saves, telemetry or unrelated private assets. Existing user
-models/settings stay in the stable local root when the launcher switches version
-directories. Original/private preview ZIPs are not release inputs.
+Pull requests, forks, `main`, other feature branches and failed/cancelled builds
+cannot publish through this path. The one-time delivery has no separate launcher
+artifact, manual release-plan or `aella/release-channel` branch dependency. The
+old manual workflow is retained as historical tooling.
 
-Complete build artifacts place the executable and `assets/locomotion/` together
-at the artifact root. Managed update payloads preserve that relative layout.
-`tools/package_game.py` provides the shared fail-closed staging implementation.
+Every game compile/test in the build matrix receives
+`RUST_DUTY_BUILD_VERSION=0.1.5`. Both release binaries must report that exact value
+through their headless `--build-version` command before artifact upload.
+`BUILD_IDENTITY.json` binds the reported version, executable size/hash, target,
+commit, branch and exact build run. The publisher checks that identity again
+after downloading both complete game artifacts from **its own run**, without
+rebuilding either executable.
 
-## Assets and deltas
+Re-running the same build keeps version 0.1.5 and sequence 5. Once published,
+those bytes cannot be replaced by a later branch push. Source changes alone are
+not proof of a playable release: generated asset checks, Python tests, root game
+formatting/lint/tests, updater crate formatting/lint/tests, both release builds
+and Linux native gameplay capture gates all run before publication.
 
-Each target publishes a complete `Rust-Duty-VERSION-Windows-x64.zip` or
-`Rust-Duty-VERSION-Linux-x64.zip`, plus `update-TARGET.json`, `rust-duty-VERSION-TARGET.rdb`, an
-optional smaller `.rdd`, and a standalone migration launcher (`RustDuty-windows-x64.exe`
-or `RustDuty-linux-x64`). CI artifact ZIPs are for developer transport; the player
-transition is one standalone launcher executable, followed by automatic updates.
+## Complete and safe payloads
 
-For a later release, `previous` is required. The workflow downloads that exact
-retained `.rdb` and manifest from the repository's versioned release, validates
-its target/version/hash, and prepares copy/add delta operations against those
-bytes. A full bundle remains available for clients without that exact baseline.
-The initial release cannot claim a delta from an unknown adopted executable.
+`tools/publish_game_build.py` validates both source identities and re-stages each
+artifact through `tools/package_game.py stage --update --require-generated`.
+Only the exact public distribution allowlist is copied. Missing or corrupt
+reload, locomotion, walking, ADS or directional companions fail publication.
+Settings, saves, telemetry and private soldier assets never enter a managed
+update. The same allowlist's fresh-install mode supplies complete public ZIPs
+with default settings and profiles.
 
-Local fixture tests are necessary but do not establish live channel behavior.
-Before calling the channel ready, verify a real published A→B transfer on Windows,
-pause/resume/cancel, the selected delta path, final byte hashes, activation after
-game exit, rollback and unchanged private-model/settings bytes. Record any stage
-that was not actually executed.
+Managed updates preserve executable-relative authored-asset paths inside the
+verified version directory. After activation, the game validates its active
+bundle, extracted contents, executable hash and build version before reading the
+shipped animation manifest and companions there. The persistent game root and
+explicit settings/private-asset mappings stay intact. This supports existing
+0.1.4 in-game update helpers that only replace the executable; the new runtime
+selects the rest of the installed version's files directly.
+
+The one-time release includes:
+
+- `Rust-Duty-VERSION-Windows-x64.zip` and `Rust-Duty-VERSION-Linux-x64.zip`
+- Both `update-TARGET.json` schema-1 manifests
+- Both `rust-duty-VERSION-TARGET.rdb` full managed game bundles
+- `vector-range.exe` and `vector-range-linux-x64` migration executables
+- `SOURCE_PROVENANCE.json`, binding commit, branch, run, artifact identities and
+  all other release asset hashes
+
+No separate launcher is necessary for players already using the in-game updater.
+Complete ZIPs are for fresh installs; an installed game discovers the appropriate
+manifest at `/releases/latest/download/update-TARGET.json`.
+
+## Atomic publication and retries
+
+The publisher creates a draft at the exact source commit, uploads and verifies
+all nine assets, then makes it public/latest in one release update. Both target
+manifests become discoverable together. The publication job shares the
+`rust-duty-release-channel` concurrency group with the old manual publisher.
+The authorized branch’s push workflows are not cancelled while publication may
+be active.
+
+Before creation and again immediately before public promotion, the publisher
+reads both latest manifests and requires the candidate version **and** sequence
+to advance. An older run finishing late is reported as superseded and cannot
+regress latest. Inconsistent platform identities, unknown channel manifests or
+version/sequence disagreements fail closed. An existing tag pointing at another
+commit is never moved.
+
+Published assets are never replaced or completed in place. A retry of an
+already-published identical version verifies its assets and performs no writes.
+An interrupted draft resumes only missing assets after confirming that every
+existing asset has the exact expected hash, source and release identity. ZIP
+metadata and file modes are normalized, so transport timestamps cannot change
+retry bytes. Conflicting draft bytes fail rather than being clobbered. A rerun
+that genuinely recompiles to different bytes therefore needs a new build/version;
+it cannot silently rewrite the old version. This is publisher-enforced
+immutability; it does not change repository access or release-security settings.
+
+The concurrency lock protects cooperating workflows; a manual edit outside that lock is not an atomic
+compare-and-swap and remains within the trusted repository-owner boundary.
+
+## Deltas and verification
+
+The one-time route emits deterministic full bundles with an empty
+`deltas` array. That is a complete supported schema-1 update path, including for
+existing 0.1.4 clients. `tools/release_update.py` and the game retain real copy/add
+delta generation, strict retained-base checks and full fallback. A future release
+can advertise a delta only when generated from a validated older retained bundle
+and smaller than the full target; published full bundles remain available.
+
+Run the targeted publication tests with:
+
+```
+python -m unittest discover -s tools -p 'test_publish_game_build.py' -v
+python -m unittest discover -s tools -p 'test_release_update.py' -v
+```
+
+Tests cover publication gating, embedded-version and artifact/source identity,
+complete payload preparation, deterministic archives, interrupted draft resume,
+immutable retries/conflicts, wrong tags, missing or inconsistent latest assets,
+monotonic ordering and out-of-order completion. They use local fixtures, not the
+live GitHub API. A successful CI build is also distinct from native Windows
+migration/interactive gameplay. Verify actual published discovery, old-client
+activation, managed-asset loading and settings/private-model preservation before
+reporting live delivery complete.

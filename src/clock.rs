@@ -26,6 +26,16 @@ impl FixedClock {
         (self.remainder / Self::STEP).clamp(0., 1.) as f32
     }
 }
+/// Explicit diagnostic rates are integral divisors of the 120 Hz simulation.
+/// Count committed ticks instead of comparing rounded floating frame timestamps.
+pub fn capture_tick_target(frame: u64, hz: u32) -> Option<u64> {
+    let stride = match hz {
+        30 => 4,
+        60 => 2,
+        _ => return None,
+    };
+    frame.checked_mul(stride)
+}
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -34,6 +44,20 @@ mod tests {
         sim::{Input, Simulation, FIXED_DT},
     };
     use macroquad::math::vec2;
+    #[test]
+    fn explicit_capture_rates_have_exact_integer_tick_strides() {
+        for (hz, stride) in [(30, 4), (60, 2)] {
+            for frame in 1..100_000 {
+                assert_eq!(
+                    capture_tick_target(frame, hz).unwrap()
+                        - capture_tick_target(frame - 1, hz).unwrap(),
+                    stride
+                );
+            }
+        }
+        assert_eq!(capture_tick_target(1, 59), None);
+        assert_eq!(capture_tick_target(u64::MAX, 30), None);
+    }
     #[test]
     fn native_clock_matches_all_render_endpoints() {
         let mut baseline = None;

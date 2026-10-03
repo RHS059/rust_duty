@@ -10,17 +10,19 @@ The startup screen displays “Checking for updates”, an animated bar while me
 
 The helper is a temporary copy of the game's own executable. It runs without a game window and exists only to replace a Windows executable after its running process releases it. It does not install a service, require administrator rights, or terminate the playing process. The original game path remains the path you launch next time.
 
-An older build without this feature needs the integrated game executable once. Merely downloading a separate updater does not add a launch check to that older executable. The public release channel contains code only; existing licensed models remain local.
+An older build without this feature needs the integrated game executable once. Merely downloading a separate updater does not add a launch check to that older executable. The public release channel carries the complete approved game runtime and authored animation companions. Private soldier models remain local.
 
 Pause and cancel are observed at durable transfer checkpoints; an in-flight network request can take up to its 30-second timeout to return. Resume uses validated partial bytes where the server supports it. Cancellation keeps the installed game. `--no-update` disables checking for an explicitly offline run; deterministic capture/demo runs disable it automatically.
 
 ## Models, settings, and recovery
 
-The update worker keeps its cache, verified version bundles, transfer checkpoints and rollback state in `.rust-duty-updates` beside the persistent game installation. Only the validated executable is replaced. Model folders, settings, profiles, telemetry and saves are never copied into a public payload or overwritten during activation.
+The update worker keeps its cache, verified version bundles, transfer checkpoints and rollback state in `.rust-duty-updates` beside the persistent game installation. The helper replaces the validated executable at the original launch path. The new executable then reads approved authored assets directly from its active verified version directory, so older 0.1.4 helpers that only replace the executable can still install the complete updated runtime. No asset-copy migration into the persistent root is needed.
+
+Before selecting that directory, the game verifies the retained bundle SHA-256, extracted files byte for byte, the active executable hash, and the embedded build version. The managed asset root supplies the shipped animation manifest and companion files. Existing explicit settings and private-asset paths keep priority. User settings, private models, telemetry and saves are excluded from managed payloads and are not overwritten during activation. Fresh-install ZIPs separately include the approved default settings and profiles.
 
 Existing launch mappings and explicit asset/settings arguments are retained. When `assets/locomotion/asset.vra` and its matching `.vrs`/`.vrm` companions are packaged next to the executable, a normal double-click now selects that authored renderer with the `locomotion` clip and 76-degree viewmodel FOV. Explicit viewmodel/clip/FOV arguments still override defaults; explicit legacy weapon/arms/procedural choices disable automatic discovery. A partial/corrupt pack reports an asset error instead of silently falling back. The private preview's `assets/arms/first-person.vrs` and `assets/weapons/hk416a5.vrm` continue to resolve from the persistent game folder, including installations previously adopted by the old launcher. Paths with spaces are passed as individual arguments without a shell.
 
-Public packing and unpacking reject private model locations, settings and saves. The release workflow curates original code and license files only. A successful code update does not depend on publishing either licensed model.
+Public packing and unpacking reject private model locations, settings and saves. The release workflow uses the exact `package_game.py` allowlist for the executable, notices, authored animation manifests and validated public companions. A complete update does not depend on publishing private soldier assets.
 
 The `updater/` command-line program remains a developer/diagnostic tool for release testing. It is not the normal player entry point.
 
@@ -56,8 +58,26 @@ Every completed patch/full bundle must match the manifest size and SHA-256. A pa
 
 ## Release tooling
 
+The explicitly requested one-time 0.1.5 release publishes through `build.yml`
+after the complete Windows/Linux build succeeds on `aella/automatic-game-updates-r1`.
+Both platforms embed version 0.1.5 and the manifest sequence is 5. Game and
+updater tests and the complete build matrix must pass first. Pull-request builds
+never publish. The publisher reuses those same-run binaries and assets, then
+exposes both target manifests together as the new latest release.
+
+Ordinary draft pushes do not increase the version. The ongoing user policy is
+one patch increment per PR merged to `main`; that separate automation is still
+follow-on work. See [RELEASE_CHANNEL.md](RELEASE_CHANNEL.md) for the bounded
+one-time delivery, safeguards and retry behavior. This release publishes full
+bundles; clients and the tools below retain delta support when a release
+advertises a valid smaller retained-base patch.
+
+`vector-range --build-version` reports the embedded version without opening a
+window. `vector-range --verify-managed-assets` checks and reports managed runtime
+asset resolution without starting gameplay.
+
 ```
-python tools/release_update.py prepare --input curated-code-only --output release-assets --version 1.1.0 --sequence 2 --target x86_64-pc-windows-msvc --entrypoint vector-range.exe --previous retained-1.0.0.rdb --previous-version 1.0.0
+python tools/release_update.py prepare --input curated-complete-game --output release-assets --version 1.1.0 --sequence 2 --target x86_64-pc-windows-msvc --entrypoint vector-range.exe --previous retained-1.0.0.rdb --previous-version 1.0.0
 python tools/release_update.py verify --manifest release-assets/update-x86_64-pc-windows-msvc.json --assets-dir release-assets --version 1.1.0 --target x86_64-pc-windows-msvc
 ```
 

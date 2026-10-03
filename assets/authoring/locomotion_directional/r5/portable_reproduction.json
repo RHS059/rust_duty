@@ -1,0 +1,16 @@
+{
+  "schema": "rust-duty-r5-portable-authoring-reproduction/v1",
+  "frozen_source_sha256": "36d76491c2cf6238b8a1e10069dddd5b0d63e199063e1f4012b34f3fd4b1e18d",
+  "reproduced_source_sha256": "cdf469bdee3b026e10e67bdb8ad3cea96ad46f21ad174bc9417e3d5801380ebc",
+  "checks": {
+    "preserved": true,
+    "structural": true,
+    "action_count": true,
+    "nla_track_count": true,
+    "driver_count": true,
+    "invalid_drivers": true
+  },
+  "all_82_action_and_source_data_fingerprints_identical": true,
+  "serialized_blend_bytes_expected_identical": false,
+  "passed": true
+}

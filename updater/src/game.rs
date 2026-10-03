@@ -341,6 +341,7 @@ pub fn dispatch_headless(version: &str) -> Option<i32> {
         if !(1..=600).contains(&timeout) {
             return Err(invalid("update timeout must be1..600seconds"));
         }
+        managed_asset_executable(version)?;
         let mut updater = GameUpdater::start(version)?;
         mark_ready_sync(version)?;
         let until = Instant::now() + Duration::from_secs(timeout);
@@ -498,6 +499,54 @@ fn stable_version(value: &str) -> Result<Version> {
         return Err(invalid("stable game version required"));
     }
     Ok(version)
+}
+
+/// Resolve this executable's authenticated, immutable runtime package. Older
+/// helpers already stage the whole bundle but replace only the executable; using
+/// its verified version directory makes those installations asset-complete too.
+/// User settings, explicit model paths, and the stable executable stay in place.
+pub fn managed_asset_executable(version: &str) -> Result<Option<PathBuf>> {
+    managed_asset_executable_at(&std::env::current_exe()?, &stable_version(version)?)
+}
+
+fn managed_asset_executable_at(executable: &Path, running: &Version) -> Result<Option<PathBuf>> {
+    let paths = locate(executable)?;
+    if !paths.metadata.join("install.json").exists() {
+        return Ok(None);
+    }
+    let store = Store::open(&paths.metadata)?;
+    // The updater holds its exclusive engine lease while a game is running.
+    // Asset discovery is read-only and must also work for concurrent launches.
+    // Atomic state replacement plus immutable, fully verified version bytes
+    // binds this snapshot to the running executable without taking that lease.
+    let Some(installed) = store.state()?.active else {
+        return Ok(None);
+    };
+    // Sequence zero is the one-file local baseline, not a published runtime.
+    if installed.sequence == 0 || installed.version != *running {
+        return Ok(None);
+    }
+    if installed.entrypoint != GAME_FILE {
+        return Err(invalid("managed runtime has an unexpected entrypoint"));
+    }
+    let directory = store.version_dir(&installed);
+    let payload = store.bundle_path(&installed);
+    reject_symlink(&directory)?;
+    reject_symlink(&payload)?;
+    if file_hash(&payload)? != installed.bundle_sha256 {
+        return Err(invalid("managed runtime bundle hash mismatch"));
+    }
+    let verified = bundle::verify_extracted(&payload, &directory, GAME_FILE)?;
+    let candidate = directory.join(GAME_FILE);
+    if file_hash(&candidate)? != file_hash(executable)? {
+        return Err(invalid(
+            "managed runtime does not match the running executable",
+        ));
+    }
+    // Historical code-only releases continue to use their adjacent local assets.
+    Ok(verified
+        .contains(Path::new("assets/animations.cfg"))
+        .then_some(candidate))
 }
 
 fn locate(executable: &Path) -> Result<Paths> {
@@ -1341,6 +1390,183 @@ mod tests {
             metadata: root.join(METADATA),
             root,
         }
+    }
+
+    fn managed_runtime_fixture() -> (tempfile::TempDir, Paths, Store, Installed) {
+        let root = tempfile::tempdir().unwrap();
+        let paths = fixture_paths(root.path());
+        let store = Store::open(&paths.metadata).unwrap();
+        let mut bytes = bundle::MAGIC.to_vec();
+        let entries: [(&str, &[u8]); 3] = [
+            (GAME_FILE, b"synthetic running game"),
+            ("assets/animations.cfg", b"managed authored animations"),
+            ("assets/walk/asset.vra", b"new authored walking"),
+        ];
+        bytes.extend((entries.len() as u32).to_le_bytes());
+        for (name, data) in entries {
+            bytes.extend((name.len() as u16).to_le_bytes());
+            bytes.extend(name.as_bytes());
+            bytes.push(u8::from(name == GAME_FILE));
+            bytes.extend((data.len() as u64).to_le_bytes());
+            bytes.extend(data);
+        }
+        let installed = Installed {
+            version: stable_version("0.2.117").unwrap(),
+            sequence: 117,
+            bundle_sha256: bytes_hash(&bytes),
+            entrypoint: GAME_FILE.into(),
+        };
+        let directory = store.version_dir(&installed);
+        safe_dir(&directory).unwrap();
+        let payload = directory.join("payload.rdb");
+        fs::write(&payload, bytes).unwrap();
+        bundle::unpack(&payload, &directory, GAME_FILE).unwrap();
+        store
+            .save(&crate::install::State {
+                active: Some(installed.clone()),
+                highest_sequence: installed.sequence,
+                ..Default::default()
+            })
+            .unwrap();
+        (root, paths, store, installed)
+    }
+
+    #[test]
+    fn old_executable_only_helper_can_activate_complete_managed_assets() {
+        let (_root, paths, store, installed) = managed_runtime_fixture();
+        fs::write(paths.root.join("settings.cfg"), b"personal settings").unwrap();
+        safe_dir(&paths.root.join("private-assets")).unwrap();
+        fs::write(
+            paths.root.join("private-assets/first-person.vrs"),
+            b"private arms",
+        )
+        .unwrap();
+        safe_dir(&paths.root.join("assets/walk")).unwrap();
+        fs::write(paths.root.join("assets/walk/asset.vra"), b"old walking").unwrap();
+        let selected = managed_asset_executable_at(&paths.executable, &installed.version)
+            .unwrap()
+            .unwrap();
+        assert_eq!(selected, store.version_dir(&installed).join(GAME_FILE));
+        assert_eq!(
+            fs::read(selected.parent().unwrap().join("assets/walk/asset.vra")).unwrap(),
+            b"new authored walking"
+        );
+        assert_eq!(
+            fs::read(paths.root.join("settings.cfg")).unwrap(),
+            b"personal settings"
+        );
+        assert_eq!(
+            fs::read(paths.root.join("private-assets/first-person.vrs")).unwrap(),
+            b"private arms"
+        );
+        assert_eq!(
+            fs::read(paths.root.join("assets/walk/asset.vra")).unwrap(),
+            b"old walking"
+        );
+        assert!(
+            managed_asset_executable_at(&paths.executable, &stable_version("0.1.4").unwrap())
+                .unwrap()
+                .is_none()
+        );
+    }
+
+    #[test]
+    fn managed_assets_remain_available_while_another_game_owns_the_updater_lease() {
+        let (_root, paths, store, installed) = managed_runtime_fixture();
+        let _other_game_lease = store.lock().unwrap();
+        assert_eq!(
+            managed_asset_executable_at(&paths.executable, &installed.version).unwrap(),
+            Some(store.version_dir(&installed).join(GAME_FILE))
+        );
+    }
+
+    #[test]
+    fn extra_unbundled_manifest_cannot_enable_a_managed_runtime() {
+        let (_root, paths, store, mut installed) = managed_runtime_fixture();
+        let bytes = archive(b"synthetic running game");
+        installed.bundle_sha256 = bytes_hash(&bytes);
+        fs::write(store.bundle_path(&installed), bytes).unwrap();
+        store
+            .save(&crate::install::State {
+                active: Some(installed.clone()),
+                highest_sequence: installed.sequence,
+                ..Default::default()
+            })
+            .unwrap();
+        // Existing fixture asset files are now absent from the authenticated
+        // code-only bundle and must never select a managed root.
+        assert!(
+            managed_asset_executable_at(&paths.executable, &installed.version)
+                .unwrap()
+                .is_none()
+        );
+        #[cfg(unix)]
+        {
+            let manifest = store.version_dir(&installed).join("assets/animations.cfg");
+            fs::remove_file(&manifest).unwrap();
+            let outside = paths.root.join("untrusted.cfg");
+            fs::write(&outside, b"untrusted manifest").unwrap();
+            std::os::unix::fs::symlink(outside, manifest).unwrap();
+            assert!(
+                managed_asset_executable_at(&paths.executable, &installed.version)
+                    .unwrap()
+                    .is_none()
+            );
+        }
+    }
+
+    #[test]
+    fn managed_runtime_rejects_modified_assets_bundle_or_executable() {
+        for corruption in ["assets/walk/asset.vra", "payload.rdb", GAME_FILE] {
+            let (_root, paths, store, installed) = managed_runtime_fixture();
+            let path = store.version_dir(&installed).join(corruption);
+            let mut bytes = fs::read(&path).unwrap();
+            bytes[0] ^= 1;
+            fs::write(path, bytes).unwrap();
+            assert!(managed_asset_executable_at(&paths.executable, &installed.version).is_err());
+        }
+        let (_root, paths, _store, installed) = managed_runtime_fixture();
+        fs::write(&paths.executable, b"different binary").unwrap();
+        assert!(managed_asset_executable_at(&paths.executable, &installed.version).is_err());
+    }
+
+    #[test]
+    fn managed_runtime_rejects_missing_files_and_keeps_local_baselines_unmanaged() {
+        let (_root, paths, store, installed) = managed_runtime_fixture();
+        fs::remove_file(store.version_dir(&installed).join("assets/animations.cfg")).unwrap();
+        assert!(managed_asset_executable_at(&paths.executable, &installed.version).is_err());
+        let root = tempfile::tempdir().unwrap();
+        let paths = fixture_paths(root.path());
+        let store = Store::open(&paths.metadata).unwrap();
+        let running = stable_version("0.1.4").unwrap();
+        ensure_baseline(&store, &paths.executable, &running).unwrap();
+        assert!(managed_asset_executable_at(&paths.executable, &running)
+            .unwrap()
+            .is_none());
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn managed_runtime_rejects_asset_symlinks() {
+        let (_root, paths, store, installed) = managed_runtime_fixture();
+        let asset = store.version_dir(&installed).join("assets/walk/asset.vra");
+        fs::remove_file(&asset).unwrap();
+        let outside = paths.root.join("outside.vra");
+        fs::write(&outside, b"new authored walking").unwrap();
+        std::os::unix::fs::symlink(outside, asset).unwrap();
+        assert!(managed_asset_executable_at(&paths.executable, &installed.version).is_err());
+    }
+
+    #[test]
+    fn unmanaged_build_does_not_create_updater_state_during_asset_discovery() {
+        let root = tempfile::tempdir().unwrap();
+        let paths = fixture_paths(root.path());
+        assert!(
+            managed_asset_executable_at(&paths.executable, &stable_version("0.1.4").unwrap())
+                .unwrap()
+                .is_none()
+        );
+        assert!(!paths.metadata.exists());
     }
     fn publish(server: &Server, version: &str, size: usize) -> Manifest {
         let bytes = archive(&vec![b'B'; size]);

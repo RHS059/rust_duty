@@ -238,6 +238,8 @@ pub struct Player {
     pub stamina: f32,
     pub sprint_recovery: f32,
     pub ads: f32,
+    /// Committed aim eligibility; presentation observes this, never raw input.
+    pub ads_requested: bool,
     pub recoil: Vec2,
     pub recoil_velocity: Vec2,
     pub ammo: u32,
@@ -283,6 +285,7 @@ impl Default for Player {
             stamina: SPRINT_DURATION,
             sprint_recovery: 0.,
             ads: 0.,
+            ads_requested: false,
             recoil: Vec2::ZERO,
             recoil_velocity: Vec2::ZERO,
             ammo: MAGAZINE,
@@ -655,6 +658,7 @@ impl Simulation {
         } else {
             0.
         };
+        p.ads_requested = ads_target > 0.;
         p.ads = approach(
             p.ads,
             ads_target,

@@ -1,7 +1,12 @@
 //! Opt-in playback adapter for Blender-baked viewmodels. No procedural posing.
 use macroquad::prelude::*;
+use vector_range::scene_lighting::SceneLighting;
 use vector_range::{
-    authored_locomotion_path::{AuthoredLocomotionPath, AuthoredLocomotionPathConfig},
+    animation_manifest::AnimationManifest,
+    authored_ads::{AdsSample, AuthoredAds},
+    authored_locomotion_path::AuthoredLocomotionPathState,
+    authored_reload::{AuthoredReload, ReloadSlot},
+    layered_locomotion::{LayerSources, LayeredLocomotion},
     skinned_asset::SkinnedAsset,
     viewmodel_animation::{game_model_root, AnimationSet, ViewmodelPose},
 };
@@ -23,7 +28,13 @@ pub struct AuthoredViewmodel {
     clip: String,
     fixed_time: Option<f32>,
     error: Option<String>,
-    locomotion: Option<AuthoredLocomotionPath>,
+    locomotion: Option<LayeredLocomotion>,
+    reload: Option<AuthoredReload>,
+    reload_renderers: Vec<AuthoredViewmodel>,
+    reload_indices: [Option<usize>; 2],
+    warning: Option<String>,
+    walk_index: Option<usize>,
+    ads_index: Option<usize>,
 }
 impl AuthoredViewmodel {
     /// Requires an initialized render context, like the existing mesh adapters.
@@ -33,34 +44,7 @@ impl AuthoredViewmodel {
         }
         let (animation, skin, weapon) =
             AnimationSet::load_with_companions(path).map_err(|e| e.to_string())?;
-        let locomotion = if clip == "locomotion" && fixed_time.is_none() {
-            Some(
-                AuthoredLocomotionPath::new(
-                    &animation,
-                    AuthoredLocomotionPathConfig {
-                        ready_clip: "normal_ready".into(),
-                        entry_clip: "normal_entry_connected".into(),
-                        loop_clip: "normal_loop".into(),
-                        exit_bridge_clips: (0..35)
-                            .map(|i| format!("normal_exit_bridge_{i:03}"))
-                            .collect(),
-                        exit_clip: "normal_exit".into(),
-                        settle_clip: "normal_settle".into(),
-                        rate_response_seconds: 0.05,
-                        residual_decay_seconds: 0.03,
-                    },
-                    0.,
-                )
-                .map_err(|e| e.to_string())?,
-            )
-        } else {
-            None
-        };
-        let sample_clip = if clip == "locomotion" {
-            "normal_ready"
-        } else {
-            clip
-        };
+        let sample_clip = clip;
         // Fail before creating GPU resources if the requested clip is absent.
         let initial = animation
             .sample_clamped(sample_clip, fixed_time.unwrap_or(0.))
@@ -139,8 +123,268 @@ impl AuthoredViewmodel {
             clip: sample_clip.into(),
             fixed_time,
             error: None,
-            locomotion,
+            locomotion: None,
+            reload: None,
+            reload_renderers: Vec::new(),
+            reload_indices: [None, None],
+            warning: None,
+            walk_index: None,
+            ads_index: None,
         })
+    }
+    /// Gameplay route: every semantic slot binds data, and each complete model
+    /// retains its own CRC-checked skin and rigid companions. No cross-rig poses.
+    pub fn load_manifest(path: &std::path::Path) -> Result<Self, String> {
+        let manifest = AnimationManifest::load(path)?;
+        let asset_name = |path: &std::path::Path| {
+            path.to_str()
+                .map(str::to_owned)
+                .ok_or_else(|| "animation asset path is not Unicode".to_owned())
+        };
+        let mut model = Self::load(
+            &asset_name(&manifest.locomotion_asset)?,
+            &manifest.locomotion.ready_clip,
+            None,
+        )?;
+        let walk_clip = manifest
+            .regular_walk
+            .as_ref()
+            .map(|reference| reference.clip.clone());
+        let ads_clips = manifest.ads.clone();
+        let mut durations = [None, None];
+        let mut references = Vec::new();
+        for (slot, reference) in [Some(manifest.tactical), manifest.empty]
+            .into_iter()
+            .enumerate()
+        {
+            let Some(reference) = reference else {
+                continue;
+            };
+            let index = if let Some(index) = references.iter().position(|item| item == &reference) {
+                index
+            } else {
+                let renderer =
+                    Self::load(&asset_name(&reference.asset)?, &reference.clip, Some(0.))?;
+                references.push(reference.clone());
+                model.reload_renderers.push(renderer);
+                references.len() - 1
+            };
+            let renderer = &model.reload_renderers[index];
+            durations[slot] = Some(
+                AuthoredReload::clip_duration(&renderer.animation, &reference.clip)
+                    .map_err(|e| e.to_string())?,
+            );
+            model.reload_indices[slot] = Some(index);
+        }
+        model.reload = Some(
+            AuthoredReload::new(
+                durations[0].ok_or("missing tactical reload slot")?,
+                durations[1],
+            )
+            .map_err(|e| e.to_string())?,
+        );
+        if let Some(reference) = manifest.regular_walk {
+            let renderer = Self::load(&asset_name(&reference.asset)?, &reference.clip, None)?;
+            model.walk_index = Some(model.reload_renderers.len());
+            model.reload_renderers.push(renderer);
+        }
+        if let Some(reference) = manifest.ads {
+            let renderer = Self::load(&asset_name(&reference.asset)?, &reference.entry_clip, None)?;
+            model.ads_index = Some(model.reload_renderers.len());
+            model.reload_renderers.push(renderer);
+        }
+        model.locomotion = Some(
+            LayeredLocomotion::new(
+                LayerSources {
+                    locomotion: &model.animation,
+                    walk: model
+                        .walk_index
+                        .map(|index| &model.reload_renderers[index].animation),
+                    ads: model
+                        .ads_index
+                        .map(|index| &model.reload_renderers[index].animation),
+                },
+                manifest.locomotion,
+                walk_clip.as_deref(),
+                ads_clips,
+                &manifest.layer_anchor_actor,
+            )
+            .map_err(|error| error.to_string())?,
+        );
+        if let Some(clips) = manifest.directional_walk {
+            let set = &model.reload_renderers[model
+                .walk_index
+                .ok_or("missing directional walk renderer")?]
+            .animation;
+            model.locomotion = Some(
+                model
+                    .locomotion
+                    .take()
+                    .ok_or("missing shared layers")?
+                    .with_directional_walk(set, clips)
+                    .map_err(|error| error.to_string())?,
+            );
+        }
+        model.locomotion = Some(
+            model
+                .locomotion
+                .take()
+                .ok_or("missing shared layers")?
+                .with_ads_wip_policy(
+                    manifest.receiver_ads_wip,
+                    manifest.ads_visual_transition_seconds,
+                )
+                .map_err(|error| error.to_string())?,
+        );
+        let mut missing = vec!["fire", "mantle"];
+        if model.ads_index.is_none() {
+            missing.insert(0, "ADS");
+        }
+        if durations[1].is_none() {
+            missing.insert(0, "empty reload");
+        }
+        if model.walk_index.is_none() {
+            missing.insert(0, "regular walk");
+        }
+        model.warning = Some(format!(
+            "Authored WIP: {} clips unavailable; whole-model cuts",
+            missing.join(", ")
+        ));
+        Ok(model)
+    }
+    pub fn reload_sample(&self) -> Option<vector_range::authored_reload::ReloadSample> {
+        self.reload.as_ref().and_then(AuthoredReload::sample)
+    }
+    pub fn walk_sample(&self) -> Option<f64> {
+        if self.reload_sample().is_some() {
+            return None;
+        }
+        self.locomotion
+            .as_ref()
+            .and_then(|layers| layers.walk().seconds())
+    }
+    pub fn walk_weight(&self) -> f32 {
+        self.locomotion
+            .as_ref()
+            .map_or(0., |layers| layers.walk().weight())
+    }
+    pub fn walk_min_rate(&self) -> f32 {
+        self.locomotion
+            .as_ref()
+            .map_or(1., LayeredLocomotion::walk_min_rate)
+    }
+    pub fn run_weight(&self) -> f32 {
+        self.locomotion
+            .as_ref()
+            .map_or(0., LayeredLocomotion::run_weight)
+    }
+    pub fn pose_crc32(&self) -> Option<u32> {
+        self.locomotion.as_ref().map(LayeredLocomotion::pose_crc32)
+    }
+    pub fn directional_weights(&self) -> Option<[f64; 4]> {
+        self.locomotion
+            .as_ref()
+            .and_then(LayeredLocomotion::directional_weights)
+    }
+    pub fn ads_sample(&self) -> Option<AdsSample> {
+        self.locomotion
+            .as_ref()
+            .and_then(LayeredLocomotion::ads)
+            .and_then(AuthoredAds::sample)
+    }
+    pub fn ads_clip(&self) -> Option<&str> {
+        let ads = self.locomotion.as_ref()?.ads()?;
+        Some(ads.clip(ads.sample()?.slot))
+    }
+    pub fn ads_duration(&self) -> Option<f64> {
+        let ads = self.locomotion.as_ref()?.ads()?;
+        Some(ads.duration(ads.sample()?.slot))
+    }
+    pub fn presentation_route(&self) -> &str {
+        if let Some(sample) = self.reload_sample() {
+            return if sample.slot == ReloadSlot::Empty {
+                "reload.empty"
+            } else {
+                "reload.tactical"
+            };
+        }
+        if let Some(sample) = self.ads_sample() {
+            return sample.slot.route();
+        }
+        if self.walk_sample().is_some() {
+            return "regular_walk";
+        }
+        match self.locomotion.as_ref().map(|layers| layers.path().state()) {
+            Some(AuthoredLocomotionPathState::Ready) => "ready",
+            _ => "locomotion",
+        }
+    }
+    pub fn walk_duration(&self) -> Option<f64> {
+        let renderer = self.reload_renderers.get(self.walk_index?)?;
+        renderer
+            .animation
+            .clips()
+            .iter()
+            .find(|clip| {
+                clip.name
+                    == self
+                        .locomotion
+                        .as_ref()
+                        .and_then(LayeredLocomotion::walk_clip)
+                        .unwrap_or(&renderer.clip)
+            })
+            .map(|clip| f64::from(clip.duration()))
+    }
+    pub fn tactical_duration(&self) -> Option<f64> {
+        let renderer = self.reload_renderers.get(self.reload_indices[0]?)?;
+        AuthoredReload::clip_duration(&renderer.animation, &renderer.clip).ok()
+    }
+    pub fn warning(&self) -> Option<&str> {
+        self.warning.as_deref()
+    }
+    /// Exactly one committed observer, shared by real keyboard and replay input.
+    pub fn committed_step(&mut self, start: f64, simulation: &vector_range::sim::Simulation) {
+        if self.error.is_some() {
+            return;
+        }
+        if let Some(reload) = &mut self.reload {
+            if let Err(error) = reload.committed_step(start, simulation) {
+                self.error = Some(error.to_string());
+                return;
+            }
+            if reload.missing_slot().is_some() {
+                self.warning = Some("Missing authored empty-reload slot: gameplay continues; ready/locomotion shown".into());
+            }
+        }
+        let is_reload = self
+            .reload
+            .as_ref()
+            .and_then(AuthoredReload::sample)
+            .is_some();
+        if let Some(layers) = &mut self.locomotion {
+            let sources = LayerSources {
+                locomotion: &self.animation,
+                walk: self
+                    .walk_index
+                    .map(|index| &self.reload_renderers[index].animation),
+                ads: self
+                    .ads_index
+                    .map(|index| &self.reload_renderers[index].animation),
+            };
+            if let Err(error) = layers.committed_step(sources, start, simulation, is_reload) {
+                self.error = Some(error.to_string());
+            }
+        }
+    }
+    pub fn reset(&mut self, time: f64) {
+        if let Some(reload) = &mut self.reload {
+            reload.reset(time);
+        }
+        if let Some(layers) = &mut self.locomotion {
+            if let Err(error) = layers.reset(&self.animation, time) {
+                self.error = Some(error.to_string());
+            }
+        }
     }
     pub fn error(&self) -> Option<&str> {
         self.error.as_deref()
@@ -149,33 +393,39 @@ impl AuthoredViewmodel {
     pub fn animation(&self) -> &AnimationSet {
         &self.animation
     }
-    /// Advance only on committed fixed ticks; render frequency never changes motion.
-    pub fn update_locomotion(&mut self, start: f64, end: f64, sprinting: bool) {
+    /// `offset` is camera-space meters: +X right, +Y up, no forward/back.
+    pub fn draw(&mut self, simulation_time: f64, lighting: SceneLighting, offset: Vec3) {
         if self.error.is_some() {
             return;
         }
-        if let Some(path) = &mut self.locomotion {
-            if let Err(error) = path
-                .update(&self.animation, start, sprinting, true)
-                .and_then(|_| path.update(&self.animation, end, sprinting, true))
-            {
-                self.error = Some(error.to_string());
-            }
-        }
-    }
-    pub fn draw(&mut self, simulation_time: f64, offset: Vec3) {
-        if self.error.is_some() {
-            return;
-        }
-        if let Err(error) = self.draw_checked(simulation_time, offset) {
+        if let Err(error) = self.draw_checked(simulation_time, lighting, offset) {
             eprintln!("Authored viewmodel playback failed: {error}");
             self.error = Some(error);
         }
     }
-    fn draw_checked(&mut self, simulation_time: f64, offset: Vec3) -> Result<(), String> {
-        if let Some(path) = &self.locomotion {
-            let pose = path.pose().clone();
-            return self.draw_pose(&pose, offset);
+    fn draw_checked(
+        &mut self,
+        simulation_time: f64,
+        lighting: SceneLighting,
+        offset: Vec3,
+    ) -> Result<(), String> {
+        if let Some(sample) = self.reload.as_ref().and_then(AuthoredReload::sample) {
+            let slot = if sample.slot == ReloadSlot::Empty {
+                1
+            } else {
+                0
+            };
+            let index = self.reload_indices[slot].ok_or("missing active reload renderer")?;
+            let renderer = &mut self.reload_renderers[index];
+            let pose = renderer
+                .animation
+                .sample_clamped(&renderer.clip, sample.seconds as f32)
+                .map_err(|e| e.to_string())?;
+            return renderer.draw_pose(&pose, lighting, offset);
+        }
+        if let Some(layers) = &self.locomotion {
+            let pose = layers.pose().clone();
+            return self.draw_pose(&pose, lighting, offset);
         }
         let time = self.fixed_time.unwrap_or(simulation_time as f32);
         let pose = if self.fixed_time.is_some() {
@@ -184,19 +434,23 @@ impl AuthoredViewmodel {
             self.animation().sample(&self.clip, time)
         }
         .map_err(|e| e.to_string())?;
-        self.draw_pose(&pose, offset)
+        self.draw_pose(&pose, lighting, offset)
     }
     /// Render one complete evaluated pose from this animation set. The gameplay
     /// adapter owns which presentation supplies it; no two pose owners are mixed
     /// here. Skin and actor dimension/transform validation is retained.
     /// `offset` is camera-space meters: +X right, +Y up, no forward/back.
-    pub fn draw_pose(&mut self, pose: &ViewmodelPose, offset: Vec3) -> Result<(), String> {
+    pub fn draw_pose(
+        &mut self,
+        pose: &ViewmodelPose,
+        lighting: SceneLighting,
+        offset: Vec3,
+    ) -> Result<(), String> {
         let palette = self
             .animation
             .skin_palette(pose, &self.skin.bones, game_model_root())
             .map_err(|e| e.to_string())?;
         let normals: Vec<_> = palette.iter().map(|m| m.inverse().transpose()).collect();
-        let light = vec3(-0.3, 0.8, 0.5).normalize();
         for batch in &mut self.batches {
             let part = &self.skin.meshes[batch.source_mesh];
             for (vertex, &index) in batch.mesh.vertices.iter_mut().zip(&batch.source_vertices) {
@@ -212,7 +466,7 @@ impl AuthoredViewmodel {
                     }
                 }
                 n = n.try_normalize().unwrap_or(Vec3::Y);
-                let shade = 0.35 + 0.65 * n.dot(light).max(0.);
+                let shade = lighting.irradiance(n);
                 vertex.position = p + offset;
                 vertex.normal = n.extend(0.);
                 vertex.color = Color::new(
@@ -237,7 +491,8 @@ impl AuthoredViewmodel {
                 visibility[mesh] = pose.actor_visible[index];
             }
         }
-        self.weapon.draw_authored_parts(&transforms, &visibility);
+        self.weapon
+            .draw_authored_parts(&transforms, &visibility, lighting);
         Ok(())
     }
 }

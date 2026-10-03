@@ -33,3 +33,25 @@ __pycache__/
 !assets/locomotion/asset.vra
 !assets/locomotion/asset.vrs.gz
 !assets/locomotion/asset.vrm
+
+# Explicitly authorized canonical current Rust Duty reload authoring source.
+!assets/source/reload/current.blend
+/build-assets/
+# Runtime companions are rebuilt from the committed .blend by GitHub Actions.
+/assets/reload/
+
+# Explicitly requested authored regular walk; original locomotion remains frozen.
+!assets/walk/asset.vra
+!assets/walk/asset.vrm
+!assets/walk/asset.vrs.gz
+
+# Explicitly requested source-authored ADS, kept in this private game repository.
+!assets/authoring/ads/ads.blend
+!assets/ads/asset.vra.gz
+!assets/ads/asset.vrm
+!assets/ads/asset.vrs.gz
+/build-ads/
+
+# Directional WIP companions are built from the committed source in CI.
+/assets/directional/
+/build-directional/
