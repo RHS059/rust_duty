@@ -1,27 +1,27 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T09:43:00Z",
-  "state": "active",
-  "task": "Waiting for the fresh GitHub Windows build and verified complete download",
-  "lastCompleted": "Verified the existing Windows package contains walk, reload and ADS assets; Windows gameplay remains unverified",
+  "updatedAt": "2026-10-03T09:53:20Z",
+  "state": "idle",
+  "task": "",
+  "lastCompleted": "Delivered fresh GitHub Windows build with walking, reload, ADS and lighting",
   "agents": [
     {
       "slot": 1,
-      "state": "active",
-      "task": "Waiting for GitHub Windows rebuild and checking the new download",
-      "lastCompleted": "Verified complete Windows and Linux game packages from committed Blender sources"
+      "state": "idle",
+      "task": "",
+      "lastCompleted": "Verified fresh Windows rebuild"
     },
     {
       "slot": 2,
       "state": "idle",
       "task": "",
-      "lastCompleted": "Verified existing Windows package includes walk, reload and ADS assets"
+      "lastCompleted": "Verified packaged animation assets"
     },
     {
       "slot": 3,
       "state": "idle",
       "task": "",
-      "lastCompleted": "Identified remaining reload hand-grasp refinement"
+      "lastCompleted": "Reviewed remaining reload hand-grasp refinement"
     }
   ]
 }
