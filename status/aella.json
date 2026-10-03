@@ -1,27 +1,27 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T18:35:25Z",
+  "updatedAt": "2026-10-03T18:43:06Z",
   "state": "active",
-  "task": "Refining forward and lateral ADS motion. Two animation authors are active; the latest verified Windows game build is unchanged.",
-  "lastCompleted": "Both lateral Trial1 comparisons are live and reviewed: left Fail32, right Fail31. Forward v6 remains Fail53. All three game-build workflows passed for e46f83d.",
+  "task": "Preparing revised ADS comparisons for review.",
+  "lastCompleted": "Forward v7 capture and comparison passed playback checks and are ready for publication. Lateral Trial1 remains Fail32 left and Fail31 right.",
   "agents": [
     {
       "slot": 1,
       "state": "active",
-      "task": "Refining forward ADS arm motion and preparing an Eevee viewport preview.",
-      "lastCompleted": "Saved and validated the next forward diagnostic scene. The 1.6 mm arm-seam caveat still needs visual review."
+      "task": "Preparing forward v7 review evidence.",
+      "lastCompleted": "Completed and decoded the 126-frame Eevee viewport capture and reference comparison. Visual review is pending."
     },
     {
       "slot": 2,
       "state": "active",
-      "task": "Reworking lateral ADS motion shape, sight alignment and cadence after Trial1 reviews.",
-      "lastCompleted": "Published left and right Trial1 comparisons received Fail32 and Fail31. Further motion-shape revision is required."
+      "task": "Testing lateral footfall and sway separation, motion direction and cadence.",
+      "lastCompleted": "Confirmed centered sight landmarks after Trial1 received Fail32 left and Fail31 right."
     },
     {
       "slot": 3,
       "state": "idle",
-      "task": "Lateral video publication is complete. Game integration is idle.",
-      "lastCompleted": "Both lateral comparison videos passed deployment and playback checks, and the review handoff is complete."
+      "task": "Game integration is idle at the latest test checkpoint.",
+      "lastCompleted": "Latest game build e46f83d remains available; all three workflows passed."
     }
   ]
 }
