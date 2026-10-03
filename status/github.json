@@ -1,11 +1,11 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T20:13:24Z",
+  "updatedAt": "2026-10-03T20:22:22Z",
   "latestComplete": {
     "sha": "e46f83d84ece0c28ffbd10cf4504ed4ea0f91878",
     "downloadUrl": "https://github.com/RHS059/rust_duty/actions/runs/37130396740/artifacts/11277161595",
     "runUrl": "https://github.com/RHS059/rust_duty/actions/runs/37130396740",
-    "verifiedAt": "2026-10-03T20:13:24Z",
+    "verifiedAt": "2026-10-03T20:22:22Z",
     "completedAt": "2026-10-03T15:01:33Z"
   },
   "changes": [
@@ -14,13 +14,13 @@
     "Complete 83-file Windows package includes existing walk, sprint and full WIP reload assets plus the new HIP and ADS companions",
     "All three workflows passed; native Linux layered-input diagnostics passed at 30 and 60 Hz",
     "Windows ZIP integrity, SHA-256, PE executable and complete-package verification passed",
-    "All four HIP r5 motions passed review: forward 82, backward 83, left 82 and right 81. Verified source integration is active; these revisions are not yet in the downloadable build.",
-    "Forward ADS v7 received Fail 54; a new comparison using HIP r5 walking is in progress. Both lateral Trial2 previews are live with verified media hashes and playback; visual review is pending.",
+    "All four HIP r5 motions passed review: forward 82, backward 83, left 82 and right 81. Separate directional exports and a stable-ID game adapter are in progress; r5 is not yet in the downloadable build.",
+    "Forward ADS v8 comparison capture is running with reviewed HIP r5 walking. The next lateral ADS revision is being prepared; both Trial2 previews remain live with verified media hashes and playback.",
     "Jump and mantle reference planning is complete; verified reference windows are still needed."
   ],
   "currentBuild": {
     "state": "active",
-    "task": "Windows build e46f83d remains available. All three workflows succeeded and the artifact digest was rechecked. HIP r5 integration is active; reviewed revisions are not yet in this downloadable build.",
+    "task": "Windows build e46f83d remains available. All three workflows succeeded and the artifact digest was rechecked. HIP r5 directional integration is active; r5 is not yet in this downloadable build.",
     "url": "https://github.com/RHS059/rust_duty/actions/runs/37130396740"
   }
 }
