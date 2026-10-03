@@ -1,27 +1,27 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T18:32:40Z",
+  "updatedAt": "2026-10-03T18:35:25Z",
   "state": "active",
-  "task": "Revising ADS after forward v6 Fail53 and lateral Trial1 Fail32 left / Fail31 right. Two animation authors are active: the forward author has saved and validated the separate v7 articulation15/public ADS47 diagnostic scene and is preparing genuine Eevee viewport capture; the lateral author has rejected the amplitude-only family and is checking six raw-frame witnesses against near-post/far-aperture geometry and signed extrema before choosing a new motion-shape hypothesis. Both lateral review videos are live with verified public bytes and playback, and the review handoff is complete. The integrator remains idle at tested local checkpoint 77a53ce; source-publication and recovery/access blockers remain.",
-  "lastCompleted": "Both lateral Trial1 diagnostic comparisons are published and verified at dc4cbf8690dba3afe840fa0e855dc4b78ed299f1 (left) and bcf372fe58da75474505236134a1d55609fa3e84 (right); their subsequent reviews are Fail32 / Fail31. The separate forward v7 articulation15/public ADS47 diagnostic scene is saved and validated (SHA prefix 1210b695, about 17.5 MB); 501 quarter-frame contact evaluations passed while the 1.6 mm elbow/wrist seam caveat remains open for visual review. Local v6 runtime checkpoint 77a53ce passes 490 Rust tests, formatting/Clippy and affected Python checks. PR #17 remains the latest complete published game at e46f83d, freshly verified with all three workflows successful and Windows artifact 11277161595 unexpired with its expected digest.",
+  "task": "Refining forward and lateral ADS motion. Two animation authors are active; the latest verified Windows game build is unchanged.",
+  "lastCompleted": "Both lateral Trial1 comparisons are live and reviewed: left Fail32, right Fail31. Forward v6 remains Fail53. All three game-build workflows passed for e46f83d.",
   "agents": [
     {
       "slot": 1,
       "state": "active",
-      "task": "Preparing genuine Eevee viewport capture of the saved separate v7 articulation15/public ADS47 diagnostic scene. The bounded 15% HIP-arm articulation trial in v6 weapon-relative space still requires visual review of the 1.6 mm elbow/wrist seam caveat. No new forward preset publication or visual approval is claimed.",
-      "lastCompleted": "Saved and validated the editable diagnostic scene, about 17.5 MB with SHA prefix 1210b695. Completed 501 quarter-frame contact evaluations: measured hand/weapon drift below 0.00010 mm, unchanged hand angle, positive original wrist-limit margin, and unchanged source/camera hashes. Published forward v6 remains Fail53. Reference panels are resized published proxies, not recovered 720p originals."
+      "task": "Refining forward ADS arm motion and preparing an Eevee viewport preview.",
+      "lastCompleted": "Saved and validated the next forward diagnostic scene. The 1.6 mm arm-seam caveat still needs visual review."
     },
     {
       "slot": 2,
       "state": "active",
-      "task": "Analyzing the rejected lateral Trial1 motion shape, sight stability and cadence. Checking six newly cited raw-frame witnesses against actual near-post/far-aperture geometry and signed extrema before choosing a new shape hypothesis. No further gain-only tuning is underway.",
-      "lastCompleted": "Both lateral comparisons are live and reviewed: left Fail32 and right Fail31; the amplitude-only family failed the requested motion quality. All 396 genuine Eevee viewport frames and both 114-frame left / 84-frame right, 60 fps comparisons were validated with explicitly resized published reference proxies. Library checkpoint saves succeeded; read-back is blocked by a current folder-scope 403. Numerical/media validation does not establish visual approval."
+      "task": "Reworking lateral ADS motion shape, sight alignment and cadence after Trial1 reviews.",
+      "lastCompleted": "Published left and right Trial1 comparisons received Fail32 and Fail31. Further motion-shape revision is required."
     },
     {
       "slot": 3,
       "state": "idle",
-      "task": "No active publication work. Both lateral Trial1 diagnostic videos are live, exact public-byte/hash and frontend playback verification are complete, and the review handoff is delivered. The integrator also remains idle at unpublished local checkpoint 77a53ce.",
-      "lastCompleted": "Published left at dc4cbf8690dba3afe840fa0e855dc4b78ed299f1 and right at bcf372fe58da75474505236134a1d55609fa3e84 as separate review entries while preserving earlier reviews. Both deployment and playback checks passed. Subsequent lateral review scores are Fail32 left / Fail31 right. The game runtime is unchanged."
+      "task": "Lateral video publication is complete. Game integration is idle.",
+      "lastCompleted": "Both lateral comparison videos passed deployment and playback checks, and the review handoff is complete."
     }
   ]
 }
