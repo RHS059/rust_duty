@@ -1,0 +1,99 @@
+{
+  "schema": "rust-duty-stable-directional-proposal-handoff/v1",
+  "status": "reviewed proposal only; not applied; actual owner-lane export/build pending",
+  "base_repository": "RHS059/rust_duty",
+  "base_pr": 17,
+  "base_branch": "aella/layered-locomotion-integration-r1",
+  "base_commit": "e46f83d84ece0c28ffbd10cf4504ed4ea0f91878",
+  "source_commit": "493c202477604892ee6d332fc24ef01e8703f1ae",
+  "source_sha256": "36d76491c2cf6238b8a1e10069dddd5b0d63e199063e1f4012b34f3fd4b1e18d",
+  "source_path": "assets/authoring/locomotion_directional/r5/halcyon_hip_directional_r5.blend",
+  "runtime_asset": "assets/directional/asset.vra",
+  "unchanged_bindings": "assets/animations.cfg",
+  "action_to_runtime_mapping": [
+    {
+      "action": "hip_walk_forward_r5",
+      "name": "hip_walk_forward_r1",
+      "frame_start": 1,
+      "frame_end": 39,
+      "duration_seconds": 0.6333333333333333
+    },
+    {
+      "action": "hip_walk_backward_r5",
+      "name": "hip_walk_backward_r1",
+      "frame_start": 1,
+      "frame_end": 46,
+      "duration_seconds": 0.75
+    },
+    {
+      "action": "hip_strafe_left_r5",
+      "name": "hip_strafe_left_r1",
+      "frame_start": 1,
+      "frame_end": 50,
+      "duration_seconds": 0.8166666666666667
+    },
+    {
+      "action": "hip_strafe_right_r5",
+      "name": "hip_strafe_right_r1",
+      "frame_start": 1,
+      "frame_end": 50,
+      "duration_seconds": 0.8166666666666667
+    }
+  ],
+  "files": [
+    {
+      "path": ".github/workflows/directional-assets.yml",
+      "bytes": 3756,
+      "sha256": "73cd55f650dcb4085dea41e48e2237c11715786e5530a25c706b60fda4f50dea"
+    },
+    {
+      "path": ".gitignore",
+      "bytes": 1776,
+      "sha256": "eefd47054ecb2b5eefd82f888dfc9b9026051e954ad20f3675b278d2767096a7"
+    },
+    {
+      "path": "tools/build_directional_assets.py",
+      "bytes": 7224,
+      "sha256": "aab1eb627ba78d4da36b32bfa03eca8654ae949369e0f5d255a5c68d5580f965"
+    },
+    {
+      "path": "tools/package_game.py",
+      "bytes": 39299,
+      "sha256": "43d703495b23ceced9d604573cef463288be5744d900175e44aef47046897a1a"
+    },
+    {
+      "path": "tools/test_directional_distribution.py",
+      "bytes": 12336,
+      "sha256": "680158b687c9ca54bf1093eac79abb986fbed017c294bb88b03a0724121d47cd"
+    },
+    {
+      "path": "assets/authoring/locomotion_directional/runtime_export_config.json",
+      "bytes": 1901,
+      "sha256": "3416584ec109ee7f8c8db12ee1c3adc105523a556e27d0eaf04bf16829a076c3"
+    },
+    {
+      "path": "tools/export_directional_fbx.py",
+      "bytes": 10957,
+      "sha256": "0773a1129139460b6841b8f33369a79cee6344c15900612d10716ed508e05583"
+    }
+  ],
+  "patch_sha256": "ba3000aa83390571cd428536c4788099b13082166a5801e6f4ee316c3e3cba12",
+  "generated_assets_produced": false,
+  "runtime_branch_or_commit_created": false,
+  "independent_review": "Approved with no remaining blocking findings",
+  "checks_completed": [
+    "4 directional selection/binding tests",
+    "10 package_game tests",
+    "Changed Python AST parsing",
+    "git diff whitespace validation"
+  ],
+  "checks_not_run": [
+    "Actual owner-lane Blender export/conversion",
+    "Generated directional48 distribution tests",
+    "Existing Rust CPU sampler/load/build checks",
+    "Final complete-game staging"
+  ],
+  "owner": "Aella single common export/config/package lane",
+  "text_handoff_only": true,
+  "publication_path": "docs/animation/r5-export-proposal"
+}

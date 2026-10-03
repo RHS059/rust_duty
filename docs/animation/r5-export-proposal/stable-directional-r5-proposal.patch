@@ -1,0 +1,577 @@
+diff --git a/.github/workflows/directional-assets.yml b/.github/workflows/directional-assets.yml
+index ad89dea..2d67019 100644
+--- a/.github/workflows/directional-assets.yml
++++ b/.github/workflows/directional-assets.yml
+@@ -30,7 +30,7 @@ jobs:
+         uses: actions/cache@v4
+         with:
+           path: build-directional/runtime
+-          key: directional-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust-version.outputs.hash }}-${{ hashFiles('assets/authoring/locomotion_directional/**', 'assets/walk/**', 'assets/authoring/locomotion/source_integrity.py', 'assets/locomotion/manifest.json', 'assets/locomotion/asset.vra', 'assets/locomotion/asset.vrm', 'assets/locomotion/asset.vrs.gz', 'tools/build_directional_assets.py', 'assets/authoring/locomotion_directional/export_directional_preview.py', 'tools/package_game.py', 'tools/check_generated_assets.py', 'tools/import_fbx_viewmodel.py', 'tools/merge_walk_clip.py', 'tools/verify_locomotion_fbx.py', 'tools/vr*.py', 'tools/requirements-assets.txt', 'src/viewmodel_animation.rs', 'src/skinned_asset.rs', 'src/asset.rs', 'examples/sample_viewmodel_clip.rs', 'Cargo.toml', 'Cargo.lock', 'build.rs', '.github/actions/setup-blender/action.yml', '.github/workflows/directional-assets.yml') }}
++          key: directional-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust-version.outputs.hash }}-${{ hashFiles('assets/authoring/locomotion_directional/**', 'assets/walk/**', 'assets/authoring/locomotion/source_integrity.py', 'assets/locomotion/manifest.json', 'assets/locomotion/asset.vra', 'assets/locomotion/asset.vrm', 'assets/locomotion/asset.vrs.gz', 'tools/build_directional_assets.py', 'tools/export_directional_fbx.py', 'assets/authoring/locomotion_directional/export_directional_preview.py', 'tools/package_game.py', 'tools/check_generated_assets.py', 'tools/import_fbx_viewmodel.py', 'tools/merge_walk_clip.py', 'tools/verify_locomotion_fbx.py', 'tools/vr*.py', 'tools/requirements-assets.txt', 'src/viewmodel_animation.rs', 'src/skinned_asset.rs', 'src/asset.rs', 'examples/sample_viewmodel_clip.rs', 'Cargo.toml', 'Cargo.lock', 'build.rs', '.github/actions/setup-blender/action.yml', '.github/workflows/directional-assets.yml') }}
+       - name: Install pinned asset toolchain on cache miss
+         if: steps.asset-cache.outputs.cache-hit != 'true'
+         uses: ./.github/actions/setup-blender
+diff --git a/.gitignore b/.gitignore
+index 6a12b23..c747839 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -52,6 +52,14 @@ __pycache__/
+ !assets/ads/asset.vrs.gz
+ /build-ads/
+ 
+-# Directional WIP companions are built from the committed source in CI.
+-/assets/directional/
++# Approved directional transports and provenance may be committed; raw materializations stay local.
++/assets/directional/*
++!/assets/directional/asset.vra.gz
++!/assets/directional/asset.vrs.gz
++!/assets/directional/asset.vrm
++!/assets/directional/manifest.json
++!/assets/directional/source_selection.json
++!/assets/directional/parity-*.json
++!/assets/directional/conversion-*.json
++!/assets/directional/README.md
+ /build-directional/
+diff --git a/tools/build_directional_assets.py b/tools/build_directional_assets.py
+index 1cb7afd..c36f49a 100644
+--- a/tools/build_directional_assets.py
++++ b/tools/build_directional_assets.py
+@@ -1,5 +1,5 @@
+ #!/usr/bin/env python3
+-"""Build source-authored directional HIP WIP via pinned Blender, FBX and actual Rust parity."""
++"""Build selected source Actions under stable game clip names using the existing pipeline."""
+ import argparse
+ import gzip
+ import hashlib
+@@ -11,10 +11,7 @@ import sys
+ import vrview
+ from vrpack import require
+ from merge_walk_clip import clip_offset, merge
+-
+-CLIPS = [('hip_walk_forward_r1', True, 39), ('hip_walk_backward_r1', True, 46),
+-         ('hip_strafe_left_r1', True, 50), ('hip_strafe_right_r1', True, 50)]
+-SOURCE_FILE = 'halcyon_hip_directional_r1.blend'
++from package_game import DIRECTIONAL_SOURCE_DIR, DIRECTIONAL_EXPORT_CONFIG, regular_file, verify_directional_selection
+ 
+ 
+ def digest(path):
+@@ -30,33 +27,33 @@ def main():
+     parser.add_argument('--work', type=Path, required=True)
+     parser.add_argument('--output', type=Path, required=True)
+     args = parser.parse_args()
+-    root = args.root.resolve(); source = root / 'assets/authoring/locomotion_directional'
++    root = args.root.resolve()
+     work = args.work.resolve(); output = args.output.resolve()
+     require(not work.exists() and not output.exists(), 'use fresh work and output directories')
+     work.mkdir(parents=True)
+-    config = json.loads((source / 'preview_export_config.json').read_text())
+-    require(config['source_file'] == SOURCE_FILE and config['source_fps'] == 60 and config['bake_hz'] == 480,
+-            'unexpected directional source contract')
++    config = json.loads(regular_file(root, DIRECTIONAL_EXPORT_CONFIG).read_text())
++    verify_directional_selection(config)
++    source_file = regular_file(root, DIRECTIONAL_SOURCE_DIR / config['source_file'])
++    integrity_file = regular_file(root, DIRECTIONAL_SOURCE_DIR / config['source_integrity_file'])
++    require(digest(source_file)['sha256'] == config['source_sha256'], 'directional source selection hash differs')
++    require(digest(integrity_file)['sha256'] == config['source_integrity_sha256'], 'directional integrity selection hash differs')
+     takes = config['source_takes']
+-    require([(c['name'], c['loop'], c['frame_end']) for c in takes] == CLIPS
+-            and all(c['frame_start'] == 1 and c['action'] == c['name']
+-                    and c['pose_space'] == 'absolute' and c['additive'] is False for c in takes), 'unexpected directional take selection')
+     def run(command):
+         subprocess.run(list(map(str, command)), cwd=root, check=True)
+     run([sys.executable, root / 'tools/package_game.py', 'materialize', '--root', root, '--include-walk'])
+     exported = work / 'fbx'; merged = work / 'merged'; merged.mkdir()
+-    run([args.blender, '--background', '--factory-startup', '--disable-autoexec', source / SOURCE_FILE,
+-         '--python-exit-code', '1', '--python', source / 'export_directional_preview.py', '--',
+-         '--config', source / 'preview_export_config.json', '--output-dir', exported])
++    run([args.blender, '--background', '--factory-startup', '--disable-autoexec', source_file,
++         '--python-exit-code', '1', '--python', root / 'tools/export_directional_fbx.py', '--',
++         '--config', root / DIRECTIONAL_EXPORT_CONFIG, '--integrity-file', integrity_file, '--output-dir', exported])
+     base = root / 'assets/walk/asset.vra'; original = base.read_bytes(); data = original
+     vrs = base.with_suffix('.vrs').read_bytes(); vrm = base.with_suffix('.vrm').read_bytes()
+-    fbx_digest = digest(exported / 'locomotion.fbx'); source_digest = digest(source / SOURCE_FILE)
++    fbx_digest = digest(exported / 'locomotion.fbx'); source_digest = digest(source_file)
+     for take in takes:
+         imported = work / take['name']
+         command = [args.blender, '--background', '--factory-startup', '--disable-autoexec',
+              '--python-exit-code', '1', '--python', root / 'tools/import_fbx_viewmodel.py', '--',
+              '--fbx', exported / 'locomotion.fbx', '--fbx-sha256', fbx_digest['sha256'],
+-             '--source-sha256', source_digest['sha256'], '--material-source', source / SOURCE_FILE,
++             '--source-sha256', source_digest['sha256'], '--material-source', source_file,
+              '--skeleton-vra', base, '--output', imported, '--actor', 'hk416_weapon',
+              '--actor', 'hk416_magazine', '--native-start', '0', '--native-end', take['frame_end'] - 1,
+              '--subdivisions', '8', '--fps', '60', '--take', take['name'], '--imported-frame-offset', '0',
+@@ -92,7 +89,7 @@ def main():
+         'clip_names': [c['name'] for c in pack['clips']],
+         'directional_clips': [{'name': c['name'], 'loop': c['loop'], 'duration': (c['frame_end']-1)/60,
+                        'action': c['action'], 'frame_start': c['frame_start'], 'frame_end': c['frame_end']} for c in takes],
+-        'source': {'file': 'assets/authoring/locomotion_directional/' + SOURCE_FILE, **source_digest, 'fps': 60,
++        'source': {'file': (DIRECTIONAL_SOURCE_DIR / config['source_file']).as_posix(), **source_digest, 'fps': 60,
+                    'bake_hz': 480, 'fbx': fbx_digest},
+         'files': {f'asset.{ext}': digest(output / f'asset.{ext}') for ext in ('vra', 'vrs', 'vrm')},
+         'preservation': {'original_walk_vra_sha256': digest(base)['sha256'], 'clip_payloads_byte_identical': 44,
+@@ -102,8 +99,9 @@ def main():
+             **digest(output / (name + '.gz')), 'decoded_bytes': len(raw),
+             'decoded_sha256': hashlib.sha256(raw).hexdigest()}
+             for name, raw in [('asset.vra', data), ('asset.vrs', vrs)]},
+-        'scope': 'Four source-authored WIP HIP directional loops; source Actions and canonical walk44 retained. Numerical parity is not reference-fidelity, contact, or artistic approval.'}
+-    (output / 'README.md').write_text('Four source-authored HIP directional WIP loops, appended to immutable walk44.\nBlender 4.3.2 -> evaluated FBX -> runtime; numerical Rust parity is not artistic approval.\n')
++        'scope': 'Selected HIP source revisions exported under stable game clip names; canonical walk44 retained. Existing numeric pipeline checks do not add an artistic review gate.'}
++    (output / 'source_selection.json').write_text(json.dumps(config, indent=2) + '\n')
++    (output / 'README.md').write_text('Four source-selected HIP motion revisions exported under existing game clip names, appended to immutable walk44.\nBlender 4.3.2 -> evaluated FBX -> runtime; source selection is recorded in source_selection.json.\n')
+     (output / 'manifest.json').write_text(json.dumps(manifest, indent=2) + '\n')
+     print(json.dumps(manifest, indent=2))
+ 
+diff --git a/tools/package_game.py b/tools/package_game.py
+index 3388144..eb1ffc3 100644
+--- a/tools/package_game.py
++++ b/tools/package_game.py
+@@ -332,13 +332,47 @@ def verify_ads(root: Path, folder: Path = ADS_DIR, require_transports: bool = Fa
+ 
+ 
+ DIRECTIONAL_DIR = Path('assets/directional')
++DIRECTIONAL_SOURCE_DIR = Path('assets/authoring/locomotion_directional')
++DIRECTIONAL_EXPORT_CONFIG = DIRECTIONAL_SOURCE_DIR / 'runtime_export_config.json'
+ DIRECTIONAL_CLIPS = ('hip_walk_forward_r1', 'hip_walk_backward_r1',
+                      'hip_strafe_left_r1', 'hip_strafe_right_r1')
+ DIRECTIONAL_ENDS = (39, 46, 50, 50)
+-DIRECTIONAL_META = ('manifest.json', *(f'{kind}-{clip}.json' for clip in DIRECTIONAL_CLIPS
++DIRECTIONAL_META = ('manifest.json', 'source_selection.json', *(f'{kind}-{clip}.json' for clip in DIRECTIONAL_CLIPS
+                                       for kind in ('parity', 'conversion')))
+ 
+ 
++def verify_directional_selection(config: dict) -> None:
++    """Keep game clip IDs fixed while selecting explicitly pinned source revisions."""
++    if not isinstance(config, dict):
++        raise ValueError('invalid directional source selection')
++    for key, suffix in (('source_file', '.blend'), ('source_integrity_file', '.json')):
++        value = config.get(key)
++        if (not isinstance(value, str) or not value or '\\' in value or ':' in value
++                or Path(value).is_absolute() or '..' in Path(value).parts
++                or Path(value).suffix != suffix):
++            raise ValueError('unsafe directional source selection path')
++    if Path(config['source_file']).parent != Path(config['source_integrity_file']).parent:
++        raise ValueError('directional source and integrity revisions differ')
++    for key in ('source_sha256', 'source_integrity_sha256'):
++        value = config.get(key)
++        if (not isinstance(value, str) or len(value) != 64
++                or any(c not in '0123456789abcdef' for c in value)):
++            raise ValueError('invalid directional selection SHA-256')
++    takes = config.get('source_takes', [])
++    if (config.get('schema') != 'rust-duty-directional-runtime-export/v1'
++            or config.get('blender_version') != '4.3.2'
++            or config.get('source_fps') != 60 or config.get('bake_hz') != 480
++            or config.get('source_take_count') != 4 or not isinstance(takes, list) or len(takes) != 4
++            or any(not isinstance(t, dict) for t in takes)
++            or [t.get('name') for t in takes] != list(DIRECTIONAL_CLIPS)
++            or [t.get('frame_end') for t in takes] != list(DIRECTIONAL_ENDS)
++            or any(t.get('frame_start') != 1 or t.get('loop') is not True
++                   or t.get('pose_space') != 'absolute' or t.get('additive') is not False
++                   or not isinstance(t.get('action'), str) or not t['action'] for t in takes)
++            or len({t['action'] for t in takes}) != 4):
++        raise ValueError('invalid directional source selection')
++
++
+ def directional_bound(root: Path) -> bool:
+     path = root / 'assets/animations.cfg'
+     if not path.exists():
+@@ -361,6 +395,12 @@ def directional_bound(root: Path) -> bool:
+ 
+ def verify_directional(root: Path, folder: Path = DIRECTIONAL_DIR, require_transports: bool = False) -> dict:
+     root = Path(root)
++    selection = json.loads(regular_file(root, folder / 'source_selection.json').read_text())
++    verify_directional_selection(selection)
++    if (root / DIRECTIONAL_EXPORT_CONFIG).exists():
++        current_selection = json.loads(regular_file(root, DIRECTIONAL_EXPORT_CONFIG).read_text())
++        if current_selection != selection:
++            raise ValueError('directional differs from current source selection')
+     manifest = json.loads(regular_file(root, folder / 'manifest.json').read_text())
+     source = manifest.get('source', {})
+     names = [*CLIPS, 'normal_walk_r1', *DIRECTIONAL_CLIPS]
+@@ -369,10 +409,11 @@ def verify_directional(root: Path, folder: Path = DIRECTIONAL_DIR, require_trans
+     if (manifest.get('schema') != 'rust-duty-authored-directional-distribution/v1'
+             or manifest.get('clip_count') != 48 or manifest.get('clip_names') != names
+             or set(manifest.get('files', {})) != set(COMPANIONS)
+-            or source.get('file') != 'assets/authoring/locomotion_directional/halcyon_hip_directional_r1.blend'
++            or source.get('file') != (DIRECTIONAL_SOURCE_DIR / selection['source_file']).as_posix()
++            or source.get('sha256') != selection['source_sha256']
+             or source.get('fps') != 60 or source.get('bake_hz') != 480
+             or [c.get('name') for c in clips] != list(DIRECTIONAL_CLIPS)
+-            or [c.get('action') for c in clips] != list(DIRECTIONAL_CLIPS)
++            or [c.get('action') for c in clips] != [t['action'] for t in selection['source_takes']]
+             or any(c.get('loop') is not True or c.get('frame_start') != 1 for c in clips)
+             or [c.get('frame_end') for c in clips] != list(DIRECTIONAL_ENDS)
+             or [c.get('duration') for c in clips] != durations):
+@@ -415,7 +456,7 @@ def verify_directional(root: Path, folder: Path = DIRECTIONAL_DIR, require_trans
+         conversion = json.loads(regular_file(root, folder / f'conversion-{clip}.json').read_text())
+         if (parity.get('backend') != 'Rust CPU sampler' or parity.get('passed') is not True
+                 or parity.get('asset_sha256') != manifest['files']['asset.vra']['sha256']
+-                or parity.get('source_sha256', {}).get('halcyon_hip_directional_r1.blend') != source.get('sha256')
++                or parity.get('source_sha256', {}).get(Path(source['file']).name) != source.get('sha256')
+                 or parity.get('source_fbx_sha256') != source.get('fbx', {}).get('sha256')
+                 or parity.get('clip') != clip or parity.get('samples', 0) < 25
+                 or parity.get('visibility_failures') != 0
+@@ -433,7 +474,7 @@ def verify_directional(root: Path, folder: Path = DIRECTIONAL_DIR, require_trans
+         if len(data) != source['bytes'] or hashlib.sha256(data).hexdigest() != source['sha256']:
+             raise ValueError('directional differs from committed Blender source')
+     return {'clips': list(DIRECTIONAL_CLIPS), 'clip_count': 48, 'original_clips_preserved': 44,
+-            'source_sha256': source['sha256'], 'parity_samples': samples, 'status': 'WIP'}
++            'source_sha256': source['sha256'], 'parity_samples': samples, 'status': 'source-selected'}
+ 
+ 
+ def materialize(root: Path, include_walk: bool = False, include_ads: bool = False, include_directional: bool = False) -> dict:
+diff --git a/tools/test_directional_distribution.py b/tools/test_directional_distribution.py
+index b64f4b8..25e59b2 100644
+--- a/tools/test_directional_distribution.py
++++ b/tools/test_directional_distribution.py
+@@ -1,5 +1,6 @@
+ """Four WIP HIP clips append to immutable walk44 and fail closed in packaging."""
+ import hashlib
++import copy
+ import json
+ import os
+ from pathlib import Path
+@@ -19,6 +20,45 @@ BINDINGS = '\n'.join([
+ ]) + '\n'
+ 
+ 
++class DirectionalSelectionTests(unittest.TestCase):
++    def setUp(self):
++        self.selection = json.loads((ROOT / package.DIRECTIONAL_EXPORT_CONFIG).read_text())
++
++    def test_source_revision_changes_without_changing_runtime_names(self):
++        package.verify_directional_selection(self.selection)
++        self.assertEqual([t['name'] for t in self.selection['source_takes']], list(package.DIRECTIONAL_CLIPS))
++        self.assertEqual([t['action'] for t in self.selection['source_takes']],
++                         [n.replace('_r1', '_r5') for n in package.DIRECTIONAL_CLIPS])
++        future = copy.deepcopy(self.selection)
++        future['source_file'] = 'r6/halcyon_hip_directional_r6.blend'
++        future['source_integrity_file'] = 'r6/source_integrity.json'
++        for take in future['source_takes']:
++            take['action'] = take['action'].replace('_r5', '_r6')
++        package.verify_directional_selection(future)
++        self.assertEqual([t['name'] for t in future['source_takes']], list(package.DIRECTIONAL_CLIPS))
++
++    def test_unsafe_source_paths_and_missing_hashes_fail_closed(self):
++        for path in ('../private.blend', '/tmp/private.blend', 'C:\\private.blend', 'r5\\private.blend'):
++            value = copy.deepcopy(self.selection); value['source_file'] = path
++            with self.assertRaisesRegex(ValueError, 'selection path'):
++                package.verify_directional_selection(value)
++        for key in ('source_sha256', 'source_integrity_sha256'):
++            value = copy.deepcopy(self.selection); value[key] = 'not-a-source-hash'
++            with self.assertRaisesRegex(ValueError, 'SHA-256'):
++                package.verify_directional_selection(value)
++
++    def test_changed_game_names_or_periods_and_additive_poses_are_rejected(self):
++        for mutate in (
++                lambda c: c['source_takes'][0].update(name='hip_walk_forward_r5'),
++                lambda c: c['source_takes'][0].update(frame_end=40),
++                lambda c: c['source_takes'][0].update(additive=True),
++                lambda c: c['source_takes'][0].update(action=''),
++                lambda c: c.update(source_takes=None)):
++            value = copy.deepcopy(self.selection); mutate(value)
++            with self.assertRaisesRegex(ValueError, 'source selection'):
++                package.verify_directional_selection(value)
++
++
+ class DirectionalBindingTests(unittest.TestCase):
+     def test_explicit_complete_binding_retains_canonical_walk_dependency(self):
+         with tempfile.TemporaryDirectory() as directory:
+@@ -119,12 +159,30 @@ class DirectionalDistributionTests(unittest.TestCase):
+             package.verify_directional(self.root)
+ 
+     def test_source_change_requires_regeneration(self):
+-        source = self.root / 'assets/authoring/locomotion_directional/halcyon_hip_directional_r1.blend'
++        manifest = json.loads((self.root / package.DIRECTIONAL_DIR / 'manifest.json').read_text())
++        source = self.root / manifest['source']['file']
+         source.parent.mkdir(parents=True)
+         source.write_bytes(b'changed source')
+         with self.assertRaisesRegex(ValueError, 'committed Blender source'):
+             package.verify_directional(self.root)
+ 
++    def test_manifest_action_must_match_selected_source_action(self):
++        path = self.root / package.DIRECTIONAL_DIR / 'manifest.json'
++        value = json.loads(path.read_text())
++        value['directional_clips'][0]['action'] = 'wrong-source-action'
++        path.write_text(json.dumps(value))
++        with self.assertRaisesRegex(ValueError, 'directional manifest'):
++            package.verify_directional(self.root)
++
++    def test_current_selection_change_invalidates_cached_pack(self):
++        path = self.root / package.DIRECTIONAL_EXPORT_CONFIG
++        path.parent.mkdir(parents=True)
++        selection = json.loads((self.root / package.DIRECTIONAL_DIR / 'source_selection.json').read_text())
++        selection['source_takes'][0]['action'] = 'newly-selected-action'
++        path.write_text(json.dumps(selection))
++        with self.assertRaisesRegex(ValueError, 'current source selection'):
++            package.verify_directional(self.root)
++
+     def test_raw_companions_cannot_hide_corrupt_transport(self):
+         path = self.root / package.DIRECTIONAL_DIR / 'asset.vra.gz'
+         original = path.read_bytes()
+@@ -165,3 +223,4 @@ class DirectionalDistributionTests(unittest.TestCase):
+             self.assertTrue((destination / folder / 'asset.vra').is_file())
+             self.assertFalse((destination / folder / 'asset.vra.gz').exists())
+             verifier(destination)
++        self.assertTrue((destination / package.DIRECTIONAL_DIR / 'source_selection.json').is_file())
+diff --git a/assets/authoring/locomotion_directional/runtime_export_config.json b/assets/authoring/locomotion_directional/runtime_export_config.json
+new file mode 100644
+index 0000000..4e2643a
+--- /dev/null
++++ b/assets/authoring/locomotion_directional/runtime_export_config.json
+@@ -0,0 +1,70 @@
++{
++  "schema": "rust-duty-directional-runtime-export/v1",
++  "blender_version": "4.3.2",
++  "source_file": "r5/halcyon_hip_directional_r5.blend",
++  "source_integrity_file": "r5/source_integrity.json",
++  "source_sha256": "36d76491c2cf6238b8a1e10069dddd5b0d63e199063e1f4012b34f3fd4b1e18d",
++  "source_integrity_sha256": "128d2f360c465964ee99d5526ed382a86a2d544b639c5b58ddf40f5e54152924",
++  "source_fps": 60,
++  "bake_hz": 480,
++  "armature": "Arms",
++  "skin_objects": [
++    "Actual arms mesh 0",
++    "Actual arms mesh 1",
++    "Actual arms mesh 2"
++  ],
++  "rigid_actors": [
++    "hk416_weapon",
++    "hk416_magazine"
++  ],
++  "excluded_rigid_actor": "hk416_magazine_outgoing",
++  "deform_bone_count": 72,
++  "source_take_count": 4,
++  "runtime_integration_performed": false,
++  "source_takes": [
++    {
++      "name": "hip_walk_forward_r1",
++      "action": "hip_walk_forward_r5",
++      "frame_start": 1,
++      "frame_end": 39,
++      "duration_seconds": 0.6333333333333333,
++      "loop": true,
++      "role": "preview",
++      "pose_space": "absolute",
++      "additive": false
++    },
++    {
++      "name": "hip_walk_backward_r1",
++      "action": "hip_walk_backward_r5",
++      "frame_start": 1,
++      "frame_end": 46,
++      "duration_seconds": 0.75,
++      "loop": true,
++      "role": "preview",
++      "pose_space": "absolute",
++      "additive": false
++    },
++    {
++      "name": "hip_strafe_left_r1",
++      "action": "hip_strafe_left_r5",
++      "frame_start": 1,
++      "frame_end": 50,
++      "duration_seconds": 0.8166666666666667,
++      "loop": true,
++      "role": "preview",
++      "pose_space": "absolute",
++      "additive": false
++    },
++    {
++      "name": "hip_strafe_right_r1",
++      "action": "hip_strafe_right_r5",
++      "frame_start": 1,
++      "frame_end": 50,
++      "duration_seconds": 0.8166666666666667,
++      "loop": true,
++      "role": "preview",
++      "pose_space": "absolute",
++      "additive": false
++    }
++  ]
++}
+diff --git a/tools/export_directional_fbx.py b/tools/export_directional_fbx.py
+new file mode 100644
+index 0000000..2a54c0a
+--- /dev/null
++++ b/tools/export_directional_fbx.py
+@@ -0,0 +1,179 @@
++"""Blender 4.3.2: stable-name four-direction game FBX export.
++
++Derived from the frozen PR16 locomotion exporter. This script never saves its
++input BLEND and does not alter canonical assets or runtime configuration.
++"""
++import bpy, json, math, hashlib, sys, argparse
++from pathlib import Path
++import numpy as np
++from mathutils import Matrix
++
++parser=argparse.ArgumentParser()
++parser.add_argument('--output-dir',type=Path,required=True)
++parser.add_argument('--config',type=Path,required=True)
++parser.add_argument('--integrity-file',type=Path,required=True)
++args=parser.parse_args(sys.argv[sys.argv.index('--')+1:] if '--' in sys.argv else [])
++OUT=args.output_dir.resolve();OUT.mkdir(parents=True,exist_ok=True)
++config=json.loads(args.config.read_text())
++assert bpy.app.version_string==config['blender_version'], 'Use Blender 4.3.2'
++FPS=config['source_fps']
++BAKE_HZ=config['bake_hz']
++assert FPS==60 and BAKE_HZ==480
++sys.dont_write_bytecode=True
++sys.path.insert(0,str(Path(__file__).resolve().parents[1] / 'assets/authoring/locomotion_directional'))
++from source_integrity import snapshot
++integrity=json.loads(args.integrity_file.read_text())
++assert snapshot(bpy)==integrity['preserved'], 'Frozen source data differs; review and update the source contract first'
++C=Matrix(((1,0,0,0),(0,0,1,0),(0,-1,0,0),(0,0,0,1)))
++scene=bpy.context.scene
++rig=bpy.data.objects[config['armature']]
++skin_names=config['skin_objects']
++actor_names=config['rigid_actors']
++names=[config['armature']]+skin_names+actor_names
++clips=[(row['name'],row['action'],row['frame_start'],row['frame_end'],row['loop']) for row in config['source_takes']]
++assert len(clips)==config['source_take_count']
++assert len({row[0] for row in clips})==config['source_take_count']
++assert config['source_take_count']==4
++assert all(row['role']=='preview' for row in config['source_takes'])
++assert config['runtime_integration_performed'] is False
++assert {row[0] for row in clips} == {'hip_walk_forward_r1','hip_walk_backward_r1','hip_strafe_left_r1','hip_strafe_right_r1'}
++source_file=Path(bpy.data.filepath)
++source_hash=hashlib.sha256(source_file.read_bytes()).hexdigest()
++assert source_hash==integrity['portable_source_sha256'], 'Unexpected source bytes'
++hashes={source_file.name:source_hash}
++assert all(not (OUT/name).exists() for name in ('locomotion.fbx','native_oracle.json','native_oracle.npz')), 'Refuse overwrite'
++assert all(action in bpy.data.actions for _,action,*_ in clips), 'Missing source Action'
++base=bpy.data.actions['RD_00_Supplied_Base_Guarded_Recovered']
++for o in bpy.data.objects:
++ if o.animation_data:
++  for t in o.animation_data.nla_tracks:t.mute=True;t.is_solo=False
++rig.animation_data.use_nla=False
++rig.animation_data.action=base
++scene.render.fps=FPS;scene.render.fps_base=1
++scene.frame_set(1);bpy.context.view_layer.update()
++base_basis={p.name:p.matrix_basis.copy() for p in rig.pose.bones}
++ready=bpy.data.actions['RD_Locomotion_Normal_Entry_4419_4434_WIP2'].copy();ready.name='__runtime_exact_entry_start_ready__'
++for fc in ready.fcurves:
++ v=fc.evaluate(1)
++ fc.keyframe_points.clear()
++ for f in (1,2):
++  k=fc.keyframe_points.insert(f,v);k.interpolation='LINEAR'
++ for m in list(fc.modifiers):fc.modifiers.remove(m)
++actions={n:bpy.data.actions[a] for n,a,*_ in clips}
++actions['normal_ready']=ready
++deform=[b.name for b in rig.data.bones if b.use_deform]
++assert len(deform)==config['deform_bone_count']==72
++
++def set_action(action):
++ rig.animation_data.action=None
++ for p in rig.pose.bones:p.matrix_basis=base_basis[p.name].copy()
++ rig.animation_data.action=base
++ scene.frame_set(1);bpy.context.view_layer.update()
++ rig.animation_data.action=action
++
++def set_frame(frame):
++ i=math.floor(frame);scene.frame_set(i,subframe=frame-i)
++ bpy.context.view_layer.update()
++ deps=bpy.context.evaluated_depsgraph_get();deps.update();return deps
++
++def mat(m):return np.array(m,dtype=np.float32)
++def positions(o,deps):
++ eo=o.evaluated_get(deps);me=eo.to_mesh()
++ vals=np.empty(len(me.vertices)*3,dtype=np.float32);me.vertices.foreach_get('co',vals)
++ vals=vals.reshape(-1,3)
++ world=mat(C@eo.matrix_world)
++ ans=vals@world[:3,:3].T+world[:3,3]
++ eo.to_mesh_clear();return ans
++
++meta={'schema':'rust-duty-native-directional-preview-oracle/v1','source_files_sha256':hashes,
++      'blender':bpy.app.version_string,'fps':FPS,'bake_hz':BAKE_HZ,'scope':'isolated preview, not production or gameplay validation',
++      'clip_names':[c[0] for c in clips],'deform_bones':deform,'skin_objects':skin_names,
++      'actors':actor_names,'excluded_actor':'hk416_magazine_outgoing: reload-only duplicate has zero scale throughout locomotion',
++      'matrix_layout':'row-major; Blender world converted by C=(x,z,-y); runtime applies Ry(pi) once',
++      'contact_acceptance':False,'samples':{},'contact_samples':{},'source_owner_actions':{o.name:o.animation_data.action.name if o.animation_data and o.animation_data.action else None for o in bpy.data.objects if o.name in names}}
++arrays={}
++for name,source,start,end,loop in clips:
++ set_action(actions[name])
++ # Both exact bake frames and intervening half-steps, independently reevaluated.
++ exact=sorted(set([start,end]+[start+(end-start)*i/12 for i in range(13)]))
++ exact=[round((f-start)*4)/4+start for f in exact]
++ if name=='normal_diagnostic_sequence':exact=sorted(set(exact+[31.,55.,90.,125.,160.,169.,193.]))
++ half_step=FPS/BAKE_HZ/2
++ mid=[f+half_step for f in exact[:-1] if f+half_step<end]
++ frames=sorted(set(exact+mid))
++ rows=[];sk=[[] for _ in skin_names];bone=[];actors=[]
++ for f in frames:
++  deps=set_frame(f);er=rig.evaluated_get(deps)
++  rows.append({'frame':f,'time':(f-start)/FPS,'stored_bake_frame':abs((f-start)*BAKE_HZ/FPS-round((f-start)*BAKE_HZ/FPS))<1e-8})
++  bone.append([mat(C@er.matrix_world@er.pose.bones[n].matrix) for n in deform])
++  actors.append([mat(C@bpy.data.objects[n].evaluated_get(deps).matrix_world) for n in actor_names])
++  for i,n in enumerate(skin_names):sk[i].append(positions(bpy.data.objects[n],deps))
++ arrays[name+'__bones']=np.asarray(bone);arrays[name+'__actors']=np.asarray(actors)
++ for i,n in enumerate(skin_names):arrays[name+'__skin_'+str(i)]=np.asarray(sk[i])
++ meta['samples'][name]=rows
++ contact=[]
++ for f in np.linspace(start,end,int((end-start)*4)+1):
++  deps=set_frame(float(f));er=rig.evaluated_get(deps);row={'frame':float(f),'time':float((f-start)/FPS),'nodes':{}}
++  for n in ['righthand_prop','hand_l','hand_r','MCH_lowerarm_l','MCH_lowerarm_r']:
++   m=er.matrix_world@er.pose.bones[n].matrix
++   row['nodes'][n]={'position':list(m.translation),'quaternion_wxyz':list(m.to_quaternion())}
++  row['follow']={n:float(rig.pose.bones[n]['weapon_follow']) for n in ['righthand_prop_lefthand','righthand_prop_righthand','lefthand_prop']}
++  row['wrist_solve_error_m']={side:((er.matrix_world@er.pose.bones['hand_'+side].matrix).translation-(er.matrix_world@er.pose.bones['righthand_prop_'+('left' if side=='l' else 'right')+'hand'].matrix).translation).length for side in ['l','r']}
++  row['guard_error_degrees']={side:math.degrees(er.pose.bones['MCH_hand_guarded_'+side].matrix.to_quaternion().rotation_difference(er.pose.bones['MCH_attach_goal_'+side].matrix.to_quaternion()).angle) for side in ['l','r']}
++  assert all(v==1 for v in row['follow'].values())
++  contact.append(row)
++ meta['contact_samples'][name]=contact
++ assert all(fc.driver.is_valid for o in bpy.data.objects if o.animation_data for fc in o.animation_data.drivers)
++ print('ORACLE_CLIP',name,len(frames),len(contact),flush=True)
++
++# Capture source rigid local geometry and current fixed material properties.
++for n in actor_names:
++ o=bpy.data.objects[n];v=np.empty(len(o.data.vertices)*3,dtype=np.float32);o.data.vertices.foreach_get('co',v);arrays[n+'__local_vertices']=v.reshape(-1,3)
++meta['material_projection']='Explicit converter --base-color-only: renderer opaque base color projection; source metallic/roughness properties are not reproduced'
++
++# Packed textures are copied byte-for-byte into this derived output, never to source locations.
++td=OUT/'textures';td.mkdir(exist_ok=True)
++for i,im in enumerate(bpy.data.images):
++ if not im.packed_file:continue
++ p=td/('arms_%02d.png'%i);p.write_bytes(bytes(im.packed_file.data));im.filepath_raw=str(p)
++
++# One NLA strip on Arms per take: FBX strip mode bakes the whole evaluated scene,
++# including driven rigid actors. All-actions mode would bake only that one owner.
++set_action(actions['normal_ready']);set_frame(1)
++for t in list(rig.animation_data.nla_tracks):rig.animation_data.nla_tracks.remove(t)
++rig.animation_data.action=None;rig.animation_data.use_nla=True
++for name,source,start,end,loop in clips:
++ t=rig.animation_data.nla_tracks.new();t.name=name
++ strip=t.strips.new(name,start,actions[name]);strip.name=name
++ strip.action_frame_start=start;strip.action_frame_end=end
++ strip.frame_start=start;strip.frame_end=end
++ strip.blend_type='REPLACE';strip.extrapolation='NOTHING';strip.use_auto_blend=False
++ t.mute=False
++# The NLA exporter disables all strips before each take. Set neutral explicitly
++# for the static actor rest geometry/binding exported ahead of animation takes.
++for t in rig.animation_data.nla_tracks:t.mute=True
++rig.animation_data.action=actions['normal_ready'];set_frame(1)
++for o in bpy.context.view_layer.objects:o.select_set(False)
++for n in names:bpy.data.objects[n].select_set(True)
++bpy.context.view_layer.objects.active=rig
++# Restore track eligibility while active ready action keeps the static base exact.
++for t in rig.animation_data.nla_tracks:t.mute=False
++scene.frame_start=1;scene.frame_end=36
++settings=dict(filepath=str(OUT/'locomotion.fbx'),use_selection=True,object_types={'ARMATURE','MESH'},
++ axis_forward='-Z',axis_up='Y',global_scale=1.0,apply_unit_scale=True,apply_scale_options='FBX_SCALE_UNITS',
++ use_space_transform=True,bake_space_transform=False,use_mesh_modifiers=True,mesh_smooth_type='OFF',use_triangles=True,
++ add_leaf_bones=False,primary_bone_axis='Y',secondary_bone_axis='X',use_armature_deform_only=True,armature_nodetype='NULL',
++ bake_anim=True,bake_anim_use_all_bones=True,bake_anim_use_nla_strips=True,bake_anim_use_all_actions=False,
++ bake_anim_force_startend_keying=True,bake_anim_step=FPS/BAKE_HZ,bake_anim_simplify_factor=0.,path_mode='COPY',embed_textures=True,use_metadata=False)
++assert bpy.ops.export_scene.fbx(**settings)=={'FINISHED'}
++np.savez_compressed(OUT/'native_oracle.npz',**arrays)
++meta['fbx_export_settings']={k:sorted(v) if isinstance(v,set) else v for k,v in settings.items()}
++meta['fbx_sha256']=hashlib.sha256((OUT/'locomotion.fbx').read_bytes()).hexdigest()
++assert hashlib.sha256(source_file.read_bytes()).hexdigest()==source_hash
++meta['fbx_export_settings']['filepath']='locomotion.fbx'
++meta['source_take_count']=config['source_take_count']
++meta['runtime_integration_performed']=False
++meta['source_pose_space']='absolute native rig pose; additive runtime derivation belongs to integrator'
++meta['supplied_files_unchanged']=True
++(OUT/'native_oracle.json').write_text(json.dumps(meta,indent=2)+'\n')
++print('EXPORTED',str(OUT/'locomotion.fbx'),flush=True)
