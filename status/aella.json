@@ -1,27 +1,27 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T03:25:11Z",
+  "updatedAt": "2026-10-03T03:31:38Z",
   "state": "active",
-  "task": "Integrating the authored walking clip into the game build; remaining merges await confirmation",
+  "task": "Integrating the new authored walking clip into the game build; remaining WIP merges await confirmation",
   "lastCompleted": "Delivered and verified the current reload build",
   "agents": [
     {
       "slot": 1,
       "state": "active",
-      "task": "Integrating walking source and conversion into GitHub game builds",
-      "lastCompleted": "Completed the automatic reload export and game build"
+      "task": "Integrating the validated walk conversion into automatic game builds",
+      "lastCompleted": "Delivered the GitHub-built reload game"
     },
     {
       "slot": 2,
       "state": "idle",
       "task": "",
-      "lastCompleted": "Validated the new authored walking conversion and handed it to the build worker"
+      "lastCompleted": "Validated the authored walking conversion and reproducible asset output"
     },
     {
       "slot": 3,
       "state": "idle",
       "task": "",
-      "lastCompleted": "Published the gallery status sidebar and status submission form"
+      "lastCompleted": "Published the live status sidebar and status submission form"
     }
   ]
 }
