@@ -1,26 +1,26 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T12:12:52Z",
-  "state": "idle",
-  "task": "Awaiting Hal's timestamp annotations and clip split before animation authoring",
+  "updatedAt": "2026-10-03T12:23:03Z",
+  "state": "active",
+  "task": "Coordinating reference-based ADS authoring, motion review and layered locomotion integration; new clips are not yet approved",
   "lastCompleted": "Shared both verified 720p60 movement references and the reusable download workflow; matching files confirmed",
   "agents": [
     {
       "slot": 1,
-      "state": "idle",
-      "task": "",
+      "state": "active",
+      "task": "Authoring a reusable ADS animation layer against the movement reference",
       "lastCompleted": "Acquired and verified both movement reference MP4s at 1280x720, 60 fps"
     },
     {
       "slot": 2,
-      "state": "idle",
-      "task": "",
+      "state": "active",
+      "task": "Independently reviewing reference timing, motion frames and hand contact",
       "lastCompleted": "Shared the reference download workflow and verified files for annotation and clip ownership"
     },
     {
       "slot": 3,
-      "state": "idle",
-      "task": "",
+      "state": "active",
+      "task": "Implementing simultaneous ADS, walk-out and run-in transitions with controller tests",
       "lastCompleted": "Verified smooth walk transitions, walking during ADS and the complete Windows package in PR #16"
     }
   ]
