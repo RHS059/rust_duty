@@ -1,27 +1,27 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T12:52:49Z",
+  "updatedAt": "2026-10-03T13:05:16.213Z",
   "state": "active",
-  "task": "Coordinating reference-based ADS refinement and layered locomotion integration; investigating the PR #17 native ADS check",
-  "lastCompleted": "Published draft PR #17 for simultaneous ADS, walk and run blending; completed the initial ADS motion review",
+  "task": "Coordinating ADS tests with four directional motion candidates and checking rebuilt layered locomotion at 30/60 Hz",
+  "lastCompleted": "Published layered locomotion draft PR #17 and completed the initial ADS motion review",
   "agents": [
     {
       "slot": 1,
       "state": "active",
-      "task": "Refining and preparing a reference-based ADS animation candidate",
+      "task": "Preparing reference-based ADS and four directional layered diagnostics",
       "lastCompleted": "Created the ADS candidate for independent motion review"
     },
     {
       "slot": 2,
-      "state": "idle",
-      "task": "",
-      "lastCompleted": "Completed the initial ADS review: aimed pose and grip preserved; dynamic motion needs revision; awaiting hip-walk clips"
+      "state": "active",
+      "task": "Reviewing the directional source handoff and ADS layering limits",
+      "lastCompleted": "Reviewed native ADS/walk-to-run transitions: no visible reset or grip detachment in the sampled 60 Hz frames"
     },
     {
       "slot": 3,
       "state": "active",
-      "task": "Investigating PR #17’s native ADS check and verifying the Windows package",
-      "lastCompleted": "Passed Windows build, runtime contracts and updater checks for the layered locomotion draft"
+      "task": "Verifying rebuilt PR #17 with corrected ADS checks and 30/60 Hz layered-input diagnostics",
+      "lastCompleted": "Corrected the native ADS check and passed the unchanged capture trace locally"
     }
   ]
 }
