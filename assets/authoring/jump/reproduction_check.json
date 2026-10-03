@@ -2,14 +2,14 @@
   "schema": "rust-duty-jump-reproduction/v1",
   "passed": true,
   "checks": {
-    "all_97_action_curves_identical": true,
+    "all_100_action_curves_identical": true,
     "all_nla_drivers_images_identical": true,
     "all_structural_snapshots_identical": true,
     "both_preservation_passes": true
   },
-  "method": "Fresh Blender 4.3.2 process reran the author script from frozen jump r4 into an isolated output and freshly reopened it for comparison",
-  "source_sha256": "e6e59edeac62accc185d2b53a9fe5eab7d876b0a64a404bba1495b9875e2482e",
-  "candidate_sha256": "fe47ec2961214252d831e7da743d3145b3ab219043d5a8db9622d3c387b1fa53",
-  "reproduced_blend_sha256": "93cf9727598ba701293be83552e03b923314ab5ec9de98393b4051e5a9371e33",
+  "method": "Fresh Blender 4.3.2 process reran the author script from frozen jump r5 into an isolated output and freshly reopened it for comparison",
+  "source_sha256": "fe47ec2961214252d831e7da743d3145b3ab219043d5a8db9622d3c387b1fa53",
+  "candidate_sha256": "26f8d676ad13e19c74721575fffca75d2a0b25f1bad279b4bb03b7e87f4eeb65",
+  "reproduced_blend_sha256": "54022c37deb298709e91c9815e219a8471943632252bac01bfaa69243e0eacd0",
   "note": "Deterministic content is compared through exact Action, NLA, driver, image and structural fingerprints; binary files may differ."
 }

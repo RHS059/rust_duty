@@ -1,13 +1,13 @@
 {
   "schema": "rust-duty-jump-source-package/v1",
-  "revision": "r5",
-  "status": "Frozen COD reference-guided retarget refinement WIP; paired Elara review and runtime integration pending",
+  "revision": "r6",
+  "status": "Frozen COD reference-guided landing-only refinement WIP; paired Elara review and runtime integration pending",
   "source_file": "halcyon_jump.blend",
-  "source_sha256": "fe47ec2961214252d831e7da743d3145b3ab219043d5a8db9622d3c387b1fa53",
+  "source_sha256": "26f8d676ad13e19c74721575fffca75d2a0b25f1bad279b4bb03b7e87f4eeb65",
   "filename_policy": "Stable current filename; revision is recorded in this manifest and Action names. Prior standalone sources remain in Git history.",
-  "baseline_commit": "2333cef50554fd4408d4950c32fe201b78f21c86",
+  "baseline_commit": "f20ae559b36a72ff34e67515579061e38315abd9",
   "baseline_path": "assets/authoring/jump/halcyon_jump.blend",
-  "baseline_sha256": "e6e59edeac62accc185d2b53a9fe5eab7d876b0a64a404bba1495b9875e2482e",
+  "baseline_sha256": "fe47ec2961214252d831e7da743d3145b3ab219043d5a8db9622d3c387b1fa53",
   "repository_destination": "assets/authoring/jump/",
   "branch": "halcyon/jump-r1",
   "blender": "4.3.2",
@@ -36,7 +36,7 @@
     "hk416_magazine": "hk416_magazineAction"
   },
   "runtime_mapping": {
-    "jump_takeoff_r5": {
+    "jump_takeoff_r6": {
       "runtime_id": "jump_takeoff",
       "frame_range": [
         1,
@@ -50,7 +50,7 @@
       "loop": false,
       "hold_after_end": false
     },
-    "jump_air_r5": {
+    "jump_air_r6": {
       "runtime_id": "jump_air",
       "frame_range": [
         1,
@@ -64,7 +64,7 @@
       "loop": false,
       "hold_after_end": true
     },
-    "jump_land_r5": {
+    "jump_land_r6": {
       "runtime_id": "jump_land",
       "frame_range": [
         1,
@@ -80,26 +80,25 @@
     }
   },
   "verification": {
-    "original_actions_preserved": 94,
+    "original_actions_preserved": 97,
     "new_actions": 3,
-    "total_actions": 97,
+    "total_actions": 100,
     "fresh_disk_preservation_passed": true,
     "technical_motion_contacts_passed": true,
     "reproduction_passed": true,
     "reference_refinement_scope_passed": true,
-    "reference_measurement_and_fit_reproduction_exact": true,
-    "max_wrist_error_m": 5.17386363392903e-07,
+    "reference_landing_fit_reproduction_exact": true,
+    "max_wrist_error_m": 7.166325997174004e-07,
     "no_camera_or_world_root_motion": true,
     "overall_endpoints_exact_ready": true,
     "phase_seams_connected_pose_and_velocity": true,
     "air_nonlooping_transition_with_holdable_final_pose": true,
-    "takeoff_action_curves_identical_to_r4": true,
-    "air_lift_frames_4059_4063_parameters_unchanged": true
+    "takeoff_and_air_action_curves_identical_to_r5": true
   },
   "review": {
     "required_reviewer": "Elara",
-    "status": "r5 paired review pending",
-    "feedback_url": "https://github.com/RHS059/dot_chat/pull/1#issuecomment-5974449246",
+    "status": "r6 paired review pending",
+    "feedback_url": "https://github.com/RHS059/dot_chat/pull/1#issuecomment-5974687035",
     "render_method": "Eevee Viewport Render Animation",
     "layout": "COD top / Eevee below",
     "stable_preview_filename": "jump_animation.mp4",
@@ -120,18 +119,18 @@
   "file_list": [
     {
       "path": "halcyon_jump.blend",
-      "bytes": 10356996,
-      "sha256": "fe47ec2961214252d831e7da743d3145b3ab219043d5a8db9622d3c387b1fa53"
+      "bytes": 10425788,
+      "sha256": "26f8d676ad13e19c74721575fffca75d2a0b25f1bad279b4bb03b7e87f4eeb65"
     },
     {
       "path": "README.md",
-      "bytes": 9430,
-      "sha256": "25d169daece775ea18038be8aa735c1ead458560b0724d338870483b430e3f9c"
+      "bytes": 10555,
+      "sha256": "bb5902c6f56c11c9f3c6994aeb4df04455c40961c6393ebe6ac529daf0b58c9e"
     },
     {
       "path": "jump_design.json",
-      "bytes": 26039,
-      "sha256": "a7884ac42eb7e7cc6707c9fa2b426e9e7633f7d4e27b2d3b4b14ade25da8db57"
+      "bytes": 26320,
+      "sha256": "6e1beb082945fe5e49fd3b8ced2436a808929cf7ba4da6e0e1a9b360d51e8977"
     },
     {
       "path": "author_jump.py",
@@ -151,37 +150,37 @@
     {
       "path": "validate_jump.py",
       "bytes": 8934,
-      "sha256": "5ec311bd509f2e068f4f9994f293bb5436e646e5385ccc7d66d6ba1b594e9cc2"
+      "sha256": "4be6ea8ef2901e3db9317b5ba5e8b4c9e2927cea9a2c78f0b40b501f98494b1a"
     },
     {
       "path": "authored_root_keys.json",
-      "bytes": 58400,
-      "sha256": "076fc328a6d4d7a9b3ad1a220f65e1bb3bc09f7fa62b68bf5dfc7bb60c3f18ef"
+      "bytes": 58333,
+      "sha256": "7be181bee95b374c8433843f957345cb5c23bd234c828ffc069d3ffdc53c1e0b"
     },
     {
       "path": "authoring_preservation.json",
-      "bytes": 927,
-      "sha256": "b9fd1d3909ba93268a1b48186f06a2855ea401f4b72f6d7aa4a49314d249c4cb"
+      "bytes": 928,
+      "sha256": "c31d5293802105de3c254c0fb189710a51dcaa1ee72aa6ccc56f63200afe426b"
     },
     {
       "path": "baseline_fingerprint.json",
-      "bytes": 346228,
-      "sha256": "1b3d870ed1346eec1525bf47e9721009ec3a74d09faa7f2728c8b24bba6d7ea5"
+      "bytes": 349687,
+      "sha256": "be74fcd2c53a28186993df0b2fd5d3084d1a522e6698b89f17d99eaaf607cb86"
     },
     {
       "path": "source_preservation.json",
-      "bytes": 350719,
-      "sha256": "a2add1e80ea239c822e4fd81694763e7493bb209521df58c45f681ee8fd7fc7b"
+      "bytes": 354167,
+      "sha256": "e69d845bb317f9fd5b805e1419d6a20cfe446a26803a4b2137a3389ef3e13cdc"
     },
     {
       "path": "jump_technical_validation.json",
-      "bytes": 123933,
-      "sha256": "dbb76f3d96503176f46209a7ba226ce2de5b1292871cbd3434c32db76811afb0"
+      "bytes": 123900,
+      "sha256": "dd7e8825dd584dc80bee539eaecea82456d217161330c48103482360d3ac7b24"
     },
     {
       "path": "reproduction_check.json",
-      "bytes": 827,
-      "sha256": "6a9093409de9eb8f70c6d4c51732a8d23de21d0354d2d3ea2246245963dce979"
+      "bytes": 828,
+      "sha256": "7a233f99e5b0284945824a93c51cbbb03ded1d3297b05e8e9813cdcad2bf8dc2"
     },
     {
       "path": "reference_weapon_tracks.json",
@@ -190,13 +189,18 @@
     },
     {
       "path": "reference_retarget.json",
-      "bytes": 91638,
-      "sha256": "090d43b105f03f34c8731fadb3aaf929d74a4532c2d48b07eb8ddeedcda78222"
+      "bytes": 119300,
+      "sha256": "5e142719ecd2f222f818bcf24cf9ebcfe19dd61c71b10e61ddbe3da0dbf20b3c"
     },
     {
       "path": "reference_geometry.json",
       "bytes": 1400,
       "sha256": "540d1a25dfe903f55d2a179aa60aba0371a5c11e391508025c5b690017e7953a"
+    },
+    {
+      "path": "front_sight_geometry.json",
+      "bytes": 1245,
+      "sha256": "12fd8bb3cf124d1766416cb1b5203afe69251ea24a018aade8a2a311bcb26f85"
     },
     {
       "path": "measure_reference.py",
@@ -205,18 +209,18 @@
     },
     {
       "path": "fit_reference.py",
-      "bytes": 5924,
-      "sha256": "2255b4395a36ed8e863d48b1d64d3649b678b44e4c27fdc276b7143918b4c299"
+      "bytes": 4283,
+      "sha256": "2cf7d0b98bef4d8a15f487d01c340fa1a426ce68190994f2380d019c9b8f153b"
     },
     {
       "path": "reference_frame_map.json",
       "bytes": 25973,
-      "sha256": "e12d0dd88a5d1b0c454ee534fa672a657a61dcdc42c1db7e973746ba296e8dab"
+      "sha256": "fff505a886825a59cd0a3f36aa61de30f57fd9c5fb43cf79231cea949c9129c6"
     },
     {
       "path": "reference_refinement.json",
-      "bytes": 1592,
-      "sha256": "99b95d6adddfa444491db191b0e56d3ab67a1ecb8b06972456f1f8675f6da1cb"
+      "bytes": 1585,
+      "sha256": "b43e91f85298e71c91789ea2399fcd035158b640c7d1ad74de11e8afa99d9bdc"
     }
   ],
   "reference": {

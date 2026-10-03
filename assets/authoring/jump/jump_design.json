@@ -1,8 +1,8 @@
 {
   "schema": "rust-duty-jump-design/v1",
-  "status": "Reference-guided COD jump retarget r5 WIP; Elara paired review pending",
+  "status": "Reference-guided COD jump retarget r6 WIP; Elara paired review pending",
   "source_path": "assets/authoring/jump/halcyon_jump.blend",
-  "source_sha256": "e6e59edeac62accc185d2b53a9fe5eab7d876b0a64a404bba1495b9875e2482e",
+  "source_sha256": "fe47ec2961214252d831e7da743d3145b3ab219043d5a8db9622d3c387b1fa53",
   "baseline_action": "RD_Locomotion_Normal_Entry_4419_4434_WIP2",
   "baseline_frame": 1,
   "guarded_initialization": "RD_00_Supplied_Base_Guarded_Recovered",
@@ -23,7 +23,7 @@
   "source_evidence": "Recovered supplied Modern_Warfare_2022_Movement_Reference.mp4 contains a complete stationary jump. Native source frames and measured foreground motion guide this revision. Jump identification in the other two supplied videos remains unresolved; no absence claim is made.",
   "camera_motion": "None. Gameplay supplies the world jump arc and existing camera landing_kick. Only the held rig moves relative to the unchanged review camera.",
   "actions": {
-    "jump_takeoff_r5": {
+    "jump_takeoff_r6": {
       "runtime_id": "jump_takeoff",
       "frame_range": [
         1,
@@ -36,7 +36,7 @@
         4033,
         4044
       ],
-      "purpose": "Observed launch lag and pullback",
+      "purpose": "Accepted reference takeoff retained with exactly identical curves",
       "beats": [
         {
           "frame": 1,
@@ -91,9 +91,9 @@
           ]
         }
       ],
-      "preserve_curve_action": "jump_takeoff_r4"
+      "preserve_curve_action": "jump_takeoff_r5"
     },
-    "jump_air_r5": {
+    "jump_air_r6": {
       "runtime_id": "jump_air",
       "frame_range": [
         1,
@@ -106,7 +106,7 @@
         4044,
         4067
       ],
-      "purpose": "Reference mid-descent path refinement; accepted air-lift neighborhood and holdable endpoint timing retained",
+      "purpose": "Accepted reference airborne motion and raised terminal carry retained with identical curves",
       "beats": [
         {
           "frame": 1,
@@ -161,9 +161,10 @@
           ]
         }
       ],
-      "match_start_tangent_action": "jump_takeoff_r5"
+      "match_start_tangent_action": "jump_takeoff_r6",
+      "preserve_curve_action": "jump_air_r5"
     },
-    "jump_land_r5": {
+    "jump_land_r6": {
       "runtime_id": "jump_land",
       "frame_range": [
         1,
@@ -176,7 +177,7 @@
         4067,
         4095
       ],
-      "purpose": "Reference forward-weapon landing trough and recovery-shoulder refinement on the accepted source-frame beats",
+      "purpose": "Measured COD upper-weapon land trough and recovery envelope on the existing source beats; bounded forward-sight retarget with rear-sight trajectory retained",
       "beats": [
         {
           "frame": 1,
@@ -196,10 +197,10 @@
           "source_frame": 4078,
           "label": "optic/receiver low point",
           "params": [
-            -0.000559643393905369,
-            -0.022311230523572374,
+            0.00241548525813581,
+            -0.03831123052357237,
             0.001456890959816133,
-            -0.3885077500589865,
+            -4.811895539901978,
             -0.8187687352040011,
             -1.0226286664083424
           ]
@@ -209,10 +210,10 @@
           "source_frame": 4080,
           "label": "support low point",
           "params": [
-            -0.0024812062494104334,
-            -0.025527053119576627,
+            -0.00021323554825601956,
+            -0.03778206742773236,
             0.00017971044487022646,
-            -1.369215272508403,
+            -4.762632355031649,
             -0.39821635951491563,
             -1.037218876571477
           ]
@@ -222,10 +223,10 @@
           "source_frame": 4087,
           "label": "ready recovery",
           "params": [
-            -0.002640051421223275,
-            -0.015894589076172565,
+            -0.002039607568414381,
+            -0.019255629588232723,
             0.0027309437048157557,
-            -1.1083855206343265,
+            -2.0557617386124396,
             0.21684514841121075,
             1.992000208626989
           ]
@@ -243,7 +244,8 @@
             0.0
           ]
         }
-      ]
+      ],
+      "match_start_tangent_action": "jump_air_r6"
     }
   },
   "runtime_contract": {
@@ -258,66 +260,51 @@
     "reference_timing_note": "Source ground-contact interval is visually about 33/60 s; game default 0.6245 s remains authoritative. No physics change is requested.",
     "start_and_end": "Only overall takeoff start and land end are neutral. Internal Action seams intentionally preserve non-neutral reference poses."
   },
-  "source_action_count": 94,
+  "source_action_count": 97,
   "feedback": {
-    "review_url": "https://github.com/RHS059/dot_chat/pull/1#issuecomment-5974449246",
-    "reason": "Retain accepted takeoff and air-lift timing. Match the COD forward-weapon landing trough, recovery shoulders and middle path using an additional measured forward-rail guide. No global amplitude multiplier.",
+    "review_url": "https://github.com/RHS059/dot_chat/pull/1#issuecomment-5974687035",
+    "reason": "Deepen the visible model forward-sight land trough and recovery shoulders to the measured COD upper-weapon envelope. Preserve complete accepted takeoff/air Actions and the already-close rear-sight travel. Bounded coupled heave/pitch correction; no blanket amplitude multiplier.",
     "paired_review_required": true,
     "output_video": "jump_animation.mp4"
   },
   "revision_rationale": {
-    "revision": "r5",
-    "review_url": "https://github.com/RHS059/dot_chat/pull/1#issuecomment-5974449246",
-    "baseline_design_commit": "2333cef50554fd4408d4950c32fe201b78f21c86",
-    "new_guide": "Source forward-rail foreground track retargeted to existing forward-weapon guide",
-    "preserved_parameter_frames": [
-      [
-        4033,
-        4045
-      ],
-      [
-        4059,
-        4063
-      ]
+    "revision": "r6",
+    "review_url": "https://github.com/RHS059/dot_chat/pull/1#issuecomment-5974687035",
+    "phase_scope": "Landing only; source4070\u20134094; complete takeoff/air retained",
+    "reason": "Visible forward-aiming feature requires the reference upper-weapon envelope rather than the lower forward-rail envelope; geometry correspondence is an explicit retarget choice, not model identity",
+    "target_reference_region": "optic",
+    "model_forward_guide": [
+      0.07876053331258591,
+      0.0037865641015666306,
+      -0.620362374485965
     ],
-    "influence_knots": [
-      [
-        4033,
-        0
-      ],
-      [
-        4045,
-        0
-      ],
-      [
-        4050,
-        1
-      ],
-      [
-        4054,
-        1
-      ],
-      [
-        4059,
-        0
-      ],
-      [
-        4063,
-        0
-      ],
-      [
-        4067,
-        1
-      ],
-      [
-        4095,
-        1
-      ]
+    "model_forward_guide_ready_pixel": [
+      744,
+      355
     ],
-    "reason": "Refine forward-weapon trough/recovery and middle path while retaining accepted takeoff and air-lift timing; no amplitude multiplier"
+    "model_rear_guide": [
+      0.08323424182818288,
+      0.005083007134545519,
+      -0.26023809868713904
+    ],
+    "bounds": {
+      "lateral_correction_mm": [
+        -4,
+        4
+      ],
+      "vertical_correction_mm": [
+        -16,
+        0
+      ],
+      "pitch_correction_degrees": [
+        -4.5,
+        0
+      ]
+    },
+    "no_multiplication_of_motion_amplitude": true
   },
   "interpolation_type": "global_native_reference_parameters",
-  "motion_origin": "Reference-guided retarget of supplied COD stationary jump; r5 forward-weapon path refinement preserving accepted timing",
+  "motion_origin": "Reference-guided COD jump retarget; r6 landing-only visible forward-sight envelope refinement",
   "reference": {
     "filename": "Modern_Warfare_2022_Movement_Reference.mp4",
     "sha256": "491a1729aa0f32373025d35fff86da76c6c1c8f057c0c553d0fbb5fb6226ff46",
@@ -758,10 +745,10 @@
     {
       "source_frame": 4071,
       "params": [
-        0.002332074512024945,
-        -0.0018573336536238608,
+        0.0023873754934060983,
+        -0.002162198227051966,
         -0.001589731224569944,
-        -0.264048325520271,
+        -0.3498897062315337,
         -0.6327462401488005,
         -0.5731520743086901
       ]
@@ -769,10 +756,10 @@
     {
       "source_frame": 4072,
       "params": [
-        0.0017531484897234067,
-        -0.007621208486274876,
+        0.0026403928615616225,
+        -0.012468806236900914,
         0.0002737308211441527,
-        -0.24651488928325752,
+        -1.602554476296189,
         -0.6984334084262143,
         -0.45598548345185197
       ]
@@ -780,10 +767,10 @@
     {
       "source_frame": 4073,
       "params": [
-        0.0017930414936678596,
-        -0.013558051979840982,
+        0.0033938832841831036,
+        -0.022242946778576085,
         0.0010335347176482752,
-        -0.32827002293125046,
+        -2.744832603261599,
         -0.7511480625252633,
         0.05511525025440889
       ]
@@ -791,10 +778,10 @@
     {
       "source_frame": 4074,
       "params": [
-        0.001282513900623819,
-        -0.01783030551818041,
+        0.0033956536491223173,
+        -0.029178302385234677,
         0.0004867873231963845,
-        -0.5445495186209787,
+        -3.689651855703057,
         -0.7624977913316275,
         -0.5099348476385719
       ]
@@ -802,10 +789,10 @@
     {
       "source_frame": 4075,
       "params": [
-        0.00034768959828100686,
-        -0.020247364907298972,
+        0.0026815041281459274,
+        -0.0326749303284226,
         -0.0002499002928889899,
-        -0.8248172794324393,
+        -4.261772787701673,
         -0.7410776833121813,
         -1.5772923605489404
       ]
@@ -813,10 +800,10 @@
     {
       "source_frame": 4076,
       "params": [
-        -0.0004942827646807357,
-        -0.020469536202302647,
+        0.002019982770011916,
+        -0.03386250521751205,
         0.0006958070174605685,
-        -0.7864696610575064,
+        -4.48106561639657,
         -0.8042864174555424,
         -2.241651742302263
       ]
@@ -824,10 +811,10 @@
     {
       "source_frame": 4077,
       "params": [
-        -0.00047371311588879477,
-        -0.02153024508802611,
+        0.0023657478102248426,
+        -0.03676035790979305,
         0.001070559799021242,
-        -0.5456644263530714,
+        -4.738000309462263,
         -0.8033596295969819,
         -1.5472785228648898
       ]
@@ -835,10 +822,10 @@
     {
       "source_frame": 4078,
       "params": [
-        -0.000559643393905369,
-        -0.022311230523572374,
+        0.00241548525813581,
+        -0.03831123052357237,
         0.001456890959816133,
-        -0.3885077500589865,
+        -4.811895539901978,
         -0.8187687352040011,
         -1.0226286664083424
       ]
@@ -846,10 +833,10 @@
     {
       "source_frame": 4079,
       "params": [
-        -0.0013631386369012738,
-        -0.024251870834811135,
+        0.0013580191549462904,
+        -0.038938848567343906,
         0.0006219290902986091,
-        -0.8723800404041815,
+        -4.921814447683833,
         -0.6301511623615252,
         -1.0309839286106437
       ]
@@ -857,10 +844,10 @@
     {
       "source_frame": 4080,
       "params": [
-        -0.0024812062494104334,
-        -0.025527053119576627,
+        -0.00021323554825601956,
+        -0.03778206742773236,
         0.00017971044487022646,
-        -1.369215272508403,
+        -4.762632355031649,
         -0.39821635951491563,
         -1.037218876571477
       ]
@@ -868,10 +855,10 @@
     {
       "source_frame": 4081,
       "params": [
-        -0.0034510332329106617,
-        -0.026141354675841656,
+        -0.0015319962569264004,
+        -0.03654544438640015,
         1.396843810513302e-05,
-        -1.6958754226736306,
+        -4.586491827376293,
         -0.21448652314866778,
         -0.9792261936795187
       ]
@@ -879,10 +866,10 @@
     {
       "source_frame": 4082,
       "params": [
-        -0.0037207999498369494,
-        -0.024772291750069765,
+        -0.0019262824543317017,
+        -0.03455655629772546,
         0.00033092945180048373,
-        -1.6105444704068648,
+        -4.331958079121328,
         -0.19842792915456492,
         -0.8949644730304863
       ]
@@ -890,10 +877,10 @@
     {
       "source_frame": 4083,
       "params": [
-        -0.0030627805171999684,
-        -0.024469197108896956,
+        -0.0014172072922979345,
+        -0.03349646696033651,
         0.001249262636581716,
-        -1.5182893066843626,
+        -4.035222834618516,
         -0.1085053071658459,
         0.41819985985588537
       ]
@@ -901,10 +888,10 @@
     {
       "source_frame": 4084,
       "params": [
-        -0.002450069481605035,
-        -0.023610052934899785,
+        -0.0010803329603089327,
+        -0.031199721539585324,
         0.0027687187885259493,
-        -1.4248567693006415,
+        -3.5478177657655463,
         0.0016089162520144824,
         1.9238056242233186
       ]
@@ -912,10 +899,10 @@
     {
       "source_frame": 4085,
       "params": [
-        -0.0023089913925875187,
-        -0.022004093775754626,
+        -0.0012416261926601834,
+        -0.02797128445715006,
         0.0039059409277997217,
-        -1.3522020465497744,
+        -3.0264018407382696,
         0.09713219237214135,
         2.76669199915806
       ]
@@ -923,10 +910,10 @@
     {
       "source_frame": 4086,
       "params": [
-        -0.002748182001132713,
-        -0.01888423718266388,
+        -0.0019656181891190665,
+        -0.023267045105234748,
         0.0035646527241207163,
-        -1.2667550658195266,
+        -2.499695374688706,
         0.16449766192442397,
         2.3214499833569215
       ]
@@ -934,10 +921,10 @@
     {
       "source_frame": 4087,
       "params": [
-        -0.002640051421223275,
-        -0.015894589076172565,
+        -0.002039607568414381,
+        -0.019255629588232723,
         0.0027309437048157557,
-        -1.1083855206343265,
+        -2.0557617386124396,
         0.21684514841121075,
         1.992000208626989
       ]
@@ -945,10 +932,10 @@
     {
       "source_frame": 4088,
       "params": [
-        -0.0023406468426443628,
-        -0.013327895845538609,
+        -0.0018629115343499437,
+        -0.01599530486874554,
         0.0021366944261498972,
-        -0.949378756502469,
+        -1.70221211449772,
         0.24123437920140076,
         1.6914159646077593
       ]
@@ -956,10 +943,10 @@
     {
       "source_frame": 4089,
       "params": [
-        -0.0019641269227982376,
-        -0.0109498325493101,
+        -0.001570721684940267,
+        -0.013140795150296222,
         0.0016067356581393269,
-        -0.7804518638737008,
+        -1.3992870181701613,
         0.2391595178639882,
         1.3864644178846213
       ]
@@ -967,10 +954,10 @@
     {
       "source_frame": 4090,
       "params": [
-        -0.0015251615747577966,
-        -0.008098755406443635,
+        -0.001177560501567151,
+        -0.010029875146736221,
         0.00125347500446646,
-        -0.5411442855628692,
+        -1.0866834737473645,
         0.19232186447735386,
         0.9577595647713779
       ]
@@ -978,10 +965,10 @@
     {
       "source_frame": 4091,
       "params": [
-        -0.001040757285695233,
-        -0.004556349508044495,
+        -0.0007369097341282253,
+        -0.0062395963070378405,
         0.0007363736704480393,
-        -0.2571400549543721,
+        -0.7325633280764009,
         0.10783342437563656,
         0.2479174502309156
       ]
@@ -989,10 +976,10 @@
     {
       "source_frame": 4092,
       "params": [
-        -0.0005526292777412758,
-        -0.0017078664963528123,
+        -0.0002784330623123502,
+        -0.0032232088778754186,
         0.0003387588823741199,
-        -0.031103702283850263,
+        -0.4589698964958145,
         0.022855921265024823,
         -0.34197042195439675
       ]
@@ -1000,10 +987,10 @@
     {
       "source_frame": 4093,
       "params": [
-        -0.00021445306836181166,
-        -0.00010546680024973343,
+        -1.583440978486606e-05,
+        -0.0012032712672820265,
         -4.1268336723428334e-05,
-        0.06458075529956997,
+        -0.24547607110368297,
         -0.017152665255866117,
         -0.5584632287755313
       ]
@@ -1011,10 +998,10 @@
     {
       "source_frame": 4094,
       "params": [
-        -3.455397122426085e-05,
-        0.0004633178526495829,
+        7.265038984482296e-05,
+        -0.00013029794992244754,
         -0.00013910713149431565,
-        0.0756224782895751,
+        -0.09213583208391155,
         -0.024451568895384163,
         -0.4414289182475206
       ]

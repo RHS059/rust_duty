@@ -29,7 +29,7 @@ def evaluate(f):
   'guard_error_degrees':[math.degrees(mats['MCH_hand_guarded_'+side].to_quaternion().rotation_difference(mats['MCH_attach_goal_'+side].to_quaternion()).angle) for side in ['l','r']]}
 r.animation_data.action=base;frame(1);r.animation_data.action=ready;reference=evaluate(1)
 results={};checks={};max_total=0;pose_ends={};tangent_ends={}
-for name,N,loop in [('jump_takeoff_r5',11,False),('jump_air_r5',23,False),('jump_land_r5',28,False)]:
+for name,N,loop in [('jump_takeoff_r6',11,False),('jump_air_r6',23,False),('jump_land_r6',28,False)]:
  a=bpy.data.actions[name]
  r.animation_data.action=base;frame(1);r.animation_data.action=a
  pose_ends[name]={};tangent_ends[name]={};samples=[];max_wrist=[0.,0.];max_guard=[0.,0.];max_hand=[0.,0.];max_actor=[0.,0.];max_root=0.;max_camera=0.;max_armature=0.;endpoint={};max_bone=0.
@@ -53,20 +53,20 @@ for name,N,loop in [('jump_takeoff_r5',11,False),('jump_air_r5',23,False),('jump
  checks.update({name+'_range':list(a.frame_range)==[1,N+1],name+'_only_viewmodel_control_varies':not nonroot,name+'_grip_contacts':max(max_wrist)<1e-5 and max(max_hand)<1e-5 and max(max_actor)<1e-5,name+'_no_world_root_or_camera_motion':max_root==0 and max_camera==0 and max_armature==0,name+'_baseline_visible_landmarks_retained':all(row['screen_landmarks'][k]['in_frame'] for row in samples for k in ['muzzle','receiver','support_wrist'])})
  for which,index in [('start',0),('end',-1)]:
   tangent_ends[name][which]={(fc.data_path,fc.array_index):(fc.keyframe_points[index].handle_right.y-fc.keyframe_points[index].co.y)/(fc.keyframe_points[index].handle_right.x-fc.keyframe_points[index].co.x) for fc in a.fcurves if fc.data_path in ['pose.bones["righthand_prop"].location','pose.bones["righthand_prop"].rotation_euler']}
- if name=='jump_takeoff_r5':
+ if name=='jump_takeoff_r6':
   checks['takeoff_start_exact_ready']=max(endpoint['1.0'].values())<1e-6
   checks['takeoff_start_zero_velocity']=max(abs(v) for v in tangent_ends[name]['start'].values())<1e-8
- if name=='jump_land_r5':
+ if name=='jump_land_r6':
   checks['land_end_exact_ready']=max(endpoint[str(float(N+1))].values())<1e-6
   checks['land_end_zero_velocity']=max(abs(v) for v in tangent_ends[name]['end'].values())<1e-8
- if name=='jump_air_r5':
+ if name=='jump_air_r6':
   held=evaluate(N+61)
   checks['air_terminal_pose_extendable_hold']=max(diff(held['bones'][b],pose_ends[name]['end']['bones'][b]) for b in held['bones'])==0
   checks['air_no_cycle_modifier']=all(all(m.type!='CYCLES' for m in fc.modifiers) for fc in a.fcurves)
 
  results[name]={'range':[1,N+1],'duration_seconds':N/60,'loop':loop,'sample_rate_hz':120,'sample_count':len(samples),'varying_curves':varying,'max_wrist_error_m':max_wrist,'max_guard_error_degrees':max_guard,'max_hand_to_root_matrix_drift':max_hand,'max_weapon_and_magazine_relative_root_matrix_drift':max_actor,'max_player_root_matrix_drift':max_root,'max_camera_matrix_drift':max_camera,'max_armature_world_matrix_drift':max_armature,'endpoints':endpoint,'samples':samples}
 seams={}
-for left,right in [('jump_takeoff_r5','jump_air_r5'),('jump_air_r5','jump_land_r5')]:
+for left,right in [('jump_takeoff_r6','jump_air_r6'),('jump_air_r6','jump_land_r6')]:
  e1=pose_ends[left]['end'];e2=pose_ends[right]['start'];label=left+'__'+right
  errs={'all_pose_bones':max(diff(e1['bones'][b],e2['bones'][b]) for b in e1['bones']),'weapon':diff(e1['actors']['hk416_weapon'],e2['actors']['hk416_weapon']),'magazine':diff(e1['actors']['hk416_magazine'],e2['actors']['hk416_magazine']),'root_curve_velocity':max(abs(v-tangent_ends[right]['start'][k]) for k,v in tangent_ends[left]['end'].items())}
  seams[label]=errs;checks[label+'_connected_pose_and_velocity']=max(errs.values())<1e-6
