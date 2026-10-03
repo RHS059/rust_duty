@@ -1,27 +1,27 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T12:23:03Z",
+  "updatedAt": "2026-10-03T12:32:44Z",
   "state": "active",
-  "task": "Coordinating reference-based ADS authoring, motion review and layered locomotion integration; new clips are not yet approved",
-  "lastCompleted": "Shared both verified 720p60 movement references and the reusable download workflow; matching files confirmed",
+  "task": "Coordinating reference-based ADS authoring, motion review and layered locomotion integration; new clips await review",
+  "lastCompleted": "Created a reference-based ADS candidate and passed layered transition controller tests",
   "agents": [
     {
       "slot": 1,
       "state": "active",
-      "task": "Authoring a reusable ADS animation layer against the movement reference",
-      "lastCompleted": "Acquired and verified both movement reference MP4s at 1280x720, 60 fps"
+      "task": "Refining a reference-based ADS animation candidate for independent motion review",
+      "lastCompleted": "Created the ADS candidate; motion approval is pending"
     },
     {
       "slot": 2,
       "state": "active",
       "task": "Independently reviewing reference timing, motion frames and hand contact",
-      "lastCompleted": "Shared the reference download workflow and verified files for annotation and clip ownership"
+      "lastCompleted": "Verified both 720p60 movement references for frame-by-frame comparison"
     },
     {
       "slot": 3,
       "state": "active",
-      "task": "Implementing simultaneous ADS, walk-out and run-in transitions with controller tests",
-      "lastCompleted": "Verified smooth walk transitions, walking during ADS and the complete Windows package in PR #16"
+      "task": "Preparing a draft PR for simultaneous ADS, walk-out and run-in transitions",
+      "lastCompleted": "Passed the layered locomotion controller tests"
     }
   ]
 }
