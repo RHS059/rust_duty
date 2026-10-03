@@ -1,11 +1,11 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T21:32:52Z",
+  "updatedAt": "2026-10-03T21:42:32Z",
   "latestComplete": {
     "sha": "c60c53fe3b4b3a995f41630e1746c2df336c7929",
     "downloadUrl": "https://github.com/RHS059/rust_duty/actions/runs/37151455895/artifacts/11284770859",
     "runUrl": "https://github.com/RHS059/rust_duty/actions/runs/37151455895",
-    "verifiedAt": "2026-10-03T21:32:52Z",
+    "verifiedAt": "2026-10-03T21:42:32Z",
     "completedAt": "2026-10-03T20:40:53Z"
   },
   "changes": [
@@ -15,12 +15,12 @@
     "All three workflows passed; native Linux layered-input diagnostics passed at 30 and 60 Hz.",
     "Windows artifact size is 92,854,957 bytes. API and upload-log SHA-256 match: 20e2ad9ce279475e98ff9a27903394630ec50bf1fbcbbe0e5e37517e173d4478. The full ZIP was not independently inspected locally.",
     "Forward v9 and lateral Trial4 previews await publication and motion review. V8 remains Fail54; lateral Trial3 scored Fail35 left and Fail36 right. The integrated ADS composition remains unreviewed.",
-    "Latest Complete identifies as 0.1.4. Draft PR #19 at eb886edb is preparing 0.1.5: asset, authored-contract and updater jobs passed; Windows tests and Linux packaging/native checks continue. Separate old-client upgrade checks await the release feed. Version 0.1.5 is not released; future merged PRs are intended to increment the patch version by one.",
+    "PR #19 at eb886edb passed complete Windows/Linux package CI. Version 0.1.5 publication, independent package revalidation and real 0.1.4-to-0.1.5 upgrade checks are running. Latest Complete remains verified 0.1.4 until these finish; future merged PRs are intended to increment the patch version by one.",
     "Jump and mantle reference planning is complete; verified reference windows are still needed."
   ],
   "currentBuild": {
     "state": "active",
-    "task": "PR #19 at eb886edb: Windows tests and Linux packaging/native checks are running. Version 0.1.5 release and separate old-client upgrade verification remain pending.",
+    "task": "PR #19 at eb886edb passed Windows/Linux complete-package CI. Version 0.1.5 publication, independent artifact revalidation and real old-client upgrade checks are running.",
     "url": "https://github.com/RHS059/rust_duty/actions/runs/37154246170"
   }
 }
