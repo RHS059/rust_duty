@@ -1,27 +1,27 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T20:22:22Z",
+  "updatedAt": "2026-10-03T20:34:01Z",
   "state": "active",
-  "task": "Coordinating forward ADS v8 capture, lateral ADS refinement and reviewed HIP r5 game integration.",
-  "lastCompleted": "All four HIP r5 motions passed review. Both lateral Trial2 previews are live and playback-verified; visual review is pending.",
+  "task": "Refining forward and lateral ADS while verifying HIP r5 game builds.",
+  "lastCompleted": "All four HIP r5 asset checks passed; the forward ADS v8 comparison is complete.",
   "agents": [
     {
       "slot": 1,
       "state": "active",
-      "task": "Capturing the forward ADS v8 comparison using reviewed HIP r5 walking.",
-      "lastCompleted": "Forward ADS v7 received Fail 54; the v8 scene uses the reviewed HIP r5 walking source."
+      "task": "Testing a forward ADS output-bake correction; v8 awaits publication and review.",
+      "lastCompleted": "Forward ADS v8 comparison capture is complete using reviewed HIP r5 walking."
     },
     {
       "slot": 2,
       "state": "active",
-      "task": "Preparing the next lateral ADS revision from verified HIP r5 motion.",
-      "lastCompleted": "Separate left and right Trial2 previews are live; media hashes and playback are verified."
+      "task": "Capturing the 396-frame lateral ADS Trial3 comparison in Eevee.",
+      "lastCompleted": "Left candidate and matching control captures are complete; 1,588 saved-scene transform checks passed. Visual review is pending."
     },
     {
       "slot": 3,
       "state": "active",
-      "task": "Preparing separate HIP r5 directional exports and a stable-ID game adapter.",
-      "lastCompleted": "Reviewed HIP r5 source is verified; shared canonical motion is preserved. These revisions are not yet in the downloadable game."
+      "task": "Checking exact HIP r5 build assets while Windows and Linux builds run.",
+      "lastCompleted": "All four asset checks, runtime contracts and updater checks passed for c60c53fe. The latest verified complete build remains e46f83d."
     }
   ]
 }
