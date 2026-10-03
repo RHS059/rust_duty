@@ -1,0 +1,67 @@
+name: Verify live 0.1.4 to 0.1.5 upgrade
+on:
+  push:
+    branches: ['aella-verification/0.1.5-upgrade']
+permissions:
+  contents: read
+  actions: read
+jobs:
+  native-upgrade:
+    name: Real old game upgrade - ${{ matrix.os }}
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            artifact: vector-range-windows-x64
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            artifact: vector-range-linux-x64
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate smoke assertions
+        run: python -m unittest discover -s tools -p test_smoke_complete_game_upgrade.py -v
+      - name: Verify old artifact run identity before download
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p evidence
+          gh api repos/RHS059/rust_duty/actions/runs/37151455895 > evidence/baseline-run.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          run = json.loads(Path('evidence/baseline-run.json').read_text())
+          assert run['head_sha'] == 'c60c53fe3b4b3a995f41630e1746c2df336c7929'
+          assert run['status'] == 'completed' and run['conclusion'] == 'success'
+          assert run['repository']['full_name'] == 'RHS059/rust_duty'
+          PY
+      - name: Download proven complete 0.1.4 game without rebuilding
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          run-id: 37151455895
+          github-token: ${{ github.token }}
+          repository: RHS059/rust_duty
+          path: baseline
+      - name: Native full-download upgrade and verified runtime selection
+        run: >-
+          python tools/smoke_complete_game_upgrade.py
+          --baseline baseline --target ${{ matrix.target }}
+          --expected-commit eb886edb9ed31ad6feae13541c4e34aa70362f2f
+          --report evidence/upgrade-${{ matrix.target }}.json
+      - name: Retain native upgrade proof even on failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-0.1.4-to-0.1.5-${{ matrix.target }}
+          path: evidence/*.json
+          if-no-files-found: error
