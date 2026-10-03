@@ -1,27 +1,27 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T03:02:41Z",
-  "state": "active",
-  "task": "Preparing new authored walking clip for GitHub integration",
-  "lastCompleted": "Committed canonical locomotion Blender source and reproducible export configuration in PR10",
+  "updatedAt": "2026-10-03T03:09:28Z",
+  "state": "waiting",
+  "task": "Awaiting combined game integration of the committed authored walking clip",
+  "lastCompleted": "Committed normal_walk_r1 and reproducible export; published reference comparison",
   "agents": [
     {
       "slot": 1,
-      "state": "active",
-      "task": "Validating new walking animation and reference comparison",
-      "lastCompleted": "Created normal_walk_r1 with preserved sprint clips and verified hand contact"
+      "state": "idle",
+      "task": "",
+      "lastCompleted": "Authored and validated versioned regular-walk clip"
     },
     {
       "slot": 2,
-      "state": "active",
-      "task": "Validating expanded Blender export and clip selection",
-      "lastCompleted": "Verified existing locomotion export against original sampled poses"
+      "state": "idle",
+      "task": "",
+      "lastCompleted": "Validated 44-take Blender export and preserved existing animations"
     },
     {
       "slot": 3,
       "state": "idle",
       "task": "",
-      "lastCompleted": "Verified complete game packaging and companion asset hashes"
+      "lastCompleted": "Verified complete game packaging and companion hashes"
     }
   ]
 }
