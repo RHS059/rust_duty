@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T12:34:06Z",
+  "updatedAt": "2026-10-03T12:42:14Z",
   "latestComplete": {
     "sha": "7ffdd6eb1d6ae20d5e8e6445f07759a225c952eb",
     "downloadUrl": "https://github.com/RHS059/rust_duty/actions/runs/37118065452/artifacts/11271704836",
@@ -17,8 +17,8 @@
     "Native Linux captures were visually reviewed; Windows gameplay and artistic approval remain unverified"
   ],
   "currentBuild": {
-    "state": "complete",
-    "task": "PR #16: complete Windows package verified; Windows and Linux build checks passed",
-    "url": "https://github.com/RHS059/rust_duty/actions/runs/37118065452"
+    "state": "active",
+    "task": "PR #17: layered walk, ADS and run build in progress; runtime contracts and updater checks passed; complete Windows package pending",
+    "url": "https://github.com/RHS059/rust_duty/actions/runs/37123421718"
   }
 }
