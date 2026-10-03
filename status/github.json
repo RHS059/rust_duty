@@ -1,21 +1,22 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T03:15:36Z",
+  "updatedAt": "2026-10-03T03:18:26Z",
   "latestComplete": {
-    "sha": "6684e6f0582af236dc6f2b49c74cbcbe12f3ba2b",
-    "downloadUrl": "https://github.com/RHS059/rust_duty/actions/runs/37088824450/artifacts/11261264534",
-    "runUrl": "https://github.com/RHS059/rust_duty/actions/runs/37088824450",
-    "verifiedAt": "2026-10-03T02:15:04Z",
-    "completedAt": null
+    "sha": "e83de427dc2f9b7f7e9242d16b690c366a5638d4",
+    "downloadUrl": "https://github.com/RHS059/rust_duty/actions/runs/37092076517/artifacts/11262901302",
+    "runUrl": "https://github.com/RHS059/rust_duty/actions/runs/37092076517",
+    "verifiedAt": "2026-10-03T03:18:13Z",
+    "completedAt": "2026-10-03T03:16:13Z"
   },
   "changes": [
-    "Weapon, arms, and 43 ready/sprint/exit clips included in one game download",
-    "Normal launch discovers the bundled animation assets",
-    "Centered in-game update check gates entry to the test world"
+    "Current tactical reload WIP now plays in the actual game",
+    "GitHub exports the committed Blender source through FBX and validates the animation before building",
+    "Gun, arms, generated reload/opening/neutral/pickup assets and existing sprint clips included",
+    "Rendered reload test verified full playback, one ammo credit and return to ready"
   ],
   "currentBuild": {
     "state": "active",
-    "task": "Fresh Blender export and Linux rendered reload checks passed; Windows game checks running",
-    "url": "https://github.com/RHS059/rust_duty/actions/runs/37092076517"
+    "task": "Integrating the new authored regular-walk clip and merging tested changes",
+    "url": "https://github.com/RHS059/rust_duty/pull/10"
   }
 }
