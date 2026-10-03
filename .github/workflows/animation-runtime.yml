@@ -1,0 +1,35 @@
+name: Authored gameplay runtime contracts
+on:
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'tests/**'
+      - 'assets/animations.cfg'
+      - '.github/workflows/animation-runtime.yml'
+permissions:
+  contents: read
+jobs:
+  contracts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: animation-runtime-${{ hashFiles('Cargo.lock') }}
+      - name: Format evidence for cloud checkouts without Rust
+        run: |
+          cargo fmt --all
+          git diff --binary > runtime-rustfmt.patch
+      - uses: actions/upload-artifact@v4
+        with:
+          name: runtime-rustfmt-patch
+          path: runtime-rustfmt.patch
+      - run: cargo clippy --locked --no-default-features --all-targets -- -D warnings
+      - run: cargo test --locked --no-default-features

@@ -15,6 +15,11 @@ import shutil
 import struct
 import tempfile
 import zlib
+import vrview
+
+GENERATED_DIR = Path("assets/reload")
+GENERATED_FILES = (*("asset." + suffix for suffix in ("vra", "vrs", "vrm")),
+                   "manifest.json", "export-manifest.json", "source.json", "parity.json")
 
 ASSET_DIR = Path("assets/locomotion")
 COMPANIONS = ("asset.vra", "asset.vrs", "asset.vrm")
@@ -155,7 +160,45 @@ def verify(root: Path) -> dict:
     return {"clip_count": len(CLIPS), "files": manifest["files"]}
 
 
-def stage(root: Path, binary: str, output: Path, update: bool = False) -> dict:
+def verify_generated(root: Path) -> dict:
+    """Bind shipped companions, successful Rust parity and canonical source hashes."""
+    root = Path(root)
+    blobs = {name: regular_file(root, GENERATED_DIR / name).read_bytes()
+             for name in GENERATED_FILES}
+    manifest = json.loads(blobs["manifest.json"])
+    exported = json.loads(blobs["export-manifest.json"])
+    source = json.loads(blobs["source.json"])
+    parity = json.loads(blobs["parity.json"])
+    if (source.get("schema") != "rust-duty-blender-source/v1"
+            or set(manifest.get("files", {})) != set(COMPANIONS)
+            or manifest.get("authoring_master_sha256") != source.get("sha256")
+            or exported.get("source_sha256") != source.get("sha256")
+            or exported.get("action") != source.get("action")
+            or exported.get("native_requested_range") != source.get("native_range")
+            or manifest.get("native_crop") != source.get("native_range")
+            or not exported.get("action_inventory")
+            or manifest.get("source_fbx_sha256") != exported.get("files", {}).get("current-full-wip.fbx", {}).get("sha256")):
+        raise ValueError("generated source/export manifest mismatch")
+    for name in COMPANIONS:
+        if manifest["files"][name] != {"bytes": len(blobs[name]), "sha256": hashlib.sha256(blobs[name]).hexdigest()}:
+            raise ValueError(f"generated companion hash mismatch: {name}")
+    if (parity.get("passed") is not True or parity.get("backend") != "Rust CPU sampler"
+            or parity.get("asset_sha256") != manifest["files"]["asset.vra"]["sha256"]
+            or parity.get("source_witnesses_sha256") != exported["files"].get("source-witnesses.npz", {}).get("sha256")
+            or parity.get("visibility_failures") != 0 or parity.get("samples", 0) < 1):
+        raise ValueError("generated assets lack matching passed Rust parity")
+    committed = root / "assets/source/reload/source.json"
+    if committed.exists() and json.loads(committed.read_text()) != source:
+        raise ValueError("generated assets differ from current committed source")
+    pack = vrview.decode_vra(blobs["asset.vra"], vrs=blobs["asset.vrs"], vrm=blobs["asset.vrm"])
+    if [clip["name"] for clip in pack["clips"]] != [source.get("clip")]:
+        raise ValueError("generated clip differs from selected source")
+    regular_file(root, "assets/animations.cfg")
+    regular_file(root, "docs/ANIMATION_SLOTS.md")
+    return {"clip": source["clip"], "source_sha256": source["sha256"], "parity_samples": parity["samples"]}
+
+
+def stage(root: Path, binary: str, output: Path, update: bool = False, require_generated: bool = False) -> dict:
     root, output = Path(root).resolve(), Path(output).absolute()
     if Path(binary).name not in ("vector-range", "vector-range.exe"):
         raise ValueError("unexpected game executable name")
@@ -164,7 +207,14 @@ def stage(root: Path, binary: str, output: Path, update: bool = False) -> dict:
     if output == root or output in root.parents:
         raise ValueError("output must not contain source")
     report = verify(root)
+    generated = require_generated or (root / "assets/animations.cfg").exists()
+    if generated:
+        report["generated_reload"] = verify_generated(root)
     copies = [(regular_file(root, binary), Path(binary).name)]
+    if generated:
+        for relative in [*(GENERATED_DIR / name for name in GENERATED_FILES),
+                         Path("assets/animations.cfg"), Path("docs/ANIMATION_SLOTS.md")]:
+            copies.append((regular_file(root, relative), relative))
     for relative in NOTICES:
         # Keep updater notices at the artifact path expected by subsequent staging.
         copies.append((regular_file(root, relative), relative))
@@ -190,6 +240,8 @@ def stage(root: Path, binary: str, output: Path, update: bool = False) -> dict:
         for name in COMPANIONS:
             (destination / ASSET_DIR / name).write_bytes(companion_bytes(root, name, manifest))
         verify(destination)
+        if generated:
+            verify_generated(destination)
         destination.rename(output)
     return {"output": str(output), "files_staged": len(copies) + len(COMPANIONS), **report}
 
@@ -199,14 +251,18 @@ def main():
     commands = parser.add_subparsers(dest="command", required=True)
     check = commands.add_parser("verify")
     check.add_argument("--root", type=Path, default=Path("."))
+    check.add_argument("--require-generated", action="store_true")
     packaging = commands.add_parser("stage")
     packaging.add_argument("--root", type=Path, default=Path("."))
     packaging.add_argument("--binary", required=True)
     packaging.add_argument("--output", type=Path, required=True)
     packaging.add_argument("--update", action="store_true")
+    packaging.add_argument("--require-generated", action="store_true")
     args = parser.parse_args()
     report = (verify(args.root) if args.command == "verify"
-              else stage(args.root, args.binary, args.output, args.update))
+              else stage(args.root, args.binary, args.output, args.update, args.require_generated))
+    if args.command == "verify" and args.require_generated:
+        report["generated_reload"] = verify_generated(args.root)
     print(json.dumps(report, indent=2))
 
 

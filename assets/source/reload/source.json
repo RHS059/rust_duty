@@ -1,0 +1,15 @@
+{
+  "schema": "rust-duty-blender-source/v1",
+  "file": "current.blend",
+  "sha256": "8cec36c6bfcc4967cb80629b40ecdced3c0b5507914aec7eb3d2d614f2d758fd",
+  "bytes": 8247987,
+  "blender": "4.3.2",
+  "action": "RD_Reload_Tactical_HandApproach_AndReturn_WIP",
+  "clip": "reload_current_wip",
+  "native_range": [0, 156],
+  "native_fps": [60000, 1001],
+  "status": "latest full two-hand WIP, not animation approval",
+  "reviewed_subranges": [[0, 30], [48, 156]],
+  "unreviewed_gap": [30, 48],
+  "provenance": "Exact immutable current authored two-hand reload source supplied for the Rust Duty game; committed directly in GitHub at the user's request. No external asset lookup is used."
+}
