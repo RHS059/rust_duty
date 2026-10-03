@@ -1,9 +1,9 @@
 //! GPU adapter for the authorized test model and optional local overrides.
 use macroquad::prelude::*;
-use vector_range::asset::WeaponAsset;
+use vector_range::{asset::WeaponAsset, scene_lighting::SceneLighting};
 
 pub struct WeaponModel {
-    meshes: Vec<(usize, Mesh)>,
+    meshes: Vec<(usize, Mesh, Color)>,
     hk416_rig: bool,
     pub muzzle: Vec3,
 }
@@ -30,7 +30,6 @@ impl WeaponModel {
         }
         let muzzle = vec3((low.x + high.x) * 0.5, (low.y + high.y) * 0.5, front - 0.01);
         let mut meshes = Vec::new();
-        let light = vec3(-0.3, 0.8, 0.5).normalize();
         for (part_index, part) in asset.meshes.into_iter().enumerate() {
             let texture = if part.rgba.is_empty() {
                 None
@@ -63,14 +62,13 @@ impl WeaponModel {
                     .map(|&index| {
                         let v = &part.vertices[index as usize];
                         let normal = Vec3::from_array(v.normal);
-                        let shade = 0.35 + 0.65 * normal.dot(light).max(0.);
                         let mut vertex = Vertex::new2(
                             Vec3::from_array(v.position),
                             Vec2::from_array(v.uv),
                             Color::new(
-                                part.base_color[0] * shade,
-                                part.base_color[1] * shade,
-                                part.base_color[2] * shade,
+                                part.base_color[0],
+                                part.base_color[1],
+                                part.base_color[2],
                                 1.,
                             ),
                         );
@@ -85,6 +83,12 @@ impl WeaponModel {
                         indices,
                         texture: texture.clone(),
                     },
+                    Color::new(
+                        part.base_color[0],
+                        part.base_color[1],
+                        part.base_color[2],
+                        1.,
+                    ),
                 ));
             }
         }
@@ -96,10 +100,16 @@ impl WeaponModel {
     }
     /// Draw exact exported actor transforms. This opt-in path never uses the
     /// legacy weapon CRC, magazine indices, bolt offsets, or procedural pose.
-    pub fn draw_authored_parts(&self, transforms: &[Mat4], visible: &[bool]) {
-        for (part, mesh) in &self.meshes {
+    pub fn draw_authored_parts(
+        &mut self,
+        transforms: &[Mat4],
+        visible: &[bool],
+        lighting: SceneLighting,
+    ) {
+        for (part, mesh, albedo) in &mut self.meshes {
             if visible.get(*part).copied().unwrap_or(false) {
                 if let Some(&matrix) = transforms.get(*part) {
+                    lighting.shade_rigid(mesh, *albedo, matrix);
                     unsafe {
                         get_internal_gl().quad_gl.push_model_matrix(matrix);
                     }
@@ -113,12 +123,14 @@ impl WeaponModel {
     }
 
     pub fn draw_pose_with_free_frame(
-        &self,
+        &mut self,
         pose: Mat4,
         held_magazine_matrix: Mat4,
         animation: &vector_range::weapon_animation::WeaponAnimationPose,
+        lighting: SceneLighting,
     ) {
-        let draw = |mesh: &Mesh, root: Mat4, local: Mat4| {
+        let draw = |mesh: &mut Mesh, albedo: Color, root: Mat4, local: Mat4| {
+            lighting.shade_rigid(mesh, albedo, root * local);
             unsafe {
                 get_internal_gl().quad_gl.push_model_matrix(root * local);
             }
@@ -127,7 +139,7 @@ impl WeaponModel {
                 get_internal_gl().quad_gl.pop_model_matrix();
             }
         };
-        for (part, mesh) in &self.meshes {
+        for (part, mesh, albedo) in &mut self.meshes {
             if self.hk416_rig && (22..=25).contains(part) {
                 let transforms = [
                     (
@@ -144,7 +156,7 @@ impl WeaponModel {
                 for (i, (offset, rotation, orientation)) in transforms.into_iter().enumerate() {
                     if animation.magazine_visibility[i] {
                         if i == 1 {
-                            draw(mesh, held_magazine_matrix, Mat4::IDENTITY);
+                            draw(mesh, *albedo, held_magazine_matrix, Mat4::IDENTITY);
                             continue;
                         }
                         let local = if let Some(q) = orientation {
@@ -160,7 +172,7 @@ impl WeaponModel {
                                 Vec3::from_array(rotation),
                             )
                         };
-                        draw(mesh, pose, local);
+                        draw(mesh, *albedo, pose, local);
                     }
                 }
             } else {
@@ -169,7 +181,7 @@ impl WeaponModel {
                 } else {
                     Mat4::IDENTITY
                 };
-                draw(mesh, pose, local);
+                draw(mesh, *albedo, pose, local);
             }
         }
     }

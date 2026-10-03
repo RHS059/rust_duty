@@ -661,8 +661,9 @@ impl ArmModel {
         &mut self,
         weapon_transform: Mat4,
         pose: &crate::weapon_animation::WeaponAnimationPose,
+        lighting: crate::scene_lighting::SceneLighting,
     ) {
-        self.draw_with_hand_modes(weapon_transform, pose, [1., 0., 0., 0.]);
+        self.draw_with_hand_modes(weapon_transform, pose, [1., 0., 0., 0.], lighting);
     }
     /// Pure presentation input: normalized weights [support, magazine, receiver,
     /// open]. The animation sampler supplies weights and exact wrist targets;
@@ -672,13 +673,15 @@ impl ArmModel {
         weapon_transform: Mat4,
         pose: &crate::weapon_animation::WeaponAnimationPose,
         left_modes: [f32; 4],
+        lighting: crate::scene_lighting::SceneLighting,
     ) {
         let globals = self.posed_globals(weapon_transform, pose, left_modes);
-        self.draw_globals(globals);
+        self.draw_globals(globals, lighting);
     }
 
     /// Apply the default weapon grip after free arm animation and locomotion.
     /// Reload clips can lower either influence without changing finger poses.
+    #[allow(clippy::too_many_arguments)]
     pub fn draw_with_weapon_ik(
         &mut self,
         weapon_targets: &WeaponIkTargets,
@@ -687,6 +690,7 @@ impl ArmModel {
         free_hands: ArmFreeHandPose,
         influences: [f32; 2],
         left_modes: [f32; 4],
+        lighting: crate::scene_lighting::SceneLighting,
     ) {
         let globals = self.posed_globals_with_weapon_ik(
             weapon_targets,
@@ -696,17 +700,16 @@ impl ArmModel {
             influences,
             left_modes,
         );
-        self.draw_globals(globals);
+        self.draw_globals(globals, lighting);
     }
 
-    fn draw_globals(&mut self, globals: Vec<Mat4>) {
+    fn draw_globals(&mut self, globals: Vec<Mat4>, lighting: crate::scene_lighting::SceneLighting) {
         let palette: Vec<_> = globals
             .iter()
             .zip(&self.inverse_bind)
             .map(|(g, b)| *g * *b)
             .collect();
         let normals: Vec<_> = palette.iter().map(|m| m.inverse().transpose()).collect();
-        let light = vec3(-0.3, 0.8, 0.5).normalize();
         for batch in &mut self.batches {
             let part = &self.asset.meshes[batch.source_mesh];
             for (vertex, &index) in batch.mesh.vertices.iter_mut().zip(&batch.source_vertices) {
@@ -724,7 +727,7 @@ impl ArmModel {
                     }
                 }
                 let normal = normal.try_normalize().unwrap_or(Vec3::Y);
-                let shade = 0.35 + 0.65 * normal.dot(light).max(0.);
+                let shade = lighting.irradiance(normal);
                 vertex.position = position;
                 vertex.normal = normal.extend(0.);
                 vertex.color = Color::new(

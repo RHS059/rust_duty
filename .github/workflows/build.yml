@@ -121,6 +121,20 @@ jobs:
           name: native-gameplay-walk-evidence
           path: evidence/walk-gameplay/
           if-no-files-found: warn
+      - name: Verify world-fixed lighting at frozen yaw and pitch poses
+        if: runner.os == 'Linux'
+        timeout-minutes: 6
+        shell: bash
+        env:
+          LIBGL_ALWAYS_SOFTWARE: '1'
+        run: xvfb-run -a -s "-screen 0 1920x1080x24" python tools/verify_lighting_capture.py evidence/lighting --binary dist/game/vector-range
+      - name: Upload directional native lighting evidence
+        if: runner.os == 'Linux' && always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-world-lighting-evidence
+          path: evidence/lighting/
+          if-no-files-found: warn
       - name: Upload complete Windows game
         if: runner.os == 'Windows'
         uses: actions/upload-artifact@v4
