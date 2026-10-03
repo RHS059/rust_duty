@@ -1,27 +1,27 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T23:21:39Z",
+  "updatedAt": "2026-10-03T23:33:35Z",
   "latestComplete": {
-    "sha": "eb886edb9ed31ad6feae13541c4e34aa70362f2f",
-    "downloadUrl": "https://github.com/RHS059/rust_duty/releases/download/v0.1.5/Rust-Duty-0.1.5-Windows-x64.zip",
-    "runUrl": "https://github.com/RHS059/rust_duty/actions/runs/37154246170",
-    "verifiedAt": "2026-10-03T23:21:39Z",
-    "completedAt": "2026-10-03T22:23:20Z"
+    "sha": "b3f2ba8e228f4a34b8f1c5bec74190bc26ca2e87",
+    "downloadUrl": "https://github.com/RHS059/rust_duty/actions/runs/37160557704/artifacts/11287513506",
+    "runUrl": "https://github.com/RHS059/rust_duty/actions/runs/37160557704",
+    "verifiedAt": "2026-10-03T23:33:35Z",
+    "completedAt": "2026-10-03T23:24:10Z"
   },
   "changes": [
-    "Latest verified complete remains 0.1.5 at eb886edb, including HIP r5 directional motion, stable animation bindings and concurrent walk/ADS/run transitions.",
-    "The verified 0.1.5 updater delivers the complete managed runtime; verified bundle selection protects existing settings and private data.",
-    "Complete Windows/Linux package CI passed; 536 Rust tests passed and 175 Python tests completed with one skipped.",
-    "Real Windows and Linux 0.1.4-to-0.1.5 upgrades passed, including executable replacement, version confirmation and managed runtime selection.",
-    "Both upgrade checks verified all 70 managed files and confirmed 85 existing root-file and synthetic private-data checks remained unchanged. These are headless updater checks, not interactive gameplay tests.",
-    "All nine release assets match verified source provenance. Complete Windows release ZIP: 89,510,408 bytes; SHA-256 f5f51ea37f8903a9b1c65707b25ed3202a9890184a6e5ceb66d8252ec054a7a2.",
-    "The combined ADS/sliders candidate remains local and unpublished. Its 517 Rust tests, all-target Clippy and 1,320-tick replay passed; strict bone parity still fails at 3.36e-5. New ADS, lateral and jump work is outside 0.1.5.",
-    "New ADS/sliders commits and publication wait for Elara's 0.1.9 completion. Existing PR #24 policy and updater checks passed; full-game CI is still running and patch automation is not activated.",
-    "Public 0.1.6 at 66b4ef1f comes from older main source without the integrated HIP r5/ADS paths. It has not replaced verified Latest Complete 0.1.5. No 0.1.7–0.1.9 release is visible yet."
+    "Latest Complete is the verified draft PR #25 build b3f2ba8e, containing cursor-focus fixes and persistent per-weapon XYZ walking sliders with existing HIP r5 integration. It embeds 0.1.5 and is a CI download, not a new released update.",
+    "All three exact-head workflows passed, including complete Windows/Linux packages. Windows CI reported 553 Rust tests passed and 175 Python tests completed with one skipped.",
+    "Windows artifact 11287513506 is 92,882,052 bytes. API and upload-log SHA-256 match: e695713bef128b08ab51172ffae72269bee0642b30aea605feff57eb7dcab104.",
+    "Native Linux walking-slider clicks and persistence were checked; real Windows Alt-Tab interaction remains untested.",
+    "The newer combined v9 ADS/sliders candidate is still local and unpublished. Its 517 Rust tests, all-target Clippy and 1,320-tick replay passed; strict bone parity still fails at 3.36e-5.",
+    "The separately released 0.1.5 at eb886edb passed real Windows/Linux 0.1.4 upgrades, checking 70 managed files and preserving 85 root-file and synthetic private-data checks.",
+    "New ADS/sliders commits and release publication remain held until Elara's 0.1.9 completion. PR #24 checks passed, but its patch automation is not activated.",
+    "Public 0.1.6 at 66b4ef1f uses older main source without the integrated HIP r5/ADS paths; it is not the verified integrated draft download. No 0.1.7–0.1.9 release is visible yet.",
+    "V9, lateral Trial4 and newer jump/mantle work are not included in this PR #25 artifact."
   ],
   "currentBuild": {
-    "state": "active",
-    "task": "The local ADS/sliders candidate passed tests and replay but retains a strict bone-parity failure. It is unpublished while waiting for 0.1.9; existing PR #24 CI continues.",
-    "url": "https://github.com/RHS059/rust_duty/actions/runs/37160104960"
+    "state": "idle",
+    "task": "PR #25 complete builds passed and its draft Windows download is verified. The newer local v9 candidate is unpublished; release publication still waits for 0.1.9.",
+    "url": "https://github.com/RHS059/rust_duty/actions/runs/37160557704"
   }
 }
