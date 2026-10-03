@@ -1,27 +1,27 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T10:42:23Z",
-  "state": "idle",
-  "task": "",
+  "updatedAt": "2026-10-03T10:53:01Z",
+  "state": "active",
+  "task": "Improving walk start/stop transitions and aimed walking; reference matching awaits accessible source videos",
   "lastCompleted": "Delivered fresh GitHub Windows build with walking, reload, ADS and lighting",
   "agents": [
     {
       "slot": 1,
-      "state": "idle",
-      "task": "",
+      "state": "active",
+      "task": "Smoothing walk start/stop transitions and integrating aimed walking",
       "lastCompleted": "Verified fresh Windows rebuild"
     },
     {
       "slot": 2,
       "state": "idle",
       "task": "",
-      "lastCompleted": "Verified packaged animation assets"
+      "lastCompleted": "Checked GitHub reference downloads; source videos require accessible files"
     },
     {
       "slot": 3,
       "state": "idle",
       "task": "",
-      "lastCompleted": "Reviewed remaining reload hand-grasp refinement"
+      "lastCompleted": "Verified fresh Windows rebuild and complete package"
     }
   ]
 }
