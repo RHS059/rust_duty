@@ -1,24 +1,24 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T13:04:12.386Z",
+  "updatedAt": "2026-10-03T13:15:02.054Z",
   "latestComplete": {
-    "sha": "7ffdd6eb1d6ae20d5e8e6445f07759a225c952eb",
-    "downloadUrl": "https://github.com/RHS059/rust_duty/actions/runs/37118065452/artifacts/11271704836",
-    "runUrl": "https://github.com/RHS059/rust_duty/actions/runs/37118065452",
-    "verifiedAt": "2026-10-03T11:28:17Z",
-    "completedAt": "2026-10-03T11:07:00Z"
+    "sha": "0423f0fd8c62ec451237bab256866b50cbf6cb78",
+    "downloadUrl": "https://github.com/RHS059/rust_duty/actions/runs/37124656435/artifacts/11274850983",
+    "runUrl": "https://github.com/RHS059/rust_duty/actions/runs/37124656435",
+    "verifiedAt": "2026-10-03T13:15:02.054Z",
+    "completedAt": "2026-10-03T13:09:57Z"
   },
   "changes": [
-    "Smoother walk start/stop transitions retain native loop phase during rapid restarts",
-    "Walking continues through ADS entry, aimed hold and exit while preserving sight alignment",
-    "Complete 70-file Windows package preserves existing walk, sprint and full WIP reload assets",
-    "World-fixed directional and ambient lighting remains on hands, weapon and test range",
-    "All three workflows passed; Windows ZIP integrity and generated package checks passed",
-    "Native Linux captures were visually reviewed; Windows gameplay and artistic approval remain unverified"
+    "ADS and walking fade out together as running begins; aiming and walking can return before the run blend finishes",
+    "Rapid interruptions preserve animation timing and current blend weights",
+    "Complete 70-file Windows package preserves existing walk, sprint, ADS and full WIP reload assets",
+    "No new reference-authored directional or ADS clips are included in this runtime checkpoint",
+    "All three workflows passed; native Linux layered-input diagnostics passed at 30 and 60 Hz",
+    "Windows ZIP integrity, executable and companion checks passed; Windows gameplay and artistic approval remain unverified"
   ],
   "currentBuild": {
-    "state": "active",
-    "task": "PR #17 rebuild is running with corrected native ADS checks and 30/60 Hz layered-input diagnostics; runtime contracts passed",
+    "state": "complete",
+    "task": "PR #17's complete Windows package is verified; all three workflows passed, including 30/60 Hz native Linux diagnostics",
     "url": "https://github.com/RHS059/rust_duty/actions/runs/37124656435"
   }
 }
