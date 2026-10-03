@@ -229,7 +229,7 @@ impl GameUpdater {
                     state.prepared = Some(prepared);
                     state.restarting = false;
                     state.snapshot.ready = true;
-                        state.snapshot.phase = UpdatePhase::Ready;
+                    state.snapshot.phase = UpdatePhase::Ready;
                     state.snapshot.message = format!("Could not start update helper: {error}");
                     return Err(error.into());
                 }
@@ -589,7 +589,11 @@ fn coordinate(
     if preference != Control::Running {
         let mut s = shared.lock().unwrap();
         s.snapshot.running = false;
-        s.snapshot.phase = if preference == Control::Paused { UpdatePhase::Paused } else { UpdatePhase::Cancelled };
+        s.snapshot.phase = if preference == Control::Paused {
+            UpdatePhase::Paused
+        } else {
+            UpdatePhase::Cancelled
+        };
         s.snapshot.message = if preference == Control::Paused {
             "Download paused. Resume to continue."
         } else {
@@ -644,7 +648,9 @@ fn coordinate(
                 s.snapshot.ready = false;
                 s.snapshot.phase = UpdatePhase::Cancelled;
                 s.snapshot.message = "Cancelling update; current game is unchanged…".into();
-                if !active { s.snapshot.running = false; }
+                if !active {
+                    s.snapshot.running = false;
+                }
                 if !active {
                     download::cancel_partial(&store.root)?;
                 }
@@ -1413,7 +1419,13 @@ mod tests {
         drop(server);
         let store = Store::open(&paths.metadata).unwrap();
         atomic_json(&store.root.join("manifest.cache.json"), &manifest).unwrap();
-        let mut updater = GameUpdater::start_at(paths, stable_version("1.0.0").unwrap(), vec![], Some(source)).unwrap();
+        let mut updater = GameUpdater::start_at(
+            paths,
+            stable_version("1.0.0").unwrap(),
+            vec![],
+            Some(source),
+        )
+        .unwrap();
         let state = await_snapshot(&mut updater, |s| !s.running);
         assert_eq!(state.phase, UpdatePhase::Unavailable);
         assert!(!state.ready);

@@ -870,13 +870,20 @@ async fn main() {
     let authored_path = vector_range::asset_path::resolve_viewmodel(
         &executable,
         explicit_viewmodel.map(std::path::Path::new),
-        args.iter().any(|s| s == "--procedural-weapon"
-            || s.starts_with("--weapon-asset=") || s.starts_with("--arms-asset=")),
+        args.iter().any(|s| {
+            s == "--procedural-weapon"
+                || s.starts_with("--weapon-asset=")
+                || s.starts_with("--arms-asset=")
+        }),
     );
     let authored_clip = args
         .iter()
         .find_map(|s| s.strip_prefix("--viewmodel-clip="))
-        .unwrap_or(if explicit_viewmodel.is_none() { "locomotion" } else { "neutral" });
+        .unwrap_or(if explicit_viewmodel.is_none() {
+            "locomotion"
+        } else {
+            "neutral"
+        });
     let authored_time = args
         .iter()
         .find_map(|s| s.strip_prefix("--viewmodel-time="));
@@ -889,10 +896,11 @@ async fn main() {
             })
             .transpose();
         match time.and_then(|time| {
-            let path = path.to_str().ok_or_else(|| "viewmodel path is not valid Unicode".to_string())?;
+            let path = path
+                .to_str()
+                .ok_or_else(|| "viewmodel path is not valid Unicode".to_string())?;
             authored_viewmodel::AuthoredViewmodel::load(path, authored_clip, time)
-        })
-        {
+        }) {
             Ok(viewmodel) => Some(viewmodel),
             Err(error) => {
                 let message = format!("Authored viewmodel could not load: {error}");

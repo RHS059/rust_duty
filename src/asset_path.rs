@@ -48,7 +48,9 @@ pub fn resolve_viewmodel(
     if explicit_legacy {
         return None;
     }
-    let adjacent = executable.parent().unwrap_or_else(|| Path::new("."))
+    let adjacent = executable
+        .parent()
+        .unwrap_or_else(|| Path::new("."))
         .join("assets/locomotion/asset.vra");
     if ["vra", "vrs", "vrm"].iter().any(|extension| {
         let path = adjacent.with_extension(extension);
@@ -111,7 +113,10 @@ mod tests {
         assert_eq!(resolve_viewmodel(&exe, None, false), Some(model));
         assert_eq!(resolve_viewmodel(&exe, None, true), None);
         let explicit = Path::new("custom/view.vra");
-        assert_eq!(resolve_viewmodel(&exe, Some(explicit), true), Some(explicit.to_owned()));
+        assert_eq!(
+            resolve_viewmodel(&exe, Some(explicit), true),
+            Some(explicit.to_owned())
+        );
     }
 
     #[test]

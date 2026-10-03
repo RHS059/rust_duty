@@ -94,7 +94,12 @@ impl UpdatePanel {
     fn area(&self) -> Rect {
         let width = (screen_width() - 32.).clamp(280., 600.);
         if self.startup.blocked() {
-            Rect::new((screen_width() - width) / 2., (screen_height() - 220.) / 2., width, 220.)
+            Rect::new(
+                (screen_width() - width) / 2.,
+                (screen_height() - 220.) / 2.,
+                width,
+                220.,
+            )
         } else {
             Rect::new(18., 18., width, 150.)
         }
@@ -104,7 +109,8 @@ impl UpdatePanel {
     pub fn startup_blocked(&mut self) -> bool {
         self.snapshot = self.updater.as_mut().map(GameUpdater::snapshot);
         if self.error.is_none() {
-            self.startup.observe(self.snapshot.as_ref().map(|s| s.phase));
+            self.startup
+                .observe(self.snapshot.as_ref().map(|s| s.phase));
         }
         self.startup.blocked()
     }
@@ -113,7 +119,10 @@ impl UpdatePanel {
         self.updater.take();
         self.snapshot = None;
         match GameUpdater::start(env!("CARGO_PKG_VERSION")) {
-            Ok(updater) => { self.updater = Some(updater); self.error = None; }
+            Ok(updater) => {
+                self.updater = Some(updater);
+                self.error = None;
+            }
             Err(error) => self.error = Some(error.to_string()),
         }
     }
@@ -195,7 +204,9 @@ impl UpdatePanel {
         // Fit the status to this window without letting paths spill off-screen.
         let mut text = message.to_owned();
         while measure_text(&text, None, 16, 1.).width > area.w - 32. {
-            if text.pop().is_none() { break; }
+            if text.pop().is_none() {
+                break;
+            }
         }
         draw_text(&text, area.x + 16., area.y + 53., 16., WHITE);
         if let Some(state) = snapshot {
@@ -238,7 +249,12 @@ impl UpdatePanel {
             };
             for (i, (label, action)) in actions.into_iter().enumerate() {
                 let width = ((area.w - 36.) / 2.).min(190.);
-                let button = Rect::new(area.x + 12. + i as f32 * (width + 12.), area.y + 110., width, 31.);
+                let button = Rect::new(
+                    area.x + 12. + i as f32 * (width + 12.),
+                    area.y + 110.,
+                    width,
+                    31.,
+                );
                 let hovered = button.contains(mouse_position().into());
                 draw_rectangle(
                     button.x,
@@ -283,7 +299,13 @@ impl UpdatePanel {
             let button = Rect::new(area.x + 12., area.y + 110., 190., 31.);
             let hovered = button.contains(mouse_position().into());
             draw_rectangle(button.x, button.y, button.w, button.h, DARKGRAY);
-            draw_text("Retry update check", button.x + 10., button.y + 21., 17., WHITE);
+            draw_text(
+                "Retry update check",
+                button.x + 10.,
+                button.y + 21.,
+                17.,
+                WHITE,
+            );
             if hovered && is_mouse_button_pressed(MouseButton::Left) {
                 self.retry_worker();
             }
@@ -291,8 +313,24 @@ impl UpdatePanel {
         if startup && !self.restart_requested {
             let button = Rect::new(area.x + 12., area.y + 161., area.w - 24., 36.);
             let hovered = button.contains(mouse_position().into());
-            draw_rectangle(button.x, button.y, button.w, button.h, if hovered { DARKGRAY } else { Color::new(0.12, 0.18, 0.22, 1.) });
-            draw_text("Play current version", button.x + 12., button.y + 24., 19., WHITE);
+            draw_rectangle(
+                button.x,
+                button.y,
+                button.w,
+                button.h,
+                if hovered {
+                    DARKGRAY
+                } else {
+                    Color::new(0.12, 0.18, 0.22, 1.)
+                },
+            );
+            draw_text(
+                "Play current version",
+                button.x + 12.,
+                button.y + 24.,
+                19.,
+                WHITE,
+            );
             if hovered && is_mouse_button_pressed(MouseButton::Left) {
                 // Stop pending startup work, but never claim it was installed/current.
                 // Cancellation failure must not strand an offline player at startup.
@@ -331,9 +369,15 @@ mod tests {
 
     #[test]
     fn only_confirmed_current_automatically_resolves_startup() {
-        for phase in [None, Some(UpdatePhase::Checking), Some(UpdatePhase::Paused),
-            Some(UpdatePhase::Cancelled), Some(UpdatePhase::Ready),
-            Some(UpdatePhase::Restarting), Some(UpdatePhase::Unavailable)] {
+        for phase in [
+            None,
+            Some(UpdatePhase::Checking),
+            Some(UpdatePhase::Paused),
+            Some(UpdatePhase::Cancelled),
+            Some(UpdatePhase::Ready),
+            Some(UpdatePhase::Restarting),
+            Some(UpdatePhase::Unavailable),
+        ] {
             let mut gate = StartupGate::default();
             gate.observe(phase);
             assert!(gate.blocked(), "{phase:?} must not be treated as success");
@@ -357,22 +401,54 @@ mod tests {
     #[test]
     fn all_resume_inputs_are_consumed_across_the_startup_boundary() {
         for held in [
-            SessionInput { esc_pressed: true, esc_down: true, ..Default::default() },
-            SessionInput { enter_pressed: true, enter_down: true, ..Default::default() },
-            SessionInput { click_pressed: true, click_down: true, ..Default::default() },
+            SessionInput {
+                esc_pressed: true,
+                esc_down: true,
+                ..Default::default()
+            },
+            SessionInput {
+                enter_pressed: true,
+                enter_down: true,
+                ..Default::default()
+            },
+            SessionInput {
+                click_pressed: true,
+                click_down: true,
+                ..Default::default()
+            },
         ] {
             let mut gate = StartupGate::default();
             let mut session = SessionController::default();
-            for phase in [UpdatePhase::Checking, UpdatePhase::Paused, UpdatePhase::Ready,
-                UpdatePhase::Restarting, UpdatePhase::Unavailable] {
+            for phase in [
+                UpdatePhase::Checking,
+                UpdatePhase::Paused,
+                UpdatePhase::Ready,
+                UpdatePhase::Restarting,
+                UpdatePhase::Unavailable,
+            ] {
                 gate.observe(Some(phase));
-                let transition = session.step(SessionInput { blocked: gate.blocked(), dt: 0.016, ..held });
+                let transition = session.step(SessionInput {
+                    blocked: gate.blocked(),
+                    dt: 0.016,
+                    ..held
+                });
                 assert!(!transition.active);
                 assert!(transition.discard_timing);
             }
             gate.continue_current();
-            assert!(!session.step(SessionInput { blocked: gate.blocked(), dt: 0.016, ..held }).active);
-            session.step(SessionInput { dt: 0.016, ..Default::default() });
+            assert!(
+                !session
+                    .step(SessionInput {
+                        blocked: gate.blocked(),
+                        dt: 0.016,
+                        ..held
+                    })
+                    .active
+            );
+            session.step(SessionInput {
+                dt: 0.016,
+                ..Default::default()
+            });
             assert!(session.step(SessionInput { dt: 0.016, ..held }).resumed);
         }
     }
