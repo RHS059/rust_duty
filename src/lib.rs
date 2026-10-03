@@ -38,3 +38,5 @@ pub mod animation_manifest;
 pub mod authored_reload;
 
 pub mod authored_walk;
+
+pub mod scene_lighting;

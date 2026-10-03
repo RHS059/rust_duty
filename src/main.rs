@@ -4,6 +4,7 @@ mod sound;
 mod weapon_model;
 use macroquad::prelude::*;
 use std::{fs::File, io::Write};
+use vector_range::scene_lighting::SceneLighting;
 use vector_range::{
     clock::FixedClock,
     control::{ButtonInput, ControlMode, ControlSample, ControlState, IntentLatch},
@@ -160,6 +161,7 @@ fn register_supply(sim: &mut Simulation, supply: &vector_range::ammo_supply::Amm
     });
 }
 fn world(sim: &Simulation, tex: &Texture2D) {
+    let lighting = SceneLighting::range();
     for b in &sim.blocks {
         let color = match b.kind {
             0 => Color::new(0.31, 0.38, 0.40, 1.),
@@ -168,18 +170,18 @@ fn world(sim: &Simulation, tex: &Texture2D) {
             4 => Color::new(0.22, 0.26, 0.28, 1.),
             _ => Color::new(0.43, 0.64, 0.66, 1.),
         };
-        draw_cube(b.bounds.center(), b.bounds.size(), Some(tex), color);
+        lighting.draw_cube(b.bounds.center(), b.bounds.size(), Some(tex), color);
         if b.kind == 4 {
             // Original geometric interaction fixture while reference art is pending.
             for x in [-0.26, 0.26] {
-                draw_cube(
+                lighting.draw_cube(
                     b.bounds.center() + vec3(x, 0.257, 0.),
                     vec3(0.06, 0.025, 0.51),
                     None,
                     ACCENT,
                 );
             }
-            draw_cube(
+            lighting.draw_cube(
                 b.bounds.center() + vec3(0., 0.04, -0.26),
                 vec3(0.22, 0.10, 0.025),
                 None,
@@ -207,17 +209,17 @@ fn world(sim: &Simulation, tex: &Texture2D) {
         );
     }
     for x in [-13., -3.5, 3.5, 13.] {
-        draw_cube(vec3(x, 0.01, -9.), vec3(0.07, 0.015, 44.), None, ACCENT);
+        lighting.draw_cube(vec3(x, 0.01, -9.), vec3(0.07, 0.015, 44.), None, ACCENT);
     }
     for z in [7., -3., -13., -23., -33.] {
-        draw_cube(vec3(0., 0.014, z), vec3(6.6, 0.018, 0.10), None, CYAN);
+        lighting.draw_cube(vec3(0., 0.014, z), vec3(6.6, 0.018, 0.10), None, CYAN);
     }
     for z in [-30., -18., -6., 6.] {
         for x in [-15.4, 15.4] {
-            draw_cube(vec3(x, 3., z), vec3(0.35, 6., 0.35), None, INK);
-            draw_cube(vec3(x * 0.96, 3.9, z), vec3(0.10, 0.10, 3.4), None, CYAN);
+            lighting.draw_cube(vec3(x, 3., z), vec3(0.35, 6., 0.35), None, INK);
+            lighting.draw_cube(vec3(x * 0.96, 3.9, z), vec3(0.10, 0.10, 3.4), None, CYAN);
         }
-        draw_cube(
+        lighting.draw_cube(
             vec3(0., 5.8, z),
             vec3(31., 0.22, 0.25),
             None,
@@ -250,11 +252,20 @@ fn world(sim: &Simulation, tex: &Texture2D) {
         let mut vertices = Vec::new();
         let mut indices = Vec::new();
         for face in faces {
+            // Match the existing outward triangle winding.
+            let normal = (points[face[1]] - points[face[0]])
+                .cross(points[face[2]] - points[face[0]])
+                .normalize();
             for index in face {
                 indices.push(vertices.len() as u16);
                 let point = points[index];
                 vertices.push(Vertex::new(
-                    point.x, point.y, point.z, point.x, point.z, color,
+                    point.x,
+                    point.y,
+                    point.z,
+                    point.x,
+                    point.z,
+                    lighting.shade(color, normal),
                 ));
             }
         }
@@ -274,8 +285,8 @@ fn world(sim: &Simulation, tex: &Texture2D) {
     }
     for t in &sim.targets {
         let c = t.bounds.center();
-        draw_cube(vec3(c.x, 0.18, c.z), vec3(1.2, 0.36, 0.65), None, INK);
-        draw_cube(
+        lighting.draw_cube(vec3(c.x, 0.18, c.z), vec3(1.2, 0.36, 0.65), None, INK);
+        lighting.draw_cube(
             vec3(c.x, 1.10, c.z + 0.18),
             vec3(0.09, 2., 0.09),
             None,
@@ -284,19 +295,19 @@ fn world(sim: &Simulation, tex: &Texture2D) {
         if t.health <= 0. {
             continue;
         }
-        draw_cube(
+        lighting.draw_cube(
             c,
             t.bounds.size(),
             Some(tex),
             if t.flash > 0. { WHITE } else { ACCENT },
         );
-        draw_cube(
+        lighting.draw_cube(
             vec3(c.x, c.y - 0.05, c.z + 0.135),
             vec3(0.28, 0.42, 0.018),
             None,
             INK,
         );
-        draw_cube(
+        lighting.draw_cube(
             vec3(c.x, c.y + 0.64, c.z + 0.135),
             vec3(0.34, 0.30, 0.018),
             None,
@@ -322,7 +333,7 @@ fn weapon(
     rt: &RenderTarget,
     aspect: f32,
     locomotion_state: &mut vector_range::locomotion_presentation::LocomotionPresentation,
-    model: Option<&weapon_model::WeaponModel>,
+    model: Option<&mut weapon_model::WeaponModel>,
     authored: Option<&mut authored_viewmodel::AuthoredViewmodel>,
     arms: Option<&mut vector_range::arms::ArmModel>,
     animation_state: &mut vector_range::view_animation::ViewAnimation,
@@ -330,6 +341,7 @@ fn weapon(
     framing: ViewmodelFraming,
     presentation_override: Option<f32>,
 ) {
+    let lighting = SceneLighting::range().in_view(sim.player.direction());
     set_camera(&Camera3D {
         position: Vec3::ZERO,
         target: vec3(0., 0., -1.),
@@ -347,7 +359,7 @@ fn weapon(
         Color::new(0., 0., 0., 0.)
     });
     if let Some(authored) = authored {
-        authored.draw(sim.time);
+        authored.draw(sim.time, lighting);
         composite_viewmodel(rt);
         return;
     }
@@ -428,7 +440,12 @@ fn weapon(
             .frames(body_frame, transform);
         if let Some(arms) = arms {
             if framing.hand_modes.is_some() || framing.left_grip_override.is_some() {
-                arms.draw_with_hand_modes(transform, &animation, animation.left_hand_blend);
+                arms.draw_with_hand_modes(
+                    transform,
+                    &animation,
+                    animation.left_hand_blend,
+                    lighting,
+                );
             } else {
                 arms.draw_with_weapon_ik(
                     &hand_frames.targets,
@@ -437,6 +454,7 @@ fn weapon(
                     hand_frames.free_hands,
                     hand_frames.influences,
                     animation.left_hand_blend,
+                    lighting,
                 );
             }
         }
@@ -446,6 +464,7 @@ fn weapon(
                 .hand_presentation()
                 .held_magazine_matrix(body_frame, transform),
             &animation,
+            lighting,
         );
     } else {
         let dark = Color::new(0.105, 0.14, 0.16, 1.);
@@ -475,11 +494,11 @@ fn weapon(
             ),
         ];
         for (pos, size, color) in parts {
-            draw_cube(o + pos, size, None, color);
+            lighting.draw_cube(o + pos, size, None, color);
             draw_cube_wires(o + pos, size, Color::new(0.035, 0.05, 0.06, 1.));
         }
         for i in 0..6 {
-            draw_cube(
+            lighting.draw_cube(
                 o + vec3(0., 0.047, -0.28 - i as f32 * 0.038),
                 vec3(0.073, 0.012, 0.014),
                 None,
@@ -936,7 +955,7 @@ async fn main() {
             &model_source,
             vector_range::asset_path::WeaponSource::Missing(_)
         );
-    let model = if authored_path.is_some() {
+    let mut model = if authored_path.is_some() {
         None
     } else {
         match vector_range::asset_path::load_weapon(&model_source, vector_range::EMBEDDED_WEAPON) {
@@ -982,6 +1001,17 @@ async fn main() {
     } else {
         None
     };
+    let capture_lighting = args.iter().any(|s| s == "--capture-lighting");
+    let capture_angle = |prefix: &str, default: f32| {
+        args.iter()
+            .find_map(|arg| arg.strip_prefix(prefix))
+            .and_then(|value| value.parse::<f32>().ok())
+            .filter(|v| v.is_finite())
+            .unwrap_or(default)
+            .to_radians()
+    };
+    let lighting_yaw = capture_angle("--capture-yaw=", -90.);
+    let lighting_pitch = capture_angle("--capture-pitch=", 0.).clamp(-1.5, 1.5);
     let capture = args.iter().any(|s| s.starts_with("--capture"));
     let capture_ads = args.iter().any(|s| s == "--capture-ads");
     let capture_supply = args.iter().any(|s| s == "--capture-supply");
@@ -1134,12 +1164,15 @@ async fn main() {
             next_frame().await;
             continue;
         }
-        let simulation_dt =
-            if transition.discard_timing || capture_supply || capture_sequence.is_some() {
-                0.
-            } else {
-                raw_dt.min(FixedClock::MAX_FRAME)
-            };
+        let simulation_dt = if transition.discard_timing
+            || capture_supply
+            || capture_sequence.is_some()
+            || capture_lighting
+        {
+            0.
+        } else {
+            raw_dt.min(FixedClock::MAX_FRAME)
+        };
         if is_key_pressed(KeyCode::M) {
             audio.muted = !audio.muted;
             notice = if audio.muted {
@@ -1457,6 +1490,12 @@ async fn main() {
             sim.player.reload_left = sim.player.reload_total * (1. - phase);
             sim.player.reload_ready_at = sim.time + sim.player.reload_left as f64;
         }
+        if capture_lighting {
+            sim.time = 0.;
+            sim.player.yaw = lighting_yaw;
+            sim.player.pitch = lighting_pitch;
+            sim.player.recoil = Vec2::ZERO;
+        }
         notice_timer = (notice_timer - dt).max(0.);
         clear_background(Color::new(0.66, 0.76, 0.78, 1.));
         let aspect = if framing.reference {
@@ -1479,6 +1518,16 @@ async fn main() {
             ..Default::default()
         });
         world(&sim, &texture);
+        if capture_lighting && frames == 8 {
+            // Record the actual range pass before the overlay/HUD can cover it.
+            get_screen_data().export_png(&format!("{output}.world.png"));
+            let light = SceneLighting::range().in_view(forward);
+            let world = SceneLighting::range();
+            let _ = std::fs::write(format!("{output}.lighting.json"), format!(
+                "{{\"schema\":\"rust-duty-lighting-capture/v1\",\"yaw_degrees\":{},\"pitch_degrees\":{},\"world_light\":[{},{},{}],\"view_light\":[{},{},{}],\"ambient\":{},\"diffuse\":{},\"simulation_time\":{}}}",
+                lighting_yaw.to_degrees(), lighting_pitch.to_degrees(), world.direction_to_light.x, world.direction_to_light.y, world.direction_to_light.z,
+                light.direction_to_light.x, light.direction_to_light.y, light.direction_to_light.z, light.ambient, light.diffuse, sim.time));
+        }
         for t in &traces {
             draw_line_3d(
                 t.shot.start + forward * 0.6,
@@ -1500,7 +1549,7 @@ async fn main() {
                 &target,
                 aspect,
                 &mut locomotion_state,
-                model.as_ref(),
+                model.as_mut(),
                 authored.as_mut(),
                 arms.as_mut(),
                 &mut animation_state,

@@ -1,5 +1,6 @@
 //! Opt-in playback adapter for Blender-baked viewmodels. No procedural posing.
 use macroquad::prelude::*;
+use vector_range::scene_lighting::SceneLighting;
 use vector_range::{
     animation_manifest::AnimationManifest,
     authored_locomotion_path::{AuthoredLocomotionPath, AuthoredLocomotionPathState},
@@ -317,16 +318,20 @@ impl AuthoredViewmodel {
             }
         }
     }
-    pub fn draw(&mut self, simulation_time: f64) {
+    pub fn draw(&mut self, simulation_time: f64, lighting: SceneLighting) {
         if self.error.is_some() {
             return;
         }
-        if let Err(error) = self.draw_checked(simulation_time) {
+        if let Err(error) = self.draw_checked(simulation_time, lighting) {
             eprintln!("Authored viewmodel playback failed: {error}");
             self.error = Some(error);
         }
     }
-    fn draw_checked(&mut self, simulation_time: f64) -> Result<(), String> {
+    fn draw_checked(
+        &mut self,
+        simulation_time: f64,
+        lighting: SceneLighting,
+    ) -> Result<(), String> {
         if let Some(sample) = self.reload.as_ref().and_then(AuthoredReload::sample) {
             let slot = if sample.slot == ReloadSlot::Empty {
                 1
@@ -339,7 +344,7 @@ impl AuthoredViewmodel {
                 .animation
                 .sample_clamped(&renderer.clip, sample.seconds as f32)
                 .map_err(|e| e.to_string())?;
-            return renderer.draw_pose(&pose);
+            return renderer.draw_pose(&pose, lighting);
         }
         if let (Some(index), Some(seconds)) = (self.walk_index, self.walk.seconds()) {
             let renderer = &mut self.reload_renderers[index];
@@ -347,11 +352,11 @@ impl AuthoredViewmodel {
                 .animation
                 .sample(&renderer.clip, seconds as f32)
                 .map_err(|e| e.to_string())?;
-            return renderer.draw_pose(&pose);
+            return renderer.draw_pose(&pose, lighting);
         }
         if let Some(path) = &self.locomotion {
             let pose = path.pose().clone();
-            return self.draw_pose(&pose);
+            return self.draw_pose(&pose, lighting);
         }
         let time = self.fixed_time.unwrap_or(simulation_time as f32);
         let pose = if self.fixed_time.is_some() {
@@ -360,18 +365,21 @@ impl AuthoredViewmodel {
             self.animation().sample(&self.clip, time)
         }
         .map_err(|e| e.to_string())?;
-        self.draw_pose(&pose)
+        self.draw_pose(&pose, lighting)
     }
     /// Render one complete evaluated pose from this animation set. The gameplay
     /// adapter owns which presentation supplies it; no two pose owners are mixed
     /// here. Skin and actor dimension/transform validation is retained.
-    pub fn draw_pose(&mut self, pose: &ViewmodelPose) -> Result<(), String> {
+    pub fn draw_pose(
+        &mut self,
+        pose: &ViewmodelPose,
+        lighting: SceneLighting,
+    ) -> Result<(), String> {
         let palette = self
             .animation
             .skin_palette(pose, &self.skin.bones, game_model_root())
             .map_err(|e| e.to_string())?;
         let normals: Vec<_> = palette.iter().map(|m| m.inverse().transpose()).collect();
-        let light = vec3(-0.3, 0.8, 0.5).normalize();
         for batch in &mut self.batches {
             let part = &self.skin.meshes[batch.source_mesh];
             for (vertex, &index) in batch.mesh.vertices.iter_mut().zip(&batch.source_vertices) {
@@ -387,7 +395,7 @@ impl AuthoredViewmodel {
                     }
                 }
                 n = n.try_normalize().unwrap_or(Vec3::Y);
-                let shade = 0.35 + 0.65 * n.dot(light).max(0.);
+                let shade = lighting.irradiance(n);
                 vertex.position = p;
                 vertex.normal = n.extend(0.);
                 vertex.color = Color::new(
@@ -412,7 +420,8 @@ impl AuthoredViewmodel {
                 visibility[mesh] = pose.actor_visible[index];
             }
         }
-        self.weapon.draw_authored_parts(&transforms, &visibility);
+        self.weapon
+            .draw_authored_parts(&transforms, &visibility, lighting);
         Ok(())
     }
 }
