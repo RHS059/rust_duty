@@ -1,0 +1,142 @@
+{
+  "candidate_sha256": "6d6d5c6a150bd8d74f24b29bf18b192e2f5fe2cd93a531c77b7a1e5ce93a8b35",
+  "scope": "Independent arithmetic on native60Hz projected visible landmarks; author480Hz guards separately labeled. Dense pixel/no-reset conclusion pending.",
+  "actions": {
+    "hip_strafe_left_r1": {
+      "samples": 50,
+      "unique_frames": 49,
+      "full_cycle_endpoint_landmark_errors_px": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "native_wrap_step_px_by_landmark": [
+        0.834536778583866,
+        1.6909926807998703,
+        0.1589378746500884
+      ],
+      "maximum_interior_step_px_by_landmark": [
+        1.7817903232448882,
+        7.624799919609086,
+        4.30327995277028
+      ],
+      "native_wrap_axis_step_degrees": 0.5153839685101502,
+      "endpoint_axis_error_degrees": 0.0,
+      "reported480Hz_wrist_error_m": [
+        6.619312548258089e-07,
+        5.234529993012636e-07
+      ],
+      "reported480Hz_guard_error_degrees": [
+        0.0,
+        0.0
+      ],
+      "reported480Hz_hand_relative_root_drift": [
+        1.0132789611816406e-06,
+        7.748603820800781e-07
+      ],
+      "independent_source_integrity": "Integrator separately verifies preservation and export; this file does not claim to repeat that test."
+    },
+    "hip_strafe_right_r1": {
+      "samples": 50,
+      "unique_frames": 49,
+      "full_cycle_endpoint_landmark_errors_px": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "native_wrap_step_px_by_landmark": [
+        3.8608469297691093,
+        2.990818377063791,
+        2.7578953831212942
+      ],
+      "maximum_interior_step_px_by_landmark": [
+        2.9024900250082064,
+        5.672422670541937,
+        4.222875219440807
+      ],
+      "native_wrap_axis_step_degrees": 0.7566475757375315,
+      "endpoint_axis_error_degrees": 0.0,
+      "reported480Hz_wrist_error_m": [
+        6.061364712552924e-07,
+        4.0288286908256337e-07
+      ],
+      "reported480Hz_guard_error_degrees": [
+        0.0,
+        0.0
+      ],
+      "reported480Hz_hand_relative_root_drift": [
+        9.5367431640625e-07,
+        9.5367431640625e-07
+      ],
+      "independent_source_integrity": "Integrator separately verifies preservation and export; this file does not claim to repeat that test."
+    },
+    "hip_walk_backward_r1": {
+      "samples": 46,
+      "unique_frames": 45,
+      "full_cycle_endpoint_landmark_errors_px": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "native_wrap_step_px_by_landmark": [
+        1.3650671608459009,
+        4.014770658656519,
+        2.184767287287443
+      ],
+      "maximum_interior_step_px_by_landmark": [
+        1.7465393685342405,
+        6.544616651304002,
+        3.960050300855286
+      ],
+      "native_wrap_axis_step_degrees": 0.6091367010772046,
+      "endpoint_axis_error_degrees": 0.0,
+      "reported480Hz_wrist_error_m": [
+        6.289041437052741e-07,
+        4.0944313001734275e-07
+      ],
+      "reported480Hz_guard_error_degrees": [
+        0.0,
+        0.0
+      ],
+      "reported480Hz_hand_relative_root_drift": [
+        8.940696716308594e-07,
+        7.748603820800781e-07
+      ],
+      "independent_source_integrity": "Integrator separately verifies preservation and export; this file does not claim to repeat that test."
+    },
+    "hip_walk_forward_r1": {
+      "samples": 39,
+      "unique_frames": 38,
+      "full_cycle_endpoint_landmark_errors_px": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "native_wrap_step_px_by_landmark": [
+        1.7755538861100415,
+        6.510654648906063,
+        3.0020895905098652
+      ],
+      "maximum_interior_step_px_by_landmark": [
+        8.478337236586972,
+        12.643021891094252,
+        8.669308074721599
+      ],
+      "native_wrap_axis_step_degrees": 0.11471717444365481,
+      "endpoint_axis_error_degrees": 0.0,
+      "reported480Hz_wrist_error_m": [
+        6.069937302062238e-07,
+        4.1322185468262575e-07
+      ],
+      "reported480Hz_guard_error_degrees": [
+        0.0,
+        0.0
+      ],
+      "reported480Hz_hand_relative_root_drift": [
+        8.940696716308594e-07,
+        6.556510925292969e-07
+      ],
+      "independent_source_integrity": "Integrator separately verifies preservation and export; this file does not claim to repeat that test."
+    }
+  }
+}

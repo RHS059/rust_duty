@@ -1,0 +1,237 @@
+{
+  "schema": "directional-hip-source-review-final/v1",
+  "revision": "candidate_v06",
+  "source_blend_sha256": "6d6d5c6a150bd8d74f24b29bf18b192e2f5fe2cd93a531c77b7a1e5ce93a8b35",
+  "status": "WIP source handoff. Three narrow periodic cores pass; backward extrema timing is inconclusive. No all-four full-window/overall pose/runtime80% claim.",
+  "review_independence": "Reviewer measured original source pixels, specified the source/score contracts, inspected candidate pixels and independently computed errors/continuity. Reviewer did not edit animation, native rig, or candidate rendering.",
+  "full_score_scope": "Original pose equivalence failed. Fullwindow v2 evidence and failures retained. v3 scores are in-sample native-asset transfer against declared authoring cores only.",
+  "timing": {
+    "source_fps": "60/1",
+    "source_time_base": "1/15360",
+    "source_pts_formula": "n*256",
+    "candidate_fps": "60/1",
+    "camera_resolution": [
+      1280,
+      720
+    ],
+    "camera_fov_horizontal_degrees": 76,
+    "comparison": "source n maps to candidateframe=((n-phase_offset_frames)%period_frames)+1; exactly one phase offset per sourcewindow; no retiming"
+  },
+  "visual_review": {
+    "front_native_frames_available": 185,
+    "front_review": "Every3rd native frame over every Action (20Hz), exact duplicated endpoints, and actual last-unique\u2192endpoint\u2192first\u2192second seam views with projected landmark overlays",
+    "front_sampled_frames_including_endpoints": 66,
+    "contact_views_reviewed": 32,
+    "contact_views": "Four cuff-XY extrema perAction; side and underside witness perextremum",
+    "pixel_finding": "Visible hand contact is stable; no observed detachment, sudden reach, wrist flip or pose reset in reviewed dense sequences/witnesses. Existing native model anatomy/proportions remain distinct from source shotgun.",
+    "source_pixels": "All declared source windows reviewed every3rd rawframe; local-only annotations. No original/derived third-party images or footage in this public-safe numeric packet."
+  },
+  "hard_gate_status": {
+    "candidate_contact": "pass",
+    "candidate_local_loop_continuity": "pass",
+    "wrong_runtime_direction_or_clip": "pending_Aella_runtime",
+    "ADS_alignment": "not_in_hip_review_scope_pending_Aella",
+    "start_stop_reversal_blend": "pending_Aella_runtime",
+    "production_export_semantics": "independent_integrator_owned"
+  },
+  "actions": {
+    "hip_walk_forward_r1": {
+      "core_source": "R2",
+      "core_frames_half_open": [
+        48,
+        86
+      ],
+      "period_frames": 38,
+      "period_seconds": 0.6333333333333333,
+      "motion_score_earned": 60.0,
+      "motion_score_predeclared_denominator": 60,
+      "motion_score_percent": 100.0,
+      "support_weight_points": 60,
+      "support_note": "All motion clauses supported in this narrow core comparison.",
+      "comparable_landmark_sample_coverage": 1.0,
+      "category_points": {
+        "timing_cadence": 20,
+        "translational_sway": 20,
+        "angular_motion": 15.0,
+        "local_loop_continuity": 5.0
+      },
+      "category_maxima": {
+        "timing_cadence": 20,
+        "translational_sway": 20,
+        "angular_motion": 15,
+        "local_loop_continuity": 5
+      },
+      "all_categories_at_least60percent": true,
+      "narrow_core_acceptance": "pass_for_narrow_in_sample_motion_core_only",
+      "xy_motion_rms_reference_pixels": 5.2869522574676475,
+      "mean_centered_angular_rms_degrees": 0.4708391550455138,
+      "amplitude_all6_components_pass": true,
+      "max_extrema_timing_error_frames": 2.0,
+      "contact": "pass",
+      "exact_endpoint_landmark_error_pixels": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "max_native_wrap_step_pixels": 6.510654648906063,
+      "native_wrap_axis_step_degrees": 0.11471717444365481,
+      "source_curve_uncertainty_note": null,
+      "support_weight_fraction_of_declared_motion_scope": 1.0,
+      "inconclusive_weight_points": 0,
+      "denominator_handling": "All60 motion points supportable for narrow core."
+    },
+    "hip_walk_backward_r1": {
+      "core_source": "R2",
+      "core_frames_half_open": [
+        211,
+        256
+      ],
+      "period_frames": 45,
+      "period_seconds": 0.75,
+      "motion_score_earned": 50.0,
+      "motion_score_predeclared_denominator": 60,
+      "motion_score_percent": 83.33333333333334,
+      "support_weight_points": 50,
+      "support_note": "Backward timing detector remains evaluated as failed; precise timing evidence for that flat peak is inconclusive. No posthoc points awarded or denominator removal.",
+      "comparable_landmark_sample_coverage": 1.0,
+      "category_points": {
+        "timing_cadence": 10,
+        "translational_sway": 20,
+        "angular_motion": 15.0,
+        "local_loop_continuity": 5.0
+      },
+      "category_maxima": {
+        "timing_cadence": 20,
+        "translational_sway": 20,
+        "angular_motion": 15,
+        "local_loop_continuity": 5
+      },
+      "all_categories_at_least60percent": false,
+      "narrow_core_acceptance": "inconclusive_due_flat_extremum; no formal pass",
+      "xy_motion_rms_reference_pixels": 1.1546937954121952,
+      "mean_centered_angular_rms_degrees": 0.2866447292007972,
+      "amplitude_all6_components_pass": true,
+      "max_extrema_timing_error_frames": 8.0,
+      "contact": "pass",
+      "exact_endpoint_landmark_error_pixels": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "max_native_wrap_step_pixels": 4.014770658656519,
+      "native_wrap_axis_step_degrees": 0.6091367010772046,
+      "source_curve_uncertainty_note": "MuzzleX frames236\u2013246 stay703\u2013704px. Algorithm selects sourceframe245 and candidatepeak8frames away despite1px variation, below primary\u22483px localization uncertainty. Preserve strict failed clause; do not retune or claim an unambiguous timing pass.",
+      "support_weight_fraction_of_declared_motion_scope": 0.8333333333333334,
+      "inconclusive_weight_points": 10,
+      "denominator_handling": "Conservative60-point predefined denominator retained. Inconclusive timing is not awarded and no50/50=100% score is claimed."
+    },
+    "hip_strafe_left_r1": {
+      "core_source": "R2",
+      "core_frames_half_open": [
+        886,
+        935
+      ],
+      "period_frames": 49,
+      "period_seconds": 0.8166666666666667,
+      "motion_score_earned": 60.0,
+      "motion_score_predeclared_denominator": 60,
+      "motion_score_percent": 100.0,
+      "support_weight_points": 60,
+      "support_note": "All motion clauses supported in this narrow core comparison.",
+      "comparable_landmark_sample_coverage": 1.0,
+      "category_points": {
+        "timing_cadence": 20,
+        "translational_sway": 20,
+        "angular_motion": 15.0,
+        "local_loop_continuity": 5.0
+      },
+      "category_maxima": {
+        "timing_cadence": 20,
+        "translational_sway": 20,
+        "angular_motion": 15,
+        "local_loop_continuity": 5
+      },
+      "all_categories_at_least60percent": true,
+      "narrow_core_acceptance": "pass_for_narrow_in_sample_motion_core_only",
+      "xy_motion_rms_reference_pixels": 1.0480322802034907,
+      "mean_centered_angular_rms_degrees": 0.6253829262249474,
+      "amplitude_all6_components_pass": true,
+      "max_extrema_timing_error_frames": 2.0,
+      "contact": "pass",
+      "exact_endpoint_landmark_error_pixels": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "max_native_wrap_step_pixels": 1.6909926807998703,
+      "native_wrap_axis_step_degrees": 0.5153839685101502,
+      "source_curve_uncertainty_note": null,
+      "support_weight_fraction_of_declared_motion_scope": 1.0,
+      "inconclusive_weight_points": 0,
+      "denominator_handling": "All60 motion points supportable for narrow core."
+    },
+    "hip_strafe_right_r1": {
+      "core_source": "R1",
+      "core_frames_half_open": [
+        361,
+        410
+      ],
+      "period_frames": 49,
+      "period_seconds": 0.8166666666666667,
+      "motion_score_earned": 60.0,
+      "motion_score_predeclared_denominator": 60,
+      "motion_score_percent": 100.0,
+      "support_weight_points": 60,
+      "support_note": "All motion clauses supported in this narrow core comparison.",
+      "comparable_landmark_sample_coverage": 1.0,
+      "category_points": {
+        "timing_cadence": 20,
+        "translational_sway": 20,
+        "angular_motion": 15.0,
+        "local_loop_continuity": 5.0
+      },
+      "category_maxima": {
+        "timing_cadence": 20,
+        "translational_sway": 20,
+        "angular_motion": 15,
+        "local_loop_continuity": 5
+      },
+      "all_categories_at_least60percent": true,
+      "narrow_core_acceptance": "pass_for_narrow_in_sample_motion_core_only",
+      "xy_motion_rms_reference_pixels": 1.1363099315408334,
+      "mean_centered_angular_rms_degrees": 0.16584689052012938,
+      "amplitude_all6_components_pass": true,
+      "max_extrema_timing_error_frames": 1.0,
+      "contact": "pass",
+      "exact_endpoint_landmark_error_pixels": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "max_native_wrap_step_pixels": 3.8608469297691093,
+      "native_wrap_axis_step_degrees": 0.7566475757375315,
+      "source_curve_uncertainty_note": null,
+      "support_weight_fraction_of_declared_motion_scope": 1.0,
+      "inconclusive_weight_points": 0,
+      "denominator_handling": "All60 motion points supportable for narrow core."
+    }
+  },
+  "unresolved_envelope": {
+    "R2_right_original_window": [
+      720,
+      786
+    ],
+    "R1_right_original_window": [
+      330,
+      450
+    ],
+    "clean_core": [
+      361,
+      410
+    ],
+    "finding": "Right clean core muzzleY\u22488px, original R1fullwindow25px. Do not amplify a repeated loop to imitate nonperiodic settling. Keep blend_in/out direction/carry envelope work with Aella.",
+    "all_directions": "Full original primary/secondary windows and nearby60Hz transition brackets remain the envelope/runtime comparison. Source input-event timing is hidden.",
+    "runtime_acceptance": "Aella verifies idle\u2192walk\u2192stop, taps, forward/back and left/right reversal, diagonal switching, heldADS and ADS enter/exit at30 and60fps, with action identity/phase/blend trace."
+  },
+  "source_exclusions": "R1right muzzle[418,429),R1left muzzle[531,549); exact flags/uncertainty in reference_tracks_validated.csv. None intersect final core ranges. Firing wrist unobservable; no fabricated track or score."
+}
