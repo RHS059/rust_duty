@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T22:03:06Z",
+  "updatedAt": "2026-10-03T22:17:35Z",
   "state": "active",
-  "task": "Retrying 0.1.5 release publication and verifying the old-client upgrade while coordinating ADS preview publication and review.",
-  "lastCompleted": "Complete Windows/Linux builds and updater checks passed; 0.1.5 bundles and ZIPs remain uploaded to the draft release. ADS previews are ready for publication and review.",
+  "task": "Preparing version 0.1.5 update delivery and refining ADS previews.",
+  "lastCompleted": "Complete Windows/Linux builds and updater checks passed. Forward v9 and lateral Trial4 preview captures passed QA.",
   "agents": [
     {
       "slot": 1,
-      "state": "idle",
-      "task": "Forward ADS v9 awaits publication and independent motion review.",
+      "state": "active",
+      "task": "Refining forward ADS timing and preview presentation; v9 awaits publication and independent motion review.",
       "lastCompleted": "Both 126-frame v9 videos passed capture, encoding and frame QA; v8 remains the scored candidate at Fail54."
     },
     {
