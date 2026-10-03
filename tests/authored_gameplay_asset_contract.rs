@@ -89,7 +89,12 @@ fn real_forward_movement_plays_bound_walk_then_returns_to_ready() {
     };
     let (animation, skin, _) = AnimationSet::load_with_companions(&reference.asset).unwrap();
     AuthoredWalk::validate_clip(&animation, &reference.clip).unwrap();
-    let duration = animation.clips().iter().find(|clip| clip.name == reference.clip).unwrap().duration();
+    let duration = animation
+        .clips()
+        .iter()
+        .find(|clip| clip.name == reference.clip)
+        .unwrap()
+        .duration();
     let mut simulation = Simulation::new();
     let mut baseline = Simulation::new();
     let initial_position = simulation.player.position;
@@ -101,7 +106,11 @@ fn real_forward_movement_plays_bound_walk_then_returns_to_ready() {
     for _ in 0..444 {
         let start = simulation.time;
         let input = Input {
-            movement: if (0.25..2.25).contains(&start) { macroquad::math::Vec2::Y } else { macroquad::math::Vec2::ZERO },
+            movement: if (0.25..2.25).contains(&start) {
+                macroquad::math::Vec2::Y
+            } else {
+                macroquad::math::Vec2::ZERO
+            },
             ..Input::default()
         };
         simulation.update(input, &settings, 1. / 120.);
@@ -109,13 +118,28 @@ fn real_forward_movement_plays_bound_walk_then_returns_to_ready() {
         assert_eq!(simulation.player.position, baseline.player.position);
         assert_eq!(simulation.player.velocity, baseline.player.velocity);
         assert!(!simulation.player.sprinting);
-        walk.committed_step(start, simulation.time, simulation.player.grounded && simulation.player.speed() > 0.1, true).unwrap();
+        walk.committed_step(
+            start,
+            simulation.time,
+            simulation.player.grounded && simulation.player.speed() > 0.1,
+            true,
+        )
+        .unwrap();
         if let Some(seconds) = walk.seconds() {
             assert!(seconds > previous_seconds);
             previous_seconds = seconds;
             let pose = animation.sample(&reference.clip, seconds as f32).unwrap();
-            assert!(!animation.skin_palette(&pose, &skin.bones, game_model_root()).unwrap().is_empty());
-            assert_eq!(animation.actor_matrices(&pose, game_model_root()).unwrap().len(), animation.actors().len());
+            assert!(!animation
+                .skin_palette(&pose, &skin.bones, game_model_root())
+                .unwrap()
+                .is_empty());
+            assert_eq!(
+                animation
+                    .actor_matrices(&pose, game_model_root())
+                    .unwrap()
+                    .len(),
+                animation.actors().len()
+            );
             samples += 1;
             moved |= simulation.player.position.distance(initial_position) > 0.5;
         }

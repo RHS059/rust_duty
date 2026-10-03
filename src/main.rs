@@ -1397,10 +1397,14 @@ async fn main() {
             while sim.time + f64::from(FIXED_DT) <= f64::from(sequence_elapsed) + 1e-7 {
                 let start = sim.time;
                 let reload = capture_sequence == Some("gameplay-reload")
-                    && !gameplay_reload_issued && start >= 0.25;
-                let movement = if capture_sequence == Some("gameplay-walk") && (0.25..2.25).contains(&start) {
-                    Vec2::Y
-                } else { Vec2::ZERO };
+                    && !gameplay_reload_issued
+                    && start >= 0.25;
+                let movement =
+                    if capture_sequence == Some("gameplay-walk") && (0.25..2.25).contains(&start) {
+                        Vec2::Y
+                    } else {
+                        Vec2::ZERO
+                    };
                 gameplay_reload_issued |= reload;
                 sim.update(
                     Input {
@@ -1622,11 +1626,22 @@ async fn main() {
             }
             if capture_sequence == Some("gameplay-walk") {
                 let native = authored.as_ref().and_then(|model| model.walk_sample());
-                let route = if native.is_some() { "regular_walk" } else { "locomotion" };
-                let native = native.map(|seconds| seconds.to_string()).unwrap_or_else(|| "null".into());
-                let duration = authored.as_ref().and_then(|model| model.walk_duration())
-                    .map(|seconds| seconds.to_string()).unwrap_or_else(|| "null".into());
-                let failed = authored.as_ref().is_none_or(|model| model.error().is_some());
+                let route = if native.is_some() {
+                    "regular_walk"
+                } else {
+                    "locomotion"
+                };
+                let native = native
+                    .map(|seconds| seconds.to_string())
+                    .unwrap_or_else(|| "null".into());
+                let duration = authored
+                    .as_ref()
+                    .and_then(|model| model.walk_duration())
+                    .map(|seconds| seconds.to_string())
+                    .unwrap_or_else(|| "null".into());
+                let failed = authored
+                    .as_ref()
+                    .is_none_or(|model| model.error().is_some());
                 let _ = std::fs::write(format!("{output}.gameplay.json"), format!(
                     "{{\"simulation_time\":{},\"route\":\"{}\",\"native_clip_seconds\":{},\"clip_duration\":{},\"speed\":{},\"grounded\":{},\"sprinting\":{},\"position\":[{},{},{}],\"renderer_failed\":{}}}",
                     sim.time, route, native, duration, sim.player.speed(), sim.player.grounded, sim.player.sprinting,

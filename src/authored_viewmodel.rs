@@ -204,12 +204,18 @@ impl AuthoredViewmodel {
         self.reload.as_ref().and_then(AuthoredReload::sample)
     }
     pub fn walk_sample(&self) -> Option<f64> {
-        if self.reload_sample().is_some() { return None; }
+        if self.reload_sample().is_some() {
+            return None;
+        }
         self.walk.seconds()
     }
     pub fn walk_duration(&self) -> Option<f64> {
         let renderer = self.reload_renderers.get(self.walk_index?)?;
-        renderer.animation.clips().iter().find(|clip| clip.name == renderer.clip)
+        renderer
+            .animation
+            .clips()
+            .iter()
+            .find(|clip| clip.name == renderer.clip)
             .map(|clip| f64::from(clip.duration()))
     }
     pub fn tactical_duration(&self) -> Option<f64> {
