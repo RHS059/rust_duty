@@ -1,15 +1,15 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T22:42:55Z",
+  "updatedAt": "2026-10-03T22:53:23Z",
   "state": "active",
-  "task": "Fixing Alt-Tab cursor focus, adding persistent per-weapon XYZ walking sliders, and automating patch releases after merged PRs.",
+  "task": "Integrating forward ADS v9 WIP, fixing cursor focus and walking sliders, and preparing patch releases after merged PRs.",
   "lastCompleted": "Version 0.1.5 is public. Real Windows/Linux 0.1.4 upgrades passed, verifying 70 managed files and preserving 85 root-file and synthetic private-data checks.",
   "agents": [
     {
       "slot": 1,
-      "state": "unknown",
-      "task": "Forward ADS source preservation awaits a progress check; v9 awaits publication and independent motion review.",
-      "lastCompleted": "Both 126-frame v9 videos passed capture, encoding and frame QA; v8 remains the scored candidate at Fail54."
+      "state": "active",
+      "task": "Integrating forward ADS v9 WIP into runtime outputs while preserving the authored source.",
+      "lastCompleted": "V9 source and native mapping checks are published in draft PR #23; local-LRS baking still fails its tolerance and motion review remains pending."
     },
     {
       "slot": 2,
