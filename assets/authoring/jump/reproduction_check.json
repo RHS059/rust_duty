@@ -2,14 +2,14 @@
   "schema": "rust-duty-jump-reproduction/v1",
   "passed": true,
   "checks": {
-    "all_91_action_curves_identical": true,
+    "all_94_action_curves_identical": true,
     "all_nla_drivers_images_identical": true,
     "all_structural_snapshots_identical": true,
     "both_preservation_passes": true
   },
-  "method": "Fresh Blender 4.3.2 process reran author_jump.py (the local r3-named copy of the published author script) from frozen jump r2 into an isolated temporary output, then freshly reopened it for comparison",
-  "source_sha256": "ade77291cf65a6e2bd8563ebe7449a3b64e8df2f504dc6d2cdf0e93b534064fd",
-  "candidate_sha256": "cad1c8e661bc10a8ac2db6017598c1cc0daafdec6b09576e9b78d85edf4f642f",
-  "reproduced_blend_sha256": "250f3bc798d1ec8b1602f2a009323fd93017aa49b625fc54d725b823b0f7a4aa",
+  "method": "Fresh Blender 4.3.2 process reran the author script from frozen jump r3 into an isolated temporary output, then freshly reopened it for comparison",
+  "source_sha256": "cad1c8e661bc10a8ac2db6017598c1cc0daafdec6b09576e9b78d85edf4f642f",
+  "candidate_sha256": "e6e59edeac62accc185d2b53a9fe5eab7d876b0a64a404bba1495b9875e2482e",
+  "reproduced_blend_sha256": "352fedd8aa876ba7918b711d5fa3b8774536111eca621f1e43f40c8e12319301",
   "note": "Blender files need not be byte-identical; deterministic content compared through exact Action, NLA, driver, image and structural fingerprints."
 }

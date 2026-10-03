@@ -1,5 +1,5 @@
 {
-  "source_sha256": "ade77291cf65a6e2bd8563ebe7449a3b64e8df2f504dc6d2cdf0e93b534064fd",
+  "source_sha256": "cad1c8e661bc10a8ac2db6017598c1cc0daafdec6b09576e9b78d85edf4f642f",
   "preserved": {
     "actions": {
       "hip_strafe_left_r1": "63a0fbd25eb96f442aa5edbdf727a72dd41e451332117206cb1744dec53e21b9",
@@ -28,10 +28,13 @@
       "hk416a5_ik": "ac4751eb97dae3f029fb7efefb5c8675b42128afbdb69ea20fe6c4b6b4949383",
       "jump_air_r1": "12032e38db4d4f88bc13d616b572148d0b583820cb423c403c8e70581278312f",
       "jump_air_r2": "12032e38db4d4f88bc13d616b572148d0b583820cb423c403c8e70581278312f",
+      "jump_air_r3": "12032e38db4d4f88bc13d616b572148d0b583820cb423c403c8e70581278312f",
       "jump_land_r1": "3414e6dca26ac31f146f902f67d080c0e2231c16413b832b7042a7eee106bf37",
       "jump_land_r2": "fc2b2307a9aa416d9314cb8251c77669b13d17d2a164de359d701ae0900f0d7a",
+      "jump_land_r3": "e022966a21790eca0a3dc05222809d34370f23f4b8ffb03bb258f73230fb97aa",
       "jump_takeoff_r1": "fe75a441643b4644d1a85e19f209363e731d36d2a6788ff223b37b892b16c5e7",
       "jump_takeoff_r2": "2192efd3461f54ca0a8c9083d12b9232cede8d2035232ef1d136668cde7d7e6b",
+      "jump_takeoff_r3": "d6410fbfebc1529a0e4a1b5c7b72fcc033a238fbdbdce0fc88ca3e3b02c4f30a",
       "normal_walk_r1": "7fd10685b49a64c6715aa5e0759c00a6b7a279ebf1be847a1f156454227798a6",
       "RD_00_Supplied_Base_Guarded_Recovered": "49b7da5f9d6ea12be52bade40b09aeb67d6adc6eb34a1a7026e3f111b3c61ed8",
       "RD_00_Supplied_Base_Recovered": "162000c7af797d2cdb0c3142f8684decb465deab16127da0589c5a02712570f7",
@@ -5325,6 +5328,24 @@
           "purpose": "Identical ready endpoints; statically hold or repeat for any remaining flight time, without bob or a baked world arc"
         }
       },
+      "jump_air_r3": {
+        "use_fake_user": true,
+        "properties": {
+          "runtime_id": "jump_air",
+          "authoring_fps": 60,
+          "duration_seconds": 0.016666666666666666,
+          "loop": true,
+          "pose_space": "absolute",
+          "base_action": "RD_Locomotion_Normal_Entry_4419_4434_WIP2",
+          "base_frame": 1,
+          "motion_origin": "Original choreography; no usable jump reference in supplied locomotion videos",
+          "acceptance_status": "WIP; Elara review pending",
+          "animated_control": "righthand_prop only",
+          "camera_motion": "none",
+          "root_motion": false,
+          "purpose": "Identical ready endpoints; statically hold or repeat for any remaining flight time, without bob or a baked world arc"
+        }
+      },
       "jump_land_r1": {
         "use_fake_user": true,
         "properties": {
@@ -5361,6 +5382,24 @@
           "purpose": "More readable ground-contact compression using downward inertia and increased muzzle pitch, restrained rebound, exact ready settle; r1 phase beats retained"
         }
       },
+      "jump_land_r3": {
+        "use_fake_user": true,
+        "properties": {
+          "runtime_id": "jump_land",
+          "authoring_fps": 60,
+          "duration_seconds": 0.26666666666666666,
+          "loop": false,
+          "pose_space": "absolute",
+          "base_action": "RD_Locomotion_Normal_Entry_4419_4434_WIP2",
+          "base_frame": 1,
+          "motion_origin": "Original choreography; no usable jump reference in supplied locomotion videos",
+          "acceptance_status": "WIP; Elara review pending",
+          "animated_control": "righthand_prop only",
+          "camera_motion": "none",
+          "root_motion": false,
+          "purpose": "Deeper landing compression with broad held-rig shoulders; frame-4 peak, frame-10 rebound and frame-17 settle retained"
+        }
+      },
       "jump_takeoff_r1": {
         "use_fake_user": true,
         "properties": {
@@ -5395,6 +5434,24 @@
           "camera_motion": "none",
           "root_motion": false,
           "purpose": "Stronger compact downward takeoff inertia and muzzle dip, controlled rebound, exact ready recovery; r1 phase beats retained"
+        }
+      },
+      "jump_takeoff_r3": {
+        "use_fake_user": true,
+        "properties": {
+          "runtime_id": "jump_takeoff",
+          "authoring_fps": 60,
+          "duration_seconds": 0.16666666666666666,
+          "loop": false,
+          "pose_space": "absolute",
+          "base_action": "RD_Locomotion_Normal_Entry_4419_4434_WIP2",
+          "base_frame": 1,
+          "motion_origin": "Original choreography; no usable jump reference in supplied locomotion videos",
+          "acceptance_status": "WIP; Elara review pending",
+          "animated_control": "righthand_prop only",
+          "camera_motion": "none",
+          "root_motion": false,
+          "purpose": "Deeper takeoff inertia carried through broad compression shoulders around the unchanged frame-4 peak; frame-8 rebound and frame-11 ready retained"
         }
       },
       "normal_walk_r1": {
@@ -10422,10 +10479,13 @@
       "hk416a5_ik": "89830f2bd7912191b5f8c8382e7801bb5c4e2d7e86d726a4122d3dd9baf4e6a5",
       "jump_air_r1": "637ed258078a983cf5196c784ce73144af7a19d400540393883f571be1960b85",
       "jump_air_r2": "637ed258078a983cf5196c784ce73144af7a19d400540393883f571be1960b85",
+      "jump_air_r3": "637ed258078a983cf5196c784ce73144af7a19d400540393883f571be1960b85",
       "jump_land_r1": "1c85329120f2c7a29aadf1358e5b87f3483f1e366c025a9e90db5f090c09633d",
       "jump_land_r2": "1c85329120f2c7a29aadf1358e5b87f3483f1e366c025a9e90db5f090c09633d",
+      "jump_land_r3": "1c85329120f2c7a29aadf1358e5b87f3483f1e366c025a9e90db5f090c09633d",
       "jump_takeoff_r1": "fd9ff8d3189e1379a6c3436e3c44ce2fa8ddbddb93d7967b78ef50843c6e9d8e",
       "jump_takeoff_r2": "fd9ff8d3189e1379a6c3436e3c44ce2fa8ddbddb93d7967b78ef50843c6e9d8e",
+      "jump_takeoff_r3": "fd9ff8d3189e1379a6c3436e3c44ce2fa8ddbddb93d7967b78ef50843c6e9d8e",
       "normal_walk_r1": "378d7d42686b82b6ff95fee71827ecff32917e8096df9cb33df8e6f35c6dc3a3",
       "RD_00_Supplied_Base_Guarded_Recovered": "d0a75026dd6c5eaf22a8bcd7794ed4f9090da3ee04ee4cbc1b44c4c46784d9fc",
       "RD_00_Supplied_Base_Recovered": "392d0295195003de5afc0589e52a57e1a13250d241112a3827be4ad707894c95",

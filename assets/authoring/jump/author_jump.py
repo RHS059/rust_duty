@@ -42,23 +42,19 @@ pivot=Ci@rig.matrix_world@rig.pose.bones['hand_l'].matrix.translation
 ready_curves={(f.data_path,f.array_index):f.evaluate(design['baseline_frame']) for f in ready.fcurves}
 root_paths={f'pose.bones["{root.name}"].'+p for p in ('location','rotation_euler')}
 def params_at(entry,frame):
- beats=entry['beats'];xs=[b['frame'] for b in beats]
- if frame<=xs[0]:return beats[0]['params'][:]
- if frame>=xs[-1]:return beats[-1]['params'][:]
- seg=next(i for i in range(len(xs)-1) if xs[i]<=frame<=xs[i+1])
- hs=[b-a for a,b in zip(xs,xs[1:])]
- values=[]
+ samples=design['native_parameters'];xs=[b['source_frame'] for b in samples]
+ source_frame=entry['source_frame_range_inclusive'][0]+frame-1
+ if source_frame<=xs[0]:return samples[0]['params'][:]
+ if source_frame>=xs[-1]:return samples[-1]['params'][:]
+ seg=next(i for i in range(len(xs)-1) if xs[i]<=source_frame<=xs[i+1])
+ hs=[b-a for a,b in zip(xs,xs[1:])];values=[]
  for axis in range(6):
-  ys=[b['params'][axis] for b in beats]
-  ds=[(b-a)/h for a,b,h in zip(ys,ys[1:],hs)]
-  slopes=[0.]*len(xs)
+  ys=[b['params'][axis] for b in samples];ds=[(b-a)/h for a,b,h in zip(ys,ys[1:],hs)];slopes=[0.]*len(xs)
   for i in range(1,len(xs)-1):
    if ds[i-1]*ds[i]>0:
-    w1=2*hs[i]+hs[i-1];w2=hs[i]+2*hs[i-1]
-    slopes[i]=(w1+w2)/(w1/ds[i-1]+w2/ds[i])
-  h=hs[seg];t=(frame-xs[seg])/h
-  h00=2*t**3-3*t**2+1;h10=t**3-2*t**2+t;h01=-2*t**3+3*t**2;h11=t**3-t**2
-  values.append(h00*ys[seg]+h10*h*slopes[seg]+h01*ys[seg+1]+h11*h*slopes[seg+1])
+    w1=2*hs[i]+hs[i-1];w2=hs[i]+2*hs[i-1];slopes[i]=(w1+w2)/(w1/ds[i-1]+w2/ds[i])
+  h=hs[seg];t=(source_frame-xs[seg])/h
+  values.append((2*t**3-3*t**2+1)*ys[seg]+(t**3-2*t**2+t)*h*slopes[seg]+(-2*t**3+3*t**2)*ys[seg+1]+(t**3-t**2)*h*slopes[seg+1])
  return values
 def local_at(params):
  if all(v==0 for v in params):return {k:v[:] for k,v in ready_local.items()}
@@ -89,7 +85,7 @@ for name,entry in design['actions'].items():
   params=params_at(entry,frame);values=local_at(params)
   # Numerical derivatives use a broad enough central interval to avoid float32 cancellation.
   # Zero endpoint tangents make connection to a static hold exact.
-  if frame in entry['frame_range']:slope={p:[0.,0.,0.] for p in ready_local}
+  if entry['source_frame_range_inclusive'][0]+frame-1 in (design['reference']['anchor_frame'],design['reference']['end_frame']):slope={p:[0.,0.,0.] for p in ready_local}
   else:
    h=.05;left=local_at(params_at(entry,frame-h));right=local_at(params_at(entry,frame+h))
    slope={p:[(r-l)/(2*h) for l,r in zip(left[p],right[p])] for p in ready_local}
@@ -101,7 +97,7 @@ for name,entry in design['actions'].items():
     t=row['frame'];v=row[prop][i];d=row['slope_per_frame'][prop][i]
     k=f.keyframe_points.insert(t,v);k.interpolation='BEZIER';k.handle_left_type='FREE';k.handle_right_type='FREE';k.handle_left=(t-1/3,v-d/3);k.handle_right=(t+1/3,v+d/3)
  for b in entry['beats']:m=a.pose_markers.new(b['label']);m.frame=round(b['frame'])
- a['runtime_id']=entry['runtime_id'];a['authoring_fps']=60;a['duration_seconds']=entry['duration_seconds'];a['loop']=entry['loop'];a['pose_space']='absolute';a['base_action']=ready.name;a['base_frame']=1;a['motion_origin']='Original choreography; no usable jump reference in supplied locomotion videos';a['acceptance_status']='WIP; Elara review pending';a['animated_control']='righthand_prop only';a['camera_motion']='none';a['root_motion']=False;a['purpose']=entry['purpose']
+ a['runtime_id']=entry['runtime_id'];a['authoring_fps']=60;a['duration_seconds']=entry['duration_seconds'];a['loop']=entry['loop'];a['pose_space']='absolute';a['base_action']=ready.name;a['base_frame']=1;a['motion_origin']=design['motion_origin'];a['reference_id']=design['reference']['youtube_id'];a['source_frame_start']=entry['source_frame_range_inclusive'][0];a['source_frame_end_inclusive']=entry['source_frame_range_inclusive'][1];a['hold_after_end']=entry['hold_after_end'];a['acceptance_status']='WIP; Elara review pending';a['animated_control']='righthand_prop only';a['camera_motion']='none';a['root_motion']=False;a['purpose']=entry['purpose']
  assert list(a.frame_range)==entry['frame_range']
  created.append(name);keys_out[name]=rows
 # Restore all original source state, including animated and unkeyed pose defaults.

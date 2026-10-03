@@ -11,7 +11,12 @@ baseline_fingerprint.json
 source_preservation.json
 jump_technical_validation.json
 reproduction_check.json
-feedback_revision.json
+reference_weapon_tracks.json
+reference_retarget.json
+reference_geometry.json
+measure_reference.py
+fit_reference.py
+reference_frame_map.json
 package_manifest.json
 PUBLICATION_FILES.txt
 SHA256SUMS

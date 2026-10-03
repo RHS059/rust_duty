@@ -1,89 +1,98 @@
-# First-person jump: current source r3
+# First-person jump: current reference-guided source r4
 
-Original jump choreography revised from [Elara's r2 feedback](https://github.com/RHS059/dot_chat/pull/1#issuecomment-5973802198). This is editable source WIP awaiting Elara's r3 review and runtime integration. The supplied locomotion videos contain no usable first-person jump cycle, so this is not a reference-matched animation.
+This revision follows the recovered supplied Call of Duty movement footage. It supersedes r1–r3's original-choreography direction; their amplitudes and timings were not treated as constraints. Elara's paired reference review and runtime integration are pending.
 
-## Current editable source
+## Source and reference
 
-`halcyon_jump.blend` is the stable current-source filename. It contains r3, SHA256 `cad1c8e661bc10a8ac2db6017598c1cc0daafdec6b09576e9b78d85edf4f642f`, in Blender 4.3.2 at 60 fps. The local authoring file was named `halcyon_jump_r3.blend`; renaming leaves its bytes unchanged.
+- Current editable source: `halcyon_jump.blend`, Blender 4.3.2, 60 fps
+- r4 SHA256: `e6e59edeac62accc185d2b53a9fe5eab7d876b0a64a404bba1495b9875e2482e`
+- Supplied reference: `Modern_Warfare_2022_Movement_Reference.mp4`, 1280×720, 60 fps, 9,137 frames
+- Reference SHA256: `491a1729aa0f32373025d35fff86da76c6c1c8f057c0c553d0fbb5fb6226ff46`
+- The recovered file is byte-identical to the historical supplied Drive copy. Its title, duration and chapter content correspond to [V_QT_cnlBHU](https://www.youtube.com/watch?v=V_QT_cnlBHU); see the repository's `references/movement/` provenance for the independently qualified identity evidence
+- The complete recovered reference is stored under `references/movement/` as exact parts with a reassembler
+- Jump identification in the other two supplied clips remains unresolved. No claim that those clips contain no jump is made
 
-Prior standalone source files and recipes remain in Git history rather than a bulk archive. Inside this `.blend`, all 88 r2-baseline Actions remain intact; three r3 Actions bring the total to 91. Existing mesh geometry, rig, weights, materials, packed images, drivers, constraints, camera, NLA and active/default state are preserved.
+The stable source filename contains the current revision. Prior standalone source files remain in Git history. Inside this `.blend`, all 91 prior Actions are preserved; three r4 Actions bring the total to 94. Meshes, rig, weights, grips, materials, packed images, constraints, drivers, cameras, NLA and prior active/default state are unchanged.
 
-## What changed from r2
+## What the pixels establish
 
-Elara requested deeper and wider takeoff/landing arcs rather than a taller short spike. The original peak, rebound and endpoint frames remain fixed. Added compression shoulders carry the held rig through broader arcs:
+The first stationary jump is the primary reference. Frame numbers are zero-based source indices at native 60 fps:
 
-- Takeoff now retains 90% of peak compression at frame 6, before the existing frame-8 rebound
-- Landing retains 90% at frame 7 and 55% at frame 8, before the existing frame-10 rebound
-- Monotone cubic Hermite interpolation moves through the intermediate shoulders; it stops at actual extrema and clip endpoints, rather than stopping at every shoulder
-- Takeoff peak: downward 36 → 46 mm, backward 16 → 18 mm, muzzle dip 3.1 → 4.1 degrees
-- Landing peak: downward 48 → 62 mm, backward 18 → 10 mm, muzzle dip 5.3 → 8 degrees
-- Landing backward movement is reduced while its downward/pitch arc increases, keeping the rear receiver visible in the fixed camera
-- Existing rebound poses, main phase beats, neutral endpoints and quiet airborne pose are retained
+- n4033: normal-ready anchor, immediately before visible takeoff
+- n4034: first visible ascent
+- n4043–4044: held optic/receiver takeoff-lag extrema
+- n4048–4052: world apex neighborhood; this world/camera arc is not baked into the rig
+- n4061: strongest observed held-weapon lift during the airborne phase
+- n4067 ±1 frame: visual ground impact
+- n4078–4080: deepest held-weapon landing dip, later than the ground/camera impact
+- n4095: recovery endpoint used for normal-ready closure
 
-This is a curve-shape revision, not a uniform amplitude multiplier. Recipe measurements and technical checks are not an artistic score or approval.
+The weapon dips after launch, pulls back and rotates, rises during the airborne descent, then dips and recovers after impact. The reference's foreground weapon and hand motion is measured directly; terrain/horizon optical flow and the ballistic camera-height arc are excluded from the viewmodel Action.
+
+## Retarget method and limits
+
+`reference_weapon_tracks.json` contains foreground-only native-frame feature tracks for the optic, receiver and support hand. `reference_retarget.json` records the corresponding camera-space motion fit and the measured guide trajectories. The existing model's rear-sight, charging-handle and support-wrist guides are used to retarget the motion while preserving its geometry and grips.
+
+A single-view video does not uniquely recover true 3D transforms, and the reference optic/weapon differs from this model. This is a constrained 2D-motion retarget onto the accepted model, not a claim of model-identical reconstruction. Five-frame quadratic smoothing reduces tracking jitter without retiming the source. During only the last eight intervals, the small remaining measured end offset is removed to connect exactly to existing normal ready.
+
+There is no author match score or artistic acceptance claim. The paired native-speed COD/Eevee preview is the review evidence.
 
 ## Action contract
 
-| Current Action | Stable runtime ID | Inclusive source range | Duration |
-| --- | --- | --- | --- |
-| `jump_takeoff_r3` | `jump_takeoff` | 1–11 | 10/60 s |
-| `jump_air_r3` | `jump_air` | 1–2 | 1/60 s, static extendable hold |
-| `jump_land_r3` | `jump_land` | 1–17 | 16/60 s |
+| Current Action | Stable runtime ID | Source frames, inclusive | Blender frames | Duration |
+| --- | --- | --- | --- | --- |
+| `jump_takeoff_r4` | `jump_takeoff` | 4033–4044 | 1–12 | 11/60 s |
+| `jump_air_r4` | `jump_air` | 4044–4067 | 1–24 | 23/60 s |
+| `jump_land_r4` | `jump_land` | 4067–4095 | 1–29 | 28/60 s |
 
-Export the r3 Actions to these stable runtime IDs. Do not export multiple revisions to duplicate bindings. All three start and end at the exact evaluated pose of `RD_Locomotion_Normal_Entry_4419_4434_WIP2`, frame 1 (`normal_ready`). Endpoint velocity is zero. Only `righthand_prop` location/rotation varies; hands and seated magazine remain attached.
+Export only the r4 Actions to the stable runtime IDs. Revision suffixes do not change game bindings.
 
-There is no armature/world/player-root motion or camera animation. Gameplay supplies the world jump arc and existing camera `landing_kick`; these clips must not add another camera displacement. Landing starts on authoritative ground contact, with a bounded transition for an early impact, rather than a fixed flat-flight timer. Takeoff follows an accepted normal jump, excluding mantle, rejected input and Space-to-stand.
+Unlike r1–r3, the air Action is a non-looping transition into a raised carry. Clamp/hold its final pose for additional flight; do not repeat the air transition. Internal phase seams intentionally use non-neutral connected poses and matching root-control velocity. Only the overall start and finish are exact `RD_Locomotion_Normal_Entry_4419_4434_WIP2`, frame 1 (`normal_ready`), with zero endpoint velocity.
 
-These are absolute HIP poses. ADS requires deliberate aim-safe viewmodel-relative composition on the existing ADS base. Preserve ADS articulation and intent, firing, reload and mantle authority. This source package changes no runtime behavior.
+Only `righthand_prop` location/rotation varies. No new mechanism motion, hand release, armature/world/player-root motion or camera animation is authored. Gameplay still owns its world trajectory and existing `landing_kick`.
 
-## Evaluation and review setup
+Trigger from accepted normal jump, excluding mantle, Space-to-stand and rejected input. Ground contact must start landing from the current airborne pose via a bounded blend; an early/late landing must not be forced to the reference timer. The reference's visible flight is about 33/60 s, while existing game physics is about 0.6245 s. No physics change is requested here. ADS, firing, reload and mantle remain authoritative. These are HIP source poses, not replacement ADS articulation.
 
-- Keep `RD First Person Review` unchanged
-- On `Arms`, mute legacy NLA tracks and set `use_nla=False`
-- Initialize `RD_00_Supplied_Base_Guarded_Recovered` at frame 1, then assign the desired r3 Action
-- Preserve companions: `hk416_weapon` → `hk416_weaponAction.001`; `hk416_magazine` → `hk416_magazineAction`. Both retain `use_nla=True` and no NLA tracks
-- The outgoing magazine is not a jump actor
-- Play takeoff, extend static air, then land. A preview's roughly 0.625-second flat flight is illustrative; runtime ground contact remains authoritative
-- Use actual Eevee Viewport Render Animation for Elara, never Cycles
+## Paired preview
 
-The saved source retains its baseline active Action/scene state. Select a jump Action to inspect the new motion. Fractional shoulder timing is authoritative in the recipe; integer-only pose markers round the frame-6.8 shoulder marker to frame 7.
+`reference_frame_map.json` gives the exact 100-frame, 1×, 60 fps mapping for source n4014–4113 inclusive. The required presentation is COD above and the actual Eevee Viewport Render Animation below, with native frame/time labels, delivered under stable filename `jump_animation.mp4`. Ready holds occur only outside the authored source interval. The Blender review camera remains fixed; the COD panel retains its real world/camera motion.
 
-## Technical verification
+Initialize `RD_00_Supplied_Base_Guarded_Recovered` at frame 1, mute legacy `Arms` NLA tracks, set `use_nla=False`, then assign the r4 Actions. Keep `RD First Person Review` unchanged. Preserve companions `hk416_weaponAction.001` on `hk416_weapon` and `hk416_magazineAction` on `hk416_magazine`; both retain `use_nla=True` with no tracks. The outgoing magazine is excluded. Use actual Eevee Viewport Render Animation, never Cycles.
 
-- `source_preservation.json`: fresh-disk check preserves all 88 prior Actions, metadata/modifiers, structural data, pose defaults, camera, NLA, drivers and images
-- `jump_technical_validation.json`: 120 Hz samples verify attached grips, exact ready endpoints, zero endpoint tangents, static air, no camera/world-root movement and valid drivers
-- Muzzle, receiver and support-wrist landmarks remain in frame. The anatomical firing-wrist origin is already outside the baseline camera frame and is reported accordingly
-- `feedback_revision.json`: original phase ranges, main beat frames, static-air curves and stable runtime IDs are retained; both compression shoulders are measurably wider in the authored native-frame recipe
-- `reproduction_check.json`: a clean rebuild reproduces all 91 Action fingerprints and structural snapshots
+## Checks
 
-These are technical checks, not artistic acceptance. No game export, controller edit, build/load or triggered game playback is claimed by this authoring package.
+- Fresh-disk preservation confirms all 91 prior Actions and structural state unchanged
+- Native and half-frame checks confirm attached grips, visible core landmarks, no camera/world-root movement, and valid drivers
+- Takeoff→air and air→land pose/velocity seams are connected; overall endpoints exactly equal normal ready
+- Air terminal pose remains identical when evaluated beyond its range, with no cycle modifier
+- A clean rebuild reproduces all 94 Action fingerprints and structural snapshots
 
-## Reproduce from the frozen historical baseline
+Reports: `source_preservation.json`, `jump_technical_validation.json`, `reproduction_check.json`. These are technical checks. No runtime export, controller change, build/load, triggered game playback or artistic acceptance is claimed by this source package.
 
-The r3 input is r2 at commit `f5040f042ef5e988e5486e4ebdab12049ac9b2e4`, path `assets/authoring/jump/halcyon_jump.blend`, SHA256 `ade77291cf65a6e2bd8563ebe7449a3b64e8df2f504dc6d2cdf0e93b534064fd`. The previous recipe/checks in that commit preserve its earlier provenance.
+## Reproduce the editable source
 
-From a repository clone containing that commit, with Blender 4.3.2 installed:
+The frozen input is r3 from commit `b8ecf1c2d7e1d20ce485a093527836f86470796c`, SHA256 `cad1c8e661bc10a8ac2db6017598c1cc0daafdec6b09576e9b78d85edf4f642f`.
 
 ```sh
-mkdir -p /tmp/jump-r3-rebuild
-git show f5040f042ef5e988e5486e4ebdab12049ac9b2e4:assets/authoring/jump/halcyon_jump.blend > /tmp/jump-r3-rebuild/frozen-r2.blend
+mkdir -p /tmp/jump-r4-rebuild
+git show b8ecf1c2d7e1d20ce485a093527836f86470796c:assets/authoring/jump/halcyon_jump.blend > /tmp/jump-r4-rebuild/frozen-r3.blend
 
 blender --background --factory-startup --disable-autoexec \
-  /tmp/jump-r3-rebuild/frozen-r2.blend \
+  /tmp/jump-r4-rebuild/frozen-r3.blend \
   --python assets/authoring/jump/author_jump.py -- \
-  assets/authoring/jump/jump_design.json /tmp/jump-r3-rebuild/halcyon_jump.blend
+  assets/authoring/jump/jump_design.json /tmp/jump-r4-rebuild/halcyon_jump.blend
 
 blender --background --factory-startup --disable-autoexec \
-  /tmp/jump-r3-rebuild/halcyon_jump.blend \
+  /tmp/jump-r4-rebuild/halcyon_jump.blend \
   --python assets/authoring/jump/validate_source_structure.py -- \
-  --output /tmp/jump-r3-rebuild/source_preservation.json \
-  --baseline /tmp/jump-r3-rebuild/baseline_fingerprint.json \
-  --expected-actions jump_takeoff_r3 jump_air_r3 jump_land_r3
+  --output /tmp/jump-r4-rebuild/source_preservation.json \
+  --baseline /tmp/jump-r4-rebuild/baseline_fingerprint.json \
+  --expected-actions jump_takeoff_r4 jump_air_r4 jump_land_r4
 
 blender --background --factory-startup --disable-autoexec \
-  /tmp/jump-r3-rebuild/halcyon_jump.blend \
+  /tmp/jump-r4-rebuild/halcyon_jump.blend \
   --python assets/authoring/jump/validate_jump.py -- \
-  /tmp/jump-r3-rebuild/jump_technical_validation.json
+  /tmp/jump-r4-rebuild/jump_technical_validation.json
 ```
 
-The author script refuses to overwrite an existing output. No original or derived reference footage is included in this source handoff.
+The author script refuses to overwrite an output. The current recipe already contains the native retarget parameters, so source reproduction requires only Blender and the frozen baseline. Optional `measure_reference.py` and `fit_reference.py` document/reproduce the reference measurement stage using Python with NumPy, SciPy, OpenCV and Pillow; pass `--help` for their input/output paths.

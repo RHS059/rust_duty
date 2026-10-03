@@ -1,13 +1,13 @@
 {
   "schema": "rust-duty-jump-source-package/v1",
-  "revision": "r3",
-  "status": "Frozen original-choreography source WIP; Elara r3 review and runtime integration pending",
+  "revision": "r4",
+  "status": "Frozen COD reference-guided retarget WIP; paired Elara review and runtime integration pending",
   "source_file": "halcyon_jump.blend",
-  "source_sha256": "cad1c8e661bc10a8ac2db6017598c1cc0daafdec6b09576e9b78d85edf4f642f",
+  "source_sha256": "e6e59edeac62accc185d2b53a9fe5eab7d876b0a64a404bba1495b9875e2482e",
   "filename_policy": "Stable current filename; revision is recorded in this manifest and Action names. Prior standalone sources remain in Git history.",
-  "baseline_commit": "f5040f042ef5e988e5486e4ebdab12049ac9b2e4",
+  "baseline_commit": "b8ecf1c2d7e1d20ce485a093527836f86470796c",
   "baseline_path": "assets/authoring/jump/halcyon_jump.blend",
-  "baseline_sha256": "ade77291cf65a6e2bd8563ebe7449a3b64e8df2f504dc6d2cdf0e93b534064fd",
+  "baseline_sha256": "cad1c8e661bc10a8ac2db6017598c1cc0daafdec6b09576e9b78d85edf4f642f",
   "repository_destination": "assets/authoring/jump/",
   "branch": "halcyon/jump-r1",
   "blender": "4.3.2",
@@ -36,52 +36,69 @@
     "hk416_magazine": "hk416_magazineAction"
   },
   "runtime_mapping": {
-    "jump_takeoff_r3": {
+    "jump_takeoff_r4": {
       "runtime_id": "jump_takeoff",
       "frame_range": [
         1,
-        11
+        12
       ],
-      "duration_seconds": 0.16666666666666666,
-      "loop": false
+      "source_frame_range_inclusive": [
+        4033,
+        4044
+      ],
+      "duration_seconds": 0.18333333333333332,
+      "loop": false,
+      "hold_after_end": false
     },
-    "jump_air_r3": {
+    "jump_air_r4": {
       "runtime_id": "jump_air",
       "frame_range": [
         1,
-        2
+        24
       ],
-      "duration_seconds": 0.016666666666666666,
-      "loop": true
+      "source_frame_range_inclusive": [
+        4044,
+        4067
+      ],
+      "duration_seconds": 0.38333333333333336,
+      "loop": false,
+      "hold_after_end": true
     },
-    "jump_land_r3": {
+    "jump_land_r4": {
       "runtime_id": "jump_land",
       "frame_range": [
         1,
-        17
+        29
       ],
-      "duration_seconds": 0.26666666666666666,
-      "loop": false
+      "source_frame_range_inclusive": [
+        4067,
+        4095
+      ],
+      "duration_seconds": 0.4666666666666667,
+      "loop": false,
+      "hold_after_end": false
     }
   },
   "verification": {
-    "original_actions_preserved": 88,
+    "original_actions_preserved": 91,
     "new_actions": 3,
-    "total_actions": 91,
+    "total_actions": 94,
     "fresh_disk_preservation_passed": true,
     "technical_motion_contacts_passed": true,
     "reproduction_passed": true,
-    "feedback_contract_passed": true,
-    "max_wrist_error_m": 5.821242908975294e-07,
+    "max_wrist_error_m": 7.462776761213885e-07,
     "no_camera_or_world_root_motion": true,
-    "all_clip_endpoints_exact_ready": true,
-    "air_static": true
+    "overall_endpoints_exact_ready": true,
+    "phase_seams_connected_pose_and_velocity": true,
+    "air_nonlooping_transition_with_holdable_final_pose": true
   },
   "review": {
     "required_reviewer": "Elara",
-    "status": "r3 pending",
-    "feedback_addressed_url": "https://github.com/RHS059/dot_chat/pull/1#issuecomment-5973802198",
+    "status": "r4 paired review pending",
     "render_method": "Eevee Viewport Render Animation",
+    "layout": "COD top / Eevee below",
+    "stable_preview_filename": "jump_animation.mp4",
+    "paired_frame_map": "reference_frame_map.json",
     "preview_artifacts_included": false
   },
   "runtime_integration": {
@@ -91,30 +108,30 @@
       "jump_air",
       "jump_land"
     ],
-    "landing_trigger": "ground contact",
+    "landing_trigger": "Actual ground contact, bounded blend from current air state; reference timer does not override game physics",
     "ADS": "Preserve existing ADS base and use deliberate aim-safe composition; absolute HIP replacement not valid"
   },
-  "source_reference_claim": "Original choreography; the supplied locomotion videos contain no usable first-person jump cycle",
+  "source_reference_claim": "Reference-guided foreground 2D-motion retarget from recovered supplied COD stationary jump; 3D inference and geometry differences disclosed; no score or acceptance claim",
   "file_list": [
     {
       "path": "halcyon_jump.blend",
-      "bytes": 10172642,
-      "sha256": "cad1c8e661bc10a8ac2db6017598c1cc0daafdec6b09576e9b78d85edf4f642f"
+      "bytes": 10265575,
+      "sha256": "e6e59edeac62accc185d2b53a9fe5eab7d876b0a64a404bba1495b9875e2482e"
     },
     {
       "path": "README.md",
-      "bytes": 6938,
-      "sha256": "dad24d289bcd1cc5de0cdf5df6f07a89ea68d205f9e4421a2221820762f3f0ed"
+      "bytes": 8298,
+      "sha256": "d572148f53fc131e0346289165d7766d9cac4105bd3520a4894d138633ae77d0"
     },
     {
       "path": "jump_design.json",
-      "bytes": 9574,
-      "sha256": "740a40dcbcbd3cfca89c3b479528d4a37df740b12f7be4237e85f55e642980a4"
+      "bytes": 25545,
+      "sha256": "56970eeb885e799b45631f00700bc7ceadbdfde1ee1ecb0c57df3104df174727"
     },
     {
       "path": "author_jump.py",
-      "bytes": 9343,
-      "sha256": "97c29c6a315c9478eea8108d7f398100536a66e1bece69bec3bfb926f7dca89d"
+      "bytes": 9700,
+      "sha256": "b61770b93bcd3c90a6e04d86cca2c5879c287397fd4ffca133d28e392a89e782"
     },
     {
       "path": "source_integrity.py",
@@ -128,43 +145,87 @@
     },
     {
       "path": "validate_jump.py",
-      "bytes": 7010,
-      "sha256": "5d4449b2077edb316fa1929d86b6d7bfc3742e5d0f5fa6b4ad3b8f66df506407"
+      "bytes": 8934,
+      "sha256": "db5d78f772d698279ce4d17f526fc6fd563c6d0286dd2a97e2d313586e47e334"
     },
     {
       "path": "authored_root_keys.json",
-      "bytes": 25727,
-      "sha256": "29935bb4568ceab80377f314f253a5c2547d6f3cbc4cf8463c35a2453cc4f1fb"
+      "bytes": 58363,
+      "sha256": "c88b6077a5026758a14112f3d238d3d495b6a60c6df385de8438a916058c4253"
     },
     {
       "path": "authoring_preservation.json",
       "bytes": 927,
-      "sha256": "d1bf1593906af394bb33e0328f171a339c0967750b8fe507bad9600832772d2c"
+      "sha256": "0a185187dd2ad29c45349fdbb831f45f5cbc1c4acd9b5f12b06c11c11f081eac"
     },
     {
       "path": "baseline_fingerprint.json",
-      "bytes": 339884,
-      "sha256": "4dc72e9cdee15680fe8d52a4a83e79f6fc17fed77fee0aa90a1e9eeb101d2f34"
+      "bytes": 342871,
+      "sha256": "30ee6e8bb06dc17f984e3ab2dfad801dc2c362d97c97055dee57c79f89f680f6"
     },
     {
       "path": "source_preservation.json",
-      "bytes": 343903,
-      "sha256": "274dae123e7e8413eb22af23df0772ded23fb9f456ee9855fc2ac5de46ffaaab"
+      "bytes": 347260,
+      "sha256": "d9e67bac12bddfbd3e45e378279489ef34403d2393b612747f95915c116bc955"
     },
     {
       "path": "jump_technical_validation.json",
-      "bytes": 58535,
-      "sha256": "5f4546d2950ad6280082e31f08ce060f28e166446b71a4f5805f9da6c059e5c8"
+      "bytes": 123985,
+      "sha256": "60a729e5b28feb8d02781a55d770e10262f985016d48eb39c7c19ac2b6f6bb03"
     },
     {
       "path": "reproduction_check.json",
-      "bytes": 907,
-      "sha256": "9acb421dfe63a230fbf596dc270efaf2f37e0c33230d52c8863c88183f16cf43"
+      "bytes": 853,
+      "sha256": "dde482c2bb00de6c7c9b6cb83383fbf015707d7efa2c677b5a3167fc03ca8597"
     },
     {
-      "path": "feedback_revision.json",
-      "bytes": 2899,
-      "sha256": "51892916718cac3ddd353c573c6b18e788cfd95f18521ee4216e0deaa2cb7740"
+      "path": "reference_weapon_tracks.json",
+      "bytes": 142286,
+      "sha256": "676f740d6fd7f86ed4fa104e0fdb0666f8d5c88f884fce6f80e4acff05c8b67f"
+    },
+    {
+      "path": "reference_retarget.json",
+      "bytes": 75277,
+      "sha256": "b16670565e452f2077f689695df68e7e184a766c74091f7291374df759d67f54"
+    },
+    {
+      "path": "reference_geometry.json",
+      "bytes": 1400,
+      "sha256": "540d1a25dfe903f55d2a179aa60aba0371a5c11e391508025c5b690017e7953a"
+    },
+    {
+      "path": "measure_reference.py",
+      "bytes": 3929,
+      "sha256": "81230d3f67b88dd26598e057e8459a8c8aab51dd1a996666d1ec4838d1fa84d1"
+    },
+    {
+      "path": "fit_reference.py",
+      "bytes": 4501,
+      "sha256": "457afcfc4d07307b2f93932f8d2109eb49b33a183c39ce80de31e2be5a67817c"
+    },
+    {
+      "path": "reference_frame_map.json",
+      "bytes": 25973,
+      "sha256": "575413fb08edb41a100a39850b823202051dd8165e378d2b4917dede82e7bf64"
     }
-  ]
+  ],
+  "reference": {
+    "filename": "Modern_Warfare_2022_Movement_Reference.mp4",
+    "sha256": "491a1729aa0f32373025d35fff86da76c6c1c8f057c0c553d0fbb5fb6226ff46",
+    "youtube_id": "V_QT_cnlBHU",
+    "youtube_url": "https://www.youtube.com/watch?v=V_QT_cnlBHU",
+    "fps": 60,
+    "resolution": [
+      1280,
+      720
+    ],
+    "frame_origin": 0,
+    "anchor_frame": 4033,
+    "first_visible_takeoff_frame": 4034,
+    "impact_frame": 4067,
+    "impact_uncertainty_frames": 1,
+    "end_frame": 4095,
+    "camera_separation": "Only foreground weapon/hand pixel motion is retargeted. Terrain/horizon flow and the ballistic camera-height arc are excluded from the viewmodel Action."
+  },
+  "reference_identity_note": "Exact historical supplied Drive-file hash; qualified V_QT_cnlBHU title/duration/chapter correspondence. Repository references/movement/ stores source and provenance."
 }

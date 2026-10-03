@@ -1,8 +1,8 @@
 {
   "schema": "rust-duty-jump-design/v1",
-  "status": "Original choreography r3 WIP; revised from Elara r2 feedback; Elara re-review pending",
+  "status": "Reference-guided COD jump retarget r4 WIP; Elara paired review pending",
   "source_path": "assets/authoring/jump/halcyon_jump.blend",
-  "source_sha256": "ade77291cf65a6e2bd8563ebe7449a3b64e8df2f504dc6d2cdf0e93b534064fd",
+  "source_sha256": "cad1c8e661bc10a8ac2db6017598c1cc0daafdec6b09576e9b78d85edf4f642f",
   "baseline_action": "RD_Locomotion_Normal_Entry_4419_4434_WIP2",
   "baseline_frame": 1,
   "guarded_initialization": "RD_00_Supplied_Base_Guarded_Recovered",
@@ -19,258 +19,226 @@
   ],
   "pivot": "anatomical support wrist at normal_ready",
   "rotation_order": "Rx @ Ry @ Rz in camera coordinates",
-  "interpolation": "Monotone piecewise cubic Hermite (PCHIP) through compression shoulders, with zero endpoint tangents and zero tangent at extrema. Sampled at native 60 fps into derivative-matched cubic Bezier root channels. No shoulder overshoot and no independent world trajectory.",
-  "source_evidence": "The supplied locomotion videos contain no usable first-person jump sequence. These beat poses and timings are original artistic choices, not reference measurements.",
+  "interpolation": "Globally continuous monotone cubic Hermite through native 60 fps fitted camera-space parameters; derivative-matched Blender cubic Bezier controls. Exact overall ready endpoints, connected internal phase poses and tangents.",
+  "source_evidence": "Recovered supplied Modern_Warfare_2022_Movement_Reference.mp4 contains a complete stationary jump. Native source frames and measured foreground motion guide this revision. Jump identification in the other two supplied videos remains unresolved; no absence claim is made.",
   "camera_motion": "None. Gameplay supplies the world jump arc and existing camera landing_kick. Only the held rig moves relative to the unchanged review camera.",
   "actions": {
-    "jump_takeoff_r3": {
+    "jump_takeoff_r4": {
       "runtime_id": "jump_takeoff",
       "frame_range": [
         1,
-        11
+        12
       ],
-      "duration_seconds": 0.16666666666666666,
+      "duration_seconds": 0.18333333333333332,
       "loop": false,
-      "purpose": "Deeper takeoff inertia carried through broad compression shoulders around the unchanged frame-4 peak; frame-8 rebound and frame-11 ready retained",
+      "hold_after_end": false,
+      "source_frame_range_inclusive": [
+        4033,
+        4044
+      ],
+      "purpose": "Observed launch lag and pullback",
       "beats": [
         {
           "frame": 1,
-          "label": "ready / launch accepted",
+          "source_frame": 4033,
+          "label": "normal ready anchor",
           "params": [
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
           ]
         },
         {
           "frame": 2,
-          "label": "compression shoulder 2",
+          "source_frame": 4034,
+          "label": "first visible rise",
           "params": [
-            0.00042,
-            -0.01932,
-            0.007559999999999999,
-            -1.7219999999999998,
-            0.0,
-            0.042
-          ]
-        },
-        {
-          "frame": 3,
-          "label": "compression shoulder 3",
-          "params": [
-            0.00093,
-            -0.04278,
-            0.016739999999999998,
-            -3.8129999999999997,
-            0.0,
-            0.09300000000000001
-          ]
-        },
-        {
-          "frame": 4,
-          "label": "takeoff lag",
-          "params": [
-            0.001,
-            -0.046,
-            0.018,
-            -4.1,
-            0,
-            0.1
-          ]
-        },
-        {
-          "frame": 6,
-          "label": "compression shoulder 6",
-          "params": [
-            0.0009000000000000001,
-            -0.0414,
-            0.0162,
-            -3.69,
-            0.0,
-            0.09000000000000001
-          ]
-        },
-        {
-          "frame": 6.8,
-          "label": "compression shoulder 6.8",
-          "params": [
-            0.00055,
-            -0.025300000000000003,
-            0.0099,
-            -2.255,
-            0.0,
-            0.05500000000000001
-          ]
-        },
-        {
-          "frame": 8,
-          "label": "damped recovery",
-          "params": [
-            -0.00015,
-            0.0042,
-            -0.0015,
-            0.28,
-            0,
-            -0.015
+            0.0005226138682989102,
+            -0.003841977391192718,
+            -0.006890730047572323,
+            -0.7342758331337617,
+            0.44439703773640177,
+            0.7448114136695279
           ]
         },
         {
           "frame": 11,
-          "label": "quiet airborne ready",
+          "source_frame": 4043,
+          "label": "optic lag extremum",
           "params": [
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
+            -0.00457256793509798,
+            -0.006738585174732782,
+            0.028757685560607447,
+            4.455991295568282,
+            -0.8238237501418157,
+            6.2569639264796715
+          ]
+        },
+        {
+          "frame": 12,
+          "source_frame": 4044,
+          "label": "receiver lag / air handoff",
+          "params": [
+            -0.00505459821891536,
+            -0.003749184241559389,
+            0.03827389100894064,
+            4.856671976787985,
+            -1.3464926692265375,
+            6.022859362875657
           ]
         }
       ]
     },
-    "jump_air_r3": {
+    "jump_air_r4": {
       "runtime_id": "jump_air",
       "frame_range": [
         1,
-        2
+        24
       ],
-      "duration_seconds": 0.016666666666666666,
-      "loop": true,
-      "purpose": "Identical ready endpoints; statically hold or repeat for any remaining flight time, without bob or a baked world arc",
+      "duration_seconds": 0.38333333333333336,
+      "loop": false,
+      "hold_after_end": true,
+      "source_frame_range_inclusive": [
+        4044,
+        4067
+      ],
+      "purpose": "Observed airborne lift, then holdable pre-impact carry",
       "beats": [
         {
           "frame": 1,
-          "label": "quiet ready",
+          "source_frame": 4044,
+          "label": "connected takeoff endpoint",
           "params": [
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
+            -0.00505459821891536,
+            -0.003749184241559389,
+            0.03827389100894064,
+            4.856671976787985,
+            -1.3464926692265375,
+            6.022859362875657
           ]
         },
         {
-          "frame": 2,
-          "label": "identical extendable hold",
+          "frame": 6,
+          "source_frame": 4049,
+          "label": "world apex neighborhood; no world arc authored",
           "params": [
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
+            -0.0008316916140501793,
+            0.012370753666874951,
+            0.035734928339175014,
+            4.496228559032611,
+            -1.4814444418252095,
+            3.5755618926975266
+          ]
+        },
+        {
+          "frame": 18,
+          "source_frame": 4061,
+          "label": "observed held-rig lift extremum",
+          "params": [
+            0.002046761582151353,
+            0.015950241368074367,
+            -0.00955802302894941,
+            -0.8135410493744525,
+            0.39042663405965605,
+            1.3544751120051677
+          ]
+        },
+        {
+          "frame": 24,
+          "source_frame": 4067,
+          "label": "connected ground-impact pose",
+          "params": [
+            0.0038909194324182423,
+            0.011885228451910841,
+            -0.005915175274023221,
+            -0.2666116967755346,
+            0.2477789718749993,
+            2.107849242101789
           ]
         }
       ]
     },
-    "jump_land_r3": {
+    "jump_land_r4": {
       "runtime_id": "jump_land",
       "frame_range": [
         1,
-        17
+        29
       ],
-      "duration_seconds": 0.26666666666666666,
+      "duration_seconds": 0.4666666666666667,
       "loop": false,
-      "purpose": "Deeper landing compression with broad held-rig shoulders; frame-4 peak, frame-10 rebound and frame-17 settle retained",
+      "hold_after_end": false,
+      "source_frame_range_inclusive": [
+        4067,
+        4095
+      ],
+      "purpose": "Observed impact compression and recovery to ready",
       "beats": [
         {
           "frame": 1,
-          "label": "ground contact / ready",
+          "source_frame": 4067,
+          "label": "visual ground impact",
           "params": [
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
+            0.0038909194324182423,
+            0.011885228451910841,
+            -0.005915175274023221,
+            -0.2666116967755346,
+            0.2477789718749993,
+            2.107849242101789
           ]
         },
         {
-          "frame": 2,
-          "label": "compression shoulder 2",
+          "frame": 12,
+          "source_frame": 4078,
+          "label": "optic/receiver low point",
           "params": [
-            0.00066,
-            -0.02728,
-            0.0044,
-            -3.52,
+            7.915455162988749e-06,
+            -0.020582044458771723,
+            0.001976183707478803,
+            0.2622826053542566,
+            -0.8646113412686202,
+            -0.4064797515576729
+          ]
+        },
+        {
+          "frame": 14,
+          "source_frame": 4080,
+          "label": "support low point",
+          "params": [
+            -0.0010816940463222382,
+            -0.02178245390059082,
+            0.0014945614921659462,
+            0.012791625329240053,
+            -0.5988560778247497,
+            0.23056931139967246
+          ]
+        },
+        {
+          "frame": 21,
+          "source_frame": 4087,
+          "label": "ready recovery",
+          "params": [
+            -0.002341831061517456,
+            -0.011072293510399497,
+            0.0035944683701294895,
+            0.9231795831965084,
+            0.7772865529020399,
+            4.124582550602513
+          ]
+        },
+        {
+          "frame": 29,
+          "source_frame": 4095,
+          "label": "normal ready closure",
+          "params": [
             0.0,
-            0.06160000000000001
-          ]
-        },
-        {
-          "frame": 3,
-          "label": "compression shoulder 3",
-          "params": [
-            0.00141,
-            -0.05828,
-            0.0094,
-            -7.52,
             0.0,
-            0.1316
-          ]
-        },
-        {
-          "frame": 4,
-          "label": "landing compression",
-          "params": [
-            0.0015,
-            -0.062,
-            0.01,
-            -8.0,
-            0,
-            0.14
-          ]
-        },
-        {
-          "frame": 7,
-          "label": "compression shoulder 7",
-          "params": [
-            0.00135,
-            -0.0558,
-            0.009000000000000001,
-            -7.2,
             0.0,
-            0.12600000000000003
-          ]
-        },
-        {
-          "frame": 8,
-          "label": "compression shoulder 8",
-          "params": [
-            0.0008250000000000001,
-            -0.034100000000000005,
-            0.0055000000000000005,
-            -4.4,
             0.0,
-            0.07700000000000001
-          ]
-        },
-        {
-          "frame": 10,
-          "label": "small rebound",
-          "params": [
-            -0.0003,
-            0.006,
-            -0.002,
-            0.45,
-            0,
-            -0.025
-          ]
-        },
-        {
-          "frame": 17,
-          "label": "settled ready",
-          "params": [
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
+            0.0,
+            0.0
           ]
         }
       ]
@@ -278,64 +246,746 @@
   },
   "runtime_contract": {
     "trigger": "Accepted normal jump only; exclude mantle and stance-to-stand or rejected Space input",
-    "transition": "Takeoff then extendable quiet air; landing starts from real ground contact, not the nominal 0.6245-second flat-flight timer",
+    "transition": "Takeoff then non-looping reference air transition; hold its final pose for additional flight. Landing begins on actual ground contact from the current airborne pose via a bounded blend.",
     "short_flight": "Integration owner must blend an interrupted takeoff into ground-contact landing without a snap",
-    "flat_flight_reference_seconds": 0.6245,
+    "flat_flight_reference_seconds": 0.55,
     "root_motion": false,
     "grounded_camera_kick": "Preserve existing game camera behavior; do not add any new camera motion from these clips",
-    "ADS": "The source Actions are absolute HIP poses. ADS needs aim-safe viewmodel-relative composition on the separate existing ADS base; do not replace its articulation or clear ADS intent",
-    "gameplay_authority": "No input, movement, firing, reload, ADS or mantle behavior is modified by this source package"
+    "ADS": "Existing separate ADS base remains authoritative. This is HIP reference retarget; ADS composition needs aim-safe runtime handling, not replacement with HIP articulation.",
+    "gameplay_authority": "No input, movement, firing, reload, ADS or mantle behavior is modified by this source package",
+    "reference_timing_note": "Source ground-contact interval is visually about 33/60 s; game default 0.6245 s remains authoritative. No physics change is requested.",
+    "start_and_end": "Only overall takeoff start and land end are neutral. Internal Action seams intentionally preserve non-neutral reference poses."
   },
-  "source_action_count": 88,
+  "source_action_count": 91,
   "feedback": {
-    "review_url": "https://github.com/RHS059/dot_chat/pull/1#issuecomment-5973802198",
-    "reviewer": "Elara",
-    "revision_of": "jump r2",
-    "requested_change": "Deeper and wider takeoff and landing arcs at the existing phase beats, rather than a taller short spike; preserve quiet air, split and neutral endpoints",
-    "changes": "Add broad compression shoulders with monotone Hermite interpolation around unchanged main peaks; increase bounded downward displacement/pitch; preserve existing rebound, lateral/roll, phase duration and quiet air"
+    "reason": "Corrected source-reference workflow. r1\u2013r3 original-choreography amplitudes/timings are not constraints. This revision follows the recovered supplied COD jump.",
+    "paired_review_required": true,
+    "output_video": "jump_animation.mp4"
   },
   "revision_rationale": {
-    "takeoff_compression": {
-      "downward_m": {
-        "r2": 0.036,
-        "r3": 0.046
-      },
-      "backward_m": {
-        "r2": 0.016,
-        "r3": 0.018
-      },
-      "muzzle_dip_degrees": {
-        "r2": 3.1,
-        "r3": 4.1
-      },
-      "new_shoulders": {
-        "frame_2": 0.42,
-        "frame_3": 0.93,
-        "frame_6": 0.9,
-        "frame_6_8": 0.55
-      }
-    },
-    "landing_compression": {
-      "downward_m": {
-        "r2": 0.048,
-        "r3": 0.062
-      },
-      "backward_m": {
-        "r2": 0.018,
-        "r3": 0.01
-      },
-      "muzzle_dip_degrees": {
-        "r2": 5.3,
-        "r3": 8.0
-      },
-      "new_shoulders": {
-        "frame_2": 0.44,
-        "frame_3": 0.94,
-        "frame_7": 0.9,
-        "frame_8": 0.55
-      }
-    },
-    "note": "Broad shoulders retain compression into recovery instead of a narrow impulse. Main peak/rebound/end frames remain unchanged. Monotone interpolation carries velocity through shoulders; only extrema/ends stop. Added landing pitch and reduced backward translation preserve receiver framing while deepening the forward-muzzle arc. Original choreography, no reference-match claim."
+    "takeoff": "Observed initial down/left lag and camera-relative pullback, rather than the former original vertical compression",
+    "air": "Observed rise into an elevated carry during descent; non-looping transition, extendable terminal pose",
+    "land": "Starts at visual ground impact n4067; low-point motion around n4078\u20134080 and recovery through n4095",
+    "reference_limits": [
+      "Single-view footage does not uniquely recover true 3D weapon translation or rotation",
+      "Reference weapon/optic and existing iron-sighted model have different geometry; motion is retargeted, not model-identical",
+      "The final eight intervals remove the small remaining end offset to close exactly to existing normal_ready",
+      "No quantitative match score or artistic acceptance is claimed"
+    ]
   },
-  "interpolation_type": "monotone_hermite_shoulders"
+  "interpolation_type": "global_native_reference_parameters",
+  "motion_origin": "Reference-guided retarget of the supplied Modern Warfare 2022 stationary jump; source native frames 4033\u20134095, 60 fps",
+  "reference": {
+    "filename": "Modern_Warfare_2022_Movement_Reference.mp4",
+    "sha256": "491a1729aa0f32373025d35fff86da76c6c1c8f057c0c553d0fbb5fb6226ff46",
+    "youtube_id": "V_QT_cnlBHU",
+    "youtube_url": "https://www.youtube.com/watch?v=V_QT_cnlBHU",
+    "fps": 60,
+    "resolution": [
+      1280,
+      720
+    ],
+    "frame_origin": 0,
+    "anchor_frame": 4033,
+    "first_visible_takeoff_frame": 4034,
+    "impact_frame": 4067,
+    "impact_uncertainty_frames": 1,
+    "end_frame": 4095,
+    "camera_separation": "Only foreground weapon/hand pixel motion is retargeted. Terrain/horizon flow and the ballistic camera-height arc are excluded from the viewmodel Action."
+  },
+  "native_parameters": [
+    {
+      "source_frame": 4033,
+      "params": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "source_frame": 4034,
+      "params": [
+        0.0005226138682989102,
+        -0.003841977391192718,
+        -0.006890730047572323,
+        -0.7342758331337617,
+        0.44439703773640177,
+        0.7448114136695279
+      ]
+    },
+    {
+      "source_frame": 4035,
+      "params": [
+        0.0008496442844374167,
+        -0.007058725620497882,
+        -0.011526851428791954,
+        -1.131591126865723,
+        0.7239334089423933,
+        1.239248211108881
+      ]
+    },
+    {
+      "source_frame": 4036,
+      "params": [
+        0.0009895311365402733,
+        -0.009635444360393364,
+        -0.014040688974668113,
+        -1.1757240323917633,
+        0.8700003058560366,
+        1.483731304050402
+      ]
+    },
+    {
+      "source_frame": 4037,
+      "params": [
+        0.0009892736391351232,
+        -0.01175971795690029,
+        -0.014639206786565861,
+        -1.2533503865548035,
+        0.7163262807969656,
+        1.2581361997250498
+      ]
+    },
+    {
+      "source_frame": 4038,
+      "params": [
+        0.0005991058981494672,
+        -0.01221950282370498,
+        -0.010173012520876991,
+        -0.40064039598185186,
+        0.650145664561474,
+        2.6870198648195105
+      ]
+    },
+    {
+      "source_frame": 4039,
+      "params": [
+        -0.00016126539396320563,
+        -0.01197593680868689,
+        -0.004456306331779767,
+        0.9059169414648944,
+        0.5095969550559872,
+        4.0919918864207165
+      ]
+    },
+    {
+      "source_frame": 4040,
+      "params": [
+        -0.001507075998706137,
+        -0.011202917937657665,
+        0.0033135317432629835,
+        2.1486167568225216,
+        0.1418773086842369,
+        4.855364734187642
+      ]
+    },
+    {
+      "source_frame": 4041,
+      "params": [
+        -0.0028259984417789577,
+        -0.010608826726605167,
+        0.010036491020814999,
+        2.7843597333964194,
+        -0.32667292853417895,
+        4.642564114113376
+      ]
+    },
+    {
+      "source_frame": 4042,
+      "params": [
+        -0.003951844056833751,
+        -0.009175217441324332,
+        0.019409326803322996,
+        3.651045013423814,
+        -0.5408521562842116,
+        5.602312857675648
+      ]
+    },
+    {
+      "source_frame": 4043,
+      "params": [
+        -0.00457256793509798,
+        -0.006738585174732782,
+        0.028757685560607447,
+        4.455991295568282,
+        -0.8238237501418157,
+        6.2569639264796715
+      ]
+    },
+    {
+      "source_frame": 4044,
+      "params": [
+        -0.00505459821891536,
+        -0.003749184241559389,
+        0.03827389100894064,
+        4.856671976787985,
+        -1.3464926692265375,
+        6.022859362875657
+      ]
+    },
+    {
+      "source_frame": 4045,
+      "params": [
+        -0.004303990882024225,
+        0.001785752003936933,
+        0.04387039227733969,
+        5.471354413783864,
+        -1.794591555899241,
+        5.61708682707614
+      ]
+    },
+    {
+      "source_frame": 4046,
+      "params": [
+        -0.0029194235726309435,
+        0.007428665257637926,
+        0.044114309659215575,
+        5.743855858304304,
+        -2.06080460388715,
+        4.6744978210240395
+      ]
+    },
+    {
+      "source_frame": 4047,
+      "params": [
+        -0.001987290340181586,
+        0.010498728369533684,
+        0.042269049224953954,
+        5.449557344476437,
+        -2.2290895519444436,
+        3.4431286462120667
+      ]
+    },
+    {
+      "source_frame": 4048,
+      "params": [
+        -0.0016835015749674974,
+        0.01108970952635438,
+        0.03980041382612641,
+        4.903965180967548,
+        -1.909107167115892,
+        3.2969412513284233
+      ]
+    },
+    {
+      "source_frame": 4049,
+      "params": [
+        -0.0008316916140501793,
+        0.012370753666874951,
+        0.035734928339175014,
+        4.496228559032611,
+        -1.4814444418252095,
+        3.5755618926975266
+      ]
+    },
+    {
+      "source_frame": 4050,
+      "params": [
+        0.00039673480490423684,
+        0.01370251001033197,
+        0.027653648445151672,
+        3.6382939830953047,
+        -1.143580674430255,
+        3.0361477064417537
+      ]
+    },
+    {
+      "source_frame": 4051,
+      "params": [
+        0.0012133868510962734,
+        0.013920949486917052,
+        0.018211484016407112,
+        2.5809486492573317,
+        -0.8013990681208059,
+        2.3471238554397558
+      ]
+    },
+    {
+      "source_frame": 4052,
+      "params": [
+        0.0016846017676802672,
+        0.0134019599493637,
+        0.009225261871046045,
+        1.6466129141560546,
+        -0.3219566258574927,
+        2.289796544316767
+      ]
+    },
+    {
+      "source_frame": 4053,
+      "params": [
+        0.001979907247351395,
+        0.01270593816156331,
+        0.0023402215013319937,
+        0.8316955118436639,
+        -0.039311953899617176,
+        1.9923032793286717
+      ]
+    },
+    {
+      "source_frame": 4054,
+      "params": [
+        0.002302027365736492,
+        0.012234329435333919,
+        -0.00270874884323739,
+        0.059873625494977406,
+        -0.026016417980259745,
+        1.3138365140614723
+      ]
+    },
+    {
+      "source_frame": 4055,
+      "params": [
+        0.002762234520663153,
+        0.012444745574099459,
+        -0.005522983356966586,
+        -0.2343481882278841,
+        0.0434581283090934,
+        1.4882345383449787
+      ]
+    },
+    {
+      "source_frame": 4056,
+      "params": [
+        0.0025864383479393053,
+        0.013224720599552653,
+        -0.007477915160060965,
+        -0.5006400979905407,
+        0.18326428420053803,
+        1.4682082712377684
+      ]
+    },
+    {
+      "source_frame": 4057,
+      "params": [
+        0.002010770921656802,
+        0.014348751006287214,
+        -0.008292110807946394,
+        -0.6190873565335057,
+        0.35594873266874905,
+        1.3888875591974505
+      ]
+    },
+    {
+      "source_frame": 4058,
+      "params": [
+        0.001646595882924522,
+        0.01529724219766197,
+        -0.008770534907506723,
+        -0.658018682816446,
+        0.45198722075985226,
+        1.3121434673637822
+      ]
+    },
+    {
+      "source_frame": 4059,
+      "params": [
+        0.0018914359818256114,
+        0.015754214299005018,
+        -0.009230315734363668,
+        -0.6875575403023193,
+        0.4112374386943031,
+        1.3687551306003334
+      ]
+    },
+    {
+      "source_frame": 4060,
+      "params": [
+        0.002013328034906064,
+        0.0160454201149138,
+        -0.009498000646581198,
+        -0.7328250458118861,
+        0.36460497204631315,
+        1.3193974085630744
+      ]
+    },
+    {
+      "source_frame": 4061,
+      "params": [
+        0.002046761582151353,
+        0.015950241368074367,
+        -0.00955802302894941,
+        -0.8135410493744525,
+        0.39042663405965605,
+        1.3544751120051677
+      ]
+    },
+    {
+      "source_frame": 4062,
+      "params": [
+        0.0020153146614058665,
+        0.015693852600570726,
+        -0.00924787771164371,
+        -0.9044562600717759,
+        0.37382446810364656,
+        1.2324822957413226
+      ]
+    },
+    {
+      "source_frame": 4063,
+      "params": [
+        0.0021236594408648017,
+        0.015419007292138695,
+        -0.008860494768425648,
+        -0.9566386401849777,
+        0.2675344037472819,
+        1.0238992696533882
+      ]
+    },
+    {
+      "source_frame": 4064,
+      "params": [
+        0.0021646326331910813,
+        0.015247198543244748,
+        -0.00895016942387919,
+        -1.0595610241723878,
+        0.13531975009289898,
+        0.6520796925675438
+      ]
+    },
+    {
+      "source_frame": 4065,
+      "params": [
+        0.0023106972948892515,
+        0.014901826637792227,
+        -0.008053319139667373,
+        -0.6834031423705724,
+        0.3072897357540505,
+        1.391228510544942
+      ]
+    },
+    {
+      "source_frame": 4066,
+      "params": [
+        0.0029223014609692957,
+        0.013911669130132212,
+        -0.007307591995678941,
+        -0.6354510813912851,
+        0.2179350158200591,
+        1.2885280013294307
+      ]
+    },
+    {
+      "source_frame": 4067,
+      "params": [
+        0.0038909194324182423,
+        0.011885228451910841,
+        -0.005915175274023221,
+        -0.2666116967755346,
+        0.2477789718749993,
+        2.107849242101789
+      ]
+    },
+    {
+      "source_frame": 4068,
+      "params": [
+        0.004179668606005869,
+        0.008605595835034797,
+        -0.004878275953387663,
+        -0.08329229654329684,
+        0.12693212246562702,
+        2.186754832264371
+      ]
+    },
+    {
+      "source_frame": 4069,
+      "params": [
+        0.0038310737122245375,
+        0.0057176493280271445,
+        -0.002990788289264248,
+        0.005445256803940868,
+        -0.16274198962904557,
+        1.6358250039326498
+      ]
+    },
+    {
+      "source_frame": 4070,
+      "params": [
+        0.0032800635272347105,
+        0.0024249012088095076,
+        -0.002400333017964162,
+        -0.3663553531701998,
+        -0.704108027917102,
+        -0.29657393710686186
+      ]
+    },
+    {
+      "source_frame": 4071,
+      "params": [
+        0.002801845868999206,
+        -0.0012636619535693523,
+        -0.0012035763569339258,
+        -0.07948437765981313,
+        -0.8064538622286064,
+        -0.46943957515603396
+      ]
+    },
+    {
+      "source_frame": 4072,
+      "params": [
+        0.00226187523332067,
+        -0.005449341848328481,
+        0.0007467927970326063,
+        0.6455977024405416,
+        -0.6366959572440907,
+        0.4188998070357116
+      ]
+    },
+    {
+      "source_frame": 4073,
+      "params": [
+        0.0015442442764959246,
+        -0.009223781649922946,
+        0.0014908319949580263,
+        1.6240694379498692,
+        0.03796866161201397,
+        2.237064013217932
+      ]
+    },
+    {
+      "source_frame": 4074,
+      "params": [
+        0.0011167004427158993,
+        -0.012987320585115853,
+        0.0011294564244572233,
+        1.6051796796041704,
+        0.05325337261686358,
+        1.8888706813868499
+      ]
+    },
+    {
+      "source_frame": 4075,
+      "params": [
+        0.0011045659086646206,
+        -0.015710278198537864,
+        0.0008552167665513612,
+        1.0337387059591843,
+        -0.4693131987072783,
+        0.3499061786535338
+      ]
+    },
+    {
+      "source_frame": 4076,
+      "params": [
+        0.00118260933178044,
+        -0.017356313923160626,
+        0.002003922138276284,
+        0.29480594666308685,
+        -1.2382711967222495,
+        -1.3372957596387365
+      ]
+    },
+    {
+      "source_frame": 4077,
+      "params": [
+        0.0006406741726374696,
+        -0.018975941912031283,
+        0.0020214026438829832,
+        0.3727129794763533,
+        -1.0215202551499196,
+        -0.727915404935668
+      ]
+    },
+    {
+      "source_frame": 4078,
+      "params": [
+        7.915455162988749e-06,
+        -0.020582044458771723,
+        0.001976183707478803,
+        0.2622826053542566,
+        -0.8646113412686202,
+        -0.4064797515576729
+      ]
+    },
+    {
+      "source_frame": 4079,
+      "params": [
+        -0.0004953748171189199,
+        -0.02154894759845011,
+        0.001463962277813272,
+        0.1527257281674267,
+        -0.695100398992721,
+        -0.0566899114191959
+      ]
+    },
+    {
+      "source_frame": 4080,
+      "params": [
+        -0.0010816940463222382,
+        -0.02178245390059082,
+        0.0014945614921659462,
+        0.012791625329240053,
+        -0.5988560778247497,
+        0.23056931139967246
+      ]
+    },
+    {
+      "source_frame": 4081,
+      "params": [
+        -0.0016412152608338475,
+        -0.021640820606950457,
+        0.001683855986252018,
+        -0.06116205114561397,
+        -0.5270599040717646,
+        0.4866216118207674
+      ]
+    },
+    {
+      "source_frame": 4082,
+      "params": [
+        -0.0019825521260695687,
+        -0.020936242870962934,
+        0.0018082776050653217,
+        -0.23495168174160225,
+        -0.5650155240969734,
+        0.29252603291169965
+      ]
+    },
+    {
+      "source_frame": 4083,
+      "params": [
+        -0.0021173721098515642,
+        -0.019410891281891093,
+        0.002639167720715279,
+        0.46529146336800453,
+        0.11450185565565194,
+        2.403239013952025
+      ]
+    },
+    {
+      "source_frame": 4084,
+      "params": [
+        -0.0022167896893724396,
+        -0.01721775780275194,
+        0.004079627844612933,
+        1.20687467119549,
+        0.7911819791199857,
+        4.72828220924441
+      ]
+    },
+    {
+      "source_frame": 4085,
+      "params": [
+        -0.002314378273855848,
+        -0.014991006586439823,
+        0.005171122823795818,
+        1.578943717102879,
+        1.1073410976810525,
+        5.926905517235436
+      ]
+    },
+    {
+      "source_frame": 4086,
+      "params": [
+        -0.0023921252013646022,
+        -0.01308597558769353,
+        0.004663369078042683,
+        1.1413359155515257,
+        0.824570014383559,
+        4.843848415598477
+      ]
+    },
+    {
+      "source_frame": 4087,
+      "params": [
+        -0.002341831061517456,
+        -0.011072293510399497,
+        0.0035944683701294895,
+        0.9231795831965084,
+        0.7772865529020399,
+        4.124582550602513
+      ]
+    },
+    {
+      "source_frame": 4088,
+      "params": [
+        -0.0021650461819450067,
+        -0.009397113238317496,
+        0.0027387289131906144,
+        0.7476060600751937,
+        0.7494172433804458,
+        3.4942717620254378
+      ]
+    },
+    {
+      "source_frame": 4089,
+      "params": [
+        -0.0018682938804726365,
+        -0.007688167327528458,
+        0.0020289354671736487,
+        0.6577585974873579,
+        0.6984738905723169,
+        2.930142308396231
+      ]
+    },
+    {
+      "source_frame": 4090,
+      "params": [
+        -0.0015103930172610947,
+        -0.005655426608265329,
+        0.001505659718781054,
+        0.5571309986835792,
+        0.5734575050686607,
+        2.1505050191150277
+      ]
+    },
+    {
+      "source_frame": 4091,
+      "params": [
+        -0.001051202331308998,
+        -0.003284329240090111,
+        0.0008165904290435733,
+        0.3312904831697958,
+        0.32263011185688517,
+        0.8928323925064868
+      ]
+    },
+    {
+      "source_frame": 4092,
+      "params": [
+        -0.0006239175017335867,
+        -0.0013711243042431646,
+        0.00029915538166227075,
+        0.14203043443455354,
+        0.12114590883305706,
+        -0.13724450569744634
+      ]
+    },
+    {
+      "source_frame": 4093,
+      "params": [
+        -0.0002836296105858312,
+        -0.00022717326259647695,
+        -9.604843447734886e-05,
+        0.02102860368516179,
+        0.0024405266287883115,
+        -0.5916656897502683
+      ]
+    },
+    {
+      "source_frame": 4094,
+      "params": [
+        -8.116333052115365e-05,
+        0.00022401126382142644,
+        -0.00018421402561758882,
+        -0.027082240293457127,
+        -0.03745455919100532,
+        -0.5440561730230531
+      ]
+    },
+    {
+      "source_frame": 4095,
+      "params": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    }
+  ]
 }
