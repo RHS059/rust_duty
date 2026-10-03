@@ -1,30 +1,55 @@
 name: Rust prototype checks and playable builds
 on:
+  workflow_call:
+    inputs:
+      source-ref:
+        type: string
+        required: true
+      release-version:
+        type: string
+        required: true
+      release-sequence:
+        type: string
+        required: true
+      release-pr:
+        type: string
+        required: true
   pull_request:
   push:
     branches: [main, 'aella/**', 'halcyon/**']
 permissions:
   contents: read
 concurrency:
-  group: game-${{ github.event_name }}-${{ github.head_ref || github.ref }}
-  # Never interrupt an eligible push while it may be publishing a complete draft.
-  cancel-in-progress: ${{ github.event_name != 'push' || github.ref != 'refs/heads/aella/automatic-game-updates-r1' }}
+  # Merged release callers are independent; draft validation may replace itself.
+  group: game-${{ inputs.release-pr || github.event_name }}-${{ inputs.release-pr && github.run_id || github.head_ref || github.ref }}
+  cancel-in-progress: ${{ !inputs.release-pr }}
 jobs:
   animation-assets:
     uses: ./.github/workflows/blender-assets.yml
+    with:
+      source-ref: ${{ inputs.source-ref || github.sha }}
   walk-assets:
     uses: ./.github/workflows/walk-assets.yml
+    with:
+      source-ref: ${{ inputs.source-ref || github.sha }}
   directional-assets:
     needs: [walk-assets]
     uses: ./.github/workflows/directional-assets.yml
+    with:
+      source-ref: ${{ inputs.source-ref || github.sha }}
   ads-assets:
     needs: [walk-assets]
     uses: ./.github/workflows/ads-assets.yml
+    with:
+      source-ref: ${{ inputs.source-ref || github.sha }}
   build:
     needs: [animation-assets, walk-assets, ads-assets, directional-assets]
     name: ${{ matrix.os }}
     env:
-      RUST_DUTY_BUILD_VERSION: '0.1.5'
+      RUST_DUTY_BUILD_VERSION: ${{ inputs.release-version || '0.1.5' }}
+      RUST_DUTY_RELEASE_SEQUENCE: ${{ inputs.release-sequence }}
+      RUST_DUTY_RELEASE_PR: ${{ inputs.release-pr }}
+      RUST_DUTY_SOURCE_SHA: ${{ inputs.source-ref || github.sha }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -32,6 +57,14 @@ jobs:
         os: [ubuntu-latest, windows-latest]
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.source-ref || github.sha }}
+          persist-credentials: false
+      - name: Verify pinned game source
+        shell: bash
+        env:
+          EXPECTED_SOURCE: ${{ inputs.source-ref || github.sha }}
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_SOURCE"
       - name: Fetch validated animation companions from this run
         uses: actions/download-artifact@v4
         with:
@@ -223,50 +256,3 @@ jobs:
           name: vector-range-linux-x64
           path: dist/game/
           if-no-files-found: error
-
-  publish-game-update:
-    name: Publish authorized one-time 0.1.5 game update
-    needs: [build]
-    if: >-
-      github.repository == 'RHS059/rust_duty' &&
-      github.event_name == 'push' &&
-      github.ref == 'refs/heads/aella/automatic-game-updates-r1'
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    permissions:
-      contents: write
-    concurrency:
-      # Shared with the legacy manual publisher; promotion cannot race.
-      group: rust-duty-release-channel
-      cancel-in-progress: false
-    env:
-      RUST_DUTY_BUILD_VERSION: '0.1.5'
-      RUST_DUTY_BUILD_RESULT: ${{ needs.build.result }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - name: Fetch complete Windows game from this exact run
-        uses: actions/download-artifact@v4
-        with:
-          name: vector-range-windows-x64
-          path: tested/windows
-      - name: Fetch complete Linux game from this exact run
-        uses: actions/download-artifact@v4
-        with:
-          name: vector-range-linux-x64
-          path: tested/linux
-      - name: Publish one-time validated 0.1.5 game and update bundles
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: python tools/publish_game_build.py --tested tested --output release-assets
-      - name: Retain one-time publication provenance
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: game-release-0.1.5-provenance
-          path: release-assets/SOURCE_PROVENANCE.json
-          if-no-files-found: warn

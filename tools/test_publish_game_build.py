@@ -534,26 +534,29 @@ class ReleaseDiscoveryTests(unittest.TestCase):
 
 class WorkflowTests(unittest.TestCase):
     def test_release_uses_same_run_successful_matrix_artifacts(self):
-        text = (Path(__file__).resolve().parents[1] / ".github/workflows/build.yml").read_text()
-        job = text.split("  publish-game-update:\n", 1)[1]
-        self.assertIn("needs: [build]", job)
-        self.assertIn("github.event_name == 'push'", job)
-        for branch in identity.RELEASE_BRANCHES:
-            self.assertIn(f"refs/heads/{branch}", job)
+        root = Path(__file__).resolve().parents[1]
+        text = (root / ".github/workflows/build.yml").read_text()
+        release = (root / ".github/workflows/merged-game-release.yml").read_text()
+        job = release.split("  publish:\n", 1)[1]
+        self.assertIn("needs: [allocate, build]", job)
+        self.assertIn("needs.build.result == 'success'", job)
         self.assertIn("RUST_DUTY_BUILD_RESULT: ${{ needs.build.result }}", job)
         self.assertIn("group: rust-duty-release-channel", job)
         self.assertIn("cancel-in-progress: false", job)
+        self.assertIn("queue: max", job)
         self.assertNotIn("run-id:", job)
-        self.assertNotIn("aella/release-channel", job)
-        self.assertNotIn("aella/layered-locomotion-integration-r1", job)
-        self.assertNotIn("rust-duty-launcher", job)
-        self.assertEqual(text.count("RUST_DUTY_BUILD_VERSION: '0.1.5'"), 2)
+        self.assertNotIn("publish-game-update:", text)
+        self.assertNotIn("contents: write", text)
         self.assertIn("tools/build_identity.py --root dist/game --platform windows", text)
         self.assertIn("tools/build_identity.py --root dist/game --platform linux", text)
-        build = text.split("  build:\n", 1)[1].split("  publish-game-update:\n", 1)[0]
-        self.assertIn("cargo fmt --manifest-path updater/Cargo.toml --all -- --check", build)
-        self.assertIn("cargo clippy --manifest-path updater/Cargo.toml --locked --all-targets -- -D warnings", build)
-        self.assertIn("cargo test --manifest-path updater/Cargo.toml --locked", build)
+        self.assertIn("cargo fmt --manifest-path updater/Cargo.toml --all -- --check", text)
+        self.assertIn("cargo clippy --manifest-path updater/Cargo.toml --locked --all-targets -- -D warnings", text)
+        self.assertIn("cargo test --manifest-path updater/Cargo.toml --locked", text)
+        self.assertEqual(text.count("source-ref: ${{ inputs.source-ref || github.sha }}"), 4)
+        for name in ("blender", "walk", "ads", "directional"):
+            child = (root / f".github/workflows/{name}-assets.yml").read_text()
+            self.assertIn("ref: ${{ inputs.source-ref || github.sha }}", child)
+            self.assertIn("persist-credentials: false", child)
 
 
 if __name__ == "__main__":

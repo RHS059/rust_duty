@@ -1,0 +1,29 @@
+name: Verify merge release policy
+on:
+  push:
+    branches: ['aella-automation/merged-releases-r1']
+  pull_request:
+    paths:
+      - '.github/workflows/**'
+      - 'tools/merge_release_ledger.py'
+      - 'tools/test_merge_release_ledger.py'
+      - 'tools/build_identity.py'
+      - 'tools/publish_game_build.py'
+      - 'tools/test_publish_game_build.py'
+      - 'tools/test_merged_release_publication.py'
+permissions:
+  contents: read
+jobs:
+  contracts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify allocation, retry, immutable publication and workflow contracts
+        env:
+          PYTHONPATH: tools
+        run: python -m unittest tools.test_merge_release_ledger tools.test_publish_game_build tools.test_merged_release_publication tools.test_release_update -v

@@ -1,6 +1,11 @@
 name: Export authored walking through FBX
 on:
   workflow_call:
+    inputs:
+      source-ref:
+        type: string
+        required: false
+        default: ''
   workflow_dispatch:
 permissions:
   contents: read
@@ -12,7 +17,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: ${{ inputs.source-ref || github.sha }}
           persist-credentials: false
+      - name: Verify pinned game source
+        shell: bash
+        env:
+          EXPECTED_SOURCE: ${{ inputs.source-ref || github.sha }}
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_SOURCE"
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'

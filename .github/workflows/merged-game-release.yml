@@ -1,0 +1,115 @@
+name: Release every merged game PR
+on:
+  pull_request_target:
+    types: [closed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      pull_request:
+        description: 'Optional merged PR number; leave blank to recover the oldest unclaimed merge'
+        type: string
+        required: false
+  # Recover missed events or a full GitHub concurrency queue; no pending merge
+  # means no game build, version allocation, or release publication.
+  schedule:
+    - cron: '7,22,37,52 * * * *'
+permissions:
+  contents: read
+jobs:
+  allocate:
+    if: >-
+      github.repository == 'RHS059/rust_duty' && github.ref == 'refs/heads/main' &&
+      (github.event_name != 'pull_request_target' || github.event.pull_request.merged == true)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      pull-requests: read
+    concurrency:
+      group: rust-duty-release-ledger
+      cancel-in-progress: false
+      queue: max
+    outputs:
+      version: ${{ steps.allocate.outputs.version }}
+      release_sequence: ${{ steps.allocate.outputs.release_sequence }}
+      commit_sha: ${{ steps.allocate.outputs.commit_sha }}
+      pull_request: ${{ steps.allocate.outputs.pull_request }}
+      should_build: ${{ steps.allocate.outputs.should_build }}
+      canonical_run_id: ${{ steps.allocate.outputs.canonical_run_id }}
+    steps:
+      # Only trusted main workflow code sees the allocation write token.
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Allocate exactly one patch per API-verified merged PR
+        id: allocate
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python tools/merge_release_ledger.py
+      - name: Explain an already-owned merge without rebuilding it
+        if: steps.allocate.outputs.should_build != 'true' && steps.allocate.outputs.canonical_run_id != ''
+        env:
+          RUN_ID: ${{ steps.allocate.outputs.canonical_run_id }}
+        run: echo "This merge already belongs to https://github.com/RHS059/rust_duty/actions/runs/$RUN_ID. Retry that run's failed jobs to retain its version and immutable artifacts." >> "$GITHUB_STEP_SUMMARY"
+  build:
+    needs: allocate
+    if: needs.allocate.outputs.should_build == 'true'
+    permissions:
+      contents: read
+    uses: ./.github/workflows/build.yml
+    with:
+      source-ref: ${{ needs.allocate.outputs.commit_sha }}
+      release-version: ${{ needs.allocate.outputs.version }}
+      release-sequence: ${{ needs.allocate.outputs.release_sequence }}
+      release-pr: ${{ needs.allocate.outputs.pull_request }}
+  publish:
+    name: Publish both complete native games
+    needs: [allocate, build]
+    if: needs.allocate.outputs.should_build == 'true' && needs.build.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+      actions: read
+      pull-requests: read
+    concurrency:
+      group: rust-duty-release-channel
+      cancel-in-progress: false
+      queue: max
+    env:
+      RUST_DUTY_BUILD_VERSION: ${{ needs.allocate.outputs.version }}
+      RUST_DUTY_RELEASE_SEQUENCE: ${{ needs.allocate.outputs.release_sequence }}
+      RUST_DUTY_RELEASE_PR: ${{ needs.allocate.outputs.pull_request }}
+      RUST_DUTY_SOURCE_SHA: ${{ needs.allocate.outputs.commit_sha }}
+      RUST_DUTY_BUILD_RESULT: ${{ needs.build.result }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.allocate.outputs.commit_sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@v4
+        with:
+          name: vector-range-windows-x64
+          path: tested/windows
+      - uses: actions/download-artifact@v4
+        with:
+          name: vector-range-linux-x64
+          path: tested/linux
+      - name: Verify the durable allocation, then publish immutable complete assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python tools/publish_game_build.py --tested tested --output release-assets
+      - name: Retain exact publication provenance
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: merged-game-release-provenance
+          path: release-assets/SOURCE_PROVENANCE.json
+          if-no-files-found: warn

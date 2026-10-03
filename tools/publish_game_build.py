@@ -291,7 +291,9 @@ def publication_order(candidate, latest):
 
 
 def release_notes(identity):
-    return (f'Explicitly authorized one-time complete game build {identity["version"]}.\n\n'
+    title = (f'Complete game build {identity["version"]} from merged PR #{identity["merge"]["pull_request"]}.'
+             if "merge" in identity else f'Explicitly authorized one-time complete game build {identity["version"]}.')
+    return (title + '\n\n'
             f'Source: {identity["source"]["commit"]}\n'
             f'Branch: {identity["source"]["branch"]}\n'
             f'Build: {identity["source"]["run_url"]}\n'
@@ -352,7 +354,7 @@ def publish(github, output, identity, *, recovery_release_id=None):
         raise ValueError("incomplete one-time release asset set")
     latest = latest_identity(github)
     order = publication_order(identity, latest)
-    if order == "superseded":
+    if order == "superseded" and "merge" not in identity:
         return {"status": "superseded", "version": identity["version"], "latest": latest}
     existing = find_release(github, tag, required_id=recovery_release_id,
                             allow_empty_orphan=recovery_release_id is not None)
@@ -396,17 +398,19 @@ def publish(github, output, identity, *, recovery_release_id=None):
         verify_remote_asset(github, asset, expected[name])
     # Check once again immediately before the atomic visibility/latest change.
     order = publication_order(identity, latest_identity(github))
-    if order != "newer":
+    if order != "newer" and not (order == "superseded" and "merge" in identity):
         if order == "superseded":
             return {"status": "superseded-draft", "version": identity["version"]}
         raise ValueError("channel changed during draft publication")
     verify_tag(github, tag, identity["source"]["commit"])
-    published = github.api(f'releases/{existing["id"]}', payload={"draft": False, "make_latest": "true"})
+    promote = order == "newer"
+    published = github.api(f'releases/{existing["id"]}', payload={"draft": False, "make_latest": "true" if promote else "false"})
     if published.get("draft") is not False or published.get("tag_name") != tag:
         raise ValueError("public release visibility was not confirmed")
     verify_tag(github, tag, identity["source"]["commit"], required=True)
-    if publication_order(identity, latest_identity(github)) != "same":
-        raise ValueError("published release is not the latest discoverable game update")
+    expected_order = "same" if promote else "superseded"
+    if publication_order(identity, latest_identity(github)) != expected_order:
+        raise ValueError("published release channel changed unexpectedly")
     return {"status": "published", "version": identity["version"], "url": published["html_url"]}
 
 
@@ -507,6 +511,58 @@ def recover(github, tested, output, identity, release_id):
     return {"status": "published", "version": identity["version"], "url": published["html_url"]}
 
 
+
+def verify_merged_authority(github, identity):
+    """Independent read-only proof before any release or tag mutation."""
+    if "merge" not in identity:
+        return
+    import merge_release_ledger as ledger
+    _, state = ledger.read_state(github)
+    pr = identity["merge"]["pull_request"]
+    ledger.validate_record(state, pr, identity["source"]["commit"],
+                           identity["version"], identity["sequence"], identity["source"]["run_id"])
+    actual = github.api(f"pulls/{pr}")
+    if (actual.get("number") != pr or actual.get("merged") is not True
+            or actual.get("state") != "closed" or actual.get("draft") is not False
+            or actual.get("base", {}).get("ref") != "main"
+            or actual.get("base", {}).get("repo", {}).get("full_name") != REPOSITORY
+            or actual.get("merge_commit_sha") != identity["source"]["commit"]):
+        raise ValueError("publication allocation does not match an actual merged main PR")
+    relation = github.api(f'compare/{identity["source"]["commit"]}...main?per_page=1')
+    if relation.get("status") not in ("identical", "ahead"):
+        raise ValueError("allocated source is no longer on main")
+    run = github.api(f'actions/runs/{identity["source"]["run_id"]}')
+    if (run.get("id") != identity["source"]["run_id"]
+            or run.get("repository", {}).get("full_name") != REPOSITORY
+            or run.get("path") != identity["source"]["workflow"]
+            or run.get("head_branch") != "main"
+            or not (run.get("status") == "in_progress" or
+                    (run.get("status") == "completed" and run.get("conclusion") == "success"))
+            or run.get("event") not in ("pull_request_target", "workflow_dispatch", "schedule")):
+        raise ValueError("canonical source run is not the trusted merged release workflow")
+    latest_jobs = {}
+    required_jobs = {"build / ubuntu-latest", "build / windows-latest"}
+    for page in range(1, MAX_API_PAGES + 1):
+        response = github.api(f'actions/runs/{identity["source"]["run_id"]}/jobs?filter=all&per_page=100&page={page}')
+        jobs = response.get("jobs")
+        if not isinstance(jobs, list) or len(jobs) > 100:
+            raise ValueError("invalid canonical native build jobs response")
+        for job in jobs:
+            name = job.get("name")
+            if name in required_jobs:
+                if type(job.get("id")) is not int or job.get("run_id") != identity["source"]["run_id"]:
+                    raise ValueError("native build job does not belong to the canonical run")
+                if name not in latest_jobs or job["id"] > latest_jobs[name]["id"]:
+                    latest_jobs[name] = job
+        if len(jobs) < 100:
+            break
+    else:
+        raise ValueError("canonical build jobs pagination limit reached")
+    if (set(latest_jobs) != required_jobs or
+            any(job.get("status") != "completed" or job.get("conclusion") != "success"
+                for job in latest_jobs.values())):
+        raise ValueError("both latest canonical native build jobs must have succeeded")
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--tested", type=Path, required=True)
@@ -526,12 +582,13 @@ def main():
     if args.recover_release_id is not None:
         result = recover(github, args.tested, args.output, identity, args.recover_release_id)
     else:
+        verify_merged_authority(github, identity)
         prepare(args.tested, args.output, identity)
         result = publish(github, args.output, identity)
     print(json.dumps(result, indent=2))
     if os.environ.get("GITHUB_STEP_SUMMARY"):
         with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as stream:
-            stream.write(f'One-time update {result["version"]}: {result["status"]}.\n')
+            stream.write(f'Game update {result["version"]}: {result["status"]}.\n')
             if result.get("url"):
                 stream.write(result["url"] + "\n")
 
