@@ -3,8 +3,12 @@
 The canonical source is selected by SHA-256, and the source Action and requested
 range are explicit. Stored Action key extents are never interpreted as approval.
 The current full tactical delivery is `RD_Reload_Tactical_HandApproach_AndReturn_WIP`,
-native frames 0–156 (Blender frames 1–157), at 60000/1001 fps. Native 30–48 remains
-unreviewed. It is evaluated directly as a single existing Action, not joined from
+native frames 0–156 (Blender frames 1–157), at 60000/1001 fps. Its reviewed
+range is 48–156; the earlier prefix remains WIP. The separate current
+`RD_Reload_Tactical_Hands_Opening_WIP` owns reviewed native 0–30. The former
+preserves an authored base-to-48 prefix for some left channels; it does not contain
+the latter opening motion. The canonical guarded base is exported as a static
+reset. No empty-reload, ADS or fire Action exists in this source. It is evaluated directly as a single existing Action, not joined from
 two reviewed segments. Current source motion, including imperfect poses, stays intact.
 
 `tools/export_reload_wip_fbx.py` produces an FBX, immutable evaluated full-skin

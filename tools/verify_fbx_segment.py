@@ -40,6 +40,19 @@ def read_skin(path):
     return bones,np.c_[v[:,:3],np.ones(len(v))],v[:,8:16].astype(int),v[:,16:24]
 
 
+def read_rigid(path):
+    data=path.read_bytes();vrpack.inspect_vrm(data);p=24
+    def unpack(fmt):
+        nonlocal p
+        value=struct.unpack_from(fmt,data,p);p+=struct.calcsize(fmt);return value
+    count,=unpack('<I');meshes=[]
+    for _ in range(count):
+        unpack('<6f');w,h,size=unpack('<III');p+=size
+        vc,ic=unpack('<II');vertices=np.array([unpack('<8f')[:3] for _ in range(vc)])
+        p+=ic*4;meshes.append(np.c_[vertices,np.ones(vc)])
+    return meshes
+
+
 def python_sample(pack,bones,positions,joints,weights,name,time):
     pose=vrview.sample(pack,name,time,clamp=True); globals_=[]
     for (_,parent,_,_),trs in zip(bones,pose['bones']):
@@ -60,6 +73,9 @@ def main():
     args=p.parse_args()
     pack=vrview.decode_vra(args.asset.read_bytes(),vrs=args.asset.with_suffix('.vrs').read_bytes(),vrm=args.asset.with_suffix('.vrm').read_bytes())
     bones,pos,joints,weights=read_skin(args.asset.with_suffix('.vrs'))
+    rigid=read_rigid(args.asset.with_suffix('.vrm'))
+    mesh_actor={i:a for a,actor in enumerate(pack['actors']) for i in actor['meshes']}
+    inverse_rest=[np.array(a['inverse_rest_global']).reshape(4,4).T for a in pack['actors']]
     source=np.load(args.source_witnesses)
     frames=source['frames']; skin_keys=[k for k in source.files if k.startswith('Actual arms mesh')]
     expected=np.concatenate([source[k] for k in skin_keys],axis=1)@BASIS[:3,:3].T
@@ -78,12 +94,15 @@ def main():
                     require(result['clip']==args.clip,'sampler returned wrong clip')
                     yield (np.array([p for m in result['skin_meshes'] for p in m['positions']]),
                            [np.array(a['global']).reshape(4,4).T for a in result['actors']],
-                           [int(a['visible']) for a in result['actors']])
+                           [int(a['visible']) for a in result['actors']],
+                           [np.array(m['positions']) for m in result['rigid_meshes']])
                 require(proc.wait()==0,'Rust sampler failed')
         else:
-            for t in times:yield python_sample(pack,bones,pos,joints,weights,args.clip,t)
+            for t in times:
+                skin,actors,visible=python_sample(pack,bones,pos,joints,weights,args.clip,t)
+                yield skin,actors,visible,[(m@(actors[mesh_actor[i]]@inverse_rest[mesh_actor[i]]).T)[:,:3] for i,m in enumerate(rigid)]
     records=[];correspondence=None;reverse=None
-    for i,(skin,actors,visible) in enumerate(run_samples()):
+    for i,(skin,actors,visible,rigid_positions) in enumerate(run_samples()):
         require(i<len(frames),'sampler produced extra samples')
         if i==0:
             distance,correspondence=cKDTree(expected[0]).query(skin)
@@ -92,18 +111,23 @@ def main():
         skin_error=max(float(np.linalg.norm(skin-expected[i,correspondence],axis=1).max()),float(np.linalg.norm(skin[reverse]-expected[i],axis=1).max()))
         expected_visible=[int(np.max(np.abs(m[:3,:3]))>=1e-10) for m in props[i]]
         mask_matches=visible==expected_visible
-        origins=[];matrices=[]
+        origins=[];matrices=[];rigid_errors=[]
+        for mesh_index,vertices in enumerate(rigid):
+            actor=mesh_actor[mesh_index]
+            if expected_visible[actor]:
+                gold=(vertices@(props[i,actor]@inverse_rest[actor]).T)[:,:3]
+                rigid_errors.append(float(np.linalg.norm(rigid_positions[mesh_index]-gold,axis=1).max()))
         for index,(actual,gold) in enumerate(zip(actors,props[i])):
             if not expected_visible[index]:continue
             origins.append(float(np.linalg.norm(actual[:3,3]-gold[:3,3])))
             matrices.append(float(np.max(np.abs(actual-gold))))
         records.append({'native_frame':float(frames[i]),'time':times[i], 'skin_error_m':skin_error,
-                        'visible_prop_origin_error_m':max(origins,default=0.),'visible_prop_matrix_error':max(matrices,default=0.),
+                        'visible_prop_origin_error_m':max(origins,default=0.),'visible_rigid_vertex_error_m':max(rigid_errors,default=0.),'visible_prop_matrix_error':max(matrices,default=0.),
                         'visibility_matches':mask_matches,'visible':visible,'expected_visible':expected_visible})
         if i%100==0:print('PARITY',i,len(frames),skin_error,flush=True)
     require(len(records)==len(frames),'sampler sample count mismatch')
-    maxima={key:max(r[key] for r in records) for key in ('skin_error_m','visible_prop_origin_error_m','visible_prop_matrix_error')}
-    failures=[r for r in records if r['skin_error_m']>args.position_limit_m or r['visible_prop_origin_error_m']>args.position_limit_m or not r['visibility_matches']]
+    maxima={key:max(r[key] for r in records) for key in ('skin_error_m','visible_prop_origin_error_m','visible_rigid_vertex_error_m','visible_prop_matrix_error')}
+    failures=[r for r in records if r['skin_error_m']>args.position_limit_m or r['visible_prop_origin_error_m']>args.position_limit_m or r['visible_rigid_vertex_error_m']>args.position_limit_m or not r['visibility_matches']]
     report={'schema':'rust-duty-fbx-segment-parity/v1','backend':'Rust CPU sampler' if args.sampler else 'Python diagnostic only',
             'passed':not failures,'source_witnesses_sha256':hashlib.sha256(args.source_witnesses.read_bytes()).hexdigest(),
             'asset_sha256':hashlib.sha256(args.asset.read_bytes()).hexdigest(),

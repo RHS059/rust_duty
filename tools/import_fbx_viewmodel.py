@@ -30,7 +30,7 @@ def sample_grid(start, end, subdivisions=64, switches=()):
     serialization must retain every chosen time; collisions fail conversion.
     The finite transition interval is disclosed and must pass independent parity.
     """
-    require(type(start) is int and type(end) is int and 0 <= start < end, 'invalid crop')
+    require(type(start) is int and type(end) is int and 0 <= start <= end, 'invalid crop')
     require(type(subdivisions) is int and 1 <= subdivisions <= 1024, 'invalid subdivisions')
     values = {Fraction(i, subdivisions) for i in range(start*subdivisions, end*subdivisions+1)}
     for value in switches:
