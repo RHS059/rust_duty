@@ -26,6 +26,13 @@ jobs:
           echo '4da1c956673c0485e63054e563ee69198cc8f80d8157dd7592dffc8a6a5592e6'"  $RUNNER_TEMP/blender.tar.xz" | sha256sum --check --strict
           tar -xJf "$RUNNER_TEMP/blender.tar.xz" -C "$RUNNER_TEMP"
           echo "$RUNNER_TEMP/blender-4.3.2-linux-x64" >> "$GITHUB_PATH"
+      - name: Install image support in Blender's own Python
+        shell: bash
+        run: |
+          BLENDER_PYTHON="$RUNNER_TEMP/blender-4.3.2-linux-x64/4.3/python/bin/python3.11"
+          "$BLENDER_PYTHON" -m ensurepip
+          "$BLENDER_PYTHON" -m pip install Pillow==11.3.0
+          blender --background --disable-autoexec --python-exit-code 1 --python-expr "import PIL, numpy; print(PIL.__version__, numpy.__version__)"
       - name: Install numerical verification dependencies
         run: python -m pip install -r tools/requirements-assets.txt numpy==2.2.6 scipy==1.15.3
       - name: Verify committed locomotion companions

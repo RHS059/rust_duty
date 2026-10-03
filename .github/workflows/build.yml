@@ -5,6 +5,9 @@ on:
     branches: [main, 'aella/**', 'halcyon/**']
 permissions:
   contents: read
+concurrency:
+  group: game-${{ github.event_name }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
 jobs:
   animation-assets:
     uses: ./.github/workflows/blender-assets.yml
