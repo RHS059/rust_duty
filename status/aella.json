@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T21:32:52Z",
+  "updatedAt": "2026-10-03T21:42:32Z",
   "state": "active",
-  "task": "Coordinating ADS preview publication and review while completing the 0.1.5 build, release and old-client upgrade checks.",
-  "lastCompleted": "Forward v9 and lateral Trial4 capture checks are complete. PR #19 asset jobs, authored contracts and updater checks passed.",
+  "task": "Coordinating ADS preview publication and review while publishing 0.1.5 and verifying the complete package and old-client upgrade.",
+  "lastCompleted": "PR #19 complete Windows/Linux builds passed. Forward v9 and lateral Trial4 previews are ready for publication and independent review.",
   "agents": [
     {
       "slot": 1,
