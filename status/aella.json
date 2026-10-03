@@ -1,27 +1,27 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T03:15:36Z",
+  "updatedAt": "2026-10-03T03:25:11Z",
   "state": "active",
-  "task": "Coordinating the complete game build and merges; an additional worker is finishing the gallery status form",
-  "lastCompleted": "Fresh GitHub Blender export and native Linux reload playback checks passed",
+  "task": "Integrating the authored walking clip into the game build; remaining merges await confirmation",
+  "lastCompleted": "Delivered and verified the current reload build",
   "agents": [
     {
       "slot": 1,
       "state": "active",
-      "task": "Finishing the GitHub-built reload package and Windows checks",
-      "lastCompleted": "Linux real-game reload capture passed"
+      "task": "Integrating walking source and conversion into GitHub game builds",
+      "lastCompleted": "Completed the automatic reload export and game build"
     },
     {
       "slot": 2,
-      "state": "active",
-      "task": "Converting the new authored walking clip for the game",
-      "lastCompleted": "Exported the committed walking Blender source"
+      "state": "idle",
+      "task": "",
+      "lastCompleted": "Validated the new authored walking conversion and handed it to the build worker"
     },
     {
       "slot": 3,
-      "state": "active",
-      "task": "Merging tested game changes in dependency order",
-      "lastCompleted": "Merged the asset pipeline and startup update screen"
+      "state": "idle",
+      "task": "",
+      "lastCompleted": "Published the gallery status sidebar and status submission form"
     }
   ]
 }
