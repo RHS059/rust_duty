@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T12:41:58Z",
+  "updatedAt": "2026-10-03T12:52:49Z",
   "state": "active",
-  "task": "Coordinating reference-based ADS refinement and layered locomotion integration; new motion clips await review",
-  "lastCompleted": "Opened draft PR #17 for simultaneous ADS, walk and run blending; completed the initial ADS motion review",
+  "task": "Coordinating reference-based ADS refinement and layered locomotion integration; investigating the PR #17 native ADS check",
+  "lastCompleted": "Published draft PR #17 for simultaneous ADS, walk and run blending; completed the initial ADS motion review",
   "agents": [
     {
       "slot": 1,
@@ -15,13 +15,13 @@
       "slot": 2,
       "state": "idle",
       "task": "",
-      "lastCompleted": "Completed the initial ADS motion review; awaiting a new hip-walk candidate"
+      "lastCompleted": "Completed the initial ADS review: aimed pose and grip preserved; dynamic motion needs revision; awaiting hip-walk clips"
     },
     {
       "slot": 3,
       "state": "active",
-      "task": "Checking draft PR #17 builds and simultaneous ADS, walk-out and run-in blending",
-      "lastCompleted": "Published the runtime-only layered locomotion draft PR and passed local tests"
+      "task": "Investigating PR #17’s native ADS check and verifying the Windows package",
+      "lastCompleted": "Passed Windows build, runtime contracts and updater checks for the layered locomotion draft"
     }
   ]
 }
