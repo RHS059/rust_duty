@@ -1,0 +1,48 @@
+name: Complete the existing authorized 0.1.5 draft
+on:
+  push:
+    branches: ['aella-release-recovery/0.1.5']
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: rust-duty-release-channel
+  cancel-in-progress: false
+jobs:
+  recover-exact-draft:
+    if: github.repository == 'RHS059/rust_duty' && github.ref == 'refs/heads/aella-release-recovery/0.1.5'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Test exact-ID and no-overwrite recovery guards
+        run: python -m unittest discover -s tools -p test_publish_game_build.py -v
+      - name: Fetch original verified Windows artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: vector-range-windows-x64
+          run-id: 37154246170
+          github-token: ${{ github.token }}
+          path: tested/windows
+      - name: Fetch original verified Linux artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: vector-range-linux-x64
+          run-id: 37154246170
+          github-token: ${{ github.token }}
+          path: tested/linux
+      - name: Complete only draft 402704474 using original build bytes
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >-
+          python tools/publish_game_build.py --tested tested --output release-assets
+          --recover-release-id 402704474 --source-run-id 37154246170
+          --source-commit eb886edb9ed31ad6feae13541c4e34aa70362f2f

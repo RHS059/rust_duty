@@ -9,11 +9,13 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 from pathlib import Path
 import shutil
 import subprocess
 import tempfile
 import zipfile
+from urllib.parse import urlencode
 
 import build_identity
 import package_game
@@ -21,6 +23,13 @@ import release_update
 
 REPOSITORY = build_identity.REPOSITORY
 PROVENANCE = "SOURCE_PROVENANCE.json"
+RECOVERY_RELEASE_ID = 402704474
+RECOVERY_EMPTY_ORPHAN_ID = 402709395
+RECOVERY_PROVENANCE_SHA256 = "7e991ac6d57e96a38959108bbebfca63dfc6516749956e1a621ab078a933185e"
+RECOVERY_EXECUTION_BRANCH = "aella-release-recovery/0.1.5"
+RECOVERY_RUN_ID = 37154246170
+RECOVERY_COMMIT = "eb886edb9ed31ad6feae13541c4e34aa70362f2f"
+MAX_API_PAGES = 10
 
 
 def write_json(path, value):
@@ -107,9 +116,118 @@ class GitHub:
             subprocess.run(["gh", "api", f'repos/{REPOSITORY}/releases/assets/{asset["id"]}',
                             "-H", "Accept: application/octet-stream"], stdout=stream, check=True)
 
-    def upload(self, tag, path):
-        # No --clobber: an uncertain upload is reconciled by a later rerun.
-        subprocess.run(["gh", "release", "upload", tag, str(path), "--repo", REPOSITORY], check=True)
+    def upload(self, release, path):
+        # Draft tags are not discoverable through releases/tags or gh release
+        # upload. Address only this already-verified release ID's upload endpoint.
+        url = upload_url(release, path.name)
+        result = subprocess.run(["gh", "api", url, "--method", "POST",
+                                 "-H", "Content-Type: application/octet-stream",
+                                 "-H", f"Content-Length: {path.stat().st_size}",
+                                 "--input", str(path)], text=True, capture_output=True, check=False)
+        if result.returncode:
+            raise RuntimeError(f"Release asset upload failed: {result.stderr.strip()}")
+        verify_remote_asset(self, json.loads(result.stdout), path)
+
+
+def upload_url(release, name):
+    number = release.get("id")
+    if type(number) is not int or number < 1:
+        raise ValueError("invalid existing release id")
+    base = f"https://uploads.github.com/repos/{REPOSITORY}/releases/{number}/assets"
+    if release.get("upload_url") not in (base, base + "{?name,label}"):
+        raise ValueError("release upload URL does not match its trusted repository and id")
+    if not isinstance(name, str) or Path(name).name != name:
+        raise ValueError("invalid upload asset name")
+    return base + "?" + urlencode({"name": name})
+
+
+def find_release(github, tag, *, required_id=None, allow_empty_orphan=False):
+    """Authenticated release listing includes drafts; by-tag 404 proves nothing."""
+    matches = []
+    for page in range(1, MAX_API_PAGES + 1):
+        values = github.api(f"releases?per_page=100&page={page}")
+        if not isinstance(values, list) or len(values) > 100:
+            raise ValueError("invalid release listing")
+        matches.extend(item for item in values if item.get("tag_name") == tag)
+        if len(values) < 100:
+            break
+    else:
+        raise ValueError("release discovery pagination limit reached; refusing creation")
+    if not matches:
+        if required_id is not None:
+            raise ValueError("required recovery draft is missing; creation is forbidden")
+        return None
+    if len(matches) > 1:
+        ids = [item.get("id") for item in matches]
+        if (not allow_empty_orphan or required_id != RECOVERY_RELEASE_ID
+                or len(ids) != 2 or set(ids) != {RECOVERY_RELEASE_ID, RECOVERY_EMPTY_ORPHAN_ID}):
+            raise ValueError("duplicate releases for the exact version tag; refusing publication")
+        original = github.api(f"releases/{RECOVERY_RELEASE_ID}")
+        orphan = github.api(f"releases/{RECOVERY_EMPTY_ORPHAN_ID}")
+        if (orphan.get("id") != RECOVERY_EMPTY_ORPHAN_ID or orphan.get("tag_name") != tag
+                or orphan.get("draft") is not True or orphan.get("prerelease") is not False
+                or orphan.get("target_commitish") != original.get("target_commitish")
+                or orphan.get("body") != original.get("body") or release_assets(orphan)):
+            raise ValueError("known duplicate is not the unchanged empty draft; refusing recovery")
+        matches = [original]
+    number = matches[0].get("id")
+    if type(number) is not int or number < 1 or (required_id is not None and number != required_id):
+        raise ValueError("release id differs from required recovery draft")
+    result = github.api(f"releases/{number}")
+    if result.get("id") != number or result.get("tag_name") != tag:
+        raise ValueError("release identity changed after discovery")
+    return result
+
+
+def recovery_identity(github, tested, release_id, source_run_id, source_commit, env=None):
+    """Allow only the named failed publication's already-tested original artifacts."""
+    env = os.environ if env is None else env
+    branch = "aella/automatic-game-updates-r1"
+    if (release_id, source_run_id, source_commit) != (RECOVERY_RELEASE_ID, RECOVERY_RUN_ID, RECOVERY_COMMIT):
+        raise ValueError("recovery must name the explicitly authorized existing draft and source run")
+    if (env.get("GITHUB_REPOSITORY") != REPOSITORY
+            or env.get("GITHUB_REF") != "refs/heads/" + RECOVERY_EXECUTION_BRANCH
+            or env.get("GITHUB_EVENT_NAME") not in ("push", "workflow_dispatch")):
+        raise ValueError("recovery requires the authorized repository and branch")
+    run = github.api(f"actions/runs/{source_run_id}")
+    if (run.get("id") != source_run_id or run.get("head_sha") != source_commit
+            or run.get("head_branch") != branch or run.get("event") != "push"
+            or run.get("path") != build_identity.WORKFLOW
+            or run.get("repository", {}).get("full_name") != REPOSITORY
+            or run.get("status") != "completed" or type(run.get("run_number")) is not int):
+        raise ValueError("original build run provenance or completion could not be verified")
+    jobs = []
+    for page in range(1, MAX_API_PAGES + 1):
+        response = github.api(f"actions/runs/{source_run_id}/jobs?filter=all&per_page=100&page={page}")
+        entries = response.get("jobs")
+        if not isinstance(entries, list) or len(entries) > 100:
+            raise ValueError("invalid original build job listing")
+        jobs.extend(entries)
+        if len(entries) < 100:
+            break
+    else:
+        raise ValueError("original build jobs exceeded pagination limit")
+    for name in ("ubuntu-latest", "windows-latest"):
+        matching = [job for job in jobs if job.get("name") == name
+                    and job.get("run_id") == source_run_id and job.get("head_sha") == source_commit
+                    and job.get("status") == "completed" and job.get("conclusion") == "success"]
+        if not matching:
+            raise ValueError(f"original complete build matrix job did not succeed: {name}")
+    original = {
+        "GITHUB_REPOSITORY": REPOSITORY, "GITHUB_RUN_NUMBER": str(run["run_number"]),
+        "GITHUB_RUN_ID": str(source_run_id), "GITHUB_SHA": source_commit,
+        "GITHUB_REF_NAME": branch, "GITHUB_REF": "refs/heads/" + branch,
+        "GITHUB_EVENT_NAME": "push", "RUST_DUTY_BUILD_VERSION": "0.1.5",
+        "RUST_DUTY_BUILD_RESULT": "success",
+    }
+    identity = build_identity.context(original, publication=True)
+    for platform in build_identity.TARGETS:
+        build_identity.verify(Path(tested) / platform, platform, identity)
+    existing = find_release(github, "v0.1.5", required_id=release_id, allow_empty_orphan=True)
+    if (existing.get("target_commitish") != source_commit or existing.get("body") != release_notes(identity)
+            or existing.get("prerelease") is not False):
+        raise ValueError("known recovery draft does not match original source and provenance")
+    return identity
 
 
 def release_assets(release):
@@ -188,7 +306,17 @@ def release_notes(identity):
 
 
 def verify_remote_asset(github, remote, local):
-    expected = release_update.asset(local)
+    verify_remote_record(github, remote, release_update.asset(local))
+
+
+def verify_remote_record(github, remote, expected):
+    if (set(expected) != {"name", "size", "sha256"}
+            or not isinstance(expected["name"], str)
+            or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]{0,149}", expected["name"])
+            or type(expected["size"]) is not int or not 0 < expected["size"] <= release_update.MAX_SIZE
+            or not isinstance(expected["sha256"], str)
+            or not re.fullmatch(r"[0-9a-f]{64}", expected["sha256"])):
+        raise ValueError("invalid expected immutable asset record")
     if (remote.get("name") != expected["name"] or remote.get("state") != "uploaded"
             or remote.get("size") != expected["size"]):
         raise ValueError(f'immutable asset differs: {expected["name"]}')
@@ -215,7 +343,7 @@ def verify_tag(github, tag, commit, *, required=False):
         raise ValueError("release tag does not point to this exact source commit")
 
 
-def publish(github, output, identity):
+def publish(github, output, identity, *, recovery_release_id=None):
     output = Path(output)
     tag = "v" + identity["version"]
     notes = release_notes(identity)
@@ -226,9 +354,12 @@ def publish(github, output, identity):
     order = publication_order(identity, latest)
     if order == "superseded":
         return {"status": "superseded", "version": identity["version"], "latest": latest}
-    existing = github.api(f"releases/tags/{tag}", missing_ok=True)
+    existing = find_release(github, tag, required_id=recovery_release_id,
+                            allow_empty_orphan=recovery_release_id is not None)
     verify_tag(github, tag, identity["source"]["commit"])
     if existing is None:
+        if recovery_release_id is not None:
+            raise ValueError("recovery cannot create a release")
         if order == "same":
             raise ValueError("latest identity exists without its expected release")
         existing = github.api("releases", payload={
@@ -244,6 +375,10 @@ def publish(github, output, identity):
         raise ValueError("existing release has unexpected assets; refusing replacement")
     for name, asset in remote.items():
         verify_remote_asset(github, asset, expected[name])
+    if recovery_release_id is not None:
+        missing = set(expected) - set(remote)
+        if not missing.issubset({"vector-range.exe", "vector-range-linux-x64"}):
+            raise ValueError("recovery may only add the two known missing migration executables")
     if existing.get("draft") is False:
         if set(remote) != set(expected):
             raise ValueError("published release is incomplete; refusing mutation")
@@ -252,7 +387,7 @@ def publish(github, output, identity):
     if existing.get("draft") is not True:
         raise ValueError("unknown release state")
     for name in sorted(set(expected) - set(remote)):
-        github.upload(tag, expected[name])
+        github.upload(existing, expected[name])
     complete = github.api(f'releases/{existing["id"]}')
     remote = release_assets(complete)
     if set(remote) != set(expected):
@@ -275,14 +410,124 @@ def publish(github, output, identity):
     return {"status": "published", "version": identity["version"], "url": published["html_url"]}
 
 
+def recover(github, tested, output, identity, release_id):
+    """Complete only the pinned original draft; never repack/rebuild large assets."""
+    if release_id != RECOVERY_RELEASE_ID:
+        raise ValueError("fast recovery requires the original authorized release id")
+    output = Path(output)
+    if output.exists() or output.is_symlink():
+        raise ValueError("recovery requires a fresh local output directory")
+    tag = "v" + identity["version"]
+    existing = find_release(github, tag, required_id=release_id, allow_empty_orphan=True)
+    if (existing.get("target_commitish") != identity["source"]["commit"]
+            or existing.get("body") != release_notes(identity)
+            or existing.get("prerelease") is not False):
+        raise ValueError("recovery release differs from original approved source")
+    remote = release_assets(existing)
+    proof = remote.get(PROVENANCE)
+    if (not proof or proof.get("state") != "uploaded" or type(proof.get("size")) is not int
+            or not 0 < proof["size"] <= 1024 * 1024):
+        raise ValueError("recovery provenance is missing or unsafe")
+    output.mkdir(parents=True)
+    proof_path = output / PROVENANCE
+    github.download(proof, proof_path)
+    if release_update.sha(proof_path) != RECOVERY_PROVENANCE_SHA256:
+        raise ValueError("recovery provenance differs from the pinned original SHA-256")
+    verify_remote_asset(github, proof, proof_path)
+    provenance = json.loads(proof_path.read_text(encoding="utf-8"))
+    if (set(provenance) != {"schema", "repository", "version", "sequence", "source", "artifacts", "assets"}
+            or provenance["schema"] != "rust-duty-game-release/v1"
+            or any(provenance[key] != value for key, value in identity.items())):
+        raise ValueError("pinned provenance does not match original build identity")
+    artifacts = {}
+    names = set()
+    migrations = {}
+    for platform, (target, executable, label, _) in build_identity.TARGETS.items():
+        verified = build_identity.verify(Path(tested) / platform, platform, identity)
+        artifacts[platform] = {"name": f"vector-range-{platform}-x64", "identity": verified}
+        migration = "vector-range.exe" if platform == "windows" else "vector-range-linux-x64"
+        migrations[migration] = Path(tested) / platform / executable
+        names.update({f"Rust-Duty-{identity['version']}-{label}-x64.zip",
+                      f"rust-duty-{identity['version']}-{target}.rdb", f"update-{target}.json", migration})
+    if provenance["artifacts"] != artifacts or set(provenance["assets"]) != names:
+        raise ValueError("pinned provenance artifact or release asset inventory differs")
+    expected = {**provenance["assets"], PROVENANCE: release_update.asset(proof_path)}
+    if set(remote) - set(expected) or not (set(expected) - set(remote)).issubset(migrations):
+        raise ValueError("recovery may only add the two known missing migration executables")
+    for name, asset in remote.items():
+        if expected[name].get("name") != name:
+            raise ValueError("provenance asset name mismatch")
+        verify_remote_record(github, asset, expected[name])
+    for name, source in migrations.items():
+        destination = output / name
+        shutil.copy2(source, destination)
+        if release_update.asset(destination) != expected[name]:
+            raise ValueError("original executable differs from pinned release provenance")
+    # Re-read small manifests before promotion; archives/bundles retain the exact
+    # server SHA-256 and sizes from the pinned, original verified provenance.
+    for target, executable, _, _ in build_identity.TARGETS.values():
+        name = f"update-{target}.json"
+        local = output / name
+        github.download(remote[name], local)
+        verify_remote_asset(github, remote[name], local)
+        manifest = release_update.verify_manifest(argparse.Namespace(
+            manifest=local, assets_dir=None, version=identity["version"], target=target, bundle_only=True))
+        if (manifest["sequence"] != identity["sequence"] or manifest["entrypoint"] != executable
+                or manifest["bundle"] != expected.get(manifest["bundle"]["name"])):
+            raise ValueError("original manifest does not bind the pinned complete game bundle")
+    verify_tag(github, tag, identity["source"]["commit"])
+    if existing.get("draft") is False:
+        if set(remote) != set(expected):
+            raise ValueError("published recovery release is incomplete; refusing mutation")
+        verify_tag(github, tag, identity["source"]["commit"], required=True)
+        return {"status": "already-published", "version": identity["version"], "url": existing["html_url"]}
+    if existing.get("draft") is not True:
+        raise ValueError("unknown recovery release state")
+    if publication_order(identity, latest_identity(github)) != "newer":
+        raise ValueError("recovery release may not replace an equal or newer channel")
+    for name in sorted(set(expected) - set(remote)):
+        github.upload(existing, output / name)
+    complete = find_release(github, tag, required_id=release_id, allow_empty_orphan=True)
+    final_assets = release_assets(complete)
+    if set(final_assets) != set(expected):
+        raise ValueError("recovered release assets remain incomplete")
+    for name, asset in final_assets.items():
+        verify_remote_record(github, asset, expected[name])
+    if (complete.get("draft") is not True or complete.get("target_commitish") != identity["source"]["commit"]
+            or complete.get("body") != release_notes(identity)
+            or publication_order(identity, latest_identity(github)) != "newer"):
+        raise ValueError("recovery target or channel changed before promotion")
+    verify_tag(github, tag, identity["source"]["commit"])
+    published = github.api(f"releases/{release_id}", payload={"draft": False, "make_latest": "true"})
+    if published.get("id") != release_id or published.get("draft") is not False or published.get("tag_name") != tag:
+        raise ValueError("recovered public release visibility was not confirmed")
+    verify_tag(github, tag, identity["source"]["commit"], required=True)
+    if publication_order(identity, latest_identity(github)) != "same":
+        raise ValueError("recovered release is not latest discoverable update")
+    return {"status": "published", "version": identity["version"], "url": published["html_url"]}
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--tested", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--recover-release-id", type=int)
+    parser.add_argument("--source-run-id", type=int)
+    parser.add_argument("--source-commit")
     args = parser.parse_args()
-    identity = build_identity.context(publication=True)
-    prepare(args.tested, args.output, identity)
-    result = publish(GitHub(), args.output, identity)
+    github = GitHub()
+    if args.recover_release_id is not None:
+        identity = recovery_identity(github, args.tested, args.recover_release_id,
+                                     args.source_run_id, args.source_commit)
+    else:
+        if args.source_run_id is not None or args.source_commit is not None:
+            parser.error("source run arguments require --recover-release-id")
+        identity = build_identity.context(publication=True)
+    if args.recover_release_id is not None:
+        result = recover(github, args.tested, args.output, identity, args.recover_release_id)
+    else:
+        prepare(args.tested, args.output, identity)
+        result = publish(github, args.output, identity)
     print(json.dumps(result, indent=2))
     if os.environ.get("GITHUB_STEP_SUMMARY"):
         with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as stream:
