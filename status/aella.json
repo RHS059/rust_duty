@@ -1,27 +1,27 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T12:32:44Z",
+  "updatedAt": "2026-10-03T12:41:58Z",
   "state": "active",
-  "task": "Coordinating reference-based ADS authoring, motion review and layered locomotion integration; new clips await review",
-  "lastCompleted": "Created a reference-based ADS candidate and passed layered transition controller tests",
+  "task": "Coordinating reference-based ADS refinement and layered locomotion integration; new motion clips await review",
+  "lastCompleted": "Opened draft PR #17 for simultaneous ADS, walk and run blending; completed the initial ADS motion review",
   "agents": [
     {
       "slot": 1,
       "state": "active",
-      "task": "Refining a reference-based ADS animation candidate for independent motion review",
-      "lastCompleted": "Created the ADS candidate; motion approval is pending"
+      "task": "Refining and preparing a reference-based ADS animation candidate",
+      "lastCompleted": "Created the ADS candidate for independent motion review"
     },
     {
       "slot": 2,
-      "state": "active",
-      "task": "Independently reviewing reference timing, motion frames and hand contact",
-      "lastCompleted": "Verified both 720p60 movement references for frame-by-frame comparison"
+      "state": "idle",
+      "task": "",
+      "lastCompleted": "Completed the initial ADS motion review; awaiting a new hip-walk candidate"
     },
     {
       "slot": 3,
       "state": "active",
-      "task": "Preparing a draft PR for simultaneous ADS, walk-out and run-in transitions",
-      "lastCompleted": "Passed the layered locomotion controller tests"
+      "task": "Checking draft PR #17 builds and simultaneous ADS, walk-out and run-in blending",
+      "lastCompleted": "Published the runtime-only layered locomotion draft PR and passed local tests"
     }
   ]
 }
