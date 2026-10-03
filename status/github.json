@@ -1,11 +1,11 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T23:03:32Z",
+  "updatedAt": "2026-10-03T23:12:48Z",
   "latestComplete": {
     "sha": "eb886edb9ed31ad6feae13541c4e34aa70362f2f",
     "downloadUrl": "https://github.com/RHS059/rust_duty/releases/download/v0.1.5/Rust-Duty-0.1.5-Windows-x64.zip",
     "runUrl": "https://github.com/RHS059/rust_duty/actions/runs/37154246170",
-    "verifiedAt": "2026-10-03T23:03:32Z",
+    "verifiedAt": "2026-10-03T23:12:48Z",
     "completedAt": "2026-10-03T22:23:20Z"
   },
   "changes": [
@@ -15,13 +15,13 @@
     "Real Windows and Linux 0.1.4-to-0.1.5 upgrades passed, including executable replacement, version confirmation and managed runtime selection.",
     "Both upgrade checks verified all 70 managed files and confirmed 85 existing root-file and synthetic private-data checks remained unchanged. These are headless updater checks, not interactive gameplay tests.",
     "All nine release assets match verified source provenance. Complete Windows release ZIP: 89,510,408 bytes; SHA-256 f5f51ea37f8903a9b1c65707b25ed3202a9890184a6e5ceb66d8252ec054a7a2.",
-    "Draft PR #23 contains unreviewed forward ADS v9 source with a known bake-tolerance failure; runtime integration is underway. V9, lateral Trial4 and newer jump work remain outside 0.1.5; integrated ADS motion remains unreviewed.",
-    "Persistent per-weapon XYZ walking controls passed local tests; Alt-Tab focus fixes and v9 integration continue. Draft PR #24 patch-per-merge policy checks passed, but automation is not activated.",
-    "GitHub now lists public 0.1.6 at 66b4ef1f. Its source and complete-package contents are being verified; it has not replaced the verified Latest Complete entry."
+    "Draft PR #23 contains unreviewed forward ADS v9 source with a known bake-tolerance failure; local runtime integration continues. V9, lateral Trial4 and newer jump work remain outside 0.1.5.",
+    "Persistent per-weapon XYZ walking controls passed local tests; Alt-Tab and v9 integration continue locally. New commits and publication wait for Elara's 0.1.7–0.1.9 release sequence. Draft PR #24 automation is not activated.",
+    "Public 0.1.6 at 66b4ef1f comes from older main source without the integrated HIP r5/ADS paths. It has not replaced verified Latest Complete 0.1.5. No 0.1.7–0.1.9 release is visible yet."
   ],
   "currentBuild": {
     "state": "active",
-    "task": "PR #24 head 83b0ea5e has complete-game CI running; policy and updater checks passed. The next integrated candidate and public 0.1.6 require verification.",
+    "task": "Existing PR #24 complete-game CI is running; policy and updater checks passed. New ADS/sliders commits and release publication wait for the 0.1.7–0.1.9 sequence.",
     "url": "https://github.com/RHS059/rust_duty/actions/runs/37160104960"
   }
 }
