@@ -1,27 +1,27 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T19:53:05Z",
-  "state": "active",
-  "task": "Verifying forward ADS v7 in the gallery and preparing separate lateral Trial2 previews for review.",
-  "lastCompleted": "Forward ADS v7 is deployed with verified media hashes and direct playback. All four HIP r5 motions passed review.",
+  "updatedAt": "2026-10-03T20:02:10Z",
+  "state": "idle",
+  "task": "Waiting for forward ADS v7 review, lateral Trial2 gallery entries and the approved HIP r5 source.",
+  "lastCompleted": "Forward ADS v7 is live and playback-verified. Both lateral Trial2 previews are complete. All four HIP r5 motions passed review.",
   "agents": [
     {
       "slot": 1,
       "state": "idle",
-      "task": "Forward ADS v7 is published and awaiting visual review.",
+      "task": "Forward ADS v7 is live and awaiting visual review.",
       "lastCompleted": "Completed forward v7 articulation15 and the 126-frame Eevee comparison; the 1.6 mm joint-anchor caveat remains."
     },
     {
       "slot": 2,
       "state": "idle",
-      "task": "Lateral ADS Trial2 is queued for separate preview entries and visual review.",
+      "task": "Both lateral ADS Trial2 previews are complete and awaiting separate gallery entries and visual review.",
       "lastCompleted": "Completed both lateral Trial2 component-isolation diagnostics and 198-frame Eevee captures; scoring is pending."
     },
     {
       "slot": 3,
       "state": "idle",
-      "task": "HIP r5 game integration is prepared and waiting for the approved source file.",
-      "lastCompleted": "All four HIP r5 motions passed review at 82, 83, 82 and 81. The latest verified published game build remains e46f83d."
+      "task": "HIP r5 integration is prepared and waiting for the approved source.",
+      "lastCompleted": "All four HIP r5 motions passed review at 82, 83, 82 and 81. These revisions are not yet in the downloadable game."
     }
   ]
 }
