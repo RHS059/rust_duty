@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T14:24:57.284Z",
+  "updatedAt": "2026-10-03T14:35:04.765Z",
   "latestComplete": {
     "sha": "0423f0fd8c62ec451237bab256866b50cbf6cb78",
     "downloadUrl": "https://github.com/RHS059/rust_duty/actions/runs/37124656435/artifacts/11274850983",
@@ -18,7 +18,7 @@
   ],
   "currentBuild": {
     "state": "complete",
-    "task": "PR #18's directional source build passed; the combined four-direction locomotion and new ADS game build is not yet available",
+    "task": "PR #18's source-only build passed; combined directional HIP and ADS v4 integration remains local, with no new game build published",
     "url": "https://github.com/RHS059/rust_duty/actions/runs/37124704829"
   }
 }
