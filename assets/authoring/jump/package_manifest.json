@@ -1,13 +1,13 @@
 {
   "schema": "rust-duty-jump-source-package/v1",
-  "revision": "r2",
-  "status": "Frozen original-choreography source WIP; Elara r2 review and runtime integration pending",
+  "revision": "r3",
+  "status": "Frozen original-choreography source WIP; Elara r3 review and runtime integration pending",
   "source_file": "halcyon_jump.blend",
-  "source_sha256": "ade77291cf65a6e2bd8563ebe7449a3b64e8df2f504dc6d2cdf0e93b534064fd",
+  "source_sha256": "cad1c8e661bc10a8ac2db6017598c1cc0daafdec6b09576e9b78d85edf4f642f",
   "filename_policy": "Stable current filename; revision is recorded in this manifest and Action names. Prior standalone sources remain in Git history.",
-  "baseline_commit": "a5ecdaa09680e043fe608842f7d38acc810ed864",
-  "baseline_path": "assets/authoring/jump/halcyon_jump_r1.blend",
-  "baseline_sha256": "4e923368b0b07d87e737d6575266b2ba4b2d4b020d4bc4cf0c0848c7cf94acb6",
+  "baseline_commit": "f5040f042ef5e988e5486e4ebdab12049ac9b2e4",
+  "baseline_path": "assets/authoring/jump/halcyon_jump.blend",
+  "baseline_sha256": "ade77291cf65a6e2bd8563ebe7449a3b64e8df2f504dc6d2cdf0e93b534064fd",
   "repository_destination": "assets/authoring/jump/",
   "branch": "halcyon/jump-r1",
   "blender": "4.3.2",
@@ -36,7 +36,7 @@
     "hk416_magazine": "hk416_magazineAction"
   },
   "runtime_mapping": {
-    "jump_takeoff_r2": {
+    "jump_takeoff_r3": {
       "runtime_id": "jump_takeoff",
       "frame_range": [
         1,
@@ -45,7 +45,7 @@
       "duration_seconds": 0.16666666666666666,
       "loop": false
     },
-    "jump_air_r2": {
+    "jump_air_r3": {
       "runtime_id": "jump_air",
       "frame_range": [
         1,
@@ -54,7 +54,7 @@
       "duration_seconds": 0.016666666666666666,
       "loop": true
     },
-    "jump_land_r2": {
+    "jump_land_r3": {
       "runtime_id": "jump_land",
       "frame_range": [
         1,
@@ -65,22 +65,22 @@
     }
   },
   "verification": {
-    "original_actions_preserved": 85,
+    "original_actions_preserved": 88,
     "new_actions": 3,
-    "total_actions": 88,
+    "total_actions": 91,
     "fresh_disk_preservation_passed": true,
     "technical_motion_contacts_passed": true,
     "reproduction_passed": true,
     "feedback_contract_passed": true,
-    "max_wrist_error_m": 5.06725072862134e-07,
+    "max_wrist_error_m": 5.821242908975294e-07,
     "no_camera_or_world_root_motion": true,
     "all_clip_endpoints_exact_ready": true,
     "air_static": true
   },
   "review": {
     "required_reviewer": "Elara",
-    "status": "r2 pending",
-    "feedback_addressed_url": "https://github.com/RHS059/dot_chat/pull/1#issuecomment-5973648930",
+    "status": "r3 pending",
+    "feedback_addressed_url": "https://github.com/RHS059/dot_chat/pull/1#issuecomment-5973802198",
     "render_method": "Eevee Viewport Render Animation",
     "preview_artifacts_included": false
   },
@@ -98,23 +98,23 @@
   "file_list": [
     {
       "path": "halcyon_jump.blend",
-      "bytes": 10097717,
-      "sha256": "ade77291cf65a6e2bd8563ebe7449a3b64e8df2f504dc6d2cdf0e93b534064fd"
+      "bytes": 10172642,
+      "sha256": "cad1c8e661bc10a8ac2db6017598c1cc0daafdec6b09576e9b78d85edf4f642f"
     },
     {
       "path": "README.md",
-      "bytes": 6490,
-      "sha256": "1e095abb52ab638f36f5fbe126046fa0a235a2f0f642eaeaede7a7547d2745ec"
+      "bytes": 6938,
+      "sha256": "dad24d289bcd1cc5de0cdf5df6f07a89ea68d205f9e4421a2221820762f3f0ed"
     },
     {
       "path": "jump_design.json",
-      "bytes": 6897,
-      "sha256": "3413950a5e16812b779c2b7225167f1d3d681fdd42fa0cecc2aba743307e0b92"
+      "bytes": 9574,
+      "sha256": "740a40dcbcbd3cfca89c3b479528d4a37df740b12f7be4237e85f55e642980a4"
     },
     {
       "path": "author_jump.py",
-      "bytes": 8981,
-      "sha256": "e56f2d89f6e3225c84d9c3f4ad325f4d5bd5ce0b0d3d3530a8a7e33a940004b5"
+      "bytes": 9343,
+      "sha256": "97c29c6a315c9478eea8108d7f398100536a66e1bece69bec3bfb926f7dca89d"
     },
     {
       "path": "source_integrity.py",
@@ -129,42 +129,42 @@
     {
       "path": "validate_jump.py",
       "bytes": 7010,
-      "sha256": "f9809c032230fe781e382d5510bbdbdae27f1c1a87ef94cc1efdbc0752ba89ec"
+      "sha256": "5d4449b2077edb316fa1929d86b6d7bfc3742e5d0f5fa6b4ad3b8f66df506407"
     },
     {
       "path": "authored_root_keys.json",
-      "bytes": 25976,
-      "sha256": "d331cde8c55cab02ca2dc580cd45596ad8002db169c6ae01930aa7fcb178aee0"
+      "bytes": 25727,
+      "sha256": "29935bb4568ceab80377f314f253a5c2547d6f3cbc4cf8463c35a2453cc4f1fb"
     },
     {
       "path": "authoring_preservation.json",
       "bytes": 927,
-      "sha256": "74865487819f72b686c151ce0b853009f437e9b4d1520c8335c7466953a4c661"
+      "sha256": "d1bf1593906af394bb33e0328f171a339c0967750b8fe507bad9600832772d2c"
     },
     {
       "path": "baseline_fingerprint.json",
-      "bytes": 336881,
-      "sha256": "b840f7b64f7647b0f151f8c8181bf9224ba80bd81d56c7795365db9e1f403ec3"
+      "bytes": 339884,
+      "sha256": "4dc72e9cdee15680fe8d52a4a83e79f6fc17fed77fee0aa90a1e9eeb101d2f34"
     },
     {
       "path": "source_preservation.json",
-      "bytes": 340916,
-      "sha256": "f6e5f21c994c1b429f33bf96527ce8641ebd09cef4173227a52beee4f64c8641"
+      "bytes": 343903,
+      "sha256": "274dae123e7e8413eb22af23df0772ded23fb9f456ee9855fc2ac5de46ffaaab"
     },
     {
       "path": "jump_technical_validation.json",
-      "bytes": 58499,
-      "sha256": "7d022e32b19ee415e22dff42d48636ecd60afa82a353f252abf1e3d6b42cdeb1"
+      "bytes": 58535,
+      "sha256": "5f4546d2950ad6280082e31f08ce060f28e166446b71a4f5805f9da6c059e5c8"
     },
     {
       "path": "reproduction_check.json",
       "bytes": 907,
-      "sha256": "72a73cce4685453e780c7d4c7ee473271ed2d7dfe924c5270db3bdb0edf15b68"
+      "sha256": "9acb421dfe63a230fbf596dc270efaf2f37e0c33230d52c8863c88183f16cf43"
     },
     {
       "path": "feedback_revision.json",
-      "bytes": 1784,
-      "sha256": "bee392bf202593d506b77753b8e8995f319d7601af4f6ad98793da531186fd5f"
+      "bytes": 2899,
+      "sha256": "51892916718cac3ddd353c573c6b18e788cfd95f18521ee4216e0deaa2cb7740"
     }
   ]
 }

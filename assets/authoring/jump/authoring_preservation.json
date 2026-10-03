@@ -1,13 +1,13 @@
 {
   "schema": "rust-duty-jump-source-preservation/v1",
-  "source_sha256": "4e923368b0b07d87e737d6575266b2ba4b2d4b020d4bc4cf0c0848c7cf94acb6",
-  "candidate_sha256": "ade77291cf65a6e2bd8563ebe7449a3b64e8df2f504dc6d2cdf0e93b534064fd",
-  "source_actions": 85,
-  "candidate_actions": 88,
+  "source_sha256": "ade77291cf65a6e2bd8563ebe7449a3b64e8df2f504dc6d2cdf0e93b534064fd",
+  "candidate_sha256": "cad1c8e661bc10a8ac2db6017598c1cc0daafdec6b09576e9b78d85edf4f642f",
+  "source_actions": 88,
+  "candidate_actions": 91,
   "created_actions": [
-    "jump_takeoff_r2",
-    "jump_air_r2",
-    "jump_land_r2"
+    "jump_takeoff_r3",
+    "jump_air_r3",
+    "jump_land_r3"
   ],
   "checks": {
     "all_prior_action_fingerprints": true,
@@ -27,5 +27,5 @@
   "passed": true,
   "source_saved": false,
   "candidate_saved": true,
-  "design_sha256": "3413950a5e16812b779c2b7225167f1d3d681fdd42fa0cecc2aba743307e0b92"
+  "design_sha256": "740a40dcbcbd3cfca89c3b479528d4a37df740b12f7be4237e85f55e642980a4"
 }

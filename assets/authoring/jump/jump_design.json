@@ -1,8 +1,8 @@
 {
   "schema": "rust-duty-jump-design/v1",
-  "status": "Original choreography r2 WIP; revised from Elara r1 feedback; Elara re-review pending",
-  "source_path": "assets/authoring/jump/halcyon_jump_r1.blend",
-  "source_sha256": "4e923368b0b07d87e737d6575266b2ba4b2d4b020d4bc4cf0c0848c7cf94acb6",
+  "status": "Original choreography r3 WIP; revised from Elara r2 feedback; Elara re-review pending",
+  "source_path": "assets/authoring/jump/halcyon_jump.blend",
+  "source_sha256": "ade77291cf65a6e2bd8563ebe7449a3b64e8df2f504dc6d2cdf0e93b534064fd",
   "baseline_action": "RD_Locomotion_Normal_Entry_4419_4434_WIP2",
   "baseline_frame": 1,
   "guarded_initialization": "RD_00_Supplied_Base_Guarded_Recovered",
@@ -19,11 +19,11 @@
   ],
   "pivot": "anatomical support wrist at normal_ready",
   "rotation_order": "Rx @ Ry @ Rz in camera coordinates",
-  "interpolation": "Piecewise quintic smootherstep between beat poses; sampled at native 60 fps with derivative-matched cubic Bezier root handles. Exact zero derivative at clip endpoints.",
+  "interpolation": "Monotone piecewise cubic Hermite (PCHIP) through compression shoulders, with zero endpoint tangents and zero tangent at extrema. Sampled at native 60 fps into derivative-matched cubic Bezier root channels. No shoulder overshoot and no independent world trajectory.",
   "source_evidence": "The supplied locomotion videos contain no usable first-person jump sequence. These beat poses and timings are original artistic choices, not reference measurements.",
   "camera_motion": "None. Gameplay supplies the world jump arc and existing camera landing_kick. Only the held rig moves relative to the unchanged review camera.",
   "actions": {
-    "jump_takeoff_r2": {
+    "jump_takeoff_r3": {
       "runtime_id": "jump_takeoff",
       "frame_range": [
         1,
@@ -31,7 +31,7 @@
       ],
       "duration_seconds": 0.16666666666666666,
       "loop": false,
-      "purpose": "Stronger compact downward takeoff inertia and muzzle dip, controlled rebound, exact ready recovery; r1 phase beats retained",
+      "purpose": "Deeper takeoff inertia carried through broad compression shoulders around the unchanged frame-4 peak; frame-8 rebound and frame-11 ready retained",
       "beats": [
         {
           "frame": 1,
@@ -46,15 +46,63 @@
           ]
         },
         {
+          "frame": 2,
+          "label": "compression shoulder 2",
+          "params": [
+            0.00042,
+            -0.01932,
+            0.007559999999999999,
+            -1.7219999999999998,
+            0.0,
+            0.042
+          ]
+        },
+        {
+          "frame": 3,
+          "label": "compression shoulder 3",
+          "params": [
+            0.00093,
+            -0.04278,
+            0.016739999999999998,
+            -3.8129999999999997,
+            0.0,
+            0.09300000000000001
+          ]
+        },
+        {
           "frame": 4,
           "label": "takeoff lag",
           "params": [
             0.001,
-            -0.036,
-            0.016,
-            -3.1,
+            -0.046,
+            0.018,
+            -4.1,
             0,
             0.1
+          ]
+        },
+        {
+          "frame": 6,
+          "label": "compression shoulder 6",
+          "params": [
+            0.0009000000000000001,
+            -0.0414,
+            0.0162,
+            -3.69,
+            0.0,
+            0.09000000000000001
+          ]
+        },
+        {
+          "frame": 6.8,
+          "label": "compression shoulder 6.8",
+          "params": [
+            0.00055,
+            -0.025300000000000003,
+            0.0099,
+            -2.255,
+            0.0,
+            0.05500000000000001
           ]
         },
         {
@@ -83,7 +131,7 @@
         }
       ]
     },
-    "jump_air_r2": {
+    "jump_air_r3": {
       "runtime_id": "jump_air",
       "frame_range": [
         1,
@@ -119,7 +167,7 @@
         }
       ]
     },
-    "jump_land_r2": {
+    "jump_land_r3": {
       "runtime_id": "jump_land",
       "frame_range": [
         1,
@@ -127,7 +175,7 @@
       ],
       "duration_seconds": 0.26666666666666666,
       "loop": false,
-      "purpose": "More readable ground-contact compression using downward inertia and increased muzzle pitch, restrained rebound, exact ready settle; r1 phase beats retained",
+      "purpose": "Deeper landing compression with broad held-rig shoulders; frame-4 peak, frame-10 rebound and frame-17 settle retained",
       "beats": [
         {
           "frame": 1,
@@ -142,15 +190,63 @@
           ]
         },
         {
+          "frame": 2,
+          "label": "compression shoulder 2",
+          "params": [
+            0.00066,
+            -0.02728,
+            0.0044,
+            -3.52,
+            0.0,
+            0.06160000000000001
+          ]
+        },
+        {
+          "frame": 3,
+          "label": "compression shoulder 3",
+          "params": [
+            0.00141,
+            -0.05828,
+            0.0094,
+            -7.52,
+            0.0,
+            0.1316
+          ]
+        },
+        {
           "frame": 4,
           "label": "landing compression",
           "params": [
             0.0015,
-            -0.048,
-            0.018,
-            -5.3,
+            -0.062,
+            0.01,
+            -8.0,
             0,
             0.14
+          ]
+        },
+        {
+          "frame": 7,
+          "label": "compression shoulder 7",
+          "params": [
+            0.00135,
+            -0.0558,
+            0.009000000000000001,
+            -7.2,
+            0.0,
+            0.12600000000000003
+          ]
+        },
+        {
+          "frame": 8,
+          "label": "compression shoulder 8",
+          "params": [
+            0.0008250000000000001,
+            -0.034100000000000005,
+            0.0055000000000000005,
+            -4.4,
+            0.0,
+            0.07700000000000001
           ]
         },
         {
@@ -190,43 +286,56 @@
     "ADS": "The source Actions are absolute HIP poses. ADS needs aim-safe viewmodel-relative composition on the separate existing ADS base; do not replace its articulation or clear ADS intent",
     "gameplay_authority": "No input, movement, firing, reload, ADS or mantle behavior is modified by this source package"
   },
-  "source_action_count": 85,
+  "source_action_count": 88,
   "feedback": {
-    "review_url": "https://github.com/RHS059/dot_chat/pull/1#issuecomment-5973648930",
+    "review_url": "https://github.com/RHS059/dot_chat/pull/1#issuecomment-5973802198",
     "reviewer": "Elara",
-    "revision_of": "jump r1",
-    "requested_change": "Keep exact phase beats, quiet extendable air and three-Action split; strengthen held-rig takeoff and landing extrema for clearly readable jump weight in the fixed camera",
-    "changes": "Increase downward inertia and muzzle pitch; keep lateral/roll accents and timing unchanged, limit extra backward displacement to avoid needless framing loss, modestly strengthen rebound"
+    "revision_of": "jump r2",
+    "requested_change": "Deeper and wider takeoff and landing arcs at the existing phase beats, rather than a taller short spike; preserve quiet air, split and neutral endpoints",
+    "changes": "Add broad compression shoulders with monotone Hermite interpolation around unchanged main peaks; increase bounded downward displacement/pitch; preserve existing rebound, lateral/roll, phase duration and quiet air"
   },
   "revision_rationale": {
     "takeoff_compression": {
       "downward_m": {
-        "r1": 0.021,
-        "r2": 0.036
+        "r2": 0.036,
+        "r3": 0.046
       },
       "backward_m": {
-        "r1": 0.012,
-        "r2": 0.016
+        "r2": 0.016,
+        "r3": 0.018
       },
       "muzzle_dip_degrees": {
-        "r1": 1.4,
-        "r2": 3.1
+        "r2": 3.1,
+        "r3": 4.1
+      },
+      "new_shoulders": {
+        "frame_2": 0.42,
+        "frame_3": 0.93,
+        "frame_6": 0.9,
+        "frame_6_8": 0.55
       }
     },
     "landing_compression": {
       "downward_m": {
-        "r1": 0.0325,
-        "r2": 0.048
+        "r2": 0.048,
+        "r3": 0.062
       },
       "backward_m": {
-        "r1": 0.018,
-        "r2": 0.018
+        "r2": 0.018,
+        "r3": 0.01
       },
       "muzzle_dip_degrees": {
-        "r1": 2.25,
-        "r2": 5.3
+        "r2": 5.3,
+        "r3": 8.0
+      },
+      "new_shoulders": {
+        "frame_2": 0.44,
+        "frame_3": 0.94,
+        "frame_7": 0.9,
+        "frame_8": 0.55
       }
     },
-    "note": "Not a uniform scale: added pitch lowers the forward muzzle while keeping the rear receiver readable; landing backward shift stays unchanged. These are original artistic choices in response to reviewer feedback, not a reference-match claim."
-  }
+    "note": "Broad shoulders retain compression into recovery instead of a narrow impulse. Main peak/rebound/end frames remain unchanged. Monotone interpolation carries velocity through shoulders; only extrema/ends stop. Added landing pitch and reduced backward translation preserve receiver framing while deepening the forward-muzzle arc. Original choreography, no reference-match claim."
+  },
+  "interpolation_type": "monotone_hermite_shoulders"
 }

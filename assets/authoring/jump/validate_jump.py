@@ -29,7 +29,7 @@ def evaluate(f):
   'guard_error_degrees':[math.degrees(mats['MCH_hand_guarded_'+side].to_quaternion().rotation_difference(mats['MCH_attach_goal_'+side].to_quaternion()).angle) for side in ['l','r']]}
 r.animation_data.action=base;frame(1);r.animation_data.action=ready;reference=evaluate(1)
 results={};checks={};max_total=0
-for name,N,loop in [('jump_takeoff_r2',10,False),('jump_air_r2',1,True),('jump_land_r2',16,False)]:
+for name,N,loop in [('jump_takeoff_r3',10,False),('jump_air_r3',1,True),('jump_land_r3',16,False)]:
  a=bpy.data.actions[name]
  r.animation_data.action=base;frame(1);r.animation_data.action=a
  samples=[];max_wrist=[0.,0.];max_guard=[0.,0.];max_hand=[0.,0.];max_actor=[0.,0.];max_root=0.;max_camera=0.;max_armature=0.;endpoint={};max_bone=0.
