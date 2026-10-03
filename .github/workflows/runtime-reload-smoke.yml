@@ -1,0 +1,57 @@
+name: Pinned reload runtime diagnostic
+on:
+  pull_request:
+    paths: ['.github/workflows/runtime-reload-smoke.yml']
+permissions:
+  contents: read
+  actions: read
+jobs:
+  native-render:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download exact tested PR7 runtime (405604f1)
+        uses: actions/download-artifact@v4
+        with:
+          name: vector-range-linux-x64
+          run-id: 37091138246
+          github-token: ${{ github.token }}
+          path: diagnostic/game
+      - name: Download prior validated export (8818d74, diagnostic reuse only)
+        uses: actions/download-artifact@v4
+        with:
+          name: generated-reload-runtime
+          run-id: 37091167717
+          github-token: ${{ github.token }}
+          path: diagnostic/game/assets/reload
+      - name: Install native software-rendering dependencies
+        run: sudo apt-get update && sudo apt-get install -y xvfb libasound2-dev libgl1-mesa-dri
+      - name: Capture actual gameplay R and authored phase exit
+        timeout-minutes: 6
+        env:
+          LIBGL_ALWAYS_SOFTWARE: '1'
+        run: |
+          cp assets/animations.cfg diagnostic/game/assets/animations.cfg
+          chmod +x diagnostic/game/vector-range
+          cd diagnostic/game
+          timeout 300s xvfb-run -a -s "-screen 0 1920x1080x24" ./vector-range --no-update --reference-viewport --capture-sequence=gameplay-reload --output=../../evidence/reload-gameplay
+          cd ../..
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          rows=[json.loads(p.read_text()) for p in sorted(Path('evidence/reload-gameplay').glob('*.gameplay.json'))]
+          assert len(rows)>100, len(rows)
+          active=[r for r in rows if r['route']=='reload.tactical']
+          assert len(active)>100, len(active)
+          assert active[-1]['native_clip_seconds']>2.5
+          assert rows[-1]['route']=='locomotion' and rows[-1]['reload_left']==0
+          assert rows[0]['ammo']==12 and rows[-1]['ammo']==30
+          assert rows[-1]['reserve']==rows[0]['reserve']-18
+          print(json.dumps({'frames':len(rows),'reload_frames':len(active),'last_native_seconds':active[-1]['native_clip_seconds'],'last_frame':rows[-1]},indent=2))
+          PY
+      - name: Preserve native proof frames
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pinned-native-reload-evidence
+          path: evidence/reload-gameplay
