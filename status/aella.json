@@ -1,27 +1,27 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T14:35:04.765Z",
+  "updatedAt": "2026-10-03T14:55:24.811Z",
   "state": "active",
-  "task": "Integrating four directional HIP actions with ADS v4; independent review awaits game captures",
+  "task": "Rebuilding the review gallery and rendering existing animation inventory; animation development stopped at 14:48 UTC",
   "lastCompleted": "Completed ADS v4 source handoff and verified four-direction export parity",
   "agents": [
     {
       "slot": 1,
-      "state": "idle",
-      "task": "",
-      "lastCompleted": "Completed ADS v4 handoff; held-ADS sight, hand-contact and continuity checks passed"
+      "state": "active",
+      "task": "Tagging existing preview items as old and rebuilding the gallery for vertical reference/render comparisons",
+      "lastCompleted": ""
     },
     {
       "slot": 2,
-      "state": "waiting",
-      "task": "Waiting for integrated four-direction gameplay captures for independent reference review",
+      "state": "active",
+      "task": "Rendering the current inventory of existing animations for stacked reference comparisons; no animation source development",
       "lastCompleted": ""
     },
     {
       "slot": 3,
-      "state": "active",
-      "task": "Combining four directional HIP actions from PR #18 with ADS v4 for the next game revision",
-      "lastCompleted": "Enabled all four HIP clips and ADS v4 locally; compile and focused controller tests passed"
+      "state": "waiting",
+      "task": "Observing only the already-running e46f83d GitHub build; no new animation source edits",
+      "lastCompleted": "Published all four directional HIP clips and ADS v4 in e46f83d before animation development was stopped"
     }
   ]
 }
