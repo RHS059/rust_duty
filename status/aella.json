@@ -1,26 +1,26 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T23:03:32Z",
+  "updatedAt": "2026-10-03T23:12:48Z",
   "state": "active",
-  "task": "Integrating walking controls and ADS, checking the newly published 0.1.6 release, and preparing per-merge patch automation.",
+  "task": "Preparing ADS and walking-control changes locally; new commits and publication wait for Elara's 0.1.7–0.1.9 release sequence.",
   "lastCompleted": "Persistent per-weapon XYZ walking controls passed local tests; PR #24 release-policy checks passed. Version 0.1.5 remains the latest verified complete build.",
   "agents": [
     {
       "slot": 1,
       "state": "active",
-      "task": "Preparing the 72-bone forward ADS runtime reference and source update for integration.",
+      "task": "Preparing the 72-bone forward ADS runtime reference and source update locally.",
       "lastCompleted": "V9 source and native mapping checks are published in draft PR #23; local-LRS baking still fails its tolerance and motion review remains pending."
     },
     {
       "slot": 2,
       "state": "active",
-      "task": "Preparing per-merged-PR patch automation and the next integrated candidate; verifying public 0.1.6.",
-      "lastCompleted": "Draft PR #24 passed 102 offline policy tests, hosted release-policy checks and updater checks."
+      "task": "Monitoring completion of the 0.1.7–0.1.9 releases; new release and version changes are on hold.",
+      "lastCompleted": "Public 0.1.6 was traced to older main source without the integrated HIP r5/ADS paths; verified Latest Complete remains 0.1.5."
     },
     {
       "slot": 3,
       "state": "active",
-      "task": "Integrating v9 ADS with Alt-Tab cursor fixes and persistent per-weapon XYZ walking sliders.",
+      "task": "Integrating v9 ADS, Alt-Tab cursor fixes and persistent per-weapon XYZ walking sliders locally.",
       "lastCompleted": "The persisted XYZ walking interface is working and local tests passed; complete-candidate verification remains pending."
     }
   ]
