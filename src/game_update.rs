@@ -67,7 +67,7 @@ impl UpdatePanel {
                 snapshot: None,
             };
         }
-        match GameUpdater::start(env!("CARGO_PKG_VERSION")) {
+        match GameUpdater::start(vector_range::BUILD_VERSION) {
             Ok(updater) => Self {
                 updater: Some(updater),
                 error: None,
@@ -118,7 +118,7 @@ impl UpdatePanel {
     fn retry_worker(&mut self) {
         self.updater.take();
         self.snapshot = None;
-        match GameUpdater::start(env!("CARGO_PKG_VERSION")) {
+        match GameUpdater::start(vector_range::BUILD_VERSION) {
             Ok(updater) => {
                 self.updater = Some(updater);
                 self.error = None;

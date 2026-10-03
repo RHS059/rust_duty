@@ -7,7 +7,8 @@ permissions:
   contents: read
 concurrency:
   group: game-${{ github.event_name }}-${{ github.head_ref || github.ref }}
-  cancel-in-progress: true
+  # Never interrupt an eligible push while it may be publishing a complete draft.
+  cancel-in-progress: ${{ github.event_name != 'push' || github.ref != 'refs/heads/aella/automatic-game-updates-r1' }}
 jobs:
   animation-assets:
     uses: ./.github/workflows/blender-assets.yml
@@ -22,6 +23,8 @@ jobs:
   build:
     needs: [animation-assets, walk-assets, ads-assets, directional-assets]
     name: ${{ matrix.os }}
+    env:
+      RUST_DUTY_BUILD_VERSION: '0.1.5'
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -86,8 +89,14 @@ jobs:
       - run: cargo test --locked
         env:
           RUST_DUTY_ANIMATION_MANIFEST: assets/animations.cfg
+      - name: Verify updater formatting in this complete build
+        run: cargo fmt --manifest-path updater/Cargo.toml --all -- --check
+      - name: Lint updater compatibility and safety paths
+        run: cargo clippy --manifest-path updater/Cargo.toml --locked --all-targets -- -D warnings
+      - name: Test updater compatibility and safety paths
+        run: cargo test --manifest-path updater/Cargo.toml --locked
       - name: Require formatting committed to source
-        run: git diff --exit-code -- src tests examples benches
+        run: git diff --exit-code -- build.rs src tests examples benches
       - run: cargo build --locked --release
       - name: Fetch updater dependencies for required notices
         run: cargo fetch --manifest-path updater/Cargo.toml --locked
@@ -194,6 +203,12 @@ jobs:
           name: native-world-lighting-evidence
           path: evidence/lighting/
           if-no-files-found: warn
+      - name: Verify embedded Windows build identity
+        if: runner.os == 'Windows'
+        run: python tools/build_identity.py --root dist/game --platform windows
+      - name: Verify embedded Linux build identity
+        if: runner.os == 'Linux'
+        run: python tools/build_identity.py --root dist/game --platform linux
       - name: Upload complete Windows game
         if: runner.os == 'Windows'
         uses: actions/upload-artifact@v4
@@ -208,3 +223,50 @@ jobs:
           name: vector-range-linux-x64
           path: dist/game/
           if-no-files-found: error
+
+  publish-game-update:
+    name: Publish authorized one-time 0.1.5 game update
+    needs: [build]
+    if: >-
+      github.repository == 'RHS059/rust_duty' &&
+      github.event_name == 'push' &&
+      github.ref == 'refs/heads/aella/automatic-game-updates-r1'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+    concurrency:
+      # Shared with the legacy manual publisher; promotion cannot race.
+      group: rust-duty-release-channel
+      cancel-in-progress: false
+    env:
+      RUST_DUTY_BUILD_VERSION: '0.1.5'
+      RUST_DUTY_BUILD_RESULT: ${{ needs.build.result }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Fetch complete Windows game from this exact run
+        uses: actions/download-artifact@v4
+        with:
+          name: vector-range-windows-x64
+          path: tested/windows
+      - name: Fetch complete Linux game from this exact run
+        uses: actions/download-artifact@v4
+        with:
+          name: vector-range-linux-x64
+          path: tested/linux
+      - name: Publish one-time validated 0.1.5 game and update bundles
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python tools/publish_game_build.py --tested tested --output release-assets
+      - name: Retain one-time publication provenance
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: game-release-0.1.5-provenance
+          path: release-assets/SOURCE_PROVENANCE.json
+          if-no-files-found: warn
