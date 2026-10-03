@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T03:04:24Z",
+  "updatedAt": "2026-10-03T03:15:36Z",
   "latestComplete": {
     "sha": "6684e6f0582af236dc6f2b49c74cbcbe12f3ba2b",
     "downloadUrl": "https://github.com/RHS059/rust_duty/actions/runs/37088824450/artifacts/11261264534",
@@ -15,7 +15,7 @@
   ],
   "currentBuild": {
     "state": "active",
-    "task": "Animation export passed; fixing a game-test asset-unpacking step before rebuilding",
-    "url": "https://github.com/RHS059/rust_duty/pull/9"
+    "task": "Fresh Blender export and Linux rendered reload checks passed; Windows game checks running",
+    "url": "https://github.com/RHS059/rust_duty/actions/runs/37092076517"
   }
 }
