@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T23:21:39Z",
+  "updatedAt": "2026-10-03T23:33:35Z",
   "state": "active",
   "task": "Validating the combined ADS and walking-controls candidate locally; new commits and publication wait for Elara's 0.1.9 completion.",
-  "lastCompleted": "The local candidate passed 517 Rust tests, all-target Clippy and a 1,320-tick replay. Strict bone parity still fails at 3.36e-5.",
+  "lastCompleted": "PR #25 cursor-focus and walking-slider builds passed all three workflows. The newer local v9 candidate remains unpublished with its strict bone-parity failure.",
   "agents": [
     {
       "slot": 1,
@@ -15,13 +15,13 @@
       "slot": 2,
       "state": "active",
       "task": "Monitoring the 0.1.7–0.1.9 release sequence; new release and version changes remain on hold.",
-      "lastCompleted": "Public 0.1.6 was traced to older main source without the integrated HIP r5/ADS paths; verified Latest Complete remains 0.1.5."
+      "lastCompleted": "Public 0.1.6 uses older main source without integrated HIP r5/ADS paths. PR #24 checks passed; release automation remains inactive."
     },
     {
       "slot": 3,
       "state": "active",
       "task": "Validating the local ADS, Alt-Tab cursor and persistent per-weapon XYZ walking-controls candidate.",
-      "lastCompleted": "Local 517-test Rust suite, all-target Clippy and 1,320-tick replay passed; strict bone parity remains a known failure at 3.36e-5."
+      "lastCompleted": "PR #25 b3f2ba8e has complete Windows/Linux builds. The newer local v9 candidate passed 517 tests and replay but retains the 3.36e-5 parity failure."
     }
   ]
 }
