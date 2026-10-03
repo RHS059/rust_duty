@@ -1,6 +1,6 @@
 {
   "schema": "rust-duty-locomotion-authoring-provenance/v1",
-  "scope": "Frozen existing locomotion authoring checkpoint; no new regular-walk Action, converter, CI workflow, or runtime bindings",
+  "scope": "Portable source plus newly authored normal_walk_r1; no converter, CI workflow, or runtime binding edits",
   "original_final_source": {
     "label": "phase35-final-source/Rust-Duty-Normal-Connected-Review.blend",
     "sha256": "b8fc6b9ca7342fd70deb6479d1b699a91cc884edc446ae5f8ddc82145eed1e18",
@@ -20,10 +20,10 @@
   },
   "portable_source": {
     "path": "locomotion.blend",
-    "sha256": "52b0c0b0e2c0778ebf3cae7107f53b84d11bb8435bafd53c956cf16b9ac00a82",
-    "bytes": 9316981,
-    "action_count": 61,
-    "nla_track_count": 7,
+    "sha256": "1b01f49d7fe92f39c7bd180823ee4556a0074dd9ff8ef9c10b3fb4d3f3059e43",
+    "bytes": 9352824,
+    "action_count": 62,
+    "nla_track_count": 8,
     "valid_driver_count": 185
   },
   "historical_shared_action_count": 60,
@@ -38,8 +38,45 @@
   ],
   "upstream_sources_not_modified": true,
   "scope_limits": [
-    "No newly authored walk in this frozen source",
+    "Visible non-sprint reference does not identify walking versus jogging input",
+    "New walk is WIP pending artistic and game-preview acceptance",
     "Retained reload Actions are not current reload master",
-    "Source and numerical parity do not certify artistic/source-contact acceptance"
-  ]
+    "Source and numerical parity do not certify hidden surface contact or runtime start/stop blending"
+  ],
+  "baseline_portable_source": {
+    "path": "locomotion.blend",
+    "sha256": "52b0c0b0e2c0778ebf3cae7107f53b84d11bb8435bafd53c956cf16b9ac00a82",
+    "bytes": 9316981,
+    "action_count": 61,
+    "nla_track_count": 7,
+    "valid_driver_count": 185
+  },
+  "new_walk": {
+    "action": "normal_walk_r1",
+    "fingerprint": "7fd10685b49a64c6715aa5e0759c00a6b7a279ebf1be847a1f156454227798a6",
+    "reference_url": "https://drive.google.com/file/d/1hxAU4KKtB8hP0Ch1o-rOWgOV93ye-Y7i/view?usp=sharing",
+    "reference_sha256": "491a1729aa0f32373025d35fff86da76c6c1c8f057c0c553d0fbb5fb6226ff46",
+    "reference_window_frames": [
+      355,
+      488
+    ],
+    "source_fps": 60,
+    "reference_window_seconds": [
+      5.916666666666667,
+      8.133333333333333
+    ],
+    "new_motion_source": "New root curves fitted to drift-removed, periodic source support-cuff/rear-sight trajectories; exact authoring choices documented in walk_design.json",
+    "not_legacy_walk_restoration": true,
+    "all_prior_61_actions_unchanged": true,
+    "prior_7_nla_tracks_unchanged": true,
+    "export_verified": true,
+    "legacy_evaluated_preservation": {
+      "source_action_fingerprints_unchanged": true,
+      "rigid_actor_arrays_byte_identical": true,
+      "all_prior_evaluated_arrays_byte_identical": false,
+      "position_tolerance_m": 1e-06,
+      "matrix_component_tolerance": 1e-06,
+      "report": "walk_export_validation.json"
+    }
+  }
 }

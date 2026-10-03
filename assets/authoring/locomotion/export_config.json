@@ -16,9 +16,9 @@
   ],
   "excluded_rigid_actor": "hk416_magazine_outgoing",
   "deform_bone_count": 72,
-  "source_take_count": 43,
-  "authored_gameplay_take_count": 42,
-  "runtime_gameplay_clip_count": 43,
+  "source_take_count": 44,
+  "authored_gameplay_take_count": 43,
+  "runtime_gameplay_clip_count": 44,
   "source_takes": [
     {
       "name": "normal_ready",
@@ -364,6 +364,14 @@
       "frame_end": 10,
       "loop": false,
       "role": "gameplay"
+    },
+    {
+      "name": "normal_walk_r1",
+      "action": "normal_walk_r1",
+      "frame_start": 1,
+      "frame_end": 45,
+      "loop": true,
+      "role": "gameplay"
     }
   ],
   "runtime_derivation": {
@@ -396,8 +404,45 @@
     "converter_owner": "Aella common workflow; no converter or runtime binding implementation is supplied here"
   },
   "walking": {
-    "authored_action": null,
-    "implementation": "Procedural Rust bob; no authored walk Action exists in this source"
+    "authored_action": "normal_walk_r1",
+    "runtime_clip_name": "normal_walk_r1",
+    "implementation": "New Blender-authored regular ready-carry walk; runtime integration is owned separately",
+    "source_frame_range": [
+      1,
+      45
+    ],
+    "unique_loop_frame_range": [
+      1,
+      44
+    ],
+    "period_frames": 44,
+    "period_seconds": 0.7333333333333333,
+    "source_fps": 60,
+    "bake_hz": 480,
+    "baked_frame_count_including_repeated_endpoint": 353,
+    "nla_track": "normal_walk_r1",
+    "source_nla_muted": true,
+    "reference_window_seconds": [
+      5.916666666666667,
+      8.133333333333333
+    ],
+    "reference_classification": "Visible non-sprint ready carry; walking versus jogging input is not verified",
+    "transition_metadata": {
+      "status": "Suggested integration parameters; not source input telemetry or validated gameplay behavior",
+      "start_blend_seconds": 0.12,
+      "stop_blend_seconds": 0.16,
+      "blend_easing": "smoothstep_cubic",
+      "start_phase": 0.0,
+      "moving_phase": "Continuous elapsed phase modulo 44/60 seconds; do not reset each update or when blend weight changes",
+      "stop_target": "normal_ready",
+      "phase_on_stop": "Continue through the fade; freeze phase only after zero walk weight",
+      "rapid_reversal": "Begin from complete currently evaluated pose, with no snap to source frame1",
+      "higher_priority_actions": "Gameplay starts immediately; capture current full bone/actor pose for the receiving owner",
+      "sprint_transition": "Blend from current walk pose into existing normal_entry_connected; preserve all prior sprint Actions",
+      "blend_contact_requirement": "Use one weapon-driven rig and preserve Weapon Follow=1; measure full bone/actor and hand continuity in the receiver",
+      "speed_scaling": "Not inferred from reference; clip has authored0.733333s nominal period. Integrator owns any speed scaling."
+    },
+    "contact_acceptance": "Inherited attachment transforms and guard/reach checks pass; hidden finger surface contact and gameplay integration remain unaccepted"
   },
   "source_take_groups": [
     [
@@ -456,6 +501,9 @@
     ],
     [
       "normal_diagnostic_sequence"
+    ],
+    [
+      "normal_walk_r1"
     ]
   ]
 }

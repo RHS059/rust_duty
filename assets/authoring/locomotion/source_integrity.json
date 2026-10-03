@@ -2,13 +2,14 @@
   "schema": "rust-duty-locomotion-source-integrity/v1",
   "blender": "4.3.2",
   "original_final_source_sha256": "b8fc6b9ca7342fd70deb6479d1b699a91cc884edc446ae5f8ddc82145eed1e18",
-  "portable_source_sha256": "52b0c0b0e2c0778ebf3cae7107f53b84d11bb8435bafd53c956cf16b9ac00a82",
+  "portable_source_sha256": "1b01f49d7fe92f39c7bd180823ee4556a0074dd9ff8ef9c10b3fb4d3f3059e43",
   "preserved": {
     "actions": {
       "hk416_magazineAction": "b034a94d358755c1d9df9f8a19fba8468f9fd6edb3746ace49707746781d1c52",
       "hk416_weaponAction.001": "195d8980d5ee7aeb767715bcf13e61149bad3cc4efcf567505a2e0eaa4a881c9",
       "hk416a5_controls": "50864547542f5d9dd802f8efee0075a0d56d4e9f9666fb878e789080835f0dce",
       "hk416a5_ik": "ac4751eb97dae3f029fb7efefb5c8675b42128afbdb69ea20fe6c4b6b4949383",
+      "normal_walk_r1": "7fd10685b49a64c6715aa5e0759c00a6b7a279ebf1be847a1f156454227798a6",
       "RD_00_Supplied_Base_Guarded_Recovered": "49b7da5f9d6ea12be52bade40b09aeb67d6adc6eb34a1a7026e3f111b3c61ed8",
       "RD_00_Supplied_Base_Recovered": "162000c7af797d2cdb0c3142f8684decb465deab16127da0589c5a02712570f7",
       "RD_Loco_Pose4419_Ready_WIP": "8f462228b28f346cd9aff93de696a5f97cce2b7e998198638873163782022d6d",
@@ -69,7 +70,7 @@
     },
     "nla": {
       "Arms": {
-        "action": "RD_Normal_Diagnostic_Sequence",
+        "action": "normal_walk_r1",
         "use_nla": false,
         "tracks": [
           {
@@ -232,6 +233,30 @@
                 "repeat": 1.0,
                 "blend_type": "REPLACE",
                 "extrapolation": "HOLD",
+                "influence": 0.0,
+                "mute": false,
+                "use_auto_blend": false,
+                "blend_in": 0.0,
+                "blend_out": 0.0
+              }
+            ]
+          },
+          {
+            "name": "normal_walk_r1",
+            "mute": true,
+            "is_solo": false,
+            "strips": [
+              {
+                "name": "normal_walk_r1",
+                "action": "normal_walk_r1",
+                "frame_start": 1.0,
+                "frame_end": 45.0,
+                "action_frame_start": 1.0,
+                "action_frame_end": 45.0,
+                "scale": 1.0,
+                "repeat": 1.0,
+                "blend_type": "REPLACE",
+                "extrapolation": "NOTHING",
                 "influence": 0.0,
                 "mute": false,
                 "use_auto_blend": false,
@@ -4870,5 +4895,8 @@
     "Render and file-browser paths made relative",
     "Stale session narratives removed",
     "Embedded recovery/UI Text blocks replaced by README"
-  ]
+  ],
+  "baseline_portable_source_sha256": "52b0c0b0e2c0778ebf3cae7107f53b84d11bb8435bafd53c956cf16b9ac00a82",
+  "revision": "normal_walk_r1",
+  "preservation_note": "All 61 original Actions, seven original NLA tracks, 185 native drivers and packed textures unchanged. Active Action and scene range select the added walk; its NLA track is muted."
 }

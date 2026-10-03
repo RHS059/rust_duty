@@ -1,6 +1,6 @@
 """Blender 4.3.2: portable source Actions -> evaluated FBX + independent oracle.
 
-Frozen 43-source-take selection: 42 gameplay + one staged diagnostic. The runtime
+Checked-in source-take selection: gameplay plus one staged diagnostic. The runtime
 settle is an exact byte-subrange derivation, not a new independent Blender take.
 See export_config.json and README.md. This script never saves its input BLEND.
 """
@@ -31,8 +31,11 @@ skin_names=config['skin_objects']
 actor_names=config['rigid_actors']
 names=[config['armature']]+skin_names+actor_names
 clips=[(row['name'],row['action'],row['frame_start'],row['frame_end'],row['loop']) for row in config['source_takes']]
-assert len(clips)==43 and len({row[0] for row in clips})==43
-assert sum(row['role']=='gameplay' for row in config['source_takes'])==42
+assert len(clips)==config['source_take_count']
+assert len({row[0] for row in clips})==config['source_take_count']
+assert sum(row['role']=='gameplay' for row in config['source_takes'])==config['authored_gameplay_take_count']
+assert sum(row['role']=='diagnostic' for row in config['source_takes'])==1
+assert config['runtime_gameplay_clip_count']==config['authored_gameplay_take_count']+1
 assert {row[0] for row in clips if row[0].startswith('normal_exit_bridge_')}=={'normal_exit_bridge_%03d'%i for i in range(35)}
 source_file=Path(bpy.data.filepath)
 source_hash=hashlib.sha256(source_file.read_bytes()).hexdigest()
@@ -167,8 +170,8 @@ meta['fbx_export_settings']={k:sorted(v) if isinstance(v,set) else v for k,v in 
 meta['fbx_sha256']=hashlib.sha256((OUT/'locomotion.fbx').read_bytes()).hexdigest()
 assert hashlib.sha256(source_file.read_bytes()).hexdigest()==source_hash
 meta['fbx_export_settings']['filepath']='locomotion.fbx'
-meta['source_take_count']=43
-meta['runtime_gameplay_clip_count_after_derivation']=43
+meta['source_take_count']=config['source_take_count']
+meta['runtime_gameplay_clip_count_after_derivation']=config['runtime_gameplay_clip_count']
 meta['runtime_derivation']=config['runtime_derivation']
 meta['supplied_files_unchanged']=True
 (OUT/'native_oracle.json').write_text(json.dumps(meta,indent=2)+'\n')

@@ -1,20 +1,45 @@
-# Locomotion authoring source
+# Locomotion authoring source + normal_walk_r1
 
-This is the portable, editable source for the existing **normal sprint locomotion**
-checkpoint. `locomotion.blend` preserves all 61 Actions, all seven NLA tracks,
-185 valid native drivers, and the packed textures. Original entry/exit Actions,
-the selected AngleFix loop, 35 phase-specific exits, connected transitions,
-diagnostic staging, and earlier revisioned Actions remain available.
+`locomotion.blend` now contains a newly authored **regular ready-carry walking WIP**, `normal_walk_r1`, alongside the existing normal-sprint entry, loop, exit, bridges and archived Actions. This does not restore the former procedural Rust walking bob. No runtime, converter or shared CI code is changed here.
 
-**This frozen checkpoint contains no authored regular-walk Action.** Walking at
-this checkpoint was procedural Rust bob. A newly authored walk must be added as
-a separately versioned Action; it is not silently synthesized by this exporter.
-Retained reload Actions are historical context, not the current reload master.
+The source contains **62 Actions, eight NLA tracks, 185 valid native drivers and packed textures**. All 61 prior Action fingerprints, seven prior NLA tracks, driver definitions and packed-image bytes are unchanged. The new Action is active for review, frames 1–45 at 60 fps. Its new NLA strip is intentionally **muted**: the exporter selects the Action explicitly and constructs its own export-only tracks. The embedded `RD_LOCOMOTION_README` describes the historical baseline; this sibling README and JSON contracts describe the current revision.
+
+## New regular walking cycle
+
+- Action / exported clip / NLA name: `normal_walk_r1`
+- Source range: **1–45**, including repeated endpoint; play unique frames **1–44**
+- Source rate: **60 fps**; period **44/60 = 0.733333 seconds**
+- 23 root keyposes, at two-frame spacing; free Bezier handles and cyclic root channels
+- Six animated channels: `righthand_prop` XYZ location and Euler rotation
+- Both hands and the seated magazine keep **Weapon Follow = 1**; the supplied IK, wrist guards, poles, attachment offsets, meshes and camera remain intact
+- Source time is baked at **480 Hz**, giving **353 samples including the repeated endpoint**
+
+The walk is a new camera-space root rotation about the attached support wrist, with small lateral/vertical translation. Its reference-guided peak-to-peak authoring values are approximately 6.07 mm lateral translation, 10.58 mm vertical translation, 1.85° pitch and 5.51° yaw. These are artistic native-rig choices, not recovered game-space motion. No camera animation, independent free-hand path, legacy procedural oscillator or new weapon geometry was added.
+
+### Reference and limits
+
+The supplied [movement video](https://drive.google.com/file/d/1hxAU4KKtB8hP0Ch1o-rOWgOV93ye-Y7i/view?usp=sharing) is 1280×720 at 60 fps. SHA-256: `491a1729aa0f32373025d35fff86da76c6c1c8f057c0c553d0fbb5fb6226ff46`.
+
+Selected non-sprint ready-carry window: **5.916667–8.133333 s**, source frames **355–488**. It shows an attached support hand, lateral weapon sway, two vertical pulses per lateral cycle, and a rear-of-weapon arc larger than the support-cuff motion. There is no input overlay: **walking versus jogging and movement speed cannot be established**. The existing low-diagonal sprint window was not relabeled as walking.
+
+Normalized feature tracking measured:
+
+- Optic visible displacement: **57.77×29.05 px peak-to-peak**
+- Rear sight: **64×50 px**; support cuff: **16×26 px**
+- Best periodic optic fit: **0.736234 s**; consecutive crest intervals average **0.738889 s**, sample SD **0.050918 s**
+- Feature-center uncertainty is approximately ±3 px; individual crest timing approximately ±2 source frames
+
+Linear drift was removed and two harmonics were fit to the cuff and rear-sight traces. These guide the new native motion rather than reconstructing source 3D. The source has a different optic, appearance and proportions; the native asset and original ready pose are deliberately retained. A front-rail track with poor correlation was rejected. `walk_reference.json` records the selected observations, template bounds and caveats; `walk_design.json` records the periodic model and exact root keys. Small mathematical fit residuals in that file measure the chosen screen-motion targets only, not full reference fidelity.
+
+### Start, stop and ownership metadata
+
+`export_config.json` contains proposed integration values: **120 ms start**, **160 ms stop**, cubic smoothstep, and a continuous walk phase through fades. They are authoring recommendations, not observed source input latency or validated game transitions. There are no separately baked walk-start or walk-stop Actions in this revision.
+
+Capture the complete currently evaluated bone/actor pose before changing presentation owner or rapidly reversing a transition. Blend to `normal_ready` on stop and into the existing connected entry for sprint; do not snap to walk frame 1. Use one weapon-driven rig, preserve attachment behavior, and measure full skin/actor/hand continuity in the receiving runtime. Higher-priority gameplay starts immediately. Runtime owner Aella is responsible for binding this clip, speed scaling, and validating these blends in actual game capture.
 
 ## Exact headless export
 
-Run from the repository root with Blender **4.3.2**, whose bundled Python includes
-NumPy. Use a new output directory; existing export files are never overwritten.
+Run from the repository root with **Blender 4.3.2** and a new output directory:
 
 ```sh
 blender --background --factory-startup --disable-autoexec \
@@ -25,97 +50,43 @@ blender --background --factory-startup --disable-autoexec \
   --output-dir build/locomotion-fbx
 ```
 
-The command creates `locomotion.fbx`, `native_oracle.json`, `native_oracle.npz`,
-and extracted packed textures in the output directory. It does not save changes
-to the input BLEND and executes no embedded source Text blocks. The original
-source checksum and complete Action/NLA/driver/texture snapshot are checked
-before export; source bytes are checked again afterward.
+The exporter verifies exact source bytes and Action/NLA/driver/texture integrity, executes no embedded source Text blocks, and never saves its input BLEND. It produces `locomotion.fbx`, `native_oracle.json`, `native_oracle.npz` and extracted packed textures. Source 60 fps is evaluated/baked at 480 Hz (`bake_anim_step=0.125`), with simplification disabled. Do not reinterpret historical manifests that reported 240 fps despite storing 480 Hz keys.
 
-Source time is **60 fps**. Evaluation and FBX baking use **480 Hz**, with
-`bake_anim_step = 0.125` source frames and simplification disabled. Some old
-converter manifests reported 240 fps despite retaining 480 Hz key records.
-Do not use that old metadata to resample or reinterpret this source.
+The config selects **44 FBX source takes = 43 gameplay takes + one diagnostic**:
 
-The reviewed selection is frozen in `export_config.json`:
+1. Existing seven named ready/entry/loop/exit/connected gameplay takes
+2. Existing 35 `normal_exit_bridge_000` through `_034` takes
+3. Existing `normal_diagnostic_sequence`, which is staged diagnostic animation
+4. New `normal_walk_r1`
 
-- Seven named gameplay takes: ready, original entry/loop/exit, connected entry,
-  loop-to-exit, and connected exit
-- Thirty-five phase-specific exits, `normal_exit_bridge_000` through `_034`
-- One staged `normal_diagnostic_sequence` take, explicitly not gameplay input
+The original seven conversion groups are preserved, with a separate eighth walk-only group. A constant ready take is still generated only in memory from original entry frame 1.
 
-That is **43 FBX source takes = 42 gameplay takes + one diagnostic**. A constant
-ready Action is made only in memory from exact original entry frame 1.
+## Runtime settle derivation remains unchanged
 
-## Required runtime selection and settle derivation
+For the **44-clip gameplay package**, exclude `normal_diagnostic_sequence`, then derive `normal_settle` from already-converted `normal_exit_connected`:
 
-Aella's common workflow owns conversion, bounded per-take compilation, companion
-merging, and runtime semantic bindings. This directory changes none of those.
-Its `source_take_groups` reproduce the established seven conversion groups.
+1. Select stored float32 timestamps **>= 0.25 s**, corresponding to source frames **16–25**
+2. Require 73 frames and an exact first selected timestamp of 0.25 s
+3. Copy every bone, rigid-actor and visibility byte unchanged; subtract 0.25 only from each float32 timestamp
+4. Require first derived timestamp 0.0, last 0.15000000596046448, and mark the clip nonlooping
+5. Preserve other clip records; require identical companions and ordered skin/actor bindings before merging, and retain interpolation, allocation and CRC guards
 
-For the **43-clip gameplay package**, exclude `normal_diagnostic_sequence`, then
-add `normal_settle` from the already-converted `normal_exit_connected` records:
+Do not independently rebake or interpolate settle. Including the optional diagnostic produces **45 runtime clips**. The baseline's 73-frame byte-subrange proof is retained separately; it is not a claim that an entire future runtime package is byte-identical.
 
-1. Select stored frames whose float32 elapsed timestamp is **>= 0.25 seconds**
-   (source frames **16 through 25**, inclusive)
-2. Require **73 frames** at the existing 480 Hz sampling and an exact first
-   selected timestamp of 0.25 seconds
-3. Copy every bone, rigid-actor, and visibility byte unchanged. Subtract 0.25
-   only from each timestamp and encode that timestamp as little-endian float32
-4. Mark the derived clip nonlooping. Require first time 0.0 and last time
-   **0.15000000596046448** seconds
-5. Preserve all other original clip-record bytes. Before combining batches,
-   require identical companion geometry and skeleton/actor-binding bytes;
-   preserve the converter's interpolation guards, allocation limits, and CRC
-   validation
+## Verification and remaining review
 
-Do not independently rebake or interpolate settle. For the optional diagnostic
-package, retain the diagnostic too: the result is **44 runtime clips**. The
-byte-subrange operation above was checked against the existing 43-clip runtime
-fixture: all 73 derived frame records match byte-for-byte. No claim is made that
-a future common-workflow conversion produces a byte-identical entire package.
+The new source was reopened with factory startup and embedded auto-execution disabled. A 353-sample native sweep at 480 Hz verified:
 
-## Verified handoff
+- Maximum wrist solve error: **0.000600 mm**
+- Wrist guard clipping: **0°**; minimum raw guard margin **1.99996°**
+- Minimum reach margin: **146.8566 mm**
+- Maximum hand-in-weapon attachment drift: **0.000466 mm**, rotational drift reported **0°**
+- Exact repeated hand and elbow endpoint positions
+- Root endpoint values and tangents explicitly repeated; finite-difference seam checks, including Float32/IK evaluation noise, are retained in `validation.json`
+- Every original Action, NLA track, packed texture and driver definition preserved; all 185 drivers valid
 
-- Both identified upstream BLEND hashes were verified; identities are in
-  `provenance.json`
-- Sanitized source was reopened in Blender 4.3.2 with auto-execution disabled;
-  all 61 Action fingerprints, seven NLA tracks, packed-image bytes, and driver
-  definitions match the final source; all 185 drivers evaluate as valid
-- The portable export's **217 native-oracle arrays are byte-identical** to the
-  historical export oracle; maximum numeric difference is **0.0**. Sample
-  metadata and all contact samples also match exactly
-- A second fresh portable export was run for repeatability. See
-  `validation.json` for the final checks and clip counts
-- Source and scripts contain no machine-local paths. Decompressed BLEND scanning
-  checked for original workspace, home, temporary, and checkpoint path fragments
+`walk_export_validation.json` records the independent revised **44-take FBX export**: all take names and three packed textures pass; the walk has 675 exported curves with 353 keys each, and all five walk endpoint arrays (bones, actors and three skin meshes) repeat exactly. The 217 prior evaluated arrays remain within explicit 1e-6 m position and 1e-6 matrix-component tolerances: 88 are byte-identical, including every rigid-actor array; 129 have tiny Float32 differences after save/reopen. Maximum prior skin displacement is **0.000794 mm** and maximum prior bone-position difference **0.000608 mm**. Existing wrist solve errors remain below 0.05 mm and guards remain unclipped. **Full prior evaluated-array byte identity is not claimed for this new source.** The baseline export's 217-array numerical-preservation result is retained under `validation.json` → `baseline_validation`; new-source reproduction results are stated separately so that old evidence is not mistaken for a new test.
 
-This is numerical/source-preservation evidence, not renewed artistic acceptance,
-whole-arm clearance certification, or an end-to-end gameplay/rendering pass.
-FBX container bytes can differ with exporter-generated identifiers and output
-paths; reproducibility here means the frozen selection, authored curves, sampling,
-and evaluated geometry/transforms, not a promised FBX SHA across machines.
+Preview videos compare the supplied source window with **Blender renders**, not gameplay. The new walk remains WIP pending visual acceptance and live-game integration. Attachment-transform tests do not certify hidden finger-to-surface contact, every possible arm-body intersection, or blended runtime output. Retained reload Actions are historical context, not the current reload master.
 
-## Editing and maintenance
-
-Open `locomotion.blend` directly; textures are packed and no external BLEND is
-needed. The active review is `RD_Normal_Diagnostic_Sequence`, frames 1–223 at
-60 fps. Keep archived Actions and NLA tracks. A new animation should get its own
-Action and updated versioned config/integrity snapshot, not overwrite original
-curves. The exporter intentionally rejects unreviewed source changes.
-
-Existing connected paths animate the `righthand_prop` location/Euler control;
-IK, hand attachment, and wrist guards are native and remain active. Evaluation
-resets unkeyed controls from `RD_00_Supplied_Base_Guarded_Recovered` for each
-Action. Exports select three arm meshes and the two rigid actors
-`hk416_weapon` / `hk416_magazine`, with 72 deform bones. The zero-scaled,
-reload-only outgoing magazine, helpers, camera and scenery are excluded.
-Blender `(x,y,z)` becomes `(x,z,-y)` in FBX; the game applies its existing whole-
-model Y rotation once. Runtime ownership/ADS/reload bindings are outside scope.
-
-`sanitize_source.py` records the optional, one-time packaging step from the
-identified original final source. It removes stale embedded recovery/UI texts,
-replaces them with a short readme, makes paths relative, and reopens the result
-to verify animation/rig integrity. It is not required for normal exports and does
-not recreate authoring decisions from reference footage. `source_integrity.py`
-provides the shared fingerprint helpers. `source_integrity.json` records every
-preserved Action plus NLA, packed-image and driver definitions.
+Exports select 72 deform bones, three arm meshes and rigid actors `hk416_weapon` / `hk416_magazine`. Reload-only outgoing magazine, helpers, camera and scenery are excluded. Blender `(x,y,z)` becomes `(x,z,-y)` in FBX, and the existing game applies its whole-model Y rotation once. `sanitize_source.py` remains the historical one-time packaging utility; running it is not needed for normal exports and does not recreate the new walk.
