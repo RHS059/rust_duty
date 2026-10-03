@@ -1,20 +1,20 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T21:12:43Z",
+  "updatedAt": "2026-10-03T21:22:17Z",
   "state": "active",
-  "task": "Refining forward and lateral ADS timing; preparing the 0.1.5 updater fix for draft publication and full CI.",
-  "lastCompleted": "HIP r5 is in the verified c60c53fe complete build. Updater regression review passed; lateral ADS Trial3 scored Fail35 left and Fail36 right.",
+  "task": "Refining ADS timing and coordinating the 0.1.5 complete build, updater verification and release.",
+  "lastCompleted": "Updater fixes are published in draft PR #19 at eb886edb. Authored contracts, updater checks and all four asset jobs passed; complete platform builds are running.",
   "agents": [
     {
       "slot": 1,
       "state": "active",
-      "task": "Testing the next forward ADS pulse-timing trial while preserving native timing, horizontal motion and sight lock.",
+      "task": "Preparing the forward ADS v9 timing-trial preview for review; v8 remains Fail54.",
       "lastCompleted": "Forward ADS v8 is live at Fail54; the larger-articulation probe reduced forearm travel."
     },
     {
       "slot": 2,
       "state": "active",
-      "task": "Testing lateral timing and inherited arm articulation against measured forearm motion.",
+      "task": "Capturing the 198-frame lateral Trial4 timing diagnostic in Eevee.",
       "lastCompleted": "Trial3 is live and playback verified; independent review returned Fail35 left and Fail36 right."
     },
     {
