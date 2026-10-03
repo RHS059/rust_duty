@@ -1,26 +1,26 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T20:43:47Z",
+  "updatedAt": "2026-10-03T20:53:48Z",
   "latestComplete": {
-    "sha": "e46f83d84ece0c28ffbd10cf4504ed4ea0f91878",
-    "downloadUrl": "https://github.com/RHS059/rust_duty/actions/runs/37130396740/artifacts/11277161595",
-    "runUrl": "https://github.com/RHS059/rust_duty/actions/runs/37130396740",
-    "verifiedAt": "2026-10-03T20:22:22Z",
-    "completedAt": "2026-10-03T15:01:33Z"
+    "sha": "c60c53fe3b4b3a995f41630e1746c2df336c7929",
+    "downloadUrl": "https://github.com/RHS059/rust_duty/actions/runs/37151455895/artifacts/11284770859",
+    "runUrl": "https://github.com/RHS059/rust_duty/actions/runs/37151455895",
+    "verifiedAt": "2026-10-03T20:53:48Z",
+    "completedAt": "2026-10-03T20:40:53Z"
   },
   "changes": [
-    "Four source-authored WIP HIP directions and ADS v4 entry, hold and exit are active in this runtime checkpoint",
-    "Walking, ADS and running can overlap during transitions; rapid interruptions preserve animation timing and current blend weights",
-    "Complete 83-file Windows package includes existing walk, sprint and full WIP reload assets plus the new HIP and ADS companions",
-    "All three workflows passed; native Linux layered-input diagnostics passed at 30 and 60 Hz",
-    "Windows ZIP integrity, SHA-256, PE executable and complete-package verification passed",
-    "Reviewed HIP r5 directions and stable animation bindings are in PR #17 at c60c53fe. All four asset jobs and the Windows build passed; ZIP verification and Linux native checks are pending.",
-    "Forward ADS v8 is live and awaiting motion review. Lateral ADS Trial3 comparisons and visual QA are complete; publication and independent shape review are pending.",
+    "Reviewed HIP r5 directions and stable animation bindings are included in PR #17 at c60c53fe.",
+    "Walking, ADS and running overlap through transitions while interruptions preserve animation timing and current blend weights.",
+    "CI strictly verified the complete 83-file Windows package; 488 Rust tests passed and 156 Python tests completed with one skipped.",
+    "All three workflows passed; native Linux layered-input diagnostics passed at 30 and 60 Hz.",
+    "Windows artifact size is 92,854,957 bytes. API and upload-log SHA-256 match: 20e2ad9ce279475e98ff9a27903394630ec50bf1fbcbbe0e5e37517e173d4478. The full ZIP was not independently inspected locally.",
+    "Forward ADS v8 received Fail54 and is being revised. Lateral ADS Trial3 is live, playback verified and unscored; the integrated ADS composition remains unreviewed.",
+    "The complete build identifies as 0.1.4; the public update feed remains v0.1.3. Release publishing and unique embedded versions are being connected to successful complete builds.",
     "Jump and mantle reference planning is complete; verified reference windows are still needed."
   ],
   "currentBuild": {
-    "state": "active",
-    "task": "Windows tests, release build and complete ZIP packaging passed at c60c53fe. ZIP verification is underway. Linux Python and Rust tests passed; Linux packaging and native checks continue.",
+    "state": "idle",
+    "task": "Complete c60c53fe Windows and Linux builds passed. Latest Complete is CI/package-verified; publishing this work to the in-game update feed is in progress.",
     "url": "https://github.com/RHS059/rust_duty/actions/runs/37151455895"
   }
 }
