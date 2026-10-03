@@ -5,7 +5,7 @@ use vector_range::{
     authored_ads::{gameplay_ads_replay_input, AdsSlot, AuthoredAds},
     authored_locomotion_path::{AuthoredLocomotionPath, AuthoredLocomotionPathState},
     authored_reload::AuthoredReload,
-    authored_walk::AuthoredWalk,
+    authored_walk::{AuthoredWalk, WalkPoseLayer},
     settings::Settings,
     sim::{Simulation, FIXED_DT},
     viewmodel_animation::{game_model_root, AnimationSet},
@@ -36,7 +36,19 @@ fn canonical_ads_pack_plays_committed_replay_and_preserves_every_gameplay_outcom
         None,
     )
     .unwrap();
+    let walk_reference = manifest.regular_walk.as_ref().unwrap();
+    let (walking, _, _) = AnimationSet::load_with_companions(&walk_reference.asset).unwrap();
+    let layer = WalkPoseLayer::new(
+        &walking,
+        &locomotion,
+        "normal_ready",
+        manifest.walk_anchor_actor.as_deref().unwrap(),
+    )
+    .unwrap();
     let mut walk = AuthoredWalk::default();
+    let mut aimed_walk_samples = 0;
+    let mut last_walk_time = None;
+
     let mut sim = Simulation::new();
     sim.player.ammo = 12;
     let mut baseline = Simulation::new();
@@ -72,16 +84,12 @@ fn canonical_ads_pack_plays_committed_replay_and_preserves_every_gameplay_outcom
         walk.committed_step(
             start,
             sim.time,
-            p.grounded && p.speed() > 0.1,
-            !is_reload
-                && !is_ads
-                && !p.ads_requested
-                && p.reload_left <= 0.
+            p.grounded
+                && p.speed() > 0.1
                 && !p.sprinting
                 && p.mantle.is_none()
-                && p.ads <= 0.
-                && p.shot_kick <= 0.
                 && path.state() == AuthoredLocomotionPathState::Ready,
+            !is_reload && p.reload_left <= 0.,
         )
         .unwrap();
         assert_eq!(p.position, baseline.player.position);
@@ -121,7 +129,56 @@ fn canonical_ads_pack_plays_committed_replay_and_preserves_every_gameplay_outcom
                     .len(),
                 animation.actors().len()
             );
-            assert!(walk.seconds().is_none());
+            if let Some(seconds) = walk.seconds() {
+                if let Some(previous) = last_walk_time {
+                    assert!(seconds > previous, "ADS must not restart the walk phase");
+                }
+                last_walk_time = Some(seconds);
+                let walk_pose = walking
+                    .sample(&walk_reference.clip, seconds as f32)
+                    .unwrap();
+                let layered = layer
+                    .pose(
+                        &animation,
+                        &pose,
+                        &walk_pose,
+                        walk.weight(),
+                        ads.aim_amount(),
+                    )
+                    .unwrap();
+                animation
+                    .skin_palette(&layered, &skin.bones, game_model_root())
+                    .unwrap();
+                if sample.slot == AdsSlot::Hold {
+                    assert_ne!(layered, pose, "aimed movement must remain animated");
+                    aimed_walk_samples += 1;
+                    // Full aim adds exactly one rigid transform to every bone and
+                    // actor: source grip and sight geometry cannot separate.
+                    let delta = layered.actor_globals[1].matrix()
+                        * pose.actor_globals[1].matrix().inverse();
+                    for z in [-0.2, -0.6] {
+                        let ray = delta.transform_point3(macroquad::math::vec3(0., 0., z));
+                        assert!(
+                            ray.x.abs() < 2e-6 && ray.y.abs() < 2e-6,
+                            "full ADS walking must retain the camera optical ray"
+                        );
+                    }
+                    let before = animation
+                        .bone_globals(&pose, macroquad::math::Mat4::IDENTITY)
+                        .unwrap();
+                    let after = animation
+                        .bone_globals(&layered, macroquad::math::Mat4::IDENTITY)
+                        .unwrap();
+                    for (a, b) in before.iter().zip(&after) {
+                        assert!((delta * *a).abs_diff_eq(*b, 2e-5));
+                    }
+                    for (a, b) in pose.actor_globals.iter().zip(&layered.actor_globals) {
+                        assert!((delta * a.matrix()).abs_diff_eq(b.matrix(), 2e-5));
+                    }
+                }
+            } else {
+                last_walk_time = None;
+            }
             poses += 1;
         } else if walk.seconds().is_some() {
             routes.insert("regular_walk");
@@ -144,6 +201,10 @@ fn canonical_ads_pack_plays_committed_replay_and_preserves_every_gameplay_outcom
         ])
     );
     assert!(reversed_entry && reversed_exit && poses > 200);
+    assert!(
+        aimed_walk_samples > 20,
+        "walk must remain active during ADS hold"
+    );
     assert!(sim.stats.shots >= 1 && sim.player.ammo == 30);
     assert!(ads.sample().is_none() && reload.sample().is_none() && walk.seconds().is_none());
     assert_eq!(path.state(), AuthoredLocomotionPathState::Ready);

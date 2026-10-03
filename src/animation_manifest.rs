@@ -23,6 +23,7 @@ pub struct AnimationManifest {
     pub locomotion: AuthoredLocomotionPathConfig,
     pub tactical: ClipReference,
     pub regular_walk: Option<ClipReference>,
+    pub walk_anchor_actor: Option<String>,
     pub empty: Option<ClipReference>,
     pub ads: Option<AdsReference>,
 }
@@ -136,6 +137,11 @@ impl AnimationManifest {
         } else {
             Some(reference(&mut values, "regular_walk", directory)?)
         };
+        let walk_anchor_actor = if regular_walk.is_some() {
+            Some(take(&mut values, "regular_walk.anchor_actor")?)
+        } else {
+            None
+        };
         let tactical = reference(&mut values, "reload.tactical", directory)?;
         let empty = if values.contains_key("reload.empty") {
             policy(&mut values, "reload.empty", "unavailable")?;
@@ -151,6 +157,7 @@ impl AnimationManifest {
             locomotion,
             tactical,
             regular_walk,
+            walk_anchor_actor,
             empty,
             ads,
         })
