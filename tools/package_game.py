@@ -16,6 +16,7 @@ import struct
 import tempfile
 import zlib
 import vrview
+from build_blender_assets import selections
 
 GENERATED_DIR = Path("assets/reload")
 GENERATED_FILES = (*("asset." + suffix for suffix in ("vra", "vrs", "vrm")),
@@ -160,10 +161,10 @@ def verify(root: Path) -> dict:
     return {"clip_count": len(CLIPS), "files": manifest["files"]}
 
 
-def verify_generated(root: Path) -> dict:
+def verify_generated_pack(root: Path, folder: Path, expected_source=None) -> dict:
     """Bind shipped companions, successful Rust parity and canonical source hashes."""
     root = Path(root)
-    blobs = {name: regular_file(root, GENERATED_DIR / name).read_bytes()
+    blobs = {name: regular_file(root, folder / name).read_bytes()
              for name in GENERATED_FILES}
     manifest = json.loads(blobs["manifest.json"])
     exported = json.loads(blobs["export-manifest.json"])
@@ -187,8 +188,10 @@ def verify_generated(root: Path) -> dict:
             or parity.get("source_witnesses_sha256") != exported["files"].get("source-witnesses.npz", {}).get("sha256")
             or parity.get("visibility_failures") != 0 or parity.get("samples", 0) < 1):
         raise ValueError("generated assets lack matching passed Rust parity")
+    if expected_source is not None and source != expected_source:
+        raise ValueError("alternate source selection mismatch")
     committed = root / "assets/source/reload/source.json"
-    if committed.exists() and json.loads(committed.read_text()) != source:
+    if folder == GENERATED_DIR and committed.exists() and json.loads(committed.read_text()) != source:
         raise ValueError("generated assets differ from current committed source")
     pack = vrview.decode_vra(blobs["asset.vra"], vrs=blobs["asset.vrs"], vrm=blobs["asset.vrm"])
     if [clip["name"] for clip in pack["clips"]] != [source.get("clip")]:
@@ -196,6 +199,22 @@ def verify_generated(root: Path) -> dict:
     regular_file(root, "assets/animations.cfg")
     regular_file(root, "docs/ANIMATION_SLOTS.md")
     return {"clip": source["clip"], "source_sha256": source["sha256"], "parity_samples": parity["samples"]}
+
+
+def generated_paths(root):
+    source = json.loads(regular_file(root, GENERATED_DIR / "source.json").read_text())
+    for key, selected in selections(source):
+        folder = GENERATED_DIR / "alternates" / key if key else GENERATED_DIR
+        yield folder, selected
+
+
+def verify_generated(root: Path) -> dict:
+    reports = {}
+    for folder, selected in generated_paths(root):
+        reports[str(folder)] = verify_generated_pack(root, folder, selected)
+    primary = reports[str(GENERATED_DIR)]
+    primary["selected_packs"] = len(reports)
+    return primary
 
 
 def stage(root: Path, binary: str, output: Path, update: bool = False, require_generated: bool = False) -> dict:
@@ -212,7 +231,7 @@ def stage(root: Path, binary: str, output: Path, update: bool = False, require_g
         report["generated_reload"] = verify_generated(root)
     copies = [(regular_file(root, binary), Path(binary).name)]
     if generated:
-        for relative in [*(GENERATED_DIR / name for name in GENERATED_FILES),
+        for relative in [*(folder / name for folder, _ in generated_paths(root) for name in GENERATED_FILES),
                          Path("assets/animations.cfg"), Path("docs/ANIMATION_SLOTS.md")]:
             copies.append((regular_file(root, relative), relative))
     for relative in NOTICES:

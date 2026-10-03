@@ -68,7 +68,9 @@ bpy.ops.export_scene.fbx(filepath=str(fbx),use_selection=True,object_types={'ARM
 assert hashlib.sha256(a.source.read_bytes()).hexdigest()==a.source_sha256
 r={'schema':'rust-duty-current-reload-fbx/v1','status':'WIP','source_sha256':a.source_sha256,'action':a.action,
    'source_action':selected,'action_inventory':inventory,'action_stored_range':list(A.animation_data.action.frame_range),'native_requested_range':[a.native_start,a.native_end],
-   'native_fps':[60000,1001],'reviewed_subranges':[[0,30],[48,156]],'unreviewed_gap':[30,48],
+   'native_fps':[60000,1001],
+   'reviewed_subranges':[[max(lo,a.native_start),min(hi,a.native_end)] for lo,hi in ({'RD_Reload_Tactical_Hands_Opening_WIP':[[0,30]],'RD_Reload_Tactical_HandApproach_AndReturn_WIP':[[48,156]]}.get(a.action,[])) if max(lo,a.native_start)<=min(hi,a.native_end)],
+   'review_scope_note':'Review ranges belong to this exact Action only. Opening is a separate current Action; full HandApproach keeps its authored base-to-48 prefix. Stored extents do not imply approval.',
    'scope':'Direct evaluation of a single canonical Action across requested full WIP range. No reconstructed gap, joined clips, or full-motion approval.',
    'bones':bones,'skin_objects':skins,'actors':props,'source_witness_samples':len(frames),
    'files':{x.name:{'sha256':hashlib.sha256(x.read_bytes()).hexdigest(),'bytes':x.stat().st_size} for x in [fbx,a.output/'source-witnesses.npz']}}

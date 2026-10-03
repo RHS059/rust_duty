@@ -11,6 +11,9 @@ class FbxTimingTests(unittest.TestCase):
         self.assertEqual(len(f),108*64+1)
         self.assertEqual(t[0],0)
         self.assertEqual(t[-1],vrpack.f32(108*1001/60000))
+    def test_single_frame_reset_is_supported(self):
+        frames,times=importer.sample_grid(0,0)
+        self.assertEqual(frames,[Fraction(0)]);self.assertEqual(times,[0.])
     def test_switch_neighbors_survive_float32(self):
         f,t=importer.sample_grid(48,156,64,['111.98','112'])
         i=f.index(Fraction(112))
@@ -26,7 +29,7 @@ class FbxTimingTests(unittest.TestCase):
         self.assertFalse(set(opening)&set(returning))
         self.assertNotIn(31,opening);self.assertNotIn(47,returning)
     def test_invalid_crop_and_switch_fail(self):
-        for args in [(30,0),(1,1),(-1,3)]:
+        for args in [(30,0),(-1,3)]:
             with self.assertRaises(vrpack.AssetError):importer.sample_grid(*args)
         with self.assertRaises(vrpack.AssetError):importer.sample_grid(0,30,64,['30'])
 

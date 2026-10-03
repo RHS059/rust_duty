@@ -85,6 +85,24 @@ class BlenderPipelineTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, 'missing'):
                 package_game.verify_generated(Path(temp))
 
+    def test_all_current_selections_remain_separate(self):
+        contract = json.loads((ROOT / 'assets/source/reload/source.json').read_text())
+        selected = list(build_blender_assets.selections(contract))
+        self.assertEqual([key for key, _ in selected], ['', 'opening', 'reset', 'pickup'])
+        self.assertEqual([value['native_range'] for _, value in selected], [[0, 156], [0, 30], [0, 0], [54, 54]])
+        self.assertEqual(len({value['action'] for _, value in selected}), 4)
+
+    def test_missing_selected_alternate_blocks_distribution(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            folder = self.fixture(root)
+            path = folder / 'source.json'
+            source = json.loads(path.read_text())
+            source['additional_selections'] = [{'id': 'opening', 'action': 'opening'}]
+            path.write_text(json.dumps(source))
+            with self.assertRaisesRegex(ValueError, 'missing'):
+                package_game.verify_generated(root)
+
     def test_no_blender_call_on_source_mismatch(self):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)

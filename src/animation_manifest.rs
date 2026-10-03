@@ -15,6 +15,7 @@ pub struct AnimationManifest {
     pub locomotion_asset: PathBuf,
     pub locomotion: AuthoredLocomotionPathConfig,
     pub tactical: ClipReference,
+    pub regular_walk: Option<ClipReference>,
     pub empty: Option<ClipReference>,
 }
 impl AnimationManifest {
@@ -109,6 +110,12 @@ impl AnimationManifest {
                 .parse()
                 .map_err(|_| "invalid sprint.residual_seconds")?,
         };
+        let regular_walk = if values.contains_key("regular_walk") {
+            policy(&mut values, "regular_walk", "unavailable")?;
+            None
+        } else {
+            Some(reference(&mut values, "regular_walk", directory)?)
+        };
         let tactical = reference(&mut values, "reload.tactical", directory)?;
         let empty = if values.contains_key("reload.empty") {
             policy(&mut values, "reload.empty", "unavailable")?;
@@ -123,6 +130,7 @@ impl AnimationManifest {
             locomotion_asset,
             locomotion,
             tactical,
+            regular_walk,
             empty,
         })
     }
