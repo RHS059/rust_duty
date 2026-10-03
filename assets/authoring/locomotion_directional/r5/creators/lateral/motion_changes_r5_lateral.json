@@ -1,0 +1,277 @@
+{
+  "status": "Unscored WIP. Numeric constraints only; independent visual review pending.",
+  "point_order": [
+    "muzzle_tip",
+    "receiver_center",
+    "support_cuff_surface"
+  ],
+  "actions": {
+    "hip_strafe_left_r5": {
+      "notes": [
+        "Increase inward yaw by0.75 degree and inward roll by2 degrees beyond r4 at native-key plateau, bringing additions over r3 to2 degrees yaw and4 degrees roll.",
+        "Keep the existing upswing envelope26\u201333/33\u201342/42\u201348 and all reference/key timing. Hold visible cuff XY, pitch and depth.",
+        "Screen-angle analysis is deliberately not an angle-gap fit: from0.40s to0.60s, r4 muzzle/receiver angle already changes more than the different reference weapon. The bounded authored orientation increment follows the reviewer direction; no recovered3D deficit is claimed."
+      ],
+      "parameters": {
+        "additional_camera_yaw_degrees_at_plateau": 0.75,
+        "additional_camera_roll_degrees_at_plateau": 2.0,
+        "cumulative_yaw_roll_addition_over_r3_degrees": [
+          2.0,
+          4.0
+        ],
+        "envelope_key_offsets": [
+          26,
+          33,
+          42,
+          48
+        ],
+        "preserve": [
+          "visible cuff screen XY",
+          "pitch",
+          "depth",
+          "key times",
+          "first-phase restored rightward travel"
+        ],
+        "method": "same quintic envelope; camera XY compensates fixed cuff path"
+      },
+      "r4_range_xy_pixels": [
+        [
+          22.830801576770682,
+          11.46038776905715
+        ],
+        [
+          45.52323750234257,
+          60.80604256588663
+        ],
+        [
+          13.82160357665316,
+          29.276082998739355
+        ]
+      ],
+      "r5_range_xy_pixels": [
+        [
+          27.2001731915218,
+          13.526080024287694
+        ],
+        [
+          50.583339585701765,
+          70.1880895216434
+        ],
+        [
+          13.82160357665316,
+          29.276082998739355
+        ]
+      ],
+      "r4_screen_min_offsets": [
+        [
+          41,
+          20
+        ],
+        [
+          16,
+          35
+        ],
+        [
+          44,
+          18
+        ]
+      ],
+      "r4_screen_max_offsets": [
+        [
+          22,
+          48
+        ],
+        [
+          33,
+          0
+        ],
+        [
+          29,
+          0
+        ]
+      ],
+      "r5_screen_min_offsets": [
+        [
+          41,
+          41
+        ],
+        [
+          16,
+          35
+        ],
+        [
+          44,
+          18
+        ]
+      ],
+      "r5_screen_max_offsets": [
+        [
+          22,
+          48
+        ],
+        [
+          33,
+          0
+        ],
+        [
+          29,
+          0
+        ]
+      ],
+      "max_y_trace_change_by_anchor_pixels": [
+        2.512301866453811,
+        9.556997780347388,
+        0.0
+      ],
+      "max_x_trace_change_by_anchor_pixels": [
+        4.376700666394413,
+        5.138836081324371,
+        0.0
+      ],
+      "max_camera_param_delta": [
+        0.0011942560942592821,
+        6.922171629503149e-05,
+        0.0,
+        0.013089969389957476,
+        0.0349065850398866,
+        0.0
+      ]
+    },
+    "hip_strafe_right_r5": {
+      "notes": [
+        "Deepen both existing dips by the measured relative cuff-range shortfall, retaining the identical r4 pulse windows and side-peak coverage.",
+        "Only camera-Y translation changes. Lateral paths, camera rotations and depth remain r4.",
+        "Choose additional plateau amplitude by solving the existing pulse shape to the smoothed reference cuff vertical range under the inherited fixed scale. Muzzle/receiver ranges already differ from reference and are reported, not fitted away."
+      ],
+      "parameters": {
+        "additional_cuff_downward_pixels_plateau": 8.031846653889014,
+        "cumulative_cuff_downward_addition_over_r3_pixels": 22.031846653889012,
+        "first_envelope_offsets": [
+          7,
+          17,
+          19,
+          28
+        ],
+        "second_envelope_offsets": [
+          29,
+          37,
+          42,
+          49
+        ],
+        "target_native_key_cuff_vertical_range_pixels": 27.780149799158078,
+        "preserve": [
+          "all lateral screen paths",
+          "camera pitch/yaw/roll",
+          "depth",
+          "key times"
+        ],
+        "modified": [
+          "camera Y translation only"
+        ],
+        "amplitude_basis": "Close the inherited scaled smoothed reference cuff-range shortfall using the existing two-pulse envelope; it is an optical guide, not calibrated equivalence."
+      },
+      "r4_range_xy_pixels": [
+        [
+          39.25787165402062,
+          15.126892073064312
+        ],
+        [
+          98.27397059066084,
+          41.045596274397894
+        ],
+        [
+          60.890406138773415,
+          19.8761474456752
+        ]
+      ],
+      "r5_range_xy_pixels": [
+        [
+          39.25787165402062,
+          20.305098640131746
+        ],
+        [
+          98.27397059066084,
+          54.01104296081621
+        ],
+        [
+          60.890406138773415,
+          27.78014979915804
+        ]
+      ],
+      "r4_screen_min_offsets": [
+        [
+          17,
+          29
+        ],
+        [
+          17,
+          29
+        ],
+        [
+          17,
+          30
+        ]
+      ],
+      "r4_screen_max_offsets": [
+        [
+          37,
+          42
+        ],
+        [
+          37,
+          42
+        ],
+        [
+          37,
+          20
+        ]
+      ],
+      "r5_screen_min_offsets": [
+        [
+          17,
+          29
+        ],
+        [
+          17,
+          29
+        ],
+        [
+          17,
+          29
+        ]
+      ],
+      "r5_screen_max_offsets": [
+        [
+          37,
+          42
+        ],
+        [
+          37,
+          42
+        ],
+        [
+          37,
+          20
+        ]
+      ],
+      "max_y_trace_change_by_anchor_pixels": [
+        5.178735650604949,
+        12.970321934130425,
+        8.03184665388909
+      ],
+      "max_x_trace_change_by_anchor_pixels": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "max_camera_param_delta": [
+        0.0,
+        0.004539336770759383,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    }
+  }
+}

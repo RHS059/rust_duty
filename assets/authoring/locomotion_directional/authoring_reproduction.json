@@ -1,0 +1,14 @@
+{
+  "schema": "rust-duty-directional-authoring-reproduction/v1",
+  "final_source_sha256": "6d6d5c6a150bd8d74f24b29bf18b192e2f5fe2cd93a531c77b7a1e5ce93a8b35",
+  "reproduced_source_sha256": "7dc90f6557506256be86d62471f1233b62dbc815aa8ad0fb4f8b58d5a81d60e1",
+  "script_sha256": "c7d8445ae6cf408c05701c6d3e329d920ed791aa23c8111f20090a16598af6c5",
+  "design_sha256": "2c335b203d6e58f62ada00ebdfbd6a5f5605bc4d8a2a09707efdb41e073e4ff1",
+  "checks": {
+    "all66_actions_nla_drivers_textures_match_final": true,
+    "all_static_and_raw_pose_data_match_final": true,
+    "reproduced_source_checks_pass": true
+  },
+  "passed": true,
+  "scope": "Fresh source regenerated from frozen canonical input and checked-in script/design; data identity rather than file serialization identity."
+}

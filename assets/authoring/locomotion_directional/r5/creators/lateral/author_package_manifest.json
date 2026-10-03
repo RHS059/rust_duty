@@ -1,0 +1,152 @@
+{
+  "schema": "rust-duty-r5-lateral-creator-handoff/v1",
+  "status": "unscored local candidate; independent visual review required",
+  "source_file": "halcyon_hip_lateral_r5.blend",
+  "source_sha256": "681ffd12e6390b8811b273a5130fe5c74bfe2690da180f9daeadebf610728e44",
+  "base_source_sha256": "d220162819fb7267aa6b93b209afc8ce5212a0692e6a4e02c5c43602b08907e3",
+  "new_actions": [
+    "hip_strafe_left_r5",
+    "hip_strafe_right_r5"
+  ],
+  "period_frames": 49,
+  "fps": 60,
+  "action_frame_range_inclusive": [
+    1,
+    50
+  ],
+  "playback_frame_range_inclusive": [
+    1,
+    49
+  ],
+  "total_action_count": 80,
+  "old_action_count": 78,
+  "review_url": "https://github.com/RHS059/dot_chat/pull/1#issuecomment-5972182972",
+  "renders_performed": false,
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 7219,
+      "sha256": "48b1c1888563a28ccca3891cc02fc363dac30edf63fbac99c04ec1f27ee51e9c"
+    },
+    {
+      "path": "author.log",
+      "bytes": 357,
+      "sha256": "554fa0128b82998e6f1d8f16a727d2749e7d9ca0029ca35b1557a972dfc7245e"
+    },
+    {
+      "path": "author_r5_lateral.py",
+      "bytes": 7029,
+      "sha256": "800a3dd6a54e6bb63919d37b07882d4189fec0def93c7e723ffc40bfc066e003"
+    },
+    {
+      "path": "build_design.log",
+      "bytes": 4981,
+      "sha256": "ba1d72fc581f5b79f2609f3589d9b7cb4f5b587fe8e52548e8e1a5bf9ccbd068"
+    },
+    {
+      "path": "build_design_r5_lateral.py",
+      "bytes": 8042,
+      "sha256": "3d45d2b8c74f60d9d70ec6a0e793e66dd05f123afb3dbdcdfd9b41736597f409"
+    },
+    {
+      "path": "dense_constraint_comparison.json",
+      "bytes": 5419,
+      "sha256": "ac946e4118f4b1a25d3ea870f67bf76ed6866b16b7df52d70c77118862b0bddf"
+    },
+    {
+      "path": "directional_keyposes_r5_lateral.json",
+      "bytes": 95921,
+      "sha256": "6c2dd378ab631b012acd0b190f47c82c256d5472e8bf93a944e2b5c44a6e0652"
+    },
+    {
+      "path": "halcyon_hip_lateral_r5.blend",
+      "bytes": 9869990,
+      "sha256": "681ffd12e6390b8811b273a5130fe5c74bfe2690da180f9daeadebf610728e44"
+    },
+    {
+      "path": "halcyon_hip_lateral_r5_authored_root_keys.json",
+      "bytes": 29608,
+      "sha256": "00e8932ddeaa706d10525ade1528a6f0cdb225ef818109765c6622e7c5d92e6c"
+    },
+    {
+      "path": "halcyon_hip_lateral_r5_authoring_preservation.json",
+      "bytes": 406,
+      "sha256": "c517bb019b17b0bebc540e4df8bc25abfdfce3c8fd483a3585d373e2676192b4"
+    },
+    {
+      "path": "inspection/left_r4_reference_sheet.jpg",
+      "bytes": 172085,
+      "sha256": "2c0a52ae027e1d1e62f83abf5907f768b29f87837297944fb2b397852c09e621"
+    },
+    {
+      "path": "inspection/right_r4_reference_sheet.jpg",
+      "bytes": 175303,
+      "sha256": "b4a95d495215c2d5b88abba8ad677fecd7d6baa7d54b363489a0d6bcc68862c1"
+    },
+    {
+      "path": "motion_changes_r5_lateral.json",
+      "bytes": 6261,
+      "sha256": "25f559625a052bca66a755082f606471311775555eab93ae59b1b077af18da57"
+    },
+    {
+      "path": "reference_gap_analysis.json",
+      "bytes": 3514,
+      "sha256": "41e7fa0710c789a31aac5bf8653226dc3c29b0ec0226e2dcc078ac39c79c7982"
+    },
+    {
+      "path": "source_integrity.py",
+      "bytes": 2898,
+      "sha256": "d22ae8dcc117e29ffb7d746772efce015010407cbb1ddce22924a31746e831ca"
+    },
+    {
+      "path": "summarize_checks.log",
+      "bytes": 5419,
+      "sha256": "ac946e4118f4b1a25d3ea870f67bf76ed6866b16b7df52d70c77118862b0bddf"
+    },
+    {
+      "path": "summarize_lateral_checks.py",
+      "bytes": 4352,
+      "sha256": "97ca55d0a69c7ad74d1cb16b8236b46009f009873c22b1c84daeadd9af46d0a9"
+    },
+    {
+      "path": "timestamp_verification.json",
+      "bytes": 2035,
+      "sha256": "48c33782305465c6c165a64662baccc1a2a241ccb874913828ed1483258cd97e"
+    },
+    {
+      "path": "validate_dense.log",
+      "bytes": 2075,
+      "sha256": "e1cdec07538abccb649a540e17e869836a271ad0c7c720f305b76e5367ec2647"
+    },
+    {
+      "path": "validate_dense_r5_lateral.py",
+      "bytes": 5496,
+      "sha256": "d9df36c0f443fc3ff9d52eed63636402ff511f64ee6e3adcb148868ac2fbf239"
+    },
+    {
+      "path": "validation/candidate_tracks_480fps.csv",
+      "bytes": 544567,
+      "sha256": "75320171a6a0db319ef121cd85a940af5c9eb437cb3001d5e4f762d14988784a"
+    },
+    {
+      "path": "validation/curve_contract.json",
+      "bytes": 591,
+      "sha256": "3581e62a5239595cc71b3a289043335ee7325c320c7e94fd6264cb2850c03fb0"
+    },
+    {
+      "path": "validation/native_validation.json",
+      "bytes": 3759,
+      "sha256": "30b837e7fc0f73b529c0873269b375530cc43539e51f41d25fa83a7eef229577"
+    },
+    {
+      "path": "verify_curve_contract.log",
+      "bytes": 713,
+      "sha256": "0e772059ece95661ab142ec16c73d4f4e09a5c9bd5562e89a0081a40ff65d0d5"
+    },
+    {
+      "path": "verify_curve_contract.py",
+      "bytes": 1889,
+      "sha256": "e27963a48bd4d86670e8989a6f4ddaca8e10fa3bbbfc7134dc8095e02c550a97"
+    }
+  ]
+}

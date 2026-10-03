@@ -13,11 +13,14 @@ jobs:
     uses: ./.github/workflows/blender-assets.yml
   walk-assets:
     uses: ./.github/workflows/walk-assets.yml
+  directional-assets:
+    needs: [walk-assets]
+    uses: ./.github/workflows/directional-assets.yml
   ads-assets:
     needs: [walk-assets]
     uses: ./.github/workflows/ads-assets.yml
   build:
-    needs: [animation-assets, walk-assets, ads-assets]
+    needs: [animation-assets, walk-assets, ads-assets, directional-assets]
     name: ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
@@ -41,6 +44,11 @@ jobs:
         with:
           name: generated-ads-runtime
           path: assets/ads
+      - name: Fetch four source-authored WIP HIP directional loops
+        uses: actions/download-artifact@v4
+        with:
+          name: generated-directional-runtime
+          path: assets/directional
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt, clippy
@@ -59,7 +67,7 @@ jobs:
           python-version: '3.12'
       - run: python -m pip install -r tools/requirements-assets.txt cryptography
       - name: Materialize verified locomotion transport for native gameplay tests
-        run: python tools/package_game.py materialize --root . --include-walk --include-ads
+        run: python tools/package_game.py materialize --root . --include-walk --include-ads --include-directional
       - name: Verify all generated and committed companions
         run: python tools/package_game.py verify --root . --require-generated
       - run: python -m unittest discover -s tools -p "test_*.py" -v
@@ -147,6 +155,30 @@ jobs:
         with:
           name: native-gameplay-ads-evidence
           path: evidence/ads-gameplay/
+          if-no-files-found: warn
+      - name: Capture layered direction input and interruption diagnostics at 30 and 60 Hz
+        if: runner.os == 'Linux'
+        timeout-minutes: 12
+        shell: bash
+        env:
+          LIBGL_ALWAYS_SOFTWARE: '1'
+        run: |
+          for hz in 30 60; do
+            mkdir -p evidence/layered-$hz
+            cd dist/game
+            timeout 300s xvfb-run -a -s "-screen 0 1920x1080x24" ./vector-range --no-update --reference-viewport --capture-sequence=gameplay-layered --capture-hz=$hz --output=../../evidence/layered-$hz
+            cd ../..
+          done
+          python tools/verify_layered_locomotion_capture.py evidence/layered-30 evidence/layered-60 > evidence/layered-rate-verification.json
+      - name: Upload native layered input and sampling-rate evidence
+        if: runner.os == 'Linux' && always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-layered-locomotion-evidence
+          path: |
+            evidence/layered-30/
+            evidence/layered-60/
+            evidence/layered-rate-verification.json
           if-no-files-found: warn
       - name: Verify world-fixed lighting at frozen yaw and pitch poses
         if: runner.os == 'Linux'

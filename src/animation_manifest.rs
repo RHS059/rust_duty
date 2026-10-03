@@ -10,6 +10,18 @@ pub struct ClipReference {
     pub asset: PathBuf,
     pub clip: String,
 }
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct DirectionalWalkClips {
+    pub forward: String,
+    pub backward: String,
+    pub left: String,
+    pub right: String,
+}
+impl DirectionalWalkClips {
+    pub fn names(&self) -> [&str; 4] {
+        [&self.forward, &self.backward, &self.left, &self.right]
+    }
+}
 #[derive(Clone, Debug)]
 pub struct AdsReference {
     pub asset: PathBuf,
@@ -23,9 +35,13 @@ pub struct AnimationManifest {
     pub locomotion: AuthoredLocomotionPathConfig,
     pub tactical: ClipReference,
     pub regular_walk: Option<ClipReference>,
+    pub directional_walk: Option<DirectionalWalkClips>,
     pub walk_anchor_actor: Option<String>,
+    pub layer_anchor_actor: String,
     pub empty: Option<ClipReference>,
     pub ads: Option<AdsReference>,
+    pub receiver_ads_wip: bool,
+    pub ads_visual_transition_seconds: Option<f64>,
 }
 impl AnimationManifest {
     pub fn load(path: &Path) -> Result<Self, String> {
@@ -113,6 +129,24 @@ impl AnimationManifest {
                 exit_clip: take(&mut values, "ads.exit.clip")?,
             })
         };
+        let receiver_ads_wip = match values.remove("layers.ads_walk").as_deref() {
+            None | Some("optical_projection") => false,
+            Some("receiver_v4_wip") => true,
+            _ => return Err("unsupported ADS walk layer policy".into()),
+        };
+        let ads_visual_transition_seconds = values
+            .remove("ads.visual_transition_seconds")
+            .map(|value| {
+                value
+                    .parse::<f64>()
+                    .map_err(|_| "invalid ADS visual transition duration")
+            })
+            .transpose()?;
+        if ads_visual_transition_seconds
+            .is_some_and(|value| !value.is_finite() || value <= 0. || value > 2.)
+        {
+            return Err("ADS visual duration outside (0,2]".into());
+        }
         let locomotion_asset = asset(&mut values, "locomotion.asset", directory)?;
         let locomotion = AuthoredLocomotionPathConfig {
             ready_clip: take(&mut values, "ready.clip")?,
@@ -137,11 +171,31 @@ impl AnimationManifest {
         } else {
             Some(reference(&mut values, "regular_walk", directory)?)
         };
+        let directional_walk = if values
+            .keys()
+            .any(|key| key.starts_with("regular_walk.direction."))
+        {
+            if regular_walk.is_none() {
+                return Err("directional walk requires a regular walk source".into());
+            }
+            Some(DirectionalWalkClips {
+                forward: take(&mut values, "regular_walk.direction.forward")?,
+                backward: take(&mut values, "regular_walk.direction.backward")?,
+                left: take(&mut values, "regular_walk.direction.left")?,
+                right: take(&mut values, "regular_walk.direction.right")?,
+            })
+        } else {
+            None
+        };
         let walk_anchor_actor = if regular_walk.is_some() {
             Some(take(&mut values, "regular_walk.anchor_actor")?)
         } else {
             None
         };
+        let layer_anchor_actor = values
+            .remove("layers.anchor_actor")
+            .or_else(|| walk_anchor_actor.clone())
+            .ok_or("missing required animation slot: layers.anchor_actor")?;
         let tactical = reference(&mut values, "reload.tactical", directory)?;
         let empty = if values.contains_key("reload.empty") {
             policy(&mut values, "reload.empty", "unavailable")?;
@@ -157,9 +211,13 @@ impl AnimationManifest {
             locomotion,
             tactical,
             regular_walk,
+            directional_walk,
             walk_anchor_actor,
+            layer_anchor_actor,
             empty,
             ads,
+            receiver_ads_wip,
+            ads_visual_transition_seconds,
         })
     }
 }

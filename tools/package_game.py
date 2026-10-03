@@ -182,9 +182,10 @@ def walk_bound(root: Path) -> bool:
         return False
     lines = [line.strip() for line in path.read_text().splitlines()]
     bindings = [line.split("=", 1)[1].strip() for line in lines if line.startswith("regular_walk.asset=")]
-    if bindings and bindings != ["walk/asset.vra"]:
+    if bindings and bindings not in (["walk/asset.vra"], ["directional/asset.vra"]):
         raise ValueError("unsupported packaged walk asset binding")
-    return bool(bindings)
+    # Canonical walk44 remains a packaging dependency of ADS47 and directional48.
+    return bool(bindings) or ads_bound(root)
 
 
 def verify_walk(root: Path, folder: Path = WALK_DIR) -> dict:
@@ -330,7 +331,116 @@ def verify_ads(root: Path, folder: Path = ADS_DIR, require_transports: bool = Fa
             'source_sha256': source['sha256'], 'parity_samples': samples}
 
 
-def materialize(root: Path, include_walk: bool = False, include_ads: bool = False) -> dict:
+DIRECTIONAL_DIR = Path('assets/directional')
+DIRECTIONAL_CLIPS = ('hip_walk_forward_r1', 'hip_walk_backward_r1',
+                     'hip_strafe_left_r1', 'hip_strafe_right_r1')
+DIRECTIONAL_ENDS = (39, 46, 50, 50)
+DIRECTIONAL_ACTIONS = tuple(name.replace('_r1', '_r5') for name in DIRECTIONAL_CLIPS)
+DIRECTIONAL_SOURCE = 'assets/authoring/locomotion_directional/r5/halcyon_hip_directional_r5.blend'
+DIRECTIONAL_SOURCE_SHA256 = '36d76491c2cf6238b8a1e10069dddd5b0d63e199063e1f4012b34f3fd4b1e18d'
+DIRECTIONAL_META = ('manifest.json', *(f'{kind}-{clip}.json' for clip in DIRECTIONAL_CLIPS
+                                      for kind in ('parity', 'conversion')))
+
+
+def directional_bound(root: Path) -> bool:
+    path = root / 'assets/animations.cfg'
+    if not path.exists():
+        return False
+    lines = [line.strip() for line in path.read_text().splitlines()]
+    bindings = [line.split('=', 1)[1].strip() for line in lines if line.startswith('regular_walk.asset=')]
+    if bindings and bindings not in (['walk/asset.vra'], ['directional/asset.vra']):
+        raise ValueError('unsupported packaged walk asset binding')
+    if bindings != ['directional/asset.vra']:
+        return False
+    expected = {'regular_walk.clip': 'normal_walk_r1', **{
+        f'regular_walk.direction.{direction}': clip
+        for direction, clip in zip(('forward', 'backward', 'left', 'right'), DIRECTIONAL_CLIPS)}}
+    for key, value in expected.items():
+        values = [line.split('=', 1)[1].strip() for line in lines if line.startswith(key + '=')]
+        if values != [value]:
+            raise ValueError('incomplete or unsupported directional clip bindings')
+    return True
+
+
+def verify_directional(root: Path, folder: Path = DIRECTIONAL_DIR, require_transports: bool = False) -> dict:
+    root = Path(root)
+    manifest = json.loads(regular_file(root, folder / 'manifest.json').read_text())
+    source = manifest.get('source', {})
+    names = [*CLIPS, 'normal_walk_r1', *DIRECTIONAL_CLIPS]
+    clips = manifest.get('directional_clips', [])
+    durations = [(end - 1) / 60 for end in DIRECTIONAL_ENDS]
+    if (manifest.get('schema') != 'rust-duty-authored-directional-distribution/v2'
+            or manifest.get('clip_count') != 48 or manifest.get('clip_names') != names
+            or set(manifest.get('files', {})) != set(COMPANIONS)
+            or source.get('file') != DIRECTIONAL_SOURCE
+            or source.get('sha256') != DIRECTIONAL_SOURCE_SHA256
+            or source.get('fps') != 60 or source.get('bake_hz') != 480
+            or [c.get('name') for c in clips] != list(DIRECTIONAL_CLIPS)
+            or [c.get('action') for c in clips] != list(DIRECTIONAL_ACTIONS)
+            or any(c.get('loop') is not True or c.get('frame_start') != 1 for c in clips)
+            or [c.get('frame_end') for c in clips] != list(DIRECTIONAL_ENDS)
+            or [c.get('duration') for c in clips] != durations):
+        raise ValueError('invalid authored directional manifest')
+    transports = manifest.get('repository_transport', {})
+    if set(transports) != {'asset.vra', 'asset.vrs'}:
+        raise ValueError('invalid directional transport manifest')
+    for name, transport in transports.items():
+        if (transport.get('file') != name + '.gz' or transport.get('encoding') != 'gzip'
+                or type(transport.get('bytes')) is not int or not 0 < transport['bytes'] <= 128 * 1024**2
+                or transport.get('decoded_bytes') != manifest['files'][name]['bytes']
+                or transport.get('decoded_sha256') != manifest['files'][name]['sha256']):
+            raise ValueError('invalid directional transport manifest')
+    if require_transports:
+        for transport in transports.values():
+            regular_file(root, folder / transport['file'])
+    blobs = {name: companion_bytes(root, name, manifest, folder) for name in COMPANIONS}
+    verify_walk(root)
+    walk = json.loads(regular_file(root, WALK_DIR / 'manifest.json').read_text())
+    old = companion_bytes(root, 'asset.vra', walk, WALK_DIR)
+    new = blobs['asset.vra']
+    old_offset, new_offset = clip_offset(old), clip_offset(new)
+    if (new[24:new_offset] != old[24:old_offset]
+            or new[new_offset + 4:new_offset + len(old) - old_offset] != old[old_offset + 4:]
+            or manifest.get('preservation', {}).get('original_walk_vra_sha256') != walk['files']['asset.vra']['sha256']
+            or manifest.get('preservation', {}).get('clip_payloads_byte_identical') != 44):
+        raise ValueError('directional changed original walk44 clip bytes or bindings')
+    for name in ('asset.vrs', 'asset.vrm'):
+        if manifest['files'][name] != walk['files'][name]:
+            raise ValueError('directional changed canonical companions')
+    pack = vrview.decode_vra(new, vrs=blobs['asset.vrs'], vrm=blobs['asset.vrm'])
+    if ([c['name'] for c in pack['clips']] != names
+            or any(c['loop'] is not True for c in pack['clips'][-4:])
+            or [c['frames'][-1]['time'] for c in pack['clips'][-4:]] != [struct.unpack('<f', struct.pack('<f', x))[0] for x in durations]
+            or [len(c['frames']) for c in pack['clips'][-4:]] != [(end - 1) * 8 + 1 for end in DIRECTIONAL_ENDS]):
+        raise ValueError('directional clip contract mismatch')
+    samples = 0
+    for clip, end in zip(DIRECTIONAL_CLIPS, DIRECTIONAL_ENDS):
+        parity = json.loads(regular_file(root, folder / f'parity-{clip}.json').read_text())
+        conversion = json.loads(regular_file(root, folder / f'conversion-{clip}.json').read_text())
+        if (parity.get('backend') != 'Rust CPU sampler' or parity.get('passed') is not True
+                or parity.get('asset_sha256') != manifest['files']['asset.vra']['sha256']
+                or parity.get('source_sha256', {}).get('halcyon_hip_directional_r5.blend') != source.get('sha256')
+                or parity.get('source_fbx_sha256') != source.get('fbx', {}).get('sha256')
+                or parity.get('clip') != clip or parity.get('samples', 0) < 25
+                or parity.get('visibility_failures') != 0
+                or parity.get('declared_position_limit_m') != .001
+                or conversion.get('authoring_master_sha256') != source.get('sha256')
+                or conversion.get('source_fbx_sha256') != source.get('fbx', {}).get('sha256')
+                or conversion.get('native_fps') != [60, 1] or conversion.get('source_take') != clip
+                or conversion.get('native_crop') != [0, end - 1]
+                or conversion.get('imported_frame_offset') != 0):
+            raise ValueError('directional lacks matching successful source/Rust parity')
+        samples += parity['samples']
+    current_source = root / source['file']
+    if current_source.exists():
+        data = regular_file(root, source['file']).read_bytes()
+        if len(data) != source['bytes'] or hashlib.sha256(data).hexdigest() != source['sha256']:
+            raise ValueError('directional differs from committed Blender source')
+    return {'clips': list(DIRECTIONAL_CLIPS), 'clip_count': 48, 'original_clips_preserved': 44,
+            'source_sha256': source['sha256'], 'parity_samples': samples, 'status': 'WIP'}
+
+
+def materialize(root: Path, include_walk: bool = False, include_ads: bool = False, include_directional: bool = False) -> dict:
     """Decode verified repository transport for native tests/tools in this checkout."""
     root = Path(root)
     report = verify(root)
@@ -347,7 +457,7 @@ def materialize(root: Path, include_walk: bool = False, include_ads: bool = Fals
             finally:
                 temporary.unlink(missing_ok=True)
     verify(root)
-    if include_walk and walk_bound(root):
+    if (include_walk or include_ads or include_directional) and walk_bound(root):
         report["walk"] = verify_walk(root)
         walk_manifest = json.loads(regular_file(root, WALK_DIR / "manifest.json").read_text())
         for name in COMPANIONS:
@@ -363,6 +473,14 @@ def materialize(root: Path, include_walk: bool = False, include_ads: bool = Fals
             if not target.exists():
                 target.write_bytes(companion_bytes(root, name, ads_manifest, ADS_DIR))
         verify_ads(root)
+    if include_directional and directional_bound(root):
+        report['directional'] = verify_directional(root)
+        directional_manifest = json.loads(regular_file(root, DIRECTIONAL_DIR / 'manifest.json').read_text())
+        for name in COMPANIONS:
+            target = root / DIRECTIONAL_DIR / name
+            if not target.exists():
+                target.write_bytes(companion_bytes(root, name, directional_manifest, DIRECTIONAL_DIR))
+        verify_directional(root)
     return report
 
 
@@ -423,6 +541,8 @@ def verify_generated(root: Path) -> dict:
         primary["walk"] = verify_walk(root)
     if ads_bound(root):
         primary["ads"] = verify_ads(root)
+    if directional_bound(root):
+        primary['directional'] = verify_directional(root)
     return primary
 
 
@@ -444,7 +564,13 @@ def stage(root: Path, binary: str, output: Path, update: bool = False, require_g
     aiming = ads_bound(root)
     if aiming:
         report['ads'] = verify_ads(root)
+    directional = directional_bound(root)
+    if directional:
+        report['directional'] = verify_directional(root)
     copies = [(regular_file(root, binary), Path(binary).name)]
+    if directional:
+        for name in (*DIRECTIONAL_META, 'README.md'):
+            copies.append((regular_file(root, DIRECTIONAL_DIR / name), DIRECTIONAL_DIR / name))
     if aiming:
         for name in (*ADS_META, 'README.md'):
             copies.append((regular_file(root, ADS_DIR / name), ADS_DIR / name))
@@ -491,11 +617,16 @@ def stage(root: Path, binary: str, output: Path, update: bool = False, require_g
                 target = destination / ADS_DIR / name
                 target.write_bytes(companion_bytes(root, name, ads_manifest, ADS_DIR))
             verify_ads(destination)
+        if directional:
+            directional_manifest = json.loads(regular_file(root, DIRECTIONAL_DIR / 'manifest.json').read_text())
+            for name in COMPANIONS:
+                (destination / DIRECTIONAL_DIR / name).write_bytes(companion_bytes(root, name, directional_manifest, DIRECTIONAL_DIR))
+            verify_directional(destination)
         verify(destination)
         if generated:
             verify_generated(destination)
         destination.rename(output)
-    return {"output": str(output), "files_staged": len(copies) + len(COMPANIONS) + (len(COMPANIONS) if walking else 0) + (len(COMPANIONS) if aiming else 0), **report}
+    return {"output": str(output), "files_staged": len(copies) + len(COMPANIONS) + (len(COMPANIONS) if walking else 0) + (len(COMPANIONS) if aiming else 0) + (len(COMPANIONS) if directional else 0), **report}
 
 
 def main():
@@ -508,6 +639,7 @@ def main():
     unpack.add_argument("--root", type=Path, default=Path("."))
     unpack.add_argument("--include-walk", action="store_true")
     unpack.add_argument("--include-ads", action="store_true")
+    unpack.add_argument("--include-directional", action="store_true")
     walk = commands.add_parser("verify-walk")
     walk.add_argument("--root", type=Path, default=Path("."))
     walk.add_argument("--folder", type=Path, default=WALK_DIR)
@@ -521,7 +653,7 @@ def main():
     if args.command == "verify":
         report = verify(args.root)
     elif args.command == "materialize":
-        report = materialize(args.root, args.include_walk, args.include_ads)
+        report = materialize(args.root, args.include_walk, args.include_ads, args.include_directional)
     elif args.command == "verify-walk":
         report = verify_walk(args.root, args.folder)
     else:

@@ -1,0 +1,267 @@
+{
+  "source_sha256": "681ffd12e6390b8811b273a5130fe5c74bfe2690da180f9daeadebf610728e44",
+  "sample_rate_hz": 480,
+  "status": "Native numerical authoring checks only; independent visual review pending",
+  "point_order": [
+    "muzzle_tip",
+    "receiver_center",
+    "support_cuff_surface"
+  ],
+  "actions": {
+    "hip_strafe_left_r5": {
+      "samples_per_revision": 393,
+      "max_x_delta_pixels": [
+        4.38568115234375,
+        5.14617919921875,
+        0.001678466796875
+      ],
+      "max_y_delta_pixels": [
+        2.517821788787842,
+        9.570958614349365,
+        0.004634857177734375
+      ],
+      "max_native_key_design_delta_pixels": 0.0005350120438833983,
+      "r4_native_key_min_offsets": [
+        [
+          41,
+          20
+        ],
+        [
+          16,
+          35
+        ],
+        [
+          44,
+          18
+        ]
+      ],
+      "r4_native_key_max_offsets": [
+        [
+          22,
+          48
+        ],
+        [
+          33,
+          0
+        ],
+        [
+          29,
+          0
+        ]
+      ],
+      "r5_native_key_min_offsets": [
+        [
+          41,
+          41
+        ],
+        [
+          16,
+          35
+        ],
+        [
+          44,
+          18
+        ]
+      ],
+      "r5_native_key_max_offsets": [
+        [
+          22,
+          48
+        ],
+        [
+          33,
+          0
+        ],
+        [
+          29,
+          0
+        ]
+      ],
+      "r4_native_range_xy_pixels": [
+        [
+          22.830810546875,
+          11.520345211029053
+        ],
+        [
+          45.54290771484375,
+          60.839431285858154
+        ],
+        [
+          13.90625,
+          29.490673542022705
+        ]
+      ],
+      "r5_native_range_xy_pixels": [
+        [
+          27.200698852539062,
+          13.575389385223389
+        ],
+        [
+          50.60272216796875,
+          70.22161602973938
+        ],
+        [
+          13.904495239257812,
+          29.490244388580322
+        ]
+      ],
+      "contact_and_loop": {
+        "frame_range": [
+          1,
+          50
+        ],
+        "period_seconds": 0.8166666666666667,
+        "unique_native_frames": 49,
+        "samples_480hz": 393,
+        "max_wrist_error_m": [
+          7.15697615235838e-07,
+          4.2435618835384077e-07
+        ],
+        "max_guard_error_degrees": [
+          0.0,
+          0.0
+        ],
+        "max_hand_relative_root_matrix_drift": [
+          9.5367431640625e-07,
+          6.556510925292969e-07
+        ],
+        "loop_endpoint_root_matrix_error": 0.0,
+        "loop_endpoint_actor_matrix_error": 0.0,
+        "loop_endpoint_hand_matrix_error": 0.0,
+        "invalid_drivers": []
+      },
+      "max_cuff_xy_constraint_error_pixels": 0.004634857177734375,
+      "max_first_0_4s_muzzle_xy_delta_pixels": 0.0
+    },
+    "hip_strafe_right_r5": {
+      "samples_per_revision": 393,
+      "max_x_delta_pixels": [
+        0.000152587890625,
+        0.00030517578125,
+        0.0006103515625
+      ],
+      "max_y_delta_pixels": [
+        5.187199115753174,
+        12.988049983978271,
+        8.046197891235352
+      ],
+      "max_native_key_design_delta_pixels": 0.0006201272271937341,
+      "r4_native_key_min_offsets": [
+        [
+          17,
+          29
+        ],
+        [
+          17,
+          29
+        ],
+        [
+          17,
+          30
+        ]
+      ],
+      "r4_native_key_max_offsets": [
+        [
+          37,
+          42
+        ],
+        [
+          37,
+          42
+        ],
+        [
+          37,
+          20
+        ]
+      ],
+      "r5_native_key_min_offsets": [
+        [
+          17,
+          29
+        ],
+        [
+          17,
+          29
+        ],
+        [
+          17,
+          29
+        ]
+      ],
+      "r5_native_key_max_offsets": [
+        [
+          37,
+          42
+        ],
+        [
+          37,
+          42
+        ],
+        [
+          37,
+          20
+        ]
+      ],
+      "r4_native_range_xy_pixels": [
+        [
+          39.26017761230469,
+          15.14390230178833
+        ],
+        [
+          98.28170776367188,
+          41.201080083847046
+        ],
+        [
+          60.894126892089844,
+          19.982006549835205
+        ]
+      ],
+      "r5_native_range_xy_pixels": [
+        [
+          39.26017761230469,
+          20.31642436981201
+        ],
+        [
+          98.28178405761719,
+          54.152984619140625
+        ],
+        [
+          60.89397430419922,
+          27.955784797668457
+        ]
+      ],
+      "contact_and_loop": {
+        "frame_range": [
+          1,
+          50
+        ],
+        "period_seconds": 0.8166666666666667,
+        "unique_native_frames": 49,
+        "samples_480hz": 393,
+        "max_wrist_error_m": [
+          5.968440865976837e-07,
+          4.36479405041838e-07
+        ],
+        "max_guard_error_degrees": [
+          0.0,
+          0.0
+        ],
+        "max_hand_relative_root_matrix_drift": [
+          1.0132789611816406e-06,
+          1.0132789611816406e-06
+        ],
+        "loop_endpoint_root_matrix_error": 0.0,
+        "loop_endpoint_actor_matrix_error": 0.0,
+        "loop_endpoint_hand_matrix_error": 0.0,
+        "invalid_drivers": []
+      },
+      "cuff_y_delta_at_requested_offsets_pixels": {
+        "17": 8.03225040435791,
+        "18": 8.031842708587646,
+        "19": 8.031542301177979,
+        "37": 8.032078742980957,
+        "42": 8.03175687789917
+      }
+    }
+  }
+}

@@ -4,9 +4,9 @@ use vector_range::scene_lighting::SceneLighting;
 use vector_range::{
     animation_manifest::AnimationManifest,
     authored_ads::{AdsSample, AuthoredAds},
-    authored_locomotion_path::{AuthoredLocomotionPath, AuthoredLocomotionPathState},
+    authored_locomotion_path::AuthoredLocomotionPathState,
     authored_reload::{AuthoredReload, ReloadSlot},
-    authored_walk::{AuthoredWalk, WalkPoseLayer},
+    layered_locomotion::{LayerSources, LayeredLocomotion},
     skinned_asset::SkinnedAsset,
     viewmodel_animation::{game_model_root, AnimationSet, ViewmodelPose},
 };
@@ -28,15 +28,12 @@ pub struct AuthoredViewmodel {
     clip: String,
     fixed_time: Option<f32>,
     error: Option<String>,
-    locomotion: Option<AuthoredLocomotionPath>,
+    locomotion: Option<LayeredLocomotion>,
     reload: Option<AuthoredReload>,
     reload_renderers: Vec<AuthoredViewmodel>,
     reload_indices: [Option<usize>; 2],
     warning: Option<String>,
-    walk: AuthoredWalk,
     walk_index: Option<usize>,
-    walk_layer: Option<WalkPoseLayer>,
-    ads: Option<AuthoredAds>,
     ads_index: Option<usize>,
 }
 impl AuthoredViewmodel {
@@ -131,10 +128,7 @@ impl AuthoredViewmodel {
             reload_renderers: Vec::new(),
             reload_indices: [None, None],
             warning: None,
-            walk: AuthoredWalk::default(),
             walk_index: None,
-            walk_layer: None,
-            ads: None,
             ads_index: None,
         })
     }
@@ -152,11 +146,11 @@ impl AuthoredViewmodel {
             &manifest.locomotion.ready_clip,
             None,
         )?;
-        let ready_clip = manifest.locomotion.ready_clip.clone();
-        model.locomotion = Some(
-            AuthoredLocomotionPath::new(&model.animation, manifest.locomotion, 0.)
-                .map_err(|e| e.to_string())?,
-        );
+        let walk_clip = manifest
+            .regular_walk
+            .as_ref()
+            .map(|reference| reference.clip.clone());
+        let ads_clips = manifest.ads.clone();
         let mut durations = [None, None];
         let mut references = Vec::new();
         for (slot, reference) in [Some(manifest.tactical), manifest.empty]
@@ -191,39 +185,59 @@ impl AuthoredViewmodel {
         );
         if let Some(reference) = manifest.regular_walk {
             let renderer = Self::load(&asset_name(&reference.asset)?, &reference.clip, None)?;
-            AuthoredWalk::validate_clip(&renderer.animation, &reference.clip)
-                .map_err(|e| e.to_string())?;
-            model.walk_layer = Some(
-                WalkPoseLayer::new(
-                    &renderer.animation,
-                    &model.animation,
-                    &ready_clip,
-                    manifest
-                        .walk_anchor_actor
-                        .as_deref()
-                        .ok_or("missing walk anchor actor")?,
-                )
-                .map_err(|error| error.to_string())?,
-            );
             model.walk_index = Some(model.reload_renderers.len());
             model.reload_renderers.push(renderer);
         }
         if let Some(reference) = manifest.ads {
             let renderer = Self::load(&asset_name(&reference.asset)?, &reference.entry_clip, None)?;
-            model.ads = Some(
-                AuthoredAds::new(
-                    &renderer.animation,
-                    &model.animation,
-                    &ready_clip,
-                    reference,
-                )
-                .map_err(|error| error.to_string())?,
-            );
             model.ads_index = Some(model.reload_renderers.len());
             model.reload_renderers.push(renderer);
         }
+        model.locomotion = Some(
+            LayeredLocomotion::new(
+                LayerSources {
+                    locomotion: &model.animation,
+                    walk: model
+                        .walk_index
+                        .map(|index| &model.reload_renderers[index].animation),
+                    ads: model
+                        .ads_index
+                        .map(|index| &model.reload_renderers[index].animation),
+                },
+                manifest.locomotion,
+                walk_clip.as_deref(),
+                ads_clips,
+                &manifest.layer_anchor_actor,
+            )
+            .map_err(|error| error.to_string())?,
+        );
+        if let Some(clips) = manifest.directional_walk {
+            let set = &model.reload_renderers[model
+                .walk_index
+                .ok_or("missing directional walk renderer")?]
+            .animation;
+            model.locomotion = Some(
+                model
+                    .locomotion
+                    .take()
+                    .ok_or("missing shared layers")?
+                    .with_directional_walk(set, clips)
+                    .map_err(|error| error.to_string())?,
+            );
+        }
+        model.locomotion = Some(
+            model
+                .locomotion
+                .take()
+                .ok_or("missing shared layers")?
+                .with_ads_wip_policy(
+                    manifest.receiver_ads_wip,
+                    manifest.ads_visual_transition_seconds,
+                )
+                .map_err(|error| error.to_string())?,
+        );
         let mut missing = vec!["fire", "mantle"];
-        if model.ads.is_none() {
+        if model.ads_index.is_none() {
             missing.insert(0, "ADS");
         }
         if durations[1].is_none() {
@@ -245,20 +259,45 @@ impl AuthoredViewmodel {
         if self.reload_sample().is_some() {
             return None;
         }
-        self.walk.seconds()
+        self.locomotion
+            .as_ref()
+            .and_then(|layers| layers.walk().seconds())
     }
     pub fn walk_weight(&self) -> f32 {
-        self.walk.weight()
+        self.locomotion
+            .as_ref()
+            .map_or(0., |layers| layers.walk().weight())
+    }
+    pub fn walk_min_rate(&self) -> f32 {
+        self.locomotion
+            .as_ref()
+            .map_or(1., LayeredLocomotion::walk_min_rate)
+    }
+    pub fn run_weight(&self) -> f32 {
+        self.locomotion
+            .as_ref()
+            .map_or(0., LayeredLocomotion::run_weight)
+    }
+    pub fn pose_crc32(&self) -> Option<u32> {
+        self.locomotion.as_ref().map(LayeredLocomotion::pose_crc32)
+    }
+    pub fn directional_weights(&self) -> Option<[f64; 4]> {
+        self.locomotion
+            .as_ref()
+            .and_then(LayeredLocomotion::directional_weights)
     }
     pub fn ads_sample(&self) -> Option<AdsSample> {
-        self.ads.as_ref().and_then(AuthoredAds::sample)
+        self.locomotion
+            .as_ref()
+            .and_then(LayeredLocomotion::ads)
+            .and_then(AuthoredAds::sample)
     }
     pub fn ads_clip(&self) -> Option<&str> {
-        let ads = self.ads.as_ref()?;
+        let ads = self.locomotion.as_ref()?.ads()?;
         Some(ads.clip(ads.sample()?.slot))
     }
     pub fn ads_duration(&self) -> Option<f64> {
-        let ads = self.ads.as_ref()?;
+        let ads = self.locomotion.as_ref()?.ads()?;
         Some(ads.duration(ads.sample()?.slot))
     }
     pub fn presentation_route(&self) -> &str {
@@ -275,7 +314,7 @@ impl AuthoredViewmodel {
         if self.walk_sample().is_some() {
             return "regular_walk";
         }
-        match self.locomotion.as_ref().map(AuthoredLocomotionPath::state) {
+        match self.locomotion.as_ref().map(|layers| layers.path().state()) {
             Some(AuthoredLocomotionPathState::Ready) => "ready",
             _ => "locomotion",
         }
@@ -286,7 +325,14 @@ impl AuthoredViewmodel {
             .animation
             .clips()
             .iter()
-            .find(|clip| clip.name == renderer.clip)
+            .find(|clip| {
+                clip.name
+                    == self
+                        .locomotion
+                        .as_ref()
+                        .and_then(LayeredLocomotion::walk_clip)
+                        .unwrap_or(&renderer.clip)
+            })
             .map(|clip| f64::from(clip.duration()))
     }
     pub fn tactical_duration(&self) -> Option<f64> {
@@ -301,11 +347,6 @@ impl AuthoredViewmodel {
         if self.error.is_some() {
             return;
         }
-        let was_reload = self
-            .reload
-            .as_ref()
-            .and_then(AuthoredReload::sample)
-            .is_some();
         if let Some(reload) = &mut self.reload {
             if let Err(error) = reload.committed_step(start, simulation) {
                 self.error = Some(error.to_string());
@@ -320,59 +361,27 @@ impl AuthoredViewmodel {
             .as_ref()
             .and_then(AuthoredReload::sample)
             .is_some();
-        if was_reload && !is_reload {
-            // Explicit whole-model route cut, not adapter pose reacquisition.
-            // The reload pack can have a different actor map and bind CRC.
-            if let Some(path) = &mut self.locomotion {
-                if let Err(error) = path.reset(&self.animation, start) {
-                    self.error = Some(error.to_string());
-                    return;
-                }
-            }
-        }
-        if let Some(ads) = &mut self.ads {
-            let ready = self
-                .locomotion
-                .as_ref()
-                .is_some_and(|path| path.state() == AuthoredLocomotionPathState::Ready);
-            if let Err(error) = ads.committed_step(start, simulation, is_reload, ready) {
+        if let Some(layers) = &mut self.locomotion {
+            let sources = LayerSources {
+                locomotion: &self.animation,
+                walk: self
+                    .walk_index
+                    .map(|index| &self.reload_renderers[index].animation),
+                ads: self
+                    .ads_index
+                    .map(|index| &self.reload_renderers[index].animation),
+            };
+            if let Err(error) = layers.committed_step(sources, start, simulation, is_reload) {
                 self.error = Some(error.to_string());
-                return;
             }
-        }
-        let is_ads = self.ads_sample().is_some();
-        self.update_locomotion(
-            start,
-            simulation.time,
-            simulation.player.sprinting && !is_reload && !is_ads,
-        );
-        let player = &simulation.player;
-        let eligible = self.walk_index.is_some() && !is_reload && player.reload_left <= 0.;
-        let moving = player.grounded
-            && player.speed() > 0.1
-            && !player.sprinting
-            && player.mantle.is_none()
-            && self
-                .locomotion
-                .as_ref()
-                .is_some_and(|path| path.state() == AuthoredLocomotionPathState::Ready);
-        if let Err(error) = self
-            .walk
-            .committed_step(start, simulation.time, moving, eligible)
-        {
-            self.error = Some(error.to_string());
         }
     }
     pub fn reset(&mut self, time: f64) {
-        self.walk.reset(time);
-        if let Some(ads) = &mut self.ads {
-            ads.reset(time);
-        }
         if let Some(reload) = &mut self.reload {
             reload.reset(time);
         }
-        if let Some(path) = &mut self.locomotion {
-            if let Err(error) = path.reset(&self.animation, time) {
+        if let Some(layers) = &mut self.locomotion {
+            if let Err(error) = layers.reset(&self.animation, time) {
                 self.error = Some(error.to_string());
             }
         }
@@ -383,20 +392,6 @@ impl AuthoredViewmodel {
     /// The immutable bindings used by this renderer and its matching companions.
     pub fn animation(&self) -> &AnimationSet {
         &self.animation
-    }
-    /// Advance only on committed fixed ticks; render frequency never changes motion.
-    pub fn update_locomotion(&mut self, start: f64, end: f64, sprinting: bool) {
-        if self.error.is_some() {
-            return;
-        }
-        if let Some(path) = &mut self.locomotion {
-            if let Err(error) = path
-                .update(&self.animation, start, sprinting, true)
-                .and_then(|_| path.update(&self.animation, end, sprinting, true))
-            {
-                self.error = Some(error.to_string());
-            }
-        }
     }
     pub fn draw(&mut self, simulation_time: f64, lighting: SceneLighting) {
         if self.error.is_some() {
@@ -426,35 +421,8 @@ impl AuthoredViewmodel {
                 .map_err(|e| e.to_string())?;
             return renderer.draw_pose(&pose, lighting);
         }
-        let ads_pose = if let (Some(index), Some(ads)) = (self.ads_index, &self.ads) {
-            ads.pose(&self.reload_renderers[index].animation)
-                .map_err(|error| error.to_string())?
-        } else {
-            None
-        };
-        if let Some(base) =
-            ads_pose.or_else(|| self.locomotion.as_ref().map(|path| path.pose().clone()))
-        {
-            let pose = if let (Some(index), Some(layer), Some(seconds)) =
-                (self.walk_index, &self.walk_layer, self.walk.seconds())
-            {
-                let renderer = &self.reload_renderers[index];
-                let walk = renderer
-                    .animation
-                    .sample(&renderer.clip, seconds as f32)
-                    .map_err(|error| error.to_string())?;
-                layer
-                    .pose(
-                        &self.animation,
-                        &base,
-                        &walk,
-                        self.walk.weight(),
-                        self.ads.as_ref().map_or(0., AuthoredAds::aim_amount),
-                    )
-                    .map_err(|error| error.to_string())?
-            } else {
-                base
-            };
+        if let Some(layers) = &self.locomotion {
+            let pose = layers.pose().clone();
             return self.draw_pose(&pose, lighting);
         }
         let time = self.fixed_time.unwrap_or(simulation_time as f32);

@@ -1,0 +1,283 @@
+{
+  "schema": "rust-duty-hip-directional-source-handoff/v1",
+  "status": "Reviewed source-only WIP: three narrow clean-core passes; backward timing category unresolved; no all-four formal pass",
+  "source_file": "halcyon_hip_directional_r1.blend",
+  "source_sha256": "6d6d5c6a150bd8d74f24b29bf18b192e2f5fe2cd93a531c77b7a1e5ce93a8b35",
+  "source_bytes": 9485443,
+  "baseline_commit": "7ffdd6eb1d6ae20d5e8e6445f07759a225c952eb",
+  "canonical_input": "assets/authoring/locomotion/locomotion.blend",
+  "canonical_input_sha256": "1b01f49d7fe92f39c7bd180823ee4556a0074dd9ff8ef9c10b3fb4d3f3059e43",
+  "blender_version": "4.3.2",
+  "source_fps": 60,
+  "bake_hz": 480,
+  "armature": "Arms",
+  "units": {
+    "system": "NONE",
+    "scale_length": 1.0,
+    "rig_coordinates": "meters per original export contract"
+  },
+  "rest_skeleton_hash": "5615e4ea17cac9b174091c49890b9336c356e1feae9b12d79e20a4c6c5fedc74",
+  "deform_bones": [
+    "root",
+    "pelvis",
+    "spine_01",
+    "spine_02",
+    "spine_03",
+    "neck_01",
+    "head",
+    "clavicle_l",
+    "upperarm_l",
+    "lowerarm_l",
+    "hand_l",
+    "index_01_l",
+    "index_02_l",
+    "index_03_l",
+    "thumb_01_l",
+    "thumb_02_l",
+    "thumb_03_l",
+    "middle_01_l",
+    "middle_02_l",
+    "middle_03_l",
+    "ring_01_l",
+    "ring_02_l",
+    "ring_03_l",
+    "pinky_01_l",
+    "pinky_02_l",
+    "pinky_03_l",
+    "lowerarm_twist_01_l",
+    "upperarm_twist_01_l",
+    "clavicle_r",
+    "upperarm_r",
+    "lowerarm_r",
+    "hand_r",
+    "index_01_r",
+    "index_02_r",
+    "index_03_r",
+    "thumb_01_r",
+    "thumb_02_r",
+    "thumb_03_r",
+    "middle_01_r",
+    "middle_02_r",
+    "middle_03_r",
+    "ring_01_r",
+    "ring_02_r",
+    "ring_03_r",
+    "pinky_01_r",
+    "pinky_02_r",
+    "pinky_03_r",
+    "lowerarm_twist_01_r",
+    "upperarm_twist_01_r",
+    "thigh_l",
+    "calf_l",
+    "foot_l",
+    "ball_l",
+    "calf_twist_01_l",
+    "thigh_twist_01_l",
+    "thigh_r",
+    "calf_r",
+    "foot_r",
+    "ball_r",
+    "calf_twist_01_r",
+    "thigh_twist_01_r",
+    "ik_foot_root",
+    "ik_foot_l",
+    "ik_foot_r",
+    "ik_hand_root",
+    "ik_hand_gun",
+    "ik_hand_l",
+    "ik_hand_r",
+    "righthand_prop",
+    "lefthand_prop",
+    "righthand_prop_righthand",
+    "righthand_prop_lefthand"
+  ],
+  "skin_objects": [
+    "Actual arms mesh 0",
+    "Actual arms mesh 1",
+    "Actual arms mesh 2"
+  ],
+  "rigid_actors": [
+    "hk416_weapon",
+    "hk416_magazine"
+  ],
+  "source_ownership": {
+    "author": "Halcyon",
+    "canonical_integration_and_production_export": "Aella",
+    "runtime_controller": "Aella"
+  },
+  "protected_data": {
+    "original_actions": 62,
+    "original_nla_tracks": 8,
+    "drivers": 185,
+    "canonical_sources_changed": false,
+    "rig_rest_geometry_camera_changed": false,
+    "independent_prior_native_arrays_byte_identical": 222,
+    "prior_native_array_count": 222,
+    "max_prior_matrix_or_position_difference": 0.0
+  },
+  "baseline_ready_action": "RD_Locomotion_Normal_Entry_4419_4434_WIP2",
+  "baseline_ready_frame": 1,
+  "representation": "absolute native poses; derive weapon-relative motion only using receiving integration contract",
+  "animated_control": "righthand_prop",
+  "varying_channels": [
+    "location.x",
+    "location.y",
+    "location.z",
+    "rotation_euler.x",
+    "rotation_euler.y",
+    "rotation_euler.z"
+  ],
+  "new_actions": [
+    {
+      "direction": "forward",
+      "reference_id": "5KM0XSKxTWw",
+      "reference_sha256": "cff413d8d114b611bbe6f50cc553ef109d61eb8eb1fff960425f506b84d6767e",
+      "source_range_half_open": [
+        48,
+        86
+      ],
+      "endpoint_source_frame": 86,
+      "pts_ticks": [
+        12288,
+        22016
+      ],
+      "period_frames": 38,
+      "period_s": 0.6333333333333333,
+      "blender_frame_range": [
+        1,
+        39
+      ],
+      "unique_frame_range_inclusive": [
+        1,
+        38
+      ],
+      "loop": true,
+      "additive": false,
+      "fixed_motion_scale_native_over_reference": 0.9865965133568186,
+      "action": "hip_walk_forward_r1"
+    },
+    {
+      "direction": "backward",
+      "reference_id": "5KM0XSKxTWw",
+      "reference_sha256": "cff413d8d114b611bbe6f50cc553ef109d61eb8eb1fff960425f506b84d6767e",
+      "source_range_half_open": [
+        211,
+        256
+      ],
+      "endpoint_source_frame": 256,
+      "pts_ticks": [
+        54016,
+        65536
+      ],
+      "period_frames": 45,
+      "period_s": 0.75,
+      "blender_frame_range": [
+        1,
+        46
+      ],
+      "unique_frame_range_inclusive": [
+        1,
+        45
+      ],
+      "loop": true,
+      "additive": false,
+      "fixed_motion_scale_native_over_reference": 0.8525310027633977,
+      "action": "hip_walk_backward_r1"
+    },
+    {
+      "direction": "left",
+      "reference_id": "5KM0XSKxTWw",
+      "reference_sha256": "cff413d8d114b611bbe6f50cc553ef109d61eb8eb1fff960425f506b84d6767e",
+      "source_range_half_open": [
+        886,
+        935
+      ],
+      "endpoint_source_frame": 935,
+      "pts_ticks": [
+        226816,
+        239360
+      ],
+      "period_frames": 49,
+      "period_s": 0.8166666666666667,
+      "blender_frame_range": [
+        1,
+        50
+      ],
+      "unique_frame_range_inclusive": [
+        1,
+        49
+      ],
+      "loop": true,
+      "additive": false,
+      "fixed_motion_scale_native_over_reference": 0.9848832627343954,
+      "action": "hip_strafe_left_r1"
+    },
+    {
+      "direction": "right",
+      "reference_id": "9RRgXvRx43s",
+      "reference_sha256": "5b883e85d1179d06987509e4ede2b18fbc54433c4578b316af355e68d17becf5",
+      "source_range_half_open": [
+        361,
+        410
+      ],
+      "endpoint_source_frame": 410,
+      "pts_ticks": [
+        92416,
+        104960
+      ],
+      "period_frames": 49,
+      "period_s": 0.8166666666666667,
+      "blender_frame_range": [
+        1,
+        50
+      ],
+      "unique_frame_range_inclusive": [
+        1,
+        49
+      ],
+      "loop": true,
+      "additive": false,
+      "fixed_motion_scale_native_over_reference": 0.8887616480535063,
+      "action": "hip_strafe_right_r1"
+    }
+  ],
+  "integration_requirements": [
+    "Append only four named Actions into canonical source; preserve original Actions/NLA/rig",
+    "Do not merge this BLEND wholesale over canonical sources",
+    "Native60fps; repeated endpoint included, unique frames exclude endpoint",
+    "Lane-local preview exporter is not a production export/config change",
+    "Use shared base-walk motion at reduced amplitude in ADS; no independent ADS walking Actions authored here",
+    "blend_in/animation/blend_out and concurrent ADS+walk fade-out while run fades in are receiving runtime-owner requirements",
+    "Reference settling/drift is not baked into periodic core; no idle insertion during movement"
+  ],
+  "acceptance_limits": [
+    "Original whole-pose geometry-equivalence gate does not pass shotgun versus HK416 static anatomy",
+    "Full-window timing/amplitude mismatches retained in independent review",
+    "Clean-core comparison is in-sample transfer evidence, not independent full-window80%",
+    "Firing wrist offscreen in source; candidate contact requires native guards and witness views",
+    "Source-only loop tests do not validate runtime blending, direction selection or ADS alignment"
+  ],
+  "review_summary": {
+    "scope": "In-sample clean periodic core transfer only; not full source windows or runtime",
+    "scores_out_of_60": {
+      "hip_walk_forward_r1": 60,
+      "hip_walk_backward_r1": 50,
+      "hip_strafe_left_r1": 60,
+      "hip_strafe_right_r1": 60
+    },
+    "backward_timing_category": {
+      "earned": 10,
+      "supported": 20,
+      "category_minimum_percent": 60,
+      "source_extremum_frame": 245,
+      "candidate_error_frames": 8,
+      "tolerance_frames": 4.5,
+      "status": "unresolved flat-peak timing ambiguity"
+    },
+    "all_four_formal_pass": false,
+    "all_four_local_contact_and_continuity_pass": true,
+    "side_underside_witness_count": 32,
+    "full_window_80_percent_claim": false,
+    "runtime_accepted": false
+  }
+}

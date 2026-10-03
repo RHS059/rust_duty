@@ -1,0 +1,38 @@
+{
+  "status": "diagnostic",
+  "mechanism": "One fixed actual receiver-surface point transfers full attenuated native HIP motion into a rigid optical-roll/depth pair. This is a retargeting approximation, not source-recovered3D or a new authored directional clip.",
+  "hip_source_sha256": "6d6d5c6a150bd8d74f24b29bf18b192e2f5fe2cd93a531c77b7a1e5ce93a8b35",
+  "ads_source_sha256": "89e35988e4b47b4b207a5b2b3efa584b6ca73ee1dd9f0b83d2f8586d0684e924",
+  "receiver_point_mesh_local": [
+    -6.210595893207937e-05,
+    0.11778369545936584,
+    0.07798250019550323
+  ],
+  "receiver_point_mesh_polygon": 18585,
+  "selection": "First actual weapon-surface hit from immutable aimed camera pixel(640,525); frozen for every direction/frame/gain.",
+  "protected": "Original HIP/ADS Actions, key/handle shapes, normalized phase ordering, source camera, geometry, rest, weights, base/aim endpoints, and hand attachment controls. Playback rate is explicitly changed by17/20 for this diagnostic.",
+  "secondary_gates": "Sight center/aperture clearance; wrist solve/guard; side contours and cadence; no reference score from the fitted receiver witness.",
+  "diagnostic_sanity_caps": {
+    "optical_roll_deg": 10,
+    "depth_shift_mm": 30
+  },
+  "publishable_match_score": null,
+  "preset": "single shared policy, frozen before rendering",
+  "horizontal_motion_gain": 0.4,
+  "vertical_gain_formula": ".4*(1-.5*lateral_direction_weight); pure forward/back weight0; pure left/right weight1; interpolation for diagonals is proposed, not tested here.",
+  "phase_rate_rational": "17/20",
+  "source_phase_formula": "native_frame = 1 + ((output_frame *17/20) mod unique_native_frames)",
+  "source_frame_rate": "60/1",
+  "output_pose_sample_rate": "240/1",
+  "raw_render_schedule": "60Hz output timeline, every third output frame(20Hz) plus integer frames near joins and exact worst-pose witnesses",
+  "output_window_seconds": [
+    0,
+    3
+  ],
+  "retiming_limit": "One constant phase-rate for every direction; native-time baseline remains in v3. No per-frame timewarp or candidate-specific registration.",
+  "application": "Shared rigid transform of complete evaluated aim assembly; no root-only IK replay.",
+  "max_claim": "Diagnostic only; no reference-match score and no production integration.",
+  "contract_revision": 2,
+  "previous_frozen_contract_sha256": "fd1c83c78e673a780113ad39f2db847b1577d22b8e13d0f59822d9c07f6ea62c",
+  "change_scope": "Metadata clarification only; no preset parameter, rendered pose, trace, or trajectory changed."
+}

@@ -13,6 +13,7 @@ pub struct AuthoredWalk {
     started: Option<f64>,
     last_time: f64,
     envelope: f64,
+    phase_seconds: f64,
 }
 impl AuthoredWalk {
     pub fn validate_clip(animation: &AnimationSet, name: &str) -> Result<()> {
@@ -31,6 +32,7 @@ impl AuthoredWalk {
     pub fn reset(&mut self, time: f64) {
         self.started = None;
         self.envelope = 0.;
+        self.phase_seconds = 0.;
         self.last_time = time;
     }
     /// Ineligible means an incompatible owner (reload/reset), not ADS or sprint.
@@ -42,6 +44,20 @@ impl AuthoredWalk {
         moving: bool,
         eligible: bool,
     ) -> Result<()> {
+        self.committed_step_with_phase(start, end, moving, eligible, end - start)
+    }
+    /// Accumulate native phase explicitly; never multiply elapsed time by a changing rate.
+    pub fn committed_step_with_phase(
+        &mut self,
+        start: f64,
+        end: f64,
+        moving: bool,
+        eligible: bool,
+        phase_advance: f64,
+    ) -> Result<()> {
+        if !phase_advance.is_finite() || phase_advance < 0. {
+            return Err(AnimationError("invalid native walk phase advance".into()));
+        }
         if start != self.last_time || !start.is_finite() || !end.is_finite() || end < start {
             return Err(AnimationError(
                 "walk observer needs contiguous committed ticks; reset explicitly".into(),
@@ -57,19 +73,24 @@ impl AuthoredWalk {
         if moving {
             if self.started.is_none() {
                 self.started = Some(start);
+                self.phase_seconds = 0.;
             }
             self.envelope = (self.envelope + (end - start) / WALK_FADE_IN_SECONDS).min(1.);
         } else {
             self.envelope = (self.envelope - (end - start) / WALK_FADE_OUT_SECONDS).max(0.);
             if self.envelope == 0. {
                 self.started = None;
+                self.phase_seconds = 0.;
             }
+        }
+        if self.started.is_some() {
+            self.phase_seconds += phase_advance;
         }
         self.last_time = end;
         Ok(())
     }
     pub fn seconds(&self) -> Option<f64> {
-        self.started.map(|start| self.last_time - start)
+        self.started.map(|_| self.phase_seconds)
     }
     pub fn weight(&self) -> f32 {
         (self.envelope * self.envelope * (3. - 2. * self.envelope)) as f32
@@ -84,6 +105,7 @@ pub struct WalkPoseLayer {
     anchor: usize,
     ready: ViewmodelPose,
     bindings: PoseBindings,
+    receiver_v4_wip: bool,
 }
 impl WalkPoseLayer {
     pub fn new(
@@ -107,7 +129,11 @@ impl WalkPoseLayer {
             anchor,
             ready: locomotion.sample_clamped(ready_clip, 0.)?,
             bindings,
+            receiver_v4_wip: false,
         })
+    }
+    pub fn use_receiver_v4_wip(&mut self, active: bool) {
+        self.receiver_v4_wip = active;
     }
     pub fn pose(
         &self,
@@ -117,6 +143,20 @@ impl WalkPoseLayer {
         weight: f32,
         aim: f32,
     ) -> Result<ViewmodelPose> {
+        self.pose_directional(animation, base, walk, weight, aim, 0.)
+    }
+    pub fn pose_directional(
+        &self,
+        animation: &AnimationSet,
+        base: &ViewmodelPose,
+        walk: &ViewmodelPose,
+        weight: f32,
+        aim: f32,
+        lateral: f32,
+    ) -> Result<ViewmodelPose> {
+        if !lateral.is_finite() || !(0. ..=1.).contains(&lateral) {
+            return Err(AnimationError("invalid lateral layer weight".into()));
+        }
         if !self.bindings.matches(animation)
             || !weight.is_finite()
             || !aim.is_finite()
@@ -143,14 +183,19 @@ impl WalkPoseLayer {
         // retain only the source walk's depth and roll components. Transverse
         // translation or pitch/yaw, even attenuated, separates the sights from
         // the camera ray. The phase continues and no new bob curve is invented.
-        let twist = Quat::from_xyzw(0., 0., rotation.z, rotation.w);
-        if twist.length_squared() <= 1e-8 {
-            return Err(AnimationError(
-                "walk rotation has no finite optical-axis twist".into(),
-            ));
-        }
-        let rotation = rotation.slerp(twist.normalize(), aim);
-        let translation = translation.lerp(Vec3::new(0., 0., translation.z), aim);
+        let (aim_rotation, aim_translation) = if self.receiver_v4_wip {
+            receiver_v4_offset(delta, lateral)?
+        } else {
+            let twist = Quat::from_xyzw(0., 0., rotation.z, rotation.w);
+            if twist.length_squared() <= 1e-8 {
+                return Err(AnimationError(
+                    "walk rotation has no finite optical-axis twist".into(),
+                ));
+            }
+            (twist.normalize(), Vec3::new(0., 0., translation.z))
+        };
+        let rotation = rotation.slerp(aim_rotation, aim);
+        let translation = translation.lerp(aim_translation, aim);
         let offset = Mat4::from_rotation_translation(
             Quat::IDENTITY.slerp(rotation, weight),
             translation * weight,
@@ -217,4 +262,37 @@ fn transform(matrix: Mat4) -> Result<Transform> {
         ));
     }
     Ok(value)
+}
+
+/// v4 WIP: frozen receiver witness, shared forty-percent native-motion target,
+/// lateral vertical attenuation, optical-axis-only output. No camera fitting/IK.
+pub fn receiver_v4_offset(delta_asset: Mat4, lateral: f32) -> Result<(Quat, Vec3)> {
+    use crate::viewmodel_animation::game_model_root;
+    let root = game_model_root(); // Exact diag(-1,1,-1); self-inverse.
+    let delta = root * delta_asset * root;
+    let (_, rotation, translation) = delta.to_scale_rotation_translation();
+    let full =
+        Mat4::from_rotation_translation(Quat::IDENTITY.slerp(rotation, 0.4), translation * 0.4);
+    let p0 = Vec3::new(2.8157956e-8, -0.040691406, -0.2020175);
+    let target = full.transform_point3(p0);
+    if !target.is_finite() || target.z >= -1e-6 {
+        return Err(AnimationError("invalid receiver projection depth".into()));
+    }
+    let u = target.x / -target.z;
+    let v0 = p0.y / -p0.z;
+    let v = v0 + (target.y / -target.z - v0) * (1. - 0.5 * lateral);
+    let radius = u.hypot(v);
+    if !radius.is_finite() || radius <= 1e-6 {
+        return Err(AnimationError("invalid receiver projection radius".into()));
+    }
+    let angle = v.atan2(u) - p0.y.atan2(p0.x);
+    let theta = angle.sin().atan2(angle.cos());
+    let dz = -p0.x.hypot(p0.y) / radius - p0.z;
+    let camera =
+        Mat4::from_rotation_translation(Quat::from_rotation_z(theta), Vec3::new(0., 0., dz));
+    let (_, rotation, translation) = (root * camera * root).to_scale_rotation_translation();
+    if !rotation.is_finite() || !translation.is_finite() {
+        return Err(AnimationError("nonfinite receiver mapping".into()));
+    }
+    Ok((rotation, translation))
 }

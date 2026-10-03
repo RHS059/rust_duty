@@ -1,0 +1,4898 @@
+{
+  "schema": "rust-duty-directional-r5-source-integrity/v1",
+  "blender": "4.3.2",
+  "portable_source_sha256": "36d76491c2cf6238b8a1e10069dddd5b0d63e199063e1f4012b34f3fd4b1e18d",
+  "preserved": {
+    "actions": {
+      "hip_strafe_left_r1": "63a0fbd25eb96f442aa5edbdf727a72dd41e451332117206cb1744dec53e21b9",
+      "hip_strafe_left_r2": "3349793512b1d109131325c9d09fdc185225b9b0e33836712a14b351e29cdf59",
+      "hip_strafe_left_r3": "8cf744054ba320814f075b891d824ea9b9cb2adc2a9190876a696adaa3c32be2",
+      "hip_strafe_left_r4": "5f4bdf7ac353972f93da2c27d7bcaa49aa0a852115262a6f343ee2467938d463",
+      "hip_strafe_left_r5": "2e48c623a67b4568770eae8682579d414cbc5b47148a6f676d472f59f19b2d36",
+      "hip_strafe_right_r1": "8702bdef2ede2eb6520c26b24b39a7a263b8f4f886e0c040cf63bbfcb33ce6da",
+      "hip_strafe_right_r2": "e7699b4bbffe8cec58b01a406383eefb53282d055c29cdde5548d4c4a297b723",
+      "hip_strafe_right_r3": "a2456df554b55008b3e763b30627cb88bae581ffbf8260d7e5b06045360de19e",
+      "hip_strafe_right_r4": "07641908389661e7943bc17ed0e4c7742655aee2ede373398d73fc50ae1423ad",
+      "hip_strafe_right_r5": "bba61dbaa0aeda93fdeff426ef5af82db0bb39cd287dc7f0336cbee3a7b58590",
+      "hip_walk_backward_r1": "3b225bf9a233e99c8101e7e4b035f73f62d5dcb35835b53a8f8b4870d9f26de1",
+      "hip_walk_backward_r2": "fdbcb1757fb098863b879476984b9155a36a489b1a9871edea65b07a4bdc6d61",
+      "hip_walk_backward_r3": "292e153bb0beecaafbcc884f9e7300afadd65f7a9bed66577550358558ce36ba",
+      "hip_walk_backward_r4": "7608fff829433c857dfa442cc25d27c9ce612766a12f3ef379a07ebd5b5e1e0f",
+      "hip_walk_backward_r5": "be23987d7297fb46261b413825520e92f828580bd487588712108ea5f771b2c7",
+      "hip_walk_forward_r1": "fad28b040714dcc555c1406583e9ab645628155571a2e242f903cceb76265d3d",
+      "hip_walk_forward_r2": "62f37529dce87ded38dc87d01b1a94990b9d7e9552db1395545dc9c1d70ca9d1",
+      "hip_walk_forward_r3": "b86cd44bb0bca585ad8b44e2cae03d6d0b5530374d16c7cf3aea448fd268c2d4",
+      "hip_walk_forward_r4": "d8ee9f5c8e8fba6a944bdb839f99b5827b75575f563d7fb2fe5c8cb850a807a4",
+      "hip_walk_forward_r5": "0d15d9f431c10653c901957d194975b51578a57f4a0568383a79cf1ef23ffbdd",
+      "hk416_magazineAction": "b034a94d358755c1d9df9f8a19fba8468f9fd6edb3746ace49707746781d1c52",
+      "hk416_weaponAction.001": "195d8980d5ee7aeb767715bcf13e61149bad3cc4efcf567505a2e0eaa4a881c9",
+      "hk416a5_controls": "50864547542f5d9dd802f8efee0075a0d56d4e9f9666fb878e789080835f0dce",
+      "hk416a5_ik": "ac4751eb97dae3f029fb7efefb5c8675b42128afbdb69ea20fe6c4b6b4949383",
+      "normal_walk_r1": "7fd10685b49a64c6715aa5e0759c00a6b7a279ebf1be847a1f156454227798a6",
+      "RD_00_Supplied_Base_Guarded_Recovered": "49b7da5f9d6ea12be52bade40b09aeb67d6adc6eb34a1a7026e3f111b3c61ed8",
+      "RD_00_Supplied_Base_Recovered": "162000c7af797d2cdb0c3142f8684decb465deab16127da0589c5a02712570f7",
+      "RD_Loco_Pose4419_Ready_WIP": "8f462228b28f346cd9aff93de696a5f97cce2b7e998198638873163782022d6d",
+      "RD_Loco_Pose4425_Dip_WIP": "cb48d8ef3c7336cc4408de5d328479e08bd7492ccf4173e89adf563925e46eca",
+      "RD_Loco_Pose4431_Entry_WIP2": "ae0d76574bed53e4a6dbd6f0e6b3ba341ce1fdfeed75d0565aa3516eb1b3c335",
+      "RD_Loco_Pose4434_Entry_WIP2": "4910850b507d747a5cc269545afdd3fbd88e16c74ff7f0605dcd2abc1bbc3fdb",
+      "RD_Loco_Pose4464_Low_RollMinus15_Candidate": "d07b2e5730af672934cb641dde34a8999ac6eb77889cfc2a8715f337b05efd3d",
+      "RD_Loco_Pose4464_Low_WIP": "404c0e9437c283331622ad25785cb4ee7b0f81b87226b87ba5e4bf752eb8a482",
+      "RD_Locomotion_Normal_Entry_4419_4434_WIP2": "2f1a53652543d8385d4e2743c4a8b979c0e1168c3eea23d3e49553726d2993c2",
+      "RD_Locomotion_Normal_Exit_4917_4932_WIP3": "5dc2c0b91accc2163a431b866f50516cbff5f2d595243fc5a366d750c80c84a3",
+      "RD_Locomotion_Normal_Loop_AngleFix_WIP": "ff58981a3fac42d35f40e6ec24dbaea971c7324e23db3b17e9d24d0da8cb614f",
+      "RD_Normal_Diagnostic_Sequence": "d441c7ebd8c3a8e46bcb37fb809617cdb0c39473d978a06adb90f1d6a5365daa",
+      "RD_Normal_Entry_Connected": "a33c94436a6c6d15368026af138b74e52fa41cae4e4ee22ec670aa28274099c2",
+      "RD_Normal_Exit_Bridge_000": "2c75b97d6c30eb196a2837ae0d864ce78319e10459351d7f4b4c957e8a783f60",
+      "RD_Normal_Exit_Bridge_001": "b07dda592b717d43193d25cce7a43405d2ef49a7168a1989aeeb0b67bbb96eff",
+      "RD_Normal_Exit_Bridge_002": "59fb76099a4a7677707396466554fbd79c951e5a7b5b89e43479401940116bcb",
+      "RD_Normal_Exit_Bridge_003": "63e7da23e96b07a6c9031d94ed1b23bbd4521aae4aff5859b3a9645ddc83a37b",
+      "RD_Normal_Exit_Bridge_004": "521296f01ed211d332605ce8c94a2349286af90ca11bdcad46181b97709a9956",
+      "RD_Normal_Exit_Bridge_005": "9e6edeb2c6d79550f9b280818b95c9f915fde96df89257ab37a5a42813c4c7c4",
+      "RD_Normal_Exit_Bridge_006": "699b61ad1473f74e53c35f84011b613c7816d551edeba94b66df6aab039fc736",
+      "RD_Normal_Exit_Bridge_007": "7a59a75c79752b93b2e7d2955861677d7e3954cc9af8cbba1a92cf623e5ced26",
+      "RD_Normal_Exit_Bridge_008": "bde0033f095abdb5b771988dd056054fde3ada31391fa1f4b86b1c0515a6a8bb",
+      "RD_Normal_Exit_Bridge_009": "d6dd17e0f021e5f77cd97d570961a53a3352e741e043649420ebad2f975fd0d1",
+      "RD_Normal_Exit_Bridge_010": "1c6a8cfc5912c88ddb442b78e5f1657b837044ab236a1ce8e123c9cfdeed0267",
+      "RD_Normal_Exit_Bridge_011": "82adf97eac7f61f5df0fc7d1d992e03a7f19f4ae0ad72f89c908265eedd58692",
+      "RD_Normal_Exit_Bridge_012": "bffb28a5edbc41002bfb19e6e8cb9c772a9ad87b6382f31948abb202c18d7662",
+      "RD_Normal_Exit_Bridge_013": "face853469100ad07acb84a93ee9e12e5136cc9bd07c7b6ac608b135cdbf46f6",
+      "RD_Normal_Exit_Bridge_014": "89dd332a1e9c86d7f99e700f903ef8560daeb05e24436fc951943a2503b35053",
+      "RD_Normal_Exit_Bridge_015": "45630ca5bf3ad6932d52d2eac5f18aa4ba80651ecb3cdd25bb6e369ec3b232e3",
+      "RD_Normal_Exit_Bridge_016": "844c0d501222c2c75f44cb2afdeb1b626931b733f60f273710be0cb7708c2ce2",
+      "RD_Normal_Exit_Bridge_017": "d59624c3dcd92f5115107e9cf2ee57a4e69d42b55a001071265c6936bc066c78",
+      "RD_Normal_Exit_Bridge_018": "69ba39d7e80941a6da2a26996633a38e341d8fe03ac281070b9dc7748c3764d4",
+      "RD_Normal_Exit_Bridge_019": "aec09ff3cf013332103af396c409c470f203d21caf47986dd6a072c4d88ea817",
+      "RD_Normal_Exit_Bridge_020": "ea0644ef1607bb63287eb7944c5b27442e53e230e7314d67a878ee717d729fb8",
+      "RD_Normal_Exit_Bridge_021": "53fa07deb4b4bc79c3aaad9ae8d3ab98f25e0e9ef9dd23c7419373d2e367cfca",
+      "RD_Normal_Exit_Bridge_022": "49dc1c800fa7323ea8337f13ab5b8eb3c75251a1272543fed19800ba6927676e",
+      "RD_Normal_Exit_Bridge_023": "329521acb158b7e59cd2fc23f23c03a593d73375098e8abd131c43c976b535ab",
+      "RD_Normal_Exit_Bridge_024": "abc6f3fc85c294cbdc46fc23152afa007a2e1e7340569069c00db403aee96a9d",
+      "RD_Normal_Exit_Bridge_025": "68768ad24e6ca69b21fe41da2783a1e7a323d6c85d222621f76bda58f48282e5",
+      "RD_Normal_Exit_Bridge_026": "831be046464040673ac0f35d38c9afb8328eb2c729db6f4ab05c8f7d1bd30bbf",
+      "RD_Normal_Exit_Bridge_027": "008e51ba25f027ca1abe089bc17bdf00eb7161da8fdc4c438f5ef17455920863",
+      "RD_Normal_Exit_Bridge_028": "9167b4f034811547f23673e300a627f625d37511a2ffdbb1649f71877ef6568c",
+      "RD_Normal_Exit_Bridge_029": "f9d3b6804c96115d23240287362b7c65919380fbe424355fa0e1240c8be05bea",
+      "RD_Normal_Exit_Bridge_030": "0006b3b39cc8c8d3ca6f7e598a120a4078de01be0c850b68be693860e25109c8",
+      "RD_Normal_Exit_Bridge_031": "9876d751e19a87f50b5f3c9578c2add2b30f6ebd51e753f66507d4780c930b6d",
+      "RD_Normal_Exit_Bridge_032": "7411ccef623ad06e8fbc9519b955739f7b763cd48aa123b777aa09e8343f6e4e",
+      "RD_Normal_Exit_Bridge_033": "30f5bf5a582eac4d6d41b6bf41752bdf14b64edb2e443154edb9eae6a569ca4f",
+      "RD_Normal_Exit_Bridge_034": "27acbe940da16d8d6d8688f64afd2b56f18964ebb33909d03087d31cd4e8f8e2",
+      "RD_Normal_Exit_Connected": "9da6e0288df7a23856bc2458d5773991d351ce59cb2c42198aca40eda812ff4c",
+      "RD_Normal_LoopToExit": "2c75b97d6c30eb196a2837ae0d864ce78319e10459351d7f4b4c957e8a783f60",
+      "RD_Pose_Tactical_Pickup54_Guarded": "a0063d278ef365799a8c59e3f8fb8e86d8681726cb5e3c982c0381ef18e9e301",
+      "RD_Reload_Tactical_HandApproach_AndReturn_WIP": "197c39912e43765c1bcb2fe2bae9985ec09ae55ccc3bfd3a75e06f5927aee69d",
+      "RD_Reload_Tactical_Hands_Opening_WIP": "1ef0c7ef4a656ea5755c57860e6ca5514372ab3f54460d1a4268c2532911f0c1",
+      "RD_Reload_Tactical_Magazine_Locked_Reconstructed_v1": "79842dde18fe4153771cefce990b1e304c655c503e5cda2adc56bd963d0fb4c5",
+      "RD_Reload_Tactical_Magazine_Locked_Reconstructed_v2": "2dc81d2087c996d17879ccfcc3967cb0a4fccdb99c51a67283f5e91eec99b572",
+      "RD_Reload_Tactical_RightArm_Clearance_Checkpoint": "6b58ba2f07d06536b03e21361afffc47d9789196c295e7d860992dc32cd76c3d",
+      "RD_Reload_Tactical_Weapon_Locked_Reconstructed_v1": "c040e940d086e443040abe2a39350240776b3f228718feee764a0ecc4b044a11"
+    },
+    "nla": {
+      "Arms": {
+        "action": "normal_walk_r1",
+        "use_nla": false,
+        "tracks": [
+          {
+            "name": "LOCKED | Reconstructed tactical weapon",
+            "mute": true,
+            "is_solo": false,
+            "strips": [
+              {
+                "name": "RD_Reload_Tactical_Weapon_Locked_Reconstructed_v1",
+                "action": "RD_Reload_Tactical_Weapon_Locked_Reconstructed_v1",
+                "frame_start": 1.0,
+                "frame_end": 157.0,
+                "action_frame_start": 1.0,
+                "action_frame_end": 157.0,
+                "scale": 1.0,
+                "repeat": 1.0,
+                "blend_type": "REPLACE",
+                "extrapolation": "HOLD",
+                "influence": 0.0,
+                "mute": false,
+                "use_auto_blend": false,
+                "blend_in": 0.0,
+                "blend_out": 0.0
+              }
+            ]
+          },
+          {
+            "name": "ARCHIVE | Magazine before early depth correction",
+            "mute": true,
+            "is_solo": false,
+            "strips": [
+              {
+                "name": "RD_Reload_Tactical_Magazine_Locked_Reconstructed_v1",
+                "action": "RD_Reload_Tactical_Magazine_Locked_Reconstructed_v1",
+                "frame_start": 1.0,
+                "frame_end": 157.0,
+                "action_frame_start": 1.0,
+                "action_frame_end": 157.0,
+                "scale": 1.0,
+                "repeat": 1.0,
+                "blend_type": "REPLACE",
+                "extrapolation": "HOLD",
+                "influence": 0.0,
+                "mute": false,
+                "use_auto_blend": false,
+                "blend_in": 0.0,
+                "blend_out": 0.0
+              }
+            ]
+          },
+          {
+            "name": "Checkpoint | Right arm clearance",
+            "mute": true,
+            "is_solo": false,
+            "strips": [
+              {
+                "name": "RD_Reload_Tactical_RightArm_Clearance_Checkpoint",
+                "action": "RD_Reload_Tactical_RightArm_Clearance_Checkpoint",
+                "frame_start": 1.0,
+                "frame_end": 157.0,
+                "action_frame_start": 1.0,
+                "action_frame_end": 157.0,
+                "scale": 1.0,
+                "repeat": 1.0,
+                "blend_type": "REPLACE",
+                "extrapolation": "HOLD",
+                "influence": 0.0,
+                "mute": false,
+                "use_auto_blend": false,
+                "blend_in": 0.0,
+                "blend_out": 0.0
+              }
+            ]
+          },
+          {
+            "name": "WIP | Left opening + exit",
+            "mute": true,
+            "is_solo": false,
+            "strips": [
+              {
+                "name": "RD_Reload_Tactical_Hands_Opening_WIP",
+                "action": "RD_Reload_Tactical_Hands_Opening_WIP",
+                "frame_start": 1.0,
+                "frame_end": 31.0,
+                "action_frame_start": 1.0,
+                "action_frame_end": 31.0,
+                "scale": 1.0,
+                "repeat": 1.0,
+                "blend_type": "REPLACE",
+                "extrapolation": "HOLD",
+                "influence": 0.0,
+                "mute": false,
+                "use_auto_blend": false,
+                "blend_in": 0.0,
+                "blend_out": 0.0
+              }
+            ]
+          },
+          {
+            "name": "POSE ONLY | Pickup native54",
+            "mute": true,
+            "is_solo": false,
+            "strips": [
+              {
+                "name": "RD_Pose_Tactical_Pickup54_Guarded",
+                "action": "RD_Pose_Tactical_Pickup54_Guarded",
+                "frame_start": 55.0,
+                "frame_end": 56.0,
+                "action_frame_start": 55.0,
+                "action_frame_end": 56.0,
+                "scale": 1.0,
+                "repeat": 1.0,
+                "blend_type": "REPLACE",
+                "extrapolation": "HOLD",
+                "influence": 0.0,
+                "mute": false,
+                "use_auto_blend": false,
+                "blend_in": 0.0,
+                "blend_out": 0.0
+              }
+            ]
+          },
+          {
+            "name": "LOCKED | Magazine corrected early depth",
+            "mute": true,
+            "is_solo": false,
+            "strips": [
+              {
+                "name": "RD_Reload_Tactical_Magazine_Locked_Reconstructed_v2",
+                "action": "RD_Reload_Tactical_Magazine_Locked_Reconstructed_v2",
+                "frame_start": 1.0,
+                "frame_end": 157.0,
+                "action_frame_start": 1.0,
+                "action_frame_end": 157.0,
+                "scale": 1.0,
+                "repeat": 1.0,
+                "blend_type": "REPLACE",
+                "extrapolation": "HOLD",
+                "influence": 0.0,
+                "mute": false,
+                "use_auto_blend": false,
+                "blend_in": 0.0,
+                "blend_out": 0.0
+              }
+            ]
+          },
+          {
+            "name": "WIP | Left approach and return48\u2013156",
+            "mute": true,
+            "is_solo": false,
+            "strips": [
+              {
+                "name": "RD_Reload_Tactical_HandSeating_Release_WIP",
+                "action": "RD_Reload_Tactical_HandApproach_AndReturn_WIP",
+                "frame_start": 49.0,
+                "frame_end": 157.0,
+                "action_frame_start": 49.0,
+                "action_frame_end": 157.0,
+                "scale": 1.0,
+                "repeat": 1.0,
+                "blend_type": "REPLACE",
+                "extrapolation": "HOLD",
+                "influence": 0.0,
+                "mute": false,
+                "use_auto_blend": false,
+                "blend_in": 0.0,
+                "blend_out": 0.0
+              }
+            ]
+          },
+          {
+            "name": "normal_walk_r1",
+            "mute": true,
+            "is_solo": false,
+            "strips": [
+              {
+                "name": "normal_walk_r1",
+                "action": "normal_walk_r1",
+                "frame_start": 1.0,
+                "frame_end": 45.0,
+                "action_frame_start": 1.0,
+                "action_frame_end": 45.0,
+                "scale": 1.0,
+                "repeat": 1.0,
+                "blend_type": "REPLACE",
+                "extrapolation": "NOTHING",
+                "influence": 0.0,
+                "mute": false,
+                "use_auto_blend": false,
+                "blend_in": 0.0,
+                "blend_out": 0.0
+              }
+            ]
+          }
+        ]
+      },
+      "hk416_magazine": {
+        "action": "hk416_magazineAction",
+        "use_nla": true,
+        "tracks": []
+      },
+      "hk416_weapon": {
+        "action": "hk416_weaponAction.001",
+        "use_nla": true,
+        "tracks": []
+      }
+    },
+    "packed_images": {
+      "Actual arms mesh 0 texture": "370b76f77c4cf339dcc0e4ef98e617ffec2a89729091cf29a05ce70d37890d59",
+      "Actual arms mesh 1 texture": "0e09be568da16999f79eb85285ffa8c7c3b1d913bd3ecc94f9f61cbfa3e8cdf8",
+      "Actual arms mesh 2 texture": "7e2616335fe41836d7f7e41ecb161a805f4858fb82011bb6c2024d22f035c215"
+    },
+    "drivers": {
+      "Arms": [
+        {
+          "data_path": "pose.bones[\"righthand_prop_righthand\"].constraints[\"Child Of\"].influence",
+          "array_index": 0,
+          "type": "SCRIPTED",
+          "expression": "v",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_righthand\"][\"weapon_follow\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"righthand_prop_lefthand\"].constraints[\"Child Of\"].influence",
+          "array_index": 0,
+          "type": "SCRIPTED",
+          "expression": "v",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_lefthand\"][\"weapon_follow\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"lefthand_prop\"].constraints[\"Child Of\"].influence",
+          "array_index": 0,
+          "type": "SCRIPTED",
+          "expression": "v",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"lefthand_prop\"][\"weapon_follow\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_thumb_01_r\"].rotation_quaternion",
+          "array_index": 0,
+          "type": "SCRIPTED",
+          "expression": "cos((max(-0.5451526046,min(2.1548473954,v*0.7500000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_righthand\"][\"thumb_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_thumb_01_r\"].rotation_quaternion",
+          "array_index": 1,
+          "type": "SCRIPTED",
+          "expression": "-0.8083458543*sin((max(-0.5451526046,min(2.1548473954,v*0.7500000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_righthand\"][\"thumb_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_thumb_01_r\"].rotation_quaternion",
+          "array_index": 2,
+          "type": "SCRIPTED",
+          "expression": "0.3554212451*sin((max(-0.5451526046,min(2.1548473954,v*0.7500000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_righthand\"][\"thumb_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_thumb_01_r\"].rotation_quaternion",
+          "array_index": 3,
+          "type": "SCRIPTED",
+          "expression": "-0.4693109393*sin((max(-0.5451526046,min(2.1548473954,v*0.7500000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_righthand\"][\"thumb_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_thumb_02_r\"].rotation_quaternion",
+          "array_index": 0,
+          "type": "SCRIPTED",
+          "expression": "cos((max(-0.7114227414,min(1.9885772586,v*1.0500000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_righthand\"][\"thumb_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_thumb_02_r\"].rotation_quaternion",
+          "array_index": 1,
+          "type": "SCRIPTED",
+          "expression": "-0.0000013243*sin((max(-0.7114227414,min(1.9885772586,v*1.0500000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_righthand\"][\"thumb_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_thumb_02_r\"].rotation_quaternion",
+          "array_index": 2,
+          "type": "SCRIPTED",
+          "expression": "0.7272469401*sin((max(-0.7114227414,min(1.9885772586,v*1.0500000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_righthand\"][\"thumb_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_thumb_02_r\"].rotation_quaternion",
+          "array_index": 3,
+          "type": "SCRIPTED",
+          "expression": "-0.6863759756*sin((max(-0.7114227414,min(1.9885772586,v*1.0500000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_righthand\"][\"thumb_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_thumb_03_r\"].rotation_quaternion",
+          "array_index": 0,
+          "type": "SCRIPTED",
+          "expression": "cos((max(-0.5181994438,min(2.1818005562,v*0.8000000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_righthand\"][\"thumb_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_thumb_03_r\"].rotation_quaternion",
+          "array_index": 1,
+          "type": "SCRIPTED",
+          "expression": "0.1168854162*sin((max(-0.5181994438,min(2.1818005562,v*0.8000000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_righthand\"][\"thumb_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_thumb_03_r\"].rotation_quaternion",
+          "array_index": 2,
+          "type": "SCRIPTED",
+          "expression": "0.8407547474*sin((max(-0.5181994438,min(2.1818005562,v*0.8000000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_righthand\"][\"thumb_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_thumb_03_r\"].rotation_quaternion",
+          "array_index": 3,
+          "type": "SCRIPTED",
+          "expression": "0.5286484957*sin((max(-0.5181994438,min(2.1818005562,v*0.8000000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_righthand\"][\"thumb_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_index_01_r\"].rotation_quaternion",
+          "array_index": 0,
+          "type": "SCRIPTED",
+          "expression": "cos((max(-0.2066139877,min(2.4933860123,v*0.7500000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_righthand\"][\"index_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_index_01_r\"].rotation_quaternion",
+          "array_index": 1,
+          "type": "SCRIPTED",
+          "expression": "-0.0000010282*sin((max(-0.2066139877,min(2.4933860123,v*0.7500000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_righthand\"][\"index_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_index_01_r\"].rotation_quaternion",
+          "array_index": 2,
+          "type": "SCRIPTED",
+          "expression": "0.1339169890*sin((max(-0.2066139877,min(2.4933860123,v*0.7500000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_righthand\"][\"index_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_index_01_r\"].rotation_quaternion",
+          "array_index": 3,
+          "type": "SCRIPTED",
+          "expression": "0.9909925461*sin((max(-0.2066139877,min(2.4933860123,v*0.7500000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_righthand\"][\"index_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_index_02_r\"].rotation_quaternion",
+          "array_index": 0,
+          "type": "SCRIPTED",
+          "expression": "cos((max(-0.2752273977,min(2.4247726023,v*1.0500000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_righthand\"][\"index_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_index_02_r\"].rotation_quaternion",
+          "array_index": 1,
+          "type": "SCRIPTED",
+          "expression": "0.0000045002*sin((max(-0.2752273977,min(2.4247726023,v*1.0500000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_righthand\"][\"index_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_index_02_r\"].rotation_quaternion",
+          "array_index": 2,
+          "type": "SCRIPTED",
+          "expression": "0.6267741919*sin((max(-0.2752273977,min(2.4247726023,v*1.0500000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_righthand\"][\"index_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_index_02_r\"].rotation_quaternion",
+          "array_index": 3,
+          "type": "SCRIPTED",
+          "expression": "0.7792010903*sin((max(-0.2752273977,min(2.4247726023,v*1.0500000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_righthand\"][\"index_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_index_03_r\"].rotation_quaternion",
+          "array_index": 0,
+          "type": "SCRIPTED",
+          "expression": "cos((max(-0.1109354347,min(2.5890645653,v*0.8000000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_righthand\"][\"index_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_index_03_r\"].rotation_quaternion",
+          "array_index": 1,
+          "type": "SCRIPTED",
+          "expression": "0.1545191556*sin((max(-0.1109354347,min(2.5890645653,v*0.8000000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_righthand\"][\"index_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_index_03_r\"].rotation_quaternion",
+          "array_index": 2,
+          "type": "SCRIPTED",
+          "expression": "0.3754173219*sin((max(-0.1109354347,min(2.5890645653,v*0.8000000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_righthand\"][\"index_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_index_03_r\"].rotation_quaternion",
+          "array_index": 3,
+          "type": "SCRIPTED",
+          "expression": "0.9138849378*sin((max(-0.1109354347,min(2.5890645653,v*0.8000000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_righthand\"][\"index_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_middle_01_r\"].rotation_quaternion",
+          "array_index": 0,
+          "type": "SCRIPTED",
+          "expression": "cos((max(-0.9234225750,min(1.7765774250,v*0.7500000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_righthand\"][\"middle_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_middle_01_r\"].rotation_quaternion",
+          "array_index": 1,
+          "type": "SCRIPTED",
+          "expression": "0.0000024885*sin((max(-0.9234225750,min(1.7765774250,v*0.7500000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_righthand\"][\"middle_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_middle_01_r\"].rotation_quaternion",
+          "array_index": 2,
+          "type": "SCRIPTED",
+          "expression": "0.8590416312*sin((max(-0.9234225750,min(1.7765774250,v*0.7500000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_righthand\"][\"middle_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_middle_01_r\"].rotation_quaternion",
+          "array_index": 3,
+          "type": "SCRIPTED",
+          "expression": "0.5119056702*sin((max(-0.9234225750,min(1.7765774250,v*0.7500000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_righthand\"][\"middle_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_middle_02_r\"].rotation_quaternion",
+          "array_index": 0,
+          "type": "SCRIPTED",
+          "expression": "cos((max(-1.1647160053,min(1.5352839947,v*1.0500000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_righthand\"][\"middle_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_middle_02_r\"].rotation_quaternion",
+          "array_index": 1,
+          "type": "SCRIPTED",
+          "expression": "-0.0000015721*sin((max(-1.1647160053,min(1.5352839947,v*1.0500000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_righthand\"][\"middle_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_middle_02_r\"].rotation_quaternion",
+          "array_index": 2,
+          "type": "SCRIPTED",
+          "expression": "0.9982190132*sin((max(-1.1647160053,min(1.5352839947,v*1.0500000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_righthand\"][\"middle_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_middle_02_r\"].rotation_quaternion",
+          "array_index": 3,
+          "type": "SCRIPTED",
+          "expression": "0.0596550703*sin((max(-1.1647160053,min(1.5352839947,v*1.0500000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_righthand\"][\"middle_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_middle_03_r\"].rotation_quaternion",
+          "array_index": 0,
+          "type": "SCRIPTED",
+          "expression": "cos((max(-0.5805073380,min(2.1194926620,v*0.8000000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_righthand\"][\"middle_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_middle_03_r\"].rotation_quaternion",
+          "array_index": 1,
+          "type": "SCRIPTED",
+          "expression": "-0.0330076069*sin((max(-0.5805073380,min(2.1194926620,v*0.8000000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_righthand\"][\"middle_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_middle_03_r\"].rotation_quaternion",
+          "array_index": 2,
+          "type": "SCRIPTED",
+          "expression": "0.9032629728*sin((max(-0.5805073380,min(2.1194926620,v*0.8000000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_righthand\"][\"middle_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_middle_03_r\"].rotation_quaternion",
+          "array_index": 3,
+          "type": "SCRIPTED",
+          "expression": "-0.4278159738*sin((max(-0.5805073380,min(2.1194926620,v*0.8000000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_righthand\"][\"middle_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_ring_01_r\"].rotation_quaternion",
+          "array_index": 0,
+          "type": "SCRIPTED",
+          "expression": "cos((max(-1.0496519804,min(1.6503480196,v*0.7500000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_righthand\"][\"ring_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_ring_01_r\"].rotation_quaternion",
+          "array_index": 1,
+          "type": "SCRIPTED",
+          "expression": "-0.0000032913*sin((max(-1.0496519804,min(1.6503480196,v*0.7500000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_righthand\"][\"ring_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_ring_01_r\"].rotation_quaternion",
+          "array_index": 2,
+          "type": "SCRIPTED",
+          "expression": "0.9231699109*sin((max(-1.0496519804,min(1.6503480196,v*0.7500000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_righthand\"][\"ring_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_ring_01_r\"].rotation_quaternion",
+          "array_index": 3,
+          "type": "SCRIPTED",
+          "expression": "0.3843920231*sin((max(-1.0496519804,min(1.6503480196,v*0.7500000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_righthand\"][\"ring_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_ring_02_r\"].rotation_quaternion",
+          "array_index": 0,
+          "type": "SCRIPTED",
+          "expression": "cos((max(-1.0715183020,min(1.6284816980,v*1.0500000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_righthand\"][\"ring_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_ring_02_r\"].rotation_quaternion",
+          "array_index": 1,
+          "type": "SCRIPTED",
+          "expression": "-0.0000110939*sin((max(-1.0715183020,min(1.6284816980,v*1.0500000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_righthand\"][\"ring_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_ring_02_r\"].rotation_quaternion",
+          "array_index": 2,
+          "type": "SCRIPTED",
+          "expression": "0.9522933364*sin((max(-1.0715183020,min(1.6284816980,v*1.0500000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_righthand\"][\"ring_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_ring_02_r\"].rotation_quaternion",
+          "array_index": 3,
+          "type": "SCRIPTED",
+          "expression": "0.3051842749*sin((max(-1.0715183020,min(1.6284816980,v*1.0500000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_righthand\"][\"ring_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_ring_03_r\"].rotation_quaternion",
+          "array_index": 0,
+          "type": "SCRIPTED",
+          "expression": "cos((max(-0.7342731357,min(1.9657268643,v*0.8000000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_righthand\"][\"ring_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_ring_03_r\"].rotation_quaternion",
+          "array_index": 1,
+          "type": "SCRIPTED",
+          "expression": "-0.0402737483*sin((max(-0.7342731357,min(1.9657268643,v*0.8000000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_righthand\"][\"ring_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_ring_03_r\"].rotation_quaternion",
+          "array_index": 2,
+          "type": "SCRIPTED",
+          "expression": "0.9990060925*sin((max(-0.7342731357,min(1.9657268643,v*0.8000000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_righthand\"][\"ring_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_ring_03_r\"].rotation_quaternion",
+          "array_index": 3,
+          "type": "SCRIPTED",
+          "expression": "0.0190983266*sin((max(-0.7342731357,min(1.9657268643,v*0.8000000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_righthand\"][\"ring_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_pinky_01_r\"].rotation_quaternion",
+          "array_index": 0,
+          "type": "SCRIPTED",
+          "expression": "cos((max(-1.1178704500,min(1.5821295500,v*0.7500000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_righthand\"][\"pinky_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_pinky_01_r\"].rotation_quaternion",
+          "array_index": 1,
+          "type": "SCRIPTED",
+          "expression": "0.0000030939*sin((max(-1.1178704500,min(1.5821295500,v*0.7500000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_righthand\"][\"pinky_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_pinky_01_r\"].rotation_quaternion",
+          "array_index": 2,
+          "type": "SCRIPTED",
+          "expression": "0.9999949932*sin((max(-1.1178704500,min(1.5821295500,v*0.7500000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_righthand\"][\"pinky_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_pinky_01_r\"].rotation_quaternion",
+          "array_index": 3,
+          "type": "SCRIPTED",
+          "expression": "-0.0031817092*sin((max(-1.1178704500,min(1.5821295500,v*0.7500000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_righthand\"][\"pinky_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_pinky_02_r\"].rotation_quaternion",
+          "array_index": 0,
+          "type": "SCRIPTED",
+          "expression": "cos((max(-0.7322053909,min(1.9677946091,v*1.0500000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_righthand\"][\"pinky_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_pinky_02_r\"].rotation_quaternion",
+          "array_index": 1,
+          "type": "SCRIPTED",
+          "expression": "0.0000004480*sin((max(-0.7322053909,min(1.9677946091,v*1.0500000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_righthand\"][\"pinky_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_pinky_02_r\"].rotation_quaternion",
+          "array_index": 2,
+          "type": "SCRIPTED",
+          "expression": "0.9619156122*sin((max(-0.7322053909,min(1.9677946091,v*1.0500000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_righthand\"][\"pinky_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_pinky_02_r\"].rotation_quaternion",
+          "array_index": 3,
+          "type": "SCRIPTED",
+          "expression": "0.2733464241*sin((max(-0.7322053909,min(1.9677946091,v*1.0500000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_righthand\"][\"pinky_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_pinky_03_r\"].rotation_quaternion",
+          "array_index": 0,
+          "type": "SCRIPTED",
+          "expression": "cos((max(-0.9484636188,min(1.7515363812,v*0.8000000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_righthand\"][\"pinky_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_pinky_03_r\"].rotation_quaternion",
+          "array_index": 1,
+          "type": "SCRIPTED",
+          "expression": "-0.0694544241*sin((max(-0.9484636188,min(1.7515363812,v*0.8000000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_righthand\"][\"pinky_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_pinky_03_r\"].rotation_quaternion",
+          "array_index": 2,
+          "type": "SCRIPTED",
+          "expression": "0.9970933199*sin((max(-0.9484636188,min(1.7515363812,v*0.8000000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_righthand\"][\"pinky_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_pinky_03_r\"].rotation_quaternion",
+          "array_index": 3,
+          "type": "SCRIPTED",
+          "expression": "-0.0313231014*sin((max(-0.9484636188,min(1.7515363812,v*0.8000000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_righthand\"][\"pinky_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_thumb_01_l\"].rotation_quaternion",
+          "array_index": 0,
+          "type": "SCRIPTED",
+          "expression": "cos((max(-0.8102365136,min(1.8897634864,v*0.7500000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_lefthand\"][\"thumb_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_thumb_01_l\"].rotation_quaternion",
+          "array_index": 1,
+          "type": "SCRIPTED",
+          "expression": "-0.0000053644*sin((max(-0.8102365136,min(1.8897634864,v*0.7500000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_lefthand\"][\"thumb_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_thumb_01_l\"].rotation_quaternion",
+          "array_index": 2,
+          "type": "SCRIPTED",
+          "expression": "0.8591318130*sin((max(-0.8102365136,min(1.8897634864,v*0.7500000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_lefthand\"][\"thumb_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_thumb_01_l\"].rotation_quaternion",
+          "array_index": 3,
+          "type": "SCRIPTED",
+          "expression": "0.5117544532*sin((max(-0.8102365136,min(1.8897634864,v*0.7500000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_lefthand\"][\"thumb_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_thumb_02_l\"].rotation_quaternion",
+          "array_index": 0,
+          "type": "SCRIPTED",
+          "expression": "cos((max(-0.0883097574,min(2.6116902426,v*1.0500000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_lefthand\"][\"thumb_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_thumb_02_l\"].rotation_quaternion",
+          "array_index": 1,
+          "type": "SCRIPTED",
+          "expression": "0.0422526561*sin((max(-0.0883097574,min(2.6116902426,v*1.0500000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_lefthand\"][\"thumb_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_thumb_02_l\"].rotation_quaternion",
+          "array_index": 2,
+          "type": "SCRIPTED",
+          "expression": "-0.5692734122*sin((max(-0.0883097574,min(2.6116902426,v*1.0500000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_lefthand\"][\"thumb_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_thumb_02_l\"].rotation_quaternion",
+          "array_index": 3,
+          "type": "SCRIPTED",
+          "expression": "0.8210618496*sin((max(-0.0883097574,min(2.6116902426,v*1.0500000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_lefthand\"][\"thumb_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_thumb_03_l\"].rotation_quaternion",
+          "array_index": 0,
+          "type": "SCRIPTED",
+          "expression": "cos((max(-0.4325890541,min(2.2674109459,v*0.8000000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_lefthand\"][\"thumb_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_thumb_03_l\"].rotation_quaternion",
+          "array_index": 1,
+          "type": "SCRIPTED",
+          "expression": "0.1195111051*sin((max(-0.4325890541,min(2.2674109459,v*0.8000000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_lefthand\"][\"thumb_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_thumb_03_l\"].rotation_quaternion",
+          "array_index": 2,
+          "type": "SCRIPTED",
+          "expression": "-0.8285676837*sin((max(-0.4325890541,min(2.2674109459,v*0.8000000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_lefthand\"][\"thumb_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_thumb_03_l\"].rotation_quaternion",
+          "array_index": 3,
+          "type": "SCRIPTED",
+          "expression": "0.5469850302*sin((max(-0.4325890541,min(2.2674109459,v*0.8000000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_lefthand\"][\"thumb_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_index_01_l\"].rotation_quaternion",
+          "array_index": 0,
+          "type": "SCRIPTED",
+          "expression": "cos((max(-0.5023574829,min(2.1976425171,v*0.7500000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_lefthand\"][\"index_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_index_01_l\"].rotation_quaternion",
+          "array_index": 1,
+          "type": "SCRIPTED",
+          "expression": "-0.0029950235*sin((max(-0.5023574829,min(2.1976425171,v*0.7500000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_lefthand\"][\"index_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_index_01_l\"].rotation_quaternion",
+          "array_index": 2,
+          "type": "SCRIPTED",
+          "expression": "0.2653091252*sin((max(-0.5023574829,min(2.1976425171,v*0.7500000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_lefthand\"][\"index_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_index_01_l\"].rotation_quaternion",
+          "array_index": 3,
+          "type": "SCRIPTED",
+          "expression": "0.9641587734*sin((max(-0.5023574829,min(2.1976425171,v*0.7500000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_lefthand\"][\"index_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_index_02_l\"].rotation_quaternion",
+          "array_index": 0,
+          "type": "SCRIPTED",
+          "expression": "cos((max(-1.3100886345,min(1.3899113655,v*1.0500000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_lefthand\"][\"index_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_index_02_l\"].rotation_quaternion",
+          "array_index": 1,
+          "type": "SCRIPTED",
+          "expression": "-0.0000052005*sin((max(-1.3100886345,min(1.3899113655,v*1.0500000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_lefthand\"][\"index_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_index_02_l\"].rotation_quaternion",
+          "array_index": 2,
+          "type": "SCRIPTED",
+          "expression": "0.9713096023*sin((max(-1.3100886345,min(1.3899113655,v*1.0500000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_lefthand\"][\"index_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_index_02_l\"].rotation_quaternion",
+          "array_index": 3,
+          "type": "SCRIPTED",
+          "expression": "0.2378183305*sin((max(-1.3100886345,min(1.3899113655,v*1.0500000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_lefthand\"][\"index_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_index_03_l\"].rotation_quaternion",
+          "array_index": 0,
+          "type": "SCRIPTED",
+          "expression": "cos((max(-0.5420178771,min(2.1579821229,v*0.8000000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_lefthand\"][\"index_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_index_03_l\"].rotation_quaternion",
+          "array_index": 1,
+          "type": "SCRIPTED",
+          "expression": "-0.0370026156*sin((max(-0.5420178771,min(2.1579821229,v*0.8000000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_lefthand\"][\"index_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_index_03_l\"].rotation_quaternion",
+          "array_index": 2,
+          "type": "SCRIPTED",
+          "expression": "0.9719103575*sin((max(-0.5420178771,min(2.1579821229,v*0.8000000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_lefthand\"][\"index_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_index_03_l\"].rotation_quaternion",
+          "array_index": 3,
+          "type": "SCRIPTED",
+          "expression": "-0.2324243039*sin((max(-0.5420178771,min(2.1579821229,v*0.8000000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_lefthand\"][\"index_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_middle_01_l\"].rotation_quaternion",
+          "array_index": 0,
+          "type": "SCRIPTED",
+          "expression": "cos((max(-0.9288966060,min(1.7711033940,v*0.7500000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_lefthand\"][\"middle_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_middle_01_l\"].rotation_quaternion",
+          "array_index": 1,
+          "type": "SCRIPTED",
+          "expression": "-0.0000012368*sin((max(-0.9288966060,min(1.7711033940,v*0.7500000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_lefthand\"][\"middle_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_middle_01_l\"].rotation_quaternion",
+          "array_index": 2,
+          "type": "SCRIPTED",
+          "expression": "0.9928335547*sin((max(-0.9288966060,min(1.7711033940,v*0.7500000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_lefthand\"][\"middle_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_middle_01_l\"].rotation_quaternion",
+          "array_index": 3,
+          "type": "SCRIPTED",
+          "expression": "0.1195059046*sin((max(-0.9288966060,min(1.7711033940,v*0.7500000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_lefthand\"][\"middle_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_middle_02_l\"].rotation_quaternion",
+          "array_index": 0,
+          "type": "SCRIPTED",
+          "expression": "cos((max(-1.2537502050,min(1.4462497950,v*1.0500000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_lefthand\"][\"middle_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_middle_02_l\"].rotation_quaternion",
+          "array_index": 1,
+          "type": "SCRIPTED",
+          "expression": "-0.0000007525*sin((max(-1.2537502050,min(1.4462497950,v*1.0500000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_lefthand\"][\"middle_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_middle_02_l\"].rotation_quaternion",
+          "array_index": 2,
+          "type": "SCRIPTED",
+          "expression": "0.9764925838*sin((max(-1.2537502050,min(1.4462497950,v*1.0500000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_lefthand\"][\"middle_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_middle_02_l\"].rotation_quaternion",
+          "array_index": 3,
+          "type": "SCRIPTED",
+          "expression": "-0.2155512124*sin((max(-1.2537502050,min(1.4462497950,v*1.0500000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_lefthand\"][\"middle_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_middle_03_l\"].rotation_quaternion",
+          "array_index": 0,
+          "type": "SCRIPTED",
+          "expression": "cos((max(-0.3503771722,min(2.3496228278,v*0.8000000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_lefthand\"][\"middle_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_middle_03_l\"].rotation_quaternion",
+          "array_index": 1,
+          "type": "SCRIPTED",
+          "expression": "-0.0384573527*sin((max(-0.3503771722,min(2.3496228278,v*0.8000000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_lefthand\"][\"middle_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_middle_03_l\"].rotation_quaternion",
+          "array_index": 2,
+          "type": "SCRIPTED",
+          "expression": "-0.9839582443*sin((max(-0.3503771722,min(2.3496228278,v*0.8000000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_lefthand\"][\"middle_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_middle_03_l\"].rotation_quaternion",
+          "array_index": 3,
+          "type": "SCRIPTED",
+          "expression": "0.1742046624*sin((max(-0.3503771722,min(2.3496228278,v*0.8000000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_lefthand\"][\"middle_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_ring_01_l\"].rotation_quaternion",
+          "array_index": 0,
+          "type": "SCRIPTED",
+          "expression": "cos((max(-1.1403239965,min(1.5596760035,v*0.7500000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_lefthand\"][\"ring_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_ring_01_l\"].rotation_quaternion",
+          "array_index": 1,
+          "type": "SCRIPTED",
+          "expression": "-0.0000000671*sin((max(-1.1403239965,min(1.5596760035,v*0.7500000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_lefthand\"][\"ring_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_ring_01_l\"].rotation_quaternion",
+          "array_index": 2,
+          "type": "SCRIPTED",
+          "expression": "0.9976385832*sin((max(-1.1403239965,min(1.5596760035,v*0.7500000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_lefthand\"][\"ring_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_ring_01_l\"].rotation_quaternion",
+          "array_index": 3,
+          "type": "SCRIPTED",
+          "expression": "-0.0686824620*sin((max(-1.1403239965,min(1.5596760035,v*0.7500000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_lefthand\"][\"ring_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_ring_02_l\"].rotation_quaternion",
+          "array_index": 0,
+          "type": "SCRIPTED",
+          "expression": "cos((max(-0.9527643919,min(1.7472356081,v*1.0500000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_lefthand\"][\"ring_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_ring_02_l\"].rotation_quaternion",
+          "array_index": 1,
+          "type": "SCRIPTED",
+          "expression": "-0.0000043586*sin((max(-0.9527643919,min(1.7472356081,v*1.0500000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_lefthand\"][\"ring_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_ring_02_l\"].rotation_quaternion",
+          "array_index": 2,
+          "type": "SCRIPTED",
+          "expression": "0.9986329079*sin((max(-0.9527643919,min(1.7472356081,v*1.0500000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_lefthand\"][\"ring_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_ring_02_l\"].rotation_quaternion",
+          "array_index": 3,
+          "type": "SCRIPTED",
+          "expression": "0.0522732921*sin((max(-0.9527643919,min(1.7472356081,v*1.0500000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_lefthand\"][\"ring_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_ring_03_l\"].rotation_quaternion",
+          "array_index": 0,
+          "type": "SCRIPTED",
+          "expression": "cos((max(-0.3158899546,min(2.3841100454,v*0.8000000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_lefthand\"][\"ring_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_ring_03_l\"].rotation_quaternion",
+          "array_index": 1,
+          "type": "SCRIPTED",
+          "expression": "0.1238008663*sin((max(-0.3158899546,min(2.3841100454,v*0.8000000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_lefthand\"][\"ring_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_ring_03_l\"].rotation_quaternion",
+          "array_index": 2,
+          "type": "SCRIPTED",
+          "expression": "-0.9256201386*sin((max(-0.3158899546,min(2.3841100454,v*0.8000000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_lefthand\"][\"ring_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_ring_03_l\"].rotation_quaternion",
+          "array_index": 3,
+          "type": "SCRIPTED",
+          "expression": "0.3576321900*sin((max(-0.3158899546,min(2.3841100454,v*0.8000000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_lefthand\"][\"ring_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_pinky_01_l\"].rotation_quaternion",
+          "array_index": 0,
+          "type": "SCRIPTED",
+          "expression": "cos((max(-1.2786784172,min(1.4213215828,v*0.7500000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_lefthand\"][\"pinky_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_pinky_01_l\"].rotation_quaternion",
+          "array_index": 1,
+          "type": "SCRIPTED",
+          "expression": "0.0000044629*sin((max(-1.2786784172,min(1.4213215828,v*0.7500000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_lefthand\"][\"pinky_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_pinky_01_l\"].rotation_quaternion",
+          "array_index": 2,
+          "type": "SCRIPTED",
+          "expression": "0.9229835868*sin((max(-1.2786784172,min(1.4213215828,v*0.7500000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_lefthand\"][\"pinky_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_pinky_01_l\"].rotation_quaternion",
+          "array_index": 3,
+          "type": "SCRIPTED",
+          "expression": "-0.3848394156*sin((max(-1.2786784172,min(1.4213215828,v*0.7500000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_lefthand\"][\"pinky_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_pinky_02_l\"].rotation_quaternion",
+          "array_index": 0,
+          "type": "SCRIPTED",
+          "expression": "cos((max(-0.8559292555,min(1.8440707445,v*1.0500000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_lefthand\"][\"pinky_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_pinky_02_l\"].rotation_quaternion",
+          "array_index": 1,
+          "type": "SCRIPTED",
+          "expression": "-0.0000062175*sin((max(-0.8559292555,min(1.8440707445,v*1.0500000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_lefthand\"][\"pinky_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_pinky_02_l\"].rotation_quaternion",
+          "array_index": 2,
+          "type": "SCRIPTED",
+          "expression": "0.9959148169*sin((max(-0.8559292555,min(1.8440707445,v*1.0500000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_lefthand\"][\"pinky_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_pinky_02_l\"].rotation_quaternion",
+          "array_index": 3,
+          "type": "SCRIPTED",
+          "expression": "-0.0902985930*sin((max(-0.8559292555,min(1.8440707445,v*1.0500000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_lefthand\"][\"pinky_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_pinky_03_l\"].rotation_quaternion",
+          "array_index": 0,
+          "type": "SCRIPTED",
+          "expression": "cos((max(-0.5242657661,min(2.1757342339,v*0.8000000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_lefthand\"][\"pinky_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_pinky_03_l\"].rotation_quaternion",
+          "array_index": 1,
+          "type": "SCRIPTED",
+          "expression": "0.0567998141*sin((max(-0.5242657661,min(2.1757342339,v*0.8000000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_lefthand\"][\"pinky_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_pinky_03_l\"].rotation_quaternion",
+          "array_index": 2,
+          "type": "SCRIPTED",
+          "expression": "-0.7632473111*sin((max(-0.5242657661,min(2.1757342339,v*0.8000000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_lefthand\"][\"pinky_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_curl_pinky_03_l\"].rotation_quaternion",
+          "array_index": 3,
+          "type": "SCRIPTED",
+          "expression": "-0.6436049342*sin((max(-0.5242657661,min(2.1757342339,v*0.8000000000)))/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_lefthand\"][\"pinky_curl\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_spread_thumb_r\"].rotation_quaternion",
+          "array_index": 0,
+          "type": "SCRIPTED",
+          "expression": "cos(v*0.5500000000/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_righthand\"][\"thumb_spread\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_spread_thumb_r\"].rotation_quaternion",
+          "array_index": 1,
+          "type": "SCRIPTED",
+          "expression": "-0.9972856641*sin(v*0.5500000000/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_righthand\"][\"thumb_spread\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_spread_thumb_r\"].rotation_quaternion",
+          "array_index": 2,
+          "type": "SCRIPTED",
+          "expression": "-0.0616495088*sin(v*0.5500000000/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_righthand\"][\"thumb_spread\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_spread_thumb_r\"].rotation_quaternion",
+          "array_index": 3,
+          "type": "SCRIPTED",
+          "expression": "0.0402570479*sin(v*0.5500000000/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_righthand\"][\"thumb_spread\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_spread_index_r\"].rotation_quaternion",
+          "array_index": 0,
+          "type": "SCRIPTED",
+          "expression": "cos(v*0.3000000000/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_righthand\"][\"index_spread\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_spread_index_r\"].rotation_quaternion",
+          "array_index": 1,
+          "type": "SCRIPTED",
+          "expression": "-0.0160533339*sin(v*0.3000000000/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_righthand\"][\"index_spread\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_spread_index_r\"].rotation_quaternion",
+          "array_index": 2,
+          "type": "SCRIPTED",
+          "expression": "0.0576128922*sin(v*0.3000000000/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_righthand\"][\"index_spread\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_spread_index_r\"].rotation_quaternion",
+          "array_index": 3,
+          "type": "SCRIPTED",
+          "expression": "0.9982098937*sin(v*0.3000000000/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_righthand\"][\"index_spread\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_spread_middle_r\"].rotation_quaternion",
+          "array_index": 0,
+          "type": "SCRIPTED",
+          "expression": "cos(v*0.3000000000/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_righthand\"][\"middle_spread\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_spread_middle_r\"].rotation_quaternion",
+          "array_index": 1,
+          "type": "SCRIPTED",
+          "expression": "-0.6171662807*sin(v*0.3000000000/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_righthand\"][\"middle_spread\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_spread_middle_r\"].rotation_quaternion",
+          "array_index": 2,
+          "type": "SCRIPTED",
+          "expression": "0.2696986496*sin(v*0.3000000000/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_righthand\"][\"middle_spread\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_spread_middle_r\"].rotation_quaternion",
+          "array_index": 3,
+          "type": "SCRIPTED",
+          "expression": "0.7391673923*sin(v*0.3000000000/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_righthand\"][\"middle_spread\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_spread_ring_r\"].rotation_quaternion",
+          "array_index": 0,
+          "type": "SCRIPTED",
+          "expression": "cos(v*0.3000000000/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_righthand\"][\"ring_spread\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_spread_ring_r\"].rotation_quaternion",
+          "array_index": 1,
+          "type": "SCRIPTED",
+          "expression": "-0.8279690742*sin(v*0.3000000000/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_righthand\"][\"ring_spread\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_spread_ring_r\"].rotation_quaternion",
+          "array_index": 2,
+          "type": "SCRIPTED",
+          "expression": "0.1430156976*sin(v*0.3000000000/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_righthand\"][\"ring_spread\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_spread_ring_r\"].rotation_quaternion",
+          "array_index": 3,
+          "type": "SCRIPTED",
+          "expression": "0.5422304273*sin(v*0.3000000000/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_righthand\"][\"ring_spread\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_spread_pinky_r\"].rotation_quaternion",
+          "array_index": 0,
+          "type": "SCRIPTED",
+          "expression": "cos(v*0.3000000000/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_righthand\"][\"pinky_spread\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_spread_pinky_r\"].rotation_quaternion",
+          "array_index": 1,
+          "type": "SCRIPTED",
+          "expression": "-0.8988687396*sin(v*0.3000000000/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_righthand\"][\"pinky_spread\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_spread_pinky_r\"].rotation_quaternion",
+          "array_index": 2,
+          "type": "SCRIPTED",
+          "expression": "0.0273086932*sin(v*0.3000000000/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_righthand\"][\"pinky_spread\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_spread_pinky_r\"].rotation_quaternion",
+          "array_index": 3,
+          "type": "SCRIPTED",
+          "expression": "0.4373662472*sin(v*0.3000000000/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_righthand\"][\"pinky_spread\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_spread_thumb_l\"].rotation_quaternion",
+          "array_index": 0,
+          "type": "SCRIPTED",
+          "expression": "cos(v*0.5500000000/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_lefthand\"][\"thumb_spread\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_spread_thumb_l\"].rotation_quaternion",
+          "array_index": 1,
+          "type": "SCRIPTED",
+          "expression": "-0.0492636524*sin(v*0.5500000000/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_lefthand\"][\"thumb_spread\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_spread_thumb_l\"].rotation_quaternion",
+          "array_index": 2,
+          "type": "SCRIPTED",
+          "expression": "0.9953704476*sin(v*0.5500000000/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_lefthand\"][\"thumb_spread\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_spread_thumb_l\"].rotation_quaternion",
+          "array_index": 3,
+          "type": "SCRIPTED",
+          "expression": "0.0825276449*sin(v*0.5500000000/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_lefthand\"][\"thumb_spread\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_spread_index_l\"].rotation_quaternion",
+          "array_index": 0,
+          "type": "SCRIPTED",
+          "expression": "cos(v*0.3000000000/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_lefthand\"][\"index_spread\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_spread_index_l\"].rotation_quaternion",
+          "array_index": 1,
+          "type": "SCRIPTED",
+          "expression": "-0.1855476350*sin(v*0.3000000000/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_lefthand\"][\"index_spread\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_spread_index_l\"].rotation_quaternion",
+          "array_index": 2,
+          "type": "SCRIPTED",
+          "expression": "-0.1336412579*sin(v*0.3000000000/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_lefthand\"][\"index_spread\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_spread_index_l\"].rotation_quaternion",
+          "array_index": 3,
+          "type": "SCRIPTED",
+          "expression": "0.9735051394*sin(v*0.3000000000/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_lefthand\"][\"index_spread\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_spread_middle_l\"].rotation_quaternion",
+          "array_index": 0,
+          "type": "SCRIPTED",
+          "expression": "cos(v*0.3000000000/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_lefthand\"][\"middle_spread\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_spread_middle_l\"].rotation_quaternion",
+          "array_index": 1,
+          "type": "SCRIPTED",
+          "expression": "-0.6798302531*sin(v*0.3000000000/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_lefthand\"][\"middle_spread\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_spread_middle_l\"].rotation_quaternion",
+          "array_index": 2,
+          "type": "SCRIPTED",
+          "expression": "-0.4120505750*sin(v*0.3000000000/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_lefthand\"][\"middle_spread\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_spread_middle_l\"].rotation_quaternion",
+          "array_index": 3,
+          "type": "SCRIPTED",
+          "expression": "0.6066673994*sin(v*0.3000000000/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_lefthand\"][\"middle_spread\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_spread_ring_l\"].rotation_quaternion",
+          "array_index": 0,
+          "type": "SCRIPTED",
+          "expression": "cos(v*0.3000000000/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_lefthand\"][\"ring_spread\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_spread_ring_l\"].rotation_quaternion",
+          "array_index": 1,
+          "type": "SCRIPTED",
+          "expression": "-0.7676109076*sin(v*0.3000000000/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_lefthand\"][\"ring_spread\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_spread_ring_l\"].rotation_quaternion",
+          "array_index": 2,
+          "type": "SCRIPTED",
+          "expression": "-0.4379696846*sin(v*0.3000000000/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_lefthand\"][\"ring_spread\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_spread_ring_l\"].rotation_quaternion",
+          "array_index": 3,
+          "type": "SCRIPTED",
+          "expression": "0.4679273665*sin(v*0.3000000000/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_lefthand\"][\"ring_spread\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_spread_pinky_l\"].rotation_quaternion",
+          "array_index": 0,
+          "type": "SCRIPTED",
+          "expression": "cos(v*0.3000000000/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_lefthand\"][\"pinky_spread\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_spread_pinky_l\"].rotation_quaternion",
+          "array_index": 1,
+          "type": "SCRIPTED",
+          "expression": "-0.8712358475*sin(v*0.3000000000/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_lefthand\"][\"pinky_spread\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_spread_pinky_l\"].rotation_quaternion",
+          "array_index": 2,
+          "type": "SCRIPTED",
+          "expression": "-0.2823097706*sin(v*0.3000000000/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_lefthand\"][\"pinky_spread\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_spread_pinky_l\"].rotation_quaternion",
+          "array_index": 3,
+          "type": "SCRIPTED",
+          "expression": "0.4015586972*sin(v*0.3000000000/2)",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_lefthand\"][\"pinky_spread\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_mag_insertion_depth\"].location",
+          "array_index": 0,
+          "type": "SCRIPTED",
+          "expression": "0.995464265347*max(0,min(.5,depth))",
+          "variables": [
+            {
+              "name": "depth",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"lefthand_prop\"][\"insertion_depth\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_mag_insertion_depth\"].location",
+          "array_index": 1,
+          "type": "SCRIPTED",
+          "expression": "0.0949647650123*max(0,min(.5,depth))",
+          "variables": [
+            {
+              "name": "depth",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"lefthand_prop\"][\"insertion_depth\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_mag_insertion_depth\"].location",
+          "array_index": 2,
+          "type": "SCRIPTED",
+          "expression": "0.00570813007653*max(0,min(.5,depth))",
+          "variables": [
+            {
+              "name": "depth",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"lefthand_prop\"][\"insertion_depth\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"OUT_magazine_guided\"].constraints[\"Late insertion guide\"].influence",
+          "array_index": 0,
+          "type": "SCRIPTED",
+          "expression": "max(0,min(1,g))",
+          "variables": [
+            {
+              "name": "g",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"lefthand_prop\"][\"insertion_guide\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"magazine_drop_prop\"].constraints[\"Child Of\"].influence",
+          "array_index": 0,
+          "type": "SCRIPTED",
+          "expression": "max(0,min(1,f))",
+          "variables": [
+            {
+              "name": "f",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"magazine_drop_prop\"][\"weapon_follow\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"OUT_magazine_outgoing\"].scale",
+          "array_index": 0,
+          "type": "SCRIPTED",
+          "expression": "v>=0.5",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"magazine_drop_prop\"][\"visible\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"OUT_magazine_outgoing\"].scale",
+          "array_index": 1,
+          "type": "SCRIPTED",
+          "expression": "v>=0.5",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"magazine_drop_prop\"][\"visible\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"OUT_magazine_outgoing\"].scale",
+          "array_index": 2,
+          "type": "SCRIPTED",
+          "expression": "v>=0.5",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"magazine_drop_prop\"][\"visible\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_attach_forearm_l\"].rotation_euler",
+          "array_index": 1,
+          "type": "SCRIPTED",
+          "expression": "max(-1.4835298642,min(1.4835298642,asin(max(-1,min(1,-sin(max(-0.12217304764,min(0.12217304764,(t+(0.546167219078))*0.0174532925199)))/max(1e-8,sqrt((1-2*(y*y+z*z))*(1-2*(y*y+z*z))+(2*(x*z-w*y))*(2*(x*z-w*y)))))))-atan2((2*(x*z-w*y)),(1-2*(y*y+z*z)))))",
+          "variables": [
+            {
+              "name": "w",
+              "type": "TRANSFORMS",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "",
+                  "bone_target": "MCH_attach_relative_l",
+                  "transform_type": "ROT_W",
+                  "transform_space": "LOCAL_SPACE",
+                  "rotation_mode": "QUATERNION"
+                }
+              ]
+            },
+            {
+              "name": "x",
+              "type": "TRANSFORMS",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "",
+                  "bone_target": "MCH_attach_relative_l",
+                  "transform_type": "ROT_X",
+                  "transform_space": "LOCAL_SPACE",
+                  "rotation_mode": "QUATERNION"
+                }
+              ]
+            },
+            {
+              "name": "y",
+              "type": "TRANSFORMS",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "",
+                  "bone_target": "MCH_attach_relative_l",
+                  "transform_type": "ROT_Y",
+                  "transform_space": "LOCAL_SPACE",
+                  "rotation_mode": "QUATERNION"
+                }
+              ]
+            },
+            {
+              "name": "z",
+              "type": "TRANSFORMS",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "",
+                  "bone_target": "MCH_attach_relative_l",
+                  "transform_type": "ROT_Z",
+                  "transform_space": "LOCAL_SPACE",
+                  "rotation_mode": "QUATERNION"
+                }
+              ]
+            },
+            {
+              "name": "t",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_lefthand\"][\"wrist_twist\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_forearm_roll_l\"].rotation_euler",
+          "array_index": 1,
+          "type": "SCRIPTED",
+          "expression": "(1-max(0,min(1,f)))*max(-1.4835298642,min(1.4835298642,v*0.0174532925199))+max(0,min(1,f))*a",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_lefthand\"][\"forearm_roll\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            },
+            {
+              "name": "f",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"MCH_mag_guide_diagnostics\"][\"attachment_weight\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            },
+            {
+              "name": "a",
+              "type": "TRANSFORMS",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "",
+                  "bone_target": "MCH_attach_forearm_l",
+                  "transform_type": "ROT_Y",
+                  "transform_space": "LOCAL_SPACE",
+                  "rotation_mode": "XYZ"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_hand_guarded_l\"].rotation_euler",
+          "array_index": 0,
+          "type": "SCRIPTED",
+          "expression": "(1-max(0,min(1,f)))*max(-0.174532925199,min(1.09125629575,(v+(52.5243801136))*0.0174532925199))+max(0,min(1,f))*max(-0.174532925199,min(1.09125629575,a))",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_lefthand\"][\"wrist_flex\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            },
+            {
+              "name": "f",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"MCH_mag_guide_diagnostics\"][\"attachment_weight\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            },
+            {
+              "name": "a",
+              "type": "TRANSFORMS",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "",
+                  "bone_target": "MCH_attach_wrist_l",
+                  "transform_type": "ROT_X",
+                  "transform_space": "LOCAL_SPACE",
+                  "rotation_mode": "XYZ"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_hand_guarded_l\"].rotation_euler",
+          "array_index": 1,
+          "type": "SCRIPTED",
+          "expression": "(1-max(0,min(1,f)))*max(-0.12217304764,min(0.12217304764,(v+(0.546167219078))*0.0174532925199))+max(0,min(1,f))*max(-0.12217304764,min(0.12217304764,a))",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_lefthand\"][\"wrist_twist\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            },
+            {
+              "name": "f",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"MCH_mag_guide_diagnostics\"][\"attachment_weight\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            },
+            {
+              "name": "a",
+              "type": "TRANSFORMS",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "",
+                  "bone_target": "MCH_attach_wrist_l",
+                  "transform_type": "ROT_Y",
+                  "transform_space": "LOCAL_SPACE",
+                  "rotation_mode": "XYZ"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_hand_guarded_l\"].rotation_euler",
+          "array_index": 2,
+          "type": "SCRIPTED",
+          "expression": "(1-max(0,min(1,f)))*max(-0.174532925199,min(0.462721591305,(v+(16.5119942713))*0.0174532925199))+max(0,min(1,f))*max(-0.174532925199,min(0.462721591305,a))",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_lefthand\"][\"wrist_deviation\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            },
+            {
+              "name": "f",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"MCH_mag_guide_diagnostics\"][\"attachment_weight\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            },
+            {
+              "name": "a",
+              "type": "TRANSFORMS",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "",
+                  "bone_target": "MCH_attach_wrist_l",
+                  "transform_type": "ROT_Z",
+                  "transform_space": "LOCAL_SPACE",
+                  "rotation_mode": "XYZ"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_attach_forearm_r\"].rotation_euler",
+          "array_index": 1,
+          "type": "SCRIPTED",
+          "expression": "max(-1.4835298642,min(1.4835298642,asin(max(-1,min(1,-sin(max(-0.124563005092,min(0.12217304764,(t+(-5.13693447523))*0.0174532925199)))/max(1e-8,sqrt((1-2*(y*y+z*z))*(1-2*(y*y+z*z))+(2*(x*z-w*y))*(2*(x*z-w*y)))))))-atan2((2*(x*z-w*y)),(1-2*(y*y+z*z)))))",
+          "variables": [
+            {
+              "name": "w",
+              "type": "TRANSFORMS",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "",
+                  "bone_target": "MCH_attach_relative_r",
+                  "transform_type": "ROT_W",
+                  "transform_space": "LOCAL_SPACE",
+                  "rotation_mode": "QUATERNION"
+                }
+              ]
+            },
+            {
+              "name": "x",
+              "type": "TRANSFORMS",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "",
+                  "bone_target": "MCH_attach_relative_r",
+                  "transform_type": "ROT_X",
+                  "transform_space": "LOCAL_SPACE",
+                  "rotation_mode": "QUATERNION"
+                }
+              ]
+            },
+            {
+              "name": "y",
+              "type": "TRANSFORMS",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "",
+                  "bone_target": "MCH_attach_relative_r",
+                  "transform_type": "ROT_Y",
+                  "transform_space": "LOCAL_SPACE",
+                  "rotation_mode": "QUATERNION"
+                }
+              ]
+            },
+            {
+              "name": "z",
+              "type": "TRANSFORMS",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "",
+                  "bone_target": "MCH_attach_relative_r",
+                  "transform_type": "ROT_Z",
+                  "transform_space": "LOCAL_SPACE",
+                  "rotation_mode": "QUATERNION"
+                }
+              ]
+            },
+            {
+              "name": "t",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_righthand\"][\"wrist_twist\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_forearm_roll_r\"].rotation_euler",
+          "array_index": 1,
+          "type": "SCRIPTED",
+          "expression": "(1-max(0,min(1,f)))*max(-1.4835298642,min(1.4835298642,v*0.0174532925199))+max(0,min(1,f))*a",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_righthand\"][\"forearm_roll\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            },
+            {
+              "name": "f",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_righthand\"][\"weapon_follow\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            },
+            {
+              "name": "a",
+              "type": "TRANSFORMS",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "",
+                  "bone_target": "MCH_attach_forearm_r",
+                  "transform_type": "ROT_Y",
+                  "transform_space": "LOCAL_SPACE",
+                  "rotation_mode": "XYZ"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_hand_guarded_r\"].rotation_euler",
+          "array_index": 0,
+          "type": "SCRIPTED",
+          "expression": "(1-max(0,min(1,f)))*max(-0.698131700798,min(0.959931088597,(v+(-20.8130002502))*0.0174532925199))+max(0,min(1,f))*max(-0.698131700798,min(0.959931088597,a))",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_righthand\"][\"wrist_flex\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            },
+            {
+              "name": "f",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_righthand\"][\"weapon_follow\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            },
+            {
+              "name": "a",
+              "type": "TRANSFORMS",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "",
+                  "bone_target": "MCH_attach_wrist_r",
+                  "transform_type": "ROT_X",
+                  "transform_space": "LOCAL_SPACE",
+                  "rotation_mode": "XYZ"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_hand_guarded_r\"].rotation_euler",
+          "array_index": 1,
+          "type": "SCRIPTED",
+          "expression": "(1-max(0,min(1,f)))*max(-0.124563005092,min(0.12217304764,(v+(-5.13693447523))*0.0174532925199))+max(0,min(1,f))*max(-0.124563005092,min(0.12217304764,a))",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_righthand\"][\"wrist_twist\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            },
+            {
+              "name": "f",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_righthand\"][\"weapon_follow\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            },
+            {
+              "name": "a",
+              "type": "TRANSFORMS",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "",
+                  "bone_target": "MCH_attach_wrist_r",
+                  "transform_type": "ROT_Y",
+                  "transform_space": "LOCAL_SPACE",
+                  "rotation_mode": "XYZ"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_hand_guarded_r\"].rotation_euler",
+          "array_index": 2,
+          "type": "SCRIPTED",
+          "expression": "(1-max(0,min(1,f)))*max(-0.584685299418,min(0.663225115758,(v+(18.8715019031))*0.0174532925199))+max(0,min(1,f))*max(-0.584685299418,min(0.663225115758,a))",
+          "variables": [
+            {
+              "name": "v",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_righthand\"][\"wrist_deviation\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            },
+            {
+              "name": "f",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_righthand\"][\"weapon_follow\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            },
+            {
+              "name": "a",
+              "type": "TRANSFORMS",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "",
+                  "bone_target": "MCH_attach_wrist_r",
+                  "transform_type": "ROT_Z",
+                  "transform_space": "LOCAL_SPACE",
+                  "rotation_mode": "XYZ"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"OUT_hand_target_l\"].constraints[\"Captured magazine grip\"].influence",
+          "array_index": 0,
+          "type": "SCRIPTED",
+          "expression": "max(0,min(1,m))",
+          "variables": [
+            {
+              "name": "m",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_lefthand\"][\"magazine_follow\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_mag_guide_diagnostics\"][\"attachment_weight\"]",
+          "array_index": 0,
+          "type": "SCRIPTED",
+          "expression": "1-(1-max(0,min(1,f)))*(1-max(0,min(1,m)))",
+          "variables": [
+            {
+              "name": "f",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_lefthand\"][\"weapon_follow\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            },
+            {
+              "name": "m",
+              "type": "SINGLE_PROP",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "pose.bones[\"righthand_prop_lefthand\"][\"magazine_follow\"]",
+                  "bone_target": "",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "AUTO"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_mag_guide_diagnostics\"][\"hand_orientation_error_deg\"]",
+          "array_index": 0,
+          "type": "SCRIPTED",
+          "expression": "2*acos(min(1,abs(w*a+x*b+y*c+z*d)))*57.2957795131",
+          "variables": [
+            {
+              "name": "w",
+              "type": "TRANSFORMS",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "",
+                  "bone_target": "MCH_attach_goal_l",
+                  "transform_type": "ROT_W",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "QUATERNION"
+                }
+              ]
+            },
+            {
+              "name": "x",
+              "type": "TRANSFORMS",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "",
+                  "bone_target": "MCH_attach_goal_l",
+                  "transform_type": "ROT_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "QUATERNION"
+                }
+              ]
+            },
+            {
+              "name": "y",
+              "type": "TRANSFORMS",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "",
+                  "bone_target": "MCH_attach_goal_l",
+                  "transform_type": "ROT_Y",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "QUATERNION"
+                }
+              ]
+            },
+            {
+              "name": "z",
+              "type": "TRANSFORMS",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "",
+                  "bone_target": "MCH_attach_goal_l",
+                  "transform_type": "ROT_Z",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "QUATERNION"
+                }
+              ]
+            },
+            {
+              "name": "a",
+              "type": "TRANSFORMS",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "",
+                  "bone_target": "MCH_hand_guarded_l",
+                  "transform_type": "ROT_W",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "QUATERNION"
+                }
+              ]
+            },
+            {
+              "name": "b",
+              "type": "TRANSFORMS",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "",
+                  "bone_target": "MCH_hand_guarded_l",
+                  "transform_type": "ROT_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "QUATERNION"
+                }
+              ]
+            },
+            {
+              "name": "c",
+              "type": "TRANSFORMS",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "",
+                  "bone_target": "MCH_hand_guarded_l",
+                  "transform_type": "ROT_Y",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "QUATERNION"
+                }
+              ]
+            },
+            {
+              "name": "d",
+              "type": "TRANSFORMS",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "",
+                  "bone_target": "MCH_hand_guarded_l",
+                  "transform_type": "ROT_Z",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "QUATERNION"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "data_path": "pose.bones[\"MCH_mag_guide_diagnostics\"][\"hand_position_error_m\"]",
+          "array_index": 0,
+          "type": "SCRIPTED",
+          "expression": "sqrt((x-a)*(x-a)+(y-b)*(y-b)+(z-c)*(z-c))",
+          "variables": [
+            {
+              "name": "x",
+              "type": "TRANSFORMS",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "",
+                  "bone_target": "MCH_attach_goal_l",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "XYZ"
+                }
+              ]
+            },
+            {
+              "name": "y",
+              "type": "TRANSFORMS",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "",
+                  "bone_target": "MCH_attach_goal_l",
+                  "transform_type": "LOC_Y",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "XYZ"
+                }
+              ]
+            },
+            {
+              "name": "z",
+              "type": "TRANSFORMS",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "",
+                  "bone_target": "MCH_attach_goal_l",
+                  "transform_type": "LOC_Z",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "XYZ"
+                }
+              ]
+            },
+            {
+              "name": "a",
+              "type": "TRANSFORMS",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "",
+                  "bone_target": "MCH_hand_guarded_l",
+                  "transform_type": "LOC_X",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "XYZ"
+                }
+              ]
+            },
+            {
+              "name": "b",
+              "type": "TRANSFORMS",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "",
+                  "bone_target": "MCH_hand_guarded_l",
+                  "transform_type": "LOC_Y",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "XYZ"
+                }
+              ]
+            },
+            {
+              "name": "c",
+              "type": "TRANSFORMS",
+              "targets": [
+                {
+                  "id": "Arms",
+                  "data_path": "",
+                  "bone_target": "MCH_hand_guarded_l",
+                  "transform_type": "LOC_Z",
+                  "transform_space": "WORLD_SPACE",
+                  "rotation_mode": "XYZ"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

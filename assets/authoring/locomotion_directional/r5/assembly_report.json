@@ -1,0 +1,20 @@
+{
+  "schema": "rust-duty-r5-action-only-assembly/v1",
+  "blender": "4.3.2",
+  "baseline_sha256": "d220162819fb7267aa6b93b209afc8ce5212a0692e6a4e02c5c43602b08907e3",
+  "source_sha256": "36d76491c2cf6238b8a1e10069dddd5b0d63e199063e1f4012b34f3fd4b1e18d",
+  "source_bytes": 9922429,
+  "action_count": 82,
+  "prior_actions_preserved": 78,
+  "appended_actions": {
+    "hip_walk_backward_r5": "be23987d7297fb46261b413825520e92f828580bd487588712108ea5f771b2c7",
+    "hip_walk_forward_r5": "0d15d9f431c10653c901957d194975b51578a57f4a0568383a79cf1ef23ffbdd",
+    "hip_strafe_left_r5": "2e48c623a67b4568770eae8682579d414cbc5b47148a6f676d472f59f19b2d36",
+    "hip_strafe_right_r5": "bba61dbaa0aeda93fdeff426ef5af82db0bb39cd287dc7f0336cbee3a7b58590"
+  },
+  "input_sources_unchanged": true,
+  "non_action_datablock_inventory_unchanged": true,
+  "pre_save_structural_preservation": true,
+  "passed": true,
+  "scope": "Action-only assembly; fresh reopen/evaluation gates remain separate"
+}

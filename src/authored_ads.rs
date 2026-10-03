@@ -38,6 +38,8 @@ pub struct AuthoredAds {
     durations: [f64; 3],
     sample: Option<AdsSample>,
     last_time: f64,
+    transition_rates: [f64; 3],
+    last_aim_integral: f64,
 }
 impl AuthoredAds {
     /// Require complete canonical companion bindings and connected source poses.
@@ -107,11 +109,37 @@ impl AuthoredAds {
             durations,
             sample: None,
             last_time: 0.,
+            transition_rates: [1.; 3],
+            last_aim_integral: 0.,
         })
     }
     pub fn reset(&mut self, time: f64) {
         self.sample = None;
         self.last_time = time;
+        self.last_aim_integral = 0.;
+    }
+    /// Authored WIP visual retiming; gameplay timers and source sample units stay unchanged.
+    pub fn with_visual_transition_seconds(mut self, seconds: f64) -> Result<Self> {
+        if !seconds.is_finite() || seconds <= 0. || seconds > 2. || self.last_time != 0. {
+            return Err(AnimationError(
+                "invalid ADS visual transition duration".into(),
+            ));
+        }
+        self.transition_rates = [self.durations[0] / seconds, 1., self.durations[2] / seconds];
+        Ok(self)
+    }
+    pub fn last_aim_integral(&self) -> f64 {
+        self.last_aim_integral
+    }
+    fn aim_antiderivative(&self, slot: AdsSlot, seconds: f64) -> f64 {
+        let duration = self.duration(slot);
+        let u = (seconds / duration).clamp(0., 1.);
+        let integral = duration * (u.powi(3) - 0.5 * u.powi(4));
+        match slot {
+            AdsSlot::Entry => integral,
+            AdsSlot::Exit => seconds - integral,
+            AdsSlot::Hold => seconds,
+        }
     }
     pub fn sample(&self) -> Option<AdsSample> {
         self.sample
@@ -173,6 +201,7 @@ impl AuthoredAds {
             return Ok(()); // Pause/render calls cannot change direction or ownership.
         }
         self.last_time = end;
+        self.last_aim_integral = 0.;
         let player = &simulation.player;
         if reload_visual_active || player.reload_left > 0. {
             self.sample = None;
@@ -198,6 +227,7 @@ impl AuthoredAds {
             };
             match sample.slot {
                 AdsSlot::Hold if requested => {
+                    self.last_aim_integral += remaining;
                     sample.seconds += remaining;
                     sample.direction = 1;
                     self.sample = Some(sample);
@@ -222,10 +252,17 @@ impl AuthoredAds {
                     } else {
                         sample.seconds
                     };
-                    let consumed = remaining.min(until_endpoint.max(0.));
+                    let rate =
+                        self.transition_rates[if sample.slot == AdsSlot::Entry { 0 } else { 2 }];
+                    let before = sample.seconds;
+                    let consumed = (remaining * rate).min(until_endpoint.max(0.));
                     sample.seconds = (sample.seconds + consumed * f64::from(sample.direction))
                         .clamp(0., duration);
-                    remaining -= consumed;
+                    self.last_aim_integral += (self
+                        .aim_antiderivative(sample.slot, sample.seconds)
+                        - self.aim_antiderivative(sample.slot, before))
+                        / (f64::from(sample.direction) * rate);
+                    remaining = (remaining - consumed / rate).max(0.);
                     if consumed < until_endpoint {
                         self.sample = Some(sample);
                         break;
