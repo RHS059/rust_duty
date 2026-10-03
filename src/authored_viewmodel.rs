@@ -1,8 +1,9 @@
 //! Opt-in playback adapter for Blender-baked viewmodels. No procedural posing.
 use macroquad::prelude::*;
 use vector_range::{
+    authored_locomotion_path::{AuthoredLocomotionPath, AuthoredLocomotionPathConfig},
     skinned_asset::SkinnedAsset,
-    viewmodel_animation::{game_model_root, AnimationSet},
+    viewmodel_animation::{game_model_root, AnimationSet, ViewmodelPose},
 };
 
 struct SkinBatch {
@@ -22,6 +23,7 @@ pub struct AuthoredViewmodel {
     clip: String,
     fixed_time: Option<f32>,
     error: Option<String>,
+    locomotion: Option<AuthoredLocomotionPath>,
 }
 impl AuthoredViewmodel {
     /// Requires an initialized render context, like the existing mesh adapters.
@@ -31,9 +33,37 @@ impl AuthoredViewmodel {
         }
         let (animation, skin, weapon) =
             AnimationSet::load_with_companions(path).map_err(|e| e.to_string())?;
+        let locomotion = if clip == "locomotion" && fixed_time.is_none() {
+            Some(
+                AuthoredLocomotionPath::new(
+                    &animation,
+                    AuthoredLocomotionPathConfig {
+                        ready_clip: "normal_ready".into(),
+                        entry_clip: "normal_entry_connected".into(),
+                        loop_clip: "normal_loop".into(),
+                        exit_bridge_clips: (0..35)
+                            .map(|i| format!("normal_exit_bridge_{i:03}"))
+                            .collect(),
+                        exit_clip: "normal_exit".into(),
+                        settle_clip: "normal_settle".into(),
+                        rate_response_seconds: 0.05,
+                        residual_decay_seconds: 0.03,
+                    },
+                    0.,
+                )
+                .map_err(|e| e.to_string())?,
+            )
+        } else {
+            None
+        };
+        let sample_clip = if clip == "locomotion" {
+            "normal_ready"
+        } else {
+            clip
+        };
         // Fail before creating GPU resources if the requested clip is absent.
         let initial = animation
-            .sample_clamped(clip, fixed_time.unwrap_or(0.))
+            .sample_clamped(sample_clip, fixed_time.unwrap_or(0.))
             .map_err(|e| e.to_string())?;
         animation
             .skin_palette(&initial, &skin.bones, game_model_root())
@@ -106,13 +136,32 @@ impl AuthoredViewmodel {
             batches,
             weapon,
             rigid_mesh_count,
-            clip: clip.into(),
+            clip: sample_clip.into(),
             fixed_time,
             error: None,
+            locomotion,
         })
     }
     pub fn error(&self) -> Option<&str> {
         self.error.as_deref()
+    }
+    /// The immutable bindings used by this renderer and its matching companions.
+    pub fn animation(&self) -> &AnimationSet {
+        &self.animation
+    }
+    /// Advance only on committed fixed ticks; render frequency never changes motion.
+    pub fn update_locomotion(&mut self, start: f64, end: f64, sprinting: bool) {
+        if self.error.is_some() {
+            return;
+        }
+        if let Some(path) = &mut self.locomotion {
+            if let Err(error) = path
+                .update(&self.animation, start, sprinting, true)
+                .and_then(|_| path.update(&self.animation, end, sprinting, true))
+            {
+                self.error = Some(error.to_string());
+            }
+        }
     }
     pub fn draw(&mut self, simulation_time: f64) {
         if self.error.is_some() {
@@ -124,16 +173,26 @@ impl AuthoredViewmodel {
         }
     }
     fn draw_checked(&mut self, simulation_time: f64) -> Result<(), String> {
+        if let Some(path) = &self.locomotion {
+            let pose = path.pose().clone();
+            return self.draw_pose(&pose);
+        }
         let time = self.fixed_time.unwrap_or(simulation_time as f32);
         let pose = if self.fixed_time.is_some() {
-            self.animation.sample_clamped(&self.clip, time)
+            self.animation().sample_clamped(&self.clip, time)
         } else {
-            self.animation.sample(&self.clip, time)
+            self.animation().sample(&self.clip, time)
         }
         .map_err(|e| e.to_string())?;
+        self.draw_pose(&pose)
+    }
+    /// Render one complete evaluated pose from this animation set. The gameplay
+    /// adapter owns which presentation supplies it; no two pose owners are mixed
+    /// here. Skin and actor dimension/transform validation is retained.
+    pub fn draw_pose(&mut self, pose: &ViewmodelPose) -> Result<(), String> {
         let palette = self
             .animation
-            .skin_palette(&pose, &self.skin.bones, game_model_root())
+            .skin_palette(pose, &self.skin.bones, game_model_root())
             .map_err(|e| e.to_string())?;
         let normals: Vec<_> = palette.iter().map(|m| m.inverse().transpose()).collect();
         let light = vec3(-0.3, 0.8, 0.5).normalize();
@@ -167,7 +226,7 @@ impl AuthoredViewmodel {
         }
         let actors = self
             .animation
-            .actor_matrices(&pose, game_model_root())
+            .actor_matrices(pose, game_model_root())
             .map_err(|e| e.to_string())?;
         let mut transforms = vec![Mat4::IDENTITY; self.rigid_mesh_count];
         let mut visibility = vec![false; self.rigid_mesh_count];

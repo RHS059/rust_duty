@@ -29,3 +29,7 @@ pub mod weapon_ik;
 pub mod locomotion_presentation;
 
 pub mod viewmodel_animation;
+
+pub mod authored_locomotion_path;
+
+pub mod authored_locomotion_adapter;
