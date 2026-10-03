@@ -1,27 +1,27 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T22:53:23Z",
+  "updatedAt": "2026-10-03T23:03:32Z",
   "state": "active",
-  "task": "Integrating forward ADS v9 WIP, fixing cursor focus and walking sliders, and preparing patch releases after merged PRs.",
-  "lastCompleted": "Version 0.1.5 is public. Real Windows/Linux 0.1.4 upgrades passed, verifying 70 managed files and preserving 85 root-file and synthetic private-data checks.",
+  "task": "Integrating walking controls and ADS, checking the newly published 0.1.6 release, and preparing per-merge patch automation.",
+  "lastCompleted": "Persistent per-weapon XYZ walking controls passed local tests; PR #24 release-policy checks passed. Version 0.1.5 remains the latest verified complete build.",
   "agents": [
     {
       "slot": 1,
       "state": "active",
-      "task": "Integrating forward ADS v9 WIP into runtime outputs while preserving the authored source.",
+      "task": "Preparing the 72-bone forward ADS runtime reference and source update for integration.",
       "lastCompleted": "V9 source and native mapping checks are published in draft PR #23; local-LRS baking still fails its tolerance and motion review remains pending."
     },
     {
       "slot": 2,
-      "state": "idle",
-      "task": "Lateral Trial4 awaits publication and independent motion review.",
-      "lastCompleted": "Trial4's 198-frame Eevee capture and QA are complete; Trial3 remains scored Fail35 left and Fail36 right."
+      "state": "active",
+      "task": "Preparing per-merged-PR patch automation and the next integrated candidate; verifying public 0.1.6.",
+      "lastCompleted": "Draft PR #24 passed 102 offline policy tests, hosted release-policy checks and updater checks."
     },
     {
       "slot": 3,
       "state": "active",
-      "task": "Fixing Alt-Tab cursor focus and adding persistent per-weapon XYZ walking-motion sliders.",
-      "lastCompleted": "Complete Windows/Linux packages passed at eb886edb; 0.1.5 publication and real old-client upgrade checks passed."
+      "task": "Integrating v9 ADS with Alt-Tab cursor fixes and persistent per-weapon XYZ walking sliders.",
+      "lastCompleted": "The persisted XYZ walking interface is working and local tests passed; complete-candidate verification remains pending."
     }
   ]
 }
