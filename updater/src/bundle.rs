@@ -70,6 +70,71 @@ pub fn safe_path(value: &str) -> Result<PathBuf> {
 }
 pub fn unpack(bundle: &Path, destination: &Path, entrypoint: &str) -> Result<()> {
     crate::reject_symlink(destination)?;
+    read_bundle(bundle, entrypoint, |input, relative, mode, size| {
+        let target = destination.join(relative);
+        crate::safe_dir(target.parent().unwrap())?;
+        crate::reject_symlink(&target)?;
+        let mut output = OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .open(&target)?;
+        crate::delta::copy_exact(input, &mut output, size, &mut [0; 65536])?;
+        output.sync_all()?;
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            std::fs::set_permissions(
+                &target,
+                std::fs::Permissions::from_mode(if mode == 1 { 0o755 } else { 0o644 }),
+            )?;
+        }
+        #[cfg(not(unix))]
+        let _ = mode;
+        Ok(())
+    })?;
+    crate::sync_dir(destination)
+}
+
+/// Verify the extracted runtime byte-for-byte against the already authenticated
+/// bundle. Never follow symlinks or trust mutable extracted asset files alone.
+pub fn verify_extracted(
+    bundle: &Path,
+    destination: &Path,
+    entrypoint: &str,
+) -> Result<HashSet<PathBuf>> {
+    crate::reject_symlink(destination)?;
+    let mut verified = HashSet::new();
+    read_bundle(bundle, entrypoint, |input, relative, _mode, size| {
+        let target = destination.join(relative);
+        crate::reject_symlink(&target)?;
+        let mut extracted = File::open(&target)?;
+        if !extracted.metadata()?.is_file() || extracted.metadata()?.len() != size {
+            return Err(invalid("managed runtime file type or size mismatch"));
+        }
+        let mut expected = [0u8; 65536];
+        let mut actual = [0u8; 65536];
+        let mut remaining = size;
+        while remaining > 0 {
+            let count = remaining.min(expected.len() as u64) as usize;
+            input.read_exact(&mut expected[..count])?;
+            extracted.read_exact(&mut actual[..count])?;
+            if expected[..count] != actual[..count] {
+                return Err(invalid("managed runtime file differs from verified bundle"));
+            }
+            remaining -= count as u64;
+        }
+        verified.insert(relative.to_owned());
+        Ok(())
+    })?;
+    Ok(verified)
+}
+
+fn read_bundle(
+    bundle: &Path,
+    entrypoint: &str,
+    mut consume: impl FnMut(&mut File, &Path, u8, u64) -> Result<()>,
+) -> Result<()> {
+    crate::reject_symlink(bundle)?;
     let mut input = File::open(bundle)?;
     let length = input.metadata()?.len();
     if length > MAX_ASSET {
@@ -88,7 +153,6 @@ pub fn unpack(bundle: &Path, destination: &Path, entrypoint: &str) -> Result<()>
     }
     let mut seen = HashSet::new();
     let mut total = 0u64;
-    let mut buffer = [0; 65536];
     let mut has_entry = false;
     for _ in 0..count {
         let mut n = [0; 2];
@@ -118,23 +182,7 @@ pub fn unpack(bundle: &Path, destination: &Path, entrypoint: &str) -> Result<()>
         if total > length {
             return Err(invalid("bundle declared size overflow"));
         }
-        let target = destination.join(relative);
-        crate::safe_dir(target.parent().unwrap())?;
-        crate::reject_symlink(&target)?;
-        let mut output = OpenOptions::new()
-            .write(true)
-            .create_new(true)
-            .open(&target)?;
-        crate::delta::copy_exact(&mut input, &mut output, size, &mut buffer)?;
-        output.sync_all()?;
-        #[cfg(unix)]
-        {
-            use std::os::unix::fs::PermissionsExt;
-            std::fs::set_permissions(
-                &target,
-                std::fs::Permissions::from_mode(if mode[0] == 1 { 0o755 } else { 0o644 }),
-            )?;
-        }
+        consume(&mut input, &relative, mode[0], size)?;
         if path == entrypoint {
             has_entry = true;
             if mode[0] != 1 {
@@ -146,6 +194,5 @@ pub fn unpack(bundle: &Path, destination: &Path, entrypoint: &str) -> Result<()>
     if !has_entry || input.read(&mut tail)? != 0 {
         return Err(invalid("missing entrypoint or trailing bundle data"));
     }
-    crate::sync_dir(destination)?;
     Ok(())
 }

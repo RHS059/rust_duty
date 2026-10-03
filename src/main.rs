@@ -18,10 +18,25 @@ const ACCENT: Color = Color::new(0.98, 0.62, 0.22, 1.);
 const CYAN: Color = Color::new(0.33, 0.84, 0.87, 1.);
 const MUTED: Color = Color::new(0.62, 0.69, 0.72, 1.);
 fn config() -> Conf {
+    if std::env::args().any(|arg| arg == "--build-version") {
+        println!("{}", vector_range::BUILD_VERSION);
+        std::process::exit(0);
+    }
+    if std::env::args().any(|arg| arg == "--verify-managed-assets") {
+        match rust_duty_launcher::game::managed_asset_executable(vector_range::BUILD_VERSION) {
+            Ok(Some(path)) => println!("{}", path.display()),
+            Ok(None) => println!("adjacent packaged assets"),
+            Err(error) => {
+                eprintln!("Managed game assets could not be verified: {error}");
+                std::process::exit(1);
+            }
+        }
+        std::process::exit(0);
+    }
     if let Some(code) = rust_duty_launcher::game::dispatch_helper() {
         std::process::exit(code);
     }
-    if let Some(code) = rust_duty_launcher::game::dispatch_headless(env!("CARGO_PKG_VERSION")) {
+    if let Some(code) = rust_duty_launcher::game::dispatch_headless(vector_range::BUILD_VERSION) {
         std::process::exit(code);
     }
     let reference = std::env::args().any(|a| a == "--reference-viewport");
@@ -794,6 +809,18 @@ fn pause_screen(cfg: &Settings, initial: bool, control_mode: ControlMode) {
 #[macroquad::main(config)]
 async fn main() {
     let args: Vec<String> = std::env::args().collect();
+    let executable =
+        std::env::current_exe().unwrap_or_else(|_| std::path::PathBuf::from("vector-range.exe"));
+    let authored_executable =
+        match rust_duty_launcher::game::managed_asset_executable(vector_range::BUILD_VERSION) {
+            Ok(path) => path.unwrap_or_else(|| executable.clone()),
+            Err(error) => {
+                // No healthy startup acknowledgement: the existing helper will
+                // roll back the executable and active version together.
+                eprintln!("Managed game assets could not be verified: {error}");
+                std::process::exit(1);
+            }
+        };
     // Deterministic capture jobs never contact the release channel. Ordinary
     // double-click launches always start the background checker automatically.
     let update_enabled = !args
@@ -873,8 +900,6 @@ async fn main() {
     let mut recording: Option<File> = None;
     let mut record_clock = 0.;
     let mut intents = IntentLatch::default();
-    let executable =
-        std::env::current_exe().unwrap_or_else(|_| std::path::PathBuf::from("vector-range.exe"));
     let explicit = args.iter().find_map(|s| s.strip_prefix("--weapon-asset="));
     let model_source = vector_range::asset_path::resolve_weapon(
         &executable,
@@ -887,7 +912,7 @@ async fn main() {
         .iter()
         .find_map(|s| s.strip_prefix("--viewmodel-asset="));
     let authored_path = vector_range::asset_path::resolve_viewmodel(
-        &executable,
+        &authored_executable,
         explicit_viewmodel.map(std::path::Path::new),
         args.iter().any(|s| {
             s == "--procedural-weapon"
@@ -929,7 +954,7 @@ async fn main() {
                     .find_map(|arg| arg.strip_prefix("--animation-manifest="))
                     .map(std::path::PathBuf::from)
                     .unwrap_or_else(|| {
-                        executable
+                        authored_executable
                             .parent()
                             .unwrap_or(std::path::Path::new("."))
                             .join("assets/animations.cfg")
@@ -1122,7 +1147,7 @@ async fn main() {
         debug = true;
     }
     if model_error.is_none() {
-        if let Err(error) = rust_duty_launcher::game::mark_ready(env!("CARGO_PKG_VERSION")) {
+        if let Err(error) = rust_duty_launcher::game::mark_ready(vector_range::BUILD_VERSION) {
             eprintln!("Update startup acknowledgement: {error}");
         }
     }

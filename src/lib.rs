@@ -1,4 +1,6 @@
 //! Original deterministic simulation. No original-game source or assets are used.
+/// The release identity assigned to this exact CI build; local builds use Cargo's version.
+pub const BUILD_VERSION: &str = env!("RUST_DUTY_BUILD_VERSION");
 pub mod settings;
 pub mod sim;
 
