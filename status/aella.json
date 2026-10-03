@@ -1,27 +1,27 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T17:34:49Z",
+  "updatedAt": "2026-10-03T17:43:49Z",
   "state": "active",
-  "task": "Recovering animation inputs after the workspace reset. Forward/shared ADS numerical validation and local runtime preparation continue; lateral numerical preparation has passed, while native animation and preview work remain blocked on source recovery. HIP r2 handoff is still scope-blocked. The separate, unscored ADS v6 forward comparison is live at https://rhs059.github.io/rust_duty_updates/.",
-  "lastCompleted": "Published ADS v6 forward comparison at 65d781f1bfa4483bacbb5b3cdf4c97e747ad5abe with successful deployment 37140620408. Exact public bytes/SHA-256 and browser playback were verified. The comparison is 126 frames at 60 fps over 2.1 seconds and remains unscored; v5 is unchanged at Fail51. Exact v5/v6 preset bytes have been recovered and v6 independently verified. PR #17 remains the complete e46f83d game build.",
+  "task": "Revising ADS after the v6 forward comparison received Fail53. Forward/shared motion-shape investigation and local v6 runtime checks continue. Public HIP r1 and ADS47 source are recovered for numerical and Blender diagnostic work; the later native author checkpoint and matched preview inputs remain missing. HIP r2 Library handoff remains scope-blocked.",
+  "lastCompleted": "The separate ADS v6 forward Eevee/reference comparison is live at https://rhs059.github.io/rust_duty_updates/ and is reviewed Fail53: sight lock is retained, but forward walking motion remains too faint. Exact v5/v6 presets and the independent v6 numerical oracle are recovered and verified. Local v6 runtime work passes 490 Rust tests, formatting/Clippy and 24 numerical witnesses. The latest complete published game remains PR #17 at e46f83d.",
   "agents": [
     {
       "slot": 1,
       "state": "active",
-      "task": "Recovering the public v4 numerical oracle for a separately labeled v6 mathematical check. Native Blender source/rig recovery and remote source publication remain blocked.",
-      "lastCompleted": "Recovered the exact v5 and v6 preset files with their original SHA-256 values; the integrator independently verified v6 bytes. The published v6 Eevee comparison remains unscored and uses HIP r1."
+      "task": "Investigating the remaining forward ADS vertical-motion shape after v6 Fail53 and sharing the recovered public ADS basis with the lateral creator. The original later native author files and r2 videos remain missing; Library recovery and remote source publication remain blocked.",
+      "lastCompleted": "Recovered exact v5/v6 presets by original hashes. The fresh 24-case v6 mathematical oracle passes the independent Rust comparison. V6 preserves sight lock and low lateral sway, but its visible forward walk energy still fails review."
     },
     {
       "slot": 2,
       "state": "blocked",
-      "task": "Lateral ADS trial1 parameter proposal is ready, but native source work and the Eevee visual comparison are blocked on missing animation-source recovery.",
-      "lastCompleted": "Prepared an isolated lateral preset and pure-map probe: halve lateral vertical target displacement while preserving v6 horizontal/phase settings and original r1 inputs. Seven numerical tests passed, including exact v4-oracle reproduction, preserved nonlateral output and optical-axis invariance. This is a parameter proposal, not visual approval."
+      "task": "Dense lateral source evaluation awaits exact timing confirmation; the matched Eevee comparison awaits recovered reference and pipeline inputs. The later native author checkpoint remains missing.",
+      "lastCompleted": "Completed the lateral Trial1 proposal and seven numerical tests: halve only lateral vertical target displacement while preserving horizontal and phase settings. Recovered exact HIP r1 and public ADS47 source, then independently verified held pose, camera, receiver and grip records in Blender. This is a diagnostic basis and parameter proposal, not visual approval."
     },
     {
       "slot": 3,
       "state": "active",
-      "task": "Restoring a clean e46f83d checkout for local v6 runtime/test preparation while its numerical oracle is generated. HIP r2 Library materialization is scope-blocked; the denied v5 remote write and source publication remain stopped.",
-      "lastCompleted": "Independently verified the recovered exact v6 preset hash. PR #17 remains e46f83d with four HIP r1 clips, ADS v4 and the complete Windows package; no newer game build is published."
+      "task": "Preparing the local versioned v6 runtime on a restored clean e46f83d checkout. Actual generated-asset and native-capture checks have not yet been reverified. HIP r2 Library transfer remains scope-blocked, and the denied source-publication action remains stopped.",
+      "lastCompleted": "Official Rust-toolchain installation retry succeeded. Exact v6 preset and independent oracle verification passed; local v6 implementation passes 490 Rust tests, formatting/Clippy and 24 numerical witnesses with maximum error 3.38e-7. No newer complete game build is published."
     }
   ]
 }
