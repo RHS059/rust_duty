@@ -1,11 +1,11 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T19:42:15Z",
+  "updatedAt": "2026-10-03T19:53:05Z",
   "latestComplete": {
     "sha": "e46f83d84ece0c28ffbd10cf4504ed4ea0f91878",
     "downloadUrl": "https://github.com/RHS059/rust_duty/actions/runs/37130396740/artifacts/11277161595",
     "runUrl": "https://github.com/RHS059/rust_duty/actions/runs/37130396740",
-    "verifiedAt": "2026-10-03T19:42:15Z",
+    "verifiedAt": "2026-10-03T19:53:05Z",
     "completedAt": "2026-10-03T15:01:33Z"
   },
   "changes": [
@@ -15,7 +15,7 @@
     "All three workflows passed; native Linux layered-input diagnostics passed at 30 and 60 Hz",
     "Windows ZIP integrity, SHA-256, PE executable and complete-package verification passed",
     "HIP r5 source 36d76491 passed motion review: forward 82, backward 83, left 82 and right 81. Integration is prepared and waiting for the source file; these revisions are not yet in the downloadable build.",
-    "Current ADS authoring is complete and awaiting publication and visual review: forward v7 is frozen, and both lateral Trial2 component-isolation diagnostics and 198-frame Eevee captures are complete. Publication remains pending.",
+    "Forward ADS v7 is deployed with verified media hashes and direct playback; gallery display checks continue. Both lateral Trial2 diagnostics and 198-frame Eevee captures are complete and queued as separate previews for visual review.",
     "Jump and mantle reference planning is complete; verified reference windows are still needed."
   ],
   "currentBuild": {
