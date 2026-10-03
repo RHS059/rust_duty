@@ -1,22 +1,24 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T11:02:43Z",
+  "updatedAt": "2026-10-03T11:28:17Z",
   "latestComplete": {
-    "sha": "9f27474b3cb55a41d0f8d81afeaf516cc84d721f",
-    "downloadUrl": "https://github.com/RHS059/rust_duty/actions/runs/37102746221/artifacts/11270287372",
-    "runUrl": "https://github.com/RHS059/rust_duty/actions/runs/37102746221",
-    "verifiedAt": "2026-10-03T10:11:40Z",
-    "completedAt": "2026-10-03T09:44:44Z"
+    "sha": "7ffdd6eb1d6ae20d5e8e6445f07759a225c952eb",
+    "downloadUrl": "https://github.com/RHS059/rust_duty/actions/runs/37118065452/artifacts/11271704836",
+    "runUrl": "https://github.com/RHS059/rust_duty/actions/runs/37118065452",
+    "verifiedAt": "2026-10-03T11:28:17Z",
+    "completedAt": "2026-10-03T11:07:00Z"
   },
   "changes": [
-    "Fresh 70-file Windows package includes full reload frames 0–156, normal walk and sprint assets",
-    "Three authored ADS clips add entry, aimed hold and exit while preserving prior animation clips",
-    "World-fixed directional and ambient lighting covers hands, weapon and test range",
-    "Windows build, tests and package verification passed; native gameplay was verified on Linux, not Windows"
+    "Smoother walk start/stop transitions retain native loop phase during rapid restarts",
+    "Walking continues through ADS entry, aimed hold and exit while preserving sight alignment",
+    "Complete 70-file Windows package preserves existing walk, sprint and full WIP reload assets",
+    "World-fixed directional and ambient lighting remains on hands, weapon and test range",
+    "All three workflows passed; Windows ZIP integrity and generated package checks passed",
+    "Native Linux captures were visually reviewed; Windows gameplay and artistic approval remain unverified"
   ],
   "currentBuild": {
-    "state": "active",
-    "task": "PR #16: all three animation asset jobs passed; Windows and Linux build checks are running",
+    "state": "complete",
+    "task": "PR #16: complete Windows package verified; Windows and Linux build checks passed",
     "url": "https://github.com/RHS059/rust_duty/actions/runs/37118065452"
   }
 }
