@@ -1,27 +1,27 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T14:55:24.811Z",
+  "updatedAt": "2026-10-03T15:02:49.743Z",
   "state": "active",
-  "task": "Rebuilding the review gallery and rendering existing animation inventory; animation development stopped at 14:48 UTC",
+  "task": "Rebuilding the review gallery and rendering 52 existing animation clips; animation development stopped at 14:48 UTC",
   "lastCompleted": "Completed ADS v4 source handoff and verified four-direction export parity",
   "agents": [
     {
       "slot": 1,
       "state": "active",
-      "task": "Tagging existing preview items as old and rebuilding the gallery for vertical reference/render comparisons",
+      "task": "Hiding 35 old preview records and publishing stacked current reference/render comparisons",
       "lastCompleted": ""
     },
     {
       "slot": 2,
       "state": "active",
-      "task": "Rendering the current inventory of existing animations for stacked reference comparisons; no animation source development",
+      "task": "Rendering all 52 current animation clips for review; no animation source development",
       "lastCompleted": ""
     },
     {
       "slot": 3,
       "state": "waiting",
-      "task": "Observing only the already-running e46f83d GitHub build; no new animation source edits",
-      "lastCompleted": "Published all four directional HIP clips and ADS v4 in e46f83d before animation development was stopped"
+      "task": "Observing only the completed e46f83d build; Windows ZIP verification pending, with animation source development stopped",
+      "lastCompleted": "All three workflows and Linux/Windows builds passed on e46f83d"
     }
   ]
 }
