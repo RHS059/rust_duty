@@ -1,5 +1,5 @@
 """Author three original first-person jump Actions into a separate frozen source copy.
-Usage: blender --background --factory-startup --disable-autoexec BASE.blend --python author_jump_r1.py -- jump_design_r1.json OUTPUT.blend
+Usage: blender --background --factory-startup --disable-autoexec BASE.blend --python author_jump.py -- jump_design.json OUTPUT.blend
 Never saves the input, overwrites a revision, edits existing Actions or renders.
 """
 import bpy,sys,json,hashlib,math
@@ -15,7 +15,7 @@ source=Path(bpy.data.filepath);sha=lambda p:hashlib.sha256(p.read_bytes()).hexdi
 assert bpy.app.version_string=='4.3.2'
 assert sha(source)==design['source_sha256']
 assert source.resolve()!=output.resolve() and not output.exists(),'Refuse overwrite'
-assert len(bpy.data.actions)==82
+assert len(bpy.data.actions)==design['source_action_count']
 assert not(set(design['actions']) & set(bpy.data.actions.keys()))
 output.parent.mkdir(parents=True,exist_ok=True)
 before=snapshot(bpy);extra_before=extra_snapshot()
@@ -109,7 +109,7 @@ for name,(action,use_nla,tracks) in ad_state.items():
 scene.frame_set(frame_state[0],subframe=frame_state[1]);bpy.context.view_layer.update()
 after=snapshot(bpy);extra_after=extra_snapshot()
 checks={
- '82_original_action_fingerprints':all(after['actions'][n]==v for n,v in before['actions'].items()),
+ 'all_prior_action_fingerprints':all(after['actions'][n]==v for n,v in before['actions'].items()),
  'only_three_new_actions':set(after['actions'])-set(before['actions'])==set(created),
  'nla_and_active_actions':after['nla']==before['nla'],
  'drivers':after['drivers']==before['drivers'],
@@ -120,6 +120,6 @@ assert all(checks.values()),checks
 bpy.ops.wm.save_as_mainfile(filepath=str(output),compress=True)
 assert sha(source)==design['source_sha256']
 (output.parent/'authored_root_keys.json').write_text(json.dumps({'schema':'rust-duty-jump-authored-root-keys/v1','candidate_sha256':sha(output),'ready_root_local':ready_local,'pivot_camera':list(pivot),'camera_matrix_world':[list(x) for x in C],'ready_root_world':[list(x) for x in ready_world],'parameter_order':design['parameter_order'],'actions':keys_out},indent=2)+'\n')
-(output.parent/'authoring_preservation.json').write_text(json.dumps({'schema':'rust-duty-jump-source-preservation/v1','source_sha256':sha(source),'candidate_sha256':sha(output),'source_actions':82,'candidate_actions':len(bpy.data.actions),'created_actions':created,'checks':checks,'passed':all(checks.values()),'source_saved':False,'candidate_saved':True,'design_sha256':sha(design_path)},indent=2)+'\n')
+(output.parent/'authoring_preservation.json').write_text(json.dumps({'schema':'rust-duty-jump-source-preservation/v1','source_sha256':sha(source),'candidate_sha256':sha(output),'source_actions':design['source_action_count'],'candidate_actions':len(bpy.data.actions),'created_actions':created,'checks':checks,'passed':all(checks.values()),'source_saved':False,'candidate_saved':True,'design_sha256':sha(design_path)},indent=2)+'\n')
 (output.parent/'baseline_fingerprint.json').write_text(json.dumps({'source_sha256':sha(source),'preserved':before,'structural':extra_before},indent=2)+'\n')
 print(json.dumps({'output':str(output),'sha256':sha(output),'created':created,'preservation_checks':checks},indent=2))

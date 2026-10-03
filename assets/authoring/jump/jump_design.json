@@ -1,0 +1,232 @@
+{
+  "schema": "rust-duty-jump-design/v1",
+  "status": "Original choreography r2 WIP; revised from Elara r1 feedback; Elara re-review pending",
+  "source_path": "assets/authoring/jump/halcyon_jump_r1.blend",
+  "source_sha256": "4e923368b0b07d87e737d6575266b2ba4b2d4b020d4bc4cf0c0848c7cf94acb6",
+  "baseline_action": "RD_Locomotion_Normal_Entry_4419_4434_WIP2",
+  "baseline_frame": 1,
+  "guarded_initialization": "RD_00_Supplied_Base_Guarded_Recovered",
+  "fps": 60,
+  "animated_control": "righthand_prop",
+  "camera": "RD First Person Review",
+  "parameter_order": [
+    "camera_right_m",
+    "camera_up_m",
+    "camera_back_m",
+    "pitch_degrees",
+    "yaw_degrees",
+    "roll_degrees"
+  ],
+  "pivot": "anatomical support wrist at normal_ready",
+  "rotation_order": "Rx @ Ry @ Rz in camera coordinates",
+  "interpolation": "Piecewise quintic smootherstep between beat poses; sampled at native 60 fps with derivative-matched cubic Bezier root handles. Exact zero derivative at clip endpoints.",
+  "source_evidence": "The supplied locomotion videos contain no usable first-person jump sequence. These beat poses and timings are original artistic choices, not reference measurements.",
+  "camera_motion": "None. Gameplay supplies the world jump arc and existing camera landing_kick. Only the held rig moves relative to the unchanged review camera.",
+  "actions": {
+    "jump_takeoff_r2": {
+      "runtime_id": "jump_takeoff",
+      "frame_range": [
+        1,
+        11
+      ],
+      "duration_seconds": 0.16666666666666666,
+      "loop": false,
+      "purpose": "Stronger compact downward takeoff inertia and muzzle dip, controlled rebound, exact ready recovery; r1 phase beats retained",
+      "beats": [
+        {
+          "frame": 1,
+          "label": "ready / launch accepted",
+          "params": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "frame": 4,
+          "label": "takeoff lag",
+          "params": [
+            0.001,
+            -0.036,
+            0.016,
+            -3.1,
+            0,
+            0.1
+          ]
+        },
+        {
+          "frame": 8,
+          "label": "damped recovery",
+          "params": [
+            -0.00015,
+            0.0042,
+            -0.0015,
+            0.28,
+            0,
+            -0.015
+          ]
+        },
+        {
+          "frame": 11,
+          "label": "quiet airborne ready",
+          "params": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    "jump_air_r2": {
+      "runtime_id": "jump_air",
+      "frame_range": [
+        1,
+        2
+      ],
+      "duration_seconds": 0.016666666666666666,
+      "loop": true,
+      "purpose": "Identical ready endpoints; statically hold or repeat for any remaining flight time, without bob or a baked world arc",
+      "beats": [
+        {
+          "frame": 1,
+          "label": "quiet ready",
+          "params": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "frame": 2,
+          "label": "identical extendable hold",
+          "params": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    "jump_land_r2": {
+      "runtime_id": "jump_land",
+      "frame_range": [
+        1,
+        17
+      ],
+      "duration_seconds": 0.26666666666666666,
+      "loop": false,
+      "purpose": "More readable ground-contact compression using downward inertia and increased muzzle pitch, restrained rebound, exact ready settle; r1 phase beats retained",
+      "beats": [
+        {
+          "frame": 1,
+          "label": "ground contact / ready",
+          "params": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "frame": 4,
+          "label": "landing compression",
+          "params": [
+            0.0015,
+            -0.048,
+            0.018,
+            -5.3,
+            0,
+            0.14
+          ]
+        },
+        {
+          "frame": 10,
+          "label": "small rebound",
+          "params": [
+            -0.0003,
+            0.006,
+            -0.002,
+            0.45,
+            0,
+            -0.025
+          ]
+        },
+        {
+          "frame": 17,
+          "label": "settled ready",
+          "params": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ]
+    }
+  },
+  "runtime_contract": {
+    "trigger": "Accepted normal jump only; exclude mantle and stance-to-stand or rejected Space input",
+    "transition": "Takeoff then extendable quiet air; landing starts from real ground contact, not the nominal 0.6245-second flat-flight timer",
+    "short_flight": "Integration owner must blend an interrupted takeoff into ground-contact landing without a snap",
+    "flat_flight_reference_seconds": 0.6245,
+    "root_motion": false,
+    "grounded_camera_kick": "Preserve existing game camera behavior; do not add any new camera motion from these clips",
+    "ADS": "The source Actions are absolute HIP poses. ADS needs aim-safe viewmodel-relative composition on the separate existing ADS base; do not replace its articulation or clear ADS intent",
+    "gameplay_authority": "No input, movement, firing, reload, ADS or mantle behavior is modified by this source package"
+  },
+  "source_action_count": 85,
+  "feedback": {
+    "review_url": "https://github.com/RHS059/dot_chat/pull/1#issuecomment-5973648930",
+    "reviewer": "Elara",
+    "revision_of": "jump r1",
+    "requested_change": "Keep exact phase beats, quiet extendable air and three-Action split; strengthen held-rig takeoff and landing extrema for clearly readable jump weight in the fixed camera",
+    "changes": "Increase downward inertia and muzzle pitch; keep lateral/roll accents and timing unchanged, limit extra backward displacement to avoid needless framing loss, modestly strengthen rebound"
+  },
+  "revision_rationale": {
+    "takeoff_compression": {
+      "downward_m": {
+        "r1": 0.021,
+        "r2": 0.036
+      },
+      "backward_m": {
+        "r1": 0.012,
+        "r2": 0.016
+      },
+      "muzzle_dip_degrees": {
+        "r1": 1.4,
+        "r2": 3.1
+      }
+    },
+    "landing_compression": {
+      "downward_m": {
+        "r1": 0.0325,
+        "r2": 0.048
+      },
+      "backward_m": {
+        "r1": 0.018,
+        "r2": 0.018
+      },
+      "muzzle_dip_degrees": {
+        "r1": 2.25,
+        "r2": 5.3
+      }
+    },
+    "note": "Not a uniform scale: added pitch lowers the forward muzzle while keeping the rear receiver readable; landing backward shift stays unchanged. These are original artistic choices in response to reviewer feedback, not a reference-match claim."
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "schema": "rust-duty-jump-feedback-revision/v1",
+  "revision": "r2",
+  "review": {
+    "review_url": "https://github.com/RHS059/dot_chat/pull/1#issuecomment-5973648930",
+    "reviewer": "Elara",
+    "revision_of": "jump r1",
+    "requested_change": "Keep exact phase beats, quiet extendable air and three-Action split; strengthen held-rig takeoff and landing extrema for clearly readable jump weight in the fixed camera",
+    "changes": "Increase downward inertia and muzzle pitch; keep lateral/roll accents and timing unchanged, limit extra backward displacement to avoid needless framing loss, modestly strengthen rebound"
+  },
+  "changes": {
+    "takeoff_compression": {
+      "downward_m": {
+        "r1": 0.021,
+        "r2": 0.036
+      },
+      "backward_m": {
+        "r1": 0.012,
+        "r2": 0.016
+      },
+      "muzzle_dip_degrees": {
+        "r1": 1.4,
+        "r2": 3.1
+      }
+    },
+    "landing_compression": {
+      "downward_m": {
+        "r1": 0.0325,
+        "r2": 0.048
+      },
+      "backward_m": {
+        "r1": 0.018,
+        "r2": 0.018
+      },
+      "muzzle_dip_degrees": {
+        "r1": 2.25,
+        "r2": 5.3
+      }
+    },
+    "note": "Not a uniform scale: added pitch lowers the forward muzzle while keeping the rear receiver readable; landing backward shift stays unchanged. These are original artistic choices in response to reviewer feedback, not a reference-match claim."
+  },
+  "checks": {
+    "three_phase_ranges_unchanged": true,
+    "all_beat_frames_unchanged": true,
+    "air_curve_fingerprint_identical": true,
+    "stable_runtime_ids_unchanged": true
+  },
+  "passed": true,
+  "candidate_sha256": "ade77291cf65a6e2bd8563ebe7449a3b64e8df2f504dc6d2cdf0e93b534064fd",
+  "artistic_acceptance": "Pending Elara re-review; no author score"
+}
