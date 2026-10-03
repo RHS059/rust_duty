@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T16:02:33Z",
+  "updatedAt": "2026-10-03T16:12:28Z",
   "latestComplete": {
     "sha": "e46f83d84ece0c28ffbd10cf4504ed4ea0f91878",
     "downloadUrl": "https://github.com/RHS059/rust_duty/actions/runs/37130396740/artifacts/11277161595",
@@ -18,7 +18,7 @@
   ],
   "currentBuild": {
     "state": "idle",
-    "task": "No game build running. PR #17 remains at e46f83d with all three workflows passed and the verified complete Windows artifact preserved. Animation work resumed at 15:50 UTC: gallery v49 has three true Eevee HIP baseline comparisons; right HIP publication and four-direction ADS capture/review are next. Integrator awaits revised source; motion feedback remains WIP with no artistic approval.",
+    "task": "No game build running for PR #17, which remains at e46f83d with all three workflows passed and the verified complete 83-file Windows artifact preserved. Animation work resumed at 15:50 UTC: gallery v50 has all four true Eevee HIP baseline comparisons live; forward ADS v4 capture completed with 126 frames and decode/integrity checks passed, and backward capture is next. Integrator awaits revised source. Hal owns HIP r2 separately; motion feedback remains WIP with no artistic approval.",
     "url": "https://github.com/RHS059/rust_duty/actions/runs/37130396740"
   }
 }
