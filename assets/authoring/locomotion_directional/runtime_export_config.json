@@ -1,0 +1,169 @@
+{
+  "blender_version": "4.3.2",
+  "source_fps": 60,
+  "bake_hz": 480,
+  "armature": "Arms",
+  "skin_objects": [
+    "Actual arms mesh 0",
+    "Actual arms mesh 1",
+    "Actual arms mesh 2"
+  ],
+  "rigid_actors": [
+    "hk416_weapon",
+    "hk416_magazine"
+  ],
+  "excluded_rigid_actor": "hk416_magazine_outgoing",
+  "deform_bone_count": 72,
+  "schema": "rust-duty-stable-directional-export/v1",
+  "source_file": "halcyon_hip_directional_r5.blend",
+  "source_take_count": 4,
+  "runtime_integration_performed": true,
+  "source_takes": [
+    {
+      "name": "hip_walk_forward_r1",
+      "action": "hip_walk_forward_r5",
+      "frame_start": 1,
+      "frame_end": 39,
+      "duration_seconds": 0.6333333333333333,
+      "loop": true,
+      "role": "gameplay",
+      "pose_space": "absolute",
+      "additive": false,
+      "prior_revision_action": "hip_walk_forward_r4",
+      "timing_provenance": "r4 cycle lengths and phase retained; r5 needs separate visual review",
+      "reference_anchor": {
+        "video_id": "5KM0XSKxTWw",
+        "reference_sha256": "cff413d8d114b611bbe6f50cc553ef109d61eb8eb1fff960425f506b84d6767e",
+        "frame_range_half_open": [
+          48,
+          86
+        ],
+        "endpoint_witness_frame": 86,
+        "fps": 60,
+        "time_base": "1/15360",
+        "pts_ticks_per_frame": 256,
+        "pts_range_half_open": [
+          12288,
+          22016
+        ],
+        "endpoint_witness_pts": 22016,
+        "phase_policy": "r4 mapping unchanged; endpoint frame is closure witness only"
+      }
+    },
+    {
+      "name": "hip_walk_backward_r1",
+      "action": "hip_walk_backward_r5",
+      "frame_start": 1,
+      "frame_end": 46,
+      "duration_seconds": 0.75,
+      "loop": true,
+      "role": "gameplay",
+      "pose_space": "absolute",
+      "additive": false,
+      "prior_revision_action": "hip_walk_backward_r4",
+      "timing_provenance": "r4 cycle lengths and phase retained; r5 needs separate visual review",
+      "reference_anchor": {
+        "video_id": "5KM0XSKxTWw",
+        "reference_sha256": "cff413d8d114b611bbe6f50cc553ef109d61eb8eb1fff960425f506b84d6767e",
+        "frame_range_half_open": [
+          211,
+          256
+        ],
+        "endpoint_witness_frame": 256,
+        "fps": 60,
+        "time_base": "1/15360",
+        "pts_ticks_per_frame": 256,
+        "pts_range_half_open": [
+          54016,
+          65536
+        ],
+        "endpoint_witness_pts": 65536,
+        "phase_policy": "r4 mapping unchanged; endpoint frame is closure witness only"
+      }
+    },
+    {
+      "name": "hip_strafe_left_r1",
+      "action": "hip_strafe_left_r5",
+      "frame_start": 1,
+      "frame_end": 50,
+      "duration_seconds": 0.8166666666666667,
+      "loop": true,
+      "role": "gameplay",
+      "pose_space": "absolute",
+      "additive": false,
+      "prior_revision_action": "hip_strafe_left_r4",
+      "timing_provenance": "r4 cycle lengths and phase retained; r5 needs separate visual review",
+      "reference_anchor": {
+        "video_id": "5KM0XSKxTWw",
+        "reference_sha256": "cff413d8d114b611bbe6f50cc553ef109d61eb8eb1fff960425f506b84d6767e",
+        "frame_range_half_open": [
+          886,
+          935
+        ],
+        "endpoint_witness_frame": 935,
+        "fps": 60,
+        "time_base": "1/15360",
+        "pts_ticks_per_frame": 256,
+        "pts_range_half_open": [
+          226816,
+          239360
+        ],
+        "endpoint_witness_pts": 239360,
+        "phase_policy": "r4 mapping unchanged; endpoint frame is closure witness only"
+      }
+    },
+    {
+      "name": "hip_strafe_right_r1",
+      "action": "hip_strafe_right_r5",
+      "frame_start": 1,
+      "frame_end": 50,
+      "duration_seconds": 0.8166666666666667,
+      "loop": true,
+      "role": "gameplay",
+      "pose_space": "absolute",
+      "additive": false,
+      "prior_revision_action": "hip_strafe_right_r4",
+      "timing_provenance": "r4 cycle lengths and phase retained; r5 needs separate visual review",
+      "reference_anchor": {
+        "video_id": "9RRgXvRx43s",
+        "reference_sha256": "5b883e85d1179d06987509e4ede2b18fbc54433c4578b316af355e68d17becf5",
+        "frame_range_half_open": [
+          361,
+          410
+        ],
+        "endpoint_witness_frame": 410,
+        "fps": 60,
+        "time_base": "1/15360",
+        "pts_ticks_per_frame": 256,
+        "pts_range_half_open": [
+          92416,
+          104960
+        ],
+        "endpoint_witness_pts": 104960,
+        "phase_policy": "r4 mapping unchanged; endpoint frame is closure witness only"
+      }
+    }
+  ],
+  "runtime_handoff": {
+    "owner": "receiving integrator",
+    "derive_additive_relative_to": "normal_ready complete evaluated pose",
+    "ads": "reuse base directional clips at reduced amplitude; no duplicate ADS Actions",
+    "run_transition": "fade directional layer out while run layer fades in; preserve evaluated start pose and phase",
+    "note": "Source pose-space flags describe the BLEND and FBX output; they are not runtime layering implementation"
+  },
+  "revision": "r3",
+  "status": "local preparation; review pending; no production activation",
+  "authoring_source_sha256": "36d76491c2cf6238b8a1e10069dddd5b0d63e199063e1f4012b34f3fd4b1e18d",
+  "source_commit": "493c202477604892ee6d332fc24ef01e8703f1ae",
+  "review": {
+    "url": "https://github.com/RHS059/dot_chat/pull/1#issuecomment-5972558779",
+    "scope": "HIP r5 media motion only",
+    "scores": {
+      "forward": 82,
+      "backward": 83,
+      "left": 82,
+      "right": 81
+    },
+    "ads_composition": "unreviewed: existing ADS v4 policy applied to new r5 HIP input"
+  }
+}

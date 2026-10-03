@@ -1,0 +1,153 @@
+{
+  "action_count": 80,
+  "actions": {
+    "hip_walk_forward_r5": {
+      "varied_channels": [
+        [
+          "pose.bones[\"righthand_prop\"].location",
+          0
+        ],
+        [
+          "pose.bones[\"righthand_prop\"].location",
+          1
+        ],
+        [
+          "pose.bones[\"righthand_prop\"].location",
+          2
+        ],
+        [
+          "pose.bones[\"righthand_prop\"].rotation_euler",
+          0
+        ],
+        [
+          "pose.bones[\"righthand_prop\"].rotation_euler",
+          1
+        ],
+        [
+          "pose.bones[\"righthand_prop\"].rotation_euler",
+          2
+        ]
+      ],
+      "root_cyclic_curves": [
+        {
+          "path": "pose.bones[\"righthand_prop\"].location",
+          "index": 0,
+          "keys": 39,
+          "endpoint_value_error": 0.0,
+          "endpoint_tangent_error_float": -2.4972116732325036e-09
+        },
+        {
+          "path": "pose.bones[\"righthand_prop\"].location",
+          "index": 1,
+          "keys": 39,
+          "endpoint_value_error": 0.0,
+          "endpoint_tangent_error_float": -5.585312869106282e-09
+        },
+        {
+          "path": "pose.bones[\"righthand_prop\"].location",
+          "index": 2,
+          "keys": 39,
+          "endpoint_value_error": 0.0,
+          "endpoint_tangent_error_float": 2.419833283404116e-10
+        },
+        {
+          "path": "pose.bones[\"righthand_prop\"].rotation_euler",
+          "index": 0,
+          "keys": 39,
+          "endpoint_value_error": 0.0,
+          "endpoint_tangent_error_float": -1.0720424197235151e-08
+        },
+        {
+          "path": "pose.bones[\"righthand_prop\"].rotation_euler",
+          "index": 1,
+          "keys": 39,
+          "endpoint_value_error": 0.0,
+          "endpoint_tangent_error_float": -1.1919965100474356e-08
+        },
+        {
+          "path": "pose.bones[\"righthand_prop\"].rotation_euler",
+          "index": 2,
+          "keys": 39,
+          "endpoint_value_error": 0.0,
+          "endpoint_tangent_error_float": 8.234511527510646e-09
+        }
+      ],
+      "fake_user": true,
+      "loop_period_frames": 38
+    },
+    "hip_walk_backward_r5": {
+      "varied_channels": [
+        [
+          "pose.bones[\"righthand_prop\"].location",
+          0
+        ],
+        [
+          "pose.bones[\"righthand_prop\"].location",
+          1
+        ],
+        [
+          "pose.bones[\"righthand_prop\"].location",
+          2
+        ],
+        [
+          "pose.bones[\"righthand_prop\"].rotation_euler",
+          0
+        ],
+        [
+          "pose.bones[\"righthand_prop\"].rotation_euler",
+          1
+        ],
+        [
+          "pose.bones[\"righthand_prop\"].rotation_euler",
+          2
+        ]
+      ],
+      "root_cyclic_curves": [
+        {
+          "path": "pose.bones[\"righthand_prop\"].location",
+          "index": 0,
+          "keys": 46,
+          "endpoint_value_error": 0.0,
+          "endpoint_tangent_error_float": 4.864990403368949e-09
+        },
+        {
+          "path": "pose.bones[\"righthand_prop\"].location",
+          "index": 1,
+          "keys": 46,
+          "endpoint_value_error": 0.0,
+          "endpoint_tangent_error_float": -7.259499849941297e-10
+        },
+        {
+          "path": "pose.bones[\"righthand_prop\"].location",
+          "index": 2,
+          "keys": 46,
+          "endpoint_value_error": 0.0,
+          "endpoint_tangent_error_float": -4.132709459207535e-11
+        },
+        {
+          "path": "pose.bones[\"righthand_prop\"].rotation_euler",
+          "index": 0,
+          "keys": 46,
+          "endpoint_value_error": 0.0,
+          "endpoint_tangent_error_float": 1.7163933754236202e-10
+        },
+        {
+          "path": "pose.bones[\"righthand_prop\"].rotation_euler",
+          "index": 1,
+          "keys": 46,
+          "endpoint_value_error": 0.0,
+          "endpoint_tangent_error_float": 2.0450756723928293e-09
+        },
+        {
+          "path": "pose.bones[\"righthand_prop\"].rotation_euler",
+          "index": 2,
+          "keys": 46,
+          "endpoint_value_error": 0.0,
+          "endpoint_tangent_error_float": 2.561594010779683e-08
+        }
+      ],
+      "fake_user": true,
+      "loop_period_frames": 45
+    }
+  }
+}

@@ -119,7 +119,7 @@ class DirectionalDistributionTests(unittest.TestCase):
             package.verify_directional(self.root)
 
     def test_source_change_requires_regeneration(self):
-        source = self.root / 'assets/authoring/locomotion_directional/halcyon_hip_directional_r1.blend'
+        source = self.root / package.DIRECTIONAL_SOURCE
         source.parent.mkdir(parents=True)
         source.write_bytes(b'changed source')
         with self.assertRaisesRegex(ValueError, 'committed Blender source'):

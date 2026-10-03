@@ -1,0 +1,151 @@
+{
+  "schema": "rust-duty-directional-preview-fbx-validation/v1",
+  "fbx_version": 7400,
+  "source_sha256": {
+    "halcyon_hip_directional_r5.blend": "36d76491c2cf6238b8a1e10069dddd5b0d63e199063e1f4012b34f3fd4b1e18d"
+  },
+  "fbx_sha256": "bb6c6af2f60e128d9b109333163edb467f76feb38ac877acc282db7935778960",
+  "blender": "4.3.2",
+  "source_fps": 60,
+  "bake_hz": 480,
+  "deform_bone_count": 72,
+  "skin_objects": [
+    "Actual arms mesh 0",
+    "Actual arms mesh 1",
+    "Actual arms mesh 2"
+  ],
+  "actors": [
+    "hk416_weapon",
+    "hk416_magazine"
+  ],
+  "takes": {
+    "hip_walk_forward_r5": {
+      "curve_count": 675,
+      "key_counts": {
+        "305": 675
+      },
+      "expected_keys_per_curve": 305,
+      "duration_seconds": 0.6333333333333333,
+      "duration_matches": true,
+      "max_step_error_seconds": 1.0825792085694674e-11,
+      "sample_count_matches": true
+    },
+    "hip_walk_backward_r5": {
+      "curve_count": 675,
+      "key_counts": {
+        "361": 675
+      },
+      "expected_keys_per_curve": 361,
+      "duration_seconds": 0.75,
+      "duration_matches": true,
+      "max_step_error_seconds": 1.0825792085694674e-11,
+      "sample_count_matches": true
+    },
+    "hip_strafe_left_r5": {
+      "curve_count": 675,
+      "key_counts": {
+        "393": 675
+      },
+      "expected_keys_per_curve": 393,
+      "duration_seconds": 0.8166666666666667,
+      "duration_matches": true,
+      "max_step_error_seconds": 1.0825792085694674e-11,
+      "sample_count_matches": true
+    },
+    "hip_strafe_right_r5": {
+      "curve_count": 675,
+      "key_counts": {
+        "393": 675
+      },
+      "expected_keys_per_curve": 393,
+      "duration_seconds": 0.8166666666666667,
+      "duration_matches": true,
+      "max_step_error_seconds": 1.0825792085694674e-11,
+      "sample_count_matches": true
+    }
+  },
+  "native_endpoint_seams": {
+    "hip_walk_forward_r5__bones": {
+      "exact_endpoint_repeat": true,
+      "maximum_absolute_endpoint_difference": 0.0
+    },
+    "hip_walk_forward_r5__actors": {
+      "exact_endpoint_repeat": true,
+      "maximum_absolute_endpoint_difference": 0.0
+    },
+    "hip_walk_forward_r5__skin_0": {
+      "exact_endpoint_repeat": true,
+      "maximum_absolute_endpoint_difference": 0.0
+    },
+    "hip_walk_forward_r5__skin_1": {
+      "exact_endpoint_repeat": true,
+      "maximum_absolute_endpoint_difference": 0.0
+    },
+    "hip_walk_forward_r5__skin_2": {
+      "exact_endpoint_repeat": true,
+      "maximum_absolute_endpoint_difference": 0.0
+    },
+    "hip_walk_backward_r5__bones": {
+      "exact_endpoint_repeat": true,
+      "maximum_absolute_endpoint_difference": 0.0
+    },
+    "hip_walk_backward_r5__actors": {
+      "exact_endpoint_repeat": true,
+      "maximum_absolute_endpoint_difference": 0.0
+    },
+    "hip_walk_backward_r5__skin_0": {
+      "exact_endpoint_repeat": true,
+      "maximum_absolute_endpoint_difference": 0.0
+    },
+    "hip_walk_backward_r5__skin_1": {
+      "exact_endpoint_repeat": true,
+      "maximum_absolute_endpoint_difference": 0.0
+    },
+    "hip_walk_backward_r5__skin_2": {
+      "exact_endpoint_repeat": true,
+      "maximum_absolute_endpoint_difference": 0.0
+    },
+    "hip_strafe_left_r5__bones": {
+      "exact_endpoint_repeat": true,
+      "maximum_absolute_endpoint_difference": 0.0
+    },
+    "hip_strafe_left_r5__actors": {
+      "exact_endpoint_repeat": true,
+      "maximum_absolute_endpoint_difference": 0.0
+    },
+    "hip_strafe_left_r5__skin_0": {
+      "exact_endpoint_repeat": true,
+      "maximum_absolute_endpoint_difference": 0.0
+    },
+    "hip_strafe_left_r5__skin_1": {
+      "exact_endpoint_repeat": true,
+      "maximum_absolute_endpoint_difference": 0.0
+    },
+    "hip_strafe_left_r5__skin_2": {
+      "exact_endpoint_repeat": true,
+      "maximum_absolute_endpoint_difference": 0.0
+    },
+    "hip_strafe_right_r5__bones": {
+      "exact_endpoint_repeat": true,
+      "maximum_absolute_endpoint_difference": 0.0
+    },
+    "hip_strafe_right_r5__actors": {
+      "exact_endpoint_repeat": true,
+      "maximum_absolute_endpoint_difference": 0.0
+    },
+    "hip_strafe_right_r5__skin_0": {
+      "exact_endpoint_repeat": true,
+      "maximum_absolute_endpoint_difference": 0.0
+    },
+    "hip_strafe_right_r5__skin_1": {
+      "exact_endpoint_repeat": true,
+      "maximum_absolute_endpoint_difference": 0.0
+    },
+    "hip_strafe_right_r5__skin_2": {
+      "exact_endpoint_repeat": true,
+      "maximum_absolute_endpoint_difference": 0.0
+    }
+  },
+  "passed": true,
+  "scope": "FBX inventory/bake schedule and native endpoint loops. No converter or runtime parity claim."
+}

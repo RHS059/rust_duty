@@ -1,0 +1,50 @@
+{
+  "schema": "rust-duty-hip-r5-longitudinal-handoff/v1",
+  "status": "WIP; unscored; native source for independent integration and Eevee Viewport Render Animation review",
+  "source_sha256": "d220162819fb7267aa6b93b209afc8ce5212a0692e6a4e02c5c43602b08907e3",
+  "candidate_file": "halcyon_hip_longitudinal_r5.blend",
+  "candidate_sha256": "147541d32421e3e431946a9cf5a4209d6072bede97355238bd6180b2491fdae8",
+  "new_actions": [
+    "hip_walk_forward_r5",
+    "hip_walk_backward_r5"
+  ],
+  "preserved_actions": 78,
+  "review": "https://github.com/RHS059/dot_chat/pull/1#issuecomment-5972182972",
+  "reference_evidence": "reference_gap_analysis.json",
+  "rendered": false,
+  "published": false,
+  "committed": false,
+  "runtime_modified": false,
+  "creator_validation": "validation_summary.json",
+  "creation_validation": "halcyon_hip_longitudinal_r5_authoring_preservation.json",
+  "design": "directional_keyposes_r5.json",
+  "exact_changes": "motion_changes_r5.json",
+  "timestamp_evidence": "review_timestamp_verification.json",
+  "curated_patch_files": [
+    "author_r5.py",
+    "source_integrity.py",
+    "build_design_r5.py",
+    "directional_keyposes_r5.json",
+    "motion_changes_r5.json",
+    "reference_gap_analysis.json",
+    "validate_motion_r5.py",
+    "summarize_validation_r5.py",
+    "check_action_structure.py",
+    "halcyon_hip_longitudinal_r5_authored_root_keys.json",
+    "halcyon_hip_longitudinal_r5_authoring_preservation.json",
+    "validation/candidate_tracks_480fps.csv",
+    "validation/native_validation.json",
+    "validation_summary.json",
+    "action_structure_validation.json",
+    "review_timestamp_verification.json",
+    "author_package_manifest.json",
+    "README.md"
+  ],
+  "limitations": [
+    "No visual acceptance or score",
+    "Optical trajectory/angle measurements are not calibrated cross-weapon3D registration",
+    "Backward receiver moves by up to24.038px as a consequence of stronger roll; specifically needs visual review",
+    "Full geometry and prior-motion preservation and runtime/export acceptance belong to independent integration",
+    "Contact/landmark constraints do not certify hidden mesh-intersection clearance"
+  ]
+}

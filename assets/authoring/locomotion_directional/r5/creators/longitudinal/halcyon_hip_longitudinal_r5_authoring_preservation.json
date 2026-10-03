@@ -1,0 +1,12 @@
+{
+  "source_sha256": "d220162819fb7267aa6b93b209afc8ce5212a0692e6a4e02c5c43602b08907e3",
+  "candidate_sha256": "147541d32421e3e431946a9cf5a4209d6072bede97355238bd6180b2491fdae8",
+  "preserved_actions": 78,
+  "preserved_nla_tracks": 8,
+  "preserved_drivers": 185,
+  "created_actions": [
+    "hip_walk_forward_r5",
+    "hip_walk_backward_r5"
+  ],
+  "original_nla_active_driver_texture_snapshots_equal": true
+}

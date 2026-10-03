@@ -335,6 +335,9 @@ DIRECTIONAL_DIR = Path('assets/directional')
 DIRECTIONAL_CLIPS = ('hip_walk_forward_r1', 'hip_walk_backward_r1',
                      'hip_strafe_left_r1', 'hip_strafe_right_r1')
 DIRECTIONAL_ENDS = (39, 46, 50, 50)
+DIRECTIONAL_ACTIONS = tuple(name.replace('_r1', '_r5') for name in DIRECTIONAL_CLIPS)
+DIRECTIONAL_SOURCE = 'assets/authoring/locomotion_directional/r5/halcyon_hip_directional_r5.blend'
+DIRECTIONAL_SOURCE_SHA256 = '36d76491c2cf6238b8a1e10069dddd5b0d63e199063e1f4012b34f3fd4b1e18d'
 DIRECTIONAL_META = ('manifest.json', *(f'{kind}-{clip}.json' for clip in DIRECTIONAL_CLIPS
                                       for kind in ('parity', 'conversion')))
 
@@ -366,13 +369,14 @@ def verify_directional(root: Path, folder: Path = DIRECTIONAL_DIR, require_trans
     names = [*CLIPS, 'normal_walk_r1', *DIRECTIONAL_CLIPS]
     clips = manifest.get('directional_clips', [])
     durations = [(end - 1) / 60 for end in DIRECTIONAL_ENDS]
-    if (manifest.get('schema') != 'rust-duty-authored-directional-distribution/v1'
+    if (manifest.get('schema') != 'rust-duty-authored-directional-distribution/v2'
             or manifest.get('clip_count') != 48 or manifest.get('clip_names') != names
             or set(manifest.get('files', {})) != set(COMPANIONS)
-            or source.get('file') != 'assets/authoring/locomotion_directional/halcyon_hip_directional_r1.blend'
+            or source.get('file') != DIRECTIONAL_SOURCE
+            or source.get('sha256') != DIRECTIONAL_SOURCE_SHA256
             or source.get('fps') != 60 or source.get('bake_hz') != 480
             or [c.get('name') for c in clips] != list(DIRECTIONAL_CLIPS)
-            or [c.get('action') for c in clips] != list(DIRECTIONAL_CLIPS)
+            or [c.get('action') for c in clips] != list(DIRECTIONAL_ACTIONS)
             or any(c.get('loop') is not True or c.get('frame_start') != 1 for c in clips)
             or [c.get('frame_end') for c in clips] != list(DIRECTIONAL_ENDS)
             or [c.get('duration') for c in clips] != durations):
@@ -415,7 +419,7 @@ def verify_directional(root: Path, folder: Path = DIRECTIONAL_DIR, require_trans
         conversion = json.loads(regular_file(root, folder / f'conversion-{clip}.json').read_text())
         if (parity.get('backend') != 'Rust CPU sampler' or parity.get('passed') is not True
                 or parity.get('asset_sha256') != manifest['files']['asset.vra']['sha256']
-                or parity.get('source_sha256', {}).get('halcyon_hip_directional_r1.blend') != source.get('sha256')
+                or parity.get('source_sha256', {}).get('halcyon_hip_directional_r5.blend') != source.get('sha256')
                 or parity.get('source_fbx_sha256') != source.get('fbx', {}).get('sha256')
                 or parity.get('clip') != clip or parity.get('samples', 0) < 25
                 or parity.get('visibility_failures') != 0

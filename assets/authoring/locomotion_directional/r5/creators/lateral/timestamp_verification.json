@@ -1,0 +1,70 @@
+{
+  "source": "r4 maps tied to reviewed videos",
+  "phase_changed": false,
+  "actions": {
+    "left": {
+      "map_path": "/workspace/shared/hip-feedback-r4-20261003/render/publication/hip_strafe_left_r4_frame_map.csv",
+      "map_sha256": "5a8502b244fa56a9c82d2487368ad00ee00993e4417cc614711558bd51c586e5",
+      "all98_entries_verified": true,
+      "period_frames": 49,
+      "fps": 60,
+      "reference_core_half_open": [
+        886,
+        935
+      ],
+      "repeated_endpoint_blender_frame": 50,
+      "witnesses": [
+        {
+          "output_time_s": 0.5,
+          "blender_frame": 31,
+          "reference_raw_frame": 916,
+          "reference_time_s": 15.266666666666667
+        },
+        {
+          "output_time_s": 0.7,
+          "blender_frame": 43,
+          "reference_raw_frame": 928,
+          "reference_time_s": 15.466666666666667
+        }
+      ]
+    },
+    "right": {
+      "map_path": "/workspace/shared/hip-feedback-r4-20261003/render/publication/hip_strafe_right_r4_frame_map.csv",
+      "map_sha256": "a1ff0f7d8d4bba88c3a448bb731343173fee8034c628ea94702a073bdb4f220a",
+      "all98_entries_verified": true,
+      "period_frames": 49,
+      "fps": 60,
+      "reference_core_half_open": [
+        361,
+        410
+      ],
+      "repeated_endpoint_blender_frame": 50,
+      "witnesses": [
+        {
+          "output_time_s": 0.2833333333333333,
+          "blender_frame": 18,
+          "reference_raw_frame": 378,
+          "reference_time_s": 6.3
+        },
+        {
+          "output_time_s": 0.3,
+          "blender_frame": 19,
+          "reference_raw_frame": 379,
+          "reference_time_s": 6.316666666666666
+        },
+        {
+          "output_time_s": 0.6166666666666667,
+          "blender_frame": 38,
+          "reference_raw_frame": 398,
+          "reference_time_s": 6.633333333333334
+        },
+        {
+          "output_time_s": 0.7,
+          "blender_frame": 43,
+          "reference_raw_frame": 403,
+          "reference_time_s": 6.716666666666667
+        }
+      ]
+    }
+  }
+}

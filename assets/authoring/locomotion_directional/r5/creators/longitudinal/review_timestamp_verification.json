@@ -1,0 +1,94 @@
+{
+  "forward": {
+    "r4_map_sha256": "0c64e6c61dad23c0f6df27a2bc9a49a47d043a1f7a32fa6535b7fac764a8486a",
+    "all_map_rows_verified": 76,
+    "selected_rows": [
+      {
+        "output_frame": "9",
+        "output_time_s": "0.150000000",
+        "loop": "1",
+        "reference_raw_frame": "57",
+        "blender_frame": "10",
+        "source_time_s": "0.150000000"
+      },
+      {
+        "output_frame": "29",
+        "output_time_s": "0.483333333",
+        "loop": "1",
+        "reference_raw_frame": "77",
+        "blender_frame": "30",
+        "source_time_s": "0.483333333"
+      },
+      {
+        "output_frame": "47",
+        "output_time_s": "0.783333333",
+        "loop": "2",
+        "reference_raw_frame": "57",
+        "blender_frame": "10",
+        "source_time_s": "0.150000000"
+      },
+      {
+        "output_frame": "67",
+        "output_time_s": "1.116666667",
+        "loop": "2",
+        "reference_raw_frame": "77",
+        "blender_frame": "30",
+        "source_time_s": "0.483333333"
+      }
+    ]
+  },
+  "backward": {
+    "r4_map_sha256": "aa78d11cf9801c719240cd5441ca3cce2a88c7b9c8bae847e3ba6ba38a220189",
+    "all_map_rows_verified": 90,
+    "selected_rows": [
+      {
+        "output_frame": "27",
+        "output_time_s": "0.450000000",
+        "loop": "1",
+        "reference_raw_frame": "238",
+        "blender_frame": "28",
+        "source_time_s": "0.450000000"
+      },
+      {
+        "output_frame": "28",
+        "output_time_s": "0.466666667",
+        "loop": "1",
+        "reference_raw_frame": "239",
+        "blender_frame": "29",
+        "source_time_s": "0.466666667"
+      },
+      {
+        "output_frame": "29",
+        "output_time_s": "0.483333333",
+        "loop": "1",
+        "reference_raw_frame": "240",
+        "blender_frame": "30",
+        "source_time_s": "0.483333333"
+      },
+      {
+        "output_frame": "72",
+        "output_time_s": "1.200000000",
+        "loop": "2",
+        "reference_raw_frame": "238",
+        "blender_frame": "28",
+        "source_time_s": "0.450000000"
+      },
+      {
+        "output_frame": "73",
+        "output_time_s": "1.216666667",
+        "loop": "2",
+        "reference_raw_frame": "239",
+        "blender_frame": "29",
+        "source_time_s": "0.466666667"
+      },
+      {
+        "output_frame": "74",
+        "output_time_s": "1.233333333",
+        "loop": "2",
+        "reference_raw_frame": "240",
+        "blender_frame": "30",
+        "source_time_s": "0.483333333"
+      }
+    ]
+  }
+}

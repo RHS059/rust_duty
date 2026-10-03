@@ -56,6 +56,10 @@ all model routes use the existing first-person viewmodel camera and model root.
 
 ## Regular walking slot
 
+Current directional selection uses `directional/asset.vra`. Its four existing
+`*_r1` names now carry the r5 source Actions; see [the source-to-slot mapping](HIP_R5_INTEGRATION.md).
+The following regular loop remains preserved as the base clip.
+
 `regular_walk.asset=walk/asset.vra` and `regular_walk.clip=normal_walk_r1` bind
 the current source-authored loop. Its companion pack preserves all original 43
 clip payloads and the canonical skin/rigid bytes. The entire

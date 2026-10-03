@@ -14,7 +14,9 @@ from merge_walk_clip import clip_offset, merge
 
 CLIPS = [('hip_walk_forward_r1', True, 39), ('hip_walk_backward_r1', True, 46),
          ('hip_strafe_left_r1', True, 50), ('hip_strafe_right_r1', True, 50)]
-SOURCE_FILE = 'halcyon_hip_directional_r1.blend'
+SOURCE_FILE = 'halcyon_hip_directional_r5.blend'
+SOURCE_SHA256 = '36d76491c2cf6238b8a1e10069dddd5b0d63e199063e1f4012b34f3fd4b1e18d'
+ACTIONS = [name.replace('_r1', '_r5') for name, _, _ in CLIPS]
 
 
 def digest(path):
@@ -30,24 +32,27 @@ def main():
     parser.add_argument('--work', type=Path, required=True)
     parser.add_argument('--output', type=Path, required=True)
     args = parser.parse_args()
-    root = args.root.resolve(); source = root / 'assets/authoring/locomotion_directional'
+    root = args.root.resolve(); source = root / 'assets/authoring/locomotion_directional/r5'
     work = args.work.resolve(); output = args.output.resolve()
     require(not work.exists() and not output.exists(), 'use fresh work and output directories')
     work.mkdir(parents=True)
-    config = json.loads((source / 'preview_export_config.json').read_text())
+    config = json.loads((source.parent / 'runtime_export_config.json').read_text())
     require(config['source_file'] == SOURCE_FILE and config['source_fps'] == 60 and config['bake_hz'] == 480,
             'unexpected directional source contract')
+    require(digest(source / SOURCE_FILE)['sha256'] == config['authoring_source_sha256'] == SOURCE_SHA256,
+            'directional source does not match approved r5 identity')
     takes = config['source_takes']
     require([(c['name'], c['loop'], c['frame_end']) for c in takes] == CLIPS
-            and all(c['frame_start'] == 1 and c['action'] == c['name']
-                    and c['pose_space'] == 'absolute' and c['additive'] is False for c in takes), 'unexpected directional take selection')
+            and [c['action'] for c in takes] == ACTIONS
+            and all(c['frame_start'] == 1 and c['pose_space'] == 'absolute'
+                    and c['additive'] is False for c in takes), 'unexpected directional take selection')
     def run(command):
         subprocess.run(list(map(str, command)), cwd=root, check=True)
     run([sys.executable, root / 'tools/package_game.py', 'materialize', '--root', root, '--include-walk'])
     exported = work / 'fbx'; merged = work / 'merged'; merged.mkdir()
     run([args.blender, '--background', '--factory-startup', '--disable-autoexec', source / SOURCE_FILE,
-         '--python-exit-code', '1', '--python', source / 'export_directional_preview.py', '--',
-         '--config', source / 'preview_export_config.json', '--output-dir', exported])
+         '--python-exit-code', '1', '--python', root / 'tools/export_directional_fbx.py', '--',
+         '--config', source.parent / 'runtime_export_config.json', '--output-dir', exported])
     base = root / 'assets/walk/asset.vra'; original = base.read_bytes(); data = original
     vrs = base.with_suffix('.vrs').read_bytes(); vrm = base.with_suffix('.vrm').read_bytes()
     fbx_digest = digest(exported / 'locomotion.fbx'); source_digest = digest(source / SOURCE_FILE)
@@ -88,11 +93,11 @@ def main():
     (output / 'asset.vrs.gz').write_bytes(gzip.compress(vrs, mtime=0))
     (output / 'asset.vra.gz').write_bytes(gzip.compress(data, mtime=0))
     pack = vrview.decode_vra(data, vrs=vrs, vrm=vrm)
-    manifest = {'schema': 'rust-duty-authored-directional-distribution/v1', 'clip_count': 48,
+    manifest = {'schema': 'rust-duty-authored-directional-distribution/v2', 'clip_count': 48,
         'clip_names': [c['name'] for c in pack['clips']],
         'directional_clips': [{'name': c['name'], 'loop': c['loop'], 'duration': (c['frame_end']-1)/60,
                        'action': c['action'], 'frame_start': c['frame_start'], 'frame_end': c['frame_end']} for c in takes],
-        'source': {'file': 'assets/authoring/locomotion_directional/' + SOURCE_FILE, **source_digest, 'fps': 60,
+        'source': {'file': 'assets/authoring/locomotion_directional/r5/' + SOURCE_FILE, **source_digest, 'fps': 60,
                    'bake_hz': 480, 'fbx': fbx_digest},
         'files': {f'asset.{ext}': digest(output / f'asset.{ext}') for ext in ('vra', 'vrs', 'vrm')},
         'preservation': {'original_walk_vra_sha256': digest(base)['sha256'], 'clip_payloads_byte_identical': 44,
@@ -102,8 +107,9 @@ def main():
             **digest(output / (name + '.gz')), 'decoded_bytes': len(raw),
             'decoded_sha256': hashlib.sha256(raw).hexdigest()}
             for name, raw in [('asset.vra', data), ('asset.vrs', vrs)]},
-        'scope': 'Four source-authored WIP HIP directional loops; source Actions and canonical walk44 retained. Numerical parity is not reference-fidelity, contact, or artistic approval.'}
-    (output / 'README.md').write_text('Four source-authored HIP directional WIP loops, appended to immutable walk44.\nBlender 4.3.2 -> evaluated FBX -> runtime; numerical Rust parity is not artistic approval.\n')
+        'source_review': config['review'],
+        'scope': 'Four r5 source Actions exported under stable r1 game IDs; canonical walk44 retained. HIP source-media scores do not approve the new ADS-v4/r5 composition.'}
+    (output / 'README.md').write_text('Four r5 HIP source Actions, exported under stable r1 game IDs after immutable walk44.\nBlender 4.3.2 -> evaluated FBX -> runtime; numerical Rust parity is not artistic approval.\n')
     (output / 'manifest.json').write_text(json.dumps(manifest, indent=2) + '\n')
     print(json.dumps(manifest, indent=2))
 
