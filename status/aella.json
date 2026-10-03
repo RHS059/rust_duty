@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "updatedAt": "2026-10-03T02:58:22Z",
+  "state": "active",
+  "task": "Coordinating the complete animation build and live status sidebar",
+  "lastCompleted": "Verified and delivered the GitHub game build with the weapon, arms, and 43 locomotion clips",
+  "agents": [
+    {
+      "slot": 1,
+      "state": "active",
+      "task": "Adding the live status sidebar to the gallery",
+      "lastCompleted": "Published the frame-44 diagnostic"
+    },
+    {
+      "slot": 2,
+      "state": "active",
+      "task": "Validating named animation bindings and rendered reload capture",
+      "lastCompleted": "Windows and Linux runtime tests passed"
+    },
+    {
+      "slot": 3,
+      "state": "active",
+      "task": "Running Blender export, animation validation, and game builds on GitHub",
+      "lastCompleted": "Committed the authoritative Blender source and build workflow"
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "updatedAt": "2026-10-03T02:58:22Z",
+  "latestComplete": {
+    "sha": "6684e6f0582af236dc6f2b49c74cbcbe12f3ba2b",
+    "downloadUrl": "https://github.com/RHS059/rust_duty/actions/runs/37088824450/artifacts/11261264534",
+    "runUrl": "https://github.com/RHS059/rust_duty/actions/runs/37088824450",
+    "verifiedAt": "2026-10-03T02:15:04Z",
+    "completedAt": null
+  },
+  "changes": [
+    "Weapon, arms, and 43 ready/sprint/exit clips included in one game download",
+    "Normal launch discovers the bundled animation assets",
+    "Centered in-game update check gates entry to the test world",
+    "Full authored reload export and playback are in the newer build still being checked"
+  ],
+  "currentBuild": {
+    "state": "active",
+    "task": "Blender export and validation running before the new game build",
+    "url": "https://github.com/RHS059/rust_duty/actions/runs/37091167717"
+  }
+}
