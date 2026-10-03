@@ -116,6 +116,17 @@ impl AuthoredAds {
     pub fn sample(&self) -> Option<AdsSample> {
         self.sample
     }
+    /// Native transition progress, continuous through both reversal directions.
+    pub fn aim_amount(&self) -> f32 {
+        self.sample.map_or(0., |sample| {
+            let t = match sample.slot {
+                AdsSlot::Entry => sample.seconds / self.duration(AdsSlot::Entry),
+                AdsSlot::Hold => 1.,
+                AdsSlot::Exit => 1. - sample.seconds / self.duration(AdsSlot::Exit),
+            }.clamp(0., 1.);
+            (t * t * (3. - 2. * t)) as f32
+        })
+    }
     pub fn duration(&self, slot: AdsSlot) -> f64 {
         self.durations[match slot {
             AdsSlot::Entry => 0,

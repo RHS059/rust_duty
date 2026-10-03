@@ -60,12 +60,28 @@ all model routes use the existing first-person viewmodel camera and model root.
 the current source-authored loop. Its companion pack preserves all original 43
 clip payloads and the canonical skin/rigid bytes. The entire
 matching companion pack is loaded and the named clip must be looping and have
-positive duration. This uses committed grounded movement above 0.1 m/s, not raw
-W input or the sprint boolean. Reload takes priority; sprint's authored exit must
-reach ready before walking can own the model. Active ADS (including its native exit), mantle and firing also suppress
-walk. Native seconds loop without speed warping; stop/reset clears its clock and
-pause freezes it. Whole-model cuts are explicit WIP transitions. No procedural
-walking motion is added when the authored slot is unavailable.
+positive duration. `regular_walk.anchor_actor=hk416_weapon` declares the actor
+used for compatible-pose layering; canonical CRCs, bone hierarchy and actor
+bindings must match before any walking pose can be blended.
+
+Committed grounded movement above 0.1 m/s drives a 160 ms start and 220 ms stop
+envelope with smoothstep weight. Stop continues native phase during fade-out;
+resuming before the fade ends reverses its weight without restarting the loop.
+Pause and repeated render calls cannot change phase or weight. Reload retains its
+separate-rig whole-model cut and clears this layer; sprint/mantle fade walking
+away while their existing presentation proceeds. Firing no longer suppresses
+walk. There is no procedural replacement when the authored slot is unavailable.
+
+The complete source walk is retained at full hip weight. Transitions interpolate
+bone globals in the declared weapon actor's space, then reconstruct local joints;
+they do not independently interpolate a rotating arm chain and its gun. This
+preserves source wrist/weapon contacts. ADS entry/exit keeps the same walk clock.
+As native aim reaches hold, walking contributes only its authored optical-axis
+translation and roll, applied rigidly to the entire authored aimed pose. This
+keeps both sight landmarks on their existing camera ray while retaining native
+walking depth/roll motion. Transverse sway/pitch/yaw are smoothly restored on exit.
+The native ADS clips, pose reversals, camera, weapon stats and gameplay remain
+unchanged. This is runtime layering, not a claim of a newly authored ADS-walk clip.
 
 For rendered gameplay-path evidence (not the old normalized-pose preview), run:
 
@@ -89,9 +105,8 @@ position and renderer-failure status. No velocity or pose override is used.
 
 The expected proof is ready -> `regular_walk` over at least two native loops ->
 ready after movement decays below 0.1 m/s. Gun and arms use the complete authored
-pack. Start/stop currently make whole-model cuts; authored easing and phase-aware
-walk exits have NOT been implemented. This capture exposes those seams rather
-than hiding them with procedural bob or invented transitions.
+pack. Start/stop telemetry includes eased walk weight and continues native phase through
+the stop tail. The verifier requires multiple intermediate start and stop frames.
 
 
 ## Authored ADS slots
@@ -136,9 +151,9 @@ Priority and interruptions:
 - Sprint or mantle forces a native authored ADS return to ready. Sprint locomotion
   begins only after ADS returns; a sprint exit already in progress must reach ready
   before ADS enters. Gameplay movement/traversal never waits for these visuals
-- Regular movement while aiming keeps the full ADS pose. ADS suppresses regular
-  walk until its native exit finishes. Walk-to-ADS remains an explicit WIP model
-  cut to authored entry-start, consistent with the existing walk start/stop policy
+- Regular movement while aiming retains the continuous walk layer described
+  above; native ADS reversals never restart walking. Full aim keeps source grip
+  articulation and optical alignment while native walk depth/roll remains active
 - Firing while aiming preserves authored ADS and normal shots/recoil authority.
   There is no authored fire kick until a fire slot is supplied. A rejected reload
   does not restart ADS; an automatic accepted empty reload cancels it normally

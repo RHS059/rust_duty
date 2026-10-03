@@ -1700,11 +1700,12 @@ async fn main() {
                 let failed = model.is_none_or(|model| model.error().is_some());
                 let segment = vector_range::authored_ads::gameplay_ads_replay_segment(sim.time);
                 let _ = std::fs::write(format!("{output}.gameplay.json"), format!(
-                    "{{\"simulation_time\":{},\"segment\":\"{}\",\"route\":\"{}\",\"clip\":\"{}\",\"native_clip_seconds\":{},\"clip_duration\":{},\"direction\":{},\"ads_requested\":{},\"simulation_ads\":{},\"speed\":{},\"grounded\":{},\"sprinting\":{},\"mantling\":{},\"ammo\":{},\"reserve\":{},\"shots\":{},\"reload_left\":{},\"reload_credit_at\":{},\"reload_ready_at\":{},\"renderer_failed\":{}}}",
+                    "{{\"simulation_time\":{},\"segment\":\"{}\",\"route\":\"{}\",\"clip\":\"{}\",\"native_clip_seconds\":{},\"clip_duration\":{},\"direction\":{},\"ads_requested\":{},\"simulation_ads\":{},\"speed\":{},\"grounded\":{},\"sprinting\":{},\"mantling\":{},\"ammo\":{},\"reserve\":{},\"shots\":{},\"reload_left\":{},\"reload_credit_at\":{},\"reload_ready_at\":{},\"renderer_failed\":{},\"walk_weight\":{},\"walk_seconds\":{}}}",
                     sim.time, segment, route, clip, native, duration, direction, sim.player.ads_requested,
                     sim.player.ads, sim.player.speed(), sim.player.grounded, sim.player.sprinting,
                     sim.player.mantle.is_some(), sim.player.ammo, sim.player.reserve, sim.stats.shots,
-                    sim.player.reload_left, sim.player.reload_credit_at, sim.player.reload_ready_at, failed));
+                    sim.player.reload_left, sim.player.reload_credit_at, sim.player.reload_ready_at, failed,
+                    model.map_or(0., |m| m.walk_weight()), model.and_then(|m| m.walk_sample()).map_or("null".into(), |v| v.to_string())));
             }
             if capture_sequence == Some("gameplay-walk") {
                 let native = authored.as_ref().and_then(|model| model.walk_sample());
@@ -1725,9 +1726,9 @@ async fn main() {
                     .as_ref()
                     .is_none_or(|model| model.error().is_some());
                 let _ = std::fs::write(format!("{output}.gameplay.json"), format!(
-                    "{{\"simulation_time\":{},\"route\":\"{}\",\"native_clip_seconds\":{},\"clip_duration\":{},\"speed\":{},\"grounded\":{},\"sprinting\":{},\"position\":[{},{},{}],\"renderer_failed\":{}}}",
+                    "{{\"simulation_time\":{},\"route\":\"{}\",\"native_clip_seconds\":{},\"clip_duration\":{},\"speed\":{},\"grounded\":{},\"sprinting\":{},\"position\":[{},{},{}],\"renderer_failed\":{},\"walk_weight\":{}}}",
                     sim.time, route, native, duration, sim.player.speed(), sim.player.grounded, sim.player.sprinting,
-                    sim.player.position.x, sim.player.position.y, sim.player.position.z, failed));
+                    sim.player.position.x, sim.player.position.y, sim.player.position.z, failed, authored.as_ref().map_or(0., |m| m.walk_weight())));
             }
             if capture_sequence == Some("locomotion") {
                 let motion = locomotion_state.sample(sim.time, locomotion_input(&sim));

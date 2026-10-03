@@ -39,6 +39,11 @@ def verify(folder: Path):
         raise ValueError('complete normal ADS cycle missing')
     if not any(row['route'] == 'ads.hold' and row['speed'] > .1 for row in rows):
         raise ValueError('ADS while actually moving was not rendered')
+    aimed_walk = [row for row in rows if row['route'] == 'ads.hold' and row['speed'] > .1]
+    if len(aimed_walk) < 10 or any(row['walk_weight'] <= 0 or row['walk_seconds'] is None for row in aimed_walk):
+        raise ValueError('ADS suppressed the active walking layer')
+    if not all(a['walk_seconds'] < b['walk_seconds'] for a, b in zip(aimed_walk, aimed_walk[1:])):
+        raise ValueError('ADS walk phase did not continue')
     if not any(row['sprinting'] and row['route'] == 'locomotion' for row in rows):
         raise ValueError('committed sprint did not interrupt ADS')
     shot_rows = [row for row in rows if row['segment'] == 'fire_while_aiming']
@@ -62,9 +67,10 @@ def verify(folder: Path):
     report = {'schema': 'rust-duty-native-ads-capture/v1', 'passed': True, 'frames': len(rows),
         'routes': dict(routes), 'reversal_frames': reversals,
         'distinct_ads_images': {key: len(values) for key, values in hashes.items()},
+        'aimed_walking_frames': len(aimed_walk),
         'shots': rows[-1]['shots'], 'final_ammo': rows[-1]['ammo'], 'final_reserve': rows[-1]['reserve'],
         'returned_to_ready': True, 'reacquired_after_reload': True,
-        'scope': 'Committed simulation input and native Linux rendered frames. Cross-owner walking/reload cuts remain documented WIP seams; Windows gameplay and aesthetic approval are separate.'}
+        'scope': 'Committed simulation input and native Linux rendered frames. Reload cuts remain documented WIP seams; Windows gameplay and aesthetic approval are separate.'}
     (folder / 'verification.json').write_text(json.dumps(report, indent=2) + '\n')
     return report
 
