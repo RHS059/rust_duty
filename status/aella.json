@@ -1,15 +1,15 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T10:53:01Z",
+  "updatedAt": "2026-10-03T11:02:43Z",
   "state": "active",
-  "task": "Improving walk start/stop transitions and aimed walking; reference matching awaits accessible source videos",
+  "task": "Checking smoother walk transitions and aimed walking in Windows and Linux builds; reference matching awaits accessible videos",
   "lastCompleted": "Delivered fresh GitHub Windows build with walking, reload, ADS and lighting",
   "agents": [
     {
       "slot": 1,
       "state": "active",
-      "task": "Smoothing walk start/stop transitions and integrating aimed walking",
-      "lastCompleted": "Verified fresh Windows rebuild"
+      "task": "Verifying walk start/stop smoothing and walking during ADS in PR #16",
+      "lastCompleted": "Implemented smoother walk transitions and walking during ADS"
     },
     {
       "slot": 2,
