@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T04:51:19Z",
+  "updatedAt": "2026-10-03T05:01:54Z",
   "latestComplete": {
     "sha": "79bad09d28cb083ad3cb348e6624485030c953f4",
     "downloadUrl": "https://github.com/RHS059/rust_duty/actions/runs/37094134704/artifacts/11263734815",
@@ -15,8 +15,8 @@
     "Walking gameplay capture verified repeated loops and return to ready; start/stop easing remains unfinished"
   ],
   "currentBuild": {
-    "state": "complete",
-    "task": "Complete Windows and Linux packages verified; authored walking and reload checks passed",
-    "url": "https://github.com/RHS059/rust_duty/actions/runs/37094134704"
+    "state": "active",
+    "task": "GitHub is checking the world-fixed hands and weapon lighting change",
+    "url": "https://github.com/RHS059/rust_duty/actions/runs/37098409330"
   }
 }
