@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T10:53:01Z",
+  "updatedAt": "2026-10-03T11:02:43Z",
   "latestComplete": {
     "sha": "9f27474b3cb55a41d0f8d81afeaf516cc84d721f",
     "downloadUrl": "https://github.com/RHS059/rust_duty/actions/runs/37102746221/artifacts/11270287372",
@@ -15,8 +15,8 @@
     "Windows build, tests and package verification passed; native gameplay was verified on Linux, not Windows"
   ],
   "currentBuild": {
-    "state": "complete",
-    "task": "Fresh Windows rebuild and complete package verified; no build in progress",
-    "url": "https://github.com/RHS059/rust_duty/actions/runs/37102746221"
+    "state": "active",
+    "task": "PR #16: all three animation asset jobs passed; Windows and Linux build checks are running",
+    "url": "https://github.com/RHS059/rust_duty/actions/runs/37118065452"
   }
 }
