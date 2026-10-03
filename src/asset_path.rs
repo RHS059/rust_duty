@@ -52,7 +52,8 @@ pub fn resolve_viewmodel(
         .parent()
         .unwrap_or_else(|| Path::new("."))
         .join("assets/locomotion/asset.vra");
-    if ["vra", "vrs", "vrm"].iter().any(|extension| {
+    let manifest = adjacent.parent().and_then(Path::parent).unwrap_or(Path::new(".")).join("animations.cfg");
+    if manifest.exists() || ["vra", "vrs", "vrm"].iter().any(|extension| {
         let path = adjacent.with_extension(extension);
         std::fs::symlink_metadata(&path).is_ok() || path.try_exists().is_err()
     }) {

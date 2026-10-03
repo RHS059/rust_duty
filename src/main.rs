@@ -875,7 +875,7 @@ async fn main() {
                 || s.starts_with("--weapon-asset=")
                 || s.starts_with("--arms-asset=")
         }),
-    );
+    ).or_else(|| args.iter().find_map(|arg| arg.strip_prefix("--animation-manifest=")).map(std::path::PathBuf::from));
     let authored_clip = args
         .iter()
         .find_map(|s| s.strip_prefix("--viewmodel-clip="))
@@ -899,7 +899,14 @@ async fn main() {
             let path = path
                 .to_str()
                 .ok_or_else(|| "viewmodel path is not valid Unicode".to_string())?;
-            authored_viewmodel::AuthoredViewmodel::load(path, authored_clip, time)
+            if authored_clip == "locomotion" && time.is_none() {
+                let manifest = args.iter().find_map(|arg| arg.strip_prefix("--animation-manifest="))
+                    .map(std::path::PathBuf::from)
+                    .unwrap_or_else(|| executable.parent().unwrap_or(std::path::Path::new(".")).join("assets/animations.cfg"));
+                authored_viewmodel::AuthoredViewmodel::load_manifest(&manifest)
+            } else {
+                authored_viewmodel::AuthoredViewmodel::load(path, authored_clip, time)
+            }
         }) {
             Ok(viewmodel) => Some(viewmodel),
             Err(error) => {
@@ -1122,7 +1129,7 @@ async fn main() {
             animation_state = vector_range::view_animation::ViewAnimation::default();
             locomotion_state.reset(sim.time);
             if let Some(viewmodel) = &mut authored {
-                viewmodel.update_locomotion(sim.time, sim.time, false);
+                viewmodel.reset(sim.time);
             }
             intents.clear();
             controls.clear();
@@ -1259,11 +1266,7 @@ async fn main() {
                 let authored_step_start = sim.time;
                 sim.update(input, &cfg, FIXED_DT);
                 if let Some(viewmodel) = &mut authored {
-                    viewmodel.update_locomotion(
-                        authored_step_start,
-                        sim.time,
-                        sim.player.sprinting,
-                    );
+                    viewmodel.committed_step(authored_step_start, &sim);
                 }
                 // Cosmetic targets receive exact simulation timestamps; input
                 // and movement remain fully authoritative and immediate.
@@ -1446,6 +1449,9 @@ async fn main() {
                 framing,
                 presentation_reload,
             );
+        }
+        if let Some(warning) = authored.as_ref().and_then(|viewmodel| viewmodel.warning()) {
+            label(warning, 24., screen_height() - 155., 15., YELLOW);
         }
         if let Some(error) = authored.as_ref().and_then(|viewmodel| viewmodel.error()) {
             if model_error.is_none() {

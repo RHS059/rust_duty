@@ -33,3 +33,6 @@ pub mod viewmodel_animation;
 pub mod authored_locomotion_path;
 
 pub mod authored_locomotion_adapter;
+
+pub mod animation_manifest;
+pub mod authored_reload;
