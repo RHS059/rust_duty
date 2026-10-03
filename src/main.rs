@@ -349,8 +349,10 @@ fn weapon(
     } else {
         Color::new(0., 0., 0., 0.)
     });
+    // Saved viewmodel offset: +X right, +Y up. Applied before the gun is drawn.
+    let view_offset = vec3(cfg.viewmodel_x, cfg.viewmodel_y, 0.);
     if let Some(authored) = authored {
-        authored.draw(sim.time);
+        authored.draw(sim.time, view_offset);
         composite_viewmodel(rt);
         return;
     }
@@ -368,7 +370,7 @@ fn weapon(
             - reload
             - motion.sprint * 0.13,
         -0.32 + p.shot_kick * 0.045,
-    );
+    ) + view_offset;
     let mut muzzle_position = o + vec3(0., 0.01, -1.04);
     let mut barrel = -Vec3::Z;
     if let Some(model) = model {
@@ -415,7 +417,7 @@ fn weapon(
             animation.left_hand_euler_yxz = [0.; 3];
         }
         let visual_ads = vector_range::reference_motion::visual_ads(p.ads);
-        let base = framing.hip.lerp(framing.ads, visual_ads) + vec3(0., bob, 0.);
+        let base = framing.hip.lerp(framing.ads, visual_ads) + vec3(0., bob, 0.) + view_offset;
         let frame = vector_range::view_animation::WeaponFrame::with_orientation(
             base,
             framing.hip_rotation.slerp(framing.ads_rotation, visual_ads),
@@ -704,8 +706,8 @@ fn pause_screen(cfg: &Settings, initial: bool, control_mode: ControlMode) {
     let (w, h) = (screen_width(), screen_height());
     draw_rectangle(0., 0., w, h, Color::new(0.015, 0.025, 0.035, 0.78));
     let x = w * 0.5 - 270.;
-    let y = (h * 0.5 - 250.).max(30.);
-    draw_rectangle(x, y, 540., 500., Color::new(0.035, 0.057, 0.074, 0.97));
+    let y = (h * 0.5 - 284.).max(8.);
+    draw_rectangle(x, y, 540., 568., Color::new(0.035, 0.057, 0.074, 0.97));
     draw_rectangle(x, y, 540., 3., ACCENT);
     label("VECTOR", x + 36., y + 68., 48., WHITE);
     label(
@@ -761,16 +763,37 @@ fn pause_screen(cfg: &Settings, initial: bool, control_mode: ControlMode) {
         WHITE,
     );
     label(
+        &format!("LEFT / RIGHT ARROW  VIEWMODEL X  {:+.3} m", cfg.viewmodel_x),
+        x + 38.,
+        y + 420.,
+        17.,
+        WHITE,
+    );
+    label(
+        &format!("UP / DOWN ARROW     VIEWMODEL Y  {:+.3} m", cfg.viewmodel_y),
+        x + 38.,
+        y + 448.,
+        17.,
+        WHITE,
+    );
+    label(
         "F5 SAVE PRESET    F6 RELOAD PRESET    F10 QUIT",
         x + 38.,
-        y + 428.,
+        y + 486.,
         15.,
         CYAN,
     );
     label(
+        "F5 stores the viewmodel offset as the new default.",
+        x + 38.,
+        y + 512.,
+        14.,
+        MUTED,
+    );
+    label(
         "Provisional tuning. No original-game code or assets.",
         x + 38.,
-        y + 464.,
+        y + 534.,
         14.,
         MUTED,
     );
@@ -1161,6 +1184,21 @@ async fn main() {
         }
         if is_key_pressed(KeyCode::Equal) {
             cfg.fov = (cfg.fov + 2.).min(120.);
+        }
+        // Start menu / pause settings only. Arrows nudge the viewmodel, not the player.
+        if !active {
+            if is_key_pressed(KeyCode::Left) {
+                cfg.nudge_viewmodel(-Settings::VIEWMODEL_NUDGE, 0.);
+            }
+            if is_key_pressed(KeyCode::Right) {
+                cfg.nudge_viewmodel(Settings::VIEWMODEL_NUDGE, 0.);
+            }
+            if is_key_pressed(KeyCode::Down) {
+                cfg.nudge_viewmodel(0., -Settings::VIEWMODEL_NUDGE);
+            }
+            if is_key_pressed(KeyCode::Up) {
+                cfg.nudge_viewmodel(0., Settings::VIEWMODEL_NUDGE);
+            }
         }
         if is_key_pressed(KeyCode::F5) {
             notice = match cfg.save(settings_path) {

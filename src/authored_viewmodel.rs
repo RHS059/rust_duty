@@ -163,19 +163,19 @@ impl AuthoredViewmodel {
             }
         }
     }
-    pub fn draw(&mut self, simulation_time: f64) {
+    pub fn draw(&mut self, simulation_time: f64, offset: Vec3) {
         if self.error.is_some() {
             return;
         }
-        if let Err(error) = self.draw_checked(simulation_time) {
+        if let Err(error) = self.draw_checked(simulation_time, offset) {
             eprintln!("Authored viewmodel playback failed: {error}");
             self.error = Some(error);
         }
     }
-    fn draw_checked(&mut self, simulation_time: f64) -> Result<(), String> {
+    fn draw_checked(&mut self, simulation_time: f64, offset: Vec3) -> Result<(), String> {
         if let Some(path) = &self.locomotion {
             let pose = path.pose().clone();
-            return self.draw_pose(&pose);
+            return self.draw_pose(&pose, offset);
         }
         let time = self.fixed_time.unwrap_or(simulation_time as f32);
         let pose = if self.fixed_time.is_some() {
@@ -184,12 +184,13 @@ impl AuthoredViewmodel {
             self.animation().sample(&self.clip, time)
         }
         .map_err(|e| e.to_string())?;
-        self.draw_pose(&pose)
+        self.draw_pose(&pose, offset)
     }
     /// Render one complete evaluated pose from this animation set. The gameplay
     /// adapter owns which presentation supplies it; no two pose owners are mixed
     /// here. Skin and actor dimension/transform validation is retained.
-    pub fn draw_pose(&mut self, pose: &ViewmodelPose) -> Result<(), String> {
+    /// `offset` is camera-space meters: +X right, +Y up, no forward/back.
+    pub fn draw_pose(&mut self, pose: &ViewmodelPose, offset: Vec3) -> Result<(), String> {
         let palette = self
             .animation
             .skin_palette(pose, &self.skin.bones, game_model_root())
@@ -212,7 +213,7 @@ impl AuthoredViewmodel {
                 }
                 n = n.try_normalize().unwrap_or(Vec3::Y);
                 let shade = 0.35 + 0.65 * n.dot(light).max(0.);
-                vertex.position = p;
+                vertex.position = p + offset;
                 vertex.normal = n.extend(0.);
                 vertex.color = Color::new(
                     part.base_color[0] * shade,
@@ -232,7 +233,7 @@ impl AuthoredViewmodel {
         let mut visibility = vec![false; self.rigid_mesh_count];
         for (index, actor) in self.animation.actors().iter().enumerate() {
             for &mesh in &actor.mesh_indices {
-                transforms[mesh] = actors[index];
+                transforms[mesh] = Mat4::from_translation(offset) * actors[index];
                 visibility[mesh] = pose.actor_visible[index];
             }
         }
