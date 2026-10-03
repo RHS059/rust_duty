@@ -998,16 +998,17 @@ async fn main() {
         .filter(|s| {
             matches!(
                 *s,
-                "tactical" | "empty" | "ads" | "locomotion" | "gameplay-reload"
+                "tactical" | "empty" | "ads" | "locomotion" | "gameplay-reload" | "gameplay-walk"
             )
         });
+    let gameplay_capture = matches!(capture_sequence, Some("gameplay-reload" | "gameplay-walk"));
     let mut gameplay_reload_issued = false;
     let capture_empty =
         args.iter().any(|s| s == "--capture-empty") || capture_sequence == Some("empty");
     let sequence_duration = match capture_sequence {
         Some("empty") => vector_range::reference_motion::visual_duration(true),
         Some("tactical") => vector_range::reference_motion::visual_duration(false),
-        Some("locomotion") => 3.5,
+        Some("locomotion" | "gameplay-walk") => 3.5,
         Some("gameplay-reload") => {
             authored
                 .as_ref()
@@ -1387,20 +1388,28 @@ async fn main() {
         } else {
             capture_reload
         };
-        if capture_sequence.is_some() && capture_sequence != Some("gameplay-reload") {
+        if capture_sequence.is_some() && !gameplay_capture {
             sim.time = sequence_elapsed as f64;
         }
-        if capture_sequence == Some("gameplay-reload") {
-            // Deterministic replay feeds the same accepted R event, fixed-step
-            // simulation and renderer observer as keyboard gameplay. No pose,
+        if gameplay_capture {
+            // Real fixed-step input replay: no pose, velocity, animation-clock,
             // timer or normalized reload-phase overrides are used here.
             while sim.time + f64::from(FIXED_DT) <= f64::from(sequence_elapsed) + 1e-7 {
                 let start = sim.time;
-                let reload = !gameplay_reload_issued && start >= 0.25;
+                let reload = capture_sequence == Some("gameplay-reload")
+                    && !gameplay_reload_issued
+                    && start >= 0.25;
+                let movement =
+                    if capture_sequence == Some("gameplay-walk") && (0.25..2.25).contains(&start) {
+                        Vec2::Y
+                    } else {
+                        Vec2::ZERO
+                    };
                 gameplay_reload_issued |= reload;
                 sim.update(
                     Input {
                         reload,
+                        movement,
                         ..Input::default()
                     },
                     &cfg,
@@ -1614,6 +1623,29 @@ async fn main() {
                 let _ = std::fs::write(format!("{output}.gameplay.json"), format!(
                     "{{\"simulation_time\":{},\"accepted_r_issued\":{},\"route\":\"{}\",\"native_clip_seconds\":{},\"ammo\":{},\"reserve\":{},\"reload_left\":{},\"reload_credit_at\":{},\"reload_ready_at\":{}}}",
                     sim.time, gameplay_reload_issued, route, native, sim.player.ammo, sim.player.reserve, sim.player.reload_left, sim.player.reload_credit_at, sim.player.reload_ready_at));
+            }
+            if capture_sequence == Some("gameplay-walk") {
+                let native = authored.as_ref().and_then(|model| model.walk_sample());
+                let route = if native.is_some() {
+                    "regular_walk"
+                } else {
+                    "locomotion"
+                };
+                let native = native
+                    .map(|seconds| seconds.to_string())
+                    .unwrap_or_else(|| "null".into());
+                let duration = authored
+                    .as_ref()
+                    .and_then(|model| model.walk_duration())
+                    .map(|seconds| seconds.to_string())
+                    .unwrap_or_else(|| "null".into());
+                let failed = authored
+                    .as_ref()
+                    .is_none_or(|model| model.error().is_some());
+                let _ = std::fs::write(format!("{output}.gameplay.json"), format!(
+                    "{{\"simulation_time\":{},\"route\":\"{}\",\"native_clip_seconds\":{},\"clip_duration\":{},\"speed\":{},\"grounded\":{},\"sprinting\":{},\"position\":[{},{},{}],\"renderer_failed\":{}}}",
+                    sim.time, route, native, duration, sim.player.speed(), sim.player.grounded, sim.player.sprinting,
+                    sim.player.position.x, sim.player.position.y, sim.player.position.z, failed));
             }
             if capture_sequence == Some("locomotion") {
                 let motion = locomotion_state.sample(sim.time, locomotion_input(&sim));
