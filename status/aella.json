@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T19:13:32Z",
-  "state": "active",
-  "task": "Coordinating HIP r5 game integration and the forward and lateral ADS reviews.",
-  "lastCompleted": "All four HIP r5 motions passed Elara's review: forward 82, backward 83, left 82 and right 81. Game integration is pending.",
+  "updatedAt": "2026-10-03T19:22:51Z",
+  "state": "idle",
+  "task": "Waiting for the HIP r5 source handoff and ADS publication and review.",
+  "lastCompleted": "HIP r5 motion reviews passed: forward 82, backward 83, left 82 and right 81. Integration is prepared and waiting for the source file.",
   "agents": [
     {
       "slot": 1,
@@ -14,14 +14,14 @@
     {
       "slot": 2,
       "state": "active",
-      "task": "Finishing the right-side Trial2 Eevee viewport capture.",
-      "lastCompleted": "The left-side Trial2 Eevee capture is ready; visual review remains pending."
+      "task": "Saving the lateral Trial2 checkpoint and queuing publication.",
+      "lastCompleted": "Both left and right Trial2 Eevee captures are complete at 198 frames each; visual review remains pending."
     },
     {
       "slot": 3,
-      "state": "active",
-      "task": "Preparing the exact HIP r5 source handoff for game integration.",
-      "lastCompleted": "HIP r5 source 36d76491 passed all four motion reviews; latest verified published game build remains e46f83d."
+      "state": "idle",
+      "task": "HIP r5 game integration is prepared and waiting for the source file.",
+      "lastCompleted": "All four HIP r5 motions passed review at 82, 83, 82 and 81. The latest verified published game build remains e46f83d."
     }
   ]
 }
