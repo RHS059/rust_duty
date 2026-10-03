@@ -1,21 +1,21 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T17:54:32Z",
+  "updatedAt": "2026-10-03T18:04:56Z",
   "state": "active",
-  "task": "Revising ADS after the v6 forward comparison received Fail53. Forward motion-shape work and a separate public ADS47-held lateral diagnostic are active. Lateral dense validation passed, but an armature matrix-state mismatch on reopening must be resolved before Eevee capture. The local v6 runtime checkpoint is complete but unpublished; HIP r2 access and source-publication blockers remain.",
+  "task": "Revising ADS after the v6 forward comparison received Fail53. Forward source-pixel motion and cadence analysis remains active. The separate public ADS47-held lateral diagnostic now reopens successfully and foreground Blender visibility is recovered; Eevee smoke capture is next, with no frames rendered yet. Local v6 runtime work is complete but unpublished; HIP r2 access and source-publication blockers remain.",
   "lastCompleted": "The separate ADS v6 forward Eevee/reference comparison is live at https://rhs059.github.io/rust_duty_updates/ and reviewed Fail53: sight lock is retained, but forward walking motion remains too faint. Exact v5/v6 presets and the independent v6 numerical oracle are recovered and verified. Local v6 runtime checkpoint 77a53ce passes 490 Rust tests, formatting/Clippy and affected Python checks. The latest complete published game remains PR #17 at e46f83d.",
   "agents": [
     {
       "slot": 1,
       "state": "active",
-      "task": "Isolating foreground motion and cadence after v6 Fail53 using the exact published v5/v6 forward comparisons. The top panels are resized published reference proxies, not recovered 720p originals. No new forward preset has been changed yet.",
+      "task": "Active forward author is isolating source-pixel foreground motion and cadence after v6 Fail53 using the exact published v5/v6 comparisons. The top panels are resized published reference proxies, not recovered 720p originals. No new forward preset or preview is confirmed in this snapshot.",
       "lastCompleted": "Recovered exact published v5/v6 forward MP4s and verified both repository blob hashes. V6 matches its original SHA-256 4e6a4f77a2f0cebfa7747011289d7464ba74acd1a784334e6c77361954df2e17 and is 126 frames, 2.1 seconds at 60 fps. Exact v5/v6 presets and the independent 24-case numerical oracle remain verified; visual review remains Fail53."
     },
     {
       "slot": 2,
       "state": "active",
-      "task": "Diagnosing an armature matrix-state verification mismatch after reopening the separately saved public ADS47-held diagnostic scene, before any left/right Eevee capture. Published lateral reference proxies are available. No Eevee frames have been rendered yet; the missing later-author-checkpoint and matched-comparison caveats remain.",
-      "lastCompleted": "Saved the separate public ADS47-held diagnostic scene and downloaded the lateral published reference proxies. Dense native validation passes 794 source samples. Earlier lateral Trial1 proposal and seven numerical tests halve only vertical target displacement while preserving horizontal and phase settings. These are diagnostic and numerical results, not visual approval."
+      "task": "Preparing the first Eevee smoke capture after foreground Blender successfully loaded the separate public ADS47-held diagnostic from the shared workspace. Visibility recovery and reopen validation are complete. No new lateral frames have been rendered yet; the missing later-author-checkpoint and matched-comparison caveats remain.",
+      "lastCompleted": "Reopen validation passes all 1,588 sampled transforms with original source preservation; the exact public static backdrop is retained. Foreground Blender loaded the separate diagnostic successfully. Published lateral reference proxies and earlier seven numerical tests remain available. These diagnostic and numerical results do not establish visual approval."
     },
     {
       "slot": 3,
