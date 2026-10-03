@@ -123,7 +123,8 @@ impl AuthoredAds {
                 AdsSlot::Entry => sample.seconds / self.duration(AdsSlot::Entry),
                 AdsSlot::Hold => 1.,
                 AdsSlot::Exit => 1. - sample.seconds / self.duration(AdsSlot::Exit),
-            }.clamp(0., 1.);
+            }
+            .clamp(0., 1.);
             (t * t * (3. - 2. * t)) as f32
         })
     }

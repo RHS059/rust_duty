@@ -139,7 +139,9 @@ impl AnimationManifest {
         };
         let walk_anchor_actor = if regular_walk.is_some() {
             Some(take(&mut values, "regular_walk.anchor_actor")?)
-        } else { None };
+        } else {
+            None
+        };
         let tactical = reference(&mut values, "reload.tactical", directory)?;
         let empty = if values.contains_key("reload.empty") {
             policy(&mut values, "reload.empty", "unavailable")?;

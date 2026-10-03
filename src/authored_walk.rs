@@ -94,11 +94,20 @@ impl WalkPoseLayer {
     ) -> Result<Self> {
         let bindings = PoseBindings::from_animation(locomotion);
         if !bindings.matches(animation) {
-            return Err(AnimationError("walk layer requires canonical companion bindings".into()));
+            return Err(AnimationError(
+                "walk layer requires canonical companion bindings".into(),
+            ));
         }
-        let anchor = animation.actors().iter().position(|actor| actor.name == anchor_name)
+        let anchor = animation
+            .actors()
+            .iter()
+            .position(|actor| actor.name == anchor_name)
             .ok_or_else(|| AnimationError(format!("missing walk anchor actor: {anchor_name}")))?;
-        Ok(Self { anchor, ready: locomotion.sample_clamped(ready_clip, 0.)?, bindings })
+        Ok(Self {
+            anchor,
+            ready: locomotion.sample_clamped(ready_clip, 0.)?,
+            bindings,
+        })
     }
     pub fn pose(
         &self,
@@ -108,13 +117,21 @@ impl WalkPoseLayer {
         weight: f32,
         aim: f32,
     ) -> Result<ViewmodelPose> {
-        if !self.bindings.matches(animation) || !weight.is_finite() || !aim.is_finite()
-            || !(0. ..=1.).contains(&weight) || !(0. ..=1.).contains(&aim) {
-            return Err(AnimationError("invalid walk layer bindings or weights".into()));
+        if !self.bindings.matches(animation)
+            || !weight.is_finite()
+            || !aim.is_finite()
+            || !(0. ..=1.).contains(&weight)
+            || !(0. ..=1.).contains(&aim)
+        {
+            return Err(AnimationError(
+                "invalid walk layer bindings or weights".into(),
+            ));
         }
         // Validate complete dimensions/transforms before indexing either pose.
         animation.blend_poses(base, walk, 0.)?;
-        if weight == 0. { return Ok(base.clone()); }
+        if weight == 0. {
+            return Ok(base.clone());
+        }
         let base_anchor = base.actor_globals[self.anchor].matrix();
         let walk_anchor = walk.actor_globals[self.anchor].matrix();
         let delta = walk_anchor * self.ready.actor_globals[self.anchor].matrix().inverse();
@@ -128,12 +145,16 @@ impl WalkPoseLayer {
         // the camera ray. The phase continues and no new bob curve is invented.
         let twist = Quat::from_xyzw(0., 0., rotation.z, rotation.w);
         if twist.length_squared() <= 1e-8 {
-            return Err(AnimationError("walk rotation has no finite optical-axis twist".into()));
+            return Err(AnimationError(
+                "walk rotation has no finite optical-axis twist".into(),
+            ));
         }
         let rotation = rotation.slerp(twist.normalize(), aim);
         let translation = translation.lerp(Vec3::new(0., 0., translation.z), aim);
         let offset = Mat4::from_rotation_translation(
-            Quat::IDENTITY.slerp(rotation, weight), translation * weight);
+            Quat::IDENTITY.slerp(rotation, weight),
+            translation * weight,
+        );
         let output_anchor = offset * base_anchor;
         let relative = |pose: &ViewmodelPose, anchor: Mat4| -> Result<ViewmodelPose> {
             let inverse = anchor.inverse();
@@ -141,8 +162,13 @@ impl WalkPoseLayer {
             let mut pose = pose.clone();
             // Temporarily store globals in this vector for interpolation. Using
             // local-chain lerps here would allow wrist drift as elbows rotate.
-            pose.bone_locals = globals.into_iter().map(|global| transform(inverse * global)).collect();
-            for actor in &mut pose.actor_globals { *actor = transform(inverse * actor.matrix()); }
+            pose.bone_locals = globals
+                .into_iter()
+                .map(|global| transform(inverse * global))
+                .collect::<Result<Vec<_>>>()?;
+            for actor in &mut pose.actor_globals {
+                *actor = transform(inverse * actor.matrix())?;
+            }
             Ok(pose)
         };
         let from = relative(base, base_anchor)?;
@@ -150,17 +176,45 @@ impl WalkPoseLayer {
         // At full ADS the source aim articulation is retained exactly. Only the
         // shared rigid walking offset is added; no per-hand offsets or IK.
         let mut result = animation.blend_poses(&from, &to, weight * (1. - aim))?;
-        let globals: Vec<_> = result.bone_locals.iter()
-            .map(|bone| output_anchor * bone.matrix()).collect();
+        let globals: Vec<_> = result
+            .bone_locals
+            .iter()
+            .map(|bone| output_anchor * bone.matrix())
+            .collect();
         for (index, bone) in animation.bones().iter().enumerate() {
-            result.bone_locals[index] = transform(bone.parent.map_or(globals[index],
-                |parent| globals[parent].inverse() * globals[index]));
+            result.bone_locals[index] = transform(bone.parent.map_or(globals[index], |parent| {
+                globals[parent].inverse() * globals[index]
+            }))?;
         }
-        for actor in &mut result.actor_globals { *actor = transform(output_anchor * actor.matrix()); }
-        Ok(result)
+        for actor in &mut result.actor_globals {
+            *actor = transform(output_anchor * actor.matrix())?;
+        }
+        animation.blend_poses(&result, &result, 0.)
     }
 }
-fn transform(matrix: Mat4) -> Transform {
+fn transform(matrix: Mat4) -> Result<Transform> {
+    if !matrix.is_finite() {
+        return Err(AnimationError("non-finite walk layer matrix".into()));
+    }
     let (scale, rotation, translation) = matrix.to_scale_rotation_translation();
-    Transform { scale, rotation: rotation.normalize(), translation }
+    if !rotation.is_finite()
+        || rotation.length_squared() <= 1e-8
+        || !scale.is_finite()
+        || scale.min_element() <= 1e-8
+    {
+        return Err(AnimationError(
+            "invalid walk layer matrix decomposition".into(),
+        ));
+    }
+    let value = Transform {
+        scale,
+        rotation: rotation.normalize(),
+        translation,
+    };
+    if !value.matrix().abs_diff_eq(matrix, 5e-5) {
+        return Err(AnimationError(
+            "walk layer does not support sheared transforms".into(),
+        ));
+    }
+    Ok(value)
 }

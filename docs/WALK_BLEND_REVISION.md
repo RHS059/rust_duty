@@ -17,4 +17,13 @@ Based on PR #15 commit `9f27474b3cb55a41d0f8d81afeaf516cc84d721f`.
 Regression coverage includes envelope endpoints and reversals, pause/invalid ticks,
 committed ADS/sprint/fire/reload replay with unchanged gameplay, actual-pack grip
 and endpoint sweeps, and native Linux start/stop and aimed-walk capture telemetry.
-Validation results and exact GitHub build links will be added after execution.
+Independent actual-pack geometry sweep: maximum wrist drift 0.000598 mm;
+full-ADS sight center displacement 0.000268 px and near/far difference 0.000115 px
+at 1280×720 / 76° hFOV. Walking retains −1.450 to +3.349 mm axial movement and
+up to 0.02975° optical-axis roll. No source asset bytes changed.
+
+Global articulation blending can temporarily change forearm length by up to
+1.899 mm (0.68%) in this pack. Mid-fade reversal preserves pose and phase, but
+reverses envelope velocity immediately; jerk-free motion is not claimed. Matrix
+composition rejects unsupported shear instead of silently changing the transform.
+Final GitHub validation and build links will be added after execution.
