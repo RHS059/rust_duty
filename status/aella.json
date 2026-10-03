@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T21:52:28Z",
+  "updatedAt": "2026-10-03T22:03:06Z",
   "state": "active",
-  "task": "Coordinating ADS preview publication and review while publishing 0.1.5 and verifying the complete package and old-client upgrade.",
-  "lastCompleted": "Complete Windows/Linux builds passed; both 0.1.5 bundles and ZIPs are uploaded to the draft release. ADS previews remain ready for publication and review.",
+  "task": "Retrying 0.1.5 release publication and verifying the old-client upgrade while coordinating ADS preview publication and review.",
+  "lastCompleted": "Complete Windows/Linux builds and updater checks passed; 0.1.5 bundles and ZIPs remain uploaded to the draft release. ADS previews are ready for publication and review.",
   "agents": [
     {
       "slot": 1,
