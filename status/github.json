@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T20:34:01Z",
+  "updatedAt": "2026-10-03T20:43:47Z",
   "latestComplete": {
     "sha": "e46f83d84ece0c28ffbd10cf4504ed4ea0f91878",
     "downloadUrl": "https://github.com/RHS059/rust_duty/actions/runs/37130396740/artifacts/11277161595",
@@ -14,13 +14,13 @@
     "Complete 83-file Windows package includes existing walk, sprint and full WIP reload assets plus the new HIP and ADS companions",
     "All three workflows passed; native Linux layered-input diagnostics passed at 30 and 60 Hz",
     "Windows ZIP integrity, SHA-256, PE executable and complete-package verification passed",
-    "Reviewed HIP r5 directions and stable animation bindings are in PR #17 at c60c53fe. All four asset checks passed; Windows and Linux builds are running.",
-    "Forward ADS v8 comparison is complete and awaiting publication and review. Lateral ADS Trial3 comparison capture is running.",
+    "Reviewed HIP r5 directions and stable animation bindings are in PR #17 at c60c53fe. All four asset jobs and the Windows build passed; ZIP verification and Linux native checks are pending.",
+    "Forward ADS v8 is live and awaiting motion review. Lateral ADS Trial3 comparisons and visual QA are complete; publication and independent shape review are pending.",
     "Jump and mantle reference planning is complete; verified reference windows are still needed."
   ],
   "currentBuild": {
     "state": "active",
-    "task": "Building reviewed HIP r5 directions and stable animation bindings at c60c53fe. All four asset jobs, runtime contracts and updater checks passed. Windows and Linux builds are running; complete Windows package verification is pending.",
+    "task": "Windows tests, release build and complete ZIP packaging passed at c60c53fe. ZIP verification is underway. Linux Python and Rust tests passed; Linux packaging and native checks continue.",
     "url": "https://github.com/RHS059/rust_duty/actions/runs/37151455895"
   }
 }
