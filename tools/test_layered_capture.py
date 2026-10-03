@@ -39,3 +39,7 @@ class WalkEpisodeClockTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError,'active walk phase'):
                 verify_walk_episode_clocks([dict(simulation_time=1.,walk_seconds=.1),
                                            dict(simulation_time=1.1,walk_seconds=seconds)])
+
+    def test_retained_wip_phase_rate_can_slow_without_reset(self):
+        verify_walk_episode_clocks([dict(simulation_time=1.,walk_seconds=10.,walk_min_rate=.85),
+                                    dict(simulation_time=2.,walk_seconds=10.85,walk_min_rate=.85)])

@@ -406,15 +406,18 @@ fn thirty_and_sixty_hz_render_sampling_observe_identical_committed_layers() {
         let mut sim = Simulation::new();
         let cfg = Settings::m4_candidate();
         let mut output = std::collections::BTreeMap::new();
+        let mut tick = 0;
         for frame in 0..=11 * hz {
-            let elapsed = frame as f32 / hz as f32;
-            while sim.time + f64::from(FIXED_DT) <= f64::from(elapsed) + 1e-7 {
+            let target = vector_range::clock::capture_tick_target(u64::from(frame), hz).unwrap();
+            while tick < target {
                 let start = sim.time;
                 sim.update(gameplay_layered_replay_input(start), &cfg, FIXED_DT);
                 controller
                     .committed_step(sources(set), start, &sim, false)
                     .unwrap();
+                tick += 1;
             }
+            assert_eq!((sim.time * 120.).round() as u64, target);
             output.insert(
                 (sim.time * 120.).round() as u64,
                 (
@@ -435,4 +438,37 @@ fn thirty_and_sixty_hz_render_sampling_observe_identical_committed_layers() {
         }
     }
     assert!(compared >= 330);
+}
+
+#[test]
+fn wip_ads_rate_integrates_phase_without_recomputing_or_resetting_prior_walk_time() {
+    let set = fixture();
+    let mut layers = controller(&set)
+        .with_ads_wip_policy(true, Some(0.30))
+        .unwrap();
+    let mut sim = Simulation::new();
+    step(&set, &mut layers, &mut sim, 10., true, false, false);
+    assert_eq!(layers.walk().seconds(), Some(10.));
+    step(&set, &mut layers, &mut sim, 0.30, true, true, false);
+    assert!((layers.walk().seconds().unwrap() - 10.2775).abs() < 1e-9);
+    step(&set, &mut layers, &mut sim, 1., true, true, false);
+    assert!((layers.walk().seconds().unwrap() - 11.1275).abs() < 1e-9);
+    let before = layers.walk().seconds().unwrap();
+    step(&set, &mut layers, &mut sim, 0.05, true, false, false);
+    assert!(layers.walk().seconds().unwrap() > before);
+    let mut b = layers.clone();
+    let start = sim.time;
+    let end = start + 0.1;
+    sim.player.ads_requested = true;
+    sim.time = end;
+    layers
+        .committed_step(sources(&set), start, &sim, false)
+        .unwrap();
+    sim.time = start + 0.04;
+    b.committed_step(sources(&set), start, &sim, false).unwrap();
+    sim.time = end;
+    b.committed_step(sources(&set), start + 0.04, &sim, false)
+        .unwrap();
+    assert!((layers.walk().seconds().unwrap() - b.walk().seconds().unwrap()).abs() < 1e-10);
+    close(layers.pose(), b.pose(), 2e-5);
 }

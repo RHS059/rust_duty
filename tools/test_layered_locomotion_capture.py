@@ -41,7 +41,7 @@ class FourDirectionCaptureTests(unittest.TestCase):
             report,rows=verify(folder)
             self.assertEqual(report['sampling_hz'],30)
             self.assertTrue(report['directional_source_required'])
-            self.assertGreater(report['run_ads_walk_overlap_frames'],2)
+            self.assertGreater(report['partial_run_ads_walk_overlap_frames'],2)
             self.assertEqual(compare_rates(rows,rows)['common_ticks'],337)
     def test_legacy_loop_cannot_pass_directional_gate(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -61,3 +61,16 @@ class FourDirectionCaptureTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError,'renderer failed'): verify(folder)
             rows[0]['renderer_failed']=False; self.write(folder,rows); (folder/'0100.png').write_bytes(b'not PNG')
             with self.assertRaisesRegex(ValueError,'native image missing'): verify(folder)
+
+    def test_full_run_weight_does_not_count_as_visible_three_layer_overlap(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            folder=Path(tmp);rows=self.fixture(folder)
+            for row in rows:
+                if row['sprinting']: row['run_weight']=1
+            self.write(folder,rows)
+            with self.assertRaisesRegex(ValueError,'lack concurrent'): verify(folder)
+    def test_uneven_fixed_step_stride_is_rejected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            folder=Path(tmp);rows=self.fixture(folder);rows[63]['simulation_time']-=1/120
+            self.write(folder,rows)
+            with self.assertRaisesRegex(ValueError,'exact fixed-step stride'): verify(folder)

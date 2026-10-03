@@ -51,3 +51,7 @@ __pycache__/
 !assets/ads/asset.vrm
 !assets/ads/asset.vrs.gz
 /build-ads/
+
+# Directional WIP companions are built from the committed source in CI.
+/assets/directional/
+/build-directional/

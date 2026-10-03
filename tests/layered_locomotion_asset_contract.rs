@@ -40,6 +40,15 @@ fn actual_bound_layers_overlap_preserve_grips_and_leave_gameplay_unchanged() {
         &manifest.layer_anchor_actor,
     )
     .unwrap();
+    if let Some(clips) = manifest.directional_walk.clone() {
+        layers = layers.with_directional_walk(&walk, clips).unwrap();
+    }
+    layers = layers
+        .with_ads_wip_policy(
+            manifest.receiver_ads_wip,
+            manifest.ads_visual_transition_seconds,
+        )
+        .unwrap();
     let anchor = set
         .actors()
         .iter()

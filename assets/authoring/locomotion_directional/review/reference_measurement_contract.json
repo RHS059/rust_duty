@@ -1,0 +1,612 @@
+{
+  "schema": "directional-reference-measurements/v1",
+  "status": "Source measurements and QA; not candidate acceptance",
+  "sources": {
+    "R2": {
+      "id": "5KM0XSKxTWw",
+      "sha256": "cff413d8d114b611bbe6f50cc553ef109d61eb8eb1fff960425f506b84d6767e"
+    },
+    "R1": {
+      "id": "9RRgXvRx43s",
+      "sha256": "5b883e85d1179d06987509e4ede2b18fbc54433c4578b316af355e68d17becf5"
+    }
+  },
+  "resolution": [
+    1280,
+    720
+  ],
+  "fps_numerator": 60,
+  "fps_denominator": 1,
+  "time_base": "1/15360",
+  "pts_formula": "raw_frame_index * 256",
+  "coordinates": "Screen pixels; top-left origin; x right; y down. Native frames decoded unchanged.",
+  "landmarks": [
+    "muzzle tip",
+    "receiver upper plate fixed feature",
+    "support cuff/glove visible boundary region (legacy CSV columns support_wrist)"
+  ],
+  "excluded_landmarks": {
+    "firing_wrist": "Offscreen throughout selected primary and secondary source windows; no inferred or fabricated track. Whole-body feet/hips and true input telemetry also unavailable."
+  },
+  "direction_labels": "Camera-space parallax inference, high confidence from preceding dense annotation; controls are not visible.",
+  "method": "Manually seeded screen landmarks, fixed-patch normalized cross-correlation; secondary receiver tracked with consecutive Lucas-Kanade except left. Every3rd raw frame visually checked on annotated dense sheets across each entire declared window. Native60Hz tables retained. Rejected optical trackers were discarded after pixel QA.",
+  "uncertainty": "Review uncertainty estimates, not statistical confidence bounds: primary muzzle/receiver\u22483px, support cuff\u22485px, secondary muzzle/receiver\u224810px due changing specular light and background interference. Borderline secondary angular/amplitude values are diagnostic, not precise acceptance claims.",
+  "exclusions": [
+    {
+      "ref": "R1",
+      "direction": "left",
+      "landmark": "muzzle",
+      "frame_range_half_open": [
+        531,
+        549
+      ],
+      "reason": "Template pulled down barrel by aligned background pillar; detected from actual pixels before final candidate acceptance."
+    },
+    {
+      "ref": "R1",
+      "direction": "right",
+      "landmark": "muzzle",
+      "frame_range_half_open": [
+        418,
+        429
+      ],
+      "reason": "Temporary silhouette/background mismatch at pillar; excluded from final scores, retained in raw diagnostic file."
+    }
+  ],
+  "windows": {
+    "R2_forward": {
+      "source_frame_range_half_open": [
+        24,
+        102
+      ],
+      "pts_ticks_half_open": [
+        6144,
+        26112
+      ],
+      "native_frames": 78,
+      "sampled_frames_20hz": 26,
+      "usable_visible_landmark_samples": 78,
+      "intended_visible_landmark_samples": 78,
+      "usable_visible_landmark_coverage": 1.0,
+      "coverage_if_all_four_possible_landmarks_counted": 0.75,
+      "mean_xy_px": [
+        [
+          692.3205128205128,
+          396.20512820512823
+        ],
+        [
+          873.9615384615385,
+          581.025641025641
+        ],
+        [
+          647.4871794871794,
+          684.3205128205128
+        ]
+      ],
+      "peak_to_peak_xy_px": [
+        [
+          59.0,
+          27.0
+        ],
+        [
+          74.0,
+          55.0
+        ],
+        [
+          70.0,
+          44.0
+        ]
+      ],
+      "mean_weapon_axis_deg": -134.47996684888085,
+      "weapon_axis_peak_to_peak_deg": 5.405369905474345,
+      "visible_axis_L_px": 448.63837606201446,
+      "cadence_frames_estimate": 38,
+      "cadence_source_note": "Native lag-return analysis with dense frame QA; period estimate\u00b11\u20132frames, no input telemetry."
+    },
+    "R2_backward": {
+      "source_frame_range_half_open": [
+        150,
+        336
+      ],
+      "pts_ticks_half_open": [
+        38400,
+        86016
+      ],
+      "native_frames": 186,
+      "sampled_frames_20hz": 62,
+      "usable_visible_landmark_samples": 186,
+      "intended_visible_landmark_samples": 186,
+      "usable_visible_landmark_coverage": 1.0,
+      "coverage_if_all_four_possible_landmarks_counted": 0.75,
+      "mean_xy_px": [
+        [
+          697.6989247311828,
+          382.8709677419355
+        ],
+        [
+          916.8333333333334,
+          570.3978494623656
+        ],
+        [
+          601.1827956989247,
+          669.3924731182796
+        ]
+      ],
+      "peak_to_peak_xy_px": [
+        [
+          22.0,
+          16.0
+        ],
+        [
+          54.0,
+          47.0
+        ],
+        [
+          24.0,
+          35.0
+        ]
+      ],
+      "mean_weapon_axis_deg": -139.36216369311222,
+      "weapon_axis_peak_to_peak_deg": 10.811629186329725,
+      "visible_axis_L_px": 516.3312602670453,
+      "cadence_frames_estimate": 45,
+      "cadence_source_note": "Native lag-return analysis with dense frame QA; period estimate\u00b11\u20132frames, no input telemetry."
+    },
+    "R2_right": {
+      "source_frame_range_half_open": [
+        720,
+        786
+      ],
+      "pts_ticks_half_open": [
+        184320,
+        201216
+      ],
+      "native_frames": 66,
+      "sampled_frames_20hz": 22,
+      "usable_visible_landmark_samples": 66,
+      "intended_visible_landmark_samples": 66,
+      "usable_visible_landmark_coverage": 1.0,
+      "coverage_if_all_four_possible_landmarks_counted": 0.75,
+      "mean_xy_px": [
+        [
+          683.2121212121212,
+          383.56060606060606
+        ],
+        [
+          892.6818181818181,
+          534.3333333333334
+        ],
+        [
+          592.969696969697,
+          663.0757575757576
+        ]
+      ],
+      "peak_to_peak_xy_px": [
+        [
+          39.0,
+          18.0
+        ],
+        [
+          45.0,
+          58.0
+        ],
+        [
+          49.0,
+          30.0
+        ]
+      ],
+      "mean_weapon_axis_deg": -144.19519659531255,
+      "weapon_axis_peak_to_peak_deg": 8.825781434299671,
+      "visible_axis_L_px": 566.1982505208086,
+      "cadence_frames_estimate": 49,
+      "cadence_source_note": "R2 right window includes carry settling; cadence confirmed by R1 right, not an invented38-frame periodic fit."
+    },
+    "R2_left": {
+      "source_frame_range_half_open": [
+        828,
+        948
+      ],
+      "pts_ticks_half_open": [
+        211968,
+        242688
+      ],
+      "native_frames": 120,
+      "sampled_frames_20hz": 40,
+      "usable_visible_landmark_samples": 120,
+      "intended_visible_landmark_samples": 120,
+      "usable_visible_landmark_coverage": 1.0,
+      "coverage_if_all_four_possible_landmarks_counted": 0.75,
+      "mean_xy_px": [
+        [
+          723.8416666666667,
+          384.0
+        ],
+        [
+          898.5,
+          560.35
+        ],
+        [
+          648.5333333333333,
+          677.0916666666667
+        ]
+      ],
+      "peak_to_peak_xy_px": [
+        [
+          21.0,
+          13.0
+        ],
+        [
+          43.0,
+          44.0
+        ],
+        [
+          17.0,
+          37.0
+        ]
+      ],
+      "mean_weapon_axis_deg": -134.61820947929328,
+      "weapon_axis_peak_to_peak_deg": 12.554427428485809,
+      "visible_axis_L_px": 467.51330622204637,
+      "cadence_frames_estimate": 49,
+      "cadence_source_note": "Native lag-return analysis with dense frame QA; period estimate\u00b11\u20132frames, no input telemetry."
+    },
+    "R1_forward": {
+      "source_frame_range_half_open": [
+        30,
+        102
+      ],
+      "pts_ticks_half_open": [
+        7680,
+        26112
+      ],
+      "native_frames": 72,
+      "sampled_frames_20hz": 24,
+      "usable_visible_landmark_samples": 72,
+      "intended_visible_landmark_samples": 72,
+      "usable_visible_landmark_coverage": 1.0,
+      "coverage_if_all_four_possible_landmarks_counted": 0.75,
+      "mean_xy_px": [
+        [
+          695.2777777777778,
+          398.80555555555554
+        ],
+        [
+          874.4784266153971,
+          585.0573950873481
+        ],
+        [
+          638.3055555555555,
+          688.1805555555555
+        ]
+      ],
+      "peak_to_peak_xy_px": [
+        [
+          60.0,
+          26.0
+        ],
+        [
+          69.88824462890625,
+          70.659423828125
+        ],
+        [
+          78.0,
+          50.0
+        ]
+      ],
+      "mean_weapon_axis_deg": -133.9453503870195,
+      "weapon_axis_peak_to_peak_deg": 14.146151062206258,
+      "visible_axis_L_px": 441.50420447596923,
+      "cadence_frames_estimate": 38,
+      "cadence_source_note": "Native lag-return analysis with dense frame QA; period estimate\u00b11\u20132frames, no input telemetry."
+    },
+    "R1_backward": {
+      "source_frame_range_half_open": [
+        132,
+        270
+      ],
+      "pts_ticks_half_open": [
+        33792,
+        69120
+      ],
+      "native_frames": 138,
+      "sampled_frames_20hz": 46,
+      "usable_visible_landmark_samples": 138,
+      "intended_visible_landmark_samples": 138,
+      "usable_visible_landmark_coverage": 1.0,
+      "coverage_if_all_four_possible_landmarks_counted": 0.75,
+      "mean_xy_px": [
+        [
+          697.9782608695652,
+          385.1449275362319
+        ],
+        [
+          915.2158773671026,
+          564.4409361023834
+        ],
+        [
+          609.2028985507246,
+          668.2898550724638
+        ]
+      ],
+      "peak_to_peak_xy_px": [
+        [
+          23.0,
+          24.0
+        ],
+        [
+          47.8809814453125,
+          41.07342529296875
+        ],
+        [
+          25.0,
+          31.0
+        ]
+      ],
+      "mean_weapon_axis_deg": -140.40349801536013,
+      "weapon_axis_peak_to_peak_deg": 13.654671965075238,
+      "visible_axis_L_px": 516.7611175984667,
+      "cadence_frames_estimate": 45,
+      "cadence_source_note": "Native lag-return analysis with dense frame QA; period estimate\u00b11\u20132frames, no input telemetry."
+    },
+    "R1_right": {
+      "source_frame_range_half_open": [
+        330,
+        450
+      ],
+      "pts_ticks_half_open": [
+        84480,
+        115200
+      ],
+      "native_frames": 120,
+      "sampled_frames_20hz": 40,
+      "usable_visible_landmark_samples": 117,
+      "intended_visible_landmark_samples": 120,
+      "usable_visible_landmark_coverage": 0.975,
+      "coverage_if_all_four_possible_landmarks_counted": 0.73125,
+      "mean_xy_px": [
+        [
+          674.5333333333333,
+          385.0416666666667
+        ],
+        [
+          889.8545974731445,
+          558.7090591430664
+        ],
+        [
+          599.1,
+          679.1416666666667
+        ]
+      ],
+      "peak_to_peak_xy_px": [
+        [
+          35.0,
+          33.0
+        ],
+        [
+          54.26220703125,
+          40.04486083984375
+        ],
+        [
+          26.0,
+          33.0
+        ]
+      ],
+      "mean_weapon_axis_deg": -141.043458782278,
+      "weapon_axis_peak_to_peak_deg": 10.95484412898847,
+      "visible_axis_L_px": 524.9680563079551,
+      "cadence_frames_estimate": 49,
+      "cadence_source_note": "Native lag-return analysis with dense frame QA; period estimate\u00b11\u20132frames, no input telemetry."
+    },
+    "R1_left": {
+      "source_frame_range_half_open": [
+        492,
+        630
+      ],
+      "pts_ticks_half_open": [
+        125952,
+        161280
+      ],
+      "native_frames": 138,
+      "sampled_frames_20hz": 46,
+      "usable_visible_landmark_samples": 132,
+      "intended_visible_landmark_samples": 138,
+      "usable_visible_landmark_coverage": 0.9565217391304348,
+      "coverage_if_all_four_possible_landmarks_counted": 0.717391304347826,
+      "mean_xy_px": [
+        [
+          724.0144927536232,
+          384.92753623188406
+        ],
+        [
+          906.8405797101449,
+          569.5144927536232
+        ],
+        [
+          635.7971014492754,
+          677.2246376811594
+        ]
+      ],
+      "peak_to_peak_xy_px": [
+        [
+          36.0,
+          20.0
+        ],
+        [
+          46.0,
+          59.0
+        ],
+        [
+          21.0,
+          39.0
+        ]
+      ],
+      "mean_weapon_axis_deg": -134.64137207570036,
+      "weapon_axis_peak_to_peak_deg": 13.430578956091182,
+      "visible_axis_L_px": 465.31358243386717,
+      "cadence_frames_estimate": 49,
+      "cadence_source_note": "Native lag-return analysis with dense frame QA; period estimate\u00b11\u20132frames, no input telemetry."
+    }
+  },
+  "cycle_anchors": {
+    "forward": {
+      "ref": "R2",
+      "period_frames": 38,
+      "endpoints": [
+        {
+          "start_frame": 48,
+          "end_frame": 86,
+          "closure_rms_pixels": 1.35400640077266,
+          "velocity_rms_pixels_per_frame": 1.224744871391589
+        },
+        {
+          "start_frame": 40,
+          "end_frame": 78,
+          "closure_rms_pixels": 1.7795130420052185,
+          "velocity_rms_pixels_per_frame": 1.0801234497346435
+        },
+        {
+          "start_frame": 41,
+          "end_frame": 79,
+          "closure_rms_pixels": 1.2909944487358056,
+          "velocity_rms_pixels_per_frame": 2.273030282830976
+        },
+        {
+          "start_frame": 50,
+          "end_frame": 88,
+          "closure_rms_pixels": 1.632993161855452,
+          "velocity_rms_pixels_per_frame": 1.7320508075688772
+        },
+        {
+          "start_frame": 39,
+          "end_frame": 77,
+          "closure_rms_pixels": 1.5811388300841898,
+          "velocity_rms_pixels_per_frame": 1.9148542155126762
+        }
+      ]
+    },
+    "backward": {
+      "ref": "R2",
+      "period_frames": 45,
+      "endpoints": [
+        {
+          "start_frame": 257,
+          "end_frame": 302,
+          "closure_rms_pixels": 1.4719601443879744,
+          "velocity_rms_pixels_per_frame": 1.2909944487358056
+        },
+        {
+          "start_frame": 256,
+          "end_frame": 301,
+          "closure_rms_pixels": 1.9578900207451218,
+          "velocity_rms_pixels_per_frame": 1.0
+        },
+        {
+          "start_frame": 169,
+          "end_frame": 214,
+          "closure_rms_pixels": 2.449489742783178,
+          "velocity_rms_pixels_per_frame": 0.7071067811865476
+        },
+        {
+          "start_frame": 258,
+          "end_frame": 303,
+          "closure_rms_pixels": 1.4719601443879744,
+          "velocity_rms_pixels_per_frame": 3.1622776601683795
+        },
+        {
+          "start_frame": 173,
+          "end_frame": 218,
+          "closure_rms_pixels": 2.857738033247041,
+          "velocity_rms_pixels_per_frame": 0.5773502691896257
+        }
+      ]
+    },
+    "left": {
+      "ref": "R2",
+      "period_frames": 49,
+      "endpoints": [
+        {
+          "start_frame": 886,
+          "end_frame": 935,
+          "closure_rms_pixels": 1.632993161855452,
+          "velocity_rms_pixels_per_frame": 0.5773502691896257
+        },
+        {
+          "start_frame": 883,
+          "end_frame": 932,
+          "closure_rms_pixels": 1.9578900207451218,
+          "velocity_rms_pixels_per_frame": 0.0
+        },
+        {
+          "start_frame": 881,
+          "end_frame": 930,
+          "closure_rms_pixels": 1.9578900207451218,
+          "velocity_rms_pixels_per_frame": 0.408248290463863
+        },
+        {
+          "start_frame": 885,
+          "end_frame": 934,
+          "closure_rms_pixels": 1.8257418583505538,
+          "velocity_rms_pixels_per_frame": 0.816496580927726
+        },
+        {
+          "start_frame": 887,
+          "end_frame": 936,
+          "closure_rms_pixels": 1.9148542155126762,
+          "velocity_rms_pixels_per_frame": 0.7071067811865476
+        }
+      ]
+    },
+    "right": {
+      "ref": "R1",
+      "period_frames": 49,
+      "endpoints": [
+        {
+          "start_frame": 375,
+          "end_frame": 424,
+          "closure_rms_pixels": 0.0,
+          "velocity_rms_pixels_per_frame": 1.0
+        },
+        {
+          "start_frame": 376,
+          "end_frame": 425,
+          "closure_rms_pixels": 1.0,
+          "velocity_rms_pixels_per_frame": 0.0
+        },
+        {
+          "start_frame": 374,
+          "end_frame": 423,
+          "closure_rms_pixels": 0.7071067811865476,
+          "velocity_rms_pixels_per_frame": 0.7071067811865476
+        },
+        {
+          "start_frame": 377,
+          "end_frame": 426,
+          "closure_rms_pixels": 1.0,
+          "velocity_rms_pixels_per_frame": 0.7071067811865476
+        },
+        {
+          "start_frame": 371,
+          "end_frame": 420,
+          "closure_rms_pixels": 1.5811388300841898,
+          "velocity_rms_pixels_per_frame": 0.0
+        }
+      ]
+    }
+  },
+  "normalization": "L is median visible projected weapon-axis span from muzzle through receiver to lower viewport boundary (rear weapon is clipped), constant for an entire source window. Report pixel values alongside L. This is not total physical weapon length or per-frame scale fitting.",
+  "rubric": {
+    "weights": {
+      "mean_pose_grip": 25,
+      "timing_cadence": 20,
+      "translational_sway": 20,
+      "angular_motion": 15,
+      "transition_response": 15,
+      "loop_blend_continuity": 5
+    },
+    "source_loop_supported_weight_ceiling": 85,
+    "unsupported_transition_weight": 15,
+    "score_status": "No assigned candidate score in reference packet. Missing transition/runtime evidence is not awarded. Original thresholds unchanged; geometry mismatch cannot be removed via per-landmark mean-pose registration.",
+    "pass_requires": "Supported score>=80%; support>=80/100; each category>=60%; comparable sample coverage>=80%; no critical integration failure. Runtime selected Action/direction/blending remain Aella-owned pending."
+  },
+  "anatomical_caveat": "Reference cuff is not an anatomical wrist. Candidate bone points are contact guards; motion-only v2 uses immutable visible cuff surface anchor."
+}

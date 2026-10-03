@@ -14,7 +14,8 @@ def verify_walk_episode_clocks(rows):
         if a is None or b is None:
             continue
         elapsed=current['simulation_time']-previous['simulation_time']
-        if abs((b-a)-elapsed)>1e-6:
+        minimum=min(previous.get('walk_min_rate',1),current.get('walk_min_rate',1))
+        if minimum not in (1,0.85) or b-a < elapsed*minimum-1e-6 or b-a > elapsed+1e-6:
             raise ValueError('active walk phase did not follow committed time')
 
 

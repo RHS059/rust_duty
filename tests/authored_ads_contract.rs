@@ -357,3 +357,19 @@ fn canonical_binding_mismatch_is_rejected_before_pose_ownership() {
     let error = AuthoredAds::new(&animation, &incompatible, "ready", clips()).unwrap_err();
     assert!(error.to_string().contains("companion bindings"));
 }
+
+#[test]
+fn visual_retiming_and_exact_aim_integral_do_not_change_source_sample_units() {
+    let (set, ads, mut sim) = fixture();
+    let mut ads = ads.with_visual_transition_seconds(0.30).unwrap();
+    sim.player.ads_requested = true;
+    sim.time = 0.15;
+    ads.committed_step(0., &sim, false, true).unwrap();
+    assert!((ads.sample().unwrap().seconds - 0.125).abs() < 1e-12);
+    assert!((ads.last_aim_integral() - 0.028125).abs() < 1e-12);
+    assert!((pose_x(&set, &ads) - 0.5).abs() < 1e-6);
+    sim.time = 0.30;
+    ads.committed_step(0.15, &sim, false, true).unwrap();
+    assert_eq!(ads.sample().unwrap().slot, AdsSlot::Hold);
+    assert!((ads.last_aim_integral() - 0.121875).abs() < 1e-12);
+}

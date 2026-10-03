@@ -1,0 +1,64 @@
+name: Export authored directional HIP WIP through FBX
+on:
+  workflow_call:
+permissions:
+  contents: read
+jobs:
+  export:
+    name: Authored directional HIP WIP to preserved48 runtime pack
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Consume this run's verified walk44 baseline
+        uses: actions/download-artifact@v4
+        with:
+          name: generated-walk-runtime
+          path: assets/walk
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Fingerprint exact Rust compiler
+        id: rust-version
+        shell: bash
+        run: python -c "import hashlib,subprocess; print('hash='+hashlib.sha256(subprocess.check_output(['rustc','-Vv'])).hexdigest())" >> "$GITHUB_OUTPUT"
+      - name: Reuse only exact-input validated directional output
+        id: asset-cache
+        uses: actions/cache@v4
+        with:
+          path: build-directional/runtime
+          key: directional-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust-version.outputs.hash }}-${{ hashFiles('assets/authoring/locomotion_directional/**', 'assets/walk/**', 'assets/authoring/locomotion/source_integrity.py', 'assets/locomotion/manifest.json', 'assets/locomotion/asset.vra', 'assets/locomotion/asset.vrm', 'assets/locomotion/asset.vrs.gz', 'tools/build_directional_assets.py', 'assets/authoring/locomotion_directional/export_directional_preview.py', 'tools/package_game.py', 'tools/check_generated_assets.py', 'tools/import_fbx_viewmodel.py', 'tools/merge_walk_clip.py', 'tools/verify_locomotion_fbx.py', 'tools/vr*.py', 'tools/requirements-assets.txt', 'src/viewmodel_animation.rs', 'src/skinned_asset.rs', 'src/asset.rs', 'examples/sample_viewmodel_clip.rs', 'Cargo.toml', 'Cargo.lock', 'build.rs', '.github/actions/setup-blender/action.yml', '.github/workflows/directional-assets.yml') }}
+      - name: Install pinned asset toolchain on cache miss
+        if: steps.asset-cache.outputs.cache-hit != 'true'
+        uses: ./.github/actions/setup-blender
+      - name: Build actual game CPU sampler
+        if: steps.asset-cache.outputs.cache-hit != 'true'
+        run: cargo build --locked --release --no-default-features --example sample_viewmodel_clip
+      - name: Export authoring source, convert four HIP loops, preserve44 and verify Rust parity
+        if: steps.asset-cache.outputs.cache-hit != 'true'
+        run: python tools/build_directional_assets.py --blender blender --sampler target/release/examples/sample_viewmodel_clip --work build-directional/work --output build-directional/runtime
+      - name: Revalidate source, old clip bytes and generated companions
+        run: python tools/check_generated_assets.py --kind directional --directory build-directional/runtime
+      - name: Upload directional source and parity evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: directional-export-diagnostics
+          path: build-directional/runtime/*.json
+          if-no-files-found: warn
+      - name: Publish verified WIP directional companions for complete game builds
+        uses: actions/upload-artifact@v4
+        with:
+          name: generated-directional-runtime
+          path: |
+            build-directional/runtime/asset.vra
+            build-directional/runtime/asset.vrs
+            build-directional/runtime/asset.vrm
+            build-directional/runtime/asset.vrs.gz
+            build-directional/runtime/asset.vra.gz
+            build-directional/runtime/*.json
+            build-directional/runtime/README.md
+          if-no-files-found: error

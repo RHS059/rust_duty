@@ -1,7 +1,9 @@
 # Layered locomotion integration, runtime foundation
 
 Base: PR #16, `7ffdd6eb1d6ae20d5e8e6445f07759a225c952eb`.
-Status: runtime foundation; new reference-authored clips are not imported or approved here.
+Status: all four current HIP clips and ADS v4 are now included as user-authorized WIP.
+The earlier foundation/history sections below remain as the development record;
+no80% fidelity or full visual approval is implied by inclusion.
 
 ## Behavior
 
@@ -35,9 +37,9 @@ supported when the shared layer anchor is explicit.
 
 ## Evidence and boundaries
 
-- Local checks: 484 Rust tests passed with committed asset witnesses enabled;
+- Local checks: 485 Rust tests passed with committed asset witnesses enabled;
   formatting and all-target silent Clippy passed. The Python suite runs
-  143 tests, with one pre-existing optional Blender smoke skip. GitHub
+  145 tests, with one pre-existing optional Blender smoke skip. GitHub
   Windows/native-render jobs are tracked separately.
 - Synthetic contracts cover concurrent run/ADS/walk, returning-run ADS, same-phase
   reversals, infinitesimal interruption continuity, pause/read idempotence, invalid
@@ -95,3 +97,40 @@ While new source clips are still unapproved, CI explicitly uses
 `--allow-legacy-walk` for these diagnostics. That result cannot satisfy the
 four-direction source gate. The strict default requires the correct direction
 weights in every HIP and ADS segment; it must be used when reviewed clips are bound.
+
+## Independent diagnostic QA correction
+
+Independent inspection of `0423f0fd` confirmed that all 337 common 30/60-rate
+samples have identical telemetry and PNG bytes. It also found that float32
+capture timestamps sometimes requested uneven fixed-step intervals: 60-rate
+samples could advance one then three ticks instead of two, and 30-rate samples
+could advance three then five instead of four. That earlier capture must not be
+called perfectly uniform cadence.
+
+The capture driver now targets an integer count of committed simulation ticks:
+two per 60 Hz diagnostic frame and four per 30 Hz frame. This changes diagnostic
+sampling only, not the game clock, animation clocks or gameplay. Both native
+verification and regression tests require the exact stride.
+
+Three-layer *partial overlap* now requires `0 < run_weight < 1`. The earlier
+10/19 overlap counts included some fully weighted run frames that hide the lower
+layers; true partial overlap in those archived artifacts is 7/14 frames at the
+declared 30/60 rates. This corrects the reporting definition, without invalidating
+the observed concurrent fades. Fresh exact-stride captures must be reverified.
+
+
+## Current WIP inclusion
+
+The current manifest activates `directional/asset.vra`, the four PR18 HIP Actions,
+and `receiver_v4_wip` ADS composition. Source PR18 is pinned at
+`6bbfada1242d2d6c766c52cfc30c3ab511e41669`; Blender source hash is
+`6d6d5c6a150bd8d74f24b29bf18b192e2f5fe2cd93a531c77b7a1e5ce93a8b35`.
+The new directional48 pack preserves original walk44 clip bytes and companions.
+Existing locomotion43, walk44, ADS47 and full reload are retained in the package.
+
+ADSv4 reuses the existing aligned source poses with0.30s visual entry/exit,
+40% receiver target motion, lateral vertical attenuation and a continuously
+accumulated0.85 full-ADS native phase rate. The held-ADS source composition has
+sight/contact evidence; other cases and reference fidelity are explicitly WIP.
+See `assets/authoring/ads_wip/` for the frozen source contract and mathematical
+witnesses. New-policy review continues after inclusion rather than gating it.

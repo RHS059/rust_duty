@@ -1043,6 +1043,7 @@ async fn main() {
         Some("gameplay-reload" | "gameplay-walk" | "gameplay-ads" | "gameplay-layered")
     );
     let mut gameplay_reload_issued = false;
+    let mut gameplay_capture_tick = 0_u64;
     let capture_empty =
         args.iter().any(|s| s == "--capture-empty") || capture_sequence == Some("empty");
     let capture_hz = args
@@ -1448,7 +1449,14 @@ async fn main() {
         if gameplay_capture {
             // Real fixed-step input replay: no pose, velocity, animation-clock,
             // timer or normalized reload-phase overrides are used here.
-            while sim.time + f64::from(FIXED_DT) <= f64::from(sequence_elapsed) + 1e-7 {
+            let target_tick = vector_range::clock::capture_tick_target(
+                (frames - 8).max(0) as u64,
+                capture_hz as u32,
+            );
+            while target_tick.map_or(
+                sim.time + f64::from(FIXED_DT) <= f64::from(sequence_elapsed) + 1e-7,
+                |target| gameplay_capture_tick < target,
+            ) {
                 let start = sim.time;
                 let reload = capture_sequence == Some("gameplay-reload")
                     && !gameplay_reload_issued
@@ -1472,6 +1480,7 @@ async fn main() {
                     }
                 };
                 sim.update(input, &cfg, FIXED_DT);
+                gameplay_capture_tick += 1;
                 if let Some(model) = &mut authored {
                     model.committed_step(start, &sim);
                 }
@@ -1717,13 +1726,13 @@ async fn main() {
                 let failed = model.is_none_or(|model| model.error().is_some());
                 let segment = vector_range::authored_ads::gameplay_ads_replay_segment(sim.time);
                 let _ = std::fs::write(format!("{output}.gameplay.json"), format!(
-                    "{{\"simulation_time\":{},\"segment\":\"{}\",\"route\":\"{}\",\"clip\":\"{}\",\"native_clip_seconds\":{},\"clip_duration\":{},\"direction\":{},\"ads_requested\":{},\"simulation_ads\":{},\"speed\":{},\"grounded\":{},\"sprinting\":{},\"mantling\":{},\"ammo\":{},\"reserve\":{},\"shots\":{},\"reload_left\":{},\"reload_credit_at\":{},\"reload_ready_at\":{},\"renderer_failed\":{},\"walk_weight\":{},\"walk_seconds\":{},\"run_weight\":{}}}",
+                    "{{\"simulation_time\":{},\"segment\":\"{}\",\"route\":\"{}\",\"clip\":\"{}\",\"native_clip_seconds\":{},\"clip_duration\":{},\"direction\":{},\"ads_requested\":{},\"simulation_ads\":{},\"speed\":{},\"grounded\":{},\"sprinting\":{},\"mantling\":{},\"ammo\":{},\"reserve\":{},\"shots\":{},\"reload_left\":{},\"reload_credit_at\":{},\"reload_ready_at\":{},\"renderer_failed\":{},\"walk_weight\":{},\"walk_seconds\":{},\"run_weight\":{},\"walk_min_rate\":{}}}",
                     sim.time, segment, route, clip, native, duration, direction, sim.player.ads_requested,
                     sim.player.ads, sim.player.speed(), sim.player.grounded, sim.player.sprinting,
                     sim.player.mantle.is_some(), sim.player.ammo, sim.player.reserve, sim.stats.shots,
                     sim.player.reload_left, sim.player.reload_credit_at, sim.player.reload_ready_at, failed,
                     model.map_or(0., |m| m.walk_weight()), model.and_then(|m| m.walk_sample()).map_or("null".into(), |v| v.to_string()),
-                    model.map_or(0., |m| m.run_weight())));
+                    model.map_or(0., |m| m.run_weight()), model.map_or(1., |m| m.walk_min_rate())));
             }
             if capture_sequence == Some("gameplay-layered") {
                 let model = authored.as_ref();

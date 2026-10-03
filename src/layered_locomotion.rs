@@ -195,6 +195,7 @@ pub struct LayeredLocomotion {
     run_envelope: f64,
     last_time: f64,
     reload_active: bool,
+    receiver_ads_wip: bool,
 }
 impl LayeredLocomotion {
     pub fn new(
@@ -250,7 +251,24 @@ impl LayeredLocomotion {
             run_envelope: 0.,
             last_time: 0.,
             reload_active: false,
+            receiver_ads_wip: false,
         })
+    }
+    pub fn with_ads_wip_policy(
+        mut self,
+        receiver: bool,
+        visual_seconds: Option<f64>,
+    ) -> Result<Self> {
+        self.receiver_ads_wip = receiver;
+        if let Some(layer) = &mut self.walk_layer {
+            layer.use_receiver_v4_wip(receiver);
+        }
+        if let Some(seconds) = visual_seconds {
+            if let Some(ads) = self.ads.take() {
+                self.ads = Some(ads.with_visual_transition_seconds(seconds)?);
+            }
+        }
+        Ok(self)
     }
     /// Optional reviewed four-direction clips; absent data preserves the old walk.
     /// This is an initialization operation, not a live pose-reset API.
@@ -343,7 +361,14 @@ impl LayeredLocomotion {
         if let Some(direction) = &mut self.directional_walk {
             direction.update(simulation, end - start, new_cycle);
         }
-        self.walk.committed_step(start, end, moving, eligible)?;
+        let aim_integral = self.ads.as_ref().map_or(0., AuthoredAds::last_aim_integral);
+        let phase_advance = if self.receiver_ads_wip {
+            (end - start - 0.15 * aim_integral).max(0.)
+        } else {
+            end - start
+        };
+        self.walk
+            .committed_step_with_phase(start, end, moving, eligible, phase_advance)?;
         let mut pose = match (&self.ads, sources.ads) {
             (Some(ads), Some(set)) => ads.pose(set)?.unwrap_or_else(|| self.ready.clone()),
             (None, None) => self.ready.clone(),
@@ -359,12 +384,14 @@ impl LayeredLocomotion {
                 Some(direction) => direction.pose(set, seconds, &self.blend)?,
                 None => set.sample(clip, seconds as f32)?,
             };
-            pose = layer.pose(
+            pose = layer.pose_directional(
                 sources.locomotion,
                 &pose,
                 &walk,
                 self.walk.weight(),
                 self.ads.as_ref().map_or(0., AuthoredAds::aim_amount),
+                self.directional_weights()
+                    .map_or(0., |weights| (weights[2] + weights[3]) as f32),
             )?;
         } else if self.walk_clip.is_some() && sources.walk.is_none() {
             return Err(AnimationError("walk source changed during playback".into()));
@@ -424,11 +451,31 @@ impl LayeredLocomotion {
     pub fn path(&self) -> &AuthoredLocomotionPath {
         &self.path
     }
+    pub fn walk_clip(&self) -> Option<&str> {
+        if let Some(direction) = &self.directional_walk {
+            let index = direction
+                .weights
+                .iter()
+                .enumerate()
+                .max_by(|a, b| a.1.total_cmp(b.1))
+                .map_or(0, |(index, _)| index);
+            Some(direction.clips.names()[index])
+        } else {
+            self.walk_clip.as_deref()
+        }
+    }
     pub fn walk(&self) -> &AuthoredWalk {
         &self.walk
     }
     pub fn ads(&self) -> Option<&AuthoredAds> {
         self.ads.as_ref()
+    }
+    pub fn walk_min_rate(&self) -> f32 {
+        if self.receiver_ads_wip {
+            0.85
+        } else {
+            1.
+        }
     }
     pub fn run_weight(&self) -> f32 {
         (self.run_envelope * self.run_envelope * (3. - 2. * self.run_envelope)) as f32

@@ -225,6 +225,17 @@ impl AuthoredViewmodel {
                     .map_err(|error| error.to_string())?,
             );
         }
+        model.locomotion = Some(
+            model
+                .locomotion
+                .take()
+                .ok_or("missing shared layers")?
+                .with_ads_wip_policy(
+                    manifest.receiver_ads_wip,
+                    manifest.ads_visual_transition_seconds,
+                )
+                .map_err(|error| error.to_string())?,
+        );
         let mut missing = vec!["fire", "mantle"];
         if model.ads_index.is_none() {
             missing.insert(0, "ADS");
@@ -256,6 +267,11 @@ impl AuthoredViewmodel {
         self.locomotion
             .as_ref()
             .map_or(0., |layers| layers.walk().weight())
+    }
+    pub fn walk_min_rate(&self) -> f32 {
+        self.locomotion
+            .as_ref()
+            .map_or(1., LayeredLocomotion::walk_min_rate)
     }
     pub fn run_weight(&self) -> f32 {
         self.locomotion
@@ -309,7 +325,14 @@ impl AuthoredViewmodel {
             .animation
             .clips()
             .iter()
-            .find(|clip| clip.name == renderer.clip)
+            .find(|clip| {
+                clip.name
+                    == self
+                        .locomotion
+                        .as_ref()
+                        .and_then(LayeredLocomotion::walk_clip)
+                        .unwrap_or(&renderer.clip)
+            })
             .map(|clip| f64::from(clip.duration()))
     }
     pub fn tactical_duration(&self) -> Option<f64> {

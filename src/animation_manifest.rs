@@ -40,6 +40,8 @@ pub struct AnimationManifest {
     pub layer_anchor_actor: String,
     pub empty: Option<ClipReference>,
     pub ads: Option<AdsReference>,
+    pub receiver_ads_wip: bool,
+    pub ads_visual_transition_seconds: Option<f64>,
 }
 impl AnimationManifest {
     pub fn load(path: &Path) -> Result<Self, String> {
@@ -127,6 +129,24 @@ impl AnimationManifest {
                 exit_clip: take(&mut values, "ads.exit.clip")?,
             })
         };
+        let receiver_ads_wip = match values.remove("layers.ads_walk").as_deref() {
+            None | Some("optical_projection") => false,
+            Some("receiver_v4_wip") => true,
+            _ => return Err("unsupported ADS walk layer policy".into()),
+        };
+        let ads_visual_transition_seconds = values
+            .remove("ads.visual_transition_seconds")
+            .map(|value| {
+                value
+                    .parse::<f64>()
+                    .map_err(|_| "invalid ADS visual transition duration")
+            })
+            .transpose()?;
+        if ads_visual_transition_seconds
+            .is_some_and(|value| !value.is_finite() || value <= 0. || value > 2.)
+        {
+            return Err("ADS visual duration outside (0,2]".into());
+        }
         let locomotion_asset = asset(&mut values, "locomotion.asset", directory)?;
         let locomotion = AuthoredLocomotionPathConfig {
             ready_clip: take(&mut values, "ready.clip")?,
@@ -196,6 +216,8 @@ impl AnimationManifest {
             layer_anchor_actor,
             empty,
             ads,
+            receiver_ads_wip,
+            ads_visual_transition_seconds,
         })
     }
 }

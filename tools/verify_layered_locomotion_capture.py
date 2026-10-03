@@ -22,6 +22,10 @@ def verify(folder: Path, allow_legacy_walk=False):
         raise ValueError('native layered renderer failed or pose telemetry missing')
     if any(a['simulation_time'] >= b['simulation_time'] for a,b in zip(rows,rows[1:])):
         raise ValueError('committed replay clock did not advance')
+    ticks=[round(row['simulation_time']*120) for row in rows]
+    stride=120//hz
+    if any(b-a != stride for a,b in zip(ticks,ticks[1:])):
+        raise ValueError('capture cadence does not use the exact fixed-step stride')
     segments={name:[row for row in rows if row['segment']==name]
               for name in {row['segment'] for row in rows}}
     for index,direction in enumerate(('forward','backward','left','right')):
@@ -38,8 +42,8 @@ def verify(folder: Path, allow_legacy_walk=False):
                 raise ValueError(f'{direction}_{kind} does not use the declared direction')
     rapid=segments.get('rapid_run_interruptions',[])
     overlap=[row for row in rapid if row['sprinting'] and row['route'].startswith('ads.')
-             and row['run_weight']>0 and row['walk_weight']>0]
-    returns=[row for row in rapid if row['ads_requested'] and row['run_weight']>0 and row['route'].startswith('ads.')]
+             and 0 < row['run_weight'] < 1 and row['walk_weight']>0]
+    returns=[row for row in rapid if row['ads_requested'] and 0 < row['run_weight'] < 1 and row['route'].startswith('ads.')]
     if len(overlap)<2 or len(returns)<2:
         raise ValueError('rapid interruptions lack concurrent outgoing/incoming layers')
     if rows[-1]['run_weight'] or rows[-1]['walk_weight'] or rows[-1]['route']!='ready':
@@ -52,8 +56,8 @@ def verify(folder: Path, allow_legacy_walk=False):
     if any(len(hashes.get(f'{direction}_hip',set()))<4 for direction in ('forward','backward','left','right')):
         raise ValueError('HIP images lack visible authored animation')
     report={'schema':'rust-duty-layered-native-capture/v1','passed':True,
-            'sampling_hz':hz,'frames':len(rows),'directional_source_required':not allow_legacy_walk,
-            'run_ads_walk_overlap_frames':len(overlap),'interrupted_run_return_frames':len(returns),
+            'sampling_hz':hz,'frames':len(rows),'fixed_steps_per_frame':stride,'directional_source_required':not allow_legacy_walk,
+            'partial_run_ads_walk_overlap_frames':len(overlap),'interrupted_run_return_frames':len(returns),
             'scope':'Native rendered frame and committed-state checks only; reference motion score, visual contact, and actual Windows gameplay remain separate.'}
     (folder/'verification.json').write_text(json.dumps(report,indent=2)+'\n')
     return report,rows
