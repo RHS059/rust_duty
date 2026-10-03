@@ -78,3 +78,17 @@ fixed-tick Simulation::update, then evaluates the committed authored presentatio
 It captures through the native clip end and return to locomotion, with per-frame
 `.gameplay.json` containing route, native clip time, ammo, reserve and authoritative
 credit/readiness deadlines. No reload timer or pose-phase override is used.
+
+For a real grounded walking replay, use
+`--reference-viewport --capture-sequence=gameplay-walk --output=walk-gameplay`.
+It sends normal forward movement from 0.25 to 2.25 seconds through the normal
+simulation and committed presentation; sprint stays off. It stops automatically
+after 3.7 seconds and writes numbered PNGs plus `.gameplay.json` containing route,
+unwrapped native clip seconds, loop duration, actual speed, grounded/sprint flags,
+position and renderer-failure status. No velocity or pose override is used.
+
+The expected proof is ready -> `regular_walk` over at least two native loops ->
+ready after movement decays below 0.1 m/s. Gun and arms use the complete authored
+pack. Start/stop currently make whole-model cuts; authored easing and phase-aware
+walk exits have NOT been implemented. This capture exposes those seams rather
+than hiding them with procedural bob or invented transitions.
