@@ -1,20 +1,20 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T15:22:44.216Z",
-  "state": "waiting",
-  "task": "Waiting for Elara's independent animation review; animation development remains stopped since 14:48 UTC",
+  "updatedAt": "2026-10-03T15:33:28Z",
+  "state": "active",
+  "task": "Correcting the gallery to paired reference/render reviews and auditing Eevee previews; Elara motion review is pending. Animation development remains stopped since 14:48 UTC.",
   "lastCompleted": "Published and deployment-verified gallery v44: 60 cards, 61 videos, all 52 primary clips and 3 reload alternates, plus 7 matched comparison stacks",
   "agents": [
     {
       "slot": 1,
-      "state": "idle",
-      "task": "",
+      "state": "active",
+      "task": "Restricting the main review queue to matched reference/render pairs; moving unpaired clips to the missing-reference inventory and auditing Blender preview settings",
       "lastCompleted": "Published gallery v44 from source 531eccb; 60 cards and 61 videos, 35 old previews hidden; all items pending Elara review"
     },
     {
       "slot": 2,
-      "state": "idle",
-      "task": "",
+      "state": "unknown",
+      "task": "Eevee review-pair worker is running; detailed activity confirmation pending",
       "lastCompleted": "Delivered and decode-validated 53 videos, including source previews and exact e46f83d runtime recordings; source files unchanged"
     },
     {
