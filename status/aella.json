@@ -1,21 +1,21 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T15:53:06Z",
+  "updatedAt": "2026-10-03T16:02:33Z",
   "state": "active",
-  "task": "Animation work resumed at 15:50 UTC. Coordinating ADS reference review and replacing the paired gallery previews with true Blender Eevee viewport renders; HIP revisions are owned by Hal. Motion feedback remains WIP with no artistic approval.",
-  "lastCompleted": "Published comparison-only review queue: 6 motion pairs and 1 static pair; 53 unpaired items remain in the separate missing-reference inventory, including 47 of 52 primary clips awaiting a pair; 35 old previews hidden",
+  "task": "Animation work resumed at 15:50 UTC. ADS reference authoring/review and true Blender Eevee viewport gallery comparisons are active; HIP motion revisions are owned separately by Hal. Motion feedback remains WIP with no artistic approval.",
+  "lastCompleted": "Gallery v49 published three true Eevee baseline HIP reference stacks: forward, backward and left. Review queue remains 6 motion pairs and 1 static pair; 53 unpaired items remain in the separate inventory, including 47 of 52 primary clips awaiting a pair; 35 old previews hidden.",
   "agents": [
     {
       "slot": 1,
       "state": "active",
-      "task": "Coordinating four-direction ADS v4 reference and Eevee viewport comparisons for Elara's first ADS motion review; source refinement awaits that feedback",
-      "lastCompleted": "Verified all four current ADS v4 MP4s, exact source hashes, reference windows and phase map; frozen source remains unchanged"
+      "task": "Preparing four-direction ADS v4 Eevee viewport capture and first ADS motion review; source refinement awaits that feedback",
+      "lastCompleted": "Supplied and independently reproduced the 486-transform baseline packet; first actual Eevee ADS viewport smoke frame completed; no new ADS source revision yet"
     },
     {
       "slot": 2,
       "state": "active",
-      "task": "Replacing baseline HIP comparisons with true Blender Eevee viewport renders, then ADS; correcting the initial shader-warmup frame and preserving the four-column gallery with closed details",
-      "lastCompleted": "Published paired-review queue with 6 motion pairs and 1 static pair; viewport smoke check passed, but no full Eevee comparison pair is published yet"
+      "task": "Publishing the QA-cleared right HIP Eevee comparison next, then four-direction ADS; testing first-frame and 8-versus-16 sample settings before the 486-frame ADS batch",
+      "lastCompleted": "Gallery v49 live with true Eevee forward/backward/left HIP baseline stacks. Right stack composited and QA-cleared with 33 tests passing, but not published yet; baseline source unchanged"
     },
     {
       "slot": 3,
