@@ -875,7 +875,12 @@ async fn main() {
                 || s.starts_with("--weapon-asset=")
                 || s.starts_with("--arms-asset=")
         }),
-    ).or_else(|| args.iter().find_map(|arg| arg.strip_prefix("--animation-manifest=")).map(std::path::PathBuf::from));
+    )
+    .or_else(|| {
+        args.iter()
+            .find_map(|arg| arg.strip_prefix("--animation-manifest="))
+            .map(std::path::PathBuf::from)
+    });
     let authored_clip = args
         .iter()
         .find_map(|s| s.strip_prefix("--viewmodel-clip="))
@@ -900,9 +905,16 @@ async fn main() {
                 .to_str()
                 .ok_or_else(|| "viewmodel path is not valid Unicode".to_string())?;
             if authored_clip == "locomotion" && time.is_none() {
-                let manifest = args.iter().find_map(|arg| arg.strip_prefix("--animation-manifest="))
+                let manifest = args
+                    .iter()
+                    .find_map(|arg| arg.strip_prefix("--animation-manifest="))
                     .map(std::path::PathBuf::from)
-                    .unwrap_or_else(|| executable.parent().unwrap_or(std::path::Path::new(".")).join("assets/animations.cfg"));
+                    .unwrap_or_else(|| {
+                        executable
+                            .parent()
+                            .unwrap_or(std::path::Path::new("."))
+                            .join("assets/animations.cfg")
+                    });
                 authored_viewmodel::AuthoredViewmodel::load_manifest(&manifest)
             } else {
                 authored_viewmodel::AuthoredViewmodel::load(path, authored_clip, time)
