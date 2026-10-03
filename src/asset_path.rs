@@ -34,6 +34,32 @@ pub fn resolve_weapon(
         WeaponSource::Missing(adjacent)
     }
 }
+/// Prefer an explicitly selected viewmodel; otherwise discover the private
+/// locomotion pack beside the game. An incomplete pack is selected too so the
+/// loader reports the missing companion instead of silently using the old rig.
+pub fn resolve_viewmodel(
+    executable: &Path,
+    explicit: Option<&Path>,
+    explicit_legacy: bool,
+) -> Option<PathBuf> {
+    if let Some(path) = explicit {
+        return Some(path.to_owned());
+    }
+    if explicit_legacy {
+        return None;
+    }
+    let adjacent = executable.parent().unwrap_or_else(|| Path::new("."))
+        .join("assets/locomotion/asset.vra");
+    if ["vra", "vrs", "vrm"].iter().any(|extension| {
+        let path = adjacent.with_extension(extension);
+        std::fs::symlink_metadata(&path).is_ok() || path.try_exists().is_err()
+    }) {
+        Some(adjacent)
+    } else {
+        None
+    }
+}
+
 pub fn load_weapon(
     source: &WeaponSource,
     embedded: Option<&[u8]>,
@@ -70,6 +96,24 @@ mod tests {
             let _ = std::fs::remove_dir_all(&self.0);
         }
     }
+    #[test]
+    fn locomotion_pack_is_discovered_next_to_executable() {
+        let temp = Temp::new();
+        let model = temp.0.join("assets/locomotion/asset.vra");
+        std::fs::create_dir_all(model.parent().unwrap()).unwrap();
+        let exe = temp.0.join("vector-range.exe");
+        assert_eq!(resolve_viewmodel(&exe, None, false), None);
+        // A partial installation must be reported by the loader, not hidden.
+        std::fs::write(model.with_extension("vrs"), b"fixture").unwrap();
+        assert_eq!(resolve_viewmodel(&exe, None, false), Some(model.clone()));
+        std::fs::write(&model, b"fixture").unwrap();
+        std::fs::write(model.with_extension("vrm"), b"fixture").unwrap();
+        assert_eq!(resolve_viewmodel(&exe, None, false), Some(model));
+        assert_eq!(resolve_viewmodel(&exe, None, true), None);
+        let explicit = Path::new("custom/view.vra");
+        assert_eq!(resolve_viewmodel(&exe, Some(explicit), true), Some(explicit.to_owned()));
+    }
+
     #[test]
     fn finds_model_next_to_exe_even_with_spaces_and_unrelated_working_directory() {
         let temp = Temp::new();

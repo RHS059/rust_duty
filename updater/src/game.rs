@@ -32,8 +32,22 @@ const STARTUP_PLAN: &str = "--rust-duty-update-startup=";
 const STARTUP_TOKEN: &str = "--rust-duty-update-startup-token=";
 const HELPER_TIMEOUT: Duration = Duration::from_secs(120);
 
+/// Machine-readable state; UI gates must never infer success from display text.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub enum UpdatePhase {
+    #[default]
+    Checking,
+    Current,
+    Paused,
+    Cancelled,
+    Ready,
+    Restarting,
+    Unavailable,
+}
+
 #[derive(Debug, Clone, Default)]
 pub struct UpdateSnapshot {
+    pub phase: UpdatePhase,
     pub message: String,
     pub bytes: u64,
     pub total: u64,
@@ -136,6 +150,7 @@ impl GameUpdater {
                     let mut state = state.lock().unwrap();
                     state.snapshot.running = false;
                     state.snapshot.ready = false;
+                    state.snapshot.phase = UpdatePhase::Unavailable;
                     state.snapshot.message = format!("Update check unavailable: {error}");
                 }
             })?;
@@ -169,6 +184,7 @@ impl GameUpdater {
                         state.prepared = Some(pending.prepared);
                         state.restarting = false;
                         state.snapshot.ready = true;
+                        state.snapshot.phase = UpdatePhase::Ready;
                         state.snapshot.message = format!("Restart not admitted: {error}");
                         return Err(error);
                     }
@@ -185,6 +201,7 @@ impl GameUpdater {
                     .ok_or_else(|| invalid("No verified update is ready to restart"))?;
                 state.restarting = true;
                 state.snapshot.ready = false;
+                state.snapshot.phase = UpdatePhase::Restarting;
                 state.snapshot.message = "Restarting to install the verified update…".into();
                 prepared
             };
@@ -212,6 +229,7 @@ impl GameUpdater {
                     state.prepared = Some(prepared);
                     state.restarting = false;
                     state.snapshot.ready = true;
+                        state.snapshot.phase = UpdatePhase::Ready;
                     state.snapshot.message = format!("Could not start update helper: {error}");
                     return Err(error.into());
                 }
@@ -227,6 +245,7 @@ impl GameUpdater {
             state.prepared = None;
             state.restarting = false;
             state.snapshot.ready = false;
+            state.snapshot.phase = UpdatePhase::Cancelled;
             state.snapshot.message = "Cancelling update…".into();
         }
         let request = match action {
@@ -346,7 +365,7 @@ pub fn dispatch_headless(version: &str) -> Option<i32> {
                     return Ok(());
                 }
             } else if !snapshot.running {
-                if snapshot.ready || snapshot.message.contains("is current") {
+                if snapshot.ready || snapshot.phase == UpdatePhase::Current {
                     terminal = if snapshot.ready { "ready" } else { "current" };
                     return Ok(());
                 }
@@ -570,6 +589,7 @@ fn coordinate(
     if preference != Control::Running {
         let mut s = shared.lock().unwrap();
         s.snapshot.running = false;
+        s.snapshot.phase = if preference == Control::Paused { UpdatePhase::Paused } else { UpdatePhase::Cancelled };
         s.snapshot.message = if preference == Control::Paused {
             "Download paused. Resume to continue."
         } else {
@@ -598,6 +618,7 @@ fn coordinate(
                 atomic_json(&preference_path, &preference)?;
                 download::set_control(&store.root, preference)?;
                 let mut s = shared.lock().unwrap();
+                s.snapshot.phase = UpdatePhase::Paused;
                 s.snapshot.message = "Pausing download…".into();
                 if !active {
                     s.snapshot.running = false;
@@ -621,7 +642,9 @@ fn coordinate(
                 let mut s = shared.lock().unwrap();
                 s.prepared = None;
                 s.snapshot.ready = false;
+                s.snapshot.phase = UpdatePhase::Cancelled;
                 s.snapshot.message = "Cancelling update; current game is unchanged…".into();
+                if !active { s.snapshot.running = false; }
                 if !active {
                     download::cancel_partial(&store.root)?;
                 }
@@ -635,6 +658,7 @@ fn coordinate(
             if cancelled || completed_generation != s.generation {
                 s.prepared = None;
                 s.snapshot.ready = false;
+                s.snapshot.phase = UpdatePhase::Cancelled;
                 s.snapshot.message = "Update cancelled; current game is unchanged".into();
                 download::cancel_partial(&store.root)?;
             } else {
@@ -642,21 +666,26 @@ fn coordinate(
                     Ok(prepared) => {
                         s.prepared = Some(prepared);
                         s.snapshot.ready = true;
+                        s.snapshot.phase = UpdatePhase::Ready;
                         s.snapshot.message = "Update ready. Restart to install it.".into();
                         requested = false;
                     }
                     Err(Error::UpToDate) => {
+                        s.snapshot.phase = UpdatePhase::Current;
                         s.snapshot.message =
                             format!("Version {running} is current; no newer update")
                     }
                     Err(Error::Paused) => {
+                        s.snapshot.phase = UpdatePhase::Paused;
                         s.snapshot.message =
                             "Download paused. Resume continues the verified download.".into()
                     }
                     Err(Error::Cancelled) => {
+                        s.snapshot.phase = UpdatePhase::Cancelled;
                         s.snapshot.message = "Update cancelled; current game is unchanged".into()
                     }
                     Err(error) => {
+                        s.snapshot.phase = UpdatePhase::Unavailable;
                         s.snapshot.message =
                             format!("Update unavailable: {error}. Resume to retry.")
                     }
@@ -677,6 +706,9 @@ fn coordinate(
             {
                 let mut s = shared.lock().unwrap();
                 s.snapshot.running = true;
+                s.snapshot.phase = UpdatePhase::Checking;
+                s.snapshot.bytes = 0;
+                s.snapshot.total = 0;
                 s.snapshot.ready = false;
                 s.snapshot.message = "Checking for a newer release…".into();
             }
@@ -735,25 +767,27 @@ fn check_and_prepare(
     args: &[String],
 ) -> Result<Prepared> {
     let cache = store.root.join("manifest.cache.json");
-    let bytes = match source.latest(TARGET) {
+    let (bytes, discovery_error) = match source.latest(TARGET) {
         Ok(bytes) => {
             Trust::production()?.verify(&bytes, TARGET)?;
             crate::atomic_bytes(&cache, &bytes)?;
-            bytes
+            (bytes, None)
         }
-        Err(_) if cache.is_file() => {
+        Err(error) if cache.is_file() => {
             reject_symlink(&cache)?;
             if cache.metadata()?.len() > crate::MAX_MANIFEST {
                 return Err(invalid("oversized cached manifest"));
             }
-            fs::read(&cache)?
+            (fs::read(&cache)?, Some(error))
         }
         Err(error) => return Err(error),
     };
     let manifest = Trust::production()?.verify(&bytes, TARGET)?;
     // This gate precedes persisted Store state, including manually installed builds.
     if manifest.version <= *running {
-        return Err(Error::UpToDate);
+        // Cached metadata may safely identify a newer candidate, but it cannot
+        // prove that the installed build is current when discovery is offline.
+        return Err(discovery_error.unwrap_or(Error::UpToDate));
     }
     store.check_newer(&manifest)?;
     if manifest.entrypoint != GAME_FILE {
@@ -1363,9 +1397,27 @@ mod tests {
         .unwrap();
         let state = await_snapshot(&mut updater, |s| !s.running);
         assert!(state.message.contains("is current"), "{state:?}");
+        assert_eq!(state.phase, UpdatePhase::Current);
         assert!(!state.ready);
         assert_eq!(server.request_count(), 1);
         assert_eq!(fs::read(paths.target).unwrap(), b"synthetic running game");
+    }
+
+    #[test]
+    fn stale_cached_manifest_cannot_report_current_while_offline() {
+        let root = tempfile::tempdir().unwrap();
+        let paths = fixture_paths(root.path());
+        let server = Server::new();
+        let manifest = publish(&server, "1.0.0", 4096);
+        let source = server.source();
+        drop(server);
+        let store = Store::open(&paths.metadata).unwrap();
+        atomic_json(&store.root.join("manifest.cache.json"), &manifest).unwrap();
+        let mut updater = GameUpdater::start_at(paths, stable_version("1.0.0").unwrap(), vec![], Some(source)).unwrap();
+        let state = await_snapshot(&mut updater, |s| !s.running);
+        assert_eq!(state.phase, UpdatePhase::Unavailable);
+        assert!(!state.ready);
+        assert!(!state.message.contains("is current"));
     }
 
     #[test]
