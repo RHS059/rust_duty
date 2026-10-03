@@ -44,6 +44,8 @@ def context(env=None, *, publication=False):
         raise ValueError("invalid exact source commit or branch")
     if not re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", repository):
         raise ValueError("invalid repository")
+    if env.get("RUST_DUTY_RELEASE_PR"):
+        return merged_context(env, repository, number, run_id, publication=publication)
     version = RELEASE_VERSION
     if env.get("RUST_DUTY_BUILD_VERSION") != version:
         raise ValueError("build version must match the one-time approved 0.1.5 release")
@@ -59,6 +61,35 @@ def context(env=None, *, publication=False):
                    "run_url": f"https://github.com/{repository}/actions/runs/{run_id}"},
     }
 
+
+
+def merged_context(env, repository, number, run_id, *, publication=False):
+    """A ledger allocation, not a run counter, names a merged game build.
+
+    The publication entrypoint additionally rereads the immutable PR allocation
+    and GitHub's actual merged PR before any release writes.
+    """
+    pr = positive_integer(env.get("RUST_DUTY_RELEASE_PR"), "merged PR")
+    sequence = positive_integer(env.get("RUST_DUTY_RELEASE_SEQUENCE"), "release sequence")
+    version = env.get("RUST_DUTY_BUILD_VERSION")
+    commit = env.get("RUST_DUTY_SOURCE_SHA", "")
+    workflow = ".github/workflows/merged-game-release.yml"
+    if (repository != REPOSITORY or sequence <= RELEASE_SEQUENCE
+            or version != f"0.1.{sequence}"
+            or not re.fullmatch(r"[0-9a-f]{40}", commit)
+            or env.get("GITHUB_REF") != "refs/heads/main"
+            or env.get("GITHUB_EVENT_NAME") not in ("pull_request_target", "workflow_dispatch", "schedule")
+            or env.get("GITHUB_WORKFLOW_REF") != f"{REPOSITORY}/{workflow}@refs/heads/main"):
+        raise ValueError("merged build requires a trusted main workflow and a valid patch allocation")
+    if publication and env.get("RUST_DUTY_BUILD_RESULT") != "success":
+        raise ValueError("merged publication requires both complete native builds to succeed")
+    return {
+        "repository": repository, "version": version, "sequence": sequence,
+        "merge": {"pull_request": pr, "base": "main"},
+        "source": {"commit": commit, "branch": "main", "workflow": workflow,
+                   "run_id": run_id, "run_number": number,
+                   "run_url": f"https://github.com/{repository}/actions/runs/{run_id}"},
+    }
 
 def executable_record(root, platform):
     _, name, _, magic = TARGETS[platform]
