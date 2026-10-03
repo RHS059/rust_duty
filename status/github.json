@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T12:52:49Z",
+  "updatedAt": "2026-10-03T13:04:12.386Z",
   "latestComplete": {
     "sha": "7ffdd6eb1d6ae20d5e8e6445f07759a225c952eb",
     "downloadUrl": "https://github.com/RHS059/rust_duty/actions/runs/37118065452/artifacts/11271704836",
@@ -17,8 +17,8 @@
     "Native Linux captures were visually reviewed; Windows gameplay and artistic approval remain unverified"
   ],
   "currentBuild": {
-    "state": "blocked",
-    "task": "PR #17: Windows build passed, but the native Linux ADS check failed; package verification and failure diagnosis are underway",
-    "url": "https://github.com/RHS059/rust_duty/actions/runs/37123421718"
+    "state": "active",
+    "task": "PR #17 rebuild is running with corrected native ADS checks and 30/60 Hz layered-input diagnostics; runtime contracts passed",
+    "url": "https://github.com/RHS059/rust_duty/actions/runs/37124656435"
   }
 }
