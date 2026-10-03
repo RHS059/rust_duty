@@ -1,0 +1,75 @@
+{
+  "schema": "rust-duty-reference-binary-parts/v1",
+  "output": "modern_warfare_2022_movement_reference.mp4",
+  "bytes": 50406346,
+  "sha256": "491a1729aa0f32373025d35fff86da76c6c1c8f057c0c553d0fbb5fb6226ff46",
+  "format": "MP4",
+  "encoding": "exact binary concatenation; no transcoding",
+  "part_bytes": 8388608,
+  "parts": [
+    {
+      "path": "modern_warfare_2022_movement_reference.mp4.parts/part-000.bin",
+      "bytes": 8388608,
+      "sha256": "67133162a6d53f853cdd9354f28f75889a5db999cb37e7ed32735fb99cc3a228"
+    },
+    {
+      "path": "modern_warfare_2022_movement_reference.mp4.parts/part-001.bin",
+      "bytes": 8388608,
+      "sha256": "6ef22bfd68acb271edbbe3e4e59678a6db3bd34e8d6860fbac800e223d9250e5"
+    },
+    {
+      "path": "modern_warfare_2022_movement_reference.mp4.parts/part-002.bin",
+      "bytes": 8388608,
+      "sha256": "6befd523d3e9c4149af7d5b4742d9588b17ffa0651f22d77f404ea931d92c5c6"
+    },
+    {
+      "path": "modern_warfare_2022_movement_reference.mp4.parts/part-003.bin",
+      "bytes": 8388608,
+      "sha256": "405df7dffe893671cc7fca902a9a3d8947bff6ff56425c99bdacb5cc5a217bea"
+    },
+    {
+      "path": "modern_warfare_2022_movement_reference.mp4.parts/part-004.bin",
+      "bytes": 8388608,
+      "sha256": "d9115325c75af1c485595a6c9e55e9a1ae8d3d7b0476b327754f6caf74e6c00e"
+    },
+    {
+      "path": "modern_warfare_2022_movement_reference.mp4.parts/part-005.bin",
+      "bytes": 8388608,
+      "sha256": "568aaea2b40c97d719200775b69ec908ddbd7939c32f8dd63fea36505eb7570d"
+    },
+    {
+      "path": "modern_warfare_2022_movement_reference.mp4.parts/part-006.bin",
+      "bytes": 74698,
+      "sha256": "1f5bc22bab236d93316ed64aaeafa1e26105e6a83d9e0d4c437f89839c7cde43"
+    }
+  ],
+  "video": {
+    "width": 1280,
+    "height": 720,
+    "fps": 60,
+    "native_frames": 9137,
+    "duration_seconds": 152.28333333333333
+  },
+  "provenance": {
+    "recovered_source_filename": "Modern_Warfare_2022_Movement_Reference.mp4",
+    "drive_url": "https://drive.google.com/file/d/1hxAU4KKtB8hP0Ch1o-rOWgOV93ye-Y7i/view",
+    "drive_file_id": "1hxAU4KKtB8hP0Ch1o-rOWgOV93ye-Y7i",
+    "youtube_url": "https://www.youtube.com/watch?v=V_QT_cnlBHU",
+    "youtube_title": "Modern Warfare 2022 Movement Reference",
+    "youtube_channel": "Hexagon",
+    "youtube_display_duration": "2:32",
+    "identity_evidence": "Recovered Drive video matches the clarified YouTube reference title, duration, and complete chapter timeline. This is strong footage correspondence; independently downloaded YouTube encoded bytes and live-pixel equivalence were not established.",
+    "chapters_seconds": {
+      "0": "Walking",
+      "22": "Crouch Movement",
+      "36": "Prone Movement",
+      "65": "Jumping",
+      "72": "Running",
+      "82": "Tactical Sprinting",
+      "88": "Sliding",
+      "101": "Dolphin Diving",
+      "117": "Mantling / Vaulting",
+      "140": "Climbing"
+    }
+  }
+}
