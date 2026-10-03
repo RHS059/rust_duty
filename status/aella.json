@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T22:17:35Z",
+  "updatedAt": "2026-10-03T22:22:56Z",
   "state": "active",
   "task": "Preparing version 0.1.5 update delivery and refining ADS previews.",
   "lastCompleted": "Complete Windows/Linux builds and updater checks passed. Forward v9 and lateral Trial4 preview captures passed QA.",
