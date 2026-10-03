@@ -1,0 +1,22 @@
+name: Pinned Blender asset toolchain
+description: Official Blender 4.3.2 plus versioned image and numerical dependencies
+runs:
+  using: composite
+  steps:
+    - name: Install official checksum-pinned Blender
+      shell: bash
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libx11-6 libxi6 libxfixes3 libxrender1 libxkbcommon0 libgl1 libegl1
+        curl --fail --location --retry 3 https://download.blender.org/release/Blender4.3/blender-4.3.2-linux-x64.tar.xz --output "$RUNNER_TEMP/blender.tar.xz"
+        echo '4da1c956673c0485e63054e563ee69198cc8f80d8157dd7592dffc8a6a5592e6'"  $RUNNER_TEMP/blender.tar.xz" | sha256sum --check --strict
+        tar -xJf "$RUNNER_TEMP/blender.tar.xz" -C "$RUNNER_TEMP"
+        echo "$RUNNER_TEMP/blender-4.3.2-linux-x64" >> "$GITHUB_PATH"
+    - name: Install pinned Blender-local and verification dependencies
+      shell: bash
+      run: |
+        BLENDER_PYTHON="$RUNNER_TEMP/blender-4.3.2-linux-x64/4.3/python/bin/python3.11"
+        "$BLENDER_PYTHON" -m ensurepip
+        "$BLENDER_PYTHON" -m pip install Pillow==11.3.0
+        blender --background --disable-autoexec --python-exit-code 1 --python-expr "import PIL, numpy; print(PIL.__version__, numpy.__version__)"
+        python -m pip install -r tools/requirements-assets.txt numpy==2.2.6 scipy==1.15.3

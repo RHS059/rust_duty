@@ -52,4 +52,14 @@ class FbxVisibilityTests(unittest.TestCase):
         m=list(vrpack.IDENTITY);m[0]=0
         with self.assertRaises(vrpack.AssetError):importer.rigid_transform(tuple(m))
 
+
+class LocomotionTimingTests(unittest.TestCase):
+    def test_sixty_hz_walk_loop(self):
+        frames,times=importer.sample_grid(0,44,8,fps=Fraction(60))
+        self.assertEqual(len(frames),353)
+        self.assertEqual(times[-1],vrpack.f32(44/60))
+    def test_bad_rate_rejected(self):
+        with self.assertRaises(vrpack.AssetError):
+            importer.sample_grid(0,44,8,fps=Fraction(0))
+
 if __name__=='__main__':unittest.main()

@@ -1,0 +1,71 @@
+{
+  "schema": "rust-duty-walk-r1-export-validation/v1",
+  "blender": "4.3.2",
+  "source_sha256": "1b01f49d7fe92f39c7bd180823ee4556a0074dd9ff8ef9c10b3fb4d3f3059e43",
+  "export_script_exit_code": 0,
+  "source_unchanged": true,
+  "fbx_version": 7400,
+  "fbx_take_count": 44,
+  "authored_gameplay_take_count": 43,
+  "runtime_gameplay_count_after_settle_derivation": 44,
+  "all_source_take_names_verified": true,
+  "packed_texture_hashes_verified": true,
+  "decompressed_blend_private_path_scan_passed": true,
+  "legacy_oracle_array_count": 217,
+  "legacy_oracle_arrays_byte_identical": false,
+  "legacy_byte_identical_array_count": 88,
+  "prior_61_action_fingerprints_unchanged": true,
+  "legacy_rigid_actor_arrays_byte_identical": true,
+  "legacy_sample_metadata_identical": true,
+  "legacy_contact_samples_identical": false,
+  "legacy_numerical_preservation": {
+    "pass": true,
+    "maximum_bone_matrix_component_difference": 8.940696716308594e-07,
+    "maximum_bone_position_difference_m": 6.075764531487948e-07,
+    "maximum_skin_vertex_difference_m": 7.935480539345008e-07,
+    "position_difference_limit_m": 1e-06,
+    "matrix_component_difference_limit": 1e-06,
+    "maximum_wrist_solve_error_m": 1.0554746082722798e-05,
+    "maximum_guard_solve_error_degrees": 0.0,
+    "wrist_solve_limit_m": 5e-05,
+    "guard_solve_limit_degrees": 0.08,
+    "all_weapon_follow_values_one": true,
+    "note": "Source Action curves are unchanged. Tiny evaluated float32 differences after authoring save/reopen are explicitly tolerated; full legacy evaluated-array bit identity is not claimed."
+  },
+  "total_oracle_array_count": 222,
+  "walk": {
+    "name": "normal_walk_r1",
+    "source_frame_range": [
+      1,
+      45
+    ],
+    "source_fps": 60,
+    "bake_hz": 480,
+    "loop_duration_seconds": 0.7333333333333333,
+    "fbx_curve_key_count_histogram": {
+      "353": 675
+    },
+    "native_pose_probe_count": 25,
+    "contact_probe_count": 177,
+    "arrays": [
+      "normal_walk_r1__actors",
+      "normal_walk_r1__bones",
+      "normal_walk_r1__skin_0",
+      "normal_walk_r1__skin_1",
+      "normal_walk_r1__skin_2"
+    ],
+    "all_values_finite": true,
+    "nonconstant_motion_verified": true,
+    "maximum_loop_endpoint_array_differences": {
+      "normal_walk_r1__actors": 0.0,
+      "normal_walk_r1__bones": 0.0,
+      "normal_walk_r1__skin_0": 0.0,
+      "normal_walk_r1__skin_1": 0.0,
+      "normal_walk_r1__skin_2": 0.0
+    },
+    "maximum_wrist_solve_error_m": 5.996010677076829e-07,
+    "maximum_guard_solve_error_degrees": 0.0,
+    "weapon_follow_stays_one": true
+  },
+  "scope": "Authored source and evaluated FBX/native export verified. Runtime converter, shared CI, semantic bindings, and gameplay rendering are owned by Aella and not executed by this source validation."
+}

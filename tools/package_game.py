@@ -17,6 +17,10 @@ import tempfile
 import zlib
 import vrview
 from build_blender_assets import selections
+from merge_walk_clip import clip_offset
+
+WALK_DIR = Path("assets/walk")
+WALK_META = ("manifest.json", "parity.json", "conversion.json")
 
 GENERATED_DIR = Path("assets/reload")
 GENERATED_FILES = (*("asset." + suffix for suffix in ("vra", "vrs", "vrm")),
@@ -34,7 +38,7 @@ NOTICES = ("LICENSE", "THIRD_PARTY_LICENSES.txt",
 BUILD_FILES = (
     "settings.cfg", "README.md", "docs/PROVENANCE.md", "docs/ASSET_FORMAT.md",
     "docs/M4_PROFILE.md", "docs/FIRST_PERSON_ARMS.md", "docs/MANTLING.md",
-    "docs/AUTHORED_LOCOMOTION_REVISION.md", "assets/README.md",
+    "docs/AUTHORED_LOCOMOTION_REVISION.md", "docs/AUTHORED_ASSET_CI.md", "assets/README.md",
     "profiles/kestrel.cfg", "profiles/m4a1-beta-visual.cfg", "profiles/m4a1-candidate.cfg",
 )
 
@@ -54,21 +58,21 @@ def regular_file(root: Path, relative: str | Path) -> Path:
 
 
 
-def companion_bytes(root: Path, name: str, manifest: dict) -> bytes:
+def companion_bytes(root: Path, name: str, manifest: dict, asset_dir: Path = ASSET_DIR) -> bytes:
     record = manifest["files"][name]
     if (set(record) != {"bytes", "sha256"}
             or type(record["bytes"]) is not int
             or not 0 < record["bytes"] <= 128 * 1024**2):
         raise ValueError(f"invalid companion manifest: {name}")
-    raw = root / ASSET_DIR / name
+    raw = root / asset_dir / name
     if raw.exists() or raw.is_symlink():
-        path = regular_file(root, ASSET_DIR / name)
+        path = regular_file(root, asset_dir / name)
         if path.stat().st_size != record["bytes"]:
             raise ValueError(f"locomotion size mismatch: {name}")
         blob = path.read_bytes()
     elif name == "asset.vrs":
         transport = manifest["repository_transport"][name]
-        path = regular_file(root, ASSET_DIR / transport["file"])
+        path = regular_file(root, asset_dir / transport["file"])
         if path.stat().st_size != transport["bytes"]:
             raise ValueError("compressed locomotion size mismatch")
         packed = path.read_bytes()
@@ -82,7 +86,7 @@ def companion_bytes(root: Path, name: str, manifest: dict) -> bytes:
         if len(blob) != record["bytes"]:
             raise ValueError("decompressed locomotion size mismatch")
     else:
-        raise ValueError(f"required distribution file missing: {ASSET_DIR / name}")
+        raise ValueError(f"required distribution file missing: {asset_dir / name}")
     if hashlib.sha256(blob).hexdigest() != record["sha256"]:
         raise ValueError(f"locomotion SHA-256 mismatch: {name}")
     return blob
@@ -161,7 +165,77 @@ def verify(root: Path) -> dict:
     return {"clip_count": len(CLIPS), "files": manifest["files"]}
 
 
-def materialize(root: Path) -> dict:
+def walk_bound(root: Path) -> bool:
+    path = root / "assets/animations.cfg"
+    if not path.exists():
+        return False
+    lines = [line.strip() for line in path.read_text().splitlines()]
+    bindings = [line.split("=", 1)[1].strip() for line in lines if line.startswith("regular_walk.asset=")]
+    if bindings and bindings != ["walk/asset.vra"]:
+        raise ValueError("unsupported packaged walk asset binding")
+    return bool(bindings)
+
+
+def verify_walk(root: Path, folder: Path = WALK_DIR) -> dict:
+    root = Path(root)
+    manifest = json.loads(regular_file(root, folder / "manifest.json").read_text())
+    source = manifest.get("source", {})
+    if (manifest.get("schema") != "rust-duty-authored-walk-distribution/v1"
+            or manifest.get("clip_count") != 44
+            or manifest.get("clip_names") != [*CLIPS, "normal_walk_r1"]
+            or manifest.get("walk_clip") != "normal_walk_r1" or manifest.get("loop") is not True
+            or set(manifest.get("files", {})) != set(COMPANIONS)
+            or source.get("file") != "assets/authoring/locomotion/locomotion.blend"
+            or source.get("action") != "normal_walk_r1" or source.get("fps") != 60
+            or source.get("frame_start") != 1 or source.get("frame_end") != 45):
+        raise ValueError("invalid authored walk manifest")
+    transports = manifest.get("repository_transport", {})
+    transport = transports.get("asset.vrs", {})
+    if (set(transports) != {"asset.vrs"} or transport.get("file") != "asset.vrs.gz"
+            or transport.get("encoding") != "gzip" or type(transport.get("bytes")) is not int
+            or not 0 < transport["bytes"] <= 128 * 1024**2
+            or transport.get("decoded_bytes") != manifest["files"]["asset.vrs"]["bytes"]
+            or transport.get("decoded_sha256") != manifest["files"]["asset.vrs"]["sha256"]):
+        raise ValueError("invalid walk transport manifest")
+    blobs = {name: companion_bytes(root, name, manifest, folder) for name in COMPANIONS}
+    baseline = json.loads(regular_file(root, ASSET_DIR / "manifest.json").read_text())
+    old = companion_bytes(root, "asset.vra", baseline)
+    new = blobs["asset.vra"]
+    old_offset, new_offset = clip_offset(old), clip_offset(new)
+    if (new[24:new_offset] != old[24:old_offset]
+            or new[new_offset + 4:new_offset + len(old) - old_offset] != old[old_offset + 4:]):
+        raise ValueError("walk changed original locomotion clip bytes or bindings")
+    for name in ("asset.vrs", "asset.vrm"):
+        if manifest["files"][name] != baseline["files"][name]:
+            raise ValueError("walk changed canonical companions")
+    pack = vrview.decode_vra(new, vrs=blobs["asset.vrs"], vrm=blobs["asset.vrm"])
+    if ([clip["name"] for clip in pack["clips"]] != [*CLIPS, "normal_walk_r1"]
+            or not pack["clips"][-1]["loop"]
+            or pack["clips"][-1]["frames"][-1]["time"] != struct.unpack("<f", struct.pack("<f", 44 / 60))[0]):
+        raise ValueError("walk loop clip contract mismatch")
+    parity = json.loads(regular_file(root, folder / "parity.json").read_text())
+    conversion = json.loads(regular_file(root, folder / "conversion.json").read_text())
+    if (parity.get("backend") != "Rust CPU sampler" or parity.get("passed") is not True
+            or parity.get("asset_sha256") != manifest["files"]["asset.vra"]["sha256"]
+            or parity.get("source_sha256", {}).get("locomotion.blend") != source.get("sha256")
+            or parity.get("source_fbx_sha256") != source.get("fbx", {}).get("sha256")
+            or parity.get("clip") != "normal_walk_r1" or parity.get("samples", 0) < 25
+            or parity.get("visibility_failures") != 0
+            or conversion.get("authoring_master_sha256") != source.get("sha256")
+            or conversion.get("source_fbx_sha256") != source["fbx"]["sha256"]
+            or conversion.get("native_fps") != [60, 1]
+            or conversion.get("source_take") != "normal_walk_r1"):
+        raise ValueError("walk lacks matching successful source/Rust parity")
+    current_source = root / source["file"]
+    if current_source.exists():
+        data = regular_file(root, source["file"]).read_bytes()
+        if len(data) != source["bytes"] or hashlib.sha256(data).hexdigest() != source["sha256"]:
+            raise ValueError("walk differs from committed Blender source")
+    return {"clip": "normal_walk_r1", "clip_count": 44, "original_clips_preserved": 43,
+            "source_sha256": source["sha256"], "parity_samples": parity["samples"]}
+
+
+def materialize(root: Path, include_walk: bool = False) -> dict:
     """Decode verified repository transport for native tests/tools in this checkout."""
     root = Path(root)
     report = verify(root)
@@ -178,6 +252,14 @@ def materialize(root: Path) -> dict:
             finally:
                 temporary.unlink(missing_ok=True)
     verify(root)
+    if include_walk and walk_bound(root):
+        report["walk"] = verify_walk(root)
+        walk_manifest = json.loads(regular_file(root, WALK_DIR / "manifest.json").read_text())
+        for name in COMPANIONS:
+            target = root / WALK_DIR / name
+            if not target.exists():
+                target.write_bytes(companion_bytes(root, name, walk_manifest, WALK_DIR))
+        verify_walk(root)
     return report
 
 
@@ -234,6 +316,8 @@ def verify_generated(root: Path) -> dict:
         reports[str(folder)] = verify_generated_pack(root, folder, selected)
     primary = reports[str(GENERATED_DIR)]
     primary["selected_packs"] = len(reports)
+    if walk_bound(root):
+        primary["walk"] = verify_walk(root)
     return primary
 
 
@@ -249,7 +333,14 @@ def stage(root: Path, binary: str, output: Path, update: bool = False, require_g
     generated = require_generated or (root / "assets/animations.cfg").exists()
     if generated:
         report["generated_reload"] = verify_generated(root)
+    walking = walk_bound(root)
+    if walking:
+        report["walk"] = verify_walk(root)
     copies = [(regular_file(root, binary), Path(binary).name)]
+    if walking:
+        for name in WALK_META:
+            copies.append((regular_file(root, WALK_DIR / name), WALK_DIR / name))
+        copies.append((regular_file(root, WALK_DIR / "README.md"), WALK_DIR / "README.md"))
     if generated:
         for relative in [*(folder / name for folder, _ in generated_paths(root) for name in GENERATED_FILES),
                          Path("assets/animations.cfg"), Path("docs/ANIMATION_SLOTS.md")]:
@@ -278,11 +369,16 @@ def stage(root: Path, binary: str, output: Path, update: bool = False, require_g
         manifest = json.loads((root / ASSET_DIR / "manifest.json").read_text())
         for name in COMPANIONS:
             (destination / ASSET_DIR / name).write_bytes(companion_bytes(root, name, manifest))
+        if walking:
+            walk_manifest = json.loads(regular_file(root, WALK_DIR / "manifest.json").read_text())
+            for name in COMPANIONS:
+                (destination / WALK_DIR / name).write_bytes(companion_bytes(root, name, walk_manifest, WALK_DIR))
+            verify_walk(destination)
         verify(destination)
         if generated:
             verify_generated(destination)
         destination.rename(output)
-    return {"output": str(output), "files_staged": len(copies) + len(COMPANIONS), **report}
+    return {"output": str(output), "files_staged": len(copies) + len(COMPANIONS) + (len(COMPANIONS) if walking else 0), **report}
 
 
 def main():
@@ -293,6 +389,10 @@ def main():
     check.add_argument("--require-generated", action="store_true")
     unpack = commands.add_parser("materialize")
     unpack.add_argument("--root", type=Path, default=Path("."))
+    unpack.add_argument("--include-walk", action="store_true")
+    walk = commands.add_parser("verify-walk")
+    walk.add_argument("--root", type=Path, default=Path("."))
+    walk.add_argument("--folder", type=Path, default=WALK_DIR)
     packaging = commands.add_parser("stage")
     packaging.add_argument("--root", type=Path, default=Path("."))
     packaging.add_argument("--binary", required=True)
@@ -303,7 +403,9 @@ def main():
     if args.command == "verify":
         report = verify(args.root)
     elif args.command == "materialize":
-        report = materialize(args.root)
+        report = materialize(args.root, args.include_walk)
+    elif args.command == "verify-walk":
+        report = verify_walk(args.root, args.folder)
     else:
         report = stage(args.root, args.binary, args.output, args.update, args.require_generated)
     if args.command == "verify" and args.require_generated:

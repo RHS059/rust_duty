@@ -39,3 +39,8 @@ __pycache__/
 /build-assets/
 # Runtime companions are rebuilt from the committed .blend by GitHub Actions.
 /assets/reload/
+
+# Explicitly requested authored regular walk; original locomotion remains frozen.
+!assets/walk/asset.vra
+!assets/walk/asset.vrm
+!assets/walk/asset.vrs.gz
