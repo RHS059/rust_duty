@@ -20,6 +20,15 @@ from smoke_live_update import (
 )
 
 
+def validate_relaunch(outcome, relaunched, expected_version):
+    """Helper admission alone is not a successful replacement/relaunch."""
+    require(outcome == "Update installed and replacement startup acknowledged",
+            f"helper failed: {outcome}")
+    require(relaunched["version"] == expected_version and relaunched["status"] == "current"
+            and relaunched["exit_code"] == 0,
+            "helper did not relaunch and finish the actual B game")
+
+
 def run(args):
     require(args.target in {"x86_64-pc-windows-msvc", "x86_64-unknown-linux-gnu"}, "unsupported target")
     require((os.name == "nt") == args.target.endswith("windows-msvc"), "target must match operating system")
@@ -75,10 +84,8 @@ def run(args):
             time.sleep(.1)
         require(len(result_files) == 1, "replacement helper did not finish exactly once")
         outcome = json.loads(result_files[0].read_text())
-        require(outcome == "Update installed and game restarted", f"helper failed: {outcome}")
         relaunched = json.loads((metadata / "headless-result.json").read_text())
-        require(relaunched["version"] == args.version_b and relaunched["status"] == "current"
-                and relaunched["exit_code"] == 0, "helper did not relaunch and finish the actual B game")
+        validate_relaunch(outcome, relaunched, args.version_b)
         report["helper_relaunch_proof"] = relaunched
         installed = validate_install(metadata, b)
         staged_game = metadata / "versions" / f'{b["sequence"]}-{args.version_b}' / b["entrypoint"]

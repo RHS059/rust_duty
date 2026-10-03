@@ -76,11 +76,11 @@ jobs:
           gh run download "$GAME_RUN_ID" --repo RHS059/rust_duty --name vector-range-linux-x64 --dir tested/linux/game
           gh run download "$LAUNCHER_RUN_ID" --repo RHS059/rust_duty --name rust-duty-launcher-windows --dir tested/windows/launcher
           gh run download "$LAUNCHER_RUN_ID" --repo RHS059/rust_duty --name rust-duty-launcher-linux --dir tested/linux/launcher
-      - name: Curate code-only payloads and validate standalone launchers
+      - name: Curate complete game payloads and validate standalone launchers
         run: |
           python - <<'PY'
           from pathlib import Path
-          import shutil
+          import os, shutil, subprocess, sys
           for osname,game,launcher,bootstrap,magic in [
               ('windows','vector-range.exe','RustDuty.exe','RustDuty-windows-x64.exe',b'MZ'),
               ('linux','vector-range','RustDuty','RustDuty-linux-x64',b'\x7fELF')]:
@@ -88,21 +88,24 @@ jobs:
               assert (source/'launcher/BOOTSTRAP_TRUST.txt').read_text().strip()=='GITHUB_HTTPS_SHA256 RHS059/rust_duty'
               binary=source/'launcher'/launcher
               assert binary.read_bytes().startswith(magic)
-              payload=Path('payload')/osname;payload.mkdir(parents=True)
-              # Exact allowlist: never enumerate models, settings or private assets.
-              for rel in [f'target/release/{game}','LICENSE','THIRD_PARTY_LICENSES.txt']:
-                  item=source/'game'/rel
-                  assert item.is_file() and not item.is_symlink()
-                  shutil.copy2(item,payload/item.name)
-              # The exact-source updater CI generates these registry notices;
-              # they are not checked into the game artifact's working tree.
-              notices=source/'launcher/THIRD_PARTY_UPDATER_LICENSES.txt'
-              assert notices.is_file() and not notices.is_symlink()
-              shutil.copy2(notices,payload/notices.name)
+              payload=Path('payload')/osname
+              # Exact allowlist includes the three authorized locomotion companions.
+              # Staging fails on missing/corrupt assets and never copies user settings.
+              subprocess.run([sys.executable, 'tools/package_game.py', 'stage',
+                  '--root', str(source/'game'), '--binary', game,
+                  '--output', str(payload), '--update'], check=True)
               Path('release-assets').mkdir(exist_ok=True)
+              complete=Path('complete')/osname
+              subprocess.run([sys.executable, 'tools/package_game.py', 'stage',
+                  '--root', str(source/'game'), '--binary', game,
+                  '--output', str(complete)], check=True)
+              if osname == 'linux':
+                  (complete/game).chmod((complete/game).stat().st_mode | 0o111)
+              label='Windows' if osname == 'windows' else 'Linux'
+              archive=Path('release-assets')/f'Rust-Duty-{os.environ["RELEASE_VERSION"]}-{label}-x64'
+              shutil.make_archive(str(archive), 'zip', root_dir=complete)
               shutil.copy2(binary,Path('release-assets')/bootstrap)
-              # One-time adoption of an older build needs only the integrated
-              # game executable. Future checks and controls live inside it.
+              # Retain the legacy migration executable alongside complete ZIPs.
               shutil.copy2(payload/game,Path('release-assets')/('vector-range.exe' if osname=='windows' else 'vector-range-linux-x64'))
           shutil.copy2('SOURCE_PROVENANCE.json','release-assets/SOURCE_PROVENANCE.json')
           PY
@@ -134,7 +137,7 @@ jobs:
           done
       - uses: actions/upload-artifact@v4
         with:
-          name: prepared-code-only-update
+          name: prepared-complete-game-update
           path: release-assets/
           if-no-files-found: error
   publish:
@@ -150,7 +153,7 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with:
-          name: prepared-code-only-update
+          name: prepared-complete-game-update
           path: release-assets/
       - name: Publish immutable versioned assets atomically
         shell: bash
@@ -165,7 +168,7 @@ jobs:
           test "${#assets[@]}" -ge 7
           gh release create "$tag" --repo RHS059/rust_duty --target "$GAME_REF" --draft \
             --title "Rust Duty $RELEASE_VERSION" \
-            --notes "Code-only game update with a standalone migration launcher. Trusts this GitHub repository over HTTPS and validates payload sizes/SHA256; no independent signing key. Private models and settings stay in the local install root. Game source: $GAME_REF. Launcher source: $LAUNCHER_REF."
+            --notes "Complete game update with the frozen 43-clip locomotion companions and a standalone migration launcher. Trusts this GitHub repository over HTTPS and validates payload sizes/SHA256; no independent signing key. The exact authorized locomotion package is included; unrelated private models and user settings remain untouched. Game source: $GAME_REF. Launcher source: $LAUNCHER_REF."
           gh release upload "$tag" "${assets[@]}" --repo RHS059/rust_duty
           gh release edit "$tag" --repo RHS059/rust_duty --draft=false --latest
 

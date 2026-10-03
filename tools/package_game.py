@@ -1,0 +1,214 @@
+#!/usr/bin/env python3
+"""Verify and stage the complete game with the frozen locomotion companions.
+
+Only the explicitly named distribution files are copied. User settings are
+included in fresh build artifacts, never in managed update payloads.
+"""
+from __future__ import annotations
+import argparse
+import gzip
+import io
+import hashlib
+import json
+from pathlib import Path
+import shutil
+import struct
+import tempfile
+import zlib
+
+ASSET_DIR = Path("assets/locomotion")
+COMPANIONS = ("asset.vra", "asset.vrs", "asset.vrm")
+CLIPS = (
+    "normal_ready", "normal_entry", "normal_loop", "normal_exit",
+    "normal_entry_connected", "normal_loop_to_exit", "normal_exit_connected",
+    *(f"normal_exit_bridge_{i:03d}" for i in range(35)), "normal_settle",
+)
+NOTICES = ("LICENSE", "THIRD_PARTY_LICENSES.txt",
+           "updater/notices/THIRD_PARTY_UPDATER_LICENSES.txt")
+BUILD_FILES = (
+    "settings.cfg", "README.md", "docs/PROVENANCE.md", "docs/ASSET_FORMAT.md",
+    "docs/M4_PROFILE.md", "docs/FIRST_PERSON_ARMS.md", "docs/MANTLING.md",
+    "docs/AUTHORED_LOCOMOTION_REVISION.md", "assets/README.md",
+    "profiles/kestrel.cfg", "profiles/m4a1-beta-visual.cfg", "profiles/m4a1-candidate.cfg",
+)
+
+
+def regular_file(root: Path, relative: str | Path) -> Path:
+    relative = Path(relative)
+    if relative.is_absolute() or ".." in relative.parts:
+        raise ValueError(f"unsafe distribution path: {relative}")
+    current = root
+    for part in relative.parts:
+        current /= part
+        if current.is_symlink():
+            raise ValueError(f"symlink in distribution path: {relative}")
+    if not current.is_file():
+        raise ValueError(f"required distribution file missing: {relative}")
+    return current
+
+
+
+def companion_bytes(root: Path, name: str, manifest: dict) -> bytes:
+    record = manifest["files"][name]
+    if (set(record) != {"bytes", "sha256"}
+            or type(record["bytes"]) is not int
+            or not 0 < record["bytes"] <= 128 * 1024**2):
+        raise ValueError(f"invalid companion manifest: {name}")
+    raw = root / ASSET_DIR / name
+    if raw.exists() or raw.is_symlink():
+        path = regular_file(root, ASSET_DIR / name)
+        if path.stat().st_size != record["bytes"]:
+            raise ValueError(f"locomotion size mismatch: {name}")
+        blob = path.read_bytes()
+    elif name == "asset.vrs":
+        transport = manifest["repository_transport"][name]
+        path = regular_file(root, ASSET_DIR / transport["file"])
+        if path.stat().st_size != transport["bytes"]:
+            raise ValueError("compressed locomotion size mismatch")
+        packed = path.read_bytes()
+        if hashlib.sha256(packed).hexdigest() != transport["sha256"]:
+            raise ValueError("compressed locomotion SHA-256 mismatch")
+        try:
+            with gzip.GzipFile(fileobj=io.BytesIO(packed)) as stream:
+                blob = stream.read(record["bytes"] + 1)
+        except (OSError, EOFError) as error:
+            raise ValueError("invalid compressed locomotion asset") from error
+        if len(blob) != record["bytes"]:
+            raise ValueError("decompressed locomotion size mismatch")
+    else:
+        raise ValueError(f"required distribution file missing: {ASSET_DIR / name}")
+    if hashlib.sha256(blob).hexdigest() != record["sha256"]:
+        raise ValueError(f"locomotion SHA-256 mismatch: {name}")
+    return blob
+
+
+def verify(root: Path) -> dict:
+    root = Path(root)
+    manifest = json.loads(regular_file(root, ASSET_DIR / "manifest.json").read_text())
+    if (manifest.get("schema") != "rust-duty-locomotion-distribution/v1"
+            or manifest.get("clip_names") != list(CLIPS)
+            or manifest.get("clip_count") != 43
+            or set(manifest.get("files", {})) != set(COMPANIONS)):
+        raise ValueError("invalid locomotion distribution manifest")
+    transports = manifest.get("repository_transport", {})
+    if set(transports) != {"asset.vrs"}:
+        raise ValueError("invalid locomotion transport manifest")
+    transport = transports["asset.vrs"]
+    if (set(transport) != {"file", "encoding", "bytes", "sha256", "decoded_bytes", "decoded_sha256"}
+            or transport["file"] != "asset.vrs.gz" or transport["encoding"] != "gzip"
+            or type(transport["bytes"]) is not int or not 0 < transport["bytes"] <= 128 * 1024**2
+            or transport["decoded_bytes"] != manifest["files"]["asset.vrs"]["bytes"]
+            or transport["decoded_sha256"] != manifest["files"]["asset.vrs"]["sha256"]):
+        raise ValueError("invalid locomotion transport manifest")
+    blobs = {name: companion_bytes(root, name, manifest) for name in COMPANIONS}
+    data = blobs["asset.vra"]
+    if len(data) < 24:
+        raise ValueError("truncated locomotion VRA")
+    magic, version, length, checksum, flags = struct.unpack_from("<8sIIII", data)
+    payload = data[24:]
+    if (magic != b"VRANIM01" or version != 1 or flags != 0
+            or length != len(payload) or zlib.crc32(payload) != checksum):
+        raise ValueError("invalid locomotion VRA header or payload CRC")
+    offset = 0
+
+    def take(size):
+        nonlocal offset
+        if size < 0 or offset + size > len(payload):
+            raise ValueError("truncated locomotion VRA record")
+        result = payload[offset:offset + size]
+        offset += size
+        return result
+
+    def u32():
+        return struct.unpack("<I", take(4))[0]
+
+    def name():
+        return take(struct.unpack("<H", take(2))[0]).decode("utf-8")
+
+    if (u32() != zlib.crc32(blobs["asset.vrs"])
+            or u32() != zlib.crc32(blobs["asset.vrm"])):
+        raise ValueError("locomotion companion binding CRC mismatch")
+    bones = u32()
+    if bones != 72:
+        raise ValueError("unexpected locomotion bone count")
+    for _ in range(bones):
+        name()
+        take(4)
+    actors = u32()
+    if actors != 2:
+        raise ValueError("unexpected locomotion actor count")
+    for _ in range(actors):
+        name()
+        take(u32() * 4 + 64)
+    if u32() != len(CLIPS):
+        raise ValueError("unexpected locomotion clip count")
+    for expected in CLIPS:
+        if name() != expected or u32() not in (0, 1):
+            raise ValueError(f"unexpected locomotion clip record: {expected}")
+        frames = u32()
+        if not 1 <= frames <= 10000:
+            raise ValueError("invalid locomotion frame count")
+        take(frames * (4 + (bones + actors) * 40 + actors))
+    if offset != len(payload):
+        raise ValueError("trailing locomotion VRA data")
+    regular_file(root, ASSET_DIR / "README.md")
+    return {"clip_count": len(CLIPS), "files": manifest["files"]}
+
+
+def stage(root: Path, binary: str, output: Path, update: bool = False) -> dict:
+    root, output = Path(root).resolve(), Path(output).absolute()
+    if Path(binary).name not in ("vector-range", "vector-range.exe"):
+        raise ValueError("unexpected game executable name")
+    if output.exists() or output.is_symlink():
+        raise ValueError("refusing to replace an existing distribution")
+    if output == root or output in root.parents:
+        raise ValueError("output must not contain source")
+    report = verify(root)
+    copies = [(regular_file(root, binary), Path(binary).name)]
+    for relative in NOTICES:
+        # Keep updater notices at the artifact path expected by subsequent staging.
+        copies.append((regular_file(root, relative), relative))
+    for relative in ("manifest.json", "README.md"):
+        relative = ASSET_DIR / relative
+        copies.append((regular_file(root, relative), relative))
+    if not update:
+        for relative in BUILD_FILES:
+            copies.append((regular_file(root, relative), relative))
+        # Retain the independently approved legacy weapon when it is supplied.
+        legacy = Path("assets/weapons/hk416a5.vrm")
+        if (root / legacy).exists() or (root / legacy).is_symlink():
+            copies.append((regular_file(root, legacy), legacy))
+    output.parent.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(prefix=".stage-game-", dir=output.parent) as temporary:
+        destination = Path(temporary) / "game"
+        destination.mkdir()
+        for source, relative in copies:
+            target = destination / relative
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(source, target)
+        manifest = json.loads((root / ASSET_DIR / "manifest.json").read_text())
+        for name in COMPANIONS:
+            (destination / ASSET_DIR / name).write_bytes(companion_bytes(root, name, manifest))
+        verify(destination)
+        destination.rename(output)
+    return {"output": str(output), "files_staged": len(copies) + len(COMPANIONS), **report}
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    commands = parser.add_subparsers(dest="command", required=True)
+    check = commands.add_parser("verify")
+    check.add_argument("--root", type=Path, default=Path("."))
+    packaging = commands.add_parser("stage")
+    packaging.add_argument("--root", type=Path, default=Path("."))
+    packaging.add_argument("--binary", required=True)
+    packaging.add_argument("--output", type=Path, required=True)
+    packaging.add_argument("--update", action="store_true")
+    args = parser.parse_args()
+    report = (verify(args.root) if args.command == "verify"
+              else stage(args.root, args.binary, args.output, args.update))
+    print(json.dumps(report, indent=2))
+
+
+if __name__ == "__main__":
+    main()
