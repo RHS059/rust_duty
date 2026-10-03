@@ -1,22 +1,22 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T03:51:36Z",
+  "updatedAt": "2026-10-03T04:04:43Z",
   "latestComplete": {
-    "sha": "e83de427dc2f9b7f7e9242d16b690c366a5638d4",
-    "downloadUrl": "https://github.com/RHS059/rust_duty/actions/runs/37092076517/artifacts/11262901302",
-    "runUrl": "https://github.com/RHS059/rust_duty/actions/runs/37092076517",
-    "verifiedAt": "2026-10-03T03:18:13Z",
-    "completedAt": "2026-10-03T03:16:13Z"
+    "sha": "79bad09d28cb083ad3cb348e6624485030c953f4",
+    "downloadUrl": "https://github.com/RHS059/rust_duty/actions/runs/37094134704/artifacts/11263734815",
+    "runUrl": "https://github.com/RHS059/rust_duty/actions/runs/37094134704",
+    "verifiedAt": "2026-10-03T04:04:43Z",
+    "completedAt": "2026-10-03T03:56:53Z"
   },
   "changes": [
-    "Current tactical reload WIP now plays in the actual game",
-    "GitHub exports the committed Blender source through FBX and validates the animation before building",
-    "Gun, arms, generated reload/opening/neutral/pickup assets and existing sprint clips included",
-    "Rendered reload test verified full playback, one ammo credit and return to ready"
+    "New Blender-authored regular walking plays during normal movement",
+    "Current tactical reload WIP, gun, arms and all 43 existing locomotion clips included",
+    "GitHub exports committed Blender sources and builds complete game packages",
+    "Walking gameplay capture verified repeated loops and return to ready; start/stop easing remains unfinished"
   ],
   "currentBuild": {
-    "state": "active",
-    "task": "GitHub is completing authored walk/reload export and game checks",
+    "state": "complete",
+    "task": "Complete Windows and Linux packages verified; authored walking and reload checks passed",
     "url": "https://github.com/RHS059/rust_duty/actions/runs/37094134704"
   }
 }
