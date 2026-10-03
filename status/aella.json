@@ -1,26 +1,26 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T14:25:29.316Z",
+  "updatedAt": "2026-10-03T14:35:04.765Z",
   "state": "active",
-  "task": "Integrating four-direction locomotion and ADS; reference review awaits gameplay captures",
-  "lastCompleted": "Validated four-direction export parity and ADS sight alignment and hand contact",
+  "task": "Integrating four directional HIP actions with ADS v4; independent review awaits game captures",
+  "lastCompleted": "Completed ADS v4 source handoff and verified four-direction export parity",
   "agents": [
     {
       "slot": 1,
-      "state": "active",
-      "task": "Saving the updated ADS animation source and configuration",
-      "lastCompleted": "Completed ADS v4 handoff and four-direction previews; sight and hand-contact checks passed"
+      "state": "idle",
+      "task": "",
+      "lastCompleted": "Completed ADS v4 handoff; held-ADS sight, hand-contact and continuity checks passed"
     },
     {
       "slot": 2,
-      "state": "active",
-      "task": "Finishing packaging regression tests for four directional walk clips",
-      "lastCompleted": "Passed all 100 export-to-runtime parity samples and generated-asset verification"
+      "state": "waiting",
+      "task": "Waiting for integrated four-direction gameplay captures for independent reference review",
+      "lastCompleted": ""
     },
     {
       "slot": 3,
       "state": "active",
-      "task": "Preparing the combined directional locomotion and ADS revision for a game build",
+      "task": "Combining four directional HIP actions from PR #18 with ADS v4 for the next game revision",
       "lastCompleted": "Enabled all four HIP clips and ADS v4 locally; compile and focused controller tests passed"
     }
   ]
