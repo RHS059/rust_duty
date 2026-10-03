@@ -6,7 +6,6 @@
 *.log
 .DS_Store
 
-# Licensed inputs AND converted packages must stay private/local.
 /private-assets/
 /licensed-assets/
 *.glb
@@ -15,18 +14,16 @@
 !tests/fixtures/triangle.vrm
 *.blend
 *.fbx
-# Explicitly authorized converted test weapon only; no original FBX/GLB.
+# Converted test weapon.
 !assets/weapons/hk416a5.vrm
 
 __pycache__/
 *.pyc
-# Private skinned source/converted rigs; only the original synthetic fixture is public.
 *.vrs
 !tests/fixtures/two_bone_triangle.vrs
 /updater-artifact/
 /signing-setup-artifact/
 
-# Baked authored clip packages are private rig-derived assets.
 *.vra
 
 # Specifically authorized frozen 43-clip Rust Duty distribution only.
@@ -45,7 +42,7 @@ __pycache__/
 !assets/walk/asset.vrm
 !assets/walk/asset.vrs.gz
 
-# Explicitly requested source-authored ADS, kept in this private game repository.
+# Explicitly requested source-authored ADS.
 !assets/authoring/ads/ads.blend
 !assets/ads/asset.vra.gz
 !assets/ads/asset.vrm

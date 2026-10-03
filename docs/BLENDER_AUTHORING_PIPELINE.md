@@ -89,8 +89,7 @@ base-color material subset; omitted material maps are reported. Unsupported
 features must fail explicitly. `--single-sided-materials` is a separate explicit
 compatibility choice for inputs containing double-sided materials; it reports
 each affected material and does not modify the source `.blend`. Existing outputs
-require `--force`. Temporary
-sampled GLBs and the export manifest are private derived assets too.
+require `--force`.
 
 ## Opt-in game playback
 
