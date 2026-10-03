@@ -1,27 +1,27 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T20:43:47Z",
+  "updatedAt": "2026-10-03T20:53:48Z",
   "state": "active",
-  "task": "Publishing lateral ADS Trial3 and verifying the reviewed HIP r5 Windows package.",
-  "lastCompleted": "Forward ADS v8 is live; lateral Trial3 comparisons and visual QA are complete; the Windows build passed.",
+  "task": "Improving forward ADS motion and connecting complete integration builds to the in-game update feed.",
+  "lastCompleted": "HIP r5 is in the complete c60c53fe Windows package; all three workflows passed. Lateral ADS Trial3 is live and awaiting review.",
   "agents": [
     {
       "slot": 1,
-      "state": "idle",
-      "task": "Forward ADS v8 awaits fresh motion review.",
-      "lastCompleted": "Forward ADS v8 publication, live playback checks and review handoff are complete."
+      "state": "active",
+      "task": "Measuring forearm and glove travel and testing stronger articulation after v8 received Fail54.",
+      "lastCompleted": "Forward ADS v8 is live; publication and playback checks passed, and the motion review returned Fail54."
     },
     {
       "slot": 2,
       "state": "idle",
-      "task": "Lateral ADS Trial3 awaits publication and independent shape review.",
-      "lastCompleted": "All 396 Eevee frames, both comparison videos, same-r5 controls and the source checkpoint are saved; visual QA passed."
+      "task": "Lateral ADS Trial3 awaits independent motion review.",
+      "lastCompleted": "Both Trial3 comparisons and same-r5 controls are live and hash/playback verified; Trial3 is unscored."
     },
     {
       "slot": 3,
-      "state": "active",
-      "task": "Verifying the c60c53fe Windows ZIP while Linux packaging and native checks continue.",
-      "lastCompleted": "All four asset jobs and Windows tests, build and packaging passed; Linux Python and Rust tests passed. Latest Complete remains e46f83d pending ZIP verification."
+      "state": "idle",
+      "task": "HIP r5 integration is complete; the resulting ADS composition remains unreviewed.",
+      "lastCompleted": "All three workflows passed at c60c53fe; CI verified the complete 83-file Windows package and matching artifact digest."
     }
   ]
 }
