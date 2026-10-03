@@ -1,11 +1,11 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T19:22:51Z",
+  "updatedAt": "2026-10-03T19:34:15Z",
   "latestComplete": {
     "sha": "e46f83d84ece0c28ffbd10cf4504ed4ea0f91878",
     "downloadUrl": "https://github.com/RHS059/rust_duty/actions/runs/37130396740/artifacts/11277161595",
     "runUrl": "https://github.com/RHS059/rust_duty/actions/runs/37130396740",
-    "verifiedAt": "2026-10-03T19:22:51Z",
+    "verifiedAt": "2026-10-03T19:34:15Z",
     "completedAt": "2026-10-03T15:01:33Z"
   },
   "changes": [
@@ -14,8 +14,9 @@
     "Complete 83-file Windows package includes existing walk, sprint and full WIP reload assets plus the new HIP and ADS companions",
     "All three workflows passed; native Linux layered-input diagnostics passed at 30 and 60 Hz",
     "Windows ZIP integrity, SHA-256, PE executable and complete-package verification passed",
-    "HIP r5 source 36d76491 passed motion review: forward 82, backward 83, left 82 and right 81. Game integration is prepared and waiting for the source file; these revisions are not yet in the downloadable build.",
-    "Forward ADS v7 is complete and frozen, awaiting publication and visual review. Both lateral Trial2 Eevee captures are complete at 198 frames each; checkpoint saving and publication preparation are underway."
+    "HIP r5 source 36d76491 passed motion review: forward 82, backward 83, left 82 and right 81. Integration is prepared and waiting for the source file; these revisions are not yet in the downloadable build.",
+    "Current ADS authoring is complete and awaiting publication and visual review: forward v7 is frozen, and both lateral Trial2 component-isolation diagnostics and 198-frame Eevee captures are complete. Publication remains pending.",
+    "Jump and mantle reference planning is active for the next task."
   ],
   "currentBuild": {
     "state": "idle",
