@@ -2,7 +2,7 @@ name: Rust prototype checks and playable builds
 on:
   pull_request:
   push:
-    branches: [main, 'aella/**']
+    branches: [main, 'aella/**', 'halcyon/**']
 permissions:
   contents: read
 jobs:

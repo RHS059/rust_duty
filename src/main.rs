@@ -1084,6 +1084,9 @@ async fn main() {
             register_supply(&mut sim, &supply);
             animation_state = vector_range::view_animation::ViewAnimation::default();
             locomotion_state.reset(sim.time);
+            if let Some(viewmodel) = &mut authored {
+                viewmodel.update_locomotion(sim.time, sim.time, false);
+            }
             intents.clear();
             controls.clear();
             clock.clear();
@@ -1216,7 +1219,15 @@ async fn main() {
                 input.jump = step.jump;
                 input.reload = step.reload;
                 input.fire = demo || step.fire;
+                let authored_step_start = sim.time;
                 sim.update(input, &cfg, FIXED_DT);
+                if let Some(viewmodel) = &mut authored {
+                    viewmodel.update_locomotion(
+                        authored_step_start,
+                        sim.time,
+                        sim.player.sprinting,
+                    );
+                }
                 // Cosmetic targets receive exact simulation timestamps; input
                 // and movement remain fully authoritative and immediate.
                 locomotion_state.sample(sim.time, locomotion_input(&sim));
@@ -1328,6 +1339,9 @@ async fn main() {
                 };
                 sim.player.velocity = vec3(speed, 0., 0.);
                 locomotion_state.sample(t, locomotion_input(&sim));
+                if let Some(viewmodel) = &mut authored {
+                    viewmodel.update_locomotion(t, t, sim.player.sprinting);
+                }
                 locomotion_capture_tick += 1;
             }
         }
