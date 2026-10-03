@@ -1,0 +1,45 @@
+{
+  "schema": "rust-duty-locomotion-authoring-provenance/v1",
+  "scope": "Frozen existing locomotion authoring checkpoint; no new regular-walk Action, converter, CI workflow, or runtime bindings",
+  "original_final_source": {
+    "label": "phase35-final-source/Rust-Duty-Normal-Connected-Review.blend",
+    "sha256": "b8fc6b9ca7342fd70deb6479d1b699a91cc884edc446ae5f8ddc82145eed1e18",
+    "bytes": 9330145
+  },
+  "original_export_source": {
+    "label": "phase35-v2/Rust-Duty-Normal-Connected-Review.blend",
+    "sha256": "1c44a7660cfd67923a527f363c04c17f35aad2c460ae315484ad53f586f86f52",
+    "note": "60 shared Actions; AngleFix loaded externally for historical export"
+  },
+  "selected_loop_source": {
+    "label": "Rust-Duty-Normal-Loop-AngleFix-CONTACT-UNACCEPTED-WIP.blend",
+    "sha256": "74b2cfeeb8acf20f806ca8e0b129e8c7e95d9afa6e5af597fa5f7fb853d93c7e",
+    "action": "RD_Locomotion_Normal_Loop_AngleFix_WIP",
+    "action_fingerprint": "ff58981a3fac42d35f40e6ec24dbaea971c7324e23db3b17e9d24d0da8cb614f",
+    "note": "Already embedded and retained by fake-user metadata in final source; no external dependency"
+  },
+  "portable_source": {
+    "path": "locomotion.blend",
+    "sha256": "52b0c0b0e2c0778ebf3cae7107f53b84d11bb8435bafd53c956cf16b9ac00a82",
+    "bytes": 9316981,
+    "action_count": 61,
+    "nla_track_count": 7,
+    "valid_driver_count": 185
+  },
+  "historical_shared_action_count": 60,
+  "historical_shared_action_channels_identical": true,
+  "original_export_script_sha256": "dd7c29b2a8459d8d43037ac47b12445f683132c3d6c4778398542d17c15d99b0",
+  "portable_export_changes": [
+    "Explicit checked-in take/config contract",
+    "Embedded loop only; no external source-root dependency",
+    "Require exact Blender4.3.2 and source integrity",
+    "Repository-relative provenance names instead of machine paths",
+    "Use filepath_raw when exporting packed images to avoid nonexistent source-path reload attempts"
+  ],
+  "upstream_sources_not_modified": true,
+  "scope_limits": [
+    "No newly authored walk in this frozen source",
+    "Retained reload Actions are not current reload master",
+    "Source and numerical parity do not certify artistic/source-contact acceptance"
+  ]
+}

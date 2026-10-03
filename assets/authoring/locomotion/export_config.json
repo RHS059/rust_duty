@@ -1,0 +1,461 @@
+{
+  "schema": "rust-duty-locomotion-authoring-export/v1",
+  "blender_version": "4.3.2",
+  "source_file": "locomotion.blend",
+  "source_fps": 60,
+  "bake_hz": 480,
+  "armature": "Arms",
+  "skin_objects": [
+    "Actual arms mesh 0",
+    "Actual arms mesh 1",
+    "Actual arms mesh 2"
+  ],
+  "rigid_actors": [
+    "hk416_weapon",
+    "hk416_magazine"
+  ],
+  "excluded_rigid_actor": "hk416_magazine_outgoing",
+  "deform_bone_count": 72,
+  "source_take_count": 43,
+  "authored_gameplay_take_count": 42,
+  "runtime_gameplay_clip_count": 43,
+  "source_takes": [
+    {
+      "name": "normal_ready",
+      "action": "RD_Locomotion_Normal_Entry_4419_4434_WIP2",
+      "frame_start": 1,
+      "frame_end": 2,
+      "loop": false,
+      "role": "gameplay",
+      "freeze_at_source_frame": 1
+    },
+    {
+      "name": "normal_entry",
+      "action": "RD_Locomotion_Normal_Entry_4419_4434_WIP2",
+      "frame_start": 1,
+      "frame_end": 16,
+      "loop": false,
+      "role": "gameplay"
+    },
+    {
+      "name": "normal_loop",
+      "action": "RD_Locomotion_Normal_Loop_AngleFix_WIP",
+      "frame_start": 1,
+      "frame_end": 36,
+      "loop": true,
+      "role": "gameplay"
+    },
+    {
+      "name": "normal_exit",
+      "action": "RD_Locomotion_Normal_Exit_4917_4932_WIP3",
+      "frame_start": 1,
+      "frame_end": 16,
+      "loop": false,
+      "role": "gameplay"
+    },
+    {
+      "name": "normal_entry_connected",
+      "action": "RD_Normal_Entry_Connected",
+      "frame_start": 1,
+      "frame_end": 25,
+      "loop": false,
+      "role": "gameplay"
+    },
+    {
+      "name": "normal_loop_to_exit",
+      "action": "RD_Normal_LoopToExit",
+      "frame_start": 1,
+      "frame_end": 10,
+      "loop": false,
+      "role": "gameplay"
+    },
+    {
+      "name": "normal_exit_connected",
+      "action": "RD_Normal_Exit_Connected",
+      "frame_start": 1,
+      "frame_end": 25,
+      "loop": false,
+      "role": "gameplay"
+    },
+    {
+      "name": "normal_diagnostic_sequence",
+      "action": "RD_Normal_Diagnostic_Sequence",
+      "frame_start": 1,
+      "frame_end": 223,
+      "loop": false,
+      "role": "diagnostic"
+    },
+    {
+      "name": "normal_exit_bridge_000",
+      "action": "RD_Normal_Exit_Bridge_000",
+      "frame_start": 1,
+      "frame_end": 10,
+      "loop": false,
+      "role": "gameplay"
+    },
+    {
+      "name": "normal_exit_bridge_001",
+      "action": "RD_Normal_Exit_Bridge_001",
+      "frame_start": 1,
+      "frame_end": 10,
+      "loop": false,
+      "role": "gameplay"
+    },
+    {
+      "name": "normal_exit_bridge_002",
+      "action": "RD_Normal_Exit_Bridge_002",
+      "frame_start": 1,
+      "frame_end": 10,
+      "loop": false,
+      "role": "gameplay"
+    },
+    {
+      "name": "normal_exit_bridge_003",
+      "action": "RD_Normal_Exit_Bridge_003",
+      "frame_start": 1,
+      "frame_end": 10,
+      "loop": false,
+      "role": "gameplay"
+    },
+    {
+      "name": "normal_exit_bridge_004",
+      "action": "RD_Normal_Exit_Bridge_004",
+      "frame_start": 1,
+      "frame_end": 10,
+      "loop": false,
+      "role": "gameplay"
+    },
+    {
+      "name": "normal_exit_bridge_005",
+      "action": "RD_Normal_Exit_Bridge_005",
+      "frame_start": 1,
+      "frame_end": 10,
+      "loop": false,
+      "role": "gameplay"
+    },
+    {
+      "name": "normal_exit_bridge_006",
+      "action": "RD_Normal_Exit_Bridge_006",
+      "frame_start": 1,
+      "frame_end": 10,
+      "loop": false,
+      "role": "gameplay"
+    },
+    {
+      "name": "normal_exit_bridge_007",
+      "action": "RD_Normal_Exit_Bridge_007",
+      "frame_start": 1,
+      "frame_end": 10,
+      "loop": false,
+      "role": "gameplay"
+    },
+    {
+      "name": "normal_exit_bridge_008",
+      "action": "RD_Normal_Exit_Bridge_008",
+      "frame_start": 1,
+      "frame_end": 10,
+      "loop": false,
+      "role": "gameplay"
+    },
+    {
+      "name": "normal_exit_bridge_009",
+      "action": "RD_Normal_Exit_Bridge_009",
+      "frame_start": 1,
+      "frame_end": 10,
+      "loop": false,
+      "role": "gameplay"
+    },
+    {
+      "name": "normal_exit_bridge_010",
+      "action": "RD_Normal_Exit_Bridge_010",
+      "frame_start": 1,
+      "frame_end": 10,
+      "loop": false,
+      "role": "gameplay"
+    },
+    {
+      "name": "normal_exit_bridge_011",
+      "action": "RD_Normal_Exit_Bridge_011",
+      "frame_start": 1,
+      "frame_end": 10,
+      "loop": false,
+      "role": "gameplay"
+    },
+    {
+      "name": "normal_exit_bridge_012",
+      "action": "RD_Normal_Exit_Bridge_012",
+      "frame_start": 1,
+      "frame_end": 10,
+      "loop": false,
+      "role": "gameplay"
+    },
+    {
+      "name": "normal_exit_bridge_013",
+      "action": "RD_Normal_Exit_Bridge_013",
+      "frame_start": 1,
+      "frame_end": 10,
+      "loop": false,
+      "role": "gameplay"
+    },
+    {
+      "name": "normal_exit_bridge_014",
+      "action": "RD_Normal_Exit_Bridge_014",
+      "frame_start": 1,
+      "frame_end": 10,
+      "loop": false,
+      "role": "gameplay"
+    },
+    {
+      "name": "normal_exit_bridge_015",
+      "action": "RD_Normal_Exit_Bridge_015",
+      "frame_start": 1,
+      "frame_end": 10,
+      "loop": false,
+      "role": "gameplay"
+    },
+    {
+      "name": "normal_exit_bridge_016",
+      "action": "RD_Normal_Exit_Bridge_016",
+      "frame_start": 1,
+      "frame_end": 10,
+      "loop": false,
+      "role": "gameplay"
+    },
+    {
+      "name": "normal_exit_bridge_017",
+      "action": "RD_Normal_Exit_Bridge_017",
+      "frame_start": 1,
+      "frame_end": 10,
+      "loop": false,
+      "role": "gameplay"
+    },
+    {
+      "name": "normal_exit_bridge_018",
+      "action": "RD_Normal_Exit_Bridge_018",
+      "frame_start": 1,
+      "frame_end": 10,
+      "loop": false,
+      "role": "gameplay"
+    },
+    {
+      "name": "normal_exit_bridge_019",
+      "action": "RD_Normal_Exit_Bridge_019",
+      "frame_start": 1,
+      "frame_end": 10,
+      "loop": false,
+      "role": "gameplay"
+    },
+    {
+      "name": "normal_exit_bridge_020",
+      "action": "RD_Normal_Exit_Bridge_020",
+      "frame_start": 1,
+      "frame_end": 10,
+      "loop": false,
+      "role": "gameplay"
+    },
+    {
+      "name": "normal_exit_bridge_021",
+      "action": "RD_Normal_Exit_Bridge_021",
+      "frame_start": 1,
+      "frame_end": 10,
+      "loop": false,
+      "role": "gameplay"
+    },
+    {
+      "name": "normal_exit_bridge_022",
+      "action": "RD_Normal_Exit_Bridge_022",
+      "frame_start": 1,
+      "frame_end": 10,
+      "loop": false,
+      "role": "gameplay"
+    },
+    {
+      "name": "normal_exit_bridge_023",
+      "action": "RD_Normal_Exit_Bridge_023",
+      "frame_start": 1,
+      "frame_end": 10,
+      "loop": false,
+      "role": "gameplay"
+    },
+    {
+      "name": "normal_exit_bridge_024",
+      "action": "RD_Normal_Exit_Bridge_024",
+      "frame_start": 1,
+      "frame_end": 10,
+      "loop": false,
+      "role": "gameplay"
+    },
+    {
+      "name": "normal_exit_bridge_025",
+      "action": "RD_Normal_Exit_Bridge_025",
+      "frame_start": 1,
+      "frame_end": 10,
+      "loop": false,
+      "role": "gameplay"
+    },
+    {
+      "name": "normal_exit_bridge_026",
+      "action": "RD_Normal_Exit_Bridge_026",
+      "frame_start": 1,
+      "frame_end": 10,
+      "loop": false,
+      "role": "gameplay"
+    },
+    {
+      "name": "normal_exit_bridge_027",
+      "action": "RD_Normal_Exit_Bridge_027",
+      "frame_start": 1,
+      "frame_end": 10,
+      "loop": false,
+      "role": "gameplay"
+    },
+    {
+      "name": "normal_exit_bridge_028",
+      "action": "RD_Normal_Exit_Bridge_028",
+      "frame_start": 1,
+      "frame_end": 10,
+      "loop": false,
+      "role": "gameplay"
+    },
+    {
+      "name": "normal_exit_bridge_029",
+      "action": "RD_Normal_Exit_Bridge_029",
+      "frame_start": 1,
+      "frame_end": 10,
+      "loop": false,
+      "role": "gameplay"
+    },
+    {
+      "name": "normal_exit_bridge_030",
+      "action": "RD_Normal_Exit_Bridge_030",
+      "frame_start": 1,
+      "frame_end": 10,
+      "loop": false,
+      "role": "gameplay"
+    },
+    {
+      "name": "normal_exit_bridge_031",
+      "action": "RD_Normal_Exit_Bridge_031",
+      "frame_start": 1,
+      "frame_end": 10,
+      "loop": false,
+      "role": "gameplay"
+    },
+    {
+      "name": "normal_exit_bridge_032",
+      "action": "RD_Normal_Exit_Bridge_032",
+      "frame_start": 1,
+      "frame_end": 10,
+      "loop": false,
+      "role": "gameplay"
+    },
+    {
+      "name": "normal_exit_bridge_033",
+      "action": "RD_Normal_Exit_Bridge_033",
+      "frame_start": 1,
+      "frame_end": 10,
+      "loop": false,
+      "role": "gameplay"
+    },
+    {
+      "name": "normal_exit_bridge_034",
+      "action": "RD_Normal_Exit_Bridge_034",
+      "frame_start": 1,
+      "frame_end": 10,
+      "loop": false,
+      "role": "gameplay"
+    }
+  ],
+  "runtime_derivation": {
+    "exclude_source_take": "normal_diagnostic_sequence",
+    "normal_settle": {
+      "source_clip": "normal_exit_connected",
+      "source_frame_start": 16,
+      "source_frame_end": 25,
+      "source_elapsed_start_seconds": 0.25,
+      "sample_count": 73,
+      "loop": false,
+      "operation": "Select stored frames with float32 time >= 0.25; subtract 0.25 and re-encode only float32 timestamps; copy every other channel/visibility byte unchanged",
+      "frame_size_bytes": 2966,
+      "required_checks": [
+        "exact source sample at 0.25 seconds",
+        "73 derived frames",
+        "first derived time 0.0",
+        "all non-time frame bytes identical",
+        "last derived time 0.15000000596046448"
+      ]
+    },
+    "preserve_other_clip_records_byte_for_byte": true,
+    "batch_merge_requires": [
+      "byte-identical VRS and VRM companions",
+      "byte-identical skeleton and actor binding prefix",
+      "no duplicate clip names",
+      "valid per-take interpolation audits",
+      "validate final CRC/allocation limits"
+    ],
+    "converter_owner": "Aella common workflow; no converter or runtime binding implementation is supplied here"
+  },
+  "walking": {
+    "authored_action": null,
+    "implementation": "Procedural Rust bob; no authored walk Action exists in this source"
+  },
+  "source_take_groups": [
+    [
+      "normal_ready",
+      "normal_entry",
+      "normal_loop",
+      "normal_exit",
+      "normal_entry_connected",
+      "normal_loop_to_exit",
+      "normal_exit_connected"
+    ],
+    [
+      "normal_exit_bridge_000",
+      "normal_exit_bridge_001",
+      "normal_exit_bridge_002",
+      "normal_exit_bridge_003",
+      "normal_exit_bridge_004",
+      "normal_exit_bridge_005",
+      "normal_exit_bridge_006"
+    ],
+    [
+      "normal_exit_bridge_007",
+      "normal_exit_bridge_008",
+      "normal_exit_bridge_009",
+      "normal_exit_bridge_010",
+      "normal_exit_bridge_011",
+      "normal_exit_bridge_012",
+      "normal_exit_bridge_013"
+    ],
+    [
+      "normal_exit_bridge_014",
+      "normal_exit_bridge_015",
+      "normal_exit_bridge_016",
+      "normal_exit_bridge_017",
+      "normal_exit_bridge_018",
+      "normal_exit_bridge_019",
+      "normal_exit_bridge_020"
+    ],
+    [
+      "normal_exit_bridge_021",
+      "normal_exit_bridge_022",
+      "normal_exit_bridge_023",
+      "normal_exit_bridge_024",
+      "normal_exit_bridge_025",
+      "normal_exit_bridge_026",
+      "normal_exit_bridge_027"
+    ],
+    [
+      "normal_exit_bridge_028",
+      "normal_exit_bridge_029",
+      "normal_exit_bridge_030",
+      "normal_exit_bridge_031",
+      "normal_exit_bridge_032",
+      "normal_exit_bridge_033",
+      "normal_exit_bridge_034"
+    ],
+    [
+      "normal_diagnostic_sequence"
+    ]
+  ]
+}
