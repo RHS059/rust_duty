@@ -538,13 +538,13 @@ fn build_procedural_flash(muzzle: Vec3, barrel: Vec3, burst: &Burst) -> Procedur
     );
 
     let mut ring_starts = [0u16; PLUME_RINGS];
-    for ring in 0..PLUME_RINGS {
+    for (ring, ring_start) in ring_starts.iter_mut().enumerate() {
         let along_t = ring as f32 / (PLUME_RINGS as f32 - 1.);
         let along = (0.012 + along_t * 0.20 * (0.45 + 0.55 * env)) * profile.size * global;
         let radius_curve = (1. - along_t).powf(0.65) * (0.35 + 0.65 * (1. - along_t));
         let radius =
             (0.006 + 0.034 * radius_curve) * profile.size * flicker(seed, age, 20 + ring as u32);
-        ring_starts[ring] = flash.positions.len() as u16;
+        *ring_start = flash.positions.len() as u16;
         let hot = (1. - along_t).powf(0.8);
         let alpha = (1. - along_t * 0.92) * brightness.min(1.3);
         for point in 0..RING_POINTS {
@@ -815,8 +815,10 @@ mod tests {
 
     fn fired_shot() -> Shot {
         let mut sim = Simulation::new();
-        let mut input = Input::default();
-        input.fire = true;
+        let input = Input {
+            fire: true,
+            ..Default::default()
+        };
         sim.update(input, &Settings::default(), FIXED_DT);
         sim.events[0]
     }
