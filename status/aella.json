@@ -1,27 +1,27 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T03:41:17Z",
-  "state": "active",
-  "task": "Publishing the authored walking pipeline; remaining WIP merges await confirmation",
+  "updatedAt": "2026-10-03T03:51:36Z",
+  "state": "waiting",
+  "task": "Waiting for the combined authored walking build and gameplay capture; WIP merge confirmation remains pending",
   "lastCompleted": "Delivered and verified the current reload build",
   "agents": [
     {
       "slot": 1,
       "state": "active",
-      "task": "Publishing the combined authored walking and reload pipeline",
-      "lastCompleted": "Validated combined package staging and source assets"
+      "task": "Monitoring GitHub animation exports, game builds and package checks",
+      "lastCompleted": "GitHub rebuilt the new walk and passed Rust animation comparison"
     },
     {
       "slot": 2,
-      "state": "active",
-      "task": "Preparing the real-game walking capture check",
-      "lastCompleted": "Added movement, animation-time and route metadata to the capture test"
+      "state": "waiting",
+      "task": "Waiting for combined walking capture frames to inspect",
+      "lastCompleted": "Fixed and passed the gameplay-walk capture source checks"
     },
     {
       "slot": 3,
       "state": "idle",
       "task": "",
-      "lastCompleted": "Validated authored walking assets against Blender"
+      "lastCompleted": "Validated authored walking conversion and existing clip preservation"
     }
   ]
 }
