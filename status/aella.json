@@ -1,26 +1,26 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T23:41:39Z",
+  "updatedAt": "2026-10-03T23:54:04Z",
   "state": "active",
-  "task": "Validating the combined ADS and walking-controls candidate locally; new commits and publication wait for Elara's 0.1.9 completion.",
+  "task": "Monitoring Elara's release sequence; combined ADS and walking-control work is waiting for verified 0.1.9 completion.",
   "lastCompleted": "PR #25 cursor-focus and walking-slider builds passed all three workflows. The newer local v9 candidate remains unpublished with its strict bone-parity failure.",
   "agents": [
     {
       "slot": 1,
-      "state": "active",
-      "task": "Preparing the 72-bone forward ADS runtime reference and source update locally.",
+      "state": "unknown",
+      "task": "Forward ADS source and runtime progress awaits confirmation; publication remains on hold.",
       "lastCompleted": "V9 source and native mapping checks are published in draft PR #23; local-LRS baking still fails its tolerance and motion review remains pending."
     },
     {
       "slot": 2,
       "state": "active",
-      "task": "Monitoring the 0.1.7–0.1.9 release sequence; new release and version changes remain on hold.",
-      "lastCompleted": "Public 0.1.6 uses older main source without integrated HIP r5/ADS paths. PR #24 checks passed; release automation remains inactive."
+      "task": "Read-only monitoring of the release sequence; 0.1.7 is public and 0.1.8–0.1.9 are still pending.",
+      "lastCompleted": "Public 0.1.7 was confirmed, but its checked Linux package omits integrated animation assets. PR #24 checks passed; automation remains held."
     },
     {
       "slot": 3,
-      "state": "active",
-      "task": "Validating the local ADS, Alt-Tab cursor and persistent per-weapon XYZ walking-controls candidate.",
+      "state": "idle",
+      "task": "Waiting for verified 0.1.9 completion; local ADS/sliders editing, testing and publication are paused.",
       "lastCompleted": "PR #25 b3f2ba8e has complete Windows/Linux builds. The newer local v9 candidate passed 517 tests and replay but retains the 3.36e-5 parity failure."
     }
   ]
