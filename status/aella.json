@@ -1,27 +1,27 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T16:12:28Z",
+  "updatedAt": "2026-10-03T16:23:55Z",
   "state": "active",
-  "task": "Animation work resumed at 15:50 UTC. Coordinating ADS reference authoring/review and true Blender Eevee viewport comparisons; gallery v50 has all four unchanged HIP baseline directions live. Hal owns HIP r2 revisions separately. Motion feedback remains WIP with no artistic approval.",
-  "lastCompleted": "Gallery v50 published genuine Eevee HIP baseline reference stacks for forward, backward, left and right. ADS v4 forward viewport capture completed: 126 frames, 2.1 seconds at 60 fps, reference frames 2298–2423; render integrity and full decode passed. PR #17 remains at the verified e46f83d complete build.",
+  "task": "Coordinating ADS baseline reference review and true Blender Eevee viewport comparisons. Gallery v51 has all four unchanged HIP r1 baseline stacks and forward ADS v4 live; backward and left ADS stacks are prepared for publication, and right ADS capture is finishing. Hal owns HIP r2 revisions and media transfer separately. Elara's ADS motion feedback and artistic approval remain open.",
+  "lastCompleted": "Published gallery v51 with the full 126-frame forward ADS v4 reference stack and all four HIP r1 baselines. Backward ADS (162 frames) and left ADS (114 frames) passed media QA, were reference-stacked and source-pushed; 34 gallery tests passed, with v52 save/deploy pending. PR #17 remains at the verified e46f83d complete build.",
   "agents": [
     {
       "slot": 1,
       "state": "active",
-      "task": "Coordinating frozen ADS v4 reference/Eevee comparisons before applying Elara's motion feedback",
-      "lastCompleted": "Forward ADS capture completed: 126 frames at 60 fps, reference 2298–2423, with render integrity and full decode passed; no new ADS source revision yet"
+      "task": "Coordinating ADS baseline review and waiting for Elara's actual motion feedback before a new ADS motion revision",
+      "lastCompleted": "Forward and backward Eevee viewport windows completed; all 486 planned transforms independently cross-checked. Forward reference stack published; no new ADS motion revision yet"
     },
     {
       "slot": 2,
       "state": "active",
-      "task": "Preparing the four-direction ADS reference comparisons and motion review after gallery v50's HIP baseline publication",
-      "lastCompleted": "Gallery v50 has all four genuine Eevee HIP baseline stacks live; these are unchanged baselines, not Hal's HIP r2 revisions"
+      "task": "Preparing the combined v52 save and deployment for backward and left ADS reference stacks; v51 remains the published version",
+      "lastCompleted": "Backward ADS 162-frame and left ADS 114-frame stacks passed media QA; source pushed and 34 gallery tests passed"
     },
     {
       "slot": 3,
       "state": "active",
-      "task": "Rendering backward ADS v4 in the true Blender Eevee viewport next; remaining directions follow",
-      "lastCompleted": "Completed the 126-frame forward ADS v4 Eevee viewport capture; integrity and full decode passed"
+      "task": "Finishing the 84-frame right ADS v4 true Blender Eevee viewport capture",
+      "lastCompleted": "Forward, backward and left ADS viewport captures completed; backward and left reference stacks are prepared, while forward is live"
     }
   ]
 }
