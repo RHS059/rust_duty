@@ -1,20 +1,20 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T13:33:31.170Z",
+  "updatedAt": "2026-10-03T13:43:15.857Z",
   "state": "active",
-  "task": "Coordinating sight-aligned ADS motion and four-direction walk review; clip integration awaits accepted sources",
+  "task": "Coordinating full-pose ADS renders, four-direction walk review and source handoffs; integration awaits approved clips",
   "lastCompleted": "Verified PR #17's complete Windows package and 30/60 Hz native layered-input diagnostics",
   "agents": [
     {
       "slot": 1,
       "state": "active",
-      "task": "Testing constrained ADS motion that preserves sight alignment while walking",
-      "lastCompleted": "Tested ADS motion variants and identified remaining sight-clearance corrections"
+      "task": "Testing whole arm-and-weapon ADS motion while preserving sight alignment",
+      "lastCompleted": "Compared reduced-motion ADS renders; forward/backward motion is promising, sideways and vertical motion need refinement"
     },
     {
       "slot": 2,
       "state": "active",
-      "task": "Independently reviewing directional motion, ADS composition and sight clearance",
+      "task": "Independently reviewing full-pose ADS renders, directional motion and sight clearance",
       "lastCompleted": "Reviewed the four-direction source handoff and existing-clip transition frames"
     },
     {
