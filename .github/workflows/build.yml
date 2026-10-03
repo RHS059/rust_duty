@@ -38,7 +38,7 @@ jobs:
           key: ${{ runner.os }}-game-cargo-${{ hashFiles('Cargo.lock') }}
       - name: Linux audio headers
         if: runner.os == 'Linux'
-        run: sudo apt-get update && sudo apt-get install -y libasound2-dev
+        run: sudo apt-get update && sudo apt-get install -y libasound2-dev xvfb xauth libgl1-mesa-dri
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -74,6 +74,25 @@ jobs:
       - name: Stage complete Linux game
         if: runner.os == 'Linux'
         run: python tools/package_game.py stage --root . --binary target/release/vector-range --output dist/game --require-generated
+      - name: Capture actual native gameplay reload and exit
+        if: runner.os == 'Linux'
+        timeout-minutes: 6
+        shell: bash
+        env:
+          LIBGL_ALWAYS_SOFTWARE: '1'
+        run: |
+          mkdir -p evidence/reload-gameplay
+          cd dist/game
+          timeout 300s xvfb-run -a -s "-screen 0 1920x1080x24" ./vector-range --no-update --reference-viewport --capture-sequence=gameplay-reload --output=../../evidence/reload-gameplay
+          cd ../..
+          python tools/verify_gameplay_capture.py evidence/reload-gameplay
+      - name: Upload native gameplay frames and simulation evidence
+        if: runner.os == 'Linux' && always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-gameplay-reload-evidence
+          path: evidence/reload-gameplay/
+          if-no-files-found: warn
       - name: Upload complete Windows game
         if: runner.os == 'Windows'
         uses: actions/upload-artifact@v4

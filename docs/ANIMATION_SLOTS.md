@@ -66,3 +66,15 @@ reach ready before walking can own the model. ADS, mantle and firing also suppre
 walk. Native seconds loop without speed warping; stop/reset clears its clock and
 pause freezes it. Whole-model cuts are explicit WIP transitions. No procedural
 walking motion is added when the authored slot is unavailable.
+
+For rendered gameplay-path evidence (not the old normalized-pose preview), run:
+
+```
+vector-range --no-update --reference-viewport --capture-sequence=gameplay-reload --output=reload-gameplay
+```
+
+This starts with 12 rounds, sends one R intent after 0.25 seconds through normal
+fixed-tick Simulation::update, then evaluates the committed authored presentation.
+It captures through the native clip end and return to locomotion, with per-frame
+`.gameplay.json` containing route, native clip time, ammo, reserve and authoritative
+credit/readiness deadlines. No reload timer or pose-phase override is used.
