@@ -1,26 +1,26 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T20:02:10Z",
-  "state": "idle",
-  "task": "Waiting for forward ADS v7 review, lateral Trial2 gallery entries and the approved HIP r5 source.",
-  "lastCompleted": "Forward ADS v7 is live and playback-verified. Both lateral Trial2 previews are complete. All four HIP r5 motions passed review.",
+  "updatedAt": "2026-10-03T20:13:24Z",
+  "state": "active",
+  "task": "Preparing forward ADS v8 comparison and integrating reviewed HIP r5 motions. Lateral Trial2 is awaiting review.",
+  "lastCompleted": "Forward ADS v7 was reviewed at Fail 54. Both lateral Trial2 previews are live and playback-verified. All four HIP r5 motions passed review.",
   "agents": [
     {
       "slot": 1,
-      "state": "idle",
-      "task": "Forward ADS v7 is live and awaiting visual review.",
-      "lastCompleted": "Completed forward v7 articulation15 and the 126-frame Eevee comparison; the 1.6 mm joint-anchor caveat remains."
+      "state": "active",
+      "task": "Preparing ADS comparison using updated walking motion.",
+      "lastCompleted": "Forward ADS v7 received Fail 54; the v8 scene now uses the reviewed HIP r5 walking source."
     },
     {
       "slot": 2,
       "state": "idle",
-      "task": "Both lateral ADS Trial2 previews are complete and awaiting separate gallery entries and visual review.",
-      "lastCompleted": "Completed both lateral Trial2 component-isolation diagnostics and 198-frame Eevee captures; scoring is pending."
+      "task": "Both lateral ADS Trial2 previews are live and awaiting visual review.",
+      "lastCompleted": "Published separate left and right Trial2 previews; media hashes and playback are verified."
     },
     {
       "slot": 3,
-      "state": "idle",
-      "task": "HIP r5 integration is prepared and waiting for the approved source.",
+      "state": "active",
+      "task": "Integrating the verified HIP r5 source into the game.",
       "lastCompleted": "All four HIP r5 motions passed review at 82, 83, 82 and 81. These revisions are not yet in the downloadable game."
     }
   ]
