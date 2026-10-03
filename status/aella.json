@@ -1,27 +1,27 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T03:31:38Z",
+  "updatedAt": "2026-10-03T03:34:30Z",
   "state": "active",
-  "task": "Integrating the new authored walking clip into the game build; remaining WIP merges await confirmation",
+  "task": "Finishing the authored walking build; remaining WIP merges await confirmation",
   "lastCompleted": "Delivered and verified the current reload build",
   "agents": [
     {
       "slot": 1,
       "state": "active",
-      "task": "Integrating the validated walk conversion into automatic game builds",
-      "lastCompleted": "Delivered the GitHub-built reload game"
+      "task": "Testing and publishing the combined walk and reload build pipeline",
+      "lastCompleted": "Validated reproducible walking assets and packaging tests"
     },
     {
       "slot": 2,
-      "state": "idle",
-      "task": "",
-      "lastCompleted": "Validated the authored walking conversion and reproducible asset output"
+      "state": "active",
+      "task": "Adding an actual gameplay walking capture test",
+      "lastCompleted": "Verified rendered reload playback and return to ready"
     },
     {
       "slot": 3,
       "state": "idle",
       "task": "",
-      "lastCompleted": "Published the live status sidebar and status submission form"
+      "lastCompleted": "Validated the new walking conversion against Blender"
     }
   ]
 }
