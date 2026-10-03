@@ -1,0 +1,1882 @@
+{
+  "schema": "rust-duty-jump-technical-validation/v1",
+  "source_sha256": "4e923368b0b07d87e737d6575266b2ba4b2d4b020d4bc4cf0c0848c7cf94acb6",
+  "blender": "4.3.2",
+  "fps": 60,
+  "camera": "RD First Person Review",
+  "ready_baseline": {
+    "action": "RD_Locomotion_Normal_Entry_4419_4434_WIP2",
+    "frame": 1
+  },
+  "actions": {
+    "jump_takeoff_r1": {
+      "range": [
+        1,
+        11
+      ],
+      "duration_seconds": 0.16666666666666666,
+      "loop": false,
+      "sample_rate_hz": 120,
+      "sample_count": 21,
+      "varying_curves": [
+        [
+          "pose.bones[\"righthand_prop\"].location",
+          0
+        ],
+        [
+          "pose.bones[\"righthand_prop\"].location",
+          1
+        ],
+        [
+          "pose.bones[\"righthand_prop\"].location",
+          2
+        ],
+        [
+          "pose.bones[\"righthand_prop\"].rotation_euler",
+          0
+        ],
+        [
+          "pose.bones[\"righthand_prop\"].rotation_euler",
+          1
+        ],
+        [
+          "pose.bones[\"righthand_prop\"].rotation_euler",
+          2
+        ]
+      ],
+      "max_wrist_error_m": [
+        4.451098383447743e-07,
+        3.579381748874281e-07
+      ],
+      "max_guard_error_degrees": [
+        0.0,
+        0.0
+      ],
+      "max_hand_to_root_matrix_drift": [
+        6.556510925292969e-07,
+        8.940696716308594e-07
+      ],
+      "max_weapon_and_magazine_relative_root_matrix_drift": [
+        2.384185791015625e-07,
+        4.172325134277344e-07
+      ],
+      "max_player_root_matrix_drift": 0.0,
+      "max_camera_matrix_drift": 0.0,
+      "max_armature_world_matrix_drift": 0.0,
+      "endpoints": {
+        "1.0": {
+          "max_all_pose_bone_matrix_error_to_ready": 0.0,
+          "weapon_matrix_error_to_ready": 0.0,
+          "magazine_matrix_error_to_ready": 0.0
+        },
+        "11.0": {
+          "max_all_pose_bone_matrix_error_to_ready": 0.0,
+          "weapon_matrix_error_to_ready": 0.0,
+          "magazine_matrix_error_to_ready": 0.0
+        }
+      },
+      "samples": [
+        {
+          "frame": 1.0,
+          "screen_landmarks": {
+            "muzzle": {
+              "x_norm": 0.5669258832931519,
+              "y_norm": 0.39535391330718994,
+              "depth": 0.7180716395378113,
+              "in_frame": true
+            },
+            "receiver": {
+              "x_norm": 0.7239187359809875,
+              "y_norm": 0.18485099077224731,
+              "depth": 0.28676217794418335,
+              "in_frame": true
+            },
+            "support_wrist": {
+              "x_norm": 0.5128719210624695,
+              "y_norm": 0.2335815131664276,
+              "depth": 0.465015172958374,
+              "in_frame": true
+            },
+            "firing_wrist": {
+              "x_norm": 1.0216816663742065,
+              "y_norm": -0.7343319058418274,
+              "depth": 0.15927742421627045,
+              "in_frame": false
+            }
+          }
+        },
+        {
+          "frame": 1.5,
+          "screen_landmarks": {
+            "muzzle": {
+              "x_norm": 0.5670058727264404,
+              "y_norm": 0.39342883229255676,
+              "depth": 0.717597484588623,
+              "in_frame": true
+            },
+            "receiver": {
+              "x_norm": 0.7243920564651489,
+              "y_norm": 0.181480273604393,
+              "depth": 0.28627410531044006,
+              "in_frame": true
+            },
+            "support_wrist": {
+              "x_norm": 0.5129459500312805,
+              "y_norm": 0.23105888068675995,
+              "depth": 0.4644957184791565,
+              "in_frame": true
+            },
+            "firing_wrist": {
+              "x_norm": 1.0238045454025269,
+              "y_norm": -0.7430267930030823,
+              "depth": 0.15869054198265076,
+              "in_frame": false
+            }
+          }
+        },
+        {
+          "frame": 2.0,
+          "screen_landmarks": {
+            "muzzle": {
+              "x_norm": 0.567314624786377,
+              "y_norm": 0.3859862685203552,
+              "depth": 0.7157697677612305,
+              "in_frame": true
+            },
+            "receiver": {
+              "x_norm": 0.7262285351753235,
+              "y_norm": 0.16838693618774414,
+              "depth": 0.28439727425575256,
+              "in_frame": true
+            },
+            "support_wrist": {
+              "x_norm": 0.5132323503494263,
+              "y_norm": 0.22128833830356598,
+              "depth": 0.46249669790267944,
+              "in_frame": true
+            },
+            "firing_wrist": {
+              "x_norm": 1.0321135520935059,
+              "y_norm": -0.7770828008651733,
+              "depth": 0.15643535554409027,
+              "in_frame": false
+            }
+          }
+        },
+        {
+          "frame": 2.5,
+          "screen_landmarks": {
+            "muzzle": {
+              "x_norm": 0.5678572058677673,
+              "y_norm": 0.3729328513145447,
+              "depth": 0.7125775814056396,
+              "in_frame": true
+            },
+            "receiver": {
+              "x_norm": 0.7294787764549255,
+              "y_norm": 0.14517922699451447,
+              "depth": 0.28113698959350586,
+              "in_frame": true
+            },
+            "support_wrist": {
+              "x_norm": 0.513737142086029,
+              "y_norm": 0.20407390594482422,
+              "depth": 0.4590158760547638,
+              "in_frame": true
+            },
+            "firing_wrist": {
+              "x_norm": 1.0471229553222656,
+              "y_norm": -0.8386496901512146,
+              "depth": 0.15252122282981873,
+              "in_frame": false
+            }
+          }
+        },
+        {
+          "frame": 3.0,
+          "screen_landmarks": {
+            "muzzle": {
+              "x_norm": 0.5684060454368591,
+              "y_norm": 0.3597557544708252,
+              "depth": 0.7093718647956848,
+              "in_frame": true
+            },
+            "receiver": {
+              "x_norm": 0.7327976226806641,
+              "y_norm": 0.12142972648143768,
+              "depth": 0.2778850197792053,
+              "in_frame": true
+            },
+            "support_wrist": {
+              "x_norm": 0.5142497420310974,
+              "y_norm": 0.18659499287605286,
+              "depth": 0.4555337131023407,
+              "in_frame": true
+            },
+            "firing_wrist": {
+              "x_norm": 1.0628643035888672,
+              "y_norm": -0.9032989144325256,
+              "depth": 0.14862214028835297,
+              "in_frame": false
+            }
+          }
+        },
+        {
+          "frame": 3.5,
+          "screen_landmarks": {
+            "muzzle": {
+              "x_norm": 0.5687240362167358,
+              "y_norm": 0.35213229060173035,
+              "depth": 0.7075256109237671,
+              "in_frame": true
+            },
+            "receiver": {
+              "x_norm": 0.7347352504730225,
+              "y_norm": 0.10754168778657913,
+              "depth": 0.2760220766067505,
+              "in_frame": true
+            },
+            "support_wrist": {
+              "x_norm": 0.5145477652549744,
+              "y_norm": 0.176436185836792,
+              "depth": 0.4535342752933502,
+              "in_frame": true
+            },
+            "firing_wrist": {
+              "x_norm": 1.0722535848617554,
+              "y_norm": -0.9418971538543701,
+              "depth": 0.1463906615972519,
+              "in_frame": false
+            }
+          }
+        },
+        {
+          "frame": 4.0,
+          "screen_landmarks": {
+            "muzzle": {
+              "x_norm": 0.5688068270683289,
+              "y_norm": 0.3501454293727875,
+              "depth": 0.7070457339286804,
+              "in_frame": true
+            },
+            "receiver": {
+              "x_norm": 0.7352420091629028,
+              "y_norm": 0.10390492528676987,
+              "depth": 0.27553901076316833,
+              "in_frame": true
+            },
+            "support_wrist": {
+              "x_norm": 0.514625608921051,
+              "y_norm": 0.17378351092338562,
+              "depth": 0.45301517844200134,
+              "in_frame": true
+            },
+            "firing_wrist": {
+              "x_norm": 1.0747342109680176,
+              "y_norm": -0.9521002173423767,
+              "depth": 0.1458122879266739,
+              "in_frame": false
+            }
+          }
+        },
+        {
+          "frame": 4.5,
+          "screen_landmarks": {
+            "muzzle": {
+              "x_norm": 0.5687658786773682,
+              "y_norm": 0.3511219024658203,
+              "depth": 0.7072800397872925,
+              "in_frame": true
+            },
+            "receiver": {
+              "x_norm": 0.7349931597709656,
+              "y_norm": 0.10569468140602112,
+              "depth": 0.27577489614486694,
+              "in_frame": true
+            },
+            "support_wrist": {
+              "x_norm": 0.5145866870880127,
+              "y_norm": 0.17508822679519653,
+              "depth": 0.45326846837997437,
+              "in_frame": true
+            },
+            "firing_wrist": {
+              "x_norm": 1.0735180377960205,
+              "y_norm": -0.9470857977867126,
+              "depth": 0.14609472453594208,
+              "in_frame": false
+            }
+          }
+        },
+        {
+          "frame": 5.0,
+          "screen_landmarks": {
+            "muzzle": {
+              "x_norm": 0.5685819983482361,
+              "y_norm": 0.3555184602737427,
+              "depth": 0.7083369493484497,
+              "in_frame": true
+            },
+            "receiver": {
+              "x_norm": 0.7338758111000061,
+              "y_norm": 0.11373110860586166,
+              "depth": 0.27683985233306885,
+              "in_frame": true
+            },
+            "support_wrist": {
+              "x_norm": 0.5144129395484924,
+              "y_norm": 0.1809549629688263,
+              "depth": 0.45441263914108276,
+              "in_frame": true
+            },
+            "firing_wrist": {
+              "x_norm": 1.068082332611084,
+              "y_norm": -0.9246851801872253,
+              "depth": 0.14737078547477722,
+              "in_frame": false
+            }
+          }
+        },
+        {
+          "frame": 5.5,
+          "screen_landmarks": {
+            "muzzle": {
+              "x_norm": 0.5682092308998108,
+              "y_norm": 0.3644329309463501,
+              "depth": 0.7104858160018921,
+              "in_frame": true
+            },
+            "receiver": {
+              "x_norm": 0.7316228747367859,
+              "y_norm": 0.12991514801979065,
+              "depth": 0.27901268005371094,
+              "in_frame": true
+            },
+            "support_wrist": {
+              "x_norm": 0.5140613913536072,
+              "y_norm": 0.19281688332557678,
+              "depth": 0.456743061542511,
+              "in_frame": true
+            },
+            "firing_wrist": {
+              "x_norm": 1.0572725534439087,
+              "y_norm": -0.8801683187484741,
+              "depth": 0.14997605979442596,
+              "in_frame": false
+            }
+          }
+        },
+        {
+          "frame": 6.0,
+          "screen_landmarks": {
+            "muzzle": {
+              "x_norm": 0.5677297711372375,
+              "y_norm": 0.37590962648391724,
+              "depth": 0.713263988494873,
+              "in_frame": true
+            },
+            "receiver": {
+              "x_norm": 0.7287473082542419,
+              "y_norm": 0.15053457021713257,
+              "depth": 0.281836599111557,
+              "in_frame": true
+            },
+            "support_wrist": {
+              "x_norm": 0.5136104226112366,
+              "y_norm": 0.20802029967308044,
+              "depth": 0.45976513624191284,
+              "in_frame": true
+            },
+            "firing_wrist": {
+              "x_norm": 1.0437630414962769,
+              "y_norm": -0.8245871067047119,
+              "depth": 0.15336517989635468,
+              "in_frame": false
+            }
+          }
+        },
+        {
+          "frame": 6.5,
+          "screen_landmarks": {
+            "muzzle": {
+              "x_norm": 0.567254900932312,
+              "y_norm": 0.38729327917099,
+              "depth": 0.7160331010818481,
+              "in_frame": true
+            },
+            "receiver": {
+              "x_norm": 0.7259230017662048,
+              "y_norm": 0.17074881494045258,
+              "depth": 0.28466808795928955,
+              "in_frame": true
+            },
+            "support_wrist": {
+              "x_norm": 0.5131654143333435,
+              "y_norm": 0.22302520275115967,
+              "depth": 0.46278733015060425,
+              "in_frame": true
+            },
+            "firing_wrist": {
+              "x_norm": 1.0307964086532593,
+              "y_norm": -0.771289050579071,
+              "depth": 0.1567668616771698,
+              "in_frame": false
+            }
+          }
+        },
+        {
+          "frame": 7.0,
+          "screen_landmarks": {
+            "muzzle": {
+              "x_norm": 0.5668919682502747,
+              "y_norm": 0.39600929617881775,
+              "depth": 0.7181618809700012,
+              "in_frame": true
+            },
+            "receiver": {
+              "x_norm": 0.7237797379493713,
+              "y_norm": 0.18606571853160858,
+              "depth": 0.2868562340736389,
+              "in_frame": true
+            },
+            "support_wrist": {
+              "x_norm": 0.5128265023231506,
+              "y_norm": 0.2344626635313034,
+              "depth": 0.4651176929473877,
+              "in_frame": true
+            },
+            "firing_wrist": {
+              "x_norm": 1.0211485624313354,
+              "y_norm": -0.7316703200340271,
+              "depth": 0.159398153424263,
+              "in_frame": false
+            }
+          }
+        },
+        {
+          "frame": 7.5,
+          "screen_landmarks": {
+            "muzzle": {
+              "x_norm": 0.566714882850647,
+              "y_norm": 0.4002658426761627,
+              "depth": 0.7192041873931885,
+              "in_frame": true
+            },
+            "receiver": {
+              "x_norm": 0.7227388024330139,
+              "y_norm": 0.1934957355260849,
+              "depth": 0.287931352853775,
+              "in_frame": true
+            },
+            "support_wrist": {
+              "x_norm": 0.5126612186431885,
+              "y_norm": 0.24003198742866516,
+              "depth": 0.4662608504295349,
+              "in_frame": true
+            },
+            "firing_wrist": {
+              "x_norm": 1.0165214538574219,
+              "y_norm": -0.7126836180686951,
+              "depth": 0.16069181263446808,
+              "in_frame": false
+            }
+          }
+        },
+        {
+          "frame": 8.0,
+          "screen_landmarks": {
+            "muzzle": {
+              "x_norm": 0.5666754841804504,
+              "y_norm": 0.401210218667984,
+              "depth": 0.7194359302520752,
+              "in_frame": true
+            },
+            "receiver": {
+              "x_norm": 0.7225082516670227,
+              "y_norm": 0.19514089822769165,
+              "depth": 0.28817060589790344,
+              "in_frame": true
+            },
+            "support_wrist": {
+              "x_norm": 0.5126246809959412,
+              "y_norm": 0.24126696586608887,
+              "depth": 0.46651491522789,
+              "in_frame": true
+            },
+            "firing_wrist": {
+              "x_norm": 1.0155020952224731,
+              "y_norm": -0.708499014377594,
+              "depth": 0.16097977757453918,
+              "in_frame": false
+            }
+          }
+        },
+        {
+          "frame": 8.5,
+          "screen_landmarks": {
+            "muzzle": {
+              "x_norm": 0.56668621301651,
+              "y_norm": 0.40095844864845276,
+              "depth": 0.7193771600723267,
+              "in_frame": true
+            },
+            "receiver": {
+              "x_norm": 0.7225686311721802,
+              "y_norm": 0.19470028579235077,
+              "depth": 0.28810983896255493,
+              "in_frame": true
+            },
+            "support_wrist": {
+              "x_norm": 0.512635350227356,
+              "y_norm": 0.24093696475028992,
+              "depth": 0.46645045280456543,
+              "in_frame": true
+            },
+            "firing_wrist": {
+              "x_norm": 1.0157654285430908,
+              "y_norm": -0.709601640701294,
+              "depth": 0.16090627014636993,
+              "in_frame": false
+            }
+          }
+        },
+        {
+          "frame": 9.0,
+          "screen_landmarks": {
+            "muzzle": {
+              "x_norm": 0.5667279362678528,
+              "y_norm": 0.39998292922973633,
+              "depth": 0.7191497683525085,
+              "in_frame": true
+            },
+            "receiver": {
+              "x_norm": 0.7228032946586609,
+              "y_norm": 0.19298939406871796,
+              "depth": 0.2878747880458832,
+              "in_frame": true
+            },
+            "support_wrist": {
+              "x_norm": 0.5126764178276062,
+              "y_norm": 0.23965789377689362,
+              "depth": 0.46620023250579834,
+              "in_frame": true
+            },
+            "firing_wrist": {
+              "x_norm": 1.0167899131774902,
+              "y_norm": -0.7138797640800476,
+              "depth": 0.16062192618846893,
+              "in_frame": false
+            }
+          }
+        },
+        {
+          "frame": 9.5,
+          "screen_landmarks": {
+            "muzzle": {
+              "x_norm": 0.5668003559112549,
+              "y_norm": 0.3982851803302765,
+              "depth": 0.7187540531158447,
+              "in_frame": true
+            },
+            "receiver": {
+              "x_norm": 0.7232118248939514,
+              "y_norm": 0.19000853598117828,
+              "depth": 0.2874660789966583,
+              "in_frame": true
+            },
+            "support_wrist": {
+              "x_norm": 0.5127479434013367,
+              "y_norm": 0.2374304085969925,
+              "depth": 0.4657650887966156,
+              "in_frame": true
+            },
+            "firing_wrist": {
+              "x_norm": 1.018576979637146,
+              "y_norm": -0.7213501930236816,
+              "depth": 0.16012807190418243,
+              "in_frame": false
+            }
+          }
+        },
+        {
+          "frame": 10.0,
+          "screen_landmarks": {
+            "muzzle": {
+              "x_norm": 0.5668731927871704,
+              "y_norm": 0.39658498764038086,
+              "depth": 0.7183580994606018,
+              "in_frame": true
+            },
+            "receiver": {
+              "x_norm": 0.7236215472221375,
+              "y_norm": 0.1870192438364029,
+              "depth": 0.2870575785636902,
+              "in_frame": true
+            },
+            "support_wrist": {
+              "x_norm": 0.5128199458122253,
+              "y_norm": 0.23519869148731232,
+              "depth": 0.4653300642967224,
+              "in_frame": true
+            },
+            "firing_wrist": {
+              "x_norm": 1.02037513256073,
+              "y_norm": -0.7288674712181091,
+              "depth": 0.15963423252105713,
+              "in_frame": false
+            }
+          }
+        },
+        {
+          "frame": 10.5,
+          "screen_landmarks": {
+            "muzzle": {
+              "x_norm": 0.5669150352478027,
+              "y_norm": 0.39560744166374207,
+              "depth": 0.7181307077407837,
+              "in_frame": true
+            },
+            "receiver": {
+              "x_norm": 0.7238573431968689,
+              "y_norm": 0.18529793620109558,
+              "depth": 0.286823034286499,
+              "in_frame": true
+            },
+            "support_wrist": {
+              "x_norm": 0.5128611326217651,
+              "y_norm": 0.23391437530517578,
+              "depth": 0.4650800824165344,
+              "in_frame": true
+            },
+            "firing_wrist": {
+              "x_norm": 1.0214126110076904,
+              "y_norm": -0.7332071661949158,
+              "depth": 0.15935072302818298,
+              "in_frame": false
+            }
+          }
+        },
+        {
+          "frame": 11.0,
+          "screen_landmarks": {
+            "muzzle": {
+              "x_norm": 0.5669258832931519,
+              "y_norm": 0.39535391330718994,
+              "depth": 0.7180716395378113,
+              "in_frame": true
+            },
+            "receiver": {
+              "x_norm": 0.7239187359809875,
+              "y_norm": 0.18485099077224731,
+              "depth": 0.28676217794418335,
+              "in_frame": true
+            },
+            "support_wrist": {
+              "x_norm": 0.5128719210624695,
+              "y_norm": 0.2335815131664276,
+              "depth": 0.465015172958374,
+              "in_frame": true
+            },
+            "firing_wrist": {
+              "x_norm": 1.0216816663742065,
+              "y_norm": -0.7343319058418274,
+              "depth": 0.15927742421627045,
+              "in_frame": false
+            }
+          }
+        }
+      ]
+    },
+    "jump_air_r1": {
+      "range": [
+        1,
+        2
+      ],
+      "duration_seconds": 0.016666666666666666,
+      "loop": true,
+      "sample_rate_hz": 120,
+      "sample_count": 3,
+      "varying_curves": [],
+      "max_wrist_error_m": [
+        2.7223309192800415e-07,
+        3.579381748874281e-07
+      ],
+      "max_guard_error_degrees": [
+        0.0,
+        0.0
+      ],
+      "max_hand_to_root_matrix_drift": [
+        0.0,
+        0.0
+      ],
+      "max_weapon_and_magazine_relative_root_matrix_drift": [
+        0.0,
+        0.0
+      ],
+      "max_player_root_matrix_drift": 0.0,
+      "max_camera_matrix_drift": 0.0,
+      "max_armature_world_matrix_drift": 0.0,
+      "endpoints": {
+        "1.0": {
+          "max_all_pose_bone_matrix_error_to_ready": 0.0,
+          "weapon_matrix_error_to_ready": 0.0,
+          "magazine_matrix_error_to_ready": 0.0
+        },
+        "2.0": {
+          "max_all_pose_bone_matrix_error_to_ready": 0.0,
+          "weapon_matrix_error_to_ready": 0.0,
+          "magazine_matrix_error_to_ready": 0.0
+        }
+      },
+      "samples": [
+        {
+          "frame": 1.0,
+          "screen_landmarks": {
+            "muzzle": {
+              "x_norm": 0.5669258832931519,
+              "y_norm": 0.39535391330718994,
+              "depth": 0.7180716395378113,
+              "in_frame": true
+            },
+            "receiver": {
+              "x_norm": 0.7239187359809875,
+              "y_norm": 0.18485099077224731,
+              "depth": 0.28676217794418335,
+              "in_frame": true
+            },
+            "support_wrist": {
+              "x_norm": 0.5128719210624695,
+              "y_norm": 0.2335815131664276,
+              "depth": 0.465015172958374,
+              "in_frame": true
+            },
+            "firing_wrist": {
+              "x_norm": 1.0216816663742065,
+              "y_norm": -0.7343319058418274,
+              "depth": 0.15927742421627045,
+              "in_frame": false
+            }
+          }
+        },
+        {
+          "frame": 1.5,
+          "screen_landmarks": {
+            "muzzle": {
+              "x_norm": 0.5669258832931519,
+              "y_norm": 0.39535391330718994,
+              "depth": 0.7180716395378113,
+              "in_frame": true
+            },
+            "receiver": {
+              "x_norm": 0.7239187359809875,
+              "y_norm": 0.18485099077224731,
+              "depth": 0.28676217794418335,
+              "in_frame": true
+            },
+            "support_wrist": {
+              "x_norm": 0.5128719210624695,
+              "y_norm": 0.2335815131664276,
+              "depth": 0.465015172958374,
+              "in_frame": true
+            },
+            "firing_wrist": {
+              "x_norm": 1.0216816663742065,
+              "y_norm": -0.7343319058418274,
+              "depth": 0.15927742421627045,
+              "in_frame": false
+            }
+          }
+        },
+        {
+          "frame": 2.0,
+          "screen_landmarks": {
+            "muzzle": {
+              "x_norm": 0.5669258832931519,
+              "y_norm": 0.39535391330718994,
+              "depth": 0.7180716395378113,
+              "in_frame": true
+            },
+            "receiver": {
+              "x_norm": 0.7239187359809875,
+              "y_norm": 0.18485099077224731,
+              "depth": 0.28676217794418335,
+              "in_frame": true
+            },
+            "support_wrist": {
+              "x_norm": 0.5128719210624695,
+              "y_norm": 0.2335815131664276,
+              "depth": 0.465015172958374,
+              "in_frame": true
+            },
+            "firing_wrist": {
+              "x_norm": 1.0216816663742065,
+              "y_norm": -0.7343319058418274,
+              "depth": 0.15927742421627045,
+              "in_frame": false
+            }
+          }
+        }
+      ]
+    },
+    "jump_land_r1": {
+      "range": [
+        1,
+        17
+      ],
+      "duration_seconds": 0.26666666666666666,
+      "loop": false,
+      "sample_rate_hz": 120,
+      "sample_count": 33,
+      "varying_curves": [
+        [
+          "pose.bones[\"righthand_prop\"].location",
+          0
+        ],
+        [
+          "pose.bones[\"righthand_prop\"].location",
+          1
+        ],
+        [
+          "pose.bones[\"righthand_prop\"].location",
+          2
+        ],
+        [
+          "pose.bones[\"righthand_prop\"].rotation_euler",
+          0
+        ],
+        [
+          "pose.bones[\"righthand_prop\"].rotation_euler",
+          1
+        ],
+        [
+          "pose.bones[\"righthand_prop\"].rotation_euler",
+          2
+        ]
+      ],
+      "max_wrist_error_m": [
+        5.133750438226836e-07,
+        3.886461661978059e-07
+      ],
+      "max_guard_error_degrees": [
+        0.0,
+        0.0
+      ],
+      "max_hand_to_root_matrix_drift": [
+        7.152557373046875e-07,
+        7.748603820800781e-07
+      ],
+      "max_weapon_and_magazine_relative_root_matrix_drift": [
+        2.384185791015625e-07,
+        4.172325134277344e-07
+      ],
+      "max_player_root_matrix_drift": 0.0,
+      "max_camera_matrix_drift": 0.0,
+      "max_armature_world_matrix_drift": 0.0,
+      "endpoints": {
+        "1.0": {
+          "max_all_pose_bone_matrix_error_to_ready": 0.0,
+          "weapon_matrix_error_to_ready": 0.0,
+          "magazine_matrix_error_to_ready": 0.0
+        },
+        "17.0": {
+          "max_all_pose_bone_matrix_error_to_ready": 0.0,
+          "weapon_matrix_error_to_ready": 0.0,
+          "magazine_matrix_error_to_ready": 0.0
+        }
+      },
+      "samples": [
+        {
+          "frame": 1.0,
+          "screen_landmarks": {
+            "muzzle": {
+              "x_norm": 0.5669258832931519,
+              "y_norm": 0.39535391330718994,
+              "depth": 0.7180716395378113,
+              "in_frame": true
+            },
+            "receiver": {
+              "x_norm": 0.7239187359809875,
+              "y_norm": 0.18485099077224731,
+              "depth": 0.28676217794418335,
+              "in_frame": true
+            },
+            "support_wrist": {
+              "x_norm": 0.5128719210624695,
+              "y_norm": 0.2335815131664276,
+              "depth": 0.465015172958374,
+              "in_frame": true
+            },
+            "firing_wrist": {
+              "x_norm": 1.0216816663742065,
+              "y_norm": -0.7343319058418274,
+              "depth": 0.15927742421627045,
+              "in_frame": false
+            }
+          }
+        },
+        {
+          "frame": 1.5,
+          "screen_landmarks": {
+            "muzzle": {
+              "x_norm": 0.5670458078384399,
+              "y_norm": 0.3923506736755371,
+              "depth": 0.7173648476600647,
+              "in_frame": true
+            },
+            "receiver": {
+              "x_norm": 0.7246274352073669,
+              "y_norm": 0.17969855666160583,
+              "depth": 0.2860332131385803,
+              "in_frame": true
+            },
+            "support_wrist": {
+              "x_norm": 0.5129830241203308,
+              "y_norm": 0.22968924045562744,
+              "depth": 0.46423622965812683,
+              "in_frame": true
+            },
+            "firing_wrist": {
+              "x_norm": 1.0248932838439941,
+              "y_norm": -0.7475242018699646,
+              "depth": 0.15839000046253204,
+              "in_frame": false
+            }
+          }
+        },
+        {
+          "frame": 2.0,
+          "screen_landmarks": {
+            "muzzle": {
+              "x_norm": 0.5675095915794373,
+              "y_norm": 0.38072317838668823,
+              "depth": 0.7146387696266174,
+              "in_frame": true
+            },
+            "receiver": {
+              "x_norm": 0.727385401725769,
+              "y_norm": 0.1596107929944992,
+              "depth": 0.2832336723804474,
+              "in_frame": true
+            },
+            "support_wrist": {
+              "x_norm": 0.5134140849113464,
+              "y_norm": 0.21457409858703613,
+              "depth": 0.4612373411655426,
+              "in_frame": true
+            },
+            "firing_wrist": {
+              "x_norm": 1.0375697612762451,
+              "y_norm": -0.7996323704719543,
+              "depth": 0.1549837589263916,
+              "in_frame": false
+            }
+          }
+        },
+        {
+          "frame": 2.5,
+          "screen_landmarks": {
+            "muzzle": {
+              "x_norm": 0.5683279037475586,
+              "y_norm": 0.36025336384773254,
+              "depth": 0.7098673582077026,
+              "in_frame": true
+            },
+            "receiver": {
+              "x_norm": 0.7323035001754761,
+              "y_norm": 0.1236836314201355,
+              "depth": 0.27837881445884705,
+              "in_frame": true
+            },
+            "support_wrist": {
+              "x_norm": 0.5141783356666565,
+              "y_norm": 0.1877831220626831,
+              "depth": 0.45601707696914673,
+              "in_frame": true
+            },
+            "firing_wrist": {
+              "x_norm": 1.0608989000320435,
+              "y_norm": -0.8956882953643799,
+              "depth": 0.14908604323863983,
+              "in_frame": false
+            }
+          }
+        },
+        {
+          "frame": 3.0,
+          "screen_landmarks": {
+            "muzzle": {
+              "x_norm": 0.5691614747047424,
+              "y_norm": 0.3394889831542969,
+              "depth": 0.7050607204437256,
+              "in_frame": true
+            },
+            "receiver": {
+              "x_norm": 0.7373772859573364,
+              "y_norm": 0.08649122714996338,
+              "depth": 0.2735450565814972,
+              "in_frame": true
+            },
+            "support_wrist": {
+              "x_norm": 0.514960527420044,
+              "y_norm": 0.160366952419281,
+              "depth": 0.4507930278778076,
+              "in_frame": true
+            },
+            "firing_wrist": {
+              "x_norm": 1.085990071296692,
+              "y_norm": -0.9992045760154724,
+              "depth": 0.14322668313980103,
+              "in_frame": false
+            }
+          }
+        },
+        {
+          "frame": 3.5,
+          "screen_landmarks": {
+            "muzzle": {
+              "x_norm": 0.5696466565132141,
+              "y_norm": 0.3274313807487488,
+              "depth": 0.7022867202758789,
+              "in_frame": true
+            },
+            "receiver": {
+              "x_norm": 0.7403623461723328,
+              "y_norm": 0.06454632431268692,
+              "depth": 0.2707809805870056,
+              "in_frame": true
+            },
+            "support_wrist": {
+              "x_norm": 0.5154180526733398,
+              "y_norm": 0.14433634281158447,
+              "depth": 0.4477938115596771,
+              "in_frame": true
+            },
+            "firing_wrist": {
+              "x_norm": 1.101264476776123,
+              "y_norm": -1.062319040298462,
+              "depth": 0.13988153636455536,
+              "in_frame": false
+            }
+          }
+        },
+        {
+          "frame": 4.0,
+          "screen_landmarks": {
+            "muzzle": {
+              "x_norm": 0.5697731375694275,
+              "y_norm": 0.32428163290023804,
+              "depth": 0.7015649676322937,
+              "in_frame": true
+            },
+            "receiver": {
+              "x_norm": 0.7411460876464844,
+              "y_norm": 0.05877234786748886,
+              "depth": 0.27006492018699646,
+              "in_frame": true
+            },
+            "support_wrist": {
+              "x_norm": 0.5155375599861145,
+              "y_norm": 0.14013554155826569,
+              "depth": 0.4470149874687195,
+              "in_frame": true
+            },
+            "firing_wrist": {
+              "x_norm": 1.105340838432312,
+              "y_norm": -1.079177737236023,
+              "depth": 0.13901549577713013,
+              "in_frame": false
+            }
+          }
+        },
+        {
+          "frame": 4.5,
+          "screen_landmarks": {
+            "muzzle": {
+              "x_norm": 0.5697540044784546,
+              "y_norm": 0.32474249601364136,
+              "depth": 0.7016695737838745,
+              "in_frame": true
+            },
+            "receiver": {
+              "x_norm": 0.7410305142402649,
+              "y_norm": 0.05961943417787552,
+              "depth": 0.27016857266426086,
+              "in_frame": true
+            },
+            "support_wrist": {
+              "x_norm": 0.5155192017555237,
+              "y_norm": 0.14075136184692383,
+              "depth": 0.4471280574798584,
+              "in_frame": true
+            },
+            "firing_wrist": {
+              "x_norm": 1.1047443151474,
+              "y_norm": -1.0767072439193726,
+              "depth": 0.13914082944393158,
+              "in_frame": false
+            }
+          }
+        },
+        {
+          "frame": 5.0,
+          "screen_landmarks": {
+            "muzzle": {
+              "x_norm": 0.5696535110473633,
+              "y_norm": 0.3271757662296295,
+              "depth": 0.7022228837013245,
+              "in_frame": true
+            },
+            "receiver": {
+              "x_norm": 0.7404207587242126,
+              "y_norm": 0.0640856996178627,
+              "depth": 0.27071765065193176,
+              "in_frame": true
+            },
+            "support_wrist": {
+              "x_norm": 0.5154216289520264,
+              "y_norm": 0.14399811625480652,
+              "depth": 0.4477250277996063,
+              "in_frame": true
+            },
+            "firing_wrist": {
+              "x_norm": 1.1015979051589966,
+              "y_norm": -1.0637061595916748,
+              "depth": 0.13980554044246674,
+              "in_frame": false
+            }
+          }
+        },
+        {
+          "frame": 5.5,
+          "screen_landmarks": {
+            "muzzle": {
+              "x_norm": 0.5694239139556885,
+              "y_norm": 0.33273595571517944,
+              "depth": 0.7034890055656433,
+              "in_frame": true
+            },
+            "receiver": {
+              "x_norm": 0.7390319108963013,
+              "y_norm": 0.07425178587436676,
+              "depth": 0.27197667956352234,
+              "in_frame": true
+            },
+            "support_wrist": {
+              "x_norm": 0.5151993036270142,
+              "y_norm": 0.1514066457748413,
+              "depth": 0.4490930438041687,
+              "in_frame": true
+            },
+            "firing_wrist": {
+              "x_norm": 1.0944955348968506,
+              "y_norm": -1.0343629121780396,
+              "depth": 0.1413298100233078,
+              "in_frame": false
+            }
+          }
+        },
+        {
+          "frame": 6.0,
+          "screen_landmarks": {
+            "muzzle": {
+              "x_norm": 0.5690701007843018,
+              "y_norm": 0.34131160378456116,
+              "depth": 0.7054467797279358,
+              "in_frame": true
+            },
+            "receiver": {
+              "x_norm": 0.7369018197059631,
+              "y_norm": 0.08982542157173157,
+              "depth": 0.27393120527267456,
+              "in_frame": true
+            },
+            "support_wrist": {
+              "x_norm": 0.514857292175293,
+              "y_norm": 0.1627994328737259,
+              "depth": 0.4512127637863159,
+              "in_frame": true
+            },
+            "firing_wrist": {
+              "x_norm": 1.0837620496749878,
+              "y_norm": -0.990046501159668,
+              "depth": 0.14369796216487885,
+              "in_frame": false
+            }
+          }
+        },
+        {
+          "frame": 6.5,
+          "screen_landmarks": {
+            "muzzle": {
+              "x_norm": 0.5686168670654297,
+              "y_norm": 0.3523118495941162,
+              "depth": 0.707967221736908,
+              "in_frame": true
+            },
+            "receiver": {
+              "x_norm": 0.7341906428337097,
+              "y_norm": 0.1096138283610344,
+              "depth": 0.27646133303642273,
+              "in_frame": true
+            },
+            "support_wrist": {
+              "x_norm": 0.5144205689430237,
+              "y_norm": 0.17735379934310913,
+              "depth": 0.4539504051208496,
+              "in_frame": true
+            },
+            "firing_wrist": {
+              "x_norm": 1.0703742504119873,
+              "y_norm": -0.9348222017288208,
+              "depth": 0.14676624536514282,
+              "in_frame": false
+            }
+          }
+        },
+        {
+          "frame": 7.0,
+          "screen_landmarks": {
+            "muzzle": {
+              "x_norm": 0.5681140422821045,
+              "y_norm": 0.36453190445899963,
+              "depth": 0.7107787132263184,
+              "in_frame": true
+            },
+            "receiver": {
+              "x_norm": 0.7312062978744507,
+              "y_norm": 0.131349578499794,
+              "depth": 0.2793022692203522,
+              "in_frame": true
+            },
+            "support_wrist": {
+              "x_norm": 0.5139374136924744,
+              "y_norm": 0.1934431791305542,
+              "depth": 0.45701539516448975,
+              "in_frame": true
+            },
+            "firing_wrist": {
+              "x_norm": 1.0559810400009155,
+              "y_norm": -0.8755209445953369,
+              "depth": 0.1502157747745514,
+              "in_frame": false
+            }
+          }
+        },
+        {
+          "frame": 7.5,
+          "screen_landmarks": {
+            "muzzle": {
+              "x_norm": 0.5676162838935852,
+              "y_norm": 0.37665092945098877,
+              "depth": 0.7135793566703796,
+              "in_frame": true
+            },
+            "receiver": {
+              "x_norm": 0.7282750010490417,
+              "y_norm": 0.15265288949012756,
+              "depth": 0.2821519374847412,
+              "in_frame": true
+            },
+            "support_wrist": {
+              "x_norm": 0.5134609341621399,
+              "y_norm": 0.20931796729564667,
+              "depth": 0.46008044481277466,
+              "in_frame": true
+            },
+            "firing_wrist": {
+              "x_norm": 1.042182445526123,
+              "y_norm": -0.8187355399131775,
+              "depth": 0.15367992222309113,
+              "in_frame": false
+            }
+          }
+        },
+        {
+          "frame": 8.0,
+          "screen_landmarks": {
+            "muzzle": {
+              "x_norm": 0.5671759247779846,
+              "y_norm": 0.38739028573036194,
+              "depth": 0.7160709500312805,
+              "in_frame": true
+            },
+            "receiver": {
+              "x_norm": 0.7257012128829956,
+              "y_norm": 0.171321302652359,
+              "depth": 0.2847038209438324,
+              "in_frame": true
+            },
+            "support_wrist": {
+              "x_norm": 0.5130404233932495,
+              "y_norm": 0.22331781685352325,
+              "depth": 0.46281754970550537,
+              "in_frame": true
+            },
+            "firing_wrist": {
+              "x_norm": 1.0303336381912231,
+              "y_norm": -0.7700294852256775,
+              "depth": 0.15678566694259644,
+              "in_frame": false
+            }
+          }
+        },
+        {
+          "frame": 8.5,
+          "screen_landmarks": {
+            "muzzle": {
+              "x_norm": 0.5668375492095947,
+              "y_norm": 0.39565327763557434,
+              "depth": 0.7179943919181824,
+              "in_frame": true
+            },
+            "receiver": {
+              "x_norm": 0.7237358093261719,
+              "y_norm": 0.18555179238319397,
+              "depth": 0.2866847515106201,
+              "in_frame": true
+            },
+            "support_wrist": {
+              "x_norm": 0.5127183794975281,
+              "y_norm": 0.2340460568666458,
+              "depth": 0.46493709087371826,
+              "in_frame": true
+            },
+            "firing_wrist": {
+              "x_norm": 1.0214496850967407,
+              "y_norm": -0.7335436940193176,
+              "depth": 0.1591987907886505,
+              "in_frame": false
+            }
+          }
+        },
+        {
+          "frame": 9.0,
+          "screen_landmarks": {
+            "muzzle": {
+              "x_norm": 0.5666204690933228,
+              "y_norm": 0.40095993876457214,
+              "depth": 0.7192329168319702,
+              "in_frame": true
+            },
+            "receiver": {
+              "x_norm": 0.722480297088623,
+              "y_norm": 0.1946314424276352,
+              "depth": 0.2879652976989746,
+              "in_frame": true
+            },
+            "support_wrist": {
+              "x_norm": 0.51251220703125,
+              "y_norm": 0.24091707170009613,
+              "depth": 0.46630528569221497,
+              "in_frame": true
+            },
+            "firing_wrist": {
+              "x_norm": 1.0158469676971436,
+              "y_norm": -0.7105492949485779,
+              "depth": 0.1607595980167389,
+              "in_frame": false
+            }
+          }
+        },
+        {
+          "frame": 9.5,
+          "screen_landmarks": {
+            "muzzle": {
+              "x_norm": 0.5665261149406433,
+              "y_norm": 0.40326619148254395,
+              "depth": 0.7197718620300293,
+              "in_frame": true
+            },
+            "receiver": {
+              "x_norm": 0.7219362258911133,
+              "y_norm": 0.1985626369714737,
+              "depth": 0.28852376341819763,
+              "in_frame": true
+            },
+            "support_wrist": {
+              "x_norm": 0.5124226808547974,
+              "y_norm": 0.24389787018299103,
+              "depth": 0.4669012129306793,
+              "in_frame": true
+            },
+            "firing_wrist": {
+              "x_norm": 1.0134369134902954,
+              "y_norm": -0.7006617784500122,
+              "depth": 0.1614403873682022,
+              "in_frame": false
+            }
+          }
+        },
+        {
+          "frame": 10.0,
+          "screen_landmarks": {
+            "muzzle": {
+              "x_norm": 0.5665081739425659,
+              "y_norm": 0.4037065804004669,
+              "depth": 0.7198747396469116,
+              "in_frame": true
+            },
+            "receiver": {
+              "x_norm": 0.7218325138092041,
+              "y_norm": 0.19931188225746155,
+              "depth": 0.28863051533699036,
+              "in_frame": true
+            },
+            "support_wrist": {
+              "x_norm": 0.5124055743217468,
+              "y_norm": 0.24446673691272736,
+              "depth": 0.46701526641845703,
+              "in_frame": true
+            },
+            "firing_wrist": {
+              "x_norm": 1.0129786729812622,
+              "y_norm": -0.6987833380699158,
+              "depth": 0.16157059371471405,
+              "in_frame": false
+            }
+          }
+        },
+        {
+          "frame": 10.5,
+          "screen_landmarks": {
+            "muzzle": {
+              "x_norm": 0.5665096044540405,
+              "y_norm": 0.40367716550827026,
+              "depth": 0.7198684215545654,
+              "in_frame": true
+            },
+            "receiver": {
+              "x_norm": 0.7218398451805115,
+              "y_norm": 0.1992613524198532,
+              "depth": 0.2886238992214203,
+              "in_frame": true
+            },
+            "support_wrist": {
+              "x_norm": 0.5124073624610901,
+              "y_norm": 0.24442850053310394,
+              "depth": 0.4670080840587616,
+              "in_frame": true
+            },
+            "firing_wrist": {
+              "x_norm": 1.0130085945129395,
+              "y_norm": -0.6989049911499023,
+              "depth": 0.16156260669231415,
+              "in_frame": false
+            }
+          }
+        },
+        {
+          "frame": 11.0,
+          "screen_landmarks": {
+            "muzzle": {
+              "x_norm": 0.5665178298950195,
+              "y_norm": 0.4035128653049469,
+              "depth": 0.7198328971862793,
+              "in_frame": true
+            },
+            "receiver": {
+              "x_norm": 0.7218808531761169,
+              "y_norm": 0.19897790253162384,
+              "depth": 0.2885870039463043,
+              "in_frame": true
+            },
+            "support_wrist": {
+              "x_norm": 0.5124165415763855,
+              "y_norm": 0.24421489238739014,
+              "depth": 0.4669685661792755,
+              "in_frame": true
+            },
+            "firing_wrist": {
+              "x_norm": 1.0131789445877075,
+              "y_norm": -0.6995983719825745,
+              "depth": 0.1615172177553177,
+              "in_frame": false
+            }
+          }
+        },
+        {
+          "frame": 11.5,
+          "screen_landmarks": {
+            "muzzle": {
+              "x_norm": 0.5665372014045715,
+              "y_norm": 0.4031258225440979,
+              "depth": 0.7197492718696594,
+              "in_frame": true
+            },
+            "receiver": {
+              "x_norm": 0.7219772934913635,
+              "y_norm": 0.19831028580665588,
+              "depth": 0.2885001599788666,
+              "in_frame": true
+            },
+            "support_wrist": {
+              "x_norm": 0.512438178062439,
+              "y_norm": 0.24371114373207092,
+              "depth": 0.46687594056129456,
+              "in_frame": true
+            },
+            "firing_wrist": {
+              "x_norm": 1.0135785341262817,
+              "y_norm": -0.7012293338775635,
+              "depth": 0.16141052544116974,
+              "in_frame": false
+            }
+          }
+        },
+        {
+          "frame": 12.0,
+          "screen_landmarks": {
+            "muzzle": {
+              "x_norm": 0.5665684342384338,
+              "y_norm": 0.4025009572505951,
+              "depth": 0.7196142077445984,
+              "in_frame": true
+            },
+            "receiver": {
+              "x_norm": 0.7221329212188721,
+              "y_norm": 0.19723156094551086,
+              "depth": 0.2883599102497101,
+              "in_frame": true
+            },
+            "support_wrist": {
+              "x_norm": 0.512472927570343,
+              "y_norm": 0.24289794266223907,
+              "depth": 0.4667258858680725,
+              "in_frame": true
+            },
+            "firing_wrist": {
+              "x_norm": 1.0142236948013306,
+              "y_norm": -0.7038654685020447,
+              "depth": 0.1612384170293808,
+              "in_frame": false
+            }
+          }
+        },
+        {
+          "frame": 12.5,
+          "screen_landmarks": {
+            "muzzle": {
+              "x_norm": 0.5666109323501587,
+              "y_norm": 0.4016522169113159,
+              "depth": 0.7194308042526245,
+              "in_frame": true
+            },
+            "receiver": {
+              "x_norm": 0.7223445773124695,
+              "y_norm": 0.19576522707939148,
+              "depth": 0.28816962242126465,
+              "in_frame": true
+            },
+            "support_wrist": {
+              "x_norm": 0.5125201940536499,
+              "y_norm": 0.24179287254810333,
+              "depth": 0.466522216796875,
+              "in_frame": true
+            },
+            "firing_wrist": {
+              "x_norm": 1.0151022672653198,
+              "y_norm": -0.7074546813964844,
+              "depth": 0.16100487112998962,
+              "in_frame": false
+            }
+          }
+        },
+        {
+          "frame": 13.0,
+          "screen_landmarks": {
+            "muzzle": {
+              "x_norm": 0.566661536693573,
+              "y_norm": 0.40063878893852234,
+              "depth": 0.719211995601654,
+              "in_frame": true
+            },
+            "receiver": {
+              "x_norm": 0.7225971221923828,
+              "y_norm": 0.1940133273601532,
+              "depth": 0.28794270753860474,
+              "in_frame": true
+            },
+            "support_wrist": {
+              "x_norm": 0.5125765204429626,
+              "y_norm": 0.24047304689884186,
+              "depth": 0.4662794768810272,
+              "in_frame": true
+            },
+            "firing_wrist": {
+              "x_norm": 1.0161540508270264,
+              "y_norm": -0.7117496728897095,
+              "depth": 0.16072611510753632,
+              "in_frame": false
+            }
+          }
+        },
+        {
+          "frame": 13.5,
+          "screen_landmarks": {
+            "muzzle": {
+              "x_norm": 0.5667165517807007,
+              "y_norm": 0.3995358347892761,
+              "depth": 0.7189738154411316,
+              "in_frame": true
+            },
+            "receiver": {
+              "x_norm": 0.7228723168373108,
+              "y_norm": 0.19210438430309296,
+              "depth": 0.28769585490226746,
+              "in_frame": true
+            },
+            "support_wrist": {
+              "x_norm": 0.5126381516456604,
+              "y_norm": 0.23903578519821167,
+              "depth": 0.4660153388977051,
+              "in_frame": true
+            },
+            "firing_wrist": {
+              "x_norm": 1.017301082611084,
+              "y_norm": -0.7164388298988342,
+              "depth": 0.1604231745004654,
+              "in_frame": false
+            }
+          }
+        },
+        {
+          "frame": 14.0,
+          "screen_landmarks": {
+            "muzzle": {
+              "x_norm": 0.566771924495697,
+              "y_norm": 0.3984318971633911,
+              "depth": 0.7187355160713196,
+              "in_frame": true
+            },
+            "receiver": {
+              "x_norm": 0.7231484651565552,
+              "y_norm": 0.19019263982772827,
+              "depth": 0.28744903206825256,
+              "in_frame": true
+            },
+            "support_wrist": {
+              "x_norm": 0.5126999616622925,
+              "y_norm": 0.23759707808494568,
+              "depth": 0.465751051902771,
+              "in_frame": true
+            },
+            "firing_wrist": {
+              "x_norm": 1.0184540748596191,
+              "y_norm": -0.721143364906311,
+              "depth": 0.1601201295852661,
+              "in_frame": false
+            }
+          }
+        },
+        {
+          "frame": 14.5,
+          "screen_landmarks": {
+            "muzzle": {
+              "x_norm": 0.5668225884437561,
+              "y_norm": 0.3974168002605438,
+              "depth": 0.7185165286064148,
+              "in_frame": true
+            },
+            "receiver": {
+              "x_norm": 0.7234021425247192,
+              "y_norm": 0.188432976603508,
+              "depth": 0.28722232580184937,
+              "in_frame": true
+            },
+            "support_wrist": {
+              "x_norm": 0.5127564668655396,
+              "y_norm": 0.23627299070358276,
+              "depth": 0.46550822257995605,
+              "in_frame": true
+            },
+            "firing_wrist": {
+              "x_norm": 1.0195155143737793,
+              "y_norm": -0.7254816293716431,
+              "depth": 0.15984196960926056,
+              "in_frame": false
+            }
+          }
+        },
+        {
+          "frame": 15.0,
+          "screen_landmarks": {
+            "muzzle": {
+              "x_norm": 0.5668652653694153,
+              "y_norm": 0.3965655565261841,
+              "depth": 0.718332827091217,
+              "in_frame": true
+            },
+            "receiver": {
+              "x_norm": 0.723615288734436,
+              "y_norm": 0.18695572018623352,
+              "depth": 0.28703227639198303,
+              "in_frame": true
+            },
+            "support_wrist": {
+              "x_norm": 0.5128041505813599,
+              "y_norm": 0.23516303300857544,
+              "depth": 0.4653046131134033,
+              "in_frame": true
+            },
+            "firing_wrist": {
+              "x_norm": 1.0204081535339355,
+              "y_norm": -0.7291275858879089,
+              "depth": 0.15960875153541565,
+              "in_frame": false
+            }
+          }
+        },
+        {
+          "frame": 15.5,
+          "screen_landmarks": {
+            "muzzle": {
+              "x_norm": 0.5668966770172119,
+              "y_norm": 0.39593780040740967,
+              "depth": 0.7181974649429321,
+              "in_frame": true
+            },
+            "receiver": {
+              "x_norm": 0.723772406578064,
+              "y_norm": 0.18586531281471252,
+              "depth": 0.28689223527908325,
+              "in_frame": true
+            },
+            "support_wrist": {
+              "x_norm": 0.5128392577171326,
+              "y_norm": 0.23434355854988098,
+              "depth": 0.46515440940856934,
+              "in_frame": true
+            },
+            "firing_wrist": {
+              "x_norm": 1.02106773853302,
+              "y_norm": -0.7318236231803894,
+              "depth": 0.15943697094917297,
+              "in_frame": false
+            }
+          }
+        },
+        {
+          "frame": 16.0,
+          "screen_landmarks": {
+            "muzzle": {
+              "x_norm": 0.5669161081314087,
+              "y_norm": 0.39554867148399353,
+              "depth": 0.7181136608123779,
+              "in_frame": true
+            },
+            "receiver": {
+              "x_norm": 0.7238697409629822,
+              "y_norm": 0.18518927693367004,
+              "depth": 0.2868055999279022,
+              "in_frame": true
+            },
+            "support_wrist": {
+              "x_norm": 0.5128609538078308,
+              "y_norm": 0.23383571207523346,
+              "depth": 0.46506160497665405,
+              "in_frame": true
+            },
+            "firing_wrist": {
+              "x_norm": 1.0214767456054688,
+              "y_norm": -0.7334964275360107,
+              "depth": 0.1593305915594101,
+              "in_frame": false
+            }
+          }
+        },
+        {
+          "frame": 16.5,
+          "screen_landmarks": {
+            "muzzle": {
+              "x_norm": 0.5669243931770325,
+              "y_norm": 0.39538371562957764,
+              "depth": 0.7180781960487366,
+              "in_frame": true
+            },
+            "receiver": {
+              "x_norm": 0.7239111065864563,
+              "y_norm": 0.1849028319120407,
+              "depth": 0.28676891326904297,
+              "in_frame": true
+            },
+            "support_wrist": {
+              "x_norm": 0.512870192527771,
+              "y_norm": 0.23362062871456146,
+              "depth": 0.4650224447250366,
+              "in_frame": true
+            },
+            "firing_wrist": {
+              "x_norm": 1.0216503143310547,
+              "y_norm": -0.7342050075531006,
+              "depth": 0.1592855006456375,
+              "in_frame": false
+            }
+          }
+        },
+        {
+          "frame": 17.0,
+          "screen_landmarks": {
+            "muzzle": {
+              "x_norm": 0.5669258832931519,
+              "y_norm": 0.39535391330718994,
+              "depth": 0.7180716395378113,
+              "in_frame": true
+            },
+            "receiver": {
+              "x_norm": 0.7239187359809875,
+              "y_norm": 0.18485099077224731,
+              "depth": 0.28676217794418335,
+              "in_frame": true
+            },
+            "support_wrist": {
+              "x_norm": 0.5128719210624695,
+              "y_norm": 0.2335815131664276,
+              "depth": 0.465015172958374,
+              "in_frame": true
+            },
+            "firing_wrist": {
+              "x_norm": 1.0216816663742065,
+              "y_norm": -0.7343319058418274,
+              "depth": 0.15927742421627045,
+              "in_frame": false
+            }
+          }
+        }
+      ]
+    }
+  },
+  "invalid_drivers": [],
+  "checks": {
+    "jump_takeoff_r1_range": true,
+    "jump_takeoff_r1_only_viewmodel_control_varies": true,
+    "jump_takeoff_r1_grip_contacts": true,
+    "jump_takeoff_r1_no_world_root_or_camera_motion": true,
+    "jump_takeoff_r1_exact_ready_endpoints": true,
+    "jump_takeoff_r1_zero_endpoint_velocity": true,
+    "jump_takeoff_r1_baseline_visible_landmarks_retained": true,
+    "jump_air_r1_range": true,
+    "jump_air_r1_only_viewmodel_control_varies": true,
+    "jump_air_r1_grip_contacts": true,
+    "jump_air_r1_no_world_root_or_camera_motion": true,
+    "jump_air_r1_exact_ready_endpoints": true,
+    "jump_air_r1_zero_endpoint_velocity": true,
+    "jump_air_r1_baseline_visible_landmarks_retained": true,
+    "jump_air_r1_static_extendable_air": true,
+    "jump_land_r1_range": true,
+    "jump_land_r1_only_viewmodel_control_varies": true,
+    "jump_land_r1_grip_contacts": true,
+    "jump_land_r1_no_world_root_or_camera_motion": true,
+    "jump_land_r1_exact_ready_endpoints": true,
+    "jump_land_r1_zero_endpoint_velocity": true,
+    "jump_land_r1_baseline_visible_landmarks_retained": true,
+    "drivers_valid": true,
+    "source_bytes_unchanged": true
+  },
+  "passed": true,
+  "limitations": [
+    "Technical checks only; no artistic rating or Elara acceptance",
+    "The firing-wrist anatomical origin is already below/right of the baseline camera frame; it is reported but not treated as a newly lost visible landmark",
+    "Absolute HIP source; ADS composition belongs to runtime integration",
+    "No render, game export, runtime controller edit, or game playback performed by this validator"
+  ]
+}

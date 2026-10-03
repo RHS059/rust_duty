@@ -1,0 +1,31 @@
+{
+  "schema": "rust-duty-jump-source-preservation/v1",
+  "source_sha256": "36d76491c2cf6238b8a1e10069dddd5b0d63e199063e1f4012b34f3fd4b1e18d",
+  "candidate_sha256": "4e923368b0b07d87e737d6575266b2ba4b2d4b020d4bc4cf0c0848c7cf94acb6",
+  "source_actions": 82,
+  "candidate_actions": 85,
+  "created_actions": [
+    "jump_takeoff_r1",
+    "jump_air_r1",
+    "jump_land_r1"
+  ],
+  "checks": {
+    "82_original_action_fingerprints": true,
+    "only_three_new_actions": true,
+    "nla_and_active_actions": true,
+    "drivers": true,
+    "packed_images": true,
+    "actions_metadata": true,
+    "pose_channel_defaults": true,
+    "actions_extended": true,
+    "meshes": true,
+    "armatures": true,
+    "objects_and_bindings": true,
+    "materials": true,
+    "cameras": true
+  },
+  "passed": true,
+  "source_saved": false,
+  "candidate_saved": true,
+  "design_sha256": "9d204eeaabf2515509fb6f38b7a079659946b14beca3fcbb1598e7be787497f0"
+}

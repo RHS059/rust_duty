@@ -1,0 +1,16 @@
+halcyon_jump_r1.blend
+README.md
+jump_design_r1.json
+author_jump_r1.py
+source_integrity.py
+validate_source_structure.py
+validate_jump_r1.py
+authored_root_keys.json
+authoring_preservation.json
+baseline_fingerprint.json
+source_preservation.json
+jump_technical_validation.json
+reproduction_check.json
+package_manifest.json
+PUBLICATION_FILES.txt
+SHA256SUMS

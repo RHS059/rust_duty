@@ -1,0 +1,15 @@
+{
+  "schema": "rust-duty-jump-reproduction/v1",
+  "passed": true,
+  "checks": {
+    "all_85_action_curves_identical": true,
+    "all_nla_drivers_images_identical": true,
+    "all_structural_snapshots_identical": true,
+    "both_preservation_passes": true
+  },
+  "method": "Fresh Blender 4.3.2 process reran author_jump_r1.py from the frozen HIP r5 source into an isolated temporary output, then freshly reopened it for comparison",
+  "source_sha256": "36d76491c2cf6238b8a1e10069dddd5b0d63e199063e1f4012b34f3fd4b1e18d",
+  "candidate_sha256": "4e923368b0b07d87e737d6575266b2ba4b2d4b020d4bc4cf0c0848c7cf94acb6",
+  "reproduced_blend_sha256": "8a986251b90e41c69528f423914b7f1463ebc3b3996664c48c357ec4c1af56e1",
+  "note": "Blender files need not be byte-identical; deterministic content compared through exact Action, NLA, driver, image and structural fingerprints."
+}

@@ -1,0 +1,160 @@
+{
+  "schema": "rust-duty-jump-source-package/v1",
+  "status": "Frozen original-choreography source WIP; Elara review and runtime integration pending",
+  "source_file": "halcyon_jump_r1.blend",
+  "source_sha256": "4e923368b0b07d87e737d6575266b2ba4b2d4b020d4bc4cf0c0848c7cf94acb6",
+  "baseline_path": "assets/authoring/locomotion_directional/r5/halcyon_hip_directional_r5.blend",
+  "baseline_sha256": "36d76491c2cf6238b8a1e10069dddd5b0d63e199063e1f4012b34f3fd4b1e18d",
+  "repository_destination": "assets/authoring/jump/",
+  "branch": "halcyon/jump-r1",
+  "blender": "4.3.2",
+  "source_fps": 60,
+  "pose_space": "absolute HIP",
+  "animated_control": "righthand_prop",
+  "baseline_action": "RD_Locomotion_Normal_Entry_4419_4434_WIP2",
+  "baseline_frame": 1,
+  "rig": {
+    "object": "Arms",
+    "total_bones": 148,
+    "deform_bones": 72,
+    "skin_objects": [
+      "Actual arms mesh 0",
+      "Actual arms mesh 1",
+      "Actual arms mesh 2"
+    ],
+    "rigid_actors": [
+      "hk416_weapon",
+      "hk416_magazine"
+    ],
+    "excluded_actor": "hk416_magazine_outgoing"
+  },
+  "companions": {
+    "hk416_weapon": "hk416_weaponAction.001",
+    "hk416_magazine": "hk416_magazineAction"
+  },
+  "runtime_mapping": {
+    "jump_takeoff_r1": {
+      "runtime_id": "jump_takeoff",
+      "frame_range": [
+        1,
+        11
+      ],
+      "duration_seconds": 0.16666666666666666,
+      "loop": false
+    },
+    "jump_air_r1": {
+      "runtime_id": "jump_air",
+      "frame_range": [
+        1,
+        2
+      ],
+      "duration_seconds": 0.016666666666666666,
+      "loop": true
+    },
+    "jump_land_r1": {
+      "runtime_id": "jump_land",
+      "frame_range": [
+        1,
+        17
+      ],
+      "duration_seconds": 0.26666666666666666,
+      "loop": false
+    }
+  },
+  "verification": {
+    "original_actions_preserved": 82,
+    "new_actions": 3,
+    "total_actions": 85,
+    "fresh_disk_preservation_passed": true,
+    "technical_motion_contacts_passed": true,
+    "reproduction_passed": true,
+    "max_wrist_error_m": 5.133750438226836e-07,
+    "no_camera_or_world_root_motion": true,
+    "all_clip_endpoints_exact_ready": true,
+    "air_static": true
+  },
+  "review": {
+    "required_reviewer": "Elara",
+    "status": "Pending",
+    "render_method": "Eevee Viewport Render Animation",
+    "preview_artifacts_included": false
+  },
+  "runtime_integration": {
+    "status": "Not performed by authoring package",
+    "stable_ids": [
+      "jump_takeoff",
+      "jump_air",
+      "jump_land"
+    ],
+    "landing_trigger": "ground contact",
+    "ADS": "Preserve existing ADS base and use deliberate aim-safe composition; absolute HIP replacement not valid"
+  },
+  "source_reference_claim": "Original choreography; the supplied locomotion videos contain no usable first-person jump cycle",
+  "file_list": [
+    {
+      "path": "halcyon_jump_r1.blend",
+      "bytes": 10028839,
+      "sha256": "4e923368b0b07d87e737d6575266b2ba4b2d4b020d4bc4cf0c0848c7cf94acb6"
+    },
+    {
+      "path": "README.md",
+      "bytes": 6451,
+      "sha256": "b3d994e86c8903efb4d92bf402a8b4d86abbf636469f8b73f1407271e30a034c"
+    },
+    {
+      "path": "jump_design_r1.json",
+      "bytes": 3990,
+      "sha256": "9d204eeaabf2515509fb6f38b7a079659946b14beca3fcbb1598e7be787497f0"
+    },
+    {
+      "path": "author_jump_r1.py",
+      "bytes": 8935,
+      "sha256": "7d498f7794495849178e0e70ed669fc8e13116681174d7d099e08be313112598"
+    },
+    {
+      "path": "source_integrity.py",
+      "bytes": 2898,
+      "sha256": "d22ae8dcc117e29ffb7d746772efce015010407cbb1ddce22924a31746e831ca"
+    },
+    {
+      "path": "validate_source_structure.py",
+      "bytes": 9678,
+      "sha256": "8f1deb2883eafd5e7a76cf48109a33c010690aa197150369df60773b5b593816"
+    },
+    {
+      "path": "validate_jump_r1.py",
+      "bytes": 7010,
+      "sha256": "0b1b3b41dc7cb039ee3d0eabdc743882278c5ca5bf4fde2e7ee1d54e5b8b9190"
+    },
+    {
+      "path": "authored_root_keys.json",
+      "bytes": 25942,
+      "sha256": "e424399e1edb33b000795e8aafeef644d7a5a511fa4df3565047f0497752ab52"
+    },
+    {
+      "path": "authoring_preservation.json",
+      "bytes": 929,
+      "sha256": "a99c02bf5643efdb40ec5f9a9bd62b4fb7228a074c1dc9e111ed1c4b5f6d3c87"
+    },
+    {
+      "path": "baseline_fingerprint.json",
+      "bytes": 333949,
+      "sha256": "d5dc66eae67bf750674cd60f2eca89a337d6ca63d566d747b43f0564348ee917"
+    },
+    {
+      "path": "source_preservation.json",
+      "bytes": 337913,
+      "sha256": "77c593d41895279c79a9d2109cb5d08e7f16ce30c04ba46cb446b6fb457084a5"
+    },
+    {
+      "path": "jump_technical_validation.json",
+      "bytes": 58509,
+      "sha256": "1fb414f73dde48b67068264c98d8750ae9e76a291d68a0a13ef23afc0f4fc178"
+    },
+    {
+      "path": "reproduction_check.json",
+      "bytes": 863,
+      "sha256": "7cc8d97e1e1f466db2984e780bf61a402c3580a948431b800ceff821e4283e0d"
+    }
+  ]
+}
