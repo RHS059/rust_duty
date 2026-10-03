@@ -1,20 +1,20 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T18:52:35Z",
+  "updatedAt": "2026-10-03T19:03:16Z",
   "state": "active",
-  "task": "Coordinating the next lateral capture and ADS review handoff.",
-  "lastCompleted": "Completed forward v7 source and the 126-frame Eevee comparison; visual review is pending.",
+  "task": "Coordinating the lateral Trial2 capture and forward ADS v7 review.",
+  "lastCompleted": "Completed forward v7 source and the 126-frame Eevee comparison; publication and visual review are pending.",
   "agents": [
     {
       "slot": 1,
       "state": "idle",
-      "task": "Forward v7 is frozen awaiting review.",
+      "task": "Forward v7 is frozen awaiting publication and review.",
       "lastCompleted": "Completed forward v7 source, capture and reference comparison; the 1.6 mm joint-anchor caveat remains."
     },
     {
       "slot": 2,
       "state": "active",
-      "task": "Testing lateral footfall shape across two motion samples.",
+      "task": "Preparing a 198-frame Eevee viewport capture for Trial2 two-phase footfall diagnostics.",
       "lastCompleted": "Trial1 remains Fail32 left and Fail31 right; centered sight landmarks were verified."
     },
     {
