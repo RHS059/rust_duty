@@ -1,11 +1,11 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T22:32:22Z",
+  "updatedAt": "2026-10-03T22:42:55Z",
   "latestComplete": {
     "sha": "eb886edb9ed31ad6feae13541c4e34aa70362f2f",
     "downloadUrl": "https://github.com/RHS059/rust_duty/releases/download/v0.1.5/Rust-Duty-0.1.5-Windows-x64.zip",
     "runUrl": "https://github.com/RHS059/rust_duty/actions/runs/37154246170",
-    "verifiedAt": "2026-10-03T22:32:22Z",
+    "verifiedAt": "2026-10-03T22:42:55Z",
     "completedAt": "2026-10-03T22:23:20Z"
   },
   "changes": [
@@ -16,11 +16,11 @@
     "Both upgrade checks verified all 70 managed files and confirmed 85 existing root-file and synthetic private-data checks remained unchanged. These are headless updater checks, not interactive gameplay tests.",
     "All nine release assets match verified source provenance. Complete Windows release ZIP: 89,510,408 bytes; SHA-256 f5f51ea37f8903a9b1c65707b25ed3202a9890184a6e5ceb66d8252ec054a7a2.",
     "Forward ADS refinements and lateral Trial4 remain outside this release and await publication/review. V8 remains Fail54; Trial3 scored Fail35 left and Fail36 right. Integrated ADS composition remains unreviewed.",
-    "New jump and mantle reference work is not integrated into 0.1.5."
+    "Alt-Tab cursor focus fixes, persistent per-weapon XYZ walking sliders and per-merged-PR patch releases are in development. New jump and mantle work remains outside 0.1.5."
   ],
   "currentBuild": {
     "state": "idle",
-    "task": "Version 0.1.5 is released and verified. Complete Windows/Linux builds and both real 0.1.4-to-0.1.5 upgrade checks passed.",
+    "task": "Version 0.1.5 remains the verified complete release. Cursor-focus fixes, walking sliders and per-merge patch automation are in development; no newer complete build is verified.",
     "url": "https://github.com/RHS059/rust_duty/actions/runs/37155024582/attempts/2"
   }
 }
