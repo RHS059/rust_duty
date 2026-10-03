@@ -53,3 +53,28 @@ a single-clip diagnostic preview, not proof of gameplay integration. Normal laun
 uses the semantic manifest. `--animation-manifest=...` overrides its location when
 using gameplay locomotion mode. No special camera or pose override is introduced:
 all model routes use the existing first-person viewmodel camera and model root.
+
+## Regular walking slot
+
+`regular_walk=unavailable` explicitly reserves the authored walking route. When
+the authored loop exists, replace it with `regular_walk.asset=walk/asset.vra` and
+`regular_walk.clip=regular_walk` (the actual exported name may differ). The entire
+matching companion pack is loaded and the named clip must be looping and have
+positive duration. This uses committed grounded movement above 0.1 m/s, not raw
+W input or the sprint boolean. Reload takes priority; sprint's authored exit must
+reach ready before walking can own the model. ADS, mantle and firing also suppress
+walk. Native seconds loop without speed warping; stop/reset clears its clock and
+pause freezes it. Whole-model cuts are explicit WIP transitions. No procedural
+walking motion is added when the authored slot is unavailable.
+
+For rendered gameplay-path evidence (not the old normalized-pose preview), run:
+
+```
+vector-range --no-update --reference-viewport --capture-sequence=gameplay-reload --output=reload-gameplay
+```
+
+This starts with 12 rounds, sends one R intent after 0.25 seconds through normal
+fixed-tick Simulation::update, then evaluates the committed authored presentation.
+It captures through the native clip end and return to locomotion, with per-frame
+`.gameplay.json` containing route, native clip time, ammo, reserve and authoritative
+credit/readiness deadlines. No reload timer or pose-phase override is used.

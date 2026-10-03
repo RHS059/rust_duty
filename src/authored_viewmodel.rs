@@ -2,7 +2,8 @@
 use macroquad::prelude::*;
 use vector_range::{
     animation_manifest::AnimationManifest,
-    authored_locomotion_path::AuthoredLocomotionPath,
+    authored_locomotion_path::{AuthoredLocomotionPath, AuthoredLocomotionPathState},
+    authored_walk::AuthoredWalk,
     authored_reload::{AuthoredReload, ReloadSlot},
     skinned_asset::SkinnedAsset,
     viewmodel_animation::{game_model_root, AnimationSet, ViewmodelPose},
@@ -30,6 +31,8 @@ pub struct AuthoredViewmodel {
     reload_renderers: Vec<AuthoredViewmodel>,
     reload_indices: [Option<usize>; 2],
     warning: Option<String>,
+    walk: AuthoredWalk,
+    walk_index: Option<usize>,
 }
 impl AuthoredViewmodel {
     /// Requires an initialized render context, like the existing mesh adapters.
@@ -123,6 +126,8 @@ impl AuthoredViewmodel {
             reload_renderers: Vec::new(),
             reload_indices: [None, None],
             warning: None,
+            walk: AuthoredWalk::default(),
+            walk_index: None,
         })
     }
     /// Gameplay route: every semantic slot binds data, and each complete model
@@ -175,13 +180,24 @@ impl AuthoredViewmodel {
             )
             .map_err(|e| e.to_string())?,
         );
-        model.warning = Some(if durations[1].is_none() {
-            "Authored WIP: empty reload, ADS, fire and mantle clips unavailable; whole-model cuts"
-                .into()
-        } else {
-            "Authored WIP: ADS, fire and mantle clips unavailable; whole-model cuts".into()
-        });
+        if let Some(reference) = manifest.regular_walk {
+            let renderer = Self::load(&asset_name(&reference.asset)?, &reference.clip, None)?;
+            AuthoredWalk::validate_clip(&renderer.animation, &reference.clip).map_err(|e| e.to_string())?;
+            model.walk_index = Some(model.reload_renderers.len());
+            model.reload_renderers.push(renderer);
+        }
+        let mut missing = vec!["ADS", "fire", "mantle"];
+        if durations[1].is_none() { missing.insert(0, "empty reload"); }
+        if model.walk_index.is_none() { missing.insert(0, "regular walk"); }
+        model.warning = Some(format!("Authored WIP: {} clips unavailable; whole-model cuts", missing.join(", ")));
         Ok(model)
+    }
+    pub fn reload_sample(&self) -> Option<vector_range::authored_reload::ReloadSample> {
+        self.reload.as_ref().and_then(AuthoredReload::sample)
+    }
+    pub fn tactical_duration(&self) -> Option<f64> {
+        let renderer = self.reload_renderers.get(self.reload_indices[0]?)?;
+        AuthoredReload::clip_duration(&renderer.animation, &renderer.clip).ok()
     }
     pub fn warning(&self) -> Option<&str> {
         self.warning.as_deref()
@@ -225,8 +241,17 @@ impl AuthoredViewmodel {
             simulation.time,
             simulation.player.sprinting && !is_reload,
         );
+        let player = &simulation.player;
+        let eligible = self.walk_index.is_some() && !is_reload && player.reload_left <= 0.
+            && !player.sprinting && player.mantle.is_none() && player.ads <= 0.
+            && player.shot_kick <= 0. && self.locomotion.as_ref().is_some_and(|path| path.state() == AuthoredLocomotionPathState::Ready);
+        if let Err(error) = self.walk.committed_step(start, simulation.time, player.grounded && player.speed() > 0.1, eligible) {
+            self.error = Some(error.to_string());
+        }
+
     }
     pub fn reset(&mut self, time: f64) {
+        self.walk.reset(time);
         if let Some(reload) = &mut self.reload {
             reload.reset(time);
         }
@@ -279,6 +304,11 @@ impl AuthoredViewmodel {
                 .animation
                 .sample_clamped(&renderer.clip, sample.seconds as f32)
                 .map_err(|e| e.to_string())?;
+            return renderer.draw_pose(&pose);
+        }
+        if let (Some(index), Some(seconds)) = (self.walk_index, self.walk.seconds()) {
+            let renderer = &mut self.reload_renderers[index];
+            let pose = renderer.animation.sample(&renderer.clip, seconds as f32).map_err(|e| e.to_string())?;
             return renderer.draw_pose(&pose);
         }
         if let Some(path) = &self.locomotion {
