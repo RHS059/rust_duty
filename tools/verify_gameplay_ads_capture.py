@@ -7,6 +7,17 @@ import json
 from pathlib import Path
 
 
+def verify_walk_episode_clocks(rows):
+    """Walk may restart only after a fully inactive interval, never mid-fade."""
+    for previous,current in zip(rows,rows[1:]):
+        a,b=previous['walk_seconds'],current['walk_seconds']
+        if a is None or b is None:
+            continue
+        elapsed=current['simulation_time']-previous['simulation_time']
+        if abs((b-a)-elapsed)>1e-6:
+            raise ValueError('active walk phase did not follow committed time')
+
+
 def verify_layer_overlap(rows):
     """Require rendered concurrent weights, not just sequential route names."""
     if any('run_weight' not in row or not 0 <= row['run_weight'] <= 1 for row in rows):
@@ -58,8 +69,7 @@ def verify(folder: Path):
     aimed_walk = [row for row in rows if row['route'] == 'ads.hold' and row['speed'] > .1]
     if len(aimed_walk) < 10 or any(row['walk_weight'] <= 0 or row['walk_seconds'] is None for row in aimed_walk):
         raise ValueError('ADS suppressed the active walking layer')
-    if not all(a['walk_seconds'] < b['walk_seconds'] for a, b in zip(aimed_walk, aimed_walk[1:])):
-        raise ValueError('ADS walk phase did not continue')
+    verify_walk_episode_clocks(rows)
     if not any(row['sprinting'] and row['route'] == 'locomotion' for row in rows):
         raise ValueError('committed sprint did not interrupt ADS')
     shot_rows = [row for row in rows if row['segment'] == 'fire_while_aiming']

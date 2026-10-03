@@ -211,6 +211,20 @@ impl AuthoredViewmodel {
             )
             .map_err(|error| error.to_string())?,
         );
+        if let Some(clips) = manifest.directional_walk {
+            let set = &model.reload_renderers[model
+                .walk_index
+                .ok_or("missing directional walk renderer")?]
+            .animation;
+            model.locomotion = Some(
+                model
+                    .locomotion
+                    .take()
+                    .ok_or("missing shared layers")?
+                    .with_directional_walk(set, clips)
+                    .map_err(|error| error.to_string())?,
+            );
+        }
         let mut missing = vec!["fire", "mantle"];
         if model.ads_index.is_none() {
             missing.insert(0, "ADS");
@@ -247,6 +261,14 @@ impl AuthoredViewmodel {
         self.locomotion
             .as_ref()
             .map_or(0., LayeredLocomotion::run_weight)
+    }
+    pub fn pose_crc32(&self) -> Option<u32> {
+        self.locomotion.as_ref().map(LayeredLocomotion::pose_crc32)
+    }
+    pub fn directional_weights(&self) -> Option<[f64; 4]> {
+        self.locomotion
+            .as_ref()
+            .and_then(LayeredLocomotion::directional_weights)
     }
     pub fn ads_sample(&self) -> Option<AdsSample> {
         self.locomotion

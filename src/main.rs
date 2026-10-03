@@ -1035,17 +1035,28 @@ async fn main() {
                     | "gameplay-reload"
                     | "gameplay-walk"
                     | "gameplay-ads"
+                    | "gameplay-layered"
             )
         });
     let gameplay_capture = matches!(
         capture_sequence,
-        Some("gameplay-reload" | "gameplay-walk" | "gameplay-ads")
+        Some("gameplay-reload" | "gameplay-walk" | "gameplay-ads" | "gameplay-layered")
     );
     let mut gameplay_reload_issued = false;
     let capture_empty =
         args.iter().any(|s| s == "--capture-empty") || capture_sequence == Some("empty");
+    let capture_hz = args
+        .iter()
+        .find_map(|arg| arg.strip_prefix("--capture-hz="))
+        .map(|hz| match hz {
+            "30" => 30.,
+            "60" => 60.,
+            _ => panic!("capture-hz must be 30 or 60"),
+        })
+        .unwrap_or(60000. / 1001.);
     let sequence_duration = match capture_sequence {
         Some("gameplay-ads") => 9.0,
+        Some("gameplay-layered") => 11.0,
         Some("empty") => vector_range::reference_motion::visual_duration(true),
         Some("tactical") => vector_range::reference_motion::visual_duration(false),
         Some("locomotion" | "gameplay-walk") => 3.5,
@@ -1424,7 +1435,7 @@ async fn main() {
             supply.cancel();
         }
         // Deterministic presentation samples for comparison; only explicit capture flags use these.
-        let sequence_elapsed = ((frames - 8).max(0) as f32) / (60000. / 1001.);
+        let sequence_elapsed = ((frames - 8).max(0) as f32) / capture_hz;
         let sequence_phase = (sequence_elapsed / sequence_duration).clamp(0., 1.);
         let presentation_reload = if matches!(capture_sequence, Some("tactical" | "empty")) {
             Some(sequence_phase)
@@ -1451,6 +1462,8 @@ async fn main() {
                 gameplay_reload_issued |= reload;
                 let input = if capture_sequence == Some("gameplay-ads") {
                     vector_range::authored_ads::gameplay_ads_replay_input(start)
+                } else if capture_sequence == Some("gameplay-layered") {
+                    vector_range::layered_locomotion::gameplay_layered_replay_input(start)
                 } else {
                     Input {
                         reload,
@@ -1672,7 +1685,7 @@ async fn main() {
                 get_screen_data().export_png(output);
             }
             if capture_sequence.is_some() {
-                let _ = std::fs::write(format!("{output}.time.json"), format!("{{\"elapsed_seconds\":{},\"normalized_phase\":{},\"visual_duration_seconds\":{},\"simulation_ready_seconds\":{},\"sampling_hz\":59.94005994}}", sequence_elapsed, sequence_phase, sequence_duration, if capture_empty { cfg.empty_reload_time } else if matches!(capture_sequence, Some("ads" | "gameplay-ads")) { cfg.ads_time } else { cfg.reload_time }));
+                let _ = std::fs::write(format!("{output}.time.json"), format!("{{\"elapsed_seconds\":{},\"normalized_phase\":{},\"visual_duration_seconds\":{},\"simulation_ready_seconds\":{},\"sampling_hz\":{}}}", sequence_elapsed, sequence_phase, sequence_duration, if capture_empty { cfg.empty_reload_time } else if matches!(capture_sequence, Some("ads" | "gameplay-ads")) { cfg.ads_time } else { cfg.reload_time }, capture_hz));
             }
             if capture_sequence == Some("gameplay-reload") {
                 let sample = authored.as_ref().and_then(|model| model.reload_sample());
@@ -1711,6 +1724,27 @@ async fn main() {
                     sim.player.reload_left, sim.player.reload_credit_at, sim.player.reload_ready_at, failed,
                     model.map_or(0., |m| m.walk_weight()), model.and_then(|m| m.walk_sample()).map_or("null".into(), |v| v.to_string()),
                     model.map_or(0., |m| m.run_weight())));
+            }
+            if capture_sequence == Some("gameplay-layered") {
+                let model = authored.as_ref();
+                let route = model.map_or("unavailable", |model| model.presentation_route());
+                let failed = model.is_none_or(|model| model.error().is_some());
+                let segment =
+                    vector_range::layered_locomotion::gameplay_layered_replay_segment(sim.time);
+                let direction = model
+                    .and_then(|model| model.directional_weights())
+                    .map_or("null".into(), |weights| format!("{:?}", weights));
+                let walk_seconds = model
+                    .and_then(|model| model.walk_sample())
+                    .map_or("null".into(), |seconds| seconds.to_string());
+                let _ = std::fs::write(format!("{output}.gameplay.json"), format!(
+                    "{{\"simulation_time\":{},\"segment\":\"{}\",\"route\":\"{}\",\"sampling_hz\":{},\"renderer_failed\":{},\"pose_crc32\":{},\"walk_weight\":{},\"walk_seconds\":{},\"run_weight\":{},\"directional_weights\":{},\"sprinting\":{},\"ads_requested\":{},\"simulation_ads\":{},\"position\":[{},{},{}],\"velocity\":[{},{},{}],\"ammo\":{},\"shots\":{}}}",
+                    sim.time, segment, route, capture_hz, failed, model.and_then(|m| m.pose_crc32()).map_or("null".into(), |value| value.to_string()),
+                    model.map_or(0., |m| m.walk_weight()), walk_seconds, model.map_or(0., |m| m.run_weight()), direction,
+                    sim.player.sprinting, sim.player.ads_requested, sim.player.ads,
+                    sim.player.position.x, sim.player.position.y, sim.player.position.z,
+                    sim.player.velocity.x, sim.player.velocity.y, sim.player.velocity.z,
+                    sim.player.ammo, sim.stats.shots));
             }
             if capture_sequence == Some("gameplay-walk") {
                 let native = authored.as_ref().and_then(|model| model.walk_sample());

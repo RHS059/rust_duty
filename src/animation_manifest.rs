@@ -10,6 +10,18 @@ pub struct ClipReference {
     pub asset: PathBuf,
     pub clip: String,
 }
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct DirectionalWalkClips {
+    pub forward: String,
+    pub backward: String,
+    pub left: String,
+    pub right: String,
+}
+impl DirectionalWalkClips {
+    pub fn names(&self) -> [&str; 4] {
+        [&self.forward, &self.backward, &self.left, &self.right]
+    }
+}
 #[derive(Clone, Debug)]
 pub struct AdsReference {
     pub asset: PathBuf,
@@ -23,6 +35,7 @@ pub struct AnimationManifest {
     pub locomotion: AuthoredLocomotionPathConfig,
     pub tactical: ClipReference,
     pub regular_walk: Option<ClipReference>,
+    pub directional_walk: Option<DirectionalWalkClips>,
     pub walk_anchor_actor: Option<String>,
     pub layer_anchor_actor: String,
     pub empty: Option<ClipReference>,
@@ -138,6 +151,22 @@ impl AnimationManifest {
         } else {
             Some(reference(&mut values, "regular_walk", directory)?)
         };
+        let directional_walk = if values
+            .keys()
+            .any(|key| key.starts_with("regular_walk.direction."))
+        {
+            if regular_walk.is_none() {
+                return Err("directional walk requires a regular walk source".into());
+            }
+            Some(DirectionalWalkClips {
+                forward: take(&mut values, "regular_walk.direction.forward")?,
+                backward: take(&mut values, "regular_walk.direction.backward")?,
+                left: take(&mut values, "regular_walk.direction.left")?,
+                right: take(&mut values, "regular_walk.direction.right")?,
+            })
+        } else {
+            None
+        };
         let walk_anchor_actor = if regular_walk.is_some() {
             Some(take(&mut values, "regular_walk.anchor_actor")?)
         } else {
@@ -162,6 +191,7 @@ impl AnimationManifest {
             locomotion,
             tactical,
             regular_walk,
+            directional_walk,
             walk_anchor_actor,
             layer_anchor_actor,
             empty,

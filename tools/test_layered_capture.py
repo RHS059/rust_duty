@@ -1,6 +1,6 @@
 """Concurrent layer evidence must be distinguished from sequential route coverage."""
 import unittest
-from verify_gameplay_ads_capture import verify_layer_overlap
+from verify_gameplay_ads_capture import verify_layer_overlap, verify_walk_episode_clocks
 
 class LayerCaptureTests(unittest.TestCase):
     def rows(self):
@@ -23,3 +23,19 @@ class LayerCaptureTests(unittest.TestCase):
             elif mutation == 'invalid': rows[0]['run_weight']=float('nan')
             else: rows[-1]['run_weight']=0
             with self.assertRaises(ValueError): verify_layer_overlap(rows)
+
+
+class WalkEpisodeClockTests(unittest.TestCase):
+    def test_completed_sprint_fade_can_begin_a_new_walk_episode(self):
+        verify_walk_episode_clocks([
+            dict(simulation_time=3.5,walk_seconds=1.),
+            dict(simulation_time=3.6,walk_seconds=1.1),
+            dict(simulation_time=3.8,walk_seconds=None),
+            dict(simulation_time=4.2,walk_seconds=None),
+            dict(simulation_time=4.3,walk_seconds=.1),
+            dict(simulation_time=4.4,walk_seconds=.2)])
+    def test_mid_fade_reset_or_frozen_phase_fails(self):
+        for seconds in (0.,.1):
+            with self.assertRaisesRegex(ValueError,'active walk phase'):
+                verify_walk_episode_clocks([dict(simulation_time=1.,walk_seconds=.1),
+                                           dict(simulation_time=1.1,walk_seconds=seconds)])

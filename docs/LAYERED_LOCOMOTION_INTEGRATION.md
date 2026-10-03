@@ -20,15 +20,25 @@ render calls and paused intervals cannot change the pose.
 
 The shared controller is `src/layered_locomotion.rs`. Its cached complete pose is
 consumed by the normal native renderer, not a special capture-only implementation.
+Optional `regular_walk.direction.forward`, `.backward`, `.left` and `.right`
+slots select four reviewed HIP Actions from the same walk pack. They share native
+elapsed seconds, preserve their individual native durations, and blend direction
+in camera-relative horizontal-velocity space. A 60 ms exponential response retains
+current weights across directional reversals; stopping or entering run holds those
+weights while the walk fades. ADS consumes the same already-composed HIP pose.
+All four slots must be supplied together; absent slots keep the previous walk.
+No production directional slot is selected in this foundation.
+
 The `layers.anchor_actor` semantic manifest field names the canonical blend anchor;
 older manifests with a walk anchor retain compatibility. An unavailable walk is
 supported when the shared layer anchor is explicit.
 
 ## Evidence and boundaries
 
-- Local checks: 479 Rust tests passed with committed asset witnesses enabled;
-  formatting and all-target silent Clippy passed. The full Python suite and
-  GitHub Windows/native-render jobs are tracked separately.
+- Local checks: 484 Rust tests passed with committed asset witnesses enabled;
+  formatting and all-target silent Clippy passed. The Python suite runs
+  143 tests, with one pre-existing optional Blender smoke skip. GitHub
+  Windows/native-render jobs are tracked separately.
 - Synthetic contracts cover concurrent run/ADS/walk, returning-run ADS, same-phase
   reversals, infinitesimal interruption continuity, pause/read idempotence, invalid
   tick atomicity, time partitioning, complete-pose validation and hand attachment.
@@ -63,3 +73,25 @@ For Linux without ALSA headers, `--no-default-features` explicitly selects silen
 checks. GitHub's complete build validates the normal audio-enabled configuration,
 Windows packaging and native Linux rendered evidence. Windows packaging alone is
 not a Windows gameplay test.
+
+## Native trace correction and rate diagnostics
+
+PR17's first GitHub run built and verified the complete Windows package. Its native
+ADS capture rendered all 553 frames, but an older verifier compared walk phases
+across two separate episodes. The trace contains a fully faded/inactive interval
+between 3.7333 and 4.2000 seconds, followed by a new walk cycle. The verifier now
+checks committed-time phase continuity in every adjacent active interval, with
+negative tests rejecting resets or freezing while a layer remains active. The
+unchanged 553-frame trace passes: nine simultaneous incoming run/outgoing ADS+walk
+frames, thirteen ADS-entry frames during run return, and the expected final ready.
+
+The additional `gameplay-layered` capture mode accepts `--capture-hz=30` or `60`,
+uses ordinary movement/aim/run input for all four directions, and saves pose-only
+CRC32 plus committed state. The rate verifier compares common fixed ticks. CRC32
+is diagnostic, not authentication or a visual/anatomical approval. These are
+simulation-time sampling rates, not a claim about wall-clock game performance.
+
+While new source clips are still unapproved, CI explicitly uses
+`--allow-legacy-walk` for these diagnostics. That result cannot satisfy the
+four-direction source gate. The strict default requires the correct direction
+weights in every HIP and ADS segment; it must be used when reviewed clips are bound.

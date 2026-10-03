@@ -1,7 +1,7 @@
 //! Synthetic complete controller contracts; no reference video match is inferred.
 use macroquad::math::{Mat4, Quat, Vec3};
 use vector_range::{
-    animation_manifest::AdsReference,
+    animation_manifest::{AdsReference, DirectionalWalkClips},
     authored_ads::AdsSlot,
     authored_locomotion_path::{AuthoredLocomotionPathConfig, AuthoredLocomotionPathState},
     layered_locomotion::{AnchoredPoseBlend, LayerSources, LayeredLocomotion},
@@ -63,6 +63,26 @@ fn fixture() -> AnimationSet {
                 (0.375, -0.005),
                 (0.5, 0.),
             ],
+        ),
+        (
+            "walk_forward",
+            true,
+            vec![(0., 0.002), (0.25, 0.007), (0.5, 0.002)],
+        ),
+        (
+            "walk_backward",
+            true,
+            vec![(0., -0.002), (0.25, -0.007), (0.5, -0.002)],
+        ),
+        (
+            "walk_left",
+            true,
+            vec![(0., 0.003), (0.25, 0.009), (0.5, 0.003)],
+        ),
+        (
+            "walk_right",
+            true,
+            vec![(0., -0.003), (0.25, -0.009), (0.5, -0.003)],
         ),
         ("ads_in", false, vec![(0., 0.), (0.25, 0.4)]),
         ("ads", true, vec![(0., 0.4), (1., 0.4)]),
@@ -262,4 +282,157 @@ fn anchored_blend_has_exact_endpoints_and_validates_before_indexing() {
     malformed.actor_globals.clear();
     assert!(blend.blend(&set, &a, &malformed, 0.).is_err());
     assert!(AnchoredPoseBlend::new(&set, "absent").is_err());
+}
+
+fn directions() -> DirectionalWalkClips {
+    DirectionalWalkClips {
+        forward: "walk_forward".into(),
+        backward: "walk_backward".into(),
+        left: "walk_left".into(),
+        right: "walk_right".into(),
+    }
+}
+#[test]
+fn four_camera_relative_directions_share_the_hip_clock_and_ads_layer() {
+    let set = fixture();
+    for (index, velocity) in [Vec3::X, -Vec3::X, -Vec3::Z, Vec3::Z]
+        .into_iter()
+        .enumerate()
+    {
+        let mut layers = controller(&set)
+            .with_directional_walk(&set, directions())
+            .unwrap();
+        let mut sim = Simulation::new();
+        sim.player.yaw = 0.;
+        sim.player.grounded = true;
+        sim.player.velocity = velocity;
+        sim.time = 0.25;
+        layers
+            .committed_step(sources(&set), 0., &sim, false)
+            .unwrap();
+        let weights = layers.directional_weights().unwrap();
+        assert_eq!(weights[index], 1.);
+        assert_eq!(weights.iter().sum::<f64>(), 1.);
+        close(
+            layers.pose(),
+            &set.sample(directions().names()[index], 0.25).unwrap(),
+            2e-5,
+        );
+        let phase = layers.walk().seconds().unwrap();
+        sim.player.ads_requested = true;
+        let start = sim.time;
+        sim.time += 0.25;
+        layers
+            .committed_step(sources(&set), start, &sim, false)
+            .unwrap();
+        assert_eq!(layers.directional_weights().unwrap(), weights);
+        assert_eq!(layers.walk().seconds().unwrap(), phase + 0.25);
+        assert_eq!(layers.ads().unwrap().sample().unwrap().slot, AdsSlot::Hold);
+    }
+}
+#[test]
+fn direction_reversal_is_continuous_and_pause_cannot_change_weights() {
+    let set = fixture();
+    let mut layers = controller(&set)
+        .with_directional_walk(&set, directions())
+        .unwrap();
+    let mut sim = Simulation::new();
+    sim.player.yaw = 0.;
+    step(&set, &mut layers, &mut sim, 0.25, true, false, false);
+    let before = layers.pose().clone();
+    let weights = layers.directional_weights().unwrap();
+    sim.player.velocity = -Vec3::X;
+    layers
+        .committed_step(sources(&set), sim.time, &sim, false)
+        .unwrap();
+    assert_eq!(layers.directional_weights().unwrap(), weights);
+    let start = sim.time;
+    sim.time += 1e-7;
+    layers
+        .committed_step(sources(&set), start, &sim, false)
+        .unwrap();
+    close(&before, layers.pose(), 1e-5);
+    let weights = layers.directional_weights().unwrap();
+    assert!(weights[0] > 0.99 && weights[1] > 0.);
+    assert!((weights.iter().sum::<f64>() - 1.).abs() < 1e-12);
+    assert!((layers.walk().seconds().unwrap() - sim.time).abs() < 1e-12);
+}
+#[test]
+fn directional_weights_are_partition_independent_and_incomplete_sources_fail() {
+    let set = fixture();
+    let mut a = controller(&set)
+        .with_directional_walk(&set, directions())
+        .unwrap();
+    let mut sim = Simulation::new();
+    sim.player.yaw = 0.;
+    step(&set, &mut a, &mut sim, 0.25, true, false, false);
+    let mut b = a.clone();
+    sim.player.velocity = -Vec3::Z;
+    let start = sim.time;
+    sim.time += 0.1;
+    a.committed_step(sources(&set), start, &sim, false).unwrap();
+    sim.time = start + 0.04;
+    b.committed_step(sources(&set), start, &sim, false).unwrap();
+    sim.time = start + 0.1;
+    b.committed_step(sources(&set), start + 0.04, &sim, false)
+        .unwrap();
+    close(a.pose(), b.pose(), 2e-5);
+    for (x, y) in a
+        .directional_weights()
+        .unwrap()
+        .into_iter()
+        .zip(b.directional_weights().unwrap())
+    {
+        assert!((x - y).abs() < 1e-12);
+    }
+    let mut missing = directions();
+    missing.left = "missing".into();
+    assert!(controller(&set)
+        .with_directional_walk(&set, missing)
+        .is_err());
+    assert!(a.with_directional_walk(&set, directions()).is_err());
+}
+
+#[test]
+fn thirty_and_sixty_hz_render_sampling_observe_identical_committed_layers() {
+    use vector_range::{
+        layered_locomotion::gameplay_layered_replay_input, settings::Settings, sim::FIXED_DT,
+    };
+    let set = fixture();
+    fn replay(set: &AnimationSet, hz: u32) -> std::collections::BTreeMap<u64, (u32, [f64; 4])> {
+        let mut controller = controller(set)
+            .with_directional_walk(set, directions())
+            .unwrap();
+        let mut sim = Simulation::new();
+        let cfg = Settings::m4_candidate();
+        let mut output = std::collections::BTreeMap::new();
+        for frame in 0..=11 * hz {
+            let elapsed = frame as f32 / hz as f32;
+            while sim.time + f64::from(FIXED_DT) <= f64::from(elapsed) + 1e-7 {
+                let start = sim.time;
+                sim.update(gameplay_layered_replay_input(start), &cfg, FIXED_DT);
+                controller
+                    .committed_step(sources(set), start, &sim, false)
+                    .unwrap();
+            }
+            output.insert(
+                (sim.time * 120.).round() as u64,
+                (
+                    controller.pose_crc32(),
+                    controller.directional_weights().unwrap(),
+                ),
+            );
+        }
+        output
+    }
+    let thirty = replay(&set, 30);
+    let sixty = replay(&set, 60);
+    let mut compared = 0;
+    for (time, sample) in thirty {
+        if let Some(other) = sixty.get(&time) {
+            assert_eq!(&sample, other);
+            compared += 1;
+        }
+    }
+    assert!(compared >= 330);
 }

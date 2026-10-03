@@ -98,3 +98,21 @@ fn shared_layer_anchor_survives_an_unavailable_walk_slot() {
         "hk416_weapon"
     );
 }
+
+#[test]
+fn directional_walk_is_optional_and_requires_all_four_declared_clips() {
+    assert!(AnimationManifest::parse(MANIFEST, Path::new("assets"))
+        .unwrap()
+        .directional_walk
+        .is_none());
+    let directions="\nregular_walk.direction.forward=forward_r1\nregular_walk.direction.backward=backward_r1\nregular_walk.direction.left=left_r1\nregular_walk.direction.right=right_r1\n";
+    let parsed =
+        AnimationManifest::parse(&(MANIFEST.to_owned() + directions), Path::new("assets")).unwrap();
+    assert_eq!(
+        parsed.directional_walk.unwrap().names(),
+        ["forward_r1", "backward_r1", "left_r1", "right_r1"]
+    );
+    let missing =
+        (MANIFEST.to_owned() + directions).replace("regular_walk.direction.left=left_r1", "");
+    assert!(AnimationManifest::parse(&missing, Path::new("assets")).is_err());
+}

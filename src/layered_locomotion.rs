@@ -1,7 +1,7 @@
 //! Concurrent authored walk, ADS and run presentation, on committed time only.
 //! No reference-match approval is implied by these runtime continuity contracts.
 use crate::{
-    animation_manifest::AdsReference,
+    animation_manifest::{AdsReference, DirectionalWalkClips},
     authored_ads::AuthoredAds,
     authored_locomotion_adapter::PoseBindings,
     authored_locomotion_path::{AuthoredLocomotionPath, AuthoredLocomotionPathConfig},
@@ -9,7 +9,7 @@ use crate::{
     sim::Simulation,
     viewmodel_animation::{AnimationError, AnimationSet, Result, Transform, ViewmodelPose},
 };
-use macroquad::math::Mat4;
+use macroquad::math::{Mat4, Vec3};
 
 pub const RUN_FADE_IN_SECONDS: f64 = 0.16;
 pub const RUN_FADE_OUT_SECONDS: f64 = 0.22;
@@ -124,11 +124,69 @@ fn transform(matrix: Mat4) -> Result<Transform> {
     Ok(value)
 }
 
+/// Four native-time HIP loops share one walk clock. The weights are camera-relative
+/// horizontal motion, exponentially eased without resetting when direction changes.
+#[derive(Clone, Debug)]
+struct DirectionalWalk {
+    clips: DirectionalWalkClips,
+    weights: [f64; 4],
+}
+impl DirectionalWalk {
+    fn update(&mut self, simulation: &Simulation, dt: f64, new_cycle: bool) {
+        let player = &simulation.player;
+        if !player.grounded || player.speed() <= 0.1 || player.sprinting || player.mantle.is_some()
+        {
+            return;
+        }
+        let forward = Vec3::new(player.yaw.cos(), 0., player.yaw.sin());
+        let right = forward.cross(Vec3::Y);
+        let along = f64::from(player.velocity.dot(forward));
+        let across = f64::from(player.velocity.dot(right));
+        let sum = along.abs() + across.abs();
+        let target = [
+            along.max(0.) / sum,
+            (-along).max(0.) / sum,
+            (-across).max(0.) / sum,
+            across.max(0.) / sum,
+        ];
+        let amount = if new_cycle {
+            1.
+        } else {
+            1. - (-dt / 0.06).exp()
+        };
+        for (weight, target) in self.weights.iter_mut().zip(target) {
+            *weight += (target - *weight) * amount;
+        }
+    }
+    fn pose(
+        &self,
+        set: &AnimationSet,
+        seconds: f64,
+        blend: &AnchoredPoseBlend,
+    ) -> Result<ViewmodelPose> {
+        let mut result = None;
+        let mut total = 0.;
+        for (clip, weight) in self.clips.names().into_iter().zip(self.weights) {
+            if weight <= 0. {
+                continue;
+            }
+            let source = set.sample(clip, seconds as f32)?;
+            total += weight;
+            result = Some(match result {
+                None => source,
+                Some(previous) => blend.blend(set, &previous, &source, (weight / total) as f32)?,
+            });
+        }
+        result.ok_or_else(|| AnimationError("empty directional layer weights".into()))
+    }
+}
+
 #[derive(Clone, Debug)]
 pub struct LayeredLocomotion {
     path: AuthoredLocomotionPath,
     walk: AuthoredWalk,
     walk_clip: Option<String>,
+    directional_walk: Option<DirectionalWalk>,
     walk_layer: Option<WalkPoseLayer>,
     ads: Option<AuthoredAds>,
     blend: AnchoredPoseBlend,
@@ -184,6 +242,7 @@ impl LayeredLocomotion {
             path,
             walk: AuthoredWalk::default(),
             walk_clip: walk_clip.map(str::to_owned),
+            directional_walk: None,
             walk_layer,
             ads,
             pose: ready.clone(),
@@ -192,6 +251,31 @@ impl LayeredLocomotion {
             last_time: 0.,
             reload_active: false,
         })
+    }
+    /// Optional reviewed four-direction clips; absent data preserves the old walk.
+    /// This is an initialization operation, not a live pose-reset API.
+    pub fn with_directional_walk(
+        mut self,
+        set: &AnimationSet,
+        clips: DirectionalWalkClips,
+    ) -> Result<Self> {
+        if self.last_time != 0. || self.walk_clip.is_none() || !self.blend.bindings.matches(set) {
+            return Err(AnimationError(
+                "directional walk needs unstarted canonical walk bindings".into(),
+            ));
+        }
+        for clip in clips.names() {
+            AuthoredWalk::validate_clip(set, clip)?;
+        }
+        self.directional_walk = Some(DirectionalWalk {
+            clips,
+            weights: [1., 0., 0., 0.],
+        });
+        Ok(self)
+    }
+    /// Forward, backward, left, right; unchanged through stops and sprint fades.
+    pub fn directional_weights(&self) -> Option<[f64; 4]> {
+        self.directional_walk.as_ref().map(|walk| walk.weights)
     }
     /// All layers observe the same committed interval. Run never waits for ADS
     /// exit, and a returning run never prevents ADS/walk from blending back in.
@@ -255,6 +339,10 @@ impl LayeredLocomotion {
         let eligible = self.walk_clip.is_some() && !reload_active && player.reload_left <= 0.;
         let moving =
             player.grounded && player.speed() > 0.1 && !player.sprinting && player.mantle.is_none();
+        let new_cycle = self.walk.seconds().is_none();
+        if let Some(direction) = &mut self.directional_walk {
+            direction.update(simulation, end - start, new_cycle);
+        }
         self.walk.committed_step(start, end, moving, eligible)?;
         let mut pose = match (&self.ads, sources.ads) {
             (Some(ads), Some(set)) => ads.pose(set)?.unwrap_or_else(|| self.ready.clone()),
@@ -267,7 +355,10 @@ impl LayeredLocomotion {
             self.walk.seconds(),
             sources.walk,
         ) {
-            let walk = set.sample(clip, seconds as f32)?;
+            let walk = match &self.directional_walk {
+                Some(direction) => direction.pose(set, seconds, &self.blend)?,
+                None => set.sample(clip, seconds as f32)?,
+            };
             pose = layer.pose(
                 sources.locomotion,
                 &pose,
@@ -292,6 +383,9 @@ impl LayeredLocomotion {
         let mut next = self.clone();
         next.path.reset(animation, time)?;
         next.walk.reset(time);
+        if let Some(direction) = &mut next.directional_walk {
+            direction.weights = [1., 0., 0., 0.];
+        }
         if let Some(ads) = &mut next.ads {
             ads.reset(time);
         }
@@ -305,6 +399,28 @@ impl LayeredLocomotion {
     pub fn pose(&self) -> &ViewmodelPose {
         &self.pose
     }
+    /// Deterministic pose-only diagnostic checksum; not file authentication.
+    pub fn pose_crc32(&self) -> u32 {
+        let mut bytes = Vec::new();
+        for transform in self.pose.bone_locals.iter().chain(&self.pose.actor_globals) {
+            for value in transform
+                .translation
+                .to_array()
+                .into_iter()
+                .chain(transform.rotation.to_array())
+                .chain(transform.scale.to_array())
+            {
+                bytes.extend(value.to_bits().to_le_bytes());
+            }
+        }
+        bytes.extend(
+            self.pose
+                .actor_visible
+                .iter()
+                .map(|&visible| u8::from(visible)),
+        );
+        crate::skinned_asset::crc32(&bytes)
+    }
     pub fn path(&self) -> &AuthoredLocomotionPath {
         &self.path
     }
@@ -316,5 +432,62 @@ impl LayeredLocomotion {
     }
     pub fn run_weight(&self) -> f32 {
         (self.run_envelope * self.run_envelope * (3. - 2. * self.run_envelope)) as f32
+    }
+}
+
+/// Ordinary-input replay for four HIP/ADS directions and rapid run interruptions.
+/// The source assets are not selected or changed by this diagnostic.
+pub fn gameplay_layered_replay_input(time: f64) -> crate::sim::Input {
+    use macroquad::math::Vec2;
+    let movement = if (0.25..2.25).contains(&time) || (8.25..10.).contains(&time) {
+        Vec2::Y
+    } else if (2.25..4.25).contains(&time) {
+        -Vec2::Y
+    } else if (4.25..6.25).contains(&time) {
+        -Vec2::X
+    } else if (6.25..8.25).contains(&time) {
+        Vec2::X
+    } else {
+        Vec2::ZERO
+    };
+    crate::sim::Input {
+        movement,
+        ads: (1.25..2.25).contains(&time)
+            || (3.25..4.25).contains(&time)
+            || (5.25..6.25).contains(&time)
+            || (7.25..8.75).contains(&time)
+            || (9.0..9.1).contains(&time)
+            || (9.2..9.5).contains(&time),
+        sprint: (8.75..9.0).contains(&time) || (9.1..9.2).contains(&time),
+        ..crate::sim::Input::default()
+    }
+}
+pub fn gameplay_layered_replay_segment(time: f64) -> &'static str {
+    if time < 0.25 {
+        "ready"
+    } else if time < 1.25 {
+        "forward_hip"
+    } else if time < 2.25 {
+        "forward_ads"
+    } else if time < 3.25 {
+        "backward_hip"
+    } else if time < 4.25 {
+        "backward_ads"
+    } else if time < 5.25 {
+        "left_hip"
+    } else if time < 6.25 {
+        "left_ads"
+    } else if time < 7.25 {
+        "right_hip"
+    } else if time < 8.25 {
+        "right_ads"
+    } else if time < 8.75 {
+        "moving_ads"
+    } else if time < 9.5 {
+        "rapid_run_interruptions"
+    } else if time < 10. {
+        "hip_return"
+    } else {
+        "final_stop"
     }
 }
