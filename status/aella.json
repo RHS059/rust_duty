@@ -1,15 +1,15 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T11:02:43Z",
-  "state": "active",
-  "task": "Checking smoother walk transitions and aimed walking in Windows and Linux builds; reference matching awaits accessible videos",
-  "lastCompleted": "Delivered fresh GitHub Windows build with walking, reload, ADS and lighting",
+  "updatedAt": "2026-10-03T11:28:17Z",
+  "state": "idle",
+  "task": "Reference matching is blocked until the source videos are accessible; no animation authoring is active",
+  "lastCompleted": "Verified smoother walk start/stop and ADS walking fixes in the complete Windows package",
   "agents": [
     {
       "slot": 1,
-      "state": "active",
-      "task": "Verifying walk start/stop smoothing and walking during ADS in PR #16",
-      "lastCompleted": "Implemented smoother walk transitions and walking during ADS"
+      "state": "idle",
+      "task": "",
+      "lastCompleted": "Verified smooth walk transitions and walking during ADS in PR #16"
     },
     {
       "slot": 2,
@@ -21,7 +21,7 @@
       "slot": 3,
       "state": "idle",
       "task": "",
-      "lastCompleted": "Verified fresh Windows rebuild and complete package"
+      "lastCompleted": "Verified Windows ZIP integrity, package contents and native Linux gameplay captures"
     }
   ]
 }
