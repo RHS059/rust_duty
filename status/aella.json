@@ -1,26 +1,26 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T13:43:15.857Z",
+  "updatedAt": "2026-10-03T13:52:13Z",
   "state": "active",
-  "task": "Coordinating full-pose ADS renders, four-direction walk review and source handoffs; integration awaits approved clips",
+  "task": "Coordinating ADS motion and four-direction walk review; cadence and sideways-motion matching continue before new clips are integrated",
   "lastCompleted": "Verified PR #17's complete Windows package and 30/60 Hz native layered-input diagnostics",
   "agents": [
     {
       "slot": 1,
       "state": "active",
-      "task": "Testing whole arm-and-weapon ADS motion while preserving sight alignment",
-      "lastCompleted": "Compared reduced-motion ADS renders; forward/backward motion is promising, sideways and vertical motion need refinement"
+      "task": "Refining full arm-and-weapon ADS cadence and sideways-motion amplitude",
+      "lastCompleted": "Whole-assembly ADS structural checks passed with sight alignment and grip preserved"
     },
     {
       "slot": 2,
       "state": "active",
-      "task": "Independently reviewing full-pose ADS renders, directional motion and sight clearance",
-      "lastCompleted": "Reviewed the four-direction source handoff and existing-clip transition frames"
+      "task": "Independently checking ADS motion, directional cadence and reference matching",
+      "lastCompleted": "Checked sight alignment and grip; full-window 80% motion matching remains unverified"
     },
     {
       "slot": 3,
       "state": "waiting",
-      "task": "Awaiting accepted source animations before importing and activating new clips",
+      "task": "Awaiting approved source animations before importing and activating new clips",
       "lastCompleted": "Verified PR #17's layered runtime, complete Windows package and 30/60 Hz native diagnostics"
     }
   ]
