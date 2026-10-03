@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T17:23:20Z",
+  "updatedAt": "2026-10-03T17:34:49Z",
   "latestComplete": {
     "sha": "e46f83d84ece0c28ffbd10cf4504ed4ea0f91878",
     "downloadUrl": "https://github.com/RHS059/rust_duty/actions/runs/37130396740/artifacts/11277161595",
@@ -14,11 +14,11 @@
     "Complete 83-file Windows package includes existing walk, sprint and full WIP reload assets plus the new HIP and ADS companions",
     "All three workflows passed; native Linux layered-input diagnostics passed at 30 and 60 Hz",
     "Windows ZIP integrity, SHA-256, PE executable and complete-package verification passed",
-    "ADS v4 baseline scores remain forward 35, backward 32, left 34, right 33, all failed. Separate ADS v5 Trial1 forward received Fail51: sights locked and figure-eight removed, but motion too flat; the prior v4 sight-break claim was corrected. ADS v6 Trial1 forward now has a complete 126-frame Eevee/reference comparison with timing, matrix reproduction, frame integrity, preservation and full decoding checks passed. It is unscored, remains on HIP r1, and is not yet live in the gallery. HIP r2 source bytes/ranges are pending. Source/docs remote publication remains stopped. No v5/v6 runtime or visual-approval claim; reference fidelity, contact and artistic approval remain open; Windows gameplay unverified."
+    "ADS v4 baseline scores remain forward 35, backward 32, left 34, right 33, all failed. Separate ADS v5 Trial1 forward received Fail51: sights locked and figure-eight removed, but motion too flat; the prior v4 sight-break claim was corrected. ADS v6 Trial1 forward is now live as a separate, unscored 126-frame Eevee/reference comparison, with exact public bytes/hash, playback, timing, matrix reproduction, frame integrity, preservation and full decoding verified. V6 remains on HIP r1. Exact v5/v6 preset bytes were recovered after the workspace reset; native animation source recovery and HIP r2 materialization remain blocked. Local numerical/runtime preparation continues, but remote source/docs publication remains stopped. No v5/v6 game-runtime inclusion or visual-approval claim; reference fidelity, contact and artistic approval remain open; Windows gameplay unverified."
   ],
   "currentBuild": {
     "state": "idle",
-    "task": "PR #17 remains at e46f83d with all three workflows passed; Windows artifact 11277161595 is unexpired and its SHA-256 still matches a4b176913a82edf93dc8e1642259be2c6aadb0f3ece05693924ff10ae65eb3af. No new game build. Seven earlier Aella MP4s remain live at https://rhs059.github.io/rust_duty_updates/ from fc54d8f, with successful deployment 37139286287 and exact byte/hash plus frontend playback verification. The completed ADS v6 forward comparison is unscored: its validated media blob is uploaded but not linked or committed to main, awaiting a separate gallery entry. V5 is preserved separately. The previous ChatGPT Site remains retired.",
+    "task": "PR #17 remains at e46f83d with all three workflows successful; Windows artifact 11277161595 is unexpired and its reported SHA-256 still matches a4b176913a82edf93dc8e1642259be2c6aadb0f3ece05693924ff10ae65eb3af. No new game build. Eight Aella review MP4s, including the separate unscored ADS v6 forward comparison, are live at https://rhs059.github.io/rust_duty_updates/. V6 publication commit 65d781f1bfa4483bacbb5b3cdf4c97e747ad5abe has successful deployment 37140620408; exact public bytes/hash and frontend playback were verified. V6 video SHA-256 is 4e6a4f77a2f0cebfa7747011289d7464ba74acd1a784334e6c77361954df2e17. V5 remains unchanged at Fail51. The previous ChatGPT Site remains retired.",
     "url": "https://github.com/RHS059/rust_duty/actions/runs/37130396740"
   }
 }
