@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T23:33:35Z",
+  "updatedAt": "2026-10-03T23:41:39Z",
   "state": "active",
   "task": "Validating the combined ADS and walking-controls candidate locally; new commits and publication wait for Elara's 0.1.9 completion.",
   "lastCompleted": "PR #25 cursor-focus and walking-slider builds passed all three workflows. The newer local v9 candidate remains unpublished with its strict bone-parity failure.",
