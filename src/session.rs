@@ -20,7 +20,7 @@ pub struct SessionInput {
     /// May be a combined Alt/Super held state or a one-frame shortcut event.
     /// Only its rising edge pauses, so holding the modifier cannot undo resume.
     pub focus_shortcut_pressed: bool,
-    /// Required assets are unavailable or invalid. No input can resume play.
+    /// Startup updates are unresolved or required assets are invalid. No input can resume play.
     pub blocked: bool,
     /// Unclamped elapsed presentation time, in seconds.
     pub dt: f64,

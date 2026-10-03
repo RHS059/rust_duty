@@ -152,8 +152,9 @@ shading, not full PBR. Optional private skinned arms use authored IK and reload 
 hand fit and animation remain provisional. See [arms](docs/FIRST_PERSON_ARMS.md),
 [mantling](docs/MANTLING.md), and [ammo interaction](docs/AMMO_SUPPLY.md).
 The ammo box is an original geometric placeholder pending the reference model.
-The game [checks for updates on launch](docs/UPDATER.md), with background downloads
-and pause/resume/cancel controls in its own menu. The native engine does not
+The game [checks for updates on launch](docs/UPDATER.md), with a centered loading screen
+before the test world becomes playable, off-thread downloads, and pause/resume/cancel
+controls in its own window. Offline/error recovery offers an explicit play-current-version choice. The native engine does not
 expose a universal focus callback to this application: fresh Alt/Super shortcuts
 pause safely, but every OS focus-change path is not covered. Always press
 Escape before switching apps. Retail comparison and blinded feel testing remain open.

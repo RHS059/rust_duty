@@ -781,6 +781,12 @@ async fn main() {
         .iter()
         .any(|arg| arg == "--no-update" || arg == "--demo" || arg.starts_with("--capture"));
     let mut game_update = game_update::UpdatePanel::start(update_enabled);
+    // Present the same-window startup screen before audio/assets are loaded,
+    // including fast checks that might otherwise finish before the first frame.
+    if update_enabled {
+        game_update.draw(true);
+        next_frame().await;
+    }
     let framing = ViewmodelFraming::from_args(&args);
     let control_mode = if args.iter().any(|s| s == "--hold-controls") {
         ControlMode::Hold
@@ -858,17 +864,30 @@ async fn main() {
         vector_range::EMBEDDED_WEAPON.is_some(),
     );
     let mut model_error = None;
-    let authored_path = args
+    let explicit_viewmodel = args
         .iter()
         .find_map(|s| s.strip_prefix("--viewmodel-asset="));
+    let authored_path = vector_range::asset_path::resolve_viewmodel(
+        &executable,
+        explicit_viewmodel.map(std::path::Path::new),
+        args.iter().any(|s| {
+            s == "--procedural-weapon"
+                || s.starts_with("--weapon-asset=")
+                || s.starts_with("--arms-asset=")
+        }),
+    );
     let authored_clip = args
         .iter()
         .find_map(|s| s.strip_prefix("--viewmodel-clip="))
-        .unwrap_or("neutral");
+        .unwrap_or(if explicit_viewmodel.is_none() {
+            "locomotion"
+        } else {
+            "neutral"
+        });
     let authored_time = args
         .iter()
         .find_map(|s| s.strip_prefix("--viewmodel-time="));
-    let mut authored = if let Some(path) = authored_path {
+    let mut authored = if let Some(path) = authored_path.as_ref() {
         let time = authored_time
             .map(|value| {
                 value
@@ -876,9 +895,12 @@ async fn main() {
                     .map_err(|_| "invalid --viewmodel-time".to_string())
             })
             .transpose();
-        match time
-            .and_then(|time| authored_viewmodel::AuthoredViewmodel::load(path, authored_clip, time))
-        {
+        match time.and_then(|time| {
+            let path = path
+                .to_str()
+                .ok_or_else(|| "viewmodel path is not valid Unicode".to_string())?;
+            authored_viewmodel::AuthoredViewmodel::load(path, authored_clip, time)
+        }) {
             Ok(viewmodel) => Some(viewmodel),
             Err(error) => {
                 let message = format!("Authored viewmodel could not load: {error}");
@@ -1024,19 +1046,22 @@ async fn main() {
         if is_key_pressed(KeyCode::F10) {
             break;
         }
+        let startup_blocked = game_update.startup_blocked();
         let update_pointer = game_update.consumes_pointer(!session.is_active());
         let transition = session.step(vector_range::session::SessionInput {
             esc_pressed: is_key_pressed(KeyCode::Escape),
             esc_down: is_key_down(KeyCode::Escape),
             enter_pressed: is_key_pressed(KeyCode::Enter),
             enter_down: is_key_down(KeyCode::Enter),
-            click_pressed: is_mouse_button_pressed(MouseButton::Left) && !update_pointer,
-            click_down: is_mouse_button_down(MouseButton::Left) && !update_pointer,
+            click_pressed: is_mouse_button_pressed(MouseButton::Left)
+                && (startup_blocked || !update_pointer),
+            click_down: is_mouse_button_down(MouseButton::Left)
+                && (startup_blocked || !update_pointer),
             focus_shortcut_pressed: is_key_down(KeyCode::LeftAlt)
                 || is_key_down(KeyCode::RightAlt)
                 || is_key_down(KeyCode::LeftSuper)
                 || is_key_down(KeyCode::RightSuper),
-            blocked: model_error.is_some(),
+            blocked: model_error.is_some() || startup_blocked,
             dt: raw_dt,
         });
         let active = transition.active;
@@ -1059,6 +1084,18 @@ async fn main() {
             clock.clear();
             intents.clear();
             sim.player.firing_sequence = false;
+        }
+        // While startup owns the screen, no world tick, gameplay hotkey, weapon
+        // input, HUD or pause-menu rendering can run. Session edges above are
+        // still sampled, so held buttons cannot leak through on completion.
+        if startup_blocked {
+            set_cursor_grab(false);
+            show_mouse(true);
+            if game_update.draw(true) {
+                break;
+            }
+            next_frame().await;
+            continue;
         }
         let simulation_dt =
             if transition.discard_timing || capture_supply || capture_sequence.is_some() {
