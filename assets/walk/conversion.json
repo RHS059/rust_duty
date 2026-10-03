@@ -1,0 +1,1003 @@
+{
+  "schema": "rust-duty-fbx-segment-diagnostic/v1",
+  "status": "diagnostic",
+  "source_fbx_sha256": "86beba0299fbd0a4c8088255a5ac43275ec4e41851364c528a032d151055d0d2",
+  "authoring_master_sha256": "1b01f49d7fe92f39c7bd180823ee4556a0074dd9ff8ef9c10b3fb4d3f3059e43",
+  "native_crop": [
+    0,
+    44
+  ],
+  "native_fps": [
+    60,
+    1
+  ],
+  "source_take": "normal_walk_r1",
+  "imported_frame_offset": 0.0,
+  "timing_policy": {
+    "kind": "explicit-rational-resampling",
+    "subdivisions": 8,
+    "switches": [],
+    "switch_neighbor_offset_native": [
+      1,
+      65536
+    ],
+    "float32_collision_policy": "reject",
+    "samples": 353
+  },
+  "bones": 72,
+  "actors": [
+    "hk416_weapon",
+    "hk416_magazine"
+  ],
+  "weights": {
+    "Actual arms mesh 2": {
+      "vertices": 570,
+      "maximum_influences": 3,
+      "vertices_over_four": 0
+    },
+    "Actual arms mesh 0": {
+      "vertices": 5710,
+      "maximum_influences": 5,
+      "vertices_over_four": 4
+    },
+    "Actual arms mesh 1": {
+      "vertices": 3954,
+      "maximum_influences": 6,
+      "vertices_over_four": 93
+    }
+  },
+  "importer_patches": {
+    "blen_read_animations": {
+      "sha256": "757bd21550d94e2190881ec6b0eb0ce80b275d2a230055cf7702044fe6dcc6e2",
+      "replacement_count": 1
+    },
+    "blen_store_keyframes_multi": {
+      "sha256": "793a389ebde0e71ec3cec54e731c861753aa08015355904777a8c39b70da3a4e",
+      "replacement_count": 1
+    }
+  },
+  "source_action_ranges": [
+    {
+      "name": "Arms|normal_diagnostic_sequence",
+      "frame_range": [
+        0.0,
+        222.0
+      ]
+    },
+    {
+      "name": "Arms|normal_entry",
+      "frame_range": [
+        0.0,
+        15.0
+      ]
+    },
+    {
+      "name": "Arms|normal_entry_connected",
+      "frame_range": [
+        0.0,
+        24.0
+      ]
+    },
+    {
+      "name": "Arms|normal_exit",
+      "frame_range": [
+        0.0,
+        15.0
+      ]
+    },
+    {
+      "name": "Arms|normal_exit_bridge_000",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "Arms|normal_exit_bridge_001",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "Arms|normal_exit_bridge_002",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "Arms|normal_exit_bridge_003",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "Arms|normal_exit_bridge_004",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "Arms|normal_exit_bridge_005",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "Arms|normal_exit_bridge_006",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "Arms|normal_exit_bridge_007",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "Arms|normal_exit_bridge_008",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "Arms|normal_exit_bridge_009",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "Arms|normal_exit_bridge_010",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "Arms|normal_exit_bridge_011",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "Arms|normal_exit_bridge_012",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "Arms|normal_exit_bridge_013",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "Arms|normal_exit_bridge_014",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "Arms|normal_exit_bridge_015",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "Arms|normal_exit_bridge_016",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "Arms|normal_exit_bridge_017",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "Arms|normal_exit_bridge_018",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "Arms|normal_exit_bridge_019",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "Arms|normal_exit_bridge_020",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "Arms|normal_exit_bridge_021",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "Arms|normal_exit_bridge_022",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "Arms|normal_exit_bridge_023",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "Arms|normal_exit_bridge_024",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "Arms|normal_exit_bridge_025",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "Arms|normal_exit_bridge_026",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "Arms|normal_exit_bridge_027",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "Arms|normal_exit_bridge_028",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "Arms|normal_exit_bridge_029",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "Arms|normal_exit_bridge_030",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "Arms|normal_exit_bridge_031",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "Arms|normal_exit_bridge_032",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "Arms|normal_exit_bridge_033",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "Arms|normal_exit_bridge_034",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "Arms|normal_exit_connected",
+      "frame_range": [
+        0.0,
+        24.0
+      ]
+    },
+    {
+      "name": "Arms|normal_loop",
+      "frame_range": [
+        0.0,
+        35.0
+      ]
+    },
+    {
+      "name": "Arms|normal_loop_to_exit",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "Arms|normal_ready",
+      "frame_range": [
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "name": "Arms|normal_walk_r1",
+      "frame_range": [
+        0.0,
+        44.0
+      ]
+    },
+    {
+      "name": "hk416_magazine|normal_diagnostic_sequence",
+      "frame_range": [
+        0.0,
+        222.0
+      ]
+    },
+    {
+      "name": "hk416_magazine|normal_entry",
+      "frame_range": [
+        0.0,
+        15.0
+      ]
+    },
+    {
+      "name": "hk416_magazine|normal_entry_connected",
+      "frame_range": [
+        0.0,
+        24.0
+      ]
+    },
+    {
+      "name": "hk416_magazine|normal_exit",
+      "frame_range": [
+        0.0,
+        15.0
+      ]
+    },
+    {
+      "name": "hk416_magazine|normal_exit_bridge_000",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "hk416_magazine|normal_exit_bridge_001",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "hk416_magazine|normal_exit_bridge_002",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "hk416_magazine|normal_exit_bridge_003",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "hk416_magazine|normal_exit_bridge_004",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "hk416_magazine|normal_exit_bridge_005",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "hk416_magazine|normal_exit_bridge_006",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "hk416_magazine|normal_exit_bridge_007",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "hk416_magazine|normal_exit_bridge_008",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "hk416_magazine|normal_exit_bridge_009",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "hk416_magazine|normal_exit_bridge_010",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "hk416_magazine|normal_exit_bridge_011",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "hk416_magazine|normal_exit_bridge_012",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "hk416_magazine|normal_exit_bridge_013",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "hk416_magazine|normal_exit_bridge_014",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "hk416_magazine|normal_exit_bridge_015",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "hk416_magazine|normal_exit_bridge_016",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "hk416_magazine|normal_exit_bridge_017",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "hk416_magazine|normal_exit_bridge_018",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "hk416_magazine|normal_exit_bridge_019",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "hk416_magazine|normal_exit_bridge_020",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "hk416_magazine|normal_exit_bridge_021",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "hk416_magazine|normal_exit_bridge_022",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "hk416_magazine|normal_exit_bridge_023",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "hk416_magazine|normal_exit_bridge_024",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "hk416_magazine|normal_exit_bridge_025",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "hk416_magazine|normal_exit_bridge_026",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "hk416_magazine|normal_exit_bridge_027",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "hk416_magazine|normal_exit_bridge_028",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "hk416_magazine|normal_exit_bridge_029",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "hk416_magazine|normal_exit_bridge_030",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "hk416_magazine|normal_exit_bridge_031",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "hk416_magazine|normal_exit_bridge_032",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "hk416_magazine|normal_exit_bridge_033",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "hk416_magazine|normal_exit_bridge_034",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "hk416_magazine|normal_exit_connected",
+      "frame_range": [
+        0.0,
+        24.0
+      ]
+    },
+    {
+      "name": "hk416_magazine|normal_loop",
+      "frame_range": [
+        0.0,
+        35.0
+      ]
+    },
+    {
+      "name": "hk416_magazine|normal_loop_to_exit",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "hk416_magazine|normal_ready",
+      "frame_range": [
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "name": "hk416_magazine|normal_walk_r1",
+      "frame_range": [
+        0.0,
+        44.0
+      ]
+    },
+    {
+      "name": "hk416_weapon|normal_diagnostic_sequence",
+      "frame_range": [
+        0.0,
+        222.0
+      ]
+    },
+    {
+      "name": "hk416_weapon|normal_entry",
+      "frame_range": [
+        0.0,
+        15.0
+      ]
+    },
+    {
+      "name": "hk416_weapon|normal_entry_connected",
+      "frame_range": [
+        0.0,
+        24.0
+      ]
+    },
+    {
+      "name": "hk416_weapon|normal_exit",
+      "frame_range": [
+        0.0,
+        15.0
+      ]
+    },
+    {
+      "name": "hk416_weapon|normal_exit_bridge_000",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "hk416_weapon|normal_exit_bridge_001",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "hk416_weapon|normal_exit_bridge_002",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "hk416_weapon|normal_exit_bridge_003",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "hk416_weapon|normal_exit_bridge_004",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "hk416_weapon|normal_exit_bridge_005",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "hk416_weapon|normal_exit_bridge_006",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "hk416_weapon|normal_exit_bridge_007",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "hk416_weapon|normal_exit_bridge_008",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "hk416_weapon|normal_exit_bridge_009",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "hk416_weapon|normal_exit_bridge_010",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "hk416_weapon|normal_exit_bridge_011",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "hk416_weapon|normal_exit_bridge_012",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "hk416_weapon|normal_exit_bridge_013",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "hk416_weapon|normal_exit_bridge_014",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "hk416_weapon|normal_exit_bridge_015",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "hk416_weapon|normal_exit_bridge_016",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "hk416_weapon|normal_exit_bridge_017",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "hk416_weapon|normal_exit_bridge_018",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "hk416_weapon|normal_exit_bridge_019",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "hk416_weapon|normal_exit_bridge_020",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "hk416_weapon|normal_exit_bridge_021",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "hk416_weapon|normal_exit_bridge_022",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "hk416_weapon|normal_exit_bridge_023",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "hk416_weapon|normal_exit_bridge_024",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "hk416_weapon|normal_exit_bridge_025",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "hk416_weapon|normal_exit_bridge_026",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "hk416_weapon|normal_exit_bridge_027",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "hk416_weapon|normal_exit_bridge_028",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "hk416_weapon|normal_exit_bridge_029",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "hk416_weapon|normal_exit_bridge_030",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "hk416_weapon|normal_exit_bridge_031",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "hk416_weapon|normal_exit_bridge_032",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "hk416_weapon|normal_exit_bridge_033",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "hk416_weapon|normal_exit_bridge_034",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "hk416_weapon|normal_exit_connected",
+      "frame_range": [
+        0.0,
+        24.0
+      ]
+    },
+    {
+      "name": "hk416_weapon|normal_loop",
+      "frame_range": [
+        0.0,
+        35.0
+      ]
+    },
+    {
+      "name": "hk416_weapon|normal_loop_to_exit",
+      "frame_range": [
+        0.0,
+        9.0
+      ]
+    },
+    {
+      "name": "hk416_weapon|normal_ready",
+      "frame_range": [
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "name": "hk416_weapon|normal_walk_r1",
+      "frame_range": [
+        0.0,
+        44.0
+      ]
+    }
+  ],
+  "visibility_policy": "all-zero rigid scale maps to invisible STEP with identity placeholder; partial singular scale rejected",
+  "geometry_transport": "static GLB only; no sampled GLB animation",
+  "material_source_sha256": "1b01f49d7fe92f39c7bd180823ee4556a0074dd9ff8ef9c10b3fb4d3f3059e43",
+  "files": {
+    "asset.vrs": {
+      "sha256": "08f4a46a2ccaf890159403dd79e88cda73082f049009ca809441bebdf219ac07",
+      "bytes": 13605994
+    },
+    "asset.vrm": {
+      "sha256": "e6d0afc10a9ccbb8e7a4c341fb2e11517f8aa0712075d86cc07d893a76aeeedf",
+      "bytes": 3901372
+    },
+    "asset.vra": {
+      "sha256": "511b16dddb08d2090e4e91f22c2883f00c6dcf2c61b34071300c6dc769dff4d6",
+      "bytes": 1048534
+    }
+  },
+  "scope": "Explicitly selected source range converted as WIP. Review scope is recorded in the source-selection manifest. No runtime parity or gameplay visual approval is implied."
+}

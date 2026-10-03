@@ -1,0 +1,112 @@
+{
+  "schema": "rust-duty-authored-walk-distribution/v1",
+  "clip_count": 44,
+  "clip_names": [
+    "normal_ready",
+    "normal_entry",
+    "normal_loop",
+    "normal_exit",
+    "normal_entry_connected",
+    "normal_loop_to_exit",
+    "normal_exit_connected",
+    "normal_exit_bridge_000",
+    "normal_exit_bridge_001",
+    "normal_exit_bridge_002",
+    "normal_exit_bridge_003",
+    "normal_exit_bridge_004",
+    "normal_exit_bridge_005",
+    "normal_exit_bridge_006",
+    "normal_exit_bridge_007",
+    "normal_exit_bridge_008",
+    "normal_exit_bridge_009",
+    "normal_exit_bridge_010",
+    "normal_exit_bridge_011",
+    "normal_exit_bridge_012",
+    "normal_exit_bridge_013",
+    "normal_exit_bridge_014",
+    "normal_exit_bridge_015",
+    "normal_exit_bridge_016",
+    "normal_exit_bridge_017",
+    "normal_exit_bridge_018",
+    "normal_exit_bridge_019",
+    "normal_exit_bridge_020",
+    "normal_exit_bridge_021",
+    "normal_exit_bridge_022",
+    "normal_exit_bridge_023",
+    "normal_exit_bridge_024",
+    "normal_exit_bridge_025",
+    "normal_exit_bridge_026",
+    "normal_exit_bridge_027",
+    "normal_exit_bridge_028",
+    "normal_exit_bridge_029",
+    "normal_exit_bridge_030",
+    "normal_exit_bridge_031",
+    "normal_exit_bridge_032",
+    "normal_exit_bridge_033",
+    "normal_exit_bridge_034",
+    "normal_settle",
+    "normal_walk_r1"
+  ],
+  "walk_clip": "normal_walk_r1",
+  "loop": true,
+  "source": {
+    "file": "assets/authoring/locomotion/locomotion.blend",
+    "bytes": 9352824,
+    "sha256": "1b01f49d7fe92f39c7bd180823ee4556a0074dd9ff8ef9c10b3fb4d3f3059e43",
+    "action": "normal_walk_r1",
+    "frame_start": 1,
+    "frame_end": 45,
+    "fps": 60,
+    "fbx": {
+      "bytes": 47113692,
+      "sha256": "86beba0299fbd0a4c8088255a5ac43275ec4e41851364c528a032d151055d0d2"
+    }
+  },
+  "files": {
+    "asset.vra": {
+      "bytes": 11783809,
+      "sha256": "184b4c173efc8cca187c7f19a3572fbaa27d094b4cf79328fef0de69ffac789a"
+    },
+    "asset.vrs": {
+      "bytes": 16663274,
+      "sha256": "b38b7f823ddf7bd6f032ed98d33f055cd444caf51558146911b7a678c6e3ce92"
+    },
+    "asset.vrm": {
+      "bytes": 10641724,
+      "sha256": "d11736162b2cda993db3cdd5d4015aff2b151ea6377b8b954370b54006e02d67"
+    }
+  },
+  "preservation": {
+    "original_vra_sha256": "d02d04d4adb429b6493bf3347b302dc007bb7b99f4761da3c2b314e6d313c6ab",
+    "clip_payloads_byte_identical": 43,
+    "canonical_skin_byte_identical": true,
+    "canonical_rigid_byte_identical": true,
+    "normal_ready_retained": true,
+    "normal_settle_byte_identical": true
+  },
+  "validation": {
+    "backend": "Rust CPU sampler",
+    "samples": 25,
+    "passed": true,
+    "maxima": {
+      "skin_error_m": 2.3771946107155895e-06,
+      "visible_prop_origin_error_m": 1.3258332646457439e-06,
+      "visible_rigid_vertex_error_m": 2.7257996768686415e-06,
+      "visible_prop_matrix_error": 5.398121257785271e-06
+    },
+    "position_limit_m": 0.001,
+    "visibility_failures": 0,
+    "report": "parity.json"
+  },
+  "repository_transport": {
+    "asset.vrs": {
+      "file": "asset.vrs.gz",
+      "encoding": "gzip",
+      "bytes": 4088316,
+      "sha256": "93a536de71b537b3f319bf97fe9c77235af10884f949c328858ec6cdf61956d1",
+      "decoded_bytes": 16663274,
+      "decoded_sha256": "b38b7f823ddf7bd6f032ed98d33f055cd444caf51558146911b7a678c6e3ce92"
+    }
+  },
+  "scope": "New authored walk only; legacy43 and settle preserved. Numerical runtime parity is not gameplay visual approval."
+}

@@ -23,7 +23,7 @@ import vrview
 from vrpack import require
 
 
-def sample_grid(start, end, subdivisions=64, switches=()):
+def sample_grid(start, end, subdivisions=64, switches=(), fps=Fraction(60000,1001)):
     """Explicit rational resampling, not deduplication of FBX key timestamps.
 
     Each declared switch adds 1/65536-native-frame pre/post witnesses. Float32
@@ -37,8 +37,9 @@ def sample_grid(start, end, subdivisions=64, switches=()):
         t = Fraction(str(value))
         require(start < t < end, 'switch must be inside crop')
         values.update((t-Fraction(1,65536), t, t+Fraction(1,65536)))
+    require(fps > 0, "sample rate must be positive")
     frames = sorted(values)
-    times = [vrpack.f32(float((f-start)*Fraction(1001,60000))) for f in frames]
+    times = [vrpack.f32(float((f-start)/fps)) for f in frames]
     require(all(b > a for a,b in zip(times,times[1:])), 'chosen rational samples collide as float32; change format/policy explicitly')
     return frames, times
 
@@ -80,13 +81,21 @@ def convert(args):
     require(not args.output.exists(), 'output directory already exists; use a new diagnostic destination')
     skeleton = vrview.decode_vra(args.skeleton_vra.read_bytes())['bones']
     keep = {name for name,_ in skeleton}
-    frames,times = sample_grid(args.native_start,args.native_end,args.subdivisions,args.switch)
+    fps = Fraction(args.fps)
+    frames,times = sample_grid(args.native_start,args.native_end,args.subdivisions,args.switch,fps)
     bpy.ops.wm.read_factory_settings(use_empty=True)
     patches = patch_importer()
     bpy.ops.import_scene.fbx(filepath=str(fbx),use_anim=True,anim_offset=0.,ignore_leaf_bones=False,
                             automatic_bone_orientation=False,use_prepost_rot=True)
     scene = bpy.context.scene; arm = bpy.data.objects[args.armature]
-    require(abs(scene.render.fps/scene.render.fps_base-60000/1001)<1e-4, 'unexpected native FBX rate')
+    if args.take:
+        # FBX importer creates an owner-specific Action for each stack. Match the
+        # full stack suffix; never select a similarly named or first Action.
+        for obj in [arm] + [bpy.data.objects[n] for n in args.actor]:
+            candidates = [a for a in bpy.data.actions if a.name == obj.name + '|' + args.take]
+            require(len(candidates) == 1, f'need exactly one {obj.name}|{args.take} Action; got {[a.name for a in candidates]}')
+            obj.animation_data_create(); obj.animation_data.action = candidates[0]
+    require(abs(scene.render.fps/scene.render.fps_base-float(fps))<1e-4, 'unexpected native FBX rate')
     require(keep <= set(arm.data.bones.keys()), 'canonical skeleton bones missing from FBX')
     for name,parent in skeleton:
         bone = arm.data.bones[name]
@@ -110,7 +119,7 @@ def convert(args):
     raw_bones = np.empty((len(frames),len(skeleton),4,4),dtype=np.float64)
     raw_actors = np.empty((len(frames),len(actors),4,4),dtype=np.float64)
     for i,native in enumerate(frames):
-        f=float(native)+1; scene.frame_set(math.floor(f),subframe=f-math.floor(f)); arm.update_tag();bpy.context.view_layer.update()
+        f=float(native)+args.imported_frame_offset; scene.frame_set(math.floor(f),subframe=f-math.floor(f)); arm.update_tag();bpy.context.view_layer.update()
         dg=bpy.context.evaluated_depsgraph_get(); ae=arm.evaluated_get(dg)
         raw_bones[i]=[basis @ ae.matrix_world @ ae.pose.bones[n].matrix for n in bone_names]
         raw_actors[i]=[basis @ o.evaluated_get(dg).matrix_world @ inv_basis for o in actors]
@@ -169,11 +178,11 @@ def convert(args):
             visible.append(mask); actor_values.append(value)
         encoded.append({'time':t,'bones':[vrview.decompose(m) for m in locals_],
                         'actors':actor_values,'visible':visible})
-    vra=vrview.encode_vra(output_bones,actor_defs,[{'name':args.name,'loop':False,'frames':encoded}],vrs,vrm)
+    vra=vrview.encode_vra(output_bones,actor_defs,[{'name':args.name,'loop':args.loop,'frames':encoded}],vrs,vrm)
     for suffix,data in [('vrs',vrs),('vrm',vrm),('vra',vra)]: (args.output/f'asset.{suffix}').write_bytes(data)
     manifest={'schema':'rust-duty-fbx-segment-diagnostic/v1','status':'diagnostic',
       'source_fbx_sha256':digest,'authoring_master_sha256':args.source_sha256,
-      'native_crop':[args.native_start,args.native_end],'native_fps':[60000,1001],
+      'native_crop':[args.native_start,args.native_end],'native_fps':[fps.numerator,fps.denominator], 'source_take':args.take, 'imported_frame_offset':args.imported_frame_offset,
       'timing_policy':{'kind':'explicit-rational-resampling','subdivisions':args.subdivisions,'switches':args.switch,
                        'switch_neighbor_offset_native':[1,65536],'float32_collision_policy':'reject','samples':len(frames)},
       'bones':len(output_bones),'actors':args.actor,'weights':weights,'importer_patches':patches,
@@ -188,6 +197,7 @@ def main():
     p=argparse.ArgumentParser(description=__doc__)
     for flag in ('fbx','output','skeleton-vra'):p.add_argument('--'+flag,type=Path,required=True)
     for flag in ('fbx-sha256','source-sha256','name'):p.add_argument('--'+flag,required=True)
+    p.add_argument('--imported-frame-offset',type=float,default=1.);p.add_argument('--fps',default='60000/1001');p.add_argument('--take');p.add_argument('--loop',action='store_true')
     p.add_argument('--material-source',type=Path);p.add_argument('--armature',default='Arms');p.add_argument('--actor',action='append',required=True)
     p.add_argument('--native-start',type=int,required=True);p.add_argument('--native-end',type=int,required=True)
     p.add_argument('--subdivisions',type=int,default=64);p.add_argument('--switch',action='append',default=[])

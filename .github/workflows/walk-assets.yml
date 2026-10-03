@@ -1,0 +1,58 @@
+name: Export authored walking through FBX
+on:
+  workflow_call:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  export:
+    name: Authored walk to preserved44 runtime pack
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Fingerprint exact Rust compiler
+        id: rust-version
+        shell: bash
+        run: python -c "import hashlib,subprocess; print('hash='+hashlib.sha256(subprocess.check_output(['rustc','-Vv'])).hexdigest())" >> "$GITHUB_OUTPUT"
+      - name: Reuse only exact-input validated walk output
+        id: asset-cache
+        uses: actions/cache@v4
+        with:
+          path: build-walk/runtime
+          key: walk-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust-version.outputs.hash }}-${{ hashFiles('assets/authoring/locomotion/**', 'assets/locomotion/manifest.json', 'assets/locomotion/asset.vra', 'assets/locomotion/asset.vrm', 'assets/locomotion/asset.vrs.gz', 'tools/build_walk_assets.py', 'tools/import_fbx_viewmodel.py', 'tools/merge_walk_clip.py', 'tools/verify_locomotion_fbx.py', 'tools/vr*.py', 'tools/requirements-assets.txt', 'src/viewmodel_animation.rs', 'src/skinned_asset.rs', 'src/asset.rs', 'examples/sample_viewmodel_clip.rs', 'Cargo.toml', 'Cargo.lock', 'build.rs', '.github/actions/setup-blender/action.yml', '.github/workflows/walk-assets.yml') }}
+      - name: Install pinned asset toolchain on cache miss
+        if: steps.asset-cache.outputs.cache-hit != 'true'
+        uses: ./.github/actions/setup-blender
+      - name: Build actual game CPU sampler
+        if: steps.asset-cache.outputs.cache-hit != 'true'
+        run: cargo build --locked --release --no-default-features --example sample_viewmodel_clip
+      - name: Export authoring source, convert walk, preserve43 and verify Rust parity
+        if: steps.asset-cache.outputs.cache-hit != 'true'
+        run: python tools/build_walk_assets.py --blender blender --sampler target/release/examples/sample_viewmodel_clip --work build-walk/work --output build-walk/runtime
+      - name: Revalidate source, old clip bytes and generated companions
+        run: python tools/check_generated_assets.py --kind walk --directory build-walk/runtime
+      - name: Upload walking source and parity evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: walk-export-diagnostics
+          path: build-walk/runtime/*.json
+          if-no-files-found: warn
+      - name: Publish verified walking companions for complete game builds
+        uses: actions/upload-artifact@v4
+        with:
+          name: generated-walk-runtime
+          path: |
+            build-walk/runtime/asset.vra
+            build-walk/runtime/asset.vrs
+            build-walk/runtime/asset.vrm
+            build-walk/runtime/asset.vrs.gz
+            build-walk/runtime/*.json
+          if-no-files-found: error
