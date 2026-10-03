@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T23:12:48Z",
+  "updatedAt": "2026-10-03T23:21:39Z",
   "state": "active",
-  "task": "Preparing ADS and walking-control changes locally; new commits and publication wait for Elara's 0.1.7–0.1.9 release sequence.",
-  "lastCompleted": "Persistent per-weapon XYZ walking controls passed local tests; PR #24 release-policy checks passed. Version 0.1.5 remains the latest verified complete build.",
+  "task": "Validating the combined ADS and walking-controls candidate locally; new commits and publication wait for Elara's 0.1.9 completion.",
+  "lastCompleted": "The local candidate passed 517 Rust tests, all-target Clippy and a 1,320-tick replay. Strict bone parity still fails at 3.36e-5.",
   "agents": [
     {
       "slot": 1,
@@ -14,14 +14,14 @@
     {
       "slot": 2,
       "state": "active",
-      "task": "Monitoring completion of the 0.1.7–0.1.9 releases; new release and version changes are on hold.",
+      "task": "Monitoring the 0.1.7–0.1.9 release sequence; new release and version changes remain on hold.",
       "lastCompleted": "Public 0.1.6 was traced to older main source without the integrated HIP r5/ADS paths; verified Latest Complete remains 0.1.5."
     },
     {
       "slot": 3,
       "state": "active",
-      "task": "Integrating v9 ADS, Alt-Tab cursor fixes and persistent per-weapon XYZ walking sliders locally.",
-      "lastCompleted": "The persisted XYZ walking interface is working and local tests passed; complete-candidate verification remains pending."
+      "task": "Validating the local ADS, Alt-Tab cursor and persistent per-weapon XYZ walking-controls candidate.",
+      "lastCompleted": "Local 517-test Rust suite, all-target Clippy and 1,320-tick replay passed; strict bone parity remains a known failure at 3.36e-5."
     }
   ]
 }
