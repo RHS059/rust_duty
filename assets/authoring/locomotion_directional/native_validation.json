@@ -1,0 +1,159 @@
+{
+  "schema": "rust-duty-directional-native-capture/v1",
+  "candidate_sha256": "6d6d5c6a150bd8d74f24b29bf18b192e2f5fe2cd93a531c77b7a1e5ce93a8b35",
+  "blender": "4.3.2",
+  "fps": 60,
+  "sweep_hz": 480,
+  "resolution": [
+    1280,
+    720
+  ],
+  "camera": "RD First Person Review",
+  "horizontal_fov_degrees": 75.99999983816295,
+  "camera_animated": false,
+  "landmark_definition": {
+    "muzzle_tip": {
+      "object": "hk416_weapon",
+      "local_point": [
+        -6.2e-05,
+        0.090545,
+        -0.411509
+      ]
+    },
+    "receiver_center": {
+      "object": "hk416_weapon",
+      "local_point": [
+        0.02,
+        0.075,
+        0.02
+      ]
+    },
+    "support_wrist": {
+      "bone": "hand_l",
+      "point": "head"
+    },
+    "firing_wrist": {
+      "bone": "hand_r",
+      "point": "head"
+    },
+    "support_cuff_surface": {
+      "object": "Actual arms mesh 0",
+      "vertex_indices": [
+        5681,
+        5679,
+        5666
+      ],
+      "barycentric_weights": [
+        0.38801232981670086,
+        0.5282059672418871,
+        0.08378170294141207
+      ],
+      "baseline_pixel": [
+        663,
+        491
+      ]
+    }
+  },
+  "actions": {
+    "hip_strafe_left_r1": {
+      "frame_range": [
+        1,
+        50
+      ],
+      "period_seconds": 0.8166666666666667,
+      "unique_native_frames": 49,
+      "samples_480hz": 393,
+      "max_wrist_error_m": [
+        6.619312548258089e-07,
+        5.234529993012636e-07
+      ],
+      "max_guard_error_degrees": [
+        0.0,
+        0.0
+      ],
+      "max_hand_relative_root_matrix_drift": [
+        1.0132789611816406e-06,
+        7.748603820800781e-07
+      ],
+      "loop_endpoint_root_matrix_error": 0.0,
+      "loop_endpoint_actor_matrix_error": 0.0,
+      "loop_endpoint_hand_matrix_error": 0.0,
+      "invalid_drivers": []
+    },
+    "hip_strafe_right_r1": {
+      "frame_range": [
+        1,
+        50
+      ],
+      "period_seconds": 0.8166666666666667,
+      "unique_native_frames": 49,
+      "samples_480hz": 393,
+      "max_wrist_error_m": [
+        6.061364712552924e-07,
+        4.0288286908256337e-07
+      ],
+      "max_guard_error_degrees": [
+        0.0,
+        0.0
+      ],
+      "max_hand_relative_root_matrix_drift": [
+        9.5367431640625e-07,
+        9.5367431640625e-07
+      ],
+      "loop_endpoint_root_matrix_error": 0.0,
+      "loop_endpoint_actor_matrix_error": 0.0,
+      "loop_endpoint_hand_matrix_error": 0.0,
+      "invalid_drivers": []
+    },
+    "hip_walk_backward_r1": {
+      "frame_range": [
+        1,
+        46
+      ],
+      "period_seconds": 0.75,
+      "unique_native_frames": 45,
+      "samples_480hz": 361,
+      "max_wrist_error_m": [
+        6.289041437052741e-07,
+        4.0944313001734275e-07
+      ],
+      "max_guard_error_degrees": [
+        0.0,
+        0.0
+      ],
+      "max_hand_relative_root_matrix_drift": [
+        8.940696716308594e-07,
+        7.748603820800781e-07
+      ],
+      "loop_endpoint_root_matrix_error": 0.0,
+      "loop_endpoint_actor_matrix_error": 0.0,
+      "loop_endpoint_hand_matrix_error": 0.0,
+      "invalid_drivers": []
+    },
+    "hip_walk_forward_r1": {
+      "frame_range": [
+        1,
+        39
+      ],
+      "period_seconds": 0.6333333333333333,
+      "unique_native_frames": 38,
+      "samples_480hz": 305,
+      "max_wrist_error_m": [
+        6.069937302062238e-07,
+        4.1322185468262575e-07
+      ],
+      "max_guard_error_degrees": [
+        0.0,
+        0.0
+      ],
+      "max_hand_relative_root_matrix_drift": [
+        8.940696716308594e-07,
+        6.556510925292969e-07
+      ],
+      "loop_endpoint_root_matrix_error": 0.0,
+      "loop_endpoint_actor_matrix_error": 0.0,
+      "loop_endpoint_hand_matrix_error": 0.0,
+      "invalid_drivers": []
+    }
+  }
+}

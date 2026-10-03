@@ -1,0 +1,68 @@
+[
+  {
+    "path": "hip_strafe_left_r1_20hz_sheet.jpg",
+    "sha256": "f2ecdefe31fcd34787b1879d70145ff234d27324265a9819e915865efb9c122f",
+    "bytes": 391413,
+    "action": "hip_strafe_left_r1",
+    "scope": "Native Blender source render; not runtime gameplay or original reference footage"
+  },
+  {
+    "path": "hip_strafe_right_r1_20hz_sheet.jpg",
+    "sha256": "28e1b89c17e417733cc6efd34f825b9afae77aa5fa63f5cc374919b55cf56f21",
+    "bytes": 398010,
+    "action": "hip_strafe_right_r1",
+    "scope": "Native Blender source render; not runtime gameplay or original reference footage"
+  },
+  {
+    "path": "hip_walk_backward_r1_20hz_sheet.jpg",
+    "sha256": "bcce4fc2603cb2b3d12cfc06ac23641e9a63d920634c9e8c9ad53b7a52267a72",
+    "bytes": 357315,
+    "action": "hip_walk_backward_r1",
+    "scope": "Native Blender source render; not runtime gameplay or original reference footage"
+  },
+  {
+    "path": "hip_walk_forward_r1_20hz_sheet.jpg",
+    "sha256": "d468613c7e3b93029557dce4ef519af1dc7bd2c73523e3ab9971fd26452a812e",
+    "bytes": 313751,
+    "action": "hip_walk_forward_r1",
+    "scope": "Native Blender source render; not runtime gameplay or original reference footage"
+  },
+  {
+    "path": "hip_strafe_left_r1_contact_sheet.jpg",
+    "sha256": "5381921f7bacc485ce21d927bd8403383712b4568d8780e1a563dab142249b51",
+    "bytes": 311081,
+    "action": "hip_strafe_left_r1",
+    "scope": "Native contact witness cameras at phase extrema; not scoring viewpoint"
+  },
+  {
+    "path": "hip_strafe_right_r1_contact_sheet.jpg",
+    "sha256": "df7c80e7c2105af51a21d60cb2e219c7e96fb819c9f455b95cb52d81037853aa",
+    "bytes": 310548,
+    "action": "hip_strafe_right_r1",
+    "scope": "Native contact witness cameras at phase extrema; not scoring viewpoint"
+  },
+  {
+    "path": "hip_walk_backward_r1_contact_sheet.jpg",
+    "sha256": "4a4f344b697b371ee197304c48aaadd4671d07585f7a7a624c70fb58f09d2c64",
+    "bytes": 312050,
+    "action": "hip_walk_backward_r1",
+    "scope": "Native contact witness cameras at phase extrema; not scoring viewpoint"
+  },
+  {
+    "path": "hip_walk_forward_r1_contact_sheet.jpg",
+    "sha256": "8a5f097b14f43cf49ea61efb783ddc1442c23766491b074548bf90b85a122021",
+    "bytes": 311253,
+    "action": "hip_walk_forward_r1",
+    "scope": "Native contact witness cameras at phase extrema; not scoring viewpoint"
+  },
+  {
+    "path": "directional_native_preview.mp4",
+    "sha256": "b0856ddcad6014d64c0c761241347288b61ad16e9e527005d71078b7e7aaf6e3",
+    "bytes": 3393684,
+    "scope": "Native Blender source render only, not gameplay or reference footage; two unique-frame loops per action, concatenated forward/backward/left/right with labels",
+    "source_sha256": "6d6d5c6a150bd8d74f24b29bf18b192e2f5fe2cd93a531c77b7a1e5ce93a8b35",
+    "fps": "60/1",
+    "frames": 362,
+    "duration_seconds": 6.033333333333333
+  }
+]

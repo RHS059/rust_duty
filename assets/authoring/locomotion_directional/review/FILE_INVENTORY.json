@@ -1,0 +1,72 @@
+[
+  {
+    "file": "FINAL_REVIEW_V06.json",
+    "bytes": 10444,
+    "sha256": "0912ed7e6dccb403d43f21830557921ab1a521369d2a5ab9e64f8c1aebe81ce2"
+  },
+  {
+    "file": "FINAL_REVIEW_V06.md",
+    "bytes": 4364,
+    "sha256": "143c07e5d91552835115bd9b7dde1d407d17ef6e6e560fded456564136e98064"
+  },
+  {
+    "file": "MOTION_ONLY_CONTRACT_V2.md",
+    "bytes": 8251,
+    "sha256": "8758d56835681eac5183b40ec8dd5347a066008d71725d28ed14766ab6a4d4c9"
+  },
+  {
+    "file": "ORIGINAL_POSE_RUBRIC_RESULT_V1.md",
+    "bytes": 2018,
+    "sha256": "b813f1514925661848be93a1bfc819f0af47f2a5d96266a9bc8eb4ad49001409"
+  },
+  {
+    "file": "PERIODIC_CORE_SCOPE_V3.md",
+    "bytes": 2825,
+    "sha256": "1cb81235f83e3d4bc31f5d90ec54bf1f7f18b1518877a3151370140f4a8ba9ec"
+  },
+  {
+    "file": "REPRODUCIBILITY.md",
+    "bytes": 1845,
+    "sha256": "4976addc7ba8d2bc32ed536be0e284176a9d911ab4fa24128ee6ae6d71c905b5"
+  },
+  {
+    "file": "candidate_v01_review_metrics.json",
+    "bytes": 16248,
+    "sha256": "8f00a07ae8d9027e646cb58f7bb84908e205d2684bb7cceb2eb9c2bafed703f8"
+  },
+  {
+    "file": "candidate_v04_motion_v2_metrics.json",
+    "bytes": 89619,
+    "sha256": "e3194aebf5f1642bb8648b901539a8ec64e343738e94cb1d222fc55158e090c1"
+  },
+  {
+    "file": "candidate_v06_continuity_review.json",
+    "bytes": 4287,
+    "sha256": "0ce0e4fa614df65578bd4f31741e6d0150074549bb6fd40aef1f45fd209db6b4"
+  },
+  {
+    "file": "candidate_v06_motion_v2_metrics.json",
+    "bytes": 89702,
+    "sha256": "e65da94452f2f682c86ee253a7a2916b793b86635abb5227e547f4e161c19746"
+  },
+  {
+    "file": "candidate_v06_periodic_core_v3_metrics.json",
+    "bytes": 24633,
+    "sha256": "ba890fa46ba6076ad8f014b417b888c845a93db0acf23e478e2b220782619b51"
+  },
+  {
+    "file": "measure_reference_landmarks.py",
+    "bytes": 5750,
+    "sha256": "07789de44cb825d8f9262fee740ec4015104bb876b753a1127e8772276cd2942"
+  },
+  {
+    "file": "reference_measurement_contract.json",
+    "bytes": 17644,
+    "sha256": "7cb5194fc79f4716725bc7f820d69cd8a31bc8da3a2e17f2cdfec38def6dc696"
+  },
+  {
+    "file": "reference_tracks_validated.csv",
+    "bytes": 151593,
+    "sha256": "3390799bb926bec904af2f675e55303f5f926a3cd746cefb963c702d0695cbdd"
+  }
+]

@@ -1,0 +1,74 @@
+{
+  "blender_version": "4.3.2",
+  "source_fps": 60,
+  "bake_hz": 480,
+  "armature": "Arms",
+  "skin_objects": [
+    "Actual arms mesh 0",
+    "Actual arms mesh 1",
+    "Actual arms mesh 2"
+  ],
+  "rigid_actors": [
+    "hk416_weapon",
+    "hk416_magazine"
+  ],
+  "excluded_rigid_actor": "hk416_magazine_outgoing",
+  "deform_bone_count": 72,
+  "schema": "rust-duty-directional-preview-export/v1",
+  "source_file": "halcyon_hip_directional_r1.blend",
+  "source_take_count": 4,
+  "runtime_integration_performed": false,
+  "source_takes": [
+    {
+      "name": "hip_walk_forward_r1",
+      "action": "hip_walk_forward_r1",
+      "frame_start": 1,
+      "frame_end": 39,
+      "duration_seconds": 0.6333333333333333,
+      "loop": true,
+      "role": "preview",
+      "pose_space": "absolute",
+      "additive": false
+    },
+    {
+      "name": "hip_walk_backward_r1",
+      "action": "hip_walk_backward_r1",
+      "frame_start": 1,
+      "frame_end": 46,
+      "duration_seconds": 0.75,
+      "loop": true,
+      "role": "preview",
+      "pose_space": "absolute",
+      "additive": false
+    },
+    {
+      "name": "hip_strafe_left_r1",
+      "action": "hip_strafe_left_r1",
+      "frame_start": 1,
+      "frame_end": 50,
+      "duration_seconds": 0.8166666666666667,
+      "loop": true,
+      "role": "preview",
+      "pose_space": "absolute",
+      "additive": false
+    },
+    {
+      "name": "hip_strafe_right_r1",
+      "action": "hip_strafe_right_r1",
+      "frame_start": 1,
+      "frame_end": 50,
+      "duration_seconds": 0.8166666666666667,
+      "loop": true,
+      "role": "preview",
+      "pose_space": "absolute",
+      "additive": false
+    }
+  ],
+  "runtime_handoff": {
+    "owner": "receiving integrator",
+    "derive_additive_relative_to": "normal_ready complete evaluated pose",
+    "ads": "reuse base directional clips at reduced amplitude; no duplicate ADS Actions",
+    "run_transition": "fade directional layer out while run layer fades in; preserve evaluated start pose and phase",
+    "note": "Source pose-space flags describe the BLEND and FBX output; they are not runtime layering implementation"
+  }
+}
