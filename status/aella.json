@@ -1,21 +1,21 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T18:04:56Z",
+  "updatedAt": "2026-10-03T18:12:29Z",
   "state": "active",
-  "task": "Revising ADS after the v6 forward comparison received Fail53. Forward source-pixel motion and cadence analysis remains active. The separate public ADS47-held lateral diagnostic now reopens successfully and foreground Blender visibility is recovered; Eevee smoke capture is next, with no frames rendered yet. Local v6 runtime work is complete but unpublished; HIP r2 access and source-publication blockers remain.",
-  "lastCompleted": "The separate ADS v6 forward Eevee/reference comparison is live at https://rhs059.github.io/rust_duty_updates/ and reviewed Fail53: sight lock is retained, but forward walking motion remains too faint. Exact v5/v6 presets and the independent v6 numerical oracle are recovered and verified. Local v6 runtime checkpoint 77a53ce passes 490 Rust tests, formatting/Clippy and affected Python checks. The latest complete published game remains PR #17 at e46f83d.",
+  "task": "Revising ADS after the v6 forward comparison received Fail53. The forward author is checking anatomical seams after the bounded 15% HIP-arm articulation trial passed 501 quarter-frame contact evaluations in v6 weapon-relative space. The lateral author is capturing genuine Eevee viewport frames for left/right v6 control and Trial1: 181 of 396 frames complete at this snapshot, with left control finished and left Trial1 underway. Local v6 runtime work is complete but unpublished; HIP r2 access and source-publication blockers remain.",
+  "lastCompleted": "The separate ADS v6 forward Eevee/reference comparison remains live at https://rhs059.github.io/rust_duty_updates/ and reviewed Fail53. The 15% forward articulation trial preserves source/camera hashes and keeps measured hand/weapon drift below 0.00010 mm across 501 quarter-frame evaluations; hand angle is unchanged and wrist-limit margin remains positive. Anatomical-seam and visual review remain open. Local v6 runtime checkpoint 77a53ce passes 490 Rust tests, formatting/Clippy and affected Python checks. The latest complete published game remains PR #17 at e46f83d.",
   "agents": [
     {
       "slot": 1,
       "state": "active",
-      "task": "Active forward author is isolating source-pixel foreground motion and cadence after v6 Fail53 using the exact published v5/v6 comparisons. The top panels are resized published reference proxies, not recovered 720p originals. No new forward preset or preview is confirmed in this snapshot.",
-      "lastCompleted": "Recovered exact published v5/v6 forward MP4s and verified both repository blob hashes. V6 matches its original SHA-256 4e6a4f77a2f0cebfa7747011289d7464ba74acd1a784334e6c77361954df2e17 and is 126 frames, 2.1 seconds at 60 fps. Exact v5/v6 presets and the independent 24-case numerical oracle remain verified; visual review remains Fail53."
+      "task": "Checking actual anatomical joint seams for the bounded 15% HIP-arm articulation trial in v6 weapon-relative space. This rig has no connected deform-bone flags, so contact measurements alone do not close the seam check. A separate forward preview will follow the lateral viewport batch. No new visual approval or published forward preset is claimed.",
+      "lastCompleted": "Completed 501 quarter-frame evaluations: measured hand/weapon drift below 0.00010 mm, unchanged hand angle and positive original wrist-limit margin. Source/camera hashes are unchanged. Exact v5/v6 presets and the independent 24-case numerical oracle remain verified; the currently published forward v6 comparison remains Fail53. Reference panels are resized published proxies, not recovered 720p originals."
     },
     {
       "slot": 2,
       "state": "active",
-      "task": "Preparing the first Eevee smoke capture after foreground Blender successfully loaded the separate public ADS47-held diagnostic from the shared workspace. Visibility recovery and reopen validation are complete. No new lateral frames have been rendered yet; the missing later-author-checkpoint and matched-comparison caveats remain.",
-      "lastCompleted": "Reopen validation passes all 1,588 sampled transforms with original source preservation; the exact public static backdrop is retained. Foreground Blender loaded the separate diagnostic successfully. Published lateral reference proxies and earlier seven numerical tests remain available. These diagnostic and numerical results do not establish visual approval."
+      "task": "Genuine Eevee viewport capture is running normally for the separate public ADS47-held left/right diagnostic: 181 of 396 v6 control and Trial1 frames complete at this snapshot. Left v6 control is finished and left Trial1 is underway. No current capture blocker. Remaining work: finish both directions, encode, inspect all-frame sheets and send the clearly labeled public47 diagnostic for independent review.",
+      "lastCompleted": "The first raw Eevee frame was visually verified. Exact published reference proxies are verified at 114 left and 84 right frames, both 60 fps; they are explicitly resized proxies. Reopen validation passes all 1,588 sampled transforms with original source and exact public static backdrop preserved. These partial-capture and numerical results do not establish visual approval."
     },
     {
       "slot": 3,
