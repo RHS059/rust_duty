@@ -1,5 +1,6 @@
 mod authored_viewmodel;
 mod game_update;
+mod pause_menu;
 mod sound;
 mod weapon_model;
 use macroquad::prelude::*;
@@ -353,6 +354,7 @@ fn weapon(
     arms: Option<&mut vector_range::arms::ArmModel>,
     animation_state: &mut vector_range::view_animation::ViewAnimation,
     cfg: &Settings,
+    walk_translation: vector_range::settings::WalkTranslation,
     framing: ViewmodelFraming,
     presentation_override: Option<f32>,
 ) {
@@ -380,7 +382,14 @@ fn weapon(
     }
     let p = &sim.player;
     let motion = locomotion_state.sample(sim.time, locomotion_input(sim));
-    let bob = motion.bob;
+    // Legacy/procedural guns have a vertical-only walking component. Keep
+    // their sprint, airborne, reload and absolute placement terms untouched.
+    let walk_bob = if p.grounded && p.reload_left <= 0. && p.mantle.is_none() {
+        motion.bob * (1. - motion.sprint)
+    } else {
+        0.
+    };
+    let bob = motion.bob + walk_bob * (walk_translation.gains().y - 1.);
     let reload = if p.reload_left > 0. {
         (p.reload_left * 2.5).sin().abs() * 0.15 + 0.12
     } else {
@@ -731,81 +740,6 @@ fn hud(
         }
     }
 }
-fn pause_screen(cfg: &Settings, initial: bool, control_mode: ControlMode) {
-    let (w, h) = (screen_width(), screen_height());
-    draw_rectangle(0., 0., w, h, Color::new(0.015, 0.025, 0.035, 0.78));
-    let x = w * 0.5 - 270.;
-    let y = (h * 0.5 - 250.).max(30.);
-    draw_rectangle(x, y, 540., 500., Color::new(0.035, 0.057, 0.074, 0.97));
-    draw_rectangle(x, y, 540., 3., ACCENT);
-    label("VECTOR", x + 36., y + 68., 48., WHITE);
-    label(
-        "A MOVEMENT + GUNPLAY LABORATORY",
-        x + 39.,
-        y + 98.,
-        16.,
-        CYAN,
-    );
-    label(
-        if initial {
-            "CLICK OR ENTER TO ENTER THE RANGE"
-        } else {
-            "CLICK OR ESC TO RESUME"
-        },
-        x + 38.,
-        y + 149.,
-        20.,
-        ACCENT,
-    );
-    let controls = if control_mode == ControlMode::Hold {
-        [
-            "W A S D     Move          MOUSE     Look",
-            "LEFT CLICK  Fire         RIGHT     Hold ADS",
-            "SHIFT       Sprint       CTRL / C  Hold crouch",
-            "SPACE       Jump         R         Reload",
-            "Z           Hold prone   M         Mute audio",
-        ]
-    } else {
-        [
-            "W A S D     Move          MOUSE     Look",
-            "LEFT CLICK  Fire         RIGHT     Toggle ADS",
-            "SHIFT       Sprint       CTRL / C  Toggle crouch",
-            "SPACE       Jump / stand R         Reload",
-            "Z           Toggle prone M         Mute audio",
-        ]
-    };
-    for (i, s) in controls.iter().enumerate() {
-        label(s, x + 38., y + 192. + i as f32 * 27., 17., MUTED);
-    }
-    label(
-        &format!("[ / ]  SENSITIVITY      {:.2} deg/pixel", cfg.sensitivity),
-        x + 38.,
-        y + 355.,
-        18.,
-        WHITE,
-    );
-    label(
-        &format!("- / =  HORIZONTAL FOV   {:.0} degrees", cfg.fov),
-        x + 38.,
-        y + 384.,
-        18.,
-        WHITE,
-    );
-    label(
-        "F5 SAVE PRESET    F6 RELOAD PRESET    F10 QUIT",
-        x + 38.,
-        y + 428.,
-        15.,
-        CYAN,
-    );
-    label(
-        "Provisional tuning. No original-game code or assets.",
-        x + 38.,
-        y + 464.,
-        14.,
-        MUTED,
-    );
-}
 #[macroquad::main(config)]
 async fn main() {
     let args: Vec<String> = std::env::args().collect();
@@ -866,6 +800,19 @@ async fn main() {
         "KESTREL-30 / AUTO"
     };
     let mut cfg = Settings::load_with_base(settings_path, base.clone());
+    let weapon_id = args
+        .iter()
+        .find_map(|arg| arg.strip_prefix("--weapon-id="))
+        .unwrap_or(if args.iter().any(|arg| arg == "--procedural-weapon") {
+            "kestrel30"
+        } else {
+            "hk416a5"
+        });
+    if !vector_range::settings::valid_weapon_id(weapon_id) {
+        eprintln!("Weapon ID must contain 1-80 ASCII letters, digits, underscores or hyphens");
+        return;
+    }
+    let mut pause_menu = pause_menu::PauseMenu::default();
     let mut audio = sound::SoundBank::new().await;
     let mut step_distance = 0.;
     let mut was_reloading = false;
@@ -887,6 +834,8 @@ async fn main() {
     target.texture.set_filter(FilterMode::Linear);
     let mut initial = true;
     let mut session = vector_range::session::SessionController::default();
+    let mut focus_input = vector_range::session::FocusInput::new();
+    let mut cursor_captured = false;
     let mut debug = false;
     let mut fullscreen = false;
     let mut clock = FixedClock::default();
@@ -1152,43 +1101,76 @@ async fn main() {
         }
     }
     loop {
+        let focus_state = focus_input.sample();
         let now = get_time();
         let raw_dt = now - last_frame;
         last_frame = now;
         let dt = raw_dt.min(FixedClock::MAX_FRAME) as f32;
         frames += 1;
-        if is_key_pressed(KeyCode::F10) {
+        if focus_input.is_key_pressed(KeyCode::F10) {
             break;
         }
+        game_update.set_pointer_input(
+            !capture && focus_input.is_mouse_button_pressed(MouseButton::Left),
+            !capture && focus_input.is_mouse_button_down(MouseButton::Left),
+        );
         let startup_blocked = game_update.startup_blocked();
         let update_pointer = game_update.consumes_pointer(!session.is_active());
+        let menu_action = pause_menu.input(
+            &mut cfg,
+            weapon_id,
+            vec2(screen_width(), screen_height()),
+            Vec2::from(mouse_position()),
+            (
+                focus_input.is_mouse_button_pressed(MouseButton::Left),
+                focus_input.is_mouse_button_down(MouseButton::Left),
+            ),
+            !session.is_active()
+                && !startup_blocked
+                && !update_pointer
+                && !focus_state.unfocused
+                && !focus_state.changed,
+        );
+        if menu_action.save {
+            notice = match cfg.save(settings_path) {
+                Ok(_) => format!("Saved walking motion for {weapon_id}"),
+                Err(error) => format!("Could not save walking motion: {error}"),
+            };
+            notice_timer = 4.;
+        }
         let transition = session.step(vector_range::session::SessionInput {
-            esc_pressed: is_key_pressed(KeyCode::Escape),
-            esc_down: is_key_down(KeyCode::Escape),
-            enter_pressed: is_key_pressed(KeyCode::Enter),
-            enter_down: is_key_down(KeyCode::Enter),
-            click_pressed: is_mouse_button_pressed(MouseButton::Left)
-                && (startup_blocked || !update_pointer),
-            click_down: is_mouse_button_down(MouseButton::Left)
-                && (startup_blocked || !update_pointer),
-            focus_shortcut_pressed: is_key_down(KeyCode::LeftAlt)
-                || is_key_down(KeyCode::RightAlt)
-                || is_key_down(KeyCode::LeftSuper)
-                || is_key_down(KeyCode::RightSuper),
+            window_unfocused: !capture && focus_state.unfocused,
+            esc_pressed: !capture && focus_input.is_key_pressed(KeyCode::Escape),
+            esc_down: !capture && focus_input.is_key_down(KeyCode::Escape),
+            enter_pressed: !capture && focus_input.is_key_pressed(KeyCode::Enter),
+            enter_down: !capture && focus_input.is_key_down(KeyCode::Enter),
+            click_pressed: !capture && menu_action.resume,
+            click_down: !capture && menu_action.resume,
+            focus_shortcut_pressed: !capture
+                && (focus_input.is_key_down(KeyCode::LeftAlt)
+                    || focus_input.is_key_down(KeyCode::RightAlt)
+                    || focus_input.is_key_down(KeyCode::LeftSuper)
+                    || focus_input.is_key_down(KeyCode::RightSuper)),
             blocked: model_error.is_some() || startup_blocked,
             dt: raw_dt,
         });
         let active = transition.active;
         let mut just_resumed = transition.resumed;
+        let capture_cursor = active && !focus_state.unfocused && !capture;
+        if capture_cursor != cursor_captured {
+            set_cursor_grab(capture_cursor);
+            show_mouse(!capture_cursor);
+            cursor_captured = capture_cursor;
+        }
         if transition.paused {
             // Includes Escape, focus-shortcut, and asset-block interruptions.
             // A render hitch only discards time and must not cancel traversal.
             sim.cancel_mantle();
         }
-        if transition.paused || transition.resumed {
+        if transition.paused || transition.resumed || focus_state.changed {
             initial = false;
-            set_cursor_grab(active);
-            show_mouse(!active);
+            focus_input.clear();
+            game_update.set_pointer_input(false, false);
             clock.clear();
             intents.clear();
             controls.clear();
@@ -1203,8 +1185,6 @@ async fn main() {
         // input, HUD or pause-menu rendering can run. Session edges above are
         // still sampled, so held buttons cannot leak through on completion.
         if startup_blocked {
-            set_cursor_grab(false);
-            show_mouse(true);
             if game_update.draw(true) {
                 break;
             }
@@ -1220,7 +1200,7 @@ async fn main() {
         } else {
             raw_dt.min(FixedClock::MAX_FRAME)
         };
-        if is_key_pressed(KeyCode::M) {
+        if focus_input.is_key_pressed(KeyCode::M) {
             audio.muted = !audio.muted;
             notice = if audio.muted {
                 "Audio muted".into()
@@ -1229,10 +1209,10 @@ async fn main() {
             };
             notice_timer = 2.;
         }
-        if is_key_pressed(KeyCode::F1) {
+        if focus_input.is_key_pressed(KeyCode::F1) {
             debug = !debug;
         }
-        if is_key_pressed(KeyCode::F2) {
+        if focus_input.is_key_pressed(KeyCode::F2) {
             sim.reset();
             supply.reset();
             register_supply(&mut sim, &supply);
@@ -1250,35 +1230,35 @@ async fn main() {
             notice = "Range reset. Fresh magazine, clean telemetry.".into();
             notice_timer = 3.;
         }
-        if is_key_pressed(KeyCode::F11) {
+        if focus_input.is_key_pressed(KeyCode::F11) {
             fullscreen = !fullscreen;
             set_fullscreen(fullscreen);
         }
-        if is_key_pressed(KeyCode::LeftBracket) {
+        if focus_input.is_key_pressed(KeyCode::LeftBracket) {
             cfg.sensitivity = (cfg.sensitivity - 0.01).max(0.01);
         }
-        if is_key_pressed(KeyCode::RightBracket) {
+        if focus_input.is_key_pressed(KeyCode::RightBracket) {
             cfg.sensitivity = (cfg.sensitivity + 0.01).min(1.);
         }
-        if is_key_pressed(KeyCode::Minus) {
+        if focus_input.is_key_pressed(KeyCode::Minus) {
             cfg.fov = (cfg.fov - 2.).max(65.);
         }
-        if is_key_pressed(KeyCode::Equal) {
+        if focus_input.is_key_pressed(KeyCode::Equal) {
             cfg.fov = (cfg.fov + 2.).min(120.);
         }
-        if is_key_pressed(KeyCode::F5) {
+        if focus_input.is_key_pressed(KeyCode::F5) {
             notice = match cfg.save(settings_path) {
                 Ok(_) => format!("Saved {settings_path}"),
                 Err(e) => format!("Could not save preset: {e}"),
             };
             notice_timer = 4.;
         }
-        if is_key_pressed(KeyCode::F6) {
+        if focus_input.is_key_pressed(KeyCode::F6) {
             cfg = Settings::load_with_base(settings_path, base.clone());
             notice = format!("Loaded {settings_path} with {profile} defaults");
             notice_timer = 4.;
         }
-        if is_key_pressed(KeyCode::F8) {
+        if focus_input.is_key_pressed(KeyCode::F8) {
             if recording.is_some() {
                 recording = None;
                 notice = "Telemetry saved: telemetry.csv".into();
@@ -1293,6 +1273,9 @@ async fn main() {
                 };
             }
             notice_timer = 4.;
+        }
+        if let Some(viewmodel) = &mut authored {
+            viewmodel.set_walk_translation(cfg.walking_translation(weapon_id));
         }
         if active {
             let mouse = if just_resumed || transition.discard_timing {
@@ -1314,45 +1297,53 @@ async fn main() {
                     * (1. - sim.player.ads * 0.35))
                 .clamp(-1.48, 1.48);
             intents.sample(
-                is_key_pressed(KeyCode::Space),
-                is_key_pressed(KeyCode::R),
-                is_mouse_button_pressed(MouseButton::Left),
-                is_mouse_button_down(MouseButton::Left),
+                focus_input.is_key_pressed(KeyCode::Space),
+                focus_input.is_key_pressed(KeyCode::R),
+                focus_input.is_mouse_button_pressed(MouseButton::Left),
+                focus_input.is_mouse_button_down(MouseButton::Left),
                 !just_resumed && !transition.discard_timing,
             );
             controls.sample(
                 ControlSample {
                     ads: ButtonInput {
-                        pressed: is_mouse_button_pressed(MouseButton::Right),
-                        down: is_mouse_button_down(MouseButton::Right),
+                        pressed: focus_input.is_mouse_button_pressed(MouseButton::Right),
+                        down: focus_input.is_mouse_button_down(MouseButton::Right),
                     },
                     crouch: ButtonInput {
-                        pressed: is_key_pressed(KeyCode::LeftControl) || is_key_pressed(KeyCode::C),
-                        down: is_key_down(KeyCode::LeftControl) || is_key_down(KeyCode::C),
+                        pressed: focus_input.is_key_pressed(KeyCode::LeftControl)
+                            || focus_input.is_key_pressed(KeyCode::C),
+                        down: focus_input.is_key_down(KeyCode::LeftControl)
+                            || focus_input.is_key_down(KeyCode::C),
                     },
                     prone: ButtonInput {
-                        pressed: is_key_pressed(KeyCode::Z),
-                        down: is_key_down(KeyCode::Z),
+                        pressed: focus_input.is_key_pressed(KeyCode::Z),
+                        down: focus_input.is_key_down(KeyCode::Z),
                     },
                     sprint: ButtonInput {
-                        pressed: is_key_pressed(KeyCode::LeftShift),
-                        down: is_key_down(KeyCode::LeftShift),
+                        pressed: focus_input.is_key_pressed(KeyCode::LeftShift),
+                        down: focus_input.is_key_down(KeyCode::LeftShift),
                     },
                 },
                 !just_resumed,
             );
             let mut input = Input {
                 movement: vec2(
-                    (is_key_down(KeyCode::D) || is_key_pressed(KeyCode::D)) as u8 as f32
-                        - (is_key_down(KeyCode::A) || is_key_pressed(KeyCode::A)) as u8 as f32,
-                    (is_key_down(KeyCode::W) || is_key_pressed(KeyCode::W)) as u8 as f32
-                        - (is_key_down(KeyCode::S) || is_key_pressed(KeyCode::S)) as u8 as f32,
+                    (focus_input.is_key_down(KeyCode::D) || focus_input.is_key_pressed(KeyCode::D))
+                        as u8 as f32
+                        - (focus_input.is_key_down(KeyCode::A)
+                            || focus_input.is_key_pressed(KeyCode::A))
+                            as u8 as f32,
+                    (focus_input.is_key_down(KeyCode::W) || focus_input.is_key_pressed(KeyCode::W))
+                        as u8 as f32
+                        - (focus_input.is_key_down(KeyCode::S)
+                            || focus_input.is_key_pressed(KeyCode::S))
+                            as u8 as f32,
                 ),
                 jump: false,
                 reload: false,
                 crouch: false,
                 prone: false,
-                sprint: is_key_down(KeyCode::LeftShift),
+                sprint: focus_input.is_key_down(KeyCode::LeftShift),
                 ads: false,
                 fire: false,
             };
@@ -1362,7 +1353,7 @@ async fn main() {
             }
             let steps = clock.advance(simulation_dt).unwrap_or(0);
             for _ in 0..steps {
-                let step = intents.take(is_mouse_button_down(MouseButton::Left));
+                let step = intents.take(focus_input.is_mouse_button_down(MouseButton::Left));
                 if step.jump {
                     controls.request_jump();
                 }
@@ -1385,7 +1376,7 @@ async fn main() {
                 if supply.tick(
                     &mut sim.player,
                     focus,
-                    is_key_down(KeyCode::F),
+                    focus_input.is_key_down(KeyCode::F),
                     active,
                     FIXED_DT,
                 ) == vector_range::ammo_supply::SupplyEvent::Refilled
@@ -1457,7 +1448,11 @@ async fn main() {
             }
         }
         let focus = supply_focus(&sim, &cfg, &supply, active);
-        if !active || transition.discard_timing || !is_key_down(KeyCode::F) || focus.is_none() {
+        if !active
+            || transition.discard_timing
+            || !focus_input.is_key_down(KeyCode::F)
+            || focus.is_none()
+        {
             supply.cancel();
         }
         // Deterministic presentation samples for comparison; only explicit capture flags use these.
@@ -1616,6 +1611,7 @@ async fn main() {
                 arms.as_mut(),
                 &mut animation_state,
                 &cfg,
+                cfg.walking_translation(weapon_id),
                 framing,
                 presentation_reload,
             );
@@ -1651,7 +1647,13 @@ async fn main() {
             );
         }
         if !active {
-            pause_screen(&cfg, initial, controls.mode());
+            pause_menu.draw(
+                &cfg,
+                weapon_id,
+                initial,
+                controls.mode(),
+                (notice_timer > 0.).then_some(notice.as_str()),
+            );
         }
         if game_update.draw(!active) {
             break;

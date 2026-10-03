@@ -472,3 +472,74 @@ fn wip_ads_rate_integrates_phase_without_recomputing_or_resetting_prior_walk_tim
     assert!((layers.walk().seconds().unwrap() - b.walk().seconds().unwrap()).abs() < 1e-10);
     close(layers.pose(), b.pose(), 2e-5);
 }
+
+#[test]
+fn walking_axes_scale_only_neutral_relative_displacement_and_preserve_grips() {
+    use vector_range::{authored_walk::WalkPoseLayer, settings::WalkTranslation};
+    let set = fixture();
+    let base = set.sample_clamped("ads", 0.).unwrap();
+    let walk = set.sample("walk_forward", 0.15).unwrap();
+    let mut layer = WalkPoseLayer::new(&set, &set, "ready", "weapon").unwrap();
+    for aim in [0., 0.35, 1.] {
+        for weight in [0., 0.4, 1.] {
+            layer.set_translation_adjustment(WalkTranslation::default());
+            let current = layer.pose(&set, &base, &walk, weight, aim).unwrap();
+            let neutral = base.actor_globals[0].translation;
+            let displacement = current.actor_globals[0].translation - neutral;
+            for values in [
+                [-1., 0., 0.],
+                [0., -1., 0.],
+                [0., 0., -1.],
+                [1., 0.5, -0.5],
+                [-1.; 3],
+            ] {
+                let adjustment = WalkTranslation(values);
+                layer.set_translation_adjustment(adjustment);
+                let adjusted = layer.pose(&set, &base, &walk, weight, aim).unwrap();
+                let expected = neutral + displacement * adjustment.gains();
+                assert!(adjusted.actor_globals[0]
+                    .translation
+                    .abs_diff_eq(expected, 2e-6));
+                assert!(adjusted.actor_globals[0]
+                    .rotation
+                    .abs_diff_eq(current.actor_globals[0].rotation, 2e-6));
+                let original_globals = set.bone_globals(&current, Mat4::IDENTITY).unwrap();
+                let adjusted_globals = set.bone_globals(&adjusted, Mat4::IDENTITY).unwrap();
+                for (a, b) in original_globals.iter().zip(adjusted_globals) {
+                    let relative_a = current.actor_globals[0].matrix().inverse() * *a;
+                    let relative_b = adjusted.actor_globals[0].matrix().inverse() * b;
+                    assert!(relative_a.abs_diff_eq(relative_b, 3e-6));
+                }
+                if weight == 0. {
+                    assert_eq!(adjusted, base);
+                }
+            }
+        }
+    }
+}
+
+#[test]
+fn walk_settings_leave_idle_reload_and_full_sprint_output_unchanged() {
+    use vector_range::settings::WalkTranslation;
+    let set = fixture();
+    for (moving, sprint, reload) in [
+        (false, false, false),
+        (false, true, false),
+        (true, false, true),
+    ] {
+        let mut original = controller(&set);
+        let mut adjusted = original.clone();
+        adjusted.set_walk_translation(WalkTranslation([-1., 1., 0.5]));
+        let mut sim = Simulation::new();
+        sim.player.velocity = if moving { Vec3::X } else { Vec3::ZERO };
+        sim.player.sprinting = sprint;
+        sim.time = 0.5;
+        original
+            .committed_step(sources(&set), 0., &sim, reload)
+            .unwrap();
+        adjusted
+            .committed_step(sources(&set), 0., &sim, reload)
+            .unwrap();
+        assert_eq!(original.pose(), adjusted.pose());
+    }
+}

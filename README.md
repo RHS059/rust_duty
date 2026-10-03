@@ -63,7 +63,7 @@ On Debian/Ubuntu: `sudo apt-get install build-essential libasound2-dev libx11-de
 For a silent build without ALSA: `cargo run --locked --release --no-default-features`.
 macOS uses Xcode command-line tools; not runtime-tested here.
 
-Click or press Enter to start. Escape pauses and releases the mouse. All gameplay
+Click Enter the Range or press Enter to start. Escape pauses and releases the mouse. All gameplay
 runs offline; there are no network calls, accounts, multiplayer, game-file readers,
 or anti-cheat interactions.
 
@@ -76,7 +76,8 @@ or anti-cheat interactions.
 | Space | Jump or mantle a clear ledge while moving forward; lower stance requests standing first |
 | R | Reload |
 | F | Hold near and looking at the rear-wall ammo supply to refill |
-| Escape / Enter or click | Pause / resume |
+| Escape / Enter or Resume button | Pause / resume |
+| Pause-menu X/Y/Z walking sliders | Save independent per-weapon walking translation |
 | F1 / F2 | Telemetry overlay / reset range and inventory |
 | `[` / `]` | Lower / raise mouse sensitivity |
 | `-` / `=` | Lower / raise horizontal hip FOV |
@@ -92,9 +93,11 @@ hold-to-ADS/crouch/prone. See [control behavior and checks](docs/CONTROLS.md).
 
 The first resume click does not fire. Pause, resume, reset, and detected focus loss
 clear ADS/stance intentions; held buttons must be released before reactivation.
-A fresh Alt/Super shortcut pauses. Long frame hitches discard stale timing/input
+Windows foreground focus loss pauses and releases the cursor. Returning stays paused
+until a fresh resume; a fresh Alt/Super shortcut also pauses. Long frame hitches discard stale timing/input
 without changing pause state, so a slow frame cannot trap the game in pause.
-Escape toggles pause; Enter or a click also resumes.
+Escape toggles pause; Enter or the Resume button also resumes. See
+[walking controls and focus behavior](docs/WALK_AXIS_SETTINGS.md).
 
 ## What's implemented
 
