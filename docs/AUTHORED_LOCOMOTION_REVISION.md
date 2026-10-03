@@ -12,4 +12,17 @@ This revision wires the existing ready, entry, sprint-loop and exit animations i
 
 The supplied motion is unchanged. Runtime transition bridges and small bounded phase corrections preserve hand contact. This revision does not include new reload, firing or ADS authored clips: the existing authored renderer already bypassed legacy procedural weapon posing. Gameplay action timing is unchanged, but those visual actions remain pending integration with Aella's authored action set. The default legacy renderer remains unchanged when no authored asset is selected.
 
+Regular walking now retains the previous deterministic, speed-scaled vertical
+bob while the authored path is Ready. One camera-space root translation is
+applied equally to the complete skin and rigid weapon/magazine actors; no bone
+locals, grip offsets, source Actions, or animation pack bytes are changed. A
+walking offset already visible when sprint starts decays monotonically to zero
+over 100 ms. This captured transition residual does not add an ongoing bob over
+the authored sprint entry, loop, or exit. Returning to Ready fades walking back
+in without exposing a hidden oscillator offset. Pause and render reads cannot
+advance it; range reset clears both bob and residual. Explicit selected-clip
+and fixed-time captures, plus the public complete-pose rendering API, retain
+their original unmodified root. This restoration does not implement or change
+the separate ADS/reload visual owner.
+
 Validation: local Rust tests, formatting and strict all-target Clippy. Real-asset controller sweeps and exported-pose parity are documented in the private handoff. Native windowed visual verification remains unavailable on this executor; no gameplay recording is claimed.
