@@ -8,6 +8,7 @@ import tempfile
 import unittest
 from unittest import mock
 import zipfile
+from urllib.parse import parse_qs, urlsplit
 
 import build_identity as identity
 import publish_game_build as publish
@@ -39,6 +40,7 @@ class FakeGitHub:
             if endpoint == "releases":
                 release = {**payload, "id": len(self.releases) + 1, "assets": [],
                            "html_url": f'https://github.com/RHS059/rust_duty/releases/tag/{payload["tag_name"]}'}
+                release["upload_url"] = f'https://uploads.github.com/repos/RHS059/rust_duty/releases/{release["id"]}/assets{{?name,label}}'
                 self.releases[release["id"]] = release
             else:
                 release = self.releases[int(endpoint.split("/")[-1])]
@@ -48,10 +50,15 @@ class FakeGitHub:
                     if payload.get("make_latest") == "true":
                         self.latest = release["id"]
             return copy.deepcopy(release)
+        if endpoint.startswith("releases?per_page="):
+            query = parse_qs(urlsplit(endpoint).query)
+            page, per_page = int(query["page"][0]), int(query["per_page"][0])
+            values = list(self.releases.values())
+            return copy.deepcopy(values[(page - 1) * per_page:page * per_page])
         if endpoint == "releases/latest":
             value = self.releases.get(self.latest)
         elif endpoint.startswith("releases/tags/"):
-            value = next((r for r in self.releases.values() if r["tag_name"] == endpoint[14:]), None)
+            value = next((r for r in self.releases.values() if r["tag_name"] == endpoint[14:] and not r["draft"]), None)
         elif endpoint.startswith("git/ref/tags/"):
             sha = self.tags.get(endpoint[13:])
             value = None if sha is None else {"object": {"type": "commit", "sha": sha}}
@@ -61,10 +68,11 @@ class FakeGitHub:
             raise RuntimeError("HTTP 404")
         return copy.deepcopy(value)
 
-    def upload(self, tag, path):
+    def upload(self, known_release, path):
         if self.interrupt_after is not None and len(self.uploads) >= self.interrupt_after:
             raise RuntimeError("simulated interrupted upload")
-        release = next(r for r in self.releases.values() if r["tag_name"] == tag)
+        release = self.releases[known_release["id"]]
+        publish.upload_url(known_release, path.name)
         if any(a["name"] == path.name for a in release["assets"]):
             raise ValueError("duplicate asset upload")
         self.add_asset(release, path.name, path.read_bytes())
@@ -330,6 +338,198 @@ class PublicationTests(unittest.TestCase):
             self.assertEqual(self.publish()["status"], "superseded-draft")
         self.assertTrue(self.github.releases[1]["draft"])
         self.assertIsNone(self.github.latest)
+
+    def seed_interrupted_recovery_draft(self):
+        self.github.interrupt_after = 7
+        with self.assertRaisesRegex(RuntimeError, "interrupted"):
+            self.publish()
+        self.github.interrupt_after = None
+        self.assertEqual(set(path.name for path in self.output.iterdir()) -
+                         set(publish.release_assets(self.github.releases[1])),
+                         {"vector-range.exe", "vector-range-linux-x64"})
+
+    def test_recovery_draft_by_tag_404_resumes_same_id_and_only_two_missing_files(self):
+        self.seed_interrupted_recovery_draft()
+        self.assertIsNone(self.github.api("releases/tags/v0.1.5", missing_ok=True))
+        before = len(self.github.writes)
+        result = publish.publish(self.github, self.output, self.identity, recovery_release_id=1)
+        self.assertEqual(result["status"], "published")
+        self.assertEqual(len(self.github.releases), 1)
+        self.assertEqual(self.github.uploads[7:], ["vector-range-linux-x64", "vector-range.exe"])
+        self.assertEqual([call[0] for call in self.github.writes[before:]], ["releases/1"])
+        self.assertEqual(self.github.writes[-1][1], {"draft": False, "make_latest": "true"})
+
+    def test_recovery_missing_or_wrong_draft_id_never_creates_or_uploads(self):
+        with self.assertRaisesRegex(ValueError, "creation is forbidden"):
+            publish.publish(self.github, self.output, self.identity, recovery_release_id=1)
+        self.assertFalse(self.github.writes)
+        self.seed_interrupted_recovery_draft()
+        before = copy.deepcopy(self.github.writes)
+        with self.assertRaisesRegex(ValueError, "required recovery draft"):
+            publish.publish(self.github, self.output, self.identity, recovery_release_id=2)
+        self.assertEqual(self.github.writes, before)
+        self.assertEqual(len(self.github.uploads), 7)
+
+    def test_recovery_cannot_add_unexpected_missing_assets(self):
+        self.seed_interrupted_recovery_draft()
+        self.github.releases[1]["assets"].pop(0)
+        with self.assertRaisesRegex(ValueError, "only add the two known missing"):
+            publish.publish(self.github, self.output, self.identity, recovery_release_id=1)
+        self.assertEqual(len(self.github.uploads), 7)
+
+    def test_duplicate_drafts_block_every_write(self):
+        self.seed_interrupted_recovery_draft()
+        duplicate = copy.deepcopy(self.github.releases[1])
+        duplicate["id"] = 2
+        self.github.releases[2] = duplicate
+        before = copy.deepcopy(self.github.writes)
+        with self.assertRaisesRegex(ValueError, "duplicate releases"):
+            publish.publish(self.github, self.output, self.identity, recovery_release_id=1)
+        self.assertEqual(self.github.writes, before)
+        self.assertEqual(len(self.github.uploads), 7)
+
+    def test_recovery_reuses_original_successful_matrix_and_artifact_identity(self):
+        self.seed_interrupted_recovery_draft()
+        original_api = self.github.api
+        run = {"id": 1000, "head_sha": "a" * 40, "head_branch": environment()["GITHUB_REF_NAME"],
+               "event": "push", "path": identity.WORKFLOW, "status": "completed",
+               "conclusion": "failure", "run_number": 10,
+               "repository": {"full_name": identity.REPOSITORY}}
+        jobs = [{"name": name, "run_id": 1000, "head_sha": "a" * 40,
+                 "status": "completed", "conclusion": "success"}
+                for name in ("ubuntu-latest", "windows-latest")]
+        def api(endpoint, **kwargs):
+            if endpoint == "actions/runs/1000":
+                return copy.deepcopy(run)
+            if endpoint.startswith("actions/runs/1000/jobs?"):
+                return {"jobs": copy.deepcopy(jobs)}
+            return original_api(endpoint, **kwargs)
+        with mock.patch.multiple(publish, RECOVERY_RELEASE_ID=1, RECOVERY_RUN_ID=1000,
+                                 RECOVERY_COMMIT="a" * 40), mock.patch.object(self.github, "api", side_effect=api):
+            recovered = publish.recovery_identity(self.github, self.tested, 1, 1000, "a" * 40,
+                                          {**environment(), "GITHUB_REF": "refs/heads/" + publish.RECOVERY_EXECUTION_BRANCH})
+            self.assertEqual(recovered, self.identity)
+            jobs[1]["conclusion"] = "failure"
+            with self.assertRaisesRegex(ValueError, "matrix job did not succeed"):
+                publish.recovery_identity(self.github, self.tested, 1, 1000, "a" * 40,
+                                          {**environment(), "GITHUB_REF": "refs/heads/" + publish.RECOVERY_EXECUTION_BRANCH})
+            jobs[1]["conclusion"] = "success"
+            run["head_sha"] = "b" * 40
+            with self.assertRaisesRegex(ValueError, "provenance"):
+                publish.recovery_identity(self.github, self.tested, 1, 1000, "a" * 40,
+                                          {**environment(), "GITHUB_REF": "refs/heads/" + publish.RECOVERY_EXECUTION_BRANCH})
+        self.assertEqual(len(self.github.uploads), 7)
+
+    def test_upload_uses_validated_release_id_endpoint_and_exact_binary_body(self):
+        self.seed_interrupted_recovery_draft()
+        release = self.github.releases[1]
+        path = self.output / "vector-range.exe"
+        record = {**publish.release_update.asset(path), "state": "uploaded",
+                  "digest": "sha256:" + publish.release_update.sha(path)}
+        response = mock.Mock(returncode=0, stdout=json.dumps(record), stderr="")
+        with mock.patch.object(publish.subprocess, "run", return_value=response) as call:
+            publish.GitHub().upload(release, path)
+        args = call.call_args.args[0]
+        self.assertEqual(args[:3], ["gh", "api", "https://uploads.github.com/repos/RHS059/rust_duty/releases/1/assets?name=vector-range.exe"])
+        self.assertIn(f"Content-Length: {path.stat().st_size}", args)
+        self.assertEqual(args[-2:], ["--input", str(path)])
+        for wrong in ("https://uploads.github.com.evil.example/assets", "http://uploads.github.com/assets",
+                      "https://uploads.github.com/repos/RHS059/rust_duty/releases/2/assets{?name,label}"):
+            with self.subTest(url=wrong), self.assertRaisesRegex(ValueError, "upload URL"):
+                publish.upload_url({**release, "upload_url": wrong}, path.name)
+
+    def seed_known_empty_orphan(self):
+        self.seed_interrupted_recovery_draft()
+        orphan = copy.deepcopy(self.github.releases[1])
+        orphan.update(id=2, assets=[], upload_url="https://uploads.github.com/repos/RHS059/rust_duty/releases/2/assets{?name,label}")
+        self.github.releases[2] = orphan
+        return orphan
+
+    def fast_recover(self, destination="fast-recovery"):
+        with mock.patch.multiple(publish, RECOVERY_RELEASE_ID=1, RECOVERY_EMPTY_ORPHAN_ID=2,
+                                 RECOVERY_PROVENANCE_SHA256=publish.release_update.sha(self.output / publish.PROVENANCE)), \
+                mock.patch.object(publish, "prepare", side_effect=AssertionError("repacking forbidden")):
+            return publish.recover(self.github, self.tested, self.root / destination, self.identity, 1)
+
+    def test_fast_recovery_preserves_known_empty_orphan_and_never_repacks(self):
+        orphan = copy.deepcopy(self.seed_known_empty_orphan())
+        before = len(self.github.writes)
+        original = copy.deepcopy(self.github.releases[1]["assets"])
+        self.assertEqual(self.fast_recover()["status"], "published")
+        self.assertEqual(self.github.releases[2], orphan)
+        self.assertEqual(self.github.releases[1]["assets"][:7], original)
+        self.assertEqual(self.github.uploads[7:], ["vector-range-linux-x64", "vector-range.exe"])
+        self.assertEqual([item[0] for item in self.github.writes[before:]], ["releases/1"])
+        self.assertFalse(any(path.suffix in (".zip", ".rdb") for path in (self.root / "fast-recovery").iterdir()))
+        before = copy.deepcopy(self.github.writes)
+        self.assertEqual(self.fast_recover("retry")["status"], "already-published")
+        self.assertEqual(self.github.writes, before)
+        self.assertEqual(self.github.releases[2], orphan)
+
+    def test_generic_publication_still_rejects_known_empty_orphan(self):
+        self.seed_known_empty_orphan()
+        with mock.patch.multiple(publish, RECOVERY_RELEASE_ID=1, RECOVERY_EMPTY_ORPHAN_ID=2):
+            with self.assertRaisesRegex(ValueError, "duplicate releases"):
+                self.publish()
+        self.assertEqual(len(self.github.uploads), 7)
+
+    def test_fast_recovery_rejects_changed_nonempty_public_or_unknown_orphan(self):
+        self.seed_known_empty_orphan()
+        original = copy.deepcopy(self.github.releases[2])
+        for field, value in (("draft", False), ("target_commitish", "b" * 40), ("body", "different notes"),
+                             ("assets", [{"id": 999, "name": "unapproved", "size": 1, "state": "uploaded"}])):
+            self.github.releases[2] = {**copy.deepcopy(original), field: value}
+            with self.subTest(field=field), self.assertRaisesRegex(ValueError, "unchanged empty draft"):
+                self.fast_recover(field)
+        self.github.releases[2] = original
+        self.github.releases[3] = {**copy.deepcopy(original), "id": 3}
+        with self.assertRaisesRegex(ValueError, "duplicate releases"):
+            self.fast_recover("unknown")
+        self.assertEqual(len(self.github.uploads), 7)
+
+    def test_fast_recovery_pinned_provenance_and_existing_hashes_are_mandatory(self):
+        self.seed_known_empty_orphan()
+        before = copy.deepcopy(self.github.writes)
+        record = next(asset for asset in self.github.releases[1]["assets"] if asset["name"] == publish.PROVENANCE)
+        old = self.github.contents[record["id"]]
+        self.github.contents[record["id"]] = old + b" "
+        with self.assertRaisesRegex(ValueError, "pinned original SHA"):
+            self.fast_recover("wrong-proof")
+        self.github.contents[record["id"]] = old
+        self.github.releases[1]["assets"][0]["digest"] = "sha256:" + "0" * 64
+        with self.assertRaisesRegex(ValueError, "digest differs"):
+            self.fast_recover("wrong-existing-asset")
+        self.assertEqual(self.github.writes, before)
+        self.assertEqual(len(self.github.uploads), 7)
+
+    def test_fast_recovery_missing_archive_cannot_be_reuploaded(self):
+        self.seed_known_empty_orphan()
+        self.github.releases[1]["assets"].pop(0)
+        with self.assertRaisesRegex(ValueError, "only add the two known missing"):
+            self.fast_recover()
+        self.assertEqual(len(self.github.uploads), 7)
+
+
+class ReleaseDiscoveryTests(unittest.TestCase):
+    def test_complete_bounded_pagination_finds_draft_after_page_one(self):
+        github = mock.Mock()
+        filler = [{"id": number + 10, "tag_name": f"v9.0.{number}"} for number in range(100)]
+        draft = {"id": 7, "tag_name": "v0.1.5", "draft": True}
+        github.api.side_effect = [filler, [draft], draft]
+        self.assertEqual(publish.find_release(github, "v0.1.5", required_id=7), draft)
+        self.assertEqual([call.args[0] for call in github.api.call_args_list],
+                         ["releases?per_page=100&page=1", "releases?per_page=100&page=2", "releases/7"])
+
+    def test_pagination_limit_and_cross_page_duplicates_fail_closed(self):
+        github = mock.Mock()
+        filler = [{"id": number + 10, "tag_name": f"v9.0.{number}"} for number in range(100)]
+        github.api.return_value = filler
+        with mock.patch.object(publish, "MAX_API_PAGES", 2), self.assertRaisesRegex(ValueError, "pagination limit"):
+            publish.find_release(github, "v0.1.5")
+        filler[0] = {"id": 1, "tag_name": "v0.1.5"}
+        github.api.side_effect = [filler, [{"id": 2, "tag_name": "v0.1.5"}]]
+        with self.assertRaisesRegex(ValueError, "duplicate releases"):
+            publish.find_release(github, "v0.1.5")
 
 
 class WorkflowTests(unittest.TestCase):
