@@ -102,7 +102,8 @@ def convert(args):
         require(all(n in keep for row in rows for n,w in row), f'weighted noncanonical bone in {obj.name}')
         maximum = max(map(len,rows)); require(maximum<=8, 'runtime cannot preserve more than eight influences')
         weights[obj.name] = {'vertices':len(rows),'maximum_influences':maximum,'vertices_over_four':sum(len(r)>4 for r in rows)}
-    # Blender Z-up to the established glTF Y-up runtime authoring basis once.
+    # Blender Z-up to glTF Y-up once. Joint local basis remains Blender
+    # (matching glTF inverse binds); rigid mesh coordinates are converted too.
     basis = Matrix(((1,0,0,0),(0,0,1,0),(0,-1,0,0),(0,0,0,1)))
     inv_basis = basis.inverted()
     bone_names = [b[0] for b in skeleton]
@@ -111,7 +112,7 @@ def convert(args):
     for i,native in enumerate(frames):
         f=float(native)+1; scene.frame_set(math.floor(f),subframe=f-math.floor(f)); arm.update_tag();bpy.context.view_layer.update()
         dg=bpy.context.evaluated_depsgraph_get(); ae=arm.evaluated_get(dg)
-        raw_bones[i]=[basis @ ae.matrix_world @ ae.pose.bones[n].matrix @ inv_basis for n in bone_names]
+        raw_bones[i]=[basis @ ae.matrix_world @ ae.pose.bones[n].matrix for n in bone_names]
         raw_actors[i]=[basis @ o.evaluated_get(dg).matrix_world @ inv_basis for o in actors]
         if i%512==0: print('FBX_SAMPLE',i,len(frames),flush=True)
     # Freeze geometry independently. Prune only unweighted helpers outside the
@@ -132,6 +133,17 @@ def convert(args):
     require(all(max(abs(a-b) for a,b in zip(rest[n],flat(arm.matrix_world@arm.data.bones[n].matrix_local)))<1e-6 for n in keep), 'rest changed during helper pruning')
     for obj in skins+actors+[arm]: obj.hide_set(False);obj.select_set(True)
     args.output.mkdir(parents=True)
+    if args.material_source:
+        require(hashlib.sha256(args.material_source.read_bytes()).hexdigest()==args.source_sha256, 'material source hash mismatch')
+        slots={o.name:[m.name if m else None for m in o.data.materials] for o in skins+actors}
+        wanted=sorted({n for names in slots.values() for n in names if n})
+        with bpy.data.libraries.load(str(args.material_source.resolve()),link=False) as (available,loaded):
+            require(set(wanted)<=set(available.materials),'FBX material missing in canonical source')
+            loaded.materials=list(wanted)
+        restored=dict(zip(wanted,loaded.materials))
+        for obj in skins+actors:
+            for i,name in enumerate(slots[obj.name]):
+                if name:obj.data.materials[i]=restored[name]
     geometry_path=args.output/'geometry-only.glb'
     export_viewmodel.export_glb(bpy,geometry_path,animation=False)
     doc,blob=vrpack.parse_glb(geometry_path.read_bytes())
@@ -140,6 +152,10 @@ def convert(args):
     vrs,vrm,actor_defs=geometry.companions(args.actor)
     output_bones=geometry.skin.bones
     require({b[0] for b in output_bones}==keep, 'geometry bone selection changed')
+    for name in keep:
+        expected=basis @ arm.matrix_world @ arm.data.bones[name].matrix_local
+        actual=geometry.rest_globals[geometry.node_named(name)]
+        require(max(abs(a-b) for a,b in zip(flat(expected),actual))<1e-5, f'joint basis/rest mismatch: {name}')
     # Reindex by names. Animation locals are derived from evaluated global
     # transforms rather than FK channels or omitted mechanism parents.
     order=[bone_names.index(b[0]) for b in output_bones]
@@ -161,9 +177,9 @@ def convert(args):
       'timing_policy':{'kind':'explicit-rational-resampling','subdivisions':args.subdivisions,'switches':args.switch,
                        'switch_neighbor_offset_native':[1,65536],'float32_collision_policy':'reject','samples':len(frames)},
       'bones':len(output_bones),'actors':args.actor,'weights':weights,'importer_patches':patches,
-      'source_action_ranges':action_ranges, 'visibility_policy':'all-zero rigid scale maps to invisible STEP with identity placeholder; partial singular scale rejected', 'geometry_transport':'static GLB only; no sampled GLB animation',
+      'source_action_ranges':action_ranges, 'visibility_policy':'all-zero rigid scale maps to invisible STEP with identity placeholder; partial singular scale rejected', 'geometry_transport':'static GLB only; no sampled GLB animation', 'material_source_sha256':args.source_sha256 if args.material_source else None,
       'files':{f'asset.{s}':{'sha256':hashlib.sha256(d).hexdigest(),'bytes':len(d)} for s,d in [('vrs',vrs),('vrm',vrm),('vra',vra)]},
-      'scope':'Reviewed source segment converted as WIP. No full-clip, gap/join, runtime parity, or gameplay visual approval.'}
+      'scope':'Explicitly selected source range converted as WIP. Review scope is recorded in the source-selection manifest. No runtime parity or gameplay visual approval is implied.'}
     (args.output/'manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
     print(json.dumps(manifest,indent=2),flush=True)
 
@@ -172,7 +188,7 @@ def main():
     p=argparse.ArgumentParser(description=__doc__)
     for flag in ('fbx','output','skeleton-vra'):p.add_argument('--'+flag,type=Path,required=True)
     for flag in ('fbx-sha256','source-sha256','name'):p.add_argument('--'+flag,required=True)
-    p.add_argument('--armature',default='Arms');p.add_argument('--actor',action='append',required=True)
+    p.add_argument('--material-source',type=Path);p.add_argument('--armature',default='Arms');p.add_argument('--actor',action='append',required=True)
     p.add_argument('--native-start',type=int,required=True);p.add_argument('--native-end',type=int,required=True)
     p.add_argument('--subdivisions',type=int,default=64);p.add_argument('--switch',action='append',default=[])
     argv=sys.argv[sys.argv.index('--')+1:] if '--' in sys.argv else sys.argv[1:]

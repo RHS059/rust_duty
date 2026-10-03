@@ -38,6 +38,13 @@ class FbxVisibilityTests(unittest.TestCase):
     def test_identity_stays_visible(self):
         _,mask=importer.rigid_transform(vrpack.IDENTITY)
         self.assertEqual(mask,1)
+    def test_hidden_identity_does_not_interpolate_visibility(self):
+        trs,_=importer.rigid_transform(vrpack.IDENTITY)
+        frames=[{'time':0.,'bones':[],'actors':[trs],'visible':[0]},
+                {'time':1.,'bones':[],'actors':[trs],'visible':[1]}]
+        pack={'clips':[{'name':'visibility','loop':False,'frames':frames}]}
+        self.assertEqual(vrview.sample(pack,'visibility',.999)['visible'],[0])
+        self.assertEqual(vrview.sample(pack,'visibility',1.)['visible'],[1])
     def test_partially_singular_rejected(self):
         m=list(vrpack.IDENTITY);m[0]=0
         with self.assertRaises(vrpack.AssetError):importer.rigid_transform(tuple(m))
