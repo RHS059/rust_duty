@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T12:03:08Z",
+  "updatedAt": "2026-10-03T12:12:52Z",
   "state": "idle",
   "task": "Awaiting Hal's timestamp annotations and clip split before animation authoring",
   "lastCompleted": "Shared both verified 720p60 movement references and the reusable download workflow; matching files confirmed",
