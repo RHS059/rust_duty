@@ -875,7 +875,12 @@ async fn main() {
                 || s.starts_with("--weapon-asset=")
                 || s.starts_with("--arms-asset=")
         }),
-    );
+    )
+    .or_else(|| {
+        args.iter()
+            .find_map(|arg| arg.strip_prefix("--animation-manifest="))
+            .map(std::path::PathBuf::from)
+    });
     let authored_clip = args
         .iter()
         .find_map(|s| s.strip_prefix("--viewmodel-clip="))
@@ -899,7 +904,21 @@ async fn main() {
             let path = path
                 .to_str()
                 .ok_or_else(|| "viewmodel path is not valid Unicode".to_string())?;
-            authored_viewmodel::AuthoredViewmodel::load(path, authored_clip, time)
+            if authored_clip == "locomotion" && time.is_none() {
+                let manifest = args
+                    .iter()
+                    .find_map(|arg| arg.strip_prefix("--animation-manifest="))
+                    .map(std::path::PathBuf::from)
+                    .unwrap_or_else(|| {
+                        executable
+                            .parent()
+                            .unwrap_or(std::path::Path::new("."))
+                            .join("assets/animations.cfg")
+                    });
+                authored_viewmodel::AuthoredViewmodel::load_manifest(&manifest)
+            } else {
+                authored_viewmodel::AuthoredViewmodel::load(path, authored_clip, time)
+            }
         }) {
             Ok(viewmodel) => Some(viewmodel),
             Err(error) => {
@@ -976,13 +995,27 @@ async fn main() {
     let capture_sequence = args
         .iter()
         .find_map(|a| a.strip_prefix("--capture-sequence="))
-        .filter(|s| matches!(*s, "tactical" | "empty" | "ads" | "locomotion"));
+        .filter(|s| {
+            matches!(
+                *s,
+                "tactical" | "empty" | "ads" | "locomotion" | "gameplay-reload"
+            )
+        });
+    let mut gameplay_reload_issued = false;
     let capture_empty =
         args.iter().any(|s| s == "--capture-empty") || capture_sequence == Some("empty");
     let sequence_duration = match capture_sequence {
         Some("empty") => vector_range::reference_motion::visual_duration(true),
         Some("tactical") => vector_range::reference_motion::visual_duration(false),
         Some("locomotion") => 3.5,
+        Some("gameplay-reload") => {
+            authored
+                .as_ref()
+                .and_then(|model| model.tactical_duration())
+                .unwrap_or(f64::from(cfg.reload_time))
+                .max(f64::from(cfg.reload_time)) as f32
+                + 0.75
+        }
         _ => cfg.ads_time,
     };
     if capture_sequence.is_some() && !framing.reference {
@@ -1008,6 +1041,9 @@ async fn main() {
         .iter()
         .find_map(|s| s.strip_prefix("--output="))
         .unwrap_or("capture.png");
+    if capture_sequence == Some("gameplay-reload") {
+        sim.player.ammo = 12;
+    }
     if capture_fixtures {
         sim.player.position = vec3(-18., 0., -12.);
         sim.player.yaw = -std::f32::consts::FRAC_PI_2;
@@ -1122,7 +1158,7 @@ async fn main() {
             animation_state = vector_range::view_animation::ViewAnimation::default();
             locomotion_state.reset(sim.time);
             if let Some(viewmodel) = &mut authored {
-                viewmodel.update_locomotion(sim.time, sim.time, false);
+                viewmodel.reset(sim.time);
             }
             intents.clear();
             controls.clear();
@@ -1259,11 +1295,7 @@ async fn main() {
                 let authored_step_start = sim.time;
                 sim.update(input, &cfg, FIXED_DT);
                 if let Some(viewmodel) = &mut authored {
-                    viewmodel.update_locomotion(
-                        authored_step_start,
-                        sim.time,
-                        sim.player.sprinting,
-                    );
+                    viewmodel.committed_step(authored_step_start, &sim);
                 }
                 // Cosmetic targets receive exact simulation timestamps; input
                 // and movement remain fully authoritative and immediate.
@@ -1355,8 +1387,29 @@ async fn main() {
         } else {
             capture_reload
         };
-        if capture_sequence.is_some() {
+        if capture_sequence.is_some() && capture_sequence != Some("gameplay-reload") {
             sim.time = sequence_elapsed as f64;
+        }
+        if capture_sequence == Some("gameplay-reload") {
+            // Deterministic replay feeds the same accepted R event, fixed-step
+            // simulation and renderer observer as keyboard gameplay. No pose,
+            // timer or normalized reload-phase overrides are used here.
+            while sim.time + f64::from(FIXED_DT) <= f64::from(sequence_elapsed) + 1e-7 {
+                let start = sim.time;
+                let reload = !gameplay_reload_issued && start >= 0.25;
+                gameplay_reload_issued |= reload;
+                sim.update(
+                    Input {
+                        reload,
+                        ..Input::default()
+                    },
+                    &cfg,
+                    FIXED_DT,
+                );
+                if let Some(model) = &mut authored {
+                    model.committed_step(start, &sim);
+                }
+            }
         }
         if capture_sequence == Some("ads") {
             sim.player.ads = sequence_phase;
@@ -1446,6 +1499,9 @@ async fn main() {
                 framing,
                 presentation_reload,
             );
+        }
+        if let Some(warning) = authored.as_ref().and_then(|viewmodel| viewmodel.warning()) {
+            label(warning, 24., screen_height() - 155., 15., YELLOW);
         }
         if let Some(error) = authored.as_ref().and_then(|viewmodel| viewmodel.error()) {
             if model_error.is_none() {
@@ -1544,6 +1600,20 @@ async fn main() {
             }
             if capture_sequence.is_some() {
                 let _ = std::fs::write(format!("{output}.time.json"), format!("{{\"elapsed_seconds\":{},\"normalized_phase\":{},\"visual_duration_seconds\":{},\"simulation_ready_seconds\":{},\"sampling_hz\":59.94005994}}", sequence_elapsed, sequence_phase, sequence_duration, if capture_empty { cfg.empty_reload_time } else if capture_sequence == Some("ads") { cfg.ads_time } else { cfg.reload_time }));
+            }
+            if capture_sequence == Some("gameplay-reload") {
+                let sample = authored.as_ref().and_then(|model| model.reload_sample());
+                let route = if sample.is_some() {
+                    "reload.tactical"
+                } else {
+                    "locomotion"
+                };
+                let native = sample
+                    .map(|sample| sample.seconds.to_string())
+                    .unwrap_or_else(|| "null".into());
+                let _ = std::fs::write(format!("{output}.gameplay.json"), format!(
+                    "{{\"simulation_time\":{},\"accepted_r_issued\":{},\"route\":\"{}\",\"native_clip_seconds\":{},\"ammo\":{},\"reserve\":{},\"reload_left\":{},\"reload_credit_at\":{},\"reload_ready_at\":{}}}",
+                    sim.time, gameplay_reload_issued, route, native, sim.player.ammo, sim.player.reserve, sim.player.reload_left, sim.player.reload_credit_at, sim.player.reload_ready_at));
             }
             if capture_sequence == Some("locomotion") {
                 let motion = locomotion_state.sample(sim.time, locomotion_input(&sim));

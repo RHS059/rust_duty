@@ -1,0 +1,69 @@
+{
+  "schema": "rust-duty-blender-source/v1",
+  "file": "current.blend",
+  "sha256": "8cec36c6bfcc4967cb80629b40ecdced3c0b5507914aec7eb3d2d614f2d758fd",
+  "bytes": 8247987,
+  "blender": "4.3.2",
+  "action": "RD_Reload_Tactical_HandApproach_AndReturn_WIP",
+  "clip": "reload_current_wip",
+  "native_range": [
+    0,
+    156
+  ],
+  "native_fps": [
+    60000,
+    1001
+  ],
+  "status": "latest full two-hand WIP, not animation approval",
+  "reviewed_subranges": [
+    [
+      48,
+      156
+    ]
+  ],
+  "provenance": "Exact immutable current authored two-hand reload source supplied for the Rust Duty game; committed directly in GitHub at the user's request. No external asset lookup is used.",
+  "unreviewed_prefix": [
+    0,
+    48
+  ],
+  "additional_selections": [
+    {
+      "id": "opening",
+      "action": "RD_Reload_Tactical_Hands_Opening_WIP",
+      "clip": "reload_opening_wip",
+      "native_range": [
+        0,
+        30
+      ],
+      "reviewed_subranges": [
+        [
+          0,
+          30
+        ]
+      ],
+      "status": "Separate current opening WIP; not joined to primary"
+    },
+    {
+      "id": "reset",
+      "action": "RD_00_Supplied_Base_Guarded_Recovered",
+      "clip": "canonical_reset",
+      "native_range": [
+        0,
+        0
+      ],
+      "reviewed_subranges": [],
+      "status": "Canonical static reset, not an animation"
+    },
+    {
+      "id": "pickup",
+      "action": "RD_Pose_Tactical_Pickup54_Guarded",
+      "clip": "pickup_pose_inspection",
+      "native_range": [
+        54,
+        54
+      ],
+      "reviewed_subranges": [],
+      "status": "Static inspection pose, not gameplay animation"
+    }
+  ]
+}

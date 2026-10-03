@@ -1,0 +1,26 @@
+name: FBX converter CPU sampler
+on:
+  pull_request:
+    paths:
+      - 'tools/import_fbx_viewmodel.py'
+      - 'tools/test_import_fbx_viewmodel.py'
+      - 'tools/verify_fbx_segment.py'
+      - '.github/workflows/fbx-converter.yml'
+  push:
+    branches: ['codex/reload-fbx-segments']
+permissions:
+  contents: read
+jobs:
+  sampler:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - run: sudo apt-get update && sudo apt-get install -y libasound2-dev
+      - run: python -m unittest discover -s tools -p test_import_fbx_viewmodel.py -v
+      - run: cargo build --locked --release --example sample_viewmodel_clip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: reload-fbx-cpu-sampler-linux
+          path: target/release/examples/sample_viewmodel_clip
+          if-no-files-found: error
