@@ -1,11 +1,11 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T22:03:06Z",
+  "updatedAt": "2026-10-03T22:22:56Z",
   "latestComplete": {
     "sha": "c60c53fe3b4b3a995f41630e1746c2df336c7929",
     "downloadUrl": "https://github.com/RHS059/rust_duty/actions/runs/37151455895/artifacts/11284770859",
     "runUrl": "https://github.com/RHS059/rust_duty/actions/runs/37151455895",
-    "verifiedAt": "2026-10-03T22:03:06Z",
+    "verifiedAt": "2026-10-03T22:22:56Z",
     "completedAt": "2026-10-03T20:40:53Z"
   },
   "changes": [
@@ -14,13 +14,13 @@
     "CI strictly verified the complete 83-file Windows package; 488 Rust tests passed and 156 Python tests completed with one skipped.",
     "All three workflows passed; native Linux layered-input diagnostics passed at 30 and 60 Hz.",
     "Windows artifact size is 92,854,957 bytes. API and upload-log SHA-256 match: 20e2ad9ce279475e98ff9a27903394630ec50bf1fbcbbe0e5e37517e173d4478. The full ZIP was not independently inspected locally.",
-    "Forward v9 and lateral Trial4 previews await publication and motion review. V8 remains Fail54; lateral Trial3 scored Fail35 left and Fail36 right. The integrated ADS composition remains unreviewed.",
-    "PR #19 at eb886edb passed complete-build, authored-contract and updater CI. Publication is retrying after an executable upload failed, reusing the existing draft bundles and ZIPs. Public 0.1.5 release and real old-client upgrade verification remain pending; Latest Complete stays at verified 0.1.4. Future merged PRs are intended to increment the patch version by one.",
+    "Forward ADS preview refinements are active; v9 and lateral Trial4 await publication and motion review. V8 remains Fail54; Trial3 scored Fail35 left and Fail36 right. Integrated ADS remains unreviewed.",
+    "PR #19 at eb886edb passed complete-build, authored-contract and updater CI. Preparing version 0.1.5 update delivery; publication recovery is underway. Old-client checks timed out waiting for the release, before upgrade execution. Latest Complete stays at verified 0.1.4.",
     "Jump and mantle reference planning is complete; verified reference windows are still needed."
   ],
   "currentBuild": {
     "state": "active",
-    "task": "Complete Windows/Linux builds passed. The 0.1.5 publication retry is running; executable uploads, public release and native old-client upgrade verification remain pending.",
+    "task": "Preparing version 0.1.5 update delivery. Complete Windows/Linux builds passed; publication recovery is underway and old-client upgrade verification remains incomplete.",
     "url": "https://github.com/RHS059/rust_duty/actions/runs/37154246170"
   }
 }
