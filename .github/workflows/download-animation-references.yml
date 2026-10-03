@@ -1,0 +1,180 @@
+name: Download animation references
+on:
+  push:
+    branches: ['reference-downloads/20261003']
+    paths: ['.github/workflows/download-animation-references.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: animation-reference-download-20261003
+  cancel-in-progress: false
+jobs:
+  download:
+    if: github.repository == 'RHS059/rust_duty' && github.ref == 'refs/heads/reference-downloads/20261003'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install and record media tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+          python -m pip install --upgrade --pre 'yt-dlp[default]'
+          mkdir -p reference-results/diagnostics
+          python - <<'PYVERSIONS'
+          import json, subprocess
+          from pathlib import Path
+          commands = {'yt-dlp': ['python', '-m', 'yt_dlp', '--version'], 'ffmpeg': ['ffmpeg', '-version'], 'ffprobe': ['ffprobe', '-version'], 'node': ['node', '--version']}
+          versions = {name: subprocess.check_output(command, text=True).splitlines()[0] for name, command in commands.items()}
+          Path('reference-results/diagnostics/tool-versions.json').write_text(json.dumps(versions, indent=2) + '\n')
+          print(json.dumps(versions, indent=2))
+          PYVERSIONS
+      - name: Download both sources and verify media bytes
+        run: |
+          python - <<'PYDOWNLOAD'
+          from pathlib import Path
+          import hashlib
+          import json
+          import math
+          import os
+          import shutil
+          import subprocess
+          import sys
+          import time
+          
+          ROOT = Path('reference-results')
+          DIAGNOSTICS = ROOT / 'diagnostics'
+          VERIFIED = ROOT / 'verified'
+          DIAGNOSTICS.mkdir(parents=True, exist_ok=True)
+          VERIFIED.mkdir(parents=True, exist_ok=True)
+          VIDEO_IDS = ('9RRgXvRx43s', '5KM0XSKxTWw')
+          
+          
+          def run(command, timeout):
+              return subprocess.run(command, capture_output=True, text=True, timeout=timeout, check=True)
+          
+          
+          def digest(path):
+              result = hashlib.sha256()
+              with path.open('rb') as handle:
+                  for block in iter(lambda: handle.read(1024 * 1024), b''):
+                      result.update(block)
+              return result.hexdigest()
+          
+          
+          results = []
+          for video_id in VIDEO_IDS:
+              source_url = f'https://www.youtube.com/watch?v={video_id}'
+              pending = ROOT / 'pending' / video_id
+              pending.mkdir(parents=True, exist_ok=True)
+              result = {'id': video_id, 'source_url': source_url, 'verified': False}
+              command = [
+                  sys.executable, '-m', 'yt_dlp', '--ignore-config', '--no-plugin-dirs',
+                  '--no-playlist', '--no-progress', '--newline', '--no-overwrites',
+                  '--js-runtimes', 'node', '--socket-timeout', '20',
+                  '--retries', '1', '--fragment-retries', '1', '--extractor-retries', '1',
+                  '--max-filesize', '1G', '--write-info-json',
+                  '--format', 'bv*[height<=1080]+ba/b[height<=1080]',
+                  '--merge-output-format', 'mkv',
+                  '--output', str(pending / '%(id)s.%(ext)s'), '--', source_url,
+              ]
+              started = time.monotonic()
+              try:
+                  download = run(command, timeout=600)
+                  (DIAGNOSTICS / f'{video_id}.download.log').write_text(download.stdout + download.stderr)
+                  metadata_path = pending / f'{video_id}.info.json'
+                  metadata = json.loads(metadata_path.read_text())
+                  if metadata.get('id') != video_id or metadata.get('is_live'):
+                      raise ValueError('Unexpected video identity or live source')
+                  media = [p for p in pending.iterdir() if p.stem == video_id and p.suffix in {'.mp4', '.mkv', '.webm', '.mov'}]
+                  if len(media) != 1 or media[0].stat().st_size < 1024:
+                      raise ValueError('Expected exactly one completed nonempty media file')
+                  media = media[0]
+                  probe = run(['ffprobe', '-v', 'error', '-show_format', '-show_streams', '-of', 'json', str(media)], timeout=60)
+                  parsed = json.loads(probe.stdout)
+                  video_streams = [s for s in parsed.get('streams', []) if s.get('codec_type') == 'video']
+                  if not video_streams:
+                      raise ValueError('No video stream in downloaded bytes')
+                  stream = video_streams[0]
+                  duration = float(parsed['format']['duration'])
+                  if not math.isfinite(duration) or duration <= 0 or stream.get('width', 0) <= 0 or stream.get('height', 0) <= 0:
+                      raise ValueError('Invalid duration or dimensions')
+                  samples = []
+                  for fraction in (0.1, 0.5, 0.9):
+                      start = max(0.0, min(duration * fraction, duration - min(0.1, duration / 2)))
+                      decoded = run(['ffmpeg', '-v', 'error', '-xerror', '-ss', str(start), '-i', str(media),
+                                     '-map', '0:v:0', '-t', str(min(3.0, duration - start)), '-an', '-f', 'null', '-'], timeout=90)
+                      samples.append({'start_seconds': start, 'decoded_seconds_limit': min(3.0, duration - start), 'success': True})
+                  target = VERIFIED / video_id
+                  target.mkdir(parents=True, exist_ok=True)
+                  shutil.copy2(media, target / media.name)
+                  shutil.copy2(metadata_path, target / metadata_path.name)
+                  (target / 'ffprobe.json').write_text(probe.stdout)
+                  result.update({
+                      'verified': True, 'title': metadata.get('title'), 'uploader': metadata.get('uploader'),
+                      'duration_seconds': duration, 'width': stream['width'], 'height': stream['height'],
+                      'average_frame_rate': stream.get('avg_frame_rate'), 'nominal_frame_rate': stream.get('r_frame_rate'),
+                      'video_codec': stream.get('codec_name'), 'format_name': parsed['format'].get('format_name'),
+                      'filename': media.name, 'bytes': media.stat().st_size, 'sha256': digest(media),
+                      'decode_samples': samples,
+                  })
+                  (target / 'validation.json').write_text(json.dumps(result, indent=2) + '\n')
+                  (target / 'SHA256SUMS').write_text(f"{result['sha256']}  {media.name}\n")
+                  print(json.dumps(result, sort_keys=True), flush=True)
+              except subprocess.CalledProcessError as error:
+                  output = (error.stdout or '') + (error.stderr or '')
+                  (DIAGNOSTICS / f'{video_id}.failure.log').write_text(output)
+                  result['error'] = f'Command exited {error.returncode}: {error.cmd[0]}'
+                  # Do not use credentials, browser cookies, proxies, alternate clients, or
+                  # token providers to work around an authentication or access rejection.
+                  print(f'{video_id}: {result["error"]}\n{output[-6000:]}', flush=True)
+              except subprocess.TimeoutExpired as error:
+                  result['error'] = f'Command exceeded {error.timeout} seconds'
+                  print(f'{video_id}: {result["error"]}', flush=True)
+              except Exception as error:
+                  result['error'] = f'{type(error).__name__}: {error}'
+                  print(f'{video_id}: {result["error"]}', flush=True)
+              result['elapsed_seconds'] = round(time.monotonic() - started, 3)
+              results.append(result)
+          
+          manifest = {
+              'repository': os.environ.get('GITHUB_REPOSITORY'), 'commit': os.environ.get('GITHUB_SHA'),
+              'run_id': os.environ.get('GITHUB_RUN_ID'), 'run_attempt': os.environ.get('GITHUB_RUN_ATTEMPT'),
+              'tool_versions': json.loads((DIAGNOSTICS / 'tool-versions.json').read_text()),
+              'videos': results,
+          }
+          (DIAGNOSTICS / 'manifest.json').write_text(json.dumps(manifest, indent=2) + '\n')
+          if any(item['verified'] for item in results):
+              (VERIFIED / 'manifest.json').write_text(json.dumps(manifest, indent=2) + '\n')
+          summary = '\n'.join(
+              f"- {item['id']}: " + (f"verified {item['width']}x{item['height']}, {item['average_frame_rate']} fps, {item['duration_seconds']:.3f} s; {item['title']}" if item['verified'] else item['error'])
+              for item in results
+          )
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as handle:
+              handle.write('# Animation reference download verification\n\n' + summary + '\n')
+          if not all(item['verified'] for item in results):
+              sys.exit(1)
+          PYDOWNLOAD
+      - name: Upload verified media and metadata
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: animation-references-verified-${{ github.run_id }}
+          path: reference-results/verified/
+          if-no-files-found: warn
+          retention-days: 7
+          compression-level: 0
+      - name: Upload diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: animation-reference-diagnostics-${{ github.run_id }}
+          path: reference-results/diagnostics/
+          if-no-files-found: warn
+          retention-days: 7
