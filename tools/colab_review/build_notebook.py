@@ -18,7 +18,24 @@ Status: diagnostic. Technical measurements never grant artistic approval.
 VRANIM01 validated with the project's embedded original parsers. Companion checks verify structure/checksums/bone identity/rigid assignments when companions exist, not evaluated skin or contact. Curves are stored parent-local bone TRS and scene-global actor TRS, glTF Y-up. Runtime applies Ry(pi); runtime blend logic is not reproduced. Translation units require source verification. Loop endpoints and selected end-to-start joins are diagnostics, never an automatic failure threshold. Speed statistics are sampled segment-average values; shortest-arc rotations can alias motion over 180 degrees between samples. They are not continuous-time peak speeds.
 ''')
 code('''# Pinned direct dependencies from the standard PyPI registry. No shell installer scripts.
-%pip -q install numpy==2.3.5 matplotlib==3.10.8 Pillow==12.3.0
+%pip -q install numpy==2.2.6 matplotlib==3.10.8 Pillow==12.3.0
+# NumPy 2.2.6 satisfies Colab's observed Numba 0.61.2 (<2.3) constraint.
+# Do not analyze with an older NumPy module still loaded after changing its wheel.
+import sys, importlib.metadata
+installed_numpy=importlib.metadata.version('numpy')
+loaded_numpy=getattr(sys.modules.get('numpy'),'__version__',installed_numpy)
+if installed_numpy!='2.2.6': raise RuntimeError('NumPy installation did not match the 2.2.6 pin')
+if loaded_numpy!=installed_numpy:
+    raise RuntimeError('NumPy changed while already imported. Restart the session, then rerun from setup before analysis.')
+try:
+    from packaging.requirements import Requirement
+    for item in importlib.metadata.requires('numba') or []:
+        req=Requirement(item)
+        if req.name.lower()=='numpy' and (req.marker is None or req.marker.evaluate()):
+            if installed_numpy not in req.specifier:
+                raise RuntimeError('Installed Numba requires '+str(req)+'; stop before analysis')
+except importlib.metadata.PackageNotFoundError:
+    pass # Numba is optional and not installed by this notebook.
 ''')
 parser_dir=root/'vendor' if (root/'vendor').is_dir() else root.parent
 sources={name:(parser_dir/f'{name}.py').read_text() for name in ('vrpack','vrskin','vrview')}

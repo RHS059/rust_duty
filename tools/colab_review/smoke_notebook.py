@@ -9,7 +9,7 @@ namespace={}
 for i,c in enumerate(nb['cells']):
  if c['cell_type']!='code':continue
  source=''.join(c['source'])
- if '%pip' in source:continue # Installed local environment, versions recorded in output
+ source='\n'.join(line for line in source.splitlines() if not line.startswith('%pip')) # Skip install only; run compatibility guards
  print('CELL',i)
  exec(compile(source,f'cell-{i}','exec'),namespace)
 assert namespace['result']['status']=='diagnostic'
