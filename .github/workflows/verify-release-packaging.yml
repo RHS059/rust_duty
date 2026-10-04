@@ -1,0 +1,83 @@
+name: Verify exact-source complete release packaging
+on:
+  push:
+    branches: ['aella-packaging/complete-release-assets-r1']
+  pull_request:
+    paths:
+      - '.github/workflows/publish-updates.yml'
+      - '.github/workflows/verify-release-packaging.yml'
+      - 'tools/stage_release_game.py'
+      - 'tools/test_stage_release_game.py'
+      - 'tools/smoke_live_update.py'
+permissions:
+  contents: read
+  actions: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      GAME_REF: 21dc70af50ea49f76fc3d6716e3717aaf68d2377
+      GAME_RUN_ID: '37161083445'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.GAME_REF }}
+          path: game-source
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Test missing assets, source bindings, private data and final inventory
+        env:
+          PYTHONPATH: tools
+        run: python -m unittest tools.test_stage_release_game tools.test_release_update -v
+      - name: Verify original full-build provenance and download unchanged artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api "repos/RHS059/rust_duty/actions/runs/$GAME_RUN_ID" > source-run.json
+          python - <<'PY'
+          import json,os
+          r=json.load(open('source-run.json'))
+          assert r['id']==int(os.environ['GAME_RUN_ID']) and r['head_sha']==os.environ['GAME_REF']
+          assert r['repository']['full_name']=='RHS059/rust_duty'
+          assert r['path']=='.github/workflows/build.yml' and r['event']=='push'
+          assert r['status']=='completed' and r['conclusion']=='success'
+          PY
+          gh run download "$GAME_RUN_ID" --repo RHS059/rust_duty --name vector-range-windows-x64 --dir tested/windows
+          gh run download "$GAME_RUN_ID" --repo RHS059/rust_duty --name vector-range-linux-x64 --dir tested/linux
+      - name: Prove complete Windows and Linux ZIP and update bundle inventories
+        env:
+          PYTHONPATH: tools
+        run: |
+          python - <<'PY'
+          import json,os,shutil
+          from pathlib import Path
+          import release_update
+          from stage_release_game import stage_game,verify_archive,verify_bundle_members
+          result={}
+          Path('verified').mkdir()
+          for platform,binary in [('windows','vector-range.exe'),('linux','vector-range')]:
+              artifact=Path('tested')/platform
+              complete=Path('complete')/platform
+              payload=Path('payload')/platform
+              fresh=stage_game(Path('game-source'),os.environ['GAME_REF'],artifact,binary,complete,version='0.1.7')
+              managed=stage_game(Path('game-source'),os.environ['GAME_REF'],artifact,binary,payload,update=True,version='0.1.7')
+              archive=Path('verified')/f'{platform}.zip'
+              shutil.make_archive(str(archive.with_suffix('')),'zip',root_dir=complete)
+              zip_record=verify_archive(archive,complete)
+              bundle=Path('verified')/f'{platform}.rdb'
+              release_update.pack(payload,bundle,binary)
+              bundle_record=verify_bundle_members(bundle,payload)
+              result[platform]={'fresh':fresh,'managed':managed,'zip':zip_record,'bundle':bundle_record}
+          Path('packaging-verification.json').write_text(json.dumps(result,indent=2)+'\n')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: exact-source-packaging-verification
+          path: packaging-verification.json
+          if-no-files-found: error
