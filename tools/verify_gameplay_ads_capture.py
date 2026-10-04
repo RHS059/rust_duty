@@ -104,7 +104,7 @@ def verify(folder: Path):
         'aimed_walking_frames': len(aimed_walk), **layer_overlap,
         'shots': rows[-1]['shots'], 'final_ammo': rows[-1]['ammo'], 'final_reserve': rows[-1]['reserve'],
         'returned_to_ready': True, 'reacquired_after_reload': True,
-        'scope': 'Committed simulation input and native Linux rendered frames. Reload cuts remain documented WIP seams; Windows gameplay and aesthetic approval are separate.'}
+        'scope': 'Committed simulation input and native Linux rendered frames. Reload return uses mapped pose crossfades; Windows gameplay and aesthetic approval are separate.'}
     (folder / 'verification.json').write_text(json.dumps(report, indent=2) + '\n')
     return report
 

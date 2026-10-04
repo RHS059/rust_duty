@@ -164,6 +164,29 @@ jobs:
           name: native-gameplay-ads-evidence
           path: evidence/ads-gameplay/
           if-no-files-found: warn
+      - name: Verify saved XYZ placement recenters through native ADS
+        if: runner.os == 'Linux'
+        timeout-minutes: 12
+        shell: bash
+        env:
+          LIBGL_ALWAYS_SOFTWARE: '1'
+        run: |
+          mkdir -p evidence/ads-offset
+          python -c "from pathlib import Path; Path('evidence/ads-offset.cfg').write_text(Path('dist/game/settings.cfg').read_text() + '\nviewmodel_x = 0.20\nviewmodel_y = -0.20\nviewmodel_z = 0.20\n')"
+          cd dist/game
+          timeout 660s xvfb-run -a -s "-screen 0 1920x1080x24" ./vector-range --no-update --reference-viewport --capture-sequence=gameplay-ads --settings=../../evidence/ads-offset.cfg --output=../../evidence/ads-offset
+          cd ../..
+          python tools/verify_ads_placement_capture.py evidence/ads-gameplay evidence/ads-offset > evidence/ads-offset-verification.json
+      - name: Upload native ADS placement comparison
+        if: runner.os == 'Linux' && always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-ads-placement-evidence
+          path: |
+            evidence/ads-offset/
+            evidence/ads-offset.cfg
+            evidence/ads-offset-verification.json
+          if-no-files-found: warn
       - name: Capture layered direction input and interruption diagnostics at 30 and 60 Hz
         if: runner.os == 'Linux'
         timeout-minutes: 12
@@ -187,6 +210,25 @@ jobs:
             evidence/layered-30/
             evidence/layered-60/
             evidence/layered-rate-verification.json
+          if-no-files-found: warn
+      - name: Capture reload return and interrupted live locomotion
+        if: runner.os == 'Linux'
+        timeout-minutes: 8
+        shell: bash
+        env:
+          LIBGL_ALWAYS_SOFTWARE: '1'
+        run: |
+          mkdir -p evidence/reload-return
+          cd dist/game
+          timeout 420s xvfb-run -a -s "-screen 0 1920x1080x24" ./vector-range --no-update --reference-viewport --capture-sequence=gameplay-return --capture-hz=60 --output=../../evidence/reload-return
+          cd ../..
+          python tools/verify_reload_return_capture.py evidence/reload-return
+      - name: Upload native reload return evidence
+        if: runner.os == 'Linux' && always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-reload-return-evidence
+          path: evidence/reload-return/
           if-no-files-found: warn
       - name: Verify world-fixed lighting at frozen yaw and pitch poses
         if: runner.os == 'Linux'

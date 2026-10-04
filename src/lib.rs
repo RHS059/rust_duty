@@ -37,6 +37,7 @@ pub mod authored_locomotion_path;
 pub mod authored_locomotion_adapter;
 
 pub mod animation_manifest;
+pub mod authored_pose_return;
 pub mod authored_reload;
 
 pub mod authored_walk;

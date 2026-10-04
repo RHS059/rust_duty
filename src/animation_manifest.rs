@@ -112,8 +112,15 @@ impl AnimationManifest {
             })
         }
         policy(&mut values, "schema", "rust-duty-animation-slots/v1")?;
-        // Separate rigs are never blended. Native time is never scaled to weapon stats.
-        policy(&mut values, "reload.route", "whole_model_cut")?;
+        // Historical bundles retain their old spelling; the current renderer
+        // maps compatible named/rest-checked poses before crossfading.
+        let reload_route = take(&mut values, "reload.route")?;
+        if !matches!(
+            reload_route.as_str(),
+            "anchored_crossfade" | "whole_model_cut"
+        ) {
+            return Err("reload.route must be anchored_crossfade".into());
+        }
         policy(&mut values, "reload.clock", "native_complete")?;
         for slot in ["fire", "mantle"] {
             policy(&mut values, slot, "unavailable")?;

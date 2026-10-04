@@ -104,6 +104,17 @@ impl Settings {
     /// One start-menu nudge, in meters.
     pub const VIEWMODEL_NUDGE: f32 = 0.005;
 
+    /// Saved hip placement fades with the visible ADS pose, without changing
+    /// the saved values. A fully aimed weapon keeps its authored sight alignment.
+    pub fn viewmodel_offset(&self, visual_ads: f32) -> macroquad::math::Vec3 {
+        let aim = if visual_ads.is_finite() {
+            visual_ads.clamp(0., 1.)
+        } else {
+            0.
+        };
+        macroquad::math::vec3(self.viewmodel_x, self.viewmodel_y, self.viewmodel_z) * (1. - aim)
+    }
+
     /// Shift the saved viewmodel offset. X is right, Y is up. No forward/back.
     pub fn nudge_viewmodel(&mut self, x: f32, y: f32) {
         let limit = Self::VIEWMODEL_OFFSET_LIMIT;

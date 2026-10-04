@@ -15,7 +15,7 @@ the locomotion pack. Their existing connected-path validation is retained. Reloa
 slots load an entire separately validated `.vra`/`.vrs`/`.vrm` companion set. The
 animation decoder verifies the exact companion CRCs, ordered bones, actors and
 mesh references; the renderer uses only that set's skin and rigid model together.
-It never hands the two-actor locomotion pose to the three-actor reload rig.
+It never hands an unmapped two-actor pose to the three-actor reload rig.
 
 ## Current export and playback policy
 
@@ -23,13 +23,18 @@ It never hands the two-actor locomotion pose to the three-actor reload rig.
   action, including unfinished frames 30–48. It is not a concatenation of reviewed
   cropped segments. WIP pose/contact faults remain visible rather than repaired
   by procedural motion or hidden behind a pose-approval gate.
-- `whole_model_cut` explicitly switches the entire skin, gun and magazine render
-  owner at reload start/end. Seams are expected WIP limitations. No cross-rig
-  blending or unsupported claim of a connected authored return is made.
+- `anchored_crossfade` maps evaluated bone globals by name after matching parent
+  hierarchy and inverse binds, and maps common rigid actors through the documented
+  FBX mesh-local basis. The reload renderer owns its incoming/outgoing 0.20 s
+  weapon-relative pose blends. Its destination is the current walk/run/ADS pose,
+  evaluated every committed tick. A cancelled or restarted transition captures
+  the current displayed pose. Reload-only props retain their last transform while
+  fading out; they are never passed into the two-actor locomotion array. Historical
+  `whole_model_cut` manifest spelling remains readable as a compatibility alias.
 - `native_complete` samples elapsed simulation seconds from the accepted reload's
   original start deadline. It does not stretch to weapon stats. Playback finishes
-  its native duration even if ammunition is ready earlier; if gameplay lasts
-  longer, the authored endpoint holds until gameplay completes. Weapon gameplay
+  its native duration even if ammunition is ready earlier; it then returns without
+  holding its endpoint for a longer gameplay timer. Weapon gameplay
   remains authoritative, including firing readiness, credit timing, and sprint
   cancellation. A new accepted reload replaces the old visual action.
 - Pausing stops simulation timestamps and therefore animation. Reset clears the
@@ -75,8 +80,8 @@ bindings must match before any walking pose can be blended.
 Committed grounded movement above 0.1 m/s drives a 160 ms start and 220 ms stop
 envelope with smoothstep weight. Stop continues native phase during fade-out;
 resuming before the fade ends reverses its weight without restarting the loop.
-Pause and repeated render calls cannot change phase or weight. Reload retains its
-separate-rig whole-model cut and clears this layer; sprint/mantle fade walking
+Pause and repeated render calls cannot change phase or weight. Reload clears the
+walking owner while playing, then crossfades to its advancing live pose; sprint/mantle fade walking
 away while their existing presentation proceeds. Firing no longer suppresses
 walk. There is no procedural replacement when the authored slot is unavailable.
 
@@ -153,9 +158,9 @@ sample and direction, and range reset clears the controller explicitly.
 
 Priority and interruptions:
 
-- An accepted reload immediately takes its existing explicit whole-model cut and
-  cancels ADS ownership. ADS cannot reacquire until the native reload tail and
-  gameplay reload both finish; held, accepted aim then starts a fresh entry
+- An accepted reload blends from the current displayed pose and cancels ADS
+  ownership. Once native playback ends, held accepted aim can reacquire as gameplay
+  permits, concurrently with the outgoing reload blend
 - Sprint or mantle forces a native authored ADS return to ready. Sprint locomotion
   begins only after ADS returns; a sprint exit already in progress must reach ready
   before ADS enters. Gameplay movement/traversal never waits for these visuals

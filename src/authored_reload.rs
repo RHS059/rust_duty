@@ -10,6 +10,25 @@ pub enum ReloadSlot {
     Tactical,
     Empty,
 }
+
+/// Ordinary-input witness: complete reload into moving walk/run/ADS, then
+/// cancel/restart/cancel while the outgoing and incoming blends are active.
+pub fn gameplay_return_replay_input(time: f64) -> crate::sim::Input {
+    use macroquad::math::Vec2;
+    crate::sim::Input {
+        movement: if time < 5.6 { Vec2::Y } else { Vec2::ZERO },
+        reload: (0.25..0.26).contains(&time)
+            || (3.55..3.56).contains(&time)
+            || (4.0..4.01).contains(&time),
+        fire: (3.30..3.43).contains(&time),
+        sprint: (2.90..3.0).contains(&time)
+            || (3.90..4.0).contains(&time)
+            || (4.06..4.16).contains(&time)
+            || (4.80..5.10).contains(&time),
+        ads: (3.0..3.25).contains(&time) || (4.20..4.80).contains(&time),
+        ..crate::sim::Input::default()
+    }
+}
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct ReloadSample {
     pub slot: ReloadSlot,
@@ -22,6 +41,8 @@ pub struct AuthoredReload {
     last_time: f64,
     observed_deadline: f64,
     active: Option<(ReloadSlot, f64)>,
+    started: bool,
+    ended: Option<ReloadSample>,
 }
 impl AuthoredReload {
     pub fn clip_duration(animation: &AnimationSet, name: &str) -> Result<f64> {
@@ -53,6 +74,8 @@ impl AuthoredReload {
             last_time: 0.,
             observed_deadline: 0.,
             active: None,
+            started: false,
+            ended: None,
         })
     }
     pub fn reset(&mut self, time: f64) {
@@ -60,6 +83,8 @@ impl AuthoredReload {
         self.observed_deadline = 0.;
         self.active = None;
         self.missing_slot = None;
+        self.started = false;
+        self.ended = None;
     }
     /// Observe after Simulation::update. The persistent accepted deadline also
     /// catches a reload whose gameplay duration fits inside a single fixed tick.
@@ -74,6 +99,12 @@ impl AuthoredReload {
                 "reload observer needs contiguous committed ticks; reset explicitly".into(),
             ));
         }
+        self.started = false;
+        self.ended = None;
+        if simulation.time == start {
+            return Ok(());
+        }
+        let previous = self.sample();
         let player = &simulation.player;
         let deadline = player.reload_ready_at;
         if deadline > 0. && deadline != self.observed_deadline {
@@ -84,6 +115,7 @@ impl AuthoredReload {
             };
             if self.durations[if slot == ReloadSlot::Empty { 1 } else { 0 }].is_some() {
                 self.active = Some((slot, deadline - f64::from(player.reload_total)));
+                self.started = true;
                 self.missing_slot = None;
             } else {
                 self.active = None;
@@ -93,10 +125,15 @@ impl AuthoredReload {
         self.observed_deadline = deadline;
         self.last_time = simulation.time;
         if deadline == 0. {
+            self.ended = previous;
             self.active = None;
         } // authoritative cancellation
         if let Some((slot, began)) = self.active {
-            if simulation.time - began >= self.duration(slot) && player.reload_left <= 0. {
+            if simulation.time - began >= self.duration(slot) {
+                self.ended = Some(ReloadSample {
+                    slot,
+                    seconds: self.duration(slot),
+                });
                 self.active = None;
             }
         }
@@ -110,6 +147,14 @@ impl AuthoredReload {
     }
     pub fn missing_slot(&self) -> Option<ReloadSlot> {
         self.missing_slot
+    }
+    pub fn started_this_step(&self) -> bool {
+        self.started
+    }
+    /// Exact endpoint on completion, last visible source sample on cancellation.
+    /// Gameplay readiness remains independent of this visual return.
+    pub fn ended_this_step(&self) -> Option<ReloadSample> {
+        self.ended
     }
     fn duration(&self, slot: ReloadSlot) -> f64 {
         self.durations[if slot == ReloadSlot::Empty { 1 } else { 0 }].unwrap_or(0.)

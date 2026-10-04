@@ -9,10 +9,23 @@ Reset restores all three values for this weapon only.
 Absolute viewmodel X (Left/Right), Y (Up/Down), and Z (Depth) sliders sit above the
 walking controls, each with a +/-0.20 m range. Positive Z moves toward the camera.
 Arrow keys nudge X/Y; Page Up/Down nudges Z. They change
-placement for the whole viewmodel; walking XYZ changes only animated displacement.
+hip placement for the whole viewmodel; walking XYZ changes only animated displacement.
+Saved placement fades out with the visible ADS transition, reaches zero at full
+aim, and returns on exit. Interrupted aim reversals continue from the current
+placement. The authored route uses native ADS progress and the shared run blend,
+so gameplay readiness cannot center the weapon prematurely. Saved slider values
+are retained while aiming; walking controls keep their independent behavior.
 Moving either kind of slider saves the combined settings file on release, and
 F5 remains available for arrow-key changes. Reset Walking never resets placement; Reset Position clears only absolute X/Y/Z.
 Older settings files without viewmodel_z load it as zero.
+
+Tab/Shift+Tab select the buttons and six sliders; Up/Down move selection.
+Left/Right adjust the selected slider and Home/End choose its bounds. Enter/Space
+activate the selected button without also resuming. With no selection, the
+existing placement nudge keys still work. Save / retry and F5 retry persistence.
+Save failures remain visible until a successful save or explicit F6 discard/reload;
+unrelated notices and closing/reopening the menu cannot turn failure into success.
+A failed F6 read retains the current values.
 
 The settings use stable IDs (`hk416a5` for the current authored rifle and
 `kestrel30` for the procedural fallback), not display labels, clip revisions or

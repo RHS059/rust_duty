@@ -35,6 +35,7 @@ impl Layout {
 const RESUME: Rect = Rect::new(32., 99., 546., 45.);
 const POSITION_RESET: Rect = Rect::new(350., 497., 228., 28.);
 const RESET: Rect = Rect::new(350., 720., 228., 34.);
+const SAVE: Rect = Rect::new(32., 720., 260., 34.);
 fn slider(axis: usize) -> Rect {
     let y = if axis < 3 {
         578. + axis as f32 * 43.
@@ -48,6 +49,19 @@ fn slider(axis: usize) -> Rect {
 pub struct PauseMenu {
     dragging: Option<usize>,
     dirty: bool,
+    focus: Option<usize>,
+    persistence: Option<String>,
+    save_failed: bool,
+}
+#[derive(Default)]
+pub struct MenuKeys {
+    pub next: bool,
+    pub previous: bool,
+    pub increase: bool,
+    pub decrease: bool,
+    pub minimum: bool,
+    pub maximum: bool,
+    pub activate: bool,
 }
 #[derive(Default, Debug)]
 pub struct MenuAction {
@@ -55,6 +69,107 @@ pub struct MenuAction {
     pub save: bool,
 }
 impl PauseMenu {
+    pub fn has_keyboard_focus(&self) -> bool {
+        self.focus.is_some()
+    }
+    pub fn save_result(&mut self, result: std::io::Result<()>) -> String {
+        self.save_failed = result.is_err();
+        let text = match result {
+            Ok(()) => "Saved viewmodel and walking settings".into(),
+            Err(error) => format!("Save failed; changes are unsaved. F5 retries: {error}"),
+        };
+        self.persistence = Some(text.clone());
+        text
+    }
+    pub fn reloaded(&mut self) {
+        self.save_failed = false;
+        self.persistence = Some("Reloaded saved values; unsaved changes discarded".into());
+    }
+    pub fn changed(&mut self) {
+        if !self.save_failed {
+            self.persistence = Some("Unsaved changes. F5 saves the preset".into());
+        }
+    }
+    pub fn keyboard(
+        &mut self,
+        cfg: &mut Settings,
+        weapon: &str,
+        keys: MenuKeys,
+        enabled: bool,
+    ) -> MenuAction {
+        if !enabled {
+            self.focus = None;
+            return MenuAction::default();
+        }
+        if keys.next {
+            self.focus = Some(self.focus.map_or(0, |i| (i + 1) % 10));
+        }
+        if keys.previous {
+            self.focus = Some(self.focus.map_or(9, |i| (i + 9) % 10));
+        }
+        let mut action = MenuAction::default();
+        let Some(focus) = self.focus else {
+            return action;
+        };
+        let axis = match focus {
+            1..=3 => Some(focus + 2),
+            5..=7 => Some(focus - 5),
+            _ => None,
+        };
+        if let Some(axis) = axis {
+            if keys.increase || keys.decrease || keys.minimum || keys.maximum {
+                let delta = f32::from(u8::from(keys.increase)) - f32::from(u8::from(keys.decrease));
+                let mut value = if axis < 3 {
+                    cfg.walking_translation(weapon).0[axis]
+                } else {
+                    [cfg.viewmodel_x, cfg.viewmodel_y, cfg.viewmodel_z][axis - 3]
+                        / Settings::VIEWMODEL_OFFSET_LIMIT
+                };
+                value = if keys.minimum {
+                    -1.
+                } else if keys.maximum {
+                    1.
+                } else {
+                    value
+                        + delta
+                            * if axis < 3 {
+                                0.05
+                            } else {
+                                Settings::VIEWMODEL_NUDGE / Settings::VIEWMODEL_OFFSET_LIMIT
+                            }
+                };
+                if axis < 3 {
+                    let mut values = cfg.walking_translation(weapon);
+                    values.0[axis] = value;
+                    cfg.set_walking_translation(weapon, values);
+                } else {
+                    let value = value * Settings::VIEWMODEL_OFFSET_LIMIT;
+                    match axis {
+                        3 => cfg.set_viewmodel(value, cfg.viewmodel_y),
+                        4 => cfg.set_viewmodel(cfg.viewmodel_x, value),
+                        _ => cfg.set_viewmodel_z(value),
+                    }
+                }
+                self.changed();
+                action.save = true;
+            }
+        } else if keys.activate {
+            match focus {
+                0 => action.resume = true,
+                4 => {
+                    cfg.reset_viewmodel();
+                    action.save = true;
+                }
+                8 => {
+                    cfg.set_walking_translation(weapon, WalkTranslation::default());
+                    action.save = true;
+                }
+                9 => action.save = true,
+                _ => {}
+            }
+        }
+        action
+    }
     /// `enabled` requires a paused, focused window with no update overlay.
     /// A drag is owned until release, including outside the panel.
     pub fn input(
@@ -69,6 +184,7 @@ impl PauseMenu {
         let (pressed, down) = buttons;
         if !enabled {
             self.dragging = None;
+            self.focus = None;
             return MenuAction {
                 save: std::mem::take(&mut self.dirty),
                 ..Default::default()
@@ -78,15 +194,24 @@ impl PauseMenu {
         let mut action = MenuAction::default();
         if pressed && self.dragging.is_none() {
             if RESET.contains(point) {
+                self.focus = Some(8);
                 cfg.set_walking_translation(weapon, WalkTranslation::default());
                 action.save = true;
             } else if POSITION_RESET.contains(point) {
+                self.focus = Some(4);
                 cfg.reset_viewmodel();
                 action.save = true;
             } else if RESUME.contains(point) {
+                self.focus = Some(0);
                 action.resume = true;
+            } else if SAVE.contains(point) {
+                self.focus = Some(9);
+                action.save = true;
             } else {
                 self.dragging = (0..6).find(|axis| slider(*axis).contains(point));
+                if let Some(axis) = self.dragging {
+                    self.focus = Some(if axis < 3 { axis + 5 } else { axis - 2 });
+                }
             }
         }
         if let Some(axis) = self.dragging {
@@ -119,6 +244,7 @@ impl PauseMenu {
                     cfg.set_viewmodel_z(normalized * Settings::VIEWMODEL_OFFSET_LIMIT);
                 }
                 self.dirty = true;
+                self.changed();
             } else {
                 self.dragging = None;
                 action.save = std::mem::take(&mut self.dirty);
@@ -265,9 +391,28 @@ impl PauseMenu {
         }
         rect(RESET, Color::new(0.13, 0.21, 0.25, 1.));
         text("Reset walking", RESET.x + 15., RESET.y + 23., 18., WHITE);
+        rect(SAVE, Color::new(0.13, 0.21, 0.25, 1.));
+        text("Save / retry", SAVE.x + 15., SAVE.y + 23., 18., WHITE);
+        if let Some(focus) = self.focus {
+            let r = match focus {
+                0 => RESUME,
+                1..=3 => slider(focus + 2),
+                4 => POSITION_RESET,
+                5..=7 => slider(focus - 5),
+                8 => RESET,
+                _ => SAVE,
+            };
+            let r = layout.rect(r);
+            draw_rectangle_lines(r.x - 3., r.y - 3., r.w + 6., r.h + 6., 2., accent);
+        }
+        let status = if self.save_failed {
+            self.persistence.as_deref()
+        } else {
+            status.or(self.persistence.as_deref())
+        };
         text(
             &status
-                .unwrap_or("Saved automatically after adjustment")
+                .unwrap_or("Adjustments save on release. Tab selects; arrows adjust.")
                 .chars()
                 .take(72)
                 .collect::<String>(),
@@ -277,7 +422,7 @@ impl PauseMenu {
             muted,
         );
         text(
-            "F5 Save preset    F6 Reload preset    F10 Quit",
+            "F5 Save   F6 Discard / reload   Enter activates   F10 Quit",
             32.,
             821.,
             16.,
@@ -289,6 +434,81 @@ impl PauseMenu {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn keyboard_navigation_adjusts_one_axis_and_consumes_reset_activation() {
+        let mut menu = PauseMenu::default();
+        let mut cfg = Settings::default();
+        cfg.set_walking_translation("other", WalkTranslation([0.3, 0.4, 0.5]));
+        for _ in 0..6 {
+            menu.keyboard(
+                &mut cfg,
+                "rifle",
+                MenuKeys {
+                    next: true,
+                    ..Default::default()
+                },
+                true,
+            );
+        }
+        let action = menu.keyboard(
+            &mut cfg,
+            "rifle",
+            MenuKeys {
+                increase: true,
+                ..Default::default()
+            },
+            true,
+        );
+        assert!(action.save && !action.resume);
+        assert_eq!(cfg.walking_translation("rifle").0, [0.05, 0., 0.]);
+        assert_eq!(
+            [cfg.viewmodel_x, cfg.viewmodel_y, cfg.viewmodel_z],
+            [0., 0., 0.]
+        );
+        for _ in 0..3 {
+            menu.keyboard(
+                &mut cfg,
+                "rifle",
+                MenuKeys {
+                    next: true,
+                    ..Default::default()
+                },
+                true,
+            );
+        }
+        let action = menu.keyboard(
+            &mut cfg,
+            "rifle",
+            MenuKeys {
+                activate: true,
+                ..Default::default()
+            },
+            true,
+        );
+        assert!(action.save && !action.resume);
+        assert_eq!(cfg.walking_translation("rifle"), WalkTranslation::default());
+        assert_eq!(cfg.walking_translation("other").0, [0.3, 0.4, 0.5]);
+        menu.keyboard(&mut cfg, "rifle", MenuKeys::default(), false);
+        assert!(!menu.has_keyboard_focus());
+    }
+    #[test]
+    fn failed_save_survives_time_independent_menu_changes_until_saved_or_discarded() {
+        let mut menu = PauseMenu::default();
+        let text = menu.save_result(Err(std::io::Error::other("read only destination")));
+        assert!(text.contains("unsaved"));
+        assert!(menu.save_failed);
+        menu.changed();
+        let mut cfg = Settings::default();
+        menu.keyboard(&mut cfg, "rifle", MenuKeys::default(), false);
+        assert_eq!(menu.persistence.as_deref(), Some(text.as_str()));
+        assert!(menu.save_failed);
+        menu.save_result(Ok(()));
+        assert!(!menu.save_failed);
+        menu.changed();
+        assert!(menu.persistence.as_ref().unwrap().contains("Unsaved"));
+        menu.reloaded();
+        assert!(menu.persistence.as_ref().unwrap().contains("discarded"));
+    }
     fn point(x: f32, y: f32) -> Vec2 {
         {
             let layout = Layout::new(1000., 800.);

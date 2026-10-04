@@ -360,7 +360,7 @@ impl LayeredLocomotion {
         reload_active: bool,
     ) -> Result<()> {
         let end = simulation.time;
-        if reload_active || self.reload_active {
+        if reload_active && !self.reload_active {
             self.path.reset(sources.locomotion, start)?;
             self.run_envelope = 0.;
         }
@@ -489,6 +489,11 @@ impl LayeredLocomotion {
     }
     pub fn pose(&self) -> &ViewmodelPose {
         &self.pose
+    }
+    /// Visible ADS contribution after the shared run crossfade. This follows
+    /// native entry/exit reversals rather than gameplay readiness or input intent.
+    pub fn visual_ads_amount(&self) -> f32 {
+        self.ads.as_ref().map_or(0., AuthoredAds::aim_amount) * (1. - self.run_weight())
     }
     /// Deterministic pose-only diagnostic checksum; not file authentication.
     pub fn pose_crc32(&self) -> u32 {

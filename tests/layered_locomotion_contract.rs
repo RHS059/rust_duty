@@ -165,6 +165,95 @@ fn step(
         .committed_step(sources(set), start, sim, false)
         .unwrap();
 }
+
+#[test]
+fn saved_xyz_placement_follows_interrupted_visual_ads_without_changing_settings() {
+    use vector_range::settings::{Settings, WalkTranslation};
+    let set = fixture();
+    for hz in [30_f64, 60., 120.] {
+        for signs in 0..8 {
+            let axis = |bit| if signs & (1 << bit) == 0 { -0.2 } else { 0.2 };
+            let mut settings = Settings::default();
+            settings.set_viewmodel(axis(0), axis(1));
+            settings.set_viewmodel_z(axis(2));
+            settings.set_walking_translation("test", WalkTranslation([-1., 0.4, 1.]));
+            let saved = settings.clone();
+            let hip = settings.viewmodel_offset(0.);
+            let mut layers = controller(&set)
+                .with_ads_wip_policy(false, Some(0.30))
+                .unwrap();
+            let mut sim = Simulation::new();
+            for (aim, seconds) in [
+                (true, 0.1),
+                (false, 0.04),
+                (true, 0.5),
+                (false, 0.08),
+                (true, 0.04),
+                (false, 0.5),
+            ] {
+                let before = settings.viewmodel_offset(layers.visual_ads_amount());
+                step(&set, &mut layers, &mut sim, 0., true, aim, false);
+                assert_eq!(
+                    settings.viewmodel_offset(layers.visual_ads_amount()),
+                    before,
+                    "changing intent without time must not snap placement"
+                );
+                for _ in 0..(seconds * hz).ceil() as usize {
+                    let before = settings.viewmodel_offset(layers.visual_ads_amount());
+                    step(&set, &mut layers, &mut sim, 1. / hz, true, aim, false);
+                    let offset = settings.viewmodel_offset(layers.visual_ads_amount());
+                    assert!(
+                        (offset - before).abs().max_element()
+                            <= 0.2 * 1.5 / (0.30 * hz as f32) + 1e-6
+                    );
+                    assert!(offset.abs().cmple(hip.abs()).all());
+                    assert_eq!(
+                        settings, saved,
+                        "render placement cannot alter saved controls"
+                    );
+                }
+                if seconds == 0.5 {
+                    assert_eq!(
+                        settings.viewmodel_offset(layers.visual_ads_amount()),
+                        if aim { Vec3::ZERO } else { hip }
+                    );
+                }
+            }
+            step(&set, &mut layers, &mut sim, 0.5, true, true, false);
+            assert_eq!(
+                settings.viewmodel_offset(layers.visual_ads_amount()),
+                Vec3::ZERO
+            );
+            step(&set, &mut layers, &mut sim, 1. / hz, true, true, true);
+            assert!(layers.visual_ads_amount() < layers.ads().unwrap().aim_amount());
+            step(&set, &mut layers, &mut sim, 0.5, true, true, true);
+            assert_eq!(settings.viewmodel_offset(layers.visual_ads_amount()), hip);
+        }
+    }
+}
+
+#[test]
+fn saved_placement_keeps_full_aimed_pose_and_optical_ray_at_every_slider_extreme() {
+    use vector_range::settings::Settings;
+    for x in [-0.2, 0., 0.2] {
+        for y in [-0.2, 0., 0.2] {
+            for z in [-0.2, 0., 0.2] {
+                let mut settings = Settings::default();
+                settings.set_viewmodel(x, y);
+                settings.set_viewmodel_z(z);
+                let offset = settings.viewmodel_offset(1.);
+                assert_eq!(offset, Vec3::ZERO);
+                for depth in [0.23306687, 0.5932643] {
+                    assert_eq!(
+                        Vec3::new(0., 0., -depth) + offset,
+                        Vec3::new(0., 0., -depth)
+                    );
+                }
+                assert_eq!(settings.viewmodel_offset(0.), Vec3::new(x, y, z));
+            }
+        }
+    }
+}
 fn close(a: &ViewmodelPose, b: &ViewmodelPose, tolerance: f32) {
     for (a, b) in a
         .bone_locals

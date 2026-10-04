@@ -378,8 +378,19 @@ fn weapon(
     } else {
         Color::new(0., 0., 0., 0.)
     });
-    // Saved placement: +X right, +Y up, +Z toward the camera.
-    let view_offset = vec3(cfg.viewmodel_x, cfg.viewmodel_y, cfg.viewmodel_z);
+    // Fade saved hip placement with the same visual transition that poses the
+    // weapon. Input intent and gameplay readiness can lead the authored pose.
+    let placement_aim = authored.as_ref().map_or_else(
+        || {
+            if model.is_some() {
+                vector_range::reference_motion::visual_ads(sim.player.ads)
+            } else {
+                sim.player.ads
+            }
+        },
+        |model| model.visual_ads_amount(),
+    );
+    let view_offset = cfg.viewmodel_offset(placement_aim);
     if let Some(authored) = authored {
         authored.draw(sim.time, lighting, view_offset);
         composite_viewmodel(rt);
@@ -1024,11 +1035,18 @@ async fn main() {
                     | "gameplay-walk"
                     | "gameplay-ads"
                     | "gameplay-layered"
+                    | "gameplay-return"
             )
         });
     let gameplay_capture = matches!(
         capture_sequence,
-        Some("gameplay-reload" | "gameplay-walk" | "gameplay-ads" | "gameplay-layered")
+        Some(
+            "gameplay-reload"
+                | "gameplay-walk"
+                | "gameplay-ads"
+                | "gameplay-layered"
+                | "gameplay-return"
+        )
     );
     let mut gameplay_reload_issued = false;
     let mut gameplay_capture_tick = 0_u64;
@@ -1046,6 +1064,7 @@ async fn main() {
     let sequence_duration = match capture_sequence {
         Some("gameplay-ads") => 9.0,
         Some("gameplay-layered") => 11.0,
+        Some("gameplay-return") => 6.3,
         Some("empty") => vector_range::reference_motion::visual_duration(true),
         Some("tactical") => vector_range::reference_motion::visual_duration(false),
         Some("locomotion" | "gameplay-walk") => 3.5,
@@ -1082,7 +1101,10 @@ async fn main() {
         .iter()
         .find_map(|s| s.strip_prefix("--output="))
         .unwrap_or("capture.png");
-    if matches!(capture_sequence, Some("gameplay-reload" | "gameplay-ads")) {
+    if matches!(
+        capture_sequence,
+        Some("gameplay-reload" | "gameplay-ads" | "gameplay-return")
+    ) {
         sim.player.ammo = 12;
     }
     if capture_fixtures {
@@ -1130,7 +1152,12 @@ async fn main() {
         );
         let startup_blocked = game_update.startup_blocked();
         let update_pointer = game_update.consumes_pointer(!session.is_active());
-        let menu_action = pause_menu.input(
+        let menu_enabled = !session.is_active()
+            && !startup_blocked
+            && !update_pointer
+            && !focus_state.unfocused
+            && !focus_state.changed;
+        let mut menu_action = pause_menu.input(
             &mut cfg,
             weapon_id,
             vec2(screen_width(), screen_height()),
@@ -1139,25 +1166,39 @@ async fn main() {
                 focus_input.is_mouse_button_pressed(MouseButton::Left),
                 focus_input.is_mouse_button_down(MouseButton::Left),
             ),
-            !session.is_active()
-                && !startup_blocked
-                && !update_pointer
-                && !focus_state.unfocused
-                && !focus_state.changed,
+            menu_enabled,
         );
+        let shift = focus_input.is_key_down(KeyCode::LeftShift)
+            || focus_input.is_key_down(KeyCode::RightShift);
+        let keys = pause_menu::MenuKeys {
+            next: (focus_input.is_key_pressed(KeyCode::Tab) && !shift)
+                || (pause_menu.has_keyboard_focus() && focus_input.is_key_pressed(KeyCode::Down)),
+            previous: (focus_input.is_key_pressed(KeyCode::Tab) && shift)
+                || (pause_menu.has_keyboard_focus() && focus_input.is_key_pressed(KeyCode::Up)),
+            increase: focus_input.is_key_pressed(KeyCode::Right),
+            decrease: focus_input.is_key_pressed(KeyCode::Left),
+            minimum: focus_input.is_key_pressed(KeyCode::Home),
+            maximum: focus_input.is_key_pressed(KeyCode::End),
+            activate: focus_input.is_key_pressed(KeyCode::Enter)
+                || focus_input.is_key_pressed(KeyCode::Space),
+        };
+        let key_action = pause_menu.keyboard(&mut cfg, weapon_id, keys, menu_enabled);
+        menu_action.save |= key_action.save;
+        menu_action.resume |= key_action.resume;
         if menu_action.save {
-            notice = match cfg.save(settings_path) {
-                Ok(_) => "Saved viewmodel and walking settings".into(),
-                Err(error) => format!("Could not save walking motion: {error}"),
-            };
+            notice = pause_menu.save_result(cfg.save(settings_path));
             notice_timer = 4.;
         }
         let transition = session.step(vector_range::session::SessionInput {
             window_unfocused: !capture && focus_state.unfocused,
             esc_pressed: !capture && focus_input.is_key_pressed(KeyCode::Escape),
             esc_down: !capture && focus_input.is_key_down(KeyCode::Escape),
-            enter_pressed: !capture && focus_input.is_key_pressed(KeyCode::Enter),
-            enter_down: !capture && focus_input.is_key_down(KeyCode::Enter),
+            enter_pressed: !capture
+                && !pause_menu.has_keyboard_focus()
+                && focus_input.is_key_pressed(KeyCode::Enter),
+            enter_down: !capture
+                && !pause_menu.has_keyboard_focus()
+                && focus_input.is_key_down(KeyCode::Enter),
             click_pressed: !capture && menu_action.resume,
             click_down: !capture && menu_action.resume,
             focus_shortcut_pressed: !capture
@@ -1262,7 +1303,8 @@ async fn main() {
             cfg.fov = (cfg.fov + 2.).min(120.);
         }
         // Start menu / pause settings only. Arrows nudge the viewmodel, not the player.
-        if !active {
+        if !active && menu_enabled && !pause_menu.has_keyboard_focus() {
+            let before = [cfg.viewmodel_x, cfg.viewmodel_y, cfg.viewmodel_z];
             if focus_input.is_key_pressed(KeyCode::Left) {
                 cfg.nudge_viewmodel(-Settings::VIEWMODEL_NUDGE, 0.);
             }
@@ -1281,17 +1323,22 @@ async fn main() {
             if focus_input.is_key_pressed(KeyCode::PageDown) {
                 cfg.set_viewmodel_z(cfg.viewmodel_z - Settings::VIEWMODEL_NUDGE);
             }
+            if before != [cfg.viewmodel_x, cfg.viewmodel_y, cfg.viewmodel_z] {
+                pause_menu.changed();
+            }
         }
         if focus_input.is_key_pressed(KeyCode::F5) {
-            notice = match cfg.save(settings_path) {
-                Ok(_) => format!("Saved {settings_path}"),
-                Err(e) => format!("Could not save preset: {e}"),
-            };
+            notice = pause_menu.save_result(cfg.save(settings_path));
             notice_timer = 4.;
         }
         if focus_input.is_key_pressed(KeyCode::F6) {
-            cfg = Settings::load_with_base(settings_path, base.clone());
-            notice = format!("Loaded {settings_path} with {profile} defaults");
+            if let Err(error) = std::fs::read_to_string(settings_path) {
+                notice = format!("Could not reload preset; current values retained: {error}");
+            } else {
+                cfg = Settings::load_with_base(settings_path, base.clone());
+                pause_menu.reloaded();
+                notice = format!("Reloaded {settings_path}; unsaved changes discarded");
+            }
             notice_timer = 4.;
         }
         if focus_input.is_key_pressed(KeyCode::F8) {
@@ -1530,6 +1577,8 @@ async fn main() {
                     vector_range::authored_ads::gameplay_ads_replay_input(start)
                 } else if capture_sequence == Some("gameplay-layered") {
                     vector_range::layered_locomotion::gameplay_layered_replay_input(start)
+                } else if capture_sequence == Some("gameplay-return") {
+                    vector_range::authored_reload::gameplay_return_replay_input(start)
                 } else {
                     Input {
                         reload,
@@ -1822,6 +1871,18 @@ async fn main() {
                     sim.player.position.x, sim.player.position.y, sim.player.position.z,
                     sim.player.velocity.x, sim.player.velocity.y, sim.player.velocity.z,
                     sim.player.ammo, sim.stats.shots));
+            }
+            if capture_sequence == Some("gameplay-return") {
+                let model = authored.as_ref();
+                let anchor = model
+                    .and_then(|m| m.presented_anchor())
+                    .map_or("null".into(), |p| format!("[{},{},{}]", p.x, p.y, p.z));
+                let _ = std::fs::write(format!("{output}.gameplay.json"), format!(
+                    "{{\"simulation_time\":{},\"route\":\"{}\",\"renderer_failed\":{},\"return_weight\":{},\"extra_actor_opacity\":{},\"anchor\":{},\"walk_weight\":{},\"run_weight\":{},\"visual_ads\":{},\"native_reload_seconds\":{},\"ammo\":{},\"reserve\":{},\"shots\":{}}}",
+                    sim.time, model.map_or("unavailable", |m| m.presentation_route()), model.is_none_or(|m| m.error().is_some()),
+                    model.and_then(|m| m.reload_return_weight()).map_or("null".into(), |v| v.to_string()), model.map_or(0., |m| m.reload_extra_opacity()), anchor,
+                    model.map_or(0., |m| m.walk_weight()), model.map_or(0., |m| m.run_weight()), model.map_or(0., |m| m.visual_ads_amount()),
+                    model.and_then(|m| m.reload_sample()).map_or("null".into(), |v| v.seconds.to_string()), sim.player.ammo, sim.player.reserve, sim.stats.shots));
             }
             if capture_sequence == Some("gameplay-walk") {
                 let native = authored.as_ref().and_then(|model| model.walk_sample());

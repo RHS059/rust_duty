@@ -28,7 +28,7 @@ fn missing_required_slots_typos_and_unsafe_paths_fail() {
         MANIFEST.replace("reload/asset.vra", "../asset.vra"),
         MANIFEST.replace("reload/asset.vra", "C:\\asset.vra"),
         MANIFEST.replace("native_complete", "fit_gameplay_duration"),
-        MANIFEST.replace("whole_model_cut", "crossfade"),
+        MANIFEST.replace("anchored_crossfade", "crossfade"),
         MANIFEST.replace("ads.clock=native_reversible", "ads.clock=pretend_authored"),
         MANIFEST.replace("ads.entry.clip=ads_entry_r1", ""),
         MANIFEST.replace("ads/asset.vra", "../ads.vra"),
