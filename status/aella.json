@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-04T01:12:10Z",
+  "updatedAt": "2026-10-04T01:22:39Z",
   "state": "active",
-  "task": "Adding absolute viewmodel Z position alongside X/Y, separate from walking-motion XYZ controls, before publishing the combined candidate.",
-  "lastCompleted": "The packaging repair is applied at 68a5bd4. Before the Z addition, the local candidate passed 526 Rust tests, Clippy, 23 identity checks and native XY/XYZ UI checks.",
+  "task": "Preparing the combined candidate after checking all six position and walking-motion sliders; remote source publication is pending.",
+  "lastCompleted": "All six sliders passed visual checks; absolute Z persistence, clamping, full Rust tests and Clippy passed locally. Packaging repair is applied at 68a5bd4.",
   "agents": [
     {
       "slot": 1,
@@ -20,8 +20,8 @@
     {
       "slot": 3,
       "state": "active",
-      "task": "Adding absolute viewmodel Z position to existing X/Y controls while keeping walking-motion XYZ settings separate.",
-      "lastCompleted": "Before the Z addition, local reconciliation passed 526 Rust tests, Clippy, 23 identity checks and native XY/XYZ UI checks."
+      "task": "Preparing source publication for the combined ADS, focus and six-slider candidate.",
+      "lastCompleted": "All six sliders were visually checked; absolute Z persistence, clamping, full Rust tests and Clippy passed locally."
     }
   ]
 }
