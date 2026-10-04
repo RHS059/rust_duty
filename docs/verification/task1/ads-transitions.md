@@ -8,9 +8,51 @@ Independent read-only runtime review owned by Halcyon. Aella remains the sole wr
 - Baseline review began 2026-10-04 at 17:02 UTC; corrected-source review began 17:32 UTC.
 - Corrected source inspected: `edc162d59e18225ba0da238424a769b68d7efb32`, follow-up `b577aaaa4e4016bd965a4f8f89c9d03338c417e0`, and combined candidate **`d4d9b622d42ce0aa45896f06ac338a6ae7a0be14`**.
 - Independent execution: **9 Python capture-verifier unit tests passed** from exact d4d9b622 connector-fetched source at 17:52 UTC (4 ADS, 5 reload-return). Earlier edc162d run passed 7 tests. No Rust tests or native captures were run by this reviewer.
-- Native replay results are author-reported; independent capture-artifact inspection and final corrected-head Windows/Linux CI remain pending. The complete candidate pipeline is [run 37222001387](https://github.com/RHS059/rust_duty/actions/runs/37222001387). Interim `[skip ci]` checkpoints are not CI passes.
+- **Bounded ADS/transition review complete:** native CI artifacts were independently downloaded, decoded and reverified at 18:09–18:11 UTC. [Complete candidate pipeline 37222001387](https://github.com/RHS059/rust_duty/actions/runs/37222001387) succeeded; publication was skipped. Interim `[skip ci]` checkpoints remain distinct from this final run.
 
 Ownership agreement: [agreed split](https://github.com/RHS059/dot_chat/pull/1#issuecomment-5982345699), [implementation hold released](https://github.com/RHS059/dot_chat/pull/1#issuecomment-5982357711).
+
+## Final scoped acceptance: native d4d9b622 evidence
+
+**Pass for the requested saved-XYZ ADS invariance and bounded completion/cancellation/restart transition checks.** No new actionable defect remains in this lane. This is not a merge/release decision or artistic approval.
+
+All artifacts below are from [run 37222001387](https://github.com/RHS059/rust_duty/actions/runs/37222001387), bound to commit `d4d9b622d42ce0aa45896f06ac338a6ae7a0be14`.
+
+### ADS placement
+
+Independently downloaded [neutral ADS artifact 11311066181](https://github.com/RHS059/rust_duty/actions/runs/37222001387/artifacts/11311066181) and [offset artifact 11310643328](https://github.com/RHS059/rust_duty/actions/runs/37222001387/artifacts/11310643328). Reran the exact candidate's placement verifier, then independently decoded every PNG pair with Pillow:
+- 553 paired images, each 960 x 540.
+- 135 full-ADS image pairs exactly identical in both PNG bytes and decoded pixels; 23 are moving ADS.
+- 60 HIP image pairs differ; placement affects HIP before and after aiming.
+- Gameplay/animation telemetry matches across the paired runs.
+- Matching full-ADS images were visually inspected for capture sanity only.
+
+The final CI artifact has **135** full-ADS pairs, distinct from the author's earlier local report of 136. This report uses the independently verified final-run count.
+
+ZIP SHA256:
+- Neutral: `f736c3a5e6126826e8d8881cb37015ec088783d8850b02758e9844df37e2b1c2`.
+- Offset: `700018aa8014df68588bfd6694979e352e18452c9fba3892eeb3b3db71bc9ff4`.
+
+### Reload return and extra actor
+
+Independently downloaded [return artifact 11311480530](https://github.com/RHS059/rust_duty/actions/runs/37222001387/artifacts/11311480530), decoded all 391 native 960 x 540 PNGs and reran the exact v2 verifier:
+- 3 outgoing return episodes: 1 completion, 2 cancellations, 1 restart during a live return.
+- 28 outgoing-return frames, with live walk/run overlap.
+- 17 frames have a partially visible outgoing magazine during return; it retires by final ready.
+- Maximum sampled anchor translation step: **0.019267385211712684 m**, within the unchanged 0.04 m verifier bound.
+- Ammunition conservation and final ready/zero extra-prop visibility pass.
+- Completion boundary: frames 0171→0172, 2.850000→2.866667 s; source native time 2.600000 s, duration 2.602600 s.
+- Cancellation: 0258→0259, 4.300000→4.316667 s; native time 0.750000 s, extra opacity 1→0.9803241.
+- Restart: 0264→0265, 4.400000→4.416667 s; return weight 0.50000006 followed by native time 0.01666667 s.
+- Second cancellation: 0268→0269, 4.466667→4.483334 s; native time 0.06666667 s.
+
+The eight boundary images above were visually inspected for obvious capture/ownership failures, without judging motion fidelity or artistic quality. ZIP SHA256: `ba5dd3805ea24effab8889aa3a50e4af25cfdea245d7b777c47dc66510695b50`.
+
+### Remaining limits
+
+The independent Rust/runtime execution was performed by CI, not this reviewer; this reviewer executed 9 synthetic Python verifier tests and reran both native artifact verifiers, plus full PNG decoding and selected boundary inspection. Translation bounds do not establish angular, every-joint or skin continuity. Native Windows interactions, artistic/reference approval and the inherited strict 1e-5 source-pose failure remain outside this scoped pass. No new threshold, source-data change or runtime edit was made by this lane.
+
+The following sections are historical review records; their pending-evidence statements are superseded by this final exact-head artifact section.
 
 ## Combined-candidate follow-up: d4d9b622
 
@@ -95,7 +137,7 @@ The bone result still **fails the unchanged 1e-5 source criterion**. Passing the
 
 The complete-pose check is explicitly ignored in ordinary tests. The actual-pack v9 replay in [receiver_ads_v9_contract.rs](https://github.com/RHS059/rust_duty/blob/dad6071625ce9190c69e4703c53952a2244cf1f8/tests/receiver_ads_v9_contract.rs) returns early when `RUST_DUTY_ANIMATION_MANIFEST` is unset; a green default test count alone does not show asset-backed execution. Its two-actor pure-forward oracle does not cover a three-actor reload handoff.
 
-## Corrected-candidate acceptance record
+## Historical corrected-candidate acceptance checklist
 
 To complete after Aella supplies the corrected commit:
 - Exact candidate SHA and source/asset provenance.
