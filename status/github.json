@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-04T23:22:26Z",
+  "updatedAt": "2026-10-04T23:32:43Z",
   "latestComplete": {
     "sha": "d4d9b622d42ce0aa45896f06ac338a6ae7a0be14",
     "downloadUrl": "https://github.com/RHS059/rust_duty/actions/runs/37222001387/artifacts/11310528095",
@@ -21,8 +21,8 @@
     "PR #28 engineering documentation merged at 61c3ccd. PR #30 UI design guidance passed CI, and PR #31 provides a separate animation diagnostic notebook; these are not a replacement for this integrated game download."
   ],
   "currentBuild": {
-    "state": "idle",
-    "task": "No queued, running, waiting, pending, or requested repository builds were found. Latest source-annotation PR #33 build 37231196110 at 85f43ef3 succeeded at 20:31 UTC and uploaded a Windows artifact, but its package contents have not been independently verified here. Latest Complete and its changes remain the verified d4d9b62 game candidate; public 0.1.8 updater publication remains paused.",
-    "url": "https://github.com/RHS059/rust_duty/actions/runs/37231196110"
+    "state": "working",
+    "task": "PR #33/source-annotation head e9310ff6 has playable-build runs 37243890523 (PR) and 37243887993 (push), plus updater runs 37243890199 and 37243887871, in progress since 23:28 UTC. The PR run has eight generated-runtime/diagnostic artifacts but no Windows package yet. No newer complete package is independently verified; Latest Complete and its changes remain d4d9b62. Public latest release is still v0.1.7; another implementation context reports preparing 0.1.8 publication.",
+    "url": "https://github.com/RHS059/rust_duty/actions/runs/37243890523"
   }
 }
