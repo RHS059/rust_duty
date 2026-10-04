@@ -1,0 +1,330 @@
+{
+  "source_sha256": "491a1729aa0f32373025d35fff86da76c6c1c8f057c0c553d0fbb5fb6226ff46",
+  "fps": "60/1",
+  "time_base": "1/15360",
+  "start": 7284,
+  "end_exclusive": 7348,
+  "display": "source only, entire frame scaled320x180, no registration",
+  "frames": [
+    {
+      "native_frame": 7284,
+      "pts_ticks": 1864704,
+      "blender_frame": 1
+    },
+    {
+      "native_frame": 7285,
+      "pts_ticks": 1864960,
+      "blender_frame": 2
+    },
+    {
+      "native_frame": 7286,
+      "pts_ticks": 1865216,
+      "blender_frame": 3
+    },
+    {
+      "native_frame": 7287,
+      "pts_ticks": 1865472,
+      "blender_frame": 4
+    },
+    {
+      "native_frame": 7288,
+      "pts_ticks": 1865728,
+      "blender_frame": 5
+    },
+    {
+      "native_frame": 7289,
+      "pts_ticks": 1865984,
+      "blender_frame": 6
+    },
+    {
+      "native_frame": 7290,
+      "pts_ticks": 1866240,
+      "blender_frame": 7
+    },
+    {
+      "native_frame": 7291,
+      "pts_ticks": 1866496,
+      "blender_frame": 8
+    },
+    {
+      "native_frame": 7292,
+      "pts_ticks": 1866752,
+      "blender_frame": 9
+    },
+    {
+      "native_frame": 7293,
+      "pts_ticks": 1867008,
+      "blender_frame": 10
+    },
+    {
+      "native_frame": 7294,
+      "pts_ticks": 1867264,
+      "blender_frame": 11
+    },
+    {
+      "native_frame": 7295,
+      "pts_ticks": 1867520,
+      "blender_frame": 12
+    },
+    {
+      "native_frame": 7296,
+      "pts_ticks": 1867776,
+      "blender_frame": 13
+    },
+    {
+      "native_frame": 7297,
+      "pts_ticks": 1868032,
+      "blender_frame": 14
+    },
+    {
+      "native_frame": 7298,
+      "pts_ticks": 1868288,
+      "blender_frame": 15
+    },
+    {
+      "native_frame": 7299,
+      "pts_ticks": 1868544,
+      "blender_frame": 16
+    },
+    {
+      "native_frame": 7300,
+      "pts_ticks": 1868800,
+      "blender_frame": 17
+    },
+    {
+      "native_frame": 7301,
+      "pts_ticks": 1869056,
+      "blender_frame": 18
+    },
+    {
+      "native_frame": 7302,
+      "pts_ticks": 1869312,
+      "blender_frame": 19
+    },
+    {
+      "native_frame": 7303,
+      "pts_ticks": 1869568,
+      "blender_frame": 20
+    },
+    {
+      "native_frame": 7304,
+      "pts_ticks": 1869824,
+      "blender_frame": 21
+    },
+    {
+      "native_frame": 7305,
+      "pts_ticks": 1870080,
+      "blender_frame": 22
+    },
+    {
+      "native_frame": 7306,
+      "pts_ticks": 1870336,
+      "blender_frame": 23
+    },
+    {
+      "native_frame": 7307,
+      "pts_ticks": 1870592,
+      "blender_frame": 24
+    },
+    {
+      "native_frame": 7308,
+      "pts_ticks": 1870848,
+      "blender_frame": 25
+    },
+    {
+      "native_frame": 7309,
+      "pts_ticks": 1871104,
+      "blender_frame": 26
+    },
+    {
+      "native_frame": 7310,
+      "pts_ticks": 1871360,
+      "blender_frame": 27
+    },
+    {
+      "native_frame": 7311,
+      "pts_ticks": 1871616,
+      "blender_frame": 28
+    },
+    {
+      "native_frame": 7312,
+      "pts_ticks": 1871872,
+      "blender_frame": 29
+    },
+    {
+      "native_frame": 7313,
+      "pts_ticks": 1872128,
+      "blender_frame": 30
+    },
+    {
+      "native_frame": 7314,
+      "pts_ticks": 1872384,
+      "blender_frame": 31
+    },
+    {
+      "native_frame": 7315,
+      "pts_ticks": 1872640,
+      "blender_frame": 32
+    },
+    {
+      "native_frame": 7316,
+      "pts_ticks": 1872896,
+      "blender_frame": 33
+    },
+    {
+      "native_frame": 7317,
+      "pts_ticks": 1873152,
+      "blender_frame": 34
+    },
+    {
+      "native_frame": 7318,
+      "pts_ticks": 1873408,
+      "blender_frame": 35
+    },
+    {
+      "native_frame": 7319,
+      "pts_ticks": 1873664,
+      "blender_frame": 36
+    },
+    {
+      "native_frame": 7320,
+      "pts_ticks": 1873920,
+      "blender_frame": 37
+    },
+    {
+      "native_frame": 7321,
+      "pts_ticks": 1874176,
+      "blender_frame": 38
+    },
+    {
+      "native_frame": 7322,
+      "pts_ticks": 1874432,
+      "blender_frame": 39
+    },
+    {
+      "native_frame": 7323,
+      "pts_ticks": 1874688,
+      "blender_frame": 40
+    },
+    {
+      "native_frame": 7324,
+      "pts_ticks": 1874944,
+      "blender_frame": 41
+    },
+    {
+      "native_frame": 7325,
+      "pts_ticks": 1875200,
+      "blender_frame": 42
+    },
+    {
+      "native_frame": 7326,
+      "pts_ticks": 1875456,
+      "blender_frame": 43
+    },
+    {
+      "native_frame": 7327,
+      "pts_ticks": 1875712,
+      "blender_frame": 44
+    },
+    {
+      "native_frame": 7328,
+      "pts_ticks": 1875968,
+      "blender_frame": 45
+    },
+    {
+      "native_frame": 7329,
+      "pts_ticks": 1876224,
+      "blender_frame": 46
+    },
+    {
+      "native_frame": 7330,
+      "pts_ticks": 1876480,
+      "blender_frame": 47
+    },
+    {
+      "native_frame": 7331,
+      "pts_ticks": 1876736,
+      "blender_frame": 48
+    },
+    {
+      "native_frame": 7332,
+      "pts_ticks": 1876992,
+      "blender_frame": 49
+    },
+    {
+      "native_frame": 7333,
+      "pts_ticks": 1877248,
+      "blender_frame": 50
+    },
+    {
+      "native_frame": 7334,
+      "pts_ticks": 1877504,
+      "blender_frame": 51
+    },
+    {
+      "native_frame": 7335,
+      "pts_ticks": 1877760,
+      "blender_frame": 52
+    },
+    {
+      "native_frame": 7336,
+      "pts_ticks": 1878016,
+      "blender_frame": 53
+    },
+    {
+      "native_frame": 7337,
+      "pts_ticks": 1878272,
+      "blender_frame": 54
+    },
+    {
+      "native_frame": 7338,
+      "pts_ticks": 1878528,
+      "blender_frame": 55
+    },
+    {
+      "native_frame": 7339,
+      "pts_ticks": 1878784,
+      "blender_frame": 56
+    },
+    {
+      "native_frame": 7340,
+      "pts_ticks": 1879040,
+      "blender_frame": 57
+    },
+    {
+      "native_frame": 7341,
+      "pts_ticks": 1879296,
+      "blender_frame": 58
+    },
+    {
+      "native_frame": 7342,
+      "pts_ticks": 1879552,
+      "blender_frame": 59
+    },
+    {
+      "native_frame": 7343,
+      "pts_ticks": 1879808,
+      "blender_frame": 60
+    },
+    {
+      "native_frame": 7344,
+      "pts_ticks": 1880064,
+      "blender_frame": 61
+    },
+    {
+      "native_frame": 7345,
+      "pts_ticks": 1880320,
+      "blender_frame": 62
+    },
+    {
+      "native_frame": 7346,
+      "pts_ticks": 1880576,
+      "blender_frame": 63
+    },
+    {
+      "native_frame": 7347,
+      "pts_ticks": 1880832,
+      "blender_frame": 64
+    }
+  ]
+}

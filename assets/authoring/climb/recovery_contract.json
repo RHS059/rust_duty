@@ -1,0 +1,165 @@
+{
+  "schema": "rust-duty-mantle-climb-recovery-contract/v1",
+  "status": "baseline",
+  "scope": "Source/reference checkpoint only; no recovered or newly authored mantle/climb BLEND or Actions. No runtime activation.",
+  "source_video": {
+    "youtube_id": "V_QT_cnlBHU",
+    "sha256": "491a1729aa0f32373025d35fff86da76c6c1c8f057c0c553d0fbb5fb6226ff46",
+    "bytes": 50406346,
+    "frame_count": 9137,
+    "fps": "60/1",
+    "time_base": "1/15360",
+    "availability": "reconstructed and SHA-256 verified; all 9137 native frames and PTS decoded",
+    "original_parts_commit": "58dad13f51db3dd951f43f3fd7ddc3fbd020ad00",
+    "original_manifest_path": "references/movement/modern_warfare_2022_movement_reference.manifest.json",
+    "frame_pts_csv": "R3_frame_pts.csv",
+    "timebase_basis": "all 9136 successive decoded PTS deltas observed as256ticks; first0,last2338816; stream duration2339072ticks"
+  },
+  "source_video_sha_reverified": true,
+  "baseline": {
+    "repo": "RHS059/rust_duty",
+    "commit": "e9317f90ea171976306e2f17c111325d948ea357",
+    "path": "assets/authoring/jump/halcyon_jump.blend",
+    "sha256": "a2c4b2bbe98da1a608450bba92404cb39008eae5861bcf8fc3f5d2f978df0e3b",
+    "action_count": 103,
+    "driver_count": 185,
+    "nla_track_count": 8,
+    "read_only": true,
+    "inventory": "../mantle/r7_baseline_inventory.json",
+    "ready_diagnostic": "../mantle/r7_ready_baseline.json"
+  },
+  "protected": [
+    "All103 prior Actions and complete curve semantics",
+    "Rest skeleton and72deform bones",
+    "Meshes/weights/packedtextures/materials",
+    "Camera/framing/scene units",
+    "Existing drivers, constraints and attachment inverses",
+    "Original grip/reference poses and guard limits"
+  ],
+  "clips": [
+    {
+      "source_clip": {
+        "id": "R3_roof_climb_01_f8507-8583",
+        "source_id": "R3",
+        "category": "climb",
+        "start_frame": 8507,
+        "end_frame_exclusive": 8583,
+        "start_pts_ticks": 2177792,
+        "end_pts_ticks_exclusive": 2197248,
+        "duration_frames": 76,
+        "blender_frame_mapping_60fps": "1 + source_frame - 8507",
+        "cut_boundary_meaning": "exact decoded-frame excerpt with contextual lead/tail; not an engine-event timestamp",
+        "observed_phases": [
+          {
+            "event": "weapon lift / ascent starts",
+            "frame": 8513,
+            "uncertainty_frames": 1
+          },
+          {
+            "event": "raised weapon peak pose",
+            "frame": 8518,
+            "uncertainty_frames": 1
+          },
+          {
+            "event": "weapon first reappears after screen exit",
+            "frame": 8561,
+            "uncertainty_frames": 1
+          },
+          {
+            "event": "ready return",
+            "frame": 8574,
+            "uncertainty_frames": 2
+          }
+        ],
+        "limits": [
+          "Native frame images8500\u20138529 and8550\u20138579 inspected; whole climb reviewed at10-frame stride.",
+          "Vehicle-roof ascent only; no ladder/rung evidence.",
+          "Weapon and hands leave the frame during middle ascent. Hidden tracks must remain inferred/unscored."
+        ],
+        "status": "exact source excerpt verified; source phase observations, not animation approval",
+        "verification_sidecar": "verification/R3_roof_climb_01_f8507-8583.verification.json"
+      },
+      "every_native_frame_visually_inspected": true,
+      "review_display": "Every source frame in labeled320x180 full-frame sheets; this is source-only observation, not candidate comparison. Small contact patches not resolved by this display.",
+      "proposed_new_action": "climb_vehicle_roof_wip1",
+      "action_created": false,
+      "native_frames": 76,
+      "endpoint_pose_span_seconds": 1.25,
+      "display_duration_seconds": 1.2666666666666666,
+      "phases": [
+        {
+          "start_frame": 8507,
+          "end_frame_exclusive": 8513,
+          "blender_start": 1,
+          "blender_end_inclusive": 6,
+          "observed_content": "Ready against vehicle front",
+          "limits": "Context; actual vehicle roof visible",
+          "semantic_boundary_uncertainty_frames": 2
+        },
+        {
+          "start_frame": 8513,
+          "end_frame_exclusive": 8519,
+          "blender_start": 7,
+          "blender_end_inclusive": 12,
+          "observed_content": "Gun lifts sharply above ready",
+          "limits": "Raised weapon peak around8518\u00b11",
+          "semantic_boundary_uncertainty_frames": 2
+        },
+        {
+          "start_frame": 8519,
+          "end_frame_exclusive": 8532,
+          "blender_start": 13,
+          "blender_end_inclusive": 25,
+          "observed_content": "Gun sweeps left/down, exits lower frame",
+          "limits": "Partial crop; hand/weapon attachment cannot be fully verified",
+          "semantic_boundary_uncertainty_frames": 2
+        },
+        {
+          "start_frame": 8532,
+          "end_frame_exclusive": 8559,
+          "blender_start": 26,
+          "blender_end_inclusive": 52,
+          "observed_content": "Weapon/hands absent from source view",
+          "limits": "Entry/exit edge uncertainty\u00b12frames; hidden motion wholly unscored",
+          "semantic_boundary_uncertainty_frames": 2
+        },
+        {
+          "start_frame": 8559,
+          "end_frame_exclusive": 8563,
+          "blender_start": 53,
+          "blender_end_inclusive": 56,
+          "observed_content": "Small weapon silhouette returns at bottom",
+          "limits": "First clear optic/reappearance around8561\u00b11",
+          "semantic_boundary_uncertainty_frames": 2
+        },
+        {
+          "start_frame": 8563,
+          "end_frame_exclusive": 8575,
+          "blender_start": 57,
+          "blender_end_inclusive": 68,
+          "observed_content": "Weapon and support recover upward",
+          "limits": "Visible return; grip surface details partially occluded",
+          "semantic_boundary_uncertainty_frames": 2
+        },
+        {
+          "start_frame": 8575,
+          "end_frame_exclusive": 8583,
+          "blender_start": 69,
+          "blender_end_inclusive": 76,
+          "observed_content": "Ready tail above roof",
+          "limits": "Vehicle-roof ascent only, no ladder or hanging evidence",
+          "semantic_boundary_uncertainty_frames": 2
+        }
+      ]
+    }
+  ],
+  "allowed_future_work": "New owned Actions only, appended in a separate source copy. Root trajectory first, then matched left-hand detach/regrip on the existing rig; no camera compensation or geometry edits. Preserve the immutable source and all old Action/NLA state.",
+  "unresolved": [
+    "No recoverable prior mantle/climb authored source exists in the examined branch; report is not source recovery.",
+    "Current non-render inspection validates baseline readiness only. Detached-hand/regrip anatomy and source-to-model silhouette remain unsolved.",
+    "Earlier Eevee operation was rejected; no render retry or alternate renderer attempted. Visual authoring review is blocked until authorization/path is resolved.",
+    "Numerical finite/attachment checks cannot substitute for visible source fidelity or contact review.",
+    "Hidden weapon/hand intervals carry no fitted targets or invented ladder/handhold motion."
+  ],
+  "publication_policy": "Source checkpoint may be published as baseline/WIP planning. Keep reference sheets and authoring source out of shipping asset payload. No artistic score, completed motion, or runtime acceptance claimed."
+}

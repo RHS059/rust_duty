@@ -1,0 +1,114 @@
+{
+  "schema": "rust-duty-source-checkpoint-byte-manifest/v1",
+  "scope": "baseline source recovery/observation only; no candidate animation",
+  "files": {
+    "climb/README.md": {
+      "bytes": 1264,
+      "sha256": "cc9e340480f642041962c1cf65af3f3e90961c66e8da156172098acc1503b279"
+    },
+    "climb/native_frame_map.csv": {
+      "bytes": 3998,
+      "sha256": "7bb2eae7e17a65f3aa42638dc09b25c15e2fa9600d72973769dac05bdf0f98ed"
+    },
+    "climb/recovery_contract.json": {
+      "bytes": 7482,
+      "sha256": "0a33976197b4d9dfa2ea6f323782d0081b20c1fd76f0d4450352c6eca4a6d44d"
+    },
+    "climb/source_evidence/vehicle_roof_00.jpg": {
+      "bytes": 527898,
+      "sha256": "3b88847bd7f22cecea40f8f0e2179eb0f94081125a3860bd6591ea5ccad8a25e"
+    },
+    "climb/source_evidence/vehicle_roof_01.jpg": {
+      "bytes": 550134,
+      "sha256": "da19100b7205204a2891d2e8c8a3df8060fa8ae50c0a0c2711209fb27ffdd7cc"
+    },
+    "climb/source_evidence/vehicle_roof_02.jpg": {
+      "bytes": 340625,
+      "sha256": "aaae96382d1c0014e7dbd4b04491e89875c0d02bc5925a48307c5c50202cc92c"
+    },
+    "climb/source_evidence/vehicle_roof_frame_map.json": {
+      "bytes": 7477,
+      "sha256": "14bb30b2cc70f008e4f532211ad7549746786ad8bdb64cb4e35c5fe6abe78461"
+    },
+    "mantle/README.md": {
+      "bytes": 5235,
+      "sha256": "dff3092445fb6662a0eae6d6f1c98e11a7f774c003a75b872558ccee634d9786"
+    },
+    "mantle/input_verification.json": {
+      "bytes": 660,
+      "sha256": "5493f2451d9ac45f1650f054df1b67cd3e047eb2a96c35b2f6a3a7d64e9ed6c2"
+    },
+    "mantle/inspect_ready.py": {
+      "bytes": 3890,
+      "sha256": "cdee979dacc6ef146205e25e96480d6cee847a0fea163e6bee55e4be5c061548"
+    },
+    "mantle/inspect_reference.py": {
+      "bytes": 1748,
+      "sha256": "963b9cd5974dd9294631168a2abb9acf4aa0af5df0f96f34a6c973aba75310ce"
+    },
+    "mantle/native_frame_map.csv": {
+      "bytes": 9413,
+      "sha256": "bfc55bbe444a051ed50bb8d95d32662df2b7c62b487e6291cfdeff73a1bdc89b"
+    },
+    "mantle/r7_baseline_inventory.json": {
+      "bytes": 356888,
+      "sha256": "eeca6d8c4539907a398ca42cd6b0ddc3c2f3be744b496e5777424a6f2d525d61"
+    },
+    "mantle/r7_ready_baseline.json": {
+      "bytes": 16001,
+      "sha256": "8f25bd6d241e156f74d88cf73c4a34067062effba355816301adeaa5a054ae29"
+    },
+    "mantle/recovery_contract.json": {
+      "bytes": 12258,
+      "sha256": "d57c90278448ff483a6cfa64d790e53babd384159f9fa6e9a7b5ab05f3b98c9e"
+    },
+    "mantle/restore_inputs.py": {
+      "bytes": 1244,
+      "sha256": "8c5daaecde413845e9396776d91296866d639a07dac1a5f581ce85ee415a185f"
+    },
+    "mantle/source_evidence/low_obstacle_00.jpg": {
+      "bytes": 612947,
+      "sha256": "1d0885fa4fc7ff174203e4ad764d034c740fae5bec505864340fd8e423990619"
+    },
+    "mantle/source_evidence/low_obstacle_01.jpg": {
+      "bytes": 630364,
+      "sha256": "c95f2a934fc3671a6e17e768fd9092c7d2fc400cf33e6e8b1abe2a6fe504a44b"
+    },
+    "mantle/source_evidence/low_obstacle_02.jpg": {
+      "bytes": 110111,
+      "sha256": "a2b3fd774d62caf6418d2837cea6ff4d4dc564ac9a10912e306ce29b209c24f7"
+    },
+    "mantle/source_evidence/low_obstacle_frame_map.json": {
+      "bytes": 6337,
+      "sha256": "7656c838509b384b9178202b9c0409555e2689ca768300ee26339958dd4555b6"
+    },
+    "mantle/source_evidence/one_hand_00.jpg": {
+      "bytes": 587041,
+      "sha256": "6f944f3a20c8e307c9fea41d3623d8a75b5b0998cece01b00661432114920ff2"
+    },
+    "mantle/source_evidence/one_hand_01.jpg": {
+      "bytes": 603460,
+      "sha256": "fe7f9ef46afd516c35604e992fffec80a52dfa40a43b6dc241341e8aa9b42906"
+    },
+    "mantle/source_evidence/one_hand_02.jpg": {
+      "bytes": 624141,
+      "sha256": "52f59060cfcc2ae015f930773adbd3bc89cc230b006792e34ec4bb204a762d53"
+    },
+    "mantle/source_evidence/one_hand_03.jpg": {
+      "bytes": 145732,
+      "sha256": "01656f7ee4f3c23928d8992e4b55a69ff9925c680df87ca97ef859a740b91ab5"
+    },
+    "mantle/source_evidence/one_hand_frame_map.json": {
+      "bytes": 9377,
+      "sha256": "e82e2210ef488d76da08874daa7a024ba03e6efde928a056a1082fd68f071acb"
+    },
+    "mantle/source_integrity.py": {
+      "bytes": 2898,
+      "sha256": "d22ae8dcc117e29ffb7d746772efce015010407cbb1ddce22924a31746e831ca"
+    },
+    "mantle/validate_source_structure.py": {
+      "bytes": 9678,
+      "sha256": "8f1deb2883eafd5e7a76cf48109a33c010690aa197150369df60773b5b593816"
+    }
+  }
+}

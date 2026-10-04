@@ -1,0 +1,697 @@
+{
+  "schema": "rust-duty-mantle-ready-baseline/v1",
+  "status": "baseline",
+  "source_sha256": "a2c4b2bbe98da1a608450bba92404cb39008eae5861bcf8fc3f5d2f978df0e3b",
+  "source_saved": false,
+  "render_performed": false,
+  "new_actions_created": 0,
+  "camera": {
+    "name": "RD First Person Review",
+    "world_matrix": [
+      [
+        -1.0,
+        -3.821371353845884e-15,
+        -8.742277657347586e-08,
+        0.0
+      ],
+      [
+        -8.742277657347586e-08,
+        4.371138828673793e-08,
+        1.0,
+        0.0
+      ],
+      [
+        0.0,
+        1.0,
+        -4.371138828673793e-08,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    ],
+    "lens_mm": 23.03894805908203,
+    "sensor_width_mm": 36.0,
+    "resolution": [
+      1280,
+      720
+    ],
+    "resolution_percentage": 100
+  },
+  "units": {
+    "system": "METRIC",
+    "scale_length": 1.0
+  },
+  "action": "RD_Locomotion_Normal_Entry_4419_4434_WIP2",
+  "frame": 1,
+  "nodes": {
+    "righthand_prop": {
+      "parent": null,
+      "rotation_mode": "XYZ",
+      "world_matrix": [
+        [
+          0.04116865247488022,
+          -1.1285793632964669e-08,
+          0.9991521835327148,
+          -0.07701853662729263
+        ],
+        [
+          -5.3551048040390015e-09,
+          -0.9999999403953552,
+          -1.4086253941059113e-08,
+          -0.30593857169151306
+        ],
+        [
+          0.9991523027420044,
+          -4.927642294205725e-09,
+          -0.04116860404610634,
+          -0.1536865532398224
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "properties": {},
+      "constraints": []
+    },
+    "righthand_prop_lefthand": {
+      "parent": null,
+      "rotation_mode": "XYZ",
+      "world_matrix": [
+        [
+          0.04116852581501007,
+          1.4890169097725448e-07,
+          0.999152421951294,
+          -0.009352975524961948
+        ],
+        [
+          -6.6356733441352844e-09,
+          -0.9999999403953552,
+          1.3166572898626328e-07,
+          -0.46501490473747253
+        ],
+        [
+          0.999152421951294,
+          -7.639755494892597e-09,
+          -0.041168566793203354,
+          -0.10889148712158203
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "properties": {
+        "weapon_follow": {
+          "value": 1.0,
+          "python_type": "float"
+        },
+        "thumb_curl": {
+          "value": 0.0,
+          "python_type": "float"
+        },
+        "thumb_spread": {
+          "value": 0.0,
+          "python_type": "float"
+        },
+        "index_curl": {
+          "value": 0.0,
+          "python_type": "float"
+        },
+        "index_spread": {
+          "value": 0.0,
+          "python_type": "float"
+        },
+        "middle_curl": {
+          "value": 0.0,
+          "python_type": "float"
+        },
+        "middle_spread": {
+          "value": 0.0,
+          "python_type": "float"
+        },
+        "ring_curl": {
+          "value": 0.0,
+          "python_type": "float"
+        },
+        "ring_spread": {
+          "value": 0.0,
+          "python_type": "float"
+        },
+        "pinky_curl": {
+          "value": 0.0,
+          "python_type": "float"
+        },
+        "pinky_spread": {
+          "value": 0.0,
+          "python_type": "float"
+        },
+        "forearm_roll": {
+          "value": 0.0,
+          "python_type": "float"
+        },
+        "wrist_flex": {
+          "value": 0.0,
+          "python_type": "float"
+        },
+        "wrist_twist": {
+          "value": 0.0,
+          "python_type": "float"
+        },
+        "wrist_deviation": {
+          "value": 0.0,
+          "python_type": "float"
+        },
+        "target_to_anatomical": {
+          "value": "<bpy id property array [16]>",
+          "python_type": "IDPropertyArray"
+        },
+        "magazine_follow": {
+          "value": 0.0,
+          "python_type": "float"
+        }
+      },
+      "constraints": [
+        {
+          "name": "Child Of",
+          "type": "CHILD_OF",
+          "influence": 1.0,
+          "target": "Arms",
+          "subtarget": "righthand_prop"
+        }
+      ]
+    },
+    "righthand_prop_righthand": {
+      "parent": null,
+      "rotation_mode": "XYZ",
+      "world_matrix": [
+        [
+          0.04116852954030037,
+          2.8301212751102867e-07,
+          0.9991524815559387,
+          -0.12983742356300354
+        ],
+        [
+          -3.958120942115784e-09,
+          -0.9999999403953552,
+          2.746819518506527e-07,
+          -0.15927712619304657
+        ],
+        [
+          0.9991524815559387,
+          -5.707988748326898e-09,
+          -0.0411684513092041,
+          -0.17280207574367523
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "properties": {
+        "weapon_follow": {
+          "value": 1.0,
+          "python_type": "float"
+        },
+        "thumb_curl": {
+          "value": 0.0,
+          "python_type": "float"
+        },
+        "thumb_spread": {
+          "value": 0.0,
+          "python_type": "float"
+        },
+        "index_curl": {
+          "value": 0.0,
+          "python_type": "float"
+        },
+        "index_spread": {
+          "value": 0.0,
+          "python_type": "float"
+        },
+        "middle_curl": {
+          "value": 0.0,
+          "python_type": "float"
+        },
+        "middle_spread": {
+          "value": 0.0,
+          "python_type": "float"
+        },
+        "ring_curl": {
+          "value": 0.0,
+          "python_type": "float"
+        },
+        "ring_spread": {
+          "value": 0.0,
+          "python_type": "float"
+        },
+        "pinky_curl": {
+          "value": 0.0,
+          "python_type": "float"
+        },
+        "pinky_spread": {
+          "value": 0.0,
+          "python_type": "float"
+        },
+        "forearm_roll": {
+          "value": 0.0,
+          "python_type": "float"
+        },
+        "wrist_flex": {
+          "value": 0.0,
+          "python_type": "float"
+        },
+        "wrist_twist": {
+          "value": 0.0,
+          "python_type": "float"
+        },
+        "wrist_deviation": {
+          "value": 0.0,
+          "python_type": "float"
+        }
+      },
+      "constraints": [
+        {
+          "name": "Child Of",
+          "type": "CHILD_OF",
+          "influence": 1.0,
+          "target": "Arms",
+          "subtarget": "righthand_prop"
+        }
+      ]
+    },
+    "lefthand_prop": {
+      "parent": null,
+      "rotation_mode": "XYZ",
+      "world_matrix": [
+        [
+          -0.028656132519245148,
+          -7.834101722892228e-08,
+          -0.9995896220207214,
+          -0.08025643229484558
+        ],
+        [
+          -2.437736839056015e-07,
+          -0.9999999403953552,
+          8.675851859152317e-08,
+          -0.3319523334503174
+        ],
+        [
+          -0.9995899200439453,
+          2.455635694786906e-07,
+          0.028656303882598877,
+          -0.06399719417095184
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "properties": {
+        "weapon_follow": {
+          "value": 1.0,
+          "python_type": "float"
+        },
+        "seated_weapon_relative": {
+          "value": "<bpy id property array [16]>",
+          "python_type": "IDPropertyArray"
+        },
+        "insertion_guide": {
+          "value": 0.0,
+          "python_type": "float"
+        },
+        "insertion_depth": {
+          "value": 0.0,
+          "python_type": "float"
+        },
+        "insertion_axis_local": {
+          "value": "<bpy id property array [3]>",
+          "python_type": "IDPropertyArray"
+        }
+      },
+      "constraints": [
+        {
+          "name": "Child Of",
+          "type": "CHILD_OF",
+          "influence": 1.0,
+          "target": "Arms",
+          "subtarget": "righthand_prop"
+        }
+      ]
+    },
+    "hand_l": {
+      "parent": "lowerarm_l",
+      "rotation_mode": "QUATERNION",
+      "world_matrix": [
+        [
+          -0.5214526653289795,
+          -0.4731340706348419,
+          0.7100934982299805,
+          -0.009352958761155605
+        ],
+        [
+          -0.8222185373306274,
+          0.5011082887649536,
+          -0.2699040174484253,
+          -0.465015172958374
+        ],
+        [
+          -0.228132963180542,
+          -0.7245934009552002,
+          -0.6503235101699829,
+          -0.10889144986867905
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "properties": {},
+      "constraints": [
+        {
+          "name": "Legacy \u2022 Child Of",
+          "type": "CHILD_OF",
+          "influence": 1.0,
+          "target": "Arms",
+          "subtarget": "righthand_prop_lefthand"
+        },
+        {
+          "name": "Calibrated IK output",
+          "type": "COPY_TRANSFORMS",
+          "influence": 1.0,
+          "target": "Arms",
+          "subtarget": "OUT_hand_l"
+        }
+      ]
+    },
+    "hand_r": {
+      "parent": "lowerarm_r",
+      "rotation_mode": "QUATERNION",
+      "world_matrix": [
+        [
+          0.0452553816139698,
+          -0.22449521720409393,
+          0.97342449426651,
+          -0.12983734905719757
+        ],
+        [
+          0.9666476845741272,
+          0.2557295560836792,
+          0.014036968350410461,
+          -0.15927743911743164
+        ],
+        [
+          -0.25208526849746704,
+          0.9403231739997864,
+          0.22857992351055145,
+          -0.1728019267320633
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "properties": {},
+      "constraints": [
+        {
+          "name": "Legacy \u2022 Child Of",
+          "type": "CHILD_OF",
+          "influence": 1.0,
+          "target": "Arms",
+          "subtarget": "righthand_prop_righthand"
+        },
+        {
+          "name": "Calibrated IK output",
+          "type": "COPY_TRANSFORMS",
+          "influence": 1.0,
+          "target": "Arms",
+          "subtarget": "OUT_hand_r"
+        }
+      ]
+    },
+    "MCH_hand_guarded_l": {
+      "parent": "MCH_wrist_anatomy_l",
+      "rotation_mode": "XYZ",
+      "world_matrix": [
+        [
+          0.4891078472137451,
+          -0.6463133096694946,
+          0.5857079029083252,
+          -0.009352955035865307
+        ],
+        [
+          -0.6431486010551453,
+          -0.720841646194458,
+          -0.2583557665348053,
+          -0.465015172958374
+        ],
+        [
+          0.5891808271408081,
+          -0.25033339858055115,
+          -0.768244743347168,
+          -0.10889144986867905
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "properties": {},
+      "constraints": [
+        {
+          "name": "Authoring guards \u2022 not medical ROM",
+          "type": "LIMIT_ROTATION",
+          "influence": 1.0,
+          "target": null,
+          "subtarget": null
+        }
+      ]
+    },
+    "MCH_hand_guarded_r": {
+      "parent": "MCH_wrist_anatomy_r",
+      "rotation_mode": "XYZ",
+      "world_matrix": [
+        [
+          -0.09770343452692032,
+          0.08662860095500946,
+          0.9914385676383972,
+          -0.12983740866184235
+        ],
+        [
+          0.20912399888038635,
+          -0.9721764922142029,
+          0.10555396974086761,
+          -0.15927740931510925
+        ],
+        [
+          0.9729974865913391,
+          0.217646986246109,
+          0.07686784863471985,
+          -0.1728018969297409
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "properties": {},
+      "constraints": [
+        {
+          "name": "Authoring guards \u2022 not medical ROM",
+          "type": "LIMIT_ROTATION",
+          "influence": 1.0,
+          "target": null,
+          "subtarget": null
+        }
+      ]
+    },
+    "MCH_attach_goal_l": {
+      "parent": "OUT_hand_target_l",
+      "rotation_mode": "XYZ",
+      "world_matrix": [
+        [
+          0.48910823464393616,
+          -0.6463131308555603,
+          0.5857076048851013,
+          -0.009352934546768665
+        ],
+        [
+          -0.6431481242179871,
+          -0.7208418846130371,
+          -0.258355051279068,
+          -0.4650149643421173
+        ],
+        [
+          0.5891807675361633,
+          -0.25033295154571533,
+          -0.768244743347168,
+          -0.10889138281345367
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "properties": {},
+      "constraints": []
+    },
+    "MCH_attach_goal_r": {
+      "parent": "righthand_prop_righthand",
+      "rotation_mode": "XYZ",
+      "world_matrix": [
+        [
+          -0.09770330041646957,
+          0.08662866055965424,
+          0.9914383292198181,
+          -0.12983745336532593
+        ],
+        [
+          0.20912346243858337,
+          -0.9721757769584656,
+          0.1055540144443512,
+          -0.15927718579769135
+        ],
+        [
+          0.9729962944984436,
+          0.21764598786830902,
+          0.07686879485845566,
+          -0.17280195653438568
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "properties": {},
+      "constraints": []
+    },
+    "MCH_lowerarm_l": {
+      "parent": "MCH_upperarm_l",
+      "rotation_mode": "QUATERNION",
+      "world_matrix": [
+        [
+          -0.7443298101425171,
+          -0.6493624448776245,
+          -0.15589042007923126,
+          0.17264531552791595
+        ],
+        [
+          0.16508623957633972,
+          -0.40510663390159607,
+          0.8992413282394409,
+          -0.3514748215675354
+        ],
+        [
+          -0.6470858454704285,
+          0.6435965895652771,
+          0.40873390436172485,
+          -0.2892737090587616
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "properties": {},
+      "constraints": [
+        {
+          "name": "Two-bone arm IK",
+          "type": "IK",
+          "influence": 1.0,
+          "target": "Arms",
+          "subtarget": "OUT_hand_target_l"
+        }
+      ]
+    },
+    "MCH_lowerarm_r": {
+      "parent": "MCH_upperarm_r",
+      "rotation_mode": "QUATERNION",
+      "world_matrix": [
+        [
+          -0.9021413326263428,
+          0.38567304611206055,
+          0.19338339567184448,
+          -0.23794451355934143
+        ],
+        [
+          -0.16108588874340057,
+          -0.7169132828712463,
+          0.6782976984977722,
+          0.04167896509170532
+        ],
+        [
+          0.4002414643764496,
+          0.5807693600654602,
+          0.70888352394104,
+          -0.33559608459472656
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "properties": {},
+      "constraints": [
+        {
+          "name": "Two-bone arm IK",
+          "type": "IK",
+          "influence": 1.0,
+          "target": "Arms",
+          "subtarget": "righthand_prop_righthand"
+        }
+      ]
+    }
+  },
+  "skin": {
+    "Actual arms mesh 0": {
+      "vertices": 5710,
+      "all_finite": true,
+      "evaluated_world_vertices_sha256": "8b42cc2ba1fd373695e9beeea90b1200cd2272eabee4e1273d3b61726c5c5a60"
+    },
+    "Actual arms mesh 1": {
+      "vertices": 3954,
+      "all_finite": true,
+      "evaluated_world_vertices_sha256": "3ebd972d3e3657743500f4da5db230bea81d8f05552ca4755454dc4c7e2cf126"
+    },
+    "Actual arms mesh 2": {
+      "vertices": 570,
+      "all_finite": true,
+      "evaluated_world_vertices_sha256": "3c7f890663a4827c4fd3fd99d03559565e1feb6fd6ad48ab7886c0fd23481ffb"
+    }
+  },
+  "wrist_to_attachment_position_error_rig_units": {
+    "l": 2.7223309192800415e-07,
+    "r": 3.579381748874281e-07
+  },
+  "driver_count": 185,
+  "invalid_drivers": [],
+  "limit": "Single ready pose only. Matrix attachment agreement is not finger-surface contact, anatomy review, detached-hand branch verification, or animation acceptance."
+}

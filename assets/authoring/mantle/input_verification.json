@@ -1,0 +1,22 @@
+{
+  "schema": "rust-duty-mantle-climb-input-verification/v1",
+  "source_sha256": "491a1729aa0f32373025d35fff86da76c6c1c8f057c0c553d0fbb5fb6226ff46",
+  "source_bytes": 50406346,
+  "decoded_frame_count": 9137,
+  "stream": {
+    "width": 1280,
+    "height": 720,
+    "r_frame_rate": "60/1",
+    "avg_frame_rate": "60/1",
+    "time_base": "1/15360"
+  },
+  "first_pts": 0,
+  "last_pts": 2338816,
+  "last_duration": 256,
+  "all_native_pts_equal_index_times256": true,
+  "reviewed_source_frames": 236,
+  "all_three_cut_csv_rows_checked_against_fresh_ffprobe": true,
+  "contiguous_phase_coverage_verified": true,
+  "new_animation_actions": 0,
+  "render_attempts": 0
+}
