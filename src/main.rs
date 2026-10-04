@@ -1290,6 +1290,7 @@ async fn main() {
             fullscreen = !fullscreen;
             set_fullscreen(fullscreen);
         }
+        let previous_tuning = (cfg.sensitivity, cfg.fov);
         if focus_input.is_key_pressed(KeyCode::LeftBracket) {
             cfg.sensitivity = (cfg.sensitivity - 0.01).max(0.01);
         }
@@ -1301,6 +1302,9 @@ async fn main() {
         }
         if focus_input.is_key_pressed(KeyCode::Equal) {
             cfg.fov = (cfg.fov + 2.).min(120.);
+        }
+        if previous_tuning != (cfg.sensitivity, cfg.fov) {
+            pause_menu.changed();
         }
         // Start menu / pause settings only. Arrows nudge the viewmodel, not the player.
         if !active && menu_enabled && !pause_menu.has_keyboard_focus() {
@@ -1878,11 +1882,12 @@ async fn main() {
                     .and_then(|m| m.presented_anchor())
                     .map_or("null".into(), |p| format!("[{},{},{}]", p.x, p.y, p.z));
                 let _ = std::fs::write(format!("{output}.gameplay.json"), format!(
-                    "{{\"simulation_time\":{},\"route\":\"{}\",\"renderer_failed\":{},\"return_weight\":{},\"extra_actor_opacity\":{},\"anchor\":{},\"walk_weight\":{},\"run_weight\":{},\"visual_ads\":{},\"native_reload_seconds\":{},\"ammo\":{},\"reserve\":{},\"shots\":{}}}",
+                    "{{\"simulation_time\":{},\"route\":\"{}\",\"renderer_failed\":{},\"return_weight\":{},\"extra_actor_opacity\":{},\"anchor\":{},\"walk_weight\":{},\"run_weight\":{},\"visual_ads\":{},\"native_reload_seconds\":{},\"native_reload_duration\":{},\"ammo\":{},\"reserve\":{},\"shots\":{}}}",
                     sim.time, model.map_or("unavailable", |m| m.presentation_route()), model.is_none_or(|m| m.error().is_some()),
                     model.and_then(|m| m.reload_return_weight()).map_or("null".into(), |v| v.to_string()), model.map_or(0., |m| m.reload_extra_opacity()), anchor,
                     model.map_or(0., |m| m.walk_weight()), model.map_or(0., |m| m.run_weight()), model.map_or(0., |m| m.visual_ads_amount()),
-                    model.and_then(|m| m.reload_sample()).map_or("null".into(), |v| v.seconds.to_string()), sim.player.ammo, sim.player.reserve, sim.stats.shots));
+                    model.and_then(|m| m.reload_sample()).map_or("null".into(), |v| v.seconds.to_string()),
+                    model.and_then(|m| m.tactical_duration()).map_or("null".into(), |v| v.to_string()), sim.player.ammo, sim.player.reserve, sim.stats.shots));
             }
             if capture_sequence == Some("gameplay-walk") {
                 let native = authored.as_ref().and_then(|model| model.walk_sample());

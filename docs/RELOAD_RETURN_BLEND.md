@@ -47,7 +47,10 @@ Regression evidence lives at the affected boundaries:
 - `--capture-sequence=gameplay-return --capture-hz=60` exercises complete reload,
   live walk/run/ADS, cancellation and restarting while a return is active.
   `verify_reload_return_capture.py` requires those episodes, concurrent movement,
-  fading reload-only props, finite/bounded return-anchor changes and conserved ammo.
+  fading reload-only props, finite/bounded sampled anchor translation and conserved
+  ammo. Native seconds and declared clip duration distinguish completion from
+  cancellation; a fresh native clock during an unfinished return proves restart.
+  This translation metric does not bound angular, joint or skin continuity.
 
 Run these native checks on the complete generated package. Windows compilation
 does not establish native Windows input/Alt-Tab behavior or antivirus acceptance.

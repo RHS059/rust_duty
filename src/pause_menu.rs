@@ -90,6 +90,9 @@ impl PauseMenu {
             self.persistence = Some("Unsaved changes. F5 saves the preset".into());
         }
     }
+    fn status<'a>(&'a self, transient: Option<&'a str>) -> Option<&'a str> {
+        self.persistence.as_deref().or(transient)
+    }
     pub fn keyboard(
         &mut self,
         cfg: &mut Settings,
@@ -405,11 +408,7 @@ impl PauseMenu {
             let r = layout.rect(r);
             draw_rectangle_lines(r.x - 3., r.y - 3., r.w + 6., r.h + 6., 2., accent);
         }
-        let status = if self.save_failed {
-            self.persistence.as_deref()
-        } else {
-            status.or(self.persistence.as_deref())
-        };
+        let status = self.status(status);
         text(
             &status
                 .unwrap_or("Adjustments save on release. Tab selects; arrows adjust.")
@@ -508,6 +507,14 @@ mod tests {
         assert!(menu.persistence.as_ref().unwrap().contains("Unsaved"));
         menu.reloaded();
         assert!(menu.persistence.as_ref().unwrap().contains("discarded"));
+    }
+    #[test]
+    fn new_edit_overrides_unexpired_success_notice_immediately() {
+        let mut menu = PauseMenu::default();
+        let saved = menu.save_result(Ok(()));
+        menu.changed();
+        assert!(menu.status(Some(&saved)).unwrap().starts_with("Unsaved"));
+        assert!(menu.status(None).unwrap().starts_with("Unsaved"));
     }
     fn point(x: f32, y: f32) -> Vec2 {
         {
