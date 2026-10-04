@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-04T02:02:47Z",
+  "updatedAt": "2026-10-04T02:11:29Z",
   "state": "active",
-  "task": "Monitoring the corrected 0.1.8 verification run; a complete Windows candidate is available.",
-  "lastCompleted": "Windows edd4612 passed complete staging and embedded 0.1.8 identity checks; its 84-file CI artifact and upload digest are verified.",
+  "task": "Monitoring Linux staging and native captures for corrected 0.1.8; the corrected Windows package is complete.",
+  "lastCompleted": "Windows dad6071 passed complete staging and embedded 0.1.8/sequence 8 checks; its 84-file artifact and matching upload digest are verified.",
   "agents": [
     {
       "slot": 1,
@@ -20,8 +20,8 @@
     {
       "slot": 3,
       "state": "active",
-      "task": "Monitoring corrected PR #27 head dad6071 after updating the Linux ADS verifier.",
-      "lastCompleted": "All four authored asset pipelines and updater checks passed; corrected Windows/Linux native regression tests are running."
+      "task": "Monitoring corrected PR #27 head dad6071 as Linux stages the complete game before native capture checks.",
+      "lastCompleted": "Corrected Windows tests, lint, complete staging and identity checks passed; artifact 11289799614 is available."
     }
   ]
 }
