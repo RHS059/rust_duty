@@ -6,13 +6,30 @@ Independent read-only runtime review owned by Halcyon. Aella remains the sole wr
 
 - Baseline reviewed: PR [27](https://github.com/RHS059/rust_duty/pull/27), commit `dad6071625ce9190c69e4703c53952a2244cf1f8`.
 - Baseline review began 2026-10-04 at 17:02 UTC; corrected-source review began 17:32 UTC.
-- Corrected source inspected: `edc162d59e18225ba0da238424a769b68d7efb32`; latest follow-up `b577aaaa4e4016bd965a4f8f89c9d03338c417e0` changes replay timing and its contract test only.
-- Independent execution: **7 Python capture-verifier unit tests passed** from exact edc162d connector-fetched source at 17:33 UTC. No Rust tests or native captures were run by this reviewer.
-- Dedicated native reload replay, independently accessible capture evidence and final corrected-head Windows/Linux CI remain pending. Interim `[skip ci]` checkpoints are not CI passes.
+- Corrected source inspected: `edc162d59e18225ba0da238424a769b68d7efb32`, follow-up `b577aaaa4e4016bd965a4f8f89c9d03338c417e0`, and combined candidate **`d4d9b622d42ce0aa45896f06ac338a6ae7a0be14`**.
+- Independent execution: **9 Python capture-verifier unit tests passed** from exact d4d9b622 connector-fetched source at 17:52 UTC (4 ADS, 5 reload-return). Earlier edc162d run passed 7 tests. No Rust tests or native captures were run by this reviewer.
+- Native replay results are author-reported; independent capture-artifact inspection and final corrected-head Windows/Linux CI remain pending. The complete candidate pipeline is [run 37222001387](https://github.com/RHS059/rust_duty/actions/runs/37222001387). Interim `[skip ci]` checkpoints are not CI passes.
 
 Ownership agreement: [agreed split](https://github.com/RHS059/dot_chat/pull/1#issuecomment-5982345699), [implementation hold released](https://github.com/RHS059/dot_chat/pull/1#issuecomment-5982357711).
 
-## Corrected-source review: edc162d / b577aaaa
+## Combined-candidate follow-up: d4d9b622
+
+Source reviewed and tests independently rerun on 2026-10-04 at 17:52 UTC.
+
+The prior return-verifier finding is **closed in source and regression tests**. The [v2 verifier](https://github.com/RHS059/rust_duty/blob/d4d9b622d42ce0aa45896f06ac338a6ae7a0be14/tools/verify_reload_return_capture.py) now requires:
+- A valid native clip duration and preceding active reload sample for each outgoing return.
+- Source endpoint timing that distinguishes a complete return from an early cancellation.
+- At least one completion, two cancellations and a fresh native reload while an earlier return is still active.
+- Advancing return weights, visible cancellation and decreasing extra-prop opacity.
+- The existing movement overlap, translation bound, final ready/prop retirement and ammo-conservation checks.
+
+Its scope explicitly says the sampled anchor metric measures translation only, not angular, joint or skin continuity. [main.rs](https://github.com/RHS059/rust_duty/blob/d4d9b622d42ce0aa45896f06ac338a6ae7a0be14/src/main.rs#L1879-L1890) emits actual reload sample time and clip duration into the replay telemetry.
+
+Independent execution: all **9 tests passed** from the exact candidate's four verifier/test modules. The two added regressions reject a ready/return-only fixture with no preceding native reload and frozen return weights. This closes the reported false-evidence case; it does not substitute for native capture.
+
+[Aella's combined-candidate handoff](https://github.com/RHS059/dot_chat/pull/1#issuecomment-5982758414) reports the strengthened native replay passed with 391 frames, 1 completion, 2 cancellations, 1 restart, 28 return frames, 17 visible extra-magazine fade frames and maximum sampled anchor translation approximately 19.3 mm. These are still author-reported results until the native artifact is independently inspected. No new actionable runtime defect was found in this source pass.
+
+## Earlier corrected-source review: edc162d / b577aaaa
 
 The baseline defects described below are historical; both now have structural fixes:
 - [main.rs](https://github.com/RHS059/rust_duty/blob/edc162d59e18225ba0da238424a769b68d7efb32/src/main.rs#L381-L398) derives placement from visible authored ADS rather than saved XYZ unconditionally. The layered controller includes run weight, and reload entry/return preserves its current visible ADS amount.
@@ -28,7 +45,7 @@ Independently executed the four tests in `tools/test_ads_placement_capture.py` a
 
 [Aella's handoff](https://github.com/RHS059/dot_chat/pull/1#issuecomment-5982597513) reports 532 focused Rust tests, 22 capture tests, Clippy/actionlint and a native Linux paired ADS capture: 553 frames, 136 identical full-ADS images including 23 moving, 60 changed HIP images and matching telemetry. This is author-reported local evidence. The native files/logs were not independently retrieved or visually inspected by this reviewer. The dedicated reload-return capture was explicitly still finishing.
 
-### Remaining verifier evidence-scope gap
+### Historical verifier evidence-scope gap (fixed in d4d9b622)
 
 [verify_reload_return_capture.py](https://github.com/RHS059/rust_duty/blob/b577aaaa4e4016bd965a4f8f89c9d03338c417e0/tools/verify_reload_return_capture.py#L21-L25) counts three non-null return-weight episodes, then reports completion/cancellation/restart coverage. It does not validate each episode's native reload progress or event reason. Its [passing positive fixture](https://github.com/RHS059/rust_duty/blob/b577aaaa4e4016bd965a4f8f89c9d03338c417e0/tools/test_reload_return_capture.py#L11-L22) contains only ready/return routes with constant intermediate weights and no active reload source/event witness.
 
