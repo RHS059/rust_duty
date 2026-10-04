@@ -26,9 +26,12 @@ as source material; do not install a generic enterprise bundle or run its script
   contract suite before adding a parallel implementation or a duplicate monitor.
 - For malformed assets, repair unrelated framing/checksum fields when necessary
   so a negative fixture reaches the intended validation. Include a valid control.
-- Authored animation changes need their own source/companion and Rust-sampler
-  evidence. Native rendered playback and artistic/reference approval remain
-  separate claims. Preserve the existing authored-source pipeline.
+- Established Blender animation revisions follow the agreed Eevee preview to
+  Elara, then stable export/integration/commit workflow. Do not add a redundant
+  per-revision source-to-game visual or parity review. Keep existing automated
+  parser/sampler and CI checks. New native-presentation or parity investigation
+  applies when the exporter, rig contract, or runtime integration changes, or a
+  concrete defect warrants it; keep that evidence distinct from artistic approval.
 - Treat local assets/settings and the GitHub updater as distinct boundaries.
   Gameplay being offline does not mean the application has no network activity;
   consult the current updater docs for that boundary.

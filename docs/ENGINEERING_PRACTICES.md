@@ -33,7 +33,7 @@ and browser/device matrices are not introduced by this adoption.
 | --- | --- | --- |
 | Gameplay, input, fixed time | [weapon contracts](../tests/weapon_contract.rs), [clock](../src/clock.rs), [input bridge](../src/control.rs) | Native input latency, rendering, or retail-game equivalence |
 | Static binary assets | [asset contracts](../tests/asset_contract.rs), [multi-record regressions](../tests/asset_quality_regressions.rs), [format](ASSET_FORMAT.md) | Rendered appearance or rights to distribute a model |
-| Authored animation and companions | [skinned format](SKINNED_ASSET_FORMAT.md), [source-to-game verification](AUTHORED_ASSET_CI.md), the affected authored/layered contract suite | Artistic approval, reference fidelity, or untested platforms |
+| Authored animation and companions | [skinned format](SKINNED_ASSET_FORMAT.md), [existing automated source-to-game checks](AUTHORED_ASSET_CI.md), the affected authored/layered contract suite | Artistic approval or a requirement for a new per-revision parity review; see step 4 |
 | Native integration | [verification record](VERIFICATION.md) and the affected feature's capture evidence | A different commit, device, or interrupted flow that was not exercised |
 | Updating and packaging | [updater boundary](UPDATER.md), [release process](RELEASE_CHANNEL.md) | Permission to publish or evidence that a live update occurred |
 
@@ -52,10 +52,15 @@ date/scope; they are not results for this documentation PR.
 3. Make negative cases discriminating. A corrupt index hidden behind a bad CRC
    tests checksum rejection, not index validation. A parser accepting an empty
    result does not prove expected geometry survived.
-4. Separate logical proof from integration. For presentation, exercise relevant
-   repeated/interrupted flows and actual native playback. For asset changes,
-   preserve source/companion identity and sampler parity. Keep numerical validity,
-   visual inspection, and aesthetic approval distinct.
+4. Preserve the established Blender animation-revision workflow: Eevee preview to
+   Elara, then stable export/integration/commit. Retain existing automated
+   parser/sampler and CI checks; do not add redundant per-revision source-to-game
+   visual or parity approval. New native-presentation or parity investigation is
+   warranted when the exporter, rig contract, or runtime integration changes, or
+   a concrete defect needs investigation. Scope source/companion identity,
+   sampler, and native evidence to that change. For native UI/integration changes,
+   exercise the relevant repeated/interrupted flows. Keep numerical validity,
+   visual inspection, and artistic approval distinct.
 5. Use the existing [verification commands and prerequisites](../README.md#verify)
    for the affected scope. Typical Rust checks are `cargo fmt --all -- --check`,
    `cargo clippy --locked --all-targets -- -D warnings`, and `cargo test --locked`.
