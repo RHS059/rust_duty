@@ -1,11 +1,11 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-04T02:22:20Z",
+  "updatedAt": "2026-10-04T02:32:08Z",
   "latestComplete": {
     "sha": "dad6071625ce9190c69e4703c53952a2244cf1f8",
     "downloadUrl": "https://github.com/RHS059/rust_duty/actions/runs/37169476605/artifacts/11289799614",
     "runUrl": "https://github.com/RHS059/rust_duty/actions/runs/37169476605",
-    "verifiedAt": "2026-10-04T02:22:20Z",
+    "verifiedAt": "2026-10-04T02:32:08Z",
     "completedAt": "2026-10-04T02:07:18Z"
   },
   "changes": [
@@ -13,14 +13,14 @@
     "Windows job 111339481428 passed tests, lint, release compilation, complete staging and embedded identity checks for 0.1.8/sequence 8. It staged 83 required game files plus BUILD_IDENTITY, with 84 files uploaded.",
     "Artifact 11289799614 is 92,905,506 bytes. API and upload-log SHA-256 agree: 34166ec8e40804a021199238710e425d3a00c1e5055f16b6bcd387228745c0ef. Verification uses CI staging, identity and upload evidence; no independent local full-ZIP inspection is claimed.",
     "Corrected dad6071 full game run 37169476605 passed on Windows and Linux. Linux native reload, walk, ADS interruption, layered 30/60 Hz and lighting checks passed; Linux artifact 11291071076 is available.",
-    "All authored asset, runtime-contract and updater checks passed for dad6071. New saved-XYZ fade during ADS is being implemented locally; animation-to-movement handoff is under review. Neither change is in this download.",
+    "All authored asset, runtime-contract and updater checks passed for dad6071. New local ADS position-offset fade work and tests are paused; the animation-blend fix has not started. Neither is included in this download.",
     "Six-slider UI, Z persistence/clamping, full Rust tests and Clippy passed locally. The known strict ADS bone-parity discrepancy at 3.36e-5 remains unresolved; Windows Alt-Tab interaction is still untested.",
     "Packaging repair is applied at 68a5bd4 and its repack checks preserved all 65 authored assets. Release publication is paused; 0.1.8 updater delivery is not yet published.",
-    "Lateral Trial4 and newer jump/mantle work are not included. PR #24 automatic patch releases remain inactive."
+    "Antivirus investigation awaits the exact Avast detection and affected filename; no security-clearance verdict. Lateral Trial4 and newer jump/mantle work are not included. PR #24 automatic patch releases remain inactive."
   ],
   "currentBuild": {
-    "state": "active",
-    "task": "Verified dad6071 Windows/Linux builds are complete. New ADS position-offset fade is being implemented locally, with animation handoff under review. Public 0.1.8 publication remains paused.",
+    "state": "idle",
+    "task": "Verified dad6071 Windows/Linux builds are complete. Awaiting antivirus diagnostic details; local ADS changes and public 0.1.8 publication are paused.",
     "url": "https://github.com/RHS059/rust_duty/pull/27"
   }
 }
