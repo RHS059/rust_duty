@@ -1,0 +1,40 @@
+{
+  "schema": "rust-duty-jump-reference-refinement/v1",
+  "revision": "r7",
+  "review_url": "https://github.com/RHS059/dot_chat/pull/1#issuecomment-5974993270",
+  "method": {
+    "revision": "r7",
+    "review_url": "https://github.com/RHS059/dot_chat/pull/1#issuecomment-5974993270",
+    "phase_scope": "Landing-only source4071\u20134094; complete takeoff and air retained",
+    "reason": "Actual native Eevee sight cues already match the source upper optic envelope. The near-camera receiver/handle remains approximately7\u20138px shallower at the trough and3\u20136px on the shoulders. Correct that visible mass independently using a bounded coupled 3D retarget, not an arbitrary amplitude multiplier.",
+    "target_reference_region": "receiver",
+    "preserved_model_guides": [
+      "rear_sight",
+      "front_sight"
+    ],
+    "bounds": {
+      "translation_correction_mm": [
+        -10,
+        10
+      ],
+      "depth_correction_mm": [
+        -20,
+        20
+      ],
+      "pitch_yaw_correction_degrees": [
+        -3,
+        3
+      ]
+    },
+    "inference": "Single-view image-fit retarget between differing models; no unique 3D correspondence claim. Actual baseline image residual is applied to the corresponding virtual receiver guide; artistic judgment remains with Elara."
+  },
+  "checks": {
+    "takeoff_curves_identical_to_r6": true,
+    "air_curves_identical_to_r6": true,
+    "all_motion_technical_checks_passed": true,
+    "all_source_preservation_checks_passed": true
+  },
+  "passed": true,
+  "candidate_sha256": "a2c4b2bbe98da1a608450bba92404cb39008eae5861bcf8fc3f5d2f978df0e3b",
+  "artistic_acceptance": "Elara paired review pending; no author score"
+}

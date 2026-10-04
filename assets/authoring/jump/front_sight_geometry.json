@@ -1,0 +1,64 @@
+{
+  "camera": "RD First Person Review",
+  "fx": 819.1626469882023,
+  "fy": 819.1626469882023,
+  "cx": 640,
+  "cy": 360,
+  "resolution": [
+    1280,
+    720
+  ],
+  "own_points_camera": {
+    "optic_guide": [
+      0.07876053331258591,
+      0.0037865641015666306,
+      -0.620362374485965
+    ],
+    "receiver_guide": [
+      0.10033493489027023,
+      -0.07943286001682281,
+      -0.28676217794418335
+    ],
+    "support_guide": [
+      0.00935299787670374,
+      -0.10889146476984024,
+      -0.465015172958374
+    ]
+  },
+  "optic_virtual_definition": {
+    "pixel": [
+      744,
+      355
+    ],
+    "depth_average_vertices": 418,
+    "note": "Forward iron-sight circle visible center at averaged nearby mesh-surface depth; virtual measurement point only, no mesh edit"
+  },
+  "world_camera": [
+    [
+      -1.0,
+      -3.821371353845884e-15,
+      -8.742277657347586e-08,
+      0.0
+    ],
+    [
+      -8.742277657347586e-08,
+      4.371138828673793e-08,
+      1.0,
+      0.0
+    ],
+    [
+      0.0,
+      1.0,
+      -4.371138828673793e-08,
+      0.0
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "role": "forward_iron_sight",
+  "source_blend_sha256": "fe47ec2961214252d831e7da743d3145b3ab219043d5a8db9622d3c387b1fa53"
+}

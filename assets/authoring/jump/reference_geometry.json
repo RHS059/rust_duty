@@ -1,0 +1,71 @@
+{
+  "camera": "RD First Person Review",
+  "fx": 819.1626469882023,
+  "fy": 819.1626469882023,
+  "cx": 640,
+  "cy": 360,
+  "resolution": [
+    1280,
+    720
+  ],
+  "own_points_camera": {
+    "optic_guide": [
+      0.08323424182818288,
+      0.005083007134545519,
+      -0.26023809868713904
+    ],
+    "receiver_guide": [
+      0.09500017721109932,
+      -0.042628284646006105,
+      -0.24942498919420647
+    ],
+    "support_guide": [
+      0.00935299787670374,
+      -0.10889146476984024,
+      -0.465015172958374
+    ]
+  },
+  "optic_virtual_definition": {
+    "pixel": [
+      902,
+      344
+    ],
+    "depth_average_vertices": 348,
+    "note": "Rear sight ring visual center at fixed depth; virtual measurement point only, no mesh edit"
+  },
+  "world_camera": [
+    [
+      -1.0,
+      -3.821371353845884e-15,
+      -8.742277657347586e-08,
+      0.0
+    ],
+    [
+      -8.742277657347586e-08,
+      4.371138828673793e-08,
+      1.0,
+      0.0
+    ],
+    [
+      0.0,
+      1.0,
+      -4.371138828673793e-08,
+      0.0
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "receiver_virtual_definition": {
+    "pixel": [
+      952,
+      500
+    ],
+    "depth_average_vertices": 733,
+    "note": "Charging-handle visual guide at averaged nearby weapon-surface depth; no geometry edit"
+  },
+  "source_blend_sha256": "cad1c8e661bc10a8ac2db6017598c1cc0daafdec6b09576e9b78d85edf4f642f"
+}

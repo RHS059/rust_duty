@@ -1,0 +1,269 @@
+{
+  "schema": "rust-duty-jump-source-package/v1",
+  "revision": "r7",
+  "status": "Frozen COD reference-guided receiver landing refinement WIP; paired Elara review and runtime integration pending",
+  "source_file": "halcyon_jump.blend",
+  "source_sha256": "a2c4b2bbe98da1a608450bba92404cb39008eae5861bcf8fc3f5d2f978df0e3b",
+  "filename_policy": "Stable current filename; revision is recorded in this manifest and Action names. Prior standalone sources remain in Git history.",
+  "baseline_commit": "23978545b8f26ccd3345d30af353c03ad55b9078",
+  "baseline_path": "assets/authoring/jump/halcyon_jump.blend",
+  "baseline_sha256": "26f8d676ad13e19c74721575fffca75d2a0b25f1bad279b4bb03b7e87f4eeb65",
+  "repository_destination": "assets/authoring/jump/",
+  "branch": "halcyon/jump-r1",
+  "blender": "4.3.2",
+  "source_fps": 60,
+  "pose_space": "absolute HIP",
+  "animated_control": "righthand_prop",
+  "baseline_action": "RD_Locomotion_Normal_Entry_4419_4434_WIP2",
+  "baseline_frame": 1,
+  "rig": {
+    "object": "Arms",
+    "total_bones": 148,
+    "deform_bones": 72,
+    "skin_objects": [
+      "Actual arms mesh 0",
+      "Actual arms mesh 1",
+      "Actual arms mesh 2"
+    ],
+    "rigid_actors": [
+      "hk416_weapon",
+      "hk416_magazine"
+    ],
+    "excluded_actor": "hk416_magazine_outgoing"
+  },
+  "companions": {
+    "hk416_weapon": "hk416_weaponAction.001",
+    "hk416_magazine": "hk416_magazineAction"
+  },
+  "runtime_mapping": {
+    "jump_takeoff_r7": {
+      "runtime_id": "jump_takeoff",
+      "frame_range": [
+        1,
+        12
+      ],
+      "source_frame_range_inclusive": [
+        4033,
+        4044
+      ],
+      "duration_seconds": 0.18333333333333332,
+      "loop": false,
+      "hold_after_end": false
+    },
+    "jump_air_r7": {
+      "runtime_id": "jump_air",
+      "frame_range": [
+        1,
+        24
+      ],
+      "source_frame_range_inclusive": [
+        4044,
+        4067
+      ],
+      "duration_seconds": 0.38333333333333336,
+      "loop": false,
+      "hold_after_end": true
+    },
+    "jump_land_r7": {
+      "runtime_id": "jump_land",
+      "frame_range": [
+        1,
+        29
+      ],
+      "source_frame_range_inclusive": [
+        4067,
+        4095
+      ],
+      "duration_seconds": 0.4666666666666667,
+      "loop": false,
+      "hold_after_end": false
+    }
+  },
+  "verification": {
+    "original_actions_preserved": 100,
+    "new_actions": 3,
+    "total_actions": 103,
+    "fresh_disk_preservation_passed": true,
+    "technical_motion_contacts_passed": true,
+    "reproduction_passed": true,
+    "reference_refinement_scope_passed": true,
+    "reference_landing_fit_reproduction_exact": true,
+    "max_wrist_error_m": 4.901553453027763e-07,
+    "no_camera_or_world_root_motion": true,
+    "overall_endpoints_exact_ready": true,
+    "phase_seams_connected_pose_and_velocity": true,
+    "air_nonlooping_transition_with_holdable_final_pose": true,
+    "takeoff_and_air_action_curves_identical_to_r6": true
+  },
+  "review": {
+    "required_reviewer": "Elara",
+    "status": "r7 paired review pending",
+    "feedback_url": "https://github.com/RHS059/dot_chat/pull/1#issuecomment-5974993270",
+    "render_method": "Eevee Viewport Render Animation",
+    "layout": "COD top / Eevee below",
+    "stable_preview_filename": "jump_animation.mp4",
+    "paired_frame_map": "reference_frame_map.json",
+    "preview_artifacts_included": false
+  },
+  "runtime_integration": {
+    "status": "Not performed by authoring package",
+    "stable_ids": [
+      "jump_takeoff",
+      "jump_air",
+      "jump_land"
+    ],
+    "landing_trigger": "Actual ground contact, bounded blend from current air state; reference timer does not override game physics",
+    "ADS": "Preserve existing ADS base and use deliberate aim-safe composition; absolute HIP replacement not valid"
+  },
+  "source_reference_claim": "Reference-guided foreground 2D-motion retarget from recovered supplied COD stationary jump; 3D inference and geometry differences disclosed; no score or acceptance claim",
+  "file_list": [
+    {
+      "path": "README.md",
+      "bytes": 11212,
+      "sha256": "c4d804b2c33e7305ad88d016be5180f2e81835266fa5f217dc45b5057e5e092e"
+    },
+    {
+      "path": "author_jump.py",
+      "bytes": 11236,
+      "sha256": "6a87ab1b4c6ce5fac94f06c663e4775f78b4ac4c2203329a03d5a58500199e73"
+    },
+    {
+      "path": "authored_root_keys.json",
+      "bytes": 58321,
+      "sha256": "afef5b604a883353f11db1c4147719f00a247a8e033615426c6aa799d6c963e3"
+    },
+    {
+      "path": "authoring_preservation.json",
+      "bytes": 929,
+      "sha256": "901bef637310db505a2b73dbf6ac25ddd48786547a879af18bd88a2794155d84"
+    },
+    {
+      "path": "baseline_fingerprint.json",
+      "bytes": 353134,
+      "sha256": "69c45ae55675691c594aadcc415002ac415b0a029b77243678609877a61d2a0f"
+    },
+    {
+      "path": "baseline_rendered_landmarks.json",
+      "bytes": 28812,
+      "sha256": "d152dbf657a88f36f73b16d580776e3c53e501bc1dada524059e195dc7c6e738"
+    },
+    {
+      "path": "fit_reference.py",
+      "bytes": 4598,
+      "sha256": "00a8fe541045cf3151cc747690eedb95ecf96a9f749fdd4162346a394ac22136"
+    },
+    {
+      "path": "front_sight_geometry.json",
+      "bytes": 1245,
+      "sha256": "12fd8bb3cf124d1766416cb1b5203afe69251ea24a018aade8a2a311bcb26f85"
+    },
+    {
+      "path": "halcyon_jump.blend",
+      "bytes": 10470527,
+      "sha256": "a2c4b2bbe98da1a608450bba92404cb39008eae5861bcf8fc3f5d2f978df0e3b"
+    },
+    {
+      "path": "jump_design.json",
+      "bytes": 26370,
+      "sha256": "4a4c52cb529c754ac9d90b83b84d69751c54c4a7ca370e12e982e84b13ec87cd"
+    },
+    {
+      "path": "jump_technical_validation.json",
+      "bytes": 123884,
+      "sha256": "644888b28d600864458d525175907f055fd93a38f4d7a4bcc49c0a28776359aa"
+    },
+    {
+      "path": "landing_pixel_comparison.json",
+      "bytes": 13601,
+      "sha256": "7a9038e297c7c97da5d9009b2023f214838f36e52300b71f1ae532fe9f066792"
+    },
+    {
+      "path": "measure_reference.py",
+      "bytes": 4190,
+      "sha256": "1bd2e9ff6d77396b79dfe9ddc80fac533f12befd72a8de67d5db32595853aa8f"
+    },
+    {
+      "path": "measure_rendered.py",
+      "bytes": 3089,
+      "sha256": "ef140327f44f8db8593a6d9ee9ae530d1724f5f807e2ee72092fed34daa58c6b"
+    },
+    {
+      "path": "reference_frame_map.json",
+      "bytes": 25973,
+      "sha256": "58fa76a590d6f2c519f7b535938d09e985ce07a007ab4f48fc9f68de64d1f599"
+    },
+    {
+      "path": "reference_geometry.json",
+      "bytes": 1400,
+      "sha256": "540d1a25dfe903f55d2a179aa60aba0371a5c11e391508025c5b690017e7953a"
+    },
+    {
+      "path": "reference_refinement.json",
+      "bytes": 1679,
+      "sha256": "d043a1297d1ca225d359a21fc76dfbd34dc4192f74db6f9beca429f9d03924a0"
+    },
+    {
+      "path": "reference_retarget.json",
+      "bytes": 132509,
+      "sha256": "c90ecbf473f99e395f526ed4f8115290cf1e873d58b3bee595f93b2657646187"
+    },
+    {
+      "path": "reference_weapon_tracks.json",
+      "bytes": 232735,
+      "sha256": "dabe74d6a82e5138d591a8305c836e0bb446c5c36c5934e83f1cf01a4504a80a"
+    },
+    {
+      "path": "reproduction_check.json",
+      "bytes": 824,
+      "sha256": "96076a3451ec32dd6d12c24e3e4657c56ed41c6dfcddffff2de1f7f41f5d042a"
+    },
+    {
+      "path": "source_integrity.py",
+      "bytes": 2898,
+      "sha256": "d22ae8dcc117e29ffb7d746772efce015010407cbb1ddce22924a31746e831ca"
+    },
+    {
+      "path": "source_preservation.json",
+      "bytes": 357564,
+      "sha256": "5f4387d63c3f6a7138f1b12f64774502b38ea88acb8f6274280eaf191a9f0734"
+    },
+    {
+      "path": "validate_jump.py",
+      "bytes": 8934,
+      "sha256": "2c52c48e20d1b4ad7d679bd2d6e7b74d202198fdedcc6eb6f4ed4209c073ac4f"
+    },
+    {
+      "path": "validate_source_structure.py",
+      "bytes": 9678,
+      "sha256": "8f1deb2883eafd5e7a76cf48109a33c010690aa197150369df60773b5b593816"
+    }
+  ],
+  "reference": {
+    "filename": "Modern_Warfare_2022_Movement_Reference.mp4",
+    "sha256": "491a1729aa0f32373025d35fff86da76c6c1c8f057c0c553d0fbb5fb6226ff46",
+    "youtube_id": "V_QT_cnlBHU",
+    "youtube_url": "https://www.youtube.com/watch?v=V_QT_cnlBHU",
+    "fps": 60,
+    "resolution": [
+      1280,
+      720
+    ],
+    "frame_origin": 0,
+    "anchor_frame": 4033,
+    "first_visible_takeoff_frame": 4034,
+    "impact_frame": 4067,
+    "impact_uncertainty_frames": 1,
+    "end_frame": 4095,
+    "camera_separation": "Only foreground weapon/hand pixel motion is retargeted. Terrain/horizon flow and the ballistic camera-height arc are excluded from the viewmodel Action."
+  },
+  "reference_identity_note": "Exact historical supplied Drive-file hash; qualified V_QT_cnlBHU title/duration/chapter correspondence. Repository references/movement/ stores source and provenance.",
+  "action_count": 103,
+  "preserved_action_count": 100,
+  "landing_refinement": {
+    "measured_baseline": "baseline_rendered_landmarks.json",
+    "comparison": "landing_pixel_comparison.json",
+    "target": "COD receiver/handle trough and recovery residual",
+    "accepted_scope": "Complete takeoff and air Action curves identical to r6; upper-sight screen paths retained during correction",
+    "no_author_score": true
+  }
+}

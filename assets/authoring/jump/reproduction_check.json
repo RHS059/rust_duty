@@ -1,0 +1,15 @@
+{
+  "schema": "rust-duty-jump-reproduction/v1",
+  "passed": true,
+  "checks": {
+    "all_103_action_curves_identical": true,
+    "all_nla_drivers_images_identical": true,
+    "all_structural_snapshots_identical": true,
+    "both_preservation_passes": true
+  },
+  "method": "Fresh Blender4.3.2 process reran the author script from frozen jump r6 into an isolated output and freshly reopened it for comparison",
+  "source_sha256": "26f8d676ad13e19c74721575fffca75d2a0b25f1bad279b4bb03b7e87f4eeb65",
+  "candidate_sha256": "a2c4b2bbe98da1a608450bba92404cb39008eae5861bcf8fc3f5d2f978df0e3b",
+  "reproduced_blend_sha256": "298c0017a5757e3aa62533e4f35c11f87fd2720946dff60a0e584a4e8c31107e",
+  "note": "Deterministic content compared through exact Action, NLA, driver, image and structural fingerprints; binary files may differ."
+}
