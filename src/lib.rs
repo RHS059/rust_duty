@@ -48,3 +48,5 @@ pub mod authored_ads;
 pub mod layered_locomotion;
 
 pub mod muzzle_fx;
+
+pub mod authored_jump;
