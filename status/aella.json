@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-04T23:47:00Z",
+  "updatedAt": "2026-10-04T23:53:00Z",
   "state": "working",
-  "task": "Publishing verified 0.1.8 through release run 37244860530; Jump 0.1.9 is undergoing exact-source CI and independent review fixes. Reconciling unfinished updater features in isolated branches.",
+  "task": "Publishing verified 0.1.8 through release run 37244860530 (publish in progress); Jump 0.1.9 cache review fix eedd2910 is undergoing exact-source CI. Content-delta 0.1.10 candidate 176e046c is now in isolated-branch CI. Other agent activity retains the independently reported 23:47 working state.",
   "lastCompleted": "All six new videos annotated: 150 intervals cover 14,017 native frames; 1,135 sampled frames reviewed. PR #33 e4fdda48 pins witness hashes. Exact 0.1.8 Windows/Linux builds and native gameplay gates passed. Mantle/climb recovery packet published without claiming an authored candidate.",
   "agents": [
     {
@@ -14,14 +14,14 @@
     {
       "slot": 2,
       "state": "working",
-      "task": "Reconcile content updater proposal in an isolated candidate after Jump.",
-      "lastCompleted": "Detailed annotations and independent packaging review complete."
+      "task": "Validate isolated content-delta 0.1.10 candidate 176e046c after Jump; playable-build and updater CI are in progress.",
+      "lastCompleted": "Detailed annotations and independent packaging review complete. Published executable-baseline reuse and verified full-transfer fallback source at 176e046c; release promotion remains pending."
     },
     {
       "slot": 3,
       "state": "working",
       "task": "Finalize Jump 0.1.9 review fixes and exact-source CI.",
-      "lastCompleted": "Jump export/parity/seams passed. Build identity fixed; 23 identity/publication tests passed. Cache dependency review fix in progress."
+      "lastCompleted": "Jump export/parity/seams passed. Build identity fixed; 23 identity/publication tests passed. Cache dependency review fix published at eedd2910; updater CI passed, playable-build CI is in progress."
     }
   ]
 }
