@@ -1,27 +1,27 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-04T19:43:24Z",
+  "updatedAt": "2026-10-04T19:52:29Z",
   "state": "active",
-  "task": "Refining source annotations, mantle/climb WIP and comparison evidence, while clarifying the published Jump diagnostic results.",
-  "lastCompleted": "The first real Jump Colab diagnostic result page is live. It establishes no match score or full approval; correspondence limitations are being clarified. Original source recovery is complete.",
+  "task": "Decoding additional references, refining mantle/climb WIP and reviewing visible weapon motion from the fixed first-person camera.",
+  "lastCompleted": "Jump results are published and verified. The 100-frame paired review follows the source well, with a visible return-to-ready tail difference; no computed match percentage or full approval is established.",
   "agents": [
     {
       "slot": 1,
       "state": "active",
-      "task": "Refining source annotations and cuts and reconciling the uploaded reference collection.",
-      "lastCompleted": "Draft PR #33 at fe5ab7c records the annotation/cut-map checkpoint; six tests passed and all source hashes/timestamps are verified."
+      "task": "Decoding six additional references and checking topic overlap before annotating and cutting.",
+      "lastCompleted": "Recovered all original sources; identified additional legs, stance transitions, two vault/mount parts, wall-obstruction and weapon-swing videos."
     },
     {
       "slot": 2,
       "state": "active",
-      "task": "Correcting hand and wrist errors in three local mantle/climb Actions and preparing Eevee previews.",
+      "task": "Refining visible mantle/climb weapon motion and contacts from the fixed first-person camera.",
       "lastCompleted": "Three editable mantle/vault and vehicle-roof climb Actions exist as local WIP; new previews are not yet verified and the work remains unscored."
     },
     {
       "slot": 3,
       "state": "active",
-      "task": "Reviewing weapon-motion correspondence and refining comparison evidence and limitations.",
-      "lastCompleted": "Actual Jump CPU diagnostic results are saved, hash-verified and published. The one-point comparison establishes no match score; the Colab session is shut down."
+      "task": "Reviewing visible weapon movement, timing, rotation and contact, including the Jump ready-tail difference.",
+      "lastCompleted": "Reviewed all 100 paired Jump frames. Published diagnostics remain limited by correspondence; no numerical match percentage is claimed."
     }
   ]
 }
