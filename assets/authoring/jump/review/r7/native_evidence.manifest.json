@@ -1,0 +1,89 @@
+{
+  "schema": "rust-duty-jump-native-evidence/v1",
+  "revision": "r7",
+  "source_commit": "4363837e46ee89b5ca8baa1b5c08e1e3f81cac91",
+  "source_file": "assets/authoring/jump/halcyon_jump.blend",
+  "source_sha256": "a2c4b2bbe98da1a608450bba92404cb39008eae5861bcf8fc3f5d2f978df0e3b",
+  "capture": "Genuine foreground Eevee Viewport Render Animation captured on 2026-10-04; existing original PNG bytes. No rerender, frame conversion, clip editing or source modification.",
+  "archive": {
+    "filename": "jump_r7_native_frames.zip",
+    "bytes": 63090765,
+    "sha256": "12e5aee93e50a2bc2f5b1763ee5e5afee9b4fe2477102cd07db85469e8a7e504",
+    "format": "ZIP_STORED; lossless packaging of original PNG bytes",
+    "members": 65
+  },
+  "parts": [
+    {
+      "path": "jump_r7_native_frames.zip.parts/part-000.bin",
+      "bytes": 8388608,
+      "sha256": "8e6ca6039342f499c767b6165c73171c23edfbfe2f0716ff7250170e8af69efa"
+    },
+    {
+      "path": "jump_r7_native_frames.zip.parts/part-001.bin",
+      "bytes": 8388608,
+      "sha256": "afac3a618b5728b7b423be909960c3dfa0b5ea70f205b8ad8ee6c1051423ace3"
+    },
+    {
+      "path": "jump_r7_native_frames.zip.parts/part-002.bin",
+      "bytes": 8388608,
+      "sha256": "53b47f64cd6d9df2f4ef4c21cce2ef0a7adc3466d6f8190c3ef174632493ccbd"
+    },
+    {
+      "path": "jump_r7_native_frames.zip.parts/part-003.bin",
+      "bytes": 8388608,
+      "sha256": "9c249498e9094a6647c5cb7954bd01aa4e387af297e68a060cc6420515b790b4"
+    },
+    {
+      "path": "jump_r7_native_frames.zip.parts/part-004.bin",
+      "bytes": 8388608,
+      "sha256": "d2a09f3659fe6b93aef69ee4bbda97e156e4100923b96054c423507aa3dffeb7"
+    },
+    {
+      "path": "jump_r7_native_frames.zip.parts/part-005.bin",
+      "bytes": 8388608,
+      "sha256": "d2f892c62bcc5d9fda3173bd529bdfacce19206697f76e6bb5ca2a08c63426d4"
+    },
+    {
+      "path": "jump_r7_native_frames.zip.parts/part-006.bin",
+      "bytes": 8388608,
+      "sha256": "a5d77472cb98b09e503fd1b4c531c6fc8a585c1ad0fb860505b9f65454cbbb5f"
+    },
+    {
+      "path": "jump_r7_native_frames.zip.parts/part-007.bin",
+      "bytes": 4370509,
+      "sha256": "f2e9a686f5d5846e161ef9b5e781a0af1c4d66ab49f91e22d68d51c9db54af7a"
+    }
+  ],
+  "frame_index": "frame_index.json",
+  "capture_proof": "viewport_process_proof.json",
+  "reference_map": "reference_frame_map.json",
+  "reference_source_sha256": "491a1729aa0f32373025d35fff86da76c6c1c8f057c0c553d0fbb5fb6226ff46",
+  "review_window": {
+    "source_native_range_inclusive": [
+      4014,
+      4113
+    ],
+    "output_frames": 100,
+    "fps": 60,
+    "complete_for_published_paired_window": true,
+    "complete_original_action_samples": true,
+    "captures_by_action": {
+      "jump_takeoff_r7": 12,
+      "jump_air_r7": 24,
+      "jump_land_r7": 29
+    },
+    "selected_unique_action_samples": 63,
+    "unselected_seam_endpoints": [
+      "jump_takeoff_r7/f0012.png",
+      "jump_air_r7/f0024.png"
+    ],
+    "ready_holds": "Paired outputs 0\u201318 reuse takeoff f0001; outputs 82\u201399 reuse land f0029. Outputs 19 and 81 are native start/end. No source reference frames are omitted from the 100-frame published window.",
+    "scope_limit": "Complete existing r7 Action capture and published paired-review window; not a full-length render of the supplied COD video."
+  },
+  "technical_limits": [
+    "The COD world/camera arc is present only in the reference panel; Eevee camera is fixed.",
+    "Reference and model weapon geometry differ. Single-view 3D retarget is inferred.",
+    "Image-feature measurements are local diagnostics, not artistic scoring or acceptance.",
+    "The complete 120 Hz evaluated projection/framing metadata is already committed in jump_technical_validation.json; no additional unexported bone-matrix packet is claimed."
+  ]
+}
