@@ -19,7 +19,7 @@ TARGETS = {
     "linux": ("x86_64-unknown-linux-gnu", "vector-range", "Linux", b"\x7fELF"),
 }
 # Candidate metadata only: builds do not allocate or publish a release.
-BUILD_SEQUENCE = 8
+BUILD_SEQUENCE = 9
 # Freeze the legacy one-time publisher; a new package version cannot enable it.
 RELEASE_BRANCHES = {"aella/automatic-game-updates-r1"}
 LEGACY_RELEASE_VERSION = "0.1.7"
