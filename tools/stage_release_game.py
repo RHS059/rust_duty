@@ -18,10 +18,11 @@ import zipfile
 
 from release_update import REPOSITORY, safe_path
 
-KINDS = ("locomotion", "walk", "ads", "directional", "reload")
+BASE_KINDS = ("locomotion", "walk", "ads", "directional", "reload")
+KINDS = BASE_KINDS + ("jump",)
 COMPANIONS = ("asset.vra", "asset.vrs", "asset.vrm")
 REQUIRED_ASSETS = {"assets/animations.cfg"} | {
-    f"assets/{kind}/{name}" for kind in KINDS for name in COMPANIONS}
+    f"assets/{kind}/{name}" for kind in BASE_KINDS for name in COMPANIONS}
 
 
 def require(condition, message):
@@ -60,12 +61,32 @@ def files(root):
     return result
 
 
+def jump_bound(root):
+    bindings = []
+    for line in regular(root, "assets/animations.cfg").read_text().splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = (part.strip() for part in line.split("=", 1))
+        if key == "jump.asset":
+            bindings.append(value)
+    require(not bindings or bindings == ["jump/asset.vra"], "invalid or duplicate jump asset binding")
+    return bool(bindings)
+
+
+def required_assets(root):
+    result = set(REQUIRED_ASSETS)
+    if jump_bound(root):
+        result.update(f"assets/jump/{name}" for name in COMPANIONS)
+    return result
+
+
 def managed_assets(root):
     result = files(root)
     selected = {name: value for name, value in result.items()
                 if name == "assets/animations.cfg" or
                 any(name.startswith(f"assets/{kind}/") for kind in KINDS)}
-    require(REQUIRED_ASSETS <= set(selected), "complete authored runtime assets are missing")
+    require(required_assets(root) <= set(selected), "complete authored runtime assets are missing")
     return selected
 
 
@@ -128,7 +149,36 @@ def verify_source_contract(source, artifact):
             value = record(regular(source, relative))
             require(value == {"size": origin.get("bytes"), "sha256": origin.get("sha256")},
                     f"artifact {kind} differs from exact Blender source")
+    if jump_bound(source):
+        verify_jump_source_contract(source, artifact)
     return managed_assets(artifact)
+
+
+def verify_jump_source_contract(source, artifact):
+    # Jump source is an immutable external Git blob, fetched by the exact game's
+    # export workflow. Bind the artifact to that checkout's pinned recipe rather
+    # than require a duplicate BLEND in the release-control or game checkout.
+    config = json.loads(regular(source, "assets/authoring/jump/export_config.json").read_text())
+    actual = json.loads(regular(artifact, "assets/jump/manifest.json").read_text())
+    origin = actual.get("source", {})
+    require(config.get("schema") == "rust-duty-jump-authoring-export/v1"
+            and config.get("source_file") == "halcyon_jump.blend"
+            and actual.get("schema") == "rust-duty-authored-jump-distribution/v1"
+            and origin.get("file") == "assets/authoring/jump/halcyon_jump.blend"
+            and re.fullmatch(r"[0-9a-f]{64}", str(config.get("source_sha256", "")))
+            and origin.get("sha256") == config["source_sha256"]
+            and origin.get("fps") == config.get("source_fps") == 60
+            and origin.get("bake_hz") == config.get("bake_hz") == 480,
+            "artifact jump source differs from exact source recipe")
+    expected = [{key: take[key] for key in ("name", "action", "loop", "frame_start", "frame_end")}
+                | {"duration": (take["frame_end"] - take["frame_start"]) / config["source_fps"]}
+                for take in config["source_takes"]]
+    require(actual.get("jump_clips") == expected, "artifact jump takes differ from exact source recipe")
+    require(set(actual.get("files", {})) == set(COMPANIONS), "invalid jump companion inventory")
+    for name in COMPANIONS:
+        value = record(regular(artifact, f"assets/jump/{name}"))
+        require(actual["files"][name] == {"bytes": value["size"], "sha256": value["sha256"]},
+                "artifact jump companion does not match its verified metadata")
 
 
 def authoring_recipe(manifest):
@@ -213,6 +263,7 @@ def verify_bundle_members(bundle, directory, *, exact=True):
     require(REQUIRED_ASSETS <= set(expected), "bundle omits required authored animation assets")
     for name, value in expected.items():
         require(record(regular(directory, name)) == value, f"bundle bytes differ for {name}")
+    require(required_assets(directory) <= set(expected), "bundle omits bound authored animation assets")
     if exact:
         require(files(directory) == expected, "bundle omitted or changed staged members")
     return {"files": len(expected), "assets": len([p for p in expected if p.startswith("assets/")])}

@@ -163,6 +163,78 @@ class ReleasePackageGuardTests(unittest.TestCase):
                 stream.writestr(name, data)
         return archive
 
+    def add_jump(self, binding="jump.asset=jump/asset.vra"):
+        for root in (self.source, self.artifact):
+            write(root, "assets/animations.cfg", CONFIG + binding + "\n")
+        self.make_pack(Path("assets/jump"))
+        takes = [{"name": name, "action": name + "_r7", "loop": False,
+                  "frame_start": 1, "frame_end": end}
+                 for name, end in (("jump_takeoff", 12), ("jump_air", 24), ("jump_land", 29))]
+        config = {"schema": "rust-duty-jump-authoring-export/v1",
+                  "source_file": "halcyon_jump.blend", "source_sha256": "e" * 64,
+                  "source_fps": 60, "bake_hz": 480, "source_takes": takes}
+        write_json(self.source, "assets/authoring/jump/export_config.json", config)
+        path = self.artifact / "assets/jump/manifest.json"
+        manifest = json.loads(path.read_text())
+        manifest.update(schema="rust-duty-authored-jump-distribution/v1",
+                        source={"file": "assets/authoring/jump/halcyon_jump.blend",
+                                "sha256": "e" * 64, "fps": 60, "bake_hz": 480},
+                        jump_clips=[take | {"duration": (take["frame_end"] - 1) / 60}
+                                    for take in takes])
+        path.write_text(json.dumps(manifest))
+        return path
+
+    def test_jump_recipe_and_spaced_runtime_binding_pass(self):
+        self.add_jump("  jump.asset = jump/asset.vra  ")
+        assets = release.verify_source_contract(self.source, self.artifact)
+        self.assertIn("assets/jump/asset.vra", assets)
+
+    def test_bound_jump_cannot_be_missing_from_artifact(self):
+        self.add_jump()
+        (self.artifact / "assets/jump/asset.vrs").unlink()
+        with self.assertRaises(ValueError):
+            release.verify_source_contract(self.source, self.artifact)
+
+    def test_staging_cannot_silently_drop_jump(self):
+        self.add_jump()
+        shutil.copytree(self.artifact, self.staged)
+        shutil.rmtree(self.staged / "assets/jump")
+        with self.assertRaises(ValueError):
+            release.verify_staged_assets(self.artifact, self.staged, update=False)
+
+    def test_jump_source_and_take_drift_fail_independently(self):
+        path = self.add_jump()
+        original = json.loads(path.read_text())
+        for label in ("source", "action", "frame", "loop", "duration"):
+            with self.subTest(label=label):
+                doc = copy.deepcopy(original)
+                if label == "source":
+                    doc["source"]["sha256"] = "f" * 64
+                else:
+                    key, value = {"action": ("action", "jump_air_r6"),
+                                  "frame": ("frame_end", 25),
+                                  "loop": ("loop", True),
+                                  "duration": ("duration", 0.5)}[label]
+                    doc["jump_clips"][1][key] = value
+                path.write_text(json.dumps(doc))
+                with self.assertRaises(ValueError):
+                    release.verify_source_contract(self.source, self.artifact)
+
+    def test_jump_companion_hash_mismatch_fails(self):
+        self.add_jump()
+        with (self.artifact / "assets/jump/asset.vra").open("ab") as stream:
+            stream.write(b"changed")
+        with self.assertRaises(ValueError):
+            release.verify_source_contract(self.source, self.artifact)
+
+    def test_duplicate_or_noncanonical_jump_binding_fails(self):
+        for binding in ("jump.asset=jump/other.vra",
+                        "jump.asset=jump/asset.vra\njump.asset=jump/asset.vra"):
+            with self.subTest(binding=binding):
+                self.add_jump(binding)
+                with self.assertRaises(ValueError):
+                    release.verify_source_contract(self.source, self.artifact)
+
     def test_exact_source_and_all_selected_alternates_pass(self):
         release.verify_source_contract(self.source, self.artifact)
 
