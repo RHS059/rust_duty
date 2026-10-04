@@ -117,7 +117,9 @@ def main():
         sidecar.write_text(json.dumps(report, indent=2) + '\n')
         reports.append({k: v for k, v in report.items() if k not in ('frame_map', 'source_pixel_md5')})
         print(json.dumps(reports[-1]), flush=True)
-    (args.out / f'{args.source_id}_cut_verification.json').write_text(json.dumps(reports, indent=2) + '\n')
+    # A selected rerun must not replace the earlier all-clips audit index.
+    report_kind = 'selected_run_verification' if args.only else 'cut_verification'
+    (args.out / f'{args.source_id}_{report_kind}.json').write_text(json.dumps(reports, indent=2) + '\n')
 
 
 if __name__ == '__main__':

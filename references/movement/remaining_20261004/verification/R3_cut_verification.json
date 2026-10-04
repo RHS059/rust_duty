@@ -88,5 +88,23 @@
     "pixel_audit_format": "yuv420p",
     "audio": "omitted",
     "status": "source-excerpt-verified; not animation approval"
+  },
+  {
+    "id": "R3_prone_exit_f2373-2430",
+    "source_id": "R3",
+    "source_sha256": "491a1729aa0f32373025d35fff86da76c6c1c8f057c0c553d0fbb5fb6226ff46",
+    "file": "R3_prone_exit_f2373-2430.mp4",
+    "sha256": "dc67169c62363b4edc9fdd949bbf92166095413577efa0504a1690c34d4bb602",
+    "bytes": 8069891,
+    "start_frame": 2373,
+    "end_frame_exclusive": 2430,
+    "decoded_frames": 57,
+    "fps": "60/1",
+    "time_base": "1/15360",
+    "duration_rational_seconds": "57/60",
+    "all_decoded_pixels_equal_source": true,
+    "pixel_audit_format": "yuv420p",
+    "audio": "omitted",
+    "status": "source-excerpt-verified; not animation approval"
   }
 ]

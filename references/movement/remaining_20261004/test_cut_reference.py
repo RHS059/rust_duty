@@ -1,4 +1,5 @@
 import copy
+import csv
 import hashlib
 import json
 import unittest
@@ -70,6 +71,38 @@ class CutContract(unittest.TestCase):
             self.assertEqual(row['start_pts_ticks'], a * 256)
             self.assertEqual(row['end_pts_ticks_exclusive'], b * 256)
             self.assertEqual(row['duration_frames'], b - a)
+
+    def test_all_three_full_native_pts_tables(self):
+        here = Path(__file__).parent
+        m = json.loads((here / 'source_map.json').read_text())
+        for source_id, spec in m['sources'].items():
+            with (here / spec['frame_pts_csv']).open() as f:
+                rows = list(csv.DictReader(f))
+            self.assertEqual(len(rows), spec['frame_count'], source_id)
+            for i, row in enumerate(rows):
+                self.assertEqual(int(row['source_frame']), i)
+                self.assertEqual(int(row['pts_ticks']), i * 256)
+                self.assertEqual(row['time_base'], '1/15360')
+
+    def test_all_cut_sidecars_match_current_manifest(self):
+        here = Path(__file__).parent
+        manifest_bytes = (here / 'source_map.json').read_bytes()
+        m = json.loads(manifest_bytes)
+        index = json.loads((here / 'verification_index.json').read_text())
+        self.assertEqual(index['manifest_sha256'], hashlib.sha256(manifest_bytes).hexdigest())
+        self.assertEqual(index['total_clips'], len(m['clips']))
+        for clip in m['clips']:
+            side = json.loads((here / clip['verification_sidecar']).read_text())
+            count = clip['end_frame_exclusive'] - clip['start_frame']
+            self.assertTrue(side['all_decoded_pixels_equal_source'])
+            self.assertEqual(side['source_sha256'], m['sources'][clip['source_id']]['sha256'])
+            self.assertEqual(side['decoded_frames'], count)
+            self.assertEqual(len(side['source_pixel_md5']), count)
+            self.assertEqual(len(side['frame_map']), count)
+            for i, row in enumerate(side['frame_map']):
+                self.assertEqual(row, {'clip_frame': i, 'blender_frame_60fps': i + 1,
+                    'clip_pts_ticks': i * 256, 'source_frame': clip['start_frame'] + i,
+                    'source_pts_ticks': (clip['start_frame'] + i) * 256})
 
 
 if __name__ == '__main__':
