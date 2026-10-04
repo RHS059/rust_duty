@@ -1,11 +1,11 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T23:54:04Z",
+  "updatedAt": "2026-10-04T00:02:03Z",
   "latestComplete": {
     "sha": "b3f2ba8e228f4a34b8f1c5bec74190bc26ca2e87",
     "downloadUrl": "https://github.com/RHS059/rust_duty/actions/runs/37160557704/artifacts/11287513506",
     "runUrl": "https://github.com/RHS059/rust_duty/actions/runs/37160557704",
-    "verifiedAt": "2026-10-03T23:54:04Z",
+    "verifiedAt": "2026-10-04T00:02:03Z",
     "completedAt": "2026-10-03T23:24:10Z"
   },
   "changes": [
@@ -15,13 +15,13 @@
     "Native Linux walking-slider clicks and persistence were checked; real Windows Alt-Tab interaction remains untested.",
     "The newer combined v9 ADS/sliders candidate is still local and unpublished. Its 517 Rust tests, all-target Clippy and 1,320-tick replay passed; strict bone parity still fails at 3.36e-5.",
     "The separately released 0.1.5 at eb886edb passed real Windows/Linux 0.1.4 upgrades, checking 70 managed files and preserving 85 root-file and synthetic private-data checks.",
-    "New ADS/sliders commits and release publication remain held until Elara's 0.1.9 completion. The integration candidate is waiting with no active edits or tests. PR #24 checks passed, but patch automation is inactive.",
-    "Public 0.1.7 at 21dc70af is release-sequence progress, but its checked Linux ZIP omits the integrated ADS, directional, walk and reload assets. No 0.1.8 or 0.1.9 release is visible; verified Latest Complete stays PR #25.",
+    "ADS/sliders commits and release publication remain held until Elara's 0.1.9 completion. The integration candidate is waiting with no active edits or tests. PR #24 automation remains inactive.",
+    "Public 0.1.7's checked Linux ZIP omits integrated ADS, directional, walk and reload assets. The release-packaging toolchain is being repaired separately; no 0.1.8 or 0.1.9 release is visible.",
     "V9, lateral Trial4 and newer jump/mantle work are not included in this PR #25 artifact."
   ],
   "currentBuild": {
     "state": "idle",
-    "task": "PR #25 complete builds passed and its draft Windows download is verified. The newer local v9 candidate is unpublished; release publication still waits for 0.1.9.",
+    "task": "PR #25 remains the verified complete draft download. Packaging-toolchain repair is in progress; no newer complete build is verified, and ADS/sliders publication still waits for 0.1.9.",
     "url": "https://github.com/RHS059/rust_duty/actions/runs/37160557704"
   }
 }
