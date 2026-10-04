@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-04T15:11:32Z",
+  "updatedAt": "2026-10-04T15:21:32Z",
   "state": "idle",
   "task": "Awaiting the exact Avast detection and affected filename; game changes and publication are paused.",
   "lastCompleted": "Source and signing-options investigation is complete. Verified dad6071 Windows/Linux builds and native capture checks passed; antivirus clearance has not been established.",
