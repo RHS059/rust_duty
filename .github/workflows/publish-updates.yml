@@ -46,6 +46,12 @@ jobs:
           with open(os.environ['GITHUB_ENV'],'a') as f:
               for k in ['version','sequence','previous','game_ref','launcher_ref']: f.write(f'RELEASE_{k.upper()}={p[k]}\n')
           PY
+      - name: Fetch packaging code and every helper from the exact game source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.plan.outputs.game_ref }}
+          path: game-source
+          persist-credentials: false
       - name: Select successful exact-source push runs
         shell: bash
         env:
@@ -80,7 +86,11 @@ jobs:
         run: |
           python - <<'PY'
           from pathlib import Path
-          import os, shutil, subprocess, sys
+          import json, os, shutil, sys
+          sys.path.insert(0, 'tools')
+          from stage_release_game import stage_game, verify_archive
+          provenance=json.loads(Path('SOURCE_PROVENANCE.json').read_text())
+          provenance['packaging']={'toolchain_commit':os.environ['RELEASE_GAME_REF'],'platforms':{}}
           for osname,game,launcher,bootstrap,magic in [
               ('windows','vector-range.exe','RustDuty.exe','RustDuty-windows-x64.exe',b'MZ'),
               ('linux','vector-range','RustDuty','RustDuty-linux-x64',b'\x7fELF')]:
@@ -89,24 +99,26 @@ jobs:
               binary=source/'launcher'/launcher
               assert binary.read_bytes().startswith(magic)
               payload=Path('payload')/osname
-              # Exact allowlist includes the three authorized locomotion companions.
-              # Staging fails on missing/corrupt assets and never copies user settings.
-              subprocess.run([sys.executable, 'tools/package_game.py', 'stage',
-                  '--root', str(source/'game'), '--binary', game,
-                  '--output', str(payload), '--update'], check=True)
+              # Use the selected GAME source's allowlist and all of its helpers.
+              # The release-control branch may have an obsolete packager.
+              update_report=stage_game(Path('game-source'),os.environ['RELEASE_GAME_REF'],
+                  source/'game',game,payload,update=True,version=os.environ['RELEASE_VERSION'])
               Path('release-assets').mkdir(exist_ok=True)
               complete=Path('complete')/osname
-              subprocess.run([sys.executable, 'tools/package_game.py', 'stage',
-                  '--root', str(source/'game'), '--binary', game,
-                  '--output', str(complete)], check=True)
+              complete_report=stage_game(Path('game-source'),os.environ['RELEASE_GAME_REF'],
+                  source/'game',game,complete,version=os.environ['RELEASE_VERSION'])
               if osname == 'linux':
                   (complete/game).chmod((complete/game).stat().st_mode | 0o111)
               label='Windows' if osname == 'windows' else 'Linux'
               archive=Path('release-assets')/f'Rust-Duty-{os.environ["RELEASE_VERSION"]}-{label}-x64'
               shutil.make_archive(str(archive), 'zip', root_dir=complete)
+              archive_report=verify_archive(Path(str(archive)+'.zip'),complete)
+              provenance['packaging']['platforms'][osname]={
+                  'update':update_report,'complete':complete_report,'zip':archive_report}
               shutil.copy2(binary,Path('release-assets')/bootstrap)
               # Retain the legacy migration executable alongside complete ZIPs.
               shutil.copy2(payload/game,Path('release-assets')/('vector-range.exe' if osname=='windows' else 'vector-range-linux-x64'))
+          Path('SOURCE_PROVENANCE.json').write_text(json.dumps(provenance,indent=2)+'\n')
           shutil.copy2('SOURCE_PROVENANCE.json','release-assets/SOURCE_PROVENANCE.json')
           PY
       - name: Prepare full bundles and real retained-base deltas
@@ -134,6 +146,8 @@ jobs:
               --version "$RELEASE_VERSION" --sequence "$RELEASE_SEQUENCE" --target "$target" --entrypoint "$game" "${previous_args[@]}"
             python tools/release_update.py verify --manifest "release-assets/update-$target.json" \
               --assets-dir release-assets --version "$RELEASE_VERSION" --target "$target"
+            python tools/stage_release_game.py verify-bundle \
+              --bundle "release-assets/rust-duty-$RELEASE_VERSION-$target.rdb" --directory "payload/$platform"
           done
       - uses: actions/upload-artifact@v4
         with:
@@ -168,7 +182,7 @@ jobs:
           test "${#assets[@]}" -ge 7
           gh release create "$tag" --repo RHS059/rust_duty --target "$GAME_REF" --draft \
             --title "Rust Duty $RELEASE_VERSION" \
-            --notes "Complete game update with the frozen 43-clip locomotion companions and a standalone migration launcher. Trusts this GitHub repository over HTTPS and validates payload sizes/SHA256; no independent signing key. The exact authorized locomotion package is included; unrelated private models and user settings remain untouched. Game source: $GAME_REF. Launcher source: $LAUNCHER_REF."
+            --notes "Complete game update with the exact source-authored locomotion, walk, ADS, directional and reload assets plus a standalone migration launcher. Trusts this GitHub repository over HTTPS and validates payload sizes/SHA256; no independent signing key. The exact authorized locomotion package is included; unrelated private models and user settings remain untouched. Game source: $GAME_REF. Launcher source: $LAUNCHER_REF."
           gh release upload "$tag" "${assets[@]}" --repo RHS059/rust_duty
           gh release edit "$tag" --repo RHS059/rust_duty --draft=false --latest
 
