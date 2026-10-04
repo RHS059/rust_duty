@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-04T17:12:39Z",
+  "updatedAt": "2026-10-04T17:22:02Z",
   "state": "active",
-  "task": "Finishing ADS centering and animation transitions, reviewing native UI guidance and planning build optimization after gameplay commits.",
+  "task": "Checking local ADS centering, reload-to-movement transitions and settings fixes; reviewing UI guidance and profiling build optimization.",
   "lastCompleted": "Verified dad6071 Windows/Linux builds and native capture checks passed. Source and signing-options investigation is complete; antivirus clearance has not been established.",
   "agents": [
     {
       "slot": 1,
       "state": "active",
-      "task": "Finishing 0.1.8 ADS centering and smooth transitions from animations to walking and running.",
+      "task": "Running focused native checks on local ADS centering, reload-return blending and settings fixes.",
       "lastCompleted": "Published dad6071 passed full Windows/Linux and updater CI. New gameplay fixes are not yet published."
     },
     {
@@ -20,7 +20,7 @@
     {
       "slot": 3,
       "state": "active",
-      "task": "Coordinating independent reviews and planning build optimization after the gameplay commits.",
+      "task": "Profiling the build and planning optimization; implementation follows the gameplay commits.",
       "lastCompleted": "PR #28 merged at 61c3ccd; main updater CI passed and game CI is running."
     }
   ]
