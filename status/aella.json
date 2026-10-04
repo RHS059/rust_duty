@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-04T23:02:07Z",
+  "updatedAt": "2026-10-04T23:11:50Z",
   "state": "idle",
   "task": "Project work has been stopped since 20:38 UTC. No active project worker is verified.",
   "lastCompleted": "PR #33 source annotations and supplemental-reference inventory are committed at 85f43ef3; its latest Windows/Linux build passed at 20:31 UTC. Jump r7's review and diagnostic gallery are already published; runtime integration is not verified complete.",
