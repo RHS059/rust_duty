@@ -148,3 +148,51 @@ action search windows are separately labelled coarse; they are not final cuts.
 
 No scores, candidate matching, full-body transforms, collision contacts,
 hidden input events, FBX success or runtime completion are asserted here.
+
+## User-uploaded supplemental references
+
+`uploaded_references_inventory.json` pins the six files from main commit
+`e14e5f7b14216f2e90ea8791a0b58c65638ea7a6` and records their separate timelines.
+All 14,017 native decoded PTS values and final frame durations were checked.
+Every source is 1280 x 720 at 60/1 fps. Source-local frames map to PTS by
+`frame * 256` ticks at `1/15360`; do not invent an offset between remuxed parts.
+
+The stance and two vault/mount parts were visually reviewed at a 30-frame
+stride; legs, wall obstruction, and weapon swinging at a 120-frame stride.
+Catalog ranges are coarse search windows, not exact event boundaries or new
+cuts. These samples establish supporting coverage for visible legs, repeated
+stance/ADS changes, car vault/ascent, car-side weapon mounting, ledge hanging
+with a pistol, wall obstruction, and look-driven swing. In particular, U4 shows
+an actual ledge hang; R3's vehicle-roof ascent does not show ladder rungs.
+Weapon mounting/support is a separate action family from mantling an obstacle.
+
+A full native decoded-YUV frame-hash comparison found no identical frame in
+any of the 18 uploaded-versus-prior source pairs. This rules out exact decoded
+pixel reuse, not re-encoded footage: a full perceptual alignment has not been
+performed. The sampled camera takes/weapons differ, so never substitute their
+source frame numbers for an existing reference correspondence.
+
+These references are source evidence, not an automatic expansion of the agreed
+authoring scope. Review visible motion from the fixed camera; off-screen and
+hidden geometry is unscored and is not an acceptance gate. No candidate score,
+complete animation approval, or runtime result is asserted.
+
+`prone_source_handoff.json` gives each of the four HIP cut hashes, sidecar
+hashes, source-to-Blender mapping and cycle eligibility. Forward, backward and
+right contain complete-cycle candidates; their exact outer cut endpoints are
+not loop seams. Native five-frame neighborhoods around provisional phase pairs
+were inspected, but these are search witnesses rather than approved new trims.
+Left's 55-frame clean segment remains segment-only; longer context is retained.
+
+Reproduce the supplemental native audit with Python 3 and FFmpeg:
+
+```sh
+python references/movement/remaining_20261004/audit_uploaded_references.py \
+  --uploaded-dir uploaded_references --r1 /path/to/R1.mp4 \
+  --r2 /path/to/R2.mp4 --r3 /path/to/R3.mp4 --out /path/to/audit
+```
+
+The audit rechecks each pinned source before decoding. It saves full per-frame
+PTS and decoded-pixel MD5 lists for reproduction. Twelve focused unit tests
+cover the original cutter contract and supplemental catalog invariants. These
+checks do not constitute full game tests or animation review.

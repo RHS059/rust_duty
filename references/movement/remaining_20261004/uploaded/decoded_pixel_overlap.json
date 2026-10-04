@@ -1,0 +1,113 @@
+{
+  "method": "Every decoded native YUV420P frame hashed with FFmpeg framemd5. Equal decoded pixels only; no visual-footage exclusion inferred from unequal encoding.",
+  "comparisons": [
+    {
+      "uploaded_source_id": "U1",
+      "prior_source_id": "R1",
+      "exact_equal_decoded_frame_count": 0,
+      "matching_frame_pairs": []
+    },
+    {
+      "uploaded_source_id": "U1",
+      "prior_source_id": "R2",
+      "exact_equal_decoded_frame_count": 0,
+      "matching_frame_pairs": []
+    },
+    {
+      "uploaded_source_id": "U1",
+      "prior_source_id": "R3",
+      "exact_equal_decoded_frame_count": 0,
+      "matching_frame_pairs": []
+    },
+    {
+      "uploaded_source_id": "U2",
+      "prior_source_id": "R1",
+      "exact_equal_decoded_frame_count": 0,
+      "matching_frame_pairs": []
+    },
+    {
+      "uploaded_source_id": "U2",
+      "prior_source_id": "R2",
+      "exact_equal_decoded_frame_count": 0,
+      "matching_frame_pairs": []
+    },
+    {
+      "uploaded_source_id": "U2",
+      "prior_source_id": "R3",
+      "exact_equal_decoded_frame_count": 0,
+      "matching_frame_pairs": []
+    },
+    {
+      "uploaded_source_id": "U3",
+      "prior_source_id": "R1",
+      "exact_equal_decoded_frame_count": 0,
+      "matching_frame_pairs": []
+    },
+    {
+      "uploaded_source_id": "U3",
+      "prior_source_id": "R2",
+      "exact_equal_decoded_frame_count": 0,
+      "matching_frame_pairs": []
+    },
+    {
+      "uploaded_source_id": "U3",
+      "prior_source_id": "R3",
+      "exact_equal_decoded_frame_count": 0,
+      "matching_frame_pairs": []
+    },
+    {
+      "uploaded_source_id": "U4",
+      "prior_source_id": "R1",
+      "exact_equal_decoded_frame_count": 0,
+      "matching_frame_pairs": []
+    },
+    {
+      "uploaded_source_id": "U4",
+      "prior_source_id": "R2",
+      "exact_equal_decoded_frame_count": 0,
+      "matching_frame_pairs": []
+    },
+    {
+      "uploaded_source_id": "U4",
+      "prior_source_id": "R3",
+      "exact_equal_decoded_frame_count": 0,
+      "matching_frame_pairs": []
+    },
+    {
+      "uploaded_source_id": "U5",
+      "prior_source_id": "R1",
+      "exact_equal_decoded_frame_count": 0,
+      "matching_frame_pairs": []
+    },
+    {
+      "uploaded_source_id": "U5",
+      "prior_source_id": "R2",
+      "exact_equal_decoded_frame_count": 0,
+      "matching_frame_pairs": []
+    },
+    {
+      "uploaded_source_id": "U5",
+      "prior_source_id": "R3",
+      "exact_equal_decoded_frame_count": 0,
+      "matching_frame_pairs": []
+    },
+    {
+      "uploaded_source_id": "U6",
+      "prior_source_id": "R1",
+      "exact_equal_decoded_frame_count": 0,
+      "matching_frame_pairs": []
+    },
+    {
+      "uploaded_source_id": "U6",
+      "prior_source_id": "R2",
+      "exact_equal_decoded_frame_count": 0,
+      "matching_frame_pairs": []
+    },
+    {
+      "uploaded_source_id": "U6",
+      "prior_source_id": "R3",
+      "exact_equal_decoded_frame_count": 0,
+      "matching_frame_pairs": []
+    }
+  ]
+}
