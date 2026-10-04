@@ -1,0 +1,53 @@
+{
+  "scope": "source, PTS, timeline and evidence integrity; not artistic acceptance",
+  "sources": [
+    {
+      "source_id": "U1",
+      "intervals": 15,
+      "timeline_frames": 5217,
+      "reviewed_samples": 233,
+      "annotation_sha256": "b15da83ef426bb08bdd8dbca8460b335745541e847c0345836acec46bf336748",
+      "source_sha256": "fcbf12d487f4cb3dd74e962cdcd623a180938c3927d93326cc7b74cd8d2ddfba"
+    },
+    {
+      "source_id": "U2",
+      "intervals": 37,
+      "timeline_frames": 3156,
+      "reviewed_samples": 255,
+      "annotation_sha256": "43272d7847bba2b69087da9c7229713dc9c2446853b77977f2bba52de4f93b8f",
+      "source_sha256": "09f56b59d67bdbf96abf81d060295c4fda1ff36fdefcd2f2b1b32fc260b2600a"
+    },
+    {
+      "source_id": "U3",
+      "intervals": 25,
+      "timeline_frames": 1840,
+      "reviewed_samples": 123,
+      "annotation_sha256": "bfa12f84ad66f07b2434096283de11d6f4ec5941d54b0992efe830959381eb24",
+      "source_sha256": "387b39097ae2381ebd73bfac8f559eb0654fbe1d84bc5ccddf8db271e9314248"
+    },
+    {
+      "source_id": "U4",
+      "intervals": 29,
+      "timeline_frames": 1840,
+      "reviewed_samples": 215,
+      "annotation_sha256": "cd600addb578538336b2851b34312a9a42f6633ea71c63ebcfdcd84b9a25c43c",
+      "source_sha256": "f3664003871aa87229d7d87aeb3e66c75979b2f9d7bd6bd649da08e49a66bc61"
+    },
+    {
+      "source_id": "U5",
+      "intervals": 19,
+      "timeline_frames": 1072,
+      "reviewed_samples": 163,
+      "annotation_sha256": "4dcbc2638838646456183437ea2ac068ea2fa0565fa3d42f4dd4210a9e0358c5",
+      "source_sha256": "6c982eae42a66cf7b3d525e5db17067b8c87e4dc7890551b4989117b9757401d"
+    },
+    {
+      "source_id": "U6",
+      "intervals": 25,
+      "timeline_frames": 892,
+      "reviewed_samples": 146,
+      "annotation_sha256": "2525fd18d7db8b00d2928b0f4e55cca3ac38124ba507a77ed8fb0531a0e88bc2",
+      "source_sha256": "8a4091a22edf5296b4aa2fe3a1c04cf5e5d7b401cfa5c996840d44c0b5f0dcea"
+    }
+  ]
+}

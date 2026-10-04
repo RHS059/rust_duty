@@ -83,7 +83,8 @@
           "kind": "coarse search window, not action cut",
           "semantic_boundary_uncertainty_frames": 120
         }
-      ]
+      ],
+      "detailed_annotations": "uploaded_detailed/U1_annotations.json"
     },
     {
       "id": "U2",
@@ -150,7 +151,8 @@
           "kind": "coarse search window, not action cut",
           "semantic_boundary_uncertainty_frames": 30
         }
-      ]
+      ],
+      "detailed_annotations": "uploaded_detailed/U2_annotations.json"
     },
     {
       "id": "U3",
@@ -210,7 +212,8 @@
           "kind": "coarse search window, not action cut",
           "semantic_boundary_uncertainty_frames": 30
         }
-      ]
+      ],
+      "detailed_annotations": "uploaded_detailed/U3_annotations.json"
     },
     {
       "id": "U4",
@@ -277,7 +280,8 @@
           "kind": "coarse search window, not action cut",
           "semantic_boundary_uncertainty_frames": 30
         }
-      ]
+      ],
+      "detailed_annotations": "uploaded_detailed/U4_annotations.json"
     },
     {
       "id": "U5",
@@ -316,7 +320,8 @@
           "kind": "coarse search window, not action cut",
           "semantic_boundary_uncertainty_frames": 120
         }
-      ]
+      ],
+      "detailed_annotations": "uploaded_detailed/U5_annotations.json"
     },
     {
       "id": "U6",
@@ -348,7 +353,8 @@
           "kind": "coarse search window, not action cut",
           "semantic_boundary_uncertainty_frames": 120
         }
-      ]
+      ],
+      "detailed_annotations": "uploaded_detailed/U6_annotations.json"
     }
   ],
   "scope_handoff": {
@@ -358,5 +364,7 @@
     "U4": "New ledge-hang/pistol evidence, distinct from R3 roof ascent. Catalogued; no automatic extra authored Action assignment.",
     "U5": "Wall-obstruction supporting reference; no new wall-response implementation assignment.",
     "U6": "Look-driven swing supporting reference; do not infer locomotion displacement from mouse-look response."
-  }
+  },
+  "detailed_annotation_index": "uploaded_detailed/README.md",
+  "catalog_window_status": "Historical coarse discovery windows. Superseded for event lookup by linked detailed annotations; retained for provenance."
 }
