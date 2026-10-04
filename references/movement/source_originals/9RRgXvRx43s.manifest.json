@@ -1,0 +1,55 @@
+{
+  "schema": "rust-duty-reference-binary-parts/v1",
+  "output": "9RRgXvRx43s.mp4",
+  "bytes": 47049387,
+  "sha256": "5b883e85d1179d06987509e4ede2b18fbc54433c4578b316af355e68d17becf5",
+  "format": "MP4",
+  "encoding": "exact binary concatenation; no transcoding",
+  "part_bytes": 8388608,
+  "parts": [
+    {
+      "path": "9RRgXvRx43s.mp4.parts/part-000.bin",
+      "bytes": 8388608,
+      "sha256": "a075f24bd0282f8c769a05c04e07e75b0f730ec0a51df3df46a8d520f96ef215"
+    },
+    {
+      "path": "9RRgXvRx43s.mp4.parts/part-001.bin",
+      "bytes": 8388608,
+      "sha256": "3c284431dc7719f8879099ae7702484d7f3a648bbd7bead677b9f1c5def9e006"
+    },
+    {
+      "path": "9RRgXvRx43s.mp4.parts/part-002.bin",
+      "bytes": 8388608,
+      "sha256": "e134f6e45f8dfbb109f9001abe98923abc3edf868503e4dca2a5ff91a12db44f"
+    },
+    {
+      "path": "9RRgXvRx43s.mp4.parts/part-003.bin",
+      "bytes": 8388608,
+      "sha256": "f8fa42943ad6323dae9adc83fd13052929bf4c1205ec1a9e26e90be85b286692"
+    },
+    {
+      "path": "9RRgXvRx43s.mp4.parts/part-004.bin",
+      "bytes": 8388608,
+      "sha256": "757e355409766fd37bcdc7ee88b225f572bc9c97730963ebab305e3c6d2a8292"
+    },
+    {
+      "path": "9RRgXvRx43s.mp4.parts/part-005.bin",
+      "bytes": 5106347,
+      "sha256": "de0451b2ca10e27a14d1ac7ac903da97a401fa3613b53b6f88d00e05aeb10dfa"
+    }
+  ],
+  "video": {
+    "width": 1280,
+    "height": 720,
+    "fps": 60,
+    "native_frames": 6822,
+    "duration_seconds": 113.7
+  },
+  "provenance": {
+    "youtube_url": "https://www.youtube.com/watch?v=9RRgXvRx43s",
+    "original_filename": "9RRgXvRx43s.mp4",
+    "source_identity": "Previously retrieved complete reference MP4, checked against the established source SHA-256. No redownload, conversion, trimming, clip extraction, or motion relabeling was performed for this transfer.",
+    "retrieval_record_date_utc": "2026-10-03",
+    "transfer_date_utc": "2026-10-04"
+  }
+}

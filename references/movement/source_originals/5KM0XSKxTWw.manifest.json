@@ -1,0 +1,60 @@
+{
+  "schema": "rust-duty-reference-binary-parts/v1",
+  "output": "5KM0XSKxTWw.mp4",
+  "bytes": 52915134,
+  "sha256": "cff413d8d114b611bbe6f50cc553ef109d61eb8eb1fff960425f506b84d6767e",
+  "format": "MP4",
+  "encoding": "exact binary concatenation; no transcoding",
+  "part_bytes": 8388608,
+  "parts": [
+    {
+      "path": "5KM0XSKxTWw.mp4.parts/part-000.bin",
+      "bytes": 8388608,
+      "sha256": "d416c6781baa230356b9e56e9b0968b7aa5b2e0b0510ce755ddc5c7cff1ba484"
+    },
+    {
+      "path": "5KM0XSKxTWw.mp4.parts/part-001.bin",
+      "bytes": 8388608,
+      "sha256": "c3357526cc70a9bd7ad1ca613b288f8553d7ec13e13afe117c61310c3aee377f"
+    },
+    {
+      "path": "5KM0XSKxTWw.mp4.parts/part-002.bin",
+      "bytes": 8388608,
+      "sha256": "b6e328d438739ea314337a93e02aedf8d2bb6f8255da041cf56ca752e9197702"
+    },
+    {
+      "path": "5KM0XSKxTWw.mp4.parts/part-003.bin",
+      "bytes": 8388608,
+      "sha256": "3428ffb9bb889a40a5cb48c39d8dc721c5c22849f5a35aced5dac23629fcf439"
+    },
+    {
+      "path": "5KM0XSKxTWw.mp4.parts/part-004.bin",
+      "bytes": 8388608,
+      "sha256": "6021c3fcecdd65c49791f583fd9dc3f85b85075179d51f2fe85f8c2a9f2ef46f"
+    },
+    {
+      "path": "5KM0XSKxTWw.mp4.parts/part-005.bin",
+      "bytes": 8388608,
+      "sha256": "bf619e9f28b2fb9077a38add2b60bf3aa20ed844b064a8130dcfe0b3dfcc21f3"
+    },
+    {
+      "path": "5KM0XSKxTWw.mp4.parts/part-006.bin",
+      "bytes": 2583486,
+      "sha256": "e6a3c3941d74d484cbac951fd7824f2da77a868b4aabf67a9d357b1b3943fb4f"
+    }
+  ],
+  "video": {
+    "width": 1280,
+    "height": 720,
+    "fps": 60,
+    "native_frames": 7976,
+    "duration_seconds": 132.93333333333334
+  },
+  "provenance": {
+    "youtube_url": "https://www.youtube.com/watch?v=5KM0XSKxTWw",
+    "original_filename": "5KM0XSKxTWw.mp4",
+    "source_identity": "Previously retrieved complete reference MP4, checked against the established source SHA-256. No redownload, conversion, trimming, clip extraction, or motion relabeling was performed for this transfer.",
+    "retrieval_record_date_utc": "2026-10-03",
+    "transfer_date_utc": "2026-10-04"
+  }
+}
