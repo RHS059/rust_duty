@@ -73,6 +73,7 @@ code('''PACK = 'demo.vra' # Use an exact available pack path.
 TRANSITIONS = [] # Explicit [(from_clip, to_clip), ...], same pack only.
 if PACK not in INPUTS: raise ValueError('Select an available PACK above')
 OUTPUT=Path(tempfile.mkdtemp(prefix='rust-duty-review-')) # Fresh per pack review; no stale evidence
+cuda_smoke={'status':'not run','scope':'synthetic numerical smoke, not game animation approval'}
 contact={'status':'not measured','reason':'No evaluated world-space contact samples supplied'}
 visual={'status':'not reviewed','artistic_approval':False}
 prefix=PACK[:-4]
@@ -132,13 +133,16 @@ result={'schema':'rust-duty-colab-review/v1','status':'diagnostic','artistic_app
         'code_sha256':CODE_HASHES,'python':platform.python_version(),'dependencies':versions,
         'selection':{'pack':PACK,'clip':CLIP,'channel_kind':CHANNEL_KIND,'channel_index':CHANNEL_INDEX,'transitions':TRANSITIONS},
         'pack':report,'contact':contact,'visual':visual,
+        'cuda_smoke':globals().get('cuda_smoke',{'status':'not run'}),
         'remaining_gates':['evaluated skin and full-motion visual inspection','source timing/camera verification',
                            'Blender evaluated bake/export/reimport parity','target game runtime verification']}
 (OUTPUT/'report.json').write_text(json.dumps(result,indent=2,allow_nan=False))
 archive=OUTPUT.parent/(OUTPUT.name+'.zip')
 with zipfile.ZipFile(archive,'w',compression=zipfile.ZIP_DEFLATED) as z:
     for path in sorted(OUTPUT.iterdir()): z.write(path,path.name)
-print('Saved:',archive)
+EXPORTED_OUTPUT_HASHES={p.name:review.digest(p.read_bytes()) for p in OUTPUT.iterdir() if p.is_file()}
+ARCHIVE_SHA256=review.digest(archive.read_bytes())
+print('Saved:',archive,'SHA256:',ARCHIVE_SHA256)
 from google.colab import files
 files.download(str(archive))
 ''')
@@ -149,4 +153,11 @@ Validation of this delivered notebook: local synthetic and repository pack CPU c
 ''')
 nb={'nbformat':4,'nbformat_minor':5,'metadata':{'colab':{'name':'Rust_Duty_Animation_Review.ipynb'},'kernelspec':{'display_name':'Python 3','language':'python','name':'python3'},'language_info':{'name':'python'},'accelerator':'GPU'},'cells':cells}
 for i,c in enumerate(cells): c['id']=f'review-{i:02d}'
+# Keep all original cell IDs unchanged when adding the batch lifecycle.
+from batch_cells import CUDA_SMOKE, TEARDOWN, TEARDOWN_DOC
+cells.insert(11, {'cell_type':'code','metadata':{},'execution_count':None,'outputs':[],
+                  'source':CUDA_SMOKE.splitlines(True),'id':'batch-cuda-smoke-v1'})
+cells[-1]['source']=TEARDOWN_DOC.splitlines(True) # existing review-12 markdown ID
+cells.append({'cell_type':'code','metadata':{},'execution_count':None,'outputs':[],
+              'source':TEARDOWN.splitlines(True),'id':'batch-teardown-v1'})
 (root/'Rust_Duty_Animation_Review.ipynb').write_text(json.dumps(nb,indent=1)+'\n')

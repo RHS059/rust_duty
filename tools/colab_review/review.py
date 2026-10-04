@@ -158,3 +158,20 @@ def compare_images(a_bytes,b_bytes,output,source_label,candidate_label):
     for im,label in zip(images,(source_label,candidate_label)):
         canvas.paste(im,(x,60)); d.text((x+8,8),label,fill='black'); x+=im.width
     canvas.save(output)
+
+def verify_preserved_archive(archive, output, downloaded, expected_hash, expected_outputs):
+    """Validate a browser-returned saved copy and reject stale/changed output before teardown."""
+    archive=Path(archive); output=Path(output)
+    if not isinstance(downloaded,bytes) or digest(downloaded)!=expected_hash:
+        raise ValueError('Downloaded copy SHA256 mismatch; runtime retained')
+    current={p.name:digest(p.read_bytes()) for p in output.iterdir() if p.is_file()}
+    if any(p.is_dir() for p in output.iterdir()) or current!=expected_outputs:
+        raise ValueError('Outputs changed after export; export and preserve a new ZIP first')
+    if digest(archive.read_bytes())!=expected_hash:
+        raise ValueError('Local ZIP changed after export; runtime retained')
+    with zipfile.ZipFile(io.BytesIO(downloaded)) as z:
+        if z.testzip() is not None or set(z.namelist())!=set(expected_outputs):
+            raise ValueError('Invalid result ZIP; runtime retained')
+        if any(digest(z.read(n))!=sha for n,sha in expected_outputs.items()):
+            raise ValueError('Result contents differ; runtime retained')
+    return {'sha256':expected_hash,'bytes':len(downloaded),'preservation':'downloaded copy re-uploaded and byte-verified'}
