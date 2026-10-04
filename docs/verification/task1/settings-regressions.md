@@ -2,11 +2,30 @@
 
 ## Status and ownership
 
-**Pending corrected-head verification; not accepted.** Source inspection on 2026-10-04 at 17:03 UTC found PR27 still at `dad6071625ce9190c69e4703c53952a2244cf1f8`. The two previously reported findings remain in that source. No Rust tests, native keyboard interactions, screenshots or runtime fault injection were executed for this report.
+**Corrected source reviewed; runtime acceptance remains pending.** At 17:32 UTC on 2026-10-04, reviewed `edc162d59e18225ba0da238424a769b68d7efb32`, then verified current PR27 head `b577aaaa4e4016bd965a4f8f89c9d03338c417e0`. `src/main.rs` and `src/pause_menu.rs` are byte-identical between those commits. The original failed-save persistence and keyboard routing gaps are addressed in source. A residual saved-status defect is reported below. No Rust tests, native keyboard interactions, screenshots or runtime fault injection were executed by this reviewer.
+
+### Corrected-head findings
+
+- Save failure is stored independently of the notice timer and has display priority. `changed()` preserves an existing failure. Autosave and F5 share `save_result`; explicit F6 discard clears failure only after an initial successful file read. Disabled menu input does not discard persistence status.
+- Ten focus positions cover Resume, placement XYZ, position reset, walking XYZ, walking reset and Save/retry. Tab/Shift+Tab and Up/Down navigate; Left/Right adjust; Home/End set bounds; Enter/Space activate buttons. Changes save immediately per keyboard adjustment. A focus rectangle is drawn, but native visibility has not been observed by this reviewer.
+- Main routing suppresses direct session Enter and legacy placement nudges when a menu control has focus. Existing drag tests remain and two new menu tests check one walking-axis/reset path and persistent failed-save state. These unit tests do not themselves execute the main input-routing boundary or rendered footer lifetime.
+- The author reports 532 Rust tests, 22 capture-verifier tests, Clippy/formatting and actionlint passing at the gameplay checkpoint. This is [author-reported evidence](https://github.com/RHS059/dot_chat/pull/1#issuecomment-5982597513), not this reviewer's execution. The checkpoint used `[skip ci]`; no interim exact-source workflow pass is claimed. The subsequent b577aaaa commit changes the reload witness and contract, not the two reviewed settings/menu files.
+
+### Remaining defect: a previous success can mask newer unsaved edits
+
+At both corrected commits, reproduce by starting paused with no selected menu control, saving successfully with F5, then making a legacy arrow/PageUp/PageDown placement edit before the four-second success notice expires. Main calls `pause_menu.changed()` for the new placement, but the draw path uses `status.or(self.persistence.as_deref())` whenever `save_failed` is false. The live old "Saved..." notice therefore takes priority over the new persistent "Unsaved changes" message until expiry. This is a source-proven display-state ordering defect; the native sequence has not been executed here.
+
+Sensitivity/FOV edits through brackets or minus/equal also mutate persisted settings without calling `changed()`. After a previous successful save, the persistent saved message can therefore remain even beyond expiry. Suggested bounded regression: successful save -> unsaved edit -> footer must not claim the new state is saved, both before and after notice expiry. Return implementation/test changes to Aella; no fix is made in this evidence lane.
+
+Sources at the current reviewed head: [save and routing](https://github.com/RHS059/rust_duty/blob/b577aaaa4e4016bd965a4f8f89c9d03338c417e0/src/main.rs#L1155-L1211), [legacy keys and save/load](https://github.com/RHS059/rust_duty/blob/b577aaaa4e4016bd965a4f8f89c9d03338c417e0/src/main.rs#L1293-L1343), [persistent menu state and footer](https://github.com/RHS059/rust_duty/blob/b577aaaa4e4016bd965a4f8f89c9d03338c417e0/src/pause_menu.rs).
+
+### Evidence still needed
+
+Native keyboard traversal/activation and controlled failed-save -> expiry -> failed retry -> successful retry/file-readback remain unrun. The two new inspected tests do not cover all six keyboard axes, reverse traversal, both keyboard resets, Home/End bounds, main Enter/arrow consumption, rendered footer priority, repeated failed retry, or actual file recovery. Preserve separate labels for source inspection, reported aggregate tests and native evidence. The acceptance matrix below remains the bounded requested native/integration coverage rather than a claim that the new code fails every unexecuted row.
 
 This document is the settings review lane's only owned repository path. Aella owns runtime, existing tests and related native capture/verifier/workflow changes. Findings return to that owner; this lane does not modify those files. ADS/transition acceptance belongs to the separate review. This report authorizes no merge, release or updater publication.
 
-## Inspected baseline
+## Historical inspected baseline
 
 - [PR27](https://github.com/RHS059/rust_duty/pull/27): draft/open at the above commit when checked.
 - [Original findings](https://github.com/RHS059/dot_chat/pull/1#issuecomment-5976077983): failed-save footer and missing menu keyboard control paths.
@@ -20,7 +39,7 @@ These are static observations. Existing PR-body test counts or native demonstrat
 
 ## Focused acceptance matrix
 
-Every row below is **NOT RUN on a corrected head**. Record source SHA, platform, test/log or native witness, expected/actual result and remaining limits when evidence arrives.
+Every row below is **NOT RUN independently on a corrected head**. Corrected source and author-reported aggregate execution are summarized above; native/integration acceptance is still pending. Record source SHA, platform, test/log or native witness, expected/actual result and remaining limits when evidence arrives.
 
 | ID | Sequence | Required observation |
 | --- | --- | --- |
@@ -56,7 +75,7 @@ The asynchronous-save item is conditional, not a claim that the inspected synchr
 
 ## Evidence and stopping condition
 
-Await Aella's corrected exact commit plus focused tests/native evidence. Re-read the affected diff before acceptance; do not rerun a full suite on the known-old head while fixes are in progress. A later relevant commit invalidates earlier acceptance until affected cases are rechecked.
+Await focused tests/native evidence and disposition of the remaining footer defect. Re-read the affected diff before acceptance; do not rerun a full suite on a superseded head while fixes are in progress. A later relevant commit invalidates earlier acceptance until affected cases are rechecked.
 
 The review finishes when the bounded cases have adequate exact-head evidence or concrete failures/blockers have been returned to Aella. Report static inspection, author-reported tests, independently executed tests and native observation separately. Compilation/CI is not proof of native keyboard behavior, and this scope makes no WCAG compliance, screen-reader, Windows Alt-Tab or ADS fidelity claim.
 
