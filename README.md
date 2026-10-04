@@ -133,6 +133,9 @@ require a graphical display. Unit/integration tests do not.
 
 ## Tuning and architecture
 
+Native UI development follows [DESIGN.md](DESIGN.md) and the
+[scoped UI design skill and checklist](docs/UI_DESIGN_GUIDANCE.md).
+
 `src/sim.rs` owns gameplay; `src/settings.rs` owns validated, human-editable tuning;
 `src/main.rs` owns input/presentation; `src/sound.rs` synthesizes audio without files.
 The renderer is [Macroquad](https://macroquad.rs/), pinned in Cargo.toml and Cargo.lock.
