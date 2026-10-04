@@ -41,6 +41,7 @@ pub struct AnimationManifest {
     pub empty: Option<ClipReference>,
     pub ads: Option<AdsReference>,
     pub receiver_ads_wip: bool,
+    pub forward_ads_v9_wip: bool,
     pub ads_visual_transition_seconds: Option<f64>,
 }
 impl AnimationManifest {
@@ -129,11 +130,13 @@ impl AnimationManifest {
                 exit_clip: take(&mut values, "ads.exit.clip")?,
             })
         };
-        let receiver_ads_wip = match values.remove("layers.ads_walk").as_deref() {
-            None | Some("optical_projection") => false,
-            Some("receiver_v4_wip") => true,
-            _ => return Err("unsupported ADS walk layer policy".into()),
-        };
+        let (receiver_ads_wip, forward_ads_v9_wip) =
+            match values.remove("layers.ads_walk").as_deref() {
+                None | Some("optical_projection") => (false, false),
+                Some("receiver_v4_wip") => (true, false),
+                Some("receiver_v9_forward_wip") => (true, true),
+                _ => return Err("unsupported ADS walk layer policy".into()),
+            };
         let ads_visual_transition_seconds = values
             .remove("ads.visual_transition_seconds")
             .map(|value| {
@@ -217,6 +220,7 @@ impl AnimationManifest {
             empty,
             ads,
             receiver_ads_wip,
+            forward_ads_v9_wip,
             ads_visual_transition_seconds,
         })
     }

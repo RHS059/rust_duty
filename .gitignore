@@ -55,3 +55,6 @@ __pycache__/
 # Directional WIP companions are built from the committed source in CI.
 /assets/directional/
 /build-directional/
+
+# Regenerated dense v9 pose witnesses; public source and compact optical oracle remain committed.
+/assets/authoring/locomotion_ads/v9/v9_complete_pose_runtime_oracle.json

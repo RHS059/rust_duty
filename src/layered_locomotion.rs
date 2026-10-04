@@ -5,7 +5,7 @@ use crate::{
     authored_ads::AuthoredAds,
     authored_locomotion_adapter::PoseBindings,
     authored_locomotion_path::{AuthoredLocomotionPath, AuthoredLocomotionPathConfig},
-    authored_walk::{AuthoredWalk, WalkPoseLayer},
+    authored_walk::{AuthoredWalk, ForwardAdsSamples, WalkLayerInput, WalkPoseLayer},
     sim::Simulation,
     viewmodel_animation::{AnimationError, AnimationSet, Result, Transform, ViewmodelPose},
 };
@@ -132,11 +132,11 @@ struct DirectionalWalk {
     weights: [f64; 4],
 }
 impl DirectionalWalk {
-    fn update(&mut self, simulation: &Simulation, dt: f64, new_cycle: bool) {
+    fn update(&mut self, simulation: &Simulation, dt: f64, new_cycle: bool) -> (f64, f64) {
         let player = &simulation.player;
         if !player.grounded || player.speed() <= 0.1 || player.sprinting || player.mantle.is_some()
         {
-            return;
+            return (self.weights[0], self.weights[0]);
         }
         let forward = Vec3::new(player.yaw.cos(), 0., player.yaw.sin());
         let right = forward.cross(Vec3::Y);
@@ -154,9 +154,15 @@ impl DirectionalWalk {
         } else {
             1. - (-dt / 0.06).exp()
         };
+        let previous_forward = if new_cycle {
+            target[0]
+        } else {
+            self.weights[0]
+        };
         for (weight, target) in self.weights.iter_mut().zip(target) {
             *weight += (target - *weight) * amount;
         }
+        (previous_forward, target[0])
     }
     fn pose(
         &self,
@@ -196,8 +202,14 @@ pub struct LayeredLocomotion {
     last_time: f64,
     reload_active: bool,
     receiver_ads_wip: bool,
+    forward_ads_v9_wip: bool,
 }
 impl LayeredLocomotion {
+    pub fn set_walk_translation(&mut self, value: crate::settings::WalkTranslation) {
+        if let Some(layer) = &mut self.walk_layer {
+            layer.set_translation_adjustment(value);
+        }
+    }
     pub fn new(
         sources: LayerSources<'_>,
         config: AuthoredLocomotionPathConfig,
@@ -252,6 +264,7 @@ impl LayeredLocomotion {
             last_time: 0.,
             reload_active: false,
             receiver_ads_wip: false,
+            forward_ads_v9_wip: false,
         })
     }
     pub fn with_ads_wip_policy(
@@ -268,6 +281,16 @@ impl LayeredLocomotion {
                 self.ads = Some(ads.with_visual_transition_seconds(seconds)?);
             }
         }
+        Ok(self)
+    }
+    /// Authored forward v9; other directions explicitly keep v4 as WIP fallback.
+    pub fn with_forward_ads_v9_policy(mut self, active: bool) -> Result<Self> {
+        if self.last_time != 0. || (active && !self.receiver_ads_wip) {
+            return Err(AnimationError(
+                "v9 requires unstarted receiver ADS layers".into(),
+            ));
+        }
+        self.forward_ads_v9_wip = active;
         Ok(self)
     }
     /// Optional reviewed four-direction clips; absent data preserves the old walk.
@@ -358,12 +381,22 @@ impl LayeredLocomotion {
         let moving =
             player.grounded && player.speed() > 0.1 && !player.sprinting && player.mantle.is_none();
         let new_cycle = self.walk.seconds().is_none();
-        if let Some(direction) = &mut self.directional_walk {
-            direction.update(simulation, end - start, new_cycle);
-        }
+        let forward_curve = self
+            .directional_walk
+            .as_mut()
+            .map(|direction| direction.update(simulation, end - start, new_cycle));
         let aim_integral = self.ads.as_ref().map_or(0., AuthoredAds::last_aim_integral);
+        let forward_aim_integral = if self.forward_ads_v9_wip {
+            forward_curve.map_or(0., |(from, target)| {
+                self.ads
+                    .as_ref()
+                    .map_or(0., |ads| ads.last_aim_weighted_integral(from, target, 0.06))
+            })
+        } else {
+            0.
+        };
         let phase_advance = if self.receiver_ads_wip {
-            (end - start - 0.15 * aim_integral).max(0.)
+            (end - start - 0.15 * aim_integral - 0.05 * forward_aim_integral).max(0.)
         } else {
             end - start
         };
@@ -384,14 +417,45 @@ impl LayeredLocomotion {
                 Some(direction) => direction.pose(set, seconds, &self.blend)?,
                 None => set.sample(clip, seconds as f32)?,
             };
-            pose = layer.pose_directional(
+            let forward_samples = if self.forward_ads_v9_wip {
+                self.directional_walk
+                    .as_ref()
+                    .map(|direction| {
+                        let clip = &direction.clips.forward;
+                        let duration = set
+                            .clips()
+                            .iter()
+                            .find(|candidate| &candidate.name == clip)
+                            .ok_or_else(|| AnimationError("missing v9 forward clip".into()))?
+                            .duration();
+                        Ok::<_, AnimationError>((
+                            set.sample(clip, seconds as f32)?,
+                            set.sample(clip, seconds as f32 + duration * 0.5)?,
+                            direction.weights[0] as f32,
+                        ))
+                    })
+                    .transpose()?
+            } else {
+                None
+            };
+            pose = layer.pose_with_input(
                 sources.locomotion,
                 &pose,
-                &walk,
-                self.walk.weight(),
-                self.ads.as_ref().map_or(0., AuthoredAds::aim_amount),
-                self.directional_weights()
-                    .map_or(0., |weights| (weights[2] + weights[3]) as f32),
+                WalkLayerInput {
+                    walk: &walk,
+                    weight: self.walk.weight(),
+                    aim: self.ads.as_ref().map_or(0., AuthoredAds::aim_amount),
+                    lateral: self
+                        .directional_weights()
+                        .map_or(0., |weights| (weights[2] + weights[3]) as f32),
+                    forward_ads: forward_samples
+                        .as_ref()
+                        .map(|(primary, half_period, weight)| ForwardAdsSamples {
+                            primary,
+                            half_period,
+                            weight: *weight,
+                        }),
+                },
             )?;
         } else if self.walk_clip.is_some() && sources.walk.is_none() {
             return Err(AnimationError("walk source changed during playback".into()));
@@ -471,7 +535,9 @@ impl LayeredLocomotion {
         self.ads.as_ref()
     }
     pub fn walk_min_rate(&self) -> f32 {
-        if self.receiver_ads_wip {
+        if self.forward_ads_v9_wip && self.directional_walk.is_some() {
+            0.80
+        } else if self.receiver_ads_wip {
             0.85
         } else {
             1.

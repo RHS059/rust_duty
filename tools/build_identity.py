@@ -7,6 +7,7 @@ import os
 from pathlib import Path
 import re
 import subprocess
+import tomllib
 
 import release_update
 
@@ -17,11 +18,22 @@ TARGETS = {
     "windows": ("x86_64-pc-windows-msvc", "vector-range.exe", "Windows", b"MZ"),
     "linux": ("x86_64-unknown-linux-gnu", "vector-range", "Linux", b"\x7fELF"),
 }
-# Explicit one-time owner-authorized 0.1.7 delivery. Future version increments
-# belong to merged-PR release automation, never to ordinary draft/push builds.
+# Candidate metadata only: builds do not allocate or publish a release.
+BUILD_SEQUENCE = 8
+# Freeze the legacy one-time publisher; a new package version cannot enable it.
 RELEASE_BRANCHES = {"aella/automatic-game-updates-r1"}
-RELEASE_VERSION = "0.1.7"
-RELEASE_SEQUENCE = 5
+LEGACY_RELEASE_VERSION = "0.1.7"
+LEGACY_RELEASE_SEQUENCE = 5
+
+
+def package_version():
+    """Use the same checked-out Cargo package identity as build.rs."""
+    with (Path(__file__).resolve().parents[1] / "Cargo.toml").open("rb") as stream:
+        version = tomllib.load(stream)["package"]["version"]
+    parts = release_update.stable_version(version)
+    if any(part > 2**64 - 1 for part in parts):
+        raise ValueError("oversized Cargo package version")
+    return version
 
 
 def positive_integer(value, label):
@@ -44,18 +56,21 @@ def context(env=None, *, publication=False):
         raise ValueError("invalid exact source commit or branch")
     if not re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", repository):
         raise ValueError("invalid repository")
-    version = RELEASE_VERSION
-    # Workflow files still export 0.1.5. The package version is the release identity.
+    version = package_version()
+    historical = version == LEGACY_RELEASE_VERSION
+    sequence = LEGACY_RELEASE_SEQUENCE if historical else BUILD_SEQUENCE
     pinned = env.get("RUST_DUTY_BUILD_VERSION")
-    if pinned not in {version, "0.1.5"}:
-        raise ValueError("build version must match the one-time approved 0.1.7 release")
-    if publication and (repository != REPOSITORY or env.get("GITHUB_EVENT_NAME") != "push"
+    # Only the historical publisher may retain its historical workflow pin.
+    allowed = {version, "0.1.5"} if historical else {None, version}
+    if pinned not in allowed:
+        raise ValueError("build version must match the Cargo package version")
+    if publication and (not historical or repository != REPOSITORY or env.get("GITHUB_EVENT_NAME") != "push"
                         or branch not in RELEASE_BRANCHES
                         or env.get("GITHUB_REF") != f"refs/heads/{branch}"
                         or env.get("RUST_DUTY_BUILD_RESULT") != "success"):
         raise ValueError("publication requires a successful explicitly authorized one-time release push build")
     return {
-        "repository": repository, "version": version, "sequence": RELEASE_SEQUENCE,
+        "repository": repository, "version": version, "sequence": sequence,
         "source": {"commit": commit, "branch": branch, "workflow": WORKFLOW,
                    "run_id": run_id, "run_number": number,
                    "run_url": f"https://github.com/{repository}/actions/runs/{run_id}"},

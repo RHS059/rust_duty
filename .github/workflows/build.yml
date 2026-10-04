@@ -23,8 +23,7 @@ jobs:
   build:
     needs: [animation-assets, walk-assets, ads-assets, directional-assets]
     name: ${{ matrix.os }}
-    env:
-      RUST_DUTY_BUILD_VERSION: '0.1.5'
+    # Build and artifact identity both use the checked-out Cargo.toml version.
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false

@@ -1,5 +1,9 @@
 # Authored gameplay animation slots (WIP)
 
+The current candidate uses `receiver_v9_forward_wip` for forward ADS over r5 HIP,
+with explicit v4 fallbacks for other directions. The source comparison bakes are
+not runtime loops; see [the phase, composition and known limits](ADS_V9_RUNTIME_WIP.md).
+
 `assets/animations.cfg` is the semantic binding contract. Paths resolve relative to
 that manifest (beside the game's packaged assets), never the process working
 directory. Re-export a clip with the same name/path, or change the slot's asset and

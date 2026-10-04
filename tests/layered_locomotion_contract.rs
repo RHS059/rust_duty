@@ -472,3 +472,140 @@ fn wip_ads_rate_integrates_phase_without_recomputing_or_resetting_prior_walk_tim
     assert!((layers.walk().seconds().unwrap() - b.walk().seconds().unwrap()).abs() < 1e-10);
     close(layers.pose(), b.pose(), 2e-5);
 }
+
+#[test]
+fn walking_axes_scale_only_neutral_relative_displacement_and_preserve_grips() {
+    use vector_range::{authored_walk::WalkPoseLayer, settings::WalkTranslation};
+    let set = fixture();
+    let base = set.sample_clamped("ads", 0.).unwrap();
+    let walk = set.sample("walk_forward", 0.15).unwrap();
+    let mut layer = WalkPoseLayer::new(&set, &set, "ready", "weapon").unwrap();
+    for aim in [0., 0.35, 1.] {
+        for weight in [0., 0.4, 1.] {
+            layer.set_translation_adjustment(WalkTranslation::default());
+            let current = layer.pose(&set, &base, &walk, weight, aim).unwrap();
+            let neutral = base.actor_globals[0].translation;
+            let displacement = current.actor_globals[0].translation - neutral;
+            for values in [
+                [-1., 0., 0.],
+                [0., -1., 0.],
+                [0., 0., -1.],
+                [1., 0.5, -0.5],
+                [-1.; 3],
+            ] {
+                let adjustment = WalkTranslation(values);
+                layer.set_translation_adjustment(adjustment);
+                let adjusted = layer.pose(&set, &base, &walk, weight, aim).unwrap();
+                let expected = neutral + displacement * adjustment.gains();
+                assert!(adjusted.actor_globals[0]
+                    .translation
+                    .abs_diff_eq(expected, 2e-6));
+                assert!(adjusted.actor_globals[0]
+                    .rotation
+                    .abs_diff_eq(current.actor_globals[0].rotation, 2e-6));
+                let original_globals = set.bone_globals(&current, Mat4::IDENTITY).unwrap();
+                let adjusted_globals = set.bone_globals(&adjusted, Mat4::IDENTITY).unwrap();
+                for (a, b) in original_globals.iter().zip(adjusted_globals) {
+                    let relative_a = current.actor_globals[0].matrix().inverse() * *a;
+                    let relative_b = adjusted.actor_globals[0].matrix().inverse() * b;
+                    assert!(relative_a.abs_diff_eq(relative_b, 3e-6));
+                }
+                if weight == 0. {
+                    assert_eq!(adjusted, base);
+                }
+            }
+        }
+    }
+}
+
+#[test]
+fn walk_settings_leave_idle_reload_and_full_sprint_output_unchanged() {
+    use vector_range::settings::WalkTranslation;
+    let set = fixture();
+    for (moving, sprint, reload) in [
+        (false, false, false),
+        (false, true, false),
+        (true, false, true),
+    ] {
+        let mut original = controller(&set);
+        let mut adjusted = original.clone();
+        adjusted.set_walk_translation(WalkTranslation([-1., 1., 0.5]));
+        let mut sim = Simulation::new();
+        sim.player.velocity = if moving { Vec3::X } else { Vec3::ZERO };
+        sim.player.sprinting = sprint;
+        sim.time = 0.5;
+        original
+            .committed_step(sources(&set), 0., &sim, reload)
+            .unwrap();
+        adjusted
+            .committed_step(sources(&set), 0., &sim, reload)
+            .unwrap();
+        assert_eq!(original.pose(), adjusted.pose());
+    }
+}
+
+#[test]
+fn v9_direction_and_aim_rate_integrals_preserve_phase_across_partitioned_ticks() {
+    let set = fixture();
+    let mut a = controller(&set)
+        .with_directional_walk(&set, directions())
+        .unwrap()
+        .with_ads_wip_policy(true, Some(0.30))
+        .unwrap()
+        .with_forward_ads_v9_policy(true)
+        .unwrap();
+    let mut sim = Simulation::new();
+    sim.player.yaw = 0.;
+    sim.player.velocity = Vec3::X;
+    sim.time = 0.2;
+    a.committed_step(sources(&set), 0., &sim, false).unwrap();
+    let mut b = a.clone();
+    sim.player.ads_requested = true;
+    sim.player.velocity = Vec3::Z;
+    sim.time = 0.65;
+    a.committed_step(sources(&set), 0.2, &sim, false).unwrap();
+    let mut previous = 0.2;
+    for time in [0.213, 0.3, 0.37, 0.49, 0.58, 0.65] {
+        sim.time = time;
+        b.committed_step(sources(&set), previous, &sim, false)
+            .unwrap();
+        previous = time;
+    }
+    assert!((a.walk().seconds().unwrap() - b.walk().seconds().unwrap()).abs() < 1e-10);
+    close(a.pose(), b.pose(), 3e-5);
+    assert_eq!(a.walk_min_rate(), 0.80);
+    let phase = a.walk().seconds();
+    a.committed_step(sources(&set), sim.time, &sim, false)
+        .unwrap();
+    assert_eq!(a.walk().seconds(), phase);
+    // Forward return, run overlap, and interrupted ADS exit all keep a single clock.
+    sim.player.velocity = Vec3::X;
+    sim.player.sprinting = true;
+    sim.time += 0.05;
+    a.committed_step(sources(&set), previous, &sim, false)
+        .unwrap();
+    assert!(a.run_weight() > 0. && a.walk().weight() > 0.);
+    assert!(a.walk().seconds().unwrap() > phase.unwrap());
+}
+
+#[test]
+fn v9_without_directional_source_retains_legacy_policy() {
+    let set = fixture();
+    let mut original = controller(&set)
+        .with_ads_wip_policy(true, Some(0.30))
+        .unwrap();
+    let mut fallback = original.clone().with_forward_ads_v9_policy(true).unwrap();
+    let mut sim = Simulation::new();
+    sim.player.velocity = Vec3::X;
+    sim.player.ads_requested = true;
+    sim.time = 0.4;
+    original
+        .committed_step(sources(&set), 0., &sim, false)
+        .unwrap();
+    fallback
+        .committed_step(sources(&set), 0., &sim, false)
+        .unwrap();
+    assert_eq!(original.pose(), fallback.pose());
+    assert_eq!(original.walk().seconds(), fallback.walk().seconds());
+    assert_eq!(fallback.walk_min_rate(), 0.85);
+}

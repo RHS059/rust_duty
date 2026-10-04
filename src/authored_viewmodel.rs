@@ -37,6 +37,11 @@ pub struct AuthoredViewmodel {
     ads_index: Option<usize>,
 }
 impl AuthoredViewmodel {
+    pub fn set_walk_translation(&mut self, value: vector_range::settings::WalkTranslation) {
+        if let Some(layers) = &mut self.locomotion {
+            layers.set_walk_translation(value);
+        }
+    }
     /// Requires an initialized render context, like the existing mesh adapters.
     pub fn load(path: &str, clip: &str, fixed_time: Option<f32>) -> Result<Self, String> {
         if fixed_time.is_some_and(|time| !time.is_finite()) {
@@ -234,6 +239,7 @@ impl AuthoredViewmodel {
                     manifest.receiver_ads_wip,
                     manifest.ads_visual_transition_seconds,
                 )
+                .and_then(|layers| layers.with_forward_ads_v9_policy(manifest.forward_ads_v9_wip))
                 .map_err(|error| error.to_string())?,
         );
         let mut missing = vec!["fire", "mantle"];
@@ -393,7 +399,7 @@ impl AuthoredViewmodel {
     pub fn animation(&self) -> &AnimationSet {
         &self.animation
     }
-    /// `offset` is camera-space meters: +X right, +Y up, no forward/back.
+    /// `offset` is camera-space meters: +X right, +Y up, +Z toward camera.
     pub fn draw(&mut self, simulation_time: f64, lighting: SceneLighting, offset: Vec3) {
         if self.error.is_some() {
             return;
@@ -439,7 +445,7 @@ impl AuthoredViewmodel {
     /// Render one complete evaluated pose from this animation set. The gameplay
     /// adapter owns which presentation supplies it; no two pose owners are mixed
     /// here. Skin and actor dimension/transform validation is retained.
-    /// `offset` is camera-space meters: +X right, +Y up, no forward/back.
+    /// `offset` is camera-space meters: +X right, +Y up, +Z toward camera.
     pub fn draw_pose(
         &mut self,
         pose: &ViewmodelPose,

@@ -121,6 +121,7 @@ fn directional_walk_is_optional_and_requires_all_four_declared_clips() {
         ]
     );
     assert!(manifest.receiver_ads_wip);
+    assert!(manifest.forward_ads_v9_wip);
     assert_eq!(manifest.ads_visual_transition_seconds, Some(0.30));
     let missing = MANIFEST.replace("regular_walk.direction.left=hip_strafe_left_r1", "");
     assert!(AnimationManifest::parse(&missing, Path::new("assets")).is_err());
