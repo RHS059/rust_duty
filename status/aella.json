@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-04T01:52:53Z",
+  "updatedAt": "2026-10-04T02:02:47Z",
   "state": "active",
-  "task": "Checking a native Linux ADS-capture failure in the 0.1.8 candidate; Windows packaging is still running.",
-  "lastCompleted": "Both native Python/Rust tests, lint checks and release compilation passed. Linux staging passed before its ADS-capture check failed.",
+  "task": "Monitoring the corrected 0.1.8 verification run; a complete Windows candidate is available.",
+  "lastCompleted": "Windows edd4612 passed complete staging and embedded 0.1.8 identity checks; its 84-file CI artifact and upload digest are verified.",
   "agents": [
     {
       "slot": 1,
@@ -13,15 +13,15 @@
     },
     {
       "slot": 2,
-      "state": "active",
-      "task": "Preparing 0.1.8 delivery while complete native verification remains pending.",
-      "lastCompleted": "Publication plan and WIP release notes are prepared; 51 packaging/release tests passed. Packaging repair is applied at 68a5bd4."
+      "state": "idle",
+      "task": "Release publication is paused; public updater latest remains 0.1.7.",
+      "lastCompleted": "The 0.1.8 publication plan is prepared. Packaging repair is applied at 68a5bd4 and its 51 tests passed."
     },
     {
       "slot": 3,
       "state": "active",
-      "task": "Checking PR #27 native CI after the Linux ADS-capture failure.",
-      "lastCompleted": "Both native test/lint suites and release compilation passed. Windows is staging; Linux complete-package upload was skipped after the capture failure."
+      "task": "Monitoring corrected PR #27 head dad6071 after updating the Linux ADS verifier.",
+      "lastCompleted": "All four authored asset pipelines and updater checks passed; corrected Windows/Linux native regression tests are running."
     }
   ]
 }
