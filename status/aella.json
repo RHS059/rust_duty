@@ -1,15 +1,15 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-04T02:22:20Z",
-  "state": "active",
-  "task": "Implementing saved viewmodel-position fade during ADS and reviewing the reported animation-to-movement handoff.",
-  "lastCompleted": "Corrected dad6071 passed complete Windows/Linux builds and Linux native capture checks. Free signing options research is complete; publication remains paused.",
+  "updatedAt": "2026-10-04T02:32:08Z",
+  "state": "idle",
+  "task": "Awaiting the exact Avast detection and affected filename; game changes and publication are paused.",
+  "lastCompleted": "Source and signing-options investigation is complete. Verified dad6071 Windows/Linux builds and native capture checks passed; antivirus clearance has not been established.",
   "agents": [
     {
       "slot": 1,
-      "state": "active",
-      "task": "Reviewing ADS-offset fade against authored aim progress and investigating the reported animation handoff.",
-      "lastCompleted": "Confirmed the fade must follow native authored ADS timing and run-layer contribution; review is read-only."
+      "state": "idle",
+      "task": "Awaiting antivirus detection details for further diagnosis.",
+      "lastCompleted": "Read-only source and free signing-options investigation completed; no security-clearance verdict."
     },
     {
       "slot": 2,
@@ -19,9 +19,9 @@
     },
     {
       "slot": 3,
-      "state": "active",
-      "task": "Implementing saved XYZ position fading to zero during ADS, including interrupted entry/exit and run blending.",
-      "lastCompleted": "Published dad6071 passed full Windows/Linux and updater CI. New fade changes are local; tests are next."
+      "state": "idle",
+      "task": "ADS-offset edits and tests are paused for antivirus investigation; the animation-blend fix has not started.",
+      "lastCompleted": "Published dad6071 passed full Windows/Linux and updater CI. New ADS fade changes remain local and unpublished."
     }
   ]
 }
