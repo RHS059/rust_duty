@@ -2,14 +2,14 @@
   "schema": "rust-duty-jump-reproduction/v1",
   "passed": true,
   "checks": {
-    "all_100_action_curves_identical": true,
+    "all_103_action_curves_identical": true,
     "all_nla_drivers_images_identical": true,
     "all_structural_snapshots_identical": true,
     "both_preservation_passes": true
   },
-  "method": "Fresh Blender 4.3.2 process reran the author script from frozen jump r5 into an isolated output and freshly reopened it for comparison",
-  "source_sha256": "fe47ec2961214252d831e7da743d3145b3ab219043d5a8db9622d3c387b1fa53",
-  "candidate_sha256": "26f8d676ad13e19c74721575fffca75d2a0b25f1bad279b4bb03b7e87f4eeb65",
-  "reproduced_blend_sha256": "54022c37deb298709e91c9815e219a8471943632252bac01bfaa69243e0eacd0",
-  "note": "Deterministic content is compared through exact Action, NLA, driver, image and structural fingerprints; binary files may differ."
+  "method": "Fresh Blender4.3.2 process reran the author script from frozen jump r6 into an isolated output and freshly reopened it for comparison",
+  "source_sha256": "26f8d676ad13e19c74721575fffca75d2a0b25f1bad279b4bb03b7e87f4eeb65",
+  "candidate_sha256": "a2c4b2bbe98da1a608450bba92404cb39008eae5861bcf8fc3f5d2f978df0e3b",
+  "reproduced_blend_sha256": "298c0017a5757e3aa62533e4f35c11f87fd2720946dff60a0e584a4e8c31107e",
+  "note": "Deterministic content compared through exact Action, NLA, driver, image and structural fingerprints; binary files may differ."
 }

@@ -1,50 +1,40 @@
 {
   "schema": "rust-duty-jump-reference-refinement/v1",
-  "revision": "r6",
-  "review_url": "https://github.com/RHS059/dot_chat/pull/1#issuecomment-5974687035",
+  "revision": "r7",
+  "review_url": "https://github.com/RHS059/dot_chat/pull/1#issuecomment-5974993270",
   "method": {
-    "revision": "r6",
-    "review_url": "https://github.com/RHS059/dot_chat/pull/1#issuecomment-5974687035",
-    "phase_scope": "Landing only; source4070\u20134094; complete takeoff/air retained",
-    "reason": "Visible forward-aiming feature requires the reference upper-weapon envelope rather than the lower forward-rail envelope; geometry correspondence is an explicit retarget choice, not model identity",
-    "target_reference_region": "optic",
-    "model_forward_guide": [
-      0.07876053331258591,
-      0.0037865641015666306,
-      -0.620362374485965
-    ],
-    "model_forward_guide_ready_pixel": [
-      744,
-      355
-    ],
-    "model_rear_guide": [
-      0.08323424182818288,
-      0.005083007134545519,
-      -0.26023809868713904
+    "revision": "r7",
+    "review_url": "https://github.com/RHS059/dot_chat/pull/1#issuecomment-5974993270",
+    "phase_scope": "Landing-only source4071\u20134094; complete takeoff and air retained",
+    "reason": "Actual native Eevee sight cues already match the source upper optic envelope. The near-camera receiver/handle remains approximately7\u20138px shallower at the trough and3\u20136px on the shoulders. Correct that visible mass independently using a bounded coupled 3D retarget, not an arbitrary amplitude multiplier.",
+    "target_reference_region": "receiver",
+    "preserved_model_guides": [
+      "rear_sight",
+      "front_sight"
     ],
     "bounds": {
-      "lateral_correction_mm": [
-        -4,
-        4
+      "translation_correction_mm": [
+        -10,
+        10
       ],
-      "vertical_correction_mm": [
-        -16,
-        0
+      "depth_correction_mm": [
+        -20,
+        20
       ],
-      "pitch_correction_degrees": [
-        -4.5,
-        0
+      "pitch_yaw_correction_degrees": [
+        -3,
+        3
       ]
     },
-    "no_multiplication_of_motion_amplitude": true
+    "inference": "Single-view image-fit retarget between differing models; no unique 3D correspondence claim. Actual baseline image residual is applied to the corresponding virtual receiver guide; artistic judgment remains with Elara."
   },
   "checks": {
-    "takeoff_curves_identical_to_r5": true,
-    "air_curves_identical_to_r5": true,
+    "takeoff_curves_identical_to_r6": true,
+    "air_curves_identical_to_r6": true,
     "all_motion_technical_checks_passed": true,
     "all_source_preservation_checks_passed": true
   },
   "passed": true,
-  "candidate_sha256": "26f8d676ad13e19c74721575fffca75d2a0b25f1bad279b4bb03b7e87f4eeb65",
+  "candidate_sha256": "a2c4b2bbe98da1a608450bba92404cb39008eae5861bcf8fc3f5d2f978df0e3b",
   "artistic_acceptance": "Elara paired review pending; no author score"
 }

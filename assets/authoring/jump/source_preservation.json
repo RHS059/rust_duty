@@ -1,8 +1,8 @@
 {
   "schema": "rust-duty-directional-source-preservation/v1",
   "blender": "4.3.2",
-  "source_bytes": 10425788,
-  "source_sha256": "26f8d676ad13e19c74721575fffca75d2a0b25f1bad279b4bb03b7e87f4eeb65",
+  "source_bytes": 10470527,
+  "source_sha256": "a2c4b2bbe98da1a608450bba92404cb39008eae5861bcf8fc3f5d2f978df0e3b",
   "preserved": {
     "actions": {
       "hip_strafe_left_r1": "63a0fbd25eb96f442aa5edbdf727a72dd41e451332117206cb1744dec53e21b9",
@@ -35,18 +35,21 @@
       "jump_air_r4": "de6aa7fe39979834057233684230986e12d1fae618d15c30636e94c8c9eade16",
       "jump_air_r5": "cf0b54756c8091ac2aab49edcac1aeb6a3b2d6f1480b57651ca4ed72157bd3d1",
       "jump_air_r6": "cf0b54756c8091ac2aab49edcac1aeb6a3b2d6f1480b57651ca4ed72157bd3d1",
+      "jump_air_r7": "cf0b54756c8091ac2aab49edcac1aeb6a3b2d6f1480b57651ca4ed72157bd3d1",
       "jump_land_r1": "3414e6dca26ac31f146f902f67d080c0e2231c16413b832b7042a7eee106bf37",
       "jump_land_r2": "fc2b2307a9aa416d9314cb8251c77669b13d17d2a164de359d701ae0900f0d7a",
       "jump_land_r3": "e022966a21790eca0a3dc05222809d34370f23f4b8ffb03bb258f73230fb97aa",
       "jump_land_r4": "811293bae9b0b4eb479c5097eba45278475829dd551ff3329a02e13f1c49f7e6",
       "jump_land_r5": "4a9a82d9a1e91b36aa42167b7f966d80b4da16f01778fb01375d27118725e4b6",
       "jump_land_r6": "0074d44e1a496cdbf5aaf3c838dcdaf34f204ba265e44f0a8ddcb21e50838779",
+      "jump_land_r7": "21b70c2298a035c1a1a34f56ea80710ef281fe664527db6b76a099ab7d3f2d04",
       "jump_takeoff_r1": "fe75a441643b4644d1a85e19f209363e731d36d2a6788ff223b37b892b16c5e7",
       "jump_takeoff_r2": "2192efd3461f54ca0a8c9083d12b9232cede8d2035232ef1d136668cde7d7e6b",
       "jump_takeoff_r3": "d6410fbfebc1529a0e4a1b5c7b72fcc033a238fbdbdce0fc88ca3e3b02c4f30a",
       "jump_takeoff_r4": "533a0d0fa7711aa9918cd6fc9154459b7b86f31f471058fd7c6beac302987f23",
       "jump_takeoff_r5": "533a0d0fa7711aa9918cd6fc9154459b7b86f31f471058fd7c6beac302987f23",
       "jump_takeoff_r6": "533a0d0fa7711aa9918cd6fc9154459b7b86f31f471058fd7c6beac302987f23",
+      "jump_takeoff_r7": "533a0d0fa7711aa9918cd6fc9154459b7b86f31f471058fd7c6beac302987f23",
       "normal_walk_r1": "7fd10685b49a64c6715aa5e0759c00a6b7a279ebf1be847a1f156454227798a6",
       "RD_00_Supplied_Base_Guarded_Recovered": "49b7da5f9d6ea12be52bade40b09aeb67d6adc6eb34a1a7026e3f111b3c61ed8",
       "RD_00_Supplied_Base_Recovered": "162000c7af797d2cdb0c3142f8684decb465deab16127da0589c5a02712570f7",
@@ -5424,6 +5427,28 @@
           "purpose": "Accepted reference airborne motion and raised terminal carry retained with identical curves"
         }
       },
+      "jump_air_r7": {
+        "use_fake_user": true,
+        "properties": {
+          "runtime_id": "jump_air",
+          "authoring_fps": 60,
+          "duration_seconds": 0.38333333333333336,
+          "loop": false,
+          "pose_space": "absolute",
+          "base_action": "RD_Locomotion_Normal_Entry_4419_4434_WIP2",
+          "base_frame": 1,
+          "motion_origin": "Reference-guided COD jump retarget; r7 landing-only visible receiver mass refinement",
+          "reference_id": "V_QT_cnlBHU",
+          "source_frame_start": 4044,
+          "source_frame_end_inclusive": 4067,
+          "hold_after_end": true,
+          "acceptance_status": "WIP; Elara review pending",
+          "animated_control": "righthand_prop only",
+          "camera_motion": "none",
+          "root_motion": false,
+          "purpose": "Accepted reference airborne motion and raised terminal carry retained with identical curves"
+        }
+      },
       "jump_land_r1": {
         "use_fake_user": true,
         "properties": {
@@ -5544,6 +5569,28 @@
           "purpose": "Measured COD upper-weapon land trough and recovery envelope on the existing source beats; bounded forward-sight retarget with rear-sight trajectory retained"
         }
       },
+      "jump_land_r7": {
+        "use_fake_user": true,
+        "properties": {
+          "runtime_id": "jump_land",
+          "authoring_fps": 60,
+          "duration_seconds": 0.4666666666666667,
+          "loop": false,
+          "pose_space": "absolute",
+          "base_action": "RD_Locomotion_Normal_Entry_4419_4434_WIP2",
+          "base_frame": 1,
+          "motion_origin": "Reference-guided COD jump retarget; r7 landing-only visible receiver mass refinement",
+          "reference_id": "V_QT_cnlBHU",
+          "source_frame_start": 4067,
+          "source_frame_end_inclusive": 4095,
+          "hold_after_end": false,
+          "acceptance_status": "WIP; Elara review pending",
+          "animated_control": "righthand_prop only",
+          "camera_motion": "none",
+          "root_motion": false,
+          "purpose": "Measured COD receiver land trough/recovery residual corrected while retaining the matched upper sight paths and existing source beats"
+        }
+      },
       "jump_takeoff_r1": {
         "use_fake_user": true,
         "properties": {
@@ -5653,6 +5700,28 @@
           "base_action": "RD_Locomotion_Normal_Entry_4419_4434_WIP2",
           "base_frame": 1,
           "motion_origin": "Reference-guided COD jump retarget; r6 landing-only visible forward-sight envelope refinement",
+          "reference_id": "V_QT_cnlBHU",
+          "source_frame_start": 4033,
+          "source_frame_end_inclusive": 4044,
+          "hold_after_end": false,
+          "acceptance_status": "WIP; Elara review pending",
+          "animated_control": "righthand_prop only",
+          "camera_motion": "none",
+          "root_motion": false,
+          "purpose": "Accepted reference takeoff retained with exactly identical curves"
+        }
+      },
+      "jump_takeoff_r7": {
+        "use_fake_user": true,
+        "properties": {
+          "runtime_id": "jump_takeoff",
+          "authoring_fps": 60,
+          "duration_seconds": 0.18333333333333332,
+          "loop": false,
+          "pose_space": "absolute",
+          "base_action": "RD_Locomotion_Normal_Entry_4419_4434_WIP2",
+          "base_frame": 1,
+          "motion_origin": "Reference-guided COD jump retarget; r7 landing-only visible receiver mass refinement",
           "reference_id": "V_QT_cnlBHU",
           "source_frame_start": 4033,
           "source_frame_end_inclusive": 4044,
@@ -10693,18 +10762,21 @@
       "jump_air_r4": "89a7518d2a76bc0f51e556108ff638993375994f330b7d9abb3d9652df47849a",
       "jump_air_r5": "89a7518d2a76bc0f51e556108ff638993375994f330b7d9abb3d9652df47849a",
       "jump_air_r6": "89a7518d2a76bc0f51e556108ff638993375994f330b7d9abb3d9652df47849a",
+      "jump_air_r7": "89a7518d2a76bc0f51e556108ff638993375994f330b7d9abb3d9652df47849a",
       "jump_land_r1": "1c85329120f2c7a29aadf1358e5b87f3483f1e366c025a9e90db5f090c09633d",
       "jump_land_r2": "1c85329120f2c7a29aadf1358e5b87f3483f1e366c025a9e90db5f090c09633d",
       "jump_land_r3": "1c85329120f2c7a29aadf1358e5b87f3483f1e366c025a9e90db5f090c09633d",
       "jump_land_r4": "6e3b15523563c6b0bd9d21f7525c79cae62128e49713121de567d821b68c48d5",
       "jump_land_r5": "6e3b15523563c6b0bd9d21f7525c79cae62128e49713121de567d821b68c48d5",
       "jump_land_r6": "6e3b15523563c6b0bd9d21f7525c79cae62128e49713121de567d821b68c48d5",
+      "jump_land_r7": "6e3b15523563c6b0bd9d21f7525c79cae62128e49713121de567d821b68c48d5",
       "jump_takeoff_r1": "fd9ff8d3189e1379a6c3436e3c44ce2fa8ddbddb93d7967b78ef50843c6e9d8e",
       "jump_takeoff_r2": "fd9ff8d3189e1379a6c3436e3c44ce2fa8ddbddb93d7967b78ef50843c6e9d8e",
       "jump_takeoff_r3": "fd9ff8d3189e1379a6c3436e3c44ce2fa8ddbddb93d7967b78ef50843c6e9d8e",
       "jump_takeoff_r4": "64f6c08b0f026b6628cf64b2e8de107a0174bd96a5551497e48fc9a906faa8aa",
       "jump_takeoff_r5": "64f6c08b0f026b6628cf64b2e8de107a0174bd96a5551497e48fc9a906faa8aa",
       "jump_takeoff_r6": "64f6c08b0f026b6628cf64b2e8de107a0174bd96a5551497e48fc9a906faa8aa",
+      "jump_takeoff_r7": "64f6c08b0f026b6628cf64b2e8de107a0174bd96a5551497e48fc9a906faa8aa",
       "normal_walk_r1": "378d7d42686b82b6ff95fee71827ecff32917e8096df9cb33df8e6f35c6dc3a3",
       "RD_00_Supplied_Base_Guarded_Recovered": "d0a75026dd6c5eaf22a8bcd7794ed4f9090da3ee04ee4cbc1b44c4c46784d9fc",
       "RD_00_Supplied_Base_Recovered": "392d0295195003de5afc0589e52a57e1a13250d241112a3827be4ad707894c95",
@@ -11045,11 +11117,11 @@
   },
   "driver_count": 185,
   "invalid_drivers": [],
-  "action_count": 100,
+  "action_count": 103,
   "nla_track_count": 8,
   "embedded_source_text_executed": false,
   "source_saved": false,
-  "baseline_source_sha256": "fe47ec2961214252d831e7da743d3145b3ab219043d5a8db9622d3c387b1fa53",
+  "baseline_source_sha256": "26f8d676ad13e19c74721575fffca75d2a0b25f1bad279b4bb03b7e87f4eeb65",
   "checks": {
     "all_original_action_fingerprints_unchanged": true,
     "exactly_expected_new_actions": true,

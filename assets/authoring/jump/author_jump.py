@@ -1,5 +1,5 @@
 """Author three reference-guided first-person jump Actions into a separate frozen source copy.
-Usage: blender --background --factory-startup --disable-autoexec BASE.blend --python author_jump.py -- jump_design.json OUTPUT.blend
+Usage: blender --background --factory-startup --disable-autoexec BASE.blend --python author_jump_r7.py -- jump_design_r7.json OUTPUT.blend
 Never saves the input, overwrites a revision, edits existing Actions or renders.
 """
 import bpy,sys,json,hashlib,math

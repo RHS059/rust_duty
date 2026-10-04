@@ -3,7 +3,7 @@
   "fps": 60,
   "playback_speed": 1,
   "source_sha256": "491a1729aa0f32373025d35fff86da76c6c1c8f057c0c553d0fbb5fb6226ff46",
-  "candidate_sha256": "26f8d676ad13e19c74721575fffca75d2a0b25f1bad279b4bb03b7e87f4eeb65",
+  "candidate_sha256": "a2c4b2bbe98da1a608450bba92404cb39008eae5861bcf8fc3f5d2f978df0e3b",
   "source_range_inclusive": [
     4014,
     4113
@@ -17,7 +17,7 @@
       "output_seconds": 0.0,
       "source_frame_0based": 4014,
       "source_seconds": 66.9,
-      "action": "jump_takeoff_r6",
+      "action": "jump_takeoff_r7",
       "action_frame_1based": 1,
       "phase": "ready hold"
     },
@@ -26,7 +26,7 @@
       "output_seconds": 0.016666666666666666,
       "source_frame_0based": 4015,
       "source_seconds": 66.91666666666667,
-      "action": "jump_takeoff_r6",
+      "action": "jump_takeoff_r7",
       "action_frame_1based": 1,
       "phase": "ready hold"
     },
@@ -35,7 +35,7 @@
       "output_seconds": 0.03333333333333333,
       "source_frame_0based": 4016,
       "source_seconds": 66.93333333333334,
-      "action": "jump_takeoff_r6",
+      "action": "jump_takeoff_r7",
       "action_frame_1based": 1,
       "phase": "ready hold"
     },
@@ -44,7 +44,7 @@
       "output_seconds": 0.05,
       "source_frame_0based": 4017,
       "source_seconds": 66.95,
-      "action": "jump_takeoff_r6",
+      "action": "jump_takeoff_r7",
       "action_frame_1based": 1,
       "phase": "ready hold"
     },
@@ -53,7 +53,7 @@
       "output_seconds": 0.06666666666666667,
       "source_frame_0based": 4018,
       "source_seconds": 66.96666666666667,
-      "action": "jump_takeoff_r6",
+      "action": "jump_takeoff_r7",
       "action_frame_1based": 1,
       "phase": "ready hold"
     },
@@ -62,7 +62,7 @@
       "output_seconds": 0.08333333333333333,
       "source_frame_0based": 4019,
       "source_seconds": 66.98333333333333,
-      "action": "jump_takeoff_r6",
+      "action": "jump_takeoff_r7",
       "action_frame_1based": 1,
       "phase": "ready hold"
     },
@@ -71,7 +71,7 @@
       "output_seconds": 0.1,
       "source_frame_0based": 4020,
       "source_seconds": 67.0,
-      "action": "jump_takeoff_r6",
+      "action": "jump_takeoff_r7",
       "action_frame_1based": 1,
       "phase": "ready hold"
     },
@@ -80,7 +80,7 @@
       "output_seconds": 0.11666666666666667,
       "source_frame_0based": 4021,
       "source_seconds": 67.01666666666667,
-      "action": "jump_takeoff_r6",
+      "action": "jump_takeoff_r7",
       "action_frame_1based": 1,
       "phase": "ready hold"
     },
@@ -89,7 +89,7 @@
       "output_seconds": 0.13333333333333333,
       "source_frame_0based": 4022,
       "source_seconds": 67.03333333333333,
-      "action": "jump_takeoff_r6",
+      "action": "jump_takeoff_r7",
       "action_frame_1based": 1,
       "phase": "ready hold"
     },
@@ -98,7 +98,7 @@
       "output_seconds": 0.15,
       "source_frame_0based": 4023,
       "source_seconds": 67.05,
-      "action": "jump_takeoff_r6",
+      "action": "jump_takeoff_r7",
       "action_frame_1based": 1,
       "phase": "ready hold"
     },
@@ -107,7 +107,7 @@
       "output_seconds": 0.16666666666666666,
       "source_frame_0based": 4024,
       "source_seconds": 67.06666666666666,
-      "action": "jump_takeoff_r6",
+      "action": "jump_takeoff_r7",
       "action_frame_1based": 1,
       "phase": "ready hold"
     },
@@ -116,7 +116,7 @@
       "output_seconds": 0.18333333333333332,
       "source_frame_0based": 4025,
       "source_seconds": 67.08333333333333,
-      "action": "jump_takeoff_r6",
+      "action": "jump_takeoff_r7",
       "action_frame_1based": 1,
       "phase": "ready hold"
     },
@@ -125,7 +125,7 @@
       "output_seconds": 0.2,
       "source_frame_0based": 4026,
       "source_seconds": 67.1,
-      "action": "jump_takeoff_r6",
+      "action": "jump_takeoff_r7",
       "action_frame_1based": 1,
       "phase": "ready hold"
     },
@@ -134,7 +134,7 @@
       "output_seconds": 0.21666666666666667,
       "source_frame_0based": 4027,
       "source_seconds": 67.11666666666666,
-      "action": "jump_takeoff_r6",
+      "action": "jump_takeoff_r7",
       "action_frame_1based": 1,
       "phase": "ready hold"
     },
@@ -143,7 +143,7 @@
       "output_seconds": 0.23333333333333334,
       "source_frame_0based": 4028,
       "source_seconds": 67.13333333333334,
-      "action": "jump_takeoff_r6",
+      "action": "jump_takeoff_r7",
       "action_frame_1based": 1,
       "phase": "ready hold"
     },
@@ -152,7 +152,7 @@
       "output_seconds": 0.25,
       "source_frame_0based": 4029,
       "source_seconds": 67.15,
-      "action": "jump_takeoff_r6",
+      "action": "jump_takeoff_r7",
       "action_frame_1based": 1,
       "phase": "ready hold"
     },
@@ -161,7 +161,7 @@
       "output_seconds": 0.26666666666666666,
       "source_frame_0based": 4030,
       "source_seconds": 67.16666666666667,
-      "action": "jump_takeoff_r6",
+      "action": "jump_takeoff_r7",
       "action_frame_1based": 1,
       "phase": "ready hold"
     },
@@ -170,7 +170,7 @@
       "output_seconds": 0.2833333333333333,
       "source_frame_0based": 4031,
       "source_seconds": 67.18333333333334,
-      "action": "jump_takeoff_r6",
+      "action": "jump_takeoff_r7",
       "action_frame_1based": 1,
       "phase": "ready hold"
     },
@@ -179,7 +179,7 @@
       "output_seconds": 0.3,
       "source_frame_0based": 4032,
       "source_seconds": 67.2,
-      "action": "jump_takeoff_r6",
+      "action": "jump_takeoff_r7",
       "action_frame_1based": 1,
       "phase": "ready hold"
     },
@@ -188,7 +188,7 @@
       "output_seconds": 0.31666666666666665,
       "source_frame_0based": 4033,
       "source_seconds": 67.21666666666667,
-      "action": "jump_takeoff_r6",
+      "action": "jump_takeoff_r7",
       "action_frame_1based": 1,
       "phase": "takeoff"
     },
@@ -197,7 +197,7 @@
       "output_seconds": 0.3333333333333333,
       "source_frame_0based": 4034,
       "source_seconds": 67.23333333333333,
-      "action": "jump_takeoff_r6",
+      "action": "jump_takeoff_r7",
       "action_frame_1based": 2,
       "phase": "takeoff"
     },
@@ -206,7 +206,7 @@
       "output_seconds": 0.35,
       "source_frame_0based": 4035,
       "source_seconds": 67.25,
-      "action": "jump_takeoff_r6",
+      "action": "jump_takeoff_r7",
       "action_frame_1based": 3,
       "phase": "takeoff"
     },
@@ -215,7 +215,7 @@
       "output_seconds": 0.36666666666666664,
       "source_frame_0based": 4036,
       "source_seconds": 67.26666666666667,
-      "action": "jump_takeoff_r6",
+      "action": "jump_takeoff_r7",
       "action_frame_1based": 4,
       "phase": "takeoff"
     },
@@ -224,7 +224,7 @@
       "output_seconds": 0.38333333333333336,
       "source_frame_0based": 4037,
       "source_seconds": 67.28333333333333,
-      "action": "jump_takeoff_r6",
+      "action": "jump_takeoff_r7",
       "action_frame_1based": 5,
       "phase": "takeoff"
     },
@@ -233,7 +233,7 @@
       "output_seconds": 0.4,
       "source_frame_0based": 4038,
       "source_seconds": 67.3,
-      "action": "jump_takeoff_r6",
+      "action": "jump_takeoff_r7",
       "action_frame_1based": 6,
       "phase": "takeoff"
     },
@@ -242,7 +242,7 @@
       "output_seconds": 0.4166666666666667,
       "source_frame_0based": 4039,
       "source_seconds": 67.31666666666666,
-      "action": "jump_takeoff_r6",
+      "action": "jump_takeoff_r7",
       "action_frame_1based": 7,
       "phase": "takeoff"
     },
@@ -251,7 +251,7 @@
       "output_seconds": 0.43333333333333335,
       "source_frame_0based": 4040,
       "source_seconds": 67.33333333333333,
-      "action": "jump_takeoff_r6",
+      "action": "jump_takeoff_r7",
       "action_frame_1based": 8,
       "phase": "takeoff"
     },
@@ -260,7 +260,7 @@
       "output_seconds": 0.45,
       "source_frame_0based": 4041,
       "source_seconds": 67.35,
-      "action": "jump_takeoff_r6",
+      "action": "jump_takeoff_r7",
       "action_frame_1based": 9,
       "phase": "takeoff"
     },
@@ -269,7 +269,7 @@
       "output_seconds": 0.4666666666666667,
       "source_frame_0based": 4042,
       "source_seconds": 67.36666666666666,
-      "action": "jump_takeoff_r6",
+      "action": "jump_takeoff_r7",
       "action_frame_1based": 10,
       "phase": "takeoff"
     },
@@ -278,7 +278,7 @@
       "output_seconds": 0.48333333333333334,
       "source_frame_0based": 4043,
       "source_seconds": 67.38333333333334,
-      "action": "jump_takeoff_r6",
+      "action": "jump_takeoff_r7",
       "action_frame_1based": 11,
       "phase": "takeoff"
     },
@@ -287,7 +287,7 @@
       "output_seconds": 0.5,
       "source_frame_0based": 4044,
       "source_seconds": 67.4,
-      "action": "jump_air_r6",
+      "action": "jump_air_r7",
       "action_frame_1based": 1,
       "phase": "air transition"
     },
@@ -296,7 +296,7 @@
       "output_seconds": 0.5166666666666667,
       "source_frame_0based": 4045,
       "source_seconds": 67.41666666666667,
-      "action": "jump_air_r6",
+      "action": "jump_air_r7",
       "action_frame_1based": 2,
       "phase": "air transition"
     },
@@ -305,7 +305,7 @@
       "output_seconds": 0.5333333333333333,
       "source_frame_0based": 4046,
       "source_seconds": 67.43333333333334,
-      "action": "jump_air_r6",
+      "action": "jump_air_r7",
       "action_frame_1based": 3,
       "phase": "air transition"
     },
@@ -314,7 +314,7 @@
       "output_seconds": 0.55,
       "source_frame_0based": 4047,
       "source_seconds": 67.45,
-      "action": "jump_air_r6",
+      "action": "jump_air_r7",
       "action_frame_1based": 4,
       "phase": "air transition"
     },
@@ -323,7 +323,7 @@
       "output_seconds": 0.5666666666666667,
       "source_frame_0based": 4048,
       "source_seconds": 67.46666666666667,
-      "action": "jump_air_r6",
+      "action": "jump_air_r7",
       "action_frame_1based": 5,
       "phase": "air transition"
     },
@@ -332,7 +332,7 @@
       "output_seconds": 0.5833333333333334,
       "source_frame_0based": 4049,
       "source_seconds": 67.48333333333333,
-      "action": "jump_air_r6",
+      "action": "jump_air_r7",
       "action_frame_1based": 6,
       "phase": "air transition"
     },
@@ -341,7 +341,7 @@
       "output_seconds": 0.6,
       "source_frame_0based": 4050,
       "source_seconds": 67.5,
-      "action": "jump_air_r6",
+      "action": "jump_air_r7",
       "action_frame_1based": 7,
       "phase": "air transition"
     },
@@ -350,7 +350,7 @@
       "output_seconds": 0.6166666666666667,
       "source_frame_0based": 4051,
       "source_seconds": 67.51666666666667,
-      "action": "jump_air_r6",
+      "action": "jump_air_r7",
       "action_frame_1based": 8,
       "phase": "air transition"
     },
@@ -359,7 +359,7 @@
       "output_seconds": 0.6333333333333333,
       "source_frame_0based": 4052,
       "source_seconds": 67.53333333333333,
-      "action": "jump_air_r6",
+      "action": "jump_air_r7",
       "action_frame_1based": 9,
       "phase": "air transition"
     },
@@ -368,7 +368,7 @@
       "output_seconds": 0.65,
       "source_frame_0based": 4053,
       "source_seconds": 67.55,
-      "action": "jump_air_r6",
+      "action": "jump_air_r7",
       "action_frame_1based": 10,
       "phase": "air transition"
     },
@@ -377,7 +377,7 @@
       "output_seconds": 0.6666666666666666,
       "source_frame_0based": 4054,
       "source_seconds": 67.56666666666666,
-      "action": "jump_air_r6",
+      "action": "jump_air_r7",
       "action_frame_1based": 11,
       "phase": "air transition"
     },
@@ -386,7 +386,7 @@
       "output_seconds": 0.6833333333333333,
       "source_frame_0based": 4055,
       "source_seconds": 67.58333333333333,
-      "action": "jump_air_r6",
+      "action": "jump_air_r7",
       "action_frame_1based": 12,
       "phase": "air transition"
     },
@@ -395,7 +395,7 @@
       "output_seconds": 0.7,
       "source_frame_0based": 4056,
       "source_seconds": 67.6,
-      "action": "jump_air_r6",
+      "action": "jump_air_r7",
       "action_frame_1based": 13,
       "phase": "air transition"
     },
@@ -404,7 +404,7 @@
       "output_seconds": 0.7166666666666667,
       "source_frame_0based": 4057,
       "source_seconds": 67.61666666666666,
-      "action": "jump_air_r6",
+      "action": "jump_air_r7",
       "action_frame_1based": 14,
       "phase": "air transition"
     },
@@ -413,7 +413,7 @@
       "output_seconds": 0.7333333333333333,
       "source_frame_0based": 4058,
       "source_seconds": 67.63333333333334,
-      "action": "jump_air_r6",
+      "action": "jump_air_r7",
       "action_frame_1based": 15,
       "phase": "air transition"
     },
@@ -422,7 +422,7 @@
       "output_seconds": 0.75,
       "source_frame_0based": 4059,
       "source_seconds": 67.65,
-      "action": "jump_air_r6",
+      "action": "jump_air_r7",
       "action_frame_1based": 16,
       "phase": "air transition"
     },
@@ -431,7 +431,7 @@
       "output_seconds": 0.7666666666666667,
       "source_frame_0based": 4060,
       "source_seconds": 67.66666666666667,
-      "action": "jump_air_r6",
+      "action": "jump_air_r7",
       "action_frame_1based": 17,
       "phase": "air transition"
     },
@@ -440,7 +440,7 @@
       "output_seconds": 0.7833333333333333,
       "source_frame_0based": 4061,
       "source_seconds": 67.68333333333334,
-      "action": "jump_air_r6",
+      "action": "jump_air_r7",
       "action_frame_1based": 18,
       "phase": "air transition"
     },
@@ -449,7 +449,7 @@
       "output_seconds": 0.8,
       "source_frame_0based": 4062,
       "source_seconds": 67.7,
-      "action": "jump_air_r6",
+      "action": "jump_air_r7",
       "action_frame_1based": 19,
       "phase": "air transition"
     },
@@ -458,7 +458,7 @@
       "output_seconds": 0.8166666666666667,
       "source_frame_0based": 4063,
       "source_seconds": 67.71666666666667,
-      "action": "jump_air_r6",
+      "action": "jump_air_r7",
       "action_frame_1based": 20,
       "phase": "air transition"
     },
@@ -467,7 +467,7 @@
       "output_seconds": 0.8333333333333334,
       "source_frame_0based": 4064,
       "source_seconds": 67.73333333333333,
-      "action": "jump_air_r6",
+      "action": "jump_air_r7",
       "action_frame_1based": 21,
       "phase": "air transition"
     },
@@ -476,7 +476,7 @@
       "output_seconds": 0.85,
       "source_frame_0based": 4065,
       "source_seconds": 67.75,
-      "action": "jump_air_r6",
+      "action": "jump_air_r7",
       "action_frame_1based": 22,
       "phase": "air transition"
     },
@@ -485,7 +485,7 @@
       "output_seconds": 0.8666666666666667,
       "source_frame_0based": 4066,
       "source_seconds": 67.76666666666667,
-      "action": "jump_air_r6",
+      "action": "jump_air_r7",
       "action_frame_1based": 23,
       "phase": "air transition"
     },
@@ -494,7 +494,7 @@
       "output_seconds": 0.8833333333333333,
       "source_frame_0based": 4067,
       "source_seconds": 67.78333333333333,
-      "action": "jump_land_r6",
+      "action": "jump_land_r7",
       "action_frame_1based": 1,
       "phase": "impact and recovery"
     },
@@ -503,7 +503,7 @@
       "output_seconds": 0.9,
       "source_frame_0based": 4068,
       "source_seconds": 67.8,
-      "action": "jump_land_r6",
+      "action": "jump_land_r7",
       "action_frame_1based": 2,
       "phase": "impact and recovery"
     },
@@ -512,7 +512,7 @@
       "output_seconds": 0.9166666666666666,
       "source_frame_0based": 4069,
       "source_seconds": 67.81666666666666,
-      "action": "jump_land_r6",
+      "action": "jump_land_r7",
       "action_frame_1based": 3,
       "phase": "impact and recovery"
     },
@@ -521,7 +521,7 @@
       "output_seconds": 0.9333333333333333,
       "source_frame_0based": 4070,
       "source_seconds": 67.83333333333333,
-      "action": "jump_land_r6",
+      "action": "jump_land_r7",
       "action_frame_1based": 4,
       "phase": "impact and recovery"
     },
@@ -530,7 +530,7 @@
       "output_seconds": 0.95,
       "source_frame_0based": 4071,
       "source_seconds": 67.85,
-      "action": "jump_land_r6",
+      "action": "jump_land_r7",
       "action_frame_1based": 5,
       "phase": "impact and recovery"
     },
@@ -539,7 +539,7 @@
       "output_seconds": 0.9666666666666667,
       "source_frame_0based": 4072,
       "source_seconds": 67.86666666666666,
-      "action": "jump_land_r6",
+      "action": "jump_land_r7",
       "action_frame_1based": 6,
       "phase": "impact and recovery"
     },
@@ -548,7 +548,7 @@
       "output_seconds": 0.9833333333333333,
       "source_frame_0based": 4073,
       "source_seconds": 67.88333333333334,
-      "action": "jump_land_r6",
+      "action": "jump_land_r7",
       "action_frame_1based": 7,
       "phase": "impact and recovery"
     },
@@ -557,7 +557,7 @@
       "output_seconds": 1.0,
       "source_frame_0based": 4074,
       "source_seconds": 67.9,
-      "action": "jump_land_r6",
+      "action": "jump_land_r7",
       "action_frame_1based": 8,
       "phase": "impact and recovery"
     },
@@ -566,7 +566,7 @@
       "output_seconds": 1.0166666666666666,
       "source_frame_0based": 4075,
       "source_seconds": 67.91666666666667,
-      "action": "jump_land_r6",
+      "action": "jump_land_r7",
       "action_frame_1based": 9,
       "phase": "impact and recovery"
     },
@@ -575,7 +575,7 @@
       "output_seconds": 1.0333333333333334,
       "source_frame_0based": 4076,
       "source_seconds": 67.93333333333334,
-      "action": "jump_land_r6",
+      "action": "jump_land_r7",
       "action_frame_1based": 10,
       "phase": "impact and recovery"
     },
@@ -584,7 +584,7 @@
       "output_seconds": 1.05,
       "source_frame_0based": 4077,
       "source_seconds": 67.95,
-      "action": "jump_land_r6",
+      "action": "jump_land_r7",
       "action_frame_1based": 11,
       "phase": "impact and recovery"
     },
@@ -593,7 +593,7 @@
       "output_seconds": 1.0666666666666667,
       "source_frame_0based": 4078,
       "source_seconds": 67.96666666666667,
-      "action": "jump_land_r6",
+      "action": "jump_land_r7",
       "action_frame_1based": 12,
       "phase": "impact and recovery"
     },
@@ -602,7 +602,7 @@
       "output_seconds": 1.0833333333333333,
       "source_frame_0based": 4079,
       "source_seconds": 67.98333333333333,
-      "action": "jump_land_r6",
+      "action": "jump_land_r7",
       "action_frame_1based": 13,
       "phase": "impact and recovery"
     },
@@ -611,7 +611,7 @@
       "output_seconds": 1.1,
       "source_frame_0based": 4080,
       "source_seconds": 68.0,
-      "action": "jump_land_r6",
+      "action": "jump_land_r7",
       "action_frame_1based": 14,
       "phase": "impact and recovery"
     },
@@ -620,7 +620,7 @@
       "output_seconds": 1.1166666666666667,
       "source_frame_0based": 4081,
       "source_seconds": 68.01666666666667,
-      "action": "jump_land_r6",
+      "action": "jump_land_r7",
       "action_frame_1based": 15,
       "phase": "impact and recovery"
     },
@@ -629,7 +629,7 @@
       "output_seconds": 1.1333333333333333,
       "source_frame_0based": 4082,
       "source_seconds": 68.03333333333333,
-      "action": "jump_land_r6",
+      "action": "jump_land_r7",
       "action_frame_1based": 16,
       "phase": "impact and recovery"
     },
@@ -638,7 +638,7 @@
       "output_seconds": 1.15,
       "source_frame_0based": 4083,
       "source_seconds": 68.05,
-      "action": "jump_land_r6",
+      "action": "jump_land_r7",
       "action_frame_1based": 17,
       "phase": "impact and recovery"
     },
@@ -647,7 +647,7 @@
       "output_seconds": 1.1666666666666667,
       "source_frame_0based": 4084,
       "source_seconds": 68.06666666666666,
-      "action": "jump_land_r6",
+      "action": "jump_land_r7",
       "action_frame_1based": 18,
       "phase": "impact and recovery"
     },
@@ -656,7 +656,7 @@
       "output_seconds": 1.1833333333333333,
       "source_frame_0based": 4085,
       "source_seconds": 68.08333333333333,
-      "action": "jump_land_r6",
+      "action": "jump_land_r7",
       "action_frame_1based": 19,
       "phase": "impact and recovery"
     },
@@ -665,7 +665,7 @@
       "output_seconds": 1.2,
       "source_frame_0based": 4086,
       "source_seconds": 68.1,
-      "action": "jump_land_r6",
+      "action": "jump_land_r7",
       "action_frame_1based": 20,
       "phase": "impact and recovery"
     },
@@ -674,7 +674,7 @@
       "output_seconds": 1.2166666666666666,
       "source_frame_0based": 4087,
       "source_seconds": 68.11666666666666,
-      "action": "jump_land_r6",
+      "action": "jump_land_r7",
       "action_frame_1based": 21,
       "phase": "impact and recovery"
     },
@@ -683,7 +683,7 @@
       "output_seconds": 1.2333333333333334,
       "source_frame_0based": 4088,
       "source_seconds": 68.13333333333334,
-      "action": "jump_land_r6",
+      "action": "jump_land_r7",
       "action_frame_1based": 22,
       "phase": "impact and recovery"
     },
@@ -692,7 +692,7 @@
       "output_seconds": 1.25,
       "source_frame_0based": 4089,
       "source_seconds": 68.15,
-      "action": "jump_land_r6",
+      "action": "jump_land_r7",
       "action_frame_1based": 23,
       "phase": "impact and recovery"
     },
@@ -701,7 +701,7 @@
       "output_seconds": 1.2666666666666666,
       "source_frame_0based": 4090,
       "source_seconds": 68.16666666666667,
-      "action": "jump_land_r6",
+      "action": "jump_land_r7",
       "action_frame_1based": 24,
       "phase": "impact and recovery"
     },
@@ -710,7 +710,7 @@
       "output_seconds": 1.2833333333333334,
       "source_frame_0based": 4091,
       "source_seconds": 68.18333333333334,
-      "action": "jump_land_r6",
+      "action": "jump_land_r7",
       "action_frame_1based": 25,
       "phase": "impact and recovery"
     },
@@ -719,7 +719,7 @@
       "output_seconds": 1.3,
       "source_frame_0based": 4092,
       "source_seconds": 68.2,
-      "action": "jump_land_r6",
+      "action": "jump_land_r7",
       "action_frame_1based": 26,
       "phase": "impact and recovery"
     },
@@ -728,7 +728,7 @@
       "output_seconds": 1.3166666666666667,
       "source_frame_0based": 4093,
       "source_seconds": 68.21666666666667,
-      "action": "jump_land_r6",
+      "action": "jump_land_r7",
       "action_frame_1based": 27,
       "phase": "impact and recovery"
     },
@@ -737,7 +737,7 @@
       "output_seconds": 1.3333333333333333,
       "source_frame_0based": 4094,
       "source_seconds": 68.23333333333333,
-      "action": "jump_land_r6",
+      "action": "jump_land_r7",
       "action_frame_1based": 28,
       "phase": "impact and recovery"
     },
@@ -746,7 +746,7 @@
       "output_seconds": 1.35,
       "source_frame_0based": 4095,
       "source_seconds": 68.25,
-      "action": "jump_land_r6",
+      "action": "jump_land_r7",
       "action_frame_1based": 29,
       "phase": "impact and recovery"
     },
@@ -755,7 +755,7 @@
       "output_seconds": 1.3666666666666667,
       "source_frame_0based": 4096,
       "source_seconds": 68.26666666666667,
-      "action": "jump_land_r6",
+      "action": "jump_land_r7",
       "action_frame_1based": 29,
       "phase": "ready hold"
     },
@@ -764,7 +764,7 @@
       "output_seconds": 1.3833333333333333,
       "source_frame_0based": 4097,
       "source_seconds": 68.28333333333333,
-      "action": "jump_land_r6",
+      "action": "jump_land_r7",
       "action_frame_1based": 29,
       "phase": "ready hold"
     },
@@ -773,7 +773,7 @@
       "output_seconds": 1.4,
       "source_frame_0based": 4098,
       "source_seconds": 68.3,
-      "action": "jump_land_r6",
+      "action": "jump_land_r7",
       "action_frame_1based": 29,
       "phase": "ready hold"
     },
@@ -782,7 +782,7 @@
       "output_seconds": 1.4166666666666667,
       "source_frame_0based": 4099,
       "source_seconds": 68.31666666666666,
-      "action": "jump_land_r6",
+      "action": "jump_land_r7",
       "action_frame_1based": 29,
       "phase": "ready hold"
     },
@@ -791,7 +791,7 @@
       "output_seconds": 1.4333333333333333,
       "source_frame_0based": 4100,
       "source_seconds": 68.33333333333333,
-      "action": "jump_land_r6",
+      "action": "jump_land_r7",
       "action_frame_1based": 29,
       "phase": "ready hold"
     },
@@ -800,7 +800,7 @@
       "output_seconds": 1.45,
       "source_frame_0based": 4101,
       "source_seconds": 68.35,
-      "action": "jump_land_r6",
+      "action": "jump_land_r7",
       "action_frame_1based": 29,
       "phase": "ready hold"
     },
@@ -809,7 +809,7 @@
       "output_seconds": 1.4666666666666666,
       "source_frame_0based": 4102,
       "source_seconds": 68.36666666666666,
-      "action": "jump_land_r6",
+      "action": "jump_land_r7",
       "action_frame_1based": 29,
       "phase": "ready hold"
     },
@@ -818,7 +818,7 @@
       "output_seconds": 1.4833333333333334,
       "source_frame_0based": 4103,
       "source_seconds": 68.38333333333334,
-      "action": "jump_land_r6",
+      "action": "jump_land_r7",
       "action_frame_1based": 29,
       "phase": "ready hold"
     },
@@ -827,7 +827,7 @@
       "output_seconds": 1.5,
       "source_frame_0based": 4104,
       "source_seconds": 68.4,
-      "action": "jump_land_r6",
+      "action": "jump_land_r7",
       "action_frame_1based": 29,
       "phase": "ready hold"
     },
@@ -836,7 +836,7 @@
       "output_seconds": 1.5166666666666666,
       "source_frame_0based": 4105,
       "source_seconds": 68.41666666666667,
-      "action": "jump_land_r6",
+      "action": "jump_land_r7",
       "action_frame_1based": 29,
       "phase": "ready hold"
     },
@@ -845,7 +845,7 @@
       "output_seconds": 1.5333333333333334,
       "source_frame_0based": 4106,
       "source_seconds": 68.43333333333334,
-      "action": "jump_land_r6",
+      "action": "jump_land_r7",
       "action_frame_1based": 29,
       "phase": "ready hold"
     },
@@ -854,7 +854,7 @@
       "output_seconds": 1.55,
       "source_frame_0based": 4107,
       "source_seconds": 68.45,
-      "action": "jump_land_r6",
+      "action": "jump_land_r7",
       "action_frame_1based": 29,
       "phase": "ready hold"
     },
@@ -863,7 +863,7 @@
       "output_seconds": 1.5666666666666667,
       "source_frame_0based": 4108,
       "source_seconds": 68.46666666666667,
-      "action": "jump_land_r6",
+      "action": "jump_land_r7",
       "action_frame_1based": 29,
       "phase": "ready hold"
     },
@@ -872,7 +872,7 @@
       "output_seconds": 1.5833333333333333,
       "source_frame_0based": 4109,
       "source_seconds": 68.48333333333333,
-      "action": "jump_land_r6",
+      "action": "jump_land_r7",
       "action_frame_1based": 29,
       "phase": "ready hold"
     },
@@ -881,7 +881,7 @@
       "output_seconds": 1.6,
       "source_frame_0based": 4110,
       "source_seconds": 68.5,
-      "action": "jump_land_r6",
+      "action": "jump_land_r7",
       "action_frame_1based": 29,
       "phase": "ready hold"
     },
@@ -890,7 +890,7 @@
       "output_seconds": 1.6166666666666667,
       "source_frame_0based": 4111,
       "source_seconds": 68.51666666666667,
-      "action": "jump_land_r6",
+      "action": "jump_land_r7",
       "action_frame_1based": 29,
       "phase": "ready hold"
     },
@@ -899,7 +899,7 @@
       "output_seconds": 1.6333333333333333,
       "source_frame_0based": 4112,
       "source_seconds": 68.53333333333333,
-      "action": "jump_land_r6",
+      "action": "jump_land_r7",
       "action_frame_1based": 29,
       "phase": "ready hold"
     },
@@ -908,7 +908,7 @@
       "output_seconds": 1.65,
       "source_frame_0based": 4113,
       "source_seconds": 68.55,
-      "action": "jump_land_r6",
+      "action": "jump_land_r7",
       "action_frame_1based": 29,
       "phase": "ready hold"
     }
