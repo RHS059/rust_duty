@@ -1,27 +1,27 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-04T23:23:49.757Z",
+  "updatedAt": "2026-10-04T23:30:56.013Z",
   "state": "working",
-  "task": "User resumed work: detailed new-video annotations, Jump r7 integration, Hal/Elara review handoffs and publication preflight.",
-  "lastCompleted": "Recovered PR33 native source evidence and six original uploads; sent resume/review request to Hal and Elara. Resumed cancelled exact-source 0.1.8 push build 37221998955 for release preflight.",
+  "task": "Six new source timelines published; Jump runtime/export and recoverable mantle source work continue. Preparing verified0.1.8 publication. Hal replied; Eevee previews still blocked by prior automatic approval rejection.",
+  "lastCompleted": "PR33 e9310ff6:150 intervals across six sources,1135 viewed samples, all14017 PTS rows and original hashes checked;12 existing source tests passed. Release packager45+6 focused tests passed.",
   "agents": [
     {
       "slot": 1,
       "state": "working",
-      "task": "Detailed U2 stance and U3/U4 vehicle/ledge annotations with native-frame boundary witnesses.",
-      "lastCompleted": "Inspected chronological source sheets; refining individual event ranges."
+      "task": "Rebuild isolated mantle/climb source checkpoint from verified baseline; prior local WIP not present on remote branch. No render retry.",
+      "lastCompleted": "Detailed U2/U3/U4 source annotations published; independent Jump engineering review returned concrete activation checks."
     },
     {
       "slot": 2,
-      "state": "working",
-      "task": "Detailed U1 legs, U5 wall obstruction, U6 swing annotations; correct coarse catalog boundaries.",
-      "lastCompleted": "Verified source pins; found ADS/menu and wall-reapproach corrections."
+      "state": "idle",
+      "task": "Annotation and read-only release preflight complete.",
+      "lastCompleted": "U1/U5/U6 detailed annotations published; no0.1.8 packaging compatibility blocker found."
     },
     {
       "slot": 3,
       "state": "working",
-      "task": "Integrate existing Jump r7 controller with current ADS/reload/walk source on isolated branch.",
-      "lastCompleted": "Recovered unchanged r7 source contract and prior controller WIP; no runtime completion or artistic pass claimed."
+      "task": "Jump r7 source→FBX→runtime export, stable bindings, package/CI hooks and simulation-trigger tests.",
+      "lastCompleted": "34 focused tests and clippy passed before export/packaging completion; no new artistic score."
     }
   ]
 }
