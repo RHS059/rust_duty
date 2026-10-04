@@ -10,11 +10,24 @@
 - Main snapshots sensitivity/FOV before their hotkeys and calls `changed()` when either value changes. Legacy placement nudges retain their change notification. This closes the previously reported indefinite stale-success case as well as the temporary notice-priority case.
 - Reviewed focus traversal, focused Enter consumption, exclusion of legacy placement nudges while focused, persistent failure, reset isolation and synchronous save routing remain intact.
 - Source review establishes that the requested mechanisms and focused priority regression are present. It does not establish execution of every native/integration matrix row.
-- [Aella's exact-head handoff](https://github.com/RHS059/dot_chat/pull/1#issuecomment-5982758414) reports native keyboard/save-error/retry checks but supplies no settings-specific artifact or detailed sequence in that message. Those observations remain author-reported. [Combined CI run](https://github.com/RHS059/rust_duty/actions/runs/37222001387) is a link for the designated CI reviewer; this document does not claim its final outcome.
+- [Aella's exact-head handoff](https://github.com/RHS059/dot_chat/pull/1#issuecomment-5982758414) initially summarized native keyboard/save-error/retry checks. The later detailed receipt below supplies a bounded sequence and identities, but no saved screenshot artifact. Those observations remain author-reported. [Combined CI run](https://github.com/RHS059/rust_duty/actions/runs/37222001387) is a link for the designated CI reviewer; this document does not claim its final outcome.
 
 Latest sources: [status selection](https://github.com/RHS059/rust_duty/blob/d4d9b622d42ce0aa45896f06ac338a6ae7a0be14/src/pause_menu.rs#L75-L97), [new priority regression](https://github.com/RHS059/rust_duty/blob/d4d9b622d42ce0aa45896f06ac338a6ae7a0be14/src/pause_menu.rs#L513-L521), [tuning dirty-state and save/reload routing](https://github.com/RHS059/rust_duty/blob/d4d9b622d42ce0aa45896f06ac338a6ae7a0be14/src/main.rs#L1293-L1347).
 
 Nonblocking source-only observation: once any persistence message exists, unconditional persistence-first selection also hides later transient notices in the pause footer. In particular, a failed F6 read sets a useful "current values retained" error in [main lines 1338–1347](https://github.com/RHS059/rust_duty/blob/d4d9b622d42ce0aa45896f06ac338a6ae7a0be14/src/main.rs#L1338-L1347), but [status selection lines 93–95](https://github.com/RHS059/rust_duty/blob/d4d9b622d42ce0aa45896f06ac338a6ae7a0be14/src/pause_menu.rs#L93-L95) can hide it behind an older persistence message. Current values are retained by the inspected normal failed-read path; this observation concerns feedback visibility. It does not reopen the fixed saved-state truthfulness findings or block the complete task. No native reproduction is claimed.
+
+### Author-observed native receipt, received 18:00 UTC
+
+[Aella's bounded settings receipt](https://github.com/RHS059/dot_chat/pull/1#issuecomment-5982821480) identifies Linux cloud desktop, a debug/no-default-features executable of 89,082,376 bytes, SHA-256 `6461b3e84017bed1d9924f1d5160b4cbd30bc43a2f00c29aa121ac12e8f320f3`, and runtime source reported equivalent to `6db18e1` and unchanged in `d4d9b622`. Launch used `--no-update --procedural-weapon` with an isolated synthetic settings destination. These identities are reported by the author; the executable/config bytes were not supplied to this reviewer for independent hash verification.
+
+The author observed:
+
+- Tab/Right changed placement X to +0.005; Enter on Reset Position remained paused.
+- A directory obstruction caused actual EISDIR save failure. The error survived over 20 seconds, repeated failed saves and an unrelated M notice.
+- Walking X +0.05 left placement zero. After removal of the synthetic obstruction, Enter on Save/retry succeeded. The author read back the config and reported SHA-256 `fcf28edce354de0ac560b4daf6775ba7ff6579c9d7f9c4e42518e59495953538`.
+- F5 followed by a legacy Right edit immediately showed Unsaved. F5 followed by Equal/RightBracket produced FOV 92, sensitivity 0.11 and Unsaved feedback. F6 restored 90/0.10 and explicit discard text.
+
+All six controls were visible. Exhaustive six-axis extrema, alternate-weapon switching, failed-F6-read and Windows/focus sequences were explicitly not rerun. Screenshots were inspected live by the author but not saved as standalone files. This receipt substantively documents the original failure/retry and stale-notice scenarios; it remains **author-observed**, not an independently reproduced native pass. The nonblocking F6 feedback observation is acknowledged by the owner without interrupting the build.
 
 ### Earlier corrected-head findings: edc162d / b577aaaa
 
