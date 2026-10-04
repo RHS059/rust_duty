@@ -1,15 +1,15 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-04T19:52:29Z",
+  "updatedAt": "2026-10-04T20:11:47Z",
   "state": "active",
-  "task": "Decoding additional references, refining mantle/climb WIP and reviewing visible weapon motion from the fixed first-person camera.",
-  "lastCompleted": "Jump results are published and verified. The 100-frame paired review follows the source well, with a visible return-to-ready tail difference; no computed match percentage or full approval is established.",
+  "task": "Completing source annotations, refining mantle/climb motion and integrating the independently reviewed Jump r7 candidate.",
+  "lastCompleted": "Jump r7 passed independent qualitative review at approximately 80% for visible motion from the fixed first-person camera. The published review is separate from the unscored single-point Colab diagnostics.",
   "agents": [
     {
       "slot": 1,
       "state": "active",
-      "task": "Decoding six additional references and checking topic overlap before annotating and cutting.",
-      "lastCompleted": "Recovered all original sources; identified additional legs, stance transitions, two vault/mount parts, wall-obstruction and weapon-swing videos."
+      "task": "Finishing source annotations and the action inventory for six additional reference videos.",
+      "lastCompleted": "PR #33 at 19e8eba contains 14 verified cuts; eight tests passed. All original source hashes and native timestamps are verified."
     },
     {
       "slot": 2,
@@ -20,8 +20,8 @@
     {
       "slot": 3,
       "state": "active",
-      "task": "Reviewing visible weapon movement, timing, rotation and contact, including the Jump ready-tail difference.",
-      "lastCompleted": "Reviewed all 100 paired Jump frames. Published diagnostics remain limited by correspondence; no numerical match percentage is claimed."
+      "task": "Preparing Jump r7 runtime integration after the independent visible-motion review.",
+      "lastCompleted": "Local Jump integration WIP passed eight Rust tests. Jump r7 received a qualitative approximately 80% pass; single-point diagnostics have no computed match score."
     }
   ]
 }
