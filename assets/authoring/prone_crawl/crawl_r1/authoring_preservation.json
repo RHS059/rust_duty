@@ -1,7 +1,7 @@
 {
   "schema": "rust-duty-prone-crawl-source-preservation/v1",
   "source_sha256": "793546897db5634fca6ba6da7cefd5240e3712932c239bbabea7dfaa0f03419e",
-  "candidate_sha256": "959ecf46308195f942af817ee845173db9e8b4fd8f39c4cdd455a29bbfebcb49",
+  "candidate_sha256": "7807f7e16f6fabb2833d9e61ae5a942ee9a57f455a6c3e40e15ed4e03fa153b4",
   "source_actions": 104,
   "candidate_actions": 108,
   "created_actions": [

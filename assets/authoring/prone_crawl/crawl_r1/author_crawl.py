@@ -130,8 +130,9 @@ grip_local=weapon.matrix_world.inverted()@rig.matrix_world@rig.pose.bones['hand_
 reach={}
 for name in created:
  action=bpy.data.actions[name];rig.animation_data.action=action;rows=[]
- for frame in range(int(action.frame_start),int(action.frame_end)+1):
-  shoulder.location=base_shoulder_location.copy();scene.frame_set(frame);bpy.context.view_layer.update()
+ for sample_index in range((int(action.frame_end)-int(action.frame_start))*8+1):
+  frame=int(action.frame_start)+sample_index/8
+  shoulder.location=base_shoulder_location.copy();scene.frame_set(math.floor(frame),subframe=frame-math.floor(frame));bpy.context.view_layer.update()
   for iteration in range(16):
    expected=weapon.matrix_world@grip_local
    actual=rig.matrix_world@rig.pose.bones['hand_r'].matrix.translation
@@ -148,7 +149,7 @@ for name in created:
    key=fc.keyframe_points.insert(row['frame'],row['location'][axis]);key.interpolation='LINEAR'
  action['animated_control']='righthand_prop, plus clavicle_r location for finite-chain grip reach'
  reach[name]=rows
-(output.parent/'reach_compensation.json').write_text(json.dumps({'scope':'New segment Actions only. Minimal per-frame shoulder translation closes a measured right-hand IK reach residual. No constraints, arm length, skeleton root, camera or unrelated data changed.','actions':reach},indent=2)+'\n')
+(output.parent/'reach_compensation.json').write_text(json.dumps({'scope':'New segment Actions only. Minimal shoulder translation at 480 Hz closes the measured right-hand IK reach residual, including native interframes. Weapon curves and native shoulder poses are retained. No constraints, arm length, skeleton root, camera or unrelated data changed.','actions':reach},indent=2)+'\n')
 
 # Restore all original source state, including animated and unkeyed pose defaults.
 for p in rig.pose.bones:

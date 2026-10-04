@@ -32,3 +32,7 @@ Run Blender 4.3.2 with `--background --factory-startup --disable-autoexec FROZEN
 An aggregate diagnostic found up to 0.148 m right-hand origin drift in extreme first-pass forward/backward poses. The existing two-bone IK chain reached its finite length. The current recipe adds only keyed right-clavicle location compensation inside the four newly owned Actions, translating the shoulder the minimum iterative amount needed to recover the established weapon-relative wrist target. It does not change constraints, limb lengths, camera, skeleton root, prior Actions, source paths or timing.
 
 Fresh 664-frame checks pass a 0.0001 m attachment threshold, with maximum observed wrist-origin drift about 0.0000152 m. `reach_compensation.json` records the corrections. This is a technical attachment repair, not anatomical certification or a visible animation approval. Preview and reviewer judgment remain pending.
+
+### Between-frame correction
+
+A later nonrender export test found that native-frame shoulder keys did not fully preserve reach during cubic weapon motion between them. The current recipe retains every weapon curve and all native poses exactly, but solves shoulder locations at 480 Hz. Both 240 Hz and 480 Hz contact samples pass the 0.1 mm numerical threshold, with worst residual 0.0154 mm. The initial failed export and correction evidence are preserved in `../technical_handoff/`. No visual review, loop approval or runtime activation is inferred.

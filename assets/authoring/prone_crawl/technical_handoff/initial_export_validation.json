@@ -1,0 +1,234 @@
+{
+  "schema": "rust-duty-prone-technical-fbx-validation/v1",
+  "fbx_version": 7400,
+  "source_sha256": {
+    "halcyon_prone_crawl_r1.blend": "959ecf46308195f942af817ee845173db9e8b4fd8f39c4cdd455a29bbfebcb49"
+  },
+  "fbx_sha256": "edd2a6bdb539632e62d0b220ee0d1b06e6bdfd4acd668d56e097b99aaeed7ee4",
+  "blender": "4.3.2",
+  "source_fps": 60,
+  "bake_hz": 480,
+  "deform_bone_count": 72,
+  "skin_objects": [
+    "Actual arms mesh 0",
+    "Actual arms mesh 1",
+    "Actual arms mesh 2"
+  ],
+  "actors": [
+    "hk416_weapon",
+    "hk416_magazine"
+  ],
+  "takes": {
+    "prone_crawl_enter": {
+      "curve_count": 675,
+      "key_counts": {
+        "545": 675
+      },
+      "expected_keys_per_curve": 545,
+      "duration_seconds": 1.1333333333333333,
+      "duration_matches": true,
+      "max_step_error_seconds": 1.0825903107997137e-11,
+      "sample_count_matches": true
+    },
+    "prone_crawl_forward": {
+      "curve_count": 675,
+      "key_counts": {
+        "1921": 675
+      },
+      "expected_keys_per_curve": 1921,
+      "duration_seconds": 4.0,
+      "duration_matches": true,
+      "max_step_error_seconds": 1.0826125152602062e-11,
+      "sample_count_matches": true
+    },
+    "prone_crawl_backward": {
+      "curve_count": 675,
+      "key_counts": {
+        "1825": 675
+      },
+      "expected_keys_per_curve": 1825,
+      "duration_seconds": 3.8,
+      "duration_matches": true,
+      "max_step_error_seconds": 1.0826125152602062e-11,
+      "sample_count_matches": true
+    },
+    "prone_crawl_right": {
+      "curve_count": 675,
+      "key_counts": {
+        "1105": 675
+      },
+      "expected_keys_per_curve": 1105,
+      "duration_seconds": 2.2999999999783487,
+      "duration_matches": true,
+      "max_step_error_seconds": 1.0826125152602062e-11,
+      "sample_count_matches": true
+    },
+    "prone_crawl_left": {
+      "curve_count": 675,
+      "key_counts": {
+        "433": 675
+      },
+      "expected_keys_per_curve": 433,
+      "duration_seconds": 0.9,
+      "duration_matches": true,
+      "max_step_error_seconds": 1.0825792085694674e-11,
+      "sample_count_matches": true
+    }
+  },
+  "native_endpoint_seams": {
+    "prone_crawl_enter__bones": {
+      "exact_endpoint_repeat": false,
+      "maximum_absolute_endpoint_difference": 0.22428888082504272
+    },
+    "prone_crawl_enter__actors": {
+      "exact_endpoint_repeat": false,
+      "maximum_absolute_endpoint_difference": 0.07305270433425903
+    },
+    "prone_crawl_enter__skin_0": {
+      "exact_endpoint_repeat": false,
+      "maximum_absolute_endpoint_difference": 0.08143973350524902
+    },
+    "prone_crawl_enter__skin_1": {
+      "exact_endpoint_repeat": false,
+      "maximum_absolute_endpoint_difference": 0.06752205640077591
+    },
+    "prone_crawl_enter__skin_2": {
+      "exact_endpoint_repeat": false,
+      "maximum_absolute_endpoint_difference": 0.07526680827140808
+    },
+    "prone_crawl_forward__bones": {
+      "exact_endpoint_repeat": false,
+      "maximum_absolute_endpoint_difference": 0.11300811916589737
+    },
+    "prone_crawl_forward__actors": {
+      "exact_endpoint_repeat": false,
+      "maximum_absolute_endpoint_difference": 0.11425501108169556
+    },
+    "prone_crawl_forward__skin_0": {
+      "exact_endpoint_repeat": false,
+      "maximum_absolute_endpoint_difference": 0.0538489893078804
+    },
+    "prone_crawl_forward__skin_1": {
+      "exact_endpoint_repeat": false,
+      "maximum_absolute_endpoint_difference": 0.03201809525489807
+    },
+    "prone_crawl_forward__skin_2": {
+      "exact_endpoint_repeat": false,
+      "maximum_absolute_endpoint_difference": 0.044758811593055725
+    },
+    "prone_crawl_backward__bones": {
+      "exact_endpoint_repeat": false,
+      "maximum_absolute_endpoint_difference": 0.6789888143539429
+    },
+    "prone_crawl_backward__actors": {
+      "exact_endpoint_repeat": false,
+      "maximum_absolute_endpoint_difference": 0.5534641742706299
+    },
+    "prone_crawl_backward__skin_0": {
+      "exact_endpoint_repeat": false,
+      "maximum_absolute_endpoint_difference": 0.1964176446199417
+    },
+    "prone_crawl_backward__skin_1": {
+      "exact_endpoint_repeat": false,
+      "maximum_absolute_endpoint_difference": 0.22561928629875183
+    },
+    "prone_crawl_backward__skin_2": {
+      "exact_endpoint_repeat": false,
+      "maximum_absolute_endpoint_difference": 0.21919798851013184
+    },
+    "prone_crawl_right__bones": {
+      "exact_endpoint_repeat": false,
+      "maximum_absolute_endpoint_difference": 0.2615693211555481
+    },
+    "prone_crawl_right__actors": {
+      "exact_endpoint_repeat": false,
+      "maximum_absolute_endpoint_difference": 0.08728185296058655
+    },
+    "prone_crawl_right__skin_0": {
+      "exact_endpoint_repeat": false,
+      "maximum_absolute_endpoint_difference": 0.08752217888832092
+    },
+    "prone_crawl_right__skin_1": {
+      "exact_endpoint_repeat": false,
+      "maximum_absolute_endpoint_difference": 0.07914875447750092
+    },
+    "prone_crawl_right__skin_2": {
+      "exact_endpoint_repeat": false,
+      "maximum_absolute_endpoint_difference": 0.08818793296813965
+    },
+    "prone_crawl_left__bones": {
+      "exact_endpoint_repeat": false,
+      "maximum_absolute_endpoint_difference": 0.5724133253097534
+    },
+    "prone_crawl_left__actors": {
+      "exact_endpoint_repeat": false,
+      "maximum_absolute_endpoint_difference": 0.3625802993774414
+    },
+    "prone_crawl_left__skin_0": {
+      "exact_endpoint_repeat": false,
+      "maximum_absolute_endpoint_difference": 0.3085344731807709
+    },
+    "prone_crawl_left__skin_1": {
+      "exact_endpoint_repeat": false,
+      "maximum_absolute_endpoint_difference": 0.19027179479599
+    },
+    "prone_crawl_left__skin_2": {
+      "exact_endpoint_repeat": false,
+      "maximum_absolute_endpoint_difference": 0.26082155108451843
+    }
+  },
+  "scope": "FBX inventory/bake schedule and descriptive native endpoint differences for nonloop segments. No loop/visual/gameplay approval. No runtime conversion or integration.",
+  "all_sampled_arrays_finite": true,
+  "contact_sampling_hz": 240,
+  "contact": {
+    "prone_crawl_enter": {
+      "samples": 273,
+      "max_wrist_solve_error_m": {
+        "l": 3.8081437291291502e-06,
+        "r": 6.281506689893601e-07
+      },
+      "all_samples_finite": true
+    },
+    "prone_crawl_forward": {
+      "samples": 961,
+      "max_wrist_solve_error_m": {
+        "l": 6.531061828378179e-07,
+        "r": 0.004458609344362062
+      },
+      "all_samples_finite": true
+    },
+    "prone_crawl_backward": {
+      "samples": 913,
+      "max_wrist_solve_error_m": {
+        "l": 6.667749322006219e-07,
+        "r": 0.0008221615362160194
+      },
+      "all_samples_finite": true
+    },
+    "prone_crawl_right": {
+      "samples": 553,
+      "max_wrist_solve_error_m": {
+        "l": 5.908549992116344e-07,
+        "r": 5.50788926430828e-07
+      },
+      "all_samples_finite": true
+    },
+    "prone_crawl_left": {
+      "samples": 217,
+      "max_wrist_solve_error_m": {
+        "l": 6.797608571026947e-07,
+        "r": 6.12988566520114e-07
+      },
+      "all_samples_finite": true
+    }
+  },
+  "contact_acceptance": false,
+  "inventory_and_bake_passed": true,
+  "contact_threshold_m": 0.0001,
+  "contact_numeric_threshold_passed": false,
+  "passed": false,
+  "production_activation_allowed": false,
+  "all_fbx_curve_keys_finite": true,
+  "render_performed": false,
+  "source_saved": false
+}
