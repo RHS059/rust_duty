@@ -1,27 +1,27 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-04T18:42:12Z",
+  "updatedAt": "2026-10-04T19:01:46Z",
   "state": "active",
-  "task": "Testing the Colab batch animation review setup; actual animation review has not yet been performed.",
-  "lastCompleted": "A100 synthetic numerical smoke checks passed. The complete d4d9b62 Windows/Linux game and Windows package are verified.",
+  "task": "Recovering and annotating movement references, authoring mantle/climb motion and building comparison tools; ownership and reviews are being coordinated.",
+  "lastCompleted": "Source inventory and comparison planning are complete. Only synthetic A100 smoke has passed; no new animation scores are established and the GPU runtime is shut down.",
   "agents": [
     {
       "slot": 1,
-      "state": "idle",
-      "task": "Gameplay verification is complete for the current candidate.",
-      "lastCompleted": "Gameplay fixes passed native CI, including ADS centering, reload-return blending and settings persistence/keyboard controls."
+      "state": "active",
+      "task": "Recovering existing movement videos and preparing annotated source cuts.",
+      "lastCompleted": "Existing annotations and remaining movement-source coverage were inventoried."
     },
     {
       "slot": 2,
-      "state": "idle",
-      "task": "Animation diagnostic notebook and batch workflow updates are complete.",
-      "lastCompleted": "Draft PR #31 is updated at 643098f. A100 synthetic numerical smoke passed; actual animation review remains unperformed."
+      "state": "active",
+      "task": "Authoring reference-based mantle/vault and vehicle-roof climb motion.",
+      "lastCompleted": "Remaining action coverage and ownership were reviewed; no new animation score is established."
     },
     {
       "slot": 3,
-      "state": "idle",
-      "task": "Optimized build and complete Windows package verification are complete.",
-      "lastCompleted": "Verified 83 approved game files plus BUILD_IDENTITY in the downloaded ZIP. Cold commit-to-ZIP time was 14m14s; the under-five-minute target remains unmet."
+      "state": "active",
+      "task": "Building evidence-based weapon-motion comparisons for the Colab notebook.",
+      "lastCompleted": "Comparison measurements and review requirements are planned; actual animation comparisons have not run."
     }
   ]
 }
