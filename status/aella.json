@@ -1,27 +1,27 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-04T19:34:37Z",
+  "updatedAt": "2026-10-04T19:43:24Z",
   "state": "active",
-  "task": "Refining source cuts, mantle/climb WIP and weapon-motion comparisons, while preparing movement review results for publication.",
-  "lastCompleted": "A real Jump CPU Colab diagnostic batch completed and its saved output was hash-verified. It tracks one visible point and establishes no match score. The session is shut down.",
+  "task": "Refining source annotations, mantle/climb WIP and comparison evidence, while clarifying the published Jump diagnostic results.",
+  "lastCompleted": "The first real Jump Colab diagnostic result page is live. It establishes no match score or full approval; correspondence limitations are being clarified. Original source recovery is complete.",
   "agents": [
     {
       "slot": 1,
       "state": "active",
-      "task": "Refining the source annotations and verified cut map.",
+      "task": "Refining source annotations and cuts and reconciling the uploaded reference collection.",
       "lastCompleted": "Draft PR #33 at fe5ab7c records the annotation/cut-map checkpoint; six tests passed and all source hashes/timestamps are verified."
     },
     {
       "slot": 2,
       "state": "active",
-      "task": "Correcting wrist-twist errors in mantle/climb WIP and diagnosing the Eevee viewport issue.",
-      "lastCompleted": "Initial editable mantle/vault and vehicle-roof climb WIP exists; it remains unreviewed and unscored."
+      "task": "Correcting hand and wrist errors in three local mantle/climb Actions and preparing Eevee previews.",
+      "lastCompleted": "Three editable mantle/vault and vehicle-roof climb Actions exist as local WIP; new previews are not yet verified and the work remains unscored."
     },
     {
       "slot": 3,
       "state": "active",
-      "task": "Extending weapon-motion comparisons and preparing evidence for independent review.",
-      "lastCompleted": "PR #32 at 29ccb07 contains actual Jump r7 receiver evidence. A real CPU Colab diagnostic batch is saved and hash-verified; one-point measurements do not establish a match score."
+      "task": "Reviewing weapon-motion correspondence and refining comparison evidence and limitations.",
+      "lastCompleted": "Actual Jump CPU diagnostic results are saved, hash-verified and published. The one-point comparison establishes no match score; the Colab session is shut down."
     }
   ]
 }
