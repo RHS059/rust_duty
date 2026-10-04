@@ -71,8 +71,12 @@ def managed_assets(root):
 
 def verify_source_contract(source, artifact):
     source, artifact = Path(source), Path(artifact)
-    require(regular(source, "assets/animations.cfg").read_bytes() ==
-            regular(artifact, "assets/animations.cfg").read_bytes(),
+    # Git checkout on Windows uses CRLF for this text file. Preserve artifact
+    # bytes in the package, but compare source bindings with CRLF normalized;
+    # no other whitespace, comments, values or bare-CR bytes are discarded.
+    expected_bindings = regular(source, "assets/animations.cfg").read_bytes()
+    artifact_bindings = regular(artifact, "assets/animations.cfg").read_bytes()
+    require(expected_bindings.replace(b"\r\n", b"\n") == artifact_bindings.replace(b"\r\n", b"\n"),
             "artifact animation bindings differ from exact game source")
     for line in regular(source, "assets/animations.cfg").read_text().splitlines():
         line = line.strip()
@@ -212,6 +216,9 @@ def stage_game(toolchain, source_sha, artifact, binary, output, update=False, ve
     require(record(regular(output, binary)) == record(executable),
             "staged game executable differs from the verified native artifact")
     return {"toolchain_commit": source_sha, "version": identity.get("version"),
+            "binding_line_endings": {
+                "source_crlf": regular(toolchain, "assets/animations.cfg").read_bytes().count(b"\r\n"),
+                "artifact_crlf": regular(artifact, "assets/animations.cfg").read_bytes().count(b"\r\n")},
             **verify_staged_assets(artifact, output, update=update)}
 
 

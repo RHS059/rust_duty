@@ -146,6 +146,32 @@ class ReleasePackageGuardTests(unittest.TestCase):
         path.write_text(json.dumps(self.contract, indent=4), encoding="utf-8")
         release.verify_source_contract(self.source, self.artifact)
 
+    def test_bindings_allow_only_crlf_lf_portability_without_rewriting_bytes(self):
+        source_path = self.source / "assets/animations.cfg"
+        artifact_path = self.artifact / "assets/animations.cfg"
+        lf = CONFIG.encode("utf-8")
+        crlf = lf.replace(b"\n", b"\r\n")
+        for source_bytes, artifact_bytes in ((lf, crlf), (crlf, lf), (crlf, crlf)):
+            with self.subTest(source_crlf=source_bytes.count(b"\r\n"),
+                              artifact_crlf=artifact_bytes.count(b"\r\n")):
+                source_path.write_bytes(source_bytes)
+                artifact_path.write_bytes(artifact_bytes)
+                release.verify_source_contract(self.source, self.artifact)
+                self.assertEqual(source_path.read_bytes(), source_bytes)
+                self.assertEqual(artifact_path.read_bytes(), artifact_bytes)
+        source_path.write_bytes(lf)
+        for artifact_bytes in (
+                crlf.replace(b"ads/asset.vra", b"ads/stale.vra"),
+                crlf.replace(b"ads.asset=", b"ads.asset ="),
+                crlf + b"# newly added comment\r\n",
+                lf.replace(b"\n", b"\r"),
+                lf.replace(b"\n", b"\r", 1)):
+            with self.subTest(changed_bytes=artifact_bytes):
+                artifact_path.write_bytes(artifact_bytes)
+                with self.assertRaises(ValueError):
+                    release.verify_source_contract(self.source, self.artifact)
+                self.assertEqual(artifact_path.read_bytes(), artifact_bytes)
+
     def test_missing_or_downgraded_animation_manifest_fails(self):
         path = self.artifact / "assets/animations.cfg"
         for value in (None, "locomotion.asset=locomotion/asset.vra\n",
