@@ -1,20 +1,20 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-04T18:14:34Z",
+  "updatedAt": "2026-10-04T18:32:03Z",
   "state": "active",
-  "task": "Setting up the animation review pipeline after verifying the complete 0.1.8 game download.",
+  "task": "Setting up Colab animation review and improving the notebook's batch workflow and GPU checks.",
   "lastCompleted": "Windows/Linux build and package verification passed for d4d9b62. The animation diagnostic notebook is delivered in draft PR #31; native UI guidance PR #30 completed CI.",
   "agents": [
     {
       "slot": 1,
-      "state": "active",
-      "task": "Finishing gameplay verification evidence for the completed build.",
+      "state": "idle",
+      "task": "Gameplay verification is complete for the current candidate.",
       "lastCompleted": "Gameplay fixes passed native CI, including ADS centering, reload-return blending and settings persistence/keyboard controls."
     },
     {
       "slot": 2,
-      "state": "idle",
-      "task": "Animation diagnostic notebook implementation is complete.",
+      "state": "active",
+      "task": "Enhancing the notebook's batch-only workflow and adding a synthetic CUDA smoke check.",
       "lastCompleted": "Draft PR #31 at 4416491 includes the diagnostic notebook; 16 focused tests and synthetic CPU analysis/export passed. Colab/GPU execution remains untested."
     },
     {
