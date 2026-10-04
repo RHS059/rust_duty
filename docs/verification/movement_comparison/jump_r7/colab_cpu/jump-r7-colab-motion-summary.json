@@ -5,7 +5,7 @@
   "candidate_owner": "Halcyon",
   "measurement_owner": "Aella",
   "score": null,
-  "score_status": "Unscored; single-point motion evidence only. Prior independent Jump r6 assessment78 is unchanged.",
+  "score_status": "Unscored; exploratory single raster-point-pair evidence only. Prior independent Jump r6 assessment78 is unchanged.",
   "execution": {
     "backend": "Colab CPU",
     "synthetic": false,
@@ -24,8 +24,8 @@
       1
     ],
     "exact_1_to_1_timing": true,
-    "landmark": "Upper outer right charging-handle corner",
-    "landmark_correspondence": "Proposed homologous physical component; COD rifle/HK416 geometry differs. Not jointly frozen for scoring.",
+    "landmark": "Rear weapon corner; proposed charging-handle correspondence",
+    "landmark_correspondence": "Cross-model physical component homology is not certified. Source corner may be adjacent folded-sight/receiver feature. Observed raster point pairing remains exploratory; COD rifle/HK416 geometry differs.",
     "landmark_frames_reviewed": 100,
     "full_viewport_pairs_reviewed": 57,
     "normal_and_slow_playback_reviewed": false,
@@ -97,12 +97,13 @@
     }
   },
   "practical_feedback": [
-    "Receiver-point trajectory is close through landing/recovery in this raw diagnostic.",
+    "The two observed rear-corner trajectories are close through landing/recovery; exact component homology is still unverified.",
     "Largest early-air residual is about16.6px downward at sourceframe4045, close to the16px annotation residual bound. It is not sufficient evidence to alter protected takeoff/air.",
     "The candidate holds exact ready after4095 while the source retains small motion; late-tail residual is preserved.",
     "No new disappearance or reset was apparent in57 inspected full-viewport pairs. This does not certify unseen frames, full grip, axis, or game runtime."
   ],
   "unsupported": [
+    "Exact cross-model physical homology of the rear-corner point pair",
     "Physical source muzzle",
     "Third agreed noncollinear rigid anchor",
     "Reference normalization L and normalized spatial thresholds",

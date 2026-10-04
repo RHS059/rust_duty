@@ -85,3 +85,11 @@ plus source identity/time-base metadata. It was checked against the complete 913
 frame source decode. Video-byte verification is true only in the separately
 recorded local run that supplied the exact source and native archive bytes. A
 JSON-only Colab run must keep those byte-verification flags false.
+
+## Independent correspondence update
+
+Hal’s independent review has not certified the exact component homology of
+the rear-corner point pair. The source feature may be an adjacent folded-sight/
+receiver feature. Keep these measured raster trajectories exploratory. No
+normalized score or orientation claim follows. Original executed input/report
+remain unchanged; see `correspondence_review_update.json` at the r7 packet root.
