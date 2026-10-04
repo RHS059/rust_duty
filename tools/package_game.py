@@ -220,10 +220,10 @@ def verify_walk(root: Path, folder: Path = WALK_DIR) -> dict:
     for name in ("asset.vrs", "asset.vrm"):
         if manifest["files"][name] != baseline["files"][name]:
             raise ValueError("walk changed canonical companions")
-    pack = vrview.decode_vra(new, vrs=blobs["asset.vrs"], vrm=blobs["asset.vrm"])
-    if ([clip["name"] for clip in pack["clips"]] != [*CLIPS, "normal_walk_r1"]
-            or not pack["clips"][-1]["loop"]
-            or pack["clips"][-1]["frames"][-1]["time"] != struct.unpack("<f", struct.pack("<f", 44 / 60))[0]):
+    clips = vrview.validated_clip_summary(new, vrs=blobs["asset.vrs"], vrm=blobs["asset.vrm"])
+    if ([clip["name"] for clip in clips] != [*CLIPS, "normal_walk_r1"]
+            or not clips[-1]["loop"]
+            or clips[-1]["duration"] != struct.unpack("<f", struct.pack("<f", 44 / 60))[0]):
         raise ValueError("walk loop clip contract mismatch")
     parity = json.loads(regular_file(root, folder / "parity.json").read_text())
     conversion = json.loads(regular_file(root, folder / "conversion.json").read_text())
@@ -302,10 +302,10 @@ def verify_ads(root: Path, folder: Path = ADS_DIR, require_transports: bool = Fa
     for name in ('asset.vrs', 'asset.vrm'):
         if manifest['files'][name] != walk['files'][name]:
             raise ValueError('ADS changed canonical companions')
-    pack = vrview.decode_vra(new, vrs=blobs['asset.vrs'], vrm=blobs['asset.vrm'])
-    if ([c['name'] for c in pack['clips']] != names
-            or [c['loop'] for c in pack['clips'][-3:]] != [False, True, False]
-            or [c['frames'][-1]['time'] for c in pack['clips'][-3:]] != [.25, 1., .25]):
+    clips = vrview.validated_clip_summary(new, vrs=blobs['asset.vrs'], vrm=blobs['asset.vrm'])
+    if ([c['name'] for c in clips] != names
+            or [c['loop'] for c in clips[-3:]] != [False, True, False]
+            or [c['duration'] for c in clips[-3:]] != [.25, 1., .25]):
         raise ValueError('ADS clip contract mismatch')
     samples = 0
     for clip in ADS_CLIPS:
@@ -407,11 +407,11 @@ def verify_directional(root: Path, folder: Path = DIRECTIONAL_DIR, require_trans
     for name in ('asset.vrs', 'asset.vrm'):
         if manifest['files'][name] != walk['files'][name]:
             raise ValueError('directional changed canonical companions')
-    pack = vrview.decode_vra(new, vrs=blobs['asset.vrs'], vrm=blobs['asset.vrm'])
-    if ([c['name'] for c in pack['clips']] != names
-            or any(c['loop'] is not True for c in pack['clips'][-4:])
-            or [c['frames'][-1]['time'] for c in pack['clips'][-4:]] != [struct.unpack('<f', struct.pack('<f', x))[0] for x in durations]
-            or [len(c['frames']) for c in pack['clips'][-4:]] != [(end - 1) * 8 + 1 for end in DIRECTIONAL_ENDS]):
+    clips = vrview.validated_clip_summary(new, vrs=blobs['asset.vrs'], vrm=blobs['asset.vrm'])
+    if ([c['name'] for c in clips] != names
+            or any(c['loop'] is not True for c in clips[-4:])
+            or [c['duration'] for c in clips[-4:]] != [struct.unpack('<f', struct.pack('<f', x))[0] for x in durations]
+            or [c['frame_count'] for c in clips[-4:]] != [(end - 1) * 8 + 1 for end in DIRECTIONAL_ENDS]):
         raise ValueError('directional clip contract mismatch')
     samples = 0
     for clip, end in zip(DIRECTIONAL_CLIPS, DIRECTIONAL_ENDS):
@@ -516,8 +516,8 @@ def verify_generated_pack(root: Path, folder: Path, expected_source=None) -> dic
     committed = root / "assets/source/reload/source.json"
     if folder == GENERATED_DIR and committed.exists() and json.loads(committed.read_text()) != source:
         raise ValueError("generated assets differ from current committed source")
-    pack = vrview.decode_vra(blobs["asset.vra"], vrs=blobs["asset.vrs"], vrm=blobs["asset.vrm"])
-    if [clip["name"] for clip in pack["clips"]] != [source.get("clip")]:
+    clips = vrview.validated_clip_summary(blobs["asset.vra"], vrs=blobs["asset.vrs"], vrm=blobs["asset.vrm"])
+    if [clip["name"] for clip in clips] != [source.get("clip")]:
         raise ValueError("generated clip differs from selected source")
     regular_file(root, "assets/animations.cfg")
     regular_file(root, "docs/ANIMATION_SLOTS.md")
@@ -640,6 +640,8 @@ def main():
     unpack.add_argument("--include-walk", action="store_true")
     unpack.add_argument("--include-ads", action="store_true")
     unpack.add_argument("--include-directional", action="store_true")
+    unpack.add_argument("--require-generated", action="store_true",
+                        help="also verify generated/source-bound packs in this process")
     walk = commands.add_parser("verify-walk")
     walk.add_argument("--root", type=Path, default=Path("."))
     walk.add_argument("--folder", type=Path, default=WALK_DIR)
@@ -658,7 +660,7 @@ def main():
         report = verify_walk(args.root, args.folder)
     else:
         report = stage(args.root, args.binary, args.output, args.update, args.require_generated)
-    if args.command == "verify" and args.require_generated:
+    if args.command in ("verify", "materialize") and args.require_generated:
         report["generated_reload"] = verify_generated(args.root)
     print(json.dumps(report, indent=2))
 

@@ -18,6 +18,54 @@ import vrpack as core
 import vrskin
 from vrpack import AssetError, require, uint, number, objects, at, matmul
 
+from collections import OrderedDict
+from copy import deepcopy
+import hashlib
+from threading import RLock
+
+
+class ValidationMemo:
+    """Bounded in-process successes keyed by validator, mode and actual bytes.
+
+    Retains small defensive-copied metadata only, never input/decoded arrays.
+    New processes start empty: no older validator approval persists on disk.
+    Paths, metadata, source identity and destination validation stay with callers.
+    """
+    def __init__(self, capacity=24):
+        if type(capacity) is not int or capacity < 1:
+            raise ValueError("validation memo capacity must be positive")
+        self.capacity = capacity
+        self._entries = OrderedDict()
+        self._lock = RLock()
+
+    def validated(self, validator, *blobs, context=()):
+        # Snapshot mutable buffers before hashing/validation. Byte inputs incur
+        # no copy and no input blob is retained by the cache.
+        if any(not isinstance(blob, (bytes, bytearray, memoryview)) for blob in blobs):
+            raise TypeError("validation memo accepts byte buffers only")
+        blobs = tuple(bytes(blob) for blob in blobs)
+        key = (validator, context, tuple(
+            (len(blob), hashlib.sha256(blob).digest()) for blob in blobs))
+        with self._lock:
+            if key in self._entries:
+                self._entries.move_to_end(key)
+                return deepcopy(self._entries[key])
+            # Insert only after the real validator returns successfully.
+            result = validator(*blobs)
+            self._entries[key] = deepcopy(result)
+            self._entries.move_to_end(key)
+            while len(self._entries) > self.capacity:
+                self._entries.popitem(last=False)
+            return result
+
+    def clear(self):
+        with self._lock:
+            self._entries.clear()
+
+
+validation_memo = ValidationMemo()
+
+
 MAGIC = b'VRANIM01'
 VERSION = 1
 HEADER = struct.Struct('<8sIIII')
@@ -408,16 +456,34 @@ def decode_vra(data, *, vrs=None, vrm=None):
         clips.append({'name':n,'loop':bool(flags),'frames':frames})
     require(cursor==len(payload),'trailing VRA payload bytes')
     if vrs is not None:
-        vrskin.inspect_vrs(vrs); require(zlib.crc32(vrs)==skin_crc,'VRS companion checksum mismatch')
+        validation_memo.validated(vrskin.inspect_vrs, vrs); require(zlib.crc32(vrs)==skin_crc,'VRS companion checksum mismatch')
         p=28; actual=[]; count=struct.unpack_from('<I',vrs,24)[0]
         for _ in range(count):
             size=struct.unpack_from('<H',vrs,p)[0]; p+=2
             n=vrs[p:p+size].decode(); p+=size; parent=struct.unpack_from('<i',vrs,p)[0]; p+=132; actual.append((n,parent))
         require(actual==bones,'VRS companion skeleton mismatch')
     if vrm is not None:
-        info=core.inspect_vrm(vrm); require(zlib.crc32(vrm)==mesh_crc,'VRM companion checksum mismatch')
+        info=validation_memo.validated(core.inspect_vrm, vrm); require(zlib.crc32(vrm)==mesh_crc,'VRM companion checksum mismatch')
         require(assigned==set(range(info['meshes'])),'rigid companion meshes must be assigned exactly once')
     return {'bones':bones,'actors':actors,'clips':clips,'skin_crc':skin_crc,'mesh_crc':mesh_crc}
+
+
+def _clip_summary(data, vrs, vrm):
+    pack = decode_vra(data, vrs=vrs, vrm=vrm)
+    return [{'name': clip['name'], 'loop': clip['loop'],
+             'frame_count': len(clip['frames']),
+             'duration': clip['frames'][-1]['time']} for clip in pack['clips']]
+
+
+def validated_clip_summary(data, *, vrs, vrm):
+    """Run the full decoder once per exact byte triple in this process.
+
+    All binary checks still use decode_vra; only its small immutable facts are
+    reused. Caller metadata/source checks deliberately remain outside the memo.
+    Validator identities also invalidate results in test/instrumentation runs.
+    """
+    return validation_memo.validated(_clip_summary, data, vrs, vrm,
+        context=(decode_vra, vrskin.inspect_vrs, core.inspect_vrm))
 
 
 def sample(pack, clip_name, time, *, clamp=False):

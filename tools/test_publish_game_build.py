@@ -10,6 +10,7 @@ from unittest import mock
 import zipfile
 
 import build_identity as identity
+import ci_quality_checks
 import publish_game_build as publish
 
 
@@ -421,9 +422,15 @@ class WorkflowTests(unittest.TestCase):
         self.assertIn("tools/build_identity.py --root dist/game --platform linux", text)
         build = text.split("  build:\n", 1)[1].split("  publish-game-update:\n", 1)[0]
         self.assertNotIn("RUST_DUTY_BUILD_VERSION:", build)
-        self.assertIn("cargo fmt --manifest-path updater/Cargo.toml --all -- --check", build)
-        self.assertIn("cargo clippy --manifest-path updater/Cargo.toml --locked --all-targets -- -D warnings", build)
-        self.assertIn("cargo test --manifest-path updater/Cargo.toml --locked", build)
+        self.assertIn("run: python tools/ci_quality_checks.py", build)
+        self.assertNotIn("continue-on-error:", build)
+        self.assertLess(build.index("run: python tools/ci_quality_checks.py"),
+                        build.index("name: Stage complete Windows game"))
+        self.assertEqual(ci_quality_checks.pipelines()['updater'], [
+            ['cargo', 'fmt', '--manifest-path', 'updater/Cargo.toml', '--all', '--', '--check'],
+            ['cargo', 'clippy', '--manifest-path', 'updater/Cargo.toml', '--locked', '--all-targets', '--', '-D', 'warnings'],
+            ['cargo', 'test', '--manifest-path', 'updater/Cargo.toml', '--locked'],
+        ])
 
 
 if __name__ == "__main__":
