@@ -1,0 +1,444 @@
+{
+  "schema": "jump-delivered-receiver-check/v1",
+  "source_sha256": "a2c4b2bbe98da1a608450bba92404cb39008eae5861bcf8fc3f5d2f978df0e3b",
+  "revision": "r7",
+  "measurement": "Actual delivered native Eevee image pixels; same foreground-only direct ready-to-frame feature method as frozen baseline",
+  "artifact_scope": "Receiver/handle cue addressed in r7; neither overall match score nor artistic acceptance. End closure removes source idle residual; compare raw source endpoint with that caveat.",
+  "records": [
+    {
+      "source_frame": 4067,
+      "COD_receiver_drop_px": -54.95937431883408,
+      "r6_receiver_drop_px": -58.51945263582911,
+      "r7_receiver_drop_px": -58.51945263582911,
+      "remaining_raw_difference_px": 3.560078316995032,
+      "r7_vs_r6_rear_sight_xy_change_px": [
+        0.0,
+        0.0
+      ],
+      "r7_vs_r6_front_sight_xy_change_px": [
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "source_frame": 4068,
+      "COD_receiver_drop_px": -43.351696394433816,
+      "r6_receiver_drop_px": -44.70258573726056,
+      "r7_receiver_drop_px": -44.70258573726056,
+      "remaining_raw_difference_px": 1.350889342826747,
+      "r7_vs_r6_rear_sight_xy_change_px": [
+        0.0,
+        0.0
+      ],
+      "r7_vs_r6_front_sight_xy_change_px": [
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "source_frame": 4069,
+      "COD_receiver_drop_px": -24.771612233173755,
+      "r6_receiver_drop_px": -29.76153241199421,
+      "r7_receiver_drop_px": -29.76153241199421,
+      "remaining_raw_difference_px": 4.989920178820455,
+      "r7_vs_r6_rear_sight_xy_change_px": [
+        0.0,
+        0.0
+      ],
+      "r7_vs_r6_front_sight_xy_change_px": [
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "source_frame": 4070,
+      "COD_receiver_drop_px": -14.857652925299021,
+      "r6_receiver_drop_px": -13.536431117389043,
+      "r7_receiver_drop_px": -13.536431117389043,
+      "remaining_raw_difference_px": -1.3212218079099785,
+      "r7_vs_r6_rear_sight_xy_change_px": [
+        0.0,
+        0.0
+      ],
+      "r7_vs_r6_front_sight_xy_change_px": [
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "source_frame": 4071,
+      "COD_receiver_drop_px": 6.413310177601716,
+      "r6_receiver_drop_px": 4.604000438688672,
+      "r7_receiver_drop_px": 6.085711369728472,
+      "remaining_raw_difference_px": 0.3275988078732439,
+      "r7_vs_r6_rear_sight_xy_change_px": [
+        0.020216345816606918,
+        0.001273019687175747
+      ],
+      "r7_vs_r6_front_sight_xy_change_px": [
+        0.001442422186642034,
+        -0.050581562620322984
+      ]
+    },
+    {
+      "source_frame": 4072,
+      "COD_receiver_drop_px": 25.825883917182296,
+      "r6_receiver_drop_px": 22.773797780718837,
+      "r7_receiver_drop_px": 25.374377275788788,
+      "remaining_raw_difference_px": 0.4515066413935074,
+      "r7_vs_r6_rear_sight_xy_change_px": [
+        0.007975598789471405,
+        0.033118052580505264
+      ],
+      "r7_vs_r6_front_sight_xy_change_px": [
+        0.03329228571715248,
+        0.1535500069830391
+      ]
+    },
+    {
+      "source_frame": 4073,
+      "COD_receiver_drop_px": 41.767601834665925,
+      "r6_receiver_drop_px": 37.93804671656528,
+      "r7_receiver_drop_px": 42.43976865432853,
+      "remaining_raw_difference_px": -0.6721668196626069,
+      "r7_vs_r6_rear_sight_xy_change_px": [
+        0.00574563269015016,
+        0.06957962740341372
+      ],
+      "r7_vs_r6_front_sight_xy_change_px": [
+        -0.025483668941888027,
+        0.14847636112421014
+      ]
+    },
+    {
+      "source_frame": 4074,
+      "COD_receiver_drop_px": 55.58525578629383,
+      "r6_receiver_drop_px": 50.199302763555465,
+      "r7_receiver_drop_px": 56.452197950862114,
+      "remaining_raw_difference_px": -0.866942164568286,
+      "r7_vs_r6_rear_sight_xy_change_px": [
+        0.042904985642621796,
+        0.08677285006751845
+      ],
+      "r7_vs_r6_front_sight_xy_change_px": [
+        0.02102357101512098,
+        0.1333441034499856
+      ]
+    },
+    {
+      "source_frame": 4075,
+      "COD_receiver_drop_px": 66.06409402532836,
+      "r6_receiver_drop_px": 58.09698208584837,
+      "r7_receiver_drop_px": 65.54174074892899,
+      "remaining_raw_difference_px": 0.5223532763993717,
+      "r7_vs_r6_rear_sight_xy_change_px": [
+        0.019700363324886894,
+        0.08727076624955998
+      ],
+      "r7_vs_r6_front_sight_xy_change_px": [
+        0.0019291949899979954,
+        0.1016119163143685
+      ]
+    },
+    {
+      "source_frame": 4076,
+      "COD_receiver_drop_px": 69.86267474657109,
+      "r6_receiver_drop_px": 63.18808928531928,
+      "r7_receiver_drop_px": 71.25813253296303,
+      "remaining_raw_difference_px": -1.395457786391944,
+      "r7_vs_r6_rear_sight_xy_change_px": [
+        0.005361524723070943,
+        0.12424162876578748
+      ],
+      "r7_vs_r6_front_sight_xy_change_px": [
+        -0.04821157067135573,
+        0.0814702299078931
+      ]
+    },
+    {
+      "source_frame": 4077,
+      "COD_receiver_drop_px": 74.25202388411287,
+      "r6_receiver_drop_px": 66.09925502120393,
+      "r7_receiver_drop_px": 74.5570303442862,
+      "remaining_raw_difference_px": -0.3050064601733311,
+      "r7_vs_r6_rear_sight_xy_change_px": [
+        0.0545517746254518,
+        0.07147248135851214
+      ],
+      "r7_vs_r6_front_sight_xy_change_px": [
+        -0.012438878598572956,
+        0.05559257514869387
+      ]
+    },
+    {
+      "source_frame": 4078,
+      "COD_receiver_drop_px": 75.95636996091241,
+      "r6_receiver_drop_px": 68.20211113786831,
+      "r7_receiver_drop_px": 76.56140115586129,
+      "remaining_raw_difference_px": -0.6050311949488787,
+      "r7_vs_r6_rear_sight_xy_change_px": [
+        0.022120162390592668,
+        -0.012456244020938811
+      ],
+      "r7_vs_r6_front_sight_xy_change_px": [
+        0.013690966916556135,
+        0.06563885498997024
+      ]
+    },
+    {
+      "source_frame": 4079,
+      "COD_receiver_drop_px": 75.27110221773421,
+      "r6_receiver_drop_px": 67.87444212786238,
+      "r7_receiver_drop_px": 75.84309025246739,
+      "remaining_raw_difference_px": -0.5719880347331809,
+      "r7_vs_r6_rear_sight_xy_change_px": [
+        0.027254386735080516,
+        0.10896196712093342
+      ],
+      "r7_vs_r6_front_sight_xy_change_px": [
+        -0.09932553888074835,
+        0.10062605839891603
+      ]
+    },
+    {
+      "source_frame": 4080,
+      "COD_receiver_drop_px": 72.74397256834175,
+      "r6_receiver_drop_px": 65.70487666688689,
+      "r7_receiver_drop_px": 73.16969835163798,
+      "remaining_raw_difference_px": -0.42572578329622957,
+      "r7_vs_r6_rear_sight_xy_change_px": [
+        0.01892359828229928,
+        0.10119369877986628
+      ],
+      "r7_vs_r6_front_sight_xy_change_px": [
+        -0.03020781780355719,
+        -0.01724633259635766
+      ]
+    },
+    {
+      "source_frame": 4081,
+      "COD_receiver_drop_px": 69.1999475232144,
+      "r6_receiver_drop_px": 63.53519060784902,
+      "r7_receiver_drop_px": 70.50870317639715,
+      "remaining_raw_difference_px": -1.3087556531827431,
+      "r7_vs_r6_rear_sight_xy_change_px": [
+        0.006430896149822729,
+        0.09260571906639825
+      ],
+      "r7_vs_r6_front_sight_xy_change_px": [
+        -0.0005553235491788655,
+        0.10642456881851103
+      ]
+    },
+    {
+      "source_frame": 4082,
+      "COD_receiver_drop_px": 67.10331930888356,
+      "r6_receiver_drop_px": 60.332167417818255,
+      "r7_receiver_drop_px": 66.69463537007027,
+      "remaining_raw_difference_px": 0.408683938813283,
+      "r7_vs_r6_rear_sight_xy_change_px": [
+        -0.01851247657816657,
+        0.10134926607150874
+      ],
+      "r7_vs_r6_front_sight_xy_change_px": [
+        -0.02431505232755171,
+        -0.0470325439333692
+      ]
+    },
+    {
+      "source_frame": 4083,
+      "COD_receiver_drop_px": 60.356359999256256,
+      "r6_receiver_drop_px": 55.56401902573134,
+      "r7_receiver_drop_px": 60.87584323324813,
+      "remaining_raw_difference_px": -0.5194832339918776,
+      "r7_vs_r6_rear_sight_xy_change_px": [
+        -0.013793294851438986,
+        0.0485116603640563
+      ],
+      "r7_vs_r6_front_sight_xy_change_px": [
+        0.002498332552249849,
+        0.0976054588973625
+      ]
+    },
+    {
+      "source_frame": 4084,
+      "COD_receiver_drop_px": 52.51529140185494,
+      "r6_receiver_drop_px": 49.02205377301027,
+      "r7_receiver_drop_px": 52.892816292791395,
+      "remaining_raw_difference_px": -0.37752489093645636,
+      "r7_vs_r6_rear_sight_xy_change_px": [
+        0.06602851222748995,
+        -0.004732124835243212
+      ],
+      "r7_vs_r6_front_sight_xy_change_px": [
+        -0.020887632452058824,
+        0.11648571328299795
+      ]
+    },
+    {
+      "source_frame": 4085,
+      "COD_receiver_drop_px": 44.78446220571686,
+      "r6_receiver_drop_px": 42.55278743123711,
+      "r7_receiver_drop_px": 45.23979764203807,
+      "remaining_raw_difference_px": -0.45533543632120654,
+      "r7_vs_r6_rear_sight_xy_change_px": [
+        0.0009218618097293074,
+        0.0502956008378419
+      ],
+      "r7_vs_r6_front_sight_xy_change_px": [
+        -0.04322359920092822,
+        -0.03449232838215721
+      ]
+    },
+    {
+      "source_frame": 4086,
+      "COD_receiver_drop_px": 37.712729413308125,
+      "r6_receiver_drop_px": 35.7140503788537,
+      "r7_receiver_drop_px": 37.83278176419515,
+      "remaining_raw_difference_px": -0.12005235088702193,
+      "r7_vs_r6_rear_sight_xy_change_px": [
+        0.00027322280482167116,
+        0.035075181635193076
+      ],
+      "r7_vs_r6_front_sight_xy_change_px": [
+        0.027178882873613475,
+        0.03823852709655284
+      ]
+    },
+    {
+      "source_frame": 4087,
+      "COD_receiver_drop_px": 30.5864934359613,
+      "r6_receiver_drop_px": 29.15605037296291,
+      "r7_receiver_drop_px": 30.73973699850103,
+      "remaining_raw_difference_px": -0.15324356253972837,
+      "r7_vs_r6_rear_sight_xy_change_px": [
+        0.005696892465948622,
+        0.005582529629123201
+      ],
+      "r7_vs_r6_front_sight_xy_change_px": [
+        -0.01904540063492277,
+        -0.008383790605023478
+      ]
+    },
+    {
+      "source_frame": 4088,
+      "COD_receiver_drop_px": 24.64832277885091,
+      "r6_receiver_drop_px": 24.170083518546107,
+      "r7_receiver_drop_px": 25.177823224227836,
+      "remaining_raw_difference_px": -0.5295004453769252,
+      "r7_vs_r6_rear_sight_xy_change_px": [
+        0.009811528111299594,
+        -0.005571791706017848
+      ],
+      "r7_vs_r6_front_sight_xy_change_px": [
+        -0.03972874781493374,
+        -0.0033633819309102364
+      ]
+    },
+    {
+      "source_frame": 4089,
+      "COD_receiver_drop_px": 21.641873843709618,
+      "r6_receiver_drop_px": 19.695855321923432,
+      "r7_receiver_drop_px": 20.438073593580043,
+      "remaining_raw_difference_px": 1.203800250129575,
+      "r7_vs_r6_rear_sight_xy_change_px": [
+        -0.03007714659645444,
+        0.030937858164577392
+      ],
+      "r7_vs_r6_front_sight_xy_change_px": [
+        0.02330234411795118,
+        -0.030665833633463535
+      ]
+    },
+    {
+      "source_frame": 4090,
+      "COD_receiver_drop_px": 17.44129466309448,
+      "r6_receiver_drop_px": 15.22002996414119,
+      "r7_receiver_drop_px": 15.974521008852093,
+      "remaining_raw_difference_px": 1.4667736542423881,
+      "r7_vs_r6_rear_sight_xy_change_px": [
+        0.01649319685611772,
+        -0.0034591853365668612
+      ],
+      "r7_vs_r6_front_sight_xy_change_px": [
+        0.006271642258411703,
+        0.02203776387881362
+      ]
+    },
+    {
+      "source_frame": 4091,
+      "COD_receiver_drop_px": 14.307120439000073,
+      "r6_receiver_drop_px": 10.23286776378211,
+      "r7_receiver_drop_px": 11.032494082393043,
+      "remaining_raw_difference_px": 3.2746263566070297,
+      "r7_vs_r6_rear_sight_xy_change_px": [
+        -0.0009161479110844084,
+        0.020763571417433013
+      ],
+      "r7_vs_r6_front_sight_xy_change_px": [
+        -0.030337627775224973,
+        0.009877399832362244
+      ]
+    },
+    {
+      "source_frame": 4092,
+      "COD_receiver_drop_px": 11.614580046457945,
+      "r6_receiver_drop_px": 6.294524402940226,
+      "r7_receiver_drop_px": 7.161325934239471,
+      "remaining_raw_difference_px": 4.453254112218474,
+      "r7_vs_r6_rear_sight_xy_change_px": [
+        0.018573134821963322,
+        -0.0028460884399805764
+      ],
+      "r7_vs_r6_front_sight_xy_change_px": [
+        0.009320822414451868,
+        -0.016106595015344283
+      ]
+    },
+    {
+      "source_frame": 4093,
+      "COD_receiver_drop_px": 9.922290329539464,
+      "r6_receiver_drop_px": 3.20547091668692,
+      "r7_receiver_drop_px": 3.9445749017497747,
+      "remaining_raw_difference_px": 5.97771542778969,
+      "r7_vs_r6_rear_sight_xy_change_px": [
+        0.010472377124187915,
+        0.008549412440743254
+      ],
+      "r7_vs_r6_front_sight_xy_change_px": [
+        -0.0594903810449523,
+        0.03829933141832953
+      ]
+    },
+    {
+      "source_frame": 4094,
+      "COD_receiver_drop_px": 7.745777425066535,
+      "r6_receiver_drop_px": 1.1037585936235246,
+      "r7_receiver_drop_px": 1.5684820274778986,
+      "remaining_raw_difference_px": 6.177295397588637,
+      "r7_vs_r6_rear_sight_xy_change_px": [
+        -0.03016292516838348,
+        0.008757768160023716
+      ],
+      "r7_vs_r6_front_sight_xy_change_px": [
+        0.00881832804179794,
+        -0.027463626753501558
+      ]
+    },
+    {
+      "source_frame": 4095,
+      "COD_receiver_drop_px": 6.49376951311217,
+      "r6_receiver_drop_px": 0.0,
+      "r7_receiver_drop_px": 0.0,
+      "remaining_raw_difference_px": 6.49376951311217,
+      "r7_vs_r6_rear_sight_xy_change_px": [
+        0.0,
+        0.0
+      ],
+      "r7_vs_r6_front_sight_xy_change_px": [
+        0.0,
+        0.0
+      ]
+    }
+  ]
+}
