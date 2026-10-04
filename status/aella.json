@@ -1,27 +1,27 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-04T19:12:14Z",
+  "updatedAt": "2026-10-04T19:22:00Z",
   "state": "active",
-  "task": "Annotating restored movement references, refining mantle/climb WIP and developing weapon-motion comparison tools.",
-  "lastCompleted": "The first two source videos are restored and hash-verified on GitHub; the third is restored locally. Initial editable mantle/climb WIP exists but is unreviewed and unscored. Colab is off.",
+  "task": "Refining source annotations and cuts, correcting mantle/climb WIP, and developing weapon-motion evaluation with independent review pending.",
+  "lastCompleted": "All three originals are recovered with hashes and native timestamps verified. PR #32 comparison tooling and PR #33 source annotations are pushed. Jump r7 frames are recovered for review; no new score is established. GPU is off.",
   "agents": [
     {
       "slot": 1,
       "state": "active",
-      "task": "Preparing annotated cuts from the recovered movement videos.",
-      "lastCompleted": "All three reference sources are recovered; the source-recovery blocker is resolved."
+      "task": "Refining the source annotations and verified cut map.",
+      "lastCompleted": "Draft PR #33 at fe5ab7c records the annotation/cut-map checkpoint; six tests passed and all source hashes/timestamps are verified."
     },
     {
       "slot": 2,
       "state": "active",
-      "task": "Refining mantle/vault and vehicle-roof climb motion and investigating the Eevee preview issue.",
-      "lastCompleted": "Created initial editable mantle/vault and vehicle-roof climb WIP; no independent review or score yet."
+      "task": "Correcting wrist-twist errors in mantle/climb WIP and diagnosing the Eevee viewport issue.",
+      "lastCompleted": "Initial editable mantle/vault and vehicle-roof climb WIP exists; it remains unreviewed and unscored."
     },
     {
       "slot": 3,
       "state": "active",
-      "task": "Building evidence-based weapon-motion comparisons for the Colab notebook.",
-      "lastCompleted": "Comparison measurements and review requirements are planned; actual animation comparisons have not run."
+      "task": "Developing and validating weapon-motion comparison tooling for real review evidence.",
+      "lastCompleted": "Draft PR #32 at deeba02 is pushed; 39 tests and synthetic CPU smoke passed. No real animation comparison or Colab batch has run."
     }
   ]
 }
