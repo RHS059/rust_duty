@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-04T00:11:54Z",
+  "updatedAt": "2026-10-04T00:21:58Z",
   "state": "active",
-  "task": "Preparing the packaging repair; ADS and walking-control publication remains on hold until verified 0.1.9 completion.",
-  "lastCompleted": "The packaging repair passed 46 local tests. PR #25 remains the verified complete draft download; the newer v9 candidate remains local.",
+  "task": "Fixing complete-asset validation in draft PR #26; ADS and walking-control publication remains held until verified 0.1.9 completion.",
+  "lastCompleted": "Packaging repair is in draft PR #26. Windows line-ending handling is fixed; real-artifact repack verification is still failing and being corrected.",
   "agents": [
     {
       "slot": 1,
@@ -14,8 +14,8 @@
     {
       "slot": 2,
       "state": "active",
-      "task": "Preparing the packaging repair for publication and complete-artifact verification.",
-      "lastCompleted": "40 new packaging regression tests and 6 existing release-update tests passed locally; a real CI-artifact repack remains unverified."
+      "task": "Correcting source-to-regenerated-asset comparisons and rerunning complete-package verification in PR #26.",
+      "lastCompleted": "Windows line-ending validation is fixed and source-recipe regression tests pass; real-artifact package verification remains incomplete."
     },
     {
       "slot": 3,
