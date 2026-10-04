@@ -1,15 +1,15 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-04T02:11:29Z",
+  "updatedAt": "2026-10-04T02:22:20Z",
   "state": "active",
-  "task": "Monitoring Linux staging and native captures for corrected 0.1.8; the corrected Windows package is complete.",
-  "lastCompleted": "Windows dad6071 passed complete staging and embedded 0.1.8/sequence 8 checks; its 84-file artifact and matching upload digest are verified.",
+  "task": "Implementing saved viewmodel-position fade during ADS and reviewing the reported animation-to-movement handoff.",
+  "lastCompleted": "Corrected dad6071 passed complete Windows/Linux builds and Linux native capture checks. Free signing options research is complete; publication remains paused.",
   "agents": [
     {
       "slot": 1,
-      "state": "unknown",
-      "task": "Forward ADS runtime-handoff progress awaits confirmation; earlier source and mapping checks remain available.",
-      "lastCompleted": "V9 source and native mapping checks are in draft PR #23; the earlier local candidate retained a strict bone-parity failure."
+      "state": "active",
+      "task": "Reviewing ADS-offset fade against authored aim progress and investigating the reported animation handoff.",
+      "lastCompleted": "Confirmed the fade must follow native authored ADS timing and run-layer contribution; review is read-only."
     },
     {
       "slot": 2,
@@ -20,8 +20,8 @@
     {
       "slot": 3,
       "state": "active",
-      "task": "Monitoring corrected PR #27 head dad6071 as Linux stages the complete game before native capture checks.",
-      "lastCompleted": "Corrected Windows tests, lint, complete staging and identity checks passed; artifact 11289799614 is available."
+      "task": "Implementing saved XYZ position fading to zero during ADS, including interrupted entry/exit and run blending.",
+      "lastCompleted": "Published dad6071 passed full Windows/Linux and updater CI. New fade changes are local; tests are next."
     }
   ]
 }
