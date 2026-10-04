@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-04T00:52:02Z",
+  "updatedAt": "2026-10-04T01:03:18Z",
   "state": "active",
-  "task": "Preparing source publication of the locally tested 0.1.8 candidate and application of the tested packaging repair.",
-  "lastCompleted": "The reconciled local candidate passed 526 Rust tests, Clippy and 23 release-identity checks; native XY and XYZ control UI was verified.",
+  "task": "Preparing the reconciled 0.1.8 candidate for hosted verification; the tested packaging repair is now applied.",
+  "lastCompleted": "The packaging repair is applied to the release branch at 68a5bd4. The local candidate passed 526 Rust tests, Clippy, 23 identity checks and native XY/XYZ UI checks.",
   "agents": [
     {
       "slot": 1,
@@ -14,13 +14,13 @@
     {
       "slot": 2,
       "state": "active",
-      "task": "Preparing the tested packaging repair for application and coordinating the next release identity.",
-      "lastCompleted": "PR #26 passed 51 local tests, all exact-head workflows and complete Windows/Linux ZIP and update-bundle checks."
+      "task": "Coordinating the next candidate and corrected release packaging.",
+      "lastCompleted": "The tested packaging repair was applied at 68a5bd4 and remotely verified; complete-package repack checks had already passed."
     },
     {
       "slot": 3,
-      "state": "active",
-      "task": "Publishing the reconciled 0.1.8 candidate's source; remote completion and full hosted builds remain unverified.",
+      "state": "unknown",
+      "task": "The reconciled 0.1.8 source-publication status awaits confirmation; local checks are complete, hosted builds are not verified.",
       "lastCompleted": "Local reconciliation passed 526 Rust tests, Clippy, 23 identity checks and native XY/XYZ UI checks."
     }
   ]
