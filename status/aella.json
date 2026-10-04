@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-04T19:22:00Z",
+  "updatedAt": "2026-10-04T19:34:37Z",
   "state": "active",
-  "task": "Refining source annotations and cuts, correcting mantle/climb WIP, and developing weapon-motion evaluation with independent review pending.",
-  "lastCompleted": "All three originals are recovered with hashes and native timestamps verified. PR #32 comparison tooling and PR #33 source annotations are pushed. Jump r7 frames are recovered for review; no new score is established. GPU is off.",
+  "task": "Refining source cuts, mantle/climb WIP and weapon-motion comparisons, while preparing movement review results for publication.",
+  "lastCompleted": "A real Jump CPU Colab diagnostic batch completed and its saved output was hash-verified. It tracks one visible point and establishes no match score. The session is shut down.",
   "agents": [
     {
       "slot": 1,
@@ -20,8 +20,8 @@
     {
       "slot": 3,
       "state": "active",
-      "task": "Developing and validating weapon-motion comparison tooling for real review evidence.",
-      "lastCompleted": "Draft PR #32 at deeba02 is pushed; 39 tests and synthetic CPU smoke passed. No real animation comparison or Colab batch has run."
+      "task": "Extending weapon-motion comparisons and preparing evidence for independent review.",
+      "lastCompleted": "PR #32 at 29ccb07 contains actual Jump r7 receiver evidence. A real CPU Colab diagnostic batch is saved and hash-verified; one-point measurements do not establish a match score."
     }
   ]
 }
