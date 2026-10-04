@@ -1,11 +1,11 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-04T17:51:29Z",
+  "updatedAt": "2026-10-04T18:03:17Z",
   "latestComplete": {
     "sha": "dad6071625ce9190c69e4703c53952a2244cf1f8",
     "downloadUrl": "https://github.com/RHS059/rust_duty/actions/runs/37169476605/artifacts/11289799614",
     "runUrl": "https://github.com/RHS059/rust_duty/actions/runs/37169476605",
-    "verifiedAt": "2026-10-04T17:51:29Z",
+    "verifiedAt": "2026-10-04T18:03:17Z",
     "completedAt": "2026-10-04T02:07:18Z"
   },
   "changes": [
@@ -21,7 +21,7 @@
   ],
   "currentBuild": {
     "state": "active",
-    "task": "Full build 37222001387 is running for d4d9b62, including final gameplay fixes and build optimization. Authored animation and walk asset jobs are in progress; no new complete package is verified yet.",
+    "task": "Full build 37222001387 is running for d4d9b62. All four authored asset jobs passed; Windows is fetching notice dependencies and Linux is running parallel Python, game and updater checks. No new Windows package is available yet.",
     "url": "https://github.com/RHS059/rust_duty/actions/runs/37222001387"
   }
 }
