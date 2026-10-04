@@ -1,0 +1,4932 @@
+{
+  "schema": "rust-duty-weapon-comparison/v1",
+  "action": "Hal Jump r7 whole review window; single visible receiver-point diagnostic",
+  "kind": "event",
+  "rubric_version": "event-amendment-unfrozen; raw-only receiver diagnostic",
+  "source": {
+    "artifact": {
+      "name": "R3-original.mp4",
+      "sha256": "491a1729aa0f32373025d35fff86da76c6c1c8f057c0c553d0fbb5fb6226ff46"
+    },
+    "viewport": [
+      1280,
+      720
+    ],
+    "time_base": [
+      1,
+      15360
+    ],
+    "window_frames": [
+      4014,
+      4114
+    ]
+  },
+  "candidate": {
+    "artifact": {
+      "name": "jump_r7_native_frames.zip",
+      "sha256": "12e5aee93e50a2bc2f5b1763ee5e5afee9b4fe2477102cd07db85469e8a7e504"
+    },
+    "viewport": [
+      1280,
+      720
+    ],
+    "space": "evaluated-camera-pixels",
+    "author": "Halcyon"
+  },
+  "registration": {
+    "mode": "frozen-unwarped",
+    "source_scale": 1,
+    "candidate_scale": 1,
+    "source_anchor_pts": 1027584,
+    "candidate_anchor_time": [
+      0,
+      1
+    ],
+    "phase_offset": [
+      0,
+      1
+    ],
+    "frozen_record": "Existing published r7 reference_frame_map.json e9317f90; all100 source frames4014-4113, speed1. Pixels unchanged, no fitted scale or phase."
+  },
+  "normalization": {
+    "L_px": null,
+    "definition": "Physical source muzzle hidden. No L or normalized spatial criterion invented."
+  },
+  "metrics_stride": 1,
+  "baseline_frame": 4033,
+  "landmarks": [
+    {
+      "id": "charging_handle_right_upper_corner",
+      "physical_point": "Upper outer right corner of transverse charging-handle body, pixel-raster landmark, proposed homologous correspondence; source COD rifle and native HK416 geometry differ"
+    },
+    {
+      "id": "physical_muzzle",
+      "physical_point": "Physical muzzle, occluded in source; not optic/sight proxy."
+    },
+    {
+      "id": "third_rigid_anchor",
+      "physical_point": "Third rigid homologous anchor not frozen; no substitute coordinates."
+    }
+  ],
+  "axis_landmarks": [
+    "physical_muzzle",
+    "charging_handle_right_upper_corner"
+  ],
+  "phases": [
+    {
+      "name": "lead_hold",
+      "window_frames": [
+        4014,
+        4033
+      ]
+    },
+    {
+      "name": "takeoff",
+      "window_frames": [
+        4033,
+        4044
+      ]
+    },
+    {
+      "name": "air",
+      "window_frames": [
+        4044,
+        4067
+      ]
+    },
+    {
+      "name": "landing_recovery",
+      "window_frames": [
+        4067,
+        4096
+      ]
+    },
+    {
+      "name": "tail_hold",
+      "window_frames": [
+        4096,
+        4114
+      ]
+    }
+  ],
+  "events": [],
+  "samples": [
+    {
+      "frame": 4014,
+      "source_pts": 1027584,
+      "candidate_time": [
+        0,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1002.0,
+            549.0
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1006.0,
+            485.0
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4015,
+      "source_pts": 1027840,
+      "candidate_time": [
+        1,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1002.3894653320312,
+            549.0802612304688
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.003723644884303212
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1006.0,
+            485.0
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.0
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4016,
+      "source_pts": 1028096,
+      "candidate_time": [
+        2,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1002.3724975585938,
+            549.1265258789062
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.006978590041399002
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1006.0,
+            485.0
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.0
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4017,
+      "source_pts": 1028352,
+      "candidate_time": [
+        3,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1002.5391845703125,
+            549.4902954101562
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.010021667927503586
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1006.0,
+            485.0
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.0
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4018,
+      "source_pts": 1028608,
+      "candidate_time": [
+        4,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1002.636474609375,
+            549.5847778320312
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.0029328647069633007
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1006.0,
+            485.0
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.0
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4019,
+      "source_pts": 1028864,
+      "candidate_time": [
+        5,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1002.6471557617188,
+            549.718017578125
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.0006103515625
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1006.0,
+            485.0
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.0
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4020,
+      "source_pts": 1029120,
+      "candidate_time": [
+        6,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1002.6485595703125,
+            549.7191772460938
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.0004094362666364759
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1006.0,
+            485.0
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.0
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4021,
+      "source_pts": 1029376,
+      "candidate_time": [
+        7,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1002.5501098632812,
+            550.5399780273438
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.008765294216573238
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1006.0,
+            485.0
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.0
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4022,
+      "source_pts": 1029632,
+      "candidate_time": [
+        8,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1002.1660766601562,
+            551.5281372070312
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.011360575444996357
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1006.0,
+            485.0
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.0
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4023,
+      "source_pts": 1029888,
+      "candidate_time": [
+        9,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1001.6651000976562,
+            551.7196655273438
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.007130672223865986
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1006.0,
+            485.0
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.0
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4024,
+      "source_pts": 1030144,
+      "candidate_time": [
+        10,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1001.2153930664062,
+            552.699951171875
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.022745486348867416
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1006.0,
+            485.0
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.0
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4025,
+      "source_pts": 1030400,
+      "candidate_time": [
+        11,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1000.7329711914062,
+            552.9334106445312
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.0015307539142668247
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1006.0,
+            485.0
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.0
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4026,
+      "source_pts": 1030656,
+      "candidate_time": [
+        12,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1000.5699462890625,
+            552.9427490234375
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.0074003711342811584
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1006.0,
+            485.0
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.0
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4027,
+      "source_pts": 1030912,
+      "candidate_time": [
+        13,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1000.330810546875,
+            553.2071533203125
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.0007816313882358372
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1006.0,
+            485.0
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.0
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4028,
+      "source_pts": 1031168,
+      "candidate_time": [
+        14,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            999.5662841796875,
+            553.54541015625
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.008852622471749783
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1006.0,
+            485.0
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.0
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4029,
+      "source_pts": 1031424,
+      "candidate_time": [
+        15,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            998.836181640625,
+            553.7413940429688
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.0017477809451520443
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1006.0,
+            485.0
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.0
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4030,
+      "source_pts": 1031680,
+      "candidate_time": [
+        16,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            998.79296875,
+            553.7276000976562
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.0006601961795240641
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1006.0,
+            485.0
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.0
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4031,
+      "source_pts": 1031936,
+      "candidate_time": [
+        17,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            998.5535278320312,
+            553.5050659179688
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.0007549631991423666
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1006.0,
+            485.0
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.0
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4032,
+      "source_pts": 1032192,
+      "candidate_time": [
+        18,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            998.4043579101562,
+            553.3046264648438
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.0005250442773103714
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1006.0,
+            485.0
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.0
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4033,
+      "source_pts": 1032448,
+      "candidate_time": [
+        19,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            998.3240356445312,
+            553.274658203125
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.00013647876039613038
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1006.0,
+            485.0
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.0
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4034,
+      "source_pts": 1032704,
+      "candidate_time": [
+        20,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            989.6334838867188,
+            546.424560546875
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.1027337908744812
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            997.4960327148438,
+            479.59429931640625
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.015991123393177986
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4035,
+      "source_pts": 1032960,
+      "candidate_time": [
+        21,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            984.3011474609375,
+            547.4971923828125
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.0823463574051857
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            991.9530639648438,
+            479.7244567871094
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.0008550369529984891
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4036,
+      "source_pts": 1033216,
+      "candidate_time": [
+        22,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            981.2445678710938,
+            555.36474609375
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.06678306311368942
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            989.288818359375,
+            484.995849609375
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.0015368260210379958
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4037,
+      "source_pts": 1033472,
+      "candidate_time": [
+        23,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            979.6514282226562,
+            558.6492919921875
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.08437260240316391
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            987.5054321289062,
+            491.8232421875
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.0007798420847393572
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4038,
+      "source_pts": 1033728,
+      "candidate_time": [
+        24,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            977.3350830078125,
+            567.9354858398438
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.23070508241653442
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            987.3763427734375,
+            500.1783142089844
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.027759389951825142
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4039,
+      "source_pts": 1033984,
+      "candidate_time": [
+        25,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            977.7014770507812,
+            580.23095703125
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.17099080979824066
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            987.734130859375,
+            514.3624267578125
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.05007852613925934
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4040,
+      "source_pts": 1034240,
+      "candidate_time": [
+        26,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            979.7601928710938,
+            592.921630859375
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.279257595539093
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            989.2307739257812,
+            532.19482421875
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.06156075745820999
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4041,
+      "source_pts": 1034496,
+      "candidate_time": [
+        27,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            983.6502075195312,
+            607.5826416015625
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.052197907119989395
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            991.584716796875,
+            547.3046264648438
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.024766288697719574
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4042,
+      "source_pts": 1034752,
+      "candidate_time": [
+        28,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            985.5875244140625,
+            613.0011596679688
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.03206832706928253
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            997.0933227539062,
+            559.6644897460938
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.04801372438669205
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4043,
+      "source_pts": 1035008,
+      "candidate_time": [
+        29,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            997.1350708007812,
+            625.5292358398438
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.16403819620609283
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1005.6552734375,
+            570.23583984375
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.043734319508075714
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4044,
+      "source_pts": 1035264,
+      "candidate_time": [
+        30,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1009.1873168945312,
+            632.61083984375
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.21807055175304413
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1016.9790649414062,
+            578.191650390625
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.029018670320510864
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4045,
+      "source_pts": 1035520,
+      "candidate_time": [
+        31,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1020.6321411132812,
+            627.7363891601562
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.5016590356826782
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1029.222900390625,
+            575.9949340820312
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.0036874529905617237
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4046,
+      "source_pts": 1035776,
+      "candidate_time": [
+        32,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1031.4368896484375,
+            617.4918212890625
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.41730427742004395
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1037.7845458984375,
+            562.324462890625
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.010224800556898117
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4047,
+      "source_pts": 1036032,
+      "candidate_time": [
+        33,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1034.7373046875,
+            602.9163208007812
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.5069226622581482
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1041.1005859375,
+            547.6596069335938
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.07543313503265381
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4048,
+      "source_pts": 1036288,
+      "candidate_time": [
+        34,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1035.288330078125,
+            594.0621948242188
+          ],
+          "state": "visible",
+          "uncertainty_px": 8,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 1.032601237297058
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1040.5517578125,
+            530.8485717773438
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.08971337229013443
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4049,
+      "source_pts": 1036544,
+      "candidate_time": [
+        35,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1031.97021484375,
+            571.6055297851562
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.9099205136299133
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1038.3729248046875,
+            510.747802734375
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.06048494577407837
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4050,
+      "source_pts": 1036800,
+      "candidate_time": [
+        36,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1027.4736328125,
+            551.9494018554688
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.05013037845492363
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1032.817626953125,
+            487.4184875488281
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.059843841940164566
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4051,
+      "source_pts": 1037056,
+      "candidate_time": [
+        37,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1018.455810546875,
+            534.0548095703125
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.2031562477350235
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1024.49755859375,
+            468.1429138183594
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.04454680159687996
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4052,
+      "source_pts": 1037312,
+      "candidate_time": [
+        38,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1010.4915161132812,
+            520.225830078125
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.0490596629679203
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1014.8629150390625,
+            451.9132995605469
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.027617312967777252
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4053,
+      "source_pts": 1037568,
+      "candidate_time": [
+        39,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1002.0489501953125,
+            509.1065368652344
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.745397686958313
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1007.9204711914062,
+            441.7225646972656
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.017409896478056908
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4054,
+      "source_pts": 1037824,
+      "candidate_time": [
+        40,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            998.5767822265625,
+            504.26849365234375
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.11583571881055832
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1003.384033203125,
+            434.6772766113281
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.005832930561155081
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4055,
+      "source_pts": 1038080,
+      "candidate_time": [
+        41,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            994.3536376953125,
+            496.7539367675781
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.06905905902385712
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1000.1357421875,
+            428.0921936035156
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.007194903213530779
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4056,
+      "source_pts": 1038336,
+      "candidate_time": [
+        42,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            992.3170166015625,
+            491.3246154785156
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.08312567323446274
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            997.7640380859375,
+            421.35028076171875
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.008107401430606842
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4057,
+      "source_pts": 1038592,
+      "candidate_time": [
+        43,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            991.058349609375,
+            486.4983215332031
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.016752038151025772
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            996.6891479492188,
+            416.10174560546875
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.003715632716193795
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4058,
+      "source_pts": 1038848,
+      "candidate_time": [
+        44,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            990.6787719726562,
+            482.82525634765625
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.00614707637578249
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            996.144775390625,
+            412.5289611816406
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.002998963464051485
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4059,
+      "source_pts": 1039104,
+      "candidate_time": [
+        45,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            990.4482421875,
+            481.7551574707031
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.008552983403205872
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            995.595947265625,
+            410.1673583984375
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.001160069485194981
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4060,
+      "source_pts": 1039360,
+      "candidate_time": [
+        46,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            989.7450561523438,
+            479.6918029785156
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.008409794420003891
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            995.2276611328125,
+            408.7639465332031
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.0006291359895840287
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4061,
+      "source_pts": 1039616,
+      "candidate_time": [
+        47,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            989.972900390625,
+            478.5120849609375
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.012941936030983925
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            995.2418212890625,
+            407.7880554199219
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.0001643421855987981
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4062,
+      "source_pts": 1039872,
+      "candidate_time": [
+        48,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            989.83251953125,
+            478.7902526855469
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.037401605397462845
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            995.729248046875,
+            408.1456604003906
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.0004369452362880111
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4063,
+      "source_pts": 1040128,
+      "candidate_time": [
+        49,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            990.7163696289062,
+            480.2003173828125
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.07975896447896957
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            996.3179931640625,
+            409.5708312988281
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.0004766998172271997
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4064,
+      "source_pts": 1040384,
+      "candidate_time": [
+        50,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            991.0869750976562,
+            481.8345031738281
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.07583318650722504
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            996.20556640625,
+            410.851318359375
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.002077213954180479
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4065,
+      "source_pts": 1040640,
+      "candidate_time": [
+        51,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            990.9537353515625,
+            482.4620361328125
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.03925514221191406
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            997.2613525390625,
+            413.4832458496094
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.006048719398677349
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4066,
+      "source_pts": 1040896,
+      "candidate_time": [
+        52,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            995.0858764648438,
+            489.2325134277344
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.10884539783000946
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            999.76171875,
+            418.3957824707031
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.0010536301415413618
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4067,
+      "source_pts": 1041152,
+      "candidate_time": [
+        53,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            997.0239868164062,
+            495.4318542480469
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.11227802187204361
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1002.1283569335938,
+            426.22918701171875
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.003753662109375
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4068,
+      "source_pts": 1041408,
+      "candidate_time": [
+        54,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            998.0737915039062,
+            507.4893493652344
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.2860774099826813
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1003.249267578125,
+            439.7790832519531
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.012048840522766113
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4069,
+      "source_pts": 1041664,
+      "candidate_time": [
+        55,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            998.884521484375,
+            525.5595703125
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.16757236421108246
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1004.3987426757812,
+            454.6820983886719
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.008964119479060173
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4070,
+      "source_pts": 1041920,
+      "candidate_time": [
+        56,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            999.4680786132812,
+            535.8304443359375
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.06452720612287521
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1005.7459716796875,
+            472.0205993652344
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.006464038044214249
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4071,
+      "source_pts": 1042176,
+      "candidate_time": [
+        57,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            998.7550659179688,
+            556.6498413085938
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.12374356389045715
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1006.7289428710938,
+            491.5452880859375
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.020965198054909706
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4072,
+      "source_pts": 1042432,
+      "candidate_time": [
+        58,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            999.1016845703125,
+            577.05126953125
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.2889673113822937
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1007.4541625976562,
+            510.443603515625
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.0008079957333393395
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4073,
+      "source_pts": 1042688,
+      "candidate_time": [
+        59,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            999.3884887695312,
+            593.3199462890625
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.357273668050766
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1007.125,
+            526.7821044921875
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.0010144512634724379
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4074,
+      "source_pts": 1042944,
+      "candidate_time": [
+        60,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            997.8374633789062,
+            607.29150390625
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.2071194052696228
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1007.4628295898438,
+            541.1043701171875
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.0007549631991423666
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4075,
+      "source_pts": 1043200,
+      "candidate_time": [
+        61,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            996.817626953125,
+            617.737548828125
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.3282596170902252
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1008.1990356445312,
+            551.5220336914062
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.0014749811962246895
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4076,
+      "source_pts": 1043456,
+      "candidate_time": [
+        62,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            995.8570556640625,
+            621.3378295898438
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.05106932297348976
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1009.4525146484375,
+            557.7469482421875
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.0004315837286412716
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4077,
+      "source_pts": 1043712,
+      "candidate_time": [
+        63,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            994.0551147460938,
+            625.4772338867188
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.043596792966127396
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1007.8195190429688,
+            560.319091796875
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.0015845648013055325
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4078,
+      "source_pts": 1043968,
+      "candidate_time": [
+        64,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            991.4016723632812,
+            626.9285278320312
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.037300921976566315
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1005.96435546875,
+            561.708251953125
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.0015692090382799506
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4079,
+      "source_pts": 1044224,
+      "candidate_time": [
+        65,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            989.7682495117188,
+            625.7044677734375
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.03633437678217888
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1002.7340087890625,
+            561.15380859375
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.0019702163990586996
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4080,
+      "source_pts": 1044480,
+      "candidate_time": [
+        66,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            987.3524169921875,
+            623.0548706054688
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.03225458413362503
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            999.35498046875,
+            558.5249633789062
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.0011660750024020672
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4081,
+      "source_pts": 1044736,
+      "candidate_time": [
+        67,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            985.286865234375,
+            618.4779052734375
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.10482899844646454
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            996.5171508789062,
+            555.8192138671875
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.00042724609375
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4082,
+      "source_pts": 1044992,
+      "candidate_time": [
+        68,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            984.9306030273438,
+            616.0075073242188
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.07177664339542389
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            995.6417236328125,
+            551.9741821289062
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.0011850884184241295
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4083,
+      "source_pts": 1045248,
+      "candidate_time": [
+        69,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            984.7426147460938,
+            608.8560180664062
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.06673721969127655
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            994.1708984375,
+            544.908203125
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.00027295752079226077
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4084,
+      "source_pts": 1045504,
+      "candidate_time": [
+        70,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            984.7843627929688,
+            600.9736938476562
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.04442629963159561
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            992.2750244140625,
+            535.457275390625
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.0011660750024020672
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4085,
+      "source_pts": 1045760,
+      "candidate_time": [
+        71,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            984.7671508789062,
+            592.4777221679688
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.3447519540786743
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            991.0255737304688,
+            526.90625
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.0013918157201260328
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4086,
+      "source_pts": 1046016,
+      "candidate_time": [
+        72,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            985.3927001953125,
+            586.0945434570312
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.24481260776519775
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            991.5552368164062,
+            519.9141235351562
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.0006823937874287367
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4087,
+      "source_pts": 1046272,
+      "candidate_time": [
+        73,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            986.3905029296875,
+            578.9654541015625
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.24808433651924133
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            992.80029296875,
+            513.3037719726562
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.0013203923590481281
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4088,
+      "source_pts": 1046528,
+      "candidate_time": [
+        74,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            989.13916015625,
+            572.832763671875
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.29878419637680054
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            994.6817016601562,
+            508.0278625488281
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.0023575692903250456
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4089,
+      "source_pts": 1046784,
+      "candidate_time": [
+        75,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            990.9760131835938,
+            571.2634887695312
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.18230758607387543
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            996.7242431640625,
+            503.6777648925781
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.004980259109288454
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4090,
+      "source_pts": 1047040,
+      "candidate_time": [
+        76,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            994.6736450195312,
+            567.6290893554688
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.871308445930481
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            999.6369018554688,
+            499.67626953125
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.0001220703125
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4091,
+      "source_pts": 1047296,
+      "candidate_time": [
+        77,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            998.932861328125,
+            565.3838500976562
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.2680634558200836
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1003.3531494140625,
+            495.5182800292969
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.0009784679859876633
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4092,
+      "source_pts": 1047552,
+      "candidate_time": [
+        78,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1002.4161987304688,
+            563.7076416015625
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.18456721305847168
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1006.483154296875,
+            492.2973937988281
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.0019619266968220472
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4093,
+      "source_pts": 1047808,
+      "candidate_time": [
+        79,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1004.46826171875,
+            562.1470947265625
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.19905461370944977
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1007.6541748046875,
+            489.3648376464844
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.00044434264418669045
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4094,
+      "source_pts": 1048064,
+      "candidate_time": [
+        80,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1004.3032836914062,
+            560.3810424804688
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.35914063453674316
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1007.3652954101562,
+            486.8903503417969
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.000457763671875
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4095,
+      "source_pts": 1048320,
+      "candidate_time": [
+        81,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1003.6907348632812,
+            559.8375244140625
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.010264980606734753
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1005.5975341796875,
+            484.89520263671875
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 8.63167442730628e-05
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4096,
+      "source_pts": 1048576,
+      "candidate_time": [
+        82,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1002.8973388671875,
+            559.3978271484375
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.0011787846451625228
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1005.5975341796875,
+            484.89520263671875
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.0
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4097,
+      "source_pts": 1048832,
+      "candidate_time": [
+        83,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1001.9749755859375,
+            559.2881469726562
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.01107565313577652
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1005.5975341796875,
+            484.89520263671875
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.0
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4098,
+      "source_pts": 1049088,
+      "candidate_time": [
+        84,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1001.2615356445312,
+            559.0645141601562
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.033588752150535583
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1005.5975341796875,
+            484.89520263671875
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.0
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4099,
+      "source_pts": 1049344,
+      "candidate_time": [
+        85,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1000.4808349609375,
+            558.9146118164062
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.007124661933630705
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1005.5975341796875,
+            484.89520263671875
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.0
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4100,
+      "source_pts": 1049600,
+      "candidate_time": [
+        86,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1000.1546630859375,
+            559.5608520507812
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.009457101114094257
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1005.5975341796875,
+            484.89520263671875
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.0
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4101,
+      "source_pts": 1049856,
+      "candidate_time": [
+        87,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            999.9317016601562,
+            560.50537109375
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.14793089032173157
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1005.5975341796875,
+            484.89520263671875
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.0
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4102,
+      "source_pts": 1050112,
+      "candidate_time": [
+        88,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1000.1702880859375,
+            560.8193359375
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.01083077397197485
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1005.5975341796875,
+            484.89520263671875
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.0
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4103,
+      "source_pts": 1050368,
+      "candidate_time": [
+        89,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1000.2379760742188,
+            561.3240356445312
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.009652821347117424
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1005.5975341796875,
+            484.89520263671875
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.0
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4104,
+      "source_pts": 1050624,
+      "candidate_time": [
+        90,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1000.293212890625,
+            561.8046875
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.027995649725198746
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1005.5975341796875,
+            484.89520263671875
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.0
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4105,
+      "source_pts": 1050880,
+      "candidate_time": [
+        91,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1000.596435546875,
+            562.7321166992188
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.06363371014595032
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1005.5975341796875,
+            484.89520263671875
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.0
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4106,
+      "source_pts": 1051136,
+      "candidate_time": [
+        92,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1000.593505859375,
+            563.86865234375
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.07490826398134232
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1005.5975341796875,
+            484.89520263671875
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.0
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4107,
+      "source_pts": 1051392,
+      "candidate_time": [
+        93,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1000.7066650390625,
+            565.0562133789062
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.058735232800245285
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1005.5975341796875,
+            484.89520263671875
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.0
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4108,
+      "source_pts": 1051648,
+      "candidate_time": [
+        94,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1000.8638916015625,
+            565.5736083984375
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.00037126237293705344
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1005.5975341796875,
+            484.89520263671875
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.0
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4109,
+      "source_pts": 1051904,
+      "candidate_time": [
+        95,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1000.8648681640625,
+            565.6118774414062
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.01231474056839943
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1005.5975341796875,
+            484.89520263671875
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.0
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4110,
+      "source_pts": 1052160,
+      "candidate_time": [
+        96,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1000.8529663085938,
+            565.906005859375
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.0012115132994949818
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1005.5975341796875,
+            484.89520263671875
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.0
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4111,
+      "source_pts": 1052416,
+      "candidate_time": [
+        97,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1000.6957397460938,
+            566.5090942382812
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.0053856391459703445
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1005.5975341796875,
+            484.89520263671875
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.0
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4112,
+      "source_pts": 1052672,
+      "candidate_time": [
+        98,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1000.6869506835938,
+            567.1696166992188
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.003118173684924841
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1005.5975341796875,
+            484.89520263671875
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.0
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    },
+    {
+      "frame": 4113,
+      "source_pts": 1052928,
+      "candidate_time": [
+        99,
+        60
+      ],
+      "reference": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1000.1995849609375,
+            567.6303100585938
+          ],
+          "state": "visible",
+          "uncertainty_px": 6,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.006910732481628656
+        },
+        "physical_muzzle": {
+          "state": "occluded",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      },
+      "candidate": {
+        "charging_handle_right_upper_corner": {
+          "xy": [
+            1005.5975341796875,
+            484.89520263671875
+          ],
+          "state": "visible",
+          "uncertainty_px": 2,
+          "method": "LK proposed point then Aella inspected actual native-frame corner; pixel review complete for this point only.",
+          "forward_backward_error_px": 0.0
+        },
+        "physical_muzzle": {
+          "state": "uncertain",
+          "method": "Source physical muzzle hidden; candidate muzzle not used without corresponding source observation."
+        },
+        "third_rigid_anchor": {
+          "state": "uncertain",
+          "method": "No frozen physically corresponding third rigid anchor."
+        }
+      }
+    }
+  ],
+  "annotation_review": {
+    "reviewer": "Aella independent of Hal author",
+    "reviewed_source_and_candidate_point_frames": [
+      4014,
+      4114
+    ],
+    "method": "All100 actual-source and actual-Eevee cropped landmark witnesses inspected; full-window paired pixels every3 frames plus every native frame4063-4096. This is frame review, not normal/slow playback review.",
+    "source_uncertainty_px": 6,
+    "candidate_uncertainty_px": 2,
+    "special_cases": [
+      {
+        "frame": 4048,
+        "reason": "LK forward-backward1.0326px warning; actual corner inspected and retained as visible with8px source uncertainty."
+      }
+    ],
+    "correspondence_status": "Same charging-handle component corner proposed; differing COD rifle/HK416 geometry, not frozen for scoring."
+  }
+}

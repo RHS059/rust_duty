@@ -1,0 +1,31 @@
+{
+  "status": "diagnostic only; one provisional physical correspondence; no score",
+  "artifacts": {
+    "local-residuals.png": {
+      "sha256": "cb099645ced89a346d74be149e5d0b48b2b3b0d75c8c8c8e7b94316a8b73e82c",
+      "bytes": 123208
+    },
+    "summary.json": {
+      "sha256": "530a27c6464900719e03cec4861519cc5c9371d228762de6a8f8977009ff9ae6",
+      "bytes": 3160
+    },
+    "jump-r7-receiver-raw.json": {
+      "sha256": "eabb8b6b2075bcf7d739693b42b3057c9933810705895b005df21a21492b87b5",
+      "bytes": 169846
+    },
+    "local-verified-report.json": {
+      "sha256": "f3b3695401ffd19ad9f3d5e622d0edd66f988fb2f9848e115fa9e9d21676fb0d",
+      "bytes": 76139
+    },
+    "R3-decoded-pts.json": {
+      "sha256": "5366d5bdacb57a8d1dd0d239a1db18a3b7a283b52f48e747c825315ea7719d59",
+      "bytes": 188902
+    }
+  },
+  "source_sha256": "491a1729aa0f32373025d35fff86da76c6c1c8f057c0c553d0fbb5fb6226ff46",
+  "native_archive_sha256": "12e5aee93e50a2bc2f5b1763ee5e5afee9b4fe2477102cd07db85469e8a7e504",
+  "candidate_evidence_commit": "e9317f90ea171976306e2f17c111325d948ea357",
+  "native_capture_source_blend_sha256": "a2c4b2bbe98da1a608450bba92404cb39008eae5861bcf8fc3f5d2f978df0e3b",
+  "frame_map_sha256": "58fa76a590d6f2c519f7b535938d09e985ce07a007ab4f48fc9f68de64d1f599",
+  "annotation_review": "All100 landmark crops inspected independently; full viewport20Hz + native landing4063-4096. Normal/slow playback not claimed."
+}

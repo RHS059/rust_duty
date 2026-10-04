@@ -1,0 +1,31 @@
+{
+  "schema": "rust-duty-colab-batch-provenance/v1",
+  "execution": "actual Colab CPU, synthetic=false",
+  "zip_sha256": "07692c3be1bb51b78ac6693bb7fff31dfd7a5b4f57609c992fa930523c19eeca",
+  "members": [
+    "report.json",
+    "residuals.png"
+  ],
+  "zip_crc_verified": true,
+  "metrics_equal_local": true,
+  "executed_code_sha256": "14a1f523709ea6f4221508e2138df1764c1cf91a4f880178b38cb325fbfd993c",
+  "current_code_sha256": "31173f6713caa33ed74290eb080d39804513d3577a728897afa7693f13510021",
+  "exact_code_difference": [
+    "Current report additionally includes landmark_definitions and declared_annotation_review.",
+    "Current plot skips empty unsupported landmark legends.",
+    "No measurement arithmetic or input changes."
+  ],
+  "source_candidate_bytes_verified_inside_colab": false,
+  "source_candidate_bytes_verified_locally": true,
+  "runtime_release": {
+    "observed_by": "parent browser owner",
+    "time_utc": "2026-10-04T19:30:45Z",
+    "status": "Manage sessions showed No active sessions after results were preserved."
+  },
+  "score": null,
+  "limitations": [
+    "One proposed charging-handle corner only; differing weapon geometry.",
+    "L, physical muzzle/axis, third anchor and event score contract remain unsupported.",
+    "No full-weapon, full-motion playback, contact or game-runtime approval."
+  ]
+}
