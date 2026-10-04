@@ -1,21 +1,21 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-04T00:21:58Z",
+  "updatedAt": "2026-10-04T00:32:22Z",
   "state": "active",
-  "task": "Fixing complete-asset validation in draft PR #26; ADS and walking-control publication remains held until verified 0.1.9 completion.",
-  "lastCompleted": "Packaging repair is in draft PR #26. Windows line-ending handling is fixed; real-artifact repack verification is still failing and being corrected.",
+  "task": "Verifying the packaging repair and reviewing build times; ADS/sliders publication remains held until verified 0.1.9 completion.",
+  "lastCompleted": "PR #26 at a479cca passed 51 local tests and exact-head game/updater CI. Complete Windows/Linux repack verification is running.",
   "agents": [
     {
       "slot": 1,
-      "state": "unknown",
-      "task": "Forward ADS source and runtime progress awaits confirmation; publication remains on hold.",
-      "lastCompleted": "V9 source and native mapping checks are published in draft PR #23; local-LRS baking still fails its tolerance and motion review remains pending."
+      "state": "active",
+      "task": "Reviewing Rust Duty build timings read-only to identify where tests and packaging spend time.",
+      "lastCompleted": "A recent 19-minute build spent about 8 minutes in asset tests and 4.3 minutes in repeated asset processing; release compilation took 18–38 seconds."
     },
     {
       "slot": 2,
       "state": "active",
-      "task": "Correcting source-to-regenerated-asset comparisons and rerunning complete-package verification in PR #26.",
-      "lastCompleted": "Windows line-ending validation is fixed and source-recipe regression tests pass; real-artifact package verification remains incomplete."
+      "task": "Verifying complete Windows/Linux ZIPs and update bundles from the original artifacts with PR #26.",
+      "lastCompleted": "Revised packaging checks passed 51 local tests plus game/updater CI; the real-artifact repack is still running."
     },
     {
       "slot": 3,
