@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-04T17:04:39Z",
+  "updatedAt": "2026-10-04T17:12:39Z",
   "state": "active",
-  "task": "Implementing ADS centering and smooth animation-to-movement transitions, with native UI design guidance and engineering review underway.",
+  "task": "Finishing ADS centering and animation transitions, reviewing native UI guidance and planning build optimization after gameplay commits.",
   "lastCompleted": "Verified dad6071 Windows/Linux builds and native capture checks passed. Source and signing-options investigation is complete; antivirus clearance has not been established.",
   "agents": [
     {
@@ -14,14 +14,14 @@
     {
       "slot": 2,
       "state": "active",
-      "task": "Adapting the requested design guidance for the native game UI.",
-      "lastCompleted": ""
+      "task": "Verifying CI and reviewing the native UI design guidance in PR #30.",
+      "lastCompleted": "Committed design guidance at 39558b4; updater CI passed and game CI is running."
     },
     {
       "slot": 3,
       "state": "active",
-      "task": "Coordinating independent reviews and checking CI after integrating PR #28 engineering guidance.",
-      "lastCompleted": "PR #28 merged at 61c3ccd; main game and updater CI are running."
+      "task": "Coordinating independent reviews and planning build optimization after the gameplay commits.",
+      "lastCompleted": "PR #28 merged at 61c3ccd; main updater CI passed and game CI is running."
     }
   ]
 }
