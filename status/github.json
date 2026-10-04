@@ -1,11 +1,11 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-04T17:12:39Z",
+  "updatedAt": "2026-10-04T17:32:07Z",
   "latestComplete": {
     "sha": "dad6071625ce9190c69e4703c53952a2244cf1f8",
     "downloadUrl": "https://github.com/RHS059/rust_duty/actions/runs/37169476605/artifacts/11289799614",
     "runUrl": "https://github.com/RHS059/rust_duty/actions/runs/37169476605",
-    "verifiedAt": "2026-10-04T17:12:39Z",
+    "verifiedAt": "2026-10-04T17:32:07Z",
     "completedAt": "2026-10-04T02:07:18Z"
   },
   "changes": [
@@ -13,15 +13,15 @@
     "Windows job 111339481428 passed tests, lint, release compilation, complete staging and embedded identity checks for 0.1.8/sequence 8. It staged 83 required game files plus BUILD_IDENTITY, with 84 files uploaded.",
     "Artifact 11289799614 is 92,905,506 bytes. API and upload-log SHA-256 agree: 34166ec8e40804a021199238710e425d3a00c1e5055f16b6bcd387228745c0ef. Verification uses CI staging, identity and upload evidence; no independent local full-ZIP inspection is claimed.",
     "Corrected dad6071 full game run 37169476605 passed on Windows and Linux. Linux native reload, walk, ADS interruption, layered 30/60 Hz and lighting checks passed; Linux artifact 11291071076 is available.",
-    "All authored asset, runtime-contract and updater checks passed for dad6071. Work has resumed on ADS centering and smooth animation-to-walk/run transitions; these new fixes are not included in this download.",
+    "All authored asset, runtime-contract and updater checks passed for dad6071. New ADS centering, reload-return blending and settings fixes are committed at edc162d, but are not included in this download; their next full build follows optimization.",
     "Six-slider UI, Z persistence/clamping, full Rust tests and Clippy passed locally. The known strict ADS bone-parity discrepancy at 3.36e-5 remains unresolved; Windows Alt-Tab interaction is still untested.",
     "Packaging repair is applied at 68a5bd4 and its repack checks preserved all 65 authored assets. Release publication is paused; 0.1.8 updater delivery is not yet published.",
     "Antivirus investigation awaits the exact Avast detection and affected filename; no security-clearance verdict. Lateral Trial4 and newer jump/mantle work are not included. PR #24 automatic patch releases remain inactive.",
-    "PR #28 engineering documentation merged at 61c3ccd. PR #30 design guidance is committed at 39558b4. Both use the 0.1.7 base and do not replace the verified integrated dad6071 download."
+    "PR #28 engineering documentation merged at 61c3ccd. PR #30 design guidance at 39558b4 passed game/updater CI. These documentation changes use the 0.1.7 base and do not replace the verified integrated dad6071 download."
   ],
   "currentBuild": {
     "state": "active",
-    "task": "Finishing 0.1.8 gameplay fixes, then optimizing the build before the next full build. Design guidance and independent review are underway. New gameplay changes are not yet published.",
+    "task": "Gameplay fixes are pushed at edc162d with CI intentionally skipped. Reload-return playback verification and repeated asset-parsing optimization are underway before the next full build.",
     "url": "https://github.com/RHS059/rust_duty/pull/27"
   }
 }
