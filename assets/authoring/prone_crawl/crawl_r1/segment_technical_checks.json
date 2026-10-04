@@ -1,0 +1,62 @@
+{
+  "checks": {
+    "prone_crawl_forward_segment_r1": {
+      "frame_count": 241,
+      "range": [
+        1.0,
+        241.0
+      ],
+      "loop": false,
+      "all_evaluated_bone_matrices_finite": true,
+      "max_grip_origin_drift_weapon_local_m": {
+        "hand_l": 6.654936831486702e-07,
+        "hand_r": 0.13263695973034617
+      },
+      "first_last_poses_forced_equal": false
+    },
+    "prone_crawl_backward_segment_r1": {
+      "frame_count": 229,
+      "range": [
+        1.0,
+        229.0
+      ],
+      "loop": false,
+      "all_evaluated_bone_matrices_finite": true,
+      "max_grip_origin_drift_weapon_local_m": {
+        "hand_l": 6.030829651608485e-07,
+        "hand_r": 0.1484744633160478
+      },
+      "first_last_poses_forced_equal": false
+    },
+    "prone_crawl_right_segment_r1": {
+      "frame_count": 139,
+      "range": [
+        1.0,
+        139.0
+      ],
+      "loop": false,
+      "all_evaluated_bone_matrices_finite": true,
+      "max_grip_origin_drift_weapon_local_m": {
+        "hand_l": 4.023313522338867e-07,
+        "hand_r": 4.5203600263945796e-07
+      },
+      "first_last_poses_forced_equal": false
+    },
+    "prone_crawl_left_segment_r1": {
+      "frame_count": 55,
+      "range": [
+        1.0,
+        55.0
+      ],
+      "loop": false,
+      "all_evaluated_bone_matrices_finite": true,
+      "max_grip_origin_drift_weapon_local_m": {
+        "hand_l": 3.9923225442435015e-07,
+        "hand_r": 5.09551765322575e-07
+      },
+      "first_last_poses_forced_equal": false
+    }
+  },
+  "meaning": "Finite matrices and bone-origin attachment diagnostics only. Not a render, visual deformation/grip assessment, or artistic score. Source never saved.",
+  "source_saved": false
+}

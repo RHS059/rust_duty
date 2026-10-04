@@ -1,0 +1,32 @@
+{
+  "schema": "rust-duty-prone-crawl-source-preservation/v1",
+  "source_sha256": "793546897db5634fca6ba6da7cefd5240e3712932c239bbabea7dfaa0f03419e",
+  "candidate_sha256": "9eafb596824f02b60885d4d7968dd3c802698f53d2a4736d256e3a4ee938cfba",
+  "source_actions": 104,
+  "candidate_actions": 108,
+  "created_actions": [
+    "prone_crawl_forward_segment_r1",
+    "prone_crawl_backward_segment_r1",
+    "prone_crawl_right_segment_r1",
+    "prone_crawl_left_segment_r1"
+  ],
+  "checks": {
+    "all_prior_action_fingerprints": true,
+    "only_expected_new_actions": true,
+    "nla_and_active_actions": true,
+    "drivers": true,
+    "packed_images": true,
+    "actions_metadata": true,
+    "pose_channel_defaults": true,
+    "actions_extended": true,
+    "meshes": true,
+    "armatures": true,
+    "objects_and_bindings": true,
+    "materials": true,
+    "cameras": true
+  },
+  "passed": true,
+  "source_saved": false,
+  "candidate_saved": true,
+  "design_sha256": "3abf74feadd8253ac9549d8812c7a61fecf5ead10e6cdbc47368bc48f0cda102"
+}
