@@ -1,11 +1,11 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-04T01:43:09Z",
+  "updatedAt": "2026-10-04T01:52:53Z",
   "latestComplete": {
     "sha": "b3f2ba8e228f4a34b8f1c5bec74190bc26ca2e87",
     "downloadUrl": "https://github.com/RHS059/rust_duty/actions/runs/37160557704/artifacts/11287513506",
     "runUrl": "https://github.com/RHS059/rust_duty/actions/runs/37160557704",
-    "verifiedAt": "2026-10-04T01:43:09Z",
+    "verifiedAt": "2026-10-04T01:52:53Z",
     "completedAt": "2026-10-03T23:24:10Z"
   },
   "changes": [
@@ -15,13 +15,13 @@
     "Native Linux walking-slider clicks and persistence passed; real Windows Alt-Tab interaction remains untested.",
     "Draft PR #27 at edd4612 now contains the combined 0.1.8 candidate: ADS v9, focus fixes, absolute XYZ position, separate walking XYZ and current effects. Six-slider UI, Z persistence/clamping, full Rust tests and Clippy passed locally.",
     "Released 0.1.5 at eb886edb passed real Windows/Linux 0.1.4 upgrades, checking 70 managed files and preserving 85 root-file and synthetic private-data checks.",
-    "For edd4612, all four authored asset pipelines, runtime-contract checks and updater builds passed. Windows/Linux Python regression tests are running; no new complete game artifact is available yet. Strict bone-parity remains unresolved at 3.36e-5; PR #24 automation is inactive.",
-    "Packaging repair is applied at 68a5bd4; repack checks preserved all 65 authored assets. The 0.1.8 publication plan and WIP release notes are prepared, pending native CI and package verification. Public latest remains 0.1.7.",
-    "V9, lateral Trial4 and newer jump/mantle work are absent from this PR #25 artifact."
+    "For edd4612, authored assets, runtime contracts, updater builds, native Python/Rust tests, lint and release compilation passed. Linux then failed its native ADS input/interruption capture; complete Linux upload was skipped. Windows packaging is running.",
+    "Packaging repair is applied at 68a5bd4; repack checks preserved all 65 authored assets. The 0.1.8 release awaits complete native verification. Public latest remains 0.1.7.",
+    "Strict bone parity remains unresolved at 3.36e-5; PR #24 automation is inactive. V9, lateral Trial4 and newer jump/mantle work are absent from the PR #25 download."
   ],
   "currentBuild": {
-    "state": "active",
-    "task": "PR #27 edd4612: all four authored asset pipelines, runtime-contract checks and updater builds passed. Windows/Linux regression tests are running; complete-package verification and release remain pending.",
+    "state": "blocked",
+    "task": "PR #27 edd4612 failed the Linux native ADS input/interruption capture after passing tests, lint, compilation and staging. Windows packaging is running; no new complete package is verified.",
     "url": "https://github.com/RHS059/rust_duty/actions/runs/37167930813"
   }
 }
