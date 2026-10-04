@@ -1,11 +1,11 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-04T00:21:58Z",
+  "updatedAt": "2026-10-04T00:32:22Z",
   "latestComplete": {
     "sha": "b3f2ba8e228f4a34b8f1c5bec74190bc26ca2e87",
     "downloadUrl": "https://github.com/RHS059/rust_duty/actions/runs/37160557704/artifacts/11287513506",
     "runUrl": "https://github.com/RHS059/rust_duty/actions/runs/37160557704",
-    "verifiedAt": "2026-10-04T00:21:58Z",
+    "verifiedAt": "2026-10-04T00:32:22Z",
     "completedAt": "2026-10-03T23:24:10Z"
   },
   "changes": [
@@ -16,12 +16,12 @@
     "The newer combined v9 ADS/sliders candidate is still local and unpublished. Its 517 Rust tests, all-target Clippy and 1,320-tick replay passed; strict bone parity still fails at 3.36e-5.",
     "The separately released 0.1.5 at eb886edb passed real Windows/Linux 0.1.4 upgrades, checking 70 managed files and preserving 85 root-file and synthetic private-data checks.",
     "ADS/sliders commits and release publication remain held until Elara's 0.1.9 completion. The integration candidate is waiting with no active edits or tests. PR #24 automation remains inactive.",
-    "Public 0.1.7's checked Linux ZIP omits integrated animation assets. Draft PR #26 is correcting packaging: Windows line endings are resolved, but real-artifact inventory verification still fails while source-recipe comparisons are fixed. No 0.1.8 or 0.1.9 release is visible.",
+    "Public 0.1.7's checked Linux ZIP omits integrated animation assets. Revised draft PR #26 at a479cca passed 51 local tests and game/updater CI; complete real-artifact repack verification is running. No 0.1.8 or 0.1.9 release is visible.",
     "V9, lateral Trial4 and newer jump/mantle work are not included in this PR #25 artifact."
   ],
   "currentBuild": {
     "state": "active",
-    "task": "PR #26 at 86df5bab passed game/updater CI but failed real-artifact packaging verification. The repair is being revised; verified Latest Complete stays PR #25.",
-    "url": "https://github.com/RHS059/rust_duty/actions/runs/37164445587"
+    "task": "PR #26 at a479cca is verifying complete Windows/Linux packages from original artifacts. Game/updater CI passed; repack verification remains in progress. Latest Complete stays PR #25.",
+    "url": "https://github.com/RHS059/rust_duty/actions/runs/37164768461"
   }
 }
