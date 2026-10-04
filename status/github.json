@@ -1,11 +1,11 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-04T17:03:00Z",
+  "updatedAt": "2026-10-04T17:12:39Z",
   "latestComplete": {
     "sha": "dad6071625ce9190c69e4703c53952a2244cf1f8",
     "downloadUrl": "https://github.com/RHS059/rust_duty/actions/runs/37169476605/artifacts/11289799614",
     "runUrl": "https://github.com/RHS059/rust_duty/actions/runs/37169476605",
-    "verifiedAt": "2026-10-04T17:03:00Z",
+    "verifiedAt": "2026-10-04T17:12:39Z",
     "completedAt": "2026-10-04T02:07:18Z"
   },
   "changes": [
@@ -17,11 +17,11 @@
     "Six-slider UI, Z persistence/clamping, full Rust tests and Clippy passed locally. The known strict ADS bone-parity discrepancy at 3.36e-5 remains unresolved; Windows Alt-Tab interaction is still untested.",
     "Packaging repair is applied at 68a5bd4 and its repack checks preserved all 65 authored assets. Release publication is paused; 0.1.8 updater delivery is not yet published.",
     "Antivirus investigation awaits the exact Avast detection and affected filename; no security-clearance verdict. Lateral Trial4 and newer jump/mantle work are not included. PR #24 automatic patch releases remain inactive.",
-    "Documentation-only PR #28 at 3e3f758 passed game/updater CI on its 0.1.7 base. It does not include PR #27's integrated 0.1.8 changes, so the verified dad6071 download is retained."
+    "PR #28 engineering documentation merged at 61c3ccd. PR #30 design guidance is committed at 39558b4. Both use the 0.1.7 base and do not replace the verified integrated dad6071 download."
   ],
   "currentBuild": {
     "state": "active",
-    "task": "Implementing 0.1.8 ADS centering and animation transitions, adapting native UI guidance and coordinating engineering review. The verified dad6071 download remains current; public 0.1.8 publication is paused.",
+    "task": "Finishing 0.1.8 gameplay fixes, then optimizing the build before the next full build. Design guidance and independent review are underway. New gameplay changes are not yet published.",
     "url": "https://github.com/RHS059/rust_duty/pull/27"
   }
 }
