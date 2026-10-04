@@ -29,7 +29,7 @@ fn packaged_reload_returns_to_live_motion_with_named_bindings_and_retired_extra_
         .unwrap();
     assert_ne!(base.companion_checksums(), reload.companion_checksums());
     assert_ne!(base.actors().len(), reload.actors().len());
-    for source_seconds in [0.08, 0.65, 1.5, 2.6026] {
+    for source_seconds in [0.08, 0.75, 1.5, 2.6026] {
         let source = reload
             .sample_clamped(&manifest.tactical.clip, source_seconds)
             .unwrap();
@@ -89,6 +89,39 @@ fn packaged_reload_returns_to_live_motion_with_named_bindings_and_retired_extra_
             }
         }
     }
+    // The capture must actually cancel while the reload-only actor is visible.
+    let mut sim = vector_range::sim::Simulation::new();
+    sim.player.ammo = 12;
+    let duration = vector_range::authored_reload::AuthoredReload::clip_duration(
+        &reload,
+        &manifest.tactical.clip,
+    )
+    .unwrap();
+    let mut observer = vector_range::authored_reload::AuthoredReload::new(duration, None).unwrap();
+    let mut visible_cancellations = 0;
+    for _ in 0..780 {
+        let start = sim.time;
+        sim.update(
+            vector_range::authored_reload::gameplay_return_replay_input(start),
+            &vector_range::settings::Settings::m4_candidate(),
+            vector_range::sim::FIXED_DT,
+        );
+        observer.committed_step(start, &sim).unwrap();
+        if let Some(ended) = observer.ended_this_step() {
+            if ended.seconds < duration
+                && reload
+                    .sample_clamped(&manifest.tactical.clip, ended.seconds as f32)
+                    .unwrap()
+                    .actor_visible[extra]
+            {
+                visible_cancellations += 1;
+            }
+        }
+    }
+    assert!(
+        visible_cancellations >= 1,
+        "diagnostic input must reach a visible reload-only prop before cancellation"
+    );
     let mut incompatible = reload_skin.clone();
     incompatible.bones[0].inverse_bind[12] += 0.01;
     assert!(PoseReturnMap::new(&base, &base_skin, &reload, &incompatible, basis).is_err());

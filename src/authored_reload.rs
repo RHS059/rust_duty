@@ -16,16 +16,16 @@ pub enum ReloadSlot {
 pub fn gameplay_return_replay_input(time: f64) -> crate::sim::Input {
     use macroquad::math::Vec2;
     crate::sim::Input {
-        movement: if time < 5.6 { Vec2::Y } else { Vec2::ZERO },
+        movement: if time < 5.8 { Vec2::Y } else { Vec2::ZERO },
         reload: (0.25..0.26).contains(&time)
             || (3.55..3.56).contains(&time)
-            || (4.0..4.01).contains(&time),
+            || (4.40..4.41).contains(&time),
         fire: (3.30..3.43).contains(&time),
         sprint: (2.90..3.0).contains(&time)
-            || (3.90..4.0).contains(&time)
-            || (4.06..4.16).contains(&time)
-            || (4.80..5.10).contains(&time),
-        ads: (3.0..3.25).contains(&time) || (4.20..4.80).contains(&time),
+            || (4.30..4.40).contains(&time)
+            || (4.46..4.56).contains(&time)
+            || (5.20..5.50).contains(&time),
+        ads: (3.0..3.25).contains(&time) || (4.70..5.20).contains(&time),
         ..crate::sim::Input::default()
     }
 }
