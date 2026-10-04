@@ -1,27 +1,27 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-04T16:51:18Z",
-  "state": "idle",
-  "task": "Awaiting the exact Avast detection and affected filename; game changes and publication are paused.",
-  "lastCompleted": "Source and signing-options investigation is complete. Verified dad6071 Windows/Linux builds and native capture checks passed; antivirus clearance has not been established.",
+  "updatedAt": "2026-10-04T17:03:00Z",
+  "state": "active",
+  "task": "Implementing ADS centering and smooth animation-to-movement transitions, with native UI design guidance and engineering review underway.",
+  "lastCompleted": "Verified dad6071 Windows/Linux builds and native capture checks passed. Source and signing-options investigation is complete; antivirus clearance has not been established.",
   "agents": [
     {
       "slot": 1,
-      "state": "idle",
-      "task": "Awaiting antivirus detection details for further diagnosis.",
-      "lastCompleted": "Read-only source and free signing-options investigation completed; no security-clearance verdict."
+      "state": "active",
+      "task": "Finishing 0.1.8 ADS centering and smooth transitions from animations to walking and running.",
+      "lastCompleted": "Published dad6071 passed full Windows/Linux and updater CI. New gameplay fixes are not yet published."
     },
     {
       "slot": 2,
-      "state": "idle",
-      "task": "Release publication is paused; public updater latest remains 0.1.7.",
-      "lastCompleted": "The 0.1.8 publication plan is prepared. Packaging repair is applied at 68a5bd4 and its 51 tests passed."
+      "state": "active",
+      "task": "Adapting the requested design guidance for the native game UI.",
+      "lastCompleted": ""
     },
     {
       "slot": 3,
-      "state": "idle",
-      "task": "ADS-offset edits and tests are paused for antivirus investigation; the animation-blend fix has not started.",
-      "lastCompleted": "Published dad6071 passed full Windows/Linux and updater CI. New ADS fade changes remain local and unpublished."
+      "state": "active",
+      "task": "Integrating PR #28 engineering guidance and coordinating independent reviews and CI.",
+      "lastCompleted": "PR #28 documentation passed game/updater CI; it remains an open draft."
     }
   ]
 }
