@@ -48,6 +48,7 @@ fn actual_bound_layers_overlap_preserve_grips_and_leave_gameplay_unchanged() {
             manifest.receiver_ads_wip,
             manifest.ads_visual_transition_seconds,
         )
+        .and_then(|layers| layers.with_forward_ads_v9_policy(manifest.forward_ads_v9_wip))
         .unwrap();
     let anchor = set
         .actors()

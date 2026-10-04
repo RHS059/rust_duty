@@ -84,6 +84,12 @@ class FakeGitHub:
 
 
 class BuildIdentityTests(unittest.TestCase):
+    def setUp(self):
+        # Preserve regression coverage of the frozen historical publisher.
+        patch = mock.patch.object(identity, "package_version", return_value="0.1.7")
+        patch.start()
+        self.addCleanup(patch.stop)
+
     def test_one_time_version_and_sequence_do_not_increment_for_draft_pushes(self):
         item = identity.context(environment(), publication=True)
         self.assertEqual(item["version"], "0.1.7")
@@ -96,7 +102,8 @@ class BuildIdentityTests(unittest.TestCase):
                            ("GITHUB_REPOSITORY", "someone/fork"), ("GITHUB_REF_NAME", "main"),
                            ("GITHUB_REF", "refs/pull/1/merge"), ("RUST_DUTY_BUILD_RESULT", "failure"),
                            ("RUST_DUTY_BUILD_RESULT", "cancelled"), ("RUST_DUTY_BUILD_RESULT", "skipped"),
-                           ("RUST_DUTY_BUILD_VERSION", "0.1.4"), ("GITHUB_SHA", "main"),
+                           ("RUST_DUTY_BUILD_VERSION", "0.1.4"), ("RUST_DUTY_BUILD_VERSION", None),
+                           ("GITHUB_SHA", "main"),
                            ("GITHUB_RUN_NUMBER", "01"), ("GITHUB_RUN_ID", "0"),
                            ("GITHUB_RUN_NUMBER", str(2**64))]:
             env = environment()
@@ -133,8 +140,70 @@ class BuildIdentityTests(unittest.TestCase):
             self.assertFalse((root / identity.IDENTITY_FILE).exists())
 
 
+class CandidateIdentityTests(unittest.TestCase):
+    @staticmethod
+    def environment():
+        env = environment()
+        env.pop("RUST_DUTY_BUILD_VERSION")
+        env["GITHUB_REF_NAME"] = "aella/runtime-update-reconciliation-r1"
+        env["GITHUB_REF"] = "refs/heads/" + env["GITHUB_REF_NAME"]
+        return env
+
+    def test_checked_out_package_and_lock_match_candidate(self):
+        self.assertEqual(identity.package_version(), "0.1.8")
+        with (Path(__file__).resolve().parents[1] / "Cargo.lock").open("rb") as stream:
+            lock = identity.tomllib.load(stream)
+        game = [p for p in lock["package"] if p["name"] == "vector-range"]
+        self.assertEqual([p["version"] for p in game], [identity.package_version()])
+        item = identity.context(self.environment())
+        self.assertEqual((item["version"], item["sequence"]), ("0.1.8", 8))
+        env = self.environment()
+        env["GITHUB_RUN_NUMBER"] = "11"
+        env["GITHUB_RUN_ID"] = "1002"
+        self.assertEqual(identity.context(env)["version"], item["version"])
+        self.assertEqual(identity.context(env)["sequence"], item["sequence"])
+
+    def test_candidate_rejects_stale_pins_and_legacy_publication(self):
+        env = self.environment()
+        env["RUST_DUTY_BUILD_VERSION"] = "0.1.8"
+        self.assertEqual(identity.context(env)["version"], "0.1.8")
+        for version in ("0.1.5", "0.1.7"):
+            env["RUST_DUTY_BUILD_VERSION"] = version
+            with self.subTest(version=version), self.assertRaisesRegex(ValueError, "Cargo package"):
+                identity.context(env)
+        for branch in ("aella/runtime-update-reconciliation-r1", *identity.RELEASE_BRANCHES):
+            env = self.environment()
+            env["GITHUB_REF_NAME"] = branch
+            env["GITHUB_REF"] = "refs/heads/" + branch
+            with self.subTest(branch=branch), self.assertRaisesRegex(ValueError, "publication requires"):
+                identity.context(env, publication=True)
+
+    def test_candidate_stamps_and_verifies_both_platforms(self):
+        for platform, (_, executable, _, magic) in identity.TARGETS.items():
+            with self.subTest(platform=platform), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                (root / executable).write_bytes(magic + b"candidate native fixture")
+                with mock.patch.object(identity.subprocess, "check_output", return_value="0.1.8\n"):
+                    stamped = identity.stamp(root, platform, self.environment())
+                self.assertEqual(stamped["schema"], "rust-duty-build-identity/v1")
+                self.assertEqual((stamped["version"], stamped["sequence"]), ("0.1.8", 8))
+                identity.verify(root, platform, identity.context(self.environment()))
+
+    def test_previous_binary_cannot_receive_candidate_identity(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "vector-range").write_bytes(b"\x7fELFold build")
+            with mock.patch.object(identity.subprocess, "check_output", return_value="0.1.7\n"):
+                with self.assertRaisesRegex(ValueError, "embedded game version"):
+                    identity.stamp(root, "linux", self.environment())
+            self.assertFalse((root / identity.IDENTITY_FILE).exists())
+
+
 class PublicationTests(unittest.TestCase):
     def setUp(self):
+        patch = mock.patch.object(identity, "package_version", return_value="0.1.7")
+        patch.start()
+        self.addCleanup(patch.stop)
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name)
@@ -347,10 +416,11 @@ class WorkflowTests(unittest.TestCase):
         self.assertNotIn("aella/release-channel", job)
         self.assertNotIn("aella/layered-locomotion-integration-r1", job)
         self.assertNotIn("rust-duty-launcher", job)
-        self.assertEqual(text.count("RUST_DUTY_BUILD_VERSION: '0.1.5'"), 2)
+        self.assertEqual(text.count("RUST_DUTY_BUILD_VERSION: '0.1.5'"), 1)
         self.assertIn("tools/build_identity.py --root dist/game --platform windows", text)
         self.assertIn("tools/build_identity.py --root dist/game --platform linux", text)
         build = text.split("  build:\n", 1)[1].split("  publish-game-update:\n", 1)[0]
+        self.assertNotIn("RUST_DUTY_BUILD_VERSION:", build)
         self.assertIn("cargo fmt --manifest-path updater/Cargo.toml --all -- --check", build)
         self.assertIn("cargo clippy --manifest-path updater/Cargo.toml --locked --all-targets -- -D warnings", build)
         self.assertIn("cargo test --manifest-path updater/Cargo.toml --locked", build)

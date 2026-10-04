@@ -1,6 +1,6 @@
 [package]
 name = "vector-range"
-version = "0.1.7"
+version = "0.1.8"
 edition = "2021"
 license = "MIT"
 description = "Original standalone Rust movement and weapon feel laboratory"
@@ -12,6 +12,9 @@ audio = ["macroquad/audio"]
 [dependencies]
 rust-duty-launcher = { path = "updater" }
 macroquad = { version = "=0.4.14", default-features = false }
+
+[dev-dependencies]
+serde_json = "=1.0.151"
 
 [profile.release]
 lto = "thin"
