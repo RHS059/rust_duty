@@ -99,3 +99,8 @@ source_sha256 metadata is supplied, mismatches are rejected. Absent metadata
 remains unverified; matching PTS counts does not certify video bytes or pixels.
 Optional `phases` contains uniquely named half-open window_frames; reports all
 three native coverage ratios and gaps per phase without collapsing hidden motion.
+
+`normalization.L_px` may be null when the physical reference axis is hidden or
+not frozen. Raw, centered and baseline measurements remain available while all
+L-dependent threshold comparisons are explicitly unsupported. No replacement
+length is inferred from another body part, sight or desired result.

@@ -177,4 +177,12 @@ class ReviewRegressions(unittest.TestCase):
         pts={'frames':[{'pts':i*256} for i in range(112)]};pts['frames'][100]['pts']=True
         with self.assertRaisesRegex(ValueError,'Invalid decoded map PTS'):m.compare(fixture(),decoded_pts=pts)
 
+class UnsupportedNormalization(unittest.TestCase):
+    def test_missing_L_keeps_raw_without_threshold_pass(self):
+        d=fixture();d['normalization']['L_px']=None;r=m.compare(d)
+        self.assertEqual(r['aggregate']['raw']['rms'],0)
+        self.assertEqual(r['aggregate']['centered_uncertainty']['threshold_state'],'unsupported')
+        self.assertEqual(r['landmarks']['muzzle']['amplitudes']['x']['threshold_state'],'unsupported')
+        self.assertTrue(any('normalization L unavailable' in v for v in r['unsupported']))
+
 if __name__=='__main__':unittest.main()

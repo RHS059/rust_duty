@@ -117,7 +117,8 @@ def validate(doc):
     if abs(phase) > 600:
         raise ValueError('Phase offset out of bounds')
     norm = doc['normalization']
-    number(norm['L_px'], 'fixed reference visible-axis L', .01, 100000)
+    if norm['L_px'] is not None:
+        number(norm['L_px'], 'fixed reference visible-axis L', .01, 100000)
     text(norm['definition'], 'L definition and frozen source evidence')
     integer(doc['metrics_stride'], 'fixed metrics stride', 1, 60)
     baseline = integer(doc['baseline_frame'], 'fixed pre-event baseline')
@@ -200,7 +201,7 @@ def interval_stats(errors, uncertainties, threshold):
     lower = stats([max(0, e-u) for e, u in zip(errors, uncertainties)])
     upper = stats([e+u for e, u in zip(errors, uncertainties)])
     return {'lower': lower, 'upper': upper, 'threshold': threshold,
-            'threshold_state': decision(lower['rms'], upper['rms'], threshold) if lower else 'unsupported'}
+            'threshold_state': decision(lower['rms'], upper['rms'], threshold) if lower and threshold is not None else 'unsupported'}
 
 def circular_delta(a, b):
     return (a-b+180) % 360 - 180
@@ -234,7 +235,8 @@ def compare(doc, supplied_artifacts=None, decoded_pts=None):
         'score_reason': 'No percentage computed. Frozen event rubric and independent complete-clip review are separate requirements.',
         'input_sha256': sha256(json.dumps(doc, sort_keys=True, separators=(',', ':'), allow_nan=False).encode()),
         'code_sha256': sha256(Path(__file__).read_bytes()) if Path(__file__).is_file() else None,
-        'registration': reg, 'normalization': doc['normalization'], 'source_window': doc['source']['window_frames'],
+        'registration': reg, 'normalization': doc['normalization'],
+        'landmark_definitions': doc['landmarks'], 'declared_annotation_review': doc.get('annotation_review'), 'source_window': doc['source']['window_frames'],
         'metrics_stride': stride, 'native_frame_count': len(rows), 'metric_frame_count': len(selected),
         'decoded_pts_witness': pts_witness, 'provenance': {}, 'landmarks': {}, 'events': [], 'hard_gate_findings': [], 'unsupported': [],
         'reviewer': {'status': 'pending', 'author': doc['candidate']['author'], 'whole_clip_review': None},
@@ -285,18 +287,19 @@ def compare(doc, supplied_artifacts=None, decoded_pts=None):
         # Center uncertainty includes each point AND the uncertain constant mean.
         centered_u = [v+statistics.mean(u) for v in u]
         item.update(raw=stats(raw), mean_centered=stats(centered), constant_means={'reference': am, 'candidate': bm},
-                    centered_uncertainty=interval_stats(centered, centered_u, .06*L))
+                    centered_uncertainty=interval_stats(centered, centered_u, .06*L if L is not None else None))
         item['amplitudes'] = {}
         for k, axis in enumerate(('x','y')):
             ref = max(v[k] for v in a)-min(v[k] for v in a)
             cand = max(v[k] for v in b)-min(v[k] for v in b)
             err = abs(ref-cand)
             bound = 2*(max(r['reference'][name]['uncertainty_px']*ss for r in usable)+max(r['candidate'][name]['uncertainty_px']*cs for r in usable))
-            threshold = max(.2*ref, .02*L)
+            threshold = max(.2*ref, .02*L) if L is not None else None
             # Reference amplitude uncertainty also changes a relative tolerance.
             ref_u = 2*max(r['reference'][name]['uncertainty_px']*ss for r in usable)
-            low_tol = max(.2*max(0,ref-ref_u),.02*L); high_tol = max(.2*(ref+ref_u),.02*L)
-            state = 'within_threshold' if err+bound < low_tol else 'outside_threshold' if max(0,err-bound) > high_tol else 'inconclusive'
+            low_tol = max(.2*max(0,ref-ref_u),.02*L) if L is not None else None
+            high_tol = max(.2*(ref+ref_u),.02*L) if L is not None else None
+            state = 'unsupported' if L is None else 'within_threshold' if err+bound < low_tol else 'outside_threshold' if max(0,err-bound) > high_tol else 'inconclusive'
             item['amplitudes'][axis] = {'reference_px': ref, 'candidate_px': cand, 'error_px': err,
                  'error_bound_px': bound, 'threshold_px': threshold, 'threshold_interval_px': [low_tol,high_tol], 'threshold_state': state}
         ba = baseline_row['reference'][name]; bb = baseline_row['candidate'][name]
@@ -315,7 +318,9 @@ def compare(doc, supplied_artifacts=None, decoded_pts=None):
         pooled_raw.extend(raw); pooled_centered.extend(centered); pooled_uncertainty.extend(centered_u)
         result['landmarks'][name] = item
     result['aggregate'] = {'raw': stats(pooled_raw), 'mean_centered': stats(pooled_centered),
-        'centered_uncertainty': interval_stats(pooled_centered, pooled_uncertainty, .06*L)}
+        'centered_uncertainty': interval_stats(pooled_centered, pooled_uncertainty, .06*L if L is not None else None)}
+    if L is None:
+        result['unsupported'].append('Reference normalization L unavailable; normalized spatial thresholds unsupported')
     result['worst_samples'] = sorted(worst, key=lambda v:v['raw_error_px'], reverse=True)[:24]
     result['axis'] = axis_report(doc, selected)
     result['native_joins'] = joins_report(doc, rows)
@@ -453,10 +458,12 @@ def plot_report(report, output):
     fig,axes=plt.subplots(2,1,figsize=(11,7),sharex=True)
     for name,item in report['landmarks'].items():
         trace=item.get('trace',[])
+        if not trace: continue
         axes[0].plot([r['frame'] for r in trace],[r['raw_error_px'] for r in trace],label=name)
         axes[1].plot([r['frame'] for r in trace],[r['centered_error_px'] for r in trace],label=name)
     axes[0].set_ylabel('Raw error, pixels'); axes[1].set_ylabel('Mean-centered error, pixels'); axes[1].set_xlabel('Exact source frame')
-    axes[1].axhline(.06*report['normalization']['L_px'],color='black',linestyle='--',label='0.06 L diagnostic limit')
+    if report['normalization']['L_px'] is not None:
+        axes[1].axhline(.06*report['normalization']['L_px'],color='black',linestyle='--',label='0.06 L diagnostic limit')
     for ax in axes: ax.legend()
     fig.suptitle(report['action']+' / diagnostic only / no score'); fig.tight_layout(); fig.savefig(output,dpi=130); plt.close(fig)
 
