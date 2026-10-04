@@ -1,0 +1,31 @@
+{
+  "interval_semantics": "inclusive start, exclusive end except selected_excerpts in the second-source original annotation, explicitly marked inclusive",
+  "maps": [
+    {
+      "source": "9RRgXvRx43s",
+      "frame_count": 6822,
+      "time_base": "1/15360",
+      "fps": "60/1",
+      "all_frames_validated": true,
+      "formula": "pts_ticks = zero_based_frame * 256; seconds = zero_based_frame / 60",
+      "first_pts_ticks": 0,
+      "last_pts_ticks": 1746176,
+      "video_end_exclusive_seconds": 113.7,
+      "map_csv": "9RRgXvRx43s_frame_pts.csv",
+      "map_csv_sha256": "566f6f93edd3ae23d9e3abc0b13e4d441f5ad76c731bb3a938ad693c574c3c24"
+    },
+    {
+      "source": "5KM0XSKxTWw",
+      "frame_count": 7976,
+      "time_base": "1/15360",
+      "fps": "60/1",
+      "all_frames_validated": true,
+      "formula": "pts_ticks = zero_based_frame * 256; seconds = zero_based_frame / 60",
+      "first_pts_ticks": 0,
+      "last_pts_ticks": 2041600,
+      "video_end_exclusive_seconds": 132.93333333333334,
+      "map_csv": "5KM0XSKxTWw_frame_pts.csv",
+      "map_csv_sha256": "e48c654eac753f1394ed4661bd30e2123d0c897f2036b835e01eee608793426a"
+    }
+  ]
+}
