@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-04T23:32:43Z",
+  "updatedAt": "2026-10-04T23:42:08Z",
   "state": "working",
-  "task": "Six source timelines verified published at e9310ff6; playable-build and updater workflows are running. Latest implementation report at 23:30 UTC says Jump runtime/export and mantle source work continue, with 0.1.8 publication preparation and Eevee previews blocked; live executor state was not independently checked in this refresh.",
-  "lastCompleted": "Verified PR #33 commit e9310ff6 contains all six annotation files and verification manifest: 150 intervals, 1,135 reviewed samples and 14,017 timeline frames. Source-test and release-preflight passes remain reported by the implementation context.",
+  "task": "Jump r7 runtime candidate 195bb7bb is published on aella/jump-r7-integration; playable-build and updater runs remain in progress. PR #33 advanced to e4fdda48 with annotation witness-sheet pins and fresh CI. The implementation context remains active by report; live executor activity and artistic approval were not independently verified in this refresh.",
+  "lastCompleted": "Verified remote Jump candidate 195bb7bb includes runtime integration, packaging/CI hooks and evidence documentation, which reports 75 parity samples, five seam checks, 36 focused contracts and Clippy/formatting passes. These are recorded local results, not complete-package or rendered-gameplay approval. Verified PR #33 witness-sheet commit e4fdda48.",
   "agents": [
     {
       "slot": 1,
