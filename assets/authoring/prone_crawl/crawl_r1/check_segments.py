@@ -15,4 +15,7 @@ for name,e in d['actions'].items():
   finite &= all(math.isfinite(x) for bone in r.pose.bones for row in bone.matrix for x in row)
   for b in base:errors[b].append((grip(b)-base[b]).length)
  data[name]={'frame_count':e['frame_range'][1],'range':list(r.animation_data.action.frame_range),'loop':False,'all_evaluated_bone_matrices_finite':finite,'max_grip_origin_drift_weapon_local_m':{b:max(v) for b,v in errors.items()},'first_last_poses_forced_equal':False}
-(P/'segment_technical_checks.json').write_text(json.dumps({'checks':data,'meaning':'Finite matrices and bone-origin attachment diagnostics only. Not a render, visual deformation/grip assessment, or artistic score. Source never saved.','source_saved':False},indent=2)+'\n');print(json.dumps(data,indent=2))
+passed=all(v['all_evaluated_bone_matrices_finite'] and max(v['max_grip_origin_drift_weapon_local_m'].values()) < .0001 for v in data.values())
+(P/'segment_technical_checks.json').write_text(json.dumps({'checks':data,'grip_drift_threshold_m':.0001,'passed':passed,'meaning':'Finite matrices and bone-origin attachment diagnostics only. Not a render, visual deformation/grip assessment, or artistic score. Source never saved.','source_saved':False},indent=2)+'\n');print(json.dumps(data,indent=2))
+
+assert passed, "Finite pose or grip attachment threshold failed"

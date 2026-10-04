@@ -6,7 +6,7 @@ Editable source: `halcyon_prone_crawl_r1.blend`, Blender 4.3.2, 60 fps. Five sco
 
 - Frozen source: `4363837e:assets/authoring/jump/halcyon_jump.blend`, SHA256 `a2c4b2bbe98da1a608450bba92404cb39008eae5861bcf8fc3f5d2f978df0e3b`
 - Entry-only predecessor SHA256: `793546897db5634fca6ba6da7cefd5240e3712932c239bbabea7dfaa0f03419e`
-- Current 108-Action source SHA256: `9eafb596824f02b60885d4d7968dd3c802698f53d2a4736d256e3a4ee938cfba`
+- Current 108-Action source SHA256: `959ecf46308195f942af817ee845173db9e8b4fd8f39c4cdd455a29bbfebcb49`
 - Aella source map: [PR33 checkpoint](https://github.com/RHS059/rust_duty/blob/fe5ab7cc6793a9fe2964fd9fc00d10e534e66ed8/references/movement/remaining_20261004/source_map.json)
 - Reference: R3 `Modern_Warfare_2022_Movement_Reference.mp4`, SHA256 `491a1729aa0f32373025d35fff86da76c6c1c8f057c0c553d0fbb5fb6226ff46`
 - Exact source excerpt: zero-based half-open `[2241,2310)`, 69 native frames. Blender frame = source frame − 2241 + 1. A held playback of all 69 images lasts 69/60 s; the Action's first-to-last sample interval is 68/60 s.
@@ -30,3 +30,5 @@ Render only through foreground Blender's Eevee Viewport Render Animation, using 
 ## Current directional checkpoint
 
 Forward 241 frames, backward 229, right 139 and left 55 are authored as observed nonlooping WIP segments. `crawl_r1/` contains their independent source recipe, witness selections, fresh preservation checks and technical attachment diagnostics. All 104 entry-checkpoint Actions remain unchanged. No preview has been produced while the rendering authorization clarification remains unresolved, and no artistic acceptance or game export is claimed.
+
+The initial directional checkpoint exposed a right-arm reach limit during extreme forward/backward poses. The current source adds minimal right-clavicle location keys only within the four owned Actions; no constraint, limb length, root, camera or prior Action is changed. Fresh evaluation of all 664 directional samples passes a 0.1 mm bone-origin attachment threshold (worst approximately 0.0152 mm). This numerical repair still requires visible review.

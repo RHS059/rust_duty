@@ -26,3 +26,9 @@ Frozen input is the entry-only BLEND from `ca133d8b501aa5698bd6a5f56e7721e67c7a4
 Run Blender 4.3.2 with `--background --factory-startup --disable-autoexec FROZEN_ENTRY.blend --python-exit-code 1 --python author_crawl.py -- crawl_design.json NEW_OUTPUT.blend`. The recipe refuses overwrites and asserts input SHA256. `validate_source_structure.py` reopens the result read-only with the supplied baseline fingerprint and four expected new Action names. `check_segments.py` checks all evaluated bone matrices and bone-origin attachment drift. It does not render, save, or substitute for visible review.
 
 `build_crawl_design.py` is the optional NumPy/SciPy witness-to-pose reproduction. It uses `model_guides.json` and the manual source observations embedded in the script. Hidden anatomy and other views are outside this assignment. No new ADS Actions, source cuts, shared inventory, runtime binding, production export or Colab changes were made.
+
+## Scoped firing-hand reach repair
+
+An aggregate diagnostic found up to 0.148 m right-hand origin drift in extreme first-pass forward/backward poses. The existing two-bone IK chain reached its finite length. The current recipe adds only keyed right-clavicle location compensation inside the four newly owned Actions, translating the shoulder the minimum iterative amount needed to recover the established weapon-relative wrist target. It does not change constraints, limb lengths, camera, skeleton root, prior Actions, source paths or timing.
+
+Fresh 664-frame checks pass a 0.0001 m attachment threshold, with maximum observed wrist-origin drift about 0.0000152 m. `reach_compensation.json` records the corrections. This is a technical attachment repair, not anatomical certification or a visible animation approval. Preview and reviewer judgment remain pending.

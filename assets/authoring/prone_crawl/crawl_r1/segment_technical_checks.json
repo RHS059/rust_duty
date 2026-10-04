@@ -10,7 +10,7 @@
       "all_evaluated_bone_matrices_finite": true,
       "max_grip_origin_drift_weapon_local_m": {
         "hand_l": 6.654936831486702e-07,
-        "hand_r": 0.13263695973034617
+        "hand_r": 1.5181566732186465e-05
       },
       "first_last_poses_forced_equal": false
     },
@@ -24,7 +24,7 @@
       "all_evaluated_bone_matrices_finite": true,
       "max_grip_origin_drift_weapon_local_m": {
         "hand_l": 6.030829651608485e-07,
-        "hand_r": 0.1484744633160478
+        "hand_r": 9.667234017379142e-06
       },
       "first_last_poses_forced_equal": false
     },
@@ -57,6 +57,8 @@
       "first_last_poses_forced_equal": false
     }
   },
+  "grip_drift_threshold_m": 0.0001,
+  "passed": true,
   "meaning": "Finite matrices and bone-origin attachment diagnostics only. Not a render, visual deformation/grip assessment, or artistic score. Source never saved.",
   "source_saved": false
 }

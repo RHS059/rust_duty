@@ -121,6 +121,35 @@ for name,entry in design['actions'].items():
  a['runtime_id']=entry['runtime_id'];a['authoring_fps']=60;a['duration_seconds']=entry['duration_seconds'];a['loop']=entry['loop'];a['pose_space']='absolute';a['base_action']=ready.name;a['base_frame']=1;a['motion_origin']=design['motion_origin'];a['reference_id']=design['reference']['youtube_id'];a['source_frame_start']=entry['source_frame_range_inclusive'][0];a['source_frame_end_inclusive']=entry['source_frame_range_inclusive'][1];a['hold_after_end']=entry['hold_after_end'];a['acceptance_status']='WIP; Elara review pending';a['animated_control']='righthand_prop only';a['camera_motion']='none';a['root_motion']=False;a['purpose']=entry['purpose']
  assert list(a.frame_range)==entry['frame_range']
  created.append(name);keys_out[name]=rows
+# Reach compensation in new Actions only: keep the firing hand attached without
+# changing constraints, arm lengths, original Actions, skeleton root or camera.
+weapon=bpy.data.objects['hk416_weapon'];shoulder=rig.pose.bones['clavicle_r']
+rig.animation_data.action=ready;scene.frame_set(design['baseline_frame']);bpy.context.view_layer.update()
+base_shoulder_location=shoulder.location.copy()
+grip_local=weapon.matrix_world.inverted()@rig.matrix_world@rig.pose.bones['hand_r'].matrix.translation
+reach={}
+for name in created:
+ action=bpy.data.actions[name];rig.animation_data.action=action;rows=[]
+ for frame in range(int(action.frame_start),int(action.frame_end)+1):
+  shoulder.location=base_shoulder_location.copy();scene.frame_set(frame);bpy.context.view_layer.update()
+  for iteration in range(16):
+   expected=weapon.matrix_world@grip_local
+   actual=rig.matrix_world@rig.pose.bones['hand_r'].matrix.translation
+   error=expected-actual
+   if error.length<0.000005:break
+   m=shoulder.matrix.copy();m.translation+=rig.matrix_world.inverted().to_3x3()@error
+   shoulder.matrix=m;bpy.context.view_layer.update()
+  rows.append({'frame':frame,'location':list(shoulder.location),'grip_error_m':error.length})
+ for axis in range(3):
+  path='pose.bones["clavicle_r"].location';fc=next((f for f in action.fcurves if f.data_path==path and f.array_index==axis),None)
+  if fc is None:fc=action.fcurves.new(path,index=axis,action_group='clavicle_r')
+  fc.keyframe_points.clear()
+  for row in rows:
+   key=fc.keyframe_points.insert(row['frame'],row['location'][axis]);key.interpolation='LINEAR'
+ action['animated_control']='righthand_prop, plus clavicle_r location for finite-chain grip reach'
+ reach[name]=rows
+(output.parent/'reach_compensation.json').write_text(json.dumps({'scope':'New segment Actions only. Minimal per-frame shoulder translation closes a measured right-hand IK reach residual. No constraints, arm length, skeleton root, camera or unrelated data changed.','actions':reach},indent=2)+'\n')
+
 # Restore all original source state, including animated and unkeyed pose defaults.
 for p in rig.pose.bones:
  saved=raw_pose[p.name];p.rotation_mode=saved['rotation_mode']
