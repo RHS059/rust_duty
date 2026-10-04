@@ -44,7 +44,7 @@ def deterministic_zip(source, destination, executable):
                 shutil.copyfileobj(src, dst, length=1024 * 1024)
 
 
-def prepare(tested, output, identity):
+def prepare(tested, output, identity, previous_bundles=None):
     """Curate both platforms through the same strict allowlist as game builds."""
     tested, output = Path(tested), Path(output)
     if output.exists() or output.is_symlink():
@@ -67,9 +67,18 @@ def prepare(tested, output, identity):
                 for path in staged.rglob("*"):
                     if path.is_file():
                         path.chmod(0o755 if path.relative_to(staged).as_posix() == executable else 0o644)
+            # Optional previous bundle. When present, release_update also emits a
+            # delta from the one-file image of the executable already running, so a
+            # content update does not download that binary again. Omitting it keeps
+            # the one-time release manifest free of deltas.
+            previous = (previous_bundles or {}).get(target)
+            previous_path = previous_version = None
+            if previous:
+                previous_path, previous_version = previous
             release_update.prepare(argparse.Namespace(
                 input=payload, output=output, version=identity["version"], sequence=identity["sequence"],
-                target=target, entrypoint=executable, previous=None, previous_version=None))
+                target=target, entrypoint=executable, previous=previous_path,
+                previous_version=previous_version))
             release_update.verify_manifest(argparse.Namespace(
                 manifest=output / f"update-{target}.json", assets_dir=output,
                 version=identity["version"], target=target, bundle_only=False))

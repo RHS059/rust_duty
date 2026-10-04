@@ -1537,3 +1537,159 @@ fn bootstrap_does_not_scan_or_overwrite_existing_launcher() {
         None
     );
 }
+
+#[test]
+fn content_update_reuses_running_executable_and_does_not_switch_version() {
+    let root = tempfile::tempdir().unwrap();
+    let executable = b"UNCHANGED-LAUNCHER".repeat(20_000);
+    let installed = bundle_files(&[
+        ("assets/note.txt", 0, b"old content"),
+        ("game", 1, &executable),
+    ]);
+    let baseline = bundle_files(&[("game", 1, &executable)]);
+    let updated = bundle_files(&[
+        ("assets/note.txt", 0, b"new content for this update"),
+        ("game", 1, &executable),
+    ]);
+    assert_ne!(bytes_hash(&installed), bytes_hash(&baseline));
+    let patch = make_patch(root.path(), &baseline, &updated);
+    assert!(
+        patch.len() < executable.len(),
+        "content patch must be smaller than the running executable"
+    );
+    assert!(
+        !patch
+            .windows(executable.len())
+            .any(|window| window == executable.as_slice()),
+        "content patch must not embed another copy of the running executable"
+    );
+    let store = old_store(root.path(), &installed);
+    let mut release = manifest(&updated);
+    release.deltas.push(Delta {
+        base_version: version("1.0.0"),
+        base_sha256: bytes_hash(&baseline),
+        asset: asset("content.rdd", &patch),
+    });
+    let server = Server::new();
+    server.put(&format!("update-{TARGET}.json"), manifest_bytes(&release));
+    server.put("content.rdd", patch);
+    server.put(&release.bundle.name, updated.clone());
+    let verified = store.check(&server.source(), &trust(), TARGET).unwrap();
+    let staged = store.stage(&server.source(), &verified).unwrap();
+    assert_eq!(fs::read(store.bundle_path(&staged)).unwrap(), updated);
+    assert!(
+        !server
+            .logs()
+            .iter()
+            .any(|request| request.path.ends_with(&release.bundle.name)),
+        "matching content delta must not download a new copy of the bundle or its executable"
+    );
+    // Staging leaves the active version in place. Switching still happens only
+    // after the game process exits and the caller activates the staged build.
+    assert_eq!(
+        store.state().unwrap().active.unwrap().version,
+        version("1.0.0")
+    );
+}
+
+#[test]
+fn content_delta_rebuilds_missing_one_file_baseline_without_activation() {
+    let root = tempfile::tempdir().unwrap();
+    let executable = random_bytes(100_000);
+    let baseline = bundle_files(&[("game", 1, &executable)]);
+    let mut changed_executable = executable.clone();
+    changed_executable[200..220].fill(42);
+    let updated = bundle_files(&[
+        ("assets/note.txt", 0, b"new"),
+        ("game", 1, &changed_executable),
+    ]);
+    let patch = make_patch(root.path(), &baseline, &updated);
+    let store = old_store(root.path(), &baseline);
+    let active = store.state().unwrap().active.unwrap();
+    fs::remove_file(store.bundle_path(&active)).unwrap();
+    let mut release = manifest(&updated);
+    release.deltas.push(Delta {
+        base_version: version("1.0.0"),
+        base_sha256: bytes_hash(&baseline),
+        asset: asset("content.rdb.rdd", &patch),
+    });
+    let server = Server::new();
+    server.put("content.rdb.rdd", patch);
+    server.put(&release.bundle.name, updated.clone());
+    let staged = store.stage(&server.source(), &release).unwrap();
+    assert_eq!(fs::read(store.bundle_path(&staged)).unwrap(), updated);
+    assert!(!server
+        .logs()
+        .iter()
+        .any(|r| r.path.ends_with(&release.bundle.name)));
+    assert_eq!(
+        store.state().unwrap().active.unwrap().version,
+        version("1.0.0")
+    );
+}
+
+#[test]
+fn full_update_does_not_read_executable_without_eligible_delta() {
+    let root = tempfile::tempdir().unwrap();
+    let store = old_store(root.path(), &bundle(b"old"));
+    let active = store.state().unwrap().active.unwrap();
+    // Full update recovery must not fail while attempting an irrelevant zero-size baseline.
+    fs::write(store.version_dir(&active).join("game"), b"").unwrap();
+    let updated = bundle(b"new");
+    let release = manifest(&updated);
+    let server = Server::new();
+    server.put(&release.bundle.name, updated.clone());
+    let staged = store.stage(&server.source(), &release).unwrap();
+    assert_eq!(fs::read(store.bundle_path(&staged)).unwrap(), updated);
+    assert_eq!(
+        store.state().unwrap().active.unwrap().version,
+        version("1.0.0")
+    );
+}
+
+#[test]
+fn optional_executable_baseline_rejects_unsafe_paths_but_skips_changed_or_unreadable_input() {
+    use crate::install::optional_executable_baseline;
+    let mut output = Vec::new();
+    assert!(optional_executable_baseline("game", &mut &b"abc"[..], 3, &mut output).unwrap());
+    for (bytes, declared) in [(&b"ab"[..], 3), (&b"abcd"[..], 3)] {
+        assert!(
+            !optional_executable_baseline("game", &mut &*bytes, declared, &mut Vec::new()).unwrap()
+        );
+    }
+    struct Unreadable;
+    impl Read for Unreadable {
+        fn read(&mut self, _: &mut [u8]) -> std::io::Result<usize> {
+            Err(std::io::Error::new(
+                std::io::ErrorKind::PermissionDenied,
+                "fixture denied",
+            ))
+        }
+    }
+    assert!(!optional_executable_baseline("game", &mut Unreadable, 3, &mut Vec::new()).unwrap());
+    assert!(optional_executable_baseline("../game", &mut &b"abc"[..], 3, &mut Vec::new()).is_err());
+}
+
+#[test]
+fn unusable_optional_executable_base_falls_back_to_full_without_activating() {
+    let root = tempfile::tempdir().unwrap();
+    let store = old_store(root.path(), &bundle(b"old"));
+    let active = store.state().unwrap().active.unwrap();
+    fs::write(store.version_dir(&active).join("game"), b"").unwrap();
+    let updated = bundle(&random_bytes(1000));
+    let mut release = manifest(&updated);
+    release.deltas.push(Delta {
+        base_version: active.version.clone(),
+        base_sha256: "a".repeat(64),
+        asset: asset("unused.rdd", b"unused"),
+    });
+    let server = Server::new();
+    server.put(&release.bundle.name, updated.clone());
+    let staged = store.stage(&server.source(), &release).unwrap();
+    assert_eq!(fs::read(store.bundle_path(&staged)).unwrap(), updated);
+    assert!(!server.logs().iter().any(|r| r.path.ends_with("unused.rdd")));
+    assert_eq!(
+        store.state().unwrap().active.unwrap().version,
+        active.version
+    );
+}

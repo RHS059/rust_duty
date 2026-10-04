@@ -199,6 +199,71 @@ def make_delta(base, new, output, block_size=4096):
     return {"copied_bytes": copied, "added_bytes": added, "operations": operations, **asset(output)}
 
 
+def one_file_executable(name, data):
+    """Same RDBND001 image the running updater stores for its own executable."""
+    safe_path(name)
+    encoded = name.encode("ascii")
+    if not 0 < len(data) <= MAX_SIZE - 1024:
+        raise ValueError("running executable has an invalid size")
+    return b"RDBND001" + struct.pack("<IH", 1, len(encoded)) + encoded + bytes([1]) + struct.pack("<Q", len(data)) + data
+
+
+def extract_bundle_file(bundle_path, name):
+    """Read an executable only after validating the complete prior bundle inventory."""
+    safe_path(name)
+    found, seen = None, set()
+    with open(bundle_path, "rb") as stream:
+        total = Path(bundle_path).stat().st_size
+        if not 0 < total <= MAX_SIZE:
+            raise ValueError("previous bundle has an invalid size")
+        def read(size):
+            data = stream.read(size)
+            if len(data) != size:
+                raise ValueError("truncated previous bundle")
+            return data
+        if read(8) != b"RDBND001":
+            raise ValueError("previous bundle is not RDBND001")
+        count, = struct.unpack("<I", read(4))
+        if not 0 < count <= 50000:
+            raise ValueError("previous bundle has an invalid file count")
+        for _ in range(count):
+            length, = struct.unpack("<H", read(2))
+            if not 0 < length <= 240:
+                raise ValueError("invalid previous bundle path length")
+            relative = read(length).decode("ascii")
+            safe_path(relative)
+            if relative.lower() in seen:
+                raise ValueError("duplicate previous bundle member")
+            seen.add(relative.lower())
+            mode = read(1)
+            size, = struct.unpack("<Q", read(8))
+            if mode not in (b"\x00", b"\x01") or size > total - stream.tell():
+                raise ValueError("invalid previous bundle member")
+            if relative == name:
+                if mode != b"\x01" or size == 0:
+                    raise ValueError("previous entrypoint is not a complete executable")
+                found = read(size)
+            else:
+                stream.seek(size, os.SEEK_CUR)
+        if stream.read(1):
+            raise ValueError("trailing previous bundle bytes")
+    return found
+
+
+def append_delta(payload, destination, bundle, base_version, base_path, patch_name):
+    patch = destination / patch_name
+    info = make_delta(base_path, bundle, patch)
+    if patch.stat().st_size < bundle.stat().st_size:
+        payload["deltas"].append({
+            "base_version": base_version,
+            "base_sha256": sha(base_path),
+            "asset": asset(patch),
+        })
+        return info
+    patch.unlink()
+    return None
+
+
 def prepare(args):
     stable_version(args.version)
     if args.sequence < 1 or not re.fullmatch(r"[A-Za-z0-9_-]+", args.target):
@@ -209,16 +274,34 @@ def prepare(args):
     pack_info = pack(args.input, bundle, args.entrypoint)
     payload = {"schema": 1, "repository": REPOSITORY, "version": args.version, "sequence": args.sequence, "target": args.target, "entrypoint": args.entrypoint, "bundle": asset(bundle), "deltas": []}
     delta_info = None
+    running_executable_delta = None
     if args.previous:
         if not args.previous_version or stable_version(args.previous_version) >= stable_version(args.version):
             raise ValueError("previous bundle needs a strictly older --previous-version")
-        patch = destination / f"rust-duty-{args.previous_version}-to-{args.version}-{args.target}.rdd"
-        delta_info = make_delta(args.previous, bundle, patch)
-        if patch.stat().st_size < bundle.stat().st_size:
-            payload["deltas"].append({"base_version": args.previous_version, "base_sha256": sha(args.previous), "asset": asset(patch)})
+        delta_info = append_delta(
+            payload, destination, bundle, args.previous_version, args.previous,
+            f"rust-duty-{args.previous_version}-to-{args.version}-{args.target}.rdd")
+        # A content update must not make a client re-download the executable it
+        # is already running. That client stores a one-file image of it, which
+        # is a different base than the previous full bundle.
+        executable = extract_bundle_file(args.previous, args.entrypoint)
+        if executable is not None:
+            baseline_bytes = one_file_executable(args.entrypoint, executable)
+            baseline_sha = hashlib.sha256(baseline_bytes).hexdigest()
+            if not any(item["base_sha256"] == baseline_sha and item["base_version"] == args.previous_version for item in payload["deltas"]):
+                descriptor, baseline_name = tempfile.mkstemp(prefix="running-executable-", suffix=".rdb")
+                os.close(descriptor)
+                baseline = Path(baseline_name)
+                try:
+                    baseline.write_bytes(baseline_bytes)
+                    running_executable_delta = append_delta(
+                        payload, destination, bundle, args.previous_version, baseline,
+                        f"rust-duty-{args.previous_version}-running-to-{args.version}-{args.target}.rdd")
+                finally:
+                    baseline.unlink(missing_ok=True)
     payload_path = destination / f"update-{args.target}.json"
     payload_path.write_text(json.dumps(payload, sort_keys=True, separators=(",", ":")), encoding="utf-8")
-    return {"bundle": pack_info, "delta": delta_info, "manifest": str(payload_path), "trust": "GitHub HTTPS + SHA256"}
+    return {"bundle": pack_info, "delta": delta_info, "running_executable_delta": running_executable_delta, "manifest": str(payload_path), "trust": "GitHub HTTPS + SHA256"}
 
 
 def verify_manifest(args):
