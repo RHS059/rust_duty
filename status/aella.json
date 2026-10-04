@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-04T01:43:09Z",
+  "updatedAt": "2026-10-04T01:52:53Z",
   "state": "active",
-  "task": "Monitoring the 0.1.8 candidate's Windows/Linux tests before complete-package verification and release.",
-  "lastCompleted": "PR #27 edd4612 passed all four authored asset pipelines, runtime-contract checks and updater builds. The release plan is prepared.",
+  "task": "Checking a native Linux ADS-capture failure in the 0.1.8 candidate; Windows packaging is still running.",
+  "lastCompleted": "Both native Python/Rust tests, lint checks and release compilation passed. Linux staging passed before its ADS-capture check failed.",
   "agents": [
     {
       "slot": 1,
@@ -14,14 +14,14 @@
     {
       "slot": 2,
       "state": "active",
-      "task": "Monitoring exact-source native CI and preparing complete-package release checks.",
+      "task": "Preparing 0.1.8 delivery while complete native verification remains pending.",
       "lastCompleted": "Publication plan and WIP release notes are prepared; 51 packaging/release tests passed. Packaging repair is applied at 68a5bd4."
     },
     {
       "slot": 3,
       "state": "active",
-      "task": "Monitoring PR #27 native CI; no current source edits.",
-      "lastCompleted": "All four authored asset pipelines, runtime-contract checks and updater builds passed; Windows/Linux Python regression tests are running."
+      "task": "Checking PR #27 native CI after the Linux ADS-capture failure.",
+      "lastCompleted": "Both native test/lint suites and release compilation passed. Windows is staging; Linux complete-package upload was skipped after the capture failure."
     }
   ]
 }
