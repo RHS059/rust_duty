@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-04T00:42:19Z",
+  "updatedAt": "2026-10-04T00:52:02Z",
   "state": "active",
-  "task": "Reconciling current main with ADS, cursor-focus fixes and walking controls; preparing the tested packaging repair for application.",
-  "lastCompleted": "PR #26 complete Windows/Linux repacks verified all 65 authored asset files. The tested packaging fix awaits application.",
+  "task": "Preparing source publication of the locally tested 0.1.8 candidate and application of the tested packaging repair.",
+  "lastCompleted": "The reconciled local candidate passed 526 Rust tests, Clippy and 23 release-identity checks; native XY and XYZ control UI was verified.",
   "agents": [
     {
       "slot": 1,
@@ -20,8 +20,8 @@
     {
       "slot": 3,
       "state": "active",
-      "task": "Reconciling main 7037202 with ADS v9, Alt-Tab cursor fixes and persistent per-weapon XYZ walking sliders.",
-      "lastCompleted": "PR #25 has verified complete builds. The pre-reconciliation local v9 candidate passed 517 tests and replay but retained the 3.36e-5 parity failure."
+      "task": "Publishing the reconciled 0.1.8 candidate's source; remote completion and full hosted builds remain unverified.",
+      "lastCompleted": "Local reconciliation passed 526 Rust tests, Clippy, 23 identity checks and native XY/XYZ UI checks."
     }
   ]
 }
