@@ -1,27 +1,27 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-04T01:03:18Z",
+  "updatedAt": "2026-10-04T01:12:10Z",
   "state": "active",
-  "task": "Preparing the reconciled 0.1.8 candidate for hosted verification; the tested packaging repair is now applied.",
-  "lastCompleted": "The packaging repair is applied to the release branch at 68a5bd4. The local candidate passed 526 Rust tests, Clippy, 23 identity checks and native XY/XYZ UI checks.",
+  "task": "Adding absolute viewmodel Z position alongside X/Y, separate from walking-motion XYZ controls, before publishing the combined candidate.",
+  "lastCompleted": "The packaging repair is applied at 68a5bd4. Before the Z addition, the local candidate passed 526 Rust tests, Clippy, 23 identity checks and native XY/XYZ UI checks.",
   "agents": [
     {
       "slot": 1,
-      "state": "active",
-      "task": "Preparing the forward ADS v9 runtime handoff for the reconciled game candidate.",
+      "state": "unknown",
+      "task": "Forward ADS runtime-handoff progress awaits confirmation; earlier source and mapping checks remain available.",
       "lastCompleted": "V9 source and native mapping checks are in draft PR #23; the earlier local candidate retained a strict bone-parity failure."
     },
     {
       "slot": 2,
-      "state": "active",
-      "task": "Coordinating the next candidate and corrected release packaging.",
+      "state": "idle",
+      "task": "Waiting for the combined candidate's remote source and complete native CI before the corrected release.",
       "lastCompleted": "The tested packaging repair was applied at 68a5bd4 and remotely verified; complete-package repack checks had already passed."
     },
     {
       "slot": 3,
-      "state": "unknown",
-      "task": "The reconciled 0.1.8 source-publication status awaits confirmation; local checks are complete, hosted builds are not verified.",
-      "lastCompleted": "Local reconciliation passed 526 Rust tests, Clippy, 23 identity checks and native XY/XYZ UI checks."
+      "state": "active",
+      "task": "Adding absolute viewmodel Z position to existing X/Y controls while keeping walking-motion XYZ settings separate.",
+      "lastCompleted": "Before the Z addition, local reconciliation passed 526 Rust tests, Clippy, 23 identity checks and native XY/XYZ UI checks."
     }
   ]
 }
