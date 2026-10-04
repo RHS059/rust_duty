@@ -14,7 +14,7 @@
       "intervals": 37,
       "timeline_frames": 3156,
       "reviewed_samples": 255,
-      "annotation_sha256": "43272d7847bba2b69087da9c7229713dc9c2446853b77977f2bba52de4f93b8f",
+      "annotation_sha256": "9f57b15f91ce5926b52b59e63f18d9e4d18ca6d431579b14fa8b4e61ab908566",
       "source_sha256": "09f56b59d67bdbf96abf81d060295c4fda1ff36fdefcd2f2b1b32fc260b2600a"
     },
     {
@@ -22,7 +22,7 @@
       "intervals": 25,
       "timeline_frames": 1840,
       "reviewed_samples": 123,
-      "annotation_sha256": "bfa12f84ad66f07b2434096283de11d6f4ec5941d54b0992efe830959381eb24",
+      "annotation_sha256": "2dad2661724b557d014c4a8c71161af26692568ae706afd6e51a40af7d6fd41a",
       "source_sha256": "387b39097ae2381ebd73bfac8f559eb0654fbe1d84bc5ccddf8db271e9314248"
     },
     {
@@ -30,7 +30,7 @@
       "intervals": 29,
       "timeline_frames": 1840,
       "reviewed_samples": 215,
-      "annotation_sha256": "cd600addb578538336b2851b34312a9a42f6633ea71c63ebcfdcd84b9a25c43c",
+      "annotation_sha256": "e7964dee622feb4775ed985876fb23d2acc7793f2be04022715574c110b70985",
       "source_sha256": "f3664003871aa87229d7d87aeb3e66c75979b2f9d7bd6bd649da08e49a66bc61"
     },
     {

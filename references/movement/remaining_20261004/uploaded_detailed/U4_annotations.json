@@ -652,5 +652,87 @@
       "evidence": "Stride3 witnesses"
     }
   ],
-  "pts_revalidation": "Re-read every existing native PTS CSV row; row count and exact n*256 mapping verified for this source."
+  "pts_revalidation": "Re-read every existing native PTS CSV row; row count and exact n*256 mapping verified for this source.",
+  "contact_sheets": [
+    {
+      "path": "sheets/U4_0_1840_s30_00.jpg",
+      "sha256": "55d2e26e3254c46e940d52a554d94af4fba71372112dc4364f64a1bd6bd683d5",
+      "display": "Unwarped full source frames scaled1280x720 to320x180; native labels outside image"
+    },
+    {
+      "path": "sheets/U4_0_1840_s30_01.jpg",
+      "sha256": "aecb79c8a9d2cda370d1fa23f8e3b848aea782407b8cd6fa02b3a837fbd5f110",
+      "display": "Unwarped full source frames scaled1280x720 to320x180; native labels outside image"
+    },
+    {
+      "path": "sheets/U4_0_1840_s30_02.jpg",
+      "sha256": "88da8ad88317ebae534da5d95eeb8b9f9e921bcd31b0031e61d7f3b7c9348b0f",
+      "display": "Unwarped full source frames scaled1280x720 to320x180; native labels outside image"
+    },
+    {
+      "path": "sheets/U4_1260_1351_s3_00.jpg",
+      "sha256": "e85dbf9eb9286a51fee156a97f8c76712c8baf8e8b568914cfa419453b9546f1",
+      "display": "Unwarped full source frames scaled1280x720 to320x180; native labels outside image"
+    },
+    {
+      "path": "sheets/U4_1260_1351_s3_01.jpg",
+      "sha256": "58f46d6b1015d6ba28c4d4724f0db220b670148158633dc76c81743b0cd4eda1",
+      "display": "Unwarped full source frames scaled1280x720 to320x180; native labels outside image"
+    },
+    {
+      "path": "sheets/U4_1440_1531_s3_00.jpg",
+      "sha256": "b4cbddc040e9ff5566ebc623fb300ff96e602b5f8ed207c09e258dddcaec7bfa",
+      "display": "Unwarped full source frames scaled1280x720 to320x180; native labels outside image"
+    },
+    {
+      "path": "sheets/U4_1440_1531_s3_01.jpg",
+      "sha256": "65c985bdb41344b37ec8a1850e637fb1b28b41f6eec4553db8b89d6081f30f67",
+      "display": "Unwarped full source frames scaled1280x720 to320x180; native labels outside image"
+    },
+    {
+      "path": "sheets/U4_1680_1771_s3_00.jpg",
+      "sha256": "74832b16ca22926d42148b017aa932925f43ceb7b89b65589e1311638629b43a",
+      "display": "Unwarped full source frames scaled1280x720 to320x180; native labels outside image"
+    },
+    {
+      "path": "sheets/U4_1680_1771_s3_01.jpg",
+      "sha256": "e53b7869020a5dd0bb8b8b609b8b678922657ca768fd2859609d105e1a6cc6e1",
+      "display": "Unwarped full source frames scaled1280x720 to320x180; native labels outside image"
+    },
+    {
+      "path": "sheets/U4_1684_1697_s1_00.jpg",
+      "sha256": "8f806991efb3edf943573c0803b7299b88f2da03fea730278214b453bfa2b4b1",
+      "display": "Unwarped full source frames scaled1280x720 to320x180; native labels outside image"
+    },
+    {
+      "path": "sheets/U4_210_301_s3_00.jpg",
+      "sha256": "7d4f9d34d3fd9beb4241de72df25b913d6f4292e26d135b1e4adf1d56bf0c662",
+      "display": "Unwarped full source frames scaled1280x720 to320x180; native labels outside image"
+    },
+    {
+      "path": "sheets/U4_210_301_s3_01.jpg",
+      "sha256": "e48dec8fbf051ed29dc43015a20dda82fb0e8ea49680f9da76dcbfe0bc097c9a",
+      "display": "Unwarped full source frames scaled1280x720 to320x180; native labels outside image"
+    },
+    {
+      "path": "sheets/U4_242_255_s1_00.jpg",
+      "sha256": "d8bd9a8de13afc608663d3307d2b1260fa1d86e214e8489af5d5d16315e19f7d",
+      "display": "Unwarped full source frames scaled1280x720 to320x180; native labels outside image"
+    },
+    {
+      "path": "sheets/U4_990_1081_s3_00.jpg",
+      "sha256": "4a3ad192b6eafae10c40fe22232eda9e0e3957d66d8ed33b0c66b520900f3f5b",
+      "display": "Unwarped full source frames scaled1280x720 to320x180; native labels outside image"
+    },
+    {
+      "path": "sheets/U4_990_1081_s3_01.jpg",
+      "sha256": "414c2271f4a730d85b027ec3ab638c56ae0b0f77354b104c9d26344f7caf0454",
+      "display": "Unwarped full source frames scaled1280x720 to320x180; native labels outside image"
+    },
+    {
+      "path": "sheets/refinement_tails.jpg",
+      "sha256": "20d5e5b0714b527599a850ffbb1782c9e8b202cdd866854878fa479e6f5552bf",
+      "display": "Unwarped full source frames scaled1280x720 to320x180; native labels outside image"
+    }
+  ]
 }

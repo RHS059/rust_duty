@@ -496,5 +496,42 @@
       "evidence": "Stride3 witnesses; hidden phase not tracked"
     }
   ],
-  "pts_revalidation": "Re-read every existing native PTS CSV row; row count and exact n*256 mapping verified for this source."
+  "pts_revalidation": "Re-read every existing native PTS CSV row; row count and exact n*256 mapping verified for this source.",
+  "contact_sheets": [
+    {
+      "path": "sheets/U3_0_1840_s30_00.jpg",
+      "sha256": "f67216a2a43b93d29df6da31ddaca2b534d889ac71a535ba3a99655df9c647da",
+      "display": "Unwarped full source frames scaled1280x720 to320x180; native labels outside image"
+    },
+    {
+      "path": "sheets/U3_0_1840_s30_01.jpg",
+      "sha256": "95b508faf9a78d36ca50d474857d6b3488cf7295598f5896822fa0215b230f2c",
+      "display": "Unwarped full source frames scaled1280x720 to320x180; native labels outside image"
+    },
+    {
+      "path": "sheets/U3_0_1840_s30_02.jpg",
+      "sha256": "374079148702bf2e1eb45b8cd7f5d4e8fab78201e4d34bbd493666d7931a775f",
+      "display": "Unwarped full source frames scaled1280x720 to320x180; native labels outside image"
+    },
+    {
+      "path": "sheets/U3_0_81_s3_00.jpg",
+      "sha256": "2f0d1e305e93cc7531c22461c36b09da75ba4d18df985e2261c75a11304dd7ce",
+      "display": "Unwarped full source frames scaled1280x720 to320x180; native labels outside image"
+    },
+    {
+      "path": "sheets/U3_15_31_s1_00.jpg",
+      "sha256": "fb9329f2e24bdea353fd12154cab5521703d987aface79a2f62956eac61b5f9d",
+      "display": "Unwarped full source frames scaled1280x720 to320x180; native labels outside image"
+    },
+    {
+      "path": "sheets/U3_490_571_s3_00.jpg",
+      "sha256": "284a76298416e58d329b54750cf0d97387b8d9b9baf7dbf86b29906ebaeaef3f",
+      "display": "Unwarped full source frames scaled1280x720 to320x180; native labels outside image"
+    },
+    {
+      "path": "sheets/refinement_tails.jpg",
+      "sha256": "20d5e5b0714b527599a850ffbb1782c9e8b202cdd866854878fa479e6f5552bf",
+      "display": "Unwarped full source frames scaled1280x720 to320x180; native labels outside image"
+    }
+  ]
 }
