@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-04T20:51:43Z",
+  "updatedAt": "2026-10-04T21:02:08Z",
   "latestComplete": {
     "sha": "d4d9b622d42ce0aa45896f06ac338a6ae7a0be14",
     "downloadUrl": "https://github.com/RHS059/rust_duty/actions/runs/37222001387/artifacts/11310528095",
@@ -22,7 +22,7 @@
   ],
   "currentBuild": {
     "state": "idle",
-    "task": "No queued or running repository builds were found. Latest source-annotation PR #33 build 37231196110 at 85f43ef3 succeeded at 20:31 UTC and uploaded a Windows artifact, but its package contents have not been independently verified here. Latest Complete and its changes remain the verified d4d9b62 game candidate; public 0.1.8 updater publication remains paused.",
+    "task": "No queued, running, waiting, pending, or requested repository builds were found. Latest source-annotation PR #33 build 37231196110 at 85f43ef3 succeeded at 20:31 UTC and uploaded a Windows artifact, but its package contents have not been independently verified here. Latest Complete and its changes remain the verified d4d9b62 game candidate; public 0.1.8 updater publication remains paused.",
     "url": "https://github.com/RHS059/rust_duty/actions/runs/37231196110"
   }
 }
