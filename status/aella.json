@@ -1,27 +1,27 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-04T20:11:47Z",
-  "state": "active",
-  "task": "Completing source annotations, refining mantle/climb motion and integrating the independently reviewed Jump r7 candidate.",
-  "lastCompleted": "Jump r7 passed independent qualitative review at approximately 80% for visible motion from the fixed first-person camera. The published review is separate from the unscored single-point Colab diagnostics.",
+  "updatedAt": "2026-10-04T20:42:30Z",
+  "state": "idle",
+  "task": "Project work stopped at the user's request at 20:38 UTC; notebook work was also cancelled. No active project worker is verified.",
+  "lastCompleted": "PR #33 source annotations and supplemental-reference inventory are committed at 85f43ef3; its latest Windows/Linux build passed at 20:31 UTC. Jump r7's review and diagnostic gallery are already published; runtime integration is not verified complete.",
   "agents": [
     {
       "slot": 1,
-      "state": "active",
-      "task": "Finishing source annotations and the action inventory for six additional reference videos.",
-      "lastCompleted": "PR #33 at 19e8eba contains 14 verified cuts; eight tests passed. All original source hashes and native timestamps are verified."
+      "state": "idle",
+      "task": "Stopped; no active source-annotation work.",
+      "lastCompleted": "PR #33 at 85f43ef3 preserves 14 verified cuts, catalogs six supplemental references, and records 12 passing focused tests. Exact-head build 37231196110 succeeded."
     },
     {
       "slot": 2,
-      "state": "active",
-      "task": "Refining visible mantle/climb weapon motion and contacts from the fixed first-person camera.",
-      "lastCompleted": "Three editable mantle/vault and vehicle-roof climb Actions exist as local WIP; new previews are not yet verified and the work remains unscored."
+      "state": "idle",
+      "task": "Stopped; no active mantle/climb work.",
+      "lastCompleted": "Last recorded checkpoint: three editable mantle/vault and vehicle-roof climb Actions existed as local WIP. New previews and completion remain unverified; no new score."
     },
     {
       "slot": 3,
-      "state": "active",
-      "task": "Preparing Jump r7 runtime integration after the independent visible-motion review.",
-      "lastCompleted": "Local Jump integration WIP passed eight Rust tests. Jump r7 received a qualitative approximately 80% pass; single-point diagnostics have no computed match score."
+      "state": "idle",
+      "task": "Stopped; no active Jump integration or notebook work.",
+      "lastCompleted": "Last recorded Jump integration WIP passed eight Rust tests. Jump r7 review and single-point Colab diagnostics are published; no completed runtime integration or diagnostic match score is verified."
     }
   ]
 }
