@@ -101,8 +101,8 @@ class ReleasePackageGuardTests(unittest.TestCase):
             write(self.artifact, relative, "fixture: " + relative + "\n")
         write(self.artifact, "vector-range", b"\x7fELF native game fixture")
         write(self.artifact, "settings.cfg", "mouse_sensitivity=0.75\n")
-        # Source-owned frozen manifests are available for guards that compare
-        # their contents in addition to the runtime binding/selection contract.
+        # The selected checkout owns frozen locomotion bytes and immutable
+        # authored recipes; regenerated output hashes may differ from its cache.
         for family in ("locomotion", "walk", "ads"):
             relative = Path("assets") / family / "manifest.json"
             write(self.source, relative, (self.artifact / relative).read_bytes())
@@ -113,7 +113,32 @@ class ReleasePackageGuardTests(unittest.TestCase):
             data = (str(folder) + "/" + name + " fixture\n").encode()
             write(self.artifact, folder / name, data)
             files[name] = {"bytes": len(data), "sha256": hashlib.sha256(data).hexdigest()}
-        write_json(self.artifact, folder / "manifest.json", {"files": files})
+        manifest = {"files": files}
+        if folder in (Path("assets/walk"), Path("assets/ads"), Path("assets/directional")):
+            family = folder.name
+            blend_file = {
+                "walk": "assets/authoring/locomotion/locomotion.blend",
+                "ads": "assets/authoring/ads/ads.blend",
+                "directional": "assets/authoring/locomotion_directional/r5/halcyon_hip_directional_r5.blend",
+            }[family]
+            blend_bytes = (family + " immutable authored fixture\n").encode()
+            write(self.source, blend_file, blend_bytes)
+            manifest.update({
+                "schema": "fixture-authored-" + family,
+                "clip_count": 1,
+                "clip_names": [family + "_clip"],
+                "source": {
+                    "file": blend_file, "bytes": len(blend_bytes),
+                    "sha256": hashlib.sha256(blend_bytes).hexdigest(),
+                    "action": family + "_action", "fps": 60,
+                    "frame_start": 1, "frame_end": 45,
+                    "fbx": {"file": "export.fbx", "bytes": 100, "sha256": "c" * 64},
+                },
+                "repository_transport": {},
+                "validation": {"maximum_skin_error_m": 0.000001},
+                "preservation": {"baseline_bytes_preserved": True},
+            })
+        write_json(self.artifact, folder / "manifest.json", manifest)
         write_json(self.artifact, folder / "parity.json", {"passed": True})
         write_json(self.artifact, folder / "conversion.json", {"fixture": True})
         write_json(self.artifact, folder / "export-manifest.json", {"fixture": True})
@@ -215,7 +240,7 @@ class ReleasePackageGuardTests(unittest.TestCase):
                         release.verify_source_contract(self.source, self.artifact)
                     path.write_bytes(original)
 
-    def test_source_owned_frozen_manifests_cannot_drift(self):
+    def test_manifest_cannot_claim_a_different_raw_hash(self):
         for family in ("locomotion", "walk", "ads"):
             path = self.artifact / "assets" / family / "manifest.json"
             original = path.read_bytes()
@@ -226,6 +251,59 @@ class ReleasePackageGuardTests(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     release.verify_source_contract(self.source, self.artifact)
                 path.write_bytes(original)
+
+    def test_regenerated_walk_outputs_preserve_immutable_recipe(self):
+        path = self.artifact / "assets/walk/manifest.json"
+        manifest = json.loads(path.read_bytes())
+        raw = self.artifact / "assets/walk/asset.vra"
+        regenerated = raw.read_bytes() + b"freshly regenerated output\n"
+        raw.write_bytes(regenerated)
+        manifest["files"]["asset.vra"] = {
+            "bytes": len(regenerated), "sha256": hashlib.sha256(regenerated).hexdigest(),
+        }
+        manifest["source"]["fbx"].update(bytes=250, sha256="d" * 64)
+        manifest["validation"]["maximum_skin_error_m"] = 0.000002
+        manifest["repository_transport"] = {"fixture": "different generated transport"}
+        manifest["preservation"] = {"fixture": "different generated verification result"}
+        write_json(self.artifact, "assets/walk/manifest.json", manifest)
+        release.verify_source_contract(self.source, self.artifact)
+        self.stage_fixture()
+        release.verify_staged_assets(self.artifact, self.staged, update=True)
+        self.assertEqual((self.staged / "assets/walk/asset.vra").read_bytes(), regenerated)
+
+    def test_regenerated_walk_requires_matching_raw_output_digest(self):
+        path = self.artifact / "assets/walk/asset.vra"
+        original = path.read_bytes()
+        path.write_bytes(bytes([original[0] ^ 1]) + original[1:])
+        with self.assertRaises(ValueError):
+            release.verify_source_contract(self.source, self.artifact)
+
+    def test_regenerated_walk_cannot_change_source_or_clip_recipe(self):
+        path = self.artifact / "assets/walk/manifest.json"
+        original = json.loads(path.read_bytes())
+        mutations = (
+            lambda value: value["source"].update(sha256="b" * 64),
+            lambda value: value["source"].update(bytes=value["source"]["bytes"] + 1),
+            lambda value: value["source"].update(action="other_action"),
+            lambda value: value["source"].update(frame_end=46),
+            lambda value: value.update(clip_names=["other_clip"]),
+            lambda value: value.update(clip_count=2),
+        )
+        for index, mutate in enumerate(mutations):
+            with self.subTest(mutation=index):
+                manifest = copy.deepcopy(original)
+                mutate(manifest)
+                write_json(self.artifact, "assets/walk/manifest.json", manifest)
+                with self.assertRaises(ValueError):
+                    release.verify_source_contract(self.source, self.artifact)
+
+    def test_regenerated_walk_source_hash_binds_actual_selected_blend(self):
+        manifest = json.loads((self.artifact / "assets/walk/manifest.json").read_bytes())
+        source_file = self.source / manifest["source"]["file"]
+        original = source_file.read_bytes()
+        source_file.write_bytes(bytes([original[0] ^ 1]) + original[1:])
+        with self.assertRaises(ValueError):
+            release.verify_source_contract(self.source, self.artifact)
 
     def test_unknown_source_asset_binding_fails_closed(self):
         config = CONFIG + "fire.asset=future_fire/asset.vra\n"
