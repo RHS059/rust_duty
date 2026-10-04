@@ -1,27 +1,27 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-04T01:12:10Z",
+  "updatedAt": "2026-10-04T01:22:39Z",
   "latestComplete": {
     "sha": "b3f2ba8e228f4a34b8f1c5bec74190bc26ca2e87",
     "downloadUrl": "https://github.com/RHS059/rust_duty/actions/runs/37160557704/artifacts/11287513506",
     "runUrl": "https://github.com/RHS059/rust_duty/actions/runs/37160557704",
-    "verifiedAt": "2026-10-04T01:12:10Z",
+    "verifiedAt": "2026-10-04T01:22:39Z",
     "completedAt": "2026-10-03T23:24:10Z"
   },
   "changes": [
-    "Latest Complete is the verified draft PR #25 build b3f2ba8e, containing cursor-focus fixes and persistent per-weapon XYZ walking sliders with existing HIP r5 integration. It embeds 0.1.5 and is a CI download, not a new released update.",
-    "All three exact-head workflows passed, including complete Windows/Linux packages. Windows CI reported 553 Rust tests passed and 175 Python tests completed with one skipped.",
-    "Windows artifact 11287513506 is 92,882,052 bytes. API and upload-log SHA-256 match: e695713bef128b08ab51172ffae72269bee0642b30aea605feff57eb7dcab104.",
-    "Native Linux walking-slider clicks and persistence were checked; real Windows Alt-Tab interaction remains untested.",
-    "Absolute viewmodel Z position is being added to existing X/Y controls, separate from walking-motion XYZ sliders. The prior local candidate passed 526 Rust tests, Clippy, 23 identity checks and native UI checks; the Z addition still needs validation.",
-    "The separately released 0.1.5 at eb886edb passed real Windows/Linux 0.1.4 upgrades, checking 70 managed files and preserving 85 root-file and synthetic private-data checks.",
-    "The combined 0.1.8 source is not published remotely yet; no hosted candidate is verified. The earlier strict bone-parity failure at 3.36e-5 remains an unresolved recorded limitation. PR #24 automation remains inactive.",
-    "The tested packaging repair is applied to the release branch at 68a5bd4, with all 65 authored asset files preserved in repack checks. Public latest remains 0.1.7; a corrected new release has not been verified.",
-    "V9, lateral Trial4 and newer jump/mantle work are not included in this PR #25 artifact."
+    "Latest Complete is draft PR #25 build b3f2ba8e: cursor-focus fixes, persistent per-weapon XYZ walking sliders and existing HIP r5 integration. It embeds 0.1.5 and is a CI download.",
+    "All three exact-head workflows passed, including complete Windows/Linux packages. Windows CI reported 553 Rust tests and 175 Python tests, with one Python test skipped.",
+    "Windows artifact 11287513506 is 92,882,052 bytes; verified SHA-256: e695713bef128b08ab51172ffae72269bee0642b30aea605feff57eb7dcab104.",
+    "Native Linux walking-slider clicks and persistence passed; real Windows Alt-Tab interaction remains untested.",
+    "The local combined candidate now has visually checked absolute XYZ position and separate walking XYZ controls. Z persistence, clamping, full Rust tests and Clippy passed; remote source publication is pending.",
+    "Released 0.1.5 at eb886edb passed real Windows/Linux 0.1.4 upgrades, checking 70 managed files and preserving 85 root-file and synthetic private-data checks.",
+    "No hosted combined 0.1.8 candidate is verified. The earlier strict bone-parity failure at 3.36e-5 remains unresolved. PR #24 automation is inactive.",
+    "Packaging repair is applied at 68a5bd4; repack checks preserved all 65 authored assets. Public latest is 0.1.7, with corrected release delivery pending.",
+    "V9, lateral Trial4 and newer jump/mantle work are absent from this PR #25 artifact."
   ],
   "currentBuild": {
     "state": "active",
-    "task": "Absolute viewmodel Z controls are in development; the combined candidate remains local. Packaging repair is applied at 68a5bd4. Source publication and complete hosted verification are pending.",
+    "task": "Six-slider candidate passed local UI, Rust and Clippy checks; remote source publication and full hosted verification are pending. Packaging repair is applied at 68a5bd4.",
     "url": "https://github.com/RHS059/rust_duty/commit/68a5bd48616015f902efc3be9dbbfc1c7e31dc51"
   }
 }
