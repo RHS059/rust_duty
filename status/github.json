@@ -1,11 +1,11 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-04T00:52:02Z",
+  "updatedAt": "2026-10-04T01:03:18Z",
   "latestComplete": {
     "sha": "b3f2ba8e228f4a34b8f1c5bec74190bc26ca2e87",
     "downloadUrl": "https://github.com/RHS059/rust_duty/actions/runs/37160557704/artifacts/11287513506",
     "runUrl": "https://github.com/RHS059/rust_duty/actions/runs/37160557704",
-    "verifiedAt": "2026-10-04T00:52:02Z",
+    "verifiedAt": "2026-10-04T01:03:18Z",
     "completedAt": "2026-10-03T23:24:10Z"
   },
   "changes": [
@@ -13,15 +13,15 @@
     "All three exact-head workflows passed, including complete Windows/Linux packages. Windows CI reported 553 Rust tests passed and 175 Python tests completed with one skipped.",
     "Windows artifact 11287513506 is 92,882,052 bytes. API and upload-log SHA-256 match: e695713bef128b08ab51172ffae72269bee0642b30aea605feff57eb7dcab104.",
     "Native Linux walking-slider clicks and persistence were checked; real Windows Alt-Tab interaction remains untested.",
-    "The reconciled 0.1.8 candidate passed 526 local Rust tests, Clippy, 23 release-identity checks and native XY/XYZ UI checks. Source publication is in progress, not yet remotely verified; no complete hosted candidate is confirmed.",
+    "The reconciled 0.1.8 candidate passed 526 local Rust tests, Clippy, 23 release-identity checks and native XY/XYZ UI checks. Its remote source publication remains unverified; no complete hosted candidate is confirmed.",
     "The separately released 0.1.5 at eb886edb passed real Windows/Linux 0.1.4 upgrades, checking 70 managed files and preserving 85 root-file and synthetic private-data checks.",
     "Main, ADS and walking-control reconciliation is complete locally. The earlier strict bone-parity failure at 3.36e-5 remains an unresolved recorded limitation; no new release is claimed. PR #24 automation remains inactive.",
-    "Public 0.1.7's checked Linux ZIP omits integrated animation assets. PR #26 at a479cca passed all workflows and real Windows/Linux repack checks, preserving all 65 authored asset files. The tested fix awaits application.",
+    "The tested packaging repair is applied to the release branch at 68a5bd4, with all 65 authored asset files preserved in repack checks. Public latest remains 0.1.7; a corrected new release has not been verified.",
     "V9, lateral Trial4 and newer jump/mantle work are not included in this PR #25 artifact."
   ],
   "currentBuild": {
     "state": "active",
-    "task": "Local 0.1.8 candidate checks passed; source publication and complete hosted verification remain pending. The tested packaging repair still awaits application. Latest Complete stays PR #25.",
-    "url": "https://github.com/RHS059/rust_duty/actions/runs/37164768461"
+    "task": "Packaging repair is applied at 68a5bd4. Local 0.1.8 candidate checks passed, but remote source publication and complete hosted verification remain unconfirmed. Latest Complete stays PR #25.",
+    "url": "https://github.com/RHS059/rust_duty/commit/68a5bd48616015f902efc3be9dbbfc1c7e31dc51"
   }
 }
