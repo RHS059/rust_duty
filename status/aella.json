@@ -1,27 +1,27 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-04T00:32:22Z",
+  "updatedAt": "2026-10-04T00:42:19Z",
   "state": "active",
-  "task": "Verifying the packaging repair and reviewing build times; ADS/sliders publication remains held until verified 0.1.9 completion.",
-  "lastCompleted": "PR #26 at a479cca passed 51 local tests and exact-head game/updater CI. Complete Windows/Linux repack verification is running.",
+  "task": "Reconciling current main with ADS, cursor-focus fixes and walking controls; preparing the tested packaging repair for application.",
+  "lastCompleted": "PR #26 complete Windows/Linux repacks verified all 65 authored asset files. The tested packaging fix awaits application.",
   "agents": [
     {
       "slot": 1,
       "state": "active",
-      "task": "Reviewing Rust Duty build timings read-only to identify where tests and packaging spend time.",
-      "lastCompleted": "A recent 19-minute build spent about 8 minutes in asset tests and 4.3 minutes in repeated asset processing; release compilation took 18–38 seconds."
+      "task": "Preparing the forward ADS v9 runtime handoff for the reconciled game candidate.",
+      "lastCompleted": "V9 source and native mapping checks are in draft PR #23; the earlier local candidate retained a strict bone-parity failure."
     },
     {
       "slot": 2,
       "state": "active",
-      "task": "Verifying complete Windows/Linux ZIPs and update bundles from the original artifacts with PR #26.",
-      "lastCompleted": "Revised packaging checks passed 51 local tests plus game/updater CI; the real-artifact repack is still running."
+      "task": "Preparing the tested packaging repair for application and coordinating the next release identity.",
+      "lastCompleted": "PR #26 passed 51 local tests, all exact-head workflows and complete Windows/Linux ZIP and update-bundle checks."
     },
     {
       "slot": 3,
-      "state": "idle",
-      "task": "Waiting for verified 0.1.9 completion; local ADS/sliders editing, testing and publication are paused.",
-      "lastCompleted": "PR #25 b3f2ba8e has complete Windows/Linux builds. The newer local v9 candidate passed 517 tests and replay but retains the 3.36e-5 parity failure."
+      "state": "active",
+      "task": "Reconciling main 7037202 with ADS v9, Alt-Tab cursor fixes and persistent per-weapon XYZ walking sliders.",
+      "lastCompleted": "PR #25 has verified complete builds. The pre-reconciliation local v9 candidate passed 517 tests and replay but retained the 3.36e-5 parity failure."
     }
   ]
 }
