@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-04T01:22:39Z",
+  "updatedAt": "2026-10-04T01:32:21Z",
   "state": "active",
-  "task": "Preparing the combined candidate after checking all six position and walking-motion sliders; remote source publication is pending.",
-  "lastCompleted": "All six sliders passed visual checks; absolute Z persistence, clamping, full Rust tests and Clippy passed locally. Packaging repair is applied at 68a5bd4.",
+  "task": "Checking the published 0.1.8 candidate's native builds before corrected release delivery.",
+  "lastCompleted": "Draft PR #27 at edd4612 contains ADS v9, focus fixes and both XYZ controls. Local UI/Rust/Clippy checks and hosted runtime-contract/updater checks passed.",
   "agents": [
     {
       "slot": 1,
@@ -14,14 +14,14 @@
     {
       "slot": 2,
       "state": "idle",
-      "task": "Waiting for the combined candidate's remote source and complete native CI before the corrected release.",
-      "lastCompleted": "The tested packaging repair was applied at 68a5bd4 and remotely verified; complete-package repack checks had already passed."
+      "task": "Waiting for exact-source native CI before publishing the prepared 0.1.8 release.",
+      "lastCompleted": "The release plan is prepared; 51 packaging/release tests passed. Packaging repair is applied at 68a5bd4."
     },
     {
       "slot": 3,
-      "state": "active",
-      "task": "Preparing source publication for the combined ADS, focus and six-slider candidate.",
-      "lastCompleted": "All six sliders were visually checked; absolute Z persistence, clamping, full Rust tests and Clippy passed locally."
+      "state": "idle",
+      "task": "Waiting on and checking PR #27 native CI; no active edits.",
+      "lastCompleted": "Published edd4612 after six-slider UI, Z persistence/clamping, full Rust and Clippy checks. Hosted runtime-contract checks passed."
     }
   ]
 }
