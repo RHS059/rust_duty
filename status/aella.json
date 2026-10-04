@@ -1,21 +1,21 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-04T19:01:46Z",
+  "updatedAt": "2026-10-04T19:12:14Z",
   "state": "active",
-  "task": "Recovering and annotating movement references, authoring mantle/climb motion and building comparison tools; ownership and reviews are being coordinated.",
-  "lastCompleted": "Source inventory and comparison planning are complete. Only synthetic A100 smoke has passed; no new animation scores are established and the GPU runtime is shut down.",
+  "task": "Annotating restored movement references, refining mantle/climb WIP and developing weapon-motion comparison tools.",
+  "lastCompleted": "The first two source videos are restored and hash-verified on GitHub; the third is restored locally. Initial editable mantle/climb WIP exists but is unreviewed and unscored. Colab is off.",
   "agents": [
     {
       "slot": 1,
       "state": "active",
-      "task": "Recovering existing movement videos and preparing annotated source cuts.",
-      "lastCompleted": "Existing annotations and remaining movement-source coverage were inventoried."
+      "task": "Preparing annotated cuts from the recovered movement videos.",
+      "lastCompleted": "All three reference sources are recovered; the source-recovery blocker is resolved."
     },
     {
       "slot": 2,
       "state": "active",
-      "task": "Authoring reference-based mantle/vault and vehicle-roof climb motion.",
-      "lastCompleted": "Remaining action coverage and ownership were reviewed; no new animation score is established."
+      "task": "Refining mantle/vault and vehicle-roof climb motion and investigating the Eevee preview issue.",
+      "lastCompleted": "Created initial editable mantle/vault and vehicle-roof climb WIP; no independent review or score yet."
     },
     {
       "slot": 3,
