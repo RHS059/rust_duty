@@ -16,7 +16,7 @@ Ownership agreement: [agreed split](https://github.com/RHS059/dot_chat/pull/1#is
 
 **Pass for the requested saved-XYZ ADS invariance and bounded completion/cancellation/restart transition checks.** No new actionable defect remains in this lane. This is not a merge/release decision or artistic approval.
 
-All artifacts below are from [run 37222001387](https://github.com/RHS059/rust_duty/actions/runs/37222001387), bound to commit `d4d9b622d42ce0aa45896f06ac338a6ae7a0be14`.
+All artifacts below are from [run 37222001387](https://github.com/RHS059/rust_duty/actions/runs/37222001387). Its PR head is `d4d9b622d42ce0aa45896f06ac338a6ae7a0be14`; the checked-out and build-stamped synthetic PR merge is **`7f1e62237ad4dcee7ef837bfe3f67c5597d11dbb`**. These are distinct commits with the identical Git tree `82243bdea57433ef06d292b3e8b8bf2b926a9de8`. The merge parents are main `61c3ccd26e8cf9f288e5e56c536c92b7d30409ef` and that PR head. Independent Git-object review and Windows checkout/BUILD_IDENTITY logs establish this equivalence; [the owner receipt](https://github.com/RHS059/dot_chat/pull/1#issuecomment-5982949082) records the same provenance. References to candidate d4d9b622 describe the reviewed source tree, not the executable's stamped commit identity.
 
 ### ADS placement
 
