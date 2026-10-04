@@ -197,3 +197,21 @@ handover, pause/repeated render/reset and invalid source contracts. The optional
 `RUST_DUTY_ANIMATION_MANIFEST` asset test evaluates actual canonical source poses
 and their skin/actor transforms across the shared gameplay replay, while comparing
 all relevant gameplay outcomes against an unobserved baseline simulation.
+
+## Common jump
+
+`jump.asset=jump/asset.vra` with `jump.clock=native_ground_contact` selects the
+stable `jump_takeoff`, `jump_air`, and `jump_land` IDs. Omitted Jump slots or
+`jump=unavailable` preserve legacy behavior. Revision suffixes belong to Blender
+Actions, not game bindings. Current r7 is WIP; see [the tested source/export scope
+and pending review](JUMP_R7_RUNTIME_WIP.md).
+
+The observer follows accepted simulation launches and actual ground contact,
+never raw Space input. Air is non-looping with an endpoint hold; early and late
+landings blend from the preceding visible pose. ADS articulation and gameplay
+firing/reload/mantle decisions stay authoritative. Jump does not change physics
+or inherit user walking-motion gains.
+
+`--capture-sequence=gameplay-jump --capture-hz=60` records actual native HIP/ADS
+jumps, extended-air hold, and reload interruption for the CI gate. Captured state
+and numeric source parity do not establish a reference-match score.

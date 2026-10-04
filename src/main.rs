@@ -1036,6 +1036,7 @@ async fn main() {
                     | "gameplay-ads"
                     | "gameplay-layered"
                     | "gameplay-return"
+                    | "gameplay-jump"
             )
         });
     let gameplay_capture = matches!(
@@ -1046,6 +1047,7 @@ async fn main() {
                 | "gameplay-ads"
                 | "gameplay-layered"
                 | "gameplay-return"
+                | "gameplay-jump"
         )
     );
     let mut gameplay_reload_issued = false;
@@ -1065,6 +1067,7 @@ async fn main() {
         Some("gameplay-ads") => 9.0,
         Some("gameplay-layered") => 11.0,
         Some("gameplay-return") => 6.3,
+        Some("gameplay-jump") => 6.5,
         Some("empty") => vector_range::reference_motion::visual_duration(true),
         Some("tactical") => vector_range::reference_motion::visual_duration(false),
         Some("locomotion" | "gameplay-walk") => 3.5,
@@ -1103,7 +1106,7 @@ async fn main() {
         .unwrap_or("capture.png");
     if matches!(
         capture_sequence,
-        Some("gameplay-reload" | "gameplay-ads" | "gameplay-return")
+        Some("gameplay-reload" | "gameplay-ads" | "gameplay-return" | "gameplay-jump")
     ) {
         sim.player.ammo = 12;
     }
@@ -1581,6 +1584,8 @@ async fn main() {
                     vector_range::authored_ads::gameplay_ads_replay_input(start)
                 } else if capture_sequence == Some("gameplay-layered") {
                     vector_range::layered_locomotion::gameplay_layered_replay_input(start)
+                } else if capture_sequence == Some("gameplay-jump") {
+                    vector_range::authored_jump::gameplay_jump_replay_input(start)
                 } else if capture_sequence == Some("gameplay-return") {
                     vector_range::authored_reload::gameplay_return_replay_input(start)
                 } else {
@@ -1888,6 +1893,26 @@ async fn main() {
                     model.map_or(0., |m| m.walk_weight()), model.map_or(0., |m| m.run_weight()), model.map_or(0., |m| m.visual_ads_amount()),
                     model.and_then(|m| m.reload_sample()).map_or("null".into(), |v| v.seconds.to_string()),
                     model.and_then(|m| m.tactical_duration()).map_or("null".into(), |v| v.to_string()), sim.player.ammo, sim.player.reserve, sim.stats.shots));
+            }
+            if capture_sequence == Some("gameplay-jump") {
+                let model = authored.as_ref();
+                let sample = model.and_then(|model| model.jump_sample());
+                let phase = sample.map_or("none", |sample| match sample.phase {
+                    vector_range::authored_jump::JumpPhase::Takeoff => "takeoff",
+                    vector_range::authored_jump::JumpPhase::Air => "air",
+                    vector_range::authored_jump::JumpPhase::Land => "land",
+                });
+                let seconds = sample.map_or(0., |sample| sample.seconds);
+                let holding = sample.is_some_and(|sample| sample.holding_air_endpoint);
+                let failed = model.is_none_or(|model| model.error().is_some());
+                let crc = model
+                    .and_then(|model| model.pose_crc32())
+                    .map_or("null".to_owned(), |v| v.to_string());
+                let visual_ads = model.map_or(0., |model| model.visual_ads_amount());
+                let _ = std::fs::write(format!("{output}.gameplay.json"), format!(
+                    "{{\"simulation_time\":{},\"phase\":\"{}\",\"native_seconds\":{},\"holding_air_endpoint\":{},\"grounded\":{},\"accepted_jump_at\":{},\"reload_left\":{},\"visual_ads\":{},\"renderer_failed\":{},\"pose_crc32\":{},\"sampling_hz\":{}}}",
+                    sim.time, phase, seconds, holding, sim.player.grounded, sim.player.last_jump_at, sim.player.reload_left,
+                    visual_ads, failed, crc, capture_hz));
             }
             if capture_sequence == Some("gameplay-walk") {
                 let native = authored.as_ref().and_then(|model| model.walk_sample());

@@ -40,6 +40,8 @@ pub struct AnimationManifest {
     pub layer_anchor_actor: String,
     pub empty: Option<ClipReference>,
     pub ads: Option<AdsReference>,
+    /// Optional common jump; absent in legacy and unreviewed asset bundles.
+    pub jump_asset: Option<PathBuf>,
     pub receiver_ads_wip: bool,
     pub forward_ads_v9_wip: bool,
     pub ads_visual_transition_seconds: Option<f64>,
@@ -125,6 +127,15 @@ impl AnimationManifest {
         for slot in ["fire", "mantle"] {
             policy(&mut values, slot, "unavailable")?;
         }
+        let jump_asset = if values.contains_key("jump") {
+            policy(&mut values, "jump", "unavailable")?;
+            None
+        } else if values.keys().any(|key| key.starts_with("jump.")) {
+            policy(&mut values, "jump.clock", "native_ground_contact")?;
+            Some(asset(&mut values, "jump.asset", directory)?)
+        } else {
+            None
+        };
         let ads = if values.contains_key("ads") {
             policy(&mut values, "ads", "unavailable")?;
             None
@@ -226,6 +237,7 @@ impl AnimationManifest {
             layer_anchor_actor,
             empty,
             ads,
+            jump_asset,
             receiver_ads_wip,
             forward_ads_v9_wip,
             ads_visual_transition_seconds,

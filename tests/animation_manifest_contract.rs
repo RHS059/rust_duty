@@ -126,3 +126,33 @@ fn directional_walk_is_optional_and_requires_all_four_declared_clips() {
     let missing = MANIFEST.replace("regular_walk.direction.left=hip_strafe_left_r1", "");
     assert!(AnimationManifest::parse(&missing, Path::new("assets")).is_err());
 }
+
+#[test]
+fn jump_is_optional_and_native_contact_policy_is_required() {
+    let legacy = MANIFEST
+        .lines()
+        .filter(|line| !line.starts_with("jump."))
+        .collect::<Vec<_>>()
+        .join("\n");
+    assert!(AnimationManifest::parse(&legacy, Path::new("assets"))
+        .unwrap()
+        .jump_asset
+        .is_none());
+    let configured =
+        format!("{legacy}\njump.asset=jump/asset.vra\njump.clock=native_ground_contact\n");
+    assert_eq!(
+        AnimationManifest::parse(&configured, Path::new("assets"))
+            .unwrap()
+            .jump_asset
+            .unwrap(),
+        Path::new("assets/jump/asset.vra")
+    );
+    for text in [
+        configured.replace("native_ground_contact", "fixed_reference_duration"),
+        configured.replace("jump/asset.vra", "../asset.vra"),
+        configured.clone() + "jump=unavailable\n",
+        format!("{legacy}\njump.asset=jump/asset.vra\n"),
+    ] {
+        assert!(AnimationManifest::parse(&text, Path::new("assets")).is_err());
+    }
+}

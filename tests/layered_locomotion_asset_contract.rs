@@ -28,6 +28,7 @@ fn actual_bound_layers_overlap_preserve_grips_and_leave_gameplay_unchanged() {
     )
     .unwrap();
     let sources = LayerSources {
+        jump: None,
         locomotion: &set,
         walk: Some(&walk),
         ads: Some(&ads),

@@ -47,6 +47,9 @@ fn fixture() -> AnimationSet {
     floats(&mut p, &Mat4::IDENTITY.to_cols_array());
     let clips = [
         ("ready", false, vec![(0., 0.)]),
+        ("jump_takeoff", false, vec![(0., 0.), (0.2, -0.1)]),
+        ("jump_air", false, vec![(0., -0.1), (0.4, 0.1)]),
+        ("jump_land", false, vec![(0., 0.1), (0.2, -0.1), (0.5, 0.)]),
         ("run_in", false, vec![(0., 0.), (0.25, 0.2)]),
         ("run", true, vec![(0., 0.2), (0.25, 0.3), (0.5, 0.2)]),
         ("bridge0", false, vec![(0., 0.2), (0.125, 0.1)]),
@@ -117,6 +120,7 @@ fn fixture() -> AnimationSet {
 }
 fn sources(set: &AnimationSet) -> LayerSources<'_> {
     LayerSources {
+        jump: None,
         locomotion: set,
         walk: Some(set),
         ads: Some(set),
@@ -697,4 +701,222 @@ fn v9_without_directional_source_retains_legacy_policy() {
     assert_eq!(original.pose(), fallback.pose());
     assert_eq!(original.walk().seconds(), fallback.walk().seconds());
     assert_eq!(fallback.walk_min_rate(), 0.85);
+}
+
+#[test]
+fn jump_landing_blends_from_actual_pose_at_early_and_late_contact() {
+    for contact in [0.1, 0.9] {
+        let set = fixture();
+        let mut layers = controller(&set)
+            .with_jump(&set, &set, "ready", "weapon")
+            .unwrap();
+        let mut sim = Simulation::new();
+        sim.player.last_jump_at = 0.;
+        sim.player.grounded = false;
+        let sources = LayerSources {
+            jump: Some(&set),
+            ..sources(&set)
+        };
+        sim.time = 0.01;
+        layers.committed_step(sources, 0., &sim, false).unwrap();
+        sim.time = contact - 0.01;
+        layers.committed_step(sources, 0.01, &sim, false).unwrap();
+        let airborne = layers.pose().clone();
+        sim.time = contact;
+        sim.player.grounded = true;
+        layers
+            .committed_step(sources, contact - 0.01, &sim, false)
+            .unwrap();
+        assert_eq!(
+            layers.jump_sample().unwrap().phase,
+            vector_range::authored_jump::JumpPhase::Land
+        );
+        assert_eq!(layers.jump_sample().unwrap().seconds, 0.);
+        assert_eq!(layers.pose(), &airborne);
+        sim.time += 0.07;
+        layers
+            .committed_step(sources, contact, &sim, false)
+            .unwrap();
+        assert_ne!(layers.pose(), &airborne);
+    }
+}
+
+#[test]
+fn jump_keeps_ads_clock_and_articulation_and_reload_owns_interruption() {
+    let set = fixture();
+    let mut layers = controller(&set)
+        .with_jump(&set, &set, "ready", "weapon")
+        .unwrap();
+    let mut baseline = controller(&set);
+    let mut sim = Simulation::new();
+    sim.player.ads_requested = true;
+    let jump_sources = LayerSources {
+        jump: Some(&set),
+        ..sources(&set)
+    };
+    for i in 0..100 {
+        let start = sim.time;
+        if i == 40 {
+            sim.player.last_jump_at = start;
+            sim.player.grounded = false;
+        }
+        sim.time += 0.01;
+        layers
+            .committed_step(jump_sources, start, &sim, false)
+            .unwrap();
+        baseline
+            .committed_step(sources(&set), start, &sim, false)
+            .unwrap();
+        assert_eq!(layers.visual_ads_amount(), baseline.visual_ads_amount());
+    }
+    assert!(layers.jump_sample().is_some());
+    // At full ADS the jump's x/y translation is projected away, preserving the
+    // authored optical placement, but source depth/roll still moves the weapon.
+    let aimed = baseline.pose().actor_globals[0];
+    let jumped = layers.pose().actor_globals[0];
+    assert!(jumped.translation.is_finite());
+    assert_ne!(jumped, aimed);
+    let start = sim.time;
+    sim.time += 0.01;
+    layers
+        .committed_step(jump_sources, start, &sim, true)
+        .unwrap();
+    baseline
+        .committed_step(sources(&set), start, &sim, true)
+        .unwrap();
+    assert!(layers.jump_sample().is_none());
+    assert_eq!(layers.pose(), baseline.pose());
+    let previous = layers.pose().clone();
+    // Missing configured source is a real failure and leaves all clocks/pose intact.
+    sim.time += 0.01;
+    assert!(layers
+        .committed_step(sources(&set), start + 0.01, &sim, false)
+        .is_err());
+    assert_eq!(layers.pose(), &previous);
+}
+
+#[test]
+fn real_simulation_accepts_one_jump_and_ground_contact_starts_landing() {
+    use vector_range::{
+        authored_jump::JumpPhase,
+        settings::Settings,
+        sim::{Input, FIXED_DT},
+    };
+    let set = fixture();
+    let mut layers = controller(&set)
+        .with_jump(&set, &set, "ready", "weapon")
+        .unwrap();
+    let sources = LayerSources {
+        jump: Some(&set),
+        ..sources(&set)
+    };
+    let mut sim = Simulation::new();
+    let cfg = Settings::default();
+    let mut saw_air = false;
+    let mut saw_land = false;
+    for _ in 0..240 {
+        let start = sim.time;
+        // Holding raw input must not repeatedly restart the accepted jump.
+        sim.update(
+            Input {
+                jump: true,
+                ..Input::default()
+            },
+            &cfg,
+            FIXED_DT,
+        );
+        layers.committed_step(sources, start, &sim, false).unwrap();
+        if let Some(sample) = layers.jump_sample() {
+            saw_air |= sample.phase == JumpPhase::Air;
+            if sample.phase == JumpPhase::Land {
+                assert!(sim.player.grounded);
+                saw_land = true;
+            }
+        }
+    }
+    assert!(saw_air && saw_land);
+    assert!(layers.jump_sample().is_none());
+    assert_eq!(sim.player.last_jump_at, 0.);
+}
+
+#[test]
+fn real_space_to_stand_and_mantle_never_start_jump_layer() {
+    use macroquad::math::{vec2, vec3};
+    use vector_range::{
+        settings::Settings,
+        sim::{Aabb, Block, Input, FIXED_DT},
+    };
+    let set = fixture();
+    let cfg = Settings::default();
+    for mantle in [false, true] {
+        let mut layers = controller(&set)
+            .with_jump(&set, &set, "ready", "weapon")
+            .unwrap();
+        let sources = LayerSources {
+            jump: Some(&set),
+            ..sources(&set)
+        };
+        let mut sim = Simulation::new();
+        if mantle {
+            sim.blocks = vec![
+                Block {
+                    bounds: Aabb {
+                        min: vec3(-20., -1., -20.),
+                        max: vec3(20., 0., 20.),
+                    },
+                    kind: 2,
+                },
+                Block {
+                    bounds: Aabb {
+                        min: vec3(-2., 0., -4.),
+                        max: vec3(2., 0.6, 0.),
+                    },
+                    kind: 2,
+                },
+            ];
+            sim.ramps.clear();
+            sim.player.position = vec3(0., 0., 1.);
+            sim.player.yaw = -std::f32::consts::FRAC_PI_2;
+        } else {
+            for _ in 0..60 {
+                let start = sim.time;
+                sim.update(
+                    Input {
+                        crouch: true,
+                        ..Input::default()
+                    },
+                    &cfg,
+                    FIXED_DT,
+                );
+                layers.committed_step(sources, start, &sim, false).unwrap();
+            }
+            assert!(sim.player.crouched);
+        }
+        let start = sim.time;
+        sim.update(
+            Input {
+                jump: true,
+                movement: if mantle { vec2(0., 1.) } else { vec2(0., 0.) },
+                ..Input::default()
+            },
+            &cfg,
+            FIXED_DT,
+        );
+        layers.committed_step(sources, start, &sim, false).unwrap();
+        assert_eq!(sim.player.mantle.is_some(), mantle);
+        assert!(layers.jump_sample().is_none());
+        for _ in 0..120 {
+            let start = sim.time;
+            sim.update(
+                Input {
+                    jump: true,
+                    ..Input::default()
+                },
+                &cfg,
+                FIXED_DT,
+            );
+            layers.committed_step(sources, start, &sim, false).unwrap();
+            assert!(layers.jump_sample().is_none());
+        }
+    }
 }

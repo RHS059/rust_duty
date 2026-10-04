@@ -58,3 +58,9 @@ __pycache__/
 
 # Regenerated dense v9 pose witnesses; public source and compact optical oracle remain committed.
 /assets/authoring/locomotion_ads/v9/v9_complete_pose_runtime_oracle.json
+
+# Jump runtime companions are generated from the checksum-pinned source by CI.
+/assets/jump/*
+!/assets/jump/README.md
+/build-jump/
+/.jump-source/

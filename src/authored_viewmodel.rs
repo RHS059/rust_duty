@@ -46,6 +46,7 @@ pub struct AuthoredViewmodel {
     warning: Option<String>,
     walk_index: Option<usize>,
     ads_index: Option<usize>,
+    jump_index: Option<usize>,
     return_map: Option<PoseReturnMap>,
     return_blend: Option<AnchoredPoseBlend>,
     reload_presentation: Option<ReloadPresentation>,
@@ -149,6 +150,7 @@ impl AuthoredViewmodel {
             warning: None,
             walk_index: None,
             ads_index: None,
+            jump_index: None,
             return_map: None,
             return_blend: None,
             reload_presentation: None,
@@ -229,9 +231,18 @@ impl AuthoredViewmodel {
             model.ads_index = Some(model.reload_renderers.len());
             model.reload_renderers.push(renderer);
         }
+        if let Some(path) = &manifest.jump_asset {
+            let renderer = Self::load(&asset_name(path)?, "jump_takeoff", None)?;
+            model.jump_index = Some(model.reload_renderers.len());
+            model.reload_renderers.push(renderer);
+        }
+        let ready_clip = manifest.locomotion.ready_clip.clone();
         model.locomotion = Some(
             LayeredLocomotion::new(
                 LayerSources {
+                    jump: model
+                        .jump_index
+                        .map(|i| &model.reload_renderers[i].animation),
                     locomotion: &model.animation,
                     walk: model
                         .walk_index
@@ -247,6 +258,21 @@ impl AuthoredViewmodel {
             )
             .map_err(|error| error.to_string())?,
         );
+        if let Some(index) = model.jump_index {
+            model.locomotion = Some(
+                model
+                    .locomotion
+                    .take()
+                    .ok_or("missing shared layers")?
+                    .with_jump(
+                        &model.reload_renderers[index].animation,
+                        &model.animation,
+                        &ready_clip,
+                        &manifest.layer_anchor_actor,
+                    )
+                    .map_err(|error| error.to_string())?,
+            );
+        }
         if let Some(clips) = manifest.directional_walk {
             let set = &model.reload_renderers[model
                 .walk_index
@@ -274,6 +300,9 @@ impl AuthoredViewmodel {
                 .map_err(|error| error.to_string())?,
         );
         let mut missing = vec!["fire", "mantle"];
+        if model.jump_index.is_none() {
+            missing.push("jump");
+        }
         if model.ads_index.is_none() {
             missing.insert(0, "ADS");
         }
@@ -288,6 +317,11 @@ impl AuthoredViewmodel {
             missing.join(", ")
         ));
         Ok(model)
+    }
+    pub fn jump_sample(&self) -> Option<vector_range::authored_jump::JumpSample> {
+        self.locomotion
+            .as_ref()
+            .and_then(LayeredLocomotion::jump_sample)
     }
     pub fn reload_sample(&self) -> Option<vector_range::authored_reload::ReloadSample> {
         self.reload.as_ref().and_then(AuthoredReload::sample)
@@ -417,6 +451,7 @@ impl AuthoredViewmodel {
             .is_some();
         if let Some(layers) = &mut self.locomotion {
             let sources = LayerSources {
+                jump: self.jump_index.map(|i| &self.reload_renderers[i].animation),
                 locomotion: &self.animation,
                 walk: self
                     .walk_index

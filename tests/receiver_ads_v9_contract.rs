@@ -222,6 +222,7 @@ fn actual_v9_direction_aim_run_interruptions_remain_finite_and_deterministic() {
     let walk = AnimationSet::load(&manifest.regular_walk.as_ref().unwrap().asset).unwrap();
     let ads = AnimationSet::load(&manifest.ads.as_ref().unwrap().asset).unwrap();
     let sources = LayerSources {
+        jump: None,
         locomotion: &set,
         walk: Some(&walk),
         ads: Some(&ads),
