@@ -1,15 +1,15 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-04T17:41:37Z",
+  "updatedAt": "2026-10-04T17:51:29Z",
   "state": "active",
-  "task": "Refining settings change tracking and reload verification, while testing build optimizations before the next full build.",
-  "lastCompleted": "Gameplay fixes and reload-cancellation coverage are pushed through b577aaa. PR #30 native UI guidance completed CI. The verified complete download remains dad6071.",
+  "task": "Following the optimized full build and completing gameplay verification for the new 0.1.8 candidate.",
+  "lastCompleted": "Final gameplay review fixes at 6db18e1 and build optimization at d4d9b62 are pushed. The new full build has started; the verified complete download remains dad6071.",
   "agents": [
     {
       "slot": 1,
       "state": "active",
-      "task": "Refining settings change tracking and reload-return verification after review.",
-      "lastCompleted": "Pushed reload-cancellation coverage at b577aaa on top of ADS centering, reload-return blending and settings fixes; full CI is intentionally deferred."
+      "task": "Completing gameplay verification and supporting the full build.",
+      "lastCompleted": "Final settings and reload-verification review fixes are committed at 6db18e1."
     },
     {
       "slot": 2,
@@ -20,8 +20,8 @@
     {
       "slot": 3,
       "state": "active",
-      "task": "Testing reuse of identical asset parsing results and parallel quality checks while verifying unchanged output bytes.",
-      "lastCompleted": "PR #28 engineering guidance merged at 61c3ccd; build profiling is complete."
+      "task": "Following optimized CI and checking that asset outputs remain equivalent.",
+      "lastCompleted": "Pushed repeated asset-parsing reuse and overlapping independent checks at d4d9b62; full CI is running."
     }
   ]
 }
