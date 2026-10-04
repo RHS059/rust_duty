@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-04T23:42:08Z",
+  "updatedAt": "2026-10-04T23:53:00Z",
   "latestComplete": {
     "sha": "d4d9b622d42ce0aa45896f06ac338a6ae7a0be14",
     "downloadUrl": "https://github.com/RHS059/rust_duty/actions/runs/37222001387/artifacts/11310528095",
@@ -22,7 +22,7 @@
   ],
   "currentBuild": {
     "state": "working",
-    "task": "Jump r7 candidate 195bb7bb has playable-build 37244464665 and updater 37244464553 in progress. PR #33 annotation head e4fdda48 has playable-build 37244611898/37244608647 and updater 37244611743/37244608364 queued or in progress. Earlier e9310ff6 playable runs were cancelled; both updater runs succeeded. Checked new candidate artifacts contain generated-runtime/diagnostic outputs but no Windows package yet. No newer complete package is independently verified; Latest Complete and its changes remain d4d9b62. Public latest release remains v0.1.7.",
-    "url": "https://github.com/RHS059/rust_duty/actions/runs/37244464665"
+    "task": "Release 0.1.8 publication run 37244860530 has prepare passed and publish in progress; public latest is still v0.1.7. Release-control e691cd11 checks passed, but its 695,312-byte Windows and 841,984-byte Linux artifacts are not independently verified complete game packages. Jump 0.1.9 cache dependency fix eedd2910: playable-build 37244927380 in progress, updater 37244927214 passed; superseded 195bb7bb/f72d44c7 playable runs cancelled. Annotation e4fdda48 playable runs 37244611898/37244608647 remain in progress and both updater runs passed. New isolated content-delta 0.1.10 candidate 176e046c has playable-build 37245297018 and updater 37245296838 in progress. Checked active candidate artifacts contain generated-runtime/diagnostic outputs, with no new Windows package yet. No newer complete package independently verified; Latest Complete and its change summary remain d4d9b62. The retained summary's earlier publication-paused note is superseded by the live publication state above.",
+    "url": "https://github.com/RHS059/rust_duty/actions/runs/37244860530"
   }
 }
