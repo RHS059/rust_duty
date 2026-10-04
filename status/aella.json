@@ -1,27 +1,27 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-04T23:42:08Z",
+  "updatedAt": "2026-10-04T23:47:00Z",
   "state": "working",
-  "task": "Jump r7 runtime candidate 195bb7bb is published on aella/jump-r7-integration; playable-build and updater runs remain in progress. PR #33 advanced to e4fdda48 with annotation witness-sheet pins and fresh CI. The implementation context remains active by report; live executor activity and artistic approval were not independently verified in this refresh.",
-  "lastCompleted": "Verified remote Jump candidate 195bb7bb includes runtime integration, packaging/CI hooks and evidence documentation, which reports 75 parity samples, five seam checks, 36 focused contracts and Clippy/formatting passes. These are recorded local results, not complete-package or rendered-gameplay approval. Verified PR #33 witness-sheet commit e4fdda48.",
+  "task": "Publishing verified 0.1.8 through release run 37244860530; Jump 0.1.9 is undergoing exact-source CI and independent review fixes. Reconciling unfinished updater features in isolated branches.",
+  "lastCompleted": "All six new videos annotated: 150 intervals cover 14,017 native frames; 1,135 sampled frames reviewed. PR #33 e4fdda48 pins witness hashes. Exact 0.1.8 Windows/Linux builds and native gameplay gates passed. Mantle/climb recovery packet published without claiming an authored candidate.",
   "agents": [
     {
       "slot": 1,
       "state": "working",
-      "task": "Rebuild isolated mantle/climb source checkpoint from verified baseline; prior local WIP not present on remote branch. No render retry.",
-      "lastCompleted": "Detailed U2/U3/U4 source annotations published; independent Jump engineering review returned concrete activation checks."
+      "task": "Reconcile unfinished merge-release automation against current release and identity guards; no activation yet.",
+      "lastCompleted": "Mantle/climb source recovery published; no recovered/new animation Actions."
     },
     {
       "slot": 2,
-      "state": "idle",
-      "task": "Annotation and read-only release preflight complete.",
-      "lastCompleted": "U1/U5/U6 detailed annotations published; no0.1.8 packaging compatibility blocker found."
+      "state": "working",
+      "task": "Reconcile content updater proposal in an isolated candidate after Jump.",
+      "lastCompleted": "Detailed annotations and independent packaging review complete."
     },
     {
       "slot": 3,
       "state": "working",
-      "task": "Jump r7 source→FBX→runtime export, stable bindings, package/CI hooks and simulation-trigger tests.",
-      "lastCompleted": "34 focused tests and clippy passed before export/packaging completion; no new artistic score."
+      "task": "Finalize Jump 0.1.9 review fixes and exact-source CI.",
+      "lastCompleted": "Jump export/parity/seams passed. Build identity fixed; 23 identity/publication tests passed. Cache dependency review fix in progress."
     }
   ]
 }
