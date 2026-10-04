@@ -1,0 +1,122 @@
+{
+  "schema": "rust-duty-public-motion-diagnostic/v1",
+  "status": "diagnostic",
+  "action": "Jump r7",
+  "candidate_owner": "Halcyon",
+  "measurement_owner": "Aella",
+  "score": null,
+  "score_status": "Unscored; single-point motion evidence only. Prior independent Jump r6 assessment78 is unchanged.",
+  "execution": {
+    "backend": "Colab CPU",
+    "synthetic": false,
+    "completed_utc": "2026-10-04T19:30:45Z",
+    "result_preserved": true,
+    "runtime_released": true,
+    "runtime_release_evidence": "Parent observed Manage sessions: No active sessions after preserving result ZIP."
+  },
+  "review_scope": {
+    "source_frames_half_open": [
+      4014,
+      4114
+    ],
+    "fps": [
+      60,
+      1
+    ],
+    "exact_1_to_1_timing": true,
+    "landmark": "Upper outer right charging-handle corner",
+    "landmark_correspondence": "Proposed homologous physical component; COD rifle/HK416 geometry differs. Not jointly frozen for scoring.",
+    "landmark_frames_reviewed": 100,
+    "full_viewport_pairs_reviewed": 57,
+    "normal_and_slow_playback_reviewed": false,
+    "muzzle_axis_and_third_anchor_supported": false,
+    "normalization_L_supported": false
+  },
+  "measurements": {
+    "raw_rms_px": 68.9448694572321,
+    "centered_rms_px": 6.660364499879335,
+    "baseline_rms_px": 6.79145662112803,
+    "baseline_p95_px": 13.636217872745586,
+    "baseline_max_px": 16.558491939835527,
+    "baseline_max_source_frame": 4045,
+    "point_coverage": {
+      "source_visible": 100,
+      "candidate_valid": 100,
+      "planned": 100
+    },
+    "source_annotation_uncertainty_px": 6,
+    "candidate_annotation_uncertainty_px": 2,
+    "usual_baseline_residual_bound_px": 16,
+    "source_frame_4048_uncertainty_px": 8,
+    "phase_measurements": {
+      "lead_hold": {
+        "source_window_half_open": [
+          4014,
+          4033
+        ],
+        "samples": 19,
+        "baseline_rms_px": 4.0369824287123555,
+        "baseline_max_px": 5.841291339099109
+      },
+      "takeoff": {
+        "source_window_half_open": [
+          4033,
+          4044
+        ],
+        "samples": 11,
+        "baseline_rms_px": 7.118937437630811,
+        "baseline_max_px": 15.421125842124368
+      },
+      "air": {
+        "source_window_half_open": [
+          4044,
+          4067
+        ],
+        "samples": 23,
+        "baseline_rms_px": 6.828126529652727,
+        "baseline_max_px": 16.558491939835527
+      },
+      "landing_recovery": {
+        "source_window_half_open": [
+          4067,
+          4096
+        ],
+        "samples": 29,
+        "baseline_rms_px": 4.846586739561259,
+        "baseline_max_px": 8.817085844365165
+      },
+      "tail_hold": {
+        "source_window_half_open": [
+          4096,
+          4114
+        ],
+        "samples": 18,
+        "baseline_rms_px": 10.519136408467704,
+        "baseline_max_px": 14.638782209294844
+      }
+    }
+  },
+  "practical_feedback": [
+    "Receiver-point trajectory is close through landing/recovery in this raw diagnostic.",
+    "Largest early-air residual is about16.6px downward at sourceframe4045, close to the16px annotation residual bound. It is not sufficient evidence to alter protected takeoff/air.",
+    "The candidate holds exact ready after4095 while the source retains small motion; late-tail residual is preserved.",
+    "No new disappearance or reset was apparent in57 inspected full-viewport pairs. This does not certify unseen frames, full grip, axis, or game runtime."
+  ],
+  "unsupported": [
+    "Physical source muzzle",
+    "Third agreed noncollinear rigid anchor",
+    "Reference normalization L and normalized spatial thresholds",
+    "Frozen event scoring contract",
+    "Full-clip normal/slow playback",
+    "Game runtime review"
+  ],
+  "provenance": {
+    "source_sha256": "491a1729aa0f32373025d35fff86da76c6c1c8f057c0c553d0fbb5fb6226ff46",
+    "native_eevee_archive_sha256": "12e5aee93e50a2bc2f5b1763ee5e5afee9b4fe2477102cd07db85469e8a7e504",
+    "colab_result_zip_sha256": "07692c3be1bb51b78ac6693bb7fff31dfd7a5b4f57609c992fa930523c19eeca",
+    "executed_module_sha256": "14a1f523709ea6f4221508e2138df1764c1cf91a4f880178b38cb325fbfd993c",
+    "source_candidate_video_bytes_verified_locally": true,
+    "source_candidate_video_bytes_verified_inside_colab": false,
+    "metrics_match_local_exactly": true
+  }
+}
