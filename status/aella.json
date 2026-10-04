@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-04T01:32:21Z",
+  "updatedAt": "2026-10-04T01:43:09Z",
   "state": "active",
-  "task": "Checking the published 0.1.8 candidate's native builds before corrected release delivery.",
-  "lastCompleted": "Draft PR #27 at edd4612 contains ADS v9, focus fixes and both XYZ controls. Local UI/Rust/Clippy checks and hosted runtime-contract/updater checks passed.",
+  "task": "Monitoring the 0.1.8 candidate's Windows/Linux tests before complete-package verification and release.",
+  "lastCompleted": "PR #27 edd4612 passed all four authored asset pipelines, runtime-contract checks and updater builds. The release plan is prepared.",
   "agents": [
     {
       "slot": 1,
@@ -13,15 +13,15 @@
     },
     {
       "slot": 2,
-      "state": "idle",
-      "task": "Waiting for exact-source native CI before publishing the prepared 0.1.8 release.",
-      "lastCompleted": "The release plan is prepared; 51 packaging/release tests passed. Packaging repair is applied at 68a5bd4."
+      "state": "active",
+      "task": "Monitoring exact-source native CI and preparing complete-package release checks.",
+      "lastCompleted": "Publication plan and WIP release notes are prepared; 51 packaging/release tests passed. Packaging repair is applied at 68a5bd4."
     },
     {
       "slot": 3,
-      "state": "idle",
-      "task": "Waiting on and checking PR #27 native CI; no active edits.",
-      "lastCompleted": "Published edd4612 after six-slider UI, Z persistence/clamping, full Rust and Clippy checks. Hosted runtime-contract checks passed."
+      "state": "active",
+      "task": "Monitoring PR #27 native CI; no current source edits.",
+      "lastCompleted": "All four authored asset pipelines, runtime-contract checks and updater builds passed; Windows/Linux Python regression tests are running."
     }
   ]
 }
