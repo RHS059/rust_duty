@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-04T23:32:43Z",
+  "updatedAt": "2026-10-04T23:42:08Z",
   "latestComplete": {
     "sha": "d4d9b622d42ce0aa45896f06ac338a6ae7a0be14",
     "downloadUrl": "https://github.com/RHS059/rust_duty/actions/runs/37222001387/artifacts/11310528095",
@@ -22,7 +22,7 @@
   ],
   "currentBuild": {
     "state": "working",
-    "task": "PR #33/source-annotation head e9310ff6 has playable-build runs 37243890523 (PR) and 37243887993 (push), plus updater runs 37243890199 and 37243887871, in progress since 23:28 UTC. The PR run has eight generated-runtime/diagnostic artifacts but no Windows package yet. No newer complete package is independently verified; Latest Complete and its changes remain d4d9b62. Public latest release is still v0.1.7; another implementation context reports preparing 0.1.8 publication.",
-    "url": "https://github.com/RHS059/rust_duty/actions/runs/37243890523"
+    "task": "Jump r7 candidate 195bb7bb has playable-build 37244464665 and updater 37244464553 in progress. PR #33 annotation head e4fdda48 has playable-build 37244611898/37244608647 and updater 37244611743/37244608364 queued or in progress. Earlier e9310ff6 playable runs were cancelled; both updater runs succeeded. Checked new candidate artifacts contain generated-runtime/diagnostic outputs but no Windows package yet. No newer complete package is independently verified; Latest Complete and its changes remain d4d9b62. Public latest release remains v0.1.7.",
+    "url": "https://github.com/RHS059/rust_duty/actions/runs/37244464665"
   }
 }
