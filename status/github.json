@@ -1,27 +1,28 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-04T18:03:17Z",
+  "updatedAt": "2026-10-04T18:14:34Z",
   "latestComplete": {
-    "sha": "dad6071625ce9190c69e4703c53952a2244cf1f8",
-    "downloadUrl": "https://github.com/RHS059/rust_duty/actions/runs/37169476605/artifacts/11289799614",
-    "runUrl": "https://github.com/RHS059/rust_duty/actions/runs/37169476605",
-    "verifiedAt": "2026-10-04T18:03:17Z",
-    "completedAt": "2026-10-04T02:07:18Z"
+    "sha": "d4d9b622d42ce0aa45896f06ac338a6ae7a0be14",
+    "downloadUrl": "https://github.com/RHS059/rust_duty/actions/runs/37222001387/artifacts/11310528095",
+    "runUrl": "https://github.com/RHS059/rust_duty/actions/runs/37222001387",
+    "verifiedAt": "2026-10-04T18:14:34Z",
+    "completedAt": "2026-10-04T18:04:19Z"
   },
   "changes": [
-    "Latest Complete is the corrected Windows 0.1.8 candidate at dad6071, containing ADS v9, focus fixes, absolute XYZ position, separate walking XYZ controls and current effects. It is a CI download; public updater latest remains 0.1.7.",
-    "Windows job 111339481428 passed tests, lint, release compilation, complete staging and embedded identity checks for 0.1.8/sequence 8. It staged 83 required game files plus BUILD_IDENTITY, with 84 files uploaded.",
-    "Artifact 11289799614 is 92,905,506 bytes. API and upload-log SHA-256 agree: 34166ec8e40804a021199238710e425d3a00c1e5055f16b6bcd387228745c0ef. Verification uses CI staging, identity and upload evidence; no independent local full-ZIP inspection is claimed.",
-    "Corrected dad6071 full game run 37169476605 passed on Windows and Linux. Linux native reload, walk, ADS interruption, layered 30/60 Hz and lighting checks passed; Linux artifact 11291071076 is available.",
-    "All authored asset, runtime-contract and updater checks passed for dad6071. New ADS centering, reload-return blending, settings fixes and build optimization are committed through d4d9b62, but are not included in this download; their full build is running.",
-    "Six-slider UI, Z persistence/clamping, full Rust tests and Clippy passed locally. The known strict ADS bone-parity discrepancy at 3.36e-5 remains unresolved; Windows Alt-Tab interaction is still untested.",
-    "Packaging repair is applied at 68a5bd4 and its repack checks preserved all 65 authored assets. Release publication is paused; 0.1.8 updater delivery is not yet published.",
+    "Latest Complete is the verified Windows 0.1.8 candidate for d4d9b62, retaining ADS v9, focus fixes, absolute XYZ position, walking XYZ controls and current effects. It is a CI download; public updater latest remains 0.1.7.",
+    "This download adds ADS position centering, smooth reload-to-walk/run blending, cancellation coverage, and persistent settings with keyboard controls and corrected change tracking.",
+    "Full run 37222001387 passed Windows and Linux, all four authored asset pipelines, and native playback checks. Runtime-contract and updater workflows also passed.",
+    "Artifact 11310528095 is 92,922,748 bytes; SHA-256 ca4664f4f98f8dba3e08f13e342a18fa4ecaf83dd8b0942892446e7dd7b9a78e matches the API, upload log and downloaded ZIP. Independent complete-package verification found exactly 83 approved game files plus BUILD_IDENTITY.",
+    "Embedded identity is 0.1.8/sequence 8 at PR merge source 7f1e622. Its tree 82243bde exactly matches branch source d4d9b62.",
+    "Build optimization reuses identical asset parsing results and overlaps independent checks. Cold commit-to-Windows-ZIP time was 14m14s; the under-five-minute target was not met.",
+    "Six-slider UI and Z persistence/clamping checks passed. The known strict ADS bone-parity discrepancy at 3.36e-5 remains unresolved; Windows Alt-Tab interaction is still untested.",
+    "Packaging repair at 68a5bd4 preserved all 65 authored assets. Release publication remains paused; public 0.1.8 updater delivery is not published.",
     "Antivirus investigation awaits the exact Avast detection and affected filename; no security-clearance verdict. Lateral Trial4 and newer jump/mantle work are not included. PR #24 automatic patch releases remain inactive.",
-    "PR #28 engineering documentation merged at 61c3ccd. PR #30 design guidance at 39558b4 passed game/updater CI. These documentation changes use the 0.1.7 base and do not replace the verified integrated dad6071 download."
+    "PR #28 engineering documentation merged at 61c3ccd. PR #30 UI design guidance passed CI, and PR #31 provides a separate animation diagnostic notebook; these are not a replacement for this integrated game download."
   ],
   "currentBuild": {
-    "state": "active",
-    "task": "Full build 37222001387 is running for d4d9b62. All four authored asset jobs passed; Windows is fetching notice dependencies and Linux is running parallel Python, game and updater checks. No new Windows package is available yet.",
+    "state": "idle",
+    "task": "Full build 37222001387 and independent Windows ZIP verification are complete for d4d9b62. The new download is verified; public 0.1.8 updater publication remains paused.",
     "url": "https://github.com/RHS059/rust_duty/actions/runs/37222001387"
   }
 }
