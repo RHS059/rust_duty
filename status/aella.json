@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-03T23:54:04Z",
+  "updatedAt": "2026-10-04T00:02:03Z",
   "state": "active",
-  "task": "Monitoring Elara's release sequence; combined ADS and walking-control work is waiting for verified 0.1.9 completion.",
+  "task": "Fixing the release-packaging toolchain; ADS and walking-control publication remains on hold until verified 0.1.9 completion.",
   "lastCompleted": "PR #25 cursor-focus and walking-slider builds passed all three workflows. The newer local v9 candidate remains unpublished with its strict bone-parity failure.",
   "agents": [
     {
@@ -14,8 +14,8 @@
     {
       "slot": 2,
       "state": "active",
-      "task": "Read-only monitoring of the release sequence; 0.1.7 is public and 0.1.8–0.1.9 are still pending.",
-      "lastCompleted": "Public 0.1.7 was confirmed, but its checked Linux package omits integrated animation assets. PR #24 checks passed; automation remains held."
+      "task": "Repairing release packaging on an isolated branch and testing checks for missing integrated assets.",
+      "lastCompleted": "The 0.1.7 Linux package omission was verified; the packaging repair is underway. PR #25 remains the verified complete draft download."
     },
     {
       "slot": 3,
