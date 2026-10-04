@@ -1,27 +1,26 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-04T01:52:53Z",
+  "updatedAt": "2026-10-04T02:02:47Z",
   "latestComplete": {
-    "sha": "b3f2ba8e228f4a34b8f1c5bec74190bc26ca2e87",
-    "downloadUrl": "https://github.com/RHS059/rust_duty/actions/runs/37160557704/artifacts/11287513506",
-    "runUrl": "https://github.com/RHS059/rust_duty/actions/runs/37160557704",
-    "verifiedAt": "2026-10-04T01:52:53Z",
-    "completedAt": "2026-10-03T23:24:10Z"
+    "sha": "edd46128638aae3cb249c665c8cc9538bb3d414e",
+    "downloadUrl": "https://github.com/RHS059/rust_duty/actions/runs/37167930813/artifacts/11290359742",
+    "runUrl": "https://github.com/RHS059/rust_duty/actions/runs/37167930813",
+    "verifiedAt": "2026-10-04T02:02:47Z",
+    "completedAt": "2026-10-04T01:54:07Z"
   },
   "changes": [
-    "Latest Complete is draft PR #25 build b3f2ba8e: cursor-focus fixes, persistent per-weapon XYZ walking sliders and existing HIP r5 integration. It embeds 0.1.5 and is a CI download.",
-    "All three exact-head workflows passed, including complete Windows/Linux packages. Windows CI reported 553 Rust tests and 175 Python tests, with one Python test skipped.",
-    "Windows artifact 11287513506 is 92,882,052 bytes; verified SHA-256: e695713bef128b08ab51172ffae72269bee0642b30aea605feff57eb7dcab104.",
-    "Native Linux walking-slider clicks and persistence passed; real Windows Alt-Tab interaction remains untested.",
-    "Draft PR #27 at edd4612 now contains the combined 0.1.8 candidate: ADS v9, focus fixes, absolute XYZ position, separate walking XYZ and current effects. Six-slider UI, Z persistence/clamping, full Rust tests and Clippy passed locally.",
-    "Released 0.1.5 at eb886edb passed real Windows/Linux 0.1.4 upgrades, checking 70 managed files and preserving 85 root-file and synthetic private-data checks.",
-    "For edd4612, authored assets, runtime contracts, updater builds, native Python/Rust tests, lint and release compilation passed. Linux then failed its native ADS input/interruption capture; complete Linux upload was skipped. Windows packaging is running.",
-    "Packaging repair is applied at 68a5bd4; repack checks preserved all 65 authored assets. The 0.1.8 release awaits complete native verification. Public latest remains 0.1.7.",
-    "Strict bone parity remains unresolved at 3.36e-5; PR #24 automation is inactive. V9, lateral Trial4 and newer jump/mantle work are absent from the PR #25 download."
+    "Latest Complete is the Windows 0.1.8 candidate at edd4612, containing ADS v9, focus fixes, absolute XYZ position, separate walking XYZ controls and current effects. It is a CI download; public updater latest remains 0.1.7.",
+    "Windows job 111336082997 passed tests, lint, release compilation, complete staging and embedded identity checks for 0.1.8/sequence 8. It staged 83 required game files plus BUILD_IDENTITY, with 84 files uploaded.",
+    "Artifact 11290359742 is 92,905,502 bytes. API and upload-log SHA-256 agree: 1f738ed552f2068a7c658949e055ec7747709562d3ae0bd9b14154da750a3dfa. Verification uses CI staging, identity and upload evidence; no independent local full-ZIP inspection is claimed.",
+    "The edd4612 workflow failed overall because Linux native ADS capture used a stale verifier. Its Linux package was not uploaded. Corrected source dad6071 is now building in run 37169476605.",
+    "Corrected dad6071 passed all four authored asset pipelines, runtime-contract and updater checks. Windows/Linux native regression tests are in progress.",
+    "Six-slider UI, Z persistence/clamping, full Rust tests and Clippy passed locally. The known strict ADS bone-parity discrepancy at 3.36e-5 remains unresolved; Windows Alt-Tab interaction is still untested.",
+    "Packaging repair is applied at 68a5bd4 and its repack checks preserved all 65 authored assets. Release publication is paused; 0.1.8 updater delivery is not yet published.",
+    "Lateral Trial4 and newer jump/mantle work are not included. PR #24 automatic patch releases remain inactive."
   ],
   "currentBuild": {
-    "state": "blocked",
-    "task": "PR #27 edd4612 failed the Linux native ADS input/interruption capture after passing tests, lint, compilation and staging. Windows packaging is running; no new complete package is verified.",
-    "url": "https://github.com/RHS059/rust_duty/actions/runs/37167930813"
+    "state": "active",
+    "task": "Corrected PR #27 head dad6071 passed authored asset, runtime-contract and updater checks; Windows/Linux native tests are running. Complete Windows edd4612 is available, while public 0.1.8 release delivery is paused.",
+    "url": "https://github.com/RHS059/rust_duty/actions/runs/37169476605"
   }
 }
