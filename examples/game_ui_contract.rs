@@ -347,18 +347,30 @@ mod fixture {
         }
         Ok(())
     }
-    /// 200% must be the same drawing at twice the size: ~4x area, ~2x extent.
+    /// Coverage proxy on the fixed black clear, independent of reported lit pixels.
+    /// Faint antialias fringes contribute proportionally instead of a full pixel.
+    pub fn integrated_intensity(image: &RgbaImage) -> u64 {
+        image
+            .pixels()
+            .map(|p| u64::from(p[0].max(p[1]).max(p[2])))
+            .sum()
+    }
+
+    /// 200% must have ~4x integrated coverage and ~2x extent at the same colors.
     pub fn check_scaling(
-        one_lit: u64,
+        one_intensity: u64,
         one: Option<[u32; 4]>,
-        two_lit: u64,
+        two_intensity: u64,
         two: Option<[u32; 4]>,
     ) -> Result<(), String> {
         let (a, b) = (
             one.ok_or("empty 100% capture")?,
             two.ok_or("empty 200% capture")?,
         );
-        let area = two_lit as f64 / one_lit.max(1) as f64;
+        if one_intensity == 0 || two_intensity == 0 {
+            return Err("scaling comparison requires nonempty pixel coverage".into());
+        }
+        let area = two_intensity as f64 / one_intensity as f64;
         let width = f64::from(b[2] - b[0] + 1) / f64::from(a[2] - a[0] + 1);
         if !(3.0..=5.0).contains(&area) || !(1.8..=2.2).contains(&width) {
             return Err(format!(
@@ -614,7 +626,7 @@ mod fixture {
             let mut images = Vec::new();
             let mut ammo_inks = Vec::new();
             let mut ui_inks = Vec::new();
-            let mut lit = Vec::new();
+            let mut scaling = Vec::new();
             for (filename, _, parameters) in captures.iter().filter(|c| c.1 == percent) {
                 let case = filename.trim_end_matches(&format!("-{percent}.png"));
                 let image = read_png(&out.join(filename), physical_size(percent))?;
@@ -622,13 +634,13 @@ mod fixture {
                     let ink = measure(&image, scale, ammo == "ammo-full");
                     check_case(ammo, ink, scale)?;
                     ammo_inks.push((ammo, ink));
-                    lit.push((case.to_owned(), ink.lit, ink.bounds));
+                    scaling.push((case.to_owned(), integrated_intensity(&image), ink.bounds));
                     ammo_ink_json(ink)
                 } else {
                     let ink = measure_ui(&image, scale);
                     check_ui_case(case, ink, scale)?;
                     ui_inks.push((case, ink));
-                    lit.push((case.to_owned(), ink.lit, ink.bounds));
+                    scaling.push((case.to_owned(), integrated_intensity(&image), ink.bounds));
                     ui_ink_json(ink)
                 };
                 let metadata = json!({"schema_version":2,"filename":filename,"element":element(case),"case":case,"parameters":parameters,"requested":info.requested,"backend":info.backend,"adapter":info.adapter,"scale_percent":percent,"logical_size":LOGICAL_SIZE,"physical_size":physical_size(percent),"ink":ink});
@@ -650,11 +662,12 @@ mod fixture {
                 scale,
             )?;
             if percent == SCALES[0] {
-                first_scale = lit;
+                first_scale = scaling;
             } else {
-                for ((case, a_lit, a_bounds), (_, b_lit, b_bounds)) in first_scale.iter().zip(&lit)
+                for ((case, a_intensity, a_bounds), (_, b_intensity, b_bounds)) in
+                    first_scale.iter().zip(&scaling)
                 {
-                    check_scaling(*a_lit, *a_bounds, *b_lit, *b_bounds)
+                    check_scaling(*a_intensity, *a_bounds, *b_intensity, *b_bounds)
                         .map_err(|e| format!("{case}: {e}"))?;
                 }
             }
@@ -879,9 +892,15 @@ mod fixture {
                 check_case("complete", full, s).unwrap();
                 check_progression(&[("half", half), ("complete", full)]).unwrap();
             }
-            let one = measure(&synthetic(1, Some(true)), 1., false);
-            let two = measure(&synthetic(2, Some(true)), 2., false);
-            check_scaling(one.lit, one.bounds, two.lit, two.bounds).unwrap();
+            let one = synthetic(1, Some(true));
+            let two = synthetic(2, Some(true));
+            check_scaling(
+                integrated_intensity(&one),
+                measure(&one, 1., false).bounds,
+                integrated_intensity(&two),
+                measure(&two, 2., false).bounds,
+            )
+            .unwrap();
         }
 
         #[test]
@@ -916,8 +935,68 @@ mod fixture {
             // Identical states and an unscaled 200% capture.
             let a = synthetic(1, None);
             assert!(check_distinct(&[("idle", a.clone()), ("ammo-full", a)]).is_err());
-            let one = measure(&synthetic(1, Some(true)), 1., false);
-            assert!(check_scaling(one.lit, one.bounds, one.lit, one.bounds).is_err());
+            let one = synthetic(1, Some(true));
+            let bounds = measure(&one, 1., false).bounds;
+            let intensity = integrated_intensity(&one);
+            assert!(check_scaling(intensity, bounds, intensity, bounds).is_err());
+        }
+
+        fn subpixel_coverage_pair() -> (RgbaImage, RgbaImage) {
+            // Each 1x pixel integrates two half-covered samples in a 2x2 cell.
+            // Occupied support doubles, while integrated coverage quadruples.
+            let one = RgbaImage::from_pixel(4, 4, Rgba([64, 64, 64, 255]));
+            let mut two = RgbaImage::from_pixel(8, 8, Rgba([0, 0, 0, 255]));
+            for (x, y, pixel) in two.enumerate_pixels_mut() {
+                if (x + y) % 2 == 0 {
+                    *pixel = Rgba([128, 128, 128, 255]);
+                }
+            }
+            (one, two)
+        }
+
+        #[test]
+        fn antialias_coverage_scales_without_requiring_four_times_lit_support() {
+            let (one, two) = subpixel_coverage_pair();
+            let a = measure(&one, 1., false);
+            let b = measure(&two, 2., false);
+            assert_eq!((a.lit, b.lit), (16, 32));
+            assert_eq!(
+                (integrated_intensity(&one), integrated_intensity(&two)),
+                (1024, 4096)
+            );
+            check_scaling(
+                integrated_intensity(&one),
+                a.bounds,
+                integrated_intensity(&two),
+                b.bounds,
+            )
+            .unwrap();
+        }
+
+        #[test]
+        fn scaling_rejects_missing_no_growth_half_size_and_solid_block() {
+            let (one, two) = subpixel_coverage_pair();
+            let a = measure(&one, 1., false);
+            let empty = RgbaImage::from_pixel(8, 8, Rgba([0, 0, 0, 255]));
+            let mut half_size = empty.clone();
+            image::imageops::replace(&mut half_size, &one, 0, 0);
+            let mut half_coverage = two;
+            for pixel in half_coverage.pixels_mut() {
+                for channel in &mut pixel.0[..3] {
+                    *channel /= 2;
+                }
+            }
+            let solid = RgbaImage::from_pixel(8, 8, WHITE);
+            for broken in [empty, one.clone(), half_size, half_coverage, solid] {
+                assert!(check_scaling(
+                    integrated_intensity(&one),
+                    a.bounds,
+                    integrated_intensity(&broken),
+                    measure(&broken, 2., false).bounds,
+                )
+                .is_err());
+            }
+            assert!(check_scaling(0, a.bounds, 4, Some([0, 0, 7, 7])).is_err());
         }
 
         fn fill(image: &mut RgbaImage, region: [u32; 4], scale: u32, colour: Rgba<u8>) {

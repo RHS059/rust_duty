@@ -233,9 +233,23 @@ def check_scale(inks, images, scale):
             require(images[a] != images[b], f'{a} and {b} rendered identical pixels')
 
 
-def check_scaling(one, two):
+def integrated_intensity(image):
+    """Coverage proxy over the fixed black clear: sum max(R, G, B), not lit support.
+
+    A faint antialias fringe contributes proportionally instead of counting as
+    one full pixel. Each pair uses the same colors and opaque RGBA8 encoding.
+    This value is measured from pixels and is never trusted from a sidecar.
+    """
+    r, g, b, _ = image.split()
+    histogram = ImageChops.lighter(ImageChops.lighter(r, g), b).histogram()
+    return sum(level * pixels for level, pixels in enumerate(histogram))
+
+
+def check_scaling(one, two, one_intensity, two_intensity):
     a, b = one['lit_bounds'], two['lit_bounds']
-    area = two['lit_pixels'] / max(one['lit_pixels'], 1)
+    require(a is not None and b is not None and one_intensity > 0 and two_intensity > 0,
+            'scaling comparison requires nonempty pixel coverage')
+    area = two_intensity / one_intensity
     width = (b[2] - b[0] + 1) / (a[2] - a[0] + 1)
     require(3.0 <= area <= 5.0 and 1.8 <= width <= 2.2,
             f'200% capture is not a 2x rendering: area x{area:.2f}, width x{width:.2f}')
@@ -332,6 +346,7 @@ def validate_outputs(output, renderer='dx12'):
     require(isinstance(captures, list) and len(captures) == len(expected), 'report must list every capture')
 
     per_scale = {}
+    intensities = {}
     index = 0
     for percent in SCALES:
         scale = percent // 100
@@ -354,6 +369,7 @@ def validate_outputs(output, renderer='dx12'):
                     f'{name}: sidecar identity mismatch')
             check_parameters(name, case, sidecar['parameters'])
             image = opaque_rgba(output / name, extent)
+            intensities[percent, case] = integrated_intensity(image)
             if case in AMMO:
                 ammo, _, full = AMMO[case]
                 ink = measure(image, scale, full)
@@ -369,7 +385,8 @@ def validate_outputs(output, renderer='dx12'):
             check_ui_text(case, Image.frombytes('RGBA', extent, images[case]), scale)
         per_scale[percent] = inks
     for case in CASES:
-        check_scaling(per_scale[100][case], per_scale[200][case])
+        check_scaling(per_scale[100][case], per_scale[200][case],
+                      intensities[100, case], intensities[200, case])
     return {'passed': True, 'captures': len(expected), 'elements_covered': ELEMENTS_COVERED,
             'adapter': report['adapter'],
             'scope': f'Production pause menu, updater, HUD/telemetry and ammo hint in the live window on {backend}.'}

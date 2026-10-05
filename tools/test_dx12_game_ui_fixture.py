@@ -442,5 +442,58 @@ class GameUiFixtureTests(unittest.TestCase):
         run.assert_not_called()
 
 
+class ScalingCoverageTests(unittest.TestCase):
+    @staticmethod
+    def pair():
+        # Four high-resolution subpixels average back to the 1x value of 64.
+        one = Image.new('RGBA', (4, 4), (64, 64, 64, 255))
+        two = Image.new('RGBA', (8, 8), (0, 0, 0, 255))
+        for y in range(8):
+            for x in range(8):
+                if (x + y) % 2 == 0:
+                    two.putpixel((x, y), (128, 128, 128, 255))
+        return one, two
+
+    @staticmethod
+    def check(one, two):
+        fixture.check_scaling(fixture.measure_ui(one, 1), fixture.measure_ui(two, 2),
+                              fixture.integrated_intensity(one), fixture.integrated_intensity(two))
+
+    def test_antialias_coverage_preserves_original_scaling_bounds(self):
+        one, two = self.pair()
+        self.assertEqual((fixture.measure_ui(one, 1)['lit_pixels'],
+                          fixture.measure_ui(two, 2)['lit_pixels']), (16, 32))
+        self.assertEqual((fixture.integrated_intensity(one), fixture.integrated_intensity(two)), (1024, 4096))
+        self.check(one, two)
+
+    def test_bundled_font_raster_coverage_scales_at_both_sizes(self):
+        font = Path(fixture.build_identity.__file__).resolve().parents[1] / 'src/render/font/ProggyClean.ttf'
+        for text in ('AMMO FULL', 'HOLD TO REFILL AMMO'):
+            images = []
+            for scale in (1, 2):
+                image = Image.new('RGBA', (400*scale, 60*scale), (0, 0, 0, 255))
+                ImageDraw.Draw(image).text((20*scale, 30*scale), text,
+                    font=ImageFont.truetype(str(font), 19*scale), fill=(224, 237, 222, 255), anchor='ls')
+                images.append(image)
+            with self.subTest(text=text):
+                self.check(*images)
+
+    def test_missing_no_growth_half_size_and_solid_block_reject(self):
+        one, two = self.pair()
+        empty = Image.new('RGBA', two.size, (0, 0, 0, 255))
+        half_size = empty.copy()
+        half_size.paste(one, (0, 0))
+        half_coverage = Image.new('RGBA', two.size)
+        half_coverage.putdata([tuple(v // 2 for v in p[:3]) + (255,) for p in two.getdata()])
+        for name, broken in [('missing', empty), ('no-growth', one), ('half-size', half_size),
+                             ('half-coverage', half_coverage), ('solid-block', Image.new('RGBA', two.size, WHITE))]:
+            with self.subTest(name=name), self.assertRaises(ValueError):
+                self.check(one, broken)
+
+    def test_zero_coverage_cannot_pass_with_claimed_nonempty_bounds(self):
+        with self.assertRaisesRegex(ValueError, 'nonempty pixel coverage'):
+            fixture.check_scaling({'lit_bounds': [0, 0, 3, 3]}, {'lit_bounds': [0, 0, 7, 7]}, 0, 4)
+
+
 if __name__ == '__main__':
     unittest.main()
