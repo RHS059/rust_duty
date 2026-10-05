@@ -10,6 +10,22 @@ are distinct: the existing public game trusts the fixed latest channel, so actua
 same-path 0.1.9 to 0.1.11 migration can only be verified after channel promotion.
 No alternate trust endpoint is introduced into a shipped executable.
 
+## Finite, observable real-byte preflight
+
+Six Windows workflow steps cover full baseline, one-file baseline, missing
+one-file recovery, mismatched baseline, unusable baseline and corrupt-delta
+fallback. Each retains all byte/hash/activation/preservation/replay assertions.
+The test HTTP fixture shares immutable response bytes instead of cloning the
+entire317MB payload on every1MB ranged request.
+
+The observer records elapsed time and persisted byte progress every10seconds.
+Each case fails closed after660seconds: the existing600-second headless
+verification budget plus60seconds of setup/teardown allowance. The workflow
+adds a12-minute outer step limit. A timeout kills only the spawned test process
+tree; it does not loosen updater durability, source trust or success criteria.
+Per-case JSON evidence is archived by attempt. This is a diagnostic budget, not
+a claim that every user's network or disk will finish within it.
+
 ## Retained 0.1.10 development record
 
 

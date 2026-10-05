@@ -126,7 +126,7 @@ struct Behavior {
 }
 pub(crate) struct Server {
     port: u16,
-    bodies: Arc<Mutex<HashMap<String, Vec<u8>>>>,
+    bodies: Arc<Mutex<HashMap<String, Arc<Vec<u8>>>>>,
     requests: Arc<Mutex<Vec<Request>>>,
     behavior: Arc<Mutex<Behavior>>,
     stop: Arc<AtomicBool>,
@@ -194,7 +194,10 @@ impl Server {
         Source::loopback(self.port).unwrap()
     }
     pub(crate) fn put(&self, name: &str, body: Vec<u8>) {
-        self.bodies.lock().unwrap().insert(name.into(), body);
+        self.bodies
+            .lock()
+            .unwrap()
+            .insert(name.into(), Arc::new(body));
     }
     fn logs(&self) -> Vec<Request> {
         self.requests.lock().unwrap().clone()
@@ -210,7 +213,7 @@ impl Drop for Server {
 }
 fn serve(
     mut stream: TcpStream,
-    bodies: Arc<Mutex<HashMap<String, Vec<u8>>>>,
+    bodies: Arc<Mutex<HashMap<String, Arc<Vec<u8>>>>>,
     requests: Arc<Mutex<Vec<Request>>>,
     behavior: Arc<Mutex<Behavior>>,
 ) -> std::io::Result<()> {
@@ -1751,14 +1754,27 @@ fn actual_windows_release_candidate_preflight() {
         .iter()
         .find(|d| d.base_sha256 == bytes_hash(&one_file))
         .expect("executable baseline delta");
-    for case in [
+    let selected_case = std::env::var("RUST_DUTY_PREFLIGHT_CASE").ok();
+    let cases = [
         "full",
         "one-file",
         "recover-one-file",
         "mismatch",
         "unusable",
         "corrupt-delta",
-    ] {
+    ];
+    assert!(
+        selected_case
+            .as_ref()
+            .is_none_or(|name| cases.contains(&name.as_str())),
+        "unknown preflight case"
+    );
+    for case in cases {
+        if selected_case.as_ref().is_some_and(|name| name != case) {
+            continue;
+        }
+        let case_started = Instant::now();
+        println!("real-release preflight {case}: started");
         let store = Store::open(&temp.path().join(case)).unwrap();
         let initial = if case == "full" { &baseline } else { &one_path };
         store
@@ -1856,6 +1872,9 @@ fn actual_windows_release_candidate_preflight() {
             store.activate(staged).is_err(),
             "{case}: rollback retains anti-replay high-water mark"
         );
-        println!("real-release preflight {case}: passed; requests={paths:?}");
+        println!(
+            "real-release preflight {case}: passed in {:.3}s; requests={paths:?}",
+            case_started.elapsed().as_secs_f64()
+        );
     }
 }

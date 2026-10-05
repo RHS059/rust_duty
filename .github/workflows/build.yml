@@ -154,12 +154,34 @@ jobs:
             --previous preflight/baseline/rust-duty-0.1.9-x86_64-pc-windows-msvc.rdb --previous-version 0.1.9
           python tools/release_update.py verify --manifest preflight/candidate/update-x86_64-pc-windows-msvc.json \
             --assets-dir preflight/candidate --version 0.1.11 --target x86_64-pc-windows-msvc
-      - name: Verify real release bytes, executable delta, full fallback and preservation on Windows
-        shell: pwsh
-        run: |
-          $env:RUST_DUTY_PREFLIGHT = (Resolve-Path preflight).Path
-          cargo test --manifest-path updater/Cargo.toml --locked --lib tests::actual_windows_release_candidate_preflight -- --exact --ignored --nocapture
-          if ($LASTEXITCODE -ne 0) { throw "Windows real-release preflight failed" }
+      - name: Real Windows update preflight - full
+        timeout-minutes: 12
+        run: python tools/run_preflight_case.py --case full
+      - name: Real Windows update preflight - one-file
+        timeout-minutes: 12
+        run: python tools/run_preflight_case.py --case one-file
+      - name: Real Windows update preflight - recover-one-file
+        timeout-minutes: 12
+        run: python tools/run_preflight_case.py --case recover-one-file
+      - name: Real Windows update preflight - mismatch
+        timeout-minutes: 12
+        run: python tools/run_preflight_case.py --case mismatch
+      - name: Real Windows update preflight - unusable
+        timeout-minutes: 12
+        run: python tools/run_preflight_case.py --case unusable
+      - name: Real Windows update preflight - corrupt-delta
+        timeout-minutes: 12
+        run: python tools/run_preflight_case.py --case corrupt-delta
+      - name: Archive immutable preflight evidence
+        if: always()
+        id: archive_preflight
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-update-preflight-attempt-${{ github.run_attempt }}
+          path: |
+            evidence/preflight/*/progress.jsonl
+            evidence/preflight/*/result.json
+          if-no-files-found: warn
       - name: Upload uniquely numbered Windows game
         if: runner.os == 'Windows'
         id: archive_game_windows
