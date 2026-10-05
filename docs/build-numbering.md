@@ -53,3 +53,26 @@ Tests cover reruns, independent branches/runs, invalid attempts, stable retry
 identity, old-run/new-release ordering, cached-binary rejection, both platforms'
 stamped identities, and CLI/artifact-label agreement. Native visual checks remain
 separate evidence from these headless contracts.
+
+## Rerun-safe artifact aliases
+
+GitHub's [upload-artifact v4 contract](https://github.com/actions/upload-artifact/blob/v4/README.md)
+rejects duplicate names within a run. Every generated/runtime/diagnostic output
+is therefore archived under an immutable attempt-suffixed name before its fixed
+compatibility alias can be replaced. The alias step requires a nonempty
+`artifact-id` from its preceding archive. A failed or empty archive cannot replace
+an alias. Final game aliases are gated by their full visibly numbered downloads.
+Old attempt archives retain their bytes until the configured retention expires;
+only the compatibility alias is replaced, never an immutable attempt archive.
+
+A partial rerun may reuse a successful generated-asset alias from an earlier
+attempt of the **same run and source commit**. Existing source/parity/hash checks
+still validate those companions. The new game number identifies the executable's
+build attempt; it does not falsely claim that every input was regenerated during
+that attempt. Generated artifacts are not fetched from another run. Concurrent
+Linux/Windows archive names retain their platform distinction.
+
+`test_build_attempt_artifacts.py` checks the actual workflow definitions for
+archive-before-alias ordering, success gates, identical payload paths, unique
+attempt/platform names, and same-run validated dependency reuse. These are source
+contracts, not a claim that the GitHub backend has been live-rerun tested.
