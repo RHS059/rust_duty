@@ -22,13 +22,14 @@ from PIL import Image, ImageDraw
 import dx12_authored_shards as shared
 import run_dx12_authored as authored
 import run_dx12_authored_shard as shard
+from test_dx12_authored_shards import make_gl_runtime
 
 
 ENV = {
     'GITHUB_SHA': 'a' * 40, 'GITHUB_RUN_ID': '1234', 'GITHUB_RUN_ATTEMPT': '2',
     'RUNNER_NAME': 'synthetic-windows-runner', 'RUNNER_OS': 'Windows', 'RUNNER_ARCH': 'X64',
 }
-GL_ADAPTER = 'Synthetic Intel OpenGL adapter'
+GL_ADAPTER = 'llvmpipe (synthetic unit fixture)'
 
 
 def write_json(path, value):
@@ -94,6 +95,7 @@ class FixtureCase(unittest.TestCase):
         self.addCleanup(self.stack.close)
         self.stack.enter_context(patch.dict(os.environ, ENV))
         self.stack.enter_context(patch.object(authored, 'asset_evidence', side_effect=self.asset_evidence))
+        make_gl_runtime(self.root)
         self.manifest = shared.make_input_manifest(self.executable, self.fixture, self.root)
         self.manifest_path = self.base / 'input-manifest.json'
         write_json(self.manifest_path, self.manifest)
@@ -530,7 +532,7 @@ class ShardRunTests(FixtureCase):
             ('windows-legacy-stock-probe', 120, False), ('windows-legacy-capture', 900, False),
             ('windows-legacy-validator', 900, False), ('dx12-capture', 2100, True), ('dx12-validator', 900, False),
         ])
-        self.assertEqual(self.calls[0]['command'], [str(self.executable), '--renderer=gl', '--no-update',
+        self.assertEqual(self.calls[0]['command'], [str(self.evidence / 'gl-runtime/vector-range.exe'), '--renderer=gl', '--no-update',
             '--procedural-weapon', '--reference-viewport', '--capture', f'--output={self.evidence / "stock-gl/stock-gl.png"}'])
         self.stock.assert_called_once_with(self.evidence / 'stock-gl', GL_ADAPTER)
         self.assertEqual([call.args[2] for call in self.images.call_args_list], [403, 403])
@@ -539,6 +541,35 @@ class ShardRunTests(FixtureCase):
         for call in self.calls:
             self.assertEqual(call['root'], self.root)
             self.assertFalse(any('headless' in str(argument) for argument in call['command']))
+
+    def test_native_environment_is_scoped_and_runtime_mutation_cannot_pass(self):
+        observed = []
+        def mutate(log_name):
+            observed.append({key: os.environ.get(key) for key in shared.GL_ENVIRONMENT})
+            if log_name == 'dx12-capture':
+                (self.evidence/'gl-runtime/opengl32.dll').write_bytes(b'changed')
+        self.after_process = mutate
+        with patch.dict(os.environ, {'GALLIUM_DRIVER':'previous','LIBGL_ALWAYS_SOFTWARE':'previous'}):
+            report = self.run_case()
+            self.assertEqual(os.environ['GALLIUM_DRIVER'],'previous')
+            self.assertEqual(os.environ['LIBGL_ALWAYS_SOFTWARE'],'previous')
+        self.assertTrue(observed)
+        self.assertTrue(all(row == shared.GL_ENVIRONMENT for row in observed))
+        self.assertFalse(report['passed'])
+        self.assertFalse(self.by_name(report)['inputs-unchanged']['passed'])
+
+    def test_runtime_inventory_sealing_cannot_exceed_whole_run_budget_and_pass(self):
+        clock = [0.0]
+        original = shared.inventory_files
+        def inventory(folder, *args, **kwargs):
+            result = original(folder,*args,**kwargs)
+            if folder == self.evidence: clock[0] = 11
+            return result
+        with patch.object(shard.time,'monotonic',side_effect=lambda:clock[0]), \
+                patch.object(shared,'inventory_files',side_effect=inventory):
+            report = self.run_case(run_timeout=10)
+        self.assertFalse(report['passed'])
+        self.assertTrue(report['budget_exhausted'])
 
     def test_both_ads_roles_use_identical_offset_file_and_no_rate_override(self):
         self.run_case('ads-offset')
@@ -792,7 +823,7 @@ class ShardRunTests(FixtureCase):
         self.assertEqual(len(self.calls), 13)
         self.assertEqual(self.calls[0]['command'], [str(self.fixture), '--renderer=dx12', '--force-fallback-adapter',
                                                    f'--output-dir={self.evidence / "renderer-contract"}'])
-        expected = list(authored.lighting_commands(self.executable, self.root, self.evidence / 'captures/dx12/lighting'))
+        expected = list(authored.lighting_commands(self.evidence / 'gl-runtime/vector-range.exe', self.root, self.evidence / 'captures/dx12/lighting'))
         self.assertEqual([row['command'] for row in self.calls[1:]], [command for _, command in expected])
         self.assertTrue(all(row['renderer'] and row['timeout'] == 900 for row in self.calls))
         self.stock.assert_not_called()

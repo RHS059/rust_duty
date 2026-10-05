@@ -18,6 +18,7 @@ import dx12_authored_shards as shards
 import run_dx12_authored as authored
 import verify_layered_locomotion_capture as layered
 import test_dx12_authored as authored_tests
+from test_dx12_authored_shards import make_gl_runtime
 
 
 ENV = {'GITHUB_SHA': 'a' * 40, 'GITHUB_RUN_ID': '1234', 'GITHUB_RUN_ATTEMPT': '2'}
@@ -48,8 +49,10 @@ def make_root(root):
     for name in ('verify_layered_locomotion_capture.py', 'verify_ads_placement_capture.py'):
         source = Path(__import__(name[:-3]).__file__)
         shutil.copyfile(source, root / 'tools' / name)
-    binding = {'source_commit': ENV['GITHUB_SHA'], 'run_id': ENV['GITHUB_RUN_ID'],
-               'run_attempt': ENV['GITHUB_RUN_ATTEMPT'], 'executable_sha256': 'b' * 64,
+    reference = make_gl_runtime(root)
+    binding = {'gl_reference_sha256': shards.gl_reference_digest(reference),
+               'source_commit': ENV['GITHUB_SHA'], 'run_id': ENV['GITHUB_RUN_ID'],
+               'run_attempt': ENV['GITHUB_RUN_ATTEMPT'], 'executable_sha256': hashlib.sha256(b'synthetic game').hexdigest(),
                'renderer_contract_sha256': 'c' * 64,
                'cargo_manifest_sha256': authored.sha256(root / 'Cargo.toml'),
                'cargo_lock_sha256': authored.sha256(root / 'Cargo.lock'),
@@ -57,24 +60,25 @@ def make_root(root):
                    'assets/authoring/ads/sight_alignment.json': authored.sha256(target)}}
     manifest = {'schema': 'rust-duty-dx12-authored-inputs/v1', 'platform': 'win32',
                 'build_selection': {'default_enabled': False, 'features': ['legacy-macroquad', 'wgpu-runtime']},
-                'binding': binding, 'expected_scenarios': list(shards.SCENARIOS)}
+                'binding': binding, 'gl_reference': reference, 'expected_scenarios': list(shards.SCENARIOS)}
     write(root / 'input-manifest.json', manifest)
     return binding
 
 
 def make_logs(folder, role, scenario=None, root=None, evidence=None):
     folder.mkdir(parents=True)
-    identity = ('renderer requested=gl backend=OpenGl adapter=Synthetic Windows OpenGL' if role == 'windows-legacy'
+    identity = ('renderer requested=gl backend=OpenGl adapter=llvmpipe (synthetic unit fixture)' if role == 'windows-legacy'
                 else f'renderer requested=dx12 backend=Dx12 adapter={authored.WARP}\n{authored.FXC_LOG}')
     (folder / 'stdout.log').write_text(identity + '\n')
     (folder / 'stderr.log').write_text('')
     count = shards.PROFILES[scenario]['expected_frames'] if scenario else 2 if folder.name == 'renderer-contract' else 1
     timeout = 120 if folder.name == 'windows-legacy-stock-probe' else 900 if role == 'windows-legacy' or not scenario else shards.PROFILES[scenario]['capture_timeout_seconds']
-    command = ['synthetic.exe']
+    local_game = (evidence or folder.parent.parent) / 'gl-runtime/vector-range.exe'
+    command = [str(local_game)]
     if folder.name == 'windows-legacy-stock-probe':
         command += ['--renderer=gl', '--no-update', '--procedural-weapon', '--reference-viewport', '--capture']
     if scenario:
-        command = authored.game_command(Path('synthetic.exe'), root, evidence / shards.capture_paths(scenario)[role],
+        command = authored.game_command(local_game, root, evidence / shards.capture_paths(scenario)[role],
                                         aggregate.CASES[scenario], evidence / 'ads-offset.cfg')
         if role == 'windows-legacy':
             command = [argument.replace('--renderer=dx12', '--renderer=gl') for argument in command if argument != '--force-fallback-adapter']
@@ -90,7 +94,7 @@ def make_sequence(folder, scenario, role):
     case = aggregate.CASES[scenario]
     hz = case.hz or 60
     metadata = {'backend': 'OpenGl' if role == 'windows-legacy' else 'Dx12',
-                'adapter': 'Synthetic Windows OpenGL' if role == 'windows-legacy' else authored.WARP,
+                'adapter': 'llvmpipe (synthetic unit fixture)' if role == 'windows-legacy' else authored.WARP,
                 'requested': 'gl' if role == 'windows-legacy' else 'dx12', 'width': 960, 'height': 540}
     regular = image_bytes((120, 90, 60, 255))
     shifted = image_bytes((90, 120, 60, 255))
@@ -129,6 +133,8 @@ def make_sequence(folder, scenario, role):
 
 
 def summary(folder, scenario, binding):
+    reference = make_gl_runtime(folder, runtime=folder/'gl-runtime', manifest=folder/'gl-runtime/windows_gl_reference_lock.json')
+    (folder/'gl-runtime/vector-range.exe').write_bytes(b'synthetic game')
     checks = []
     for name in aggregate.local_checks(scenario):
         result = {'synthetic_receipt': True}
@@ -147,6 +153,8 @@ def summary(folder, scenario, binding):
               'current_check': None, 'elapsed_seconds': 1.0,
               'run_timeout_seconds': shards.PROFILES[scenario]['run_timeout_seconds'],
               'budget_exhausted': False, 'checks': checks, 'capture_paths': shards.capture_paths(scenario),
+              'gl_reference': reference, 'gl_runtime_path':'gl-runtime',
+              'app_local_executable':str(folder/'gl-runtime/vector-range.exe'),
               'files': shards.inventory_files(folder)}
     write(folder / 'summary.json', report)
     return report
@@ -225,6 +233,23 @@ class AggregateContractTests(unittest.TestCase):
     def read(self):
         return aggregate.read_shard(self.folder, 'jump-gameplay', self.binding)
 
+    def test_lighting_invocation_cannot_bypass_same_binary_by_omitting_renderer_flag(self):
+        folder = self.base/'lighting-orientation'; folder.mkdir()
+        write(folder/'logs/lighting-ready_front/invocation.json', {'command':['unbound.exe','--capture-lighting']})
+        summary(folder,'lighting-orientation',self.binding)
+        with self.assertRaisesRegex(ValueError,'same hash-bound app-local game'):
+            aggregate.read_shard(folder,'lighting-orientation',self.binding)
+
+    def test_retained_reference_and_copied_binary_are_required_even_after_resealing(self):
+        for name in ('opengl32.dll','vector-range.exe'):
+            path = self.folder/'gl-runtime'/name; original = path.read_bytes()
+            path.write_bytes(original+b'changed')
+            report = copy.deepcopy(self.report); report['files'] = shards.inventory_files(self.folder)
+            write(self.folder/'summary.json',report)
+            with self.subTest(path=name), self.assertRaises(ValueError): self.read()
+            path.write_bytes(original)
+            write(self.folder/'summary.json',self.report)
+
     def test_local_check_inventory_matches_real_shard_entrypoint(self):
         for scenario in shards.SCENARIOS:
             self.assertEqual(aggregate.local_checks(scenario), aggregate.shard_runner.required_checks(scenario))
@@ -276,7 +301,7 @@ class AggregateContractTests(unittest.TestCase):
     def test_legacy_logs_do_not_accept_requested_flag_or_inconsistent_adapter(self):
         log = self.base / 'logs'
         make_logs(log, 'windows-legacy')
-        self.assertEqual(aggregate.legacy_logs(log), 'Synthetic Windows OpenGL')
+        self.assertEqual(aggregate.legacy_logs(log), 'llvmpipe (synthetic unit fixture)')
         for text in ('--renderer=gl', 'renderer requested=gl backend=Vulkan adapter=GPU',
                      'renderer requested=gl backend=OpenGl adapter= ',
                      'renderer requested=gl backend=OpenGl adapter=A\nrenderer requested=gl backend=OpenGl adapter=B'):
@@ -287,7 +312,7 @@ class AggregateContractTests(unittest.TestCase):
     def test_recorded_process_must_have_really_finished_with_zero_exit(self):
         logs = self.base / 'process'
         make_logs(logs, 'dx12')
-        self.assertEqual(aggregate.process_receipt(logs, 900, 1), ['synthetic.exe'])
+        self.assertEqual(aggregate.process_receipt(logs, 900, 1), [str(logs.parent.parent / 'gl-runtime/vector-range.exe')])
         path = logs / 'process.json'
         original = json.loads(path.read_text())
         for field, value in (('status', 'timed_out'), ('status', 'interrupted'), ('exit_code', False),

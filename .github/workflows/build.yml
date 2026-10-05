@@ -1,5 +1,12 @@
 name: Rust prototype checks and playable builds
 on:
+  workflow_dispatch:
+    inputs:
+      source_bound_recovery:
+        description: 'Run pinned source-bound recovery alongside normal checks'
+        required: false
+        type: boolean
+        default: false
   pull_request:
   push:
     branches: [main, 'aella/**', 'halcyon/**', '!aella/release-channel']
@@ -12,7 +19,7 @@ concurrency:
   cancel-in-progress: ${{ github.event_name != 'push' || github.ref != 'refs/heads/aella/automatic-game-updates-r1' }}
 jobs:
   windows-source-bound-recovery:
-    if: (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'aella/wgpu-renderer-port') || (github.event_name == 'push' && github.ref == 'refs/heads/aella/wgpu-renderer-port')
+    if: (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'aella/wgpu-renderer-port') || (github.event_name == 'push' && github.ref == 'refs/heads/aella/wgpu-renderer-port') || (github.event_name == 'workflow_dispatch' && inputs.source_bound_recovery)
     permissions:
       contents: read
       actions: read

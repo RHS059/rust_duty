@@ -10,7 +10,7 @@ from datetime import datetime, timezone
 from decimal import Decimal
 import json
 import math
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 import shutil
 import subprocess
 import sys
@@ -62,10 +62,14 @@ def validated_manifest(path, root):
     manifest = read_record(path)
     expected = {'schema': 'rust-duty-dx12-authored-inputs/v1', 'platform': 'win32',
                 'build_selection': {'default_enabled': False, 'features': ['legacy-macroquad', 'wgpu-runtime']},
-                'binding': manifest.get('binding'), 'expected_scenarios': list(shards.SCENARIOS)}
+                'binding': manifest.get('binding'), 'gl_reference': manifest.get('gl_reference'), 'expected_scenarios': list(shards.SCENARIOS)}
     _compare(manifest, expected, 'input manifest')
     binding = manifest['binding']
     shards.validate_binding(binding)
+    reference = shards.make_gl_reference(root / shards.GL_RUNTIME_PATH, root / shards.GL_LOCK_PATH)
+    _compare(manifest['gl_reference'], reference, 'input GL reference')
+    if shards.gl_reference_digest(reference) != binding['gl_reference_sha256']:
+        raise ValueError('GL reference is not bound to the input manifest')
     # No executable is run here. Its immutable hash is supplied by the build
     # manifest and must agree byte-for-byte in all nine shard bindings.
     for name, field in (('Cargo.toml', 'cargo_manifest_sha256'), ('Cargo.lock', 'cargo_lock_sha256')):
@@ -87,7 +91,8 @@ def read_shard(folder, scenario, binding):
     report = read_record(folder / 'summary.json')
     required = {'schema', 'scenario', 'binding', 'platform', 'host', 'status', 'passed',
                 'acceptance_complete', 'automated_landmark_gate', 'current_check', 'elapsed_seconds',
-                'run_timeout_seconds', 'budget_exhausted', 'checks', 'capture_paths', 'files'}
+                'run_timeout_seconds', 'budget_exhausted', 'checks', 'capture_paths', 'files',
+                'gl_reference', 'gl_runtime_path', 'app_local_executable'}
     if not required <= set(report):
         raise ValueError(f'{scenario}: missing shard summary fields {sorted(required - set(report))}')
     for key, expected in (('schema', 'rust-duty-dx12-authored-shard/v1'), ('scenario', scenario),
@@ -96,6 +101,31 @@ def read_shard(folder, scenario, binding):
         _compare(report[key], expected, f'{scenario}/{key}')
     shards.validate_binding(report['binding'])
     shards.compare_binding(binding, report['binding'])
+    # Inspect the closed no-link artifact inventory before reading any retained
+    # invocation or runtime path from downloaded evidence.
+    shards.verify_files(folder, report['files'])
+    if report['gl_runtime_path'] != 'gl-runtime':
+        raise ValueError('unexpected app-local runtime path')
+    reference = shards.verify_gl_reference(folder / 'gl-runtime', report['gl_reference'],
+                                           game_sha256=binding['executable_sha256'])
+    if shards.gl_reference_digest(reference) != binding['gl_reference_sha256']:
+        raise ValueError('shard GL reference differs from prepared input')
+    local_executable = report['app_local_executable']
+    if (type(local_executable) is not str
+            or not (Path(local_executable).is_absolute() or PureWindowsPath(local_executable).is_absolute())
+            or not local_executable.replace('\\', '/').endswith('/gl-runtime/vector-range.exe')):
+        raise ValueError('missing original app-local executable path')
+    game_logs = (['windows-legacy-stock-probe', 'windows-legacy-capture', 'dx12-capture']
+                 if scenario in CASES else
+                 [f'lighting-{stem}' for stem, _ in authored.lighting_commands(Path('game'), Path('.'), Path('lighting'))])
+    for name in game_logs:
+        path = folder / 'logs' / name / 'invocation.json'
+        # Missing logs remain a per-role failure below, preserving independent
+        # valid DX12 evidence when an earlier GL probe could not run.
+        if path.exists():
+            command = read_record(path).get('command')
+            if not isinstance(command, list) or not command or command[0] != local_executable:
+                raise ValueError('native command did not use the same hash-bound app-local game')
     _compare(report['capture_paths'], shards.capture_paths(scenario), f'{scenario}/capture_paths')
     host = report['host']
     if (type(host) is not dict or set(host) != {'runner_name', 'runner_os', 'runner_arch'}

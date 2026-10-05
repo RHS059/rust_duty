@@ -87,3 +87,38 @@ jobs:
             evidence/effects-contract-run/
           if-no-files-found: error
           retention-days: 7
+  game-ui-contract:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install independent PNG verifier
+        run: python -m pip install Pillow==11.3.0
+      - name: Test production UI evidence guards
+        env:
+          PYTHONPATH: tools
+        run: python -m unittest -v test_dx12_game_ui_fixture
+      - name: Build real game UI fixture from this revision
+        run: cargo build --locked --no-default-features --features wgpu-runtime --example game_ui_contract
+      - name: Verify production UI on Windows DX12 WARP
+        run: >-
+          python tools/run_dx12_game_ui_fixture.py
+          --executable target/debug/examples/game_ui_contract.exe --root .
+          --evidence evidence/game-ui-run --output evidence/game-ui
+          --timeout 600
+      - name: Retain UI captures and process evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dx12-game-ui-contract-attempt-${{ github.run_attempt }}
+          path: |
+            evidence/game-ui/
+            evidence/game-ui-run/
+          if-no-files-found: error
+          retention-days: 7

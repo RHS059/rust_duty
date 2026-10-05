@@ -47,9 +47,28 @@ class AuthoredWorkflowTests(unittest.TestCase):
         self.assertEqual(executable_upload['if-no-files-found'], 'error')
         self.assertEqual(executable_upload['path'].splitlines(), [
             'target/release/vector-range.exe', 'target/release/examples/renderer_contract.exe',
-            'evidence/authored-inputs/input-manifest.json', 'evidence/authored-inputs/historical-manifest.json'])
+            'evidence/authored-inputs/input-manifest.json', 'evidence/authored-inputs/historical-manifest.json',
+            'evidence/gl-runtime/'])
         for job in ('authored-capture', 'authored-aggregate'):
             self.assertIn({'name': executable_upload['name'], 'path': '.'}, self.downloads(job))
+
+    def test_mesa_staged_once_and_distributed_with_exact_build(self):
+        staging = [(job, step) for job in self.jobs for step in self.steps(job)
+                   if 'stage_windows_gl_reference.ps1' in step.get('run', '')]
+        self.assertEqual(len(staging), 1)
+        job, step = staging[0]
+        self.assertEqual(job, 'authored-inputs')
+        self.assertEqual(step['shell'], 'pwsh')
+        self.assertEqual(step['timeout-minutes'], 10)
+        self.assertIn('-Manifest tools/windows_gl_reference_lock.json -OutputDirectory evidence/gl-runtime', step['run'])
+        self.assertIn('New-Item -ItemType Directory -Path evidence', step['run'])
+        steps = self.steps(job)
+        prepare = next(s for s in steps if 'run_dx12_authored_shard.py prepare' in s.get('run', ''))
+        self.assertLess(steps.index(step), steps.index(prepare))
+        self.assertIn('evidence/gl-runtime/', self.uploads(job)[0]['with']['path'].splitlines())
+        text = self.path.read_text(encoding='utf-8')
+        self.assertNotIn('No Mesa fallback is installed', text)
+        self.assertIn('app-local Mesa/llvmpipe', text)
 
     def test_every_job_uses_same_run_validated_assets(self):
         for job in self.jobs:

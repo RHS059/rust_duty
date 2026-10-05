@@ -6,7 +6,8 @@ permissions:
 # Same-run artifact downloads intentionally have no repository/run-id/token override.
 # Historical Linux artifacts remain exact diagnostics; strict renderer parity uses
 # a same-Windows, same-binary OpenGl reference. A partial attempt rerun without
-# matched native/asset inputs fails closed. No Mesa fallback is installed here.
+# matched native/asset inputs fails closed. The reference uses pinned official
+# app-local Mesa/llvmpipe; no host driver or security settings are changed.
 jobs:
   authored-inputs:
     runs-on: windows-latest
@@ -101,6 +102,15 @@ jobs:
           cargo build --locked --release --no-default-features
           --features legacy-macroquad,wgpu-runtime
           --bin vector-range --example renderer_contract
+      - name: Stage pinned official app-local Mesa reference
+        shell: pwsh
+        timeout-minutes: 10
+        run: |
+          Get-Command tar.exe | Format-List Source,Version
+          tar.exe --version
+          if ($LASTEXITCODE -ne 0) { throw "tar.exe is not usable" }
+          New-Item -ItemType Directory -Path evidence -Force | Out-Null
+          ./tools/stage_windows_gl_reference.ps1 -Manifest tools/windows_gl_reference_lock.json -OutputDirectory evidence/gl-runtime
       - name: Bind binaries, source, assets and historical downloads to this attempt
         run: >-
           python tools/run_dx12_authored_shard.py prepare
@@ -116,6 +126,7 @@ jobs:
             target/release/examples/renderer_contract.exe
             evidence/authored-inputs/input-manifest.json
             evidence/authored-inputs/historical-manifest.json
+            evidence/gl-runtime/
           if-no-files-found: error
           retention-days: 7
       - name: Retain input preparation diagnostics on failure
@@ -225,7 +236,7 @@ jobs:
         with:
           name: dx12-authored-inputs-attempt-${{ github.run_attempt }}
           path: .
-      - name: Capture the complete same-host legacy and DX12 scenario
+      - name: Capture the complete same-host app-local llvmpipe and DX12 scenario
         timeout-minutes: ${{ matrix.step_timeout_minutes }}
         run: >-
           python tools/run_dx12_authored_shard.py run

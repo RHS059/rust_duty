@@ -6,12 +6,15 @@ execution; the shard and aggregate entry points own that platform check.
 """
 
 import hashlib
+import json
 import os
 from pathlib import Path
 import re
 import stat
 
 import run_dx12_authored as authored
+import run_windows_gl_reference_probe as gl_probe
+from verify_capture_telemetry import read_record
 
 
 SCENARIOS = tuple(case.name for case in authored.CASES) + ('lighting-orientation',)
@@ -33,7 +36,7 @@ PROFILES = {
 }
 _CONTEXT_FIELDS = frozenset(('source_commit', 'run_id', 'run_attempt'))
 _HASH_FIELDS = frozenset(('executable_sha256', 'renderer_contract_sha256',
-                          'cargo_manifest_sha256', 'cargo_lock_sha256'))
+                          'cargo_manifest_sha256', 'cargo_lock_sha256', 'gl_reference_sha256'))
 _ASSET_FIELD = 'runtime_and_manifest_sha256'
 _BINDING_FIELDS = _CONTEXT_FIELDS | _HASH_FIELDS | {_ASSET_FIELD}
 _ASSET_SUFFIXES = frozenset(('.vra', '.vrs', '.vrm', '.json', '.cfg'))
@@ -265,12 +268,84 @@ def _common_inputs(root):
     return dict(recorded)
 
 
+GL_RUNTIME_PATH = Path('evidence/gl-runtime')
+GL_LOCK_PATH = Path('tools/windows_gl_reference_lock.json')
+GL_ENVIRONMENT = {'GALLIUM_DRIVER': 'llvmpipe', 'LIBGL_ALWAYS_SOFTWARE': 'true'}
+
+
+def gl_reference_digest(reference):
+    return hashlib.sha256(json.dumps(reference, sort_keys=True, separators=(',', ':'),
+                                     allow_nan=False).encode('utf-8')).hexdigest()
+
+
+def make_gl_reference(runtime, manifest=None, *, game_sha256=None):
+    """Verify the staged official lock, exact DLL/license closure and receipt.
+
+    The PowerShell stager already validates pinned package hashes and PE imports.
+    This byte-only recheck runs before use and after artifact transport. No DLLs
+    are loaded here; actual llvmpipe identity is a separate native capture gate.
+    """
+    runtime = Path(runtime)
+    files = inventory_files(runtime, exclude=())
+    lock_path = runtime / 'windows_gl_reference_lock.json'
+    if manifest is not None and _read_regular(manifest) != _read_regular(lock_path):
+        raise ValueError('staged GL lock differs from current source lock')
+    lock = read_record(lock_path)
+    gl_probe.validate_runtime(runtime, lock_path)
+    if lock.get('architecture') != 'x86_64' or lock.get('runtime_environment') != GL_ENVIRONMENT:
+        raise ValueError('reference must be pinned x86_64 llvmpipe')
+    expected = {'windows_gl_reference_lock.json', 'staging-receipt.json'}
+    for entry in lock['dlls']:
+        name = _safe_key(entry['dll'])
+        if '/' in name or not name.lower().endswith('.dll'):
+            raise ValueError('unsafe reference DLL name')
+        expected.add(name)
+    if not isinstance(lock.get('packages'), list) or not lock['packages']:
+        raise ValueError('reference requires pinned package licenses')
+    for package in lock['packages']:
+        if not package.get('licenses'):
+            raise ValueError('reference package lacks pinned licenses')
+        for entry in package['licenses']:
+            prefix = 'ucrt64/share/licenses/'
+            member = entry['member']
+            if not isinstance(member, str) or not member.startswith(prefix):
+                raise ValueError('reference license outside pinned tree')
+            name = 'licenses/' + _safe_key(member[len(prefix):])
+            if name in expected:
+                raise ValueError('duplicate reference member')
+            expected.add(name)
+            path = runtime / name
+            if (type(entry.get('size')) is not int or entry['size'] <= 0
+                    or _checked_stat(path, 'file').st_size != entry['size']
+                    or _read_regular(path) != entry['sha256']):
+                raise ValueError('reference license differs from pin')
+    if game_sha256 is not None:
+        if files.pop('vector-range.exe', None) != game_sha256:
+            raise ValueError('app-local game differs from the single compiled binary')
+    if set(files) != expected:
+        raise ValueError('reference file inventory differs from pinned DLL/license closure')
+    return {'schema': 'rust-duty-authored-app-local-gl/v1',
+            'manifest_sha256': _read_regular(lock_path), 'files': files,
+            'environment': dict(GL_ENVIRONMENT), 'expected_adapter_prefix': 'llvmpipe',
+            'loaded_modules_verified': False,
+            'scope': 'Pinned app-local Mesa bytes; actual renderer identity checked separately.'}
+
+
+def verify_gl_reference(runtime, reference, *, game_sha256=None):
+    actual = make_gl_reference(runtime, game_sha256=game_sha256)
+    if not _typed_equal(reference, actual):
+        raise ValueError('app-local GL reference bytes/provenance changed')
+    return actual
+
+
 def make_input_manifest(executable, fixture, root):
     """Bind the one dual-runtime build and immutable source-validated inputs."""
     ci = context()
     root, _ = _checked_root(root)
+    reference = make_gl_reference(root / GL_RUNTIME_PATH, root / GL_LOCK_PATH)
     binding = {
         **ci,
+        'gl_reference_sha256': gl_reference_digest(reference),
         'executable_sha256': _read_regular(executable),
         'renderer_contract_sha256': _read_regular(fixture),
         'cargo_manifest_sha256': _read_regular(root / 'Cargo.toml', canonical_lf=True),
@@ -283,6 +358,7 @@ def make_input_manifest(executable, fixture, root):
         'platform': 'win32',
         'build_selection': {'default_enabled': False, 'features': ['legacy-macroquad', 'wgpu-runtime']},
         'binding': binding,
+        'gl_reference': reference,
         'expected_scenarios': list(SCENARIOS),
     }
 

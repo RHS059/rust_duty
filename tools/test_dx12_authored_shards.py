@@ -21,6 +21,30 @@ def digest(data):
     return hashlib.sha256(data).hexdigest()
 
 
+def make_gl_runtime(root, runtime=None, manifest=None):
+    """Small pinned bytes for unit tests; never a usable DLL or native evidence."""
+    runtime = root / shards.GL_RUNTIME_PATH if runtime is None else runtime
+    manifest = root / shards.GL_LOCK_PATH if manifest is None else manifest
+    runtime.mkdir(parents=True, exist_ok=True)
+    manifest.parent.mkdir(parents=True, exist_ok=True)
+    dll = b'synthetic pinned Mesa DLL, never executed'
+    notice = b'synthetic license fixture'
+    (runtime/'opengl32.dll').write_bytes(dll)
+    license = runtime/'licenses/synthetic/COPYING'; license.parent.mkdir(parents=True, exist_ok=True)
+    license.write_bytes(notice)
+    lock = {'schema':'rust-duty-windows-gl-reference/v1', 'architecture':'x86_64',
+            'runtime_environment':shards.GL_ENVIRONMENT,
+            'dlls':[{'dll':'opengl32.dll','size':len(dll),'sha256':digest(dll)}],
+            'packages':[{'name':'synthetic','licenses':[{'member':'ucrt64/share/licenses/synthetic/COPYING',
+                         'size':len(notice),'sha256':digest(notice)}]}]}
+    raw = (json.dumps(lock,indent=2)+'\n').encode()
+    manifest.write_bytes(raw)
+    (runtime/'windows_gl_reference_lock.json').write_bytes(raw)
+    (runtime/'staging-receipt.json').write_text(json.dumps({'schema':'rust-duty-windows-gl-reference-staging/v1',
+                                                          'manifest_sha256':digest(raw)}),encoding='utf-8')
+    return shards.make_gl_reference(runtime, manifest)
+
+
 class ProfilesAndPathsTests(unittest.TestCase):
     def test_exact_closed_scenarios_and_profiles(self):
         values = {
@@ -113,6 +137,7 @@ class SyntheticInputTests(unittest.TestCase):
             path = self.root / name
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_bytes(contents)
+        self.gl_reference = make_gl_runtime(self.root)
         self.addCleanup(mock.patch.stopall)
         mock.patch.dict(os.environ, CI, clear=True).start()
         # Keep the real asset_evidence collection and real hash computations;
@@ -137,16 +162,41 @@ class SyntheticInputTests(unittest.TestCase):
                 **EXPECTED_CONTEXT,
                 'executable_sha256': digest(self.files['vector-range.exe']),
                 'renderer_contract_sha256': digest(self.files['renderer-contract.exe']),
+                'gl_reference_sha256': shards.gl_reference_digest(self.gl_reference),
                 'cargo_manifest_sha256': digest(self.files['Cargo.toml']),
                 'cargo_lock_sha256': digest(self.files['Cargo.lock']),
                 'runtime_and_manifest_sha256': expected_assets,
             },
+            'gl_reference': self.gl_reference,
             'expected_scenarios': list(shards.SCENARIOS),
         }
         self.assertEqual(manifest, expected)
         self.generated.assert_called_once_with(self.root)
         self.assertNotIn(str(self.root), json.dumps(manifest))
         self.assertEqual(shards.verify_input_manifest(manifest, self.executable, self.fixture, self.root), expected['binding'])
+
+    def test_mesa_reference_requires_exact_pins_not_just_declared_adapter(self):
+        manifest = self.manifest()
+        runtime = self.root / shards.GL_RUNTIME_PATH
+        for name in ('opengl32.dll', 'licenses/synthetic/COPYING', 'staging-receipt.json', 'windows_gl_reference_lock.json'):
+            path = runtime / name; before = path.read_bytes()
+            path.write_bytes(before+b'changed')
+            with self.subTest(path=name), self.assertRaises(ValueError):
+                shards.verify_input_manifest(manifest,self.executable,self.fixture,self.root)
+            path.write_bytes(before)
+        extra = runtime/'unapproved.dll'; extra.write_bytes(b'extra')
+        with self.assertRaises(ValueError): self.manifest()
+        extra.unlink()
+        self.assertEqual(self.manifest(), manifest)
+
+    def test_app_local_game_copy_is_hash_bound(self):
+        runtime = self.root / shards.GL_RUNTIME_PATH
+        copied = runtime/'vector-range.exe'; copied.write_bytes(self.executable.read_bytes())
+        expected_hash = shards._read_regular(self.executable)
+        shards.verify_gl_reference(runtime,self.gl_reference,game_sha256=expected_hash)
+        copied.write_bytes(b'different executable')
+        with self.assertRaisesRegex(ValueError,'single compiled'):
+            shards.verify_gl_reference(runtime,self.gl_reference,game_sha256=expected_hash)
 
     def test_cargo_hashes_canonicalize_only_line_endings(self):
         before = self.manifest()

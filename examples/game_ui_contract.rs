@@ -1,17 +1,18 @@
-//! Headless native DX12 evidence for the real game UI draw paths, not OS DPI,
-//! window presentation or human legibility approval.
+//! Native DX12 evidence for the real game UI draw paths inside the live winit
+//! window runtime, not OS DPI events, presentation or human legibility approval.
 //!
 //! Windows (use fresh directories; the runner keeps stdout/stderr as evidence):
 //! cargo build --locked --no-default-features --features wgpu-runtime --example game_ui_contract
 //! python tools/run_dx12_game_ui_fixture.py --executable target/debug/examples/game_ui_contract.exe
 //!   --evidence evidence/game-ui-process --output evidence/game-ui
 //!
-//! Current coverage: the production `ammo_supply_view::draw_ammo_supply_hint`
-//! at 100% and 200% scale (idle, half hold, full hold, ammo full). The pause
-//! menu and updater panel are private to the game binary and are added once
-//! they are exported from the library. `game-ui-contract-report.json` is
-//! written only after every capture passes. Compiler identity comes from the
-//! runner's captured startup log, never from this fixture.
+//! Coverage: the production pause menu, updater panel (current/unavailable),
+//! HUD with and without the telemetry panel, and ammo supply hint, each drawn
+//! through `platform::window::run` + `create_frame_hooks(Dx12)` into an
+//! offscreen target via `set_screen_camera` at 100% and 200% of the 960x540
+//! logical viewport. `game-ui-contract-report.json` is written only after every
+//! capture passes. Compiler identity comes from the runner's captured startup
+//! log, never from this fixture.
 
 #[cfg(feature = "wgpu-runtime")]
 fn main() {
@@ -40,13 +41,20 @@ mod fixture {
     use vector_range::{
         ammo_supply::SupplyFocus,
         ammo_supply_view::draw_ammo_supply_hint,
-        draw::{facade, BackendInfo, Color, Renderer},
-        render::{BackendSelection, WgpuRenderer},
+        control::ControlMode,
+        draw::{facade, BackendInfo, Color},
+        game_update::UpdatePanel,
+        hud,
+        pause_menu::PauseMenu,
+        platform::{runtime, window},
+        render::{runtime::create_frame_hooks, BackendSelection},
+        settings::Settings,
+        sim::Simulation,
     };
 
     #[cfg(feature = "wgpu-runtime")]
     pub const SCALES: [u32; 2] = [100, 200];
-    pub const LOGICAL_SIZE: [u32; 2] = [480, 270];
+    pub const LOGICAL_SIZE: [u32; 2] = [960, 540];
     /// Logical screen anchor of the projected crate.
     pub const ANCHOR: [f64; 2] = [240., 120.];
     /// Logical window that must contain every lit pixel of the prompt.
@@ -54,12 +62,40 @@ mod fixture {
     #[cfg(feature = "wgpu-runtime")]
     const REPORT: &str = "game-ui-contract-report.json";
 
+    /// Every capture, in order, at each scale.
+    pub const CASES: [&str; 9] = [
+        "pause-menu",
+        "updater-current",
+        "updater-unavailable",
+        "hud",
+        "hud-telemetry",
+        "ammo-idle",
+        "ammo-half",
+        "ammo-complete",
+        "ammo-full",
+    ];
+    pub fn element(case: &str) -> &'static str {
+        match case {
+            "pause-menu" => "pause-menu",
+            "updater-current" | "updater-unavailable" => "updater-panel",
+            "hud" => "hud",
+            "hud-telemetry" => "telemetry",
+            _ => "ammo-hint",
+        }
+    }
+    /// Ammo case name as used by the hint rules.
+    pub fn ammo_case(case: &str) -> Option<&str> {
+        match case {
+            "ammo-full" => Some("ammo-full"),
+            _ => case.strip_prefix("ammo-"),
+        }
+    }
     #[cfg(feature = "wgpu-runtime")]
-    /// (name, hold progress, ammo already full)
+    /// (case, hold progress, ammo already full)
     pub const AMMO_CASES: [(&str, f32, bool); 4] = [
-        ("idle", 0., false),
-        ("half", 0.5, false),
-        ("complete", 1., false),
+        ("ammo-idle", 0., false),
+        ("ammo-half", 0.5, false),
+        ("ammo-complete", 1., false),
         ("ammo-full", 0., true),
     ];
 
@@ -303,17 +339,130 @@ mod fixture {
         }
         Ok(())
     }
-    /// 200% must be the same prompt at twice the size: ~4x area, ~2x extent.
-    pub fn check_scaling(one: Ink, two: Ink) -> Result<(), String> {
+    /// 200% must be the same drawing at twice the size: ~4x area, ~2x extent.
+    pub fn check_scaling(
+        one_lit: u64,
+        one: Option<[u32; 4]>,
+        two_lit: u64,
+        two: Option<[u32; 4]>,
+    ) -> Result<(), String> {
         let (a, b) = (
-            one.bounds.ok_or("empty 100% capture")?,
-            two.bounds.ok_or("empty 200% capture")?,
+            one.ok_or("empty 100% capture")?,
+            two.ok_or("empty 200% capture")?,
         );
-        let area = two.lit as f64 / one.lit.max(1) as f64;
+        let area = two_lit as f64 / one_lit.max(1) as f64;
         let width = f64::from(b[2] - b[0] + 1) / f64::from(a[2] - a[0] + 1);
         if !(3.0..=5.0).contains(&area) || !(1.8..=2.2).contains(&width) {
             return Err(format!(
                 "200% capture is not a 2x rendering: area x{area:.2}, width x{width:.2}"
+            ));
+        }
+        Ok(())
+    }
+
+    /// Logical HUD corner panels: title, score, stance, weapon.
+    pub const CORNERS: [[f64; 4]; 4] = [
+        [24., 24., 312., 105.],
+        [685., 24., 936., 105.],
+        [24., 435., 272., 516.],
+        [710., 415., 936., 516.],
+    ];
+    /// Telemetry (debug) panel drawn under the title panel.
+    pub const DEBUG_PANEL: [f64; 4] = [24., 119., 334., 326.];
+    /// The scaled pause menu is centred horizontally.
+    pub const MENU_BAND: [f64; 4] = [200., 0., 760., 540.];
+    /// Warm accent family: the HUD/menu accent #FA9E38, GOLD #FFCB00 and the
+    /// supply gold; excludes white, cyan, muted grey and the dark panels.
+    pub fn is_warm(p: [u8; 4]) -> bool {
+        p[0] >= 200 && (100..=215).contains(&p[1]) && p[2] <= 110
+    }
+
+    /// UI-wide ink: lit pixels and bounds, warm pixels (all and inside the
+    /// menu band), white pixels, white pixels per HUD corner, and lit pixels
+    /// inside the telemetry panel.
+    #[derive(Debug, Clone, Copy, PartialEq)]
+    pub struct UiInk {
+        pub lit: u64,
+        pub bounds: Option<[u32; 4]>,
+        pub warm: u64,
+        pub warm_menu_band: u64,
+        pub white: u64,
+        pub corner_white: [u64; 4],
+        pub debug_lit: u64,
+    }
+    pub fn measure_ui(image: &RgbaImage, scale: f64) -> UiInk {
+        let mut ink = UiInk {
+            lit: 0,
+            bounds: None,
+            warm: 0,
+            warm_menu_band: 0,
+            white: 0,
+            corner_white: [0; 4],
+            debug_lit: 0,
+        };
+        for (x, y, pixel) in image.enumerate_pixels() {
+            let p = pixel.0;
+            if p[0] == 0 && p[1] == 0 && p[2] == 0 {
+                continue;
+            }
+            ink.lit += 1;
+            let b = ink.bounds.get_or_insert([x, y, x, y]);
+            b[0] = b[0].min(x);
+            b[1] = b[1].min(y);
+            b[2] = b[2].max(x);
+            b[3] = b[3].max(y);
+            if inside(x, y, DEBUG_PANEL, scale) {
+                ink.debug_lit += 1;
+            }
+            if is_warm(p) {
+                ink.warm += 1;
+                if inside(x, y, MENU_BAND, scale) {
+                    ink.warm_menu_band += 1;
+                }
+            } else if is_white(p) {
+                ink.white += 1;
+                for (count, corner) in ink.corner_white.iter_mut().zip(CORNERS) {
+                    if inside(x, y, corner, scale) {
+                        *count += 1;
+                    }
+                }
+            }
+        }
+        ink
+    }
+    /// Per-capture rules for the non-ammo elements, from their documented layout.
+    pub fn check_ui_case(case: &str, ink: UiInk, scale: f64) -> Result<(), String> {
+        let area = (scale * scale) as u64;
+        if ink.bounds.is_none() {
+            return Err(format!("{case}: capture is empty"));
+        }
+        match case {
+            "pause-menu" if ink.warm_menu_band < 200 * area || ink.white < 500 * area => {
+                Err(format!(
+                    "pause-menu: expected accent and white text in the centred menu, got warm {} white {}",
+                    ink.warm_menu_band, ink.white
+                ))
+            }
+            "updater-current" | "updater-unavailable"
+                if ink.warm < 50 * area || ink.white < 50 * area =>
+            {
+                Err(format!(
+                    "{case}: expected gold title/frame and white message, got warm {} white {}",
+                    ink.warm, ink.white
+                ))
+            }
+            "hud" | "hud-telemetry" if ink.corner_white.iter().any(|&n| n < 20 * area) => Err(
+                format!("{case}: every HUD corner needs white text, got {:?}", ink.corner_white),
+            ),
+            _ => Ok(()),
+        }
+    }
+    /// The telemetry panel must add visible ink over the plain HUD.
+    pub fn check_telemetry(hud: UiInk, telemetry: UiInk, scale: f64) -> Result<(), String> {
+        if telemetry.debug_lit < hud.debug_lit + 300 * (scale * scale) as u64 {
+            return Err(format!(
+                "hud-telemetry: telemetry panel missing ({} vs {} lit)",
+                telemetry.debug_lit, hud.debug_lit
             ));
         }
         Ok(())
@@ -335,31 +484,176 @@ mod fixture {
         Ok(())
     }
     #[cfg(feature = "wgpu-runtime")]
-    fn ammo_scene(
-        percent: u32,
-        progress: f32,
-        full: bool,
-        path: &Path,
-    ) -> Result<vector_range::draw::DrawList, String> {
-        let size = physical_size(percent);
-        facade::begin_frame(size[0], size[1], f64::from(percent) / 100.)?;
-        facade::clear_background(Color::new(0., 0., 0., 1.));
-        draw_ammo_supply_hint(
-            SupplyFocus {
-                screen_anchor: glam::vec2(ANCHOR[0] as f32, ANCHOR[1] as f32),
-                world_anchor: glam::Vec3::ZERO,
-                distance: 1.,
-            },
-            progress,
-            full,
-        );
-        facade::capture_png(None, path);
-        facade::take_draw_list()
+    const WEAPON: &str = "hk416a5";
+    #[cfg(feature = "wgpu-runtime")]
+    const WEAPON_LABEL: &str = "M4 / CANDIDATE";
+    #[cfg(feature = "wgpu-runtime")]
+    fn updater_message(case: &str) -> &'static str {
+        if case == "updater-current" {
+            "Version is current."
+        } else {
+            "Can't reach GitHub. Retry, or play this version."
+        }
+    }
+
+    /// Draw one case with its production entry point; returns its parameters.
+    #[cfg(feature = "wgpu-runtime")]
+    fn draw_case(case: &str, cfg: &Settings, sim: &Simulation) -> Value {
+        use rust_duty_launcher::game::{UpdatePhase, UpdateSnapshot};
+        match case {
+            "pause-menu" => {
+                PauseMenu::default().draw(cfg, WEAPON, false, ControlMode::Toggle, None);
+                json!({"weapon":WEAPON,"initial":false,"control_mode":"toggle","status":null})
+            }
+            "updater-current" | "updater-unavailable" => {
+                let (phase, name) = if case == "updater-current" {
+                    (UpdatePhase::Current, "current")
+                } else {
+                    (UpdatePhase::Unavailable, "unavailable")
+                };
+                UpdatePanel::from_snapshot(UpdateSnapshot {
+                    phase,
+                    message: updater_message(case).into(),
+                    ..Default::default()
+                })
+                .draw(true);
+                json!({"phase":name,"message":updater_message(case),"menu":true})
+            }
+            "hud" | "hud-telemetry" => {
+                let debug = case == "hud-telemetry";
+                hud::hud(sim, cfg, 0., false, debug, false, "", 0., WEAPON_LABEL);
+                json!({"debug":debug,"recording":false,"weapon_label":WEAPON_LABEL})
+            }
+            _ => {
+                let (_, progress, full) = AMMO_CASES
+                    .into_iter()
+                    .find(|(name, _, _)| *name == case)
+                    .expect("every remaining case is an ammo case");
+                draw_ammo_supply_hint(
+                    SupplyFocus {
+                        screen_anchor: glam::vec2(ANCHOR[0] as f32, ANCHOR[1] as f32),
+                        world_anchor: glam::Vec3::ZERO,
+                        distance: 1.,
+                    },
+                    progress,
+                    full,
+                );
+                json!({"progress":progress,"ammo_full":full,"anchor_logical":ANCHOR})
+            }
+        }
     }
 
     #[cfg(feature = "wgpu-runtime")]
-    fn ink_json(ink: Ink) -> Value {
+    fn ammo_ink_json(ink: Ink) -> Value {
         json!({"lit_pixels":ink.lit,"lit_bounds":ink.bounds,"gold_left":ink.gold_left,"gold_right":ink.gold_right,"key_white":ink.key_white,"caption_white":ink.caption_white})
+    }
+    #[cfg(feature = "wgpu-runtime")]
+    fn ui_ink_json(ink: UiInk) -> Value {
+        json!({"lit_pixels":ink.lit,"lit_bounds":ink.bounds,"warm":ink.warm,"warm_menu_band":ink.warm_menu_band,"white":ink.white,"corner_white":ink.corner_white,"debug_lit":ink.debug_lit})
+    }
+
+    /// Runs inside the live window: one case per presented frame, each drawn
+    /// into an offscreen target at the requested logical scale.
+    #[cfg(feature = "wgpu-runtime")]
+    async fn capture_all(out: PathBuf) -> Result<Vec<(String, u32, Value)>, String> {
+        window::next_frame().await;
+        let viewport = [runtime::screen_width(), runtime::screen_height()];
+        if viewport != LOGICAL_SIZE.map(|v| v as f32) {
+            return Err(format!(
+                "live logical viewport is {viewport:?}, expected {LOGICAL_SIZE:?}"
+            ));
+        }
+        let cfg = Settings::default();
+        let sim = Simulation::new();
+        let mut captures = Vec::new();
+        for percent in SCALES {
+            let size = physical_size(percent);
+            let target = facade::render_target_ex(
+                size[0],
+                size[1],
+                facade::RenderTargetParams { depth: false },
+            )?;
+            for case in CASES {
+                let filename = format!("{case}-{percent}.png");
+                facade::set_screen_camera(Some(&target), percent as f32 / 100.);
+                facade::clear_background(Color::new(0., 0., 0., 1.));
+                let parameters = draw_case(case, &cfg, &sim);
+                facade::capture_png(Some(&target), out.join(&filename));
+                facade::set_default_camera();
+                facade::clear_background(Color::new(0., 0., 0., 1.));
+                window::next_frame().await;
+                captures.push((filename, percent, parameters));
+            }
+        }
+        // The last capture is written by the frame that the await above submitted.
+        window::next_frame().await;
+        Ok(captures)
+    }
+
+    /// Re-read every capture, apply all rules, then write sidecars and the report.
+    #[cfg(feature = "wgpu-runtime")]
+    fn verify_and_report(
+        out: &Path,
+        info: &BackendInfo,
+        force_fallback_adapter: bool,
+        captures: Vec<(String, u32, Value)>,
+    ) -> Result<usize, String> {
+        let mut sidecars = Vec::new();
+        let mut first_scale = Vec::new();
+        for percent in SCALES {
+            let scale = f64::from(percent) / 100.;
+            let mut images = Vec::new();
+            let mut ammo_inks = Vec::new();
+            let mut ui_inks = Vec::new();
+            let mut lit = Vec::new();
+            for (filename, _, parameters) in captures.iter().filter(|c| c.1 == percent) {
+                let case = filename.trim_end_matches(&format!("-{percent}.png"));
+                let image = read_png(&out.join(filename), physical_size(percent))?;
+                let ink = if let Some(ammo) = ammo_case(case) {
+                    let ink = measure(&image, scale, ammo == "ammo-full");
+                    check_case(ammo, ink, scale)?;
+                    ammo_inks.push((ammo, ink));
+                    lit.push((case.to_owned(), ink.lit, ink.bounds));
+                    ammo_ink_json(ink)
+                } else {
+                    let ink = measure_ui(&image, scale);
+                    check_ui_case(case, ink, scale)?;
+                    ui_inks.push((case, ink));
+                    lit.push((case.to_owned(), ink.lit, ink.bounds));
+                    ui_ink_json(ink)
+                };
+                let metadata = json!({"schema_version":2,"filename":filename,"element":element(case),"case":case,"parameters":parameters,"requested":info.requested,"backend":info.backend,"adapter":info.adapter,"scale_percent":percent,"logical_size":LOGICAL_SIZE,"physical_size":physical_size(percent),"ink":ink});
+                write_json(&out.join(format!("{filename}.json")), &metadata)?;
+                sidecars.push(metadata);
+                images.push((case, image));
+            }
+            if images.iter().map(|(c, _)| *c).ne(CASES) {
+                return Err(format!(
+                    "{percent}%: captures do not cover every case in order"
+                ));
+            }
+            check_distinct(&images)?;
+            check_progression(&ammo_inks)?;
+            let get = |name| ui_inks.iter().find(|(c, _)| *c == name).map(|(_, i)| *i);
+            check_telemetry(
+                get("hud").ok_or("missing hud")?,
+                get("hud-telemetry").ok_or("missing hud-telemetry")?,
+                scale,
+            )?;
+            if percent == SCALES[0] {
+                first_scale = lit;
+            } else {
+                for ((case, a_lit, a_bounds), (_, b_lit, b_bounds)) in first_scale.iter().zip(&lit)
+                {
+                    check_scaling(*a_lit, *a_bounds, *b_lit, *b_bounds)
+                        .map_err(|e| format!("{case}: {e}"))?;
+                }
+            }
+        }
+        let count = sidecars.len();
+        let report = json!({"schema_version":2,"status":"passed","native_execution":true,"requested":info.requested,"backend":info.backend,"adapter":info.adapter,"force_fallback_adapter":force_fallback_adapter,"platform":std::env::consts::OS,"build_version":vector_range::BUILD_VERSION,"build_number":vector_range::BUILD_NUMBER,"live_logical_viewport":LOGICAL_SIZE,"scales_percent":SCALES,"cases":CASES,"captures":sidecars,"elements_covered":["pause-menu","updater-panel","hud","telemetry","ammo-hint"],"compiler_identity_source":"external captured renderer startup log; not inferred by this fixture","scope":"live winit window runtime, native DX12 production game-UI draw paths to offscreen PNG","boundaries":{"os_dpi_events_verified":false,"window_presentation_verified":false,"native_pointer_or_click_verified":false,"human_legibility_approved":false,"gl_backend_verified":false}});
+        write_json(&out.join(REPORT), &report)?;
+        Ok(count)
     }
 
     #[cfg(feature = "wgpu-runtime")]
@@ -369,60 +663,30 @@ mod fixture {
             return Err("native game UI contract requires Windows DX12; CPU compilation/tests cannot produce a native pass".into());
         }
         prepare_output(&options.output_dir)?;
-        let mut renderer = pollster::block_on(WgpuRenderer::new_headless(
+        let out = options.output_dir.clone();
+        let fallback = options.force_fallback_adapter;
+        window::run(
+            "game_ui_contract",
             LOGICAL_SIZE[0],
             LOGICAL_SIZE[1],
-            BackendSelection::Dx12,
-            options.force_fallback_adapter,
-        ))?;
-        verify_backend(renderer.info())?;
-        let mut captures = Vec::new();
-        let mut first_scale = Vec::new();
-        for percent in SCALES {
-            let scale = f64::from(percent) / 100.;
-            let mut images = Vec::new();
-            let mut inks = Vec::new();
-            for (case, progress, full) in AMMO_CASES {
-                let filename = format!("ammo-{case}-{percent}.png");
-                let path = options.output_dir.join(&filename);
-                let result = renderer.submit(&ammo_scene(percent, progress, full, &path)?)?;
-                if result.captures != [path.clone()] {
-                    return Err("renderer returned different capture paths".into());
+            move |w| create_frame_hooks(w, BackendSelection::Dx12, fallback),
+            async move {
+                let info = facade::backend_info()?;
+                verify_backend(&info)?;
+                let captures = capture_all(out.clone()).await?;
+                let info_after = facade::backend_info()?;
+                if info_after != info {
+                    return Err("renderer identity changed during the run".into());
                 }
-                verify_backend(renderer.info())?;
-                let image = read_png(&path, physical_size(percent))?;
-                let ink = measure(&image, scale, full);
-                check_case(case, ink, scale)?;
-                let info = renderer.info();
-                let metadata = json!({"schema_version":1,"filename":filename,"element":"ammo-hint","case":case,"progress":progress,"ammo_full":full,"requested":info.requested,"backend":info.backend,"adapter":info.adapter,"scale_percent":percent,"logical_size":LOGICAL_SIZE,"physical_size":physical_size(percent),"anchor_logical":ANCHOR,"ink":ink_json(ink)});
-                write_json(
-                    &options.output_dir.join(format!("{filename}.json")),
-                    &metadata,
-                )?;
-                captures.push(metadata);
-                images.push((case, image));
-                inks.push((case, ink));
-            }
-            check_distinct(&images)?;
-            check_progression(&inks)?;
-            if percent == SCALES[0] {
-                first_scale = inks;
-            } else {
-                for ((case, one), (_, two)) in first_scale.iter().zip(&inks) {
-                    check_scaling(*one, *two).map_err(|e| format!("{case}: {e}"))?;
-                }
-            }
-        }
-        let info = renderer.info();
-        let report = json!({"schema_version":1,"status":"passed","native_execution":true,"requested":info.requested,"backend":info.backend,"adapter":info.adapter,"force_fallback_adapter":options.force_fallback_adapter,"platform":std::env::consts::OS,"build_version":vector_range::BUILD_VERSION,"build_number":vector_range::BUILD_NUMBER,"scales_percent":SCALES,"captures":captures,"elements_covered":["ammo-hint"],"elements_pending":{"pause-menu":"PauseMenu is private to the game binary","updater-panel":"UpdatePanel is private to the game binary"},"compiler_identity_source":"external captured renderer startup log; not inferred by this fixture","scope":"headless native DX12 production game-UI draw paths to PNG","boundaries":{"os_dpi_events_verified":false,"window_presentation_verified":false,"native_pointer_or_click_verified":false,"human_legibility_approved":false}});
-        write_json(&options.output_dir.join(REPORT), &report)?;
-        println!(
-            "DX12 game UI contract passed on {}: {} captures; {}",
-            info.adapter,
-            captures.len(),
-            options.output_dir.join(REPORT).display()
-        );
-        Ok(())
+                let count = verify_and_report(&out, &info, fallback, captures)?;
+                println!(
+                    "DX12 game UI contract passed on {}: {count} captures; {}",
+                    info.adapter,
+                    out.join(REPORT).display()
+                );
+                Ok(())
+            },
+        )
     }
 
     #[cfg(test)]
@@ -538,7 +802,7 @@ mod fixture {
             }
             let one = measure(&synthetic(1, Some(true)), 1., false);
             let two = measure(&synthetic(2, Some(true)), 2., false);
-            check_scaling(one, two).unwrap();
+            check_scaling(one.lit, one.bounds, two.lit, two.bounds).unwrap();
         }
 
         #[test]
@@ -574,7 +838,91 @@ mod fixture {
             let a = synthetic(1, None);
             assert!(check_distinct(&[("idle", a.clone()), ("ammo-full", a)]).is_err());
             let one = measure(&synthetic(1, Some(true)), 1., false);
-            assert!(check_scaling(one, one).is_err());
+            assert!(check_scaling(one.lit, one.bounds, one.lit, one.bounds).is_err());
+        }
+
+        fn fill(image: &mut RgbaImage, region: [u32; 4], scale: u32, colour: Rgba<u8>) {
+            for x in region[0] * scale..region[2] * scale {
+                for y in region[1] * scale..region[3] * scale {
+                    image.put_pixel(x, y, colour);
+                }
+            }
+        }
+        fn blank(scale: u32) -> RgbaImage {
+            let size = physical_size(scale * 100);
+            RgbaImage::from_pixel(size[0], size[1], Rgba([0, 0, 0, 255]))
+        }
+        const ACCENT: Rgba<u8> = Rgba([250, 158, 56, 255]);
+
+        #[test]
+        fn cases_cover_every_element() {
+            let mut elements: Vec<_> = CASES.iter().map(|c| element(c)).collect();
+            elements.dedup();
+            assert_eq!(
+                elements,
+                [
+                    "pause-menu",
+                    "updater-panel",
+                    "hud",
+                    "telemetry",
+                    "ammo-hint"
+                ]
+            );
+            let ammo: Vec<_> = CASES.iter().filter_map(|c| ammo_case(c)).collect();
+            assert_eq!(ammo, ["idle", "half", "complete", "ammo-full"]);
+            assert!(is_warm(ACCENT.0) && is_warm(GOLD.0) && is_warm([255, 203, 0, 255]));
+            assert!(!is_warm(WHITE.0) && !is_warm([84, 214, 222, 255]));
+        }
+
+        #[test]
+        fn ui_rules_accept_controls_and_reject_missing_parts() {
+            for scale in [1u32, 2] {
+                let s = f64::from(scale);
+                let mut hud = blank(scale);
+                for c in CORNERS {
+                    let c = c.map(|v| v as u32);
+                    fill(
+                        &mut hud,
+                        [c[0] + 10, c[1] + 10, c[0] + 20, c[1] + 15],
+                        scale,
+                        WHITE,
+                    );
+                }
+                let plain = measure_ui(&hud, s);
+                check_ui_case("hud", plain, s).unwrap();
+                let mut telemetry = hud.clone();
+                fill(&mut telemetry, [40, 140, 300, 160], scale, WHITE);
+                let debug = measure_ui(&telemetry, s);
+                check_ui_case("hud-telemetry", debug, s).unwrap();
+                check_telemetry(plain, debug, s).unwrap();
+                assert!(check_telemetry(plain, plain, s).is_err());
+                let mut missing = hud.clone();
+                fill(
+                    &mut missing,
+                    [710, 415, 936, 516],
+                    scale,
+                    Rgba([0, 0, 0, 255]),
+                );
+                assert!(check_ui_case("hud", measure_ui(&missing, s), s).is_err());
+
+                let mut menu = blank(scale);
+                fill(&mut menu, [300, 40, 660, 100], scale, WHITE);
+                fill(&mut menu, [300, 120, 500, 130], scale, ACCENT);
+                check_ui_case("pause-menu", measure_ui(&menu, s), s).unwrap();
+                let mut off_centre = blank(scale);
+                fill(&mut off_centre, [300, 40, 660, 100], scale, WHITE);
+                fill(&mut off_centre, [0, 120, 190, 135], scale, ACCENT);
+                assert!(check_ui_case("pause-menu", measure_ui(&off_centre, s), s).is_err());
+
+                let mut updater = blank(scale);
+                fill(&mut updater, [200, 100, 400, 105], scale, GOLD);
+                fill(&mut updater, [200, 120, 400, 125], scale, WHITE);
+                check_ui_case("updater-current", measure_ui(&updater, s), s).unwrap();
+                let mut no_title = blank(scale);
+                fill(&mut no_title, [200, 120, 400, 125], scale, WHITE);
+                assert!(check_ui_case("updater-unavailable", measure_ui(&no_title, s), s).is_err());
+                assert!(check_ui_case("hud", measure_ui(&blank(scale), s), s).is_err());
+            }
         }
 
         #[test]

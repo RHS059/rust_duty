@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 """Run the built game_ui_contract example on Windows DX12 and verify its evidence.
 
+The fixture draws the production pause menu, updater panel, HUD/telemetry and
+ammo hint inside the live winit window runtime, into offscreen targets at 1x
+and 2x of the 960x540 logical viewport.
+
 Process provenance (fresh directories, exit code, executable hash, actual
 Dx12/WARP and FXC startup logs) is owned by dx12_contract_process. This module
 only checks the fixture's own outputs: an exact file inventory with no links,
@@ -12,37 +16,62 @@ the documented hint behaviour, never read from the report under test.
 import argparse
 from decimal import Decimal
 import json
+import os
 from pathlib import Path
+import re
 import subprocess
 import sys
 
-from PIL import Image
+from PIL import Image, ImageChops
 
+import build_identity
 import dx12_contract_process
+from run_renderer_contract import equal, literal
 from verify_capture_telemetry import read_record
 from verify_render_capture import load_png
 
 REPORT = 'game-ui-contract-report.json'
 WARP = 'Microsoft Basic Render Driver'
 SCALES = (100, 200)
-LOGICAL_SIZE = (480, 270)
+LOGICAL_SIZE = (960, 540)
 ANCHOR = (240, 120)
 INK_WINDOW = (90, 80, 390, 190)
 # Logical regions for the white key glyph and the caption (or AMMO FULL text).
 KEY_BOX = (230, 108, 250, 132)
 CAPTION_BAND = (90, 140, 390, 172)
 FULL_TEXT_BAND = (90, 100, 390, 128)
-CASES = (('idle', '0', False), ('half', '0.5', False), ('complete', '1', False), ('ammo-full', '0', True))
-INK_KEYS = {'lit_pixels', 'lit_bounds', 'gold_left', 'gold_right', 'key_white', 'caption_white'}
-SIDECAR_KEYS = {'schema_version', 'filename', 'element', 'case', 'progress', 'ammo_full', 'requested',
-                'backend', 'adapter', 'scale_percent', 'logical_size', 'physical_size', 'anchor_logical', 'ink'}
+# HUD corner panels (title, score, stance, weapon), telemetry panel, menu band.
+CORNERS = ((24, 24, 312, 105), (685, 24, 936, 105), (24, 435, 272, 516), (710, 415, 936, 516))
+DEBUG_PANEL = (24, 119, 334, 326)
+MENU_BAND = (200, 0, 760, 540)
+CASES = ('pause-menu', 'updater-current', 'updater-unavailable', 'hud', 'hud-telemetry',
+         'ammo-idle', 'ammo-half', 'ammo-complete', 'ammo-full')
+ELEMENTS = {'pause-menu': 'pause-menu', 'updater-current': 'updater-panel', 'updater-unavailable': 'updater-panel',
+            'hud': 'hud', 'hud-telemetry': 'telemetry'}
+AMMO = {'ammo-idle': ('idle', '0', False), 'ammo-half': ('half', '0.5', False),
+        'ammo-complete': ('complete', '1', False), 'ammo-full': ('ammo-full', '0', True)}
+PARAMETERS = {
+    'pause-menu': {'weapon': 'hk416a5', 'initial': False, 'control_mode': 'toggle', 'status': None},
+    'updater-current': {'phase': 'current', 'message': 'Version is current.', 'menu': True},
+    'updater-unavailable': {'phase': 'unavailable', 'message': "Can't reach GitHub. Retry, or play this version.",
+                            'menu': True},
+    'hud': {'debug': False, 'recording': False, 'weapon_label': 'M4 / CANDIDATE'},
+    'hud-telemetry': {'debug': True, 'recording': False, 'weapon_label': 'M4 / CANDIDATE'},
+}
+AMMO_INK_KEYS = {'lit_pixels', 'lit_bounds', 'gold_left', 'gold_right', 'key_white', 'caption_white'}
+UI_INK_KEYS = {'lit_pixels', 'lit_bounds', 'warm', 'warm_menu_band', 'white', 'corner_white', 'debug_lit'}
+SIDECAR_KEYS = {'schema_version', 'filename', 'element', 'case', 'parameters', 'requested', 'backend', 'adapter',
+                'scale_percent', 'logical_size', 'physical_size', 'ink'}
 REPORT_KEYS = {'schema_version', 'status', 'native_execution', 'requested', 'backend', 'adapter',
-               'force_fallback_adapter', 'platform', 'build_version', 'build_number', 'scales_percent',
-               'captures', 'elements_covered', 'elements_pending', 'compiler_identity_source', 'scope', 'boundaries'}
-SCOPE = 'headless native DX12 production game-UI draw paths to PNG'
+               'force_fallback_adapter', 'platform', 'build_version', 'build_number', 'live_logical_viewport',
+               'scales_percent', 'cases', 'captures', 'elements_covered', 'compiler_identity_source', 'scope',
+               'boundaries'}
+ELEMENTS_COVERED = ['pause-menu', 'updater-panel', 'hud', 'telemetry', 'ammo-hint']
+SCOPE = 'live winit window runtime, native DX12 production game-UI draw paths to offscreen PNG'
 COMPILER_SOURCE = 'external captured renderer startup log; not inferred by this fixture'
 BOUNDARIES = {'os_dpi_events_verified': False, 'window_presentation_verified': False,
-              'native_pointer_or_click_verified': False, 'human_legibility_approved': False}
+              'native_pointer_or_click_verified': False, 'human_legibility_approved': False,
+              'gl_backend_verified': False}
 
 
 def require(condition, message):
@@ -54,6 +83,7 @@ def is_int(value):
     return type(value) is int
 
 
+# Reference per-pixel predicates; masks() must agree with them exactly.
 def is_gold(p):
     return p[0] >= 235 and 170 <= p[1] <= 215 and p[2] <= 95
 
@@ -62,36 +92,50 @@ def is_white(p):
     return min(p[0], p[1], p[2]) >= 200 and not is_gold(p)
 
 
-def inside(x, y, region, scale):
-    return (region[0] * scale <= x + 0.5 < region[2] * scale
-            and region[1] * scale <= y + 0.5 < region[3] * scale)
+def is_warm(p):
+    """HUD/menu accent #FA9E38, GOLD #FFCB00 and supply gold; not white, cyan or grey."""
+    return p[0] >= 200 and 100 <= p[1] <= 215 and p[2] <= 110
+
+
+def masks(image):
+    """Per-pixel 255/0 masks equal to is_gold/is_white/is_warm and 'not the black clear'."""
+    r, g, b, _ = image.convert('RGBA').split()
+
+    def band(channel, low, high):
+        return channel.point(lambda v: 255 if low <= v <= high else 0)
+    return {
+        'lit': ImageChops.lighter(ImageChops.lighter(r, g), b).point(lambda v: 255 if v else 0),
+        'white': ImageChops.darker(ImageChops.darker(r, g), b).point(lambda v: 255 if v >= 200 else 0),
+        'gold': ImageChops.multiply(ImageChops.multiply(band(r, 235, 255), band(g, 170, 215)), band(b, 0, 95)),
+        'warm': ImageChops.multiply(ImageChops.multiply(band(r, 200, 255), band(g, 100, 215)), band(b, 0, 110)),
+    }
+
+
+def count(mask, region=None, scale=1):
+    """Set pixels whose centre lies in the logical region (integer bounds, so exact)."""
+    if region is not None:
+        mask = mask.crop(tuple(int(v * scale) for v in region))
+    return mask.histogram()[255]
+
+
+def bounds(mask):
+    box = mask.getbbox()
+    return None if box is None else [box[0], box[1], box[2] - 1, box[3] - 1]
 
 
 def measure(image, scale, full):
     """Lit pixels, bounds, gold left/right of the anchor, and white key/caption pixels."""
-    axis = ANCHOR[0] * scale
+    m = masks(image)
     width, height = image.size
-    pixels = image.load()
-    ink = dict.fromkeys(('lit_pixels', 'gold_left', 'gold_right', 'key_white', 'caption_white'), 0)
-    bounds = None
-    caption = FULL_TEXT_BAND if full else CAPTION_BAND
-    for y in range(height):
-        for x in range(width):
-            p = pixels[x, y]
-            if p[0] == 0 and p[1] == 0 and p[2] == 0:
-                continue
-            ink['lit_pixels'] += 1
-            bounds = [x, y, x, y] if bounds is None else [
-                min(bounds[0], x), min(bounds[1], y), max(bounds[2], x), max(bounds[3], y)]
-            if is_gold(p):
-                ink['gold_left' if x + 0.5 < axis else 'gold_right'] += 1
-            elif is_white(p):
-                if not full and inside(x, y, KEY_BOX, scale):
-                    ink['key_white'] += 1
-                if inside(x, y, caption, scale):
-                    ink['caption_white'] += 1
-    ink['lit_bounds'] = bounds
-    return ink
+    axis = ANCHOR[0] * scale
+    # Gold and white are disjoint (blue <= 95 versus >= 200).
+    return {
+        'lit_pixels': count(m['lit']), 'lit_bounds': bounds(m['lit']),
+        'gold_left': count(m['gold'], (0, 0, axis, height)),
+        'gold_right': count(m['gold'], (axis, 0, width, height)),
+        'key_white': 0 if full else count(m['white'], KEY_BOX, scale),
+        'caption_white': count(m['white'], FULL_TEXT_BAND if full else CAPTION_BAND, scale),
+    }
 
 
 def check_case(case, ink, scale):
@@ -118,11 +162,40 @@ def check_case(case, ink, scale):
         require(ink['gold_left'] > 0 and ink['gold_right'] > 0, 'complete: gold sweep must cover both halves')
 
 
-def check_scale(inks, images):
-    half = inks['half']['gold_left'] + inks['half']['gold_right']
-    complete = inks['complete']['gold_left'] + inks['complete']['gold_right']
+def measure_ui(image, scale):
+    """Lit pixels and bounds, warm pixels (all, menu band), white (all, per HUD corner), telemetry-panel ink."""
+    m = masks(image)
+    # Warm and white are disjoint (blue <= 110 versus >= 200).
+    return {
+        'lit_pixels': count(m['lit']), 'lit_bounds': bounds(m['lit']),
+        'warm': count(m['warm']), 'warm_menu_band': count(m['warm'], MENU_BAND, scale),
+        'white': count(m['white']), 'corner_white': [count(m['white'], c, scale) for c in CORNERS],
+        'debug_lit': count(m['lit'], DEBUG_PANEL, scale),
+    }
+
+
+def check_ui_case(case, ink, scale):
+    area = scale * scale
+    require(ink['lit_bounds'] is not None and ink['lit_pixels'] > 0, f'{case}: capture is empty')
+    if case == 'pause-menu':
+        require(ink['warm_menu_band'] >= 200 * area and ink['white'] >= 500 * area,
+                f"pause-menu: expected accent and white text in the centred menu, got warm "
+                f"{ink['warm_menu_band']} white {ink['white']}")
+    elif case.startswith('updater-'):
+        require(ink['warm'] >= 50 * area and ink['white'] >= 50 * area,
+                f"{case}: expected gold title/frame and white message, got warm {ink['warm']} white {ink['white']}")
+    else:
+        require(all(n >= 20 * area for n in ink['corner_white']),
+                f"{case}: every HUD corner needs white text, got {ink['corner_white']}")
+
+
+def check_scale(inks, images, scale):
+    half = inks['ammo-half']['gold_left'] + inks['ammo-half']['gold_right']
+    complete = inks['ammo-complete']['gold_left'] + inks['ammo-complete']['gold_right']
     ratio = complete / max(half, 1)
     require(1.6 <= ratio <= 2.4, f'full sweep should be about twice the half sweep, got {ratio:.2f}')
+    require(inks['hud-telemetry']['debug_lit'] >= inks['hud']['debug_lit'] + 300 * scale * scale,
+            'hud-telemetry: telemetry panel missing')
     names = list(images)
     for i, a in enumerate(names):
         for b in names[i + 1:]:
@@ -140,26 +213,51 @@ def check_scaling(one, two):
 def opaque_rgba(path, extent):
     """Integrity/extent via load_png, then the file's own encoding must be opaque RGBA8."""
     load_png(path, extent)
+    with path.open('rb') as source:
+        header = source.read(26)
+    # IHDR bit depth 8 and colour type 6 (RGBA); Pillow also reports RGBA16 as RGBA.
+    require(len(header) == 26 and header[12:16] == b'IHDR' and header[24:26] == bytes([8, 6]),
+            f'{path.name}: PNG must be 8-bit RGBA (IHDR bit depth 8, colour type 6)')
     with Image.open(path) as image:
         require(image.mode == 'RGBA', f'{path.name}: PNG must be stored as RGBA8, got {image.mode}')
         require(image.getextrema()[3] == (255, 255), f'{path.name}: PNG alpha must be opaque everywhere')
         return image.copy()
 
 
-def check_ink_record(name, recorded, measured):
-    require(isinstance(recorded, dict) and set(recorded) == INK_KEYS, f'{name}: ink record has wrong fields')
-    for key in INK_KEYS - {'lit_bounds'}:
+def check_ink_record(name, recorded, measured, keys):
+    require(isinstance(recorded, dict) and set(recorded) == keys, f'{name}: ink record has wrong fields')
+    for key in keys - {'lit_bounds', 'corner_white'}:
         require(is_int(recorded[key]), f'{name}: ink {key} must be an integer')
+    if 'corner_white' in keys:
+        corners = recorded['corner_white']
+        require(isinstance(corners, list) and len(corners) == 4 and all(map(is_int, corners)),
+                f'{name}: ink corner_white must be four integers')
     bounds = recorded['lit_bounds']
     require(bounds is None or (isinstance(bounds, list) and len(bounds) == 4 and all(map(is_int, bounds))),
             f'{name}: ink lit_bounds must be four integers')
     require(recorded == measured, f'{name}: recorded ink differs from independent measurement')
 
 
+def check_parameters(name, case, parameters):
+    if case not in AMMO:
+        literal(parameters, PARAMETERS[case], f'{name}: parameters')
+        return
+    _, progress, full = AMMO[case]
+    anchor = parameters.get('anchor_logical') if isinstance(parameters, dict) else None
+    require(isinstance(parameters, dict) and set(parameters) == {'progress', 'ammo_full', 'anchor_logical'}
+            and parameters['ammo_full'] is full
+            and type(parameters['progress']) in (int, Decimal)
+            and Decimal(parameters['progress']) == Decimal(progress)
+            and isinstance(anchor, list) and len(anchor) == 2
+            and all(type(v) in (int, Decimal) for v in anchor)
+            and [Decimal(v) for v in anchor] == [Decimal(v) for v in ANCHOR],
+            f'{name}: ammo parameters mismatch')
+
+
 def validate_outputs(output):
     output = Path(output)
     require(output.is_dir() and not output.is_symlink(), 'fixture output must be a real directory')
-    expected = [f'ammo-{case}-{percent}.png' for percent in SCALES for case, _, _ in CASES]
+    expected = [f'{case}-{percent}.png' for percent in SCALES for case in CASES]
     entries = list(output.iterdir())
     require(not any(entry.is_symlink() or not entry.is_file() for entry in entries),
             'fixture output may contain only regular files, no links')
@@ -168,22 +266,28 @@ def validate_outputs(output):
 
     report = read_record(output / REPORT)
     require(set(report) == REPORT_KEYS, 'fixture report has missing or unexpected fields')
-    require(report['schema_version'] == 1 and is_int(report['schema_version'])
+    require(report['schema_version'] == 2 and is_int(report['schema_version'])
             and report['status'] == 'passed' and report['native_execution'] is True,
             'fixture report is not a native pass')
     require(report['requested'] == 'dx12' and report['backend'] == 'Dx12'
             and isinstance(report['adapter'], str) and report['adapter'].casefold() == WARP.casefold()
             and report['force_fallback_adapter'] is True and report['platform'] == 'windows',
             'fixture report is not a Windows DX12 WARP run')
-    require(isinstance(report['build_version'], str) and report['build_version'].count('.') == 2
+    require(isinstance(report['build_version'], str) and re.fullmatch(r'[0-9]+\.[0-9]+\.[0-9]+', report['build_version'])
+            and report['build_version'] == build_identity.package_version()
             and isinstance(report['build_number'], str) and report['build_number'].strip(),
-            'fixture report build identity is malformed')
-    require(report['scales_percent'] == list(SCALES) and all(map(is_int, report['scales_percent'])),
-            'fixture report scales are wrong')
-    require(report['elements_covered'] == ['ammo-hint'] and isinstance(report['elements_pending'], dict),
-            'fixture report element coverage is wrong')
-    require(report['compiler_identity_source'] == COMPILER_SOURCE and report['scope'] == SCOPE
-            and report['boundaries'] == BOUNDARIES, 'fixture report scope or boundaries changed')
+            'fixture report build identity is malformed or not this package version')
+    if os.environ.get('GITHUB_ACTIONS') == 'true':
+        identity = build_identity.context()
+        require(report['build_version'] == identity['version'] and report['build_number'] == identity['build_number'],
+                'fixture report build identity does not match this CI attempt')
+    literal(report['live_logical_viewport'], list(LOGICAL_SIZE), 'report.live_logical_viewport')
+    literal(report['scales_percent'], list(SCALES), 'report.scales_percent')
+    literal(report['cases'], list(CASES), 'report.cases')
+    literal(report['elements_covered'], ELEMENTS_COVERED, 'report.elements_covered')
+    literal(report['compiler_identity_source'], COMPILER_SOURCE, 'report.compiler_identity_source')
+    literal(report['scope'], SCOPE, 'report.scope')
+    literal(report['boundaries'], BOUNDARIES, 'report.boundaries')
     captures = report['captures']
     require(isinstance(captures, list) and len(captures) == len(expected), 'report must list every capture')
 
@@ -193,39 +297,40 @@ def validate_outputs(output):
         scale = percent // 100
         extent = (LOGICAL_SIZE[0] * scale, LOGICAL_SIZE[1] * scale)
         inks, images = {}, {}
-        for case, progress, full in CASES:
-            name = f'ammo-{case}-{percent}.png'
+        for case in CASES:
+            name = f'{case}-{percent}.png'
             sidecar = read_record(output / f'{name}.json')
-            require(captures[index] == sidecar, f'{name}: report capture entry differs from its sidecar')
+            equal(captures[index], sidecar, f'{name}: report capture entry vs sidecar')
             index += 1
             require(set(sidecar) == SIDECAR_KEYS, f'{name}: sidecar has missing or unexpected fields')
-            anchor = sidecar['anchor_logical']
-            require(sidecar['schema_version'] == 1 and is_int(sidecar['schema_version'])
-                    and sidecar['filename'] == name and sidecar['element'] == 'ammo-hint'
-                    and sidecar['case'] == case and sidecar['ammo_full'] is full
-                    and type(sidecar['progress']) in (int, Decimal)
-                    and Decimal(sidecar['progress']) == Decimal(progress)
+            require(sidecar['schema_version'] == 2 and is_int(sidecar['schema_version'])
+                    and sidecar['filename'] == name
+                    and sidecar['element'] == ELEMENTS.get(case, 'ammo-hint') and sidecar['case'] == case
                     and sidecar['requested'] == 'dx12' and sidecar['backend'] == 'Dx12'
                     and sidecar['adapter'] == report['adapter']
                     and is_int(sidecar['scale_percent']) and sidecar['scale_percent'] == percent
                     and sidecar['logical_size'] == list(LOGICAL_SIZE) and all(map(is_int, sidecar['logical_size']))
-                    and sidecar['physical_size'] == list(extent) and all(map(is_int, sidecar['physical_size']))
-                    and isinstance(anchor, list) and len(anchor) == 2
-                    and all(type(v) in (int, Decimal) for v in anchor)
-                    and [Decimal(v) for v in anchor] == [Decimal(v) for v in ANCHOR],
+                    and sidecar['physical_size'] == list(extent) and all(map(is_int, sidecar['physical_size'])),
                     f'{name}: sidecar identity mismatch')
+            check_parameters(name, case, sidecar['parameters'])
             image = opaque_rgba(output / name, extent)
-            ink = measure(image, scale, full)
-            check_ink_record(name, sidecar['ink'], ink)
-            check_case(case, ink, scale)
+            if case in AMMO:
+                ammo, _, full = AMMO[case]
+                ink = measure(image, scale, full)
+                check_ink_record(name, sidecar['ink'], ink, AMMO_INK_KEYS)
+                check_case(ammo, ink, scale)
+            else:
+                ink = measure_ui(image, scale)
+                check_ink_record(name, sidecar['ink'], ink, UI_INK_KEYS)
+                check_ui_case(case, ink, scale)
             inks[case], images[case] = ink, image.tobytes()
-        check_scale(inks, images)
+        check_scale(inks, images, scale)
         per_scale[percent] = inks
-    for case, _, _ in CASES:
+    for case in CASES:
         check_scaling(per_scale[100][case], per_scale[200][case])
-    return {'passed': True, 'captures': len(expected), 'elements_covered': ['ammo-hint'],
+    return {'passed': True, 'captures': len(expected), 'elements_covered': ELEMENTS_COVERED,
             'adapter': report['adapter'],
-            'scope': 'Production ammo hint draw path on DX12 WARP; menu and updater cases follow.'}
+            'scope': 'Production pause menu, updater, HUD/telemetry and ammo hint in the live window on DX12 WARP.'}
 
 
 def main(argv=None):

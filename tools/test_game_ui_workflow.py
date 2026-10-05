@@ -1,0 +1,39 @@
+"""Source-level wiring guards; actual UI acceptance requires Windows execution."""
+from pathlib import Path
+import unittest
+import yaml
+
+
+class GameUiWorkflowTests(unittest.TestCase):
+    def setUp(self):
+        path = Path(__file__).resolve().parents[1] / '.github/workflows/wgpu-renderer-contract.yml'
+        self.workflow = yaml.safe_load(path.read_text(encoding='utf-8'))
+        self.job = self.workflow['jobs']['game-ui-contract']
+
+    def test_independent_windows_job_and_read_only_permissions(self):
+        self.assertEqual(self.workflow['permissions'], {'contents': 'read'})
+        self.assertEqual(self.job['runs-on'], 'windows-latest')
+        self.assertNotIn('needs', self.job)
+        self.assertEqual(self.job['timeout-minutes'], 30)
+        checkout = self.job['steps'][0]
+        self.assertIs(checkout['with']['persist-credentials'], False)
+
+    def test_actual_current_source_build_and_native_verifier(self):
+        commands = [s['run'] for s in self.job['steps'] if 'run' in s]
+        self.assertIn('cargo build --locked --no-default-features --features wgpu-runtime --example game_ui_contract', commands)
+        self.assertIn('python -m unittest -v test_dx12_game_ui_fixture', commands)
+        native = next(x for x in commands if 'tools/run_dx12_game_ui_fixture.py' in x)
+        self.assertIn('--executable target/debug/examples/game_ui_contract.exe', native)
+        self.assertIn('--timeout 600', native)
+        self.assertFalse(any('continue-on-error' in s for s in self.job['steps']))
+
+    def test_retains_both_pixels_and_process_evidence_on_failure(self):
+        upload = self.job['steps'][-1]
+        self.assertEqual(upload['uses'], 'actions/upload-artifact@v4')
+        self.assertEqual(upload['if'], 'always()')
+        self.assertEqual(upload['with']['if-no-files-found'], 'error')
+        self.assertEqual(set(upload['with']['path'].split()), {'evidence/game-ui/', 'evidence/game-ui-run/'})
+
+
+if __name__ == '__main__':
+    unittest.main()

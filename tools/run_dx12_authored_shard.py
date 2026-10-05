@@ -7,11 +7,13 @@ import math
 import os
 from pathlib import Path
 import re
+import shutil
 import sys
 import time
 
 import dx12_authored_shards as shared
 import run_dx12_authored as authored
+from run_windows_same_platform_return import runtime_environment
 from verify_capture_telemetry import read_record, validate
 from verify_render_capture import verify as verify_png
 
@@ -49,6 +51,7 @@ def legacy_renderer_logs(logs):
         adapters.append(match.group(1))
     require(adapters and len(set(adapters)) == 1,
             'legacy capture needs one consistent nonblank actual OpenGl adapter')
+    require(adapters[0].casefold().startswith('llvmpipe'), 'app-local GL must actually report llvmpipe')
     return {'renderer': identities, 'adapter': adapters[0]}
 
 
@@ -75,16 +78,21 @@ def validate_role_images(folder, role, expected_frames):
         adapters.add(metadata['adapter'])
         coverage.append(verify_png(path, authored.EXTENT, authored.BACKGROUND, 0.01, 8, None)['foreground_coverage'])
     require(len(adapters) == 1, f'{role}: capture adapters differ')
+    if role == 'windows-legacy':
+        require(next(iter(adapters)).casefold().startswith('llvmpipe'), 'authored GL capture must actually use llvmpipe')
     return {'frames': len(images), 'finite_json': finite, 'all_images_checked': True,
             'adapter': next(iter(adapters)), 'minimum_foreground_coverage': min(coverage)}
 
 
 def validate_stock_probe(folder, expected_adapter=None):
+    # Historical check/path name retained for artifact compatibility. This now
+    # probes the pinned app-local Mesa reference, never an assumed stock driver.
     folder = Path(folder)
     image = folder / 'stock-gl.png'
     validate(folder, expected_backend='OpenGl')
     metadata = authored.capture_metadata(image, 'OpenGl')
-    require(metadata.get('requested') == 'gl', 'stock probe must explicitly request gl')
+    require(metadata.get('requested') == 'gl', 'reference probe must explicitly request gl')
+    require(metadata['adapter'].casefold().startswith('llvmpipe'), 'reference probe must actually use llvmpipe')
     if expected_adapter is not None:
         require(metadata['adapter'] == expected_adapter, 'stock OpenGl log and sidecar adapters differ')
     require((metadata['width'], metadata['height']) == authored.EXTENT, 'stock capture extent differs')
@@ -205,7 +213,9 @@ def run_shard(executable, fixture, root, evidence, input_manifest, scenario, *,
               'status': 'running', 'passed': False, 'acceptance_complete': False,
               'automated_landmark_gate': 'open', 'current_check': None, 'elapsed_seconds': 0.0,
               'run_timeout_seconds': run_timeout, 'budget_exhausted': False, 'checks': [],
-              'capture_paths': shared.capture_paths(scenario), 'files': {}}
+              'capture_paths': shared.capture_paths(scenario), 'files': {},
+              'gl_reference': None, 'gl_runtime_path': 'gl-runtime',
+              'app_local_executable': str(evidence / 'gl-runtime/vector-range.exe')}
     journal = Journal(evidence, report)
     manifest = None
     try:
@@ -214,19 +224,32 @@ def run_shard(executable, fixture, root, evidence, input_manifest, scenario, *,
             manifest = read_record(Path(input_manifest)) if not isinstance(input_manifest, dict) else input_manifest
             binding = shared.verify_input_manifest(manifest, executable, fixture, root)
             report['binding'] = binding
+            report['gl_reference'] = manifest['gl_reference']
+            source = root / shared.GL_RUNTIME_PATH
+            destination = evidence / 'gl-runtime'
+            shutil.copytree(source, destination)
+            shutil.copyfile(executable, destination / 'vector-range.exe')
+            shared.verify_gl_reference(destination, manifest['gl_reference'], game_sha256=binding['executable_sha256'])
             return binding
 
         inputs = journal.check('validated-inputs', validate_inputs)
         if inputs['passed']:
-            if scenario == 'lighting-orientation':
-                run_auxiliary(journal, executable, fixture, root, capture_timeout)
-            else:
-                run_pair(journal, executable, root, scenario, capture_timeout)
+            # Scoped process environment only; no installed driver, registry or
+            # system graphics changes. Both roles use the identical copied exe.
+            with runtime_environment():
+                local_executable = evidence / 'gl-runtime/vector-range.exe'
+                if scenario == 'lighting-orientation':
+                    run_auxiliary(journal, local_executable, fixture, root, capture_timeout)
+                else:
+                    run_pair(journal, local_executable, root, scenario, capture_timeout)
         else:
             for name in required_checks(scenario)[1:-1]:
                 journal.check(name, lambda: None, ready=False)
-        journal.check('inputs-unchanged', lambda: shared.verify_input_manifest(manifest, executable, fixture, root),
-                      ready=inputs['passed'])
+        def unchanged():
+            binding = shared.verify_input_manifest(manifest, executable, fixture, root)
+            shared.verify_gl_reference(evidence / 'gl-runtime', manifest['gl_reference'], game_sha256=binding['executable_sha256'])
+            return binding
+        journal.check('inputs-unchanged', unchanged, ready=inputs['passed'])
         require([row['name'] for row in report['checks']] == required_checks(scenario),
                 'internal shard check inventory differs')
         report['passed'] = not report['budget_exhausted'] and all(row['passed'] is True for row in report['checks'])
@@ -241,6 +264,8 @@ def run_shard(executable, fixture, root, evidence, input_manifest, scenario, *,
             report['files'] = shared.inventory_files(evidence)
         except Exception as error:
             report.update(passed=False, status='failed', fatal_error=f'inventory seal failed: {error}')
+        if journal.remaining() <= 0:
+            report.update(passed=False, status='failed', budget_exhausted=True)
         journal.save()
     return report
 

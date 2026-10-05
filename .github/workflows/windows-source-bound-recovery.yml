@@ -6,7 +6,13 @@ permissions:
   actions: read
 jobs:
   recover:
+    name: Windows recovery (${{ matrix.lane }})
     runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        lane: [quality, build-preview]
     timeout-minutes: 120
     env:
       # Per-process checkout setting, preserving pinned original source bytes.
@@ -66,17 +72,21 @@ jobs:
         working-directory: evidence/runtime-root
         run: python tools/package_game.py materialize --root . --include-walk --include-ads --include-directional --include-jump --require-generated
       - name: Run current Python, Rust and updater quality checks
+        if: matrix.lane == 'quality'
         working-directory: evidence/runtime-root
         run: python tools/ci_quality_checks.py
         env:
           CARGO_BUILD_JOBS: '2'
       - name: Build the actual audio-enabled dual-runtime preview executable
+        if: matrix.lane == 'build-preview'
         working-directory: evidence/runtime-root
         run: cargo build --locked --release --features wgpu-runtime --bin vector-range
       - name: Verify actual current DX12 smoke before packaging
+        if: matrix.lane == 'build-preview'
         working-directory: evidence/runtime-root
         run: python tools/run_dx12_smoke.py --executable target/release/vector-range.exe --root . --evidence evidence/dx12-warp --timeout 600
       - name: Verify notices using the locked Windows dependency graph
+        if: matrix.lane == 'build-preview'
         working-directory: evidence/runtime-root
         shell: pwsh
         run: |
@@ -89,6 +99,7 @@ jobs:
           python tools/collect_game_licenses.py --check
           if ($LASTEXITCODE -ne 0) { throw "Game notice consistency failed" }
       - name: Stage exact smoke-tested WIP with explicit reused-generation provenance
+        if: matrix.lane == 'build-preview'
         working-directory: evidence/runtime-root
         shell: pwsh
         run: |
@@ -100,13 +111,17 @@ jobs:
           $preview.smoke | Add-Member -NotePropertyName evidence_directory -NotePropertyValue 'dx12-warp'
           $preview | Add-Member -NotePropertyName companion_reuse_record -NotePropertyValue 'COMPANION_REUSE.json'
           $preview | ConvertTo-Json -Depth 32 | Set-Content -LiteralPath dist/dx12-preview/DX12_PREVIEW.json -Encoding utf8NoBOM
+          @{ schema='rust-duty-preview-quality-scope/v1'; required_lane='Windows recovery (quality)'; status='inspect_same_run_quality_lane'; final_readiness_requires_all_checks=$true } | ConvertTo-Json | Set-Content -LiteralPath dist/dx12-preview/QUALITY_SCOPE.json -Encoding utf8NoBOM
+          Add-Content -LiteralPath dist/dx12-preview/DX12_PREVIEW_README.txt -Encoding utf8 -Value "This WIP artifact is built independently of the quality lane. Final readiness requires every intended check in this same run to pass. See QUALITY_SCOPE.json."
           Add-Content -LiteralPath dist/dx12-preview/DX12_PREVIEW_README.txt -Encoding utf8 -Value "Companion generation is reused from the immutable origin listed in COMPANION_REUSE.json. Current source/structural checks and this executable's smoke reran; source-oracle generation/parity did not rerun."
       - name: Identify current artifact label
+        if: matrix.lane == 'build-preview'
         id: identity
         working-directory: evidence/runtime-root
         shell: bash
         run: echo "label=$(python tools/build_identity.py --print-label)" >> "$GITHUB_OUTPUT"
       - name: Retain isolated current Windows preview
+        if: matrix.lane == 'build-preview'
         uses: actions/upload-artifact@v4
         with:
           name: Rust-Duty-${{ steps.identity.outputs.label }}-DX12-Revalidated-Preview-Windows-x64
@@ -114,10 +129,12 @@ jobs:
           if-no-files-found: error
           retention-days: 7
       - name: Stage pinned app-local GL reference for the identical executable
+        if: matrix.lane == 'build-preview'
         shell: pwsh
         timeout-minutes: 10
         run: ./tools/stage_windows_gl_reference.ps1 -Manifest tools/windows_gl_reference_lock.json -OutputDirectory evidence/gl-runtime
       - name: Run strict same-platform authored return comparison
+        if: matrix.lane == 'build-preview'
         timeout-minutes: 76
         working-directory: evidence/runtime-root
         run: >-
@@ -129,10 +146,11 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: windows-recovery-summary-attempt-${{ github.run_attempt }}
+          name: windows-recovery-summary-${{ matrix.lane }}-attempt-${{ github.run_attempt }}
           path: |
             evidence/revalidated/provenance.json
             evidence/revalidated/validation/
+            evidence/runtime-root/evidence/quality-checks/
             evidence/original-inputs/*-github-metadata.json
             evidence/original-inputs/origin*.json
             evidence/runtime-root/evidence/same-platform-return/same-platform-return-report.json
@@ -141,7 +159,7 @@ jobs:
           if-no-files-found: warn
           retention-days: 7
       - name: Retain actual smoke and authored pair evidence
-        if: always()
+        if: always() && matrix.lane == 'build-preview'
         uses: actions/upload-artifact@v4
         with:
           name: windows-recovery-native-evidence-attempt-${{ github.run_attempt }}

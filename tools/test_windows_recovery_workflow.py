@@ -15,6 +15,19 @@ class RecoveryWorkflowTests(unittest.TestCase):
         self.assertNotIn('write', block)
         self.assertIn('uses: ./.github/workflows/windows-source-bound-recovery.yml', block)
 
+    def test_quality_and_wip_build_are_independent_without_waiving_readiness(self):
+        body = (ROOT / '.github/workflows/windows-source-bound-recovery.yml').read_text()
+        self.assertIn('fail-fast: false', body)
+        self.assertIn('max-parallel: 2', body)
+        self.assertIn('lane: [quality, build-preview]', body)
+        self.assertIn("if: matrix.lane == 'quality'", body)
+        self.assertIn("if: matrix.lane == 'build-preview'", body)
+        self.assertIn('final_readiness_requires_all_checks=$true', body)
+        self.assertIn('QUALITY_SCOPE.json', body)
+        caller = (ROOT / '.github/workflows/build.yml').read_text()
+        self.assertIn("github.event_name == 'workflow_dispatch' && inputs.source_bound_recovery", caller)
+        self.assertIn('default: false', caller)
+
     def test_inputs_verified_before_any_game_execution(self):
         body = (ROOT / '.github/workflows/windows-source-bound-recovery.yml').read_text()
         ordered = ['python tools/fetch_source_bound_companions.py',
