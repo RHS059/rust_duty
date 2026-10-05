@@ -1,0 +1,175 @@
+{
+  "schema": "rust-duty-movement-authoring/v1",
+  "status": "diagnostic",
+  "source_blend_sha256": "baca19e147f8384bdebcb78b54837ad559b4882a3992deab503190f21040d593",
+  "baseline_sha256": "36d76491c2cf6238b8a1e10069dddd5b0d63e199063e1f4012b34f3fd4b1e18d",
+  "baseline_commit": "61c3ccd26e8cf9f288e5e56c536c92b7d30409ef",
+  "source_reference_sha256": "491a1729aa0f32373025d35fff86da76c6c1c8f057c0c553d0fbb5fb6226ff46",
+  "source_rate": [
+    60,
+    1
+  ],
+  "new_actions": [
+    "aella_climb_roof_r1"
+  ],
+  "prior_action_count": 82,
+  "prior_actions_preserved": true,
+  "preserved_geometry_rig_bindings_drivers_camera": true,
+  "root_track_locked": false,
+  "independent_score": null,
+  "runtime_status": "not exported or integrated",
+  "hand_status": "release/contact work pending",
+  "render_status": "Eevee foreground witness pending",
+  "clips": [
+    {
+      "name": "aella_climb_roof_r1",
+      "directory": "climb",
+      "source_window": [
+        8507,
+        8583
+      ],
+      "observations": "Vehicle-roof ascent, not ladder. Onset8513\u00b11; raised weapon apex8518; complete dropout mid-action; reappears8561; recovery8574\u00b12. Hidden continuation inferred, excluded from source matching.",
+      "inferred_hidden_source_frames": [
+        8534,
+        8561
+      ],
+      "keys": [
+        [
+          8507,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          8512,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          8515,
+          -0.017,
+          0.045,
+          -0.04,
+          15,
+          25,
+          4
+        ],
+        [
+          8518,
+          -0.055,
+          0.115,
+          -0.065,
+          14,
+          55,
+          8
+        ],
+        [
+          8522,
+          -0.04,
+          0.035,
+          -0.025,
+          8,
+          57,
+          10
+        ],
+        [
+          8528,
+          -0.015,
+          -0.2,
+          0.005,
+          -18,
+          53,
+          9
+        ],
+        [
+          8534,
+          0.012,
+          -0.405,
+          0.035,
+          -21,
+          43,
+          5
+        ],
+        [
+          8545,
+          0.01,
+          -0.46,
+          0.02,
+          -22,
+          32,
+          3
+        ],
+        [
+          8558,
+          0.006,
+          -0.42,
+          0.01,
+          -24,
+          11,
+          0
+        ],
+        [
+          8561,
+          0,
+          -0.26,
+          0,
+          -18,
+          5,
+          -1
+        ],
+        [
+          8566,
+          0,
+          -0.058,
+          -0.002,
+          1,
+          0,
+          -2
+        ],
+        [
+          8570,
+          0,
+          0.014,
+          0,
+          2,
+          -1,
+          -1
+        ],
+        [
+          8575,
+          0,
+          -0.005,
+          0,
+          -1,
+          0,
+          0
+        ],
+        [
+          8579,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          8582,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      ]
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "schema": "rust-duty-mantle-climb-native-design/v1",
+  "status": "diagnostic",
+  "basis": "Artist-authored camera-space rotation and translation around the existing weapon grip pivot; observations constrain action order and timing. Values are initial hypotheses, not recovered source 3D.",
+  "source_sha256": "491a1729aa0f32373025d35fff86da76c6c1c8f057c0c553d0fbb5fb6226ff46",
+  "source_time_base": [1,15360],
+  "source_rate": [60,1],
+  "rig_sha256": "36d76491c2cf6238b8a1e10069dddd5b0d63e199063e1f4012b34f3fd4b1e18d",
+  "protected": "All original Actions, meshes, rest bones, skin weights, bindings, drivers, camera and original base pose. No retiming or root motion in gameplay.",
+  "pivot_weapon_local": [0.0,0.035,0.105],
+  "key_columns": ["source_frame", "camera_dx_m", "camera_dy_m", "camera_dz_m", "camera_pitch_deg", "camera_yaw_deg", "camera_roll_deg"],
+  "clips": [
+    {
+      "name":"aella_vault_low_r1", "directory":"mantle", "source_window":[7284,7348],
+      "observations":"Low-wall vault; visible onset7290±1; left hand releases7292–7302; weapon recovers7334–7344; camera turn7349 excluded.",
+      "keys":[[7284,0,0,0,0,0,0],[7289,0,0,0,0,0,0],[7292,0.025,-0.04,-0.012,-10,5,-9],[7297,0.028,-0.11,-0.016,-17,15,-12],[7301,0.052,-0.075,0.002,-8,27,-13],[7309,0.066,-0.014,0.008,5,46,-10],[7319,0.06,-0.01,0.01,4,44,-8],[7326,0.035,-0.026,-0.005,1,27,-6],[7334,0.009,-0.027,-0.002,-2,10,-2],[7340,0.0,-0.004,0,0,1,0],[7344,0,0,0,0,0,0],[7347,0,0,0,0,0,0]]
+    },
+    {
+      "name":"aella_mantle_onehand_r1", "directory":"mantle", "source_window":[7787,7883],
+      "observations":"Slower one-handed mantle/vault; onset7793±1; recovery7872–7880; camera turn7884 excluded. Hand-contact solve remains pending.",
+      "keys":[[7787,0,0,0,0,0,0],[7792,0,0,0,0,0,0],[7796,-0.05,-0.06,-0.02,-10,30,7],[7802,-0.085,-0.11,-0.04,-17,66,13],[7813,-0.075,-0.085,-0.035,-10,67,14],[7828,-0.068,-0.072,-0.033,-6,62,12],[7844,-0.048,-0.048,-0.018,-3,57,10],[7857,-0.025,-0.027,-0.01,1,39,7],[7867,-0.004,-0.034,0,-3,16,2],[7875,0,-0.011,0,-1,3,0],[7880,0,0,0,0,0,0],[7882,0,0,0,0,0,0]]
+    },
+    {
+      "name":"aella_climb_roof_r1", "directory":"climb", "source_window":[8507,8583],
+      "observations":"Vehicle-roof ascent, not ladder. Onset8513±1; raised weapon apex8518; complete dropout mid-action; reappears8561; recovery8574±2. Hidden continuation inferred, excluded from source matching.",
+      "inferred_hidden_source_frames":[8534,8561],
+      "keys":[[8507,0,0,0,0,0,0],[8512,0,0,0,0,0,0],[8515,-0.017,0.045,-0.04,15,25,4],[8518,-0.055,0.115,-0.065,14,55,8],[8522,-0.04,0.035,-0.025,8,57,10],[8528,-0.015,-0.20,0.005,-18,53,9],[8534,0.012,-0.405,0.035,-21,43,5],[8545,0.01,-0.46,0.02,-22,32,3],[8558,0.006,-0.42,0.01,-24,11,0],[8561,0,-0.26,0,-18,5,-1],[8566,0,-0.058,-0.002,1,0,-2],[8570,0,0.014,0,2,-1,-1],[8575,0,-0.005,0,-1,0,0],[8579,0,0,0,0,0,0],[8582,0,0,0,0,0,0]]
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "source_sha256": "75c9dc48f27ab1b6dc247590636f2461ec7c37b0c8f5ac0a92745ff30586c9b6",
+  "status": "diagnostic",
+  "clips": [
+    {
+      "action": "aella_vault_low_r1",
+      "quarter_frame_samples": 253,
+      "max_wrist_solve_error_mm": 0.0006556510925292969,
+      "max_guard_error_degrees": 42.604906627314904,
+      "min_reach_margin_mm": 149.098348001792,
+      "claims": "Native diagnostics only. Attached-hand baseline is not the observed release motion; no reference score or full-contact approval."
+    },
+    {
+      "action": "aella_mantle_onehand_r1",
+      "quarter_frame_samples": 381,
+      "max_wrist_solve_error_mm": 0.0007611270421220144,
+      "max_guard_error_degrees": 22.525280863785053,
+      "min_reach_margin_mm": 119.05886017926764,
+      "claims": "Native diagnostics only. Attached-hand baseline is not the observed release motion; no reference score or full-contact approval."
+    }
+  ],
+  "scene": "Neutral stance \u2014 Arms and Weapon",
+  "scene_objects": [
+    "RD First Person Review",
+    "RD_REFERENCE_ONLY | tower",
+    "RD_REFERENCE_ONLY | left pillar",
+    "RD_REFERENCE_ONLY | right pillar",
+    "RD_REFERENCE_ONLY | Ground",
+    "hk416_magazine_outgoing",
+    "Actual arms mesh 0",
+    "Actual arms mesh 1",
+    "Actual arms mesh 2",
+    "Arms",
+    "hk416_magazine",
+    "hk416_weapon",
+    "Neutral side view \u2014 Z up, -Y forward",
+    "Shape \u2022 wrist ring",
+    "Shape \u2022 elbow diamond",
+    "Shape \u2022 weapon box",
+    "Shape \u2022 magazine tab",
+    "Locomotion preview key"
+  ]
+}
