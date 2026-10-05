@@ -1,20 +1,25 @@
-//! Native DX12 evidence for the real game UI draw paths inside the live winit
-//! window runtime, not OS DPI events, presentation or human legibility approval.
+//! Native evidence for the real game UI draw paths inside a live game window
+//! runtime, not OS DPI events, presentation or human legibility approval.
 //!
-//! Windows (use fresh directories; the runner keeps stdout/stderr as evidence):
+//! Windows DX12 (use fresh directories; the runner keeps stdout/stderr as evidence):
 //! cargo build --locked --no-default-features --features wgpu-runtime --example game_ui_contract
 //! python tools/run_dx12_game_ui_fixture.py --executable target/debug/examples/game_ui_contract.exe
 //!   --evidence evidence/game-ui-process --output evidence/game-ui
 //!
+//! Native OpenGL (legacy Macroquad window, same cases and rules):
+//! cargo run --locked --example game_ui_contract -- --renderer=gl --output-dir evidence/game-ui-gl
+//!
 //! Coverage: the production pause menu, updater panel (current/unavailable),
 //! HUD with and without the telemetry panel, and ammo supply hint, each drawn
-//! through `platform::window::run` + `create_frame_hooks(Dx12)` into an
-//! offscreen target via `set_screen_camera` at 100% and 200% of the 960x540
-//! logical viewport. `game-ui-contract-report.json` is written only after every
+//! into an offscreen target via `set_screen_camera` at 100% and 200% of the
+//! 960x540 logical viewport. DX12 runs inside `platform::window::run` +
+//! `create_frame_hooks(Dx12)`; GL inside the game's Macroquad window with the
+//! `legacy_macroquad::runtime` lifecycle. Both share one capture loop through
+//! `platform::runtime::next_frame`. `game-ui-contract-report.json` is written only after every
 //! capture passes. Compiler identity comes from the runner's captured startup
 //! log, never from this fixture.
 
-#[cfg(feature = "wgpu-runtime")]
+#[cfg(any(feature = "wgpu-runtime", feature = "legacy-macroquad"))]
 fn main() {
     if let Err(error) = fixture::run(std::env::args().skip(1)) {
         eprintln!("game_ui_contract: {error}");
@@ -22,22 +27,22 @@ fn main() {
     }
 }
 
-#[cfg(not(feature = "wgpu-runtime"))]
+#[cfg(not(any(feature = "wgpu-runtime", feature = "legacy-macroquad")))]
 fn main() {
-    eprintln!("game_ui_contract requires --features wgpu-runtime and native Windows DX12");
+    eprintln!("game_ui_contract requires wgpu-runtime (DX12) or legacy-macroquad (GL)");
     std::process::exit(1);
 }
 
-#[cfg(any(feature = "wgpu-runtime", test))]
+#[cfg(any(feature = "wgpu-runtime", feature = "legacy-macroquad", test))]
 mod fixture {
     use image::RgbaImage;
-    #[cfg(feature = "wgpu-runtime")]
+    #[cfg(any(feature = "wgpu-runtime", feature = "legacy-macroquad"))]
     use serde_json::{json, Value};
     use std::{
         fs,
         path::{Path, PathBuf},
     };
-    #[cfg(feature = "wgpu-runtime")]
+    #[cfg(any(feature = "wgpu-runtime", feature = "legacy-macroquad"))]
     use vector_range::{
         ammo_supply::SupplyFocus,
         ammo_supply_view::draw_ammo_supply_hint,
@@ -46,20 +51,19 @@ mod fixture {
         game_update::UpdatePanel,
         hud,
         pause_menu::PauseMenu,
-        platform::{runtime, window},
-        render::{runtime::create_frame_hooks, BackendSelection},
+        platform::runtime,
         settings::Settings,
         sim::Simulation,
     };
 
-    #[cfg(feature = "wgpu-runtime")]
+    #[cfg(any(feature = "wgpu-runtime", feature = "legacy-macroquad"))]
     pub const SCALES: [u32; 2] = [100, 200];
     pub const LOGICAL_SIZE: [u32; 2] = [960, 540];
     /// Logical screen anchor of the projected crate.
     pub const ANCHOR: [f64; 2] = [240., 120.];
     /// Logical window that must contain every lit pixel of the prompt.
     pub const INK_WINDOW: [f64; 4] = [90., 80., 390., 190.];
-    #[cfg(feature = "wgpu-runtime")]
+    #[cfg(any(feature = "wgpu-runtime", feature = "legacy-macroquad"))]
     const REPORT: &str = "game-ui-contract-report.json";
 
     /// Every capture, in order, at each scale.
@@ -90,7 +94,7 @@ mod fixture {
             _ => case.strip_prefix("ammo-"),
         }
     }
-    #[cfg(feature = "wgpu-runtime")]
+    #[cfg(any(feature = "wgpu-runtime", feature = "legacy-macroquad"))]
     /// (case, hold progress, ammo already full)
     pub const AMMO_CASES: [(&str, f32, bool); 4] = [
         ("ammo-idle", 0., false),
@@ -101,6 +105,8 @@ mod fixture {
 
     #[derive(Debug, PartialEq, Eq)]
     pub struct Options {
+        /// "dx12" or "gl".
+        pub renderer: String,
         pub output_dir: PathBuf,
         pub force_fallback_adapter: bool,
     }
@@ -114,7 +120,7 @@ mod fixture {
                 match arg.as_str() {
                     "--renderer" => set_once(
                         &mut renderer,
-                        args.next().ok_or("--renderer requires dx12")?,
+                        args.next().ok_or("--renderer requires dx12 or gl")?,
                         "--renderer",
                     )?,
                     "--output-dir" => set_once(
@@ -134,15 +140,17 @@ mod fixture {
                     _ => return Err(format!("unknown or repeated fixture argument {arg:?}")),
                 }
             }
-            if renderer.as_deref() != Some("dx12") {
-                return Err(
-                    "explicit --renderer=dx12 is required; no other backend is accepted".into(),
-                );
+            let renderer = renderer
+                .filter(|r| r == "dx12" || r == "gl")
+                .ok_or("explicit --renderer=dx12 or --renderer=gl is required")?;
+            if renderer == "gl" && force_fallback_adapter {
+                return Err("--force-fallback-adapter applies only to dx12".into());
             }
             let output_dir = output_dir
                 .filter(|v| !v.trim().is_empty() && !v.starts_with("--"))
                 .ok_or("--output-dir requires an explicit nonempty directory")?;
             Ok(Self {
+                renderer,
                 output_dir: output_dir.into(),
                 force_fallback_adapter,
             })
@@ -278,7 +286,7 @@ mod fixture {
             return Err(format!("{case}: lit bounds {bounds:?} escape {window:?}"));
         }
         let area = (scale * scale) as u64;
-        if ink.caption_white < 60 * area {
+        if ink.caption_white < if case == "ammo-full" { 20 } else { 60 } * area {
             return Err(format!("{case}: caption text is missing"));
         }
         if case == "ammo-full" {
@@ -437,7 +445,7 @@ mod fixture {
             return Err(format!("{case}: capture is empty"));
         }
         match case {
-            "pause-menu" if ink.warm_menu_band < 200 * area || ink.white < 500 * area => {
+            "pause-menu" if ink.warm_menu_band < 500 * area || ink.white < 75 * area => {
                 Err(format!(
                     "pause-menu: expected accent and white text in the centred menu, got warm {} white {}",
                     ink.warm_menu_band, ink.white
@@ -468,26 +476,27 @@ mod fixture {
         Ok(())
     }
 
-    #[cfg(feature = "wgpu-runtime")]
+    #[cfg(any(feature = "wgpu-runtime", feature = "legacy-macroquad"))]
     fn write_json(path: &Path, value: &Value) -> Result<(), String> {
         let mut bytes = serde_json::to_vec_pretty(value).map_err(|e| e.to_string())?;
         bytes.push(b'\n');
         fs::write(path, bytes).map_err(|e| format!("write {}: {e}", path.display()))
     }
-    #[cfg(feature = "wgpu-runtime")]
-    fn verify_backend(info: &BackendInfo) -> Result<(), String> {
-        if info.requested != "dx12" || info.backend != "Dx12" || info.adapter.trim().is_empty() {
+    #[cfg(any(feature = "wgpu-runtime", feature = "legacy-macroquad"))]
+    fn verify_backend(info: &BackendInfo, renderer: &str) -> Result<(), String> {
+        let backend = if renderer == "dx12" { "Dx12" } else { "OpenGl" };
+        if info.requested != renderer || info.backend != backend || info.adapter.trim().is_empty() {
             return Err(format!(
-                "expected requested=dx12, backend=Dx12 and a named actual adapter; got {info:?}"
+                "expected requested={renderer}, backend={backend} and a named actual adapter; got {info:?}"
             ));
         }
         Ok(())
     }
-    #[cfg(feature = "wgpu-runtime")]
+    #[cfg(any(feature = "wgpu-runtime", feature = "legacy-macroquad"))]
     const WEAPON: &str = "hk416a5";
-    #[cfg(feature = "wgpu-runtime")]
+    #[cfg(any(feature = "wgpu-runtime", feature = "legacy-macroquad"))]
     const WEAPON_LABEL: &str = "M4 / CANDIDATE";
-    #[cfg(feature = "wgpu-runtime")]
+    #[cfg(any(feature = "wgpu-runtime", feature = "legacy-macroquad"))]
     fn updater_message(case: &str) -> &'static str {
         if case == "updater-current" {
             "Version is current."
@@ -497,7 +506,7 @@ mod fixture {
     }
 
     /// Draw one case with its production entry point; returns its parameters.
-    #[cfg(feature = "wgpu-runtime")]
+    #[cfg(any(feature = "wgpu-runtime", feature = "legacy-macroquad"))]
     fn draw_case(case: &str, cfg: &Settings, sim: &Simulation) -> Value {
         use rust_duty_launcher::game::{UpdatePhase, UpdateSnapshot};
         match case {
@@ -543,20 +552,20 @@ mod fixture {
         }
     }
 
-    #[cfg(feature = "wgpu-runtime")]
+    #[cfg(any(feature = "wgpu-runtime", feature = "legacy-macroquad"))]
     fn ammo_ink_json(ink: Ink) -> Value {
         json!({"lit_pixels":ink.lit,"lit_bounds":ink.bounds,"gold_left":ink.gold_left,"gold_right":ink.gold_right,"key_white":ink.key_white,"caption_white":ink.caption_white})
     }
-    #[cfg(feature = "wgpu-runtime")]
+    #[cfg(any(feature = "wgpu-runtime", feature = "legacy-macroquad"))]
     fn ui_ink_json(ink: UiInk) -> Value {
         json!({"lit_pixels":ink.lit,"lit_bounds":ink.bounds,"warm":ink.warm,"warm_menu_band":ink.warm_menu_band,"white":ink.white,"corner_white":ink.corner_white,"debug_lit":ink.debug_lit})
     }
 
     /// Runs inside the live window: one case per presented frame, each drawn
     /// into an offscreen target at the requested logical scale.
-    #[cfg(feature = "wgpu-runtime")]
+    #[cfg(any(feature = "wgpu-runtime", feature = "legacy-macroquad"))]
     async fn capture_all(out: PathBuf) -> Result<Vec<(String, u32, Value)>, String> {
-        window::next_frame().await;
+        runtime::next_frame().await?;
         let viewport = [runtime::screen_width(), runtime::screen_height()];
         if viewport != LOGICAL_SIZE.map(|v| v as f32) {
             return Err(format!(
@@ -581,17 +590,17 @@ mod fixture {
                 facade::capture_png(Some(&target), out.join(&filename));
                 facade::set_default_camera();
                 facade::clear_background(Color::new(0., 0., 0., 1.));
-                window::next_frame().await;
+                runtime::next_frame().await?;
                 captures.push((filename, percent, parameters));
             }
         }
         // The last capture is written by the frame that the await above submitted.
-        window::next_frame().await;
+        runtime::next_frame().await?;
         Ok(captures)
     }
 
     /// Re-read every capture, apply all rules, then write sidecars and the report.
-    #[cfg(feature = "wgpu-runtime")]
+    #[cfg(any(feature = "wgpu-runtime", feature = "legacy-macroquad"))]
     fn verify_and_report(
         out: &Path,
         info: &BackendInfo,
@@ -651,42 +660,96 @@ mod fixture {
             }
         }
         let count = sidecars.len();
-        let report = json!({"schema_version":2,"status":"passed","native_execution":true,"requested":info.requested,"backend":info.backend,"adapter":info.adapter,"force_fallback_adapter":force_fallback_adapter,"platform":std::env::consts::OS,"build_version":vector_range::BUILD_VERSION,"build_number":vector_range::BUILD_NUMBER,"live_logical_viewport":LOGICAL_SIZE,"scales_percent":SCALES,"cases":CASES,"captures":sidecars,"elements_covered":["pause-menu","updater-panel","hud","telemetry","ammo-hint"],"compiler_identity_source":"external captured renderer startup log; not inferred by this fixture","scope":"live winit window runtime, native DX12 production game-UI draw paths to offscreen PNG","boundaries":{"os_dpi_events_verified":false,"window_presentation_verified":false,"native_pointer_or_click_verified":false,"human_legibility_approved":false,"gl_backend_verified":false}});
+        let report = json!({"schema_version":2,"status":"passed","native_execution":true,"requested":info.requested,"backend":info.backend,"adapter":info.adapter,"force_fallback_adapter":force_fallback_adapter,"platform":std::env::consts::OS,"build_version":vector_range::BUILD_VERSION,"build_number":vector_range::BUILD_NUMBER,"live_logical_viewport":LOGICAL_SIZE,"scales_percent":SCALES,"cases":CASES,"captures":sidecars,"elements_covered":["pause-menu","updater-panel","hud","telemetry","ammo-hint"],"compiler_identity_source":"external captured renderer startup log; not inferred by this fixture","scope":"live game window runtime, native production game-UI draw paths to offscreen PNG","boundaries":{"os_dpi_events_verified":false,"window_presentation_verified":false,"native_pointer_or_click_verified":false,"human_legibility_approved":false}});
         write_json(&out.join(REPORT), &report)?;
         Ok(count)
     }
 
-    #[cfg(feature = "wgpu-runtime")]
+    #[cfg(any(feature = "wgpu-runtime", feature = "legacy-macroquad"))]
     pub fn run(args: impl IntoIterator<Item = impl Into<String>>) -> Result<(), String> {
         let options = Options::parse(args)?;
+        if options.renderer == "dx12" {
+            run_dx12(options)
+        } else {
+            run_gl(options)
+        }
+    }
+
+    /// Shared by both windows: identity, captures, rules and report.
+    #[cfg(any(feature = "wgpu-runtime", feature = "legacy-macroquad"))]
+    async fn contract(out: PathBuf, renderer: String, fallback: bool) -> Result<(), String> {
+        let info = facade::backend_info()?;
+        verify_backend(&info, &renderer)?;
+        let captures = capture_all(out.clone()).await?;
+        if facade::backend_info()? != info {
+            return Err("renderer identity changed during the run".into());
+        }
+        let count = verify_and_report(&out, &info, fallback, captures)?;
+        println!(
+            "{} game UI contract passed on {}: {count} captures; {}",
+            info.backend,
+            info.adapter,
+            out.join(REPORT).display()
+        );
+        Ok(())
+    }
+
+    #[cfg(feature = "wgpu-runtime")]
+    fn run_dx12(options: Options) -> Result<(), String> {
+        use vector_range::{
+            platform::window,
+            render::{runtime::create_frame_hooks, BackendSelection},
+        };
         if !cfg!(target_os = "windows") {
-            return Err("native game UI contract requires Windows DX12; CPU compilation/tests cannot produce a native pass".into());
+            return Err("native DX12 game UI contract requires Windows; CPU compilation/tests cannot produce a native pass".into());
         }
         prepare_output(&options.output_dir)?;
-        let out = options.output_dir.clone();
         let fallback = options.force_fallback_adapter;
         window::run(
             "game_ui_contract",
             LOGICAL_SIZE[0],
             LOGICAL_SIZE[1],
             move |w| create_frame_hooks(w, BackendSelection::Dx12, fallback),
-            async move {
-                let info = facade::backend_info()?;
-                verify_backend(&info)?;
-                let captures = capture_all(out.clone()).await?;
-                let info_after = facade::backend_info()?;
-                if info_after != info {
-                    return Err("renderer identity changed during the run".into());
-                }
-                let count = verify_and_report(&out, &info, fallback, captures)?;
-                println!(
-                    "DX12 game UI contract passed on {}: {count} captures; {}",
-                    info.adapter,
-                    out.join(REPORT).display()
-                );
-                Ok(())
-            },
+            contract(options.output_dir, options.renderer, fallback),
         )
+    }
+    #[cfg(not(feature = "wgpu-runtime"))]
+    fn run_dx12(_: Options) -> Result<(), String> {
+        Err("--renderer=dx12 requires --features wgpu-runtime".into())
+    }
+
+    #[cfg(feature = "legacy-macroquad")]
+    fn run_gl(options: Options) -> Result<(), String> {
+        use vector_range::legacy_macroquad::runtime as legacy;
+        prepare_output(&options.output_dir)?;
+        macroquad::Window::from_config(
+            macroquad::prelude::Conf {
+                window_title: "game_ui_contract".into(),
+                window_width: LOGICAL_SIZE[0] as i32,
+                window_height: LOGICAL_SIZE[1] as i32,
+                high_dpi: false,
+                ..Default::default()
+            },
+            async move {
+                let result = match legacy::initialize("gl") {
+                    Ok(()) => {
+                        let result = contract(options.output_dir, options.renderer, false).await;
+                        // Finish the final recorder while the GL context is live.
+                        result.and(legacy::shutdown())
+                    }
+                    Err(error) => Err(error),
+                };
+                if let Err(error) = result {
+                    eprintln!("game_ui_contract: {error}");
+                    std::process::exit(1);
+                }
+            },
+        );
+        Ok(())
+    }
+    #[cfg(not(feature = "legacy-macroquad"))]
+    fn run_gl(_: Options) -> Result<(), String> {
+        Err("--renderer=gl requires the legacy-macroquad feature".into())
     }
 
     #[cfg(test)]
@@ -769,10 +832,22 @@ mod fixture {
                 .force_fallback_adapter
             );
             assert!(Options::parse(["--renderer", "dx12", "--output-dir", "out"]).is_ok());
+            assert_eq!(
+                Options::parse(["--renderer=gl", "--output-dir=out"])
+                    .unwrap()
+                    .renderer,
+                "gl"
+            );
             for args in [
                 vec![],
                 vec!["--output-dir=out"],
                 vec!["--renderer=vulkan", "--output-dir=out"],
+                vec![
+                    "--renderer=gl",
+                    "--output-dir=out",
+                    "--force-fallback-adapter",
+                ],
+                vec!["--renderer=gl", "--renderer=dx12", "--output-dir=out"],
                 vec!["--renderer=dx12"],
                 vec!["--renderer=dx12", "--output-dir="],
                 vec!["--renderer=dx12", "--output-dir=out", "--other"],

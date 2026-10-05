@@ -230,6 +230,21 @@ class GameUiFixtureTests(unittest.TestCase):
                              tuple(255 if v else 0 for v in (p[:3] != (0, 0, 0), fixture.is_white(p),
                                                              fixture.is_gold(p), fixture.is_warm(p))), p)
 
+    def test_gl_evidence_needs_gl_identity(self):
+        with self.assertRaisesRegex(ValueError, 'native OpenGL run'):
+            fixture.validate_outputs(self.output, 'gl')
+        adapter = 'llvmpipe (LLVM 15.0.6, 256 bits)'
+        for percent in fixture.SCALES:
+            for case in fixture.CASES:
+                self.edit(f'{case}-{percent}.png.json', requested='gl', backend='OpenGl', adapter=adapter)
+        self.sync_report()
+        self.edit(fixture.REPORT, requested='gl', backend='OpenGl', adapter=adapter, force_fallback_adapter=False,
+                  platform='linux')
+        fixture.validate_outputs(self.output, 'gl')
+        self.edit(fixture.REPORT, force_fallback_adapter=True)
+        with self.assertRaisesRegex(ValueError, 'native OpenGL run'):
+            fixture.validate_outputs(self.output, 'gl')
+
     def test_menu_without_centred_accent_fails(self):
         self.replace('pause-menu-100.png', ui(100, 'pause-menu', accent=False), 100)
         self.rejects('pause-menu')
