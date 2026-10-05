@@ -3,15 +3,24 @@ on:
   workflow_call:
 permissions:
   contents: read
+# Same-run artifact downloads intentionally have no repository/run-id/token override.
+# Historical Linux artifacts remain exact diagnostics; strict renderer parity uses
+# a same-Windows, same-binary OpenGl reference. A partial attempt rerun without
+# matched native/asset inputs fails closed. No Mesa fallback is installed here.
 jobs:
-  dx12-authored:
+  authored-inputs:
     runs-on: windows-latest
-    timeout-minutes: 120
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
         with:
-          # Same caller revision as both the companion producers and native validation.
+          # Same caller revision as the companion producers and native validation.
           persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install capture and materialization dependencies
+        run: python -m pip install -r tools/requirements-assets.txt
       - name: Fetch validated reload companions from this run
         uses: actions/download-artifact@v4
         with:
@@ -22,7 +31,7 @@ jobs:
         with:
           name: generated-walk-runtime
           path: assets/walk
-      - name: Fetch validated ADS companions from this run
+      - name: Fetch validated ads companions from this run
         uses: actions/download-artifact@v4
         with:
           name: generated-ads-runtime
@@ -37,73 +46,326 @@ jobs:
         with:
           name: generated-jump-runtime
           path: assets/jump
-      # No token, repository or run-id override: only this workflow run is eligible.
-      # Attempt-specific baseline names deliberately fail on a partial rerun that
-      # did not rerun native-validation. Rerun all jobs to obtain matched evidence.
-      - name: Fetch this attempt's legacy jump baseline
+      - name: Fetch this attempt's historical Linux jump-gameplay evidence
         uses: actions/download-artifact@v4
         with:
           name: native-gameplay-jump-evidence-attempt-${{ github.run_attempt }}
           path: evidence/legacy/jump-gameplay
-      - name: Fetch this attempt's legacy reload baseline
+      - name: Fetch this attempt's historical Linux reload-gameplay evidence
         uses: actions/download-artifact@v4
         with:
           name: native-gameplay-reload-evidence-attempt-${{ github.run_attempt }}
           path: evidence/legacy/reload-gameplay
-      - name: Fetch this attempt's legacy walk baseline
+      - name: Fetch this attempt's historical Linux walk-gameplay evidence
         uses: actions/download-artifact@v4
         with:
           name: native-gameplay-walk-evidence-attempt-${{ github.run_attempt }}
           path: evidence/legacy/walk-gameplay
-      - name: Fetch this attempt's legacy ADS baseline
+      - name: Fetch this attempt's historical Linux ads-gameplay evidence
         uses: actions/download-artifact@v4
         with:
           name: native-gameplay-ads-evidence-attempt-${{ github.run_attempt }}
           path: evidence/legacy/ads-gameplay
-      - name: Fetch this attempt's legacy offset baseline
+      - name: Fetch this attempt's historical Linux ads-placement evidence
         uses: actions/download-artifact@v4
         with:
           name: native-ads-placement-evidence-attempt-${{ github.run_attempt }}
           path: evidence/legacy/ads-placement
-      - name: Fetch this attempt's legacy layered rate baselines
+      - name: Fetch this attempt's historical Linux layered evidence
         uses: actions/download-artifact@v4
         with:
           name: native-layered-locomotion-evidence-attempt-${{ github.run_attempt }}
           path: evidence/legacy/layered
-      - name: Fetch this attempt's legacy reload-return baseline
+      - name: Fetch this attempt's historical Linux reload-return evidence
         uses: actions/download-artifact@v4
         with:
           name: native-reload-return-evidence-attempt-${{ github.run_attempt }}
           path: evidence/legacy/reload-return
-      - uses: dtolnay/rust-toolchain@stable
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - name: Install existing capture and materialization dependency
-        run: python -m pip install -r tools/requirements-assets.txt
-      - name: Materialize committed assets and verify downloaded source-bound companions
+      - name: Materialize and verify this run's source-bound companions
         run: >-
           python tools/package_game.py materialize --root .
           --include-walk --include-ads --include-directional --include-jump --require-generated
-      - name: Test authored acceptance with synthetic inputs (not native evidence)
+      - name: Install workflow contract test dependency
+        run: python -m pip install PyYAML==6.0.3
+      - name: Test strict authored and shard contracts with synthetic inputs
         env:
           PYTHONPATH: tools
         run: >-
-          python -m unittest -v test_dx12_authored
-          test_dx12_capture_progress test_dx12_authored_adversarial
-      - name: Build game and asymmetric renderer fixture from this revision
+          python -m unittest -v test_dx12_authored test_dx12_capture_progress
+          test_dx12_authored_adversarial test_dx12_authored_shards
+          test_run_dx12_authored_shard test_aggregate_dx12_authored
+          test_dx12_authored_workflow
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Build one silent dual-runtime executable and renderer fixture
         run: >-
-          cargo build --locked --release --no-default-features --features wgpu-runtime
+          cargo build --locked --release --no-default-features
+          --features legacy-macroquad,wgpu-runtime
           --bin vector-range --example renderer_contract
-      - name: Capture authored DX12 WARP replays and run existing strict checks
-        timeout-minutes: 95
+      - name: Bind binaries, source, assets and historical downloads to this attempt
         run: >-
-          python tools/run_dx12_authored.py
+          python tools/run_dx12_authored_shard.py prepare
           --executable target/release/vector-range.exe
           --renderer-contract target/release/examples/renderer_contract.exe
-          --root . --legacy evidence/legacy
-          --evidence evidence/dx12-authored --timeout 900
-      - name: Retain exact attempted authored captures, logs and open review guides
+          --root . --legacy-linux evidence/legacy --evidence evidence/authored-inputs
+      - name: Retain the single compiled pair and exact input manifests
+        uses: actions/upload-artifact@v4
+        with:
+          name: dx12-authored-inputs-attempt-${{ github.run_attempt }}
+          path: |
+            target/release/vector-range.exe
+            target/release/examples/renderer_contract.exe
+            evidence/authored-inputs/input-manifest.json
+            evidence/authored-inputs/historical-manifest.json
+          if-no-files-found: error
+          retention-days: 7
+      - name: Retain input preparation diagnostics on failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dx12-authored-input-diagnostics-attempt-${{ github.run_attempt }}
+          path: evidence/authored-inputs/
+          if-no-files-found: warn
+          retention-days: 7
+
+  authored-capture:
+    needs: authored-inputs
+    runs-on: windows-latest
+    timeout-minutes: ${{ matrix.job_timeout_minutes }}
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        include:
+          - scenario: jump-gameplay
+            capture_timeout_seconds: 2100
+            run_timeout_seconds: 3300
+            step_timeout_minutes: 60
+            job_timeout_minutes: 75
+          - scenario: reload-gameplay
+            capture_timeout_seconds: 1200
+            run_timeout_seconds: 2400
+            step_timeout_minutes: 45
+            job_timeout_minutes: 60
+          - scenario: walk-gameplay
+            capture_timeout_seconds: 1500
+            run_timeout_seconds: 2700
+            step_timeout_minutes: 50
+            job_timeout_minutes: 65
+          - scenario: ads-gameplay
+            capture_timeout_seconds: 3000
+            run_timeout_seconds: 4200
+            step_timeout_minutes: 75
+            job_timeout_minutes: 90
+          - scenario: ads-offset
+            capture_timeout_seconds: 3000
+            run_timeout_seconds: 4200
+            step_timeout_minutes: 75
+            job_timeout_minutes: 90
+          - scenario: layered-30
+            capture_timeout_seconds: 2100
+            run_timeout_seconds: 3300
+            step_timeout_minutes: 60
+            job_timeout_minutes: 75
+          - scenario: layered-60
+            capture_timeout_seconds: 3900
+            run_timeout_seconds: 5100
+            step_timeout_minutes: 90
+            job_timeout_minutes: 105
+          - scenario: reload-return
+            capture_timeout_seconds: 1800
+            run_timeout_seconds: 3000
+            step_timeout_minutes: 55
+            job_timeout_minutes: 70
+          - scenario: lighting-orientation
+            capture_timeout_seconds: 900
+            run_timeout_seconds: 1800
+            step_timeout_minutes: 35
+            job_timeout_minutes: 50
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Same caller revision as the companion producers and native validation.
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install capture and materialization dependencies
+        run: python -m pip install -r tools/requirements-assets.txt
+      - name: Fetch validated reload companions from this run
+        uses: actions/download-artifact@v4
+        with:
+          name: generated-reload-runtime
+          path: assets/reload
+      - name: Fetch validated walk companions from this run
+        uses: actions/download-artifact@v4
+        with:
+          name: generated-walk-runtime
+          path: assets/walk
+      - name: Fetch validated ads companions from this run
+        uses: actions/download-artifact@v4
+        with:
+          name: generated-ads-runtime
+          path: assets/ads
+      - name: Fetch validated directional companions from this run
+        uses: actions/download-artifact@v4
+        with:
+          name: generated-directional-runtime
+          path: assets/directional
+      - name: Fetch validated jump companions from this run
+        uses: actions/download-artifact@v4
+        with:
+          name: generated-jump-runtime
+          path: assets/jump
+      - name: Materialize and verify this run's source-bound companions
+        run: >-
+          python tools/package_game.py materialize --root .
+          --include-walk --include-ads --include-directional --include-jump --require-generated
+      - name: Fetch this attempt's single compiled input pair and manifests
+        uses: actions/download-artifact@v4
+        with:
+          name: dx12-authored-inputs-attempt-${{ github.run_attempt }}
+          path: .
+      - name: Capture the complete same-host legacy and DX12 scenario
+        timeout-minutes: ${{ matrix.step_timeout_minutes }}
+        run: >-
+          python tools/run_dx12_authored_shard.py run
+          --executable target/release/vector-range.exe
+          --renderer-contract target/release/examples/renderer_contract.exe
+          --input-manifest evidence/authored-inputs/input-manifest.json
+          --root . --scenario ${{ matrix.scenario }}
+          --evidence evidence/dx12-authored-shards/${{ matrix.scenario }}
+          --timeout ${{ matrix.capture_timeout_seconds }}
+          --run-timeout ${{ matrix.run_timeout_seconds }}
+      - name: Retain every attempted scenario, including partial and failed runs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dx12-authored-shard-${{ matrix.scenario }}-evidence-attempt-${{ github.run_attempt }}
+          path: evidence/dx12-authored-shards/${{ matrix.scenario }}/
+          if-no-files-found: warn
+          retention-days: 7
+
+  authored-aggregate:
+    needs: [authored-inputs, authored-capture]
+    if: always()
+    runs-on: windows-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Same caller revision as the companion producers and native validation.
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install capture and materialization dependencies
+        run: python -m pip install -r tools/requirements-assets.txt
+      - name: Fetch validated reload companions from this run
+        uses: actions/download-artifact@v4
+        with:
+          name: generated-reload-runtime
+          path: assets/reload
+      - name: Fetch validated walk companions from this run
+        uses: actions/download-artifact@v4
+        with:
+          name: generated-walk-runtime
+          path: assets/walk
+      - name: Fetch validated ads companions from this run
+        uses: actions/download-artifact@v4
+        with:
+          name: generated-ads-runtime
+          path: assets/ads
+      - name: Fetch validated directional companions from this run
+        uses: actions/download-artifact@v4
+        with:
+          name: generated-directional-runtime
+          path: assets/directional
+      - name: Fetch validated jump companions from this run
+        uses: actions/download-artifact@v4
+        with:
+          name: generated-jump-runtime
+          path: assets/jump
+      - name: Materialize and verify this run's source-bound companions
+        run: >-
+          python tools/package_game.py materialize --root .
+          --include-walk --include-ads --include-directional --include-jump --require-generated
+      - name: Fetch this attempt's historical Linux jump-gameplay evidence
+        uses: actions/download-artifact@v4
+        with:
+          name: native-gameplay-jump-evidence-attempt-${{ github.run_attempt }}
+          path: evidence/legacy/jump-gameplay
+      - name: Fetch this attempt's historical Linux reload-gameplay evidence
+        uses: actions/download-artifact@v4
+        with:
+          name: native-gameplay-reload-evidence-attempt-${{ github.run_attempt }}
+          path: evidence/legacy/reload-gameplay
+      - name: Fetch this attempt's historical Linux walk-gameplay evidence
+        uses: actions/download-artifact@v4
+        with:
+          name: native-gameplay-walk-evidence-attempt-${{ github.run_attempt }}
+          path: evidence/legacy/walk-gameplay
+      - name: Fetch this attempt's historical Linux ads-gameplay evidence
+        uses: actions/download-artifact@v4
+        with:
+          name: native-gameplay-ads-evidence-attempt-${{ github.run_attempt }}
+          path: evidence/legacy/ads-gameplay
+      - name: Fetch this attempt's historical Linux ads-placement evidence
+        uses: actions/download-artifact@v4
+        with:
+          name: native-ads-placement-evidence-attempt-${{ github.run_attempt }}
+          path: evidence/legacy/ads-placement
+      - name: Fetch this attempt's historical Linux layered evidence
+        uses: actions/download-artifact@v4
+        with:
+          name: native-layered-locomotion-evidence-attempt-${{ github.run_attempt }}
+          path: evidence/legacy/layered
+      - name: Fetch this attempt's historical Linux reload-return evidence
+        uses: actions/download-artifact@v4
+        with:
+          name: native-reload-return-evidence-attempt-${{ github.run_attempt }}
+          path: evidence/legacy/reload-return
+      - name: Fetch this attempt's single compiled input pair and manifests
+        uses: actions/download-artifact@v4
+        with:
+          name: dx12-authored-inputs-attempt-${{ github.run_attempt }}
+          path: .
+      - name: Fetch every available scenario artifact from this attempt
+        if: always()
+        uses: actions/download-artifact@v4
+        with:
+          pattern: dx12-authored-shard-*-evidence-attempt-${{ github.run_attempt }}
+          path: evidence/downloaded-authored-shards
+          merge-multiple: false
+      - name: Preserve the complete downloaded scenario set for closed-set validation
+        if: always()
+        shell: pwsh
+        run: |
+          $destination = 'evidence/authored-shards'
+          if (Test-Path -LiteralPath $destination) { throw 'Refusing existing shard staging directory' }
+          New-Item -ItemType Directory -Path $destination -Force | Out-Null
+          $prefix = 'dx12-authored-shard-'
+          $suffix = '-evidence-attempt-${{ github.run_attempt }}'
+          if (Test-Path -LiteralPath 'evidence/downloaded-authored-shards') {
+            foreach ($entry in Get-ChildItem -LiteralPath 'evidence/downloaded-authored-shards' -Force) {
+              if (-not $entry.PSIsContainer -or -not $entry.Name.StartsWith($prefix) -or -not $entry.Name.EndsWith($suffix)) {
+                throw "Unexpected artifact entry: $($entry.Name)"
+              }
+              $scenario = $entry.Name.Substring($prefix.Length, $entry.Name.Length - $prefix.Length - $suffix.Length)
+              if ($scenario -notmatch '^[a-z0-9]+(?:-[a-z0-9]+)*$') { throw 'Unsafe scenario artifact name' }
+              # Unknown scenario names are retained; the aggregate rejects them.
+              Move-Item -LiteralPath $entry.FullName -Destination (Join-Path $destination $scenario) -ErrorAction Stop
+            }
+          }
+      - name: Require every full shard, exact same-Windows parity and existing pair validators
+        if: always()
+        timeout-minutes: 45
+        run: >-
+          python tools/aggregate_dx12_authored.py --root .
+          --shards evidence/authored-shards --legacy-linux evidence/legacy
+          --input-manifest evidence/authored-inputs/input-manifest.json
+          --historical-manifest evidence/authored-inputs/historical-manifest.json
+          --evidence evidence/dx12-authored --timeout 900 --run-timeout 2400
+      - name: Retain strict aggregate diagnostics and open visual review guides
         if: always()
         uses: actions/upload-artifact@v4
         with:

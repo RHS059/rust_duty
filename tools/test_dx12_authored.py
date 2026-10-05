@@ -549,11 +549,17 @@ class AuthoredDx12Tests(unittest.TestCase):
     def test_workflow_fetches_only_same_run_and_attempt_inputs(self):
         workflow = (Path(authored.__file__).resolve().parents[1] / '.github/workflows/wgpu-dx12-authored.yml').read_text()
         for name in ('reload', 'walk', 'ads', 'directional', 'jump'):
-            self.assertIn(f'name: generated-{name}-runtime', workflow)
-        self.assertEqual(workflow.count('evidence-attempt-${{ github.run_attempt }}'), 8)
+            self.assertEqual(workflow.count(f'name: generated-{name}-runtime'), 3)
+        for name in ('gameplay-jump', 'gameplay-reload', 'gameplay-walk', 'gameplay-ads',
+                     'ads-placement', 'layered-locomotion', 'reload-return'):
+            self.assertEqual(workflow.count(f'name: native-{name}-evidence-attempt-${{{{ github.run_attempt }}}}'), 2)
+        for job in ('authored-inputs', 'authored-capture', 'authored-aggregate'):
+            self.assertIn(f'\n  {job}:\n', workflow)
+        self.assertEqual(workflow.count('cargo build --locked --release --no-default-features'), 1)
+        self.assertEqual(workflow.count('name: dx12-authored-evidence-attempt-${{ github.run_attempt }}'), 1)
         for forbidden in ('\n          run-id:', '\n          repository:', '\n          github-token:', 'continue-on-error:'):
             self.assertNotIn(forbidden, workflow)
-        self.assertIn('--features wgpu-runtime', workflow)
+        self.assertIn('--features legacy-macroquad,wgpu-runtime', workflow)
         self.assertIn('--bin vector-range --example renderer_contract', workflow)
         self.assertIn('--include-jump --require-generated', workflow)
 
