@@ -47,7 +47,8 @@ impl Layout {
             FlowBand::new(552., 567., &[(muted, 15.)]),
             FlowBand::new(720., 754., &[(button, 18.)]),
             FlowBand::new(771., 787., &[(muted, 16.), (warning, 16.)]),
-            FlowBand::new(805., 821., &[(muted, 16.)]),
+            FlowBand::new(805., 839., &[(button, 18.)]),
+            FlowBand::new(865., 887., &[(muted, 16.)]),
         ];
         for axis in 0..6 {
             let r = slider_rect(axis);
@@ -57,7 +58,7 @@ impl Layout {
                 &[(slider, if axis < 3 { 18. } else { 15. })],
             ));
         }
-        let content_height = flow_y(843., &bands);
+        let content_height = flow_y(909., &bands);
         let available_width = (width - 24.).max(1.).min(width);
         let available_height = (height - 24.).max(1.).min(height);
         let scale = (available_width / 610.)
@@ -100,6 +101,7 @@ const RESUME: Rect = Rect::new(32., 99., 546., 45.);
 const POSITION_RESET: Rect = Rect::new(350., 497., 228., 28.);
 const RESET: Rect = Rect::new(350., 720., 228., 34.);
 const SAVE: Rect = Rect::new(32., 720., 260., 34.);
+const TELEMETRY: Rect = Rect::new(32., 805., 546., 34.);
 fn slider_rect(axis: usize) -> Rect {
     let y = if axis < 3 {
         578. + axis as f32 * 43.
@@ -116,6 +118,8 @@ pub struct PauseMenu {
     focus: Option<usize>,
     persistence: Option<String>,
     save_failed: bool,
+    telemetry_recording: bool,
+    telemetry_stopping: bool,
 }
 #[derive(Default)]
 pub struct MenuKeys {
@@ -131,8 +135,13 @@ pub struct MenuKeys {
 pub struct MenuAction {
     pub resume: bool,
     pub save: bool,
+    pub telemetry: bool,
 }
 impl PauseMenu {
+    pub fn telemetry_state(&mut self, recording: bool, stopping: bool) {
+        self.telemetry_recording = recording;
+        self.telemetry_stopping = stopping;
+    }
     pub fn has_keyboard_focus(&self) -> bool {
         self.focus.is_some()
     }
@@ -169,10 +178,10 @@ impl PauseMenu {
             return MenuAction::default();
         }
         if keys.next {
-            self.focus = Some(self.focus.map_or(0, |i| (i + 1) % 10));
+            self.focus = Some(self.focus.map_or(0, |i| (i + 1) % 11));
         }
         if keys.previous {
-            self.focus = Some(self.focus.map_or(9, |i| (i + 9) % 10));
+            self.focus = Some(self.focus.map_or(10, |i| (i + 10) % 11));
         }
         let mut action = MenuAction::default();
         let Some(focus) = self.focus else {
@@ -232,6 +241,7 @@ impl PauseMenu {
                     action.save = true;
                 }
                 9 => action.save = true,
+                10 => action.telemetry = !self.telemetry_stopping,
                 _ => {}
             }
         }
@@ -275,6 +285,9 @@ impl PauseMenu {
             } else if layout.rect(SAVE).contains(point) {
                 self.focus = Some(9);
                 action.save = true;
+            } else if layout.rect(TELEMETRY).contains(point) {
+                self.focus = Some(10);
+                action.telemetry = !self.telemetry_stopping;
             } else {
                 self.dragging = (0..6).find(|axis| layout.rect(slider_rect(*axis)).contains(point));
                 if let Some(axis) = self.dragging {
@@ -378,7 +391,7 @@ impl PauseMenu {
             Color::new(0.015, 0.025, 0.035, 0.80),
         );
         ui_theme::style(UiScope::PauseMenu, &[UiClass::Panel]).rect(
-            layout.rect(Rect::new(0., 0., 610., 843.)),
+            layout.rect(Rect::new(0., 0., 610., 909.)),
             ink,
             accent,
             layout.scale,
@@ -525,6 +538,21 @@ impl PauseMenu {
             WHITE,
             SAVE.w - 30.,
         );
+        button(TELEMETRY);
+        button_text(
+            if self.telemetry_stopping {
+                "Stopping telemetry; awaiting final present"
+            } else if self.telemetry_recording {
+                "Stop telemetry / save local session (F8)"
+            } else {
+                "Record telemetry (F8)"
+            },
+            TELEMETRY.x + 15.,
+            TELEMETRY.y + 23.,
+            18.,
+            WHITE,
+            TELEMETRY.w - 30.,
+        );
         if let Some(focus) = self.focus {
             let r = match focus {
                 0 => RESUME,
@@ -532,7 +560,8 @@ impl PauseMenu {
                 4 => POSITION_RESET,
                 5..=7 => slider_rect(focus - 5),
                 8 => RESET,
-                _ => SAVE,
+                9 => SAVE,
+                _ => TELEMETRY,
             };
             let r = layout.rect(r);
             draw_rectangle_lines(r.x - 3., r.y - 3., r.w + 6., r.h + 6., 2., accent);
@@ -557,7 +586,7 @@ impl PauseMenu {
         text(
             "F5 Save   F6 Discard / reload   Enter activates   F10 Quit",
             32.,
-            821.,
+            883.,
             16.,
             muted,
         );
@@ -567,6 +596,60 @@ impl PauseMenu {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn telemetry_toggle_owns_pointer_and_keyboard_without_resuming_or_saving() {
+        let mut menu = PauseMenu::default();
+        let mut cfg = Settings::default();
+        let size = vec2(1000., 1000.);
+        let layout = Layout::new(size.x, size.y);
+        let point = layout.point(vec2(TELEMETRY.x + 20., TELEMETRY.y + 15.));
+        let action = menu.input(&mut cfg, "rifle", size, point, (true, true), true);
+        assert!(action.telemetry && !action.resume && !action.save);
+        assert_eq!(menu.focus, Some(10));
+        assert!(
+            !menu
+                .input(&mut cfg, "rifle", size, point, (false, true), true)
+                .telemetry
+        );
+        assert!(
+            menu.keyboard(
+                &mut cfg,
+                "rifle",
+                MenuKeys {
+                    activate: true,
+                    ..Default::default()
+                },
+                true
+            )
+            .telemetry
+        );
+        menu.telemetry_state(false, true);
+        assert!(
+            !menu
+                .keyboard(
+                    &mut cfg,
+                    "rifle",
+                    MenuKeys {
+                        activate: true,
+                        ..Default::default()
+                    },
+                    true
+                )
+                .telemetry
+        );
+        assert!(
+            !menu
+                .input(&mut cfg, "rifle", size, point, (true, true), true)
+                .telemetry
+        );
+        menu.telemetry_state(false, false);
+        assert!(
+            !menu
+                .input(&mut cfg, "rifle", size, point, (true, true), false)
+                .telemetry
+        );
+    }
+
     #[test]
     fn keyboard_navigation_adjusts_one_axis_and_consumes_reset_activation() {
         let mut menu = PauseMenu::default();
@@ -832,7 +915,7 @@ mod tests {
         let _reset = ThemeReset;
         ui_theme::set_theme(ui_theme::UiTheme::default());
         let layout = Layout::new(1000., 800.);
-        let scale = 776. / 843.;
+        let scale = 776. / 909.;
         assert_eq!(layout.scale, scale);
         let expected = Rect::new(
             (1000. - 610. * scale) / 2. + 32. * scale,
@@ -986,7 +1069,7 @@ mod dpi_geometry_tests {
                     let viewport = Rect::new(0., 0., width / dpi, height / dpi);
                     let layout = Layout::new(viewport.w, viewport.h);
                     for local in [
-                        Rect::new(0., 0., 610., 843.),
+                        Rect::new(0., 0., 610., 909.),
                         RESUME,
                         POSITION_RESET,
                         RESET,
@@ -1019,8 +1102,8 @@ mod dpi_geometry_tests {
                 &commands,
                 Color::new(18. / 255., 52. / 255., 86. / 255., 1.),
             );
-            assert_eq!(buttons.len(), 4);
-            // Draw order: resume, position reset, walking reset, save.
+            assert_eq!(buttons.len(), 5);
+            // Draw order: resume, position reset, walking reset, save, telemetry.
             for (index, button) in buttons.iter().enumerate() {
                 let mut menu = PauseMenu::default();
                 let mut cfg = Settings::default();
@@ -1031,8 +1114,13 @@ mod dpi_geometry_tests {
                 let pointer = vec2(button.x + button.w / 2., button.y + button.h - 0.25) / scale;
                 let action = menu.input(&mut cfg, "rifle", size, pointer, (true, true), true);
                 assert_eq!(action.resume, index == 0, "{dpi}x button {index}");
-                assert_eq!(action.save, index != 0, "{dpi}x button {index}");
-                assert_eq!(menu.focus, Some([0, 4, 8, 9][index]));
+                assert_eq!(
+                    action.save,
+                    (1..=3).contains(&index),
+                    "{dpi}x button {index}"
+                );
+                assert_eq!(action.telemetry, index == 4, "{dpi}x button {index}");
+                assert_eq!(menu.focus, Some([0, 4, 8, 9, 10][index]));
                 assert_eq!(
                     (cfg.viewmodel_x, cfg.viewmodel_y),
                     if index == 1 { (0., 0.) } else { (0.1, -0.1) }
@@ -1046,7 +1134,7 @@ mod dpi_geometry_tests {
                 let pointer = vec2(button.x + button.w + 0.25, button.y + button.h / 2.) / scale;
                 let action = menu.input(&mut cfg, "rifle", size, pointer, (true, true), true);
                 assert!(
-                    !action.resume && !action.save,
+                    !action.resume && !action.save && !action.telemetry,
                     "{dpi}x button {index}: exterior click"
                 );
                 assert_eq!(menu.focus, None);

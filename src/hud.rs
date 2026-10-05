@@ -62,6 +62,35 @@ fn draw_notice(notice: &str, screen_width: f32) {
     style.text(notice, x, baseline, 20., CYAN);
 }
 
+pub(crate) fn telemetry_indicator(status: &str) {
+    draw_telemetry_indicator(status, screen_width(), screen_height());
+}
+fn draw_telemetry_indicator(status: &str, width: f32, height: f32) {
+    if status.is_empty() || width <= 0. || height <= 0. {
+        return;
+    }
+    let margin_x = 16_f32.min(width * 0.25);
+    let margin_y = 8_f32.min(height * 0.25);
+    let panel_width = width - 2. * margin_x;
+    let inset = 10_f32.min(panel_width * 0.25);
+    let style = label_style(CYAN);
+    let text = style.fit_text(status, 16., panel_width - 2. * inset);
+    let metrics = style.measure(&text, 16.);
+    let natural_height = metrics.height.max(20.) + 16.;
+    let scale = ((height - 2. * margin_y) / natural_height).min(1.);
+    let panel_height = natural_height * scale;
+    let y = height - margin_y - panel_height;
+    panel(margin_x, y, panel_width, panel_height);
+    style.text_scaled(
+        &text,
+        margin_x + inset,
+        y + (8. + metrics.offset_y) * scale,
+        16.,
+        CYAN,
+        scale,
+    );
+}
+
 /// Action state readout. Visuals are placeholders until authored clips pass review.
 pub(crate) fn action_hud(sim: &Simulation, w: f32, h: f32) {
     let p = &sim.player;
@@ -329,6 +358,49 @@ pub(crate) fn hud(
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn persistent_telemetry_indicator_stays_inside_tiny_viewports() {
+        use vector_range::draw::Command;
+        let _reset = ThemeReset;
+        for font in [6., 16., 96.] {
+            ui_theme::set_theme(
+                ui_theme::UiTheme::parse(
+                    "test.css",
+                    &format!("#hud .accent {{font-size:{font}px}}"),
+                )
+                .unwrap(),
+            );
+            for (width, height) in [
+                (1, 1),
+                (2, 800),
+                (16, 16),
+                (32, 800),
+                (800, 1),
+                (1920, 1080),
+            ] {
+                begin_frame(width, height, 1.).unwrap();
+                draw_telemetry_indicator("RECORDING CSV + CPU trace", width as f32, height as f32);
+                let list = take_draw_list().unwrap();
+                let panels: Vec<_> = list
+                    .commands
+                    .iter()
+                    .filter_map(|command| {
+                        if let Command::Rect { rect, .. } = command {
+                            Some(rect)
+                        } else {
+                            None
+                        }
+                    })
+                    .collect();
+                assert!(!panels.is_empty());
+                for rect in panels {
+                    assert!(rect.x >= 0. && rect.y >= 0. && rect.w >= 0. && rect.h >= 0.);
+                    assert!(rect.x + rect.w <= width as f32 + 0.001);
+                    assert!(rect.y + rect.h <= height as f32 + 0.001);
+                }
+            }
+        }
+    }
     #[test]
     fn themed_hud_label_emits_resolved_size_color_and_opacity() {
         ui_theme::set_theme(

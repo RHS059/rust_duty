@@ -16,7 +16,7 @@ REQUIRED_FILES = (
     'DX12_PREVIEW_README.txt', 'LICENSE', 'THIRD_PARTY_LICENSES.txt',
     'updater/notices/THIRD_PARTY_UPDATER_LICENSES.txt', 'ui/theme.css',
     'ui/examples/high-contrast.css', 'ui/examples/large-type.css',
-    'docs/UI_THEME.md', 'docs/UI_THEME_EXAMPLES.md', 'assets/animations.cfg',
+    'docs/UI_THEME.md', 'docs/UI_THEME_EXAMPLES.md', 'docs/FRAME_PERFORMANCE.md', 'assets/animations.cfg',
 )
 LAUNCHER = '@echo off\ncd /d "%~dp0"\n"%~dp0vector-range.exe" --renderer=dx12 --no-update\nexit /b %ERRORLEVEL%\n'
 MAX_TOTAL_BYTES = 4 * 1024**3
@@ -35,7 +35,11 @@ def normalize_zip_member(name):
             f'unsafe absolute, drive, stream or backslash path: {name!r}')
     require(not any(ord(char) < 32 or ord(char) == 127 for char in name), 'control character in ZIP path')
     parts = name.removesuffix('/').split('/')
-    devices = {'CON', 'PRN', 'AUX', 'NUL', *(f'COM{i}' for i in range(1, 10)), *(f'LPT{i}' for i in range(1, 10))}
+    # Windows also reserves the ISO-8859-1 superscript digits in COM/LPT
+    # names, including names followed by extensions, in every directory.
+    # https://learn.microsoft.com/en-us/windows/win32/fileio/naming-a-file
+    devices = {'CON', 'PRN', 'AUX', 'NUL',
+               *(f'{prefix}{digit}' for prefix in ('COM', 'LPT') for digit in '123456789¹²³')}
     for part in parts:
         require(part not in ('', '.', '..') and not part.endswith((' ', '.')), f'unsafe ZIP component: {part!r}')
         require(not any(c in part for c in '<>"|?*'), f'invalid Windows ZIP component: {part!r}')

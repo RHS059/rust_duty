@@ -4,7 +4,7 @@ use crate::world_draw::{
     draw_body_placeholder, grid_texture, register_supply, supply_focus, world,
 };
 use crate::{authored_viewmodel, game_update, pause_menu, sound, weapon_model};
-use std::{fs::File, io::Write};
+use std::io::Write;
 use vector_range::draw::facade::*;
 use vector_range::frame_performance::{BoundaryReason, Eligibility};
 use vector_range::frame_performance_session as frame_trace;
@@ -200,7 +200,9 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
     let mut head = false;
     let mut notice = startup_notice.clone().unwrap_or_default();
     let mut notice_timer = if startup_notice.is_some() { 6. } else { 0. };
-    let mut recording: Option<File> = None;
+    let mut recording: Option<crate::telemetry_export::LocalExport> = None;
+    let mut telemetry_status = String::new();
+    let mut telemetry_csv_error: Option<String> = None;
     let mut frame_trace_sequence = 0_u64;
     let mut record_clock = 0.;
     let mut intents = IntentLatch::default();
@@ -480,6 +482,28 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
         }
     }
     loop {
+        if let Some(done) = frame_trace::take_completion_notice() {
+            let state = if let Some(error) = done.export_error {
+                format!("FRAME EXPORT ERROR: {error}")
+            } else if done.status.is_complete() {
+                "Frame trace saved".into()
+            } else {
+                format!("INCOMPLETE frame trace: {:?}", done.status)
+            };
+            telemetry_status = format!(
+                "{}{} | {}",
+                if recording.is_some() {
+                    "RECORDING CSV; "
+                } else {
+                    ""
+                },
+                state,
+                done.output_path.display()
+            );
+            if let Some(error) = &telemetry_csv_error {
+                telemetry_status = format!("CSV EXPORT ERROR: {error}; {telemetry_status}");
+            }
+        }
         let focus_state = focus_input.sample();
         let now = get_time();
         let raw_dt = now - last_frame;
@@ -519,6 +543,7 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
             && !update_pointer
             && !focus_state.unfocused
             && !focus_state.changed;
+        pause_menu.telemetry_state(recording.is_some(), frame_trace::is_stop_requested());
         let mut menu_action = pause_menu.input(
             &mut cfg,
             weapon_id,
@@ -547,6 +572,7 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
         let key_action = pause_menu.keyboard(&mut cfg, weapon_id, keys, menu_enabled);
         menu_action.save |= key_action.save;
         menu_action.resume |= key_action.resume;
+        menu_action.telemetry |= key_action.telemetry;
         if menu_action.save {
             notice = pause_menu.save_result(cfg.save(settings_path));
             notice_timer = 4.;
@@ -728,21 +754,48 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
             }
             notice_timer = 4.;
         }
-        if focus_input.is_key_pressed(KeyCode::F8) {
-            if recording.is_some() {
-                recording = None;
-                if frame_trace::is_active() {
+        if focus_input.is_key_pressed(KeyCode::F8) || menu_action.telemetry {
+            if frame_trace::is_stop_requested() {
+                telemetry_status = "STOPPING telemetry: awaiting final presentation".into();
+            } else if let Some(export) = recording.take() {
+                let stopped = export.finish();
+                let awaiting_frame = frame_trace::is_active();
+                if awaiting_frame {
                     request_frame_trace_stop();
-                    notice =
-                        "Telemetry saved: telemetry.csv; frame trace awaits final present".into();
-                } else {
-                    notice = "Telemetry saved: telemetry.csv".into();
                 }
+                telemetry_status = match stopped {
+                    Ok(path) => format!(
+                        "{} | {}",
+                        if awaiting_frame {
+                            "STOPPING: CSV saved; awaiting final present"
+                        } else {
+                            "CSV saved; inspect frame status separately"
+                        },
+                        path.display()
+                    ),
+                    Err(error) => {
+                        telemetry_csv_error = Some(error.clone());
+                        format!("CSV EXPORT ERROR: {error}")
+                    }
+                };
             } else {
-                match File::create("telemetry.csv") {
-                    Ok(mut f) => {
-                        let _=writeln!(f,"time,x,y,z,speed,grounded,crouched,sprinting,ads,recoil_pitch_deg,ammo,shots,hits,kills,render_fps");
-                        recording = Some(f);
+                let info = backend_info();
+                let executable_hash = rust_duty_launcher::file_hash(&executable).ok();
+                let identity = serde_json::json!({
+                    "schema":"rust-duty-local-playtest-session/v1",
+                    "build":{"version":vector_range::BUILD_VERSION,"number":vector_range::BUILD_NUMBER,"label":vector_range::BUILD_LABEL},
+                    "executable_sha256":executable_hash,
+                    "source":crate::telemetry_export::packaged_source(&executable,vector_range::BUILD_LABEL,executable_hash.as_deref()),
+                    "runtime_observed":info.as_ref().ok().map(|value| serde_json::json!({"requested":value.requested,"backend":value.backend,"adapter":value.adapter})),
+                    "hardware_classification":"unknown", "sharing":"local only; manual review before sharing",
+                });
+                match crate::telemetry_export::LocalExport::start(
+                    std::path::Path::new("telemetry-sessions"),
+                    std::path::Path::new("telemetry.csv"),
+                    &identity,
+                ) {
+                    Ok(export) => {
+                        telemetry_csv_error = None;
                         let scene = frame_trace_scene(
                             profile,
                             weapon_id,
@@ -760,27 +813,33 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
                             capture_sequence,
                             demo,
                         );
-                        notice = match start_frame_trace(
+                        let trace = start_frame_trace(
                             scene,
                             trace_eligibility,
                             &mut frame_trace_sequence,
-                        ) {
-                            Ok(path) => format!(
-                                "Recording telemetry.csv (overwrites earlier recording); CPU trace: {}",
-                                path.display()
+                            Some(export.frame_path()),
+                        );
+                        telemetry_status = match trace {
+                            Ok(_) => format!(
+                                "RECORDING CSV + CPU trace (F8 stops) | {}",
+                                export.directory.display()
                             ),
-                            Err(error) => {
-                                eprintln!(
-                                    "Frame trace unavailable; CSV recording continues: {error}"
-                                );
-                                format!("Recording telemetry.csv (overwrites earlier recording); no frame trace: {error}")
-                            }
+                            Err(error) => format!(
+                                "RECORDING CSV ONLY; frame trace unavailable: {error} | {}",
+                                export.directory.display()
+                            ),
                         };
+                        recording = Some(export);
                     }
-                    Err(e) => notice = format!("Could not record: {e}"),
-                };
+                    Err(error) => {
+                        telemetry_status = format!(
+                            "TELEMETRY START ERROR: {error}; partial local folder may remain"
+                        )
+                    }
+                }
             }
-            notice_timer = 4.;
+            notice = telemetry_status.clone();
+            notice_timer = 6.;
         }
         if let Some(viewmodel) = &mut authored {
             viewmodel.set_walk_translation(cfg.walking_translation(weapon_id));
@@ -951,6 +1010,11 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
                     );
                 }
             }
+        }
+        if let Some(error) = recording.as_ref().and_then(|export| export.error()) {
+            telemetry_csv_error = Some(error.to_owned());
+            telemetry_status =
+                format!("CSV RECORDING ERROR: {error}; F8 stops and records incomplete status");
         }
         let focus = supply_focus(&sim, &cfg, &supply, active);
         if !active
@@ -1223,6 +1287,7 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
             );
         }
         if !active {
+            pause_menu.telemetry_state(recording.is_some(), frame_trace::is_stop_requested());
             pause_menu.draw(
                 &cfg,
                 weapon_id,
@@ -1268,6 +1333,7 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
         } else if model_missing {
             label("HK416 asset missing: extract the whole package beside the EXE (procedural fallback active)",24.,screen_height()-155.,16.,YELLOW);
         }
+        telemetry_indicator(&telemetry_status);
         if crate::capture::write_frame(crate::capture::CaptureFrame {
             capture,
             capture_sequence,
@@ -1394,6 +1460,7 @@ fn start_frame_trace(
     scene: serde_json::Value,
     eligibility: Eligibility,
     sequence: &mut u64,
+    output: Option<std::path::PathBuf>,
 ) -> Result<std::path::PathBuf, String> {
     #[cfg(feature = "wgpu-runtime")]
     {
@@ -1405,7 +1472,10 @@ fn start_frame_trace(
             vector_range::platform::window::performance_window_context(),
             scene,
         );
-        let path = next_frame_trace_path(sequence, std::path::Path::try_exists)?;
+        let path = match output {
+            Some(path) => path,
+            None => next_frame_trace_path(sequence, std::path::Path::try_exists)?,
+        };
         frame_trace::start(
             identity,
             path.clone(),
@@ -1419,7 +1489,7 @@ fn start_frame_trace(
     }
     #[cfg(not(feature = "wgpu-runtime"))]
     {
-        let _ = (scene, eligibility, sequence);
+        let _ = (scene, eligibility, sequence, output);
         Err("CPU present-return timing requires the wgpu runtime".into())
     }
 }
@@ -1725,6 +1795,7 @@ mod tests {
             serde_json::Value::Null,
             Eligibility::Eligible,
             &mut sequence,
+            None,
         );
         assert!(result.unwrap_err().contains("requires the wgpu runtime"));
         assert_eq!(sequence, 0);

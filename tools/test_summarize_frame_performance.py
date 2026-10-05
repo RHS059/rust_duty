@@ -42,6 +42,226 @@ def control():
         'records': [present(100), present(200, 100)]}
 
 
+# Captured from the actual unchanged FramePerformanceObserver/PerformanceSession
+# public API at 178cd9a, using a fake monotonic clock, not handwritten reports.
+# Start 0 -> presents 10, 15 -> request 20 -> final 25 covers completion/skip/error/
+# shutdown. Additional cases retain backwards request/final-present evidence.
+# Common fields are factored only to avoid repeating identical serialized data.
+SOURCE_SESSION_COMMON = {'clock': 'caller_injected_monotonic_nanoseconds',
+ 'count_scope': 'retained events only; incomplete capture does not assert counts for unobserved '
+                'activity',
+ 'identity': {'hardware_classification': 'unknown',
+              'hardware_classification_basis': 'This observer does not authenticate hardware '
+                                               'evidence.',
+              'operator_supplied': None,
+              'runtime_observed': {'actual_adapter': None,
+                                   'actual_backend': 'synthetic source fixture',
+                                   'build': {'test_fixture': True},
+                                   'initial_window': {'mode': 'windowed',
+                                                      'physical_height': 540,
+                                                      'physical_width': 960,
+                                                      'scale_factor': 1.0},
+                                   'scene': None}},
+ 'ineligible_present_count': 0,
+ 'interpretation': 'CPU wall-clock intervals between successful present returns; not GPU time, '
+                   'display cadence or simulation time.',
+ 'limits': {'max_metadata_bytes': 65536, 'max_records': 120000},
+ 'measurement': 'cpu_wall_clock_successful_present_return_interval_ns',
+ 'schema': 'rust_duty_frame_performance_v1'}
+SOURCE_SESSION_CASES = {'backward_final_present': {'incomplete_at_ns': 15,
+                            'last_observed_ns': 10,
+                            'records': [{'at_ns': 10,
+                                         'eligible': True,
+                                         'ineligible_reason': None,
+                                         'interval_ns': None,
+                                         'kind': 'successful_present_return'}],
+                            'skipped_frame_count': 0,
+                            'start_ns': 0,
+                            'status': {'error': 'non-monotonic timestamp: 15 ns follows 20 ns',
+                                       'state': 'incomplete'},
+                            'stop_requested_ns': 20,
+                            'stopped_at_ns': None,
+                            'successful_present_count': 1,
+                            'summary': {'interval_count': 0,
+                                        'max_ns': None,
+                                        'min_ns': None,
+                                        'p50_ns': None,
+                                        'p95_ns': None,
+                                        'p99_ns': None,
+                                        'percentile_method': 'nearest_rank_ceil_p_times_n_no_interpolation',
+                                        'total_interval_ns': 0}},
+ 'backward_request': {'incomplete_at_ns': 5,
+                      'last_observed_ns': 10,
+                      'records': [{'at_ns': 10,
+                                   'eligible': True,
+                                   'ineligible_reason': None,
+                                   'interval_ns': None,
+                                   'kind': 'successful_present_return'}],
+                      'skipped_frame_count': 0,
+                      'start_ns': 0,
+                      'status': {'error': 'non-monotonic timestamp: 5 ns follows 10 ns',
+                                 'state': 'incomplete'},
+                      'stop_requested_ns': 5,
+                      'stopped_at_ns': 20,
+                      'successful_present_count': 1,
+                      'summary': {'interval_count': 0,
+                                  'max_ns': None,
+                                  'min_ns': None,
+                                  'p50_ns': None,
+                                  'p95_ns': None,
+                                  'p99_ns': None,
+                                  'percentile_method': 'nearest_rank_ceil_p_times_n_no_interpolation',
+                                  'total_interval_ns': 0}},
+ 'complete_final_present': {'incomplete_at_ns': None,
+                            'last_observed_ns': 25,
+                            'records': [{'at_ns': 10,
+                                         'eligible': True,
+                                         'ineligible_reason': None,
+                                         'interval_ns': None,
+                                         'kind': 'successful_present_return'},
+                                        {'at_ns': 15,
+                                         'eligible': True,
+                                         'ineligible_reason': None,
+                                         'interval_ns': 5,
+                                         'kind': 'successful_present_return'},
+                                        {'at_ns': 25,
+                                         'eligible': True,
+                                         'ineligible_reason': None,
+                                         'interval_ns': 10,
+                                         'kind': 'successful_present_return'}],
+                            'skipped_frame_count': 0,
+                            'start_ns': 0,
+                            'status': {'error': None, 'state': 'complete'},
+                            'stop_requested_ns': 20,
+                            'stopped_at_ns': 25,
+                            'successful_present_count': 3,
+                            'summary': {'interval_count': 2,
+                                        'max_ns': 10,
+                                        'min_ns': 5,
+                                        'p50_ns': 5,
+                                        'p95_ns': 10,
+                                        'p99_ns': 10,
+                                        'percentile_method': 'nearest_rank_ceil_p_times_n_no_interpolation',
+                                        'total_interval_ns': 15}},
+ 'incomplete_final_skip': {'incomplete_at_ns': 25,
+                           'last_observed_ns': 25,
+                           'records': [{'at_ns': 10,
+                                        'eligible': True,
+                                        'ineligible_reason': None,
+                                        'interval_ns': None,
+                                        'kind': 'successful_present_return'},
+                                       {'at_ns': 15,
+                                        'eligible': True,
+                                        'ineligible_reason': None,
+                                        'interval_ns': 5,
+                                        'kind': 'successful_present_return'},
+                                       {'at_ns': 25,
+                                        'kind': 'skipped_frame',
+                                        'reason': 'surface_skipped',
+                                        'resets_interval_anchor': False}],
+                           'skipped_frame_count': 1,
+                           'start_ns': 0,
+                           'status': {'error': 'capture ended before its final requested '
+                                               'presentation returned',
+                                      'state': 'incomplete'},
+                           'stop_requested_ns': 20,
+                           'stopped_at_ns': 25,
+                           'successful_present_count': 2,
+                           'summary': {'interval_count': 1,
+                                       'max_ns': 5,
+                                       'min_ns': 5,
+                                       'p50_ns': 5,
+                                       'p95_ns': 5,
+                                       'p99_ns': 5,
+                                       'percentile_method': 'nearest_rank_ceil_p_times_n_no_interpolation',
+                                       'total_interval_ns': 5}},
+ 'incomplete_present_failure': {'incomplete_at_ns': 25,
+                                'last_observed_ns': 25,
+                                'records': [{'at_ns': 10,
+                                             'eligible': True,
+                                             'ineligible_reason': None,
+                                             'interval_ns': None,
+                                             'kind': 'successful_present_return'},
+                                            {'at_ns': 15,
+                                             'eligible': True,
+                                             'ineligible_reason': None,
+                                             'interval_ns': 5,
+                                             'kind': 'successful_present_return'},
+                                            {'at_ns': 25,
+                                             'kind': 'boundary',
+                                             'reason': 'surface_error'}],
+                                'skipped_frame_count': 0,
+                                'start_ns': 0,
+                                'status': {'error': 'final requested presentation failed',
+                                           'state': 'incomplete'},
+                                'stop_requested_ns': 20,
+                                'stopped_at_ns': 25,
+                                'successful_present_count': 2,
+                                'summary': {'interval_count': 1,
+                                            'max_ns': 5,
+                                            'min_ns': 5,
+                                            'p50_ns': 5,
+                                            'p95_ns': 5,
+                                            'p99_ns': 5,
+                                            'percentile_method': 'nearest_rank_ceil_p_times_n_no_interpolation',
+                                            'total_interval_ns': 5}},
+ 'incomplete_shutdown': {'incomplete_at_ns': 25,
+                         'last_observed_ns': 25,
+                         'records': [{'at_ns': 10,
+                                      'eligible': True,
+                                      'ineligible_reason': None,
+                                      'interval_ns': None,
+                                      'kind': 'successful_present_return'},
+                                     {'at_ns': 15,
+                                      'eligible': True,
+                                      'ineligible_reason': None,
+                                      'interval_ns': 5,
+                                      'kind': 'successful_present_return'},
+                                     {'at_ns': 25, 'kind': 'boundary', 'reason': 'shutdown'}],
+                         'skipped_frame_count': 0,
+                         'start_ns': 0,
+                         'status': {'error': 'capture ended before its final requested '
+                                             'presentation returned',
+                                    'state': 'incomplete'},
+                         'stop_requested_ns': 20,
+                         'stopped_at_ns': 25,
+                         'successful_present_count': 2,
+                         'summary': {'interval_count': 1,
+                                     'max_ns': 5,
+                                     'min_ns': 5,
+                                     'p50_ns': 5,
+                                     'p95_ns': 5,
+                                     'p99_ns': 5,
+                                     'percentile_method': 'nearest_rank_ceil_p_times_n_no_interpolation',
+                                     'total_interval_ns': 5}},
+ 'request_before_start': {'incomplete_at_ns': 95,
+                          'last_observed_ns': 110,
+                          'records': [{'at_ns': 110,
+                                       'eligible': True,
+                                       'ineligible_reason': None,
+                                       'interval_ns': None,
+                                       'kind': 'successful_present_return'}],
+                          'skipped_frame_count': 0,
+                          'start_ns': 100,
+                          'status': {'error': 'non-monotonic timestamp: 95 ns follows 110 ns',
+                                     'state': 'incomplete'},
+                          'stop_requested_ns': 95,
+                          'stopped_at_ns': 120,
+                          'successful_present_count': 1,
+                          'summary': {'interval_count': 0,
+                                      'max_ns': None,
+                                      'min_ns': None,
+                                      'p50_ns': None,
+                                      'p95_ns': None,
+                                      'p99_ns': None,
+                                      'percentile_method': 'nearest_rank_ceil_p_times_n_no_interpolation',
+                                      'total_interval_ns': 0}}}
+
+def source_session_reports():
+    return {name: json.loads(json.dumps({**SOURCE_SESSION_COMMON, **case}))
+            for name, case in SOURCE_SESSION_CASES.items()}
+
+
 class PerformanceSummaryTests(unittest.TestCase):
     def setUp(self):
         temp = tempfile.TemporaryDirectory()
@@ -59,6 +279,56 @@ class PerformanceSummaryTests(unittest.TestCase):
         with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
             code = perf.summarize_report(self.path, output)
         return code, json.loads(stdout.getvalue()) if stdout.getvalue() else None, stderr.getvalue()
+
+    def test_actual_session_exports_preserve_completion_and_incomplete_evidence(self):
+        for name, report in source_session_reports().items():
+            with self.subTest(name=name):
+                self.report = report
+                before = json.dumps(report, sort_keys=True)
+                code, result, error = self.summarize()
+                self.assertEqual(code, 0, error)
+                self.assertEqual(result['status'], report['status']['state'])
+                self.assertEqual(result['error'], report['status']['error'])
+                for field in ('start_ns', 'stop_requested_ns', 'stopped_at_ns',
+                              'last_observed_ns', 'incomplete_at_ns'):
+                    self.assertEqual(result[field], report[field])
+                self.assertEqual(json.dumps(report, sort_keys=True), before)
+        complete = source_session_reports()['complete_final_present']
+        self.assertEqual(complete['stop_requested_ns'], 20)
+        self.assertEqual(complete['stopped_at_ns'], 25)
+        self.assertEqual(complete['summary']['interval_count'], 2)
+
+    def test_deferred_stop_rejects_missing_final_present_or_impossible_order(self):
+        original = source_session_reports()['complete_final_present']
+        mutations = [
+            lambda r: r.update(stopped_at_ns=None),
+            lambda r: r.update(stopped_at_ns=24),
+            lambda r: r.update(stopped_at_ns=30),
+            lambda r: r.update(stop_requested_ns=25, stopped_at_ns=30),
+            lambda r: r.update(stop_requested_ns=30),
+            lambda r: r.update(stop_requested_ns=5),
+        ]
+        for mutate in mutations:
+            report = json.loads(json.dumps(original))
+            mutate(report)
+            with self.subTest(mutate=mutate), self.assertRaises(ValueError):
+                perf.validate_report(report)
+        # An ineligible successful return may still finish the session, but a
+        # boundary/skip at the same timestamp cannot stand in for that return.
+        report = source_session_reports()['incomplete_final_skip']
+        report.update(status={'state': 'complete', 'error': None}, incomplete_at_ns=None)
+        with self.assertRaisesRegex(ValueError, 'final successful present'):
+            perf.validate_report(report)
+
+    def test_missing_completion_needs_actual_backward_clock_evidence(self):
+        report = source_session_reports()['incomplete_present_failure']
+        report.update(stop_requested_ns=25, stopped_at_ns=None)
+        with self.assertRaisesRegex(ValueError, 'contradictory clock evidence'):
+            perf.validate_report(report)
+        report = source_session_reports()['backward_final_present']
+        report['stopped_at_ns'] = 15
+        with self.assertRaisesRegex(ValueError, 'stop request'):
+            perf.validate_report(report)
 
     def test_complete_control_preserves_identity_and_scope(self):
         code, result, error = self.summarize()

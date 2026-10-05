@@ -13,6 +13,8 @@ mod pause_menu;
 #[cfg(any(feature = "legacy-macroquad", feature = "wgpu-runtime"))]
 mod sound;
 #[cfg(any(feature = "legacy-macroquad", feature = "wgpu-runtime"))]
+mod telemetry_export;
+#[cfg(any(feature = "legacy-macroquad", feature = "wgpu-runtime"))]
 mod viewmodel_draw;
 #[cfg(any(feature = "legacy-macroquad", feature = "wgpu-runtime"))]
 mod weapon_model;

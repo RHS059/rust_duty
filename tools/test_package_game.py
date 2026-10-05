@@ -15,6 +15,7 @@ release = importlib.util.module_from_spec(release_spec)
 release_spec.loader.exec_module(release)
 ROOT = Path(__file__).resolve().parents[1]
 UI_RESOURCES = {
+    "docs/FRAME_PERFORMANCE.md": b"# Local recording and complete session-folder export fixture\n",
     "ui/theme.css": b"#hud .label { color: #e8edf2; }\n",
     "docs/UI_THEME.md": b"# Native theme fixture\n",
     "ui/examples/high-contrast.css": b".panel { background-color: #000000f2; border-width: 2px; }\n",

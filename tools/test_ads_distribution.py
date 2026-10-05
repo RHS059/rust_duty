@@ -1,4 +1,5 @@
 """ADS distribution binds source, canonical walk44 and native Rust parity."""
+import hashlib
 import json
 from pathlib import Path
 import shutil
@@ -48,10 +49,21 @@ class AdsDistributionTests(unittest.TestCase):
             path.write_bytes(original)
 
     def test_cache_requires_transports_but_raw_only_package_does_not(self):
-        (self.root / package.ADS_DIR / 'asset.vra.gz').unlink()
+        folder = self.root / package.ADS_DIR
+        raw = folder / 'asset.vra'
+        # Construct the raw-only package from verified transport bytes rather
+        # than depending on whether this checkout was previously materialized.
+        raw.unlink(missing_ok=True)
+        manifest = json.loads((folder / 'manifest.json').read_text())
+        raw.write_bytes(package.companion_bytes(self.root, 'asset.vra', manifest, package.ADS_DIR))
+        self.assertEqual(hashlib.sha256(raw.read_bytes()).hexdigest(), manifest['files']['asset.vra']['sha256'])
+        (folder / 'asset.vra.gz').unlink()
         package.verify_ads(self.root)
         with self.assertRaisesRegex(ValueError, 'missing'):
             package.verify_ads(self.root, require_transports=True)
+        raw.unlink()
+        with self.assertRaisesRegex(ValueError, 'missing'):
+            package.verify_ads(self.root)
 
     def test_matching_rust_parity_required_for_every_clip(self):
         for clip in package.ADS_CLIPS:

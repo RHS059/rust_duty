@@ -163,13 +163,30 @@ def validate_report(report):
                      'incomplete status needs its failure timestamp and error')
         else:
             raise ValueError('unknown capture status')
-        # A rejected backward clock observation can precede retained events. A
-        # rejected forward event still constrains the validity of stop time.
+        # The observer stops immediately, but PerformanceSession preserves the
+        # earlier F8 request while awaiting one final present. These are distinct
+        # boundaries: never substitute the request time for completion time.
         latest = max(previous, failure) if failure is not None else previous
-        stopped = report['stop_requested_ns'] if report['stop_requested_ns'] >= latest else None
-        _require(report['stopped_at_ns'] == stopped, 'stopped_at_ns contradicts observed clock boundaries')
+        requested, stopped = report['stop_requested_ns'], report['stopped_at_ns']
+        if stopped is not None:
+            _require(stopped >= max(latest, requested),
+                     'stopped_at_ns precedes an observed event or stop request')
+        else:
+            # Both observer stop regressions and session callbacks that precede
+            # a pending stop request can make completion time unavailable.
+            _require(failure is not None and (requested < latest
+                     or failure < max(previous, requested)),
+                     'missing stopped_at_ns without contradictory clock evidence')
         if status['state'] == 'complete':
-            _require(stopped is not None, 'complete capture needs a valid stop boundary')
+            _require(stopped is not None and requested >= report['start_ns'],
+                     'complete capture needs valid request and stop boundaries')
+            if stopped > requested:
+                _require(records and records[-1]['kind'] == 'successful_present_return'
+                         and records[-1]['at_ns'] == stopped,
+                         'deferred stop needs its final successful present')
+                _require(all(row['at_ns'] <= requested for row in records[:-1]
+                             if row['kind'] == 'successful_present_return'),
+                         'deferred stop retained a present after the requested final frame')
     except (TypeError, RecursionError, OverflowError) as error:
         raise ValueError(f'malformed performance report: {error}') from error
 

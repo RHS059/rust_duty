@@ -1,5 +1,6 @@
 """Exact-byte cache discrimination; every miss still uses the real parser."""
 from unittest import TestCase, mock
+import hashlib
 import json
 import package_game
 import test_ads_distribution
@@ -121,10 +122,21 @@ class WarmPackagingMemoTests(TestCase):
         with self.assertRaisesRegex(ValueError, 'committed Blender source'):
             package_game.verify_ads(self.root)
         source.unlink()
+        # A checkout may contain only the verified compressed VRA. Exercise a
+        # raw-only package deliberately rather than assuming a prior test or
+        # local build happened to materialize the fixture's raw representation.
+        raw = folder / 'asset.vra'
+        raw.unlink(missing_ok=True)
+        record = json.loads(manifest.read_text())
+        raw.write_bytes(package_game.companion_bytes(self.root, 'asset.vra', record, package_game.ADS_DIR))
+        self.assertEqual(hashlib.sha256(raw.read_bytes()).hexdigest(), record['files']['asset.vra']['sha256'])
         (folder / 'asset.vra.gz').unlink()
         package_game.verify_ads(self.root)
         with self.assertRaisesRegex(ValueError, 'missing'):
             package_game.verify_ads(self.root, require_transports=True)
+        raw.unlink()
+        with self.assertRaisesRegex(ValueError, 'missing'):
+            package_game.verify_ads(self.root)
 
     def test_same_size_file_replacement_after_warm_success(self):
         path = self.root / package_game.ADS_DIR / 'asset.vrm'

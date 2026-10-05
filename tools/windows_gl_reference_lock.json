@@ -1,0 +1,641 @@
+{
+  "schema": "rust-duty-windows-gl-reference/v1",
+  "mesa_version": "26.2.4-1",
+  "architecture": "x86_64",
+  "dll_count": 15,
+  "dll_total_bytes": 180069633,
+  "runtime_environment": {
+    "GALLIUM_DRIVER": "llvmpipe",
+    "LIBGL_ALWAYS_SOFTWARE": "true"
+  },
+  "provenance": {
+    "mesa_catalog": "https://packages.msys2.org/packages/mingw-w64-ucrt-x86_64-mesa",
+    "mesa_source_url": "https://mesa.freedesktop.org/archive/mesa-26.2.4.tar.xz",
+    "mesa_source_sha256": "bce5f7fbebb934373b86c999a064d52fb5065878dc57f287f95346648ec832e9",
+    "msys2_mirrors": "https://www.msys2.org/docs/mirrors/",
+    "inspection_date_utc": "2026-10-05",
+    "native_windows_verified": false
+  },
+  "packages": [
+    {
+      "name": "mingw-w64-ucrt-x86_64-gettext-runtime",
+      "version": "1.0-1",
+      "archive": "mingw-w64-ucrt-x86_64-gettext-runtime-1.0-1-any.pkg.tar.zst",
+      "url": "https://repo.msys2.org/mingw/ucrt64/mingw-w64-ucrt-x86_64-gettext-runtime-1.0-1-any.pkg.tar.zst",
+      "catalog_url": "https://packages.msys2.org/packages/mingw-w64-ucrt-x86_64-gettext-runtime",
+      "sha256": "ba693dda4ac375af76ce481ff3a6e7481286546cc7dc6d56c7021dae34084157",
+      "licenses": [
+        {
+          "member": "ucrt64/share/licenses/gettext-runtime/COPYING",
+          "size": 495,
+          "sha256": "7ef2cdfe58e0c0460657b6598b49af29d4e03c1e41cbaf0e1da1eb8ad74b95d0"
+        },
+        {
+          "member": "ucrt64/share/licenses/gettext-runtime/intl/COPYING.LIB",
+          "size": 26419,
+          "sha256": "20e50fe7aae3e56378ebf0417d9de904f55a0e61e4df315333e632a4d3555d95"
+        },
+        {
+          "member": "ucrt64/share/licenses/gettext-runtime/libasprintf/COPYING",
+          "size": 65,
+          "sha256": "03133addae5b99a6148c538300e6d97074453089be1423b741bd081f18e2b298"
+        },
+        {
+          "member": "ucrt64/share/licenses/gettext-runtime/libasprintf/COPYING.LIB",
+          "size": 26419,
+          "sha256": "20e50fe7aae3e56378ebf0417d9de904f55a0e61e4df315333e632a4d3555d95"
+        }
+      ]
+    },
+    {
+      "name": "mingw-w64-ucrt-x86_64-libffi",
+      "version": "3.8.0-1",
+      "archive": "mingw-w64-ucrt-x86_64-libffi-3.8.0-1-any.pkg.tar.zst",
+      "url": "https://repo.msys2.org/mingw/ucrt64/mingw-w64-ucrt-x86_64-libffi-3.8.0-1-any.pkg.tar.zst",
+      "catalog_url": "https://packages.msys2.org/packages/mingw-w64-ucrt-x86_64-libffi",
+      "sha256": "99ad12f4ecfa00a889ef9c5c0188592368a5bac109d0c508ce4e04f29ea95a76",
+      "licenses": [
+        {
+          "member": "ucrt64/share/licenses/libffi/LICENSE",
+          "size": 1132,
+          "sha256": "17b64dc60f3b6897a60f971e288b973f655c2edcdf08b25f3c3dd5549857881c"
+        }
+      ]
+    },
+    {
+      "name": "mingw-w64-ucrt-x86_64-libgcc",
+      "version": "16.2.0-4",
+      "archive": "mingw-w64-ucrt-x86_64-libgcc-16.2.0-4-any.pkg.tar.zst",
+      "url": "https://repo.msys2.org/mingw/ucrt64/mingw-w64-ucrt-x86_64-libgcc-16.2.0-4-any.pkg.tar.zst",
+      "catalog_url": "https://packages.msys2.org/packages/mingw-w64-ucrt-x86_64-libgcc",
+      "sha256": "de65b4adae899d9278427402e29d03860bacba481794460f3a1d078610cbb783",
+      "licenses": [
+        {
+          "member": "ucrt64/share/licenses/libgcc/COPYING.RUNTIME",
+          "size": 3324,
+          "sha256": "9d6b43ce4d8de0c878bf16b54d8e7a10d9bd42b75178153e3af6a815bdc90f74"
+        },
+        {
+          "member": "ucrt64/share/licenses/libgcc/COPYING3",
+          "size": 35147,
+          "sha256": "8ceb4b9ee5adedde47b31e975c1d90c73ad27b6b165a1dcd80c7c545eb65b903"
+        }
+      ]
+    },
+    {
+      "name": "mingw-w64-ucrt-x86_64-libiconv",
+      "version": "1.19-1",
+      "archive": "mingw-w64-ucrt-x86_64-libiconv-1.19-1-any.pkg.tar.zst",
+      "url": "https://repo.msys2.org/mingw/ucrt64/mingw-w64-ucrt-x86_64-libiconv-1.19-1-any.pkg.tar.zst",
+      "catalog_url": "https://packages.msys2.org/packages/mingw-w64-ucrt-x86_64-libiconv",
+      "sha256": "9a500f38c2b91808741c62fae746b3e9110b33a1ecf5c30fa0c66dbedddf7e16",
+      "licenses": [
+        {
+          "member": "ucrt64/share/licenses/libiconv/COPYING",
+          "size": 35147,
+          "sha256": "8ceb4b9ee5adedde47b31e975c1d90c73ad27b6b165a1dcd80c7c545eb65b903"
+        },
+        {
+          "member": "ucrt64/share/licenses/libiconv/COPYING.LIB",
+          "size": 26419,
+          "sha256": "20e50fe7aae3e56378ebf0417d9de904f55a0e61e4df315333e632a4d3555d95"
+        },
+        {
+          "member": "ucrt64/share/licenses/libiconv/README",
+          "size": 5741,
+          "sha256": "4ae66e61d1c6593c84c47105b368d579bcee1af566dbb959ec63a0c48425dcf4"
+        },
+        {
+          "member": "ucrt64/share/licenses/libiconv/libcharset/COPYING.LIB",
+          "size": 26419,
+          "sha256": "20e50fe7aae3e56378ebf0417d9de904f55a0e61e4df315333e632a4d3555d95"
+        }
+      ]
+    },
+    {
+      "name": "mingw-w64-ucrt-x86_64-libstdc++",
+      "version": "16.2.0-4",
+      "archive": "mingw-w64-ucrt-x86_64-libstdc++-16.2.0-4-any.pkg.tar.zst",
+      "url": "https://repo.msys2.org/mingw/ucrt64/mingw-w64-ucrt-x86_64-libstdc%2B%2B-16.2.0-4-any.pkg.tar.zst",
+      "catalog_url": "https://packages.msys2.org/packages/mingw-w64-ucrt-x86_64-libstdc%2B%2B",
+      "sha256": "2211dbbf1220287e49f5d66bb6cb09ee5a157901a485197553c9a940cc902d5b",
+      "licenses": [
+        {
+          "member": "ucrt64/share/licenses/libstdc++/COPYING.RUNTIME",
+          "size": 3324,
+          "sha256": "9d6b43ce4d8de0c878bf16b54d8e7a10d9bd42b75178153e3af6a815bdc90f74"
+        },
+        {
+          "member": "ucrt64/share/licenses/libstdc++/COPYING3",
+          "size": 35147,
+          "sha256": "8ceb4b9ee5adedde47b31e975c1d90c73ad27b6b165a1dcd80c7c545eb65b903"
+        }
+      ]
+    },
+    {
+      "name": "mingw-w64-ucrt-x86_64-libsystre",
+      "version": "1.0.2-3",
+      "archive": "mingw-w64-ucrt-x86_64-libsystre-1.0.2-3-any.pkg.tar.zst",
+      "url": "https://repo.msys2.org/mingw/ucrt64/mingw-w64-ucrt-x86_64-libsystre-1.0.2-3-any.pkg.tar.zst",
+      "catalog_url": "https://packages.msys2.org/packages/mingw-w64-ucrt-x86_64-libsystre",
+      "sha256": "62f564b1395d4862db1599b77f6588c32de5c80936845751cf369b31eee1560b",
+      "licenses": [
+        {
+          "member": "ucrt64/share/licenses/libsystre/LICENSE",
+          "size": 1445,
+          "sha256": "3200024286eb0a33c22da3a31c470df07c7b8cfbead2b9528195d67d107264ec"
+        }
+      ]
+    },
+    {
+      "name": "mingw-w64-ucrt-x86_64-libtre",
+      "version": "0.9.0-2",
+      "archive": "mingw-w64-ucrt-x86_64-libtre-0.9.0-2-any.pkg.tar.zst",
+      "url": "https://repo.msys2.org/mingw/ucrt64/mingw-w64-ucrt-x86_64-libtre-0.9.0-2-any.pkg.tar.zst",
+      "catalog_url": "https://packages.msys2.org/packages/mingw-w64-ucrt-x86_64-libtre",
+      "sha256": "d50f22545c50d7c0cd584474bba83f0c7a2cd8aab1aed1ad6c1f9c6452f3c4fc",
+      "licenses": [
+        {
+          "member": "ucrt64/share/licenses/libtre/LICENSE",
+          "size": 1479,
+          "sha256": "6a50ab50d856b30c965cf2dd899e577ec108c938242fd3a2e7a7a25eed996200"
+        }
+      ]
+    },
+    {
+      "name": "mingw-w64-ucrt-x86_64-libwinpthread",
+      "version": "14.0.0.r426.g4564ee4b5-1",
+      "archive": "mingw-w64-ucrt-x86_64-libwinpthread-14.0.0.r426.g4564ee4b5-1-any.pkg.tar.zst",
+      "url": "https://repo.msys2.org/mingw/ucrt64/mingw-w64-ucrt-x86_64-libwinpthread-14.0.0.r426.g4564ee4b5-1-any.pkg.tar.zst",
+      "catalog_url": "https://packages.msys2.org/packages/mingw-w64-ucrt-x86_64-libwinpthread",
+      "sha256": "f8de8153bbc0e47ba244a423c12c426fa1d9f56395117ecaa34c6ad6ebed6ca3",
+      "licenses": [
+        {
+          "member": "ucrt64/share/licenses/libwinpthread/COPYING",
+          "size": 2883,
+          "sha256": "63263614cdd29f2f93cba85e992f041b31f9fc7b4033692f31269489a8a1b177"
+        }
+      ]
+    },
+    {
+      "name": "mingw-w64-ucrt-x86_64-libxml2",
+      "version": "2.15.4-1",
+      "archive": "mingw-w64-ucrt-x86_64-libxml2-2.15.4-1-any.pkg.tar.zst",
+      "url": "https://repo.msys2.org/mingw/ucrt64/mingw-w64-ucrt-x86_64-libxml2-2.15.4-1-any.pkg.tar.zst",
+      "catalog_url": "https://packages.msys2.org/packages/mingw-w64-ucrt-x86_64-libxml2",
+      "sha256": "ea6b8e7ee24d8674e719f1f0a1b3747a72158ab786dfc5392ccb9f8edd09582a",
+      "licenses": [
+        {
+          "member": "ucrt64/share/licenses/libxml2/COPYING",
+          "size": 1314,
+          "sha256": "5d4873884a890122a4b9b20ad56ac6f7da1d796a5bfcf04a427970ac96217626"
+        }
+      ]
+    },
+    {
+      "name": "mingw-w64-ucrt-x86_64-llvm-libs",
+      "version": "22.1.8-3",
+      "archive": "mingw-w64-ucrt-x86_64-llvm-libs-22.1.8-3-any.pkg.tar.zst",
+      "url": "https://repo.msys2.org/mingw/ucrt64/mingw-w64-ucrt-x86_64-llvm-libs-22.1.8-3-any.pkg.tar.zst",
+      "catalog_url": "https://packages.msys2.org/packages/mingw-w64-ucrt-x86_64-llvm-libs",
+      "sha256": "b22437a27246bf17447061d5c7faea5f0e457aa9a65b89dad692fe767afb1d6a",
+      "licenses": [
+        {
+          "member": "ucrt64/share/licenses/llvm-libs/LICENSE",
+          "size": 15141,
+          "sha256": "8d85c1057d742e597985c7d4e6320b015a9139385cff4cbae06ffc0ebe89afee"
+        }
+      ]
+    },
+    {
+      "name": "mingw-w64-ucrt-x86_64-mesa",
+      "version": "26.2.4-1",
+      "archive": "mingw-w64-ucrt-x86_64-mesa-26.2.4-1-any.pkg.tar.zst",
+      "url": "https://repo.msys2.org/mingw/ucrt64/mingw-w64-ucrt-x86_64-mesa-26.2.4-1-any.pkg.tar.zst",
+      "catalog_url": "https://packages.msys2.org/packages/mingw-w64-ucrt-x86_64-mesa",
+      "sha256": "82a30042848b6393f2a21cdee66b164e4cf4fe15a9721a5f1d1c7280e004ebdc",
+      "licenses": [
+        {
+          "member": "ucrt64/share/licenses/mesa/Apache-2.0",
+          "size": 10045,
+          "sha256": "7e4d3fba250d15e9e0afa380d4b611828fa2560cc8fdebe95bcf2f01a487de12"
+        },
+        {
+          "member": "ucrt64/share/licenses/mesa/BSL-1.0",
+          "size": 1649,
+          "sha256": "9b9fea7520a816107fcac2598b7c0155222f16bc430e989706b22f4367f1df7d"
+        },
+        {
+          "member": "ucrt64/share/licenses/mesa/GPL-1.0-or-later",
+          "size": 13047,
+          "sha256": "8ff76f1528e6e4e9400c0f6b1f2d19d4979aaac3bcc44bb707a55389132825c4"
+        },
+        {
+          "member": "ucrt64/share/licenses/mesa/GPL-2.0-only",
+          "size": 18424,
+          "sha256": "6667ad4063569cd53b13500550d93fcd3dc11bcf82c5514296af013a0b720ba5"
+        },
+        {
+          "member": "ucrt64/share/licenses/mesa/MIT",
+          "size": 1372,
+          "sha256": "323c587d0ccf10e376f8bf9a7f31fb4ca6078105194b42e0b1e0ee2bc9bde71f"
+        },
+        {
+          "member": "ucrt64/share/licenses/mesa/SGI-B-2.0",
+          "size": 1822,
+          "sha256": "686bf035a1fd22076416fd3b90370ac67771e884bf57f55693d51f8ce7c710a7"
+        },
+        {
+          "member": "ucrt64/share/licenses/mesa/exceptions/Linux-Syscall-Note",
+          "size": 1257,
+          "sha256": "9b4084655174654608fd037e9ddb4feeadfada01cd042e9c17b05aa7105b2b9f"
+        }
+      ]
+    },
+    {
+      "name": "mingw-w64-ucrt-x86_64-spirv-tools",
+      "version": "3~1.4.363.0-1",
+      "archive": "mingw-w64-ucrt-x86_64-spirv-tools-3~1.4.363.0-1-any.pkg.tar.zst",
+      "url": "https://repo.msys2.org/mingw/ucrt64/mingw-w64-ucrt-x86_64-spirv-tools-3~1.4.363.0-1-any.pkg.tar.zst",
+      "catalog_url": "https://packages.msys2.org/packages/mingw-w64-ucrt-x86_64-spirv-tools",
+      "sha256": "d31d67fe918aeee21d1e930fd96360856a60146d23094e4ae8baf071a4049aaa",
+      "licenses": [
+        {
+          "member": "ucrt64/share/licenses/spirv-tools/LICENSE",
+          "size": 11358,
+          "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+        }
+      ]
+    },
+    {
+      "name": "mingw-w64-ucrt-x86_64-zlib",
+      "version": "1.3.2-2",
+      "archive": "mingw-w64-ucrt-x86_64-zlib-1.3.2-2-any.pkg.tar.zst",
+      "url": "https://repo.msys2.org/mingw/ucrt64/mingw-w64-ucrt-x86_64-zlib-1.3.2-2-any.pkg.tar.zst",
+      "catalog_url": "https://packages.msys2.org/packages/mingw-w64-ucrt-x86_64-zlib",
+      "sha256": "841401182976d2f9e17e5c0ebaac51f2a8014140ea53d67625e91c8fb3c85ea0",
+      "licenses": [
+        {
+          "member": "ucrt64/share/licenses/zlib/LICENSE",
+          "size": 1002,
+          "sha256": "e32ff4e00d9d94930537635291da39e7e612703334bf6fde8c7f1686fe8a45a2"
+        }
+      ]
+    },
+    {
+      "name": "mingw-w64-ucrt-x86_64-zstd",
+      "version": "1.5.7-2",
+      "archive": "mingw-w64-ucrt-x86_64-zstd-1.5.7-2-any.pkg.tar.zst",
+      "url": "https://repo.msys2.org/mingw/ucrt64/mingw-w64-ucrt-x86_64-zstd-1.5.7-2-any.pkg.tar.zst",
+      "catalog_url": "https://packages.msys2.org/packages/mingw-w64-ucrt-x86_64-zstd",
+      "sha256": "dbdb8427280046a2b41697780aa4c52983b708082b0da4755951dc3bea96ca89",
+      "licenses": [
+        {
+          "member": "ucrt64/share/licenses/zstd/LICENSE",
+          "size": 1549,
+          "sha256": "7055266497633c9025b777c78eb7235af13922117480ed5c674677adc381c9d8"
+        }
+      ]
+    }
+  ],
+  "dlls": [
+    {
+      "dll": "libffi-8.dll",
+      "size": 39826,
+      "sha256": "f96cf79b75f33a10023d001673b564538023395c94b3c58e1db53114976a7c25",
+      "package": "mingw-w64-ucrt-x86_64-libffi",
+      "member": "ucrt64/bin/libffi-8.dll",
+      "imports": [
+        "KERNEL32.dll",
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "api-ms-win-crt-private-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "api-ms-win-crt-utility-l1-1-0.dll"
+      ]
+    },
+    {
+      "dll": "libgallium_wgl.dll",
+      "size": 23835212,
+      "sha256": "42362a4b7063591ad1f2bf5d1dbf26fb808ac49cb419ac237d63c8f1cb49bc75",
+      "package": "mingw-w64-ucrt-x86_64-mesa",
+      "member": "ucrt64/bin/libgallium_wgl.dll",
+      "imports": [
+        "GDI32.dll",
+        "KERNEL32.dll",
+        "api-ms-win-crt-convert-l1-1-0.dll",
+        "api-ms-win-crt-environment-l1-1-0.dll",
+        "api-ms-win-crt-filesystem-l1-1-0.dll",
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "api-ms-win-crt-locale-l1-1-0.dll",
+        "api-ms-win-crt-math-l1-1-0.dll",
+        "api-ms-win-crt-private-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "api-ms-win-crt-time-l1-1-0.dll",
+        "api-ms-win-crt-utility-l1-1-0.dll",
+        "libwinpthread-1.dll",
+        "libsystre-0.dll",
+        "SHELL32.dll",
+        "api-ms-win-core-synch-l1-2-0.dll",
+        "USER32.dll",
+        "VERSION.dll",
+        "libLLVM-22.dll",
+        "libSPIRV-Tools.dll",
+        "zlib1.dll"
+      ]
+    },
+    {
+      "dll": "libgcc_s_seh-1.dll",
+      "size": 150537,
+      "sha256": "68ca4574b331402879dec403ba4f14491c9b8fc4aa3f4a41432008714b9bc5df",
+      "package": "mingw-w64-ucrt-x86_64-libgcc",
+      "member": "ucrt64/bin/libgcc_s_seh-1.dll",
+      "imports": [
+        "KERNEL32.dll",
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "api-ms-win-crt-private-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "libwinpthread-1.dll"
+      ]
+    },
+    {
+      "dll": "libiconv-2.dll",
+      "size": 1141951,
+      "sha256": "94ec68fb8d342b6c91b6b48a8d95092819cdcd006a7166e0b68062f946afd08a",
+      "package": "mingw-w64-ucrt-x86_64-libiconv",
+      "member": "ucrt64/bin/libiconv-2.dll",
+      "imports": [
+        "KERNEL32.dll",
+        "api-ms-win-crt-convert-l1-1-0.dll",
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "api-ms-win-crt-locale-l1-1-0.dll",
+        "api-ms-win-crt-private-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "api-ms-win-crt-utility-l1-1-0.dll"
+      ]
+    },
+    {
+      "dll": "libintl-8.dll",
+      "size": 298164,
+      "sha256": "0e5a178731e6be6d115442a6ade3df7f03265cd1fc4338f8b6f86a8001cbf582",
+      "package": "mingw-w64-ucrt-x86_64-gettext-runtime",
+      "member": "ucrt64/bin/libintl-8.dll",
+      "imports": [
+        "ADVAPI32.dll",
+        "libiconv-2.dll",
+        "KERNEL32.dll",
+        "api-ms-win-crt-convert-l1-1-0.dll",
+        "api-ms-win-crt-environment-l1-1-0.dll",
+        "api-ms-win-crt-filesystem-l1-1-0.dll",
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "api-ms-win-crt-locale-l1-1-0.dll",
+        "api-ms-win-crt-math-l1-1-0.dll",
+        "api-ms-win-crt-private-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "api-ms-win-crt-utility-l1-1-0.dll"
+      ]
+    },
+    {
+      "dll": "libLLVM-22.dll",
+      "size": 147044922,
+      "sha256": "ecef91d79184533faa2d74d1965c0737843f4c2e02c7cb8dd3309a6c97ddec9b",
+      "package": "mingw-w64-ucrt-x86_64-llvm-libs",
+      "member": "ucrt64/bin/libLLVM-22.dll",
+      "imports": [
+        "ADVAPI32.dll",
+        "libffi-8.dll",
+        "KERNEL32.dll",
+        "api-ms-win-crt-convert-l1-1-0.dll",
+        "api-ms-win-crt-environment-l1-1-0.dll",
+        "api-ms-win-crt-filesystem-l1-1-0.dll",
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "api-ms-win-crt-locale-l1-1-0.dll",
+        "api-ms-win-crt-math-l1-1-0.dll",
+        "api-ms-win-crt-private-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "api-ms-win-crt-time-l1-1-0.dll",
+        "api-ms-win-crt-utility-l1-1-0.dll",
+        "ntdll.dll",
+        "ole32.dll",
+        "libwinpthread-1.dll",
+        "SHELL32.dll",
+        "libstdc++-6.dll",
+        "WS2_32.dll",
+        "libxml2-16.dll",
+        "zlib1.dll",
+        "libzstd.dll"
+      ]
+    },
+    {
+      "dll": "libSPIRV-Tools.dll",
+      "size": 2000306,
+      "sha256": "1f7de3a18d76fa6ffa27ce54cf6f532d44a819075bc162f5814c0e5dc427e224",
+      "package": "mingw-w64-ucrt-x86_64-spirv-tools",
+      "member": "ucrt64/bin/libSPIRV-Tools.dll",
+      "imports": [
+        "KERNEL32.dll",
+        "api-ms-win-crt-convert-l1-1-0.dll",
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "api-ms-win-crt-locale-l1-1-0.dll",
+        "api-ms-win-crt-math-l1-1-0.dll",
+        "api-ms-win-crt-private-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "api-ms-win-crt-utility-l1-1-0.dll",
+        "libstdc++-6.dll"
+      ]
+    },
+    {
+      "dll": "libstdc++-6.dll",
+      "size": 2659194,
+      "sha256": "b30dbd914d903992acb28b38455947153886656beafbd91c465c31aa258f9c45",
+      "package": "mingw-w64-ucrt-x86_64-libstdc++",
+      "member": "ucrt64/bin/libstdc++-6.dll",
+      "imports": [
+        "libgcc_s_seh-1.dll",
+        "KERNEL32.dll",
+        "api-ms-win-crt-convert-l1-1-0.dll",
+        "api-ms-win-crt-environment-l1-1-0.dll",
+        "api-ms-win-crt-filesystem-l1-1-0.dll",
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "api-ms-win-crt-locale-l1-1-0.dll",
+        "api-ms-win-crt-math-l1-1-0.dll",
+        "api-ms-win-crt-private-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "api-ms-win-crt-time-l1-1-0.dll",
+        "api-ms-win-crt-utility-l1-1-0.dll",
+        "libwinpthread-1.dll"
+      ]
+    },
+    {
+      "dll": "libsystre-0.dll",
+      "size": 11002,
+      "sha256": "f933efd15c898dd2040e21f15801e3c7dc186f5b2cee353c9747afc9e5b54000",
+      "package": "mingw-w64-ucrt-x86_64-libsystre",
+      "member": "ucrt64/bin/libsystre-0.dll",
+      "imports": [
+        "KERNEL32.dll",
+        "api-ms-win-crt-private-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "libtre-5.dll"
+      ]
+    },
+    {
+      "dll": "libtre-5.dll",
+      "size": 99997,
+      "sha256": "1014afb8649e6eba839748cc0ad5dc542249df831ee483f7a93e465e223f7bae",
+      "package": "mingw-w64-ucrt-x86_64-libtre",
+      "member": "ucrt64/bin/libtre-5.dll",
+      "imports": [
+        "libintl-8.dll",
+        "KERNEL32.dll",
+        "api-ms-win-crt-convert-l1-1-0.dll",
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "api-ms-win-crt-locale-l1-1-0.dll",
+        "api-ms-win-crt-private-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "api-ms-win-crt-utility-l1-1-0.dll"
+      ]
+    },
+    {
+      "dll": "libwinpthread-1.dll",
+      "size": 64574,
+      "sha256": "76cc52adfcdb8c800813b2ae8da42a908934eb1ee54ce8e9744fc8d703c76ee1",
+      "package": "mingw-w64-ucrt-x86_64-libwinpthread",
+      "member": "ucrt64/bin/libwinpthread-1.dll",
+      "imports": [
+        "KERNEL32.dll",
+        "api-ms-win-crt-convert-l1-1-0.dll",
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "api-ms-win-crt-private-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "api-ms-win-crt-utility-l1-1-0.dll"
+      ]
+    },
+    {
+      "dll": "libxml2-16.dll",
+      "size": 1247552,
+      "sha256": "5cf84e4be1d9da56a6269b1bd18c8ab5fcce11087aa24002dfce57e46238455b",
+      "package": "mingw-w64-ucrt-x86_64-libxml2",
+      "member": "ucrt64/bin/libxml2-16.dll",
+      "imports": [
+        "bcrypt.dll",
+        "libiconv-2.dll",
+        "KERNEL32.dll",
+        "api-ms-win-crt-convert-l1-1-0.dll",
+        "api-ms-win-crt-environment-l1-1-0.dll",
+        "api-ms-win-crt-filesystem-l1-1-0.dll",
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "api-ms-win-crt-locale-l1-1-0.dll",
+        "api-ms-win-crt-math-l1-1-0.dll",
+        "api-ms-win-crt-private-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "api-ms-win-crt-utility-l1-1-0.dll",
+        "zlib1.dll"
+      ]
+    },
+    {
+      "dll": "libzstd.dll",
+      "size": 1217412,
+      "sha256": "48368ab0ca622d0ec12f41ce85d91f22866bf5da92c77a69a06483564c93816c",
+      "package": "mingw-w64-ucrt-x86_64-zstd",
+      "member": "ucrt64/bin/libzstd.dll",
+      "imports": [
+        "KERNEL32.dll",
+        "api-ms-win-crt-convert-l1-1-0.dll",
+        "api-ms-win-crt-filesystem-l1-1-0.dll",
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "api-ms-win-crt-locale-l1-1-0.dll",
+        "api-ms-win-crt-private-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "api-ms-win-crt-time-l1-1-0.dll",
+        "api-ms-win-crt-utility-l1-1-0.dll"
+      ]
+    },
+    {
+      "dll": "opengl32.dll",
+      "size": 131693,
+      "sha256": "f73078a77b51c634faa36f616a8eb9f7f1b30f82b21d689267b9146dbbc8b943",
+      "package": "mingw-w64-ucrt-x86_64-mesa",
+      "member": "ucrt64/bin/opengl32.dll",
+      "imports": [
+        "GDI32.dll",
+        "KERNEL32.dll",
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "api-ms-win-crt-private-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "api-ms-win-crt-utility-l1-1-0.dll",
+        "api-ms-win-core-synch-l1-2-0.dll",
+        "libgallium_wgl.dll"
+      ]
+    },
+    {
+      "dll": "zlib1.dll",
+      "size": 127291,
+      "sha256": "11cd91171765cd65f1c3362e3df67e5f5a618a6b88c8cdec899b802eaf1c7b0d",
+      "package": "mingw-w64-ucrt-x86_64-zlib",
+      "member": "ucrt64/bin/zlib1.dll",
+      "imports": [
+        "KERNEL32.dll",
+        "api-ms-win-crt-convert-l1-1-0.dll",
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "api-ms-win-crt-locale-l1-1-0.dll",
+        "api-ms-win-crt-private-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "api-ms-win-crt-utility-l1-1-0.dll"
+      ]
+    }
+  ],
+  "windows_supplied_imports": [
+    "ADVAPI32.dll",
+    "api-ms-win-core-synch-l1-2-0.dll",
+    "api-ms-win-crt-convert-l1-1-0.dll",
+    "api-ms-win-crt-environment-l1-1-0.dll",
+    "api-ms-win-crt-filesystem-l1-1-0.dll",
+    "api-ms-win-crt-heap-l1-1-0.dll",
+    "api-ms-win-crt-locale-l1-1-0.dll",
+    "api-ms-win-crt-math-l1-1-0.dll",
+    "api-ms-win-crt-private-l1-1-0.dll",
+    "api-ms-win-crt-runtime-l1-1-0.dll",
+    "api-ms-win-crt-stdio-l1-1-0.dll",
+    "api-ms-win-crt-string-l1-1-0.dll",
+    "api-ms-win-crt-time-l1-1-0.dll",
+    "api-ms-win-crt-utility-l1-1-0.dll",
+    "bcrypt.dll",
+    "GDI32.dll",
+    "KERNEL32.dll",
+    "ntdll.dll",
+    "ole32.dll",
+    "SHELL32.dll",
+    "USER32.dll",
+    "VERSION.dll",
+    "WS2_32.dll"
+  ]
+}

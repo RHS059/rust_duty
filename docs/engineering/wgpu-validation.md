@@ -266,3 +266,47 @@ before use; redundant or incorrect assertions were discarded. The authored
 Python suite retains one explicitly expected failing probe for the open pixel/
 frame-binding limitation. No matching hash or transition pattern is claimed to
 prove that authored pixels represent the correct GPU sample.
+
+## Native fixture and packaging checkpoint (2026-10-05, 20:03 UTC)
+
+PR head `b35e59667b56151f9bb6fb749b706d97bf842db9` executed merge
+`583d8eec39f4aabbc94fc089c824a1aa7905bd22` in
+[run37359968863](https://github.com/RHS059/rust_duty/actions/runs/37359968863).
+All 233 fixture guards and the actual Windows DX12/WARP/Fxc fixture runners
+passed: renderer21, world primitives3, consecutive frame identity18,
+native theme15, and effects9. Artifact
+[11365944032](https://github.com/RHS059/rust_duty/actions/runs/37359968863/artifacts/11365944032)
+has SHA256 `5e20d1ea9657ff9d861749234a8dce200ba0a70e3ffae2b75caba185780a245c`.
+This supplies the scoped automated evidence for WP2.4, 2.5 and 3.3.
+
+The current agent-delivery count is therefore **14 of 19**: 0.1, 0.2, 0.4,
+1.1, 1.2, 1.3, 2.1, 2.2, 2.3, 2.4, 2.5, 3.3, 3.4 and 4.2. Remaining are
+0.3, 1.4, 3.1, 3.2 and 4.3. The newly requested menu recording/export feature
+and the complete source-bound Windows DX12 preview are additional delivery
+criteria. Later human visual review and hardware playtesting remain separate.
+
+The actual game smoke also passed 127 frames and 381 JSON records on this
+revision; artifact11366921252 has SHA256
+`4e685025ddd7c9d13b70baed8b3fe68fb89f60f6ec63bb85ea4d09e039d9dc9f`.
+The full legacy baseline and ordinary Windows build/checks passed. However,
+the separate DX12 preview packaging failed its unchanged dependency-notice
+consistency check, so the ordinary Windows archive is not a substitute for a
+verified DX12 preview. The collector used the Windows locale to decode Cargo
+UTF-8 JSON. Three explicit UTF-8 decoding changes and a CP1252 regression now
+pass all45 collector tests and the real `--check`, preserving notice bytes.
+The isolated correction is published at `1bb707e8b47538fa5f42b8e92dbd5c99e9fc1e52`;
+its native packaging outcome is not yet established.
+
+The exact reload-return anchor discrepancy was independently reproduced with
+unchanged CPU code and matching inputs: process-local glibc2.39 versus2.41
+`atan2f` implementations produce the respective legacy and DX12-side values.
+This identifies a platform-math difference, not permission to loosen equality.
+The strict comparison needs a native same-platform/compiler reference. A pinned
+app-local Windows GL software reference is being prepared; its Windows execution
+has not yet been verified. Scenario sharding must preserve every original frame,
+validator and aggregate obligation rather than hide slow captures.
+
+Local immutable `178cd9a21bad5ce1f103afa66c8eee842ee6d2e9` has fresh default841,
+silent757 and combined899 passing production tests, with two existing ignored
+tests in each mode. All three strict all-target clippy lanes and formatting pass. These
+local results are not attributed to the older native run above.

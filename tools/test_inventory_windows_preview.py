@@ -166,6 +166,33 @@ class PreviewInventoryTests(unittest.TestCase):
         self.archive([('preview/' + k, v) for k, v in self.control.items()] + [('outside.txt', b'x')])
         self.assertFalse(inventory.validate_zip_archive(self.path)['valid'])
 
+    def test_superscript_devices_are_rejected_in_real_stager_archives(self):
+        # Microsoft documents these exact ISO-8859-1 superscripts as COM/LPT
+        # device digits, including extensions and intermediate directories.
+        self.archive()
+        self.assertTrue(inventory.validate_zip_archive(self.path, strict=True)['valid'])
+        for prefix in ('COM', 'lpt'):
+            for digit in ('¹', '²', '³'):
+                for suffix in ('', '.txt', '.tar.gz', '/nested.txt'):
+                    name = f'assets/sub/{prefix}{digit}{suffix}'
+                    with self.subTest(name=name):
+                        self.entries = {**self.control, name: b'original synthetic payload'}
+                        self.invalid('reserved Windows ZIP component')
+
+    def test_device_trailing_suffixes_reject_without_banning_unicode_names(self):
+        for name in ('assets/COM¹.', 'assets/lpt² ', 'assets/LPT³.tar.gz. ',
+                     'assets/COM¹./nested.txt', 'assets/LpT²/child.txt'):
+            with self.subTest(invalid=name):
+                self.entries = {**self.control, name: b'original synthetic payload'}
+                self.invalid()
+        # Do not normalize arbitrary Unicode or reject names merely starting
+        # with a device token: these components are not reserved DOS names.
+        for name in ('assets/COM10.txt', 'assets/COM¹backup.txt',
+                     'assets/LPT²data.txt', 'assets/texture².txt'):
+            with self.subTest(valid=name):
+                self.entries = {**self.control, name: b'original synthetic payload'}
+                self.archive()
+                self.assertTrue(inventory.validate_zip_archive(self.path, strict=True)['valid'])
     def test_unix_symlink_and_special_file_modes_reject(self):
         for mode in (stat.S_IFLNK | 0o777, stat.S_IFIFO | 0o600):
             info = zipfile.ZipInfo('ordinary-looking-name')
