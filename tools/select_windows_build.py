@@ -40,10 +40,29 @@ def select(kind, commit, read=api):
         matches = [j for j in jobs if j.get('name') == job_name]
         if len(matches) == 1 and matches[0].get('status') == 'completed' and matches[0].get('conclusion') == 'success':
             job = matches[0]
+            attempt = job.get('run_attempt')
+            if type(attempt) is not int or attempt < 1:
+                raise ValueError('successful Windows job lacks its actual run attempt')
             return {'commit': commit, 'run_id': run['id'], 'run_url': run['html_url'],
                     'windows_job_id': job['id'], 'windows_job_url': job['html_url'],
-                    'run_attempt': run['run_attempt']}
+                    'run_attempt': attempt, 'workflow_run_attempt': run['run_attempt']}
     raise ValueError(f'No successful exact-source Windows job for {kind} {commit}')
+
+
+def verify_game_artifact(root, selected, version):
+    path = Path(root) / 'BUILD_IDENTITY.json'
+    if path.is_symlink() or not path.is_file() or path.stat().st_size > 16 * 1024:
+        raise ValueError('missing or unsafe game build identity')
+    identity = json.loads(path.read_text())
+    source = identity.get('source', {})
+    expected = {'commit': selected['commit'], 'run_id': selected['run_id'],
+                'run_attempt': selected['run_attempt']}
+    if any(source.get(key) != value for key, value in expected.items()):
+        raise ValueError('game artifact differs from selected successful Windows job')
+    label = f"{version}+build.{selected['run_id']}.{selected['run_attempt']}"
+    if identity.get('repository') != REPOSITORY or identity.get('version') != version or identity.get('display_version') != label:
+        raise ValueError('game artifact label or version differs from selected Windows job')
+    return identity
 
 
 def main():

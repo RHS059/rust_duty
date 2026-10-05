@@ -69,7 +69,9 @@ jobs:
           import json, os, shutil, sys
           sys.path.insert(0, 'tools')
           from stage_release_game import stage_game, verify_archive
+          from select_windows_build import verify_game_artifact
           provenance=json.loads(Path('SOURCE_PROVENANCE.json').read_text())
+          verify_game_artifact(Path('tested/windows/game'), provenance['game'], os.environ['RELEASE_VERSION'])
           provenance['packaging']={'toolchain_commit':os.environ['RELEASE_GAME_REF'],'platforms':{}}
           for osname,game,launcher,bootstrap,magic in [
               ('windows','vector-range.exe','RustDuty.exe','RustDuty-windows-x64.exe',b'MZ')]:
