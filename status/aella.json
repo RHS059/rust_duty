@@ -15,7 +15,7 @@
       "slot": 2,
       "state": "working",
       "task": "Trial Colab walking corrections for the four approved HIP directions on a copied BLEND.",
-      "lastCompleted": "The four approved HIP walking directions are being trialed on a copied BLEND. Local baseline checks passed across 1,452 subframes; these do not establish a corrective change. Actual Colab CPU notebook https://colab.research.google.com/drive/13t6LekgpJnziBnyeSqdOOvkIM6NRjaC9 is active. Isolated Python 3.11.17 and bpy 4.3.0 were installed from official PyPI; input upload and the Blender 4.3.2 control/parity check are pending. Runtime setup is not a walking result; no corrected output or artistic pass is claimed."
+      "lastCompleted": "The four approved HIP walking directions are being trialed on a copied BLEND. Local baseline checks passed across 1,452 subframes; these do not establish a corrective change. The Colab CPU walking trial is active. Isolated Python 3.11.17 and bpy 4.3.0 were installed from official PyPI; input upload and the Blender 4.3.2 control/parity check are pending. Runtime setup is not a walking result; no corrected output or artistic pass is claimed."
     },
     {
       "slot": 3,
