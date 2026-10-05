@@ -1,4 +1,4 @@
-"""Create a new UTF-8 report without following an existing leaf link.
+"""Create a new file without following an existing leaf link.
 
 Windows CRT x-mode followed dangling symlinks in native CI. Inspect the directory
 entry with lstat, then use CreateFileW(CREATE_NEW, OPEN_REPARSE_POINT) rather than
@@ -98,6 +98,13 @@ def _write_posix(path, data):
 def write_text_exclusive(path, text, *, create_parents=False):
     """Write only to a new directory entry, preserving existing links and targets."""
     data = text.encode('utf-8')  # Encode before creating any filesystem entry.
+    write_bytes_exclusive(path, data, create_parents=create_parents)
+
+
+def write_bytes_exclusive(path, data, *, create_parents=False):
+    """Write exact bytes to a new entry, using the same link guards as reports."""
+    if not isinstance(data, bytes):
+        raise TypeError('exclusive binary output requires bytes')
     path = Path(path)
     try:
         path.lstat()  # exists() follows links and misses dangling ones.

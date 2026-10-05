@@ -5,18 +5,23 @@ import json
 import math
 import os
 from pathlib import Path
-import shutil
 import subprocess
 import sys
 
+from exclusive_output import write_bytes_exclusive
 from run_dx12_authored import execute, write_json
 from run_windows_gl_reference_probe import digest, validate_runtime
 from run_dx12_game_ui_fixture import validate_outputs
 from verify_capture_telemetry import read_record
 
 
+MAX_EXECUTABLE_BYTES = 512 * 1024 * 1024
+
+
 def check_identity(output, process):
     report = read_record(Path(output) / 'game-ui-contract-report.json')
+    if report.get('platform') != 'windows':
+        raise ValueError('Windows UI process requires a Windows fixture report')
     adapter = report.get('adapter')
     if report.get('requested') != 'gl' or report.get('backend') != 'OpenGl' or not isinstance(adapter, str) or not adapter.lower().startswith('llvmpipe'):
         raise ValueError('actual Windows OpenGl llvmpipe UI identity required')
@@ -41,6 +46,8 @@ def run(executable, runtime, manifest, root, evidence, output, timeout=600):
     executable, runtime, manifest, root, evidence, output = [p.resolve() for p in raw]
     if not executable.is_file() or not root.is_dir():
         raise ValueError('fixture executable and source root are required')
+    if not 0 < executable.stat().st_size <= MAX_EXECUTABLE_BYTES:
+        raise ValueError('fixture executable size must be between 1 byte and 512 MiB')
     if evidence.exists() or output.exists() or evidence == output or evidence in output.parents or output in evidence.parents:
         raise ValueError('fresh separate evidence/output directories required')
     pinned = validate_runtime(runtime, manifest)
@@ -55,8 +62,12 @@ def run(executable, runtime, manifest, root, evidence, output, timeout=600):
               'runtime': pinned, 'executable_sha256': digest(executable)}
     try:
         staged = runtime / 'game_ui_contract.exe'
-        with executable.open('rb') as src, staged.open('xb') as dst:
-            shutil.copyfileobj(src, dst)
+        with executable.open('rb') as src:
+            data = src.read(MAX_EXECUTABLE_BYTES + 1)
+        if not data or len(data) > MAX_EXECUTABLE_BYTES:
+            raise ValueError('fixture executable size changed outside the 1 byte to 512 MiB bound')
+        write_bytes_exclusive(staged, data)
+        del data
         if digest(staged) != report['executable_sha256']:
             raise ValueError('staged fixture executable differs from source')
         argv = [str(staged), '--renderer=gl', '--output-dir', str(output)]

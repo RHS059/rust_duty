@@ -42,6 +42,45 @@ class ExclusiveOutputTests(unittest.TestCase):
             exclusive.write_text_exclusive(self.path, 'overwrite')
         self.assertEqual(sentinel.read_text(), 'unchanged')
 
+    def test_binary_payloads_and_existing_bytes_are_preserved(self):
+        for name, payload in (('empty', b''), ('binary', bytes(range(256)) + b'\x00\xff\x80\n')):
+            with self.subTest(name=name):
+                path = self.root / name / 'output.bin'
+                exclusive.write_bytes_exclusive(path, payload, create_parents=True)
+                self.assertEqual(path.read_bytes(), payload)
+                with self.assertRaises(FileExistsError):
+                    exclusive.write_bytes_exclusive(path, b'replacement')
+                self.assertEqual(path.read_bytes(), payload)
+
+    def test_binary_leaf_links_preserve_link_and_target(self):
+        for live in (False, True):
+            folder = self.root / str(live)
+            folder.mkdir()
+            path, target = folder / 'output.bin', folder / 'target.bin'
+            if live:
+                target.write_bytes(b'\x00\xff original target')
+            try:
+                path.symlink_to(target)
+            except OSError as error:
+                self.skipTest(f'host cannot create symlinks: {error}')
+            original = path.readlink()
+            with self.subTest(live=live), self.assertRaises(FileExistsError):
+                exclusive.write_bytes_exclusive(path, b'new executable bytes')
+            self.assertTrue(path.is_symlink())
+            self.assertEqual(path.readlink(), original)
+            if live:
+                self.assertEqual(target.read_bytes(), b'\x00\xff original target')
+            else:
+                self.assertFalse(target.exists())
+
+    def test_invalid_payloads_fail_before_creating_parents(self):
+        path = self.root / 'absent/output'
+        with self.assertRaises(TypeError):
+            exclusive.write_bytes_exclusive(path, 'not bytes', create_parents=True)
+        with self.assertRaises(UnicodeEncodeError):
+            exclusive.write_text_exclusive(path, '\ud800', create_parents=True)
+        self.assertFalse(path.parent.exists())
+
     def test_dangling_link_is_rejected_before_any_create_api(self):
         target = self.root / 'absent'
         self.symlink(target)
@@ -87,11 +126,12 @@ class ExclusiveOutputTests(unittest.TestCase):
             return True
         api = SimpleNamespace(create=Mock(return_value=123), write=Mock(side_effect=write),
                               flush=Mock(return_value=True), close=Mock(return_value=True), error=lambda: 5)
-        with patch.object(exclusive, '_windows_api', return_value=api):
-            exclusive._write_windows(self.path, b'abcdefg')
+        payload = b'\x00\xff\x80abcdefg'
+        with patch.object(exclusive, '_windows_api', return_value=api), patch.object(exclusive, '_WINDOWS', True):
+            exclusive.write_bytes_exclusive(self.path, payload)
         api.create.assert_called_once_with(str(self.path.absolute()), exclusive.GENERIC_WRITE, 0, None,
             exclusive.CREATE_NEW, exclusive.FILE_ATTRIBUTE_NORMAL | exclusive.FILE_FLAG_OPEN_REPARSE_POINT, None)
-        self.assertEqual(emitted, b'abcdefg')
+        self.assertEqual(emitted, payload)
         api.flush.assert_called_once_with(123)
         api.close.assert_called_once_with(123)
 
