@@ -1,27 +1,27 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-05T01:51:49Z",
+  "updatedAt": "2026-10-05T02:02:48Z",
   "state": "working",
-  "task": "Validate combined Windows 0.1.11 integration and release control, improve four copied HIP walking directions against references, and inspect the four r5 reference/baseline video pairs. In parallel, author bounded low-vault free-hand r3 corrections after actual-pixel mismatch and coordinate Halcyon's prone and vault previews. Latest Complete and public latest remain verified v0.1.9.",
+  "task": "Validate combined Windows 0.1.11 integration, prepare four copied HIP walking visual-correction trials, and author and inspect low-vault free-hand r3. Additional review covers the four r5 reference/baseline pairs; coordination of Halcyon's prone and vault previews continues. Latest Complete and public latest remain verified v0.1.9.",
   "lastCompleted": "All six new videos annotated: 150 intervals cover 14,017 native frames; 1,135 sampled frames reviewed. PR #33 e4fdda48 pins witness hashes. Exact 0.1.8 Windows/Linux builds and native gameplay gates passed. Mantle/climb recovery packet published without claiming an authored candidate. Published v0.1.9 at 00:36:52 UTC: complete Windows/Linux packages and actual 0.1.8-to-0.1.9 delta activation, integrity, local-data preservation, game-entry update and same-path relaunch checks passed in run 37247568754. PR #36 unique build numbering merged into the Jump integration branch at fe87a7745fd5096eeb740aacbf8a094c5794d34a. Actual CPU prone-entry Colab results and the 64-frame native vault review were reviewed; vault free-hand visual failure now drives the next correction. Actual Colab CPU walking control and Blender 4.3.0/4.3.2 parity passed across 1,452 samples; this is technical evidence only, not a visual-quality pass. Exact four-direction r5 paired videos were restored for reference-led review.",
   "agents": [
     {
       "slot": 1,
       "state": "working",
-      "task": "Validate combined Windows 0.1.11 integration PR #39 and release-control PR #40.",
-      "lastCompleted": "PR #39 combined Windows 0.1.11 integration is active at 9525058d0583e270771211eca754dd0d3fa7e33a. Playable run 37252645953 is in progress; runtime contracts 37252645717 and updater 37252645737 succeeded. Companion control-plane PR #40 is active at 39a5cd544ebfd1dcedbb206ee864d103b564fd0e: playable checks 37252817760 succeeded, while updater 37252817763 and exact-source packaging 37252817751 remain in progress. Tests and promotion are pending; 0.1.11 is not live. Verified public latest and Latest Complete remain v0.1.9. Windows-only future delivery retains useful Linux-host testing; old artifacts are preserved."
+      "task": "Validate combined Windows 0.1.11 integration PR #39 and release promotion readiness.",
+      "lastCompleted": "PR #39 combined Windows 0.1.11 integration remains active at 9525058d0583e270771211eca754dd0d3fa7e33a. Playable run 37252645953 is in progress: all five authored asset pipelines succeeded; Windows and native validation are running their quality checks, with real-byte preflight and promotion not yet verified. Runtime contracts 37252645717 and updater 37252645737 succeeded. Control-plane PR #40 merged at 1f9cad05cd567ad825fc347c77b43b32b47cdce1 after playable, updater and exact-source packaging checks succeeded. The live release remains v0.1.9; 0.1.11 is not live. Windows-only future delivery retains useful Linux-host testing and old artifacts."
     },
     {
       "slot": 2,
       "state": "working",
-      "task": "Improve the four approved HIP walking directions on copied BLEND data against their references.",
-      "lastCompleted": "The actual Colab CPU control completed for all four approved HIP walking directions on copied BLEND data. Blender 4.3.0 versus 4.3.2 parity passed across 1,452 samples, with about 10 MB of safe output. The unchanged technical control does not mean the animation looks optimal. Reference-led visual improvement work remains active; the visual pass has not run and no corrected output or artistic approval is claimed."
+      "task": "Prepare and visually test four copied HIP walking correction variants against references.",
+      "lastCompleted": "Actual Colab CPU control and Blender 4.3.0/4.3.2 parity passed across 1,452 samples on copied data. Four copied HIP walking visual-correction variants are being prepared for a Colab batch: right sideways amplitude -12.5%, left late rotation -7.5%, forward second dip +3.5 px equivalent, and backward motion redistributed by 3 px. These are bounded reference-led hypotheses, not validated improvements. Actual corrected pixels and visual acceptance remain pending."
     },
     {
       "slot": 3,
       "state": "working",
-      "task": "Inspect the four r5 HIP reference/baseline video pairs for visual readiness.",
-      "lastCompleted": "Paired reference/baseline video analysis is active for the four r5 HIP walking directions. Exact paired MP4s were restored from rust_duty_updates commit e8206ee38fadaf34af4b90d4ffd8ab15b3b087e2. Historical snapshot scores are not a new review, and others' scores and reviews remain unchanged."
+      "task": "Author low-vault free-hand r3 and inspect release integration.",
+      "lastCompleted": "Low-vault free-hand r3 authoring and release-integration inspection are active. Reported technical checks and seven projection tests passed on candidate 6b95bdc; publication was interrupted and the authorized retry is pending remote-ref verification. No actual r3 rendered pixels or visual-quality pass is claimed. The r2 candidate remains frozen at PR #35 d877f8daeec24efc2b5ef5745d0fb23f8082ad61; PR #37 a126b6359483eeca62a7a1c22aabee1d6154657c retains the 64-frame evidence."
     }
   ]
 }
