@@ -237,12 +237,13 @@ class LandmarkReviewTests(unittest.TestCase):
     def test_non_png_is_rejected(self):
         data = png_bytes(synthetic_frame().convert('RGB'), 'JPEG')
         (self.review_dir / 'frame.png').write_bytes(data)
+        # Framing runs before Pillow, so a JPEG named .png fails as not a PNG.
         self.assert_invalid(self.document(self.entry(ADS, [479, 268], image='review/frame.png',
-                                                     data=data)), 'not PNG')
+                                                     data=data)), 'expected PNG format')
         (self.review_dir / 'broken.png').write_bytes(b'\x89PNG\r\n\x1a\nnope')
         self.assert_invalid(self.document(self.entry(ADS, [479, 268], image='review/broken.png',
                                                      data=b'\x89PNG\r\n\x1a\nnope')),
-                            'not a decodable PNG')
+                            'framed PNG')
 
     def test_paths_outside_root_are_rejected(self):
         outside = self.root.parent / f'{self.root.name}-outside.png'
@@ -353,14 +354,18 @@ class LandmarkReviewTests(unittest.TestCase):
         packet['records'][0]['calibrated_center'] = [481, 270]
         self.assert_invalid(self.valid(), 'calibrated_center', packet=packet)
 
-    def write_sequence(self, folder, backend='Dx12', hip_route='ready', ads=1):
+    def write_sequence(self, folder, backend='Dx12', hip_route='ready', ads=1,
+                       metadata=None, hip_ads=0.0, ads_ads=1.0):
         folder.mkdir()
-        for name, data, gameplay in (('0012.png', self.hip_png, {'route': hip_route}),
-                                     ('0040.png', self.ads_png,
-                                      {'route': 'ads.hold', 'simulation_ads': ads})):
+        for name, data, gameplay, pose_ads in (
+                ('0012.png', self.hip_png, {'route': hip_route}, hip_ads),
+                ('0040.png', self.ads_png,
+                 {'route': 'ads.hold', 'simulation_ads': ads}, ads_ads)):
             (folder / name).write_bytes(data)
-            (folder / f'{name}.json').write_text(json.dumps(
-                {'backend': backend, 'width': 960, 'height': 540}), encoding='utf-8')
+            side = {'backend': backend, 'width': 960, 'height': 540, 'ads': pose_ads}
+            if metadata:
+                side.update(metadata)
+            (folder / f'{name}.json').write_text(json.dumps(side), encoding='utf-8')
             (folder / f'{name}.gameplay.json').write_text(json.dumps(gameplay), encoding='utf-8')
 
     def test_frame_source_ties_bytes_and_telemetry(self):
@@ -379,6 +384,131 @@ class LandmarkReviewTests(unittest.TestCase):
         self.assert_invalid(self.valid(), 'not byte-identical', frames={'dx12': swapped})
         (self.root / 'captures' / '0012.png.gameplay.json').unlink()
         self.assert_invalid(self.valid(), 'missing sidecar', frames=frames)
+
+    # Aella follow-up probes (2026-10-05) ----------------------------------------
+
+    def test_frames_reject_raw_and_wrongly_typed_target_metadata(self):
+        """Raw-associated sidecars and mistyped flags must not measure-within-tolerance.
+
+        Opaque-display metadata remains a valid positive control. String "true"
+        for diagnostic_raw_target and string "1" for ads / simulation_ads are
+        rejected; typed raw/display, actual-backend, and numeric-ADS controls
+        cover the accepted and rejected shapes.
+        """
+        display = {
+            'diagnostic_raw_target': False,
+            'alpha_representation': landmarks.DISPLAY_ALPHA,
+        }
+        self.write_sequence(self.root / 'display', metadata=display)
+        frames = {'dx12': self.root / 'display'}
+        report = self.run_review(self.valid(), frames=frames)
+        self.assertEqual(report['status'], 'within-tolerance', report)
+        self.assertEqual(report['automated_landmark_gate'], 'measured-within-tolerance')
+        self.assert_human_gates_open(report)
+
+        # Typed raw target metadata: boolean true plus raw alpha label.
+        self.write_sequence(self.root / 'raw-flag', metadata={
+            'diagnostic_raw_target': True,
+            'alpha_representation': landmarks.RAW_ALPHA,
+        })
+        self.assert_invalid(self.valid(), 'diagnostic_raw_target',
+                            frames={'dx12': self.root / 'raw-flag'})
+
+        # Typed raw alpha label alone (even with diagnostic_raw_target false).
+        self.write_sequence(self.root / 'raw-alpha', metadata={
+            'diagnostic_raw_target': False,
+            'alpha_representation': landmarks.RAW_ALPHA,
+        })
+        self.assert_invalid(self.valid(), 'raw-associated-emissive-rgba8',
+                            frames={'dx12': self.root / 'raw-alpha'})
+
+        # Wrongly typed: string "true" for diagnostic_raw_target.
+        self.write_sequence(self.root / 'string-true', metadata={
+            'diagnostic_raw_target': 'true',
+            'alpha_representation': landmarks.DISPLAY_ALPHA,
+        })
+        self.assert_invalid(self.valid(), 'JSON boolean',
+                            frames={'dx12': self.root / 'string-true'})
+
+        # Wrongly typed: string "1" for numeric ads in the capture sidecar.
+        self.write_sequence(self.root / 'string-ads', metadata=display, hip_ads='1')
+        self.assert_invalid(self.valid(), 'must be a JSON number',
+                            frames={'dx12': self.root / 'string-ads'})
+
+        # Wrongly typed: string "1" for simulation_ads in gameplay telemetry.
+        self.write_sequence(self.root / 'string-sim-ads', metadata=display, ads='1')
+        self.assert_invalid(self.valid(), 'simulation_ads',
+                            frames={'dx12': self.root / 'string-sim-ads'})
+
+        # Actual-backend control still rejects non-Dx12 for the dx12 backend.
+        self.write_sequence(self.root / 'gl-backend', backend='OpenGl', metadata=display)
+        self.assert_invalid(self.valid(), 'backend',
+                            frames={'dx12': self.root / 'gl-backend'})
+
+        # Numeric-ADS control: wrong numeric ads for the pose is rejected.
+        self.write_sequence(self.root / 'wrong-ads', metadata=display, hip_ads=1.0)
+        self.assert_invalid(self.valid(), 'ads=',
+                            frames={'dx12': self.root / 'wrong-ads'})
+
+    def test_landmark_list_and_overflow_coordinates_are_invalid_reports(self):
+        """landmark:[] and 10**400 must become documented invalid reports, not crashes."""
+        doc = self.valid()
+        doc['measurements'][0]['landmark'] = []
+        report = self.assert_invalid(doc, 'must be a string landmark id')
+        self.assertEqual(report['status'], 'invalid')
+        self.assertFalse(report['acceptance_complete'])
+        self.assert_human_gates_open(report)
+
+        doc = self.valid()
+        doc['measurements'][0]['measured_center'] = [10 ** 400, 268]
+        report = self.assert_invalid(doc, 'finite float range')
+        self.assertEqual(report['status'], 'invalid')
+        self.assert_human_gates_open(report)
+
+        # CLI path: exit 2, invalid report on stdout, no uncaught Type/OverflowError.
+        path = self.root / 'overflow.json'
+        path.write_text(json.dumps(doc), encoding='utf-8')
+        with contextlib.redirect_stdout(io.StringIO()) as stdout:
+            code = landmarks.main(['review', str(path), '--root', str(self.root)])
+        self.assertEqual(code, 2)
+        printed = json.loads(stdout.getvalue())
+        self.assertEqual(printed['status'], 'invalid')
+        self.assert_human_gates_open(printed)
+
+    def test_png_missing_only_final_iend_crc_is_rejected(self):
+        """Pillow verify/load accepts a PNG missing only its final IEND CRC; we must not."""
+        path = self.review_dir / 'dx12-ads-raw.png'
+        original = path.read_bytes()
+        self.assertEqual(original[-8:-4], b'IEND')
+        path.write_bytes(original[:-1])  # drop the final CRC byte only
+        truncated_sha = sha(path.read_bytes())
+        doc = self.valid()
+        # Point the ADS entry at the truncated bytes (hip untouched).
+        doc['measurements'][0]['image_sha256'] = truncated_sha
+        report = self.assert_invalid(doc, 'framed PNG')
+        self.assertTrue(any('CRC' in error or 'framed PNG' in error
+                            for error in report['errors']), report['errors'])
+        self.assert_human_gates_open(report)
+
+    def test_invalid_utf8_with_existing_output_refuses_without_clobber(self):
+        """Parse-error reports use the protected writer; existing files stay untouched."""
+        bad = self.root / 'bad-utf8.json'
+        bad.write_bytes(b'\xff\xfe not valid utf-8 at all')
+        output = self.root / 'existing-report.json'
+        marker = b'DO-NOT-CLOBBER'
+        output.write_bytes(marker)
+        with contextlib.redirect_stdout(io.StringIO()) as stdout, \
+                contextlib.redirect_stderr(io.StringIO()) as stderr:
+            code = landmarks.main(['review', str(bad), '--root', str(self.root),
+                                   '--output', str(output)])
+        self.assertEqual(code, 2)
+        self.assertEqual(output.read_bytes(), marker)
+        self.assertIn('refusing to overwrite', stderr.getvalue())
+        printed = json.loads(stdout.getvalue())
+        self.assertEqual(printed['status'], 'invalid')
+        self.assertTrue(any('UTF-8' in error or 'utf-8' in error or 'codec' in error
+                            for error in printed['errors']), printed['errors'])
+        self.assert_human_gates_open(printed)
 
     # Schema and CLI ------------------------------------------------------------
 

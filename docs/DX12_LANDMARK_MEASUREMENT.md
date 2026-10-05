@@ -75,7 +75,15 @@ keys and `NaN`/`Infinity` literals are rejected.
 ## Identity checks
 
 Always: the image path must be relative inside `--root`, not traverse a symlink,
-match `image_sha256`, decode as PNG and be exactly 960x540.
+match `image_sha256`, decode as PNG and be exactly 960x540. PNG framing is
+checked with `verify_render_capture._verify_png_framing` before Pillow decode,
+so a stream missing only its final IEND CRC is rejected (Pillow verify/load
+alone would accept it). Landmark ids must be strings; non-string values such as
+`[]` and coordinates outside the finite float range (for example `10**400`) are
+documented invalid reports with exit 2, never uncaught `TypeError` /
+`OverflowError`. Invalid UTF-8 or other parse failures write their invalid
+report through the same protected `--output` writer: an already-existing output
+file is left untouched and the process still exits 2.
 
 `--packet <review>/landmark-review.json` (from the authored DX12 packet): each
 annotated hash must be a packet raw record whose backend, pose, source frame,
@@ -85,7 +93,16 @@ feature, calibrated center and 4 px tolerance match the annotation.
 image must be byte-identical to `<captures>/<source_frame>`, its `.png.json`
 must report 960x540 (and `Dx12` for the dx12 backend), and its
 `.png.gameplay.json` must identify the same review frame the packet selects:
-`route == "ready"` for hip; `route == "ads.hold"` with `simulation_ads == 1` for ads.
+`route == "ready"` for hip; `route == "ads.hold"` with numeric `simulation_ads == 1`
+for ads. Capture sidecars that mark raw render targets
+(`diagnostic_raw_target: true` or
+`alpha_representation: "raw-associated-emissive-rgba8"`) are rejected; opaque
+display sidecars (`diagnostic_raw_target: false`,
+`alpha_representation: "opaque-rgba8-rgb-preserved-over-black"`) are accepted.
+Wrongly typed fields are also invalid reports: string `"true"` for
+`diagnostic_raw_target`, and string `"1"` for sidecar `ads` or gameplay
+`simulation_ads`, instead of real JSON boolean / number values. When present,
+numeric sidecar `ads` must match the pose (0 for hip, 1 for ads).
 
 ## Usage
 
@@ -126,7 +143,9 @@ which (`diagnostic_raw_target`, `alpha_representation`):
   the viewer rendering.
 
 Landmark measurement uses only the 960x540 viewmodel captures, which are opaque
-display images. Raw targets are never landmark inputs.
+display images. Raw targets are never landmark inputs; when `--frames` is used,
+a sidecar that still carries raw-target metadata fails the review as `invalid`
+(exit 2) instead of producing `measured-within-tolerance`.
 
 ## 100% / 200% text raster checks: scope
 

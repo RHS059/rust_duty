@@ -14,7 +14,10 @@ SHA-256, its 960x540 extent, its frame identity and its landmark identity. Any
 missing, non-finite, out-of-bounds, duplicated, contradictory or unknown input
 is rejected and the whole review stays open; there is no partial pass.
 Unmeasurable or uncertain landmarks are recorded but never accepted. Raw images
-are opened read-only and their hashes are re-checked after decoding.
+are opened read-only and their hashes are re-checked after decoding. PNG framing
+(including every chunk CRC) is checked before Pillow decode. Sidecars that mark
+raw render targets, or that carry wrongly typed diagnostic_raw_target / ads
+fields, are rejected. Type and bounds errors become invalid reports (exit 2).
 
 A within-tolerance result closes only the measured-pixel comparison. Human M2
 capture approval and M4 hardware playtest approval always remain open here.
@@ -30,6 +33,8 @@ import re
 import sys
 
 from PIL import Image
+
+from verify_render_capture import CaptureError, _verify_png_framing
 
 MEASUREMENT_SCHEMA = 'rust-duty-dx12-landmark-measurements/v1'
 REPORT_SCHEMA = 'rust-duty-dx12-landmark-review/v1'
@@ -51,6 +56,10 @@ CONFUSABLE_LANDMARKS = {
     'far-aperture': 'historical projection feature; not a calibrated landmark',
 }
 BACKENDS = ('dx12', 'legacy')
+# Capture sidecar labels from the renderer contract. Landmark measurement accepts
+# only opaque display images; raw-associated targets are never landmark inputs.
+DISPLAY_ALPHA = 'opaque-rgba8-rgb-preserved-over-black'
+RAW_ALPHA = 'raw-associated-emissive-rgba8'
 OUTCOMES = ('measured', 'unmeasurable', 'uncertain')
 ACCEPTED_METHODS = ('manual-raw-pixel', 'scripted-raw-pixel')
 # Coordinates from any of these sources are never measurements.
@@ -129,9 +138,13 @@ def _text(value, where):
 def _number(value, where):
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         raise ReviewError(f'{where} must be a JSON number')
-    if not math.isfinite(value):
+    try:
+        number = float(value)
+    except OverflowError as error:
+        raise ReviewError(f'{where} is outside the finite float range') from error
+    if not math.isfinite(number):
         raise ReviewError(f'{where} must be finite')
-    return float(value)
+    return number
 
 
 def parse_point(value, where):
@@ -208,6 +221,12 @@ def verify_raw_png(path, expected_sha, where):
     before = sha256_file(path)
     if before != expected_sha:
         raise ReviewError(f'{where} SHA-256 {before} does not match annotation {expected_sha}')
+    # Pillow verify/load accepts a PNG missing only its final IEND CRC; reuse the
+    # capture-contract framing check that rejects truncated chunk CRCs first.
+    try:
+        _verify_png_framing(path)
+    except CaptureError as error:
+        raise ReviewError(f'{where} is not a framed PNG: {error}') from error
     try:
         with Image.open(path) as image:
             image.verify()
@@ -265,6 +284,23 @@ POSE_TELEMETRY = {'hip': {'route': 'ready'},
 BACKEND_SIDECAR = {'dx12': 'Dx12'}
 
 
+def _sidecar_bool(metadata, key, where, path_name):
+    """Require a real JSON boolean when the capture sidecar declares a typed flag."""
+    if key not in metadata:
+        return None
+    value = metadata[key]
+    if not isinstance(value, bool):
+        raise ReviewError(f'{where}: {path_name} {key} must be a JSON boolean, got {value!r}')
+    return value
+
+
+def _sidecar_number(metadata, key, where, path_name):
+    """Require a finite JSON number when the capture sidecar declares a numeric field."""
+    if key not in metadata:
+        return None
+    return _number(metadata[key], f'{where}: {path_name} {key}')
+
+
 def check_frame_source(item, frames_dir, where):
     """Tie the annotation to the original capture sequence frame and its sidecars."""
     frame = item['frame']
@@ -285,11 +321,46 @@ def check_frame_source(item, frames_dir, where):
     if expected_backend is not None and metadata.get('backend') != expected_backend:
         raise ReviewError(f'{where}: {metadata_path.name} backend is '
                           f'{metadata.get("backend")!r}, not {expected_backend!r}')
+    # Reject raw or wrongly typed target metadata. Opaque display sidecars are
+    # accepted; raw-associated emissive targets are never landmark inputs.
+    raw_flag = _sidecar_bool(metadata, 'diagnostic_raw_target', where, metadata_path.name)
+    if raw_flag is True:
+        raise ReviewError(f'{where}: {metadata_path.name} marks diagnostic_raw_target=true; '
+                          'raw render-target readbacks are not landmark inputs')
+    alpha = metadata.get('alpha_representation')
+    if alpha is not None and not isinstance(alpha, str):
+        raise ReviewError(f'{where}: {metadata_path.name} alpha_representation must be a string, '
+                          f'got {alpha!r}')
+    if alpha == RAW_ALPHA:
+        raise ReviewError(f'{where}: {metadata_path.name} alpha_representation is {RAW_ALPHA!r}; '
+                          'raw-associated targets are not landmark inputs')
+    if alpha is not None and alpha != DISPLAY_ALPHA:
+        raise ReviewError(f'{where}: {metadata_path.name} alpha_representation {alpha!r} is not '
+                          f'the opaque display label {DISPLAY_ALPHA!r}')
+    ads = _sidecar_number(metadata, 'ads', where, metadata_path.name)
+    expected_ads = 1.0 if frame['pose'] == 'ads' else 0.0
+    if ads is not None and ads != expected_ads:
+        raise ReviewError(f'{where}: {metadata_path.name} ads={ads!r} does not match pose '
+                          f'{frame["pose"]!r} (expected {expected_ads:g})')
     gameplay = load_json(gameplay_path)
     if not isinstance(gameplay, dict):
         raise ReviewError(f'{where}: {gameplay_path.name} must be an object')
     for key, value in POSE_TELEMETRY[frame['pose']].items():
         actual = gameplay.get(key)
+        if key == 'simulation_ads':
+            # Reject string "1" / bools; pose binding needs a real JSON number.
+            if isinstance(actual, bool) or not isinstance(actual, (int, float)):
+                raise ReviewError(f'{where}: {gameplay_path.name} {key}={actual!r} does not '
+                                  f'identify a {frame["pose"]} review frame ({value!r})')
+            try:
+                numeric = float(actual)
+            except OverflowError as error:
+                raise ReviewError(f'{where}: {gameplay_path.name} {key} is outside the finite '
+                                  'float range') from error
+            if not math.isfinite(numeric) or numeric != value:
+                raise ReviewError(f'{where}: {gameplay_path.name} {key}={actual!r} does not '
+                                  f'identify a {frame["pose"]} review frame ({value!r})')
+            continue
         if isinstance(actual, bool) or actual != value:
             raise ReviewError(f'{where}: {gameplay_path.name} {key}={actual!r} does not '
                               f'identify a {frame["pose"]} review frame ({value!r})')
@@ -299,6 +370,8 @@ def parse_entry(entry, index, root):
     where = f'measurements[{index}]'
     _keys(entry, ENTRY_REQUIRED, ENTRY_OPTIONAL, where)
     landmark = entry['landmark']
+    if not isinstance(landmark, str):
+        raise ReviewError(f'{where}.landmark must be a string landmark id, got {landmark!r}')
     if landmark in CONFUSABLE_LANDMARKS:
         raise ReviewError(f'{where}.landmark {landmark!r}: {CONFUSABLE_LANDMARKS[landmark]}')
     if landmark not in LANDMARKS:
@@ -524,7 +597,15 @@ def main(argv=None):
             frames[backend] = Path(folder)
     except ReviewError as error:
         report = open_report([str(error)])
-        _write(report, None if args.command == 'template' else args.output)
+        try:
+            _write(report, None if args.command == 'template' else args.output)
+        except FileExistsError:
+            # Parse/load failures still go through the protected writer: never
+            # clobber an existing file, and still exit 2 with the invalid report
+            # on stdout when --output cannot be created.
+            sys.stderr.write(f'refusing to overwrite existing report {args.output}\n')
+            _write(report, None)
+            return 2
         return 2
     report = review(measurements, args.root, packet,
                     tuple(args.require_backend or ('dx12',)), frames)
