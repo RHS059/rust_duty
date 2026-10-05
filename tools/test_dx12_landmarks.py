@@ -354,19 +354,31 @@ class LandmarkReviewTests(unittest.TestCase):
         packet['records'][0]['calibrated_center'] = [481, 270]
         self.assert_invalid(self.valid(), 'calibrated_center', packet=packet)
 
+    MISSING = object()
+
     def write_sequence(self, folder, backend='Dx12', hip_route='ready', ads=1,
-                       metadata=None, hip_ads=0.0, ads_ads=1.0):
+                       metadata=None, hip_ads=0.0, ads_ads=1.0, ads_gameplay=None,
+                       ads_gameplay_text=None, pngs=None):
         folder.mkdir()
+        hip_png, ads_png = pngs or (self.hip_png, self.ads_png)
+        stationary = {'route': 'ads.hold', 'simulation_ads': ads, 'run_weight': 0, 'speed': 0}
+        for key, value in (ads_gameplay or {}).items():
+            if value is self.MISSING:
+                stationary.pop(key, None)
+            else:
+                stationary[key] = value
         for name, data, gameplay, pose_ads in (
-                ('0012.png', self.hip_png, {'route': hip_route}, hip_ads),
-                ('0040.png', self.ads_png,
-                 {'route': 'ads.hold', 'simulation_ads': ads}, ads_ads)):
+                ('0012.png', hip_png, {'route': hip_route}, hip_ads),
+                ('0040.png', ads_png, stationary, ads_ads)):
             (folder / name).write_bytes(data)
             side = {'backend': backend, 'width': 960, 'height': 540, 'ads': pose_ads}
             if metadata:
                 side.update(metadata)
             (folder / f'{name}.json').write_text(json.dumps(side), encoding='utf-8')
-            (folder / f'{name}.gameplay.json').write_text(json.dumps(gameplay), encoding='utf-8')
+            text = json.dumps(gameplay)
+            if name == '0040.png' and ads_gameplay_text is not None:
+                text = ads_gameplay_text
+            (folder / f'{name}.gameplay.json').write_text(text, encoding='utf-8')
 
     def test_frame_source_ties_bytes_and_telemetry(self):
         self.write_sequence(self.root / 'captures')
@@ -384,6 +396,81 @@ class LandmarkReviewTests(unittest.TestCase):
         self.assert_invalid(self.valid(), 'not byte-identical', frames={'dx12': swapped})
         (self.root / 'captures' / '0012.png.gameplay.json').unlink()
         self.assert_invalid(self.valid(), 'missing sidecar', frames=frames)
+
+    def test_frames_require_stationary_fully_held_ads(self):
+        """ADS binds only to the harness's stationary fully held selection.
+
+        Integer and float zero run_weight/speed (and 1 / 1.0 simulation_ads) are
+        positive controls; missing, null, boolean, string, nonfinite and nonzero
+        values keep the review invalid, matching run_dx12_authored.py.
+        """
+        for index, values in enumerate(({'run_weight': 0, 'speed': 0},
+                                        {'run_weight': 0.0, 'speed': -0.0, 'simulation_ads': 1.0})):
+            folder = self.root / f'stationary-{index}'
+            self.write_sequence(folder, ads_gameplay=values)
+            report = self.run_review(self.valid(), frames={'dx12': folder})
+            self.assertEqual(report['status'], 'within-tolerance', report)
+            self.assert_human_gates_open(report)
+        cases = []
+        for key in ('run_weight', 'speed'):
+            cases += [(f'{key}-missing', {key: self.MISSING}, f'missing {key}'),
+                      (f'{key}-null', {key: None}, key),
+                      (f'{key}-false', {key: False}, key),
+                      (f'{key}-true', {key: True}, key),
+                      (f'{key}-string', {key: '0'}, key),
+                      (f'{key}-list', {key: [0]}, key),
+                      (f'{key}-moving', {key: 0.25}, key),
+                      (f'{key}-negative', {key: -1}, key),
+                      (f'{key}-tiny', {key: 1e-9}, key),
+                      (f'{key}-overflow-int', {key: 10 ** 400}, 'finite float range')]
+        cases += [('simulation_ads-missing', {'simulation_ads': self.MISSING},
+                   'missing simulation_ads'),
+                  ('simulation_ads-true', {'simulation_ads': True}, 'simulation_ads')]
+        for name, values, fragment in cases:
+            folder = self.root / name
+            self.write_sequence(folder, ads_gameplay=values)
+            with self.subTest(case=name):
+                self.assert_invalid(self.valid(), fragment, frames={'dx12': folder})
+        # Nonfinite values: 1e400 parses to inf; NaN/Infinity literals are refused at parse.
+        stationary = '{"route": "ads.hold", "simulation_ads": 1, "run_weight": %s, "speed": %s}'
+        for name, text, fragment in (
+                ('run_weight-inf', stationary % ('1e400', '0'), 'run_weight'),
+                ('speed-neg-inf', stationary % ('0', '-1e400'), 'speed'),
+                ('run_weight-nan', stationary % ('NaN', '0'), 'NaN'),
+                ('speed-infinity', stationary % ('0', 'Infinity'), 'Infinity')):
+            folder = self.root / name
+            self.write_sequence(folder, ads_gameplay_text=text)
+            with self.subTest(case=name):
+                self.assert_invalid(self.valid(), fragment, frames={'dx12': folder})
+
+    def test_stationary_ads_gate_holds_for_required_legacy_frames(self):
+        legacy_hip = png_bytes(synthetic_frame(guard=(526, 280)))
+        legacy_ads = png_bytes(synthetic_frame(aperture=(480, 270)))
+        (self.review_dir / 'legacy-hip-raw.png').write_bytes(legacy_hip)
+        (self.review_dir / 'legacy-ads-raw.png').write_bytes(legacy_ads)
+
+        def legacy(landmark, point):
+            pose = landmarks.LANDMARKS[landmark]['pose']
+            item = self.entry(landmark, point, image=f'review/legacy-{pose}-raw.png',
+                              data=legacy_ads if pose == 'ads' else legacy_hip)
+            item['frame'] = dict(item['frame'], backend='legacy')
+            return item
+
+        document = self.document(self.entry(ADS, [479, 268]), self.entry(HIP, [527, 281]),
+                                 legacy(ADS, [479, 268]), legacy(HIP, [527, 281]))
+        self.write_sequence(self.root / 'dx12-ok')
+        self.write_sequence(self.root / 'legacy-ok', backend='OpenGl',
+                            pngs=(legacy_hip, legacy_ads))
+        report = self.run_review(document, require_backends=('dx12', 'legacy'),
+                                 frames={'dx12': self.root / 'dx12-ok',
+                                         'legacy': self.root / 'legacy-ok'})
+        self.assertEqual(report['status'], 'within-tolerance', report)
+        self.assert_human_gates_open(report)
+        self.write_sequence(self.root / 'legacy-moving', backend='OpenGl',
+                            ads_gameplay={'speed': 3.5}, pngs=(legacy_hip, legacy_ads))
+        self.assert_invalid(document, 'speed', require_backends=('dx12', 'legacy'),
+                            frames={'dx12': self.root / 'dx12-ok',
+                                    'legacy': self.root / 'legacy-moving'})
 
     # Aella follow-up probes (2026-10-05) ----------------------------------------
 

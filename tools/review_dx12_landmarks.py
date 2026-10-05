@@ -280,9 +280,14 @@ def check_packet(entry, record, where):
                               f'does not match {value!r}')
 
 
-# Same frame selection the authored packet uses for its review copies.
+# Same frame selection the authored packet uses for its review copies: hip is
+# the first route == ready frame; ADS is the first stationary, fully held frame
+# (route == ads.hold, run_weight == 0, speed == 0, simulation_ads == 1).
 POSE_TELEMETRY = {'hip': {'route': 'ready'},
-                  'ads': {'route': 'ads.hold', 'simulation_ads': 1}}
+                  'ads': {'route': 'ads.hold', 'simulation_ads': 1,
+                          'run_weight': 0, 'speed': 0}}
+# Telemetry that must be a real finite JSON number (never bool, string or null).
+NUMERIC_TELEMETRY = frozenset({'simulation_ads', 'run_weight', 'speed'})
 BACKEND_SIDECAR = {'dx12': 'Dx12'}
 
 
@@ -377,8 +382,12 @@ def check_frame_source(item, frames_dir, where):
         raise ReviewError(f'{where}: {gameplay_path.name} must be an object')
     for key, value in POSE_TELEMETRY[frame['pose']].items():
         actual = gameplay.get(key)
-        if key == 'simulation_ads':
-            # Reject string "1" / bools; pose binding needs a real JSON number.
+        if key in NUMERIC_TELEMETRY:
+            # Missing, null, bool, string ("0"/"1") and nonfinite values never
+            # identify a review frame; the binding needs a real finite JSON number.
+            if key not in gameplay:
+                raise ReviewError(f'{where}: {gameplay_path.name} is missing {key}; a '
+                                  f'{frame["pose"]} review frame needs {key} == {value!r}')
             if isinstance(actual, bool) or not isinstance(actual, (int, float)):
                 raise ReviewError(f'{where}: {gameplay_path.name} {key}={actual!r} does not '
                                   f'identify a {frame["pose"]} review frame ({value!r})')

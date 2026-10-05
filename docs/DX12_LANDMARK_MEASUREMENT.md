@@ -93,8 +93,11 @@ feature, calibrated center and 4 px tolerance match the annotation.
 image must be byte-identical to `<captures>/<source_frame>`, its `.png.json`
 must report 960x540 (and `Dx12` for the dx12 backend), and its
 `.png.gameplay.json` must identify the same review frame the packet selects:
-`route == "ready"` for hip; `route == "ads.hold"` with numeric `simulation_ads == 1`
-for ads. Capture sidecars that mark raw render targets
+`route == "ready"` for hip; for ads, the harness's stationary fully held frame:
+`route == "ads.hold"` with finite numeric `simulation_ads == 1`, `run_weight == 0`
+and `speed == 0`. A missing, null, boolean, string or nonfinite `simulation_ads`,
+`run_weight` or `speed`, or a nonzero `run_weight` / `speed`, is an invalid
+report; a moving or partially weighted ADS frame never binds. Capture sidecars that mark raw render targets
 (`diagnostic_raw_target: true` or
 `alpha_representation: "raw-associated-emissive-rgba8"`) are rejected; opaque
 display sidecars (`diagnostic_raw_target: false`,
