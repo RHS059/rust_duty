@@ -4,6 +4,8 @@ pub const BUILD_VERSION: &str = env!("RUST_DUTY_BUILD_VERSION");
 pub mod settings;
 pub mod sim;
 
+pub mod action;
+
 pub mod control;
 
 pub mod clock;

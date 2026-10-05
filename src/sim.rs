@@ -1,5 +1,12 @@
+use crate::action::{ActionEvent, ActionEventKind, ActionSlot, ActionTimings, Loadout};
 use crate::settings::Settings;
 use macroquad::math::{vec2, vec3, Vec2, Vec3};
+
+mod actions;
+pub use actions::{
+    Action, DivePhase, DiveState, HangPhase, HangState, MountState, Obstruction, PistolPhase,
+    SlidePhase, SlideState, TacSprint,
+};
 pub const FIXED_DT: f32 = 1. / 120.;
 pub const MAGAZINE: u32 = 30;
 pub const RADIUS: f32 = 0.381;
@@ -9,7 +16,9 @@ pub const MANTLE_MIN_HEIGHT: f32 = 0.50;
 pub const MANTLE_LOW_HEIGHT: f32 = 1.20;
 pub const MANTLE_MAX_HEIGHT: f32 = 1.85;
 pub const MANTLE_REACH: f32 = 0.65;
-const STANDING_HEIGHT: f32 = 1.778;
+pub const STANDING_HEIGHT: f32 = 1.778;
+pub const CROUCH_HEIGHT: f32 = 1.27;
+pub const PRONE_HEIGHT: f32 = 0.762;
 const MANTLE_LANDING_MARGIN: f32 = 0.03;
 const MANTLE_LIFT_CLEARANCE: f32 = 0.035;
 const MANTLE_MAX_TRAVEL: f32 = 1.85;
@@ -29,6 +38,8 @@ pub struct MantleState {
     elapsed: f32,
     duration: f32,
     support: Aabb,
+    /// True for a pull-up started from a ledge hang.
+    pub from_hang: bool,
 }
 impl MantleState {
     pub fn progress(self) -> f32 {
@@ -65,7 +76,7 @@ impl MantleState {
     }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Aabb {
     pub min: Vec3,
     pub max: Vec3,
@@ -116,6 +127,14 @@ impl Aabb {
             Some(near)
         }
     }
+}
+#[derive(Clone, Copy)]
+struct FireProfile {
+    rpm: f32,
+    body_damage: f32,
+    head_damage: f32,
+    recoil_scale: f32,
+    sidearm: bool,
 }
 #[derive(Clone)]
 pub struct Block {
@@ -196,6 +215,12 @@ pub struct Input {
     pub ads: bool,
     pub fire: bool,
     pub reload: bool,
+    /// One-shot: double-tapped sprint (see `control::ActionLatch`).
+    pub tactical_sprint: bool,
+    /// One-shot: voluntary mount toggle press.
+    pub mount: bool,
+    /// One-shot: sidearm draw/stow press (hang only).
+    pub sidearm: bool,
 }
 #[derive(Clone, Copy)]
 pub struct Shot {
@@ -265,6 +290,29 @@ pub struct Player {
     pub last_jump_at: f64,
     pub air_speed_limit: f32,
     pub mantle: Option<MantleState>,
+    /// Slide, dive or ledge hang. Mantle/pull-up stays in `mantle`.
+    pub action: Action,
+    pub tac_sprint: Option<TacSprint>,
+    /// Seconds of tactical sprint available.
+    pub tac_charge: f32,
+    pub tac_recharge_wait: f32,
+    pub mount: Option<MountState>,
+    pub mount_ready_for: f32,
+    pub obstruction: Obstruction,
+    pub health: f32,
+    /// Simulation time of death; `None` while alive.
+    pub dead_since: Option<f64>,
+    pub crouch_was: bool,
+    pub prone_was: bool,
+    pub slide_ready_at: f64,
+    /// Weapon raise after an action ends: ADS, fire and reload wait for this.
+    pub weapon_lockout_until: f64,
+    /// Stance input is ignored until this time (dive recovery).
+    pub stance_lock_until: f64,
+    pub recatch_until: f64,
+    pub recatch_support: Option<Aabb>,
+    /// The most recent exit/interrupt slot and its start time, for presentation.
+    pub last_exit: Option<(ActionSlot, f64)>,
 }
 impl Default for Player {
     fn default() -> Self {
@@ -311,6 +359,23 @@ impl Default for Player {
             last_jump_at: -10.,
             air_speed_limit: 5.0673,
             mantle: None,
+            action: Action::None,
+            tac_sprint: None,
+            tac_charge: 3.0,
+            tac_recharge_wait: 0.,
+            mount: None,
+            mount_ready_for: 0.,
+            obstruction: Obstruction::default(),
+            health: 100.,
+            dead_since: None,
+            crouch_was: false,
+            prone_was: false,
+            slide_ready_at: -10.,
+            weapon_lockout_until: -10.,
+            stance_lock_until: -10.,
+            recatch_until: -10.,
+            recatch_support: None,
+            last_exit: None,
         }
     }
 }
@@ -325,13 +390,18 @@ impl Player {
         )
     }
     pub fn height(&self) -> f32 {
-        if self.prone {
-            0.762
+        if let Some(height) = self.action.capsule_height() {
+            height
+        } else if self.prone {
+            PRONE_HEIGHT
         } else if self.crouched {
-            1.27
+            CROUCH_HEIGHT
         } else {
             STANDING_HEIGHT
         }
+    }
+    pub fn dead(&self) -> bool {
+        self.dead_since.is_some()
     }
     pub fn bounds_at(&self, pos: Vec3) -> Aabb {
         Aabb {
@@ -358,8 +428,8 @@ fn approach(current: f32, target: f32, step: f32) -> f32 {
 // an AABB, expressed as a feet-point segment through its Minkowski expansion.
 // Open intervals permit contact at the floor/landing without treating it as
 // penetration. We test complete segments, never sampled positions alone.
-fn swept_standing_box(start: Vec3, end: Vec3, obstacle: Aabb) -> bool {
-    let min = obstacle.min - vec3(RADIUS, STANDING_HEIGHT, RADIUS);
+fn swept_box(start: Vec3, end: Vec3, obstacle: Aabb, height: f32) -> bool {
+    let min = obstacle.min - vec3(RADIUS, height, RADIUS);
     let max = obstacle.max + vec3(RADIUS, 0., RADIUS);
     let delta = end - start;
     let mut enter: f32 = 0.;
@@ -385,14 +455,14 @@ fn swept_standing_box(start: Vec3, end: Vec3, obstacle: Aabb) -> bool {
 // expansion by the standing player, including the extra horizontal top plane
 // needed when an AABB expands a sloped surface. Ramps obstruct traversal but
 // are not ledge candidates in this authored first implementation.
-fn swept_standing_ramp(start: Vec3, end: Vec3, r: Ramp) -> bool {
+fn swept_ramp(start: Vec3, end: Vec3, r: Ramp, height: f32) -> bool {
     let slope = r.slope();
     let planes = [
         (Vec3::X, r.x + r.width * 0.5 + RADIUS),
         (-Vec3::X, -r.x + r.width * 0.5 + RADIUS),
         (Vec3::Z, r.z + RADIUS),
         (-Vec3::Z, -r.z + r.length + RADIUS),
-        (-Vec3::Y, STANDING_HEIGHT),
+        (-Vec3::Y, height),
         (Vec3::Y, r.height),
         (vec3(0., 1., slope), slope * (r.z + RADIUS)),
     ];
@@ -425,6 +495,12 @@ pub struct Simulation {
     pub ramps: Vec<Ramp>,
     pub stats: Stats,
     pub events: Vec<Shot>,
+    /// Traversal/weapon-action events; drained by presentation.
+    pub action_events: Vec<ActionEvent>,
+    /// Clip durations/events that gate action timing. Survives `reset`.
+    pub timings: ActionTimings,
+    /// Sidearm interface; empty by default. Survives `reset`.
+    pub loadout: Loadout,
     pub time: f64,
     spread_seed: u32,
     recoil_seed: u32,
@@ -499,6 +575,11 @@ impl Simulation {
             bounds: Aabb::from_center(vec3(17., 2., -40.), vec3(8., 4., 0.3)),
             kind: 1,
         });
+        // Ledge-hang/pull-up fixture: 2.7 m lip, 2 m deep top for a full landing.
+        blocks.push(Block {
+            bounds: Aabb::from_center(vec3(-24., 1.35, 4.), vec3(4., 2.7, 2.)),
+            kind: 2,
+        });
         Self {
             player: Player::default(),
             blocks,
@@ -528,6 +609,9 @@ impl Simulation {
             ],
             stats: Stats::default(),
             events: Vec::new(),
+            action_events: Vec::new(),
+            timings: ActionTimings::default(),
+            loadout: Loadout::default(),
             time: 0.,
             spread_seed: 0x91e10da5,
             recoil_seed: 0xa735813c,
@@ -540,7 +624,17 @@ impl Simulation {
         (*seed as f64 / u32::MAX as f64) as f32
     }
     pub fn reset(&mut self) {
+        let timings = std::mem::take(&mut self.timings);
+        let loadout = self.loadout;
         *self = Self::new();
+        self.timings = timings;
+        self.loadout = loadout;
+    }
+    fn emit(&mut self, kind: ActionEventKind) {
+        self.action_events.push(ActionEvent {
+            time: self.time,
+            kind,
+        });
     }
     fn begin_reload(&mut self, cfg: &Settings) {
         let p = &mut self.player;
@@ -603,12 +697,18 @@ impl Simulation {
                 p.reload_left = 0.;
             }
         }
+        if self.step_death(cfg) {
+            self.time += dt as f64;
+            return;
+        }
+        self.clamp_look(cfg);
+        self.begin_actions(input, cfg, dt);
         self.try_begin_mantle(input, cfg);
         // Even the final traversal tick excludes weapon actions. Held fire can
         // resume next tick; reload still requires its ordinary fresh press.
-        let mantling = self.player.mantle.is_some();
+        let before = self.weapon_permissions();
         let p = &mut self.player;
-        let can_sprint = !mantling
+        let can_sprint = before.sprint
             && !input.jump
             && !p.crouched
             && !p.prone
@@ -626,7 +726,7 @@ impl Simulation {
             p.reload_credit_at = 0.;
             p.reload_ready_at = 0.;
         }
-        let valid_reload = !mantling
+        let valid_reload = before.reload
             && input.reload
             && !p.reload_held
             && p.reload_left == 0.
@@ -637,6 +737,14 @@ impl Simulation {
             self.begin_reload(cfg);
         }
         self.move_player(input, cfg, dt);
+        self.after_move(input, cfg, dt);
+        if self.player.dead() {
+            self.time += dt as f64;
+            return;
+        }
+        let after = self.weapon_permissions();
+        let ads_allowed = before.ads && after.ads;
+        let fire_allowed = before.fire && after.fire;
         let p = &mut self.player;
         if valid_reload {
             p.sprint_out = 0.;
@@ -653,7 +761,7 @@ impl Simulation {
                 p.recoil = Vec2::ZERO;
             }
         }
-        let ads_target = if !mantling && input.ads && !p.sprinting && p.reload_left == 0. {
+        let ads_target = if ads_allowed && input.ads && !p.sprinting && p.reload_left == 0. {
             1.
         } else {
             0.
@@ -668,12 +776,20 @@ impl Simulation {
                 cfg.ads_out_time
             },
         );
-        let fire_eligible =
-            !mantling && input.fire && !p.sprinting && p.sprint_out <= 1e-6 && p.reload_left <= 0.;
+        let fire_eligible = fire_allowed
+            && input.fire
+            && !p.sprinting
+            && p.sprint_out <= 1e-6
+            && p.reload_left <= 0.;
         if !fire_eligible {
             p.firing_sequence = false;
         }
-        if fire_eligible && self.time + 1e-7 >= p.next_shot_at {
+        let pistol = p.action.pistol_ready();
+        if fire_eligible && pistol {
+            if self.time + 1e-7 >= self.player.next_shot_at && self.loadout.sidearm_ammo > 0 {
+                self.fire_sidearm(cfg);
+            }
+        } else if fire_eligible && self.time + 1e-7 >= p.next_shot_at {
             if p.ammo > 0 {
                 self.fire(cfg);
             } else if p.reserve > 0 {
@@ -711,18 +827,24 @@ impl Simulation {
         // Keep jump_held: cancel/focus changes must not re-arm a held jump.
     }
     fn mantle_sweep_clear(&self, start: Vec3, end: Vec3) -> bool {
+        self.sweep_clear(start, end, STANDING_HEIGHT)
+    }
+    /// Continuous player-box sweep of any height against every collider.
+    fn sweep_clear(&self, start: Vec3, end: Vec3, height: f32) -> bool {
         !self
             .blocks
             .iter()
-            .any(|b| swept_standing_box(start, end, b.bounds))
+            .any(|b| swept_box(start, end, b.bounds, height))
             && !self
                 .ramps
                 .iter()
-                .any(|r| swept_standing_ramp(start, end, *r))
+                .any(|r| swept_ramp(start, end, *r, height))
     }
     fn try_begin_mantle(&mut self, input: Input, cfg: &Settings) {
         let p = &self.player;
         if p.mantle.is_some()
+            || !matches!(p.action, Action::None)
+            || p.mount.is_some()
             || !input.jump
             || p.jump_held
             || !p.grounded
@@ -783,6 +905,7 @@ impl Simulation {
                     0.85
                 },
                 support: b,
+                from_hang: false,
             };
             // All three swept legs and the full landing volume must be clear.
             // No collider is ignored, including the ledge being climbed.
@@ -878,6 +1001,9 @@ impl Simulation {
             p.grounded = true;
             p.previous_grounded = true;
             p.air_speed_limit = cfg.walk_speed * 1.05;
+            if state.from_hang {
+                self.emit(ActionEventKind::PullUpCompleted);
+            }
         } else {
             p.mantle = Some(state);
         }
@@ -887,6 +1013,11 @@ impl Simulation {
             self.advance_mantle(input, cfg, dt);
             return;
         }
+        if !matches!(self.player.action, Action::None) {
+            self.advance_action(input, cfg, dt);
+            return;
+        }
+        let time = self.time;
         let p = &mut self.player;
         if input.jump && !p.jump_held && p.crouched {
             p.stance_override = true;
@@ -894,6 +1025,8 @@ impl Simulation {
         if !input.crouch && !input.prone {
             p.stance_override = false;
         }
+        // Dive recovery holds prone until its clip's cancel event.
+        let stance_locked = time < p.stance_lock_until;
         let current = if p.prone {
             2_i32
         } else if p.crouched {
@@ -910,7 +1043,7 @@ impl Simulation {
         } else {
             0
         };
-        if current != desired && p.stance_progress >= 1. {
+        if current != desired && p.stance_progress >= 1. && !stance_locked {
             let proposed = current + (desired - current).signum();
             let height = match proposed {
                 2 => 0.762,
@@ -993,6 +1126,9 @@ impl Simulation {
             cfg.walk_speed * 0.15
         } else if p.crouched {
             cfg.crouch_speed
+        } else if p.sprinting && p.tac_sprint.is_some() {
+            // Replaces, never adds to, sprint speed.
+            cfg.action.tac_sprint_speed
         } else if p.sprinting {
             cfg.sprint_speed
         } else {
@@ -1059,6 +1195,11 @@ impl Simulation {
             p.velocity.z = horizontal.y;
         }
         p.jump_held = input.jump;
+        self.integrate(cfg, dt);
+    }
+    /// Shared gravity and collision response for normal movement, slide and dive.
+    fn integrate(&mut self, cfg: &Settings, dt: f32) {
+        let p = &mut self.player;
         p.velocity.y -= cfg.gravity * dt;
         let old = p.position;
         for axis in [0, 2] {
@@ -1162,10 +1303,29 @@ impl Simulation {
         }
         self.stats.distance += vec2(p.position.x - old.x, p.position.z - old.z).length();
         if p.position.y < -10. {
-            *p = Player::default();
+            self.kill();
         }
     }
     fn fire(&mut self, cfg: &Settings) {
+        let recoil_scale = if self.player.mount.is_some() {
+            cfg.action.mount_recoil_scale
+        } else {
+            1.
+        };
+        self.fire_with(
+            cfg,
+            FireProfile {
+                rpm: cfg.fire_rpm,
+                body_damage: 34.,
+                head_damage: 68.,
+                recoil_scale,
+                sidearm: false,
+            },
+        );
+    }
+    /// One hitscan shot through the shared occlusion, damage, event and recoil
+    /// path. Only the ammunition source and per-weapon numbers differ.
+    fn fire_with(&mut self, cfg: &Settings, profile: FireProfile) {
         let jitter = vec2(
             Self::random(&mut self.recoil_seed) * 2. - 1.,
             Self::random(&mut self.recoil_seed) * 2. - 1.,
@@ -1207,8 +1367,10 @@ impl Simulation {
         }
         let mut end = start + ray * distance;
         // The logical muzzle must have a clear path out of nearby cover as well as an eye ray.
+        // A retracted (obstructed) weapon keeps its muzzle in front of the wall.
+        let reach = 0.85_f32.min(p.obstruction.clear_length - 0.02).max(0.05);
         let muzzle =
-            start + forward * 0.85 + right * 0.14 * (1. - p.ads) - up * 0.15 * (1. - p.ads);
+            start + forward * reach + right * 0.14 * (1. - p.ads) - up * 0.15 * (1. - p.ads);
         let to_muzzle = muzzle - start;
         let muzzle_length = to_muzzle.length();
         let mut blocked = None;
@@ -1257,7 +1419,11 @@ impl Simulation {
         if let Some(i) = hit {
             let t = &mut self.targets[i];
             headshot = end.y > t.bounds.max.y - 0.38;
-            t.health -= if headshot { 68. } else { 34. };
+            t.health -= if headshot {
+                profile.head_damage
+            } else {
+                profile.body_damage
+            };
             t.flash = 0.12;
             self.stats.hits += 1;
             if headshot {
@@ -1284,8 +1450,12 @@ impl Simulation {
             carrier_velocity: self.player.velocity,
         });
         let p = &mut self.player;
-        p.ammo -= 1;
-        let interval = 60. / cfg.fire_rpm as f64;
+        if profile.sidearm {
+            self.loadout.sidearm_ammo -= 1;
+        } else {
+            p.ammo -= 1;
+        }
+        let interval = 60. / profile.rpm as f64;
         p.next_shot_at = if p.firing_sequence {
             p.next_shot_at + interval
         } else {
@@ -1296,9 +1466,10 @@ impl Simulation {
         p.cooldown = (p.next_shot_at - self.time) as f32;
         let hip = cfg.recoil_pitch + jitter.x * 0.125;
         let aimed = cfg.recoil_pitch * (0.52 / 0.775) + jitter.x * 0.10;
-        p.recoil.x =
-            (p.recoil.x + (hip + (aimed - hip) * p.ads).to_radians()).min(6_f32.to_radians());
-        p.recoil.y = (p.recoil.y + (jitter.y * (0.30 - 0.12 * p.ads)).to_radians())
+        let scale = profile.recoil_scale;
+        p.recoil.x = (p.recoil.x + (hip + (aimed - hip) * p.ads).to_radians() * scale)
+            .min(6_f32.to_radians());
+        p.recoil.y = (p.recoil.y + (jitter.y * (0.30 - 0.12 * p.ads)).to_radians() * scale)
             .clamp(-2_f32.to_radians(), 2_f32.to_radians());
         p.bloom = (p.bloom + 0.35 * (1. - p.ads)).min(2.4);
         p.shot_kick = 1.;

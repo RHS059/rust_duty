@@ -1494,6 +1494,9 @@ async fn main() {
                 sprint: is_key_down(KeyCode::LeftShift),
                 ads: false,
                 fire: false,
+                tactical_sprint: false,
+                mount: false,
+                sidearm: false,
             };
             if demo {
                 sim.player.yaw = -std::f32::consts::FRAC_PI_2;
