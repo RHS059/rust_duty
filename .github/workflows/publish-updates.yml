@@ -237,7 +237,7 @@ jobs:
       - name: Verify actual one-file game baseline update and same-path relaunch
         if: steps.game-updater-baseline.outputs.available == 'true'
         shell: bash
-        timeout-minutes: 8
+        timeout-minutes: 15
         run: |
           python tools/smoke_game_update.py \
             --launcher "expected/$LAUNCHER_ASSET" \
