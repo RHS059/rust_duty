@@ -32,10 +32,11 @@ struct CachedGlyph {
 /// legacy `draw_text` walks Unicode scalar values and advances by each glyph's
 /// advance width. Missing characters use the font's missing-glyph fallback.
 ///
-/// The initial port uses per-glyph textures, bounded by 4096 glyph/size pairs
-/// and 32 MiB of RGBA data. It returns an explicit error at that limit rather
-/// than churn resource IDs that an otherwise persistent GPU cache would retain.
-/// A packed atlas can replace this storage without changing callers.
+/// Per-glyph textures are bounded by 4096 glyph/size pairs and 32 MiB of RGBA
+/// data. The GPU renderer preflights the whole frame before encoding and retires
+/// unused cached glyphs under pressure, releasing their GPU cache entries too.
+/// A single frame exceeding either bound remains an explicit error. Textures
+/// are immutable: retiring a glyph never changes a previously returned mesh.
 pub struct TextRenderer {
     font: Font,
     glyphs: HashMap<GlyphKey, CachedGlyph>,
@@ -51,6 +52,69 @@ impl TextRenderer {
             glyphs: HashMap::new(),
             cache_bytes: 0,
         })
+    }
+
+    /// Reserve the complete frame's glyph working set before any text is
+    /// encoded. Eviction is allowed only here, and only for keys absent from
+    /// the entire frame; early and late text commands keep their exact sizes
+    /// and stable texture identities. The caller must release every returned
+    /// ID from its GPU texture cache before encoding this frame.
+    #[cfg(any(feature = "wgpu-runtime", test))]
+    pub(super) fn prepare_frame<'a>(
+        &mut self,
+        texts: impl IntoIterator<Item = (&'a str, f32)>,
+    ) -> Result<Vec<crate::draw::ResourceId>, String> {
+        let mut needed = std::collections::HashSet::new();
+        let mut required_bytes = 0;
+        let mut missing_bytes = 0;
+        let mut missing_glyphs = 0;
+        for (text, size) in texts {
+            validate_size(size)?;
+            for character in text.chars() {
+                let key = self.key(character, size);
+                if needed.contains(&key) {
+                    continue;
+                }
+                if needed.len() == MAX_CACHED_GLYPHS {
+                    return Err("text glyph cache reached its 4096-entry limit".into());
+                }
+                let cached = self.glyphs.get(&key);
+                let metrics = cached.map_or_else(
+                    || self.font.metrics_indexed(key.index, size),
+                    |glyph| glyph.metrics,
+                );
+                let bytes = glyph_bytes(metrics)?;
+                if bytes > MAX_CACHE_BYTES - required_bytes {
+                    return Err("text glyph cache reached its 32 MiB limit".into());
+                }
+                required_bytes += bytes;
+                if cached.is_none() {
+                    missing_bytes += bytes;
+                    missing_glyphs += 1;
+                }
+                needed.insert(key);
+            }
+        }
+        if self.glyphs.len() + missing_glyphs <= MAX_CACHED_GLYPHS
+            && self.cache_bytes + missing_bytes <= MAX_CACHE_BYTES
+        {
+            return Ok(Vec::new());
+        }
+        // Validation above is atomic: an oversized/invalid frame does not
+        // discard existing glyphs. No texture data or resource ID is reused.
+        let mut retired = Vec::new();
+        let cache_bytes = &mut self.cache_bytes;
+        self.glyphs.retain(|key, glyph| {
+            if needed.contains(key) {
+                return true;
+            }
+            *cache_bytes -= glyph.metrics.width * glyph.metrics.height * 4;
+            if let Some(texture) = &glyph.texture {
+                retired.push(texture.id);
+            }
+            false
+        });
+        Ok(retired)
     }
 
     /// Measures a single line in physical pixels. `offset_y` is the distance
@@ -147,11 +211,7 @@ impl TextRenderer {
         }
         // Check the extent and budget before the rasterizer allocates a bitmap.
         let metrics = self.font.metrics_indexed(key.index, size);
-        let bytes = metrics
-            .width
-            .checked_mul(metrics.height)
-            .and_then(|pixels| pixels.checked_mul(4))
-            .ok_or("text glyph extent overflow")?;
+        let bytes = glyph_bytes(metrics)?;
         if bytes > MAX_CACHE_BYTES - self.cache_bytes {
             return Err("text glyph cache reached its 32 MiB limit".into());
         }
@@ -176,6 +236,14 @@ impl TextRenderer {
         self.cache_bytes += bytes;
         Ok(())
     }
+}
+
+fn glyph_bytes(metrics: Metrics) -> Result<usize, String> {
+    metrics
+        .width
+        .checked_mul(metrics.height)
+        .and_then(|pixels| pixels.checked_mul(4))
+        .ok_or_else(|| "text glyph extent overflow".into())
 }
 
 pub(crate) fn validate_size(size: f32) -> Result<(), String> {
@@ -402,5 +470,142 @@ mod tests {
             .is_err());
         assert_eq!(renderer.glyphs.len(), MAX_CACHED_GLYPHS);
         assert_eq!(renderer.cache_bytes, 0);
+    }
+
+    #[test]
+    fn continuous_pause_menu_resize_retires_old_sizes_without_exhaustion() {
+        let mut renderer = renderer();
+        let label = "F5 Save   F6 Discard / reload   Enter activates   F10 Quit";
+        let mut gpu_ids = std::collections::HashSet::new();
+        let mut retirement_count = 0;
+        // One real production label and its default layout fit. Without frame
+        // preparation this sequence fails on sample 171, at height 570.
+        for height in 400..=900 {
+            let scale = ((1400_f32 - 24.) / 610.)
+                .min((height as f32 - 24.) / 843.)
+                .min(1.);
+            let size = 16. * scale;
+            let retired = renderer.prepare_frame([(label, size)]).unwrap();
+            if height == 570 {
+                assert!(!retired.is_empty(), "the original exhaustion boundary");
+            }
+            retirement_count += retired.len();
+            for id in retired {
+                assert!(
+                    gpu_ids.remove(&id),
+                    "retire only previously uploaded glyphs"
+                );
+            }
+            let meshes = renderer
+                .meshes(label, Vec2::new(0., 40.), size, Color::WHITE)
+                .unwrap();
+            gpu_ids.extend(
+                meshes
+                    .iter()
+                    .filter_map(|mesh| mesh.texture.as_ref().map(|t| t.id)),
+            );
+            let cached_ids: std::collections::HashSet<_> = renderer
+                .glyphs
+                .values()
+                .filter_map(|glyph| glyph.texture.as_ref().map(|t| t.id))
+                .collect();
+            assert_eq!(gpu_ids, cached_ids);
+            assert!(renderer.glyphs.len() <= MAX_CACHED_GLYPHS);
+            assert!(renderer.cache_bytes <= MAX_CACHE_BYTES);
+        }
+        assert!(retirement_count > 0);
+    }
+
+    #[test]
+    fn frame_preflight_preserves_early_and_late_glyphs_and_retired_snapshots() {
+        let mut renderer = renderer();
+        let texture = |meshes: Vec<Mesh>| meshes[0].texture.clone().unwrap();
+        let first = texture(renderer.meshes("A", Vec2::ZERO, 13., Color::WHITE).unwrap());
+        let last = texture(renderer.meshes("B", Vec2::ZERO, 17., Color::WHITE).unwrap());
+        let old = texture(renderer.meshes("C", Vec2::ZERO, 19., Color::WHITE).unwrap());
+        let bytes_before = renderer.cache_bytes;
+        // Fill the remaining slots with zero-byte unused entries. This avoids
+        // thousands of unrelated rasterizations while exercising real glyph IDs.
+        for size_bits in 0..(MAX_CACHED_GLYPHS - renderer.glyphs.len()) as u32 {
+            renderer.glyphs.insert(
+                GlyphKey {
+                    index: 0,
+                    size_bits,
+                },
+                CachedGlyph {
+                    metrics: Metrics::default(),
+                    texture: None,
+                },
+            );
+        }
+        let texts = [("A", 13.), ("D", 14.), ("B", 17.)];
+        assert_eq!(renderer.prepare_frame(texts).unwrap(), [old.id]);
+        assert_eq!(renderer.glyphs.len(), 2);
+        assert_eq!(
+            renderer.cache_bytes,
+            bytes_before - old.width as usize * old.height as usize * 4
+        );
+        for (text, size) in texts {
+            renderer
+                .meshes(text, Vec2::ZERO, size, Color::WHITE)
+                .unwrap();
+        }
+        assert_eq!(
+            texture(renderer.meshes("A", Vec2::ZERO, 13., Color::WHITE).unwrap()).id,
+            first.id
+        );
+        assert_eq!(
+            texture(renderer.meshes("B", Vec2::ZERO, 17., Color::WHITE).unwrap()).id,
+            last.id
+        );
+        // Reintroducing a retired key creates a new identity. Existing CPU
+        // snapshots retain the exact old pixels; nothing overwrites an atlas.
+        renderer.prepare_frame([("C", 19.)]).unwrap();
+        let replacement = texture(renderer.meshes("C", Vec2::ZERO, 19., Color::WHITE).unwrap());
+        assert_ne!(replacement.id, old.id);
+        let (TextureSource::Rgba8(previous), TextureSource::Rgba8(next)) =
+            (&old.source, &replacement.source)
+        else {
+            panic!("expected immutable glyph pixels")
+        };
+        assert_eq!(previous, next);
+        assert!(!Arc::ptr_eq(previous, next));
+    }
+
+    #[test]
+    fn oversized_or_invalid_frame_preflight_does_not_mutate_existing_cache() {
+        let mut renderer = renderer();
+        let first = renderer.meshes("A", Vec2::ZERO, 13., Color::WHITE).unwrap();
+        let bytes_before = renderer.cache_bytes;
+        let check_unchanged = |renderer: &TextRenderer| {
+            assert_eq!(renderer.glyphs.len(), 1);
+            assert_eq!(renderer.cache_bytes, bytes_before);
+            assert_eq!(
+                renderer.glyphs[&renderer.key('A', 13.)]
+                    .texture
+                    .as_ref()
+                    .unwrap()
+                    .id,
+                first[0].texture.as_ref().unwrap().id
+            );
+        };
+        let too_many = (0..=MAX_CACHED_GLYPHS).map(|index| ("A", 13. + index as f32 / 1024.));
+        assert_eq!(
+            renderer.prepare_frame(too_many).unwrap_err(),
+            "text glyph cache reached its 4096-entry limit"
+        );
+        check_unchanged(&renderer);
+        // Metrics-only preflight rejects this set before allocating its large
+        // glyph bitmaps or evicting the existing valid frame's resources.
+        let too_large = (0..128).map(|index| ("M", 1024. - index as f32));
+        assert_eq!(
+            renderer.prepare_frame(too_large).unwrap_err(),
+            "text glyph cache reached its 32 MiB limit"
+        );
+        check_unchanged(&renderer);
+        assert!(renderer
+            .prepare_frame([("new", 18.), ("bad", f32::NAN)])
+            .is_err());
+        check_unchanged(&renderer);
     }
 }

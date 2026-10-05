@@ -206,3 +206,63 @@ The two additional orientation cases preserve the original19 checks. Their
 21-case native execution is pending the next published revision. Landmark-tool
 regressions cover evidence provenance, malformed inputs, per-axis uncertainty,
 raw-target exclusion and safe report output; no real landmarks were invented.
+
+## Agent delivery scope and new evidence (2026-10-05, 18:48 UTC)
+
+The owner clarified that human visual review and the Windows hardware playtest
+happen after implementation, automated checks, GitHub commits and a complete
+Windows build. They are later acceptance steps, not blockers for this agent
+work deliverable. They remain unapproved. Do not default-cutover or remove the
+legacy path from this clarification alone.
+
+There are19 original work packages in the current agent delivery scope:
+WP4.1 was removed, while hardware4.4, human-gated cutover5.1 and subsequent-release
+removal5.2 are separate later work. Eleven agent portions have their scoped
+completion evidence:0.1,0.2,0.4,1.1,1.2,1.3,2.1,2.2,2.3,3.4,4.2. For1.1 the
+required FixedClock and hitch behavior is preserved and tested; for3.4 the
+implemented UI and manual checklist are delivered, with later human exercise
+explicitly separate. Remaining packages are0.3,1.4,2.4,2.5,3.1,3.2,3.3,4.3.
+A complete source-bound Windows preview build is also an explicit delivery
+criterion, independent of this count.
+
+Exact checkpoint92c5849 (remote2553f610, treee660bd9716c49ffdd0e5570a56071c55bc1a96cd)
+passed full production tests: combined874, default824, silent747, two existing
+ignored each. All strict all-target clippy lanes and formatting passed. Four
+new fixture CPU suites passed38 combined and34 in each other mode. These counts
+predate the subsequent bounded glyph-cache, stop-clock and line-batching fixes.
+
+The prior authored run37339601251 executed merge
+fbf6c33df03c155e23f75d485660b7648ee36024 from PR head72663e2. It finished normally
+with26/32 checks passed and an uploaded208MB artifact11364272946
+(SHA256 c74eebdbdfa4817f1b83f665152658a59f9cdb40b4adff955b0d5ab70bbc971e).
+Five capture processes hit900-second limits; this was not a job cancellation.
+Reload214frames and walk223frames passed strict parity. Reload-return391frames
+passed its existing validator but exact anchor parity failed at frame0198:
+0.012370688 versus0.012370674. All12 lighting captures and orientation passed.
+Hal independently inspected partial frames and found progress without renderer
+errors. No equality tolerance or capture threshold was relaxed. Source/platform
+math diagnosis and scenario-isolated deadline design remain in progress.
+
+Run37357335403 at PR head2553f610 passed the expanded21-case native DX12/WARP
+renderer contract with actualFxc and exit0; artifact11365552404. The new named
+target-to-main orientation cases are therefore natively exercised. Four further
+fixture examples (world primitives, consecutive-frame identity, typed themes,
+and actual muzzle effects) now have source-derived Windows runners/guards;
+the exact workflow guard selection passes233 CPU tests. Their own native runs
+remain pending this workflow revision.
+
+A continuous resize reproduction exhausted the old4096-entry text cache at
+sample171. The fix preflights the entire frame, retires only absent glyphs and
+releases their GPU cache entries before encoding;501resize samples and all11
+text tests pass. It does not overwrite current-frame texture data. A separate
+line optimization preserves every command barrier and exact model bits while
+coalescing adjacent lines;57renderer tests pass. Actual production world CPU
+recording shows the130-command grid becomes one batch and total line batches
+fall200 to40. These are work-count observations, not native speed measurements.
+
+Verified adversarial additions reject backwards stop-request clocks and preserve
+atomic preview evidence boundaries. Generated review claims were reproduced
+before use; redundant or incorrect assertions were discarded. The authored
+Python suite retains one explicitly expected failing probe for the open pixel/
+frame-binding limitation. No matching hash or transition pattern is claimed to
+prove that authored pixels represent the correct GPU sample.

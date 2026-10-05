@@ -86,7 +86,11 @@ jobs:
           python tools/package_game.py materialize --root .
           --include-walk --include-ads --include-directional --include-jump --require-generated
       - name: Test authored acceptance with synthetic inputs (not native evidence)
-        run: python -m unittest discover -s tools -p test_dx12_authored.py -v
+        env:
+          PYTHONPATH: tools
+        run: >-
+          python -m unittest -v test_dx12_authored
+          test_dx12_capture_progress test_dx12_authored_adversarial
       - name: Build game and asymmetric renderer fixture from this revision
         run: >-
           cargo build --locked --release --no-default-features --features wgpu-runtime

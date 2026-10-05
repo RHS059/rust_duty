@@ -6,7 +6,7 @@ permissions:
 jobs:
   renderer-contract:
     runs-on: windows-latest
-    timeout-minutes: 30
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
         with:
@@ -18,7 +18,14 @@ jobs:
       - name: Install PNG verification dependency
         run: python -m pip install Pillow==11.3.0
       - name: Test renderer-contract evidence guards with synthetic fixtures
-        run: python -m unittest discover -s tools -p test_renderer_contract.py -v
+        id: fixture-guards
+        env:
+          PYTHONPATH: tools
+        run: >-
+          python -m unittest -v test_renderer_contract
+          test_dx12_contract_process test_dx12_contract_example
+          test_world_primitives_contract test_renderer_frame_identity
+          test_ui_theme_contract test_effects_contract
       - name: Execute actual renderer-owned DX12 WARP fixture and verify every case
         run: >-
           python tools/run_renderer_contract.py
@@ -26,6 +33,42 @@ jobs:
           --evidence evidence/renderer-contract-run
           --output evidence/renderer-contract
           --timeout 1200
+      - name: Build additional renderer-owned examples from this revision
+        id: additional-fixtures
+        if: ${{ !cancelled() && steps.fixture-guards.outcome == 'success' }}
+        timeout-minutes: 15
+        run: >-
+          cargo build --locked --no-default-features --features wgpu-runtime
+          --example world_primitives_contract --example renderer_frame_identity
+          --example ui_theme_contract --example effects_contract
+      - name: Verify actual DX12 WARP world primitives
+        if: ${{ !cancelled() && steps.additional-fixtures.outcome == 'success' }}
+        run: >-
+          python tools/run_dx12_contract_example.py --fixture world-primitives
+          --executable target/debug/examples/world_primitives_contract.exe --root .
+          --evidence evidence/world-primitives-run --output evidence/world-primitives
+          --timeout 180
+      - name: Verify actual DX12 WARP consecutive frame identities
+        if: ${{ !cancelled() && steps.additional-fixtures.outcome == 'success' }}
+        run: >-
+          python tools/run_dx12_contract_example.py --fixture frame-identity
+          --executable target/debug/examples/renderer_frame_identity.exe --root .
+          --evidence evidence/renderer-frame-identity-run --output evidence/renderer-frame-identity
+          --timeout 180
+      - name: Verify actual DX12 WARP typed UI themes and reloads
+        if: ${{ !cancelled() && steps.additional-fixtures.outcome == 'success' }}
+        run: >-
+          python tools/run_dx12_contract_example.py --fixture ui-theme
+          --executable target/debug/examples/ui_theme_contract.exe --root .
+          --evidence evidence/ui-theme-dx12-run --output evidence/ui-theme-dx12
+          --timeout 180
+      - name: Verify actual DX12 WARP public muzzle effects and state restoration
+        if: ${{ !cancelled() && steps.additional-fixtures.outcome == 'success' }}
+        run: >-
+          python tools/run_dx12_contract_example.py --fixture effects
+          --executable target/debug/examples/effects_contract.exe --root .
+          --evidence evidence/effects-contract-run --output evidence/effects-contract
+          --timeout 180
       - name: Retain this attempt's fixture reports, captures and process logs
         if: always()
         uses: actions/upload-artifact@v4
@@ -34,5 +77,13 @@ jobs:
           path: |
             evidence/renderer-contract/
             evidence/renderer-contract-run/
+            evidence/world-primitives/
+            evidence/world-primitives-run/
+            evidence/renderer-frame-identity/
+            evidence/renderer-frame-identity-run/
+            evidence/ui-theme-dx12/
+            evidence/ui-theme-dx12-run/
+            evidence/effects-contract/
+            evidence/effects-contract-run/
           if-no-files-found: error
           retention-days: 7

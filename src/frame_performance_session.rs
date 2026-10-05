@@ -96,6 +96,29 @@ struct ActiveCapture {
     eligibility: Eligibility,
     window: WindowContext,
     stop_requested_ns: Option<u64>,
+    // Stop requests observe time without adding a present or breaking the
+    // interval chain. Keep their clock witness separate from retained records.
+    last_clock_ns: u64,
+    clock_failure: Option<(u64, CaptureError)>,
+}
+impl ActiveCapture {
+    fn observe_clock(&mut self, at_ns: u64) -> bool {
+        if self.clock_failure.is_some() {
+            return false;
+        }
+        if at_ns < self.last_clock_ns {
+            self.clock_failure = Some((
+                at_ns,
+                CaptureError::NonMonotonicTimestamp {
+                    previous_ns: self.last_clock_ns,
+                    received_ns: at_ns,
+                },
+            ));
+            return false;
+        }
+        self.last_clock_ns = at_ns;
+        true
+    }
 }
 
 /// The same session implementation is used by runtime TLS and synthetic-clock
@@ -134,7 +157,8 @@ impl<C: MonotonicClock> PerformanceSession<C> {
             return Err(SessionStartError::AlreadyActive);
         }
         let window = identity.runtime.initial_window;
-        let observer = FramePerformanceObserver::start(identity, self.clock.now_ns(), limits)
+        let started_at_ns = self.clock.now_ns();
+        let observer = FramePerformanceObserver::start(identity, started_at_ns, limits)
             .map_err(SessionStartError::Observer)?;
         self.active = Some(ActiveCapture {
             observer,
@@ -142,6 +166,8 @@ impl<C: MonotonicClock> PerformanceSession<C> {
             eligibility: Eligibility::Eligible,
             window,
             stop_requested_ns: None,
+            last_clock_ns: started_at_ns,
+            clock_failure: None,
         });
         Ok(())
     }
@@ -151,7 +177,9 @@ impl<C: MonotonicClock> PerformanceSession<C> {
     pub fn request_stop(&mut self) {
         if let Some(active) = &mut self.active {
             if active.stop_requested_ns.is_none() {
-                active.stop_requested_ns = Some(self.clock.now_ns());
+                let at_ns = self.clock.now_ns();
+                active.stop_requested_ns = Some(at_ns);
+                active.observe_clock(at_ns);
             }
         }
     }
@@ -182,6 +210,9 @@ impl<C: MonotonicClock> PerformanceSession<C> {
     pub fn boundary(&mut self, reason: BoundaryReason) -> Option<SessionCompletion> {
         let active = self.active.as_mut()?;
         let at_ns = self.clock.now_ns();
+        if !active.observe_clock(at_ns) {
+            return self.finish(at_ns, None);
+        }
         if active.observer.boundary(at_ns, reason).is_err() {
             return self.finish(at_ns, None);
         }
@@ -196,6 +227,9 @@ impl<C: MonotonicClock> PerformanceSession<C> {
             return None;
         }
         let at_ns = self.clock.now_ns();
+        if !active.observe_clock(at_ns) {
+            return self.finish(at_ns, None);
+        }
         active.window = context;
         if active
             .observer
@@ -212,6 +246,9 @@ impl<C: MonotonicClock> PerformanceSession<C> {
     pub fn present_success(&mut self) -> Option<SessionCompletion> {
         let active = self.active.as_mut()?;
         let at_ns = self.clock.now_ns();
+        if !active.observe_clock(at_ns) {
+            return self.finish(at_ns, None);
+        }
         let failed = active
             .observer
             .record_present_return(at_ns, active.eligibility)
@@ -235,6 +272,9 @@ impl<C: MonotonicClock> PerformanceSession<C> {
     pub fn present_skipped(&mut self) -> Option<SessionCompletion> {
         let active = self.active.as_mut()?;
         let at_ns = self.clock.now_ns();
+        if !active.observe_clock(at_ns) {
+            return self.finish(at_ns, None);
+        }
         let failed = active
             .observer
             .record_skipped_frame(at_ns, BoundaryReason::SurfaceSkipped)
@@ -259,6 +299,9 @@ impl<C: MonotonicClock> PerformanceSession<C> {
     ) -> Option<SessionCompletion> {
         let active = self.active.as_mut()?;
         let at_ns = self.clock.now_ns();
+        if !active.observe_clock(at_ns) {
+            return self.finish(at_ns, None);
+        }
         // Preserve an earlier clock/context/buffer error; the observer latches
         // it when this boundary cannot be retained.
         let _ = active.observer.boundary(at_ns, reason);
@@ -274,6 +317,13 @@ impl<C: MonotonicClock> PerformanceSession<C> {
         let mut report = active.observer.stop(at_ns);
         if let Some(requested_at) = active.stop_requested_ns {
             report.stop_requested_ns = requested_at;
+        }
+        if let Some((failed_at, error)) = active.clock_failure {
+            report.status = CaptureStatus::Incomplete(error);
+            report.incomplete_at_ns = Some(failed_at);
+            if at_ns < active.last_clock_ns {
+                report.stopped_at_ns = None;
+            }
         }
         if let Some(error) = final_error {
             if matches!(

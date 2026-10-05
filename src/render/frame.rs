@@ -23,6 +23,18 @@ impl WgpuRenderer {
         )?;
         self.gpu.check_errors()?;
         validate(list, &self.gpu.device.limits())?;
+        // Retire only glyphs absent from the complete frame, before encoding
+        // any commands. Dropping cached GPU handles does not rewrite textures
+        // retained by older in-flight submissions or recorded CPU meshes.
+        let retired = self
+            .text
+            .prepare_frame(list.commands.iter().filter_map(|command| match command {
+                Command::Text { text, size, .. } => Some((text.as_str(), *size)),
+                _ => None,
+            }))?;
+        for id in retired {
+            self.release_texture(id);
+        }
         let error_scope = self
             .gpu
             .device
@@ -66,7 +78,9 @@ impl WgpuRenderer {
         clear(&mut encoder, &self.main, Color::TRANSPARENT);
         let mut camera = Camera::screen(list.width, list.height);
         let mut readbacks = Vec::new();
-        for command in &list.commands {
+        let mut commands = list.commands.as_slice();
+        while let Some((command, following)) = commands.split_first() {
+            commands = following;
             match command {
                 Command::Camera(next) => {
                     if let Some(target) = &next.target {
@@ -82,7 +96,10 @@ impl WgpuRenderer {
                     self.draw_mesh(&mut encoder, &camera, mesh, *model, *blend, false)?
                 }
                 Command::Lines { lines, model } => {
-                    for (vertices, indices) in super::lines::batches(lines) {
+                    let (consumed, batches) =
+                        super::lines::adjacent_batches(lines, *model, commands);
+                    commands = &commands[consumed..];
+                    for (vertices, indices) in batches {
                         self.draw_mesh(
                             &mut encoder,
                             &camera,
