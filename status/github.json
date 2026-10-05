@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-05T03:33:05Z",
+  "updatedAt": "2026-10-05T03:43:43Z",
   "latestComplete": {
     "sha": "eedd2910d339e1b6df6dae23bc9878e43478cc0c",
     "downloadUrl": "https://github.com/RHS059/rust_duty/releases/download/v0.1.9/Rust-Duty-0.1.9-Windows-x64.zip",
@@ -26,8 +26,8 @@
     "Actual GitHub 0.1.8-to-0.1.9 delta activation, integrity validation, local-data preservation, integrated game-entry updating and same-path relaunch passed on Windows and Linux. Low-vault r2 PR #35 and unique build-number PR #36 are separate pending work and are not included in this released source."
   ],
   "currentBuild": {
-    "state": "working",
-    "task": "PR #39 merged into main at 8c181fca79603336b6e1f2233a063dfd88ccc0c0, whose tree exactly matches tested 582960a53d3de10ddcf4ec8d2a3a7e0502f6a962. All six real-byte Windows 0.1.9-to-0.1.11 preflight cases passed: full, one-file, recover-one-file, mismatch, unusable and corrupt-delta fallback. Game run 37256891486 completed successfully; updater run 37256891177 and runtime contracts run 37256891170 passed. Required main push-provenance updater run 37259453557 completed successfully; game run 37259453786 remains in progress as checked at 03:32 UTC. Main release verification remains active. Public latest and Latest Complete remain verified v0.1.9 at eedd2910; version 0.1.11 is not promoted. All six gallery previews are published and verified at rust_duty_updates main 4ea969469f103fbe9fcbf3534976de503d9f45da; Pages run 37258927937 succeeded. The 25 prior entries remain unchanged and six new entries retain null scores. Four Colab HIP comparisons have correct labels; original scores 82/83/82/81 remain unchanged. The user rejected the published standing-to-prone r4 and low-vault r3. Independent review of 133 paired frames confirmed late vault opening at frame 9, excess drop at 12–15, broadside at 20–40, palm issue at 46, and prone upright over-lift at 49–69. No visual-quality pass or corrected replacement clips are claimed. Prone/vault revision and exact prone r4 source handoff are active; actual Colab evidence work is ongoing. High-obstacle authoring remains idle awaiting visible evidence.",
+    "state": "idle",
+    "task": "Update 2026-10-05 03:43 UTC: Implementation, capture, publication, release verification and source handoff work are paused following the user's 03:40 UTC instruction. Earlier statements that these tasks are active are superseded. Only a read-only hypothetical wgpu timeline estimate and this status refresh are active; neither authorizes implementation. No workflows were started, resumed, cancelled or promoted. PR #39 is merged into main at 8c181fca79603336b6e1f2233a063dfd88ccc0c0, matching the tested 582960a source tree. All six real-byte Windows 0.1.9-to-0.1.11 preflight cases passed. At 03:43 UTC, the already-running main game workflow 37259453786 remains in progress and updater workflow 37259453557 is successful. These external workflow states do not mean assistant work has resumed. Public latest and Latest Complete remain verified v0.1.9; v0.1.11 is not promoted. All six previews remain published at rust_duty_updates 4ea969469f103fbe9fcbf3534976de503d9f45da. Standing-to-prone r4 and low-vault r3 remain user-rejected; paired-frame review is complete, with no corrected replacement or visual-quality pass claimed. Revision and source handoff are paused.",
     "url": "https://github.com/RHS059/rust_duty/actions/runs/37259453786"
   }
 }
