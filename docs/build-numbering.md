@@ -2,7 +2,8 @@
 
 Every GitHub game workflow attempt has a distinct human-facing label:
 `0.1.9+build.123456789.2` means release version `0.1.9`, workflow run ID
-`123456789`, attempt `2`. Both platform builds in that attempt share the label.
+`123456789`, attempt `2`. The Windows game and Linux-hosted validation harness in that attempt share the label.
+Only the Windows game is packaged for delivery.
 Rerunning the same commit changes the attempt or run ID. Different branches and
 workflows cannot collide merely because their workflow-local run numbers match.
 Missing, malformed or oversized GitHub identity values fail closed.
@@ -70,7 +71,8 @@ attempt of the **same run and source commit**. Existing source/parity/hash check
 still validate those companions. The new game number identifies the executable's
 build attempt; it does not falsely claim that every input was regenerated during
 that attempt. Generated artifacts are not fetched from another run. Concurrent
-Linux/Windows archive names retain their platform distinction.
+Linux-validation/Windows archive names retain their platform distinction.
+Linux validation archives contain test evidence, never a game distribution.
 
 `test_build_attempt_artifacts.py` checks the actual workflow definitions for
 archive-before-alias ordering, success gates, identical payload paths, unique

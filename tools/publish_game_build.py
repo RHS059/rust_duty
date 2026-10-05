@@ -21,6 +21,7 @@ import release_update
 
 REPOSITORY = build_identity.REPOSITORY
 PROVENANCE = "SOURCE_PROVENANCE.json"
+DELIVERY_TARGETS = {"windows": build_identity.TARGETS["windows"]}
 
 
 def write_json(path, value):
@@ -45,17 +46,17 @@ def deterministic_zip(source, destination, executable):
 
 
 def prepare(tested, output, identity):
-    """Curate both platforms through the same strict allowlist as game builds."""
+    """Curate the Windows platform through the same strict allowlist as game builds."""
     tested, output = Path(tested), Path(output)
     if output.exists() or output.is_symlink():
         raise ValueError("release preparation requires a fresh output directory")
     verified = {platform: build_identity.verify(tested / platform, platform, identity)
-                for platform in build_identity.TARGETS}
+                for platform in DELIVERY_TARGETS}
     output.mkdir(parents=True)
     provenance = {"schema": "rust-duty-game-release/v1", **identity,
                   "artifacts": {}, "assets": {}}
     with tempfile.TemporaryDirectory(prefix=".game-release-", dir=output.parent) as directory:
-        for platform, (target, executable, label, _) in build_identity.TARGETS.items():
+        for platform, (target, executable, label, _) in DELIVERY_TARGETS.items():
             source = tested / platform
             payload = Path(directory) / platform / "update"
             complete = Path(directory) / platform / "complete"
@@ -134,12 +135,12 @@ def latest_identity(github):
     assets = release_assets(latest)
     manifests = []
     with tempfile.TemporaryDirectory(prefix="latest-game-channel-") as directory:
-        for target, executable, _, _ in build_identity.TARGETS.values():
+        for target, executable, _, _ in DELIVERY_TARGETS.values():
             name = f"update-{target}.json"
             item = assets.get(name)
             if (not item or item.get("state") != "uploaded" or type(item.get("size")) is not int
                     or not 0 < item["size"] <= 1024 * 1024):
-                raise ValueError("latest release lacks both complete update manifests")
+                raise ValueError("latest release lacks the complete Windows update manifest")
             path = Path(directory) / name
             github.download(item, path)
             manifest = release_update.verify_manifest(argparse.Namespace(
@@ -151,9 +152,7 @@ def latest_identity(github):
                     or bundle.get("size") != manifest["bundle"]["size"]):
                 raise ValueError("latest release lacks complete update bundle")
             manifests.append(manifest)
-    first, second = manifests
-    if (first["version"], first["sequence"]) != (second["version"], second["sequence"]):
-        raise ValueError("latest platform update identities disagree")
+    first = manifests[0]
     return {"version": first["version"], "sequence": first["sequence"]}
 
 
@@ -178,8 +177,8 @@ def release_notes(identity):
             f'Branch: {identity["source"]["branch"]}\n'
             f'Build: {identity["source"]["run_url"]}\n'
             f'Update sequence: {identity["sequence"]}\n\n'
-            'Windows and Linux checks, authored-asset validation and native Linux gameplay '
-            'capture gates passed before publication. Full managed updates and complete '
+            'Windows checks and authored-asset validation passed before publication. '
+            'Linux-hosted native validation is a separate evidence lane. Full managed updates and complete '
             'game ZIPs contain only the approved packaging allowlist. User settings and '
             'private soldier assets are excluded from managed updates.\n\n'
             'Trust: RHS059/rust_duty over GitHub HTTPS, with payload sizes and SHA-256. '
@@ -220,7 +219,7 @@ def publish(github, output, identity):
     tag = "v" + identity["version"]
     notes = release_notes(identity)
     expected = {path.name: path for path in output.iterdir() if path.is_file()}
-    if PROVENANCE not in expected or len(expected) != 9:
+    if PROVENANCE not in expected or len(expected) != 5:
         raise ValueError("incomplete one-time release asset set")
     latest = latest_identity(github)
     order = publication_order(identity, latest)

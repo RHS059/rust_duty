@@ -5,11 +5,39 @@ monotonic versions/sequences, payload sizes and SHA-256. No owner signing-key
 setup is required. A compromised repository/release account is inside this trust
 boundary; hashes detect corruption, not an independent publisher identity.
 
-## Explicit one-time 0.1.5 delivery
+## Windows-only delivery policy
+
+New deliveries contain only the Windows x64 game, migration launcher, full update
+bundle, manifest and any beneficial validated delta. Existing Linux releases and
+assets remain untouched. `updater.yml` builds and tests the Windows launcher.
+`build.yml` keeps the complete Windows Python/game/updater checks and validated
+source-authored asset dependencies. Its `build` job is named `windows-latest`.
+
+`native-validation.yml` retains Linux-hosted source tests and native gameplay
+captures using a local executable next to materialized source assets. It neither
+stages nor uploads a Linux game. Blender asset generation still runs on Ubuntu.
+These jobs remain visible evidence; their completion is not a Windows delivery
+gate. `select_windows_build.py` requires the successful Windows job of an exact
+source, same-repository push run, with its job/run provenance, rather than waiting
+for the overall workflow's Linux validation conclusion. Failed, ambiguous,
+missing or incomplete Windows jobs cannot be selected.
+
+The control workflow still downloads tested artifacts without rebuilding, uses
+the selected game's complete packaging helpers, validates retained Windows
+baselines, emits deltas with full fallback, and runs native Windows launcher and
+game-entry update/preservation/relaunch smoke checks. Existing versions and public
+assets are never overwritten. Version allocation and release-plan authorization
+remain separate from this platform change.
+
+## Historical one-time route (0.1.5)
+
+The following route is retained for historical context; it does not authorize a
+new release. Its helper now shares the Windows-only delivery target policy.
+
 
 The owner has explicitly requested release 0.1.5 now so the current integrated
 game reaches existing installations. `.github/workflows/build.yml` implements
-that one-time exception after the entire Windows/Linux build matrix succeeds,
+that one-time exception after the Windows build succeeds,
 for push events only on `aella/automatic-game-updates-r1` in `RHS059/rust_duty`.
 
 The only permitted release identity is **version 0.1.5, sequence 5**. There is no
@@ -25,22 +53,21 @@ artifact, manual release-plan or `aella/release-channel` branch dependency. The
 old manual workflow is retained as historical tooling.
 
 Every game compile/test in the build matrix receives
-`RUST_DUTY_BUILD_VERSION=0.1.5`. Both release binaries must report that exact value
+`RUST_DUTY_BUILD_VERSION=0.1.5`. The Windows release binary must report that exact value
 through their headless `--build-version` command before artifact upload.
 `BUILD_IDENTITY.json` binds the reported version, executable size/hash, target,
 commit, branch and exact build run. The publisher checks that identity again
-after downloading both complete game artifacts from **its own run**, without
+after downloading the complete Windows game artifact from **its own run**, without
 rebuilding either executable.
 
 Re-running the same build keeps version 0.1.5 and sequence 5. Once published,
 those bytes cannot be replaced by a later branch push. Source changes alone are
 not proof of a playable release: generated asset checks, Python tests, root game
-formatting/lint/tests, updater crate formatting/lint/tests, both release builds
-and Linux native gameplay capture gates all run before publication.
+formatting/lint/tests, updater crate formatting/lint/tests, the Windows release build all run before publication.
 
 ## Complete and safe payloads
 
-`tools/publish_game_build.py` validates both source identities and re-stages each
+`tools/publish_game_build.py` validates the Windows source identity and re-stages its
 artifact through `tools/package_game.py stage --update --require-generated`.
 Only the exact public distribution allowlist is copied. Missing or corrupt
 reload, locomotion, walking, ADS or directional companions fail publication.
@@ -58,10 +85,10 @@ selects the rest of the installed version's files directly.
 
 The one-time release includes:
 
-- `Rust-Duty-VERSION-Windows-x64.zip` and `Rust-Duty-VERSION-Linux-x64.zip`
-- Both `update-TARGET.json` schema-1 manifests
-- Both `rust-duty-VERSION-TARGET.rdb` full managed game bundles
-- `vector-range.exe` and `vector-range-linux-x64` migration executables
+- `Rust-Duty-VERSION-Windows-x64.zip`
+- The Windows `update-TARGET.json` schema-1 manifests
+- The Windows `rust-duty-VERSION-TARGET.rdb` full managed game bundles
+- The `vector-range.exe` migration executable
 - `SOURCE_PROVENANCE.json`, binding commit, branch, run, artifact identities and
   all other release asset hashes
 
@@ -72,16 +99,15 @@ manifest at `/releases/latest/download/update-TARGET.json`.
 ## Atomic publication and retries
 
 The publisher creates a draft at the exact source commit, uploads and verifies
-all nine assets, then makes it public/latest in one release update. Both target
-manifests become discoverable together. The publication job shares the
+all five assets, then makes it public/latest in one release update. The manifest and bundle become discoverable together. The publication job shares the
 `rust-duty-release-channel` concurrency group with the old manual publisher.
 The authorized branch’s push workflows are not cancelled while publication may
 be active.
 
 Before creation and again immediately before public promotion, the publisher
-reads both latest manifests and requires the candidate version **and** sequence
+reads the latest Windows manifest and requires the candidate version **and** sequence
 to advance. An older run finishing late is reported as superseded and cannot
-regress latest. Inconsistent platform identities, unknown channel manifests or
+regress latest. Unknown channel manifests or
 version/sequence disagreements fail closed. An existing tag pointing at another
 commit is never moved.
 
