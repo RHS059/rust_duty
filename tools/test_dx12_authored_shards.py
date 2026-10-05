@@ -7,6 +7,7 @@ import json
 import os
 from pathlib import Path
 import tempfile
+from types import SimpleNamespace
 import unittest
 from unittest import mock
 
@@ -403,6 +404,87 @@ class SyntheticInputTests(unittest.TestCase):
         assets.symlink_to(moved, target_is_directory=True)
         with self.assertRaisesRegex(ValueError, 'symlink|reparse'):
             self.manifest()
+
+
+class StatRaceTests(unittest.TestCase):
+    """Model CPython's Windows timestamp split while retaining real file reads."""
+    def setUp(self):
+        temporary = tempfile.TemporaryDirectory(); self.addCleanup(temporary.cleanup)
+        self.path = Path(temporary.name)/'unchanged.bin'
+        self.data = b'unchanged raw bytes\r\nsecond line\r'
+        self.path.write_bytes(self.data)
+        actual = self.path.lstat()
+        base = {key:getattr(actual,key) for key in ('st_mode','st_dev','st_ino','st_size','st_mtime_ns')}
+        # Windows path APIs expose birthtime as ctime; fstat exposes ChangeTime.
+        self.by_path = SimpleNamespace(**base,st_ctime_ns=100,st_birthtime_ns=100)
+        self.by_handle = SimpleNamespace(**base,st_ctime_ns=200,st_birthtime_ns=100)
+
+    def read(self, *, paths=None, handles=None, platform='win32', canonical_lf=False):
+        with mock.patch.object(shards.sys,'platform',platform), \
+                mock.patch.object(shards,'_checked_stat',side_effect=paths or [self.by_path,self.by_path]), \
+                mock.patch.object(shards.os,'fstat',side_effect=handles or [self.by_handle,self.by_handle]):
+            return shards._read_regular(self.path,canonical_lf=canonical_lf)
+
+    def changed(self, original, field, value):
+        fields = vars(original).copy(); fields[field] = value
+        return SimpleNamespace(**fields)
+
+    def test_windows_same_file_different_ctime_clocks_hashes_exact_bytes(self):
+        self.assertNotEqual(self.by_path.st_ctime_ns,self.by_handle.st_ctime_ns)
+        self.assertEqual(self.read(),digest(self.data))
+        self.assertEqual(self.read(canonical_lf=True),digest(self.data.replace(b'\r\n',b'\n').replace(b'\r',b'\n')))
+
+    def test_posix_cross_api_ctime_difference_still_rejected(self):
+        with self.assertRaisesRegex(ValueError,'changed before'):
+            self.read(platform='linux')
+
+    def test_device_inode_size_mtime_and_birthtime_mismatch_rejected_before_read(self):
+        for field in ('st_dev','st_ino','st_size','st_mtime_ns','st_birthtime_ns'):
+            changed = self.changed(self.by_handle,field,getattr(self.by_handle,field)+1)
+            with self.subTest(field=field), self.assertRaisesRegex(ValueError,'changed before'):
+                self.read(handles=[changed,changed])
+
+    def test_handle_ctime_mutation_rejected_even_if_size_and_mtime_restored(self):
+        changed = self.changed(self.by_handle,'st_ctime_ns',201)
+        with self.assertRaisesRegex(ValueError,'changed while'):
+            self.read(handles=[self.by_handle,changed])
+
+    def test_path_ctime_mutation_is_not_ignored(self):
+        changed = self.changed(self.by_path,'st_ctime_ns',101)
+        with self.assertRaisesRegex(ValueError,'changed while'):
+            self.read(paths=[self.by_path,changed])
+
+    def test_path_or_open_handle_replacement_during_read_rejected(self):
+        for field in ('st_dev','st_ino','st_size','st_mtime_ns','st_birthtime_ns'):
+            for target in ('path','handle'):
+                original = self.by_path if target=='path' else self.by_handle
+                changed = self.changed(original,field,getattr(original,field)+1)
+                inputs = {'paths':[self.by_path,changed]} if target=='path' else {'handles':[self.by_handle,changed]}
+                with self.subTest(field=field,target=target), self.assertRaisesRegex(ValueError,'changed while'):
+                    self.read(**inputs)
+
+    def test_no_birthtime_does_not_silently_discard_ctime(self):
+        paths = SimpleNamespace(**{k:v for k,v in vars(self.by_path).items() if k!='st_birthtime_ns'})
+        handles = SimpleNamespace(**{k:v for k,v in vars(self.by_handle).items() if k!='st_birthtime_ns'})
+        with self.assertRaisesRegex(ValueError,'changed before'):
+            self.read(paths=[paths,paths],handles=[handles,handles])
+        handles.st_ctime_ns = paths.st_ctime_ns
+        self.assertEqual(self.read(paths=[paths,paths],handles=[handles,handles]),digest(self.data))
+
+    def test_final_path_check_occurs_while_original_handle_is_open(self):
+        descriptor = []
+        real_fstat = os.fstat
+        real_checked = shards._checked_stat
+        def fstat(fd):
+            descriptor[:] = [fd]
+            return real_fstat(fd)
+        def checked(path, kind):
+            if descriptor:
+                self.assertEqual(real_fstat(descriptor[0]).st_ino,self.path.stat().st_ino)
+            return real_checked(path,kind)
+        with mock.patch.object(shards.os,'fstat',side_effect=fstat), \
+                mock.patch.object(shards,'_checked_stat',side_effect=checked):
+            self.assertEqual(shards._read_regular(self.path),digest(self.data))
 
 
 class InventoryTests(unittest.TestCase):

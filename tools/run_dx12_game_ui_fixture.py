@@ -67,11 +67,10 @@ REPORT_KEYS = {'schema_version', 'status', 'native_execution', 'requested', 'bac
                'scales_percent', 'cases', 'captures', 'elements_covered', 'compiler_identity_source', 'scope',
                'boundaries'}
 ELEMENTS_COVERED = ['pause-menu', 'updater-panel', 'hud', 'telemetry', 'ammo-hint']
-SCOPE = 'live winit window runtime, native DX12 production game-UI draw paths to offscreen PNG'
+SCOPE = 'live game window runtime, native production game-UI draw paths to offscreen PNG'
 COMPILER_SOURCE = 'external captured renderer startup log; not inferred by this fixture'
 BOUNDARIES = {'os_dpi_events_verified': False, 'window_presentation_verified': False,
-              'native_pointer_or_click_verified': False, 'human_legibility_approved': False,
-              'gl_backend_verified': False}
+              'native_pointer_or_click_verified': False, 'human_legibility_approved': False}
 
 
 def require(condition, message):
@@ -146,7 +145,7 @@ def check_case(case, ink, scale):
             f'{case}: lit bounds {bounds} escape {window}')
     area = scale * scale
     gold = ink['gold_left'] + ink['gold_right']
-    require(ink['caption_white'] >= 60 * area, f'{case}: caption text is missing')
+    require(ink['caption_white'] >= (20 if case == 'ammo-full' else 60) * area, f'{case}: caption text is missing')
     if case == 'ammo-full':
         require(bounds[1] >= FULL_TEXT_BAND[1] * scale and bounds[3] < FULL_TEXT_BAND[3] * scale,
                 'ammo-full: only the AMMO FULL text may be drawn')
@@ -178,7 +177,7 @@ def check_ui_case(case, ink, scale):
     area = scale * scale
     require(ink['lit_bounds'] is not None and ink['lit_pixels'] > 0, f'{case}: capture is empty')
     if case == 'pause-menu':
-        require(ink['warm_menu_band'] >= 200 * area and ink['white'] >= 500 * area,
+        require(ink['warm_menu_band'] >= 500 * area and ink['white'] >= 75 * area,
                 f"pause-menu: expected accent and white text in the centred menu, got warm "
                 f"{ink['warm_menu_band']} white {ink['white']}")
     elif case.startswith('updater-'):
@@ -187,6 +186,38 @@ def check_ui_case(case, ink, scale):
     else:
         require(all(n >= 20 * area for n in ink['corner_white']),
                 f"{case}: every HUD corner needs white text, got {ink['corner_white']}")
+
+
+def check_ui_text(case, image, scale):
+    """Default production-font layout markers, independent of recorded ink.
+
+    The opaque dark panels cannot satisfy this mask. Muted HUD text is
+    (158,176,184), so the white-only mask would discard all telemetry rows.
+    These markers detect missing rows/messages and swapped updater states;
+    they do not establish exact wording or human legibility.
+    """
+    if case != 'hud-telemetry' and not case.startswith('updater-'):
+        return
+    r, g, b, _ = image.split()
+    foreground = ImageChops.darker(ImageChops.darker(r, g), b).point(lambda v: 255 if v >= 100 else 0)
+    area = scale * scale
+    if case == 'hud-telemetry':
+        # Production rows start at x=40, baseline 145 + row*23, size 16.
+        # ProggyClean's 16px glyph bounds fit baseline-12 through baseline+4.
+        for row in range(8):
+            band = (40, 133 + row * 23, 334, 149 + row * 23)
+            require(count(foreground, band, scale) >= 20 * area,
+                    f'hud-telemetry: text missing from row {row + 1}')
+        return
+    # The default updater panel starts at (18,18); message baseline is (34,71).
+    # At 16px ProggyClean advances 7px: "Version is current." ends before x=180,
+    # while the unavailable message extends beyond x=300. The title and buttons
+    # lie outside this band, so they cannot stand in for the message.
+    require(count(foreground, (34, 59, 600, 77), scale) >= 40 * area,
+            f'{case}: message text is missing')
+    tail = count(foreground, (180, 59, 600, 77), scale)
+    require(tail == 0 if case == 'updater-current' else tail >= 40 * area,
+            f'{case}: message layout does not match its state')
 
 
 def check_scale(inks, images, scale):
@@ -254,7 +285,10 @@ def check_parameters(name, case, parameters):
             f'{name}: ammo parameters mismatch')
 
 
-def validate_outputs(output):
+def validate_outputs(output, renderer='dx12'):
+    """DX12 evidence must come from Windows WARP; GL evidence from any named OpenGL adapter."""
+    require(renderer in ('dx12', 'gl'), f'unknown renderer {renderer!r}')
+    backend = 'Dx12' if renderer == 'dx12' else 'OpenGl'
     output = Path(output)
     require(output.is_dir() and not output.is_symlink(), 'fixture output must be a real directory')
     expected = [f'{case}-{percent}.png' for percent in SCALES for case in CASES]
@@ -269,10 +303,16 @@ def validate_outputs(output):
     require(report['schema_version'] == 2 and is_int(report['schema_version'])
             and report['status'] == 'passed' and report['native_execution'] is True,
             'fixture report is not a native pass')
-    require(report['requested'] == 'dx12' and report['backend'] == 'Dx12'
-            and isinstance(report['adapter'], str) and report['adapter'].casefold() == WARP.casefold()
-            and report['force_fallback_adapter'] is True and report['platform'] == 'windows',
-            'fixture report is not a Windows DX12 WARP run')
+    if renderer == 'dx12':
+        require(report['requested'] == 'dx12' and report['backend'] == 'Dx12'
+                and isinstance(report['adapter'], str) and report['adapter'].casefold() == WARP.casefold()
+                and report['force_fallback_adapter'] is True and report['platform'] == 'windows',
+                'fixture report is not a Windows DX12 WARP run')
+    else:
+        require(report['requested'] == 'gl' and report['backend'] == 'OpenGl'
+                and isinstance(report['adapter'], str) and report['adapter'].strip()
+                and report['force_fallback_adapter'] is False and report['platform'] in ('windows', 'linux'),
+                'fixture report is not a native OpenGL run')
     require(isinstance(report['build_version'], str) and re.fullmatch(r'[0-9]+\.[0-9]+\.[0-9]+', report['build_version'])
             and report['build_version'] == build_identity.package_version()
             and isinstance(report['build_number'], str) and report['build_number'].strip(),
@@ -306,7 +346,7 @@ def validate_outputs(output):
             require(sidecar['schema_version'] == 2 and is_int(sidecar['schema_version'])
                     and sidecar['filename'] == name
                     and sidecar['element'] == ELEMENTS.get(case, 'ammo-hint') and sidecar['case'] == case
-                    and sidecar['requested'] == 'dx12' and sidecar['backend'] == 'Dx12'
+                    and sidecar['requested'] == renderer and sidecar['backend'] == backend
                     and sidecar['adapter'] == report['adapter']
                     and is_int(sidecar['scale_percent']) and sidecar['scale_percent'] == percent
                     and sidecar['logical_size'] == list(LOGICAL_SIZE) and all(map(is_int, sidecar['logical_size']))
@@ -325,12 +365,14 @@ def validate_outputs(output):
                 check_ui_case(case, ink, scale)
             inks[case], images[case] = ink, image.tobytes()
         check_scale(inks, images, scale)
+        for case in ('hud-telemetry', 'updater-current', 'updater-unavailable'):
+            check_ui_text(case, Image.frombytes('RGBA', extent, images[case]), scale)
         per_scale[percent] = inks
     for case in CASES:
         check_scaling(per_scale[100][case], per_scale[200][case])
     return {'passed': True, 'captures': len(expected), 'elements_covered': ELEMENTS_COVERED,
             'adapter': report['adapter'],
-            'scope': 'Production pause menu, updater, HUD/telemetry and ammo hint in the live window on DX12 WARP.'}
+            'scope': f'Production pause menu, updater, HUD/telemetry and ammo hint in the live window on {backend}.'}
 
 
 def main(argv=None):

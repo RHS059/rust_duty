@@ -34,6 +34,22 @@ class GameUiWorkflowTests(unittest.TestCase):
         self.assertEqual(upload['with']['if-no-files-found'], 'error')
         self.assertEqual(set(upload['with']['path'].split()), {'evidence/game-ui/', 'evidence/game-ui-run/'})
 
+    def test_gl_uses_pinned_runtime_and_same_production_example(self):
+        job = self.workflow['jobs']['game-ui-gl-contract']
+        self.assertEqual(job['runs-on'], 'windows-latest')
+        self.assertNotIn('needs', job)
+        commands = [step.get('run', '') for step in job['steps']]
+        self.assertIn('cargo build --locked --no-default-features --features legacy-macroquad,wgpu-runtime --example game_ui_contract', commands)
+        self.assertTrue(any('stage_windows_gl_reference.ps1 -Manifest tools/windows_gl_reference_lock.json' in command for command in commands))
+        native = next(command for command in commands if 'tools/run_windows_gl_game_ui.py' in command)
+        self.assertIn('--runtime evidence/game-ui-gl-runtime', native)
+        self.assertIn('--manifest tools/windows_gl_reference_lock.json', native)
+        self.assertIn('--timeout 600', native)
+        self.assertFalse(any('continue-on-error' in step for step in job['steps']))
+        upload = job['steps'][-1]
+        self.assertEqual(upload['if'], 'always()')
+        self.assertNotIn('*.dll', upload['with']['path'])
+
 
 if __name__ == '__main__':
     unittest.main()

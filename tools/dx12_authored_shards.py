@@ -11,6 +11,7 @@ import os
 from pathlib import Path
 import re
 import stat
+import sys
 
 import run_dx12_authored as authored
 import run_windows_gl_reference_probe as gl_probe
@@ -202,6 +203,22 @@ def _walk_files(folder):
     yield from visit(folder)
 
 
+def _stat_identity(info, *, cross_api=False):
+    """Keep file identity and timestamps, respecting Windows stat semantics.
+
+    CPython 3.12+ path stat/lstat retain creation time in st_ctime_ns, while
+    fstat exposes metadata-change time (cpython#157671). They are different
+    clocks, not evidence of a replacement. Compare birthtime across those APIs
+    when Windows supplies it, but retain ctime in both same-API race checks.
+    POSIX cross-API comparisons keep their original ctime guard unchanged.
+    """
+    common = (info.st_dev, info.st_ino, info.st_size, info.st_mtime_ns)
+    birth = getattr(info, 'st_birthtime_ns', None)
+    if cross_api and sys.platform == 'win32' and birth is not None:
+        return (*common, birth)
+    return (*common, info.st_ctime_ns, birth)
+
+
 def _read_regular(path, *, canonical_lf=False):
     """Hash a regular file and reject replacement or mutation during the read."""
     path = Path(path)
@@ -210,8 +227,8 @@ def _read_regular(path, *, canonical_lf=False):
     try:
         with os.fdopen(os.open(path, flags), 'rb') as stream:
             opened = os.fstat(stream.fileno())
-            identity = lambda info: (info.st_dev, info.st_ino, info.st_size, info.st_mtime_ns, info.st_ctime_ns)
-            if not stat.S_ISREG(opened.st_mode) or identity(before) != identity(opened):
+            if (not stat.S_ISREG(opened.st_mode)
+                    or _stat_identity(before, cross_api=True) != _stat_identity(opened, cross_api=True)):
                 raise ValueError(f'file changed before hashing: {path}')
             if canonical_lf:
                 # Match Python universal-newline reading without changing any
@@ -220,11 +237,15 @@ def _read_regular(path, *, canonical_lf=False):
                 digest = hashlib.sha256(data).hexdigest()
             else:
                 digest = hashlib.file_digest(stream, 'sha256').hexdigest()
+            # Keep the handle open while checking the current pathname. Each
+            # API is compared to its own earlier observation; no ctime is lost.
+            current = _checked_stat(path, 'file')
             after = os.fstat(stream.fileno())
-        current = _checked_stat(path, 'file')
     except OSError as error:
         raise ValueError(f'cannot hash regular file: {path}') from error
-    if identity(before) != identity(after) or identity(before) != identity(current):
+    if (_stat_identity(opened) != _stat_identity(after)
+            or _stat_identity(before) != _stat_identity(current)
+            or _stat_identity(after, cross_api=True) != _stat_identity(current, cross_api=True)):
         raise ValueError(f'file changed while hashing: {path}')
     return digest
 

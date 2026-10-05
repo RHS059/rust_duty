@@ -12,7 +12,7 @@ import unittest
 import zlib
 from unittest.mock import patch
 
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFont
 
 import run_dx12_game_ui_fixture as fixture
 
@@ -63,15 +63,29 @@ def ui(percent, case, corners=4, accent=True):
         if accent:
             box(300, 120, 500, 130, ACCENT)
     elif case.startswith('updater-'):
-        box(180, 90, 780, 240, OVERLAY)
+        # Independent FreeType rendering of the pinned production font at the
+        # source-defined default panel/message locations; no oracle thresholds.
+        font = Path(fixture.build_identity.__file__).resolve().parents[1] / 'src/render/font/ProggyClean.ttf'
+        box(18, 18, 618, 168, OVERLAY)
         if accent:
-            box(196, 100, 400 if case == 'updater-current' else 440, 106, GOLD)
-        box(196, 120, 500, 126, WHITE)
+            title = 'Game is up to date' if case == 'updater-current' else 'Update unavailable'
+            draw.text((34*s, 46*s), title, font=ImageFont.truetype(str(font), 24*s), fill=GOLD, anchor='ls')
+        message = 'Version is current.' if case == 'updater-current' else "Can't reach GitHub. Retry, or play this version."
+        draw.text((34*s, 71*s), message, font=ImageFont.truetype(str(font), 16*s), fill=WHITE, anchor='ls')
+        # A retained button label discriminates missing message from missing all white text.
+        draw.text((40*s, 149*s), 'Retry update check', font=ImageFont.truetype(str(font), 17*s), fill=WHITE, anchor='ls')
     else:
         for x0, y0, _, _ in fixture.CORNERS[:corners]:
             box(x0 + 10, y0 + 10, x0 + 60, y0 + 20, WHITE)
         if case == 'hud-telemetry':
-            box(40, 140, 300, 160, WHITE)
+            font = Path(fixture.build_identity.__file__).resolve().parents[1] / 'src/render/font/ProggyClean.ttf'
+            box(24, 119, 334, 326, OVERLAY)
+            rows = ['SIM 120 Hz   RENDER 60 fps', 'TIME    0.00 s   DIST    0.0 m',
+                    'POS  0.00  0.00  0.00', 'VEL  0.00  0.00  0.00', 'ADS 0.00   FOV 100/ 65',
+                    'RECOIL  0.00 /  0.00 deg', 'SHOTS 0   HEADSHOTS 0', 'F8 CSV   OFF']
+            for row, text in enumerate(rows):
+                draw.text((40*s, (145+row*23)*s), text, font=ImageFont.truetype(str(font), 16*s),
+                          fill=(158, 176, 184, 255), anchor='ls')
     return image
 
 
@@ -102,6 +116,11 @@ def parameters(case):
 
 class GameUiFixtureTests(unittest.TestCase):
     def setUp(self):
+        # Synthetic records use a fixed build number, independent of the host CI
+        # attempt. The dedicated identity test enables its own explicit CI context.
+        environment = patch.dict(os.environ, {'GITHUB_ACTIONS': 'false'})
+        environment.start()
+        self.addCleanup(environment.stop)
         temporary = tempfile.TemporaryDirectory()
         self.addCleanup(temporary.cleanup)
         self.root = Path(temporary.name)
@@ -230,6 +249,21 @@ class GameUiFixtureTests(unittest.TestCase):
                              tuple(255 if v else 0 for v in (p[:3] != (0, 0, 0), fixture.is_white(p),
                                                              fixture.is_gold(p), fixture.is_warm(p))), p)
 
+    def test_gl_evidence_needs_gl_identity(self):
+        with self.assertRaisesRegex(ValueError, 'native OpenGL run'):
+            fixture.validate_outputs(self.output, 'gl')
+        adapter = 'llvmpipe (LLVM 15.0.6, 256 bits)'
+        for percent in fixture.SCALES:
+            for case in fixture.CASES:
+                self.edit(f'{case}-{percent}.png.json', requested='gl', backend='OpenGl', adapter=adapter)
+        self.sync_report()
+        self.edit(fixture.REPORT, requested='gl', backend='OpenGl', adapter=adapter, force_fallback_adapter=False,
+                  platform='linux')
+        fixture.validate_outputs(self.output, 'gl')
+        self.edit(fixture.REPORT, force_fallback_adapter=True)
+        with self.assertRaisesRegex(ValueError, 'native OpenGL run'):
+            fixture.validate_outputs(self.output, 'gl')
+
     def test_menu_without_centred_accent_fails(self):
         self.replace('pause-menu-100.png', ui(100, 'pause-menu', accent=False), 100)
         self.rejects('pause-menu')
@@ -247,6 +281,40 @@ class GameUiFixtureTests(unittest.TestCase):
         ImageDraw.Draw(image).rectangle((1000, 600, 1010, 610), fill=WHITE)
         self.replace('hud-telemetry-200.png', image, 200)
         self.rejects('telemetry panel missing')
+
+    def test_telemetry_panel_background_cannot_substitute_for_text(self):
+        for percent in fixture.SCALES:
+            s = percent // 100
+            image = ui(percent, 'hud')
+            ImageDraw.Draw(image).rectangle((24*s, 119*s, 334*s-1, 326*s-1), fill=OVERLAY)
+            self.replace(f'hud-telemetry-{percent}.png', image, percent)
+        self.rejects('text missing from row')
+
+    def test_each_telemetry_row_requires_foreground_text(self):
+        for percent, row in ((100, 0), (200, 7)):
+            s = percent // 100
+            image = ui(percent, 'hud-telemetry')
+            ImageDraw.Draw(image).rectangle((40*s, (133+row*23)*s, 334*s-1, (149+row*23)*s-1), fill=OVERLAY)
+            self.replace(f'hud-telemetry-{percent}.png', image, percent)
+            with self.subTest(percent=percent, row=row):
+                self.rejects(f'text missing from row {row + 1}')
+            self.replace(f'hud-telemetry-{percent}.png', ui(percent, 'hud-telemetry'), percent)
+
+    def test_updater_states_cannot_swap_pixels_with_matching_counters(self):
+        for percent in fixture.SCALES:
+            self.replace(f'updater-current-{percent}.png', ui(percent, 'updater-unavailable'), percent)
+            self.replace(f'updater-unavailable-{percent}.png', ui(percent, 'updater-current'), percent)
+        self.rejects('message layout does not match its state')
+
+    def test_updater_message_required_even_when_button_text_remains(self):
+        for percent, case in ((100, 'updater-current'), (200, 'updater-unavailable')):
+            s = percent // 100
+            image = ui(percent, case)
+            ImageDraw.Draw(image).rectangle((34*s, 59*s, 600*s-1, 77*s-1), fill=OVERLAY)
+            self.replace(f'{case}-{percent}.png', image, percent)
+            with self.subTest(percent=percent, case=case):
+                self.rejects('message text is missing')
+            self.replace(f'{case}-{percent}.png', ui(percent, case), percent)
 
     def test_ink_counters_must_be_integers_matching_the_pixels(self):
         name = 'ammo-complete-100.png.json'

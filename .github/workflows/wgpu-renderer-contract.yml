@@ -122,3 +122,46 @@ jobs:
             evidence/game-ui-run/
           if-no-files-found: error
           retention-days: 7
+  game-ui-gl-contract:
+    runs-on: windows-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install independent PNG verifier
+        run: python -m pip install Pillow==11.3.0
+      - name: Test GL UI process evidence guards
+        env:
+          PYTHONPATH: tools
+        run: python -m unittest -v test_windows_gl_game_ui
+      - name: Build production UI with both backends
+        run: cargo build --locked --no-default-features --features legacy-macroquad,wgpu-runtime --example game_ui_contract
+      - name: Stage pinned app-local official Mesa
+        shell: pwsh
+        timeout-minutes: 10
+        run: |
+          New-Item -ItemType Directory -Path evidence -Force | Out-Null
+          ./tools/stage_windows_gl_reference.ps1 -Manifest tools/windows_gl_reference_lock.json -OutputDirectory evidence/game-ui-gl-runtime
+      - name: Verify production UI through legacy Windows GL
+        run: >-
+          python tools/run_windows_gl_game_ui.py
+          --executable target/debug/examples/game_ui_contract.exe
+          --runtime evidence/game-ui-gl-runtime --manifest tools/windows_gl_reference_lock.json
+          --root . --evidence evidence/game-ui-gl-run --output evidence/game-ui-gl
+          --timeout 600
+      - name: Retain GL UI captures and process evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gl-game-ui-contract-attempt-${{ github.run_attempt }}
+          path: |
+            evidence/game-ui-gl/
+            evidence/game-ui-gl-run/
+            evidence/game-ui-gl-runtime/staging-receipt.json
+          if-no-files-found: error
+          retention-days: 7
