@@ -311,6 +311,19 @@ class ReleasePackageGuardTests(unittest.TestCase):
         write(self.source, "assets/animations.cfg", config)
         write(self.artifact, "assets/animations.cfg", config)
         self.make_pack(Path("assets/jump"))
+        path = self.artifact / "assets/jump/manifest.json"
+        manifest = json.loads(path.read_text())
+        takes = [{"name": "jump_takeoff", "loop": False, "action": "jump_takeoff_r7",
+                  "frame_start": 1, "frame_end": 12}]
+        manifest["source"].update(bake_hz=480)
+        manifest["jump_clips"] = [{**takes[0], "duration": 11 / 60}]
+        write_json(self.artifact, "assets/jump/manifest.json", manifest)
+        write_json(self.source, "assets/authoring/jump/export_config.json", {
+            "schema": "rust-duty-jump-authoring-export/v1", "source_file": "halcyon_jump.blend",
+            "source_sha256": manifest["source"]["sha256"], "source_fps": 60,
+            "bake_hz": 480, "source_takes": takes})
+        # Production keeps the blend only in a separately pinned source checkout.
+        (self.source / "assets/authoring/jump/halcyon_jump.blend").unlink()
 
     def test_jump_source_companions_and_full_stage_pass(self):
         self.add_jump()
@@ -338,9 +351,29 @@ class ReleasePackageGuardTests(unittest.TestCase):
 
     def test_jump_source_digest_must_match_selected_blend(self):
         self.add_jump()
-        write(self.source, "assets/authoring/jump/halcyon_jump.blend", b"wrong source")
+        path = self.artifact / "assets/jump/manifest.json"
+        manifest = json.loads(path.read_text())
+        manifest["source"]["sha256"] = "b" * 64
+        write_json(self.artifact, "assets/jump/manifest.json", manifest)
         with self.assertRaises(ValueError):
             release.verify_source_contract(self.source, self.artifact)
+
+    def test_jump_cannot_change_export_clock_or_take_recipe(self):
+        self.add_jump()
+        path = self.artifact / "assets/jump/manifest.json"
+        original = json.loads(path.read_text())
+        for field in ("action", "frame_end", "duration"):
+            manifest = copy.deepcopy(original)
+            manifest["jump_clips"][0][field] = "incorrect"
+            write_json(self.artifact, "assets/jump/manifest.json", manifest)
+            with self.assertRaises(ValueError):
+                release.verify_source_contract(self.source, self.artifact)
+        for field in ("fps", "bake_hz", "file"):
+            manifest = copy.deepcopy(original)
+            manifest["source"][field] = "incorrect"
+            write_json(self.artifact, "assets/jump/manifest.json", manifest)
+            with self.assertRaises(ValueError):
+                release.verify_source_contract(self.source, self.artifact)
 
     def test_jump_cannot_be_dropped_from_stage_zip_or_bundle(self):
         self.add_jump()

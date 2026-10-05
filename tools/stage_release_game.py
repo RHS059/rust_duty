@@ -124,7 +124,27 @@ def verify_source_contract(source, artifact):
             else:
                 require(authoring_recipe(actual) == authoring_recipe(expected),
                         f"artifact {kind} authoring recipe differs from exact source")
-        if kind != "locomotion" and "source" in actual:
+        if kind == "jump":
+            # Jump's immutable blend lives in the source commit pinned by CI,
+            # while this exact game checkout owns its content hash and recipe.
+            config = json.loads(regular(source, "assets/authoring/jump/export_config.json").read_text())
+            origin = actual.get("source", {})
+            require(config.get("schema") == "rust-duty-jump-authoring-export/v1" and
+                    config.get("source_file") == "halcyon_jump.blend" and
+                    re.fullmatch(r"[0-9a-f]{64}", config.get("source_sha256", "")),
+                    "invalid source-owned Jump export contract")
+            require(origin.get("file") == "assets/authoring/jump/" + config["source_file"] and
+                    origin.get("sha256") == config["source_sha256"] and
+                    origin.get("fps") == config["source_fps"] and
+                    origin.get("bake_hz") == config["bake_hz"],
+                    "artifact Jump differs from exact source-owned export contract")
+            expected_takes = [{"name": take["name"], "loop": take["loop"],
+                               "duration": (take["frame_end"] - take["frame_start"]) / config["source_fps"],
+                               "action": take["action"], "frame_start": take["frame_start"],
+                               "frame_end": take["frame_end"]} for take in config["source_takes"]]
+            require(actual.get("jump_clips") == expected_takes,
+                    "artifact Jump clip recipe differs from selected source")
+        elif kind != "locomotion" and "source" in actual:
             origin = actual["source"]
             relative = origin.get("file", "")
             require(isinstance(relative, str) and relative.startswith("assets/authoring/"),
