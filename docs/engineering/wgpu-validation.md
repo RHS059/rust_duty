@@ -40,15 +40,15 @@ visuals and real hardware remain separate proof boundaries.
 | --- | --- |
 | 0.1 | Accepted CPU boundary: mechanical glam imports, identical math version, tests/clippy pass |
 | 0.2 | Accepted extraction component: Hal message234 reports all508 native legacy capture files baseline-identical for extraction233/platform235. Main is now138lines. This historical extraction evidence does not certify the subsequent renderer/UI integration |
-| 0.3 | Neutral facade and legacy implementation integrated. Native legacy equivalence and final joint contract freeze pending |
+| 0.3 | Neutral facade and legacy implementation integrated. Both owners confirmed v1 interface at2887729; native legacy equivalence pending |
 | 0.4 | Accepted CPU boundary: input mapping and existing intent/control contracts pass |
 | 1.1 | Window/event/fixed-clock integration implemented; native fullscreen, resize, cursor and quit exercise pending |
 | 1.2 | Accepted CPU boundary: tap/repeat/focus-edge contracts pass; real focus interaction remains in manual checklist |
 | 1.3 | Accepted CPU boundary: optional audio and same triggers; silent build passes; audible hardware check pending |
 | 1.4 | Native text/2D/UI routes integrated; both-backend visual validation pending |
-| 2.1 | Backend/surface policy and logging implemented; genuine Windows DX12/WARP run pending |
-| 2.2 | Vertex/upload/blend pipeline and CPU layout tests pass; DX12 asymmetric fixture pending |
-| 2.3 | Ordered target capture/readback implemented; DX12 orientation and 960x540 game capture pending |
+| 2.1 | Accepted DX12 scope: actual Windows WARP game launch/present/capture and adapter/FXC logs pass; native interaction remains WP1.1/M4 |
+| 2.2 | Accepted: CPU layout/upload contracts and actual DX12 non-empty asymmetric orientation/blend fixture pass |
+| 2.3 | Accepted: actual DX12 960x540 reference captures, asymmetric orientation, ordered readback and padded rows pass |
 | 2.4 | World lines/wires/spheres migrated; native visibility/depth review pending |
 | 2.5 | Text atlas and DPI fixtures implemented; actual 100%/200% legibility review pending |
 | 3.1 | World pass migrated; CPU contracts pass; native breakage/telemetry evidence pending |
@@ -111,3 +111,59 @@ fixture, full-world/HUD presentation, actual hardware performance, M2 capture
 approval, or M4 human playtesting. Orientation was not checked by this smoke.
 The first attempt failed only an equivalent Windows short/long temporary-path
 assertion; patch253 normalized the two expected paths without relaxing equality.
+
+## Independent DX12 renderer contract
+
+Commit `28877298ab8acd137b432a9f6df0880fb434a8be`, Windows WARP with explicit
+FXC: [job111834490299](https://github.com/RHS059/rust_duty/actions/runs/37331078290/job/111834490299)
+passed all19 captures, four expected error cases and post-error recovery.
+[Artifact11354701220](https://github.com/RHS059/rust_duty/actions/runs/37331078290/artifacts/11354701220)
+ZIP SHA256: `5f26c07489fb2b41e8f8fdd04945bf4fd03b7271c8f8e47a5d3a2b1d9c7418e9`.
+
+All fixed color/depth/alpha probe regions achieved match_fraction1.0. Actual
+checks cover asymmetric top-left orientation, width65 padded readback, ordered
+red/green snapshots, independent target depth/reset, disabled depth, associated
+alpha and zero-alpha emission, tint, clear/replacement encoding, and recovery.
+The16/32px text images were inspected as legible `Ag` glyphs; raster dimensions
+match1x/2x expectations. This is not native OS DPI-event or complete HUD proof.
+
+The stricter game smoke on this same revision also passed127 frames/381 JSON
+with the FXC guard. Neither result substitutes for the pending authored replay
+suite, real hardware performance, or human M2/M4 gates. Nine original work
+packages now have their scoped acceptance evidence; original WP4.1 is removed.
+
+## Legacy baseline correction before authored acceptance
+
+The2887729 legacy native-validation job passed its CPU/Python checks, then failed
+at the first native jump capture: the GLSL ES100 associated target fragment
+shader lacked a default float precision for its local `vec4`. The opaque
+replacement variant had the same defect. All legacy fragment variants now
+declare `precision mediump float;`, with a targeted source regression. Fresh
+production tests pass default764/wgpu767/silent693, two existing ignored each,
+and all three strict clippy lanes pass. This fixes the observed source cause;
+only the subsequent native CI run can confirm legacy shader/render recovery.
+The baseline dependency and original validator thresholds remain intact.
+
+## Joint interface freeze
+
+Both owners confirmed draw/facade/FrameHooks v1 at2887729 after reviewing actual
+caller and backend code (Hal message263). Resource identity, one depth remap,
+top-left origin, ordered capture, Ready/Skip input retention and final submission
+semantics are agreed. This is an interface freeze, not visual or human approval.
+
+## Legacy exit-lifetime correction
+
+After the precision repair, e903b8 completed all403 jump PNG/sidecar groups but
+exited139. Artifact11356680310 was inspected by Hal; the last frame's elapsed6.7s
+matches the6.5s replay plus0.2s tail. Independent source reviews identified TLS
+renderer destruction after Miniquad had destroyed GLX and unloaded libGL.
+Cached RenderPass destructors then called stale GL deletion functions.
+
+The correction explicitly takes the driver out of TLS, submits the final frame,
+flushes, and drops resources inside the still-live Macroquad application future.
+The main caller invokes shutdown instead of the final per-frame finish. Two CPU
+regressions cover submit/flush/drop ordering, cleared state and error preservation.
+Fresh tests: combined audio+legacy+wgpu807, default766, silent693; two existing
+ignored each. Strict all-target clippy and formatting pass in all three modes.
+Native exit recovery remains pending the next CI attempt; complete written
+captures did not make the crashed process a passing baseline.

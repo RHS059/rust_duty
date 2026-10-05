@@ -1,7 +1,9 @@
 # 0002: Neutral draw recording and the Windows DX12 migration
 
-Status: component boundaries agreed; production integration and native acceptance
-are in progress. This is not approval to cut over or remove the legacy renderer.
+Status: draw/facade/FrameHooks v1 interface jointly frozen at
+`28877298ab8acd137b432a9f6df0880fb434a8be` after both owner reviews.
+Production native acceptance remains in progress. This is not approval to cut
+over or remove the legacy renderer.
 
 Baseline: `e7a36bcaa26e0babe4da79b3a54b3785e56bf943` after PR 43.
 Integration is tracked in [draft PR 44](https://github.com/RHS059/rust_duty/pull/44).

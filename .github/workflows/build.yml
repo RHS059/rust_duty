@@ -11,6 +11,9 @@ concurrency:
   # Never interrupt an eligible push while it may be publishing a complete draft.
   cancel-in-progress: ${{ github.event_name != 'push' || github.ref != 'refs/heads/aella/automatic-game-updates-r1' }}
 jobs:
+  dx12-authored-validation:
+    needs: [animation-assets, walk-assets, ads-assets, directional-assets, jump-assets, native-validation]
+    uses: ./.github/workflows/wgpu-dx12-authored.yml
   animation-assets:
     uses: ./.github/workflows/blender-assets.yml
   walk-assets:

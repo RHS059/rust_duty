@@ -1,0 +1,108 @@
+name: Authored DX12 WARP acceptance (no distribution)
+on:
+  workflow_call:
+permissions:
+  contents: read
+jobs:
+  dx12-authored:
+    runs-on: windows-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Same caller revision as both the companion producers and native validation.
+          persist-credentials: false
+      - name: Fetch validated reload companions from this run
+        uses: actions/download-artifact@v4
+        with:
+          name: generated-reload-runtime
+          path: assets/reload
+      - name: Fetch validated walk companions from this run
+        uses: actions/download-artifact@v4
+        with:
+          name: generated-walk-runtime
+          path: assets/walk
+      - name: Fetch validated ADS companions from this run
+        uses: actions/download-artifact@v4
+        with:
+          name: generated-ads-runtime
+          path: assets/ads
+      - name: Fetch validated directional companions from this run
+        uses: actions/download-artifact@v4
+        with:
+          name: generated-directional-runtime
+          path: assets/directional
+      - name: Fetch validated jump companions from this run
+        uses: actions/download-artifact@v4
+        with:
+          name: generated-jump-runtime
+          path: assets/jump
+      # No token, repository or run-id override: only this workflow run is eligible.
+      # Attempt-specific baseline names deliberately fail on a partial rerun that
+      # did not rerun native-validation. Rerun all jobs to obtain matched evidence.
+      - name: Fetch this attempt's legacy jump baseline
+        uses: actions/download-artifact@v4
+        with:
+          name: native-gameplay-jump-evidence-attempt-${{ github.run_attempt }}
+          path: evidence/legacy/jump-gameplay
+      - name: Fetch this attempt's legacy reload baseline
+        uses: actions/download-artifact@v4
+        with:
+          name: native-gameplay-reload-evidence-attempt-${{ github.run_attempt }}
+          path: evidence/legacy/reload-gameplay
+      - name: Fetch this attempt's legacy walk baseline
+        uses: actions/download-artifact@v4
+        with:
+          name: native-gameplay-walk-evidence-attempt-${{ github.run_attempt }}
+          path: evidence/legacy/walk-gameplay
+      - name: Fetch this attempt's legacy ADS baseline
+        uses: actions/download-artifact@v4
+        with:
+          name: native-gameplay-ads-evidence-attempt-${{ github.run_attempt }}
+          path: evidence/legacy/ads-gameplay
+      - name: Fetch this attempt's legacy offset baseline
+        uses: actions/download-artifact@v4
+        with:
+          name: native-ads-placement-evidence-attempt-${{ github.run_attempt }}
+          path: evidence/legacy/ads-placement
+      - name: Fetch this attempt's legacy layered rate baselines
+        uses: actions/download-artifact@v4
+        with:
+          name: native-layered-locomotion-evidence-attempt-${{ github.run_attempt }}
+          path: evidence/legacy/layered
+      - name: Fetch this attempt's legacy reload-return baseline
+        uses: actions/download-artifact@v4
+        with:
+          name: native-reload-return-evidence-attempt-${{ github.run_attempt }}
+          path: evidence/legacy/reload-return
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install existing capture and materialization dependency
+        run: python -m pip install -r tools/requirements-assets.txt
+      - name: Materialize committed assets and verify downloaded source-bound companions
+        run: >-
+          python tools/package_game.py materialize --root .
+          --include-walk --include-ads --include-directional --include-jump --require-generated
+      - name: Test authored acceptance with synthetic inputs (not native evidence)
+        run: python -m unittest discover -s tools -p test_dx12_authored.py -v
+      - name: Build game and asymmetric renderer fixture from this revision
+        run: >-
+          cargo build --locked --release --no-default-features --features wgpu-runtime
+          --bin vector-range --example renderer_contract
+      - name: Capture authored DX12 WARP replays and run existing strict checks
+        run: >-
+          python tools/run_dx12_authored.py
+          --executable target/release/vector-range.exe
+          --renderer-contract target/release/examples/renderer_contract.exe
+          --root . --legacy evidence/legacy
+          --evidence evidence/dx12-authored --timeout 900
+      - name: Retain exact attempted authored captures, logs and open review guides
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dx12-authored-evidence-attempt-${{ github.run_attempt }}
+          path: evidence/dx12-authored/
+          if-no-files-found: warn
+          retention-days: 7
