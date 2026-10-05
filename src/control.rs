@@ -231,9 +231,121 @@ impl IntentLatch {
         out
     }
 }
+/// One-shot traversal/weapon-action intents sampled once per render frame and
+/// consumed by the next fixed step. Tactical sprint is a sprint double-tap:
+/// a fresh press within `double_tap` seconds of the previous fresh press.
+#[derive(Clone, Copy, Debug, Default)]
+pub struct ActionLatch {
+    tactical_sprint: bool,
+    mount: bool,
+    sidearm: bool,
+    sprint: ButtonGate,
+    mount_gate: ButtonGate,
+    sidearm_gate: ButtonGate,
+    last_sprint_press: Option<f64>,
+}
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct ActionIntent {
+    pub tactical_sprint: bool,
+    pub mount: bool,
+    pub sidearm: bool,
+}
+impl ActionLatch {
+    /// Pause, resume, reset and focus loss drop pending intents and require release.
+    pub fn clear(&mut self) {
+        self.tactical_sprint = false;
+        self.mount = false;
+        self.sidearm = false;
+        self.last_sprint_press = None;
+        self.sprint.clear();
+        self.mount_gate.clear();
+        self.sidearm_gate.clear();
+    }
+    #[allow(clippy::too_many_arguments)]
+    pub fn sample(
+        &mut self,
+        sprint: ButtonInput,
+        mount: ButtonInput,
+        sidearm: ButtonInput,
+        now: f64,
+        double_tap: f32,
+        accept_input: bool,
+    ) {
+        let (sprint_press, _) = self.sprint.sample(sprint, accept_input);
+        let (mount_press, _) = self.mount_gate.sample(mount, accept_input);
+        let (sidearm_press, _) = self.sidearm_gate.sample(sidearm, accept_input);
+        if !accept_input {
+            return;
+        }
+        if sprint_press {
+            if self
+                .last_sprint_press
+                .is_some_and(|last| now - last <= f64::from(double_tap))
+            {
+                self.tactical_sprint = true;
+                self.last_sprint_press = None;
+            } else {
+                self.last_sprint_press = Some(now);
+            }
+        }
+        self.mount |= mount_press;
+        self.sidearm |= sidearm_press;
+    }
+    pub fn take(&mut self) -> ActionIntent {
+        let out = ActionIntent {
+            tactical_sprint: self.tactical_sprint,
+            mount: self.mount,
+            sidearm: self.sidearm,
+        };
+        self.tactical_sprint = false;
+        self.mount = false;
+        self.sidearm = false;
+        out
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+    fn tap(down: bool) -> ButtonInput {
+        ButtonInput {
+            pressed: down,
+            down,
+        }
+    }
+    #[test]
+    fn sprint_double_tap_requests_tactical_sprint_once() {
+        let mut l = ActionLatch::default();
+        let none = ButtonInput::default();
+        l.sample(tap(true), none, none, 0.0, 0.3, true);
+        l.sample(tap(false), none, none, 0.1, 0.3, true);
+        assert!(!l.take().tactical_sprint);
+        l.sample(tap(true), none, none, 0.2, 0.3, true);
+        assert!(l.take().tactical_sprint);
+        assert!(!l.take().tactical_sprint, "consumed once");
+        // Too slow: a second press after the window is a fresh first tap.
+        l.sample(tap(false), none, none, 0.3, 0.3, true);
+        l.sample(tap(true), none, none, 1.0, 0.3, true);
+        l.sample(tap(false), none, none, 1.1, 0.3, true);
+        l.sample(tap(true), none, none, 1.5, 0.3, true);
+        assert!(!l.take().tactical_sprint);
+    }
+    #[test]
+    fn held_mount_and_sidearm_do_not_repeat_and_clear_requires_release() {
+        let mut l = ActionLatch::default();
+        let none = ButtonInput::default();
+        l.sample(none, tap(true), tap(true), 0., 0.3, true);
+        let i = l.take();
+        assert!(i.mount && i.sidearm);
+        for t in 1..10 {
+            l.sample(none, tap(true), tap(true), t as f64, 0.3, true);
+            assert_eq!(l.take(), ActionIntent::default());
+        }
+        l.clear();
+        l.sample(none, tap(false), tap(false), 11., 0.3, true);
+        l.sample(none, tap(true), none, 12., 0.3, true);
+        assert!(l.take().mount);
+    }
     #[test]
     fn short_click_is_retained_until_a_simulation_step() {
         let mut l = IntentLatch::default();

@@ -89,9 +89,10 @@ pub struct HangState {
     eye_from: f32,
 }
 impl HangState {
-    /// Hand anchors relative to the lip center: (along wall, height, inset).
+    /// Hand anchors relative to the lip center: (toward the player's right,
+    /// height, inset onto the top).
     pub fn ledge_relative_hands(&self) -> [Vec3; 2] {
-        let tangent = vec3(-self.normal.z, 0., self.normal.x);
+        let tangent = (-self.normal).cross(Vec3::Y);
         self.hands.map(|h| {
             let d = h - self.lip;
             vec3(d.dot(tangent), d.y, d.dot(-self.normal))
@@ -800,7 +801,8 @@ impl Simulation {
             }
             let position =
                 vec3(contact.x, b.max.y - t.hang_hand_height, contact.z) + normal * t.hang_wall_gap;
-            let tangent = vec3(-normal.z, 0., normal.x);
+            // The player's right while facing the wall: hands[0] left, hands[1] right.
+            let tangent = (-normal).cross(Vec3::Y);
             let lip_center =
                 position - normal * (RADIUS + t.hang_wall_gap) - normal * t.hang_hand_inset;
             let hands = [-0.5, 0.5].map(|side| {
@@ -959,6 +961,10 @@ impl Simulation {
         p.mantle = Some(state);
         p.velocity = Vec3::ZERO;
         p.last_jump_at = self.time;
+        // Ease from the hang eye to standing once the climb lands; no camera pop.
+        p.eye_from = p.eye_height;
+        p.stance_progress = 0.;
+        p.stance_duration = 0.2;
         self.emit(ActionEventKind::PullUpStarted);
     }
 
@@ -1350,6 +1356,21 @@ impl Simulation {
                 ActionEventKind::WeaponCleared
             });
         }
+    }
+
+    /// Highest block top or ramp surface under (x, z) at or below `from_y`.
+    /// Presentation uses it to place feet on the actual ground.
+    pub fn ground_height(&self, x: f32, z: f32, from_y: f32) -> Option<f32> {
+        let blocks = self.blocks.iter().filter_map(|b| {
+            let b = b.bounds;
+            (x >= b.min.x && x <= b.max.x && z >= b.min.z && z <= b.max.z && b.max.y <= from_y)
+                .then_some(b.max.y)
+        });
+        let ramps = self
+            .ramps
+            .iter()
+            .filter_map(|r| r.surface(x, z).filter(|h| *h <= from_y));
+        blocks.chain(ramps).reduce(f32::max)
     }
 
     /// Read-only animation interface for the current tick.

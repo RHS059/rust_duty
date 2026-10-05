@@ -6,6 +6,12 @@ pub mod sim;
 
 pub mod action;
 
+pub mod weapon_sway;
+
+pub mod body_presentation;
+
+pub mod traversal_replay;
+
 pub mod control;
 
 pub mod clock;

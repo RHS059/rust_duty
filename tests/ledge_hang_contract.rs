@@ -113,6 +113,9 @@ fn jump_catch_holds_a_validated_stable_hang() {
         assert!(hand.z < -2. && hand.z > -4., "hand on the top: {hand:?}");
     }
     assert!(((h.hands[0] - h.hands[1]).length() - t.hang_hand_spacing).abs() < 1e-5);
+    // hands[0] is the left hand from the player's view of the wall.
+    let player_right = s.player.direction().cross(Vec3::Y);
+    assert!((h.hands[0] - h.hands[1]).dot(player_right) < 0.);
     for rel in h.ledge_relative_hands() {
         assert!(
             rel.y.abs() < 1e-5 && (rel.z - t.hang_hand_inset).abs() < 1e-4,
@@ -317,6 +320,13 @@ fn pull_up_reuses_mantle_rules_and_lands_on_the_top() {
     }
     assert!(drain(&mut s).contains(&ActionEventKind::PullUpCompleted));
     assert!(s.player.grounded);
+    // The camera eases from the hang eye height to standing: no pop.
+    let mut eye = s.player.eye().y;
+    for _ in 0..40 {
+        tick(&mut s, Input::default());
+        assert!((s.player.eye().y - eye).abs() < 0.02, "eye step");
+        eye = s.player.eye().y;
+    }
     assert_eq!(s.player.position.y, LEDGE);
     assert!(s.player.position.z < -2. - RADIUS && s.player.position.z > -4. + RADIUS);
 }

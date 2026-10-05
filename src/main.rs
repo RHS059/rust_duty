@@ -6,8 +6,13 @@ use macroquad::prelude::*;
 use std::{fs::File, io::Write};
 use vector_range::scene_lighting::SceneLighting;
 use vector_range::{
+    action::{ActionEventKind, ActionPhase, Rejection},
+    body_presentation::{BodyFrame, BodyPose, BodyPresentation, BodyTuning},
+    weapon_sway::{LayerOffset, LookSway, SwayTuning},
+};
+use vector_range::{
     clock::FixedClock,
-    control::{ButtonInput, ControlMode, ControlSample, ControlState, IntentLatch},
+    control::{ActionLatch, ButtonInput, ControlMode, ControlSample, ControlState, IntentLatch},
 };
 use vector_range::{
     muzzle_fx::MuzzleFx,
@@ -358,6 +363,7 @@ fn weapon(
     presentation_override: Option<f32>,
     muzzle_fx: &mut MuzzleFx,
     barrel_flash: bool,
+    layers: &[LayerOffset],
 ) {
     let lighting = SceneLighting::range().in_view(sim.player.direction());
     set_camera(&Camera3D {
@@ -379,10 +385,14 @@ fn weapon(
     // Saved viewmodel offset: +X right, +Y up. Applied before the gun is drawn.
     let view_offset = vec3(cfg.viewmodel_x, cfg.viewmodel_y, 0.);
     if let Some(authored) = authored {
-        authored.draw(sim.time, lighting, view_offset);
+        // One rigid root for arms and weapon: sway/action layers keep grips attached.
+        let root = vector_range::weapon_sway::compose(view_offset, layers);
+        authored.draw(sim.time, lighting, root);
         composite_viewmodel(rt);
         return;
     }
+    // Legacy model paths take the layers' translation only.
+    let view_offset = view_offset + layers.iter().map(|l| l.translation).sum::<Vec3>();
     let p = &sim.player;
     let motion = locomotion_state.sample(sim.time, locomotion_input(sim));
     let bob = motion.bob;
@@ -536,6 +546,74 @@ fn weapon(
     }
     composite_viewmodel(rt);
 }
+/// Labeled placeholder legs: thigh and shin per side, hidden head/arms.
+fn draw_body_placeholder(frame: &BodyFrame) {
+    if frame.pose == BodyPose::Dead {
+        return;
+    }
+    let color = Color::new(0.30, 0.34, 0.30, 1.);
+    let forward = vec3(frame.yaw.cos(), 0., frame.yaw.sin());
+    let right = forward.cross(Vec3::Y);
+    for (i, side) in [-1_f32, 1.].into_iter().enumerate() {
+        let hip = frame.pelvis + right * side * 0.1;
+        let foot = frame.feet[i];
+        let knee = (hip + foot) * 0.5 + forward * 0.12;
+        for (a, b) in [(hip, knee), (knee, foot)] {
+            for k in 0..6 {
+                let t = (k as f32 + 0.5) / 6.;
+                draw_cube(a.lerp(b, t), Vec3::splat(0.1), None, color);
+            }
+        }
+    }
+}
+/// Action state readout. Visuals are placeholders until authored clips pass review.
+fn action_hud(sim: &Simulation, w: f32, h: f32) {
+    let p = &sim.player;
+    let pose = sim.action_pose();
+    if let Some(slot) = pose.slot {
+        let phase = match pose.phase {
+            ActionPhase::Entry => "entry",
+            ActionPhase::Active => "active",
+            ActionPhase::Exit => "exit",
+            ActionPhase::Interrupted => "interrupted",
+        };
+        label(
+            &format!(
+                "{} / {} {:.2}{}",
+                slot.name(),
+                phase,
+                pose.normalized,
+                if pose.placeholder {
+                    "  [PLACEHOLDER ANIM]"
+                } else {
+                    ""
+                }
+            ),
+            24.,
+            h - 118.,
+            15.,
+            YELLOW,
+        );
+    }
+    let hint = match p.action {
+        vector_range::sim::Action::Hang(_) => Some("SPACE PULL UP / CTRL DROP / 2 SIDEARM"),
+        _ if p.mount.is_some() => Some("MOUNTED: V OR MOVE TO RELEASE"),
+        _ => None,
+    };
+    if let Some(hint) = hint {
+        let width = measure_text(hint, None, 18, 1.).width;
+        label(hint, w * 0.5 - width * 0.5, h * 0.5 + 80., 18., CYAN);
+    }
+    if p.obstruction.fire_blocked {
+        label("WEAPON BLOCKED", w * 0.5 - 60., h * 0.5 + 54., 16., ACCENT);
+    }
+    if let Some(since) = p.dead_since {
+        draw_rectangle(0., 0., w, h, Color::new(0.3, 0., 0., 0.35));
+        let text = format!("DOWN  {:.1}", (sim.time - since).max(0.));
+        let width = measure_text(&text, None, 40, 1.).width;
+        label(&text, w * 0.5 - width * 0.5, h * 0.5, 40., WHITE);
+    }
+}
 fn composite_viewmodel(rt: &RenderTarget) {
     set_default_camera();
     draw_texture_ex(
@@ -658,7 +736,21 @@ fn hud(
         );
     }
     panel(24., h - 105., 248., 81.);
-    let stance = if p.mantle.is_some() {
+    let stance = if p.dead() {
+        "DOWN"
+    } else if p.mantle.is_some_and(|m| m.from_hang) {
+        "PULLING UP"
+    } else if matches!(p.action, vector_range::sim::Action::Hang(_)) {
+        "HANGING"
+    } else if matches!(p.action, vector_range::sim::Action::Slide(_)) {
+        "SLIDING"
+    } else if matches!(p.action, vector_range::sim::Action::Dive(_)) {
+        "DIVING"
+    } else if p.mount.is_some() {
+        "MOUNTED"
+    } else if p.tac_sprint.is_some() {
+        "TAC SPRINT"
+    } else if p.mantle.is_some() {
         "MANTLING"
     } else if !p.grounded {
         "AIRBORNE"
@@ -675,6 +767,14 @@ fn hud(
     label(&format!("{:04.1} m/s", p.speed()), 173., h - 77., 17., CYAN);
     draw_rectangle(43., h - 58., 210., 4., Color::new(0.19, 0.25, 0.28, 1.));
     draw_rectangle(43., h - 58., 210. * p.stamina / SPRINT_DURATION, 4., ACCENT);
+    draw_rectangle(
+        43.,
+        h - 52.,
+        210. * (p.tac_charge / cfg.action.tac_sprint_duration.max(1e-3)).min(1.),
+        2.,
+        CYAN,
+    );
+    action_hud(sim, w, h);
     label(
         "SHIFT SPRINT / CTRL CROUCH / Z PRONE",
         43.,
@@ -979,6 +1079,44 @@ async fn main() {
     let mut locomotion_state =
         vector_range::locomotion_presentation::LocomotionPresentation::default();
     let mut sim = Simulation::new();
+    let mut startup_notice = None;
+    {
+        // Authored action clips retime gameplay gates; unavailable slots keep
+        // labeled placeholder timing. A broken binding is reported, not hidden.
+        let manifest = args
+            .iter()
+            .find_map(|arg| arg.strip_prefix("--animation-manifest="))
+            .map(std::path::PathBuf::from)
+            .unwrap_or_else(|| {
+                executable
+                    .parent()
+                    .unwrap_or(std::path::Path::new("."))
+                    .join("assets/animations.cfg")
+            });
+        if manifest.exists() {
+            let bound = vector_range::animation_manifest::AnimationManifest::load(&manifest)
+                .and_then(|m| {
+                    m.bind_action_timings(&mut sim.timings, |asset, clip| {
+                        let set = vector_range::viewmodel_animation::AnimationSet::load(asset)
+                            .map_err(|e| format!("{}: {e}", asset.display()))?;
+                        set.clips()
+                            .iter()
+                            .find(|c| c.name == clip)
+                            .map(|c| c.duration())
+                            .ok_or_else(|| format!("missing action clip {clip}"))
+                    })
+                });
+            if let Err(error) = bound {
+                eprintln!("Action clip timings: {error}");
+                startup_notice = Some(format!("Action clips: {error}"));
+            }
+        }
+    }
+    let mut action_latch = ActionLatch::default();
+    let mut look_sway = LookSway::default();
+    let sway_tuning = SwayTuning::default();
+    let mut body = BodyPresentation::default();
+    let body_tuning = BodyTuning::default();
     let mut supply = vector_range::ammo_supply::AmmoSupply::default();
     register_supply(&mut sim, &supply);
     let texture = grid_texture();
@@ -1004,8 +1142,8 @@ async fn main() {
     muzzle_fx.set_caliber_mm(caliber_mm);
     let mut hit_timer = 0.;
     let mut head = false;
-    let mut notice = String::new();
-    let mut notice_timer = 0.;
+    let mut notice = startup_notice.clone().unwrap_or_default();
+    let mut notice_timer = if startup_notice.is_some() { 6. } else { 0. };
     let mut recording: Option<File> = None;
     let mut record_clock = 0.;
     let mut intents = IntentLatch::default();
@@ -1170,12 +1308,15 @@ async fn main() {
                     | "gameplay-walk"
                     | "gameplay-ads"
                     | "gameplay-layered"
-            )
+            ) || vector_range::traversal_replay::SEQUENCES.contains(s)
         });
-    let gameplay_capture = matches!(
-        capture_sequence,
-        Some("gameplay-reload" | "gameplay-walk" | "gameplay-ads" | "gameplay-layered")
-    );
+    let traversal_capture =
+        capture_sequence.filter(|s| vector_range::traversal_replay::SEQUENCES.contains(s));
+    let gameplay_capture = traversal_capture.is_some()
+        || matches!(
+            capture_sequence,
+            Some("gameplay-reload" | "gameplay-walk" | "gameplay-ads" | "gameplay-layered")
+        );
     let mut gameplay_reload_issued = false;
     let mut gameplay_capture_tick = 0_u64;
     let capture_empty =
@@ -1195,6 +1336,9 @@ async fn main() {
         Some("empty") => vector_range::reference_motion::visual_duration(true),
         Some("tactical") => vector_range::reference_motion::visual_duration(false),
         Some("locomotion" | "gameplay-walk") => 3.5,
+        Some(sequence) if traversal_capture.is_some() => {
+            vector_range::traversal_replay::duration(sequence)
+        }
         Some("gameplay-reload") => {
             authored
                 .as_ref()
@@ -1230,6 +1374,11 @@ async fn main() {
         .unwrap_or("capture.png");
     if matches!(capture_sequence, Some("gameplay-reload" | "gameplay-ads")) {
         sim.player.ammo = 12;
+    }
+    if let Some((position, yaw)) = traversal_capture.and_then(vector_range::traversal_replay::start)
+    {
+        sim.player.position = position;
+        sim.player.yaw = yaw;
     }
     if capture_fixtures {
         sim.player.position = vec3(-18., 0., -12.);
@@ -1315,6 +1464,7 @@ async fn main() {
             clock.clear();
             intents.clear();
             controls.clear();
+            action_latch.clear();
             sim.player.firing_sequence = false;
         }
         if transition.discard_timing {
@@ -1366,6 +1516,9 @@ async fn main() {
             }
             intents.clear();
             controls.clear();
+            action_latch.clear();
+            look_sway.reset();
+            body.reset();
             clock.clear();
             just_resumed = true;
             traces.clear();
@@ -1373,6 +1526,10 @@ async fn main() {
             muzzle_fx.clear();
             notice = "Range reset. Fresh magazine, clean telemetry.".into();
             notice_timer = 3.;
+        }
+        if is_key_pressed(KeyCode::F9) {
+            // Debug: kill the player to exercise death/respawn in any state.
+            sim.damage_player(cfg.action.max_health);
         }
         if is_key_pressed(KeyCode::F11) {
             fullscreen = !fullscreen;
@@ -1439,6 +1596,7 @@ async fn main() {
             } else {
                 mouse_delta_position()
             };
+            let view_before = vec2(sim.player.yaw, sim.player.pitch);
             // Normalized screen coordinates from Macroquad have a reversed delta sign.
             sim.player.yaw -= mouse.x
                 * screen_width()
@@ -1452,6 +1610,38 @@ async fn main() {
                     * cfg.sensitivity.to_radians()
                     * (1. - sim.player.ads * 0.35))
                 .clamp(-1.48, 1.48);
+            // Hang/mount aim limits apply before anything renders this frame.
+            sim.clamp_look(&cfg);
+            // Look sway reads the applied view rotation (camera space: +yaw
+            // turns left), so sensitivity never changes the response.
+            if !capture {
+                // Captures drive sway from their scripted fixed-step view instead.
+                look_sway.update(
+                    vec2(
+                        -(sim.player.yaw - view_before.x),
+                        sim.player.pitch - view_before.y,
+                    ),
+                    dt,
+                    &sway_tuning,
+                );
+            }
+            action_latch.sample(
+                ButtonInput {
+                    pressed: is_key_pressed(KeyCode::LeftShift),
+                    down: is_key_down(KeyCode::LeftShift),
+                },
+                ButtonInput {
+                    pressed: is_key_pressed(KeyCode::V),
+                    down: is_key_down(KeyCode::V),
+                },
+                ButtonInput {
+                    pressed: is_key_pressed(KeyCode::Key2),
+                    down: is_key_down(KeyCode::Key2),
+                },
+                get_time(),
+                cfg.action.tac_sprint_double_tap,
+                !just_resumed && !transition.discard_timing,
+            );
             intents.sample(
                 is_key_pressed(KeyCode::Space),
                 is_key_pressed(KeyCode::R),
@@ -1515,6 +1705,10 @@ async fn main() {
                 input.jump = step.jump;
                 input.reload = step.reload;
                 input.fire = demo || step.fire;
+                let action = action_latch.take();
+                input.tactical_sprint = action.tactical_sprint;
+                input.mount = action.mount;
+                input.sidearm = action.sidearm;
                 let authored_step_start = sim.time;
                 sim.update(input, &cfg, FIXED_DT);
                 if let Some(viewmodel) = &mut authored {
@@ -1637,7 +1831,9 @@ async fn main() {
                         Vec2::ZERO
                     };
                 gameplay_reload_issued |= reload;
-                let input = if capture_sequence == Some("gameplay-ads") {
+                let input = if let Some(sequence) = traversal_capture {
+                    vector_range::traversal_replay::input(sequence, start)
+                } else if capture_sequence == Some("gameplay-ads") {
                     vector_range::authored_ads::gameplay_ads_replay_input(start)
                 } else if capture_sequence == Some("gameplay-layered") {
                     vector_range::layered_locomotion::gameplay_layered_replay_input(start)
@@ -1648,7 +1844,23 @@ async fn main() {
                         ..Input::default()
                     }
                 };
+                let view_before = vec2(sim.player.yaw, sim.player.pitch);
+                if traversal_capture == Some("gameplay-sway") {
+                    // Scripted view turn (camera space +left = sim yaw decreasing).
+                    sim.player.yaw -=
+                        vector_range::traversal_replay::sway_yaw_rate(start) * FIXED_DT;
+                }
                 sim.update(input, &cfg, FIXED_DT);
+                if traversal_capture.is_some() {
+                    look_sway.update(
+                        vec2(
+                            -(sim.player.yaw - view_before.x),
+                            sim.player.pitch - view_before.y,
+                        ),
+                        FIXED_DT,
+                        &sway_tuning,
+                    );
+                }
                 gameplay_capture_tick += 1;
                 if let Some(model) = &mut authored {
                     model.committed_step(start, &sim);
@@ -1702,6 +1914,29 @@ async fn main() {
             sim.player.pitch = lighting_pitch;
             sim.player.recoil = Vec2::ZERO;
         }
+        for event in sim.action_events.drain(..) {
+            let message = match event.kind {
+                ActionEventKind::Died => Some("Down. Respawning shortly."),
+                ActionEventKind::Respawned => Some("Respawned."),
+                ActionEventKind::SidearmRejected(Rejection::NoSidearm) => {
+                    Some("No hang-eligible sidearm in this loadout")
+                }
+                ActionEventKind::PullUpRejected(Rejection::Blocked) => Some("No room to pull up"),
+                ActionEventKind::PullUpRejected(Rejection::PistolOut) => {
+                    Some("Stow the sidearm (2) before pulling up")
+                }
+                ActionEventKind::MountRejected(Rejection::Steep) => {
+                    Some("Surface too steep to mount")
+                }
+                ActionEventKind::MountRejected(_) => Some("No valid cover to mount"),
+                ActionEventKind::DiveRejected(Rejection::Blocked) => Some("No room to dive"),
+                _ => None,
+            };
+            if let Some(message) = message {
+                notice = message.into();
+                notice_timer = 2.;
+            }
+        }
         notice_timer = (notice_timer - dt).max(0.);
         clear_background(Color::new(0.66, 0.76, 0.78, 1.));
         let aspect = if framing.reference {
@@ -1724,6 +1959,10 @@ async fn main() {
             ..Default::default()
         });
         world(&sim, &texture);
+        let body_frame = body.update(&sim, if active { dt } else { 0. }, &body_tuning);
+        if !capture_lighting && capture_sequence.is_none() {
+            draw_body_placeholder(&body_frame);
+        }
         if capture_lighting && frames == 8 {
             // Record the actual range pass before the overlay/HUD can cover it.
             get_screen_data().export_png(&format!("{output}.world.png"));
@@ -1750,7 +1989,16 @@ async fn main() {
         }
         // An explicitly requested invalid authored asset never falls through
         // to the legacy procedural renderer while its startup error is shown.
-        if authored_path.is_none() || authored.is_some() {
+        let action_pose = sim.action_pose();
+        let layers = [
+            look_sway.offset(&sway_tuning),
+            vector_range::weapon_sway::action_offset(
+                &sim.player,
+                &action_pose,
+                cfg.action.obstruct_max_retract,
+            ),
+        ];
+        if (authored_path.is_none() || authored.is_some()) && !sim.player.dead() {
             weapon(
                 &sim,
                 &target,
@@ -1765,6 +2013,7 @@ async fn main() {
                 presentation_reload,
                 &mut muzzle_fx,
                 authored_path.is_none(),
+                &layers,
             );
         }
         if let Some(warning) = authored.as_ref().and_then(|viewmodel| viewmodel.warning()) {
@@ -1926,6 +2175,24 @@ async fn main() {
                     sim.player.position.x, sim.player.position.y, sim.player.position.z,
                     sim.player.velocity.x, sim.player.velocity.y, sim.player.velocity.z,
                     sim.player.ammo, sim.stats.shots));
+            }
+            if let Some(sequence) = traversal_capture {
+                let pose = sim.action_pose();
+                let p = &sim.player;
+                let vec = |v: Option<Vec3>| {
+                    v.map_or("null".into(), |v| format!("[{},{},{}]", v.x, v.y, v.z))
+                };
+                let sway = look_sway.angle_degrees();
+                let _ = std::fs::write(format!("{output}.gameplay.json"), format!(
+                    "{{\"simulation_time\":{},\"segment\":\"{}\",\"slot\":{},\"phase\":\"{:?}\",\"normalized\":{},\"weight\":{},\"placeholder\":{},\"left_hand\":{},\"right_hand\":{},\"left_owner\":\"{:?}\",\"right_owner\":\"{:?}\",\"obstruction\":{},\"obstruction_raw\":{},\"fire_blocked\":{},\"mounted\":{},\"position\":[{},{},{}],\"eye_height\":{},\"speed\":{},\"grounded\":{},\"look_sway_degrees\":[{},{}],\"shots\":{}}}",
+                    sim.time, vector_range::traversal_replay::segment(sequence, sim.time),
+                    pose.slot.map_or("null".into(), |slot| format!("\"{}\"", slot.name())),
+                    pose.phase, pose.normalized, pose.weight, pose.placeholder,
+                    vec(pose.contacts.left_hand), vec(pose.contacts.right_hand),
+                    pose.contacts.left_owner, pose.contacts.right_owner,
+                    p.obstruction.amount, p.obstruction.raw, p.obstruction.fire_blocked, p.mount.is_some(),
+                    p.position.x, p.position.y, p.position.z, p.eye_height, p.speed(), p.grounded,
+                    sway.x, sway.y, sim.stats.shots));
             }
             if capture_sequence == Some("gameplay-walk") {
                 let native = authored.as_ref().and_then(|model| model.walk_sample());

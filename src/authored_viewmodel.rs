@@ -393,12 +393,14 @@ impl AuthoredViewmodel {
     pub fn animation(&self) -> &AnimationSet {
         &self.animation
     }
-    /// `offset` is camera-space meters: +X right, +Y up, no forward/back.
-    pub fn draw(&mut self, simulation_time: f64, lighting: SceneLighting, offset: Vec3) {
+    /// `root` is a rigid camera-space transform applied to the whole viewmodel
+    /// (arms and weapon together, so contacts are preserved). Meters: +X right,
+    /// +Y up, -Z forward.
+    pub fn draw(&mut self, simulation_time: f64, lighting: SceneLighting, root: Mat4) {
         if self.error.is_some() {
             return;
         }
-        if let Err(error) = self.draw_checked(simulation_time, lighting, offset) {
+        if let Err(error) = self.draw_checked(simulation_time, lighting, root) {
             eprintln!("Authored viewmodel playback failed: {error}");
             self.error = Some(error);
         }
@@ -407,7 +409,7 @@ impl AuthoredViewmodel {
         &mut self,
         simulation_time: f64,
         lighting: SceneLighting,
-        offset: Vec3,
+        root: Mat4,
     ) -> Result<(), String> {
         if let Some(sample) = self.reload.as_ref().and_then(AuthoredReload::sample) {
             let slot = if sample.slot == ReloadSlot::Empty {
@@ -421,11 +423,11 @@ impl AuthoredViewmodel {
                 .animation
                 .sample_clamped(&renderer.clip, sample.seconds as f32)
                 .map_err(|e| e.to_string())?;
-            return renderer.draw_pose(&pose, lighting, offset);
+            return renderer.draw_pose(&pose, lighting, root);
         }
         if let Some(layers) = &self.locomotion {
             let pose = layers.pose().clone();
-            return self.draw_pose(&pose, lighting, offset);
+            return self.draw_pose(&pose, lighting, root);
         }
         let time = self.fixed_time.unwrap_or(simulation_time as f32);
         let pose = if self.fixed_time.is_some() {
@@ -434,17 +436,17 @@ impl AuthoredViewmodel {
             self.animation().sample(&self.clip, time)
         }
         .map_err(|e| e.to_string())?;
-        self.draw_pose(&pose, lighting, offset)
+        self.draw_pose(&pose, lighting, root)
     }
     /// Render one complete evaluated pose from this animation set. The gameplay
     /// adapter owns which presentation supplies it; no two pose owners are mixed
     /// here. Skin and actor dimension/transform validation is retained.
-    /// `offset` is camera-space meters: +X right, +Y up, no forward/back.
+    /// `root` is the rigid camera-space viewmodel transform (see `draw`).
     pub fn draw_pose(
         &mut self,
         pose: &ViewmodelPose,
         lighting: SceneLighting,
-        offset: Vec3,
+        root: Mat4,
     ) -> Result<(), String> {
         let palette = self
             .animation
@@ -465,9 +467,9 @@ impl AuthoredViewmodel {
                         n += normals[joint as usize].transform_vector3(normal) * weight;
                     }
                 }
-                n = n.try_normalize().unwrap_or(Vec3::Y);
+                n = root.transform_vector3(n).try_normalize().unwrap_or(Vec3::Y);
                 let shade = lighting.irradiance(n);
-                vertex.position = p + offset;
+                vertex.position = root.transform_point3(p);
                 vertex.normal = n.extend(0.);
                 vertex.color = Color::new(
                     part.base_color[0] * shade,
@@ -487,7 +489,7 @@ impl AuthoredViewmodel {
         let mut visibility = vec![false; self.rigid_mesh_count];
         for (index, actor) in self.animation.actors().iter().enumerate() {
             for &mesh in &actor.mesh_indices {
-                transforms[mesh] = Mat4::from_translation(offset) * actors[index];
+                transforms[mesh] = root * actors[index];
                 visibility[mesh] = pose.actor_visible[index];
             }
         }
