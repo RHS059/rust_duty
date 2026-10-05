@@ -1,27 +1,27 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-05T00:22:36Z",
+  "updatedAt": "2026-10-05T00:32:15Z",
   "state": "working",
-  "task": "Coordinate source ownership and exact-source package verification while low-vault r2 authoring/Eevee preview, publisher validation/0.1.9 channel promotion, and unique per-run-attempt build numbering remain active. Source-only Colab review preparation is complete; candidate comparison is waiting for the rendered candidate. Eevee rendering and current-content GitHub publication are authorized; prior denied/cancelled writes await verified retry, not assumed resolved. Jump eedd2910 and content-delta 176e046c playable builds plus both updater checks passed; public latest remains v0.1.8.",
+  "task": "Coordinate source ownership and exact-source package verification while low-vault r2 authoring/Eevee startup recovery, publisher validation/0.1.9 channel promotion, and unique per-run-attempt build numbering remain active. Source-only Colab preparation is complete; candidate comparison awaits rendered images. Jump eedd2910 and content-delta 176e046c playable builds and updater checks passed; v0.1.8 remains the last verified public latest.",
   "lastCompleted": "All six new videos annotated: 150 intervals cover 14,017 native frames; 1,135 sampled frames reviewed. PR #33 e4fdda48 pins witness hashes. Exact 0.1.8 Windows/Linux builds and native gameplay gates passed. Mantle/climb recovery packet published without claiming an authored candidate.",
   "agents": [
     {
       "slot": 1,
       "state": "working",
-      "task": "Author isolated low-vault r2 detach/regrip and hand-switch repair, then produce the authorized Eevee preview.",
-      "lastCompleted": "Low-vault r2 technical checks passed 1,021 samples. No visual review or artistic approval yet; candidate preview remains to be verified."
+      "task": "Recover foreground Eevee startup and render the isolated low-vault r2 detach/regrip and hand-switch repair.",
+      "lastCompleted": "PR #35 source 133d0053: low-vault r2 technical checks passed 1,021 samples. No candidate images, visual review or artistic approval yet."
     },
     {
       "slot": 2,
       "state": "working",
-      "task": "Repair publisher validation and promote the verified 0.1.9 candidate through the update channel.",
-      "lastCompleted": "Jump eedd2910 run 37244927380 passed Windows/Linux and all five asset pipelines. Public latest is still v0.1.8; publisher repair/promotion is not yet verified."
+      "task": "Verify publisher validator repair and promote the verified 0.1.9 candidate through the update channel.",
+      "lastCompleted": "Repair b8b054c: 50 focused tests passed. Run 37247568754 passed explicit plan validation, exact-source helper fetch, source selection and binary download; payload curation is running. Promotion remains unverified."
     },
     {
       "slot": 3,
       "state": "working",
-      "task": "Implement a visible unique build number for every run attempt.",
-      "lastCompleted": "Existing Jump candidate identifies as 0.1.9/sequence 9. A distinct visible number for each run attempt is being implemented; no completed implementation claimed."
+      "task": "Review and verify draft PR #36 unique visible build numbering, including preservation of Jump integration.",
+      "lastCompleted": "Draft PR #36 a9ded4b implements VERSION+build.RUN_ID.ATTEMPT. Two actual headless builds confirmed distinct attempt labels; focused tests passed. Full-suite fixture failures and Jump workflow changes remain under review; no merge or visual pass claimed."
     }
   ]
 }
