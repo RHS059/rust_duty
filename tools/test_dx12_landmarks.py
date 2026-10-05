@@ -450,6 +450,54 @@ class LandmarkReviewTests(unittest.TestCase):
         self.assert_invalid(self.valid(), 'ads=',
                             frames={'dx12': self.root / 'wrong-ads'})
 
+    def write_siblings(self, metadata):
+        for pose in ('hip', 'ads'):
+            side = {'backend': 'Dx12', 'width': 960, 'height': 540,
+                    'ads': 1.0 if pose == 'ads' else 0.0}
+            side.update(metadata)
+            (self.review_dir / f'dx12-{pose}-raw.png.json').write_text(json.dumps(side),
+                                                                       encoding='utf-8')
+
+    def test_sibling_sidecar_is_checked_without_frames(self):
+        """An annotated PNG's own <image>.json gets the typed raw/display checks.
+
+        Without --frames, a sibling marked diagnostic_raw_target=true with the
+        raw-associated alpha label must not measure-within-tolerance; an opaque
+        display sibling stays a valid control. Source-frame identity checks still
+        apply when --frames is supplied.
+        """
+        self.write_siblings({'diagnostic_raw_target': False,
+                             'alpha_representation': landmarks.DISPLAY_ALPHA})
+        report = self.run_review(self.valid())
+        self.assertEqual(report['status'], 'within-tolerance', report)
+        self.assertEqual(report['automated_landmark_gate'], 'measured-within-tolerance')
+        self.assert_human_gates_open(report)
+
+        self.write_siblings({'diagnostic_raw_target': True,
+                             'alpha_representation': landmarks.RAW_ALPHA})
+        self.assert_invalid(self.valid(), 'dx12-hip-raw.png.json marks diagnostic_raw_target=true')
+        self.assert_invalid(self.valid(), 'dx12-ads-raw.png.json marks diagnostic_raw_target=true')
+
+        self.write_siblings({'diagnostic_raw_target': 'true',
+                             'alpha_representation': landmarks.DISPLAY_ALPHA})
+        self.assert_invalid(self.valid(), 'JSON boolean')
+
+        # A raw sibling is still rejected when --frames points at a clean display
+        # sequence, and the frames identity check still runs alongside it.
+        self.write_siblings({'diagnostic_raw_target': True,
+                             'alpha_representation': landmarks.RAW_ALPHA})
+        self.write_sequence(self.root / 'clean', metadata={
+            'diagnostic_raw_target': False, 'alpha_representation': landmarks.DISPLAY_ALPHA})
+        self.assert_invalid(self.valid(), 'diagnostic_raw_target',
+                            frames={'dx12': self.root / 'clean'})
+        self.write_siblings({'diagnostic_raw_target': False,
+                             'alpha_representation': landmarks.DISPLAY_ALPHA})
+        report = self.run_review(self.valid(), frames={'dx12': self.root / 'clean'})
+        self.assertEqual(report['status'], 'within-tolerance', report)
+        (self.root / 'clean' / '0040.png').write_bytes(self.hip_png)
+        self.assert_invalid(self.valid(), 'not byte-identical',
+                            frames={'dx12': self.root / 'clean'})
+
     def test_landmark_list_and_overflow_coordinates_are_invalid_reports(self):
         """landmark:[] and 10**400 must become documented invalid reports, not crashes."""
         doc = self.valid()

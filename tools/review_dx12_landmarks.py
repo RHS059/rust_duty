@@ -17,7 +17,9 @@ Unmeasurable or uncertain landmarks are recorded but never accepted. Raw images
 are opened read-only and their hashes are re-checked after decoding. PNG framing
 (including every chunk CRC) is checked before Pillow decode. Sidecars that mark
 raw render targets, or that carry wrongly typed diagnostic_raw_target / ads
-fields, are rejected. Type and bounds errors become invalid reports (exit 2).
+fields, are rejected, whether they come from --frames or from the annotated
+image's own sibling <image>.json. Type and bounds errors become invalid reports
+(exit 2).
 
 A within-tolerance result closes only the measured-pixel comparison. Human M2
 capture approval and M4 hardware playtest approval always remain open here.
@@ -301,6 +303,60 @@ def _sidecar_number(metadata, key, where, path_name):
     return _number(metadata[key], f'{where}: {path_name} {key}')
 
 
+def check_display_metadata(metadata, frame, where, path_name, require_extent):
+    """Typed raw/display checks shared by --frames sidecars and sibling sidecars.
+
+    Opaque display sidecars are accepted; raw-associated emissive targets and
+    wrongly typed flags are never landmark inputs.
+    """
+    if not isinstance(metadata, dict):
+        raise ReviewError(f'{where}: {path_name} must be an object')
+    extent = (metadata.get('width'), metadata.get('height'))
+    if (require_extent or 'width' in metadata or 'height' in metadata) and extent != EXTENT:
+        raise ReviewError(f'{where}: {path_name} does not report 960x540')
+    expected_backend = BACKEND_SIDECAR.get(frame['backend'])
+    if (expected_backend is not None and (require_extent or 'backend' in metadata)
+            and metadata.get('backend') != expected_backend):
+        raise ReviewError(f'{where}: {path_name} backend is '
+                          f'{metadata.get("backend")!r}, not {expected_backend!r}')
+    raw_flag = _sidecar_bool(metadata, 'diagnostic_raw_target', where, path_name)
+    if raw_flag is True:
+        raise ReviewError(f'{where}: {path_name} marks diagnostic_raw_target=true; '
+                          'raw render-target readbacks are not landmark inputs')
+    alpha = metadata.get('alpha_representation')
+    if alpha is not None and not isinstance(alpha, str):
+        raise ReviewError(f'{where}: {path_name} alpha_representation must be a string, '
+                          f'got {alpha!r}')
+    if alpha == RAW_ALPHA:
+        raise ReviewError(f'{where}: {path_name} alpha_representation is {RAW_ALPHA!r}; '
+                          'raw-associated targets are not landmark inputs')
+    if alpha is not None and alpha != DISPLAY_ALPHA:
+        raise ReviewError(f'{where}: {path_name} alpha_representation {alpha!r} is not '
+                          f'the opaque display label {DISPLAY_ALPHA!r}')
+    ads = _sidecar_number(metadata, 'ads', where, path_name)
+    expected_ads = 1.0 if frame['pose'] == 'ads' else 0.0
+    if ads is not None and ads != expected_ads:
+        raise ReviewError(f'{where}: {path_name} ads={ads!r} does not match pose '
+                          f'{frame["pose"]!r} (expected {expected_ads:g})')
+
+
+def check_sibling_sidecar(item, root, where):
+    """Apply the display checks to the annotated image's own <image>.json, if present.
+
+    Runs with or without --frames, so a standalone annotated PNG cannot bypass a
+    sibling sidecar that marks it as a raw render target.
+    """
+    sibling = Path(root) / f'{item["image"]}.json'
+    if sibling.is_symlink():
+        raise ReviewError(f'{where}: sibling sidecar {sibling.name} is a symlink')
+    if not sibling.exists():
+        return
+    if not sibling.is_file():
+        raise ReviewError(f'{where}: sibling sidecar {sibling.name} is not a regular file')
+    check_display_metadata(load_json(sibling), item['frame'], where, sibling.name,
+                           require_extent=False)
+
+
 def check_frame_source(item, frames_dir, where):
     """Tie the annotation to the original capture sequence frame and its sidecars."""
     frame = item['frame']
@@ -315,33 +371,7 @@ def check_frame_source(item, frames_dir, where):
         if not path.is_file():
             raise ReviewError(f'{where}: missing sidecar {path.name}')
     metadata = load_json(metadata_path)
-    if not isinstance(metadata, dict) or (metadata.get('width'), metadata.get('height')) != EXTENT:
-        raise ReviewError(f'{where}: {metadata_path.name} does not report 960x540')
-    expected_backend = BACKEND_SIDECAR.get(frame['backend'])
-    if expected_backend is not None and metadata.get('backend') != expected_backend:
-        raise ReviewError(f'{where}: {metadata_path.name} backend is '
-                          f'{metadata.get("backend")!r}, not {expected_backend!r}')
-    # Reject raw or wrongly typed target metadata. Opaque display sidecars are
-    # accepted; raw-associated emissive targets are never landmark inputs.
-    raw_flag = _sidecar_bool(metadata, 'diagnostic_raw_target', where, metadata_path.name)
-    if raw_flag is True:
-        raise ReviewError(f'{where}: {metadata_path.name} marks diagnostic_raw_target=true; '
-                          'raw render-target readbacks are not landmark inputs')
-    alpha = metadata.get('alpha_representation')
-    if alpha is not None and not isinstance(alpha, str):
-        raise ReviewError(f'{where}: {metadata_path.name} alpha_representation must be a string, '
-                          f'got {alpha!r}')
-    if alpha == RAW_ALPHA:
-        raise ReviewError(f'{where}: {metadata_path.name} alpha_representation is {RAW_ALPHA!r}; '
-                          'raw-associated targets are not landmark inputs')
-    if alpha is not None and alpha != DISPLAY_ALPHA:
-        raise ReviewError(f'{where}: {metadata_path.name} alpha_representation {alpha!r} is not '
-                          f'the opaque display label {DISPLAY_ALPHA!r}')
-    ads = _sidecar_number(metadata, 'ads', where, metadata_path.name)
-    expected_ads = 1.0 if frame['pose'] == 'ads' else 0.0
-    if ads is not None and ads != expected_ads:
-        raise ReviewError(f'{where}: {metadata_path.name} ads={ads!r} does not match pose '
-                          f'{frame["pose"]!r} (expected {expected_ads:g})')
+    check_display_metadata(metadata, frame, where, metadata_path.name, require_extent=True)
     gameplay = load_json(gameplay_path)
     if not isinstance(gameplay, dict):
         raise ReviewError(f'{where}: {gameplay_path.name} must be an object')
@@ -485,6 +515,7 @@ def review(measurements, root, packet=None, require_backends=('dx12',), frames=N
                     raise ReviewError(f'measurements[{index}] image is not a raw record '
                                       'in the landmark review packet')
                 check_packet(item, record, f'measurements[{index}]')
+            check_sibling_sidecar(item, root, f'measurements[{index}]')
             frames_dir = (frames or {}).get(item['frame']['backend'])
             if frames_dir is not None:
                 check_frame_source(item, frames_dir, f'measurements[{index}]')

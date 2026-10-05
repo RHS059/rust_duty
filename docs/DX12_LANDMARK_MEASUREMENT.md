@@ -104,6 +104,14 @@ Wrongly typed fields are also invalid reports: string `"true"` for
 `simulation_ads`, instead of real JSON boolean / number values. When present,
 numeric sidecar `ads` must match the pose (0 for hip, 1 for ads).
 
+Sibling sidecar, with or without `--frames`: when the annotated image under
+`--root` has its own `<image>.json` (for example `review/dx12-hip-raw.png.json`),
+the same typed raw/display checks run on it. Raw-target metadata, wrongly typed
+flags, a non-opaque alpha label, a pose-mismatched numeric `ads`, and (when
+present) a non-960x540 extent or non-`Dx12` backend make the review `invalid`.
+A symlinked or non-file sibling is rejected. `--frames` source-frame identity
+checks still run in addition when supplied.
+
 ## Usage
 
 ```text
@@ -143,8 +151,9 @@ which (`diagnostic_raw_target`, `alpha_representation`):
   the viewer rendering.
 
 Landmark measurement uses only the 960x540 viewmodel captures, which are opaque
-display images. Raw targets are never landmark inputs; when `--frames` is used,
-a sidecar that still carries raw-target metadata fails the review as `invalid`
+display images. Raw targets are never landmark inputs; a `--frames` sidecar or
+the annotated image's own sibling sidecar that still carries raw-target metadata
+fails the review as `invalid`
 (exit 2) instead of producing `measured-within-tolerance`.
 
 ## 100% / 200% text raster checks: scope
