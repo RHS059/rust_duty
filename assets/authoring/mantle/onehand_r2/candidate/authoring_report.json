@@ -1,0 +1,12 @@
+{
+  "status": "diagnostic",
+  "source_sha256": "11502d04b39758faa4c11d312e8d55d777b7119b5a88ca491dd27bfa3546f6f8",
+  "input_sha256": "740e7e2b16d6947075c321467cfe21d36314f68b93829cf8a2d954b4d382cdb5",
+  "input_action_count": 85,
+  "output_action_count": 86,
+  "prior_actions_preserved": true,
+  "structure_drivers_nla_preserved": true,
+  "max_target_error_m": 0.000640613585758618,
+  "render_performed": false,
+  "baseline": "Preserves85 Actions: recovered r5 82 plus2r1 mantle Actions plus frozen low-vault r2; no canonical Jump/Prone replacement"
+}

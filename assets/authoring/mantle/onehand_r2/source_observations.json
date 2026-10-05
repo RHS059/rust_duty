@@ -1,0 +1,487 @@
+{
+  "schema": "rust-duty-source-manual-observations/v1",
+  "action": "one-hand mantle",
+  "status": "source-only partial visible review",
+  "source_sha256": "491a1729aa0f32373025d35fff86da76c6c1c8f057c0c553d0fbb5fb6226ff46",
+  "source_window_frames_half_open": [
+    7787,
+    7883
+  ],
+  "time_base": [
+    1,
+    15360
+  ],
+  "rate": [
+    60,
+    1
+  ],
+  "viewport": [
+    1280,
+    720
+  ],
+  "cut_sha256": "60ee760ed871f326c80b1bd46b85b2cdac1b0d1daa4fafdcf834d29def10f955",
+  "registration_status": "UNAPPROVED; no candidate pixels, phase fitting or spatial fitting",
+  "full_window_review_complete": false,
+  "normal_slow_playback_reviewed": false,
+  "events": [
+    {
+      "name": "visible finger opening",
+      "source_frame_interval_inclusive": [
+        7830,
+        7831
+      ],
+      "source_pts_interval": [
+        2004480,
+        2004736
+      ],
+      "clip_time_interval_seconds_rational": [
+        [
+          43,
+          60
+        ],
+        [
+          44,
+          60
+        ]
+      ],
+      "author_blender_frame_interval_if_native_mapping_preserved": [
+        44,
+        45
+      ],
+      "observation": "Fingers are curled near the fore-end7829 and clearly opening7830\u20137831. This does not establish first physical detachment; low-framing earlier contact surfaces are partly hidden."
+    },
+    {
+      "name": "unambiguous visible separation",
+      "source_frame_interval_inclusive": [
+        7834,
+        7836
+      ],
+      "source_pts_interval": [
+        2005504,
+        2006016
+      ],
+      "clip_time_interval_seconds_rational": [
+        [
+          47,
+          60
+        ],
+        [
+          49,
+          60
+        ]
+      ],
+      "author_blender_frame_interval_if_native_mapping_preserved": [
+        48,
+        50
+      ],
+      "observation": "Open hand separates visibly from fore-end; clear gap by7836. Exact last touching fingertip/force is unsupported."
+    },
+    {
+      "name": "hand drops out of lower view",
+      "source_frame_interval_inclusive": [
+        7842,
+        7846
+      ],
+      "source_pts_interval": [
+        2007552,
+        2008576
+      ],
+      "clip_time_interval_seconds_rational": [
+        [
+          55,
+          60
+        ],
+        [
+          59,
+          60
+        ]
+      ],
+      "author_blender_frame_interval_if_native_mapping_preserved": [
+        56,
+        60
+      ],
+      "observation": "Hand remains open and LEFT of rifle7840/7842, reaches bottom boundary7844, is not visible7846. This is not a regrip."
+    },
+    {
+      "name": "visible hand return approach",
+      "source_frame_interval_inclusive": [
+        7870,
+        7872
+      ],
+      "source_pts_interval": [
+        2014720,
+        2015232
+      ],
+      "clip_time_interval_seconds_rational": [
+        [
+          83,
+          60
+        ],
+        [
+          85,
+          60
+        ]
+      ],
+      "author_blender_frame_interval_if_native_mapping_preserved": [
+        84,
+        86
+      ],
+      "observation": "Hand rises from lower edge and approaches underside/left of fore-end; open fingers visible7871/7872."
+    },
+    {
+      "name": "visible wrapped regrip",
+      "source_frame_interval_inclusive": [
+        7873,
+        7874
+      ],
+      "source_pts_interval": [
+        2015488,
+        2015744
+      ],
+      "clip_time_interval_seconds_rational": [
+        [
+          86,
+          60
+        ],
+        [
+          87,
+          60
+        ]
+      ],
+      "author_blender_frame_interval_if_native_mapping_preserved": [
+        87,
+        88
+      ],
+      "observation": "Hand appears wrapped on fore-end by7873\u20137874, persists7875 and7880. Visible pose only; no hidden force/whole-surface contact proof."
+    }
+  ],
+  "occlusion_limits": [
+    "Earlier weapon lowering shifts portions of hand and contact interface below bottom edge. Visible fingers/hand portions persist in sampled7801,7803,7810,7820,7825,7828; do not claim complete hand invisibility or continuous physical attachment.",
+    "No first physical release time certified from partly hidden contact phase. The7830 opening event is appearance-based.",
+    "At sampled7860/7868 no support hand is visible. Its offscreen continuation cannot earn comparison evidence.",
+    "Source camera moves; source3D transforms and exact homologous candidate anchors not recovered.",
+    "No independent score, complete-animation approval, candidate visual validation or Colab computation claimed."
+  ],
+  "witnesses": [
+    {
+      "source_frame": 7787,
+      "source_pts": 1993472,
+      "clip_time_seconds_rational": [
+        0,
+        60
+      ],
+      "file": "/workspace/shared/onehand-colab-review-prep/source-frames/f7787.png",
+      "sha256": "c39996653f83c1a75a7a57ee684093ae1de36ec0a6dadeb89fe123184f935570"
+    },
+    {
+      "source_frame": 7793,
+      "source_pts": 1995008,
+      "clip_time_seconds_rational": [
+        6,
+        60
+      ],
+      "file": "/workspace/shared/onehand-colab-review-prep/source-frames/f7793.png",
+      "sha256": "910973c85bdef3728d646d914c8c632457b19485951ce7ee1a4be838c104bebd"
+    },
+    {
+      "source_frame": 7799,
+      "source_pts": 1996544,
+      "clip_time_seconds_rational": [
+        12,
+        60
+      ],
+      "file": "/workspace/shared/onehand-colab-review-prep/source-frames/f7799.png",
+      "sha256": "00bc81adef062782166e602998b20c9504a834dbbbafad26e4fc463bf856172d"
+    },
+    {
+      "source_frame": 7800,
+      "source_pts": 1996800,
+      "clip_time_seconds_rational": [
+        13,
+        60
+      ],
+      "file": "/workspace/shared/onehand-colab-review-prep/source-frames/f7800.png",
+      "sha256": "56003cfa9e1140e207a124971ccc6dc40b0451d6f8d7cb45e43e105bf64efbc4"
+    },
+    {
+      "source_frame": 7801,
+      "source_pts": 1997056,
+      "clip_time_seconds_rational": [
+        14,
+        60
+      ],
+      "file": "/workspace/shared/onehand-colab-review-prep/source-frames/f7801.png",
+      "sha256": "b22ea01644d32a70c369f02999f1441f82c47bf941b817baad1983ce2fb0b768"
+    },
+    {
+      "source_frame": 7803,
+      "source_pts": 1997568,
+      "clip_time_seconds_rational": [
+        16,
+        60
+      ],
+      "file": "/workspace/shared/onehand-colab-review-prep/source-frames/f7803.png",
+      "sha256": "f0035e9eee35c41f89a784f5d802a293a9e3f33c1ca45c9383876083e664040f"
+    },
+    {
+      "source_frame": 7810,
+      "source_pts": 1999360,
+      "clip_time_seconds_rational": [
+        23,
+        60
+      ],
+      "file": "/workspace/shared/onehand-colab-review-prep/source-frames/f7810.png",
+      "sha256": "204ba06cc6da9dc5229e638c0d88b771cda3107b0b6d78496e4b2e5504540567"
+    },
+    {
+      "source_frame": 7820,
+      "source_pts": 2001920,
+      "clip_time_seconds_rational": [
+        33,
+        60
+      ],
+      "file": "/workspace/shared/onehand-colab-review-prep/source-frames/f7820.png",
+      "sha256": "671a1ed2ccc3aa9615be6df8639f091c3e435d38d28ba2de48bea9f10ad44a62"
+    },
+    {
+      "source_frame": 7825,
+      "source_pts": 2003200,
+      "clip_time_seconds_rational": [
+        38,
+        60
+      ],
+      "file": "/workspace/shared/onehand-colab-review-prep/source-frames/f7825.png",
+      "sha256": "14f9b205f905ddda8ebb181809394be4c3ccd440affa1ff4a4b0d285780d535f"
+    },
+    {
+      "source_frame": 7828,
+      "source_pts": 2003968,
+      "clip_time_seconds_rational": [
+        41,
+        60
+      ],
+      "file": "/workspace/shared/onehand-colab-review-prep/source-frames/f7828.png",
+      "sha256": "e5a112f5b1acc238155c873882a131d8dc7909e2271bbccc00c8ed064c8d481e"
+    },
+    {
+      "source_frame": 7829,
+      "source_pts": 2004224,
+      "clip_time_seconds_rational": [
+        42,
+        60
+      ],
+      "file": "/workspace/shared/onehand-colab-review-prep/source-frames/f7829.png",
+      "sha256": "257145f195f46a5e639567dedd9282584e75e406253bc8cf36bf0101155ea53f"
+    },
+    {
+      "source_frame": 7830,
+      "source_pts": 2004480,
+      "clip_time_seconds_rational": [
+        43,
+        60
+      ],
+      "file": "/workspace/shared/onehand-colab-review-prep/source-frames/f7830.png",
+      "sha256": "c42c4c61c6d15ae4abc8f5b4d181356e7808a32a96923777518d8ece43ecf042"
+    },
+    {
+      "source_frame": 7831,
+      "source_pts": 2004736,
+      "clip_time_seconds_rational": [
+        44,
+        60
+      ],
+      "file": "/workspace/shared/onehand-colab-review-prep/source-frames/f7831.png",
+      "sha256": "9c290b0731c7b3937f39cf497230c3fe2c12046a4565bbc49675e9c0d6346578"
+    },
+    {
+      "source_frame": 7832,
+      "source_pts": 2004992,
+      "clip_time_seconds_rational": [
+        45,
+        60
+      ],
+      "file": "/workspace/shared/onehand-colab-review-prep/source-frames/f7832.png",
+      "sha256": "ddc0cf53fe29a46b1a8326feddfa1cee26ddfdef0588495783d29598e7df4231"
+    },
+    {
+      "source_frame": 7833,
+      "source_pts": 2005248,
+      "clip_time_seconds_rational": [
+        46,
+        60
+      ],
+      "file": "/workspace/shared/onehand-colab-review-prep/source-frames/f7833.png",
+      "sha256": "9aec68b30a69a07d8d014b8cee589ef2f91ef4ac7c38b1579bcc181cd121725e"
+    },
+    {
+      "source_frame": 7834,
+      "source_pts": 2005504,
+      "clip_time_seconds_rational": [
+        47,
+        60
+      ],
+      "file": "/workspace/shared/onehand-colab-review-prep/source-frames/f7834.png",
+      "sha256": "31d0b1719167efb9634802245a0a9dbac8c28f37f96728272449356927198945"
+    },
+    {
+      "source_frame": 7835,
+      "source_pts": 2005760,
+      "clip_time_seconds_rational": [
+        48,
+        60
+      ],
+      "file": "/workspace/shared/onehand-colab-review-prep/source-frames/f7835.png",
+      "sha256": "3908a4eec59d8e80ff0956ae7f49b27c6732816d5c2fc3301a31fc5fa41db695"
+    },
+    {
+      "source_frame": 7836,
+      "source_pts": 2006016,
+      "clip_time_seconds_rational": [
+        49,
+        60
+      ],
+      "file": "/workspace/shared/onehand-colab-review-prep/source-frames/f7836.png",
+      "sha256": "1ac8fddd4fb739a2ee6319a4710756e7b0c0db5f0c224487e789f5f0a1f09c31"
+    },
+    {
+      "source_frame": 7838,
+      "source_pts": 2006528,
+      "clip_time_seconds_rational": [
+        51,
+        60
+      ],
+      "file": "/workspace/shared/onehand-colab-review-prep/source-frames/f7838.png",
+      "sha256": "37353112c38d00f4e29b19bd4ef86716dff32fc5197b89f3dc4346ac7c93adb4"
+    },
+    {
+      "source_frame": 7840,
+      "source_pts": 2007040,
+      "clip_time_seconds_rational": [
+        53,
+        60
+      ],
+      "file": "/workspace/shared/onehand-colab-review-prep/source-frames/f7840.png",
+      "sha256": "8bdfeba3ee12f2416eed500bbec686deb08390600ad7197507d738d62cb80524"
+    },
+    {
+      "source_frame": 7842,
+      "source_pts": 2007552,
+      "clip_time_seconds_rational": [
+        55,
+        60
+      ],
+      "file": "/workspace/shared/onehand-colab-review-prep/source-frames/f7842.png",
+      "sha256": "b5e770137fd3c74c329782e6798b9548502111e93f62d961f1357d4ace385ba2"
+    },
+    {
+      "source_frame": 7844,
+      "source_pts": 2008064,
+      "clip_time_seconds_rational": [
+        57,
+        60
+      ],
+      "file": "/workspace/shared/onehand-colab-review-prep/source-frames/f7844.png",
+      "sha256": "d479ca3cb299eb8ba5e6d448b80a809b828f4017dc8facaac6c8332d18eae0f7"
+    },
+    {
+      "source_frame": 7846,
+      "source_pts": 2008576,
+      "clip_time_seconds_rational": [
+        59,
+        60
+      ],
+      "file": "/workspace/shared/onehand-colab-review-prep/source-frames/f7846.png",
+      "sha256": "dff56215ff2b2db87610d63e7e7cfacea7dbd73003db7f969953a2686c35f3c0"
+    },
+    {
+      "source_frame": 7860,
+      "source_pts": 2012160,
+      "clip_time_seconds_rational": [
+        73,
+        60
+      ],
+      "file": "/workspace/shared/onehand-colab-review-prep/source-frames/f7860.png",
+      "sha256": "c44779e1772b9d596a2bb50cd6cdfe306390402229b229ee62e5489198d399d9"
+    },
+    {
+      "source_frame": 7868,
+      "source_pts": 2014208,
+      "clip_time_seconds_rational": [
+        81,
+        60
+      ],
+      "file": "/workspace/shared/onehand-colab-review-prep/source-frames/f7868.png",
+      "sha256": "7466947f08313a7c19ff226f8c23c4389f2f0cd8c22531e93ffd3e7d9613f0c9"
+    },
+    {
+      "source_frame": 7870,
+      "source_pts": 2014720,
+      "clip_time_seconds_rational": [
+        83,
+        60
+      ],
+      "file": "/workspace/shared/onehand-colab-review-prep/source-frames/f7870.png",
+      "sha256": "10c76f165130c8f2e052a6437c54002e01fa81e4759bcf111e979954534ff18e"
+    },
+    {
+      "source_frame": 7871,
+      "source_pts": 2014976,
+      "clip_time_seconds_rational": [
+        84,
+        60
+      ],
+      "file": "/workspace/shared/onehand-colab-review-prep/source-frames/f7871.png",
+      "sha256": "e8ce639e584864a64d750230abeb86f567cca62965152970d119ad1b673832e8"
+    },
+    {
+      "source_frame": 7872,
+      "source_pts": 2015232,
+      "clip_time_seconds_rational": [
+        85,
+        60
+      ],
+      "file": "/workspace/shared/onehand-colab-review-prep/source-frames/f7872.png",
+      "sha256": "b70c9143806ca9d76daa420206359cb67435a3886b619d0363858590fdbfd6c4"
+    },
+    {
+      "source_frame": 7873,
+      "source_pts": 2015488,
+      "clip_time_seconds_rational": [
+        86,
+        60
+      ],
+      "file": "/workspace/shared/onehand-colab-review-prep/source-frames/f7873.png",
+      "sha256": "3895dd58a86c11e5f56870d09a20d5c8f800a02da077536a33011671414c289c"
+    },
+    {
+      "source_frame": 7874,
+      "source_pts": 2015744,
+      "clip_time_seconds_rational": [
+        87,
+        60
+      ],
+      "file": "/workspace/shared/onehand-colab-review-prep/source-frames/f7874.png",
+      "sha256": "22419198b752b153742acb69c9de269cd1f9a26d3e2f8a441e02354e8427649b"
+    },
+    {
+      "source_frame": 7875,
+      "source_pts": 2016000,
+      "clip_time_seconds_rational": [
+        88,
+        60
+      ],
+      "file": "/workspace/shared/onehand-colab-review-prep/source-frames/f7875.png",
+      "sha256": "a9fa9fdd2eeec07fa57544ece05c10e72a496541ef1d498c50c726971add76e2"
+    },
+    {
+      "source_frame": 7880,
+      "source_pts": 2017280,
+      "clip_time_seconds_rational": [
+        93,
+        60
+      ],
+      "file": "/workspace/shared/onehand-colab-review-prep/source-frames/f7880.png",
+      "sha256": "bbd7d5f8685901170b6a952949e96b9294c561a66df10656d5bcd3f289e0e3b0"
+    }
+  ]
+}

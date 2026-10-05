@@ -1,0 +1,149 @@
+{
+  "status": "diagnostic",
+  "scope": "One-hand mantle matched support-hand release/regrip technical hypothesis; no rendering or artistic approval",
+  "input_commit": "3bc4694df9a8704dd8a6381363f53e23f8a530fb",
+  "input_sha256": "740e7e2b16d6947075c321467cfe21d36314f68b93829cf8a2d954b4d382cdb5",
+  "source_sha256": "491a1729aa0f32373025d35fff86da76c6c1c8f057c0c553d0fbb5fb6226ff46",
+  "source_window": [
+    7787,
+    7883
+  ],
+  "source_fps": [
+    60,
+    1
+  ],
+  "action": "aella_mantle_onehand_r2",
+  "prior_action": "aella_mantle_onehand_r1",
+  "sample_divisions_per_frame": 8,
+  "detach_native": 7830,
+  "reattach_native": 7874,
+  "peak_native": 7840,
+  "offset_camera_m": [
+    -0.12,
+    0.07,
+    -0.04
+  ],
+  "free_wrist_delta_deg": [
+    -15,
+    0,
+    -5
+  ],
+  "free_forearm_roll_deg": 0,
+  "open_curl_rad": -0.5,
+  "uncertainty": "Visible opening and clear separation do not prove first physical release during the earlier low-framing occlusion; hidden contact and depth remain inferred.",
+  "protected": "All85 prior Actions including frozen low-vault r2, exact weapon curves/evaluated track, rest/constraints/drivers/camera/materials and original defaults. No canonical Jump/Prone replacement.",
+  "release_bracket": [
+    7834,
+    7836
+  ],
+  "regrip_bracket": [
+    7873,
+    7874
+  ],
+  "ownership_fades_native": [
+    [
+      7830,
+      7836
+    ],
+    [
+      7872,
+      7874
+    ]
+  ],
+  "iteration": "Continuous inverse-compensated ownership; replaces rejected discrete interpolation family",
+  "visible_finger_opening": [
+    7830,
+    7831
+  ],
+  "shoulder_pose_keys_native_yz_m": [
+    [
+      7799,
+      0,
+      0
+    ],
+    [
+      7804,
+      0,
+      0.03
+    ],
+    [
+      7806,
+      0,
+      0.06
+    ],
+    [
+      7808,
+      0.02,
+      0.06
+    ],
+    [
+      7810,
+      0.06,
+      0.04
+    ],
+    [
+      7818,
+      0.06,
+      0.06
+    ],
+    [
+      7834,
+      0.06,
+      0.06
+    ],
+    [
+      7844,
+      0,
+      0
+    ],
+    [
+      7882,
+      0,
+      0
+    ]
+  ],
+  "free_offset_keys_camera_m": [
+    [
+      7830,
+      0,
+      0,
+      0
+    ],
+    [
+      7836,
+      -0.08,
+      0.03,
+      0
+    ],
+    [
+      7840,
+      -0.14,
+      -0.04,
+      -0.02
+    ],
+    [
+      7846,
+      -0.15,
+      -0.18,
+      0
+    ],
+    [
+      7865,
+      -0.13,
+      -0.18,
+      0
+    ],
+    [
+      7870,
+      -0.07,
+      -0.04,
+      0
+    ],
+    [
+      7874,
+      0,
+      0,
+      0
+    ]
+  ]
+}
