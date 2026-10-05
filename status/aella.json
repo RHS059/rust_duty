@@ -1,27 +1,27 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-05T01:13:26Z",
+  "updatedAt": "2026-10-05T01:22:25Z",
   "state": "working",
-  "task": "Verify unique build numbering and the live Linux rerun, preserve actual Colab prone review output, and coordinate genuine Eevee review of mantle and high-obstacle climbing onto objects taller than the player. The vehicle is only a reference example. Public latest and Latest Complete remain verified v0.1.9 at eedd2910.",
+  "task": "Trial correction of the four approved HIP walking directions on a copied BLEND, preserve actual Colab prone output and intake native low-vault frames, and finish unique build-number graphical validation. Coordinate mantle and general high-obstacle climb review. Public latest and Latest Complete remain verified v0.1.9 at eedd2910.",
   "lastCompleted": "All six new videos annotated: 150 intervals cover 14,017 native frames; 1,135 sampled frames reviewed. PR #33 e4fdda48 pins witness hashes. Exact 0.1.8 Windows/Linux builds and native gameplay gates passed. Mantle/climb recovery packet published without claiming an authored candidate. Published v0.1.9 at 00:36:52 UTC: complete Windows/Linux packages and actual 0.1.8-to-0.1.9 delta activation, integrity, local-data preservation, game-entry update and same-path relaunch checks passed in run 37247568754.",
   "agents": [
     {
       "slot": 1,
       "state": "working",
-      "task": "Verify draft PR #36 unique visible build numbers and immutable attempt archives through the bounded live Linux rerun.",
-      "lastCompleted": "PR #36 remains 8a61fc98. First-attempt Windows and Linux builds passed, with actual 0.1.9+build.37248407529.1 artifacts retained for both platforms (Windows 11319858230; Linux 11320995925). All five authored asset pipelines, runtime contracts and updater CI passed. Linux attempt 2 is running quality checks; rustfmt-Linux-attempt-1 and rustfmt-Linux-attempt-2 archives both exist. Live rerun completion and graphical validation remain pending. These CI artifacts do not replace verified Latest Complete."
+      "task": "Trial Colab walking corrections for the four approved HIP forward, backward, left and right directions on a copied BLEND.",
+      "lastCompleted": "The direct user-approved four-direction correction trial is active. Baseline checks are underway; actual Colab execution is pending handoff. No corrected output or artistic pass is claimed."
     },
     {
       "slot": 2,
-      "state": "idle",
-      "task": "Await genuine Eevee candidate pixels for one-hand mantle r3 and the queued low-vault r2 review.",
-      "lastCompleted": "PR #35 remote head is 2429713369d7302b3db9c3038a68fe332556f4b2. One-hand mantle r3 source was recovered from GitHub and passed technical checks: 1,533 times and 3,899,154 finite skin-vertex samples, exact weapon matrices, zero attached guard residual, and 0.000152 mm intended-target error. Real candidate pixels and artistic acceptance remain pending. Low-vault r2 remains the frozen 1,021-sample technical candidate; Halcyon's capture is queued after prone, not running. High-obstacle climb means climbing onto an object taller than the player; the vehicle is only a reference."
+      "state": "working",
+      "task": "Preserve completed actual CPU prone-entry Colab output and intake the verified native low-vault review packet.",
+      "lastCompleted": "Actual CPU prone-entry run completed in https://colab.research.google.com/drive/1QJMzkXnyU6g_aDYnnYfyx9xiHpzogxW9 . Embedded result ZIP SHA-256 469005f8d9ecf49f23a4bb9d41e3eb6f32d9fd40c4cc5f9ceae6895123e8e26f is being preserved; score remains null. Low-vault PR #37 a126b6359483eeca62a7a1c22aabee1d6154657c now contains 64 genuine native 1280x720 Eevee frames and verified reconstruction evidence, replacing the earlier queued-capture status. Colab intake and actual vault pixel review are next; no artistic pass is claimed."
     },
     {
       "slot": 3,
       "state": "working",
-      "task": "Preserve completed actual CPU prone-entry Colab results and continue independent paired visual review.",
-      "lastCompleted": "Actual CPU prone-entry notebook run completed: https://colab.research.google.com/drive/1QJMzkXnyU6g_aDYnnYfyx9xiHpzogxW9 . Result ZIP SHA-256 469005f8d9ecf49f23a4bb9d41e3eb6f32d9fd40c4cc5f9ceae6895123e8e26f; score remains null. Output preservation is active and the runtime is kept until safe. PR #34 ec984d26 has 69 genuine native Eevee frames and paired video. Independent review confirmed a cuff pop at frames 36 to 37 to 38 and reported it to the owner. No artistic pass is claimed."
+      "task": "Finish unique build-number and native graphical validation after the successful live Linux rerun.",
+      "lastCompleted": "PR #36 remains 8a61fc98. Run 37248407529 attempt 2 completed successfully at 2026-10-05T01:21:53Z. Actual uniquely numbered Linux 0.1.9+build.37248407529.2 artifact 11320788618 is retained (106543831 bytes; API SHA-256 df2873e427e42e96cb048f02feb133ec1b04b2e790d33cb8730d90d6e45207c4). Original .1 Windows 11319858230 and Linux 11320995925 artifacts and immutable rustfmt archives for both attempts remain available. First-attempt Windows/Linux, all five authored asset pipelines, runtime contracts and updater checks passed. Graphical/native capture validation remains pending; this does not promote the candidate to Latest Complete."
     }
   ]
 }
