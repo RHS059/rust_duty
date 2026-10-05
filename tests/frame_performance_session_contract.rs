@@ -426,3 +426,58 @@ fn invalid_start_keeps_session_disabled_and_does_not_create_output() {
     assert!(session.shutdown().is_none());
     assert_eq!(clock.reads.get(), reads);
 }
+
+#[test]
+fn completion_notice_is_consumed_once_and_none_does_not_erase_it() {
+    use vector_range::frame_performance_session::{log_completion, take_completion_notice};
+    assert!(take_completion_notice().is_none());
+    let (mut session, clock, output) = started();
+    present(&mut session, &clock, 10);
+    let completion = stop(&mut session, &clock, 20, 30);
+    log_completion(Some(completion));
+    log_completion(None);
+    let notice = take_completion_notice().unwrap();
+    assert_eq!(notice.output_path, output.0);
+    assert_eq!(notice.status, CaptureStatus::Complete);
+    assert!(notice.export_error.is_none());
+    assert!(take_completion_notice().is_none());
+}
+
+#[test]
+fn latest_completion_preserves_export_error_and_incomplete_capture_status() {
+    use vector_range::frame_performance_session::{log_completion, take_completion_notice};
+    assert!(take_completion_notice().is_none());
+    let (mut first, first_clock, first_output) = started();
+    present(&mut first, &first_clock, 10);
+    log_completion(Some(stop(&mut first, &first_clock, 20, 30)));
+
+    let (mut failed, failed_clock, failed_output) = started();
+    std::fs::write(&failed_output.0, b"existing evidence").unwrap();
+    present(&mut failed, &failed_clock, 10);
+    log_completion(Some(stop(&mut failed, &failed_clock, 20, 30)));
+    let notice = take_completion_notice().unwrap();
+    assert_ne!(notice.output_path, first_output.0);
+    assert_eq!(notice.output_path, failed_output.0);
+    assert_eq!(notice.status, CaptureStatus::Complete);
+    assert!(notice
+        .export_error
+        .as_ref()
+        .is_some_and(|error| !error.is_empty()));
+    assert_eq!(
+        std::fs::read(&failed_output.0).unwrap(),
+        b"existing evidence"
+    );
+    assert!(take_completion_notice().is_none());
+
+    let (mut incomplete, clock, output) = started();
+    clock.set(10);
+    log_completion(incomplete.present_failure());
+    let notice = take_completion_notice().unwrap();
+    assert_eq!(notice.output_path, output.0);
+    assert_eq!(
+        notice.status,
+        CaptureStatus::Incomplete(CaptureError::PresentFailed)
+    );
+    assert!(notice.export_error.is_none());
+    assert!(take_completion_notice().is_none());
+}

@@ -67,12 +67,34 @@ pub struct SessionCompletion {
     pub export: Result<CaptureStatus, WriteError>,
 }
 
+/// Latest completed export for the in-game recording controls. Capture
+/// completeness and export failure remain separate, so UI cannot call a failed
+/// file write a successful export. Only one pending notice is retained.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct CompletionNotice {
+    pub output_path: PathBuf,
+    pub status: CaptureStatus,
+    pub export_error: Option<String>,
+}
+
+/// Consume the latest completion once. Disabled polling reads no clocks/files.
+pub fn take_completion_notice() -> Option<CompletionNotice> {
+    LAST_COMPLETION_NOTICE.with(|notice| notice.borrow_mut().take())
+}
+
 /// Consistent application diagnostics: writing partial evidence successfully is
 /// not described as a complete run, and a failed export names its stage/path.
 pub fn log_completion(completion: Option<SessionCompletion>) {
     let Some(completion) = completion else {
         return;
     };
+    LAST_COMPLETION_NOTICE.with(|notice| {
+        *notice.borrow_mut() = Some(CompletionNotice {
+            output_path: completion.output_path.clone(),
+            status: completion.report.status,
+            export_error: completion.export.as_ref().err().map(ToString::to_string),
+        });
+    });
     match completion.export {
         Ok(CaptureStatus::Complete) => eprintln!(
             "frame-performance evidence saved to {} ({} eligible CPU present-return intervals; hardware unclassified)",
@@ -345,6 +367,7 @@ impl<C: MonotonicClock> PerformanceSession<C> {
 }
 
 thread_local! {
+    static LAST_COMPLETION_NOTICE: RefCell<Option<CompletionNotice>> = const { RefCell::new(None) };
     static SESSION: RefCell<PerformanceSession<InstantClock>> = const {
         RefCell::new(PerformanceSession::new(InstantClock::new()))
     };

@@ -97,6 +97,9 @@ fn main() {
                         // Captures on the final application frame must complete
                         // even when no further next_frame await occurs.
                         let finish_result = runtime::shutdown();
+                        vector_range::frame_performance_session::log_completion(
+                            vector_range::frame_performance_session::shutdown(),
+                        );
                         app_result
                             .and(finish_result)
                             .unwrap_or_else(|error| fatal(error));
@@ -113,7 +116,7 @@ fn main() {
             #[cfg(feature = "wgpu-runtime")]
             {
                 let selection = requested.parse().unwrap_or_else(|error| fatal(error));
-                vector_range::platform::window::run(
+                let run_result = vector_range::platform::window::run(
                     &title,
                     width as u32,
                     height as u32,
@@ -125,8 +128,13 @@ fn main() {
                         )
                     },
                     app::run(options.ui_theme),
-                )
-                .unwrap_or_else(|error| fatal(error));
+                );
+                // Successful deferred stops were consumed by the renderer.
+                // Native-close/error exits without that present remain incomplete.
+                vector_range::frame_performance_session::log_completion(
+                    vector_range::frame_performance_session::shutdown(),
+                );
+                run_result.unwrap_or_else(|error| fatal(error));
             }
             #[cfg(not(feature = "wgpu-runtime"))]
             {

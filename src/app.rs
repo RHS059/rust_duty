@@ -6,6 +6,8 @@ use crate::world_draw::{
 use crate::{authored_viewmodel, game_update, pause_menu, sound, weapon_model};
 use std::{fs::File, io::Write};
 use vector_range::draw::facade::*;
+use vector_range::frame_performance::{BoundaryReason, Eligibility};
+use vector_range::frame_performance_session as frame_trace;
 use vector_range::platform::input::{KeyCode, MouseButton};
 use vector_range::platform::runtime::{
     get_fps, get_time, mouse_delta_position, mouse_position, next_frame, screen_height,
@@ -199,6 +201,7 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
     let mut notice = startup_notice.clone().unwrap_or_default();
     let mut notice_timer = if startup_notice.is_some() { 6. } else { 0. };
     let mut recording: Option<File> = None;
+    let mut frame_trace_sequence = 0_u64;
     let mut record_clock = 0.;
     let mut intents = IntentLatch::default();
     let explicit = args.iter().find_map(|s| s.strip_prefix("--weapon-asset="));
@@ -484,6 +487,11 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
         let dt = raw_dt.min(FixedClock::MAX_FRAME) as f32;
         frames += 1;
         if focus_input.is_key_pressed(KeyCode::F10) {
+            // This final frame exits before drawing gameplay; keep its return
+            // as explicit shutdown evidence rather than an eligible sample.
+            frame_trace::log_completion(frame_trace::set_eligibility(Eligibility::Ineligible(
+                BoundaryReason::Shutdown,
+            )));
             break;
         }
         // Resolve a replacement before either UI hit testing or drawing this
@@ -567,6 +575,15 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
             capture,
         ));
         let active = transition.active;
+        // Observe presentation context, never simulation dt. In particular a
+        // hitch's discard_timing flag must not hide the actual wall-clock gap.
+        let trace_eligibility = frame_trace_eligibility(
+            active,
+            capture,
+            focus_state,
+            model_error.is_some() || startup_blocked,
+        );
+        frame_trace::log_completion(frame_trace::set_eligibility(trace_eligibility));
         let mut just_resumed = transition.resumed;
         let capture_cursor = active && !focus_state.unfocused && !capture;
         if capture_cursor != cursor_captured {
@@ -626,6 +643,7 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
             debug = !debug;
         }
         if focus_input.is_key_pressed(KeyCode::F2) {
+            frame_trace::log_completion(frame_trace::boundary(BoundaryReason::SceneChanged));
             sim.reset();
             supply.reset();
             register_supply(&mut sim, &supply);
@@ -713,13 +731,51 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
         if focus_input.is_key_pressed(KeyCode::F8) {
             if recording.is_some() {
                 recording = None;
-                notice = "Telemetry saved: telemetry.csv".into();
+                if frame_trace::is_active() {
+                    request_frame_trace_stop();
+                    notice =
+                        "Telemetry saved: telemetry.csv; frame trace awaits final present".into();
+                } else {
+                    notice = "Telemetry saved: telemetry.csv".into();
+                }
             } else {
                 match File::create("telemetry.csv") {
                     Ok(mut f) => {
                         let _=writeln!(f,"time,x,y,z,speed,grounded,crouched,sprinting,ads,recoil_pitch_deg,ammo,shots,hits,kills,render_fps");
                         recording = Some(f);
-                        notice = "Recording telemetry.csv (overwrites earlier recording)".into();
+                        let scene = frame_trace_scene(
+                            profile,
+                            weapon_id,
+                            if model_error.is_some() {
+                                "unavailable"
+                            } else if authored.is_some() {
+                                "authored_viewmodel"
+                            } else if model.is_some() {
+                                "static_weapon_model"
+                            } else {
+                                "procedural"
+                            },
+                            framing.reference,
+                            capture,
+                            capture_sequence,
+                            demo,
+                        );
+                        notice = match start_frame_trace(
+                            scene,
+                            trace_eligibility,
+                            &mut frame_trace_sequence,
+                        ) {
+                            Ok(path) => format!(
+                                "Recording telemetry.csv (overwrites earlier recording); CPU trace: {}",
+                                path.display()
+                            ),
+                            Err(error) => {
+                                eprintln!(
+                                    "Frame trace unavailable; CSV recording continues: {error}"
+                                );
+                                format!("Recording telemetry.csv (overwrites earlier recording); no frame trace: {error}")
+                            }
+                        };
                     }
                     Err(e) => notice = format!("Could not record: {e}"),
                 };
@@ -1237,7 +1293,139 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
         }
         next_frame().await?;
     }
+    // The renderer submits after this future resolves. Defer trace export
+    // through that final successful present; main handles missing/error exits.
+    request_frame_trace_stop();
     Ok(())
+}
+
+fn frame_trace_eligibility(
+    active: bool,
+    capture: bool,
+    focus: vector_range::session::FocusState,
+    blocked: bool,
+) -> Eligibility {
+    if capture {
+        Eligibility::Ineligible(BoundaryReason::DiagnosticCapture)
+    } else if focus.unfocused {
+        Eligibility::Ineligible(BoundaryReason::FocusLost)
+    } else if focus.changed {
+        Eligibility::Ineligible(BoundaryReason::FocusRegained)
+    } else if blocked {
+        Eligibility::Ineligible(BoundaryReason::CallerExcluded)
+    } else if !active {
+        Eligibility::Ineligible(BoundaryReason::Paused)
+    } else {
+        Eligibility::Eligible
+    }
+}
+
+/// Deliberately accept named runtime choices, never filesystem paths or the
+/// unfiltered CLI. An explicit/private asset path must not enter trace identity.
+fn frame_trace_scene(
+    profile: &str,
+    weapon_id: &str,
+    presentation: &str,
+    reference: bool,
+    capture: bool,
+    capture_sequence: Option<&str>,
+    demo: bool,
+) -> serde_json::Value {
+    serde_json::json!({
+        "name": "vector_range_default_range",
+        "profile_base": profile,
+        "weapon_id": weapon_id,
+        "presentation": presentation,
+        "reference_viewport": reference,
+        "diagnostic_capture": capture,
+        "capture_sequence": capture_sequence,
+        "demo": demo,
+    })
+}
+
+#[cfg(any(feature = "wgpu-runtime", test))]
+fn frame_trace_identity(
+    info: vector_range::draw::BackendInfo,
+    window: vector_range::frame_performance::WindowContext,
+    scene: serde_json::Value,
+) -> vector_range::frame_performance::RunIdentity {
+    use vector_range::frame_performance::{RunIdentity, RuntimeIdentity};
+    RunIdentity {
+        runtime: RuntimeIdentity {
+            actual_backend: Some(info.backend),
+            // The frozen BackendInfo exposes the actual name, not device type
+            // or hardware proof. Additional renderer diagnostics stay separate.
+            actual_adapter: serde_json::json!({ "name": info.adapter }),
+            build: serde_json::json!({
+                "version": vector_range::BUILD_VERSION,
+                "number": vector_range::BUILD_NUMBER,
+                "label": vector_range::BUILD_LABEL,
+            }),
+            initial_window: window,
+            scene,
+        },
+        operator_supplied: serde_json::Value::Null,
+    }
+}
+
+#[cfg(any(feature = "wgpu-runtime", test))]
+fn next_frame_trace_path(
+    sequence: &mut u64,
+    mut exists: impl FnMut(&std::path::Path) -> std::io::Result<bool>,
+) -> Result<std::path::PathBuf, String> {
+    // Exclusive creation at export remains the final authority. Bounded name
+    // selection makes repeated F8 sessions useful without overwriting evidence.
+    for _ in 0..1024 {
+        *sequence = sequence
+            .checked_add(1)
+            .ok_or("frame trace sequence exhausted")?;
+        let path = std::path::PathBuf::from(format!(
+            "telemetry.frames.{}.{sequence:04}.json",
+            std::process::id()
+        ));
+        if !exists(&path).map_err(|error| format!("inspect frame trace destination: {error}"))? {
+            return Ok(path);
+        }
+    }
+    Err("no unused frame trace destination after 1024 candidates".into())
+}
+
+fn start_frame_trace(
+    scene: serde_json::Value,
+    eligibility: Eligibility,
+    sequence: &mut u64,
+) -> Result<std::path::PathBuf, String> {
+    #[cfg(feature = "wgpu-runtime")]
+    {
+        if !vector_range::platform::runtime::wgpu_active() {
+            return Err("CPU present-return timing requires the wgpu runtime".into());
+        }
+        let identity = frame_trace_identity(
+            backend_info()?,
+            vector_range::platform::window::performance_window_context(),
+            scene,
+        );
+        let path = next_frame_trace_path(sequence, std::path::Path::try_exists)?;
+        frame_trace::start(
+            identity,
+            path.clone(),
+            vector_range::frame_performance::CaptureLimits::default(),
+        )
+        .map_err(|error| error.to_string())?;
+        // start defaults to Eligible. The first paused/capture frame must be
+        // excluded too, even though its earlier disabled context hook was a no-op.
+        frame_trace::log_completion(frame_trace::set_eligibility(eligibility));
+        Ok(path)
+    }
+    #[cfg(not(feature = "wgpu-runtime"))]
+    {
+        let _ = (scene, eligibility, sequence);
+        Err("CPU present-return timing requires the wgpu runtime".into())
+    }
+}
+
+fn request_frame_trace_stop() {
+    frame_trace::request_stop();
 }
 
 /// Keep user-edited adjacent themes stable across managed updates. A verified
@@ -1265,8 +1453,16 @@ fn resolve_theme_path(
 
 #[cfg(test)]
 mod tests {
-    use super::resolve_theme_path;
+    use super::{
+        frame_trace_eligibility, frame_trace_identity, frame_trace_scene, next_frame_trace_path,
+        request_frame_trace_stop, resolve_theme_path, start_frame_trace,
+    };
     use std::path::Path;
+    use vector_range::frame_performance::{
+        BoundaryReason, CaptureError, CaptureLimits, CaptureStatus, Eligibility, RecordKind,
+        WindowContext, WindowMode,
+    };
+    use vector_range::frame_performance_session as frame_trace;
 
     #[test]
     fn explicit_and_editable_local_themes_take_precedence_over_managed_defaults() {
@@ -1296,5 +1492,242 @@ mod tests {
             resolve_theme_path(None, executable, packaged, |_| false),
             Path::new("ui/theme.css")
         );
+    }
+    #[test]
+    fn performance_eligibility_preserves_active_hitches_and_explicit_exclusions() {
+        let focus = vector_range::session::FocusState::default();
+        let mut session = vector_range::session::SessionController::default();
+        session.set_active(true);
+        let transition = session.step(vector_range::session::SessionInput {
+            dt: 1.0,
+            ..Default::default()
+        });
+        assert!(transition.active && transition.discard_timing);
+        assert_eq!(
+            frame_trace_eligibility(transition.active, false, focus, false),
+            Eligibility::Eligible
+        );
+        assert_eq!(
+            frame_trace_eligibility(false, false, focus, false),
+            Eligibility::Ineligible(BoundaryReason::Paused)
+        );
+        assert_eq!(
+            frame_trace_eligibility(true, true, focus, false),
+            Eligibility::Ineligible(BoundaryReason::DiagnosticCapture)
+        );
+        assert_eq!(
+            frame_trace_eligibility(true, false, focus, true),
+            Eligibility::Ineligible(BoundaryReason::CallerExcluded)
+        );
+        assert_eq!(
+            frame_trace_eligibility(
+                true,
+                false,
+                vector_range::session::FocusState {
+                    unfocused: true,
+                    ..focus
+                },
+                false
+            ),
+            Eligibility::Ineligible(BoundaryReason::FocusLost)
+        );
+        assert_eq!(
+            frame_trace_eligibility(
+                true,
+                false,
+                vector_range::session::FocusState {
+                    changed: true,
+                    ..focus
+                },
+                false
+            ),
+            Eligibility::Ineligible(BoundaryReason::FocusRegained)
+        );
+    }
+
+    fn trace_identity() -> vector_range::frame_performance::RunIdentity {
+        frame_trace_identity(
+            vector_range::draw::BackendInfo {
+                requested: "/must-not-copy-requested/auto".into(),
+                backend: "Dx12".into(),
+                adapter: "synthetic CPU test adapter".into(),
+            },
+            WindowContext {
+                physical_width: 960,
+                physical_height: 540,
+                scale_factor: 1.,
+                mode: WindowMode::Windowed,
+            },
+            frame_trace_scene(
+                "m4a1",
+                "hk416a5",
+                "authored_viewmodel",
+                false,
+                false,
+                None,
+                false,
+            ),
+        )
+    }
+
+    #[test]
+    fn performance_identity_records_observed_values_without_asset_paths_or_hardware_claims() {
+        let identity = trace_identity();
+        assert_eq!(identity.runtime.actual_backend.as_deref(), Some("Dx12"));
+        assert_eq!(
+            identity.runtime.actual_adapter,
+            serde_json::json!({"name":"synthetic CPU test adapter"})
+        );
+        assert_eq!(identity.runtime.build["label"], vector_range::BUILD_LABEL);
+        assert_eq!(identity.runtime.scene["profile_base"], "m4a1");
+        assert_eq!(identity.runtime.scene["presentation"], "authored_viewmodel");
+        assert_eq!(identity.operator_supplied, serde_json::Value::Null);
+        let scene = identity.runtime.scene.to_string();
+        assert!(!scene.contains("path") && !scene.contains("/") && !scene.contains("\\"));
+        assert!(!identity
+            .runtime
+            .actual_adapter
+            .to_string()
+            .contains("hardware"));
+    }
+
+    #[test]
+    fn performance_output_names_preserve_prior_reports_and_are_bounded() {
+        let mut sequence = 0;
+        let mut inspected = Vec::new();
+        let output = next_frame_trace_path(&mut sequence, |path| {
+            inspected.push(path.to_owned());
+            Ok(inspected.len() < 3)
+        })
+        .unwrap();
+        assert_eq!(sequence, 3);
+        assert_eq!(output, inspected[2]);
+        assert!(!output.is_absolute());
+        assert_ne!(output, Path::new("telemetry.csv"));
+        assert!(output.to_string_lossy().ends_with(".0003.json"));
+        let error = next_frame_trace_path(&mut sequence, |_| Err(std::io::Error::other("denied")))
+            .unwrap_err();
+        assert!(error.contains("denied"));
+        let mut sequence = 0;
+        assert!(next_frame_trace_path(&mut sequence, |_| Ok(true))
+            .unwrap_err()
+            .contains("1024"));
+        assert_eq!(sequence, 1024);
+    }
+
+    struct TraceOutput(std::path::PathBuf);
+    impl TraceOutput {
+        fn new() -> Self {
+            static NEXT: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+            let next = NEXT.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+            Self(std::env::temp_dir().join(format!(
+                "rust-duty-app-frame-trace-{}-{next}.json",
+                std::process::id()
+            )))
+        }
+    }
+    impl Drop for TraceOutput {
+        fn drop(&mut self) {
+            let _ = frame_trace::shutdown();
+            let _ = std::fs::remove_file(&self.0);
+        }
+    }
+    fn start_test_trace(path: &Path) {
+        assert!(!frame_trace::is_active());
+        frame_trace::start(
+            trace_identity(),
+            path.to_owned(),
+            CaptureLimits {
+                max_records: 32,
+                max_metadata_bytes: 4096,
+            },
+        )
+        .unwrap();
+    }
+
+    #[test]
+    fn normal_app_stop_includes_final_success_before_export_and_shutdown_is_idle() {
+        let output = TraceOutput::new();
+        start_test_trace(&output.0);
+        assert!(frame_trace::present_success().is_none());
+        assert!(frame_trace::present_success().is_none());
+        request_frame_trace_stop();
+        assert!(frame_trace::is_active() && frame_trace::is_stop_requested());
+        assert!(!output.0.exists());
+        let completion = frame_trace::present_success().unwrap();
+        assert_eq!(completion.report.successful_present_count, 3);
+        assert_eq!(completion.report.summary.interval_count, 2);
+        assert_eq!(completion.export.unwrap(), CaptureStatus::Complete);
+        assert!(!frame_trace::is_active());
+        assert!(frame_trace::shutdown().is_none());
+    }
+
+    #[test]
+    fn missing_final_present_is_reported_incomplete_without_synthesizing_a_sample() {
+        let output = TraceOutput::new();
+        start_test_trace(&output.0);
+        assert!(frame_trace::present_success().is_none());
+        assert!(frame_trace::present_success().is_none());
+        request_frame_trace_stop();
+        let completion = frame_trace::shutdown().unwrap();
+        assert_eq!(completion.report.successful_present_count, 2);
+        assert_eq!(
+            completion.report.status,
+            CaptureStatus::Incomplete(CaptureError::FinalPresentMissing)
+        );
+        assert_eq!(
+            completion.export.unwrap(),
+            CaptureStatus::Incomplete(CaptureError::FinalPresentMissing)
+        );
+    }
+
+    #[test]
+    fn first_and_repeated_paused_capture_frames_are_excluded_after_start() {
+        for reason in [BoundaryReason::Paused, BoundaryReason::DiagnosticCapture] {
+            let output = TraceOutput::new();
+            start_test_trace(&output.0);
+            assert!(frame_trace::set_eligibility(Eligibility::Ineligible(reason)).is_none());
+            assert!(frame_trace::present_success().is_none());
+            request_frame_trace_stop();
+            let completion = frame_trace::present_success().unwrap();
+            assert_eq!(completion.report.ineligible_present_count, 2);
+            assert_eq!(completion.report.summary.interval_count, 0);
+            assert!(completion
+                .report
+                .raw_records()
+                .iter()
+                .filter_map(|record| {
+                    if let RecordKind::PresentReturn {
+                        eligibility,
+                        interval_ns,
+                    } = record.kind
+                    {
+                        Some((eligibility, interval_ns))
+                    } else {
+                        None
+                    }
+                })
+                .all(
+                    |(eligibility, interval)| eligibility == Eligibility::Ineligible(reason)
+                        && interval.is_none()
+                ));
+            assert_eq!(
+                completion.export.unwrap(),
+                CaptureStatus::Incomplete(CaptureError::NoEligibleIntervals)
+            );
+        }
+    }
+
+    #[test]
+    fn unavailable_wgpu_start_does_not_enable_tracing_or_choose_a_file() {
+        let mut sequence = 0;
+        let result = start_frame_trace(
+            serde_json::Value::Null,
+            Eligibility::Eligible,
+            &mut sequence,
+        );
+        assert!(result.unwrap_err().contains("requires the wgpu runtime"));
+        assert_eq!(sequence, 0);
+        assert!(!frame_trace::is_active());
     }
 }

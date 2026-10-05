@@ -8,6 +8,8 @@ but the harness accepts it. Remove the marker when the gap is fixed.
 import io
 import json
 from pathlib import Path
+import subprocess
+import sys
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -241,17 +243,93 @@ class AdversarialAuthoredTests(unittest.TestCase):
         self.verdict(offset.parent / 'ads-offset-verification.json', passed=False)
         self.assertFalse(self.accepted())
 
-    def test_layered_baselines_also_need_the_cross_rate_report(self):
-        layered = self.root / 'layered' / 'layered-30'
-        layered.parent.mkdir()
-        self.baseline.rename(layered)
-        self.baseline = layered
-        self.assertFalse(self.accepted())
-        self.verdict(layered.parent / 'layered-rate-verification.json', frames=999)
-        self.assertTrue(self.accepted())  # Cross-rate frame totals are not per folder.
-        self.verdict(layered.parent / 'layered-rate-verification.json', passed=False)
-        self.assertFalse(self.accepted())
+    # Layered cross-rate verdict: the real producer's CLI output, not a fabricated schema.
 
+    def layered_capture(self, folder, hz):
+        """Synthetic rows that pass verify_layered_locomotion_capture.verify."""
+        folder.mkdir(parents=True)
+        stride = 120 // hz
+        for index, tick in enumerate(range(0, 11 * 120, stride)):
+            second = tick // 120
+            if second < 8:
+                direction, kind = divmod(second, 2)
+                segment = f"{('forward', 'backward', 'left', 'right')[direction]}_{('hip', 'ads')[kind]}"
+                route, walk, run = ('ads.hold' if kind else 'locomotion'), 1.0, 0
+                weights = [1.0 if i == direction else 0.0 for i in range(4)]
+                ads_requested, sprinting = bool(kind), False
+            elif second == 8:
+                segment, route, walk, run, weights = 'rapid_run_interruptions', 'ads.hold', 0.5, 0.5, None
+                ads_requested, sprinting = True, True
+            else:
+                segment, route, walk, run, weights = 'settle', 'ready', 0.0, 0, None
+                ads_requested, sprinting = False, False
+            stem = folder / f'{index:04}.png'
+            Image.new('RGBA', (4, 4), (tick % 256, tick // 256, 7, 255)).save(stem)
+            authored.write_json(Path(f'{stem}.gameplay.json'), {
+                'sampling_hz': hz, 'simulation_time': tick / 120, 'segment': segment, 'route': route,
+                'walk_weight': walk, 'run_weight': run, 'directional_weights': weights,
+                'ads_requested': ads_requested, 'sprinting': sprinting,
+                'simulation_ads': 1 if route.startswith('ads.') else 0, 'renderer_failed': False,
+                'pose_crc32': (tick * 2654435761) % 2 ** 32, 'walk_seconds': None,
+                'position': [tick / 120, 0.0, 0.0], 'velocity': [1.0, 0.0, 0.0], 'ammo': 30, 'shots': 0})
+        return sorted(folder.glob('[0-9][0-9][0-9][0-9].png'))
+
+    def layered_baselines(self):
+        """Run the actual producer exactly as native-validation.yml does."""
+        parent = self.root / 'layered'
+        images = {hz: self.layered_capture(parent / f'layered-{hz}', hz) for hz in (30, 60)}
+        producer = Path(authored.__file__).with_name('verify_layered_locomotion_capture.py')
+        output = subprocess.run([sys.executable, str(producer), str(parent / 'layered-30'),
+                                 str(parent / 'layered-60')], check=True, capture_output=True, text=True)
+        (parent / 'layered-rate-verification.json').write_text(output.stdout, encoding='utf-8')
+        return parent, images
+
+    def test_layered_verdicts_accept_the_actual_producer_output(self):
+        parent, images = self.layered_baselines()
+        wrapper = json.loads((parent / 'layered-rate-verification.json').read_text())
+        self.assertEqual(set(wrapper), {'captures', 'rate_comparison'})  # no top-level verdict
+        for hz in (30, 60):
+            self.assertEqual(authored.baseline_verdicts(parent / f'layered-{hz}', images[hz]),
+                             ['verification.json', 'layered-rate-verification.json'])
+
+    def test_layered_verdicts_reject_tampered_or_missing_cross_rate_evidence(self):
+        parent, images = self.layered_baselines()
+        path = parent / 'layered-rate-verification.json'
+        original = json.loads(path.read_text())
+
+        def tamper(change):
+            data = json.loads(json.dumps(original))
+            change(data)
+            return data
+
+        cases = {
+            'fabricated top-level verdict': tamper(lambda d: d.update(passed=True, schema='x')),
+            'missing rate comparison': tamper(lambda d: d.pop('rate_comparison')),
+            'one capture only': tamper(lambda d: d['captures'].pop()),
+            'failed capture': tamper(lambda d: d['captures'][0].update(passed=False)),
+            'string passed': tamper(lambda d: d['captures'][1].update(passed='true')),
+            'wrong schema': tamper(lambda d: d['captures'][0].update(schema='other/v1')),
+            'two 30 Hz captures': tamper(lambda d: d['captures'][1].update(sampling_hz=30)),
+            'capture differs from its folder report': tamper(lambda d: d['captures'][0].update(frames=1)),
+            'tampered common ticks': tamper(lambda d: d['rate_comparison'].update(common_ticks=1)),
+            'fewer compared fields': tamper(lambda d: d['rate_comparison']['compared_fields'].pop()),
+        }
+        for name, data in cases.items():
+            authored.write_json(path, data)
+            with self.subTest(name), self.assertRaises(ValueError):
+                authored.baseline_verdicts(parent / 'layered-30', images[30])
+        authored.write_json(path, original)
+        authored.baseline_verdicts(parent / 'layered-30', images[30])
+        # Rows changed after the report: the re-run compare_rates must reject it.
+        row = parent / 'layered-60' / '0002.png.gameplay.json'
+        data = json.loads(row.read_text())
+        data['pose_crc32'] += 1
+        row.write_text(json.dumps(data))
+        with self.assertRaisesRegex(ValueError, 'render sampling changed committed output'):
+            authored.baseline_verdicts(parent / 'layered-30', images[30])
+        path.unlink()
+        with self.assertRaises(ValueError):
+            authored.baseline_verdicts(parent / 'layered-60', images[60])
 
 if __name__ == '__main__':
     unittest.main()

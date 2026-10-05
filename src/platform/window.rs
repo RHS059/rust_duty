@@ -2,6 +2,8 @@
 //! yields at `next_frame`; this module only samples input and presents frames.
 
 use super::input::{InputAccumulator, InputFrame, KeyCode, MouseButton};
+use crate::frame_performance::{BoundaryReason, WindowContext, WindowMode};
+use crate::frame_performance_session as frame_trace;
 use glam::Vec2;
 use std::{
     cell::RefCell,
@@ -50,6 +52,7 @@ struct State {
     size: PhysicalSize<u32>,
     scale_factor: f64,
     cursor_physical: PhysicalPosition<f64>,
+    observed_focus: Option<bool>,
 }
 
 impl Default for State {
@@ -66,11 +69,20 @@ impl Default for State {
             size: PhysicalSize::new(1, 1),
             scale_factor: 1.,
             cursor_physical: PhysicalPosition::new(0., 0.),
+            observed_focus: None,
         }
     }
 }
 
 impl State {
+    fn note_focus(&mut self, focused: bool) -> Option<BoundaryReason> {
+        let previous = self.observed_focus.replace(focused);
+        (previous != Some(focused)).then_some(if focused {
+            BoundaryReason::FocusRegained
+        } else {
+            BoundaryReason::FocusLost
+        })
+    }
     fn set_window_metrics(&mut self, size: PhysicalSize<u32>, scale_factor: f64) {
         self.size = size;
         self.scale_factor = scale_factor;
@@ -112,6 +124,59 @@ pub fn is_active() -> bool {
 
 pub fn snapshot_input() -> InputFrame {
     STATE.with(|s| s.borrow().frame.clone())
+}
+
+/// Observed physical window state for an explicitly requested performance run.
+/// No timer or filesystem is touched; renderer identity remains renderer-owned.
+pub fn performance_window_context() -> WindowContext {
+    STATE.with(|state| {
+        let state = state.borrow();
+        let mode =
+            state
+                .window
+                .as_ref()
+                .map_or(WindowMode::Unknown, |window| match window.fullscreen() {
+                    None => WindowMode::Windowed,
+                    Some(Fullscreen::Borderless(_)) => WindowMode::Borderless,
+                    Some(Fullscreen::Exclusive(_)) => WindowMode::ExclusiveFullscreen,
+                });
+        WindowContext {
+            physical_width: state.size.width,
+            physical_height: state.size.height,
+            scale_factor: state.scale_factor,
+            mode,
+        }
+    })
+}
+
+fn observe_window_context() {
+    if frame_trace::is_active() {
+        frame_trace::log_completion(frame_trace::update_window_context(
+            performance_window_context(),
+        ));
+    }
+}
+
+fn metrics_boundary(
+    previous_size: PhysicalSize<u32>,
+    previous_scale: f64,
+    size: PhysicalSize<u32>,
+    scale_factor: f64,
+) -> Option<BoundaryReason> {
+    if previous_size == size && previous_scale == scale_factor {
+        None
+    } else if size.width == 0 || size.height == 0 {
+        Some(BoundaryReason::Minimized)
+    } else {
+        Some(BoundaryReason::Resize)
+    }
+}
+
+fn observe_focus(focused: bool) {
+    let reason = STATE.with(|state| state.borrow_mut().note_focus(focused));
+    if let Some(reason) = reason {
+        frame_trace::log_completion(frame_trace::boundary(reason));
+    }
 }
 
 /// Clear both the native accumulator and the snapshot already visible to the app.
@@ -204,6 +269,7 @@ pub fn set_fullscreen(fullscreen: bool) {
             );
         }
     });
+    observe_window_context();
 }
 
 /// A freshly awaited frame always yields, even if polled repeatedly in the same
@@ -291,10 +357,16 @@ impl Runtime {
         event_loop.exit();
     }
     fn resize(&mut self, event_loop: &ActiveEventLoop, size: PhysicalSize<u32>, scale_factor: f64) {
-        STATE.with(|s| {
+        let boundary = STATE.with(|s| {
             let mut s = s.borrow_mut();
+            let boundary = metrics_boundary(s.size, s.scale_factor, size, scale_factor);
             s.set_window_metrics(size, scale_factor);
+            boundary
         });
+        observe_window_context();
+        if let Some(reason) = boundary {
+            frame_trace::log_completion(frame_trace::boundary(reason));
+        }
         // Surface configuration with either dimension zero is invalid. Keep the
         // real size in state and stop redraws until the native restore event.
         if size.width == 0 || size.height == 0 {
@@ -348,9 +420,13 @@ impl Runtime {
 
 impl ApplicationHandler for Runtime {
     fn resumed(&mut self, event_loop: &ActiveEventLoop) {
+        if self.suspended {
+            frame_trace::log_completion(frame_trace::boundary(BoundaryReason::Resumed));
+        }
         self.suspended = false;
         if let Some(window) = self.window.clone() {
             STATE.with(|s| s.borrow_mut().input.focus_event(window.has_focus()));
+            observe_focus(window.has_focus());
             self.resize(event_loop, window.inner_size(), window.scale_factor());
             window.request_redraw();
             return;
@@ -372,6 +448,7 @@ impl ApplicationHandler for Runtime {
             s.scale_factor = window.scale_factor();
             s.input.focus_event(window.has_focus());
         });
+        observe_focus(window.has_focus());
         self.window = Some(window.clone());
         let Some(make_hooks) = self.make_hooks.take() else {
             return;
@@ -387,7 +464,11 @@ impl ApplicationHandler for Runtime {
         window.request_redraw();
     }
     fn suspended(&mut self, _event_loop: &ActiveEventLoop) {
+        if !self.suspended {
+            frame_trace::log_completion(frame_trace::boundary(BoundaryReason::Minimized));
+        }
         self.suspended = true;
+        observe_focus(false);
         STATE.with(|s| s.borrow_mut().input.focus_event(false));
         set_cursor_grab(false);
         show_mouse(true);
@@ -414,6 +495,7 @@ impl ApplicationHandler for Runtime {
             }
             WindowEvent::Focused(focused) => {
                 STATE.with(|s| s.borrow_mut().input.focus_event(focused));
+                observe_focus(focused);
                 if !focused {
                     set_cursor_grab(false);
                     show_mouse(true);
@@ -710,5 +792,56 @@ mod tests {
             assert_eq!(map_key(native), Some(expected));
         }
         assert_eq!(map_key(NativeKey::F24), None);
+    }
+    #[test]
+    fn performance_focus_boundaries_ignore_repeated_levels() {
+        let mut state = State::default();
+        assert_eq!(state.note_focus(true), Some(BoundaryReason::FocusRegained));
+        assert_eq!(state.note_focus(true), None);
+        assert_eq!(state.note_focus(false), Some(BoundaryReason::FocusLost));
+        assert_eq!(state.note_focus(false), None);
+        assert_eq!(state.note_focus(true), Some(BoundaryReason::FocusRegained));
+    }
+
+    #[test]
+    fn performance_resize_and_scale_boundaries_do_not_filter_unchanged_frames() {
+        let size = PhysicalSize::new(960, 540);
+        assert_eq!(metrics_boundary(size, 1., size, 1.), None);
+        assert_eq!(
+            metrics_boundary(size, 1., size, 2.),
+            Some(BoundaryReason::Resize)
+        );
+        assert_eq!(
+            metrics_boundary(size, 1., PhysicalSize::new(1920, 1080), 1.),
+            Some(BoundaryReason::Resize)
+        );
+        assert_eq!(
+            metrics_boundary(size, 1., PhysicalSize::new(0, 540), 1.),
+            Some(BoundaryReason::Minimized)
+        );
+        assert_eq!(
+            metrics_boundary(PhysicalSize::new(0, 540), 1., size, 1.),
+            Some(BoundaryReason::Resize)
+        );
+    }
+
+    #[test]
+    fn performance_context_uses_physical_dimensions_without_guessing_window_mode() {
+        STATE.with(|state| {
+            let mut state = state.borrow_mut();
+            *state = State::default();
+            state.set_window_metrics(PhysicalSize::new(1920, 1080), 2.);
+        });
+        assert_eq!(
+            performance_window_context(),
+            WindowContext {
+                physical_width: 1920,
+                physical_height: 1080,
+                scale_factor: 2.,
+                mode: WindowMode::Unknown,
+            }
+        );
+        assert_eq!(screen_width(), 960.);
+        assert_eq!(screen_height(), 540.);
     }
 }
