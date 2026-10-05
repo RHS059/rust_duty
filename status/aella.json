@@ -1,27 +1,27 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-05T00:32:15Z",
+  "updatedAt": "2026-10-05T00:43:00Z",
   "state": "working",
-  "task": "Coordinate source ownership and exact-source package verification while low-vault r2 authoring/Eevee startup recovery, publisher validation/0.1.9 channel promotion, and unique per-run-attempt build numbering remain active. Source-only Colab preparation is complete; candidate comparison awaits rendered images. Jump eedd2910 and content-delta 176e046c playable builds and updater checks passed; v0.1.8 remains the last verified public latest.",
-  "lastCompleted": "All six new videos annotated: 150 intervals cover 14,017 native frames; 1,135 sampled frames reviewed. PR #33 e4fdda48 pins witness hashes. Exact 0.1.8 Windows/Linux builds and native gameplay gates passed. Mantle/climb recovery packet published without claiming an authored candidate.",
+  "task": "Coordinate Halcyon capture handoff and exact-source verification while unique per-run-attempt build numbering awaits CI. Low-vault r2 source work is complete and waiting for Eevee candidate images; source-only Colab comparison preparation is ready. Public latest and Latest Complete are now verified v0.1.9 at eedd2910.",
+  "lastCompleted": "All six new videos annotated: 150 intervals cover 14,017 native frames; 1,135 sampled frames reviewed. PR #33 e4fdda48 pins witness hashes. Exact 0.1.8 Windows/Linux builds and native gameplay gates passed. Mantle/climb recovery packet published without claiming an authored candidate. Published v0.1.9 at 00:36:52 UTC: complete Windows/Linux packages and actual 0.1.8-to-0.1.9 delta activation, integrity, local-data preservation, game-entry update and same-path relaunch checks passed in run 37247568754.",
   "agents": [
     {
       "slot": 1,
       "state": "working",
-      "task": "Recover foreground Eevee startup and render the isolated low-vault r2 detach/regrip and hand-switch repair.",
-      "lastCompleted": "PR #35 source 133d0053: low-vault r2 technical checks passed 1,021 samples. No candidate images, visual review or artistic approval yet."
+      "task": "Verify draft PR #36 unique visible build numbers and immutable attempt archives against exact-head CI.",
+      "lastCompleted": "PR #36 8a61fc98 source review passed; Jump hooks preserved. Python suite: 208 tests, 3 skips, zero failures; 546 Rust game tests and 2 numbering tests passed. Two real headless builds reported distinct attempt labels. Runtime contracts passed; playable-build and updater CI remain in progress. No merge or graphical approval."
     },
     {
       "slot": 2,
       "state": "working",
-      "task": "Verify publisher validator repair and promote the verified 0.1.9 candidate through the update channel.",
-      "lastCompleted": "Repair b8b054c: 50 focused tests passed. Run 37247568754 passed explicit plan validation, exact-source helper fetch, source selection and binary download; payload curation is running. Promotion remains unverified."
+      "task": "Coordinate Halcyon low-vault capture handoff and verify exact-source release integration.",
+      "lastCompleted": "Halcyon handoff accepted and posted; resource/capture response pending. v0.1.9 publisher and both platform upgrade smoke tests passed. Source-only Colab preparation includes 26 manual frames, 7 raster anchors and a 64-frame template; candidate comparison awaits rendered images."
     },
     {
       "slot": 3,
-      "state": "working",
-      "task": "Review and verify draft PR #36 unique visible build numbering, including preservation of Jump integration.",
-      "lastCompleted": "Draft PR #36 a9ded4b implements VERSION+build.RUN_ID.ATTEMPT. Two actual headless builds confirmed distinct attempt labels; focused tests passed. Full-suite fixture failures and Jump workflow changes remain under review; no merge or visual pass claimed."
+      "state": "idle",
+      "task": "Wait for actual Eevee low-vault r2 candidate pixels before visual review.",
+      "lastCompleted": "PR #35 source 3bc4694d complete; 1,021 technical samples passed. Local capture stopped after memory exhaustion; no active capture, candidate images or artistic approval. Eevee rendering and publication permissions are resolved."
     }
   ]
 }
