@@ -24,6 +24,7 @@ from package_game import verify_generated
 from verify_capture_telemetry import _compare, compare, read_record, validate
 from verify_render_capture import verify as verify_png
 import verify_lighting_capture as lighting
+import verify_layered_locomotion_capture as layered
 
 
 EXTENT = (960, 540)
@@ -164,32 +165,70 @@ def validate_sequence(folder):
             'all_images_checked': True, 'minimum_foreground_coverage': min(coverage)}
 
 
+LAYERED_SCHEMA = 'rust-duty-layered-native-capture/v1'
+
+
+def successful_report(path, images):
+    """One validator report: passed, schema-bearing, and covering this folder."""
+    report = read_record(path)
+    if report.get('passed') is not True or not isinstance(report.get('schema'), str):
+        raise ValueError(f'{path}: legacy validator verdict is not a successful report')
+    frames = report.get('frames')
+    if frames is not None and (type(frames) is not int or frames != len(images)):
+        raise ValueError(f'{path}: verdict covers {frames!r} frames, folder has {len(images)}')
+    return report
+
+
+def layered_rate_verdict(parent):
+    """Validate native-validation's layered 30/60 Hz CLI output and re-run its rate gate.
+
+    verify_layered_locomotion_capture.py prints {captures: [30 Hz report, 60 Hz
+    report], rate_comparison: compare_rates(...)} with no top-level verdict. Each
+    capture must be the successful report written into its own folder, and the
+    recorded rate comparison must equal compare_rates re-run on those folders.
+    """
+    path = parent / 'layered-rate-verification.json'
+    report = read_record(path)
+    captures = report.get('captures')
+    if set(report) != {'captures', 'rate_comparison'} or not isinstance(captures, list) or len(captures) != 2:
+        raise ValueError(f'{path}: expected the layered CLI output with two captures and a rate comparison')
+    by_rate = {}
+    for capture in captures:
+        if (not isinstance(capture, dict) or capture.get('schema') != LAYERED_SCHEMA
+                or capture.get('passed') is not True or type(capture.get('sampling_hz')) is not int):
+            raise ValueError(f'{path}: each layered capture must be a successful {LAYERED_SCHEMA} report')
+        by_rate[capture['sampling_hz']] = capture
+    if set(by_rate) != {30, 60}:
+        raise ValueError(f'{path}: layered captures must be one 30 Hz and one 60 Hz report')
+    rows = {}
+    for hz in (30, 60):
+        folder = parent / f'layered-{hz}'
+        _compare(read_record(folder / 'verification.json'), by_rate[hz], f'{path.name} captures[{hz} Hz]')
+        # Same rows the producer passes to compare_rates: every gameplay record in name order.
+        rows[hz] = [json.loads(row.read_text(encoding='utf-8')) for row in sorted(folder.glob('*.gameplay.json'))]
+    recomputed = layered.compare_rates(rows[30], rows[60])
+    _compare(report['rate_comparison'], recomputed, f'{path.name} rate_comparison')
+    return path.name
+
+
 def baseline_verdicts(baseline, images):
     """Require the existing validators' successful reports for a legacy baseline.
 
     Native validation writes verification.json into each scenario folder, except
     the ADS offset run, whose placement report sits beside its folder. Layered
-    rates also carry a cross-rate report. A frame count, when reported, must
-    match this folder so a report cannot vouch for a different capture.
+    rates also carry the cross-rate CLI output. A frame count, when reported,
+    must match this folder so a report cannot vouch for a different capture.
     """
-    reports = []
     if (baseline / 'verification.json').exists():
-        reports.append((baseline / 'verification.json', True))
+        path = baseline / 'verification.json'
     elif baseline.name == 'ads-offset':
-        reports.append((baseline.parent / 'ads-offset-verification.json', True))
+        path = baseline.parent / 'ads-offset-verification.json'
     else:
         raise ValueError(f'{baseline}: missing legacy validator verdict')
+    successful_report(path, images)
+    checked = [path.name]
     if baseline.name in ('layered-30', 'layered-60'):
-        reports.append((baseline.parent / 'layered-rate-verification.json', False))
-    checked = []
-    for path, per_folder in reports:
-        report = read_record(path)
-        if report.get('passed') is not True or not isinstance(report.get('schema'), str):
-            raise ValueError(f'{path}: legacy validator verdict is not a successful report')
-        frames = report.get('frames')
-        if per_folder and frames is not None and (type(frames) is not int or frames != len(images)):
-            raise ValueError(f'{path}: verdict covers {frames!r} frames, folder has {len(images)}')
-        checked.append(path.name)
+        checked.append(layered_rate_verdict(baseline.parent))
     return checked
 
 
