@@ -57,7 +57,7 @@ jobs:
         id: identity
         shell: bash
         run: echo "label=$(python tools/build_identity.py --print-label)" >> "$GITHUB_OUTPUT"
-      - run: python -m pip install -r tools/requirements-assets.txt cryptography
+      - run: python -m pip install -r tools/requirements-assets.txt cryptography PyYAML==6.0.3
       - name: Materialize and verify all generated and committed companions
         run: python tools/package_game.py materialize --root . --include-walk --include-ads --include-directional --include-jump --require-generated
       - name: Format and capture required source changes

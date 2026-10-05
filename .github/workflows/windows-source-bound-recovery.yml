@@ -29,7 +29,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - run: python -m pip install -r tools/requirements-assets.txt cryptography
+      - run: python -m pip install -r tools/requirements-assets.txt cryptography PyYAML==6.0.3
       - name: Test fail-closed retrieval and current-source revalidation
         env:
           PYTHONPATH: tools
