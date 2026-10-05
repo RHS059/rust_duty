@@ -96,7 +96,7 @@ fn main() {
                         let app_result = app::run(options.ui_theme).await;
                         // Captures on the final application frame must complete
                         // even when no further next_frame await occurs.
-                        let finish_result = runtime::finish_frame();
+                        let finish_result = runtime::shutdown();
                         app_result
                             .and(finish_result)
                             .unwrap_or_else(|error| fatal(error));

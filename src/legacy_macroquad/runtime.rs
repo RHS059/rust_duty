@@ -1,6 +1,7 @@
 //! The legacy renderer and recorder live on macroquad's initialized render thread.
 //! Flush before `next_frame().await`, restart afterward, and finish the final
-//! recorder when the application future completes. No simulation or input lives here.
+//! recorder and destroy its GPU resources before the application future completes.
+//! No simulation or input lives here.
 use super::LegacyRenderer;
 use crate::draw::{facade, Renderer};
 use std::cell::RefCell;
@@ -75,6 +76,29 @@ pub fn finish_frame() -> Result<(), String> {
     })
 }
 
+/// Finish the final recorder and release GPU resources while macroquad's context
+/// and GL function pointers are still live. Leaving the driver in thread-local
+/// storage would drop its render targets after miniquad destroys the GL context.
+/// The slot is cleared and the renderer is dropped even if submission fails.
+pub fn shutdown() -> Result<(), String> {
+    DRIVER.with(|slot| shutdown_driver(slot, super::flush))
+}
+
+fn shutdown_driver<R: Renderer>(
+    slot: &RefCell<Option<Driver<R>>>,
+    flush: impl FnOnce(),
+) -> Result<(), String> {
+    // Release the slot's borrow before rendering or running GPU destructors.
+    let driver = slot.borrow_mut().take();
+    let mut driver = driver.ok_or("legacy renderer is not initialized")?;
+    let result = driver.finish_frame();
+    // A failed submission may still have queued geometry. Drain it before any
+    // resource is destroyed, and preserve the original submission error.
+    flush();
+    drop(driver);
+    result
+}
+
 fn framebuffer_extent() -> Result<(u32, u32, f64), String> {
     // Miniquad reports real framebuffer pixels. Macroquad screen_width/height
     // divide those by this same DPI factor and remain the logical app source.
@@ -99,11 +123,13 @@ fn checked_extent(width: f32, height: f32, scale: f32) -> Result<(u32, u32, f64)
 mod tests {
     use super::*;
     use crate::draw::{BackendInfo, Command, DrawList, FrameOutput, TextDimensions};
+    use std::rc::Rc;
 
     struct FakeRenderer {
         info: BackendInfo,
         frames: Vec<DrawList>,
         error: Option<String>,
+        events: Option<Rc<RefCell<Vec<&'static str>>>>,
     }
     impl Renderer for FakeRenderer {
         fn info(&self) -> &BackendInfo {
@@ -113,8 +139,18 @@ mod tests {
             Ok(TextDimensions::default())
         }
         fn submit(&mut self, list: &DrawList) -> Result<FrameOutput, String> {
+            if let Some(events) = &self.events {
+                events.borrow_mut().push("submit");
+            }
             self.frames.push(list.clone());
             self.error.take().map_or(Ok(FrameOutput::default()), Err)
+        }
+    }
+    impl Drop for FakeRenderer {
+        fn drop(&mut self) {
+            if let Some(events) = &self.events {
+                events.borrow_mut().push("drop");
+            }
         }
     }
     fn driver() -> Driver<FakeRenderer> {
@@ -127,6 +163,7 @@ mod tests {
                 },
                 frames: Vec::new(),
                 error: None,
+                events: None,
             },
             recording: false,
         }
@@ -192,5 +229,51 @@ mod tests {
         );
         assert!(facade::current_camera().is_err());
         assert_eq!(driver.renderer.frames.len(), 1);
+    }
+
+    #[test]
+    fn shutdown_submits_and_flushes_before_dropping_resources() {
+        let events = Rc::new(RefCell::new(Vec::new()));
+        let mut driver = driver();
+        driver.renderer.events = Some(events.clone());
+        driver.start_frame(320, 180, 1.).unwrap();
+        facade::capture_png(None, "final.png");
+        let slot = RefCell::new(Some(driver));
+
+        shutdown_driver(&slot, || {
+            assert!(slot.borrow().is_none());
+            events.borrow_mut().push("flush");
+        })
+        .unwrap();
+
+        assert_eq!(*events.borrow(), ["submit", "flush", "drop"]);
+        assert!(slot.borrow().is_none());
+        assert!(facade::current_camera().is_err());
+        assert_eq!(
+            shutdown_driver(&slot, || panic!("an empty driver cannot flush")).unwrap_err(),
+            "legacy renderer is not initialized"
+        );
+    }
+
+    #[test]
+    fn shutdown_preserves_submission_error_and_still_drops_resources() {
+        let events = Rc::new(RefCell::new(Vec::new()));
+        let mut driver = driver();
+        driver.renderer.events = Some(events.clone());
+        driver.renderer.error = Some("could not save capture final.png".into());
+        driver.start_frame(320, 180, 1.).unwrap();
+        facade::capture_png(None, "final.png");
+        let slot = RefCell::new(Some(driver));
+
+        let error = shutdown_driver(&slot, || {
+            assert!(slot.borrow().is_none());
+            events.borrow_mut().push("flush");
+        })
+        .unwrap_err();
+
+        assert_eq!(error, "could not save capture final.png");
+        assert_eq!(*events.borrow(), ["submit", "flush", "drop"]);
+        assert!(slot.borrow().is_none());
+        assert!(facade::current_camera().is_err());
     }
 }
