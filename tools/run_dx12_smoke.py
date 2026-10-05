@@ -58,13 +58,18 @@ def number(record, field, path):
 
 def validate_renderer_log(evidence):
     identities = []
+    compilers = []
     for name in ('stdout.log', 'stderr.log'):
         for line in (Path(evidence) / name).read_text(encoding='utf-8', errors='replace').splitlines():
             if line.startswith('renderer requested='):
                 identities.append(line)
+            if line.startswith('renderer dx12_shader_compiler='):
+                compilers.append(line)
     expected = f'renderer requested=dx12 backend=Dx12 adapter={WARP_ADAPTER}'
     if not identities or any(line.casefold() != expected.casefold() for line in identities):
         raise ValueError(f'expected actual DX12 WARP renderer identity in logs, got {identities!r}')
+    if not compilers or any(line != 'renderer dx12_shader_compiler=Fxc' for line in compilers):
+        raise ValueError(f'expected explicitly pinned FXC shader compiler in logs, got {compilers!r}')
     return identities
 
 

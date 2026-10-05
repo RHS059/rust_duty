@@ -56,7 +56,7 @@ visuals and real hardware remain separate proof boundaries.
 | 3.3 | Effects/additive state migrated; CPU blend tests pass; native effect/state review pending |
 | 3.4 | HUD/menu/updater/ammo CSS-style UI integrated; manual navigation/interrupted flow checklist pending |
 | 4.1 | Removed from requested scope: Linux Vulkan validation |
-| 4.2 | Windows WARP game smoke workflow implemented; green runtime job pending |
+| 4.2 | Accepted: genuine Windows DX12 WARP game smoke passed on961a5aa; see native evidence below |
 | 4.3 | Capture validators tested; real DX12 output and complete capture suite pending |
 | 4.4 | Pending user's real Windows GPU: machine, scene, frame-time baseline |
 | 5.1 | Pending human Windows DX12 playtest and explicit cutover signoff |
@@ -89,3 +89,25 @@ wgpu tests767 passed; default763 passed; silent693 passed. Each retained two
 existing ignored tests. All three strict all-target clippy lanes and formatting
 passed. The two UI findings were independently re-reviewed as fixed. These CPU
 results still do not certify DX12 shader execution or native visuals.
+
+## First genuine Windows DX12 smoke
+
+Commit `961a5aac3e8edda714c2adfdfbf6c3162023623f`, GitHub Windows runner:
+[run37329012293/job111827384735](https://github.com/RHS059/rust_duty/actions/runs/37329012293/job/111827384735)
+passed actual game launch, capture and clean exit. The artifact is
+[11353043620](https://github.com/RHS059/rust_duty/actions/runs/37329012293/artifacts/11353043620).
+
+- Log: requested `dx12`, actual `Dx12`, adapter `Microsoft Basic Render Driver`.
+- Additional actual initialization log: `renderer dx12_shader_compiler=Fxc`.
+- 127 PNG frames at960x540, 381 JSON files including127 renderer sidecars.
+- Non-empty images, finite/exact-field telemetry checks and exit0 passed.
+- Executable SHA256: `ee4d63cd7e9abd2e2075db279a3071a5cdf321b49748e0c4057b01ad12afadf7`.
+- Artifact ZIP SHA256: `be07ba0d19640bace1032a1396dfa97a2d9b25463c9e47d21210df3807a3a7f4`.
+
+This is procedural weapon sway with a reference target. It completes WP4.2,
+and provides a subset of device/frame/capture integration evidence. It does not
+validate authored companions, ADS pixel landmarks, the asymmetric renderer
+fixture, full-world/HUD presentation, actual hardware performance, M2 capture
+approval, or M4 human playtesting. Orientation was not checked by this smoke.
+The first attempt failed only an equivalent Windows short/long temporary-path
+assertion; patch253 normalized the two expected paths without relaxing equality.

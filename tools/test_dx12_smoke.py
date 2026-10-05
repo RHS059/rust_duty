@@ -186,11 +186,19 @@ class Dx12SmokeTests(unittest.TestCase):
             with self.subTest(log=log), self.assertRaisesRegex(ValueError, 'renderer identity'):
                 smoke.validate_renderer_log(self.root)
         good = 'renderer requested=dx12 backend=Dx12 adapter=Microsoft Basic Render Driver'
-        (self.root / 'stderr.log').write_text(good + '\n')
+        (self.root / 'stderr.log').write_text(good + '\nrenderer dx12_shader_compiler=Fxc\n')
         self.assertEqual(smoke.validate_renderer_log(self.root), [good])
         (self.root / 'stdout.log').write_text('renderer requested=gl backend=Gl adapter=other')
         with self.assertRaises(ValueError):
             smoke.validate_renderer_log(self.root)
+
+    def test_missing_or_unpinned_compiler_log_fails(self):
+        (self.root / 'stdout.log').write_text('renderer requested=dx12 backend=Dx12 adapter=Microsoft Basic Render Driver\n')
+        for line in ('', 'renderer dx12_shader_compiler=Auto', 'renderer dx12_shader_compiler=DynamicDxc',
+                     'renderer dx12_shader_compiler=Fxc\nrenderer dx12_shader_compiler=Auto'):
+            (self.root / 'stderr.log').write_text(line)
+            with self.subTest(line=line), self.assertRaisesRegex(ValueError, 'pinned FXC'):
+                smoke.validate_renderer_log(self.root)
 
     def executable(self):
         path = self.root / 'vector-range.exe'
@@ -252,7 +260,7 @@ class Dx12SmokeTests(unittest.TestCase):
         def process(command, **kwargs):
             destination = Path(next(arg.removeprefix('--output=') for arg in command if arg.startswith('--output=')))
             shutil.copytree(self.captures, destination)
-            kwargs['stderr'].write(b'renderer requested=dx12 backend=Dx12 adapter=Microsoft Basic Render Driver\n')
+            kwargs['stderr'].write(b'renderer requested=dx12 backend=Dx12 adapter=Microsoft Basic Render Driver\nrenderer dx12_shader_compiler=Fxc\n')
             return subprocess.CompletedProcess(command, 0)
 
         executable = self.executable()
