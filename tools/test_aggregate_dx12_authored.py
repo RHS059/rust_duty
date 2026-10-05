@@ -19,6 +19,7 @@ import run_dx12_authored as authored
 import verify_layered_locomotion_capture as layered
 import test_dx12_authored as authored_tests
 from test_dx12_authored_shards import make_gl_runtime
+from test_capture_frame_witness import marker
 
 
 ENV = {'GITHUB_SHA': 'a' * 40, 'GITHUB_RUN_ID': '1234', 'GITHUB_RUN_ATTEMPT': '2'}
@@ -46,7 +47,8 @@ def make_root(root):
     target.parent.mkdir(parents=True)
     shutil.copyfile(Path(authored.__file__).parents[1] / 'assets/authoring/ads/sight_alignment.json', target)
     (root / 'tools').mkdir()
-    for name in ('verify_layered_locomotion_capture.py', 'verify_ads_placement_capture.py'):
+    for name in ('verify_layered_locomotion_capture.py', 'verify_ads_placement_capture.py',
+                 'verify_capture_frame_witness.py', 'verify_render_capture.py', 'verify_capture_telemetry.py'):
         source = Path(__import__(name[:-3]).__file__)
         shutil.copyfile(source, root / 'tools' / name)
     reference = make_gl_runtime(root)
@@ -65,7 +67,7 @@ def make_root(root):
     return binding
 
 
-def make_logs(folder, role, scenario=None, root=None, evidence=None):
+def make_logs(folder, role, scenario=None, root=None, evidence=None, binding=None):
     folder.mkdir(parents=True)
     identity = ('renderer requested=gl backend=OpenGl adapter=llvmpipe (synthetic unit fixture)' if role == 'windows-legacy'
                 else f'renderer requested=dx12 backend=Dx12 adapter={authored.WARP}\n{authored.FXC_LOG}')
@@ -82,13 +84,15 @@ def make_logs(folder, role, scenario=None, root=None, evidence=None):
                                         aggregate.CASES[scenario], evidence / 'ads-offset.cfg')
         if role == 'windows-legacy':
             command = [argument.replace('--renderer=dx12', '--renderer=gl') for argument in command if argument != '--force-fallback-adapter']
+        identity = aggregate.shard_runner.role_witness_identity(binding, scenario, role)
+        command.append(f'--capture-frame-witness={identity}')
     write(folder / 'invocation.json', {'command': command, 'cwd': str(root or folder), 'timeout_seconds': timeout})
     write(folder / 'process.json', {'schema': 'rust-duty-capture-process/v1', 'status': 'passed',
                                    'exit_code': 0, 'pid': 42, 'png_files': count,
                                    'timeout_seconds': timeout, 'elapsed_seconds': 1.0})
 
 
-def make_sequence(folder, scenario, role):
+def make_sequence(folder, scenario, role, binding=None):
     folder.mkdir(parents=True)
     count = shards.PROFILES[scenario]['expected_frames']
     case = aggregate.CASES[scenario]
@@ -99,6 +103,7 @@ def make_sequence(folder, scenario, role):
     regular = image_bytes((120, 90, 60, 255))
     shifted = image_bytes((90, 120, 60, 255))
     variations = [image_bytes((100 + tick, 90, 60, 255)) for tick in range(8)] if scenario in aggregate.LAYERED else []
+    witness_identity = aggregate.shard_runner.role_witness_identity(binding, scenario, role) if binding is not None else None
     for index in range(count):
         tick = index * (120 // hz)
         second = tick // 120
@@ -122,8 +127,18 @@ def make_sequence(folder, scenario, role):
             else:
                 row['segment'] = 'settle'
         image = folder / f'{index:04}.png'
-        image.write_bytes(variations[index % 8] if variations else shifted if scenario == 'ads-offset' and row['route'] == 'ready' else regular)
-        write(Path(f'{image}.json'), metadata)
+        raw = variations[index % 8] if variations else shifted if scenario == 'ads-offset' and row['route'] == 'ready' else regular
+        record = dict(metadata)
+        if witness_identity is None:
+            image.write_bytes(raw)
+        else:
+            with Image.open(io.BytesIO(raw)) as source:
+                marked = source.copy()
+            marked.paste(marker(index, witness_identity).crop((0, 0, 64, 22)), (0, 0))
+            marked.save(image)
+            record['frame_witness'] = {'schema': 'rust-duty-capture-frame-witness/v1',
+                                       'frame_index': index, 'capture_identity': witness_identity}
+        write(Path(f'{image}.json'), record)
         write(Path(f'{image}.time.json'), {'elapsed_seconds': tick / 120, 'sampling_hz': hz})
         write(Path(f'{image}.gameplay.json'), row)
     if scenario in aggregate.LAYERED:
@@ -170,8 +185,8 @@ def make_fixture(base):
         folder.mkdir()
         if scenario in aggregate.CASES:
             for role in aggregate.ROLES:
-                make_sequence(folder / shards.capture_paths(scenario)[role], scenario, role)
-                make_logs(folder / 'logs' / f'{role}-capture', role, scenario, root, folder)
+                make_sequence(folder / shards.capture_paths(scenario)[role], scenario, role, binding)
+                make_logs(folder / 'logs' / f'{role}-capture', role, scenario, root, folder, binding)
                 validator_logs = folder / 'logs' / f'{role}-validator'
                 validator_logs.mkdir(parents=True)
                 script = aggregate.CASES[scenario].validator or 'verify_layered_locomotion_capture.py'
@@ -182,12 +197,14 @@ def make_fixture(base):
                 verdict = json.loads((folder / shards.capture_paths(scenario)[role] / 'verification.json').read_text())
                 write(validator_logs / 'stdout.log', {'captures': [verdict]} if scenario in aggregate.LAYERED else verdict)
                 (validator_logs / 'stderr.log').write_text('')
-            shutil.copytree(folder / shards.capture_paths(scenario)['windows-legacy'], historical / aggregate.CASES[scenario].baseline)
+            make_sequence(historical / aggregate.CASES[scenario].baseline, scenario, 'windows-legacy')
             stock = folder / 'stock-gl'
             stock.mkdir()
             legacy_frame = folder / shards.capture_paths(scenario)['windows-legacy'] / '0000.png'
-            shutil.copyfile(legacy_frame, stock / 'stock-gl.png')
-            shutil.copyfile(Path(f'{legacy_frame}.json'), stock / 'stock-gl.png.json')
+            (stock / 'stock-gl.png').write_bytes(image_bytes((120, 90, 60, 255)))
+            stock_metadata = json.loads(Path(f'{legacy_frame}.json').read_text())
+            stock_metadata.pop('frame_witness')
+            write(stock / 'stock-gl.png.json', stock_metadata)
             make_logs(folder / 'logs/windows-legacy-stock-probe', 'windows-legacy')
         else:
             helper = authored_tests.AuthoredDx12Tests(methodName='test_all_frame_finite_and_image_control')
@@ -321,6 +338,27 @@ class AggregateContractTests(unittest.TestCase):
             write(path, {**original, field: value})
             with self.subTest(field=field, value=value), self.assertRaises(ValueError):
                 aggregate.process_receipt(logs, 900, 1)
+        write(path, original)
+
+    def test_capture_invocation_requires_one_independently_derived_witness_flag(self):
+        scenario, role = 'jump-gameplay', 'dx12'
+        logs = self.folder / 'logs' / f'{role}-capture'
+        make_logs(logs, role, scenario, self.root, self.folder, self.binding)
+        expected = aggregate.shard_runner.role_witness_identity(self.binding, scenario, role)
+        count = shards.PROFILES[scenario]['expected_frames']
+        self.assertIn(f'--capture-frame-witness={expected}',
+                      aggregate.capture_invocation(self.folder, scenario, role, count, expected))
+        path = logs / 'invocation.json'
+        original = json.loads(path.read_text())
+        ordinary = [arg for arg in original['command'] if not arg.startswith('--capture-frame-witness')]
+        wrong_run = aggregate.shard_runner.role_witness_identity({**self.binding, 'run_id': '1235'}, scenario, role)
+        for flags in ([], [f'--capture-frame-witness={wrong_run}'],
+                      [f'--capture-frame-witness={expected}'] * 2,
+                      ['--capture-frame-witness', expected]):
+            with self.subTest(flags=flags):
+                write(path, {**original, 'command': ordinary + flags})
+                with self.assertRaisesRegex(ValueError, 'exact frame witness identity'):
+                    aggregate.capture_invocation(self.folder, scenario, role, count, expected)
         write(path, original)
 
     def test_local_validator_stdout_must_match_its_recorded_folder_verdict(self):
@@ -473,7 +511,7 @@ class AggregateEndToEndTests(unittest.TestCase):
             report = aggregate.read_shard(folder, 'jump-gameplay', self.binding)
             assembled = self.base / 'parity-controls'
             for role in aggregate.ROLES:
-                aggregate.copy_role(folder, report, role, assembled)
+                aggregate.copy_role(folder, report, role, assembled, self.binding)
         baseline, candidate = [assembled / role / 'jump-gameplay' for role in aggregate.ROLES]
         self.assertTrue(aggregate.same_windows_parity(baseline, candidate, 'jump-gameplay', folder)['passed'])
         time_path = candidate / '0000.png.time.json'
@@ -487,6 +525,46 @@ class AggregateEndToEndTests(unittest.TestCase):
         write(path, {**data, 'hfov': 90})
         with self.assertRaisesRegex(ValueError, 'fields differ'):
             aggregate.same_windows_parity(baseline, candidate, 'jump-gameplay', folder)
+
+    @patch.dict(os.environ, ENV)
+    def test_06_resealed_cross_run_pixels_and_metadata_do_not_replace_input_binding(self):
+        scenario, role = 'reload-gameplay', 'dx12'
+        folder = self.incoming / scenario
+        capture = folder / shards.capture_paths(scenario)[role]
+        summary_path = folder / 'summary.json'
+        invocation_path = folder / 'logs' / f'{role}-capture/invocation.json'
+        originals = {path: path.read_bytes() for path in capture.glob('*.png*') if path.suffix != '.json' or path.name.endswith('.png.json')}
+        originals.update({summary_path: summary_path.read_bytes(), invocation_path: invocation_path.read_bytes()})
+        expected = aggregate.shard_runner.role_witness_identity(self.binding, scenario, role)
+        other = aggregate.shard_runner.role_witness_identity({**self.binding, 'run_id': '1235'}, scenario, role)
+        try:
+            for index, path in enumerate(sorted(capture.glob('*.png'))):
+                with Image.open(path) as source:
+                    image = source.copy()
+                image.paste(marker(index, other).crop((0, 0, 64, 22)), (0, 0))
+                image.save(path)
+                sidecar = Path(str(path) + '.json')
+                metadata = json.loads(sidecar.read_text())
+                metadata['frame_witness']['capture_identity'] = other
+                write(sidecar, metadata)
+            invocation = json.loads(invocation_path.read_text())
+            invocation['command'] = [arg for arg in invocation['command'] if not arg.startswith('--capture-frame-witness')]
+            for suffix, flag_identity, error in (
+                ('wrong-invocation', other, 'exact frame witness identity'),
+                ('rewritten-metadata', expected, 'metadata capture identity'),
+            ):
+                write(invocation_path, {**invocation, 'command': invocation['command'] + [f'--capture-frame-witness={flag_identity}']})
+                report = json.loads(originals[summary_path])
+                report['files'] = shards.inventory_files(folder)
+                write(summary_path, report)
+                # Re-sealing all artifact hashes is insufficient: derive the
+                # expectation from the separately validated input binding.
+                checked = aggregate.read_shard(folder, scenario, self.binding)
+                with self.subTest(suffix=suffix), self.assertRaisesRegex(ValueError, error):
+                    aggregate.copy_role(folder, checked, role, self.base / suffix, self.binding)
+        finally:
+            for path, data in originals.items():
+                path.write_bytes(data)
 
     def test_05_stale_or_malformed_historical_inputs_fail(self):
         receipt = json.loads(self.receipt.read_text())

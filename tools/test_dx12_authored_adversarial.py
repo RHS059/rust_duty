@@ -1,8 +1,7 @@
 """Adversarial false-acceptance probes for run_dx12_authored.py.
 
-Synthetic inputs only; never proof of native Windows output. A test marked
-expectedFailure documents a confirmed open gap: the probe SHOULD be rejected
-but the harness accepts it. Remove the marker when the gap is fixed.
+Synthetic inputs only; never proof of native Windows output.
+Frame binding uses explicit independently supplied capture identities.
 """
 
 import io
@@ -17,6 +16,7 @@ from unittest.mock import patch
 from PIL import Image, ImageDraw
 
 import run_dx12_authored as authored
+from test_capture_frame_witness import marker, SCHEMA as WITNESS_SCHEMA
 
 SOURCE_ROOT = Path(authored.__file__).resolve().parents[1]
 
@@ -29,6 +29,7 @@ class AdversarialAuthoredTests(unittest.TestCase):
             image = Image.new('RGBA', (960, 540), (36, 48, 61, 255))
             # Distinct content per frame so swaps are observable in principle.
             ImageDraw.Draw(image).rectangle((200 + 40 * index, 100, 700, 420), fill=(120, 90, 60, 255))
+            image.paste(marker(index, 'a' * 64).crop((0, 0, 64, 22)), (0, 0))
             output = io.BytesIO()
             image.save(output, format='PNG')
             cls.pngs.append(output.getvalue())
@@ -52,7 +53,8 @@ class AdversarialAuthoredTests(unittest.TestCase):
             authored.write_json(Path(f'{image}.json'), {
                 'backend': backend, 'adapter': authored.WARP if backend == 'Dx12' else 'llvmpipe',
                 'requested': 'dx12' if backend == 'Dx12' else 'legacy-default',
-                'width': 960, 'height': 540, 'ads': 0.0 if index == 0 else 1.0, 'hfov': 76.0})
+                'width': 960, 'height': 540, 'ads': 0.0 if index == 0 else 1.0, 'hfov': 76.0,
+                'frame_witness': {'schema': WITNESS_SCHEMA, 'frame_index': index, 'capture_identity': 'a' * 64}})
             authored.write_json(Path(f'{image}.time.json'), {
                 'elapsed_seconds': index / 60, 'sampling_hz': 60})
             authored.write_json(Path(f'{image}.gameplay.json'), {
@@ -75,7 +77,7 @@ class AdversarialAuthoredTests(unittest.TestCase):
     def accepted(self):
         """True when both production candidate checks accept the evidence."""
         try:
-            authored.validate_sequence(self.captures)
+            authored.validate_sequence(self.captures, expected_witness_identity='a' * 64)
             authored.compare_sequence(self.baseline, self.captures)
         except ValueError:
             return False
@@ -195,14 +197,30 @@ class AdversarialAuthoredTests(unittest.TestCase):
         result = authored.compare_sequence(self.baseline, self.captures)
         self.assertEqual(result['capture_metadata_files'], 3)
 
-    # Still open: see the frame-witness analysis in the mailbox.
+    # The actual PNG marker must match its own contiguous source frame.
 
-    @unittest.expectedFailure
     def test_swapped_or_stale_candidate_frames_are_rejected(self):
         # Nothing binds a PNG to its own frame: a one-frame-late readback
         # (frame N shows N-1) passes inventory, image checks and parity.
         (self.captures / '0002.png').write_bytes(self.pngs[1])
         (self.captures / '0001.png').write_bytes(self.pngs[0])
+        self.assertFalse(self.accepted())
+
+    def test_same_frame_from_other_capture_and_rewritten_metadata_are_rejected(self):
+        for index in range(3):
+            path = self.captures / f'{index:04}.png'
+            with Image.open(path) as original:
+                image = original.copy()
+            image.paste(marker(index, 'b' * 64).crop((0, 0, 64, 22)), (0, 0))
+            image.save(path)
+            row = json.loads(Path(f'{path}.json').read_text())
+            row['frame_witness']['capture_identity'] = 'b' * 64
+            authored.write_json(Path(f'{path}.json'), row)
+        self.assertFalse(self.accepted())
+
+    def test_removing_witness_metadata_cannot_disable_required_binding(self):
+        for index in range(3):
+            self.edit(self.captures, index, '.json', 'frame_witness', KeyError)
         self.assertFalse(self.accepted())
 
     def test_review_rejects_boolean_stationary_ads_fields(self):

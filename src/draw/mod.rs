@@ -8,6 +8,7 @@ use std::{
     },
 };
 pub mod facade;
+pub mod frame_witness;
 pub mod geometry;
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Color {

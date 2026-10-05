@@ -229,9 +229,13 @@ def process_receipt(logs, timeout_limit, expected_images):
     return command
 
 
-def capture_invocation(folder, scenario, role, count):
+def capture_invocation(folder, scenario, role, count, expected_witness_identity):
     limit = 900 if role == 'windows-legacy' else shards.PROFILES[scenario]['capture_timeout_seconds']
     command = process_receipt(folder / 'logs' / f'{role}-capture', limit, count)
+    flags = [argument for argument in command
+             if argument == '--capture-frame-witness' or argument.startswith('--capture-frame-witness=')]
+    if flags != [f'--capture-frame-witness={expected_witness_identity}']:
+        raise ValueError(f'{scenario}/{role}: capture invocation changed exact frame witness identity')
     case = CASES[scenario]
     for prefix, expected in (('--renderer=', ['--renderer=gl' if role == 'windows-legacy' else '--renderer=dx12']),
                              ('--capture-sequence=', [f'--capture-sequence={case.sequence}']),
@@ -281,7 +285,7 @@ def validator_receipt(logs, case, relative_capture, verdict):
     return {'exit_code': 0, 'verified_stdout': True}
 
 
-def copy_role(folder, report, role, assembled):
+def copy_role(folder, report, role, assembled, binding):
     scenario = report['scenario']
     rows = require_checks(report, ['validated-inputs', 'inputs-unchanged'] +
                           [f'{role}/{suffix}' for suffix in ('capture', 'finite-images', 'existing-validator')])
@@ -291,10 +295,12 @@ def copy_role(folder, report, role, assembled):
         raise ValueError(f'{scenario}/{role}: incomplete image validation receipt')
     relative = CASES[scenario].baseline if role == 'windows-legacy' else scenario
     destination = assembled / role / relative
-    capture_invocation(folder, scenario, role, count)
+    witness_identity = shard_runner.role_witness_identity(binding, scenario, role)
+    capture_invocation(folder, scenario, role, count, witness_identity)
     probe_adapter = stock_probe(folder, report, assembled) if role == 'windows-legacy' else None
     copy_verified(folder / report['capture_paths'][role], destination)
-    validated = shard_runner.validate_role_images(destination, role, count)
+    validated = shard_runner.validate_role_images(destination, role, count,
+                                                  expected_witness_identity=witness_identity)
     images = sorted(destination.glob('*.png'))
     verdict = authored.successful_report(destination / 'verification.json', images)
     validator_receipt(folder / 'logs' / f'{role}-validator', CASES[scenario], report['capture_paths'][role], verdict)
@@ -460,7 +466,7 @@ def run(root, incoming, legacy_linux, evidence, input_manifest, timeout=900, *,
         if scenario in CASES:
             for role in ROLES:
                 def role_copy(scenario=scenario, role=role, folder=folder):
-                    result = copy_role(folder, loaded[scenario], role, assembled)
+                    result = copy_role(folder, loaded[scenario], role, assembled, binding)
                     available.add((scenario, role))
                     return result
                 check(f'{scenario}/{role}/assembled-evidence', role_copy)

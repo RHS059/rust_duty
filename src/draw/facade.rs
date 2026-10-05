@@ -758,10 +758,118 @@ pub fn capture_png(target: Option<&RenderTarget>, path: impl Into<PathBuf>) {
     });
 }
 
+/// Validation-only capture: encode invocation/frame identity through real draw commands.
+/// The marker occupies physical [0,0,64,22]; normal capture_png is untouched.
+pub fn capture_png_with_frame_witness(
+    target: Option<&RenderTarget>,
+    path: impl Into<PathBuf>,
+    frame_index: u32,
+    identity: [u8; 32],
+) {
+    let path = path.into();
+    record("capture_png_with_frame_witness", |frame| {
+        if path.as_os_str().is_empty() {
+            return Err("capture path must not be empty".into());
+        }
+        if let Some(target) = target {
+            validate_target(target)?;
+        }
+        let (width, height) = target.map_or((frame.list.width, frame.list.height), |t| {
+            (t.texture.width, t.texture.height)
+        });
+        if width < super::frame_witness::WIDTH || height < super::frame_witness::HEIGHT {
+            return Err("capture target is too small for frame witness".into());
+        }
+        let restore = frame.camera.clone();
+        let mut marker = Camera::screen(width, height);
+        marker.target = target.cloned();
+        frame.list.camera(marker);
+        frame.list.draw_mesh(
+            &super::frame_witness::mesh(frame_index, &identity),
+            Mat4::IDENTITY,
+            BlendMode::Opaque,
+        );
+        frame.list.capture_png(target, path);
+        frame.list.camera(restore);
+        Ok(())
+    });
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::draw::Command;
+
+    #[test]
+    fn frame_witness_is_drawn_before_readback_and_restores_camera() {
+        begin(2.0);
+        let target = RenderTarget::new(960, 540, true).unwrap();
+        let camera = Camera3D {
+            render_target: Some(target.clone()),
+            ..Camera3D::default()
+        };
+        set_camera(&camera);
+        capture_png_with_frame_witness(Some(&target), "frame.png", 9, [0x42; 32]);
+        let list = take_draw_list().unwrap();
+        assert!(matches!(&list.commands[0], Command::Camera(_)));
+        let capture_index = list
+            .commands
+            .iter()
+            .position(|command| matches!(command, Command::Capture { .. }))
+            .unwrap();
+        let marker_index = capture_index - 2;
+        let marker = match &list.commands[marker_index] {
+            Command::Camera(c) => c,
+            _ => panic!("marker camera missing"),
+        };
+        assert!(!marker.depth_test);
+        assert_eq!(
+            marker.target.as_ref().unwrap().texture.id,
+            target.texture.id
+        );
+        match &list.commands[marker_index + 1] {
+            Command::Mesh { mesh, model, blend } => {
+                assert_eq!(mesh.vertices.len(), 1288);
+                assert_eq!(mesh.indices.len(), 1932);
+                assert_eq!(*model, Mat4::IDENTITY);
+                assert_eq!(*blend, BlendMode::Opaque);
+            }
+            _ => panic!("single witness mesh missing"),
+        }
+        assert!(
+            matches!(&list.commands[capture_index], Command::Capture{path,..} if path.to_str()==Some("frame.png"))
+        );
+        let (original, restored) = match (
+            &list.commands[marker_index - 1],
+            &list.commands[capture_index + 1],
+        ) {
+            (Command::Camera(a), Command::Camera(b)) => (a, b),
+            _ => panic!("camera restore missing"),
+        };
+        assert_eq!(original.view_projection, restored.view_projection);
+        assert_eq!(
+            original.target.as_ref().unwrap().texture.id,
+            restored.target.as_ref().unwrap().texture.id
+        );
+    }
+
+    #[test]
+    fn ordinary_capture_has_no_validation_pixels() {
+        begin(1.0);
+        capture_png(None, "normal.png");
+        let list = take_draw_list().unwrap();
+        assert_eq!(
+            list.commands
+                .iter()
+                .filter(|command| matches!(command, Command::Capture { .. }))
+                .count(),
+            1
+        );
+        assert!(!list
+            .commands
+            .iter()
+            .any(|command| matches!(command, Command::Rect { .. } | Command::Mesh { .. })));
+    }
 
     fn reset() {
         RECORDER.with(|state| *state.borrow_mut() = RecorderState::default());

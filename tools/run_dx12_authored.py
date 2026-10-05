@@ -29,6 +29,7 @@ from verify_capture_telemetry import _compare, compare, read_record, validate
 from verify_render_capture import verify as verify_png
 import verify_lighting_capture as lighting
 import verify_layered_locomotion_capture as layered
+import verify_capture_frame_witness as frame_witness
 
 
 EXTENT = (960, 540)
@@ -246,7 +247,7 @@ def capture_metadata(path, backend='Dx12'):
     return record
 
 
-def sequence_inventory(folder, backend):
+def sequence_inventory(folder, backend, *, expected_witness_identity=None):
     finite = validate(folder, expected_backend=backend)
     images = sorted(folder.glob('*.png'))
     if not images or [p.name for p in images] != [f'{i:04}.png' for i in range(len(images))]:
@@ -257,15 +258,23 @@ def sequence_inventory(folder, backend):
     # Existing native validators write this report after successful inspection.
     if actual - {'verification.json'} != expected:
         raise ValueError(f'{folder}: missing/orphan/unexpected image or sidecar')
-    for image in images:
-        metadata = capture_metadata(image, backend)
+    records = [capture_metadata(image, backend) for image in images]
+    witnessed = expected_witness_identity is not None or any('frame_witness' in row for row in records)
+    # Historical images may be unmarked. A declared marker is always checked,
+    # while current native callers supply the independent invocation identity.
+    identity = expected_witness_identity
+    if witnessed and identity is None:
+        identity = records[0].get('frame_witness', {}).get('capture_identity')
+    for index, (image, metadata) in enumerate(zip(images, records)):
         if (metadata['width'], metadata['height']) != EXTENT:
             raise ValueError(f'{image}: reference capture must be {EXTENT}')
+        if witnessed:
+            frame_witness.verify(image, metadata, index, identity)
     return images, finite
 
 
-def validate_sequence(folder):
-    images, finite = sequence_inventory(folder, 'Dx12')
+def validate_sequence(folder, *, expected_witness_identity=None):
+    images, finite = sequence_inventory(folder, 'Dx12', expected_witness_identity=expected_witness_identity)
     coverage = []
     for image in images:
         result = verify_png(image, EXTENT, BACKGROUND, 0.01, 8, None)
@@ -346,9 +355,15 @@ def compare_capture_metadata(baseline, candidate, images):
     for image in images:
         before = read_record(baseline / f'{image.name}.json')
         after = read_record(candidate / f'{image.name}.json')
-        _compare({k: v for k, v in before.items() if k not in RENDERER_IDENTITY},
-                 {k: v for k, v in after.items() if k not in RENDERER_IDENTITY},
-                 f'{image.name}.json')
+        def comparable(record):
+            record = {k: v for k, v in record.items() if k not in RENDERER_IDENTITY}
+            if 'frame_witness' in record:
+                # This digest includes actual backend identity. Pixels and its
+                # independently expected value are checked by native callers.
+                record['frame_witness'] = {key: value for key, value in record['frame_witness'].items()
+                                           if key != 'capture_identity'}
+            return record
+        _compare(comparable(before), comparable(after), f'{image.name}.json')
     return len(images)
 
 
@@ -357,6 +372,7 @@ def compare_sequence(baseline, candidate):
     # gameplay/time files are compared with EVERY field and exact types, and
     # primary sidecars with every field except renderer identity.
     images, _ = sequence_inventory(baseline, 'OpenGl')
+    sequence_inventory(candidate, 'Dx12')
     verdicts = baseline_verdicts(baseline, images)
     result = compare(baseline, candidate)
     result['capture_metadata_files'] = compare_capture_metadata(baseline, candidate, images)

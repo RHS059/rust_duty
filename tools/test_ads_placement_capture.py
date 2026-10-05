@@ -34,3 +34,36 @@ class PlacementComparisonTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,'telemetry'): verify(self.base,self.shifted)
         p.unlink()
         with self.assertRaisesRegex(ValueError,'truncated'): verify(self.base,self.shifted)
+
+
+class WitnessedPlacementComparisonTests(unittest.TestCase):
+    def setUp(self):
+        from test_capture_frame_witness import marker, metadata
+        self.temp = tempfile.TemporaryDirectory(); self.addCleanup(self.temp.cleanup)
+        self.root = Path(self.temp.name)
+        self.paths = []
+        for role, identity in [('baseline','a'*64),('offset','b'*64)]:
+            folder=self.root/role;folder.mkdir();path=folder/'0000.png'
+            marker(0,identity).save(path)
+            Path(str(path)+'.json').write_text(json.dumps(metadata(0,identity)))
+            self.paths.append(path)
+
+    def test_only_valid_marker_identity_difference_is_excluded(self):
+        from verify_ads_placement_capture import same_capture
+        self.assertTrue(same_capture(*self.paths))
+
+    def test_one_pixel_outside_marker_still_changes_visual_comparison(self):
+        from PIL import Image
+        from verify_ads_placement_capture import same_capture
+        with Image.open(self.paths[1]) as original: image=original.copy()
+        image.putpixel((64,0),(255,255,255,255));image.save(self.paths[1])
+        self.assertFalse(same_capture(*self.paths))
+
+    def test_invalid_marker_or_removed_metadata_cannot_be_masked(self):
+        from PIL import Image
+        from verify_ads_placement_capture import same_capture
+        with Image.open(self.paths[1]) as original: image=original.copy()
+        image.putpixel((0,0),(0,0,0,255));image.save(self.paths[1])
+        with self.assertRaises(ValueError): same_capture(*self.paths)
+        Path(str(self.paths[1])+'.json').write_text('{}')
+        with self.assertRaises(ValueError): same_capture(*self.paths)

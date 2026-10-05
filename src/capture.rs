@@ -1,7 +1,9 @@
 //! Native capture image and telemetry output from the application frame loop.
 
 use glam::Vec3;
-use vector_range::draw::facade::{backend_info, capture_png, RenderTarget};
+use vector_range::draw::facade::{
+    backend_info, capture_png, capture_png_with_frame_witness, RenderTarget,
+};
 use vector_range::{
     locomotion_presentation::LocomotionPresentation, settings::Settings, sim::Simulation,
     weapon_sway::LookSway,
@@ -82,8 +84,19 @@ pub(crate) fn write_frame(frame: CaptureFrame<'_>) -> Result<bool, String> {
         } else {
             vector_range::platform::runtime::framebuffer_size()
         };
-        capture_png(framing.reference.then_some(target), output);
-        let metadata = capture_metadata(
+        let witness = vector_range::draw::frame_witness::requested_identity(std::env::args())?;
+        let frame_index = u32::try_from(frames - 8).map_err(|_| "invalid capture frame index")?;
+        if let Some(identity) = &witness {
+            capture_png_with_frame_witness(
+                framing.reference.then_some(target),
+                output,
+                frame_index,
+                vector_range::draw::frame_witness::parse_identity(identity)?,
+            );
+        } else {
+            capture_png(framing.reference.then_some(target), output);
+        }
+        let mut metadata = capture_metadata(
             &info,
             width,
             height,
@@ -92,6 +105,12 @@ pub(crate) fn write_frame(frame: CaptureFrame<'_>) -> Result<bool, String> {
             sim.player.ads,
             presentation_reload,
         );
+        if let Some(identity) = witness {
+            metadata["frame_witness"] = serde_json::json!({
+                "schema": vector_range::draw::frame_witness::SCHEMA,
+                "frame_index": frame_index, "capture_identity": identity,
+            });
+        }
         write_sidecar(format!("{output}.json"), metadata.to_string())?;
         if capture_sequence.is_some() {
             write_sidecar(format!("{output}.time.json"), format!("{{\"elapsed_seconds\":{},\"normalized_phase\":{},\"visual_duration_seconds\":{},\"simulation_ready_seconds\":{},\"sampling_hz\":{}}}", sequence_elapsed, sequence_phase, sequence_duration, if capture_empty { cfg.empty_reload_time } else if matches!(capture_sequence, Some("ads" | "gameplay-ads")) { cfg.ads_time } else { cfg.reload_time }, capture_hz))?;

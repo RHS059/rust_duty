@@ -23,6 +23,7 @@ import dx12_authored_shards as shared
 import run_dx12_authored as authored
 import run_dx12_authored_shard as shard
 from test_dx12_authored_shards import make_gl_runtime
+from test_capture_frame_witness import marker
 
 
 ENV = {
@@ -49,19 +50,29 @@ def png_bytes(*, extent=authored.EXTENT, uniform=False, sparse=False):
     return stream.getvalue()
 
 
-def make_sequence(folder, role, count=3):
+def make_sequence(folder, role, count=3, *, witness_identity=None):
     """Small synthetic fixtures for real role validation, never authored replays."""
     folder.mkdir(parents=True)
     image = png_bytes()
     for index in range(count):
         target = folder / f'{index:04}.png'
-        target.write_bytes(image)
-        write_json(Path(f'{target}.json'), {
+        if witness_identity is None:
+            target.write_bytes(image)
+        else:
+            with Image.open(io.BytesIO(image)) as base:
+                marked = base.copy()
+            marked.paste(marker(index, witness_identity).crop((0, 0, 64, 22)), (0, 0))
+            marked.save(target)
+        metadata = {
             'backend': 'OpenGl' if role == 'windows-legacy' else 'Dx12',
             'requested': 'gl' if role == 'windows-legacy' else 'dx12',
             'adapter': GL_ADAPTER if role == 'windows-legacy' else authored.WARP,
             'width': 960, 'height': 540,
-        })
+        }
+        if witness_identity is not None:
+            metadata['frame_witness'] = {'schema': 'rust-duty-capture-frame-witness/v1',
+                                         'frame_index': index, 'capture_identity': witness_identity}
+        write_json(Path(f'{target}.json'), metadata)
         write_json(Path(f'{target}.time.json'), {'elapsed_seconds': index / 60, 'sampling_hz': 60})
         write_json(Path(f'{target}.gameplay.json'), {'simulation_time': index / 60, 'renderer_failed': False})
     return folder
@@ -193,6 +204,56 @@ class RoleCommandTests(FixtureCase):
 
 
 class RoleValidationTests(FixtureCase):
+    def test_witness_identity_maps_verified_context_and_actual_backend(self):
+        binding = self.manifest['binding']
+        identities = set()
+        for role, backend in (('windows-legacy', 'OpenGl'), ('dx12', 'Dx12')):
+            for scenario in ('jump-gameplay', 'reload-return'):
+                expected = shard.frame_witness.capture_identity({
+                    'source_commit': binding['source_commit'], 'exe_sha256': binding['executable_sha256'],
+                    'run_id': binding['run_id'], 'run_attempt': binding['run_attempt'],
+                    'scenario': scenario, 'backend': backend})
+                self.assertEqual(shard.role_witness_identity(binding, scenario, role), expected)
+                identities.add(expected)
+        self.assertEqual(len(identities), 4)
+        original = shard.role_witness_identity(binding, 'reload-return', 'dx12')
+        for field, value in (('source_commit', 'b' * 40), ('executable_sha256', 'c' * 64),
+                             ('run_id', '1235'), ('run_attempt', '3')):
+            with self.subTest(field=field):
+                self.assertNotEqual(shard.role_witness_identity({**binding, field: value}, 'reload-return', 'dx12'), original)
+
+    def test_witnessed_role_checks_every_frame_against_independent_expectation(self):
+        for role in shard.ROLES:
+            identity = shard.role_witness_identity(self.manifest['binding'], 'jump-gameplay', role)
+            folder = make_sequence(self.base / role, role, witness_identity=identity)
+            with patch.object(shard.frame_witness, 'verify', wraps=shard.frame_witness.verify) as verify:
+                result = shard.validate_role_images(folder, role, 3, expected_witness_identity=identity)
+            self.assertEqual(result['frames'], 3)
+            self.assertEqual([(call.args[2], call.args[3]) for call in verify.call_args_list],
+                             [(index, identity) for index in range(3)])
+            last = folder / '0002.png'
+            last.write_bytes((folder / '0000.png').read_bytes())
+            with self.assertRaisesRegex(ValueError, 'PNG frame index'):
+                shard.validate_role_images(folder, role, 3, expected_witness_identity=identity)
+
+    def test_current_role_cannot_omit_witness_or_trust_rewritten_capture_metadata(self):
+        identity = shard.role_witness_identity(self.manifest['binding'], 'reload-return', 'dx12')
+        folder = make_sequence(self.base / 'unmarked', 'dx12')
+        with self.assertRaisesRegex(ValueError, 'frame_witness'):
+            shard.validate_role_images(folder, 'dx12', 3, expected_witness_identity=identity)
+        other_run = shard.role_witness_identity({**self.manifest['binding'], 'run_id': '1235'}, 'reload-return', 'dx12')
+        stale = make_sequence(self.base / 'stale-run', 'dx12', witness_identity=other_run)
+        # Every PNG and sidecar consistently declares the other run. It remains
+        # invalid against the independently verified current invocation.
+        with self.assertRaisesRegex(ValueError, 'metadata capture identity'):
+            shard.validate_role_images(stale, 'dx12', 3, expected_witness_identity=identity)
+        for path in stale.glob('*.png.json'):
+            record = json.loads(path.read_text())
+            record['frame_witness']['capture_identity'] = identity
+            write_json(path, record)
+        with self.assertRaisesRegex(ValueError, 'PNG capture identity'):
+            shard.validate_role_images(stale, 'dx12', 3, expected_witness_identity=identity)
+
     def test_legacy_logs_accept_real_nonblank_consistent_adapter_from_both_streams(self):
         identity = f'renderer requested=gl backend=OpenGl adapter={GL_ADAPTER}'
         logs = write_logs(self.base / 'logs', identity, identity + '\n')
@@ -498,7 +559,9 @@ class ShardRunTests(FixtureCase):
         return {'exit_code': 0, **(authored.renderer_logs(logs) if renderer else {})}
 
     @staticmethod
-    def images_double(folder, role, expected_frames):
+    def images_double(folder, role, expected_frames, *, expected_witness_identity=None):
+        if expected_witness_identity is None:
+            raise AssertionError('actual shard path omitted the independent witness expectation')
         return {'frames': expected_frames, 'all_images_checked': True,
                 'adapter': GL_ADAPTER if role == 'windows-legacy' else authored.WARP}
 
@@ -536,6 +599,12 @@ class ShardRunTests(FixtureCase):
             '--procedural-weapon', '--reference-viewport', '--capture', f'--output={self.evidence / "stock-gl/stock-gl.png"}'])
         self.stock.assert_called_once_with(self.evidence / 'stock-gl', GL_ADAPTER)
         self.assertEqual([call.args[2] for call in self.images.call_args_list], [403, 403])
+        for role, call in zip(shard.ROLES, self.images.call_args_list):
+            expected = shard.role_witness_identity(self.manifest['binding'], 'jump-gameplay', role)
+            self.assertEqual(call.kwargs, {'expected_witness_identity': expected})
+            command = next(row['command'] for row in self.calls if row['logs'].name == f'{role}-capture')
+            self.assertEqual([arg for arg in command if arg.startswith('--capture-frame-witness')],
+                             [f'--capture-frame-witness={expected}'])
         paths = shared.capture_paths('jump-gameplay')
         self.parity.assert_called_once_with(self.evidence / paths['windows-legacy'], self.evidence / paths['dx12'])
         for call in self.calls:
@@ -640,7 +709,7 @@ class ShardRunTests(FixtureCase):
         self.parity.assert_not_called()
 
     def test_legacy_log_sidecar_adapter_disagreement_fails_before_validator(self):
-        self.images.side_effect = lambda folder, role, count: {
+        self.images.side_effect = lambda folder, role, count, **kwargs: {
             'frames': count, 'all_images_checked': True,
             'adapter': 'Different actual adapter' if role == 'windows-legacy' else authored.WARP}
         report = self.run_case()
@@ -849,10 +918,10 @@ class ShardRunTests(FixtureCase):
         self.lighting.assert_not_called()
 
     def test_ordinary_helper_exception_inside_check_is_reported_and_other_role_runs(self):
-        def images(folder, role, count):
+        def images(folder, role, count, **kwargs):
             if role == 'windows-legacy':
                 raise KeyError('unexpected helper error')
-            return self.images_double(folder, role, count)
+            return self.images_double(folder, role, count, **kwargs)
         self.images.side_effect = images
         report = self.run_case()
         self.assert_closed(report, 'jump-gameplay')

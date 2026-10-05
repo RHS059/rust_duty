@@ -13,6 +13,7 @@ import time
 
 import dx12_authored_shards as shared
 import run_dx12_authored as authored
+import verify_capture_frame_witness as frame_witness
 from run_windows_same_platform_return import runtime_environment
 from verify_capture_telemetry import read_record, validate
 from verify_render_capture import verify as verify_png
@@ -64,11 +65,25 @@ def role_command(executable, root, folder, case, offset, role):
     return command
 
 
-def validate_role_images(folder, role, expected_frames):
+def role_witness_identity(binding, scenario, role):
+    """Derive from caller-verified invocation inputs, never a capture or sidecar."""
+    require(role in ROLES, 'unknown capture role')
+    require(type(scenario) is str and scenario in shared.PROFILES, 'unknown capture scenario')
+    fields = {'source_commit', 'executable_sha256', 'run_id', 'run_attempt'}
+    require(type(binding) is dict and fields <= set(binding), 'verified capture binding is incomplete')
+    return frame_witness.capture_identity({
+        'source_commit': binding['source_commit'], 'exe_sha256': binding['executable_sha256'],
+        'run_id': binding['run_id'], 'run_attempt': binding['run_attempt'], 'scenario': scenario,
+        'backend': 'OpenGl' if role == 'windows-legacy' else 'Dx12',
+    })
+
+
+def validate_role_images(folder, role, expected_frames, *, expected_witness_identity=None):
     require(role in ROLES, 'unknown capture role')
     require(type(expected_frames) is int and expected_frames > 0, 'invalid expected frame count')
     backend, requested = ('OpenGl', 'gl') if role == 'windows-legacy' else ('Dx12', 'dx12')
-    images, finite = authored.sequence_inventory(Path(folder), backend)
+    images, finite = authored.sequence_inventory(Path(folder), backend,
+                                                 expected_witness_identity=expected_witness_identity)
     require(len(images) == expected_frames,
             f'{role}: expected all {expected_frames} frames, got {len(images)}')
     adapters, coverage = set(), []
@@ -295,6 +310,8 @@ def run_pair(journal, executable, root, scenario, capture_timeout):
         folder = evidence / report['capture_paths'][role]
         process_logs = logs / f'{role}-capture'
         command = role_command(executable, root, folder, case, offset, role)
+        witness_identity = role_witness_identity(report['binding'], scenario, role)
+        command.append(f'--capture-frame-witness={witness_identity}')
 
         def capture(role=role, command=command, process_logs=process_logs):
             result = journal.execute(command, root, process_logs,
@@ -304,8 +321,9 @@ def run_pair(journal, executable, root, scenario, capture_timeout):
 
         captured = journal.check(f'{role}/capture', capture, ready=role != 'windows-legacy' or stock['passed'])
 
-        def images(role=role, folder=folder, process_logs=process_logs):
-            result = validate_role_images(folder, role, shared.PROFILES[scenario]['expected_frames'])
+        def images(role=role, folder=folder, process_logs=process_logs, witness_identity=witness_identity):
+            result = validate_role_images(folder, role, shared.PROFILES[scenario]['expected_frames'],
+                                          expected_witness_identity=witness_identity)
             if role == 'windows-legacy':
                 require(result['adapter'] == legacy_renderer_logs(process_logs)['adapter'],
                         'legacy log and capture adapters differ')
