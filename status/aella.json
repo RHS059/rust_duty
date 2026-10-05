@@ -1,26 +1,26 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-05T00:03:00Z",
+  "updatedAt": "2026-10-05T00:12:30Z",
   "state": "working",
-  "task": "Continuing the agreed source split: coordinate source ownership and verify builds; prepare the next Colab vault review batch; author isolated low-vault r2 detach/regrip from recovered e8eae64. Rendering awaits explicit Eevee confirmation while non-render work proceeds. Independent release/Jump/content-delta work remains active: public v0.1.8 published; Jump eedd2910 and delta 176e046c playable CI in progress, both updater checks passed.",
+  "task": "Continuing the agreed source split: coordinate source ownership and verify packages; author isolated low-vault r2 detach/regrip and repair hand switching from recovered e8eae64. Source-only Colab review preparation is complete and waiting for a candidate and Eevee confirmation. Rendering alone awaits explicit Eevee confirmation; non-render work proceeds. Independent release/Jump/content-delta work remains active: public v0.1.8 published; exact Jump eedd2910 playable CI passed; delta 176e046c assets and Windows passed while Linux remains in progress. Both updater checks passed.",
   "lastCompleted": "All six new videos annotated: 150 intervals cover 14,017 native frames; 1,135 sampled frames reviewed. PR #33 e4fdda48 pins witness hashes. Exact 0.1.8 Windows/Linux builds and native gameplay gates passed. Mantle/climb recovery packet published without claiming an authored candidate.",
   "agents": [
     {
       "slot": 1,
       "state": "working",
-      "task": "Coordinate source ownership and verify exact-source builds against the agreed split.",
-      "lastCompleted": "Verified public v0.1.8 and successful publication run 37244860530; source d4d9b622 release ZIPs and manifests available."
+      "task": "Coordinate source ownership and verify exact-source packages against the agreed split.",
+      "lastCompleted": "Verified public v0.1.8 and Jump eedd2910 successful run 37244927380 with Windows/Linux artifacts. Jump diagnostic independently checked: 75 source/FBX/Rust points, 0.07963 mm maximum; this is technical parity, not artistic approval. Complete ZIP verification remains blocked by download limits."
     },
     {
       "slot": 2,
-      "state": "working",
-      "task": "Prepare source/frame registration and the next actual Colab vault review batch; rendering awaits explicit Eevee confirmation.",
-      "lastCompleted": "All six new videos annotated: 150 intervals covering 14,017 native frames; 1,135 sampled frames reviewed. PR #33 e4fdda48 witness hashes pinned; playable CI passed."
+      "state": "waiting",
+      "task": "Wait for authored low-vault candidate and explicit Eevee confirmation before candidate/Colab comparison.",
+      "lastCompleted": "Completed source-only manual review of 26 frames with 7 raster anchors and prepared a 64-frame review template; no candidate render or artistic pass claimed."
     },
     {
       "slot": 3,
       "state": "working",
-      "task": "Author isolated low-vault r2 detach/regrip under mantle/climb authoring paths from recovered source e8eae64.",
+      "task": "Author isolated low-vault r2 detach/regrip and repair hand switching under mantle/climb authoring paths from recovered e8eae64; no rendering.",
       "lastCompleted": "Recovered mantle/climb source packet available; new authored candidate and preview are not yet verified."
     }
   ]
