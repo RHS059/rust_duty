@@ -1,0 +1,1634 @@
+{
+  "schema": "rust-duty-vault-foreground-viewport/v1",
+  "reconstruction": "Capture-only adaptation of PR35 still-loop script to Eevee Viewport Render Animation; source unchanged",
+  "workflow_provenance_commit": "3bc4694df9a8704dd8a6381363f53e23f8a530fb",
+  "source_path": "/workspace/shared/vault-review-20261005/recovery/candidate/aella_mantle_r2.blend",
+  "source_sha256": "740e7e2b16d6947075c321467cfe21d36314f68b93829cf8a2d954b4d382cdb5",
+  "source_commit": "3bc4694df9a8704dd8a6381363f53e23f8a530fb",
+  "action_fingerprint": "e71ce7a47e772997f99af86026cfbcb0dffdc96f27868be856cd1e079fadb339",
+  "blender": "4.3.2",
+  "pid": 43575,
+  "hostname": "79a58c06c3fc",
+  "display": ":0",
+  "background": false,
+  "camera": {
+    "name": "RD First Person Review",
+    "matrix_world": [
+      [
+        -1.0,
+        -3.821371353845884e-15,
+        -8.742277657347586e-08,
+        0.0
+      ],
+      [
+        -8.742277657347586e-08,
+        4.371138828673793e-08,
+        1.0,
+        0.0
+      ],
+      [
+        0.0,
+        1.0,
+        -4.371138828673793e-08,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    ],
+    "lens": 23.03894805908203,
+    "sensor_width": 36.0,
+    "sensor_height": 24.0,
+    "sensor_fit": "HORIZONTAL",
+    "shift_x": 0.0,
+    "shift_y": 0.0,
+    "clip_start": 0.0010000000474974513,
+    "clip_end": 1000.0
+  },
+  "resolution": [
+    1280,
+    720
+  ],
+  "source_fps": 60,
+  "engine": "BLENDER_EEVEE_NEXT",
+  "operator": "bpy.ops.render.opengl",
+  "operator_arguments": {
+    "animation": true,
+    "view_context": true,
+    "render_keyed_only": false,
+    "sequencer": false
+  },
+  "source_reference_frames_half_open": [
+    7284,
+    7348
+  ],
+  "frame_mapping": "Blender frame = source frame - 7284 + 1",
+  "source_saved": false,
+  "regular_offline_render_operator_used": false,
+  "no_scoring": true,
+  "completed": true,
+  "actions": [
+    {
+      "action": "aella_vault_low_r2",
+      "frame_start": 1,
+      "frame_end_inclusive": 64,
+      "native_frames": 64,
+      "duration_intervals": 63,
+      "output_directory": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2",
+      "started_utc": "2026-10-05T01:04:38.841801+00:00",
+      "engine_at_call": "BLENDER_EEVEE_NEXT",
+      "viewport_shading_at_call": "RENDERED",
+      "observed_scene_frames": [
+        {
+          "frame": 1,
+          "resolved_output_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0001.png",
+          "utc": "2026-10-05T01:04:38.845487+00:00"
+        },
+        {
+          "frame": 1,
+          "resolved_output_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0001.png",
+          "utc": "2026-10-05T01:04:38.849914+00:00"
+        },
+        {
+          "frame": 2,
+          "resolved_output_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0002.png",
+          "utc": "2026-10-05T01:04:42.077093+00:00"
+        },
+        {
+          "frame": 3,
+          "resolved_output_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0003.png",
+          "utc": "2026-10-05T01:04:43.396968+00:00"
+        },
+        {
+          "frame": 4,
+          "resolved_output_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0004.png",
+          "utc": "2026-10-05T01:04:44.784949+00:00"
+        },
+        {
+          "frame": 5,
+          "resolved_output_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0005.png",
+          "utc": "2026-10-05T01:04:46.123255+00:00"
+        },
+        {
+          "frame": 6,
+          "resolved_output_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0006.png",
+          "utc": "2026-10-05T01:04:47.444295+00:00"
+        },
+        {
+          "frame": 7,
+          "resolved_output_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0007.png",
+          "utc": "2026-10-05T01:04:48.701024+00:00"
+        },
+        {
+          "frame": 8,
+          "resolved_output_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0008.png",
+          "utc": "2026-10-05T01:04:50.098987+00:00"
+        },
+        {
+          "frame": 9,
+          "resolved_output_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0009.png",
+          "utc": "2026-10-05T01:04:51.461130+00:00"
+        },
+        {
+          "frame": 10,
+          "resolved_output_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0010.png",
+          "utc": "2026-10-05T01:04:52.743022+00:00"
+        },
+        {
+          "frame": 11,
+          "resolved_output_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0011.png",
+          "utc": "2026-10-05T01:04:54.025729+00:00"
+        },
+        {
+          "frame": 12,
+          "resolved_output_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0012.png",
+          "utc": "2026-10-05T01:04:55.351655+00:00"
+        },
+        {
+          "frame": 13,
+          "resolved_output_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0013.png",
+          "utc": "2026-10-05T01:04:56.543895+00:00"
+        },
+        {
+          "frame": 14,
+          "resolved_output_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0014.png",
+          "utc": "2026-10-05T01:04:57.826891+00:00"
+        },
+        {
+          "frame": 15,
+          "resolved_output_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0015.png",
+          "utc": "2026-10-05T01:04:59.150238+00:00"
+        },
+        {
+          "frame": 16,
+          "resolved_output_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0016.png",
+          "utc": "2026-10-05T01:05:00.480351+00:00"
+        },
+        {
+          "frame": 17,
+          "resolved_output_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0017.png",
+          "utc": "2026-10-05T01:05:01.878260+00:00"
+        },
+        {
+          "frame": 18,
+          "resolved_output_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0018.png",
+          "utc": "2026-10-05T01:05:03.159578+00:00"
+        },
+        {
+          "frame": 19,
+          "resolved_output_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0019.png",
+          "utc": "2026-10-05T01:05:04.487032+00:00"
+        },
+        {
+          "frame": 20,
+          "resolved_output_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0020.png",
+          "utc": "2026-10-05T01:05:05.878079+00:00"
+        },
+        {
+          "frame": 21,
+          "resolved_output_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0021.png",
+          "utc": "2026-10-05T01:05:07.296205+00:00"
+        },
+        {
+          "frame": 22,
+          "resolved_output_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0022.png",
+          "utc": "2026-10-05T01:05:08.880711+00:00"
+        },
+        {
+          "frame": 23,
+          "resolved_output_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0023.png",
+          "utc": "2026-10-05T01:05:10.458356+00:00"
+        },
+        {
+          "frame": 24,
+          "resolved_output_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0024.png",
+          "utc": "2026-10-05T01:05:11.896818+00:00"
+        },
+        {
+          "frame": 25,
+          "resolved_output_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0025.png",
+          "utc": "2026-10-05T01:05:13.379605+00:00"
+        },
+        {
+          "frame": 26,
+          "resolved_output_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0026.png",
+          "utc": "2026-10-05T01:05:14.865773+00:00"
+        },
+        {
+          "frame": 27,
+          "resolved_output_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0027.png",
+          "utc": "2026-10-05T01:05:16.482075+00:00"
+        },
+        {
+          "frame": 28,
+          "resolved_output_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0028.png",
+          "utc": "2026-10-05T01:05:18.025093+00:00"
+        },
+        {
+          "frame": 29,
+          "resolved_output_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0029.png",
+          "utc": "2026-10-05T01:05:19.651046+00:00"
+        },
+        {
+          "frame": 30,
+          "resolved_output_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0030.png",
+          "utc": "2026-10-05T01:05:21.468341+00:00"
+        },
+        {
+          "frame": 31,
+          "resolved_output_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0031.png",
+          "utc": "2026-10-05T01:05:23.284168+00:00"
+        },
+        {
+          "frame": 32,
+          "resolved_output_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0032.png",
+          "utc": "2026-10-05T01:05:24.868207+00:00"
+        },
+        {
+          "frame": 33,
+          "resolved_output_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0033.png",
+          "utc": "2026-10-05T01:05:26.443000+00:00"
+        },
+        {
+          "frame": 34,
+          "resolved_output_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0034.png",
+          "utc": "2026-10-05T01:05:27.988452+00:00"
+        },
+        {
+          "frame": 35,
+          "resolved_output_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0035.png",
+          "utc": "2026-10-05T01:05:29.520318+00:00"
+        },
+        {
+          "frame": 36,
+          "resolved_output_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0036.png",
+          "utc": "2026-10-05T01:05:31.037504+00:00"
+        },
+        {
+          "frame": 37,
+          "resolved_output_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0037.png",
+          "utc": "2026-10-05T01:05:32.615379+00:00"
+        },
+        {
+          "frame": 38,
+          "resolved_output_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0038.png",
+          "utc": "2026-10-05T01:05:34.157608+00:00"
+        },
+        {
+          "frame": 39,
+          "resolved_output_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0039.png",
+          "utc": "2026-10-05T01:05:35.665776+00:00"
+        },
+        {
+          "frame": 40,
+          "resolved_output_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0040.png",
+          "utc": "2026-10-05T01:05:37.167964+00:00"
+        },
+        {
+          "frame": 41,
+          "resolved_output_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0041.png",
+          "utc": "2026-10-05T01:05:38.735474+00:00"
+        },
+        {
+          "frame": 42,
+          "resolved_output_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0042.png",
+          "utc": "2026-10-05T01:05:40.437916+00:00"
+        },
+        {
+          "frame": 43,
+          "resolved_output_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0043.png",
+          "utc": "2026-10-05T01:05:42.118576+00:00"
+        },
+        {
+          "frame": 44,
+          "resolved_output_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0044.png",
+          "utc": "2026-10-05T01:05:43.850449+00:00"
+        },
+        {
+          "frame": 45,
+          "resolved_output_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0045.png",
+          "utc": "2026-10-05T01:05:45.509548+00:00"
+        },
+        {
+          "frame": 46,
+          "resolved_output_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0046.png",
+          "utc": "2026-10-05T01:05:47.180450+00:00"
+        },
+        {
+          "frame": 47,
+          "resolved_output_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0047.png",
+          "utc": "2026-10-05T01:05:48.786160+00:00"
+        },
+        {
+          "frame": 48,
+          "resolved_output_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0048.png",
+          "utc": "2026-10-05T01:05:50.211811+00:00"
+        },
+        {
+          "frame": 49,
+          "resolved_output_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0049.png",
+          "utc": "2026-10-05T01:05:51.603282+00:00"
+        },
+        {
+          "frame": 50,
+          "resolved_output_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0050.png",
+          "utc": "2026-10-05T01:05:53.083092+00:00"
+        },
+        {
+          "frame": 51,
+          "resolved_output_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0051.png",
+          "utc": "2026-10-05T01:05:54.441593+00:00"
+        },
+        {
+          "frame": 52,
+          "resolved_output_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0052.png",
+          "utc": "2026-10-05T01:05:55.766738+00:00"
+        },
+        {
+          "frame": 53,
+          "resolved_output_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0053.png",
+          "utc": "2026-10-05T01:05:57.130438+00:00"
+        },
+        {
+          "frame": 54,
+          "resolved_output_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0054.png",
+          "utc": "2026-10-05T01:05:58.492902+00:00"
+        },
+        {
+          "frame": 55,
+          "resolved_output_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0055.png",
+          "utc": "2026-10-05T01:05:59.877471+00:00"
+        },
+        {
+          "frame": 56,
+          "resolved_output_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0056.png",
+          "utc": "2026-10-05T01:06:01.251421+00:00"
+        },
+        {
+          "frame": 57,
+          "resolved_output_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0057.png",
+          "utc": "2026-10-05T01:06:02.694986+00:00"
+        },
+        {
+          "frame": 58,
+          "resolved_output_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0058.png",
+          "utc": "2026-10-05T01:06:04.182325+00:00"
+        },
+        {
+          "frame": 59,
+          "resolved_output_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0059.png",
+          "utc": "2026-10-05T01:06:05.588520+00:00"
+        },
+        {
+          "frame": 60,
+          "resolved_output_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0060.png",
+          "utc": "2026-10-05T01:06:07.043312+00:00"
+        },
+        {
+          "frame": 61,
+          "resolved_output_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0061.png",
+          "utc": "2026-10-05T01:06:08.476688+00:00"
+        },
+        {
+          "frame": 62,
+          "resolved_output_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0062.png",
+          "utc": "2026-10-05T01:06:09.929833+00:00"
+        },
+        {
+          "frame": 63,
+          "resolved_output_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0063.png",
+          "utc": "2026-10-05T01:06:11.219916+00:00"
+        },
+        {
+          "frame": 64,
+          "resolved_output_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0064.png",
+          "utc": "2026-10-05T01:06:12.584092+00:00"
+        }
+      ],
+      "operator_result": [
+        "FINISHED"
+      ],
+      "native_frame_map": [
+        {
+          "blender_frame": 1,
+          "native_frame": 7284,
+          "native_pts": 1864704,
+          "candidate_pts": 0,
+          "time_base": [
+            1,
+            15360
+          ],
+          "actual_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0001.png",
+          "actual_filename": "frame_0001.png",
+          "sha256": "244360c24a0532f297508367fd8311833377eef27d51c620a6bdd1bcceaeceaf",
+          "bytes": 939162
+        },
+        {
+          "blender_frame": 2,
+          "native_frame": 7285,
+          "native_pts": 1864960,
+          "candidate_pts": 256,
+          "time_base": [
+            1,
+            15360
+          ],
+          "actual_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0002.png",
+          "actual_filename": "frame_0002.png",
+          "sha256": "faccb85f920b48aead2f3e8148660099076a896ab40efb4c3b46042483b2801b",
+          "bytes": 969466
+        },
+        {
+          "blender_frame": 3,
+          "native_frame": 7286,
+          "native_pts": 1865216,
+          "candidate_pts": 512,
+          "time_base": [
+            1,
+            15360
+          ],
+          "actual_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0003.png",
+          "actual_filename": "frame_0003.png",
+          "sha256": "01a24b66ddc0226632a7642ea2828ba9c6dc1b0550f0be0a4e75d8d2e7a104b5",
+          "bytes": 969466
+        },
+        {
+          "blender_frame": 4,
+          "native_frame": 7287,
+          "native_pts": 1865472,
+          "candidate_pts": 768,
+          "time_base": [
+            1,
+            15360
+          ],
+          "actual_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0004.png",
+          "actual_filename": "frame_0004.png",
+          "sha256": "4e6b6f51902939df43796a8ee3847a88c400549aafd26970e69e176de68b674a",
+          "bytes": 969466
+        },
+        {
+          "blender_frame": 5,
+          "native_frame": 7288,
+          "native_pts": 1865728,
+          "candidate_pts": 1024,
+          "time_base": [
+            1,
+            15360
+          ],
+          "actual_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0005.png",
+          "actual_filename": "frame_0005.png",
+          "sha256": "464228ea9ff0fa8d4bfa8c55e825eec1cd63a616e57a6159693d8049eee42d51",
+          "bytes": 969466
+        },
+        {
+          "blender_frame": 6,
+          "native_frame": 7289,
+          "native_pts": 1865984,
+          "candidate_pts": 1280,
+          "time_base": [
+            1,
+            15360
+          ],
+          "actual_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0006.png",
+          "actual_filename": "frame_0006.png",
+          "sha256": "bd579bf232c0de584663c8502c8406eb0156ed0584db21efeba14399c5ba0272",
+          "bytes": 969466
+        },
+        {
+          "blender_frame": 7,
+          "native_frame": 7290,
+          "native_pts": 1866240,
+          "candidate_pts": 1536,
+          "time_base": [
+            1,
+            15360
+          ],
+          "actual_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0007.png",
+          "actual_filename": "frame_0007.png",
+          "sha256": "650b2b4531fa157cf9f06a007b0bbc71939404098b33264c7913a782dae3524b",
+          "bytes": 962554
+        },
+        {
+          "blender_frame": 8,
+          "native_frame": 7291,
+          "native_pts": 1866496,
+          "candidate_pts": 1792,
+          "time_base": [
+            1,
+            15360
+          ],
+          "actual_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0008.png",
+          "actual_filename": "frame_0008.png",
+          "sha256": "ac3a7a7a5316a94c2592565b1ca64d80a53a7f36d0ce34a4563017435d83a79b",
+          "bytes": 953029
+        },
+        {
+          "blender_frame": 9,
+          "native_frame": 7292,
+          "native_pts": 1866752,
+          "candidate_pts": 2048,
+          "time_base": [
+            1,
+            15360
+          ],
+          "actual_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0009.png",
+          "actual_filename": "frame_0009.png",
+          "sha256": "a2326c47170bc848aafd3238219112640187abed85d4086024943264292288dd",
+          "bytes": 941645
+        },
+        {
+          "blender_frame": 10,
+          "native_frame": 7293,
+          "native_pts": 1867008,
+          "candidate_pts": 2304,
+          "time_base": [
+            1,
+            15360
+          ],
+          "actual_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0010.png",
+          "actual_filename": "frame_0010.png",
+          "sha256": "e043655dcc31d03ebc65718c7114ee5b2a0a3363f61eb3d5dec891341509c127",
+          "bytes": 934098
+        },
+        {
+          "blender_frame": 11,
+          "native_frame": 7294,
+          "native_pts": 1867264,
+          "candidate_pts": 2560,
+          "time_base": [
+            1,
+            15360
+          ],
+          "actual_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0011.png",
+          "actual_filename": "frame_0011.png",
+          "sha256": "83b706346799af50f71f632f199db6b5b583168422863b77dd692197893ff69c",
+          "bytes": 921094
+        },
+        {
+          "blender_frame": 12,
+          "native_frame": 7295,
+          "native_pts": 1867520,
+          "candidate_pts": 2816,
+          "time_base": [
+            1,
+            15360
+          ],
+          "actual_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0012.png",
+          "actual_filename": "frame_0012.png",
+          "sha256": "ccb77583fe4ff4dbb021791e1c23e08445beb8e2f3e83a681ffb9e6e8fe23c4e",
+          "bytes": 911084
+        },
+        {
+          "blender_frame": 13,
+          "native_frame": 7296,
+          "native_pts": 1867776,
+          "candidate_pts": 3072,
+          "time_base": [
+            1,
+            15360
+          ],
+          "actual_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0013.png",
+          "actual_filename": "frame_0013.png",
+          "sha256": "0c6fed3352315da685c64f4aa456fa88fe3e89bd22ae74b4d68dcb2e56072895",
+          "bytes": 909096
+        },
+        {
+          "blender_frame": 14,
+          "native_frame": 7297,
+          "native_pts": 1868032,
+          "candidate_pts": 3328,
+          "time_base": [
+            1,
+            15360
+          ],
+          "actual_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0014.png",
+          "actual_filename": "frame_0014.png",
+          "sha256": "521ceef5bf68e9241f390b97cac3c1536cb27229a552d5970be920286b7ad7f3",
+          "bytes": 913861
+        },
+        {
+          "blender_frame": 15,
+          "native_frame": 7298,
+          "native_pts": 1868288,
+          "candidate_pts": 3584,
+          "time_base": [
+            1,
+            15360
+          ],
+          "actual_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0015.png",
+          "actual_filename": "frame_0015.png",
+          "sha256": "298205452c46ac516a9e34caa0d920e579704fa693759d16ba33b9b40cecbd70",
+          "bytes": 934448
+        },
+        {
+          "blender_frame": 16,
+          "native_frame": 7299,
+          "native_pts": 1868544,
+          "candidate_pts": 3840,
+          "time_base": [
+            1,
+            15360
+          ],
+          "actual_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0016.png",
+          "actual_filename": "frame_0016.png",
+          "sha256": "4f682dd3f4c12aca0c558f59fbb0a17f6daa0e0bb34f7b4bf54c3a240a4193bb",
+          "bytes": 962458
+        },
+        {
+          "blender_frame": 17,
+          "native_frame": 7300,
+          "native_pts": 1868800,
+          "candidate_pts": 4096,
+          "time_base": [
+            1,
+            15360
+          ],
+          "actual_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0017.png",
+          "actual_filename": "frame_0017.png",
+          "sha256": "0b023ea1db2281f0e2e80c0a5ce3ef20fca8ca1bed069123fa793c55feb0cb1c",
+          "bytes": 987096
+        },
+        {
+          "blender_frame": 18,
+          "native_frame": 7301,
+          "native_pts": 1869056,
+          "candidate_pts": 4352,
+          "time_base": [
+            1,
+            15360
+          ],
+          "actual_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0018.png",
+          "actual_filename": "frame_0018.png",
+          "sha256": "74e6ed6c534ad4d49be3bca67c99afe47f7c3f27d81e26ce654a9be353b60ce8",
+          "bytes": 1008009
+        },
+        {
+          "blender_frame": 19,
+          "native_frame": 7302,
+          "native_pts": 1869312,
+          "candidate_pts": 4608,
+          "time_base": [
+            1,
+            15360
+          ],
+          "actual_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0019.png",
+          "actual_filename": "frame_0019.png",
+          "sha256": "71d5131e744c3802882b65cccf9ae67f4305c7be36eff5807b13b8a94175c3de",
+          "bytes": 1025424
+        },
+        {
+          "blender_frame": 20,
+          "native_frame": 7303,
+          "native_pts": 1869568,
+          "candidate_pts": 4864,
+          "time_base": [
+            1,
+            15360
+          ],
+          "actual_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0020.png",
+          "actual_filename": "frame_0020.png",
+          "sha256": "6a1ba49c088cf38e7985eb73f2587ae43d570337665ef90dc3a2fe5e85294d7a",
+          "bytes": 1046996
+        },
+        {
+          "blender_frame": 21,
+          "native_frame": 7304,
+          "native_pts": 1869824,
+          "candidate_pts": 5120,
+          "time_base": [
+            1,
+            15360
+          ],
+          "actual_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0021.png",
+          "actual_filename": "frame_0021.png",
+          "sha256": "1f4bdb60d6eb456a86d53c88226290a0113abca51da0c504bb76364481ad8262",
+          "bytes": 1068716
+        },
+        {
+          "blender_frame": 22,
+          "native_frame": 7305,
+          "native_pts": 1870080,
+          "candidate_pts": 5376,
+          "time_base": [
+            1,
+            15360
+          ],
+          "actual_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0022.png",
+          "actual_filename": "frame_0022.png",
+          "sha256": "25e3fb5666ddeeaec7e1c06512964fff9967ff942b4ea9bffbb233064333b0ed",
+          "bytes": 1086686
+        },
+        {
+          "blender_frame": 23,
+          "native_frame": 7306,
+          "native_pts": 1870336,
+          "candidate_pts": 5632,
+          "time_base": [
+            1,
+            15360
+          ],
+          "actual_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0023.png",
+          "actual_filename": "frame_0023.png",
+          "sha256": "4f8df427e476718d58b544811a14f4806d37385fe3cc9155212f69d730a0ee15",
+          "bytes": 1101916
+        },
+        {
+          "blender_frame": 24,
+          "native_frame": 7307,
+          "native_pts": 1870592,
+          "candidate_pts": 5888,
+          "time_base": [
+            1,
+            15360
+          ],
+          "actual_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0024.png",
+          "actual_filename": "frame_0024.png",
+          "sha256": "3fe528b2a78660a2f8e3891dffeae0f8b7d41b56f5a9aaf8eb186855a6688c49",
+          "bytes": 1116254
+        },
+        {
+          "blender_frame": 25,
+          "native_frame": 7308,
+          "native_pts": 1870848,
+          "candidate_pts": 6144,
+          "time_base": [
+            1,
+            15360
+          ],
+          "actual_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0025.png",
+          "actual_filename": "frame_0025.png",
+          "sha256": "56168a1a69a7508519b24bedfee3e1829a08b8a3ee053c488f174b71441eed5e",
+          "bytes": 1123639
+        },
+        {
+          "blender_frame": 26,
+          "native_frame": 7309,
+          "native_pts": 1871104,
+          "candidate_pts": 6400,
+          "time_base": [
+            1,
+            15360
+          ],
+          "actual_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0026.png",
+          "actual_filename": "frame_0026.png",
+          "sha256": "6438721af1ef5ca31ba15a42e70c5563ac4826fec0431a70682e462449f1424c",
+          "bytes": 1133151
+        },
+        {
+          "blender_frame": 27,
+          "native_frame": 7310,
+          "native_pts": 1871360,
+          "candidate_pts": 6656,
+          "time_base": [
+            1,
+            15360
+          ],
+          "actual_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0027.png",
+          "actual_filename": "frame_0027.png",
+          "sha256": "7156645b6286bf702ef86de0a56d493cae6298fdd0ea4ef03a9e86dea8b24456",
+          "bytes": 1137809
+        },
+        {
+          "blender_frame": 28,
+          "native_frame": 7311,
+          "native_pts": 1871616,
+          "candidate_pts": 6912,
+          "time_base": [
+            1,
+            15360
+          ],
+          "actual_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0028.png",
+          "actual_filename": "frame_0028.png",
+          "sha256": "ee281655773e180fe98b9a870e366ea8378fd786e3f3c47e0868d78501a3fd09",
+          "bytes": 1139346
+        },
+        {
+          "blender_frame": 29,
+          "native_frame": 7312,
+          "native_pts": 1871872,
+          "candidate_pts": 7168,
+          "time_base": [
+            1,
+            15360
+          ],
+          "actual_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0029.png",
+          "actual_filename": "frame_0029.png",
+          "sha256": "25f12e4212bf16133472ec914fdea856ec4b3d490d7d9ae89efa57905bddd832",
+          "bytes": 1139600
+        },
+        {
+          "blender_frame": 30,
+          "native_frame": 7313,
+          "native_pts": 1872128,
+          "candidate_pts": 7424,
+          "time_base": [
+            1,
+            15360
+          ],
+          "actual_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0030.png",
+          "actual_filename": "frame_0030.png",
+          "sha256": "37468dc0581e40b9ed9a0bd2deaeb2ab732ddd5c3d736ce693096f163ce39f35",
+          "bytes": 1138000
+        },
+        {
+          "blender_frame": 31,
+          "native_frame": 7314,
+          "native_pts": 1872384,
+          "candidate_pts": 7680,
+          "time_base": [
+            1,
+            15360
+          ],
+          "actual_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0031.png",
+          "actual_filename": "frame_0031.png",
+          "sha256": "8bf6ac8755c3f474ad7825eebf5c172918eb06217a65a1810452d75cb4a16594",
+          "bytes": 1136083
+        },
+        {
+          "blender_frame": 32,
+          "native_frame": 7315,
+          "native_pts": 1872640,
+          "candidate_pts": 7936,
+          "time_base": [
+            1,
+            15360
+          ],
+          "actual_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0032.png",
+          "actual_filename": "frame_0032.png",
+          "sha256": "773cf590ce501e2f114e79b61096cba0432cb6ba9f6aba01194f362b396b5c37",
+          "bytes": 1132822
+        },
+        {
+          "blender_frame": 33,
+          "native_frame": 7316,
+          "native_pts": 1872896,
+          "candidate_pts": 8192,
+          "time_base": [
+            1,
+            15360
+          ],
+          "actual_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0033.png",
+          "actual_filename": "frame_0033.png",
+          "sha256": "319eb5df1e2b26086386887e9829fa9ab04088e7084448aa731701efaaf7f1c6",
+          "bytes": 1127815
+        },
+        {
+          "blender_frame": 34,
+          "native_frame": 7317,
+          "native_pts": 1873152,
+          "candidate_pts": 8448,
+          "time_base": [
+            1,
+            15360
+          ],
+          "actual_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0034.png",
+          "actual_filename": "frame_0034.png",
+          "sha256": "fa6e1b7615df85c3346649f4dbe33796adf1c3abf9967ea296e16da669a3feb7",
+          "bytes": 1123978
+        },
+        {
+          "blender_frame": 35,
+          "native_frame": 7318,
+          "native_pts": 1873408,
+          "candidate_pts": 8704,
+          "time_base": [
+            1,
+            15360
+          ],
+          "actual_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0035.png",
+          "actual_filename": "frame_0035.png",
+          "sha256": "82aa41a55772016e1210c9f9ceca76a08edf1534b5f0ad70526d69a7e771a7a9",
+          "bytes": 1120932
+        },
+        {
+          "blender_frame": 36,
+          "native_frame": 7319,
+          "native_pts": 1873664,
+          "candidate_pts": 8960,
+          "time_base": [
+            1,
+            15360
+          ],
+          "actual_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0036.png",
+          "actual_filename": "frame_0036.png",
+          "sha256": "52977971085451e00d07e4405dce869daf2dc5fd2b65fb040f1d640892b8d344",
+          "bytes": 1113969
+        },
+        {
+          "blender_frame": 37,
+          "native_frame": 7320,
+          "native_pts": 1873920,
+          "candidate_pts": 9216,
+          "time_base": [
+            1,
+            15360
+          ],
+          "actual_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0037.png",
+          "actual_filename": "frame_0037.png",
+          "sha256": "40e29d2d0883fa26d5333d35a236fb7e9f5f0ab5552893f62da084f81b513c15",
+          "bytes": 1109017
+        },
+        {
+          "blender_frame": 38,
+          "native_frame": 7321,
+          "native_pts": 1874176,
+          "candidate_pts": 9472,
+          "time_base": [
+            1,
+            15360
+          ],
+          "actual_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0038.png",
+          "actual_filename": "frame_0038.png",
+          "sha256": "c562e01e72018d7714b85397cd6f63d6dddb36ae67bb624b284b2a52e4ce0b18",
+          "bytes": 1098436
+        },
+        {
+          "blender_frame": 39,
+          "native_frame": 7322,
+          "native_pts": 1874432,
+          "candidate_pts": 9728,
+          "time_base": [
+            1,
+            15360
+          ],
+          "actual_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0039.png",
+          "actual_filename": "frame_0039.png",
+          "sha256": "7f8568369f2e3339d6cc53d0388eb6125292645661181454dedefba535cc873f",
+          "bytes": 1085124
+        },
+        {
+          "blender_frame": 40,
+          "native_frame": 7323,
+          "native_pts": 1874688,
+          "candidate_pts": 9984,
+          "time_base": [
+            1,
+            15360
+          ],
+          "actual_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0040.png",
+          "actual_filename": "frame_0040.png",
+          "sha256": "23dd567e1d30f4e76435f3d1275f1aba97d4d40ef534549e009b8e175d8418e0",
+          "bytes": 1071919
+        },
+        {
+          "blender_frame": 41,
+          "native_frame": 7324,
+          "native_pts": 1874944,
+          "candidate_pts": 10240,
+          "time_base": [
+            1,
+            15360
+          ],
+          "actual_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0041.png",
+          "actual_filename": "frame_0041.png",
+          "sha256": "d182d817144af0d12de7e9f800dbb5c9249584be62d9987712014a4bb984c527",
+          "bytes": 1058970
+        },
+        {
+          "blender_frame": 42,
+          "native_frame": 7325,
+          "native_pts": 1875200,
+          "candidate_pts": 10496,
+          "time_base": [
+            1,
+            15360
+          ],
+          "actual_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0042.png",
+          "actual_filename": "frame_0042.png",
+          "sha256": "7820f1610d54b9c219324a46a680be20e8e02865fe3a2a96410732cf937b55b2",
+          "bytes": 1047541
+        },
+        {
+          "blender_frame": 43,
+          "native_frame": 7326,
+          "native_pts": 1875456,
+          "candidate_pts": 10752,
+          "time_base": [
+            1,
+            15360
+          ],
+          "actual_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0043.png",
+          "actual_filename": "frame_0043.png",
+          "sha256": "cb7c0f0838a9b9ca10f414c3f17d42a87f20573bd051b426d272f266ea2fd1a2",
+          "bytes": 1038515
+        },
+        {
+          "blender_frame": 44,
+          "native_frame": 7327,
+          "native_pts": 1875712,
+          "candidate_pts": 11008,
+          "time_base": [
+            1,
+            15360
+          ],
+          "actual_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0044.png",
+          "actual_filename": "frame_0044.png",
+          "sha256": "96ab17aad411b29bd8029651d7f1dfd1c37916e91fedcaf89797f3895d84b0e4",
+          "bytes": 1032887
+        },
+        {
+          "blender_frame": 45,
+          "native_frame": 7328,
+          "native_pts": 1875968,
+          "candidate_pts": 11264,
+          "time_base": [
+            1,
+            15360
+          ],
+          "actual_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0045.png",
+          "actual_filename": "frame_0045.png",
+          "sha256": "c81ef93e790c3bee833bf87ad6488724f35548798041e6f8517544f4a725bcba",
+          "bytes": 1024012
+        },
+        {
+          "blender_frame": 46,
+          "native_frame": 7329,
+          "native_pts": 1876224,
+          "candidate_pts": 11520,
+          "time_base": [
+            1,
+            15360
+          ],
+          "actual_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0046.png",
+          "actual_filename": "frame_0046.png",
+          "sha256": "9da028c8b520cd44dfcbb378bd57d74c7fd03b2a58eccf493ffa594ad842aa22",
+          "bytes": 1011561
+        },
+        {
+          "blender_frame": 47,
+          "native_frame": 7330,
+          "native_pts": 1876480,
+          "candidate_pts": 11776,
+          "time_base": [
+            1,
+            15360
+          ],
+          "actual_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0047.png",
+          "actual_filename": "frame_0047.png",
+          "sha256": "2a7f7f950c299b7ad2266a8c7bd50e264b29f413aeb16ad89117d7fd29bfe0a8",
+          "bytes": 990537
+        },
+        {
+          "blender_frame": 48,
+          "native_frame": 7331,
+          "native_pts": 1876736,
+          "candidate_pts": 12032,
+          "time_base": [
+            1,
+            15360
+          ],
+          "actual_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0048.png",
+          "actual_filename": "frame_0048.png",
+          "sha256": "846263c7a0686a413fe6ff40413cd1501d9ce1f60238fdc7ab1dd8a3bea07c86",
+          "bytes": 973424
+        },
+        {
+          "blender_frame": 49,
+          "native_frame": 7332,
+          "native_pts": 1876992,
+          "candidate_pts": 12288,
+          "time_base": [
+            1,
+            15360
+          ],
+          "actual_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0049.png",
+          "actual_filename": "frame_0049.png",
+          "sha256": "eeecda926e170a1b9989a51ebe2ea28bb010711296568289fa4b14537816a8ed",
+          "bytes": 967257
+        },
+        {
+          "blender_frame": 50,
+          "native_frame": 7333,
+          "native_pts": 1877248,
+          "candidate_pts": 12544,
+          "time_base": [
+            1,
+            15360
+          ],
+          "actual_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0050.png",
+          "actual_filename": "frame_0050.png",
+          "sha256": "02a2d7770e37b007f36369266df4fd2ddb10e5e1875cda799730bcf8cac4d111",
+          "bytes": 964600
+        },
+        {
+          "blender_frame": 51,
+          "native_frame": 7334,
+          "native_pts": 1877504,
+          "candidate_pts": 12800,
+          "time_base": [
+            1,
+            15360
+          ],
+          "actual_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0051.png",
+          "actual_filename": "frame_0051.png",
+          "sha256": "cd62ddb4b63a9095ddb503a3d6363e6b7a2fb7b4a8105aefb7d2f935eb0db0d2",
+          "bytes": 963666
+        },
+        {
+          "blender_frame": 52,
+          "native_frame": 7335,
+          "native_pts": 1877760,
+          "candidate_pts": 13056,
+          "time_base": [
+            1,
+            15360
+          ],
+          "actual_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0052.png",
+          "actual_filename": "frame_0052.png",
+          "sha256": "d3b2b6e7fcb83710707fc6268e93eb1e9edaa6844c06d44a4986005e129430f6",
+          "bytes": 965037
+        },
+        {
+          "blender_frame": 53,
+          "native_frame": 7336,
+          "native_pts": 1878016,
+          "candidate_pts": 13312,
+          "time_base": [
+            1,
+            15360
+          ],
+          "actual_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0053.png",
+          "actual_filename": "frame_0053.png",
+          "sha256": "c8cb53dfe64b052111e83d554a99a8255b1d405982c027be1e6d529eec7c1c60",
+          "bytes": 964663
+        },
+        {
+          "blender_frame": 54,
+          "native_frame": 7337,
+          "native_pts": 1878272,
+          "candidate_pts": 13568,
+          "time_base": [
+            1,
+            15360
+          ],
+          "actual_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0054.png",
+          "actual_filename": "frame_0054.png",
+          "sha256": "b958ad8d7b11ec893d3b7d94f71957367e48a7fcb229ff56982deec9a1104736",
+          "bytes": 966468
+        },
+        {
+          "blender_frame": 55,
+          "native_frame": 7338,
+          "native_pts": 1878528,
+          "candidate_pts": 13824,
+          "time_base": [
+            1,
+            15360
+          ],
+          "actual_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0055.png",
+          "actual_filename": "frame_0055.png",
+          "sha256": "28749528b35a1dc96b9edfc71b5fbb564f146771ecfa9e3e35fdba2ce1f57777",
+          "bytes": 965709
+        },
+        {
+          "blender_frame": 56,
+          "native_frame": 7339,
+          "native_pts": 1878784,
+          "candidate_pts": 14080,
+          "time_base": [
+            1,
+            15360
+          ],
+          "actual_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0056.png",
+          "actual_filename": "frame_0056.png",
+          "sha256": "c21fc37d8cf122231e1e7854a7d587bcb28b3cc82dd7a37ec0af73e05b453790",
+          "bytes": 966793
+        },
+        {
+          "blender_frame": 57,
+          "native_frame": 7340,
+          "native_pts": 1879040,
+          "candidate_pts": 14336,
+          "time_base": [
+            1,
+            15360
+          ],
+          "actual_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0057.png",
+          "actual_filename": "frame_0057.png",
+          "sha256": "e947e9e282dd98396a528120ca14f1f833e733dcb49bdbc5bffa79a2870a9e0e",
+          "bytes": 967718
+        },
+        {
+          "blender_frame": 58,
+          "native_frame": 7341,
+          "native_pts": 1879296,
+          "candidate_pts": 14592,
+          "time_base": [
+            1,
+            15360
+          ],
+          "actual_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0058.png",
+          "actual_filename": "frame_0058.png",
+          "sha256": "da0e557ec31aa31b22516422b43facccff46bbc2af0629fc46827ae764bbba14",
+          "bytes": 967827
+        },
+        {
+          "blender_frame": 59,
+          "native_frame": 7342,
+          "native_pts": 1879552,
+          "candidate_pts": 14848,
+          "time_base": [
+            1,
+            15360
+          ],
+          "actual_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0059.png",
+          "actual_filename": "frame_0059.png",
+          "sha256": "edb5161374dc8b83405410506a96294d4f55d1a3429a0657ea226bfc2fb1b0b2",
+          "bytes": 968742
+        },
+        {
+          "blender_frame": 60,
+          "native_frame": 7343,
+          "native_pts": 1879808,
+          "candidate_pts": 15104,
+          "time_base": [
+            1,
+            15360
+          ],
+          "actual_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0060.png",
+          "actual_filename": "frame_0060.png",
+          "sha256": "c65e190ad188d0369ab6f3e6793d7709420cfb7b7d684d38e36266fcc6a0ef5a",
+          "bytes": 968882
+        },
+        {
+          "blender_frame": 61,
+          "native_frame": 7344,
+          "native_pts": 1880064,
+          "candidate_pts": 15360,
+          "time_base": [
+            1,
+            15360
+          ],
+          "actual_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0061.png",
+          "actual_filename": "frame_0061.png",
+          "sha256": "f5f835991f1657808cb25f275a3663508b0d8ee8d552b0b6c82cdabb04c100f4",
+          "bytes": 969466
+        },
+        {
+          "blender_frame": 62,
+          "native_frame": 7345,
+          "native_pts": 1880320,
+          "candidate_pts": 15616,
+          "time_base": [
+            1,
+            15360
+          ],
+          "actual_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0062.png",
+          "actual_filename": "frame_0062.png",
+          "sha256": "fb8f77ed6cb5a7295f14589128bafdb82971cae102cfb7258708e92f3c4d9136",
+          "bytes": 969466
+        },
+        {
+          "blender_frame": 63,
+          "native_frame": 7346,
+          "native_pts": 1880576,
+          "candidate_pts": 15872,
+          "time_base": [
+            1,
+            15360
+          ],
+          "actual_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0063.png",
+          "actual_filename": "frame_0063.png",
+          "sha256": "d15f0848a56d0bff769b05b4472b31609d981230d42235b11724da35b519bd4a",
+          "bytes": 969466
+        },
+        {
+          "blender_frame": 64,
+          "native_frame": 7347,
+          "native_pts": 1880832,
+          "candidate_pts": 16128,
+          "time_base": [
+            1,
+            15360
+          ],
+          "actual_path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0064.png",
+          "actual_filename": "frame_0064.png",
+          "sha256": "1e6bea1faff700841d3ce8b3dd6166df9fafc20c2f25522762d43a9f17e44f80",
+          "bytes": 969466
+        }
+      ],
+      "source_bytes_unchanged": true,
+      "camera_unchanged": true,
+      "world_root_unchanged": true,
+      "action_curves_unchanged": true,
+      "source_structure_unchanged": true,
+      "drivers_unchanged": true,
+      "packed_images_unchanged": true,
+      "companions_unchanged": true,
+      "output_files": [
+        {
+          "path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0001.png",
+          "sha256": "244360c24a0532f297508367fd8311833377eef27d51c620a6bdd1bcceaeceaf"
+        },
+        {
+          "path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0002.png",
+          "sha256": "faccb85f920b48aead2f3e8148660099076a896ab40efb4c3b46042483b2801b"
+        },
+        {
+          "path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0003.png",
+          "sha256": "01a24b66ddc0226632a7642ea2828ba9c6dc1b0550f0be0a4e75d8d2e7a104b5"
+        },
+        {
+          "path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0004.png",
+          "sha256": "4e6b6f51902939df43796a8ee3847a88c400549aafd26970e69e176de68b674a"
+        },
+        {
+          "path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0005.png",
+          "sha256": "464228ea9ff0fa8d4bfa8c55e825eec1cd63a616e57a6159693d8049eee42d51"
+        },
+        {
+          "path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0006.png",
+          "sha256": "bd579bf232c0de584663c8502c8406eb0156ed0584db21efeba14399c5ba0272"
+        },
+        {
+          "path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0007.png",
+          "sha256": "650b2b4531fa157cf9f06a007b0bbc71939404098b33264c7913a782dae3524b"
+        },
+        {
+          "path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0008.png",
+          "sha256": "ac3a7a7a5316a94c2592565b1ca64d80a53a7f36d0ce34a4563017435d83a79b"
+        },
+        {
+          "path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0009.png",
+          "sha256": "a2326c47170bc848aafd3238219112640187abed85d4086024943264292288dd"
+        },
+        {
+          "path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0010.png",
+          "sha256": "e043655dcc31d03ebc65718c7114ee5b2a0a3363f61eb3d5dec891341509c127"
+        },
+        {
+          "path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0011.png",
+          "sha256": "83b706346799af50f71f632f199db6b5b583168422863b77dd692197893ff69c"
+        },
+        {
+          "path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0012.png",
+          "sha256": "ccb77583fe4ff4dbb021791e1c23e08445beb8e2f3e83a681ffb9e6e8fe23c4e"
+        },
+        {
+          "path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0013.png",
+          "sha256": "0c6fed3352315da685c64f4aa456fa88fe3e89bd22ae74b4d68dcb2e56072895"
+        },
+        {
+          "path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0014.png",
+          "sha256": "521ceef5bf68e9241f390b97cac3c1536cb27229a552d5970be920286b7ad7f3"
+        },
+        {
+          "path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0015.png",
+          "sha256": "298205452c46ac516a9e34caa0d920e579704fa693759d16ba33b9b40cecbd70"
+        },
+        {
+          "path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0016.png",
+          "sha256": "4f682dd3f4c12aca0c558f59fbb0a17f6daa0e0bb34f7b4bf54c3a240a4193bb"
+        },
+        {
+          "path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0017.png",
+          "sha256": "0b023ea1db2281f0e2e80c0a5ce3ef20fca8ca1bed069123fa793c55feb0cb1c"
+        },
+        {
+          "path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0018.png",
+          "sha256": "74e6ed6c534ad4d49be3bca67c99afe47f7c3f27d81e26ce654a9be353b60ce8"
+        },
+        {
+          "path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0019.png",
+          "sha256": "71d5131e744c3802882b65cccf9ae67f4305c7be36eff5807b13b8a94175c3de"
+        },
+        {
+          "path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0020.png",
+          "sha256": "6a1ba49c088cf38e7985eb73f2587ae43d570337665ef90dc3a2fe5e85294d7a"
+        },
+        {
+          "path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0021.png",
+          "sha256": "1f4bdb60d6eb456a86d53c88226290a0113abca51da0c504bb76364481ad8262"
+        },
+        {
+          "path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0022.png",
+          "sha256": "25e3fb5666ddeeaec7e1c06512964fff9967ff942b4ea9bffbb233064333b0ed"
+        },
+        {
+          "path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0023.png",
+          "sha256": "4f8df427e476718d58b544811a14f4806d37385fe3cc9155212f69d730a0ee15"
+        },
+        {
+          "path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0024.png",
+          "sha256": "3fe528b2a78660a2f8e3891dffeae0f8b7d41b56f5a9aaf8eb186855a6688c49"
+        },
+        {
+          "path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0025.png",
+          "sha256": "56168a1a69a7508519b24bedfee3e1829a08b8a3ee053c488f174b71441eed5e"
+        },
+        {
+          "path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0026.png",
+          "sha256": "6438721af1ef5ca31ba15a42e70c5563ac4826fec0431a70682e462449f1424c"
+        },
+        {
+          "path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0027.png",
+          "sha256": "7156645b6286bf702ef86de0a56d493cae6298fdd0ea4ef03a9e86dea8b24456"
+        },
+        {
+          "path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0028.png",
+          "sha256": "ee281655773e180fe98b9a870e366ea8378fd786e3f3c47e0868d78501a3fd09"
+        },
+        {
+          "path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0029.png",
+          "sha256": "25f12e4212bf16133472ec914fdea856ec4b3d490d7d9ae89efa57905bddd832"
+        },
+        {
+          "path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0030.png",
+          "sha256": "37468dc0581e40b9ed9a0bd2deaeb2ab732ddd5c3d736ce693096f163ce39f35"
+        },
+        {
+          "path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0031.png",
+          "sha256": "8bf6ac8755c3f474ad7825eebf5c172918eb06217a65a1810452d75cb4a16594"
+        },
+        {
+          "path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0032.png",
+          "sha256": "773cf590ce501e2f114e79b61096cba0432cb6ba9f6aba01194f362b396b5c37"
+        },
+        {
+          "path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0033.png",
+          "sha256": "319eb5df1e2b26086386887e9829fa9ab04088e7084448aa731701efaaf7f1c6"
+        },
+        {
+          "path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0034.png",
+          "sha256": "fa6e1b7615df85c3346649f4dbe33796adf1c3abf9967ea296e16da669a3feb7"
+        },
+        {
+          "path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0035.png",
+          "sha256": "82aa41a55772016e1210c9f9ceca76a08edf1534b5f0ad70526d69a7e771a7a9"
+        },
+        {
+          "path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0036.png",
+          "sha256": "52977971085451e00d07e4405dce869daf2dc5fd2b65fb040f1d640892b8d344"
+        },
+        {
+          "path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0037.png",
+          "sha256": "40e29d2d0883fa26d5333d35a236fb7e9f5f0ab5552893f62da084f81b513c15"
+        },
+        {
+          "path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0038.png",
+          "sha256": "c562e01e72018d7714b85397cd6f63d6dddb36ae67bb624b284b2a52e4ce0b18"
+        },
+        {
+          "path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0039.png",
+          "sha256": "7f8568369f2e3339d6cc53d0388eb6125292645661181454dedefba535cc873f"
+        },
+        {
+          "path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0040.png",
+          "sha256": "23dd567e1d30f4e76435f3d1275f1aba97d4d40ef534549e009b8e175d8418e0"
+        },
+        {
+          "path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0041.png",
+          "sha256": "d182d817144af0d12de7e9f800dbb5c9249584be62d9987712014a4bb984c527"
+        },
+        {
+          "path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0042.png",
+          "sha256": "7820f1610d54b9c219324a46a680be20e8e02865fe3a2a96410732cf937b55b2"
+        },
+        {
+          "path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0043.png",
+          "sha256": "cb7c0f0838a9b9ca10f414c3f17d42a87f20573bd051b426d272f266ea2fd1a2"
+        },
+        {
+          "path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0044.png",
+          "sha256": "96ab17aad411b29bd8029651d7f1dfd1c37916e91fedcaf89797f3895d84b0e4"
+        },
+        {
+          "path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0045.png",
+          "sha256": "c81ef93e790c3bee833bf87ad6488724f35548798041e6f8517544f4a725bcba"
+        },
+        {
+          "path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0046.png",
+          "sha256": "9da028c8b520cd44dfcbb378bd57d74c7fd03b2a58eccf493ffa594ad842aa22"
+        },
+        {
+          "path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0047.png",
+          "sha256": "2a7f7f950c299b7ad2266a8c7bd50e264b29f413aeb16ad89117d7fd29bfe0a8"
+        },
+        {
+          "path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0048.png",
+          "sha256": "846263c7a0686a413fe6ff40413cd1501d9ce1f60238fdc7ab1dd8a3bea07c86"
+        },
+        {
+          "path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0049.png",
+          "sha256": "eeecda926e170a1b9989a51ebe2ea28bb010711296568289fa4b14537816a8ed"
+        },
+        {
+          "path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0050.png",
+          "sha256": "02a2d7770e37b007f36369266df4fd2ddb10e5e1875cda799730bcf8cac4d111"
+        },
+        {
+          "path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0051.png",
+          "sha256": "cd62ddb4b63a9095ddb503a3d6363e6b7a2fb7b4a8105aefb7d2f935eb0db0d2"
+        },
+        {
+          "path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0052.png",
+          "sha256": "d3b2b6e7fcb83710707fc6268e93eb1e9edaa6844c06d44a4986005e129430f6"
+        },
+        {
+          "path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0053.png",
+          "sha256": "c8cb53dfe64b052111e83d554a99a8255b1d405982c027be1e6d529eec7c1c60"
+        },
+        {
+          "path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0054.png",
+          "sha256": "b958ad8d7b11ec893d3b7d94f71957367e48a7fcb229ff56982deec9a1104736"
+        },
+        {
+          "path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0055.png",
+          "sha256": "28749528b35a1dc96b9edfc71b5fbb564f146771ecfa9e3e35fdba2ce1f57777"
+        },
+        {
+          "path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0056.png",
+          "sha256": "c21fc37d8cf122231e1e7854a7d587bcb28b3cc82dd7a37ec0af73e05b453790"
+        },
+        {
+          "path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0057.png",
+          "sha256": "e947e9e282dd98396a528120ca14f1f833e733dcb49bdbc5bffa79a2870a9e0e"
+        },
+        {
+          "path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0058.png",
+          "sha256": "da0e557ec31aa31b22516422b43facccff46bbc2af0629fc46827ae764bbba14"
+        },
+        {
+          "path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0059.png",
+          "sha256": "edb5161374dc8b83405410506a96294d4f55d1a3429a0657ea226bfc2fb1b0b2"
+        },
+        {
+          "path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0060.png",
+          "sha256": "c65e190ad188d0369ab6f3e6793d7709420cfb7b7d684d38e36266fcc6a0ef5a"
+        },
+        {
+          "path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0061.png",
+          "sha256": "f5f835991f1657808cb25f275a3663508b0d8ee8d552b0b6c82cdabb04c100f4"
+        },
+        {
+          "path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0062.png",
+          "sha256": "fb8f77ed6cb5a7295f14589128bafdb82971cae102cfb7258708e92f3c4d9136"
+        },
+        {
+          "path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0063.png",
+          "sha256": "d15f0848a56d0bff769b05b4472b31609d981230d42235b11724da35b519bd4a"
+        },
+        {
+          "path": "/workspace/shared/vault-review-20261005/render/frames/aella_vault_low_r2/frame_0064.png",
+          "sha256": "1e6bea1faff700841d3ce8b3dd6166df9fafc20c2f25522762d43a9f17e44f80"
+        }
+      ],
+      "ended_utc": "2026-10-05T01:06:16.512128+00:00"
+    }
+  ],
+  "action_curve_digest_before": "1b5594ffca419f9ab664f03148db08cf92fb6fa95f035bfcf0b67a3ad23a6135",
+  "source_mesh_digest_before": "a4e66aba01b5235f6e33fbe5350bb566c251db4cbafc6742f54f1dc989e321d3",
+  "material_digest_before": "9c69a7988707ec8a2e18d5dc3ae6cc3dd73bf996a37d0f62d8f2b04de619a99b",
+  "started_utc": "2026-10-05T01:04:37.674775+00:00",
+  "window_pointer": 139948062713440,
+  "area_type": "VIEW_3D",
+  "region_type": "WINDOW",
+  "viewport_shading": "RENDERED",
+  "scene_world": true,
+  "scene_lights": true,
+  "camera_view": "CAMERA",
+  "gpu": {
+    "vendor": "Mesa",
+    "renderer": "llvmpipe (LLVM 19.1.7, 256 bits)",
+    "version": "4.5 (Core Profile) Mesa 25.0.7-2+deb13u1",
+    "backend": "OPENGL"
+  },
+  "object_action_bindings": {
+    "Actual arms mesh 0": null,
+    "Actual arms mesh 1": null,
+    "Actual arms mesh 2": null,
+    "Arms": "aella_vault_low_r2",
+    "hk416_magazine": "hk416_magazineAction",
+    "hk416_magazine_outgoing": null,
+    "hk416_weapon": "hk416_weaponAction.001",
+    "Locomotion preview key": null,
+    "Neutral side view \u2014 Z up, -Y forward": null,
+    "RD First Person Review": null,
+    "RD_REFERENCE_ONLY | Ground": null,
+    "RD_REFERENCE_ONLY | left pillar": null,
+    "RD_REFERENCE_ONLY | right pillar": null,
+    "RD_REFERENCE_ONLY | tower": null,
+    "Shape \u2022 elbow diamond": null,
+    "Shape \u2022 magazine tab": null,
+    "Shape \u2022 weapon box": null,
+    "Shape \u2022 wrist ring": null
+  },
+  "eevee_sample_settings": {
+    "taa_samples": 8,
+    "taa_render_samples": 32,
+    "volumetric_samples": 64,
+    "volumetric_sample_distribution": 0.800000011920929,
+    "volumetric_shadow_samples": 16
+  },
+  "source_bytes_unchanged": true,
+  "camera_unchanged": true,
+  "world_root_unchanged": true,
+  "action_curves_unchanged": true,
+  "source_structure_unchanged": true,
+  "drivers_unchanged": true,
+  "packed_images_unchanged": true,
+  "companions_unchanged": true,
+  "ended_utc": "2026-10-05T01:06:16.512159+00:00"
+}

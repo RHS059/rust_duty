@@ -1,0 +1,21 @@
+{
+  "source_sha256": "740e7e2b16d6947075c321467cfe21d36314f68b93829cf8a2d954b4d382cdb5",
+  "capture_script_sha256": "a51e1e3963c7fa4f3726ede4eb0a35dddb5fd8e2ce0b86c29e82a95e118e837d",
+  "script_syntax_passed": true,
+  "shell_syntax_passed": true,
+  "sole_capture_operator": "bpy.ops.render.opengl",
+  "animation": true,
+  "fps": 60,
+  "frame_step": 1,
+  "blender_frames_inclusive": [
+    1,
+    64
+  ],
+  "native_frames_half_open": [
+    7284,
+    7348
+  ],
+  "actual_filename_mapping": "Blender render.frame_path resolved from frame index; actual frame_change_post events verified against existing64 outputs",
+  "capture_started": false,
+  "source_saved": false
+}

@@ -1,0 +1,28 @@
+{
+  "scope": "Technical artifact inspection only; no artistic or hand-surface approval",
+  "all64_pngs_decode": true,
+  "all_dimensions": [
+    1280,
+    720
+  ],
+  "no_blank_capture": true,
+  "observed_native_sample_frames": [
+    1,
+    8,
+    16,
+    24,
+    32,
+    40,
+    48,
+    56,
+    64
+  ],
+  "no_ui_or_dialog_baked_into_capture": true,
+  "no_missing_texture_placeholder_visible": true,
+  "fixed_camera_background_present": true,
+  "native_frame_events": 65,
+  "distinct_observed_blender_frames": 64,
+  "actual_png_filenames_to_frames_verified": true,
+  "duplicate_poses_allowed": true,
+  "artistic_review": "pending"
+}
