@@ -8,6 +8,14 @@ pub const BUILD_LABEL: &str = env!("RUST_DUTY_BUILD_LABEL");
 pub mod settings;
 pub mod sim;
 
+pub mod action;
+
+pub mod weapon_sway;
+
+pub mod body_presentation;
+
+pub mod traversal_replay;
+
 pub mod control;
 
 pub mod clock;

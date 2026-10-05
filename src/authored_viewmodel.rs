@@ -50,8 +50,14 @@ pub struct AuthoredViewmodel {
     return_map: Option<PoseReturnMap>,
     return_blend: Option<AnchoredPoseBlend>,
     reload_presentation: Option<ReloadPresentation>,
+    /// Hip cant (radians) about the weapon actor's bore line.
+    cant: f32,
 }
 impl AuthoredViewmodel {
+    /// Set the hip cant applied at the next draw. Gameplay owns the value.
+    pub fn set_cant(&mut self, radians: f32) {
+        self.cant = if radians.is_finite() { radians } else { 0. };
+    }
     pub fn set_walk_translation(&mut self, value: vector_range::settings::WalkTranslation) {
         if let Some(layers) = &mut self.locomotion {
             layers.set_walk_translation(value);
@@ -154,6 +160,7 @@ impl AuthoredViewmodel {
             return_map: None,
             return_blend: None,
             reload_presentation: None,
+            cant: 0.,
         })
     }
     /// Gameplay route: every semantic slot binds data, and each complete model
@@ -697,12 +704,14 @@ impl AuthoredViewmodel {
     pub fn animation(&self) -> &AnimationSet {
         &self.animation
     }
-    /// `offset` is camera-space meters: +X right, +Y up, +Z toward camera.
-    pub fn draw(&mut self, simulation_time: f64, lighting: SceneLighting, offset: Vec3) {
+    /// `root` is a rigid camera-space transform applied to the whole viewmodel
+    /// (arms and weapon together, so contacts are preserved). Meters: +X right,
+    /// +Y up, -Z forward.
+    pub fn draw(&mut self, simulation_time: f64, lighting: SceneLighting, root: Mat4) {
         if self.error.is_some() {
             return;
         }
-        if let Err(error) = self.draw_checked(simulation_time, lighting, offset) {
+        if let Err(error) = self.draw_checked(simulation_time, lighting, root) {
             eprintln!("Authored viewmodel playback failed: {error}");
             self.error = Some(error);
         }
@@ -711,19 +720,16 @@ impl AuthoredViewmodel {
         &mut self,
         simulation_time: f64,
         lighting: SceneLighting,
-        offset: Vec3,
+        root: Mat4,
     ) -> Result<(), String> {
         if let Some(visual) = &self.reload_presentation {
-            return self.reload_renderers[visual.index].draw_pose_opacity(
-                &visual.pose,
-                lighting,
-                offset,
-                Some(&visual.opacity),
-            );
+            let renderer = &mut self.reload_renderers[visual.index];
+            renderer.cant = self.cant;
+            return renderer.draw_pose_opacity(&visual.pose, lighting, root, Some(&visual.opacity));
         }
         if let Some(layers) = &self.locomotion {
             let pose = layers.pose().clone();
-            return self.draw_pose(&pose, lighting, offset);
+            return self.draw_pose(&pose, lighting, root);
         }
         let time = self.fixed_time.unwrap_or(simulation_time as f32);
         let pose = if self.fixed_time.is_some() {
@@ -732,27 +738,51 @@ impl AuthoredViewmodel {
             self.animation().sample(&self.clip, time)
         }
         .map_err(|e| e.to_string())?;
-        self.draw_pose(&pose, lighting, offset)
+        self.draw_pose(&pose, lighting, root)
     }
     /// Render one complete evaluated pose from this animation set. The gameplay
     /// adapter owns which presentation supplies it; no two pose owners are mixed
     /// here. Skin and actor dimension/transform validation is retained.
-    /// `offset` is camera-space meters: +X right, +Y up, +Z toward camera.
+    /// Rotate the weapon actor about its bore line and carry every arm bone
+    /// with it in weapon space, so grips stay attached (shoulders are offscreen).
+    fn cant_root(&self, pose: &ViewmodelPose, root: Mat4) -> Result<Mat4, String> {
+        if self.cant == 0. {
+            return Ok(root);
+        }
+        let actors = self.animation.actors();
+        let Some(index) = actors
+            .iter()
+            .position(|a| a.name == "hk416_weapon")
+            .or_else(|| actors.iter().position(|a| !a.mesh_indices.is_empty()))
+        else {
+            return Ok(root);
+        };
+        let weapon = self
+            .animation
+            .actor_matrices(pose, root * game_model_root())
+            .map_err(|e| e.to_string())?[index];
+        Ok(
+            vector_range::weapon_sway::cant_about_bore(weapon, self.weapon.muzzle, self.cant)
+                * root,
+        )
+    }
+    /// `root` is the rigid camera-space viewmodel transform (see `draw`).
     pub fn draw_pose(
         &mut self,
         pose: &ViewmodelPose,
         lighting: SceneLighting,
-        offset: Vec3,
+        root: Mat4,
     ) -> Result<(), String> {
-        self.draw_pose_opacity(pose, lighting, offset, None)
+        self.draw_pose_opacity(pose, lighting, root, None)
     }
     fn draw_pose_opacity(
         &mut self,
         pose: &ViewmodelPose,
         lighting: SceneLighting,
-        offset: Vec3,
+        root: Mat4,
         actor_opacity: Option<&[f32]>,
     ) -> Result<(), String> {
+        let root = self.cant_root(pose, root)?;
         let palette = self
             .animation
             .skin_palette(pose, &self.skin.bones, game_model_root())
@@ -772,9 +802,9 @@ impl AuthoredViewmodel {
                         n += normals[joint as usize].transform_vector3(normal) * weight;
                     }
                 }
-                n = n.try_normalize().unwrap_or(Vec3::Y);
+                n = root.transform_vector3(n).try_normalize().unwrap_or(Vec3::Y);
                 let shade = lighting.irradiance(n);
-                vertex.position = p + offset;
+                vertex.position = root.transform_point3(p);
                 vertex.normal = n.extend(0.);
                 vertex.color = Color::new(
                     part.base_color[0] * shade,
@@ -795,7 +825,7 @@ impl AuthoredViewmodel {
         let mut opacity = vec![1.; self.rigid_mesh_count];
         for (index, actor) in self.animation.actors().iter().enumerate() {
             for &mesh in &actor.mesh_indices {
-                transforms[mesh] = Mat4::from_translation(offset) * actors[index];
+                transforms[mesh] = root * actors[index];
                 visibility[mesh] = pose.actor_visible[index];
                 opacity[mesh] = actor_opacity.map_or(1., |values| values[index]);
             }

@@ -1,3 +1,4 @@
+use crate::action::ActionTuning;
 use std::{collections::BTreeMap, fs, path::Path};
 
 /// Per-axis walking translation adjustment. Zero preserves authored motion;
@@ -63,6 +64,8 @@ pub struct Settings {
     pub ads_spread: f32,
     pub recoil_pitch: f32,
     pub recoil_return: f32,
+    /// Traversal, mount, obstruction and death tuning.
+    pub action: ActionTuning,
 }
 impl Default for Settings {
     fn default() -> Self {
@@ -95,6 +98,7 @@ impl Default for Settings {
             ads_spread: 0.08,
             recoil_pitch: 0.775,
             recoil_return: 21.,
+            action: ActionTuning::default(),
         }
     }
 }
@@ -258,8 +262,21 @@ impl Settings {
                             "recoil_return" => Some((&mut s.recoil_return, 2., 30.)),
                             _ => None,
                         };
-                        if let Some((slot, min, max)) = slot {
+                        let handled = if let Some((slot, min, max)) = slot {
                             *slot = v.clamp(min, max);
+                            true
+                        } else {
+                            false
+                        };
+                        if !handled {
+                            if let Some((_, slot, min, max)) = s
+                                .action
+                                .fields_mut()
+                                .into_iter()
+                                .find(|(name, ..)| *name == key.trim())
+                            {
+                                *slot = v.clamp(min, max);
+                            }
                         }
                     }
                 }
@@ -301,6 +318,10 @@ impl Settings {
         ];
         let mut out = String::from("# Vector Range tuning settings. F6 reloads, F5 saves.\n# Distances meters, times seconds, angles degrees. FOV is horizontal.\n# ADS movement is a fraction of normal stance speed.\n");
         for (key, value) in fields {
+            out.push_str(&format!("{key} = {value:.4}\n"));
+        }
+        let mut action = self.action.clone();
+        for (key, value, ..) in action.fields_mut() {
             out.push_str(&format!("{key} = {value:.4}\n"));
         }
         out.push_str("# Per-weapon walking translation: -1 = none, 0 = authored, +1 = double.\n");

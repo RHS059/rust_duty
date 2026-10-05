@@ -1,4 +1,5 @@
 //! Stable semantic animation slots. Asset revisions change this file's data, not input wiring.
+use crate::action::{ActionSlot, ActionTimings};
 use crate::authored_locomotion_path::AuthoredLocomotionPathConfig;
 use std::{
     collections::BTreeMap,
@@ -29,6 +30,14 @@ pub struct AdsReference {
     pub hold_clip: String,
     pub exit_clip: String,
 }
+/// An authored traversal/weapon-action clip. Its duration comes from the clip;
+/// gameplay gates use the named normalized events.
+#[derive(Clone, Debug, PartialEq)]
+pub struct ActionClipBinding {
+    pub asset: PathBuf,
+    pub clip: String,
+    pub events: Vec<(String, f32)>,
+}
 #[derive(Clone, Debug)]
 pub struct AnimationManifest {
     pub locomotion_asset: PathBuf,
@@ -45,8 +54,23 @@ pub struct AnimationManifest {
     pub receiver_ads_wip: bool,
     pub forward_ads_v9_wip: bool,
     pub ads_visual_transition_seconds: Option<f64>,
+    /// Optional action slots. Absent or `unavailable` keeps placeholder timing.
+    pub actions: BTreeMap<ActionSlot, ActionClipBinding>,
 }
 impl AnimationManifest {
+    /// Replace placeholder action timings with authored clip durations/events.
+    /// `duration` resolves an asset/clip pair (the game loads the `.vra`).
+    pub fn bind_action_timings(
+        &self,
+        timings: &mut ActionTimings,
+        duration: impl Fn(&Path, &str) -> Result<f32, String>,
+    ) -> Result<(), String> {
+        for (slot, binding) in &self.actions {
+            let seconds = duration(&binding.asset, &binding.clip)?;
+            timings.bind(*slot, seconds, binding.events.clone())?;
+        }
+        Ok(())
+    }
     pub fn load(path: &Path) -> Result<Self, String> {
         let text = std::fs::read_to_string(path)
             .map_err(|error| format!("animation manifest {}: {error}", path.display()))?;
@@ -224,6 +248,47 @@ impl AnimationManifest {
         } else {
             Some(reference(&mut values, "reload.empty", directory)?)
         };
+        let mut actions = BTreeMap::new();
+        for slot in ActionSlot::ALL {
+            let key = format!("action.{}", slot.name());
+            if values.contains_key(&key) {
+                policy(&mut values, &key, "unavailable")?;
+                continue;
+            }
+            if !values.contains_key(&format!("{key}.clip")) {
+                continue;
+            }
+            let reference = reference(&mut values, &key, directory)?;
+            let events = values
+                .remove(&format!("{key}.events"))
+                .map(|list| {
+                    list.split(',')
+                        .map(|pair| {
+                            let (name, at) = pair
+                                .split_once(':')
+                                .ok_or_else(|| format!("{key}.events needs name:time pairs"))?;
+                            let at: f32 = at
+                                .trim()
+                                .parse()
+                                .map_err(|_| format!("{key}.events has an invalid time"))?;
+                            if !(0. ..=1.).contains(&at) {
+                                return Err(format!("{key}.events must be normalized 0..1"));
+                            }
+                            Ok((name.trim().to_owned(), at))
+                        })
+                        .collect::<Result<Vec<_>, String>>()
+                })
+                .transpose()?
+                .unwrap_or_default();
+            actions.insert(
+                slot,
+                ActionClipBinding {
+                    asset: reference.asset,
+                    clip: reference.clip,
+                    events,
+                },
+            );
+        }
         if !values.is_empty() {
             return Err(format!("unknown animation slots: {:?}", values.keys()));
         }
@@ -241,6 +306,7 @@ impl AnimationManifest {
             receiver_ads_wip,
             forward_ads_v9_wip,
             ads_visual_transition_seconds,
+            actions,
         })
     }
 }

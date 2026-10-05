@@ -215,3 +215,11 @@ or inherit user walking-motion gains.
 `--capture-sequence=gameplay-jump --capture-hz=60` records actual native HIP/ADS
 jumps, extended-air hold, and reload interruption for the CI gate. Captured state
 and numeric source parity do not establish a reference-match score.
+
+## Traversal and weapon-action slots
+
+`action.<slot>` keys (tactical sprint, slide, dive, mount, ledge hang, hanging
+sidearm, pull-up, drop) are optional and declared `unavailable` until authored
+clips exist. Gameplay then uses labeled placeholder timing. A bound clip's
+duration and normalized events retime the gameplay gates without code changes.
+See [traversal animation slots](TRAVERSAL.md#animation-slots).
