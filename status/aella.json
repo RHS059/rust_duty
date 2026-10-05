@@ -1,27 +1,27 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-05T00:12:30Z",
+  "updatedAt": "2026-10-05T00:22:36Z",
   "state": "working",
-  "task": "Continuing the agreed source split: coordinate source ownership and verify packages; author isolated low-vault r2 detach/regrip and repair hand switching from recovered e8eae64. Source-only Colab review preparation is complete and waiting for a candidate and Eevee confirmation. Rendering alone awaits explicit Eevee confirmation; non-render work proceeds. Independent release/Jump/content-delta work remains active: public v0.1.8 published; exact Jump eedd2910 playable CI passed; delta 176e046c assets and Windows passed while Linux remains in progress. Both updater checks passed.",
+  "task": "Coordinate source ownership and exact-source package verification while low-vault r2 authoring/Eevee preview, publisher validation/0.1.9 channel promotion, and unique per-run-attempt build numbering remain active. Source-only Colab review preparation is complete; candidate comparison is waiting for the rendered candidate. Eevee rendering and current-content GitHub publication are authorized; prior denied/cancelled writes await verified retry, not assumed resolved. Jump eedd2910 and content-delta 176e046c playable builds plus both updater checks passed; public latest remains v0.1.8.",
   "lastCompleted": "All six new videos annotated: 150 intervals cover 14,017 native frames; 1,135 sampled frames reviewed. PR #33 e4fdda48 pins witness hashes. Exact 0.1.8 Windows/Linux builds and native gameplay gates passed. Mantle/climb recovery packet published without claiming an authored candidate.",
   "agents": [
     {
       "slot": 1,
       "state": "working",
-      "task": "Coordinate source ownership and verify exact-source packages against the agreed split.",
-      "lastCompleted": "Verified public v0.1.8 and Jump eedd2910 successful run 37244927380 with Windows/Linux artifacts. Jump diagnostic independently checked: 75 source/FBX/Rust points, 0.07963 mm maximum; this is technical parity, not artistic approval. Complete ZIP verification remains blocked by download limits."
+      "task": "Author isolated low-vault r2 detach/regrip and hand-switch repair, then produce the authorized Eevee preview.",
+      "lastCompleted": "Low-vault r2 technical checks passed 1,021 samples. No visual review or artistic approval yet; candidate preview remains to be verified."
     },
     {
       "slot": 2,
-      "state": "waiting",
-      "task": "Wait for authored low-vault candidate and explicit Eevee confirmation before candidate/Colab comparison.",
-      "lastCompleted": "Completed source-only manual review of 26 frames with 7 raster anchors and prepared a 64-frame review template; no candidate render or artistic pass claimed."
+      "state": "working",
+      "task": "Repair publisher validation and promote the verified 0.1.9 candidate through the update channel.",
+      "lastCompleted": "Jump eedd2910 run 37244927380 passed Windows/Linux and all five asset pipelines. Public latest is still v0.1.8; publisher repair/promotion is not yet verified."
     },
     {
       "slot": 3,
       "state": "working",
-      "task": "Author isolated low-vault r2 detach/regrip and repair hand switching under mantle/climb authoring paths from recovered e8eae64; no rendering.",
-      "lastCompleted": "Recovered mantle/climb source packet available; new authored candidate and preview are not yet verified."
+      "task": "Implement a visible unique build number for every run attempt.",
+      "lastCompleted": "Existing Jump candidate identifies as 0.1.9/sequence 9. A distinct visible number for each run attempt is being implemented; no completed implementation claimed."
     }
   ]
 }
