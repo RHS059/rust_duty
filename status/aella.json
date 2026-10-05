@@ -1,27 +1,27 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-05T02:13:33Z",
+  "updatedAt": "2026-10-05T02:22:22Z",
   "state": "working",
-  "task": "Validate combined Windows 0.1.11 integration, publish and visually test four copied HIP walking correction candidates, and author high-obstacle climb source after low-vault free-hand r3. Coordinate Halcyon's prone and vault previews. Latest Complete and public latest remain verified v0.1.9.",
+  "task": "Complete Windows-only 0.1.11 update verification; publish and visually review the four Colab-adjusted HIP experiments; continue high-obstacle animation work and coordinate genuine Eevee previews.",
   "lastCompleted": "All six new videos annotated: 150 intervals cover 14,017 native frames; 1,135 sampled frames reviewed. PR #33 e4fdda48 pins witness hashes. Exact 0.1.8 Windows/Linux builds and native gameplay gates passed. Mantle/climb recovery packet published without claiming an authored candidate. Published v0.1.9 at 00:36:52 UTC: complete Windows/Linux packages and actual 0.1.8-to-0.1.9 delta activation, integrity, local-data preservation, game-entry update and same-path relaunch checks passed in run 37247568754. PR #36 unique build numbering merged into the Jump integration branch at fe87a7745fd5096eeb740aacbf8a094c5794d34a. Actual CPU prone-entry Colab results and the 64-frame native vault review were reviewed; vault free-hand visual failure now drives the next correction. Actual Colab CPU walking control and Blender 4.3.0/4.3.2 parity passed across 1,452 samples; this is technical evidence only, not a visual-quality pass. Exact four-direction r5 paired videos were restored for reference-led review. Four copied HIP correction Actions were subsequently created and technically checked across 2,904 samples with all 82 originals preserved. Low-vault free-hand r3 is now published at PR #35 b0a4ed51; rendered review remains pending.",
   "agents": [
     {
       "slot": 1,
       "state": "working",
       "task": "Validate combined Windows 0.1.11 integration PR #39 and release promotion readiness.",
-      "lastCompleted": "PR #39 combined Windows 0.1.11 integration remains active at 9525058d0583e270771211eca754dd0d3fa7e33a. Playable run 37252645953 passed all five authored asset pipelines and native validation. Windows quality checks, complete-game staging and embedded build identity passed; real 0.1.9-to-0.1.11 update preflight preparation is running, with byte/delta/fallback/preservation verification and artifact uploads pending. Runtime contracts 37252645717 and updater 37252645737 succeeded. Control-plane PR #40 merged at 1f9cad05cd567ad825fc347c77b43b32b47cdce1; the live release plan remains 0.1.9. Promotion is not verified. Windows-only future delivery retains useful Linux-host testing and old artifacts."
+      "lastCompleted": "PR #39 at 9525058 passed all five authored asset pipelines, Windows quality checks, complete-game staging and embedded identity. Run 37252645953 completed real Windows 0.1.9-to-0.1.11 preflight preparation; verification of actual release bytes, executable delta, full fallback and preservation is running. Native validation passed. PR #40 is merged; public latest remains verified v0.1.9."
     },
     {
       "slot": 2,
       "state": "working",
-      "task": "Publish and visually test four Colab-created HIP walking correction candidates.",
-      "lastCompleted": "Actual Colab execution created four copied HIP walking visual-correction candidate Actions. The candidate BLEND SHA-256 is f7d6e76d387a07508f61b2ade708fa930b93bd73b167110469a43c88ecf8eaf4. Clean NumPy 1.26.4 / bpy 4.3.0 technical checks passed across 2,904 samples, preserving all 82 original Actions. Isolated GitHub publication is in progress. Genuine Eevee previews and complete reference-led visual review remain pending; these candidates have no visual-quality pass."
+      "task": "Publish exact Colab-adjusted HIP experiment source and prepare separately labeled preview entries.",
+      "lastCompleted": "Four new visual experiment Actions preserve all 82 approved originals; clean technical checks passed across 2,904 samples. Exact BLEND SHA-256 f7d6e76d387a07508f61b2ade708fa930b93bd73b167110469a43c88ecf8eaf4 is being uploaded to an isolated source checkpoint. New genuine Eevee previews and visual acceptance remain pending; original videos and review scores must remain unchanged."
     },
     {
       "slot": 3,
       "state": "working",
-      "task": "Author high-obstacle climb and inspect release integration after low-vault r3.",
-      "lastCompleted": "High-obstacle climb source work is active after low-vault free-hand r3 publication to draft PR #35 at b0a4ed51b877f751daa88433aaa0553967831021. R3 technical checks and seven projection tests passed; Halcyon's 64-frame genuine Eevee capture is queued. No rendered r3 review or artistic pass is claimed. One-hand r3 retains its technical pass with visual acceptance pending; the high-obstacle reference depicts climbing or mantling onto something taller than the player."
+      "task": "Correct high-obstacle climb wrist/contact constraints while low-vault r3 awaits rendered review.",
+      "lastCompleted": "Low-vault r3 at PR #35 b0a4ed51 passed technical and seven projection checks; genuine r3 review is pending. High-obstacle source diagnostics found a wrist guard and reach defect; only bounded existing-control corrections are being investigated. A clean neutral arms/HK416 reference with packed textures and working rig controls was prepared and delivered separately."
     }
   ]
 }
