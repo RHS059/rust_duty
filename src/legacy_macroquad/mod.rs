@@ -43,6 +43,7 @@ void main() {
 }
 "#;
 const FRAGMENT_SHADER: &str = r#"#version 100
+precision mediump float;
 varying lowp vec2 uv;
 varying lowp vec4 vertex_color;
 uniform sampler2D Texture;
@@ -52,6 +53,7 @@ void main() {
 "#;
 
 const ASSOCIATED_FRAGMENT_SHADER: &str = r#"#version 100
+precision mediump float;
 varying lowp vec2 uv;
 varying lowp vec4 vertex_color;
 uniform sampler2D Texture;
@@ -62,6 +64,7 @@ void main() {
 }
 "#;
 const REPLACE_STRAIGHT_FRAGMENT_SHADER: &str = r#"#version 100
+precision mediump float;
 varying lowp vec2 uv;
 varying lowp vec4 vertex_color;
 uniform sampler2D Texture;
@@ -822,6 +825,20 @@ mod tests {
                     blend_pixel(target, stored, [0.25, 0.5, 0.75, 1.]),
                     [0.625, 0.75, 0.875, 1.]
                 );
+            }
+        }
+    }
+
+    #[test]
+    fn all_legacy_fragment_variants_declare_float_precision() {
+        // GLSL ES 1.00 has no default fragment float precision. Native Mesa
+        // compilation rejected the associated target shader's local vec4.
+        // This source guard covers every selected variant; native CI still
+        // owns compilation and rendering proof.
+        for blend in [BlendMode::Opaque, BlendMode::Alpha, BlendMode::Additive] {
+            for associated in [false, true] {
+                let shader = fragment_shader(blend, associated);
+                assert!(shader.starts_with("#version 100\nprecision mediump float;\n"));
             }
         }
     }
