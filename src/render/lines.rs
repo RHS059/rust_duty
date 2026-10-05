@@ -71,7 +71,7 @@ mod tests {
             indices,
             &(0..vertices.len()).map(|i| i as u16).collect::<Vec<_>>()
         );
-        for (pair, line) in vertices.chunks_exact(2).zip(lines) {
+        for (pair, line) in vertices.as_chunks::<2>().0.iter().zip(lines) {
             assert_eq!(pair[0].position, line.start);
             assert_eq!(pair[1].position, line.end);
             for vertex in pair {
