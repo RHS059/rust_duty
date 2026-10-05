@@ -221,6 +221,10 @@ pub struct Input {
     pub mount: bool,
     /// One-shot: sidearm draw/stow press (hang only).
     pub sidearm: bool,
+    /// Desired lean: -1 left .. 1 right.
+    pub lean: f32,
+    /// Desired hip cant (suppressed while aiming).
+    pub cant: bool,
 }
 #[derive(Clone, Copy)]
 pub struct Shot {
@@ -313,6 +317,14 @@ pub struct Player {
     pub recatch_support: Option<Aabb>,
     /// The most recent exit/interrupt slot and its start time, for presentation.
     pub last_exit: Option<(ActionSlot, f64)>,
+    /// Eased lean request, -1 left .. 1 right.
+    pub lean: f32,
+    /// Actual head offset after clearance clamping (world, horizontal).
+    pub lean_offset: Vec3,
+    /// Signed fraction of full lean actually reached (camera roll source).
+    pub lean_fraction: f32,
+    /// Eased hip cant, 0..1 (before ADS suppression).
+    pub cant: f32,
 }
 impl Default for Player {
     fn default() -> Self {
@@ -376,12 +388,24 @@ impl Default for Player {
             recatch_until: -10.,
             recatch_support: None,
             last_exit: None,
+            lean: 0.,
+            lean_offset: Vec3::ZERO,
+            lean_fraction: 0.,
+            cant: 0.,
         }
     }
 }
 impl Player {
     pub fn eye(&self) -> Vec3 {
-        self.position + vec3(0., self.eye_height - self.landing_kick, 0.)
+        self.position + vec3(0., self.eye_height - self.landing_kick, 0.) + self.lean_offset
+    }
+    /// Signed camera roll for the current lean (radians, + = right side down).
+    pub fn lean_roll(&self, max_degrees: f32) -> f32 {
+        self.lean_fraction * max_degrees.to_radians()
+    }
+    /// Visible cant weight: full at the hip, none when aimed.
+    pub fn cant_visual(&self) -> f32 {
+        self.cant * (1. - self.ads)
     }
     pub fn direction(&self) -> Vec3 {
         direction(

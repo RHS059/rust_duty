@@ -239,6 +239,10 @@ impl Simulation {
         p.reload_credited = false;
         p.reload_empty = false;
         p.last_exit = None;
+        p.lean = 0.;
+        p.lean_offset = Vec3::ZERO;
+        p.lean_fraction = 0.;
+        p.cant = 0.;
         self.emit(ActionEventKind::Died);
     }
     /// Returns true while dead: input is ignored and only the respawn timer runs.
@@ -1246,7 +1250,51 @@ impl Simulation {
             m.elapsed += dt;
             m.weight = (m.elapsed / enter.max(1e-3)).min(1.);
         }
+        self.update_lean_and_cant(input, cfg, dt);
         self.update_obstruction(cfg, dt);
+    }
+
+    /// Lean moves only the head/camera, never the body. The offset is clamped
+    /// by casts from the unleaned eye so the camera never enters geometry.
+    fn update_lean_and_cant(&mut self, input: Input, cfg: &Settings, dt: f32) {
+        let t = &cfg.action;
+        let p = &self.player;
+        let free = matches!(p.action, Action::None) && p.mantle.is_none();
+        let lean_target = if free && p.mount.is_none() && !p.prone && !p.sprinting {
+            input.lean.clamp(-1., 1.)
+        } else {
+            0.
+        };
+        let lean = approach(p.lean, lean_target, dt / t.lean_time.max(1e-3));
+        let distance = if p.crouched {
+            t.lean_crouch_distance
+        } else {
+            t.lean_distance
+        };
+        let want = lean * distance;
+        let right = horizontal(p.yaw).cross(Vec3::Y);
+        let dir = right * want.signum();
+        let base = p.position + vec3(0., p.eye_height - p.landing_kick, 0.);
+        let mut reach = want.abs();
+        if reach > 0. {
+            for dy in [-0.15, 0., 0.08] {
+                if let Some((d, _)) =
+                    self.cast(base + Vec3::Y * dy, dir, reach + t.lean_head_radius)
+                {
+                    reach = reach.min((d - t.lean_head_radius).max(0.));
+                }
+            }
+        }
+        let cant_target = if free { input.cant as u8 as f32 } else { 0. };
+        let p = &mut self.player;
+        p.lean = lean;
+        p.lean_offset = dir * reach;
+        p.lean_fraction = if distance > 0. {
+            want.signum() * reach / distance
+        } else {
+            0.
+        };
+        p.cant = approach(p.cant, cant_target, dt / t.cant_time.max(1e-3));
     }
 
     /// Nearest hit along a ray against blocks and ramps, with a surface normal.

@@ -35,8 +35,14 @@ pub struct AuthoredViewmodel {
     warning: Option<String>,
     walk_index: Option<usize>,
     ads_index: Option<usize>,
+    /// Hip cant (radians) about the weapon actor's bore line.
+    cant: f32,
 }
 impl AuthoredViewmodel {
+    /// Set the hip cant applied at the next draw. Gameplay owns the value.
+    pub fn set_cant(&mut self, radians: f32) {
+        self.cant = if radians.is_finite() { radians } else { 0. };
+    }
     /// Requires an initialized render context, like the existing mesh adapters.
     pub fn load(path: &str, clip: &str, fixed_time: Option<f32>) -> Result<Self, String> {
         if fixed_time.is_some_and(|time| !time.is_finite()) {
@@ -130,6 +136,7 @@ impl AuthoredViewmodel {
             warning: None,
             walk_index: None,
             ads_index: None,
+            cant: 0.,
         })
     }
     /// Gameplay route: every semantic slot binds data, and each complete model
@@ -419,6 +426,7 @@ impl AuthoredViewmodel {
             };
             let index = self.reload_indices[slot].ok_or("missing active reload renderer")?;
             let renderer = &mut self.reload_renderers[index];
+            renderer.cant = self.cant;
             let pose = renderer
                 .animation
                 .sample_clamped(&renderer.clip, sample.seconds as f32)
@@ -441,6 +449,29 @@ impl AuthoredViewmodel {
     /// Render one complete evaluated pose from this animation set. The gameplay
     /// adapter owns which presentation supplies it; no two pose owners are mixed
     /// here. Skin and actor dimension/transform validation is retained.
+    /// Rotate the weapon actor about its bore line and carry every arm bone
+    /// with it in weapon space, so grips stay attached (shoulders are offscreen).
+    fn cant_root(&self, pose: &ViewmodelPose, root: Mat4) -> Result<Mat4, String> {
+        if self.cant == 0. {
+            return Ok(root);
+        }
+        let actors = self.animation.actors();
+        let Some(index) = actors
+            .iter()
+            .position(|a| a.name == "hk416_weapon")
+            .or_else(|| actors.iter().position(|a| !a.mesh_indices.is_empty()))
+        else {
+            return Ok(root);
+        };
+        let weapon = self
+            .animation
+            .actor_matrices(pose, root * game_model_root())
+            .map_err(|e| e.to_string())?[index];
+        Ok(
+            vector_range::weapon_sway::cant_about_bore(weapon, self.weapon.muzzle, self.cant)
+                * root,
+        )
+    }
     /// `root` is the rigid camera-space viewmodel transform (see `draw`).
     pub fn draw_pose(
         &mut self,
@@ -448,6 +479,7 @@ impl AuthoredViewmodel {
         lighting: SceneLighting,
         root: Mat4,
     ) -> Result<(), String> {
+        let root = self.cant_root(pose, root)?;
         let palette = self
             .animation
             .skin_palette(pose, &self.skin.bones, game_model_root())

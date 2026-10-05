@@ -5,7 +5,8 @@ The default controls are:
 | Input | Behavior |
 | --- | --- |
 | Right mouse | Press to enter ADS; release keeps ADS; press again to leave ADS |
-| Left Ctrl or C | Press to crouch; press again to request standing |
+| C | Press to crouch; press again to request standing |
+| Left Ctrl | Crouch toggle on **release**, unless X was pressed during the hold (then it was a cant chord) |
 | Z | Press to go prone; press again to request standing |
 | Space | From a lower stance, request standing and clear that stance toggle; from standing, jump |
 | Left Shift | Hold sprint; a new press cancels toggled ADS |
@@ -94,3 +95,19 @@ Jumping forward at a high ledge catches it; while hanging, Space pulls up, Ctrl/
 drops and 2 draws/stows a sidearm when the loadout has one (the default has
 none). F9 kills the player for death/respawn testing. Pause, reset and focus
 loss clear these presses like the others. Details: [traversal](TRAVERSAL.md).
+
+## Lean and cant
+
+Q and E toggle a lean left or right. Pressing the other key switches sides and
+pressing the same key returns upright (with `--hold-controls`, lean only while
+held). Lean moves the head and camera only: the body and collision stay put,
+the camera rolls toward the lean, and shots fire from the leaned eye. Lean is
+cut short by walls so the camera never enters geometry. It is shorter when
+crouched, and unavailable while prone, sprinting, mounted or traversing.
+
+Left Ctrl + X toggles hip cant. The weapon rolls about its own bore line, with
+the arms following so the hands stay on the grips. It fades out while aiming
+and returns when ADS ends. Ctrl and Ctrl+X never overlap: Ctrl alone crouches
+when released, and a Ctrl hold that used X never crouches. In `--hold-controls`,
+holding Ctrl crouches once it has been held for 0.15 s without X. C is still an
+instant crouch.

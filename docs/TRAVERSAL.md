@@ -95,6 +95,8 @@ reload (credited rounds stay, nothing is queued).
 | Ctrl/C while hanging | Drop |
 | 2 while hanging | Draw / stow sidearm |
 | F9 | Debug: kill the player (exercise death/respawn in any state) |
+| Q / E (toggle) | Lean left / right; see below |
+| Left Ctrl + X (toggle) | Hip cant; Left Ctrl alone crouches on release |
 
 Look is clamped while hanging (`hang_yaw_limit`, `hang_pitch_*`) and mounted
 (`mount_yaw_limit`, `mount_pitch_*`). Movement input is ignored while hanging;
@@ -289,6 +291,32 @@ alone owns the hands, so nothing is duplicated. The torso is placed
 `torso_back` behind the camera. Placeholder legs are drawn as labeled boxes
 until an authored body exists.
 
+### Lean
+
+The Q/E desire is eased over `lean_time` toward ±`lean_distance` (or
+`lean_crouch_distance` when crouched). The offset is horizontal and moves only
+`Player::eye()`: body, collision and stance are unchanged. Three casts from the
+unleaned eye (−0.15, 0, +0.08 m) clamp the offset so the head
+(`lean_head_radius`) never enters geometry. `Player::lean_fraction` is the
+fraction actually reached, and the camera rolls by `lean_fraction × lean_roll`.
+Hitscan, muzzle and obstruction all start at the leaned eye. Lean returns to
+zero while prone, sprinting, mounted, traversing or dead; a toggle intent
+resumes afterwards.
+
+### Hip cant
+
+Left Ctrl+X toggles `Input::cant`. `Player::cant` eases 0→1 over `cant_time`
+when no traversal action owns the body. The visible value is
+`cant_visual() = cant × (1 − ads)`, so there is no cant while aimed and the
+toggle survives ADS. Rendering rotates the **weapon actor (`hk416_weapon`)
+about its bore line** (mesh −Z through the muzzle) by `cant_angle`.
+
+Because the arms follow the weapon in weapon space, the rotation is applied
+through the shared viewmodel root. Hands stay on the grips; shoulders are
+offscreen. On the legacy model path, the canted weapon transform feeds the
+hand IK targets. Cant is presentation only: aim, spread and hit detection do
+not change.
+
 ### Death and respawn
 
 `Player::health` (starts at 100; respawns with `max_health`).
@@ -370,6 +398,13 @@ meters, seconds, m/s, m/s² and degrees.
 | `obstruct_fire_release` | 0.7 | 0 – 1 |
 | `max_health` | 100 | 1 – 1000 |
 | `respawn_delay` | 3 | 0 – 30 |
+| `lean_distance` | 0.4 | 0 – 0.8 |
+| `lean_crouch_distance` | 0.3 | 0 – 0.8 |
+| `lean_roll` | 12 | 0 – 30 |
+| `lean_time` | 0.18 | 0.02 – 1 |
+| `lean_head_radius` | 0.15 | 0.05 – 0.4 |
+| `cant_angle` | 22 | -60 – 60 |
+| `cant_time` | 0.14 | 0.02 – 1 |
 
 ## Animation slots
 

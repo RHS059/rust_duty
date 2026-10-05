@@ -30,10 +30,22 @@ pub struct ButtonInput {
 #[derive(Clone, Copy, Debug, Default)]
 pub struct ControlSample {
     pub ads: ButtonInput,
+    /// Instant crouch key (C).
     pub crouch: ButtonInput,
     pub prone: ButtonInput,
     pub sprint: ButtonInput,
+    /// Left Ctrl: crouch alone, cant modifier with X. The two never overlap.
+    pub ctrl: ButtonInput,
+    /// X: toggles cant only while Ctrl is held.
+    pub cant: ButtonInput,
+    pub lean_left: ButtonInput,
+    pub lean_right: ButtonInput,
+    /// Presentation-frame time in seconds (hold-mode Ctrl chord window).
+    pub time: f64,
 }
+
+/// Hold-mode Ctrl counts as crouch only after this long without X.
+pub const CTRL_CHORD_WINDOW: f64 = 0.15;
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct ControlIntent {
@@ -89,6 +101,15 @@ pub struct ControlState {
     crouch: ButtonGate,
     prone: ButtonGate,
     sprint: ButtonGate,
+    ctrl: ButtonGate,
+    cant_key: ButtonGate,
+    lean_left: ButtonGate,
+    lean_right: ButtonGate,
+    /// Ctrl hold start, and whether X was used during this hold.
+    ctrl_since: Option<f64>,
+    ctrl_chorded: bool,
+    lean: i8,
+    cant: bool,
 }
 impl ControlState {
     pub fn new(mode: ControlMode) -> Self {
@@ -108,6 +129,14 @@ impl ControlState {
         self.crouch.clear();
         self.prone.clear();
         self.sprint.clear();
+        self.ctrl.clear();
+        self.cant_key.clear();
+        self.lean_left.clear();
+        self.lean_right.clear();
+        self.ctrl_since = None;
+        self.ctrl_chorded = false;
+        self.lean = 0;
+        self.cant = false;
     }
     /// Call exactly once per presentation frame, including frames with no fixed
     /// step. No toggle operation belongs inside the fixed-step loop.
@@ -116,10 +145,38 @@ impl ControlState {
         let (crouch_press, crouch_hold) = self.crouch.sample(sample.crouch, accept_input);
         let (prone_press, prone_hold) = self.prone.sample(sample.prone, accept_input);
         let (sprint_press, _) = self.sprint.sample(sample.sprint, accept_input);
+        let (ctrl_press, ctrl_hold) = self.ctrl.sample(sample.ctrl, accept_input);
+        let (cant_press, _) = self.cant_key.sample(sample.cant, accept_input);
+        let (left_press, left_hold) = self.lean_left.sample(sample.lean_left, accept_input);
+        let (right_press, right_hold) = self.lean_right.sample(sample.lean_right, accept_input);
         if !accept_input {
             self.intent = ControlIntent::default();
+            self.ctrl_since = None;
+            self.lean = 0;
+            self.cant = false;
             return;
         }
+        // Ctrl alone is crouch; Ctrl+X toggles cant. A hold that used X never crouches.
+        if ctrl_press {
+            self.ctrl_since = Some(sample.time);
+            self.ctrl_chorded = false;
+        }
+        if ctrl_hold && cant_press {
+            self.cant = !self.cant;
+            self.ctrl_chorded = true;
+        }
+        let ctrl_released = self.ctrl_since.is_some() && !ctrl_hold;
+        let ctrl_crouch_press = ctrl_released && !self.ctrl_chorded;
+        let ctrl_crouch_hold = ctrl_hold
+            && !self.ctrl_chorded
+            && self
+                .ctrl_since
+                .is_some_and(|since| sample.time - since >= CTRL_CHORD_WINDOW);
+        if !ctrl_hold {
+            self.ctrl_since = None;
+        }
+        let crouch_press = crouch_press || ctrl_crouch_press;
+        let crouch_hold = crouch_hold || ctrl_crouch_hold;
         match self.mode {
             ControlMode::Toggle => {
                 if ads_press {
@@ -145,6 +202,12 @@ impl ControlState {
                         stance
                     };
                 }
+                // Lean toggles; the other side switches directly.
+                for (pressed, side) in [(left_press, -1), (right_press, 1)] {
+                    if pressed {
+                        self.lean = if self.lean == side { 0 } else { side };
+                    }
+                }
             }
             ControlMode::Hold => {
                 self.intent.ads = ads_hold;
@@ -155,8 +218,17 @@ impl ControlState {
                 } else {
                     DesiredStance::Standing
                 };
+                self.lean = right_hold as i8 - left_hold as i8;
             }
         }
+    }
+    /// Desired lean: -1 left, 0 none, 1 right. Simulation decides how far.
+    pub fn lean(&self) -> i8 {
+        self.lean
+    }
+    /// Desired hip cant. Simulation suppresses it while aiming.
+    pub fn cant(&self) -> bool {
+        self.cant
     }
     /// Apply when the latched jump is consumed, before composing that step's
     /// simulation input. Space exits a toggled lower stance without re-entering

@@ -191,8 +191,42 @@ pub fn compose(base_translation: Vec3, layers: &[LayerOffset]) -> Mat4 {
     )
 }
 
+/// Cant: rotate the weapon about its own bore line. `weapon` maps weapon-mesh
+/// space (barrel along -Z) to camera space; `mesh_muzzle` is a point on the
+/// bore. Positive `angle` rolls the top of the weapon to the viewer's left.
+/// The result is applied to the weapon and, through the shared root, to the
+/// whole arm chain in weapon space, so the hands stay on the grips.
+pub fn cant_about_bore(weapon: Mat4, mesh_muzzle: Vec3, angle: f32) -> Mat4 {
+    let bore = weapon.transform_vector3(-Vec3::Z);
+    if angle == 0. || bore.length_squared() < 1e-12 {
+        return Mat4::IDENTITY;
+    }
+    let pivot = weapon.transform_point3(mesh_muzzle);
+    Mat4::from_translation(pivot)
+        * Mat4::from_quat(Quat::from_axis_angle(-bore.normalize(), angle))
+        * Mat4::from_translation(-pivot)
+}
+
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn cant_rolls_about_the_bore_and_keeps_it_fixed() {
+        // Weapon at hip, barrel pointing forward (-Z) in camera space.
+        let weapon = Mat4::from_translation(vec3(0.15, -0.2, -0.3));
+        let muzzle = vec3(0., 0.01, -0.8);
+        let c = cant_about_bore(weapon, muzzle, 20_f32.to_radians());
+        let tip = weapon.transform_point3(muzzle);
+        let rear = weapon.transform_point3(vec3(0., 0.01, 0.2));
+        assert!((c.transform_point3(tip) - tip).length() < 1e-5);
+        assert!(
+            (c.transform_point3(rear) - rear).length() < 1e-5,
+            "bore line fixed"
+        );
+        let sight = weapon.transform_point3(vec3(0., 0.08, -0.2));
+        assert!(c.transform_point3(sight).x < sight.x, "top rolls left");
+        assert_eq!(cant_about_bore(weapon, muzzle, 0.), Mat4::IDENTITY);
+    }
+
     use super::*;
     use macroquad::math::vec2;
 

@@ -420,6 +420,13 @@ pub struct ActionTuning {
     pub obstruct_fire_release: f32,
     pub max_health: f32,
     pub respawn_delay: f32,
+    pub lean_distance: f32,
+    pub lean_crouch_distance: f32,
+    pub lean_roll: f32,
+    pub lean_time: f32,
+    pub lean_head_radius: f32,
+    pub cant_angle: f32,
+    pub cant_time: f32,
 }
 impl Default for ActionTuning {
     fn default() -> Self {
@@ -489,6 +496,13 @@ impl Default for ActionTuning {
             obstruct_fire_release: 0.70,
             max_health: 100.,
             respawn_delay: 3.0,
+            lean_distance: 0.40,
+            lean_crouch_distance: 0.30,
+            lean_roll: 12.,
+            lean_time: 0.18,
+            lean_head_radius: 0.15,
+            cant_angle: 22.,
+            cant_time: 0.14,
         }
     }
 }
@@ -631,6 +645,18 @@ impl ActionTuning {
             ),
             ("max_health", &mut self.max_health, 1., 1000.),
             ("respawn_delay", &mut self.respawn_delay, 0., 30.),
+            ("lean_distance", &mut self.lean_distance, 0., 0.8),
+            (
+                "lean_crouch_distance",
+                &mut self.lean_crouch_distance,
+                0.,
+                0.8,
+            ),
+            ("lean_roll", &mut self.lean_roll, 0., 30.),
+            ("lean_time", &mut self.lean_time, 0.02, 1.),
+            ("lean_head_radius", &mut self.lean_head_radius, 0.05, 0.4),
+            ("cant_angle", &mut self.cant_angle, -60., 60.),
+            ("cant_time", &mut self.cant_time, 0.02, 1.),
         ]
     }
 }

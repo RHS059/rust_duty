@@ -384,7 +384,10 @@ fn weapon(
     });
     // Saved viewmodel offset: +X right, +Y up. Applied before the gun is drawn.
     let view_offset = vec3(cfg.viewmodel_x, cfg.viewmodel_y, 0.);
+    // Hip cant only: the simulation fades it out as ADS comes in.
+    let cant = sim.player.cant_visual() * cfg.action.cant_angle.to_radians();
     if let Some(authored) = authored {
+        authored.set_cant(cant);
         // One rigid root for arms and weapon: sway/action layers keep grips attached.
         let root = vector_range::weapon_sway::compose(view_offset, layers);
         authored.draw(sim.time, lighting, root);
@@ -460,8 +463,11 @@ fn weapon(
             framing.hip_rotation.slerp(framing.ads_rotation, visual_ads),
             &animation,
         );
-        let transform = frame.matrix;
-        muzzle_position = frame.point(model.muzzle);
+        // Hip cant about the bore; IK hands below read this transform and follow.
+        let transform =
+            vector_range::weapon_sway::cant_about_bore(frame.matrix, model.muzzle, cant)
+                * frame.matrix;
+        muzzle_position = transform.transform_point3(model.muzzle);
         let barrel_local = frame.matrix.transform_vector3(-Vec3::Z);
         if barrel_local.length_squared() > 1e-8 {
             barrel = barrel_local.normalize();
@@ -528,6 +534,14 @@ fn weapon(
                 Color::new(0.48, 0.40, 0.30, 1.),
             ),
         ];
+        let canted = vector_range::weapon_sway::cant_about_bore(
+            Mat4::from_translation(o),
+            vec3(0., 0.01, -1.04),
+            cant,
+        );
+        unsafe {
+            get_internal_gl().quad_gl.push_model_matrix(canted);
+        }
         for (pos, size, color) in parts {
             lighting.draw_cube(o + pos, size, None, color);
             draw_cube_wires(o + pos, size, Color::new(0.035, 0.05, 0.06, 1.));
@@ -539,6 +553,9 @@ fn weapon(
                 None,
                 dark,
             );
+        }
+        unsafe {
+            get_internal_gl().quad_gl.pop_model_matrix();
         }
     }
     if barrel_flash {
@@ -1656,9 +1673,27 @@ async fn main() {
                         down: is_mouse_button_down(MouseButton::Right),
                     },
                     crouch: ButtonInput {
-                        pressed: is_key_pressed(KeyCode::LeftControl) || is_key_pressed(KeyCode::C),
-                        down: is_key_down(KeyCode::LeftControl) || is_key_down(KeyCode::C),
+                        pressed: is_key_pressed(KeyCode::C),
+                        down: is_key_down(KeyCode::C),
                     },
+                    // Ctrl alone crouches (on release); Ctrl+X toggles cant.
+                    ctrl: ButtonInput {
+                        pressed: is_key_pressed(KeyCode::LeftControl),
+                        down: is_key_down(KeyCode::LeftControl),
+                    },
+                    cant: ButtonInput {
+                        pressed: is_key_pressed(KeyCode::X),
+                        down: is_key_down(KeyCode::X),
+                    },
+                    lean_left: ButtonInput {
+                        pressed: is_key_pressed(KeyCode::Q),
+                        down: is_key_down(KeyCode::Q),
+                    },
+                    lean_right: ButtonInput {
+                        pressed: is_key_pressed(KeyCode::E),
+                        down: is_key_down(KeyCode::E),
+                    },
+                    time: get_time(),
                     prone: ButtonInput {
                         pressed: is_key_pressed(KeyCode::Z),
                         down: is_key_down(KeyCode::Z),
@@ -1687,6 +1722,8 @@ async fn main() {
                 tactical_sprint: false,
                 mount: false,
                 sidearm: false,
+                lean: 0.,
+                cant: false,
             };
             if demo {
                 sim.player.yaw = -std::f32::consts::FRAC_PI_2;
@@ -1701,6 +1738,8 @@ async fn main() {
                 let control_intent = controls.intent();
                 input.ads = capture_ads || demo || control_intent.ads;
                 input.crouch = control_intent.crouch();
+                input.lean = f32::from(controls.lean());
+                input.cant = controls.cant();
                 input.prone = control_intent.prone();
                 input.jump = step.jump;
                 input.reload = step.reload;
@@ -1952,7 +1991,13 @@ async fn main() {
         set_camera(&Camera3D {
             position: eye,
             target: eye + forward,
-            up: Vec3::Y,
+            // Lean rolls the world camera; the viewmodel stays fixed to the view.
+            up: {
+                let roll = sim.player.lean_roll(cfg.action.lean_roll);
+                let right = forward.cross(Vec3::Y).normalize_or_zero();
+                // Leaning right tilts the head's up vector toward the right.
+                (Vec3::Y * roll.cos() + right * roll.sin()).normalize()
+            },
             fovy: h_fov_to_v(fov, aspect),
             z_near: 0.035,
             z_far: 200.,

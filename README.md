@@ -83,6 +83,8 @@ or anti-cheat interactions.
 | V (or hold ADS on cover) | Mount / unmount the weapon |
 | Jump at a high ledge / Space / Ctrl / 2 | Catch and hang / pull up / drop / sidearm (no sidearm in the default loadout) |
 | F9 | Debug: kill the player to test death/respawn |
+| Q / E | Toggle lean left / right (press the other key to switch sides) |
+| Left Ctrl + X | Toggle hip cant (weapon rolls about its bore; hidden while aiming) |
 
 Traversal and weapon-action states, tuning and animation slots: [traversal](docs/TRAVERSAL.md)
 and its [acceptance checklist](docs/TRAVERSAL_ACCEPTANCE.md). All of their visuals are placeholders.
