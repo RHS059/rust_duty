@@ -42,6 +42,42 @@ pub struct State {
     pub highest_sequence: u64,
     pub pending_launch: bool,
 }
+
+fn content_delta<'a>(
+    manifest: &'a Manifest,
+    version: &Version,
+    sha: &str,
+) -> Option<&'a crate::manifest::Delta> {
+    manifest.deltas.iter().find(|delta| {
+        delta.base_version == *version
+            && delta.base_sha256 == sha
+            && delta.asset.size < manifest.bundle.size
+    })
+}
+/// Capture an optional optimization. A changing/unreadable source cannot block
+/// the verified full transfer, but unsafe paths remain fatal.
+pub(crate) fn optional_executable_baseline(
+    name: &str,
+    source: &mut impl std::io::Read,
+    size: u64,
+    output: &mut impl std::io::Write,
+) -> Result<bool> {
+    bundle::safe_path(name)?;
+    if size == 0 || size > crate::MAX_ASSET - 1024 {
+        return Ok(false);
+    }
+    match bundle::write_single_executable(name, source, size, output) {
+        Ok(()) => Ok(true),
+        Err(Error::Io(_)) => Ok(false),
+        Err(Error::Invalid(message))
+            if message == "running executable changed during baseline capture" =>
+        {
+            Ok(false)
+        }
+        Err(error) => Err(error),
+    }
+}
+
 impl Store {
     pub fn open(root: &Path) -> Result<Self> {
         crate::safe_dir(root)?;
@@ -139,6 +175,71 @@ impl Store {
         }
         Ok(())
     }
+
+    /// Prefer the stored bundle. If that is a fuller package, also try the
+    /// one-file image of its entrypoint: that is the executable already on disk,
+    /// so a content patch can COPY it instead of downloading another copy.
+    fn delta_base<'a>(
+        &self,
+        base: &Installed,
+        manifest: &'a Manifest,
+    ) -> Result<Option<(PathBuf, &'a crate::manifest::Delta)>> {
+        if !manifest.deltas.iter().any(|patch| {
+            patch.base_version == base.version && patch.asset.size < manifest.bundle.size
+        }) {
+            return Ok(None);
+        }
+        let stored = self.bundle_path(base);
+        crate::reject_symlink(&stored)?;
+        if stored.is_file() && file_hash(&stored).is_ok_and(|sha| sha == base.bundle_sha256) {
+            if let Some(patch) = content_delta(manifest, &base.version, &base.bundle_sha256) {
+                return Ok(Some((stored, patch)));
+            }
+        }
+        let executable = self.version_dir(base).join(&base.entrypoint);
+        crate::reject_symlink(&executable)?;
+        if !executable.is_file() {
+            return Ok(None);
+        }
+        let Ok(mut input) = File::open(&executable) else {
+            return Ok(None);
+        };
+        let Ok(metadata) = input.metadata() else {
+            return Ok(None);
+        };
+        let size = metadata.len();
+        // A damaged optional delta base must not prevent a verified full update.
+        if size == 0 || size > crate::MAX_ASSET - 1024 {
+            return Ok(None);
+        }
+        let mut temporary = tempfile::NamedTempFile::new_in(self.root.join("cache"))?;
+        if !optional_executable_baseline(
+            &base.entrypoint,
+            &mut input,
+            size,
+            temporary.as_file_mut(),
+        )? {
+            return Ok(None);
+        }
+        temporary.as_file().sync_all()?;
+        let sha = file_hash(temporary.path())?;
+        let Some(patch) = content_delta(manifest, &base.version, &sha) else {
+            return Ok(None);
+        };
+        let path = self
+            .root
+            .join("cache")
+            .join(format!("running-executable-{sha}.rdb"));
+        crate::reject_symlink(&path)?;
+        if !(path.is_file() && file_hash(&path)? == sha) {
+            if path.exists() {
+                fs::remove_file(&path)?;
+            }
+            temporary.persist(&path).map_err(|error| error.error)?;
+        }
+        Ok(Some((path, patch)))
+    }
+
     /// Downloads and extracts into a new version directory. It never changes the active pointer.
     pub fn stage(&self, source: &Source, manifest: &Manifest) -> Result<Installed> {
         self.check_newer(manifest)?;
@@ -150,60 +251,52 @@ impl Store {
         };
         let mut bundle_path = None;
         if let Some(base) = self.state()?.active {
-            let base_path = self.bundle_path(&base);
-            crate::reject_symlink(&base_path)?;
-            if base_path.is_file() && file_hash(&base_path)? == base.bundle_sha256 {
-                if let Some(patch) = manifest.deltas.iter().find(|d| {
-                    d.base_version == base.version
-                        && d.base_sha256 == base.bundle_sha256
-                        && d.asset.size < manifest.bundle.size
-                }) {
-                    download::report(
-                        &self.root,
-                        "delta",
-                        Some(&patch.asset),
-                        0,
-                        "Matching base verified; fetching a copy/add delta",
-                    )?;
-                    let downloaded =
-                        download::download(&self.root, source, &manifest.version, &patch.asset);
-                    match downloaded {
-                        Err(e @ (Error::Paused | Error::Cancelled | Error::Network(_))) => {
-                            return Err(e)
+            // Staging never activates. The version switch still waits until the
+            // game process has exited and the helper can take the install lock.
+            if let Some((base_path, patch)) = self.delta_base(&base, manifest)? {
+                download::report(
+                    &self.root,
+                    "delta",
+                    Some(&patch.asset),
+                    0,
+                    "Matching base verified; fetching a copy/add delta",
+                )?;
+                let downloaded =
+                    download::download(&self.root, source, &manifest.version, &patch.asset);
+                match downloaded {
+                    Err(e @ (Error::Paused | Error::Cancelled | Error::Network(_))) => {
+                        return Err(e)
+                    }
+                    Err(e) => eprintln!(
+                        "Delta transfer rejected ({e}); falling back to full verified bundle"
+                    ),
+                    Ok(patch_path) => {
+                        let output = self
+                            .root
+                            .join("cache")
+                            .join(format!("{}.reconstructed", manifest.bundle.sha256));
+                        crate::reject_symlink(&output)?;
+                        if output.exists() {
+                            fs::remove_file(&output)?;
                         }
-                        Err(e) => eprintln!(
-                            "Delta transfer rejected ({e}); falling back to full verified bundle"
-                        ),
-                        Ok(patch_path) => {
-                            let output = self
-                                .root
-                                .join("cache")
-                                .join(format!("{}.reconstructed", manifest.bundle.sha256));
-                            crate::reject_symlink(&output)?;
-                            if output.exists() {
-                                fs::remove_file(&output)?;
-                            }
-                            let applied = delta::apply(
-                                &base_path,
-                                &patch_path,
-                                &output,
-                                manifest.bundle.size,
-                            )
-                            .and_then(|_| {
-                                if file_hash(&output)? == manifest.bundle.sha256 {
-                                    Ok(())
-                                } else {
-                                    Err(invalid("reconstructed bundle hash mismatch"))
-                                }
-                            });
-                            match applied {
-                                Ok(()) => bundle_path = Some(output),
-                                Err(e) => {
-                                    if output.exists() {
-                                        fs::remove_file(output)?;
+                        let applied =
+                            delta::apply(&base_path, &patch_path, &output, manifest.bundle.size)
+                                .and_then(|_| {
+                                    if file_hash(&output)? == manifest.bundle.sha256 {
+                                        Ok(())
+                                    } else {
+                                        Err(invalid("reconstructed bundle hash mismatch"))
                                     }
-                                    eprintln!("Delta rejected ({e}); falling back to full verified bundle");
+                                });
+                        match applied {
+                            Ok(()) => bundle_path = Some(output),
+                            Err(e) => {
+                                if output.exists() {
+                                    fs::remove_file(output)?;
                                 }
+                                eprintln!(
+                                    "Delta rejected ({e}); falling back to full verified bundle"
+                                );
                             }
                         }
                     }

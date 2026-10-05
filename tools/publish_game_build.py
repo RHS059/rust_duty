@@ -45,8 +45,8 @@ def deterministic_zip(source, destination, executable):
                 shutil.copyfileobj(src, dst, length=1024 * 1024)
 
 
-def prepare(tested, output, identity):
-    """Curate the Windows platform through the same strict allowlist as game builds."""
+def prepare(tested, output, identity, previous_bundles=None):
+    """Curate Windows through the strict game-build allowlist, with optional deltas."""
     tested, output = Path(tested), Path(output)
     if output.exists() or output.is_symlink():
         raise ValueError("release preparation requires a fresh output directory")
@@ -68,9 +68,18 @@ def prepare(tested, output, identity):
                 for path in staged.rglob("*"):
                     if path.is_file():
                         path.chmod(0o755 if path.relative_to(staged).as_posix() == executable else 0o644)
+            # Optional previous bundle. When present, release_update also emits a
+            # delta from the one-file image of the executable already running, so a
+            # content update does not download that binary again. Omitting it keeps
+            # the one-time release manifest free of deltas.
+            previous = (previous_bundles or {}).get(target)
+            previous_path = previous_version = None
+            if previous:
+                previous_path, previous_version = previous
             release_update.prepare(argparse.Namespace(
                 input=payload, output=output, version=identity["version"], sequence=identity["sequence"],
-                target=target, entrypoint=executable, previous=None, previous_version=None))
+                target=target, entrypoint=executable, previous=previous_path,
+                previous_version=previous_version))
             release_update.verify_manifest(argparse.Namespace(
                 manifest=output / f"update-{target}.json", assets_dir=output,
                 version=identity["version"], target=target, bundle_only=False))
@@ -219,8 +228,18 @@ def publish(github, output, identity):
     tag = "v" + identity["version"]
     notes = release_notes(identity)
     expected = {path.name: path for path in output.iterdir() if path.is_file()}
-    if PROVENANCE not in expected or len(expected) != 5:
+    required = {PROVENANCE, "vector-range.exe", f'Rust-Duty-{identity["version"]}-Windows-x64.zip'}
+    target = DELIVERY_TARGETS['windows'][0]
+    manifest_name = f'update-{target}.json'
+    if manifest_name not in expected:
         raise ValueError("incomplete one-time release asset set")
+    manifest = release_update.verify_manifest(argparse.Namespace(
+        manifest=expected[manifest_name], assets_dir=output,
+        version=identity['version'], target=target, bundle_only=False))
+    required.update((manifest_name, manifest['bundle']['name']))
+    required.update(delta['asset']['name'] for delta in manifest['deltas'])
+    if set(expected) != required:
+        raise ValueError("incomplete or unexpected one-time release asset set")
     latest = latest_identity(github)
     order = publication_order(identity, latest)
     if order == "superseded":

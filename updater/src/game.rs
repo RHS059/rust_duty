@@ -18,7 +18,6 @@ use semver::Version;
 use serde::{Deserialize, Serialize};
 use std::{
     fs::{self, File, OpenOptions},
-    io::Write,
     path::{Path, PathBuf},
     process::{Child, Command, Stdio},
     sync::{mpsc, Arc, Mutex},
@@ -795,21 +794,8 @@ fn ensure_baseline(store: &Store, executable: &Path, running: &Version) -> Resul
     reject_symlink(executable)?;
     let mut source = File::open(executable)?;
     let size = source.metadata()?.len();
-    if size == 0 || size > crate::MAX_ASSET - 1024 {
-        return Err(invalid("invalid running executable size"));
-    }
     let mut baseline = tempfile::NamedTempFile::new_in(store.root.join("cache"))?;
-    baseline.write_all(bundle::MAGIC)?;
-    baseline.write_all(&1u32.to_le_bytes())?;
-    baseline.write_all(&(GAME_FILE.len() as u16).to_le_bytes())?;
-    baseline.write_all(GAME_FILE.as_bytes())?;
-    baseline.write_all(&[1])?;
-    baseline.write_all(&size.to_le_bytes())?;
-    if std::io::copy(&mut source, &mut baseline)? != size {
-        return Err(invalid(
-            "running executable changed during baseline capture",
-        ));
-    }
+    bundle::write_single_executable(GAME_FILE, &mut source, size, baseline.as_file_mut())?;
     baseline.as_file().sync_all()?;
     store.install_local(baseline.path(), running.clone(), GAME_FILE)
 }

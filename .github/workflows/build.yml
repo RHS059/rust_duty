@@ -137,6 +137,29 @@ jobs:
       - name: Verify embedded Windows build identity
         if: runner.os == 'Windows'
         run: python tools/build_identity.py --root dist/game --platform windows
+      - name: Prepare real Windows 0.1.9 to 0.1.11 update preflight
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p preflight/baseline
+          gh release download v0.1.9 --repo RHS059/rust_duty --dir preflight/baseline \
+            --pattern rust-duty-0.1.9-x86_64-pc-windows-msvc.rdb --pattern update-x86_64-pc-windows-msvc.json
+          python tools/release_update.py verify --manifest preflight/baseline/update-x86_64-pc-windows-msvc.json \
+            --assets-dir preflight/baseline --bundle-only --version 0.1.9 --target x86_64-pc-windows-msvc
+          python tools/package_game.py stage --root dist/game --binary vector-range.exe \
+            --output preflight/payload --update --require-generated
+          python tools/release_update.py prepare --input preflight/payload --output preflight/candidate \
+            --version 0.1.11 --sequence 11 --target x86_64-pc-windows-msvc --entrypoint vector-range.exe \
+            --previous preflight/baseline/rust-duty-0.1.9-x86_64-pc-windows-msvc.rdb --previous-version 0.1.9
+          python tools/release_update.py verify --manifest preflight/candidate/update-x86_64-pc-windows-msvc.json \
+            --assets-dir preflight/candidate --version 0.1.11 --target x86_64-pc-windows-msvc
+      - name: Verify real release bytes, executable delta, full fallback and preservation on Windows
+        shell: pwsh
+        run: |
+          $env:RUST_DUTY_PREFLIGHT = (Resolve-Path preflight).Path
+          cargo test --manifest-path updater/Cargo.toml --locked --lib tests::actual_windows_release_candidate_preflight -- --exact --ignored --nocapture
+          if ($LASTEXITCODE -ne 0) { throw "Windows real-release preflight failed" }
       - name: Upload uniquely numbered Windows game
         if: runner.os == 'Windows'
         id: archive_game_windows

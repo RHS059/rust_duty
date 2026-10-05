@@ -147,18 +147,18 @@ class CandidateIdentityTests(unittest.TestCase):
     def environment():
         env = environment()
         env.pop("RUST_DUTY_BUILD_VERSION")
-        env["GITHUB_REF_NAME"] = "aella/jump-r7-integration"
+        env["GITHUB_REF_NAME"] = "aella/content-delta-followup-r1"
         env["GITHUB_REF"] = "refs/heads/" + env["GITHUB_REF_NAME"]
         return env
 
     def test_checked_out_package_and_lock_match_candidate(self):
-        self.assertEqual(identity.package_version(), "0.1.9")
+        self.assertEqual(identity.package_version(), "0.1.11")
         with (Path(__file__).resolve().parents[1] / "Cargo.lock").open("rb") as stream:
             lock = identity.tomllib.load(stream)
         game = [p for p in lock["package"] if p["name"] == "vector-range"]
         self.assertEqual([p["version"] for p in game], [identity.package_version()])
         item = identity.context(self.environment())
-        self.assertEqual((item["version"], item["sequence"]), ("0.1.9", 9))
+        self.assertEqual((item["version"], item["sequence"]), ("0.1.11", 11))
         env = self.environment()
         env["GITHUB_RUN_NUMBER"] = "11"
         env["GITHUB_RUN_ID"] = "1002"
@@ -167,13 +167,13 @@ class CandidateIdentityTests(unittest.TestCase):
 
     def test_candidate_rejects_stale_pins_and_legacy_publication(self):
         env = self.environment()
-        env["RUST_DUTY_BUILD_VERSION"] = "0.1.9"
-        self.assertEqual(identity.context(env)["version"], "0.1.9")
-        for version in ("0.1.5", "0.1.7", "0.1.8"):
+        env["RUST_DUTY_BUILD_VERSION"] = "0.1.11"
+        self.assertEqual(identity.context(env)["version"], "0.1.11")
+        for version in ("0.1.5", "0.1.7", "0.1.8", "0.1.9", "0.1.10"):
             env["RUST_DUTY_BUILD_VERSION"] = version
             with self.subTest(version=version), self.assertRaisesRegex(ValueError, "Cargo package"):
                 identity.context(env)
-        for branch in ("aella/jump-r7-integration", *identity.RELEASE_BRANCHES):
+        for branch in ("aella/content-delta-followup-r1", *identity.RELEASE_BRANCHES):
             env = self.environment()
             env["GITHUB_REF_NAME"] = branch
             env["GITHUB_REF"] = "refs/heads/" + branch
@@ -185,17 +185,17 @@ class CandidateIdentityTests(unittest.TestCase):
             with self.subTest(platform=platform), tempfile.TemporaryDirectory() as directory:
                 root = Path(directory)
                 (root / executable).write_bytes(magic + b"candidate native fixture")
-                with mock.patch.object(identity.subprocess, "check_output", side_effect=["0.1.9\n", "0.1.9+build.1000.1\n"]):
+                with mock.patch.object(identity.subprocess, "check_output", side_effect=["0.1.11\n", "0.1.11+build.1000.1\n"]):
                     stamped = identity.stamp(root, platform, self.environment())
                 self.assertEqual(stamped["schema"], "rust-duty-build-identity/v1")
-                self.assertEqual((stamped["version"], stamped["sequence"]), ("0.1.9", 9))
+                self.assertEqual((stamped["version"], stamped["sequence"]), ("0.1.11", 11))
                 identity.verify(root, platform, identity.context(self.environment()))
 
     def test_previous_binary_cannot_receive_candidate_identity(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             (root / "vector-range").write_bytes(b"\x7fELFold build")
-            for version in ("0.1.7", "0.1.8"):
+            for version in ("0.1.7", "0.1.8", "0.1.9", "0.1.10"):
                 with self.subTest(version=version), mock.patch.object(
                     identity.subprocess, "check_output", return_value=version + "\n"
                 ):
