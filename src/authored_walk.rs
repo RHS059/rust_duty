@@ -106,6 +106,20 @@ pub struct WalkPoseLayer {
     ready: ViewmodelPose,
     bindings: PoseBindings,
     receiver_v4_wip: bool,
+    translation_gain: Vec3,
+}
+/// The auxiliary sample is derived from the same accumulated native clock.
+pub struct ForwardAdsSamples<'a> {
+    pub primary: &'a ViewmodelPose,
+    pub half_period: &'a ViewmodelPose,
+    pub weight: f32,
+}
+pub struct WalkLayerInput<'a> {
+    pub walk: &'a ViewmodelPose,
+    pub weight: f32,
+    pub aim: f32,
+    pub lateral: f32,
+    pub forward_ads: Option<ForwardAdsSamples<'a>>,
 }
 impl WalkPoseLayer {
     pub fn new(
@@ -130,10 +144,14 @@ impl WalkPoseLayer {
             ready: locomotion.sample_clamped(ready_clip, 0.)?,
             bindings,
             receiver_v4_wip: false,
+            translation_gain: Vec3::ONE,
         })
     }
     pub fn use_receiver_v4_wip(&mut self, active: bool) {
         self.receiver_v4_wip = active;
+    }
+    pub fn set_translation_adjustment(&mut self, value: crate::settings::WalkTranslation) {
+        self.translation_gain = value.gains();
     }
     pub fn pose(
         &self,
@@ -154,6 +172,35 @@ impl WalkPoseLayer {
         aim: f32,
         lateral: f32,
     ) -> Result<ViewmodelPose> {
+        self.pose_with_input(
+            animation,
+            base,
+            WalkLayerInput {
+                walk,
+                weight,
+                aim,
+                lateral,
+                forward_ads: None,
+            },
+        )
+    }
+    pub fn pose_with_input(
+        &self,
+        animation: &AnimationSet,
+        base: &ViewmodelPose,
+        input: WalkLayerInput<'_>,
+    ) -> Result<ViewmodelPose> {
+        let WalkLayerInput {
+            walk,
+            weight,
+            aim,
+            lateral,
+            forward_ads,
+        } = input;
+        let forward_weight = forward_ads.as_ref().map_or(0., |source| source.weight);
+        if !forward_weight.is_finite() || !(0. ..=1.).contains(&forward_weight) {
+            return Err(AnimationError("invalid forward ADS weight".into()));
+        }
         if !lateral.is_finite() || !(0. ..=1.).contains(&lateral) {
             return Err(AnimationError("invalid lateral layer weight".into()));
         }
@@ -183,7 +230,7 @@ impl WalkPoseLayer {
         // retain only the source walk's depth and roll components. Transverse
         // translation or pitch/yaw, even attenuated, separates the sights from
         // the camera ray. The phase continues and no new bob curve is invented.
-        let (aim_rotation, aim_translation) = if self.receiver_v4_wip {
+        let (mut aim_rotation, mut aim_translation) = if self.receiver_v4_wip {
             receiver_v4_offset(delta, lateral)?
         } else {
             let twist = Quat::from_xyzw(0., 0., rotation.z, rotation.w);
@@ -194,13 +241,33 @@ impl WalkPoseLayer {
             }
             (twist.normalize(), Vec3::new(0., 0., translation.z))
         };
+        if let Some(source) = forward_ads {
+            animation.blend_poses(base, source.primary, 0.)?;
+            animation.blend_poses(base, source.half_period, 0.)?;
+            let inverse_ready = self.ready.actor_globals[self.anchor].matrix().inverse();
+            let (rotation, translation) = receiver_v9_offset(
+                source.primary.actor_globals[self.anchor].matrix() * inverse_ready,
+                source.half_period.actor_globals[self.anchor].matrix() * inverse_ready,
+            )?;
+            aim_rotation = aim_rotation.slerp(rotation, forward_weight);
+            aim_translation = aim_translation.lerp(translation, forward_weight);
+        }
         let rotation = rotation.slerp(aim_rotation, aim);
         let translation = translation.lerp(aim_translation, aim);
         let offset = Mat4::from_rotation_translation(
             Quat::IDENTITY.slerp(rotation, weight),
             translation * weight,
         );
-        let output_anchor = offset * base_anchor;
+        let mut output_anchor = offset * base_anchor;
+        // The bound weapon actor and source righthand_prop share an origin.
+        // Scale its walking displacement about the current unwalked pose, not
+        // the absolute placement or the rigid offset's world-origin term.
+        // Applying the resulting anchor to ALL globals preserves hand contact.
+        if self.translation_gain != Vec3::ONE {
+            let neutral = base_anchor.w_axis.truncate();
+            let displacement = output_anchor.w_axis.truncate() - neutral;
+            output_anchor.w_axis = (neutral + displacement * self.translation_gain).extend(1.);
+        }
         let relative = |pose: &ViewmodelPose, anchor: Mat4| -> Result<ViewmodelPose> {
             let inverse = anchor.inverse();
             let globals = animation.bone_globals(pose, Mat4::IDENTITY)?;
@@ -218,9 +285,20 @@ impl WalkPoseLayer {
         };
         let from = relative(base, base_anchor)?;
         let to = relative(walk, walk_anchor)?;
-        // At full ADS the source aim articulation is retained exactly. Only the
-        // shared rigid walking offset is added; no per-hand offsets or IK.
-        let mut result = animation.blend_poses(&from, &to, weight * (1. - aim))?;
+        // v4 retains the full aimed articulation; v9 mixes fifteen percent of
+        // primary-phase articulation at full forward aim. No per-hand IK.
+        let mut result = animation.blend_poses(
+            &from,
+            &to,
+            weight * ((1. - aim) + 0.15 * aim * forward_weight),
+        )?;
+        if forward_weight > 0. {
+            // Extra v9 articulation belongs to the deform skeleton. Rigid
+            // actors retain the existing held attachment transforms in ADS.
+            result.actor_globals = animation
+                .blend_poses(&from, &to, weight * (1. - aim))?
+                .actor_globals;
+        }
         let globals: Vec<_> = result
             .bone_locals
             .iter()
@@ -294,5 +372,42 @@ pub fn receiver_v4_offset(delta_asset: Mat4, lateral: f32) -> Result<(Quat, Vec3
     if !rotation.is_finite() || !translation.is_finite() {
         return Err(AnimationError("nonfinite receiver mapping".into()));
     }
+    Ok((rotation, translation))
+}
+
+/// Frozen v9 forward WIP: primary horizontal target, half-period vertical target.
+/// The comparison-video offset is deliberately absent from runtime sampling.
+pub fn receiver_v9_offset(primary_asset: Mat4, half_asset: Mat4) -> Result<(Quat, Vec3)> {
+    use crate::viewmodel_animation::game_model_root;
+    let root = game_model_root();
+    let p0 = Vec3::new(2.8157956e-8, -0.040691406, -0.2020175);
+    let projected = |asset: Mat4| -> Result<Vec3> {
+        let (scale, rotation, translation) = (root * asset * root).to_scale_rotation_translation();
+        if !asset.is_finite() || !scale.abs_diff_eq(Vec3::ONE, 1e-4) || !rotation.is_finite() {
+            return Err(AnimationError("invalid v9 rigid source delta".into()));
+        }
+        let p =
+            Mat4::from_rotation_translation(Quat::IDENTITY.slerp(rotation, 0.4), translation * 0.4)
+                .transform_point3(p0);
+        if !p.is_finite() || p.z >= -1e-6 {
+            return Err(AnimationError("invalid v9 receiver depth".into()));
+        }
+        Ok(p)
+    };
+    let primary = projected(primary_asset)?;
+    let half = projected(half_asset)?;
+    let u0 = p0.x / -p0.z;
+    let u = u0 + 0.25 * (primary.x / -primary.z - u0);
+    let v = half.y / -half.z;
+    let radius = u.hypot(v);
+    if !radius.is_finite() || radius <= 1e-6 {
+        return Err(AnimationError("invalid v9 receiver radius".into()));
+    }
+    let angle = v.atan2(u) - p0.y.atan2(p0.x);
+    let theta = angle.sin().atan2(angle.cos());
+    let dz = -p0.x.hypot(p0.y) / radius - p0.z;
+    let camera =
+        Mat4::from_rotation_translation(Quat::from_rotation_z(theta), Vec3::new(0., 0., dz));
+    let (_, rotation, translation) = (root * camera * root).to_scale_rotation_translation();
     Ok((rotation, translation))
 }

@@ -43,3 +43,23 @@ class WalkEpisodeClockTests(unittest.TestCase):
     def test_retained_wip_phase_rate_can_slow_without_reset(self):
         verify_walk_episode_clocks([dict(simulation_time=1.,walk_seconds=10.,walk_min_rate=.85),
                                     dict(simulation_time=2.,walk_seconds=10.85,walk_min_rate=.85)])
+
+    def test_v9_forward_and_direction_blended_rates_retain_committed_phase(self):
+        for phase_advance in (.80, .825, .85, 1.):
+            verify_walk_episode_clocks([
+                dict(simulation_time=1.,walk_seconds=10.,walk_min_rate=.80),
+                dict(simulation_time=2.,walk_seconds=10.+phase_advance,walk_min_rate=.80)])
+
+    def test_v9_does_not_relax_reset_freeze_or_speed_bounds(self):
+        for phase_advance in (-10., 0., .79, 1.01):
+            with self.assertRaisesRegex(ValueError, 'active walk phase'):
+                verify_walk_episode_clocks([
+                    dict(simulation_time=1.,walk_seconds=10.,walk_min_rate=.80),
+                    dict(simulation_time=2.,walk_seconds=10.+phase_advance,walk_min_rate=.80)])
+
+    def test_unknown_rate_cannot_hide_behind_a_valid_lower_bound(self):
+        for rate in (.79, 1.1, float('nan')):
+            with self.assertRaisesRegex(ValueError, 'unsupported walk phase rate'):
+                verify_walk_episode_clocks([
+                    dict(simulation_time=1.,walk_seconds=10.,walk_min_rate=rate),
+                    dict(simulation_time=2.,walk_seconds=10.85,walk_min_rate=.80)])

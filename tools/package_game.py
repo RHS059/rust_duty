@@ -185,7 +185,7 @@ def walk_bound(root: Path) -> bool:
     if bindings and bindings not in (["walk/asset.vra"], ["directional/asset.vra"]):
         raise ValueError("unsupported packaged walk asset binding")
     # Canonical walk44 remains a packaging dependency of ADS47 and directional48.
-    return bool(bindings) or ads_bound(root)
+    return bool(bindings) or ads_bound(root) or jump_bound(root)
 
 
 def verify_walk(root: Path, folder: Path = WALK_DIR) -> dict:
@@ -220,10 +220,10 @@ def verify_walk(root: Path, folder: Path = WALK_DIR) -> dict:
     for name in ("asset.vrs", "asset.vrm"):
         if manifest["files"][name] != baseline["files"][name]:
             raise ValueError("walk changed canonical companions")
-    pack = vrview.decode_vra(new, vrs=blobs["asset.vrs"], vrm=blobs["asset.vrm"])
-    if ([clip["name"] for clip in pack["clips"]] != [*CLIPS, "normal_walk_r1"]
-            or not pack["clips"][-1]["loop"]
-            or pack["clips"][-1]["frames"][-1]["time"] != struct.unpack("<f", struct.pack("<f", 44 / 60))[0]):
+    clips = vrview.validated_clip_summary(new, vrs=blobs["asset.vrs"], vrm=blobs["asset.vrm"])
+    if ([clip["name"] for clip in clips] != [*CLIPS, "normal_walk_r1"]
+            or not clips[-1]["loop"]
+            or clips[-1]["duration"] != struct.unpack("<f", struct.pack("<f", 44 / 60))[0]):
         raise ValueError("walk loop clip contract mismatch")
     parity = json.loads(regular_file(root, folder / "parity.json").read_text())
     conversion = json.loads(regular_file(root, folder / "conversion.json").read_text())
@@ -302,10 +302,10 @@ def verify_ads(root: Path, folder: Path = ADS_DIR, require_transports: bool = Fa
     for name in ('asset.vrs', 'asset.vrm'):
         if manifest['files'][name] != walk['files'][name]:
             raise ValueError('ADS changed canonical companions')
-    pack = vrview.decode_vra(new, vrs=blobs['asset.vrs'], vrm=blobs['asset.vrm'])
-    if ([c['name'] for c in pack['clips']] != names
-            or [c['loop'] for c in pack['clips'][-3:]] != [False, True, False]
-            or [c['frames'][-1]['time'] for c in pack['clips'][-3:]] != [.25, 1., .25]):
+    clips = vrview.validated_clip_summary(new, vrs=blobs['asset.vrs'], vrm=blobs['asset.vrm'])
+    if ([c['name'] for c in clips] != names
+            or [c['loop'] for c in clips[-3:]] != [False, True, False]
+            or [c['duration'] for c in clips[-3:]] != [.25, 1., .25]):
         raise ValueError('ADS clip contract mismatch')
     samples = 0
     for clip in ADS_CLIPS:
@@ -328,6 +328,109 @@ def verify_ads(root: Path, folder: Path = ADS_DIR, require_transports: bool = Fa
         if len(data) != source['bytes'] or hashlib.sha256(data).hexdigest() != source['sha256']:
             raise ValueError('ADS differs from committed Blender source')
     return {'clips': list(ADS_CLIPS), 'clip_count': 47, 'original_clips_preserved': 44,
+            'source_sha256': source['sha256'], 'parity_samples': samples}
+
+
+JUMP_DIR = Path('assets/jump')
+JUMP_CLIPS = ('jump_takeoff', 'jump_air', 'jump_land')
+JUMP_META = ('manifest.json', 'runtime-seams.json', *(f'{kind}-{clip}.json' for clip in JUMP_CLIPS for kind in ('parity', 'conversion')))
+
+
+def jump_bound(root: Path) -> bool:
+    path = root / 'assets/animations.cfg'
+    if not path.exists():
+        return False
+    lines = [line.strip() for line in path.read_text().splitlines()]
+    bindings = [value.strip() for line in lines if not line.startswith('#') and '=' in line
+                for key, value in [line.split('=', 1)] if key.strip() == 'jump.asset']
+    if bindings and bindings != ['jump/asset.vra']:
+        raise ValueError('unsupported packaged JUMP asset binding')
+    return bool(bindings)
+
+
+def verify_jump(root: Path, folder: Path = JUMP_DIR, require_transports: bool = False) -> dict:
+    root = Path(root)
+    manifest = json.loads(regular_file(root, folder / 'manifest.json').read_text())
+    source = manifest.get('source', {})
+    names = [*CLIPS, 'normal_walk_r1', *JUMP_CLIPS]
+    jump = manifest.get('jump_clips', [])
+    if (manifest.get('schema') != 'rust-duty-authored-jump-distribution/v1'
+            or manifest.get('clip_count') != 47 or manifest.get('clip_names') != names
+            or set(manifest.get('files', {})) != set(COMPANIONS)
+            or source.get('file') != 'assets/authoring/jump/halcyon_jump.blend'
+            or source.get('sha256') != 'a2c4b2bbe98da1a608450bba92404cb39008eae5861bcf8fc3f5d2f978df0e3b'
+            or source.get('fps') != 60 or source.get('bake_hz') != 480
+            or [c.get('name') for c in jump] != list(JUMP_CLIPS)
+            or [c.get('action') for c in jump] != [clip + '_r7' for clip in JUMP_CLIPS]
+            or [c.get('loop') for c in jump] != [False, False, False]
+            or [c.get('duration') for c in jump] != [11/60, 23/60, 28/60]
+            or any(c.get('frame_start') != 1 for c in jump)
+            or [c.get('frame_end') for c in jump] != [12, 24, 29]):
+        raise ValueError('invalid authored JUMP manifest')
+    transports = manifest.get('repository_transport', {})
+    if set(transports) != {'asset.vra', 'asset.vrs'}:
+        raise ValueError('invalid JUMP transport manifest')
+    for name, transport in transports.items():
+        if (transport.get('file') != name + '.gz' or transport.get('encoding') != 'gzip'
+                or type(transport.get('bytes')) is not int or not 0 < transport['bytes'] <= 128 * 1024**2
+                or transport.get('decoded_bytes') != manifest['files'][name]['bytes']
+                or transport.get('decoded_sha256') != manifest['files'][name]['sha256']):
+            raise ValueError('invalid JUMP transport manifest')
+    if require_transports:
+        for transport in transports.values():
+            regular_file(root, folder / transport['file'])
+    blobs = {name: companion_bytes(root, name, manifest, folder) for name in COMPANIONS}
+    walk = json.loads(regular_file(root, WALK_DIR / 'manifest.json').read_text())
+    old = companion_bytes(root, 'asset.vra', walk, WALK_DIR); new = blobs['asset.vra']
+    old_offset, new_offset = clip_offset(old), clip_offset(new)
+    if (new[24:new_offset] != old[24:old_offset]
+            or new[new_offset + 4:new_offset + len(old) - old_offset] != old[old_offset + 4:]
+            or manifest.get('preservation', {}).get('original_walk_vra_sha256') != walk['files']['asset.vra']['sha256']
+            or manifest.get('preservation', {}).get('clip_payloads_byte_identical') != 44):
+        raise ValueError('JUMP changed original walk44 clip bytes or bindings')
+    for name in ('asset.vrs', 'asset.vrm'):
+        if manifest['files'][name] != walk['files'][name]:
+            raise ValueError('JUMP changed canonical companions')
+    clips = vrview.validated_clip_summary(new, vrs=blobs['asset.vrs'], vrm=blobs['asset.vrm'])
+    if ([c['name'] for c in clips] != names
+            or [c['loop'] for c in clips[-3:]] != [False, False, False]
+            or [c['frame_count'] for c in clips[-3:]] != [89, 185, 225]
+            or any(abs(c['duration'] - expected) > 1e-7 for c, expected in zip(clips[-3:], [11/60, 23/60, 28/60]))):
+        raise ValueError('JUMP clip contract mismatch')
+    samples = 0
+    for clip, end in zip(JUMP_CLIPS, [12, 24, 29]):
+        parity = json.loads(regular_file(root, folder / f'parity-{clip}.json').read_text())
+        conversion = json.loads(regular_file(root, folder / f'conversion-{clip}.json').read_text())
+        if (parity.get('backend') != 'Rust CPU sampler' or parity.get('passed') is not True
+                or parity.get('asset_sha256') != manifest['files']['asset.vra']['sha256']
+                or parity.get('source_sha256', {}).get('halcyon_jump.blend') != source.get('sha256')
+                or parity.get('source_fbx_sha256') != source.get('fbx', {}).get('sha256')
+                or parity.get('clip') != clip or parity.get('samples', 0) < 25
+                or parity.get('visibility_failures') != 0
+                or parity.get('declared_position_limit_m') != .001
+                or conversion.get('authoring_master_sha256') != source.get('sha256')
+                or conversion.get('source_fbx_sha256') != source.get('fbx', {}).get('sha256')
+                or conversion.get('native_fps') != [60, 1] or conversion.get('source_take') != clip
+                or conversion.get('native_crop') != [0, end - 1]
+                or conversion.get('imported_frame_offset') != 0
+                or conversion.get('timing_policy', {}).get('subdivisions') != 8
+                or conversion.get('timing_policy', {}).get('samples') != (end - 1) * 8 + 1):
+            raise ValueError('JUMP lacks matching successful source/Rust parity')
+        samples += parity['samples']
+    seams = json.loads(regular_file(root, folder / 'runtime-seams.json').read_text())
+    if (seams.get('backend') != 'Rust CPU sampler' or seams.get('passed') is not True
+            or seams.get('asset_sha256') != manifest['files']['asset.vra']['sha256']
+            or seams.get('declared_position_limit_m') != 0.001
+            or [c.get('name') for c in seams.get('checks', [])] != ['ready_takeoff', 'takeoff_air', 'air_land', 'land_ready', 'air_endpoint_hold']
+            or any(c.get('passed') is not True or c.get('visibility_matches') is not True
+                   or not 0 <= c.get('max_vertex_error_m', float('inf')) <= .001 for c in seams.get('checks', []))):
+        raise ValueError('JUMP lacks matching runtime seam/hold evidence')
+    current_source = root / source['file']
+    if current_source.exists():
+        data = regular_file(root, source['file']).read_bytes()
+        if len(data) != source['bytes'] or hashlib.sha256(data).hexdigest() != source['sha256']:
+            raise ValueError('JUMP differs from committed Blender source')
+    return {'clips': list(JUMP_CLIPS), 'clip_count': 47, 'original_clips_preserved': 44,
             'source_sha256': source['sha256'], 'parity_samples': samples}
 
 
@@ -407,11 +510,11 @@ def verify_directional(root: Path, folder: Path = DIRECTIONAL_DIR, require_trans
     for name in ('asset.vrs', 'asset.vrm'):
         if manifest['files'][name] != walk['files'][name]:
             raise ValueError('directional changed canonical companions')
-    pack = vrview.decode_vra(new, vrs=blobs['asset.vrs'], vrm=blobs['asset.vrm'])
-    if ([c['name'] for c in pack['clips']] != names
-            or any(c['loop'] is not True for c in pack['clips'][-4:])
-            or [c['frames'][-1]['time'] for c in pack['clips'][-4:]] != [struct.unpack('<f', struct.pack('<f', x))[0] for x in durations]
-            or [len(c['frames']) for c in pack['clips'][-4:]] != [(end - 1) * 8 + 1 for end in DIRECTIONAL_ENDS]):
+    clips = vrview.validated_clip_summary(new, vrs=blobs['asset.vrs'], vrm=blobs['asset.vrm'])
+    if ([c['name'] for c in clips] != names
+            or any(c['loop'] is not True for c in clips[-4:])
+            or [c['duration'] for c in clips[-4:]] != [struct.unpack('<f', struct.pack('<f', x))[0] for x in durations]
+            or [c['frame_count'] for c in clips[-4:]] != [(end - 1) * 8 + 1 for end in DIRECTIONAL_ENDS]):
         raise ValueError('directional clip contract mismatch')
     samples = 0
     for clip, end in zip(DIRECTIONAL_CLIPS, DIRECTIONAL_ENDS):
@@ -440,7 +543,7 @@ def verify_directional(root: Path, folder: Path = DIRECTIONAL_DIR, require_trans
             'source_sha256': source['sha256'], 'parity_samples': samples, 'status': 'WIP'}
 
 
-def materialize(root: Path, include_walk: bool = False, include_ads: bool = False, include_directional: bool = False) -> dict:
+def materialize(root: Path, include_walk: bool = False, include_ads: bool = False, include_directional: bool = False, include_jump: bool = False) -> dict:
     """Decode verified repository transport for native tests/tools in this checkout."""
     root = Path(root)
     report = verify(root)
@@ -457,7 +560,7 @@ def materialize(root: Path, include_walk: bool = False, include_ads: bool = Fals
             finally:
                 temporary.unlink(missing_ok=True)
     verify(root)
-    if (include_walk or include_ads or include_directional) and walk_bound(root):
+    if (include_walk or include_ads or include_directional or include_jump) and walk_bound(root):
         report["walk"] = verify_walk(root)
         walk_manifest = json.loads(regular_file(root, WALK_DIR / "manifest.json").read_text())
         for name in COMPANIONS:
@@ -481,6 +584,14 @@ def materialize(root: Path, include_walk: bool = False, include_ads: bool = Fals
             if not target.exists():
                 target.write_bytes(companion_bytes(root, name, directional_manifest, DIRECTIONAL_DIR))
         verify_directional(root)
+    if include_jump and jump_bound(root):
+        report['jump'] = verify_jump(root)
+        jump_manifest = json.loads(regular_file(root, JUMP_DIR / 'manifest.json').read_text())
+        for name in COMPANIONS:
+            target = root / JUMP_DIR / name
+            if not target.exists():
+                target.write_bytes(companion_bytes(root, name, jump_manifest, JUMP_DIR))
+        verify_jump(root)
     return report
 
 
@@ -516,8 +627,8 @@ def verify_generated_pack(root: Path, folder: Path, expected_source=None) -> dic
     committed = root / "assets/source/reload/source.json"
     if folder == GENERATED_DIR and committed.exists() and json.loads(committed.read_text()) != source:
         raise ValueError("generated assets differ from current committed source")
-    pack = vrview.decode_vra(blobs["asset.vra"], vrs=blobs["asset.vrs"], vrm=blobs["asset.vrm"])
-    if [clip["name"] for clip in pack["clips"]] != [source.get("clip")]:
+    clips = vrview.validated_clip_summary(blobs["asset.vra"], vrs=blobs["asset.vrs"], vrm=blobs["asset.vrm"])
+    if [clip["name"] for clip in clips] != [source.get("clip")]:
         raise ValueError("generated clip differs from selected source")
     regular_file(root, "assets/animations.cfg")
     regular_file(root, "docs/ANIMATION_SLOTS.md")
@@ -543,7 +654,43 @@ def verify_generated(root: Path) -> dict:
         primary["ads"] = verify_ads(root)
     if directional_bound(root):
         primary['directional'] = verify_directional(root)
+    if jump_bound(root):
+        primary['jump'] = verify_jump(root)
     return primary
+
+
+def preserved_build_identity(root: Path, binary: Path) -> Path | None:
+    """Preserve only bounded, internally consistent metadata for these exact bytes.
+
+    Source-run authorization remains the release stager's responsibility.
+    """
+    path = root / "BUILD_IDENTITY.json"
+    if not path.exists() and not path.is_symlink():
+        return None
+    path = regular_file(root, "BUILD_IDENTITY.json")
+    if path.stat().st_size > 16 * 1024:
+        raise ValueError("oversized build identity")
+    import build_identity
+    metadata = json.loads(path.read_text(encoding="utf-8"))
+    platform = "windows" if binary.name.endswith(".exe") else "linux"
+    if metadata.get("schema") != "rust-duty-build-identity/v1":
+        raise ValueError("unsupported build identity schema")
+    if metadata.get("executable") != build_identity.release_update.asset(binary):
+        raise ValueError("build identity does not match staged executable")
+    if metadata.get("target") != build_identity.TARGETS[platform][0]:
+        raise ValueError("build identity target does not match staged executable")
+    source = metadata.get("source", {})
+    commit = source.get("commit", "")
+    if not isinstance(commit, str) or len(commit) != 40 or any(c not in "0123456789abcdef" for c in commit):
+        raise ValueError("invalid build identity source commit")
+    build_identity.release_update.stable_version(metadata.get("version"))
+    if "build_number" in metadata or "display_version" in metadata or "run_attempt" in source:
+        run = build_identity.positive_integer(str(source.get("run_id")), "run id")
+        attempt = build_identity.positive_integer(str(source.get("run_attempt")), "run attempt")
+        number = f"{run}.{attempt}"
+        if metadata.get("build_number") != number or metadata.get("display_version") != f"{metadata['version']}+build.{number}":
+            raise ValueError("inconsistent visible build identity")
+    return path
 
 
 def stage(root: Path, binary: str, output: Path, update: bool = False, require_generated: bool = False) -> dict:
@@ -567,7 +714,16 @@ def stage(root: Path, binary: str, output: Path, update: bool = False, require_g
     directional = directional_bound(root)
     if directional:
         report['directional'] = verify_directional(root)
+    jumping = jump_bound(root)
+    if jumping:
+        report['jump'] = verify_jump(root)
     copies = [(regular_file(root, binary), Path(binary).name)]
+    build_identity_path = preserved_build_identity(root, copies[0][0])
+    if build_identity_path is not None:
+        copies.append((build_identity_path, "BUILD_IDENTITY.json"))
+    if jumping:
+        for name in (*JUMP_META, 'README.md'):
+            copies.append((regular_file(root, JUMP_DIR / name), JUMP_DIR / name))
     if directional:
         for name in (*DIRECTIONAL_META, 'README.md'):
             copies.append((regular_file(root, DIRECTIONAL_DIR / name), DIRECTIONAL_DIR / name))
@@ -622,11 +778,16 @@ def stage(root: Path, binary: str, output: Path, update: bool = False, require_g
             for name in COMPANIONS:
                 (destination / DIRECTIONAL_DIR / name).write_bytes(companion_bytes(root, name, directional_manifest, DIRECTIONAL_DIR))
             verify_directional(destination)
+        if jumping:
+            jump_manifest = json.loads(regular_file(root, JUMP_DIR / 'manifest.json').read_text())
+            for name in COMPANIONS:
+                (destination / JUMP_DIR / name).write_bytes(companion_bytes(root, name, jump_manifest, JUMP_DIR))
+            verify_jump(destination)
         verify(destination)
         if generated:
             verify_generated(destination)
         destination.rename(output)
-    return {"output": str(output), "files_staged": len(copies) + len(COMPANIONS) + (len(COMPANIONS) if walking else 0) + (len(COMPANIONS) if aiming else 0) + (len(COMPANIONS) if directional else 0), **report}
+    return {"output": str(output), "files_staged": len(copies) + len(COMPANIONS) + (len(COMPANIONS) if walking else 0) + (len(COMPANIONS) if aiming else 0) + (len(COMPANIONS) if directional else 0) + (len(COMPANIONS) if jumping else 0), **report}
 
 
 def main():
@@ -640,6 +801,9 @@ def main():
     unpack.add_argument("--include-walk", action="store_true")
     unpack.add_argument("--include-ads", action="store_true")
     unpack.add_argument("--include-directional", action="store_true")
+    unpack.add_argument("--include-jump", action="store_true")
+    unpack.add_argument("--require-generated", action="store_true",
+                        help="also verify generated/source-bound packs in this process")
     walk = commands.add_parser("verify-walk")
     walk.add_argument("--root", type=Path, default=Path("."))
     walk.add_argument("--folder", type=Path, default=WALK_DIR)
@@ -653,12 +817,12 @@ def main():
     if args.command == "verify":
         report = verify(args.root)
     elif args.command == "materialize":
-        report = materialize(args.root, args.include_walk, args.include_ads, args.include_directional)
+        report = materialize(args.root, args.include_walk, args.include_ads, args.include_directional, args.include_jump)
     elif args.command == "verify-walk":
         report = verify_walk(args.root, args.folder)
     else:
         report = stage(args.root, args.binary, args.output, args.update, args.require_generated)
-    if args.command == "verify" and args.require_generated:
+    if args.command in ("verify", "materialize") and args.require_generated:
         report["generated_reload"] = verify_generated(args.root)
     print(json.dumps(report, indent=2))
 

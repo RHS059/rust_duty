@@ -28,7 +28,7 @@ fn missing_required_slots_typos_and_unsafe_paths_fail() {
         MANIFEST.replace("reload/asset.vra", "../asset.vra"),
         MANIFEST.replace("reload/asset.vra", "C:\\asset.vra"),
         MANIFEST.replace("native_complete", "fit_gameplay_duration"),
-        MANIFEST.replace("whole_model_cut", "crossfade"),
+        MANIFEST.replace("anchored_crossfade", "crossfade"),
         MANIFEST.replace("ads.clock=native_reversible", "ads.clock=pretend_authored"),
         MANIFEST.replace("ads.entry.clip=ads_entry_r1", ""),
         MANIFEST.replace("ads/asset.vra", "../ads.vra"),
@@ -121,7 +121,38 @@ fn directional_walk_is_optional_and_requires_all_four_declared_clips() {
         ]
     );
     assert!(manifest.receiver_ads_wip);
+    assert!(manifest.forward_ads_v9_wip);
     assert_eq!(manifest.ads_visual_transition_seconds, Some(0.30));
     let missing = MANIFEST.replace("regular_walk.direction.left=hip_strafe_left_r1", "");
     assert!(AnimationManifest::parse(&missing, Path::new("assets")).is_err());
+}
+
+#[test]
+fn jump_is_optional_and_native_contact_policy_is_required() {
+    let legacy = MANIFEST
+        .lines()
+        .filter(|line| !line.starts_with("jump."))
+        .collect::<Vec<_>>()
+        .join("\n");
+    assert!(AnimationManifest::parse(&legacy, Path::new("assets"))
+        .unwrap()
+        .jump_asset
+        .is_none());
+    let configured =
+        format!("{legacy}\njump.asset=jump/asset.vra\njump.clock=native_ground_contact\n");
+    assert_eq!(
+        AnimationManifest::parse(&configured, Path::new("assets"))
+            .unwrap()
+            .jump_asset
+            .unwrap(),
+        Path::new("assets/jump/asset.vra")
+    );
+    for text in [
+        configured.replace("native_ground_contact", "fixed_reference_duration"),
+        configured.replace("jump/asset.vra", "../asset.vra"),
+        configured.clone() + "jump=unavailable\n",
+        format!("{legacy}\njump.asset=jump/asset.vra\n"),
+    ] {
+        assert!(AnimationManifest::parse(&text, Path::new("assets")).is_err());
+    }
 }

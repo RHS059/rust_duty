@@ -12,8 +12,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-latest
-            artifact: rust-duty-launcher-linux
           - os: windows-latest
             artifact: rust-duty-launcher-windows
     runs-on: ${{ matrix.os }}
@@ -53,8 +51,18 @@ jobs:
         run: cargo build --manifest-path updater/Cargo.toml --locked --release --bin rust-duty-launcher
       - name: Verify GitHub trust and stage launcher artifact
         run: python tools/package_updater.py --output updater-artifact
-      - uses: actions/upload-artifact@v4
+      - name: Archive immutable Windows launcher attempt
+        id: archive_launcher
+        uses: actions/upload-artifact@v4
         with:
+          name: ${{ matrix.artifact }}-attempt-${{ github.run_attempt }}
+          path: updater-artifact/
+          if-no-files-found: error
+      - name: Refresh launcher compatibility alias only after archival
+        if: ${{ steps.archive_launcher.outcome == 'success' && steps.archive_launcher.outputs.artifact-id != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          overwrite: true
           name: ${{ matrix.artifact }}
           path: updater-artifact/
           if-no-files-found: error

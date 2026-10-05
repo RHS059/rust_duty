@@ -47,6 +47,9 @@ fn fixture() -> AnimationSet {
     floats(&mut p, &Mat4::IDENTITY.to_cols_array());
     let clips = [
         ("ready", false, vec![(0., 0.)]),
+        ("jump_takeoff", false, vec![(0., 0.), (0.2, -0.1)]),
+        ("jump_air", false, vec![(0., -0.1), (0.4, 0.1)]),
+        ("jump_land", false, vec![(0., 0.1), (0.2, -0.1), (0.5, 0.)]),
         ("run_in", false, vec![(0., 0.), (0.25, 0.2)]),
         ("run", true, vec![(0., 0.2), (0.25, 0.3), (0.5, 0.2)]),
         ("bridge0", false, vec![(0., 0.2), (0.125, 0.1)]),
@@ -117,6 +120,7 @@ fn fixture() -> AnimationSet {
 }
 fn sources(set: &AnimationSet) -> LayerSources<'_> {
     LayerSources {
+        jump: None,
         locomotion: set,
         walk: Some(set),
         ads: Some(set),
@@ -164,6 +168,95 @@ fn step(
     layers
         .committed_step(sources(set), start, sim, false)
         .unwrap();
+}
+
+#[test]
+fn saved_xyz_placement_follows_interrupted_visual_ads_without_changing_settings() {
+    use vector_range::settings::{Settings, WalkTranslation};
+    let set = fixture();
+    for hz in [30_f64, 60., 120.] {
+        for signs in 0..8 {
+            let axis = |bit| if signs & (1 << bit) == 0 { -0.2 } else { 0.2 };
+            let mut settings = Settings::default();
+            settings.set_viewmodel(axis(0), axis(1));
+            settings.set_viewmodel_z(axis(2));
+            settings.set_walking_translation("test", WalkTranslation([-1., 0.4, 1.]));
+            let saved = settings.clone();
+            let hip = settings.viewmodel_offset(0.);
+            let mut layers = controller(&set)
+                .with_ads_wip_policy(false, Some(0.30))
+                .unwrap();
+            let mut sim = Simulation::new();
+            for (aim, seconds) in [
+                (true, 0.1),
+                (false, 0.04),
+                (true, 0.5),
+                (false, 0.08),
+                (true, 0.04),
+                (false, 0.5),
+            ] {
+                let before = settings.viewmodel_offset(layers.visual_ads_amount());
+                step(&set, &mut layers, &mut sim, 0., true, aim, false);
+                assert_eq!(
+                    settings.viewmodel_offset(layers.visual_ads_amount()),
+                    before,
+                    "changing intent without time must not snap placement"
+                );
+                for _ in 0..(seconds * hz).ceil() as usize {
+                    let before = settings.viewmodel_offset(layers.visual_ads_amount());
+                    step(&set, &mut layers, &mut sim, 1. / hz, true, aim, false);
+                    let offset = settings.viewmodel_offset(layers.visual_ads_amount());
+                    assert!(
+                        (offset - before).abs().max_element()
+                            <= 0.2 * 1.5 / (0.30 * hz as f32) + 1e-6
+                    );
+                    assert!(offset.abs().cmple(hip.abs()).all());
+                    assert_eq!(
+                        settings, saved,
+                        "render placement cannot alter saved controls"
+                    );
+                }
+                if seconds == 0.5 {
+                    assert_eq!(
+                        settings.viewmodel_offset(layers.visual_ads_amount()),
+                        if aim { Vec3::ZERO } else { hip }
+                    );
+                }
+            }
+            step(&set, &mut layers, &mut sim, 0.5, true, true, false);
+            assert_eq!(
+                settings.viewmodel_offset(layers.visual_ads_amount()),
+                Vec3::ZERO
+            );
+            step(&set, &mut layers, &mut sim, 1. / hz, true, true, true);
+            assert!(layers.visual_ads_amount() < layers.ads().unwrap().aim_amount());
+            step(&set, &mut layers, &mut sim, 0.5, true, true, true);
+            assert_eq!(settings.viewmodel_offset(layers.visual_ads_amount()), hip);
+        }
+    }
+}
+
+#[test]
+fn saved_placement_keeps_full_aimed_pose_and_optical_ray_at_every_slider_extreme() {
+    use vector_range::settings::Settings;
+    for x in [-0.2, 0., 0.2] {
+        for y in [-0.2, 0., 0.2] {
+            for z in [-0.2, 0., 0.2] {
+                let mut settings = Settings::default();
+                settings.set_viewmodel(x, y);
+                settings.set_viewmodel_z(z);
+                let offset = settings.viewmodel_offset(1.);
+                assert_eq!(offset, Vec3::ZERO);
+                for depth in [0.23306687, 0.5932643] {
+                    assert_eq!(
+                        Vec3::new(0., 0., -depth) + offset,
+                        Vec3::new(0., 0., -depth)
+                    );
+                }
+                assert_eq!(settings.viewmodel_offset(0.), Vec3::new(x, y, z));
+            }
+        }
+    }
 }
 fn close(a: &ViewmodelPose, b: &ViewmodelPose, tolerance: f32) {
     for (a, b) in a
@@ -471,4 +564,359 @@ fn wip_ads_rate_integrates_phase_without_recomputing_or_resetting_prior_walk_tim
         .unwrap();
     assert!((layers.walk().seconds().unwrap() - b.walk().seconds().unwrap()).abs() < 1e-10);
     close(layers.pose(), b.pose(), 2e-5);
+}
+
+#[test]
+fn walking_axes_scale_only_neutral_relative_displacement_and_preserve_grips() {
+    use vector_range::{authored_walk::WalkPoseLayer, settings::WalkTranslation};
+    let set = fixture();
+    let base = set.sample_clamped("ads", 0.).unwrap();
+    let walk = set.sample("walk_forward", 0.15).unwrap();
+    let mut layer = WalkPoseLayer::new(&set, &set, "ready", "weapon").unwrap();
+    for aim in [0., 0.35, 1.] {
+        for weight in [0., 0.4, 1.] {
+            layer.set_translation_adjustment(WalkTranslation::default());
+            let current = layer.pose(&set, &base, &walk, weight, aim).unwrap();
+            let neutral = base.actor_globals[0].translation;
+            let displacement = current.actor_globals[0].translation - neutral;
+            for values in [
+                [-1., 0., 0.],
+                [0., -1., 0.],
+                [0., 0., -1.],
+                [1., 0.5, -0.5],
+                [-1.; 3],
+            ] {
+                let adjustment = WalkTranslation(values);
+                layer.set_translation_adjustment(adjustment);
+                let adjusted = layer.pose(&set, &base, &walk, weight, aim).unwrap();
+                let expected = neutral + displacement * adjustment.gains();
+                assert!(adjusted.actor_globals[0]
+                    .translation
+                    .abs_diff_eq(expected, 2e-6));
+                assert!(adjusted.actor_globals[0]
+                    .rotation
+                    .abs_diff_eq(current.actor_globals[0].rotation, 2e-6));
+                let original_globals = set.bone_globals(&current, Mat4::IDENTITY).unwrap();
+                let adjusted_globals = set.bone_globals(&adjusted, Mat4::IDENTITY).unwrap();
+                for (a, b) in original_globals.iter().zip(adjusted_globals) {
+                    let relative_a = current.actor_globals[0].matrix().inverse() * *a;
+                    let relative_b = adjusted.actor_globals[0].matrix().inverse() * b;
+                    assert!(relative_a.abs_diff_eq(relative_b, 3e-6));
+                }
+                if weight == 0. {
+                    assert_eq!(adjusted, base);
+                }
+            }
+        }
+    }
+}
+
+#[test]
+fn walk_settings_leave_idle_reload_and_full_sprint_output_unchanged() {
+    use vector_range::settings::WalkTranslation;
+    let set = fixture();
+    for (moving, sprint, reload) in [
+        (false, false, false),
+        (false, true, false),
+        (true, false, true),
+    ] {
+        let mut original = controller(&set);
+        let mut adjusted = original.clone();
+        adjusted.set_walk_translation(WalkTranslation([-1., 1., 0.5]));
+        let mut sim = Simulation::new();
+        sim.player.velocity = if moving { Vec3::X } else { Vec3::ZERO };
+        sim.player.sprinting = sprint;
+        sim.time = 0.5;
+        original
+            .committed_step(sources(&set), 0., &sim, reload)
+            .unwrap();
+        adjusted
+            .committed_step(sources(&set), 0., &sim, reload)
+            .unwrap();
+        assert_eq!(original.pose(), adjusted.pose());
+    }
+}
+
+#[test]
+fn v9_direction_and_aim_rate_integrals_preserve_phase_across_partitioned_ticks() {
+    let set = fixture();
+    let mut a = controller(&set)
+        .with_directional_walk(&set, directions())
+        .unwrap()
+        .with_ads_wip_policy(true, Some(0.30))
+        .unwrap()
+        .with_forward_ads_v9_policy(true)
+        .unwrap();
+    let mut sim = Simulation::new();
+    sim.player.yaw = 0.;
+    sim.player.velocity = Vec3::X;
+    sim.time = 0.2;
+    a.committed_step(sources(&set), 0., &sim, false).unwrap();
+    let mut b = a.clone();
+    sim.player.ads_requested = true;
+    sim.player.velocity = Vec3::Z;
+    sim.time = 0.65;
+    a.committed_step(sources(&set), 0.2, &sim, false).unwrap();
+    let mut previous = 0.2;
+    for time in [0.213, 0.3, 0.37, 0.49, 0.58, 0.65] {
+        sim.time = time;
+        b.committed_step(sources(&set), previous, &sim, false)
+            .unwrap();
+        previous = time;
+    }
+    assert!((a.walk().seconds().unwrap() - b.walk().seconds().unwrap()).abs() < 1e-10);
+    close(a.pose(), b.pose(), 3e-5);
+    assert_eq!(a.walk_min_rate(), 0.80);
+    let phase = a.walk().seconds();
+    a.committed_step(sources(&set), sim.time, &sim, false)
+        .unwrap();
+    assert_eq!(a.walk().seconds(), phase);
+    // Forward return, run overlap, and interrupted ADS exit all keep a single clock.
+    sim.player.velocity = Vec3::X;
+    sim.player.sprinting = true;
+    sim.time += 0.05;
+    a.committed_step(sources(&set), previous, &sim, false)
+        .unwrap();
+    assert!(a.run_weight() > 0. && a.walk().weight() > 0.);
+    assert!(a.walk().seconds().unwrap() > phase.unwrap());
+}
+
+#[test]
+fn v9_without_directional_source_retains_legacy_policy() {
+    let set = fixture();
+    let mut original = controller(&set)
+        .with_ads_wip_policy(true, Some(0.30))
+        .unwrap();
+    let mut fallback = original.clone().with_forward_ads_v9_policy(true).unwrap();
+    let mut sim = Simulation::new();
+    sim.player.velocity = Vec3::X;
+    sim.player.ads_requested = true;
+    sim.time = 0.4;
+    original
+        .committed_step(sources(&set), 0., &sim, false)
+        .unwrap();
+    fallback
+        .committed_step(sources(&set), 0., &sim, false)
+        .unwrap();
+    assert_eq!(original.pose(), fallback.pose());
+    assert_eq!(original.walk().seconds(), fallback.walk().seconds());
+    assert_eq!(fallback.walk_min_rate(), 0.85);
+}
+
+#[test]
+fn jump_landing_blends_from_actual_pose_at_early_and_late_contact() {
+    for contact in [0.1, 0.9] {
+        let set = fixture();
+        let mut layers = controller(&set)
+            .with_jump(&set, &set, "ready", "weapon")
+            .unwrap();
+        let mut sim = Simulation::new();
+        sim.player.last_jump_at = 0.;
+        sim.player.grounded = false;
+        let sources = LayerSources {
+            jump: Some(&set),
+            ..sources(&set)
+        };
+        sim.time = 0.01;
+        layers.committed_step(sources, 0., &sim, false).unwrap();
+        sim.time = contact - 0.01;
+        layers.committed_step(sources, 0.01, &sim, false).unwrap();
+        let airborne = layers.pose().clone();
+        sim.time = contact;
+        sim.player.grounded = true;
+        layers
+            .committed_step(sources, contact - 0.01, &sim, false)
+            .unwrap();
+        assert_eq!(
+            layers.jump_sample().unwrap().phase,
+            vector_range::authored_jump::JumpPhase::Land
+        );
+        assert_eq!(layers.jump_sample().unwrap().seconds, 0.);
+        assert_eq!(layers.pose(), &airborne);
+        sim.time += 0.07;
+        layers
+            .committed_step(sources, contact, &sim, false)
+            .unwrap();
+        assert_ne!(layers.pose(), &airborne);
+    }
+}
+
+#[test]
+fn jump_keeps_ads_clock_and_articulation_and_reload_owns_interruption() {
+    let set = fixture();
+    let mut layers = controller(&set)
+        .with_jump(&set, &set, "ready", "weapon")
+        .unwrap();
+    let mut baseline = controller(&set);
+    let mut sim = Simulation::new();
+    sim.player.ads_requested = true;
+    let jump_sources = LayerSources {
+        jump: Some(&set),
+        ..sources(&set)
+    };
+    for i in 0..100 {
+        let start = sim.time;
+        if i == 40 {
+            sim.player.last_jump_at = start;
+            sim.player.grounded = false;
+        }
+        sim.time += 0.01;
+        layers
+            .committed_step(jump_sources, start, &sim, false)
+            .unwrap();
+        baseline
+            .committed_step(sources(&set), start, &sim, false)
+            .unwrap();
+        assert_eq!(layers.visual_ads_amount(), baseline.visual_ads_amount());
+    }
+    assert!(layers.jump_sample().is_some());
+    // At full ADS the jump's x/y translation is projected away, preserving the
+    // authored optical placement, but source depth/roll still moves the weapon.
+    let aimed = baseline.pose().actor_globals[0];
+    let jumped = layers.pose().actor_globals[0];
+    assert!(jumped.translation.is_finite());
+    assert_ne!(jumped, aimed);
+    let start = sim.time;
+    sim.time += 0.01;
+    layers
+        .committed_step(jump_sources, start, &sim, true)
+        .unwrap();
+    baseline
+        .committed_step(sources(&set), start, &sim, true)
+        .unwrap();
+    assert!(layers.jump_sample().is_none());
+    assert_eq!(layers.pose(), baseline.pose());
+    let previous = layers.pose().clone();
+    // Missing configured source is a real failure and leaves all clocks/pose intact.
+    sim.time += 0.01;
+    assert!(layers
+        .committed_step(sources(&set), start + 0.01, &sim, false)
+        .is_err());
+    assert_eq!(layers.pose(), &previous);
+}
+
+#[test]
+fn real_simulation_accepts_one_jump_and_ground_contact_starts_landing() {
+    use vector_range::{
+        authored_jump::JumpPhase,
+        settings::Settings,
+        sim::{Input, FIXED_DT},
+    };
+    let set = fixture();
+    let mut layers = controller(&set)
+        .with_jump(&set, &set, "ready", "weapon")
+        .unwrap();
+    let sources = LayerSources {
+        jump: Some(&set),
+        ..sources(&set)
+    };
+    let mut sim = Simulation::new();
+    let cfg = Settings::default();
+    let mut saw_air = false;
+    let mut saw_land = false;
+    for _ in 0..240 {
+        let start = sim.time;
+        // Holding raw input must not repeatedly restart the accepted jump.
+        sim.update(
+            Input {
+                jump: true,
+                ..Input::default()
+            },
+            &cfg,
+            FIXED_DT,
+        );
+        layers.committed_step(sources, start, &sim, false).unwrap();
+        if let Some(sample) = layers.jump_sample() {
+            saw_air |= sample.phase == JumpPhase::Air;
+            if sample.phase == JumpPhase::Land {
+                assert!(sim.player.grounded);
+                saw_land = true;
+            }
+        }
+    }
+    assert!(saw_air && saw_land);
+    assert!(layers.jump_sample().is_none());
+    assert_eq!(sim.player.last_jump_at, 0.);
+}
+
+#[test]
+fn real_space_to_stand_and_mantle_never_start_jump_layer() {
+    use macroquad::math::{vec2, vec3};
+    use vector_range::{
+        settings::Settings,
+        sim::{Aabb, Block, Input, FIXED_DT},
+    };
+    let set = fixture();
+    let cfg = Settings::default();
+    for mantle in [false, true] {
+        let mut layers = controller(&set)
+            .with_jump(&set, &set, "ready", "weapon")
+            .unwrap();
+        let sources = LayerSources {
+            jump: Some(&set),
+            ..sources(&set)
+        };
+        let mut sim = Simulation::new();
+        if mantle {
+            sim.blocks = vec![
+                Block {
+                    bounds: Aabb {
+                        min: vec3(-20., -1., -20.),
+                        max: vec3(20., 0., 20.),
+                    },
+                    kind: 2,
+                },
+                Block {
+                    bounds: Aabb {
+                        min: vec3(-2., 0., -4.),
+                        max: vec3(2., 0.6, 0.),
+                    },
+                    kind: 2,
+                },
+            ];
+            sim.ramps.clear();
+            sim.player.position = vec3(0., 0., 1.);
+            sim.player.yaw = -std::f32::consts::FRAC_PI_2;
+        } else {
+            for _ in 0..60 {
+                let start = sim.time;
+                sim.update(
+                    Input {
+                        crouch: true,
+                        ..Input::default()
+                    },
+                    &cfg,
+                    FIXED_DT,
+                );
+                layers.committed_step(sources, start, &sim, false).unwrap();
+            }
+            assert!(sim.player.crouched);
+        }
+        let start = sim.time;
+        sim.update(
+            Input {
+                jump: true,
+                movement: if mantle { vec2(0., 1.) } else { vec2(0., 0.) },
+                ..Input::default()
+            },
+            &cfg,
+            FIXED_DT,
+        );
+        layers.committed_step(sources, start, &sim, false).unwrap();
+        assert_eq!(sim.player.mantle.is_some(), mantle);
+        assert!(layers.jump_sample().is_none());
+        for _ in 0..120 {
+            let start = sim.time;
+            sim.update(
+                Input {
+                    jump: true,
+                    ..Input::default()
+                },
+                &cfg,
+                FIXED_DT,
+            );
+            layers.committed_step(sources, start, &sim, false).unwrap();
+            assert!(layers.jump_sample().is_none());
+        }
+    }
 }

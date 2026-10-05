@@ -9,12 +9,14 @@ from build_blender_assets import selections
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--kind', choices=['reload', 'walk', 'ads', 'directional'], required=True)
+    parser.add_argument('--kind', choices=['reload', 'walk', 'ads', 'directional', 'jump'], required=True)
     parser.add_argument('--directory', type=Path, required=True)
     parser.add_argument('--root', type=Path, default=Path('.'))
     args = parser.parse_args()
     package_game.verify(args.root)
-    if args.kind == 'directional':
+    if args.kind == 'jump':
+        report = package_game.verify_jump(args.root, args.directory, require_transports=True)
+    elif args.kind == 'directional':
         report = package_game.verify_directional(args.root, args.directory, require_transports=True)
     elif args.kind == 'ads':
         report = package_game.verify_ads(args.root, args.directory, require_transports=True)

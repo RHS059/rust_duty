@@ -37,7 +37,11 @@ fn r_accepted_once_plays_native_seconds_and_exits_without_changing_gameplay() {
             assert!((sample.seconds - 1. / 120.).abs() < 1e-6);
         }
         if index == 60 {
-            assert_eq!(view.sample().unwrap().seconds, 0.1);
+            assert!(
+                view.sample().is_none(),
+                "visual endpoint must not freeze until gameplay readiness"
+            );
+            assert!(sim.player.reload_left > 0.);
         }
     }
     assert!(view.sample().is_none());
@@ -118,8 +122,11 @@ fn repeated_r_and_sprint_cancel_preserve_authority() {
     };
     tick(&mut sim, &mut view, reload, &cfg, 1. / 120.);
     let first = view.sample().unwrap().seconds;
+    assert!(view.started_this_step());
     tick(&mut sim, &mut view, reload, &cfg, 1. / 120.);
     assert!(view.sample().unwrap().seconds > first);
+    assert!(!view.started_this_step());
+    let interrupted = view.sample();
     tick(
         &mut sim,
         &mut view,
@@ -133,6 +140,30 @@ fn repeated_r_and_sprint_cancel_preserve_authority() {
     );
     assert_eq!(sim.player.reload_left, 0.);
     assert!(view.sample().is_none());
+    assert_eq!(view.ended_this_step(), interrupted);
+}
+
+#[test]
+fn native_end_emits_exact_return_once_while_gameplay_reload_continues() {
+    let mut sim = Simulation::new();
+    sim.player.ammo = 12;
+    let mut view = AuthoredReload::new(0.1, None).unwrap();
+    let cfg = Settings::m4_candidate();
+    tick(
+        &mut sim,
+        &mut view,
+        Input {
+            reload: true,
+            ..Input::default()
+        },
+        &cfg,
+        0.12,
+    );
+    assert!(view.sample().is_none());
+    assert_eq!(view.ended_this_step().unwrap().seconds, 0.1);
+    assert!(sim.player.reload_left > 0.);
+    tick(&mut sim, &mut view, Input::default(), &cfg, 0.01);
+    assert!(view.ended_this_step().is_none());
 }
 
 fn synthetic_clip(looping: bool) -> vector_range::viewmodel_animation::AnimationSet {

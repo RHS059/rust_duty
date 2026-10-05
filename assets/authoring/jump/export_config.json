@@ -1,0 +1,71 @@
+{
+  "schema": "rust-duty-jump-authoring-export/v1",
+  "blender_version": "4.3.2",
+  "source_file": "halcyon_jump.blend",
+  "source_fps": 60,
+  "bake_hz": 480,
+  "armature": "Arms",
+  "skin_objects": [
+    "Actual arms mesh 0",
+    "Actual arms mesh 1",
+    "Actual arms mesh 2"
+  ],
+  "rigid_actors": [
+    "hk416_weapon",
+    "hk416_magazine"
+  ],
+  "excluded_rigid_actor": "hk416_magazine_outgoing",
+  "deform_bone_count": 72,
+  "source_take_count": 3,
+  "authored_gameplay_take_count": 3,
+  "runtime_gameplay_clip_count": 3,
+  "normal_ready": {
+    "name": "normal_ready",
+    "action": "RD_Locomotion_Normal_Entry_4419_4434_WIP2",
+    "frame_start": 1,
+    "frame_end": 2,
+    "freeze_at_source_frame": 1
+  },
+  "source_takes": [
+    {
+      "name": "jump_takeoff",
+      "action": "jump_takeoff_r7",
+      "frame_start": 1,
+      "frame_end": 12,
+      "loop": false,
+      "role": "gameplay"
+    },
+    {
+      "name": "jump_air",
+      "action": "jump_air_r7",
+      "frame_start": 1,
+      "frame_end": 24,
+      "loop": false,
+      "role": "gameplay"
+    },
+    {
+      "name": "jump_land",
+      "action": "jump_land_r7",
+      "frame_start": 1,
+      "frame_end": 29,
+      "loop": false,
+      "role": "gameplay"
+    }
+  ],
+  "conversion_groups": [
+    [
+      "jump_takeoff",
+      "jump_air",
+      "jump_land"
+    ]
+  ],
+  "runtime_derivation": {
+    "canonical_walk_clips_retained": 44,
+    "new_jump_clips": 3
+  },
+  "source_sha256": "a2c4b2bbe98da1a608450bba92404cb39008eae5861bcf8fc3f5d2f978df0e3b",
+  "companion_actions": {
+    "hk416_weapon": "hk416_weaponAction.001",
+    "hk416_magazine": "hk416_magazineAction"
+  }
+}

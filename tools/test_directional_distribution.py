@@ -143,6 +143,10 @@ class DirectionalDistributionTests(unittest.TestCase):
     def test_stage_retains_walk44_and_ads47_with_directional48(self):
         if not (ROOT / package.GENERATED_DIR / 'manifest.json').exists() or not (ROOT / package.ADS_DIR / 'manifest.json').exists():
             self.skipTest('Complete generated reload and ADS build outputs required')
+        if package.jump_bound(ROOT) and not (ROOT / package.JUMP_DIR / 'manifest.json').exists():
+            self.skipTest('Bound Jump build output required')
+        if package.jump_bound(ROOT):
+            shutil.copytree(ROOT / package.JUMP_DIR, self.root / package.JUMP_DIR)
         for folder in (package.GENERATED_DIR, package.ADS_DIR):
             shutil.copytree(ROOT / folder, self.root / folder)
         # Production manifest also carries reload and ADS selections; this test
@@ -165,3 +169,5 @@ class DirectionalDistributionTests(unittest.TestCase):
             self.assertTrue((destination / folder / 'asset.vra').is_file())
             self.assertFalse((destination / folder / 'asset.vra.gz').exists())
             verifier(destination)
+        if package.jump_bound(ROOT):
+            package.verify_jump(destination)
