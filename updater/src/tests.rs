@@ -1125,7 +1125,7 @@ fn http_fixture_restores_blocking_mode_for_inherited_nonblocking_sockets() {
     let body = random_bytes(512 * 1024);
     let bodies = Arc::new(Mutex::new(HashMap::from([(
         "fixture.rdb".into(),
-        body.clone(),
+        Arc::new(body.clone()),
     )])));
     let (accepted_tx, accepted_rx) = mpsc::channel();
     let (done_tx, done_rx) = mpsc::channel();
