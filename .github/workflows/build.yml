@@ -2,7 +2,7 @@ name: Rust prototype checks and playable builds
 on:
   pull_request:
   push:
-    branches: [main, 'aella/**', 'halcyon/**']
+    branches: [main, 'aella/**', 'halcyon/**', '!aella/release-channel']
 permissions:
   contents: read
 concurrency:
@@ -21,11 +21,8 @@ jobs:
   ads-assets:
     needs: [walk-assets]
     uses: ./.github/workflows/ads-assets.yml
-  jump-assets:
-    needs: [walk-assets]
-    uses: ./.github/workflows/jump-assets.yml
   build:
-    needs: [animation-assets, walk-assets, ads-assets, directional-assets, jump-assets]
+    needs: [animation-assets, walk-assets, ads-assets, directional-assets]
     name: ${{ matrix.os }}
     # Build and artifact identity both use the checked-out Cargo.toml version.
     runs-on: ${{ matrix.os }}
@@ -55,11 +52,6 @@ jobs:
         with:
           name: generated-directional-runtime
           path: assets/directional
-      - name: Fetch source-authored common Jump r7 WIP
-        uses: actions/download-artifact@v4
-        with:
-          name: generated-jump-runtime
-          path: assets/jump
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt, clippy
@@ -80,9 +72,13 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Identify this exact build attempt
+        id: identity
+        shell: bash
+        run: echo "label=$(python tools/build_identity.py --print-label)" >> "$GITHUB_OUTPUT"
       - run: python -m pip install -r tools/requirements-assets.txt cryptography
       - name: Materialize and verify all generated and committed companions
-        run: python tools/package_game.py materialize --root . --include-walk --include-ads --include-directional --include-jump --require-generated
+        run: python tools/package_game.py materialize --root . --include-walk --include-ads --include-directional --require-generated
       - name: Format and capture required source changes
         shell: bash
         run: |
@@ -116,25 +112,6 @@ jobs:
       - name: Stage complete Linux game
         if: runner.os == 'Linux'
         run: python tools/package_game.py stage --root . --binary target/release/vector-range --output dist/game --require-generated
-      - name: Capture accepted common jumps and ADS/reload interruptions
-        if: runner.os == 'Linux'
-        timeout-minutes: 8
-        shell: bash
-        env:
-          LIBGL_ALWAYS_SOFTWARE: '1'
-        run: |
-          mkdir -p evidence/jump-gameplay
-          cd dist/game
-          timeout 420s xvfb-run -a -s "-screen 0 1920x1080x24" ./vector-range --no-update --reference-viewport --capture-sequence=gameplay-jump --capture-hz=60 --output=../../evidence/jump-gameplay
-          cd ../..
-          python tools/verify_jump_capture.py evidence/jump-gameplay
-      - name: Retain native common Jump WIP evidence
-        if: runner.os == 'Linux' && always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: native-gameplay-jump-evidence
-          path: evidence/jump-gameplay/
-          if-no-files-found: warn
       - name: Capture actual native gameplay reload and exit
         if: runner.os == 'Linux'
         timeout-minutes: 6
@@ -278,6 +255,21 @@ jobs:
       - name: Verify embedded Linux build identity
         if: runner.os == 'Linux'
         run: python tools/build_identity.py --root dist/game --platform linux
+      - name: Upload uniquely numbered Windows game
+        if: runner.os == 'Windows'
+        uses: actions/upload-artifact@v4
+        with:
+          name: Rust-Duty-${{ steps.identity.outputs.label }}-Windows-x64
+          path: dist/game/
+          if-no-files-found: error
+      - name: Upload uniquely numbered Linux game
+        if: runner.os == 'Linux'
+        uses: actions/upload-artifact@v4
+        with:
+          name: Rust-Duty-${{ steps.identity.outputs.label }}-Linux-x64
+          path: dist/game/
+          if-no-files-found: error
+      # Compatibility aliases are identical bytes for the existing release publisher.
       - name: Upload complete Windows game
         if: runner.os == 'Windows'
         uses: actions/upload-artifact@v4

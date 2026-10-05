@@ -50,6 +50,8 @@ def context(env=None, *, publication=False):
     repository = env.get("GITHUB_REPOSITORY", "")
     number = positive_integer(env.get("GITHUB_RUN_NUMBER"), "run number")
     run_id = positive_integer(env.get("GITHUB_RUN_ID"), "run id")
+    attempt = positive_integer(env.get("GITHUB_RUN_ATTEMPT"), "run attempt")
+    build_number = f"{run_id}.{attempt}"
     commit = env.get("GITHUB_SHA", "")
     branch = env.get("GITHUB_REF_NAME", "")
     if not re.fullmatch(r"[0-9a-f]{40}", commit) or not branch or "\n" in branch:
@@ -71,8 +73,9 @@ def context(env=None, *, publication=False):
         raise ValueError("publication requires a successful explicitly authorized one-time release push build")
     return {
         "repository": repository, "version": version, "sequence": sequence,
+        "build_number": build_number, "display_version": f"{version}+build.{build_number}",
         "source": {"commit": commit, "branch": branch, "workflow": WORKFLOW,
-                   "run_id": run_id, "run_number": number,
+                   "run_id": run_id, "run_number": number, "run_attempt": attempt,
                    "run_url": f"https://github.com/{repository}/actions/runs/{run_id}"},
     }
 
@@ -97,6 +100,10 @@ def stamp(root, platform, env=None):
                                        text=True, timeout=30).strip()
     if reported != identity["version"]:
         raise ValueError(f"embedded game version {reported!r} differs from build identity")
+    reported_label = subprocess.check_output([str((root / name).resolve()), "--build-label"],
+                                             text=True, timeout=30).strip()
+    if reported_label != identity["display_version"]:
+        raise ValueError(f"embedded game build label {reported_label!r} differs from build identity")
     identity.update(schema="rust-duty-build-identity/v1", target=target, executable=record)
     destination = root / IDENTITY_FILE
     if destination.exists() or destination.is_symlink():
@@ -119,10 +126,16 @@ def verify(root, platform, expected):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--root", type=Path, required=True)
-    parser.add_argument("--platform", choices=TARGETS, required=True)
+    parser.add_argument("--root", type=Path)
+    parser.add_argument("--platform", choices=TARGETS)
+    parser.add_argument("--print-label", action="store_true")
     args = parser.parse_args()
-    print(json.dumps(stamp(args.root, args.platform), indent=2))
+    if args.print_label:
+        print(context()["display_version"])
+    else:
+        if args.root is None or args.platform is None:
+            parser.error("--root and --platform are required for stamping")
+        print(json.dumps(stamp(args.root, args.platform), indent=2))
 
 
 if __name__ == "__main__":

@@ -20,6 +20,14 @@ const ACCENT: Color = Color::new(0.98, 0.62, 0.22, 1.);
 const CYAN: Color = Color::new(0.33, 0.84, 0.87, 1.);
 const MUTED: Color = Color::new(0.62, 0.69, 0.72, 1.);
 fn config() -> Conf {
+    if std::env::args().any(|arg| arg == "--build-label") {
+        println!("{}", vector_range::BUILD_LABEL);
+        std::process::exit(0);
+    }
+    if std::env::args().any(|arg| arg == "--build-number") {
+        println!("{}", vector_range::BUILD_NUMBER);
+        std::process::exit(0);
+    }
     if std::env::args().any(|arg| arg == "--build-version") {
         println!("{}", vector_range::BUILD_VERSION);
         std::process::exit(0);
@@ -43,7 +51,7 @@ fn config() -> Conf {
     }
     let reference = std::env::args().any(|a| a == "--reference-viewport");
     Conf {
-        window_title: "VECTOR RANGE | Original Rust FPS laboratory".into(),
+        window_title: format!("VECTOR RANGE | {}", vector_range::BUILD_LABEL),
         window_width: if reference { 960 } else { 1440 },
         window_height: if reference { 540 } else { 900 },
         high_dpi: !reference,

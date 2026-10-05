@@ -173,7 +173,7 @@ impl PauseMenu {
         }
         action
     }
-    /// `enabled` requires a paused, focused window with no update overlay.
+    ///  requires a paused, focused window with no update overlay.
     /// A drag is owned until release, including outside the panel.
     pub fn input(
         &mut self,
@@ -290,7 +290,7 @@ impl PauseMenu {
         rect(Rect::new(0., 0., 610., 843.), ink);
         rect(Rect::new(0., 0., 610., 3.), accent);
         text("VECTOR RANGE", 32., 52., 34., WHITE);
-        text("MOVEMENT + GUNPLAY LABORATORY", 33., 77., 16., muted);
+        text(vector_range::BUILD_LABEL, 33., 77., 16., muted);
         rect(RESUME, Color::new(0.13, 0.21, 0.25, 1.));
         text(
             if initial { "ENTER THE RANGE" } else { "RESUME" },

@@ -659,6 +659,40 @@ def verify_generated(root: Path) -> dict:
     return primary
 
 
+def preserved_build_identity(root: Path, binary: Path) -> Path | None:
+    """Preserve only bounded, internally consistent metadata for these exact bytes.
+
+    Source-run authorization remains the release stager's responsibility.
+    """
+    path = root / "BUILD_IDENTITY.json"
+    if not path.exists() and not path.is_symlink():
+        return None
+    path = regular_file(root, "BUILD_IDENTITY.json")
+    if path.stat().st_size > 16 * 1024:
+        raise ValueError("oversized build identity")
+    import build_identity
+    metadata = json.loads(path.read_text(encoding="utf-8"))
+    platform = "windows" if binary.name.endswith(".exe") else "linux"
+    if metadata.get("schema") != "rust-duty-build-identity/v1":
+        raise ValueError("unsupported build identity schema")
+    if metadata.get("executable") != build_identity.release_update.asset(binary):
+        raise ValueError("build identity does not match staged executable")
+    if metadata.get("target") != build_identity.TARGETS[platform][0]:
+        raise ValueError("build identity target does not match staged executable")
+    source = metadata.get("source", {})
+    commit = source.get("commit", "")
+    if not isinstance(commit, str) or len(commit) != 40 or any(c not in "0123456789abcdef" for c in commit):
+        raise ValueError("invalid build identity source commit")
+    build_identity.release_update.stable_version(metadata.get("version"))
+    if "build_number" in metadata or "display_version" in metadata or "run_attempt" in source:
+        run = build_identity.positive_integer(str(source.get("run_id")), "run id")
+        attempt = build_identity.positive_integer(str(source.get("run_attempt")), "run attempt")
+        number = f"{run}.{attempt}"
+        if metadata.get("build_number") != number or metadata.get("display_version") != f"{metadata['version']}+build.{number}":
+            raise ValueError("inconsistent visible build identity")
+    return path
+
+
 def stage(root: Path, binary: str, output: Path, update: bool = False, require_generated: bool = False) -> dict:
     root, output = Path(root).resolve(), Path(output).absolute()
     if Path(binary).name not in ("vector-range", "vector-range.exe"):
@@ -684,6 +718,9 @@ def stage(root: Path, binary: str, output: Path, update: bool = False, require_g
     if jumping:
         report['jump'] = verify_jump(root)
     copies = [(regular_file(root, binary), Path(binary).name)]
+    build_identity_path = preserved_build_identity(root, copies[0][0])
+    if build_identity_path is not None:
+        copies.append((build_identity_path, "BUILD_IDENTITY.json"))
     if jumping:
         for name in (*JUMP_META, 'README.md'):
             copies.append((regular_file(root, JUMP_DIR / name), JUMP_DIR / name))
