@@ -126,3 +126,16 @@ as diagnostic evidence, rather than portable straight-alpha artwork.
 The Windows-only `renderer_contract` example checks this contract alongside
 orientation, padded readback, ordered capture, depth/camera transitions and text.
 CPU tests and source review do not establish DX12 runtime or human visual parity.
+
+### DX12 compiler portability
+
+The instance explicitly selects `wgpu::Dx12Compiler::Fxc` for both headless and
+windowed DX12. The wgpu 30.0.1 `Auto` choice can discover a runner-local DXC DLL,
+which would make CI differ from a Windows installation without that DLL. FXC
+uses the system compiler and needs no separately shipped DXC library. The simple
+baseline shader must pass the same FXC-backed WARP and hardware checks; no DXC
+feature or environment override is silently enabled. Selection is logged as
+`renderer dx12_shader_compiler=Fxc` on an actual DX12 adapter. A CPU descriptor
+regression proves the explicit choice, not shader execution on Windows.
+
+Reference: [wgpu 30.0.1 compiler API](https://docs.rs/wgpu/30.0.1/wgpu/enum.Dx12Compiler.html).

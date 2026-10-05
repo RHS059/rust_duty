@@ -97,6 +97,14 @@ pub(crate) struct Surface {
     pub window: Arc<winit::window::Window>,
     reconfigure: bool,
 }
+
+fn configure_instance(descriptor: &mut wgpu::InstanceDescriptor, backends: wgpu::Backends) {
+    descriptor.backends = backends;
+    // Pin the same system compiler for WARP CI and distributed Windows builds.
+    // Auto can pick up a runner-only dxcompiler.dll and silently differ locally.
+    descriptor.backend_options.dx12.shader_compiler = wgpu::Dx12Compiler::Fxc;
+}
+
 impl Gpu {
     pub async fn new(
         selection: BackendSelection,
@@ -137,7 +145,7 @@ impl Gpu {
         } else {
             wgpu::InstanceDescriptor::new_without_display_handle()
         };
-        descriptor.backends = backends;
+        configure_instance(&mut descriptor, backends);
         let instance = wgpu::Instance::new(descriptor);
         let surface = window
             .as_ref()
@@ -215,6 +223,9 @@ impl Gpu {
             "renderer requested={} backend={} adapter={}",
             info.requested, info.backend, info.adapter
         );
+        if adapter_info.backend == wgpu::Backend::Dx12 {
+            eprintln!("renderer dx12_shader_compiler=Fxc");
+        }
         Ok(Self {
             device,
             queue,
@@ -332,6 +343,20 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn dx12_compiler_is_explicit_system_fxc_for_every_instance_policy() {
+        for backends in [wgpu::Backends::DX12, wgpu::Backends::PRIMARY] {
+            let mut descriptor = wgpu::InstanceDescriptor::new_without_display_handle();
+            descriptor.backend_options.dx12.shader_compiler = wgpu::Dx12Compiler::Auto;
+            configure_instance(&mut descriptor, backends);
+            assert_eq!(descriptor.backends, backends);
+            assert!(matches!(
+                descriptor.backend_options.dx12.shader_compiler,
+                wgpu::Dx12Compiler::Fxc
+            ));
+        }
+    }
     #[test]
     fn lost_and_outdated_recover_once_while_timeout_and_occlusion_skip() {
         use wgpu::CurrentSurfaceTexture as Status;

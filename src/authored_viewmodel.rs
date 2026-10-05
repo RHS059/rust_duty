@@ -833,3 +833,207 @@ impl AuthoredViewmodel {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use vector_range::{
+        asset::{AssetMesh, AssetVertex, WeaponAsset},
+        draw::Command,
+        skinned_asset::{crc32, Bone, SkinMesh, SkinVertex},
+    };
+
+    fn contact_fixture() -> AuthoredViewmodel {
+        fn words(bytes: &mut Vec<u8>, values: &[u32]) {
+            bytes.extend(values.iter().flat_map(|value| value.to_le_bytes()));
+        }
+        fn floats(bytes: &mut Vec<u8>, values: &[f32]) {
+            bytes.extend(values.iter().flat_map(|value| value.to_le_bytes()));
+        }
+        fn name(bytes: &mut Vec<u8>, value: &str) {
+            bytes.extend((value.len() as u16).to_le_bytes());
+            bytes.extend(value.as_bytes());
+        }
+
+        // Original one-hand/one-prop fixture. Both start at x=2 and animate to
+        // x=3, so genuine inverse binds must leave a one-unit translation.
+        let inverse_bind = Mat4::from_translation(vec3(-2., 0., 0.)).to_cols_array();
+        let mut payload = Vec::new();
+        words(&mut payload, &[0, 0, 1]); // Unused companion CRCs; one bone.
+        name(&mut payload, "fixture_hand");
+        words(&mut payload, &[u32::MAX, 1]); // Root parent; one actor.
+        name(&mut payload, "fixture_prop");
+        words(&mut payload, &[1, 0]); // Actor binds rigid mesh zero.
+        floats(&mut payload, &inverse_bind);
+        words(&mut payload, &[1]);
+        name(&mut payload, "contact");
+        words(&mut payload, &[0, 1]); // Non-looping, one frame.
+        floats(&mut payload, &[0.]);
+        for _ in 0..2 {
+            floats(&mut payload, &[3., 0., 0., 0., 0., 0., 1., 1., 1., 1.]);
+        }
+        payload.push(1); // Visible actor.
+        let mut bytes = b"VRANIM01".to_vec();
+        words(&mut bytes, &[1, payload.len() as u32, crc32(&payload), 0]);
+        bytes.extend(payload);
+        let animation = AnimationSet::decode(&bytes).unwrap();
+        let positions = [vec3(2., 1., -1.), vec3(3., 1., -1.), vec3(2., 2., -1.)];
+        let skin = SkinnedAsset {
+            bones: vec![Bone {
+                name: "fixture_hand".into(),
+                parent: None,
+                rest_local: Mat4::from_translation(vec3(2., 0., 0.)).to_cols_array(),
+                inverse_bind,
+            }],
+            meshes: vec![SkinMesh {
+                base_color: [1., 0.5, 0.25, 0.2],
+                metallic: 0.,
+                roughness: 1.,
+                texture_width: 0,
+                texture_height: 0,
+                rgba: Vec::new(),
+                vertices: positions
+                    .iter()
+                    .map(|position| SkinVertex {
+                        position: position.to_array(),
+                        normal: Vec3::Y.to_array(),
+                        uv: [0.25, 0.75],
+                        joints: [0; 8],
+                        weights: [1., 0., 0., 0., 0., 0., 0., 0.],
+                    })
+                    .collect(),
+                indices: vec![0, 1, 2],
+            }],
+        };
+        let weapon = crate::weapon_model::WeaponModel::from_asset(WeaponAsset {
+            payload_crc32: 0,
+            meshes: vec![AssetMesh {
+                base_color: skin.meshes[0].base_color,
+                metallic: 0.,
+                roughness: 1.,
+                texture_width: 0,
+                texture_height: 0,
+                rgba: Vec::new(),
+                vertices: positions
+                    .iter()
+                    .map(|position| AssetVertex {
+                        position: position.to_array(),
+                        normal: Vec3::Y.to_array(),
+                        uv: [0.25, 0.75],
+                    })
+                    .collect(),
+                indices: vec![0, 1, 2],
+            }],
+        });
+        AuthoredViewmodel {
+            animation,
+            skin,
+            batches: vec![SkinBatch {
+                source_mesh: 0,
+                source_vertices: vec![0, 1, 2],
+                mesh: Mesh {
+                    vertices: positions
+                        .into_iter()
+                        .map(|position| Vertex::new2(position, vec2(0.25, 0.75), WHITE))
+                        .collect(),
+                    indices: vec![0, 1, 2],
+                    texture: None,
+                },
+            }],
+            weapon,
+            rigid_mesh_count: 1,
+            clip: "contact".into(),
+            fixed_time: Some(0.),
+            error: None,
+            locomotion: None,
+            reload: None,
+            reload_renderers: Vec::new(),
+            reload_indices: [None, None],
+            warning: None,
+            walk_index: None,
+            ads_index: None,
+            jump_index: None,
+            return_map: None,
+            return_blend: None,
+            reload_presentation: None,
+            cant: 0.,
+        }
+    }
+
+    #[test]
+    fn authored_draw_keeps_skinned_hand_and_rigid_weapon_in_one_canted_frame() {
+        let mut model = contact_fixture();
+        let pose = model.animation.sample_clamped("contact", 0.).unwrap();
+        let root = Mat4::from_rotation_translation(
+            Quat::from_rotation_x(std::f32::consts::FRAC_PI_2),
+            vec3(4., 5., 6.),
+        );
+        let parent = Mat4::from_translation(vec3(0., 0., -2.));
+        let lighting = SceneLighting {
+            direction_to_light: Vec3::X,
+            ambient: 0.25,
+            diffuse: 0.5,
+        };
+        // Expected coordinates are independent of the production palette,
+        // actor-matrix and cant helpers. Before cant: (3-x, 5+z, 6+y).
+        // The computed muzzle puts the camera-space bore through
+        // (0.5, 3.99, 7.5), parallel to Y. A positive quarter-turn gives
+        // (y-1, 5+z, 5+x). The caller's parent then subtracts two from Z.
+        for (cant, expected, normal, rgb) in [
+            (
+                0.,
+                [vec3(1., 4., 5.), vec3(0., 4., 5.), vec3(1., 4., 6.)],
+                Vec3::Z,
+                [63, 31, 15],
+            ),
+            (
+                std::f32::consts::FRAC_PI_2,
+                [vec3(0., 4., 5.), vec3(0., 4., 6.), vec3(1., 4., 5.)],
+                Vec3::X,
+                [191, 95, 47],
+            ),
+        ] {
+            model.set_cant(cant);
+            begin_frame(640, 480, 1.).unwrap();
+            with_model_matrix(parent, || {
+                model
+                    .draw_pose_opacity(&pose, lighting, root, Some(&[0.5]))
+                    .unwrap();
+                assert_eq!(current_model_matrix().unwrap(), parent);
+            });
+            assert_eq!(current_model_matrix().unwrap(), Mat4::IDENTITY);
+            let list = take_draw_list().unwrap();
+            let meshes: Vec<_> = list
+                .commands
+                .iter()
+                .filter_map(|command| match command {
+                    Command::Mesh { mesh, model, blend } => Some((mesh, model, blend)),
+                    _ => None,
+                })
+                .collect();
+            assert_eq!(meshes.len(), 2, "one skinned hand and one rigid weapon");
+            assert_eq!(*meshes[0].1, parent, "skin root is baked exactly once");
+            for (index, (mesh, transform, blend)) in meshes.into_iter().enumerate() {
+                assert_eq!(*blend, BlendMode::Alpha);
+                assert_eq!(mesh.indices, [0, 1, 2]);
+                assert_eq!(mesh.vertices.len(), 3);
+                for (vertex, expected) in mesh.vertices.iter().zip(expected) {
+                    let actual = transform.transform_point3(vertex.position);
+                    assert!(
+                        actual.abs_diff_eq(expected, 1e-5),
+                        "draw {index}, cant {cant}: {actual:?} != {expected:?}"
+                    );
+                    assert!(transform
+                        .transform_vector3(vertex.normal.truncate())
+                        .abs_diff_eq(normal, 1e-5));
+                    assert_eq!(vertex.uv, vec2(0.25, 0.75));
+                    assert_eq!(
+                        vertex.color,
+                        [rgb[0], rgb[1], rgb[2], if index == 0 { 255 } else { 128 }],
+                        "actor opacity must not fade the skinned hand"
+                    );
+                }
+            }
+        }
+    }
+}

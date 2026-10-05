@@ -9,6 +9,12 @@ fn update_style(class: UiClass) -> UiStyle {
     ui_theme::style(UiScope::UpdaterPanel, &[UiClass::Label, class])
 }
 
+/// Synchronous launch/action errors and asynchronous worker failures share one
+/// presentation state; this does not resolve the startup gate or change actions.
+fn update_warning(error: Option<&str>, snapshot: Option<&UpdateSnapshot>) -> bool {
+    error.is_some() || snapshot.is_some_and(|state| state.phase == UpdatePhase::Unavailable)
+}
+
 /// Presentation-only flow. These exact rectangles also own pointer capture.
 struct UpdateLayout {
     area: Rect,
@@ -331,13 +337,14 @@ impl UpdatePanel {
                 _ => "Checking for updates",
             }
         };
-        let message_class = if self.error.is_some() {
+        let warning = update_warning(self.error.as_deref(), snapshot.as_ref());
+        let message_class = if warning {
             UiClass::Warning
         } else {
             UiClass::Label
         };
         layout.text(
-            if self.error.is_some() {
+            if warning {
                 UiClass::Warning
             } else {
                 UiClass::Accent
@@ -684,5 +691,31 @@ mod tests {
         assert!(capture.step(true, true, layout.area.contains(inside), true, true));
         assert!(capture.step(true, true, false, false, true));
         assert!(!capture.step(true, true, false, false, false));
+    }
+    #[test]
+    fn synchronous_and_async_unavailable_states_share_warning_styling() {
+        use super::{update_warning, UpdateSnapshot};
+        assert!(!update_warning(None, None));
+        assert!(update_warning(Some("launch failed"), None));
+        for phase in [
+            UpdatePhase::Checking,
+            UpdatePhase::Current,
+            UpdatePhase::Paused,
+            UpdatePhase::Cancelled,
+            UpdatePhase::Ready,
+            UpdatePhase::Restarting,
+            UpdatePhase::Unavailable,
+        ] {
+            let snapshot = UpdateSnapshot {
+                phase,
+                ..Default::default()
+            };
+            assert_eq!(
+                update_warning(None, Some(&snapshot)),
+                phase == UpdatePhase::Unavailable,
+                "unexpected warning classification for {phase:?}"
+            );
+            assert!(update_warning(Some("action failed"), Some(&snapshot)));
+        }
     }
 }

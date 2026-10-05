@@ -47,6 +47,21 @@ fn hud_rectangle(x: f32, y: f32, w: f32, h: f32, color: Color) {
         ui_theme::style(UiScope::Hud, &[class]).tint(color),
     );
 }
+/// Grow around the resolved glyph ascent/descent, keeping the original 20px
+/// notice padding and coordinates when the theme does not enlarge the text.
+fn draw_notice(notice: &str, screen_width: f32) {
+    let style = label_style(CYAN);
+    let metrics = style.measure(notice, 20.);
+    let original = UiStyle::default().measure(notice, 20.);
+    let top_padding = (27. - original.offset_y).max(0.);
+    let bottom_padding = (15. - (original.height - original.offset_y)).max(0.);
+    let baseline = 139_f32.max(112. + top_padding + metrics.offset_y);
+    let height = 42_f32.max(baseline - 112. + metrics.height - metrics.offset_y + bottom_padding);
+    let x = screen_width * 0.5 - metrics.width * 0.5;
+    panel(x - 18., 112., metrics.width + 36., height);
+    style.text(notice, x, baseline, 20., CYAN);
+}
+
 /// Action state readout. Visuals are placeholders until authored clips pass review.
 pub(crate) fn action_hud(sim: &Simulation, w: f32, h: f32) {
     let p = &sim.player;
@@ -266,14 +281,7 @@ pub(crate) fn hud(
         MUTED,
     );
     if notice_timer > 0. {
-        let width = label_style(CYAN).measure(notice, 20.).width;
-        panel(
-            w * 0.5 - width * 0.5 - 18.,
-            112.,
-            width + 36.,
-            42. + (label_style(CYAN).size(20.) - 20.).max(0.),
-        );
-        label(notice, w * 0.5 - width * 0.5, 139., 20., CYAN);
+        draw_notice(notice, w);
     }
     if debug {
         panel(24., 119., 310., 207.);
@@ -337,5 +345,81 @@ mod tests {
         assert!(list.commands.iter().any(|command| matches!(command,
             vector_range::draw::Command::Text {text, size, color, ..} if text == "Telemetry"
                 && *size == 21.5 && *color == Color::new(18./255., 52./255., 86./255., 0.5))));
+    }
+    struct ThemeReset;
+    impl Drop for ThemeReset {
+        fn drop(&mut self) {
+            ui_theme::set_theme(ui_theme::UiTheme::default());
+        }
+    }
+    #[test]
+    fn default_notice_preserves_original_panel_and_baseline() {
+        use vector_range::draw::Command;
+        let _reset = ThemeReset;
+        ui_theme::set_theme(ui_theme::UiTheme::default());
+        let notice = "Theme reloaded: Gy_pq!";
+        let width = measure_text(notice, None, 20, 1.).width;
+        begin_frame(1920, 1080, 1.).unwrap();
+        draw_notice(notice, 1920.);
+        let list = take_draw_list().unwrap();
+        assert!(list.commands.iter().any(|command| matches!(command,
+            Command::Rect {rect, ..} if *rect == Rect::new(960. - width * 0.5 - 18., 112., width + 36., 42.))));
+        assert!(list.commands.iter().any(|command| matches!(command,
+            Command::Text {baseline, size, ..} if *baseline == vec2(960. - width * 0.5, 139.) && *size == 20.)));
+    }
+    #[test]
+    fn themed_notice_panel_contains_actual_cpu_glyph_quads_at_accepted_sizes() {
+        use vector_range::{draw::Command, render::text::TextRenderer};
+        let _reset = ThemeReset;
+        let mut renderer = TextRenderer::new().unwrap();
+        for size in [6., 20., 21.5, 48., 96.] {
+            ui_theme::set_theme(
+                ui_theme::UiTheme::parse(
+                    "test.css",
+                    &format!("#hud .accent {{font-size:{size}px}}"),
+                )
+                .unwrap(),
+            );
+            begin_frame(1920, 1080, 1.).unwrap();
+            draw_notice("Theme reloaded: Gy_pq!", 1920.);
+            let list = take_draw_list().unwrap();
+            let panel = list
+                .commands
+                .iter()
+                .find_map(|command| {
+                    if let Command::Rect { rect, .. } = command {
+                        Some(*rect)
+                    } else {
+                        None
+                    }
+                })
+                .unwrap();
+            let mut glyphs = 0;
+            for command in list.commands {
+                if let Command::Text {
+                    text,
+                    baseline,
+                    size: actual_size,
+                    color,
+                } = command
+                {
+                    assert_eq!(actual_size, size);
+                    for mesh in renderer
+                        .meshes(&text, baseline, actual_size, color)
+                        .unwrap()
+                    {
+                        for vertex in mesh.vertices {
+                            assert!(
+                                panel.contains(vertex.position.truncate()),
+                                "{size}px glyph vertex {:?} escapes notice panel {panel:?}",
+                                vertex.position
+                            );
+                        }
+                        glyphs += 1;
+                    }
+                }
+            }
+            assert!(glyphs > 0);
+        }
     }
 }
