@@ -33,6 +33,7 @@ class AuthoredDx12Tests(unittest.TestCase):
         self.baseline = self.root / 'legacy'
         self.sequence(self.captures)
         self.sequence(self.baseline, 'OpenGl')
+        authored.write_json(self.baseline / 'verification.json', {'schema': 'synthetic', 'passed': True, 'frames': 3})
 
     def sequence(self, folder, backend='Dx12'):
         folder.mkdir(parents=True)

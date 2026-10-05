@@ -21,7 +21,7 @@ import sys
 from PIL import Image, ImageDraw
 
 from package_game import verify_generated
-from verify_capture_telemetry import compare, read_record, validate
+from verify_capture_telemetry import _compare, compare, read_record, validate
 from verify_render_capture import verify as verify_png
 import verify_lighting_capture as lighting
 
@@ -31,6 +31,9 @@ BACKGROUND = (36, 48, 61, 255)
 WORLD_BACKGROUND = (168, 194, 199, 255)
 WARP = 'Microsoft Basic Render Driver'
 FXC_LOG = 'renderer dx12_shader_compiler=Fxc'
+# Primary capture sidecar fields that name the renderer; every other field is
+# presentation state (extent, hfov, ADS weight, reload phase) and must match.
+RENDERER_IDENTITY = frozenset({'backend', 'adapter', 'requested'})
 LANDMARKS = {'ads': ('rear-aperture center', (480, 270)),
              'hip': ('front-sight guard', (526, 280))}
 
@@ -161,11 +164,56 @@ def validate_sequence(folder):
             'all_images_checked': True, 'minimum_foreground_coverage': min(coverage)}
 
 
+def baseline_verdicts(baseline, images):
+    """Require the existing validators' successful reports for a legacy baseline.
+
+    Native validation writes verification.json into each scenario folder, except
+    the ADS offset run, whose placement report sits beside its folder. Layered
+    rates also carry a cross-rate report. A frame count, when reported, must
+    match this folder so a report cannot vouch for a different capture.
+    """
+    reports = []
+    if (baseline / 'verification.json').exists():
+        reports.append((baseline / 'verification.json', True))
+    elif baseline.name == 'ads-offset':
+        reports.append((baseline.parent / 'ads-offset-verification.json', True))
+    else:
+        raise ValueError(f'{baseline}: missing legacy validator verdict')
+    if baseline.name in ('layered-30', 'layered-60'):
+        reports.append((baseline.parent / 'layered-rate-verification.json', False))
+    checked = []
+    for path, per_folder in reports:
+        report = read_record(path)
+        if report.get('passed') is not True or not isinstance(report.get('schema'), str):
+            raise ValueError(f'{path}: legacy validator verdict is not a successful report')
+        frames = report.get('frames')
+        if per_folder and frames is not None and (type(frames) is not int or frames != len(images)):
+            raise ValueError(f'{path}: verdict covers {frames!r} frames, folder has {len(images)}')
+        checked.append(path.name)
+    return checked
+
+
+def compare_capture_metadata(baseline, candidate, images):
+    """Compare primary capture sidecars, excluding only renderer identity."""
+    for image in images:
+        before = read_record(baseline / f'{image.name}.json')
+        after = read_record(candidate / f'{image.name}.json')
+        _compare({k: v for k, v in before.items() if k not in RENDERER_IDENTITY},
+                 {k: v for k, v in after.items() if k not in RENDERER_IDENTITY},
+                 f'{image.name}.json')
+    return len(images)
+
+
 def compare_sequence(baseline, candidate):
     # The legacy renderer identity is checked independently of the comparison;
-    # only gameplay/time files are compared, with EVERY field and exact types.
-    sequence_inventory(baseline, 'OpenGl')
-    return compare(baseline, candidate)
+    # gameplay/time files are compared with EVERY field and exact types, and
+    # primary sidecars with every field except renderer identity.
+    images, _ = sequence_inventory(baseline, 'OpenGl')
+    verdicts = baseline_verdicts(baseline, images)
+    result = compare(baseline, candidate)
+    result['capture_metadata_files'] = compare_capture_metadata(baseline, candidate, images)
+    result['baseline_verdicts'] = verdicts
+    return result
 
 
 def validate_lighting_record(path):
@@ -244,10 +292,15 @@ def validate_orientation(folder):
 def review_guides(candidate, baseline, output, source_root):
     output.mkdir(parents=True, exist_ok=False)
     rows = [(path, read_record(path)) for path in sorted(candidate.glob('*.gameplay.json'))]
+
+    def exactly(value, target):
+        # Booleans compare equal to 0/1; require an actual finite JSON number.
+        return type(value) in (int, Decimal) and value == target
+
     hip = next((path for path, row in rows if row.get('route') == 'ready'), None)
     ads = next((path for path, row in rows if row.get('route') == 'ads.hold'
-                and row.get('run_weight') == 0 and row.get('speed') == 0
-                and row.get('simulation_ads') == 1), None)
+                and exactly(row.get('run_weight'), 0) and exactly(row.get('speed'), 0)
+                and exactly(row.get('simulation_ads'), 1)), None)
     if hip is None or ads is None:
         raise ValueError('review needs actual ready and stationary fully held ADS frames')
     records = []

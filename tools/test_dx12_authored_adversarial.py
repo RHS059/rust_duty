@@ -1,8 +1,8 @@
 """Adversarial false-acceptance probes for run_dx12_authored.py.
 
-Synthetic inputs only; never proof of native Windows output. Tests marked
-expectedFailure document a confirmed gap: the probe SHOULD be rejected but the
-current harness accepts it. Remove the marker when the gap is fixed.
+Synthetic inputs only; never proof of native Windows output. A test marked
+expectedFailure documents a confirmed open gap: the probe SHOULD be rejected
+but the harness accepts it. Remove the marker when the gap is fixed.
 """
 
 import io
@@ -39,6 +39,7 @@ class AdversarialAuthoredTests(unittest.TestCase):
         self.baseline = self.root / 'legacy'
         self.sequence(self.captures)
         self.sequence(self.baseline, 'OpenGl')
+        self.verdict(self.baseline / 'verification.json')
         (self.root / 'settings.cfg').write_text('# synthetic\n', encoding='utf-8')
 
     def sequence(self, folder, backend='Dx12'):
@@ -56,6 +57,9 @@ class AdversarialAuthoredTests(unittest.TestCase):
                 'simulation_time': index / 60, 'route': 'ready' if index == 0 else 'ads.hold',
                 'run_weight': 0, 'speed': 0, 'simulation_ads': 0 if index == 0 else 1,
                 'renderer_failed': False, 'pose': {'yaw': 0.5, 'contact': [1.0, 2.0]}})
+
+    def verdict(self, path, **fields):
+        authored.write_json(path, {'schema': 'synthetic', 'passed': True, 'frames': 3, **fields})
 
     def edit(self, folder, index, suffix, field, value):
         path = folder / f'{index:04}.png{suffix}'
@@ -170,16 +174,26 @@ class AdversarialAuthoredTests(unittest.TestCase):
         self.assertEqual(len(calls), 8)
         self.assertFalse(report['passed'])
 
-    # Confirmed gaps on 72663e2 (false acceptance).
+    # Gaps found on 72663e2, fixed by the parity patch.
 
-    @unittest.expectedFailure
     def test_renderer_side_camera_drift_is_rejected(self):
-        # *.png.json carries presentation state (ads weight, hfov) that is NOT
-        # renderer identity. Parity compares only gameplay/time sidecars, so a
-        # DX12 path rendering at a different FOV or ADS weight passes.
-        self.edit(self.captures, 1, '.json', 'hfov', 90.0)
-        self.edit(self.captures, 2, '.json', 'ads', 0.0)
-        self.assertFalse(self.accepted())
+        # *.png.json carries presentation state (ads weight, hfov, extent,
+        # reload phase) besides renderer identity; all of it must match.
+        for field, value in [('hfov', 90.0), ('ads', 0.0), ('reload_phase', 0.5),
+                             ('capture', 'native window'), ('extra', 1), ('hfov', KeyError)]:
+            path = self.captures / '0002.png.json'
+            original = path.read_bytes()
+            self.edit(self.captures, 2, '.json', field, value)
+            with self.subTest(field=field, value=value):
+                self.assertFalse(self.accepted())
+            path.write_bytes(original)
+
+    def test_renderer_identity_fields_alone_may_differ(self):
+        # Control: the candidate is Dx12/WARP/dx12 and the baseline OpenGl.
+        result = authored.compare_sequence(self.baseline, self.captures)
+        self.assertEqual(result['capture_metadata_files'], 3)
+
+    # Still open: see the frame-witness analysis in the mailbox.
 
     @unittest.expectedFailure
     def test_swapped_or_stale_candidate_frames_are_rejected(self):
@@ -189,7 +203,6 @@ class AdversarialAuthoredTests(unittest.TestCase):
         (self.captures / '0001.png').write_bytes(self.pngs[0])
         self.assertFalse(self.accepted())
 
-    @unittest.expectedFailure
     def test_review_rejects_boolean_stationary_ads_fields(self):
         # review_guides compares with ==, so False == 0 and True == 1 select a
         # frame whose fields are booleans rather than finite numbers.
@@ -200,11 +213,43 @@ class AdversarialAuthoredTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'fully held ADS'):
             authored.review_guides(self.captures, self.baseline, self.root / 'review', SOURCE_ROOT)
 
-    @unittest.expectedFailure
     def test_baseline_with_failed_validator_report_is_rejected(self):
-        # sequence_inventory tolerates verification.json but never reads it, so
-        # a legacy baseline whose own validator recorded failure is accepted.
-        authored.write_json(self.baseline / 'verification.json', {'passed': False})
+        for fields in [{'passed': False}, {'passed': 'true'}, {'passed': 1}, {'schema': None},
+                       {'frames': 2}, {'frames': 3.0}, {'frames': True}]:
+            self.verdict(self.baseline / 'verification.json', **fields)
+            with self.subTest(fields=fields):
+                self.assertFalse(self.accepted())
+
+    def test_baseline_without_validator_report_is_rejected(self):
+        (self.baseline / 'verification.json').unlink()
+        self.assertFalse(self.accepted())
+
+    def test_reports_without_frame_count_are_accepted(self):
+        authored.write_json(self.baseline / 'verification.json', {'schema': 'synthetic', 'passed': True})
+        self.assertTrue(self.accepted())
+
+    def test_ads_offset_uses_its_sibling_placement_report(self):
+        offset = self.root / 'ads-placement' / 'ads-offset'
+        offset.parent.mkdir()
+        self.baseline.rename(offset)
+        (offset / 'verification.json').unlink()
+        self.baseline = offset
+        with self.assertRaisesRegex(ValueError, 'ads-offset-verification.json'):
+            authored.compare_sequence(self.baseline, self.captures)
+        self.verdict(offset.parent / 'ads-offset-verification.json', frames=3)
+        self.assertTrue(self.accepted())
+        self.verdict(offset.parent / 'ads-offset-verification.json', passed=False)
+        self.assertFalse(self.accepted())
+
+    def test_layered_baselines_also_need_the_cross_rate_report(self):
+        layered = self.root / 'layered' / 'layered-30'
+        layered.parent.mkdir()
+        self.baseline.rename(layered)
+        self.baseline = layered
+        self.assertFalse(self.accepted())
+        self.verdict(layered.parent / 'layered-rate-verification.json', frames=999)
+        self.assertTrue(self.accepted())  # Cross-rate frame totals are not per folder.
+        self.verdict(layered.parent / 'layered-rate-verification.json', passed=False)
         self.assertFalse(self.accepted())
 
 
