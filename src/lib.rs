@@ -66,3 +66,7 @@ pub mod authored_jump;
 
 pub mod input_frame;
 pub mod platform;
+
+pub mod draw;
+pub mod legacy_macroquad;
+pub mod render;

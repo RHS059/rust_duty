@@ -1,6 +1,9 @@
 //! Independent CPU lighting contracts; these do not claim GPU capture coverage.
-use macroquad::prelude::*;
+use glam::*;
+use vector_range::draw::{Color, Mesh, Vertex};
 use vector_range::{scene_lighting::SceneLighting, sim::Player};
+
+const MAGENTA: Color = Color::new(1., 0., 1., 1.);
 
 fn mesh_with_normals(normals: &[Vec3]) -> Mesh {
     Mesh {

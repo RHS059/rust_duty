@@ -1,4 +1,4 @@
-use crate::world_draw::{ACCENT, INK};
+use crate::world_draw::palette::{ACCENT, INK};
 use crate::{authored_viewmodel, weapon_model};
 use vector_range::draw::facade::*;
 use vector_range::scene_lighting::SceneLighting;

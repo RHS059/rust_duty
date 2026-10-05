@@ -7,10 +7,14 @@ use vector_range::{
     sim::Simulation,
 };
 // Static 3D material palette. Keep it independent of HUD/CSS UI styling.
-pub(crate) const INK: Color = Color::new(0.035, 0.055, 0.072, 1.);
-pub(crate) const ACCENT: Color = Color::new(0.98, 0.62, 0.22, 1.);
-pub(crate) const CYAN: Color = Color::new(0.33, 0.84, 0.87, 1.);
-pub(crate) const MUTED: Color = Color::new(0.62, 0.69, 0.72, 1.);
+pub(crate) mod palette {
+    use vector_range::draw::Color;
+    pub(crate) const INK: Color = Color::new(0.035, 0.055, 0.072, 1.);
+    pub(crate) const ACCENT: Color = Color::new(0.98, 0.62, 0.22, 1.);
+    pub(crate) const CYAN: Color = Color::new(0.33, 0.84, 0.87, 1.);
+    pub(crate) const MUTED: Color = Color::new(0.62, 0.69, 0.72, 1.);
+}
+use palette::{ACCENT, CYAN, INK, MUTED};
 
 pub(crate) fn grid_texture() -> Texture2D {
     let mut pixels = Vec::with_capacity(256 * 256 * 4);

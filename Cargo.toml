@@ -8,10 +8,14 @@ description = "Original standalone Rust movement and weapon feel laboratory"
 [features]
 default = ["audio", "legacy-macroquad"]
 legacy-macroquad = []
-wgpu-runtime = ["dep:winit"]
+wgpu-runtime = ["dep:winit", "dep:wgpu", "dep:pollster"]
 audio = ["dep:rodio"]
 
 [dependencies]
+wgpu = { version = "=30.0.1", optional = true }
+pollster = { version = "=0.4.0", optional = true }
+image = { version = "=0.24.9", default-features = false, features = ["png"] }
+fontdue = "=0.9.4"
 winit = { version = "=0.30.13", optional = true }
 glam = "=0.27.0"
 rodio = { version = "=0.22.2", optional = true, default-features = false, features = ["playback", "hound"] }
