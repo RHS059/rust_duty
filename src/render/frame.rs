@@ -1,7 +1,7 @@
 //! Commands are encoded in list order, including copies at mid-frame capture checkpoints.
 use super::{
-    capture::Readback,
-    mesh::clip_matrix,
+    capture::{CaptureEncoding, Readback},
+    mesh::{clip_matrix, FragmentKind},
     target::{self, GpuTexture},
     WgpuRenderer,
 };
@@ -146,6 +146,7 @@ impl WgpuRenderer {
                         &mut encoder,
                         &output.texture,
                         path.clone(),
+                        CaptureEncoding::for_target(target.as_ref()),
                     )?);
                 }
             }
@@ -177,6 +178,7 @@ impl WgpuRenderer {
                 false,
                 false,
                 BlendMode::Opaque,
+                FragmentKind::Present,
             );
             let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                 label: Some("present main target"),
@@ -244,6 +246,7 @@ impl WgpuRenderer {
             camera.depth_test,
             lines,
             blend,
+            FragmentKind::for_source(&texture.descriptor.source, blend),
         );
         let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
             label: Some("ordered draw"),
@@ -298,12 +301,7 @@ pub(super) fn clear(encoder: &mut wgpu::CommandEncoder, target: &GpuTexture, col
             depth_slice: None,
             resolve_target: None,
             ops: wgpu::Operations {
-                load: wgpu::LoadOp::Clear(wgpu::Color {
-                    r: color.r as f64,
-                    g: color.g as f64,
-                    b: color.b as f64,
-                    a: color.a as f64,
-                }),
+                load: wgpu::LoadOp::Clear(target::clear_color(color)),
                 store: wgpu::StoreOp::Store,
             },
         })],

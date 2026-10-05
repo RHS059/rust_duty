@@ -113,3 +113,16 @@ visual approval are separate evidence. The recovered source has fresh component
 checks; external harnesses do not replace production Cargo/app wiring checks.
 No tests are skipped or weakened to satisfy a gate. Authored assets, gameplay,
 the updater and release channel are outside this migration.
+
+### Associated-alpha target storage and capture contract
+
+Named render targets store associated RGB, including additive emission, with
+coverage alpha. Straight image and glyph samples are associated on replacement;
+target sampling applies tint alpha to RGB once. Target alpha composition uses
+source-over coverage. Final screen captures preserve visible RGB over black and
+write alpha 255. Named-target PNGs retain raw associated/emission/coverage values
+as diagnostic evidence, rather than portable straight-alpha artwork.
+
+The Windows-only `renderer_contract` example checks this contract alongside
+orientation, padded readback, ordered capture, depth/camera transitions and text.
+CPU tests and source review do not establish DX12 runtime or human visual parity.

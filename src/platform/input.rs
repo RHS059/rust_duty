@@ -51,6 +51,7 @@ pub enum KeyCode {
     F2,
     F5,
     F6,
+    F7,
     F8,
     F9,
     F10,

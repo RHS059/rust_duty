@@ -1,5 +1,35 @@
-//! Ordered GPU readback. Padded rows are stripped without changing their orientation.
+//! Ordered GPU readback. Padded rows are stripped without changing orientation.
+//!
+//! Explicit render-target PNGs are lossless diagnostic dumps: RGB is associated
+//! radiance (including emission), alpha is coverage. PNG viewers normally assume
+//! straight alpha, so these files are not directly reusable transparent artwork.
+//! In particular RGB at zero alpha and RGB greater than alpha must be retained.
+//! Default framebuffer PNGs are ordinary opaque images of the display over black:
+//! stored RGB is preserved and alpha is 255. Neither path unpremultiplies/clamps
+//! emission or multiplies associated RGB by alpha for a second time.
 use std::{path::PathBuf, sync::mpsc, time::Duration};
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) enum CaptureEncoding {
+    AssociatedTargetDiagnostic,
+    OpaqueDisplay,
+}
+impl CaptureEncoding {
+    pub fn for_target(target: Option<&crate::draw::RenderTarget>) -> Self {
+        if target.is_some() {
+            Self::AssociatedTargetDiagnostic
+        } else {
+            Self::OpaqueDisplay
+        }
+    }
+    fn apply(self, pixels: &mut [u8]) {
+        if self == Self::OpaqueDisplay {
+            for pixel in pixels.as_chunks_mut::<4>().0 {
+                pixel[3] = 255;
+            }
+        }
+    }
+}
 
 pub(crate) fn padded_bytes_per_row(width: u32) -> Result<u32, String> {
     if width == 0 {
@@ -34,6 +64,7 @@ pub(crate) struct Readback {
     width: u32,
     height: u32,
     path: PathBuf,
+    encoding: CaptureEncoding,
 }
 impl Readback {
     pub fn encode(
@@ -41,6 +72,7 @@ impl Readback {
         encoder: &mut wgpu::CommandEncoder,
         texture: &wgpu::Texture,
         path: PathBuf,
+        encoding: CaptureEncoding,
     ) -> Result<Self, String> {
         let (width, height) = (texture.width(), texture.height());
         let row = padded_bytes_per_row(width)?;
@@ -80,6 +112,7 @@ impl Readback {
             width,
             height,
             path,
+            encoding,
         })
     }
     pub fn finish(self, device: &wgpu::Device) -> Result<PathBuf, String> {
@@ -107,27 +140,62 @@ impl Readback {
         let pixels = unpack_rows(&mapped, self.width, self.height);
         drop(mapped);
         self.buffer.unmap();
-        let pixels = pixels?;
-        if let Some(parent) = self.path.parent().filter(|p| !p.as_os_str().is_empty()) {
-            std::fs::create_dir_all(parent)
-                .map_err(|e| format!("create capture directory {}: {e}", parent.display()))?;
-        }
-        image::save_buffer_with_format(
-            &self.path,
-            &pixels,
-            self.width,
-            self.height,
-            image::ColorType::Rgba8,
-            image::ImageFormat::Png,
-        )
-        .map_err(|e| format!("write capture {}: {e}", self.path.display()))?;
+        let mut pixels = pixels?;
+        self.encoding.apply(&mut pixels);
+        save_png(&self.path, self.width, self.height, &pixels)?;
         Ok(self.path)
     }
+}
+
+fn save_png(path: &std::path::Path, width: u32, height: u32, pixels: &[u8]) -> Result<(), String> {
+    if let Some(parent) = path.parent().filter(|p| !p.as_os_str().is_empty()) {
+        std::fs::create_dir_all(parent)
+            .map_err(|e| format!("create capture directory {}: {e}", parent.display()))?;
+    }
+    image::save_buffer_with_format(
+        path,
+        pixels,
+        width,
+        height,
+        image::ColorType::Rgba8,
+        image::ImageFormat::Png,
+    )
+    .map_err(|e| format!("write capture {}: {e}", path.display()))?;
+    Ok(())
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn capture_encoding_preserves_associated_emission_without_unpremultiply() {
+        let original = [128, 128, 128, 128, 200, 25, 0, 0, 240, 20, 10, 64];
+        let target = crate::draw::RenderTarget::new(3, 1, false).unwrap();
+        let mut diagnostic = original;
+        CaptureEncoding::for_target(Some(&target)).apply(&mut diagnostic);
+        assert_eq!(diagnostic, original);
+        let mut display = original;
+        CaptureEncoding::for_target(None).apply(&mut display);
+        assert_eq!(
+            display,
+            [128, 128, 128, 255, 200, 25, 0, 255, 240, 20, 10, 255]
+        );
+    }
+
+    #[test]
+    fn diagnostic_png_roundtrip_preserves_zero_alpha_emission_and_rgb_above_alpha() {
+        let path = std::env::temp_dir().join(format!(
+            "rust-duty-associated-target-{}.png",
+            std::process::id()
+        ));
+        let pixels = [128, 128, 128, 128, 200, 25, 0, 0, 240, 20, 10, 64];
+        save_png(&path, 3, 1, &pixels).unwrap();
+        let image = image::open(&path).unwrap().to_rgba8();
+        std::fs::remove_file(&path).unwrap();
+        assert_eq!(image.dimensions(), (3, 1));
+        assert_eq!(image.as_raw(), &pixels);
+    }
+
     #[test]
     fn readback_alignment_and_orientation_are_independent() {
         for (width, expected) in [(1, 256), (63, 256), (64, 256), (65, 512), (960, 3840)] {

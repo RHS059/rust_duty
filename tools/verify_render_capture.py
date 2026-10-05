@@ -17,7 +17,9 @@ The four unique colors discriminate every rotation/reflection, even on squares.
 
 Foreground means alpha > 0 AND at least one RGBA channel differs from the
 explicit background by more than tolerance. Uniform images always fail, even
-when their color is different from the declared background. Coverage alone
+when their color is different from the declared background. Near-uniform images
+also fail the same coverage threshold against their own median color. Complete
+PNG framing and all chunk CRCs, including IEND, are required. Coverage alone
 cannot prove scene correctness; only the optional fixture checks orientation.
 No sidecars, renderer execution, authored assets, or output writes are involved.
 """
@@ -27,8 +29,9 @@ import json
 import math
 from pathlib import Path
 import sys
+import zlib
 
-from PIL import Image
+from PIL import Image, ImageChops, ImageStat
 
 
 class CaptureError(ValueError):
@@ -70,10 +73,42 @@ def near_color(actual, expected, tolerance):
     return all(abs(a - b) <= tolerance for a, b in zip(actual, expected))
 
 
+def _verify_png_framing(path):
+    # Pillow permits a missing/truncated IEND CRC. Require the complete stream,
+    # including every chunk's CRC and no trailing bytes after the empty IEND.
+    with Path(path).open('rb') as source:
+        if source.read(8) != b'\x89PNG\r\n\x1a\n':
+            raise CaptureError('expected PNG format')
+        while True:
+            header = source.read(8)
+            if len(header) != 8:
+                raise CaptureError('truncated PNG chunk or missing IEND')
+            length = int.from_bytes(header[:4], 'big')
+            kind = header[4:]
+            crc = zlib.crc32(kind)
+            remaining = length
+            while remaining:
+                block = source.read(min(remaining, 65536))
+                if not block:
+                    raise CaptureError('truncated PNG chunk data')
+                crc = zlib.crc32(block, crc)
+                remaining -= len(block)
+            checksum = source.read(4)
+            if len(checksum) != 4:
+                raise CaptureError('truncated PNG chunk CRC')
+            if int.from_bytes(checksum, 'big') != crc:
+                raise CaptureError('invalid PNG chunk CRC')
+            if kind == b'IEND':
+                if length != 0 or source.read(1):
+                    raise CaptureError('invalid PNG IEND or trailing bytes')
+                return
+
+
 def load_png(path, extent):
     # verify() checks PNG integrity/CRC before a separate full decode. Neither
     # filename suffix nor header alone establishes that this is a valid PNG.
     try:
+        _verify_png_framing(path)
         with Image.open(path) as source:
             if source.format != 'PNG':
                 raise CaptureError('expected PNG format')
@@ -89,16 +124,32 @@ def load_png(path, extent):
         raise CaptureError(f'{path}: {error}') from error
 
 
+def _foreground_count(image, background, tolerance):
+    # The same per-channel predicate as near_color, evaluated by Pillow so a
+    # complete sequence can validate every frame without Python pixel loops.
+    difference = ImageChops.difference(image, Image.new('RGBA', image.size, background))
+    changed = Image.new('L', image.size)
+    for channel in difference.split():
+        changed = ImageChops.lighter(changed, channel.point(lambda value: 255 if value > tolerance else 0))
+    visible = image.getchannel('A').point(lambda value: 255 if value > 0 else 0)
+    return ImageChops.multiply(changed, visible).histogram()[255]
+
+
 def verify(path, extent, background, min_coverage, tolerance, orientation):
     image = load_png(path, extent)
     extrema = image.getextrema()
     if all(low == high for low, high in extrema):
         raise CaptureError('uniform image: no rendered structure')
-    foreground = sum(pixel[3] > 0 and not near_color(pixel, background, tolerance)
-                     for pixel in image.getdata())
+    foreground = _foreground_count(image, background, tolerance)
     coverage = foreground / (image.width * image.height)
     if coverage < min_coverage:
         raise CaptureError(f'foreground coverage {coverage:.6f} below {min_coverage:.6f}')
+    # Independently reject near-uniform output against its own median color.
+    # This catches a changed clear encoding/color plus sparse noise, rather
+    # than accepting the entire wrong-colored background as scene coverage.
+    structure = _foreground_count(image, tuple(ImageStat.Stat(image).median), tolerance)
+    if structure / (image.width * image.height) < min_coverage:
+        raise CaptureError('near-uniform image: insufficient rendered structure')
     probes = []
     if orientation:
         patches = [('top-left', 1, 1, (255, 0, 0, 255)),

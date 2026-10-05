@@ -157,7 +157,7 @@ class DirectionalDistributionTests(unittest.TestCase):
                            and not line.startswith('regular_walk.clip=')
                            and not line.startswith('regular_walk.direction.')) + '\n' + BINDINGS
         (self.root / 'assets/animations.cfg').write_text(config)
-        for relative in (*package.NOTICES, *package.BUILD_FILES, 'docs/ANIMATION_SLOTS.md', 'target/release/vector-range'):
+        for relative in (*package.NOTICES, *package.RUNTIME_FILES, *package.BUILD_FILES, 'docs/ANIMATION_SLOTS.md', 'target/release/vector-range'):
             path = self.root / relative
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_bytes(b'packaging fixture')

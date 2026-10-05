@@ -1,16 +1,8 @@
 //! Headless contracts for the original crate interaction and circle geometry.
-//! Path inclusion lets this contract run before the main binary integrates it.
-pub use vector_range::sim;
-#[path = "../src/ammo_supply.rs"]
-#[allow(dead_code)]
-mod ammo_supply;
-#[path = "../src/ammo_supply_view.rs"]
-#[allow(dead_code)]
-mod ammo_supply_view;
-use ammo_supply::*;
-use ammo_supply_view::*;
+//! Exercise the same integrated public modules used by the native game.
 use glam::{vec2, vec3, Mat4, Vec2, Vec3};
 use sim::{Aabb, Block, Player, Ramp, Simulation, Target, FIXED_DT, MAGAZINE};
+use vector_range::{ammo_supply::*, ammo_supply_view::*, sim};
 
 fn fixture() -> (AmmoSupply, Simulation, SupplyView) {
     let supply = AmmoSupply::new(

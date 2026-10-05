@@ -9,6 +9,12 @@
 //! enables depth testing only when depth_write is true. Consequently additive
 //! meshes disable both depth testing and writes, as existing muzzle_fx does.
 //! The wgpu backend can depth-test additive meshes without writing depth.
+//!
+//! Target RGB stores associated radiance plus emission, with coverage alpha.
+//! Alpha coverage now uses source-over instead of the old macroquad default's
+//! alpha squaring. Fractional-alpha pixels are intentionally corrected; this is
+//! not historical pixel parity. Explicit target PNGs are raw diagnostic dumps,
+//! while default framebuffer PNGs preserve display RGB with opaque alpha.
 
 pub mod runtime;
 
@@ -45,6 +51,36 @@ void main() {
 }
 "#;
 
+const ASSOCIATED_FRAGMENT_SHADER: &str = r#"#version 100
+varying lowp vec2 uv;
+varying lowp vec4 vertex_color;
+uniform sampler2D Texture;
+void main() {
+    vec4 sampled = texture2D(Texture, uv);
+    gl_FragColor = vec4(sampled.rgb * vertex_color.rgb * vertex_color.a,
+                       sampled.a * vertex_color.a);
+}
+"#;
+const REPLACE_STRAIGHT_FRAGMENT_SHADER: &str = r#"#version 100
+varying lowp vec2 uv;
+varying lowp vec4 vertex_color;
+uniform sampler2D Texture;
+void main() {
+    vec4 straight = texture2D(Texture, uv) * vertex_color;
+    gl_FragColor = vec4(straight.rgb * straight.a, straight.a);
+}
+"#;
+
+fn fragment_shader(blend: BlendMode, associated: bool) -> &'static str {
+    if associated {
+        ASSOCIATED_FRAGMENT_SHADER
+    } else if blend == BlendMode::Opaque {
+        REPLACE_STRAIGHT_FRAGMENT_SHADER
+    } else {
+        FRAGMENT_SHADER
+    }
+}
+
 struct CachedTexture {
     descriptor: draw::Texture,
     texture: texture::Texture2D,
@@ -58,7 +94,7 @@ struct CachedTexture {
 pub struct LegacyRenderer {
     info: draw::BackendInfo,
     textures: HashMap<ResourceId, CachedTexture>,
-    materials: HashMap<(u8, bool), material::Material>,
+    materials: HashMap<(u8, bool, bool, bool), material::Material>,
 }
 
 impl LegacyRenderer {
@@ -152,18 +188,24 @@ impl LegacyRenderer {
             .ok_or_else(|| "render target descriptor contains an ordinary RGBA texture".into())
     }
 
-    fn material(&mut self, blend: BlendMode, depth: bool) -> Result<material::Material, String> {
-        let key = (blend_key(blend), depth);
+    fn material(
+        &mut self,
+        blend: BlendMode,
+        depth: bool,
+        associated: bool,
+        lines: bool,
+    ) -> Result<material::Material, String> {
+        let key = (blend_key(blend), depth, associated, lines);
         if let Some(material) = self.materials.get(&key) {
             return Ok(material.clone());
         }
         let loaded = material::load_material(
             mq::ShaderSource::Glsl {
                 vertex: VERTEX_SHADER,
-                fragment: FRAGMENT_SHADER,
+                fragment: fragment_shader(blend, associated),
             },
             material::MaterialParams {
-                pipeline_params: pipeline_params(blend, depth),
+                pipeline_params: pipeline_params(blend, depth, associated, lines),
                 ..Default::default()
             },
         )
@@ -203,14 +245,18 @@ impl LegacyRenderer {
                 // macroquad clear_background drops queued geometry. Submit it
                 // first so previous captures/targets and command order survive.
                 flush();
-                window::clear_background(color_to_legacy(*color));
+                window::clear_background(associated_clear(*color));
             }
             Command::Mesh { mesh, model, blend } => {
                 mesh.validate()?;
                 validate_model(*model)?;
                 reject_feedback(mesh.texture.as_ref(), active)?;
                 let texture = mesh.texture.as_ref().map(|t| self.texture(t)).transpose()?;
-                let material = self.material(*blend, active.depth_test)?;
+                let associated = mesh
+                    .texture
+                    .as_ref()
+                    .is_some_and(|texture| matches!(texture.source, TextureSource::Target { .. }));
+                let material = self.material(*blend, active.depth_test, associated, false)?;
                 material::gl_use_material(&material);
                 with_model(*model, || {
                     for indices in mesh.indices.chunks(BATCH_INDICES) {
@@ -228,21 +274,26 @@ impl LegacyRenderer {
                 {
                     return Err("non-finite line endpoint".into());
                 }
+                let material = self.material(BlendMode::Alpha, active.depth_test, false, true)?;
+                material::gl_use_material(&material);
                 with_model(*model, || {
                     for line in lines {
                         models::draw_line_3d(line.start, line.end, color_to_legacy(line.color));
                     }
                 });
+                material::gl_use_default_material();
             }
-            Command::Rect { rect, color } => self.with_screen_camera(active, extent, || {
-                macroquad::shapes::draw_rectangle(
-                    rect.x,
-                    rect.y,
-                    rect.w,
-                    rect.h,
-                    color_to_legacy(*color),
-                );
-            })?,
+            Command::Rect { rect, color } => {
+                self.with_screen_camera(active, extent, false, || {
+                    macroquad::shapes::draw_rectangle(
+                        rect.x,
+                        rect.y,
+                        rect.w,
+                        rect.h,
+                        color_to_legacy(*color),
+                    );
+                })?
+            }
             Command::Sprite {
                 texture: descriptor,
                 destination,
@@ -250,21 +301,26 @@ impl LegacyRenderer {
             } => {
                 reject_feedback(Some(descriptor), active)?;
                 let texture = self.texture(descriptor)?;
-                self.with_screen_camera(active, extent, || {
-                    texture::draw_texture_ex(
-                        &texture,
-                        destination.x,
-                        destination.y,
-                        color_to_legacy(*tint),
-                        texture::DrawTextureParams {
-                            dest_size: Some(glam::Vec2::new(destination.w, destination.h)),
-                            // Camera matrices keep GL's convention. A target is
-                            // sampled with a flip at this one backend boundary.
-                            flip_y: matches!(descriptor.source, TextureSource::Target { .. }),
-                            ..Default::default()
-                        },
-                    )
-                })?;
+                self.with_screen_camera(
+                    active,
+                    extent,
+                    matches!(descriptor.source, TextureSource::Target { .. }),
+                    || {
+                        texture::draw_texture_ex(
+                            &texture,
+                            destination.x,
+                            destination.y,
+                            color_to_legacy(*tint),
+                            texture::DrawTextureParams {
+                                dest_size: Some(glam::Vec2::new(destination.w, destination.h)),
+                                // Camera matrices keep GL's convention. A target is
+                                // sampled with a flip at this one backend boundary.
+                                flip_y: matches!(descriptor.source, TextureSource::Target { .. }),
+                                ..Default::default()
+                            },
+                        )
+                    },
+                )?;
             }
             Command::Text {
                 text,
@@ -273,7 +329,7 @@ impl LegacyRenderer {
                 color,
             } => {
                 validate_text_size(*size)?;
-                self.with_screen_camera(active, extent, || {
+                self.with_screen_camera(active, extent, false, || {
                     macroquad::text::draw_text(
                         text,
                         baseline.x,
@@ -284,13 +340,14 @@ impl LegacyRenderer {
                 })?;
             }
             Command::Capture { target, path } => {
+                let diagnostic = target.is_some();
                 let target = target.as_ref().map(|t| self.target(t)).transpose()?;
                 flush();
                 let image = match target {
                     Some(target) => target.texture.get_texture_data(),
                     None => texture::get_screen_data(),
                 };
-                save_capture(path, image.width, image.height, &image.bytes)?;
+                save_capture(path, image.width, image.height, &image.bytes, diagnostic)?;
                 output.captures.push(path.clone());
             }
         }
@@ -301,6 +358,7 @@ impl LegacyRenderer {
         &mut self,
         active: &draw::Camera,
         extent: (u32, u32),
+        associated: bool,
         draw: impl FnOnce(),
     ) -> Result<(), String> {
         let screen = screen_camera(active, extent);
@@ -308,8 +366,11 @@ impl LegacyRenderer {
         // set_camera flushes pending geometry with its old projection before
         // changing projection, render pass, depth, and viewport. Do it on both
         // boundaries: a depth toggle alone leaves HUD pixels in world space.
+        let material = self.material(BlendMode::Alpha, false, associated, false)?;
         camera::set_camera(&LegacyCamera::new(&screen, target.clone()));
+        material::gl_use_material(&material);
         draw();
+        material::gl_use_default_material();
         // Every renderer-owned camera uses the full-target viewport (None).
         // Restore through set_camera, not get_viewport(): macroquad resolves
         // None to WINDOW dimensions, which is wrong on a smaller target.
@@ -380,6 +441,16 @@ impl camera::Camera for LegacyCamera {
     }
 }
 
+fn associated_clear(color: draw::Color) -> macroquad::color::Color {
+    let alpha = color.a.clamp(0., 1.);
+    macroquad::color::Color::new(
+        color.r.clamp(0., 1.) * alpha,
+        color.g.clamp(0., 1.) * alpha,
+        color.b.clamp(0., 1.) * alpha,
+        alpha,
+    )
+}
+
 fn color_to_legacy(color: draw::Color) -> macroquad::color::Color {
     macroquad::color::Color::new(color.r, color.g, color.b, color.a)
 }
@@ -444,9 +515,24 @@ fn blend_key(blend: BlendMode) -> u8 {
     }
 }
 
-fn pipeline_params(blend: BlendMode, depth: bool) -> mq::PipelineParams {
+fn pipeline_params(
+    blend: BlendMode,
+    depth: bool,
+    associated: bool,
+    lines: bool,
+) -> mq::PipelineParams {
     use mq::{BlendFactor as Factor, BlendState, BlendValue, Equation};
+    let source_color = if associated {
+        Factor::One
+    } else {
+        Factor::Value(BlendValue::SourceAlpha)
+    };
     mq::PipelineParams {
+        primitive_type: if lines {
+            mq::PrimitiveType::Lines
+        } else {
+            mq::PrimitiveType::Triangles
+        },
         depth_test: if depth {
             mq::Comparison::LessOrEqual
         } else {
@@ -458,17 +544,20 @@ fn pipeline_params(blend: BlendMode, depth: bool) -> mq::PipelineParams {
             BlendMode::Opaque => None,
             BlendMode::Alpha => Some(BlendState::new(
                 Equation::Add,
-                Factor::Value(BlendValue::SourceAlpha),
+                source_color,
                 Factor::OneMinusValue(BlendValue::SourceAlpha),
             )),
-            BlendMode::Additive => Some(BlendState::new(
-                Equation::Add,
-                Factor::Value(BlendValue::SourceAlpha),
-                Factor::One,
-            )),
+            BlendMode::Additive => Some(BlendState::new(Equation::Add, source_color, Factor::One)),
         },
-        alpha_blend: (blend == BlendMode::Additive)
-            .then(|| BlendState::new(Equation::Add, Factor::Zero, Factor::One)),
+        alpha_blend: match blend {
+            BlendMode::Opaque => None,
+            BlendMode::Alpha => Some(BlendState::new(
+                Equation::Add,
+                Factor::One,
+                Factor::OneMinusValue(BlendValue::SourceAlpha),
+            )),
+            BlendMode::Additive => Some(BlendState::new(Equation::Add, Factor::Zero, Factor::One)),
+        },
         ..Default::default()
     }
 }
@@ -590,8 +679,14 @@ fn with_model(model: Mat4, draw: impl FnOnce()) {
     }
 }
 
-fn save_capture(path: &Path, width: u16, height: u16, bottom_up: &[u8]) -> Result<(), String> {
-    let pixels = top_left_pixels(width, height, bottom_up)?;
+fn save_capture(
+    path: &Path,
+    width: u16,
+    height: u16,
+    bottom_up: &[u8],
+    diagnostic: bool,
+) -> Result<(), String> {
+    let pixels = capture_pixels(width, height, bottom_up, diagnostic)?;
     // Image::export_png panics on I/O failure; expose the real error instead.
     image::save_buffer_with_format(
         path,
@@ -602,6 +697,21 @@ fn save_capture(path: &Path, width: u16, height: u16, bottom_up: &[u8]) -> Resul
         image::ImageFormat::Png,
     )
     .map_err(|error| format!("could not save capture {}: {error}", path.display()))
+}
+
+fn capture_pixels(
+    width: u16,
+    height: u16,
+    bottom_up: &[u8],
+    diagnostic: bool,
+) -> Result<Vec<u8>, String> {
+    let mut pixels = top_left_pixels(width, height, bottom_up)?;
+    if !diagnostic {
+        for pixel in pixels.as_chunks_mut::<4>().0 {
+            pixel[3] = 255;
+        }
+    }
+    Ok(pixels)
 }
 
 fn top_left_pixels(width: u16, height: u16, bottom_up: &[u8]) -> Result<Vec<u8>, String> {
@@ -624,7 +734,7 @@ mod tests {
     #[test]
     fn additive_preserves_alpha_without_depth_writes() {
         use mq::{BlendFactor as F, BlendState, BlendValue, Equation};
-        let pipeline = pipeline_params(BlendMode::Additive, true);
+        let pipeline = pipeline_params(BlendMode::Additive, true, false, false);
         assert_eq!(pipeline.depth_test, mq::Comparison::LessOrEqual);
         assert!(!pipeline.depth_write);
         assert_eq!(
@@ -639,12 +749,128 @@ mod tests {
             pipeline.alpha_blend,
             Some(BlendState::new(Equation::Add, F::Zero, F::One))
         );
-        assert!(pipeline_params(BlendMode::Opaque, true).depth_write);
-        assert!(pipeline_params(BlendMode::Alpha, true).depth_write);
-        assert!(!pipeline_params(BlendMode::Alpha, false).depth_write);
-        assert!(pipeline_params(BlendMode::Opaque, true)
+        assert!(pipeline_params(BlendMode::Opaque, true, false, false).depth_write);
+        assert!(pipeline_params(BlendMode::Alpha, true, false, false).depth_write);
+        assert!(!pipeline_params(BlendMode::Alpha, false, false, false).depth_write);
+        assert!(pipeline_params(BlendMode::Opaque, true, false, false)
             .color_blend
             .is_none());
+    }
+
+    fn blend_pixel(
+        pipeline: mq::PipelineParams,
+        source: [f32; 4],
+        destination: [f32; 4],
+    ) -> [f32; 4] {
+        use mq::{BlendFactor as F, BlendState, BlendValue, Equation};
+        let factors = [
+            (F::Zero, 0.),
+            (F::One, 1.),
+            (F::Value(BlendValue::SourceAlpha), source[3]),
+            (F::OneMinusValue(BlendValue::SourceAlpha), 1. - source[3]),
+        ];
+        // Miniquad's BlendState fields are private. Match its actual value to
+        // supported factors rather than reimplementing our mode selection.
+        let apply = |state: Option<BlendState>, component: usize| {
+            let Some(state) = state else {
+                return source[component];
+            };
+            for (src_factor, src_value) in factors {
+                for (dst_factor, dst_value) in factors {
+                    if state == BlendState::new(Equation::Add, src_factor, dst_factor) {
+                        return source[component] * src_value + destination[component] * dst_value;
+                    }
+                }
+            }
+            panic!("unhandled legacy blend state: {state:?}");
+        };
+        std::array::from_fn(|i| {
+            apply(
+                if i == 3 {
+                    // This fallback is how pinned miniquad behaves; removing the
+                    // separate Alpha state must expose the old alpha-squared defect.
+                    pipeline.alpha_blend.or(pipeline.color_blend)
+                } else {
+                    pipeline.color_blend
+                },
+                i,
+            )
+        })
+    }
+
+    #[test]
+    fn alpha_coverage_is_source_over_for_mesh_hud_and_line_materials() {
+        for depth in [false, true] {
+            for lines in [false, true] {
+                let straight = pipeline_params(BlendMode::Alpha, depth, false, lines);
+                let stored = blend_pixel(straight, [1., 1., 1., 0.5], [0.; 4]);
+                assert_eq!(stored, [0.5; 4]);
+                assert_eq!(
+                    straight.primitive_type,
+                    if lines {
+                        mq::PrimitiveType::Lines
+                    } else {
+                        mq::PrimitiveType::Triangles
+                    }
+                );
+                let target = pipeline_params(BlendMode::Alpha, depth, true, lines);
+                assert_eq!(
+                    blend_pixel(target, stored, [0., 0., 0., 1.]),
+                    [0.5, 0.5, 0.5, 1.]
+                );
+                assert_eq!(
+                    blend_pixel(target, stored, [0.25, 0.5, 0.75, 1.]),
+                    [0.625, 0.75, 0.875, 1.]
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn associated_target_material_retains_zero_alpha_emission() {
+        let stored = blend_pixel(
+            pipeline_params(BlendMode::Additive, false, false, false),
+            [1., 0., 0., 0.5],
+            [0.; 4],
+        );
+        assert_eq!(stored, [0.5, 0., 0., 0.]);
+        for blend in [BlendMode::Alpha, BlendMode::Additive] {
+            assert_eq!(
+                blend_pixel(
+                    pipeline_params(blend, false, true, false),
+                    stored,
+                    [0., 0., 0., 1.]
+                ),
+                [0.5, 0., 0., 1.]
+            );
+            assert_eq!(fragment_shader(blend, true), ASSOCIATED_FRAGMENT_SHADER);
+            assert_eq!(fragment_shader(blend, false), FRAGMENT_SHADER);
+        }
+        assert_eq!(
+            fragment_shader(BlendMode::Opaque, false),
+            REPLACE_STRAIGHT_FRAGMENT_SHADER
+        );
+        assert_eq!(
+            fragment_shader(BlendMode::Opaque, true),
+            ASSOCIATED_FRAGMENT_SHADER
+        );
+    }
+
+    #[test]
+    fn legacy_clear_and_capture_obey_associated_target_contract() {
+        let clear = associated_clear(draw::Color::new(1., 0.5, 0.25, 0.5));
+        assert_eq!(
+            [clear.r, clear.g, clear.b, clear.a],
+            [0.5, 0.25, 0.125, 0.5]
+        );
+        let clear = associated_clear(draw::Color::new(1., 0., 0., 0.));
+        assert_eq!([clear.r, clear.g, clear.b, clear.a], [0.; 4]);
+        let original = [128, 128, 128, 128, 200, 25, 0, 0, 240, 20, 10, 64];
+        assert_eq!(capture_pixels(3, 1, &original, true).unwrap(), original);
+        assert_eq!(
+            capture_pixels(3, 1, &original, false).unwrap(),
+            [128, 128, 128, 255, 200, 25, 0, 255, 240, 20, 10, 255]
+        );
     }
 
     #[test]
@@ -993,7 +1219,7 @@ mod tests {
         let path =
             std::env::temp_dir().join(format!("rust-duty-capture-test-{}", std::process::id()));
         std::fs::write(&path, b"not a directory").unwrap();
-        let result = save_capture(&path.join("capture.png"), 1, 1, &[0, 0, 0, 255]);
+        let result = save_capture(&path.join("capture.png"), 1, 1, &[0, 0, 0, 255], true);
         std::fs::remove_file(path).unwrap();
         assert!(result.unwrap_err().contains("could not save capture"));
     }
@@ -1007,7 +1233,7 @@ mod tests {
         let bottom_up = [
             0, 0, 255, 255, 255, 255, 255, 255, 255, 0, 0, 255, 0, 255, 0, 255,
         ];
-        save_capture(&path, 2, 2, &bottom_up).unwrap();
+        save_capture(&path, 2, 2, &bottom_up, true).unwrap();
         let decoded = image::open(&path).unwrap().to_rgba8();
         std::fs::remove_file(path).unwrap();
         assert_eq!(decoded.dimensions(), (2, 2));

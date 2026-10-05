@@ -1,9 +1,11 @@
 use crate::hud::*;
 use crate::viewmodel_draw::*;
-use crate::world_draw::*;
+use crate::world_draw::{
+    draw_body_placeholder, grid_texture, register_supply, supply_focus, world,
+};
 use crate::{authored_viewmodel, game_update, pause_menu, sound, weapon_model};
-use macroquad::prelude::*;
 use std::{fs::File, io::Write};
+use vector_range::draw::facade::*;
 use vector_range::platform::input::{KeyCode, MouseButton};
 use vector_range::platform::runtime::{
     get_fps, get_time, mouse_delta_position, mouse_position, next_frame, screen_height,
@@ -33,7 +35,7 @@ struct Impact {
     life: f32,
     target: bool,
 }
-pub(crate) async fn run() {
+pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), String> {
     let args: Vec<String> = std::env::args().collect();
     let executable =
         std::env::current_exe().unwrap_or_else(|_| std::path::PathBuf::from("vector-range.exe"));
@@ -47,6 +49,21 @@ pub(crate) async fn run() {
                 std::process::exit(1);
             }
         };
+    let theme_path = resolve_theme_path(
+        ui_theme.as_deref(),
+        &executable,
+        &authored_executable,
+        |path| path.exists(),
+    );
+    let report_theme_error = ui_theme.is_some() || theme_path.exists();
+    // Remember even a missing default path so F7 can load a newly created file.
+    let theme_error = vector_range::ui_theme::load_theme(&theme_path)
+        .err()
+        .filter(|_| report_theme_error)
+        .map(|error| {
+            eprintln!("UI theme: {error}");
+            format!("UI theme: {error}")
+        });
     // Deterministic capture jobs never contact the release channel. Ordinary
     // double-click launches always start the background checker automatically.
     let update_enabled = !args
@@ -57,7 +74,7 @@ pub(crate) async fn run() {
     // including fast checks that might otherwise finish before the first frame.
     if update_enabled {
         game_update.draw(true);
-        next_frame().await;
+        next_frame().await?;
     }
     let framing = ViewmodelFraming::from_args(&args);
     let control_mode = if args.iter().any(|s| s == "--hold-controls") {
@@ -74,8 +91,7 @@ pub(crate) async fn run() {
         "m4a1" => Settings::m4_candidate(),
         "kestrel" => Settings::default(),
         other => {
-            eprintln!("Unknown profile {other}; use m4a1 or kestrel");
-            return;
+            return Err(format!("Unknown profile {other}; use m4a1 or kestrel"));
         }
     };
     let settings_path = args
@@ -108,8 +124,9 @@ pub(crate) async fn run() {
             "hk416a5"
         });
     if !vector_range::settings::valid_weapon_id(weapon_id) {
-        eprintln!("Weapon ID must contain 1-80 ASCII letters, digits, underscores or hyphens");
-        return;
+        return Err(
+            "Weapon ID must contain 1-80 ASCII letters, digits, underscores or hyphens".into(),
+        );
     }
     let mut pause_menu = pause_menu::PauseMenu::default();
     let mut audio = sound::SoundBank::new().await;
@@ -119,7 +136,7 @@ pub(crate) async fn run() {
     let mut locomotion_state =
         vector_range::locomotion_presentation::LocomotionPresentation::default();
     let mut sim = Simulation::new();
-    let mut startup_notice = None;
+    let mut startup_notice = theme_error;
     {
         // Authored action clips retime gameplay gates; unavailable slots keep
         // labeled placeholder timing. A broken binding is reported, not hidden.
@@ -163,12 +180,8 @@ pub(crate) async fn run() {
     let target = render_target_ex(
         if framing.reference { 960 } else { 1440 },
         if framing.reference { 540 } else { 900 },
-        RenderTargetParams {
-            depth: true,
-            ..Default::default()
-        },
-    );
-    target.texture.set_filter(FilterMode::Linear);
+        RenderTargetParams { depth: true },
+    )?;
     let mut initial = true;
     let mut session = vector_range::session::SessionController::default();
     let mut focus_input = vector_range::session::FocusInput::new();
@@ -402,8 +415,7 @@ pub(crate) async fn run() {
         _ => cfg.ads_time,
     };
     if capture_sequence.is_some() && !framing.reference {
-        eprintln!("--capture-sequence requires --reference-viewport");
-        return;
+        return Err("--capture-sequence requires --reference-viewport".into());
     }
     if capture_sequence.is_some() {
         std::fs::create_dir_all(
@@ -473,6 +485,20 @@ pub(crate) async fn run() {
         frames += 1;
         if focus_input.is_key_pressed(KeyCode::F10) {
             break;
+        }
+        // Resolve a replacement before either UI hit testing or drawing this
+        // frame, including the startup updater panel. Focus-return edges cannot
+        // trigger a reload from a key pressed while the app was interrupted.
+        if !focus_state.unfocused && !focus_state.changed && focus_input.is_key_pressed(KeyCode::F7)
+        {
+            notice = match vector_range::ui_theme::reload_theme() {
+                Ok(()) => "UI theme reloaded".into(),
+                Err(error) => {
+                    eprintln!("UI theme: {error}");
+                    format!("UI theme retained: {error}")
+                }
+            };
+            notice_timer = 6.;
         }
         game_update.set_pointer_input(
             !capture && focus_input.is_mouse_button_pressed(MouseButton::Left),
@@ -575,7 +601,7 @@ pub(crate) async fn run() {
             if game_update.draw(true) {
                 break;
             }
-            next_frame().await;
+            next_frame().await?;
             continue;
         }
         let simulation_dt = if transition.discard_timing
@@ -1055,13 +1081,16 @@ pub(crate) async fn run() {
         }
         if capture_lighting && frames == 8 {
             // Record the actual range pass before the overlay/HUD can cover it.
-            get_screen_data().export_png(&format!("{output}.world.png"));
+            let world_output = format!("{output}.world.png");
+            capture_png(None, world_output.clone());
+            crate::capture::write_world_metadata(&world_output)?;
             let light = SceneLighting::range().in_view(forward);
             let world = SceneLighting::range();
-            let _ = std::fs::write(format!("{output}.lighting.json"), format!(
+            std::fs::write(format!("{output}.lighting.json"), format!(
                 "{{\"schema\":\"rust-duty-lighting-capture/v1\",\"yaw_degrees\":{},\"pitch_degrees\":{},\"world_light\":[{},{},{}],\"view_light\":[{},{},{}],\"ambient\":{},\"diffuse\":{},\"simulation_time\":{}}}",
                 lighting_yaw.to_degrees(), lighting_pitch.to_degrees(), world.direction_to_light.x, world.direction_to_light.y, world.direction_to_light.z,
-                light.direction_to_light.x, light.direction_to_light.y, light.direction_to_light.z, light.ambient, light.diffuse, sim.time));
+                light.direction_to_light.x, light.direction_to_light.y, light.direction_to_light.z, light.ambient, light.diffuse, sim.time))
+                .map_err(|error| format!("write lighting capture metadata: {error}"))?;
         }
         for t in &traces {
             draw_line_3d(
@@ -1203,9 +1232,69 @@ pub(crate) async fn run() {
             traversal_capture,
             look_sway: &look_sway,
             locomotion_state: &mut locomotion_state,
-        }) {
+        })? {
             break;
         }
-        next_frame().await;
+        next_frame().await?;
+    }
+    Ok(())
+}
+
+/// Keep user-edited adjacent themes stable across managed updates. A verified
+/// version directory supplies only the shipped default when no local file exists.
+fn resolve_theme_path(
+    explicit: Option<&std::path::Path>,
+    executable: &std::path::Path,
+    packaged_executable: &std::path::Path,
+    exists: impl Fn(&std::path::Path) -> bool,
+) -> std::path::PathBuf {
+    if let Some(explicit) = explicit {
+        return explicit.to_owned();
+    }
+    for executable in [executable, packaged_executable] {
+        let path = executable
+            .parent()
+            .unwrap_or(std::path::Path::new("."))
+            .join("ui/theme.css");
+        if exists(&path) {
+            return path;
+        }
+    }
+    "ui/theme.css".into()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::resolve_theme_path;
+    use std::path::Path;
+
+    #[test]
+    fn explicit_and_editable_local_themes_take_precedence_over_managed_defaults() {
+        let executable = Path::new("install/vector-range.exe");
+        let packaged = Path::new("install/versions/current/vector-range.exe");
+        let explicit = Path::new("custom/colors.css");
+        assert_eq!(
+            resolve_theme_path(Some(explicit), executable, packaged, |_| false),
+            explicit
+        );
+        assert_eq!(
+            resolve_theme_path(None, executable, packaged, |_| true),
+            Path::new("install/ui/theme.css")
+        );
+    }
+
+    #[test]
+    fn shipped_managed_theme_is_selected_before_the_development_fallback() {
+        let executable = Path::new("install/vector-range.exe");
+        let packaged = Path::new("install/versions/current/vector-range.exe");
+        let managed = Path::new("install/versions/current/ui/theme.css");
+        assert_eq!(
+            resolve_theme_path(None, executable, packaged, |path| path == managed),
+            managed
+        );
+        assert_eq!(
+            resolve_theme_path(None, executable, packaged, |_| false),
+            Path::new("ui/theme.css")
+        );
     }
 }

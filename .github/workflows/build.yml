@@ -27,6 +27,8 @@ jobs:
   native-validation:
     needs: [animation-assets, walk-assets, ads-assets, directional-assets, jump-assets]
     uses: ./.github/workflows/native-validation.yml
+  dx12-warp-smoke:
+    uses: ./.github/workflows/wgpu-dx12-smoke.yml
   build:
     needs: [animation-assets, walk-assets, ads-assets, directional-assets, jump-assets]
     name: windows-latest

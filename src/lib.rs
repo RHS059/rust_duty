@@ -68,5 +68,7 @@ pub mod input_frame;
 pub mod platform;
 
 pub mod draw;
+#[cfg(feature = "legacy-macroquad")]
 pub mod legacy_macroquad;
 pub mod render;
+pub mod ui_theme;

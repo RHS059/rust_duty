@@ -89,11 +89,28 @@ pub fn set_fullscreen(fullscreen: bool) {
     macroquad::window::set_fullscreen(fullscreen);
 }
 
-pub async fn next_frame() {
+pub async fn next_frame() -> Result<(), String> {
     #[cfg(feature = "wgpu-runtime")]
     if wgpu_active() {
         super::window::next_frame().await;
-        return;
+        return Ok(());
     }
-    macroquad::window::next_frame().await;
+    #[cfg(feature = "legacy-macroquad")]
+    {
+        crate::legacy_macroquad::runtime::finish_frame()?;
+        macroquad::window::next_frame().await;
+        crate::legacy_macroquad::runtime::start_frame()
+    }
+    #[cfg(not(feature = "legacy-macroquad"))]
+    Err("no active window runtime".into())
+}
+
+/// Physical capture extent, independent of the logical UI coordinate system.
+pub fn framebuffer_size() -> (u32, u32) {
+    #[cfg(feature = "wgpu-runtime")]
+    if wgpu_active() {
+        return super::window::framebuffer_size();
+    }
+    let (width, height) = macroquad::miniquad::window::screen_size();
+    (width as u32, height as u32)
 }

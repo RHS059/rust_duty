@@ -1,8 +1,22 @@
 //! All sampled textures and render targets use top-left UVs. No legacy flip-Y is applied.
-use crate::draw::{FilterMode, Sampler, Texture, TextureSource, WrapMode};
+// Target storage is associated RGB plus additive emission, and coverage alpha.
+// Uploaded Rgba8 textures instead contain ordinary straight-alpha image data.
+use crate::draw::{Color, FilterMode, Sampler, Texture, TextureSource, WrapMode};
 
 pub(crate) const COLOR_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Rgba8Unorm;
 pub(crate) const DEPTH_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Depth32Float;
+
+/// Clear colors use the public straight-alpha Color contract. A transparent
+/// colored clear must not inject unrequested additive emission into a target.
+pub(crate) fn clear_color(color: Color) -> wgpu::Color {
+    let alpha = color.a.clamp(0., 1.);
+    wgpu::Color {
+        r: (color.r.clamp(0., 1.) * alpha) as f64,
+        g: (color.g.clamp(0., 1.) * alpha) as f64,
+        b: (color.b.clamp(0., 1.) * alpha) as f64,
+        a: alpha as f64,
+    }
+}
 
 pub(crate) struct GpuTexture {
     pub descriptor: Texture,
@@ -165,4 +179,25 @@ fn sampler(device: &wgpu::Device, descriptor: Sampler) -> wgpu::Sampler {
         min_filter: filter,
         ..Default::default()
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn clear_converts_straight_color_to_associated_storage() {
+        let color = clear_color(Color::new(1., 0.5, 0.25, 0.5));
+        assert_eq!(
+            [color.r, color.g, color.b, color.a],
+            [0.5, 0.25, 0.125, 0.5]
+        );
+        assert_eq!(
+            clear_color(Color::new(1., 0., 0., 0.)),
+            wgpu::Color::TRANSPARENT
+        );
+        assert_eq!(clear_color(Color::WHITE), wgpu::Color::WHITE);
+        let color = clear_color(Color::new(2., -1., 0.5, 2.));
+        assert_eq!([color.r, color.g, color.b, color.a], [1., 0., 0.5, 1.]);
+    }
 }

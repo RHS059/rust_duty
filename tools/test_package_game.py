@@ -32,6 +32,12 @@ class PackageGameTests(unittest.TestCase):
             path = self.root / relative
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_bytes(b"fixture")
+        for relative, contents in {
+                "ui/theme.css": b"#hud .label { color: #e8edf2; }\n",
+                "docs/UI_THEME.md": b"# Native theme fixture\n"}.items():
+            path = self.root / relative
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_bytes(contents)
 
     def test_repository_compressed_input_stages_exact_original(self):
         self.add_distribution_files()
@@ -126,6 +132,10 @@ class PackageGameTests(unittest.TestCase):
         update = self.base / "update"
         package.stage(build, "vector-range", update, update=True)
         self.assertFalse((update / "settings.cfg").exists())
+        for relative in ("ui/theme.css", "docs/UI_THEME.md"):
+            expected = (self.root / relative).read_bytes()
+            self.assertEqual((build / relative).read_bytes(), expected)
+            self.assertEqual((update / relative).read_bytes(), expected)
         self.assertEqual(package.verify(update), package.verify(build))
         bundle = self.base / "game.rdb"
         release.pack(update, bundle, "vector-range")
@@ -146,7 +156,38 @@ class PackageGameTests(unittest.TestCase):
         for name in package.COMPANIONS:
             relative = (package.ASSET_DIR / name).as_posix()
             self.assertEqual(included[relative], (self.root / relative).read_bytes())
+        for relative in ("ui/theme.css", "docs/UI_THEME.md"):
+            self.assertEqual(included[relative], (self.root / relative).read_bytes())
         self.assertNotIn("settings.cfg", included)
+
+    def test_missing_ui_resources_fail_before_build_or_update_output(self):
+        self.add_distribution_files()
+        for relative in ("ui/theme.css", "docs/UI_THEME.md"):
+            path = self.root / relative
+            original = path.read_bytes()
+            path.unlink()
+            for update in (False, True):
+                output = self.base / "missing-ui"
+                with self.subTest(relative=relative, update=update):
+                    with self.assertRaisesRegex(ValueError, "required distribution file missing"):
+                        package.stage(self.root, "target/release/vector-range", output, update=update)
+                    self.assertFalse(output.exists())
+            path.write_bytes(original)
+
+    def test_ui_resource_symlinks_are_rejected_without_copying_external_data(self):
+        self.add_distribution_files()
+        target = self.base / "external-theme.css"
+        target.write_text("private external theme")
+        path = self.root / "ui/theme.css"
+        path.unlink()
+        try:
+            path.symlink_to(target)
+        except OSError as error:
+            self.skipTest(f"symlink creation unavailable: {error}")
+        output = self.base / "linked-ui"
+        with self.assertRaisesRegex(ValueError, "symlink"):
+            package.stage(self.root, "target/release/vector-range", output)
+        self.assertFalse(output.exists())
 
     def test_staging_fails_closed_and_never_overwrites(self):
         output = self.base / "output"

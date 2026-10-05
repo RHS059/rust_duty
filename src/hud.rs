@@ -1,6 +1,7 @@
-use macroquad::prelude::*;
 use vector_range::action::ActionPhase;
+use vector_range::draw::facade::*;
 use vector_range::platform::runtime::{get_fps, screen_height, screen_width};
+use vector_range::ui_theme::{self, UiClass, UiScope, UiStyle};
 use vector_range::{
     settings::Settings,
     sim::{Simulation, SPRINT_DURATION},
@@ -10,10 +11,41 @@ pub(crate) const ACCENT: Color = Color::new(0.98, 0.62, 0.22, 1.);
 pub(crate) const CYAN: Color = Color::new(0.33, 0.84, 0.87, 1.);
 pub(crate) const MUTED: Color = Color::new(0.62, 0.69, 0.72, 1.);
 pub(crate) fn label(text: &str, x: f32, y: f32, size: f32, color: Color) {
-    draw_text(text, x, y, size, color);
+    label_style(color).text(text, x, y, size, color);
 }
 pub(crate) fn panel(x: f32, y: f32, w: f32, h: f32) {
-    draw_rectangle(x, y, w, h, Color::new(0.025, 0.042, 0.058, 0.88));
+    ui_theme::style(UiScope::Hud, &[UiClass::Panel]).rect(
+        Rect::new(x, y, w, h),
+        Color::new(0.025, 0.042, 0.058, 0.88),
+        MUTED,
+        1.,
+    );
+}
+fn label_style(color: Color) -> UiStyle {
+    let class = if color == MUTED {
+        UiClass::Muted
+    } else if color == YELLOW {
+        UiClass::Warning
+    } else if color == ACCENT || color == CYAN {
+        UiClass::Accent
+    } else {
+        UiClass::Label
+    };
+    ui_theme::style(UiScope::Hud, &[UiClass::Label, class])
+}
+fn hud_rectangle(x: f32, y: f32, w: f32, h: f32, color: Color) {
+    let class = if color == ACCENT || color == CYAN {
+        UiClass::Accent
+    } else {
+        UiClass::Muted
+    };
+    draw_rectangle(
+        x,
+        y,
+        w,
+        h,
+        ui_theme::style(UiScope::Hud, &[class]).tint(color),
+    );
 }
 /// Action state readout. Visuals are placeholders until authored clips pass review.
 pub(crate) fn action_hud(sim: &Simulation, w: f32, h: f32) {
@@ -50,16 +82,16 @@ pub(crate) fn action_hud(sim: &Simulation, w: f32, h: f32) {
         _ => None,
     };
     if let Some(hint) = hint {
-        let width = measure_text(hint, None, 18, 1.).width;
+        let width = label_style(CYAN).measure(hint, 18.).width;
         label(hint, w * 0.5 - width * 0.5, h * 0.5 + 80., 18., CYAN);
     }
     if p.obstruction.fire_blocked {
         label("WEAPON BLOCKED", w * 0.5 - 60., h * 0.5 + 54., 16., ACCENT);
     }
     if let Some(since) = p.dead_since {
-        draw_rectangle(0., 0., w, h, Color::new(0.3, 0., 0., 0.35));
+        hud_rectangle(0., 0., w, h, Color::new(0.3, 0., 0., 0.35));
         let text = format!("DOWN  {:.1}", (sim.time - since).max(0.));
-        let width = measure_text(&text, None, 40, 1.).width;
+        let width = label_style(WHITE).measure(&text, 40.).width;
         label(&text, w * 0.5 - width * 0.5, h * 0.5, 40., WHITE);
     }
 }
@@ -78,7 +110,7 @@ pub(crate) fn hud(
     let (w, h) = (screen_width(), screen_height());
     let p = &sim.player;
     panel(24., 24., 288., 81.);
-    draw_rectangle(24., 24., 4., 81., ACCENT);
+    hud_rectangle(24., 24., 4., 81., ACCENT);
     label("VECTOR / RANGE 01", 43., 54., 25., WHITE);
     label("ORIGINAL RUST FEEL LAB", 43., 80., 15., MUTED);
     let acc = if sim.stats.shots > 0 {
@@ -111,7 +143,12 @@ pub(crate) fn hud(
         let gap = (sim.spread_degrees(cfg).to_radians().tan() * w
             / (2. * (fov.to_radians() * 0.5).tan()))
         .max(2.);
-        let c = Color::new(1., 1., 1., 1. - p.ads);
+        let c = ui_theme::style(UiScope::Hud, &[UiClass::Accent]).tint(Color::new(
+            1.,
+            1.,
+            1.,
+            1. - p.ads,
+        ));
         for (a, b) in [
             (vec2(x - gap - 7., y), vec2(x - gap, y)),
             (vec2(x + gap, y), vec2(x + gap + 7., y)),
@@ -123,7 +160,11 @@ pub(crate) fn hud(
         draw_circle(x, y, 1.5, c);
     }
     if hit_timer > 0. {
-        let c = if head { ACCENT } else { WHITE };
+        let c = ui_theme::style(UiScope::Hud, &[UiClass::Accent]).tint(if head {
+            ACCENT
+        } else {
+            WHITE
+        });
         for (dx, dy) in [(-1., -1.), (1., -1.), (-1., 1.), (1., 1.)] {
             draw_line(x + dx * 7., y + dy * 7., x + dx * 13., y + dy * 13., 2., c);
         }
@@ -160,9 +201,9 @@ pub(crate) fn hud(
         CYAN,
     );
     if let Some(mantle) = p.mantle {
-        draw_rectangle(w - 232., h - 20., 190. * mantle.progress(), 3., CYAN);
+        hud_rectangle(w - 232., h - 20., 190. * mantle.progress(), 3., CYAN);
     } else if p.reload_left > 0. {
-        draw_rectangle(
+        hud_rectangle(
             w - 232.,
             h - 20.,
             190. * (1. - p.reload_left / p.reload_total),
@@ -200,9 +241,9 @@ pub(crate) fn hud(
     };
     label(stance, 43., h - 77., 17., WHITE);
     label(&format!("{:04.1} m/s", p.speed()), 173., h - 77., 17., CYAN);
-    draw_rectangle(43., h - 58., 210., 4., Color::new(0.19, 0.25, 0.28, 1.));
-    draw_rectangle(43., h - 58., 210. * p.stamina / SPRINT_DURATION, 4., ACCENT);
-    draw_rectangle(
+    hud_rectangle(43., h - 58., 210., 4., Color::new(0.19, 0.25, 0.28, 1.));
+    hud_rectangle(43., h - 58., 210. * p.stamina / SPRINT_DURATION, 4., ACCENT);
+    hud_rectangle(
         43.,
         h - 52.,
         210. * (p.tac_charge / cfg.action.tac_sprint_duration.max(1e-3)).min(1.),
@@ -225,8 +266,13 @@ pub(crate) fn hud(
         MUTED,
     );
     if notice_timer > 0. {
-        let width = measure_text(notice, None, 20, 1.).width;
-        panel(w * 0.5 - width * 0.5 - 18., 112., width + 36., 42.);
+        let width = label_style(CYAN).measure(notice, 20.).width;
+        panel(
+            w * 0.5 - width * 0.5 - 18.,
+            112.,
+            width + 36.,
+            42. + (label_style(CYAN).size(20.) - 20.).max(0.),
+        );
         label(notice, w * 0.5 - width * 0.5, 139., 20., CYAN);
     }
     if debug {
@@ -269,5 +315,27 @@ pub(crate) fn hud(
                 if i == 7 && recording { ACCENT } else { MUTED },
             );
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn themed_hud_label_emits_resolved_size_color_and_opacity() {
+        ui_theme::set_theme(
+            ui_theme::UiTheme::parse(
+                "test.css",
+                "#hud .muted {font-size:21.5px;color:#123456;opacity:.5}",
+            )
+            .unwrap(),
+        );
+        begin_frame(800, 600, 1.).unwrap();
+        label("Telemetry", 10., 30., 16., MUTED);
+        let list = take_draw_list().unwrap();
+        ui_theme::set_theme(ui_theme::UiTheme::default());
+        assert!(list.commands.iter().any(|command| matches!(command,
+            vector_range::draw::Command::Text {text, size, color, ..} if text == "Telemetry"
+                && *size == 21.5 && *color == Color::new(18./255., 52./255., 86./255., 0.5))));
     }
 }

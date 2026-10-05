@@ -20,7 +20,28 @@ struct VertexOutput {
     output.color = input.color;
     return output;
 }
-@fragment fn fs_main(input: VertexOutput) -> @location(0) vec4<f32> {
-    // Vertex colors already contain SceneLighting's CPU lighting.
+@fragment fn fs_straight(input: VertexOutput) -> @location(0) vec4<f32> {
+    // Uploaded images/glyphs and CPU-lit vertex colors are straight RGBA.
+    // The blend unit applies the combined source alpha once.
     return textureSample(color_texture,color_sampler,input.uv) * input.color;
+}
+@fragment fn fs_associate_straight(input: VertexOutput) -> @location(0) vec4<f32> {
+    // Opaque means replace rather than blend. Replacement still obeys target
+    // storage representation even for images/vertices with fractional alpha.
+    let straight = textureSample(color_texture,color_sampler,input.uv) * input.color;
+    return vec4<f32>(straight.rgb * straight.a, straight.a);
+}
+@fragment fn fs_associated(input: VertexOutput) -> @location(0) vec4<f32> {
+    // Target RGB is already associated with its coverage and may also contain
+    // additive emission at alpha zero. Never divide by or multiply by sample.a.
+    // Tint opacity attenuates both radiance and coverage exactly once.
+    let sampled = textureSample(color_texture,color_sampler,input.uv);
+    return vec4<f32>(sampled.rgb * input.color.rgb * input.color.a,
+                     sampled.a * input.color.a);
+}
+@fragment fn fs_present(input: VertexOutput) -> @location(0) vec4<f32> {
+    // Present associated RGB over black as an opaque display image, including
+    // additive emission. This matches the default framebuffer PNG contract.
+    let sampled = textureSample(color_texture,color_sampler,input.uv);
+    return vec4<f32>(sampled.rgb, 1.0);
 }

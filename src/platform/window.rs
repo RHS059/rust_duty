@@ -121,6 +121,12 @@ pub fn get_fps() -> i32 {
         0
     }
 }
+pub fn framebuffer_size() -> (u32, u32) {
+    STATE.with(|s| {
+        let size = s.borrow().size;
+        (size.width, size.height)
+    })
+}
 pub fn screen_width() -> f32 {
     STATE.with(|s| s.borrow().logical_size().x)
 }
@@ -217,7 +223,7 @@ pub fn run(
     width: u32,
     height: u32,
     make_hooks: impl FnOnce(Arc<Window>) -> Result<Box<dyn FrameHooks>, String> + 'static,
-    future: impl Future<Output = ()> + 'static,
+    future: impl Future<Output = Result<(), String>> + 'static,
 ) -> Result<(), String> {
     let event_loop = EventLoop::new().map_err(|e| e.to_string())?;
     event_loop.set_control_flow(ControlFlow::Wait);
@@ -241,13 +247,25 @@ pub fn run(
     runtime.error.map_or(Ok(()), Err)
 }
 
+/// Submit the recorded final frame before its application result can exit the loop.
+fn poll_and_submit(
+    future: Pin<&mut dyn Future<Output = Result<(), String>>>,
+    hooks: &mut dyn FrameHooks,
+    before_present: impl FnOnce(),
+) -> Result<Poll<Result<(), String>>, String> {
+    let result = future.poll(&mut Context::from_waker(Waker::noop()));
+    before_present();
+    hooks.end_frame()?;
+    Ok(result)
+}
+
 struct Runtime {
     title: String,
     size: LogicalSize<u32>,
     window: Option<Arc<Window>>,
     make_hooks: Option<HookFactory>,
     hooks: Option<Box<dyn FrameHooks>>,
-    future: Pin<Box<dyn Future<Output = ()>>>,
+    future: Pin<Box<dyn Future<Output = Result<(), String>>>>,
     error: Option<String>,
     suspended: bool,
 }
@@ -295,20 +313,21 @@ impl Runtime {
         }
         // Frames are requested unconditionally while drawable, so futures do
         // not need to signal another wake to be polled at the next redraw.
-        let ready = self
-            .future
-            .as_mut()
-            .poll(&mut Context::from_waker(Waker::noop()))
-            .is_ready();
-        if let Some(window) = &self.window {
-            window.pre_present_notify();
-        }
-        if let Err(error) = hooks.end_frame() {
-            self.fail(event_loop, error);
-            return;
-        }
-        if ready {
-            event_loop.exit();
+        let app_result = match poll_and_submit(self.future.as_mut(), hooks.as_mut(), || {
+            if let Some(window) = &self.window {
+                window.pre_present_notify();
+            }
+        }) {
+            Ok(result) => result,
+            Err(error) => {
+                self.fail(event_loop, error);
+                return;
+            }
+        };
+        match app_result {
+            Poll::Ready(Ok(())) => event_loop.exit(),
+            Poll::Ready(Err(error)) => self.fail(event_loop, error),
+            Poll::Pending => {}
         }
     }
 }
@@ -488,6 +507,7 @@ fn map_key(key: NativeKey) -> Option<KeyCode> {
         NativeKey::F2 => KeyCode::F2,
         NativeKey::F5 => KeyCode::F5,
         NativeKey::F6 => KeyCode::F6,
+        NativeKey::F7 => KeyCode::F7,
         NativeKey::F8 => KeyCode::F8,
         NativeKey::F9 => KeyCode::F9,
         NativeKey::F10 => KeyCode::F10,
@@ -499,6 +519,68 @@ fn map_key(key: NativeKey) -> Option<KeyCode> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn final_success_and_app_error_both_submit_before_completion() {
+        use std::{cell::RefCell, rc::Rc};
+        struct Hooks {
+            events: Rc<RefCell<Vec<&'static str>>>,
+            error: bool,
+        }
+        impl FrameHooks for Hooks {
+            fn resize(&mut self, _: u32, _: u32, _: f64) -> Result<(), String> {
+                Ok(())
+            }
+            fn begin_frame(&mut self, _: f32, _: f32) -> Result<FrameStart, String> {
+                Ok(FrameStart::Ready)
+            }
+            fn end_frame(&mut self) -> Result<(), String> {
+                self.events.borrow_mut().push("submit-and-readback");
+                if self.error {
+                    Err("final PNG write failed".into())
+                } else {
+                    Ok(())
+                }
+            }
+        }
+        for app_error in [false, true] {
+            for submission_error in [false, true] {
+                let events = Rc::new(RefCell::new(Vec::new()));
+                let polled = events.clone();
+                let mut future = Box::pin(async move {
+                    polled.borrow_mut().push("app-final-frame");
+                    if app_error {
+                        Err("app failed".into())
+                    } else {
+                        Ok(())
+                    }
+                });
+                let mut hooks = Hooks {
+                    events: events.clone(),
+                    error: submission_error,
+                };
+                let result = poll_and_submit(future.as_mut(), &mut hooks, || {
+                    events.borrow_mut().push("pre-present");
+                });
+                assert_eq!(
+                    *events.borrow(),
+                    ["app-final-frame", "pre-present", "submit-and-readback"]
+                );
+                if submission_error {
+                    assert_eq!(result.unwrap_err(), "final PNG write failed");
+                } else {
+                    assert_eq!(
+                        result.unwrap(),
+                        Poll::Ready(if app_error {
+                            Err("app failed".into())
+                        } else {
+                            Ok(())
+                        })
+                    );
+                }
+            }
+        }
+    }
+
     #[test]
     fn skipped_surface_frame_preserves_edges_motion_and_generation() {
         let mut state = State::default();
@@ -522,6 +604,12 @@ mod tests {
         assert!(state.start_frame(FrameStart::Ready, Instant::now()));
         assert!(!state.frame.is_key_pressed(KeyCode::W));
         assert!(!state.frame.is_key_released(KeyCode::W));
+    }
+
+    #[test]
+    fn theme_reload_key_keeps_settings_reload_on_its_existing_key() {
+        assert_eq!(map_key(NativeKey::F6), Some(KeyCode::F6));
+        assert_eq!(map_key(NativeKey::F7), Some(KeyCode::F7));
     }
 
     #[test]

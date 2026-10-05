@@ -8,6 +8,8 @@ import struct
 import tempfile
 import unittest
 
+from stage_release_game import bundle_records
+
 spec = importlib.util.spec_from_file_location("release_update", Path(__file__).with_name("release_update.py"))
 release = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(release)
@@ -155,6 +157,12 @@ class ReleaseTests(unittest.TestCase):
             (new / "assets").mkdir(parents=True)
             (new / "game.exe").write_bytes(executable)
             (new / "assets/note.txt").write_bytes(b"new content for this update")
+            ui_resources = {"ui/theme.css": b"#hud .label { color: #e8edf2; }\n",
+                            "docs/UI_THEME.md": b"# Native theme documentation\n"}
+            for relative, content in ui_resources.items():
+                path = new / relative
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_bytes(content)
             output = root / "out"
             result = release.prepare(argparse.Namespace(
                 input=new, output=output, version="1.1.0", sequence=2, target="test-target",
@@ -170,6 +178,12 @@ class ReleaseTests(unittest.TestCase):
             self.assertLess(len(patch), len(executable))
             self.assertGreater(result["running_executable_delta"]["copied_bytes"], 0)
             self.assertEqual(apply(baseline, patch), full)
+            # A one-file executable baseline still reconstructs every resource
+            # in the new complete bundle; it is not an executable-only update.
+            records = bundle_records(output / manifest["bundle"]["name"])
+            for relative, content in ui_resources.items():
+                self.assertEqual(records[relative], {"size": len(content),
+                                                     "sha256": hashlib.sha256(content).hexdigest()})
             # The installed version does not switch as part of preparing the patch.
             self.assertEqual(manifest["version"], "1.1.0")
             self.assertEqual(running["base_version"], "1.0.0")

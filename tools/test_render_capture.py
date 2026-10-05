@@ -134,6 +134,26 @@ class RenderCaptureTests(unittest.TestCase):
         self.path.write_bytes(payload[:len(payload) // 2])
         self.assert_failure('validation failed')
 
+    def test_incomplete_iend_crc_cannot_pass_pillow_decode(self):
+        payload = self.path.read_bytes()
+        for removed in (1, 2, 3, 4, 8, 12):
+            with self.subTest(removed=removed):
+                self.path.write_bytes(payload[:-removed])
+                self.assert_failure('truncated PNG')
+
+    def test_bad_iend_crc_and_trailing_data_fail(self):
+        payload = self.path.read_bytes()
+        self.path.write_bytes(payload[:-1] + bytes([payload[-1] ^ 1]))
+        self.assert_failure('PNG chunk CRC')
+        self.path.write_bytes(payload + b'trailing data')
+        self.assert_failure('trailing bytes')
+
+    def test_near_uniform_unexpected_background_is_not_scene_coverage(self):
+        image = Image.new('RGBA', (100, 100), (180, 160, 140, 255))
+        image.putpixel((0, 0), (255, 0, 0, 255))
+        image.save(self.path)
+        self.assert_failure('near-uniform', orientation=False)
+
     def test_crc_corruption(self):
         payload = bytearray(self.path.read_bytes())
         position = payload.index(b'IDAT') + 4

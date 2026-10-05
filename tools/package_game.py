@@ -35,6 +35,9 @@ CLIPS = (
 )
 NOTICES = ("LICENSE", "THIRD_PARTY_LICENSES.txt",
            "updater/notices/THIRD_PARTY_UPDATER_LICENSES.txt")
+# Shipped defaults/documentation belong beside the executable in both fresh
+# builds and managed update bundles. User-selected external themes are not copied.
+RUNTIME_FILES = ("ui/theme.css", "docs/UI_THEME.md")
 BUILD_FILES = (
     "settings.cfg", "README.md", "docs/PROVENANCE.md", "docs/ASSET_FORMAT.md",
     "docs/M4_PROFILE.md", "docs/FIRST_PERSON_ARMS.md", "docs/MANTLING.md",
@@ -740,6 +743,8 @@ def stage(root: Path, binary: str, output: Path, update: bool = False, require_g
             copies.append((regular_file(root, relative), relative))
     for relative in NOTICES:
         # Keep updater notices at the artifact path expected by subsequent staging.
+        copies.append((regular_file(root, relative), relative))
+    for relative in RUNTIME_FILES:
         copies.append((regular_file(root, relative), relative))
     for relative in ("manifest.json", "README.md"):
         relative = ASSET_DIR / relative

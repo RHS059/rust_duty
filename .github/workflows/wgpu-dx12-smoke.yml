@@ -1,0 +1,43 @@
+name: DX12 WARP runtime smoke (no distribution)
+on:
+  workflow_call:
+permissions:
+  contents: read
+jobs:
+  dx12-warp:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Default checkout uses the caller's exact revision, including PR merge refs.
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install PNG validation dependency
+        run: python -m pip install Pillow==11.3.0
+      - name: Test smoke failure handling with synthetic fixtures
+        run: python -m unittest discover -s tools -p test_dx12_smoke.py -v
+      - name: Test strict PNG and orientation validation
+        run: python -m unittest discover -s tools -p test_render_capture.py -v
+      - name: Test finite JSON and exact gameplay/time parity validation
+        run: python -m unittest discover -s tools -p test_capture_telemetry.py -v
+      - name: Build actual game with wgpu runtime and no audio device dependency
+        run: cargo build --locked --release --no-default-features --features wgpu-runtime --bin vector-range
+      - name: Capture actual DX12 WARP gameplay and validate all evidence
+        run: >-
+          python tools/run_dx12_smoke.py
+          --executable target/release/vector-range.exe
+          --root .
+          --evidence evidence/dx12-warp
+          --timeout 600
+      - name: Retain this attempt's DX12 logs and captures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dx12-warp-smoke-attempt-${{ github.run_attempt }}
+          path: evidence/dx12-warp/
+          if-no-files-found: error
+          retention-days: 7
