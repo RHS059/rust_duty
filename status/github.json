@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-05T02:33:00Z",
+  "updatedAt": "2026-10-05T02:42:00Z",
   "latestComplete": {
     "sha": "eedd2910d339e1b6df6dae23bc9878e43478cc0c",
     "downloadUrl": "https://github.com/RHS059/rust_duty/releases/download/v0.1.9/Rust-Duty-0.1.9-Windows-x64.zip",
@@ -27,7 +27,7 @@
   ],
   "currentBuild": {
     "state": "working",
-    "task": "Public latest and Latest Complete remain verified v0.1.9 at eedd2910. PR #39 Windows-only 0.1.11 candidate 9525058 passed all five asset pipelines, Windows quality checks, complete-game staging, identity and native validation. Run 37252645953 step 27, started 02:13:17 UTC, is still running the six-case real Windows update preflight with the approximately 317 MB baseline; no terminal result or failure is reported. Bounded diagnostic review is active without a new run. Game uploads and release promotion are pending; 0.1.11 is not live. Four experimental HIP Actions and their exact BLEND/report are delivered and published at PR #41 6a1c145ca63143e99bbf694a76f9d19bd31becf5. Their separately labeled genuine Eevee after-previews remain queued, with metadata ready but no actual new videos yet. Low-vault r3 source b0a4ed51 has a completed genuine 64-frame capture awaiting publication. High-obstacle diagnostics at PR #35 1daee9ff0d250b6ad926dedaab4977663f560406 changed no BLEND; the visible left-side issue remains unsolved pending actual pixels. No new artistic pass or replacement of existing review scores is claimed.",
-    "url": "https://github.com/RHS059/rust_duty/actions/runs/37252645953"
+    "task": "Public latest and Latest Complete remain verified v0.1.9 at eedd2910. PR #39 Windows-only 0.1.11 candidate cbecd3b adds shared Arc response bodies, six separate preflight cases and a finite 660-second watchdog. Game run 37256048543 is in progress: five asset pipelines passed; Windows quality lanes and native validation are running. Updater run 37256048149 failed Clippy with E0308 at updater/src/tests.rs:1138: a direct serve fixture supplies Vec<u8> where Arc<Vec<u8>> is required. Its tests and launcher packaging were skipped. Superseded run 37252645953 was cancelled by concurrency; logs show five of six real-update cases passed, not a complete preflight pass. Game uploads and promotion remain pending; 0.1.11 is not live. Four experimental HIP Actions and exact BLEND/report are published at PR #41 6a1c145ca63143e99bbf694a76f9d19bd31becf5. All four actual foreground Eevee after-captures are complete (forward 39, backward 46, left 50, right 50 frames) with closure witnesses. Three labeled comparisons are composed locally; right composition and publication remain pending. Publication awaits interactive approval, and new pixels have not yet received independent visual review. Low-vault r3 b0a4ed51 has a completed genuine 64-frame capture awaiting publication. High-obstacle diagnostics at PR #35 1daee9ff0d250b6ad926dedaab4977663f560406 changed no BLEND; the visible left-side issue remains unresolved pending actual pixels. No new artistic pass or replacement of existing review scores is claimed.",
+    "url": "https://github.com/RHS059/rust_duty/actions/runs/37256048543"
   }
 }
