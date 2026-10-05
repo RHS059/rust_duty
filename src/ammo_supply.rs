@@ -279,8 +279,7 @@ impl AmmoSupply {
             || !held_f
             || focus.is_none()
             || !dt.is_finite()
-            || dt < 0.
-            || dt > MAX_HOLD_STEP_SECONDS
+            || !(0. ..=MAX_HOLD_STEP_SECONDS).contains(&dt)
         {
             self.cancel();
             return SupplyEvent::None;
