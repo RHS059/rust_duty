@@ -11,6 +11,8 @@ fn shipped() -> String {
         "/assets/animations.cfg"
     ))
     .unwrap()
+    // Windows checkouts may convert to CRLF; the parser accepts both.
+    .replace("\r\n", "\n")
 }
 fn with(replace: &str, lines: &str) -> String {
     shipped().replace(&format!("{replace}\n"), &format!("{lines}\n"))
