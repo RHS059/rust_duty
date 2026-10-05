@@ -1,4 +1,5 @@
 import argparse
+import hashlib
 import importlib.util
 import json
 from pathlib import Path
@@ -77,7 +78,7 @@ class ReleaseTests(unittest.TestCase):
             self.assertNotIn(b"private source", content)
 
     def test_paths_and_symlinks(self):
-        for path in ("../x", "/x", "a\\b", "C:/x", "CON", "a/../b", "private-assets/x", "settings.cfg", "version.json", "x.", "assets/arms/first-person.vrs", "assets/arms/FIRST-PERSON.VRS"):
+        for path in (".rust-duty-updates/install.json", ".RUST-DUTY-UPDATES/jobs/plan.json", "nested/.rust-duty-updates/install.json", "../x", "/x", "a\\b", "C:/x", "CON", "a/../b", "private-assets/x", "settings.cfg", "version.json", "x.", "assets/arms/first-person.vrs", "assets/arms/FIRST-PERSON.VRS"):
             with self.assertRaises(ValueError): release.safe_path(path)
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -139,4 +140,52 @@ class ReleaseTests(unittest.TestCase):
                 release.make_delta(root / "old", root / "new", root / "delta")
                 self.assertEqual(apply(base, (root / "delta").read_bytes()), new)
 
+
+    def test_content_delta_reuses_running_executable_without_redownload(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            executable = b"UNCHANGED-LAUNCHER" * 20000
+            old = root / "old-input"
+            (old / "assets").mkdir(parents=True)
+            (old / "game.exe").write_bytes(executable)
+            (old / "assets/note.txt").write_bytes(b"old content")
+            old_bundle = root / "old.rdb"
+            release.pack(old, old_bundle, "game.exe")
+            new = root / "new-input"
+            (new / "assets").mkdir(parents=True)
+            (new / "game.exe").write_bytes(executable)
+            (new / "assets/note.txt").write_bytes(b"new content for this update")
+            output = root / "out"
+            result = release.prepare(argparse.Namespace(
+                input=new, output=output, version="1.1.0", sequence=2, target="test-target",
+                entrypoint="game.exe", previous=old_bundle, previous_version="1.0.0"))
+            manifest = json.loads((output / "update-test-target.json").read_text())
+            self.assertEqual(len(manifest["deltas"]), 2)
+            running = next(item for item in manifest["deltas"] if "running-to-" in item["asset"]["name"])
+            patch = (output / running["asset"]["name"]).read_bytes()
+            full = (output / manifest["bundle"]["name"]).read_bytes()
+            baseline = release.one_file_executable("game.exe", executable)
+            self.assertEqual(running["base_sha256"], hashlib.sha256(baseline).hexdigest())
+            self.assertNotIn(executable, patch)
+            self.assertLess(len(patch), len(executable))
+            self.assertGreater(result["running_executable_delta"]["copied_bytes"], 0)
+            self.assertEqual(apply(baseline, patch), full)
+            # The installed version does not switch as part of preparing the patch.
+            self.assertEqual(manifest["version"], "1.1.0")
+            self.assertEqual(running["base_version"], "1.0.0")
+
 if __name__ == "__main__": unittest.main()
+
+
+class PreviousBundleExecutableTests(unittest.TestCase):
+    def test_complete_previous_inventory_is_validated_before_extracting(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            image = release.one_file_executable("game", b"exe")
+            path = root / "old.rdb"
+            path.write_bytes(image)
+            self.assertEqual(release.extract_bundle_file(path, "game"), b"exe")
+            for bad in (image[:-1], image + b"trailing", image[:8] + struct.pack("<I", 2) + image[12:] + image[12:]):
+                path.write_bytes(bad)
+                with self.assertRaises(ValueError):
+                    release.extract_bundle_file(path, "game")
