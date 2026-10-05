@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-05T04:32:23Z",
+  "updatedAt": "2026-10-05T04:42:04Z",
   "state": "idle",
   "task": "Paused at the user's request; implementation, animation revisions and release verification remain on hold.",
   "lastCompleted": "PR #39 merged into main at 8c181fca79603336b6e1f2233a063dfd88ccc0c0, matching tested 582960a. All six real-byte Windows 0.1.9-to-0.1.11 preflight cases passed. Main game workflow 37259453786 and updater workflow 37259453557 succeeded; complete-package verification and promotion remain paused. Latest Complete remains verified v0.1.9 at eedd2910d339e1b6df6dae23bc9878e43478cc0c. Six previews were published at rust_duty_updates 4ea969469f103fbe9fcbf3534976de503d9f45da with existing reviews preserved. Standing-to-prone r4 and low-vault r3 were rejected; independent paired-frame review is complete and no corrected replacement or visual-quality pass is claimed. Extra neutral rig delivery is complete; M17 remains unchanged and unintegrated. All implementation, capture, publication, release verification and source handoff remain paused following the user's 03:40 UTC instruction.",
@@ -9,7 +9,7 @@
       "slot": 1,
       "state": "idle",
       "task": "Paused: main Windows release verification and promotion.",
-      "lastCompleted": "PR #39 merged into main at 8c181fca79603336b6e1f2233a063dfd88ccc0c0, matching tested 582960a. All six Windows 0.1.9-to-0.1.11 preflight cases passed. At 04:32 UTC, main game workflow 37259453786 and updater workflow 37259453557 are successful. Complete-package verification remains paused; Latest Complete is still verified v0.1.9. No release was promoted."
+      "lastCompleted": "PR #39 merged into main at 8c181fca79603336b6e1f2233a063dfd88ccc0c0, matching tested 582960a. All six Windows 0.1.9-to-0.1.11 preflight cases passed. For the prior main source, game workflow 37259453786 and updater workflow 37259453557 are successful. Complete-package verification remains paused; Latest Complete is still verified v0.1.9. No release was promoted."
     },
     {
       "slot": 2,
