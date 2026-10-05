@@ -153,32 +153,51 @@ mod fixture {
         Ok(image)
     }
 
-    /// Lit pixels (anything not the black clear colour), their bounds, and gold
-    /// sweep pixels split by the anchor's vertical axis.
+    /// Lit pixels (anything not the black clear colour), their bounds, gold sweep
+    /// pixels split by the anchor's vertical axis, and white key/caption pixels.
     #[derive(Debug, Clone, Copy, PartialEq)]
     pub struct Ink {
         pub lit: u64,
         pub bounds: Option<[u32; 4]>,
         pub gold_left: u64,
         pub gold_right: u64,
+        pub key_white: u64,
+        pub caption_white: u64,
     }
     impl Ink {
         pub fn gold(&self) -> u64 {
             self.gold_left + self.gold_right
         }
     }
+    /// Logical regions for the white key glyph and the caption (or AMMO FULL text).
+    pub const KEY_BOX: [f64; 4] = [230., 108., 250., 132.];
+    pub const CAPTION_BAND: [f64; 4] = [90., 140., 390., 172.];
+    pub const FULL_TEXT_BAND: [f64; 4] = [90., 100., 390., 128.];
     /// Independent oracle colour: SUPPLY_GOLD is #FFC233; tolerance allows edge
     /// blending without admitting the white caption or the dark backplate.
     pub fn is_gold(p: [u8; 4]) -> bool {
         p[0] >= 235 && (170..=215).contains(&p[1]) && p[2] <= 95
     }
-    pub fn measure(image: &RgbaImage, scale: f64) -> Ink {
+    pub fn is_white(p: [u8; 4]) -> bool {
+        p[0].min(p[1]).min(p[2]) >= 200 && !is_gold(p)
+    }
+    fn inside(x: u32, y: u32, region: [f64; 4], scale: f64) -> bool {
+        let (x, y) = (f64::from(x) + 0.5, f64::from(y) + 0.5);
+        region[0] * scale <= x
+            && x < region[2] * scale
+            && region[1] * scale <= y
+            && y < region[3] * scale
+    }
+    pub fn measure(image: &RgbaImage, scale: f64, full: bool) -> Ink {
         let axis = ANCHOR[0] * scale;
+        let caption = if full { FULL_TEXT_BAND } else { CAPTION_BAND };
         let mut ink = Ink {
             lit: 0,
             bounds: None,
             gold_left: 0,
             gold_right: 0,
+            key_white: 0,
+            caption_white: 0,
         };
         for (x, y, pixel) in image.enumerate_pixels() {
             let p = pixel.0;
@@ -196,6 +215,13 @@ mod fixture {
                     ink.gold_left += 1;
                 } else {
                     ink.gold_right += 1;
+                }
+            } else if is_white(p) {
+                if !full && inside(x, y, KEY_BOX, scale) {
+                    ink.key_white += 1;
+                }
+                if inside(x, y, caption, scale) {
+                    ink.caption_white += 1;
                 }
             }
         }
@@ -215,8 +241,26 @@ mod fixture {
         {
             return Err(format!("{case}: lit bounds {bounds:?} escape {window:?}"));
         }
+        let area = (scale * scale) as u64;
+        if ink.caption_white < 60 * area {
+            return Err(format!("{case}: caption text is missing"));
+        }
+        if case == "ammo-full" {
+            let band = FULL_TEXT_BAND.map(|v| v * scale);
+            if f64::from(bounds[1]) < band[1] || f64::from(bounds[3]) >= band[3] {
+                return Err("ammo-full: only the AMMO FULL text may be drawn".into());
+            }
+            return if ink.gold() != 0 || ink.key_white != 0 {
+                Err("ammo-full: no hold circle or key may be drawn".into())
+            } else {
+                Ok(())
+            };
+        }
+        if ink.key_white < 8 * area {
+            return Err(format!("{case}: the F key glyph is missing"));
+        }
         match case {
-            "idle" | "ammo-full" if ink.gold() != 0 => Err(format!(
+            "idle" if ink.gold() != 0 => Err(format!(
                 "{case}: no hold circle may be drawn, found {} gold pixels",
                 ink.gold()
             )),
@@ -315,7 +359,7 @@ mod fixture {
 
     #[cfg(feature = "wgpu-runtime")]
     fn ink_json(ink: Ink) -> Value {
-        json!({"lit_pixels":ink.lit,"lit_bounds":ink.bounds,"gold_left":ink.gold_left,"gold_right":ink.gold_right})
+        json!({"lit_pixels":ink.lit,"lit_bounds":ink.bounds,"gold_left":ink.gold_left,"gold_right":ink.gold_right,"key_white":ink.key_white,"caption_white":ink.caption_white})
     }
 
     #[cfg(feature = "wgpu-runtime")]
@@ -347,7 +391,7 @@ mod fixture {
                 }
                 verify_backend(renderer.info())?;
                 let image = read_png(&path, physical_size(percent))?;
-                let ink = measure(&image, scale);
+                let ink = measure(&image, scale, full);
                 check_case(case, ink, scale)?;
                 let info = renderer.info();
                 let metadata = json!({"schema_version":1,"filename":filename,"element":"ammo-hint","case":case,"progress":progress,"ammo_full":full,"requested":info.requested,"backend":info.backend,"adapter":info.adapter,"scale_percent":percent,"logical_size":LOGICAL_SIZE,"physical_size":physical_size(percent),"anchor_logical":ANCHOR,"ink":ink_json(ink)});
@@ -413,7 +457,40 @@ mod fixture {
                     }
                 }
             }
+            // White key glyph over the circle.
+            for x in 236 * s..244 * s {
+                for y in 112 * s..126 * s {
+                    image.put_pixel(x, y, WHITE);
+                }
+            }
             image
+        }
+
+        #[test]
+        fn missing_key_or_caption_text_is_rejected() {
+            let mut no_caption = synthetic(1, Some(false));
+            for x in 200..280 {
+                for y in 150..158 {
+                    no_caption.put_pixel(x, y, Rgba([0, 0, 0, 255]));
+                }
+            }
+            assert!(check_case("half", measure(&no_caption, 1., false), 1.).is_err());
+            let mut no_key = synthetic(2, None);
+            for x in 472..488 {
+                for y in 224..252 {
+                    no_key.put_pixel(x, y, Rgba([0, 0, 0, 255]));
+                }
+            }
+            assert!(check_case("idle", measure(&no_key, 2., false), 2.).is_err());
+            // AMMO FULL text in its own band, with no key glyph.
+            let mut full = RgbaImage::from_pixel(480, 270, Rgba([0, 0, 0, 255]));
+            for x in 205..275 {
+                for y in 112..120 {
+                    full.put_pixel(x, y, Rgba([224, 237, 222, 255]));
+                }
+            }
+            check_case("ammo-full", measure(&full, 1., true), 1.).unwrap();
+            assert!(check_case("ammo-full", measure(&synthetic(1, None), 1., true), 1.).is_err());
         }
 
         #[test]
@@ -451,16 +528,16 @@ mod fixture {
         fn controls_pass_every_rule() {
             for scale in [1u32, 2] {
                 let s = f64::from(scale);
-                let idle = measure(&synthetic(scale, None), s);
-                let half = measure(&synthetic(scale, Some(false)), s);
-                let full = measure(&synthetic(scale, Some(true)), s);
+                let idle = measure(&synthetic(scale, None), s, false);
+                let half = measure(&synthetic(scale, Some(false)), s, false);
+                let full = measure(&synthetic(scale, Some(true)), s, false);
                 check_case("idle", idle, s).unwrap();
                 check_case("half", half, s).unwrap();
                 check_case("complete", full, s).unwrap();
                 check_progression(&[("half", half), ("complete", full)]).unwrap();
             }
-            let one = measure(&synthetic(1, Some(true)), 1.);
-            let two = measure(&synthetic(2, Some(true)), 2.);
+            let one = measure(&synthetic(1, Some(true)), 1., false);
+            let two = measure(&synthetic(2, Some(true)), 2., false);
             check_scaling(one, two).unwrap();
         }
 
@@ -468,8 +545,10 @@ mod fixture {
         fn discriminating_failures_are_rejected() {
             let s = 1.;
             // Gold where no circle may be drawn.
-            assert!(check_case("idle", measure(&synthetic(1, Some(false)), s), s).is_err());
-            assert!(check_case("ammo-full", measure(&synthetic(1, Some(true)), s), s).is_err());
+            assert!(check_case("idle", measure(&synthetic(1, Some(false)), s, false), s).is_err());
+            assert!(
+                check_case("ammo-full", measure(&synthetic(1, Some(true)), s, false), s).is_err()
+            );
             // Counter-clockwise half sweep (left half) and a missing sweep.
             let mut flipped = synthetic(1, None);
             for x in 221..240 {
@@ -477,22 +556,24 @@ mod fixture {
                     flipped.put_pixel(x, y, GOLD);
                 }
             }
-            assert!(check_case("half", measure(&flipped, s), s).is_err());
-            assert!(check_case("half", measure(&synthetic(1, None), s), s).is_err());
-            assert!(check_case("complete", measure(&synthetic(1, Some(false)), s), s).is_err());
+            assert!(check_case("half", measure(&flipped, s, false), s).is_err());
+            assert!(check_case("half", measure(&synthetic(1, None), s, false), s).is_err());
+            assert!(
+                check_case("complete", measure(&synthetic(1, Some(false)), s, false), s).is_err()
+            );
             // Empty capture and ink outside the prompt window.
             let empty = RgbaImage::from_pixel(480, 270, Rgba([0, 0, 0, 255]));
-            assert!(check_case("idle", measure(&empty, s), s).is_err());
+            assert!(check_case("idle", measure(&empty, s, false), s).is_err());
             let mut stray = synthetic(1, None);
             stray.put_pixel(5, 5, WHITE);
-            assert!(check_case("idle", measure(&stray, s), s).is_err());
+            assert!(check_case("idle", measure(&stray, s, false), s).is_err());
             // No growth between half and complete.
-            let half = measure(&synthetic(1, Some(false)), s);
+            let half = measure(&synthetic(1, Some(false)), s, false);
             assert!(check_progression(&[("half", half), ("complete", half)]).is_err());
             // Identical states and an unscaled 200% capture.
             let a = synthetic(1, None);
             assert!(check_distinct(&[("idle", a.clone()), ("ammo-full", a)]).is_err());
-            let one = measure(&synthetic(1, Some(true)), 1.);
+            let one = measure(&synthetic(1, Some(true)), 1., false);
             assert!(check_scaling(one, one).is_err());
         }
 

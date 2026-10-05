@@ -148,9 +148,12 @@ class ProgressTests(unittest.TestCase):
             link.symlink_to(self.root / 'absent')
         except OSError as error:
             self.skipTest(str(error))
+        original_link = link.readlink()
         with self.assertRaises(FileExistsError):
             progress.summarize_dx12_progress(self.root, link)
         self.assertFalse((self.root / 'absent').exists())
+        self.assertTrue(link.is_symlink())
+        self.assertEqual(link.readlink(), original_link)
         source = self.root / 'summary.json'
         target = self.root / 'original.json'
         source.rename(target)

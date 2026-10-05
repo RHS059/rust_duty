@@ -24,6 +24,8 @@ from pathlib import Path
 import re
 import sys
 
+from exclusive_output import write_text_exclusive
+
 from verify_capture_telemetry import read_record
 from verify_render_capture import load_png
 
@@ -157,8 +159,7 @@ def main(argv=None):
     text = json.dumps(report, indent=2) + '\n'
     if args.report is not None:
         try:
-            with args.report.open('x', encoding='utf-8') as output:
-                output.write(text)
+            write_text_exclusive(args.report, text)
         except OSError as error:
             print(f'cannot write report: {error}', file=sys.stderr)
             return 2

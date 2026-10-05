@@ -168,8 +168,40 @@ class PreviewInventoryTests(unittest.TestCase):
             with self.subTest(name=name):
                 with self.assertRaises(ValueError):
                     inventory.normalize_zip_member(name)
-                self.entries = {**self.control, name: b'x'}
-                self.invalid()
+                if name == 'a\\b':
+                    # ZipInfo.__init__ normalizes backslashes on Windows. Start
+                    # with an equal-length safe placeholder, then put the raw
+                    # bytes into BOTH filename headers without changing data/CRC.
+                    self.entries = {**self.control, 'a_b': b'x'}
+                    self.archive()
+                    with zipfile.ZipFile(self.path) as archive:
+                        local = archive.getinfo('a_b').header_offset
+                    data = bytearray(self.path.read_bytes())
+                    self.assertEqual(data[local + 30:local + 33], b'a_b')
+                    data[local + 30:local + 33] = b'a\\b'
+                    end = data.rfind(b'PK\x05\x06')
+                    central = struct.unpack_from('<I', data, end + 16)[0]
+                    patched = 0
+                    while data[central:central + 4] == b'PK\x01\x02':
+                        name_size, extra_size, comment_size = struct.unpack_from('<HHH', data, central + 28)
+                        start = central + 46
+                        if data[start:start + name_size] == b'a_b':
+                            data[start:start + name_size] = b'a\\b'
+                            patched += 1
+                        central += 46 + name_size + extra_size + comment_size
+                    self.assertEqual(patched, 1)
+                    self.path.write_bytes(data)
+                    with zipfile.ZipFile(self.path) as archive:
+                        stored = [info.orig_filename for info in archive.infolist()]
+                    self.assertIn(name, stored)
+                    self.assertNotIn('a/b', stored)
+                    result = inventory.validate_zip_archive(self.path, strict=True)
+                    self.assertFalse(result['valid'], result)
+                    self.assertIn('backslash', result['error'])
+                    self.assertEqual(self.path.read_bytes(), data)
+                else:
+                    self.entries = {**self.control, name: b'x'}
+                    self.invalid()
         for name, expected in [('ui/theme.css', 'ui/theme.css'), ('preview/docs/', 'preview/docs')]:
             self.assertEqual(inventory.normalize_zip_member(name), expected)
 
@@ -255,9 +287,12 @@ class PreviewInventoryTests(unittest.TestCase):
             link.symlink_to(self.root / 'missing')
         except OSError as error:
             self.skipTest(str(error))
+        original_link = link.readlink()
         with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
             self.assertEqual(inventory.main(['--zip-path', str(self.path), '--report', str(link)]), 1)
         self.assertFalse((self.root / 'missing').exists())
+        self.assertTrue(link.is_symlink())
+        self.assertEqual(link.readlink(), original_link)
 
 
 if __name__ == '__main__':

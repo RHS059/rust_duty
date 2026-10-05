@@ -78,11 +78,15 @@ struct FrameRecorder {
     id: u64,
     list: DrawList,
     scale: f32,
+    screen_scale_override: Option<f32>,
     camera: Camera,
     model: Mat4,
 }
 impl FrameRecorder {
     fn screen_scale(&self) -> f32 {
+        if let Some(scale) = self.screen_scale_override {
+            return scale;
+        }
         if self.camera.target.is_some() {
             1.
         } else {
@@ -207,6 +211,7 @@ pub fn begin_frame(width: u32, height: u32, scale_factor: f64) -> Result<(), Str
             id: state.next_frame_id,
             list,
             scale,
+            screen_scale_override: None,
             camera,
             model: Mat4::IDENTITY,
         });
@@ -397,6 +402,7 @@ pub fn set_camera(camera: &Camera3D) {
         if !view_projection.is_finite() {
             return Err("camera projection is not finite".into());
         }
+        frame.screen_scale_override = None;
         frame.camera = Camera {
             view_projection,
             target: camera.render_target.clone(),
@@ -406,8 +412,33 @@ pub fn set_camera(camera: &Camera3D) {
         Ok(())
     });
 }
+/// Select a screen-space canvas with an explicit logical-to-target pixel scale.
+/// This does not change the platform's logical viewport or OS DPI. The override
+/// is reset by perspective/default camera selection and the next frame.
+/// Errors follow the facade's deferred-error contract in `take_draw_list`.
+pub fn set_screen_camera(target: Option<&RenderTarget>, logical_scale: f32) {
+    record("set_screen_camera", |frame| {
+        if !logical_scale.is_finite() || logical_scale <= 0. {
+            return Err("screen camera scale must be finite and positive".into());
+        }
+        if let Some(target) = target {
+            validate_target(target)?;
+        }
+        let (width, height) = target.map_or((frame.list.width, frame.list.height), |target| {
+            (target.texture.width, target.texture.height)
+        });
+        let mut camera = Camera::screen(width, height);
+        camera.target = target.cloned();
+        frame.camera = camera;
+        frame.screen_scale_override = Some(logical_scale);
+        frame.list.camera(frame.camera.clone());
+        Ok(())
+    });
+}
+
 pub fn set_default_camera() {
     record("set_default_camera", |frame| {
+        frame.screen_scale_override = None;
         frame.camera = Camera::screen(frame.list.width, frame.list.height);
         frame.list.camera(frame.camera.clone());
         Ok(())
@@ -816,6 +847,82 @@ mod tests {
         assert!(
             matches!(&list.commands[3], Command::Text { baseline, size, .. } if *baseline == vec2(20.,40.) && *size == 32.)
         );
+    }
+
+    #[test]
+    fn explicit_screen_target_scales_production_2d_and_restores_existing_defaults() {
+        begin(1.5);
+        let target = RenderTarget::new(640, 400, false).unwrap();
+        set_screen_camera(Some(&target), 2.);
+        let measured = measure_text("A", None, 16, 1.);
+        draw_rectangle(10., 20., 30., 40., WHITE);
+        assert_eq!(draw_text("A", 5., 6., 16., WHITE), measured);
+        set_default_camera();
+        draw_rectangle(10., 20., 30., 40., WHITE);
+        let list = take_draw_list().unwrap();
+        let camera = list
+            .commands
+            .iter()
+            .find_map(|command| match command {
+                Command::Camera(camera) if camera.target.is_some() => Some(camera),
+                _ => None,
+            })
+            .unwrap();
+        assert_eq!(
+            camera.target.as_ref().unwrap().texture.id,
+            target.texture.id
+        );
+        assert!(!camera.depth_test);
+        let rectangles: Vec<_> = list
+            .commands
+            .iter()
+            .filter_map(|command| match command {
+                Command::Rect { rect, .. } => Some(*rect),
+                _ => None,
+            })
+            .collect();
+        assert_eq!(
+            rectangles,
+            [Rect::new(20., 40., 60., 80.), Rect::new(15., 30., 45., 60.)]
+        );
+        assert!(list.commands.iter().any(|command| matches!(command,
+            Command::Text { baseline, size, .. } if *baseline == vec2(10.,12.) && *size == 32.)));
+        begin(1.);
+        draw_rectangle(10., 20., 30., 40., WHITE);
+        assert!(take_draw_list()
+            .unwrap()
+            .commands
+            .iter()
+            .any(|command| matches!(command,
+            Command::Rect { rect, .. } if *rect == Rect::new(10.,20.,30.,40.))));
+    }
+
+    #[test]
+    fn screen_scale_override_cannot_leak_into_perspective_or_bypass_validation() {
+        begin(1.5);
+        let target = RenderTarget::new(320, 200, true).unwrap();
+        set_screen_camera(Some(&target), 2.);
+        set_camera(&perspective(Some(target.clone())));
+        draw_rectangle(1., 2., 3., 4., WHITE);
+        assert!(take_draw_list()
+            .unwrap()
+            .commands
+            .iter()
+            .any(|command| matches!(command,
+            Command::Rect { rect, .. } if *rect == Rect::new(1.,2.,3.,4.))));
+        for scale in [0., -1., f32::NAN, f32::INFINITY] {
+            begin(1.);
+            set_screen_camera(Some(&target), scale);
+            assert!(take_draw_list()
+                .unwrap_err()
+                .contains("screen camera scale"));
+        }
+        begin(1.);
+        set_screen_camera(Some(&target), 2.);
+        draw_texture_ex(&target.texture, 0., 0., WHITE, DrawTextureParams::default());
+        assert!(take_draw_list()
+            .unwrap_err()
+            .contains("active render target"));
     }
 
     #[test]

@@ -277,9 +277,12 @@ class FrameTransitionTests(unittest.TestCase):
             link.symlink_to(target)
         except OSError as error:
             self.skipTest(f'host cannot create test symlinks: {error}')
+        original_link = link.readlink()
         with patch('sys.stderr', io.StringIO()):
             self.assertEqual(transitions.main([str(self.legacy), str(self.candidate), '--report', str(link)]), 2)
         self.assertFalse(target.exists())
+        self.assertTrue(link.is_symlink())
+        self.assertEqual(link.readlink(), original_link)
 
 
 if __name__ == '__main__':

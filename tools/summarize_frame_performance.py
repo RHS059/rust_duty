@@ -7,6 +7,8 @@ import math
 from pathlib import Path
 import sys
 
+from exclusive_output import write_text_exclusive
+
 
 SCHEMA = 'rust_duty_frame_performance_v1'
 MEASUREMENT = 'cpu_wall_clock_successful_present_return_interval_ns'
@@ -230,10 +232,7 @@ def summarize_report(report_path, output_path=None):
                       scope='Retained CPU wall-clock evidence only; no GPU, hardware or performance-pass verdict.')
         text = json.dumps(result, indent=2, allow_nan=False) + '\n'
         if output_path is not None:
-            destination = Path(output_path)
-            destination.parent.mkdir(parents=True, exist_ok=True)
-            with destination.open('x', encoding='utf-8') as output:
-                output.write(text)
+            write_text_exclusive(output_path, text, create_parents=True)
         print(text, end='')
         return 0
     except (OSError, ValueError) as error:

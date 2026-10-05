@@ -488,9 +488,12 @@ class PerformanceSummaryTests(unittest.TestCase):
             link.symlink_to(self.root / 'absent')
         except OSError as error:
             self.skipTest(str(error))
+        original_link = link.readlink()
         code, _, _ = self.summarize(link)
         self.assertEqual(code, 1)
         self.assertFalse((self.root / 'absent').exists())
+        self.assertTrue(link.is_symlink())
+        self.assertEqual(link.readlink(), original_link)
 
 
 if __name__ == '__main__':

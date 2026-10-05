@@ -8,6 +8,8 @@ from pathlib import Path
 import re
 import stat
 import sys
+
+from exclusive_output import write_text_exclusive
 import zipfile
 
 
@@ -231,9 +233,7 @@ def main(argv=None):
     text = json.dumps(result, indent=2, allow_nan=False) + '\n'
     if args.report is not None:
         try:
-            args.report.parent.mkdir(parents=True, exist_ok=True)
-            with args.report.open('x', encoding='utf-8') as output:
-                output.write(text)
+            write_text_exclusive(args.report, text, create_parents=True)
         except OSError as error:
             print(f'Cannot save inventory report: {error}', file=sys.stderr)
             return 1

@@ -154,3 +154,15 @@ Follow the [engineering guide](../ENGINEERING_PRACTICES.md) when reporting resul
 record the tested revision and commands, and keep CPU passed / native not run /
 native passed or failed outcomes separate. Native DX12/WARP execution must occur
 on Windows before describing this fixture as a genuine DX12 pass.
+
+## Explicit screen-space target scaling
+
+`draw::facade::set_screen_camera(target, logical_scale)` selects a 2D canvas
+whose draw coordinates and text raster size use the supplied finite positive
+logical-to-pixel scale. It does not change the platform's logical viewport or
+reported OS DPI. The default remains unchanged: main-target UI uses window DPI,
+and ordinary named targets use their own pixels. Perspective/default camera
+selection and a new frame reset the explicit override. Named-target feedback
+sampling remains forbidden. This additive facade helper changes no `Renderer`
+trait or backend command format; fixtures can use actual UI draw paths at 1x/2x
+without claiming that an OS DPI transition was exercised.

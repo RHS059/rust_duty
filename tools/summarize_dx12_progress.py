@@ -7,6 +7,8 @@ import math
 from pathlib import Path
 import sys
 
+from exclusive_output import write_text_exclusive
+
 
 SUMMARY_SCHEMA = 'rust-duty-dx12-authored-acceptance/v1'
 PROCESS_SCHEMA = 'rust-duty-capture-process/v1'
@@ -194,11 +196,7 @@ def summarize_dx12_progress(evidence_dir, report_path=None):
         result['issues'].append('passing summary lacks matching complete process evidence')
     if report_path is not None:
         data = json.dumps(result, indent=2, allow_nan=False) + '\n'
-        destination = Path(report_path)
-        destination.parent.mkdir(parents=True, exist_ok=True)
-        # Exclusive creation rejects existing files, directories and dangling links.
-        with destination.open('x', encoding='utf-8') as output:
-            output.write(data)
+        write_text_exclusive(report_path, data, create_parents=True)
     return result
 
 
