@@ -72,6 +72,7 @@ checkout without generated candidate outputs. Never overwrite an original.
 `report_contract.py` is the actual verification gate. Tests include the actual
 rejected switch report and discriminating malformed evidence controls.
 
-No rendering has been performed for this checkpoint. Only a genuine fixed-camera
+A foreground Eevee attempt initialized but was killed before any complete frame.
+No successful preview exists from that attempt. Only a genuine fixed-camera
 Eevee viewport preview may establish visible results; non-Eevee methods are not
-permitted. One-hand mantle and roof-climb remain unchanged diagnostic r1 work.
+permitted. One-hand mantle and high-obstacle climb remain unchanged diagnostic r1 work.
