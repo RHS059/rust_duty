@@ -1,0 +1,18 @@
+Warning: File written by newer Blender binary (403.34), expect loss of data!
+{
+  "reopened_candidate_sha256": "f7d6e76d387a07508f61b2ade708fa930b93bd73b167110469a43c88ecf8eaf4",
+  "original82actions_unchanged": true,
+  "new_actions": [
+    "hip_strafe_left_colab_visual_v1",
+    "hip_strafe_right_colab_visual_v1",
+    "hip_walk_backward_colab_visual_v1",
+    "hip_walk_forward_colab_visual_v1"
+  ],
+  "protected_scene_data_unchanged": true,
+  "blender_runtime": "4.3.0",
+  "source_authoring_version": "4.3.2",
+  "passed": true
+}
+
+Read blend: "/content/hip-r5-trial/visual-v1-clean/hip_four_walks_colab_visual_v1.blend"
+Read blend: "/content/hip-r5-trial/input/halcyon_hip_directional_r5.blend"

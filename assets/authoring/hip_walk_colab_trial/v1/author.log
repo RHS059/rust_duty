@@ -1,0 +1,4 @@
+Warning: File written by newer Blender binary (403.34), expect loss of data!
+Info: Saved "hip_four_walks_colab_visual_v1.blend"
+AUTHORED /content/hip-r5-trial/visual-v1-clean/hip_four_walks_colab_visual_v1.blend ['hip_walk_forward_colab_visual_v1', 'hip_walk_backward_colab_visual_v1', 'hip_strafe_left_colab_visual_v1', 'hip_strafe_right_colab_visual_v1']
+Read blend: "/content/hip-r5-trial/input/halcyon_hip_directional_r5.blend"
