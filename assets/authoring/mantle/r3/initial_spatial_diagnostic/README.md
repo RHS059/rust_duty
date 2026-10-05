@@ -1,0 +1,1 @@
+Initial non-render spatial diagnostic, preserved before incorporating the additional early-opening review. Source SHA deffb1f460fe609e4a532112e7a5c9395451914901b948474c0258737359bc93. Projection only: middle hand moved out of view but early7296 visibility and later7320 boundary behavior did not match intended source cues. Not a rendered or approved candidate.
