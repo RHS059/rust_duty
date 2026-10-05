@@ -727,19 +727,16 @@ impl ArmModel {
                     }
                 }
                 let normal = normal.try_normalize().unwrap_or(Vec3::Y);
+                let shade = lighting.irradiance(normal);
                 vertex.position = position;
                 vertex.normal = normal.extend(0.);
-                vertex.color = lighting
-                    .shade(
-                        Color::new(
-                            part.base_color[0],
-                            part.base_color[1],
-                            part.base_color[2],
-                            1.,
-                        ),
-                        normal,
-                    )
-                    .into();
+                vertex.color = Color::new(
+                    part.base_color[0] * shade,
+                    part.base_color[1] * shade,
+                    part.base_color[2] * shade,
+                    1.,
+                )
+                .into();
             }
             draw_mesh(&batch.mesh);
         }

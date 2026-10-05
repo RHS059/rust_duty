@@ -51,8 +51,6 @@ pub mod authored_walk;
 
 pub mod scene_lighting;
 
-pub mod lighting;
-
 pub mod authored_ads;
 
 pub mod layered_locomotion;

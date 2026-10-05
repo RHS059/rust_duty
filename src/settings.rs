@@ -1,5 +1,4 @@
 use crate::action::ActionTuning;
-use crate::lighting::LightingTuning;
 use std::{fs, path::Path};
 
 #[derive(Debug, Clone, PartialEq)]
@@ -35,8 +34,6 @@ pub struct Settings {
     pub recoil_return: f32,
     /// Traversal, mount, obstruction and death tuning.
     pub action: ActionTuning,
-    /// Sun, sky, shadows, fog, AO, bloom; `physical_lighting` opts in.
-    pub lighting: LightingTuning,
 }
 impl Default for Settings {
     fn default() -> Self {
@@ -68,7 +65,6 @@ impl Default for Settings {
             recoil_pitch: 0.775,
             recoil_return: 21.,
             action: ActionTuning::default(),
-            lighting: LightingTuning::default(),
         }
     }
 }
@@ -186,7 +182,6 @@ impl Settings {
                                 .action
                                 .fields_mut()
                                 .into_iter()
-                                .chain(s.lighting.fields_mut())
                                 .find(|(name, ..)| *name == key.trim())
                             {
                                 *slot = v.clamp(min, max);
@@ -234,8 +229,7 @@ impl Settings {
             out.push_str(&format!("{key} = {value:.4}\n"));
         }
         let mut action = self.action.clone();
-        let mut lighting = self.lighting.clone();
-        for (key, value, ..) in action.fields_mut().into_iter().chain(lighting.fields_mut()) {
+        for (key, value, ..) in action.fields_mut() {
             out.push_str(&format!("{key} = {value:.4}\n"));
         }
         fs::write(path, out)

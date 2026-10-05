@@ -26,7 +26,6 @@ every row below stays **not complete** in the last column.
 | Death/respawn | Working (`damage_player`, out-of-world, F9 debug) | Red overlay | n/a |
 | Lean (Q/E toggle) | Working: head-only offset clamped by walls, camera roll, shots from the leaned eye (`tests/lean_cant_contract.rs`) | Camera roll; no body lean pose | Not complete: no lean clips |
 | Hip cant (Left Ctrl+X) | Working: eased toggle, suppressed by ADS; Ctrl alone crouches on release | Weapon actor rotates about the bore, arms follow | Not complete: needs first-person review on the authored rig |
-| Physical lighting (opt-in) | n/a (presentation) | `physical_lighting = 1`: sun, cascaded shadows, sky, SSAO, fog, ACES, bloom ([lighting](LIGHTING.md)) | Not reviewed: only software-rendered under Xvfb; no real-GPU or Windows run |
 
 ## Requirement evidence
 
