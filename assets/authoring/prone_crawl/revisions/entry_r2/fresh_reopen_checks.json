@@ -1,0 +1,15 @@
+{
+  "source_sha256": "fd5b55b21acdcd73ff39cafd258c6d7281f8dc51359e65cadc76f769909f74e4",
+  "early_f1_through_41_all_bones_max_difference": 0.0,
+  "all_545_subframe_bone_matrices_finite": true,
+  "contact_480hz_max_m": {
+    "l": 1.0782919895022507e-05,
+    "r": 6.500818366356391e-07
+  },
+  "contact_240hz_max_m": {
+    "l": 1.0782919895022507e-05,
+    "r": 6.46957556786907e-07
+  },
+  "action_count": 109,
+  "no_render": true
+}
