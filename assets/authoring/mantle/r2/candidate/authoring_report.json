@@ -1,0 +1,12 @@
+{
+  "status": "diagnostic",
+  "source_sha256": "740e7e2b16d6947075c321467cfe21d36314f68b93829cf8a2d954b4d382cdb5",
+  "input_sha256": "75c9dc48f27ab1b6dc247590636f2461ec7c37b0c8f5ac0a92745ff30586c9b6",
+  "input_action_count": 84,
+  "output_action_count": 85,
+  "prior_actions_preserved": true,
+  "structure_drivers_nla_preserved": true,
+  "max_target_error_m": 1.758400160253934e-07,
+  "render_performed": false,
+  "baseline": "Recovered r5 82 Actions plus2r1 mantle Actions, not a replacement for canonical Jump103/Prone108"
+}
