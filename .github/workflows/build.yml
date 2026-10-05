@@ -21,8 +21,11 @@ jobs:
   ads-assets:
     needs: [walk-assets]
     uses: ./.github/workflows/ads-assets.yml
+  jump-assets:
+    needs: [walk-assets]
+    uses: ./.github/workflows/jump-assets.yml
   build:
-    needs: [animation-assets, walk-assets, ads-assets, directional-assets]
+    needs: [animation-assets, walk-assets, ads-assets, directional-assets, jump-assets]
     name: ${{ matrix.os }}
     # Build and artifact identity both use the checked-out Cargo.toml version.
     runs-on: ${{ matrix.os }}
@@ -52,6 +55,11 @@ jobs:
         with:
           name: generated-directional-runtime
           path: assets/directional
+      - name: Fetch source-authored common Jump r7 WIP
+        uses: actions/download-artifact@v4
+        with:
+          name: generated-jump-runtime
+          path: assets/jump
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt, clippy
@@ -78,7 +86,7 @@ jobs:
         run: echo "label=$(python tools/build_identity.py --print-label)" >> "$GITHUB_OUTPUT"
       - run: python -m pip install -r tools/requirements-assets.txt cryptography
       - name: Materialize and verify all generated and committed companions
-        run: python tools/package_game.py materialize --root . --include-walk --include-ads --include-directional --require-generated
+        run: python tools/package_game.py materialize --root . --include-walk --include-ads --include-directional --include-jump --require-generated
       - name: Format and capture required source changes
         shell: bash
         run: |
@@ -91,6 +99,11 @@ jobs:
           path: rustfmt.patch
       - name: Require formatting committed to source
         run: git diff --exit-code -- build.rs src tests examples benches
+      - name: Check run-attempt numbering primitive on both platforms
+        shell: bash
+        run: |
+          rustc --test build_number.rs -o build-number-tests.exe
+          ./build-number-tests.exe
       - name: Run full Python, game and updater checks in independent lanes
         run: python tools/ci_quality_checks.py
         env:
@@ -112,6 +125,25 @@ jobs:
       - name: Stage complete Linux game
         if: runner.os == 'Linux'
         run: python tools/package_game.py stage --root . --binary target/release/vector-range --output dist/game --require-generated
+      - name: Capture accepted common jumps and ADS/reload interruptions
+        if: runner.os == 'Linux'
+        timeout-minutes: 8
+        shell: bash
+        env:
+          LIBGL_ALWAYS_SOFTWARE: '1'
+        run: |
+          mkdir -p evidence/jump-gameplay
+          cd dist/game
+          timeout 420s xvfb-run -a -s "-screen 0 1920x1080x24" ./vector-range --no-update --reference-viewport --capture-sequence=gameplay-jump --capture-hz=60 --output=../../evidence/jump-gameplay
+          cd ../..
+          python tools/verify_jump_capture.py evidence/jump-gameplay
+      - name: Retain native common Jump WIP evidence
+        if: runner.os == 'Linux' && always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-gameplay-jump-evidence
+          path: evidence/jump-gameplay/
+          if-no-files-found: warn
       - name: Capture actual native gameplay reload and exit
         if: runner.os == 'Linux'
         timeout-minutes: 6
@@ -331,3 +363,4 @@ jobs:
           name: game-release-0.1.5-provenance
           path: release-assets/SOURCE_PROVENANCE.json
           if-no-files-found: warn
+

@@ -173,7 +173,7 @@ impl PauseMenu {
         }
         action
     }
-    ///  requires a paused, focused window with no update overlay.
+    /// `enabled` requires a paused, focused window with no update overlay.
     /// A drag is owned until release, including outside the panel.
     pub fn input(
         &mut self,
