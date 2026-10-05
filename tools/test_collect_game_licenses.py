@@ -220,6 +220,59 @@ class CollectGameLicensesTests(unittest.TestCase):
                       'issue_url': 'https://github.com/fixture/quad-rand/issues/1'})
         return supplements
 
+    def test_cli_check_utf8_json_is_independent_of_windows_locale(self):
+        # Cargo emits UTF-8 even when Windows uses a legacy text locale.
+        # Keep non-ASCII JSON literal so a CP1252 decoder produces valid JSON
+        # with corrupted metadata, reproducing a stale-inventory check failure.
+        self.alpha['authors'] = ['René Møller']
+        supplements = self.supplement()
+        supplements['packages'][0]['notes'] = ['Original café provenance']
+        self.manifest.with_name('Cargo.lock').write_bytes(self.lock_bytes())
+        metadata_bytes = json.dumps(self.metadata, ensure_ascii=False).encode('utf-8')
+        self.metadata_path.write_bytes(metadata_bytes)
+        self.supplements_path.write_bytes(
+            json.dumps(supplements, ensure_ascii=False).encode('utf-8'))
+        expected = self.generate_with_supplements(supplements)
+        self.notices.write_bytes(expected[0])
+        self.inventory.write_bytes(expected[1])
+        record = next(package for package in json.loads(expected[1])['packages']
+                      if package['name'] == 'alpha')
+        self.assertEqual(record['authors'], ['René Møller'])
+        self.assertEqual(record['supplement_notes'], ['Original café provenance'])
+
+        def cargo_output(command, **kwargs):
+            self.assertEqual(command[:2], ['cargo', 'metadata'])
+            self.assertIn('--locked', command)
+            self.assertIn('--offline', command)
+            if kwargs.get('text') or kwargs.get('encoding'):
+                return metadata_bytes.decode(kwargs.get('encoding') or 'cp1252',
+                                             kwargs.get('errors') or 'strict')
+            return metadata_bytes
+
+        def legacy_locale_read_text(path, encoding=None, errors=None):
+            return path.read_bytes().decode(encoding or 'cp1252', errors or 'strict')
+
+        self.cargo.side_effect = cargo_output
+        arguments = ['--manifest', str(self.manifest), '--notices', str(self.notices),
+                     '--inventory', str(self.inventory), '--supplements',
+                     str(self.supplements_path), '--check']
+        for metadata_arguments in ([], ['--metadata', str(self.metadata_path)]):
+            with self.subTest(metadata_arguments=metadata_arguments):
+                before_calls = self.cargo.call_count
+                with patch.object(Path, 'read_text', legacy_locale_read_text), \
+                        patch.object(collector, 'atomic_write',
+                                     side_effect=AssertionError('--check must not write')), \
+                        contextlib.redirect_stdout(io.StringIO()), \
+                        contextlib.redirect_stderr(io.StringIO()) as errors:
+                    try:
+                        status = collector.main(arguments + metadata_arguments)
+                    except SystemExit as error:
+                        status = error.code
+                self.assertEqual(status, 0, errors.getvalue())
+                self.assertEqual(self.cargo.call_count - before_calls,
+                                 0 if metadata_arguments else 1)
+                self.assertEqual((self.notices.read_bytes(), self.inventory.read_bytes()), expected)
+
     def test_original_bytes_and_baseline_are_preserved_exactly(self):
         (Path(self.alpha['manifest_path']).parent / 'LICENSE-MIT').write_bytes(b'edited extracted text')
         notices, inventory_bytes = self.generate()

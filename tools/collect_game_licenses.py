@@ -267,12 +267,12 @@ def main(argv=None):
     args = parser.parse_args(argv)
     try:
         if args.metadata:
-            metadata = json.loads(args.metadata.read_text())
+            metadata = json.loads(args.metadata.read_text(encoding='utf-8'))
         else:
             metadata = json.loads(subprocess.check_output([
                 'cargo', 'metadata', '--manifest-path', str(args.manifest), '--locked', '--offline',
-                '--format-version', '1', '--features', ','.join(FEATURES), '--filter-platform', TARGET], text=True))
-        supplements = json.loads(args.supplements.read_text()) if args.supplements.is_file() else None
+                '--format-version', '1', '--features', ','.join(FEATURES), '--filter-platform', TARGET], text=True, encoding='utf-8'))
+        supplements = json.loads(args.supplements.read_text(encoding='utf-8')) if args.supplements.is_file() else None
         notices, inventory = generate(metadata, args.manifest.with_name('Cargo.lock').read_bytes(), args.notices.read_bytes(),
                                       supplements, args.supplements.parent)
         if args.check:
