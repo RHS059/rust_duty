@@ -403,6 +403,38 @@ mod fixture {
             Ok(())
         }
 
+        fn target_quadrants(&mut self) -> Result<(), String> {
+            let raw = "quadrant-target.png";
+            let composite = "quadrant-target-composite.png";
+            let list = named_target_quadrants(self.path(raw), self.path(composite))?;
+            self.submit(&list, &[raw, composite])?;
+            for (filename, case, alpha, stage) in [
+                (
+                    raw,
+                    "orientation-named-target-raw",
+                    ASSOCIATED,
+                    "raw-target",
+                ),
+                (
+                    composite,
+                    "orientation-named-target-composite",
+                    OPAQUE,
+                    "sampled-main",
+                ),
+            ] {
+                // Both captures use fixed expectations, never the other capture as a golden.
+                self.record(
+                    filename,
+                    case,
+                    (96, 64),
+                    alpha,
+                    &quadrant_probes(),
+                    json!({"orientation_group":"named-target-to-main","stage":stage}),
+                )?;
+            }
+            Ok(())
+        }
+
         fn camera_depth(&mut self) -> Result<(), String> {
             let target = RenderTarget::new(96, 64, true)?;
             let mut main_camera = Camera::screen(96, 64);
@@ -759,6 +791,35 @@ mod fixture {
         }
     }
 
+    #[cfg(feature = "wgpu-runtime")]
+    fn named_target_quadrants(raw: PathBuf, composite: PathBuf) -> Result<DrawList, String> {
+        let target = RenderTarget::new(96, 64, false)?;
+        let mut camera = Camera::screen(96, 64);
+        camera.target = Some(target.clone());
+        let mut list = DrawList::new(96, 64);
+        list.camera(camera);
+        list.clear(Color::TRANSPARENT);
+        for (x, y, color) in [
+            (0., 0., Color::new(1., 0., 0., 1.)),
+            (48., 0., Color::new(0., 1., 0., 1.)),
+            (0., 32., Color::new(0., 0., 1., 1.)),
+            (48., 32., Color::new(1., 1., 0., 1.)),
+        ] {
+            list.draw_mesh(
+                &quad(Rect::new(x, y, 48., 32.), 0., color),
+                Mat4::IDENTITY,
+                BlendMode::Opaque,
+            );
+        }
+        list.capture_png(Some(&target), raw);
+        list.camera(Camera::screen(96, 64));
+        list.clear(Color::new(0., 0., 0., 1.));
+        // Sample the unchanged target through the real Sprite path, without UV compensation.
+        list.draw_texture(&target.texture, Rect::new(0., 0., 96., 64.), Color::WHITE);
+        list.capture_png(None, composite);
+        Ok(list)
+    }
+
     fn ink_bounds(image: &RgbaImage) -> Result<[u32; 4], String> {
         let mut bounds = [image.width(), image.height(), 0, 0];
         for (x, y, pixel) in image.enumerate_pixels() {
@@ -796,6 +857,7 @@ mod fixture {
         };
         contract.quadrants(96, 64, "quadrant.png")?;
         contract.quadrants(65, 49, "readback-width-65.png")?;
+        contract.target_quadrants()?;
         contract.ordered_captures()?;
         contract.camera_depth()?;
         contract.alpha_targets()?;
@@ -919,6 +981,77 @@ mod fixture {
                 Rgba([p[2], p[1], p[0], p[3]])
             });
             assert!(inspect_probe(&swapped, quadrant_probes()[0]).is_err());
+        }
+
+        #[cfg(feature = "wgpu-runtime")]
+        #[test]
+        fn named_target_quadrants_capture_then_sample_the_same_unchanged_target() {
+            use vector_range::draw::{Command, TextureSource};
+
+            let raw = PathBuf::from("quadrant-target.png");
+            let composite = PathBuf::from("quadrant-target-composite.png");
+            let list = named_target_quadrants(raw.clone(), composite.clone()).unwrap();
+            assert_eq!((list.width, list.height), (96, 64));
+            let [Command::Camera(target_camera), Command::Clear(target_clear), quadrants @ .., Command::Capture {
+                target: Some(captured_target),
+                path: raw_path,
+            }, Command::Camera(main_camera), Command::Clear(main_clear), Command::Sprite {
+                texture,
+                destination,
+                tint,
+            }, Command::Capture {
+                target: None,
+                path: composite_path,
+            }] = list.commands.as_slice()
+            else {
+                panic!(
+                    "expected named-target drawing, raw capture, then target sampling into main"
+                );
+            };
+            let target = target_camera.target.as_ref().unwrap();
+            assert_eq!((target.texture.width, target.texture.height), (96, 64));
+            assert!(matches!(
+                target.texture.source,
+                TextureSource::Target { depth: false }
+            ));
+            assert_eq!(target.texture.id, captured_target.texture.id);
+            assert_eq!(target.texture.id, texture.id);
+            assert!(!target_camera.depth_test);
+            assert!(main_camera.target.is_none());
+            assert_eq!(*target_clear, Color::TRANSPARENT);
+            assert_eq!(*main_clear, Color::new(0., 0., 0., 1.));
+            assert_eq!(*destination, Rect::new(0., 0., 96., 64.));
+            assert_eq!(*tint, Color::WHITE);
+            assert_eq!(*raw_path, raw);
+            assert_eq!(*composite_path, composite);
+            assert_eq!(quadrants.len(), 4);
+            for (command, (x, y, rgba)) in quadrants.iter().zip([
+                (0., 0., [255, 0, 0, 255]),
+                (48., 0., [0, 255, 0, 255]),
+                (0., 32., [0, 0, 255, 255]),
+                (48., 32., [255, 255, 0, 255]),
+            ]) {
+                let Command::Mesh { mesh, model, blend } = command else {
+                    panic!("expected a colored quadrant mesh");
+                };
+                assert_eq!(*model, Mat4::IDENTITY);
+                assert_eq!(*blend, BlendMode::Opaque);
+                assert!(mesh.texture.is_none());
+                assert_eq!(mesh.indices, [0, 1, 2, 0, 2, 3]);
+                assert_eq!(
+                    mesh.vertices
+                        .iter()
+                        .map(|v| v.position.to_array())
+                        .collect::<Vec<_>>(),
+                    [
+                        [x, y, 0.],
+                        [x + 48., y, 0.],
+                        [x + 48., y + 32., 0.],
+                        [x, y + 32., 0.]
+                    ]
+                );
+                assert!(mesh.vertices.iter().all(|v| v.color == rgba));
+            }
         }
 
         #[test]

@@ -1,4 +1,4 @@
-name: DX12 WARP runtime smoke (no distribution)
+name: DX12 WARP checks and isolated WIP preview
 on:
   workflow_call:
 permissions:
@@ -6,12 +6,37 @@ permissions:
 jobs:
   dx12-warp:
     runs-on: windows-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
         with:
           # Default checkout uses the caller's exact revision, including PR merge refs.
           persist-credentials: false
+      - name: Fetch same-run validated reload companions for preview
+        uses: actions/download-artifact@v4
+        with:
+          name: generated-reload-runtime
+          path: assets/reload
+      - name: Fetch same-run validated walking companions for preview
+        uses: actions/download-artifact@v4
+        with:
+          name: generated-walk-runtime
+          path: assets/walk
+      - name: Fetch same-run validated ADS companions for preview
+        uses: actions/download-artifact@v4
+        with:
+          name: generated-ads-runtime
+          path: assets/ads
+      - name: Fetch same-run validated directional companions for preview
+        uses: actions/download-artifact@v4
+        with:
+          name: generated-directional-runtime
+          path: assets/directional
+      - name: Fetch same-run validated jump companions for preview
+        uses: actions/download-artifact@v4
+        with:
+          name: generated-jump-runtime
+          path: assets/jump
       - uses: dtolnay/rust-toolchain@stable
       - uses: actions/setup-python@v5
         with:
@@ -24,8 +49,12 @@ jobs:
         run: python -m unittest discover -s tools -p test_render_capture.py -v
       - name: Test finite JSON and exact gameplay/time parity validation
         run: python -m unittest discover -s tools -p test_capture_telemetry.py -v
-      - name: Build actual game with wgpu runtime and no audio device dependency
-        run: cargo build --locked --release --no-default-features --features wgpu-runtime --bin vector-range
+      - name: Test preview provenance and package isolation
+        run: python -m unittest discover -s tools -p test_dx12_preview.py -v
+      - name: Materialize and verify all source-bound preview assets
+        run: python tools/package_game.py materialize --root . --include-walk --include-ads --include-directional --include-jump --require-generated
+      - name: Build one audio-enabled dual-runtime game for smoke and preview
+        run: cargo build --locked --release --features wgpu-runtime --bin vector-range
       - name: Capture actual DX12 WARP gameplay and validate all evidence
         run: >-
           python tools/run_dx12_smoke.py
@@ -33,6 +62,34 @@ jobs:
           --root .
           --evidence evidence/dx12-warp
           --timeout 600
+      - name: Fetch updater dependencies for required packaged notices
+        run: cargo fetch --manifest-path updater/Cargo.toml --locked
+      - name: Generate existing updater dependency notices
+        run: python tools/collect_updater_licenses.py
+      - name: Test original game-notice provenance checks
+        run: python -m unittest discover -s tools -p test_collect_game_licenses.py -v
+      - name: Fetch exact locked registry sources for game-notice verification
+        run: cargo fetch --locked
+      - name: Verify current Windows game-dependency notices without regenerating
+        run: python tools/collect_game_licenses.py --check
+      - name: Identify this exact preview build attempt
+        id: identity
+        shell: bash
+        run: echo "label=$(python tools/build_identity.py --print-label)" >> "$GITHUB_OUTPUT"
+      - name: Stage WIP preview of the exact smoke-tested executable
+        run: >-
+          python tools/stage_dx12_preview.py
+          --root .
+          --binary target/release/vector-range.exe
+          --smoke-evidence evidence/dx12-warp
+          --output dist/dx12-preview
+      - name: Upload isolated WIP DX12 playtest preview
+        uses: actions/upload-artifact@v4
+        with:
+          name: Rust-Duty-${{ steps.identity.outputs.label }}-DX12-Preview-Windows-x64
+          path: dist/dx12-preview/
+          if-no-files-found: error
+          retention-days: 7
       - name: Retain this attempt's DX12 logs and captures
         if: always()
         uses: actions/upload-artifact@v4

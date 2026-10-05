@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """Run and independently verify the renderer-owned Windows DX12/FXC contract.
 
-The case inventory and pixel constants come from examples/renderer_contract.rs,
-published at428cd2a417e172f6081d9369032bba2ef13f1ac7. This additionally requires
-the later explicit FXC initialization log. Synthetic tests are not native proof.
+The original case inventory and pixel constants come from the renderer-owned
+examples/renderer_contract.rs at428cd2a417e172f6081d9369032bba2ef13f1ac7. The
+named-target orientation extension uses the same fixed quadrant probes. This
+also requires the explicit FXC initialization log. Synthetic tests are not native proof.
 """
 
 import argparse
@@ -65,6 +66,10 @@ def cases():
     result = [
         ('quadrant.png', 'orientation-quadrants', (96, 64), OPAQUE, quadrants, {'row_padding_required': False}),
         ('readback-width-65.png', 'readback-width-65', (65, 49), OPAQUE, quadrants, {'row_padding_required': True}),
+        ('quadrant-target.png', 'orientation-named-target-raw', (96, 64), ASSOCIATED, quadrants,
+         {'orientation_group': 'named-target-to-main', 'stage': 'raw-target'}),
+        ('quadrant-target-composite.png', 'orientation-named-target-composite', (96, 64), OPAQUE, quadrants,
+         {'orientation_group': 'named-target-to-main', 'stage': 'sampled-main'}),
         ('ordered-a-red.png', 'same-submission-checkpoint-a', (96, 64), OPAQUE,
          solid([255, 0, 0, 255]), {'submission_group': 'red-then-green', 'checkpoint': 0}),
         ('ordered-b-green.png', 'same-submission-checkpoint-b', (96, 64), OPAQUE,
@@ -183,7 +188,7 @@ def validate_outputs(output):
             'renderer report must identify WARP')
     for key in ('build_version', 'build_number'):
         require(isinstance(report[key], str) and report[key].strip(), f'renderer report missing {key}')
-    require(isinstance(report['captures'], list) and len(report['captures']) == 19, 'renderer report must contain all19 captures')
+    require(isinstance(report['captures'], list) and len(report['captures']) == 21, 'renderer report must contain all 21 captures')
     renderer = {key: report[key] for key in ('requested', 'backend', 'adapter')}
     for spec, reported in zip(specifications, report['captures']):
         metadata = read_record(output / (spec[0] + '.json'))
@@ -196,7 +201,7 @@ def validate_outputs(output):
                 and failure['expected_error'] == expected_error and isinstance(failure['actual_error'], str)
                 and expected_error in failure['actual_error'], 'renderer report has wrong expected failure')
     return {'schema': 'rust-duty-renderer-contract-validation/v1', 'passed': True,
-            'backend': 'Dx12', 'adapter': report['adapter'], 'captures': 19,
+            'backend': 'Dx12', 'adapter': report['adapter'], 'captures': 21,
             'build_version': report['build_version'], 'build_number': report['build_number'], 'scope': SCOPE}
 
 

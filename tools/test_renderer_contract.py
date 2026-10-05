@@ -2,7 +2,8 @@
 
 The literal cases, pixels, metadata and ordering below are independent of the
 validator. They describe examples/renderer_contract.rs at renderer PR 44's
-428cd2a head. No Cargo command or renderer process is executed by this suite.
+428cd2a head plus the renderer owner's named-target orientation extension.
+No Cargo command or renderer process is executed by this suite.
 """
 
 import copy
@@ -67,7 +68,7 @@ def image_statistics(image, metadata):
 
 
 def build_fixture(output):
-    """Write all 19 actual source cases, not files invented by the harness."""
+    """Write all 21 renderer-owned contract cases with synthetic pixels."""
     output.mkdir(parents=True, exist_ok=True)
     records = []
 
@@ -103,6 +104,16 @@ def build_fixture(output):
             probe('bottom-left blue', [0.1, 0.4, 0.6, 0.9], [0, 0, 255, 255]),
             probe('bottom-right yellow', [0.6, 0.9, 0.6, 0.9], [255, 255, 0, 255]),
         ], extra={'row_padding_required': width == 65})
+
+    # The raw capture and sampled-main capture retain the same unchanged target.
+    with Image.open(output / 'quadrant.png') as original:
+        target = original.copy()
+    for filename, case, alpha, stage in [
+            ('quadrant-target.png', 'orientation-named-target-raw', ASSOCIATED, 'raw-target'),
+            ('quadrant-target-composite.png', 'orientation-named-target-composite', OPAQUE, 'sampled-main')]:
+        capture(filename, case, target, alpha=alpha,
+                probes=copy.deepcopy(records[0]['probes']),
+                extra={'orientation_group': 'named-target-to-main', 'stage': stage})
 
     for filename, case, rgba, checkpoint in [
             ('ordered-a-red.png', 'same-submission-checkpoint-a', [255, 0, 0, 255], 0),
@@ -268,8 +279,12 @@ class RendererContractTests(unittest.TestCase):
     def test_full_source_schema_control(self):
         result = contract.validate_outputs(self.output)
         self.assertTrue(result['passed'])
-        self.assertEqual(len(self.report()['captures']), 19)
-        self.assertEqual(len(list(self.output.iterdir())), 41)
+        self.assertEqual(result['captures'], 21)
+        self.assertEqual(len(self.report()['captures']), 21)
+        self.assertEqual(len(list(self.output.iterdir())), 45)
+        self.assertEqual([item['filename'] for item in self.report()['captures'][:6]], [
+            'quadrant.png', 'readback-width-65.png', 'quadrant-target.png',
+            'quadrant-target-composite.png', 'ordered-a-red.png', 'ordered-b-green.png'])
         self.assertEqual(len(self.report()['expected_failures']), 4)
         self.assertEqual((self.output / 'blocked-parent').read_bytes(), BLOCKED_PARENT)
         self.assertEqual(list((self.output / 'capture-is-directory.png').iterdir()), [])
@@ -367,6 +382,46 @@ class RendererContractTests(unittest.TestCase):
             self.reset()
             self.update_image('readback-width-65.png', mutate)
             self.assert_invalid()
+
+    def test_named_target_composite_vertical_flip_fails_with_valid_raw_target(self):
+        raw = self.output / 'quadrant-target.png'
+        raw_pixels = raw.read_bytes()
+        raw_metadata = self.metadata(raw.name)
+        composite = 'quadrant-target-composite.png'
+        self.assertEqual(raw_pixels, (self.output / composite).read_bytes())
+        self.assertTrue(contract.validate_outputs(self.output)['passed'])
+
+        # Repair producer statistics/report so only the sampled pixel orientation
+        # is wrong; valid raw-target evidence must not bless a flipped composite.
+        self.update_image(composite, lambda image: image.transpose(Image.Transpose.FLIP_TOP_BOTTOM))
+        self.assertEqual(raw.read_bytes(), raw_pixels)
+        self.assertEqual(self.metadata(raw.name), raw_metadata)
+        with self.assertRaisesRegex(ValueError,
+                                    r'quadrant-target-composite\.png: pixel probe top-left red failed'):
+            contract.validate_outputs(self.output)
+
+    def test_named_target_raw_orientation_is_independently_checked(self):
+        self.update_image('quadrant-target.png',
+                          lambda image: image.transpose(Image.Transpose.FLIP_TOP_BOTTOM))
+        with self.assertRaisesRegex(ValueError,
+                                    r'quadrant-target\.png: pixel probe top-left red failed'):
+            contract.validate_outputs(self.output)
+
+    def test_named_target_stages_and_alpha_metadata_cannot_be_forged(self):
+        for name in ('quadrant-target.png', 'quadrant-target-composite.png'):
+            metadata = self.metadata(name)
+            mutations = [
+                ('fixture_case', 'orientation-quadrants'),
+                ('alpha_representation', OPAQUE if metadata['diagnostic_raw_target'] else ASSOCIATED),
+                ('diagnostic_raw_target', not metadata['diagnostic_raw_target']),
+                ('extra', dict(metadata['extra'], orientation_group='other-target')),
+                ('extra', dict(metadata['extra'], stage='sampled-main' if name == 'quadrant-target.png' else 'raw-target')),
+            ]
+            for field, value in mutations:
+                with self.subTest(name=name, field=field):
+                    self.reset()
+                    self.edit_metadata(name, lambda record: record.update({field: value}))
+                    self.assert_invalid()
 
     def test_swapped_ordered_red_green_checkpoints_fail(self):
         self.update_image('ordered-a-red.png',

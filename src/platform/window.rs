@@ -13,7 +13,7 @@ use std::{
 };
 use winit::{
     application::ApplicationHandler,
-    dpi::{LogicalSize, PhysicalSize},
+    dpi::{LogicalSize, PhysicalPosition, PhysicalSize},
     event::{DeviceEvent, DeviceId, ElementState, WindowEvent},
     event_loop::{ActiveEventLoop, ControlFlow, EventLoop},
     keyboard::{KeyCode as NativeKey, PhysicalKey},
@@ -49,6 +49,7 @@ struct State {
     generation: u64,
     size: PhysicalSize<u32>,
     scale_factor: f64,
+    cursor_physical: PhysicalPosition<f64>,
 }
 
 impl Default for State {
@@ -64,11 +65,25 @@ impl Default for State {
             generation: 0,
             size: PhysicalSize::new(1, 1),
             scale_factor: 1.,
+            cursor_physical: PhysicalPosition::new(0., 0.),
         }
     }
 }
 
 impl State {
+    fn set_window_metrics(&mut self, size: PhysicalSize<u32>, scale_factor: f64) {
+        self.size = size;
+        self.scale_factor = scale_factor;
+        // A monitor transition can deliver MouseInput before another
+        // CursorMoved. Reproject the last physical position before hit testing,
+        // rather than leaving the accumulator in the old logical coordinate space.
+        self.cursor_moved(self.cursor_physical);
+    }
+    fn cursor_moved(&mut self, position: PhysicalPosition<f64>) {
+        self.cursor_physical = position;
+        let logical = position.to_logical::<f32>(self.scale_factor);
+        self.input.cursor_moved(logical.x, logical.y);
+    }
     fn logical_size(&self) -> Vec2 {
         let size = self.size.to_logical::<f32>(self.scale_factor);
         Vec2::new(size.width, size.height)
@@ -278,8 +293,7 @@ impl Runtime {
     fn resize(&mut self, event_loop: &ActiveEventLoop, size: PhysicalSize<u32>, scale_factor: f64) {
         STATE.with(|s| {
             let mut s = s.borrow_mut();
-            s.size = size;
-            s.scale_factor = scale_factor;
+            s.set_window_metrics(size, scale_factor);
         });
         // Surface configuration with either dimension zero is invalid. Keep the
         // real size in state and stop redraws until the native restore event.
@@ -427,8 +441,7 @@ impl ApplicationHandler for Runtime {
                 });
             }
             WindowEvent::CursorMoved { position, .. } => {
-                let logical = position.to_logical::<f32>(window.scale_factor());
-                STATE.with(|s| s.borrow_mut().input.cursor_moved(logical.x, logical.y));
+                STATE.with(|s| s.borrow_mut().cursor_moved(position));
             }
             _ => {}
         }
@@ -637,6 +650,35 @@ mod tests {
             let applied = -normalized * logical * 0.5;
             assert!((applied - Vec2::new(17., -23.)).length() < 0.001);
         }
+    }
+    #[test]
+    fn dpi_change_reprojects_cursor_before_click_without_another_move() {
+        let mut state = State::default();
+        let physical = PhysicalPosition::new(525., 315.);
+        state.cursor_moved(physical);
+        for scale in [1., 1.25, 1.5, 1.75, 2., 1.] {
+            state.set_window_metrics(PhysicalSize::new(1400, 1000), scale);
+            state.input.mouse_button_event(MouseButton::Left, true);
+            state.input.mouse_motion(17., -23.);
+            // A skipped presentation must retain the newly reprojected position
+            // and click together until the app gets its next frame.
+            assert!(!state.start_frame(FrameStart::Skip, Instant::now()));
+            assert!(state.start_frame(FrameStart::Ready, Instant::now()));
+            assert_eq!(
+                state.frame.mouse_position,
+                [525. / scale as f32, 315. / scale as f32],
+                "{scale}x: no additional CursorMoved was delivered"
+            );
+            assert!(state.frame.is_mouse_button_pressed(MouseButton::Left));
+            assert_eq!(state.frame.mouse_delta, [17., -23.]);
+            assert_eq!(state.cursor_physical, physical);
+            state.input.mouse_button_event(MouseButton::Left, false);
+            state.advance_frame(Instant::now());
+        }
+        state.cursor_moved(PhysicalPosition::new(210., 105.));
+        state.set_window_metrics(PhysicalSize::new(1400, 1000), 1.75);
+        state.advance_frame(Instant::now());
+        assert_eq!(state.frame.mouse_position, [120., 60.]);
     }
     #[test]
     fn clearing_input_invalidates_accumulator_and_snapshot() {

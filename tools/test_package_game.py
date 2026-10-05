@@ -14,6 +14,13 @@ release_spec = importlib.util.spec_from_file_location("release_update", Path(__f
 release = importlib.util.module_from_spec(release_spec)
 release_spec.loader.exec_module(release)
 ROOT = Path(__file__).resolve().parents[1]
+UI_RESOURCES = {
+    "ui/theme.css": b"#hud .label { color: #e8edf2; }\n",
+    "docs/UI_THEME.md": b"# Native theme fixture\n",
+    "ui/examples/high-contrast.css": b".panel { background-color: #000000f2; border-width: 2px; }\n",
+    "ui/examples/large-type.css": b"#pause-menu .label { font-size: 26px; }\n",
+    "docs/UI_THEME_EXAMPLES.md": b"# Theme examples fixture\nHigh contrast uses 95%-opaque black panels.\n",
+}
 
 
 class PackageGameTests(unittest.TestCase):
@@ -32,9 +39,7 @@ class PackageGameTests(unittest.TestCase):
             path = self.root / relative
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_bytes(b"fixture")
-        for relative, contents in {
-                "ui/theme.css": b"#hud .label { color: #e8edf2; }\n",
-                "docs/UI_THEME.md": b"# Native theme fixture\n"}.items():
+        for relative, contents in UI_RESOURCES.items():
             path = self.root / relative
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_bytes(contents)
@@ -124,15 +129,19 @@ class PackageGameTests(unittest.TestCase):
 
     def test_complete_build_update_and_bundle_keep_all_companions(self):
         self.add_distribution_files()
+        unlisted_theme = "ui/examples/private-custom.css"
+        (self.root / unlisted_theme).write_text("unlisted local theme must not ship")
         build = self.base / "build"
         package.stage(self.root, "target/release/vector-range", build)
         self.assertTrue((build / "vector-range").is_file())
         self.assertTrue((build / "settings.cfg").is_file())
         self.assertFalse((build / "target").exists())
+        self.assertFalse((build / unlisted_theme).exists())
         update = self.base / "update"
         package.stage(build, "vector-range", update, update=True)
         self.assertFalse((update / "settings.cfg").exists())
-        for relative in ("ui/theme.css", "docs/UI_THEME.md"):
+        self.assertFalse((update / unlisted_theme).exists())
+        for relative in UI_RESOURCES:
             expected = (self.root / relative).read_bytes()
             self.assertEqual((build / relative).read_bytes(), expected)
             self.assertEqual((update / relative).read_bytes(), expected)
@@ -156,13 +165,15 @@ class PackageGameTests(unittest.TestCase):
         for name in package.COMPANIONS:
             relative = (package.ASSET_DIR / name).as_posix()
             self.assertEqual(included[relative], (self.root / relative).read_bytes())
-        for relative in ("ui/theme.css", "docs/UI_THEME.md"):
+        for relative in UI_RESOURCES:
             self.assertEqual(included[relative], (self.root / relative).read_bytes())
         self.assertNotIn("settings.cfg", included)
+        self.assertNotIn(unlisted_theme, included)
+        self.assertEqual((self.root / "ui/theme.css").read_bytes(), UI_RESOURCES["ui/theme.css"])
 
     def test_missing_ui_resources_fail_before_build_or_update_output(self):
         self.add_distribution_files()
-        for relative in ("ui/theme.css", "docs/UI_THEME.md"):
+        for relative in UI_RESOURCES:
             path = self.root / relative
             original = path.read_bytes()
             path.unlink()
@@ -178,16 +189,20 @@ class PackageGameTests(unittest.TestCase):
         self.add_distribution_files()
         target = self.base / "external-theme.css"
         target.write_text("private external theme")
-        path = self.root / "ui/theme.css"
-        path.unlink()
-        try:
-            path.symlink_to(target)
-        except OSError as error:
-            self.skipTest(f"symlink creation unavailable: {error}")
-        output = self.base / "linked-ui"
-        with self.assertRaisesRegex(ValueError, "symlink"):
-            package.stage(self.root, "target/release/vector-range", output)
-        self.assertFalse(output.exists())
+        for relative, original in UI_RESOURCES.items():
+            path = self.root / relative
+            path.unlink()
+            try:
+                path.symlink_to(target)
+            except OSError as error:
+                self.skipTest(f"symlink creation unavailable: {error}")
+            for update in (False, True):
+                output = self.base / "linked-ui"
+                with self.subTest(relative=relative, update=update), self.assertRaisesRegex(ValueError, "symlink"):
+                    package.stage(self.root, "target/release/vector-range", output, update=update)
+                self.assertFalse(output.exists())
+            path.unlink()
+            path.write_bytes(original)
 
     def test_staging_fails_closed_and_never_overwrites(self):
         output = self.base / "output"

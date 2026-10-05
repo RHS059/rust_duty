@@ -1,0 +1,4 @@
+# Original license-source bytes and their hashes must survive Windows checkout.
+/THIRD_PARTY_LICENSES.txt -text
+/tools/game-license-sources/** -text
+/tools/game-dependency-notices.json text eol=lf

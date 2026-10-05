@@ -158,7 +158,10 @@ class ReleaseTests(unittest.TestCase):
             (new / "game.exe").write_bytes(executable)
             (new / "assets/note.txt").write_bytes(b"new content for this update")
             ui_resources = {"ui/theme.css": b"#hud .label { color: #e8edf2; }\n",
-                            "docs/UI_THEME.md": b"# Native theme documentation\n"}
+                            "docs/UI_THEME.md": b"# Native theme documentation\n",
+                            "ui/examples/high-contrast.css": b".panel { background-color: #000000f2; }\n",
+                            "ui/examples/large-type.css": b"#pause-menu .label { font-size: 26px; }\n",
+                            "docs/UI_THEME_EXAMPLES.md": b"# Theme examples\n95%-opaque black panels.\n"}
             for relative, content in ui_resources.items():
                 path = new / relative
                 path.parent.mkdir(parents=True, exist_ok=True)

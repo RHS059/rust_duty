@@ -167,3 +167,42 @@ Fresh tests: combined audio+legacy+wgpu807, default766, silent693; two existing
 ignored each. Strict all-target clippy and formatting pass in all three modes.
 Native exit recovery remains pending the next CI attempt; complete written
 captures did not make the crashed process a passing baseline.
+
+## Recovered native baseline and current integration (2026-10-05)
+
+PR head `72663e2b18dda818c800dec96af1ce452dbdd4da`,
+[run37339601251](https://github.com/RHS059/rust_duty/actions/runs/37339601251):
+the complete legacy native-validation job111864565365 passed, confirming the
+shader and resource-lifetime repairs in native execution. Windows aggregate
+checks/build and both DX12 renderer-contract/game-smoke jobs also passed.
+At17:24UTC, authored job111868451019 was still capturing/comparing; no authored
+suite result, pixel landmark measurement or human approval is claimed.
+
+Historical artifact provenance clarification: the first DX12 smoke used PR
+head961a5aa but executed GitHub's merge revision
+`f83aa69183ba9a3bb74931914c4772a3fe270181`; the19-case fixture used PR
+head2887729 but executed merge revision
+`27e526c761aa799153e96803050eb254824b28a9`. The latter two DX12 jobs passed,
+while that attempt's separate legacy baseline failed as described above.
+
+The next local integration adds the accepted CSS examples, byte-preserving
+focus-module relocation, strict raw-sidecar binding, landmark review tooling,
+and explicit named-target-to-main orientation coverage. Fresh production tests:
+combined audio+legacy+wgpu811, default770, silent697; each retains the same two
+existing ignored tests. All three strict all-target clippy lanes and formatting
+pass. Renderer example CPU tests10, strict fixture validator45, authored
+validator39, landmark tool38, package tests12 and release-delta tests8 pass.
+These local results are distinct from the older remote native evidence.
+
+The25067-byte focus implementation, including its ten tests, moved unchanged to
+`platform/session_focus.rs`; old and new SHA256 are
+`6b964c7ac72182cb8a99f6e9b1cbdb81c55e83d48a9943601dc734e76213e0fd`.
+The former module only reexports its public types. Outside platform and the
+legacy backend, direct Macroquad references are now confined to the main entry
+point's legacy event-loop startup. This satisfies the mechanical routing audit;
+real focus/DPI interaction remains a native human check.
+
+The two additional orientation cases preserve the original19 checks. Their
+21-case native execution is pending the next published revision. Landmark-tool
+regressions cover evidence provenance, malformed inputs, per-axis uncertainty,
+raw-target exclusion and safe report output; no real landmarks were invented.

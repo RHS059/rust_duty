@@ -33,6 +33,7 @@ class AuthoredDx12Tests(unittest.TestCase):
         self.baseline = self.root / 'legacy'
         self.sequence(self.captures)
         self.sequence(self.baseline, 'OpenGl')
+        authored.write_json(self.baseline / 'verification.json', {'schema': 'synthetic', 'passed': True, 'frames': 3})
 
     def sequence(self, folder, backend='Dx12'):
         folder.mkdir(parents=True)
@@ -307,7 +308,7 @@ class AuthoredDx12Tests(unittest.TestCase):
         self.assertIn('missing or truncated', (self.root / 'truncated-validator/stderr.log').read_text())
 
     def test_timeout_is_not_a_success(self):
-        with patch.object(authored.subprocess, 'run', side_effect=subprocess.TimeoutExpired(['game'], 1)):
+        with patch.object(authored.subprocess, 'Popen', side_effect=subprocess.TimeoutExpired(['game'], 1)):
             with self.assertRaises(subprocess.TimeoutExpired):
                 authored.execute(['game'], self.root, self.root / 'timeout', 1)
         self.assertTrue((self.root / 'timeout/invocation.json').is_file())
@@ -395,6 +396,72 @@ class AuthoredDx12Tests(unittest.TestCase):
                 self.assertEqual(guide.size, (960, 540))
                 x, y = row['calibrated_center']
                 self.assertEqual(guide.getpixel((x - 4, y)), (255, 207, 64))
+
+    def test_review_preserves_each_exact_source_sidecar_and_hash(self):
+        source_root = Path(authored.__file__).resolve().parents[1]
+        for label, folder in (('dx12', self.captures), ('legacy', self.baseline)):
+            for index in range(3):
+                path = folder / f'{index:04}.png.json'
+                data = json.loads(path.read_text())
+                data['source_identity_probe'] = f'{label}-{index}'
+                # Deliberate whitespace/order/newline differences would be lost
+                # by rebuilding metadata from parsed fields after copying PNGs.
+                path.write_bytes(('  ' + json.dumps(data, indent=3, sort_keys=True) + '\r\n').encode())
+        output = self.root / 'review-sidecars'
+        report = authored.review_guides(self.captures, self.baseline, output, source_root)
+        for row in report['records']:
+            source = self.captures if row['backend'] == 'dx12' else self.baseline
+            original = source / f'{row["source_frame"]}.json'
+            copied = output / row['raw_sidecar']
+            self.assertEqual(row['source_sidecar'], original.name)
+            self.assertEqual(row['raw_sidecar'], row['raw'] + '.json')
+            self.assertEqual(copied.read_bytes(), original.read_bytes())
+            self.assertEqual(row['raw_sidecar_sha256'], authored.sha256(original))
+            self.assertEqual(row['raw_sidecar_sha256'], authored.sha256(copied))
+            self.assertEqual(row['actual_backend'], 'Dx12' if row['backend'] == 'dx12' else 'OpenGl')
+            self.assertEqual(row['source_role'], 'dx12-under-review' if row['backend'] == 'dx12' else 'legacy-comparison-only')
+            self.assertFalse((output / (row['guide'] + '.json')).exists())
+        self.assertEqual(json.loads((output / 'landmark-review.json').read_text()), report)
+
+    def test_review_rejects_cross_backend_sidecar_substitution(self):
+        source_root = Path(authored.__file__).resolve().parents[1]
+        candidate = self.captures / '0000.png.json'
+        legacy = self.baseline / '0000.png.json'
+        candidate_bytes, legacy_bytes = candidate.read_bytes(), legacy.read_bytes()
+        for label, target, substituted in (('legacy-as-dx12', candidate, legacy_bytes),
+                                            ('dx12-as-legacy', legacy, candidate_bytes)):
+            target.write_bytes(substituted)
+            output = self.root / label
+            with self.subTest(label=label), self.assertRaisesRegex(ValueError, 'renderer identity'):
+                authored.review_guides(self.captures, self.baseline, output, source_root)
+            self.assertFalse((output / 'landmark-review.json').exists())
+            candidate.write_bytes(candidate_bytes)
+            legacy.write_bytes(legacy_bytes)
+
+    def test_review_requires_selected_frame_sidecar_not_another_available_one(self):
+        source_root = Path(authored.__file__).resolve().parents[1]
+        for index, source in enumerate((self.captures, self.baseline)):
+            missing = source / '0001.png.json'  # Selected ADS frame; 0002 remains available.
+            original = missing.read_bytes()
+            missing.unlink()
+            output = self.root / f'missing-source-{index}'
+            with self.subTest(source=source.name), self.assertRaisesRegex(ValueError, '0001.png.json'):
+                authored.review_guides(self.captures, self.baseline, output, source_root)
+            self.assertFalse((output / 'landmark-review.json').exists())
+            missing.write_bytes(original)
+
+    def test_review_rejects_wrong_source_adapter_request_and_extent(self):
+        source_root = Path(authored.__file__).resolve().parents[1]
+        path = self.captures / '0000.png.json'
+        original = json.loads(path.read_text())
+        cases = [('adapter', 'NVIDIA'), ('requested', 'auto'), ('width', 1920), ('height', 540.0)]
+        for index, (field, invalid) in enumerate(cases):
+            authored.write_json(path, {**original, field: invalid})
+            output = self.root / f'invalid-source-{index}'
+            with self.subTest(field=field), self.assertRaises(ValueError):
+                authored.review_guides(self.captures, self.baseline, output, source_root)
+            self.assertFalse((output / 'landmark-review.json').exists())
+            authored.write_json(path, original)
 
     def test_review_needs_real_stationary_held_ads_telemetry(self):
         for index in (1, 2):

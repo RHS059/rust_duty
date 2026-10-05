@@ -8,6 +8,7 @@ An automated pass leaves the measured-pixel landmark/human review gate OPEN.
 
 import argparse
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from decimal import Decimal
 import hashlib
 import json
@@ -15,13 +16,16 @@ import math
 import os
 from pathlib import Path
 import shutil
+import signal
 import subprocess
 import sys
+import tempfile
+import time
 
 from PIL import Image, ImageDraw
 
 from package_game import verify_generated
-from verify_capture_telemetry import compare, read_record, validate
+from verify_capture_telemetry import _compare, compare, read_record, validate
 from verify_render_capture import verify as verify_png
 import verify_lighting_capture as lighting
 
@@ -31,6 +35,9 @@ BACKGROUND = (36, 48, 61, 255)
 WORLD_BACKGROUND = (168, 194, 199, 255)
 WARP = 'Microsoft Basic Render Driver'
 FXC_LOG = 'renderer dx12_shader_compiler=Fxc'
+# Primary capture sidecar fields that name the renderer; every other field is
+# presentation state (extent, hfov, ADS weight, reload phase) and must match.
+RENDERER_IDENTITY = frozenset({'backend', 'adapter', 'requested'})
 LANDMARKS = {'ads': ('rear-aperture center', (480, 270)),
              'hip': ('front-sight guard', (526, 280))}
 
@@ -59,7 +66,20 @@ CASES = (
 
 
 def write_json(path, value):
-    Path(path).write_text(json.dumps(value, indent=2, allow_nan=False) + '\n', encoding='utf-8')
+    # A reader (or cancellation) must see either the previous complete report
+    # or the new one, never a truncated summary during an in-place write.
+    path = Path(path)
+    data = json.dumps(value, indent=2, allow_nan=False) + '\n'
+    temporary = None
+    try:
+        with tempfile.NamedTemporaryFile(mode='w', encoding='utf-8', dir=path.parent,
+                                         prefix=f'.{path.name}.', suffix='.tmp', delete=False) as output:
+            temporary = Path(output.name)
+            output.write(data)
+        os.replace(temporary, path)
+    finally:
+        if temporary is not None:
+            temporary.unlink(missing_ok=True)
 
 
 def sha256(path):
@@ -110,16 +130,108 @@ def renderer_logs(folder):
     return {'renderer': identities, 'shader_compiler': compiler}
 
 
-def execute(command, root, logs, timeout, *, renderer=False):
+def stop_process_tree(process):
+    """Bound cleanup too; retain diagnostics if the OS cannot reap a child."""
+    result = {'method': 'taskkill-tree' if os.name == 'nt' else 'kill-process-group'}
+    try:
+        if os.name == 'nt':
+            # Kill descendants while their parent still exists. subprocess.run's
+            # timeout kills only its direct child and loses this opportunity.
+            cleanup = subprocess.run(['taskkill', '/PID', str(process.pid), '/T', '/F'],
+                                     capture_output=True, text=True, timeout=10, check=False)
+            result.update(exit_code=cleanup.returncode,
+                          stdout=cleanup.stdout, stderr=cleanup.stderr)
+        else:
+            try:
+                os.killpg(process.pid, signal.SIGKILL)
+            except ProcessLookupError:
+                pass
+    except (OSError, subprocess.TimeoutExpired) as error:
+        result['error'] = f'{type(error).__name__}: {error}'
+    finally:
+        try:
+            if process.poll() is None:
+                process.kill()
+            process.wait(timeout=5)
+        except (OSError, subprocess.TimeoutExpired) as error:
+            result['reap_error'] = f'{type(error).__name__}: {error}'
+    return result
+
+
+def execute(command, root, logs, timeout, *, renderer=False, progress_interval=30):
+    if not math.isfinite(timeout) or timeout <= 0:
+        raise ValueError('timeout must be finite and positive')
+    if not math.isfinite(progress_interval) or progress_interval <= 0:
+        raise ValueError('progress interval must be finite and positive')
     logs.mkdir(parents=True, exist_ok=False)
     write_json(logs / 'invocation.json', {'command': command, 'cwd': str(root),
                                         'timeout_seconds': timeout})
-    with (logs / 'stdout.log').open('wb') as stdout, (logs / 'stderr.log').open('wb') as stderr:
-        result = subprocess.run(command, cwd=root, stdout=stdout, stderr=stderr,
-                                timeout=timeout, check=False)
-    if result.returncode:
-        raise ValueError(f'process exited {result.returncode}; see {logs}')
-    return renderer_logs(logs) if renderer else {'exit_code': result.returncode}
+    started = time.monotonic()
+    state = {'schema': 'rust-duty-capture-process/v1', 'status': 'starting',
+             'started_at': datetime.now(timezone.utc).isoformat(),
+             'pid': None, 'exit_code': None, 'timeout_seconds': timeout,
+             'elapsed_seconds': 0.0, 'output_path': None, 'png_files': 0}
+    output = next((argument.split('=', 1)[1] for argument in command
+                   if argument.startswith(('--output=', '--output-dir='))), None)
+    if output:
+        output = Path(output)
+        if not output.is_absolute():
+            output = root / output
+        state['output_path'] = str(output)
+
+    def progress():
+        state['elapsed_seconds'] = round(time.monotonic() - started, 6)
+        state['updated_at'] = datetime.now(timezone.utc).isoformat()
+        # File counts are progress only, never evidence of completeness/validity.
+        if output is not None:
+            state['png_files'] = (sum(1 for path in output.glob('*.png') if path.is_file())
+                                  if output.is_dir() else int(output.is_file()))
+        for stream in ('stdout', 'stderr'):
+            path = logs / f'{stream}.log'
+            state[f'{stream}_bytes'] = path.stat().st_size if path.exists() else 0
+        write_json(logs / 'process.json', state)
+
+    process = None
+    progress()
+    try:
+        with (logs / 'stdout.log').open('wb') as stdout, (logs / 'stderr.log').open('wb') as stderr:
+            options = ({'creationflags': subprocess.CREATE_NEW_PROCESS_GROUP} if os.name == 'nt'
+                       else {'start_new_session': True})
+            process = subprocess.Popen(command, cwd=root, stdout=stdout, stderr=stderr, **options)
+            state.update(status='running', pid=process.pid)
+            progress()
+            print(f'[process {logs.name}] started pid={process.pid} timeout={timeout}s logs={logs}', flush=True)
+            while True:
+                remaining = timeout - (time.monotonic() - started)
+                if remaining <= 0:
+                    raise subprocess.TimeoutExpired(command, timeout)
+                try:
+                    process.wait(timeout=min(progress_interval, remaining))
+                    break
+                except subprocess.TimeoutExpired:
+                    if time.monotonic() - started >= timeout:
+                        raise subprocess.TimeoutExpired(command, timeout) from None
+                    progress()
+                    print(f'[process {logs.name}] still running elapsed={state["elapsed_seconds"]:.1f}s '
+                          f'png_files={state["png_files"]} logs={logs}', flush=True)
+        state['exit_code'] = process.returncode
+        if process.returncode:
+            raise ValueError(f'process exited {process.returncode}; see {logs}')
+        result = renderer_logs(logs) if renderer else {'exit_code': process.returncode}
+    except BaseException as error:
+        # Interruptions must keep partial files and kill only this invocation's
+        # isolated children. Never continue silently after a KeyboardInterrupt.
+        if process is not None and (isinstance(error, subprocess.TimeoutExpired) or process.poll() is None):
+            state['cleanup'] = stop_process_tree(process)
+        state['exit_code'] = process.poll() if process is not None else None
+        state['status'] = ('timed_out' if isinstance(error, subprocess.TimeoutExpired)
+                           else 'failed' if isinstance(error, Exception) else 'interrupted')
+        state['error'] = f'{type(error).__name__}: {error}'
+        progress()
+        raise
+    state['status'] = 'passed'
+    progress()
+    return result
 
 
 def capture_metadata(path, backend='Dx12'):
@@ -161,11 +273,56 @@ def validate_sequence(folder):
             'all_images_checked': True, 'minimum_foreground_coverage': min(coverage)}
 
 
+def baseline_verdicts(baseline, images):
+    """Require the existing validators' successful reports for a legacy baseline.
+
+    Native validation writes verification.json into each scenario folder, except
+    the ADS offset run, whose placement report sits beside its folder. Layered
+    rates also carry a cross-rate report. A frame count, when reported, must
+    match this folder so a report cannot vouch for a different capture.
+    """
+    reports = []
+    if (baseline / 'verification.json').exists():
+        reports.append((baseline / 'verification.json', True))
+    elif baseline.name == 'ads-offset':
+        reports.append((baseline.parent / 'ads-offset-verification.json', True))
+    else:
+        raise ValueError(f'{baseline}: missing legacy validator verdict')
+    if baseline.name in ('layered-30', 'layered-60'):
+        reports.append((baseline.parent / 'layered-rate-verification.json', False))
+    checked = []
+    for path, per_folder in reports:
+        report = read_record(path)
+        if report.get('passed') is not True or not isinstance(report.get('schema'), str):
+            raise ValueError(f'{path}: legacy validator verdict is not a successful report')
+        frames = report.get('frames')
+        if per_folder and frames is not None and (type(frames) is not int or frames != len(images)):
+            raise ValueError(f'{path}: verdict covers {frames!r} frames, folder has {len(images)}')
+        checked.append(path.name)
+    return checked
+
+
+def compare_capture_metadata(baseline, candidate, images):
+    """Compare primary capture sidecars, excluding only renderer identity."""
+    for image in images:
+        before = read_record(baseline / f'{image.name}.json')
+        after = read_record(candidate / f'{image.name}.json')
+        _compare({k: v for k, v in before.items() if k not in RENDERER_IDENTITY},
+                 {k: v for k, v in after.items() if k not in RENDERER_IDENTITY},
+                 f'{image.name}.json')
+    return len(images)
+
+
 def compare_sequence(baseline, candidate):
     # The legacy renderer identity is checked independently of the comparison;
-    # only gameplay/time files are compared, with EVERY field and exact types.
-    sequence_inventory(baseline, 'OpenGl')
-    return compare(baseline, candidate)
+    # gameplay/time files are compared with EVERY field and exact types, and
+    # primary sidecars with every field except renderer identity.
+    images, _ = sequence_inventory(baseline, 'OpenGl')
+    verdicts = baseline_verdicts(baseline, images)
+    result = compare(baseline, candidate)
+    result['capture_metadata_files'] = compare_capture_metadata(baseline, candidate, images)
+    result['baseline_verdicts'] = verdicts
+    return result
 
 
 def validate_lighting_record(path):
@@ -244,10 +401,15 @@ def validate_orientation(folder):
 def review_guides(candidate, baseline, output, source_root):
     output.mkdir(parents=True, exist_ok=False)
     rows = [(path, read_record(path)) for path in sorted(candidate.glob('*.gameplay.json'))]
+
+    def exactly(value, target):
+        # Booleans compare equal to 0/1; require an actual finite JSON number.
+        return type(value) in (int, Decimal) and value == target
+
     hip = next((path for path, row in rows if row.get('route') == 'ready'), None)
     ads = next((path for path, row in rows if row.get('route') == 'ads.hold'
-                and row.get('run_weight') == 0 and row.get('speed') == 0
-                and row.get('simulation_ads') == 1), None)
+                and exactly(row.get('run_weight'), 0) and exactly(row.get('speed'), 0)
+                and exactly(row.get('simulation_ads'), 1)), None)
     if hip is None or ads is None:
         raise ValueError('review needs actual ready and stationary fully held ADS frames')
     records = []
@@ -256,8 +418,17 @@ def review_guides(candidate, baseline, output, source_root):
         feature, (x, y) = LANDMARKS[pose]
         for label, source in (('dx12', candidate), ('legacy', baseline)):
             raw = source / filename
+            expected_backend = 'Dx12' if label == 'dx12' else 'OpenGl'
+            metadata = capture_metadata(raw, expected_backend)
+            if (metadata['width'], metadata['height']) != EXTENT:
+                raise ValueError(f'{raw}: review source metadata must identify {EXTENT}')
             raw_copy = output / f'{label}-{pose}-raw.png'
+            sidecar = Path(f'{raw}.json')
+            sidecar_copy = Path(f'{raw_copy}.json')
+            # Copy the exact primary sidecar from this source frame. Do not
+            # synthesize metadata for renamed raw images or for guide overlays.
             shutil.copyfile(raw, raw_copy)
+            shutil.copyfile(sidecar, sidecar_copy)
             with Image.open(raw) as original:
                 if original.size != EXTENT:
                     raise ValueError('landmark guides require unscaled 960x540 pixels')
@@ -274,7 +445,10 @@ def review_guides(candidate, baseline, output, source_root):
             guide = output / f'{label}-{pose}-guide.png'
             image.save(guide)
             records.append({'backend': label, 'pose': pose, 'source_frame': filename,
+                            'source_role': 'dx12-under-review' if label == 'dx12' else 'legacy-comparison-only',
+                            'actual_backend': metadata['backend'], 'source_sidecar': sidecar.name,
                             'raw': raw_copy.name, 'raw_sha256': sha256(raw_copy),
+                            'raw_sidecar': sidecar_copy.name, 'raw_sidecar_sha256': sha256(sidecar_copy),
                             'guide': guide.name, 'feature': feature,
                             'calibrated_center': [x, y], 'tolerance_px': 4,
                             'measured_center': None, 'projected_center': None})
@@ -317,11 +491,13 @@ def asset_evidence(root):
     return {'generated_verification': generated, 'runtime_and_manifest_sha256': files}
 
 
-def run(executable, fixture, root, evidence, legacy, timeout):
+def run(executable, fixture, root, evidence, legacy, timeout, *, run_timeout=90 * 60):
     executable, fixture, root, evidence, legacy = [Path(path).resolve()
                                                  for path in (executable, fixture, root, evidence, legacy)]
     if not math.isfinite(timeout) or timeout <= 0:
         raise ValueError('timeout must be finite and positive')
+    if not math.isfinite(run_timeout) or run_timeout <= 0:
+        raise ValueError('run timeout must be finite and positive')
     for binary in (executable, fixture):
         if not binary.is_file():
             raise ValueError(f'executable missing: {binary}')
@@ -329,8 +505,12 @@ def run(executable, fixture, root, evidence, legacy, timeout):
         raise ValueError('working directory or matched legacy baseline missing')
     # Never overwrite or merge output from an earlier run.
     evidence.mkdir(parents=True, exist_ok=False)
+    started = time.monotonic()
     report = {'schema': 'rust-duty-dx12-authored-acceptance/v1', 'passed': False,
               'acceptance_complete': False, 'automated_landmark_gate': 'open',
+              'status': 'running', 'current_check': None, 'elapsed_seconds': 0.0,
+              'run_timeout_seconds': run_timeout, 'budget_exhausted': False,
+              'started_at': datetime.now(timezone.utc).isoformat(),
               'source_commit': os.environ.get('GITHUB_SHA'), 'run_id': os.environ.get('GITHUB_RUN_ID'),
               'run_attempt': os.environ.get('GITHUB_RUN_ATTEMPT'),
               'platform': sys.platform, 'executable_sha256': sha256(executable),
@@ -338,19 +518,53 @@ def run(executable, fixture, root, evidence, legacy, timeout):
     summary = evidence / 'summary.json'
     write_json(summary, report)
 
+    def execute_bounded(command, cwd, logs, per_process_timeout, **kwargs):
+        remaining = run_timeout - (time.monotonic() - started)
+        if remaining <= 0:
+            raise RuntimeError('whole-run time budget exhausted before subprocess launch')
+        return execute(command, cwd, logs, min(per_process_timeout, remaining), **kwargs)
+
     def check(name, action):
+        if report['budget_exhausted']:
+            return False
+        check_started = time.monotonic()
+        report.update(current_check=name, elapsed_seconds=round(check_started - started, 6))
+        write_json(summary, report)
         print(f'[{name}] running', flush=True)
         try:
+            if time.monotonic() - started >= run_timeout:
+                raise RuntimeError('whole-run time budget exhausted; check was not attempted')
             result = action()
             row = {'name': name, 'passed': True, 'result': result}
         except (OSError, ValueError, RuntimeError, KeyError, TypeError, subprocess.TimeoutExpired) as error:
             row = {'name': name, 'passed': False, 'error': str(error)}
+        except BaseException as error:
+            # Preserve which check was active when interrupted; do not report an
+            # interrupted process or unexpected exception as completed evidence.
+            report['checks'].append({'name': name, 'passed': False,
+                                     'error': f'{type(error).__name__}: {error}',
+                                     'elapsed_seconds': round(time.monotonic() - check_started, 6)})
+            report.update(status='interrupted', elapsed_seconds=round(time.monotonic() - started, 6))
+            write_json(summary, report)
+            raise
+        completed = time.monotonic()
+        row['elapsed_seconds'] = round(completed - check_started, 6)
+        if completed - started >= run_timeout:
+            # Cooperative only: in-process image/parity validators cannot be
+            # interrupted here. The workflow's outer 95-minute step timeout is
+            # still required. No further check or subprocess may be started.
+            report.update(budget_exhausted=True, status='failed')
+            if row['passed']:
+                row.update(passed=False, error='check completed after whole-run time budget was exhausted')
         report['checks'].append(row)
+        report.update(current_check=None, elapsed_seconds=round(completed - started, 6))
         write_json(summary, report)
         print(f'[{name}] {"passed" if row["passed"] else row["error"]}', flush=True)
         return row['passed']
 
     if not check('validated-same-run-companions', lambda: asset_evidence(root)):
+        report['status'] = 'failed'
+        write_json(summary, report)
         return report
     offset = evidence / 'ads-offset.cfg'
     offset.write_text((root / 'settings.cfg').read_text(encoding='utf-8')
@@ -361,47 +575,56 @@ def run(executable, fixture, root, evidence, legacy, timeout):
 
     def orientation():
         folder = evidence / 'renderer-contract'
-        execution = execute([str(fixture), '--renderer=dx12', '--force-fallback-adapter',
+        execution = execute_bounded([str(fixture), '--renderer=dx12', '--force-fallback-adapter',
                              f'--output-dir={folder}'], root, logs / 'renderer-contract', timeout, renderer=True)
+        if time.monotonic() - started >= run_timeout:
+            raise RuntimeError('whole-run time budget exhausted before orientation validation')
         return {'logs': execution, **validate_orientation(folder)}
 
     check('orientation-renderer-contract', orientation)
     captured = set()
     for case in CASES:
+        if report['budget_exhausted']:
+            break
         folder = captures / case.name
-        if check(f'{case.name}/capture', lambda case=case, folder=folder: execute(
+        if check(f'{case.name}/capture', lambda case=case, folder=folder: execute_bounded(
                 game_command(executable, root, folder, case, offset), root,
                 logs / case.name, timeout, renderer=True)):
             captured.add(case.name)
             check(f'{case.name}/finite-images', lambda folder=folder: validate_sequence(folder))
             if case.validator:
-                check(f'{case.name}/existing-validator', lambda case=case, folder=folder: execute(
+                check(f'{case.name}/existing-validator', lambda case=case, folder=folder: execute_bounded(
                     [sys.executable, str(root / 'tools' / case.validator), str(folder)], root,
                     logs / f'{case.name}-validator', timeout))
             check(f'{case.name}/strict-gameplay-time-parity', lambda case=case, folder=folder:
                   compare_sequence(legacy / case.baseline, folder))
 
     if {'ads-gameplay', 'ads-offset'} <= captured:
-        check('ads-placement-existing-validator', lambda: execute(
+        check('ads-placement-existing-validator', lambda: execute_bounded(
             [sys.executable, str(root / 'tools/verify_ads_placement_capture.py'),
              str(captures / 'ads-gameplay'), str(captures / 'ads-offset')], root,
             logs / 'ads-placement-validator', timeout))
     if {'layered-30', 'layered-60'} <= captured:
-        check('layered-rates-existing-validator', lambda: execute(
+        check('layered-rates-existing-validator', lambda: execute_bounded(
             [sys.executable, str(root / 'tools/verify_layered_locomotion_capture.py'),
              str(captures / 'layered-30'), str(captures / 'layered-60')], root,
             logs / 'layered-rates-validator', timeout))
 
     light = captures / 'lighting'
-    light.mkdir()
-    for stem, command in lighting_commands(executable, root, light):
-        check(f'lighting/{stem}', lambda stem=stem, command=command:
-              execute(command, root, logs / f'lighting-{stem}', timeout, renderer=True))
+    if not report['budget_exhausted']:
+        light.mkdir()
+        for stem, command in lighting_commands(executable, root, light):
+            if report['budget_exhausted']:
+                break
+            check(f'lighting/{stem}', lambda stem=stem, command=command:
+                  execute_bounded(command, root, logs / f'lighting-{stem}', timeout, renderer=True))
     check('lighting-existing-validator-and-images', lambda: validate_lighting(light))
     if 'ads-gameplay' in captured:
         check('landmark-guides-not-a-landmark-pass', lambda: review_guides(
             captures / 'ads-gameplay', legacy / 'ads-gameplay', evidence / 'review', root))
-    report['passed'] = all(item['passed'] for item in report['checks'])
+    report['passed'] = not report['budget_exhausted'] and all(item['passed'] for item in report['checks'])
+    report.update(status='passed' if report['passed'] else 'failed',
+                  elapsed_seconds=round(time.monotonic() - started, 6))
     report['scope'] = ('Automated authored DX12 WARP capture/validator/parity checks only; '
                        'measured landmark gate, human visual review and real-GPU playtest remain open.')
     write_json(summary, report)

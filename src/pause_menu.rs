@@ -58,9 +58,11 @@ impl Layout {
             ));
         }
         let content_height = flow_y(843., &bands);
-        let scale = ((width - 24.) / 610.)
-            .min((height - 24.) / content_height)
-            .clamp(0.1 * 843. / content_height, 1.);
+        let available_width = (width - 24.).max(1.).min(width);
+        let available_height = (height - 24.).max(1.).min(height);
+        let scale = (available_width / 610.)
+            .min(available_height / content_height)
+            .min(1.);
         Self {
             origin: vec2(
                 (width - 610. * scale) * 0.5,
@@ -920,5 +922,190 @@ mod tests {
         }
         let reset = layout.rect(POSITION_RESET);
         assert!(layout.rect(slider_rect(5)).y + layout.rect(slider_rect(5)).h < reset.y);
+    }
+}
+
+#[cfg(test)]
+mod dpi_geometry_tests {
+    use super::*;
+    use vector_range::draw::Command;
+
+    struct ThemeReset;
+    impl Drop for ThemeReset {
+        fn drop(&mut self) {
+            ui_theme::set_theme(ui_theme::UiTheme::default());
+        }
+    }
+
+    fn theme() {
+        ui_theme::set_theme(
+            ui_theme::UiTheme::parse(
+                "fractional.css",
+                "#pause-menu .button {font-size:25.5px;background-color:#123456;border-width:3.25px}\n\
+                 #pause-menu .slider {font-size:21.5px;background-color:#654321;border-width:1.25px}",
+            )
+            .unwrap(),
+        );
+    }
+
+    fn draw(menu: &PauseMenu, cfg: &Settings, size: Vec2, dpi: f64) -> Vec<Command> {
+        begin_frame(1400, 1000, dpi).unwrap();
+        menu.draw_with_layout(
+            cfg,
+            "rifle",
+            false,
+            ControlMode::Hold,
+            None,
+            Layout::new(size.x, size.y),
+        );
+        take_draw_list().unwrap().commands
+    }
+
+    fn painted(commands: &[Command], color: Color) -> Vec<Rect> {
+        commands
+            .iter()
+            .filter_map(|command| match command {
+                Command::Rect {
+                    rect,
+                    color: actual,
+                } if *actual == color => Some(*rect),
+                _ => None,
+            })
+            .collect()
+    }
+
+    #[test]
+    fn pause_panel_and_controls_fit_nonzero_sub_margin_viewports() {
+        let _reset = ThemeReset;
+        for css in ["", "#pause-menu {font-size:96px;border-width:16px}"] {
+            ui_theme::set_theme(ui_theme::UiTheme::parse("tiny.css", css).unwrap());
+            for dpi in [1., 1.25, 1.5, 1.75, 2.] {
+                for (width, height) in
+                    [(1., 1.), (16., 800.), (800., 16.), (32., 32.), (200., 800.)]
+                {
+                    let viewport = Rect::new(0., 0., width / dpi, height / dpi);
+                    let layout = Layout::new(viewport.w, viewport.h);
+                    for local in [
+                        Rect::new(0., 0., 610., 843.),
+                        RESUME,
+                        POSITION_RESET,
+                        RESET,
+                        SAVE,
+                    ]
+                    .into_iter()
+                    .chain((0..6).map(slider_rect))
+                    {
+                        let rect = layout.rect(local);
+                        // Allow only floating-point arithmetic error, far below
+                        // one pixel even in the smallest valid native frame.
+                        assert!(rect.x >= -0.001 && rect.y >= -0.001, "{dpi}x {rect:?}");
+                        assert!(rect.x + rect.w <= viewport.w + 0.001, "{dpi}x {rect:?}");
+                        assert!(rect.y + rect.h <= viewport.h + 0.001, "{dpi}x {rect:?}");
+                    }
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn fractional_dpi_pause_button_paint_drives_the_real_input_actions() {
+        let _reset = ThemeReset;
+        theme();
+        for dpi in [1., 1.25, 1.5, 1.75, 2.] {
+            let scale = dpi as f32;
+            let size = vec2(1400. / scale, 1000. / scale);
+            let commands = draw(&PauseMenu::default(), &Settings::default(), size, dpi);
+            let buttons = painted(
+                &commands,
+                Color::new(18. / 255., 52. / 255., 86. / 255., 1.),
+            );
+            assert_eq!(buttons.len(), 4);
+            // Draw order: resume, position reset, walking reset, save.
+            for (index, button) in buttons.iter().enumerate() {
+                let mut menu = PauseMenu::default();
+                let mut cfg = Settings::default();
+                cfg.set_viewmodel(0.1, -0.1);
+                cfg.set_walking_translation("rifle", WalkTranslation([0.3, 0.4, 0.5]));
+                // Read the physical painted box, then apply the native pointer's
+                // physical-to-logical conversion. No second copy of layout math.
+                let pointer = vec2(button.x + button.w / 2., button.y + button.h - 0.25) / scale;
+                let action = menu.input(&mut cfg, "rifle", size, pointer, (true, true), true);
+                assert_eq!(action.resume, index == 0, "{dpi}x button {index}");
+                assert_eq!(action.save, index != 0, "{dpi}x button {index}");
+                assert_eq!(menu.focus, Some([0, 4, 8, 9][index]));
+                assert_eq!(
+                    (cfg.viewmodel_x, cfg.viewmodel_y),
+                    if index == 1 { (0., 0.) } else { (0.1, -0.1) }
+                );
+                assert_eq!(
+                    cfg.walking_translation("rifle").0,
+                    if index == 2 { [0.; 3] } else { [0.3, 0.4, 0.5] }
+                );
+
+                let mut menu = PauseMenu::default();
+                let pointer = vec2(button.x + button.w + 0.25, button.y + button.h / 2.) / scale;
+                let action = menu.input(&mut cfg, "rifle", size, pointer, (true, true), true);
+                assert!(
+                    !action.resume && !action.save,
+                    "{dpi}x button {index}: exterior click"
+                );
+                assert_eq!(menu.focus, None);
+            }
+        }
+    }
+
+    #[test]
+    fn fractional_dpi_painted_slider_endpoints_preserve_drag_and_focus_ownership() {
+        let _reset = ThemeReset;
+        theme();
+        for dpi in [1., 1.25, 1.5, 1.75, 2.] {
+            let scale = dpi as f32;
+            let size = vec2(1400. / scale, 1000. / scale);
+            let commands = draw(&PauseMenu::default(), &Settings::default(), size, dpi);
+            let tracks = painted(
+                &commands,
+                Color::new(101. / 255., 67. / 255., 33. / 255., 1.),
+            );
+            assert_eq!(tracks.len(), 6);
+            for (axis, track) in [3, 4, 5, 0, 1, 2].into_iter().zip(tracks) {
+                let mut menu = PauseMenu::default();
+                let mut cfg = Settings::default();
+                let center = vec2(track.x + track.w / 2., track.y + track.h / 2.) / scale;
+                let action = menu.input(&mut cfg, "rifle", size, center, (true, true), true);
+                assert!(!action.resume && !action.save);
+                assert_eq!(menu.dragging, Some(axis));
+                for (x, expected) in [(track.x, -1.), (track.x + track.w, 1.)] {
+                    let action = menu.input(
+                        &mut cfg,
+                        "rifle",
+                        size,
+                        vec2(x, track.y) / scale,
+                        (false, true),
+                        true,
+                    );
+                    assert!(!action.resume && !action.save);
+                    let actual = if axis < 3 {
+                        cfg.walking_translation("rifle").0[axis]
+                    } else {
+                        [cfg.viewmodel_x, cfg.viewmodel_y, cfg.viewmodel_z][axis - 3]
+                            / Settings::VIEWMODEL_OFFSET_LIMIT
+                    };
+                    assert_eq!(actual, expected, "{dpi}x axis {axis}");
+                }
+                // Focus loss finalizes this edit once and releases both owners.
+                assert!(
+                    menu.input(&mut cfg, "rifle", size, center, (false, true), false)
+                        .save
+                );
+                assert_eq!(menu.dragging, None);
+                assert!(!menu.has_keyboard_focus());
+                assert!(
+                    !menu
+                        .input(&mut cfg, "rifle", size, center, (false, true), true)
+                        .save
+                );
+                assert_eq!(menu.dragging, None, "a stale held button cannot recapture");
+            }
+        }
     }
 }

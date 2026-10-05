@@ -37,7 +37,11 @@ NOTICES = ("LICENSE", "THIRD_PARTY_LICENSES.txt",
            "updater/notices/THIRD_PARTY_UPDATER_LICENSES.txt")
 # Shipped defaults/documentation belong beside the executable in both fresh
 # builds and managed update bundles. User-selected external themes are not copied.
-RUNTIME_FILES = ("ui/theme.css", "docs/UI_THEME.md")
+RUNTIME_FILES = (
+    "ui/theme.css", "docs/UI_THEME.md",
+    "ui/examples/high-contrast.css", "ui/examples/large-type.css",
+    "docs/UI_THEME_EXAMPLES.md",
+)
 BUILD_FILES = (
     "settings.cfg", "README.md", "docs/PROVENANCE.md", "docs/ASSET_FORMAT.md",
     "docs/M4_PROFILE.md", "docs/FIRST_PERSON_ARMS.md", "docs/MANTLING.md",

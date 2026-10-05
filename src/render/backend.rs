@@ -99,6 +99,7 @@ impl WgpuRenderer {
         if let Some(error) = error_scope.pop().await {
             return Err(format!("renderer initialization validation: {error}"));
         }
+        gpu.check_errors()?;
         let (pipelines, main, white, text) = result?;
         Ok(Self {
             gpu,

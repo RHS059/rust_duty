@@ -1,6 +1,9 @@
 //! Native adapter selection. An explicit backend never falls back to another API.
 use crate::draw::BackendInfo;
-use std::{str::FromStr, sync::Arc};
+use std::{
+    str::FromStr,
+    sync::{Arc, Mutex},
+};
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum BackendSelection {
@@ -88,8 +91,58 @@ pub(crate) struct Gpu {
     pub queue: wgpu::Queue,
     pub info: BackendInfo,
     pub surface: Option<Surface>,
+    failures: DeviceFailures,
     // Keep instance and window ownership alive through surface teardown.
     pub _instance: wgpu::Instance,
+}
+
+/// Callbacks may run on a driver thread. Preserve the first fatal diagnostic
+/// until the renderer is dropped; observing it must never make a dead device
+/// usable again or allow a later, less useful error to replace the cause.
+#[derive(Clone, Default)]
+struct DeviceFailures(Arc<Mutex<Option<String>>>);
+
+impl DeviceFailures {
+    fn record(&self, error: String) {
+        let mut first = self.0.lock().unwrap_or_else(|poison| poison.into_inner());
+        if first.is_none() {
+            *first = Some(error);
+        }
+    }
+
+    fn uncaptured(&self, error: wgpu::Error) {
+        let kind = match &error {
+            wgpu::Error::OutOfMemory { .. } => "out of memory",
+            wgpu::Error::Internal { .. } => "internal",
+            wgpu::Error::Validation { .. } => "validation",
+        };
+        let source = std::error::Error::source(&error)
+            .map(|source| format!("; source: {source}"))
+            .unwrap_or_default();
+        self.record(format!("uncaptured GPU {kind} error: {error}{source}"));
+    }
+
+    fn lost(&self, reason: wgpu::DeviceLostReason, message: String) {
+        self.record(format!("GPU device lost ({reason:?}): {message}"));
+    }
+
+    fn check(&self) -> Result<(), String> {
+        self.0
+            .lock()
+            .unwrap_or_else(|poison| poison.into_inner())
+            .clone()
+            .map_or(Ok(()), Err)
+    }
+}
+
+fn check_device(device: &wgpu::Device, failures: &DeviceFailures) -> Result<(), String> {
+    failures.check()?;
+    // Nonblocking polling dispatches device-loss callbacks even on ordinary
+    // frames with no PNG readback. Do not impose a GPU wait on every frame.
+    if let Err(error) = device.poll(wgpu::PollType::Poll) {
+        failures.record(format!("GPU device poll failed: {error}"));
+    }
+    failures.check()
 }
 pub(crate) struct Surface {
     pub surface: wgpu::Surface<'static>,
@@ -191,6 +244,14 @@ impl Gpu {
             })
             .await
             .map_err(|e| format!("request {} device: {e}", info.backend))?;
+        // Install these before the first surface/resource operation. Validation
+        // scopes retain their contextual errors; all other failures are fatal
+        // Results instead of wgpu's default uncaptured-error panic.
+        let failures = DeviceFailures::default();
+        let uncaptured = failures.clone();
+        device.on_uncaptured_error(Arc::new(move |error| uncaptured.uncaptured(error)));
+        let lost = failures.clone();
+        device.set_device_lost_callback(move |reason, message| lost.lost(reason, message));
         let surface = if let Some(surface) = surface {
             let caps = surface.get_capabilities(&adapter);
             let format = caps
@@ -219,9 +280,24 @@ impl Gpu {
         } else {
             None
         };
+        check_device(&device, &failures)?;
         eprintln!(
             "renderer requested={} backend={} adapter={}",
             info.requested, info.backend, info.adapter
+        );
+        // Runtime evidence uses the actual adapter classification, not the
+        // absence of a fallback request or a guess based on the adapter name.
+        eprintln!(
+            "renderer device_evidence={}",
+            serde_json::json!({
+                "device_type": format!("{:?}", adapter_info.device_type),
+                "vendor_id": adapter_info.vendor,
+                "device_id": adapter_info.device,
+                "driver": adapter_info.driver,
+                "driver_info": adapter_info.driver_info,
+                "present_mode": surface.as_ref().map(|s| format!("{:?}", s.config.present_mode)),
+                "force_fallback_requested": force_fallback,
+            })
         );
         if adapter_info.backend == wgpu::Backend::Dx12 {
             eprintln!("renderer dx12_shader_compiler=Fxc");
@@ -231,10 +307,17 @@ impl Gpu {
             queue,
             info,
             surface,
+            failures,
             _instance: instance,
         })
     }
+
+    pub(super) fn check_errors(&self) -> Result<(), String> {
+        check_device(&self.device, &self.failures)
+    }
+
     pub fn resize(&mut self, width: u32, height: u32) -> Result<(), String> {
+        self.check_errors()?;
         // Winit can report zero dimensions while minimized. Never configure
         // such an extent, even if this low-level helper is called directly.
         if width == 0 || height == 0 {
@@ -251,9 +334,10 @@ impl Gpu {
                 surface.reconfigure = false;
             }
         }
-        Ok(())
+        self.check_errors()
     }
     pub fn acquire(&mut self) -> Result<Option<wgpu::SurfaceTexture>, String> {
+        self.check_errors()?;
         let Some(surface) = &mut self.surface else {
             return Ok(None);
         };
@@ -263,6 +347,9 @@ impl Gpu {
             if let Some(error) = pollster::block_on(validation.pop()) {
                 return Err(format!("acquire surface validation: {error}"));
             }
+            // A lost device is terminal; it must not be mistaken for a lost
+            // surface and sent through the surface-only recovery path below.
+            check_device(&self.device, &self.failures)?;
             match status {
                 wgpu::CurrentSurfaceTexture::Success(frame) => return Ok(Some(frame)),
                 wgpu::CurrentSurfaceTexture::Suboptimal(frame) => {
@@ -343,6 +430,69 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn uncaptured_error_classes_retain_their_diagnostics_as_fatal_results() {
+        let source = || Box::new(std::io::Error::other("driver failure")) as wgpu::ErrorSource;
+        for (error, expected) in [
+            (
+                wgpu::Error::OutOfMemory { source: source() },
+                "uncaptured GPU out of memory error: Out of Memory; source: driver failure",
+            ),
+            (
+                wgpu::Error::Internal {
+                    source: source(),
+                    description: "submission rejected by driver".into(),
+                },
+                "uncaptured GPU internal error: submission rejected by driver; source: driver failure",
+            ),
+            (
+                wgpu::Error::Validation {
+                    source: source(),
+                    description: "present validation failed".into(),
+                },
+                "uncaptured GPU validation error: present validation failed; source: driver failure",
+            ),
+        ] {
+            let failures = DeviceFailures::default();
+            assert!(failures.check().is_ok());
+            failures.uncaptured(error);
+            assert_eq!(failures.check().unwrap_err(), expected);
+            assert_eq!(failures.check().unwrap_err(), expected);
+        }
+    }
+
+    #[test]
+    fn device_loss_callback_is_thread_safe_sticky_and_preserves_the_first_failure() {
+        for reason in [
+            wgpu::DeviceLostReason::Unknown,
+            wgpu::DeviceLostReason::Destroyed,
+        ] {
+            let failures = DeviceFailures::default();
+            let callback = failures.clone();
+            std::thread::spawn(move || callback.lost(reason, "adapter removed".into()))
+                .join()
+                .unwrap();
+            let first = format!("GPU device lost ({reason:?}): adapter removed");
+            assert_eq!(failures.check().unwrap_err(), first);
+            failures.record("secondary surface recovery failure".into());
+            assert_eq!(failures.check().unwrap_err(), first);
+        }
+    }
+
+    #[test]
+    fn device_loss_does_not_replace_an_earlier_out_of_memory_error() {
+        let failures = DeviceFailures::default();
+        failures.uncaptured(wgpu::Error::OutOfMemory {
+            source: Box::new(std::io::Error::other("allocation exhausted")),
+        });
+        let first = failures.check().unwrap_err();
+        failures.lost(
+            wgpu::DeviceLostReason::Unknown,
+            "device became invalid".into(),
+        );
+        assert_eq!(failures.check().unwrap_err(), first);
+    }
 
     #[test]
     fn dx12_compiler_is_explicit_system_fxc_for_every_instance_policy() {

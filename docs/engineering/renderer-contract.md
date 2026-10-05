@@ -45,6 +45,8 @@ inset; they do not pass an entirely wrong region on a whole-frame average.
 | --- | --- |
 | `quadrant.png` (96 x 64) | Red top-left, green top-right, blue bottom-left, yellow bottom-right. Each quadrant is probed with normalized inset `[.1,.4)` or `[.6,.9)` on each axis. This catches vertical flips and swapped channels/regions. |
 | `readback-width-65.png` (65 x 49) | The same four probes with a 260-byte unpadded row that requires a 512-byte GPU copy stride. PNG rows must have their padding removed without changing orientation. |
+| `quadrant-target.png` (96 x 64) | Draw the four asymmetric colored quadrants into a named offscreen target and capture its raw RGBA8 bytes. Fixed top-left red, top-right green, bottom-left blue, and bottom-right yellow probes independently check target drawing and readback orientation. |
+| `quadrant-target-composite.png` (96 x 64) | Sample that same unchanged target into the main target over opaque black through `DrawList::draw_texture`, without UV compensation. The same four fixed probes independently check the target-to-composite sampling orientation. |
 | `ordered-a-red.png`, `ordered-b-green.png` | One submission draws red, captures A, draws green, and captures B. A must remain red and B must be green. Returned capture paths must retain list order. |
 | `depth-main-near.png` | A nearer red mesh occludes a later farther green mesh. |
 | `depth-target-near.png`, `depth-target-reset.png` | Switching to a named depth target selects its storage; clearing that target clears its depth so a farther yellow mesh can replace earlier blue geometry. |
@@ -58,6 +60,14 @@ inset; they do not pass an entirely wrong region on a whole-frame average.
 | `alpha-opaque-source.png` | Opaque replacement of a straight half-alpha white source stores associated RGBA, approximately `[127,127,127,127]`. |
 | `text-100-percent.png`, `text-200-percent.png` | `Ag` at 16/32 physical pixels has fixed 1x/2x raster bounds; `Ag ` has fixed measured dimensions `[21,11,8]` and `[42,22,16]` (width, height, baseline offset). This checks raster dimensions, not font-style equivalence or native OS DPI event handling. |
 | `after-errors.png` | A valid green capture still succeeds after invalid capture paths and a non-finite mesh are rejected. |
+
+The two named-target quadrant captures share `orientation_group:
+"named-target-to-main"` in their `extra` metadata, with `stage: "raw-target"`
+and `stage: "sampled-main"` respectively. Each PNG is checked against independent
+color constants, not against the other PNG, so matching flips in both captures
+cannot pass. This covers a vertical sampling flip that the existing alpha bands,
+whose colors do not vary vertically, cannot discriminate. It remains headless
+target sampling evidence, not proof of window/swapchain presentation.
 
 Negative native cases require failure for a PNG parent that is a regular file,
 a PNG filename that is a directory, an empty capture path, and a mesh containing
@@ -96,7 +106,7 @@ second time and preserves emission. All PNGs are top-left-row-first RGBA8.
 
 ## Evidence files and success condition
 
-Each of the 19 successful PNGs gets a primary `<filename>.png.json` sidecar with:
+Each of the 21 successful PNGs gets a primary `<filename>.png.json` sidecar with:
 
 - Requested renderer, actual backend, and actual adapter, both at the top level
   and inside a `renderer` object
@@ -133,6 +143,10 @@ controls and discriminating vertical-flip, channel-swap, double-alpha,
 lost-emission, tint-opacity, threshold, invalid-size, malformed-image, stale
 output-directory, and filesystem failures. Expected colors are fixed in the
 fixture, not read from shader source or generated from captures under test.
+An additional CPU test inspects the actual named-target quadrant draw list: four
+fixed colored meshes are followed by a raw capture, a switch to the main target,
+and sampling of the same unchanged target before its main capture. This checks
+fixture wiring only; the pixel probes still need a native DX12 run.
 On non-Windows, an additional test verifies that native execution fails without
 producing an output directory.
 

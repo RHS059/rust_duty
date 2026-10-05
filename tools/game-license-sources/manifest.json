@@ -1,0 +1,542 @@
+{
+  "packages": [
+    {
+      "archive_sha256": "0c87e182de0887fd5361989c677c4e8f5000cd9491d6d563161a8f3a5519fc7f",
+      "files": [
+        {
+          "bytes": 1087,
+          "file": "texts/b1d6df41ed3aa96806e74c729444d7c121d90e6660a6aed01d298e03fde475a0.txt",
+          "label": "LICENSE-MIT",
+          "sha256": "b1d6df41ed3aa96806e74c729444d7c121d90e6660a6aed01d298e03fde475a0",
+          "source_commit": "97c3bb9b2363c0b46ac1633858bf1054fd02a980",
+          "source_url": "https://github.com/RustAudio/dasp/blob/97c3bb9b2363c0b46ac1633858bf1054fd02a980/LICENSE-MIT"
+        },
+        {
+          "bytes": 561,
+          "file": "texts/756c8d2ab2dc24f256e1455b5f03937f4933d83d7bc9f2d55009fc962377d512.txt",
+          "label": "LICENSE-APACHE",
+          "sha256": "756c8d2ab2dc24f256e1455b5f03937f4933d83d7bc9f2d55009fc962377d512",
+          "source_commit": "97c3bb9b2363c0b46ac1633858bf1054fd02a980",
+          "source_url": "https://github.com/RustAudio/dasp/blob/97c3bb9b2363c0b46ac1633858bf1054fd02a980/LICENSE-APACHE"
+        }
+      ],
+      "name": "dasp_sample",
+      "notes": [
+        "Declared RustAudio/sample repository redirects to RustAudio/dasp at the identical pinned commit.",
+        "LICENSE-MIT is full original MIT text, copyright 2016 RustAudio Developers. The original LICENSE-APACHE is an Apache application notice, not the complete license. An MIT notice path is available under the declared OR alternative; do not treat the Apache notice alone as the full terms."
+      ],
+      "published_manifest_sha256": "a9debe8da6eca434f82d04bc9ba0df2b84a5ae18b1981ecc7d0781a3c6d5bab3",
+      "status": "verified-upstream-supplement",
+      "vcs_commit": "97c3bb9b2363c0b46ac1633858bf1054fd02a980",
+      "version": "0.11.0"
+    },
+    {
+      "archive_sha256": "1a95dfc23a2b4a9a2f5ab41d194f8bfda3cabec42af4e39f08c339eb2a0c124d",
+      "files": [
+        {
+          "bytes": 11358,
+          "file": "texts/cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30.txt",
+          "label": "LICENSE",
+          "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+          "source_commit": "ea503e8d5fb6d73c6030e6191ce738cd3bf3433e",
+          "source_url": "https://github.com/rust-windowing/gl-rs/blob/ea503e8d5fb6d73c6030e6191ce738cd3bf3433e/LICENSE"
+        },
+        {
+          "archive_member": "generators/debug_struct_gen.rs",
+          "archive_source_sha256": "6fecccf8e57d4be93ea2657328d6e111ca44bc69542a5522cd7360d80ca64630",
+          "byte_range": [
+            0,
+            621
+          ],
+          "bytes": 621,
+          "file": "texts/7eb15307bafc2e83b48490a5a4f1024f860d00c98b173fb5b8fa11e4e6692a31.txt",
+          "label": "generators/debug_struct_gen.rs",
+          "sha256": "7eb15307bafc2e83b48490a5a4f1024f860d00c98b173fb5b8fa11e4e6692a31",
+          "source_commit": "ea503e8d5fb6d73c6030e6191ce738cd3bf3433e",
+          "source_url": "https://github.com/rust-windowing/gl-rs/blob/ea503e8d5fb6d73c6030e6191ce738cd3bf3433e/gl_generator/generators/debug_struct_gen.rs"
+        },
+        {
+          "archive_member": "generators/global_gen.rs",
+          "archive_source_sha256": "1696013af16bb92a3fa7cf3802a57ec6f7ba460322ede33aa2af30fc9911bd98",
+          "byte_range": [
+            0,
+            621
+          ],
+          "bytes": 621,
+          "file": "texts/7eb15307bafc2e83b48490a5a4f1024f860d00c98b173fb5b8fa11e4e6692a31.txt",
+          "label": "generators/global_gen.rs",
+          "sha256": "7eb15307bafc2e83b48490a5a4f1024f860d00c98b173fb5b8fa11e4e6692a31",
+          "source_commit": "ea503e8d5fb6d73c6030e6191ce738cd3bf3433e",
+          "source_url": "https://github.com/rust-windowing/gl-rs/blob/ea503e8d5fb6d73c6030e6191ce738cd3bf3433e/gl_generator/generators/global_gen.rs"
+        },
+        {
+          "archive_member": "generators/mod.rs",
+          "archive_source_sha256": "100a1da965bf11eaa9fad48a06c7856b60f48363a4a707e34ba97938bedae0b8",
+          "byte_range": [
+            0,
+            621
+          ],
+          "bytes": 621,
+          "file": "texts/7eb15307bafc2e83b48490a5a4f1024f860d00c98b173fb5b8fa11e4e6692a31.txt",
+          "label": "generators/mod.rs",
+          "sha256": "7eb15307bafc2e83b48490a5a4f1024f860d00c98b173fb5b8fa11e4e6692a31",
+          "source_commit": "ea503e8d5fb6d73c6030e6191ce738cd3bf3433e",
+          "source_url": "https://github.com/rust-windowing/gl-rs/blob/ea503e8d5fb6d73c6030e6191ce738cd3bf3433e/gl_generator/generators/mod.rs"
+        },
+        {
+          "archive_member": "generators/static_gen.rs",
+          "archive_source_sha256": "925a9401e27358a466baadfb660056a24394cf2fa21f5613e2d7f50ab8935e71",
+          "byte_range": [
+            0,
+            621
+          ],
+          "bytes": 621,
+          "file": "texts/7eb15307bafc2e83b48490a5a4f1024f860d00c98b173fb5b8fa11e4e6692a31.txt",
+          "label": "generators/static_gen.rs",
+          "sha256": "7eb15307bafc2e83b48490a5a4f1024f860d00c98b173fb5b8fa11e4e6692a31",
+          "source_commit": "ea503e8d5fb6d73c6030e6191ce738cd3bf3433e",
+          "source_url": "https://github.com/rust-windowing/gl-rs/blob/ea503e8d5fb6d73c6030e6191ce738cd3bf3433e/gl_generator/generators/static_gen.rs"
+        },
+        {
+          "archive_member": "generators/static_struct_gen.rs",
+          "archive_source_sha256": "eb08e6e59b0e0947c4ab263a0749efbb28430c5741634c413a2be011fcdad88f",
+          "byte_range": [
+            0,
+            621
+          ],
+          "bytes": 621,
+          "file": "texts/7eb15307bafc2e83b48490a5a4f1024f860d00c98b173fb5b8fa11e4e6692a31.txt",
+          "label": "generators/static_struct_gen.rs",
+          "sha256": "7eb15307bafc2e83b48490a5a4f1024f860d00c98b173fb5b8fa11e4e6692a31",
+          "source_commit": "ea503e8d5fb6d73c6030e6191ce738cd3bf3433e",
+          "source_url": "https://github.com/rust-windowing/gl-rs/blob/ea503e8d5fb6d73c6030e6191ce738cd3bf3433e/gl_generator/generators/static_struct_gen.rs"
+        },
+        {
+          "archive_member": "generators/struct_gen.rs",
+          "archive_source_sha256": "fa1bcda4501a597922be7c7ef4ad13738536a9c97529996671e264acd709c680",
+          "byte_range": [
+            0,
+            621
+          ],
+          "bytes": 621,
+          "file": "texts/7eb15307bafc2e83b48490a5a4f1024f860d00c98b173fb5b8fa11e4e6692a31.txt",
+          "label": "generators/struct_gen.rs",
+          "sha256": "7eb15307bafc2e83b48490a5a4f1024f860d00c98b173fb5b8fa11e4e6692a31",
+          "source_commit": "ea503e8d5fb6d73c6030e6191ce738cd3bf3433e",
+          "source_url": "https://github.com/rust-windowing/gl-rs/blob/ea503e8d5fb6d73c6030e6191ce738cd3bf3433e/gl_generator/generators/struct_gen.rs"
+        },
+        {
+          "archive_member": "lib.rs",
+          "archive_source_sha256": "6f47da878479b503b5202bda84ad8935607264ac03c0b68203109fad9cd479db",
+          "byte_range": [
+            0,
+            621
+          ],
+          "bytes": 621,
+          "file": "texts/7eb15307bafc2e83b48490a5a4f1024f860d00c98b173fb5b8fa11e4e6692a31.txt",
+          "label": "lib.rs",
+          "sha256": "7eb15307bafc2e83b48490a5a4f1024f860d00c98b173fb5b8fa11e4e6692a31",
+          "source_commit": "ea503e8d5fb6d73c6030e6191ce738cd3bf3433e",
+          "source_url": "https://github.com/rust-windowing/gl-rs/blob/ea503e8d5fb6d73c6030e6191ce738cd3bf3433e/gl_generator/lib.rs"
+        },
+        {
+          "archive_member": "registry/mod.rs",
+          "archive_source_sha256": "84eed5c113b322e5267b2b130987e6bb726b4e7c38ce50292cd6cc57b8e06994",
+          "byte_range": [
+            0,
+            626
+          ],
+          "bytes": 626,
+          "file": "texts/b185f94aadadfc7d2ddcb32b94c39d84e38cbcef2d8b6ee603ad4d0072802d94.txt",
+          "label": "registry/mod.rs",
+          "sha256": "b185f94aadadfc7d2ddcb32b94c39d84e38cbcef2d8b6ee603ad4d0072802d94",
+          "source_commit": "ea503e8d5fb6d73c6030e6191ce738cd3bf3433e",
+          "source_url": "https://github.com/rust-windowing/gl-rs/blob/ea503e8d5fb6d73c6030e6191ce738cd3bf3433e/gl_generator/registry/mod.rs"
+        },
+        {
+          "archive_member": "registry/parse.rs",
+          "archive_source_sha256": "5cb781082014f143b06ef7d3678f3c4ca59133a5732d4e136fd750b78fb9453f",
+          "byte_range": [
+            0,
+            621
+          ],
+          "bytes": 621,
+          "file": "texts/7eb15307bafc2e83b48490a5a4f1024f860d00c98b173fb5b8fa11e4e6692a31.txt",
+          "label": "registry/parse.rs",
+          "sha256": "7eb15307bafc2e83b48490a5a4f1024f860d00c98b173fb5b8fa11e4e6692a31",
+          "source_commit": "ea503e8d5fb6d73c6030e6191ce738cd3bf3433e",
+          "source_url": "https://github.com/rust-windowing/gl-rs/blob/ea503e8d5fb6d73c6030e6191ce738cd3bf3433e/gl_generator/registry/parse.rs"
+        }
+      ],
+      "name": "gl_generator",
+      "notes": [
+        "Declared brendanzab/gl-rs repository redirects to rust-windowing/gl-rs at the identical pinned commit.",
+        "Original copyright headers are preserved verbatim from the checksum-verified crate, with matching immutable upstream Git blob hashes."
+      ],
+      "published_manifest_sha256": "4daaaac088657de6c5b6223ca9f890b8b5621f073068c65c0d759b0625d36280",
+      "status": "verified-upstream-supplement",
+      "vcs_commit": "ea503e8d5fb6d73c6030e6191ce738cd3bf3433e",
+      "version": "0.14.0"
+    },
+    {
+      "archive_sha256": "e2db585e1d738fc771bf08a151420d3ed193d9d895a36df7f6f8a9456b911ddc",
+      "files": [
+        {
+          "bytes": 11358,
+          "file": "texts/cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30.txt",
+          "label": "LICENSE",
+          "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+          "source_commit": "f150967b1c44ae888e6676f93f639ebc82771bdc",
+          "source_url": "https://github.com/rust-windowing/gl-rs/blob/f150967b1c44ae888e6676f93f639ebc82771bdc/LICENSE"
+        },
+        {
+          "bytes": 1643,
+          "file": "texts/bf4da21bd20bcfb5b60b7ecc67fa864a79be049e21d6178076887f178dd6c71a.txt",
+          "label": "LICENSE",
+          "sha256": "bf4da21bd20bcfb5b60b7ecc67fa864a79be049e21d6178076887f178dd6c71a",
+          "source_commit": "7403dd2cd3764fe96660fe09892e764e9ae1dbca",
+          "source_url": "https://github.com/google/angle/blob/7403dd2cd3764fe96660fe09892e764e9ae1dbca/LICENSE"
+        },
+        {
+          "archive_member": "api/xml/gl.xml",
+          "archive_source_sha256": "7dae830ddacefd2af92aef2b438ff89f90fb5496f596dec8282b212eb4fc51e3",
+          "byte_range": [
+            63,
+            1039
+          ],
+          "bytes": 976,
+          "file": "texts/7da4f970dbddc732a045e82c6298655102cfdafe21db4f30635f0e8d8b5a215d.txt",
+          "label": "api/xml/gl.xml",
+          "sha256": "7da4f970dbddc732a045e82c6298655102cfdafe21db4f30635f0e8d8b5a215d",
+          "source_commit": "85d924a5165e7206f4c73c8c10307658dc2bbe10",
+          "source_url": "https://github.com/KhronosGroup/OpenGL-Registry/blob/85d924a5165e7206f4c73c8c10307658dc2bbe10/xml/gl.xml"
+        },
+        {
+          "archive_member": "api/xml/glx.xml",
+          "archive_source_sha256": "338cee03c97e78aa167dd667407ab973f4bc656c58cf9002aa54fa78b2f9ff32",
+          "byte_range": [
+            63,
+            1009
+          ],
+          "bytes": 946,
+          "file": "texts/bb6d1433171e4a2cba5241101f2ace3db9df3bdbdead10f1a7ed7dd8a4fc5cae.txt",
+          "label": "api/xml/glx.xml",
+          "sha256": "bb6d1433171e4a2cba5241101f2ace3db9df3bdbdead10f1a7ed7dd8a4fc5cae",
+          "source_commit": "85d924a5165e7206f4c73c8c10307658dc2bbe10",
+          "source_url": "https://github.com/KhronosGroup/OpenGL-Registry/blob/85d924a5165e7206f4c73c8c10307658dc2bbe10/xml/glx.xml"
+        },
+        {
+          "archive_member": "api/xml/wgl.xml",
+          "archive_source_sha256": "41e0a2182217b099b1628757956cb103cea9660e830f4d2f9fa07bf3a3679feb",
+          "byte_range": [
+            63,
+            1124
+          ],
+          "bytes": 1061,
+          "file": "texts/0e658e29afa1efb28879143fdba54dd347784b7b73ea0fe187d7ef5c26d1b435.txt",
+          "label": "api/xml/wgl.xml",
+          "sha256": "0e658e29afa1efb28879143fdba54dd347784b7b73ea0fe187d7ef5c26d1b435",
+          "source_commit": "85d924a5165e7206f4c73c8c10307658dc2bbe10",
+          "source_url": "https://github.com/KhronosGroup/OpenGL-Registry/blob/85d924a5165e7206f4c73c8c10307658dc2bbe10/xml/wgl.xml"
+        },
+        {
+          "archive_member": "api_angle/scripts/egl.xml",
+          "archive_source_sha256": "523fc17745545daca85c5b107b4a4c1a23dd3de39f70e499c77249e3dd6569ec",
+          "byte_range": [
+            58,
+            1215
+          ],
+          "bytes": 1157,
+          "file": "texts/2bb1070a6c73dfd28f509fa2d3380cc29999899bccd7487b29a0c88cc0270c02.txt",
+          "label": "api_angle/scripts/egl.xml",
+          "sha256": "2bb1070a6c73dfd28f509fa2d3380cc29999899bccd7487b29a0c88cc0270c02",
+          "source_commit": "7403dd2cd3764fe96660fe09892e764e9ae1dbca",
+          "source_url": "https://github.com/google/angle/blob/7403dd2cd3764fe96660fe09892e764e9ae1dbca/scripts/egl.xml"
+        },
+        {
+          "archive_member": "api_angle/scripts/egl_angle_ext.xml",
+          "archive_source_sha256": "98c60fa9fe46f50dd4e101c2262b4293adeeae48a18c39ad63dc085e639b6096",
+          "byte_range": [
+            63,
+            323
+          ],
+          "bytes": 260,
+          "file": "texts/fd2c1df341ac64aec9985e49a334f2f380f1af393e5a5f9052e7b4bb6ec8cecb.txt",
+          "label": "api_angle/scripts/egl_angle_ext.xml",
+          "sha256": "fd2c1df341ac64aec9985e49a334f2f380f1af393e5a5f9052e7b4bb6ec8cecb",
+          "source_commit": "7403dd2cd3764fe96660fe09892e764e9ae1dbca",
+          "source_url": "https://github.com/google/angle/blob/7403dd2cd3764fe96660fe09892e764e9ae1dbca/scripts/egl_angle_ext.xml"
+        },
+        {
+          "archive_member": "api_angle/scripts/gl.xml",
+          "archive_source_sha256": "baac3f2e27b4949773f4ee2e6ed8e43a2ae96a428b9d73ae9d1e9c0c404cae1f",
+          "byte_range": [
+            63,
+            1039
+          ],
+          "bytes": 976,
+          "file": "texts/7da4f970dbddc732a045e82c6298655102cfdafe21db4f30635f0e8d8b5a215d.txt",
+          "label": "api_angle/scripts/gl.xml",
+          "sha256": "7da4f970dbddc732a045e82c6298655102cfdafe21db4f30635f0e8d8b5a215d",
+          "source_commit": "7403dd2cd3764fe96660fe09892e764e9ae1dbca",
+          "source_url": "https://github.com/google/angle/blob/7403dd2cd3764fe96660fe09892e764e9ae1dbca/scripts/gl.xml"
+        },
+        {
+          "archive_member": "api_angle/scripts/gl_angle_ext.xml",
+          "archive_source_sha256": "dcf1ca2ce9536bd2ea6cab6e93ce0a37821793a9ed12f280f005a3459e2905e8",
+          "byte_range": [
+            63,
+            322
+          ],
+          "bytes": 259,
+          "file": "texts/ce088b39d012e76928f81935bc2db10070cc0b8604b161feddf5e6ee7c5dad1b.txt",
+          "label": "api_angle/scripts/gl_angle_ext.xml",
+          "sha256": "ce088b39d012e76928f81935bc2db10070cc0b8604b161feddf5e6ee7c5dad1b",
+          "source_commit": "7403dd2cd3764fe96660fe09892e764e9ae1dbca",
+          "source_url": "https://github.com/google/angle/blob/7403dd2cd3764fe96660fe09892e764e9ae1dbca/scripts/gl_angle_ext.xml"
+        },
+        {
+          "archive_member": "api_angle/scripts/wgl.xml",
+          "archive_source_sha256": "41e0a2182217b099b1628757956cb103cea9660e830f4d2f9fa07bf3a3679feb",
+          "byte_range": [
+            63,
+            1124
+          ],
+          "bytes": 1061,
+          "file": "texts/0e658e29afa1efb28879143fdba54dd347784b7b73ea0fe187d7ef5c26d1b435.txt",
+          "label": "api_angle/scripts/wgl.xml",
+          "sha256": "0e658e29afa1efb28879143fdba54dd347784b7b73ea0fe187d7ef5c26d1b435",
+          "source_commit": "7403dd2cd3764fe96660fe09892e764e9ae1dbca",
+          "source_url": "https://github.com/google/angle/blob/7403dd2cd3764fe96660fe09892e764e9ae1dbca/scripts/wgl.xml"
+        },
+        {
+          "archive_member": "api_egl/api/egl.xml",
+          "archive_source_sha256": "523fc17745545daca85c5b107b4a4c1a23dd3de39f70e499c77249e3dd6569ec",
+          "byte_range": [
+            58,
+            1215
+          ],
+          "bytes": 1157,
+          "file": "texts/2bb1070a6c73dfd28f509fa2d3380cc29999899bccd7487b29a0c88cc0270c02.txt",
+          "label": "api_egl/api/egl.xml",
+          "sha256": "2bb1070a6c73dfd28f509fa2d3380cc29999899bccd7487b29a0c88cc0270c02",
+          "source_commit": "b6b558e7042d67fc7543383bb0e13a075f21d8ab",
+          "source_url": "https://github.com/KhronosGroup/EGL-Registry/blob/b6b558e7042d67fc7543383bb0e13a075f21d8ab/api/egl.xml"
+        },
+        {
+          "archive_member": "api_webgl/specs/latest/1.0/webgl.idl",
+          "archive_source_sha256": "9bd8707845fb68ff349f95b320582160423ee4cdf47294cbd980933b3b25dae9",
+          "byte_range": [
+            0,
+            1315
+          ],
+          "bytes": 1315,
+          "file": "texts/0976403647ef6c51ad03594182c7b72588a167fd56feb1fc530f55534a597b20.txt",
+          "label": "api_webgl/specs/latest/1.0/webgl.idl",
+          "sha256": "0976403647ef6c51ad03594182c7b72588a167fd56feb1fc530f55534a597b20",
+          "source_commit": "c987f075bfdca44119175c41f547d849c08983a3",
+          "source_url": "https://github.com/KhronosGroup/WebGL/blob/c987f075bfdca44119175c41f547d849c08983a3/specs/latest/1.0/webgl.idl"
+        },
+        {
+          "archive_member": "api_webgl/specs/latest/2.0/webgl2.idl",
+          "archive_source_sha256": "4e9ba68c298e76e85f312f86d474975da4ce656e35c2ad4a8c706437d50253a1",
+          "byte_range": [
+            0,
+            1315
+          ],
+          "bytes": 1315,
+          "file": "texts/0976403647ef6c51ad03594182c7b72588a167fd56feb1fc530f55534a597b20.txt",
+          "label": "api_webgl/specs/latest/2.0/webgl2.idl",
+          "sha256": "0976403647ef6c51ad03594182c7b72588a167fd56feb1fc530f55534a597b20",
+          "source_commit": "c987f075bfdca44119175c41f547d849c08983a3",
+          "source_url": "https://github.com/KhronosGroup/WebGL/blob/c987f075bfdca44119175c41f547d849c08983a3/specs/latest/2.0/webgl2.idl"
+        },
+        {
+          "archive_member": "build.rs",
+          "archive_source_sha256": "88b55daa5f6f0c90e1ab906c08b74834671316bdadc88d7cc25adfa19fc57e62",
+          "byte_range": [
+            0,
+            621
+          ],
+          "bytes": 621,
+          "file": "texts/7eb15307bafc2e83b48490a5a4f1024f860d00c98b173fb5b8fa11e4e6692a31.txt",
+          "label": "build.rs",
+          "sha256": "7eb15307bafc2e83b48490a5a4f1024f860d00c98b173fb5b8fa11e4e6692a31",
+          "source_commit": "f150967b1c44ae888e6676f93f639ebc82771bdc",
+          "source_url": "https://github.com/rust-windowing/gl-rs/blob/f150967b1c44ae888e6676f93f639ebc82771bdc/khronos_api/build.rs"
+        },
+        {
+          "archive_member": "src/lib.rs",
+          "archive_source_sha256": "befbc0e187097e6c9da1ecbd79e0e1af462b6f6466108247745f6aa38abe0673",
+          "byte_range": [
+            0,
+            621
+          ],
+          "bytes": 621,
+          "file": "texts/7eb15307bafc2e83b48490a5a4f1024f860d00c98b173fb5b8fa11e4e6692a31.txt",
+          "label": "src/lib.rs",
+          "sha256": "7eb15307bafc2e83b48490a5a4f1024f860d00c98b173fb5b8fa11e4e6692a31",
+          "source_commit": "f150967b1c44ae888e6676f93f639ebc82771bdc",
+          "source_url": "https://github.com/rust-windowing/gl-rs/blob/f150967b1c44ae888e6676f93f639ebc82771bdc/khronos_api/src/lib.rs"
+        }
+      ],
+      "name": "khronos_api",
+      "notes": [
+        "Declared brendanzab/gl-rs repository redirects to rust-windowing/gl-rs at the identical pinned commit.",
+        "Original copyright headers are preserved verbatim from the checksum-verified crate, with matching immutable upstream Git blob hashes.",
+        "Package Apache-2.0 text does not cover every embedded source notice. Include original Khronos EGL/WebGL MIT-style notices and ANGLE BSD-style LICENSE/attribution for included source portions. Exact source and submodule pin evidence is attached."
+      ],
+      "published_manifest_sha256": "4a1ac66b226935a2ce69cca4c1c56be36cea83a5da382514db5ea967568e3ca9",
+      "status": "verified-upstream-supplement",
+      "submodule_pins": {
+        "license_and_notice_files": [
+          {
+            "mode": "100644",
+            "path": "LICENSE",
+            "sha": "d645695673349e3947e8e5ae42332d0ac3164cd7",
+            "size": 11358,
+            "type": "blob",
+            "url": "https://api.github.com/repos/rust-windowing/gl-rs/git/blobs/d645695673349e3947e8e5ae42332d0ac3164cd7"
+          }
+        ],
+        "sha": "f150967b1c44ae888e6676f93f639ebc82771bdc",
+        "source_url": "https://api.github.com/repos/rust-windowing/gl-rs/git/trees/f150967b1c44ae888e6676f93f639ebc82771bdc?recursive=1",
+        "submodules": [
+          {
+            "mode": "160000",
+            "path": "khronos_api/api",
+            "sha": "85d924a5165e7206f4c73c8c10307658dc2bbe10",
+            "type": "commit"
+          },
+          {
+            "mode": "160000",
+            "path": "khronos_api/api_angle",
+            "sha": "7403dd2cd3764fe96660fe09892e764e9ae1dbca",
+            "type": "commit"
+          },
+          {
+            "mode": "160000",
+            "path": "khronos_api/api_egl",
+            "sha": "b6b558e7042d67fc7543383bb0e13a075f21d8ab",
+            "type": "commit"
+          },
+          {
+            "mode": "160000",
+            "path": "khronos_api/api_webgl",
+            "sha": "c987f075bfdca44119175c41f547d849c08983a3",
+            "type": "commit"
+          }
+        ],
+        "truncated": false
+      },
+      "vcs_commit": "f150967b1c44ae888e6676f93f639ebc82771bdc",
+      "version": "3.1.0"
+    },
+    {
+      "archive_sha256": "3d595e54a326bc53c1c197b32d295e14b169e3cfeaa8dc82b529f947fba6bcf5",
+      "files": [
+        {
+          "bytes": 1093,
+          "file": "texts/c8167fdeeed46d3f244d3f85c5bf998ce889343691c32be2c61a8bc4b5c08333.txt",
+          "label": "LICENSE-MIT",
+          "sha256": "c8167fdeeed46d3f244d3f85c5bf998ce889343691c32be2c61a8bc4b5c08333",
+          "source_commit": "8271551172eb6fa4cba47369aedd93790c623df9",
+          "source_url": "https://github.com/aclysma/profiling/blob/8271551172eb6fa4cba47369aedd93790c623df9/LICENSE-MIT"
+        },
+        {
+          "bytes": 10818,
+          "file": "texts/10d30a673cd5e9349bdc02aeb48f14b3386d27d0da32df8f0a555d4aa16aa551.txt",
+          "label": "LICENSE-APACHE",
+          "sha256": "10d30a673cd5e9349bdc02aeb48f14b3386d27d0da32df8f0a555d4aa16aa551",
+          "source_commit": "8271551172eb6fa4cba47369aedd93790c623df9",
+          "source_url": "https://github.com/aclysma/profiling/blob/8271551172eb6fa4cba47369aedd93790c623df9/LICENSE-APACHE"
+        }
+      ],
+      "name": "profiling",
+      "notes": [],
+      "published_manifest_sha256": "5c2cc51af406c9e636730400d7fd1293c3cc3ef294421113c6af826bb2d47c1b",
+      "status": "verified-upstream-supplement",
+      "vcs_commit": "8271551172eb6fa4cba47369aedd93790c623df9",
+      "version": "1.0.18"
+    },
+    {
+      "archive_sha256": "5a651516ddc9168ebd67b24afd085a718be02f8858fe406591b013d101ce2f40",
+      "caveat": "Pre-existing baseline notice retained unchanged. The exact package and upstream commit declare MIT but supply no original package-specific license/copyright text; this collection does not certify that attribution.",
+      "files": [],
+      "issue_url": "https://github.com/not-fl3/quad-rand/issues/8",
+      "name": "quad-rand",
+      "notes": [],
+      "published_manifest_sha256": "60092baea1bef1ba148b5e91cfdb7c25326ceb4edbed86cdf5bc23a80e22c808",
+      "status": "preserved-baseline-unresolved",
+      "vcs_commit": "e110e57ea050a48c6a04d821fa3963c3b6d0f9d0",
+      "version": "0.2.3"
+    },
+    {
+      "archive_sha256": "d9571ea910ebd84c86af4b3ed27f9dbdc6ad06f17c5f96146b2b671e2976744f",
+      "files": [
+        {
+          "bytes": 11358,
+          "file": "texts/cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30.txt",
+          "label": "LICENSE",
+          "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+          "source_commit": "8afc3d0ac8e158128cd1410bb2e4b4c26ab11bb4",
+          "source_url": "https://github.com/gfx-rs/rspirv/blob/8afc3d0ac8e158128cd1410bb2e4b4c26ab11bb4/LICENSE"
+        },
+        {
+          "bytes": 23503,
+          "file": "texts/ea43b1de38a6f90c488800d66dec1ed671e68cda530266bc96951fb5b6307613.txt",
+          "label": "LICENSE",
+          "sha256": "ea43b1de38a6f90c488800d66dec1ed671e68cda530266bc96951fb5b6307613",
+          "source_commit": "04f10f650d514df88b76d25e83db360142c7b174",
+          "source_url": "https://github.com/KhronosGroup/SPIRV-Headers/blob/04f10f650d514df88b76d25e83db360142c7b174/LICENSE"
+        }
+      ],
+      "generated_source_evidence": {
+        "blob_verified": true,
+        "crate_source_sha256": "2260b34bd7b8a757be33f835ecc7431f7b791c39e9fa30a0acf47c03ae60b436",
+        "source_header": "// AUTOMATICALLY GENERATED from the SPIR-V JSON grammar:\n//   external/spirv.core.grammar.json.\n// DO NOT MODIFY!",
+        "upstream_blob": {
+          "mode": "100644",
+          "path": "spirv/autogen_spirv.rs",
+          "sha": "ca7fc4514ec50b0d8c37479831628ee48473638b",
+          "size": 250588,
+          "type": "blob",
+          "url": "https://api.github.com/repos/gfx-rs/rspirv/git/blobs/ca7fc4514ec50b0d8c37479831628ee48473638b"
+        }
+      },
+      "name": "spirv",
+      "notes": [
+        "Original rspirv root Apache-2.0 license verified at crate VCS commit. Its generic Appendix placeholder is original upstream text, not an attributed author notice.",
+        "The exact rspirv commit pins SPIRV-Headers at 04f10f650d514df88b76d25e83db360142c7b174 and identifies the generated grammar source. SPIRV-Headers-LICENSE is the original complete multi-component file; NOTICE-SPIRV-Headers-general.txt is only its verbatim first grant section, applicable to files not separately called out. The other sections concern XML/JsonCpp/documentation and should not be mislabeled as Rust crate licenses."
+      ],
+      "published_manifest_sha256": "4d19e7aaeba0b0dd52eaa00bb592dfc6015813385fc47badcee396c353cc1d61",
+      "status": "verified-upstream-supplement",
+      "submodule_pins": {
+        "license_and_notice_files": [
+          {
+            "mode": "100644",
+            "path": "LICENSE",
+            "sha": "d645695673349e3947e8e5ae42332d0ac3164cd7",
+            "size": 11358,
+            "type": "blob",
+            "url": "https://api.github.com/repos/gfx-rs/rspirv/git/blobs/d645695673349e3947e8e5ae42332d0ac3164cd7"
+          }
+        ],
+        "sha": "8afc3d0ac8e158128cd1410bb2e4b4c26ab11bb4",
+        "source_url": "https://api.github.com/repos/gfx-rs/rspirv/git/trees/8afc3d0ac8e158128cd1410bb2e4b4c26ab11bb4?recursive=1",
+        "submodules": [
+          {
+            "mode": "160000",
+            "path": "autogen/external/SPIRV-Headers",
+            "sha": "04f10f650d514df88b76d25e83db360142c7b174",
+            "type": "commit"
+          }
+        ],
+        "truncated": false
+      },
+      "vcs_commit": "8afc3d0ac8e158128cd1410bb2e4b4c26ab11bb4",
+      "version": "0.4.0+sdk-1.4.341.0"
+    }
+  ],
+  "schema": "rust-duty-game-notice-supplements/v1"
+}

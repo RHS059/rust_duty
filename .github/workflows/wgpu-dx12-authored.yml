@@ -92,6 +92,7 @@ jobs:
           cargo build --locked --release --no-default-features --features wgpu-runtime
           --bin vector-range --example renderer_contract
       - name: Capture authored DX12 WARP replays and run existing strict checks
+        timeout-minutes: 95
         run: >-
           python tools/run_dx12_authored.py
           --executable target/release/vector-range.exe

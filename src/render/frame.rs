@@ -21,6 +21,7 @@ impl WgpuRenderer {
             list.width,
             list.height,
         )?;
+        self.gpu.check_errors()?;
         validate(list, &self.gpu.device.limits())?;
         let error_scope = self
             .gpu
@@ -31,6 +32,7 @@ impl WgpuRenderer {
         if let Some(error) = validation {
             return Err(format!("frame validation: {error}"));
         }
+        self.gpu.check_errors()?;
         let (readbacks, presentation) = encoded?;
         let mut output = FrameOutput::default();
         for readback in readbacks {
@@ -39,6 +41,7 @@ impl WgpuRenderer {
         if let Some(presentation) = presentation {
             self.gpu.queue.present(presentation);
         }
+        self.gpu.check_errors()?;
         Ok(output)
     }
     fn encode_frame(

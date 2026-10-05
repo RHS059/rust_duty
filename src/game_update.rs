@@ -47,7 +47,13 @@ impl UpdateLayout {
             FlowBand::new(161., 197., &[(update_style(UiClass::Button), 19.)]),
         ];
         let content_height = flow_y(if startup { 220. } else { 150. }, &bands);
-        let scale = ((height - 32.).max(1.) / content_height).min(1.);
+        // Keep the usual margins where possible, while even a sub-margin
+        // nonzero viewport must contain the panel and its interactive controls.
+        let available_width = (width - 32.).max(1.).min(width);
+        let available_height = (height - 32.).max(1.).min(height);
+        let scale = (available_height / content_height)
+            .min(available_width / content_width)
+            .min(1.);
         let panel_width = content_width * scale;
         let panel_height = content_height * scale;
         let area = if startup {
@@ -58,7 +64,12 @@ impl UpdateLayout {
                 panel_height,
             )
         } else {
-            Rect::new(18., 18., panel_width, panel_height)
+            Rect::new(
+                18_f32.min((width - panel_width).max(0.)),
+                18_f32.min((height - panel_height).max(0.)),
+                panel_width,
+                panel_height,
+            )
         };
         Self {
             area,
@@ -716,6 +727,123 @@ mod tests {
                 "unexpected warning classification for {phase:?}"
             );
             assert!(update_warning(Some("action failed"), Some(&snapshot)));
+        }
+    }
+}
+
+#[cfg(test)]
+mod dpi_geometry_tests {
+    use super::*;
+    use vector_range::draw::Command;
+
+    struct ThemeReset;
+    impl Drop for ThemeReset {
+        fn drop(&mut self) {
+            ui_theme::set_theme(ui_theme::UiTheme::default());
+        }
+    }
+
+    #[test]
+    fn narrow_updater_panels_and_controls_fit_inside_the_logical_viewport() {
+        let _reset = ThemeReset;
+        for css in [
+            "",
+            "#updater-panel .button {font-size:25.5px;border-width:3.25px}",
+        ] {
+            ui_theme::set_theme(ui_theme::UiTheme::parse("narrow.css", css).unwrap());
+            for dpi in [1., 1.25, 1.5, 1.75, 2.] {
+                for (physical_width, physical_height) in [
+                    (1, 1),
+                    (1, 800),
+                    (800, 1),
+                    (16, 16),
+                    (16, 800),
+                    (800, 16),
+                    (32, 32),
+                    (32, 800),
+                    (800, 32),
+                    (200, 800),
+                    (320, 480),
+                    (1000, 160),
+                ] {
+                    let width = physical_width as f32 / dpi;
+                    let height = physical_height as f32 / dpi;
+                    let viewport = Rect::new(0., 0., width, height);
+                    for startup in [false, true] {
+                        let layout = UpdateLayout::new(width, height, startup);
+                        for rect in [
+                            layout.area,
+                            layout.action_button(0),
+                            layout.action_button(1),
+                            layout.retry_button(),
+                        ]
+                        .into_iter()
+                        .chain(startup.then(|| layout.continue_button()))
+                        {
+                            assert!(
+                                viewport.contains(vec2(rect.x, rect.y)),
+                                "{dpi}x startup={startup}: {rect:?} outside {viewport:?}"
+                            );
+                            assert!(
+                                viewport.contains(vec2(rect.x + rect.w, rect.y + rect.h)),
+                                "{dpi}x startup={startup}: {rect:?} outside {viewport:?}"
+                            );
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn fractional_updater_button_paint_matches_capture_and_click_bounds() {
+        let _reset = ThemeReset;
+        ui_theme::set_theme(ui_theme::UiTheme::parse("fractional.css",
+            "#updater-panel .button {font-size:25.5px;background-color:#123456;border-width:3.25px}").unwrap());
+        for dpi in [1., 1.25, 1.5, 1.75, 2.] {
+            let scale = dpi as f32;
+            for startup in [false, true] {
+                let layout = UpdateLayout::new(320. / scale, 480. / scale, startup);
+                for button in [
+                    layout.action_button(0),
+                    layout.action_button(1),
+                    layout.retry_button(),
+                ]
+                .into_iter()
+                .chain(startup.then(|| layout.continue_button()))
+                {
+                    begin_frame(320, 480, dpi).unwrap();
+                    layout.button(button, "Retry update check", 17., vec2(10., 21.), WHITE);
+                    let list = take_draw_list().unwrap();
+                    let rectangles: Vec<_> = list
+                        .commands
+                        .iter()
+                        .filter_map(|command| match command {
+                            Command::Rect { rect, .. } => Some(*rect),
+                            _ => None,
+                        })
+                        .collect();
+                    assert_eq!(rectangles.len(), 5);
+                    let painted = rectangles[0];
+                    for inset in &rectangles[1..] {
+                        // Independently raster-scaled edges can differ by a few
+                        // floating-point ulps; allow less than 1/1000 pixel.
+                        assert!(inset.x >= painted.x - 0.001 && inset.y >= painted.y - 0.001);
+                        assert!(inset.x + inset.w <= painted.x + painted.w + 0.001);
+                        assert!(inset.y + inset.h <= painted.y + painted.h + 0.001);
+                    }
+                    let pointer =
+                        vec2(painted.x + painted.w / 2., painted.y + painted.h - 0.25) / scale;
+                    assert!(button.contains(pointer));
+                    let mut capture = PointerCapture::default();
+                    assert!(capture.step(true, true, layout.area.contains(pointer), true, true));
+                    assert!(capture.step(true, true, false, false, true));
+                    assert!(!capture.step(true, true, false, false, false));
+                    let outside =
+                        vec2(painted.x + painted.w + 0.25, painted.y + painted.h / 2.) / scale;
+                    assert!(!button.contains(outside));
+                }
+            }
         }
     }
 }
