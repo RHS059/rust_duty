@@ -16,6 +16,12 @@ class QualityChecksTests(unittest.TestCase):
         self.assertEqual(lanes['game'][0][-2:], ['-D', 'warnings'])
         self.assertIn('--release', lanes['game'][2])
 
+    def test_native_validation_retains_game_and_python_without_duplicate_updater(self):
+        lanes = checks.pipelines(native_validation=True)
+        self.assertEqual(set(lanes), {'game', 'python'})
+        self.assertEqual(lanes['game'], checks.pipelines()['game'])
+        self.assertEqual(lanes['python'], checks.pipelines()['python'])
+
     def test_lanes_are_parallel_but_each_lane_is_ordered(self):
         barrier = threading.Barrier(3, timeout=5)
         seen = []

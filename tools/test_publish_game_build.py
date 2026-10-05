@@ -216,7 +216,7 @@ class PublicationTests(unittest.TestCase):
         self.output = self.root / "release"
         self.identity = identity.context(environment(), publication=True)
         self.github = FakeGitHub()
-        for platform, (_, executable, _, magic) in identity.TARGETS.items():
+        for platform, (_, executable, _, magic) in publish.DELIVERY_TARGETS.items():
             source = self.tested / platform
             source.mkdir(parents=True)
             (source / executable).write_bytes(magic + b"native fixture")
@@ -224,9 +224,9 @@ class PublicationTests(unittest.TestCase):
                 identity.stamp(source, platform, environment())
         with mock.patch.object(publish.package_game, "stage", side_effect=self.fixture_stage) as stage:
             self.provenance = publish.prepare(self.tested, self.output, self.identity)
-        self.assertEqual(stage.call_count, 4)
+        self.assertEqual(stage.call_count, 2)
         self.assertTrue(all(call.kwargs["require_generated"] for call in stage.call_args_list))
-        self.assertEqual(sum(call.kwargs.get("update", False) for call in stage.call_args_list), 2)
+        self.assertEqual(sum(call.kwargs.get("update", False) for call in stage.call_args_list), 1)
 
     @staticmethod
     def fixture_stage(source, executable, output, update=False, require_generated=False):
@@ -247,7 +247,7 @@ class PublicationTests(unittest.TestCase):
         release = self.github.api("releases", payload={"tag_name": "v" + version, "draft": True,
                                                        "prerelease": False, "target_commitish": "b" * 40})
         actual = self.github.releases[release["id"]]
-        for target, executable, _, _ in identity.TARGETS.values():
+        for target, executable, _, _ in publish.DELIVERY_TARGETS.values():
             bundle = b"legacy bundle"
             name = f"rust-duty-{version}-{target}.rdb"
             self.github.add_asset(actual, name, bundle)
@@ -261,9 +261,9 @@ class PublicationTests(unittest.TestCase):
         return actual
 
     def test_complete_assets_provenance_determinism_and_user_data_exclusion(self):
-        self.assertEqual(len(list(self.output.iterdir())), 9)
+        self.assertEqual(len(list(self.output.iterdir())), 5)
         self.assertEqual(self.provenance["source"], self.identity["source"])
-        for platform, (target, executable, label, _) in identity.TARGETS.items():
+        for platform, (target, executable, label, _) in publish.DELIVERY_TARGETS.items():
             manifest = json.loads((self.output / f"update-{target}.json").read_text())
             self.assertEqual(manifest["schema"], 1)
             self.assertEqual(manifest["version"], "0.1.7")
@@ -282,7 +282,7 @@ class PublicationTests(unittest.TestCase):
             self.assertEqual(path.read_bytes(), (again / path.name).read_bytes(), path.name)
 
     def test_wrong_source_artifact_and_missing_generated_assets_fail_closed(self):
-        (self.tested / "linux/vector-range").write_bytes(b"\x7fELFwrong run")
+        (self.tested / "windows/vector-range.exe").write_bytes(b"MZwrong run")
         with self.assertRaisesRegex(ValueError, "hash mismatch"):
             publish.prepare(self.tested, self.root / "bad", self.identity)
         self.assertFalse((self.root / "bad").exists())
@@ -291,7 +291,7 @@ class PublicationTests(unittest.TestCase):
                                        self.root / "bad-payload", update=True, require_generated=True)
 
     def test_artifact_identity_cannot_be_reused_from_a_different_source_run(self):
-        path = self.tested / "linux" / identity.IDENTITY_FILE
+        path = self.tested / "windows" / identity.IDENTITY_FILE
         data = json.loads(path.read_text())
         data["source"]["run_id"] += 1
         path.write_text(json.dumps(data))
@@ -312,13 +312,13 @@ class PublicationTests(unittest.TestCase):
     def test_publish_old_client_compatible_manifests_then_exact_retry_no_mutation(self):
         self.add_baseline()
         self.assertEqual(self.publish()["status"], "published")
-        self.assertEqual(len(self.github.uploads), 9)
+        self.assertEqual(len(self.github.uploads), 5)
         self.assertEqual(publish.latest_identity(self.github), {"version": "0.1.7", "sequence": 5})
         self.assertTrue(all(r.get("draft") is False for r in self.github.releases.values()))
         before = copy.deepcopy(self.github.writes)
         self.assertEqual(self.publish()["status"], "already-published")
         self.assertEqual(self.github.writes, before)
-        self.assertEqual(len(self.github.uploads), 9)
+        self.assertEqual(len(self.github.uploads), 5)
 
     def test_interrupted_draft_resumes_only_missing_assets(self):
         self.add_baseline()
@@ -329,8 +329,8 @@ class PublicationTests(unittest.TestCase):
         self.assertEqual(publish.latest_identity(self.github)["version"], "0.1.3")
         self.github.interrupt_after = None
         self.assertEqual(self.publish()["status"], "published")
-        self.assertEqual(len(self.github.uploads), 9)
-        self.assertEqual(len(set(self.github.uploads)), 9)
+        self.assertEqual(len(self.github.uploads), 5)
+        self.assertEqual(len(set(self.github.uploads)), 5)
 
     def test_out_of_order_older_run_cannot_regress_latest(self):
         self.add_baseline("0.1.8", 6)
@@ -343,18 +343,22 @@ class PublicationTests(unittest.TestCase):
             with self.subTest(version=version, sequence=sequence), self.assertRaises(ValueError):
                 publish.publication_order(self.identity, {"version": version, "sequence": sequence})
 
-    def test_mismatched_latest_platforms_and_missing_bundles_fail_closed(self):
+    def test_missing_windows_bundle_fails_closed(self):
         baseline = self.add_baseline()
-        manifest = next(a for a in baseline["assets"] if a["name"].startswith("update-"))
-        blob = json.loads(self.github.contents[manifest["id"]])
-        blob["sequence"] = 999
-        self.github.contents[manifest["id"]] = json.dumps(blob).encode()
-        with self.assertRaisesRegex(ValueError, "identities disagree"):
+        baseline['assets'] = [a for a in baseline['assets'] if not a['name'].endswith('.rdb')]
+        with self.assertRaisesRegex(ValueError, 'lacks complete update bundle'):
             self.publish()
         self.assertFalse(self.github.writes)
-        baseline["assets"] = [a for a in baseline["assets"] if not a["name"].endswith(".rdb")]
-        with self.assertRaisesRegex(ValueError, "lacks complete update bundle"):
-            self.publish()
+
+    def test_missing_linux_never_blocks_windows_and_old_assets_are_untouched(self):
+        baseline = self.add_baseline()
+        historical = self.github.add_asset(baseline, 'vector-range-linux-x64', b'historical Linux')
+        before = copy.deepcopy(historical)
+        self.assertEqual(self.publish()['status'], 'published')
+        self.assertEqual(historical, before)
+        self.assertEqual(self.github.contents[historical['id']], b'historical Linux')
+        self.assertFalse(any('linux' in name.lower() for name in self.github.uploads))
+        self.assertEqual(set(self.provenance['artifacts']), {'windows'})
 
     def test_existing_tag_on_other_commit_is_never_repointed(self):
         self.github.tags["v0.1.7"] = "b" * 40
@@ -423,7 +427,7 @@ class WorkflowTests(unittest.TestCase):
         self.assertNotIn("rust-duty-launcher", job)
         self.assertEqual(text.count("RUST_DUTY_BUILD_VERSION: '0.1.5'"), 1)
         self.assertIn("tools/build_identity.py --root dist/game --platform windows", text)
-        self.assertIn("tools/build_identity.py --root dist/game --platform linux", text)
+        self.assertNotIn("tools/build_identity.py --root dist/game --platform linux", text)
         build = text.split("  build:\n", 1)[1].split("  publish-game-update:\n", 1)[0]
         self.assertNotIn("RUST_DUTY_BUILD_VERSION:", build)
         self.assertIn("run: python tools/ci_quality_checks.py", build)

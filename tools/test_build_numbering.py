@@ -112,7 +112,7 @@ class BuildNumberingTests(unittest.TestCase):
         self.assertEqual(completed.stdout.strip(), identity.context(self.env)['display_version'])
         workflow = (Path(identity.__file__).resolve().parents[1]/'.github/workflows/build.yml').read_text()
         self.assertIn('Rust-Duty-${{ steps.identity.outputs.label }}-Windows-x64', workflow)
-        self.assertIn('Rust-Duty-${{ steps.identity.outputs.label }}-Linux-x64', workflow)
+        self.assertNotIn('Rust-Duty-${{ steps.identity.outputs.label }}-Linux-x64', workflow)
         self.assertIn("'!aella/release-channel'", workflow)
         self.assertIn('contents: read', workflow)
 

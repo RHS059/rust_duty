@@ -4,7 +4,7 @@ import re
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
-WORKFLOWS = ('build', 'blender-assets', 'walk-assets', 'directional-assets', 'ads-assets', 'jump-assets')
+WORKFLOWS = ('build', 'native-validation', 'blender-assets', 'walk-assets', 'directional-assets', 'ads-assets', 'jump-assets')
 STEP = re.compile(r'^      - [^\n]+\n(?:(?: {8,}[^\n]*| *)\n)*', re.M)
 
 
@@ -79,7 +79,7 @@ class AttemptArtifactContracts(unittest.TestCase):
                     self.assertNotIn('run-id:', block)  # Default scope is the current run.
                     self.assertNotIn('github-token:', block)
             # Source/hash validation is required before a generated output can be archived.
-            if workflow != 'build':
+            if workflow not in ('build', 'native-validation'):
                 self.assertIn('tools/check_generated_assets.py', text)
                 self.assertLess(text.index('tools/check_generated_assets.py'),
                                 min(item['position'] for item in uploads(workflow)
@@ -88,7 +88,7 @@ class AttemptArtifactContracts(unittest.TestCase):
 
     def test_game_aliases_are_gated_by_full_visible_numbered_downloads(self):
         items = uploads('build')
-        for platform, suffix in [('windows', 'Windows'), ('linux', 'Linux')]:
+        for platform, suffix in [('windows', 'Windows')]:
             archive = next(x for x in items if x['id'] == f'archive_game_{platform}')
             alias = next(x for x in items if x['name'] == f'vector-range-{platform}-x64')
             self.assertEqual(archive['name'], f'Rust-Duty-${{{{ steps.identity.outputs.label }}}}-{suffix}-x64')

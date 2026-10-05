@@ -15,8 +15,8 @@ import sys
 import time
 
 
-def pipelines(python=sys.executable):
-    return {
+def pipelines(python=sys.executable, *, native_validation=False):
+    lanes = {
         'python': [[python, '-m', 'unittest', 'discover', '-s', 'tools', '-p', 'test_*.py', '-v']],
         'game': [
             ['cargo', 'clippy', '--locked', '--all-targets', '--', '-D', 'warnings'],
@@ -29,6 +29,10 @@ def pipelines(python=sys.executable):
             ['cargo', 'test', '--manifest-path', 'updater/Cargo.toml', '--locked'],
         ],
     }
+
+    if native_validation:
+        del lanes['updater']  # Windows retains all updater checks; Linux only hosts native evidence.
+    return lanes
 
 
 def run_lane(name, commands, root, output, runner=None):
@@ -79,5 +83,10 @@ def run_all(root, output, lanes=None, runner=None):
 
 if __name__ == '__main__':
     root = Path(__file__).resolve().parents[1]
-    result = run_all(root, root / 'evidence/quality-checks')
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--native-validation', action='store_true')
+    args = parser.parse_args()
+    result = run_all(root, root / 'evidence/quality-checks',
+                     pipelines(native_validation=args.native_validation))
     raise SystemExit(0 if result['passed'] else 1)

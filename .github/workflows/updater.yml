@@ -12,8 +12,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-latest
-            artifact: rust-duty-launcher-linux
           - os: windows-latest
             artifact: rust-duty-launcher-windows
     runs-on: ${{ matrix.os }}
