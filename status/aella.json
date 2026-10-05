@@ -1,27 +1,27 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-05T01:22:25Z",
+  "updatedAt": "2026-10-05T01:33:30Z",
   "state": "working",
-  "task": "Trial correction of the four approved HIP walking directions on a copied BLEND, preserve actual Colab prone output and intake native low-vault frames, and finish unique build-number graphical validation. Coordinate mantle and general high-obstacle climb review. Public latest and Latest Complete remain verified v0.1.9 at eedd2910.",
-  "lastCompleted": "All six new videos annotated: 150 intervals cover 14,017 native frames; 1,135 sampled frames reviewed. PR #33 e4fdda48 pins witness hashes. Exact 0.1.8 Windows/Linux builds and native gameplay gates passed. Mantle/climb recovery packet published without claiming an authored candidate. Published v0.1.9 at 00:36:52 UTC: complete Windows/Linux packages and actual 0.1.8-to-0.1.9 delta activation, integrity, local-data preservation, game-entry update and same-path relaunch checks passed in run 37247568754.",
+  "task": "Prepare Windows-only delivery and combined 0.1.11 integration, trial the four approved HIP walking directions on a copied BLEND in Colab, and correct the low-vault free hand from actual native-frame review. Coordinate with Halcyon and review progress. Latest Complete and public latest remain verified v0.1.9.",
+  "lastCompleted": "All six new videos annotated: 150 intervals cover 14,017 native frames; 1,135 sampled frames reviewed. PR #33 e4fdda48 pins witness hashes. Exact 0.1.8 Windows/Linux builds and native gameplay gates passed. Mantle/climb recovery packet published without claiming an authored candidate. Published v0.1.9 at 00:36:52 UTC: complete Windows/Linux packages and actual 0.1.8-to-0.1.9 delta activation, integrity, local-data preservation, game-entry update and same-path relaunch checks passed in run 37247568754. PR #36 unique build numbering merged into the Jump integration branch at fe87a7745fd5096eeb740aacbf8a094c5794d34a. Actual CPU prone-entry Colab results and the 64-frame native vault review were reviewed; vault free-hand visual failure now drives the next correction.",
   "agents": [
     {
       "slot": 1,
       "state": "working",
-      "task": "Trial Colab walking corrections for the four approved HIP forward, backward, left and right directions on a copied BLEND.",
-      "lastCompleted": "The direct user-approved four-direction correction trial is active. Baseline checks are underway; actual Colab execution is pending handoff. No corrected output or artistic pass is claimed."
+      "task": "Make Windows-only build and publisher delivery and validate the next combined 0.1.11 integration.",
+      "lastCompleted": "PR #36 merged at fe87a7745fd5096eeb740aacbf8a094c5794d34a into aella/jump-r7-integration, not main. Post-merge playable build 37251363450 is in progress; updater 37251363116 completed successfully. Earlier uniquely numbered .1 Windows/Linux artifacts and .2 Linux artifact from run 37248407529 remain preserved. Windows-only build and publisher changes plus the next combined 0.1.11 integration tests are active; useful Linux-host testing remains in scope, with no future Linux deliverables. No 0.1.11 release is live."
     },
     {
       "slot": 2,
       "state": "working",
-      "task": "Preserve completed actual CPU prone-entry Colab output and intake the verified native low-vault review packet.",
-      "lastCompleted": "Actual CPU prone-entry run completed in https://colab.research.google.com/drive/1QJMzkXnyU6g_aDYnnYfyx9xiHpzogxW9 . Embedded result ZIP SHA-256 469005f8d9ecf49f23a4bb9d41e3eb6f32d9fd40c4cc5f9ceae6895123e8e26f is being preserved; score remains null. Low-vault PR #37 a126b6359483eeca62a7a1c22aabee1d6154657c now contains 64 genuine native 1280x720 Eevee frames and verified reconstruction evidence, replacing the earlier queued-capture status. Colab intake and actual vault pixel review are next; no artistic pass is claimed."
+      "task": "Trial Colab walking corrections for the four approved HIP directions on a copied BLEND.",
+      "lastCompleted": "The four approved HIP walking directions are being trialed on a copied BLEND. Local baseline checks passed across 1,452 subframes; no corrective change is justified by those baseline checks alone. Actual Colab notebook https://colab.research.google.com/drive/13t6LekgpJnziBnyeSqdOOvkIM6NRjaC9 was saved, but the browser ran out of memory before runtime allocation. Colab execution has not run; no corrected output or artistic pass is claimed."
     },
     {
       "slot": 3,
       "state": "working",
-      "task": "Finish unique build-number and native graphical validation after the successful live Linux rerun.",
-      "lastCompleted": "PR #36 remains 8a61fc98. Run 37248407529 attempt 2 completed successfully at 2026-10-05T01:21:53Z. Actual uniquely numbered Linux 0.1.9+build.37248407529.2 artifact 11320788618 is retained (106543831 bytes; API SHA-256 df2873e427e42e96cb048f02feb133ec1b04b2e790d33cb8730d90d6e45207c4). Original .1 Windows 11319858230 and Linux 11320995925 artifacts and immutable rustfmt archives for both attempts remain available. First-attempt Windows/Linux, all five authored asset pipelines, runtime contracts and updater checks passed. Graphical/native capture validation remains pending; this does not promote the candidate to Latest Complete."
+      "task": "Correct low-vault free-hand r3 from the actual 64-frame review and inspect release integration.",
+      "lastCompleted": "PR #37 a126b6359483eeca62a7a1c22aabee1d6154657c contains 64 verified native Eevee frames. Actual-pixel review failed the free-hand motion: the palm moves upper-left rather than matching the down-left reference. A bounded r3 correction is underway. PR #35 d877f8daeec24efc2b5ef5745d0fb23f8082ad61 one-hand mantle r3 passed technical checks, while visual acceptance remains pending."
     }
   ]
 }
