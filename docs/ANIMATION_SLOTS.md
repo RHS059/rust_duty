@@ -188,3 +188,11 @@ handover, pause/repeated render/reset and invalid source contracts. The optional
 `RUST_DUTY_ANIMATION_MANIFEST` asset test evaluates actual canonical source poses
 and their skin/actor transforms across the shared gameplay replay, while comparing
 all relevant gameplay outcomes against an unobserved baseline simulation.
+
+## Traversal and weapon-action slots
+
+`action.<slot>` keys (tactical sprint, slide, dive, mount, ledge hang, hanging
+sidearm, pull-up, drop) are optional and declared `unavailable` until authored
+clips exist. Gameplay then uses labeled placeholder timing. A bound clip's
+duration and normalized events retime the gameplay gates without code changes.
+See [traversal animation slots](TRAVERSAL.md#animation-slots).

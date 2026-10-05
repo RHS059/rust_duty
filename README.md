@@ -78,6 +78,14 @@ or anti-cheat interactions.
 | F | Hold near and looking at the rear-wall ammo supply to refill |
 | Escape / Enter or click | Pause / resume |
 | F1 / F2 | Telemetry overlay / reset range and inventory |
+| Shift double-tap | Tactical sprint |
+| Ctrl/C or Z while sprinting | Slide / dolphin dive |
+| V (or hold ADS on cover) | Mount / unmount the weapon |
+| Jump at a high ledge / Space / Ctrl / 2 | Catch and hang / pull up / drop / sidearm (no sidearm in the default loadout) |
+| F9 | Debug: kill the player to test death/respawn |
+
+Traversal and weapon-action states, tuning and animation slots: [traversal](docs/TRAVERSAL.md)
+and its [acceptance checklist](docs/TRAVERSAL_ACCEPTANCE.md). All of their visuals are placeholders.
 | `[` / `]` | Lower / raise mouse sensitivity |
 | `-` / `=` | Lower / raise horizontal hip FOV |
 | F5 / F6 | Save / reload selected settings file |

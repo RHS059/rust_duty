@@ -84,3 +84,13 @@ amplitude and cadence also change smoothly without resetting phase. Gameplay
 movement, firing eligibility and sprint input stay immediate; only presentation
 uses this smoothing. Pause freezes the simulation clock and F2 resets the
 presentation state.
+
+## Traversal and weapon actions
+
+Double-tap Shift for tactical sprint. Press crouch while sprinting to slide, or
+prone while sprinting to dolphin dive; otherwise those keys keep their ordinary
+stance behavior. V mounts on valid cover (holding ADS on cover also mounts).
+Jumping forward at a high ledge catches it; while hanging, Space pulls up, Ctrl/C
+drops and 2 draws/stows a sidearm when the loadout has one (the default has
+none). F9 kills the player for death/respawn testing. Pause, reset and focus
+loss clear these presses like the others. Details: [traversal](TRAVERSAL.md).
