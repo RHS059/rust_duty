@@ -1,9 +1,9 @@
 //! Shared directional range lighting, evaluated in the renderer's coordinate frame.
 //!
-//! Macroquad's default material ignores normals. We deliberately shade vertex
-//! albedo on the CPU for both level geometry and viewmodels, then let that
-//! material multiply it by the texture. Never store a pre-lit weapon albedo.
-use macroquad::prelude::*;
+//! We deliberately shade vertex albedo on the CPU for both level geometry and
+//! viewmodels, then let the renderer multiply it by the texture. Never store a
+//! pre-lit weapon albedo.
+use crate::draw::facade::*;
 
 #[derive(Clone, Copy, Debug)]
 pub struct SceneLighting {
@@ -70,7 +70,7 @@ impl SceneLighting {
         }
     }
 
-    /// Macroquad's built-in cubes have zero normals and a single flat color.
+    /// Unlit primitive cubes have zero normals and a single flat color.
     /// Use explicit outward normals so the level and held model share the light.
     pub fn cube_mesh(self, position: Vec3, size: Vec3, color: Color) -> Mesh {
         let mut vertices = Vec::with_capacity(24);

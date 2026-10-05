@@ -13,12 +13,20 @@ use std::sync::Arc;
 
 impl WgpuRenderer {
     pub(super) fn submit_frame(&mut self, list: &DrawList) -> Result<FrameOutput, String> {
+        // Take ownership up front: failures drop this surface texture, and no
+        // command path can acquire another texture after app/input advance.
+        let presentation = super::backend::take_presentation(
+            &mut self.prepared,
+            self.gpu.surface.is_some(),
+            list.width,
+            list.height,
+        )?;
         validate(list, &self.gpu.device.limits())?;
         let error_scope = self
             .gpu
             .device
             .push_error_scope(wgpu::ErrorFilter::Validation);
-        let encoded = self.encode_frame(list);
+        let encoded = self.encode_frame(list, presentation);
         let validation = pollster::block_on(error_scope.pop());
         if let Some(error) = validation {
             return Err(format!("frame validation: {error}"));
@@ -36,6 +44,7 @@ impl WgpuRenderer {
     fn encode_frame(
         &mut self,
         list: &DrawList,
+        presentation: Option<wgpu::SurfaceTexture>,
     ) -> Result<(Vec<Readback>, Option<wgpu::SurfaceTexture>), String> {
         if self.main.descriptor.width != list.width || self.main.descriptor.height != list.height {
             self.main = Arc::new(GpuTexture::new(
@@ -45,8 +54,6 @@ impl WgpuRenderer {
                 &RenderTarget::new(list.width, list.height, true)?.texture,
             )?);
         }
-        self.gpu.resize(list.width, list.height);
-        let presentation = self.gpu.acquire()?;
         let mut encoder = self
             .gpu
             .device

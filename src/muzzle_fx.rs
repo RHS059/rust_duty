@@ -9,9 +9,8 @@
 //! same static blocks and ramps the player walks on, and they are removed five
 //! seconds after ejection.
 
+use crate::draw::facade::*;
 use crate::sim::{Block, Ramp, Shot};
-use macroquad::math::{vec3, Vec3};
-use macroquad::prelude::*;
 
 pub const SHELL_LIFE: f32 = 5.;
 /// 5.56 mm is the reference bore. Its flash profile is the unit scale.
@@ -110,8 +109,6 @@ pub struct MuzzleFx {
     bursts: Vec<Burst>,
     smoke: Vec<Smoke>,
     shells: Vec<Shell>,
-    flash_material: Option<Material>,
-    material_failed: bool,
 }
 
 impl Default for MuzzleFx {
@@ -121,8 +118,6 @@ impl Default for MuzzleFx {
             bursts: Vec::new(),
             smoke: Vec::new(),
             shells: Vec::new(),
-            flash_material: None,
-            material_failed: false,
         }
     }
 }
@@ -352,13 +347,9 @@ impl MuzzleFx {
                 rotation,
                 shell.position,
             );
-            unsafe {
-                get_internal_gl().quad_gl.push_model_matrix(matrix);
-            }
-            draw_cube(Vec3::ZERO, Vec3::ONE, None, color);
-            unsafe {
-                get_internal_gl().quad_gl.pop_model_matrix();
-            }
+            with_model_matrix(matrix, || {
+                draw_cube(Vec3::ZERO, Vec3::ONE, None, color);
+            });
         }
     }
 
@@ -377,52 +368,7 @@ impl MuzzleFx {
             indices: flash.indices.clone(),
             texture: None,
         };
-        if let Some(material) = self.additive_material() {
-            gl_use_material(material);
-            draw_mesh(&mesh);
-            gl_use_default_material();
-        } else {
-            draw_mesh(&mesh);
-        }
-    }
-
-    fn additive_material(&mut self) -> Option<&Material> {
-        if self.flash_material.is_none() && !self.material_failed {
-            match load_material(
-                ShaderSource::Glsl {
-                    vertex: FLASH_VERTEX,
-                    fragment: FLASH_FRAGMENT,
-                },
-                MaterialParams {
-                    pipeline_params: PipelineParams {
-                        cull_face: macroquad::miniquad::CullFace::Nothing,
-                        depth_test: macroquad::miniquad::Comparison::LessOrEqual,
-                        depth_write: false,
-                        color_blend: Some(macroquad::miniquad::BlendState::new(
-                            macroquad::miniquad::Equation::Add,
-                            macroquad::miniquad::BlendFactor::Value(
-                                macroquad::miniquad::BlendValue::SourceAlpha,
-                            ),
-                            macroquad::miniquad::BlendFactor::One,
-                        )),
-                        alpha_blend: Some(macroquad::miniquad::BlendState::new(
-                            macroquad::miniquad::Equation::Add,
-                            macroquad::miniquad::BlendFactor::Zero,
-                            macroquad::miniquad::BlendFactor::One,
-                        )),
-                        ..Default::default()
-                    },
-                    ..Default::default()
-                },
-            ) {
-                Ok(material) => self.flash_material = Some(material),
-                Err(error) => {
-                    eprintln!("Procedural muzzle flash material failed: {error}");
-                    self.material_failed = true;
-                }
-            }
-        }
-        self.flash_material.as_ref()
+        draw_mesh_transformed(&mesh, Mat4::IDENTITY, BlendMode::Additive);
     }
 
     fn draw_light_halo(&mut self, light: &MuzzleLight, eye: Vec3) {
@@ -465,32 +411,6 @@ impl MuzzleFx {
         self.draw_flash_mesh(&flash);
     }
 }
-
-const FLASH_VERTEX: &str = r#"#version 100
-attribute vec3 position;
-attribute vec2 texcoord;
-attribute vec4 color0;
-attribute vec4 normal;
-
-varying lowp vec4 color;
-
-uniform mat4 Model;
-uniform mat4 Projection;
-uniform vec4 _Time;
-
-void main() {
-    gl_Position = Projection * Model * vec4(position, 1.0);
-    color = color0 / 255.0;
-}
-"#;
-
-const FLASH_FRAGMENT: &str = r#"#version 100
-varying lowp vec4 color;
-
-void main() {
-    gl_FragColor = vec4(color.rgb, color.a);
-}
-"#;
 
 fn burst_brightness(burst: &Burst) -> f32 {
     flash_envelope(burst.age / burst.profile.duration) * burst.profile.intensity
@@ -804,7 +724,6 @@ mod tests {
     use super::*;
     use crate::settings::Settings;
     use crate::sim::{Aabb, Input, Simulation, FIXED_DT};
-    use macroquad::math::vec3;
 
     fn ground() -> Block {
         Block {
@@ -837,6 +756,108 @@ mod tests {
             .iter()
             .map(|p| (*p - muzzle).dot(barrel))
             .fold(0., f32::max)
+    }
+
+    #[test]
+    fn barrel_draw_records_additive_geometry_without_advancing_effects() {
+        use crate::draw::Command;
+
+        let (mut fx, shot) = shot_fx();
+        let expected = fx
+            .procedural_flashes(shot.muzzle, shot.barrel_forward)
+            .remove(0);
+        let parent =
+            Mat4::from_rotation_translation(Quat::from_rotation_y(0.37), vec3(0.1, 0.2, -0.3));
+        begin_frame(960, 540, 1.).unwrap();
+        set_camera(&Camera3D::default());
+        with_model_matrix(parent, || {
+            fx.draw_barrel(shot.muzzle, shot.barrel_forward);
+            fx.draw_barrel(shot.muzzle, shot.barrel_forward);
+        });
+        assert_eq!(current_model_matrix().unwrap(), Mat4::IDENTITY);
+        let list = take_draw_list().unwrap();
+        let meshes: Vec<_> = list
+            .commands
+            .iter()
+            .filter_map(|command| match command {
+                Command::Mesh { mesh, model, blend } => Some((mesh, model, blend)),
+                _ => None,
+            })
+            .collect();
+        assert_eq!(meshes.len(), 2);
+        for (mesh, model, blend) in meshes {
+            assert_eq!(*blend, BlendMode::Additive);
+            assert_eq!(*model, parent);
+            assert!(mesh.texture.is_none());
+            assert_eq!(mesh.indices, expected.indices);
+            assert_eq!(mesh.vertices.len(), expected.positions.len());
+            for (vertex, (position, color)) in mesh
+                .vertices
+                .iter()
+                .zip(expected.positions.iter().zip(&expected.colors))
+            {
+                assert_eq!(vertex.position, *position);
+                assert_eq!(
+                    vertex.color,
+                    Into::<[u8; 4]>::into(Color::new(color[0], color[1], color[2], color[3]))
+                );
+            }
+        }
+        assert_eq!(fx.bursts[0].age, 0.);
+        assert_eq!(fx.smoke_count(), 7);
+        assert!(fx.smoke.iter().all(|puff| puff.age == 0.));
+        assert_eq!(fx.shell_count(), 1);
+        assert_eq!(fx.shells[0].age, 0.);
+    }
+
+    #[test]
+    fn world_draw_keeps_smoke_and_shell_alpha_and_restores_shell_transform() {
+        use crate::draw::Command;
+
+        let (mut fx, _) = shot_fx();
+        let shell = &fx.shells[0];
+        let shell_model = Mat4::from_scale_rotation_translation(
+            vec3(0.009, 0.009, 0.034),
+            Quat::from_axis_angle(shell.axis, shell.spin),
+            shell.position,
+        );
+        let shell_state = (shell.position, shell.velocity, shell.spin, shell.age);
+        let parent = Mat4::from_rotation_translation(Quat::from_rotation_x(0.2), Vec3::Y);
+        begin_frame(960, 540, 1.).unwrap();
+        set_camera(&Camera3D::default());
+        with_model_matrix(parent, || {
+            fx.draw_world(Vec3::ZERO, false);
+            assert_eq!(current_model_matrix().unwrap(), parent);
+        });
+        assert_eq!(current_model_matrix().unwrap(), Mat4::IDENTITY);
+        let list = take_draw_list().unwrap();
+        let alpha_models: Vec<_> = list
+            .commands
+            .iter()
+            .filter_map(|command| match command {
+                Command::Mesh {
+                    model,
+                    blend: BlendMode::Alpha,
+                    ..
+                } => Some(*model),
+                _ => None,
+            })
+            .collect();
+        assert_eq!(alpha_models.len(), 8, "seven smoke puffs and one shell");
+        assert!(alpha_models[..7].iter().all(|model| *model == parent));
+        assert_eq!(alpha_models[7], parent * shell_model);
+        assert!(list.commands.iter().any(|command| matches!(
+            command,
+            Command::Mesh {
+                blend: BlendMode::Additive,
+                ..
+            }
+        )));
+        let shell = &fx.shells[0];
+        assert_eq!(
+            (shell.position, shell.velocity, shell.spin, shell.age),
+            shell_state
+        );
     }
 
     #[test]

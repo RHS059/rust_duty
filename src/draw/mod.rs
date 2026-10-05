@@ -7,6 +7,7 @@ use std::{
         Arc,
     },
 };
+pub mod facade;
 pub mod geometry;
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Color {
@@ -195,6 +196,13 @@ pub struct Rect {
 impl Rect {
     pub const fn new(x: f32, y: f32, w: f32, h: f32) -> Self {
         Self { x, y, w, h }
+    }
+    /// Match the inclusive edge hit-testing used by existing native UI rectangles.
+    pub fn contains(&self, point: Vec2) -> bool {
+        point.x >= self.x
+            && point.x <= self.x + self.w
+            && point.y >= self.y
+            && point.y <= self.y + self.h
     }
 }
 #[derive(Clone, Copy, Debug, Default, PartialEq)]

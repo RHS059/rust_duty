@@ -1,5 +1,5 @@
 //! Opt-in playback adapter for Blender-baked viewmodels. No procedural posing.
-use macroquad::prelude::*;
+use vector_range::draw::facade::*;
 use vector_range::scene_lighting::SceneLighting;
 use vector_range::{
     animation_manifest::AnimationManifest,
@@ -63,7 +63,7 @@ impl AuthoredViewmodel {
             layers.set_walk_translation(value);
         }
     }
-    /// Requires an initialized render context, like the existing mesh adapters.
+    /// Loads CPU mesh and texture descriptors without requiring a render context.
     pub fn load(path: &str, clip: &str, fixed_time: Option<f32>) -> Result<Self, String> {
         if fixed_time.is_some_and(|time| !time.is_finite()) {
             return Err("authored viewmodel time must be finite".into());
@@ -71,7 +71,7 @@ impl AuthoredViewmodel {
         let (animation, skin, weapon) =
             AnimationSet::load_with_companions(path).map_err(|e| e.to_string())?;
         let sample_clip = clip;
-        // Fail before creating GPU resources if the requested clip is absent.
+        // Fail before preparing mesh descriptors if the requested clip is absent.
         let initial = animation
             .sample_clamped(sample_clip, fixed_time.unwrap_or(0.))
             .map_err(|e| e.to_string())?;
@@ -89,19 +89,17 @@ impl AuthoredViewmodel {
                 for alpha in pixels.iter_mut().skip(3).step_by(4) {
                     *alpha = 255;
                 }
-                let texture = Texture2D::from_rgba8(
-                    part.texture_width as u16,
-                    part.texture_height as u16,
+                let texture = Texture::rgba8(
+                    part.texture_width,
+                    part.texture_height,
                     &pixels,
-                );
-                texture.set_filter(FilterMode::Linear);
-                unsafe {
-                    get_internal_gl().quad_context.texture_set_wrap(
-                        texture.raw_miniquad_id(),
-                        macroquad::miniquad::TextureWrap::Repeat,
-                        macroquad::miniquad::TextureWrap::Repeat,
-                    );
-                }
+                    Sampler {
+                        filter: FilterMode::Linear,
+                        wrap_x: WrapMode::Repeat,
+                        wrap_y: WrapMode::Repeat,
+                    },
+                )
+                .map_err(|error| format!("authored skin mesh {source_mesh} texture: {error}"))?;
                 Some(texture)
             };
             for chunk in part.indices.chunks(4_998) {

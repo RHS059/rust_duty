@@ -1,8 +1,10 @@
-use macroquad::prelude::*;
-use vector_range::{sim::Simulation, settings::Settings, muzzle_fx::MuzzleFx, weapon_sway::LayerOffset};
-use vector_range::scene_lighting::SceneLighting;
+use crate::world_draw::{ACCENT, INK};
 use crate::{authored_viewmodel, weapon_model};
-use crate::hud::{INK, ACCENT};
+use vector_range::draw::facade::*;
+use vector_range::scene_lighting::SceneLighting;
+use vector_range::{
+    muzzle_fx::MuzzleFx, settings::Settings, sim::Simulation, weapon_sway::LayerOffset,
+};
 #[derive(Clone, Copy)]
 pub(crate) struct ViewmodelFraming {
     pub(crate) hip: Vec3,
@@ -67,7 +69,9 @@ impl ViewmodelFraming {
 pub(crate) fn h_fov_to_v(h: f32, aspect: f32) -> f32 {
     2. * ((h.to_radians() * 0.5).tan() / aspect).atan()
 }
-pub(crate) fn locomotion_input(sim: &Simulation) -> vector_range::locomotion_presentation::LocomotionInput {
+pub(crate) fn locomotion_input(
+    sim: &Simulation,
+) -> vector_range::locomotion_presentation::LocomotionInput {
     vector_range::locomotion_presentation::LocomotionInput {
         sprint: if sim.player.sprinting || sim.player.mantle.is_some() {
             1.
@@ -106,7 +110,6 @@ pub(crate) fn weapon(
         aspect: Some(aspect),
         z_near: 0.01,
         z_far: 5.,
-        ..Default::default()
     });
     clear_background(if framing.reference {
         Color::new(0.14, 0.19, 0.24, 1.)
@@ -288,31 +291,27 @@ pub(crate) fn weapon(
             vec3(0., 0.01, -1.04),
             cant,
         );
-        unsafe {
-            get_internal_gl().quad_gl.push_model_matrix(canted);
-        }
-        for (pos, size, color) in parts {
-            lighting.draw_cube(o + pos, size, None, color);
-            draw_cube_wires(o + pos, size, Color::new(0.035, 0.05, 0.06, 1.));
-        }
-        for i in 0..6 {
-            lighting.draw_cube(
-                o + vec3(0., 0.047, -0.28 - i as f32 * 0.038),
-                vec3(0.073, 0.012, 0.014),
-                None,
-                dark,
-            );
-        }
-        unsafe {
-            get_internal_gl().quad_gl.pop_model_matrix();
-        }
+        with_model_matrix(canted, || {
+            for (pos, size, color) in parts {
+                lighting.draw_cube(o + pos, size, None, color);
+                draw_cube_wires(o + pos, size, Color::new(0.035, 0.05, 0.06, 1.));
+            }
+            for i in 0..6 {
+                lighting.draw_cube(
+                    o + vec3(0., 0.047, -0.28 - i as f32 * 0.038),
+                    vec3(0.073, 0.012, 0.014),
+                    None,
+                    dark,
+                );
+            }
+        });
     }
     if barrel_flash {
         muzzle_fx.draw_barrel(muzzle_position, barrel);
     }
     composite_viewmodel(rt);
 }
-/// Labeled placeholder legs: thigh and shin per side, hidden head/arms.
+/// Composite the target using the backend-owned top-left orientation.
 pub(crate) fn composite_viewmodel(rt: &RenderTarget) {
     set_default_camera();
     draw_texture_ex(
@@ -322,8 +321,103 @@ pub(crate) fn composite_viewmodel(rt: &RenderTarget) {
         WHITE,
         DrawTextureParams {
             dest_size: Some(vec2(screen_width(), screen_height())),
-            flip_y: true,
             ..Default::default()
         },
     );
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use vector_range::draw::Command;
+
+    #[test]
+    fn procedural_weapon_records_cant_scope_then_composites_without_gpu_state() {
+        let mut sim = Simulation::new();
+        sim.player.cant = 0.7;
+        let cfg = Settings::default();
+        let target = RenderTarget::new(960, 540, true).unwrap();
+        let mut locomotion =
+            vector_range::locomotion_presentation::LocomotionPresentation::default();
+        let mut animation = vector_range::view_animation::ViewAnimation::default();
+        let mut effects = MuzzleFx::default();
+        let parent = Mat4::from_rotation_translation(Quat::from_rotation_y(0.3), Vec3::Y);
+        let canted = vector_range::weapon_sway::cant_about_bore(
+            Mat4::from_translation(vec3(0.25, -0.25, -0.32)),
+            vec3(0., 0.01, -1.04),
+            0.7 * cfg.action.cant_angle.to_radians(),
+        );
+        begin_frame(960, 540, 1.).unwrap();
+        with_model_matrix(parent, || {
+            weapon(
+                &sim,
+                &target,
+                960. / 540.,
+                &mut locomotion,
+                None,
+                None,
+                None,
+                &mut animation,
+                &cfg,
+                vector_range::settings::WalkTranslation::default(),
+                ViewmodelFraming::from_args(&[]),
+                None,
+                &mut effects,
+                false,
+                &[],
+            );
+            assert_eq!(current_model_matrix().unwrap(), parent);
+        });
+        assert_eq!(current_model_matrix().unwrap(), Mat4::IDENTITY);
+        let list = take_draw_list().unwrap();
+        let meshes: Vec<_> = list
+            .commands
+            .iter()
+            .filter_map(|command| match command {
+                Command::Mesh { model, blend, .. } => Some((model, blend)),
+                _ => None,
+            })
+            .collect();
+        assert_eq!(
+            meshes.len(),
+            20,
+            "fourteen rifle parts and six rail segments"
+        );
+        for (model, blend) in meshes {
+            assert_eq!(*model, parent * canted);
+            assert_eq!(*blend, BlendMode::Alpha);
+        }
+        assert!(
+            matches!(list.commands.last(), Some(Command::Sprite { texture, .. }) if texture.id == target.texture.id)
+        );
+    }
+
+    #[test]
+    fn viewmodel_composite_uses_window_extent_and_backend_target_orientation() {
+        let target = RenderTarget::new(640, 360, true).unwrap();
+        begin_frame(1920, 1080, 2.).unwrap();
+        set_camera(&Camera3D {
+            render_target: Some(target.clone()),
+            ..Camera3D::default()
+        });
+        composite_viewmodel(&target);
+        let list = take_draw_list().unwrap();
+        let [Command::Camera(_), Command::Camera(offscreen), Command::Camera(screen), Command::Sprite {
+            texture,
+            destination,
+            tint,
+        }] = list.commands.as_slice()
+        else {
+            panic!("composition must switch to screen space and record one unflipped sprite");
+        };
+        assert_eq!(
+            offscreen.target.as_ref().unwrap().texture.id,
+            target.texture.id
+        );
+        assert!(screen.target.is_none());
+        assert!(!screen.depth_test);
+        assert_eq!(texture.id, target.texture.id);
+        assert_eq!(*destination, Rect::new(0., 0., 1920., 1080.));
+        assert_eq!(*tint, WHITE);
+    }
 }

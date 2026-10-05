@@ -10,6 +10,8 @@
 //! meshes disable both depth testing and writes, as existing muzzle_fx does.
 //! The wgpu backend can depth-test additive meshes without writing depth.
 
+pub mod runtime;
+
 use crate::draw::{self, BlendMode, Command, Renderer, ResourceId, TextureSource};
 use glam::Mat4;
 use macroquad::{camera, material, miniquad as mq, models, texture, window};
@@ -51,7 +53,8 @@ struct CachedTexture {
 
 /// GPU resources are created lazily and retained for the renderer's lifetime.
 /// Cloned descriptors with the same ID share a resource. Changing a resource's
-/// extent/source requires a new ID; changing its sampler is supported.
+/// extent, source, or sampler requires a new ID, matching the provisional
+/// immutable-descriptor contract used by wgpu.
 pub struct LegacyRenderer {
     info: draw::BackendInfo,
     textures: HashMap<ResourceId, CachedTexture>,
@@ -94,21 +97,11 @@ impl LegacyRenderer {
 
     fn ensure_texture(&mut self, descriptor: &draw::Texture) -> Result<(), String> {
         validate_texture(descriptor)?;
-        if let Some(cached) = self.textures.get_mut(&descriptor.id) {
-            if !same_storage(&cached.descriptor, descriptor) {
-                return Err(format!(
-                    "texture {:?} changed storage without a new resource ID",
-                    descriptor.id
-                ));
-            }
-            if cached.descriptor.sampler != descriptor.sampler {
-                // Samplers are mutable texture state in GL, unlike wgpu's
-                // separate objects. Finish older draws before changing it.
-                flush();
-                set_sampler(&cached.texture, descriptor.sampler);
-                cached.descriptor.sampler = descriptor.sampler;
-            }
-            return Ok(());
+        if let Some(cached) = self.textures.get(&descriptor.id) {
+            // Reject changed descriptors before touching GL state or pending
+            // draws. The shared resource identity is immutable even though GL
+            // itself permits changing a texture's sampler in place.
+            return validate_cached_texture(&cached.descriptor, descriptor);
         }
         let (gpu_texture, target) = match &descriptor.source {
             TextureSource::Rgba8(bytes) => (
@@ -184,7 +177,7 @@ impl LegacyRenderer {
         let mut active = draw::Camera::screen(list.width, list.height);
         camera::set_camera(&LegacyCamera::new(&active, None));
         for (index, command) in list.commands.iter().enumerate() {
-            self.execute_command(command, &mut active, &mut output)
+            self.execute_command(command, &mut active, (list.width, list.height), &mut output)
                 .map_err(|error| format!("legacy command {index}: {error}"))?;
         }
         Ok(output)
@@ -194,6 +187,7 @@ impl LegacyRenderer {
         &mut self,
         command: &Command,
         active: &mut draw::Camera,
+        extent: (u32, u32),
         output: &mut draw::FrameOutput,
     ) -> Result<(), String> {
         match command {
@@ -240,7 +234,7 @@ impl LegacyRenderer {
                     }
                 });
             }
-            Command::Rect { rect, color } => without_depth(|| {
+            Command::Rect { rect, color } => self.with_screen_camera(active, extent, || {
                 macroquad::shapes::draw_rectangle(
                     rect.x,
                     rect.y,
@@ -248,7 +242,7 @@ impl LegacyRenderer {
                     rect.h,
                     color_to_legacy(*color),
                 );
-            }),
+            })?,
             Command::Sprite {
                 texture: descriptor,
                 destination,
@@ -256,7 +250,7 @@ impl LegacyRenderer {
             } => {
                 reject_feedback(Some(descriptor), active)?;
                 let texture = self.texture(descriptor)?;
-                without_depth(|| {
+                self.with_screen_camera(active, extent, || {
                     texture::draw_texture_ex(
                         &texture,
                         destination.x,
@@ -270,7 +264,7 @@ impl LegacyRenderer {
                             ..Default::default()
                         },
                     )
-                });
+                })?;
             }
             Command::Text {
                 text,
@@ -279,7 +273,7 @@ impl LegacyRenderer {
                 color,
             } => {
                 validate_text_size(*size)?;
-                without_depth(|| {
+                self.with_screen_camera(active, extent, || {
                     macroquad::text::draw_text(
                         text,
                         baseline.x,
@@ -287,7 +281,7 @@ impl LegacyRenderer {
                         *size,
                         color_to_legacy(*color),
                     );
-                });
+                })?;
             }
             Command::Capture { target, path } => {
                 let target = target.as_ref().map(|t| self.target(t)).transpose()?;
@@ -300,6 +294,26 @@ impl LegacyRenderer {
                 output.captures.push(path.clone());
             }
         }
+        Ok(())
+    }
+
+    fn with_screen_camera(
+        &mut self,
+        active: &draw::Camera,
+        extent: (u32, u32),
+        draw: impl FnOnce(),
+    ) -> Result<(), String> {
+        let screen = screen_camera(active, extent);
+        let target = active.target.as_ref().map(|t| self.target(t)).transpose()?;
+        // set_camera flushes pending geometry with its old projection before
+        // changing projection, render pass, depth, and viewport. Do it on both
+        // boundaries: a depth toggle alone leaves HUD pixels in world space.
+        camera::set_camera(&LegacyCamera::new(&screen, target.clone()));
+        draw();
+        // Every renderer-owned camera uses the full-target viewport (None).
+        // Restore through set_camera, not get_viewport(): macroquad resolves
+        // None to WINDOW dimensions, which is wrong on a smaller target.
+        camera::set_camera(&LegacyCamera::new(active, target));
         Ok(())
     }
 }
@@ -492,9 +506,24 @@ fn validate_texture(texture: &draw::Texture) -> Result<(), String> {
     Ok(())
 }
 
-fn same_storage(a: &draw::Texture, b: &draw::Texture) -> bool {
+fn validate_cached_texture(
+    cached: &draw::Texture,
+    requested: &draw::Texture,
+) -> Result<(), String> {
+    if same_descriptor(cached, requested) {
+        Ok(())
+    } else {
+        Err(format!(
+            "texture {:?} changed without a new resource ID",
+            requested.id
+        ))
+    }
+}
+
+fn same_descriptor(a: &draw::Texture, b: &draw::Texture) -> bool {
     a.width == b.width
         && a.height == b.height
+        && a.sampler == b.sampler
         && match (&a.source, &b.source) {
             (TextureSource::Rgba8(a), TextureSource::Rgba8(b)) => a == b,
             (TextureSource::Target { depth: a }, TextureSource::Target { depth: b }) => a == b,
@@ -539,19 +568,13 @@ fn flush() {
     }
 }
 
-fn without_depth(draw: impl FnOnce()) {
-    // SAFETY: a short exclusive render-thread access; geometry snapshots the
-    // selected default pipeline, so restoring depth does not affect the batch.
-    let depth = unsafe {
-        let gl = window::get_internal_gl();
-        let depth = gl.quad_gl.is_depth_test_enabled();
-        gl.quad_gl.depth_test(false);
-        depth
-    };
-    draw();
-    // SAFETY: restores the previously active camera's depth setting.
-    unsafe {
-        window::get_internal_gl().quad_gl.depth_test(depth);
+fn screen_camera(active: &draw::Camera, extent: (u32, u32)) -> draw::Camera {
+    let (width, height) = active.target.as_ref().map_or(extent, |target| {
+        (target.texture.width, target.texture.height)
+    });
+    draw::Camera {
+        target: active.target.clone(),
+        ..draw::Camera::screen(width, height)
     }
 }
 
@@ -671,6 +694,240 @@ mod tests {
         assert!(camera.render_pass().is_none());
     }
 
+    fn identity_camera(target: Option<draw::RenderTarget>) -> draw::Camera {
+        draw::Camera {
+            view_projection: Mat4::IDENTITY,
+            target,
+            depth_test: true,
+        }
+    }
+
+    fn assert_projected(camera: &draw::Camera, point: Vec3, expected: Vec3) {
+        let actual = camera.view_projection.project_point3(point);
+        assert!(
+            actual.abs_diff_eq(expected, 0.000_001),
+            "{actual:?} != {expected:?}"
+        );
+    }
+
+    #[test]
+    fn hud_pixels_override_identity_3d_projection() {
+        let active = identity_camera(None);
+        let screen = screen_camera(&active, (320, 180));
+        let point = Vec3::new(80., 45., 0.);
+        assert_projected(&screen, point, Vec3::new(-0.5, 0.5, 0.));
+        assert_ne!(
+            active.view_projection.project_point3(point),
+            Vec3::new(-0.5, 0.5, 0.)
+        );
+    }
+
+    #[test]
+    fn hud_pixels_override_perspective_projection() {
+        let active = draw::Camera {
+            view_projection: Mat4::perspective_rh_gl(1., 2., 0.1, 100.)
+                * Mat4::look_at_rh(Vec3::new(3., 2., 5.), Vec3::ZERO, Vec3::Y),
+            ..identity_camera(None)
+        };
+        let screen = screen_camera(&active, (400, 200));
+        assert_projected(&screen, Vec3::new(200., 100., 0.), Vec3::ZERO);
+        assert_ne!(screen.view_projection, active.view_projection);
+    }
+
+    #[test]
+    fn hud_default_target_uses_current_draw_list_extent() {
+        // A previous screen camera may still encode a different window size.
+        let active = draw::Camera::screen(320, 180);
+        let screen = screen_camera(&active, (128, 64));
+        assert_projected(&screen, Vec3::new(128., 64., 0.), Vec3::new(1., -1., 0.));
+        assert!(screen.target.is_none());
+    }
+
+    #[test]
+    fn hud_offscreen_target_overrides_larger_draw_list_extent() {
+        let target = draw::RenderTarget::new(64, 32, true).unwrap();
+        let active = identity_camera(Some(target));
+        let screen = screen_camera(&active, (640, 480));
+        assert_projected(&screen, Vec3::new(16., 8., 0.), Vec3::new(-0.5, 0.5, 0.));
+        assert_projected(&screen, Vec3::new(64., 32., 0.), Vec3::new(1., -1., 0.));
+    }
+
+    #[test]
+    fn hud_non_square_odd_target_keeps_top_left_pixel_convention() {
+        let active = identity_camera(Some(draw::RenderTarget::new(37, 19, false).unwrap()));
+        let screen = screen_camera(&active, (128, 128));
+        assert_projected(&screen, Vec3::ZERO, Vec3::new(-1., 1., 0.));
+        assert_projected(&screen, Vec3::new(37., 19., 0.), Vec3::new(1., -1., 0.));
+        assert_projected(&screen, Vec3::new(18.5, 9.5, 0.), Vec3::ZERO);
+    }
+
+    #[test]
+    fn hud_disables_depth_regardless_of_active_camera_depth() {
+        for depth_test in [false, true] {
+            let active = draw::Camera {
+                depth_test,
+                ..identity_camera(None)
+            };
+            assert!(!screen_camera(&active, (128, 64)).depth_test);
+            assert_eq!(active.depth_test, depth_test);
+        }
+    }
+
+    #[test]
+    fn hud_keeps_target_identity_and_does_not_mutate_active_camera() {
+        let active = identity_camera(Some(draw::RenderTarget::new(32, 16, true).unwrap()));
+        let original = active.clone();
+        let screen = screen_camera(&active, (128, 64));
+        let screen_target = &screen.target.as_ref().unwrap().texture;
+        let active_target = &active.target.as_ref().unwrap().texture;
+        assert_eq!(screen_target.id, active_target.id);
+        assert!(same_descriptor(screen_target, active_target));
+        assert_eq!(active.view_projection, original.view_projection);
+        assert_eq!(active.depth_test, original.depth_test);
+        assert!(same_descriptor(
+            active_target,
+            &original.target.unwrap().texture
+        ));
+    }
+
+    #[test]
+    fn hud_camera_preserves_feedback_rejection() {
+        let target = draw::RenderTarget::new(32, 16, true).unwrap();
+        let active = identity_camera(Some(target.clone()));
+        let screen = screen_camera(&active, (128, 64));
+        assert!(reject_feedback(Some(&target.texture), &screen).is_err());
+    }
+
+    #[test]
+    fn scoped_camera_restore_retains_full_target_viewport_semantics() {
+        use macroquad::camera::Camera as _;
+        let active = identity_camera(Some(draw::RenderTarget::new(64, 32, true).unwrap()));
+        let screen = LegacyCamera::new(&screen_camera(&active, (128, 128)), None);
+        let restored = LegacyCamera::new(&active, None);
+        // The renderer must restore None rather than macroquad's resolved
+        // window-sized get_viewport(), which would clip/stretch a 64x32 pass.
+        assert_eq!(screen.viewport(), None);
+        assert_eq!(restored.viewport(), None);
+        assert_eq!(restored.matrix(), Mat4::IDENTITY);
+        assert!(restored.depth_enabled());
+        assert!(!screen.depth_enabled());
+    }
+
+    fn rgba_texture() -> draw::Texture {
+        draw::Texture::rgba8(
+            2,
+            1,
+            &[255, 0, 0, 255, 0, 255, 0, 255],
+            draw::Sampler::default(),
+        )
+        .unwrap()
+    }
+
+    #[test]
+    fn immutable_descriptor_accepts_clones_and_equal_rgba_data() {
+        let original = rgba_texture();
+        assert!(validate_cached_texture(&original, &original.clone()).is_ok());
+        let mut equal = rgba_texture();
+        equal.id = original.id;
+        assert!(validate_cached_texture(&original, &equal).is_ok());
+    }
+
+    #[test]
+    fn immutable_descriptor_rejects_width_change() {
+        let original = draw::RenderTarget::new(32, 16, true).unwrap().texture;
+        let mut changed = original.clone();
+        changed.width = 16;
+        assert!(validate_cached_texture(&original, &changed).is_err());
+    }
+
+    #[test]
+    fn immutable_descriptor_rejects_height_change() {
+        let original = draw::RenderTarget::new(32, 16, true).unwrap().texture;
+        let mut changed = original.clone();
+        changed.height = 32;
+        assert!(validate_cached_texture(&original, &changed).is_err());
+    }
+
+    #[test]
+    fn immutable_descriptor_rejects_rgba_content_change() {
+        let original = rgba_texture();
+        let mut changed = original.clone();
+        changed.source = TextureSource::Rgba8(vec![0; 8].into());
+        assert!(validate_cached_texture(&original, &changed).is_err());
+    }
+
+    #[test]
+    fn immutable_descriptor_rejects_source_kind_change() {
+        let original = rgba_texture();
+        let mut changed = original.clone();
+        changed.source = TextureSource::Target { depth: false };
+        assert!(validate_cached_texture(&original, &changed).is_err());
+    }
+
+    #[test]
+    fn immutable_descriptor_rejects_target_depth_change() {
+        let original = draw::RenderTarget::new(32, 16, true).unwrap().texture;
+        let mut changed = original.clone();
+        changed.source = TextureSource::Target { depth: false };
+        assert!(validate_cached_texture(&original, &changed).is_err());
+    }
+
+    #[test]
+    fn immutable_descriptor_rejects_filter_change() {
+        let original = rgba_texture();
+        let mut changed = original.clone();
+        changed.sampler.filter = draw::FilterMode::Nearest;
+        assert!(validate_cached_texture(&original, &changed).is_err());
+    }
+
+    #[test]
+    fn immutable_descriptor_rejects_horizontal_wrap_change() {
+        let original = rgba_texture();
+        let mut changed = original.clone();
+        changed.sampler.wrap_x = draw::WrapMode::Repeat;
+        assert!(validate_cached_texture(&original, &changed).is_err());
+    }
+
+    #[test]
+    fn immutable_descriptor_rejects_vertical_wrap_change() {
+        let original = rgba_texture();
+        let mut changed = original.clone();
+        changed.sampler.wrap_y = draw::WrapMode::Repeat;
+        assert!(validate_cached_texture(&original, &changed).is_err());
+    }
+
+    #[test]
+    fn immutable_descriptor_rejection_keeps_original_usable() {
+        let original = rgba_texture();
+        let original_snapshot = original.clone();
+        let mut changed = original.clone();
+        changed.sampler.wrap_x = draw::WrapMode::Repeat;
+        let error = validate_cached_texture(&original, &changed).unwrap_err();
+        assert!(error.contains("without a new resource ID"));
+        assert_eq!(original.id, original_snapshot.id);
+        assert!(same_descriptor(&original, &original_snapshot));
+        assert!(validate_cached_texture(&original, &original_snapshot).is_ok());
+    }
+
+    #[test]
+    fn sampler_variants_can_be_created_with_distinct_resource_ids() {
+        let original = rgba_texture();
+        let variant = draw::Texture::rgba8(
+            2,
+            1,
+            &[255, 0, 0, 255, 0, 255, 0, 255],
+            draw::Sampler {
+                wrap_x: draw::WrapMode::Repeat,
+                ..original.sampler
+            },
+        )
+        .unwrap();
+        assert_ne!(original.id, variant.id);
+        assert_ne!(original.sampler, variant.sampler);
+        assert!(validate_texture(&original).is_ok());
+        assert!(validate_texture(&variant).is_ok());
+    }
+
     #[test]
     fn target_sampling_flips_gpu_uv_without_changing_cpu_mesh() {
         let target = draw::RenderTarget::new(2, 2, false).unwrap();
@@ -702,7 +959,7 @@ mod tests {
     }
 
     #[test]
-    fn storage_identity_and_feedback_are_checked() {
+    fn descriptor_identity_and_feedback_are_checked() {
         let target = draw::RenderTarget::new(32, 32, true).unwrap();
         let mut camera = draw::Camera::screen(32, 32);
         camera.target = Some(target.clone());
@@ -710,10 +967,13 @@ mod tests {
         assert!(reject_feedback(None, &camera).is_ok());
         let mut changed = target.texture.clone();
         changed.width = 64;
-        assert!(!same_storage(&changed, &target.texture));
+        assert!(!same_descriptor(&changed, &target.texture));
         changed = target.texture.clone();
         changed.sampler.wrap_x = draw::WrapMode::Repeat;
-        assert!(same_storage(&changed, &target.texture));
+        // This enforces the shared immutable-descriptor contract rather than
+        // weakening coverage: sampler variants must now use separate IDs.
+        assert!(!same_descriptor(&changed, &target.texture));
+        assert!(validate_cached_texture(&target.texture, &changed).is_err());
     }
 
     #[test]

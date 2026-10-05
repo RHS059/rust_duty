@@ -30,6 +30,15 @@ impl BackendSelection {
             Self::Gl => wgpu::Backends::GL,
         }
     }
+    /// Windows Auto starts with DX12 only. PRIMARY is attempted only when
+    /// initialization of that first API fails, never alongside its first try.
+    fn attempts(self, windows: bool) -> Vec<wgpu::Backends> {
+        if self == Self::Auto && windows {
+            vec![wgpu::Backends::DX12, wgpu::Backends::PRIMARY]
+        } else {
+            vec![self.backends()]
+        }
+    }
     /// Parse only renderer options; unrelated application arguments remain owned by the caller.
     pub fn from_args(args: impl IntoIterator<Item = impl AsRef<str>>) -> Result<Self, String> {
         let mut selection = Self::Auto;
@@ -99,12 +108,36 @@ impl Gpu {
         if width == 0 || height == 0 {
             return Err("renderer extent must be nonzero".into());
         }
+        initialize_with_policy(selection, cfg!(target_os = "windows"), |backends| {
+            Self::new_for_backends(
+                selection,
+                force_fallback,
+                window.clone(),
+                width,
+                height,
+                backends,
+            )
+        })
+        .await
+    }
+
+    async fn new_for_backends(
+        selection: BackendSelection,
+        force_fallback: bool,
+        window: Option<Arc<winit::window::Window>>,
+        width: u32,
+        height: u32,
+        backends: wgpu::Backends,
+    ) -> Result<Self, String> {
+        if !backends.intersects(wgpu::Instance::enabled_backend_features()) {
+            return Err(format!("{backends:?} is not available in this build"));
+        }
         let mut descriptor = if let Some(window) = &window {
             wgpu::InstanceDescriptor::new_with_display_handle(Box::new(window.clone()))
         } else {
             wgpu::InstanceDescriptor::new_without_display_handle()
         };
-        descriptor.backends = selection.backends();
+        descriptor.backends = backends;
         let instance = wgpu::Instance::new(descriptor);
         let surface = window
             .as_ref()
@@ -164,7 +197,11 @@ impl Gpu {
                 .ok_or("adapter cannot present to this surface")?;
             config.format = format;
             config.present_mode = wgpu::PresentMode::Fifo;
+            let validation = device.push_error_scope(wgpu::ErrorFilter::Validation);
             surface.configure(&device, &config);
+            if let Some(error) = validation.pop().await {
+                return Err(format!("configure {} surface: {error}", info.backend));
+            }
             Some(Surface {
                 surface,
                 config,
@@ -186,7 +223,12 @@ impl Gpu {
             _instance: instance,
         })
     }
-    pub fn resize(&mut self, width: u32, height: u32) {
+    pub fn resize(&mut self, width: u32, height: u32) -> Result<(), String> {
+        // Winit can report zero dimensions while minimized. Never configure
+        // such an extent, even if this low-level helper is called directly.
+        if width == 0 || height == 0 {
+            return Ok(());
+        }
         if let Some(surface) = &mut self.surface {
             if surface.config.width != width
                 || surface.config.height != height
@@ -194,42 +236,203 @@ impl Gpu {
             {
                 surface.config.width = width;
                 surface.config.height = height;
-                surface.surface.configure(&self.device, &surface.config);
+                configure(&self.device, surface)?;
                 surface.reconfigure = false;
             }
         }
+        Ok(())
     }
     pub fn acquire(&mut self) -> Result<Option<wgpu::SurfaceTexture>, String> {
         let Some(surface) = &mut self.surface else {
             return Ok(None);
         };
         for attempt in 0..2 {
-            match surface.surface.get_current_texture() {
+            let validation = self.device.push_error_scope(wgpu::ErrorFilter::Validation);
+            let status = surface.surface.get_current_texture();
+            if let Some(error) = pollster::block_on(validation.pop()) {
+                return Err(format!("acquire surface validation: {error}"));
+            }
+            match status {
                 wgpu::CurrentSurfaceTexture::Success(frame) => return Ok(Some(frame)),
                 wgpu::CurrentSurfaceTexture::Suboptimal(frame) => {
                     surface.reconfigure = true;
                     return Ok(Some(frame));
                 }
-                wgpu::CurrentSurfaceTexture::Outdated if attempt == 0 => {
-                    surface.surface.configure(&self.device, &surface.config)
-                }
-                wgpu::CurrentSurfaceTexture::Lost if attempt == 0 => {
-                    surface.surface = self
-                        ._instance
-                        .create_surface(surface.window.clone())
-                        .map_err(|e| format!("recreate lost surface: {e}"))?;
-                    surface.surface.configure(&self.device, &surface.config);
-                }
-                status => return Err(format!("cannot acquire surface: {status:?}")),
+                status => match acquisition_action(&status, attempt) {
+                    AcquisitionAction::Skip => return Ok(None),
+                    AcquisitionAction::Reconfigure => configure(&self.device, surface)?,
+                    AcquisitionAction::Recreate => {
+                        surface.surface = self
+                            ._instance
+                            .create_surface(surface.window.clone())
+                            .map_err(|e| format!("recreate lost surface: {e}"))?;
+                        configure(&self.device, surface)?;
+                    }
+                    AcquisitionAction::Fail => {
+                        return Err(format!("cannot acquire surface: {status:?}"));
+                    }
+                },
             }
         }
         Err("surface acquisition recovery exhausted".into())
     }
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum AcquisitionAction {
+    Skip,
+    Reconfigure,
+    Recreate,
+    Fail,
+}
+fn acquisition_action(status: &wgpu::CurrentSurfaceTexture, attempt: u8) -> AcquisitionAction {
+    use wgpu::CurrentSurfaceTexture as Status;
+    match status {
+        Status::Timeout | Status::Occluded => AcquisitionAction::Skip,
+        Status::Outdated if attempt == 0 => AcquisitionAction::Reconfigure,
+        Status::Lost if attempt == 0 => AcquisitionAction::Recreate,
+        _ => AcquisitionAction::Fail,
+    }
+}
+
+fn configure(device: &wgpu::Device, surface: &Surface) -> Result<(), String> {
+    let validation = device.push_error_scope(wgpu::ErrorFilter::Validation);
+    surface.surface.configure(device, &surface.config);
+    if let Some(error) = pollster::block_on(validation.pop()) {
+        return Err(format!("configure surface: {error}"));
+    }
+    Ok(())
+}
+
+/// The policy is separate from GPU calls so both OS modes and failure ordering
+/// are exercised on every host without opening a graphics device.
+async fn initialize_with_policy<T, F, Fut>(
+    selection: BackendSelection,
+    windows: bool,
+    mut initialize: F,
+) -> Result<T, String>
+where
+    F: FnMut(wgpu::Backends) -> Fut,
+    Fut: std::future::Future<Output = Result<T, String>>,
+{
+    let mut errors = Vec::new();
+    for backends in selection.attempts(windows) {
+        match initialize(backends).await {
+            Ok(value) => return Ok(value),
+            Err(error) => errors.push(format!("{backends:?}: {error}")),
+        }
+    }
+    Err(format!(
+        "renderer {} initialization failed ({})",
+        selection.as_str(),
+        errors.join("; ")
+    ))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn lost_and_outdated_recover_once_while_timeout_and_occlusion_skip() {
+        use wgpu::CurrentSurfaceTexture as Status;
+        assert_eq!(
+            acquisition_action(&Status::Lost, 0),
+            AcquisitionAction::Recreate
+        );
+        assert_eq!(
+            acquisition_action(&Status::Outdated, 0),
+            AcquisitionAction::Reconfigure
+        );
+        for attempt in [0, 1] {
+            assert_eq!(
+                acquisition_action(&Status::Timeout, attempt),
+                AcquisitionAction::Skip
+            );
+            assert_eq!(
+                acquisition_action(&Status::Occluded, attempt),
+                AcquisitionAction::Skip
+            );
+            assert_eq!(
+                acquisition_action(&Status::Validation, attempt),
+                AcquisitionAction::Fail
+            );
+        }
+        assert_eq!(
+            acquisition_action(&Status::Lost, 1),
+            AcquisitionAction::Fail
+        );
+        assert_eq!(
+            acquisition_action(&Status::Outdated, 1),
+            AcquisitionAction::Fail
+        );
+    }
+
+    #[test]
+    fn windows_auto_is_dx12_first_and_primary_only_after_failure() {
+        let mut attempted = Vec::new();
+        let result = pollster::block_on(initialize_with_policy(
+            BackendSelection::Auto,
+            true,
+            |backends| {
+                attempted.push(backends);
+                std::future::ready(if backends == wgpu::Backends::DX12 {
+                    Err("DX12 initialization unavailable".into())
+                } else {
+                    Ok(42)
+                })
+            },
+        ));
+        assert_eq!(result.unwrap(), 42);
+        assert_eq!(attempted, [wgpu::Backends::DX12, wgpu::Backends::PRIMARY]);
+    }
+
+    #[test]
+    fn successful_windows_dx12_does_not_initialize_primary() {
+        let mut attempted = Vec::new();
+        pollster::block_on(initialize_with_policy(
+            BackendSelection::Auto,
+            true,
+            |backends| {
+                attempted.push(backends);
+                std::future::ready(Ok(()))
+            },
+        ))
+        .unwrap();
+        assert_eq!(attempted, [wgpu::Backends::DX12]);
+    }
+
+    #[test]
+    fn explicit_dx12_failure_never_falls_back_on_either_platform() {
+        for windows in [false, true] {
+            let mut attempted = Vec::new();
+            let error = pollster::block_on(initialize_with_policy::<(), _, _>(
+                BackendSelection::Dx12,
+                windows,
+                |backends| {
+                    attempted.push(backends);
+                    std::future::ready(Err("DX12 initialization unavailable".into()))
+                },
+            ))
+            .unwrap_err();
+            assert!(error.contains("DX12 initialization unavailable"));
+            assert_eq!(attempted, [wgpu::Backends::DX12]);
+        }
+    }
+
+    #[test]
+    fn non_windows_auto_initializes_primary_once() {
+        let mut attempted = Vec::new();
+        let _ = pollster::block_on(initialize_with_policy::<(), _, _>(
+            BackendSelection::Auto,
+            false,
+            |backends| {
+                attempted.push(backends);
+                std::future::ready(Err("unavailable".into()))
+            },
+        ));
+        assert_eq!(attempted, [wgpu::Backends::PRIMARY]);
+    }
+
     #[test]
     fn parses_supported_backends_and_rejects_ambiguous_flags() {
         for value in ["auto", "dx12", "vulkan", "metal", "gl"] {

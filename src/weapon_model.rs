@@ -1,5 +1,5 @@
-//! GPU adapter for the authorized test model and optional local overrides.
-use macroquad::prelude::*;
+//! CPU draw adapter for the authorized test model and optional local overrides.
+use vector_range::draw::facade::*;
 use vector_range::{asset::WeaponAsset, scene_lighting::SceneLighting};
 
 pub struct WeaponModel {
@@ -38,24 +38,21 @@ impl WeaponModel {
                 for alpha in opaque_rgba.iter_mut().skip(3).step_by(4) {
                     *alpha = 255;
                 }
-                let texture = Texture2D::from_rgba8(
-                    part.texture_width as u16,
-                    part.texture_height as u16,
+                let texture = Texture::rgba8(
+                    part.texture_width,
+                    part.texture_height,
                     &opaque_rgba,
-                );
-                texture.set_filter(FilterMode::Linear);
-                // Set repeat sampling explicitly to match the supported GLB subset.
-                unsafe {
-                    get_internal_gl().quad_context.texture_set_wrap(
-                        texture.raw_miniquad_id(),
-                        macroquad::miniquad::TextureWrap::Repeat,
-                        macroquad::miniquad::TextureWrap::Repeat,
-                    );
-                }
+                    Sampler {
+                        filter: FilterMode::Linear,
+                        wrap_x: WrapMode::Repeat,
+                        wrap_y: WrapMode::Repeat,
+                    },
+                )
+                .expect("validated weapon asset texture must match its RGBA8 extent");
                 Some(texture)
             };
-            // Macroquad uses u16 indices and a 5,000-index default batch. Split
-            // triangle lists without index truncation or dropped triangles.
+            // Keep the established u16 batches, splitting triangle lists
+            // without index truncation or dropped triangles.
             for (source_vertices, indices) in partition_triangles(&part.indices) {
                 let vertices = source_vertices
                     .iter()
@@ -115,13 +112,7 @@ impl WeaponModel {
                     for vertex in &mut mesh.vertices {
                         vertex.color[3] = (alpha * 255.).round() as u8;
                     }
-                    unsafe {
-                        get_internal_gl().quad_gl.push_model_matrix(matrix);
-                    }
-                    draw_mesh(mesh);
-                    unsafe {
-                        get_internal_gl().quad_gl.pop_model_matrix();
-                    }
+                    draw_mesh_transformed(mesh, matrix, BlendMode::Alpha);
                 }
             }
         }
@@ -136,13 +127,7 @@ impl WeaponModel {
     ) {
         let draw = |mesh: &mut Mesh, albedo: Color, root: Mat4, local: Mat4| {
             lighting.shade_rigid(mesh, albedo, root * local);
-            unsafe {
-                get_internal_gl().quad_gl.push_model_matrix(root * local);
-            }
-            draw_mesh(mesh);
-            unsafe {
-                get_internal_gl().quad_gl.pop_model_matrix();
-            }
+            draw_mesh_transformed(mesh, root * local, BlendMode::Alpha);
         };
         for (part, mesh, albedo) in &mut self.meshes {
             if self.hk416_rig && (22..=25).contains(part) {
@@ -217,6 +202,124 @@ fn partition_triangles(indices: &[u32]) -> Vec<(Vec<u32>, Vec<u16>)> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn textured_asset() -> WeaponAsset {
+        WeaponAsset {
+            payload_crc32: 0,
+            meshes: vec![vector_range::asset::AssetMesh {
+                base_color: [0.8, 0.6, 0.4, 1.],
+                metallic: 0.,
+                roughness: 1.,
+                texture_width: 1,
+                texture_height: 2,
+                rgba: vec![20, 40, 60, 80, 100, 120, 140, 160],
+                vertices: [Vec3::ZERO, Vec3::X, Vec3::Y]
+                    .into_iter()
+                    .map(|position| vector_range::asset::AssetVertex {
+                        position: position.to_array(),
+                        normal: Vec3::Z.to_array(),
+                        uv: [0., 0.],
+                    })
+                    .collect(),
+                indices: vec![0, 1, 2],
+            }],
+        }
+    }
+
+    fn ambient_lighting() -> SceneLighting {
+        SceneLighting {
+            direction_to_light: Vec3::Y,
+            ambient: 1.,
+            diffuse: 0.,
+        }
+    }
+
+    #[test]
+    fn textured_weapon_construction_needs_no_gpu_and_preserves_repeat_sampling() {
+        let model = WeaponModel::from_asset(textured_asset());
+        let texture = model.meshes[0].1.texture.as_ref().unwrap();
+        assert_eq!((texture.width, texture.height), (1, 2));
+        assert_eq!(texture.sampler.filter, FilterMode::Linear);
+        assert_eq!(texture.sampler.wrap_x, WrapMode::Repeat);
+        assert_eq!(texture.sampler.wrap_y, WrapMode::Repeat);
+        let vector_range::draw::TextureSource::Rgba8(bytes) = &texture.source else {
+            panic!("weapon texture must retain its CPU RGBA8 source");
+        };
+        assert_eq!(bytes.as_ref(), &[20, 40, 60, 255, 100, 120, 140, 255]);
+    }
+
+    #[test]
+    fn authored_draw_records_transform_visibility_and_per_actor_alpha() {
+        let mut model = WeaponModel::from_asset(textured_asset());
+        let parent = Mat4::from_rotation_y(0.3);
+        let actor = Mat4::from_scale_rotation_translation(
+            vec3(1., 2., 3.),
+            Quat::from_rotation_z(0.2),
+            vec3(4., 5., 6.),
+        );
+        begin_frame(640, 480, 1.).unwrap();
+        with_model_matrix(parent, || {
+            model.draw_authored_parts(&[actor], &[true], &[0.5], ambient_lighting());
+        });
+        assert_eq!(current_model_matrix().unwrap(), Mat4::IDENTITY);
+        model.draw_authored_parts(&[actor], &[false], &[1.], ambient_lighting());
+        model.draw_authored_parts(&[actor], &[true], &[1.], ambient_lighting());
+        let list = take_draw_list().unwrap();
+        let meshes: Vec<_> = list
+            .commands
+            .iter()
+            .filter_map(|command| match command {
+                vector_range::draw::Command::Mesh { mesh, model, blend } => {
+                    Some((mesh, *model, *blend))
+                }
+                _ => None,
+            })
+            .collect();
+        assert_eq!(meshes.len(), 2, "invisible actors must not submit geometry");
+        assert_eq!(meshes[0].1, parent * actor);
+        assert_eq!(meshes[1].1, actor);
+        for (index, expected_alpha) in [128, 255].into_iter().enumerate() {
+            assert_eq!(meshes[index].2, BlendMode::Alpha);
+            assert_eq!(meshes[index].0.indices, [0, 1, 2]);
+            for vertex in &meshes[index].0.vertices {
+                assert_eq!(vertex.color, [204, 153, 102, expected_alpha]);
+                assert_eq!(vertex.normal, Vec3::Z.extend(0.));
+            }
+        }
+        assert_eq!(meshes[0].0.vertices[1].position, Vec3::X);
+    }
+
+    #[test]
+    fn procedural_draw_records_the_existing_root_times_local_transform() {
+        let mut model = WeaponModel::from_asset(textured_asset());
+        model.hk416_rig = true;
+        model.meshes[0].0 = 5;
+        let pose = Mat4::from_rotation_translation(Quat::from_rotation_x(0.4), Vec3::Y);
+        let animation = vector_range::weapon_animation::WeaponAnimationPose {
+            bolt_translation: [0.1, 0.2, 0.3],
+            ..Default::default()
+        };
+        begin_frame(640, 480, 1.).unwrap();
+        model.draw_pose_with_free_frame(pose, Mat4::IDENTITY, &animation, ambient_lighting());
+        assert_eq!(current_model_matrix().unwrap(), Mat4::IDENTITY);
+        let list = take_draw_list().unwrap();
+        let meshes: Vec<_> = list
+            .commands
+            .iter()
+            .filter_map(|command| match command {
+                vector_range::draw::Command::Mesh { model, blend, .. } => Some((*model, *blend)),
+                _ => None,
+            })
+            .collect();
+        assert_eq!(
+            meshes,
+            [(
+                pose * Mat4::from_translation(vec3(0.1, 0.2, 0.3)),
+                BlendMode::Alpha,
+            )]
+        );
+    }
+
     #[test]
     fn preserves_large_indexed_model_without_u16_truncation() {
         let original: Vec<u32> = (0..90_000).collect();

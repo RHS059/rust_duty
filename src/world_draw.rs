@@ -1,10 +1,19 @@
-use macroquad::prelude::*;
-use vector_range::{sim::Simulation, settings::Settings, body_presentation::{BodyFrame, BodyPose}};
-use vector_range::scene_lighting::SceneLighting;
-use crate::hud::{INK, CYAN, ACCENT, MUTED};
 use crate::viewmodel_draw::h_fov_to_v;
+use vector_range::draw::facade::*;
+use vector_range::scene_lighting::SceneLighting;
+use vector_range::{
+    body_presentation::{BodyFrame, BodyPose},
+    settings::Settings,
+    sim::Simulation,
+};
+// Static 3D material palette. Keep it independent of HUD/CSS UI styling.
+pub(crate) const INK: Color = Color::new(0.035, 0.055, 0.072, 1.);
+pub(crate) const ACCENT: Color = Color::new(0.98, 0.62, 0.22, 1.);
+pub(crate) const CYAN: Color = Color::new(0.33, 0.84, 0.87, 1.);
+pub(crate) const MUTED: Color = Color::new(0.62, 0.69, 0.72, 1.);
+
 pub(crate) fn grid_texture() -> Texture2D {
-    let mut im = Image::gen_image_color(256, 256, WHITE);
+    let mut pixels = Vec::with_capacity(256 * 256 * 4);
     for y in 0..256 {
         for x in 0..256 {
             let check = if (x / 32 + y / 32) % 2 == 0 {
@@ -19,12 +28,12 @@ pub(crate) fn grid_texture() -> Texture2D {
             } else {
                 check
             };
-            im.set_pixel(x, y, Color::new(value, value, value, 1.));
+            let pixel: [u8; 4] = Color::new(value, value, value, 1.).into();
+            pixels.extend_from_slice(&pixel);
         }
     }
-    let tex = Texture2D::from_image(&im);
-    tex.set_filter(FilterMode::Linear);
-    tex
+    Texture::rgba8(256, 256, &pixels, Sampler::default())
+        .expect("the generated 256x256 grid contains exactly one RGBA8 pixel per texel")
 }
 pub(crate) fn supply_focus(
     sim: &Simulation,
@@ -44,7 +53,10 @@ pub(crate) fn supply_focus(
     )
     .and_then(|view| supply.focus(sim, view, active))
 }
-pub(crate) fn register_supply(sim: &mut Simulation, supply: &vector_range::ammo_supply::AmmoSupply) {
+pub(crate) fn register_supply(
+    sim: &mut Simulation,
+    supply: &vector_range::ammo_supply::AmmoSupply,
+) {
     sim.blocks.push(vector_range::sim::Block {
         bounds: supply.bounds(),
         kind: 4,
@@ -223,5 +235,34 @@ pub(crate) fn draw_body_placeholder(frame: &BodyFrame) {
                 draw_cube(a.lerp(b, t), Vec3::splat(0.1), None, color);
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use vector_range::draw::TextureSource;
+
+    #[test]
+    fn grid_texture_preserves_rgba_pattern_without_a_gpu() {
+        let texture = grid_texture();
+        assert_eq!((texture.width, texture.height), (256, 256));
+        assert_eq!(texture.sampler.filter, FilterMode::Linear);
+        assert_eq!(texture.sampler.wrap_x, WrapMode::Clamp);
+        assert_eq!(texture.sampler.wrap_y, WrapMode::Clamp);
+        let TextureSource::Rgba8(bytes) = texture.source else {
+            panic!("the grid must have CPU-owned pixels");
+        };
+        assert_eq!(bytes.len(), 256 * 256 * 4);
+        let pixel = |x: usize, y: usize| &bytes[(y * 256 + x) * 4..(y * 256 + x + 1) * 4];
+        for (x, y) in [(0, 128), (2, 128), (253, 128), (128, 255)] {
+            assert_eq!(pixel(x, y), &[117, 117, 117, 255]);
+        }
+        for (x, y) in [(32, 3), (3, 32), (64, 64)] {
+            assert_eq!(pixel(x, y), &[168, 168, 168, 255]);
+        }
+        assert_eq!(pixel(3, 3), &[224, 224, 224, 255]);
+        assert_eq!(pixel(33, 3), &[244, 244, 244, 255]);
+        assert_eq!(pixel(33, 33), &[224, 224, 224, 255]);
     }
 }
