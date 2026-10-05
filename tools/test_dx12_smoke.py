@@ -243,9 +243,9 @@ class Dx12SmokeTests(unittest.TestCase):
             with patch.object(smoke, 'validate_captures', return_value={'passed': True}) as validate:
                 with patch.object(smoke, 'validate_renderer_log', return_value=['synthetic']):
                     smoke.run(self.executable(), self.root, evidence, 123)
-        validate.assert_called_once_with(evidence / 'captures')
+        validate.assert_called_once_with(evidence.resolve() / 'captures')
         self.assertEqual(process.call_args.kwargs['timeout'], 123)
-        self.assertEqual(process.call_args.kwargs['cwd'], self.root)
+        self.assertEqual(process.call_args.kwargs['cwd'], self.root.resolve())
         self.assertTrue((evidence / 'summary.json').is_file())
 
     def test_actual_python_entry_point_success_and_wrong_api_with_mock_process(self):
