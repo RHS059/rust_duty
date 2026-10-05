@@ -13,7 +13,7 @@ class GlUiProcessTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
-        self.root = Path(self.temp.name)
+        self.root = Path(self.temp.name).resolve()
         self.exe = self.root / 'fixture.exe'; self.exe.write_bytes(b'original-executable')
         self.runtime = self.root / 'runtime'; self.runtime.mkdir()
         self.manifest = self.root / 'lock.json'; self.manifest.write_text('{}')

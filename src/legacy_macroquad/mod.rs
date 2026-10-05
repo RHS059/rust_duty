@@ -331,7 +331,7 @@ impl LegacyRenderer {
                 size,
                 color,
             } => {
-                validate_text_size(*size)?;
+                prepare_default_text(text, *size)?;
                 self.with_screen_camera(active, extent, false, || {
                     macroquad::text::draw_text(
                         text,
@@ -658,6 +658,60 @@ fn flush() {
     unsafe {
         window::get_internal_gl().flush();
     }
+}
+
+/// Protect Macroquad 0.4.14's shared glyph atlas before it can grow/upload.
+/// Its atlas repacks glyphs and replaces the texture; Miniquad 0.4.8's GL
+/// delete_texture does not invalidate cached bindings. Flushing alone leaves
+/// that cache intact. The public GL commit_frame hook clears buffer/texture
+/// bindings in this pinned version; it neither swaps buffers nor presents.
+/// Do not extend this mid-frame workaround to another backend/version without
+/// checking that implementation. All font sizing, rasterization and drawing
+/// remain Macroquad's original default-font path.
+fn prepare_default_text(text: &str, size: f32) -> Result<(), String> {
+    prepare_default_text_with(
+        text,
+        size,
+        flush,
+        || {
+            // SAFETY: the same initialized render thread and short exclusive
+            // context access used by flush; no reference survives this block.
+            unsafe {
+                let gl = window::get_internal_gl();
+                if gl.quad_context.info().backend != mq::Backend::OpenGl {
+                    return Err("legacy text cache preparation requires OpenGL".into());
+                }
+                gl.quad_context.commit_frame();
+            }
+            Ok(())
+        },
+        |text, font_size| {
+            // Native Macroquad measurement populates its actual glyph atlas.
+            // The facade's CPU-only measurement would not prepare that atlas.
+            // This is the same u16 truncation and scale used by draw_text;
+            // Macroquad applies its own existing DPI adjustment in both paths.
+            macroquad::text::measure_text(text, None, font_size, 1.0);
+        },
+    )
+}
+
+fn prepare_default_text_with(
+    text: &str,
+    size: f32,
+    flush_pending: impl FnOnce(),
+    invalidate_bindings: impl FnOnce() -> Result<(), String>,
+    prewarm: impl FnOnce(&str, u16),
+) -> Result<(), String> {
+    validate_text_size(size)?;
+    if text.is_empty() {
+        return Ok(());
+    }
+    // Drain old-UV draws, invalidate both backend/cache bindings, then cache
+    // the entire string before draw_text can queue any new glyph geometry.
+    flush_pending();
+    invalidate_bindings()?;
+    prewarm(text, size as u16);
+    Ok(())
 }
 
 fn screen_camera(active: &draw::Camera, extent: (u32, u32)) -> draw::Camera {
@@ -1217,6 +1271,122 @@ mod tests {
         // weakening coverage: sampler variants must now use separate IDs.
         assert!(!same_descriptor(&changed, &target.texture));
         assert!(validate_cached_texture(&target.texture, &changed).is_err());
+    }
+
+    #[test]
+    fn text_cache_workaround_requires_review_when_dependencies_change() {
+        let lock = include_str!("../../Cargo.lock");
+        for (name, version, checksum) in [
+            (
+                "macroquad",
+                "0.4.14",
+                "d2befbae373456143ef55aa93a73594d080adfb111dc32ec96a1123a3e4ff4ae",
+            ),
+            (
+                "miniquad",
+                "0.4.8",
+                "2fb3e758e46dbc45716a8a49ca9edc54b15bcca826277e80b1f690708f67f9e3",
+            ),
+        ] {
+            let name_line = format!("name = \"{name}\"");
+            let packages: Vec<_> = lock
+                .split("[[package]]")
+                .filter(|package| package.lines().any(|line| line == name_line))
+                .collect();
+            assert_eq!(packages.len(), 1, "review the {name} text-cache workaround");
+            for required in [
+                format!("version = \"{version}\""),
+                format!("checksum = \"{checksum}\""),
+                "source = \"registry+https://github.com/rust-lang/crates.io-index\"".into(),
+            ] {
+                assert!(
+                    packages[0].lines().any(|line| line == required),
+                    "review {name} atlas and GL commit_frame behavior before changing {required}"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn text_preparation_drains_and_invalidates_before_native_glyph_warming() {
+        use std::cell::RefCell;
+        let operations = RefCell::new(Vec::new());
+        prepare_default_text_with(
+            "F / AMMO FULL — Ω",
+            18.75,
+            || operations.borrow_mut().push("flush"),
+            || {
+                operations.borrow_mut().push("invalidate");
+                Ok(())
+            },
+            |text, size| {
+                assert_eq!(text, "F / AMMO FULL — Ω");
+                assert_eq!(size, 18);
+                operations.borrow_mut().push("prewarm");
+            },
+        )
+        .unwrap();
+        assert_eq!(*operations.borrow(), ["flush", "invalidate", "prewarm"]);
+    }
+
+    #[test]
+    fn text_preparation_preserves_quantized_size_in_both_scale_orders() {
+        use std::cell::RefCell;
+        for sizes in [[18.75, 37.5, 18.75], [37.5, 18.75, 37.5]] {
+            let warmed = RefCell::new(Vec::new());
+            for size in sizes {
+                prepare_default_text_with(
+                    "same glyphs",
+                    size,
+                    || {},
+                    || Ok(()),
+                    |text, quantized| warmed.borrow_mut().push((text.to_owned(), quantized)),
+                )
+                .unwrap();
+            }
+            assert_eq!(
+                *warmed.borrow(),
+                sizes.map(|size| ("same glyphs".to_owned(), size as u16))
+            );
+        }
+    }
+
+    #[test]
+    fn unsupported_text_cache_backend_stops_before_glyph_allocation() {
+        use std::cell::RefCell;
+        let operations = RefCell::new(Vec::new());
+        let result = prepare_default_text_with(
+            "not allocated",
+            20.,
+            || operations.borrow_mut().push("flush"),
+            || {
+                operations.borrow_mut().push("reject-backend");
+                Err("not OpenGL".into())
+            },
+            |_, _| operations.borrow_mut().push("prewarm"),
+        );
+        assert_eq!(result.unwrap_err(), "not OpenGL");
+        assert_eq!(*operations.borrow(), ["flush", "reject-backend"]);
+    }
+
+    #[test]
+    fn empty_or_invalid_text_preparation_has_no_graphics_side_effects() {
+        for (text, size, valid) in [
+            ("", 18., true),
+            ("bad", 0., false),
+            ("bad", f32::NAN, false),
+            ("bad", f32::INFINITY, false),
+            ("bad", 65_536., false),
+        ] {
+            let result = prepare_default_text_with(
+                text,
+                size,
+                || panic!("unexpected flush"),
+                || panic!("unexpected binding invalidation"),
+                |_, _| panic!("unexpected glyph allocation"),
+            );
+            assert_eq!(result.is_ok(), valid);
+        }
     }
 
     #[test]
