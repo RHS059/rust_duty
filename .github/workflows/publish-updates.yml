@@ -46,67 +46,58 @@ jobs:
           with open(os.environ['GITHUB_ENV'],'a') as f:
               for k in ['version','sequence','previous','game_ref','launcher_ref']: f.write(f'RELEASE_{k.upper()}={p[k]}\n')
           PY
-      - name: Select successful exact-source push runs
-        shell: bash
+      - name: Fetch packaging code and every helper from the exact game source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.plan.outputs.game_ref }}
+          path: game-source
+          persist-credentials: false
+      - name: Select successful exact-source Windows jobs
         env:
           GH_TOKEN: ${{ github.token }}
-        run: |
-          gh api -X GET repos/RHS059/rust_duty/actions/workflows/build.yml/runs \
-            -f head_sha="$RELEASE_GAME_REF" -f event=push -f status=success -f per_page=100 > game-runs.json
-          gh api -X GET repos/RHS059/rust_duty/actions/workflows/updater.yml/runs \
-            -f head_sha="$RELEASE_LAUNCHER_REF" -f event=push -f status=success -f per_page=100 > launcher-runs.json
-          python - <<'PY'
-          import json,os
-          selected={}
-          for kind in ['game','launcher']:
-              sha=os.environ['RELEASE_'+kind.upper()+'_REF']
-              runs=json.load(open(kind+'-runs.json'))['workflow_runs']
-              valid=[r for r in runs if r['head_sha']==sha and r['event']=='push' and r['status']=='completed' and r['conclusion']=='success']
-              assert valid, f'No successful exact-source push workflow for {kind} {sha}'
-              selected[kind]={'commit':sha,'run_id':valid[0]['id'],'run_url':valid[0]['html_url']}
-          json.dump(selected,open('SOURCE_PROVENANCE.json','w'),indent=2)
-          with open(os.environ['GITHUB_ENV'],'a') as f:
-              for kind,item in selected.items():f.write(f'{kind.upper()}_RUN_ID={item["run_id"]}\n')
-          PY
+        run: python tools/select_windows_build.py
       - name: Download tested binaries without rebuilding them
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh run download "$GAME_RUN_ID" --repo RHS059/rust_duty --name vector-range-windows-x64 --dir tested/windows/game
-          gh run download "$GAME_RUN_ID" --repo RHS059/rust_duty --name vector-range-linux-x64 --dir tested/linux/game
           gh run download "$LAUNCHER_RUN_ID" --repo RHS059/rust_duty --name rust-duty-launcher-windows --dir tested/windows/launcher
-          gh run download "$LAUNCHER_RUN_ID" --repo RHS059/rust_duty --name rust-duty-launcher-linux --dir tested/linux/launcher
       - name: Curate complete game payloads and validate standalone launchers
         run: |
           python - <<'PY'
           from pathlib import Path
-          import os, shutil, subprocess, sys
+          import json, os, shutil, sys
+          sys.path.insert(0, 'tools')
+          from stage_release_game import stage_game, verify_archive
+          from select_windows_build import verify_game_artifact
+          provenance=json.loads(Path('SOURCE_PROVENANCE.json').read_text())
+          verify_game_artifact(Path('tested/windows/game'), provenance['game'], os.environ['RELEASE_VERSION'])
+          provenance['packaging']={'toolchain_commit':os.environ['RELEASE_GAME_REF'],'platforms':{}}
           for osname,game,launcher,bootstrap,magic in [
-              ('windows','vector-range.exe','RustDuty.exe','RustDuty-windows-x64.exe',b'MZ'),
-              ('linux','vector-range','RustDuty','RustDuty-linux-x64',b'\x7fELF')]:
+              ('windows','vector-range.exe','RustDuty.exe','RustDuty-windows-x64.exe',b'MZ')]:
               source=Path('tested')/osname
               assert (source/'launcher/BOOTSTRAP_TRUST.txt').read_text().strip()=='GITHUB_HTTPS_SHA256 RHS059/rust_duty'
               binary=source/'launcher'/launcher
               assert binary.read_bytes().startswith(magic)
               payload=Path('payload')/osname
-              # Exact allowlist includes the three authorized locomotion companions.
-              # Staging fails on missing/corrupt assets and never copies user settings.
-              subprocess.run([sys.executable, 'tools/package_game.py', 'stage',
-                  '--root', str(source/'game'), '--binary', game,
-                  '--output', str(payload), '--update'], check=True)
+              # Use the selected GAME source's allowlist and all of its helpers.
+              # The release-control branch may have an obsolete packager.
+              update_report=stage_game(Path('game-source'),os.environ['RELEASE_GAME_REF'],
+                  source/'game',game,payload,update=True,version=os.environ['RELEASE_VERSION'])
               Path('release-assets').mkdir(exist_ok=True)
               complete=Path('complete')/osname
-              subprocess.run([sys.executable, 'tools/package_game.py', 'stage',
-                  '--root', str(source/'game'), '--binary', game,
-                  '--output', str(complete)], check=True)
-              if osname == 'linux':
-                  (complete/game).chmod((complete/game).stat().st_mode | 0o111)
-              label='Windows' if osname == 'windows' else 'Linux'
+              complete_report=stage_game(Path('game-source'),os.environ['RELEASE_GAME_REF'],
+                  source/'game',game,complete,version=os.environ['RELEASE_VERSION'])
+              label='Windows'
               archive=Path('release-assets')/f'Rust-Duty-{os.environ["RELEASE_VERSION"]}-{label}-x64'
               shutil.make_archive(str(archive), 'zip', root_dir=complete)
+              archive_report=verify_archive(Path(str(archive)+'.zip'),complete)
+              provenance['packaging']['platforms'][osname]={
+                  'update':update_report,'complete':complete_report,'zip':archive_report}
               shutil.copy2(binary,Path('release-assets')/bootstrap)
               # Retain the legacy migration executable alongside complete ZIPs.
-              shutil.copy2(payload/game,Path('release-assets')/('vector-range.exe' if osname=='windows' else 'vector-range-linux-x64'))
+              shutil.copy2(payload/game,Path('release-assets')/'vector-range.exe')
+          Path('SOURCE_PROVENANCE.json').write_text(json.dumps(provenance,indent=2)+'\n')
           shutil.copy2('SOURCE_PROVENANCE.json','release-assets/SOURCE_PROVENANCE.json')
           PY
       - name: Prepare full bundles and real retained-base deltas
@@ -118,8 +109,8 @@ jobs:
             count=$(gh api 'repos/RHS059/rust_duty/releases?per_page=100' --jq '[.[] | select(.draft == false) | .assets[]? | .name | select(startswith("update-") and endswith(".json"))] | length')
             test "$count" = 0 || { echo 'Existing channel requires previous version'; exit 1; }
           fi
-          for platform in windows linux; do
-            if [ "$platform" = windows ]; then target=x86_64-pc-windows-msvc; game=vector-range.exe; else target=x86_64-unknown-linux-gnu; game=vector-range; fi
+          for platform in windows; do
+            target=x86_64-pc-windows-msvc; game=vector-range.exe
             previous_args=()
             if [ -n "$RELEASE_PREVIOUS" ]; then
               mkdir -p "baseline/$platform"
@@ -134,6 +125,8 @@ jobs:
               --version "$RELEASE_VERSION" --sequence "$RELEASE_SEQUENCE" --target "$target" --entrypoint "$game" "${previous_args[@]}"
             python tools/release_update.py verify --manifest "release-assets/update-$target.json" \
               --assets-dir release-assets --version "$RELEASE_VERSION" --target "$target"
+            python tools/stage_release_game.py verify-bundle \
+              --bundle "release-assets/rust-duty-$RELEASE_VERSION-$target.rdb" --directory "payload/$platform"
           done
       - uses: actions/upload-artifact@v4
         with:
@@ -165,10 +158,10 @@ jobs:
             echo 'Version exists; refusing replacement'; exit 1
           fi
           mapfile -t assets < <(find release-assets -maxdepth 1 -type f | sort)
-          test "${#assets[@]}" -ge 7
+          test "${#assets[@]}" -ge 6
           gh release create "$tag" --repo RHS059/rust_duty --target "$GAME_REF" --draft \
             --title "Rust Duty $RELEASE_VERSION" \
-            --notes "Complete game update with the frozen 43-clip locomotion companions and a standalone migration launcher. Trusts this GitHub repository over HTTPS and validates payload sizes/SHA256; no independent signing key. The exact authorized locomotion package is included; unrelated private models and user settings remain untouched. Game source: $GAME_REF. Launcher source: $LAUNCHER_REF."
+            --notes "Windows game update with the exact source-authored locomotion, walk, ADS, directional and reload assets plus a standalone migration launcher. Trusts this GitHub repository over HTTPS and validates payload sizes/SHA256; no independent signing key. The exact authorized locomotion package is included; unrelated private models and user settings remain untouched. Game source: $GAME_REF. Launcher source: $LAUNCHER_REF."
           gh release upload "$tag" "${assets[@]}" --repo RHS059/rust_duty
           gh release edit "$tag" --repo RHS059/rust_duty --draft=false --latest
 
@@ -182,9 +175,6 @@ jobs:
           - os: windows-latest
             target: x86_64-pc-windows-msvc
             launcher: RustDuty-windows-x64.exe
-          - os: ubuntu-latest
-            target: x86_64-unknown-linux-gnu
-            launcher: RustDuty-linux-x64
     runs-on: ${{ matrix.os }}
     permissions:
       contents: read
@@ -244,6 +234,18 @@ jobs:
             --manifest-b "expected/update-$RELEASE_TARGET.json" \
             --version-a "$PREVIOUS_VERSION" --version-b "$RELEASE_VERSION" \
             --target "$RELEASE_TARGET" --report "game-update-$RELEASE_TARGET.json"
+      - name: Verify actual one-file game baseline update and same-path relaunch
+        if: steps.game-updater-baseline.outputs.available == 'true'
+        shell: bash
+        timeout-minutes: 8
+        run: |
+          python tools/smoke_game_update.py \
+            --launcher "expected/$LAUNCHER_ASSET" \
+            --bundle-a "baseline/rust-duty-$PREVIOUS_VERSION-$RELEASE_TARGET.rdb" \
+            --manifest-a "baseline/update-$RELEASE_TARGET.json" \
+            --manifest-b "expected/update-$RELEASE_TARGET.json" \
+            --version-a "$PREVIOUS_VERSION" --version-b "$RELEASE_VERSION" \
+            --target "$RELEASE_TARGET" --baseline-mode one-file --report "game-one-file-update-$RELEASE_TARGET.json"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -251,4 +253,5 @@ jobs:
           path: |
             live-update-${{ matrix.target }}.json
             game-update-${{ matrix.target }}.json
+            game-one-file-update-${{ matrix.target }}.json
           if-no-files-found: warn

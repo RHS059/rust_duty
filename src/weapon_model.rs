@@ -104,12 +104,17 @@ impl WeaponModel {
         &mut self,
         transforms: &[Mat4],
         visible: &[bool],
+        opacity: &[f32],
         lighting: SceneLighting,
     ) {
         for (part, mesh, albedo) in &mut self.meshes {
             if visible.get(*part).copied().unwrap_or(false) {
                 if let Some(&matrix) = transforms.get(*part) {
                     lighting.shade_rigid(mesh, *albedo, matrix);
+                    let alpha = opacity.get(*part).copied().unwrap_or(1.).clamp(0., 1.);
+                    for vertex in &mut mesh.vertices {
+                        vertex.color[3] = (alpha * 255.).round() as u8;
+                    }
                     unsafe {
                         get_internal_gl().quad_gl.push_model_matrix(matrix);
                     }

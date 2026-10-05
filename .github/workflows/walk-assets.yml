@@ -38,16 +38,39 @@ jobs:
         run: python tools/build_walk_assets.py --blender blender --sampler target/release/examples/sample_viewmodel_clip --work build-walk/work --output build-walk/runtime
       - name: Revalidate source, old clip bytes and generated companions
         run: python tools/check_generated_assets.py --kind walk --directory build-walk/runtime
-      - name: Upload walking source and parity evidence
+      - name: Archive this attempt - Upload walking source and parity evidence
         if: always()
+        id: archive_attempt_1
         uses: actions/upload-artifact@v4
         with:
+          name: walk-export-diagnostics-attempt-${{ github.run_attempt }}
+          path: build-walk/runtime/*.json
+          if-no-files-found: warn
+      - name: Upload walking source and parity evidence
+        if: ${{ (always()) && steps.archive_attempt_1.outcome == 'success' && steps.archive_attempt_1.outputs.artifact-id != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          overwrite: true
           name: walk-export-diagnostics
           path: build-walk/runtime/*.json
           if-no-files-found: warn
-      - name: Publish verified walking companions for complete game builds
+      - name: Archive this attempt - Publish verified walking companions for complete game builds
+        id: archive_attempt_2
         uses: actions/upload-artifact@v4
         with:
+          name: generated-walk-runtime-attempt-${{ github.run_attempt }}
+          path: |
+            build-walk/runtime/asset.vra
+            build-walk/runtime/asset.vrs
+            build-walk/runtime/asset.vrm
+            build-walk/runtime/asset.vrs.gz
+            build-walk/runtime/*.json
+          if-no-files-found: error
+      - name: Publish verified walking companions for complete game builds
+        if: ${{ (success()) && steps.archive_attempt_2.outcome == 'success' && steps.archive_attempt_2.outputs.artifact-id != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          overwrite: true
           name: generated-walk-runtime
           path: |
             build-walk/runtime/asset.vra

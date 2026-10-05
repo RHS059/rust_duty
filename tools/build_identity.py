@@ -7,6 +7,7 @@ import os
 from pathlib import Path
 import re
 import subprocess
+import tomllib
 
 import release_update
 
@@ -17,11 +18,22 @@ TARGETS = {
     "windows": ("x86_64-pc-windows-msvc", "vector-range.exe", "Windows", b"MZ"),
     "linux": ("x86_64-unknown-linux-gnu", "vector-range", "Linux", b"\x7fELF"),
 }
-# Explicit one-time owner-authorized 0.1.7 delivery. Future version increments
-# belong to merged-PR release automation, never to ordinary draft/push builds.
+# Candidate metadata only: builds do not allocate or publish a release.
+BUILD_SEQUENCE = 11
+# Freeze the legacy one-time publisher; a new package version cannot enable it.
 RELEASE_BRANCHES = {"aella/automatic-game-updates-r1"}
-RELEASE_VERSION = "0.1.7"
-RELEASE_SEQUENCE = 5
+LEGACY_RELEASE_VERSION = "0.1.7"
+LEGACY_RELEASE_SEQUENCE = 5
+
+
+def package_version():
+    """Use the same checked-out Cargo package identity as build.rs."""
+    with (Path(__file__).resolve().parents[1] / "Cargo.toml").open("rb") as stream:
+        version = tomllib.load(stream)["package"]["version"]
+    parts = release_update.stable_version(version)
+    if any(part > 2**64 - 1 for part in parts):
+        raise ValueError("oversized Cargo package version")
+    return version
 
 
 def positive_integer(value, label):
@@ -38,26 +50,32 @@ def context(env=None, *, publication=False):
     repository = env.get("GITHUB_REPOSITORY", "")
     number = positive_integer(env.get("GITHUB_RUN_NUMBER"), "run number")
     run_id = positive_integer(env.get("GITHUB_RUN_ID"), "run id")
+    attempt = positive_integer(env.get("GITHUB_RUN_ATTEMPT"), "run attempt")
+    build_number = f"{run_id}.{attempt}"
     commit = env.get("GITHUB_SHA", "")
     branch = env.get("GITHUB_REF_NAME", "")
     if not re.fullmatch(r"[0-9a-f]{40}", commit) or not branch or "\n" in branch:
         raise ValueError("invalid exact source commit or branch")
     if not re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", repository):
         raise ValueError("invalid repository")
-    version = RELEASE_VERSION
-    # Workflow files still export 0.1.5. The package version is the release identity.
+    version = package_version()
+    historical = version == LEGACY_RELEASE_VERSION
+    sequence = LEGACY_RELEASE_SEQUENCE if historical else BUILD_SEQUENCE
     pinned = env.get("RUST_DUTY_BUILD_VERSION")
-    if pinned not in {version, "0.1.5"}:
-        raise ValueError("build version must match the one-time approved 0.1.7 release")
-    if publication and (repository != REPOSITORY or env.get("GITHUB_EVENT_NAME") != "push"
+    # Only the historical publisher may retain its historical workflow pin.
+    allowed = {version, "0.1.5"} if historical else {None, version}
+    if pinned not in allowed:
+        raise ValueError("build version must match the Cargo package version")
+    if publication and (not historical or repository != REPOSITORY or env.get("GITHUB_EVENT_NAME") != "push"
                         or branch not in RELEASE_BRANCHES
                         or env.get("GITHUB_REF") != f"refs/heads/{branch}"
                         or env.get("RUST_DUTY_BUILD_RESULT") != "success"):
         raise ValueError("publication requires a successful explicitly authorized one-time release push build")
     return {
-        "repository": repository, "version": version, "sequence": RELEASE_SEQUENCE,
+        "repository": repository, "version": version, "sequence": sequence,
+        "build_number": build_number, "display_version": f"{version}+build.{build_number}",
         "source": {"commit": commit, "branch": branch, "workflow": WORKFLOW,
-                   "run_id": run_id, "run_number": number,
+                   "run_id": run_id, "run_number": number, "run_attempt": attempt,
                    "run_url": f"https://github.com/{repository}/actions/runs/{run_id}"},
     }
 
@@ -82,6 +100,10 @@ def stamp(root, platform, env=None):
                                        text=True, timeout=30).strip()
     if reported != identity["version"]:
         raise ValueError(f"embedded game version {reported!r} differs from build identity")
+    reported_label = subprocess.check_output([str((root / name).resolve()), "--build-label"],
+                                             text=True, timeout=30).strip()
+    if reported_label != identity["display_version"]:
+        raise ValueError(f"embedded game build label {reported_label!r} differs from build identity")
     identity.update(schema="rust-duty-build-identity/v1", target=target, executable=record)
     destination = root / IDENTITY_FILE
     if destination.exists() or destination.is_symlink():
@@ -104,11 +126,18 @@ def verify(root, platform, expected):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--root", type=Path, required=True)
-    parser.add_argument("--platform", choices=TARGETS, required=True)
+    parser.add_argument("--root", type=Path)
+    parser.add_argument("--platform", choices=TARGETS)
+    parser.add_argument("--print-label", action="store_true")
     args = parser.parse_args()
-    print(json.dumps(stamp(args.root, args.platform), indent=2))
+    if args.print_label:
+        print(context()["display_version"])
+    else:
+        if args.root is None or args.platform is None:
+            parser.error("--root and --platform are required for stamping")
+        print(json.dumps(stamp(args.root, args.platform), indent=2))
 
 
 if __name__ == "__main__":
     main()
+

@@ -1,14 +1,46 @@
 use crate::action::ActionTuning;
-use std::{fs, path::Path};
+use std::{collections::BTreeMap, fs, path::Path};
+
+/// Per-axis walking translation adjustment. Zero preserves authored motion;
+/// -1 removes that displacement and +1 doubles it. Rotation is unaffected.
+#[derive(Debug, Clone, Copy, Default, PartialEq)]
+pub struct WalkTranslation(pub [f32; 3]);
+
+impl WalkTranslation {
+    pub fn sanitized(self) -> Self {
+        Self(self.0.map(|value| {
+            if value.is_finite() {
+                value.clamp(-1., 1.)
+            } else {
+                0.
+            }
+        }))
+    }
+    pub fn gains(self) -> macroquad::math::Vec3 {
+        macroquad::math::Vec3::from_array(self.sanitized().0.map(|value| 1. + value))
+    }
+}
+
+pub fn valid_weapon_id(id: &str) -> bool {
+    !id.is_empty()
+        && id.len() <= 80
+        && id
+            .bytes()
+            .all(|c| c.is_ascii_alphanumeric() || matches!(c, b'_' | b'-'))
+}
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Settings {
+    /// Stable weapon IDs, independent of display labels and asset revisions.
+    pub walk_translation: BTreeMap<String, WalkTranslation>,
     pub sensitivity: f32,
     pub fov: f32,
     /// Camera-space viewmodel offset in meters. Positive X is right, positive Y is up.
     pub viewmodel_x: f32,
     /// Camera-space viewmodel offset in meters. Positive X is right, positive Y is up.
     pub viewmodel_y: f32,
+    /// Camera-space depth in meters. Positive Z moves toward the camera.
+    pub viewmodel_z: f32,
     pub ads_fov: f32,
     pub walk_speed: f32,
     pub sprint_speed: f32,
@@ -38,10 +70,12 @@ pub struct Settings {
 impl Default for Settings {
     fn default() -> Self {
         Self {
+            walk_translation: BTreeMap::new(),
             sensitivity: 0.10,
             fov: 90.,
             viewmodel_x: 0.,
             viewmodel_y: 0.,
+            viewmodel_z: 0.,
             ads_fov: 65.,
             walk_speed: 4.826,
             sprint_speed: 7.239,
@@ -74,6 +108,17 @@ impl Settings {
     /// One start-menu nudge, in meters.
     pub const VIEWMODEL_NUDGE: f32 = 0.005;
 
+    /// Saved hip placement fades with the visible ADS pose, without changing
+    /// the saved values. A fully aimed weapon keeps its authored sight alignment.
+    pub fn viewmodel_offset(&self, visual_ads: f32) -> macroquad::math::Vec3 {
+        let aim = if visual_ads.is_finite() {
+            visual_ads.clamp(0., 1.)
+        } else {
+            0.
+        };
+        macroquad::math::vec3(self.viewmodel_x, self.viewmodel_y, self.viewmodel_z) * (1. - aim)
+    }
+
     /// Shift the saved viewmodel offset. X is right, Y is up. No forward/back.
     pub fn nudge_viewmodel(&mut self, x: f32, y: f32) {
         let limit = Self::VIEWMODEL_OFFSET_LIMIT;
@@ -89,6 +134,32 @@ impl Settings {
         }
         if y.is_finite() {
             self.viewmodel_y = y.clamp(-limit, limit);
+        }
+    }
+
+    pub fn set_viewmodel_z(&mut self, z: f32) {
+        if z.is_finite() {
+            self.viewmodel_z = z.clamp(-Self::VIEWMODEL_OFFSET_LIMIT, Self::VIEWMODEL_OFFSET_LIMIT);
+        }
+    }
+
+    pub fn reset_viewmodel(&mut self) {
+        self.set_viewmodel(0., 0.);
+        self.set_viewmodel_z(0.);
+    }
+
+    pub fn walking_translation(&self, weapon_id: &str) -> WalkTranslation {
+        self.walk_translation
+            .get(weapon_id)
+            .copied()
+            .unwrap_or_default()
+            .sanitized()
+    }
+
+    pub fn set_walking_translation(&mut self, weapon_id: &str, value: WalkTranslation) {
+        if valid_weapon_id(weapon_id) {
+            self.walk_translation
+                .insert(weapon_id.to_owned(), value.sanitized());
         }
     }
 
@@ -134,6 +205,21 @@ impl Settings {
                         if !v.is_finite() {
                             continue;
                         }
+                        if let Some((id, axis)) = key
+                            .trim()
+                            .strip_prefix("walk_translation.")
+                            .and_then(|s| s.rsplit_once('.'))
+                        {
+                            if valid_weapon_id(id) {
+                                if let Some(index) =
+                                    ["x", "y", "z"].iter().position(|name| *name == axis)
+                                {
+                                    s.walk_translation.entry(id.into()).or_default().0[index] =
+                                        v.clamp(-1., 1.);
+                                }
+                            }
+                            continue;
+                        }
                         let slot = match key.trim() {
                             "sensitivity" => Some((&mut s.sensitivity, 0.01, 1.)),
                             "fov" => Some((&mut s.fov, 65., 120.)),
@@ -144,6 +230,11 @@ impl Settings {
                             )),
                             "viewmodel_y" => Some((
                                 &mut s.viewmodel_y,
+                                -Self::VIEWMODEL_OFFSET_LIMIT,
+                                Self::VIEWMODEL_OFFSET_LIMIT,
+                            )),
+                            "viewmodel_z" => Some((
+                                &mut s.viewmodel_z,
                                 -Self::VIEWMODEL_OFFSET_LIMIT,
                                 Self::VIEWMODEL_OFFSET_LIMIT,
                             )),
@@ -201,6 +292,7 @@ impl Settings {
             ("fov", self.fov),
             ("viewmodel_x", self.viewmodel_x),
             ("viewmodel_y", self.viewmodel_y),
+            ("viewmodel_z", self.viewmodel_z),
             ("ads_fov", self.ads_fov),
             ("walk_speed", self.walk_speed),
             ("sprint_speed", self.sprint_speed),
@@ -232,6 +324,14 @@ impl Settings {
         for (key, value, ..) in action.fields_mut() {
             out.push_str(&format!("{key} = {value:.4}\n"));
         }
+        out.push_str("# Per-weapon walking translation: -1 = none, 0 = authored, +1 = double.\n");
+        for (id, value) in &self.walk_translation {
+            if valid_weapon_id(id) {
+                for (axis, value) in ["x", "y", "z"].into_iter().zip(value.sanitized().0) {
+                    out.push_str(&format!("walk_translation.{id}.{axis} = {value:.4}\n"));
+                }
+            }
+        }
         fs::write(path, out)
     }
 }
@@ -239,6 +339,77 @@ impl Settings {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn absolute_depth_is_saved_clamped_and_independent_of_other_settings() {
+        let path =
+            std::env::temp_dir().join(format!("vector-depth-settings-{}.cfg", std::process::id()));
+        fs::write(&path, "viewmodel_x = 0.04\nviewmodel_y = -0.03\n").unwrap();
+        let mut settings = Settings::load(&path);
+        assert_eq!(settings.viewmodel_z, 0.);
+        settings.set_viewmodel_z(9.);
+        assert_eq!(settings.viewmodel_z, 0.20);
+        settings.set_viewmodel_z(f32::NAN);
+        assert_eq!(settings.viewmodel_z, 0.20);
+        settings.set_walking_translation("hk416a5", WalkTranslation([0.5, -1., 1.]));
+        settings.save(&path).unwrap();
+        assert_eq!(Settings::load(&path), settings);
+        settings.set_viewmodel(0.01, 0.02);
+        assert_eq!(settings.viewmodel_z, 0.20);
+        settings.reset_viewmodel();
+        assert_eq!(
+            (
+                settings.viewmodel_x,
+                settings.viewmodel_y,
+                settings.viewmodel_z
+            ),
+            (0., 0., 0.)
+        );
+        assert_eq!(
+            settings.walking_translation("hk416a5"),
+            WalkTranslation([0.5, -1., 1.])
+        );
+        fs::write(&path, "viewmodel_z = -9\nviewmodel_z = inf\n").unwrap();
+        assert_eq!(Settings::load(&path).viewmodel_z, -0.20);
+        fs::remove_file(path).unwrap();
+    }
+    #[test]
+    fn weapon_walk_axes_roundtrip_independently_and_reject_invalid_values() {
+        let path =
+            std::env::temp_dir().join(format!("vector-walk-settings-{}.cfg", std::process::id()));
+        fs::write(&path, "walk_translation.hk416a5.x = -9\nwalk_translation.hk416a5.y = 0.25\nwalk_translation.hk416a5.z = NaN\nwalk_translation.other.z = 9\nwalk_translation.bad/id.x = 1\nwalk_translation.hk416a5.q = 1\n").unwrap();
+        let mut settings = Settings::load(&path);
+        assert_eq!(
+            settings.walking_translation("hk416a5"),
+            WalkTranslation([-1., 0.25, 0.])
+        );
+        assert_eq!(
+            settings.walking_translation("other"),
+            WalkTranslation([0., 0., 1.])
+        );
+        assert_eq!(
+            settings.walking_translation("missing"),
+            WalkTranslation::default()
+        );
+        assert_eq!(settings.walk_translation.len(), 2);
+        settings.save(&path).unwrap();
+        assert_eq!(Settings::load(&path), settings);
+        settings.set_walking_translation("hk416a5", WalkTranslation::default());
+        assert_eq!(settings.walking_translation("other").0[2], 1.);
+        fs::remove_file(path).unwrap();
+    }
+    #[test]
+    fn walk_adjustments_map_minus_one_zero_one_to_zero_one_two() {
+        assert_eq!(
+            WalkTranslation([-1., 0., 1.]).gains().to_array(),
+            [0., 1., 2.]
+        );
+        assert_eq!(
+            WalkTranslation([f32::NAN, f32::INFINITY, -5.])
+                .gains()
+                .to_array(),
+            [1., 1., 0.]
+        );
+    }
     #[test]
     fn config_rejects_nonfinite_values_and_clamps_credit_to_ready() {
         let path = std::env::temp_dir().join(format!("vector-settings-{}.cfg", std::process::id()));

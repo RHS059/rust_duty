@@ -1,0 +1,57 @@
+{
+  "status": "saved WIP derived diagnostic, unreviewed",
+  "candidate_id": "ads-v9-depthphase-forward-public47-r5",
+  "blend": "ads_v9_depthphase_public47_hipr5_diagnostic.blend",
+  "sha256": "094c54c25815126479ca30051a15b8e8dd8f0b4f7bab0767ba96599534652c62",
+  "bytes": 11971011,
+  "scene": "ADS V9 Depth Phase Diagnostic",
+  "camera": "RD First Person Review",
+  "source_ads_sha256": "3acdf3e2d04757d719ba59ede08decdf8bad48e2e87d9448046fe8edcbba4f58",
+  "source_hip_sha256": "36d76491c2cf6238b8a1e10069dddd5b0d63e199063e1f4012b34f3fd4b1e18d",
+  "original_actions_preserved": 65,
+  "original_drivers_images_nla_preserved": true,
+  "camera_unchanged": true,
+  "held_clone_skin_errors_m": {
+    "Actual arms mesh 0": 8.344650268554688e-07,
+    "Actual arms mesh 1": 7.152557373046875e-07,
+    "Actual arms mesh 2": 7.152557373046875e-07
+  },
+  "quarter_frame_matrix_max_error": 0.001053929328918457,
+  "quarter_frame_deform_matrix_max_error": 4.108250141143799e-05,
+  "quarter_frame_actor_max_error": 3.7997961044311523e-07,
+  "actual_baked_hand_translation_mm": 0.015494976448504671,
+  "worst_matrix_bone": "OUT_hand_l",
+  "worst_matrix_frame": 42.0,
+  "deform_actor_matrix_tolerance_1e5_pass": false,
+  "bake_sample_hz": 240,
+  "render_frames": [
+    1,
+    126
+  ],
+  "render_fps": 60,
+  "reference_frames": [
+    2298,
+    2423
+  ],
+  "comparison_phase_offset_rational": "23/240",
+  "phase_rate": "4/5",
+  "articulation_weight": 0.15,
+  "weapon_policy": "primary X; vertical target from native half-period; no gain change",
+  "vertical_channel_native_offset_frames": 19,
+  "structural_probe": {
+    "sample_count": 501,
+    "max_hand_translation_mm": 0.00010543295516136964,
+    "max_hand_angle_degrees": 0.0,
+    "min_raw_guard_margin_degrees": 1.914223496195218,
+    "max_connected_gap_mm": 1.307880793208186,
+    "max_input_connected_gap_mm": 0.3692311648998697,
+    "connected_deform_pairs": 4,
+    "rendered": false,
+    "source_files_unchanged": true,
+    "camera_unchanged": true
+  },
+  "claim_limit": "Native-input-derived global-pose interpolation with preserved rest/skin. Increased joint-anchor residual and any helper-bone TRS approximation are disclosed. Not a new accepted locomotion clip, not runtime validation, and no reference-match score.",
+  "review_render_source_sha256": "4de3a9001f0aed96123d566e30259119453e9beba253352a783f598bb739c8d3",
+  "native_decoded_stream_sha256": "7247b12f7e620a072e5964dea4486587b61122ccf2ad8aa226c53b6772064ec9",
+  "compression_note": "Published native copy recompresses the exact same decoded Blender stream with zstd19. All68Actions and evaluated witnesses match; no motion revision."
+}

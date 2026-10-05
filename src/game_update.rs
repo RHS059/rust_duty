@@ -7,6 +7,8 @@ pub struct UpdatePanel {
     updater: Option<GameUpdater>,
     error: Option<String>,
     pointer_captured: PointerCapture,
+    pointer_pressed: bool,
+    pointer_down: bool,
     restart_requested: bool,
     startup: StartupGate,
     snapshot: Option<UpdateSnapshot>,
@@ -62,6 +64,8 @@ impl UpdatePanel {
                 updater: None,
                 error: None,
                 pointer_captured: PointerCapture::default(),
+                pointer_pressed: false,
+                pointer_down: false,
                 restart_requested: false,
                 startup: StartupGate { resolved: !enabled },
                 snapshot: None,
@@ -72,6 +76,8 @@ impl UpdatePanel {
                 updater: Some(updater),
                 error: None,
                 pointer_captured: PointerCapture::default(),
+                pointer_pressed: false,
+                pointer_down: false,
                 restart_requested: false,
                 startup: StartupGate { resolved: !enabled },
                 snapshot: Some(UpdateSnapshot {
@@ -84,6 +90,8 @@ impl UpdatePanel {
                 updater: None,
                 error: Some(error.to_string()),
                 pointer_captured: PointerCapture::default(),
+                pointer_pressed: false,
+                pointer_down: false,
                 restart_requested: false,
                 startup: StartupGate { resolved: !enabled },
                 snapshot: None,
@@ -127,9 +135,18 @@ impl UpdatePanel {
         }
     }
 
+    /// The same focus-sanitized input as gameplay; refocus cannot click a button.
+    pub fn set_pointer_input(&mut self, pressed: bool, down: bool) {
+        self.pointer_pressed = pressed;
+        self.pointer_down = down;
+        if !pressed && !down {
+            self.pointer_captured.0 = false;
+        }
+    }
+
     pub fn consumes_pointer(&mut self, menu: bool) -> bool {
-        let down = is_mouse_button_down(MouseButton::Left);
-        let pressed = is_mouse_button_pressed(MouseButton::Left);
+        let down = self.pointer_down;
+        let pressed = self.pointer_pressed;
         self.pointer_captured.step(
             menu,
             self.updater.is_some() || self.error.is_some(),
@@ -268,7 +285,7 @@ impl UpdatePanel {
                     },
                 );
                 draw_text(label, button.x + 10., button.y + 21., 17., WHITE);
-                if hovered && is_mouse_button_pressed(MouseButton::Left) {
+                if hovered && self.pointer_pressed {
                     if action == UpdateAction::Restart {
                         self.restart_requested = true;
                     }
@@ -306,7 +323,7 @@ impl UpdatePanel {
                 17.,
                 WHITE,
             );
-            if hovered && is_mouse_button_pressed(MouseButton::Left) {
+            if hovered && self.pointer_pressed {
                 self.retry_worker();
             }
         }
@@ -331,7 +348,7 @@ impl UpdatePanel {
                 19.,
                 WHITE,
             );
-            if hovered && is_mouse_button_pressed(MouseButton::Left) {
+            if hovered && self.pointer_pressed {
                 // Stop pending startup work, but never claim it was installed/current.
                 // Cancellation failure must not strand an offline player at startup.
                 if let Some(updater) = self.updater.as_mut() {

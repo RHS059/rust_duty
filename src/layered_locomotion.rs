@@ -3,9 +3,10 @@
 use crate::{
     animation_manifest::{AdsReference, DirectionalWalkClips},
     authored_ads::AuthoredAds,
+    authored_jump::{AuthoredJump, JumpInput, JumpPhase, JumpSample},
     authored_locomotion_adapter::PoseBindings,
     authored_locomotion_path::{AuthoredLocomotionPath, AuthoredLocomotionPathConfig},
-    authored_walk::{AuthoredWalk, WalkPoseLayer},
+    authored_walk::{AuthoredWalk, ForwardAdsSamples, WalkLayerInput, WalkPoseLayer},
     sim::Simulation,
     viewmodel_animation::{AnimationError, AnimationSet, Result, Transform, ViewmodelPose},
 };
@@ -20,6 +21,7 @@ pub struct LayerSources<'a> {
     pub locomotion: &'a AnimationSet,
     pub walk: Option<&'a AnimationSet>,
     pub ads: Option<&'a AnimationSet>,
+    pub jump: Option<&'a AnimationSet>,
 }
 
 /// Shared weapon-space pose blending retains attached hands through a crossfade.
@@ -132,11 +134,11 @@ struct DirectionalWalk {
     weights: [f64; 4],
 }
 impl DirectionalWalk {
-    fn update(&mut self, simulation: &Simulation, dt: f64, new_cycle: bool) {
+    fn update(&mut self, simulation: &Simulation, dt: f64, new_cycle: bool) -> (f64, f64) {
         let player = &simulation.player;
         if !player.grounded || player.speed() <= 0.1 || player.sprinting || player.mantle.is_some()
         {
-            return;
+            return (self.weights[0], self.weights[0]);
         }
         let forward = Vec3::new(player.yaw.cos(), 0., player.yaw.sin());
         let right = forward.cross(Vec3::Y);
@@ -154,9 +156,15 @@ impl DirectionalWalk {
         } else {
             1. - (-dt / 0.06).exp()
         };
+        let previous_forward = if new_cycle {
+            target[0]
+        } else {
+            self.weights[0]
+        };
         for (weight, target) in self.weights.iter_mut().zip(target) {
             *weight += (target - *weight) * amount;
         }
+        (previous_forward, target[0])
     }
     fn pose(
         &self,
@@ -189,6 +197,9 @@ pub struct LayeredLocomotion {
     directional_walk: Option<DirectionalWalk>,
     walk_layer: Option<WalkPoseLayer>,
     ads: Option<AuthoredAds>,
+    jump: Option<AuthoredJump>,
+    jump_layer: Option<WalkPoseLayer>,
+    jump_transition: Option<(f64, ViewmodelPose)>,
     blend: AnchoredPoseBlend,
     ready: ViewmodelPose,
     pose: ViewmodelPose,
@@ -196,8 +207,14 @@ pub struct LayeredLocomotion {
     last_time: f64,
     reload_active: bool,
     receiver_ads_wip: bool,
+    forward_ads_v9_wip: bool,
 }
 impl LayeredLocomotion {
+    pub fn set_walk_translation(&mut self, value: crate::settings::WalkTranslation) {
+        if let Some(layer) = &mut self.walk_layer {
+            layer.set_translation_adjustment(value);
+        }
+    }
     pub fn new(
         sources: LayerSources<'_>,
         config: AuthoredLocomotionPathConfig,
@@ -244,6 +261,9 @@ impl LayeredLocomotion {
             walk: AuthoredWalk::default(),
             walk_clip: walk_clip.map(str::to_owned),
             directional_walk: None,
+            jump: None,
+            jump_layer: None,
+            jump_transition: None,
             walk_layer,
             ads,
             pose: ready.clone(),
@@ -252,7 +272,33 @@ impl LayeredLocomotion {
             last_time: 0.,
             reload_active: false,
             receiver_ads_wip: false,
+            forward_ads_v9_wip: false,
         })
+    }
+    /// Bind the three stable native-time IDs. No default bundle enables this
+    /// until its source/export/review handoff is complete.
+    pub fn with_jump(
+        mut self,
+        source: &AnimationSet,
+        canonical: &AnimationSet,
+        ready: &str,
+        anchor: &str,
+    ) -> Result<Self> {
+        if self.last_time != 0. || self.jump.is_some() || !self.blend.bindings.matches(canonical) {
+            return Err(AnimationError(
+                "jump binding requires unstarted layers".into(),
+            ));
+        }
+        self.jump = Some(AuthoredJump::new(
+            AuthoredJump::clip_duration(source, "jump_takeoff")?,
+            AuthoredJump::clip_duration(source, "jump_air")?,
+            AuthoredJump::clip_duration(source, "jump_land")?,
+        )?);
+        self.jump_layer = Some(WalkPoseLayer::new(source, canonical, ready, anchor)?);
+        Ok(self)
+    }
+    pub fn jump_sample(&self) -> Option<JumpSample> {
+        self.jump.as_ref().and_then(AuthoredJump::sample)
     }
     pub fn with_ads_wip_policy(
         mut self,
@@ -268,6 +314,16 @@ impl LayeredLocomotion {
                 self.ads = Some(ads.with_visual_transition_seconds(seconds)?);
             }
         }
+        Ok(self)
+    }
+    /// Authored forward v9; other directions explicitly keep v4 as WIP fallback.
+    pub fn with_forward_ads_v9_policy(mut self, active: bool) -> Result<Self> {
+        if self.last_time != 0. || (active && !self.receiver_ads_wip) {
+            return Err(AnimationError(
+                "v9 requires unstarted receiver ADS layers".into(),
+            ));
+        }
+        self.forward_ads_v9_wip = active;
         Ok(self)
     }
     /// Optional reviewed four-direction clips; absent data preserves the old walk.
@@ -314,9 +370,14 @@ impl LayeredLocomotion {
         if end == start {
             return Ok(());
         }
-        for source in [Some(sources.locomotion), sources.walk, sources.ads]
-            .into_iter()
-            .flatten()
+        for source in [
+            Some(sources.locomotion),
+            sources.walk,
+            sources.ads,
+            sources.jump,
+        ]
+        .into_iter()
+        .flatten()
         {
             if !self.blend.bindings.matches(source) {
                 return Err(AnimationError(
@@ -337,7 +398,8 @@ impl LayeredLocomotion {
         reload_active: bool,
     ) -> Result<()> {
         let end = simulation.time;
-        if reload_active || self.reload_active {
+        let previous_pose = self.pose.clone();
+        if reload_active && !self.reload_active {
             self.path.reset(sources.locomotion, start)?;
             self.run_envelope = 0.;
         }
@@ -358,12 +420,22 @@ impl LayeredLocomotion {
         let moving =
             player.grounded && player.speed() > 0.1 && !player.sprinting && player.mantle.is_none();
         let new_cycle = self.walk.seconds().is_none();
-        if let Some(direction) = &mut self.directional_walk {
-            direction.update(simulation, end - start, new_cycle);
-        }
+        let forward_curve = self
+            .directional_walk
+            .as_mut()
+            .map(|direction| direction.update(simulation, end - start, new_cycle));
         let aim_integral = self.ads.as_ref().map_or(0., AuthoredAds::last_aim_integral);
+        let forward_aim_integral = if self.forward_ads_v9_wip {
+            forward_curve.map_or(0., |(from, target)| {
+                self.ads
+                    .as_ref()
+                    .map_or(0., |ads| ads.last_aim_weighted_integral(from, target, 0.06))
+            })
+        } else {
+            0.
+        };
         let phase_advance = if self.receiver_ads_wip {
-            (end - start - 0.15 * aim_integral).max(0.)
+            (end - start - 0.15 * aim_integral - 0.05 * forward_aim_integral).max(0.)
         } else {
             end - start
         };
@@ -384,14 +456,45 @@ impl LayeredLocomotion {
                 Some(direction) => direction.pose(set, seconds, &self.blend)?,
                 None => set.sample(clip, seconds as f32)?,
             };
-            pose = layer.pose_directional(
+            let forward_samples = if self.forward_ads_v9_wip {
+                self.directional_walk
+                    .as_ref()
+                    .map(|direction| {
+                        let clip = &direction.clips.forward;
+                        let duration = set
+                            .clips()
+                            .iter()
+                            .find(|candidate| &candidate.name == clip)
+                            .ok_or_else(|| AnimationError("missing v9 forward clip".into()))?
+                            .duration();
+                        Ok::<_, AnimationError>((
+                            set.sample(clip, seconds as f32)?,
+                            set.sample(clip, seconds as f32 + duration * 0.5)?,
+                            direction.weights[0] as f32,
+                        ))
+                    })
+                    .transpose()?
+            } else {
+                None
+            };
+            pose = layer.pose_with_input(
                 sources.locomotion,
                 &pose,
-                &walk,
-                self.walk.weight(),
-                self.ads.as_ref().map_or(0., AuthoredAds::aim_amount),
-                self.directional_weights()
-                    .map_or(0., |weights| (weights[2] + weights[3]) as f32),
+                WalkLayerInput {
+                    walk: &walk,
+                    weight: self.walk.weight(),
+                    aim: self.ads.as_ref().map_or(0., AuthoredAds::aim_amount),
+                    lateral: self
+                        .directional_weights()
+                        .map_or(0., |weights| (weights[2] + weights[3]) as f32),
+                    forward_ads: forward_samples
+                        .as_ref()
+                        .map(|(primary, half_period, weight)| ForwardAdsSamples {
+                            primary,
+                            half_period,
+                            weight: *weight,
+                        }),
+                },
             )?;
         } else if self.walk_clip.is_some() && sources.walk.is_none() {
             return Err(AnimationError("walk source changed during playback".into()));
@@ -402,6 +505,62 @@ impl LayeredLocomotion {
             self.path.pose(),
             self.run_weight(),
         )?;
+        // A HIP source contributes held-weapon motion, while ADS retains its
+        // authored articulation and optical-axis projection. It does not inherit
+        // walk XYZ gains or the v9 directional walk retarget policy.
+        match (&mut self.jump, &self.jump_layer, sources.jump) {
+            (Some(jump), Some(layer), Some(source)) => {
+                let before = jump.sample();
+                let eligible =
+                    !reload_active && player.reload_left <= 0. && player.mantle.is_none();
+                jump.committed_step(
+                    start,
+                    end,
+                    JumpInput {
+                        accepted_jump_at: player.last_jump_at,
+                        grounded: player.grounded,
+                        eligible,
+                    },
+                )?;
+                let after = jump.sample();
+                let changed =
+                    before.map(|v| v.transition_serial) != after.map(|v| v.transition_serial);
+                if changed && eligible {
+                    self.jump_transition = Some((end, previous_pose));
+                } else if !eligible {
+                    self.jump_transition = None;
+                }
+                if let Some(sample) = after {
+                    let clip = match sample.phase {
+                        JumpPhase::Takeoff => "jump_takeoff",
+                        JumpPhase::Air => "jump_air",
+                        JumpPhase::Land => "jump_land",
+                    };
+                    let authored = source.sample_clamped(clip, sample.seconds as f32)?;
+                    self.pose = layer.pose(
+                        sources.locomotion,
+                        &self.pose,
+                        &authored,
+                        1.,
+                        self.ads.as_ref().map_or(0., AuthoredAds::aim_amount),
+                    )?;
+                }
+                if let Some((at, from)) = &self.jump_transition {
+                    let weight = ((end - at) / 0.06).clamp(0., 1.) as f32;
+                    self.pose = self.blend.blend(
+                        sources.locomotion,
+                        from,
+                        &self.pose,
+                        weight * weight * (3. - 2. * weight),
+                    )?;
+                    if weight == 1. {
+                        self.jump_transition = None;
+                    }
+                }
+            }
+            (None, None, None) => {}
+            _ => return Err(AnimationError("jump source changed during playback".into())),
+        }
         self.last_time = end;
         self.reload_active = reload_active;
         Ok(())
@@ -416,6 +575,10 @@ impl LayeredLocomotion {
         if let Some(ads) = &mut next.ads {
             ads.reset(time);
         }
+        if let Some(jump) = &mut next.jump {
+            jump.reset(time)?;
+        }
+        next.jump_transition = None;
         next.pose = next.ready.clone();
         next.run_envelope = 0.;
         next.last_time = time;
@@ -425,6 +588,11 @@ impl LayeredLocomotion {
     }
     pub fn pose(&self) -> &ViewmodelPose {
         &self.pose
+    }
+    /// Visible ADS contribution after the shared run crossfade. This follows
+    /// native entry/exit reversals rather than gameplay readiness or input intent.
+    pub fn visual_ads_amount(&self) -> f32 {
+        self.ads.as_ref().map_or(0., AuthoredAds::aim_amount) * (1. - self.run_weight())
     }
     /// Deterministic pose-only diagnostic checksum; not file authentication.
     pub fn pose_crc32(&self) -> u32 {
@@ -471,7 +639,9 @@ impl LayeredLocomotion {
         self.ads.as_ref()
     }
     pub fn walk_min_rate(&self) -> f32 {
-        if self.receiver_ads_wip {
+        if self.forward_ads_v9_wip && self.directional_walk.is_some() {
+            0.80
+        } else if self.receiver_ads_wip {
             0.85
         } else {
             1.

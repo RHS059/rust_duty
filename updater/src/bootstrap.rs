@@ -1,9 +1,8 @@
 //! One-time adoption of an existing game folder. Private data stays in that folder.
-use crate::{bundle, file_hash, install::Store, invalid, reject_symlink, Result, MAX_ASSET};
+use crate::{bundle, file_hash, install::Store, invalid, reject_symlink, Result};
 use serde::{Deserialize, Serialize};
 use std::{
     fs,
-    io::Write,
     path::{Path, PathBuf},
 };
 
@@ -87,21 +86,16 @@ pub fn adopt(root: &Path) -> Result<Store> {
     }
     let mut executable = fs::File::open(&source)?;
     let size = executable.metadata()?.len();
-    if size == 0 || size > MAX_ASSET - 1024 {
-        return Err(invalid("existing game executable has an invalid size"));
-    }
     let mut baseline = tempfile::NamedTempFile::new_in(store.root.join("cache"))?;
-    baseline.write_all(bundle::MAGIC)?;
-    baseline.write_all(&1u32.to_le_bytes())?;
-    baseline.write_all(&(GAME_FILE.len() as u16).to_le_bytes())?;
-    baseline.write_all(GAME_FILE.as_bytes())?;
-    baseline.write_all(&[1])?;
-    baseline.write_all(&size.to_le_bytes())?;
-    if std::io::copy(&mut executable, &mut baseline)? != size {
-        return Err(invalid(
-            "existing game changed during adoption; close it and retry",
-        ));
-    }
+    bundle::write_single_executable(GAME_FILE, &mut executable, size, baseline.as_file_mut()).map_err(|error| {
+        if matches!(error, crate::Error::Invalid(ref message) if message.contains("changed during baseline")) {
+            invalid("existing game changed during adoption; close it and retry")
+        } else if matches!(error, crate::Error::Invalid(ref message) if message.contains("invalid running executable")) {
+            invalid("existing game executable has an invalid size")
+        } else {
+            error
+        }
+    })?;
     baseline.as_file().sync_all()?;
     store.install_local(baseline.path(), semver::Version::new(0, 0, 0), GAME_FILE)?;
     Ok(store.clone())

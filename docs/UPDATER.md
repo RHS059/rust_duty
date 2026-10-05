@@ -59,7 +59,7 @@ Every completed patch/full bundle must match the manifest size and SHA-256. A pa
 ## Release tooling
 
 The explicitly requested one-time 0.1.5 release publishes through `build.yml`
-after the complete Windows/Linux build succeeds on `aella/automatic-game-updates-r1`.
+after the complete Windows build succeeds on `aella/automatic-game-updates-r1`.
 Both platforms embed version 0.1.5 and the manifest sequence is 5. Game and
 updater tests and the complete build matrix must pass first. Pull-request builds
 never publish. The publisher reuses those same-run binaries and assets, then

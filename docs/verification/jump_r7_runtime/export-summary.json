@@ -1,0 +1,98 @@
+{
+  "schema": "rust-duty-authored-jump-distribution/v1",
+  "clip_count": 47,
+  "jump_clips": [
+    {
+      "name": "jump_takeoff",
+      "loop": false,
+      "duration": 0.18333333333333332,
+      "action": "jump_takeoff_r7",
+      "frame_start": 1,
+      "frame_end": 12
+    },
+    {
+      "name": "jump_air",
+      "loop": false,
+      "duration": 0.38333333333333336,
+      "action": "jump_air_r7",
+      "frame_start": 1,
+      "frame_end": 24
+    },
+    {
+      "name": "jump_land",
+      "loop": false,
+      "duration": 0.4666666666666667,
+      "action": "jump_land_r7",
+      "frame_start": 1,
+      "frame_end": 29
+    }
+  ],
+  "source": {
+    "file": "assets/authoring/jump/halcyon_jump.blend",
+    "bytes": 10470527,
+    "sha256": "a2c4b2bbe98da1a608450bba92404cb39008eae5861bcf8fc3f5d2f978df0e3b",
+    "fps": 60,
+    "bake_hz": 480,
+    "fbx": {
+      "bytes": 11140972,
+      "sha256": "7627cd6a27a4620ea3b9315dc02c626c2175fad83693c7a4b13ee4292d7659e0"
+    }
+  },
+  "files": {
+    "asset.vra": {
+      "bytes": 13263902,
+      "sha256": "4e16c54684098b34ff5a1d53fb1f73952c0cd8c5588d3c9c23ee01df66fe34e5"
+    },
+    "asset.vrs": {
+      "bytes": 16663274,
+      "sha256": "b38b7f823ddf7bd6f032ed98d33f055cd444caf51558146911b7a678c6e3ce92"
+    },
+    "asset.vrm": {
+      "bytes": 10641724,
+      "sha256": "d11736162b2cda993db3cdd5d4015aff2b151ea6377b8b954370b54006e02d67"
+    }
+  },
+  "preservation": {
+    "original_walk_vra_sha256": "184b4c173efc8cca187c7f19a3572fbaa27d094b4cf79328fef0de69ffac789a",
+    "clip_payloads_byte_identical": 44,
+    "canonical_skin_byte_identical": true,
+    "canonical_rigid_byte_identical": true
+  },
+  "validation": {
+    "backend": "Rust CPU sampler",
+    "passed": true,
+    "clips": {
+      "jump_takeoff": {
+        "samples": 25,
+        "maxima": {
+          "skin_error_m": 7.19658777098264e-05,
+          "visible_prop_origin_error_m": 6.216408709014062e-05,
+          "visible_rigid_vertex_error_m": 7.962578862691466e-05,
+          "visible_prop_matrix_error": 0.00011088848670959273
+        },
+        "visibility_failures": 0
+      },
+      "jump_air": {
+        "samples": 25,
+        "maxima": {
+          "skin_error_m": 3.1863101954759884e-05,
+          "visible_prop_origin_error_m": 2.0411659676411046e-05,
+          "visible_rigid_vertex_error_m": 4.162221996169524e-05,
+          "visible_prop_matrix_error": 9.71156097412107e-05
+        },
+        "visibility_failures": 0
+      },
+      "jump_land": {
+        "samples": 25,
+        "maxima": {
+          "skin_error_m": 1.3087489201322364e-05,
+          "visible_prop_origin_error_m": 6.021743629628192e-06,
+          "visible_rigid_vertex_error_m": 1.7738808757198793e-05,
+          "visible_prop_matrix_error": 4.9918640327453745e-05
+        },
+        "visibility_failures": 0
+      }
+    }
+  },
+  "scope": "New source-authored jump takeoff/air/landing; source Actions and canonical walk44 retained. Numerical parity is not artistic approval."
+}

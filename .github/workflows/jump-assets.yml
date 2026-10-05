@@ -1,0 +1,95 @@
+name: Export authored Jump through FBX
+on:
+  workflow_call:
+permissions:
+  contents: read
+jobs:
+  export:
+    name: Authored Jump to preserved47 runtime pack
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Read immutable Halcyon r7 authoring source
+        uses: actions/checkout@v4
+        with:
+          ref: e9317f90ea171976306e2f17c111325d948ea357
+          path: .jump-source
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: assets/authoring/jump/halcyon_jump.blend
+      - name: Consume this run's verified walk44 baseline
+        uses: actions/download-artifact@v4
+        with:
+          name: generated-walk-runtime
+          path: assets/walk
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Fingerprint exact Rust compiler
+        id: rust-version
+        shell: bash
+        run: python -c "import hashlib,subprocess; print('hash='+hashlib.sha256(subprocess.check_output(['rustc','-Vv'])).hexdigest())" >> "$GITHUB_OUTPUT"
+      - name: Reuse only exact-input validated Jump output
+        id: asset-cache
+        uses: actions/cache@v4
+        with:
+          path: build-jump/runtime
+          key: jump-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust-version.outputs.hash }}-${{ hashFiles('assets/authoring/jump/**', '.jump-source/assets/authoring/jump/halcyon_jump.blend', 'assets/walk/**', 'assets/authoring/locomotion/source_integrity.py', 'assets/locomotion/manifest.json', 'assets/locomotion/asset.vra', 'assets/locomotion/asset.vrm', 'assets/locomotion/asset.vrs.gz', 'tools/build_jump_assets.py', 'tools/export_jump_fbx.py', 'tools/package_game.py', 'tools/check_generated_assets.py', 'tools/import_fbx_viewmodel.py', 'tools/export_viewmodel.py', 'tools/build_blender_assets.py', 'tools/merge_walk_clip.py', 'tools/verify_locomotion_fbx.py', 'tools/verify_fbx_segment.py', 'tools/verify_jump_seams.py', 'tools/vr*.py', 'tools/requirements-assets.txt', 'src/lib.rs', 'src/viewmodel_animation.rs', 'src/skinned_asset.rs', 'src/asset.rs', 'examples/sample_viewmodel_clip.rs', 'Cargo.toml', 'Cargo.lock', 'build.rs', '.github/actions/setup-blender/action.yml', '.github/workflows/jump-assets.yml') }}
+      - name: Install pinned asset toolchain on cache miss
+        if: steps.asset-cache.outputs.cache-hit != 'true'
+        uses: ./.github/actions/setup-blender
+      - name: Build actual game CPU sampler
+        if: steps.asset-cache.outputs.cache-hit != 'true'
+        run: cargo build --locked --release --no-default-features --example sample_viewmodel_clip
+      - name: Export authoring source, convert Jump, preserve44 and verify Rust parity
+        if: steps.asset-cache.outputs.cache-hit != 'true'
+        run: python tools/build_jump_assets.py --source-dir .jump-source/assets/authoring/jump --blender blender --sampler target/release/examples/sample_viewmodel_clip --work build-jump/work --output build-jump/runtime
+      - name: Revalidate source, old clip bytes and generated companions
+        run: python tools/check_generated_assets.py --kind jump --directory build-jump/runtime
+      - name: Archive this attempt - Upload Jump source and parity evidence
+        if: always()
+        id: archive_attempt_1
+        uses: actions/upload-artifact@v4
+        with:
+          name: jump-export-diagnostics-attempt-${{ github.run_attempt }}
+          path: build-jump/runtime/*.json
+          if-no-files-found: warn
+      - name: Upload Jump source and parity evidence
+        if: ${{ (always()) && steps.archive_attempt_1.outcome == 'success' && steps.archive_attempt_1.outputs.artifact-id != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          overwrite: true
+          name: jump-export-diagnostics
+          path: build-jump/runtime/*.json
+          if-no-files-found: warn
+      - name: Archive this attempt - Publish verified Jump companions for complete game builds
+        id: archive_attempt_2
+        uses: actions/upload-artifact@v4
+        with:
+          name: generated-jump-runtime-attempt-${{ github.run_attempt }}
+          path: |
+            build-jump/runtime/asset.vra
+            build-jump/runtime/asset.vrs
+            build-jump/runtime/asset.vrm
+            build-jump/runtime/asset.vrs.gz
+            build-jump/runtime/asset.vra.gz
+            build-jump/runtime/*.json
+          if-no-files-found: error
+      - name: Publish verified Jump companions for complete game builds
+        if: ${{ (success()) && steps.archive_attempt_2.outcome == 'success' && steps.archive_attempt_2.outputs.artifact-id != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          overwrite: true
+          name: generated-jump-runtime
+          path: |
+            build-jump/runtime/asset.vra
+            build-jump/runtime/asset.vrs
+            build-jump/runtime/asset.vrm
+            build-jump/runtime/asset.vrs.gz
+            build-jump/runtime/asset.vra.gz
+            build-jump/runtime/*.json
+          if-no-files-found: error
