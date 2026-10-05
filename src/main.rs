@@ -1,5 +1,6 @@
 mod authored_viewmodel;
 mod game_update;
+mod render_pipeline;
 mod sound;
 mod weapon_model;
 use macroquad::prelude::*;
@@ -181,8 +182,33 @@ fn register_supply(sim: &mut Simulation, supply: &vector_range::ammo_supply::Amm
         kind: 4,
     });
 }
-fn world(sim: &Simulation, tex: &Texture2D) {
-    let lighting = SceneLighting::range();
+/// What one `world` call draws. Geometry uses albedo vertex colors + normals
+/// for the GPU lit pass (or CPU-shaded colors for the fallback); lines are the
+/// unlit wire/grid overlay drawn with the default material.
+#[derive(Clone, Copy)]
+enum WorldPass {
+    Geometry(Option<SceneLighting>),
+    Lines,
+}
+fn paint_cube(
+    pass: WorldPass,
+    position: Vec3,
+    size: Vec3,
+    texture: Option<&Texture2D>,
+    color: Color,
+) {
+    match pass {
+        WorldPass::Geometry(Some(lighting)) => lighting.draw_cube(position, size, texture, color),
+        WorldPass::Geometry(None) => {
+            let mut mesh = vector_range::scene_lighting::albedo_cube_mesh(position, size, color);
+            mesh.texture = texture.cloned();
+            draw_mesh(&mesh);
+        }
+        WorldPass::Lines => {}
+    }
+}
+fn world(sim: &Simulation, tex: &Texture2D, pass: WorldPass) {
+    let lines = matches!(pass, WorldPass::Lines);
     for b in &sim.blocks {
         let color = match b.kind {
             0 => Color::new(0.31, 0.38, 0.40, 1.),
@@ -191,31 +217,38 @@ fn world(sim: &Simulation, tex: &Texture2D) {
             4 => Color::new(0.22, 0.26, 0.28, 1.),
             _ => Color::new(0.43, 0.64, 0.66, 1.),
         };
-        lighting.draw_cube(b.bounds.center(), b.bounds.size(), Some(tex), color);
+        paint_cube(pass, b.bounds.center(), b.bounds.size(), Some(tex), color);
         if b.kind == 4 {
             // Original geometric interaction fixture while reference art is pending.
             for x in [-0.26, 0.26] {
-                lighting.draw_cube(
+                paint_cube(
+                    pass,
                     b.bounds.center() + vec3(x, 0.257, 0.),
                     vec3(0.06, 0.025, 0.51),
                     None,
                     ACCENT,
                 );
             }
-            lighting.draw_cube(
+            paint_cube(
+                pass,
                 b.bounds.center() + vec3(0., 0.04, -0.26),
                 vec3(0.22, 0.10, 0.025),
                 None,
                 ACCENT,
             );
         }
-        draw_cube_wires(
-            b.bounds.center(),
-            b.bounds.size(),
-            Color::new(0.19, 0.26, 0.29, 1.),
-        );
+        if lines {
+            draw_cube_wires(
+                b.bounds.center(),
+                b.bounds.size(),
+                Color::new(0.19, 0.26, 0.29, 1.),
+            );
+        }
     }
     for x in -31..32 {
+        if !lines {
+            break;
+        }
         draw_line_3d(
             vec3(x as f32, 0.006, -53.5),
             vec3(x as f32, 0.006, 13.5),
@@ -223,6 +256,9 @@ fn world(sim: &Simulation, tex: &Texture2D) {
         );
     }
     for z in -53..14 {
+        if !lines {
+            break;
+        }
         draw_line_3d(
             vec3(-31.5, 0.006, z as f32),
             vec3(31.5, 0.006, z as f32),
@@ -230,17 +266,30 @@ fn world(sim: &Simulation, tex: &Texture2D) {
         );
     }
     for x in [-13., -3.5, 3.5, 13.] {
-        lighting.draw_cube(vec3(x, 0.01, -9.), vec3(0.07, 0.015, 44.), None, ACCENT);
+        paint_cube(
+            pass,
+            vec3(x, 0.01, -9.),
+            vec3(0.07, 0.015, 44.),
+            None,
+            ACCENT,
+        );
     }
     for z in [7., -3., -13., -23., -33.] {
-        lighting.draw_cube(vec3(0., 0.014, z), vec3(6.6, 0.018, 0.10), None, CYAN);
+        paint_cube(pass, vec3(0., 0.014, z), vec3(6.6, 0.018, 0.10), None, CYAN);
     }
     for z in [-30., -18., -6., 6.] {
         for x in [-15.4, 15.4] {
-            lighting.draw_cube(vec3(x, 3., z), vec3(0.35, 6., 0.35), None, INK);
-            lighting.draw_cube(vec3(x * 0.96, 3.9, z), vec3(0.10, 0.10, 3.4), None, CYAN);
+            paint_cube(pass, vec3(x, 3., z), vec3(0.35, 6., 0.35), None, INK);
+            paint_cube(
+                pass,
+                vec3(x * 0.96, 3.9, z),
+                vec3(0.10, 0.10, 3.4),
+                None,
+                CYAN,
+            );
         }
-        lighting.draw_cube(
+        paint_cube(
+            pass,
             vec3(0., 5.8, z),
             vec3(31., 0.22, 0.25),
             None,
@@ -280,22 +329,26 @@ fn world(sim: &Simulation, tex: &Texture2D) {
             for index in face {
                 indices.push(vertices.len() as u16);
                 let point = points[index];
-                vertices.push(Vertex::new(
-                    point.x,
-                    point.y,
-                    point.z,
-                    point.x,
-                    point.z,
-                    lighting.shade(color, normal),
-                ));
+                let shaded = match pass {
+                    WorldPass::Geometry(Some(lighting)) => lighting.shade(color, normal),
+                    _ => color,
+                };
+                let mut vertex = Vertex::new(point.x, point.y, point.z, point.x, point.z, shaded);
+                vertex.normal = normal.extend(0.);
+                vertices.push(vertex);
             }
         }
-        draw_mesh(&Mesh {
-            vertices,
-            indices,
-            texture: Some(tex.clone()),
-        });
+        if let WorldPass::Geometry(_) = pass {
+            draw_mesh(&Mesh {
+                vertices,
+                indices,
+                texture: Some(tex.clone()),
+            });
+        }
         for i in 0..=10 {
+            if !lines {
+                break;
+            }
             let t = i as f32 / 10.;
             draw_line_3d(
                 vec3(x - w, height * t + 0.005, z - ramp.length * t),
@@ -306,8 +359,9 @@ fn world(sim: &Simulation, tex: &Texture2D) {
     }
     for t in &sim.targets {
         let c = t.bounds.center();
-        lighting.draw_cube(vec3(c.x, 0.18, c.z), vec3(1.2, 0.36, 0.65), None, INK);
-        lighting.draw_cube(
+        paint_cube(pass, vec3(c.x, 0.18, c.z), vec3(1.2, 0.36, 0.65), None, INK);
+        paint_cube(
+            pass,
             vec3(c.x, 1.10, c.z + 0.18),
             vec3(0.09, 2., 0.09),
             None,
@@ -316,25 +370,45 @@ fn world(sim: &Simulation, tex: &Texture2D) {
         if t.health <= 0. {
             continue;
         }
-        lighting.draw_cube(
+        paint_cube(
+            pass,
             c,
             t.bounds.size(),
             Some(tex),
             if t.flash > 0. { WHITE } else { ACCENT },
         );
-        lighting.draw_cube(
+        paint_cube(
+            pass,
             vec3(c.x, c.y - 0.05, c.z + 0.135),
             vec3(0.28, 0.42, 0.018),
             None,
             INK,
         );
-        lighting.draw_cube(
+        paint_cube(
+            pass,
             vec3(c.x, c.y + 0.64, c.z + 0.135),
             vec3(0.34, 0.30, 0.018),
             None,
             INK,
         );
-        draw_cube_wires(c, t.bounds.size() + Vec3::splat(0.008), INK);
+        if lines {
+            draw_cube_wires(c, t.bounds.size() + Vec3::splat(0.008), INK);
+        }
+    }
+}
+/// 1 when the camera sees the sun, 0 when blocked: the viewmodel's shadow term
+/// (physical lighting only; the legacy model ignores it).
+fn camera_sunlight(sim: &Simulation, to_sun: Vec3) -> f32 {
+    let eye = sim.player.eye();
+    let blocked = sim
+        .blocks
+        .iter()
+        .any(|b| b.bounds.ray(eye, to_sun, 200.).is_some())
+        || sim.ramps.iter().any(|r| r.ray(eye, to_sun, 200.).is_some());
+    if blocked {
+        0.
+    } else {
+        1.
     }
 }
 fn locomotion_input(sim: &Simulation) -> vector_range::locomotion_presentation::LocomotionInput {
@@ -365,7 +439,10 @@ fn weapon(
     barrel_flash: bool,
     layers: &[LayerOffset],
 ) {
-    let lighting = SceneLighting::range().in_view(sim.player.direction());
+    let world_light = SceneLighting::from_tuning(&cfg.lighting);
+    let lighting = world_light
+        .with_shadow(camera_sunlight(sim, world_light.direction_to_light))
+        .in_view(sim.player.direction());
     set_camera(&Camera3D {
         position: Vec3::ZERO,
         target: vec3(0., 0., -1.),
@@ -1129,6 +1206,8 @@ async fn main() {
             }
         }
     }
+    let mut world_renderer: Option<render_pipeline::WorldRenderer> = None;
+    let mut world_renderer_error: Option<String> = None;
     let mut action_latch = ActionLatch::default();
     let mut look_sway = LookSway::default();
     let sway_tuning = SwayTuning::default();
@@ -1977,7 +2056,6 @@ async fn main() {
             }
         }
         notice_timer = (notice_timer - dt).max(0.);
-        clear_background(Color::new(0.66, 0.76, 0.78, 1.));
         let aspect = if framing.reference {
             16. / 9.
         } else {
@@ -1988,36 +2066,69 @@ async fn main() {
         let fov = cfg.fov
             + (cfg.ads_fov - cfg.fov)
                 * vector_range::reference_motion::visual_world_ads(sim.player.ads);
-        set_camera(&Camera3D {
-            position: eye,
-            target: eye + forward,
-            // Lean rolls the world camera; the viewmodel stays fixed to the view.
-            up: {
-                let roll = sim.player.lean_roll(cfg.action.lean_roll);
-                let right = forward.cross(Vec3::Y).normalize_or_zero();
-                // Leaning right tilts the head's up vector toward the right.
-                (Vec3::Y * roll.cos() + right * roll.sin()).normalize()
-            },
-            fovy: h_fov_to_v(fov, aspect),
-            z_near: 0.035,
-            z_far: 200.,
-            ..Default::default()
-        });
-        world(&sim, &texture);
+        // Lean rolls the world camera; the viewmodel stays fixed to the view.
+        let camera_up = {
+            let roll = sim.player.lean_roll(cfg.action.lean_roll);
+            let right = forward.cross(Vec3::Y).normalize_or_zero();
+            // Leaning right tilts the head's up vector toward the right.
+            (Vec3::Y * roll.cos() + right * roll.sin()).normalize()
+        };
         let body_frame = body.update(&sim, if active { dt } else { 0. }, &body_tuning);
-        if !capture_lighting && capture_sequence.is_none() {
-            draw_body_placeholder(&body_frame);
+        let show_body = !capture_lighting && capture_sequence.is_none();
+        // Physical lighting is opt-in; the legacy pass stays the default look.
+        let physical = cfg.lighting.physical_lighting >= 0.5;
+        if physical && world_renderer.is_none() && world_renderer_error.is_none() {
+            match render_pipeline::WorldRenderer::new(&cfg.lighting) {
+                Ok(renderer) => world_renderer = Some(renderer),
+                Err(error) => {
+                    eprintln!("Physical lighting shaders unavailable: {error}");
+                    notice = "Physical lighting unavailable on this GPU; using CPU lighting".into();
+                    notice_timer = 5.;
+                    world_renderer_error = Some(error);
+                }
+            }
         }
-        if capture_lighting && frames == 8 {
-            // Record the actual range pass before the overlay/HUD can cover it.
-            get_screen_data().export_png(&format!("{output}.world.png"));
-            let light = SceneLighting::range().in_view(forward);
-            let world = SceneLighting::range();
-            let _ = std::fs::write(format!("{output}.lighting.json"), format!(
-                "{{\"schema\":\"rust-duty-lighting-capture/v1\",\"yaw_degrees\":{},\"pitch_degrees\":{},\"world_light\":[{},{},{}],\"view_light\":[{},{},{}],\"ambient\":{},\"diffuse\":{},\"simulation_time\":{}}}",
-                lighting_yaw.to_degrees(), lighting_pitch.to_degrees(), world.direction_to_light.x, world.direction_to_light.y, world.direction_to_light.z,
-                light.direction_to_light.x, light.direction_to_light.y, light.direction_to_light.z, light.ambient, light.diffuse, sim.time));
+        let gpu_world = physical && world_renderer.is_some();
+        if let (true, Some(renderer)) = (gpu_world, world_renderer.as_mut()) {
+            renderer.render_world(
+                render_pipeline::FrameView {
+                    eye,
+                    forward,
+                    up: camera_up,
+                    fovy: h_fov_to_v(fov, aspect),
+                    aspect,
+                    near: 0.035,
+                    far: 200.,
+                },
+                &cfg.lighting,
+                &mut || {
+                    world(&sim, &texture, WorldPass::Geometry(None));
+                    if show_body {
+                        draw_body_placeholder(&body_frame);
+                    }
+                },
+            );
+        } else {
+            clear_background(Color::new(0.66, 0.76, 0.78, 1.));
+            set_camera(&Camera3D {
+                position: eye,
+                target: eye + forward,
+                up: camera_up,
+                fovy: h_fov_to_v(fov, aspect),
+                z_near: 0.035,
+                z_far: 200.,
+                ..Default::default()
+            });
+            world(
+                &sim,
+                &texture,
+                WorldPass::Geometry(Some(SceneLighting::from_tuning(&cfg.lighting))),
+            );
+            if show_body {
+                draw_body_placeholder(&body_frame);
+            }
         }
+        world(&sim, &texture, WorldPass::Lines);
         for t in &traces {
             draw_line_3d(
                 t.shot.start + forward * 0.6,
@@ -2029,6 +2140,19 @@ async fn main() {
             draw_sphere(i.point, 0.022, None, if i.target { CYAN } else { INK });
         }
         muzzle_fx.draw_world(eye, authored_path.is_some());
+        if let (true, Some(renderer)) = (gpu_world, world_renderer.as_mut()) {
+            renderer.finish(&cfg.lighting);
+        }
+        if capture_lighting && frames == 8 {
+            // Record the actual range pass before the overlay/HUD can cover it.
+            get_screen_data().export_png(&format!("{output}.world.png"));
+            let light = SceneLighting::range().in_view(forward);
+            let world = SceneLighting::range();
+            let _ = std::fs::write(format!("{output}.lighting.json"), format!(
+                "{{\"schema\":\"rust-duty-lighting-capture/v1\",\"yaw_degrees\":{},\"pitch_degrees\":{},\"world_light\":[{},{},{}],\"view_light\":[{},{},{}],\"sun_color\":[{},{},{}],\"sky_color\":[{},{},{}],\"simulation_time\":{}}}",
+                lighting_yaw.to_degrees(), lighting_pitch.to_degrees(), world.direction_to_light.x, world.direction_to_light.y, world.direction_to_light.z,
+                light.direction_to_light.x, light.direction_to_light.y, light.direction_to_light.z, light.environment.sun_color.x, light.environment.sun_color.y, light.environment.sun_color.z, light.environment.sky_color.x, light.environment.sky_color.y, light.environment.sky_color.z, sim.time));
+        }
         if capture_fire {
             sim.player.shot_kick = 1.;
         }

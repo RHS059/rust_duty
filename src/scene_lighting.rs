@@ -1,26 +1,68 @@
-//! Shared directional range lighting, evaluated in the renderer's coordinate frame.
+//! CPU per-vertex lighting for the viewmodel, procedural fallback and the CPU
+//! world path. Two models:
+//! - `Legacy` (default): the established `0.35 + 0.65 * max(N.L, 0)` key light.
+//! - `Physical` (opt-in, `physical_lighting = 1`): the shared physically based
+//!   model in `crate::lighting`, also evaluated per pixel by the GPU world pass.
 //!
-//! Macroquad's default material ignores normals. We deliberately shade vertex
-//! albedo on the CPU for both level geometry and viewmodels, then let that
-//! material multiply it by the texture. Never store a pre-lit weapon albedo.
+//! Macroquad's default material ignores normals, so these paths shade vertex
+//! colors from immutable albedo on every draw. Never store a pre-lit albedo.
+use crate::lighting::{srgb_to_linear, LightEnvironment, LightingTuning};
 use macroquad::prelude::*;
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum LightingModel {
+    Legacy,
+    Physical,
+}
 
 #[derive(Clone, Copy, Debug)]
 pub struct SceneLighting {
-    /// Unit direction *toward* the light, in the same frame as shaded normals.
-    pub direction_to_light: Vec3,
+    pub model: LightingModel,
+    /// Legacy model terms.
     pub ambient: f32,
     pub diffuse: f32,
+    /// Unit direction *toward* the sun, in the same frame as shaded normals.
+    pub direction_to_light: Vec3,
+    /// World up in the shading frame (sky-light orientation).
+    pub up: Vec3,
+    /// Direction toward the viewer in the shading frame, or zero for no
+    /// specular. The viewmodel uses a distant-viewer approximation (+Z in view
+    /// space) so lighting stays translation invariant.
+    pub view: Vec3,
+    /// 0 = in shadow, 1 = fully sunlit (the viewmodel samples it at the camera).
+    pub shadow: f32,
+    pub environment: LightEnvironment,
 }
 
 impl SceneLighting {
-    /// A single world-fixed key light for the test range, with readable fill.
-    /// The cyan fixture strips remain decorative; this is not a shadow system.
+    /// The established range key light (legacy model).
     pub fn range() -> Self {
+        Self::from_tuning(&LightingTuning::default())
+    }
+
+    /// Legacy unless `physical_lighting` is enabled. Both share the sun direction.
+    pub fn from_tuning(tuning: &LightingTuning) -> Self {
+        let environment = LightEnvironment::new(tuning);
         Self {
-            direction_to_light: vec3(-0.3, 0.8, 0.5).normalize(),
+            model: if tuning.physical_lighting >= 0.5 {
+                LightingModel::Physical
+            } else {
+                LightingModel::Legacy
+            },
             ambient: 0.35,
             diffuse: 0.65,
+            direction_to_light: environment.sun_direction,
+            up: Vec3::Y,
+            view: Vec3::ZERO,
+            shadow: 1.,
+            environment,
+        }
+    }
+
+    pub fn with_shadow(self, shadow: f32) -> Self {
+        Self {
+            shadow: shadow.clamp(0., 1.),
+            ..self
         }
     }
 
@@ -31,29 +73,62 @@ impl SceneLighting {
         let forward = forward.normalize();
         let right = forward.cross(Vec3::Y).normalize();
         let up = right.cross(forward);
+        let rotate = |v: Vec3| vec3(v.dot(right), v.dot(up), v.dot(-forward));
         Self {
-            direction_to_light: vec3(
-                self.direction_to_light.dot(right),
-                self.direction_to_light.dot(up),
-                self.direction_to_light.dot(-forward),
-            ),
+            direction_to_light: rotate(self.direction_to_light),
+            up: rotate(self.up),
+            view: Vec3::Z,
             ..self
         }
     }
 
-    pub fn irradiance(self, normal: Vec3) -> f32 {
-        let normal = normal.try_normalize().unwrap_or(Vec3::Y);
-        self.ambient + self.diffuse * normal.dot(self.direction_to_light).max(0.)
+    /// Linear diffuse + sky-light radiance for a white surface (no specular).
+    fn physical_diffuse(self, normal: Vec3) -> Vec3 {
+        let n = normal.try_normalize().unwrap_or(self.up);
+        let e = &self.environment;
+        let sky = e.ground_color.lerp(e.sky_color, n.dot(self.up) * 0.5 + 0.5);
+        e.sun_color * n.dot(self.direction_to_light).max(0.) * self.shadow + sky
     }
 
+    /// Scalar light reaching a normal (frame invariant). Legacy: the key-light
+    /// response; physical: luminance of sun + sky light.
+    pub fn irradiance(self, normal: Vec3) -> f32 {
+        match self.model {
+            LightingModel::Legacy => {
+                let normal = normal.try_normalize().unwrap_or(Vec3::Y);
+                self.ambient + self.diffuse * normal.dot(self.direction_to_light).max(0.)
+            }
+            LightingModel::Physical => self
+                .physical_diffuse(normal)
+                .dot(vec3(0.2126, 0.7152, 0.0722)),
+        }
+    }
+
+    /// Tonemapped display color: Lambert sun, GGX specular (when a viewer is
+    /// set) and sky light, through the shared exposure and ACES curve.
     pub fn shade(self, albedo: Color, normal: Vec3) -> Color {
-        let shade = self.irradiance(normal);
-        Color::new(
-            albedo.r * shade,
-            albedo.g * shade,
-            albedo.b * shade,
-            albedo.a,
-        )
+        if self.model == LightingModel::Legacy {
+            let shade = self.irradiance(normal);
+            return Color::new(
+                albedo.r * shade,
+                albedo.g * shade,
+                albedo.b * shade,
+                albedo.a,
+            );
+        }
+        let n = normal.try_normalize().unwrap_or(self.up);
+        let linear_albedo = srgb_to_linear(vec3(albedo.r, albedo.g, albedo.b));
+        let mut radiance = linear_albedo * self.physical_diffuse(n);
+        if self.view != Vec3::ZERO {
+            let e = &self.environment;
+            let l = self.direction_to_light;
+            radiance += e.sun_color
+                * crate::lighting::ggx_specular(n, self.view, l, e.roughness, 0.04)
+                * n.dot(l).max(0.)
+                * self.shadow;
+        }
+        let c = self.environment.display(radiance);
+        Color::new(c.x, c.y, c.z, albedo.a)
     }
 
     /// Re-light an immutable-normal rigid mesh after its current actor transform.
@@ -70,44 +145,59 @@ impl SceneLighting {
         }
     }
 
+    /// Physical model with the given tuning, regardless of the setting (tests,
+    /// diagnostics).
+    pub fn physical(tuning: &LightingTuning) -> Self {
+        Self {
+            model: LightingModel::Physical,
+            ..Self::from_tuning(tuning)
+        }
+    }
+
     /// Macroquad's built-in cubes have zero normals and a single flat color.
     /// Use explicit outward normals so the level and held model share the light.
     pub fn cube_mesh(self, position: Vec3, size: Vec3, color: Color) -> Mesh {
-        let mut vertices = Vec::with_capacity(24);
-        let mut indices = Vec::with_capacity(36);
-        let faces = [
-            (Vec3::Z, Vec3::X, Vec3::Y),
-            (-Vec3::Z, Vec3::X, Vec3::Y),
-            (Vec3::Y, Vec3::Z, Vec3::X),
-            (-Vec3::Y, Vec3::Z, Vec3::X),
-            (Vec3::X, Vec3::Y, Vec3::Z),
-            (-Vec3::X, Vec3::Y, Vec3::Z),
-        ];
-        for (normal, u, v) in faces {
-            let start = vertices.len() as u16;
-            for (a, b) in [(-1., -1.), (1., -1.), (1., 1.), (-1., 1.)] {
-                let point = position + (normal + a * u + b * v) * size * 0.5;
-                let mut vertex = Vertex::new2(
-                    point,
-                    vec2((a + 1.) * 0.5, (b + 1.) * 0.5),
-                    self.shade(color, normal),
-                );
-                vertex.normal = normal.extend(0.);
-                vertices.push(vertex);
-            }
-            indices.extend([start, start + 1, start + 2, start, start + 2, start + 3]);
+        let mut mesh = albedo_cube_mesh(position, size, color);
+        for vertex in &mut mesh.vertices {
+            vertex.color = self.shade(color, vertex.normal.truncate()).into();
         }
-        Mesh {
-            vertices,
-            indices,
-            texture: None,
-        }
+        mesh
     }
 
     pub fn draw_cube(self, position: Vec3, size: Vec3, texture: Option<&Texture2D>, color: Color) {
         let mut mesh = self.cube_mesh(position, size, color);
         mesh.texture = texture.cloned();
         draw_mesh(&mesh);
+    }
+}
+
+/// A cube with outward normals and unlit albedo vertex colors, for the GPU
+/// lit pass (which shades per pixel from the normal).
+pub fn albedo_cube_mesh(position: Vec3, size: Vec3, color: Color) -> Mesh {
+    let mut vertices = Vec::with_capacity(24);
+    let mut indices = Vec::with_capacity(36);
+    let faces = [
+        (Vec3::Z, Vec3::X, Vec3::Y),
+        (-Vec3::Z, Vec3::X, Vec3::Y),
+        (Vec3::Y, Vec3::Z, Vec3::X),
+        (-Vec3::Y, Vec3::Z, Vec3::X),
+        (Vec3::X, Vec3::Y, Vec3::Z),
+        (-Vec3::X, Vec3::Y, Vec3::Z),
+    ];
+    for (normal, u, v) in faces {
+        let start = vertices.len() as u16;
+        for (a, b) in [(-1., -1.), (1., -1.), (1., 1.), (-1., 1.)] {
+            let point = position + (normal + a * u + b * v) * size * 0.5;
+            let mut vertex = Vertex::new2(point, vec2((a + 1.) * 0.5, (b + 1.) * 0.5), color);
+            vertex.normal = normal.extend(0.);
+            vertices.push(vertex);
+        }
+        indices.extend([start, start + 1, start + 2, start, start + 2, start + 3]);
+    }
+    Mesh {
+        vertices,
+        indices,
+        texture: None,
     }
 }
 
@@ -203,5 +293,31 @@ mod tests {
                 Into::<[u8; 4]>::into(light.shade(WHITE, normal))
             );
         }
+    }
+
+    #[test]
+    fn legacy_is_default_and_physical_is_opt_in_with_same_sun() {
+        let legacy = SceneLighting::range();
+        assert_eq!(legacy.model, LightingModel::Legacy);
+        let n = vec3(0.2, 0.9, -0.1);
+        assert!(
+            (legacy.irradiance(n)
+                - (0.35 + 0.65 * n.normalize().dot(legacy.direction_to_light).max(0.)))
+            .abs()
+                < 1e-6
+        );
+        let tuning = LightingTuning {
+            physical_lighting: 1.,
+            ..LightingTuning::default()
+        };
+        let physical = SceneLighting::from_tuning(&tuning);
+        assert_eq!(physical.model, LightingModel::Physical);
+        assert_eq!(physical.direction_to_light, legacy.direction_to_light);
+        // Shadow darkens physical shading; colors stay displayable.
+        let lit = physical.shade(GRAY, physical.direction_to_light);
+        let dark = physical
+            .with_shadow(0.)
+            .shade(GRAY, physical.direction_to_light);
+        assert!(lit.r > dark.r && lit.r <= 1.);
     }
 }

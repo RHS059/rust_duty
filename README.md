@@ -88,6 +88,7 @@ or anti-cheat interactions.
 
 Traversal and weapon-action states, tuning and animation slots: [traversal](docs/TRAVERSAL.md)
 and its [acceptance checklist](docs/TRAVERSAL_ACCEPTANCE.md). All of their visuals are placeholders.
+Opt-in physical sun/sky/shadow lighting (`physical_lighting = 1`): [lighting](docs/LIGHTING.md).
 | `[` / `]` | Lower / raise mouse sensitivity |
 | `-` / `=` | Lower / raise horizontal hip FOV |
 | F5 / F6 | Save / reload selected settings file |
