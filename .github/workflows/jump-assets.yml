@@ -50,16 +50,40 @@ jobs:
         run: python tools/build_jump_assets.py --source-dir .jump-source/assets/authoring/jump --blender blender --sampler target/release/examples/sample_viewmodel_clip --work build-jump/work --output build-jump/runtime
       - name: Revalidate source, old clip bytes and generated companions
         run: python tools/check_generated_assets.py --kind jump --directory build-jump/runtime
-      - name: Upload Jump source and parity evidence
+      - name: Archive this attempt - Upload Jump source and parity evidence
         if: always()
+        id: archive_attempt_1
         uses: actions/upload-artifact@v4
         with:
+          name: jump-export-diagnostics-attempt-${{ github.run_attempt }}
+          path: build-jump/runtime/*.json
+          if-no-files-found: warn
+      - name: Upload Jump source and parity evidence
+        if: ${{ (always()) && steps.archive_attempt_1.outcome == 'success' && steps.archive_attempt_1.outputs.artifact-id != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          overwrite: true
           name: jump-export-diagnostics
           path: build-jump/runtime/*.json
           if-no-files-found: warn
-      - name: Publish verified Jump companions for complete game builds
+      - name: Archive this attempt - Publish verified Jump companions for complete game builds
+        id: archive_attempt_2
         uses: actions/upload-artifact@v4
         with:
+          name: generated-jump-runtime-attempt-${{ github.run_attempt }}
+          path: |
+            build-jump/runtime/asset.vra
+            build-jump/runtime/asset.vrs
+            build-jump/runtime/asset.vrm
+            build-jump/runtime/asset.vrs.gz
+            build-jump/runtime/asset.vra.gz
+            build-jump/runtime/*.json
+          if-no-files-found: error
+      - name: Publish verified Jump companions for complete game builds
+        if: ${{ (success()) && steps.archive_attempt_2.outcome == 'success' && steps.archive_attempt_2.outputs.artifact-id != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          overwrite: true
           name: generated-jump-runtime
           path: |
             build-jump/runtime/asset.vra

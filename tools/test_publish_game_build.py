@@ -16,7 +16,7 @@ import publish_game_build as publish
 
 def environment(number=10, run_id=1000):
     return {"GITHUB_REPOSITORY": "RHS059/rust_duty", "GITHUB_RUN_NUMBER": str(number),
-            "GITHUB_RUN_ID": str(run_id), "GITHUB_SHA": "a" * 40,
+            "GITHUB_RUN_ID": str(run_id), "GITHUB_RUN_ATTEMPT": "1", "GITHUB_SHA": "a" * 40,
             "GITHUB_REF_NAME": "aella/automatic-game-updates-r1",
             "GITHUB_REF": "refs/heads/aella/automatic-game-updates-r1",
             "GITHUB_EVENT_NAME": "push", "RUST_DUTY_BUILD_VERSION": "0.1.7",
@@ -123,9 +123,10 @@ class BuildIdentityTests(unittest.TestCase):
                 root = Path(directory)
                 binary = root / executable
                 binary.write_bytes(magic + b"native fixture")
-                with mock.patch.object(identity.subprocess, "check_output", return_value="0.1.7\n") as run:
+                with mock.patch.object(identity.subprocess, "check_output", side_effect=["0.1.7\n", "0.1.7+build.1000.1\n"]) as run:
                     identity.stamp(root, platform, environment())
-                self.assertEqual(run.call_args.args[0], [str(binary.resolve()), "--build-version"])
+                self.assertEqual(run.call_args_list[0].args[0], [str(binary.resolve()), "--build-version"])
+                self.assertEqual(run.call_args_list[1].args[0], [str(binary.resolve()), "--build-label"])
                 identity.verify(root, platform, identity.context(environment()))
                 binary.write_bytes(magic + b"changed fixture")
                 with self.assertRaisesRegex(ValueError, "hash mismatch"):
@@ -184,7 +185,7 @@ class CandidateIdentityTests(unittest.TestCase):
             with self.subTest(platform=platform), tempfile.TemporaryDirectory() as directory:
                 root = Path(directory)
                 (root / executable).write_bytes(magic + b"candidate native fixture")
-                with mock.patch.object(identity.subprocess, "check_output", return_value="0.1.9\n"):
+                with mock.patch.object(identity.subprocess, "check_output", side_effect=["0.1.9\n", "0.1.9+build.1000.1\n"]):
                     stamped = identity.stamp(root, platform, self.environment())
                 self.assertEqual(stamped["schema"], "rust-duty-build-identity/v1")
                 self.assertEqual((stamped["version"], stamped["sequence"]), ("0.1.9", 9))
@@ -219,7 +220,7 @@ class PublicationTests(unittest.TestCase):
             source = self.tested / platform
             source.mkdir(parents=True)
             (source / executable).write_bytes(magic + b"native fixture")
-            with mock.patch.object(identity.subprocess, "check_output", return_value="0.1.7\n"):
+            with mock.patch.object(identity.subprocess, "check_output", side_effect=["0.1.7\n", "0.1.7+build.1000.1\n"]):
                 identity.stamp(source, platform, environment())
         with mock.patch.object(publish.package_game, "stage", side_effect=self.fixture_stage) as stage:
             self.provenance = publish.prepare(self.tested, self.output, self.identity)

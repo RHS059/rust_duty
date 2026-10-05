@@ -2,7 +2,7 @@ name: Rust prototype checks and playable builds
 on:
   pull_request:
   push:
-    branches: [main, 'aella/**', 'halcyon/**']
+    branches: [main, 'aella/**', 'halcyon/**', '!aella/release-channel']
 permissions:
   contents: read
 concurrency:
@@ -80,6 +80,10 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Identify this exact build attempt
+        id: identity
+        shell: bash
+        run: echo "label=$(python tools/build_identity.py --print-label)" >> "$GITHUB_OUTPUT"
       - run: python -m pip install -r tools/requirements-assets.txt cryptography
       - name: Materialize and verify all generated and committed companions
         run: python tools/package_game.py materialize --root . --include-walk --include-ads --include-directional --include-jump --require-generated
@@ -88,21 +92,43 @@ jobs:
         run: |
           cargo fmt --all
           git diff --binary > rustfmt.patch
-      - name: Upload formatter patch for review
+      - name: Archive this attempt - Upload formatter patch for review
+        id: archive_attempt_1
         uses: actions/upload-artifact@v4
         with:
+          name: rustfmt-${{ runner.os }}-attempt-${{ github.run_attempt }}
+          path: rustfmt.patch
+      - name: Upload formatter patch for review
+        if: ${{ (success()) && steps.archive_attempt_1.outcome == 'success' && steps.archive_attempt_1.outputs.artifact-id != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          overwrite: true
           name: rustfmt-${{ runner.os }}
           path: rustfmt.patch
       - name: Require formatting committed to source
         run: git diff --exit-code -- build.rs src tests examples benches
+      - name: Check run-attempt numbering primitive on both platforms
+        shell: bash
+        run: |
+          rustc --test build_number.rs -o build-number-tests.exe
+          ./build-number-tests.exe
       - name: Run full Python, game and updater checks in independent lanes
         run: python tools/ci_quality_checks.py
         env:
           RUST_DUTY_ANIMATION_MANIFEST: assets/animations.cfg
-      - name: Retain every quality-check log and measured lane timing
+      - name: Archive this attempt - Retain every quality-check log and measured lane timing
         if: always()
+        id: archive_attempt_2
         uses: actions/upload-artifact@v4
         with:
+          name: quality-checks-${{ runner.os }}-attempt-${{ github.run_attempt }}
+          path: evidence/quality-checks/
+          if-no-files-found: warn
+      - name: Retain every quality-check log and measured lane timing
+        if: ${{ (always()) && steps.archive_attempt_2.outcome == 'success' && steps.archive_attempt_2.outputs.artifact-id != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          overwrite: true
           name: quality-checks-${{ runner.os }}
           path: evidence/quality-checks/
           if-no-files-found: warn
@@ -128,10 +154,19 @@ jobs:
           timeout 420s xvfb-run -a -s "-screen 0 1920x1080x24" ./vector-range --no-update --reference-viewport --capture-sequence=gameplay-jump --capture-hz=60 --output=../../evidence/jump-gameplay
           cd ../..
           python tools/verify_jump_capture.py evidence/jump-gameplay
-      - name: Retain native common Jump WIP evidence
+      - name: Archive this attempt - Retain native common Jump WIP evidence
         if: runner.os == 'Linux' && always()
+        id: archive_attempt_3
         uses: actions/upload-artifact@v4
         with:
+          name: native-gameplay-jump-evidence-attempt-${{ github.run_attempt }}
+          path: evidence/jump-gameplay/
+          if-no-files-found: warn
+      - name: Retain native common Jump WIP evidence
+        if: ${{ (runner.os == 'Linux' && always()) && steps.archive_attempt_3.outcome == 'success' && steps.archive_attempt_3.outputs.artifact-id != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          overwrite: true
           name: native-gameplay-jump-evidence
           path: evidence/jump-gameplay/
           if-no-files-found: warn
@@ -147,10 +182,19 @@ jobs:
           timeout 300s xvfb-run -a -s "-screen 0 1920x1080x24" ./vector-range --no-update --reference-viewport --capture-sequence=gameplay-reload --output=../../evidence/reload-gameplay
           cd ../..
           python tools/verify_gameplay_capture.py evidence/reload-gameplay
-      - name: Upload native gameplay frames and simulation evidence
+      - name: Archive this attempt - Upload native gameplay frames and simulation evidence
         if: runner.os == 'Linux' && always()
+        id: archive_attempt_4
         uses: actions/upload-artifact@v4
         with:
+          name: native-gameplay-reload-evidence-attempt-${{ github.run_attempt }}
+          path: evidence/reload-gameplay/
+          if-no-files-found: warn
+      - name: Upload native gameplay frames and simulation evidence
+        if: ${{ (runner.os == 'Linux' && always()) && steps.archive_attempt_4.outcome == 'success' && steps.archive_attempt_4.outputs.artifact-id != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          overwrite: true
           name: native-gameplay-reload-evidence
           path: evidence/reload-gameplay/
           if-no-files-found: warn
@@ -166,10 +210,19 @@ jobs:
           timeout 300s xvfb-run -a -s "-screen 0 1920x1080x24" ./vector-range --no-update --reference-viewport --capture-sequence=gameplay-walk --output=../../evidence/walk-gameplay
           cd ../..
           python tools/verify_gameplay_walk_capture.py evidence/walk-gameplay
-      - name: Upload native authored walk frames and movement evidence
+      - name: Archive this attempt - Upload native authored walk frames and movement evidence
         if: runner.os == 'Linux' && always()
+        id: archive_attempt_5
         uses: actions/upload-artifact@v4
         with:
+          name: native-gameplay-walk-evidence-attempt-${{ github.run_attempt }}
+          path: evidence/walk-gameplay/
+          if-no-files-found: warn
+      - name: Upload native authored walk frames and movement evidence
+        if: ${{ (runner.os == 'Linux' && always()) && steps.archive_attempt_5.outcome == 'success' && steps.archive_attempt_5.outputs.artifact-id != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          overwrite: true
           name: native-gameplay-walk-evidence
           path: evidence/walk-gameplay/
           if-no-files-found: warn
@@ -185,10 +238,19 @@ jobs:
           timeout 660s xvfb-run -a -s "-screen 0 1920x1080x24" ./vector-range --no-update --reference-viewport --capture-sequence=gameplay-ads --output=../../evidence/ads-gameplay
           cd ../..
           python tools/verify_gameplay_ads_capture.py evidence/ads-gameplay
-      - name: Upload native authored ADS frames and interruption evidence
+      - name: Archive this attempt - Upload native authored ADS frames and interruption evidence
         if: runner.os == 'Linux' && always()
+        id: archive_attempt_6
         uses: actions/upload-artifact@v4
         with:
+          name: native-gameplay-ads-evidence-attempt-${{ github.run_attempt }}
+          path: evidence/ads-gameplay/
+          if-no-files-found: warn
+      - name: Upload native authored ADS frames and interruption evidence
+        if: ${{ (runner.os == 'Linux' && always()) && steps.archive_attempt_6.outcome == 'success' && steps.archive_attempt_6.outputs.artifact-id != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          overwrite: true
           name: native-gameplay-ads-evidence
           path: evidence/ads-gameplay/
           if-no-files-found: warn
@@ -205,10 +267,22 @@ jobs:
           timeout 660s xvfb-run -a -s "-screen 0 1920x1080x24" ./vector-range --no-update --reference-viewport --capture-sequence=gameplay-ads --settings=../../evidence/ads-offset.cfg --output=../../evidence/ads-offset
           cd ../..
           python tools/verify_ads_placement_capture.py evidence/ads-gameplay evidence/ads-offset > evidence/ads-offset-verification.json
-      - name: Upload native ADS placement comparison
+      - name: Archive this attempt - Upload native ADS placement comparison
         if: runner.os == 'Linux' && always()
+        id: archive_attempt_7
         uses: actions/upload-artifact@v4
         with:
+          name: native-ads-placement-evidence-attempt-${{ github.run_attempt }}
+          path: |
+            evidence/ads-offset/
+            evidence/ads-offset.cfg
+            evidence/ads-offset-verification.json
+          if-no-files-found: warn
+      - name: Upload native ADS placement comparison
+        if: ${{ (runner.os == 'Linux' && always()) && steps.archive_attempt_7.outcome == 'success' && steps.archive_attempt_7.outputs.artifact-id != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          overwrite: true
           name: native-ads-placement-evidence
           path: |
             evidence/ads-offset/
@@ -229,10 +303,22 @@ jobs:
             cd ../..
           done
           python tools/verify_layered_locomotion_capture.py evidence/layered-30 evidence/layered-60 > evidence/layered-rate-verification.json
-      - name: Upload native layered input and sampling-rate evidence
+      - name: Archive this attempt - Upload native layered input and sampling-rate evidence
         if: runner.os == 'Linux' && always()
+        id: archive_attempt_8
         uses: actions/upload-artifact@v4
         with:
+          name: native-layered-locomotion-evidence-attempt-${{ github.run_attempt }}
+          path: |
+            evidence/layered-30/
+            evidence/layered-60/
+            evidence/layered-rate-verification.json
+          if-no-files-found: warn
+      - name: Upload native layered input and sampling-rate evidence
+        if: ${{ (runner.os == 'Linux' && always()) && steps.archive_attempt_8.outcome == 'success' && steps.archive_attempt_8.outputs.artifact-id != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          overwrite: true
           name: native-layered-locomotion-evidence
           path: |
             evidence/layered-30/
@@ -251,10 +337,19 @@ jobs:
           timeout 420s xvfb-run -a -s "-screen 0 1920x1080x24" ./vector-range --no-update --reference-viewport --capture-sequence=gameplay-return --capture-hz=60 --output=../../evidence/reload-return
           cd ../..
           python tools/verify_reload_return_capture.py evidence/reload-return
-      - name: Upload native reload return evidence
+      - name: Archive this attempt - Upload native reload return evidence
         if: runner.os == 'Linux' && always()
+        id: archive_attempt_9
         uses: actions/upload-artifact@v4
         with:
+          name: native-reload-return-evidence-attempt-${{ github.run_attempt }}
+          path: evidence/reload-return/
+          if-no-files-found: warn
+      - name: Upload native reload return evidence
+        if: ${{ (runner.os == 'Linux' && always()) && steps.archive_attempt_9.outcome == 'success' && steps.archive_attempt_9.outputs.artifact-id != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          overwrite: true
           name: native-reload-return-evidence
           path: evidence/reload-return/
           if-no-files-found: warn
@@ -265,10 +360,19 @@ jobs:
         env:
           LIBGL_ALWAYS_SOFTWARE: '1'
         run: xvfb-run -a -s "-screen 0 1920x1080x24" python tools/verify_lighting_capture.py evidence/lighting --binary dist/game/vector-range
-      - name: Upload directional native lighting evidence
+      - name: Archive this attempt - Upload directional native lighting evidence
         if: runner.os == 'Linux' && always()
+        id: archive_attempt_10
         uses: actions/upload-artifact@v4
         with:
+          name: native-world-lighting-evidence-attempt-${{ github.run_attempt }}
+          path: evidence/lighting/
+          if-no-files-found: warn
+      - name: Upload directional native lighting evidence
+        if: ${{ (runner.os == 'Linux' && always()) && steps.archive_attempt_10.outcome == 'success' && steps.archive_attempt_10.outputs.artifact-id != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          overwrite: true
           name: native-world-lighting-evidence
           path: evidence/lighting/
           if-no-files-found: warn
@@ -278,17 +382,36 @@ jobs:
       - name: Verify embedded Linux build identity
         if: runner.os == 'Linux'
         run: python tools/build_identity.py --root dist/game --platform linux
-      - name: Upload complete Windows game
+      - name: Upload uniquely numbered Windows game
         if: runner.os == 'Windows'
+        id: archive_game_windows
         uses: actions/upload-artifact@v4
         with:
+          name: Rust-Duty-${{ steps.identity.outputs.label }}-Windows-x64
+          path: dist/game/
+          if-no-files-found: error
+      - name: Upload uniquely numbered Linux game
+        if: runner.os == 'Linux'
+        id: archive_game_linux
+        uses: actions/upload-artifact@v4
+        with:
+          name: Rust-Duty-${{ steps.identity.outputs.label }}-Linux-x64
+          path: dist/game/
+          if-no-files-found: error
+      # Compatibility aliases are identical bytes for the existing release publisher.
+      - name: Upload complete Windows game
+        if: ${{ (runner.os == 'Windows') && steps.archive_game_windows.outcome == 'success' && steps.archive_game_windows.outputs.artifact-id != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          overwrite: true
           name: vector-range-windows-x64
           path: dist/game/
           if-no-files-found: error
       - name: Upload complete Linux game
-        if: runner.os == 'Linux'
+        if: ${{ (runner.os == 'Linux') && steps.archive_game_linux.outcome == 'success' && steps.archive_game_linux.outputs.artifact-id != '' }}
         uses: actions/upload-artifact@v4
         with:
+          overwrite: true
           name: vector-range-linux-x64
           path: dist/game/
           if-no-files-found: error
@@ -332,10 +455,21 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: python tools/publish_game_build.py --tested tested --output release-assets
-      - name: Retain one-time publication provenance
+      - name: Archive this attempt - Retain one-time publication provenance
         if: always()
+        id: archive_attempt_15
         uses: actions/upload-artifact@v4
         with:
+          name: game-release-0.1.5-provenance-attempt-${{ github.run_attempt }}
+          path: release-assets/SOURCE_PROVENANCE.json
+          if-no-files-found: warn
+
+      - name: Retain one-time publication provenance
+        if: ${{ (always()) && steps.archive_attempt_15.outcome == 'success' && steps.archive_attempt_15.outputs.artifact-id != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          overwrite: true
           name: game-release-0.1.5-provenance
           path: release-assets/SOURCE_PROVENANCE.json
           if-no-files-found: warn
+
