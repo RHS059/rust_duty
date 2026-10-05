@@ -31,6 +31,14 @@ def validate_relaunch(outcome, relaunched, expected_version):
             "helper did not relaunch and finish the actual B game")
 
 
+def headless_transfer_budget(mode):
+    if mode not in ('full', 'one-file'):
+        raise ValueError('unknown baseline mode')
+    # Real Windows preflight measured246s for a317MB executable-baseline delta.
+    # Use the existing game CLI maximum, without changing its production limit.
+    return 600 if mode == 'one-file' else 150
+
+
 def run(args):
     require(args.target in {"x86_64-pc-windows-msvc", "x86_64-unknown-linux-gnu"}, "unsupported target")
     require((os.name == "nt") == args.target.endswith("windows-msvc"), "target must match operating system")
@@ -86,8 +94,10 @@ def run(args):
         delta = next((d for d in b["deltas"] if d["base_version"] == args.version_a
                      and d["base_sha256"] == baseline_sha), None)
         require(delta is not None, "B has no exact A delta")
+        transfer_budget = headless_transfer_budget(mode)
+        report['headless_transfer_budget_seconds'] = transfer_budget
         first = execute([game, "--update-headless", "--update-apply",
-                         "--update-timeout-seconds=150"], timeout=180)
+                         f"--update-timeout-seconds={transfer_budget}"], timeout=transfer_budget + 30)
         first_lines = [json.loads(line) for line in first.stdout.splitlines() if line.startswith("{")]
         require(any(x.get("helper_admitted") for x in first_lines), "game did not admit its hidden helper")
         until = time.monotonic() + 100
