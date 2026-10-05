@@ -12,13 +12,17 @@ the documented hint behaviour, never read from the report under test.
 import argparse
 from decimal import Decimal
 import json
+import os
 from pathlib import Path
+import re
 import subprocess
 import sys
 
 from PIL import Image
 
+import build_identity
 import dx12_contract_process
+from run_renderer_contract import equal, literal
 from verify_capture_telemetry import read_record
 from verify_render_capture import load_png
 
@@ -140,6 +144,11 @@ def check_scaling(one, two):
 def opaque_rgba(path, extent):
     """Integrity/extent via load_png, then the file's own encoding must be opaque RGBA8."""
     load_png(path, extent)
+    with path.open('rb') as source:
+        header = source.read(26)
+    # IHDR bit depth 8 and colour type 6 (RGBA); Pillow also reports RGBA16 as RGBA.
+    require(len(header) == 26 and header[12:16] == b'IHDR' and header[24:26] == bytes([8, 6]),
+            f'{path.name}: PNG must be 8-bit RGBA (IHDR bit depth 8, colour type 6)')
     with Image.open(path) as image:
         require(image.mode == 'RGBA', f'{path.name}: PNG must be stored as RGBA8, got {image.mode}')
         require(image.getextrema()[3] == (255, 255), f'{path.name}: PNG alpha must be opaque everywhere')
@@ -175,15 +184,20 @@ def validate_outputs(output):
             and isinstance(report['adapter'], str) and report['adapter'].casefold() == WARP.casefold()
             and report['force_fallback_adapter'] is True and report['platform'] == 'windows',
             'fixture report is not a Windows DX12 WARP run')
-    require(isinstance(report['build_version'], str) and report['build_version'].count('.') == 2
+    require(isinstance(report['build_version'], str) and re.fullmatch(r'[0-9]+\.[0-9]+\.[0-9]+', report['build_version'])
+            and report['build_version'] == build_identity.package_version()
             and isinstance(report['build_number'], str) and report['build_number'].strip(),
-            'fixture report build identity is malformed')
-    require(report['scales_percent'] == list(SCALES) and all(map(is_int, report['scales_percent'])),
-            'fixture report scales are wrong')
-    require(report['elements_covered'] == ['ammo-hint'] and isinstance(report['elements_pending'], dict),
-            'fixture report element coverage is wrong')
-    require(report['compiler_identity_source'] == COMPILER_SOURCE and report['scope'] == SCOPE
-            and report['boundaries'] == BOUNDARIES, 'fixture report scope or boundaries changed')
+            'fixture report build identity is malformed or not this package version')
+    if os.environ.get('GITHUB_ACTIONS') == 'true':
+        identity = build_identity.context()
+        require(report['build_version'] == identity['version'] and report['build_number'] == identity['build_number'],
+                'fixture report build identity does not match this CI attempt')
+    literal(report['scales_percent'], list(SCALES), 'report.scales_percent')
+    literal(report['elements_covered'], ['ammo-hint'], 'report.elements_covered')
+    require(isinstance(report['elements_pending'], dict), 'fixture report element coverage is wrong')
+    literal(report['compiler_identity_source'], COMPILER_SOURCE, 'report.compiler_identity_source')
+    literal(report['scope'], SCOPE, 'report.scope')
+    literal(report['boundaries'], BOUNDARIES, 'report.boundaries')
     captures = report['captures']
     require(isinstance(captures, list) and len(captures) == len(expected), 'report must list every capture')
 
@@ -196,7 +210,7 @@ def validate_outputs(output):
         for case, progress, full in CASES:
             name = f'ammo-{case}-{percent}.png'
             sidecar = read_record(output / f'{name}.json')
-            require(captures[index] == sidecar, f'{name}: report capture entry differs from its sidecar')
+            equal(captures[index], sidecar, f'{name}: report capture entry vs sidecar')
             index += 1
             require(set(sidecar) == SIDECAR_KEYS, f'{name}: sidecar has missing or unexpected fields')
             anchor = sidecar['anchor_logical']

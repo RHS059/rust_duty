@@ -5,8 +5,10 @@ import json
 import math
 import os
 from pathlib import Path
+import struct
 import tempfile
 import unittest
+import zlib
 from unittest.mock import patch
 
 from PIL import Image, ImageDraw
@@ -124,7 +126,7 @@ class GameUiFixtureTests(unittest.TestCase):
 
     def test_report_captures_must_equal_the_sidecars(self):
         self.edit(fixture.REPORT, captures=[None] * 8)
-        self.rejects('differs from its sidecar')
+        self.rejects('capture entry vs sidecar')
 
     def test_sidecar_identity_and_types_are_exact(self):
         name = 'ammo-half-200.png.json'
@@ -161,7 +163,47 @@ class GameUiFixtureTests(unittest.TestCase):
         self.rejects()
         rgb = prompt(100, 'idle').convert('RGB')
         rgb.save(self.output / 'ammo-idle-100.png')
-        self.rejects('RGBA8')
+        self.rejects('8-bit RGBA')
+
+    def test_rgba16_png_is_rejected(self):
+        # Pillow decodes RGBA16 as RGBA; the IHDR must still say 8-bit colour type 6.
+        width, height = 480, 270
+        raw = b''.join(b'\x00' + (b'\x00\x00\x00\x00\x00\x00\xff\xff' * width) for _ in range(height))
+
+        def chunk(kind, data):
+            return struct.pack('>I', len(data)) + kind + data + struct.pack('>I', zlib.crc32(kind + data))
+        png = (b'\x89PNG\r\n\x1a\n' + chunk(b'IHDR', struct.pack('>IIBBBBB', width, height, 16, 6, 0, 0, 0))
+               + chunk(b'IDAT', zlib.compress(raw)) + chunk(b'IEND', b''))
+        (self.output / 'ammo-idle-100.png').write_bytes(png)
+        self.rejects()
+
+    def test_build_identity_is_this_package_and_ci_attempt(self):
+        for version in ('not.a.version', '9.9.9'):
+            self.edit(fixture.REPORT, build_version=version)
+            with self.subTest(version=version):
+                self.rejects('build identity')
+        self.edit(fixture.REPORT, build_version='0.1.11', build_number='1.1')
+        env = {'GITHUB_ACTIONS': 'true', 'GITHUB_REPOSITORY': 'RHS059/rust_duty', 'GITHUB_RUN_NUMBER': '7',
+               'GITHUB_RUN_ID': '37339601251', 'GITHUB_RUN_ATTEMPT': '2', 'GITHUB_SHA': 'a' * 40,
+               'GITHUB_REF_NAME': 'aella/wgpu-renderer-port'}
+        with patch.dict(fixture.os.environ, env, clear=False):
+            self.rejects('this CI attempt')  # another attempt's build number
+            self.edit(fixture.REPORT, build_number='37339601251.2')
+            fixture.validate_outputs(self.output)
+
+    def test_type_exact_report_fields_and_capture_entries(self):
+        self.edit(fixture.REPORT, boundaries=dict(fixture.BOUNDARIES, os_dpi_events_verified=0))
+        self.rejects('JSON type differs')
+        self.setUp()
+        report = self.read(fixture.REPORT)
+        for field, value in [('scale_percent', 100.0), ('ammo_full', 0), ('progress', False)]:
+            entries = json.loads(json.dumps(report['captures']))
+            entries[0][field] = value
+            self.edit(fixture.REPORT, captures=entries)
+            with self.subTest(field=field):
+                self.rejects('capture entry vs sidecar')
+        self.edit(fixture.REPORT, captures=report['captures'])
+        fixture.validate_outputs(self.output)
 
     def test_truncated_png_is_rejected(self):
         path = self.output / 'ammo-idle-100.png'
