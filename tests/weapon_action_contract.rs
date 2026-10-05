@@ -1,6 +1,6 @@
 //! Weapon mounting, wall obstruction, death/respawn and cross-feature
 //! permission conflicts.
-use macroquad::math::{vec2, vec3, Vec3};
+use glam::{vec2, vec3, Vec3};
 use vector_range::{
     action::{ActionEventKind, ActionSlot, Rejection, WeaponPermissions},
     settings::Settings,

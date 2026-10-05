@@ -41,7 +41,7 @@ fn empty_old_discard_and_replacement_are_separate_visible_roles() {
 
 #[test]
 fn closed_magazine_wrist_and_prop_share_one_quaternion_path() {
-    use macroquad::math::Quat;
+    use glam::Quat;
     use vector_range::weapon_animation::{
         effective_hand_orientation, effective_magazine_orientation, HAND_MODE_ORIENTATIONS,
     };

@@ -1,5 +1,5 @@
 //! Ledge catch/hang, pull-up, drop and hanging-sidearm contracts.
-use macroquad::math::{vec2, vec3, Vec3};
+use glam::{vec2, vec3, Vec3};
 use vector_range::{
     action::{ActionEventKind, ActionSlot, HandOwner, Loadout, Rejection, SidearmSpec},
     clock::FixedClock,

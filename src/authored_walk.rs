@@ -3,7 +3,7 @@ use crate::{
     authored_locomotion_adapter::PoseBindings,
     viewmodel_animation::{AnimationError, AnimationSet, Result, Transform, ViewmodelPose},
 };
-use macroquad::math::{Mat4, Quat, Vec3};
+use glam::{Mat4, Quat, Vec3};
 
 pub const WALK_FADE_IN_SECONDS: f64 = 0.16;
 pub const WALK_FADE_OUT_SECONDS: f64 = 0.22;

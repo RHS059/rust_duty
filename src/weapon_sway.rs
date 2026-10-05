@@ -10,7 +10,7 @@
 //! 4. Action: this module, from `Simulation::action_pose`, obstruction and mount.
 use crate::action::{ActionPose, ActionSlot};
 use crate::sim::{Obstruction, Player};
-use macroquad::math::{vec3, EulerRot, Mat4, Quat, Vec2, Vec3};
+use glam::{vec3, EulerRot, Mat4, Quat, Vec2, Vec3};
 
 /// Tuning for the look-sway spring. Angles in degrees, distances in meters.
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -228,7 +228,7 @@ mod tests {
     }
 
     use super::*;
-    use macroquad::math::vec2;
+    use glam::vec2;
 
     fn trace(fps: u32, rate: Vec2, seconds: f32) -> Vec<(f32, Vec2)> {
         let t = SwayTuning::default();

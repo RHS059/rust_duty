@@ -1,5 +1,5 @@
 //! Q/E lean and Ctrl+X hip cant: controls, gameplay clamping and permissions.
-use macroquad::math::{vec2, vec3, Vec3};
+use glam::{vec2, vec3, Vec3};
 use vector_range::{
     control::{ButtonInput, ControlMode, ControlSample, ControlState, CTRL_CHORD_WINDOW},
     settings::Settings,

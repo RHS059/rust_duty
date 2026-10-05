@@ -8,7 +8,7 @@ use crate::{
     asset::WeaponAsset,
     skinned_asset::{crc32, Bone, SkinnedAsset},
 };
-use macroquad::math::{Mat4, Quat, Vec3};
+use glam::{Mat4, Quat, Vec3};
 use std::{collections::HashSet, fmt, fs::File, io::Read, path::Path};
 
 pub const MAX_FILE: usize = 128 * 1024 * 1024;

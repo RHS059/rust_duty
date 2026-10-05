@@ -1,5 +1,5 @@
 //! Independent elapsed-presentation checks against the public simulation API.
-use macroquad::math::vec2;
+use glam::vec2;
 use vector_range::{
     clock::FixedClock,
     reference_motion::{visual_duration, ReloadVisualClock},

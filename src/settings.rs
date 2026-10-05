@@ -16,8 +16,8 @@ impl WalkTranslation {
             }
         }))
     }
-    pub fn gains(self) -> macroquad::math::Vec3 {
-        macroquad::math::Vec3::from_array(self.sanitized().0.map(|value| 1. + value))
+    pub fn gains(self) -> glam::Vec3 {
+        glam::Vec3::from_array(self.sanitized().0.map(|value| 1. + value))
     }
 }
 
@@ -110,13 +110,13 @@ impl Settings {
 
     /// Saved hip placement fades with the visible ADS pose, without changing
     /// the saved values. A fully aimed weapon keeps its authored sight alignment.
-    pub fn viewmodel_offset(&self, visual_ads: f32) -> macroquad::math::Vec3 {
+    pub fn viewmodel_offset(&self, visual_ads: f32) -> glam::Vec3 {
         let aim = if visual_ads.is_finite() {
             visual_ads.clamp(0., 1.)
         } else {
             0.
         };
-        macroquad::math::vec3(self.viewmodel_x, self.viewmodel_y, self.viewmodel_z) * (1. - aim)
+        glam::vec3(self.viewmodel_x, self.viewmodel_y, self.viewmodel_z) * (1. - aim)
     }
 
     /// Shift the saved viewmodel offset. X is right, Y is up. No forward/back.

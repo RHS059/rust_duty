@@ -5,7 +5,7 @@ use crate::{
     skinned_asset::SkinnedAsset,
     viewmodel_animation::{AnimationError, AnimationSet, Result, Transform, ViewmodelPose},
 };
-use macroquad::math::{Mat4, Vec3};
+use glam::{Mat4, Vec3};
 
 pub const RETURN_SECONDS: f64 = 0.20;
 

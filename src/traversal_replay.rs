@@ -3,7 +3,7 @@
 //! script at the same timestamps gives before/after comparisons once authored
 //! clips replace the placeholders.
 use crate::sim::Input;
-use macroquad::math::{vec2, vec3, Vec2, Vec3};
+use glam::{vec2, vec3, Vec2, Vec3};
 
 pub const SEQUENCES: [&str; 4] = [
     "gameplay-slide",

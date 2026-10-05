@@ -9,7 +9,7 @@ mod ammo_supply;
 mod ammo_supply_view;
 use ammo_supply::*;
 use ammo_supply_view::*;
-use macroquad::math::{vec2, vec3, Mat4, Vec2, Vec3};
+use glam::{vec2, vec3, Mat4, Vec2, Vec3};
 use sim::{Aabb, Block, Player, Ramp, Simulation, Target, FIXED_DT, MAGAZINE};
 
 fn fixture() -> (AmmoSupply, Simulation, SupplyView) {

@@ -1,6 +1,6 @@
 //! Original authored traversal contracts. Inputs and outcomes use public APIs;
 //! rendering never drives mantle time or collision checks.
-use macroquad::math::{vec2, vec3, Vec3};
+use glam::{vec2, vec3, Vec3};
 use vector_range::{
     clock::FixedClock,
     settings::Settings,

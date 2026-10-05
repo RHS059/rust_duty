@@ -2,6 +2,7 @@
 //! Input is consumed before the pause controller so a button cannot resume play.
 use macroquad::prelude::*;
 use rust_duty_launcher::game::{GameUpdater, UpdateAction, UpdatePhase, UpdateSnapshot};
+use vector_range::platform::runtime::{get_time, mouse_position, screen_height, screen_width};
 
 pub struct UpdatePanel {
     updater: Option<GameUpdater>,

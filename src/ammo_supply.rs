@@ -3,7 +3,7 @@
 //! The renderer is only a consumer: aiming, visibility, time, and ammunition
 //! changes live here and can be exercised without a window or graphics context.
 use crate::sim::{Aabb, Player, Simulation, MAGAZINE};
-use macroquad::math::{vec2, vec3, Mat4, Vec2, Vec3};
+use glam::{vec2, vec3, Mat4, Vec2, Vec3};
 
 pub const DEFAULT_HOLD_SECONDS: f32 = 1.5;
 pub const DEFAULT_SUPPLY_RANGE: f32 = 2.25;

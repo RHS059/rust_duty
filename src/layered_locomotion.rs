@@ -10,7 +10,7 @@ use crate::{
     sim::Simulation,
     viewmodel_animation::{AnimationError, AnimationSet, Result, Transform, ViewmodelPose},
 };
-use macroquad::math::{Mat4, Vec3};
+use glam::{Mat4, Vec3};
 
 pub const RUN_FADE_IN_SECONDS: f64 = 0.16;
 pub const RUN_FADE_OUT_SECONDS: f64 = 0.22;
@@ -655,7 +655,7 @@ impl LayeredLocomotion {
 /// Ordinary-input replay for four HIP/ADS directions and rapid run interruptions.
 /// The source assets are not selected or changed by this diagnostic.
 pub fn gameplay_layered_replay_input(time: f64) -> crate::sim::Input {
-    use macroquad::math::Vec2;
+    use glam::Vec2;
     let movement = if (0.25..2.25).contains(&time) || (8.25..10.).contains(&time) {
         Vec2::Y
     } else if (2.25..4.25).contains(&time) {

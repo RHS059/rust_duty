@@ -1,5 +1,5 @@
 //! Synthetic complete controller contracts; no reference video match is inferred.
-use macroquad::math::{Mat4, Quat, Vec3};
+use glam::{Mat4, Quat, Vec3};
 use vector_range::{
     animation_manifest::{AdsReference, DirectionalWalkClips},
     authored_ads::AdsSlot,
@@ -841,7 +841,7 @@ fn real_simulation_accepts_one_jump_and_ground_contact_starts_landing() {
 
 #[test]
 fn real_space_to_stand_and_mantle_never_start_jump_layer() {
-    use macroquad::math::{vec2, vec3};
+    use glam::{vec2, vec3};
     use vector_range::{
         settings::Settings,
         sim::{Aabb, Block, Input, FIXED_DT},

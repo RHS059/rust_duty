@@ -1,5 +1,5 @@
 //! Native authored input witnesses. Numerical reproduction is not visual approval.
-use macroquad::math::Mat4;
+use glam::Mat4;
 use serde_json::Value;
 use vector_range::{
     authored_walk::{receiver_v9_offset, ForwardAdsSamples, WalkLayerInput, WalkPoseLayer},
@@ -259,7 +259,7 @@ fn actual_v9_direction_aim_run_interruptions_remain_finite_and_deterministic() {
         let start = sim.time;
         let mut input = gameplay_layered_replay_input(start);
         if (2.75..3.25).contains(&start) {
-            input.movement = macroquad::math::Vec2::new(1., 1.).normalize();
+            input.movement = glam::Vec2::new(1., 1.).normalize();
         }
         sim.update(input, &settings, FIXED_DT);
         let reload = (7.8..8.0).contains(&start);

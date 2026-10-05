@@ -157,17 +157,15 @@ fn canonical_ads_pack_plays_committed_replay_and_preserves_every_gameplay_outcom
                     let delta = layered.actor_globals[1].matrix()
                         * pose.actor_globals[1].matrix().inverse();
                     for z in [-0.2, -0.6] {
-                        let ray = delta.transform_point3(macroquad::math::vec3(0., 0., z));
+                        let ray = delta.transform_point3(glam::vec3(0., 0., z));
                         assert!(
                             ray.x.abs() < 2e-6 && ray.y.abs() < 2e-6,
                             "full ADS walking must retain the camera optical ray"
                         );
                     }
-                    let before = animation
-                        .bone_globals(&pose, macroquad::math::Mat4::IDENTITY)
-                        .unwrap();
+                    let before = animation.bone_globals(&pose, glam::Mat4::IDENTITY).unwrap();
                     let after = animation
-                        .bone_globals(&layered, macroquad::math::Mat4::IDENTITY)
+                        .bone_globals(&layered, glam::Mat4::IDENTITY)
                         .unwrap();
                     for (a, b) in before.iter().zip(&after) {
                         assert!((delta * *a).abs_diff_eq(*b, 2e-5));

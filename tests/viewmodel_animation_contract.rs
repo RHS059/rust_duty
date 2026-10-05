@@ -1,5 +1,5 @@
 //! Original synthetic data only. No soldier meshes, rigs, actions or pose data.
-use macroquad::math::{Mat4, Quat, Vec3};
+use glam::{Mat4, Quat, Vec3};
 use vector_range::{
     skinned_asset::{crc32, Bone},
     viewmodel_animation::{

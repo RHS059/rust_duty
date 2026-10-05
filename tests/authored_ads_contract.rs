@@ -1,5 +1,5 @@
 //! Simulation commits drive the same ADS controller used by the native renderer.
-use macroquad::math::{vec3, Vec2};
+use glam::{vec3, Vec2};
 use vector_range::{
     animation_manifest::AdsReference,
     authored_ads::{AdsSlot, AuthoredAds},

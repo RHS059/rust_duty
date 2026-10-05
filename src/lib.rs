@@ -63,3 +63,6 @@ pub mod layered_locomotion;
 pub mod muzzle_fx;
 
 pub mod authored_jump;
+
+pub mod input_frame;
+pub mod platform;

@@ -131,7 +131,7 @@ fn repeated_r_and_sprint_cancel_preserve_authority() {
         &mut sim,
         &mut view,
         Input {
-            movement: macroquad::math::Vec2::Y,
+            movement: glam::Vec2::Y,
             sprint: true,
             ..Input::default()
         },

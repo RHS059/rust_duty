@@ -1,5 +1,6 @@
 //! Pause-only controls. Pointer gestures are consumed before resume input.
 use macroquad::prelude::*;
+use vector_range::platform::runtime::{screen_height, screen_width};
 use vector_range::{
     control::ControlMode,
     settings::{Settings, WalkTranslation},

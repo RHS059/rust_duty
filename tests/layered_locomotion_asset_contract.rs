@@ -1,5 +1,5 @@
 //! Actual production-pack layer witnesses, enabled by complete-game CI.
-use macroquad::math::{Mat4, Vec3};
+use glam::{Mat4, Vec3};
 use vector_range::{
     animation_manifest::AnimationManifest,
     authored_ads::gameplay_ads_replay_input,

@@ -5,7 +5,7 @@
 //! blend it toward its grip target. An influence of zero leaves that authored
 //! pose independent of subsequent weapon motion, as required during a reload.
 
-use macroquad::math::{Mat4, Quat, Vec3};
+use glam::{Mat4, Quat, Vec3};
 
 use crate::weapon_animation::{HAND_MODE_ORIENTATIONS, LEFT_GRIP, RIGHT_GRIP};
 

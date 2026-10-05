@@ -107,9 +107,9 @@ fn real_forward_movement_plays_bound_walk_then_returns_to_ready() {
         let start = simulation.time;
         let input = Input {
             movement: if (0.25..2.25).contains(&start) {
-                macroquad::math::Vec2::Y
+                glam::Vec2::Y
             } else {
-                macroquad::math::Vec2::ZERO
+                glam::Vec2::ZERO
             },
             ..Input::default()
         };

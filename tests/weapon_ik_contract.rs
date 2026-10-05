@@ -1,5 +1,5 @@
 //! Behavior contracts for the weapon hierarchy and independent constraint layer.
-use macroquad::math::{Mat4, Quat, Vec3};
+use glam::{Mat4, Quat, Vec3};
 use vector_range::weapon_animation::{HAND_MODE_ORIENTATIONS, LEFT_GRIP, RIGHT_GRIP};
 use vector_range::weapon_ik::{
     blend_hand_constraint, HandPose, WeaponIkRig, LEFT_HAND_WEAPON_IK, RIGHT_HAND_WEAPON_IK,

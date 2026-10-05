@@ -1,6 +1,6 @@
 //! Actual-pack full-pose ownership audit. This is CPU evidence, not native
 //! rendering, a reload/ADS implementation, or an integrated visual acceptance.
-use macroquad::math::{Mat4, Vec2};
+use glam::{Mat4, Vec2};
 use std::error::Error;
 use vector_range::{
     authored_locomotion_adapter::{AuthoredLocomotionAdapter, PresentationAction},

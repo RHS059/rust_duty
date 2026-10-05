@@ -11,7 +11,7 @@
 //!   distance travelled, not time, so ground speed and stride always agree.
 use crate::action::{smoothstep, ActionSlot};
 use crate::sim::{Action, DivePhase, Simulation};
-use macroquad::math::{vec3, Vec3};
+use glam::{vec3, Vec3};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum BodyPose {
@@ -246,7 +246,7 @@ mod tests {
     use super::*;
     use crate::settings::Settings;
     use crate::sim::{Aabb, Block, Input, Ramp, FIXED_DT};
-    use macroquad::math::vec2;
+    use glam::vec2;
 
     fn flat() -> Simulation {
         let mut s = Simulation::new();

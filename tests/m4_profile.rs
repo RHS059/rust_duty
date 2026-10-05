@@ -1,6 +1,6 @@
 //! Public-API tests for a provisional M4A1-inspired game-behavior profile.
 //! These validate this implementation, not equivalence to a retail game.
-use macroquad::math::vec2;
+use glam::vec2;
 use std::{
     fs,
     path::PathBuf,

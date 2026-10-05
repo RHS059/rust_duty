@@ -1,4 +1,4 @@
-//! Native focus and a resettable view of Macroquad's input event stream.
+//! Focus-aware input for the active native runtime or legacy Macroquad window.
 //!
 //! Macroquad 0.4.14's public input state retains held keys after focus loss,
 //! and `clear_input_queue` only clears text. Its input subscriber does not
@@ -7,6 +7,8 @@
 
 use macroquad::miniquad::{EventHandler, KeyCode, KeyMods, MouseButton};
 use std::collections::HashSet;
+
+use crate::platform::input::{KeyCode as Key, MouseButton as Button};
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct FocusState {
@@ -19,9 +21,25 @@ pub struct FocusState {
     pub native_supported: bool,
 }
 
+impl FocusState {
+    /// Keep the native level distinct from a one-frame interruption. Reporting
+    /// a return edge as still unfocused delays SessionController's own refocus
+    /// bookkeeping and would swallow a deliberate press on the following frame.
+    pub fn apply_to_session_input(
+        self,
+        mut input: crate::session::SessionInput,
+        capture: bool,
+    ) -> crate::session::SessionInput {
+        input.window_unfocused = !capture && self.unfocused;
+        input.blocked |= !capture && self.changed;
+        input
+    }
+}
+
 pub struct FocusInput {
-    subscriber: usize,
+    subscriber: Option<usize>,
     state: InputState,
+    focus: FocusState,
 }
 
 impl Default for FocusInput {
@@ -31,44 +49,273 @@ impl Default for FocusInput {
 }
 
 impl FocusInput {
-    /// Call after Macroquad has initialized its window, on its render thread.
+    /// Call after the selected backend has initialized its window, on its render thread.
     pub fn new() -> Self {
+        #[cfg(feature = "wgpu-runtime")]
+        if crate::platform::window::is_active() {
+            return Self {
+                subscriber: None,
+                state: InputState::default(),
+                focus: crate::platform::window::snapshot_input().focus.into(),
+            };
+        }
         Self {
-            subscriber: macroquad::input::utils::register_input_subscriber(),
+            subscriber: Some(macroquad::input::utils::register_input_subscriber()),
             state: InputState::default(),
+            focus: FocusState::default(),
         }
     }
 
     /// Call once at the start of every render frame, even in startup and menus.
     /// Always drain the subscriber so events cannot queue across a pause.
     pub fn sample(&mut self) -> FocusState {
+        #[cfg(feature = "wgpu-runtime")]
+        if crate::platform::window::is_active() {
+            self.focus = crate::platform::window::snapshot_input().focus.into();
+            return self.focus;
+        }
         let native = native_window_focused();
         let mut focus = self.state.begin_frame(native.unwrap_or(true));
         focus.native_supported = native.is_some();
-        macroquad::input::utils::repeat_all_miniquad_input(&mut self.state, self.subscriber);
+        let subscriber = *self
+            .subscriber
+            .get_or_insert_with(macroquad::input::utils::register_input_subscriber);
+        macroquad::input::utils::repeat_all_miniquad_input(&mut self.state, subscriber);
+        self.focus = focus;
         focus
     }
 
     /// Pause/reset boundaries may call this as well as clearing gameplay
     /// latches. Held keys must be released and deliberately pressed again.
     pub fn clear(&mut self) {
+        #[cfg(feature = "wgpu-runtime")]
+        if crate::platform::window::is_active() {
+            crate::platform::window::clear_input();
+            return;
+        }
         self.state.clear();
     }
 
-    pub fn is_key_down(&self, key: KeyCode) -> bool {
-        self.state.keys_down.contains(&key)
+    /// Snapshot the frame for the backend-neutral intent/control bridge.
+    pub fn frame(&self) -> crate::platform::input::InputFrame {
+        #[cfg(feature = "wgpu-runtime")]
+        if crate::platform::window::is_active() {
+            return crate::platform::window::snapshot_input();
+        }
+        use crate::platform::input::{InputFrame, KeyCode as Key, MouseButton as Button};
+        let key = |key| match key {
+            KeyCode::A => Some(Key::A),
+            KeyCode::C => Some(Key::C),
+            KeyCode::D => Some(Key::D),
+            KeyCode::E => Some(Key::E),
+            KeyCode::F => Some(Key::F),
+            KeyCode::M => Some(Key::M),
+            KeyCode::Q => Some(Key::Q),
+            KeyCode::R => Some(Key::R),
+            KeyCode::S => Some(Key::S),
+            KeyCode::V => Some(Key::V),
+            KeyCode::W => Some(Key::W),
+            KeyCode::X => Some(Key::X),
+            KeyCode::Z => Some(Key::Z),
+            KeyCode::Key2 => Some(Key::Key2),
+            KeyCode::Space => Some(Key::Space),
+            KeyCode::Enter => Some(Key::Enter),
+            KeyCode::Escape => Some(Key::Escape),
+            KeyCode::Tab => Some(Key::Tab),
+            KeyCode::LeftShift => Some(Key::LeftShift),
+            KeyCode::RightShift => Some(Key::RightShift),
+            KeyCode::LeftControl => Some(Key::LeftControl),
+            KeyCode::RightControl => Some(Key::RightControl),
+            KeyCode::LeftAlt => Some(Key::LeftAlt),
+            KeyCode::RightAlt => Some(Key::RightAlt),
+            KeyCode::LeftSuper => Some(Key::LeftSuper),
+            KeyCode::RightSuper => Some(Key::RightSuper),
+            KeyCode::Up => Some(Key::Up),
+            KeyCode::Down => Some(Key::Down),
+            KeyCode::Left => Some(Key::Left),
+            KeyCode::Right => Some(Key::Right),
+            KeyCode::Home => Some(Key::Home),
+            KeyCode::End => Some(Key::End),
+            KeyCode::PageUp => Some(Key::PageUp),
+            KeyCode::PageDown => Some(Key::PageDown),
+            KeyCode::LeftBracket => Some(Key::LeftBracket),
+            KeyCode::RightBracket => Some(Key::RightBracket),
+            KeyCode::Minus => Some(Key::Minus),
+            KeyCode::Equal => Some(Key::Equal),
+            KeyCode::F1 => Some(Key::F1),
+            KeyCode::F2 => Some(Key::F2),
+            KeyCode::F5 => Some(Key::F5),
+            KeyCode::F6 => Some(Key::F6),
+            KeyCode::F8 => Some(Key::F8),
+            KeyCode::F9 => Some(Key::F9),
+            KeyCode::F10 => Some(Key::F10),
+            KeyCode::F11 => Some(Key::F11),
+            _ => None,
+        };
+        let button = |button| match button {
+            MouseButton::Left => Some(Button::Left),
+            MouseButton::Right => Some(Button::Right),
+            MouseButton::Middle => Some(Button::Middle),
+            _ => None,
+        };
+        let mouse = macroquad::input::mouse_delta_position();
+        let position = macroquad::input::mouse_position();
+        InputFrame {
+            keys_down: self
+                .state
+                .keys_down
+                .iter()
+                .copied()
+                .filter_map(key)
+                .collect(),
+            keys_pressed: self
+                .state
+                .keys_pressed
+                .iter()
+                .copied()
+                .filter_map(key)
+                .collect(),
+            keys_released: self
+                .state
+                .keys_released
+                .iter()
+                .copied()
+                .filter_map(key)
+                .collect(),
+            mouse_released: self
+                .state
+                .mouse_released
+                .iter()
+                .copied()
+                .filter_map(button)
+                .collect(),
+            mouse_down: self
+                .state
+                .mouse_down
+                .iter()
+                .copied()
+                .filter_map(button)
+                .collect(),
+            mouse_pressed: self
+                .state
+                .mouse_pressed
+                .iter()
+                .copied()
+                .filter_map(button)
+                .collect(),
+            mouse_delta: [
+                -mouse.x * macroquad::window::screen_width() * 0.5,
+                -mouse.y * macroquad::window::screen_height() * 0.5,
+            ],
+            mouse_position: [position.0, position.1],
+            focus: crate::platform::input::FocusState {
+                unfocused: self.focus.unfocused,
+                changed: self.focus.changed,
+                native_supported: self.focus.native_supported,
+            },
+        }
     }
 
-    pub fn is_key_pressed(&self, key: KeyCode) -> bool {
-        self.state.keys_pressed.contains(&key)
+    pub fn is_key_down(&self, key: Key) -> bool {
+        #[cfg(feature = "wgpu-runtime")]
+        if crate::platform::window::is_active() {
+            return crate::platform::window::snapshot_input().is_key_down(key);
+        }
+        self.state.keys_down.contains(&legacy_key(key))
     }
 
-    pub fn is_mouse_button_down(&self, button: MouseButton) -> bool {
-        self.state.mouse_down.contains(&button)
+    pub fn is_key_pressed(&self, key: Key) -> bool {
+        #[cfg(feature = "wgpu-runtime")]
+        if crate::platform::window::is_active() {
+            return crate::platform::window::snapshot_input().is_key_pressed(key);
+        }
+        self.state.keys_pressed.contains(&legacy_key(key))
     }
 
-    pub fn is_mouse_button_pressed(&self, button: MouseButton) -> bool {
-        self.state.mouse_pressed.contains(&button)
+    pub fn is_mouse_button_down(&self, button: Button) -> bool {
+        #[cfg(feature = "wgpu-runtime")]
+        if crate::platform::window::is_active() {
+            return crate::platform::window::snapshot_input().is_mouse_button_down(button);
+        }
+        legacy_button(button).is_some_and(|button| self.state.mouse_down.contains(&button))
+    }
+
+    pub fn is_mouse_button_pressed(&self, button: Button) -> bool {
+        #[cfg(feature = "wgpu-runtime")]
+        if crate::platform::window::is_active() {
+            return crate::platform::window::snapshot_input().is_mouse_button_pressed(button);
+        }
+        legacy_button(button).is_some_and(|button| self.state.mouse_pressed.contains(&button))
+    }
+}
+
+impl From<crate::platform::input::FocusState> for FocusState {
+    fn from(focus: crate::platform::input::FocusState) -> Self {
+        Self {
+            unfocused: focus.unfocused,
+            changed: focus.changed,
+            native_supported: focus.native_supported,
+        }
+    }
+}
+
+fn legacy_key(key: Key) -> KeyCode {
+    match key {
+        Key::A => KeyCode::A,
+        Key::C => KeyCode::C,
+        Key::D => KeyCode::D,
+        Key::E => KeyCode::E,
+        Key::F => KeyCode::F,
+        Key::M => KeyCode::M,
+        Key::Q => KeyCode::Q,
+        Key::R => KeyCode::R,
+        Key::S => KeyCode::S,
+        Key::V => KeyCode::V,
+        Key::W => KeyCode::W,
+        Key::X => KeyCode::X,
+        Key::Z => KeyCode::Z,
+        Key::Key2 => KeyCode::Key2,
+        Key::Space => KeyCode::Space,
+        Key::Enter => KeyCode::Enter,
+        Key::Escape => KeyCode::Escape,
+        Key::Tab => KeyCode::Tab,
+        Key::LeftShift => KeyCode::LeftShift,
+        Key::RightShift => KeyCode::RightShift,
+        Key::LeftControl => KeyCode::LeftControl,
+        Key::RightControl => KeyCode::RightControl,
+        Key::LeftAlt => KeyCode::LeftAlt,
+        Key::RightAlt => KeyCode::RightAlt,
+        Key::LeftSuper => KeyCode::LeftSuper,
+        Key::RightSuper => KeyCode::RightSuper,
+        Key::Up => KeyCode::Up,
+        Key::Down => KeyCode::Down,
+        Key::Left => KeyCode::Left,
+        Key::Right => KeyCode::Right,
+        Key::Home => KeyCode::Home,
+        Key::End => KeyCode::End,
+        Key::PageUp => KeyCode::PageUp,
+        Key::PageDown => KeyCode::PageDown,
+        Key::LeftBracket => KeyCode::LeftBracket,
+        Key::RightBracket => KeyCode::RightBracket,
+        Key::Minus => KeyCode::Minus,
+        Key::Equal => KeyCode::Equal,
+        Key::F1 => KeyCode::F1,
+        Key::F2 => KeyCode::F2,
+        Key::F5 => KeyCode::F5,
+        Key::F6 => KeyCode::F6,
+        Key::F8 => KeyCode::F8,
+        Key::F9 => KeyCode::F9,
+        Key::F10 => KeyCode::F10,
+        Key::F11 => KeyCode::F11,
+    }
+}
+
+fn legacy_button(button: Button) -> Option<MouseButton> {
+    match button {
+        Button::Left => Some(MouseButton::Left),
+        Button::Right => Some(MouseButton::Right),
+        Button::Middle => Some(MouseButton::Middle),
+        Button::Other(_) => None,
     }
 }
 
@@ -77,8 +324,10 @@ struct InputState {
     accept_events: bool,
     keys_down: HashSet<KeyCode>,
     keys_pressed: HashSet<KeyCode>,
+    keys_released: HashSet<KeyCode>,
     mouse_down: HashSet<MouseButton>,
     mouse_pressed: HashSet<MouseButton>,
+    mouse_released: HashSet<MouseButton>,
 }
 
 impl Default for InputState {
@@ -88,8 +337,10 @@ impl Default for InputState {
             accept_events: true,
             keys_down: HashSet::new(),
             keys_pressed: HashSet::new(),
+            keys_released: HashSet::new(),
             mouse_down: HashSet::new(),
             mouse_pressed: HashSet::new(),
+            mouse_released: HashSet::new(),
         }
     }
 }
@@ -98,15 +349,19 @@ impl InputState {
     fn clear(&mut self) {
         self.keys_down.clear();
         self.keys_pressed.clear();
+        self.keys_released.clear();
         self.mouse_down.clear();
         self.mouse_pressed.clear();
+        self.mouse_released.clear();
     }
 
     fn begin_frame(&mut self, focused: bool) -> FocusState {
         let changed = self.focused != focused;
         self.focused = focused;
         self.keys_pressed.clear();
+        self.keys_released.clear();
         self.mouse_pressed.clear();
+        self.mouse_released.clear();
         self.accept_events = focused && !changed;
         if !self.accept_events {
             self.clear();
@@ -132,7 +387,9 @@ impl EventHandler for InputState {
     }
 
     fn key_up_event(&mut self, key: KeyCode, _modifiers: KeyMods) {
-        self.keys_down.remove(&key);
+        if self.keys_down.remove(&key) && self.accept_events {
+            self.keys_released.insert(key);
+        }
     }
 
     fn mouse_button_down_event(&mut self, button: MouseButton, _x: f32, _y: f32) {
@@ -142,7 +399,9 @@ impl EventHandler for InputState {
     }
 
     fn mouse_button_up_event(&mut self, button: MouseButton, _x: f32, _y: f32) {
-        self.mouse_down.remove(&button);
+        if self.mouse_down.remove(&button) && self.accept_events {
+            self.mouse_released.insert(button);
+        }
     }
 }
 
@@ -181,6 +440,152 @@ fn native_window_focused() -> Option<bool> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn loss_and_return_between_frames_pauses_then_next_frame_can_resume() {
+        use crate::platform::input::InputAccumulator;
+        use crate::session::{SessionController, SessionInput};
+        let mut input = InputAccumulator::default();
+        let mut session = SessionController::default();
+        session.set_active(true);
+        input.focus_event(false);
+        input.focus_event(true);
+        let focus = FocusState::from(input.take_frame().focus);
+        assert!(!focus.unfocused && focus.changed);
+        let transition = session.step(focus.apply_to_session_input(SessionInput::default(), false));
+        assert!(transition.paused && !transition.active);
+        input.key_event(crate::platform::input::KeyCode::Enter, true, false);
+        let next_frame = input.take_frame();
+        let next = FocusState::from(next_frame.focus);
+        let resumed = session.step(next.apply_to_session_input(
+            SessionInput {
+                enter_pressed: next_frame.is_key_pressed(Key::Enter),
+                enter_down: next_frame.is_key_down(Key::Enter),
+                ..SessionInput::default()
+            },
+            false,
+        ));
+        assert!(resumed.resumed && resumed.active);
+    }
+
+    #[test]
+    fn separate_refocus_frame_rejects_return_click_but_next_frame_resumes() {
+        use crate::platform::input::InputAccumulator;
+        use crate::session::{SessionController, SessionInput};
+        for resume_with_enter in [false, true] {
+            let mut input = InputAccumulator::default();
+            let mut session = SessionController::default();
+            session.set_active(true);
+            input.focus_event(false);
+            let lost = FocusState::from(input.take_frame().focus);
+            assert!(
+                session
+                    .step(lost.apply_to_session_input(SessionInput::default(), false))
+                    .paused
+            );
+            input.focus_event(true);
+            input.mouse_button_event(crate::platform::input::MouseButton::Left, true);
+            let returned = input.take_frame();
+            assert!(!returned.is_mouse_button_pressed(crate::platform::input::MouseButton::Left));
+            let focus = FocusState::from(returned.focus);
+            assert!(
+                !session
+                    .step(focus.apply_to_session_input(SessionInput::default(), false))
+                    .active
+            );
+            if resume_with_enter {
+                input.key_event(Key::Enter, true, false);
+            } else {
+                input.mouse_button_event(Button::Left, false);
+                input.mouse_button_event(Button::Left, true);
+            }
+            let next_frame = input.take_frame();
+            let next = FocusState::from(next_frame.focus);
+            let resumed = session.step(next.apply_to_session_input(
+                SessionInput {
+                    enter_pressed: next_frame.is_key_pressed(Key::Enter),
+                    enter_down: next_frame.is_key_down(Key::Enter),
+                    click_pressed: next_frame.is_mouse_button_pressed(Button::Left),
+                    click_down: next_frame.is_mouse_button_down(Button::Left),
+                    ..SessionInput::default()
+                },
+                false,
+            ));
+            assert!(resumed.resumed && resumed.active);
+        }
+    }
+
+    #[test]
+    fn deterministic_capture_ignores_native_focus_without_ignoring_asset_blocks() {
+        use crate::session::SessionInput;
+        let focus = FocusState {
+            unfocused: true,
+            changed: true,
+            native_supported: true,
+        };
+        let input = focus.apply_to_session_input(SessionInput::default(), true);
+        assert!(!input.window_unfocused && !input.blocked);
+        let blocked = focus.apply_to_session_input(
+            SessionInput {
+                blocked: true,
+                ..SessionInput::default()
+            },
+            true,
+        );
+        assert!(blocked.blocked);
+    }
+
+    #[test]
+    fn neutral_queries_preserve_legacy_modifier_sides_and_mouse_buttons() {
+        let mut input = FocusInput {
+            subscriber: None,
+            state: InputState::default(),
+            focus: FocusState::default(),
+        };
+        input
+            .state
+            .key_down_event(KeyCode::LeftControl, KeyMods::default(), false);
+        input
+            .state
+            .key_down_event(KeyCode::F11, KeyMods::default(), false);
+        input
+            .state
+            .mouse_button_down_event(MouseButton::Right, 0., 0.);
+        assert!(input.is_key_down(Key::LeftControl));
+        assert!(input.is_key_pressed(Key::LeftControl));
+        assert!(!input.is_key_down(Key::RightControl));
+        assert!(input.is_key_pressed(Key::F11));
+        assert!(input.is_mouse_button_down(Button::Right));
+        assert!(input.is_mouse_button_pressed(Button::Right));
+        assert!(!input.is_mouse_button_down(Button::Left));
+        assert!(!input.is_mouse_button_pressed(Button::Other(4)));
+        input.clear();
+        assert!(!input.is_key_down(Key::LeftControl));
+        assert!(!input.is_mouse_button_pressed(Button::Right));
+    }
+
+    #[test]
+    fn native_focus_conversion_preserves_every_flag() {
+        for unfocused in [false, true] {
+            for changed in [false, true] {
+                for native_supported in [false, true] {
+                    let focus = FocusState::from(crate::platform::input::FocusState {
+                        unfocused,
+                        changed,
+                        native_supported,
+                    });
+                    assert_eq!(
+                        focus,
+                        FocusState {
+                            unfocused,
+                            changed,
+                            native_supported
+                        }
+                    );
+                }
+            }
+        }
+    }
 
     #[test]
     fn loss_clears_movement_modifiers_and_fire_without_release_events() {
@@ -235,6 +640,8 @@ mod tests {
         input.mouse_button_up_event(MouseButton::Left, 0., 0.);
         assert!(input.keys_pressed.contains(&KeyCode::Enter));
         assert!(input.mouse_pressed.contains(&MouseButton::Left));
+        assert!(input.keys_released.contains(&KeyCode::Enter));
+        assert!(input.mouse_released.contains(&MouseButton::Left));
         assert!(input.keys_down.is_empty() && input.mouse_down.is_empty());
         input.begin_frame(true);
         assert!(input.keys_pressed.is_empty() && input.mouse_pressed.is_empty());

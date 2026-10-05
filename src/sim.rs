@@ -1,6 +1,6 @@
 use crate::action::{ActionEvent, ActionEventKind, ActionSlot, ActionTimings, Loadout};
 use crate::settings::Settings;
-use macroquad::math::{vec2, vec3, Vec2, Vec3};
+use glam::{vec2, vec3, Vec2, Vec3};
 
 mod actions;
 pub use actions::{

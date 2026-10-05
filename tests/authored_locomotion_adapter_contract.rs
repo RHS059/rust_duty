@@ -1,5 +1,5 @@
 //! Full-pose ownership contracts; synthetic assets contain no private geometry.
-use macroquad::math::{Mat4, Quat, Vec3};
+use glam::{Mat4, Quat, Vec3};
 use vector_range::{
     authored_locomotion_adapter::{
         AuthoredLocomotionAdapter, LocomotionInput, PoseBindings, PresentationAction,
@@ -325,7 +325,7 @@ fn bindings_reject_same_dimensions_with_different_names_rest_and_companions() {
 }
 #[test]
 fn committed_simulation_step_uses_actual_action_start_not_end_of_tick() {
-    use macroquad::math::Vec2;
+    use glam::Vec2;
     use vector_range::{
         settings::Settings,
         sim::{Input, Simulation, FIXED_DT},

@@ -412,7 +412,7 @@ fn same_pose(a: &ViewmodelPose, b: &ViewmodelPose) -> bool {
 /// Deterministic input-only native capture replay, shared by runtime and tests.
 /// The simulation decides aim, firing, reload acceptance and actual movement.
 pub fn gameplay_ads_replay_input(time: f64) -> crate::sim::Input {
-    use macroquad::math::Vec2;
+    use glam::Vec2;
     crate::sim::Input {
         ads: (0.25..0.75).contains(&time)
             || (1.25..(1. + 1. / 3.)).contains(&time)

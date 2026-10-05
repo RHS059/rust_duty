@@ -14,7 +14,7 @@ pub enum ReloadSlot {
 /// Ordinary-input witness: complete reload into moving walk/run/ADS, then
 /// cancel/restart/cancel while the outgoing and incoming blends are active.
 pub fn gameplay_return_replay_input(time: f64) -> crate::sim::Input {
-    use macroquad::math::Vec2;
+    use glam::Vec2;
     crate::sim::Input {
         movement: if time < 5.8 { Vec2::Y } else { Vec2::ZERO },
         reload: (0.25..0.26).contains(&time)

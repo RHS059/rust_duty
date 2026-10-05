@@ -5,7 +5,7 @@ mod authored_locomotion_path;
 use authored_locomotion_path::{
     AuthoredLocomotionPath, AuthoredLocomotionPathConfig, AuthoredLocomotionPathState as State,
 };
-use macroquad::math::{Mat4, Quat, Vec3};
+use glam::{Mat4, Quat, Vec3};
 use vector_range::{
     skinned_asset::crc32,
     viewmodel_animation::{AnimationSet, Transform, ViewmodelPose},

@@ -1,5 +1,5 @@
 //! Actual bound-pack endpoint, contact, and continuous-composition checks.
-use macroquad::math::Mat4;
+use glam::Mat4;
 use vector_range::{
     animation_manifest::AnimationManifest, authored_walk::WalkPoseLayer,
     viewmodel_animation::AnimationSet,

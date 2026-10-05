@@ -5,7 +5,7 @@
 //! Action timing comes from clip durations and named normalized events, never
 //! frame counts. Until a real clip is bound in `assets/animations.cfg`, every
 //! slot uses a labeled placeholder timing (see `ClipTiming::placeholder`).
-use macroquad::math::Vec3;
+use glam::Vec3;
 
 /// Every new animation slot. Names are the manifest keys: `action.<name>`.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]

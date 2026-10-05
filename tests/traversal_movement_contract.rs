@@ -1,6 +1,6 @@
 //! Tactical sprint, slide and dolphin-dive gameplay contracts. Everything is
 //! driven through `Simulation::update`; presentation never moves the player.
-use macroquad::math::{vec2, vec3, Vec3};
+use glam::{vec2, vec3, Vec3};
 use vector_range::{
     action::{ActionEventKind, ActionPhase, ActionSlot, Rejection},
     clock::FixedClock,
