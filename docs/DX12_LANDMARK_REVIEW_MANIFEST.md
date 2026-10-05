@@ -15,6 +15,22 @@ it supports is described in [DX12_CAPTURE_REVIEW.md](DX12_CAPTURE_REVIEW.md).
 If the harness changes capture naming, packet fields or frame selection after
 that revision, re-check this file against it before filling anything in.
 
+Two packet schema revisions exist. Record which one the artifact uses in
+section 1 and fill only the rows for that revision; never back-fill fields a
+packet does not contain.
+
+- **72663 packet** (harness at `72663e2`, including the current native
+  `72663` authored run): raw copies have no sidecars, and records carry
+  `backend`, `pose`, `source_frame`, `raw`, `raw_sha256`, `guide`, `feature`,
+  `calibrated_center`, `tolerance_px`, `measured_center`, `projected_center`.
+- **Hal272 packet** (the raw-sidecar binding integrated in Aella's local
+  checkpoint `34482609a51423cdd99ade2f7e3ba3329053f508`; not yet on a pushed
+  revision): each `review/<label>-<pose>-raw.png` also has an exact byte copy of
+  its source frame's primary `.png.json` beside it, and each record adds
+  `source_role`, `actual_backend`, `source_sidecar`, `raw_sidecar` and
+  `raw_sidecar_sha256`. Re-check these names against the pushed revision that
+  first contains them.
+
 Gates this manifest **cannot** close: human M2 capture approval and M4 real-GPU
 hardware playtest approval (see [DX12_PLAYTEST_CHECKLIST.md](DX12_PLAYTEST_CHECKLIST.md)).
 A `within-tolerance` landmark report closes only the measured-pixel comparison
@@ -40,6 +56,7 @@ Fill from the actual run. Copy hashes from files; do not retype them.
 | Shader compiler line | same logs | `____` (must equal `renderer dx12_shader_compiler=Fxc`) |
 | Companion verification | `summary.json` check `validated-same-run-companions` `result` | passed / failed: `____` |
 | Legacy ADS artifact | `native-gameplay-ads-evidence-attempt-N`, same run and attempt | ID `____`, ZIP SHA-256 `____` |
+| Packet schema revision | `72663` or `Hal272` (see above) | `____` |
 | Landmark tool revision | commit containing `tools/review_dx12_landmarks.py` used | `____` |
 
 The legacy ADS sequence is **not** inside the DX12 artifact. Download the
@@ -89,6 +106,7 @@ same-named legacy frames:
 | --- | --- |
 | `landmark-review.json` | packet; pass it as `--packet` |
 | `dx12-hip-raw.png`, `legacy-hip-raw.png`, `dx12-ads-raw.png`, `legacy-ads-raw.png` | byte-identical raw copies; the only measurable images |
+| `<label>-<pose>-raw.png.json` (Hal272 packet only) | byte-identical copy of the source frame's primary `.png.json`; absent in a 72663 packet |
 | `dx12-hip-guide.png`, `legacy-hip-guide.png`, `dx12-ads-guide.png`, `legacy-ads-guide.png` | guide overlays; **never** measured |
 | `historical-source-sight-alignment.json` | historical projection context only |
 
@@ -97,6 +115,21 @@ Packet fields to transcribe per record (from `landmark-review.json`
 `feature`, `calibrated_center`, `tolerance_px`. In the packet,
 `measured_center` and `projected_center` must still be `null`, and top-level
 `status` and `automated_landmark_gate` must read `open`.
+
+Hal272 packet only, per record:
+
+| Field | Must be | hip DX12 | hip legacy | ads DX12 | ads legacy |
+| --- | --- | --- | --- | --- | --- |
+| `source_role` | `dx12-under-review` for dx12, `legacy-comparison-only` for legacy | `____` | `____` | `____` | `____` |
+| `actual_backend` | `Dx12` for dx12, `OpenGl` for legacy | `____` | `____` | `____` | `____` |
+| `source_sidecar` | `<source_frame>.json` | `____` | `____` | `____` | `____` |
+| `raw_sidecar` | `<raw>.json` | `____` | `____` | `____` | `____` |
+| `raw_sidecar_sha256` | SHA-256 of both `raw_sidecar` and the capture's `<source_frame>.json` | `____` | `____` | `____` | `____` |
+
+Guide overlays never have a sidecar; a `*-guide.png.json` makes the slot
+Blocked. A legacy record stays comparison-only: no sidecar, label or role
+substitution turns it into DX12 evidence. In a 72663 packet these five fields
+are absent; record them as `absent`, not blank and not inferred.
 
 ### 3.2 Frame identity (fill from the captures, not from the packet)
 
@@ -121,9 +154,13 @@ For each pose, open the sidecars beside `captures/ads-gameplay/<source_frame>`
 | `elapsed_seconds` / `sampling_hz` | `.png.time.json` | `____` | `____` | `____` | `____` |
 
 The legacy `backend` is the OpenGL value the legacy lane wrote; record it as
-found. `review_dx12_landmarks.py --frames` re-checks `route` and
-`simulation_ads` but **not** `run_weight` or `speed`, so the reviewer must
-confirm those two by hand for the ads frame. A mismatch makes the slot Blocked.
+found. With the landmark tool at `762a979` or later,
+`review_dx12_landmarks.py --frames` requires the harness's stationary fully held
+ADS selection: `route == "ads.hold"` and finite numeric `simulation_ads == 1`,
+`run_weight == 0` and `speed == 0`. Missing, boolean, string, nonfinite or
+nonzero values make the report `invalid`. With an older tool revision
+(`fd4f254`), `run_weight` and `speed` are not checked, so confirm both by hand
+for the ads frame. Either way, a mismatch makes the slot Blocked.
 
 ### 3.3 Landmark slots
 
@@ -186,8 +223,12 @@ python tools/review_dx12_landmarks.py review measurements.json --root <artifact>
 ```
 
 Add `--require-backend dx12 --require-backend legacy` only if the legacy slots
-are being gated too. The packet's raw copies have no sibling `.png.json`, so
-`--frames` is what binds each raw copy to its capture sidecars; do not omit it.
+are being gated too. `--frames` is mandatory for both packet revisions. In a
+72663 packet the raw copies have no sibling `.png.json`, so `--frames` is the
+only binding to the capture sidecars. In a Hal272 packet the copied sibling
+`.png.json` gets the tool's typed raw/display checks, but the original capture
+telemetry (`.png.gameplay.json`, including `route`, `simulation_ads`,
+`run_weight` and `speed`) is read only through `--frames`; do not omit it.
 
 | Report field | Value |
 | --- | --- |
@@ -229,6 +270,11 @@ Every sequence frame is `NNNN.png` (zero-based, contiguous) with `.png.json`,
 | Measured-pixel landmark comparison (section 3) | reviewer | open | `____` | `____` | `____` |
 | Human M2 capture approval (section 4 and raw `ads-gameplay` frames) | human | open | `____` | `____` | `____` |
 | Human M4 real-GPU playtest | human, via DX12_PLAYTEST_CHECKLIST.md | open | `____` | `____` | `____` |
+
+The M4 checklist's `PLAYTEST_DX12.cmd` preview launcher is integrated in the
+same local checkpoint `34482609`; until it is on a pushed revision and in the
+staged preview artifact, the checklist's Blocked rule for a missing or
+different launcher still applies.
 
 `acceptance_complete` stays `false` until all three rows are closed by the
 people who own them. This manifest never closes M2 or M4 on its own.
