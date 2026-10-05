@@ -18,10 +18,10 @@ import zipfile
 
 from release_update import REPOSITORY, safe_path
 
-KINDS = ("locomotion", "walk", "ads", "directional", "reload")
+KINDS = ("locomotion", "walk", "ads", "directional", "reload", "jump")
 COMPANIONS = ("asset.vra", "asset.vrs", "asset.vrm")
 REQUIRED_ASSETS = {"assets/animations.cfg"} | {
-    f"assets/{kind}/{name}" for kind in KINDS for name in COMPANIONS}
+    f"assets/{kind}/{name}" for kind in KINDS if kind != "jump" for name in COMPANIONS}
 
 
 def require(condition, message):
@@ -78,6 +78,7 @@ def verify_source_contract(source, artifact):
     artifact_bindings = regular(artifact, "assets/animations.cfg").read_bytes()
     require(expected_bindings.replace(b"\r\n", b"\n") == artifact_bindings.replace(b"\r\n", b"\n"),
             "artifact animation bindings differ from exact game source")
+    bound_kinds = set()
     for line in regular(source, "assets/animations.cfg").read_text().splitlines():
         line = line.strip()
         if not line or line.startswith("#") or "=" not in line:
@@ -88,6 +89,7 @@ def verify_source_contract(source, artifact):
             require(not relative.is_absolute() and ".." not in relative.parts and
                     "\\" not in value and relative.parts and relative.parts[0] in KINDS,
                     "unknown or unsafe source runtime asset binding")
+            bound_kinds.add(relative.parts[0])
     contract = json.loads(regular(source, "assets/source/reload/source.json").read_text())
     actual = json.loads(regular(artifact, "assets/reload/source.json").read_text())
     require(actual == contract, "artifact reload contract differs from exact game source")
@@ -105,7 +107,9 @@ def verify_source_contract(source, artifact):
     # generated CI outputs, not necessarily byte-identical to a committed cache.
     # Bind their authoring recipe/source and verify their actual output hashes;
     # do not substitute cache hashes or volatile FBX export/parity measurements.
-    for kind in ("locomotion", "walk", "ads", "directional"):
+    for kind in ("locomotion", "walk", "ads", "directional", "jump"):
+        if kind == "jump" and kind not in bound_kinds:
+            continue
         path = f"assets/{kind}/manifest.json"
         actual = json.loads(regular(artifact, path).read_text())
         require(set(actual.get("files", {})) == set(COMPANIONS), "invalid companion inventory")
@@ -273,3 +277,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

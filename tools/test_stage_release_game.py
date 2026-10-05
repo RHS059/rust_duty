@@ -114,12 +114,13 @@ class ReleasePackageGuardTests(unittest.TestCase):
             write(self.artifact, folder / name, data)
             files[name] = {"bytes": len(data), "sha256": hashlib.sha256(data).hexdigest()}
         manifest = {"files": files}
-        if folder in (Path("assets/walk"), Path("assets/ads"), Path("assets/directional")):
+        if folder in (Path("assets/walk"), Path("assets/ads"), Path("assets/directional"), Path("assets/jump")):
             family = folder.name
             blend_file = {
                 "walk": "assets/authoring/locomotion/locomotion.blend",
                 "ads": "assets/authoring/ads/ads.blend",
                 "directional": "assets/authoring/locomotion_directional/r5/halcyon_hip_directional_r5.blend",
+                "jump": "assets/authoring/jump/halcyon_jump.blend",
             }[family]
             blend_bytes = (family + " immutable authored fixture\n").encode()
             write(self.source, blend_file, blend_bytes)
@@ -304,6 +305,54 @@ class ReleasePackageGuardTests(unittest.TestCase):
         source_file.write_bytes(bytes([original[0] ^ 1]) + original[1:])
         with self.assertRaises(ValueError):
             release.verify_source_contract(self.source, self.artifact)
+
+    def add_jump(self):
+        config = CONFIG + "jump.asset=jump/asset.vra\n"
+        write(self.source, "assets/animations.cfg", config)
+        write(self.artifact, "assets/animations.cfg", config)
+        self.make_pack(Path("assets/jump"))
+
+    def test_jump_source_companions_and_full_stage_pass(self):
+        self.add_jump()
+        release.verify_source_contract(self.source, self.artifact)
+        self.stage_fixture()
+        report = release.verify_staged_assets(self.artifact, self.staged, update=True)
+        self.assertIn("assets/jump/asset.vra", report["assets"])
+        release.verify_archive(self.make_zip(), self.staged)
+        release.verify_bundle_members(self.make_bundle(), self.staged)
+
+    def test_jump_binding_requires_all_validated_companions(self):
+        self.add_jump()
+        for name in COMPANIONS:
+            path = self.artifact / "assets/jump" / name
+            original = path.read_bytes()
+            for mutation in (None, b"corrupt"):
+                with self.subTest(name=name, mutation=mutation):
+                    if mutation is None:
+                        path.unlink()
+                    else:
+                        path.write_bytes(mutation)
+                    with self.assertRaises(ValueError):
+                        release.verify_source_contract(self.source, self.artifact)
+                    path.write_bytes(original)
+
+    def test_jump_source_digest_must_match_selected_blend(self):
+        self.add_jump()
+        write(self.source, "assets/authoring/jump/halcyon_jump.blend", b"wrong source")
+        with self.assertRaises(ValueError):
+            release.verify_source_contract(self.source, self.artifact)
+
+    def test_jump_cannot_be_dropped_from_stage_zip_or_bundle(self):
+        self.add_jump()
+        self.stage_fixture()
+        relative = "assets/jump/asset.vra"
+        with self.assertRaises(ValueError):
+            release.verify_archive(self.make_zip(omit=(relative,)), self.staged)
+        (self.staged / relative).unlink()
+        with self.assertRaises(ValueError):
+            release.verify_staged_assets(self.artifact, self.staged, update=True)
+        with self.assertRaises(ValueError):
+            release.verify_bundle_members(self.make_bundle(), self.artifact)
 
     def test_unknown_source_asset_binding_fails_closed(self):
         config = CONFIG + "fire.asset=future_fire/asset.vra\n"
@@ -678,3 +727,4 @@ class ReleasePackageGuardTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
