@@ -11,6 +11,15 @@ concurrency:
   # Never interrupt an eligible push while it may be publishing a complete draft.
   cancel-in-progress: ${{ github.event_name != 'push' || github.ref != 'refs/heads/aella/automatic-game-updates-r1' }}
 jobs:
+  windows-source-bound-recovery:
+    if: (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'aella/wgpu-renderer-port') || (github.event_name == 'push' && github.ref == 'refs/heads/aella/wgpu-renderer-port')
+    permissions:
+      contents: read
+      actions: read
+    uses: ./.github/workflows/windows-source-bound-recovery.yml
+  windows-same-platform-return:
+    needs: [animation-assets, walk-assets, ads-assets, directional-assets, jump-assets]
+    uses: ./.github/workflows/windows-same-platform-return.yml
   dx12-authored-validation:
     needs: [animation-assets, walk-assets, ads-assets, directional-assets, jump-assets, native-validation]
     uses: ./.github/workflows/wgpu-dx12-authored.yml

@@ -72,7 +72,7 @@ def _hash(value, name):
     return value
 
 
-def _identity(preview, identity, executable, notices_hash):
+def _identity(preview, identity, executable, notices_hash, reuse=None):
     require(preview.get('schema') == 'rust-duty-dx12-wip-preview/v1', 'wrong preview schema')
     require(identity.get('schema') == 'rust-duty-build-identity/v1', 'wrong build identity schema')
     require(identity.get('target') == 'x86_64-pc-windows-msvc', 'wrong Windows build target')
@@ -115,8 +115,22 @@ def _identity(preview, identity, executable, notices_hash):
     require(isinstance(smoke, dict) and smoke.get('backend') == 'Dx12'
             and smoke.get('adapter') == 'Microsoft Basic Render Driver'
             and type(smoke.get('frames')) is int and smoke['frames'] == 127, 'invalid smoke provenance')
+    expected_artifact = f'dx12-warp-smoke-attempt-{before["run_attempt"]}'
+    if preview.get('companion_reuse_record') is not None:
+        require(preview['companion_reuse_record'] == 'COMPANION_REUSE.json'
+                and isinstance(reuse, dict), 'missing exact companion reuse record')
+        require(reuse.get('schema') == 'rust-duty-reused-companion-validation/v1'
+                and reuse.get('passed') is True
+                and reuse.get('generation_reused') is True
+                and reuse.get('new_generation') is False
+                and reuse.get('fresh_source_oracle_parity') is False
+                and reuse.get('native_execution') is False
+                and reuse.get('current_source_commit') == before['commit'],
+                'invalid or mismatched companion reuse provenance')
+        require(smoke.get('evidence_directory') == 'dx12-warp', 'wrong recovery smoke directory')
+        expected_artifact = f'windows-recovery-native-evidence-attempt-{before["run_attempt"]}'
     require(smoke.get('run_url') == before['run_url']
-            and smoke.get('evidence_artifact') == f'dx12-warp-smoke-attempt-{before["run_attempt"]}', 'smoke run identity mismatch')
+            and smoke.get('evidence_artifact') == expected_artifact, 'smoke run identity mismatch')
     for field in ('invocation_sha256', 'summary_sha256'):
         _hash(smoke.get(field), field)
 
@@ -168,7 +182,7 @@ def validate_zip_archive(zip_path, strict=False):
             for name, info in members.items():
                 digest, size = hashlib.sha256(), 0
                 rel = name[len(prefix):] if prefix else name
-                keep = rel in ('DX12_PREVIEW.json', 'BUILD_IDENTITY.json', 'PLAYTEST_DX12.cmd')
+                keep = rel in ('DX12_PREVIEW.json', 'BUILD_IDENTITY.json', 'PLAYTEST_DX12.cmd', 'COMPANION_REUSE.json')
                 require(not keep or info.file_size <= 1024 * 1024, f'{rel} exceeds 1 MiB')
                 chunks = []
                 with archive.open(info) as stream:
@@ -188,7 +202,8 @@ def validate_zip_archive(zip_path, strict=False):
             by_name = {row['path']: row for row in entries}
             preview = _json(saved['DX12_PREVIEW.json'], 'DX12_PREVIEW.json')
             identity = _json(saved['BUILD_IDENTITY.json'], 'BUILD_IDENTITY.json')
-            _identity(preview, identity, by_name['vector-range.exe'], by_name['THIRD_PARTY_LICENSES.txt']['sha256'])
+            _identity(preview, identity, by_name['vector-range.exe'], by_name['THIRD_PARTY_LICENSES.txt']['sha256'],
+                      _json(saved['COMPANION_REUSE.json'], 'COMPANION_REUSE.json') if 'COMPANION_REUSE.json' in saved else None)
             require(saved['PLAYTEST_DX12.cmd'].decode('utf-8').replace('\r\n', '\n') == LAUNCHER,
                     'launcher differs from the shipped DX12/no-update launcher')
             result = {'schema': 'rust-duty-windows-preview-inventory/v1', 'valid': True,

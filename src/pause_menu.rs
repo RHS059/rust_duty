@@ -1,8 +1,8 @@
 //! Pause-only controls. Pointer gestures are consumed before resume input.
-use vector_range::draw::facade::*;
-use vector_range::platform::runtime::{screen_height, screen_width};
-use vector_range::ui_theme::{self, flow_y, FlowBand, UiClass, UiScope, UiStyle};
-use vector_range::{
+use crate::draw::facade::*;
+use crate::platform::runtime::{screen_height, screen_width};
+use crate::ui_theme::{self, flow_y, FlowBand, UiClass, UiScope, UiStyle};
+use crate::{
     control::ControlMode,
     settings::{Settings, WalkTranslation},
 };
@@ -401,7 +401,7 @@ impl PauseMenu {
             ui_theme::style(UiScope::PauseMenu, &[UiClass::Accent]).tint(accent),
         );
         text("VECTOR RANGE", 32., 52., 34., WHITE);
-        text(vector_range::BUILD_LABEL, 33., 77., 16., muted);
+        text(crate::BUILD_LABEL, 33., 77., 16., muted);
         button(RESUME);
         button_text(
             if initial { "ENTER THE RANGE" } else { "RESUME" },
@@ -935,7 +935,7 @@ mod tests {
     }
     #[test]
     fn styled_pause_button_uses_identical_painted_and_clickable_bounds() {
-        use vector_range::draw::Command;
+        use crate::draw::Command;
         let _reset = ThemeReset;
         ui_theme::set_theme(
             ui_theme::UiTheme::parse(
@@ -1011,7 +1011,7 @@ mod tests {
 #[cfg(test)]
 mod dpi_geometry_tests {
     use super::*;
-    use vector_range::draw::Command;
+    use crate::draw::Command;
 
     struct ThemeReset;
     impl Drop for ThemeReset {

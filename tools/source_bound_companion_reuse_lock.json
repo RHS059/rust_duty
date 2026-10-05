@@ -1,0 +1,584 @@
+{
+  "schema": "rust-duty-source-bound-companion-reuse-lock/v1",
+  "origin": {
+    "repository": "RHS059/rust_duty",
+    "run_id": 37339601251,
+    "run_attempt": 1,
+    "head_sha": "72663e2b18dda818c800dec96af1ce452dbdd4da",
+    "tested_merge": "fbf6c33df03c155e23f75d485660b7648ee36024"
+  },
+  "reviewed_source_commit": "bb496492879ad42b5ce5b3707828f4281a663fd0",
+  "eligible_assets_tree": "67adef966a2c0db0ee1535897a9011becb6e53a9",
+  "source_files": [
+    {
+      "path": ".github/actions/setup-blender/action.yml",
+      "bytes": 1322,
+      "sha256": "c5fc8884a2dfeb35021c5957dc8c71ff81a1170509071060b5ca93314f431655",
+      "git_blob": "55d2f9bf698873d98ed420c9868ca3b05c175fcf",
+      "origin_sha256": "c5fc8884a2dfeb35021c5957dc8c71ff81a1170509071060b5ca93314f431655"
+    },
+    {
+      "path": ".github/workflows/ads-assets.yml",
+      "bytes": 4563,
+      "sha256": "f9deed36e7ce99a12f270799d4445193f61acb3f222cd9c0d039fb4a9b2165cd",
+      "git_blob": "5bff79aa2e8f3e21efa960f4e43c219267c5275a",
+      "origin_sha256": "f9deed36e7ce99a12f270799d4445193f61acb3f222cd9c0d039fb4a9b2165cd"
+    },
+    {
+      "path": ".github/workflows/blender-assets.yml",
+      "bytes": 5249,
+      "sha256": "09e0acc3c63cb5c3152be732a84406402e4847ae24ac0639552173ec57fd5382",
+      "git_blob": "2688c84adf41ba248d2a80a788abff9efec2ee79",
+      "origin_sha256": "09e0acc3c63cb5c3152be732a84406402e4847ae24ac0639552173ec57fd5382"
+    },
+    {
+      "path": ".github/workflows/directional-assets.yml",
+      "bytes": 5066,
+      "sha256": "77c11b8b471963155be7f44f096a632e7fdd72bf4c6af53aafe1c9f14a233777",
+      "git_blob": "d218ddb3bc6908356138c0b24a90136eccedd9d9",
+      "origin_sha256": "77c11b8b471963155be7f44f096a632e7fdd72bf4c6af53aafe1c9f14a233777"
+    },
+    {
+      "path": ".github/workflows/jump-assets.yml",
+      "bytes": 5180,
+      "sha256": "a4fb92fc8d61ecedfc68e5c424cf7d42177888000c4009f0262ead40e5e9e032",
+      "git_blob": "d75923ae349424c8e29f8d2ee5e26de0189d8fc3",
+      "origin_sha256": "a4fb92fc8d61ecedfc68e5c424cf7d42177888000c4009f0262ead40e5e9e032"
+    },
+    {
+      "path": ".github/workflows/walk-assets.yml",
+      "bytes": 4215,
+      "sha256": "bcce174ce243370fa5aaad2f7e7d805ef27a9e33188d30e16e07e66ec8a05579",
+      "git_blob": "a7910526cad53ec8337b838075a8c0b632e22a9b",
+      "origin_sha256": "bcce174ce243370fa5aaad2f7e7d805ef27a9e33188d30e16e07e66ec8a05579"
+    },
+    {
+      "path": "Cargo.lock",
+      "bytes": 105160,
+      "sha256": "2aa35ed5561b7e40f515520ec36cb7eaa5c4175f12f0fcf9c764dd0ae6cbdeef",
+      "git_blob": "1ee0a944e9c465773f1877b6fa85c8829127ee00",
+      "origin_sha256": "2aa35ed5561b7e40f515520ec36cb7eaa5c4175f12f0fcf9c764dd0ae6cbdeef"
+    },
+    {
+      "path": "Cargo.toml",
+      "bytes": 915,
+      "sha256": "ec02a76fb9e8eb29178d707c0f6cfea8206b0299d81f6594fd3cfe0707f55584",
+      "git_blob": "1f4205e0bc2be722f2b7c9f9aa6fd2024b283d49",
+      "origin_sha256": "ec02a76fb9e8eb29178d707c0f6cfea8206b0299d81f6594fd3cfe0707f55584"
+    },
+    {
+      "path": "assets/animations.cfg",
+      "bytes": 3298,
+      "sha256": "7ab3a60c5c271163de3a7349e69d0d07db85aa759737be0264cb29e6134e84ee",
+      "git_blob": "e19190f6575675202d8c0d7f15d740472a349e4d",
+      "origin_sha256": "7ab3a60c5c271163de3a7349e69d0d07db85aa759737be0264cb29e6134e84ee"
+    },
+    {
+      "path": "assets/authoring/ads/ads.blend",
+      "bytes": 9446001,
+      "sha256": "3acdf3e2d04757d719ba59ede08decdf8bad48e2e87d9448046fe8edcbba4f58",
+      "git_blob": "f155c1b0eb19b0afbb1c6166ac349fb768347175",
+      "origin_sha256": "3acdf3e2d04757d719ba59ede08decdf8bad48e2e87d9448046fe8edcbba4f58"
+    },
+    {
+      "path": "assets/authoring/ads/export_config.json",
+      "bytes": 1381,
+      "sha256": "79e26b9bde09d406ce8f65ff4d643eec9615a7dabf81dbb8f775c63514806278",
+      "git_blob": "0522458343b71832d3fde8a7bf8adbda0452625d",
+      "origin_sha256": "79e26b9bde09d406ce8f65ff4d643eec9615a7dabf81dbb8f775c63514806278"
+    },
+    {
+      "path": "assets/authoring/ads/source_integrity.json",
+      "bytes": 173243,
+      "sha256": "84d8ec6f8d0560e64f8d4f3e853cc17def887df954930eccc878a81ec9238bfc",
+      "git_blob": "17845f376066bde3710bc87de91d98ec4c09dea5",
+      "origin_sha256": "84d8ec6f8d0560e64f8d4f3e853cc17def887df954930eccc878a81ec9238bfc"
+    },
+    {
+      "path": "assets/authoring/ads/source_integrity.py",
+      "bytes": 2898,
+      "sha256": "d22ae8dcc117e29ffb7d746772efce015010407cbb1ddce22924a31746e831ca",
+      "git_blob": "2fad432188d4d6d0224feacd222c06755779589d",
+      "origin_sha256": "d22ae8dcc117e29ffb7d746772efce015010407cbb1ddce22924a31746e831ca"
+    },
+    {
+      "path": "assets/authoring/jump/export_config.json",
+      "bytes": 1642,
+      "sha256": "a8b483b9bcf73c86c31667890b5c59ef3f498fbe0ddcec08edd7f4ae8d244d95",
+      "git_blob": "54ae47a90a549358f64ff4764cc0b4af2a2f143d",
+      "origin_sha256": "a8b483b9bcf73c86c31667890b5c59ef3f498fbe0ddcec08edd7f4ae8d244d95"
+    },
+    {
+      "path": "assets/authoring/locomotion/export_config.json",
+      "bytes": 13784,
+      "sha256": "9636c75a25920f83a5ae612ecfc74ee3671836af7c25484a55b9c765821f077b",
+      "git_blob": "6310c90919e8b55b5879f6b8ffc126cae47f890d",
+      "origin_sha256": "9636c75a25920f83a5ae612ecfc74ee3671836af7c25484a55b9c765821f077b"
+    },
+    {
+      "path": "assets/authoring/locomotion/export_locomotion.py",
+      "bytes": 11084,
+      "sha256": "165531d287844efcedbf7eb8b12f12115879da1fd283cd009414eb53f0a33cc0",
+      "git_blob": "9cabe3b9f36bfb6ace9190c3ab708d1dc2673413",
+      "origin_sha256": "165531d287844efcedbf7eb8b12f12115879da1fd283cd009414eb53f0a33cc0"
+    },
+    {
+      "path": "assets/authoring/locomotion/locomotion.blend",
+      "bytes": 9352824,
+      "sha256": "1b01f49d7fe92f39c7bd180823ee4556a0074dd9ff8ef9c10b3fb4d3f3059e43",
+      "git_blob": "d7ccd3942224091ed555945123404902e0983224",
+      "origin_sha256": "1b01f49d7fe92f39c7bd180823ee4556a0074dd9ff8ef9c10b3fb4d3f3059e43"
+    },
+    {
+      "path": "assets/authoring/locomotion/source_integrity.json",
+      "bytes": 171884,
+      "sha256": "3a4d552023dd78c908548a657e69a1c04d0b26b60e4da5e536eb46b3ebf327f2",
+      "git_blob": "f5167e6b5db15d096263cee6abe97644e9c0de6b",
+      "origin_sha256": "3a4d552023dd78c908548a657e69a1c04d0b26b60e4da5e536eb46b3ebf327f2"
+    },
+    {
+      "path": "assets/authoring/locomotion/source_integrity.py",
+      "bytes": 2898,
+      "sha256": "d22ae8dcc117e29ffb7d746772efce015010407cbb1ddce22924a31746e831ca",
+      "git_blob": "2fad432188d4d6d0224feacd222c06755779589d",
+      "origin_sha256": "d22ae8dcc117e29ffb7d746772efce015010407cbb1ddce22924a31746e831ca"
+    },
+    {
+      "path": "assets/authoring/locomotion_directional/export_directional_preview.py",
+      "bytes": 10968,
+      "sha256": "e94498857bc7744604d5381cf101cec0608ffda30141bb30dedf9918d2285e74",
+      "git_blob": "65c4039ebe45916299f9e0921cb97a0588474eec",
+      "origin_sha256": "e94498857bc7744604d5381cf101cec0608ffda30141bb30dedf9918d2285e74"
+    },
+    {
+      "path": "assets/authoring/locomotion_directional/r5/halcyon_hip_directional_r5.blend",
+      "bytes": 9922429,
+      "sha256": "36d76491c2cf6238b8a1e10069dddd5b0d63e199063e1f4012b34f3fd4b1e18d",
+      "git_blob": "9cde5271a620cba2b3c9340674eed5aaa1cb784a",
+      "origin_sha256": "36d76491c2cf6238b8a1e10069dddd5b0d63e199063e1f4012b34f3fd4b1e18d"
+    },
+    {
+      "path": "assets/authoring/locomotion_directional/r5/source_integrity.json",
+      "bytes": 172777,
+      "sha256": "128d2f360c465964ee99d5526ed382a86a2d544b639c5b58ddf40f5e54152924",
+      "git_blob": "6f1c0acda9733092e86771da2993822f5de59b8e",
+      "origin_sha256": "128d2f360c465964ee99d5526ed382a86a2d544b639c5b58ddf40f5e54152924"
+    },
+    {
+      "path": "assets/authoring/locomotion_directional/runtime_export_config.json",
+      "bytes": 5614,
+      "sha256": "5f21226b790945ba1d783ce4c025d669a60ce6ab4860b3911eda4eba400fc409",
+      "git_blob": "f4a7e3a4195a59adc0ffd1286d5c753a2eeb5a0a",
+      "origin_sha256": "5f21226b790945ba1d783ce4c025d669a60ce6ab4860b3911eda4eba400fc409"
+    },
+    {
+      "path": "assets/locomotion/README.md",
+      "bytes": 1627,
+      "sha256": "b7774fbef7355e5e0e647a887ee33bb3f9a0bfeef2a127733588a2daca33f28b",
+      "git_blob": "76ed75c0e9e218f7e1d63660a8cea85ea9c19da0",
+      "origin_sha256": "b7774fbef7355e5e0e647a887ee33bb3f9a0bfeef2a127733588a2daca33f28b"
+    },
+    {
+      "path": "assets/locomotion/asset.vra",
+      "bytes": 10736787,
+      "sha256": "d02d04d4adb429b6493bf3347b302dc007bb7b99f4761da3c2b314e6d313c6ab",
+      "git_blob": "040ee91073c40a063fb12c15a0e1f4f7452a8a3e",
+      "origin_sha256": "d02d04d4adb429b6493bf3347b302dc007bb7b99f4761da3c2b314e6d313c6ab"
+    },
+    {
+      "path": "assets/locomotion/asset.vrm",
+      "bytes": 10641724,
+      "sha256": "d11736162b2cda993db3cdd5d4015aff2b151ea6377b8b954370b54006e02d67",
+      "git_blob": "ed7da4839c1845982ce87b4ad6036b4cc022a406",
+      "origin_sha256": "d11736162b2cda993db3cdd5d4015aff2b151ea6377b8b954370b54006e02d67"
+    },
+    {
+      "path": "assets/locomotion/asset.vrs.gz",
+      "bytes": 4088316,
+      "sha256": "d2bd669fe44644de6a536ddb4e6829fb9571a84b95b4d74166e3c055fce76760",
+      "git_blob": "8e3834862d945801c5f9420fdd9ceaa5f78ae347",
+      "origin_sha256": "d2bd669fe44644de6a536ddb4e6829fb9571a84b95b4d74166e3c055fce76760"
+    },
+    {
+      "path": "assets/locomotion/manifest.json",
+      "bytes": 3474,
+      "sha256": "9d8de9f33304ce190a6eabcb4ac696cd995145d4bcbe13e05ec3fd891b628639",
+      "git_blob": "440551d0c0ca3c157dcf412019f042bbcb87297e",
+      "origin_sha256": "9d8de9f33304ce190a6eabcb4ac696cd995145d4bcbe13e05ec3fd891b628639"
+    },
+    {
+      "path": "assets/source/reload/current.blend",
+      "bytes": 8247987,
+      "sha256": "8cec36c6bfcc4967cb80629b40ecdced3c0b5507914aec7eb3d2d614f2d758fd",
+      "git_blob": "d75daeda3d8a406b5fe9c7c5bf04fe0416dab100",
+      "origin_sha256": "8cec36c6bfcc4967cb80629b40ecdced3c0b5507914aec7eb3d2d614f2d758fd"
+    },
+    {
+      "path": "assets/source/reload/source.json",
+      "bytes": 1657,
+      "sha256": "c3af430be9e30a3e4acf8fd0f98a037767792ddaaf8ceeb19bd0f5bdc75930d6",
+      "git_blob": "2621fe2c4d8b4d2edf757e58d79f22eb0c0d1658",
+      "origin_sha256": "c3af430be9e30a3e4acf8fd0f98a037767792ddaaf8ceeb19bd0f5bdc75930d6"
+    },
+    {
+      "path": "build.rs",
+      "bytes": 3266,
+      "sha256": "e054de56657900e8f2b7cf66a7abd776389164fec60aff4c181f9f3eef7de565",
+      "git_blob": "c9423b647965bba003a7ad71d03af6a2303e42ad",
+      "origin_sha256": "e054de56657900e8f2b7cf66a7abd776389164fec60aff4c181f9f3eef7de565"
+    },
+    {
+      "path": "docs/ANIMATION_SLOTS.md",
+      "bytes": 14250,
+      "sha256": "741786fede1d04764887048470a5865d17feb71317a6eec1c280d166153cff9a",
+      "git_blob": "76c94eacc9961e42aef8dbb8446fc357ab5e13e7",
+      "origin_sha256": "741786fede1d04764887048470a5865d17feb71317a6eec1c280d166153cff9a"
+    },
+    {
+      "path": "examples/sample_viewmodel_clip.rs",
+      "bytes": 6856,
+      "sha256": "82123dbb8be6db54a3780a2b18079a809738cd2559f89de7dcee0aac1d31e22b",
+      "git_blob": "7df96135ac638eef1d489bc09d2256a7ed63abd0",
+      "origin_sha256": "82123dbb8be6db54a3780a2b18079a809738cd2559f89de7dcee0aac1d31e22b"
+    },
+    {
+      "path": "src/asset.rs",
+      "bytes": 10152,
+      "sha256": "eec1033c8e711fd8ee17537e5486d96553735ce32880f1aa0188e86dd9889481",
+      "git_blob": "ca1296c7ecfbc2f5887ca75b6791142119ae9462",
+      "origin_sha256": "eec1033c8e711fd8ee17537e5486d96553735ce32880f1aa0188e86dd9889481"
+    },
+    {
+      "path": "src/lib.rs",
+      "bytes": 1677,
+      "sha256": "4a589c9d9a77c89361c63001be10c9d173984a022a9485473a71cfc41f6e9b3e",
+      "git_blob": "e8f7a46d761385b2dbc034f7adf973b6537168a4",
+      "origin_sha256": "b8be3461113a2967b93959878a744b8380cc296a1cb1b7eb770417edd0a5c551",
+      "reviewed_difference": "Adds performance and public UI/HUD module exports; asset parser and sampler modules unchanged. This is not an exact historical build-cache hit."
+    },
+    {
+      "path": "src/skinned_asset.rs",
+      "bytes": 16074,
+      "sha256": "f7b98e867468b74f9692b408a9a508423d86445dc260cef940a38fd7555d0f16",
+      "git_blob": "b010370dec6a99060ce13fb4a4cde97949b92964",
+      "origin_sha256": "f7b98e867468b74f9692b408a9a508423d86445dc260cef940a38fd7555d0f16"
+    },
+    {
+      "path": "src/viewmodel_animation.rs",
+      "bytes": 24296,
+      "sha256": "c3f097585cc94c90b9a0bce986d36b707dbf8970058f5bb2db0e6e058f4b6251",
+      "git_blob": "efed5b076800423ffb9507912b38a13bf6d8b164",
+      "origin_sha256": "c3f097585cc94c90b9a0bce986d36b707dbf8970058f5bb2db0e6e058f4b6251"
+    },
+    {
+      "path": "tools/build_ads_assets.py",
+      "bytes": 6496,
+      "sha256": "2de692460beb34c467b4568084952bcf1734346e4892a5f1539ca29a92819851",
+      "git_blob": "cd56f471b56fe7054cf0af49e31b96a3433ccf33",
+      "origin_sha256": "2de692460beb34c467b4568084952bcf1734346e4892a5f1539ca29a92819851"
+    },
+    {
+      "path": "tools/build_blender_assets.py",
+      "bytes": 4739,
+      "sha256": "570ce2b564d11c5753c2865096523425f1924d93d82c22d02e86468efe7a62ef",
+      "git_blob": "2c7abc5817e948047e4cbde8000d636d69c27eed",
+      "origin_sha256": "570ce2b564d11c5753c2865096523425f1924d93d82c22d02e86468efe7a62ef"
+    },
+    {
+      "path": "tools/build_directional_assets.py",
+      "bytes": 7623,
+      "sha256": "1f7ac3df1542b6e7dd97a64d5237681b9e6e9b8a8e9af17077a0c464556c958d",
+      "git_blob": "de845219ef9c49e26f4ef226528a3059989f6475",
+      "origin_sha256": "1f7ac3df1542b6e7dd97a64d5237681b9e6e9b8a8e9af17077a0c464556c958d"
+    },
+    {
+      "path": "tools/build_jump_assets.py",
+      "bytes": 7114,
+      "sha256": "83859b3b0c0fb433fe8df216d6b843ca18bf50c1c610ac9c8f3c87f6d0193062",
+      "git_blob": "ae730b65982a9d1072cad3bbea71577be5cbb23d",
+      "origin_sha256": "83859b3b0c0fb433fe8df216d6b843ca18bf50c1c610ac9c8f3c87f6d0193062"
+    },
+    {
+      "path": "tools/build_walk_assets.py",
+      "bytes": 6006,
+      "sha256": "f2ec58318ee2458e1c75ccbfa94ec3e8df0127add3d19472d11ee7ddb696ed6d",
+      "git_blob": "c119d04c699e7e0f41f0f0e7917c4a38672d60a3",
+      "origin_sha256": "f2ec58318ee2458e1c75ccbfa94ec3e8df0127add3d19472d11ee7ddb696ed6d"
+    },
+    {
+      "path": "tools/check_generated_assets.py",
+      "bytes": 1528,
+      "sha256": "a19aed6990a04148e0e89339e35952de73331d44fc059d679d091479bd14d3ae",
+      "git_blob": "ed35028734a7d1f8f37732811aeacb1873c87fed",
+      "origin_sha256": "a19aed6990a04148e0e89339e35952de73331d44fc059d679d091479bd14d3ae"
+    },
+    {
+      "path": "tools/export_ads_fbx.py",
+      "bytes": 10639,
+      "sha256": "d1f9d61dd0119bbce2c97eea97265b243b6da6097008943543b5423418ed40dd",
+      "git_blob": "4ebfec1e8d4672d9c7e540289e48b6be5c05ac63",
+      "origin_sha256": "d1f9d61dd0119bbce2c97eea97265b243b6da6097008943543b5423418ed40dd"
+    },
+    {
+      "path": "tools/export_directional_fbx.py",
+      "bytes": 11053,
+      "sha256": "105040590e5fa4d204728c5965b6eced096c9b993f968c643b4e88e02db58ba9",
+      "git_blob": "53b0a4b623c29b7f51e7d8cb4b7271f4e1bb6821",
+      "origin_sha256": "105040590e5fa4d204728c5965b6eced096c9b993f968c643b4e88e02db58ba9"
+    },
+    {
+      "path": "tools/export_jump_fbx.py",
+      "bytes": 10669,
+      "sha256": "7dd60ee5323699f2b3c9fabea4be5d21186c67c13dff69e8f4726379dc31095b",
+      "git_blob": "ff540d4ac888ad6d48c0f5a3ae56f90de8d72e71",
+      "origin_sha256": "7dd60ee5323699f2b3c9fabea4be5d21186c67c13dff69e8f4726379dc31095b"
+    },
+    {
+      "path": "tools/export_reload_wip_fbx.py",
+      "bytes": 6198,
+      "sha256": "c092993b1c138aac80f8e0c31b8763bcfe8e959bff21c7d022b2338e5dcea86f",
+      "git_blob": "d0a5db975e82f595ae541c3ef70c189dfb24c500",
+      "origin_sha256": "c092993b1c138aac80f8e0c31b8763bcfe8e959bff21c7d022b2338e5dcea86f"
+    },
+    {
+      "path": "tools/export_viewmodel.py",
+      "bytes": 16819,
+      "sha256": "dd39c05bbe8c2ac557020261e360da8f7e5debedb652daa75b223de2667f93cd",
+      "git_blob": "79c984be8d1f624860a6e32a0cd1a0c7ec84f31c",
+      "origin_sha256": "dd39c05bbe8c2ac557020261e360da8f7e5debedb652daa75b223de2667f93cd"
+    },
+    {
+      "path": "tools/import_fbx_viewmodel.py",
+      "bytes": 12974,
+      "sha256": "b2b449ba916d4d8ffb6bb7c6109fa0714f340300aff8863f9b64d923f6b4f37a",
+      "git_blob": "8a8ee9bb825cd21861704b8eb82bfcd1c0419f77",
+      "origin_sha256": "b2b449ba916d4d8ffb6bb7c6109fa0714f340300aff8863f9b64d923f6b4f37a"
+    },
+    {
+      "path": "tools/merge_walk_clip.py",
+      "bytes": 3526,
+      "sha256": "00965785031c6f87c68cffd5e2082db2cbf3bf51bb5fbb9a1b06c1f867b293a5",
+      "git_blob": "8f52ff71055699bf5b92ca00a46ee8b07e265077",
+      "origin_sha256": "00965785031c6f87c68cffd5e2082db2cbf3bf51bb5fbb9a1b06c1f867b293a5"
+    },
+    {
+      "path": "tools/package_game.py",
+      "bytes": 47723,
+      "sha256": "25f66b9760bbbc19a68c3ac844d75a282bfb85a2652c9b8594d80872ef880563",
+      "git_blob": "c38558bef40799b68b34f590023d0c6044c7a4d6",
+      "origin_sha256": "37d72d21eb3ee5f4df786dd8e18be07697853e66ffdcad6cf5f84c4e12d6fd1e",
+      "reviewed_difference": "Only RUNTIME_FILES documentation/theme entries changed; all asset verifier bodies unchanged."
+    },
+    {
+      "path": "tools/requirements-assets.txt",
+      "bytes": 97,
+      "sha256": "bae44e696a843d95d63743023af62723d92aaa3e71c218938260724fb662a093",
+      "git_blob": "4111f6c7f999311b68c112ec85a2f4945409d05f",
+      "origin_sha256": "bae44e696a843d95d63743023af62723d92aaa3e71c218938260724fb662a093"
+    },
+    {
+      "path": "tools/verify_fbx_segment.py",
+      "bytes": 8418,
+      "sha256": "d68a9c6a0ddf6924f1668ecdf23229b7b385077c218b61921b2a762f438dcaf0",
+      "git_blob": "2ac0b75d50147186e36bb14e0b33c40cc75fc65e",
+      "origin_sha256": "d68a9c6a0ddf6924f1668ecdf23229b7b385077c218b61921b2a762f438dcaf0"
+    },
+    {
+      "path": "tools/verify_jump_seams.py",
+      "bytes": 2698,
+      "sha256": "ed44ad5b48d84c5ca9b4bde50152fb3d93c16213fa6c3a7a08082caebf0ad742",
+      "git_blob": "2d25102b922bb3b1c7a0abefcbabaa04fd91dbbb",
+      "origin_sha256": "ed44ad5b48d84c5ca9b4bde50152fb3d93c16213fa6c3a7a08082caebf0ad742"
+    },
+    {
+      "path": "tools/verify_locomotion_fbx.py",
+      "bytes": 7062,
+      "sha256": "84be01842d2579ce108904380d750a8e2798e29e93bf4114268a176881d96d38",
+      "git_blob": "ff8f441f0ebba8983111c505ec0c9dd06ed5d8e8",
+      "origin_sha256": "84be01842d2579ce108904380d750a8e2798e29e93bf4114268a176881d96d38"
+    },
+    {
+      "path": "tools/vrpack.py",
+      "bytes": 30543,
+      "sha256": "28a23ed9a9b0fe0123405a9800473e57d04419596deae8789c66c744ad05b685",
+      "git_blob": "4f947f6feb03a8a2e8f2a37c68417da6be7a472d",
+      "origin_sha256": "28a23ed9a9b0fe0123405a9800473e57d04419596deae8789c66c744ad05b685"
+    },
+    {
+      "path": "tools/vrskin.py",
+      "bytes": 19574,
+      "sha256": "e6aff7f5278bb8e6dd09ca75e69b8761b1b71bd30b3feddf84f8380cd88a5e14",
+      "git_blob": "8351887d08a6a7d98afa2f50eeb67c1d6cee65c6",
+      "origin_sha256": "e6aff7f5278bb8e6dd09ca75e69b8761b1b71bd30b3feddf84f8380cd88a5e14"
+    },
+    {
+      "path": "tools/vrview.py",
+      "bytes": 34515,
+      "sha256": "eefd755f6ef0943a4d8bf443ddfec601bc1336ec90ece722d017c9c4b6d73568",
+      "git_blob": "54b53c111276df54cc4c7c907b0d280d0513b56a",
+      "origin_sha256": "eefd755f6ef0943a4d8bf443ddfec601bc1336ec90ece722d017c9c4b6d73568"
+    }
+  ],
+  "jump_source": {
+    "path": "assets/authoring/jump/halcyon_jump.blend",
+    "repository": "RHS059/rust_duty",
+    "commit": "e9317f90ea171976306e2f17c111325d948ea357",
+    "bytes": 10470527,
+    "sha256": "a2c4b2bbe98da1a608450bba92404cb39008eae5861bcf8fc3f5d2f978df0e3b"
+  },
+  "artifacts": [
+    {
+      "artifact_id": 11357733263,
+      "name": "generated-reload-runtime",
+      "zip_sha256": "abab8b39d0c462cfff917affb45b9f1103c21601fec2c013179b3247c2605999",
+      "size_bytes": 36917674,
+      "run_id": 37339601251,
+      "head_sha": "72663e2b18dda818c800dec96af1ce452dbdd4da",
+      "url": "https://github.com/RHS059/rust_duty/actions/runs/37339601251/artifacts/11357733263",
+      "kind": "reload",
+      "zip_filename": "11357733263.zip",
+      "members": [
+        "alternates/opening/asset.vra",
+        "alternates/opening/asset.vrm",
+        "alternates/opening/asset.vrs",
+        "alternates/opening/export-manifest.json",
+        "alternates/opening/manifest.json",
+        "alternates/opening/parity.json",
+        "alternates/opening/source.json",
+        "alternates/pickup/asset.vra",
+        "alternates/pickup/asset.vrm",
+        "alternates/pickup/asset.vrs",
+        "alternates/pickup/export-manifest.json",
+        "alternates/pickup/manifest.json",
+        "alternates/pickup/parity.json",
+        "alternates/pickup/source.json",
+        "alternates/reset/asset.vra",
+        "alternates/reset/asset.vrm",
+        "alternates/reset/asset.vrs",
+        "alternates/reset/export-manifest.json",
+        "alternates/reset/manifest.json",
+        "alternates/reset/parity.json",
+        "alternates/reset/source.json",
+        "asset.vra",
+        "asset.vrm",
+        "asset.vrs",
+        "export-manifest.json",
+        "manifest.json",
+        "parity.json",
+        "source.json"
+      ],
+      "member_inventory_basis": "Required exact producer upload layout; original full reload ZIP not yet locally inspected."
+    },
+    {
+      "artifact_id": 11358380091,
+      "name": "generated-walk-runtime",
+      "zip_sha256": "be4a82e3e5a5f87c1b16653975c67c2c28d1155b0f29802bbe0c8d0c30dc8141",
+      "size_bytes": 16972584,
+      "run_id": 37339601251,
+      "head_sha": "72663e2b18dda818c800dec96af1ce452dbdd4da",
+      "url": "https://github.com/RHS059/rust_duty/actions/runs/37339601251/artifacts/11358380091",
+      "kind": "walk",
+      "zip_filename": "11358380091.zip",
+      "members": [
+        "asset.vra",
+        "asset.vrm",
+        "asset.vrs",
+        "asset.vrs.gz",
+        "conversion.json",
+        "manifest.json",
+        "parity.json"
+      ],
+      "member_inventory_basis": "Inspected original ZIP with matching pinned digest."
+    },
+    {
+      "artifact_id": 11357971900,
+      "name": "generated-ads-runtime",
+      "zip_sha256": "18b09762a317c56b56d6a56d53bf760b17ecb982d3664ba04ba9a055108a2d67",
+      "size_bytes": 21048664,
+      "run_id": 37339601251,
+      "head_sha": "72663e2b18dda818c800dec96af1ce452dbdd4da",
+      "url": "https://github.com/RHS059/rust_duty/actions/runs/37339601251/artifacts/11357971900",
+      "kind": "ads",
+      "zip_filename": "11357971900.zip",
+      "members": [
+        "asset.vra",
+        "asset.vra.gz",
+        "asset.vrm",
+        "asset.vrs",
+        "asset.vrs.gz",
+        "conversion-ads_entry_r1.json",
+        "conversion-ads_exit_r1.json",
+        "conversion-ads_hold_r1.json",
+        "manifest.json",
+        "parity-ads_entry_r1.json",
+        "parity-ads_exit_r1.json",
+        "parity-ads_hold_r1.json"
+      ],
+      "member_inventory_basis": "Inspected original ZIP with matching pinned digest."
+    },
+    {
+      "artifact_id": 11357009655,
+      "name": "generated-directional-runtime",
+      "zip_sha256": "e552f88db135f367ea744c51fd429bfeeed243b08405ec463d1427ec2ea845cc",
+      "size_bytes": 23552541,
+      "run_id": 37339601251,
+      "head_sha": "72663e2b18dda818c800dec96af1ce452dbdd4da",
+      "url": "https://github.com/RHS059/rust_duty/actions/runs/37339601251/artifacts/11357009655",
+      "kind": "directional",
+      "zip_filename": "11357009655.zip",
+      "members": [
+        "README.md",
+        "asset.vra",
+        "asset.vra.gz",
+        "asset.vrm",
+        "asset.vrs",
+        "asset.vrs.gz",
+        "conversion-hip_strafe_left_r1.json",
+        "conversion-hip_strafe_right_r1.json",
+        "conversion-hip_walk_backward_r1.json",
+        "conversion-hip_walk_forward_r1.json",
+        "manifest.json",
+        "parity-hip_strafe_left_r1.json",
+        "parity-hip_strafe_right_r1.json",
+        "parity-hip_walk_backward_r1.json",
+        "parity-hip_walk_forward_r1.json"
+      ],
+      "member_inventory_basis": "Inspected original ZIP with matching pinned digest."
+    },
+    {
+      "artifact_id": 11357977549,
+      "name": "generated-jump-runtime",
+      "zip_sha256": "3ffc4243febed355a65bf190b9eb35b7d07d989a87f55c331c5405512f15c031",
+      "size_bytes": 21570566,
+      "run_id": 37339601251,
+      "head_sha": "72663e2b18dda818c800dec96af1ce452dbdd4da",
+      "url": "https://github.com/RHS059/rust_duty/actions/runs/37339601251/artifacts/11357977549",
+      "kind": "jump",
+      "zip_filename": "11357977549.zip",
+      "members": [
+        "asset.vra",
+        "asset.vra.gz",
+        "asset.vrm",
+        "asset.vrs",
+        "asset.vrs.gz",
+        "conversion-jump_air.json",
+        "conversion-jump_land.json",
+        "conversion-jump_takeoff.json",
+        "manifest.json",
+        "parity-jump_air.json",
+        "parity-jump_land.json",
+        "parity-jump_takeoff.json",
+        "runtime-seams.json"
+      ],
+      "member_inventory_basis": "Inspected original ZIP with matching pinned digest."
+    }
+  ],
+  "limits": {
+    "max_zip_bytes": 134217728,
+    "max_member_bytes": 134217728,
+    "max_uncompressed_bytes_per_zip": 536870912,
+    "max_entries_per_zip": 128,
+    "max_compression_ratio": 1000
+  },
+  "acceptance_boundary": "Reuses historical generation and successful parity reports. Current structural/source validation must pass for all five packs. Does not rerun source-oracle parity or prove a native renderer result. Requires byte-exact LF checkout; no source or metadata normalization."
+}

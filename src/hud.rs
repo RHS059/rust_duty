@@ -1,19 +1,19 @@
-use vector_range::action::ActionPhase;
-use vector_range::draw::facade::*;
-use vector_range::platform::runtime::{get_fps, screen_height, screen_width};
-use vector_range::ui_theme::{self, UiClass, UiScope, UiStyle};
-use vector_range::{
+use crate::action::ActionPhase;
+use crate::draw::facade::*;
+use crate::platform::runtime::{get_fps, screen_height, screen_width};
+use crate::ui_theme::{self, UiClass, UiScope, UiStyle};
+use crate::{
     settings::Settings,
     sim::{Simulation, SPRINT_DURATION},
 };
-pub(crate) const INK: Color = Color::new(0.035, 0.055, 0.072, 1.);
-pub(crate) const ACCENT: Color = Color::new(0.98, 0.62, 0.22, 1.);
-pub(crate) const CYAN: Color = Color::new(0.33, 0.84, 0.87, 1.);
-pub(crate) const MUTED: Color = Color::new(0.62, 0.69, 0.72, 1.);
-pub(crate) fn label(text: &str, x: f32, y: f32, size: f32, color: Color) {
+pub const INK: Color = Color::new(0.035, 0.055, 0.072, 1.);
+pub const ACCENT: Color = Color::new(0.98, 0.62, 0.22, 1.);
+pub const CYAN: Color = Color::new(0.33, 0.84, 0.87, 1.);
+pub const MUTED: Color = Color::new(0.62, 0.69, 0.72, 1.);
+pub fn label(text: &str, x: f32, y: f32, size: f32, color: Color) {
     label_style(color).text(text, x, y, size, color);
 }
-pub(crate) fn panel(x: f32, y: f32, w: f32, h: f32) {
+pub fn panel(x: f32, y: f32, w: f32, h: f32) {
     ui_theme::style(UiScope::Hud, &[UiClass::Panel]).rect(
         Rect::new(x, y, w, h),
         Color::new(0.025, 0.042, 0.058, 0.88),
@@ -62,7 +62,7 @@ fn draw_notice(notice: &str, screen_width: f32) {
     style.text(notice, x, baseline, 20., CYAN);
 }
 
-pub(crate) fn telemetry_indicator(status: &str) {
+pub fn telemetry_indicator(status: &str) {
     draw_telemetry_indicator(status, screen_width(), screen_height());
 }
 fn draw_telemetry_indicator(status: &str, width: f32, height: f32) {
@@ -92,7 +92,7 @@ fn draw_telemetry_indicator(status: &str, width: f32, height: f32) {
 }
 
 /// Action state readout. Visuals are placeholders until authored clips pass review.
-pub(crate) fn action_hud(sim: &Simulation, w: f32, h: f32) {
+pub fn action_hud(sim: &Simulation, w: f32, h: f32) {
     let p = &sim.player;
     let pose = sim.action_pose();
     if let Some(slot) = pose.slot {
@@ -121,7 +121,7 @@ pub(crate) fn action_hud(sim: &Simulation, w: f32, h: f32) {
         );
     }
     let hint = match p.action {
-        vector_range::sim::Action::Hang(_) => Some("SPACE PULL UP / CTRL DROP / 2 SIDEARM"),
+        crate::sim::Action::Hang(_) => Some("SPACE PULL UP / CTRL DROP / 2 SIDEARM"),
         _ if p.mount.is_some() => Some("MOUNTED: V OR MOVE TO RELEASE"),
         _ => None,
     };
@@ -140,7 +140,7 @@ pub(crate) fn action_hud(sim: &Simulation, w: f32, h: f32) {
     }
 }
 #[allow(clippy::too_many_arguments)]
-pub(crate) fn hud(
+pub fn hud(
     sim: &Simulation,
     cfg: &Settings,
     hit_timer: f32,
@@ -182,8 +182,8 @@ pub(crate) fn hud(
     );
     let (x, y) = (w * 0.5, h * 0.5);
     if p.ads < 0.95 {
-        let fov = cfg.fov
-            + (cfg.ads_fov - cfg.fov) * vector_range::reference_motion::visual_world_ads(p.ads);
+        let fov =
+            cfg.fov + (cfg.ads_fov - cfg.fov) * crate::reference_motion::visual_world_ads(p.ads);
         let gap = (sim.spread_degrees(cfg).to_radians().tan() * w
             / (2. * (fov.to_radians() * 0.5).tan()))
         .max(2.);
@@ -260,11 +260,11 @@ pub(crate) fn hud(
         "DOWN"
     } else if p.mantle.is_some_and(|m| m.from_hang) {
         "PULLING UP"
-    } else if matches!(p.action, vector_range::sim::Action::Hang(_)) {
+    } else if matches!(p.action, crate::sim::Action::Hang(_)) {
         "HANGING"
-    } else if matches!(p.action, vector_range::sim::Action::Slide(_)) {
+    } else if matches!(p.action, crate::sim::Action::Slide(_)) {
         "SLIDING"
-    } else if matches!(p.action, vector_range::sim::Action::Dive(_)) {
+    } else if matches!(p.action, crate::sim::Action::Dive(_)) {
         "DIVING"
     } else if p.mount.is_some() {
         "MOUNTED"
@@ -360,7 +360,7 @@ mod tests {
     use super::*;
     #[test]
     fn persistent_telemetry_indicator_stays_inside_tiny_viewports() {
-        use vector_range::draw::Command;
+        use crate::draw::Command;
         let _reset = ThemeReset;
         for font in [6., 16., 96.] {
             ui_theme::set_theme(
@@ -415,7 +415,7 @@ mod tests {
         let list = take_draw_list().unwrap();
         ui_theme::set_theme(ui_theme::UiTheme::default());
         assert!(list.commands.iter().any(|command| matches!(command,
-            vector_range::draw::Command::Text {text, size, color, ..} if text == "Telemetry"
+            crate::draw::Command::Text {text, size, color, ..} if text == "Telemetry"
                 && *size == 21.5 && *color == Color::new(18./255., 52./255., 86./255., 0.5))));
     }
     struct ThemeReset;
@@ -426,7 +426,7 @@ mod tests {
     }
     #[test]
     fn default_notice_preserves_original_panel_and_baseline() {
-        use vector_range::draw::Command;
+        use crate::draw::Command;
         let _reset = ThemeReset;
         ui_theme::set_theme(ui_theme::UiTheme::default());
         let notice = "Theme reloaded: Gy_pq!";
@@ -441,7 +441,7 @@ mod tests {
     }
     #[test]
     fn themed_notice_panel_contains_actual_cpu_glyph_quads_at_accepted_sizes() {
-        use vector_range::{draw::Command, render::text::TextRenderer};
+        use crate::{draw::Command, render::text::TextRenderer};
         let _reset = ThemeReset;
         let mut renderer = TextRenderer::new().unwrap();
         for size in [6., 20., 21.5, 48., 96.] {

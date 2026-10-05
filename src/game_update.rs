@@ -1,9 +1,9 @@
 //! In-game presentation of the background GitHub update worker.
 //! Input is consumed before the pause controller so a button cannot resume play.
+use crate::draw::facade::*;
+use crate::platform::runtime::{get_time, mouse_position, screen_height, screen_width};
+use crate::ui_theme::{self, flow_y, FlowBand, UiClass, UiScope, UiStyle};
 use rust_duty_launcher::game::{GameUpdater, UpdateAction, UpdatePhase, UpdateSnapshot};
-use vector_range::draw::facade::*;
-use vector_range::platform::runtime::{get_time, mouse_position, screen_height, screen_width};
-use vector_range::ui_theme::{self, flow_y, FlowBand, UiClass, UiScope, UiStyle};
 
 fn update_style(class: UiClass) -> UiStyle {
     ui_theme::style(UiScope::UpdaterPanel, &[UiClass::Label, class])
@@ -141,6 +141,7 @@ impl UpdateLayout {
 }
 
 pub struct UpdatePanel {
+    presentation_only: bool,
     updater: Option<GameUpdater>,
     error: Option<String>,
     pointer_captured: PointerCapture,
@@ -195,9 +196,20 @@ impl PointerCapture {
 }
 
 impl UpdatePanel {
+    /// Present an externally supplied snapshot without starting an update worker.
+    /// This uses the ordinary draw/input path; it performs no network requests.
+    pub fn from_snapshot(snapshot: UpdateSnapshot) -> Self {
+        Self {
+            snapshot: Some(snapshot),
+            presentation_only: true,
+            ..Self::start(false)
+        }
+    }
+
     pub fn start(enabled: bool) -> Self {
         if !enabled {
             return Self {
+                presentation_only: false,
                 updater: None,
                 error: None,
                 pointer_captured: PointerCapture::default(),
@@ -208,8 +220,9 @@ impl UpdatePanel {
                 snapshot: None,
             };
         }
-        match GameUpdater::start(vector_range::BUILD_VERSION) {
+        match GameUpdater::start(crate::BUILD_VERSION) {
             Ok(updater) => Self {
+                presentation_only: false,
                 updater: Some(updater),
                 error: None,
                 pointer_captured: PointerCapture::default(),
@@ -224,6 +237,7 @@ impl UpdatePanel {
                 }),
             },
             Err(error) => Self {
+                presentation_only: false,
                 updater: None,
                 error: Some(error.to_string()),
                 pointer_captured: PointerCapture::default(),
@@ -246,7 +260,9 @@ impl UpdatePanel {
 
     /// Poll before session input. Success can unlock the menu, never active play.
     pub fn startup_blocked(&mut self) -> bool {
-        self.snapshot = self.updater.as_mut().map(GameUpdater::snapshot);
+        if !self.presentation_only {
+            self.snapshot = self.updater.as_mut().map(GameUpdater::snapshot);
+        }
         if self.error.is_none() {
             self.startup
                 .observe(self.snapshot.as_ref().map(|s| s.phase));
@@ -255,9 +271,12 @@ impl UpdatePanel {
     }
 
     fn retry_worker(&mut self) {
+        if self.presentation_only {
+            return;
+        }
         self.updater.take();
         self.snapshot = None;
-        match GameUpdater::start(vector_range::BUILD_VERSION) {
+        match GameUpdater::start(crate::BUILD_VERSION) {
             Ok(updater) => {
                 self.updater = Some(updater);
                 self.error = None;
@@ -532,7 +551,7 @@ fn actions(state: &UpdateSnapshot) -> Vec<(&'static str, UpdateAction)> {
 #[cfg(test)]
 mod tests {
     use super::{PointerCapture, StartupGate, UpdatePhase};
-    use vector_range::session::{SessionController, SessionInput};
+    use crate::session::{SessionController, SessionInput};
 
     #[test]
     fn only_confirmed_current_automatically_resolves_startup() {
@@ -661,7 +680,7 @@ mod tests {
     struct ThemeReset;
     impl Drop for ThemeReset {
         fn drop(&mut self) {
-            vector_range::ui_theme::set_theme(vector_range::ui_theme::UiTheme::default());
+            crate::ui_theme::set_theme(crate::ui_theme::UiTheme::default());
         }
     }
     #[test]
@@ -679,7 +698,7 @@ mod tests {
     #[test]
     fn styled_updater_buttons_are_inside_capture_area_and_match_painted_bounds() {
         use super::*;
-        use vector_range::draw::Command;
+        use crate::draw::Command;
         let _reset = ThemeReset;
         ui_theme::set_theme(ui_theme::UiTheme::parse("test.css",
             "#updater-panel .button {font-size:48px; background-color:#123456; border-width:8px}").unwrap());
@@ -703,6 +722,34 @@ mod tests {
         assert!(capture.step(true, true, false, false, true));
         assert!(!capture.step(true, true, false, false, false));
     }
+    #[test]
+    fn snapshot_panels_are_network_free_and_preserve_idle_and_error_states() {
+        use super::*;
+        for (phase, message) in [
+            (UpdatePhase::Current, "Current version"),
+            (UpdatePhase::Unavailable, "Offline test error"),
+        ] {
+            let snapshot = UpdateSnapshot {
+                phase,
+                message: message.into(),
+                ..Default::default()
+            };
+            let mut panel = UpdatePanel::from_snapshot(snapshot);
+            assert!(panel.updater.is_none());
+            assert!(!panel.startup_blocked());
+            panel.retry_worker();
+            assert!(panel.updater.is_none());
+            assert_eq!(panel.snapshot.as_ref().unwrap().phase, phase);
+            assert_eq!(panel.snapshot.as_ref().unwrap().message, message);
+            assert!(panel.error.is_none());
+            assert!(!panel.pointer_pressed && !panel.pointer_down && !panel.restart_requested);
+            assert_eq!(
+                update_warning(None, panel.snapshot.as_ref()),
+                phase == UpdatePhase::Unavailable
+            );
+        }
+    }
+
     #[test]
     fn synchronous_and_async_unavailable_states_share_warning_styling() {
         use super::{update_warning, UpdateSnapshot};
@@ -734,7 +781,7 @@ mod tests {
 #[cfg(test)]
 mod dpi_geometry_tests {
     use super::*;
-    use vector_range::draw::Command;
+    use crate::draw::Command;
 
     struct ThemeReset;
     impl Drop for ThemeReset {

@@ -1,0 +1,150 @@
+name: Source-bound Windows recovery and isolated preview
+on:
+  workflow_call:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  recover:
+    runs-on: windows-latest
+    timeout-minutes: 120
+    env:
+      # Per-process checkout setting, preserving pinned original source bytes.
+      GIT_CONFIG_COUNT: '1'
+      GIT_CONFIG_KEY_0: core.autocrlf
+      GIT_CONFIG_VALUE_0: 'false'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install -r tools/requirements-assets.txt cryptography
+      - name: Test fail-closed retrieval and current-source revalidation
+        env:
+          PYTHONPATH: tools
+        run: python -m unittest -v test_fetch_source_bound_companions test_revalidate_reused_companions test_windows_same_platform_return test_windows_same_platform_workflow test_windows_recovery_workflow
+      - name: Retrieve exact immutable original ZIPs and source witness
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python tools/fetch_source_bound_companions.py --lock tools/source_bound_companion_reuse_lock.json --output evidence/original-inputs
+      - name: Run current validators against all five exact original packs
+        run: >-
+          python tools/revalidate_reused_companions.py
+          --source-root . --expected-source-commit ${{ github.sha }}
+          --lock tools/source_bound_companion_reuse_lock.json
+          --origin-metadata evidence/original-inputs/origin.json
+          --jump-source evidence/original-inputs/halcyon_jump.blend
+          --output evidence/revalidated
+          --artifact reload=evidence/original-inputs/11357733263.zip
+          --artifact walk=evidence/original-inputs/11358380091.zip
+          --artifact ads=evidence/original-inputs/11357971900.zip
+          --artifact directional=evidence/original-inputs/11357009655.zip
+          --artifact jump=evidence/original-inputs/11357977549.zip
+      - name: Prepare a separate runtime checkout with only revalidated pack bytes
+        shell: pwsh
+        run: |
+          git worktree add --detach evidence/runtime-root HEAD
+          if ($LASTEXITCODE -ne 0) { throw "Cannot create fresh runtime checkout" }
+          foreach ($kind in @('reload','walk','ads','directional','jump')) {
+            $destination = Join-Path 'evidence/runtime-root/assets' $kind
+            if (Test-Path -LiteralPath $destination) { Remove-Item -LiteralPath $destination -Recurse -Force }
+            Copy-Item -LiteralPath "evidence/revalidated/root/assets/$kind" -Destination 'evidence/runtime-root/assets' -Recurse
+            # Some generated ZIPs omit their separately committed package guide.
+            $guide = Join-Path "assets/$kind" 'README.md'
+            $stagedGuide = Join-Path $destination 'README.md'
+            if ((Test-Path -LiteralPath $guide -PathType Leaf) -and !(Test-Path -LiteralPath $stagedGuide)) {
+              Copy-Item -LiteralPath $guide -Destination $stagedGuide
+            }
+          }
+          Copy-Item -LiteralPath evidence/original-inputs/halcyon_jump.blend -Destination evidence/runtime-root/assets/authoring/jump/halcyon_jump.blend
+      - name: Materialize exact verified runtime inputs
+        working-directory: evidence/runtime-root
+        run: python tools/package_game.py materialize --root . --include-walk --include-ads --include-directional --include-jump --require-generated
+      - name: Run current Python, Rust and updater quality checks
+        working-directory: evidence/runtime-root
+        run: python tools/ci_quality_checks.py
+        env:
+          CARGO_BUILD_JOBS: '2'
+      - name: Build the actual audio-enabled dual-runtime preview executable
+        working-directory: evidence/runtime-root
+        run: cargo build --locked --release --features wgpu-runtime --bin vector-range
+      - name: Verify actual current DX12 smoke before packaging
+        working-directory: evidence/runtime-root
+        run: python tools/run_dx12_smoke.py --executable target/release/vector-range.exe --root . --evidence evidence/dx12-warp --timeout 600
+      - name: Verify notices using the locked Windows dependency graph
+        working-directory: evidence/runtime-root
+        shell: pwsh
+        run: |
+          cargo fetch --manifest-path updater/Cargo.toml --locked
+          if ($LASTEXITCODE -ne 0) { throw "Updater dependency fetch failed" }
+          python tools/collect_updater_licenses.py
+          if ($LASTEXITCODE -ne 0) { throw "Updater notice collection failed" }
+          cargo fetch --locked
+          if ($LASTEXITCODE -ne 0) { throw "Game dependency fetch failed" }
+          python tools/collect_game_licenses.py --check
+          if ($LASTEXITCODE -ne 0) { throw "Game notice consistency failed" }
+      - name: Stage exact smoke-tested WIP with explicit reused-generation provenance
+        working-directory: evidence/runtime-root
+        shell: pwsh
+        run: |
+          python tools/stage_dx12_preview.py --root . --binary target/release/vector-range.exe --smoke-evidence evidence/dx12-warp --output dist/dx12-preview
+          if ($LASTEXITCODE -ne 0) { throw "Preview verification failed" }
+          Copy-Item -LiteralPath ../revalidated/provenance.json -Destination dist/dx12-preview/COMPANION_REUSE.json
+          $preview = Get-Content -LiteralPath dist/dx12-preview/DX12_PREVIEW.json -Raw | ConvertFrom-Json
+          $preview.smoke.evidence_artifact = "windows-recovery-native-evidence-attempt-$env:GITHUB_RUN_ATTEMPT"
+          $preview.smoke | Add-Member -NotePropertyName evidence_directory -NotePropertyValue 'dx12-warp'
+          $preview | Add-Member -NotePropertyName companion_reuse_record -NotePropertyValue 'COMPANION_REUSE.json'
+          $preview | ConvertTo-Json -Depth 32 | Set-Content -LiteralPath dist/dx12-preview/DX12_PREVIEW.json -Encoding utf8NoBOM
+          Add-Content -LiteralPath dist/dx12-preview/DX12_PREVIEW_README.txt -Encoding utf8 -Value "Companion generation is reused from the immutable origin listed in COMPANION_REUSE.json. Current source/structural checks and this executable's smoke reran; source-oracle generation/parity did not rerun."
+      - name: Identify current artifact label
+        id: identity
+        working-directory: evidence/runtime-root
+        shell: bash
+        run: echo "label=$(python tools/build_identity.py --print-label)" >> "$GITHUB_OUTPUT"
+      - name: Retain isolated current Windows preview
+        uses: actions/upload-artifact@v4
+        with:
+          name: Rust-Duty-${{ steps.identity.outputs.label }}-DX12-Revalidated-Preview-Windows-x64
+          path: evidence/runtime-root/dist/dx12-preview/
+          if-no-files-found: error
+          retention-days: 7
+      - name: Stage pinned app-local GL reference for the identical executable
+        shell: pwsh
+        timeout-minutes: 10
+        run: ./tools/stage_windows_gl_reference.ps1 -Manifest tools/windows_gl_reference_lock.json -OutputDirectory evidence/gl-runtime
+      - name: Run strict same-platform authored return comparison
+        timeout-minutes: 76
+        working-directory: evidence/runtime-root
+        run: >-
+          python tools/run_windows_same_platform_return.py
+          --executable target/release/vector-range.exe --runtime ../gl-runtime
+          --manifest tools/windows_gl_reference_lock.json --root .
+          --evidence evidence/same-platform-return --timeout 1800 --run-timeout 4500
+      - name: Retain source/reuse and native comparison summaries
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-recovery-summary-attempt-${{ github.run_attempt }}
+          path: |
+            evidence/revalidated/provenance.json
+            evidence/revalidated/validation/
+            evidence/original-inputs/*-github-metadata.json
+            evidence/original-inputs/origin*.json
+            evidence/runtime-root/evidence/same-platform-return/same-platform-return-report.json
+            evidence/runtime-root/evidence/dx12-warp/summary.json
+            evidence/runtime-root/evidence/dx12-warp/invocation.json
+          if-no-files-found: warn
+          retention-days: 7
+      - name: Retain actual smoke and authored pair evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-recovery-native-evidence-attempt-${{ github.run_attempt }}
+          path: evidence/runtime-root/evidence/
+          if-no-files-found: warn
+          retention-days: 7

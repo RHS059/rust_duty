@@ -44,6 +44,22 @@ class PreviewInventoryTests(unittest.TestCase):
         finally:
             fixture.doCleanups()
 
+    def test_revalidated_preview_requires_honest_matching_reuse_record(self):
+        preview = json.loads(self.entries['DX12_PREVIEW.json'])
+        preview['companion_reuse_record'] = 'COMPANION_REUSE.json'
+        preview['smoke']['evidence_artifact'] = f"windows-recovery-native-evidence-attempt-{preview['source']['run_attempt']}"
+        preview['smoke']['evidence_directory'] = 'dx12-warp'
+        self.entries['DX12_PREVIEW.json'] = json.dumps(preview).encode()
+        self.assertFalse(inventory.validate_zip_archive(self.archive())['valid'])
+        reuse = {'schema':'rust-duty-reused-companion-validation/v1','passed':True,
+                 'generation_reused':True,'new_generation':False,'fresh_source_oracle_parity':False,
+                 'native_execution':False,'current_source_commit':preview['source']['commit']}
+        self.entries['COMPANION_REUSE.json'] = json.dumps(reuse).encode()
+        self.assertTrue(inventory.validate_zip_archive(self.archive())['valid'])
+        for key, value in [('passed',False),('new_generation',True),('current_source_commit','0'*40),('native_execution',True)]:
+            self.entries['COMPANION_REUSE.json'] = json.dumps(dict(reuse, **{key:value})).encode()
+            self.assertFalse(inventory.validate_zip_archive(self.archive())['valid'])
+
     def setUp(self):
         temp = tempfile.TemporaryDirectory()
         self.addCleanup(temp.cleanup)

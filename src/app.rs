@@ -1,13 +1,13 @@
-use crate::hud::*;
 use crate::viewmodel_draw::*;
 use crate::world_draw::{
     draw_body_placeholder, grid_texture, register_supply, supply_focus, world,
 };
-use crate::{authored_viewmodel, game_update, pause_menu, sound, weapon_model};
+use crate::{authored_viewmodel, sound, weapon_model};
 use std::io::Write;
 use vector_range::draw::facade::*;
 use vector_range::frame_performance::{BoundaryReason, Eligibility};
 use vector_range::frame_performance_session as frame_trace;
+use vector_range::hud::*;
 use vector_range::platform::input::{KeyCode, MouseButton};
 use vector_range::platform::runtime::{
     get_fps, get_time, mouse_delta_position, mouse_position, next_frame, screen_height,
@@ -23,6 +23,7 @@ use vector_range::{
     clock::FixedClock,
     control::{ActionLatch, ControlMode, ControlState, IntentLatch},
 };
+use vector_range::{game_update, pause_menu};
 use vector_range::{
     muzzle_fx::MuzzleFx,
     settings::Settings,
