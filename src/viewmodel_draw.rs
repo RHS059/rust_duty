@@ -421,3 +421,24 @@ mod tests {
         assert_eq!(*tint, WHITE);
     }
 }
+
+#[cfg(test)]
+mod calibrated_reference_defaults {
+    use super::*;
+
+    #[test]
+    fn production_defaults_match_documented_static_calibration() {
+        let framing = ViewmodelFraming::from_args(&["--reference-viewport".into()]);
+        assert!(framing.reference);
+        assert_eq!(framing.hfov, 76.0);
+        assert_eq!(framing.hip, vec3(0.05930, -0.04831, -0.30806));
+        assert_eq!(framing.ads, vec3(0.0, -0.03794, -0.2322));
+        assert_eq!(
+            framing.hip_rotation,
+            Quat::from_euler(EulerRot::YXZ, 0.04118, -0.01252, 0.0)
+        );
+        assert_eq!(framing.ads_rotation, Quat::IDENTITY);
+        assert_eq!(framing.hand_modes, None);
+        assert_eq!(framing.left_grip_override, None);
+    }
+}

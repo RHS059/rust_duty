@@ -8,7 +8,7 @@
     "tested_merge": "fbf6c33df03c155e23f75d485660b7648ee36024"
   },
   "reviewed_source_commit": "a2fc4734b7f1afcdc92e46d3d813a423fd1d119e",
-  "eligible_assets_tree": "67adef966a2c0db0ee1535897a9011becb6e53a9",
+  "eligible_assets_tree": "a691466f735dee7861b3476d700572255ed2cae5",
   "source_files": [
     {
       "path": ".github/actions/setup-blender/action.yml",

@@ -138,9 +138,9 @@ jobs:
       - name: Test GL UI process evidence guards
         env:
           PYTHONPATH: tools
-        run: python -m unittest -v test_windows_gl_game_ui
+        run: python -m unittest -v test_windows_gl_game_ui test_calibrated_presentation
       - name: Build production UI with both backends
-        run: cargo build --locked --no-default-features --features legacy-macroquad,wgpu-runtime --example game_ui_contract
+        run: cargo build --locked --no-default-features --features legacy-macroquad,wgpu-runtime --example game_ui_contract --bin vector-range
       - name: Stage pinned app-local official Mesa
         shell: pwsh
         timeout-minutes: 10
@@ -163,5 +163,19 @@ jobs:
             evidence/game-ui-gl/
             evidence/game-ui-gl-run/
             evidence/game-ui-gl-runtime/staging-receipt.json
+          if-no-files-found: error
+          retention-days: 7
+      - name: Verify documented static HK416 landmarks on both native backends
+        run: >-
+          python tools/run_calibrated_presentation.py
+          --executable target/debug/vector-range.exe --root .
+          --runtime evidence/game-ui-gl-runtime
+          --evidence evidence/calibrated-static --timeout 180
+      - name: Retain calibrated static captures and exact process evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: calibrated-static-presentation-attempt-${{ github.run_attempt }}
+          path: evidence/calibrated-static/
           if-no-files-found: error
           retention-days: 7

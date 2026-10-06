@@ -31,7 +31,7 @@ class WindowsMigrationPreviewWorkflowTests(unittest.TestCase):
     def test_preview_group_is_distinct_from_protected_full_main_verification(self):
         self.assertEqual(self.data['concurrency'], {
             'group': 'migration-windows-preview-${{ github.ref }}',
-            'cancel-in-progress': 'true'})
+            'cancel-in-progress': 'false'})
         self.assertNotIn('game-', self.data['concurrency']['group'])
 
 if __name__ == '__main__':

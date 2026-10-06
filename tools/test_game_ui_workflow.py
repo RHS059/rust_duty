@@ -39,7 +39,7 @@ class GameUiWorkflowTests(unittest.TestCase):
         self.assertEqual(job['runs-on'], 'windows-latest')
         self.assertNotIn('needs', job)
         commands = [step.get('run', '') for step in job['steps']]
-        self.assertIn('cargo build --locked --no-default-features --features legacy-macroquad,wgpu-runtime --example game_ui_contract', commands)
+        self.assertIn('cargo build --locked --no-default-features --features legacy-macroquad,wgpu-runtime --example game_ui_contract --bin vector-range', commands)
         self.assertTrue(any('stage_windows_gl_reference.ps1 -Manifest tools/windows_gl_reference_lock.json' in command for command in commands))
         native = next(command for command in commands if 'tools/run_windows_gl_game_ui.py' in command)
         self.assertIn('--runtime evidence/game-ui-gl-runtime', native)
@@ -50,6 +50,24 @@ class GameUiWorkflowTests(unittest.TestCase):
         self.assertEqual(upload['if'], 'always()')
         self.assertNotIn('*.dll', upload['with']['path'])
 
+
+    def test_static_calibration_reuses_current_dual_build_and_pinned_runtime(self):
+        steps = self.workflow['jobs']['game-ui-gl-contract']['steps']
+        builds = [step['run'] for step in steps if 'cargo build' in step.get('run', '')]
+        self.assertEqual(len(builds), 1)
+        self.assertIn('--example game_ui_contract --bin vector-range', builds[0])
+        runner = next(step for step in steps if 'run_calibrated_presentation.py' in step.get('run', ''))
+        self.assertIn('--executable target/debug/vector-range.exe --root .', runner['run'])
+        self.assertIn('--runtime evidence/game-ui-gl-runtime', runner['run'])
+        self.assertIn('--evidence evidence/calibrated-static --timeout 180', runner['run'])
+        self.assertNotIn('continue-on-error', runner)
+        ui = next(step for step in steps if 'run_windows_gl_game_ui.py' in step.get('run', ''))
+        self.assertLess(steps.index(ui), steps.index(runner))
+        archive = steps[-1]
+        self.assertEqual(archive['if'], 'always()')
+        self.assertEqual(archive['with']['name'], 'calibrated-static-presentation-attempt-${{ github.run_attempt }}')
+        self.assertEqual(archive['with']['path'], 'evidence/calibrated-static/')
+        self.assertEqual(archive['with']['if-no-files-found'], 'error')
 
 if __name__ == '__main__':
     unittest.main()

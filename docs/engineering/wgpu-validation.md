@@ -402,3 +402,48 @@ These tests compile the real application; fresh native replay parity remains
 pending. The policy contracts exercise simulation/session behavior; a separate static
 call-site guard rejects restored duplicate app resets. Neither executes the
 asynchronous application frame loop.
+
+## Completed optimized Windows WIP (2026-10-06, 02:23 UTC)
+
+[Run37400567976](https://github.com/RHS059/rust_duty/actions/runs/37400567976)
+completed successfully on `bc9e7c08d35faea04745a101772a5a8869c00cde`:
+
+- All five exact original companion ZIPs passed current-source/structural checks.
+- Release, audio-enabled dual-runtime executable compiled and passed the actual
+  127-frame Windows DX12/WARP smoke.
+- All 391 frames per backend passed the strict same-Windows return comparison:
+  GL llvmpipe, DX12 Microsoft Basic Render Driver, explicit Fxc, every field exact.
+- Renderer contract and both production UI jobs passed.
+- Full workflow quality passed: game 880 tests/2 ignored, updater 53/2 ignored,
+  and Python 1174 tests/11 declared skips. These are the workflow's ordinary
+  Cargo targets, not the separate four-profile all-target source matrix.
+- The original Windows WinError3 output regression now passes natively.
+
+[Playable WIP artifact11385711086](https://github.com/RHS059/rust_duty/actions/runs/37400567976/artifacts/11385711086)
+is 109,528,337 bytes, ZIP SHA-256
+`ad13c7ded99ba14c8281e79d3988f5b10461c6dc18f0757bf7d2149f8475a6b0`.
+The smoke/return-tested EXE SHA-256 is
+`bd35d286ece1f9db54c13388877317fb42b293ea29404500f16105566274e3bd`.
+Native evidence is artifact11386180891. GitHub metadata and completed job logs
+establish these identities; an additional local ZIP inspection was blocked by
+HTTP403, and no alternate transfer or retry was attempted.
+
+This binary includes frame arenas and GPU telemetry but predates the subsequent
+`3e64a7d` deterministic firing-reset correction. That revision's complete run
+37401559622 has started. The older protected b78a9b run finished with seven of
+nine authored shards passing and a correctly failing aggregate: ADS ammo differs
+at0297; the extreme-offset fixture also fails positive-coverage checks before
+reaching its hidden0297 ammo difference.
+
+Independent source projection proves the preserved (+0.20,-0.20,+0.20)m offset
+places the complete hip model outside the viewport for160 of553 frames. Fifty
+additional partially clipped frames are below1% coverage. Source visibility and
+native pixels are retained as diagnostics; neither threshold nor geometry has
+been changed, and this acceptance-contract conflict remains open.
+
+The separately documented calibrated static fixture is now a fail-closed WIP
+runner using the approved single untextured legacy HK416. Its source/Rust default
+contracts and synthetic Python checks pass; no native detector applicability or
+landmark acceptance is claimed until real Windows output is examined. It shares
+the GL UI job's dual-runtime build and pinned Mesa and leaves all authored replay
+and aggregate requirements intact. The accepted count remains15/19.

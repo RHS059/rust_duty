@@ -93,6 +93,16 @@ class RenderCaptureTests(unittest.TestCase):
         image.save(self.path)
         self.assert_failure('foreground coverage', orientation=False)
 
+    def test_coverage_failure_identifies_the_exact_capture(self):
+        image = Image.new('RGBA', (100, 100), BACKGROUND)
+        image.putpixel((25, 25), (255, 0, 0, 255))
+        image.save(self.path)
+        result = self.run_cli(orientation=False)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn(f'{self.path}: foreground coverage 0.000100 below 0.100000',
+                      result.stderr)
+        self.assertEqual(result.stdout, '')
+
     def test_coverage_threshold_is_enforced(self):
         self.assert_failure('foreground coverage', '--min-coverage', '0.37')
 

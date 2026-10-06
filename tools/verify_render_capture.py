@@ -143,7 +143,7 @@ def verify(path, extent, background, min_coverage, tolerance, orientation):
     foreground = _foreground_count(image, background, tolerance)
     coverage = foreground / (image.width * image.height)
     if coverage < min_coverage:
-        raise CaptureError(f'foreground coverage {coverage:.6f} below {min_coverage:.6f}')
+        raise CaptureError(f'{path}: foreground coverage {coverage:.6f} below {min_coverage:.6f}')
     # Independently reject near-uniform output against its own median color.
     # This catches a changed clear encoding/color plus sparse noise, rather
     # than accepting the entire wrong-colored background as scene coverage.

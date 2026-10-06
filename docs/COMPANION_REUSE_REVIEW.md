@@ -115,3 +115,26 @@ The full Windows recovery path must still download all five exact original
 ZIPs, pass the unchanged current-source and structural checks, then complete
 its separately required build and native checks. A pin refresh or four-pack
 local check is not a five-pack acceptance receipt or gameplay approval.
+
+## Static calibration asset eligibility addendum (2026-10-06)
+
+The separately approved untextured legacy HK416 is restored as one runtime file,
+`assets/weapons/hk416a5.vrm`, for the documented static calibration fixture.
+Source base is main `3e64a7dbd64802df2cb4f393e5e6afffd8988640`. The asset is
+3,901,244 bytes, SHA-256
+`082b8302a39c8fd3218f3c732f8c3a06c1af1fb40f703f8d64f581b38b32d4aa`, Git blob
+`f3743fbe7c9ec1e65c70ee1a7ce8cd620aa5dcea`. Strict VRMESH01 inspection verifies
+CRC `fc786964`, 30 mesh parts, zero textures and zero texture bytes.
+
+The only assets-tree difference from
+`67adef966a2c0db0ee1535897a9011becb6e53a9` is this added path. Every pre-existing
+asset blob is unchanged. The reviewed new assets tree is
+`a691466f735dee7861b3476d700572255ed2cae5`. Only `eligible_assets_tree` is updated
+in the reuse lock; all 61 source rows, all 58 historical origin hashes, the
+five immutable ZIP identities, origin record and acceptance boundary are unchanged.
+
+The CPU companion sampler and generators do not load this optional static weapon.
+The new native presentation fixture selects it explicitly and suppresses automatic
+authored loading; ordinary authored validation keeps every existing companion and
+replay. This audit permits the exact additive tree, not arbitrary future asset
+changes, and does not claim new generation/source-oracle parity or native success.
