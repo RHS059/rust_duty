@@ -310,3 +310,95 @@ Local immutable `178cd9a21bad5ce1f103afa66c8eee842ee6d2e9` has fresh default841,
 silent757 and combined899 passing production tests, with two existing ignored
 tests in each mode. All three strict all-target clippy lanes and formatting pass. These
 local results are not attributed to the older native run above.
+
+## Main integration checkpoint (2026-10-06, 01:46 UTC)
+
+This section supersedes the earlier package count without rewriting its
+historical evidence. Agent delivery is **15 of 19**: the fourteen packages
+listed above plus WP1.4. Native production UI checks exercised both Windows
+GL and DX12 (18 captures per backend). Remaining packages are **0.3, 3.1,
+3.2 and 4.3**. Original WP4.1 is removed; 4.4 and 5.1 are later hardware/human
+acceptance, and 5.2 is deferred fallback removal. None is counted as an
+agent-completed package. The complete Windows build and menu recording/export
+feature remain explicit delivery criteria outside that denominator.
+
+Published main `6215fd99a981a3b79b725940919d7e37472e2d24`, tree
+`255cf1413a9de0c47da8a8195a3d6829fa361dd6`, combines the rendered frame witness,
+landmark review correction, bounded renderer upload arenas, Windows exclusive
+output correction and Hal's GPU telemetry. Its exact tree was locally tested as
+`5f03245ebb5ae9811fec5cc945117a15080df55f`:
+
+- Rust all-target tests: default 932; no-default 862; combined default-audio plus
+  wgpu 1014; no-default plus wgpu 970. Each retains two declared private-asset/
+  regenerated-oracle ignores. Four strict all-target clippy lanes, doctests and
+  formatting pass. All 676 tracked file hashes remained unchanged.
+- Full Python discovery: 1148 tests pass with four declared skips (missing
+  directional and Jump distribution outputs, opt-in Blender, and native Windows
+  exception translation). The Windows-specific output test requires Windows.
+- Arena CPU evidence preserves draw/state/target/capture order and exact payload
+  bytes under both ordinary and bounded-chunk cases. The representative
+  337-draw production world/HUD/presentation frame changes from 1011 to three
+  application buffers and one transform bind group. These counts are not an
+  FPS measurement. Independent mixed-command rollover review also passes.
+
+[Independent run37398072532](https://github.com/RHS059/rust_duty/actions/runs/37398072532)
+on descendant `a2fc4734b7f1afcdc92e46d3d813a423fd1d119e` passes native renderer
+contract and production GL/DX12 UI jobs, but its recovery lanes fail before
+compilation at the strict current-source `src/lib.rs` pin. No optimized playable
+artifact was produced by that attempt. Main
+`bc9e7c08d35faea04745a101772a5a8869c00cde` refreshes reviewed eligibility after
+auditing all original pins and the telemetry registration. Historical artifact
+hashes and exact source/worktree checks are retained; 41 focused tests pass.
+The five-pack Windows revalidation then passes in
+[run37400567976](https://github.com/RHS059/rust_duty/actions/runs/37400567976).
+Its compilation, native smoke, playable artifact, strict return and full quality
+outcomes are still pending at this checkpoint.
+
+The protected complete run
+[37393515030](https://github.com/RHS059/rust_duty/actions/runs/37393515030)
+continues on older `b78a9b27d53409f7e2843acbc63d64999afec56c`. Its baseline,
+strict same-Windows 391-frame return, renderer/UI and smoke pass. Full Windows
+quality fails one exclusive-output exception test (1163 tests, 11 skips); the
+constructor correction is included in the later main above, awaiting its native
+quality outcome. Jump, reload and walk authored shards pass. ADS completes both
+captures and individual validators, then exact cross-backend comparison fails
+at frame0297 with ammo 9 versus 10. Remaining authored shards and the aggregate
+have not completed. No equality or frame coverage requirement is relaxed.
+This old-source result is not current-arena acceptance.
+
+Menu recording exposes local session export, visible recording status and
+observations guidance. Hal's Windows background PDH sampling is included on
+main; actual live PDH values and the adapter-LUID association are not established
+by Linux source tests or UI captures. The user's prior GL and DX12 sessions used
+different gameplay workloads and cannot establish a controlled renderer speed
+ratio or prove a particular CPU/GPU bottleneck. No human visual approval,
+hardware performance acceptance or renderer cutover is claimed.
+
+### Deterministic capture firing reset correction
+
+The native ADS failure is reproduced using the actual current Simulation and
+SessionController: host frames above the 250 ms discard threshold cleared
+`firing_sequence` between committed ticks. The third shot moved from
+4.941666924 s to 4.950000258 s, first changing ammo at frame0297 exactly as in
+CI. Direct native focus cleanup had the same authority over that state.
+
+The correction centralizes firing-interruption policy: live input still resets
+on the identical pause/resume/focus/time boundaries; scripted gameplay captures
+do not inherit host-frame firing resets. Existing clock, input-latch, blocked
+startup and pause cleanup remain unchanged. Simulation, weapon cadence, authored
+inputs, assets, comparison equality and frame coverage are unchanged.
+
+A fresh source harness passes 84 tests, including three new capture/session
+contracts. The complete ADS replay is compared at every presentation frame under
+normal, slow, invalid and focus-changing host timing at 30 Hz, 60 Hz and the
+existing default rate. Removing the capture guard causes two regressions to fail;
+the actual live-hitch regression still passes. This causal CPU result is separate
+from application compilation and the required fresh native GL/DX12 replay result.
+
+Integrated Cargo verification additionally passes all four new contracts in
+combined and no-default configurations, all 26 actual application-bin tests,
+combined all-target clippy with warnings denied, formatting and diff checks.
+These tests compile the real application; fresh native replay parity remains
+pending. The policy contracts exercise simulation/session behavior; a separate static
+call-site guard rejects restored duplicate app resets. Neither executes the
+asynchronous application frame loop.

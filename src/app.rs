@@ -631,11 +631,12 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
             intents.clear();
             controls.clear();
             action_latch.clear();
-            sim.player.firing_sequence = false;
         }
         if transition.discard_timing {
             clock.clear();
             intents.clear();
+        }
+        if transition.interrupts_firing_sequence(gameplay_capture, focus_state.changed) {
             sim.player.firing_sequence = false;
         }
         // While startup owns the screen, no world tick, gameplay hotkey, weapon
