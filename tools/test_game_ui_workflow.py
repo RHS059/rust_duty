@@ -46,7 +46,7 @@ class GameUiWorkflowTests(unittest.TestCase):
         self.assertIn('--manifest tools/windows_gl_reference_lock.json', native)
         self.assertIn('--timeout 600', native)
         self.assertFalse(any('continue-on-error' in step for step in job['steps']))
-        upload = job['steps'][-1]
+        upload = next(step for step in job['steps'] if step.get('with', {}).get('name') == 'gl-game-ui-contract-attempt-${{ github.run_attempt }}')
         self.assertEqual(upload['if'], 'always()')
         self.assertNotIn('*.dll', upload['with']['path'])
 
@@ -63,7 +63,7 @@ class GameUiWorkflowTests(unittest.TestCase):
         self.assertNotIn('continue-on-error', runner)
         ui = next(step for step in steps if 'run_windows_gl_game_ui.py' in step.get('run', ''))
         self.assertLess(steps.index(ui), steps.index(runner))
-        archive = steps[-1]
+        archive = next(step for step in steps if step.get('with', {}).get('name') == 'calibrated-static-presentation-attempt-${{ github.run_attempt }}')
         self.assertEqual(archive['if'], 'always()')
         self.assertEqual(archive['with']['name'], 'calibrated-static-presentation-attempt-${{ github.run_attempt }}')
         self.assertEqual(archive['with']['path'], 'evidence/calibrated-static/')

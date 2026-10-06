@@ -1,0 +1,23 @@
+name: Calibrated presentation native feedback
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/calibrated-presentation-feedback.yml'
+      - '.github/workflows/wgpu-renderer-contract.yml'
+      - 'tools/run_calibrated_presentation.py'
+      - 'tools/verify_calibrated_presentation.py'
+      - 'tools/calibrated_sight_contours.py'
+      - 'tools/test_calibrated_presentation.py'
+      - 'tools/test_calibrated_feedback_workflow.py'
+      - 'assets/weapons/hk416a5.vrm'
+  workflow_dispatch:
+permissions:
+  contents: read
+# Fresh renderer evidence never interrupts full main or Windows quality checks.
+concurrency:
+  group: calibrated-native-feedback-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  renderer-evidence:
+    uses: ./.github/workflows/wgpu-renderer-contract.yml

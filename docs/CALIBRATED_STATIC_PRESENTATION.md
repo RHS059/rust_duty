@@ -105,3 +105,18 @@ completed authored aggregate or a successful Windows fixture.
   establish local/Unix listening sockets. No insecure transport fallback,
   installation or expensive game rebuild was attempted. No GL or Windows pixel
   result is claimed.
+
+## Fresh compact inspection output
+
+A renderer-only feedback caller reuses the existing native renderer workflow.
+It does not run the source-bound recovery/distribution or complete main workflow,
+and its independent non-canceling queue does not interrupt their active checks.
+Each execution performs new captures; it does not read or repackage any historical
+artifact. The complete calibration packet is always retained. A second artifact
+contains only captures, logs, source/input summary and frozen settings, after
+checking a 24 MiB uncompressed transfer budget. Missing or excessive compact
+output is reported; it does not erase the full packet or waive a failed check.
+
+The first full-packet transfer returned HTTP403. Its cause is unestablished; no
+alternate route or retry was used. The compact output is a new resource from a
+fresh native run, whose actual transfer outcome must be checked independently.

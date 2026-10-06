@@ -179,3 +179,33 @@ jobs:
           path: evidence/calibrated-static/
           if-no-files-found: error
           retention-days: 7
+      - name: Check compact calibrated evidence transfer budget
+        id: calibrated-raw-budget
+        if: always()
+        shell: python
+        run: |
+          from pathlib import Path
+          import json
+          import stat
+          root = Path('evidence/calibrated-static')
+          selected = [root / name for name in ('captures', 'logs', 'summary.json', 'input-manifest.json', 'calibration-settings.cfg')]
+          files = [file for path in selected for file in (path.rglob('*') if path.is_dir() else [path]) if file.is_file()]
+          if not files or any(file.is_symlink() or not stat.S_ISREG(file.lstat().st_mode) for file in files):
+              raise SystemExit('Compact evidence is missing or contains non-regular input')
+          total = sum(file.stat().st_size for file in files)
+          if total > 24 * 1024 * 1024:
+              raise SystemExit('Compact evidence exceeds 24 MiB; the full packet remains retained')
+          print(json.dumps({'raw_files': len(files), 'uncompressed_bytes': total, 'maximum_bytes': 24 * 1024 * 1024}))
+      - name: Retain bounded raw calibrated evidence for inspection
+        if: always() && steps.calibrated-raw-budget.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: calibrated-static-raw-attempt-${{ github.run_attempt }}
+          path: |
+            evidence/calibrated-static/captures/
+            evidence/calibrated-static/logs/
+            evidence/calibrated-static/summary.json
+            evidence/calibrated-static/input-manifest.json
+            evidence/calibrated-static/calibration-settings.cfg
+          if-no-files-found: error
+          retention-days: 7
