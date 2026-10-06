@@ -1,50 +1,14 @@
 //! Trivial CPU-lit mesh pipeline. Never upload the padded public glam vertex directly.
-use crate::draw::{BlendMode, TextureSource, Vertex};
-use glam::{Mat4, Vec4};
+use crate::draw::{BlendMode, TextureSource};
+
 use std::collections::HashMap;
 use wgpu::util::DeviceExt;
 
-#[repr(C)]
-#[derive(Clone, Copy, Debug, PartialEq)]
-pub(crate) struct GpuVertex {
-    pub position: [f32; 3],
-    pub uv: [f32; 2],
-    pub color: [u8; 4],
-    pub normal: [f32; 4],
-}
-impl From<Vertex> for GpuVertex {
-    fn from(v: Vertex) -> Self {
-        Self {
-            position: v.position.to_array(),
-            uv: v.uv.to_array(),
-            color: v.color,
-            normal: v.normal.to_array(),
-        }
-    }
-}
+pub(crate) use super::arena::GpuVertex;
+use super::arena::{FrameArena, MATRIX_BYTES};
 impl GpuVertex {
-    pub const STRIDE: u64 = 40;
     pub const ATTRIBUTES: [wgpu::VertexAttribute; 4] =
         wgpu::vertex_attr_array![0=>Float32x3,1=>Float32x2,2=>Unorm8x4,3=>Float32x4];
-    pub fn append_bytes(self, bytes: &mut Vec<u8>) {
-        for v in self.position.into_iter().chain(self.uv) {
-            bytes.extend(v.to_le_bytes());
-        }
-        bytes.extend(self.color);
-        for v in self.normal {
-            bytes.extend(v.to_le_bytes());
-        }
-    }
-}
-/// The only OpenGL (-1..1) to WebGPU (0..1) depth conversion in this backend.
-pub(crate) fn clip_matrix(view_projection: Mat4, model: Mat4) -> Mat4 {
-    let remap = Mat4::from_cols(
-        Vec4::X,
-        Vec4::Y,
-        Vec4::new(0., 0., 0.5, 0.),
-        Vec4::new(0., 0., 0.5, 1.),
-    );
-    remap * view_projection * model
 }
 /// Fragment output representation is part of the pipeline key, not inferred
 /// from an RGBA sample's alpha (emissive targets can contain RGB at alpha zero).
@@ -130,11 +94,10 @@ pub(crate) struct Pipelines {
     shader: wgpu::ShaderModule,
     pipelines: HashMap<PipelineKey, wgpu::RenderPipeline>,
 }
-pub(crate) struct Geometry {
+pub(crate) struct FrameGeometry {
     pub vertices: wgpu::Buffer,
     pub indices: wgpu::Buffer,
     pub transform: wgpu::BindGroup,
-    pub count: u32,
 }
 impl Pipelines {
     pub fn new(device: &wgpu::Device) -> Self {
@@ -145,7 +108,7 @@ impl Pipelines {
                 visibility: wgpu::ShaderStages::VERTEX,
                 ty: wgpu::BindingType::Buffer {
                     ty: wgpu::BufferBindingType::Uniform,
-                    has_dynamic_offset: false,
+                    has_dynamic_offset: true,
                     min_binding_size: wgpu::BufferSize::new(64),
                 },
                 count: None,
@@ -253,61 +216,54 @@ impl Pipelines {
             })
             .clone()
     }
-    pub fn geometry(
+    /// Three immutable buffers and one transform binding per nonempty chunk.
+    /// No storage is shared with a subsequent frame. wgpu retains all buffers
+    /// referenced by recorded commands until their submission is finished.
+    pub fn upload_geometry(
         &self,
         device: &wgpu::Device,
-        vertices: &[Vertex],
-        indices: &[u16],
-        transform: Mat4,
-    ) -> Geometry {
-        let mut bytes = Vec::with_capacity(vertices.len() * GpuVertex::STRIDE as usize);
-        for vertex in vertices {
-            GpuVertex::from(*vertex).append_bytes(&mut bytes);
-        }
-        let vertices = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: Some("dynamic CPU vertices"),
-            contents: &bytes,
-            usage: wgpu::BufferUsages::VERTEX,
-        });
-        let indices_bytes: Vec<u8> = indices
-            .iter()
-            .flat_map(|index| index.to_le_bytes())
-            .collect();
-        let indices_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: Some("dynamic mesh indices"),
-            contents: &indices_bytes,
-            usage: wgpu::BufferUsages::INDEX,
-        });
-        let matrix_bytes: Vec<u8> = transform
-            .to_cols_array()
-            .into_iter()
-            .flat_map(f32::to_le_bytes)
-            .collect();
-        let uniform = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: Some("draw transform"),
-            contents: &matrix_bytes,
-            usage: wgpu::BufferUsages::UNIFORM,
+        arena: &FrameArena,
+    ) -> Option<FrameGeometry> {
+        let [vertices, indices, matrices] = arena.buffer_contents()?;
+        let [vertices, indices, uniform] = [
+            ("frame vertices", vertices, wgpu::BufferUsages::VERTEX),
+            ("frame indices", indices, wgpu::BufferUsages::INDEX),
+            ("frame transforms", matrices, wgpu::BufferUsages::UNIFORM),
+        ]
+        .map(|(label, contents, usage)| {
+            device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                label: Some(label),
+                contents,
+                usage,
+            })
         });
         let transform = device.create_bind_group(&wgpu::BindGroupDescriptor {
-            label: Some("draw transform"),
+            label: Some("frame chunk transform slots"),
             layout: &self.transform_layout,
             entries: &[wgpu::BindGroupEntry {
                 binding: 0,
-                resource: uniform.as_entire_binding(),
+                resource: wgpu::BindingResource::Buffer(wgpu::BufferBinding {
+                    buffer: &uniform,
+                    offset: 0,
+                    // Bind one matrix, not the entire arena: the dynamic offset
+                    // chooses each draw without exceeding uniform binding limits.
+                    size: wgpu::BufferSize::new(MATRIX_BYTES),
+                }),
             }],
         });
-        Geometry {
+        Some(FrameGeometry {
             vertices,
-            indices: indices_buffer,
+            indices,
             transform,
-            count: indices.len() as u32,
-        }
+        })
     }
 }
 #[cfg(test)]
 mod tests {
+    use super::super::arena::clip_matrix;
     use super::*;
-    use glam::{Vec2, Vec3};
+    use crate::draw::Vertex;
+    use glam::{Mat4, Vec2, Vec3, Vec4};
     use std::mem::{offset_of, size_of};
     #[test]
     fn packed_vertex_has_exact_offsets_and_no_glam_padding() {

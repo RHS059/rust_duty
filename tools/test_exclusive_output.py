@@ -3,6 +3,7 @@
 import ctypes
 import errno
 from pathlib import Path
+import sys
 import tempfile
 from types import SimpleNamespace
 import unittest
@@ -136,12 +137,63 @@ class ExclusiveOutputTests(unittest.TestCase):
         api.close.assert_called_once_with(123)
 
     def test_windows_collision_never_opens_or_writes_target(self):
-        api = SimpleNamespace(create=Mock(return_value=exclusive.INVALID_HANDLE_VALUE),
-                              write=Mock(), flush=Mock(), close=Mock(), error=lambda: 80)
-        with patch.object(exclusive, '_windows_api', return_value=api), self.assertRaises(FileExistsError):
-            exclusive._write_windows(self.path, b'not written')
-        api.write.assert_not_called()
-        api.close.assert_not_called()
+        for code in (80, 183):
+            api = SimpleNamespace(create=Mock(return_value=exclusive.INVALID_HANDLE_VALUE),
+                                  write=Mock(), flush=Mock(), close=Mock(), error=lambda: code)
+            with self.subTest(code=code), patch.object(exclusive, '_windows_api', return_value=api):
+                with self.assertRaises(FileExistsError) as raised:
+                    exclusive._write_windows(self.path, b'not written')
+                self.assertEqual(raised.exception.errno, errno.EEXIST)
+                self.assertEqual(raised.exception.winerror, code)
+                self.assertEqual(raised.exception.filename, str(self.path))
+                api.write.assert_not_called()
+                api.flush.assert_not_called()
+                api.close.assert_not_called()
+
+    def test_windows_create_failure_preserves_exception_type_and_parent_policy(self):
+        nested = self.root / 'missing' / 'report-\u2603.json'
+        for code, error_type, expected_errno in ((2, FileNotFoundError, errno.ENOENT),
+                                                (3, FileNotFoundError, errno.ENOENT),
+                                                (5, PermissionError, errno.EACCES)):
+            api = SimpleNamespace(create=Mock(return_value=exclusive.INVALID_HANDLE_VALUE),
+                                  write=Mock(), flush=Mock(), close=Mock(), error=lambda: code)
+            with self.subTest(code=code), patch.object(exclusive, '_windows_api', return_value=api), \
+                    patch.object(exclusive, '_WINDOWS', True):
+                with self.assertRaises(error_type) as raised:
+                    exclusive.write_text_exclusive(nested, 'not written')
+                self.assertEqual(raised.exception.errno, expected_errno)
+                self.assertEqual(raised.exception.winerror, code)
+                self.assertEqual(raised.exception.filename, str(nested))
+                api.create.assert_called_once_with(str(nested.absolute()), exclusive.GENERIC_WRITE, 0,
+                    None, exclusive.CREATE_NEW,
+                    exclusive.FILE_ATTRIBUTE_NORMAL | exclusive.FILE_FLAG_OPEN_REPARSE_POINT, None)
+                api.write.assert_not_called()
+                api.flush.assert_not_called()
+                api.close.assert_not_called()
+                self.assertFalse(nested.parent.exists())
+
+    def test_windows_error_supplies_native_code_during_exception_construction(self):
+        with patch.object(exclusive, 'OSError', wraps=OSError, create=True) as constructor:
+            exclusive._windows_error(32, self.path)  # ERROR_SHARING_VIOLATION
+        constructor.assert_called_once()
+        self.assertEqual(len(constructor.call_args.args), 4)
+        self.assertEqual(constructor.call_args.args[2:], (str(self.path), 32))
+
+    @unittest.skipUnless(sys.platform == 'win32', 'requires native Windows errno translation')
+    def test_windows_error_uses_native_errno_mapping(self):
+        cases = ((2, FileNotFoundError, errno.ENOENT), (3, FileNotFoundError, errno.ENOENT),
+                 (5, PermissionError, errno.EACCES), (6, OSError, errno.EBADF),
+                 (32, PermissionError, errno.EACCES), (33, PermissionError, errno.EACCES),
+                 (80, FileExistsError, errno.EEXIST), (183, FileExistsError, errno.EEXIST),
+                 (87, OSError, errno.EINVAL), (109, BrokenPipeError, errno.EPIPE),
+                 (112, OSError, errno.ENOSPC), (267, NotADirectoryError, errno.ENOTDIR))
+        for code, error_type, expected_errno in cases:
+            with self.subTest(code=code):
+                error = exclusive._windows_error(code, self.path)
+                self.assertIs(type(error), error_type)
+                self.assertEqual(error.errno, expected_errno)
+                self.assertEqual(error.winerror, code)
+                self.assertEqual(error.filename, str(self.path))
 
     def test_windows_write_failure_closes_handle_and_never_reports_success(self):
         api = SimpleNamespace(create=Mock(return_value=123), write=Mock(return_value=False),

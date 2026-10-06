@@ -1,14 +1,13 @@
 //! Commands are encoded in list order, including copies at mid-frame capture checkpoints.
 use super::{
+    arena::DrawSlice,
     capture::{CaptureEncoding, Readback},
-    mesh::{clip_matrix, FragmentKind},
+    mesh::{FragmentKind, FrameGeometry},
+    plan::{FramePlan, PreparedCommand, PreparedDraw},
     target::{self, GpuTexture},
     WgpuRenderer,
 };
-use crate::draw::{
-    BlendMode, Camera, Color, Command, DrawList, FrameOutput, Mesh, RenderTarget, TextureSource,
-};
-use glam::Mat4;
+use crate::draw::{BlendMode, Color, Command, DrawList, FrameOutput, RenderTarget, TextureSource};
 use std::sync::Arc;
 
 impl WgpuRenderer {
@@ -69,6 +68,19 @@ impl WgpuRenderer {
                 &RenderTarget::new(list.width, list.height, true)?.texture,
             )?);
         }
+        let limits = self.gpu.device.limits();
+        let plan = FramePlan::new(
+            list,
+            &mut self.text,
+            limits.min_uniform_buffer_offset_alignment,
+            limits.max_buffer_size,
+            presentation.is_some(),
+        )?;
+        let geometry: Vec<_> = plan
+            .arenas
+            .iter()
+            .map(|arena| self.pipelines.upload_geometry(&self.gpu.device, arena))
+            .collect();
         let mut encoder = self
             .gpu
             .device
@@ -76,91 +88,29 @@ impl WgpuRenderer {
                 label: Some("ordered presentation frame"),
             });
         clear(&mut encoder, &self.main, Color::TRANSPARENT);
-        let mut camera = Camera::screen(list.width, list.height);
         let mut readbacks = Vec::new();
-        let mut commands = list.commands.as_slice();
-        while let Some((command, following)) = commands.split_first() {
-            commands = following;
+        for command in &plan.commands {
             match command {
-                Command::Camera(next) => {
-                    if let Some(target) = &next.target {
+                PreparedCommand::Camera(camera) => {
+                    if let Some(target) = &camera.target {
                         self.texture(&target.texture)?;
                     }
-                    camera = next.clone();
                 }
-                Command::Clear(color) => {
-                    let output = self.output(camera.target.as_ref())?;
+                PreparedCommand::Clear { target, color } => {
+                    let output = self.output(target.as_ref())?;
                     clear(&mut encoder, &output, *color);
                 }
-                Command::Mesh { mesh, model, blend } => {
-                    self.draw_mesh(&mut encoder, &camera, mesh, *model, *blend, false)?
-                }
-                Command::Lines { lines, model } => {
-                    let (consumed, batches) =
-                        super::lines::adjacent_batches(lines, *model, commands);
-                    commands = &commands[consumed..];
-                    for (vertices, indices) in batches {
-                        self.draw_mesh(
-                            &mut encoder,
-                            &camera,
-                            &Mesh {
-                                vertices,
-                                indices,
-                                texture: None,
-                            },
-                            *model,
-                            BlendMode::Alpha,
-                            true,
-                        )?;
-                    }
-                }
-                Command::Rect { rect, color } => {
-                    let screen = self.screen_camera(camera.target.as_ref())?;
-                    self.draw_mesh(
-                        &mut encoder,
-                        &screen,
-                        &super::sprite2d::quad(*rect, *color, None),
-                        Mat4::IDENTITY,
-                        BlendMode::Alpha,
-                        false,
-                    )?;
-                }
-                Command::Sprite {
-                    texture,
-                    destination,
-                    tint,
-                } => {
-                    let screen = self.screen_camera(camera.target.as_ref())?;
-                    self.draw_mesh(
-                        &mut encoder,
-                        &screen,
-                        &super::sprite2d::quad(*destination, *tint, Some(texture.clone())),
-                        Mat4::IDENTITY,
-                        BlendMode::Alpha,
-                        false,
-                    )?;
-                }
-                Command::Text {
-                    text,
-                    baseline,
-                    size,
-                    color,
-                } => {
-                    let meshes = self.text.meshes(text, *baseline, *size, *color)?;
-                    let screen = self.screen_camera(camera.target.as_ref())?;
-                    for mesh in meshes {
-                        self.draw_mesh(
-                            &mut encoder,
-                            &screen,
-                            &mesh,
-                            Mat4::IDENTITY,
-                            BlendMode::Alpha,
-                            false,
-                        )?;
-                    }
-                }
-                Command::Capture { target, path } => {
+                PreparedCommand::Draw(draw) => self.draw_prepared_mesh(
+                    &mut encoder,
+                    geometry[draw.geometry.arena_index]
+                        .as_ref()
+                        .expect("prepared draw has frame buffers"),
+                    draw,
+                )?,
+                PreparedCommand::Capture { target, path } => {
                     let output = self.output(target.as_ref())?;
+                    // Capture remains an in-order GPU copy, before later draws
+                    // or clears. All maps still finish after the same submission.
                     readbacks.push(Readback::encode(
                         &self.gpu.device,
                         &mut encoder,
@@ -180,18 +130,6 @@ impl WgpuRenderer {
             let view = frame
                 .texture
                 .create_view(&wgpu::TextureViewDescriptor::default());
-            let screen = Camera::screen(list.width, list.height);
-            let mesh = super::sprite2d::quad(
-                crate::draw::Rect::new(0., 0., list.width as f32, list.height as f32),
-                Color::WHITE,
-                None,
-            );
-            let geometry = self.pipelines.geometry(
-                &self.gpu.device,
-                &mesh.vertices,
-                &mesh.indices,
-                clip_matrix(screen.view_projection, Mat4::IDENTITY),
-            );
             let pipeline = self.pipelines.pipeline(
                 &self.gpu.device,
                 surface.config.format,
@@ -213,7 +151,19 @@ impl WgpuRenderer {
                 })],
                 ..Default::default()
             });
-            issue(&mut pass, &pipeline, &geometry, &self.main.binding);
+            let present = plan
+                .present
+                .as_ref()
+                .expect("presentation has a draw slice");
+            issue(
+                &mut pass,
+                &pipeline,
+                geometry[present.arena_index]
+                    .as_ref()
+                    .expect("presentation has frame buffers"),
+                &present.range,
+                &self.main.binding,
+            );
         }
         self.gpu.queue.submit([encoder.finish()]);
         Ok((readbacks, presentation))
@@ -224,49 +174,30 @@ impl WgpuRenderer {
             None => Ok(self.main.clone()),
         }
     }
-    fn screen_camera(&mut self, target: Option<&RenderTarget>) -> Result<Camera, String> {
-        let output = self.output(target)?;
-        let mut camera = Camera::screen(output.descriptor.width, output.descriptor.height);
-        camera.target = target.cloned();
-        Ok(camera)
-    }
-    fn draw_mesh(
+    fn draw_prepared_mesh(
         &mut self,
         encoder: &mut wgpu::CommandEncoder,
-        camera: &Camera,
-        mesh: &Mesh,
-        model: Mat4,
-        blend: BlendMode,
-        lines: bool,
+        geometry: &FrameGeometry,
+        draw: &PreparedDraw,
     ) -> Result<(), String> {
-        if mesh.indices.is_empty() {
-            return Ok(());
-        }
-        let output = self.output(camera.target.as_ref())?;
-        let texture = match &mesh.texture {
+        let output = self.output(draw.target.as_ref())?;
+        let texture = match &draw.texture {
             Some(texture) => self.texture(texture)?,
             None => self.white.clone(),
         };
         if Arc::ptr_eq(&output, &texture) {
             return Err("cannot sample the current render target while drawing into it".into());
         }
-        if camera.depth_test && output.depth.is_none() {
+        if draw.depth_test && output.depth.is_none() {
             return Err("depth-enabled camera requires a target with depth storage".into());
         }
-        let transform = clip_matrix(camera.view_projection, model);
-        if !transform.is_finite() {
-            return Err("camera-model transform overflow".into());
-        }
-        let geometry =
-            self.pipelines
-                .geometry(&self.gpu.device, &mesh.vertices, &mesh.indices, transform);
         let pipeline = self.pipelines.pipeline(
             &self.gpu.device,
             target::COLOR_FORMAT,
-            camera.depth_test,
-            lines,
-            blend,
-            FragmentKind::for_source(&texture.descriptor.source, blend),
+            draw.depth_test,
+            draw.lines,
+            draw.blend,
+            FragmentKind::for_source(&texture.descriptor.source, draw.blend),
         );
         let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
             label: Some("ordered draw"),
@@ -279,7 +210,7 @@ impl WgpuRenderer {
                     store: wgpu::StoreOp::Store,
                 },
             })],
-            depth_stencil_attachment: if camera.depth_test {
+            depth_stencil_attachment: if draw.depth_test {
                 output
                     .depth
                     .as_ref()
@@ -296,22 +227,32 @@ impl WgpuRenderer {
             },
             ..Default::default()
         });
-        issue(&mut pass, &pipeline, &geometry, &texture.binding);
+        issue(
+            &mut pass,
+            &pipeline,
+            geometry,
+            &draw.geometry.range,
+            &texture.binding,
+        );
         Ok(())
     }
 }
 fn issue(
     pass: &mut wgpu::RenderPass<'_>,
     pipeline: &wgpu::RenderPipeline,
-    geometry: &super::mesh::Geometry,
+    geometry: &FrameGeometry,
+    slice: &DrawSlice,
     texture: &wgpu::BindGroup,
 ) {
     pass.set_pipeline(pipeline);
-    pass.set_bind_group(0, &geometry.transform, &[]);
+    pass.set_bind_group(0, &geometry.transform, &[slice.matrix_offset]);
     pass.set_bind_group(1, texture, &[]);
-    pass.set_vertex_buffer(0, geometry.vertices.slice(..));
-    pass.set_index_buffer(geometry.indices.slice(..), wgpu::IndexFormat::Uint16);
-    pass.draw_indexed(0..geometry.count, 0, 0..1);
+    pass.set_vertex_buffer(0, geometry.vertices.slice(slice.vertices.clone()));
+    pass.set_index_buffer(
+        geometry.indices.slice(slice.indices.clone()),
+        wgpu::IndexFormat::Uint16,
+    );
+    pass.draw_indexed(0..slice.count, 0, 0..1);
 }
 pub(super) fn clear(encoder: &mut wgpu::CommandEncoder, target: &GpuTexture, color: Color) {
     let _pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
@@ -455,6 +396,8 @@ fn validate(list: &DrawList, limits: &wgpu::Limits) -> Result<(), String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::draw::Camera;
+    use glam::Mat4;
     #[test]
     fn rejects_invalid_commands_before_encoding() {
         let mut list = DrawList::new(960, 540);

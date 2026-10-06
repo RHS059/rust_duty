@@ -49,9 +49,14 @@ def _windows_api():
 
 def _windows_error(code, path):
     if code in (80, 183):  # ERROR_FILE_EXISTS / ERROR_ALREADY_EXISTS
-        return _existing(path)
-    error = OSError(errno.EACCES if code == 5 else errno.EIO,
-                    f'Windows output operation failed with error {code}', str(path))
+        error = _existing(path)
+    else:
+        # The fourth argument lets Windows select the native errno and subclass.
+        # Assigning winerror afterward does not change an existing OSError's type.
+        # This fallback supports API doubles on hosts that ignore that argument.
+        fallback_errno = {2: errno.ENOENT, 3: errno.ENOENT, 5: errno.EACCES}.get(code, errno.EIO)
+        error = OSError(fallback_errno,
+                        f'Windows output operation failed with error {code}', str(path), code)
     error.winerror = code
     return error
 

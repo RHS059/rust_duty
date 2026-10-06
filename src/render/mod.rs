@@ -2,6 +2,8 @@
 pub mod text;
 
 #[cfg(feature = "wgpu-runtime")]
+mod arena;
+#[cfg(feature = "wgpu-runtime")]
 mod backend;
 #[cfg(feature = "wgpu-runtime")]
 mod capture;
@@ -13,6 +15,8 @@ mod frame;
 mod lines;
 #[cfg(feature = "wgpu-runtime")]
 mod mesh;
+#[cfg(feature = "wgpu-runtime")]
+mod plan;
 #[cfg(feature = "wgpu-runtime")]
 pub mod runtime;
 #[cfg(feature = "wgpu-runtime")]
