@@ -167,8 +167,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           mkdir -p preflight/baseline
-          gh release download v0.1.9 --repo RHS059/rust_duty --dir preflight/baseline \
-            --pattern rust-duty-0.1.9-x86_64-pc-windows-msvc.rdb --pattern update-x86_64-pc-windows-msvc.json
+          python tools/download_preflight_baseline.py --output preflight/baseline
           python tools/release_update.py verify --manifest preflight/baseline/update-x86_64-pc-windows-msvc.json \
             --assets-dir preflight/baseline --bundle-only --version 0.1.9 --target x86_64-pc-windows-msvc
           python tools/package_game.py stage --root dist/game --binary vector-range.exe \
