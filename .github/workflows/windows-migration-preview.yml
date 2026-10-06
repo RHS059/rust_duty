@@ -14,6 +14,13 @@ on:
       - 'tools/fetch_legacy_facade_reference.py'
       - 'tools/test_fetch_legacy_facade_reference.py'
       - 'tools/test_windows_recovery_workflow.py'
+      - '.github/workflows/wgpu-dx12-authored.yml'
+      - 'tools/prepare_ads_source_oracle.py'
+      - 'tools/test_prepare_ads_source_oracle.py'
+      - 'tools/current_ads_source_oracle.py'
+      - 'tools/test_current_ads_source_oracle.py'
+      - 'tools/collect_ads_offset_evidence.py'
+      - 'tools/test_collect_ads_offset_evidence.py'
   workflow_dispatch:
 permissions:
   contents: read

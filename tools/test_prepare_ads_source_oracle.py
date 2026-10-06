@@ -15,8 +15,13 @@ from test_build_ads_source_packet import COMPILER, COMPILER_SHA
 
 class PrecompiledOracleTests(unittest.TestCase):
     def setUp(self):
+        # The shared input fixture isolates GitHub identity. Keep the host's
+        # executable/DLL lookup so Git remains callable on Windows as well.
+        process_environment = {key: os.environ[key] for key in
+            ('PATH', 'SystemRoot', 'SYSTEMROOT', 'WINDIR', 'COMSPEC', 'TEMP', 'TMP') if key in os.environ}
         self.fixture = fixtures.SyntheticInputTests()
         self.fixture.setUp()
+        os.environ.update(process_environment)
         self.addCleanup(self.fixture.doCleanups)
         self.root = self.fixture.root
         with (self.root / 'Cargo.toml').open('ab') as out:

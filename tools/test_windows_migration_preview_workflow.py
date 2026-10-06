@@ -25,7 +25,14 @@ class WindowsMigrationPreviewWorkflowTests(unittest.TestCase):
             'tools/test_legacy_facade_equivalence.py',
             'tools/fetch_legacy_facade_reference.py',
             'tools/test_fetch_legacy_facade_reference.py',
-            'tools/test_windows_recovery_workflow.py'])
+            'tools/test_windows_recovery_workflow.py',
+            '.github/workflows/wgpu-dx12-authored.yml',
+            'tools/prepare_ads_source_oracle.py',
+            'tools/test_prepare_ads_source_oracle.py',
+            'tools/current_ads_source_oracle.py',
+            'tools/test_current_ads_source_oracle.py',
+            'tools/collect_ads_offset_evidence.py',
+            'tools/test_collect_ads_offset_evidence.py'])
 
     def test_reuses_complete_guarded_recovery_with_minimum_existing_permissions(self):
         self.assertEqual(self.data['permissions'], {'contents': 'read', 'actions': 'read'})
