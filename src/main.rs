@@ -56,7 +56,10 @@ fn fatal(error: impl std::fmt::Display) -> ! {
 fn main() {
     dispatch_before_window();
     let args: Vec<String> = std::env::args().collect();
-    let options = LaunchOptions::parse(&args).unwrap_or_else(|error| fatal(error));
+    let mut options = LaunchOptions::parse(&args).unwrap_or_else(|error| fatal(error));
+    let graphics = vector_range::graphics_device::prepare_launch(&args, &mut options)
+        .unwrap_or_else(|error| fatal(error));
+    vector_range::graphics_device::initialize(graphics);
     let runtime = options
         .runtime(
             cfg!(feature = "legacy-macroquad"),
@@ -89,6 +92,7 @@ fn main() {
                             "renderer requested={} backend={} adapter={}",
                             info.requested, info.backend, info.adapter
                         );
+                        vector_range::graphics_device::update_actual(info, serde_json::Value::Null);
                         let app_result = app::run(options.ui_theme).await;
                         // Captures on the final application frame must complete
                         // even when no further next_frame await occurs.

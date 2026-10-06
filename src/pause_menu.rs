@@ -1,5 +1,6 @@
 //! Pause-only controls. Pointer gestures are consumed before resume input.
 use crate::draw::facade::*;
+use crate::graphics_device::{self, Preference};
 use crate::platform::runtime::{screen_height, screen_width};
 use crate::ui_theme::{self, flow_y, FlowBand, UiClass, UiScope, UiStyle};
 use crate::{
@@ -40,6 +41,7 @@ impl Layout {
             FlowBand::new(18., 80., &[(label, 34.), (muted, 16.)]),
             FlowBand::new(99., 144., &[(button_accent, 23.), (button_muted, 17.)]),
             FlowBand::new(155., 251., &[(muted, 17.)]),
+            FlowBand::new(257., 273., &[(muted, 15.)]),
             FlowBand::new(279., 325., &[(label, 18.)]),
             FlowBand::new(346., 366., &[(accent, 20.)]),
             FlowBand::new(497., 525., &[(button, 16.), (muted, 15.)]),
@@ -48,7 +50,7 @@ impl Layout {
             FlowBand::new(720., 754., &[(button, 18.)]),
             FlowBand::new(771., 787., &[(muted, 16.), (warning, 16.)]),
             FlowBand::new(805., 839., &[(button, 18.)]),
-            FlowBand::new(865., 887., &[(muted, 16.)]),
+            FlowBand::new(855., 889., &[(button, 18.)]),
         ];
         for axis in 0..6 {
             let r = slider_rect(axis);
@@ -58,6 +60,45 @@ impl Layout {
                 &[(slider, if axis < 3 { 18. } else { 15. })],
             ));
         }
+        Self::with_bands(width, height, bands)
+    }
+    fn graphics(width: f32, height: f32) -> Self {
+        let label = text_style(UiClass::Label, WHITE);
+        let muted = text_style(UiClass::Label, MUTED);
+        let accent = text_style(UiClass::Label, ACCENT);
+        let button = text_style(UiClass::Button, WHITE);
+        let mut bands = vec![
+            FlowBand::new(18., 80., &[(accent, 30.), (muted, 16.)]),
+            FlowBand::new(99., 144., &[(button, 18.)]),
+            FlowBand::new(381., 415., &[(button, 18.)]),
+            FlowBand::new(497., 531., &[(button, 18.)]),
+        ];
+        for (baseline, size, style) in [
+            (179., 18., accent),
+            (205., 18., label),
+            (231., 16., muted),
+            (297., 18., accent),
+            (325., 18., label),
+            (366., 16., muted),
+            (455., 16., muted),
+            (567., 15., accent),
+            (610., 16., label),
+            (653., 15., muted),
+            (696., 15., muted),
+            (739., 15., muted),
+            (782., 15., muted),
+            (825., 15., muted),
+            (873., 15., muted),
+        ] {
+            bands.push(FlowBand::new(
+                baseline - size,
+                baseline + 4.,
+                &[(style, size)],
+            ));
+        }
+        Self::with_bands(width, height, bands)
+    }
+    fn with_bands(width: f32, height: f32, bands: Vec<FlowBand>) -> Self {
         let content_height = flow_y(909., &bands);
         let available_width = (width - 24.).max(1.).min(width);
         let available_height = (height - 24.).max(1.).min(height);
@@ -102,6 +143,10 @@ const POSITION_RESET: Rect = Rect::new(350., 497., 228., 28.);
 const RESET: Rect = Rect::new(350., 720., 228., 34.);
 const SAVE: Rect = Rect::new(32., 720., 260., 34.);
 const TELEMETRY: Rect = Rect::new(32., 805., 546., 34.);
+const GRAPHICS: Rect = Rect::new(32., 855., 546., 34.);
+const GPU_PREVIOUS: Rect = Rect::new(32., 381., 260., 34.);
+const GPU_NEXT: Rect = Rect::new(318., 381., 260., 34.);
+const GPU_SAVE: Rect = Rect::new(32., 497., 546., 34.);
 fn slider_rect(axis: usize) -> Rect {
     let y = if axis < 3 {
         578. + axis as f32 * 43.
@@ -120,6 +165,11 @@ pub struct PauseMenu {
     save_failed: bool,
     telemetry_recording: bool,
     telemetry_stopping: bool,
+    graphics_open: bool,
+    graphics_choices: Vec<Preference>,
+    graphics_choice: usize,
+    graphics_focus: Option<usize>,
+    graphics_status: Option<String>,
 }
 #[derive(Default)]
 pub struct MenuKeys {
@@ -143,7 +193,83 @@ impl PauseMenu {
         self.telemetry_stopping = stopping;
     }
     pub fn has_keyboard_focus(&self) -> bool {
-        self.focus.is_some()
+        self.graphics_open || self.focus.is_some()
+    }
+    /// Escape closes the subpage before the gameplay session can resume.
+    pub fn graphics_escape(&mut self, pressed: bool) -> bool {
+        if pressed && self.graphics_open {
+            self.graphics_open = false;
+            self.focus = Some(11);
+            true
+        } else {
+            false
+        }
+    }
+    fn open_graphics(&mut self) {
+        graphics_device::ensure_catalog();
+        let state = graphics_device::snapshot();
+        self.graphics_choices = vec![Preference::Auto];
+        for candidate in &state.candidates {
+            if graphics_device::exact_match(&candidate.id, &state.candidates).is_ok()
+                && matches!(candidate.id.backend.as_str(), "dx12" | "vulkan" | "metal")
+            {
+                self.graphics_choices
+                    .push(Preference::Adapter(candidate.id.clone()));
+            }
+        }
+        self.graphics_choices[1..].sort_by_key(Preference::label);
+        self.graphics_choice = self
+            .graphics_choices
+            .iter()
+            .position(|p| *p == state.preference)
+            .unwrap_or(0);
+        self.graphics_status = if state.forced_fallback {
+            Some("Forced software validation: saved GPU choices are ignored.".into())
+        } else {
+            state.catalog_error.or_else(|| {
+                let excluded = state.candidates.len() + 1 - self.graphics_choices.len();
+                if excluded > 0 {
+                    Some(format!("{excluded} device entries are ambiguous or unsupported; unavailable for selection."))
+                } else if self.graphics_choices.len() == 1 {
+                    Some("No compatible native graphics devices were found.".into())
+                } else { None }
+            })
+        };
+        self.graphics_focus = Some(0);
+        self.graphics_open = true;
+        self.dragging = None;
+    }
+    fn cycle_graphics(&mut self, forward: bool) {
+        let count = self.graphics_choices.len();
+        if count != 0 {
+            self.graphics_choice =
+                (self.graphics_choice + if forward { 1 } else { count - 1 }) % count;
+            self.graphics_status =
+                Some("Preview choice only. Save to apply after restarting.".into());
+        }
+    }
+    fn graphics_activate(&mut self, index: usize) {
+        self.graphics_focus = Some(index);
+        match index {
+            0 => {
+                self.graphics_open = false;
+                self.focus = Some(11);
+            }
+            1 => self.cycle_graphics(false),
+            2 => self.cycle_graphics(true),
+            3 => {
+                if let Some(choice) = self.graphics_choices.get(self.graphics_choice) {
+                    self.graphics_status =
+                        Some(match graphics_device::save_choice(choice.clone()) {
+                            Ok(()) => {
+                                "Saved. Restart the game to apply this graphics choice.".into()
+                            }
+                            Err(error) => format!("Not saved: {error}"),
+                        });
+                }
+            }
+            _ => {}
+        }
     }
     pub fn save_result(&mut self, result: std::io::Result<()>) -> String {
         self.save_failed = result.is_err();
@@ -175,13 +301,34 @@ impl PauseMenu {
     ) -> MenuAction {
         if !enabled {
             self.focus = None;
+            self.graphics_focus = None;
+            return MenuAction::default();
+        }
+        if self.graphics_open {
+            if keys.next {
+                self.graphics_focus = Some(self.graphics_focus.map_or(0, |i| (i + 1) % 4));
+            }
+            if keys.previous {
+                self.graphics_focus = Some(self.graphics_focus.map_or(3, |i| (i + 3) % 4));
+            }
+            if keys.increase {
+                self.cycle_graphics(true);
+            }
+            if keys.decrease {
+                self.cycle_graphics(false);
+            }
+            if keys.activate {
+                if let Some(focus) = self.graphics_focus {
+                    self.graphics_activate(focus);
+                }
+            }
             return MenuAction::default();
         }
         if keys.next {
-            self.focus = Some(self.focus.map_or(0, |i| (i + 1) % 11));
+            self.focus = Some(self.focus.map_or(0, |i| (i + 1) % 12));
         }
         if keys.previous {
-            self.focus = Some(self.focus.map_or(10, |i| (i + 10) % 11));
+            self.focus = Some(self.focus.map_or(11, |i| (i + 11) % 12));
         }
         let mut action = MenuAction::default();
         let Some(focus) = self.focus else {
@@ -242,6 +389,7 @@ impl PauseMenu {
                 }
                 9 => action.save = true,
                 10 => action.telemetry = !self.telemetry_stopping,
+                11 => self.open_graphics(),
                 _ => {}
             }
         }
@@ -262,6 +410,7 @@ impl PauseMenu {
         if !enabled {
             self.dragging = None;
             self.focus = None;
+            self.graphics_focus = None;
             return MenuAction {
                 save: std::mem::take(&mut self.dirty),
                 ..Default::default()
@@ -269,6 +418,18 @@ impl PauseMenu {
         }
         let layout = Layout::new(size.x, size.y);
         let point = pointer;
+        if self.graphics_open {
+            let layout = Layout::graphics(size.x, size.y);
+            if pressed {
+                if let Some(index) = [RESUME, GPU_PREVIOUS, GPU_NEXT, GPU_SAVE]
+                    .iter()
+                    .position(|r| layout.rect(*r).contains(point))
+                {
+                    self.graphics_activate(index);
+                }
+            }
+            return MenuAction::default();
+        }
         let mut action = MenuAction::default();
         if pressed && self.dragging.is_none() {
             if layout.rect(RESET).contains(point) {
@@ -288,6 +449,9 @@ impl PauseMenu {
             } else if layout.rect(TELEMETRY).contains(point) {
                 self.focus = Some(10);
                 action.telemetry = !self.telemetry_stopping;
+            } else if layout.rect(GRAPHICS).contains(point) {
+                self.focus = Some(11);
+                self.open_graphics();
             } else {
                 self.dragging = (0..6).find(|axis| layout.rect(slider_rect(*axis)).contains(point));
                 if let Some(axis) = self.dragging {
@@ -359,6 +523,10 @@ impl PauseMenu {
         status: Option<&str>,
         layout: Layout,
     ) {
+        if self.graphics_open {
+            self.draw_graphics(&Layout::graphics(layout.viewport.x, layout.viewport.y));
+            return;
+        }
         let ink = Color::new(0.035, 0.057, 0.074, 0.97);
         let accent = ACCENT;
         let muted = MUTED;
@@ -553,6 +721,15 @@ impl PauseMenu {
             WHITE,
             TELEMETRY.w - 30.,
         );
+        button(GRAPHICS);
+        button_text(
+            "Graphics device / GPU (restart to apply)",
+            GRAPHICS.x + 15.,
+            GRAPHICS.y + 23.,
+            18.,
+            WHITE,
+            GRAPHICS.w - 30.,
+        );
         if let Some(focus) = self.focus {
             let r = match focus {
                 0 => RESUME,
@@ -561,7 +738,8 @@ impl PauseMenu {
                 5..=7 => slider_rect(focus - 5),
                 8 => RESET,
                 9 => SAVE,
-                _ => TELEMETRY,
+                10 => TELEMETRY,
+                _ => GRAPHICS,
             };
             let r = layout.rect(r);
             draw_rectangle_lines(r.x - 3., r.y - 3., r.w + 6., r.h + 6., 2., accent);
@@ -584,11 +762,175 @@ impl PauseMenu {
             546.,
         );
         text(
-            "F5 Save   F6 Discard / reload   Enter activates   F10 Quit",
+            "F5 Save   F6 Reload   Tab / Enter Menu   F10 Quit",
             32.,
-            883.,
-            16.,
+            273.,
+            15.,
             muted,
+        );
+    }
+    fn draw_graphics(&self, layout: &Layout) {
+        let state = graphics_device::snapshot();
+        draw_rectangle(
+            0.,
+            0.,
+            layout.viewport.x,
+            layout.viewport.y,
+            Color::new(0.015, 0.025, 0.035, 0.80),
+        );
+        ui_theme::style(UiScope::PauseMenu, &[UiClass::Panel]).rect(
+            layout.rect(Rect::new(0., 0., 610., 909.)),
+            Color::new(0.035, 0.057, 0.074, 0.97),
+            ACCENT,
+            layout.scale,
+        );
+        let text = |value: &str, y: f32, size: f32, color: Color| {
+            let fitted = text_style(UiClass::Label, color).fit_text(value, size, 546.);
+            layout.text(UiClass::Label, &fitted, vec2(32., y), size, color, 546.);
+        };
+        text("GRAPHICS DEVICE", 52., 30., ACCENT);
+        text(
+            "Changes take effect after restarting the game",
+            77.,
+            16.,
+            MUTED,
+        );
+        for (index, rect, label) in [
+            (0, RESUME, "Back to pause menu (Esc)"),
+            (1, GPU_PREVIOUS, "Previous device"),
+            (2, GPU_NEXT, "Next device"),
+            (3, GPU_SAVE, "Save device for next launch"),
+        ] {
+            let painted = layout.rect(rect);
+            ui_theme::style(UiScope::PauseMenu, &[UiClass::Button]).rect(
+                painted,
+                Color::new(0.13, 0.21, 0.25, 1.),
+                ACCENT,
+                layout.scale,
+            );
+            layout.text(
+                UiClass::Button,
+                label,
+                vec2(rect.x + 15., rect.y + 23.),
+                18.,
+                WHITE,
+                rect.w - 30.,
+            );
+            if self.graphics_focus == Some(index) {
+                draw_rectangle_lines(
+                    painted.x - 3.,
+                    painted.y - 3.,
+                    painted.w + 6.,
+                    painted.h + 6.,
+                    2.,
+                    ACCENT,
+                );
+            }
+        }
+        text("RUNNING NOW", 179., 18., ACCENT);
+        if let Some(info) = &state.actual {
+            text(&info.adapter, 205., 18., WHITE);
+            text(&format!("Backend: {}", info.backend), 231., 16., MUTED);
+        } else {
+            text(
+                "Actual device unavailable in this runtime",
+                205.,
+                16.,
+                MUTED,
+            );
+        }
+        text(
+            &format!(
+                "DEVICE FOR NEXT LAUNCH ({}/{})",
+                self.graphics_choice + 1,
+                self.graphics_choices.len()
+            ),
+            297.,
+            18.,
+            ACCENT,
+        );
+        if let Some(choice) = self.graphics_choices.get(self.graphics_choice) {
+            text(&choice.label(), 325., 18., WHITE);
+            if let Preference::Adapter(id) = choice {
+                text(
+                    &format!(
+                        "{} | vendor {:04X} / device {:04X}",
+                        id.device_type, id.vendor, id.device
+                    ),
+                    366.,
+                    16.,
+                    MUTED,
+                );
+            } else {
+                text(
+                    "Keeps existing default and explicit renderer behavior",
+                    366.,
+                    16.,
+                    MUTED,
+                );
+            }
+        }
+        text(
+            &format!("Saved: {}", state.preference.label()),
+            455.,
+            16.,
+            MUTED,
+        );
+        text(
+            self.graphics_status
+                .as_deref()
+                .unwrap_or("Choose a device, then save. Current rendering continues."),
+            567.,
+            15.,
+            ACCENT,
+        );
+        text(
+            if state.preference != state.startup_preference {
+                "RESTART REQUIRED: the saved choice is not active yet."
+            } else {
+                "Current device remains active until you restart."
+            },
+            610.,
+            16.,
+            WHITE,
+        );
+        if let Some(renderer) = &state.renderer_override {
+            text(
+                &format!("Explicit launch backend: {renderer}; incompatible choices fail."),
+                653.,
+                15.,
+                MUTED,
+            );
+        }
+        text(
+            "Identical fingerprints or unsupported devices cannot be selected.",
+            696.,
+            15.,
+            MUTED,
+        );
+        text(
+            "Device names are best-effort IDs, not physical-card serial numbers.",
+            739.,
+            15.,
+            MUTED,
+        );
+        text(
+            "Legacy discovery validates window compatibility on next launch.",
+            782.,
+            15.,
+            MUTED,
+        );
+        text(
+            "Missing device? Start with --graphics-device=auto to recover.",
+            825.,
+            15.,
+            MUTED,
+        );
+        text(
+            "Tab selects controls; arrows choose; Enter activates; Esc goes back.",
+            873.,
+            15.,
+            MUTED,
         );
     }
 }
@@ -596,6 +938,280 @@ impl PauseMenu {
 #[cfg(test)]
 mod tests {
     use super::*;
+    struct GraphicsFixture {
+        previous: graphics_device::Session,
+        path: std::path::PathBuf,
+    }
+    impl GraphicsFixture {
+        fn new() -> Self {
+            static NEXT: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+            let path = std::env::temp_dir().join(format!(
+                "gpu-menu-{}-{}.json",
+                std::process::id(),
+                NEXT.fetch_add(1, std::sync::atomic::Ordering::Relaxed)
+            ));
+            let previous = graphics_device::snapshot();
+            graphics_device::initialize(graphics_device::Session {
+                path: path.clone(),
+                catalog_ready: true,
+                actual: Some(BackendInfo {
+                    requested: "dx12".into(),
+                    backend: "Dx12".into(),
+                    adapter: "NVIDIA GeForce RTX 3080 Ti".into(),
+                }),
+                candidates: vec![graphics_device::Candidate {
+                    id: graphics_device::Fingerprint {
+                        backend: "dx12".into(),
+                        name: "NVIDIA GeForce RTX 3080 Ti".into(),
+                        vendor: 0x10de,
+                        device: 0x2208,
+                        device_type: "DiscreteGpu".into(),
+                    },
+                    surface_supported: true,
+                }],
+                ..Default::default()
+            });
+            Self { previous, path }
+        }
+    }
+    impl Drop for GraphicsFixture {
+        fn drop(&mut self) {
+            graphics_device::initialize(self.previous.clone());
+            let _ = std::fs::remove_file(&self.path);
+        }
+    }
+    #[test]
+    fn graphics_menu_selection_requires_save_and_preserves_running_device() {
+        let fixture = GraphicsFixture::new();
+        let mut menu = PauseMenu::default();
+        let mut cfg = Settings::default();
+        let size = vec2(1000., 1000.);
+        let layout = Layout::new(size.x, size.y);
+        let point = layout.point(vec2(GRAPHICS.x + 20., GRAPHICS.y + 15.));
+        let action = menu.input(&mut cfg, "rifle", size, point, (true, true), true);
+        assert!(!action.resume && !action.save && !action.telemetry);
+        assert!(menu.graphics_open && menu.has_keyboard_focus());
+        menu.keyboard(
+            &mut cfg,
+            "rifle",
+            MenuKeys {
+                increase: true,
+                ..Default::default()
+            },
+            true,
+        );
+        assert_eq!(menu.graphics_choice, 1);
+        assert!(!fixture.path.exists());
+        menu.graphics_focus = Some(3);
+        let action = menu.keyboard(
+            &mut cfg,
+            "rifle",
+            MenuKeys {
+                activate: true,
+                ..Default::default()
+            },
+            true,
+        );
+        assert!(!action.resume && !action.save && !action.telemetry);
+        let state = graphics_device::snapshot();
+        assert_eq!(Preference::load(&fixture.path).unwrap(), state.preference);
+        assert_eq!(state.startup_preference, Preference::Auto);
+        assert_eq!(state.actual.unwrap().adapter, "NVIDIA GeForce RTX 3080 Ti");
+        assert!(menu.graphics_status.as_ref().unwrap().contains("Restart"));
+        assert!(menu.graphics_escape(true));
+        assert!(!menu.graphics_open);
+        menu.keyboard(
+            &mut cfg,
+            "rifle",
+            MenuKeys {
+                activate: true,
+                ..Default::default()
+            },
+            true,
+        );
+        assert!(menu.graphics_open);
+        assert_eq!(
+            menu.graphics_choice, 1,
+            "reopening must show the saved choice"
+        );
+    }
+    #[test]
+    fn graphics_pointer_hold_focus_loss_back_and_escape_do_not_resume_or_save() {
+        let _fixture = GraphicsFixture::new();
+        let mut menu = PauseMenu::default();
+        menu.open_graphics();
+        let mut cfg = Settings::default();
+        let size = vec2(1000., 1000.);
+        let layout = Layout::graphics(size.x, size.y);
+        let point = layout.point(vec2(GPU_NEXT.x + 20., GPU_NEXT.y + 15.));
+        menu.input(&mut cfg, "rifle", size, point, (true, true), true);
+        assert_eq!(menu.graphics_choice, 1);
+        menu.input(&mut cfg, "rifle", size, point, (false, true), true);
+        assert_eq!(menu.graphics_choice, 1);
+        menu.input(&mut cfg, "rifle", size, point, (false, true), false);
+        let action = menu.keyboard(
+            &mut cfg,
+            "rifle",
+            MenuKeys {
+                activate: true,
+                ..Default::default()
+            },
+            true,
+        );
+        assert!(!action.resume && !action.save);
+        assert_eq!(graphics_device::snapshot().preference, Preference::Auto);
+        let mut session = crate::session::SessionController::default();
+        let consumed = menu.graphics_escape(true);
+        assert!(
+            !session
+                .step(crate::session::SessionInput {
+                    esc_pressed: true,
+                    esc_down: true,
+                    blocked: consumed,
+                    ..Default::default()
+                })
+                .active
+        );
+        assert!(
+            !session
+                .step(crate::session::SessionInput {
+                    esc_down: true,
+                    ..Default::default()
+                })
+                .active
+        );
+        session.step(crate::session::SessionInput::default());
+        assert!(
+            session
+                .step(crate::session::SessionInput {
+                    esc_pressed: true,
+                    esc_down: true,
+                    ..Default::default()
+                })
+                .resumed
+        );
+    }
+    #[test]
+    fn graphics_duplicate_candidates_are_disabled_and_save_failure_keeps_last_preference() {
+        let fixture = GraphicsFixture::new();
+        let mut state = graphics_device::snapshot();
+        state.candidates.push(state.candidates[0].clone());
+        graphics_device::initialize(state);
+        let mut menu = PauseMenu::default();
+        menu.open_graphics();
+        assert_eq!(menu.graphics_choices, vec![Preference::Auto]);
+        assert!(menu.graphics_status.as_ref().unwrap().contains("ambiguous"));
+        let mut state = graphics_device::snapshot();
+        state.candidates.pop();
+        state.path = fixture.path.join("missing-parent.json");
+        graphics_device::initialize(state);
+        menu.open_graphics();
+        menu.cycle_graphics(true);
+        menu.graphics_activate(3);
+        assert!(menu
+            .graphics_status
+            .as_ref()
+            .unwrap()
+            .starts_with("Not saved:"));
+        assert_eq!(graphics_device::snapshot().preference, Preference::Auto);
+    }
+    #[test]
+    fn graphics_draw_shows_actual_adapter_backend_and_restart_required() {
+        use crate::draw::Command;
+        let _fixture = GraphicsFixture::new();
+        let mut menu = PauseMenu::default();
+        menu.open_graphics();
+        menu.cycle_graphics(true);
+        menu.graphics_activate(3);
+        begin_frame(1400, 1000, 1.).unwrap();
+        menu.draw_with_layout(
+            &Settings::default(),
+            "rifle",
+            false,
+            ControlMode::Hold,
+            None,
+            Layout::new(1400., 1000.),
+        );
+        let list = take_draw_list().unwrap();
+        let texts: Vec<_> = list
+            .commands
+            .iter()
+            .filter_map(|c| {
+                if let Command::Text { text, .. } = c {
+                    Some(text.as_str())
+                } else {
+                    None
+                }
+            })
+            .collect();
+        assert!(texts.contains(&"NVIDIA GeForce RTX 3080 Ti"));
+        assert!(texts.contains(&"Backend: Dx12"));
+        assert!(texts.iter().any(|s| s.starts_with("RESTART REQUIRED")));
+        assert!(texts.contains(&"Save device for next launch"));
+    }
+    #[test]
+    fn graphics_controls_match_painted_hitboxes_across_fractional_dpi_and_themes() {
+        use crate::draw::Command;
+        let _fixture = GraphicsFixture::new();
+        let _reset = ThemeReset;
+        for css in ["", "#pause-menu {font-size:48px}"] {
+            ui_theme::set_theme(ui_theme::UiTheme::parse("graphics.css", css).unwrap());
+            for dpi in [1., 1.25, 1.5, 1.75, 2.] {
+                let size = vec2(1400. / dpi, 1000. / dpi);
+                let mut menu = PauseMenu::default();
+                menu.open_graphics();
+                begin_frame(1400, 1000, dpi as f64).unwrap();
+                menu.draw_with_layout(
+                    &Settings::default(),
+                    "rifle",
+                    false,
+                    ControlMode::Hold,
+                    None,
+                    Layout::new(size.x, size.y),
+                );
+                let list = take_draw_list().unwrap();
+                let buttons: Vec<_> = list
+                    .commands
+                    .iter()
+                    .filter_map(|c| match c {
+                        Command::Rect { rect, color }
+                            if *color == Color::new(0.13, 0.21, 0.25, 1.) =>
+                        {
+                            Some(*rect)
+                        }
+                        _ => None,
+                    })
+                    .collect();
+                assert_eq!(buttons.len(), 4);
+                for (index, button) in buttons.iter().enumerate() {
+                    assert!(
+                        button.x >= 0.
+                            && button.y >= 0.
+                            && button.x + button.w <= 1400.01
+                            && button.y + button.h <= 1000.01
+                    );
+                    let pointer = vec2(button.x + button.w / 2., button.y + button.h - 0.25) / dpi;
+                    let mut menu = PauseMenu::default();
+                    menu.open_graphics();
+                    let action = menu.input(
+                        &mut Settings::default(),
+                        "rifle",
+                        size,
+                        pointer,
+                        (true, true),
+                        true,
+                    );
+                    assert!(!action.resume && !action.save && !action.telemetry);
+                    assert_eq!(menu.graphics_open, index != 0);
+                    assert_eq!(menu.graphics_focus, Some(index));
+                    if index == 1 || index == 2 {
+                        assert_eq!(menu.graphics_choice, 1);
+                    }
+                }
+            }
+        }
+    }
+
     #[test]
     fn telemetry_toggle_owns_pointer_and_keyboard_without_resuming_or_saving() {
         let mut menu = PauseMenu::default();
@@ -1102,8 +1718,8 @@ mod dpi_geometry_tests {
                 &commands,
                 Color::new(18. / 255., 52. / 255., 86. / 255., 1.),
             );
-            assert_eq!(buttons.len(), 5);
-            // Draw order: resume, position reset, walking reset, save, telemetry.
+            assert_eq!(buttons.len(), 6);
+            // Draw order: resume, position reset, walking reset, save, telemetry, graphics.
             for (index, button) in buttons.iter().enumerate() {
                 let mut menu = PauseMenu::default();
                 let mut cfg = Settings::default();
@@ -1120,7 +1736,7 @@ mod dpi_geometry_tests {
                     "{dpi}x button {index}"
                 );
                 assert_eq!(action.telemetry, index == 4, "{dpi}x button {index}");
-                assert_eq!(menu.focus, Some([0, 4, 8, 9, 10][index]));
+                assert_eq!(menu.focus, Some([0, 4, 8, 9, 10, 11][index]));
                 assert_eq!(
                     (cfg.viewmodel_x, cfg.viewmodel_y),
                     if index == 1 { (0., 0.) } else { (0.1, -0.1) }

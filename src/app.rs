@@ -578,6 +578,8 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
             notice = pause_menu.save_result(cfg.save(settings_path));
             notice_timer = 4.;
         }
+        let graphics_escape =
+            pause_menu.graphics_escape(menu_enabled && focus_input.is_key_pressed(KeyCode::Escape));
         let transition = session.step(focus_state.apply_to_session_input(
             vector_range::session::SessionInput {
                 window_unfocused: false,
@@ -596,7 +598,9 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
                         || focus_input.is_key_down(KeyCode::RightAlt)
                         || focus_input.is_key_down(KeyCode::LeftSuper)
                         || focus_input.is_key_down(KeyCode::RightSuper)),
-                blocked: model_error.is_some() || startup_blocked,
+                // Consume the real key state while closing the GPU subpage,
+                // so holding Escape cannot become a new resume on the next frame.
+                blocked: model_error.is_some() || startup_blocked || graphics_escape,
                 dt: raw_dt,
             },
             capture,
@@ -789,6 +793,7 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
                     "executable_sha256":executable_hash,
                     "source":crate::telemetry_export::packaged_source(&executable,vector_range::BUILD_LABEL,executable_hash.as_deref()),
                     "runtime_observed":info.as_ref().ok().map(|value| serde_json::json!({"requested":value.requested,"backend":value.backend,"adapter":value.adapter})),
+                    "graphics_device":vector_range::graphics_device::snapshot().evidence,
                     "hardware_classification":"unknown", "sharing":"local only; manual review before sharing",
                 });
                 match crate::telemetry_export::LocalExport::start(
@@ -1420,10 +1425,19 @@ fn frame_trace_identity(
     use vector_range::frame_performance::{RunIdentity, RuntimeIdentity};
     RunIdentity {
         runtime: RuntimeIdentity {
-            actual_backend: Some(info.backend),
-            // The frozen BackendInfo exposes the actual name, not device type
-            // or hardware proof. Additional renderer diagnostics stay separate.
-            actual_adapter: serde_json::json!({ "name": info.adapter }),
+            actual_backend: Some(info.backend.clone()),
+            // Native evidence comes from the actual requested device. Legacy
+            // remains name-only; neither a preference nor a name proves hardware.
+            actual_adapter: {
+                let evidence = vector_range::graphics_device::snapshot().evidence;
+                if evidence["name"].as_str() == Some(info.adapter.as_str())
+                    && evidence["backend"].as_str() == Some(info.backend.as_str())
+                {
+                    evidence
+                } else {
+                    serde_json::json!({ "name": info.adapter })
+                }
+            },
             build: serde_json::json!({
                 "version": vector_range::BUILD_VERSION,
                 "number": vector_range::BUILD_NUMBER,
@@ -1615,6 +1629,43 @@ mod tests {
             ),
             Eligibility::Ineligible(BoundaryReason::FocusRegained)
         );
+    }
+
+    #[test]
+    fn performance_identity_preserves_actual_device_evidence_not_pending_preference() {
+        use vector_range::graphics_device::{self, Session};
+        let previous = graphics_device::snapshot();
+        let info = vector_range::draw::BackendInfo {
+            requested: "dx12".into(),
+            backend: "Dx12".into(),
+            adapter: "RTX 3080 Ti".into(),
+        };
+        let evidence = serde_json::json!({"name":info.adapter,"backend":info.backend,"device_type":"DiscreteGpu","vendor_id":4318,"device_id":8712,"present_mode":"Fifo","force_fallback_requested":false,"selection_mode":"explicit_fingerprint"});
+        graphics_device::initialize(Session {
+            actual: Some(info.clone()),
+            evidence: evidence.clone(),
+            ..Default::default()
+        });
+        let identity = frame_trace_identity(
+            info.clone(),
+            trace_identity().runtime.initial_window,
+            serde_json::Value::Null,
+        );
+        assert_eq!(identity.runtime.actual_adapter, evidence);
+        let mismatched = vector_range::draw::BackendInfo {
+            backend: "Vulkan".into(),
+            ..info
+        };
+        let identity = frame_trace_identity(
+            mismatched,
+            identity.runtime.initial_window,
+            serde_json::Value::Null,
+        );
+        assert_eq!(
+            identity.runtime.actual_adapter,
+            serde_json::json!({"name":"RTX 3080 Ti"})
+        );
+        graphics_device::initialize(previous);
     }
 
     fn trace_identity() -> vector_range::frame_performance::RunIdentity {

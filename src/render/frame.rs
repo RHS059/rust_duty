@@ -8,10 +8,28 @@ use super::{
     WgpuRenderer,
 };
 use crate::draw::{BlendMode, Color, Command, DrawList, FrameOutput, RenderTarget, TextureSource};
+use crate::{frame_performance::CpuFrameStage, frame_performance_session as performance};
 use std::sync::Arc;
 
 impl WgpuRenderer {
     pub(super) fn submit_frame(&mut self, list: &DrawList) -> Result<FrameOutput, String> {
+        let (output, presentation) =
+            performance::measure_cpu_stage(CpuFrameStage::RendererSubmit, || {
+                self.submit_before_present(list)
+            })?;
+        if let Some(presentation) = presentation {
+            performance::measure_cpu_stage(CpuFrameStage::PresentCall, || {
+                self.gpu.queue.present(presentation);
+            });
+        }
+        self.gpu.check_errors()?;
+        Ok(output)
+    }
+
+    fn submit_before_present(
+        &mut self,
+        list: &DrawList,
+    ) -> Result<(FrameOutput, Option<wgpu::SurfaceTexture>), String> {
         // Take ownership up front: failures drop this surface texture, and no
         // command path can acquire another texture after app/input advance.
         let presentation = super::backend::take_presentation(
@@ -49,11 +67,7 @@ impl WgpuRenderer {
         for readback in readbacks {
             output.captures.push(readback.finish(&self.gpu.device)?);
         }
-        if let Some(presentation) = presentation {
-            self.gpu.queue.present(presentation);
-        }
-        self.gpu.check_errors()?;
-        Ok(output)
+        Ok((output, presentation))
     }
     fn encode_frame(
         &mut self,

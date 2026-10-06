@@ -8,7 +8,7 @@ mod backend;
 #[cfg(feature = "wgpu-runtime")]
 mod capture;
 #[cfg(feature = "wgpu-runtime")]
-mod device;
+pub(crate) mod device;
 #[cfg(feature = "wgpu-runtime")]
 mod frame;
 #[cfg(feature = "wgpu-runtime")]

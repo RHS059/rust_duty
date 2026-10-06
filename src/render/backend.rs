@@ -4,6 +4,7 @@ use crate::draw::{
     BackendInfo, DrawList, FrameOutput, RenderTarget, Renderer, ResourceId, Sampler,
     TextDimensions, Texture,
 };
+use crate::{frame_performance::CpuFrameStage, frame_performance_session as performance};
 use std::{collections::HashMap, sync::Arc};
 
 pub struct WgpuRenderer {
@@ -127,7 +128,10 @@ impl WgpuRenderer {
         }
         self.gpu.resize(width, height)?;
         let presentation = if self.gpu.surface.is_some() {
-            let Some(frame) = self.gpu.acquire()? else {
+            let acquired = performance::measure_cpu_stage(CpuFrameStage::SurfaceAcquire, || {
+                self.gpu.acquire()
+            });
+            let Some(frame) = acquired? else {
                 return Ok(false);
             };
             Some(frame)
