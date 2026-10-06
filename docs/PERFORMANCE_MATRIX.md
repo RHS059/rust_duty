@@ -79,6 +79,16 @@ Use `--smoke` first for one baseline. Use `--pilot` next for five runs:
 resolution/ADS signal before committing to the full matrix. Neither preset is
 presented as full-matrix completion.
 
+A smoke validates window/input/recording/export/graceful-exit behavior separately
+from statistical sample quality. It reports `setup_complete` only when those
+checks succeed; its retained quantiles are descriptive. Fewer than 100 intervals
+sets `tail_comparison_ready=false` and makes the analysis command return 1, so an
+automated caller cannot advance to the pilot on a low-sample setup. Pilot/full
+still require at least 100 intervals per run. A roughly 1 Hz software/CI surface
+may be useful for setup diagnosis while remaining unsuitable for this bounded
+statistical pilot. Successful export does not turn a failed process exit into
+setup success; the original failed receipt stays failed.
+
 ## Prepare and run
 
 Run commands from a checkout with the same source commit as the package. The
@@ -141,6 +151,8 @@ For an explicitly scoped Windows software diagnostic, replace
 adapter classification and retains the fallback request; it never labels this
 RTX data. Native Win32 input uses Python's built-in `ctypes` and an interactive
 desktop. Windows refusing focus is a failed setup, not a reason to bypass it.
+Both desktop drivers request the game's normal F10 exit after exports complete,
+verify the same window still has focus, and retain the 15-second exit timeout.
 
 Linux uses `--driver x11` and needs an existing X11 `DISPLAY` plus installed
 `xdotool`; the runner does not provision Xvfb or a GPU. The display/window manager
@@ -175,7 +187,8 @@ python -m unittest discover -s tools -p 'test_performance_matrix.py'
 
 Analysis validates producer JSON and recomputes statistics, checks actual
 backend/selected GPU/present mode/build/source/settings/physical extent, requires
-at least 90% of the requested retained duration and 100 intervals, and rejects
+at least 90% of the requested retained duration and, for pilot/full runs, 100
+intervals. Smoke reports sample sufficiency separately. Analysis rejects
 wrong gameplay, mixed adapters/drivers/DPI, overlapping processes and incomplete
 exports. These are evidence-quality checks, not new renderer or gameplay pass
 thresholds. Failures/missing runs remain visible; no data is zero-filled. The

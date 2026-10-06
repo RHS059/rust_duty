@@ -389,6 +389,8 @@ def run_case(plan, item, case, executable, output, settings, graphics, fallback,
                                  label='frame, CSV and GPU export completion')
             receipt['session'] = session.name
             driver.check(size)
+            receipt['exit_request'] = 'application_f10'
+            receipt['exit_wait_timeout_seconds'] = 15
             driver.close()
             receipt['returncode'] = process.wait(timeout=15)
             require(receipt['returncode'] == 0, 'Game exited unsuccessfully')
@@ -598,7 +600,10 @@ def analyze_run(folder, manifest):
     values = [row['interval_ns'] for row in report['records']
               if row['kind'] == 'successful_present_return' and row['interval_ns'] is not None]
     require(sum(values) >= plan['sample_seconds'] * 0.90 * 1e9, 'Insufficient retained eligible duration')
-    require(len(values) >= 100, 'Fewer than 100 intervals; tail estimate not useful')
+    tail_ready = len(values) >= 100
+    # A setup smoke establishes input/window/export/exit behavior independently
+    # of statistical sufficiency. Pilot/full retain their existing sample gate.
+    require(plan['smoke'] or tail_ready, 'Fewer than 100 intervals; tail estimate not useful')
     gameplay = gameplay_summary(session / 'gameplay.csv')
     action = case['settings']['action']
     require((gameplay['moving_fraction'] > 0.50) if action == 'movement' else (gameplay['speed_max'] < 0.1),
@@ -609,6 +614,10 @@ def analyze_run(folder, manifest):
     result = {'run': item, 'settings_requested': case['settings'], 'runtime_observed': runtime,
               'started_unix_ns': receipt['started_unix_ns'], 'finished_unix_ns': receipt['finished_unix_ns'],
               'frame_summary_ns': summary, 'effective_present_hz': len(values) * 1e9 / sum(values),
+              'sample_quality': {'purpose': 'setup_smoke' if plan['smoke'] else 'statistical_matrix',
+                                 'observed_intervals': len(values), 'required_intervals_for_tail_comparison': 100,
+                                 'tail_comparison_ready': tail_ready,
+                                 'percentile_scope': 'Descriptive retained-sample quantiles; fewer than 100 intervals do not establish a useful tail comparison.'},
               'interval_fraction_over_60hz_budget': sum(value * 60 > 1e9 for value in values) / len(values),
               'interval_fraction_over_two_60hz_budgets': sum(value * 30 > 1e9 for value in values) / len(values),
               'cpu_stages': frames._cpu_stage_summary(stage, report['records']),
@@ -665,16 +674,21 @@ def analyze_matrix(output):
                     pairs.append({'run_id': run['run']['run_id'],
                                   'p99_delta_ms_from_bracketing_baseline_mean': (run['frame_summary_ns']['p99_ns'] - reference) / 1e6,
                                   'baseline_p99_drift_ms': (baselines[1]['frame_summary_ns']['p99_ns'] - baselines[0]['frame_summary_ns']['p99_ns']) / 1e6})
+    pilot_ready = bool(runs) and not failures and all(run['sample_quality']['tail_comparison_ready'] for run in runs)
     return {'schema': 'rust-duty-real-game-matrix-analysis/v1',
-            'state': 'complete' if not failures else 'incomplete', 'acceptance_proven': False,
+            'state': ('setup_complete' if plan['smoke'] else 'complete') if not failures else 'incomplete',
+            'analysis_purpose': 'setup_smoke' if plan['smoke'] else 'statistical_matrix',
+            'pilot_sample_readiness': {'ready': pilot_ready, 'required_intervals_per_run': 100,
+                                       'reason': None if pilot_ready else 'Setup/exports failed or fewer than 100 retained intervals; do not advance to statistical pilot on this evidence.'},
+            'acceptance_proven': False,
             'measurement': frames.MEASUREMENT, 'percentile_method': frames.METHOD,
             'goal': plan['goal'], 'package': manifest['package'],
             'source_origin': manifest['source_origin'],
             'entrypoint_scope': plan['entrypoint_scope'],
             'host_observed': manifest['host_observed'], 'operator_hardware': manifest['operator_hardware'],
             'scope': 'Per-run CPU pacing and CPU spans only. No pooled percentiles, GPU-time estimate, display-cadence claim, or RTX inference from another adapter.',
-            'runs': runs, 'failures': failures, 'case_comparisons': groups,
-            'paired_baseline_comparisons': pairs, 'unavailable_axes': plan['unavailable_axes']}
+            'runs': runs, 'failures': failures, 'case_comparisons': [] if plan['smoke'] else groups,
+            'paired_baseline_comparisons': [] if plan['smoke'] else pairs, 'unavailable_axes': plan['unavailable_axes']}
 
 
 def main(argv=None):
@@ -726,7 +740,10 @@ def main(argv=None):
             if args.output:
                 write_json(args.output, result)
             print(json.dumps(result, indent=2, allow_nan=False))
-            return 0 if result['state'] == 'complete' else 1
+            # CI callers already use successful smoke analysis to gate a pilot.
+            # A valid low-sample setup therefore stays explicitly setup_complete
+            # in JSON while returning nonzero so that pilot is not auto-started.
+            return 0 if result['state'] in ('complete', 'setup_complete') and result['pilot_sample_readiness']['ready'] else 1
         return 0
     except (OSError, ValueError, DriverError, subprocess.SubprocessError, KeyError, TypeError) as error:
         print('Matrix error: ' + str(error), file=sys.stderr)

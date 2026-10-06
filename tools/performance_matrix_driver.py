@@ -41,10 +41,9 @@ class TrackedDriver:
             self.aim_held = False
 
     def close(self):
-        if isinstance(self.driver, X11Driver):
-            tap(self, 'F10')
-        else:
-            self.driver.close()
+        # Use the application's own normal exit on both desktop backends. A
+        # queued Windows WM_CLOSE did not finish the first CI surface smoke.
+        tap(self, 'F10')
 
     def release_inputs(self):
         errors = []
@@ -126,7 +125,7 @@ class X11Driver:
 
 
 class WindowsDriver:
-    KEYS = {'Return': 0x0D, 'F1': 0x70, 'F2': 0x71, 'F8': 0x77,
+    KEYS = {'Return': 0x0D, 'F1': 0x70, 'F2': 0x71, 'F8': 0x77, 'F10': 0x79,
             'w': 0x57, 's': 0x53}
 
     def __init__(self):
@@ -239,8 +238,7 @@ class WindowsDriver:
         self.send_input(mouse_flags=0x0008 if down else 0x0010)
 
     def close(self):
-        if not self.user.PostMessageW(self.window, 0x0010, 0, 0):
-            raise DriverError('Could not request game window close')
+        tap(self, 'F10')
 
 
 def create_driver(name):

@@ -65,7 +65,7 @@ class PerformanceMatrixWorkflowTests(unittest.TestCase):
             'group': 'performance-matrix-feedback-${{ github.ref }}', 'cancel-in-progress': 'false'})
         self.assertEqual(set(self.data['jobs']), {'software-diagnostic'})
         self.assertEqual(self.job['runs-on'], 'windows-latest')
-        self.assertEqual(self.job['timeout-minutes'], '20')
+        self.assertEqual(self.job['timeout-minutes'], '22')
         self.assertIn("github.run_attempt == 1", self.job['if'])
         self.assertNotIn('strategy', self.job)
         for forbidden in ('continue-on-error', 'workflow_dispatch', 'secrets.', 'cargo build',
@@ -110,7 +110,7 @@ class PerformanceMatrixWorkflowTests(unittest.TestCase):
         for plan, preset in zip(plans, ('--smoke', '--pilot')):
             self.assertIn(preset, plan['run'])
             for token in ('--repository package-source', '--renderer dx12',
-                          '--warmup-seconds 10', '--sample-seconds 30'):
+                          '--warmup-seconds 10', '--sample-seconds 120'):
                 self.assertIn(token, plan['run'])
         gate = "steps.smoke.outcome == 'success' && steps.smoke_analysis.outcome == 'success'"
         self.assertEqual(plans[1]['if'], gate)
@@ -118,6 +118,8 @@ class PerformanceMatrixWorkflowTests(unittest.TestCase):
         self.assertIn('performance_matrix.py analyze evidence/smoke', self.step('smoke_analysis')['run'])
         executions = [step for step in self.steps if 'performance_matrix.py run ' in step.get('run', '')]
         self.assertEqual(executions, [self.step('smoke'), self.step('pilot')])
+        self.assertEqual(self.step('smoke')['timeout-minutes'], '4')
+        self.assertEqual(self.step('pilot')['timeout-minutes'], '15')
         for execution in executions:
             for token in ('--executable package/vector-range.exe', '--settings package/settings.cfg',
                           '--force-fallback --driver win32', '--execute', '$LASTEXITCODE -ne 0'):
@@ -136,6 +138,7 @@ class PerformanceMatrixWorkflowTests(unittest.TestCase):
         self.assertIn("'state': 'not_run'", finalizer['run'])
         self.assertIn("'state': 'incomplete'", finalizer['run'])
         self.assertIn("'maximum_game_launches': 6", finalizer['run'])
+        self.assertIn("'sample_seconds_per_case': 120", finalizer['run'])
         self.assertEqual(upload['with']['retention-days'], '7')
         self.assertEqual(upload['with']['include-hidden-files'], 'true')
         self.assertEqual(upload['with']['path'].splitlines(), [

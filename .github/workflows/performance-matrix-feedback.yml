@@ -33,7 +33,7 @@ jobs:
       github.event_name == 'push' && github.ref == 'refs/heads/main' &&
       github.run_attempt == 1
     runs-on: windows-latest
-    timeout-minutes: 20
+    timeout-minutes: 22
     defaults:
       run:
         shell: pwsh
@@ -190,7 +190,7 @@ jobs:
       - name: Prepare one 1080p smoke case
         run: >-
           python verifier/tools/performance_matrix.py prepare --repository package-source
-          --renderer dx12 --smoke --warmup-seconds 10 --sample-seconds 30
+          --renderer dx12 --smoke --warmup-seconds 10 --sample-seconds 120
           --output evidence/smoke-plan.json
       - name: Run the native CPU software smoke on its existing Windows desktop
         id: smoke
@@ -207,12 +207,12 @@ jobs:
         if: steps.smoke.outcome == 'success' && steps.smoke_analysis.outcome == 'success'
         run: >-
           python verifier/tools/performance_matrix.py prepare --repository package-source
-          --renderer dx12 --pilot --warmup-seconds 10 --sample-seconds 30
+          --renderer dx12 --pilot --warmup-seconds 10 --sample-seconds 120
           --output evidence/pilot-plan.json
       - name: Run baseline, 720p, 1440p, ADS and baseline sequentially
         id: pilot
         if: steps.smoke.outcome == 'success' && steps.smoke_analysis.outcome == 'success'
-        timeout-minutes: 9
+        timeout-minutes: 15
         run: |
           python verifier/tools/performance_matrix.py run --plan evidence/pilot-plan.json --repository package-source --executable package/vector-range.exe --settings package/settings.cfg --force-fallback --driver win32 --output evidence/pilot --execute 2>&1 | Tee-Object -FilePath evidence/pilot-run.log
           if ($LASTEXITCODE -ne 0) { throw 'Pilot failed; retain partial evidence' }
@@ -236,7 +236,7 @@ jobs:
           report = {'schema': 'rust-duty-windows-matrix-caller-summary/v1',
                     'scope': 'CPU software diagnostic only; no RTX or 1080p60 hardware acceptance.',
                     'acceptance_proven': False, 'maximum_game_launches': 6,
-                    'warmup_seconds_per_case': 10, 'sample_seconds_per_case': 30, 'captures': {}}
+                    'warmup_seconds_per_case': 10, 'sample_seconds_per_case': 120, 'captures': {}}
           for name in ('smoke', 'pilot'):
               folder = Path('evidence') / name
               outcome = os.environ.get(name.upper() + '_OUTCOME', 'not_run')

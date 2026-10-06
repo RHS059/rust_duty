@@ -24,17 +24,17 @@ def dump(path, value):
     path.write_text(json.dumps(value), encoding='utf-8')
 
 
-def trace(case, adapter, build):
+def trace(case, adapter, build, intervals=200, interval_ns=50_000_000):
     report = control()
     report['start_ns'] = 0
-    report['records'] = [present(10)] + [present(10 + index * 50_000_000, 50_000_000)
-                                        for index in range(1, 201)]
-    report['successful_present_count'] = 201
+    report['records'] = [present(10)] + [present(10 + index * interval_ns, interval_ns)
+                                        for index in range(1, intervals + 1)]
+    report['successful_present_count'] = intervals + 1
     report['last_observed_ns'] = report['records'][-1]['at_ns']
     report['stop_requested_ns'] = report['stopped_at_ns'] = report['last_observed_ns']
-    report['summary'] = {'interval_count': 200, 'total_interval_ns': 10_000_000_000,
-                         'min_ns': 50_000_000, 'max_ns': 50_000_000,
-                         'p50_ns': 50_000_000, 'p95_ns': 50_000_000, 'p99_ns': 50_000_000,
+    report['summary'] = {'interval_count': intervals, 'total_interval_ns': interval_ns * intervals,
+                         'min_ns': interval_ns, 'max_ns': interval_ns,
+                         'p50_ns': interval_ns, 'p95_ns': interval_ns, 'p99_ns': interval_ns,
                          'percentile_method': f.METHOD}
     size = case['settings']['surface_extent']
     scene = {'name': 'vector_range_default_range', 'reference_viewport': False,
@@ -46,7 +46,7 @@ def trace(case, adapter, build):
         'initial_window': {'physical_width': size[0], 'physical_height': size[1],
                            'scale_factor': 1, 'mode': 'windowed'}, 'scene': scene}
     samples = []
-    for index in range(1, 201):
+    for index in range(1, intervals + 1):
         start = report['records'][index - 1]['at_ns']
         end = report['records'][index]['at_ns']
         spans = {name: {'started_at_ns': start + i * 100,
@@ -177,19 +177,44 @@ class MatrixTests(unittest.TestCase):
         self.assertIsNone(result['draw_pass_triangle_counts'])
         self.assertFalse(result['gameplay_observed']['render_fps_column_used_for_timing'])
 
-    def test_full_analysis_stays_scoped_even_when_complete(self):
+    def test_setup_analysis_stays_scoped_even_when_complete(self):
         result = m.analyze_matrix(self.root)
-        self.assertEqual(result['state'], 'complete')
+        self.assertEqual(result['state'], 'setup_complete')
         self.assertFalse(result['acceptance_proven'])
-        self.assertEqual(result['case_comparisons'][0]['p99_ms_by_run'], [50])
+        self.assertTrue(result['pilot_sample_readiness']['ready'])
+        self.assertEqual(result['case_comparisons'], [])
         self.assertEqual(result['paired_baseline_comparisons'], [])
+
+    def test_low_sample_smoke_separates_setup_from_pilot_readiness(self):
+        dump(self.session / 'frames.json', trace(self.case, self.adapter, self.build, intervals=38, interval_ns=1_000_000_000))
+        result = m.analyze_matrix(self.root)
+        self.assertEqual(result['state'], 'setup_complete')
+        self.assertFalse(result['pilot_sample_readiness']['ready'])
+        self.assertEqual(result['runs'][0]['sample_quality']['required_intervals_for_tail_comparison'], 100)
+        self.assertEqual(result['runs'][0]['sample_quality']['observed_intervals'], 38)
+        self.assertFalse(result['runs'][0]['sample_quality']['tail_comparison_ready'])
+        with mock.patch.object(m, 'analyze_matrix', return_value=result), mock.patch('builtins.print'):
+            self.assertEqual(m.main(['analyze', str(self.root)]), 1)
+        # Only the plan's existing smoke scope allows descriptive setup data.
+        # A pilot with the same measurements still fails the original100 gate.
+        self.manifest['plan']['smoke'] = False
+        with self.assertRaisesRegex(ValueError, '100 intervals'):
+            self.analyze()
+
+    def test_failed_exit_receipt_cannot_be_reclassified_as_setup_success(self):
+        self.receipt['completed'] = False
+        self.receipt['error'] = 'close timed out'
+        dump(self.folder / 'RESULT.json', self.receipt)
+        result = m.analyze_matrix(self.root)
+        self.assertEqual(result['state'], 'incomplete')
+        self.assertFalse(result['pilot_sample_readiness']['ready'])
 
     def test_missing_run_is_incomplete_and_never_zero_filled(self):
         (self.folder / 'RESULT.json').unlink()
         result = m.analyze_matrix(self.root)
         self.assertEqual(result['state'], 'incomplete')
         self.assertEqual(len(result['failures']), 1)
-        self.assertIsNone(result['case_comparisons'][0]['median_run_p99_ms'])
+        self.assertEqual(result['case_comparisons'], [])
 
     def test_extent_backend_present_gpu_and_scene_identity_mutations_fail(self):
         paths = [(['initial_window', 'physical_width'], 1440),
@@ -326,6 +351,16 @@ class MatrixTests(unittest.TestCase):
 
 
 class DriverTests(unittest.TestCase):
+    def test_both_desktop_backends_use_tracked_application_f10_exit(self):
+        self.assertEqual(d.WindowsDriver.KEYS['F10'], 0x79)
+        for native in (mock.Mock(spec=d.WindowsDriver), mock.Mock(spec=d.X11Driver)):
+            tracked = d.TrackedDriver(native)
+            with mock.patch.object(d.time, 'sleep'):
+                tracked.close()
+            self.assertEqual(native.key.call_args_list, [mock.call('F10', True), mock.call('F10', False)])
+            native.close.assert_not_called()
+            self.assertEqual(tracked.held_keys, set())
+
     def test_x11_binding_requires_intersection_and_verifies_pid(self):
         driver = object.__new__(d.X11Driver)
         driver.command = mock.Mock(side_effect=['777', '123'])
