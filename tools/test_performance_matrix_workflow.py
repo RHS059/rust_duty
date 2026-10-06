@@ -109,7 +109,7 @@ class PerformanceMatrixWorkflowTests(unittest.TestCase):
     def test_pilot_requires_independent_measurement_readiness_and_verified_cleanup(self):
         plans = [step for step in self.steps if 'performance_matrix.py prepare' in step.get('run', '')]
         self.assertEqual(len(plans), 2)
-        for plan, preset in zip(plans, ('--smoke', '--pilot')):
+        for plan, preset in zip(plans, ('--smoke', '--static-diagnostics')):
             self.assertIn(preset, plan['run'])
             for token in ('--repository package-source', '--renderer dx12',
                           '--warmup-seconds 10', '--sample-seconds 120'):
@@ -130,6 +130,8 @@ class PerformanceMatrixWorkflowTests(unittest.TestCase):
                 self.assertIn(token, execution['run'])
             self.assertNotIn('--graphics-settings', execution['run'])
         self.assertLess(self.steps.index(self.step('smoke_analysis')), self.steps.index(plans[1]))
+        self.assertNotIn('--pilot ', plans[1]['run'])
+        self.assertIn('baseline, 4K, F1 command, procedural and baseline', self.step('pilot')['name'])
 
     def test_failure_evidence_retains_raw_exports_but_not_package_bytes(self):
         finalizer = next(step for step in self.steps if 'CI-SUMMARY.json' in step.get('run', ''))
@@ -143,6 +145,8 @@ class PerformanceMatrixWorkflowTests(unittest.TestCase):
         self.assertIn("'state': 'incomplete'", finalizer['run'])
         self.assertIn("'maximum_game_launches': 6", finalizer['run'])
         self.assertIn("'sample_seconds_per_case': 120", finalizer['run'])
+        self.assertIn("'selection': 'remaining_static_diagnostics'", finalizer['run'])
+        self.assertIn("'evolving_ads_movement': 'Unproven;", finalizer['run'])
         self.assertIn("value.get('graceful_shutdown') is True", finalizer['run'])
         self.assertIn("value.get('measurement_readiness', {}).get('ready') is True", finalizer['run'])
         self.assertIn('raise SystemExit(0 if complete else 1)', finalizer['run'])

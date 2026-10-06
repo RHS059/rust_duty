@@ -208,13 +208,13 @@ jobs:
         run: >-
           python verifier/tools/performance_matrix.py analyze evidence/smoke
           --output evidence/smoke-analysis.json --measurement-readiness
-      - name: Prepare the gated five-run resolution and ADS pilot
+      - name: Prepare the gated five-run remaining static diagnostics
         if: steps.smoke.outcome == 'success' && steps.smoke_analysis.outcome == 'success'
         run: >-
           python verifier/tools/performance_matrix.py prepare --repository package-source
-          --renderer dx12 --pilot --warmup-seconds 10 --sample-seconds 120
+          --renderer dx12 --static-diagnostics --warmup-seconds 10 --sample-seconds 120
           --output evidence/pilot-plan.json
-      - name: Run baseline, 720p, 1440p, ADS and baseline sequentially
+      - name: Run baseline, 4K, F1 command, procedural and baseline sequentially
         id: pilot
         if: steps.smoke.outcome == 'success' && steps.smoke_analysis.outcome == 'success'
         timeout-minutes: 15
@@ -224,7 +224,7 @@ jobs:
           "runner_exit_code=$RunExit" >> $env:GITHUB_OUTPUT
           if ($RunExit -notin @(0, 3)) { throw 'Pilot measurements or owned-process cleanup failed; retain partial evidence' }
           exit 0
-      - name: Independently reanalyze pilot measurements and verified cleanup
+      - name: Independently reanalyze static measurements and verified cleanup
         if: steps.pilot.outcome == 'success'
         run: >-
           python verifier/tools/performance_matrix.py analyze evidence/pilot
@@ -245,6 +245,8 @@ jobs:
           Path('evidence').mkdir(exist_ok=True)
           report = {'schema': 'rust-duty-windows-matrix-caller-summary/v1',
                     'scope': 'CPU software diagnostic only; no RTX or 1080p60 hardware acceptance.',
+                    'selection': 'remaining_static_diagnostics',
+                    'evolving_ads_movement': 'Unproven; this selection only varies static rendering conditions.',
                     'acceptance_proven': False, 'maximum_game_launches': 6,
                     'warmup_seconds_per_case': 10, 'sample_seconds_per_case': 120, 'captures': {}}
           for name in ('smoke', 'pilot'):
@@ -262,6 +264,8 @@ jobs:
               report['captures'][name] = value
           m.write_json('evidence/CI-SUMMARY.json', report)
           lines = ['Native Windows WARP matrix: CPU software diagnostic only.',
+                   'Static selection: baseline, 4K, F1 command trial, procedural presentation, baseline.',
+                   'Evolving ADS/movement remain unproven. F1 command receipt does not verify HUD state.',
                    'Package source: 49c3bf9b3d0482ce81a7d50683904bda28468d7d.',
                    'Runner source: ' + os.environ['GITHUB_SHA'] + '.',
                    'No RTX 3080 Ti or 1080p60 hardware acceptance is established.']

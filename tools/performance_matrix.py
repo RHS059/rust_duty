@@ -179,7 +179,8 @@ def resolve_source(args):
     return source_identity(args.repository), {'mode': 'live-git'}, args.repository
 
 
-def make_plan(source, renderer='dx12', repeats=3, warmup=15, seconds=45, smoke=False, pilot=False, source_origin=None):
+def make_plan(source, renderer='dx12', repeats=3, warmup=15, seconds=45, smoke=False, pilot=False, source_origin=None,
+              static_diagnostics=False):
     require(renderer in BACKENDS, 'Only native runtime exports real present-return intervals')
     require(type(repeats) is int and 1 <= repeats <= 5, 'repeats must be 1..5')
     require(type(warmup) is int and 10 <= warmup <= 60, 'warmup must be 10..60 seconds')
@@ -208,12 +209,19 @@ def make_plan(source, renderer='dx12', repeats=3, warmup=15, seconds=45, smoke=F
         'Check pixel-load interaction with extra debug text.', 'interaction')
     require(type(smoke) is bool, 'smoke must be boolean')
     require(type(pilot) is bool and not (smoke and pilot), 'Choose at most one of smoke/pilot')
+    require(type(static_diagnostics) is bool and not (static_diagnostics and (smoke or pilot)),
+            'Static diagnostics cannot be combined with smoke/pilot')
     if smoke:
         cases = cases[:1]
         repeats = 1
     elif pilot:
         cases = [case for case in cases if case['id'] in ('baseline', '720p', '1440p', 'ads')]
         repeats = 1
+    elif static_diagnostics:
+        cases = [case for case in cases if case['id'] in ('baseline', '4k', 'debug-hud', 'procedural')]
+        repeats = 1
+        next(case for case in cases if case['id'] == 'debug-hud')['rationale'] = (
+            'Existing F1 debug-panel command trial; current telemetry does not independently observe HUD state.')
     order = []
     varied = [case['id'] for case in cases[1:]]
     for repeat in range(repeats):
@@ -222,7 +230,7 @@ def make_plan(source, renderer='dx12', repeats=3, warmup=15, seconds=45, smoke=F
         for index, name in enumerate(['baseline'] if smoke else ['baseline', *rotated, 'baseline']):
             order.append({'run_id': f'r{repeat + 1:02d}-{index + 1:02d}-{name}',
                           'repeat': repeat + 1, 'case_id': name})
-    return {'schema': PLAN_SCHEMA, 'source': source, 'source_origin': source_origin, 'renderer': renderer,
+    result = {'schema': PLAN_SCHEMA, 'source': source, 'source_origin': source_origin, 'renderer': renderer,
             'repeats': repeats, 'warmup_seconds': warmup, 'sample_seconds': seconds, 'smoke': smoke, 'pilot': pilot,
             'cases': cases, 'order': order, 'unavailable_axes': UNAVAILABLE,
             'fixed_runtime': {'present_mode': 'Fifo', 'application_fps_cap': None,
@@ -235,11 +243,19 @@ def make_plan(source, renderer='dx12', repeats=3, warmup=15, seconds=45, smoke=F
             'entrypoint_scope': ('Experimental Linux native-GL harness importing unchanged production application. Not the shipped legacy-GL entrypoint or RTX evidence.'
                                  if renderer == 'gl-harness' else 'Packaged production game native-runtime entrypoint.'),
             'execution': 'Sequential fresh processes on one dedicated desktop. Never concurrent game instances.'}
+    if static_diagnostics:
+        # Keep historical plans byte/schema-compatible. Only the new selection
+        # carries this optional discriminator and its narrower evidence scope.
+        result['static_diagnostics'] = True
+        result['unavailable_axes'] = {**UNAVAILABLE,
+            'evolving_ads_movement': 'Unproven by this static selection. Prior WARP ADS remained at ADS=0 with no simulation-time progression; movement/ADS require a host where simulation advances.'}
+    return result
 
 
 def validate_plan(plan):
     expected = make_plan(plan['source'], plan['renderer'], plan['repeats'],
-                         plan['warmup_seconds'], plan['sample_seconds'], plan['smoke'], plan['pilot'], plan['source_origin'])
+                         plan['warmup_seconds'], plan['sample_seconds'], plan['smoke'], plan['pilot'], plan['source_origin'],
+                         plan.get('static_diagnostics', False))
     require(plan == expected, 'Plan changed or contains unsupported settings; regenerate it')
 
 
@@ -415,6 +431,7 @@ def run_case(plan, item, case, executable, output, settings, graphics, fallback,
             tap(driver, 'F2')
             if case['settings']['debug_hud']:
                 tap(driver, 'F1')
+                receipt['debug_hud_command'] = {'key': 'F1', 'issued': True, 'actual_state_verified': False}
             replay(driver, process, size, 'stationary', plan['warmup_seconds'])
             if case['settings']['action'] == 'ads':
                 driver.aim(True)
@@ -546,22 +563,34 @@ def run_matrix(args):
 
 def gameplay_summary(path):
     require(path.is_file() and not path.is_symlink(), 'Missing gameplay.csv')
-    speeds, ads, positions = [], [], []
+    speeds, ads, positions, times = [], [], [], []
     with path.open(encoding='utf-8', newline='') as stream:
         reader = csv.DictReader(stream)
         require(reader.fieldnames == 'time,x,y,z,speed,grounded,crouched,sprinting,ads,recoil_pitch_deg,ammo,shots,hits,kills,render_fps'.split(','),
                 'Gameplay CSV header mismatch')
         for index, row in enumerate(reader):
             require(index < 250000 and None not in row and all(value is not None for value in row.values()), 'Malformed or oversized gameplay CSV')
-            values = [float(row[key]) for key in ('speed', 'ads', 'x', 'y', 'z')]
+            values = [float(row[key]) for key in ('speed', 'ads', 'x', 'y', 'z', 'time')]
             require(all(math.isfinite(value) for value in values), 'Nonfinite gameplay observation')
-            speeds.append(values[0]); ads.append(values[1]); positions.append(values[2:])
+            require(values[5] >= 0 and (not times or values[5] >= times[-1]),
+                    'Simulation time is negative or regresses within the recording')
+            speeds.append(values[0]); ads.append(values[1]); positions.append(values[2:5]); times.append(values[5])
     require(speeds, 'No gameplay rows; startup/menu capture is not a game test')
+    advancing = sum(right > left for left, right in zip(times, times[1:]))
+    pairs = len(times) - 1
+    progression = ('unavailable_single_row' if not pairs else 'stalled' if not advancing
+                   else 'advancing' if advancing == pairs else 'intermittent_progress')
     return {'rows': len(speeds), 'speed_min': min(speeds), 'speed_max': max(speeds),
             'moving_fraction': sum(value > 0.1 for value in speeds) / len(speeds),
             'ads_min': min(ads), 'ads_max': max(ads),
             'aimed_fraction': sum(value >= 0.99 for value in ads) / len(ads),
             'first_position': positions[0], 'last_position': positions[-1],
+            'simulation_time': {'first_seconds': times[0], 'last_seconds': times[-1],
+                                'span_seconds': times[-1] - times[0], 'csv_pair_count': pairs,
+                                'advancing_pairs': advancing, 'unchanged_pairs': pairs - advancing,
+                                'advancing_pair_fraction': advancing / pairs if pairs else None,
+                                'progression': progression,
+                                'scope': 'Actual simulation time from CSV rounded to four decimals; not wall-clock or render FPS.'},
             'render_fps_column_used_for_timing': False}
 
 
@@ -718,15 +747,28 @@ def analyze_measurements(folder, manifest, receipt):
     require(plan['smoke'] or tail_ready, 'Fewer than 100 intervals; tail estimate not useful')
     gameplay = gameplay_summary(session / 'gameplay.csv')
     action = case['settings']['action']
+    if action in ('ads', 'movement'):
+        require(gameplay['simulation_time']['span_seconds'] > 0,
+                'Simulation time did not advance; evolving ADS/movement is unproven')
     require((gameplay['moving_fraction'] > 0.50) if action == 'movement' else (gameplay['speed_max'] < 0.1),
             'Observed movement does not match the input case')
     require((gameplay['aimed_fraction'] > 0.90) if action == 'ads' else (gameplay['ads_max'] < 0.01),
             'Observed ADS does not match the input case')
+    if plan.get('static_diagnostics') and case['settings']['debug_hud']:
+        require(receipt.get('debug_hud_command') == {'key': 'F1', 'issued': True, 'actual_state_verified': False},
+                'Static F1 trial needs its issued-command receipt; HUD state is not observable')
+    progression = gameplay['simulation_time']['progression']
+    long_intervals = sum(value > 250_000_000 for value in values)
+    condition = ('static_scene_with_stalled_simulation' if progression == 'stalled'
+                 else 'scene_with_intermittent_simulation' if progression == 'intermittent_progress'
+                 else 'scene_with_advancing_simulation' if progression == 'advancing'
+                 else 'simulation_progression_unavailable')
     summary = report['summary']
     result = {'run': item, 'settings_requested': case['settings'], 'runtime_observed': runtime,
               'started_unix_ns': receipt['started_unix_ns'], 'finished_unix_ns': receipt['finished_unix_ns'],
               'frame_summary_ns': summary, 'effective_present_hz': len(values) * 1e9 / sum(values),
-              'sample_quality': {'purpose': 'setup_smoke' if plan['smoke'] else 'statistical_matrix',
+              'sample_quality': {'purpose': ('setup_smoke' if plan['smoke'] else 'static_render_diagnostics'
+                                            if plan.get('static_diagnostics') else 'statistical_matrix'),
                                  'observed_intervals': len(values), 'required_intervals_for_tail_comparison': 100,
                                  'tail_comparison_ready': tail_ready,
                                  'percentile_scope': 'Descriptive retained-sample quantiles; fewer than 100 intervals do not establish a useful tail comparison.'},
@@ -734,9 +776,18 @@ def analyze_measurements(folder, manifest, receipt):
               'interval_fraction_over_two_60hz_budgets': sum(value * 30 > 1e9 for value in values) / len(values),
               'cpu_stages': frames._cpu_stage_summary(stage, report['records']),
               'gameplay_observed': gameplay, 'skipped_frames': report['skipped_frame_count'],
+              'simulation_condition': {'classification': condition,
+                                       'simulation_seconds_per_present_wall_second': gameplay['simulation_time']['span_seconds'] / (sum(values) / 1e9),
+                                       'present_intervals_over_250ms': long_intervals,
+                                       'present_interval_fraction_over_250ms': long_intervals / len(values),
+                                       'evolving_gameplay_acceptance_proven': False,
+                                       'scope': 'CSV progression and retained present intervals have different sampling endpoints. At source49, application dt above250ms discards simulation time; long present intervals are supporting hitch evidence, not direct per-frame dt instrumentation.'},
               'gpu_counter_export': gpu_export_summary(session),
               'gpu_frame_duration_ns': None, 'draw_pass_triangle_counts': None,
-              'debug_hud_evidence': 'Driver F1 command; no independent HUD state in current telemetry',
+              'debug_hud_evidence': {'requested_debug_panel': case['settings']['debug_hud'],
+                                     'command_receipt': receipt.get('debug_hud_command'),
+                                     'actual_state_verified': False,
+                                     'scope': 'An issued F1 command is not proof of actual HUD state; older receipts may omit the command field.'},
               'scope': 'Real-game CPU present-return intervals, not GPU time or display scan-out.',
               'acceptance_proven': False}
     result['trace_sha256'] = sha256(session / 'frames.json')
@@ -798,7 +849,8 @@ def analyze_matrix(output):
                          and all(run['sample_quality']['tail_comparison_ready'] for run in runs))
     return {'schema': 'rust-duty-real-game-matrix-analysis/v1',
             'state': ('setup_complete' if plan['smoke'] else 'complete') if not failures else 'incomplete',
-            'analysis_purpose': 'setup_smoke' if plan['smoke'] else 'statistical_matrix',
+            'analysis_purpose': ('setup_smoke' if plan['smoke'] else 'static_render_diagnostics'
+                                 if plan.get('static_diagnostics') else 'statistical_matrix'),
             'graceful_shutdown': bool(runs) and not failures and all(run['graceful_shutdown'] for run in runs),
             'measurement_readiness': {'ready': measurement_ready, 'required_intervals_per_run': 100,
                                       'all_processes_exited': len(runs) == len(plan['order']) and not measurement_failures,
@@ -830,6 +882,8 @@ def main(argv=None):
     prepare.add_argument('--sample-seconds', type=int, default=45)
     prepare.add_argument('--smoke', action='store_true', help='One baseline only; gate the desktop before a full matrix')
     prepare.add_argument('--pilot', action='store_true', help='Baseline,720p,1440p,ADS,baseline before the full matrix')
+    prepare.add_argument('--static-diagnostics', action='store_true',
+                         help='Remaining static cases: baseline,4K,F1 command,procedural,baseline; evolving ADS/movement unproven')
     prepare.add_argument('--output', type=Path, required=True)
     run = sub.add_parser('run', help='Opt-in sequential real-game desktop execution')
     for name in ('plan', 'executable', 'settings', 'output'):
@@ -859,7 +913,8 @@ def main(argv=None):
         elif args.command == 'prepare':
             source, origin, _ = resolve_source(args)
             result = make_plan(source, args.renderer, args.repeats,
-                               args.warmup_seconds, args.sample_seconds, args.smoke, args.pilot, origin)
+                               args.warmup_seconds, args.sample_seconds, args.smoke, args.pilot, origin,
+                               args.static_diagnostics)
             write_json(args.output, result)
             print(f'Prepared {len(result["order"])} sequential runs; no game launched: {args.output}')
         elif args.command == 'run':

@@ -120,10 +120,27 @@ class MatrixTests(unittest.TestCase):
     def tearDown(self):
         self.temp.cleanup()
 
-    def csv(self, speed, ads):
+    def csv(self, speed, ads, times=None):
         header = 'time,x,y,z,speed,grounded,crouched,sprinting,ads,recoil_pitch_deg,ammo,shots,hits,kills,render_fps\n'
+        times = [i / 10 for i in range(100)] if times is None else times
         (self.session / 'gameplay.csv').write_text(header + ''.join(
-            f'{i / 10},0,0,0,{speed},1,0,0,{ads},0,30,0,0,0,999999\n' for i in range(100)))
+            f'{value},0,0,0,{speed},1,0,0,{ads},0,30,0,0,0,999999\n' for value in times))
+
+    def select_case(self, plan, name):
+        self.plan = plan
+        self.item = next(item for item in plan['order'] if item['case_id'] == name)
+        self.case = next(case for case in plan['cases'] if case['id'] == name)
+        destination = self.root / self.item['run_id']
+        if destination != self.folder:
+            self.folder.rename(destination)
+            self.folder = destination
+            self.session = destination / 'telemetry-sessions' / self.session.name
+        self.manifest['plan'] = plan
+        self.receipt.update(run=self.item, case=self.case)
+        self.report = trace(self.case, self.adapter, self.build)
+        dump(self.session / 'frames.json', self.report)
+        dump(self.folder / 'RESULT.json', self.receipt)
+        dump(self.root / 'MANIFEST.json', self.manifest)
 
     def analyze(self):
         return m.analyze_run(self.folder, self.manifest)
@@ -143,6 +160,81 @@ class MatrixTests(unittest.TestCase):
                          ['baseline', '720p', '1440p', 'ads', 'baseline'])
         self.assertIsNone(plan['fixed_runtime']['application_fps_cap'])
         self.assertIn('record_off_overhead', plan['unavailable_axes'])
+
+    def test_old_plan_bytes_remain_compatible(self):
+        expected = (({}, '1c78fa3ca2323de9a0b6ca6b8d416e26cfe7057bf1566f8f484f91dadf72601a'),
+                    ({'smoke': True}, 'be319836c21ccce00805a6ebd7295b625b7d48d5e695c602d7f6123205799e18'),
+                    ({'pilot': True}, '343d547310f729d856b5bca1a847648fb433dcf2ff15035853387dc2d53a8e2a'))
+        for kwargs, digest in expected:
+            plan = m.make_plan(SOURCE, **kwargs)
+            self.assertNotIn('static_diagnostics', plan)
+            self.assertEqual(m.canonical_hash(plan), digest)
+            m.validate_plan(plan)
+
+    def test_remaining_static_selection_is_five_existing_conditions(self):
+        plan = m.make_plan(SOURCE, seconds=120, static_diagnostics=True)
+        self.assertEqual([item['case_id'] for item in plan['order']],
+                         ['baseline', '4k', 'debug-hud', 'procedural', 'baseline'])
+        self.assertEqual(plan['repeats'], 1)
+        self.assertEqual(plan['sample_seconds'], 120)
+        self.assertTrue(all(case['settings']['action'] == 'stationary' for case in plan['cases']))
+        self.assertIn('evolving_ads_movement', plan['unavailable_axes'])
+        m.validate_plan(plan)
+        for options in ({'smoke': True}, {'pilot': True}, {'static_diagnostics': 'yes'}):
+            with self.assertRaises(ValueError):
+                m.make_plan(SOURCE, **({'static_diagnostics': True} | options))
+
+    def test_simulation_progression_distinguishes_stalls_and_partial_progress(self):
+        for times, state, advancing in (([0.1667] * 3, 'stalled', 0),
+                                         ([0, 0, 0.0833], 'intermittent_progress', 1),
+                                         ([0, 0.1, 0.2], 'advancing', 2),
+                                         ([0], 'unavailable_single_row', 0)):
+            self.csv(0, 0, times)
+            value = m.gameplay_summary(self.session / 'gameplay.csv')['simulation_time']
+            self.assertEqual(value['progression'], state)
+            self.assertEqual(value['advancing_pairs'], advancing)
+            self.assertEqual(value['span_seconds'], times[-1] - times[0])
+        for times in ([1, 0], [-1, 0], [0, float('nan')]):
+            self.csv(0, 0, times)
+            with self.assertRaises(ValueError):
+                m.gameplay_summary(self.session / 'gameplay.csv')
+
+    def test_static_stalled_capture_keeps_tail_gate_and_labels_simulation(self):
+        plan = m.make_plan(SOURCE, warmup=10, seconds=10, static_diagnostics=True)
+        self.select_case(plan, 'baseline')
+        self.csv(0, 0, [0.1667] * 100)
+        result = self.analyze()
+        self.assertEqual(result['sample_quality']['purpose'], 'static_render_diagnostics')
+        self.assertEqual(result['simulation_condition']['classification'], 'static_scene_with_stalled_simulation')
+        self.assertFalse(result['simulation_condition']['evolving_gameplay_acceptance_proven'])
+        self.assertEqual(result['gameplay_observed']['simulation_time']['span_seconds'], 0)
+        dump(self.session / 'frames.json', trace(self.case, self.adapter, self.build, intervals=38, interval_ns=1_000_000_000))
+        with self.assertRaisesRegex(ValueError, '100 intervals'):
+            self.analyze()
+
+    def test_stalled_ads_cannot_be_counted_as_evolving_gameplay(self):
+        self.select_case(m.make_plan(SOURCE, warmup=10, seconds=10, pilot=True), 'ads')
+        self.csv(0, 1, [0.1667] * 100)
+        with self.assertRaisesRegex(ValueError, 'Simulation time did not advance'):
+            self.analyze()
+
+    def test_static_f1_requires_command_receipt_without_claiming_actual_state(self):
+        self.select_case(m.make_plan(SOURCE, warmup=10, seconds=10, static_diagnostics=True), 'debug-hud')
+        with self.assertRaisesRegex(ValueError, 'issued-command'):
+            self.analyze()
+        self.receipt['debug_hud_command'] = {'key': 'F1', 'issued': True, 'actual_state_verified': False}
+        dump(self.folder / 'RESULT.json', self.receipt)
+        result = self.analyze()
+        self.assertTrue(result['debug_hud_evidence']['command_receipt']['issued'])
+        self.assertFalse(result['debug_hud_evidence']['actual_state_verified'])
+
+    def test_static_procedural_binds_actual_presentation(self):
+        self.select_case(m.make_plan(SOURCE, warmup=10, seconds=10, static_diagnostics=True), 'procedural')
+        self.assertEqual(self.analyze()['runtime_observed']['scene']['presentation'], 'procedural')
+        self.report['identity']['runtime_observed']['scene']['presentation'] = 'authored_viewmodel'
+        dump(self.session / 'frames.json', self.report)
+        with self.assertRaisesRegex(ValueError, 'Procedural case'):
+            self.analyze()
 
     def test_no_invented_cli_flags_or_capture(self):
         exe = self.root / 'vector-range.exe'

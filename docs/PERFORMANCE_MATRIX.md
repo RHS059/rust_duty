@@ -30,7 +30,7 @@ match its case. DPI scale must stay constant between runs.
 | LOD / visibility | No selectable LOD, frustum/occlusion-culling or offscreen mesh hiding mode; mesh `cull_mode=None` |
 | Scene complexity | Existing `--procedural-weapon` versus packaged presentation in the same default range |
 | Record overhead | Record remains on for every measured case; no frame trace exists with Record off, so overhead is unavailable |
-| HUD | F1 debug panel off/on; ordinary HUD and recording indicator remain on |
+| HUD | Existing F1 debug-panel command trial; actual panel state is not emitted by telemetry. Ordinary HUD remains on |
 | Actions | Stationary hip, held RMB ADS using `--hold-controls`, W/S movement alternating every two wall-clock seconds |
 | Backend | Production DX12/Vulkan/Metal native runtime; explicit, separately labeled Linux native-GL harness when packaged with its provenance |
 
@@ -58,6 +58,11 @@ match the native runtime's exact requested/actual fingerprint evidence.
 - F1's requested state is supported by the driver command, but the current
   telemetry does not independently report HUD state. Movement/ADS are checked
   against the gameplay CSV. CSV `render_fps` is never used for frame statistics.
+- Actual CSV simulation time is reported as first/last/span, advancing/unchanged
+  adjacent samples, and `advancing`, `intermittent_progress`, or `stalled`.
+  Frozen simulation is labeled static rendering evidence. ADS/movement tests
+  cannot count a zero-span recording as evolving gameplay, even if a held pose
+  happens to match. A single CSV row cannot establish progression.
 - This is a timed external input replay, not a fixed-tick simulation replay.
   Mouse motion and other user input must be absent on the dedicated desktop.
   The driver checks focus/extent at the same 100 ms cadence in all cases. Its
@@ -78,6 +83,37 @@ Use `--smoke` first for one baseline. Use `--pilot` next for five runs:
 1080p baseline, 720p, 1440p, 1080p ADS, repeated baseline. The pilot gives an early
 resolution/ADS signal before committing to the full matrix. Neither preset is
 presented as full-matrix completion.
+
+`--static-diagnostics` selects only the remaining static conditions:
+1080p baseline, 4K, the F1 command trial, procedural presentation, repeated
+1080p baseline. This five-run selection does not repeat the completed 720p or
+1440p cases and makes no evolving ADS/movement claim. The procedural case must
+observe `scene.presentation=procedural`; the F1 case must retain its successful
+command receipt while keeping actual HUD state unverified. Historical plans
+remain accepted without the new optional `static_diagnostics` field.
+
+The Windows software caller uses this static selection with 120-second samples
+and the unchanged 100-interval requirement. Its existing `pilot` file/step names
+are retained for caller compatibility; the plan and analysis explicitly identify
+`static_render_diagnostics`. An independent setup smoke precedes these cases.
+Verified owned-process cleanup permits authorized measurement continuation, but
+each failed graceful shutdown remains failed and the final job stays red.
+
+The source-49 package discards simulation time when application frame dt exceeds
+250 ms (`session.rs` and `app.rs`). In Windows WARP run 37517711655, the completed
+1080p, 720p and 1440p recordings retained 139, 156 and 118 intervals, respectively,
+while CSV simulation advanced 0, 9.4666 and 0.0833 seconds over about 120 wall-clock
+seconds. ADS remained zero and its simulation time stayed at 0.1667 seconds.
+That ADS case remains failed. Median surface acquisition was about 1001 ms in
+all four captures. These observations are consistent with hitch-stalled
+simulation, not evidence of a driver input fault or RTX performance.
+
+Analysis retains the fraction of present intervals above 250 ms as supporting
+hitch evidence. Present-return intervals are not direct measurements of the
+application's dt. The simulation-span/present-duration ratio also has different
+sampling endpoints; it is not a new physics or performance threshold. Different
+simulation progression can confound static cost comparisons and must be reviewed
+alongside the resolution, presentation and CPU-stage data.
 
 A smoke validates window/input/recording/export/graceful-exit behavior separately
 from statistical sample quality. It reports `setup_complete` only when those
@@ -104,6 +140,8 @@ python tools/performance_matrix.py prepare --repository . --renderer dx12 \
   --pilot --warmup-seconds 10 --sample-seconds 10 --output pilot.json
 python tools/performance_matrix.py prepare --repository . --renderer dx12 \
   --output full-matrix.json
+python tools/performance_matrix.py prepare --repository . --renderer dx12 \
+  --static-diagnostics --warmup-seconds 10 --sample-seconds 120 --output static.json
 ```
 
 For a portable machine without Git, export a bounded source witness from that
