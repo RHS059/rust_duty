@@ -1,0 +1,179 @@
+name: Isolated Windows acquire and exit diagnostic
+on:
+  workflow_dispatch:
+    inputs:
+      exit_method:
+        description: Normal exit signal for the single diagnostic baseline
+        type: choice
+        options: [f10, native-close]
+        default: f10
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/windows-acquire-diagnostic.yml'
+      - 'tools/windows_acquire_diagnostic.py'
+      - 'tools/test_windows_acquire_diagnostic.py'
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: windows-acquire-diagnostic-${{ github.ref }}
+  cancel-in-progress: false
+env:
+  GIT_CONFIG_COUNT: '1'
+  GIT_CONFIG_KEY_0: core.autocrlf
+  GIT_CONFIG_VALUE_0: 'false'
+jobs:
+  diagnostic:
+    if: github.repository == 'RHS059/rust_duty' && github.ref == 'refs/heads/main' && github.run_attempt == 1
+    runs-on: windows-latest
+    timeout-minutes: 45
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - name: Check out diagnostic tools
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          path: verifier
+          persist-credentials: false
+      - name: Check out exact original production source separately
+        uses: actions/checkout@v4
+        with:
+          ref: '49c3bf9b3d0482ce81a7d50683904bda28468d7d'
+          path: original-source
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Run focused observer and workflow tests
+        working-directory: verifier
+        env:
+          PYTHONPATH: tools
+        run: |
+          python -m pip install PyYAML==6.0.3
+          if ($LASTEXITCODE -ne 0) { throw 'Cannot install workflow parser' }
+          python -m unittest -v test_windows_acquire_diagnostic
+          if ($LASTEXITCODE -ne 0) { throw 'Diagnostic focused checks failed' }
+      - name: Read and validate only the authorized package metadata before download
+        id: provider
+        uses: actions/github-script@v7
+        with:
+          retries: 0
+          script: |
+            const fs = require('fs');
+            const source = '49c3bf9b3d0482ce81a7d50683904bda28468d7d';
+            const repository = 'RHS059/rust_duty';
+            const runId = 37505927104;
+            const artifactId = 11432281909;
+            const check = (ok, message) => { if (!ok) throw new Error(message); };
+            check(context.repo.owner === 'RHS059' && context.repo.repo === 'rust_duty', 'Wrong current repository');
+            const artifact = (await github.rest.actions.getArtifact({
+              owner: 'RHS059', repo: 'rust_duty', artifact_id: artifactId
+            })).data;
+            const attempt = (await github.rest.actions.getWorkflowRunAttempt({
+              owner: 'RHS059', repo: 'rust_duty', run_id: runId, attempt_number: 1
+            })).data;
+            fs.mkdirSync('evidence', {recursive: true});
+            fs.writeFileSync('evidence/PROVIDER.json', JSON.stringify({artifact, attempt}, null, 2) + '\n', {flag: 'wx'});
+            check(attempt.id === runId && attempt.run_attempt === 1 && attempt.head_sha === source &&
+              attempt.head_branch === 'main' && attempt.repository?.id === 1398577887 &&
+              attempt.repository?.full_name === repository && attempt.head_repository?.id === 1398577887 &&
+              attempt.head_repository?.full_name === repository &&
+              attempt.path === '.github/workflows/windows-migration-preview.yml' &&
+              attempt.name === 'Independent migration Windows preview', 'Wrong package attempt identity');
+            check(artifact.id === artifactId &&
+              artifact.name === 'Rust-Duty-0.1.11+build.37505927104.1-DX12-Revalidated-Preview-Windows-x64' &&
+              artifact.size_in_bytes === 113472627 &&
+              artifact.digest === 'sha256:c6454a307a95a9d36583b2e6e6e8921510e01e6dce1cf5bde34d386ef0100747' &&
+              artifact.expired === false, 'Wrong, incomplete or expired package artifact');
+            check(artifact.url === `https://api.github.com/repos/${repository}/actions/artifacts/${artifactId}` &&
+              artifact.archive_download_url === `https://api.github.com/repos/${repository}/actions/artifacts/${artifactId}/zip`,
+              'Wrong artifact repository URLs');
+            const origin = artifact.workflow_run;
+            check(origin?.id === runId && origin.repository_id === 1398577887 &&
+              origin.head_repository_id === 1398577887 && origin.head_sha === source &&
+              origin.head_branch === 'main', 'Wrong artifact source/run/repository');
+            const created = Date.parse(artifact.created_at);
+            const started = Date.parse(attempt.run_started_at);
+            const expires = Date.parse(artifact.expires_at);
+            check(Number.isFinite(created) && Number.isFinite(started) && Number.isFinite(expires) &&
+              started <= created && created <= Date.now() && Date.now() < expires,
+              'Artifact dates do not bind an unexpired package to the requested attempt');
+            // Package upload is independent of later quality/comparison jobs. Their
+            // actual status is retained above; this caller never asserts full CI passed.
+            core.notice('Pinned package metadata verified. This is CPU software diagnostic evidence only.');
+      - name: Download and extract that single immutable package with digest enforcement
+        uses: actions/download-artifact@v8
+        with:
+          repository: RHS059/rust_duty
+          run-id: '37505927104'
+          artifact-ids: '11432281909'
+          github-token: ${{ github.token }}
+          merge-multiple: true
+          digest-mismatch: error
+          path: package
+      - name: Cache only trusted Cargo registry downloads
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry/index
+            ~/.cargo/registry/cache
+            ~/.cargo/registry/src
+          key: acquire-diagnostic-registry-v1-${{ runner.os }}-${{ hashFiles('original-source/Cargo.lock') }}
+      - name: Fetch the original locked dependencies
+        working-directory: original-source
+        run: |
+          cargo fetch --locked
+          if ($LASTEXITCODE -ne 0) { throw 'Original locked dependency fetch failed' }
+      - name: Prepare separate source and HAL copies with exact patch receipts
+        run: |
+          $Crates = @(Get-ChildItem "$env:USERPROFILE/.cargo/registry/cache/*/wgpu-hal-30.0.1.crate")
+          if ($Crates.Count -ne 1) { throw 'Expected one exact pinned HAL crate' }
+          python verifier/tools/windows_acquire_diagnostic.py prepare --repository original-source --crate $Crates[0].FullName --output derived
+          if ($LASTEXITCODE -ne 0) { throw 'Exact diagnostic derivation failed' }
+          Copy-Item derived/DERIVATION.json evidence/DERIVATION.json
+          Copy-Item derived/patches evidence/patches -Recurse
+          git -C verifier rev-parse HEAD > evidence/RUNNER_COMMIT.txt
+          Copy-Item verifier/tools/windows_acquire_diagnostic.py evidence/
+          Copy-Item verifier/tools/test_windows_acquire_diagnostic.py evidence/
+          Copy-Item verifier/.github/workflows/windows-acquire-diagnostic.yml evidence/
+      - name: Build exactly one instrumented game binary in an uncached target
+        working-directory: derived/source
+        env:
+          CARGO_TARGET_DIR: ${{ runner.temp }}/acquire-exit-diagnostic-target
+          CARGO_BUILD_JOBS: '2'
+        run: |
+          rustc -Vv > ../../evidence/RUSTC.txt
+          cargo --config diagnostic-cargo.toml build --locked --release --features wgpu-runtime --bin vector-range 2>&1 | Tee-Object ../../evidence/BUILD.log
+          if ($LASTEXITCODE -ne 0) { throw 'Instrumented binary build failed' }
+      - name: Bind derived executable and reuse only the verified package runtime files
+        run: |
+          python verifier/tools/windows_acquire_diagnostic.py stage --prepared derived --package package --executable "$env:RUNNER_TEMP/acquire-exit-diagnostic-target/release/vector-range.exe" --output diagnostic-package
+          if ($LASTEXITCODE -ne 0) { throw 'Diagnostic staging failed' }
+          Copy-Item diagnostic-package/DIAGNOSTIC_BUILD.json evidence/DIAGNOSTIC_BUILD.json
+      - name: Run one bounded 1080p WARP baseline and retain shutdown evidence
+        timeout-minutes: 4
+        env:
+          EXIT_METHOD: ${{ inputs.exit_method || 'f10' }}
+        run: |
+          python verifier/tools/windows_acquire_diagnostic.py run --package diagnostic-package --output evidence/run --seconds 25 --exit-method $env:EXIT_METHOD
+          if ($LASTEXITCODE -ne 0) { throw 'Diagnostic incomplete; inspect retained lifecycle and cleanup evidence' }
+      - name: Report diagnostic scope
+        if: always()
+        run: |
+          "Instrumented Windows WARP acquire/exit diagnostic. Production source: 49c3bf9b3d0482ce81a7d50683904bda28468d7d. Logging-only derived source and HAL. One 25-second baseline; no full matrix, GPU-time, RTX or 1080p60 acceptance. A failed exit remains failed after forced cleanup." >> $env:GITHUB_STEP_SUMMARY
+          if (Test-Path evidence/run/SUMMARY.json) {
+            $Summary = Get-Content evidence/run/SUMMARY.json -Raw | ConvertFrom-Json
+            "Result: $($Summary.state). $($Summary.errors -join '; ')" >> $env:GITHUB_STEP_SUMMARY
+          }
+      - name: Retain only raw telemetry, logs and diagnostic hash/patch receipts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-acquire-exit-diagnostic-${{ github.run_id }}-${{ github.run_attempt }}
+          path: evidence/
+          if-no-files-found: warn
+          retention-days: 7
