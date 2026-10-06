@@ -1,0 +1,77 @@
+name: Revalidate completed ebf authored packet
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/revalidate-ebf-authored-packet.yml
+      - tools/revalidate_ebf_authored_packet.py
+      - tools/test_revalidate_ebf_authored_packet.py
+      - tools/ebf_authored_packet_pins.json
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+# A separate Python-only verifier. The original run, source packet, compiled
+# receipts, captures, failed rows and fixed-8f recovery remain unchanged.
+jobs:
+  revalidate-completed-packet:
+    if: github.repository == 'RHS059/rust_duty' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      GIT_CONFIG_COUNT: '1'
+      GIT_CONFIG_KEY_0: core.autocrlf
+      GIT_CONFIG_VALUE_0: 'false'
+    steps:
+      - name: Check out the actual reviewed verifier
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          path: verifier
+          persist-credentials: false
+      - name: Check out original ebf production separately
+        uses: actions/checkout@v4
+        with:
+          ref: ebf4bcb7f489766e3c7ec188c35db9bb4146c62b
+          path: capture-source
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install Python verification dependencies
+        run: python -m pip install -r verifier/tools/requirements-assets.txt PyYAML==6.0.3
+      - name: Test immutable packet, metadata and existing acceptance guards
+        working-directory: verifier
+        env:
+          PYTHONPATH: tools
+        run: >-
+          python -m unittest -v test_revalidate_ebf_authored_packet
+          test_revalidate_ads_offset test_aggregate_ads_source_supplement
+          test_finite_ads_gpu_cpu test_finite_ads_profile_gate
+      - name: Fetch exact completed attempt, original anchors and 23 pinned archives
+        timeout-minutes: 25
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >-
+          python verifier/tools/revalidate_ebf_authored_packet.py fetch
+          --verifier-root verifier --downloads downloaded
+      - name: Require the reviewed ADS leaf and full nine-shard aggregate
+        timeout-minutes: 60
+        run: >-
+          python verifier/tools/revalidate_ebf_authored_packet.py run
+          --verifier-root verifier --capture-root capture-source
+          --downloads downloaded --native-root native-inputs --evidence evidence
+      - name: Retain supplemental verdict and original failed evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ebf-authored-packet-revalidation-attempt-${{ github.run_attempt }}
+          path: |
+            evidence/
+            downloaded/*.json
+            downloaded/logs/
+          if-no-files-found: warn
+          retention-days: 7

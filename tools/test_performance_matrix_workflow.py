@@ -5,7 +5,9 @@ import os
 from pathlib import Path
 import shutil
 import subprocess
+import tempfile
 import unittest
+from unittest import mock
 
 import yaml
 
@@ -104,7 +106,7 @@ class PerformanceMatrixWorkflowTests(unittest.TestCase):
         self.assertEqual(positions, sorted(positions))
         self.assertEqual(self.step('provider')['with']['retries'], '0')
 
-    def test_pilot_requires_successful_smoke_and_independent_analysis(self):
+    def test_pilot_requires_independent_measurement_readiness_and_verified_cleanup(self):
         plans = [step for step in self.steps if 'performance_matrix.py prepare' in step.get('run', '')]
         self.assertEqual(len(plans), 2)
         for plan, preset in zip(plans, ('--smoke', '--pilot')):
@@ -116,13 +118,15 @@ class PerformanceMatrixWorkflowTests(unittest.TestCase):
         self.assertEqual(plans[1]['if'], gate)
         self.assertEqual(self.step('pilot')['if'], gate)
         self.assertIn('performance_matrix.py analyze evidence/smoke', self.step('smoke_analysis')['run'])
+        self.assertIn('--measurement-readiness', self.step('smoke_analysis')['run'])
         executions = [step for step in self.steps if 'performance_matrix.py run ' in step.get('run', '')]
         self.assertEqual(executions, [self.step('smoke'), self.step('pilot')])
         self.assertEqual(self.step('smoke')['timeout-minutes'], '4')
         self.assertEqual(self.step('pilot')['timeout-minutes'], '15')
         for execution in executions:
             for token in ('--executable package/vector-range.exe', '--settings package/settings.cfg',
-                          '--force-fallback --driver win32', '--execute', '$LASTEXITCODE -ne 0'):
+                          '--force-fallback --driver win32', '--execute --continue-after-exit-timeout',
+                          '$RunExit = $LASTEXITCODE', '$RunExit -notin @(0, 3)', 'runner_exit_code=$RunExit'):
                 self.assertIn(token, execution['run'])
             self.assertNotIn('--graphics-settings', execution['run'])
         self.assertLess(self.steps.index(self.step('smoke_analysis')), self.steps.index(plans[1]))
@@ -139,6 +143,10 @@ class PerformanceMatrixWorkflowTests(unittest.TestCase):
         self.assertIn("'state': 'incomplete'", finalizer['run'])
         self.assertIn("'maximum_game_launches': 6", finalizer['run'])
         self.assertIn("'sample_seconds_per_case': 120", finalizer['run'])
+        self.assertIn("value.get('graceful_shutdown') is True", finalizer['run'])
+        self.assertIn("value.get('measurement_readiness', {}).get('ready') is True", finalizer['run'])
+        self.assertIn('raise SystemExit(0 if complete else 1)', finalizer['run'])
+        self.assertIn('SMOKE_RUNNER_EXIT', finalizer['env'])
         self.assertEqual(upload['with']['retention-days'], '7')
         self.assertEqual(upload['with']['include-hidden-files'], 'true')
         self.assertEqual(upload['with']['path'].splitlines(), [
@@ -153,6 +161,35 @@ class PerformanceMatrixWorkflowTests(unittest.TestCase):
                 python = script.split("@'\n", 1)[1].split("\n'@ | python -", 1)[0]
                 compile(python, step['name'], 'exec')
                 self.assertIn("if ($LASTEXITCODE -ne 0)", script)
+
+    def test_final_workflow_check_fails_even_when_failed_shutdown_measurements_are_ready(self):
+        import performance_matrix as matrix
+        finalizer = next(step for step in self.steps if 'CI-SUMMARY.json' in step.get('run', ''))
+        script = finalizer['run'].split("@'\n", 1)[1].split("\n'@ | python -", 1)[0]
+        original = Path.cwd()
+        for graceful, expected in [(False, 1), (True, 0)]:
+            with self.subTest(graceful=graceful), tempfile.TemporaryDirectory() as folder:
+                root = Path(folder)
+                for name in ('smoke', 'pilot'):
+                    path = root / 'evidence' / name / 'MANIFEST.json'
+                    path.parent.mkdir(parents=True)
+                    path.write_text('{}')
+                value = {'state': 'complete' if graceful else 'incomplete',
+                         'graceful_shutdown': graceful, 'measurement_readiness': {'ready': True}}
+                env = {'GITHUB_SHA': 'synthetic', 'GITHUB_STEP_SUMMARY': str(root / 'summary.txt'),
+                       'SMOKE_RUNNER_EXIT': '0' if graceful else '3',
+                       'PILOT_RUNNER_EXIT': '0' if graceful else '3'}
+                try:
+                    os.chdir(root)
+                    with mock.patch.dict(os.environ, env), mock.patch.object(
+                            matrix, 'analyze_matrix', side_effect=lambda _: copy.deepcopy(value)):
+                        with self.assertRaises(SystemExit) as raised:
+                            exec(compile(script, 'workflow finalizer', 'exec'), {})
+                    self.assertEqual(raised.exception.code, expected)
+                    saved = json.loads((root / 'evidence/CI-SUMMARY.json').read_text())
+                    self.assertEqual(saved['captures']['smoke']['graceful_shutdown'], graceful)
+                finally:
+                    os.chdir(original)
 
     def run_provider_cases(self, cases):
         node = shutil.which('node')

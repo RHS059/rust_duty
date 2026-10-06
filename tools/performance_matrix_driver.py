@@ -16,6 +16,14 @@ class DriverError(RuntimeError):
     pass
 
 
+def exit_snapshot(driver, process, *, probe_responsiveness=False):
+    """Best-effort status only; diagnostic failures must not mask exit failures."""
+    try:
+        return driver.exit_status(process, probe_responsiveness=probe_responsiveness)
+    except Exception as error:
+        return {'unavailable': type(error).__name__}
+
+
 class TrackedDriver:
     """Release only inputs this controller injected, including failed attempts."""
     def __init__(self, driver):
@@ -132,6 +140,7 @@ class WindowsDriver:
         if sys.platform != 'win32':
             raise DriverError('win32 requires Windows with an interactive desktop')
         self.user = ctypes.WinDLL('user32', use_last_error=True)
+        self.kernel = ctypes.WinDLL('kernel32', use_last_error=True)
         self.window = None
         self._bind_api()
         # Only this controller process becomes DPI aware. No OS setting changes.
@@ -146,6 +155,7 @@ class WindowsDriver:
         signatures = {
             'EnumWindows': ([self.callback, wintypes.LPARAM], wintypes.BOOL),
             'IsWindowVisible': ([wintypes.HWND], wintypes.BOOL),
+            'IsWindow': ([wintypes.HWND], wintypes.BOOL),
             'GetWindowThreadProcessId': ([wintypes.HWND, ctypes.POINTER(wintypes.DWORD)], wintypes.DWORD),
             'GetWindowTextW': ([wintypes.HWND, wintypes.LPWSTR, ctypes.c_int], ctypes.c_int),
             'GetClientRect': ([wintypes.HWND, ctypes.POINTER(wintypes.RECT)], wintypes.BOOL),
@@ -156,10 +166,93 @@ class WindowsDriver:
             'GetForegroundWindow': ([], wintypes.HWND),
             'PostMessageW': ([wintypes.HWND, wintypes.UINT, wintypes.WPARAM, wintypes.LPARAM], wintypes.BOOL),
             'SendInput': ([wintypes.UINT, ctypes.c_void_p, ctypes.c_int], wintypes.UINT),
+            'GetGUIThreadInfo': ([wintypes.DWORD, ctypes.c_void_p], wintypes.BOOL),
+            'SendMessageTimeoutW': ([wintypes.HWND, wintypes.UINT, wintypes.WPARAM,
+                                    wintypes.LPARAM, wintypes.UINT, wintypes.UINT,
+                                    ctypes.POINTER(ctypes.c_size_t)], ctypes.c_ssize_t),
         }
         for name, (args, result) in signatures.items():
             getattr(u, name).argtypes = args
             getattr(u, name).restype = result
+        self.kernel.GetProcessTimes.argtypes = [wintypes.HANDLE] + [
+            ctypes.POINTER(wintypes.FILETIME)] * 4
+        self.kernel.GetProcessTimes.restype = wintypes.BOOL
+
+    def exit_status(self, process, *, probe_responsiveness=False):
+        """Read only the launched process and its previously bound window.
+
+        Call outside recording, before exit and after an exit timeout. WM_NULL
+        is bounded and only sent after rechecking that this HWND still belongs
+        to the launched PID. A response is message-pump evidence, not evidence
+        that F10 was handled or that another frame reached the screen.
+        """
+        code = process.poll()
+        result = {'observed_unix_ns': time.time_ns(), 'pid': process.pid,
+                  'process_alive': code is None, 'returncode': code,
+                  'cpu_time_100ns': None, 'window': {'hwnd': self.window},
+                  'errors': []}
+        created, exited, kernel, user = (wintypes.FILETIME() for _ in range(4))
+        if self.kernel.GetProcessTimes(process._handle, ctypes.byref(created), ctypes.byref(exited),
+                                       ctypes.byref(kernel), ctypes.byref(user)):
+            ticks = lambda value: (value.dwHighDateTime << 32) | value.dwLowDateTime
+            result['cpu_time_100ns'] = {'kernel': ticks(kernel), 'user': ticks(user)}
+        else:
+            result['errors'].append({'operation': 'GetProcessTimes',
+                                     'winerror': ctypes.get_last_error()})
+
+        window = result['window']
+        window['exists'] = bool(self.window and self.user.IsWindow(self.window))
+        window['owned_by_launched_process'] = False
+        window['responsiveness'] = {'attempted': False}
+        if not window['exists']:
+            return result
+        owner = wintypes.DWORD()
+        thread = self.user.GetWindowThreadProcessId(self.window, ctypes.byref(owner))
+        if not thread or owner.value != process.pid:
+            # A stale/reused handle must not expand this probe to another process.
+            window['responsiveness']['reason'] = 'window_owner_unverified'
+            return result
+        window.update(owned_by_launched_process=True, owner_pid=owner.value,
+                      owner_thread_id=thread,
+                      visible=bool(self.user.IsWindowVisible(self.window)),
+                      foreground=self.user.GetForegroundWindow() == self.window)
+        rect = wintypes.RECT()
+        if self.user.GetClientRect(self.window, ctypes.byref(rect)):
+            window['client_extent'] = [rect.right - rect.left, rect.bottom - rect.top]
+        else:
+            result['errors'].append({'operation': 'GetClientRect',
+                                     'winerror': ctypes.get_last_error()})
+
+        class GuiThreadInfo(ctypes.Structure):
+            _fields_ = [('cbSize', wintypes.DWORD), ('flags', wintypes.DWORD),
+                        ('hwndActive', wintypes.HWND), ('hwndFocus', wintypes.HWND),
+                        ('hwndCapture', wintypes.HWND), ('hwndMenuOwner', wintypes.HWND),
+                        ('hwndMoveSize', wintypes.HWND), ('hwndCaret', wintypes.HWND),
+                        ('rcCaret', wintypes.RECT)]
+        gui = GuiThreadInfo()
+        gui.cbSize = ctypes.sizeof(gui)
+        if self.user.GetGUIThreadInfo(thread, ctypes.byref(gui)):
+            window['gui_thread'] = {'flags': gui.flags, 'in_move_size': bool(gui.flags & 0x02),
+                                    'in_menu_mode': bool(gui.flags & 0x04),
+                                    'system_menu_mode': bool(gui.flags & 0x08),
+                                    'popup_menu_mode': bool(gui.flags & 0x10)}
+        else:
+            result['errors'].append({'operation': 'GetGUIThreadInfo',
+                                     'winerror': ctypes.get_last_error()})
+        if probe_responsiveness and code is None:
+            reply = ctypes.c_size_t()
+            # WM_NULL; SMTO_BLOCK | SMTO_ABORTIFHUNG | SMTO_ERRORONEXIT.
+            # Never SMTO_NOTIMEOUTIFNOTHUNG, which could exceed this bound.
+            ctypes.set_last_error(0)
+            started = time.monotonic_ns()
+            responded = self.user.SendMessageTimeoutW(
+                self.window, 0, 0, 0, 0x01 | 0x02 | 0x20, 2000, ctypes.byref(reply))
+            window['responsiveness'] = {
+                'attempted': True, 'message': 'WM_NULL', 'timeout_ms': 2000,
+                'responded': bool(responded),
+                'winerror': None if responded else ctypes.get_last_error(),
+                'elapsed_ns': time.monotonic_ns() - started}
+        return result
 
     def bind(self, pid):
         def find():

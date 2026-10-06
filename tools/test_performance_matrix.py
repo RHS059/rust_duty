@@ -1,8 +1,10 @@
 """CPU-only matrix protocol tests. All timing/game reports here are synthetic."""
 import copy
+import ctypes
 import json
 from pathlib import Path
 import subprocess
+import shutil
 import tempfile
 from types import SimpleNamespace
 import unittest
@@ -208,6 +210,66 @@ class MatrixTests(unittest.TestCase):
         result = m.analyze_matrix(self.root)
         self.assertEqual(result['state'], 'incomplete')
         self.assertFalse(result['pilot_sample_readiness']['ready'])
+        self.assertFalse(result['measurement_readiness']['ready'])
+
+    def recovered_receipt(self):
+        self.manifest['continue_after_exit_timeout'] = True
+        dump(self.root / 'MANIFEST.json', self.manifest)
+        self.receipt.update(completed=False, graceful_shutdown=False,
+                            outcome='measurements_valid_shutdown_failed', normal_exit_timed_out=True,
+                            exit_wait_timeout_seconds=15, error='normal exit timed out', process_id=123,
+                            measurement_validated_before_exit=True, measurement_tail_ready_before_exit=True,
+                            measurement_files_before_exit=m.measurement_file_hashes(self.session),
+                            input_cleanup_errors=[], cleanup={'process_id': 123, 'process_exit_verified': True,
+                                                            'returncode': 1, 'termination_requested': True})
+        self.receipt.pop('returncode')
+        dump(self.folder / 'RESULT.json', self.receipt)
+
+    def test_verified_cleanup_permits_measurements_but_never_correctness_success(self):
+        self.recovered_receipt()
+        with self.assertRaises(ValueError):
+            self.analyze()
+        result = m.analyze_matrix(self.root)
+        self.assertEqual(result['state'], 'incomplete')
+        self.assertFalse(result['graceful_shutdown'])
+        self.assertFalse(result['pilot_sample_readiness']['ready'])
+        self.assertTrue(result['measurement_readiness']['ready'])
+        self.assertEqual(result['runs'][0]['outcome'], 'measurements_valid_shutdown_failed')
+        self.assertEqual(result['failures'][0]['kind'], 'graceful_shutdown')
+        with mock.patch('builtins.print'):
+            self.assertEqual(m.main(['analyze', str(self.root)]), 1)
+            self.assertEqual(m.main(['analyze', str(self.root), '--measurement-readiness']), 0)
+
+    def test_cleanup_recovery_rejects_unverified_or_changed_scope_and_measurements(self):
+        self.recovered_receipt()
+        mutations = [('cleanup', {'process_id': 456, 'process_exit_verified': True, 'returncode': 1}),
+                     ('cleanup', {'process_id': 123, 'process_exit_verified': False, 'returncode': 1}),
+                     ('cleanup', {'process_id': 123, 'process_exit_verified': True, 'returncode': None}),
+                     ('input_cleanup_errors', ['release failed']), ('measurement_validated_before_exit', False),
+                     ('normal_exit_timed_out', False), ('exit_wait_timeout_seconds', 30)]
+        for key, value in mutations:
+            with self.subTest(key=key, value=value):
+                dump(self.folder / 'RESULT.json', {**self.receipt, key: value})
+                self.assertFalse(m.analyze_matrix(self.root)['measurement_readiness']['ready'])
+        dump(self.folder / 'RESULT.json', self.receipt)
+        self.manifest['continue_after_exit_timeout'] = False
+        dump(self.root / 'MANIFEST.json', self.manifest)
+        self.assertFalse(m.analyze_matrix(self.root)['measurement_readiness']['ready'])
+        self.manifest['continue_after_exit_timeout'] = True
+        dump(self.root / 'MANIFEST.json', self.manifest)
+        self.report['identity']['runtime_observed']['actual_adapter']['present_mode'] = 'Immediate'
+        dump(self.session / 'frames.json', self.report)
+        self.assertFalse(m.analyze_matrix(self.root)['measurement_readiness']['ready'])
+
+    def test_recovery_rejects_cleanup_time_mutation_even_when_export_remains_valid(self):
+        self.recovered_receipt()
+        path = self.session / 'gameplay.csv'
+        path.write_text(path.read_text().replace(',999999\n', ',42\n'))
+        # This unused FPS field does not change measurement validity itself.
+        m.analyze_measurements(self.folder, self.manifest, self.receipt)
+        result = m.analyze_matrix(self.root)
+        self.assertFalse(result['measurement_readiness']['ready'])
+        self.assertIn('changed after pre-exit', result['failures'][0]['error'])
 
     def test_missing_run_is_incomplete_and_never_zero_filled(self):
         (self.folder / 'RESULT.json').unlink()
@@ -310,6 +372,7 @@ class MatrixTests(unittest.TestCase):
         item = {**self.item, 'run_id': 'new-run'}
         driver, process = mock.Mock(), mock.Mock()
         driver.release_inputs.return_value = []
+        driver.exit_status.return_value = {'synthetic': True}
         process.pid = 123
         process.poll.return_value = 0
         process.wait.return_value = 0
@@ -330,6 +393,100 @@ class MatrixTests(unittest.TestCase):
         process.wait.assert_called_once_with(timeout=15)
         self.assertEqual(launch.call_args.kwargs['cwd'], self.root / 'new-run')
         self.assertTrue((self.root / 'new-run' / 'RESULT.json').is_file())
+        driver.exit_status.assert_called_once_with(process, probe_responsiveness=False)
+
+    def run_timed_out_case(self, *, allow=True, cleanup=True, validate_error=None):
+        item = {**self.item, 'run_id': 'timeout-run'}
+        folder = self.root / item['run_id']
+        manifest = copy.deepcopy(self.manifest)
+        manifest['plan']['order'] = [item]
+        manifest['continue_after_exit_timeout'] = allow
+        driver, process = mock.Mock(), mock.Mock()
+        driver.release_inputs.return_value = []
+        driver.exit_status.return_value = {'synthetic': True}
+        process.pid, process.returncode = 123, None
+        process.poll.side_effect = lambda: process.returncode
+        def terminate():
+            if cleanup:
+                process.returncode = 1
+        process.terminate.side_effect = terminate
+        def wait(timeout):
+            if timeout == 15:
+                raise subprocess.TimeoutExpired('synthetic game', 15)
+            return 1
+        process.wait.side_effect = wait
+        def launch(*args, **kwargs):
+            shutil.copytree(self.folder / 'telemetry-sessions', folder / 'telemetry-sessions')
+            return process
+        session = folder / 'telemetry-sessions' / self.session.name
+        original = m.analyze_measurements
+        with mock.patch.object(m, 'create_driver', return_value=driver), \
+                mock.patch.object(m.subprocess, 'Popen', side_effect=launch), \
+                mock.patch.object(m, 'tap'), mock.patch.object(m, 'replay', return_value={}), \
+                mock.patch.object(m.time, 'sleep'), mock.patch.object(m, 'wait_until', return_value=session), \
+                mock.patch.object(m, 'analyze_measurements', side_effect=validate_error or original):
+            try:
+                value = m.run_case(manifest['plan'], item, self.case, self.root / 'vector-range',
+                                   self.root, self.settings, GRAPHICS, False, 'win32',
+                                   manifest=manifest, continue_after_exit_timeout=allow)
+            except Exception as error:
+                value = error
+        return value, m.json_read(folder / 'RESULT.json'), driver, process
+
+    def test_timeout_continuation_records_failure_after_validation_and_owned_cleanup(self):
+        value, receipt, driver, process = self.run_timed_out_case()
+        self.assertIsInstance(value, dict)
+        self.assertFalse(receipt['completed'])
+        self.assertFalse(receipt['graceful_shutdown'])
+        self.assertEqual(receipt['outcome'], 'measurements_valid_shutdown_failed')
+        self.assertTrue(receipt['measurement_validated_before_exit'])
+        self.assertTrue(receipt['cleanup']['process_exit_verified'])
+        self.assertIn('after_timeout', receipt['exit_diagnostics'])
+        self.assertEqual(driver.exit_status.call_args_list,
+                         [mock.call(process, probe_responsiveness=False), mock.call(process, probe_responsiveness=True)])
+        self.assertEqual(process.wait.call_args_list, [mock.call(timeout=15), mock.call(timeout=5)])
+        process.terminate.assert_called_once_with()
+        process.kill.assert_not_called()
+
+    def test_default_timeout_still_raises_after_retaining_diagnostics(self):
+        value, receipt, _, _ = self.run_timed_out_case(allow=False)
+        self.assertIsInstance(value, subprocess.TimeoutExpired)
+        self.assertEqual(receipt['outcome'], 'incomplete')
+        self.assertTrue(receipt['cleanup']['process_exit_verified'])
+
+    def test_unverified_cleanup_blocks_continuation(self):
+        value, receipt, _, _ = self.run_timed_out_case(cleanup=False)
+        self.assertIsInstance(value, ValueError)
+        self.assertIn('cleanup was not verified', str(value))
+        self.assertEqual(receipt['outcome'], 'incomplete')
+        self.assertFalse(receipt['cleanup']['process_exit_verified'])
+
+    def test_continuation_never_waives_low_sample_gate(self):
+        adapter = self.report['identity']['runtime_observed']['actual_adapter']
+        self.report = trace(self.case, adapter, self.build, intervals=38, interval_ns=1_000_000_000)
+        dump(self.session / 'frames.json', self.report)
+        value, receipt, _, _ = self.run_timed_out_case()
+        self.assertIsInstance(value, subprocess.TimeoutExpired)
+        self.assertFalse(receipt['measurement_tail_ready_before_exit'])
+        self.assertEqual(receipt['outcome'], 'incomplete')
+
+    def test_cli_reserves_nonzero_three_for_measurement_ready_shutdown_failure(self):
+        args = ['run', '--plan', 'plan.json', '--repository', '.', '--executable', 'game.exe',
+                '--settings', 'settings.cfg', '--output', 'out', '--driver', 'win32', '--execute']
+        for ready, expected in [(True, 3), (False, 2)]:
+            with mock.patch.object(m, 'run_matrix', return_value=self.root), \
+                    mock.patch.object(m, 'analyze_matrix', return_value={
+                        'state': 'incomplete', 'measurement_readiness': {'ready': ready}}), \
+                    mock.patch('builtins.print'):
+                self.assertEqual(m.main(args), expected)
+
+    def test_invalid_exports_prevent_exit_recovery_before_close_is_requested(self):
+        value, receipt, driver, _ = self.run_timed_out_case(validate_error=ValueError('bad source digest'))
+        self.assertIsInstance(value, ValueError)
+        self.assertEqual(receipt['outcome'], 'incomplete')
+        self.assertNotIn('measurement_validated_before_exit', receipt)
+        driver.close.assert_not_called()
+        driver.exit_status.assert_not_called()
 
     def test_driver_failure_retains_receipt_and_stops_own_process(self):
         item = {**self.item, 'run_id': 'failed-run'}
@@ -351,6 +508,61 @@ class MatrixTests(unittest.TestCase):
 
 
 class DriverTests(unittest.TestCase):
+    def native_status_fixture(self, owner=123, exists=True):
+        driver = object.__new__(d.WindowsDriver)
+        driver.window, driver.user, driver.kernel = 456, mock.Mock(), mock.Mock()
+        driver.user.IsWindow.return_value = exists
+        driver.user.IsWindowVisible.return_value = True
+        driver.user.GetForegroundWindow.return_value = 456
+        def window_owner(hwnd, target):
+            target._obj.value = owner
+            return 789
+        driver.user.GetWindowThreadProcessId.side_effect = window_owner
+        def times(handle, created, exited, kernel, user):
+            kernel._obj.dwLowDateTime, user._obj.dwLowDateTime = 100, 200
+            return True
+        driver.kernel.GetProcessTimes.side_effect = times
+        def rect(hwnd, target):
+            target._obj.right, target._obj.bottom = 1920, 1080
+            return True
+        driver.user.GetClientRect.side_effect = rect
+        def gui(thread, target):
+            target._obj.flags = 0x04 | 0x08
+            return True
+        driver.user.GetGUIThreadInfo.side_effect = gui
+        driver.user.SendMessageTimeoutW.return_value = 1
+        process = SimpleNamespace(pid=123, _handle=12, poll=lambda: None)
+        return driver, process
+
+    def test_exit_status_only_probes_verified_owned_hwnd_after_timeout(self):
+        driver, process = self.native_status_fixture()
+        before = driver.exit_status(process)
+        self.assertEqual(before['cpu_time_100ns'], {'kernel': 100, 'user': 200})
+        self.assertEqual(before['window']['client_extent'], [1920, 1080])
+        self.assertTrue(before['window']['gui_thread']['system_menu_mode'])
+        driver.user.SendMessageTimeoutW.assert_not_called()
+        with mock.patch.object(ctypes, 'set_last_error', create=True):
+            after = driver.exit_status(process, probe_responsiveness=True)
+        self.assertTrue(after['window']['responsiveness']['responded'])
+        self.assertEqual(driver.user.SendMessageTimeoutW.call_args.args[:6], (456, 0, 0, 0, 0x23, 2000))
+        for owner, exists in [(999, True), (123, False)]:
+            driver, process = self.native_status_fixture(owner=owner, exists=exists)
+            value = driver.exit_status(process, probe_responsiveness=True)
+            self.assertFalse(value['window']['owned_by_launched_process'])
+            driver.user.SendMessageTimeoutW.assert_not_called()
+            driver.user.GetGUIThreadInfo.assert_not_called()
+
+    def test_probe_failure_is_safe_status_and_diagnostic_exception_is_not_fatal(self):
+        driver, process = self.native_status_fixture()
+        driver.user.SendMessageTimeoutW.return_value = 0
+        with mock.patch.object(ctypes, 'set_last_error', create=True), \
+                mock.patch.object(ctypes, 'get_last_error', return_value=1460, create=True):
+            value = driver.exit_status(process, probe_responsiveness=True)
+        self.assertFalse(value['window']['responsiveness']['responded'])
+        self.assertEqual(value['window']['responsiveness']['winerror'], 1460)
+        driver.exit_status = mock.Mock(side_effect=OSError('unavailable'))
+        self.assertEqual(d.exit_snapshot(driver, process), {'unavailable': 'OSError'})
+
     def test_both_desktop_backends_use_tracked_application_f10_exit(self):
         self.assertEqual(d.WindowsDriver.KEYS['F10'], 0x79)
         for native in (mock.Mock(spec=d.WindowsDriver), mock.Mock(spec=d.X11Driver)):

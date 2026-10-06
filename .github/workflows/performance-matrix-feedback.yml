@@ -196,13 +196,18 @@ jobs:
         id: smoke
         timeout-minutes: 4
         run: |
-          python verifier/tools/performance_matrix.py run --plan evidence/smoke-plan.json --repository package-source --executable package/vector-range.exe --settings package/settings.cfg --force-fallback --driver win32 --output evidence/smoke --execute 2>&1 | Tee-Object -FilePath evidence/smoke-run.log
-          if ($LASTEXITCODE -ne 0) { throw 'Smoke failed; pilot must not run' }
-      - name: Independently reanalyze the complete smoke evidence
+          python verifier/tools/performance_matrix.py run --plan evidence/smoke-plan.json --repository package-source --executable package/vector-range.exe --settings package/settings.cfg --force-fallback --driver win32 --output evidence/smoke --execute --continue-after-exit-timeout 2>&1 | Tee-Object -FilePath evidence/smoke-run.log
+          $RunExit = $LASTEXITCODE
+          "runner_exit_code=$RunExit" >> $env:GITHUB_OUTPUT
+          if ($RunExit -notin @(0, 3)) { throw 'Smoke measurements or owned-process cleanup failed; pilot must not run' }
+          # Code 3 is failed graceful shutdown with verified cleanup. The final
+          # correctness check remains failing even if measurements can continue.
+          exit 0
+      - name: Independently gate smoke measurement readiness and verified cleanup
         id: smoke_analysis
         run: >-
           python verifier/tools/performance_matrix.py analyze evidence/smoke
-          --output evidence/smoke-analysis.json
+          --output evidence/smoke-analysis.json --measurement-readiness
       - name: Prepare the gated five-run resolution and ADS pilot
         if: steps.smoke.outcome == 'success' && steps.smoke_analysis.outcome == 'success'
         run: >-
@@ -214,19 +219,24 @@ jobs:
         if: steps.smoke.outcome == 'success' && steps.smoke_analysis.outcome == 'success'
         timeout-minutes: 15
         run: |
-          python verifier/tools/performance_matrix.py run --plan evidence/pilot-plan.json --repository package-source --executable package/vector-range.exe --settings package/settings.cfg --force-fallback --driver win32 --output evidence/pilot --execute 2>&1 | Tee-Object -FilePath evidence/pilot-run.log
-          if ($LASTEXITCODE -ne 0) { throw 'Pilot failed; retain partial evidence' }
-      - name: Independently reanalyze the complete pilot evidence
+          python verifier/tools/performance_matrix.py run --plan evidence/pilot-plan.json --repository package-source --executable package/vector-range.exe --settings package/settings.cfg --force-fallback --driver win32 --output evidence/pilot --execute --continue-after-exit-timeout 2>&1 | Tee-Object -FilePath evidence/pilot-run.log
+          $RunExit = $LASTEXITCODE
+          "runner_exit_code=$RunExit" >> $env:GITHUB_OUTPUT
+          if ($RunExit -notin @(0, 3)) { throw 'Pilot measurements or owned-process cleanup failed; retain partial evidence' }
+          exit 0
+      - name: Independently reanalyze pilot measurements and verified cleanup
         if: steps.pilot.outcome == 'success'
         run: >-
           python verifier/tools/performance_matrix.py analyze evidence/pilot
-          --output evidence/pilot-analysis.json
+          --output evidence/pilot-analysis.json --measurement-readiness
       - name: Preserve an honest final summary including setup or partial-run failures
         if: always()
         env:
           PYTHONPATH: verifier/tools
           SMOKE_OUTCOME: ${{ steps.smoke.outcome }}
           PILOT_OUTCOME: ${{ steps.pilot.outcome }}
+          SMOKE_RUNNER_EXIT: ${{ steps.smoke.outputs.runner_exit_code }}
+          PILOT_RUNNER_EXIT: ${{ steps.pilot.outputs.runner_exit_code }}
         run: |
           @'
           import json, os
@@ -248,6 +258,7 @@ jobs:
                   except (OSError, ValueError, KeyError, TypeError) as error:
                       value = {'state': 'incomplete', 'error': str(error)}
                   value['workflow_step_outcome'] = outcome
+              value['runner_exit_code'] = os.environ.get(name.upper() + '_RUNNER_EXIT')
               report['captures'][name] = value
           m.write_json('evidence/CI-SUMMARY.json', report)
           lines = ['Native Windows WARP matrix: CPU software diagnostic only.',
@@ -255,11 +266,19 @@ jobs:
                    'Runner source: ' + os.environ['GITHUB_SHA'] + '.',
                    'No RTX 3080 Ti or 1080p60 hardware acceptance is established.']
           for name, value in report['captures'].items():
-              lines.append(name + ': ' + value['state'] + ' (step ' + value['workflow_step_outcome'] + ').')
+              lines.append(name + ': ' + value['state'] + ' (graceful shutdown: ' + str(value.get('graceful_shutdown', False)) +
+                           '; measurement ready: ' + str(value.get('measurement_readiness', {}).get('ready', False)) +
+                           '; runner exit: ' + str(value['runner_exit_code']) + ').')
           with open(os.environ['GITHUB_STEP_SUMMARY'], 'a', encoding='utf-8') as stream:
               stream.write('\n'.join(lines) + '\n')
+          # Measurement readiness never makes the complete correctness job green.
+          complete = all(value.get('state') in ('setup_complete', 'complete') and
+                         value.get('graceful_shutdown') is True and
+                         value.get('measurement_readiness', {}).get('ready') is True
+                         for value in report['captures'].values())
+          raise SystemExit(0 if complete else 1)
           '@ | python -
-          if ($LASTEXITCODE -ne 0) { throw 'Final evidence analysis failed' }
+          if ($LASTEXITCODE -ne 0) { throw 'Normal shutdown or measurement checks failed; raw evidence is retained' }
       - name: Retain bounded raw traces, process logs, receipts and summaries
         if: always()
         uses: actions/upload-artifact@v4

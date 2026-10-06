@@ -22,7 +22,7 @@ import time
 
 from exclusive_output import write_bytes_exclusive, write_text_exclusive
 import summarize_frame_performance as frames
-from performance_matrix_driver import DriverError, create_driver, replay, tap, wait_until
+from performance_matrix_driver import DriverError, create_driver, exit_snapshot, replay, tap, wait_until
 
 PLAN_SCHEMA = 'rust-duty-real-game-performance-matrix/v1'
 # Inventory audited at 49c3bf9. A new support surface needs review, not a guessed
@@ -342,7 +342,45 @@ def sole_session(folder, complete=False):
     return session
 
 
-def run_case(plan, item, case, executable, output, settings, graphics, fallback, driver_name):
+def cleanup_owned_process(process):
+    """Verify exit using only the Popen handle; never search for or kill a PID."""
+    result = {'process_id': process.pid, 'process_exit_verified': False,
+              'termination_requested': False, 'kill_requested': False}
+    try:
+        code = process.poll()
+        if code is None:
+            result['termination_requested'] = True
+            process.terminate()
+            try:
+                code = process.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                result['kill_requested'] = True
+                process.kill()
+                code = process.wait(timeout=5)
+        observed = process.poll()
+        result.update(returncode=observed,
+                      process_exit_verified=type(code) is int and observed == code)
+    except (OSError, subprocess.SubprocessError) as error:
+        result['error'] = str(error)
+    return result
+
+
+def measurement_file_hashes(session):
+    """Bind every session file consumed by the measurement analyzer."""
+    names = ('frames.json', 'IDENTITY.json', 'CSV_STATUS.json', 'gameplay.csv',
+             'GPU_STATUS.json', 'GPU_METADATA.json', 'gpu.jsonl')
+    result = {}
+    for name in names:
+        path = session / name
+        require(path.is_file() and not path.is_symlink(), 'Unsafe or missing measurement file: ' + name)
+        result[name] = sha256(path)
+    return result
+
+
+def run_case(plan, item, case, executable, output, settings, graphics, fallback, driver_name,
+             *, manifest=None, continue_after_exit_timeout=False):
+    require(not continue_after_exit_timeout or manifest is not None,
+            'Exit-timeout continuation requires the bound execution manifest')
     folder = output / item['run_id']
     folder.mkdir()
     write_bytes_exclusive(folder / 'settings.cfg', settings)
@@ -353,16 +391,18 @@ def run_case(plan, item, case, executable, output, settings, graphics, fallback,
                'command': command, 'driver': driver_name, 'started_unix_ns': started,
                'settings_before_sha256': sha256(folder / 'settings.cfg'),
                'graphics_before_sha256': sha256(folder / 'graphics-device.json'),
-               'completed': False}
+               'completed': False, 'graceful_shutdown': False}
     write_json(folder / 'START.json', receipt)
     driver = create_driver(driver_name)
     env = dict(os.environ)
     if driver_name == 'x11':
         env['WINIT_UNIX_BACKEND'] = 'x11'
     process = None
+    recovered_timeout = False
     try:
         with (folder / 'game.log').open('xb') as log:
             process = subprocess.Popen(command, cwd=folder, env=env, stdout=log, stderr=subprocess.STDOUT)
+            receipt['process_id'] = process.pid
             driver.bind(process.pid)
             size = case['settings']['surface_extent']
             driver.configure(size)
@@ -388,13 +428,43 @@ def run_case(plan, item, case, executable, output, settings, graphics, fallback,
             session = wait_until(lambda: sole_session(folder, complete=True), timeout=30,
                                  label='frame, CSV and GPU export completion')
             receipt['session'] = session.name
+            if manifest is not None:
+                before_validation = measurement_file_hashes(session)
+                # Validate actual exports before exit. The finished timestamp is
+                # provisional here; the persisted receipt includes cleanup time.
+                provisional = {**receipt, 'finished_unix_ns': time.time_ns(),
+                               'settings_after_sha256': sha256(folder / 'settings.cfg'),
+                               'graphics_after_sha256': sha256(folder / 'graphics-device.json')}
+                observed = analyze_measurements(folder, manifest, provisional)
+                require(measurement_file_hashes(session) == before_validation,
+                        'Measurement exports changed during pre-exit validation')
+                receipt['measurement_files_before_exit'] = before_validation
+                receipt['measurement_validated_before_exit'] = True
+                receipt['measurement_tail_ready_before_exit'] = observed['sample_quality']['tail_comparison_ready']
             driver.check(size)
             receipt['exit_request'] = 'application_f10'
             receipt['exit_wait_timeout_seconds'] = 15
+            if driver_name == 'win32':
+                receipt['exit_diagnostics'] = {
+                    'schema': 'rust-duty-process-exit-diagnostics/v1',
+                    'before_request': exit_snapshot(driver, process)}
             driver.close()
-            receipt['returncode'] = process.wait(timeout=15)
-            require(receipt['returncode'] == 0, 'Game exited unsuccessfully')
-            receipt['completed'] = True
+            try:
+                receipt['returncode'] = process.wait(timeout=15)
+            except subprocess.TimeoutExpired as error:
+                receipt['normal_exit_timed_out'] = True
+                receipt['error'] = str(error)
+                if driver_name == 'win32':
+                    receipt['exit_diagnostics']['after_timeout'] = exit_snapshot(
+                        driver, process, probe_responsiveness=True)
+                if not (continue_after_exit_timeout and receipt.get('measurement_validated_before_exit')
+                        and receipt.get('measurement_tail_ready_before_exit')):
+                    raise
+                recovered_timeout = True
+            if not recovered_timeout:
+                require(receipt['returncode'] == 0, 'Game exited unsuccessfully')
+                receipt['graceful_shutdown'] = True
+                receipt['completed'] = True
     except (OSError, ValueError, DriverError, subprocess.SubprocessError) as error:
         receipt['error'] = str(error)
         raise
@@ -402,14 +472,14 @@ def run_case(plan, item, case, executable, output, settings, graphics, fallback,
         receipt['input_cleanup_errors'] = driver.release_inputs()
         if receipt['input_cleanup_errors']:
             receipt['completed'] = False
-        # Only the game process we created is terminated. No unrelated processes.
-        if process is not None and process.poll() is None:
-            process.terminate()
-            try:
-                process.wait(timeout=5)
-            except subprocess.TimeoutExpired:
-                process.kill()
-                process.wait(timeout=5)
+        if process is not None:
+            receipt['cleanup'] = cleanup_owned_process(process)
+            if not receipt['cleanup']['process_exit_verified']:
+                receipt['completed'] = False
+        if recovered_timeout and receipt.get('cleanup', {}).get('process_exit_verified') and not receipt['input_cleanup_errors']:
+            receipt['outcome'] = 'measurements_valid_shutdown_failed'
+        else:
+            receipt['outcome'] = 'complete' if receipt['completed'] else 'incomplete'
         receipt['finished_unix_ns'] = time.time_ns()
         receipt['settings_after_sha256'] = sha256(folder / 'settings.cfg')
         receipt['graphics_after_sha256'] = sha256(folder / 'graphics-device.json')
@@ -417,6 +487,8 @@ def run_case(plan, item, case, executable, output, settings, graphics, fallback,
     require(receipt['settings_before_sha256'] == receipt['settings_after_sha256'], 'Gameplay settings changed during run')
     require(receipt['graphics_before_sha256'] == receipt['graphics_after_sha256'], 'GPU selection changed during run')
     require(not receipt['input_cleanup_errors'], 'Injected input cleanup failed; inspect the dedicated desktop')
+    require(receipt.get('cleanup', {}).get('process_exit_verified') is True,
+            'Owned game process cleanup was not verified; no further case may start')
     return receipt
 
 
@@ -446,6 +518,7 @@ def run_matrix(args):
     output = args.output.absolute()
     output.mkdir()
     manifest = {'schema': 'rust-duty-matrix-execution/v1', 'plan': plan, 'package': package,
+                'continue_after_exit_timeout': getattr(args, 'continue_after_exit_timeout', False),
                 'source_origin': origin,
                 'settings_sha256': hashlib.sha256(settings).hexdigest(),
                 'graphics': graphics, 'force_fallback': args.force_fallback,
@@ -459,9 +532,11 @@ def run_matrix(args):
         for item in plan['order']:
             print('Running ' + item['run_id'], flush=True)
             run_case(plan, item, cases[item['case_id']], executable, output, settings,
-                     graphics, args.force_fallback, args.driver)
+                     graphics, args.force_fallback, args.driver, manifest=manifest,
+                     continue_after_exit_timeout=manifest['continue_after_exit_timeout'])
             # Fail on a bad capture before spending a full matrix on invalid setup.
-            analyze_run(output / item['run_id'], manifest)
+            analyze_run(output / item['run_id'], manifest,
+                        allow_forced_cleanup=manifest['continue_after_exit_timeout'])
         require(package_identity(executable, plan['source'], plan['renderer']) == package, 'Package changed during matrix')
         after_source, after_origin, _ = resolve_source(args)
         require((after_source, after_origin) == (source, origin), 'Source witness changed during matrix')
@@ -533,14 +608,51 @@ def gpu_export_summary(session):
             'metric_scope': 'OS occupancy/memory counters, never GPU frame duration'}
 
 
-def analyze_run(folder, manifest):
+def analyze_run(folder, manifest, *, allow_forced_cleanup=False):
     receipt = json_read(folder / 'RESULT.json')
+    cleanup = receipt.get('cleanup', {})
+    verified_cleanup = (cleanup.get('process_exit_verified') is True
+                        and type(receipt.get('process_id')) is int and receipt['process_id'] > 0
+                        and cleanup.get('process_id') == receipt['process_id']
+                        and type(cleanup.get('returncode')) is int and not cleanup.get('error'))
+    graceful = (receipt.get('completed') is True and receipt.get('returncode') == 0
+                and receipt.get('graceful_shutdown', True) is True
+                and not receipt.get('normal_exit_timed_out', False)
+                and not receipt.get('input_cleanup_errors')
+                and ('cleanup' not in receipt or (verified_cleanup and cleanup['returncode'] == 0)))
+    recovered = (manifest.get('continue_after_exit_timeout') is True
+                 and receipt.get('outcome') == 'measurements_valid_shutdown_failed'
+                 and receipt.get('completed') is False and receipt.get('graceful_shutdown') is False
+                 and receipt.get('normal_exit_timed_out') is True
+                 and receipt.get('exit_wait_timeout_seconds') == 15
+                 and receipt.get('measurement_validated_before_exit') is True
+                 and receipt.get('measurement_tail_ready_before_exit') is True
+                 and receipt.get('input_cleanup_errors') == []
+                 and bool(receipt.get('error'))
+                 and verified_cleanup)
+    require(graceful or (allow_forced_cleanup and recovered),
+            'Run did not complete with its requested case and verified process exit')
+    if recovered:
+        session = sole_session(folder, complete=True)
+        require(session is not None and
+                receipt.get('measurement_files_before_exit') == measurement_file_hashes(session),
+                'Measurement exports changed after pre-exit validation')
+    result = analyze_measurements(folder, manifest, receipt)
+    require(not recovered or result['sample_quality']['tail_comparison_ready'],
+            'Exit-timeout continuation requires at least 100 intervals')
+    result.update(graceful_shutdown=graceful, process_exit_verified=True,
+                  outcome='complete' if graceful else 'measurements_valid_shutdown_failed',
+                  shutdown_error=None if graceful else receipt['error'])
+    return result
+
+
+def analyze_measurements(folder, manifest, receipt):
+    """Independently validate exports without interpreting process shutdown."""
     plan = manifest['plan']
     item = next((item for item in plan['order'] if item['run_id'] == folder.name), None)
     require(item is not None and receipt.get('run') == item, 'Unexpected run identity')
     case = next(case for case in plan['cases'] if case['id'] == item['case_id'])
-    require(receipt.get('case') == case and receipt.get('completed') is True and receipt.get('returncode') == 0,
-            'Run did not complete with its requested case')
+    require(receipt.get('case') == case, 'Run requested case differs from its plan')
     require(type(receipt.get('started_unix_ns')) is int and type(receipt.get('finished_unix_ns')) is int
             and 0 < receipt['started_unix_ns'] < receipt['finished_unix_ns'], 'Invalid run wall-clock bounds')
     require(receipt['settings_before_sha256'] == receipt['settings_after_sha256'] == manifest['settings_sha256'] == sha256(folder / 'settings.cfg'),
@@ -638,12 +750,18 @@ def analyze_matrix(output):
     plan = manifest['plan']
     validate_plan(plan)
     require(manifest.get('source_origin') == plan['source_origin'], 'Execution source origin differs from plan')
-    runs, failures = [], []
+    runs, failures, measurement_failures = [], [], []
     for item in plan['order']:
         try:
-            runs.append(analyze_run(output / item['run_id'], manifest))
+            run = analyze_run(output / item['run_id'], manifest, allow_forced_cleanup=True)
+            runs.append(run)
+            if not run['graceful_shutdown']:
+                failures.append({'run_id': item['run_id'], 'kind': 'graceful_shutdown',
+                                 'error': run['shutdown_error']})
         except (OSError, ValueError, KeyError, TypeError) as error:
-            failures.append({'run_id': item['run_id'], 'error': str(error)})
+            failure = {'run_id': item['run_id'], 'error': str(error)}
+            failures.append(failure)
+            measurement_failures.append(failure)
     if runs:
         first = runs[0]['runtime_observed']
         require(all(left['finished_unix_ns'] <= right['started_unix_ns'] for left, right in zip(runs, runs[1:])),
@@ -658,7 +776,8 @@ def analyze_matrix(output):
     groups = []
     for case in plan['cases']:
         selected = [run for run in runs if run['run']['case_id'] == case['id']]
-        groups.append({'case_id': case['id'], 'completed_runs': len(selected),
+        groups.append({'case_id': case['id'], 'completed_runs': sum(run['graceful_shutdown'] for run in selected),
+                       'measured_runs': len(selected),
                        'p50_ms_by_run': [run['frame_summary_ns']['p50_ns'] / 1e6 for run in selected],
                        'p95_ms_by_run': [run['frame_summary_ns']['p95_ns'] / 1e6 for run in selected],
                        'p99_ms_by_run': [run['frame_summary_ns']['p99_ns'] / 1e6 for run in selected],
@@ -675,9 +794,15 @@ def analyze_matrix(output):
                                   'p99_delta_ms_from_bracketing_baseline_mean': (run['frame_summary_ns']['p99_ns'] - reference) / 1e6,
                                   'baseline_p99_drift_ms': (baselines[1]['frame_summary_ns']['p99_ns'] - baselines[0]['frame_summary_ns']['p99_ns']) / 1e6})
     pilot_ready = bool(runs) and not failures and all(run['sample_quality']['tail_comparison_ready'] for run in runs)
+    measurement_ready = (len(runs) == len(plan['order']) and not measurement_failures
+                         and all(run['sample_quality']['tail_comparison_ready'] for run in runs))
     return {'schema': 'rust-duty-real-game-matrix-analysis/v1',
             'state': ('setup_complete' if plan['smoke'] else 'complete') if not failures else 'incomplete',
             'analysis_purpose': 'setup_smoke' if plan['smoke'] else 'statistical_matrix',
+            'graceful_shutdown': bool(runs) and not failures and all(run['graceful_shutdown'] for run in runs),
+            'measurement_readiness': {'ready': measurement_ready, 'required_intervals_per_run': 100,
+                                      'all_processes_exited': len(runs) == len(plan['order']) and not measurement_failures,
+                                      'scope': 'Valid source/device/exports plus verified process cleanup; does not approve graceful shutdown.'},
             'pilot_sample_readiness': {'ready': pilot_ready, 'required_intervals_per_run': 100,
                                        'reason': None if pilot_ready else 'Setup/exports failed or fewer than 100 retained intervals; do not advance to statistical pilot on this evidence.'},
             'acceptance_proven': False,
@@ -720,9 +845,13 @@ def main(argv=None):
     run.add_argument('--driver', choices=('win32', 'x11'), required=True)
     run.add_argument('--lock-file', type=Path, default=Path(tempfile.gettempdir()) / 'rust-duty-performance-desktop.lock')
     run.add_argument('--execute', action='store_true')
+    run.add_argument('--continue-after-exit-timeout', action='store_true',
+                     help='Continue measurements after validated exports and verified owned-process cleanup; exit failure stays failed')
     analyze = sub.add_parser('analyze', help='Read existing runs, preserve missing/incomplete evidence')
     analyze.add_argument('folder', type=Path)
     analyze.add_argument('--output', type=Path)
+    analyze.add_argument('--measurement-readiness', action='store_true',
+                         help='Return measurement readiness only; overall correctness remains in state/graceful_shutdown')
     args = parser.parse_args(argv)
     try:
         if args.command == 'export-witness':
@@ -734,7 +863,12 @@ def main(argv=None):
             write_json(args.output, result)
             print(f'Prepared {len(result["order"])} sequential runs; no game launched: {args.output}')
         elif args.command == 'run':
-            print(run_matrix(args))
+            folder = run_matrix(args)
+            print(folder)
+            result = analyze_matrix(folder)
+            if result['state'] == 'incomplete':
+                # Code 3 is narrowly reserved for measurement continuation.
+                return 3 if result['measurement_readiness']['ready'] else 2
         else:
             result = analyze_matrix(args.folder)
             if args.output:
@@ -743,6 +877,8 @@ def main(argv=None):
             # CI callers already use successful smoke analysis to gate a pilot.
             # A valid low-sample setup therefore stays explicitly setup_complete
             # in JSON while returning nonzero so that pilot is not auto-started.
+            if args.measurement_readiness:
+                return 0 if result['measurement_readiness']['ready'] else 1
             return 0 if result['state'] in ('complete', 'setup_complete') and result['pilot_sample_readiness']['ready'] else 1
         return 0
     except (OSError, ValueError, DriverError, subprocess.SubprocessError, KeyError, TypeError) as error:
