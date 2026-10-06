@@ -6,6 +6,9 @@ on:
       - '.github/workflows/windows-migration-preview.yml'
       - '.github/workflows/windows-source-bound-recovery.yml'
       - 'tools/test_windows_migration_preview_workflow.py'
+      - 'tools/source_bound_companion_reuse_lock.json'
+      - 'tools/revalidate_reused_companions.py'
+      - 'tools/test_revalidate_reused_companions.py'
   workflow_dispatch:
 permissions:
   contents: read

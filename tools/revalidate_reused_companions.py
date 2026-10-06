@@ -51,7 +51,10 @@ assets/authoring/locomotion/export_config.json assets/authoring/ads/export_confi
 assets/authoring/locomotion_directional/runtime_export_config.json assets/authoring/jump/export_config.json
 assets/authoring/locomotion_directional/r5/source_integrity.json
 tools/check_generated_assets.py tools/package_game.py tools/build_blender_assets.py
-tools/merge_walk_clip.py tools/vrview.py tools/vrskin.py tools/vrpack.py'''.split())
+tools/merge_walk_clip.py tools/vrview.py tools/vrskin.py tools/vrpack.py
+src/gpu_telemetry.rs src/gpu_telemetry/counters.rs src/gpu_telemetry/windows.rs'''.split())
+# The current-only telemetry pins bind the reviewed lib.rs registration. They
+# must not be omitted even though the CPU sampler never starts the recorder.
 JUMP_PATH = 'assets/authoring/jump/halcyon_jump.blend'
 RESERVED = {'CON', 'PRN', 'AUX', 'NUL', *(f'{p}{n}' for p in ('COM', 'LPT') for n in range(1, 10))}
 

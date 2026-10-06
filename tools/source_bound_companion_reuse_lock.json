@@ -7,7 +7,7 @@
     "head_sha": "72663e2b18dda818c800dec96af1ce452dbdd4da",
     "tested_merge": "fbf6c33df03c155e23f75d485660b7648ee36024"
   },
-  "reviewed_source_commit": "bb496492879ad42b5ce5b3707828f4281a663fd0",
+  "reviewed_source_commit": "a2fc4734b7f1afcdc92e46d3d813a423fd1d119e",
   "eligible_assets_tree": "67adef966a2c0db0ee1535897a9011becb6e53a9",
   "source_files": [
     {
@@ -249,12 +249,36 @@
       "origin_sha256": "eec1033c8e711fd8ee17537e5486d96553735ce32880f1aa0188e86dd9889481"
     },
     {
+      "path": "src/gpu_telemetry.rs",
+      "bytes": 7594,
+      "sha256": "e8f8f1a2781142735a58940ae0b2a6e318a178527ce9459a5b031f84997cc383",
+      "git_blob": "3e883a7554f994b193c295bb3486866d465b9640",
+      "origin_absent": true,
+      "reviewed_difference": "Current-only binding for the reviewed GPU telemetry module registration. This path does not exist at origin.tested_merge, so no origin_sha256 is asserted. Not called by sample_viewmodel_clip; see docs/COMPANION_REUSE_REVIEW.md."
+    },
+    {
+      "path": "src/gpu_telemetry/counters.rs",
+      "bytes": 7782,
+      "sha256": "b9c7fa21698c53d32b2d98f0cb9cc4850fa444dd308d065f131656c7b3e13172",
+      "git_blob": "13ca0944c79c6cfba1075cc23d383cdb5affc12b",
+      "origin_absent": true,
+      "reviewed_difference": "Current-only binding for the reviewed GPU telemetry module registration. This path does not exist at origin.tested_merge, so no origin_sha256 is asserted. Not called by sample_viewmodel_clip; see docs/COMPANION_REUSE_REVIEW.md."
+    },
+    {
+      "path": "src/gpu_telemetry/windows.rs",
+      "bytes": 13418,
+      "sha256": "d2e6ec48b2017e73a0a811c0a6a52a44c2fff731a4721d6be3b526e827369681",
+      "git_blob": "20deb9491c41712ecbe02e02985e3d1a1ebffe16",
+      "origin_absent": true,
+      "reviewed_difference": "Current-only binding for the reviewed GPU telemetry module registration. This path does not exist at origin.tested_merge, so no origin_sha256 is asserted. Not called by sample_viewmodel_clip; see docs/COMPANION_REUSE_REVIEW.md."
+    },
+    {
       "path": "src/lib.rs",
-      "bytes": 1677,
-      "sha256": "4a589c9d9a77c89361c63001be10c9d173984a022a9485473a71cfc41f6e9b3e",
-      "git_blob": "e8f7a46d761385b2dbc034f7adf973b6537168a4",
+      "bytes": 1701,
+      "sha256": "090d44a59fb9b4d6de1a98e6199f157afce88ed81a1930395675ee542d6217cc",
+      "git_blob": "962e4d27791833bc516c308a54d6045979039251",
       "origin_sha256": "b8be3461113a2967b93959878a744b8380cc296a1cb1b7eb770417edd0a5c551",
-      "reviewed_difference": "Adds performance and public UI/HUD module exports; asset parser and sampler modules unchanged. This is not an exact historical build-cache hit."
+      "reviewed_difference": "Adds performance, public UI/HUD, and opt-in GPU telemetry module exports; asset parser and sampler modules unchanged. Since bb496492 the only lib.rs change is pub mod gpu_telemetry. The three new production telemetry modules are separately pinned as current-only inputs, are absent at the artifact origin, and are not called by the CPU sampler. See docs/COMPANION_REUSE_REVIEW.md. This is not an exact historical build-cache hit."
     },
     {
       "path": "src/skinned_asset.rs",
