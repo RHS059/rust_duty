@@ -1,0 +1,312 @@
+{
+  "schema": "rust-duty-source-review-samples/v1",
+  "note": "Actual visually reviewed sampled frames. Native PTS validation covers every frame separately; this list is not a claim that every source frame was visually reviewed. Review sheets have overlays; quantitative clips are unwarped and unlabeled.",
+  "samples": [
+    {
+      "id": "mantle_climb_overview",
+      "source_id": "R3",
+      "start_frame": 7020,
+      "end_frame_exclusive": 9137,
+      "stride_frames": 60,
+      "status": "sampled images visually inspected",
+      "source_frames_count": 36
+    },
+    {
+      "id": "mantle_6hz",
+      "source_id": "R3",
+      "start_frame": 7020,
+      "end_frame_exclusive": 8400,
+      "stride_frames": 10,
+      "status": "sampled images visually inspected",
+      "source_frames_count": 138
+    },
+    {
+      "id": "climb_6hz",
+      "source_id": "R3",
+      "start_frame": 8400,
+      "end_frame_exclusive": 9137,
+      "stride_frames": 10,
+      "status": "sampled images visually inspected",
+      "source_frames_count": 74
+    },
+    {
+      "id": "vault1_start",
+      "source_id": "R3",
+      "start_frame": 7285,
+      "end_frame_exclusive": 7315,
+      "stride_frames": 1,
+      "status": "sampled images visually inspected",
+      "source_frames_count": 30
+    },
+    {
+      "id": "vault1_return",
+      "source_id": "R3",
+      "start_frame": 7330,
+      "end_frame_exclusive": 7360,
+      "stride_frames": 1,
+      "status": "sampled images visually inspected",
+      "source_frames_count": 30
+    },
+    {
+      "id": "mantle3_start",
+      "source_id": "R3",
+      "start_frame": 7785,
+      "end_frame_exclusive": 7815,
+      "stride_frames": 1,
+      "status": "sampled images visually inspected",
+      "source_frames_count": 30
+    },
+    {
+      "id": "mantle3_crossing",
+      "source_id": "R3",
+      "start_frame": 7825,
+      "end_frame_exclusive": 7855,
+      "stride_frames": 1,
+      "status": "sampled images visually inspected",
+      "source_frames_count": 30
+    },
+    {
+      "id": "mantle3_return",
+      "source_id": "R3",
+      "start_frame": 7865,
+      "end_frame_exclusive": 7895,
+      "stride_frames": 1,
+      "status": "sampled images visually inspected",
+      "source_frames_count": 30
+    },
+    {
+      "id": "climb1_start",
+      "source_id": "R3",
+      "start_frame": 8500,
+      "end_frame_exclusive": 8530,
+      "stride_frames": 1,
+      "status": "sampled images visually inspected",
+      "source_frames_count": 30
+    },
+    {
+      "id": "climb1_return",
+      "source_id": "R3",
+      "start_frame": 8550,
+      "end_frame_exclusive": 8580,
+      "stride_frames": 1,
+      "status": "sampled images visually inspected",
+      "source_frames_count": 30
+    },
+    {
+      "id": "prone_jump_overview",
+      "source_id": "R3",
+      "start_frame": 2100,
+      "end_frame_exclusive": 4380,
+      "stride_frames": 30,
+      "status": "sampled images visually inspected",
+      "source_frames_count": 76
+    },
+    {
+      "id": "jump1_context",
+      "source_id": "R3",
+      "start_frame": 4008,
+      "end_frame_exclusive": 4188,
+      "stride_frames": 3,
+      "status": "sampled images visually inspected",
+      "source_frames_count": 60
+    },
+    {
+      "id": "jump1_start",
+      "source_id": "R3",
+      "start_frame": 4030,
+      "end_frame_exclusive": 4041,
+      "stride_frames": 1,
+      "status": "sampled images visually inspected",
+      "source_frames_count": 11
+    },
+    {
+      "id": "jump1_impact",
+      "source_id": "R3",
+      "start_frame": 4064,
+      "end_frame_exclusive": 4078,
+      "stride_frames": 1,
+      "status": "sampled images visually inspected",
+      "source_frames_count": 14
+    },
+    {
+      "id": "prone_entry_context",
+      "source_id": "R3",
+      "start_frame": 2220,
+      "end_frame_exclusive": 2340,
+      "stride_frames": 3,
+      "status": "sampled images visually inspected",
+      "source_frames_count": 40
+    },
+    {
+      "id": "prone_entry_start",
+      "source_id": "R3",
+      "start_frame": 2240,
+      "end_frame_exclusive": 2255,
+      "stride_frames": 1,
+      "status": "sampled images visually inspected",
+      "source_frames_count": 15
+    },
+    {
+      "id": "prone_entry_return",
+      "source_id": "R3",
+      "start_frame": 2290,
+      "end_frame_exclusive": 2305,
+      "stride_frames": 1,
+      "status": "sampled images visually inspected",
+      "source_frames_count": 15
+    },
+    {
+      "id": "prone_exit_native",
+      "source_id": "R3",
+      "start_frame": 2365,
+      "end_frame_exclusive": 2440,
+      "stride_frames": 1,
+      "status": "sampled images visually inspected",
+      "source_frames_count": 75
+    },
+    {
+      "id": "prone_entry_native",
+      "source_id": "R1",
+      "start_frame": 3650,
+      "end_frame_exclusive": 3725,
+      "stride_frames": 1,
+      "status": "sampled images visually inspected",
+      "source_frames_count": 75
+    },
+    {
+      "id": "prone_entry_native",
+      "source_id": "R2",
+      "start_frame": 4725,
+      "end_frame_exclusive": 4800,
+      "stride_frames": 1,
+      "status": "sampled images visually inspected",
+      "source_frames_count": 75
+    },
+    {
+      "id": "crawl_forward_context",
+      "source_id": "R2",
+      "start_frame": 4896,
+      "end_frame_exclusive": 5202,
+      "stride_frames": 6,
+      "status": "sampled images visually inspected",
+      "source_frames_count": 51
+    },
+    {
+      "id": "crawl_backward_context",
+      "source_id": "R2",
+      "start_frame": 5238,
+      "end_frame_exclusive": 5538,
+      "stride_frames": 6,
+      "status": "sampled images visually inspected",
+      "source_frames_count": 50
+    },
+    {
+      "id": "crawl_right_context",
+      "source_id": "R2",
+      "start_frame": 5592,
+      "end_frame_exclusive": 5802,
+      "stride_frames": 6,
+      "status": "sampled images visually inspected",
+      "source_frames_count": 35
+    },
+    {
+      "id": "crawl_left_early_context",
+      "source_id": "R2",
+      "start_frame": 5802,
+      "end_frame_exclusive": 5910,
+      "stride_frames": 3,
+      "status": "sampled images visually inspected",
+      "source_frames_count": 36
+    },
+    {
+      "id": "crawl_left_later_context",
+      "source_id": "R2",
+      "start_frame": 5904,
+      "end_frame_exclusive": 6174,
+      "stride_frames": 6,
+      "status": "sampled images visually inspected",
+      "source_frames_count": 45
+    },
+    {
+      "id": "crawl_left_backup",
+      "source_id": "R1",
+      "start_frame": 4926,
+      "end_frame_exclusive": 5274,
+      "stride_frames": 6,
+      "status": "sampled images visually inspected",
+      "source_frames_count": 58
+    },
+    {
+      "id": "selected_crawl_endpoint_4932",
+      "source_id": "R2",
+      "start_frame": 4929,
+      "end_frame_exclusive": 4936,
+      "stride_frames": 1,
+      "status": "sampled images visually inspected",
+      "source_frames_count": 7
+    },
+    {
+      "id": "selected_crawl_endpoint_5172",
+      "source_id": "R2",
+      "start_frame": 5169,
+      "end_frame_exclusive": 5176,
+      "stride_frames": 1,
+      "status": "sampled images visually inspected",
+      "source_frames_count": 7
+    },
+    {
+      "id": "selected_crawl_endpoint_5280",
+      "source_id": "R2",
+      "start_frame": 5277,
+      "end_frame_exclusive": 5284,
+      "stride_frames": 1,
+      "status": "sampled images visually inspected",
+      "source_frames_count": 7
+    },
+    {
+      "id": "selected_crawl_endpoint_5508",
+      "source_id": "R2",
+      "start_frame": 5505,
+      "end_frame_exclusive": 5512,
+      "stride_frames": 1,
+      "status": "sampled images visually inspected",
+      "source_frames_count": 7
+    },
+    {
+      "id": "selected_crawl_endpoint_5628",
+      "source_id": "R2",
+      "start_frame": 5625,
+      "end_frame_exclusive": 5632,
+      "stride_frames": 1,
+      "status": "sampled images visually inspected",
+      "source_frames_count": 7
+    },
+    {
+      "id": "selected_crawl_endpoint_5766",
+      "source_id": "R2",
+      "start_frame": 5763,
+      "end_frame_exclusive": 5770,
+      "stride_frames": 1,
+      "status": "sampled images visually inspected",
+      "source_frames_count": 7
+    },
+    {
+      "id": "selected_crawl_endpoint_5844",
+      "source_id": "R2",
+      "start_frame": 5841,
+      "end_frame_exclusive": 5848,
+      "stride_frames": 1,
+      "status": "sampled images visually inspected",
+      "source_frames_count": 7
+    },
+    {
+      "id": "selected_crawl_endpoint_5898",
+      "source_id": "R2",
+      "start_frame": 5895,
+      "end_frame_exclusive": 5902,
+      "stride_frames": 1,
+      "status": "sampled images visually inspected",
+      "source_frames_count": 7
+    }
+  ]
+}

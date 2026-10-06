@@ -1,0 +1,370 @@
+{
+  "schema": "rust-duty-uploaded-movement-reference-catalog/v1",
+  "status": "diagnostic source inventory; no new authored Actions, candidate scores or runtime acceptance",
+  "interval_semantics": "zero-based half-open frame ranges local to each uploaded file",
+  "timebase_basis": "Every native decoded frame PTS read with ffprobe, exact n*256 at 1/15360, including final packet duration. Existing source-file hashes reused from verified download inventory.",
+  "camera_acceptance": "Use fixed review camera and visible motion. Hidden geometry is not an acceptance gate. Hidden or off-screen anatomy is unscored.",
+  "footage_overlap": {
+    "exact_pixels": "No identical decoded native YUV420P frame in any of 18 U1\u2013U6 versus R1\u2013R3 comparisons. See uploaded/decoded_pixel_overlap.json.",
+    "visual_coverage": "Related action families overlap, but sampled scenes show distinct material: downward legs/firing-range views and new street/car/ledge examples. Different weapon/camera takes cannot replace old source frame correspondence.",
+    "limit": "Zero exact decoded matches does not rule out re-encoded footage. A full perceptual sequence alignment was not performed; do not label every frame unique.",
+    "split_files": "U3 and U4 are separate local timelines. Do not concatenate, add an invented original-video offset, or assume the part seam is an action boundary."
+  },
+  "sources": [
+    {
+      "id": "U1",
+      "repo": "RHS059/rust_duty",
+      "source_commit": "e14e5f7b14216f2e90ea8791a0b58c65638ea7a6",
+      "path": "uploaded_references/Call of Duty Modern Warfare 2 - Legs Movement Animation Reference.mp4",
+      "sha256": "fcbf12d487f4cb3dd74e962cdcd623a180938c3927d93326cc7b74cd8d2ddfba",
+      "bytes": 19712163,
+      "decoded_frame_count": 5217,
+      "width": 1280,
+      "height": 720,
+      "fps": "60/1",
+      "time_base": "1/15360",
+      "start_pts_ticks": 0,
+      "end_pts_ticks_exclusive": 1335552,
+      "frame_pts_csv": "uploaded/U1_frame_pts.csv",
+      "native_probe": "uploaded/U1_native_probe.json",
+      "visually_reviewed_frames": {
+        "start_frame": 0,
+        "end_frame_exclusive": 5217,
+        "stride_frames": 120,
+        "status": "All listed sampled images viewed in chronological labeled review sheets. Unsampled images not claimed visually reviewed."
+      },
+      "catalog_windows": [
+        {
+          "start_frame": 0,
+          "end_frame_exclusive": 1320,
+          "observed_content": "Downward first-person view with visible legs/feet and hip-held weapon during locomotion",
+          "kind": "coarse search window, not action cut",
+          "semantic_boundary_uncertainty_frames": 120
+        },
+        {
+          "start_frame": 1320,
+          "end_frame_exclusive": 2280,
+          "observed_content": "Downward view with centered sights during locomotion",
+          "kind": "coarse search window, not action cut",
+          "semantic_boundary_uncertainty_frames": 120
+        },
+        {
+          "start_frame": 2280,
+          "end_frame_exclusive": 3000,
+          "observed_content": "Downward hip-held weapon and visible leg movement",
+          "kind": "coarse search window, not action cut",
+          "semantic_boundary_uncertainty_frames": 120
+        },
+        {
+          "start_frame": 3000,
+          "end_frame_exclusive": 3900,
+          "observed_content": "Centered sights and small leg/body motion viewed downward",
+          "kind": "coarse search window, not action cut",
+          "semantic_boundary_uncertainty_frames": 120
+        },
+        {
+          "start_frame": 3900,
+          "end_frame_exclusive": 4620,
+          "observed_content": "Large arm/weapon sweeps near the floor, consistent with low-posture movement",
+          "kind": "coarse search window, not action cut",
+          "semantic_boundary_uncertainty_frames": 120
+        },
+        {
+          "start_frame": 4620,
+          "end_frame_exclusive": 5160,
+          "observed_content": "Centered sights at the floor; transition to menu near the end",
+          "kind": "coarse search window, not action cut",
+          "semantic_boundary_uncertainty_frames": 120
+        },
+        {
+          "start_frame": 5160,
+          "end_frame_exclusive": 5217,
+          "observed_content": "Quick Play menu visible; exclude from motion scoring",
+          "kind": "coarse search window, not action cut",
+          "semantic_boundary_uncertainty_frames": 120
+        }
+      ],
+      "detailed_annotations": "uploaded_detailed/U1_annotations.json"
+    },
+    {
+      "id": "U2",
+      "repo": "RHS059/rust_duty",
+      "source_commit": "e14e5f7b14216f2e90ea8791a0b58c65638ea7a6",
+      "path": "uploaded_references/Call of Duty Modern Warfare 2 - Stance Transitions Animation Reference.mp4",
+      "sha256": "09f56b59d67bdbf96abf81d060295c4fda1ff36fdefcd2f2b1b32fc260b2600a",
+      "bytes": 22106474,
+      "decoded_frame_count": 3156,
+      "width": 1280,
+      "height": 720,
+      "fps": "60/1",
+      "time_base": "1/15360",
+      "start_pts_ticks": 0,
+      "end_pts_ticks_exclusive": 807936,
+      "frame_pts_csv": "uploaded/U2_frame_pts.csv",
+      "native_probe": "uploaded/U2_native_probe.json",
+      "visually_reviewed_frames": {
+        "start_frame": 0,
+        "end_frame_exclusive": 3156,
+        "stride_frames": 30,
+        "status": "All listed sampled images viewed in chronological labeled review sheets. Unsampled images not claimed visually reviewed."
+      },
+      "catalog_windows": [
+        {
+          "start_frame": 0,
+          "end_frame_exclusive": 390,
+          "observed_content": "Repeated hip-view higher/intermediate camera-height changes",
+          "kind": "coarse search window, not action cut",
+          "semantic_boundary_uncertainty_frames": 30
+        },
+        {
+          "start_frame": 390,
+          "end_frame_exclusive": 1350,
+          "observed_content": "Hip-view transitions between intermediate and ground-level camera presentation",
+          "kind": "coarse search window, not action cut",
+          "semantic_boundary_uncertainty_frames": 30
+        },
+        {
+          "start_frame": 1350,
+          "end_frame_exclusive": 2160,
+          "observed_content": "Centered ADS with repeated camera-height changes",
+          "kind": "coarse search window, not action cut",
+          "semantic_boundary_uncertainty_frames": 30
+        },
+        {
+          "start_frame": 2160,
+          "end_frame_exclusive": 2670,
+          "observed_content": "Hip-view upward/downward impulses, jump-like camera/weapon motion",
+          "kind": "coarse search window, not action cut",
+          "semantic_boundary_uncertainty_frames": 30
+        },
+        {
+          "start_frame": 2670,
+          "end_frame_exclusive": 3060,
+          "observed_content": "ADS upward/downward impulses, jump-like motion",
+          "kind": "coarse search window, not action cut",
+          "semantic_boundary_uncertainty_frames": 30
+        },
+        {
+          "start_frame": 3060,
+          "end_frame_exclusive": 3156,
+          "observed_content": "Hip-ready recovery, followed by overlay near end",
+          "kind": "coarse search window, not action cut",
+          "semantic_boundary_uncertainty_frames": 30
+        }
+      ],
+      "detailed_annotations": "uploaded_detailed/U2_annotations.json"
+    },
+    {
+      "id": "U3",
+      "repo": "RHS059/rust_duty",
+      "source_commit": "e14e5f7b14216f2e90ea8791a0b58c65638ea7a6",
+      "path": "uploaded_references/Call of Duty Modern Warfare 2 - Vaulting, Mounting Animation Reference.remuxed_part1.mp4",
+      "sha256": "387b39097ae2381ebd73bfac8f559eb0654fbe1d84bc5ccddf8db271e9314248",
+      "bytes": 12211834,
+      "decoded_frame_count": 1840,
+      "width": 1280,
+      "height": 720,
+      "fps": "60/1",
+      "time_base": "1/15360",
+      "start_pts_ticks": 0,
+      "end_pts_ticks_exclusive": 471040,
+      "frame_pts_csv": "uploaded/U3_frame_pts.csv",
+      "native_probe": "uploaded/U3_native_probe.json",
+      "visually_reviewed_frames": {
+        "start_frame": 0,
+        "end_frame_exclusive": 1840,
+        "stride_frames": 30,
+        "status": "All listed sampled images viewed in chronological labeled review sheets. Unsampled images not claimed visually reviewed."
+      },
+      "catalog_windows": [
+        {
+          "start_frame": 0,
+          "end_frame_exclusive": 390,
+          "observed_content": "Repeated rear approach and ascent/descent onto police car",
+          "kind": "coarse search window, not action cut",
+          "semantic_boundary_uncertainty_frames": 30
+        },
+        {
+          "start_frame": 390,
+          "end_frame_exclusive": 900,
+          "observed_content": "Side approach and repeated ascent/descent onto police car",
+          "kind": "coarse search window, not action cut",
+          "semantic_boundary_uncertainty_frames": 30
+        },
+        {
+          "start_frame": 900,
+          "end_frame_exclusive": 1530,
+          "observed_content": "ADS alongside hood with supported/mounted-looking weapon and view changes",
+          "kind": "coarse search window, not action cut",
+          "semantic_boundary_uncertainty_frames": 30
+        },
+        {
+          "start_frame": 1530,
+          "end_frame_exclusive": 1770,
+          "observed_content": "Leaves car and approaches wall",
+          "kind": "coarse search window, not action cut",
+          "semantic_boundary_uncertainty_frames": 30
+        },
+        {
+          "start_frame": 1770,
+          "end_frame_exclusive": 1840,
+          "observed_content": "Close-wall approach and initial upward movement; part boundary is not an action boundary",
+          "kind": "coarse search window, not action cut",
+          "semantic_boundary_uncertainty_frames": 30
+        }
+      ],
+      "detailed_annotations": "uploaded_detailed/U3_annotations.json"
+    },
+    {
+      "id": "U4",
+      "repo": "RHS059/rust_duty",
+      "source_commit": "e14e5f7b14216f2e90ea8791a0b58c65638ea7a6",
+      "path": "uploaded_references/Call of Duty Modern Warfare 2 - Vaulting, Mounting Animation Reference.remuxed_part2.mp4",
+      "sha256": "f3664003871aa87229d7d87aeb3e66c75979b2f9d7bd6bd649da08e49a66bc61",
+      "bytes": 12137519,
+      "decoded_frame_count": 1840,
+      "width": 1280,
+      "height": 720,
+      "fps": "60/1",
+      "time_base": "1/15360",
+      "start_pts_ticks": 0,
+      "end_pts_ticks_exclusive": 471040,
+      "frame_pts_csv": "uploaded/U4_frame_pts.csv",
+      "native_probe": "uploaded/U4_native_probe.json",
+      "visually_reviewed_frames": {
+        "start_frame": 0,
+        "end_frame_exclusive": 1840,
+        "stride_frames": 30,
+        "status": "All listed sampled images viewed in chronological labeled review sheets. Unsampled images not claimed visually reviewed."
+      },
+      "catalog_windows": [
+        {
+          "start_frame": 0,
+          "end_frame_exclusive": 240,
+          "observed_content": "Close-wall attempts and upward view changes",
+          "kind": "coarse search window, not action cut",
+          "semantic_boundary_uncertainty_frames": 30
+        },
+        {
+          "start_frame": 240,
+          "end_frame_exclusive": 1050,
+          "observed_content": "Entry to sustained ledge hanging; left hand on ledge and right-hand pistol visible, with look/lateral changes",
+          "kind": "coarse search window, not action cut",
+          "semantic_boundary_uncertainty_frames": 30
+        },
+        {
+          "start_frame": 1050,
+          "end_frame_exclusive": 1170,
+          "observed_content": "Pull-up over ledge, red out-of-combat overlay, return toward wall",
+          "kind": "coarse search window, not action cut",
+          "semantic_boundary_uncertainty_frames": 30
+        },
+        {
+          "start_frame": 1170,
+          "end_frame_exclusive": 1380,
+          "observed_content": "Ready posture, repeat ledge entry and short hang",
+          "kind": "coarse search window, not action cut",
+          "semantic_boundary_uncertainty_frames": 30
+        },
+        {
+          "start_frame": 1380,
+          "end_frame_exclusive": 1710,
+          "observed_content": "Ready reset and another ledge entry, sustained pistol/hand presentation",
+          "kind": "coarse search window, not action cut",
+          "semantic_boundary_uncertainty_frames": 30
+        },
+        {
+          "start_frame": 1710,
+          "end_frame_exclusive": 1840,
+          "observed_content": "Drop/recovery to long-gun ready and ending overlay",
+          "kind": "coarse search window, not action cut",
+          "semantic_boundary_uncertainty_frames": 30
+        }
+      ],
+      "detailed_annotations": "uploaded_detailed/U4_annotations.json"
+    },
+    {
+      "id": "U5",
+      "repo": "RHS059/rust_duty",
+      "source_commit": "e14e5f7b14216f2e90ea8791a0b58c65638ea7a6",
+      "path": "uploaded_references/Call of Duty Modern Warfare 2 - Wall Obstruction Animation Reference.mp4",
+      "sha256": "6c982eae42a66cf7b3d525e5db17067b8c87e4dc7890551b4989117b9757401d",
+      "bytes": 6415894,
+      "decoded_frame_count": 1072,
+      "width": 1280,
+      "height": 720,
+      "fps": "60/1",
+      "time_base": "1/15360",
+      "start_pts_ticks": 0,
+      "end_pts_ticks_exclusive": 274432,
+      "frame_pts_csv": "uploaded/U5_frame_pts.csv",
+      "native_probe": "uploaded/U5_native_probe.json",
+      "visually_reviewed_frames": {
+        "start_frame": 0,
+        "end_frame_exclusive": 1072,
+        "stride_frames": 120,
+        "status": "All listed sampled images viewed in chronological labeled review sheets. Unsampled images not claimed visually reviewed."
+      },
+      "catalog_windows": [
+        {
+          "start_frame": 0,
+          "end_frame_exclusive": 960,
+          "observed_content": "Repeated close-wall weapon posture/obstruction response with view direction changes",
+          "kind": "coarse search window, not action cut",
+          "semantic_boundary_uncertainty_frames": 120
+        },
+        {
+          "start_frame": 960,
+          "end_frame_exclusive": 1072,
+          "observed_content": "View backs away or turns away from wall; weapon returns toward ready",
+          "kind": "coarse search window, not action cut",
+          "semantic_boundary_uncertainty_frames": 120
+        }
+      ],
+      "detailed_annotations": "uploaded_detailed/U5_annotations.json"
+    },
+    {
+      "id": "U6",
+      "repo": "RHS059/rust_duty",
+      "source_commit": "e14e5f7b14216f2e90ea8791a0b58c65638ea7a6",
+      "path": "uploaded_references/Call of Duty Modern Warfare 2 - Weapon Swinging Animation Reference.mp4",
+      "sha256": "8a4091a22edf5296b4aa2fe3a1c04cf5e5d7b401cfa5c996840d44c0b5f0dcea",
+      "bytes": 6100955,
+      "decoded_frame_count": 892,
+      "width": 1280,
+      "height": 720,
+      "fps": "60/1",
+      "time_base": "1/15360",
+      "start_pts_ticks": 0,
+      "end_pts_ticks_exclusive": 228352,
+      "frame_pts_csv": "uploaded/U6_frame_pts.csv",
+      "native_probe": "uploaded/U6_native_probe.json",
+      "visually_reviewed_frames": {
+        "start_frame": 0,
+        "end_frame_exclusive": 892,
+        "stride_frames": 120,
+        "status": "All listed sampled images viewed in chronological labeled review sheets. Unsampled images not claimed visually reviewed."
+      },
+      "catalog_windows": [
+        {
+          "start_frame": 0,
+          "end_frame_exclusive": 892,
+          "observed_content": "Weapon/hand lag, swing and settling during repeated horizontal/vertical look changes in firing range",
+          "kind": "coarse search window, not action cut",
+          "semantic_boundary_uncertainty_frames": 120
+        }
+      ],
+      "detailed_annotations": "uploaded_detailed/U6_annotations.json"
+    }
+  ],
+  "scope_handoff": {
+    "U1": "Supporting visible-leg evidence; not a full-body rig/contact specification.",
+    "U2": "Supporting stance/ADS/jump transition evidence; event onsets require native refinement.",
+    "U3": "Supporting car ascent/vault and weapon mount examples. Weapon mounting is separate from mantle movement.",
+    "U4": "New ledge-hang/pistol evidence, distinct from R3 roof ascent. Catalogued; no automatic extra authored Action assignment.",
+    "U5": "Wall-obstruction supporting reference; no new wall-response implementation assignment.",
+    "U6": "Look-driven swing supporting reference; do not infer locomotion displacement from mouse-look response."
+  },
+  "detailed_annotation_index": "uploaded_detailed/README.md",
+  "catalog_window_status": "Historical coarse discovery windows. Superseded for event lookup by linked detailed annotations; retained for provenance."
+}
