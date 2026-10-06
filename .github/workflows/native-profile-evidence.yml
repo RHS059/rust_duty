@@ -1,0 +1,78 @@
+name: Extract pinned conditional native-profile evidence
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/native-profile-evidence.yml'
+      - 'tools/extract_native_profile_evidence.py'
+      - 'tools/test_extract_native_profile_evidence.py'
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  extract:
+    if: >-
+      github.repository == 'RHS059/rust_duty' &&
+      github.ref == 'refs/heads/main' && github.run_attempt == 1
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            .github/workflows/native-profile-evidence.yml
+            tools/extract_native_profile_evidence.py
+            tools/test_extract_native_profile_evidence.py
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Test closed selection and fail-closed identity checks
+        env:
+          PYTHONPATH: tools
+        run: python -m unittest -v test_extract_native_profile_evidence
+      - name: Read provider metadata for only the pinned artifact and attempt
+        uses: actions/github-script@v7
+        with:
+          retries: 0
+          script: |
+            const fs = require('fs');
+            if (context.repo.owner !== 'RHS059' || context.repo.repo !== 'rust_duty') {
+              throw new Error('Unexpected repository');
+            }
+            const artifact = await github.rest.actions.getArtifact({
+              ...context.repo, artifact_id: 11396831337
+            });
+            const attempt = await github.rest.actions.getWorkflowRunAttempt({
+              ...context.repo, run_id: 37427554951, attempt_number: 1
+            });
+            fs.mkdirSync('evidence', {recursive: true});
+            fs.writeFileSync('evidence/profile-extraction-provider.json',
+              JSON.stringify({artifact: artifact.data, attempt: attempt.data}) + '\n', {flag: 'wx'});
+      - name: Verify immutable metadata and source context before download
+        run: python tools/extract_native_profile_evidence.py verify-provider
+      # No artifact listing, name fallback, historical denied ID, or rerun route.
+      # This unchanged full artifact is read once; no capture/oracle/build runs.
+      - name: Download only the verified immutable source artifact
+        uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          repository: RHS059/rust_duty
+          run-id: '37427554951'
+          artifact-ids: '11396831337'
+          merge-multiple: true
+          path: downloaded/source-profile-input
+      - name: Preserve only four pinned original files and extraction provenance
+        run: python tools/extract_native_profile_evidence.py package
+      - name: Retain bounded conditional source diagnostics
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-profile-source-evidence-attempt-${{ github.run_attempt }}
+          path: evidence/native-profile-bounded/
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 7
