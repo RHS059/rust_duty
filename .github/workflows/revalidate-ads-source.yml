@@ -1,0 +1,323 @@
+name: Revalidate immutable ADS captures with Windows source oracle
+
+on:
+  workflow_run:
+    workflows: ['Rust prototype checks and playable builds']
+    types: [completed]
+    branches: [main]
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/revalidate-ads-source.yml
+      - tools/build_ads_source_packet.py
+      - tools/test_build_ads_source_packet.py
+      - tools/revalidate_ads_offset.py
+      - tools/ads_source_visibility_binding.py
+      - tools/compare_source_visibility.py
+      - examples/source_visibility_certificate.rs
+  workflow_dispatch:
+    inputs:
+      capture_toolchain:
+        description: Optional independently verified toolchain; must agree with the original compiler job log
+        type: string
+        required: false
+      capture_rustc_sha256:
+        description: Optional independently verified rustc -Vv SHA256; must agree with the original compiler fingerprint log
+        type: string
+        required: false
+
+permissions:
+  contents: read
+  actions: read
+
+# This narrowly triggered validator correction never rerenders or changes the
+# original captures. Capture and verifier/source-oracle identities stay separate.
+# The rustc hash is recovered from the verified original job log, never from the
+# new compiler or portable source packet. No prior denied artifact is
+# requested or retried. All eight artifacts must come from the selected attempt.
+jobs:
+  windows-source-oracle:
+    if: >-
+      github.repository == 'RHS059/rust_duty' &&
+      github.ref == 'refs/heads/main' &&
+      (github.event_name == 'workflow_dispatch' || github.event_name == 'push' ||
+       (github.event.workflow_run.id == 37415102452 &&
+        github.event.workflow_run.run_attempt == 1 &&
+        github.event.workflow_run.head_sha == '8f571464be706d0abde862e124582a188f633baf' &&
+        github.event.workflow_run.head_branch == 'main' &&
+        github.event.workflow_run.head_repository.full_name == 'RHS059/rust_duty' &&
+        github.event.workflow_run.path == '.github/workflows/build.yml'))
+    runs-on: windows-latest
+    timeout-minutes: 150
+    env:
+      CAPTURE_SOURCE: '8f571464be706d0abde862e124582a188f633baf'
+      CAPTURE_RUN_ID: '37415102452'
+      CAPTURE_RUN_ATTEMPT: '1'
+      CAPTURE_TOOLCHAIN: ${{ inputs.capture_toolchain }}
+      CAPTURE_RUSTC_SHA256: ${{ inputs.capture_rustc_sha256 }}
+    steps:
+      - name: Preserve repository bytes on Windows
+        run: git config --global core.autocrlf false
+      - name: Check out the reviewed verifier revision
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          path: verifier
+          persist-credentials: false
+      - name: Check out original production source separately
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.CAPTURE_SOURCE }}
+          path: capture-source
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install verifier and materialization dependencies
+        run: python -m pip install -r verifier/tools/requirements-assets.txt PyYAML==6.0.3
+      - name: Exercise producer and workflow guards before artifact retrieval
+        working-directory: verifier
+        env:
+          PYTHONPATH: tools
+        run: python -m unittest -v test_build_ads_source_packet
+      - name: Read bounded metadata for the exact historical attempt
+        id: eligibility
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const source = process.env.CAPTURE_SOURCE;
+            const run = process.env.CAPTURE_RUN_ID;
+            const attempt = process.env.CAPTURE_RUN_ATTEMPT;
+            if (source !== '8f571464be706d0abde862e124582a188f633baf' || run !== '37415102452' || attempt !== '1') {
+              throw new Error('Only the pinned main capture is supported');
+            }
+            if (!/^[0-9a-f]{40}$/.test(source) || !/^[1-9][0-9]*$/.test(run) || !/^[1-9][0-9]*$/.test(attempt)) {
+              throw new Error('Exact capture source/run/attempt are required');
+            }
+            if (context.repo.owner !== 'RHS059' || context.repo.repo !== 'rust_duty') {
+              throw new Error('Unexpected artifact repository');
+            }
+            const identity = await github.rest.actions.getWorkflowRunAttempt({
+              ...context.repo, run_id: run, attempt_number: attempt
+            });
+            if (String(identity.data.id) !== run || String(identity.data.run_attempt) !== attempt ||
+                identity.data.head_sha !== source || identity.data.repository.full_name !== 'RHS059/rust_duty' ||
+                identity.data.head_repository.full_name !== 'RHS059/rust_duty' ||
+                identity.data.head_branch !== 'main' || identity.data.path !== '.github/workflows/build.yml') {
+              throw new Error('Historical attempt identity differs from the requested source/run/repository');
+            }
+            const artifacts = [];
+            let complete = false;
+            for (let page = 1; page <= 20; page++) {
+              const result = await github.rest.actions.listWorkflowRunArtifacts({
+                ...context.repo, run_id: run, per_page: 100, page
+              });
+              artifacts.push(...result.data.artifacts);
+              if (artifacts.length === result.data.total_count) { complete = true; break; }
+              if (result.data.artifacts.length === 0) break;
+            }
+            fs.mkdirSync('downloaded', { recursive: true });
+            const jobs = [];
+            let jobs_complete = false;
+            for (let page = 1; page <= 20; page++) {
+              const result = await github.rest.actions.listJobsForWorkflowRunAttempt({
+                ...context.repo, run_id: run, attempt_number: attempt, per_page: 100, page
+              });
+              jobs.push(...result.data.jobs);
+              if (jobs.length === result.data.total_count) { jobs_complete = true; break; }
+              if (result.data.jobs.length === 0) break;
+            }
+            fs.writeFileSync('downloaded/artifact-catalog.json', JSON.stringify({
+              attempt: identity.data, artifacts, complete, jobs, jobs_complete,
+              jobs_context: { source_commit: source, run_id: run, run_attempt: attempt }
+            }, null, 2) + '\n');
+            if (!complete || !jobs_complete) throw new Error('Original evidence metadata exceeded the bounded listing or changed during retrieval');
+            const eligible = identity.data.status === 'completed';
+            fs.writeFileSync('downloaded/readiness.json', JSON.stringify({
+              schema: 'rust-duty-ads-source-readiness/v1', capture_source: source,
+              capture_run_id: run, capture_run_attempt: attempt, eligible,
+              validation_performed: false, reason: eligible ? 'capture-completed' : 'capture-still-pending'
+            }, null, 2) + '\n');
+            core.setOutput('eligible', eligible ? 'true' : 'false');
+            if (!eligible) core.notice('Original capture is still pending. No downloads, source generation, or revalidation will run.');
+      - name: Authorize only exact nonexpired artifact IDs from the original attempt
+        if: steps.eligibility.outputs.eligible == 'true'
+        id: artifacts
+        shell: pwsh
+        run: >-
+          python verifier/tools/build_ads_source_packet.py select-artifacts
+          --catalog downloaded/artifact-catalog.json
+          --capture-source "$env:CAPTURE_SOURCE" --capture-run-id "$env:CAPTURE_RUN_ID"
+          --capture-run-attempt "$env:CAPTURE_RUN_ATTEMPT"
+      - name: Recover exact compiler identity from the verified original authored-inputs job
+        if: steps.eligibility.outputs.eligible == 'true'
+        id: compiler
+        timeout-minutes: 5
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >-
+          python verifier/tools/build_ads_source_packet.py recover-compiler
+          --catalog downloaded/artifact-catalog.json --output downloaded/compiler-recovery
+          --capture-source "$env:CAPTURE_SOURCE" --capture-run-id "$env:CAPTURE_RUN_ID"
+          --capture-run-attempt "$env:CAPTURE_RUN_ATTEMPT" --toolchain="$env:CAPTURE_TOOLCHAIN"
+          --capture-rustc-sha256="$env:CAPTURE_RUSTC_SHA256"
+      - name: Download original native input manifest and binaries
+        if: steps.eligibility.outputs.eligible == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          artifact-ids: ${{ steps.artifacts.outputs.inputs }}
+          run-id: ${{ env.CAPTURE_RUN_ID }}
+          github-token: ${{ github.token }}
+          repository: RHS059/rust_duty
+          path: downloaded/inputs
+          merge-multiple: true
+      - name: Download immutable original ADS gameplay shard
+        if: steps.eligibility.outputs.eligible == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          artifact-ids: ${{ steps.artifacts.outputs.gameplay }}
+          run-id: ${{ env.CAPTURE_RUN_ID }}
+          github-token: ${{ github.token }}
+          repository: RHS059/rust_duty
+          path: downloaded/gameplay
+          merge-multiple: true
+      - name: Download immutable original ADS offset shard
+        if: steps.eligibility.outputs.eligible == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          artifact-ids: ${{ steps.artifacts.outputs.offset }}
+          run-id: ${{ env.CAPTURE_RUN_ID }}
+          github-token: ${{ github.token }}
+          repository: RHS059/rust_duty
+          path: downloaded/offset
+          merge-multiple: true
+      - name: Download original source-bound reload runtime
+        if: steps.eligibility.outputs.eligible == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          artifact-ids: ${{ steps.artifacts.outputs.reload }}
+          run-id: ${{ env.CAPTURE_RUN_ID }}
+          github-token: ${{ github.token }}
+          repository: RHS059/rust_duty
+          path: downloaded/reload
+          merge-multiple: true
+      - name: Download original source-bound walk runtime
+        if: steps.eligibility.outputs.eligible == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          artifact-ids: ${{ steps.artifacts.outputs.walk }}
+          run-id: ${{ env.CAPTURE_RUN_ID }}
+          github-token: ${{ github.token }}
+          repository: RHS059/rust_duty
+          path: downloaded/walk
+          merge-multiple: true
+      - name: Download original source-bound ADS runtime
+        if: steps.eligibility.outputs.eligible == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          artifact-ids: ${{ steps.artifacts.outputs.ads }}
+          run-id: ${{ env.CAPTURE_RUN_ID }}
+          github-token: ${{ github.token }}
+          repository: RHS059/rust_duty
+          path: downloaded/ads
+          merge-multiple: true
+      - name: Download original source-bound directional runtime
+        if: steps.eligibility.outputs.eligible == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          artifact-ids: ${{ steps.artifacts.outputs.directional }}
+          run-id: ${{ env.CAPTURE_RUN_ID }}
+          github-token: ${{ github.token }}
+          repository: RHS059/rust_duty
+          path: downloaded/directional
+          merge-multiple: true
+      - name: Download original source-bound jump runtime
+        if: steps.eligibility.outputs.eligible == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          artifact-ids: ${{ steps.artifacts.outputs.jump }}
+          run-id: ${{ env.CAPTURE_RUN_ID }}
+          github-token: ${{ github.token }}
+          repository: RHS059/rust_duty
+          path: downloaded/jump
+          merge-multiple: true
+      - name: Install exact captured Windows compiler
+        if: steps.eligibility.outputs.eligible == 'true'
+        shell: pwsh
+        env:
+          CAPTURE_TOOLCHAIN: ${{ steps.compiler.outputs.toolchain }}
+        run: |
+          rustup toolchain install "$env:CAPTURE_TOOLCHAIN" --profile minimal
+          if ($LASTEXITCODE -ne 0) { throw 'Exact captured compiler installation failed' }
+      - name: Build and run original-source oracle with every native byte checked
+        if: steps.eligibility.outputs.eligible == 'true'
+        id: oracle
+        timeout-minutes: 120
+        shell: pwsh
+        env:
+          CAPTURE_TOOLCHAIN: ${{ steps.compiler.outputs.toolchain }}
+          CAPTURE_RUSTC_SHA256: ${{ steps.compiler.outputs.rustc_sha256 }}
+        run: >-
+          python verifier/tools/build_ads_source_packet.py build
+          --capture-root capture-source --verifier-root verifier --downloads downloaded
+          --evidence evidence/source-oracle --receipt-anchor evidence/independent-source-receipt.sha256
+          --capture-source "$env:CAPTURE_SOURCE" --capture-run-id "$env:CAPTURE_RUN_ID"
+          --capture-run-attempt "$env:CAPTURE_RUN_ATTEMPT" --toolchain "$env:CAPTURE_TOOLCHAIN"
+          --capture-rustc-sha256 "$env:CAPTURE_RUSTC_SHA256"
+      - name: Revalidate immutable ADS captures using independent receipt and compiler anchors
+        if: steps.eligibility.outputs.eligible == 'true'
+        timeout-minutes: 20
+        shell: pwsh
+        env:
+          SOURCE_RECEIPT_SHA256: ${{ steps.oracle.outputs.source_receipt_sha256 }}
+          CAPTURE_RUSTC_SHA256: ${{ steps.compiler.outputs.rustc_sha256 }}
+        run: >-
+          python verifier/tools/revalidate_ads_offset.py
+          --input-manifest downloaded/inputs/evidence/authored-inputs/input-manifest.json
+          --gameplay-shard downloaded/gameplay --offset-shard downloaded/offset
+          --source-packet evidence/source-oracle/packet/source-packet.json
+          --source-receipt-sha256 "$env:SOURCE_RECEIPT_SHA256"
+          --capture-rustc-sha256 "$env:CAPTURE_RUSTC_SHA256"
+          --capture-source "$env:CAPTURE_SOURCE" --capture-run-id "$env:CAPTURE_RUN_ID"
+          --capture-run-attempt "$env:CAPTURE_RUN_ATTEMPT"
+          --verifier-source "$env:GITHUB_SHA" --verifier-run-id "$env:GITHUB_RUN_ID"
+          --verifier-run-attempt "$env:GITHUB_RUN_ATTEMPT"
+          --evidence evidence/revalidation --timeout 900
+      - name: Retain all source and revalidation evidence including failures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ads-source-revalidation-evidence-attempt-${{ github.run_attempt }}
+          path: |
+            evidence/
+            capture-source/oracle-output/
+            downloaded/artifact-catalog.json
+            downloaded/readiness.json
+            downloaded/compiler-recovery/
+            downloaded/gameplay/summary.json
+            downloaded/offset/summary.json
+            downloaded/inputs/evidence/authored-inputs/input-manifest.json
+          if-no-files-found: error
+          retention-days: 14
+      - name: Retain independent receipt and concise failure diagnostics separately
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ads-source-revalidation-diagnostics-attempt-${{ github.run_attempt }}
+          path: |
+            evidence/independent-source-receipt.sha256
+            evidence/source-oracle/producer-summary.json
+            evidence/source-oracle/packet/source-receipt.json
+            evidence/source-oracle/download-identities.json
+            evidence/source-oracle/logs/
+            evidence/revalidation/summary.json
+            evidence/revalidation/original-verdicts/
+            downloaded/artifact-catalog.json
+            downloaded/readiness.json
+            downloaded/compiler-recovery/
+            downloaded/gameplay/summary.json
+            downloaded/offset/summary.json
+          if-no-files-found: warn
+          retention-days: 14

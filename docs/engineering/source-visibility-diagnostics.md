@@ -55,5 +55,33 @@ existing coverage check does not acquire a new clipping obligation.
 
 The negative controls reject blank or witness-only substitutes, missing required
 pixels and unrelated injected patches. They do not establish resistance to a
-renderer deliberately synthesizing the exact expected mask. No geometry,
-calibration, coverage threshold or acceptance caller is changed by this addition.
+renderer deliberately synthesizing the exact expected mask. Geometry,
+calibration and the ordinary coverage threshold remain unchanged.
+
+## Immutable native capture revalidation
+
+`revalidate-ads-source.yml` prepares a separate Windows source oracle for the
+explicitly pinned capture revision and attempt. It checks out original production
+source, permits only the reviewed read-only pose bridge and diagnostic example,
+and recovers the original compiler fingerprint from that attempt's successful
+authored-input job. The installed compiler, release settings, all 18 runtime
+companions, base and offset settings, animation manifest and original invocation
+must match their retained identities before the oracle runs.
+
+`ads_source_visibility_binding.py` binds the resulting packet to the immutable
+native captures, including every frame's complete gameplay and timing records.
+An independently retained receipt digest anchors that packet. The original
+capture revision and the later verifier revision remain distinct in each report.
+
+`revalidate_ads_offset.py` runs the existing ADS, placement and exact same-Windows
+parity checks on fresh verified copies. Only a typed generic coverage/structure
+failure in the bound ADS-offset scenario may use the conditional source model.
+Malformed PNGs, incorrect extents, missing witnesses, changed state, unsupported
+fallback geometry and any other original check failure still fail. Frames that
+already pass ordinary image validation do not use the fallback.
+
+Original failed summaries and captured bytes are retained unchanged. The new
+report explicitly keeps `acceptance_complete: false`: an ADS-pair result alone
+does not establish the original nine-scenario aggregate or a current complete
+Windows package. Publishing this caller does not assert that authoritative
+Windows source generation or native revalidation has passed.

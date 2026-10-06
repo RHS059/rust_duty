@@ -38,6 +38,10 @@ class CaptureError(ValueError):
     """A requested capture contract was not satisfied."""
 
 
+class CaptureStructureError(CaptureError):
+    """Decoded pixels failed only generic foreground/structure requirements."""
+
+
 def positive_integer(value):
     number = int(value)
     if number <= 0:
@@ -139,17 +143,17 @@ def verify(path, extent, background, min_coverage, tolerance, orientation):
     image = load_png(path, extent)
     extrema = image.getextrema()
     if all(low == high for low, high in extrema):
-        raise CaptureError('uniform image: no rendered structure')
+        raise CaptureStructureError('uniform image: no rendered structure')
     foreground = _foreground_count(image, background, tolerance)
     coverage = foreground / (image.width * image.height)
     if coverage < min_coverage:
-        raise CaptureError(f'{path}: foreground coverage {coverage:.6f} below {min_coverage:.6f}')
+        raise CaptureStructureError(f'{path}: foreground coverage {coverage:.6f} below {min_coverage:.6f}')
     # Independently reject near-uniform output against its own median color.
     # This catches a changed clear encoding/color plus sparse noise, rather
     # than accepting the entire wrong-colored background as scene coverage.
     structure = _foreground_count(image, tuple(ImageStat.Stat(image).median), tolerance)
     if structure / (image.width * image.height) < min_coverage:
-        raise CaptureError('near-uniform image: insufficient rendered structure')
+        raise CaptureStructureError('near-uniform image: insufficient rendered structure')
     probes = []
     if orientation:
         patches = [('top-left', 1, 1, (255, 0, 0, 255)),

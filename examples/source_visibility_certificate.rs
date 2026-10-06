@@ -433,7 +433,7 @@ impl Inventory {
 fn native_gameplay_telemetry(
     model: Option<&authored_viewmodel::AuthoredViewmodel>,
     sim: &Simulation,
-) -> serde_json::Value {
+) -> String {
     let sample = model.and_then(|model| model.ads_sample());
     let native = sample
         .map(|sample| sample.seconds.to_string())
@@ -447,14 +447,40 @@ fn native_gameplay_telemetry(
     let route = model.map_or("unavailable", |model| model.presentation_route());
     let failed = model.is_none_or(|model| model.error().is_some());
     let segment = vector_range::authored_ads::gameplay_ads_replay_segment(sim.time);
-    serde_json::from_str(&format!(
+    format!(
                 "{{\"simulation_time\":{},\"segment\":\"{}\",\"route\":\"{}\",\"clip\":\"{}\",\"native_clip_seconds\":{},\"clip_duration\":{},\"direction\":{},\"ads_requested\":{},\"simulation_ads\":{},\"speed\":{},\"grounded\":{},\"sprinting\":{},\"mantling\":{},\"ammo\":{},\"reserve\":{},\"shots\":{},\"reload_left\":{},\"reload_credit_at\":{},\"reload_ready_at\":{},\"renderer_failed\":{},\"walk_weight\":{},\"walk_seconds\":{},\"run_weight\":{},\"walk_min_rate\":{}}}",
                 sim.time, segment, route, clip, native, duration, direction, sim.player.ads_requested,
                 sim.player.ads, sim.player.speed(), sim.player.grounded, sim.player.sprinting,
                 sim.player.mantle.is_some(), sim.player.ammo, sim.player.reserve, sim.stats.shots,
                 sim.player.reload_left, sim.player.reload_credit_at, sim.player.reload_ready_at, failed,
                 model.map_or(0., |m| m.walk_weight()), model.and_then(|m| m.walk_sample()).map_or("null".into(), |v| v.to_string()),
-                model.map_or(0., |m| m.run_weight()), model.map_or(1., |m| m.walk_min_rate()))).expect("finite source ADS gameplay telemetry")
+                model.map_or(0., |m| m.run_weight()), model.map_or(1., |m| m.walk_min_rate()))
+}
+/// Original gameplay-ADS timing, using capture.rs Display semantics as above.
+fn native_time_telemetry(frame: u64, cfg: &Settings) -> String {
+    let hz = 60000_f32 / 1001.;
+    let elapsed = frame as f32 / hz;
+    let duration = 9.0_f32;
+    let phase = (elapsed / duration).clamp(0., 1.);
+    format!("{{\"elapsed_seconds\":{},\"normalized_phase\":{},\"visual_duration_seconds\":{},\"simulation_ready_seconds\":{},\"sampling_hz\":{}}}",elapsed,phase,duration,cfg.ads_time,hz)
+}
+/// Preserve the native Display numeric tokens verbatim. Parsing may validate
+/// JSON syntax, but Value's f64 parser/serializer must never carry these fields.
+fn frame_json_with_native_records(
+    outer: serde_json::Value,
+    gameplay: String,
+    time: String,
+) -> String {
+    serde_json::from_str::<serde_json::Value>(&gameplay).expect("finite source ADS gameplay JSON");
+    serde_json::from_str::<serde_json::Value>(&time).expect("finite source ADS time JSON");
+    let mut text = outer.to_string();
+    assert_eq!(text.pop(), Some('}'));
+    text.push_str(",\"native_gameplay\":");
+    text.push_str(&gameplay);
+    text.push_str(",\"native_time\":");
+    text.push_str(&time);
+    text.push('}');
+    text
 }
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args: Vec<_> = std::env::args().collect();
@@ -706,7 +732,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         writeln!(
             output,
             "{}",
-            json!({"frame":frame,"committed_tick":ticks,"native_gameplay":native_gameplay_telemetry(Some(&model),&sim),"time":sim.time,"route":model.presentation_route(),"visual_ads":model.visual_ads_amount(),"ammo":sim.player.ammo,"shots":sim.stats.shots,"companion_catalog_vra":source.path,"companion_crc32":source.checksums,"source_triangles":expected,"outside_bottom":inventory.outside_bottom,"hidden_source_triangles":hidden_triangles,"unclassified_triangles":unresolved,"classification":if unresolved==0 {"expected_empty_under_profile"}else{"potentially_visible_unresolved"},"maximum_bottom_upper":inventory.maximum_bottom_upper,"meshes":inventory.meshes,"unsupported_clip_triangles":samples.unsupported,"possible_support_complete":samples.unsupported==0,"required_contrast_samples":required_count,"possible_samples":possible_count,"required_contrast_runs":runs(&required),"possible_support_runs":runs(&samples.possible),"acceptance_verdict":null})
+            frame_json_with_native_records(
+                json!({"frame":frame,"committed_tick":ticks,"time":sim.time,"route":model.presentation_route(),"visual_ads":model.visual_ads_amount(),"ammo":sim.player.ammo,"shots":sim.stats.shots,"companion_catalog_vra":source.path,"companion_crc32":source.checksums,"source_triangles":expected,"outside_bottom":inventory.outside_bottom,"hidden_source_triangles":hidden_triangles,"unclassified_triangles":unresolved,"classification":if unresolved==0 {"expected_empty_under_profile"}else{"potentially_visible_unresolved"},"maximum_bottom_upper":inventory.maximum_bottom_upper,"meshes":inventory.meshes,"unsupported_clip_triangles":samples.unsupported,"possible_support_complete":samples.unsupported==0,"required_contrast_samples":required_count,"possible_samples":possible_count,"required_contrast_runs":runs(&required),"possible_support_runs":runs(&samples.possible),"acceptance_verdict":null}),
+                native_gameplay_telemetry(Some(&model), &sim),
+                native_time_telemetry(frame, &cfg)
+            )
         )?;
         if frame % 50 == 0 {
             eprintln!(
@@ -784,8 +814,39 @@ mod tests {
         assert!(!contrast([[36 + 11, 48, 61, 255]; 3], [[255, 255]; 3]));
         assert!(contrast([[36 + 12, 48, 61, 255]; 3], [[255, 255]; 3]));
     }
+    fn number_token<'a>(record: &'a str, key: &str) -> &'a str {
+        record
+            .split(&format!("\"{key}\":"))
+            .nth(1)
+            .unwrap()
+            .split([',', '}'])
+            .next()
+            .unwrap()
+    }
     #[test]
-    fn native_gameplay_fractional_f32_uses_capture_display_decimals() {
+    fn native_time_uses_original_cadence_and_display_without_rate_rounding() {
+        let cfg = Settings::m4_candidate();
+        let zero = native_time_telemetry(0, &cfg);
+        assert_eq!(number_token(&zero, "elapsed_seconds"), "0");
+        assert_eq!(number_token(&zero, "visual_duration_seconds"), "9");
+        let record = native_time_telemetry(16, &cfg);
+        assert_eq!(
+            number_token(&record, "elapsed_seconds"),
+            (16_f32 / (60000_f32 / 1001.)).to_string()
+        );
+        assert_eq!(number_token(&record, "sampling_hz"), "59.94006");
+        assert_ne!(
+            number_token(&record, "elapsed_seconds"),
+            (16_f64 / 60.).to_string()
+        );
+        assert_eq!(
+            number_token(&native_time_telemetry(552, &cfg), "normalized_phase"),
+            "1"
+        );
+    }
+    #[test]
+    fn native_gameplay_fractional_f32_preserves_emitted_display_tokens() {
+        let cfg = Settings::m4_candidate();
         let mut sim = Simulation::new();
         for fraction in [
             0.1_f32,
@@ -795,13 +856,43 @@ mod tests {
             0.00000011920929,
         ] {
             sim.player.ads = fraction;
-            let record = native_gameplay_telemetry(None, &sim);
-            let expected: serde_json::Value = serde_json::from_str(&fraction.to_string()).unwrap();
-            assert_eq!(record["simulation_ads"], expected);
-            assert_ne!(
-                record["simulation_ads"].as_f64().unwrap(),
-                f64::from(fraction)
+            let wire = frame_json_with_native_records(
+                json!({"frame":0}),
+                native_gameplay_telemetry(None, &sim),
+                native_time_telemetry(0, &cfg),
             );
+            assert_eq!(number_token(&wire, "simulation_ads"), fraction.to_string());
+        }
+    }
+    #[test]
+    fn emitted_f64_clocks_never_round_trip_through_json_values() {
+        let cfg = Settings::m4_candidate();
+        let mut sim = Simulation::new();
+        for tick in 0..1201 {
+            let wire = frame_json_with_native_records(
+                json!({"frame":tick}),
+                native_gameplay_telemetry(None, &sim),
+                native_time_telemetry(tick, &cfg),
+            );
+            assert_eq!(number_token(&wire, "simulation_time"), sim.time.to_string());
+            assert_eq!(
+                number_token(&wire, "elapsed_seconds"),
+                (tick as f32 / (60000_f32 / 1001.)).to_string()
+            );
+            serde_json::from_str::<serde_json::Value>(&wire).unwrap();
+            if tick == 14 {
+                assert_eq!(
+                    number_token(&wire, "simulation_time"),
+                    "0.11666667275130749"
+                );
+            }
+            if tick == 28 {
+                assert_eq!(
+                    number_token(&wire, "simulation_time"),
+                    "0.23333334550261497"
+                );
+            }
+            sim.time += f64::from(FIXED_DT);
         }
     }
     #[test]

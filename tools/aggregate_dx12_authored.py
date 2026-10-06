@@ -84,7 +84,7 @@ def validated_manifest(path, root):
     return binding
 
 
-def read_shard(folder, scenario, binding):
+def read_shard(folder, scenario, binding, *, expected_context=None):
     if folder.is_symlink() or not folder.is_dir():
         raise ValueError(f'{scenario}: shard must be a real directory')
     summary_hash = authored.sha256(folder / 'summary.json')
@@ -99,7 +99,7 @@ def read_shard(folder, scenario, binding):
                           ('platform', 'win32'), ('acceptance_complete', False),
                           ('automated_landmark_gate', 'open')):
         _compare(report[key], expected, f'{scenario}/{key}')
-    shards.validate_binding(report['binding'])
+    shards.validate_binding(report['binding'], expected_context=expected_context)
     shards.compare_binding(binding, report['binding'])
     # Inspect the closed no-link artifact inventory before reading any retained
     # invocation or runtime path from downloaded evidence.
