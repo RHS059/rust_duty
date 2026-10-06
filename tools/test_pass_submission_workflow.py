@@ -44,6 +44,7 @@ class PassSubmissionWorkflowTests(unittest.TestCase):
         self.assertEqual(native['timeout-minutes'], '48')
         checkout = self.steps[0]['with']
         self.assertEqual(checkout['persist-credentials'], 'false')
+        self.assertIn('/.github/workflows/pass-submission-feedback.yml', checkout['sparse-checkout'].splitlines())
         self.assertNotIn('/assets/', checkout['sparse-checkout'])
         for value in ('cargo build', '--bin vector-range', 'finite-warp-profile.yml',
                       'continue-on-error', 'secrets.', 'workflow_dispatch'):
@@ -53,6 +54,7 @@ class PassSubmissionWorkflowTests(unittest.TestCase):
         uploads = [s for s in self.steps if s.get('uses') == 'actions/upload-artifact@v4']
         self.assertEqual(len(uploads), 2)
         self.assertTrue(all(s['if'] == 'always()' for s in uploads))
+        self.assertTrue(all(s['with']['include-hidden-files'] == 'true' for s in uploads))
         full, review = (s['with']['path'] for s in uploads)
         self.assertIn('!evidence/pass-submission/target/**', full)
         self.assertIn('!evidence/pass-submission/temp/**', full)

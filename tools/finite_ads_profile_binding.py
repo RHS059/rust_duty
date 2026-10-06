@@ -19,8 +19,29 @@ import bind_reviewed_gl_supplement as gl
 import build_ads_source_packet as producer
 import extract_native_profile_evidence as extraction
 import prepare_finite_probe_inputs as preparation
+import run_renderer_contract as renderer_contract
 
 SCHEMA = 'rust-duty-finite-ads-reviewed-class/v1'
+PASS_BATCHING_SCHEMA = 'rust-duty-finite-ads-pass-batching-class/v1'
+PASS_BATCHING_CLASS = 'ads-offset-8f571464-finite-pass-batching-v1'
+ORIGINAL_CLASS_SHA256 = '96dfb631be9d59f6cf35d87e4f3c17a4a4303d74787bb773a8c47672efb53331'
+# Intentionally unavailable. Only independent review of a real Windows artifact
+# may supply this anchor; never derive it from a candidate or test fixture.
+PASS_BATCHING_NATIVE_REVIEW_SHA256 = None
+PASS_BATCHING_COMMITS = {
+    'baseline': '17023450076b668c279539e0e450b8cb58a7c1a2',
+    'candidate': '5abf2bca825a252fb7ad6665c444c89861ee8ef9',
+}
+PASS_BATCHING_PAIRS = {
+    'baseline': {
+        'src/render/frame.rs': {'bytes': 15694, 'sha256': '6791f92af105eff40835d710aea7ee4dd5edd8f3e263067564333cf42887b9e3'},
+        'src/render/plan.rs': {'bytes': 21875, 'sha256': '5e81c060a90c95d6b1a90c2d0a8951219c47df7330f0aae6447166e20d1f3acf'},
+    },
+    'candidate': {
+        'src/render/frame.rs': {'bytes': 25184, 'sha256': 'd0bdefd2fe79f77c33e2ac4183346cccfcbae3a3d1fac6c7e2130e7d6648d91e'},
+        'src/render/plan.rs': {'bytes': 22649, 'sha256': 'c23e97a848435a610f5be0c72341ef8e5090fa2cd66846cda1b29159558a4c7e'},
+    },
+}
 EVIDENCE_KEYS = ('runner', 'native', 'gl_binding', 'opengl_empty', 'dx12_empty', 'opengl_visible', 'dx12_visible',
                  'preparation', 'before', 'after', 'executables', 'compiler_before', 'compiler_after',
                  'build_invocation', 'native_invocation')
@@ -41,6 +62,109 @@ def _sha(value, label):
 
 def _identity(raw):
     return {'bytes': len(raw), 'sha256': hashlib.sha256(raw).hexdigest()}
+
+
+def _read_pass_batching_class(ledger, class_path, extension):
+    """Extend the unchanged original descriptor, never rewrite its proof."""
+    source.shared._exact_keys(extension, ('schema', 'class_id', 'status', 'original_class',
+                                         'source_pairs', 'native_comparison', 'acceptance_verdict'),
+                              'pass-batching descriptor')
+    require(extension['class_id'] == PASS_BATCHING_CLASS, 'unknown pass-batching class')
+    require(extension['status'] == 'reviewed', 'pass-batching review pending; variant unavailable')
+    equal(extension['acceptance_verdict'], None, 'pass-batching descriptor verdict')
+    equal(extension['source_pairs'], PASS_BATCHING_PAIRS, 'exact paired source mapping')
+
+    def read(item, digest, label):
+        source.shared._exact_keys(item, ('path', 'bytes', 'sha256'), label)
+        identity = {key: item[key] for key in ('bytes', 'sha256')}
+        source._digest_shape(identity, label)
+        equal(item['sha256'], _sha(digest, label + ' independent review anchor'), label + ' anchor')
+        path = ledger._portable(class_path.parent, item['path'])
+        equal(ledger._remember(path), identity, label + ' bytes')
+        return ledger._json(path)
+
+    original = read(extension['original_class'], ORIGINAL_CLASS_SHA256, 'original finite class')
+    require('_pass_batching' not in original, 'reserved internal pass-batching state in external descriptor')
+    require(original.get('schema') == SCHEMA and original.get('status') == 'reviewed' and
+            original.get('class_id') == 'ads-offset-8f571464-finite-v1', 'original finite class differs')
+    for name, identity in PASS_BATCHING_PAIRS['baseline'].items():
+        equal(original['equivalence']['production'][name], identity, 'original paired source anchor')
+    require(PASS_BATCHING_NATIVE_REVIEW_SHA256 is not None,
+            'pass-batching native review anchor unavailable; variant disabled')
+    comparison = read(extension['native_comparison'], PASS_BATCHING_NATIVE_REVIEW_SHA256,
+                      'pass-batching native comparison')
+    reviewed = deepcopy(original)
+    reviewed['class_id'] = PASS_BATCHING_CLASS
+    reviewed['_pass_batching'] = {'comparison': comparison,
+                                 'sha256': extension['native_comparison']['sha256']}
+    return reviewed
+
+
+def _pass_batching_evidence(reviewed, native_identity):
+    """Validate a compact, independently anchored review of the actual artifact.
+
+    The reviewer must run the existing fixed renderer-contract validator and
+    decode/compare all PNGs before retaining this receipt. This is not a new
+    native execution, nor can a candidate's refreshed digest establish review.
+    """
+    if '_pass_batching' not in reviewed:
+        return
+    report = reviewed['_pass_batching']['comparison']
+    equal(report.get('schema'), 'rust-duty-pass-batching-native-review/v1', 'native comparison schema')
+    for key, value in {'status': 'passed', 'native_execution': True,
+                       'original_class_sha256': ORIGINAL_CLASS_SHA256,
+                       'original_profile_flags_modified': False, 'acceptance_complete': False,
+                       'acceptance_verdict': None}.items():
+        equal(report.get(key, 'missing'), value, 'native comparison ' + key)
+    equal(report.get('commits'), PASS_BATCHING_COMMITS, 'native comparison revisions')
+    artifact = report.get('artifact', {})
+    source.shared._exact_keys(artifact, ('run_id', 'run_attempt', 'artifact_id', 'archive_sha256'),
+                              'native comparison artifact')
+    for key in ('run_id', 'run_attempt', 'artifact_id'):
+        require(type(artifact[key]) is str and re.fullmatch('[1-9][0-9]*', artifact[key]),
+                'native comparison artifact context missing: ' + key)
+    _sha(artifact['archive_sha256'], 'native comparison artifact archive')
+    for name in ('summary', 'build_receipts', 'exact_pixels'):
+        source._digest_shape(report.get(name), 'native comparison ' + name)
+    equal(report.get('comparison'), {'channels': 'RGBA', 'channel_tolerance': 0, 'capture_count': 21},
+          'native zero-tolerance comparison')
+    variants = report.get('variants', {})
+    source.shared._exact_keys(variants, ('baseline', 'candidate'), 'native comparison variants')
+    names = {case[0] for case in renderer_contract.cases()}
+    require(len(names) == 21, 'fixed production renderer contract inventory changed')
+    device_fields = (*DEVICE_FIELDS, 'adapter', 'backend', 'compiler')
+    expected_device = {key: native_identity[key] for key in device_fields}
+    for label, variant in variants.items():
+        equal(variant.get('source_pair'), PASS_BATCHING_PAIRS[label], 'native paired source ' + label)
+        equal(variant.get('compiler_sha256'), reviewed['equivalence']['compiler_sha256'],
+              'native comparison compiler ' + label)
+        equal(variant.get('runtime_identity'), expected_device, 'native comparison adapter/compiler ' + label)
+        equal(variant.get('process_exit_code'), 0, 'native comparison exit code ' + label)
+        for name in ('source_receipt', 'contract_executable', 'contract_report', 'contract_log'):
+            source._digest_shape(variant.get(name), 'native comparison ' + label + '/' + name)
+        validation = variant.get('fixed_contract_validation', {})
+        for key, value in {'schema': 'rust-duty-renderer-contract-validation/v1', 'passed': True,
+                           'backend': 'Dx12', 'adapter': 'Microsoft Basic Render Driver',
+                           'captures': 21, 'scope': renderer_contract.SCOPE}.items():
+            equal(validation.get(key, 'missing'), value, 'fixed renderer expectations ' + label + '/' + key)
+        for key in ('build_version', 'build_number'):
+            require(type(validation.get(key)) is str and validation[key].strip(),
+                    'fixed renderer validation missing build identity')
+        for key in ('rgba_sha256', 'png_sha256'):
+            mapping = variant.get(key, {})
+            source.shared._exact_keys(mapping, names, 'complete native capture inventory ' + label)
+            for name, digest in mapping.items():
+                _sha(digest, 'native capture ' + label + '/' + name)
+    equal(variants['baseline']['rgba_sha256'], variants['candidate']['rgba_sha256'],
+          'all 21 native captures must match exactly in RGBA')
+
+
+def _pass_batching_pair(read, reviewed):
+    if '_pass_batching' not in reviewed:
+        return {}
+    actual = {name: _identity(_lf(read(name))) for name in PASS_BATCHING_PAIRS['baseline']}
+    require(actual in PASS_BATCHING_PAIRS.values(), 'mixed or unreviewed pass-batching source pair')
+    return actual
 
 
 def _canonical(value):
@@ -196,10 +320,12 @@ def _packet_class(bound, packet_path, reviewed):
     addition = 'src/render/finite_warp_probe.rs'
     require(actual - set(expected['production']) <= {addition}, 'unreviewed production file added')
     require(set(expected['production']) <= actual, 'reviewed production file missing')
+    source_pair = _pass_batching_pair(read, reviewed)
     for name in sorted(actual):
         raw = read(name)
         canonical = _lf(raw) if Path(name).suffix in ('.rs', '.toml', '.lock', '.wgsl') else raw
-        if _identity(canonical) != expected['production'].get(name):
+        identity = source_pair.get(name, expected['production'].get(name))
+        if _identity(canonical) != identity:
             # The additive bodies must themselves be the reviewed versions;
             # marker-shaped arbitrary Rust is not a source-equivalence proof.
             equal(_identity(canonical), expected.get('reviewed_additions', {}).get(name),
@@ -207,7 +333,7 @@ def _packet_class(bound, packet_path, reviewed):
         if name == addition and name not in expected['production']:
             preparation.checked_overlay(name, None, canonical)
         else:
-            equal(_identity(_production_bytes(name, raw)), expected['production'][name],
+            equal(_identity(_production_bytes(name, raw)), identity,
                   'reviewed production source: ' + name)
     native_manifest_key = PurePosixPath(receipt['oracle_execution']['rustc_vv']).with_name('native-input-manifest.json').as_posix()
     _gl_reference_equivalent(source._parse(read(native_manifest_key), 'current native input manifest'),
@@ -464,13 +590,20 @@ class BoundFiniteAdsProfile:
         raise TypeError('finite profile is not a migration acceptance boolean')
 
     def summary(self):
-        return deepcopy({'schema': 'rust-duty-bound-finite-ads-profile/v1',
+        summary = {'schema': 'rust-duty-bound-finite-ads-profile/v1',
                          'class_id': self._reviewed['class_id'], 'reviewed_class_sha256': self._class_sha256,
                          'evidence_sha256': {key: value['sha256'] for key, value in self._reviewed['evidence'].items()},
                          'capture_binding': self._capture_binding, 'runtime_identity': self._runtime,
                          'fallback_frames': self._reviewed['fallback_frames'],
                          'bounded_ads_profile_established': True, **{key: False for key in FALSE_FLAGS},
-                         'acceptance_verdict': None})
+                         'acceptance_verdict': None}
+        if '_pass_batching' in self._reviewed:
+            summary['source_equivalence'] = {
+                'original_class_sha256': ORIGINAL_CLASS_SHA256,
+                'native_comparison_sha256': self._reviewed['_pass_batching']['sha256'],
+                'source_pairs': PASS_BATCHING_PAIRS,
+            }
+        return deepcopy(summary)
 
     def verify_frame_binding(self, path, role, index):
         require(role in source.ROLES and type(index) is int and index in self._rows[role],
@@ -502,9 +635,14 @@ def bind_finite_ads_profile(*, source_packet, source_packet_path, reviewed_class
     require(ledger._remember(class_path)['sha256'] == _sha(expected_class_sha256, 'independent class anchor'),
             'reviewed class differs from independent SHA-256')
     reviewed = ledger._json(class_path)
+    require('_pass_batching' not in reviewed, 'reserved internal pass-batching state in external descriptor')
+    pass_batching = reviewed.get('schema') == PASS_BATCHING_SCHEMA
+    if pass_batching:
+        reviewed = _read_pass_batching_class(ledger, class_path, reviewed)
     require(reviewed.get('schema') == SCHEMA, 'unsupported finite profile class')
     require(reviewed.get('status') == 'reviewed', 'finite ADS profile review pending; no accepting class is available')
-    require(reviewed.get('class_id') == 'ads-offset-8f571464-finite-v1', 'unknown reviewed equivalence class')
+    require(reviewed.get('class_id') == (PASS_BATCHING_CLASS if pass_batching
+                                       else 'ads-offset-8f571464-finite-v1'), 'unknown reviewed equivalence class')
     equal(reviewed.get('acceptance_verdict', 'missing'), None, 'descriptor verdict')
     equal(reviewed.get('visible_frames'), list(gl.FRAME_IDS), 'finite visible scope')
     empty = reviewed['empty_frames']
@@ -535,6 +673,7 @@ def bind_finite_ads_profile(*, source_packet, source_packet_path, reviewed_class
         _comparison(evidence[backend + '_visible'], role, list(gl.FRAME_IDS), False, reviewed['original_outputs_sha256'][role])
     _native_build(evidence, reviewed)
     native = _native_evidence(evidence, reviewed, source_packet)
+    _pass_batching_evidence(reviewed, native)
     gl_rows = _gl_rows(reviewed, evidence['gl_binding'], source_packet.rows_by_role['windows-legacy'])
     runtime = _runtime_identity(ledger, native_runtime_logs, native, source_packet)
     rows, state = {}, {}

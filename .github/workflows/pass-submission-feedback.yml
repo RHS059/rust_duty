@@ -30,6 +30,7 @@ jobs:
           persist-credentials: false
           sparse-checkout-cone-mode: false
           sparse-checkout: |
+            /.github/workflows/pass-submission-feedback.yml
             /Cargo.toml
             /Cargo.lock
             /build.rs
@@ -79,6 +80,7 @@ jobs:
             !evidence/pass-submission/temp/**
           if-no-files-found: warn
           retention-days: 14
+          include-hidden-files: true
       - name: Retain bounded source, pixel and timing review evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -94,3 +96,4 @@ jobs:
             evidence/pass-submission/pair-*/**
           if-no-files-found: warn
           retention-days: 14
+          include-hidden-files: true

@@ -1,0 +1,34 @@
+{
+  "acceptance_verdict": null,
+  "class_id": "ads-offset-8f571464-finite-pass-batching-v1",
+  "native_comparison": null,
+  "original_class": {
+    "bytes": 576231,
+    "path": "finite_ads_reviewed_class.json",
+    "sha256": "96dfb631be9d59f6cf35d87e4f3c17a4a4303d74787bb773a8c47672efb53331"
+  },
+  "schema": "rust-duty-finite-ads-pass-batching-class/v1",
+  "source_pairs": {
+    "baseline": {
+      "src/render/frame.rs": {
+        "bytes": 15694,
+        "sha256": "6791f92af105eff40835d710aea7ee4dd5edd8f3e263067564333cf42887b9e3"
+      },
+      "src/render/plan.rs": {
+        "bytes": 21875,
+        "sha256": "5e81c060a90c95d6b1a90c2d0a8951219c47df7330f0aae6447166e20d1f3acf"
+      }
+    },
+    "candidate": {
+      "src/render/frame.rs": {
+        "bytes": 25184,
+        "sha256": "d0bdefd2fe79f77c33e2ac4183346cccfcbae3a3d1fac6c7e2130e7d6648d91e"
+      },
+      "src/render/plan.rs": {
+        "bytes": 22649,
+        "sha256": "c23e97a848435a610f5be0c72341ef8e5090fa2cd66846cda1b29159558a4c7e"
+      }
+    }
+  },
+  "status": "pending_independent_native_review"
+}
