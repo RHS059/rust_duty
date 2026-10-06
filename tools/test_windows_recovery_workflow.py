@@ -1,6 +1,7 @@
 """Bounded recovery wiring contracts, without downloading or rendering."""
 from pathlib import Path
 import unittest
+import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -57,6 +58,30 @@ class RecoveryWorkflowTests(unittest.TestCase):
         self.assertEqual(body.count('GITHUB_TOKEN: ${{ github.token }}'), 1)
         self.assertIn("GIT_CONFIG_KEY_0: core.autocrlf", body)
         self.assertIn("GIT_CONFIG_VALUE_0: 'false'", body)
+
+    def test_cache_preserves_fresh_worktree_inputs_and_current_build(self):
+        body = (ROOT / '.github/workflows/windows-source-bound-recovery.yml').read_text()
+        steps = yaml.safe_load(body)['jobs']['recover']['steps']
+        caches = [step for step in steps if step.get('uses') == 'actions/cache@v4']
+        self.assertEqual(len(caches), 1)
+        cache = caches[0]
+        self.assertEqual(cache['with']['path'].splitlines(), [
+            '~/.cargo/registry', '~/.cargo/git', 'evidence/runtime-root/target',
+            'evidence/runtime-root/updater/target'])
+        prefix = ('recovery-cargo-v1-${{ runner.os }}-${{ runner.arch }}-'
+                  '${{ matrix.lane }}-${{ steps.recovery-rust-version.outputs.hash }}-'
+                  "${{ hashFiles('Cargo.lock', 'updater/Cargo.lock') }}-")
+        self.assertEqual(cache['with']['key'], prefix + '${{ github.sha }}')
+        self.assertEqual(cache['with']['restore-keys'].splitlines(), [prefix])
+        materialize = next(step for step in steps
+                           if 'package_game.py materialize' in step.get('run', ''))
+        self.assertLess(steps.index(materialize), steps.index(cache))
+        build = next(step for step in steps if 'cargo build' in step.get('run', ''))
+        self.assertEqual(build['if'], "matrix.lane == 'build-preview'")
+        self.assertLess(steps.index(cache), steps.index(build))
+        self.assertIn('python tools/ci_quality_checks.py', body)
+        self.assertIn('python tools/run_dx12_smoke.py', body)
+        self.assertIn('python tools/run_windows_same_platform_return.py', body)
 
 
 if __name__ == '__main__':

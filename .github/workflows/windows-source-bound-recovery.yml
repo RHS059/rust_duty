@@ -71,6 +71,23 @@ jobs:
       - name: Materialize exact verified runtime inputs
         working-directory: evidence/runtime-root
         run: python tools/package_game.py materialize --root . --include-walk --include-ads --include-directional --include-jump --require-generated
+      - name: Fingerprint exact recovery compiler
+        id: recovery-rust-version
+        shell: bash
+        run: python -c "import hashlib,subprocess; print('hash='+hashlib.sha256(subprocess.check_output(['rustc','-Vv'])).hexdigest())" >> "$GITHUB_OUTPUT"
+      - name: Reuse compiler-matched recovery build intermediates
+        uses: actions/cache@v4
+        with:
+          # Restore only after creating the runtime worktree. Never cache its
+          # companions, authoring sources, credentials or generated evidence.
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            evidence/runtime-root/target
+            evidence/runtime-root/updater/target
+          key: recovery-cargo-v1-${{ runner.os }}-${{ runner.arch }}-${{ matrix.lane }}-${{ steps.recovery-rust-version.outputs.hash }}-${{ hashFiles('Cargo.lock', 'updater/Cargo.lock') }}-${{ github.sha }}
+          restore-keys: |
+            recovery-cargo-v1-${{ runner.os }}-${{ runner.arch }}-${{ matrix.lane }}-${{ steps.recovery-rust-version.outputs.hash }}-${{ hashFiles('Cargo.lock', 'updater/Cargo.lock') }}-
       - name: Run current Python, Rust and updater quality checks
         if: matrix.lane == 'quality'
         working-directory: evidence/runtime-root
