@@ -7,7 +7,7 @@
     "head_sha": "72663e2b18dda818c800dec96af1ce452dbdd4da",
     "tested_merge": "fbf6c33df03c155e23f75d485660b7648ee36024"
   },
-  "reviewed_source_commit": "5f5de8c008fdcfc0bdd6f6b0d84a5c14ad6a9707",
+  "reviewed_source_commit": "1357347dd08f1c2004a6d00b3d0db6d50f55521b",
   "eligible_assets_tree": "a691466f735dee7861b3476d700572255ed2cae5",
   "source_files": [
     {
@@ -395,11 +395,11 @@
     },
     {
       "path": "tools/package_game.py",
-      "bytes": 47723,
-      "sha256": "25f66b9760bbbc19a68c3ac844d75a282bfb85a2652c9b8594d80872ef880563",
-      "git_blob": "c38558bef40799b68b34f590023d0c6044c7a4d6",
+      "bytes": 47748,
+      "sha256": "c8420f79bb0d5070e42dbf05b97afa7bcc985562646a39caa7fce7808f808aef",
+      "git_blob": "1549e1d481c90b7fb49fc67bd02526f36b0cd62b",
       "origin_sha256": "37d72d21eb3ee5f4df786dd8e18be07697853e66ffdcad6cf5f84c4e12d6fd1e",
-      "reviewed_difference": "Only RUNTIME_FILES documentation/theme entries changed; all asset verifier bodies unchanged."
+      "reviewed_difference": "Only RUNTIME_FILES documentation/theme entries changed, including the linked GPU_TELEMETRY.md guide; all asset verifier bodies unchanged."
     },
     {
       "path": "tools/requirements-assets.txt",

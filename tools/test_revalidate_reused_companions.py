@@ -2,6 +2,7 @@
 """Offline fail-closed unit tests. Fixtures are not gameplay/parity evidence."""
 import argparse
 import copy
+import hashlib
 import json
 from pathlib import Path
 import stat
@@ -50,6 +51,14 @@ class ReuseTests(unittest.TestCase):
         self.assertEqual(58, sum('origin_sha256' in row for row in self.lock['source_files']))
         self.assertEqual(28, len(self.lock['artifacts'][0]['members']))
         self.assertEqual(75, sum(len(a['members']) for a in self.lock['artifacts']))
+
+    def test_current_package_staging_pin_matches_distribution_source(self):
+        row = next(row for row in self.lock['source_files'] if row['path'] == 'tools/package_game.py')
+        path = LOCK_PATH.with_name('package_game.py')
+        raw = path.read_bytes()
+        self.assertEqual(reuse.digest(path), {'bytes': row['bytes'], 'sha256': row['sha256']})
+        self.assertEqual(hashlib.sha1(b'blob ' + str(len(raw)).encode() + b'\0' + raw).hexdigest(), row['git_blob'])
+        self.assertIn(b'"docs/GPU_TELEMETRY.md"', raw)
 
     def test_metadata_wrong_origin_and_artifact(self):
         for where, key, value in [('origin', 'run_id', 1), ('origin', 'run_attempt', 2),
