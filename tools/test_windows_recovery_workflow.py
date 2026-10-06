@@ -7,6 +7,18 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class RecoveryWorkflowTests(unittest.TestCase):
+    def test_preview_lanes_have_separate_protected_groups_and_other_runs_stay_isolated(self):
+        workflow = yaml.load((ROOT / '.github/workflows/windows-source-bound-recovery.yml').read_text(), Loader=yaml.BaseLoader)
+        self.assertEqual(workflow['on']['workflow_call']['inputs']['independent_preview'],
+                         {'type': 'boolean', 'default': 'false', 'required': 'false'})
+        job = workflow['jobs']['recover']
+        self.assertEqual(job['strategy']['matrix']['lane'], ['quality', 'build-preview'])
+        self.assertEqual(job['concurrency']['cancel-in-progress'], 'false')
+        group = job['concurrency']['group']
+        self.assertIn('${{ matrix.lane }}', group)
+        self.assertIn('inputs.independent_preview && github.ref || github.run_id', group)
+        self.assertEqual(job['strategy']['fail-fast'], 'false')
+
     def test_evidence_path_guards_run_before_retrieval_on_windows(self):
         import yaml
         workflow = yaml.safe_load((Path(__file__).resolve().parents[1] / '.github/workflows/windows-source-bound-recovery.yml').read_text())

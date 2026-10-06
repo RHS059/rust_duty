@@ -3,6 +3,19 @@ on:
   push:
     branches: [main]
     paths:
+      - 'src/**'
+      - 'tests/**'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - 'build.rs'
+      - 'build_number.rs'
+      - 'rust-toolchain.toml'
+      - '.cargo/**'
+      - 'updater/src/**'
+      - 'updater/Cargo.toml'
+      - 'updater/Cargo.lock'
+      - 'tools/summarize_frame_performance.py'
+      - 'tools/test_summarize_frame_performance.py'
       - '.github/workflows/windows-migration-preview.yml'
       - '.gitattributes'
       - '.github/workflows/windows-source-bound-recovery.yml'
@@ -38,13 +51,15 @@ on:
 permissions:
   contents: read
   actions: read
-# Isolated WIP recovery never interrupts the complete main verification group.
-# Preserve an active verification; GitHub keeps only the latest pending request.
-concurrency:
-  group: migration-windows-preview-${{ github.ref }}
-  cancel-in-progress: false
+# Protect each lane separately so an old quality check cannot hold a new build.
+# Running checks remain intact; each lane retains only its latest pending request.
 jobs:
   renderer-contract:
+    concurrency:
+      group: migration-renderer-contract-${{ github.ref }}
+      cancel-in-progress: false
     uses: ./.github/workflows/wgpu-renderer-contract.yml
   source-bound-preview:
     uses: ./.github/workflows/windows-source-bound-recovery.yml
+    with:
+      independent_preview: true

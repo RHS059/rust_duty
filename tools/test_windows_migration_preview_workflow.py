@@ -10,11 +10,15 @@ class WindowsMigrationPreviewWorkflowTests(unittest.TestCase):
     def setUpClass(cls):
         cls.data = yaml.load((ROOT / '.github/workflows/windows-migration-preview.yml').read_text(), Loader=yaml.BaseLoader)
 
-    def test_only_explicit_preview_workflow_changes_or_manual_request_trigger(self):
+    def test_source_and_preview_workflow_changes_or_manual_request_trigger(self):
         events = self.data['on']
         self.assertEqual(set(events), {'push', 'workflow_dispatch'})
         self.assertEqual(events['push']['branches'], ['main'])
         self.assertEqual(events['push']['paths'], [
+            'src/**', 'tests/**', 'Cargo.toml', 'Cargo.lock', 'build.rs', 'build_number.rs',
+            'rust-toolchain.toml', '.cargo/**', 'updater/src/**', 'updater/Cargo.toml',
+            'updater/Cargo.lock', 'tools/summarize_frame_performance.py',
+            'tools/test_summarize_frame_performance.py',
             '.github/workflows/windows-migration-preview.yml',
             '.gitattributes',
             '.github/workflows/windows-source-bound-recovery.yml',
@@ -50,14 +54,21 @@ class WindowsMigrationPreviewWorkflowTests(unittest.TestCase):
     def test_reuses_complete_guarded_recovery_with_minimum_existing_permissions(self):
         self.assertEqual(self.data['permissions'], {'contents': 'read', 'actions': 'read'})
         self.assertEqual(self.data['jobs'], {
-            'renderer-contract': {'uses': './.github/workflows/wgpu-renderer-contract.yml'},
-            'source-bound-preview': {'uses': './.github/workflows/windows-source-bound-recovery.yml'}})
+            'renderer-contract': {
+                'concurrency': {'group': 'migration-renderer-contract-${{ github.ref }}',
+                                'cancel-in-progress': 'false'},
+                'uses': './.github/workflows/wgpu-renderer-contract.yml'},
+            'source-bound-preview': {
+                'uses': './.github/workflows/windows-source-bound-recovery.yml',
+                'with': {'independent_preview': 'true'}}})
 
     def test_preview_group_is_distinct_from_protected_full_main_verification(self):
-        self.assertEqual(self.data['concurrency'], {
-            'group': 'migration-windows-preview-${{ github.ref }}',
+        self.assertNotIn('concurrency', self.data)
+        recovery = yaml.load((ROOT / '.github/workflows/windows-source-bound-recovery.yml').read_text(), Loader=yaml.BaseLoader)
+        self.assertEqual(recovery['jobs']['recover']['concurrency'], {
+            'group': 'source-bound-recovery-${{ github.repository }}-${{ inputs.independent_preview && github.ref || github.run_id }}-${{ matrix.lane }}',
             'cancel-in-progress': 'false'})
-        self.assertNotIn('game-', self.data['concurrency']['group'])
+        self.assertNotIn('game-', recovery['jobs']['recover']['concurrency']['group'])
 
 if __name__ == '__main__':
     unittest.main()

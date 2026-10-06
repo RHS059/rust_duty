@@ -1,6 +1,11 @@
 name: Source-bound Windows recovery and isolated preview
 on:
   workflow_call:
+    inputs:
+      independent_preview:
+        type: boolean
+        default: false
+        required: false
 permissions:
   contents: read
   actions: read
@@ -8,6 +13,9 @@ jobs:
   recover:
     name: Windows recovery (${{ matrix.lane }})
     runs-on: windows-latest
+    concurrency:
+      group: source-bound-recovery-${{ github.repository }}-${{ inputs.independent_preview && github.ref || github.run_id }}-${{ matrix.lane }}
+      cancel-in-progress: false
     strategy:
       fail-fast: false
       max-parallel: 2
