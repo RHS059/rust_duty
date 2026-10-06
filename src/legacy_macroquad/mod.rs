@@ -348,7 +348,21 @@ impl LegacyRenderer {
                 flush();
                 let image = match target {
                     Some(target) => target.texture.get_texture_data(),
-                    None => texture::get_screen_data(),
+                    None => {
+                        let image = texture::get_screen_data();
+                        // Macroquad 0.4.14 grab_screen binds its snapshot with
+                        // raw GL, bypassing Miniquad 0.4.8's texture cache. A
+                        // following untextured mesh can otherwise keep sampling
+                        // that snapshot because the cache still says white.
+                        // This pinned OpenGL hook clears bindings only; it does
+                        // not present, clear targets, or advance the app frame.
+                        // SAFETY: exclusive access on the initialized GL thread;
+                        // flush above drained all pending Macroquad geometry.
+                        unsafe {
+                            window::get_internal_gl().quad_context.commit_frame();
+                        }
+                        image
+                    }
                 };
                 save_capture(path, image.width, image.height, &image.bytes, diagnostic)?;
                 output.captures.push(path.clone());

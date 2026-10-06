@@ -11,6 +11,8 @@ on:
       - 'tools/test_calibrated_presentation.py'
       - 'tools/test_calibrated_feedback_workflow.py'
       - 'assets/weapons/hk416a5.vrm'
+      - 'src/legacy_macroquad/**'
+      - 'examples/legacy_capture_contract.rs'
   workflow_dispatch:
 permissions:
   contents: read

@@ -7,19 +7,38 @@ use vector_range::{
     sim::{Simulation, FIXED_DT},
 };
 
+fn has_only_policy_guarded_firing_reset(app: &str) -> bool {
+    // Git may materialize Windows sources with CRLF. Normalize only line
+    // endings; retain the exact reset count and guarded call-site assertion.
+    let app = app.replace("\r\n", "\n");
+    app.matches("sim.player.firing_sequence = false;").count() == 1
+        && app.contains(concat!(
+            "if transition.interrupts_firing_sequence(gameplay_capture, focus_state.changed) {\n",
+            "            sim.player.firing_sequence = false;"
+        ))
+}
+
 #[test]
 fn app_has_only_the_policy_guarded_firing_reset() {
-    // Static wiring guard for the two duplicated resets that caused the native
-    // failure. The Windows replay comparison remains the runtime proof.
-    let app = include_str!("../src/app.rs");
-    assert_eq!(
-        app.matches("sim.player.firing_sequence = false;").count(),
-        1
-    );
-    assert!(app.contains(concat!(
-        "if transition.interrupts_firing_sequence(gameplay_capture, focus_state.changed) {\n",
-        "            sim.player.firing_sequence = false;"
+    // Static wiring guard; the Windows replay comparison is the runtime proof.
+    assert!(has_only_policy_guarded_firing_reset(include_str!(
+        "../src/app.rs"
     )));
+}
+
+#[test]
+fn static_wiring_guard_accepts_crlf_but_rejects_broken_control_flow() {
+    let lf = include_str!("../src/app.rs").replace("\r\n", "\n");
+    for app in [lf.clone(), lf.replace('\n', "\r\n")] {
+        assert!(has_only_policy_guarded_firing_reset(&app));
+        let duplicate = format!("{app}\nsim.player.firing_sequence = false;\n");
+        assert!(!has_only_policy_guarded_firing_reset(&duplicate));
+        let unguarded = app.replace(
+            "transition.interrupts_firing_sequence(gameplay_capture, focus_state.changed)",
+            "transition.discard_timing",
+        );
+        assert!(!has_only_policy_guarded_firing_reset(&unguarded));
+    }
 }
 
 #[test]
