@@ -1,0 +1,62 @@
+name: Bounded current-producer reload evidence
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/renderer-source-companion-evidence.yml'
+      - 'tools/package_source_companion_evidence.py'
+      - 'tools/test_source_companion_evidence.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  produce:
+    if: github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/blender-assets.yml
+  evidence:
+    needs: produce
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      # Exact attempt naming prevents an evidence-only retry from silently
+      # relabeling a previous attempt's alias. Rerun all jobs in that case.
+      - name: Download only this run and attempt's successful producer output
+        uses: actions/download-artifact@v4
+        with:
+          name: generated-reload-runtime-attempt-${{ github.run_attempt }}
+          path: evidence/current-reload-runtime
+      - name: Revalidate all selections and package bounded primary evidence
+        run: >-
+          python tools/package_source_companion_evidence.py
+          --directory evidence/current-reload-runtime
+          --output evidence/source-companion-parts
+      - name: Retain primary VRA and exact shared receipts
+        uses: actions/upload-artifact@v4
+        with:
+          name: renderer-source-reload-vra-attempt-${{ github.run_attempt }}
+          path: evidence/source-companion-parts/vra/
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 7
+      - name: Retain primary VRS and exact shared receipts
+        uses: actions/upload-artifact@v4
+        with:
+          name: renderer-source-reload-vrs-attempt-${{ github.run_attempt }}
+          path: evidence/source-companion-parts/vrs/
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 7
+      - name: Retain primary VRM and exact shared receipts
+        uses: actions/upload-artifact@v4
+        with:
+          name: renderer-source-reload-vrm-attempt-${{ github.run_attempt }}
+          path: evidence/source-companion-parts/vrm/
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 7
