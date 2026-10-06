@@ -1,0 +1,246 @@
+{
+  "source_sha256": "6b95bdcdfa78e8127ef4b4fa5ac88e4cf9a0654bd0a1271c9916b903f6ee4e79",
+  "action": "aella_vault_low_r3",
+  "selection": "All original skin vertices with any weight >0.001 on hand_l or left thumb/index/middle/ring/pinky bones, preserving vertex order",
+  "selected_vertex_count": 2938,
+  "samples": [
+    {
+      "native": 7284,
+      "blender_frame": 1,
+      "selected_vertex_count": 2938,
+      "projected_bbox_pixels": [
+        593.1784057617188,
+        425.8394980430603,
+        837.8037261962891,
+        629.9120986461639
+      ],
+      "bbox_disjoint_from_viewport": false,
+      "min_depth": 0.4228043854236603,
+      "claims": "Evaluated mesh projection only; no renderer visibility/occlusion, silhouette or anatomical approval"
+    },
+    {
+      "native": 7291,
+      "blender_frame": 8,
+      "selected_vertex_count": 2938,
+      "projected_bbox_pixels": [
+        597.3982620239258,
+        491.81188344955444,
+        854.1587066650391,
+        722.7559283562005
+      ],
+      "bbox_disjoint_from_viewport": false,
+      "min_depth": 0.4256781041622162,
+      "claims": "Evaluated mesh projection only; no renderer visibility/occlusion, silhouette or anatomical approval"
+    },
+    {
+      "native": 7292,
+      "blender_frame": 9,
+      "selected_vertex_count": 2938,
+      "projected_bbox_pixels": [
+        568.2071685791016,
+        508.9587950706482,
+        840.1131439208984,
+        774.7244238853455
+      ],
+      "bbox_disjoint_from_viewport": false,
+      "min_depth": 0.4241737425327301,
+      "claims": "Evaluated mesh projection only; no renderer visibility/occlusion, silhouette or anatomical approval"
+    },
+    {
+      "native": 7293,
+      "blender_frame": 10,
+      "selected_vertex_count": 2938,
+      "projected_bbox_pixels": [
+        531.8607330322266,
+        549.1993653774261,
+        805.4597473144531,
+        816.6181254386902
+      ],
+      "bbox_disjoint_from_viewport": false,
+      "min_depth": 0.42109304666519165,
+      "claims": "Evaluated mesh projection only; no renderer visibility/occlusion, silhouette or anatomical approval"
+    },
+    {
+      "native": 7296,
+      "blender_frame": 13,
+      "selected_vertex_count": 2938,
+      "projected_bbox_pixels": [
+        393.0759811401367,
+        679.9573820829391,
+        704.9098968505859,
+        931.1167573928833
+      ],
+      "bbox_disjoint_from_viewport": false,
+      "min_depth": 0.40834128856658936,
+      "claims": "Evaluated mesh projection only; no renderer visibility/occlusion, silhouette or anatomical approval"
+    },
+    {
+      "native": 7299,
+      "blender_frame": 16,
+      "selected_vertex_count": 2938,
+      "projected_bbox_pixels": [
+        216.7079734802246,
+        725.4518761485815,
+        546.4015960693359,
+        1033.3217525482178
+      ],
+      "bbox_disjoint_from_viewport": true,
+      "min_depth": 0.38435977697372437,
+      "claims": "Evaluated mesh projection only; no renderer visibility/occlusion, silhouette or anatomical approval"
+    },
+    {
+      "native": 7303,
+      "blender_frame": 20,
+      "selected_vertex_count": 2938,
+      "projected_bbox_pixels": [
+        -163.8731575012207,
+        711.4762455224991,
+        151.3806915283203,
+        1190.0616359710693
+      ],
+      "bbox_disjoint_from_viewport": false,
+      "min_depth": 0.33740824460983276,
+      "claims": "Evaluated mesh projection only; no renderer visibility/occlusion, silhouette or anatomical approval"
+    },
+    {
+      "native": 7307,
+      "blender_frame": 24,
+      "selected_vertex_count": 2938,
+      "projected_bbox_pixels": [
+        -334.04834747314453,
+        620.8949410915375,
+        -44.93117809295654,
+        1174.8795175552368
+      ],
+      "bbox_disjoint_from_viewport": true,
+      "min_depth": 0.29505491256713867,
+      "claims": "Evaluated mesh projection only; no renderer visibility/occlusion, silhouette or anatomical approval"
+    },
+    {
+      "native": 7310,
+      "blender_frame": 27,
+      "selected_vertex_count": 2938,
+      "projected_bbox_pixels": [
+        -523.7151336669922,
+        594.5830178260803,
+        -132.53290176391602,
+        1168.8006019592285
+      ],
+      "bbox_disjoint_from_viewport": true,
+      "min_depth": 0.2783723473548889,
+      "claims": "Evaluated mesh projection only; no renderer visibility/occlusion, silhouette or anatomical approval"
+    },
+    {
+      "native": 7315,
+      "blender_frame": 32,
+      "selected_vertex_count": 2938,
+      "projected_bbox_pixels": [
+        -611.7817687988281,
+        615.4061007499695,
+        -167.69062042236328,
+        1188.8220691680908
+      ],
+      "bbox_disjoint_from_viewport": true,
+      "min_depth": 0.2739696204662323,
+      "claims": "Evaluated mesh projection only; no renderer visibility/occlusion, silhouette or anatomical approval"
+    },
+    {
+      "native": 7320,
+      "blender_frame": 37,
+      "selected_vertex_count": 2938,
+      "projected_bbox_pixels": [
+        -458.0085754394531,
+        635.498383641243,
+        -115.86104393005371,
+        1165.686535835266
+      ],
+      "bbox_disjoint_from_viewport": true,
+      "min_depth": 0.2959820628166199,
+      "claims": "Evaluated mesh projection only; no renderer visibility/occlusion, silhouette or anatomical approval"
+    },
+    {
+      "native": 7323,
+      "blender_frame": 40,
+      "selected_vertex_count": 2938,
+      "projected_bbox_pixels": [
+        -266.98890686035156,
+        637.8218901157379,
+        2.448866367340088,
+        1109.7975826263428
+      ],
+      "bbox_disjoint_from_viewport": false,
+      "min_depth": 0.3303791284561157,
+      "claims": "Evaluated mesh projection only; no renderer visibility/occlusion, silhouette or anatomical approval"
+    },
+    {
+      "native": 7326,
+      "blender_frame": 43,
+      "selected_vertex_count": 2938,
+      "projected_bbox_pixels": [
+        31.488792896270752,
+        492.0249366760254,
+        320.4182434082031,
+        902.7011346817017
+      ],
+      "bbox_disjoint_from_viewport": false,
+      "min_depth": 0.3653043508529663,
+      "claims": "Evaluated mesh projection only; no renderer visibility/occlusion, silhouette or anatomical approval"
+    },
+    {
+      "native": 7328,
+      "blender_frame": 45,
+      "selected_vertex_count": 2938,
+      "projected_bbox_pixels": [
+        238.33133697509766,
+        457.72534132003784,
+        539.0962600708008,
+        813.2576394081116
+      ],
+      "bbox_disjoint_from_viewport": false,
+      "min_depth": 0.3794606626033783,
+      "claims": "Evaluated mesh projection only; no renderer visibility/occlusion, silhouette or anatomical approval"
+    },
+    {
+      "native": 7331,
+      "blender_frame": 48,
+      "selected_vertex_count": 2938,
+      "projected_bbox_pixels": [
+        470.7291030883789,
+        489.4785761833191,
+        710.7621002197266,
+        718.733628122136
+      ],
+      "bbox_disjoint_from_viewport": false,
+      "min_depth": 0.39643776416778564,
+      "claims": "Evaluated mesh projection only; no renderer visibility/occlusion, silhouette or anatomical approval"
+    },
+    {
+      "native": 7332,
+      "blender_frame": 49,
+      "selected_vertex_count": 2938,
+      "projected_bbox_pixels": [
+        505.28064727783203,
+        476.9542694091797,
+        739.2308044433594,
+        691.8478238582611
+      ],
+      "bbox_disjoint_from_viewport": false,
+      "min_depth": 0.40099114179611206,
+      "claims": "Evaluated mesh projection only; no renderer visibility/occlusion, silhouette or anatomical approval"
+    },
+    {
+      "native": 7347,
+      "blender_frame": 64,
+      "selected_vertex_count": 2938,
+      "projected_bbox_pixels": [
+        593.1784057617188,
+        425.8394980430603,
+        837.8037261962891,
+        629.9120986461639
+      ],
+      "bbox_disjoint_from_viewport": false,
+      "min_depth": 0.4228043854236603,
+      "claims": "Evaluated mesh projection only; no renderer visibility/occlusion, silhouette or anatomical approval"
+    }
+  ]
+}

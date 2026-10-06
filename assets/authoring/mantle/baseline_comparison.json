@@ -1,0 +1,14 @@
+{
+  "r5": "36d76491c2cf6238b8a1e10069dddd5b0d63e199063e1f4012b34f3fd4b1e18d",
+  "ads": "3acdf3e2d04757d719ba59ede08decdf8bad48e2e87d9448046fe8edcbba4f58",
+  "comparisons": {
+    "meshes": true,
+    "armatures": true,
+    "objects_and_bindings": true,
+    "materials": true,
+    "cameras": true
+  },
+  "base_action_equal": true,
+  "drivers_equal": true,
+  "packed_images_equal": true
+}

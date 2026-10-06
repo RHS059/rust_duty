@@ -1,0 +1,34 @@
+{
+  "status": "awaiting genuine viewport witness",
+  "source_file": "candidate/aella_mantle_r3.blend",
+  "sha256": "6b95bdcdfa78e8127ef4b4fa5ac88e4cf9a0654bd0a1271c9916b903f6ee4e79",
+  "action": "aella_vault_low_r3",
+  "frames": [
+    1,
+    64
+  ],
+  "frame_step": 1,
+  "source_half_open": [
+    7284,
+    7348
+  ],
+  "fps": [
+    60,
+    1
+  ],
+  "native_pts": "(7283+blender_frame)*256",
+  "time_base": [
+    1,
+    15360
+  ],
+  "resolution": [
+    1280,
+    720
+  ],
+  "engine": "BLENDER_EEVEE_NEXT",
+  "required_method": "foreground rendered VIEW_3D, bpy.ops.render.opengl; animation=True adaptation permitted with exact mapping",
+  "camera": "RD First Person Review; preserve stored transform/lens/framing",
+  "source_saved": false,
+  "warmup": "Prime Eevee/materials and inspect a stable same-pose warm repeat before recording frame1. Preserve primer separately. R2 cold frame1 was visibly untextured; do not silently substitute a later frame.",
+  "proof": "64 original frame hashes, exact frame/native/PTS map, source SHA unchanged, genuine foreground Eevee proof and camera metadata; preserve no artistic score until actual full-window review."
+}

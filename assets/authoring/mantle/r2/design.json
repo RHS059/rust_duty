@@ -1,0 +1,66 @@
+{
+  "status": "diagnostic",
+  "scope": "Low-vault support-hand release/regrip technical hypothesis only; no render or artistic approval",
+  "input_commit": "e8eae64c0bb758d1dbc6711fbf30dc3fb7470576",
+  "input_sha256": "75c9dc48f27ab1b6dc247590636f2461ec7c37b0c8f5ac0a92745ff30586c9b6",
+  "source_sha256": "491a1729aa0f32373025d35fff86da76c6c1c8f057c0c553d0fbb5fb6226ff46",
+  "source_window": [
+    7284,
+    7348
+  ],
+  "source_fps": [
+    60,
+    1
+  ],
+  "action": "aella_vault_low_r2",
+  "prior_action": "aella_vault_low_r1",
+  "sample_divisions_per_frame": 8,
+  "detach_native": 7291,
+  "reattach_native": 7332,
+  "peak_native": 7302,
+  "offset_camera_m": [
+    -0.12,
+    0.07,
+    -0.04
+  ],
+  "free_wrist_delta_deg": [
+    -15,
+    0,
+    -5
+  ],
+  "free_forearm_roll_deg": 0,
+  "open_curl_rad": -0.5,
+  "uncertainty": "Source confirms visible release/reach and later regrip, but exact depth, hidden hand path and contact force are inferred. Switch frames are authoring hypotheses, not source engine events.",
+  "protected": "All existing84 Actions, complete weapon curves/evaluated track, skeleton, constraints, drivers, guard limits, camera, source defaults, NLA, geometry and materials. The84 Actions comprise the r5 baseline82 plus two r1 mantle Actions; this does not replace Jump103 or Prone108 canonical sources.",
+  "release_bracket": [
+    7291,
+    7293
+  ],
+  "regrip_bracket": [
+    7330,
+    7332
+  ],
+  "ownership_fades_native": [
+    [
+      7291,
+      7293
+    ],
+    [
+      7331,
+      7332
+    ]
+  ],
+  "elbow_pole_correction": {
+    "axis": "armature pose Y",
+    "max_m": 0.12,
+    "rise": [
+      7327,
+      7331
+    ],
+    "return": [
+      7332,
+      7336
+    ]
+  },
+  "iteration": "Continuous inverse-compensated ownership; replaces rejected discrete interpolation family"
+}

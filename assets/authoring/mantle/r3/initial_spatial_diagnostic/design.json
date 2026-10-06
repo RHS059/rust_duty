@@ -1,0 +1,124 @@
+{
+  "status": "diagnostic",
+  "scope": "Correct the independently observed elevated free-palm mismatch in low vault; preserve weapon, camera and timing",
+  "input_commit": "48b746f1da127fdc23f877f0b52af076f4a9628e",
+  "input_sha256": "f289c6d404a6c9c276baac3089887f77a15ac2d18029e1aa39f66d6e335081df",
+  "source_sha256": "491a1729aa0f32373025d35fff86da76c6c1c8f057c0c553d0fbb5fb6226ff46",
+  "source_window": [
+    7284,
+    7348
+  ],
+  "source_fps": [
+    60,
+    1
+  ],
+  "action": "aella_vault_low_r3",
+  "prior_action": "aella_vault_low_r1",
+  "sample_divisions_per_frame": 8,
+  "detach_native": 7291,
+  "reattach_native": 7332,
+  "peak_native": 7300,
+  "free_wrist_delta_deg": [
+    -45,
+    0,
+    -12
+  ],
+  "free_forearm_roll_deg": -45,
+  "open_curl_rad": -0.5,
+  "uncertainty": "Source confirms visible release/reach and later regrip, but exact depth, hidden hand path and contact force are inferred. Switch frames are authoring hypotheses, not source engine events.",
+  "protected": "All87 prior Actions, including failed/reviewed vault r2 and separate one-hand r3; exact weapon curves and evaluated track, camera, time, rig/rest/constraints/drivers/materials/NLA. No canonical replacement.",
+  "release_bracket": [
+    7291,
+    7293
+  ],
+  "regrip_bracket": [
+    7330,
+    7332
+  ],
+  "ownership_fades_native": [
+    [
+      7291,
+      7293
+    ],
+    [
+      7331,
+      7332
+    ]
+  ],
+  "elbow_pole_correction": {
+    "axis": "armature pose Y",
+    "max_m": 0.12,
+    "rise": [
+      7327,
+      7331
+    ],
+    "return": [
+      7332,
+      7336
+    ]
+  },
+  "iteration": "Actual64frame review found the palm elevated in upper-left at native7315 when the source hand was out of view. Correct only the free-hand path/orientation; preserve release/regrip timing and all weapon motion.",
+  "free_offset_keys_camera_m": [
+    [
+      7291,
+      0,
+      0,
+      0
+    ],
+    [
+      7293,
+      -0.015,
+      -0.025,
+      0
+    ],
+    [
+      7296,
+      -0.07,
+      -0.075,
+      0
+    ],
+    [
+      7303,
+      -0.22,
+      -0.18,
+      0
+    ],
+    [
+      7315,
+      -0.24,
+      -0.18,
+      0
+    ],
+    [
+      7325,
+      -0.2,
+      -0.17,
+      0
+    ],
+    [
+      7327,
+      -0.13,
+      -0.09,
+      0
+    ],
+    [
+      7330,
+      -0.025,
+      -0.03,
+      0
+    ],
+    [
+      7332,
+      0,
+      0,
+      0
+    ]
+  ],
+  "reviewed_visible_residual": {
+    "candidate_frame": 32,
+    "native_frame": 7315,
+    "source_hand": "out of view",
+    "r2_hand": "large palm at upper left and top frame boundary",
+    "regrip": "broad source47\u201349Blender bracket already matched; unchanged"
+  }
+}
