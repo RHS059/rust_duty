@@ -47,7 +47,14 @@ class LegacyEquivalenceTests(unittest.TestCase):
         with zipfile.ZipFile(path,'w',zipfile.ZIP_DEFLATED) as z:
             z.writestr('vector-range.exe',exe)
             z.writestr('BUILD_IDENTITY.json',identity_text if identity_text is not None else json.dumps(identity))
-            for name,data in extra:z.writestr(name,data)
+            for name,data in extra:
+                if isinstance(name,str):
+                    member = zipfile.ZipInfo(name)
+                    # ZipInfo normalizes backslashes on Windows. Preserve the
+                    # malicious on-disk name so the real reader sees the input.
+                    member.filename = name
+                else:member = name
+                z.writestr(member,data)
         return path
 
     def pin(self,path):
@@ -87,7 +94,19 @@ class LegacyEquivalenceTests(unittest.TestCase):
     def test_unsafe_windows_names_and_case_collisions_fail(self):
         for name in ('../outside','C:/outside','a\\b','CON.txt','a./b','vector-RANGE.exe'):
             with self.subTest(name=name):
-                with self.assertRaises(ValueError):self.extract(self.archive(extra=[(name,b'x')]))
+                path = self.archive(extra=[(name,b'x')])
+                with zipfile.ZipFile(path) as archive:
+                    self.assertIn(name,[info.orig_filename for info in archive.infolist()])
+                with self.assertRaises(ValueError):self.extract(path)
+
+    def test_raw_backslash_fixture_survives_windows_zip_normalization(self):
+        with patch.object(zipfile.os,'sep','\\'):
+            path = self.archive(extra=[('a\\b',b'x')])
+            with zipfile.ZipFile(path) as archive:
+                member = archive.infolist()[-1]
+                self.assertEqual(member.orig_filename,'a\\b')
+                self.assertEqual(member.filename,'a/b')
+            with self.assertRaisesRegex(ValueError,'backslash path'):self.extract(path)
 
     def test_zip_links_and_file_directory_conflicts_fail(self):
         link = zipfile.ZipInfo('link');link.create_system = 3;link.external_attr = (stat.S_IFLNK|0o777)<<16

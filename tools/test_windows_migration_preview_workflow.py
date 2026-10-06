@@ -20,7 +20,12 @@ class WindowsMigrationPreviewWorkflowTests(unittest.TestCase):
             'tools/test_windows_migration_preview_workflow.py',
             'tools/source_bound_companion_reuse_lock.json',
             'tools/revalidate_reused_companions.py',
-            'tools/test_revalidate_reused_companions.py'])
+            'tools/test_revalidate_reused_companions.py',
+            'tools/run_legacy_facade_equivalence.py',
+            'tools/test_legacy_facade_equivalence.py',
+            'tools/fetch_legacy_facade_reference.py',
+            'tools/test_fetch_legacy_facade_reference.py',
+            'tools/test_windows_recovery_workflow.py'])
 
     def test_reuses_complete_guarded_recovery_with_minimum_existing_permissions(self):
         self.assertEqual(self.data['permissions'], {'contents': 'read', 'actions': 'read'})
