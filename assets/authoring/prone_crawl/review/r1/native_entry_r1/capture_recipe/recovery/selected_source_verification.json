@@ -1,0 +1,17 @@
+{
+  "source_commit": "99a804349c3a5ca7d7a9fa64f0c4f213d01e9b35",
+  "source_sha256": "7807f7e16f6fabb2833d9e61ae5a942ee9a57f455a6c3e40e15ed4e03fa153b4",
+  "source_git_blob_sha1": "e222326210b5955bc2c661e1e6f621b3169cf5bc",
+  "entry_predecessor_sha256": "793546897db5634fca6ba6da7cefd5240e3712932c239bbabea7dfaa0f03419e",
+  "all_104_predecessor_action_fingerprints_identical": true,
+  "entry_action_fingerprint": "a3145d80eb90b162ab487faa719bd18e63c078bdeb0448721bee70ecec0b5974",
+  "action_range": [
+    1,
+    69
+  ],
+  "reference_half_open": [
+    2241,
+    2310
+  ],
+  "basis": "Published fresh-reopen reports, verified source bytes, plus enforced in-memory assertion before capture"
+}

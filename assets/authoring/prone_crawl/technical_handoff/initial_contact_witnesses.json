@@ -1,0 +1,112 @@
+[
+  {
+    "stable_id": "prone_crawl_enter",
+    "source_action": "prone_crawl_enter_r1",
+    "side": "l",
+    "max_error_m": 3.8081437291291502e-06,
+    "blender_frame": 37.0,
+    "time_since_action_start_seconds": 0.6,
+    "candidate_interpolant_source_frame": 2277.0,
+    "is_native_reference_frame": true,
+    "meaning": "Evaluated wrist IK target residual, not a visible source comparison"
+  },
+  {
+    "stable_id": "prone_crawl_enter",
+    "source_action": "prone_crawl_enter_r1",
+    "side": "r",
+    "max_error_m": 6.281506689893601e-07,
+    "blender_frame": 37.0,
+    "time_since_action_start_seconds": 0.6,
+    "candidate_interpolant_source_frame": 2277.0,
+    "is_native_reference_frame": true,
+    "meaning": "Evaluated wrist IK target residual, not a visible source comparison"
+  },
+  {
+    "stable_id": "prone_crawl_forward",
+    "source_action": "prone_crawl_forward_segment_r1",
+    "side": "l",
+    "max_error_m": 6.531061828378179e-07,
+    "blender_frame": 167.75,
+    "time_since_action_start_seconds": 2.779166666666667,
+    "candidate_interpolant_source_frame": 5098.75,
+    "is_native_reference_frame": false,
+    "meaning": "Evaluated wrist IK target residual, not a visible source comparison"
+  },
+  {
+    "stable_id": "prone_crawl_forward",
+    "source_action": "prone_crawl_forward_segment_r1",
+    "side": "r",
+    "max_error_m": 0.004458609344362062,
+    "blender_frame": 240.5,
+    "time_since_action_start_seconds": 3.9916666666666667,
+    "candidate_interpolant_source_frame": 5171.5,
+    "is_native_reference_frame": false,
+    "meaning": "Evaluated wrist IK target residual, not a visible source comparison"
+  },
+  {
+    "stable_id": "prone_crawl_backward",
+    "source_action": "prone_crawl_backward_segment_r1",
+    "side": "l",
+    "max_error_m": 6.667749322006219e-07,
+    "blender_frame": 126.5,
+    "time_since_action_start_seconds": 2.091666666666667,
+    "candidate_interpolant_source_frame": 5405.5,
+    "is_native_reference_frame": false,
+    "meaning": "Evaluated wrist IK target residual, not a visible source comparison"
+  },
+  {
+    "stable_id": "prone_crawl_backward",
+    "source_action": "prone_crawl_backward_segment_r1",
+    "side": "r",
+    "max_error_m": 0.0008221615362160194,
+    "blender_frame": 170.5,
+    "time_since_action_start_seconds": 2.825,
+    "candidate_interpolant_source_frame": 5449.5,
+    "is_native_reference_frame": false,
+    "meaning": "Evaluated wrist IK target residual, not a visible source comparison"
+  },
+  {
+    "stable_id": "prone_crawl_right",
+    "source_action": "prone_crawl_right_segment_r1",
+    "side": "l",
+    "max_error_m": 5.908549992116344e-07,
+    "blender_frame": 135.0,
+    "time_since_action_start_seconds": 2.2333333333333334,
+    "candidate_interpolant_source_frame": 5762.0,
+    "is_native_reference_frame": true,
+    "meaning": "Evaluated wrist IK target residual, not a visible source comparison"
+  },
+  {
+    "stable_id": "prone_crawl_right",
+    "source_action": "prone_crawl_right_segment_r1",
+    "side": "r",
+    "max_error_m": 5.50788926430828e-07,
+    "blender_frame": 81.25,
+    "time_since_action_start_seconds": 1.3375,
+    "candidate_interpolant_source_frame": 5708.25,
+    "is_native_reference_frame": false,
+    "meaning": "Evaluated wrist IK target residual, not a visible source comparison"
+  },
+  {
+    "stable_id": "prone_crawl_left",
+    "source_action": "prone_crawl_left_segment_r1",
+    "side": "l",
+    "max_error_m": 6.797608571026947e-07,
+    "blender_frame": 27.75,
+    "time_since_action_start_seconds": 0.44583333333333336,
+    "candidate_interpolant_source_frame": 5870.75,
+    "is_native_reference_frame": false,
+    "meaning": "Evaluated wrist IK target residual, not a visible source comparison"
+  },
+  {
+    "stable_id": "prone_crawl_left",
+    "source_action": "prone_crawl_left_segment_r1",
+    "side": "r",
+    "max_error_m": 6.12988566520114e-07,
+    "blender_frame": 8.75,
+    "time_since_action_start_seconds": 0.12916666666666668,
+    "candidate_interpolant_source_frame": 5851.75,
+    "is_native_reference_frame": false,
+    "meaning": "Evaluated wrist IK target residual, not a visible source comparison"
+  }
+]

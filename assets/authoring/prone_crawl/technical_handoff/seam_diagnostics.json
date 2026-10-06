@@ -1,0 +1,66 @@
+{
+  "source_sha256": "7807f7e16f6fabb2833d9e61ae5a942ee9a57f455a6c3e40e15ed4e03fa153b4",
+  "reference_handoff_commit": "85f43ef3bb6f2dbfa73f04eb8c293a0f4aa67df1",
+  "rows": [
+    {
+      "stable_id": "prone_crawl_forward",
+      "source_pair": [
+        5005,
+        5086
+      ],
+      "blender_pair": [
+        74,
+        155
+      ],
+      "local_weapon_control_translation_gap_m": 0.023209824236885435,
+      "euler_component_gap_degrees": [
+        7.9766193467264666,
+        5.0248489365206135,
+        -0.13809703350754907
+      ],
+      "local_translation_velocity_gap_m_per_s": 0.5653999846809528,
+      "approved_loop": false
+    },
+    {
+      "stable_id": "prone_crawl_backward",
+      "source_pair": [
+        5401,
+        5482
+      ],
+      "blender_pair": [
+        122,
+        203
+      ],
+      "local_weapon_control_translation_gap_m": 0.011388919595685316,
+      "euler_component_gap_degrees": [
+        2.224981933455844,
+        -4.207294075890305,
+        -0.13604157345419834
+      ],
+      "local_translation_velocity_gap_m_per_s": 0.4568838570558241,
+      "approved_loop": false
+    },
+    {
+      "stable_id": "prone_crawl_right",
+      "source_pair": [
+        5635,
+        5731
+      ],
+      "blender_pair": [
+        8,
+        104
+      ],
+      "local_weapon_control_translation_gap_m": 0.015896363592202395,
+      "euler_component_gap_degrees": [
+        5.96709231554409,
+        0.28056794940484503,
+        0.06365309419628758
+      ],
+      "local_translation_velocity_gap_m_per_s": 0.19740065777745508,
+      "approved_loop": false
+    }
+  ],
+  "left": "55-frame partial segment only; no recurrence established",
+  "meaning": "Read-only authored-key diagnostics at source-owner provisional recurrence pairs. Nonzero pose and velocity differences. Not a visual comparison and not approval to cut, blend, repeat or activate a loop.",
+  "entry_to_segments": "Independent source excerpts; no continuous direct joins authored or approved. Integrator must not hard-concatenate."
+}

@@ -1,0 +1,17 @@
+{
+  "old_source_sha256": "959ecf46308195f942af817ee845173db9e8b4fd8f39c4cdd455a29bbfebcb49",
+  "new_source_sha256": "7807f7e16f6fabb2833d9e61ae5a942ee9a57f455a6c3e40e15ed4e03fa153b4",
+  "action_count": 108,
+  "all_104_older_actions_unchanged": true,
+  "all_non_shoulder_curves_identical": true,
+  "native_all_bone_matrix_max_absolute_difference": {
+    "prone_crawl_forward_segment_r1": 0.0,
+    "prone_crawl_backward_segment_r1": 0.0,
+    "prone_crawl_right_segment_r1": 0.0,
+    "prone_crawl_left_segment_r1": 0.0
+  },
+  "native_tolerance": 1e-06,
+  "source_saved": false,
+  "render_performed": false,
+  "passed": true
+}

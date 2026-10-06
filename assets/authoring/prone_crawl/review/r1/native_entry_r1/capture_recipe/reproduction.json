@@ -1,0 +1,26 @@
+{
+  "capture_implementation": "Equivalent-from-proof reconstruction actually used for this capture",
+  "original_command": "bash /workspace/shared/prone.sh",
+  "original_hostname": "79a58c06c3fc",
+  "display": ":0",
+  "blender": "4.3.2",
+  "source_commit": "99a804349c3a5ca7d7a9fa64f0c4f213d01e9b35",
+  "source_repository_path": "assets/authoring/prone_crawl/halcyon_prone_crawl_r1.blend",
+  "source_sha256": "7807f7e16f6fabb2833d9e61ae5a942ee9a57f455a6c3e40e15ed4e03fa153b4",
+  "reference_recovery_commit": "58dad13f51db3dd951f43f3fd7ddc3fbd020ad00",
+  "reference_sha256": "491a1729aa0f32373025d35fff86da76c6c1c8f057c0c553d0fbb5fb6226ff46",
+  "scripts": {
+    "compose_paired_preview.py": "432d640d3f42b8ff94cfe92855a73ff1568d2c8791496a78bda82c89d08e3e3d",
+    "launch_foreground_viewport.sh": "fc235be91cb2a09778104f0f55636ed9d77bd1f2223da23e76efb28675857f5c",
+    "prone.sh": "9a013b27e5658592fdbd81e0d5d8bd2b86676ff870b0aa20a16f4826262f859a",
+    "capture_viewport_animation.py": "5d576b3e8e13bb6b730cecce8f032acd4950cc6c02ca831714b530355d3d91ee",
+    "recovery/jump_r7_viewport_process_proof.json": "c5218afa47d173aee5c7fbf6761555248f3a0e7e576388dd0cee00205613ef0a",
+    "recovery/provenance.json": "3b7d9e84b8c4ba326c030be1e9f23081838dbb1881867ace648b59753b37b954",
+    "recovery/selected_source_verification.json": "adfd018434cde5a1a473d8754fbb94d7c46aeaa494dbc67ccc7ab46b1d0ece2e",
+    "recovery/current_reopen_preservation.json": "072b45fd788d13f4404aa3934848bbb04c75cbba3896e9c024eb58488e77a328",
+    "recovery/entry_reopen_preservation.json": "ad3105c132eb857c79fb0ba85fa1558f786377436b28f690b43b0cede5025d96",
+    "helpers/validate_source_structure.py": "8f1deb2883eafd5e7a76cf48109a33c010690aa197150369df60773b5b593816",
+    "helpers/source_integrity.py": "d22ae8dcc117e29ffb7d746772efce015010407cbb1ddce22924a31746e831ca"
+  },
+  "paths": "Scripts retain exact recorded cloud paths; materialize verified inputs there or explicitly adapt paths under the authorized same foreground workflow. No bundled BLEND or duplicate full reference."
+}

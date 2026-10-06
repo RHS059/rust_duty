@@ -1,0 +1,132 @@
+{
+  "source_sha256": "fd5b55b21acdcd73ff39cafd258c6d7281f8dc51359e65cadc76f769909f74e4",
+  "candidate_sha256": "be9161fcba0f8550e1aa894e3d6df0dec5f98b0364e11cd0265556a07ca1da00",
+  "checks": {
+    "nla": true,
+    "packed_images": true,
+    "drivers": true,
+    "all_109_prior_actions": true,
+    "actions_metadata": true,
+    "pose_channel_defaults": true,
+    "actions_extended": true,
+    "meshes": true,
+    "armatures": true,
+    "objects_and_bindings": true,
+    "materials": true,
+    "cameras": true
+  },
+  "changed_action": "prone_crawl_enter_r3",
+  "changed_curve": "pose.bones[\"righthand_prop\"].location",
+  "axis": 2,
+  "bounded_frames": [
+    36,
+    38
+  ],
+  "before_frame37": -0.30596262216567993,
+  "after_frame37": -0.25052909553051,
+  "samples": [
+    {
+      "frame": 36.0,
+      "before": -0.2455168068408966,
+      "after": -0.2455168068408966,
+      "derivative": -0.05477118524049851
+    },
+    {
+      "frame": 36.125,
+      "before": -0.253349244594574,
+      "after": -0.25187272270879046,
+      "derivative": -0.04370420409844374
+    },
+    {
+      "frame": 36.25,
+      "before": -0.26264095306396484,
+      "after": -0.25595389409935204,
+      "derivative": -0.02075631455141691
+    },
+    {
+      "frame": 36.375,
+      "before": -0.2726227343082428,
+      "after": -0.25707698655677375,
+      "derivative": 0.001972907969751553
+    },
+    {
+      "frame": 36.5,
+      "before": -0.2825254797935486,
+      "after": -0.2557977787717791,
+      "derivative": 0.0167572285513988
+    },
+    {
+      "frame": 36.625,
+      "before": -0.2915799915790558,
+      "after": -0.2533644950169764,
+      "derivative": 0.020243752797029696
+    },
+    {
+      "frame": 36.75,
+      "before": -0.29901716113090515,
+      "after": -0.25117113758221266,
+      "derivative": 0.01345292682731658
+    },
+    {
+      "frame": 36.875,
+      "before": -0.3040677309036255,
+      "after": -0.2502108192099281,
+      "derivative": 0.0017785372800996901
+    },
+    {
+      "frame": 37.0,
+      "before": -0.30596262216567993,
+      "after": -0.25052909553051,
+      "derivative": -0.005012288689613453
+    },
+    {
+      "frame": 37.125,
+      "before": -0.3042718470096588,
+      "after": -0.25138124051730576,
+      "derivative": -0.009982352746051495
+    },
+    {
+      "frame": 37.25,
+      "before": -0.29962459206581116,
+      "after": -0.2531691623233146,
+      "derivative": -0.018526595247370034
+    },
+    {
+      "frame": 37.375,
+      "before": -0.29284027218818665,
+      "after": -0.2558595197317,
+      "derivative": -0.023496659303808197
+    },
+    {
+      "frame": 37.5,
+      "before": -0.2847382128238678,
+      "after": -0.25872547421542474,
+      "derivative": -0.02094494484191598
+    },
+    {
+      "frame": 37.625,
+      "before": -0.27613794803619385,
+      "after": -0.2607467845392896,
+      "derivative": -0.010124608604554233
+    },
+    {
+      "frame": 37.75,
+      "before": -0.2678588032722473,
+      "after": -0.2610099013619726,
+      "derivative": 0.006510435849105434
+    },
+    {
+      "frame": 37.875,
+      "before": -0.2607201337814331,
+      "after": -0.25910806183806767,
+      "derivative": 0.023305518143580728
+    },
+    {
+      "frame": 38.0,
+      "before": -0.2555413842201233,
+      "after": -0.2555413842201233,
+      "derivative": 0.03140521108707828
+    }
+  ],
+  "reason": "Confirmed unobserved inferred-depth excursion caused support-arm IK/cuff surge. Only root-depth curve changes within f36\u201338; boundary poses and derivatives retained. R2 late-stock correction retained."
+}

@@ -1,0 +1,133 @@
+{
+  "old_source_sha256": "959ecf46308195f942af817ee845173db9e8b4fd8f39c4cdd455a29bbfebcb49",
+  "new_source_sha256": "7807f7e16f6fabb2833d9e61ae5a942ee9a57f455a6c3e40e15ed4e03fa153b4",
+  "initial_fbx_sha256": "edd2a6bdb539632e62d0b220ee0d1b06e6bdfd4acd668d56e097b99aaeed7ee4",
+  "corrected_fbx_sha256": "a02cb5d57c7112d039d5181670431de3b782811106aa081cc873e41f499573ff",
+  "scope": "Only right-clavicle location compensation inside four owned Actions is resampled to480Hz. All104 older Actions, allnonshoulder curves, and all664 native-frame matrices are identical.",
+  "before_240hz": {
+    "prone_crawl_enter": {
+      "samples": 273,
+      "max_wrist_solve_error_m": {
+        "l": 3.8081437291291502e-06,
+        "r": 6.281506689893601e-07
+      },
+      "all_samples_finite": true
+    },
+    "prone_crawl_forward": {
+      "samples": 961,
+      "max_wrist_solve_error_m": {
+        "l": 6.531061828378179e-07,
+        "r": 0.004458609344362062
+      },
+      "all_samples_finite": true
+    },
+    "prone_crawl_backward": {
+      "samples": 913,
+      "max_wrist_solve_error_m": {
+        "l": 6.667749322006219e-07,
+        "r": 0.0008221615362160194
+      },
+      "all_samples_finite": true
+    },
+    "prone_crawl_right": {
+      "samples": 553,
+      "max_wrist_solve_error_m": {
+        "l": 5.908549992116344e-07,
+        "r": 5.50788926430828e-07
+      },
+      "all_samples_finite": true
+    },
+    "prone_crawl_left": {
+      "samples": 217,
+      "max_wrist_solve_error_m": {
+        "l": 6.797608571026947e-07,
+        "r": 6.12988566520114e-07
+      },
+      "all_samples_finite": true
+    }
+  },
+  "after_240hz": {
+    "prone_crawl_enter": {
+      "samples": 273,
+      "max_wrist_solve_error_m": {
+        "l": 3.8081437291291502e-06,
+        "r": 6.281506689893601e-07
+      }
+    },
+    "prone_crawl_forward": {
+      "samples": 961,
+      "max_wrist_solve_error_m": {
+        "l": 6.531061828378179e-07,
+        "r": 1.5186008710037103e-05
+      }
+    },
+    "prone_crawl_backward": {
+      "samples": 913,
+      "max_wrist_solve_error_m": {
+        "l": 6.667749322006219e-07,
+        "r": 1.3847575016361317e-05
+      }
+    },
+    "prone_crawl_right": {
+      "samples": 553,
+      "max_wrist_solve_error_m": {
+        "l": 5.908549992116344e-07,
+        "r": 5.50788926430828e-07
+      }
+    },
+    "prone_crawl_left": {
+      "samples": 217,
+      "max_wrist_solve_error_m": {
+        "l": 6.797608571026947e-07,
+        "r": 6.12988566520114e-07
+      }
+    }
+  },
+  "after_480hz": {
+    "prone_crawl_enter": {
+      "samples": 545,
+      "max_wrist_solve_error_m": {
+        "l": 9.150740371380798e-06,
+        "r": 6.281506689893601e-07
+      },
+      "all_samples_finite": true
+    },
+    "prone_crawl_forward": {
+      "samples": 1921,
+      "max_wrist_solve_error_m": {
+        "l": 6.815957927205806e-07,
+        "r": 1.5186008710037103e-05
+      },
+      "all_samples_finite": true
+    },
+    "prone_crawl_backward": {
+      "samples": 1825,
+      "max_wrist_solve_error_m": {
+        "l": 6.667749322006219e-07,
+        "r": 1.5403808260040706e-05
+      },
+      "all_samples_finite": true
+    },
+    "prone_crawl_right": {
+      "samples": 1105,
+      "max_wrist_solve_error_m": {
+        "l": 5.908549992116344e-07,
+        "r": 6.690604782296314e-07
+      },
+      "all_samples_finite": true
+    },
+    "prone_crawl_left": {
+      "samples": 433,
+      "max_wrist_solve_error_m": {
+        "l": 6.797608571026947e-07,
+        "r": 6.12988566520114e-07
+      },
+      "all_samples_finite": true
+    }
+  },
+  "threshold_m": 0.0001,
+  "corrected_technical_validation_passed": true,
+  "visual_acceptance": false,
+  "runtime_integration": false,
+  "render_performed": false
+}
