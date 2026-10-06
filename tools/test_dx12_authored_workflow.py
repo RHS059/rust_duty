@@ -159,7 +159,8 @@ class AuthoredWorkflowTests(unittest.TestCase):
         self.assertEqual(test['run'].split()[4:], [
             'test_dx12_authored', 'test_dx12_capture_progress', 'test_dx12_authored_adversarial',
             'test_dx12_authored_shards', 'test_run_dx12_authored_shard', 'test_aggregate_dx12_authored',
-            'test_dx12_authored_workflow', 'test_finite_ads_profile_binding', 'test_finite_ads_profile_gate'])
+            'test_dx12_authored_workflow', 'test_finite_ads_profile_binding', 'test_finite_ads_profile_gate',
+            'test_finite_ads_pass_batching'])
         self.assertTrue(any(step.get('run') == 'python -m pip install PyYAML==6.0.3' for step in steps))
 
     def test_no_relaxed_failures_or_permissions_or_release_actions(self):
@@ -224,12 +225,12 @@ class AuthoredWorkflowTests(unittest.TestCase):
 
     def test_current_correction_pins_independently_reviewed_finite_class(self):
         import hashlib
-        expected = '96dfb631be9d59f6cf35d87e4f3c17a4a4303d74787bb773a8c47672efb53331'
+        expected = '2895c1f4f0039f5a850c7b30196c5d77f4b2e563bc211f8b9fb51ca15f639c4c'
         producer = next(s for s in self.steps('authored-aggregate') if s.get('id') == 'current-source-oracle')
-        self.assertIn('--reviewed-class tools/finite_ads_reviewed_class.json', producer['run'])
+        self.assertIn('--reviewed-class tools/finite_ads_pass_batching_class.json', producer['run'])
         self.assertIn('--expected-class-sha256 ' + expected, producer['run'])
         self.assertNotIn('--conditional-diagnostic', producer['run'])
-        descriptor = self.path.parents[2] / 'tools/finite_ads_reviewed_class.json'
+        descriptor = self.path.parents[2] / 'tools/finite_ads_pass_batching_class.json'
         self.assertEqual(hashlib.sha256(descriptor.read_bytes()).hexdigest(), expected)
 
     def test_only_the_original_main_caller_activates_source_correction(self):

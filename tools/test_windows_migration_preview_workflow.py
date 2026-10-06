@@ -16,6 +16,7 @@ class WindowsMigrationPreviewWorkflowTests(unittest.TestCase):
         self.assertEqual(events['push']['branches'], ['main'])
         self.assertEqual(events['push']['paths'], [
             '.github/workflows/windows-migration-preview.yml',
+            '.gitattributes',
             '.github/workflows/windows-source-bound-recovery.yml',
             'tools/test_windows_migration_preview_workflow.py',
             'tools/source_bound_companion_reuse_lock.json',
@@ -36,8 +37,11 @@ class WindowsMigrationPreviewWorkflowTests(unittest.TestCase):
             'tools/finite_ads_profile_binding.py',
             'tools/test_finite_ads_profile_binding.py',
             'tools/test_finite_ads_profile_gate.py',
+            'tools/test_finite_ads_pass_batching.py',
             'tools/finite_ads_reviewed_class.json',
             'tools/finite_ads_reviewed_evidence/**',
+            'tools/finite_ads_pass_batching_class.json',
+            'tools/finite_ads_pass_batching_evidence/**',
             'tools/collect_ads_offset_evidence.py',
             'tools/test_collect_ads_offset_evidence.py',
             'tools/package_source_companion_evidence.py',

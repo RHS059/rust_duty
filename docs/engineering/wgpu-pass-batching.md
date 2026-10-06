@@ -1,8 +1,11 @@
 # Consecutive render-pass batching
 
 This implementation reduces native command-recording work without reordering
-draws. Its native comparison and updated finite ADS source-equivalence evidence
-are pending. Source counts and CPU preparation timings are not gameplay FPS.
+draws. Its independently reviewed Windows WARP comparison passed, with median
+whole-submit time falling from 47.8049 ms to 11.25665 ms. Updated finite ADS
+source-equivalence evidence is retained separately; fresh current-source leaf,
+aggregate and complete Windows-package validation remain required. These native
+submission timings are not RTX 3080 Ti gameplay FPS.
 
 The paired user exports identify the same executable and source `3a0c73b`,
 recorded back-to-back using the regular and DX12 launchers. Mean sampled FPS is
@@ -62,18 +65,38 @@ New cases cover explicit barriers, empty groups, alternating pipeline/texture/
 arena state, and bounded-arena rollover with separate presentation. Existing
 asymmetric, alpha, text, target-state, capture and cutover contracts remain.
 
-## Required native follow-through
+## Reviewed native comparison
 
-Compare the production renderer before and after this change on the same Windows
-DX12/WARP compiler and adapter, retaining the existing fixed pixel expectations
-and decoded-pixel equality across its captures. A bounded submission benchmark
-must keep PNG readback outside timed frame submission and identify WARP results
-as diagnostics, not RTX 3080 Ti gameplay FPS.
+[Run 37482428571](https://github.com/RHS059/rust_duty/actions/runs/37482428571),
+attempt 1, compiled restored baseline `17023450076b668c279539e0e450b8cb58a7c1a2`
+and candidate `5abf2bca825a252fb7ad6665c444c89861ee8ef9` under verifier source
+`4c116be39e426f38f65772ae83ce539891a54e55`. All 112 compile inputs, the identical
+harness, all four executable files, compiler transcript and ten actual WARP
+device records were independently verified. Both unchanged production contracts
+passed their fixed expectations and four failure/recovery cases; all 21 decoded
+capture pairs and all 16 synthetic before/after controls match exactly.
 
-The retained finite ADS class pins the earlier `frame.rs` and `plan.rs` and must
-currently reject these changed bytes. The independent finite probe has its own
-encoder; its shared clear function, shaders, packing, target and capture code
-are unchanged. Update only a specifically reviewed exact source-equivalence
-mapping after the production scheduling comparison; do not skip either file,
-change masks or tolerances, or describe the historical arithmetic proof as a
-new batching execution.
+This native fixture has 305 prepared draws, including 170 glyphs. It is distinct
+from the 324-draw CPU fixture above: its 20 adjacent identity-transform line
+commands coalesce into one prepared line draw. Four alternating paired trials
+retained all 32 capture-free whole-submit samples. Median time was 47.8049 ms
+before and 11.25665 ms after, a 4.2468 ratio; individual paired median ratios were
+4.5249, 4.5194, 4.1250 and 4.3194. These wall times include preparation, uploads,
+encoding, submission and polling/backpressure, not an isolated GPU duration.
+
+Complete four-submit batches including the extra final control, queue drain,
+readback and PNG I/O improved by 2.89–3.12 times. This checks that the improvement
+is not merely work deferred beyond the short submit interval, while retaining
+the I/O cost in the stated scope. It is a bounded headless software-adapter
+diagnostic, not steady-state gameplay, window presentation or an RTX measurement.
+
+Full artifact `11422371812` has ZIP SHA-256
+`f29ff7c9fada89478e86f3bae86e0382350d1ac249771116dc920274de5b8994`.
+The independent compact review receipt is retained in
+`tools/finite_ads_pass_batching_evidence/native-review.json`, SHA-256
+`4c2ae5f087ac1e548a9285f635fbb17de9de3defbaa4fab0da014fdb5c976699`.
+The separate [finite source-equivalence extension](finite-ads-pass-batching-extension.md)
+admits only the reviewed complete old/old or new/new source pair. It preserves
+the original descriptor, historical arithmetic evidence, masks, tolerances and
+false flags. Current-source native leaf/aggregate checks remain separate from
+this scheduling comparison.

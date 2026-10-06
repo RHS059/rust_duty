@@ -103,7 +103,7 @@ jobs:
           python -m unittest -v test_dx12_authored test_dx12_capture_progress
           test_dx12_authored_adversarial test_dx12_authored_shards
           test_run_dx12_authored_shard test_aggregate_dx12_authored
-          test_dx12_authored_workflow test_finite_ads_profile_binding test_finite_ads_profile_gate
+          test_dx12_authored_workflow test_finite_ads_profile_binding test_finite_ads_profile_gate test_finite_ads_pass_batching
       - uses: dtolnay/rust-toolchain@stable
       - name: Fingerprint exact authored-input compiler
         id: authored-rust-version
@@ -455,8 +455,8 @@ jobs:
           --shards evidence/authored-shards --oracle evidence/precompiled-ads-oracle
           --expected-oracle-receipt-sha256 "$env:ORACLE_BUILD_RECEIPT_SHA256"
           --capture-rustc-sha256 "$env:CAPTURE_COMPILER_SHA256"
-          --reviewed-class tools/finite_ads_reviewed_class.json
-          --expected-class-sha256 96dfb631be9d59f6cf35d87e4f3c17a4a4303d74787bb773a8c47672efb53331
+          --reviewed-class tools/finite_ads_pass_batching_class.json
+          --expected-class-sha256 2895c1f4f0039f5a850c7b30196c5d77f4b2e563bc211f8b9fb51ca15f639c4c
           --evidence evidence/current-ads-source --receipt-anchor evidence/current-ads-source-receipt.sha256
       - name: Require every full shard, exact same-Windows parity and existing pair validators
         if: always()

@@ -24,6 +24,17 @@ from a candidate request or by hashing whatever descriptor was supplied. Its
 adjacent `finite_ads_reviewed_evidence/` files are individually hash-bound. The
 review is automated code-and-evidence review, not a claim of human approval.
 
+The normal authored and revalidation workflows now select the separate
+`tools/finite_ads_pass_batching_class.json` extension, anchored to
+`2895c1f4f0039f5a850c7b30196c5d77f4b2e563bc211f8b9fb51ca15f639c4c`.
+It references the unchanged original descriptor and adds only the reviewed exact
+`frame.rs`/`plan.rs` pair mapping backed by Windows production-renderer run
+[37482428571](https://github.com/RHS059/rust_duty/actions/runs/37482428571).
+Both fixed renderer contracts and all 21 zero-tolerance RGBA comparisons passed
+independent review. See [the extension boundary](finite-ads-pass-batching-extension.md)
+for the separate receipt/artifact anchors and remaining fresh-capture obligations.
+The original historical native arithmetic evidence below remains unchanged.
+
 The later native anchor is Windows run
 [37445275982](https://github.com/RHS059/rust_duty/actions/runs/37445275982), attempt
 1, source `4e6930c56be3b6120542231c46778b33c58f9e13`, artifact `11403571693` with ZIP

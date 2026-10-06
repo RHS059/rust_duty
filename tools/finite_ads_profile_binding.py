@@ -25,9 +25,9 @@ SCHEMA = 'rust-duty-finite-ads-reviewed-class/v1'
 PASS_BATCHING_SCHEMA = 'rust-duty-finite-ads-pass-batching-class/v1'
 PASS_BATCHING_CLASS = 'ads-offset-8f571464-finite-pass-batching-v1'
 ORIGINAL_CLASS_SHA256 = '96dfb631be9d59f6cf35d87e4f3c17a4a4303d74787bb773a8c47672efb53331'
-# Intentionally unavailable. Only independent review of a real Windows artifact
-# may supply this anchor; never derive it from a candidate or test fixture.
-PASS_BATCHING_NATIVE_REVIEW_SHA256 = None
+# Independently reviewed Windows run 37482428571, attempt 1, artifact 11422371812.
+# This is the retained review receipt anchor, never a candidate/test digest.
+PASS_BATCHING_NATIVE_REVIEW_SHA256 = '4c2ae5f087ac1e548a9285f635fbb17de9de3defbaa4fab0da014fdb5c976699'
 PASS_BATCHING_COMMITS = {
     'baseline': '17023450076b668c279539e0e450b8cb58a7c1a2',
     'candidate': '5abf2bca825a252fb7ad6665c444c89861ee8ef9',

@@ -3,6 +3,7 @@ from copy import deepcopy
 import hashlib
 import json
 from pathlib import Path
+import subprocess
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -140,6 +141,19 @@ class NativeComparisonTests(unittest.TestCase):
         self.assertNotEqual(f.PASS_BATCHING_NATIVE_REVIEW_SHA256, f._identity(encoded(self.report))['sha256'])
         self.assertEqual(hashlib.sha256(self.original_bytes).hexdigest(), f.ORIGINAL_CLASS_SHA256)
 
+    def test_original_and_extension_anchors_disable_checkout_byte_conversion(self):
+        attributes = Path(__file__).resolve().parents[1] / '.gitattributes'
+        names = ['tools/finite_ads_reviewed_class.json',
+                 'tools/finite_ads_reviewed_evidence/compiler/rustc-Vv-before.txt',
+                 'tools/finite_ads_pass_batching_class.json',
+                 'tools/finite_ads_pass_batching_evidence/native-review.json']
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            (root / '.gitattributes').write_bytes(attributes.read_bytes())
+            subprocess.run(['git', '-C', str(root), 'init', '--quiet'], check=True, capture_output=True)
+            actual = subprocess.check_output(['git', '-C', str(root), 'check-attr', 'text', '--', *names], text=True)
+            self.assertEqual(actual.splitlines(), [name + ': text: unset' for name in names])
+
     def test_pending_or_fabricated_self_anchored_descriptor_cannot_enable_variant(self):
         with tempfile.TemporaryDirectory() as folder, patch.object(f, 'PASS_BATCHING_NATIVE_REVIEW_SHA256', None):
             root = Path(folder); (root / 'original.json').write_bytes(self.original_bytes)
@@ -264,6 +278,58 @@ class NativeComparisonTests(unittest.TestCase):
         self.assertFalse(current['acceptance_complete'])
         current['source_equivalence']['source_pairs']['candidate'].clear()
         self.assertEqual(len(f.PASS_BATCHING_PAIRS['candidate']), 2)
+
+
+class ReviewedActivationTests(unittest.TestCase):
+    """Bind the retained actual review, without claiming a new native execution."""
+    CLASS_SHA256 = '2895c1f4f0039f5a850c7b30196c5d77f4b2e563bc211f8b9fb51ca15f639c4c'
+    REVIEW_SHA256 = '4c2ae5f087ac1e548a9285f635fbb17de9de3defbaa4fab0da014fdb5c976699'
+
+    def setUp(self):
+        self.path = Path(__file__).with_name('finite_ads_pass_batching_class.json')
+        self.ledger = f.source.BoundSourcePacket()
+        self.assertEqual(self.ledger._remember(self.path)['sha256'], self.CLASS_SHA256)
+        self.extension = self.ledger._json(self.path)
+
+    def test_actual_review_preserves_original_class_and_native_runtime_boundary(self):
+        self.assertEqual(f.PASS_BATCHING_NATIVE_REVIEW_SHA256, self.REVIEW_SHA256)
+        reviewed = f._read_pass_batching_class(self.ledger, self.path, self.extension)
+        original = f.source._parse(self.path.with_name('finite_ads_reviewed_class.json').read_bytes(), 'original class')
+        for key in original:
+            if key != 'class_id':
+                self.assertEqual(reviewed[key], original[key], key)
+        self.assertEqual(reviewed['class_id'], f.PASS_BATCHING_CLASS)
+        evidence = f._read_evidence(self.ledger, self.path, reviewed)
+        f._pass_batching_evidence(reviewed, evidence['native']['native_identity'])
+        self.assertEqual(reviewed['_pass_batching']['sha256'], self.REVIEW_SHA256)
+        self.assertEqual(reviewed['_pass_batching']['comparison']['artifact'], {
+            'run_id': '37482428571', 'run_attempt': '1', 'artifact_id': '11422371812',
+            'archive_sha256': 'f29ff7c9fada89478e86f3bae86e0382350d1ac249771116dc920274de5b8994'})
+        self.ledger.verify_unchanged()
+
+    def test_pending_template_stays_unavailable_after_reviewed_variant_activation(self):
+        path = self.path.with_name('finite_ads_pass_batching_class.pending.json')
+        with self.assertRaisesRegex(ValueError, 'review pending'):
+            f.bind_finite_ads_profile(source_packet=None, source_packet_path=path,
+                reviewed_class=path, expected_class_sha256=f._identity(path.read_bytes())['sha256'],
+                native_runtime_logs={})
+
+    def test_changed_review_cannot_be_authorized_by_refreshing_descriptor_hash(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            (root / 'finite_ads_reviewed_class.json').write_bytes(
+                self.path.with_name('finite_ads_reviewed_class.json').read_bytes())
+            name = self.extension['native_comparison']['path']
+            changed = (self.path.parent / name).read_bytes() + b' '
+            (root / name).parent.mkdir()
+            (root / name).write_bytes(changed)
+            self.extension['native_comparison'].update(f._identity(changed))
+            path = root / self.path.name
+            path.write_bytes(encoded(self.extension))
+            with self.assertRaisesRegex(ValueError, 'native comparison anchor'):
+                f.bind_finite_ads_profile(source_packet=None, source_packet_path=path,
+                    reviewed_class=path, expected_class_sha256=f._identity(path.read_bytes())['sha256'],
+                    native_runtime_logs={})
 
 
 if __name__ == '__main__':

@@ -1,30 +1,34 @@
-# Pending finite ADS pass-batching source equivalence
+# Reviewed finite ADS pass-batching source equivalence
 
-This proposal is disabled. It contains no new native result, review digest, or
-workflow acceptance anchor. `PASS_BATCHING_NATIVE_REVIEW_SHA256` is `None`, and
-`tools/finite_ads_pass_batching_class.pending.json` is pending with a null
-`native_comparison`. Even a caller that hashes its own fabricated descriptor
-cannot enable this variant while that independent native-review anchor is absent.
-External descriptors cannot supply the reserved `_pass_batching` field. Only the
-verified extension loader constructs it, and public class selection follows the
-local verified schema branch rather than trusting the presence of an input key.
+`tools/finite_ads_pass_batching_class.json` is the separate reviewed extension.
+Its independently retained descriptor SHA-256 is
+`2895c1f4f0039f5a850c7b30196c5d77f4b2e563bc211f8b9fb51ca15f639c4c`.
+The binder pins the actual native-review receipt to
+`4c2ae5f087ac1e548a9285f635fbb17de9de3defbaa4fab0da014fdb5c976699`.
+Normal authored correction and both historical revalidation consumers select
+this descriptor. The pending template remains pending and cannot grant a profile.
 
 The original descriptor and its complete historical evidence remain byte-for-byte
-unchanged. Its SHA-256 is
+unchanged at SHA-256
 `96dfb631be9d59f6cf35d87e4f3c17a4a4303d74787bb773a8c47672efb53331`.
-All original callers and their fixed workflow anchors continue selecting it.
-It continues rejecting the batching source. The separate descriptor references
-that exact original file and supplies only the paired source mapping and a new,
-separately anchored comparison receipt. The new class has its own explicit ID;
-its summary retains the original evidence identities and adds the distinct
-comparison identity. Historical finite arithmetic proof is not relabeled as a
-new production batching execution.
+The original class continues rejecting batching source when selected directly.
+The extension references that exact original file and supplies only the paired
+source mapping and separately anchored native comparison receipt. Its summary
+retains the original evidence identities and adds the distinct comparison
+identity. Historical finite arithmetic proof is not relabeled as a new
+production batching execution.
+
+External descriptors cannot supply the reserved `_pass_batching` field. Only
+the verified extension loader constructs it, and public class selection follows
+the local verified schema branch. Both descriptors and both evidence directories
+have `-text` Git attributes, preserving their anchored bytes during Windows
+checkout regardless of `core.autocrlf`.
 
 ## Exact two-file boundary
 
 The original pair is from `17023450076b668c279539e0e450b8cb58a7c1a2`; the candidate
 pair is from `5abf2bca825a252fb7ad6665c444c89861ee8ef9`. Their byte sizes and SHA-256
-identities are written explicitly in `PASS_BATCHING_PAIRS` and the pending
+identities are written explicitly in `PASS_BATCHING_PAIRS` and the reviewed
 extension descriptor. Source text retains the existing CRLF/LF canonicalization.
 The pair must be entirely baseline or entirely candidate. A mixed pair, a missing
 member, or any other byte change fails. Neither file is skipped. The original
@@ -37,7 +41,32 @@ aggregate obligation stays in its original path. The extension adds no fallback
 frame, tolerance or acceptance verdict. A pair check is additional to those
 obligations; it does not replace them.
 
-## Real native handoff
+## Independently reviewed native comparison
+
+Windows [run 37482428571](https://github.com/RHS059/rust_duty/actions/runs/37482428571),
+attempt 1, retained full artifact `11422371812`, ZIP SHA-256
+`f29ff7c9fada89478e86f3bae86e0382350d1ac249771116dc920274de5b8994`.
+Independent automated code-and-evidence review verified both fixed production
+renderer contracts and every RGBA byte of all 21 captures with zero tolerance.
+The retained compiler output identity and complete WARP device fields match the
+original finite class. No human approval is claimed.
+
+Both restored source variants were compiled in that one run using verifier
+`4c116be39e426f38f65772ae83ce539891a54e55`; their build receipts are not historical
+170/5abf dispatched builds. The source receipts identify those exact production
+variants and show only `frame.rs` and `plan.rs` changed. The original archives
+remain unchanged. Their upload omitted the two intentional empty
+`capture-is-directory.png` negative-test directories; independent validation
+restored only those directories in separate copies, backed by the pinned fixture
+and successful original native fixed-validator receipts. No image/report bytes
+changed. Actual compiler stdout is retained exactly in both source receipts;
+the standalone `rustc.txt` merely stores the same text with Windows CRLF.
+
+The bounded source mapping is now reviewable from actual native evidence. A
+fresh game's immutable packet, complete native leaf and aggregate checks remain
+mandatory. This does not declare acceptance of an untested current capture.
+
+### Evidence and review obligations
 
 The benchmark worker's raw evidence uses
 `tools/run_pass_submission_benchmark.py`. Its root `summary.json`,
@@ -48,7 +77,10 @@ executables are the review inputs. Do not manufacture a review receipt from the
 unit-test fixture or a local plan. Do not use the old independent finite probe as
 a substitute: it does not execute `FramePlan` or `WgpuRenderer::submit`.
 
-After the actual Windows job finishes, the independent reviewer must:
+The retained receipt passed the evidence-review requirements in steps 1–5 below.
+This change implements activation in step 6. Fresh source/native leaf and
+aggregate validation in step 7 remains mandatory and pending; it is not a result
+of the retained comparison receipt.
 
 1. Verify the immutable GitHub run/attempt/artifact and ZIP digest, exact two
    pinned revisions, source manifests, all unchanged compile inputs, equal

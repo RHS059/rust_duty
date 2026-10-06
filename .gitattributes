@@ -6,3 +6,7 @@
 # Hash-bound finite profile artifacts preserve original Windows/Unix bytes.
 /tools/finite_ads_reviewed_class.json -text
 /tools/finite_ads_reviewed_evidence/** -text
+
+# Independently reviewed pass-batching descriptor and native receipt.
+/tools/finite_ads_pass_batching_class.json -text
+/tools/finite_ads_pass_batching_evidence/** -text

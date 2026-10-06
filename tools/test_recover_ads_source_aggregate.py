@@ -374,6 +374,19 @@ class WorkflowTests(unittest.TestCase):
         cls.workflow = yaml.safe_load(cls.path.read_text())
         cls.steps = cls.workflow['jobs']['windows-source-oracle']['steps']
 
+    def test_reviewed_extension_changes_trigger_revalidation_and_run_guards(self):
+        events = yaml.load(self.path.read_text(), Loader=yaml.BaseLoader)['on']
+        self.assertEqual(events['push']['branches'], ['main'])
+        for name in ('.gitattributes', 'tools/finite_ads_profile_binding.py', 'tools/test_finite_ads_profile_binding.py',
+                     'tools/test_finite_ads_profile_gate.py', 'tools/test_finite_ads_pass_batching.py',
+                     'tools/finite_ads_reviewed_class.json', 'tools/finite_ads_reviewed_evidence/**',
+                     'tools/finite_ads_pass_batching_class.json', 'tools/finite_ads_pass_batching_evidence/**'):
+            self.assertIn(name, events['push']['paths'])
+        step = next(item for item in self.steps if 'python -m unittest' in item.get('run', ''))
+        self.assertEqual(step['run'].split()[4:], ['test_build_ads_source_packet',
+            'test_recover_ads_source_aggregate', 'test_finite_ads_profile_binding',
+            'test_finite_ads_profile_gate', 'test_finite_ads_pass_batching'])
+
     def test_22_download_ids_match_selection_and_exact_directory_layout(self):
         downloads = [step for step in self.steps if step.get('uses') == 'actions/download-artifact@v4']
         self.assertEqual(len(downloads), 22)
@@ -403,8 +416,8 @@ class WorkflowTests(unittest.TestCase):
         self.assertIn('--receipt-anchor evidence/independent-source-receipt.sha256', commands[prepare])
         self.assertIn('--source-packet evidence/source-oracle/packet/source-packet.json', commands[prepare])
         for command in (commands[leaf], commands[prepare]):
-            self.assertIn('--reviewed-class verifier/tools/finite_ads_reviewed_class.json', command)
-            self.assertIn('--expected-class-sha256 96dfb631be9d59f6cf35d87e4f3c17a4a4303d74787bb773a8c47672efb53331', command)
+            self.assertIn('--reviewed-class verifier/tools/finite_ads_pass_batching_class.json', command)
+            self.assertIn('--expected-class-sha256 2895c1f4f0039f5a850c7b30196c5d77f4b2e563bc211f8b9fb51ca15f639c4c', command)
             self.assertNotIn('--conditional-diagnostic', command)
         for required in ('--input-manifest downloaded/inputs/evidence/authored-inputs/input-manifest.json',
                          '--historical-manifest downloaded/inputs/evidence/authored-inputs/historical-manifest.json',
