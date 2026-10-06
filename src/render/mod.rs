@@ -28,3 +28,8 @@ mod target;
 pub use backend::WgpuRenderer;
 #[cfg(feature = "wgpu-runtime")]
 pub use device::BackendSelection;
+
+/// Source-driven diagnostic fixture; never used by gameplay or original captures.
+#[cfg(feature = "wgpu-runtime")]
+#[doc(hidden)]
+pub mod finite_warp_probe;

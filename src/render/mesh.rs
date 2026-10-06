@@ -216,6 +216,54 @@ impl Pipelines {
             })
             .clone()
     }
+    /// Later finite corroboration only. Reuse the production VS module, layout,
+    /// primitive state and single-sample target; change only the fragment stage
+    /// and disable depth/blend so every submitted primitive remains observable.
+    pub(super) fn finite_probe_coverage_pipeline(
+        &self,
+        device: &wgpu::Device,
+        source: &str,
+        entry: &str,
+    ) -> wgpu::RenderPipeline {
+        let coverage = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+            label: Some("finite probe coverage-only fragment"),
+            source: wgpu::ShaderSource::Wgsl(source.into()),
+        });
+        device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+            label: Some("later finite coverage corroboration"),
+            layout: Some(&self.layout),
+            vertex: wgpu::VertexState {
+                module: &self.shader,
+                entry_point: Some("vs_main"),
+                compilation_options: Default::default(),
+                buffers: &[Some(wgpu::VertexBufferLayout {
+                    array_stride: GpuVertex::STRIDE,
+                    step_mode: wgpu::VertexStepMode::Vertex,
+                    attributes: &GpuVertex::ATTRIBUTES,
+                })],
+            },
+            primitive: wgpu::PrimitiveState {
+                topology: wgpu::PrimitiveTopology::TriangleList,
+                front_face: wgpu::FrontFace::Ccw,
+                cull_mode: None,
+                ..Default::default()
+            },
+            depth_stencil: None,
+            multisample: Default::default(),
+            fragment: Some(wgpu::FragmentState {
+                module: &coverage,
+                entry_point: Some(entry),
+                compilation_options: Default::default(),
+                targets: &[Some(wgpu::ColorTargetState {
+                    format: super::target::COLOR_FORMAT,
+                    blend: None,
+                    write_mask: wgpu::ColorWrites::ALL,
+                })],
+            }),
+            multiview_mask: None,
+            cache: None,
+        })
+    }
     /// Three immutable buffers and one transform binding per nonempty chunk.
     /// No storage is shared with a subsequent frame. wgpu retains all buffers
     /// referenced by recorded commands until their submission is finished.
