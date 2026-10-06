@@ -14,9 +14,9 @@ permissions:
   contents: read
 concurrency:
   group: game-${{ github.head_ref || github.ref_name }}-${{ github.ref == 'refs/heads/aella/automatic-game-updates-r1' && github.event_name || 'ci' }}
-  # Push and PR runs for one branch share a lane; newest head replaces duplicate work.
-  # Never interrupt an eligible push while it may be publishing a complete draft.
-  cancel-in-progress: ${{ github.event_name != 'push' || github.ref != 'refs/heads/aella/automatic-game-updates-r1' }}
+  # Preserve active main verification while new work lands; only the latest pending run remains.
+  # Other development branches still replace stale work. Eligible draft publication stays protected.
+  cancel-in-progress: ${{ (github.head_ref || github.ref_name) != 'main' && (github.event_name != 'push' || github.ref != 'refs/heads/aella/automatic-game-updates-r1') }}
 jobs:
   windows-source-bound-recovery:
     if: (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'aella/wgpu-renderer-port') || (github.event_name == 'push' && github.ref == 'refs/heads/aella/wgpu-renderer-port') || (github.event_name == 'workflow_dispatch' && inputs.source_bound_recovery)
