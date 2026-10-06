@@ -1,0 +1,31 @@
+{
+  "audited_runtime_manifest_sha256": "abdd0c3dff03f4d0f5b8b823d2274938946fe4b424d3468091d745035039ac7e",
+  "harness": {
+    "source_path": "examples/linux_actual_game_gl.rs",
+    "source_sha256": "23d86f65054fb1fee335d0b5e2b72615e4cf862e4de836acba249361ee210b78"
+  },
+  "origin": "Exported from a live Git checkout; every runtime file matched its committed blob.",
+  "schema": "rust-duty-matrix-source-witness/v1",
+  "source": {
+    "commit": "49c3bf9b3d0482ce81a7d50683904bda28468d7d",
+    "runtime_files_sha256": {
+      "src/app.rs": "c282e402b35b0edee452eff30741251b729a936e90431c94387eb14c3cb918da",
+      "src/asset_path.rs": "17446ae0902b223ab89dc3488527766a5455af79179a386ab2374fc41a8fc119",
+      "src/control.rs": "325895b12c20358eac25d6fb76244808fc24f8f16727da2cd294385878e881a5",
+      "src/frame_performance.rs": "dfd68b9970a9b38cfef2b60a8b75238350c89466fc6e5a0d9d54413758c415bd",
+      "src/frame_performance_session.rs": "4b72fe3910f08d2a4dd7e9dcaea7557675451275010c72c75da7b37d654d577c",
+      "src/graphics_device.rs": "731d3ad664ed8b8cc358e19f7ec321646af8fbe50872ccf63322128264418e8b",
+      "src/main.rs": "04f2c0ce85c2ceac6ccf9b215e043df097107749a676dfa3d2661334b6463f41",
+      "src/platform/launch.rs": "35427ce4a504af3352dae330d9f4339d8928ef61275c615d1c18976b27a345c3",
+      "src/platform/window.rs": "485b038b385a5a2f6ff74ee1f57c6a94a902c32bf6ab954a5f86bccd85e085d8",
+      "src/render/device.rs": "fe742b814bcc55ab3b5d13ad70a03dcef54e5369a7b3a82665a016eec16a6763",
+      "src/render/mesh.rs": "a671a78f50ccc8d872d5e3e1c128859a70488bc6405a532590af3018e5ea85d7",
+      "src/render/runtime.rs": "67af6a5ee23d3db06a526abe3b5df6dc5e325365dce436562e1e4e31381a3e48",
+      "src/render/target.rs": "8e7095a8d6e67efa9ff6671fdfef7727a8887207cd9870b59ce8e0d5b5a44639",
+      "src/settings.rs": "166107a7b4c0c714f02abfc7605783cb96eb908c40114c797bc0ab06ced17232",
+      "src/telemetry_export.rs": "feff16f92c9d03ddd1dda7e18ccf3bc67ae1699b9857c71e354e7c6443d148ea",
+      "src/viewmodel_draw.rs": "c37a0961dbe184dabc03f7b0ac1db6c009916a984f2bcf4b8911c103b341f113",
+      "src/world_draw.rs": "b841d3a8833c1cc0f473a404054b324dca9e5f2359104b3a6f89c40182748165"
+    }
+  }
+}
