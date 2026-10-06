@@ -78,6 +78,13 @@ its compiler receipt so this mapping is independently reconstructable. This adds
 All capture sidecars must identify a stable actual adapter. Logs, descriptor,
 evidence and source/capture files are rechecked for late changes.
 
+The game capture keeps its window surface in `Fifo` mode; the independent native
+probe has no window and reports a null presentation mode. The binder requires
+the game's original fallback request and `Fifo` receipt, then matches the actual
+WARP device and compiler. Presentation occurs separately from the explicit,
+single-sample `Rgba8Unorm` texture copied to the PNG, so the probe's null surface
+mode is not a requirement on the game capture.
+
 ## Compact GL proof
 
 `export_reviewed_gl` accepts only the fixed-anchor

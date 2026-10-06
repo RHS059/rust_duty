@@ -415,8 +415,11 @@ def _runtime_identity(ledger, logs, native_identity, bound):
                for line in dx if line.startswith('renderer device_evidence=')]
     require(len(devices) == 1, 'missing or ambiguous current renderer device evidence')
     device = devices[0]
-    require(device.get('force_fallback_requested') is True and device.get('present_mode') is None,
-            'current runtime is not the offscreen fallback capture')
+    # The game owns a FIFO window surface even when capturing an independent
+    # RGBA8 target. Only the diagnostic probe has no surface/present mode.
+    # The source binder separately requires the original fallback/viewport argv.
+    require(device.get('force_fallback_requested') is True and device.get('present_mode') == 'Fifo',
+            'current runtime is not the windowed fallback game capture')
     require(dx.count('renderer dx12_shader_compiler=Fxc') == 1 and
             dx.count('renderer requested=dx12 backend=Dx12 adapter=Microsoft Basic Render Driver') == 1,
             'current adapter/FXC identity differs')

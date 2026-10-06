@@ -321,20 +321,58 @@ class ReviewedEvidenceTests(unittest.TestCase):
     def test_native_runtime_changes_and_ambiguous_receipts_rejected(self):
         native = self.evidence['native']['native_identity']
         device = {key: native[key] for key in f.DEVICE_FIELDS}
-        device.update(force_fallback_requested=True, present_mode=None)
+        device.update(force_fallback_requested=True, present_mode='Fifo')
         lines = ['renderer requested=dx12 backend=Dx12 adapter=Microsoft Basic Render Driver',
                  'renderer dx12_shader_compiler=Fxc', 'renderer device_evidence=' + json.dumps(device)]
         with tempfile.TemporaryDirectory() as temporary:
             logs = {role: Path(temporary) / (role + '.log') for role in f.source.ROLES}
             logs['windows-legacy'].write_text('GL capture log\n')
             for value in ({**device, 'driver': 'different'}, {**device, 'vendor_id': 1},
-                          {**device, 'device_type': 'DiscreteGpu'}):
+                          {**device, 'device_type': 'DiscreteGpu'},
+                          {**device, 'device_id': 1}, {**device, 'driver_info': 'different'}):
                 logs['dx12'].write_text('\n'.join([*lines[:2], 'renderer device_evidence=' + json.dumps(value)]))
                 with self.subTest(value=value), self.assertRaisesRegex(ValueError, 'independent WARP'):
                     f._runtime_identity(f.source.BoundSourcePacket(), logs, native, None)
             logs['dx12'].write_text('\n'.join([*lines, lines[-1]]))
             with self.assertRaisesRegex(ValueError, 'ambiguous'):
                 f._runtime_identity(f.source.BoundSourcePacket(), logs, native, None)
+
+    def test_windowed_game_receipt_binds_without_using_headless_probe_mode(self):
+        native = self.evidence['native']['native_identity']
+        device = {key: native[key] for key in f.DEVICE_FIELDS}
+        device.update(force_fallback_requested=True, present_mode='Fifo')
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            bound = f.source.BoundSourcePacket()
+            bound.capture_binding = {'gl_reference_sha256': 'a' * 64}
+            bound._frames = {role: [root / (role + '.png')] for role in f.source.ROLES}
+            for role, frames in bound._frames.items():
+                adapter = native['adapter'] if role == 'dx12' else 'llvmpipe (LLVM 22.1.8, 256 bits)'
+                Path(str(frames[0]) + '.json').write_text(json.dumps({'adapter': adapter}))
+            logs = {role: root / (role + '.log') for role in f.source.ROLES}
+            logs['windows-legacy'].write_text('GL capture log\n')
+            prefix = ['renderer requested=dx12 backend=Dx12 adapter=Microsoft Basic Render Driver',
+                      'renderer dx12_shader_compiler=Fxc']
+            def check(value):
+                logs['dx12'].write_text('\n'.join([*prefix, 'renderer device_evidence=' + json.dumps(value)]))
+                return f._runtime_identity(f.source.BoundSourcePacket(), logs, native, bound)
+            self.assertEqual(check(device)['dx12']['adapter'], native['adapter'])
+            for mode in (None, 'Immediate', 'Mailbox'):
+                with self.subTest(mode=mode), self.assertRaisesRegex(ValueError, 'windowed fallback'):
+                    check({**device, 'present_mode': mode})
+            for fallback in (False, None, 1, 'true'):
+                with self.subTest(fallback=fallback), self.assertRaisesRegex(ValueError, 'windowed fallback'):
+                    check({**device, 'force_fallback_requested': fallback})
+            for field in ('present_mode', 'force_fallback_requested'):
+                incomplete = dict(device); del incomplete[field]
+                with self.subTest(missing=field), self.assertRaisesRegex(ValueError, 'windowed fallback'):
+                    check(incomplete)
+            Path(str(bound._frames['dx12'][0]) + '.json').write_text(json.dumps({'adapter': 'different GPU'}))
+            fresh = f.source.BoundSourcePacket()
+            fresh.capture_binding, fresh._frames = bound.capture_binding, bound._frames
+            bound = fresh
+            with self.assertRaisesRegex(ValueError, 'capture/native adapter'):
+                check(device)
 
     def test_finite_type_rejects_out_of_scope_and_boolean_coercion(self):
         profile = f.BoundFiniteAdsProfile(None, self.ledger, self.descriptor, 'a' * 64, {},
