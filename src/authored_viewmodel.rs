@@ -53,6 +53,15 @@ pub struct AuthoredViewmodel {
     /// Hip cant (radians) about the weapon actor's bore line.
     cant: f32,
 }
+/// Read-only evaluated source pose for independent CPU diagnostics. This does
+/// not expose batched vertices or claim native submission/rendering evidence.
+#[allow(dead_code)]
+pub struct SourcePoseSnapshot<'a> {
+    pub animation: &'a AnimationSet,
+    pub pose: ViewmodelPose,
+    pub root: Mat4,
+    pub actor_opacity: Option<Vec<f32>>,
+}
 impl AuthoredViewmodel {
     /// Set the hip cant applied at the next draw. Gameplay owns the value.
     pub fn set_cant(&mut self, radians: f32) {
@@ -62,6 +71,49 @@ impl AuthoredViewmodel {
         if let Some(layers) = &mut self.locomotion {
             layers.set_walk_translation(value);
         }
+    }
+    /// Snapshot the same effective pose selected by `draw_checked`, before
+    /// batching. A separate decoder must own expected source mesh inventories.
+    /// The current diagnostic supports uncanted poses only; unsupported state
+    /// returns an error instead of silently approximating the source geometry.
+    #[allow(dead_code)]
+    pub fn source_pose_snapshot(
+        &self,
+        simulation_time: f64,
+        root: Mat4,
+    ) -> Result<SourcePoseSnapshot<'_>, String> {
+        if let Some(error) = &self.error {
+            return Err(error.clone());
+        }
+        if !simulation_time.is_finite() || !root.is_finite() || self.cant != 0. {
+            return Err("source pose diagnostic requires finite time/root and zero cant".into());
+        }
+        if let Some(visual) = &self.reload_presentation {
+            let renderer = &self.reload_renderers[visual.index];
+            return Ok(SourcePoseSnapshot {
+                animation: &renderer.animation,
+                pose: visual.pose.clone(),
+                root,
+                actor_opacity: Some(visual.opacity.clone()),
+            });
+        }
+        let pose = if let Some(layers) = &self.locomotion {
+            layers.pose().clone()
+        } else {
+            let time = self.fixed_time.unwrap_or(simulation_time as f32);
+            if self.fixed_time.is_some() {
+                self.animation.sample_clamped(&self.clip, time)
+            } else {
+                self.animation.sample(&self.clip, time)
+            }
+            .map_err(|error| error.to_string())?
+        };
+        Ok(SourcePoseSnapshot {
+            animation: &self.animation,
+            pose,
+            root,
+            actor_opacity: None,
+        })
     }
     /// Loads CPU mesh and texture descriptors without requiring a render context.
     pub fn load(path: &str, clip: &str, fixed_time: Option<f32>) -> Result<Self, String> {
@@ -1035,5 +1087,136 @@ mod tests {
                 }
             }
         }
+    }
+
+    fn layered_contact_fixture() -> AuthoredViewmodel {
+        fn words(bytes: &mut Vec<u8>, values: &[u32]) {
+            bytes.extend(values.iter().flat_map(|v| v.to_le_bytes()));
+        }
+        fn floats(bytes: &mut Vec<u8>, values: &[f32]) {
+            bytes.extend(values.iter().flat_map(|v| v.to_le_bytes()));
+        }
+        fn name(bytes: &mut Vec<u8>, value: &str) {
+            bytes.extend((value.len() as u16).to_le_bytes());
+            bytes.extend(value.as_bytes());
+        }
+        let mut model = contact_fixture();
+        let inverse = Mat4::from_translation(vec3(-2., 0., 0.)).to_cols_array();
+        let mut payload = Vec::new();
+        words(&mut payload, &[0, 0, 1]);
+        name(&mut payload, "fixture_hand");
+        words(&mut payload, &[u32::MAX, 1]);
+        name(&mut payload, "fixture_prop");
+        words(&mut payload, &[1, 0]);
+        floats(&mut payload, &inverse);
+        words(&mut payload, &[2]);
+        for (clip, looping) in [("contact", 0), ("contact_loop", 1)] {
+            name(&mut payload, clip);
+            words(&mut payload, &[looping, 2]);
+            for time in [0., 1.] {
+                floats(&mut payload, &[time]);
+                for _ in 0..2 {
+                    floats(&mut payload, &[3., 0., 0., 0., 0., 0., 1., 1., 1., 1.]);
+                }
+                payload.push(1);
+            }
+        }
+        let mut bytes = b"VRANIM01".to_vec();
+        words(&mut bytes, &[1, payload.len() as u32, crc32(&payload), 0]);
+        bytes.extend(payload);
+        model.animation = AnimationSet::decode(&bytes).unwrap();
+        model.locomotion = Some(
+            LayeredLocomotion::new(
+                LayerSources {
+                    locomotion: &model.animation,
+                    walk: None,
+                    ads: None,
+                    jump: None,
+                },
+                vector_range::authored_locomotion_path::AuthoredLocomotionPathConfig {
+                    ready_clip: "contact".into(),
+                    entry_clip: "contact".into(),
+                    loop_clip: "contact_loop".into(),
+                    exit_bridge_clips: vec!["contact".into(), "contact".into()],
+                    exit_clip: "contact".into(),
+                    settle_clip: "contact".into(),
+                    rate_response_seconds: 0.05,
+                    residual_decay_seconds: 0.03,
+                },
+                None,
+                None,
+                "fixture_prop",
+            )
+            .unwrap(),
+        );
+        model
+    }
+
+    #[test]
+    fn source_snapshot_layered_selection_ignores_batched_skin_and_fallback_clip() {
+        let mut model = layered_contact_fixture();
+        let expected = model.locomotion.as_ref().unwrap().pose().clone();
+        model.clip = "nonexistent_fallback_clip".into();
+        model.batches.clear();
+        let snapshot = model.source_pose_snapshot(0.5, Mat4::IDENTITY).unwrap();
+        assert_eq!(snapshot.pose, expected);
+        assert!(std::ptr::eq(snapshot.animation, &model.animation));
+    }
+
+    #[test]
+    fn source_snapshot_non_fixed_sampling_uses_requested_time() {
+        let mut model = layered_contact_fixture();
+        model.locomotion = None;
+        model.fixed_time = None;
+        let snapshot = model.source_pose_snapshot(0.75, Mat4::IDENTITY).unwrap();
+        assert_eq!(
+            snapshot.pose,
+            model.animation.sample("contact", 0.75).unwrap()
+        );
+        assert_eq!(snapshot.pose.sample_time, 0.75);
+    }
+
+    #[test]
+    fn source_snapshot_preserves_primary_pose_and_rejects_unsupported_cant() {
+        let mut model = contact_fixture();
+        let root = Mat4::from_translation(vec3(0.2, -0.2, 0.2));
+        let snapshot = model.source_pose_snapshot(12., root).unwrap();
+        assert_eq!(
+            snapshot.pose,
+            model.animation.sample_clamped("contact", 0.).unwrap()
+        );
+        assert_eq!(snapshot.root, root);
+        assert!(snapshot.actor_opacity.is_none());
+        assert!(std::ptr::eq(snapshot.animation, &model.animation));
+        model.set_cant(0.1);
+        assert!(model.source_pose_snapshot(0., root).is_err());
+        model.set_cant(0.);
+        assert!(model.source_pose_snapshot(f64::NAN, root).is_err());
+    }
+
+    #[test]
+    fn source_snapshot_uses_reload_pose_provider_and_opacity_without_drawing() {
+        let mut model = layered_contact_fixture();
+        let renderer = contact_fixture();
+        let mut pose = renderer.animation.sample_clamped("contact", 0.).unwrap();
+        pose.actor_visible[0] = false;
+        model.reload_renderers.push(renderer);
+        model.reload_presentation = Some(ReloadPresentation {
+            index: 0,
+            pose: pose.clone(),
+            opacity: vec![0.25],
+            fade: None,
+            outgoing: false,
+            from_ads: 0.,
+            visible_ads: 0.,
+            weight: 1.,
+        });
+        let snapshot = model.source_pose_snapshot(0., Mat4::IDENTITY).unwrap();
+        assert_eq!(snapshot.pose, pose);
+        assert_eq!(snapshot.actor_opacity, Some(vec![0.25]));
+        assert!(std::ptr::eq(
+            snapshot.animation,
+            &model.reload_renderers[0].animation
+        ));
     }
 }
