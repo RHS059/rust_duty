@@ -36,24 +36,29 @@ def digest(data):
 
 
 def safe_path(path):
-    """Reject traversal and links, including existing ancestors of new outputs."""
+    """Check native paths, including existing ancestors of new outputs."""
     path = Path(path)
-    if ".." in path.parts or "\\" in str(path):
+    # Native Windows separators are valid here, including in an absolute root.
+    # A literal backslash in a POSIX filename is still ambiguous and rejected.
+    if ".." in path.parts or "\\" in path.as_posix():
         raise ValueError(f"unsafe path: {path}")
     path = path.absolute()
     for entry in (*reversed(path.parents), path):
         try:
-            mode = entry.lstat().st_mode
+            info = entry.lstat()
         except FileNotFoundError:
             continue
-        if stat.S_ISLNK(mode):
+        if (stat.S_ISLNK(info.st_mode)
+                or getattr(info, "st_file_attributes", 0) & stat.FILE_ATTRIBUTE_REPARSE_POINT):
             raise ValueError(f"link in path: {entry}")
     return path
 
 
 def relative_path(root, value):
+    """Keep caller-supplied paths portable and strictly checkout-relative."""
+    raw = os.fspath(value)
     value = Path(value)
-    if value.is_absolute() or not value.parts:
+    if value.anchor or not value.parts or "\\" in raw or ":" in raw:
         raise ValueError("input and output must be nonempty paths relative to the checkout")
     return safe_path(root / value)
 
@@ -115,7 +120,7 @@ def inventory(directory, contract):
     for key, _ in selections(contract):
         if key:
             expected.update(f"alternates/{key}/{name}" for name in FILES)
-    expected_dirs = {str(parent) for name in expected for parent in Path(name).parents
+    expected_dirs = {parent.as_posix() for name in expected for parent in Path(name).parents
                      if str(parent) != "."}
     if not directory.is_dir():
         raise ValueError("missing generated input directory")
@@ -157,7 +162,7 @@ def package(root, directory, output, identity):
     before = inventory(source, contract)
     # Run the existing validator unchanged, over primary AND all source selections.
     command = [sys.executable, "tools/check_generated_assets.py", "--kind", "reload",
-               "--directory", str(Path(directory))]
+               "--directory", source.relative_to(root).as_posix()]
     validation = subprocess.run(command, cwd=root, stdout=subprocess.PIPE, check=True).stdout
     if not 0 < len(validation) <= MAX_REPORT_BYTES:
         raise ValueError("invalid validation receipt size")
@@ -211,8 +216,8 @@ def package(root, directory, output, identity):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", type=Path, default=Path("."))
-    parser.add_argument("--directory", type=Path, required=True)
-    parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--directory", required=True)
+    parser.add_argument("--output", required=True)
     args = parser.parse_args()
     root = safe_path(args.root)
     result = package(root, args.directory, args.output, github_identity(root, os.environ))

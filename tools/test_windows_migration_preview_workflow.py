@@ -32,7 +32,9 @@ class WindowsMigrationPreviewWorkflowTests(unittest.TestCase):
             'tools/current_ads_source_oracle.py',
             'tools/test_current_ads_source_oracle.py',
             'tools/collect_ads_offset_evidence.py',
-            'tools/test_collect_ads_offset_evidence.py'])
+            'tools/test_collect_ads_offset_evidence.py',
+            'tools/package_source_companion_evidence.py',
+            'tools/test_source_companion_evidence.py'])
 
     def test_reuses_complete_guarded_recovery_with_minimum_existing_permissions(self):
         self.assertEqual(self.data['permissions'], {'contents': 'read', 'actions': 'read'})

@@ -33,7 +33,7 @@ jobs:
       - name: Test fail-closed retrieval and current-source revalidation
         env:
           PYTHONPATH: tools
-        run: python -m unittest -v test_fetch_source_bound_companions test_revalidate_reused_companions test_windows_same_platform_return test_windows_same_platform_workflow test_windows_recovery_workflow test_legacy_facade_equivalence test_fetch_legacy_facade_reference
+        run: python -m unittest -v test_fetch_source_bound_companions test_revalidate_reused_companions test_windows_same_platform_return test_windows_same_platform_workflow test_windows_recovery_workflow test_legacy_facade_equivalence test_fetch_legacy_facade_reference test_source_companion_evidence
       - name: Retrieve exact immutable original ZIPs and source witness
         env:
           GITHUB_TOKEN: ${{ github.token }}

@@ -7,6 +7,15 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class RecoveryWorkflowTests(unittest.TestCase):
+    def test_evidence_path_guards_run_before_retrieval_on_windows(self):
+        import yaml
+        workflow = yaml.safe_load((Path(__file__).resolve().parents[1] / '.github/workflows/windows-source-bound-recovery.yml').read_text())
+        steps = workflow['jobs']['recover']['steps']
+        guards = next(step for step in steps if 'test_source_companion_evidence' in step.get('run', ''))
+        retrieval = next(step for step in steps if 'tools/fetch_source_bound_companions.py' in step.get('run', ''))
+        self.assertLess(steps.index(guards), steps.index(retrieval))
+        self.assertNotIn('if', guards)
+
     def test_recovery_is_independent_and_branch_bounded(self):
         caller = (ROOT / '.github/workflows/build.yml').read_text()
         block = caller.split('  windows-source-bound-recovery:\n', 1)[1].split('  windows-same-platform-return:', 1)[0]

@@ -2,13 +2,15 @@
 import hashlib
 import json
 import os
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 import shutil
+import stat
 import subprocess
 import sys
 import tempfile
 import unittest
 from unittest.mock import patch
+from types import SimpleNamespace
 
 import yaml
 import package_game
@@ -16,6 +18,51 @@ import package_source_companion_evidence as evidence
 import test_blender_pipeline
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+class WindowsPathFixture(PureWindowsPath):
+    """Exercise Windows path semantics on every host; supply lstat per test."""
+    def absolute(self):
+        assert self.is_absolute()
+        return self
+
+    def lstat(self):
+        raise AssertionError("filesystem observation required")
+
+
+class PathTests(unittest.TestCase):
+    def test_native_windows_drive_root_and_relative_paths_check_every_ancestor(self):
+        info = SimpleNamespace(st_mode=stat.S_IFDIR, st_file_attributes=0)
+        for value in (r"C:\Users\RUNNER~1\AppData\Local\Temp\fixture", "D:/a/rust_duty/rust_duty"):
+            root = WindowsPathFixture(value)
+            with self.subTest(root=value), patch.object(evidence, "Path", WindowsPathFixture):
+                with patch.object(WindowsPathFixture, "lstat", autospec=True, return_value=info) as probe:
+                    self.assertEqual(evidence.safe_path(root), root)
+                    self.assertEqual([call.args[0] for call in probe.call_args_list],
+                                     [*reversed(root.parents), root])
+                for relative in ("assets/reload", "evidence/parts"):
+                    with patch.object(WindowsPathFixture, "lstat", autospec=True, return_value=info) as probe:
+                        expected = root / relative
+                        self.assertEqual(evidence.relative_path(root, relative), expected)
+                        self.assertEqual([call.args[0] for call in probe.call_args_list],
+                                         [*reversed(expected.parents), expected])
+
+    def test_windows_traversal_and_reparse_ancestors_rejected(self):
+        root = WindowsPathFixture("C:/checkout")
+        with patch.object(evidence, "Path", WindowsPathFixture):
+            with patch.object(WindowsPathFixture, "lstat", autospec=True) as probe:
+                with self.assertRaisesRegex(ValueError, "unsafe path"):
+                    evidence.safe_path(root / ".." / "outside")
+                probe.assert_not_called()
+            for mode, attributes in ((stat.S_IFLNK, 0),
+                                     (stat.S_IFDIR, stat.FILE_ATTRIBUTE_REPARSE_POINT)):
+                def observe(path):
+                    return SimpleNamespace(st_mode=mode if path == root else stat.S_IFDIR,
+                                           st_file_attributes=attributes if path == root else 0)
+                with self.subTest(mode=mode, attributes=attributes):
+                    with patch.object(WindowsPathFixture, "lstat", autospec=True, side_effect=observe):
+                        with self.assertRaisesRegex(ValueError, "link in path"):
+                            evidence.safe_path(root / "new" / "parts")
 
 
 class EvidenceTests(unittest.TestCase):
@@ -113,6 +160,19 @@ class EvidenceTests(unittest.TestCase):
             with self.subTest(directory=directory, output=output), self.assertRaises(ValueError):
                 evidence.package(self.root, directory, output, self.identity)
 
+    def test_nonportable_and_anchored_arguments_rejected_before_validation(self):
+        # These must remain invalid on both POSIX and Windows, even on a different drive.
+        for value in ("", ".", "../outside", "assets/../reload", "/outside", "//host/share",
+                      "C:/outside", "C:outside", r"C:\outside", r"\outside", r"\\host\share",
+                      r"\\?\C:\outside", r"assets\reload", "assets/reload:stream"):
+            for directory, output in ((value, "evidence/parts"), ("assets/reload", value)):
+                with self.subTest(directory=directory, output=output):
+                    with patch.object(evidence.subprocess, "run") as run:
+                        with self.assertRaises(ValueError):
+                            evidence.package(self.root, directory, output, self.identity)
+                        run.assert_not_called()
+        self.assertFalse((self.root / "evidence/parts").exists())
+
     def test_unexpected_file_or_directory_and_missing_file_rejected(self):
         for name in ("private-soldier.blend", "vector-range.exe", "token.txt"):
             path = self.pack / name
@@ -155,6 +215,20 @@ class EvidenceTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "link in path"):
             self.package()
         self.assertFalse((self.root / "missing").exists())
+
+    @unittest.skipUnless(os.name == "nt", "native Windows junction check")
+    def test_windows_junction_input_and_output_ancestors_rejected(self):
+        target = self.root / "junction-target"
+        target.mkdir()
+        for link in (self.pack / "alternates", self.root / "evidence"):
+            subprocess.run(["cmd", "/c", "mklink", "/J", str(link), str(target)],
+                           check=True, capture_output=True)
+            try:
+                with self.assertRaisesRegex(ValueError, "link in path"):
+                    self.package()
+            finally:
+                link.rmdir()
+        self.assertEqual(list(target.iterdir()), [])
 
     def test_corrupt_companion_and_failed_parity_cannot_publish(self):
         parity_path = self.pack / "parity.json"
@@ -226,6 +300,15 @@ class EvidenceTests(unittest.TestCase):
         self.assertEqual(receipt["origin"]["input_artifact"], "generated-reload-runtime-attempt-2")
         self.assertEqual(receipt["origin"]["full_canonical_artifact"], "generated-reload-runtime")
         self.assertEqual(receipt["origin"]["full_attempt_artifact"], "generated-reload-runtime-attempt-2")
+        self.assertEqual(receipt["validation"]["command"][-1], "assets/reload")
+        # Check raw CLI spellings before pathlib can normalize Windows backslashes.
+        for option, value in (("--directory", r"assets\reload"),
+                              ("--output", r"evidence\other-parts")):
+            invalid = command.copy()
+            invalid[invalid.index(option) + 1] = value
+            result = subprocess.run(invalid, cwd=self.root, env=env, capture_output=True, text=True)
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("paths relative to the checkout", result.stderr)
         for key, value in (("GITHUB_REPOSITORY", "other/repo"), ("GITHUB_REF", "refs/heads/other"),
                            ("GITHUB_WORKFLOW_SHA", "0" * 40), ("GITHUB_RUN_ID", "0"),
                            ("GITHUB_EVENT_NAME", "pull_request"), ("GITHUB_WORKFLOW_REF", "other"),
