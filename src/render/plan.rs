@@ -31,6 +31,23 @@ pub(crate) enum PreparedCommand {
         path: PathBuf,
     },
 }
+/// Consecutive draws may share a pass only while its attachments stay the same.
+/// Camera commands, clears, and captures remain barriers even for the same target.
+/// Pipeline, texture, and arena changes are rebound for each draw inside the pass.
+pub(crate) fn draw_run_len(commands: &[PreparedCommand]) -> usize {
+    let Some(PreparedCommand::Draw(first)) = commands.first() else {
+        return 0;
+    };
+    let target = first.target.as_ref().map(|target| target.texture.id);
+    commands
+        .iter()
+        .take_while(|command| {
+            matches!(command, PreparedCommand::Draw(draw)
+                if draw.target.as_ref().map(|target| target.texture.id) == target
+                    && draw.depth_test == first.depth_test)
+        })
+        .count()
+}
 pub(crate) struct FramePlan {
     pub arenas: Vec<FrameArena>,
     matrix_alignment: u32,

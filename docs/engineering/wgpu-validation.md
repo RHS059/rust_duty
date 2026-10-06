@@ -369,9 +369,15 @@ This old-source result is not current-arena acceptance.
 Menu recording exposes local session export, visible recording status and
 observations guidance. Hal's Windows background PDH sampling is included on
 main; actual live PDH values and the adapter-LUID association are not established
-by Linux source tests or UI captures. The user's prior GL and DX12 sessions used
-different gameplay workloads and cannot establish a controlled renderer speed
-ratio or prove a particular CPU/GPU bottleneck. No human visual approval,
+by Linux source tests or UI captures. The user confirms that the original GL and
+DX12 exports were recorded back-to-back with the same version and different
+launchers. Both identities match the executable and source `3a0c73b`. Recovered
+raw CSVs show mean sampled FPS 81.2007 versus 21.3309; the deficit persists in
+all eight shared gameplay-state bins and at the same initial stationary spawn.
+This is a sustained regression. Those exports do not record CPU-stage or GPU
+duration/utilization, so they cannot identify its particular CPU/GPU cause.
+They predate the upload-arena and subsequent pass-batching work; no measured
+FPS improvement for those revisions is claimed. No human visual approval,
 hardware performance acceptance or renderer cutover is claimed.
 
 ### Deterministic capture firing reset correction
