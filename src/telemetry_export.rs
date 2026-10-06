@@ -7,7 +7,7 @@ use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 pub const CSV_HEADER: &str = "time,x,y,z,speed,grounded,crouched,sprinting,ads,recoil_pitch_deg,ammo,shots,hits,kills,render_fps\n";
-const GUIDE: &str = "LOCAL PLAYTEST SESSION\n\nThis folder is saved only on this computer. Nothing is uploaded.\nKeep gameplay.csv, frames.json (when available), IDENTITY.json and CSV_STATUS.json together.\nframes.json contains its own complete/incomplete status; a missing or partial file is not a successful frame export.\nCPU present-return intervals are not GPU time or proof of performance, visual quality, or hardware.\nThe compatibility telemetry.csv beside the game is overwritten on each new recording; this session folder is never overwritten.\n\nOBSERVATIONS TO ADD BEFORE SHARING\nTester/date/time zone:\nMachine/CPU/GPU/driver/OS:\nDisplay resolution/scale/refresh rate:\nScene and actions performed:\nVisible glitches or input/animation problems and when they occurred:\nAudio behavior:\nFiles missing or export errors:\n\nReview this folder before manually sharing it. Add only information you intend to share.\nAfter stopping, open telemetry-sessions beside the game in File Explorer. Zip this entire session folder and manually attach the ZIP when reporting. Keep all files together, including incomplete/error evidence.\n";
+const GUIDE: &str = "LOCAL PLAYTEST SESSION\n\nThis folder is saved only on this computer. Nothing is uploaded.\nKeep gameplay.csv, frames.json (when available), IDENTITY.json, CSV_STATUS.json and all GPU files together.\nframes.json contains its own complete/incomplete status; a missing or partial file is not a successful frame export.\nCPU present-return intervals are not GPU time or proof of performance, visual quality, or hardware.\ngpu.jsonl contains 1-second Windows GPU engine occupancy and memory samples when supported, on both renderers. GPU_METADATA.json explains scope, adapter identity and unavailable values. GPU_STATUS.json is written asynchronously after stopping; wait for it and inspect its state before sharing. Missing/partial status is not a completed GPU export. GPU engine occupancy is not shader occupancy or GPU frame time. Windows adapter LUIDs are not automatically bound to the renderer adapter name.\nThe compatibility telemetry.csv beside the game is overwritten on each new recording; this session folder is never overwritten.\n\nOBSERVATIONS TO ADD BEFORE SHARING\nTester/date/time zone:\nMachine/CPU/GPU/driver/OS:\nDisplay resolution/scale/refresh rate:\nScene and actions performed:\nVisible glitches or input/animation problems and when they occurred:\nAudio behavior:\nFiles missing or export errors:\n\nReview this folder before manually sharing it. Add only information you intend to share.\nAfter stopping, open telemetry-sessions beside the game in File Explorer. Zip this entire session folder and manually attach the ZIP when reporting. Keep all files together, including incomplete/error evidence.\n";
 
 fn write_new(path: &Path, bytes: &[u8]) -> io::Result<()> {
     let mut file = OpenOptions::new().write(true).create_new(true).open(path)?;
@@ -66,6 +66,8 @@ pub struct LocalExport {
     compatibility: File,
     failure: Option<String>,
     finalized: bool,
+    gpu: Option<vector_range::gpu_telemetry::Recorder>,
+    gpu_start_error: Option<String>,
 }
 impl LocalExport {
     pub fn start(parent: &Path, compatibility: &Path, identity: &Value) -> io::Result<Self> {
@@ -113,12 +115,25 @@ impl LocalExport {
         csv.write_all(CSV_HEADER.as_bytes())?;
         let mut compatibility = File::create(compatibility)?;
         compatibility.write_all(CSV_HEADER.as_bytes())?;
+        let (gpu, gpu_start_error) = match vector_range::gpu_telemetry::Recorder::start(
+            &directory,
+            identity["runtime_observed"].clone(),
+        ) {
+            Ok(recorder) => (Some(recorder), None),
+            Err(error) => {
+                let error = error.to_string();
+                eprintln!("GPU telemetry could not start: {error}");
+                (None, Some(error))
+            }
+        };
         Ok(Self {
             directory,
             csv,
             compatibility,
             failure: None,
             finalized: false,
+            gpu,
+            gpu_start_error,
         })
     }
     pub fn frame_path(&self) -> PathBuf {
@@ -130,10 +145,14 @@ impl LocalExport {
     fn status(&self, state: &str) -> io::Result<()> {
         write_new(&self.directory.join("CSV_STATUS.json"), &serde_json::to_vec_pretty(
             &json!({"schema":"rust-duty-local-csv-status/v1", "state":state,
-                "error":self.failure, "frame_trace":"Check frames.json independently; CSV status is not frame completion."})
+                "error":self.failure, "gpu_start_error":self.gpu_start_error,
+                "gpu_trace":"Check GPU_STATUS.json independently; GPU sampling stops asynchronously. Missing/partial status is not completion.", "frame_trace":"Check frames.json independently; CSV status is not frame completion."})
         ).map_err(io::Error::other)?)
     }
     pub fn finish(mut self) -> Result<PathBuf, String> {
+        if let Some(gpu) = &mut self.gpu {
+            gpu.stop();
+        }
         if let Err(error) = self.flush() {
             self.failure.get_or_insert_with(|| error.to_string());
         }
@@ -210,6 +229,33 @@ mod tests {
         fs::create_dir(&root).unwrap();
         root
     }
+    fn wait_for_gpu_exports(root: &Path) {
+        let parent = root.join("sessions");
+        let Ok(entries) = fs::read_dir(parent) else {
+            return;
+        };
+        for entry in entries {
+            let directory = entry.unwrap().path();
+            if !directory.join("GPU_METADATA.json").is_file() {
+                continue;
+            }
+            let started = std::time::Instant::now();
+            loop {
+                if fs::read(directory.join("GPU_STATUS.json"))
+                    .ok()
+                    .and_then(|bytes| serde_json::from_slice::<Value>(&bytes).ok())
+                    .is_some()
+                {
+                    break;
+                }
+                assert!(
+                    started.elapsed() < std::time::Duration::from_secs(10),
+                    "GPU telemetry export did not finish"
+                );
+                std::thread::sleep(std::time::Duration::from_millis(5));
+            }
+        }
+    }
     #[test]
     fn repeats_keep_every_session_and_compatibility_csv_schema() {
         let root = root();
@@ -232,6 +278,15 @@ mod tests {
         );
         assert!(original.starts_with(CSV_HEADER.as_bytes()));
         assert!(one.join("OBSERVATIONS.txt").is_file());
+        wait_for_gpu_exports(&root);
+        for directory in [&one, &two] {
+            let gpu: Value =
+                serde_json::from_slice(&fs::read(directory.join("GPU_STATUS.json")).unwrap())
+                    .unwrap();
+            assert_eq!(gpu["state"], "stopped");
+            assert!(directory.join("gpu.jsonl").is_file());
+            assert!(directory.join("GPU_METADATA.json").is_file());
+        }
         fs::remove_dir_all(root).unwrap();
     }
     #[test]
@@ -249,6 +304,10 @@ mod tests {
             serde_json::from_slice(&fs::read(directory.join("CSV_STATUS.json")).unwrap()).unwrap();
         assert_eq!(status["state"], "interrupted");
         assert!(!directory.join("frames.json").exists());
+        wait_for_gpu_exports(&root);
+        let gpu: Value =
+            serde_json::from_slice(&fs::read(directory.join("GPU_STATUS.json")).unwrap()).unwrap();
+        assert_eq!(gpu["state"], "interrupted");
         fs::remove_dir_all(root).unwrap();
     }
     #[test]
@@ -264,6 +323,7 @@ mod tests {
         fs::write(&status, b"sentinel").unwrap();
         assert!(export.finish().is_err());
         assert_eq!(fs::read(status).unwrap(), b"sentinel");
+        wait_for_gpu_exports(&root);
         fs::remove_dir_all(root).unwrap();
     }
     #[test]
@@ -289,6 +349,7 @@ mod tests {
         assert!(status["error"]
             .as_str()
             .is_some_and(|text| !text.is_empty()));
+        wait_for_gpu_exports(&root);
         fs::remove_dir_all(root).unwrap();
     }
     #[cfg(unix)]
@@ -316,6 +377,7 @@ mod tests {
         )
         .is_err());
         assert_eq!(fs::read(outside.join("sentinel")).unwrap(), b"keep");
+        wait_for_gpu_exports(&root);
         fs::remove_dir_all(root).unwrap();
     }
     #[test]
@@ -335,6 +397,7 @@ mod tests {
         assert!(packaged_source(&exe, "version", Some("b"))
             .get("commit")
             .is_none());
+        wait_for_gpu_exports(&root);
         fs::remove_dir_all(root).unwrap();
     }
 }

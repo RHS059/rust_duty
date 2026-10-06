@@ -826,7 +826,7 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
                                 export.directory.display()
                             ),
                             Err(error) => format!(
-                                "RECORDING CSV ONLY; frame trace unavailable: {error} | {}",
+                                "RECORDING CSV; CPU trace unavailable: {error} | {}",
                                 export.directory.display()
                             ),
                         };

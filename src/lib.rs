@@ -73,6 +73,8 @@ pub mod legacy_macroquad;
 pub mod render;
 pub mod ui_theme;
 
+pub mod gpu_telemetry;
+
 pub mod frame_performance;
 pub mod frame_performance_session;
 

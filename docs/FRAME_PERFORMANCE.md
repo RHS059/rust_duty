@@ -8,6 +8,10 @@ F8 and the pause menu’s Record telemetry button use the same recorder. A persi
 
 Per-session export uses exclusive file creation: an existing path, including a symlink, is never overwritten. A write failure after creation may leave a partial file and reports that possibility. Do not submit a partial file as a valid trace. Keep gameplay telemetry, frame traces, the build identity, and your own observations together when reporting a playtest.
 
+## GPU counters
+
+The same recording also creates `GPU_METADATA.json`, `gpu.jsonl` and, after the background sampler stops, `GPU_STATUS.json`. Windows reports per-adapter GPU engine occupancy and dedicated/shared memory usage for this game and the whole adapter when its counters support them. Both renderers use this sampler. Missing values have explicit reasons, and adapter-to-renderer binding is unverified. These counters do not measure GPU frame duration. See [GPU telemetry](GPU_TELEMETRY.md) for interpretation and independent completion checks.
+
 ## JSON contract
 
 - `schema`: `rust_duty_frame_performance_v1`
