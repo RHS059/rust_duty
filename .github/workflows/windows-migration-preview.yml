@@ -1,0 +1,22 @@
+name: Independent migration Windows preview
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/windows-migration-preview.yml'
+      - '.github/workflows/windows-source-bound-recovery.yml'
+      - 'tools/test_windows_migration_preview_workflow.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+# Isolated WIP recovery never interrupts the complete main verification group.
+# Retain only the newest independent preview request, not a backlog of previews.
+concurrency:
+  group: migration-windows-preview-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  renderer-contract:
+    uses: ./.github/workflows/wgpu-renderer-contract.yml
+  source-bound-preview:
+    uses: ./.github/workflows/windows-source-bound-recovery.yml
