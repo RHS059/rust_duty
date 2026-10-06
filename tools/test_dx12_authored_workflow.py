@@ -52,6 +52,30 @@ class AuthoredWorkflowTests(unittest.TestCase):
         for job in ('authored-capture', 'authored-aggregate'):
             self.assertIn({'name': executable_upload['name'], 'path': '.'}, self.downloads(job))
 
+    def test_compiler_cache_never_substitutes_for_current_source_build(self):
+        steps = self.steps('authored-inputs')
+        caches = [step for step in steps if step.get('uses') == 'actions/cache@v4']
+        self.assertEqual(len(caches), 1)
+        cache = caches[0]
+        self.assertEqual(cache['with']['path'].splitlines(),
+                         ['~/.cargo/registry', '~/.cargo/git', 'target'])
+        prefix = ('authored-dual-release-v1-${{ runner.os }}-${{ runner.arch }}-'
+                  '${{ steps.authored-rust-version.outputs.hash }}-'
+                  "${{ hashFiles('Cargo.lock') }}-")
+        self.assertEqual(cache['with']['key'], prefix + '${{ github.sha }}')
+        self.assertEqual(cache['with']['restore-keys'].splitlines(), [prefix])
+        fingerprint = next(step for step in steps
+                           if step.get('id') == 'authored-rust-version')
+        self.assertIn("['rustc','-Vv']", fingerprint['run'])
+        build = next(step for step in steps if 'cargo build' in step.get('run', ''))
+        self.assertNotIn('if', build)
+        self.assertLess(steps.index(fingerprint), steps.index(cache))
+        self.assertLess(steps.index(cache), steps.index(build))
+        prepare = next(step for step in steps
+                       if 'run_dx12_authored_shard.py prepare' in step.get('run', ''))
+        self.assertLess(steps.index(build), steps.index(prepare))
+        self.assertNotIn('if', prepare)
+
     def test_mesa_staged_once_and_distributed_with_exact_build(self):
         staging = [(job, step) for job in self.jobs for step in self.steps(job)
                    if 'stage_windows_gl_reference.ps1' in step.get('run', '')]

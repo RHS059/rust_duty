@@ -14,8 +14,8 @@ fn main() {
     macroquad::Window::from_config(
         macroquad::prelude::Conf {
             window_title: "Legacy capture neutrality contract".into(),
-            window_width: 64,
-            window_height: 64,
+            window_width: fixture::SIZE as i32,
+            window_height: fixture::SIZE as i32,
             high_dpi: false,
             ..Default::default()
         },
@@ -43,13 +43,16 @@ mod fixture {
     #[cfg(feature = "legacy-macroquad")]
     use vector_range::{draw::Renderer, legacy_macroquad::LegacyRenderer};
 
-    const SIZE: u32 = 64;
+    // Decorated Windows windows can impose a client width above 64 pixels.
+    // Use a normal-sized fixed canvas so the screen and target match exactly.
+    pub const SIZE: u32 = 256;
     const GRAY: [u8; 4] = [128, 128, 128, 255];
     const CASES: [(&str, [u8; 4]); 2] =
         [("warm", [204, 51, 26, 255]), ("cool", [26, 102, 204, 255])];
 
     fn quad(rgba: [u8; 4]) -> Mesh {
-        let vertices = [(0., 0.), (64., 0.), (64., 64.), (0., 64.)]
+        let edge = SIZE as f32;
+        let vertices = [(0., 0.), (edge, 0.), (edge, edge), (0., edge)]
             .into_iter()
             .map(|(x, y)| {
                 let mut v = Vertex::new2(

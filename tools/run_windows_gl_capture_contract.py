@@ -35,10 +35,10 @@ def validate_outputs(output):
     adapter = report.get('adapter')
     require(report.get('backend') == 'OpenGl' and isinstance(adapter, str)
             and adapter.lower().startswith('llvmpipe'), 'actual OpenGl llvmpipe identity required')
-    require(report.get('extent') == [64, 64] and type(report.get('channel_tolerance')) is int
+    require(report.get('extent') == [256, 256] and type(report.get('channel_tolerance')) is int
             and report['channel_tolerance'] == 0
             and type(report.get('interior_pixels_per_capture')) is int
-            and report['interior_pixels_per_capture'] == 56 * 56, 'capture probe contract changed')
+            and report['interior_pixels_per_capture'] == 248 * 248, 'capture probe contract changed')
     require(report.get('captures') == [str(output / name) for name in EXPECTED],
             'reported capture paths or order differ from this output')
     hashes = {}
@@ -46,16 +46,16 @@ def validate_outputs(output):
         path = regular(output / name)
         require(0 < path.stat().st_size <= 1024 * 1024, f'{name}: invalid PNG size')
         with Image.open(path) as image:
-            require(image.format == 'PNG' and image.mode == 'RGBA' and image.size == (64, 64),
-                    f'{name}: expected 64x64 RGBA PNG')
+            require(image.format == 'PNG' and image.mode == 'RGBA' and image.size == (256, 256),
+                    f'{name}: expected 256x256 RGBA PNG')
             pixels = image.load()
-            for y in range(4, 60):
-                for x in range(4, 60):
+            for y in range(4, 252):
+                for x in range(4, 252):
                     require(list(pixels[x, y]) == expected,
                             f'{name}: pixel ({x},{y}) differs from fixed expected {expected}')
         hashes[name] = authored.sha256(path)
     return {'passed': True, 'backend': 'OpenGl', 'adapter': adapter,
-            'captures': 5, 'interior_pixels_checked': 5 * 56 * 56,
+            'captures': 5, 'interior_pixels_checked': 5 * 248 * 248,
             'channel_tolerance': 0, 'png_sha256': hashes,
             'report_sha256': authored.sha256(output / 'report.json')}
 

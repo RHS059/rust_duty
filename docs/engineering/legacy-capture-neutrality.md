@@ -25,13 +25,15 @@ cargo run --locked --no-default-features --features legacy-macroquad \
   --example legacy_capture_contract -- --output-dir <fresh-directory>
 ```
 
-The fixture creates a 64x64 native GL window and preallocates a depth target.
+The fixture creates a 256x256 native GL window and preallocates a depth target.
+The explicit canvas is above the decorated Windows minimum client width, which
+expanded an attempted 64x64 surface to 120x64 on the native runner.
 It renders a gray control, then warm and cool world passes. Each world pass is
 captured from the default framebuffer immediately before the same untextured
 gray mesh is rendered into the existing target. No text, fresh target allocation,
 or frame boundary can incidentally repair the cache between those commands.
 
-Each of the 56x56 interior pixels must equal these fixed RGBA bytes, with no
+Each of the 248x248 interior pixels must equal these fixed RGBA bytes, with no
 channel tolerance:
 
 - `baseline.png`: `[128,128,128,255]`

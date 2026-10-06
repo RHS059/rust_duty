@@ -17,11 +17,11 @@ class CaptureContractTests(unittest.TestCase):
         self.output = self.root / 'captures'
         self.output.mkdir()
         for name, color in runner.EXPECTED.items():
-            Image.new('RGBA', (64, 64), tuple(color)).save(self.output / name)
+            Image.new('RGBA', (256, 256), tuple(color)).save(self.output / name)
         self.report = {
             'schema': 'rust-duty-legacy-capture-neutrality/v1', 'status': 'passed',
-            'backend': 'OpenGl', 'adapter': 'llvmpipe (test fixture)', 'extent': [64, 64],
-            'channel_tolerance': 0, 'interior_pixels_per_capture': 3136,
+            'backend': 'OpenGl', 'adapter': 'llvmpipe (test fixture)', 'extent': [256, 256],
+            'channel_tolerance': 0, 'interior_pixels_per_capture': 61504,
             'captures': [str(self.output / name) for name in runner.EXPECTED],
         }
         self.save_report()
@@ -32,11 +32,11 @@ class CaptureContractTests(unittest.TestCase):
     def test_fixed_pixels_valid_control(self):
         result = runner.validate_outputs(self.output)
         self.assertIs(result['passed'], True)
-        self.assertEqual(result['interior_pixels_checked'], 15680)
+        self.assertEqual(result['interior_pixels_checked'], 307520)
         self.assertEqual(len(result['png_sha256']), 5)
 
     def test_unrepaired_capture_modulation_fails(self):
-        Image.new('RGBA', (64, 64), (102, 25, 13, 255)).save(self.output / 'warm-after.png')
+        Image.new('RGBA', (256, 256), (102, 25, 13, 255)).save(self.output / 'warm-after.png')
         with self.assertRaisesRegex(ValueError, 'fixed expected'):
             runner.validate_outputs(self.output)
 
@@ -48,12 +48,27 @@ class CaptureContractTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'fixed expected'):
             runner.validate_outputs(self.output)
 
+    def test_expanded_canvas_checks_its_far_interior_corner(self):
+        path = self.output / 'cool-after.png'
+        with Image.open(path) as image:
+            image.putpixel((251, 251), (128, 127, 128, 255))
+            image.save(path)
+        with self.assertRaisesRegex(ValueError, r'pixel \(251,251\) differs'):
+            runner.validate_outputs(self.output)
+
+    def test_rust_and_python_use_the_same_native_sized_canvas(self):
+        source = (Path(__file__).resolve().parents[1]
+                  / 'examples/legacy_capture_contract.rs').read_text()
+        self.assertIn('pub const SIZE: u32 = 256;', source)
+        self.assertIn('window_width: fixture::SIZE as i32,', source)
+        self.assertIn('window_height: fixture::SIZE as i32,', source)
+
     def test_wrong_extent_or_alpha_format_fails(self):
         path = self.output / 'baseline.png'
-        for mode, size in [('RGBA', (1, 1)), ('RGB', (64, 64))]:
+        for mode, size in [('RGBA', (1, 1)), ('RGB', (256, 256))]:
             with self.subTest(mode=mode, size=size):
                 Image.new(mode, size).save(path)
-                with self.assertRaisesRegex(ValueError, '64x64 RGBA PNG'):
+                with self.assertRaisesRegex(ValueError, '256x256 RGBA PNG'):
                     runner.validate_outputs(self.output)
 
     def test_missing_or_extra_output_fails(self):
@@ -68,7 +83,7 @@ class CaptureContractTests(unittest.TestCase):
     def test_wrong_identity_or_probe_contract_fails(self):
         for key, value in [('schema', 'other'), ('status', 'failed'), ('backend', 'Dx12'),
                            ('adapter', 'other GPU'), ('channel_tolerance', 1),
-                           ('interior_pixels_per_capture', 1), ('extent', [65, 64])]:
+                           ('interior_pixels_per_capture', 1), ('extent', [257, 256])]:
             with self.subTest(key=key):
                 original = self.report[key]
                 self.report[key] = value

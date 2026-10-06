@@ -97,6 +97,22 @@ jobs:
           test_run_dx12_authored_shard test_aggregate_dx12_authored
           test_dx12_authored_workflow
       - uses: dtolnay/rust-toolchain@stable
+      - name: Fingerprint exact authored-input compiler
+        id: authored-rust-version
+        shell: bash
+        run: python -c "import hashlib,subprocess; print('hash='+hashlib.sha256(subprocess.check_output(['rustc','-Vv'])).hexdigest())" >> "$GITHUB_OUTPUT"
+      - name: Reuse compiler-matched Cargo dependencies and build intermediates
+        uses: actions/cache@v4
+        with:
+          # No runtime companions, authoring sources, credentials or evidence.
+          # Cargo still builds this revision and observes run-attempt build identity.
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: authored-dual-release-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.authored-rust-version.outputs.hash }}-${{ hashFiles('Cargo.lock') }}-${{ github.sha }}
+          restore-keys: |
+            authored-dual-release-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.authored-rust-version.outputs.hash }}-${{ hashFiles('Cargo.lock') }}-
       - name: Build one silent dual-runtime executable and renderer fixture
         run: >-
           cargo build --locked --release --no-default-features
