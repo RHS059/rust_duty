@@ -236,7 +236,7 @@ class ProducerGuards(unittest.TestCase):
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_bytes(('original ' + name + '\n').encode())
         offset = self.root / 'native-offset.cfg'
-        offset.write_text((self.root / 'settings.cfg').read_text() + producer.binding.OFFSET_SUFFIX)
+        offset.write_bytes((self.root / 'settings.cfg').read_bytes() + producer.binding.OFFSET_SUFFIX.encode('utf-8'))
         manifest = {'binding': {'runtime_and_manifest_sha256': {name: producer.digest(self.root / name)['sha256'] for name in inputs}}}
         return manifest, offset
 
