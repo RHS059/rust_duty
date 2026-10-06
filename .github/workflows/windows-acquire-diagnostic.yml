@@ -2,8 +2,13 @@ name: Isolated Windows acquire and exit diagnostic
 on:
   workflow_dispatch:
     inputs:
+      mode:
+        description: Isolated derivative; candidate is not production integration
+        type: choice
+        options: [timeout-return-candidate, baseline]
+        default: timeout-return-candidate
       exit_method:
-        description: Normal exit signal for the single diagnostic baseline
+        description: Normal exit signal for the single diagnostic run
         type: choice
         options: [f10, native-close]
         default: f10
@@ -23,6 +28,7 @@ env:
   GIT_CONFIG_COUNT: '1'
   GIT_CONFIG_KEY_0: core.autocrlf
   GIT_CONFIG_VALUE_0: 'false'
+  DIAGNOSTIC_MODE: ${{ inputs.mode || 'timeout-return-candidate' }}
 jobs:
   diagnostic:
     if: github.repository == 'RHS059/rust_duty' && github.ref == 'refs/heads/main' && github.run_attempt == 1
@@ -53,8 +59,8 @@ jobs:
         env:
           PYTHONPATH: tools
         run: |
-          python -m pip install PyYAML==6.0.3
-          if ($LASTEXITCODE -ne 0) { throw 'Cannot install workflow parser' }
+          python -m pip install PyYAML==6.0.3 Pillow==11.3.0
+          if ($LASTEXITCODE -ne 0) { throw 'Cannot install diagnostic verifier dependencies' }
           python -m unittest -v test_windows_acquire_diagnostic
           if ($LASTEXITCODE -ne 0) { throw 'Diagnostic focused checks failed' }
       - name: Read and validate only the authorized package metadata before download
@@ -132,7 +138,7 @@ jobs:
         run: |
           $Crates = @(Get-ChildItem "$env:USERPROFILE/.cargo/registry/cache/*/wgpu-hal-30.0.1.crate")
           if ($Crates.Count -ne 1) { throw 'Expected one exact pinned HAL crate' }
-          python verifier/tools/windows_acquire_diagnostic.py prepare --repository original-source --crate $Crates[0].FullName --output derived
+          python verifier/tools/windows_acquire_diagnostic.py prepare --repository original-source --crate $Crates[0].FullName --output derived --mode $env:DIAGNOSTIC_MODE
           if ($LASTEXITCODE -ne 0) { throw 'Exact diagnostic derivation failed' }
           Copy-Item derived/DERIVATION.json evidence/DERIVATION.json
           Copy-Item derived/patches evidence/patches -Recurse
@@ -141,6 +147,7 @@ jobs:
           Copy-Item verifier/tools/test_windows_acquire_diagnostic.py evidence/
           Copy-Item verifier/.github/workflows/windows-acquire-diagnostic.yml evidence/
       - name: Build exactly one instrumented game binary in an uncached target
+        id: build
         working-directory: derived/source
         env:
           CARGO_TARGET_DIR: ${{ runner.temp }}/acquire-exit-diagnostic-target
@@ -150,30 +157,55 @@ jobs:
           cargo --config diagnostic-cargo.toml build --locked --release --features wgpu-runtime --bin vector-range 2>&1 | Tee-Object ../../evidence/BUILD.log
           if ($LASTEXITCODE -ne 0) { throw 'Instrumented binary build failed' }
       - name: Bind derived executable and reuse only the verified package runtime files
+        id: stage
         run: |
           python verifier/tools/windows_acquire_diagnostic.py stage --prepared derived --package package --executable "$env:RUNNER_TEMP/acquire-exit-diagnostic-target/release/vector-range.exe" --output diagnostic-package
           if ($LASTEXITCODE -ne 0) { throw 'Diagnostic staging failed' }
           Copy-Item diagnostic-package/DIAGNOSTIC_BUILD.json evidence/DIAGNOSTIC_BUILD.json
-      - name: Run one bounded 1080p WARP baseline and retain shutdown evidence
+      - name: Run one bounded 1080p WARP derivative and retain shutdown evidence
         timeout-minutes: 4
         env:
           EXIT_METHOD: ${{ inputs.exit_method || 'f10' }}
         run: |
           python verifier/tools/windows_acquire_diagnostic.py run --package diagnostic-package --output evidence/run --seconds 25 --exit-method $env:EXIT_METHOD
           if ($LASTEXITCODE -ne 0) { throw 'Diagnostic incomplete; inspect retained lifecycle and cleanup evidence' }
+      - name: Compare fresh production captures from original and candidate executables
+        if: ${{ !cancelled() && steps.stage.outcome == 'success' && env.DIAGNOSTIC_MODE == 'timeout-return-candidate' }}
+        timeout-minutes: 8
+        run: |
+          python verifier/tools/windows_acquire_diagnostic.py images --original package --candidate diagnostic-package --output evidence/production-images
+          if ($LASTEXITCODE -ne 0) { throw 'Original calibration or exact production image comparison failed' }
+      - name: Exercise existing production skip retention and surface device policies
+        if: ${{ !cancelled() && steps.build.outcome == 'success' && env.DIAGNOSTIC_MODE == 'timeout-return-candidate' }}
+        working-directory: derived/source
+        env:
+          CARGO_TARGET_DIR: ${{ runner.temp }}/acquire-exit-diagnostic-target
+          CARGO_BUILD_JOBS: '2'
+        run: |
+          # Same release dependency graph; only the library test harness is added.
+          cargo --config diagnostic-cargo.toml test --locked --release --features wgpu-runtime --lib render::device::tests:: 2>&1 | Tee-Object ../../evidence/SURFACE_POLICY_TESTS.log
+          if ($LASTEXITCODE -ne 0) { throw 'Existing production surface/device policy tests failed' }
+          if (!(Select-String -Path ../../evidence/SURFACE_POLICY_TESTS.log -Pattern 'lost_and_outdated_recover_once_while_timeout_and_occlusion_skip .* ok')) { throw 'Required policy test did not run' }
+          cargo --config diagnostic-cargo.toml test --locked --release --features wgpu-runtime --lib platform::window::tests::skipped_surface_frame_preserves_edges_motion_and_generation -- --exact 2>&1 | Tee-Object ../../evidence/INPUT_RETENTION_TEST.log
+          if ($LASTEXITCODE -ne 0) { throw 'Existing input skip retention test failed' }
+          if (!(Select-String -Path ../../evidence/INPUT_RETENTION_TEST.log -Pattern 'skipped_surface_frame_preserves_edges_motion_and_generation .* ok')) { throw 'Required input retention test did not run' }
       - name: Report diagnostic scope
         if: always()
         run: |
-          "Instrumented Windows WARP acquire/exit diagnostic. Production source: 49c3bf9b3d0482ce81a7d50683904bda28468d7d. Logging-only derived source and HAL. One 25-second baseline; no full matrix, GPU-time, RTX or 1080p60 acceptance. A failed exit remains failed after forced cleanup." >> $env:GITHUB_STEP_SUMMARY
+          "Isolated Windows WARP acquire/exit diagnostic. Mode: $env:DIAGNOSTIC_MODE. Production source: 49c3bf9b3d0482ce81a7d50683904bda28468d7d. One 25-second derivative run; no full matrix, GPU-time, RTX or 1080p60 acceptance. A failed exit remains failed after forced cleanup. Candidate requires false-wait to Timeout to skipped-frame observations, resumed frames, clean renderer destruction, production policy/input tests, exact fresh original/candidate images and independent image review. Historical observer run 37525012138 is retained separately and is not rebuilt." >> $env:GITHUB_STEP_SUMMARY
           if (Test-Path evidence/run/SUMMARY.json) {
             $Summary = Get-Content evidence/run/SUMMARY.json -Raw | ConvertFrom-Json
             "Result: $($Summary.state). $($Summary.errors -join '; ')" >> $env:GITHUB_STEP_SUMMARY
           }
-      - name: Retain only raw telemetry, logs and diagnostic hash/patch receipts
+          if (Test-Path evidence/production-images/SUMMARY.json) {
+            $Images = Get-Content evidence/production-images/SUMMARY.json -Raw | ConvertFrom-Json
+            "Fresh production image controls passed: $($Images.passed). $($Images.errors -join '; '). Independent image review remains pending." >> $env:GITHUB_STEP_SUMMARY
+          }
+      - name: Retain raw telemetry, production images, logs and diagnostic receipts
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: windows-acquire-exit-diagnostic-${{ github.run_id }}-${{ github.run_attempt }}
+          name: windows-acquire-exit-${{ env.DIAGNOSTIC_MODE }}-${{ github.run_id }}-${{ github.run_attempt }}
           path: evidence/
           if-no-files-found: warn
           retention-days: 7

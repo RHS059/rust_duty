@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Bounded observer-only derivative of the pinned Windows game and DX12 HAL.
+"""Bounded baseline observer or isolated DX12 wait-timeout return candidate.
 
-This is deliberately separate from the production performance matrix. No timing,
-physics, presentation, wait-result handling or acceptance threshold is changed.
+The candidate is never production/RTX acceptance. Native exit, safe skipping and
+unchanged production image checks must pass before a separate integration review.
 """
 import argparse
 import difflib
@@ -25,6 +25,16 @@ SOURCE = '49c3bf9b3d0482ce81a7d50683904bda28468d7d'
 HAL_VERSION = '30.0.1'
 HAL_SHA256 = 'b6b7fb58561a792bc237628ba0792e332de418fefe145f13b5ed8201e6d52f58'
 HAL_FILE_SHA256 = 'aea978a714e2427df87458bcb36d66f9195cff6ad521c5bab2ca2806a56d94dc'
+HAL_LIB_SHA256 = '686411c88cff8f64394ae5a54ed4cbaaad41a38bd77eea9dddb764b00fd60627'
+MODES = ('baseline', 'timeout-return-candidate')
+BASELINE = {'run_id': 37525012138, 'run_attempt': 1, 'artifact_id': 11442486459,
+    'artifact_sha256': '451784a6b7e863386eefc06371f10add8e1bc7ea6e59539c2ca55a87dd73dc31',
+    'runner_commit': 'fb2f606a141235a27edca5f6beac5361ba484834',
+    'summary_sha256': '98de25a94ee8e126ecbf8b74e85fd7ccba61127490e6329c55bcca383b09e3cf',
+    'diagnostic_executable_sha256': 'd9f8f95a511a87af86738d691ec4bc5e5436d8366baa4e6dcbaaf8bc2cc69182',
+    'wait_false_count': 25, 'wait_count': 38, 'retained_interval_count': 28,
+    'graceful_shutdown': False, 'hooks_drop_returned': False,
+    'reuse': 'Historical observer evidence only; never a candidate run or image baseline.'}
 ORIGINALS = {
     'Cargo.lock': '2aa35ed5561b7e40f515520ec36cb7eaa5c4175f12f0fcf9c764dd0ae6cbdeef',
     'Cargo.toml': 'ec02a76fb9e8eb29178d707c0f6cfea8206b0299d81f6594fd3cfe0707f55584',
@@ -59,8 +69,9 @@ def replace_once(text, old, new):
     return text.replace(old, new, 1)
 
 
-def instrument(name, data):
+def instrument(name, data, mode='baseline'):
     """Exact hashes plus exact anchors reject source drift before any patching."""
+    matrix.require(mode in MODES, 'Unknown diagnostic mode')
     expected = HAL_FILE_SHA256 if name == 'hal/src/dx12/mod.rs' else ORIGINALS[name]
     matrix.require(digest(data) == expected, 'Original source hash differs: ' + name)
     text = data.decode('utf-8')
@@ -116,6 +127,39 @@ def instrument(name, data):
             '                diagnostic_wait_result?;')
     else:
         raise ValueError('Unsupported instrumentation target')
+    if mode == 'timeout-return-candidate':
+        if name == 'hal/src/dx12/mod.rs':
+            text = replace_once(text, '                diagnostic_wait_result?;',
+                '                if !diagnostic_wait_result? {\n'
+                '                    std::eprintln!("rd_acquire_exit_v1 event=hal_timeout_return sequence={} acquired_count={}", sequence, sc.acquired_count);\n'
+                '                    return Err(crate::SurfaceError::Timeout);\n'
+                '                }')
+            text = replace_once(text,
+                '        let base_index = unsafe { sc.raw.GetCurrentBackBufferIndex() } as usize;',
+                '        rd_acquire_exit_mark("hal_backbuffer_enter", 0);\n'
+                '        let base_index = unsafe { sc.raw.GetCurrentBackBufferIndex() } as usize;')
+        elif name == 'src/render/device.rs':
+            text = replace_once(text,
+                '            rd_acquire_exit_mark("surface_acquire_exit", diagnostic_acquire_start.elapsed().as_nanos());',
+                '            rd_acquire_exit_mark("surface_acquire_exit", diagnostic_acquire_start.elapsed().as_nanos());\n'
+                '            let diagnostic_status = match &status {\n'
+                '                wgpu::CurrentSurfaceTexture::Timeout => "timeout",\n'
+                '                wgpu::CurrentSurfaceTexture::Success(_) => "success",\n'
+                '                wgpu::CurrentSurfaceTexture::Suboptimal(_) => "suboptimal",\n'
+                '                wgpu::CurrentSurfaceTexture::Lost => "lost",\n'
+                '                wgpu::CurrentSurfaceTexture::Outdated => "outdated",\n'
+                '                wgpu::CurrentSurfaceTexture::Occluded => "occluded",\n'
+                '                wgpu::CurrentSurfaceTexture::Validation => "validation",\n'
+                '            };\n'
+                '            std::eprintln!("rd_acquire_exit_v1 event=surface_status status={}", diagnostic_status);')
+        elif name == 'src/platform/window.rs':
+            text = replace_once(text,
+                '        if !STATE.with(|s| s.borrow_mut().start_frame(start, Instant::now())) {\n'
+                '            return;\n        }',
+                '        if !STATE.with(|s| s.borrow_mut().start_frame(start, Instant::now())) {\n'
+                '            rd_acquire_exit_mark("frame_skip", 0);\n'
+                '            return;\n        }\n'
+                '        rd_acquire_exit_mark("frame_ready", 0);')
     return (text + MARKER).encode('utf-8')
 
 
@@ -148,7 +192,8 @@ def tree_hashes(root):
     return result
 
 
-def prepare(repository, crate, output):
+def prepare(repository, crate, output, mode='baseline'):
+    matrix.require(mode in MODES, 'Unknown diagnostic mode')
     matrix.require(matrix.sha256(crate) == HAL_SHA256, 'Pinned HAL crate checksum differs')
     matrix.require(subprocess.check_output(['git', '-C', str(repository), 'rev-parse', 'HEAD'],
                                          text=True).strip() == SOURCE, 'Wrong production source commit')
@@ -162,6 +207,7 @@ def prepare(repository, crate, output):
         extract_regular(archive, source)
     with tarfile.open(crate, 'r:gz') as archive:
         extract_regular(archive, hal, 'wgpu-hal-' + HAL_VERSION)
+    matrix.require(matrix.sha256(hal / 'src/lib.rs') == HAL_LIB_SHA256, 'HAL error API changed')
     for name, expected in ORIGINALS.items():
         matrix.require(matrix.sha256(source / name) == expected, 'Wrong pinned file: ' + name)
     lock = tomllib.loads((source / 'Cargo.lock').read_text('utf-8'))
@@ -169,6 +215,9 @@ def prepare(repository, crate, output):
     matrix.require(len(selected) == 1 and selected[0]['version'] == HAL_VERSION and
                    selected[0]['checksum'] == HAL_SHA256, 'Pinned Cargo dependency differs')
     receipt = {'schema': 'rust-duty-acquire-exit-derivative/v1', 'scope': SCOPE,
+               'mode': mode, 'historical_observer_baseline': BASELINE,
+               'behavior_change': ('Return SurfaceError::Timeout on Ok(false), before backbuffer acquisition; propagate Err unchanged.'
+                                   if mode == MODES[1] else 'None; false wait remains ignored.'),
                'production_source_commit': SOURCE, 'production_source_archive_sha256': digest(exported),
                'production_files_sha256': tree_hashes(source),
                'hal_crate_sha256': HAL_SHA256, 'hal_version': HAL_VERSION,
@@ -179,7 +228,7 @@ def prepare(repository, crate, output):
     for name, path in [(n, source / n) for n in ORIGINALS if n.startswith('src/')] + [
             ('hal/src/dx12/mod.rs', hal / 'src/dx12/mod.rs')]:
         old = path.read_bytes()
-        new = instrument(name, old)
+        new = instrument(name, old, mode)
         path.write_bytes(new)
         patch = ''.join(difflib.unified_diff(old.decode().splitlines(True), new.decode().splitlines(True),
                                             fromfile='original/' + name, tofile='derived/' + name))
@@ -236,11 +285,14 @@ def stage(prepared, package, executable, output):
     for directory in ('assets', 'ui'):
         shutil.copytree(package / directory, output / directory)
     shutil.copyfile(package / 'settings.cfg', output / 'settings.cfg')
-    destination = output / 'Rust-Duty-acquire-exit-DIAGNOSTIC.exe'
+    mode = derivation['mode']
+    matrix.require(mode in MODES, 'Unknown derivation mode')
+    destination = output / ('Rust-Duty-acquire-exit-' + mode + '-DIAGNOSTIC.exe')
     shutil.copyfile(executable, destination)
     matrix.require(matrix.sha256(destination) != original['executable_sha256'],
                    'Diagnostic must not be the original binary')
     receipt = {'schema': 'rust-duty-acquire-exit-build/v1', 'scope': SCOPE,
+               'mode': mode, 'historical_observer_baseline': BASELINE,
                'derivation_sha256': matrix.sha256(prepared / 'DERIVATION.json'),
                'original_package': original, 'diagnostic_executable_sha256': matrix.sha256(destination),
                'diagnostic_executable': destination.name,
@@ -262,7 +314,7 @@ def parse_log(text):
         if line.startswith(PREFIX):
             fields = dict(item.split('=', 1) for item in line[len(PREFIX):].split())
             matrix.require('event' in fields, 'Malformed observer marker')
-            for key in ('sequence', 'elapsed_ns', 'unix_ns', 'timeout_ns'):
+            for key in ('sequence', 'elapsed_ns', 'unix_ns', 'timeout_ns', 'acquired_count'):
                 if key in fields:
                     matrix.require(fields[key].isdigit(), 'Invalid observer integer')
                     fields[key] = int(fields[key])
@@ -284,6 +336,51 @@ def parse_log(text):
             'wait_true_count': sum(r['wait_ok'] == 'true' for r in waits)}
 
 
+def candidate_observations(parsed):
+    """Follow actual false returns through HAL -> surface -> skipped app frame.
+
+    Durations never classify a timeout. A missing branch or resume fails closed;
+    this runtime observation complements the unchanged source's input tests.
+    """
+    pending = None
+    completed = []
+    ready = 0
+    for row in parsed['records']:
+        event = row['event']
+        if event == 'hal_wait_result':
+            matrix.require(pending is None, 'Timeout did not reach a skipped frame before the next wait')
+            matrix.require(row['wait_ok'] != 'error', 'HAL wait returned an error during candidate validation')
+            if row['wait_ok'] == 'false':
+                pending = {'sequence': row['sequence'], 'stage': 'wait'}
+        elif event == 'hal_timeout_return':
+            matrix.require(pending is not None and pending['stage'] == 'wait' and
+                           row.get('sequence') == pending['sequence'] and 'acquired_count' in row,
+                           'Timeout return lacks its matching false wait')
+            pending.update(stage='returned', acquired_count=row['acquired_count'])
+        elif event == 'hal_backbuffer_enter':
+            matrix.require(pending is None, 'Timed-out acquire reached backbuffer acquisition')
+        elif event == 'surface_status' and row.get('status') == 'timeout':
+            matrix.require(pending is not None and pending['stage'] == 'returned',
+                           'Surface timeout lacks its matching HAL timeout return')
+            pending['stage'] = 'surface-timeout'
+        elif event == 'frame_skip' and pending is not None:
+            matrix.require(pending['stage'] == 'surface-timeout', 'Frame skip preceded surface timeout')
+            completed.append(pending)
+            pending = None
+        elif event == 'frame_ready':
+            matrix.require(pending is None, 'Timed-out acquire consumed an app frame')
+            ready += 1
+    matrix.require(pending is None, 'Incomplete timeout-to-skip observation')
+    matrix.require(len(completed) == parsed['wait_false_count'] and completed,
+                   'Candidate must exercise at least one real false-wait timeout and skip')
+    last_skip = max(i for i, row in enumerate(parsed['records']) if row['event'] == 'frame_skip')
+    matrix.require(any(row['event'] == 'frame_ready' for row in parsed['records'][last_skip + 1:]),
+                   'No successful app frame observed after the final timeout')
+    return {'passed': True, 'completed_timeout_skips': completed, 'ready_frames': ready,
+            'classification': 'HAL wait boolean, never elapsed-time threshold',
+            'input_retention': 'Existing production skip/input tests are a separate required check.'}
+
+
 def request_exit(driver, process, method):
     driver.check([1920, 1080])
     snapshot = exit_snapshot(driver, process)
@@ -303,6 +400,8 @@ def run(package, output, method='f10', seconds=25):
     matrix.require(sys.platform == 'win32', 'This diagnostic requires native Windows')
     matrix.require(type(seconds) is int and 20 <= seconds <= 30, 'Diagnostic sample must be 20..30 seconds')
     build = matrix.json_read(package / 'DIAGNOSTIC_BUILD.json', 16 * 1024 * 1024)
+    mode = build.get('mode', 'baseline')
+    matrix.require(mode in MODES, 'Unknown build mode')
     executable = package / build['diagnostic_executable']
     matrix.require(matrix.sha256(executable) == build['diagnostic_executable_sha256'], 'Diagnostic binary changed')
     for name, expected in build['runtime_files_sha256'].items():
@@ -313,6 +412,7 @@ def run(package, output, method='f10', seconds=25):
     case = {'settings': {'presentation': 'packaged'}}
     command = matrix.case_command(executable.resolve(), 'dx12', output.resolve(), case, True)
     receipt = {'schema': 'rust-duty-acquire-exit-run/v1', 'scope': SCOPE, 'command': command,
+               'mode': mode, 'historical_observer_baseline': BASELINE,
                'build_receipt_sha256': matrix.sha256(package / 'DIAGNOSTIC_BUILD.json'),
                'sample_seconds': seconds, 'exit_method': method, 'started_unix_ns': time.time_ns(),
                'graceful_shutdown': False, 'acceptance_proven': False, 'full_matrix_passed': False}
@@ -370,6 +470,14 @@ def summarize(output):
     log = (output / 'game.log').read_text('utf-8', errors='replace') if (output / 'game.log').exists() else ''
     parsed = parse_log(log)
     errors = []
+    mode = receipt.get('mode', 'baseline')
+    matrix.require(mode in MODES, 'Unknown run mode')
+    candidate = None
+    if mode == MODES[1]:
+        try:
+            candidate = candidate_observations(parsed)
+        except ValueError as error:
+            errors.append(str(error))
     session = matrix.sole_session(output, complete=True)
     runtime = None
     interval_count = None
@@ -403,6 +511,7 @@ def summarize(output):
     if receipt.get('input_cleanup_errors'):
         errors.append('Injected input cleanup failed')
     return {'schema': 'rust-duty-acquire-exit-summary/v1', 'scope': SCOPE,
+            'mode': mode, 'candidate_timeout_validation': candidate,
             'state': 'diagnostic_complete' if not errors else 'diagnostic_incomplete', 'errors': errors,
             'run': receipt, 'observer': parsed, 'runtime_observed': runtime,
             'retained_interval_count': interval_count, 'acceptance_proven': False,
@@ -411,12 +520,122 @@ def summarize(output):
             'timing_scope': 'Observer logging adds overhead. Renderer submit is CPU encoding, never GPU time.'}
 
 
+def compare_pixels(left, right):
+    """Require every decoded RGBA8 pixel, including the pair witness, to match."""
+    from PIL import Image
+    from verify_render_capture import load_png
+    decoded = []
+    for path in (left, right):
+        with path.open('rb') as stream:
+            header = stream.read(26)
+        matrix.require(header[8:16] == b'\x00\x00\x00\x0dIHDR' and header[24:26] == b'\x08\x06',
+                       'Control must be a real RGBA8 PNG')
+        with Image.open(path) as image:
+            matrix.require(image.mode == 'RGBA' and image.size == (960, 540), 'Wrong production control extent/mode')
+        image = load_png(path, (960, 540))
+        matrix.require(image.getchannel('A').getextrema() == (255, 255), 'Control alpha is not opaque')
+        decoded.append(image.tobytes())
+    matrix.require(decoded[0] == decoded[1], 'Production control RGBA pixels differ: ' + left.name)
+    return {'passed': True, 'rgba_sha256': digest(decoded[0]), 'pixels_compared': 960 * 540,
+            'channel_tolerance': 0, 'masked_pixels': 0,
+            'baseline_png_sha256': matrix.sha256(left), 'candidate_png_sha256': matrix.sha256(right)}
+
+
+def image_controls(original, candidate, output):
+    """Reuse the two game executables; no baseline or example compilation.
+
+    A common witness identifies the verified pair, not either executable alone.
+    Both invocation/executable identities remain separately recorded and truthful.
+    """
+    import run_calibrated_presentation as calibrated
+    import verify_calibrated_presentation as validator
+    import run_dx12_authored as captures
+
+    matrix.require(sys.platform == 'win32', 'Production image controls require native Windows')
+    original, candidate, output = (path.resolve() for path in (original, candidate, output))
+    matrix.require(not output.exists(), 'Refusing stale production image evidence')
+    build = matrix.json_read(candidate / 'DIAGNOSTIC_BUILD.json', 16 * 1024 * 1024)
+    matrix.require(build['mode'] == MODES[1], 'Production image controls require the timeout candidate')
+    baseline = matrix.package_identity(original / 'vector-range.exe', {'commit': SOURCE}, 'dx12')
+    matrix.require(baseline == build['original_package'], 'Original production package differs from staged provenance')
+    executable = candidate / build['diagnostic_executable']
+    matrix.require(matrix.sha256(executable) == build['diagnostic_executable_sha256'], 'Candidate binary changed')
+    for name, expected in build['runtime_files_sha256'].items():
+        matrix.require(matrix.sha256(candidate / name) == expected, 'Candidate runtime changed: ' + name)
+    output.mkdir()
+    settings = output / 'calibration-settings.cfg'
+    settings.write_bytes(validator.SETTINGS)
+    pair = {'schema': 'rust-duty-acquire-timeout-image-pair/v1',
+            'original_production_source_commit': SOURCE,
+            'baseline_role': 'Original authorized production package, not historical observer binary',
+            'baseline_executable_sha256': baseline['executable_sha256'],
+            'candidate_executable_sha256': build['diagnostic_executable_sha256'],
+            'candidate_derivation_sha256': build['derivation_sha256'],
+            'candidate_mode': build['mode'], 'runner_commit': os.environ.get('GITHUB_SHA'),
+            'run_id': os.environ.get('GITHUB_RUN_ID'), 'run_attempt': os.environ.get('GITHUB_RUN_ATTEMPT'),
+            'asset_sha256': validator.ASSET_SHA256, 'settings_sha256': matrix.sha256(settings),
+            'framing': validator.DOCUMENTED_FRAMING, 'backend': 'Dx12', 'adapter': 'WARP',
+            'simulation_time': 0, 'scope': 'Two untimed static production poses; not gameplay, full renderer contract or FPS acceptance.'}
+    report = {'schema': 'rust-duty-acquire-timeout-images/v1', 'passed': False,
+              'pair': pair, 'captures': [], 'comparisons': [], 'errors': [],
+              'independent_image_review': 'pending', 'full_renderer_contract_reproven': False,
+              'acceptance_proven': False}
+    matrix.write_json(output / 'PAIR.json', pair)
+    for label, package, binary in [('baseline', original, original / 'vector-range.exe'),
+                                   ('candidate', candidate, executable)]:
+        for pose in ('hip', 'ads'):
+            name = label + '-' + pose
+            folder, logs = output / 'captures' / name, output / 'logs' / name
+            folder.mkdir(parents=True)
+            # Identical pair witness permits exact all-pixel equality; no source
+            # or build labels are overwritten, masked or forged.
+            witness = digest(json.dumps({'pair': pair, 'pose': pose}, sort_keys=True,
+                                        separators=(',', ':'), allow_nan=False).encode())
+            try:
+                asset = package / 'assets/weapons/hk416a5.vrm'
+                matrix.require(matrix.sha256(asset) == validator.ASSET_SHA256, 'Wrong static production asset')
+                command = calibrated.command(binary, asset, settings, folder, 'Dx12', pose, witness)
+                captures.execute(command, package, logs, 90, renderer=True)
+                calibrated.native_receipt(logs, command, package)
+                result = validator.validate_capture(folder, 'Dx12', pose, witness)
+                matrix.require(result['within_tolerance'] is True, 'Original production calibration gate failed')
+                report['captures'].append({'label': label, 'pose': pose, 'validation': result,
+                                           'executable_sha256': matrix.sha256(binary)})
+            except Exception as error:
+                report['errors'].append(name + ': ' + type(error).__name__ + ': ' + str(error))
+            captures.write_json(output / 'SUMMARY.json', report)
+    if not report['errors']:
+        for pose in ('hip', 'ads'):
+            for suffix in ('.png', '.png.world.png'):
+                name = pose + suffix
+                try:
+                    result = compare_pixels(output / 'captures' / ('baseline-' + pose) / name,
+                                            output / 'captures' / ('candidate-' + pose) / name)
+                    report['comparisons'].append({'file': name, **result})
+                except Exception as error:
+                    report['errors'].append(type(error).__name__ + ': ' + str(error))
+    # Recheck inputs after every process, not just their pre-launch inventory.
+    try:
+        matrix.require(matrix.package_identity(original / 'vector-range.exe', {'commit': SOURCE}, 'dx12') == baseline,
+                       'Baseline package changed during capture')
+        for name, expected in build['runtime_files_sha256'].items():
+            matrix.require(matrix.sha256(candidate / name) == expected, 'Candidate input changed during capture: ' + name)
+        matrix.require(settings.read_bytes() == validator.SETTINGS, 'Control settings changed during capture')
+    except Exception as error:
+        report['errors'].append(type(error).__name__ + ': ' + str(error))
+    report['passed'] = not report['errors'] and len(report['captures']) == 4 and len(report['comparisons']) == 4
+    report['files_sha256'] = {name: value for name, value in tree_hashes(output).items() if name != 'SUMMARY.json'}
+    captures.write_json(output / 'SUMMARY.json', report)
+    return report
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest='action', required=True)
     prepare_parser = sub.add_parser('prepare')
     for name in ('repository', 'crate', 'output'):
         prepare_parser.add_argument('--' + name, type=Path, required=True)
+    prepare_parser.add_argument('--mode', choices=MODES, default='baseline')
     stage_parser = sub.add_parser('stage')
     for name in ('prepared', 'package', 'executable', 'output'):
         stage_parser.add_argument('--' + name, type=Path, required=True)
@@ -425,11 +644,16 @@ def main(argv=None):
         run_parser.add_argument('--' + name, type=Path, required=True)
     run_parser.add_argument('--exit-method', choices=('f10', 'native-close'), default='f10')
     run_parser.add_argument('--seconds', type=int, default=25)
+    image_parser = sub.add_parser('images')
+    for name in ('original', 'candidate', 'output'):
+        image_parser.add_argument('--' + name, type=Path, required=True)
     args = parser.parse_args(argv)
     if args.action == 'prepare':
-        prepare(args.repository, args.crate, args.output)
+        prepare(args.repository, args.crate, args.output, args.mode)
     elif args.action == 'stage':
         stage(args.prepared, args.package, args.executable, args.output)
+    elif args.action == 'images':
+        return 0 if image_controls(args.original, args.candidate, args.output)['passed'] else 1
     else:
         result = run(args.package, args.output, args.exit_method, args.seconds)
         return 0 if result['state'] == 'diagnostic_complete' else 1
