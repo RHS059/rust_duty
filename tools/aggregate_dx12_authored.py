@@ -11,6 +11,7 @@ from decimal import Decimal
 import json
 import math
 from pathlib import Path, PureWindowsPath
+import re
 import shutil
 import subprocess
 import sys
@@ -58,14 +59,14 @@ def local_checks(scenario):
     return names + ['inputs-unchanged']
 
 
-def validated_manifest(path, root):
+def validated_manifest(path, root, *, expected_context=None):
     manifest = read_record(path)
     expected = {'schema': 'rust-duty-dx12-authored-inputs/v1', 'platform': 'win32',
                 'build_selection': {'default_enabled': False, 'features': ['legacy-macroquad', 'wgpu-runtime']},
                 'binding': manifest.get('binding'), 'gl_reference': manifest.get('gl_reference'), 'expected_scenarios': list(shards.SCENARIOS)}
     _compare(manifest, expected, 'input manifest')
     binding = manifest['binding']
-    shards.validate_binding(binding)
+    shards.validate_binding(binding, expected_context=expected_context)
     reference = shards.make_gl_reference(root / shards.GL_RUNTIME_PATH, root / shards.GL_LOCK_PATH)
     _compare(manifest['gl_reference'], reference, 'input GL reference')
     if shards.gl_reference_digest(reference) != binding['gl_reference_sha256']:
@@ -368,11 +369,15 @@ def same_windows_parity(baseline, candidate, scenario, source_folder):
     return authored.compare_sequence(baseline, candidate)
 
 
-def expected_checks():
+def expected_checks(*, ads_source_supplement=False):
     names = ['validated-inputs', 'exact-nine-shards']
+    if ads_source_supplement:
+        names += ['ads-source-supplement/bound-leaf']
     for scenario in shards.SCENARIOS:
-        names += [f'{scenario}/artifact-integrity', f'{scenario}/local-checks']
-        names += ([f'{scenario}/{role}/assembled-evidence' for role in ROLES] if scenario in CASES
+        corrected = ads_source_supplement and scenario == 'ads-offset'
+        names += [f'{scenario}/artifact-integrity',
+                  f'{scenario}/{"source-correction-eligibility" if corrected else "local-checks"}']
+        names += ([f'{scenario}/{role}/{"corrected-assembled-evidence" if corrected else "assembled-evidence"}' for role in ROLES] if scenario in CASES
                   else ['lighting-orientation/assembled-evidence'])
     for role in ROLES:
         names += [f'{role}/ads-placement-existing-validator', f'{role}/layered-rates-existing-validator']
@@ -382,11 +387,238 @@ def expected_checks():
     return names + ['landmark-guides-not-a-landmark-pass', 'inputs-unchanged']
 
 
+def offset_correction_eligibility(report):
+    """Accept only the original image failure and its exact blocked dependents.
+
+    This does not turn any historical check into a pass. The original structure
+    failure must also recur as a typed exception on the immutable native bytes.
+    """
+    if (report['scenario'] != 'ads-offset' or report['passed'] is not False
+            or report['status'] != 'failed' or report['budget_exhausted'] is not False
+            or report['current_check'] is not None
+            or report['elapsed_seconds'] >= report['run_timeout_seconds']):
+        raise ValueError('ADS source correction requires a completed, non-timeout failed offset shard')
+    if [row['name'] for row in report['checks']] != local_checks('ads-offset'):
+        raise ValueError('ADS correction requires the complete original offset check inventory')
+    rows = require_checks(report, ['validated-inputs', 'inputs-unchanged',
+                                  'windows-legacy/stock-probe', 'windows-legacy/capture', 'dx12/capture'])
+    failed_roles = []
+    blocked = 'ValueError: blocked by a failed required capture or input check'
+    for role in ROLES:
+        finite = rows[f'{role}/finite-images']
+        validator = rows[f'{role}/existing-validator']
+        if finite['passed']:
+            require_checks(report, [f'{role}/existing-validator'])
+        else:
+            error = finite['error']
+            prefix, _, detail = error.partition(': ')
+            if (prefix not in ('CaptureError', 'CaptureStructureError')
+                    or not (detail in ('uniform image: no rendered structure',
+                                       'near-uniform image: insufficient rendered structure')
+                            or re.fullmatch(r'.+: foreground coverage 0\.\d{6} below 0\.010000', detail))):
+                raise ValueError('ADS source correction cannot excuse an unrelated original image failure')
+            if validator['passed'] or validator.get('error') != blocked:
+                raise ValueError('ADS source correction requires an originally blocked validator')
+            failed_roles.append(role)
+    if not failed_roles or rows['same-windows-strict-parity']['passed'] or rows['same-windows-strict-parity'].get('error') != blocked:
+        raise ValueError('ADS source correction requires originally blocked same-Windows parity')
+    return {'original_status': report['status'], 'original_passed': report['passed'],
+            'failed_image_roles': failed_roles, 'original_checks_preserved': True}
+
+
+class AdsSourceSupplement:
+    """Narrow intake for a separately retained ADS leaf and its source anchors.
+
+    All nine original shards remain authoritative inputs. The leaf is evidence
+    to bind and recheck, never a substitute for aggregate validators.
+    """
+    def __init__(self, request):
+        required = {'leaf_summary', 'source_packet', 'source_receipt_sha256',
+                    'capture_rustc_sha256', 'capture_context', 'leaf_verifier_context', 'verifier_context'}
+        shards._exact_keys(request, required, 'ADS source supplement request')
+        self.request = request
+        self.capture_context = shards._validate_context(request['capture_context'])
+        self.leaf_verifier_context = shards._validate_context(request['leaf_verifier_context'])
+        self.verifier_context = shards._validate_context(request['verifier_context'])
+        _compare(self.verifier_context, shards.context(), 'actual aggregate verifier GitHub identity')
+        for field in ('source_receipt_sha256', 'capture_rustc_sha256'):
+            if type(request[field]) is not str or not re.fullmatch('[0-9a-f]{64}', request[field]):
+                raise ValueError(f'ADS supplement requires an independently retained {field}')
+        self.summary = Path(request['leaf_summary']).absolute()
+        self.source_packet = Path(request['source_packet']).absolute()
+        if self.summary.name != 'summary.json':
+            raise ValueError('ADS leaf inventory must accompany its root summary.json')
+        self.packet = self.fallback = None
+        self.original_hashes = {}
+
+    def load(self, binding, incoming, input_manifest, evidence):
+        # Lazy import avoids the leaf caller's existing aggregate import cycle.
+        import revalidate_ads_offset as leaf
+        self.leaf_hash = shards._read_regular(self.summary)
+        saved = read_record(self.summary)
+        required = {'schema', 'passed', 'acceptance_complete', 'capture_context', 'verifier_context',
+                    'scope', 'checks', 'original_capture_verdicts', 'source_fallback', 'capture_binding',
+                    'source_production_commit', 'source_packet_sha256', 'source_receipt_sha256',
+                    'capture_rustc_sha256', 'source_profiles', 'actual_gl_profile', 'files'}
+        shards._exact_keys(saved, required, 'ADS leaf summary')
+        for field, expected in (('schema', leaf.SCHEMA), ('passed', True), ('acceptance_complete', False),
+                                ('capture_context', self.capture_context), ('verifier_context', self.leaf_verifier_context),
+                                ('source_production_commit', binding['source_commit'])):
+            _compare(saved[field], expected, f'ADS leaf/{field}')
+        shards.validate_binding(saved['capture_binding'], expected_context=self.capture_context)
+        shards.compare_binding(binding, saved['capture_binding'])
+        for field in ('source_receipt_sha256', 'capture_rustc_sha256'):
+            _compare(saved[field], self.request[field], f'ADS leaf/{field}')
+        self.packet_hash = shards._read_regular(self.source_packet)
+        _compare(saved['source_packet_sha256'], self.packet_hash, 'ADS leaf/source packet')
+        shards.verify_files(self.summary.parent, saved['files'])
+        expected = [f'{scenario}/{role}/{suffix}' for scenario in leaf.SCENARIOS for role in ROLES
+                    for suffix in ('finite-images', 'existing-validator')]
+        expected += [f'{role}/ads-placement-existing-validator' for role in ROLES]
+        expected += [f'{scenario}/same-windows-strict-parity' for scenario in leaf.SCENARIOS]
+        expected += ['all-original-and-bound-inputs-unchanged']
+        checks = saved['checks']
+        if (type(checks) is not list or any(type(row) is not dict for row in checks)
+                or [row.get('name') for row in checks] != expected
+                or any(row.get('passed') is not True for row in checks)):
+            raise ValueError('ADS leaf must retain every successful revalidation check')
+        for row in checks:
+            fields = {'name', 'passed'} if row['name'] == expected[-1] else {'name', 'passed', 'result'}
+            shards._exact_keys(row, fields, 'ADS leaf check')
+            if 'result' in fields and (type(row['result']) is not dict or not row['result']):
+                raise ValueError('ADS leaf check requires its complete result')
+        shards._exact_keys(saved['source_fallback'], ROLES, 'ADS leaf source fallback')
+        if (any(type(value) is not list for value in saved['source_fallback'].values())
+                or not any(saved['source_fallback'].values())):
+            raise ValueError('ADS leaf must retain an exercised source correction')
+        original = self.summary.parent / 'original-verdicts'
+        _compare(shards._read_regular(original / 'input-manifest.json'), shards._read_regular(input_manifest),
+                 'ADS leaf/original full input manifest')
+        shards._exact_keys(saved['original_capture_verdicts'], leaf.SCENARIOS, 'ADS leaf original verdicts')
+        preserved = evidence / 'original-verdicts'
+        preserved.mkdir()
+        self.original_reports = {}
+        for scenario in leaf.SCENARIOS:
+            folder = incoming / scenario
+            report = read_shard(folder, scenario, binding, expected_context=self.capture_context)
+            digest = shards._read_regular(folder / 'summary.json')
+            _compare(saved['original_capture_verdicts'][scenario],
+                     {'summary_sha256': digest, 'passed': report['passed'], 'status': report['status']},
+                     f'ADS leaf/original {scenario} summary')
+            _compare(shards._read_regular(original / f'{scenario}-summary.json'), digest,
+                     f'ADS leaf/retained {scenario} summary bytes')
+            self.original_hashes[scenario] = digest
+            self.original_reports[scenario] = report
+            shutil.copyfile(folder / 'summary.json', preserved / f'{scenario}-summary.json')
+            # Every retained native frame/sidecar must be the same original
+            # bytes; verification.json is a newly derived validator outcome.
+            for role in ROLES:
+                relative = report['capture_paths'][role]
+                destination = f'assembled/{role}/{CASES[scenario].baseline}'
+                for name, raw_hash in report['files'].items():
+                    if name.startswith(relative + '/') and name != relative + '/verification.json':
+                        key = destination + name[len(relative):]
+                        _compare(saved['files'].get(key), raw_hash, f'ADS leaf/native bytes/{key}')
+        shard_pass(self.original_reports['ads-gameplay'])
+        eligibility = offset_correction_eligibility(self.original_reports['ads-offset'])
+        shutil.copyfile(self.summary, evidence / 'ads-source-leaf-summary.json')
+        self.saved = saved
+        return {'leaf_summary_sha256': self.leaf_hash, 'capture_context': self.capture_context,
+                'leaf_verifier_context': self.leaf_verifier_context,
+                'verifier_context': self.verifier_context, 'capture_binding': binding,
+                'source_receipt_sha256': self.request['source_receipt_sha256'],
+                'capture_rustc_sha256': self.request['capture_rustc_sha256'],
+                'source_packet_sha256': self.packet_hash, 'original_capture_verdicts': saved['original_capture_verdicts'],
+                **eligibility}
+
+    def prepare(self, folder, report, assembled, binding):
+        import revalidate_ads_offset as leaf
+        if not hasattr(self, 'saved'):
+            raise ValueError('validated ADS leaf unavailable')
+        eligibility = offset_correction_eligibility(report)
+        self.invocations, self.folders = {}, {}
+        self.probe_adapter = stock_probe(folder, report, assembled)
+        for role in ROLES:
+            self.invocations[role] = leaf.exact_invocation(folder, report, role, 'ads-offset')
+            relative = CASES['ads-offset'].baseline if role == 'windows-legacy' else 'ads-offset'
+            destination = assembled / role / relative
+            copy_verified(folder / report['capture_paths'][role], destination)
+            self.folders[role] = destination
+        self.packet = leaf.source_binding.bind_source_packet(self.source_packet,
+            expected_receipt_sha256=self.request['source_receipt_sha256'],
+            expected_compiler_sha256=self.request['capture_rustc_sha256'], native_binding=binding,
+            original_invocations=self.invocations, native_frame_dirs=self.folders,
+            native_offset_settings=folder / 'ads-offset.cfg')
+        _compare(self.saved['source_profiles'], self.packet.headers_by_role, 'ADS leaf/source profiles')
+        self.fallback = leaf.AdsOffsetFallback(self.packet, self.folders)
+        self.eligibility = eligibility
+        return eligibility
+
+    def copy_role(self, folder, report, role, assembled, binding, process, root):
+        import revalidate_ads_offset as leaf
+        if self.fallback is None:
+            raise ValueError('bound ADS source correction unavailable')
+        destination = self.folders[role]
+        identity = shard_runner.role_witness_identity(binding, 'ads-offset', role)
+        count = shards.PROFILES['ads-offset']['expected_frames']
+        # Independently establish that the old failure is exactly the typed
+        # generic image predicate; any metadata/witness/decode error escapes.
+        failed = False
+        try:
+            shard_runner.validate_role_images(destination, role, count, expected_witness_identity=identity)
+        except shard_runner.CaptureStructureError:
+            failed = True
+        if failed != (role in self.eligibility['failed_image_roles']):
+            raise ValueError('original ADS image failure does not recur on its bound native bytes')
+        validated = shard_runner.validate_role_images(destination, role, count,
+            expected_witness_identity=identity, source_visibility=self.fallback)
+        logs = folder / 'logs' / f'{role}-capture'
+        if role == 'windows-legacy':
+            adapter = legacy_logs(logs)
+            if adapter != self.probe_adapter or validated['adapter'] != adapter:
+                raise ValueError('ADS stock probe, replay log and sidecar adapters differ')
+            profile = leaf.native_gl_profile(folder, binding, adapter, self.invocations[role])
+            _compare(self.saved['actual_gl_profile'], profile, 'ADS leaf/actual native GL profile')
+        else:
+            authored.renderer_logs(logs)
+        if role not in self.eligibility['failed_image_roles']:
+            rows = require_checks(report, [f'{role}/finite-images', f'{role}/existing-validator'])
+            result = rows[f'{role}/finite-images']['result']
+            if type(result.get('frames')) is not int or result['frames'] != count or result.get('all_images_checked') is not True:
+                raise ValueError('ADS original successful image receipt is incomplete')
+            old_verdict = authored.successful_report(destination / 'verification.json', sorted(destination.glob('*.png')))
+            validator_receipt(folder / 'logs' / f'{role}-validator', CASES['ads-offset'], report['capture_paths'][role], old_verdict)
+        log = assembled.parent / 'logs' / f'ads-offset-{role}-corrected-validator'
+        process([sys.executable, str(root / 'tools' / CASES['ads-offset'].validator), str(destination)], log)
+        verdict = authored.successful_report(destination / 'verification.json', sorted(destination.glob('*.png')))
+        if verdict.get('schema') != 'rust-duty-native-ads-capture/v1' or type(verdict.get('frames')) is not int or verdict['frames'] != count:
+            raise ValueError('corrected ADS existing validator report incomplete')
+        _compare(verdict, read_record(log / 'stdout.log'), 'corrected ADS validator stdout/report')
+        return {**validated, 'path': destination.relative_to(assembled.parent).as_posix(),
+                'existing_validator': verdict, 'source_fallback': self.fallback.records[role],
+                'original_checks_preserved': True}
+
+    def verify_unchanged(self):
+        if self.packet is None or self.fallback is None:
+            raise ValueError('complete bound ADS correction unavailable')
+        if not any(self.fallback.records.values()):
+            raise ValueError('ADS source correction did not exercise a coverage/structure correction')
+        self.packet.verify_unchanged()
+        shards.verify_files(self.summary.parent, self.saved['files'])
+        _compare(shards._read_regular(self.summary), self.leaf_hash, 'unchanged ADS leaf summary')
+        _compare(shards._read_regular(self.source_packet), self.packet_hash, 'unchanged ADS source packet')
+
+
 def run(root, incoming, legacy_linux, evidence, input_manifest, timeout=900, *,
-        historical_manifest, run_timeout=2400):
+        historical_manifest, run_timeout=2400, ads_source_supplement=None):
     root, incoming, legacy_linux, evidence, input_manifest, historical_manifest = [Path(path).absolute() for path in
         (root, incoming, legacy_linux, evidence, input_manifest, historical_manifest)]
-    for source in (incoming, legacy_linux):
+    supplement = AdsSourceSupplement(ads_source_supplement) if ads_source_supplement is not None else None
+    capture_context = supplement.capture_context if supplement else None
+    sources = [incoming, legacy_linux]
+    if supplement:
+        sources += [supplement.summary.parent, supplement.source_packet.parent]
+    for source in sources:
         if evidence.resolve().is_relative_to(source.resolve()) or source.resolve().is_relative_to(evidence.resolve()):
             raise ValueError('evidence must be disjoint from incoming artifact trees')
     evidence.mkdir(parents=True, exist_ok=False)
@@ -395,7 +627,10 @@ def run(root, incoming, legacy_linux, evidence, input_manifest, timeout=900, *,
               'automated_landmark_gate': 'open', 'human_visual_gate': 'open', 'real_gpu_playtest_gate': 'open',
               'started_at': datetime.now(timezone.utc).isoformat(), 'current_check': None,
               'elapsed_seconds': 0, 'run_timeout_seconds': run_timeout if math.isfinite(run_timeout) else None,
-              'budget_exhausted': False, 'binding': None, 'expected_checks': expected_checks(), 'checks': [], 'diagnostics': []}
+              'budget_exhausted': False, 'binding': None,
+              'expected_checks': expected_checks(ads_source_supplement=supplement is not None), 'checks': [], 'diagnostics': []}
+    if supplement:
+        report.update(capture_context=capture_context, verifier_context=supplement.verifier_context)
     summary = evidence / 'summary.json'
     authored.write_json(summary, report)
 
@@ -444,13 +679,21 @@ def run(root, incoming, legacy_linux, evidence, input_manifest, timeout=900, *,
         if not math.isfinite(timeout) or timeout <= 0:
             raise ValueError('timeout must be finite and positive')
         input_manifest_hash = authored.sha256(input_manifest)
-        binding = validated_manifest(input_manifest, root)
+        binding = validated_manifest(input_manifest, root, expected_context=capture_context)
         report['binding'] = binding
         shutil.copyfile(input_manifest, evidence / 'input-manifest.json')
         return binding
     check('validated-inputs', inputs)
 
     check('exact-nine-shards', lambda: validate_shard_set(incoming))
+    if supplement:
+        def load_supplement():
+            if binding is None:
+                raise ValueError('validated full input manifest unavailable')
+            result = supplement.load(binding, incoming, input_manifest, evidence)
+            report['ads_source_supplement'] = result
+            return result
+        check('ads-source-supplement/bound-leaf', load_supplement)
     loaded, available, source_hashes = {}, set(), {}
     assembled = evidence / 'assembled'
     for scenario in shards.SCENARIOS:
@@ -458,18 +701,27 @@ def run(root, incoming, legacy_linux, evidence, input_manifest, timeout=900, *,
         def load(scenario=scenario, folder=folder):
             if binding is None:
                 raise ValueError('validated input manifest unavailable')
-            loaded[scenario] = read_shard(folder, scenario, binding)
+            loaded[scenario] = read_shard(folder, scenario, binding, expected_context=capture_context)
             source_hashes[scenario] = authored.sha256(folder / 'summary.json')
+            if supplement and scenario in supplement.original_hashes:
+                _compare(source_hashes[scenario], supplement.original_hashes[scenario],
+                         f'{scenario}: original summary changed after supplement intake')
             return {'scenario': scenario, 'files': len(loaded[scenario]['files'])}
         check(f'{scenario}/artifact-integrity', load)
-        check(f'{scenario}/local-checks', lambda scenario=scenario: shard_pass(loaded[scenario]))
+        corrected = supplement is not None and scenario == 'ads-offset'
+        if corrected:
+            check(f'{scenario}/source-correction-eligibility',
+                  lambda: supplement.prepare(folder, loaded['ads-offset'], assembled, binding))
+        else:
+            check(f'{scenario}/local-checks', lambda scenario=scenario: shard_pass(loaded[scenario]))
         if scenario in CASES:
             for role in ROLES:
                 def role_copy(scenario=scenario, role=role, folder=folder):
-                    result = copy_role(folder, loaded[scenario], role, assembled, binding)
+                    result = (supplement.copy_role(folder, loaded[scenario], role, assembled, binding, process, root)
+                              if corrected else copy_role(folder, loaded[scenario], role, assembled, binding))
                     available.add((scenario, role))
                     return result
-                check(f'{scenario}/{role}/assembled-evidence', role_copy)
+                check(f'{scenario}/{role}/{"corrected-assembled-evidence" if corrected else "assembled-evidence"}', role_copy)
         else:
             check('lighting-orientation/assembled-evidence', lambda folder=folder: copy_auxiliary(folder, loaded['lighting-orientation'], assembled))
 
@@ -550,9 +802,11 @@ def run(root, incoming, legacy_linux, evidence, input_manifest, timeout=900, *,
                 raise ValueError('historical manifest changed during aggregation')
         if binding is None:
             raise ValueError('validated input manifest unavailable')
-        shards.compare_binding(binding, validated_manifest(input_manifest, root))
+        shards.compare_binding(binding, validated_manifest(input_manifest, root, expected_context=capture_context))
         if authored.sha256(input_manifest) != input_manifest_hash:
             raise ValueError('input manifest changed during aggregation')
+        if supplement:
+            supplement.verify_unchanged()
         return {'incoming_artifacts_unchanged': True}
     check('inputs-unchanged', immutable)
     report['passed'] = ([row['name'] for row in report['checks']] == report['expected_checks']
@@ -561,6 +815,8 @@ def run(root, incoming, legacy_linux, evidence, input_manifest, timeout=900, *,
     report.update(status='passed' if report['passed'] else 'failed', current_check=None,
                   elapsed_seconds=round(time.monotonic() - started, 6),
                   scope='Automated same-Windows renderer parity only. Historical Linux numeric differences are diagnostics. Landmark, human visual and real-GPU gates remain open.')
+    if supplement:
+        report['scope'] += ' ADS-offset coverage/structure uses receipt-bound conditional source visibility; the original failed verdict is preserved.'
     authored.write_json(summary, report)
     return report
 
@@ -593,12 +849,15 @@ def main(argv=None):
     parser.add_argument('--evidence', type=Path, required=True)
     parser.add_argument('--input-manifest', type=Path, required=True)
     parser.add_argument('--historical-manifest', type=Path, required=True)
+    parser.add_argument('--ads-source-supplement', type=Path,
+                        help='Explicit ADS leaf request JSON: leaf_summary, source_packet, independent receipt/compiler SHA256 anchors, capture_context, leaf_verifier_context, verifier_context. Paths are relative to the current directory.')
     parser.add_argument('--timeout', type=float, default=900)
     parser.add_argument('--run-timeout', type=float, default=2400)
     args = parser.parse_args(argv)
     try:
         report = run(args.root, args.shards, args.legacy_linux, args.evidence, args.input_manifest,
-                     args.timeout, historical_manifest=args.historical_manifest, run_timeout=args.run_timeout)
+                     args.timeout, historical_manifest=args.historical_manifest, run_timeout=args.run_timeout,
+                     ads_source_supplement=read_record(args.ads_source_supplement) if args.ads_source_supplement else None)
     except (OSError, ValueError, subprocess.TimeoutExpired) as error:
         print(f'authored shard aggregation failed: {error}', file=sys.stderr)
         return 1

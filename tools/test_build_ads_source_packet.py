@@ -1,6 +1,8 @@
 """Producer guard and CI contract tests. No native source execution is claimed."""
 from copy import deepcopy
+import contextlib
 import hashlib
+import io
 import json
 import os
 from pathlib import Path
@@ -183,6 +185,30 @@ class ProducerGuards(unittest.TestCase):
         result = producer.recover_compiler(log, CAPTURE)
         self.assertEqual(result['toolchain'], TOOLCHAIN)
         self.assertEqual(result['rustc_sha256'], COMPILER_SHA)
+
+    def test_compiler_cli_retains_ansi_log_bytes_only_in_redirected_evidence(self):
+        source = self.root / 'catalog.json'
+        source.write_bytes((json.dumps(catalog()) + '\n').encode())
+        output = self.root / 'compiler-recovery'
+        original = b'\x1b[36moriginal ANSI-colored command\x1b[0m\n' + self.compiler_log()
+
+        def github_cli(command, **kwargs):
+            self.assertEqual(command, ['gh', 'api', '--allow-escape-sequences',
+                '/repos/RHS059/rust_duty/actions/jobs/112121396166/logs'])
+            self.assertNotIn('shell', kwargs)
+            kwargs['stdout'].write(original)
+            return SimpleNamespace(returncode=0)
+
+        shown = io.StringIO()
+        with patch.object(producer.subprocess, 'run', side_effect=github_cli) as call, \
+                patch.dict(os.environ, {'GITHUB_OUTPUT': str(self.root / 'step-output')}, clear=True), contextlib.redirect_stdout(shown):
+            producer.main(['recover-compiler', '--catalog', str(source), '--output', str(output),
+                '--capture-source', CAPTURE['source_commit'], '--capture-run-id', CAPTURE['run_id'],
+                '--capture-run-attempt', CAPTURE['run_attempt']])
+        self.assertEqual(call.call_count, 1)
+        self.assertEqual((output / 'original-authored-inputs.log').read_bytes(), original)
+        self.assertNotIn('\x1b', shown.getvalue())
+        self.assertEqual(json.loads((output / 'compiler-recovery.json').read_text())['rustc_sha256'], COMPILER_SHA)
 
     def test_verified_verbose_header_and_release_must_agree(self):
         changed = COMPILER.replace(b'release: 1.90.0', b'release: 1.91.0')

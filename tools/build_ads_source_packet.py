@@ -506,7 +506,8 @@ def main(argv=None):
         if args.command == 'recover-compiler':
             require(not args.output.exists(), 'refusing existing compiler evidence directory')
             args.output.mkdir(parents=True)
-            command = ['gh', 'api', f'/repos/{args.repository}/actions/jobs/{job["id"]}/logs']
+            command = ['gh', 'api', '--allow-escape-sequences',
+                       f'/repos/{args.repository}/actions/jobs/{job["id"]}/logs']
             # gh follows the official endpoint's download redirect. A denied
             # read fails once; no alternate route or archive retry is attempted.
             with (args.output / 'original-authored-inputs.log').open('xb') as out, (args.output / 'download-errors.log').open('xb') as err:
