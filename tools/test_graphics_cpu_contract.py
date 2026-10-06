@@ -37,7 +37,8 @@ class SourceAndProviderTests(unittest.TestCase):
 
     def test_exact_fixture_repair_retains_current_and_compiled_source_identities(self):
         name = 'src/asset_path.rs'
-        repaired = (Path(__file__).resolve().parents[1] / name).read_bytes()
+        # Normalize the checkout-derived fixture; current_checkout still rejects raw CRLF.
+        repaired = (Path(__file__).resolve().parents[1] / name).read_bytes().replace(b'\r\n', b'\n')
         original = runner.finite_source._asset_path_test_base(repaired)
         pins = runner.finite_source.ASSET_PATH_TEST_FIX
         expected = {name: original}
@@ -58,7 +59,7 @@ class SourceAndProviderTests(unittest.TestCase):
 
     def test_fixture_repair_mapping_rejects_mutated_or_renamed_source(self):
         name = 'src/asset_path.rs'
-        repaired = (Path(__file__).resolve().parents[1] / name).read_bytes()
+        repaired = (Path(__file__).resolve().parents[1] / name).read_bytes().replace(b'\r\n', b'\n')
         original = runner.finite_source._asset_path_test_base(repaired)
         mutations = (
             repaired.replace(b'return WeaponSource::Procedural;', b'return WeaponSource::Embedded;'),

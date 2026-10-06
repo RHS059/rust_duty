@@ -1,0 +1,276 @@
+name: Bounded Windows real-game WARP matrix
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/performance-matrix-feedback.yml'
+      - 'tools/performance_matrix.py'
+      - 'tools/performance_matrix_driver.py'
+      - 'tools/test_performance_matrix.py'
+      - 'tools/test_performance_matrix_workflow.py'
+      - 'tools/summarize_frame_performance.py'
+      - 'tools/test_summarize_frame_performance.py'
+      - 'tools/exclusive_output.py'
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: performance-matrix-feedback-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  GIT_CONFIG_COUNT: '1'
+  GIT_CONFIG_KEY_0: core.autocrlf
+  GIT_CONFIG_VALUE_0: 'false'
+
+jobs:
+  software-diagnostic:
+    if: >-
+      github.repository == 'RHS059/rust_duty' &&
+      github.event_name == 'push' && github.ref == 'refs/heads/main' &&
+      github.run_attempt == 1
+    runs-on: windows-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - name: Check out the current matrix runner separately
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          path: verifier
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /.github/workflows/performance-matrix-feedback.yml
+            /tools/*.py
+      - name: Check out the exact packaged production source
+        uses: actions/checkout@v4
+        with:
+          ref: '49c3bf9b3d0482ce81a7d50683904bda28468d7d'
+          path: package-source
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /src/
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install the pinned workflow parser
+        run: python -m pip install PyYAML==6.0.3
+      - name: Test protocol and caller guards without starting a game
+        working-directory: verifier
+        env:
+          PYTHONPATH: tools
+        run: >-
+          python -m unittest -v test_performance_matrix test_summarize_frame_performance
+          test_performance_matrix_workflow
+      - name: Read and validate only the authorized package metadata before download
+        id: provider
+        uses: actions/github-script@v7
+        with:
+          retries: 0
+          script: |
+            const fs = require('fs');
+            const source = '49c3bf9b3d0482ce81a7d50683904bda28468d7d';
+            const repository = 'RHS059/rust_duty';
+            const runId = 37505927104;
+            const artifactId = 11432281909;
+            const check = (ok, message) => { if (!ok) throw new Error(message); };
+            check(context.repo.owner === 'RHS059' && context.repo.repo === 'rust_duty', 'Wrong current repository');
+            const artifact = (await github.rest.actions.getArtifact({
+              owner: 'RHS059', repo: 'rust_duty', artifact_id: artifactId
+            })).data;
+            const attempt = (await github.rest.actions.getWorkflowRunAttempt({
+              owner: 'RHS059', repo: 'rust_duty', run_id: runId, attempt_number: 1
+            })).data;
+            fs.mkdirSync('evidence', {recursive: true});
+            fs.writeFileSync('evidence/PROVIDER.json', JSON.stringify({artifact, attempt}, null, 2) + '\n', {flag: 'wx'});
+            check(attempt.id === runId && attempt.run_attempt === 1 && attempt.head_sha === source &&
+              attempt.head_branch === 'main' && attempt.repository?.id === 1398577887 &&
+              attempt.repository?.full_name === repository && attempt.head_repository?.id === 1398577887 &&
+              attempt.head_repository?.full_name === repository &&
+              attempt.path === '.github/workflows/windows-migration-preview.yml' &&
+              attempt.name === 'Independent migration Windows preview', 'Wrong package attempt identity');
+            check(artifact.id === artifactId &&
+              artifact.name === 'Rust-Duty-0.1.11+build.37505927104.1-DX12-Revalidated-Preview-Windows-x64' &&
+              artifact.size_in_bytes === 113472627 &&
+              artifact.digest === 'sha256:c6454a307a95a9d36583b2e6e6e8921510e01e6dce1cf5bde34d386ef0100747' &&
+              artifact.expired === false, 'Wrong, incomplete or expired package artifact');
+            check(artifact.url === `https://api.github.com/repos/${repository}/actions/artifacts/${artifactId}` &&
+              artifact.archive_download_url === `https://api.github.com/repos/${repository}/actions/artifacts/${artifactId}/zip`,
+              'Wrong artifact repository URLs');
+            const origin = artifact.workflow_run;
+            check(origin?.id === runId && origin.repository_id === 1398577887 &&
+              origin.head_repository_id === 1398577887 && origin.head_sha === source &&
+              origin.head_branch === 'main', 'Wrong artifact source/run/repository');
+            const created = Date.parse(artifact.created_at);
+            const started = Date.parse(attempt.run_started_at);
+            const expires = Date.parse(artifact.expires_at);
+            check(Number.isFinite(created) && Number.isFinite(started) && Number.isFinite(expires) &&
+              started <= created && created <= Date.now() && Date.now() < expires,
+              'Artifact dates do not bind an unexpired package to the requested attempt');
+            // Package upload is independent of later quality/comparison jobs. Their
+            // actual status is retained above; this caller never asserts full CI passed.
+            core.notice('Pinned package metadata verified. This is CPU software diagnostic evidence only.');
+      - name: Download and extract that single immutable package with digest enforcement
+        uses: actions/download-artifact@v8
+        with:
+          repository: RHS059/rust_duty
+          run-id: '37505927104'
+          artifact-ids: '11432281909'
+          github-token: ${{ github.token }}
+          merge-multiple: true
+          digest-mismatch: error
+          path: package
+      - name: Verify executable and retain distinct package and runner identities
+        id: identity
+        env:
+          PYTHONPATH: verifier/tools
+        run: |
+          @'
+          import os, platform, shutil, subprocess, sys
+          from pathlib import Path
+          import performance_matrix as m
+          source = m.source_identity(Path('package-source'))
+          m.require(source['commit'] == '49c3bf9b3d0482ce81a7d50683904bda28468d7d', 'Wrong package source checkout')
+          package = m.package_identity(Path('package/vector-range.exe'), source, 'dx12')
+          build = package['build']
+          m.require(build.get('repository') == 'RHS059/rust_duty' and
+                    build.get('target') == 'x86_64-pc-windows-msvc' and
+                    build.get('display_version') == '0.1.11+build.37505927104.1' and
+                    build['source'].get('run_id') == 37505927104 and
+                    build['source'].get('run_attempt') == 1 and build['source'].get('branch') == 'main',
+                    'Wrong packaged build identity')
+          preview = m.json_read('package/DX12_PREVIEW.json')
+          m.require(preview.get('source') == build['source'] and
+                    preview.get('display_version') == build['display_version'] and
+                    preview.get('executable_sha256') == package['executable_sha256'] and
+                    preview.get('dx12_shader_compiler') == 'Fxc', 'Preview/build identity differs')
+          settings = Path('package/settings.cfg')
+          m.require(settings.is_file() and not settings.is_symlink() and 0 < settings.stat().st_size <= 65536,
+                    'Missing or oversized packaged settings')
+          verifier = Path('verifier')
+          commit = subprocess.check_output(['git', '-C', str(verifier), 'rev-parse', 'HEAD'], text=True).strip()
+          m.require(commit == os.environ['GITHUB_SHA'], 'Runner checkout differs from triggering source')
+          paths = ('.github/workflows/performance-matrix-feedback.yml', 'tools/performance_matrix.py',
+                   'tools/performance_matrix_driver.py', 'tools/summarize_frame_performance.py',
+                   'tools/exclusive_output.py', 'tools/test_performance_matrix_workflow.py')
+          runner_files = {}
+          for name in paths:
+              path = verifier / name
+              committed = subprocess.check_output(['git', '-C', str(verifier), 'show', commit + ':' + name])
+              m.require(path.read_bytes() == committed, 'Uncommitted runner file: ' + name)
+              runner_files[name] = m.sha256(path)
+              target = Path('evidence/runner') / name
+              target.parent.mkdir(parents=True, exist_ok=True)
+              shutil.copyfile(path, target)
+          m.write_json('evidence/IDENTITY.json', {
+              'schema': 'rust-duty-windows-matrix-caller/v1',
+              'scope': 'Native DX12 WARP CPU software diagnostic; not RTX 3080 Ti or 1080p60 hardware acceptance.',
+              'package_source': source, 'package': package, 'preview': preview,
+              'settings_sha256': m.sha256(settings),
+              'runner': {'commit': commit, 'files_sha256': runner_files,
+                         'python': sys.version, 'run_id': os.environ['GITHUB_RUN_ID'],
+                         'run_attempt': os.environ['GITHUB_RUN_ATTEMPT']},
+              'compiler': {'shader': preview['dx12_shader_compiler'],
+                           'package_build_command': preview.get('cargo_build_command'),
+                           'rustc_fingerprint': None,
+                           'unavailable_reason': 'Package does not carry the original rustc -Vv fingerprint. No build or compiler substitution is performed.'},
+              'host_observed': {'system': platform.system(), 'release': platform.release(),
+                                'machine': platform.machine(), 'processor': platform.processor()},
+              'hardware_identity_source': 'Each real trace must observe a CPU adapter, exact DX12 backend, Fifo and physical client extent.',
+              'acceptance_proven': False})
+          '@ | python -
+          if ($LASTEXITCODE -ne 0) { throw 'Package/runner identity verification failed' }
+      - name: Prepare one 1080p smoke case
+        run: >-
+          python verifier/tools/performance_matrix.py prepare --repository package-source
+          --renderer dx12 --smoke --warmup-seconds 10 --sample-seconds 30
+          --output evidence/smoke-plan.json
+      - name: Run the native CPU software smoke on its existing Windows desktop
+        id: smoke
+        timeout-minutes: 4
+        run: |
+          python verifier/tools/performance_matrix.py run --plan evidence/smoke-plan.json --repository package-source --executable package/vector-range.exe --settings package/settings.cfg --force-fallback --driver win32 --output evidence/smoke --execute 2>&1 | Tee-Object -FilePath evidence/smoke-run.log
+          if ($LASTEXITCODE -ne 0) { throw 'Smoke failed; pilot must not run' }
+      - name: Independently reanalyze the complete smoke evidence
+        id: smoke_analysis
+        run: >-
+          python verifier/tools/performance_matrix.py analyze evidence/smoke
+          --output evidence/smoke-analysis.json
+      - name: Prepare the gated five-run resolution and ADS pilot
+        if: steps.smoke.outcome == 'success' && steps.smoke_analysis.outcome == 'success'
+        run: >-
+          python verifier/tools/performance_matrix.py prepare --repository package-source
+          --renderer dx12 --pilot --warmup-seconds 10 --sample-seconds 30
+          --output evidence/pilot-plan.json
+      - name: Run baseline, 720p, 1440p, ADS and baseline sequentially
+        id: pilot
+        if: steps.smoke.outcome == 'success' && steps.smoke_analysis.outcome == 'success'
+        timeout-minutes: 9
+        run: |
+          python verifier/tools/performance_matrix.py run --plan evidence/pilot-plan.json --repository package-source --executable package/vector-range.exe --settings package/settings.cfg --force-fallback --driver win32 --output evidence/pilot --execute 2>&1 | Tee-Object -FilePath evidence/pilot-run.log
+          if ($LASTEXITCODE -ne 0) { throw 'Pilot failed; retain partial evidence' }
+      - name: Independently reanalyze the complete pilot evidence
+        if: steps.pilot.outcome == 'success'
+        run: >-
+          python verifier/tools/performance_matrix.py analyze evidence/pilot
+          --output evidence/pilot-analysis.json
+      - name: Preserve an honest final summary including setup or partial-run failures
+        if: always()
+        env:
+          PYTHONPATH: verifier/tools
+          SMOKE_OUTCOME: ${{ steps.smoke.outcome }}
+          PILOT_OUTCOME: ${{ steps.pilot.outcome }}
+        run: |
+          @'
+          import json, os
+          from pathlib import Path
+          import performance_matrix as m
+          Path('evidence').mkdir(exist_ok=True)
+          report = {'schema': 'rust-duty-windows-matrix-caller-summary/v1',
+                    'scope': 'CPU software diagnostic only; no RTX or 1080p60 hardware acceptance.',
+                    'acceptance_proven': False, 'maximum_game_launches': 6,
+                    'warmup_seconds_per_case': 10, 'sample_seconds_per_case': 30, 'captures': {}}
+          for name in ('smoke', 'pilot'):
+              folder = Path('evidence') / name
+              outcome = os.environ.get(name.upper() + '_OUTCOME', 'not_run')
+              if not (folder / 'MANIFEST.json').is_file():
+                  value = {'state': 'not_run', 'workflow_step_outcome': outcome}
+              else:
+                  try:
+                      value = m.analyze_matrix(folder)
+                  except (OSError, ValueError, KeyError, TypeError) as error:
+                      value = {'state': 'incomplete', 'error': str(error)}
+                  value['workflow_step_outcome'] = outcome
+              report['captures'][name] = value
+          m.write_json('evidence/CI-SUMMARY.json', report)
+          lines = ['Native Windows WARP matrix: CPU software diagnostic only.',
+                   'Package source: 49c3bf9b3d0482ce81a7d50683904bda28468d7d.',
+                   'Runner source: ' + os.environ['GITHUB_SHA'] + '.',
+                   'No RTX 3080 Ti or 1080p60 hardware acceptance is established.']
+          for name, value in report['captures'].items():
+              lines.append(name + ': ' + value['state'] + ' (step ' + value['workflow_step_outcome'] + ').')
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a', encoding='utf-8') as stream:
+              stream.write('\n'.join(lines) + '\n')
+          '@ | python -
+          if ($LASTEXITCODE -ne 0) { throw 'Final evidence analysis failed' }
+      - name: Retain bounded raw traces, process logs, receipts and summaries
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: real-game-windows-warp-matrix-attempt-${{ github.run_attempt }}
+          path: |
+            evidence/**
+            !evidence/**/*.exe
+            !evidence/**/*.dll
+            !evidence/**/*.zip
+            !evidence/**/assets/**
+          include-hidden-files: true
+          if-no-files-found: warn
+          retention-days: 7

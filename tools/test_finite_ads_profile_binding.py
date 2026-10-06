@@ -212,7 +212,8 @@ class ProfileTests(unittest.TestCase):
 
     def test_exact_asset_path_fixture_repair_preserves_historical_source_and_packet(self):
         name = 'src/asset_path.rs'
-        raw = (Path(__file__).resolve().parents[1] / name).read_bytes()
+        # Normalize the checkout-derived fixture, not the raw packet bytes under test.
+        raw = (Path(__file__).resolve().parents[1] / name).read_bytes().replace(b'\r\n', b'\n')
         original = f._asset_path_test_base(raw)
         self.assertEqual(f._identity(raw), f.ASSET_PATH_TEST_FIX['after'])
         self.assertEqual(f._identity(original), f.ASSET_PATH_TEST_FIX['before'])
@@ -231,7 +232,7 @@ class ProfileTests(unittest.TestCase):
 
     def test_asset_path_fixture_mapping_rejects_refreshed_unreviewed_bytes(self):
         name = 'src/asset_path.rs'
-        raw = (Path(__file__).resolve().parents[1] / name).read_bytes()
+        raw = (Path(__file__).resolve().parents[1] / name).read_bytes().replace(b'\r\n', b'\n')
         self.descriptor['equivalence']['production'][name] = f.ASSET_PATH_TEST_FIX['before']
         changes = (
             (b'return WeaponSource::Procedural;', b'return WeaponSource::Embedded;'),
