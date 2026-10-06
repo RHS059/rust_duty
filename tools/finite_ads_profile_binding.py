@@ -94,6 +94,37 @@ GPU_CPU_VARIANTS = {
     },
 }
 
+# Exact cfg(test)-only fixture repair after Windows quality run 37496069740.
+# Retain the historical descriptor and map only these reviewed whole-file bytes.
+ASSET_PATH_TEST_FIX = {
+    'before': {'bytes': 6992, 'sha256': '17446ae0902b223ab89dc3488527766a5455af79179a386ab2374fc41a8fc119'},
+    'after': {'bytes': 9427, 'sha256': '8a79bd2d4dc391503d14c468cf15f4df051c400b0700090a5556bbfaf05825ec'},
+}
+ASSET_PATH_ORIGINAL_TEST_HELPER = b'''#[cfg(test)]
+mod tests {
+    use super::*;
+    struct Temp(PathBuf);
+    impl Temp {
+        fn new() -> Self {
+            let path = std::env::temp_dir().join(format!(
+                "vector bundle spaces {} {}",
+                std::process::id(),
+                std::time::SystemTime::now()
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .unwrap()
+                    .as_nanos()
+            ));
+            std::fs::create_dir_all(path.join("assets/weapons")).unwrap();
+            Self(path)
+        }
+    }
+    impl Drop for Temp {
+        fn drop(&mut self) {
+            let _ = std::fs::remove_dir_all(&self.0);
+        }
+    }
+'''
+
 EVIDENCE_KEYS = ('runner', 'native', 'gl_binding', 'opengl_empty', 'dx12_empty', 'opengl_visible', 'dx12_visible',
                  'preparation', 'before', 'after', 'executables', 'compiler_before', 'compiler_after',
                  'build_invocation', 'native_invocation')
@@ -576,11 +607,26 @@ def _bridge_base(raw):
     return original
 
 
+def _asset_path_test_base(raw):
+    # Hash the entire replacement before reconstructing the historical helper.
+    # Never strip arbitrary cfg(test) blocks or accept candidate-refreshed hashes.
+    if _identity(raw) != ASSET_PATH_TEST_FIX['after']:
+        return raw
+    start = b'#[cfg(test)]\nmod tests {\n'
+    end = b'    #[test]\n    fn locomotion_pack_is_discovered_next_to_executable()'
+    require(raw.count(start) == raw.count(end) == 1, 'ambiguous asset-path test helper')
+    original = raw[:raw.index(start)] + ASSET_PATH_ORIGINAL_TEST_HELPER + raw[raw.index(end):]
+    equal(_identity(original), ASSET_PATH_TEST_FIX['before'], 'exact historical asset-path source')
+    return original
+
+
 def _production_bytes(name, raw):
     if Path(name).suffix in ('.rs', '.toml', '.lock', '.wgsl'):
         raw = _lf(raw)
     if name == 'src/authored_viewmodel.rs':
         return _bridge_base(raw)
+    if name == 'src/asset_path.rs':
+        return _asset_path_test_base(raw)
     if name == 'src/render/mesh.rs' and preparation.MESH_START in raw:
         require(raw.count(preparation.MESH_START) == raw.count(preparation.MESH_END) == 1,
                 'ambiguous diagnostic mesh overlay')
@@ -677,6 +723,8 @@ def _packet_class(bound, packet_path, reviewed):
     for name in sorted(actual):
         raw = read(name)
         canonical = _lf(raw) if Path(name).suffix in ('.rs', '.toml', '.lock', '.wgsl') else raw
+        if name == 'src/asset_path.rs':
+            canonical = _asset_path_test_base(canonical)
         identity = source_pair.get(name, expected['production'].get(name))
         if _identity(canonical) != identity:
             # The additive bodies must themselves be the reviewed versions;

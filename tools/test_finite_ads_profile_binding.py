@@ -210,6 +210,49 @@ class ProfileTests(unittest.TestCase):
         self.assertEqual(f._production_bytes('src/render/mesh.rs', overlay), original)
         self.assertNotEqual(f._production_bytes('src/render/mesh.rs', overlay.replace(b'retained', b'changed')), original)
 
+    def test_exact_asset_path_fixture_repair_preserves_historical_source_and_packet(self):
+        name = 'src/asset_path.rs'
+        raw = (Path(__file__).resolve().parents[1] / name).read_bytes()
+        original = f._asset_path_test_base(raw)
+        self.assertEqual(f._identity(raw), f.ASSET_PATH_TEST_FIX['after'])
+        self.assertEqual(f._identity(original), f.ASSET_PATH_TEST_FIX['before'])
+        reviewed = json.loads(Path(__file__).with_name('finite_ads_reviewed_class.json').read_text())
+        self.assertEqual(f._identity(original), reviewed['equivalence']['production'][name])
+        start = b'#[cfg(test)]\nmod tests {\n'
+        end = b'    #[test]\n    fn locomotion_pack_is_discovered_next_to_executable()'
+        self.assertEqual(original[:original.index(start)], raw[:raw.index(start)])
+        self.assertEqual(original[original.index(end):], raw[raw.index(end):])
+        self.descriptor['equivalence']['production'][name] = f._identity(original)
+        for current in (original, raw, raw.replace(b'\n', b'\r\n')):
+            self.add_file(name, current)
+            self.save()
+            self.bind_class()
+            self.assertEqual(self.bound._read(self.root / self.packet['files'][name]), current)
+
+    def test_asset_path_fixture_mapping_rejects_refreshed_unreviewed_bytes(self):
+        name = 'src/asset_path.rs'
+        raw = (Path(__file__).resolve().parents[1] / name).read_bytes()
+        self.descriptor['equivalence']['production'][name] = f.ASSET_PATH_TEST_FIX['before']
+        changes = (
+            (b'return WeaponSource::Procedural;', b'return WeaponSource::Embedded;'),
+            (b'#[cfg(test)]', b'#[cfg(not(test))]'),
+            (b'NEXT_TEMP_ID', b'OTHER_TEMP_ID'),
+            (b'fn locomotion_pack_is_discovered', b'fn changed_locomotion_pack_is_discovered'),
+        )
+        for before, after in changes:
+            changed = raw.replace(before, after)
+            self.assertNotEqual(changed, raw)
+            self.add_file(name, changed)
+            self.save()
+            with self.subTest(change=before), self.assertRaisesRegex(ValueError, 'unreviewed additive/source'):
+                self.bind_class()
+        self.add_file(name, raw)
+        self.save()
+        # A descriptor with a different original source is not this mapping.
+        self.descriptor['equivalence']['production'][name] = f._identity(b'another source')
+        with self.assertRaisesRegex(ValueError, 'unreviewed additive/source'):
+            self.bind_class()
+
 
 class ReviewedEvidenceTests(unittest.TestCase):
     def setUp(self):

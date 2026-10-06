@@ -76,6 +76,33 @@ the existing reviewed bridge and checked additive overlays, and the additive
 bodies themselves must have their reviewed hashes. New production files,
 unreviewed additions or changed arithmetic source reject the class.
 
+### Exact test-fixture repair (2026-10-06)
+
+Windows quality run `37496069740`, job `112380819804`, exposed colliding
+`asset_path` test directories when parallel tests observed the same clock tick.
+The source repair replaces only the helper inside `#[cfg(test)]` with an atomic
+sequence plus exclusive directory creation and collision retry, and adds two
+regressions there. The finite binder admits exactly this reviewed file pair:
+
+| Version | Bytes | SHA-256 |
+| --- | ---: | --- |
+| Historical | 6,992 | `17446ae0902b223ab89dc3488527766a5455af79179a386ab2374fc41a8fc119` |
+| Repaired | 9,427 | `8a79bd2d4dc391503d14c468cf15f4df051c400b0700090a5556bbfaf05825ec` |
+
+The binder checks the complete repaired file before replacing the exact test
+helper with its retained original and requires the reconstructed whole-file
+identity to equal the historical descriptor. The 2,697-byte production prefix
+and 3,623-byte existing-test suffix are unchanged from main `49c3bf9b3d0482ce81a7d50683904bda28468d7d`.
+This does not discard arbitrary test blocks or accept candidate-refreshed hashes.
+Changed production, cfg attributes, helper bytes and existing tests all reject,
+even with refreshed candidate inventories. Actual packet bytes remain bound.
+
+Every historical descriptor and evidence receipt stays unchanged. All 62
+companion reuse source pins still match their committed blobs, byte counts and
+SHA-256 values; `src/asset_path.rs` is not a path in that sampler-specific lock,
+so the lock is unchanged. This excluded test-only repair needs no new native
+rendering result and grants no new production-source or runtime equivalence.
+
 All 553 source rows and complete headers are compared by a type-preserving,
 exact-decimal canonical digest, including masks, gameplay, time, mesh state and
 calibration. Only explicitly verified Windows root prefixes on the declared
