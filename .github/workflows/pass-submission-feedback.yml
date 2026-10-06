@@ -1,0 +1,96 @@
+name: Bounded Windows pass-submission comparison
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/pass-submission-feedback.yml'
+      - 'examples/pass_submission_benchmark.rs'
+      - 'tools/run_pass_submission_benchmark.py'
+      - 'tools/test_pass_submission_benchmark.py'
+      - 'tools/test_pass_submission_workflow.py'
+      - 'src/render/frame.rs'
+      - 'src/render/plan.rs'
+permissions:
+  contents: read
+concurrency:
+  group: pass-submission-feedback-${{ github.ref }}
+  cancel-in-progress: false
+env:
+  GIT_CONFIG_COUNT: '1'
+  GIT_CONFIG_KEY_0: core.autocrlf
+  GIT_CONFIG_VALUE_0: 'false'
+jobs:
+  compare:
+    if: github.repository == 'RHS059/rust_duty' && github.ref == 'refs/heads/main'
+    runs-on: windows-latest
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /Cargo.toml
+            /Cargo.lock
+            /build.rs
+            /build_number.rs
+            /LICENSE
+            /.cargo/
+            /rust-toolchain.toml
+            /src/
+            /updater/
+            /examples/renderer_contract.rs
+            /examples/pass_submission_benchmark.rs
+            /tools/
+      - name: Fetch only the two pinned comparison source commits
+        shell: pwsh
+        run: |
+          git fetch --no-write-fetch-head --no-tags --depth=1 origin 17023450076b668c279539e0e450b8cb58a7c1a2
+          if ($LASTEXITCODE -ne 0) { throw 'Baseline source retrieval failed' }
+          git fetch --no-write-fetch-head --no-tags --depth=1 origin 5abf2bca825a252fb7ad6665c444c89861ee8ef9
+          if ($LASTEXITCODE -ne 0) { throw 'Candidate source retrieval failed' }
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install the pinned image and workflow readers
+        run: python -m pip install Pillow==11.3.0 PyYAML==6.0.3
+      - name: Check source, image and workflow guards before native builds
+        env:
+          PYTHONPATH: tools
+        run: python -m unittest -v test_pass_submission_benchmark test_pass_submission_workflow
+      - name: Install the exact comparison compiler
+        shell: pwsh
+        run: |
+          rustup toolchain install 1.99.0-x86_64-pc-windows-msvc --profile minimal
+          if ($LASTEXITCODE -ne 0) { throw 'Pinned compiler installation failed' }
+      - name: Compare the unchanged production contract and bounded submit trials
+        timeout-minutes: 48
+        run: >-
+          python tools/run_pass_submission_benchmark.py --repository .
+          --candidate-root . --output-dir evidence/pass-submission
+      - name: Retain complete comparison evidence and executables
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pass-submission-full-attempt-${{ github.run_attempt }}
+          path: |
+            evidence/pass-submission/**
+            !evidence/pass-submission/target/**
+            !evidence/pass-submission/temp/**
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Retain bounded source, pixel and timing review evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pass-submission-review-attempt-${{ github.run_attempt }}
+          path: |
+            evidence/pass-submission/*.json
+            evidence/pass-submission/*.txt
+            evidence/pass-submission/*.log
+            evidence/pass-submission/*-source/**
+            evidence/pass-submission/verifier/**
+            evidence/pass-submission/*-renderer-contract/**
+            evidence/pass-submission/pair-*/**
+          if-no-files-found: warn
+          retention-days: 14
