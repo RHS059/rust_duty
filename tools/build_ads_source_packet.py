@@ -211,7 +211,7 @@ def execution_environment(source, toolchain, environment=None):
     # Cargo walks ancestors and the selected CARGO_HOME. Configuration there
     # could silently replace the compiler or CPU flags despite a clean checkout.
     folders = [source, *source.parents]
-    cargo_home = Path(env.get('CARGO_HOME', str(Path.home() / '.cargo')))
+    cargo_home = Path(env['CARGO_HOME']) if 'CARGO_HOME' in env else Path.home() / '.cargo'
     configs = [folder / '.cargo' / name for folder in folders for name in ('config', 'config.toml')]
     configs += [cargo_home / name for name in ('config', 'config.toml')]
     require(not any(path.exists() or path.is_symlink() for path in configs), 'unreviewed Cargo configuration exists')

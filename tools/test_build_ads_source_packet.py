@@ -241,6 +241,33 @@ class ProducerGuards(unittest.TestCase):
                 producer.execution_environment(source, TOOLCHAIN, env)
             path.unlink()
 
+    def test_explicit_cargo_home_works_without_a_user_home_and_remains_checked(self):
+        cargo_home = self.root / 'cargo-home'
+        cargo_home.mkdir()
+        env = {'CARGO_HOME': str(cargo_home), 'RUSTUP_TOOLCHAIN': 'existing-toolchain'}
+        with patch.dict(os.environ, env, clear=True), \
+                patch.object(producer.Path, 'home', side_effect=RuntimeError('Could not determine home directory.')):
+            self.assertEqual(producer.execution_environment(self.root, TOOLCHAIN),
+                             {**env, 'RUSTUP_TOOLCHAIN': TOOLCHAIN})
+            self.assertEqual(dict(os.environ), env)
+            for name in ('config', 'config.toml'):
+                path = cargo_home / name
+                path.write_text('[build]\nrustflags = ["-Ctarget-cpu=native"]\n')
+                with self.subTest(name=name), self.assertRaisesRegex(ValueError, 'Cargo configuration'):
+                    producer.execution_environment(self.root, TOOLCHAIN)
+                path.unlink()
+
+    def test_default_cargo_home_configuration_is_still_rejected(self):
+        home = self.root / 'user-home'
+        cargo_home = home / '.cargo'
+        cargo_home.mkdir(parents=True)
+        with patch.object(producer.Path, 'home', return_value=home):
+            self.assertEqual(producer.execution_environment(self.root, TOOLCHAIN, {}),
+                             {'RUSTUP_TOOLCHAIN': TOOLCHAIN})
+            (cargo_home / 'config.toml').write_text('[build]\nrustflags = ["-Ctarget-cpu=native"]\n')
+            with self.assertRaisesRegex(ValueError, 'Cargo configuration'):
+                producer.execution_environment(self.root, TOOLCHAIN, {})
+
     def test_only_reviewed_additive_bridge_regions_can_replace_original(self):
         original = ('struct Model {}\nimpl AuthoredViewmodel {\n'
                     '    /// Loads CPU mesh and texture descriptors without requiring a render context.\n'
