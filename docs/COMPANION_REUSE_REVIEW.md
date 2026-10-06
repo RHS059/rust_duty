@@ -138,3 +138,73 @@ The new native presentation fixture selects it explicitly and suppresses automat
 authored loading; ordinary authored validation keeps every existing companion and
 replay. This audit permits the exact additive tree, not arbitrary future asset
 changes, and does not claim new generation/source-oracle parity or native success.
+
+## Graphics-device registration eligibility addendum (2026-10-06)
+
+Reviewed source is main `5f5de8c008fdcfc0bdd6f6b0d84a5c14ad6a9707`.
+Windows preview run `37494031701` stopped at the source guard before game
+compilation. Auditing **all 61 existing source rows** found exactly one mismatch:
+`src/lib.rs` gained only `pub mod graphics_device;` in
+`ebf4bcb7f489766e3c7ec188c35db9bb4146c62b`. The old lock reproduces
+`current source Git identity mismatch: src/lib.rs` through `verify_source`.
+The other 60 rows and eligible assets tree are unchanged.
+
+The narrow refresh binds these exact current identities:
+
+| Path | Bytes | SHA-256 | Git blob |
+| --- | ---: | --- | --- |
+| `src/lib.rs` | 1,726 | `d99219a4e4fcc06d73d3841b0b6d6fa40edcb4ac2aa5e1882cd5f66cda7284b1` | `b2873bf2dbe7f8785402dab7b7e078920357231f` |
+| `src/graphics_device.rs` | 18,112 | `731d3ad664ed8b8cc358e19f7ec321646af8fbe50872ccf63322128264418e8b` | `7e8d180025a490b7b0d280b1eaca563d9243cb05` |
+
+The new module imports `draw::BackendInfo`, `platform::launch::LaunchOptions`,
+the already locked `serde_json`, and the standard library. Its session is a
+lazy `thread_local!` initialized only on explicit access. The default session
+does not read settings or create a device. File reads/writes are explicit
+`Preference::load`, `Preference::save`, launch, and menu operations; callers
+are the game entry point, pause menu, application diagnostics and renderer.
+Native adapter enumeration in `ensure_catalog` is guarded by `wgpu-runtime`,
+which the production `--no-default-features` sampler build does not enable.
+There is no startup constructor, global allocator, replacement symbol, new
+external dependency, or sampler call into this module.
+
+The complete CPU probe call path remains the reviewed example into
+`viewmodel_animation`, `asset`, and `skinned_asset`, using `glam` and standard
+library operations. Those four files, `Cargo.toml`, `Cargo.lock`, and `build.rs`
+retain their exact pins. The GPU/CPU feature commit's other game, UI, and
+renderer edits do not enter that call path. This establishes source eligibility
+for these reused companions, not whole-game build equivalence or acceptance
+of the new graphics-device behavior.
+
+The [complete historical tree](https://api.github.com/repos/RHS059/rust_duty/git/trees/fbf6c33df03c155e23f75d485660b7648ee36024?recursive=1)
+was checked with `truncated: false`: `src/graphics_device.rs` is absent, so its
+new row has `origin_absent: true` and no invented `origin_sha256`. All 58
+historical origin digests were rechecked against origin Git blobs: 56 match
+unchanged local bytes, and the historical library and package tool were read
+at the exact tested merge. All 58 historical values remain unchanged.
+
+The lock now contains 62 source rows. Only the existing library's current
+identity/review note, the new current-only graphics module, and the reviewed
+source commit change. The origin object, five exact ZIP digests and complete
+member inventories, external Jump identity, eligible assets tree, limits,
+and acceptance statement are byte-for-byte equivalent JSON values. The
+validator adds mandatory library and graphics-module paths; every validator
+function AST remains unchanged, including both early and late source checks.
+
+Executed on this exact source plus the four-file eligibility patch:
+
+- Passed: all 62 current committed blob, worktree byte-count and SHA-256 pins;
+  all preserved historical identities and immutable lock sections.
+- Passed: 47 Python tests in `test_revalidate_reused_companions`,
+  `test_fetch_source_bound_companions`, `test_windows_recovery_workflow`, and
+  `test_windows_migration_preview_workflow`; temporary fixtures used the workspace.
+  Real-Git cases cover the stale registration, exact refresh, worktree edits,
+  committed edits with restored worktree bytes, and a graphics-module edit
+  after validators finish that must not publish a success receipt. Omitting
+  either the library or graphics-module lock row fails validation.
+- Passed: `git diff --check` and comparison proving the registration is the
+  only library change and all source-verifier functions are unchanged.
+- Not run: full five-ZIP extraction/revalidation, external Jump byte validation,
+  asset generation, fresh source-oracle parity, Rust compilation, or native
+  Windows execution. Original ZIPs and the external Jump file are not available
+  in this checkout. The Windows workflow must still validate those exact inputs
+  and perform its separate build and native checks before claiming success.

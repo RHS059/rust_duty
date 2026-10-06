@@ -7,7 +7,7 @@
     "head_sha": "72663e2b18dda818c800dec96af1ce452dbdd4da",
     "tested_merge": "fbf6c33df03c155e23f75d485660b7648ee36024"
   },
-  "reviewed_source_commit": "a2fc4734b7f1afcdc92e46d3d813a423fd1d119e",
+  "reviewed_source_commit": "5f5de8c008fdcfc0bdd6f6b0d84a5c14ad6a9707",
   "eligible_assets_tree": "a691466f735dee7861b3476d700572255ed2cae5",
   "source_files": [
     {
@@ -273,12 +273,20 @@
       "reviewed_difference": "Current-only binding for the reviewed GPU telemetry module registration. This path does not exist at origin.tested_merge, so no origin_sha256 is asserted. Not called by sample_viewmodel_clip; see docs/COMPANION_REUSE_REVIEW.md."
     },
     {
+      "path": "src/graphics_device.rs",
+      "bytes": 18112,
+      "sha256": "731d3ad664ed8b8cc358e19f7ec321646af8fbe50872ccf63322128264418e8b",
+      "git_blob": "7e8d180025a490b7b0d280b1eaca563d9243cb05",
+      "origin_absent": true,
+      "reviewed_difference": "New current-only graphics-device preferences module registered by lib.rs. Its explicit launch/UI file operations and lazy thread-local session are unreachable from sample_viewmodel_clip; native adapter discovery is gated behind wgpu-runtime, disabled in the production CPU sampler. No startup constructor or exported replacement symbol. See docs/COMPANION_REUSE_REVIEW.md."
+    },
+    {
       "path": "src/lib.rs",
-      "bytes": 1701,
-      "sha256": "090d44a59fb9b4d6de1a98e6199f157afce88ed81a1930395675ee542d6217cc",
-      "git_blob": "962e4d27791833bc516c308a54d6045979039251",
+      "bytes": 1726,
+      "sha256": "d99219a4e4fcc06d73d3841b0b6d6fa40edcb4ac2aa5e1882cd5f66cda7284b1",
+      "git_blob": "b2873bf2dbe7f8785402dab7b7e078920357231f",
       "origin_sha256": "b8be3461113a2967b93959878a744b8380cc296a1cb1b7eb770417edd0a5c551",
-      "reviewed_difference": "Adds performance, public UI/HUD, and opt-in GPU telemetry module exports; asset parser and sampler modules unchanged. Since bb496492 the only lib.rs change is pub mod gpu_telemetry. The three new production telemetry modules are separately pinned as current-only inputs, are absent at the artifact origin, and are not called by the CPU sampler. See docs/COMPANION_REUSE_REVIEW.md. This is not an exact historical build-cache hit."
+      "reviewed_difference": "Adds performance, public UI/HUD, opt-in GPU telemetry, and graphics-device module exports; asset parser and sampler modules unchanged. Since a2fc4734 the only lib.rs change is pub mod graphics_device. The three telemetry modules and graphics-device module are separately pinned as current-only inputs, are absent at the artifact origin, and are not called by the CPU sampler. See docs/COMPANION_REUSE_REVIEW.md. This is not an exact historical build-cache hit."
     },
     {
       "path": "src/skinned_asset.rs",

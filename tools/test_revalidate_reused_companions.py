@@ -46,7 +46,7 @@ class ReuseTests(unittest.TestCase):
     def test_production_lock_and_metadata(self):
         reuse.validate_lock(self.lock)
         reuse.validate_metadata(self.metadata, self.lock)
-        self.assertEqual(61, len(self.lock['source_files']))
+        self.assertEqual(62, len(self.lock['source_files']))
         self.assertEqual(58, sum('origin_sha256' in row for row in self.lock['source_files']))
         self.assertEqual(28, len(self.lock['artifacts'][0]['members']))
         self.assertEqual(75, sum(len(a['members']) for a in self.lock['artifacts']))
@@ -64,7 +64,7 @@ class ReuseTests(unittest.TestCase):
     def test_current_only_modules_do_not_claim_historical_bytes(self):
         current_only = {row['path']: row for row in self.lock['source_files']
                         if row.get('origin_absent') is True}
-        self.assertEqual(set(current_only), {'src/gpu_telemetry.rs',
+        self.assertEqual(set(current_only), {'src/graphics_device.rs', 'src/gpu_telemetry.rs',
             'src/gpu_telemetry/counters.rs', 'src/gpu_telemetry/windows.rs'})
         for row in current_only.values():
             self.assertNotIn('origin_sha256', row)
@@ -89,7 +89,7 @@ class ReuseTests(unittest.TestCase):
             command('commit', '-qm', 'Original isolated guard fixture')
             return command('rev-parse', 'HEAD')
 
-        paths = ('src/lib.rs', 'src/gpu_telemetry.rs',
+        paths = ('src/lib.rs', 'src/graphics_device.rs', 'src/gpu_telemetry.rs',
                  'src/gpu_telemetry/counters.rs', 'src/gpu_telemetry/windows.rs',
                  'examples/sample_viewmodel_clip.rs')
         for path in (*paths, 'assets/source.blend'):
@@ -107,7 +107,7 @@ class ReuseTests(unittest.TestCase):
         reuse.verify_source(root, original_commit, jump, lock)
 
         path = root / paths[0]
-        path.write_bytes(path.read_bytes() + b'pub mod gpu_telemetry;\n')
+        path.write_bytes(path.read_bytes() + b'pub mod graphics_device;\n')
         refreshed_commit = commit()
         with self.assertRaisesRegex(ValueError, 'current source Git identity mismatch: src/lib.rs'):
             reuse.verify_source(root, refreshed_commit, jump, lock)
@@ -136,6 +136,7 @@ class ReuseTests(unittest.TestCase):
     def test_mandatory_source_omission_and_jump_relocation(self):
         for key in ('assets/source/reload/current.blend', 'tools/vrview.py',
                     'assets/authoring/locomotion_directional/r5/source_integrity.json',
+                    'src/lib.rs', 'src/graphics_device.rs',
                     'src/gpu_telemetry.rs', 'src/gpu_telemetry/counters.rs',
                     'src/gpu_telemetry/windows.rs'):
             lock = copy.deepcopy(self.lock)
@@ -356,6 +357,36 @@ class ReuseTests(unittest.TestCase):
             return []
         with mock.patch.object(reuse, 'verify_source'), mock.patch.object(reuse, 'run_validators', side_effect=mutate):
             with self.assertRaisesRegex(ValueError, 'modified'): reuse.revalidate(args)
+        self.assertFalse(args.output.exists())
+
+    def test_late_current_only_source_edit_never_publishes_success(self):
+        args = self.args_fixture()
+        root = args.source_root
+        subprocess.run(['git', 'init', '-q', str(root)], check=True, capture_output=True)
+        subprocess.run(['git', '-C', str(root), '-c', 'core.autocrlf=false',
+                        'add', '.'], check=True, capture_output=True)
+        subprocess.run(['git', '-C', str(root), '-c', 'user.name=Companion guard test',
+                        '-c', 'user.email=companion-guard@example.invalid', 'commit',
+                        '-qm', 'Original isolated late source fixture'],
+                       check=True, capture_output=True)
+        args.expected_source_commit = reuse.git(root, 'rev-parse', 'HEAD')
+        lock = reuse.read_json(args.lock)
+        lock['eligible_assets_tree'] = reuse.git(root, 'rev-parse', 'HEAD:assets')
+        for row in lock['source_files']:
+            row['git_blob'] = reuse.git(root, 'rev-parse', 'HEAD:' + row['path'])
+        args.lock.write_text(json.dumps(lock))
+
+        def mutate_source(staged, reports):
+            # Staged inputs remain intact: the late real source check must catch
+            # this edit to the original current-only module before any receipt.
+            path = root / 'src/graphics_device.rs'
+            path.write_bytes(path.read_bytes() + b'late source edit\n')
+            return [{'fixture': True}]
+
+        with mock.patch.object(reuse, 'run_validators', side_effect=mutate_source) as validators:
+            with self.assertRaisesRegex(ValueError, 'byte/hash mismatch: .*graphics_device.rs'):
+                reuse.revalidate(args)
+        validators.assert_called_once()
         self.assertFalse(args.output.exists())
 
     def test_all_six_validator_commands_and_failure(self):
