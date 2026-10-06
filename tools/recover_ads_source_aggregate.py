@@ -186,11 +186,15 @@ def verify_historical(folder, manifest_path, capture):
     return before
 
 
-def make_request(summary, packet, receipt_anchor, compiler, capture, verifier):
+def make_request(summary, packet, receipt_anchor, compiler, capture, verifier, *,
+                 reviewed_class=None, expected_class_sha256=None):
     producer.validate_capture(capture)
     shared._validate_context(verifier)
+    require(reviewed_class is not None and expected_class_sha256 is not None,
+            'completed independently bound finite ADS profile is required')
     saved = read_record(summary)
-    require(saved.get('passed') is True and saved.get('capture_context') == capture
+    require(saved.get('passed') is True and saved.get('bounded_ads_profile_established') is True
+            and saved.get('conditional_diagnostic') is False and saved.get('capture_context') == capture
             and saved.get('verifier_context') == verifier, 'successful same-verifier ADS leaf required')
     receipt_sha = checked_bytes(receipt_anchor).decode('ascii').strip()
     require(compiler.get('capture_context') == capture, 'independent compiler receipt capture differs')
@@ -200,7 +204,8 @@ def make_request(summary, packet, receipt_anchor, compiler, capture, verifier):
             'ADS leaf differs from independent receipt/compiler anchors')
     request = {'leaf_summary': str(summary.absolute()), 'source_packet': str(packet.absolute()),
                'source_receipt_sha256': receipt_sha, 'capture_rustc_sha256': rustc_sha,
-               'capture_context': capture, 'leaf_verifier_context': verifier, 'verifier_context': verifier}
+               'capture_context': capture, 'leaf_verifier_context': verifier, 'verifier_context': verifier,
+               'reviewed_class': str(Path(reviewed_class).absolute()), 'expected_class_sha256': expected_class_sha256}
     # Validate exact fields, hash spellings and actual verifier identity now;
     # packet/leaf inventories are rechecked by the aggregate itself.
     aggregate.AdsSourceSupplement(request)
@@ -272,7 +277,8 @@ def prepare(args):
         compiler = read_record(compiler_path)
         recovered = producer.recover_compiler(checked_bytes(downloads / 'compiler-recovery/original-authored-inputs.log'), capture)
         require(compiler == {**recovered, 'original_job': compiler_job}, 'independent compiler recovery metadata changed')
-        request = make_request(args.leaf_summary, args.source_packet, args.receipt_anchor, compiler, capture, verifier_context)
+        request = make_request(args.leaf_summary, args.source_packet, args.receipt_anchor, compiler, capture, verifier_context,
+                               reviewed_class=args.reviewed_class, expected_class_sha256=args.expected_class_sha256)
         producer.write_json(args.request, request)
         report.update(passed=True, request_sha256=producer.digest(args.request)['sha256'],
                       original_failures_preserved=True, native_processes_run=0)
@@ -295,6 +301,8 @@ def main(argv=None):
     for name in ('capture-root', 'verifier-root', 'downloads', 'evidence', 'root', 'shards',
                  'leaf-summary', 'source-packet', 'receipt-anchor', 'request'):
         commands.choices['prepare'].add_argument('--' + name, type=Path, required=True)
+    commands.choices['prepare'].add_argument('--reviewed-class', type=Path)
+    commands.choices['prepare'].add_argument('--expected-class-sha256')
     args = parser.parse_args(argv)
     try:
         if args.command == 'select-artifacts':

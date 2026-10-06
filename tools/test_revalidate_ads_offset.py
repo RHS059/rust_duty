@@ -63,7 +63,8 @@ class ImageFallbackTests(unittest.TestCase):
                    unsupported_clip_triangles=0, possible_support_complete=True,
                    unclassified_triangles=1, classification='potentially_visible_unresolved')
         bound = revalidate.source_binding.BoundSourcePacket()
-        fallback = revalidate.AdsOffsetFallback(bound, {role: folder for role in revalidate.ROLES})
+        fallback = revalidate.AdsOffsetFallback(bound, {role: folder for role in revalidate.ROLES},
+                                                 conditional_diagnostic=True)
         with patch.object(bound, 'verify_frame_binding', return_value=row):
             Image.new('RGB', (960, 540), (36,48,61)).save(image)
             with self.assertRaisesRegex(ValueError, 'actual RGBA8'):
@@ -178,7 +179,7 @@ class RevalidationCallerTests(unittest.TestCase):
             return revalidate.run(input_manifest=self.root / 'input-manifest.json', gameplay_shard=self.folders['ads-gameplay'],
                                   offset_shard=self.folders['ads-offset'], source_packet=self.f.packet_path,
                                   source_receipt_sha256=self.receipt_hash, capture_rustc_sha256=self.f.expected_compiler_sha256, evidence=self.output,
-                                  capture_context=self.capture, verifier_context=self.verifier)
+                                  capture_context=self.capture, verifier_context=self.verifier, conditional_diagnostic=True)
 
     def test_full_bound_caller_preserves_failed_verdict_and_different_contexts(self):
         old_path = self.folders['ads-offset'] / 'summary.json'
@@ -186,6 +187,8 @@ class RevalidationCallerTests(unittest.TestCase):
         result = self.call()
         self.assertTrue(result['passed'], result.get('failure'))
         self.assertFalse(result['acceptance_complete'])
+        self.assertTrue(result['conditional_diagnostic'])
+        self.assertFalse(result['bounded_ads_profile_established'])
         self.assertEqual(result['capture_context'], self.capture)
         self.assertEqual(result['verifier_context'], self.verifier)
         self.assertFalse(result['original_capture_verdicts']['ads-offset']['passed'])

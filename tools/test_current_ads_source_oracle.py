@@ -8,7 +8,7 @@ from pathlib import Path, PureWindowsPath
 import subprocess
 import tempfile
 import unittest
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 import current_ads_source_oracle as current
 
@@ -64,6 +64,7 @@ class CurrentContextTests(unittest.TestCase):
             tool.parent.mkdir()
             tool.write_text('original committed tool\n')
             (tool.parent / 'collect_ads_offset_evidence.py').write_text('original committed collector\n')
+            (tool.parent / 'finite_ads_profile_binding.py').write_text('original committed finite binder\n')
             def git(*args):
                 return subprocess.check_output(['git', '-C', str(root), *args], stderr=subprocess.PIPE)
             git('init', '-q')
@@ -72,7 +73,8 @@ class CurrentContextTests(unittest.TestCase):
             context = {**CONTEXT, 'source_commit': git('rev-parse', 'HEAD').decode().strip()}
             with patch.object(current.prepared, 'implementation_paths', return_value={}):
                 self.assertEqual(set(current.check_checkout(root, context)),
-                                 {'tools/current_ads_source_oracle.py', 'tools/collect_ads_offset_evidence.py'})
+                                 {'tools/current_ads_source_oracle.py', 'tools/collect_ads_offset_evidence.py',
+                                  'tools/finite_ads_profile_binding.py'})
                 with self.assertRaisesRegex(ValueError, 'differs from actual GitHub commit'):
                     current.check_checkout(root, CONTEXT)
                 tool.write_text('changed tool\n')
@@ -129,7 +131,8 @@ class AssembleTests(unittest.TestCase):
             if scenario == 'ads-offset':
                 (folder / 'ads-offset.cfg').write_text('base setting = 1\n' + current.binding.OFFSET_SUFFIX, encoding='utf-8')
             value = {'passed': scenario == 'ads-gameplay', 'status': 'passed' if scenario == 'ads-gameplay' else 'failed',
-                     'files': current.shared.inventory_files(folder)}
+                     'files': current.shared.inventory_files(folder),
+                     'capture_paths': {role: 'captures/' + role for role in current.binding.ROLES}}
             write(folder / 'summary.json', value)
             self.originals[folder / 'summary.json'] = (folder / 'summary.json').read_bytes()
             self.reports[scenario] = value
@@ -149,11 +152,17 @@ class AssembleTests(unittest.TestCase):
         self.compiler_anchor = 'c' * 64
         self.args = dict(root=self.root, input_manifest=self.input_manifest, shards=self.shards, oracle=self.oracle,
                          expected_oracle_receipt_sha256=self.source_receipt_anchor,
-                         capture_rustc_sha256=self.compiler_anchor, evidence=self.evidence, receipt_anchor=self.anchor)
+                         capture_rustc_sha256=self.compiler_anchor, evidence=self.evidence, receipt_anchor=self.anchor,
+                         reviewed_class=self.root / 'reviewed/class.json', expected_class_sha256='d' * 64)
         self.calls = []
         self.leaf_calls = []
         self.collection = {'needs_supplement': True, 'original_passed': False, 'original_status': 'failed'}
-        self.fake_leaf_result = {'passed': True}
+        self.profile_identity = {'bounded_ads_profile_established': True, 'class_id': 'synthetic-orchestration-only'}
+        self.fake_leaf_result = {'passed': True, 'bounded_ads_profile_established': True,
+                                 'conditional_diagnostic': False, 'bounded_ads_profile': self.profile_identity}
+        self.packet = Mock()
+        self.profile = Mock()
+        self.profile_failure = None
         self.replay_mutation = None
         self.collection_mutation = None
         self.copy_mutation = None
@@ -204,6 +213,10 @@ class AssembleTests(unittest.TestCase):
             stack.enter_context(patch.object(current.producer, 'copy_packet_file', side_effect=copy))
             stack.enter_context(patch.object(current.producer, 'process', side_effect=self.replay))
             stack.enter_context(patch.object(current.leaf, 'run', side_effect=self.leaf))
+            stack.enter_context(patch.object(current.binding, 'bind_source_packet', return_value=self.packet))
+            stack.enter_context(patch.object(current.leaf, 'bind_bounded_profile', return_value=self.profile,
+                                            side_effect=self.profile_failure))
+            stack.enter_context(patch.object(current.leaf, 'bounded_profile_summary', return_value=self.profile_identity))
             result = current.assemble(**self.args)
             self.assertEqual(verified.call_args.args[-2:], (self.source_receipt_anchor, self.compiler_anchor))
             return result
@@ -216,7 +229,8 @@ class AssembleTests(unittest.TestCase):
         self.assertEqual(len(self.leaf_calls), 1)
         request = json.loads((self.evidence / 'aggregate-supplement.json').read_text())
         self.assertEqual(set(request), {'leaf_summary', 'source_packet', 'source_receipt_sha256', 'capture_rustc_sha256',
-                                        'capture_context', 'leaf_verifier_context', 'verifier_context'})
+                                        'capture_context', 'leaf_verifier_context', 'verifier_context',
+                                        'reviewed_class', 'expected_class_sha256'})
         for key in ('capture_context', 'leaf_verifier_context', 'verifier_context'):
             self.assertEqual(request[key], CONTEXT)
         packet = json.loads(Path(request['source_packet']).read_text())
@@ -230,6 +244,34 @@ class AssembleTests(unittest.TestCase):
                          self.anchor.read_text().strip())
         for path, raw in self.originals.items():
             self.assertEqual(path.read_bytes(), raw)
+
+    def test_missing_or_unestablished_profile_cannot_reach_leaf_or_supplement(self):
+        self.args['reviewed_class'] = None
+        with self.assertRaisesRegex(ValueError, 'independently bound finite ADS profile'):
+            self.call()
+        self.assertFalse(self.leaf_calls)
+        self.assertFalse((self.evidence / 'aggregate-supplement.json').exists())
+        self.assertFalse(json.loads((self.evidence / 'producer-summary.json').read_text())['bounded_ads_profile_established'])
+
+    def test_pending_profile_cannot_reach_leaf_or_supplement(self):
+        self.profile_failure = ValueError('reviewed finite ADS profile remains pending')
+        with self.assertRaisesRegex(ValueError, 'profile remains pending'):
+            self.call()
+        self.assertFalse(self.leaf_calls)
+        self.assertFalse((self.evidence / 'aggregate-supplement.json').exists())
+
+    def test_late_profile_mutation_blocks_successful_leaf_publication(self):
+        self.profile.verify_unchanged.side_effect = ValueError('late profile mutation')
+        with self.assertRaisesRegex(ValueError, 'late profile mutation'):
+            self.call()
+        self.assertEqual(len(self.leaf_calls), 1)
+        self.assertFalse((self.evidence / 'aggregate-supplement.json').exists())
+
+    def test_conditional_leaf_boolean_cannot_authorize_supplement(self):
+        self.fake_leaf_result['conditional_diagnostic'] = True
+        with self.assertRaisesRegex(ValueError, 'established finite profile'):
+            self.call()
+        self.assertFalse((self.evidence / 'aggregate-supplement.json').exists())
 
     def test_original_pass_does_not_run_cpu_leaf_or_create_supplement(self):
         self.collection = None

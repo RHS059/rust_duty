@@ -435,21 +435,23 @@ class AdsSourceSupplement:
     """
     def __init__(self, request):
         required = {'leaf_summary', 'source_packet', 'source_receipt_sha256',
-                    'capture_rustc_sha256', 'capture_context', 'leaf_verifier_context', 'verifier_context'}
+                    'capture_rustc_sha256', 'capture_context', 'leaf_verifier_context', 'verifier_context',
+                    'reviewed_class', 'expected_class_sha256'}
         shards._exact_keys(request, required, 'ADS source supplement request')
         self.request = request
         self.capture_context = shards._validate_context(request['capture_context'])
         self.leaf_verifier_context = shards._validate_context(request['leaf_verifier_context'])
         self.verifier_context = shards._validate_context(request['verifier_context'])
         _compare(self.verifier_context, shards.context(), 'actual aggregate verifier GitHub identity')
-        for field in ('source_receipt_sha256', 'capture_rustc_sha256'):
+        for field in ('source_receipt_sha256', 'capture_rustc_sha256', 'expected_class_sha256'):
             if type(request[field]) is not str or not re.fullmatch('[0-9a-f]{64}', request[field]):
                 raise ValueError(f'ADS supplement requires an independently retained {field}')
         self.summary = Path(request['leaf_summary']).absolute()
         self.source_packet = Path(request['source_packet']).absolute()
+        self.reviewed_class = Path(request['reviewed_class']).absolute()
         if self.summary.name != 'summary.json':
             raise ValueError('ADS leaf inventory must accompany its root summary.json')
-        self.packet = self.fallback = None
+        self.packet = self.profile = self.fallback = None
         self.original_hashes = {}
 
     def load(self, binding, incoming, input_manifest, evidence):
@@ -460,12 +462,17 @@ class AdsSourceSupplement:
         required = {'schema', 'passed', 'acceptance_complete', 'capture_context', 'verifier_context',
                     'scope', 'checks', 'original_capture_verdicts', 'source_fallback', 'capture_binding',
                     'source_production_commit', 'source_packet_sha256', 'source_receipt_sha256',
-                    'capture_rustc_sha256', 'source_profiles', 'actual_gl_profile', 'files'}
+                    'capture_rustc_sha256', 'source_profiles', 'actual_gl_profile', 'files',
+                    'conditional_diagnostic', 'bounded_ads_profile_established', 'bounded_ads_profile'}
         shards._exact_keys(saved, required, 'ADS leaf summary')
         for field, expected in (('schema', leaf.SCHEMA), ('passed', True), ('acceptance_complete', False),
                                 ('capture_context', self.capture_context), ('verifier_context', self.leaf_verifier_context),
-                                ('source_production_commit', binding['source_commit'])):
+                                ('source_production_commit', binding['source_commit']),
+                                ('conditional_diagnostic', False), ('bounded_ads_profile_established', True)):
             _compare(saved[field], expected, f'ADS leaf/{field}')
+        if (type(saved['bounded_ads_profile']) is not dict
+                or saved['bounded_ads_profile'].get('bounded_ads_profile_established') is not True):
+            raise ValueError('ADS leaf requires a complete finite profile identity')
         shards.validate_binding(saved['capture_binding'], expected_context=self.capture_context)
         shards.compare_binding(binding, saved['capture_binding'])
         for field in ('source_receipt_sha256', 'capture_rustc_sha256'):
@@ -530,6 +537,7 @@ class AdsSourceSupplement:
                 'source_receipt_sha256': self.request['source_receipt_sha256'],
                 'capture_rustc_sha256': self.request['capture_rustc_sha256'],
                 'source_packet_sha256': self.packet_hash, 'original_capture_verdicts': saved['original_capture_verdicts'],
+                'bounded_ads_profile_established': True, 'bounded_ads_profile': saved['bounded_ads_profile'],
                 **eligibility}
 
     def prepare(self, folder, report, assembled, binding):
@@ -551,7 +559,11 @@ class AdsSourceSupplement:
             original_invocations=self.invocations, native_frame_dirs=self.folders,
             native_offset_settings=folder / 'ads-offset.cfg')
         _compare(self.saved['source_profiles'], self.packet.headers_by_role, 'ADS leaf/source profiles')
-        self.fallback = leaf.AdsOffsetFallback(self.packet, self.folders)
+        self.profile = leaf.bind_bounded_profile(self.packet, self.source_packet, self.reviewed_class,
+                                                self.request['expected_class_sha256'], folder)
+        _compare(self.saved['bounded_ads_profile'], leaf.bounded_profile_summary(self.profile),
+                 'ADS leaf/independently reconstructed finite profile')
+        self.fallback = leaf.AdsOffsetFallback(self.packet, self.folders, profile=self.profile)
         self.eligibility = eligibility
         return eligibility
 
@@ -595,12 +607,16 @@ class AdsSourceSupplement:
         if verdict.get('schema') != 'rust-duty-native-ads-capture/v1' or type(verdict.get('frames')) is not int or verdict['frames'] != count:
             raise ValueError('corrected ADS existing validator report incomplete')
         _compare(verdict, read_record(log / 'stdout.log'), 'corrected ADS validator stdout/report')
+        # Compare the report representation; exact source decimals are separately
+        # sealed and rechecked by the source/profile binders.
+        _compare(plain(self.fallback.records[role]), plain(self.saved['source_fallback'][role]),
+                 f'ADS leaf/independent {role} pixel comparison')
         return {**validated, 'path': destination.relative_to(assembled.parent).as_posix(),
                 'existing_validator': verdict, 'source_fallback': self.fallback.records[role],
                 'original_checks_preserved': True}
 
     def verify_unchanged(self):
-        if self.packet is None or self.fallback is None:
+        if self.packet is None or self.profile is None or self.fallback is None:
             raise ValueError('complete bound ADS correction unavailable')
         if not any(self.fallback.records.values()):
             raise ValueError('ADS source correction did not exercise a coverage/structure correction')
@@ -608,6 +624,7 @@ class AdsSourceSupplement:
         shards.verify_files(self.summary.parent, self.saved['files'])
         _compare(shards._read_regular(self.summary), self.leaf_hash, 'unchanged ADS leaf summary')
         _compare(shards._read_regular(self.source_packet), self.packet_hash, 'unchanged ADS source packet')
+        self.profile.verify_unchanged()
 
 
 def run(root, incoming, legacy_linux, evidence, input_manifest, timeout=900, *,
@@ -618,7 +635,7 @@ def run(root, incoming, legacy_linux, evidence, input_manifest, timeout=900, *,
     capture_context = supplement.capture_context if supplement else None
     sources = [incoming, legacy_linux]
     if supplement:
-        sources += [supplement.summary.parent, supplement.source_packet.parent]
+        sources += [supplement.summary.parent, supplement.source_packet.parent, supplement.reviewed_class.parent]
     for source in sources:
         if evidence.resolve().is_relative_to(source.resolve()) or source.resolve().is_relative_to(evidence.resolve()):
             raise ValueError('evidence must be disjoint from incoming artifact trees')
@@ -851,7 +868,7 @@ def main(argv=None):
     parser.add_argument('--input-manifest', type=Path, required=True)
     parser.add_argument('--historical-manifest', type=Path, required=True)
     parser.add_argument('--ads-source-supplement', type=Path,
-                        help='Explicit ADS leaf request JSON: leaf_summary, source_packet, independent receipt/compiler SHA256 anchors, capture_context, leaf_verifier_context, verifier_context. Paths are relative to the current directory.')
+                        help='Explicit ADS leaf request JSON: leaf_summary, source_packet, independent receipt/compiler SHA256 anchors, reviewed_class and expected_class_sha256, capture_context, leaf_verifier_context, verifier_context. Paths are relative to the current directory.')
     parser.add_argument('--timeout', type=float, default=900)
     parser.add_argument('--run-timeout', type=float, default=2400)
     args = parser.parse_args(argv)

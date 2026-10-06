@@ -17,6 +17,7 @@ import ads_source_visibility_binding as source_binding
 import aggregate_dx12_authored as aggregate
 import compare_source_visibility
 import dx12_authored_shards as shared
+import finite_ads_profile_binding as finite_profile
 import run_dx12_authored as authored
 import run_dx12_authored_shard as shard
 from verify_capture_telemetry import _compare, read_record
@@ -122,11 +123,44 @@ def native_gl_profile(folder, binding, adapter, invocation):
             'arithmetic_clipping_fragment_envelopes': 'Declared source engineering assumptions; capability receipt does not prove them.'}
 
 
+def bind_bounded_profile(packet, packet_path, reviewed_class, expected_class_sha256, offset_shard):
+    """Bind reviewed profile evidence to this already validated native packet."""
+    require(reviewed_class is not None and expected_class_sha256 is not None,
+            'completed independently bound finite ADS profile is required')
+    result = finite_profile.bind_finite_ads_profile(
+        source_packet=packet, source_packet_path=Path(packet_path),
+        reviewed_class=Path(reviewed_class), expected_class_sha256=expected_class_sha256,
+        native_runtime_logs={role: Path(offset_shard) / 'logs' / f'{role}-capture/stderr.log'
+                             for role in ROLES})
+    require(type(result) is finite_profile.BoundFiniteAdsProfile
+            and result.bounded_ads_profile_established is True
+            and result.source_packet is packet, 'finite ADS profile binding is not established')
+    return result
+
+
+def bounded_profile_summary(profile):
+    require(type(profile) is finite_profile.BoundFiniteAdsProfile
+            and profile.bounded_ads_profile_established is True,
+            'finite ADS profile binding is not established')
+    summary = profile.summary()
+    require(type(summary) is dict and summary.get('bounded_ads_profile_established') is True,
+            'finite ADS profile identity is incomplete')
+    return summary
+
+
 class AdsOffsetFallback:
     """Only constructed after the full packet and every native frame bind."""
-    def __init__(self, bound, folders):
+    def __init__(self, bound, folders, *, profile=None, conditional_diagnostic=False):
         require(type(bound) is source_binding.BoundSourcePacket, 'source packet has not been bound')
+        require(type(conditional_diagnostic) is bool, 'invalid conditional diagnostic mode')
+        if conditional_diagnostic:
+            require(profile is None, 'conditional diagnostic cannot claim an established profile')
+        else:
+            bounded_profile_summary(profile)
+            require(profile.source_packet is bound, 'finite profile differs from bound source packet')
         self.bound = bound
+        self.profile = profile
+        self.conditional_diagnostic = conditional_diagnostic
         self.folders = {role: Path(folder).absolute() for role, folder in folders.items()}
         self.records = {role: [] for role in ROLES}
 
@@ -134,7 +168,9 @@ class AdsOffsetFallback:
         path = Path(path).absolute()
         require(role in ROLES and path == self.folders[role] / f'{index:04}.png',
                 'source fallback is restricted to the bound ADS-offset frame')
-        row = self.bound.verify_frame_binding(path, role, index)
+        original_row = self.bound.verify_frame_binding(path, role, index)
+        row = (self.profile.verify_frame_binding(path, role, index)
+               if self.profile is not None else deepcopy(original_row))
         image = load_png(path, authored.EXTENT)
         with path.open('rb') as source:
             header = source.read(29)
@@ -142,14 +178,19 @@ class AdsOffsetFallback:
                 'source fallback requires an actual RGBA8 PNG')
         result = compare_source_visibility.compare(image, row)
         coverage = _foreground_count(image, authored.BACKGROUND, 8) / (960 * 540)
-        record = {'frame': index, 'original_generic_failure': original_error,
-                  'classification': row['classification'], **result, 'foreground_coverage': coverage}
+        record = {'frame': index, 'original_generic_failure': original_error.removeprefix(str(path) + ': '),
+                  'classification': row['classification'], **result, 'foreground_coverage': coverage,
+                  'conditional_diagnostic': self.conditional_diagnostic,
+                  'bounded_ads_profile_established': self.profile is not None,
+                  'original_source_row': deepcopy(original_row),
+                  'compared_source_row': deepcopy(row)}
         self.records[role].append(record)
         return record
 
 
 def run(*, input_manifest, gameplay_shard, offset_shard, source_packet, source_receipt_sha256, capture_rustc_sha256, evidence,
-        capture_context, verifier_context, timeout=900):
+        capture_context, verifier_context, timeout=900, reviewed_class=None, expected_class_sha256=None,
+        conditional_diagnostic=False):
     shared._validate_context(capture_context)
     shared._validate_context(verifier_context)
     _compare(verifier_context, shared.context(), "actual verifier GitHub identity")
@@ -164,10 +205,18 @@ def run(*, input_manifest, gameplay_shard, offset_shard, source_packet, source_r
     report = {'schema': SCHEMA, 'passed': False, 'acceptance_complete': False,
               'capture_context': capture_context, 'verifier_context': verifier_context,
               'scope': 'ADS pair automated revalidation only; other authored/world, landmark, human and real-GPU gates remain unchanged/open.',
-              'checks': [], 'original_capture_verdicts': {}, 'source_fallback': {}}
+              'checks': [], 'original_capture_verdicts': {}, 'source_fallback': {},
+              'conditional_diagnostic': conditional_diagnostic,
+              'bounded_ads_profile_established': False, 'bounded_ads_profile': None}
     original_hashes = {}
-    packet = None
+    packet = profile = None
     try:
+        require(type(conditional_diagnostic) is bool, 'invalid conditional diagnostic mode')
+        require(not conditional_diagnostic or (reviewed_class is None and expected_class_sha256 is None),
+                'conditional diagnostic cannot claim reviewed profile inputs')
+        if not conditional_diagnostic:
+            require(reviewed_class is not None and expected_class_sha256 is not None,
+                    'completed independently bound finite ADS profile is required')
         manifest = manifest_binding(Path(input_manifest), capture_context)
         manifest_hash = shared._read_regular(Path(input_manifest))
         binding = manifest['binding']
@@ -205,7 +254,13 @@ def run(*, input_manifest, gameplay_shard, offset_shard, source_packet, source_r
                    expected_compiler_sha256=capture_rustc_sha256, native_binding=binding,
                    original_invocations={role: invocations[('ads-offset', role)] for role in ROLES},
                    native_frame_dirs=frame_dirs, native_offset_settings=sources['ads-offset'] / 'ads-offset.cfg')
-        fallback = AdsOffsetFallback(packet, frame_dirs)
+        if not conditional_diagnostic:
+            profile = bind_bounded_profile(packet, source_packet, reviewed_class, expected_class_sha256,
+                                           sources['ads-offset'])
+            report['bounded_ads_profile'] = bounded_profile_summary(profile)
+            report['bounded_ads_profile_established'] = True
+        fallback = AdsOffsetFallback(packet, frame_dirs, profile=profile,
+                                     conditional_diagnostic=conditional_diagnostic)
         report['source_production_commit'] = packet.source_base_commit
         report['source_packet_sha256'] = authored.sha256(source_packet)
         report['source_receipt_sha256'] = source_receipt_sha256
@@ -255,6 +310,8 @@ def run(*, input_manifest, gameplay_shard, offset_shard, source_packet, source_r
             shared.verify_files(folder, loaded[scenario]['files'])
             require(authored.sha256(folder / 'summary.json') == original_hashes[scenario], 'original failed/passed verdict changed')
         require(shared._read_regular(Path(input_manifest)) == manifest_hash, 'original native manifest changed')
+        if profile is not None:
+            profile.verify_unchanged()
         report['checks'].append({'name': 'all-original-and-bound-inputs-unchanged', 'passed': True})
         report['passed'] = True
     except Exception as error:
@@ -277,6 +334,10 @@ def main(argv=None):
             parser.add_argument(f'--{kind}-{key}', required=True)
     parser.add_argument('--capture-rustc-sha256', required=True, help='Independently recovered fingerprint of the actual captured Windows compiler.')
     parser.add_argument('--source-receipt-sha256', required=True, help='Independently retained source replay receipt digest; never taken from packet contents.')
+    parser.add_argument('--reviewed-class', type=Path)
+    parser.add_argument('--expected-class-sha256', help='Independent digest of the reviewed finite ADS class descriptor.')
+    parser.add_argument('--conditional-diagnostic', action='store_true',
+                        help='Historical conditional inspection only; cannot produce an accepted aggregate supplement.')
     parser.add_argument('--timeout', type=float, default=900)
     args = vars(parser.parse_args(argv))
     capture = {key: args.pop('capture_' + argument) for key, argument in [('source_commit', 'source'), ('run_id', 'run_id'), ('run_attempt', 'run_attempt')]}

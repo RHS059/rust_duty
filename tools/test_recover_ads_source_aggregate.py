@@ -243,9 +243,11 @@ class PrepareTests(unittest.TestCase):
                                     evidence=self.base / 'recovery-evidence', root=self.root,
                                     shards=self.base / 'aggregate-shards', leaf_summary=self.base / 'leaf/summary.json',
                                     source_packet=self.base / 'packet/source-packet.json',
-                                    receipt_anchor=self.base / 'receipt.sha256', request=self.base / 'request.json')
+                                    receipt_anchor=self.base / 'receipt.sha256', request=self.base / 'request.json',
+                                    reviewed_class=self.base / 'profile/class.json', expected_class_sha256='a' * 64)
         write(self.args.receipt_anchor, b'd' * 64 + b'\n')
-        write(self.args.leaf_summary, {'passed': True, 'capture_context': CAPTURE, 'verifier_context': VERIFIER,
+        write(self.args.leaf_summary, {'passed': True, 'bounded_ads_profile_established': True,
+                                      'conditional_diagnostic': False, 'capture_context': CAPTURE, 'verifier_context': VERIFIER,
                                       'source_receipt_sha256': 'd' * 64, 'capture_rustc_sha256': producer_fixture.COMPILER_SHA})
 
     def prepare(self):
@@ -330,26 +332,29 @@ class RequestTests(unittest.TestCase):
         self.packet = self.root / 'packet/source-packet.json'
         self.anchor = self.root / 'independent.sha256'
         self.compiler = {'capture_context': CAPTURE, 'rustc_sha256': 'c' * 64}
-        self.record = {'passed': True, 'capture_context': CAPTURE, 'verifier_context': VERIFIER,
+        self.record = {'passed': True, 'bounded_ads_profile_established': True, 'conditional_diagnostic': False, 'capture_context': CAPTURE, 'verifier_context': VERIFIER,
                        'source_receipt_sha256': 'd' * 64, 'capture_rustc_sha256': 'c' * 64}
         write(self.summary, self.record)
         write(self.anchor, b'd' * 64 + b'\n')
 
     def request(self):
         with patch.dict(os.environ, ENV, clear=True):
-            return recovery.make_request(self.summary, self.packet, self.anchor, self.compiler, CAPTURE, VERIFIER)
+            return recovery.make_request(self.summary, self.packet, self.anchor, self.compiler, CAPTURE, VERIFIER,
+                                         reviewed_class=self.root / 'class.json', expected_class_sha256='a' * 64)
 
     def test_request_has_exact_reviewed_api_fields_and_separate_capture_identity(self):
         request = self.request()
         self.assertEqual(set(request), {'leaf_summary', 'source_packet', 'source_receipt_sha256',
-                                       'capture_rustc_sha256', 'capture_context', 'leaf_verifier_context', 'verifier_context'})
+                                       'capture_rustc_sha256', 'capture_context', 'leaf_verifier_context', 'verifier_context',
+                                       'reviewed_class', 'expected_class_sha256'})
         self.assertEqual(request['capture_context'], CAPTURE)
         self.assertEqual(request['verifier_context'], VERIFIER)
         self.assertEqual(request['leaf_verifier_context'], VERIFIER)
         self.assertNotEqual(CAPTURE, VERIFIER)
 
     def test_failed_leaf_or_changed_independent_anchors_are_not_accepted(self):
-        for field, value in (('passed', False), ('source_receipt_sha256', 'e' * 64),
+        for field, value in (('passed', False), ('bounded_ads_profile_established', False),
+                             ('conditional_diagnostic', True), ('source_receipt_sha256', 'e' * 64),
                              ('capture_rustc_sha256', 'e' * 64), ('verifier_context', CAPTURE),
                              ('capture_context', VERIFIER)):
             write(self.summary, {**self.record, field: value})
@@ -358,7 +363,8 @@ class RequestTests(unittest.TestCase):
 
     def test_actual_github_identity_must_agree_without_environment_spoofing(self):
         with patch.dict(os.environ, {**ENV, 'GITHUB_SHA': 'f' * 40}, clear=True), self.assertRaises(ValueError):
-            recovery.make_request(self.summary, self.packet, self.anchor, self.compiler, CAPTURE, VERIFIER)
+            recovery.make_request(self.summary, self.packet, self.anchor, self.compiler, CAPTURE, VERIFIER,
+                                         reviewed_class=self.root / 'class.json', expected_class_sha256='a' * 64)
 
 
 class WorkflowTests(unittest.TestCase):
@@ -396,6 +402,10 @@ class WorkflowTests(unittest.TestCase):
         self.assertIn('--leaf-summary evidence/revalidation/summary.json', commands[prepare])
         self.assertIn('--receipt-anchor evidence/independent-source-receipt.sha256', commands[prepare])
         self.assertIn('--source-packet evidence/source-oracle/packet/source-packet.json', commands[prepare])
+        for command in (commands[leaf], commands[prepare]):
+            self.assertIn('--reviewed-class verifier/tools/finite_ads_reviewed_class.json', command)
+            self.assertIn('--expected-class-sha256 96dfb631be9d59f6cf35d87e4f3c17a4a4303d74787bb773a8c47672efb53331', command)
+            self.assertNotIn('--conditional-diagnostic', command)
         for required in ('--input-manifest downloaded/inputs/evidence/authored-inputs/input-manifest.json',
                          '--historical-manifest downloaded/inputs/evidence/authored-inputs/historical-manifest.json',
                          '--ads-source-supplement evidence/aggregate-source-supplement.json', '--legacy-linux downloaded/legacy'):

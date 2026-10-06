@@ -19,6 +19,7 @@ import test_ads_source_visibility_binding as packet_fixture
 import test_aggregate_dx12_authored as fixture
 import verify_gameplay_ads_capture as ads_validator
 from test_capture_frame_witness import marker
+from test_finite_ads_profile_gate import synthetic_profile
 
 
 write = fixture.write
@@ -88,6 +89,12 @@ class AggregateSupplementTests(unittest.TestCase):
         cls.temp = tempfile.TemporaryDirectory()
         cls.addClassCleanup(cls.temp.cleanup)
         cls.base = Path(cls.temp.name)
+        # Native profile evidence ingestion has separate real-binder controls.
+        # Preserve the expensive nine-shard fixture as a caller orchestration test.
+        profile_stub = patch.object(leaf.finite_profile, 'bind_finite_ads_profile',
+                                    side_effect=lambda **kwargs: synthetic_profile(kwargs['source_packet']))
+        profile_stub.start()
+        cls.addClassCleanup(profile_stub.stop)
         cls.serial = 0
         cls.source = source = packet_fixture.BindingTests()
         source.setUp()
@@ -181,12 +188,14 @@ class AggregateSupplementTests(unittest.TestCase):
                 gameplay_shard=cls.incoming / 'ads-gameplay', offset_shard=cls.incoming / 'ads-offset',
                 source_packet=source.packet_path, source_receipt_sha256=cls.receipt_sha256,
                 capture_rustc_sha256=source.expected_compiler_sha256, evidence=cls.leaf_output,
-                capture_context=CAPTURE, verifier_context=LEAF_VERIFIER)
+                capture_context=CAPTURE, verifier_context=LEAF_VERIFIER,
+                reviewed_class=cls.base / 'profile/class.json', expected_class_sha256='d' * 64)
         if not result['passed']:
             raise AssertionError(result.get('failure'))
         cls.request = {'leaf_summary': str(cls.leaf_output / 'summary.json'), 'source_packet': str(source.packet_path),
                        'source_receipt_sha256': cls.receipt_sha256, 'capture_rustc_sha256': source.expected_compiler_sha256,
-                       'capture_context': CAPTURE, 'leaf_verifier_context': LEAF_VERIFIER, 'verifier_context': VERIFIER}
+                       'capture_context': CAPTURE, 'leaf_verifier_context': LEAF_VERIFIER, 'verifier_context': VERIFIER,
+                       'reviewed_class': str(cls.base / 'profile/class.json'), 'expected_class_sha256': 'd' * 64}
 
     def setUp(self):
         self.env = patch.dict(os.environ, ENV)
@@ -261,6 +270,42 @@ class AggregateSupplementTests(unittest.TestCase):
         self.addCleanup(extra.unlink)
         with self.assertRaisesRegex(ValueError, 'inventory mismatch'):
             self.load()
+
+    def test_conditional_or_missing_profile_leaf_is_not_accepted(self):
+        path = self.leaf_output / 'summary.json'
+        saved = self.restore(path)
+        for field, value in [('conditional_diagnostic', True), ('bounded_ads_profile_established', False),
+                             ('bounded_ads_profile', None)]:
+            write(path, {**saved, field: value})
+            with self.subTest(field=field), self.assertRaises(ValueError):
+                self.load()
+        for field in ('reviewed_class', 'expected_class_sha256'):
+            request = deepcopy(self.request)
+            request.pop(field)
+            with self.subTest(field=field), self.assertRaises(ValueError):
+                aggregate.AdsSourceSupplement(request)
+
+    def test_altered_profile_identity_fails_independent_reconstruction(self):
+        path = self.leaf_output / 'summary.json'
+        saved = self.restore(path)
+        saved['bounded_ads_profile']['reviewed_class_sha256'] = 'e' * 64
+        write(path, saved)
+        intake, output = self.load()
+        with self.assertRaisesRegex(ValueError, 'independently reconstructed finite profile'):
+            intake.prepare(self.incoming / 'ads-offset', intake.original_reports['ads-offset'],
+                           output / 'assembled', self.native)
+
+    def test_changed_profile_evidence_cannot_pass_late_check(self):
+        intake, output = self.load()
+        intake.prepare(self.incoming / 'ads-offset', intake.original_reports['ads-offset'],
+                       output / 'assembled', self.native)
+        intake.fallback.records['dx12'].append({'synthetic': True})
+        with patch.object(leaf.finite_profile.BoundFiniteAdsProfile, 'verify_unchanged',
+                          side_effect=ValueError('late profile mutation')):
+            # The synthetic instance replaces this method explicitly.
+            object.__setattr__(intake.profile, 'verify_unchanged', lambda: (_ for _ in ()).throw(ValueError('late profile mutation')))
+            with self.assertRaisesRegex(ValueError, 'late profile mutation'):
+                intake.verify_unchanged()
 
     def test_capture_verifier_and_full_binding_mismatches_fail(self):
         for context, field, value in [('capture_context', 'source_commit', 'a' * 40),

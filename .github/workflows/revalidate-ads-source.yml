@@ -18,6 +18,11 @@ on:
       - tools/revalidate_ads_offset.py
       - tools/ads_source_visibility_binding.py
       - tools/compare_source_visibility.py
+      - tools/finite_ads_profile_binding.py
+      - tools/test_finite_ads_profile_binding.py
+      - tools/test_finite_ads_profile_gate.py
+      - tools/finite_ads_reviewed_class.json
+      - tools/finite_ads_reviewed_evidence/**
       - examples/source_visibility_certificate.rs
   workflow_dispatch:
     inputs:
@@ -84,7 +89,7 @@ jobs:
         working-directory: verifier
         env:
           PYTHONPATH: tools
-        run: python -m unittest -v test_build_ads_source_packet test_recover_ads_source_aggregate
+        run: python -m unittest -v test_build_ads_source_packet test_recover_ads_source_aggregate test_finite_ads_profile_binding test_finite_ads_profile_gate
       - name: Read bounded metadata for the exact historical attempt
         id: eligibility
         uses: actions/github-script@v7
@@ -285,6 +290,8 @@ jobs:
           --gameplay-shard downloaded/gameplay --offset-shard downloaded/offset
           --source-packet evidence/source-oracle/packet/source-packet.json
           --source-receipt-sha256 "$env:SOURCE_RECEIPT_SHA256"
+          --reviewed-class verifier/tools/finite_ads_reviewed_class.json
+          --expected-class-sha256 96dfb631be9d59f6cf35d87e4f3c17a4a4303d74787bb773a8c47672efb53331
           --capture-rustc-sha256 "$env:CAPTURE_RUSTC_SHA256"
           --capture-source "$env:CAPTURE_SOURCE" --capture-run-id "$env:CAPTURE_RUN_ID"
           --capture-run-attempt "$env:CAPTURE_RUN_ATTEMPT"
@@ -443,6 +450,8 @@ jobs:
           --source-packet evidence/source-oracle/packet/source-packet.json
           --receipt-anchor evidence/independent-source-receipt.sha256
           --request evidence/aggregate-source-supplement.json
+          --reviewed-class verifier/tools/finite_ads_reviewed_class.json
+          --expected-class-sha256 96dfb631be9d59f6cf35d87e4f3c17a4a4303d74787bb773a8c47672efb53331
           --capture-source "$env:CAPTURE_SOURCE" --capture-run-id "$env:CAPTURE_RUN_ID"
           --capture-run-attempt "$env:CAPTURE_RUN_ATTEMPT"
       - name: Revalidate all nine original shards with the bound ADS source supplement

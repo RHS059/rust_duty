@@ -59,7 +59,8 @@ def check_checkout(root, context):
                                    text=True, timeout=60).strip() == context['source_commit'],
             'current source checkout differs from actual GitHub commit')
     paths = prepared.implementation_paths(root)
-    for name in ('tools/current_ads_source_oracle.py', 'tools/collect_ads_offset_evidence.py'):
+    for name in ('tools/current_ads_source_oracle.py', 'tools/collect_ads_offset_evidence.py',
+                 'tools/finite_ads_profile_binding.py'):
         paths[name] = root / name
     subprocess.check_output(['git', '-C', str(root), 'ls-files', '--error-unmatch', '--', *paths], timeout=60)
     require(not subprocess.check_output(['git', '-C', str(root), 'diff', '--name-only', 'HEAD', '--', *paths],
@@ -123,7 +124,7 @@ def emit_outputs(**values):
 
 
 def assemble(*, root, input_manifest, shards, oracle, expected_oracle_receipt_sha256,
-             capture_rustc_sha256, evidence, receipt_anchor):
+             capture_rustc_sha256, evidence, receipt_anchor, reviewed_class=None, expected_class_sha256=None):
     root, input_manifest, shards, oracle = (Path(path).absolute() for path in (root, input_manifest, shards, oracle))
     evidence, receipt_anchor = Path(evidence).absolute(), Path(receipt_anchor).absolute()
     context = current_main_context()
@@ -131,7 +132,7 @@ def assemble(*, root, input_manifest, shards, oracle, expected_oracle_receipt_sh
     evidence.mkdir(parents=True)
     report = {'schema': SCHEMA, 'passed': False, 'acceptance_complete': False,
               'capture_context': context, 'verifier_context': context, 'phase': 'verify-current-build',
-              'needs_supplement': False}
+              'needs_supplement': False, 'bounded_ads_profile_established': False}
     try:
         implementation = check_checkout(root, context)
         manifest = leaf.manifest_binding(input_manifest, context)
@@ -250,22 +251,44 @@ def assemble(*, root, input_manifest, shards, oracle, expected_oracle_receipt_sh
         report['source_receipt_sha256'] = receipt_sha
         print(f'INDEPENDENT_SOURCE_RECEIPT_SHA256={receipt_sha}', flush=True)
         emit_outputs(source_receipt_sha256=receipt_sha, capture_rustc_sha256=capture_rustc_sha256)
+        report['phase'] = 'bind-finite-ads-profile'
+        require(reviewed_class is not None and expected_class_sha256 is not None,
+                'completed independently bound finite ADS profile is required')
+        frame_dirs = {role: shards / 'ads-offset' / reports['ads-offset']['capture_paths'][role]
+                      for role in binding.ROLES}
+        packet = binding.bind_source_packet(packet_path, expected_receipt_sha256=receipt_sha,
+            expected_compiler_sha256=capture_rustc_sha256, native_binding=native,
+            original_invocations=invocations, native_frame_dirs=frame_dirs,
+            native_offset_settings=offset)
+        profile = leaf.bind_bounded_profile(packet, packet_path, reviewed_class, expected_class_sha256,
+                                           shards / 'ads-offset')
+        profile_identity = leaf.bounded_profile_summary(profile)
+        report['bounded_ads_profile'] = profile_identity
+        report['bounded_ads_profile_established'] = True
         report['phase'] = 'reviewed-ads-leaf-revalidation'
         leaf_evidence = evidence / 'leaf'
         result = leaf.run(input_manifest=input_manifest, gameplay_shard=shards / 'ads-gameplay',
                           offset_shard=shards / 'ads-offset', source_packet=packet_path,
                           source_receipt_sha256=receipt_sha, capture_rustc_sha256=capture_rustc_sha256,
-                          evidence=leaf_evidence, capture_context=context, verifier_context=context)
+                          evidence=leaf_evidence, capture_context=context, verifier_context=context,
+                          reviewed_class=reviewed_class, expected_class_sha256=expected_class_sha256)
         require(result['passed'] is True, f'reviewed ADS leaf did not pass: {result.get("failure")}')
+        require(result.get('bounded_ads_profile_established') is True
+                and result.get('conditional_diagnostic') is False,
+                'reviewed ADS leaf requires an established finite profile')
+        _compare(result.get('bounded_ads_profile'), profile_identity, 'ADS leaf/finite profile identity')
+        packet.verify_unchanged()
         require(shared._read_regular(packet_root / 'source-receipt.json') == receipt_sha,
                 'independently anchored source receipt changed during leaf validation')
         _compare(immutable, producer.inventory({path: Path(path) for path in immutable}), 'immutable capture verdicts changed')
         for scenario, saved in reports.items():
             shared.verify_files(shards / scenario, saved['files'])
+        profile.verify_unchanged()
         request = {'leaf_summary': (leaf_evidence / 'summary.json').as_posix(), 'source_packet': packet_path.as_posix(),
                    'source_receipt_sha256': receipt_sha, 'capture_rustc_sha256': capture_rustc_sha256,
                    'capture_context': deepcopy(context), 'leaf_verifier_context': deepcopy(context),
-                   'verifier_context': deepcopy(context)}
+                   'verifier_context': deepcopy(context), 'reviewed_class': str(Path(reviewed_class).absolute()),
+                   'expected_class_sha256': expected_class_sha256}
         supplement_path = evidence / 'aggregate-supplement.json'
         producer.write_json(supplement_path, request)
         emit_outputs(supplement_path=supplement_path.as_posix())
@@ -285,6 +308,8 @@ def main(argv=None):
         parser.add_argument('--' + name, type=Path, required=True)
     parser.add_argument('--expected-oracle-receipt-sha256', required=True)
     parser.add_argument('--capture-rustc-sha256', required=True)
+    parser.add_argument('--reviewed-class', type=Path)
+    parser.add_argument('--expected-class-sha256', help='Independent digest of the completed reviewed finite ADS profile class.')
     args = vars(parser.parse_args(argv))
     print(json.dumps(aggregate.plain(assemble(**args)), indent=2, allow_nan=False))
     return 0
