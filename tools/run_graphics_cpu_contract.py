@@ -16,6 +16,7 @@ import subprocess
 import sys
 import tarfile
 
+import finite_ads_profile_binding as finite_source
 import run_pass_submission_benchmark as shared
 import summarize_frame_performance as cpu_reader
 
@@ -85,11 +86,24 @@ def source_pair(baseline, candidate):
             for label, files in [('baseline', baseline), ('candidate', candidate)]}
 
 def current_checkout(root, expected):
-    """This lane is current-source evidence only if checkout production matches its pin."""
+    """Match the ebf pin, admitting only the exact reviewed cfg(test) fixture repair."""
+    files, test_only_equivalences = {}, {}
     for name, raw in expected.items():
         path = root / name
-        require(path.is_file() and not path.is_symlink() and path.read_bytes() == raw,
+        require(path.is_file() and not path.is_symlink(),
                 'current checkout differs from the declared ebf production source: ' + name)
+        actual = path.read_bytes()
+        matched = actual
+        if name == 'src/asset_path.rs' and actual != raw:
+            matched = finite_source._asset_path_test_base(actual)
+        require(matched == raw,
+                'current checkout differs from the declared ebf production source: ' + name)
+        files[name] = {'bytes': len(actual), 'sha256': shared.digest(actual)}
+        if actual != raw:
+            test_only_equivalences[name] = {
+                'current_checkout': files[name],
+                'compiled_source': {'bytes': len(raw), 'sha256': shared.digest(raw)},
+            }
     for folder in ('src', 'updater', '.cargo'):
         directory = root / folder
         if directory.exists():
@@ -97,6 +111,7 @@ def current_checkout(root, expected):
                 require(not path.is_symlink(), 'symlink in current compile inventory')
                 if path.is_file():
                     require(path.relative_to(root).as_posix() in expected, 'extra current compile input: ' + str(path))
+    return {'files': files, 'test_only_equivalences': test_only_equivalences}
 
 def baseline_provider(metadata):
     require(type(metadata) is dict, 'baseline metadata must be the actual artifact object')
@@ -192,7 +207,11 @@ def execute(args):
     shared.write_json(output / 'baseline-provider.json', provider)
     old, current = git_sources(repository, BASELINE_SOURCE), git_sources(repository, CANDIDATE_SOURCE)
     inventories = source_pair(old, current)
-    current_checkout(verifier_root, current)
+    checkout = current_checkout(verifier_root, current)
+    # These are the actual caller bytes, distinct from the ebf bytes compiled below.
+    checkout_path = output / 'current-checkout-source-inventory.json'
+    shared.write_json(checkout_path, checkout)
+    archive_input(verifier_root, output / 'current-checkout', checkout['test_only_equivalences'])
     baseline_binary, baseline_receipt, original_review = verified_baseline(baseline_root,
         verifier_root / 'tools/finite_ads_pass_batching_evidence/native-review.json', old)
     # Retain the exact baseline bytes that this new native invocation actually uses.
@@ -212,6 +231,7 @@ def execute(args):
     harness = (verifier_root / HARNESS).read_bytes()
     # All unchanged fixed assertions come from the already reviewed batching source.
     copied = (HARNESS, 'tools/run_graphics_cpu_contract.py', 'tools/test_graphics_cpu_contract.py',
+              'tools/finite_ads_profile_binding.py',
               'tools/run_pass_submission_benchmark.py', 'tools/summarize_frame_performance.py', 'tools/exclusive_output.py',
               *shared.FIXED_VALIDATORS)
     archive_input(verifier_root, output / 'verifier', copied)
@@ -242,6 +262,7 @@ def execute(args):
     receipt = {'schema': 'rust-duty-graphics-cpu-source/v1', 'source_commit': CANDIDATE_SOURCE,
                'workflow_source_commit': os.environ.get('GITHUB_SHA'), 'workflow_run_id': os.environ.get('GITHUB_RUN_ID'),
                'workflow_run_attempt': os.environ.get('GITHUB_RUN_ATTEMPT'), 'files': manifest,
+               'current_checkout_inventory': identity(checkout_path),
                'harness_sha256': shared.digest(harness), 'compiler_stdout_sha256': shared.digest(compiler),
                'build_environment': settings, 'scope': 'exact ebf production plus new validation example; no game assets'}
     receipt_path = output / 'candidate-source-receipt.json'; shared.write_json(receipt_path, receipt)
@@ -288,6 +309,13 @@ def execute(args):
     # or unsupported window is a failure, never an applicability skip.
     controls = run_controls(output, compiled[EXAMPLE], source_hash, env, device)
     require(shared.source_manifest(source) == manifest, 'candidate source changed during native controls')
+    require(current_checkout(verifier_root, current) == checkout,
+            'current checkout changed during native controls')
+    require(identity(checkout_path) == receipt['current_checkout_inventory'],
+            'retained current checkout inventory changed')
+    for name in checkout['test_only_equivalences']:
+        require(identity(output / 'current-checkout' / name) == checkout['files'][name],
+                'retained current checkout source changed: ' + name)
     summary = {'schema': 'rust-duty-graphics-cpu-native-comparison/v1', 'status': 'passed',
         'baseline_compiled_source_commit': BASELINE_COMPILED_SOURCE, 'baseline_equivalent_source_commit': BASELINE_SOURCE,
         'candidate_source_commit': CANDIDATE_SOURCE, 'baseline_artifact': provider,

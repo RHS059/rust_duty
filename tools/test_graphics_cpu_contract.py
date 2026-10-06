@@ -35,6 +35,52 @@ class SourceAndProviderTests(unittest.TestCase):
             (root / 'src/extra.rs').write_bytes(b'extra')
             with self.assertRaisesRegex(ValueError, 'extra'): runner.current_checkout(root, expected)
 
+    def test_exact_fixture_repair_retains_current_and_compiled_source_identities(self):
+        name = 'src/asset_path.rs'
+        repaired = (Path(__file__).resolve().parents[1] / name).read_bytes()
+        original = runner.finite_source._asset_path_test_base(repaired)
+        pins = runner.finite_source.ASSET_PATH_TEST_FIX
+        expected = {name: original}
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder); path = root / name; path.parent.mkdir()
+            path.write_bytes(original)
+            unchanged = runner.current_checkout(root, expected)
+            self.assertEqual(unchanged, {'files': {name: pins['before']}, 'test_only_equivalences': {}})
+            path.write_bytes(repaired)
+            actual = runner.current_checkout(root, expected)
+            self.assertEqual(actual, {'files': {name: pins['after']}, 'test_only_equivalences': {
+                name: {'current_checkout': pins['after'], 'compiled_source': pins['before']}}})
+            retained = root / 'retained'
+            runner.archive_input(root, retained, actual['test_only_equivalences'])
+            self.assertEqual((retained / name).read_bytes(), repaired)
+            self.assertEqual(expected[name], original)
+            self.assertNotEqual(repaired, original)
+
+    def test_fixture_repair_mapping_rejects_mutated_or_renamed_source(self):
+        name = 'src/asset_path.rs'
+        repaired = (Path(__file__).resolve().parents[1] / name).read_bytes()
+        original = runner.finite_source._asset_path_test_base(repaired)
+        mutations = (
+            repaired.replace(b'return WeaponSource::Procedural;', b'return WeaponSource::Embedded;'),
+            repaired.replace(b'#[cfg(test)]', b'#[cfg(not(test))]'),
+            repaired.replace(b'NEXT_TEMP_ID', b'OTHER_TEMP_ID'),
+            repaired.replace(b'fn locomotion_pack_is_discovered', b'fn changed_locomotion_pack_is_discovered'),
+            repaired.replace(b'\n', b'\r\n'),
+        )
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder); path = root / name; path.parent.mkdir()
+            for changed in mutations:
+                self.assertNotEqual(changed, repaired)
+                path.write_bytes(changed)
+                with self.subTest(source=runner.shared.digest(changed)), self.assertRaisesRegex(ValueError, 'declared ebf'):
+                    runner.current_checkout(root, {name: original})
+            path.write_bytes(repaired)
+            with self.assertRaisesRegex(ValueError, 'declared ebf'):
+                runner.current_checkout(root, {name: original + b'changed'})
+            other = 'src/other.rs'; path.rename(root / other)
+            with self.assertRaisesRegex(ValueError, 'declared ebf'):
+                runner.current_checkout(root, {other: original})
+
     def test_provider_is_exact_and_cannot_substitute_artifact_or_run(self):
         value = {'id': runner.BASELINE_ARTIFACT, 'name': 'pass-submission-full-attempt-1',
                  'size_in_bytes': 15858877, 'digest': 'sha256:' + runner.BASELINE_ARCHIVE_SHA256, 'expired': False,

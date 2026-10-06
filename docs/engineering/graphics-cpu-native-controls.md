@@ -20,6 +20,20 @@ compiler and executable receipts. The new lane invokes that historical binary
 again on the same runner as the newly built ebf example. Its historical compile
 identity remains distinct from its new invocation identity.
 
+The current-checkout guard also accepts the exact `src/asset_path.rs` test-only
+fixture repair published in `9c320cead838ffa6033359f705c462693df532f6`, using the
+[independently pinned before/after reconstruction](finite-ads-profile-binding.md#exact-test-fixture-repair-2026-10-06).
+All other checkout bytes still match ebf exactly; arbitrary test edits, changed
+production, renamed files and CRLF normalization are rejected. The candidate
+continues to compile the original ebf bytes and retains ebf as `source_commit`.
+`workflow_source_commit` identifies the caller. Its separate
+`current-checkout-source-inventory.json` records actual raw checkout identities
+and the exact test-only mapping; the candidate receipt binds that inventory's
+digest. The differing raw file is retained under `current-checkout/`, and the
+mapping module is retained with verifier sources. Checkout and retained evidence
+are checked again after native controls. Historical descriptors, native review
+receipts and acceptance thresholds are unchanged.
+
 Only this exact artifact is eligible. The coordinator workflow should retrieve
 its actual metadata with the normal authenticated GitHub artifact API, retain
 the unchanged artifact object as `baseline-provider.json`, then use the normal
