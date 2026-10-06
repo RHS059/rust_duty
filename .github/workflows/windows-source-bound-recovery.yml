@@ -33,7 +33,7 @@ jobs:
       - name: Test fail-closed retrieval and current-source revalidation
         env:
           PYTHONPATH: tools
-        run: python -m unittest -v test_fetch_source_bound_companions test_revalidate_reused_companions test_windows_same_platform_return test_windows_same_platform_workflow test_windows_recovery_workflow
+        run: python -m unittest -v test_fetch_source_bound_companions test_revalidate_reused_companions test_windows_same_platform_return test_windows_same_platform_workflow test_windows_recovery_workflow test_legacy_facade_equivalence test_fetch_legacy_facade_reference
       - name: Retrieve exact immutable original ZIPs and source witness
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -159,6 +159,36 @@ jobs:
           --executable target/release/vector-range.exe --runtime ../gl-runtime
           --manifest tools/windows_gl_reference_lock.json --root .
           --evidence evidence/same-platform-return --timeout 1800 --run-timeout 4500
+      - name: Retrieve the fixed pre-facade Windows reference archive
+        if: matrix.lane == 'build-preview'
+        timeout-minutes: 5
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python tools/fetch_legacy_facade_reference.py --output evidence/legacy-facade-reference
+      - name: Compare bounded pre-facade and current static GL captures
+        if: matrix.lane == 'build-preview'
+        timeout-minutes: 16
+        working-directory: evidence/runtime-root
+        run: >-
+          python tools/run_legacy_facade_equivalence.py
+          --reference-zip ../legacy-facade-reference/11326905753.zip
+          --executable target/release/vector-range.exe --root . --runtime ../gl-runtime
+          --evidence ../legacy-facade-equivalence --timeout 180
+      - name: Retain bounded facade comparison evidence without binaries
+        if: always() && matrix.lane == 'build-preview'
+        uses: actions/upload-artifact@v4
+        with:
+          name: legacy-facade-equivalence-attempt-${{ github.run_attempt }}
+          path: |
+            evidence/legacy-facade-reference/reference-metadata.json
+            evidence/legacy-facade-equivalence/captures/
+            evidence/legacy-facade-equivalence/logs/
+            evidence/legacy-facade-equivalence/summary.json
+            evidence/legacy-facade-equivalence/input-manifest.json
+            evidence/legacy-facade-equivalence/settings.cfg
+            evidence/legacy-facade-equivalence/reference-input/BUILD_IDENTITY.json
+          if-no-files-found: warn
+          retention-days: 7
       - name: Retain source/reuse and native comparison summaries
         if: always()
         uses: actions/upload-artifact@v4

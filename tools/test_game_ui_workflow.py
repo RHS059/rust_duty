@@ -39,7 +39,10 @@ class GameUiWorkflowTests(unittest.TestCase):
         self.assertEqual(job['runs-on'], 'windows-latest')
         self.assertNotIn('needs', job)
         commands = [step.get('run', '') for step in job['steps']]
-        self.assertIn('cargo build --locked --no-default-features --features legacy-macroquad,wgpu-runtime --example game_ui_contract --bin vector-range', commands)
+        self.assertIn('cargo build --locked --no-default-features --features legacy-macroquad,wgpu-runtime --example game_ui_contract --example legacy_capture_contract --bin vector-range', commands)
+        self.assertIn('python -m pip install Pillow==11.3.0 PyYAML==6.0.3', commands)
+        guards = next(command for command in commands if 'python -m unittest' in command)
+        self.assertIn('test_game_ui_workflow', guards.split())
         self.assertTrue(any('stage_windows_gl_reference.ps1 -Manifest tools/windows_gl_reference_lock.json' in command for command in commands))
         native = next(command for command in commands if 'tools/run_windows_gl_game_ui.py' in command)
         self.assertIn('--runtime evidence/game-ui-gl-runtime', native)
@@ -55,7 +58,7 @@ class GameUiWorkflowTests(unittest.TestCase):
         steps = self.workflow['jobs']['game-ui-gl-contract']['steps']
         builds = [step['run'] for step in steps if 'cargo build' in step.get('run', '')]
         self.assertEqual(len(builds), 1)
-        self.assertIn('--example game_ui_contract --bin vector-range', builds[0])
+        self.assertIn('--example game_ui_contract --example legacy_capture_contract --bin vector-range', builds[0])
         runner = next(step for step in steps if 'run_calibrated_presentation.py' in step.get('run', ''))
         self.assertIn('--executable target/debug/vector-range.exe --root .', runner['run'])
         self.assertIn('--runtime evidence/game-ui-gl-runtime', runner['run'])
