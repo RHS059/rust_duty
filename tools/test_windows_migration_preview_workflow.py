@@ -29,6 +29,8 @@ class WindowsMigrationPreviewWorkflowTests(unittest.TestCase):
             '.github/workflows/wgpu-dx12-authored.yml',
             'tools/prepare_ads_source_oracle.py',
             'tools/test_prepare_ads_source_oracle.py',
+            'tools/build_ads_source_packet.py',
+            'tools/test_build_ads_source_packet.py',
             'tools/current_ads_source_oracle.py',
             'tools/test_current_ads_source_oracle.py',
             'tools/collect_ads_offset_evidence.py',

@@ -15,6 +15,9 @@ class RecoveryWorkflowTests(unittest.TestCase):
         retrieval = next(step for step in steps if 'tools/fetch_source_bound_companions.py' in step.get('run', ''))
         self.assertLess(steps.index(guards), steps.index(retrieval))
         self.assertNotIn('if', guards)
+        for suite in ('test_build_ads_source_packet', 'test_current_ads_source_oracle.AssembleTests',
+                      'test_current_ads_source_oracle.CurrentContextTests'):
+            self.assertIn(suite, guards['run'].split())
 
     def test_recovery_is_independent_and_branch_bounded(self):
         caller = (ROOT / '.github/workflows/build.yml').read_text()

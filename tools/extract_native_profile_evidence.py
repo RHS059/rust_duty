@@ -77,7 +77,7 @@ def read_regular(path, limit):
     require(stat.S_ISREG(before.st_mode) and before.st_nlink == 1,
             f'not a single-link regular file: {path}')
     require(0 < before.st_size <= limit, f'file byte bound: {path}')
-    fd = os.open(path, os.O_RDONLY | getattr(os, 'O_NOFOLLOW', 0))
+    fd = os.open(path, os.O_RDONLY | getattr(os, 'O_BINARY', 0) | getattr(os, 'O_NOFOLLOW', 0))
     with os.fdopen(fd, 'rb') as stream:
         opened = os.fstat(stream.fileno())
         data = stream.read(limit + 1)
@@ -223,7 +223,7 @@ def package(root, metadata, caller):
     for relative, data in selected.items():
         destination = safe_path(output / relative)
         destination.parent.mkdir(parents=True, exist_ok=True)
-        fd = os.open(destination, os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, 'O_NOFOLLOW', 0), 0o600)
+        fd = os.open(destination, os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, 'O_BINARY', 0) | getattr(os, 'O_NOFOLLOW', 0), 0o600)
         with os.fdopen(fd, 'wb') as stream:
             stream.write(data)
     verify_output(output, selected)
