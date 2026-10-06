@@ -18,6 +18,9 @@
 
 pub mod runtime;
 
+#[cfg(any(all(windows, target_arch = "x86_64"), test))]
+mod precision_receipt;
+
 use crate::draw::{self, BlendMode, Command, Renderer, ResourceId, TextureSource};
 use glam::Mat4;
 use macroquad::{camera, material, miniquad as mq, models, texture, window};
@@ -96,6 +99,12 @@ struct CachedTexture {
 /// immutable-descriptor contract used by wgpu.
 pub struct LegacyRenderer {
     info: draw::BackendInfo,
+    #[cfg(all(windows, target_arch = "x86_64"))]
+    capture_identity: Option<String>,
+    #[cfg(all(windows, target_arch = "x86_64"))]
+    precision_receipt_emitted: bool,
+    #[cfg(all(windows, target_arch = "x86_64"))]
+    capture_target_receipts: std::collections::HashSet<ResourceId>,
     textures: HashMap<ResourceId, CachedTexture>,
     materials: HashMap<(u8, bool, bool, bool), material::Material>,
 }
@@ -114,6 +123,12 @@ impl LegacyRenderer {
                 backend: "OpenGl".into(),
                 adapter: adapter_name(&context_info.gl_version_string),
             },
+            #[cfg(all(windows, target_arch = "x86_64"))]
+            capture_identity: crate::draw::frame_witness::requested_identity(std::env::args())?,
+            #[cfg(all(windows, target_arch = "x86_64"))]
+            precision_receipt_emitted: false,
+            #[cfg(all(windows, target_arch = "x86_64"))]
+            capture_target_receipts: std::collections::HashSet::new(),
             textures: HashMap::new(),
             materials: HashMap::new(),
         })
@@ -344,8 +359,47 @@ impl LegacyRenderer {
             }
             Command::Capture { target, path } => {
                 let diagnostic = target.is_some();
+                #[cfg(all(windows, target_arch = "x86_64"))]
+                let capture_descriptor = target.as_ref().map(|t| t.texture.clone());
                 let target = target.as_ref().map(|t| self.target(t)).transpose()?;
                 flush();
+                #[cfg(all(windows, target_arch = "x86_64"))]
+                if let Some(identity) = &self.capture_identity {
+                    if !self.precision_receipt_emitted {
+                        // SAFETY: LegacyRenderer verified its initialized
+                        // OpenGL backend. Submit/capture runs synchronously on
+                        // the same native render thread and current context.
+                        let context = unsafe { window::get_internal_gl().quad_context.info() };
+                        let receipt = unsafe {
+                            precision_receipt::measure(
+                                identity,
+                                &self.info.adapter,
+                                &context.gl_version_string,
+                            )
+                        }?;
+                        eprintln!("renderer gl_precision_receipt={receipt}");
+                        self.precision_receipt_emitted = true;
+                    }
+                    if let Some(descriptor) = &capture_descriptor {
+                        if self.capture_target_receipts.insert(descriptor.id) {
+                            // The immutable cached descriptor was checked by
+                            // self.target above. sample_count=0 is the existing
+                            // source-owned allocation path, not a GL_SAMPLES
+                            // measurement on the default framebuffer.
+                            let depth =
+                                matches!(descriptor.source, TextureSource::Target { depth: true });
+                            let receipt = precision_receipt::target_capture(
+                                identity,
+                                descriptor.id.0,
+                                descriptor.width,
+                                descriptor.height,
+                                depth,
+                                path,
+                            );
+                            eprintln!("renderer gl_target_capture_receipt={receipt}");
+                        }
+                    }
+                }
                 let image = match target {
                     Some(target) => target.texture.get_texture_data(),
                     None => {

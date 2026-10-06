@@ -138,10 +138,12 @@ jobs:
       - name: Test GL UI process evidence guards
         env:
           PYTHONPATH: tools
-        run: python -m unittest -v test_windows_gl_game_ui test_calibrated_presentation
+        run: python -m unittest -v test_windows_gl_game_ui test_calibrated_presentation test_windows_gl_capture_contract
       - name: Build production UI with both backends
-        run: cargo build --locked --no-default-features --features legacy-macroquad,wgpu-runtime --example game_ui_contract --bin vector-range
+        id: gl-fixtures-build
+        run: cargo build --locked --no-default-features --features legacy-macroquad,wgpu-runtime --example game_ui_contract --example legacy_capture_contract --bin vector-range
       - name: Stage pinned app-local official Mesa
+        id: gl-runtime-stage
         shell: pwsh
         timeout-minutes: 10
         run: |
@@ -207,5 +209,24 @@ jobs:
             evidence/calibrated-static/summary.json
             evidence/calibrated-static/input-manifest.json
             evidence/calibrated-static/calibration-settings.cfg
+          if-no-files-found: error
+          retention-days: 7
+      - name: Verify same-submission GL screenshot neutrality
+        if: ${{ !cancelled() && steps.gl-fixtures-build.outcome == 'success' && steps.gl-runtime-stage.outcome == 'success' }}
+        run: >-
+          python tools/run_windows_gl_capture_contract.py
+          --executable target/debug/examples/legacy_capture_contract.exe
+          --runtime evidence/game-ui-gl-runtime --root .
+          --evidence evidence/legacy-capture-contract --timeout 180
+      - name: Retain GL screenshot neutrality captures and process evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gl-capture-neutrality-attempt-${{ github.run_attempt }}
+          path: |
+            evidence/legacy-capture-contract/captures/
+            evidence/legacy-capture-contract/process/
+            evidence/legacy-capture-contract/summary.json
+            evidence/legacy-capture-contract/runtime/staging-receipt.json
           if-no-files-found: error
           retention-days: 7

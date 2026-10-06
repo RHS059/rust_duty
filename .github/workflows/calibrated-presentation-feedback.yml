@@ -13,6 +13,8 @@ on:
       - 'assets/weapons/hk416a5.vrm'
       - 'src/legacy_macroquad/**'
       - 'examples/legacy_capture_contract.rs'
+      - 'tools/run_windows_gl_capture_contract.py'
+      - 'tools/test_windows_gl_capture_contract.py'
   workflow_dispatch:
 permissions:
   contents: read

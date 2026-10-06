@@ -42,6 +42,37 @@ class CalibratedFeedbackWorkflowTests(unittest.TestCase):
         self.assertLess(steps.index(runner), steps.index(full))
         self.assertLess(steps.index(full), steps.index(raw))
 
+    def test_capture_neutrality_uses_same_pinned_runtime_and_retains_failures(self):
+        workflow = yaml.safe_load((ROOT / '.github/workflows/wgpu-renderer-contract.yml').read_text())
+        steps = workflow['jobs']['game-ui-gl-contract']['steps']
+        build = next(s for s in steps if s.get('id') == 'gl-fixtures-build')
+        stage = next(s for s in steps if s.get('id') == 'gl-runtime-stage')
+        run = next(s for s in steps if 'run_windows_gl_capture_contract.py' in s.get('run', ''))
+        upload = next(s for s in steps if s.get('with', {}).get('name', '').startswith('gl-capture-neutrality-'))
+        self.assertIn('--example legacy_capture_contract', build['run'])
+        self.assertIn('--example game_ui_contract', build['run'])
+        self.assertIn('evidence/game-ui-gl-runtime', stage['run'])
+        self.assertIn('--runtime evidence/game-ui-gl-runtime', run['run'])
+        self.assertIn('--timeout 180', run['run'])
+        self.assertEqual(run['if'], "${{ !cancelled() && steps.gl-fixtures-build.outcome == 'success' && steps.gl-runtime-stage.outcome == 'success' }}")
+        # This regression does not suppress earlier UI/calibration evidence.
+        calibrated = next(s for s in steps if 'run_calibrated_presentation.py' in s.get('run', ''))
+        self.assertLess(steps.index(calibrated), steps.index(run))
+        self.assertLess(steps.index(run), steps.index(upload))
+        self.assertEqual(upload['if'], 'always()')
+        self.assertEqual(upload['with']['if-no-files-found'], 'error')
+        self.assertEqual(upload['with']['path'].splitlines(), [
+            'evidence/legacy-capture-contract/captures/',
+            'evidence/legacy-capture-contract/process/',
+            'evidence/legacy-capture-contract/summary.json',
+            'evidence/legacy-capture-contract/runtime/staging-receipt.json'])
+        for step in (run, upload):
+            self.assertNotIn('continue-on-error', step)
+        caller = yaml.load((ROOT / '.github/workflows/calibrated-presentation-feedback.yml').read_text(), Loader=yaml.BaseLoader)
+        for path in ('examples/legacy_capture_contract.rs', 'tools/run_windows_gl_capture_contract.py',
+                     'tools/test_windows_gl_capture_contract.py'):
+            self.assertIn(path, caller['on']['push']['paths'])
+
 
 if __name__ == '__main__':
     unittest.main()
