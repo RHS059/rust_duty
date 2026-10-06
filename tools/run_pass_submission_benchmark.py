@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build one identical example against pinned baseline/candidate; run bounded WARP pairs."""
+"""Historical 17023450/5abf2bca comparison; never tests the current checkout's renderer."""
 import argparse
 import hashlib
 import io
@@ -58,13 +58,15 @@ def source_manifest(root):
     return result
 
 
-def pinned_source(repository):
-    names = subprocess.check_output(['git', '-C', str(repository), 'ls-tree', '-r', '--name-only', BASELINE,
+def pinned_source(repository, commit=BASELINE):
+    if commit not in (BASELINE, CANDIDATE):
+        raise ValueError('historical comparison accepts only its two pinned source revisions')
+    names = subprocess.check_output(['git', '-C', str(repository), 'ls-tree', '-r', '--name-only', commit,
                                      '--', *SOURCE_PATHS]).decode().splitlines()
     if not {'Cargo.toml', 'Cargo.lock', *ALLOWED}.issubset(names):
         raise ValueError('pinned baseline compile sources are incomplete')
     # One archive read avoids hundreds of git processes; never archive game assets.
-    archive = subprocess.check_output(['git', '-C', str(repository), 'archive', BASELINE, '--', *names])
+    archive = subprocess.check_output(['git', '-C', str(repository), 'archive', commit, '--', *names])
     result = {}
     with tarfile.open(fileobj=io.BytesIO(archive)) as stream:
         for member in stream:
@@ -75,6 +77,19 @@ def pinned_source(repository):
                 raise ValueError(f'unsupported pinned source: {member.name}')
             result[member.name] = stream.extractfile(member).read()
     return result
+
+
+def historical_candidate_sources(repository, baseline):
+    """Read the historical candidate from Git and preserve the exact two-file guard."""
+    candidate = pinned_source(repository, CANDIDATE)
+    if set(candidate) != set(baseline):
+        raise ValueError('historical comparison compile inventories differ')
+    if {name for name in baseline if baseline[name] != candidate[name]} != ALLOWED:
+        raise ValueError('historical comparison must differ in exactly both passbatch files')
+    for name, expected in CANDIDATE_HASHES.items():
+        if digest(candidate[name]) != expected:
+            raise ValueError('historical candidate hash changed: ' + name)
+    return candidate
 
 
 def candidate_sources(baseline, root):
@@ -260,7 +275,10 @@ def execute(args):
     if sys.platform != 'win32':
         raise ValueError('native diagnostic requires Windows; Linux can run its guard tests only')
     root = args.repository.resolve()
-    candidate = args.candidate_root.resolve()
+    # Accept the previous workflow's redundant argument only when it names this
+    # repository. It never selects source bytes: both variants come from Git.
+    if args.candidate_root is not None and args.candidate_root.resolve() != root:
+        raise ValueError('--candidate-root is obsolete; historical sources are pinned Git objects')
     output = args.output_dir.resolve()
     output.mkdir(parents=True, exist_ok=False)
     verifier = output / 'verifier'
@@ -278,7 +296,7 @@ def execute(args):
         (verifier / name).write_bytes(pinned)
     write_json(output / 'verifier-receipt.json', source_manifest(verifier))
     baseline = pinned_source(root)
-    candidate_data = candidate_sources(baseline, candidate)
+    candidate_data = historical_candidate_sources(root, baseline)
     for name, expected in CANDIDATE_HASHES.items():
         published = subprocess.check_output(['git', '-C', str(root), 'show', f'{CANDIDATE}:{name}'])
         if digest(published) != expected or digest(candidate_data[name]) != expected:
@@ -391,7 +409,9 @@ def execute(args):
                                                 'fixed_validations': fixed_checks, 'device_evidence': same_device,
                                                 'shader_compiler': 'Fxc', 'compiler_equal': True},
                'comparison': 'exact RGBA pixels across all before/after controls; zero tolerance',
-               'scope': 'synthetic headless DX12 WARP whole-submit diagnostic; optimized dev profile; '
+               'historical_source_comparison': True,
+               'current_checkout_renderer_tested': False,
+               'scope': 'historical pinned 17023450/5abf2bca synthetic headless DX12 WARP whole-submit diagnostic; optimized dev profile; '
                         'no gameplay, surface acquisition/present, GPU timestamp, RTX measurement or FPS claim; '
                         'final-control duration includes one extra fixture, queue drain, readback and PNG I/O'}
     write_json(output / 'summary.json', summary)
@@ -401,7 +421,7 @@ def execute(args):
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--repository', type=Path, required=True, help='Git repository containing the pinned baseline object')
-    parser.add_argument('--candidate-root', type=Path, required=True, help='Source directory differing in frame.rs and plan.rs only')
+    parser.add_argument('--candidate-root', type=Path, help='Obsolete workflow compatibility argument; must equal repository and never selects comparison bytes')
     parser.add_argument('--output-dir', type=Path, required=True, help='New evidence directory; keeps exact source snapshots and logs')
     args = parser.parse_args(argv)
     output_existed = args.output_dir.exists()

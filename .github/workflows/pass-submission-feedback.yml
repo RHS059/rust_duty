@@ -1,4 +1,4 @@
-name: Bounded Windows pass-submission comparison
+name: Historical Windows pass-submission comparison
 on:
   push:
     branches: [main]
@@ -8,8 +8,6 @@ on:
       - 'tools/run_pass_submission_benchmark.py'
       - 'tools/test_pass_submission_benchmark.py'
       - 'tools/test_pass_submission_workflow.py'
-      - 'src/render/frame.rs'
-      - 'src/render/plan.rs'
 permissions:
   contents: read
 concurrency:

@@ -1,0 +1,134 @@
+name: Bounded Windows graphics-device and CPU-stage controls
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/graphics-cpu-feedback.yml'
+      - 'examples/graphics_cpu_contract.rs'
+      - 'examples/renderer_contract.rs'
+      - 'tools/run_graphics_cpu_contract.py'
+      - 'tools/test_graphics_cpu_contract.py'
+      - 'tools/test_graphics_cpu_workflow.py'
+      - 'tools/run_pass_submission_benchmark.py'
+      - 'tools/summarize_frame_performance.py'
+      - 'src/**'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - 'updater/src/**'
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: graphics-cpu-feedback-${{ github.ref }}
+  cancel-in-progress: false
+env:
+  GIT_CONFIG_COUNT: '1'
+  GIT_CONFIG_KEY_0: core.autocrlf
+  GIT_CONFIG_VALUE_0: 'false'
+jobs:
+  validate:
+    if: github.repository == 'RHS059/rust_duty' && github.ref == 'refs/heads/main'
+    runs-on: windows-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /.github/workflows/graphics-cpu-feedback.yml
+            /Cargo.toml
+            /Cargo.lock
+            /build.rs
+            /build_number.rs
+            /LICENSE
+            /.cargo/
+            /rust-toolchain.toml
+            /src/
+            /updater/
+            /examples/renderer_contract.rs
+            /examples/graphics_cpu_contract.rs
+            /tools/
+      - name: Fetch the exact baseline and candidate source objects
+        shell: pwsh
+        run: |
+          git fetch --no-write-fetch-head --no-tags --depth=1 origin b085f31d71e8eeb4dd9f36786a9c7e82da90b809
+          if ($LASTEXITCODE -ne 0) { throw 'Baseline source retrieval failed' }
+          git fetch --no-write-fetch-head --no-tags --depth=1 origin ebf4bcb7f489766e3c7ec188c35db9bb4146c62b
+          if ($LASTEXITCODE -ne 0) { throw 'Candidate source retrieval failed' }
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install pinned evidence readers
+        run: python -m pip install Pillow==11.3.0 PyYAML==6.0.3
+      - name: Verify source, provider, pixel and workflow guards
+        env:
+          PYTHONPATH: tools
+        run: python -m unittest -v test_graphics_cpu_contract test_pass_submission_benchmark test_graphics_cpu_workflow
+      - name: Retain actual metadata for the single reviewed baseline artifact
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const artifact = await github.rest.actions.getArtifact({
+              owner: 'RHS059', repo: 'rust_duty', artifact_id: 11422371812
+            });
+            fs.writeFileSync('baseline-provider.json', JSON.stringify(artifact.data, null, 2) + '\n');
+      - name: Validate exact provider identity before downloading
+        env:
+          PYTHONPATH: tools
+        run: python -c "from pathlib import Path; from run_graphics_cpu_contract import baseline_provider,read_json; baseline_provider(read_json(Path('baseline-provider.json')))"
+      - name: Download only the reviewed historical batching baseline
+        uses: actions/download-artifact@v4
+        with:
+          artifact-ids: '11422371812'
+          run-id: '37482428571'
+          github-token: ${{ github.token }}
+          repository: RHS059/rust_duty
+          path: downloaded/batching-baseline
+          merge-multiple: true
+      - name: Install the exact comparison compiler
+        shell: pwsh
+        run: |
+          rustup toolchain install 1.99.0-x86_64-pc-windows-msvc --profile minimal
+          if ($LASTEXITCODE -ne 0) { throw 'Pinned compiler installation failed' }
+      - name: Require actual renderer equality and all six native controls
+        timeout-minutes: 30
+        run: >-
+          python tools/run_graphics_cpu_contract.py --repository . --verifier-root .
+          --baseline-artifact downloaded/batching-baseline --baseline-provider baseline-provider.json
+          --output-dir evidence/graphics-cpu
+      - name: Retain full source-bound native evidence and binaries
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: graphics-cpu-full-attempt-${{ github.run_attempt }}
+          path: |
+            baseline-provider.json
+            evidence/graphics-cpu/**
+            !evidence/graphics-cpu/target/**
+            !evidence/graphics-cpu/temp/**
+          include-hidden-files: true
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Retain bounded native review evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: graphics-cpu-review-attempt-${{ github.run_attempt }}
+          path: |
+            baseline-provider.json
+            evidence/graphics-cpu/*.json
+            evidence/graphics-cpu/*.bin
+            evidence/graphics-cpu/*.log
+            evidence/graphics-cpu/*-source/**
+            evidence/graphics-cpu/baseline-original/**
+            evidence/graphics-cpu/verifier/**
+            evidence/graphics-cpu/*-renderer-contract/**
+            evidence/graphics-cpu/preferences/**
+            evidence/graphics-cpu/seed/**
+            evidence/graphics-cpu/windowed-*/**
+            evidence/graphics-cpu/headless-bypass/**
+          include-hidden-files: true
+          if-no-files-found: warn
+          retention-days: 14

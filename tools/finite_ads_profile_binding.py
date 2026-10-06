@@ -42,6 +42,58 @@ PASS_BATCHING_PAIRS = {
         'src/render/plan.rs': {'bytes': 22649, 'sha256': 'c23e97a848435a610f5be0c72341ef8e5090fa2cd66846cda1b29159558a4c7e'},
     },
 }
+
+GPU_CPU_SCHEMA = 'rust-duty-finite-ads-gpu-cpu-class/v1'
+GPU_CPU_CLASS = 'ads-offset-8f571464-finite-gpu-cpu-v1'
+PASS_BATCHING_CLASS_SHA256 = '2895c1f4f0039f5a850c7b30196c5d77f4b2e563bc211f8b9fb51ca15f639c4c'
+# Deliberately absent: no new native controls have been independently reviewed.
+GPU_CPU_NATIVE_REVIEW_SHA256 = None
+GPU_CPU_COMMITS = {
+    'baseline': 'b085f31d71e8eeb4dd9f36786a9c7e82da90b809',
+    'candidate': 'ebf4bcb7f489766e3c7ec188c35db9bb4146c62b',
+}
+# Exact canonical production bytes plus the exact existing diagnostic suffix.
+GPU_CPU_VARIANTS = {
+    'baseline': {
+        'production': {
+            'src/app.rs': {'bytes': 73361, 'sha256': '244d6a65fa6534abbc3dcc42e2ef57f0592bd5976e053083449f4cb2254ca472'},
+            'src/frame_performance.rs': {'bytes': 26106, 'sha256': 'd32746635a4ef297ce6c1e22514d3a18cf9b57975e79f4db9e0102965cb8ac22'},
+            'src/frame_performance_session.rs': {'bytes': 15320, 'sha256': '60773c62527d99ca27fa4315eb360121eec14b3645504e5c6a5bc2e4f59aee5f'},
+            'src/graphics_device.rs': None,
+            'src/lib.rs': {'bytes': 1701, 'sha256': '090d44a59fb9b4d6de1a98e6199f157afce88ed81a1930395675ee542d6217cc'},
+            'src/main.rs': {'bytes': 6126, 'sha256': 'c4018780c2db8c7fb5681d7ea65656e78217b4dbac870cab928f589e5a8d472f'},
+            'src/pause_menu.rs': {'bytes': 42678, 'sha256': '509ac8fc2787454e0a7af657eff40bab8fe9b5f3d7e8d4328fd213581377fce2'},
+            'src/render/backend.rs': {'bytes': 8609, 'sha256': '2ffa4502d858c3e291c599bb50e0ec50d3187b7473005d28858a7914a76b3ed0'},
+            'src/render/device.rs': {'bytes': 23610, 'sha256': '02dd7452dcc310276ee3eb03c2a96d84c2c97c29a6282cbc4cff627ff2227723'},
+            'src/render/frame.rs': {'bytes': 25184, 'sha256': 'd0bdefd2fe79f77c33e2ac4183346cccfcbae3a3d1fac6c7e2130e7d6648d91e'},
+            'src/render/mod.rs': {'bytes': 713, 'sha256': '81c52fb079336e131299091a0445353b7bfe566517621ec1516922e19f2047db'},
+            'src/render/runtime.rs': {'bytes': 19444, 'sha256': 'f1372755c241bad6aba2109a0a86f0396537e79dbe7651f24ec2d872fbb393ee'},
+        },
+        'reviewed_additions': {
+            'src/render/mod.rs': {'bytes': 872, 'sha256': '201b223624a59e84f73cc3d114c6e6e7e797b6d1d121a781301f195867a6ac74'},
+        },
+    },
+    'candidate': {
+        'production': {
+            'src/app.rs': {'bytes': 75655, 'sha256': 'c282e402b35b0edee452eff30741251b729a936e90431c94387eb14c3cb918da'},
+            'src/frame_performance.rs': {'bytes': 31117, 'sha256': 'dfd68b9970a9b38cfef2b60a8b75238350c89466fc6e5a0d9d54413758c415bd'},
+            'src/frame_performance_session.rs': {'bytes': 19408, 'sha256': '4b72fe3910f08d2a4dd7e9dcaea7557675451275010c72c75da7b37d654d577c'},
+            'src/graphics_device.rs': {'bytes': 18112, 'sha256': '731d3ad664ed8b8cc358e19f7ec321646af8fbe50872ccf63322128264418e8b'},
+            'src/lib.rs': {'bytes': 1726, 'sha256': 'd99219a4e4fcc06d73d3841b0b6d6fa40edcb4ac2aa5e1882cd5f66cda7284b1'},
+            'src/main.rs': {'bytes': 6421, 'sha256': '04f2c0ce85c2ceac6ccf9b215e043df097107749a676dfa3d2661334b6463f41'},
+            'src/pause_menu.rs': {'bytes': 65356, 'sha256': 'c08e8fc87407bc9cfda5cfadf7f92eb5802e7abb625e0b66e9d96c5d8f0bca9e'},
+            'src/render/backend.rs': {'bytes': 8833, 'sha256': '4a9c1efab9ecb5a462cd55f2a2b9bb10959f2e4d318f53dd439d75a01b6c8603'},
+            'src/render/device.rs': {'bytes': 28061, 'sha256': 'fe742b814bcc55ab3b5d13ad70a03dcef54e5369a7b3a82665a016eec16a6763'},
+            'src/render/frame.rs': {'bytes': 25738, 'sha256': 'aad7d066764a658b3dc8a3dbd1eaed2fb3bb69708effbbffe16a9b6fc07d8628'},
+            'src/render/mod.rs': {'bytes': 724, 'sha256': 'b5fce38c777a6619526f578bf3970bc31c38420ec1b6b57f10413647b2dbfb2f'},
+            'src/render/runtime.rs': {'bytes': 20650, 'sha256': '67af6a5ee23d3db06a526abe3b5df6dc5e325365dce436562e1e4e31381a3e48'},
+        },
+        'reviewed_additions': {
+            'src/render/mod.rs': {'bytes': 883, 'sha256': 'c78768f1c1144a14618960975fe43027293fa1a8a21cb147eea9bef6e44c7bae'},
+        },
+    },
+}
+
 EVIDENCE_KEYS = ('runner', 'native', 'gl_binding', 'opengl_empty', 'dx12_empty', 'opengl_visible', 'dx12_visible',
                  'preparation', 'before', 'after', 'executables', 'compiler_before', 'compiler_after',
                  'build_invocation', 'native_invocation')
@@ -64,8 +116,72 @@ def _identity(raw):
     return {'bytes': len(raw), 'sha256': hashlib.sha256(raw).hexdigest()}
 
 
+def _external_descriptor(value):
+    """External JSON can never impersonate a verified loader's internal state."""
+    require(type(value) is dict, 'external descriptor must be an object')
+    for marker, label in (('_pass_batching', 'pass-batching'), ('_gpu_cpu', 'GPU/CPU')):
+        require(marker not in value, 'reserved internal ' + label + ' state in external descriptor')
+    return value
+
+
+def _read_class_reference(ledger, class_path, item, digest, label):
+    source.shared._exact_keys(item, ('path', 'bytes', 'sha256'), label)
+    identity = {key: item[key] for key in ('bytes', 'sha256')}
+    source._digest_shape(identity, label)
+    equal(item['sha256'], _sha(digest, label + ' independent review anchor'), label + ' anchor')
+    path = ledger._portable(class_path.parent, item['path'])
+    equal(ledger._remember(path), identity, label + ' bytes')
+    return _external_descriptor(ledger._json(path))
+
+
+def _read_gpu_cpu_class(ledger, class_path, extension):
+    """Disabled scaffold. Native-review ingestion needs its own reviewed change."""
+    _external_descriptor(extension)
+    source.shared._exact_keys(extension, ('schema', 'class_id', 'status', 'batching_class',
+                                         'source_variants', 'native_comparison', 'acceptance_verdict'),
+                              'GPU/CPU descriptor')
+    equal(extension['schema'], GPU_CPU_SCHEMA, 'GPU/CPU descriptor schema')
+    equal(extension['class_id'], GPU_CPU_CLASS, 'GPU/CPU descriptor class')
+    require(extension['status'] == 'reviewed', 'GPU/CPU review pending; variant disabled')
+    equal(extension['acceptance_verdict'], None, 'GPU/CPU descriptor verdict')
+    equal(extension['source_variants'], GPU_CPU_VARIANTS, 'exact coherent GPU/CPU source variants')
+    batching = _read_class_reference(ledger, class_path, extension['batching_class'],
+                                     PASS_BATCHING_CLASS_SHA256, 'reviewed batching class')
+    equal(batching.get('schema'), PASS_BATCHING_SCHEMA, 'reviewed batching schema')
+    batching_path = ledger._portable(class_path.parent, extension['batching_class']['path'])
+    reviewed = _read_pass_batching_class(ledger, batching_path, batching)
+    # Check the entire declared baseline against the independently pinned parent.
+    for name, identity in GPU_CPU_VARIANTS['baseline']['production'].items():
+        equal(identity, PASS_BATCHING_PAIRS['candidate'].get(name,
+              reviewed['equivalence']['production'].get(name)), 'GPU/CPU baseline production: ' + name)
+    equal(GPU_CPU_VARIANTS['baseline']['reviewed_additions']['src/render/mod.rs'],
+          reviewed['equivalence']['reviewed_additions']['src/render/mod.rs'],
+          'GPU/CPU baseline diagnostic suffix')
+    require(GPU_CPU_NATIVE_REVIEW_SHA256 is not None,
+            'GPU/CPU native review anchor unavailable; variant disabled')
+    # A replaced constant or candidate-refreshed digest cannot activate this scaffold.
+    raise ValueError('GPU/CPU native receipt ingestion not activated; variant disabled')
+
+
+def _gpu_cpu_variant(read, reviewed, actual):
+    """One complete variant, including absence, never independent per-file choices.
+
+    This helper is exercised by adversarial fixtures only while the public
+    loader is disabled. The historical class inventory is never rewritten.
+    """
+    if '_gpu_cpu' not in reviewed:
+        return None
+    names = GPU_CPU_VARIANTS['baseline']['production']
+    observed = {name: (_identity(_production_bytes(name, read(name))) if name in actual else None)
+                for name in names}
+    matches = [value for value in GPU_CPU_VARIANTS.values() if value['production'] == observed]
+    require(len(matches) == 1, 'mixed or unreviewed GPU/CPU source variant')
+    return matches[0]
+
+
 def _read_pass_batching_class(ledger, class_path, extension):
     """Extend the unchanged original descriptor, never rewrite its proof."""
+    _external_descriptor(extension)
     source.shared._exact_keys(extension, ('schema', 'class_id', 'status', 'original_class',
                                          'source_pairs', 'native_comparison', 'acceptance_verdict'),
                               'pass-batching descriptor')
@@ -74,25 +190,17 @@ def _read_pass_batching_class(ledger, class_path, extension):
     equal(extension['acceptance_verdict'], None, 'pass-batching descriptor verdict')
     equal(extension['source_pairs'], PASS_BATCHING_PAIRS, 'exact paired source mapping')
 
-    def read(item, digest, label):
-        source.shared._exact_keys(item, ('path', 'bytes', 'sha256'), label)
-        identity = {key: item[key] for key in ('bytes', 'sha256')}
-        source._digest_shape(identity, label)
-        equal(item['sha256'], _sha(digest, label + ' independent review anchor'), label + ' anchor')
-        path = ledger._portable(class_path.parent, item['path'])
-        equal(ledger._remember(path), identity, label + ' bytes')
-        return ledger._json(path)
-
-    original = read(extension['original_class'], ORIGINAL_CLASS_SHA256, 'original finite class')
-    require('_pass_batching' not in original, 'reserved internal pass-batching state in external descriptor')
+    original = _read_class_reference(ledger, class_path, extension['original_class'],
+                                     ORIGINAL_CLASS_SHA256, 'original finite class')
     require(original.get('schema') == SCHEMA and original.get('status') == 'reviewed' and
             original.get('class_id') == 'ads-offset-8f571464-finite-v1', 'original finite class differs')
     for name, identity in PASS_BATCHING_PAIRS['baseline'].items():
         equal(original['equivalence']['production'][name], identity, 'original paired source anchor')
     require(PASS_BATCHING_NATIVE_REVIEW_SHA256 is not None,
             'pass-batching native review anchor unavailable; variant disabled')
-    comparison = read(extension['native_comparison'], PASS_BATCHING_NATIVE_REVIEW_SHA256,
-                      'pass-batching native comparison')
+    comparison = _read_class_reference(ledger, class_path, extension['native_comparison'],
+                                       PASS_BATCHING_NATIVE_REVIEW_SHA256,
+                                       'pass-batching native comparison')
     reviewed = deepcopy(original)
     reviewed['class_id'] = PASS_BATCHING_CLASS
     reviewed['_pass_batching'] = {'comparison': comparison,
@@ -316,11 +424,19 @@ def _packet_class(bound, packet_path, reviewed):
         bridge = _lf(read('oracle-output/original-authored_viewmodel.rs'))
         equal(_identity(bridge), expected['production']['src/authored_viewmodel.rs'], 'original bridge production')
     actual = {name for name in entries if _production_name(name)}
-    # This new module is the only new production-tree file in the reviewed overlay.
+    # The historical diagnostic overlay adds only this module.
     addition = 'src/render/finite_warp_probe.rs'
-    require(actual - set(expected['production']) <= {addition}, 'unreviewed production file added')
+    allowed_additions = {addition}
+    if '_gpu_cpu' in reviewed:
+        allowed_additions.add('src/graphics_device.rs')
+    require(actual - set(expected['production']) <= allowed_additions, 'unreviewed production file added')
     require(set(expected['production']) <= actual, 'reviewed production file missing')
-    source_pair = _pass_batching_pair(read, reviewed)
+    variant = _gpu_cpu_variant(read, reviewed, actual)
+    if variant is None:
+        source_pair = _pass_batching_pair(read, reviewed)
+    else:
+        source_pair = {**PASS_BATCHING_PAIRS['candidate'],
+                       **{name: value for name, value in variant['production'].items() if value is not None}}
     for name in sorted(actual):
         raw = read(name)
         canonical = _lf(raw) if Path(name).suffix in ('.rs', '.toml', '.lock', '.wgsl') else raw
@@ -328,7 +444,8 @@ def _packet_class(bound, packet_path, reviewed):
         if _identity(canonical) != identity:
             # The additive bodies must themselves be the reviewed versions;
             # marker-shaped arbitrary Rust is not a source-equivalence proof.
-            equal(_identity(canonical), expected.get('reviewed_additions', {}).get(name),
+            additions = variant['reviewed_additions'] if variant is not None else {}
+            equal(_identity(canonical), additions.get(name, expected.get('reviewed_additions', {}).get(name)),
                   'unreviewed additive/source bytes: ' + name)
         if name == addition and name not in expected['production']:
             preparation.checked_overlay(name, None, canonical)
@@ -634,8 +751,9 @@ def bind_finite_ads_profile(*, source_packet, source_packet_path, reviewed_class
     class_path = Path(reviewed_class).absolute()
     require(ledger._remember(class_path)['sha256'] == _sha(expected_class_sha256, 'independent class anchor'),
             'reviewed class differs from independent SHA-256')
-    reviewed = ledger._json(class_path)
-    require('_pass_batching' not in reviewed, 'reserved internal pass-batching state in external descriptor')
+    reviewed = _external_descriptor(ledger._json(class_path))
+    if reviewed.get('schema') == GPU_CPU_SCHEMA:
+        reviewed = _read_gpu_cpu_class(ledger, class_path, reviewed)
     pass_batching = reviewed.get('schema') == PASS_BATCHING_SCHEMA
     if pass_batching:
         reviewed = _read_pass_batching_class(ledger, class_path, reviewed)

@@ -20,8 +20,8 @@ class PassSubmissionWorkflowTests(unittest.TestCase):
         self.assertEqual(set(push['paths']), {
             '.github/workflows/pass-submission-feedback.yml',
             'examples/pass_submission_benchmark.rs', 'tools/run_pass_submission_benchmark.py',
-            'tools/test_pass_submission_benchmark.py', 'tools/test_pass_submission_workflow.py',
-            'src/render/frame.rs', 'src/render/plan.rs'})
+            'tools/test_pass_submission_benchmark.py', 'tools/test_pass_submission_workflow.py'})
+        self.assertEqual(self.workflow['name'], 'Historical Windows pass-submission comparison')
         self.assertEqual(self.workflow['permissions'], {'contents': 'read'})
         self.assertEqual(self.workflow['concurrency'], {
             'group': 'pass-submission-feedback-${{ github.ref }}', 'cancel-in-progress': 'false'})
