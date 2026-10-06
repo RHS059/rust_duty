@@ -1,0 +1,419 @@
+{
+  "acceptance_verdict": null,
+  "backend": "opengl",
+  "empty": false,
+  "frame_count": 50,
+  "frames": [
+    {
+      "empty_support_separated": false,
+      "frame": 17,
+      "full_original_state_equal": true,
+      "maximum_rounded_magnitude_upper": 2.275452745176348,
+      "minimum_nonzero_dyadic_exponent": -92,
+      "unsupported_domain_nodes": 0
+    },
+    {
+      "empty_support_separated": false,
+      "frame": 18,
+      "full_original_state_equal": true,
+      "maximum_rounded_magnitude_upper": 2.275452745176348,
+      "minimum_nonzero_dyadic_exponent": -91,
+      "unsupported_domain_nodes": 0
+    },
+    {
+      "empty_support_separated": false,
+      "frame": 19,
+      "full_original_state_equal": true,
+      "maximum_rounded_magnitude_upper": 2.275452745176348,
+      "minimum_nonzero_dyadic_exponent": -91,
+      "unsupported_domain_nodes": 0
+    },
+    {
+      "empty_support_separated": false,
+      "frame": 20,
+      "full_original_state_equal": true,
+      "maximum_rounded_magnitude_upper": 2.275452745176348,
+      "minimum_nonzero_dyadic_exponent": -94,
+      "unsupported_domain_nodes": 0
+    },
+    {
+      "empty_support_separated": false,
+      "frame": 58,
+      "full_original_state_equal": true,
+      "maximum_rounded_magnitude_upper": 2.275452745176348,
+      "minimum_nonzero_dyadic_exponent": -92,
+      "unsupported_domain_nodes": 0
+    },
+    {
+      "empty_support_separated": false,
+      "frame": 59,
+      "full_original_state_equal": true,
+      "maximum_rounded_magnitude_upper": 2.275452745176348,
+      "minimum_nonzero_dyadic_exponent": -93,
+      "unsupported_domain_nodes": 0
+    },
+    {
+      "empty_support_separated": false,
+      "frame": 60,
+      "full_original_state_equal": true,
+      "maximum_rounded_magnitude_upper": 2.275452745176348,
+      "minimum_nonzero_dyadic_exponent": -91,
+      "unsupported_domain_nodes": 0
+    },
+    {
+      "empty_support_separated": false,
+      "frame": 61,
+      "full_original_state_equal": true,
+      "maximum_rounded_magnitude_upper": 2.275452745176348,
+      "minimum_nonzero_dyadic_exponent": -94,
+      "unsupported_domain_nodes": 0
+    },
+    {
+      "empty_support_separated": false,
+      "frame": 77,
+      "full_original_state_equal": true,
+      "maximum_rounded_magnitude_upper": 2.275452745176348,
+      "minimum_nonzero_dyadic_exponent": -92,
+      "unsupported_domain_nodes": 0
+    },
+    {
+      "empty_support_separated": false,
+      "frame": 78,
+      "full_original_state_equal": true,
+      "maximum_rounded_magnitude_upper": 2.275452745176348,
+      "minimum_nonzero_dyadic_exponent": -91,
+      "unsupported_domain_nodes": 0
+    },
+    {
+      "empty_support_separated": false,
+      "frame": 79,
+      "full_original_state_equal": true,
+      "maximum_rounded_magnitude_upper": 2.275452745176348,
+      "minimum_nonzero_dyadic_exponent": -91,
+      "unsupported_domain_nodes": 0
+    },
+    {
+      "empty_support_separated": false,
+      "frame": 80,
+      "full_original_state_equal": true,
+      "maximum_rounded_magnitude_upper": 2.275452745176348,
+      "minimum_nonzero_dyadic_exponent": -94,
+      "unsupported_domain_nodes": 0
+    },
+    {
+      "empty_support_separated": false,
+      "frame": 81,
+      "full_original_state_equal": true,
+      "maximum_rounded_magnitude_upper": 2.275452745176348,
+      "minimum_nonzero_dyadic_exponent": -91,
+      "unsupported_domain_nodes": 0
+    },
+    {
+      "empty_support_separated": false,
+      "frame": 82,
+      "full_original_state_equal": true,
+      "maximum_rounded_magnitude_upper": 2.275452745176348,
+      "minimum_nonzero_dyadic_exponent": -91,
+      "unsupported_domain_nodes": 0
+    },
+    {
+      "empty_support_separated": false,
+      "frame": 83,
+      "full_original_state_equal": true,
+      "maximum_rounded_magnitude_upper": 2.275452745176348,
+      "minimum_nonzero_dyadic_exponent": -91,
+      "unsupported_domain_nodes": 0
+    },
+    {
+      "empty_support_separated": false,
+      "frame": 84,
+      "full_original_state_equal": true,
+      "maximum_rounded_magnitude_upper": 2.275452745176348,
+      "minimum_nonzero_dyadic_exponent": -91,
+      "unsupported_domain_nodes": 0
+    },
+    {
+      "empty_support_separated": false,
+      "frame": 85,
+      "full_original_state_equal": true,
+      "maximum_rounded_magnitude_upper": 2.275452745176348,
+      "minimum_nonzero_dyadic_exponent": -94,
+      "unsupported_domain_nodes": 0
+    },
+    {
+      "empty_support_separated": false,
+      "frame": 163,
+      "full_original_state_equal": true,
+      "maximum_rounded_magnitude_upper": 2.275452745176348,
+      "minimum_nonzero_dyadic_exponent": -94,
+      "unsupported_domain_nodes": 0
+    },
+    {
+      "empty_support_separated": false,
+      "frame": 164,
+      "full_original_state_equal": true,
+      "maximum_rounded_magnitude_upper": 2.275452745176348,
+      "minimum_nonzero_dyadic_exponent": -94,
+      "unsupported_domain_nodes": 0
+    },
+    {
+      "empty_support_separated": false,
+      "frame": 165,
+      "full_original_state_equal": true,
+      "maximum_rounded_magnitude_upper": 2.275452745176348,
+      "minimum_nonzero_dyadic_exponent": -93,
+      "unsupported_domain_nodes": 0
+    },
+    {
+      "empty_support_separated": false,
+      "frame": 170,
+      "full_original_state_equal": true,
+      "maximum_rounded_magnitude_upper": 2.275452745176348,
+      "minimum_nonzero_dyadic_exponent": -93,
+      "unsupported_domain_nodes": 0
+    },
+    {
+      "empty_support_separated": false,
+      "frame": 171,
+      "full_original_state_equal": true,
+      "maximum_rounded_magnitude_upper": 2.275452745176348,
+      "minimum_nonzero_dyadic_exponent": -92,
+      "unsupported_domain_nodes": 0
+    },
+    {
+      "empty_support_separated": false,
+      "frame": 172,
+      "full_original_state_equal": true,
+      "maximum_rounded_magnitude_upper": 2.275452745176348,
+      "minimum_nonzero_dyadic_exponent": -89,
+      "unsupported_domain_nodes": 0
+    },
+    {
+      "empty_support_separated": false,
+      "frame": 173,
+      "full_original_state_equal": true,
+      "maximum_rounded_magnitude_upper": 2.275452745176348,
+      "minimum_nonzero_dyadic_exponent": -90,
+      "unsupported_domain_nodes": 0
+    },
+    {
+      "empty_support_separated": false,
+      "frame": 174,
+      "full_original_state_equal": true,
+      "maximum_rounded_magnitude_upper": 2.275452745176348,
+      "minimum_nonzero_dyadic_exponent": -93,
+      "unsupported_domain_nodes": 0
+    },
+    {
+      "empty_support_separated": false,
+      "frame": 175,
+      "full_original_state_equal": true,
+      "maximum_rounded_magnitude_upper": 2.275452745176348,
+      "minimum_nonzero_dyadic_exponent": -92,
+      "unsupported_domain_nodes": 0
+    },
+    {
+      "empty_support_separated": false,
+      "frame": 176,
+      "full_original_state_equal": true,
+      "maximum_rounded_magnitude_upper": 2.275452745176348,
+      "minimum_nonzero_dyadic_exponent": -92,
+      "unsupported_domain_nodes": 0
+    },
+    {
+      "empty_support_separated": false,
+      "frame": 177,
+      "full_original_state_equal": true,
+      "maximum_rounded_magnitude_upper": 2.275452745176348,
+      "minimum_nonzero_dyadic_exponent": -89,
+      "unsupported_domain_nodes": 0
+    },
+    {
+      "empty_support_separated": false,
+      "frame": 178,
+      "full_original_state_equal": true,
+      "maximum_rounded_magnitude_upper": 2.275452745176348,
+      "minimum_nonzero_dyadic_exponent": -93,
+      "unsupported_domain_nodes": 0
+    },
+    {
+      "empty_support_separated": false,
+      "frame": 179,
+      "full_original_state_equal": true,
+      "maximum_rounded_magnitude_upper": 2.275452745176348,
+      "minimum_nonzero_dyadic_exponent": -92,
+      "unsupported_domain_nodes": 0
+    },
+    {
+      "empty_support_separated": false,
+      "frame": 216,
+      "full_original_state_equal": true,
+      "maximum_rounded_magnitude_upper": 2.275452745176348,
+      "minimum_nonzero_dyadic_exponent": -90,
+      "unsupported_domain_nodes": 0
+    },
+    {
+      "empty_support_separated": false,
+      "frame": 217,
+      "full_original_state_equal": true,
+      "maximum_rounded_magnitude_upper": 2.275452745176348,
+      "minimum_nonzero_dyadic_exponent": -90,
+      "unsupported_domain_nodes": 0
+    },
+    {
+      "empty_support_separated": false,
+      "frame": 258,
+      "full_original_state_equal": true,
+      "maximum_rounded_magnitude_upper": 2.275452745176348,
+      "minimum_nonzero_dyadic_exponent": -89,
+      "unsupported_domain_nodes": 0
+    },
+    {
+      "empty_support_separated": false,
+      "frame": 259,
+      "full_original_state_equal": true,
+      "maximum_rounded_magnitude_upper": 2.275452745176348,
+      "minimum_nonzero_dyadic_exponent": -89,
+      "unsupported_domain_nodes": 0
+    },
+    {
+      "empty_support_separated": false,
+      "frame": 315,
+      "full_original_state_equal": true,
+      "maximum_rounded_magnitude_upper": 2.275452745176348,
+      "minimum_nonzero_dyadic_exponent": -83,
+      "unsupported_domain_nodes": 0
+    },
+    {
+      "empty_support_separated": false,
+      "frame": 316,
+      "full_original_state_equal": true,
+      "maximum_rounded_magnitude_upper": 2.275452745176348,
+      "minimum_nonzero_dyadic_exponent": -82,
+      "unsupported_domain_nodes": 0
+    },
+    {
+      "empty_support_separated": false,
+      "frame": 317,
+      "full_original_state_equal": true,
+      "maximum_rounded_magnitude_upper": 2.275452745176348,
+      "minimum_nonzero_dyadic_exponent": -83,
+      "unsupported_domain_nodes": 0
+    },
+    {
+      "empty_support_separated": false,
+      "frame": 318,
+      "full_original_state_equal": true,
+      "maximum_rounded_magnitude_upper": 2.275452745176348,
+      "minimum_nonzero_dyadic_exponent": -82,
+      "unsupported_domain_nodes": 0
+    },
+    {
+      "empty_support_separated": false,
+      "frame": 319,
+      "full_original_state_equal": true,
+      "maximum_rounded_magnitude_upper": 2.275452745176348,
+      "minimum_nonzero_dyadic_exponent": -83,
+      "unsupported_domain_nodes": 0
+    },
+    {
+      "empty_support_separated": false,
+      "frame": 320,
+      "full_original_state_equal": true,
+      "maximum_rounded_magnitude_upper": 2.275452745176348,
+      "minimum_nonzero_dyadic_exponent": -82,
+      "unsupported_domain_nodes": 0
+    },
+    {
+      "empty_support_separated": false,
+      "frame": 321,
+      "full_original_state_equal": true,
+      "maximum_rounded_magnitude_upper": 2.275452745176348,
+      "minimum_nonzero_dyadic_exponent": -79,
+      "unsupported_domain_nodes": 0
+    },
+    {
+      "empty_support_separated": false,
+      "frame": 322,
+      "full_original_state_equal": true,
+      "maximum_rounded_magnitude_upper": 2.275452745176348,
+      "minimum_nonzero_dyadic_exponent": -82,
+      "unsupported_domain_nodes": 0
+    },
+    {
+      "empty_support_separated": false,
+      "frame": 414,
+      "full_original_state_equal": true,
+      "maximum_rounded_magnitude_upper": 2.275452745176348,
+      "minimum_nonzero_dyadic_exponent": -83,
+      "unsupported_domain_nodes": 0
+    },
+    {
+      "empty_support_separated": false,
+      "frame": 415,
+      "full_original_state_equal": true,
+      "maximum_rounded_magnitude_upper": 2.275452745176348,
+      "minimum_nonzero_dyadic_exponent": -81,
+      "unsupported_domain_nodes": 0
+    },
+    {
+      "empty_support_separated": false,
+      "frame": 467,
+      "full_original_state_equal": true,
+      "maximum_rounded_magnitude_upper": 2.275452745176348,
+      "minimum_nonzero_dyadic_exponent": -80,
+      "unsupported_domain_nodes": 0
+    },
+    {
+      "empty_support_separated": false,
+      "frame": 468,
+      "full_original_state_equal": true,
+      "maximum_rounded_magnitude_upper": 2.275452745176348,
+      "minimum_nonzero_dyadic_exponent": -84,
+      "unsupported_domain_nodes": 0
+    },
+    {
+      "empty_support_separated": false,
+      "frame": 469,
+      "full_original_state_equal": true,
+      "maximum_rounded_magnitude_upper": 2.275452745176348,
+      "minimum_nonzero_dyadic_exponent": -83,
+      "unsupported_domain_nodes": 0
+    },
+    {
+      "empty_support_separated": false,
+      "frame": 517,
+      "full_original_state_equal": true,
+      "maximum_rounded_magnitude_upper": 2.275452745176348,
+      "minimum_nonzero_dyadic_exponent": -93,
+      "unsupported_domain_nodes": 0
+    },
+    {
+      "empty_support_separated": false,
+      "frame": 518,
+      "full_original_state_equal": true,
+      "maximum_rounded_magnitude_upper": 2.275452745176348,
+      "minimum_nonzero_dyadic_exponent": -93,
+      "unsupported_domain_nodes": 0
+    },
+    {
+      "empty_support_separated": false,
+      "frame": 519,
+      "full_original_state_equal": true,
+      "maximum_rounded_magnitude_upper": 2.275452745176348,
+      "minimum_nonzero_dyadic_exponent": -92,
+      "unsupported_domain_nodes": 0
+    }
+  ],
+  "later_corroboration": true,
+  "original_profile_flags_modified": false,
+  "original_source": {
+    "bytes": 9579381,
+    "sha256": "93d730d84e5f0055cd51e4e613f7210974ae7a4682bdb7e7f8e246d3ad1227ca"
+  },
+  "profile_native_verified": false,
+  "trace": {
+    "bytes": 135942703,
+    "sha256": "9006b7504748688d7c581cca020bafb06524cf0415d00a91eddb02670df73ee1"
+  }
+}

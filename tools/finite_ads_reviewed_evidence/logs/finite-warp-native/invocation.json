@@ -1,0 +1,23 @@
+{
+  "command": [
+    "D:\\a\\rust_duty\\rust_duty\\prepared\\source\\target\\x86_64-pc-windows-msvc\\release\\examples\\finite_warp_probe.exe",
+    "--native",
+    "--trace",
+    "D:\\a\\rust_duty\\rust_duty\\evidence\\finite-warp\\full\\traces\\dx12-visible.jsonl",
+    "--original-jsonl",
+    "D:\\a\\rust_duty\\rust_duty\\prepared\\original\\oracle-output\\frames-dx12.jsonl",
+    "--source-receipt",
+    "D:\\a\\rust_duty\\rust_duty\\prepared\\original\\source-receipt.json",
+    "--source-root",
+    "D:\\a\\rust_duty\\rust_duty\\prepared\\source",
+    "--output-dir",
+    "D:\\a\\rust_duty\\rust_duty\\evidence\\finite-warp\\full\\native"
+  ],
+  "cwd": "D:/a/rust_duty/rust_duty/prepared/source",
+  "exit_code": 0,
+  "environment": {
+    "RUSTFLAGS": null,
+    "CARGO_ENCODED_RUSTFLAGS": null,
+    "RUSTC_WRAPPER": null
+  }
+}

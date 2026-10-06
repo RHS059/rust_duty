@@ -1,13 +1,5 @@
 # Reusable finite ADS profile binding
 
-This is a source-only integration checkpoint. The full reviewed descriptor and
-detailed native evidence are external inputs and are not included in the public
-checkout. The default workflow therefore fails closed at this missing dependency;
-this checkpoint does not establish delivery acceptance. The private descriptor's
-independently retained SHA-256 is
-`96dfb631be9d59f6cf35d87e4f3c17a4a4303d74787bb773a8c47672efb53331`.
-The artifact locator below is a reference, not a substitute for that descriptor.
-
 `tools/finite_ads_profile_binding.py` establishes a separate bounded profile for
 exactly 210 ADS-offset fallback frames per backend: 160 strictly empty frames and
 50 potentially visible frames. GL uses the reviewed narrowed contrast mask and
@@ -26,18 +18,17 @@ frame fails closed. There is no generic conditional fallback.
 
 ## Reviewed class and native evidence
 
-`finite_ads_reviewed_class.json` is the external portable review descriptor. Its
+`tools/finite_ads_reviewed_class.json` is the portable review descriptor. Its
 SHA-256 must come from an independently retained caller/workflow anchor, never
 from a candidate request or by hashing whatever descriptor was supplied. Its
-adjacent `finite_ads_reviewed_evidence/` files are individually hash-bound. Neither
-the descriptor nor these detailed files is shipped with this source checkpoint. The
+adjacent `finite_ads_reviewed_evidence/` files are individually hash-bound. The
 review is automated code-and-evidence review, not a claim of human approval.
 
 The later native anchor is Windows run
 [37445275982](https://github.com/RHS059/rust_duty/actions/runs/37445275982), attempt
 1, source `4e6930c56be3b6120542231c46778b33c58f9e13`, artifact `11403571693` with ZIP
 SHA-256 `b39e855a9ea07cde7b925124e53ffe69ddff901b592438a9c9331eb425c9efd1`.
-The external bundle retains actual runner/native reports, all four 50-visible/160-empty
+The bundle retains actual runner/native reports, all four 50-visible/160-empty
 state/domain comparisons, compiler outputs, original build/native process
 receipts, preparation inventory, before/after inventory and compiled-executable
 hashes. The native report records 101,552 support guards, 50,336 color probes and
@@ -92,7 +83,7 @@ evidence and source/capture files are rechecked for late changes.
 `export_reviewed_gl` accepts only the fixed-anchor
 `BoundReviewedGlSupplement` returned after validating the original receipt,
 original GL source, complete reviewed clipping/subtriangle inventory and fragment
-proof. The privately retained compact export was produced from those actual files. It
+proof. The checked-in compact export was produced from those actual files. It
 retains all 50 mask pairs, four original evidence identities, 47,558 retained
 samples (minimum four in every visible frame), 53,473 examined overlapping
 subtriangles and 1,487 unsafe subtriangles. It saves rereading the 120 MB geometry
@@ -129,9 +120,3 @@ triangle proof; plan-only native output; pending or mismatched descriptor anchor
 all seven missing native controls; out-of-scope fallback; and late mutation.
 Synthetic tests do not claim native execution. The caller's independent tests
 cover corrupt PNGs and capture boundaries.
-
-The evidence-backed tests require the external descriptor and receipts. Missing
-inputs are failures, not successful or waived native checks. Before supplying
-them to a public CI run, detailed reports and logs must remain private; only an
-explicitly selected status summary may be published. Existing broad evidence
-uploads are not a safe output boundary for those external inputs.

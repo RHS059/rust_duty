@@ -2,3 +2,7 @@
 /THIRD_PARTY_LICENSES.txt -text
 /tools/game-license-sources/** -text
 /tools/game-dependency-notices.json text eol=lf
+
+# Hash-bound finite profile artifacts preserve original Windows/Unix bytes.
+/tools/finite_ads_reviewed_class.json -text
+/tools/finite_ads_reviewed_evidence/** -text

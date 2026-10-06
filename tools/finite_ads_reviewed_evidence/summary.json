@@ -1,0 +1,299 @@
+{
+  "acceptance_complete": false,
+  "acceptance_verdict": null,
+  "caller_context": {
+    "branch": "main",
+    "event": "push",
+    "repository": "RHS059/rust_duty",
+    "run_attempt": "1",
+    "run_id": "37445275982",
+    "source_commit": "4e6930c56be3b6120542231c46778b33c58f9e13",
+    "workflow": ".github/workflows/finite-warp-profile.yml"
+  },
+  "capture_context": {
+    "run_attempt": "1",
+    "run_id": "37415102452",
+    "source_commit": "8f571464be706d0abde862e124582a188f633baf"
+  },
+  "companion_path_comparison": {
+    "mapping": "Only exact verified root prefixes map to original allowed companion names; raw traces are unchanged.",
+    "original_recorded_root": "D:/a/rust_duty/rust_duty/capture-source",
+    "restored_source_root": "D:/a/rust_duty/rust_duty/prepared/source"
+  },
+  "executions": {
+    "build-two-diagnostics-once": {
+      "command": [
+        "C:\\Users\\runneradmin\\.rustup\\toolchains\\1.99.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+        "build",
+        "--locked",
+        "--release",
+        "--no-default-features",
+        "--features",
+        "legacy-macroquad,wgpu-runtime",
+        "--target",
+        "x86_64-pc-windows-msvc",
+        "--example",
+        "source_visibility_geometry_probe",
+        "--example",
+        "finite_warp_probe"
+      ],
+      "cwd": "D:/a/rust_duty/rust_duty/prepared/source",
+      "environment": {
+        "CARGO_ENCODED_RUSTFLAGS": null,
+        "RUSTC_WRAPPER": null,
+        "RUSTFLAGS": null
+      },
+      "exit_code": 0
+    },
+    "finite-warp-native": {
+      "command": [
+        "D:\\a\\rust_duty\\rust_duty\\prepared\\source\\target\\x86_64-pc-windows-msvc\\release\\examples\\finite_warp_probe.exe",
+        "--native",
+        "--trace",
+        "D:\\a\\rust_duty\\rust_duty\\evidence\\finite-warp\\full\\traces\\dx12-visible.jsonl",
+        "--original-jsonl",
+        "D:\\a\\rust_duty\\rust_duty\\prepared\\original\\oracle-output\\frames-dx12.jsonl",
+        "--source-receipt",
+        "D:\\a\\rust_duty\\rust_duty\\prepared\\original\\source-receipt.json",
+        "--source-root",
+        "D:\\a\\rust_duty\\rust_duty\\prepared\\source",
+        "--output-dir",
+        "D:\\a\\rust_duty\\rust_duty\\evidence\\finite-warp\\full\\native"
+      ],
+      "cwd": "D:/a/rust_duty/rust_duty/prepared/source",
+      "environment": {
+        "CARGO_ENCODED_RUSTFLAGS": null,
+        "RUSTC_WRAPPER": null,
+        "RUSTFLAGS": null
+      },
+      "exit_code": 0
+    },
+    "geometry-dx12-empty": {
+      "command": [
+        "D:\\a\\rust_duty\\rust_duty\\prepared\\source\\target\\x86_64-pc-windows-msvc\\release\\examples\\source_visibility_geometry_probe.exe",
+        "D:\\a\\rust_duty\\rust_duty\\prepared\\source\\assets\\animations.cfg",
+        "D:\\a\\rust_duty\\rust_duty\\prepared\\source\\ads-offset.cfg",
+        "dx12",
+        "D:\\a\\rust_duty\\rust_duty\\evidence\\finite-warp\\full\\traces\\dx12-empty.jsonl",
+        "D:\\a\\rust_duty\\rust_duty\\prepared\\empty-frames.json"
+      ],
+      "cwd": "D:/a/rust_duty/rust_duty/prepared/source",
+      "environment": {
+        "CARGO_ENCODED_RUSTFLAGS": null,
+        "RUSTC_WRAPPER": null,
+        "RUSTFLAGS": null
+      },
+      "exit_code": 0
+    },
+    "geometry-dx12-visible": {
+      "command": [
+        "D:\\a\\rust_duty\\rust_duty\\prepared\\source\\target\\x86_64-pc-windows-msvc\\release\\examples\\source_visibility_geometry_probe.exe",
+        "D:\\a\\rust_duty\\rust_duty\\prepared\\source\\assets\\animations.cfg",
+        "D:\\a\\rust_duty\\rust_duty\\prepared\\source\\ads-offset.cfg",
+        "dx12",
+        "D:\\a\\rust_duty\\rust_duty\\evidence\\finite-warp\\full\\traces\\dx12-visible.jsonl",
+        "D:\\a\\rust_duty\\rust_duty\\prepared\\visible-frames.json"
+      ],
+      "cwd": "D:/a/rust_duty/rust_duty/prepared/source",
+      "environment": {
+        "CARGO_ENCODED_RUSTFLAGS": null,
+        "RUSTC_WRAPPER": null,
+        "RUSTFLAGS": null
+      },
+      "exit_code": 0
+    },
+    "geometry-opengl-empty": {
+      "command": [
+        "D:\\a\\rust_duty\\rust_duty\\prepared\\source\\target\\x86_64-pc-windows-msvc\\release\\examples\\source_visibility_geometry_probe.exe",
+        "D:\\a\\rust_duty\\rust_duty\\prepared\\source\\assets\\animations.cfg",
+        "D:\\a\\rust_duty\\rust_duty\\prepared\\source\\ads-offset.cfg",
+        "opengl",
+        "D:\\a\\rust_duty\\rust_duty\\evidence\\finite-warp\\full\\traces\\opengl-empty.jsonl",
+        "D:\\a\\rust_duty\\rust_duty\\prepared\\empty-frames.json"
+      ],
+      "cwd": "D:/a/rust_duty/rust_duty/prepared/source",
+      "environment": {
+        "CARGO_ENCODED_RUSTFLAGS": null,
+        "RUSTC_WRAPPER": null,
+        "RUSTFLAGS": null
+      },
+      "exit_code": 0
+    },
+    "geometry-opengl-visible": {
+      "command": [
+        "D:\\a\\rust_duty\\rust_duty\\prepared\\source\\target\\x86_64-pc-windows-msvc\\release\\examples\\source_visibility_geometry_probe.exe",
+        "D:\\a\\rust_duty\\rust_duty\\prepared\\source\\assets\\animations.cfg",
+        "D:\\a\\rust_duty\\rust_duty\\prepared\\source\\ads-offset.cfg",
+        "opengl",
+        "D:\\a\\rust_duty\\rust_duty\\evidence\\finite-warp\\full\\traces\\opengl-visible.jsonl",
+        "D:\\a\\rust_duty\\rust_duty\\prepared\\visible-frames.json"
+      ],
+      "cwd": "D:/a/rust_duty/rust_duty/prepared/source",
+      "environment": {
+        "CARGO_ENCODED_RUSTFLAGS": null,
+        "RUSTC_WRAPPER": null,
+        "RUSTFLAGS": null
+      },
+      "exit_code": 0
+    },
+    "gl-clipping-model": {
+      "command": [
+        "C:\\hostedtoolcache\\windows\\Python\\3.12.10\\x64\\python.exe",
+        "D:\\a\\rust_duty\\rust_duty\\verifier\\tools\\audit_source_visibility_geometry.py",
+        "--trace",
+        "D:\\a\\rust_duty\\rust_duty\\evidence\\finite-warp\\full\\traces\\opengl-visible.jsonl",
+        "--native",
+        "D:\\a\\rust_duty\\rust_duty\\prepared\\original\\oracle-output\\frames-opengl.jsonl",
+        "--output",
+        "D:\\a\\rust_duty\\rust_duty\\evidence\\finite-warp\\full\\gl\\clipped-raw.jsonl",
+        "--summary",
+        "D:\\a\\rust_duty\\rust_duty\\evidence\\finite-warp\\full\\gl\\geometry-summary.json"
+      ],
+      "cwd": "D:/a/rust_duty/rust_duty/prepared/source",
+      "environment": {
+        "CARGO_ENCODED_RUSTFLAGS": null,
+        "RUSTC_WRAPPER": null,
+        "RUSTFLAGS": null
+      },
+      "exit_code": 0
+    },
+    "gl-fragment-model": {
+      "command": [
+        "C:\\hostedtoolcache\\windows\\Python\\3.12.10\\x64\\python.exe",
+        "D:\\a\\rust_duty\\rust_duty\\verifier\\tools\\narrow_ads_fragment_support.py",
+        "D:\\a\\rust_duty\\rust_duty\\evidence\\finite-warp\\full\\gl\\clipped-reviewed.jsonl",
+        "D:\\a\\rust_duty\\rust_duty\\evidence\\finite-warp\\full\\gl\\fragment-raw.json"
+      ],
+      "cwd": "D:/a/rust_duty/rust_duty/prepared/source",
+      "environment": {
+        "CARGO_ENCODED_RUSTFLAGS": null,
+        "RUSTC_WRAPPER": null,
+        "RUSTFLAGS": null
+      },
+      "exit_code": 0
+    },
+    "gl-strict-reviewed-binding": {
+      "command": [
+        "C:\\hostedtoolcache\\windows\\Python\\3.12.10\\x64\\python.exe",
+        "D:\\a\\rust_duty\\rust_duty\\verifier\\tools\\bind_reviewed_gl_supplement.py",
+        "--source-receipt",
+        "D:\\a\\rust_duty\\rust_duty\\prepared\\original\\source-receipt.json",
+        "--native-source",
+        "D:\\a\\rust_duty\\rust_duty\\prepared\\original\\oracle-output\\frames-opengl.jsonl",
+        "--geometry",
+        "D:\\a\\rust_duty\\rust_duty\\evidence\\finite-warp\\full\\gl\\clipped-reviewed.jsonl",
+        "--fragment",
+        "D:\\a\\rust_duty\\rust_duty\\evidence\\finite-warp\\full\\gl\\fragment-reviewed.json",
+        "--capture-context",
+        "8f571464be706d0abde862e124582a188f633baf",
+        "37415102452",
+        "1",
+        "--source-context",
+        "371bca3d848f5b749cf9ea989fa1fbfaca8c20cc",
+        "37427554951",
+        "1",
+        "--output",
+        "D:\\a\\rust_duty\\rust_duty\\evidence\\finite-warp\\full\\gl\\reviewed-binding.json"
+      ],
+      "cwd": "D:/a/rust_duty/rust_duty/prepared/source",
+      "environment": {
+        "CARGO_ENCODED_RUSTFLAGS": null,
+        "RUSTC_WRAPPER": null,
+        "RUSTFLAGS": null
+      },
+      "exit_code": 0
+    }
+  },
+  "gl_canonicalization": {
+    "fragment": {
+      "canonical": {
+        "bytes": 10235599,
+        "sha256": "edaecbca5d3a485187a02d2662588170b32b6df59f9e1cc1e032ebfc99648696"
+      },
+      "raw": {
+        "bytes": 10644365,
+        "sha256": "997b29ff4512183cc859f997fd6fffdb980b37612e5d911f686e7f08545143d7"
+      },
+      "transform": "CRLF to LF only"
+    },
+    "geometry": {
+      "canonical": {
+        "bytes": 120197029,
+        "sha256": "458655709d010fd004eccc04234094ec09d66428e286e47c892ab5578d9a3204"
+      },
+      "raw": {
+        "bytes": 120197080,
+        "sha256": "09f4188faee2917a5c820994102ad225170b90936142d5e46213165f7c5b66ce"
+      },
+      "transform": "CRLF to LF only"
+    }
+  },
+  "later_corroboration": true,
+  "native_corroboration": {
+    "acceptance_verdict": null,
+    "frames": 50,
+    "later_corroboration": true,
+    "native_identity": {
+      "adapter": "Microsoft Basic Render Driver",
+      "backend": "Dx12",
+      "compiled_shader_hash": null,
+      "compiled_shader_hash_unavailable_reason": "wgpu public production APIs do not expose compiled DXBC bytes",
+      "compiler": "Fxc",
+      "device_id": 140,
+      "device_type": "Cpu",
+      "driver": "10.0.26100.33438",
+      "driver_info": "",
+      "runtime_modules": {
+        "D3D12Core.dll": {
+          "bytes": 3509616,
+          "path": "C:\\Windows\\SYSTEM32\\D3D12Core.dll",
+          "sha256": "d4af46fcc32d41601ec8a79011d022e91d35fab0ff875e7fa252ae32e2a36ca3"
+        },
+        "d3d10warp.dll": {
+          "bytes": 5930968,
+          "path": "C:\\Windows\\SYSTEM32\\d3d10warp.dll",
+          "sha256": "633aa84f4963823346b3dd62ce285bb8745e7ce270cee2ea12d30f9ddec8df12"
+        },
+        "d3d12.dll": {
+          "bytes": 146160,
+          "path": "C:\\Windows\\SYSTEM32\\d3d12.dll",
+          "sha256": "7162343b7c0b9eb86bdf06ba9fb797342a8f4c48fc16b767ea47aa844e283e26"
+        },
+        "d3dcompiler_47.dll": {
+          "bytes": 4669440,
+          "path": "C:\\Windows\\SYSTEM32\\d3dcompiler_47.dll",
+          "sha256": "cdeb0e6a3036df6ccbb39351f142ce6a7c3da2829dab8c4cb73c1c8fbb5b6a61"
+        },
+        "dxgi.dll": {
+          "bytes": 1294864,
+          "path": "C:\\Windows\\SYSTEM32\\dxgi.dll",
+          "sha256": "54d64ebf715cffc168095c7654da032918b769b893e96e09d10fe408981690f8"
+        }
+      },
+      "shader_translation": "locked wgpu/naga 30.0.1 WGSL->HLSL->FXC",
+      "vendor_id": 5140
+    },
+    "native_report": {
+      "bytes": 66113,
+      "sha256": "9b12dc5c5c542810c1d3bf3b4e263a774085c5dc08806fa40e4bde564e935d83"
+    },
+    "status": "passed"
+  },
+  "original_capture_reproduced": false,
+  "original_native_upload_identity_verified": false,
+  "original_profile_flags_modified": false,
+  "original_source_context": {
+    "run_attempt": "1",
+    "run_id": "37427554951",
+    "source_commit": "371bca3d848f5b749cf9ea989fa1fbfaca8c20cc"
+  },
+  "phase": "completed",
+  "preparation_receipt_sha256": "048a62d4e1cd62567c0b9d565a074c99c7ca7627d64bf1c4ad3eec85ed782fc6",
+  "profile_native_verified": false,
+  "reviewed_gl_hashes_match": true,
+  "schema": "rust-duty-finite-warp-profile-runner/v1",
+  "status": "bounded_later_corroboration_passed",
+  "target": "x86_64-pc-windows-msvc",
+  "toolchain": "1.99.0-x86_64-pc-windows-msvc",
+  "universal_profile_verified": false
+}
