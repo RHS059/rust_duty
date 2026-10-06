@@ -45,6 +45,7 @@ METADATA = Path('evidence/profile-extraction-provider.json')
 INPUT = Path('downloaded/source-profile-input')
 OUTPUT = Path('evidence/native-profile-bounded')
 PROVENANCE = 'extraction-provenance.json'
+_WINDOWS_STAT = os.name == 'nt'
 
 
 def require(value, message):
@@ -84,9 +85,21 @@ def read_regular(path, limit):
         after = os.fstat(stream.fileno())
     current = path.lstat()
     keys = ('st_dev', 'st_ino', 'st_mode', 'st_nlink', 'st_size', 'st_mtime_ns', 'st_ctime_ns')
+    changed = f'file changed while reading: {path}'
+    # Compare each API with itself, retaining full-precision change detection.
     require(len(data) == before.st_size and all(
-        getattr(before, key) == getattr(other, key)
-        for other in (opened, after, current) for key in keys), f'file changed while reading: {path}')
+        getattr(left, key) == getattr(right, key)
+        for left, right in ((before, current), (opened, after)) for key in keys), changed)
+    cross_keys = keys
+    if _WINDOWS_STAT:
+        # CPython 3.12 lstat reports creation time as ctime, but fstat reports
+        # ChangeTime. Also, only path stat synthesizes executable mode bits.
+        # Bind the two views with birthtime and the remaining exact metadata;
+        # neither ctime nor mode is omitted from the same-API checks above.
+        cross_keys = tuple(key for key in keys if key not in ('st_mode', 'st_ctime_ns')) + ('st_birthtime_ns',)
+        executable = 0o111 if path.suffix.lower() in ('.exe', '.bat', '.cmd', '.com') else 0
+        require(before.st_mode == (opened.st_mode | executable), changed)
+    require(all(getattr(before, key) == getattr(opened, key) for key in cross_keys), changed)
     return data
 
 

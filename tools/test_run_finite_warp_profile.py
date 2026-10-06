@@ -313,6 +313,9 @@ class WorkflowTests(unittest.TestCase):
         self.assertTrue(all(name.startswith(('tools/', 'examples/finite_warp_probe.rs',
                                             'src/render/finite_warp_probe.rs', '.github/workflows/finite-warp-profile.yml'))
                             for name in events['push']['paths']))
+        for dependency in ('tools/extract_native_profile_evidence.py',
+                           'tools/test_extract_native_profile_evidence.py'):
+            self.assertIn(dependency, events['push']['paths'])
         self.assertNotIn('workflow_dispatch', self.text)
         self.assertNotIn('cancelWorkflowRun', self.text)
 

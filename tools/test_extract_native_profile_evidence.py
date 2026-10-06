@@ -111,6 +111,103 @@ class ProviderTests(unittest.TestCase):
                 extraction.verify_provider(metadata)
 
 
+class StableReadTests(unittest.TestCase):
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        self.path = Path(self.temp.name) / 'provider.json'
+        self.data = b'{"fixture": true}\n'
+        self.path.write_bytes(self.data)
+
+    def windows_stats(self, *, executable=False):
+        # CPython 3.12.10 on NTFS: 100 ns timestamps; lstat's ctime is
+        # CreationTime, fstat's is ChangeTime, and only lstat adds .exe bits.
+        birth = 1728220800123456700
+        modified = birth + 123400
+        common = dict(st_dev=0xA1234567, st_ino=0x3000000000ABCDE,
+                      st_nlink=1, st_size=len(self.data), st_mtime_ns=modified,
+                      st_birthtime_ns=birth, st_file_attributes=stat.FILE_ATTRIBUTE_ARCHIVE)
+        before = SimpleNamespace(**common, st_mode=stat.S_IFREG | (0o777 if executable else 0o666),
+                                 st_ctime_ns=birth)
+        opened = SimpleNamespace(**common, st_mode=stat.S_IFREG | 0o666, st_ctime_ns=modified + 100)
+        return [before, opened, deepcopy(opened), deepcopy(before)]
+
+    def read_with_stats(self, snapshots, *, platform='win32'):
+        before, opened, after, current = snapshots
+        with patch.object(extraction, '_WINDOWS_STAT', platform == 'win32'), \
+             patch.object(extraction, 'safe_path', return_value=self.path), \
+             patch.object(Path, 'lstat', side_effect=[before, current]), \
+             patch.object(extraction.os, 'fstat', side_effect=[opened, after]):
+            return extraction.read_regular(self.path, len(self.data))
+
+    def test_windows_distinct_ctime_semantics_and_executable_modes_pass(self):
+        for suffix in ('.json', '.EXE', '.bat', '.cmd', '.com'):
+            with self.subTest(suffix=suffix):
+                self.path = self.path.rename(self.path.with_suffix(suffix))
+                self.assertEqual(self.read_with_stats(self.windows_stats(executable=suffix != '.json')),
+                                 self.data)
+
+    def test_windows_cross_api_identity_and_exact_metadata_changes_fail(self):
+        for key in ('st_dev', 'st_ino', 'st_nlink', 'st_size', 'st_mtime_ns', 'st_birthtime_ns'):
+            with self.subTest(key=key):
+                snapshots = self.windows_stats()
+                # A replacement/change between lstat and open persists across
+                # both fstats: checking each API alone must not accept it.
+                for info in snapshots[1:3]:
+                    setattr(info, key, getattr(info, key) + (100 if key.endswith('_ns') else 1))
+                with self.assertRaisesRegex(ValueError, 'file changed while reading'):
+                    self.read_with_stats(snapshots)
+        for mode in (stat.S_IFDIR | 0o666, stat.S_IFREG | 0o444, stat.S_IFREG | 0o777):
+            with self.subTest(mode=mode):
+                snapshots = self.windows_stats()
+                snapshots[1].st_mode = snapshots[2].st_mode = mode
+                with self.assertRaisesRegex(ValueError, 'file changed while reading'):
+                    self.read_with_stats(snapshots)
+
+    def test_windows_same_api_changes_including_ctime_and_mode_fail(self):
+        for endpoint in (2, 3):  # Descriptor after read; path after close.
+            for key in ('st_dev', 'st_ino', 'st_mode', 'st_nlink', 'st_size', 'st_mtime_ns', 'st_ctime_ns'):
+                with self.subTest(endpoint=endpoint, key=key):
+                    snapshots = self.windows_stats()
+                    info = snapshots[endpoint]
+                    setattr(info, key, getattr(info, key) + (100 if key.endswith('_ns') else 1))
+                    with self.assertRaisesRegex(ValueError, 'file changed while reading'):
+                        self.read_with_stats(snapshots)
+
+    def test_posix_cross_api_ctime_and_mode_remain_exact(self):
+        for key in ('st_ctime_ns', 'st_mode'):
+            with self.subTest(key=key):
+                snapshots = self.windows_stats()
+                snapshots[1] = deepcopy(snapshots[0])
+                setattr(snapshots[1], key, getattr(snapshots[1], key) + 1)
+                snapshots[2] = deepcopy(snapshots[1])
+                with self.assertRaisesRegex(ValueError, 'file changed while reading'):
+                    self.read_with_stats(snapshots, platform='linux')
+
+    def test_native_edited_data_and_executable_are_stable(self):
+        for suffix in ('.json', '.exe'):
+            with self.subTest(suffix=suffix):
+                self.path = self.path.rename(self.path.with_suffix(suffix))
+                self.path.write_bytes(b'old data')
+                self.path.write_bytes(self.data)
+                self.assertEqual(extraction.read_regular(self.path, len(self.data)), self.data)
+
+    def test_native_same_size_mutation_during_read_is_rejected(self):
+        original_fstat = os.fstat
+        calls = []
+        def mutate(fd):
+            info = original_fstat(fd)
+            calls.append(fd)
+            if len(calls) == 1:
+                self.path.write_bytes(b'x' * len(self.data))
+                os.utime(self.path, ns=(info.st_atime_ns, info.st_mtime_ns + 2_000_000_000))
+            return info
+        with patch.object(extraction.os, 'fstat', side_effect=mutate):
+            with self.assertRaisesRegex(ValueError, 'file changed while reading'):
+                extraction.read_regular(self.path, len(self.data))
+        self.assertEqual(len(calls), 2)
+
+
 class ExtractionTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()

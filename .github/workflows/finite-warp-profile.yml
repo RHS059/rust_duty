@@ -9,6 +9,8 @@ on:
       - 'tools/test_run_finite_warp_profile.py'
       - 'tools/prepare_finite_probe_inputs.py'
       - 'tools/test_prepare_finite_probe_inputs.py'
+      - 'tools/extract_native_profile_evidence.py'
+      - 'tools/test_extract_native_profile_evidence.py'
       - 'examples/finite_warp_probe.rs'
       - 'src/render/finite_warp_probe.rs'
 
