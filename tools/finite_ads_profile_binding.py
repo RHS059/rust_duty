@@ -46,8 +46,8 @@ PASS_BATCHING_PAIRS = {
 GPU_CPU_SCHEMA = 'rust-duty-finite-ads-gpu-cpu-class/v1'
 GPU_CPU_CLASS = 'ads-offset-8f571464-finite-gpu-cpu-v1'
 PASS_BATCHING_CLASS_SHA256 = '2895c1f4f0039f5a850c7b30196c5d77f4b2e563bc211f8b9fb51ca15f639c4c'
-# Deliberately absent: no new native controls have been independently reviewed.
-GPU_CPU_NATIVE_REVIEW_SHA256 = None
+# Independently reviewed Windows run 37498157663, attempt 1, artifact 11429256247.
+GPU_CPU_NATIVE_REVIEW_SHA256 = 'bbc92e18d4092dbd8a1a005fc12d7d8457411a7e821b39dc28c7ca04a90459c5'
 GPU_CPU_COMMITS = {
     'baseline': 'b085f31d71e8eeb4dd9f36786a9c7e82da90b809',
     'candidate': 'ebf4bcb7f489766e3c7ec188c35db9bb4146c62b',
@@ -135,7 +135,7 @@ def _read_class_reference(ledger, class_path, item, digest, label):
 
 
 def _read_gpu_cpu_class(ledger, class_path, extension):
-    """Disabled scaffold. Native-review ingestion needs its own reviewed change."""
+    """Load only an independently anchored new review, retaining its parent proof."""
     _external_descriptor(extension)
     source.shared._exact_keys(extension, ('schema', 'class_id', 'status', 'batching_class',
                                          'source_variants', 'native_comparison', 'acceptance_verdict'),
@@ -159,15 +159,252 @@ def _read_gpu_cpu_class(ledger, class_path, extension):
           'GPU/CPU baseline diagnostic suffix')
     require(GPU_CPU_NATIVE_REVIEW_SHA256 is not None,
             'GPU/CPU native review anchor unavailable; variant disabled')
-    # A replaced constant or candidate-refreshed digest cannot activate this scaffold.
-    raise ValueError('GPU/CPU native receipt ingestion not activated; variant disabled')
+    comparison = _read_class_reference(ledger, class_path, extension['native_comparison'],
+                                       GPU_CPU_NATIVE_REVIEW_SHA256, 'GPU/CPU native comparison')
+    reviewed['class_id'] = GPU_CPU_CLASS
+    reviewed['_gpu_cpu'] = {'comparison': comparison, 'sha256': extension['native_comparison']['sha256'],
+                           'evidence_class_path': ledger._portable(batching_path.parent,
+                                                                  batching['original_class']['path'])}
+    return reviewed
+
+
+GPU_CPU_CONTROL_MODES = ('seed', 'windowed-saved', 'windowed-missing', 'windowed-forced',
+                         'headless-bypass', 'windowed-cpu')
+GPU_CPU_STAGES = ('surface_acquire', 'game_recording', 'renderer_submit', 'present_call')
+GPU_CPU_RECEIPTS = ('summary', 'source_inventories', 'candidate_source_receipt', 'candidate_executables',
+                    'exact_pixels', 'fixed_validation', 'build_process', 'build_log', 'compiler_stdout',
+                    'verifier_receipt', 'completed_controls', 'cpu_reader', 'independent_audit')
+GPU_CPU_REVIEW_FLAGS = {
+    'complete_native_compile_inventory_checked': True, 'source_inputs_unchanged': True,
+    'compiler_settings_checked': True, 'fixed_validator_bytes_unchanged': True,
+    'required_masks_changed': False, 'possible_masks_changed': False,
+    'original_profile_flags_modified': False, 'native_profile_binding_verified': False,
+    'profile_native_verified': False, 'finite_profile_activated': False,
+    'gpu_duration_measured': False, 'rtx_or_1080p60_acceptance': False,
+    'acceptance_complete': False, 'acceptance_verdict': None,
+}
+GPU_CPU_OUTCOMES = {
+    'seed': {'save_api': 'graphics_device::save_choice', 'catalog_matches': 1,
+             'catalog_surface_checked': False, 'preferences_persisted': True},
+    'windowed-saved': {'loaded_saved_preference': True, 'restart_from_seed': True,
+                       'preference_unchanged': True, 'app_frames': 2, 'successful_end_frames': 2,
+                       'normal_final_present': True},
+    'windowed-missing': {'loaded_missing_preference': True, 'missing_choice_rejected': True,
+                         'no_fallback_verified': True, 'preference_unchanged': True,
+                         'app_frames': 0, 'successful_end_frames': 0},
+    'windowed-forced': {'saved_choice_ignored': True, 'loaded_startup_preference': None,
+                        'preference_unchanged': True, 'app_frames': 2, 'successful_end_frames': 2,
+                        'normal_final_present': True},
+    'headless-bypass': {'loaded_missing_preference': True, 'saved_choice_ignored': True,
+                        'preference_unchanged': True, 'creation_count': 2},
+    'windowed-cpu': {'loaded_saved_preference': True, 'restart_from_seed': True,
+                     'preference_unchanged': True, 'app_frames': 6, 'successful_end_frames': 6,
+                     'normal_final_present': True},
+}
+
+
+def _gpu_cpu_identity(value, label):
+    source._digest_shape(value, label)
+    require(value['bytes'] > 0, label + ': empty evidence is not a review receipt')
+
+
+def _gpu_cpu_dimensions(value, label):
+    require(type(value) is list and len(value) == 2 and
+            all(type(x) is int and 0 < x <= 2**32 - 1 for x in value), label + ': invalid physical dimensions')
+
+
+def _gpu_cpu_evidence(reviewed, native_identity):
+    """Check an independently anchored compact review, not the raw artifact again.
+
+    Shape-checked digests below identify artifacts attested by the immutable
+    review receipt. Only loaded descriptors/receipts enter this binding ledger;
+    these attestations do not claim that raw native files are reread here.
+    """
+    if '_gpu_cpu' not in reviewed:
+        return
+    report = reviewed['_gpu_cpu']['comparison']
+    fixed = {'schema': 'rust-duty-gpu-cpu-native-review/v1', 'status': 'passed', 'native_execution': True,
+             'original_class_sha256': ORIGINAL_CLASS_SHA256,
+             'batching_class_sha256': PASS_BATCHING_CLASS_SHA256,
+             'batching_native_review_sha256': PASS_BATCHING_NATIVE_REVIEW_SHA256,
+             'commits': {'baseline_source': GPU_CPU_COMMITS['baseline'],
+                         'baseline_compiled_source': PASS_BATCHING_COMMITS['candidate'],
+                         'candidate_source': GPU_CPU_COMMITS['candidate']},
+             'comparison': {'channels': 'RGBA', 'channel_tolerance': 0, 'capture_count': 21},
+             'review_flags': GPU_CPU_REVIEW_FLAGS,
+             'control_order': list(GPU_CPU_CONTROL_MODES),
+             'native_compile_inventory_counts': {'baseline': 112, 'candidate': 113},
+             'archive_preservation': {
+                 'raw_files_unchanged': True,
+                 'omitted_empty_directories': ['baseline-renderer-contract/capture-is-directory.png',
+                                               'candidate-renderer-contract/capture-is-directory.png'],
+                 'independent_validation_used_separate_copy': True,
+                 'original_native_fixed_validation_passed': True}}
+    source.shared._exact_keys(report, (*fixed, 'artifact', 'receipts', 'baseline_origin', 'variants',
+                                      'controls', 'control_executable', 'cpu_trace'), 'GPU/CPU native review')
+    for key, value in fixed.items():
+        equal(report[key], value, 'GPU/CPU native review ' + key)
+    artifact = report['artifact']
+    source.shared._exact_keys(artifact, ('run_id', 'run_attempt', 'artifact_id', 'archive_sha256'), 'GPU/CPU artifact')
+    for key in ('run_id', 'run_attempt', 'artifact_id'):
+        require(type(artifact[key]) is str and re.fullmatch('[1-9][0-9]*', artifact[key]),
+                'GPU/CPU artifact context missing: ' + key)
+    _sha(artifact['archive_sha256'], 'GPU/CPU artifact archive')
+    receipts = report['receipts']
+    source.shared._exact_keys(receipts, GPU_CPU_RECEIPTS, 'GPU/CPU review receipt inventory')
+    for name, value in receipts.items():
+        _gpu_cpu_identity(value, 'GPU/CPU review receipt ' + name)
+    _gpu_cpu_identity(report['control_executable'], 'GPU/CPU control executable')
+    compiler = reviewed['equivalence']['compiler_sha256']
+    equal(receipts['compiler_stdout'], {'bytes': reviewed['evidence']['compiler_before']['bytes'],
+                                       'sha256': compiler}, 'GPU/CPU actual compiler stdout')
+    parent = reviewed['_pass_batching']['comparison']
+    inherited = parent['variants']['candidate']
+    equal(report['baseline_origin'], {
+        'artifact': parent['artifact'], 'source_receipt': inherited['source_receipt'],
+        'contract_executable': inherited['contract_executable'], 'build_receipts': parent['build_receipts'],
+        'complete_native_compile_inventory_equal': True}, 'GPU/CPU historical binary/source origin')
+    require(artifact['run_id'] != parent['artifact']['run_id'] and
+            artifact['artifact_id'] != parent['artifact']['artifact_id'], 'new GPU/CPU native execution required')
+    runtime = {key: native_identity[key] for key in (*DEVICE_FIELDS, 'adapter', 'backend', 'compiler')}
+    variants = report['variants']
+    source.shared._exact_keys(variants, ('baseline', 'candidate'), 'GPU/CPU native variants')
+    names = {case[0] for case in renderer_contract.cases()}
+    require(len(names) == 21, 'fixed production renderer contract inventory changed')
+    for label, variant in variants.items():
+        source.shared._exact_keys(variant, ('class_source_variant', 'source_receipt', 'contract_executable',
+            'contract_process', 'contract_report', 'contract_log', 'process_exit_code', 'compiler_sha256',
+            'runtime_identity', 'fixed_contract_validation', 'rgba_sha256', 'png_sha256'),
+            'GPU/CPU native variant ' + label)
+        equal(variant['class_source_variant'], GPU_CPU_VARIANTS[label], 'GPU/CPU exact class source variant ' + label)
+        equal(variant['compiler_sha256'], compiler, 'GPU/CPU variant compiler ' + label)
+        equal(variant['runtime_identity'], runtime, 'GPU/CPU variant runtime ' + label)
+        equal(variant['process_exit_code'], 0, 'GPU/CPU contract process ' + label)
+        for key in ('source_receipt', 'contract_executable', 'contract_process', 'contract_report', 'contract_log'):
+            _gpu_cpu_identity(variant[key], 'GPU/CPU variant ' + label + '/' + key)
+        validation = variant['fixed_contract_validation']
+        expected = {'schema': 'rust-duty-renderer-contract-validation/v1', 'passed': True,
+                    'backend': 'Dx12', 'adapter': 'Microsoft Basic Render Driver',
+                    'captures': 21, 'scope': renderer_contract.SCOPE}
+        source.shared._exact_keys(validation, (*expected, 'build_version', 'build_number'), 'GPU/CPU fixed validator')
+        for key, value in expected.items():
+            equal(validation[key], value, 'GPU/CPU fixed expectations ' + label + '/' + key)
+        for key in ('build_version', 'build_number'):
+            require(type(validation[key]) is str and validation[key].strip(), 'GPU/CPU fixed build identity missing')
+        for key in ('rgba_sha256', 'png_sha256'):
+            source.shared._exact_keys(variant[key], names, 'GPU/CPU complete capture inventory ' + label)
+            for name, digest in variant[key].items():
+                _sha(digest, 'GPU/CPU capture ' + label + '/' + name)
+    for key in ('source_receipt', 'contract_executable'):
+        equal(variants['baseline'][key], inherited[key], 'GPU/CPU reused baseline ' + key)
+    equal(variants['candidate']['source_receipt'], receipts['candidate_source_receipt'], 'GPU/CPU candidate receipt linkage')
+    equal(variants['baseline']['rgba_sha256'], variants['candidate']['rgba_sha256'], 'GPU/CPU all 21 exact RGBA captures')
+    _gpu_cpu_controls(report, runtime)
+
+
+def _gpu_cpu_controls(report, runtime):
+    controls = report['controls']
+    source.shared._exact_keys(controls, GPU_CPU_CONTROL_MODES, 'GPU/CPU complete controls')
+    fingerprint = {'backend': 'dx12', 'name': runtime['adapter'], 'vendor_id': runtime['vendor_id'],
+                   'device_id': runtime['device_id'], 'device_type': runtime['device_type']}
+    source_sha = report['receipts']['candidate_source_receipt']['sha256']
+    for mode, control in controls.items():
+        source.shared._exact_keys(control, ('status', 'source_commit', 'source_sha256', 'compiled_source_sha256',
+            'executable', 'pid', 'process_exit_code', 'process', 'report', 'log', 'preference_before',
+            'preference_after', 'preference_fingerprint', 'outcome', 'creations', 'physical_dimensions', 'captures'),
+            'GPU/CPU control ' + mode)
+        for key, value in {'status': 'passed', 'source_commit': GPU_CPU_COMMITS['candidate'],
+                           'source_sha256': source_sha, 'compiled_source_sha256': source_sha,
+                           'executable': report['control_executable'], 'process_exit_code': 0,
+                           'outcome': GPU_CPU_OUTCOMES[mode]}.items():
+            equal(control[key], value, 'GPU/CPU control ' + mode + '/' + key)
+        require(type(control['pid']) is int and control['pid'] > 0, 'GPU/CPU control process ID missing')
+        for key in ('process', 'report', 'log', 'preference_after'):
+            _gpu_cpu_identity(control[key], 'GPU/CPU control ' + mode + '/' + key)
+        if mode == 'seed':
+            equal(control['preference_before'], None, 'GPU/CPU seed must start without preferences')
+        else:
+            equal(control['preference_before'], control['preference_after'], 'GPU/CPU unchanged control preferences ' + mode)
+        if mode in ('seed', 'windowed-saved', 'windowed-cpu'):
+            expected_fingerprint = fingerprint
+            equal(control['preference_after'], controls['seed']['preference_after'], 'GPU/CPU persisted seed linkage ' + mode)
+        else:
+            expected_fingerprint = {**fingerprint, 'name': 'Rust Duty deliberately missing adapter ' + str(control['pid']),
+                                    'vendor_id': 2**32 - 1, 'device_id': 2**32 - 1}
+        equal(control['preference_fingerprint'], expected_fingerprint, 'GPU/CPU saved fingerprint ' + mode)
+        creations = control['creations']
+        expected_creations = []
+        if mode not in ('seed', 'windowed-missing'):
+            flags = (False, True) if mode == 'headless-bypass' else (mode == 'windowed-forced',)
+            for forced in flags:
+                windowed = mode != 'headless-bypass'
+                expected_creations.append({'runtime_identity': runtime, 'windowed': windowed,
+                    'force_fallback_requested': forced, 'present_mode': 'Fifo' if windowed else None,
+                    'selection_mode': 'forced_fallback' if forced else ('explicit_fingerprint' if windowed else 'automatic'),
+                    'requested_fingerprint': fingerprint if windowed and not forced else None,
+                    'actual_fingerprint': fingerprint})
+        equal(creations, expected_creations, 'GPU/CPU exact native creations ' + mode)
+        captures = control['captures']
+        image_names = (('headless-auto.png', 'headless-forced.png') if mode == 'headless-bypass' else
+                       ('windowed.png',) if mode in ('windowed-saved', 'windowed-forced', 'windowed-cpu') else ())
+        source.shared._exact_keys(captures, image_names, 'GPU/CPU native control captures ' + mode)
+        dimensions = control['physical_dimensions']
+        if not image_names:
+            equal(dimensions, None, 'GPU/CPU absent rendered dimensions ' + mode)
+        else:
+            _gpu_cpu_dimensions(dimensions, 'GPU/CPU window ' + mode)
+            if mode == 'headless-bypass':
+                equal(dimensions, [320, 180], 'GPU/CPU headless fixed extent')
+        for name, capture in captures.items():
+            source.shared._exact_keys(capture, ('png', 'rgba_sha256', 'dimensions', 'fixed_pixels_verified',
+                                                'opaque_alpha_verified'), 'GPU/CPU control capture ' + name)
+            _gpu_cpu_identity(capture['png'], 'GPU/CPU control capture PNG')
+            _sha(capture['rgba_sha256'], 'GPU/CPU control capture RGBA')
+            equal(capture['dimensions'], dimensions, 'GPU/CPU actual image extent')
+            equal(capture['fixed_pixels_verified'], True, 'GPU/CPU fixed native control pixels')
+            equal(capture['opaque_alpha_verified'], True, 'GPU/CPU opaque control alpha')
+    # PIDs may be reused by Windows. Distinct original invocation receipts plus
+    # reviewed order establish separate executions, not unique numeric PIDs.
+    require(len({control['process']['sha256'] for control in controls.values()}) == len(GPU_CPU_CONTROL_MODES),
+            'GPU/CPU distinct control invocation receipts required')
+    _gpu_cpu_trace(report, runtime)
+
+
+def _gpu_cpu_trace(report, runtime):
+    trace = report['cpu_trace']
+    source.shared._exact_keys(trace, ('trace', 'source_commit', 'source_sha256', 'compiled_source_sha256',
+        'executable', 'runtime_identity', 'present_mode', 'physical_dimensions', 'reader_validation'), 'GPU/CPU live trace')
+    for key, value in {'source_commit': GPU_CPU_COMMITS['candidate'],
+        'source_sha256': report['receipts']['candidate_source_receipt']['sha256'],
+        'compiled_source_sha256': report['receipts']['candidate_source_receipt']['sha256'],
+        'executable': report['control_executable'], 'runtime_identity': runtime, 'present_mode': 'Fifo',
+        'physical_dimensions': report['controls']['windowed-cpu']['physical_dimensions']}.items():
+        equal(trace[key], value, 'GPU/CPU trace linkage ' + key)
+    _gpu_cpu_identity(trace['trace'], 'GPU/CPU actual live trace')
+    _gpu_cpu_dimensions(trace['physical_dimensions'], 'GPU/CPU trace')
+    validation = trace['reader_validation']
+    fixed = {'status': 'passed', 'complete_trace_validated': True,
+             'measurement': 'cpu_wall_clock_paired_frame_stage_ns',
+             'uninstrumented_present_count': 1, 'recorded_present_count': 5, 'complete_cpu_sample_count': 4,
+             'first_recorded_present_has_cpu_sample': False, 'normal_final_present_export': True,
+             'integer_time_bounds_verified': True, 'ordered_disjoint_spans_verified': True,
+             'dimensions_match_window': True, 'gpu_duration_measured': False,
+             'rtx_or_1080p60_acceptance': False, 'acceptance_complete': False, 'acceptance_verdict': None}
+    source.shared._exact_keys(validation, (*fixed, 'eligible_interval_samples'), 'GPU/CPU CPU-reader review')
+    for key, value in fixed.items():
+        equal(validation[key], value, 'GPU/CPU CPU-reader review ' + key)
+    counts = validation['eligible_interval_samples']
+    source.shared._exact_keys(counts, GPU_CPU_STAGES, 'GPU/CPU all paired CPU stages')
+    require(all(type(value) is int and 2 <= value <= 4 for value in counts.values()),
+            'GPU/CPU needs two or more eligible interval-bearing samples per stage')
+    require(len(set(counts.values())) == 1, 'GPU/CPU complete paired stages must have equal eligible sample counts')
 
 
 def _gpu_cpu_variant(read, reviewed, actual):
     """One complete variant, including absence, never independent per-file choices.
 
-    This helper is exercised by adversarial fixtures only while the public
-    loader is disabled. The historical class inventory is never rewritten.
+    The native anchor remains unavailable until independent review.
+    The historical class inventory is never rewritten.
     """
     if '_gpu_cpu' not in reviewed:
         return None
@@ -720,6 +957,15 @@ class BoundFiniteAdsProfile:
                 'native_comparison_sha256': self._reviewed['_pass_batching']['sha256'],
                 'source_pairs': PASS_BATCHING_PAIRS,
             }
+        if '_gpu_cpu' in self._reviewed:
+            summary['source_equivalence'] = {
+                'historical_batching_parent': {
+                    'reviewed_class_sha256': PASS_BATCHING_CLASS_SHA256,
+                    **summary['source_equivalence'],
+                },
+                'native_comparison_sha256': self._reviewed['_gpu_cpu']['sha256'],
+                'commits': GPU_CPU_COMMITS, 'source_variants': GPU_CPU_VARIANTS,
+            }
         return deepcopy(summary)
 
     def verify_frame_binding(self, path, role, index):
@@ -752,15 +998,21 @@ def bind_finite_ads_profile(*, source_packet, source_packet_path, reviewed_class
     require(ledger._remember(class_path)['sha256'] == _sha(expected_class_sha256, 'independent class anchor'),
             'reviewed class differs from independent SHA-256')
     reviewed = _external_descriptor(ledger._json(class_path))
-    if reviewed.get('schema') == GPU_CPU_SCHEMA:
+    # The trusted local schema branch chooses the class, never an internal marker
+    # or the class ID supplied by untrusted external JSON.
+    schema = reviewed.get('schema')
+    selected_class = 'ads-offset-8f571464-finite-v1'
+    evidence_class_path = class_path
+    if schema == GPU_CPU_SCHEMA:
         reviewed = _read_gpu_cpu_class(ledger, class_path, reviewed)
-    pass_batching = reviewed.get('schema') == PASS_BATCHING_SCHEMA
-    if pass_batching:
+        selected_class = GPU_CPU_CLASS
+        evidence_class_path = reviewed['_gpu_cpu']['evidence_class_path']
+    elif schema == PASS_BATCHING_SCHEMA:
         reviewed = _read_pass_batching_class(ledger, class_path, reviewed)
+        selected_class = PASS_BATCHING_CLASS
     require(reviewed.get('schema') == SCHEMA, 'unsupported finite profile class')
     require(reviewed.get('status') == 'reviewed', 'finite ADS profile review pending; no accepting class is available')
-    require(reviewed.get('class_id') == (PASS_BATCHING_CLASS if pass_batching
-                                       else 'ads-offset-8f571464-finite-v1'), 'unknown reviewed equivalence class')
+    require(reviewed.get('class_id') == selected_class, 'unknown reviewed equivalence class')
     equal(reviewed.get('acceptance_verdict', 'missing'), None, 'descriptor verdict')
     equal(reviewed.get('visible_frames'), list(gl.FRAME_IDS), 'finite visible scope')
     empty = reviewed['empty_frames']
@@ -769,7 +1021,7 @@ def bind_finite_ads_profile(*, source_packet, source_packet_path, reviewed_class
             'complete 160 empty frame scope required')
     equal(reviewed.get('fallback_frames'), sorted([*empty, *gl.FRAME_IDS]), 'exact 210 fallback scope')
     packet = _packet_class(source_packet, source_packet_path, reviewed)
-    evidence = _read_evidence(ledger, class_path, reviewed)
+    evidence = _read_evidence(ledger, evidence_class_path, reviewed)
     for role in source.ROLES:
         backend = source.BACKENDS[role][0]
         _comparison(evidence[backend + '_empty'], role, empty, True, reviewed['original_outputs_sha256'][role])
@@ -792,6 +1044,7 @@ def bind_finite_ads_profile(*, source_packet, source_packet_path, reviewed_class
     _native_build(evidence, reviewed)
     native = _native_evidence(evidence, reviewed, source_packet)
     _pass_batching_evidence(reviewed, native)
+    _gpu_cpu_evidence(reviewed, native)
     gl_rows = _gl_rows(reviewed, evidence['gl_binding'], source_packet.rows_by_role['windows-legacy'])
     runtime = _runtime_identity(ledger, native_runtime_logs, native, source_packet)
     rows, state = {}, {}

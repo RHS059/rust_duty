@@ -1,0 +1,998 @@
+{
+  "archive_preservation": {
+    "independent_validation_used_separate_copy": true,
+    "omitted_empty_directories": [
+      "baseline-renderer-contract/capture-is-directory.png",
+      "candidate-renderer-contract/capture-is-directory.png"
+    ],
+    "original_native_fixed_validation_passed": true,
+    "raw_files_unchanged": true
+  },
+  "artifact": {
+    "archive_sha256": "48f20d929f43c073900ab017732e13259e7d4413da07bf844ef9b411989aa8ec",
+    "artifact_id": "11429256247",
+    "run_attempt": "1",
+    "run_id": "37498157663"
+  },
+  "baseline_origin": {
+    "artifact": {
+      "archive_sha256": "f29ff7c9fada89478e86f3bae86e0382350d1ac249771116dc920274de5b8994",
+      "artifact_id": "11422371812",
+      "run_attempt": "1",
+      "run_id": "37482428571"
+    },
+    "build_receipts": {
+      "bytes": 1248,
+      "sha256": "5e19b7e724f2df9e31c579505eac0ee152dbc078520ed7965ae9d1a66a43b1e3"
+    },
+    "complete_native_compile_inventory_equal": true,
+    "contract_executable": {
+      "bytes": 9136128,
+      "sha256": "140666c5f0191f4b819c175abeda18880b2a0ea567ba224c0a3fc070d1cc0e7e"
+    },
+    "source_receipt": {
+      "bytes": 12213,
+      "sha256": "617cd692b47b865f0852517df3306df2928f7166901c321faf990296d1d0cc7c"
+    }
+  },
+  "batching_class_sha256": "2895c1f4f0039f5a850c7b30196c5d77f4b2e563bc211f8b9fb51ca15f639c4c",
+  "batching_native_review_sha256": "4c2ae5f087ac1e548a9285f635fbb17de9de3defbaa4fab0da014fdb5c976699",
+  "commits": {
+    "baseline_compiled_source": "5abf2bca825a252fb7ad6665c444c89861ee8ef9",
+    "baseline_source": "b085f31d71e8eeb4dd9f36786a9c7e82da90b809",
+    "candidate_source": "ebf4bcb7f489766e3c7ec188c35db9bb4146c62b"
+  },
+  "comparison": {
+    "capture_count": 21,
+    "channel_tolerance": 0,
+    "channels": "RGBA"
+  },
+  "control_executable": {
+    "bytes": 10029056,
+    "sha256": "cfd25588be0ea3b5918629f6f2c05378b6ac20c26e45788da0205a2e7973f2f5"
+  },
+  "control_order": [
+    "seed",
+    "windowed-saved",
+    "windowed-missing",
+    "windowed-forced",
+    "headless-bypass",
+    "windowed-cpu"
+  ],
+  "controls": {
+    "headless-bypass": {
+      "captures": {
+        "headless-auto.png": {
+          "dimensions": [
+            320,
+            180
+          ],
+          "fixed_pixels_verified": true,
+          "opaque_alpha_verified": true,
+          "png": {
+            "bytes": 1640,
+            "sha256": "a3f94f871ed4bed2f73c1733a457143712ffba443ceff33ccce690f78a3dd311"
+          },
+          "rgba_sha256": "7a5189b4be7da56bbe81b90b97881a699796cf9d6409ab6f7cad8de1a381221f"
+        },
+        "headless-forced.png": {
+          "dimensions": [
+            320,
+            180
+          ],
+          "fixed_pixels_verified": true,
+          "opaque_alpha_verified": true,
+          "png": {
+            "bytes": 1640,
+            "sha256": "a3f94f871ed4bed2f73c1733a457143712ffba443ceff33ccce690f78a3dd311"
+          },
+          "rgba_sha256": "7a5189b4be7da56bbe81b90b97881a699796cf9d6409ab6f7cad8de1a381221f"
+        }
+      },
+      "compiled_source_sha256": "bf8a523fdbfc13279f3798f6990afc5f38f304fcf0fb1bae3b89fd0af533874c",
+      "creations": [
+        {
+          "actual_fingerprint": {
+            "backend": "dx12",
+            "device_id": 140,
+            "device_type": "Cpu",
+            "name": "Microsoft Basic Render Driver",
+            "vendor_id": 5140
+          },
+          "force_fallback_requested": false,
+          "present_mode": null,
+          "requested_fingerprint": null,
+          "runtime_identity": {
+            "adapter": "Microsoft Basic Render Driver",
+            "backend": "Dx12",
+            "compiler": "Fxc",
+            "device_id": 140,
+            "device_type": "Cpu",
+            "driver": "10.0.26100.33438",
+            "driver_info": "",
+            "vendor_id": 5140
+          },
+          "selection_mode": "automatic",
+          "windowed": false
+        },
+        {
+          "actual_fingerprint": {
+            "backend": "dx12",
+            "device_id": 140,
+            "device_type": "Cpu",
+            "name": "Microsoft Basic Render Driver",
+            "vendor_id": 5140
+          },
+          "force_fallback_requested": true,
+          "present_mode": null,
+          "requested_fingerprint": null,
+          "runtime_identity": {
+            "adapter": "Microsoft Basic Render Driver",
+            "backend": "Dx12",
+            "compiler": "Fxc",
+            "device_id": 140,
+            "device_type": "Cpu",
+            "driver": "10.0.26100.33438",
+            "driver_info": "",
+            "vendor_id": 5140
+          },
+          "selection_mode": "forced_fallback",
+          "windowed": false
+        }
+      ],
+      "executable": {
+        "bytes": 10029056,
+        "sha256": "cfd25588be0ea3b5918629f6f2c05378b6ac20c26e45788da0205a2e7973f2f5"
+      },
+      "log": {
+        "bytes": 8461,
+        "sha256": "12c656cba2875ec647a990ba5662f15255c2a28cbfec02f7d68fff1586f21d43"
+      },
+      "outcome": {
+        "creation_count": 2,
+        "loaded_missing_preference": true,
+        "preference_unchanged": true,
+        "saved_choice_ignored": true
+      },
+      "physical_dimensions": [
+        320,
+        180
+      ],
+      "pid": 5916,
+      "preference_after": {
+        "bytes": 231,
+        "sha256": "ec153711426df09bf2d4b7b8188728b28e82d694d2579335755e1dde61564d46"
+      },
+      "preference_before": {
+        "bytes": 231,
+        "sha256": "ec153711426df09bf2d4b7b8188728b28e82d694d2579335755e1dde61564d46"
+      },
+      "preference_fingerprint": {
+        "backend": "dx12",
+        "device_id": 4294967295,
+        "device_type": "Cpu",
+        "name": "Rust Duty deliberately missing adapter 5916",
+        "vendor_id": 4294967295
+      },
+      "process": {
+        "bytes": 669,
+        "sha256": "82b14c3ce0b79e947ca8c36ad6b7e28d51eb9c1a22161f16c96814d900eb31a8"
+      },
+      "process_exit_code": 0,
+      "report": {
+        "bytes": 9347,
+        "sha256": "7d3e17df6a4ce02e58ec73cb3f5cb601d3491d031e88cdeb692f7a4c8a185a1a"
+      },
+      "source_commit": "ebf4bcb7f489766e3c7ec188c35db9bb4146c62b",
+      "source_sha256": "bf8a523fdbfc13279f3798f6990afc5f38f304fcf0fb1bae3b89fd0af533874c",
+      "status": "passed"
+    },
+    "seed": {
+      "captures": {},
+      "compiled_source_sha256": "bf8a523fdbfc13279f3798f6990afc5f38f304fcf0fb1bae3b89fd0af533874c",
+      "creations": [],
+      "executable": {
+        "bytes": 10029056,
+        "sha256": "cfd25588be0ea3b5918629f6f2c05378b6ac20c26e45788da0205a2e7973f2f5"
+      },
+      "log": {
+        "bytes": 2920,
+        "sha256": "f44fa6e46627a8e68f7139e33ff0c93c79004f6fecfbc8319780779c3f55a1db"
+      },
+      "outcome": {
+        "catalog_matches": 1,
+        "catalog_surface_checked": false,
+        "preferences_persisted": true,
+        "save_api": "graphics_device::save_choice"
+      },
+      "physical_dimensions": null,
+      "pid": 9424,
+      "preference_after": {
+        "bytes": 204,
+        "sha256": "071b163192435d59e62dc1d10f40b05c10fc57772bcccc7aafccc6753c87ed33"
+      },
+      "preference_before": null,
+      "preference_fingerprint": {
+        "backend": "dx12",
+        "device_id": 140,
+        "device_type": "Cpu",
+        "name": "Microsoft Basic Render Driver",
+        "vendor_id": 5140
+      },
+      "process": {
+        "bytes": 642,
+        "sha256": "e55d6933bcf8d325cfe2a100a377cdf5ba53b090d8a6ea7b911ab8c2e61859f6"
+      },
+      "process_exit_code": 0,
+      "report": {
+        "bytes": 3810,
+        "sha256": "f1b75e20a149a69646c351d89767af672ce348401311d004c848fd0b8c0ca88c"
+      },
+      "source_commit": "ebf4bcb7f489766e3c7ec188c35db9bb4146c62b",
+      "source_sha256": "bf8a523fdbfc13279f3798f6990afc5f38f304fcf0fb1bae3b89fd0af533874c",
+      "status": "passed"
+    },
+    "windowed-cpu": {
+      "captures": {
+        "windowed.png": {
+          "dimensions": [
+            320,
+            180
+          ],
+          "fixed_pixels_verified": true,
+          "opaque_alpha_verified": true,
+          "png": {
+            "bytes": 1640,
+            "sha256": "a3f94f871ed4bed2f73c1733a457143712ffba443ceff33ccce690f78a3dd311"
+          },
+          "rgba_sha256": "7a5189b4be7da56bbe81b90b97881a699796cf9d6409ab6f7cad8de1a381221f"
+        }
+      },
+      "compiled_source_sha256": "bf8a523fdbfc13279f3798f6990afc5f38f304fcf0fb1bae3b89fd0af533874c",
+      "creations": [
+        {
+          "actual_fingerprint": {
+            "backend": "dx12",
+            "device_id": 140,
+            "device_type": "Cpu",
+            "name": "Microsoft Basic Render Driver",
+            "vendor_id": 5140
+          },
+          "force_fallback_requested": false,
+          "present_mode": "Fifo",
+          "requested_fingerprint": {
+            "backend": "dx12",
+            "device_id": 140,
+            "device_type": "Cpu",
+            "name": "Microsoft Basic Render Driver",
+            "vendor_id": 5140
+          },
+          "runtime_identity": {
+            "adapter": "Microsoft Basic Render Driver",
+            "backend": "Dx12",
+            "compiler": "Fxc",
+            "device_id": 140,
+            "device_type": "Cpu",
+            "driver": "10.0.26100.33438",
+            "driver_info": "",
+            "vendor_id": 5140
+          },
+          "selection_mode": "explicit_fingerprint",
+          "windowed": true
+        }
+      ],
+      "executable": {
+        "bytes": 10029056,
+        "sha256": "cfd25588be0ea3b5918629f6f2c05378b6ac20c26e45788da0205a2e7973f2f5"
+      },
+      "log": {
+        "bytes": 6906,
+        "sha256": "5bdc878827fe6cd0f3f3e38d6b45824de2e1e15ee472de02755fd9e45e8475eb"
+      },
+      "outcome": {
+        "app_frames": 6,
+        "loaded_saved_preference": true,
+        "normal_final_present": true,
+        "preference_unchanged": true,
+        "restart_from_seed": true,
+        "successful_end_frames": 6
+      },
+      "physical_dimensions": [
+        320,
+        180
+      ],
+      "pid": 7520,
+      "preference_after": {
+        "bytes": 204,
+        "sha256": "071b163192435d59e62dc1d10f40b05c10fc57772bcccc7aafccc6753c87ed33"
+      },
+      "preference_before": {
+        "bytes": 204,
+        "sha256": "071b163192435d59e62dc1d10f40b05c10fc57772bcccc7aafccc6753c87ed33"
+      },
+      "preference_fingerprint": {
+        "backend": "dx12",
+        "device_id": 140,
+        "device_type": "Cpu",
+        "name": "Microsoft Basic Render Driver",
+        "vendor_id": 5140
+      },
+      "process": {
+        "bytes": 658,
+        "sha256": "071319069ff4590c6a250f595efa77f14259c3f84acc266838cfd12711e448d5"
+      },
+      "process_exit_code": 0,
+      "report": {
+        "bytes": 9555,
+        "sha256": "9ccc660b2a8e820b94af1cba3b79d48055320d1f80766066047a11c2a8fcbe2f"
+      },
+      "source_commit": "ebf4bcb7f489766e3c7ec188c35db9bb4146c62b",
+      "source_sha256": "bf8a523fdbfc13279f3798f6990afc5f38f304fcf0fb1bae3b89fd0af533874c",
+      "status": "passed"
+    },
+    "windowed-forced": {
+      "captures": {
+        "windowed.png": {
+          "dimensions": [
+            320,
+            180
+          ],
+          "fixed_pixels_verified": true,
+          "opaque_alpha_verified": true,
+          "png": {
+            "bytes": 1640,
+            "sha256": "a3f94f871ed4bed2f73c1733a457143712ffba443ceff33ccce690f78a3dd311"
+          },
+          "rgba_sha256": "7a5189b4be7da56bbe81b90b97881a699796cf9d6409ab6f7cad8de1a381221f"
+        }
+      },
+      "compiled_source_sha256": "bf8a523fdbfc13279f3798f6990afc5f38f304fcf0fb1bae3b89fd0af533874c",
+      "creations": [
+        {
+          "actual_fingerprint": {
+            "backend": "dx12",
+            "device_id": 140,
+            "device_type": "Cpu",
+            "name": "Microsoft Basic Render Driver",
+            "vendor_id": 5140
+          },
+          "force_fallback_requested": true,
+          "present_mode": "Fifo",
+          "requested_fingerprint": null,
+          "runtime_identity": {
+            "adapter": "Microsoft Basic Render Driver",
+            "backend": "Dx12",
+            "compiler": "Fxc",
+            "device_id": 140,
+            "device_type": "Cpu",
+            "driver": "10.0.26100.33438",
+            "driver_info": "",
+            "vendor_id": 5140
+          },
+          "selection_mode": "forced_fallback",
+          "windowed": true
+        }
+      ],
+      "executable": {
+        "bytes": 10029056,
+        "sha256": "cfd25588be0ea3b5918629f6f2c05378b6ac20c26e45788da0205a2e7973f2f5"
+      },
+      "log": {
+        "bytes": 5910,
+        "sha256": "98c50c7ac8b87e9881ceaac6513ec4aa07896c4ec06c93badb6fed346cc579f3"
+      },
+      "outcome": {
+        "app_frames": 2,
+        "loaded_startup_preference": null,
+        "normal_final_present": true,
+        "preference_unchanged": true,
+        "saved_choice_ignored": true,
+        "successful_end_frames": 2
+      },
+      "physical_dimensions": [
+        320,
+        180
+      ],
+      "pid": 3964,
+      "preference_after": {
+        "bytes": 231,
+        "sha256": "f1bdc5f3e68e615330d01561538c98355b2ccb5da5dff3bf16611c3def2819ac"
+      },
+      "preference_before": {
+        "bytes": 231,
+        "sha256": "f1bdc5f3e68e615330d01561538c98355b2ccb5da5dff3bf16611c3def2819ac"
+      },
+      "preference_fingerprint": {
+        "backend": "dx12",
+        "device_id": 4294967295,
+        "device_type": "Cpu",
+        "name": "Rust Duty deliberately missing adapter 3964",
+        "vendor_id": 4294967295
+      },
+      "process": {
+        "bytes": 670,
+        "sha256": "0f2a12b5486614b0f20a3fedc93c56f277c7d30d07ec85161988f558cb42fbb9"
+      },
+      "process_exit_code": 0,
+      "report": {
+        "bytes": 8663,
+        "sha256": "6c7e67d8429d040103dac027752d9563c0de96fc91405dfcd3ffc1fd312eec5f"
+      },
+      "source_commit": "ebf4bcb7f489766e3c7ec188c35db9bb4146c62b",
+      "source_sha256": "bf8a523fdbfc13279f3798f6990afc5f38f304fcf0fb1bae3b89fd0af533874c",
+      "status": "passed"
+    },
+    "windowed-missing": {
+      "captures": {},
+      "compiled_source_sha256": "bf8a523fdbfc13279f3798f6990afc5f38f304fcf0fb1bae3b89fd0af533874c",
+      "creations": [],
+      "executable": {
+        "bytes": 10029056,
+        "sha256": "cfd25588be0ea3b5918629f6f2c05378b6ac20c26e45788da0205a2e7973f2f5"
+      },
+      "log": {
+        "bytes": 4722,
+        "sha256": "d58e6c4bff52a09bb3f54c05ef8c7bffef33b6e908fc92d6f5adc19546429070"
+      },
+      "outcome": {
+        "app_frames": 0,
+        "loaded_missing_preference": true,
+        "missing_choice_rejected": true,
+        "no_fallback_verified": true,
+        "preference_unchanged": true,
+        "successful_end_frames": 0
+      },
+      "physical_dimensions": null,
+      "pid": 10208,
+      "preference_after": {
+        "bytes": 232,
+        "sha256": "e6f6fa13b2b7558f9ad1a3359256d23aa985095d7884a040aaa171975761315b"
+      },
+      "preference_before": {
+        "bytes": 232,
+        "sha256": "e6f6fa13b2b7558f9ad1a3359256d23aa985095d7884a040aaa171975761315b"
+      },
+      "preference_fingerprint": {
+        "backend": "dx12",
+        "device_id": 4294967295,
+        "device_type": "Cpu",
+        "name": "Rust Duty deliberately missing adapter 10208",
+        "vendor_id": 4294967295
+      },
+      "process": {
+        "bytes": 671,
+        "sha256": "85d1528a5399cd0bee3fe9a8a9bd5eac28cf9d37e8ed6ecb1ff612b0b5cc24a5"
+      },
+      "process_exit_code": 0,
+      "report": {
+        "bytes": 7464,
+        "sha256": "dfd1016c1d39ffa7e45b709a0055c87cf9abddc17e27ffb8b1b0b5fb8c01f2ed"
+      },
+      "source_commit": "ebf4bcb7f489766e3c7ec188c35db9bb4146c62b",
+      "source_sha256": "bf8a523fdbfc13279f3798f6990afc5f38f304fcf0fb1bae3b89fd0af533874c",
+      "status": "passed"
+    },
+    "windowed-saved": {
+      "captures": {
+        "windowed.png": {
+          "dimensions": [
+            320,
+            180
+          ],
+          "fixed_pixels_verified": true,
+          "opaque_alpha_verified": true,
+          "png": {
+            "bytes": 1640,
+            "sha256": "a3f94f871ed4bed2f73c1733a457143712ffba443ceff33ccce690f78a3dd311"
+          },
+          "rgba_sha256": "7a5189b4be7da56bbe81b90b97881a699796cf9d6409ab6f7cad8de1a381221f"
+        }
+      },
+      "compiled_source_sha256": "bf8a523fdbfc13279f3798f6990afc5f38f304fcf0fb1bae3b89fd0af533874c",
+      "creations": [
+        {
+          "actual_fingerprint": {
+            "backend": "dx12",
+            "device_id": 140,
+            "device_type": "Cpu",
+            "name": "Microsoft Basic Render Driver",
+            "vendor_id": 5140
+          },
+          "force_fallback_requested": false,
+          "present_mode": "Fifo",
+          "requested_fingerprint": {
+            "backend": "dx12",
+            "device_id": 140,
+            "device_type": "Cpu",
+            "name": "Microsoft Basic Render Driver",
+            "vendor_id": 5140
+          },
+          "runtime_identity": {
+            "adapter": "Microsoft Basic Render Driver",
+            "backend": "Dx12",
+            "compiler": "Fxc",
+            "device_id": 140,
+            "device_type": "Cpu",
+            "driver": "10.0.26100.33438",
+            "driver_info": "",
+            "vendor_id": 5140
+          },
+          "selection_mode": "explicit_fingerprint",
+          "windowed": true
+        }
+      ],
+      "executable": {
+        "bytes": 10029056,
+        "sha256": "cfd25588be0ea3b5918629f6f2c05378b6ac20c26e45788da0205a2e7973f2f5"
+      },
+      "log": {
+        "bytes": 5757,
+        "sha256": "ab1dde0f85767ef3a99780f38d6edacf3b2953e389146234ae9712d364e479c2"
+      },
+      "outcome": {
+        "app_frames": 2,
+        "loaded_saved_preference": true,
+        "normal_final_present": true,
+        "preference_unchanged": true,
+        "restart_from_seed": true,
+        "successful_end_frames": 2
+      },
+      "physical_dimensions": [
+        320,
+        180
+      ],
+      "pid": 3696,
+      "preference_after": {
+        "bytes": 204,
+        "sha256": "071b163192435d59e62dc1d10f40b05c10fc57772bcccc7aafccc6753c87ed33"
+      },
+      "preference_before": {
+        "bytes": 204,
+        "sha256": "071b163192435d59e62dc1d10f40b05c10fc57772bcccc7aafccc6753c87ed33"
+      },
+      "preference_fingerprint": {
+        "backend": "dx12",
+        "device_id": 140,
+        "device_type": "Cpu",
+        "name": "Microsoft Basic Render Driver",
+        "vendor_id": 5140
+      },
+      "process": {
+        "bytes": 662,
+        "sha256": "5965f604fffa71df4f9efe2dbf77c5c12dfad0d54ae581386a0f97e196b44b4c"
+      },
+      "process_exit_code": 0,
+      "report": {
+        "bytes": 8062,
+        "sha256": "6e68aa81700d868e093d1b00e88a016553a6e8e99a6d559933c33f116ee113c6"
+      },
+      "source_commit": "ebf4bcb7f489766e3c7ec188c35db9bb4146c62b",
+      "source_sha256": "bf8a523fdbfc13279f3798f6990afc5f38f304fcf0fb1bae3b89fd0af533874c",
+      "status": "passed"
+    }
+  },
+  "cpu_trace": {
+    "compiled_source_sha256": "bf8a523fdbfc13279f3798f6990afc5f38f304fcf0fb1bae3b89fd0af533874c",
+    "executable": {
+      "bytes": 10029056,
+      "sha256": "cfd25588be0ea3b5918629f6f2c05378b6ac20c26e45788da0205a2e7973f2f5"
+    },
+    "physical_dimensions": [
+      320,
+      180
+    ],
+    "present_mode": "Fifo",
+    "reader_validation": {
+      "acceptance_complete": false,
+      "acceptance_verdict": null,
+      "complete_cpu_sample_count": 4,
+      "complete_trace_validated": true,
+      "dimensions_match_window": true,
+      "eligible_interval_samples": {
+        "game_recording": 4,
+        "present_call": 4,
+        "renderer_submit": 4,
+        "surface_acquire": 4
+      },
+      "first_recorded_present_has_cpu_sample": false,
+      "gpu_duration_measured": false,
+      "integer_time_bounds_verified": true,
+      "measurement": "cpu_wall_clock_paired_frame_stage_ns",
+      "normal_final_present_export": true,
+      "ordered_disjoint_spans_verified": true,
+      "recorded_present_count": 5,
+      "rtx_or_1080p60_acceptance": false,
+      "status": "passed",
+      "uninstrumented_present_count": 1
+    },
+    "runtime_identity": {
+      "adapter": "Microsoft Basic Render Driver",
+      "backend": "Dx12",
+      "compiler": "Fxc",
+      "device_id": 140,
+      "device_type": "Cpu",
+      "driver": "10.0.26100.33438",
+      "driver_info": "",
+      "vendor_id": 5140
+    },
+    "source_commit": "ebf4bcb7f489766e3c7ec188c35db9bb4146c62b",
+    "source_sha256": "bf8a523fdbfc13279f3798f6990afc5f38f304fcf0fb1bae3b89fd0af533874c",
+    "trace": {
+      "bytes": 7868,
+      "sha256": "45dd21ce2e83fd1ceff109546e7d428eb385e76e593b61e84864018498618cd8"
+    }
+  },
+  "native_compile_inventory_counts": {
+    "baseline": 112,
+    "candidate": 113
+  },
+  "native_execution": true,
+  "original_class_sha256": "96dfb631be9d59f6cf35d87e4f3c17a4a4303d74787bb773a8c47672efb53331",
+  "receipts": {
+    "build_log": {
+      "bytes": 272721,
+      "sha256": "585a74939ab53bd802112e8c9153562672d0e43adb02ff3b2573c909c9d69d9d"
+    },
+    "build_process": {
+      "bytes": 559,
+      "sha256": "f3502d1716f5eb166cba6e7d04e1266917cec6c994e1232acc357872783ddca6"
+    },
+    "candidate_executables": {
+      "bytes": 384,
+      "sha256": "1b686c6753c873d0da9816aab2de433a3b4653892f5168a97522f59c39e96419"
+    },
+    "candidate_source_receipt": {
+      "bytes": 12157,
+      "sha256": "bf8a523fdbfc13279f3798f6990afc5f38f304fcf0fb1bae3b89fd0af533874c"
+    },
+    "compiler_stdout": {
+      "bytes": 194,
+      "sha256": "5477f9bad65b15c4c5b31fc050fc72feba651ea1b330bc75cf356a4d6b0fbc80"
+    },
+    "completed_controls": {
+      "bytes": 11254,
+      "sha256": "af0193c0d59cbd6fb0e5c62a6173b347b54f9d6185fd30f1a414abd62dc29989"
+    },
+    "cpu_reader": {
+      "bytes": 19124,
+      "sha256": "e88a3e94a031c3687ada16962f4d49649d71b1ed9861088fbb03422fb7bd3fbe"
+    },
+    "exact_pixels": {
+      "bytes": 6618,
+      "sha256": "ce56e1e1df2a923630b366d8d292522c9d697f9cc10042b09c71d584a9862434"
+    },
+    "fixed_validation": {
+      "bytes": 800,
+      "sha256": "76981b42706d46b0bc1134e5014e6b2fb7ca02e3fd7e4cd5147b6a54d7dce77a"
+    },
+    "independent_audit": {
+      "bytes": 105498,
+      "sha256": "c09e7feac810ac07627cdc41c437358d980641f33861ffecd84aa8a4ca33f29e"
+    },
+    "source_inventories": {
+      "bytes": 32856,
+      "sha256": "f21d704d4b89ee678784b8688a581aab19485bb5447106c63b23bbddfba2020a"
+    },
+    "summary": {
+      "bytes": 21937,
+      "sha256": "9a4b3bb5564411e89cd1576e37bcf0be86f738525dea6cb426cf2136fd4eae12"
+    },
+    "verifier_receipt": {
+      "bytes": 1072,
+      "sha256": "11a6cb962eb9149ecb567274c8c0f7fe5f5dafed5e975486a5d6776283e14667"
+    }
+  },
+  "review_flags": {
+    "acceptance_complete": false,
+    "acceptance_verdict": null,
+    "compiler_settings_checked": true,
+    "complete_native_compile_inventory_checked": true,
+    "finite_profile_activated": false,
+    "fixed_validator_bytes_unchanged": true,
+    "gpu_duration_measured": false,
+    "native_profile_binding_verified": false,
+    "original_profile_flags_modified": false,
+    "possible_masks_changed": false,
+    "profile_native_verified": false,
+    "required_masks_changed": false,
+    "rtx_or_1080p60_acceptance": false,
+    "source_inputs_unchanged": true
+  },
+  "schema": "rust-duty-gpu-cpu-native-review/v1",
+  "status": "passed",
+  "variants": {
+    "baseline": {
+      "class_source_variant": {
+        "production": {
+          "src/app.rs": {
+            "bytes": 73361,
+            "sha256": "244d6a65fa6534abbc3dcc42e2ef57f0592bd5976e053083449f4cb2254ca472"
+          },
+          "src/frame_performance.rs": {
+            "bytes": 26106,
+            "sha256": "d32746635a4ef297ce6c1e22514d3a18cf9b57975e79f4db9e0102965cb8ac22"
+          },
+          "src/frame_performance_session.rs": {
+            "bytes": 15320,
+            "sha256": "60773c62527d99ca27fa4315eb360121eec14b3645504e5c6a5bc2e4f59aee5f"
+          },
+          "src/graphics_device.rs": null,
+          "src/lib.rs": {
+            "bytes": 1701,
+            "sha256": "090d44a59fb9b4d6de1a98e6199f157afce88ed81a1930395675ee542d6217cc"
+          },
+          "src/main.rs": {
+            "bytes": 6126,
+            "sha256": "c4018780c2db8c7fb5681d7ea65656e78217b4dbac870cab928f589e5a8d472f"
+          },
+          "src/pause_menu.rs": {
+            "bytes": 42678,
+            "sha256": "509ac8fc2787454e0a7af657eff40bab8fe9b5f3d7e8d4328fd213581377fce2"
+          },
+          "src/render/backend.rs": {
+            "bytes": 8609,
+            "sha256": "2ffa4502d858c3e291c599bb50e0ec50d3187b7473005d28858a7914a76b3ed0"
+          },
+          "src/render/device.rs": {
+            "bytes": 23610,
+            "sha256": "02dd7452dcc310276ee3eb03c2a96d84c2c97c29a6282cbc4cff627ff2227723"
+          },
+          "src/render/frame.rs": {
+            "bytes": 25184,
+            "sha256": "d0bdefd2fe79f77c33e2ac4183346cccfcbae3a3d1fac6c7e2130e7d6648d91e"
+          },
+          "src/render/mod.rs": {
+            "bytes": 713,
+            "sha256": "81c52fb079336e131299091a0445353b7bfe566517621ec1516922e19f2047db"
+          },
+          "src/render/runtime.rs": {
+            "bytes": 19444,
+            "sha256": "f1372755c241bad6aba2109a0a86f0396537e79dbe7651f24ec2d872fbb393ee"
+          }
+        },
+        "reviewed_additions": {
+          "src/render/mod.rs": {
+            "bytes": 872,
+            "sha256": "201b223624a59e84f73cc3d114c6e6e7e797b6d1d121a781301f195867a6ac74"
+          }
+        }
+      },
+      "compiler_sha256": "5477f9bad65b15c4c5b31fc050fc72feba651ea1b330bc75cf356a4d6b0fbc80",
+      "contract_executable": {
+        "bytes": 9136128,
+        "sha256": "140666c5f0191f4b819c175abeda18880b2a0ea567ba224c0a3fc070d1cc0e7e"
+      },
+      "contract_log": {
+        "bytes": 467,
+        "sha256": "7bd1feb3fe78f33160b422c1bc394ba1f4d3d5d602e5749126b364f33e6faabf"
+      },
+      "contract_process": {
+        "bytes": 477,
+        "sha256": "4b9a35d295f1449b83f79bd26ec32c5bc63842c70a0b7ce0a0afa7a00bf513d3"
+      },
+      "contract_report": {
+        "bytes": 41793,
+        "sha256": "961a1d1b0d419aeba2b42e6348101eff40016bcea4acbe9606e573a22e51932f"
+      },
+      "fixed_contract_validation": {
+        "adapter": "Microsoft Basic Render Driver",
+        "backend": "Dx12",
+        "build_number": "37482428571.1",
+        "build_version": "0.1.11",
+        "captures": 21,
+        "passed": true,
+        "schema": "rust-duty-renderer-contract-validation/v1",
+        "scope": "headless DX12 renderer contract; not window presentation, native DPI, gameplay, performance or artistic approval"
+      },
+      "png_sha256": {
+        "after-errors.png": "e620b9ca33c0a94b9d270ad3223ea8bd8dc1dd43b3c3b4b8d30b8ff6ad6c68c7",
+        "alpha-clear.png": "5eb235cc66343a893d08832489440967411d5ecd629beb2bc271e9ffdff74f9e",
+        "alpha-composite.png": "4d87a7e7a7e5d4acc66a296b2af30010645ac260b84da04f1d760d88a8f55ca2",
+        "alpha-main-display.png": "4d87a7e7a7e5d4acc66a296b2af30010645ac260b84da04f1d760d88a8f55ca2",
+        "alpha-opaque-source.png": "70b63ce29cb240c203d3b7b8b796d5553460480be01700b7dfd44ddd73d378f6",
+        "alpha-target.png": "a2cc5e0c525809d6c3a2176455b89843b0d7eb4299592d597fe9318bb309f323",
+        "alpha-tinted-composite.png": "73a099ddc8a7489c40a73ef478b990ee91fd56c20261f33a8916782c06c87eec",
+        "depth-disabled.png": "2d8800f8281edb696cfa91658d226293b815ae6374eda6d6724fbf433d7f1473",
+        "depth-main-near.png": "a92d3fd1102a3cf85fe8e882bdbd85e15e3ad3c8e79287585d9cf54f5c6d45ed",
+        "depth-main-preserved.png": "a92d3fd1102a3cf85fe8e882bdbd85e15e3ad3c8e79287585d9cf54f5c6d45ed",
+        "depth-main-reset.png": "ae76355a76ff392f9a1c2fb33ec77bc41ed004550070f26f85cbd3afa5d8f56a",
+        "depth-target-near.png": "2d8800f8281edb696cfa91658d226293b815ae6374eda6d6724fbf433d7f1473",
+        "depth-target-reset.png": "817fb1a69a61fe71cabf7abe8d073487bfe4874bb645911415a145fc46dd7ae1",
+        "ordered-a-red.png": "a92d3fd1102a3cf85fe8e882bdbd85e15e3ad3c8e79287585d9cf54f5c6d45ed",
+        "ordered-b-green.png": "ae76355a76ff392f9a1c2fb33ec77bc41ed004550070f26f85cbd3afa5d8f56a",
+        "quadrant-target-composite.png": "2670862e83ad8cc0f74aad21d95d2be3e6c5da316085a2dcf871fc1bbdb880fa",
+        "quadrant-target.png": "2670862e83ad8cc0f74aad21d95d2be3e6c5da316085a2dcf871fc1bbdb880fa",
+        "quadrant.png": "2670862e83ad8cc0f74aad21d95d2be3e6c5da316085a2dcf871fc1bbdb880fa",
+        "readback-width-65.png": "22b66129978b75d6e9e102f0b373e6d4473714275166d9cb23f48b7cf2343ec9",
+        "text-100-percent.png": "3993300b4103f4f581835b6d962ab198411403559e2af47d6f7aaf13fe42906e",
+        "text-200-percent.png": "1ed36fbe49bf783096f103f74f3a0b79297987740e3256144302f24132c2eb72"
+      },
+      "process_exit_code": 0,
+      "rgba_sha256": {
+        "after-errors.png": "0b3b4eba5c7d53beec5ac1aa3b64c56188bcbf52906e124e5ab3e77a96fdd9cd",
+        "alpha-clear.png": "8c8362c09e7c37cf08d4d8d2b5b308f9d187a07803516cf2331e15661653ebdb",
+        "alpha-composite.png": "53cfd2953d24236697069c46913d33916b6f66f45b9dd770d6a8288dd6a3dd5f",
+        "alpha-main-display.png": "53cfd2953d24236697069c46913d33916b6f66f45b9dd770d6a8288dd6a3dd5f",
+        "alpha-opaque-source.png": "57186da88bb33b9356edefe0b2c6b7353de0aa324e88c50661268838431a408d",
+        "alpha-target.png": "e4459f2c75a7cb4d73e88971292dd0411d2304d741fe8606d3330e382743cecb",
+        "alpha-tinted-composite.png": "fd9d816f0b6ebb2f07ba7b27e6cbdbdae3bdb5e126928781608779f2d64d89b6",
+        "depth-disabled.png": "1be09dc593e8b4f8cfbebf6a3d45b80c43af4e00bbf8b4a0819a097c7aea83b2",
+        "depth-main-near.png": "662200a192785c77ab1c05592edf37ebb5d2cc5efb42622f3660afa795be0af0",
+        "depth-main-preserved.png": "662200a192785c77ab1c05592edf37ebb5d2cc5efb42622f3660afa795be0af0",
+        "depth-main-reset.png": "e99edded3201bb91c618dab11edc16d6f02f4151028985d3fb963b9f5d077206",
+        "depth-target-near.png": "1be09dc593e8b4f8cfbebf6a3d45b80c43af4e00bbf8b4a0819a097c7aea83b2",
+        "depth-target-reset.png": "b58c763a56ed8e324a39263ec3f821c6b862acfd25591e5b573a89b00671506d",
+        "ordered-a-red.png": "662200a192785c77ab1c05592edf37ebb5d2cc5efb42622f3660afa795be0af0",
+        "ordered-b-green.png": "e99edded3201bb91c618dab11edc16d6f02f4151028985d3fb963b9f5d077206",
+        "quadrant-target-composite.png": "3a58c1192ea5fad826484ac96c86a1c5fc8e4822a9ee83a56f3d3ce2459609db",
+        "quadrant-target.png": "3a58c1192ea5fad826484ac96c86a1c5fc8e4822a9ee83a56f3d3ce2459609db",
+        "quadrant.png": "3a58c1192ea5fad826484ac96c86a1c5fc8e4822a9ee83a56f3d3ce2459609db",
+        "readback-width-65.png": "cb73565fdf12d855edaea1860a68e7c3a9f8f2847765cb18e4373e860a4862e9",
+        "text-100-percent.png": "9d86a5b1ccd262a221b129cdd2ed89832faab45597959a4b768b69dffb347fba",
+        "text-200-percent.png": "f6ce531cf547dc5de8ab5b331457e0527bcddaac838a3d4c447866149e9fd643"
+      },
+      "runtime_identity": {
+        "adapter": "Microsoft Basic Render Driver",
+        "backend": "Dx12",
+        "compiler": "Fxc",
+        "device_id": 140,
+        "device_type": "Cpu",
+        "driver": "10.0.26100.33438",
+        "driver_info": "",
+        "vendor_id": 5140
+      },
+      "source_receipt": {
+        "bytes": 12213,
+        "sha256": "617cd692b47b865f0852517df3306df2928f7166901c321faf990296d1d0cc7c"
+      }
+    },
+    "candidate": {
+      "class_source_variant": {
+        "production": {
+          "src/app.rs": {
+            "bytes": 75655,
+            "sha256": "c282e402b35b0edee452eff30741251b729a936e90431c94387eb14c3cb918da"
+          },
+          "src/frame_performance.rs": {
+            "bytes": 31117,
+            "sha256": "dfd68b9970a9b38cfef2b60a8b75238350c89466fc6e5a0d9d54413758c415bd"
+          },
+          "src/frame_performance_session.rs": {
+            "bytes": 19408,
+            "sha256": "4b72fe3910f08d2a4dd7e9dcaea7557675451275010c72c75da7b37d654d577c"
+          },
+          "src/graphics_device.rs": {
+            "bytes": 18112,
+            "sha256": "731d3ad664ed8b8cc358e19f7ec321646af8fbe50872ccf63322128264418e8b"
+          },
+          "src/lib.rs": {
+            "bytes": 1726,
+            "sha256": "d99219a4e4fcc06d73d3841b0b6d6fa40edcb4ac2aa5e1882cd5f66cda7284b1"
+          },
+          "src/main.rs": {
+            "bytes": 6421,
+            "sha256": "04f2c0ce85c2ceac6ccf9b215e043df097107749a676dfa3d2661334b6463f41"
+          },
+          "src/pause_menu.rs": {
+            "bytes": 65356,
+            "sha256": "c08e8fc87407bc9cfda5cfadf7f92eb5802e7abb625e0b66e9d96c5d8f0bca9e"
+          },
+          "src/render/backend.rs": {
+            "bytes": 8833,
+            "sha256": "4a9c1efab9ecb5a462cd55f2a2b9bb10959f2e4d318f53dd439d75a01b6c8603"
+          },
+          "src/render/device.rs": {
+            "bytes": 28061,
+            "sha256": "fe742b814bcc55ab3b5d13ad70a03dcef54e5369a7b3a82665a016eec16a6763"
+          },
+          "src/render/frame.rs": {
+            "bytes": 25738,
+            "sha256": "aad7d066764a658b3dc8a3dbd1eaed2fb3bb69708effbbffe16a9b6fc07d8628"
+          },
+          "src/render/mod.rs": {
+            "bytes": 724,
+            "sha256": "b5fce38c777a6619526f578bf3970bc31c38420ec1b6b57f10413647b2dbfb2f"
+          },
+          "src/render/runtime.rs": {
+            "bytes": 20650,
+            "sha256": "67af6a5ee23d3db06a526abe3b5df6dc5e325365dce436562e1e4e31381a3e48"
+          }
+        },
+        "reviewed_additions": {
+          "src/render/mod.rs": {
+            "bytes": 883,
+            "sha256": "c78768f1c1144a14618960975fe43027293fa1a8a21cb147eea9bef6e44c7bae"
+          }
+        }
+      },
+      "compiler_sha256": "5477f9bad65b15c4c5b31fc050fc72feba651ea1b330bc75cf356a4d6b0fbc80",
+      "contract_executable": {
+        "bytes": 9214464,
+        "sha256": "9572a21bcb03067b7854b3711aba503b284e0ea5937f06bca330a063ebc19a56"
+      },
+      "contract_log": {
+        "bytes": 906,
+        "sha256": "760909cb9f1fe746d6d4792b6953bdce4f1bb77e9259d98b0614984d8601ae21"
+      },
+      "contract_process": {
+        "bytes": 480,
+        "sha256": "70befc1595ddb6b25ccafc0e69d22be4068169c90370387600a6bcd820071150"
+      },
+      "contract_report": {
+        "bytes": 41795,
+        "sha256": "9e51cd8dffbca5ab3ed1f47f33088819ae9ee3de5eec7504a05b2b80bce07592"
+      },
+      "fixed_contract_validation": {
+        "adapter": "Microsoft Basic Render Driver",
+        "backend": "Dx12",
+        "build_number": "37498157663.1",
+        "build_version": "0.1.11",
+        "captures": 21,
+        "passed": true,
+        "schema": "rust-duty-renderer-contract-validation/v1",
+        "scope": "headless DX12 renderer contract; not window presentation, native DPI, gameplay, performance or artistic approval"
+      },
+      "png_sha256": {
+        "after-errors.png": "e620b9ca33c0a94b9d270ad3223ea8bd8dc1dd43b3c3b4b8d30b8ff6ad6c68c7",
+        "alpha-clear.png": "5eb235cc66343a893d08832489440967411d5ecd629beb2bc271e9ffdff74f9e",
+        "alpha-composite.png": "4d87a7e7a7e5d4acc66a296b2af30010645ac260b84da04f1d760d88a8f55ca2",
+        "alpha-main-display.png": "4d87a7e7a7e5d4acc66a296b2af30010645ac260b84da04f1d760d88a8f55ca2",
+        "alpha-opaque-source.png": "70b63ce29cb240c203d3b7b8b796d5553460480be01700b7dfd44ddd73d378f6",
+        "alpha-target.png": "a2cc5e0c525809d6c3a2176455b89843b0d7eb4299592d597fe9318bb309f323",
+        "alpha-tinted-composite.png": "73a099ddc8a7489c40a73ef478b990ee91fd56c20261f33a8916782c06c87eec",
+        "depth-disabled.png": "2d8800f8281edb696cfa91658d226293b815ae6374eda6d6724fbf433d7f1473",
+        "depth-main-near.png": "a92d3fd1102a3cf85fe8e882bdbd85e15e3ad3c8e79287585d9cf54f5c6d45ed",
+        "depth-main-preserved.png": "a92d3fd1102a3cf85fe8e882bdbd85e15e3ad3c8e79287585d9cf54f5c6d45ed",
+        "depth-main-reset.png": "ae76355a76ff392f9a1c2fb33ec77bc41ed004550070f26f85cbd3afa5d8f56a",
+        "depth-target-near.png": "2d8800f8281edb696cfa91658d226293b815ae6374eda6d6724fbf433d7f1473",
+        "depth-target-reset.png": "817fb1a69a61fe71cabf7abe8d073487bfe4874bb645911415a145fc46dd7ae1",
+        "ordered-a-red.png": "a92d3fd1102a3cf85fe8e882bdbd85e15e3ad3c8e79287585d9cf54f5c6d45ed",
+        "ordered-b-green.png": "ae76355a76ff392f9a1c2fb33ec77bc41ed004550070f26f85cbd3afa5d8f56a",
+        "quadrant-target-composite.png": "2670862e83ad8cc0f74aad21d95d2be3e6c5da316085a2dcf871fc1bbdb880fa",
+        "quadrant-target.png": "2670862e83ad8cc0f74aad21d95d2be3e6c5da316085a2dcf871fc1bbdb880fa",
+        "quadrant.png": "2670862e83ad8cc0f74aad21d95d2be3e6c5da316085a2dcf871fc1bbdb880fa",
+        "readback-width-65.png": "22b66129978b75d6e9e102f0b373e6d4473714275166d9cb23f48b7cf2343ec9",
+        "text-100-percent.png": "3993300b4103f4f581835b6d962ab198411403559e2af47d6f7aaf13fe42906e",
+        "text-200-percent.png": "1ed36fbe49bf783096f103f74f3a0b79297987740e3256144302f24132c2eb72"
+      },
+      "process_exit_code": 0,
+      "rgba_sha256": {
+        "after-errors.png": "0b3b4eba5c7d53beec5ac1aa3b64c56188bcbf52906e124e5ab3e77a96fdd9cd",
+        "alpha-clear.png": "8c8362c09e7c37cf08d4d8d2b5b308f9d187a07803516cf2331e15661653ebdb",
+        "alpha-composite.png": "53cfd2953d24236697069c46913d33916b6f66f45b9dd770d6a8288dd6a3dd5f",
+        "alpha-main-display.png": "53cfd2953d24236697069c46913d33916b6f66f45b9dd770d6a8288dd6a3dd5f",
+        "alpha-opaque-source.png": "57186da88bb33b9356edefe0b2c6b7353de0aa324e88c50661268838431a408d",
+        "alpha-target.png": "e4459f2c75a7cb4d73e88971292dd0411d2304d741fe8606d3330e382743cecb",
+        "alpha-tinted-composite.png": "fd9d816f0b6ebb2f07ba7b27e6cbdbdae3bdb5e126928781608779f2d64d89b6",
+        "depth-disabled.png": "1be09dc593e8b4f8cfbebf6a3d45b80c43af4e00bbf8b4a0819a097c7aea83b2",
+        "depth-main-near.png": "662200a192785c77ab1c05592edf37ebb5d2cc5efb42622f3660afa795be0af0",
+        "depth-main-preserved.png": "662200a192785c77ab1c05592edf37ebb5d2cc5efb42622f3660afa795be0af0",
+        "depth-main-reset.png": "e99edded3201bb91c618dab11edc16d6f02f4151028985d3fb963b9f5d077206",
+        "depth-target-near.png": "1be09dc593e8b4f8cfbebf6a3d45b80c43af4e00bbf8b4a0819a097c7aea83b2",
+        "depth-target-reset.png": "b58c763a56ed8e324a39263ec3f821c6b862acfd25591e5b573a89b00671506d",
+        "ordered-a-red.png": "662200a192785c77ab1c05592edf37ebb5d2cc5efb42622f3660afa795be0af0",
+        "ordered-b-green.png": "e99edded3201bb91c618dab11edc16d6f02f4151028985d3fb963b9f5d077206",
+        "quadrant-target-composite.png": "3a58c1192ea5fad826484ac96c86a1c5fc8e4822a9ee83a56f3d3ce2459609db",
+        "quadrant-target.png": "3a58c1192ea5fad826484ac96c86a1c5fc8e4822a9ee83a56f3d3ce2459609db",
+        "quadrant.png": "3a58c1192ea5fad826484ac96c86a1c5fc8e4822a9ee83a56f3d3ce2459609db",
+        "readback-width-65.png": "cb73565fdf12d855edaea1860a68e7c3a9f8f2847765cb18e4373e860a4862e9",
+        "text-100-percent.png": "9d86a5b1ccd262a221b129cdd2ed89832faab45597959a4b768b69dffb347fba",
+        "text-200-percent.png": "f6ce531cf547dc5de8ab5b331457e0527bcddaac838a3d4c447866149e9fd643"
+      },
+      "runtime_identity": {
+        "adapter": "Microsoft Basic Render Driver",
+        "backend": "Dx12",
+        "compiler": "Fxc",
+        "device_id": 140,
+        "device_type": "Cpu",
+        "driver": "10.0.26100.33438",
+        "driver_info": "",
+        "vendor_id": 5140
+      },
+      "source_receipt": {
+        "bytes": 12157,
+        "sha256": "bf8a523fdbfc13279f3798f6990afc5f38f304fcf0fb1bae3b89fd0af533874c"
+      }
+    }
+  }
+}

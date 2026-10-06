@@ -24,7 +24,7 @@ from a candidate request or by hashing whatever descriptor was supplied. Its
 adjacent `finite_ads_reviewed_evidence/` files are individually hash-bound. The
 review is automated code-and-evidence review, not a claim of human approval.
 
-The normal authored and revalidation workflows now select the separate
+Fixed historical revalidation selects the separate
 `tools/finite_ads_pass_batching_class.json` extension, anchored to
 `2895c1f4f0039f5a850c7b30196c5d77f4b2e563bc211f8b9fb51ca15f639c4c`.
 It references the unchanged original descriptor and adds only the reviewed exact
@@ -33,6 +33,14 @@ It references the unchanged original descriptor and adds only the reviewed exact
 Both fixed renderer contracts and all 21 zero-tolerance RGBA comparisons passed
 independent review. See [the extension boundary](finite-ads-pass-batching-extension.md)
 for the separate receipt/artifact anchors and remaining fresh-capture obligations.
+Normal current-source authored correction selects
+`tools/finite_ads_gpu_cpu_class.json`, anchored to
+`91bd0030157ff8e1b4e70127b028e57543d8fc91fb3b6cc1202c4707491fb798`.
+It chains the unchanged original and batching evidence with the independently
+reviewed GPU-selection/CPU-stage native comparison from
+[run 37498157663](https://github.com/RHS059/rust_duty/actions/runs/37498157663).
+See [the exact 12-file extension](finite-ads-gpu-cpu-extension.md) for its bounded
+source variants, native receipt, and remaining fresh-capture obligations.
 The original historical native arithmetic evidence below remains unchanged.
 
 The later native anchor is Windows run

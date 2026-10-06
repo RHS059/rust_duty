@@ -160,7 +160,6 @@ class DisabledDescriptorTests(unittest.TestCase):
             native_runtime_logs={})
 
     def test_pending_descriptor_exact_source_and_parent_anchors_remain_disabled(self):
-        self.assertIsNone(f.GPU_CPU_NATIVE_REVIEW_SHA256)
         self.assertIsNone(self.descriptor['native_comparison'])
         self.assertEqual(self.descriptor['source_variants'], f.GPU_CPU_VARIANTS)
         self.assertEqual(len(f.GPU_CPU_VARIANTS['candidate']['production']), 12)
@@ -175,11 +174,11 @@ class DisabledDescriptorTests(unittest.TestCase):
     def test_flipping_status_or_self_anchoring_receipt_never_activates(self):
         descriptor = deepcopy(self.descriptor); descriptor['status'] = 'reviewed'
         descriptor['native_comparison'] = {'path': 'synthetic.json', **f._identity(b'{}')}
-        with self.assertRaisesRegex(ValueError, 'native review anchor unavailable'):
-            f._read_gpu_cpu_class(f.source.BoundSourcePacket(), self.path, descriptor)
-        with patch.object(f, 'GPU_CPU_NATIVE_REVIEW_SHA256', f._identity(b'{}')['sha256']):
-            with self.assertRaisesRegex(ValueError, 'ingestion not activated'):
+        with patch.object(f, 'GPU_CPU_NATIVE_REVIEW_SHA256', None):
+            with self.assertRaisesRegex(ValueError, 'native review anchor unavailable'):
                 f._read_gpu_cpu_class(f.source.BoundSourcePacket(), self.path, descriptor)
+        with self.assertRaisesRegex(ValueError, 'native comparison anchor'):
+            f._read_gpu_cpu_class(f.source.BoundSourcePacket(), self.path, descriptor)
 
     def test_source_mapping_and_parent_anchor_are_not_caller_controlled(self):
         for change, pattern in [('source', 'coherent'), ('parent', 'batching class anchor'),
