@@ -3,6 +3,11 @@ on:
   workflow_call:
 permissions:
   contents: read
+env:
+  GIT_CONFIG_COUNT: '1'
+  GIT_CONFIG_KEY_0: core.autocrlf
+  GIT_CONFIG_VALUE_0: 'false'
+  CURRENT_ADS_SOURCE_PROOF: ${{ github.repository == 'RHS059/rust_duty' && github.ref == 'refs/heads/main' && github.workflow_ref == 'RHS059/rust_duty/.github/workflows/build.yml@refs/heads/main' }}
 # Same-run artifact downloads intentionally have no repository/run-id/token override.
 # Historical Linux artifacts remain exact diagnostics; strict renderer parity uses
 # a same-Windows, same-binary OpenGl reference. A partial attempt rerun without
@@ -12,6 +17,9 @@ jobs:
   authored-inputs:
     runs-on: windows-latest
     timeout-minutes: 60
+    outputs:
+      oracle_receipt_sha256: ${{ steps.prepare-oracle.outputs.receipt_sha256 }}
+      oracle_compiler_sha256: ${{ steps.authored-rust-version.outputs.hash }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -153,6 +161,38 @@ jobs:
           path: evidence/authored-inputs/
           if-no-files-found: warn
           retention-days: 7
+      - name: Test current-run oracle preparation receipts
+        env:
+          PYTHONPATH: tools
+        run: python -m unittest -v test_prepare_ads_source_oracle
+      - name: Prepare one source oracle using the captured Windows compiler
+        id: prepare-oracle
+        if: env.CURRENT_ADS_SOURCE_PROOF == 'true'
+        timeout-minutes: 45
+        run: >-
+          python tools/prepare_ads_source_oracle.py --root .
+          --input-manifest evidence/authored-inputs/input-manifest.json
+          --evidence evidence/ads-source-oracle-build
+          --capture-rustc-sha256 ${{ steps.authored-rust-version.outputs.hash }}
+      - name: Retain the small source oracle with its independently anchored receipt
+        if: env.CURRENT_ADS_SOURCE_PROOF == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: dx12-authored-precompiled-oracle-attempt-${{ github.run_attempt }}
+          path: evidence/ads-source-oracle-build/package/
+          if-no-files-found: error
+          retention-days: 7
+      - name: Retain source oracle preparation diagnostics
+        if: always() && env.CURRENT_ADS_SOURCE_PROOF == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: dx12-authored-oracle-build-diagnostics-attempt-${{ github.run_attempt }}
+          path: |
+            evidence/ads-source-oracle-build/prepare-summary.json
+            evidence/ads-source-oracle-build/independent-receipt.sha256
+            evidence/ads-source-oracle-build/logs/
+          if-no-files-found: warn
+          retention-days: 7
 
   authored-capture:
     needs: authored-inputs
@@ -254,15 +294,19 @@ jobs:
           path: .
       - name: Capture the complete same-host app-local llvmpipe and DX12 scenario
         timeout-minutes: ${{ matrix.step_timeout_minutes }}
-        run: >-
-          python tools/run_dx12_authored_shard.py run
-          --executable target/release/vector-range.exe
-          --renderer-contract target/release/examples/renderer_contract.exe
-          --input-manifest evidence/authored-inputs/input-manifest.json
-          --root . --scenario ${{ matrix.scenario }}
-          --evidence evidence/dx12-authored-shards/${{ matrix.scenario }}
-          --timeout ${{ matrix.capture_timeout_seconds }}
-          --run-timeout ${{ matrix.run_timeout_seconds }}
+        shell: pwsh
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $false
+          python tools/run_dx12_authored_shard.py run --executable target/release/vector-range.exe --renderer-contract target/release/examples/renderer_contract.exe --input-manifest evidence/authored-inputs/input-manifest.json --root . --scenario ${{ matrix.scenario }} --evidence evidence/dx12-authored-shards/${{ matrix.scenario }} --timeout ${{ matrix.capture_timeout_seconds }} --run-timeout ${{ matrix.run_timeout_seconds }}
+          $captureExit = $LASTEXITCODE
+          if ($env:CURRENT_ADS_SOURCE_PROOF -eq 'true' -and '${{ matrix.scenario }}' -eq 'ads-offset') {
+            # Collection can defer only reproduced typed coverage failures.
+            # The immutable native summary stays failed; the aggregate owns acceptance.
+            python tools/collect_ads_offset_evidence.py --root . --input-manifest evidence/authored-inputs/input-manifest.json --evidence evidence/dx12-authored-shards/ads-offset --receipt evidence/ads-offset-collection/receipt.json --capture-exit-code $captureExit
+            if ($LASTEXITCODE -ne 0) { throw 'ADS offset collection contains an uncorrectable failure' }
+          } elseif ($captureExit -ne 0) {
+            exit $captureExit
+          }
       - name: Retain every attempted scenario, including partial and failed runs
         if: always()
         uses: actions/upload-artifact@v4
@@ -271,12 +315,20 @@ jobs:
           path: evidence/dx12-authored-shards/${{ matrix.scenario }}/
           if-no-files-found: warn
           retention-days: 7
+      - name: Retain separate offset collection status without editing the original shard
+        if: always() && env.CURRENT_ADS_SOURCE_PROOF == 'true' && matrix.scenario == 'ads-offset'
+        uses: actions/upload-artifact@v4
+        with:
+          name: dx12-authored-offset-collection-attempt-${{ github.run_attempt }}
+          path: evidence/ads-offset-collection/
+          if-no-files-found: warn
+          retention-days: 7
 
   authored-aggregate:
     needs: [authored-inputs, authored-capture]
     if: always()
     runs-on: windows-latest
-    timeout-minutes: 60
+    timeout-minutes: 150
     steps:
       - uses: actions/checkout@v4
         with:
@@ -383,20 +435,52 @@ jobs:
               Move-Item -LiteralPath $entry.FullName -Destination (Join-Path $destination $scenario) -ErrorAction Stop
             }
           }
+      - name: Fetch only this attempt's independently bound small source oracle
+        if: env.CURRENT_ADS_SOURCE_PROOF == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          name: dx12-authored-precompiled-oracle-attempt-${{ github.run_attempt }}
+          path: evidence/precompiled-ads-oracle
+      - name: Require current-run source proof for any deferred offset coverage
+        id: current-source-oracle
+        if: always() && env.CURRENT_ADS_SOURCE_PROOF == 'true'
+        timeout-minutes: 90
+        env:
+          ORACLE_BUILD_RECEIPT_SHA256: ${{ needs.authored-inputs.outputs.oracle_receipt_sha256 }}
+          CAPTURE_COMPILER_SHA256: ${{ needs.authored-inputs.outputs.oracle_compiler_sha256 }}
+        shell: pwsh
+        run: >-
+          python tools/current_ads_source_oracle.py --root .
+          --input-manifest evidence/authored-inputs/input-manifest.json
+          --shards evidence/authored-shards --oracle evidence/precompiled-ads-oracle
+          --expected-oracle-receipt-sha256 "$env:ORACLE_BUILD_RECEIPT_SHA256"
+          --capture-rustc-sha256 "$env:CAPTURE_COMPILER_SHA256"
+          --evidence evidence/current-ads-source --receipt-anchor evidence/current-ads-source-receipt.sha256
       - name: Require every full shard, exact same-Windows parity and existing pair validators
         if: always()
         timeout-minutes: 45
-        run: >-
-          python tools/aggregate_dx12_authored.py --root .
-          --shards evidence/authored-shards --legacy-linux evidence/legacy
-          --input-manifest evidence/authored-inputs/input-manifest.json
-          --historical-manifest evidence/authored-inputs/historical-manifest.json
-          --evidence evidence/dx12-authored --timeout 900 --run-timeout 2400
+        env:
+          ADS_SOURCE_SUPPLEMENT_PATH: ${{ steps.current-source-oracle.outputs.supplement_path }}
+        shell: pwsh
+        run: |
+          $supplementArgs = @()
+          if ($env:ADS_SOURCE_SUPPLEMENT_PATH) { $supplementArgs = @('--ads-source-supplement', $env:ADS_SOURCE_SUPPLEMENT_PATH) }
+          python tools/aggregate_dx12_authored.py --root . --shards evidence/authored-shards --legacy-linux evidence/legacy --input-manifest evidence/authored-inputs/input-manifest.json --historical-manifest evidence/authored-inputs/historical-manifest.json --evidence evidence/dx12-authored --timeout 900 --run-timeout 2400 @supplementArgs
       - name: Retain strict aggregate diagnostics and open visual review guides
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: dx12-authored-evidence-attempt-${{ github.run_attempt }}
           path: evidence/dx12-authored/
+          if-no-files-found: warn
+          retention-days: 7
+      - name: Retain source proof and correction diagnostics separately
+        if: always() && env.CURRENT_ADS_SOURCE_PROOF == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: dx12-authored-current-source-evidence-attempt-${{ github.run_attempt }}
+          path: |
+            evidence/current-ads-source/
+            evidence/current-ads-source-receipt.sha256
           if-no-files-found: warn
           retention-days: 7

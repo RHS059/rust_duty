@@ -396,6 +396,7 @@ def offset_correction_eligibility(report):
     if (report['scenario'] != 'ads-offset' or report['passed'] is not False
             or report['status'] != 'failed' or report['budget_exhausted'] is not False
             or report['current_check'] is not None
+            or 'fatal_error' in report
             or report['elapsed_seconds'] >= report['run_timeout_seconds']):
         raise ValueError('ADS source correction requires a completed, non-timeout failed offset shard')
     if [row['name'] for row in report['checks']] != local_checks('ads-offset'):

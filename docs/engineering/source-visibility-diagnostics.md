@@ -85,3 +85,25 @@ report explicitly keeps `acceptance_complete: false`: an ADS-pair result alone
 does not establish the original nine-scenario aggregate or a current complete
 Windows package. Publishing this caller does not assert that authoritative
 Windows source generation or native revalidation has passed.
+
+## Ordinary main verification
+
+The main build prepares a small source-oracle executable and compiler receipt
+beside the existing authored input binaries. Its receipt digest and compiler
+fingerprint pass through independent job outputs. The package contains no second
+copy of the runtime companions; the aggregate checks its local assets and full
+metadata against the original input manifest before assembling the source packet.
+
+For ADS offset only, a collection guard may defer reproduced generic structure
+failures and their blocked dependent checks. It first requires complete native
+processes, every expected frame, strict decoding, finite data, correct witnesses,
+unchanged inputs and exact same-Windows state. Its separate receipt marks
+acceptance as deferred, while the original failed shard stays intact. Other
+failures still stop collection. Other branches retain their original strict path.
+
+The mandatory nine-scenario aggregate consumes a correction only after the
+current-run source oracle and ADS leaf pass with all independent anchors checked.
+All other scenario, layered-rate, placement, historical-input and parity checks
+remain required. The producer checks original and staged executable bytes against
+the preparation receipt immediately before each replay. A preparation, source
+replay or final aggregate failure remains a CI failure.

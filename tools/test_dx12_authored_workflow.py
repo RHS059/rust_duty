@@ -121,7 +121,7 @@ class AuthoredWorkflowTests(unittest.TestCase):
         aggregate = self.jobs['authored-aggregate']
         self.assertEqual(aggregate['needs'], ['authored-inputs', 'authored-capture'])
         self.assertEqual(aggregate['if'], 'always()')
-        self.assertEqual(aggregate['timeout-minutes'], 60)
+        self.assertEqual(aggregate['timeout-minutes'], 150)
         steps = self.steps('authored-aggregate')
         downloads = [step for step in steps if step.get('with', {}).get('pattern')]
         self.assertEqual(len(downloads), 1)
@@ -144,7 +144,10 @@ class AuthoredWorkflowTests(unittest.TestCase):
             self.assertIn(flag, runner['run'])
         for job in ('authored-capture', 'authored-aggregate'):
             for step in self.uploads(job):
-                self.assertEqual(step['if'], 'always()')
+                expected = ('always()' + (" && env.CURRENT_ADS_SOURCE_PROOF == 'true'" if
+                    ('offset collection status' in step['name'] or 'source proof and correction' in step['name']) else '')
+                    + (" && matrix.scenario == 'ads-offset'" if 'offset collection status' in step['name'] else ''))
+                self.assertEqual(step['if'], expected)
                 self.assertEqual(step['with']['retention-days'], 7)
         self.assertEqual(self.uploads('authored-aggregate')[0]['with']['name'],
                          'dx12-authored-evidence-attempt-${{ github.run_attempt }}')
@@ -175,6 +178,57 @@ class AuthoredWorkflowTests(unittest.TestCase):
         text = self.path.read_text(encoding='utf-8')
         self.assertNotIn('run_dx12_authored.py\n', text)
         self.assertNotIn('workflow_dispatch', text)
+
+    def test_oracle_receipt_anchors_are_job_outputs_and_companions_are_not_redistributed(self):
+        outputs = self.jobs['authored-inputs']['outputs']
+        self.assertEqual(outputs, {
+            'oracle_receipt_sha256': '${{ steps.prepare-oracle.outputs.receipt_sha256 }}',
+            'oracle_compiler_sha256': '${{ steps.authored-rust-version.outputs.hash }}'})
+        steps = self.steps('authored-inputs')
+        prepare = next(s for s in steps if s.get('id') == 'prepare-oracle')
+        native = next(s for s in steps if 'run_dx12_authored_shard.py prepare' in s.get('run', ''))
+        self.assertLess(steps.index(native), steps.index(prepare))
+        self.assertIn('--capture-rustc-sha256 ${{ steps.authored-rust-version.outputs.hash }}', prepare['run'])
+        package = next(s for s in self.uploads('authored-inputs') if 'precompiled-oracle' in s['with']['name'])
+        self.assertEqual(package['with']['path'], 'evidence/ads-source-oracle-build/package/')
+        expected = {'name': package['with']['name'], 'path': 'evidence/precompiled-ads-oracle'}
+        self.assertIn(expected, self.downloads('authored-aggregate'))
+        self.assertNotIn(expected, self.downloads('authored-capture'))
+
+    def test_only_offset_collection_may_defer_and_original_capture_exit_is_preserved(self):
+        step = next(s for s in self.steps('authored-capture') if 'run_dx12_authored_shard.py run' in s.get('run', ''))
+        self.assertEqual(step['shell'], 'pwsh')
+        text = step['run']
+        self.assertIn('$captureExit = $LASTEXITCODE', text)
+        self.assertIn("if ($env:CURRENT_ADS_SOURCE_PROOF -eq 'true' -and '${{ matrix.scenario }}' -eq 'ads-offset')", text)
+        self.assertIn('collect_ads_offset_evidence.py', text)
+        self.assertIn('--capture-exit-code $captureExit', text)
+        self.assertIn('elseif ($captureExit -ne 0)', text)
+        self.assertIn('exit $captureExit', text)
+        self.assertIn("if ($LASTEXITCODE -ne 0) { throw", text)
+
+    def test_current_source_correction_cannot_replace_the_final_required_aggregate(self):
+        steps = self.steps('authored-aggregate')
+        producer = next(s for s in steps if s.get('id') == 'current-source-oracle')
+        final = next(s for s in steps if 'tools/aggregate_dx12_authored.py' in s.get('run', ''))
+        self.assertEqual(producer['if'], "always() && env.CURRENT_ADS_SOURCE_PROOF == 'true'")
+        self.assertEqual(producer['timeout-minutes'], 90)
+        self.assertLess(steps.index(producer), steps.index(final))
+        self.assertEqual(producer['env'], {
+            'ORACLE_BUILD_RECEIPT_SHA256': '${{ needs.authored-inputs.outputs.oracle_receipt_sha256 }}',
+            'CAPTURE_COMPILER_SHA256': '${{ needs.authored-inputs.outputs.oracle_compiler_sha256 }}'})
+        self.assertEqual(final['env'], {'ADS_SOURCE_SUPPLEMENT_PATH': '${{ steps.current-source-oracle.outputs.supplement_path }}'})
+        self.assertIn("@('--ads-source-supplement', $env:ADS_SOURCE_SUPPLEMENT_PATH)", final['run'])
+        self.assertEqual(final['if'], 'always()')
+        self.assertEqual(final['timeout-minutes'], 45)
+
+    def test_only_the_original_main_caller_activates_source_correction(self):
+        self.assertEqual(self.workflow['env']['CURRENT_ADS_SOURCE_PROOF'],
+            "${{ github.repository == 'RHS059/rust_duty' && github.ref == 'refs/heads/main' && github.workflow_ref == 'RHS059/rust_duty/.github/workflows/build.yml@refs/heads/main' }}")
+        prepare = next(s for s in self.steps('authored-inputs') if s.get('id') == 'prepare-oracle')
+        self.assertEqual(prepare['if'], "env.CURRENT_ADS_SOURCE_PROOF == 'true'")
+        download = next(s for s in self.steps('authored-aggregate') if 'precompiled-oracle' in s.get('with', {}).get('name', ''))
+        self.assertEqual(download['if'], "env.CURRENT_ADS_SOURCE_PROOF == 'true'")
 
 
 if __name__ == '__main__':

@@ -9,6 +9,7 @@ an independent anchor file. A failed producer cannot provide a passing oracle.
 """
 import argparse
 from datetime import datetime
+import gzip
 import hashlib
 import json
 import os
@@ -294,6 +295,81 @@ def copy_packet_file(source, destination, expected):
     require(digest(source) == digest(destination) == expected, f'{source}: changed during portable copy')
 
 
+def stage_generated_inputs(source, downloads, manifest):
+    """Replace checkout fallbacks only with the captured native input bytes.
+
+    Transports are not listed directly in the native input inventory. Their
+    sibling manifest must itself match that inventory before its packed and
+    decoded hashes can authorize staging. Preflight every family before writes;
+    the original package materializer and final consumed-input check still run.
+    """
+    native_hashes = manifest['binding']['runtime_and_manifest_sha256']
+    pending = []
+    for family in ('reload', 'walk', 'ads', 'directional', 'jump'):
+        folder = downloads / family
+        files = dict(shared._walk_files(folder))
+        incoming = inventory(files)
+        for name, path in files.items():
+            relative = Path('assets') / family / name
+            key = relative.as_posix()
+            target = source / relative
+            expected = incoming[name]
+            if key in native_hashes:
+                require(expected['sha256'] == native_hashes[key], f'generated native input differs: {key}')
+            elif path.suffix == '.gz':
+                parent = Path(name).parent
+                manifest_name = (parent / 'manifest.json').as_posix()
+                manifest_key = (relative.parent / 'manifest.json').as_posix()
+                require(manifest_name in incoming and manifest_key in native_hashes
+                        and incoming[manifest_name]['sha256'] == native_hashes[manifest_key],
+                        f'transport lacks a native-bound family manifest: {key}')
+                family_manifest = read_record(files[manifest_name])
+                require(digest(files[manifest_name]) == incoming[manifest_name],
+                        f'family manifest changed during staging: {manifest_key}')
+                companion = path.name.removesuffix('.gz')
+                record = family_manifest.get('files', {}).get(companion, {})
+                transport = family_manifest.get('repository_transport', {}).get(companion, {})
+                decoded_key = (relative.parent / companion).as_posix()
+                require(companion in ('asset.vra', 'asset.vrs', 'asset.vrm')
+                        and transport.get('file') == path.name and transport.get('encoding') == 'gzip'
+                        and type(transport.get('bytes')) is int
+                        and expected == {'bytes': transport['bytes'], 'sha256': transport.get('sha256')}
+                        and type(record.get('bytes')) is int and 0 < record['bytes'] <= 128 * 1024**2
+                        and transport.get('decoded_bytes') == record['bytes']
+                        and decoded_key in native_hashes
+                        and transport.get('decoded_sha256') == record.get('sha256') == native_hashes[decoded_key],
+                        f'transport differs from native-bound family manifest: {key}')
+                try:
+                    with gzip.open(path, 'rb') as stream:
+                        decoded = stream.read(record['bytes'] + 1)
+                except (OSError, EOFError) as error:
+                    raise ValueError(f'invalid generated transport: {key}') from error
+                require(len(decoded) == record['bytes']
+                        and hashlib.sha256(decoded).hexdigest() == native_hashes[decoded_key],
+                        f'decoded transport differs from native input: {key}')
+            else:
+                # An artifact may add an ancillary README, but cannot replace
+                # any differing unbound checkout file or add unbound inputs.
+                require((target.exists() and digest(target) == expected)
+                        or (path.name == 'README.md' and not target.exists() and not target.is_symlink()),
+                        f'generated file is not bound to native inputs: {key}')
+            for ancestor in target.parents:
+                if ancestor == source.parent:
+                    break
+                if ancestor.exists() or ancestor.is_symlink():
+                    shared._checked_stat(ancestor, 'directory')
+            previous = digest(target) if target.exists() or target.is_symlink() else None
+            pending.append((path, target, expected, previous))
+    for path, target, expected, previous in pending:
+        require(digest(path) == expected, f'generated file changed before staging: {path}')
+        current = digest(target) if target.exists() or target.is_symlink() else None
+        require(current == previous, f'checkout file changed before staging: {target}')
+        if current != expected:
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(path, target)
+        require(digest(path) == digest(target) == expected, f'generated file changed during staging: {path}')
+
+
 def build(args):
     capture = {'source_commit': args.capture_source, 'run_id': args.capture_run_id, 'run_attempt': args.capture_run_attempt}
     validate_parameters(capture, args.toolchain, args.capture_rustc_sha256)
@@ -349,14 +425,7 @@ def build(args):
         # Source-bound materialization is only a candidate input source. The
         # captured manifest, never the freshly generated pack, is authoritative.
         report['phase'] = 'materialize-and-compare-native-inputs'
-        for family in ('reload', 'walk', 'ads', 'directional', 'jump'):
-            for name, path in shared._walk_files(downloads / family):
-                target = source / 'assets' / family / name
-                target.parent.mkdir(parents=True, exist_ok=True)
-                if target.exists():
-                    require(digest(target) == digest(path), f'generated runtime would overwrite differing committed bytes: {target}')
-                else:
-                    shutil.copyfile(path, target)
+        stage_generated_inputs(source, downloads, manifest)
         process([sys.executable, str(source / 'tools/package_game.py'), 'materialize', '--root', str(source),
                  '--include-walk', '--include-ads', '--include-directional', '--include-jump', '--require-generated'],
                 source, env, evidence / 'logs/materialize', 600)

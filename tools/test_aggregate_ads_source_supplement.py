@@ -295,6 +295,7 @@ class AggregateSupplementTests(unittest.TestCase):
     def test_original_unrelated_failures_timeouts_and_missing_checks_cannot_be_excused(self):
         report = aggregate.read_record(self.incoming / 'ads-offset/summary.json')
         mutations = [lambda saved: saved.update(budget_exhausted=True),
+                     lambda saved: saved.update(fatal_error='native capture failed'),
                      lambda saved: saved.update(elapsed_seconds=saved['run_timeout_seconds']),
                      lambda saved: saved.update(status='interrupted'), lambda saved: saved['checks'].pop()]
         for name, error in [('validated-inputs', 'ValueError: corrupt input'),

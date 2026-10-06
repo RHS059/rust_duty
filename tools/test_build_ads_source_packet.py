@@ -1,6 +1,7 @@
 """Producer guard and CI contract tests. No native source execution is claimed."""
 from copy import deepcopy
 import contextlib
+import gzip
 import hashlib
 import io
 import json
@@ -334,6 +335,150 @@ class ProducerGuards(unittest.TestCase):
         self.assertFalse(args.receipt_anchor.exists())
 
 
+class GeneratedInputStaging(unittest.TestCase):
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        self.root = Path(self.temp.name)
+        self.source, self.downloads = self.root / 'source', self.root / 'downloads'
+        self.source.mkdir()
+        for family in ('reload', 'walk', 'ads', 'directional', 'jump'):
+            (self.downloads / family).mkdir(parents=True)
+        self.walk = self.downloads / 'walk'
+        self.target = self.source / 'assets/walk'
+        self.target.mkdir(parents=True)
+        self.native = {'binding': {'runtime_and_manifest_sha256': {}}}
+        self.hashes = self.native['binding']['runtime_and_manifest_sha256']
+        # Exercise the real walk metadata layout with small runtime payloads.
+        baseline = Path(__file__).resolve().parents[1] / 'assets/walk'
+        self.family = json.loads((baseline / 'manifest.json').read_text())
+        for name in ('asset.vra', 'asset.vrs', 'asset.vrm'):
+            raw = ('captured native ' + name).encode()
+            (self.walk / name).write_bytes(raw)
+            self.family['files'][name] = producer.digest(self.walk / name)
+            (self.target / name).write_bytes(b'committed fallback')
+        packed = gzip.compress((self.walk / 'asset.vrs').read_bytes(), mtime=0)
+        (self.walk / 'asset.vrs.gz').write_bytes(packed)
+        self.family['repository_transport'] = {'asset.vrs': {
+            'file': 'asset.vrs.gz', 'encoding': 'gzip', **producer.digest(self.walk / 'asset.vrs.gz'),
+            'decoded_bytes': self.family['files']['asset.vrs']['bytes'],
+            'decoded_sha256': self.family['files']['asset.vrs']['sha256']}}
+        (self.target / 'asset.vrs.gz').write_bytes(b'committed compressed fallback')
+        for name in ('conversion.json', 'parity.json'):
+            original = (baseline / name).read_bytes()
+            (self.target / name).write_bytes(original)
+            # Whitespace changes still require the exact native metadata hash.
+            (self.walk / name).write_bytes(original + b'\n')
+        (self.target / 'manifest.json').write_bytes((baseline / 'manifest.json').read_bytes())
+        self.save_family()
+        for name, path in producer.shared._walk_files(self.walk):
+            if not name.endswith('.gz'):
+                self.hashes['assets/walk/' + name] = producer.digest(path)['sha256']
+        self.original = producer.inventory(dict(producer.shared._walk_files(self.source)))
+
+    def save_family(self):
+        (self.walk / 'manifest.json').write_text(json.dumps(self.family) + '\n')
+        self.hashes['assets/walk/manifest.json'] = producer.digest(self.walk / 'manifest.json')['sha256']
+
+    def stage(self):
+        producer.stage_generated_inputs(self.source, self.downloads, self.native)
+
+    def assert_untouched(self):
+        self.assertEqual(producer.inventory(dict(producer.shared._walk_files(self.source))), self.original)
+
+    def test_native_runtime_metadata_and_bound_transport_replace_fallbacks(self):
+        self.stage()
+        for name, path in producer.shared._walk_files(self.walk):
+            self.assertEqual((self.target / name).read_bytes(), path.read_bytes(), name)
+        self.stage()  # Identical staging remains valid.
+
+    def test_wrong_native_runtime_or_metadata_is_rejected_before_any_replacement(self):
+        for name in ('asset.vra', 'conversion.json', 'manifest.json', 'parity.json'):
+            path = self.walk / name
+            original = path.read_bytes()
+            path.write_bytes(original + b'changed')
+            with self.subTest(name=name), self.assertRaisesRegex(ValueError, 'native input differs|native-bound family manifest'):
+                self.stage()
+            self.assert_untouched()
+            path.write_bytes(original)
+
+    def test_unbound_differing_overwrite_is_rejected_even_for_ancillary_files(self):
+        (self.walk / 'README.md').write_bytes(b'incoming ancillary text')
+        (self.target / 'README.md').write_bytes(b'committed ancillary text')
+        self.original = producer.inventory(dict(producer.shared._walk_files(self.source)))
+        with self.assertRaisesRegex(ValueError, 'not bound to native inputs'):
+            self.stage()
+        self.assert_untouched()
+
+    def test_new_or_identical_readme_does_not_authorize_unbound_runtime_or_metadata(self):
+        (self.walk / 'README.md').write_bytes(b'ancillary text')
+        self.stage()
+        self.stage()
+        for name in ('asset.vra', 'conversion.json'):
+            self.hashes.pop('assets/walk/' + name)
+            (self.target / name).unlink()
+            with self.subTest(name=name), self.assertRaisesRegex(ValueError, 'not bound to native inputs'):
+                self.stage()
+            self.hashes['assets/walk/' + name] = producer.digest(self.walk / name)['sha256']
+            (self.target / name).write_bytes((self.walk / name).read_bytes())
+
+    def test_compressed_only_input_is_native_bound_before_materialization(self):
+        (self.walk / 'asset.vrs').unlink()
+        (self.target / 'asset.vrs').unlink()
+        self.stage()
+        self.assertEqual(gzip.decompress((self.target / 'asset.vrs.gz').read_bytes()), b'captured native asset.vrs')
+        self.assertFalse((self.target / 'asset.vrs').exists())
+
+    def test_transport_requires_native_bound_manifest(self):
+        self.hashes.pop('assets/walk/manifest.json')
+        with self.assertRaisesRegex(ValueError, 'native-bound family manifest'):
+            self.stage()
+        self.assert_untouched()
+
+    def test_transport_hash_and_size_must_match_even_when_decoded_bytes_are_native(self):
+        path = self.walk / 'asset.vrs.gz'
+        original = path.read_bytes()
+        for replacement in (gzip.compress((self.walk / 'asset.vrs').read_bytes(), mtime=1), original + b'\0'):
+            path.write_bytes(replacement)
+            with self.subTest(packed=replacement), self.assertRaisesRegex(ValueError, 'transport differs from native-bound'):
+                self.stage()
+            self.assert_untouched()
+        path.write_bytes(original)
+
+    def test_transport_decoded_hash_is_anchored_to_native_input_not_only_family_manifest(self):
+        self.family['files']['asset.vrs']['sha256'] = 'a' * 64
+        self.family['repository_transport']['asset.vrs']['decoded_sha256'] = 'a' * 64
+        self.save_family()
+        with self.assertRaisesRegex(ValueError, 'transport differs from native-bound'):
+            self.stage()
+        self.assert_untouched()
+
+    def test_verified_transport_metadata_cannot_hide_wrong_decoded_bytes(self):
+        path = self.walk / 'asset.vrs.gz'
+        wrong = b'x' * len((self.walk / 'asset.vrs').read_bytes())
+        path.write_bytes(gzip.compress(wrong, mtime=0))
+        self.family['repository_transport']['asset.vrs'].update(producer.digest(path))
+        self.save_family()
+        with self.assertRaisesRegex(ValueError, 'decoded transport differs from native input'):
+            self.stage()
+        self.assert_untouched()
+
+    def test_invalid_gzip_with_bound_packed_hash_is_rejected_before_replacement(self):
+        path = self.walk / 'asset.vrs.gz'
+        path.write_bytes(b'not a gzip stream')
+        self.family['repository_transport']['asset.vrs'].update(producer.digest(path))
+        self.save_family()
+        with self.assertRaisesRegex(ValueError, 'invalid generated transport'):
+            self.stage()
+        self.assert_untouched()
+
+    def test_later_family_failure_does_not_partially_replace_walk(self):
+        (self.downloads / 'jump/unbound.json').write_text('{}')
+        with self.assertRaisesRegex(ValueError, 'not bound to native inputs'):
+            self.stage()
+        self.assert_untouched()
+
+
 class WorkflowContract(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -393,7 +538,7 @@ class WorkflowContract(unittest.TestCase):
     def test_all_downloads_use_guarded_ids_not_latest_names_or_patterns(self):
         selection = next(step for step in self.steps if step.get('id') == 'artifacts')
         downloads = [step for step in self.steps if step.get('uses') == 'actions/download-artifact@v4']
-        self.assertEqual(len(downloads), 8)
+        self.assertEqual(len(downloads), 22)
         for step in downloads:
             value = step['with']
             self.assertLess(self.steps.index(selection), self.steps.index(step))

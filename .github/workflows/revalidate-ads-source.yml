@@ -11,6 +11,10 @@ on:
       - .github/workflows/revalidate-ads-source.yml
       - tools/build_ads_source_packet.py
       - tools/test_build_ads_source_packet.py
+      - tools/recover_ads_source_aggregate.py
+      - tools/test_recover_ads_source_aggregate.py
+      - tools/aggregate_dx12_authored.py
+      - tools/test_aggregate_ads_source_supplement.py
       - tools/revalidate_ads_offset.py
       - tools/ads_source_visibility_binding.py
       - tools/compare_source_visibility.py
@@ -34,7 +38,8 @@ permissions:
 # original captures. Capture and verifier/source-oracle identities stay separate.
 # The rustc hash is recovered from the verified original job log, never from the
 # new compiler or portable source packet. No prior denied artifact is
-# requested or retried. All eight artifacts must come from the selected attempt.
+# requested or retried. All 22 artifacts must come from the selected attempt.
+# The existing leaf packet is reused by the complete nine-shard aggregate.
 jobs:
   windows-source-oracle:
     if: >-
@@ -48,7 +53,7 @@ jobs:
         github.event.workflow_run.head_repository.full_name == 'RHS059/rust_duty' &&
         github.event.workflow_run.path == '.github/workflows/build.yml'))
     runs-on: windows-latest
-    timeout-minutes: 150
+    timeout-minutes: 210
     env:
       CAPTURE_SOURCE: '8f571464be706d0abde862e124582a188f633baf'
       CAPTURE_RUN_ID: '37415102452'
@@ -79,7 +84,7 @@ jobs:
         working-directory: verifier
         env:
           PYTHONPATH: tools
-        run: python -m unittest -v test_build_ads_source_packet
+        run: python -m unittest -v test_build_ads_source_packet test_recover_ads_source_aggregate
       - name: Read bounded metadata for the exact historical attempt
         id: eligibility
         uses: actions/github-script@v7
@@ -104,7 +109,8 @@ jobs:
             if (String(identity.data.id) !== run || String(identity.data.run_attempt) !== attempt ||
                 identity.data.head_sha !== source || identity.data.repository.full_name !== 'RHS059/rust_duty' ||
                 identity.data.head_repository.full_name !== 'RHS059/rust_duty' ||
-                identity.data.head_branch !== 'main' || identity.data.path !== '.github/workflows/build.yml') {
+                identity.data.head_branch !== 'main' || identity.data.path !== '.github/workflows/build.yml' ||
+                identity.data.name !== 'Rust prototype checks and playable builds') {
               throw new Error('Historical attempt identity differs from the requested source/run/repository');
             }
             const artifacts = [];
@@ -146,7 +152,7 @@ jobs:
         id: artifacts
         shell: pwsh
         run: >-
-          python verifier/tools/build_ads_source_packet.py select-artifacts
+          python verifier/tools/recover_ads_source_aggregate.py select-artifacts
           --catalog downloaded/artifact-catalog.json
           --capture-source "$env:CAPTURE_SOURCE" --capture-run-id "$env:CAPTURE_RUN_ID"
           --capture-run-attempt "$env:CAPTURE_RUN_ATTEMPT"
@@ -285,6 +291,171 @@ jobs:
           --verifier-source "$env:GITHUB_SHA" --verifier-run-id "$env:GITHUB_RUN_ID"
           --verifier-run-attempt "$env:GITHUB_RUN_ATTEMPT"
           --evidence evidence/revalidation --timeout 900
+      - name: Download immutable original Windows shard jump-gameplay
+        if: steps.eligibility.outputs.eligible == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          artifact-ids: ${{ steps.artifacts.outputs.shard_jump_gameplay }}
+          run-id: ${{ env.CAPTURE_RUN_ID }}
+          github-token: ${{ github.token }}
+          repository: RHS059/rust_duty
+          path: downloaded/shards/jump-gameplay
+          merge-multiple: true
+      - name: Download immutable original Windows shard reload-gameplay
+        if: steps.eligibility.outputs.eligible == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          artifact-ids: ${{ steps.artifacts.outputs.shard_reload_gameplay }}
+          run-id: ${{ env.CAPTURE_RUN_ID }}
+          github-token: ${{ github.token }}
+          repository: RHS059/rust_duty
+          path: downloaded/shards/reload-gameplay
+          merge-multiple: true
+      - name: Download immutable original Windows shard walk-gameplay
+        if: steps.eligibility.outputs.eligible == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          artifact-ids: ${{ steps.artifacts.outputs.shard_walk_gameplay }}
+          run-id: ${{ env.CAPTURE_RUN_ID }}
+          github-token: ${{ github.token }}
+          repository: RHS059/rust_duty
+          path: downloaded/shards/walk-gameplay
+          merge-multiple: true
+      - name: Download immutable original Windows shard layered-30
+        if: steps.eligibility.outputs.eligible == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          artifact-ids: ${{ steps.artifacts.outputs.shard_layered_30 }}
+          run-id: ${{ env.CAPTURE_RUN_ID }}
+          github-token: ${{ github.token }}
+          repository: RHS059/rust_duty
+          path: downloaded/shards/layered-30
+          merge-multiple: true
+      - name: Download immutable original Windows shard layered-60
+        if: steps.eligibility.outputs.eligible == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          artifact-ids: ${{ steps.artifacts.outputs.shard_layered_60 }}
+          run-id: ${{ env.CAPTURE_RUN_ID }}
+          github-token: ${{ github.token }}
+          repository: RHS059/rust_duty
+          path: downloaded/shards/layered-60
+          merge-multiple: true
+      - name: Download immutable original Windows shard reload-return
+        if: steps.eligibility.outputs.eligible == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          artifact-ids: ${{ steps.artifacts.outputs.shard_reload_return }}
+          run-id: ${{ env.CAPTURE_RUN_ID }}
+          github-token: ${{ github.token }}
+          repository: RHS059/rust_duty
+          path: downloaded/shards/reload-return
+          merge-multiple: true
+      - name: Download immutable original Windows shard lighting-orientation
+        if: steps.eligibility.outputs.eligible == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          artifact-ids: ${{ steps.artifacts.outputs.shard_lighting_orientation }}
+          run-id: ${{ env.CAPTURE_RUN_ID }}
+          github-token: ${{ github.token }}
+          repository: RHS059/rust_duty
+          path: downloaded/shards/lighting-orientation
+          merge-multiple: true
+      - name: Download original current-run historical Linux evidence jump-gameplay
+        if: steps.eligibility.outputs.eligible == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          artifact-ids: ${{ steps.artifacts.outputs.linux_jump_gameplay }}
+          run-id: ${{ env.CAPTURE_RUN_ID }}
+          github-token: ${{ github.token }}
+          repository: RHS059/rust_duty
+          path: downloaded/legacy/jump-gameplay
+          merge-multiple: true
+      - name: Download original current-run historical Linux evidence reload-gameplay
+        if: steps.eligibility.outputs.eligible == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          artifact-ids: ${{ steps.artifacts.outputs.linux_reload_gameplay }}
+          run-id: ${{ env.CAPTURE_RUN_ID }}
+          github-token: ${{ github.token }}
+          repository: RHS059/rust_duty
+          path: downloaded/legacy/reload-gameplay
+          merge-multiple: true
+      - name: Download original current-run historical Linux evidence walk-gameplay
+        if: steps.eligibility.outputs.eligible == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          artifact-ids: ${{ steps.artifacts.outputs.linux_walk_gameplay }}
+          run-id: ${{ env.CAPTURE_RUN_ID }}
+          github-token: ${{ github.token }}
+          repository: RHS059/rust_duty
+          path: downloaded/legacy/walk-gameplay
+          merge-multiple: true
+      - name: Download original current-run historical Linux evidence ads-gameplay
+        if: steps.eligibility.outputs.eligible == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          artifact-ids: ${{ steps.artifacts.outputs.linux_ads_gameplay }}
+          run-id: ${{ env.CAPTURE_RUN_ID }}
+          github-token: ${{ github.token }}
+          repository: RHS059/rust_duty
+          path: downloaded/legacy/ads-gameplay
+          merge-multiple: true
+      - name: Download original current-run historical Linux evidence ads-placement
+        if: steps.eligibility.outputs.eligible == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          artifact-ids: ${{ steps.artifacts.outputs.linux_ads_placement }}
+          run-id: ${{ env.CAPTURE_RUN_ID }}
+          github-token: ${{ github.token }}
+          repository: RHS059/rust_duty
+          path: downloaded/legacy/ads-placement
+          merge-multiple: true
+      - name: Download original current-run historical Linux evidence layered
+        if: steps.eligibility.outputs.eligible == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          artifact-ids: ${{ steps.artifacts.outputs.linux_layered }}
+          run-id: ${{ env.CAPTURE_RUN_ID }}
+          github-token: ${{ github.token }}
+          repository: RHS059/rust_duty
+          path: downloaded/legacy/layered
+          merge-multiple: true
+      - name: Download original current-run historical Linux evidence reload-return
+        if: steps.eligibility.outputs.eligible == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          artifact-ids: ${{ steps.artifacts.outputs.linux_reload_return }}
+          run-id: ${{ env.CAPTURE_RUN_ID }}
+          github-token: ${{ github.token }}
+          repository: RHS059/rust_duty
+          path: downloaded/legacy/reload-return
+          merge-multiple: true
+      - name: Recover the complete native aggregate input root and bind the existing ADS leaf
+        if: steps.eligibility.outputs.eligible == 'true'
+        timeout-minutes: 15
+        shell: pwsh
+        run: >-
+          python verifier/tools/recover_ads_source_aggregate.py prepare
+          --capture-root capture-source --verifier-root verifier --downloads downloaded
+          --evidence evidence/aggregate-recovery --root aggregate-root --shards aggregate-shards
+          --leaf-summary evidence/revalidation/summary.json
+          --source-packet evidence/source-oracle/packet/source-packet.json
+          --receipt-anchor evidence/independent-source-receipt.sha256
+          --request evidence/aggregate-source-supplement.json
+          --capture-source "$env:CAPTURE_SOURCE" --capture-run-id "$env:CAPTURE_RUN_ID"
+          --capture-run-attempt "$env:CAPTURE_RUN_ATTEMPT"
+      - name: Revalidate all nine original shards with the bound ADS source supplement
+        if: steps.eligibility.outputs.eligible == 'true'
+        timeout-minutes: 45
+        shell: pwsh
+        run: >-
+          python verifier/tools/aggregate_dx12_authored.py --root aggregate-root
+          --shards aggregate-shards --legacy-linux downloaded/legacy
+          --input-manifest downloaded/inputs/evidence/authored-inputs/input-manifest.json
+          --historical-manifest downloaded/inputs/evidence/authored-inputs/historical-manifest.json
+          --ads-source-supplement evidence/aggregate-source-supplement.json
+          --evidence evidence/aggregate --timeout 900 --run-timeout 2400
       - name: Retain all source and revalidation evidence including failures
         if: always()
         uses: actions/upload-artifact@v4
@@ -299,6 +470,9 @@ jobs:
             downloaded/gameplay/summary.json
             downloaded/offset/summary.json
             downloaded/inputs/evidence/authored-inputs/input-manifest.json
+            downloaded/inputs/evidence/authored-inputs/historical-manifest.json
+            downloaded/shards/**/summary.json
+            aggregate-shards/*/summary.json
           if-no-files-found: error
           retention-days: 14
       - name: Retain independent receipt and concise failure diagnostics separately
@@ -314,6 +488,17 @@ jobs:
             evidence/source-oracle/logs/
             evidence/revalidation/summary.json
             evidence/revalidation/original-verdicts/
+            evidence/aggregate/summary.json
+            evidence/aggregate/original-verdicts/
+            evidence/aggregate-recovery/summary.json
+            evidence/aggregate-recovery/download-identities.json
+            evidence/aggregate-recovery/input-root-recovery.json
+            evidence/aggregate-recovery/original-verdicts/
+            evidence/aggregate-recovery/original-shard-summaries.json
+            evidence/aggregate-source-supplement.json
+            downloaded/inputs/evidence/authored-inputs/historical-manifest.json
+            downloaded/shards/**/summary.json
+            aggregate-shards/*/summary.json
             downloaded/artifact-catalog.json
             downloaded/readiness.json
             downloaded/compiler-recovery/
