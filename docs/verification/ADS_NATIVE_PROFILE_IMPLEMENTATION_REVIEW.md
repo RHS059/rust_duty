@@ -14,7 +14,7 @@ Review date: 2026-10-06. **Acceptance remains conditional.** This record establi
 
 The source replay diagnostics report 210 fallback frames per backend: 160 empty under the declared profile and 50 visible with matching required/possible supports. Original failing verdicts remain preserved. The 13/13 leaf and 61/61 aggregate automated checks are conditional evidence, not discharge of the profile assumptions.
 
-The reviewer SHA-matched these production files to the original receipt: `src/draw/{facade,mod}.rs`, `src/legacy_macroquad/mod.rs`, `src/render/{arena,mesh,plan,frame,target,device}.rs`, `src/render/mesh.wgsl`, `src/{weapon_model,scene_lighting,viewmodel_draw,app,capture}.rs`, and both Cargo files below. Production rendering implementations in this set are unchanged from the original capture commit. The added `source_pose_snapshot` bridge and its tests were separately reviewed against the original `authored_viewmodel.rs`; they do not replace production drawing with the oracle.
+The reviewer SHA-matched these production files to the original receipt: `src/draw/{facade,mod}.rs`, `src/legacy_macroquad/mod.rs`, `src/render/{arena,backend,mesh,plan,frame,target,device}.rs`, `src/render/mesh.wgsl`, `src/{weapon_model,scene_lighting,viewmodel_draw,app,capture}.rs`, and both Cargo files below. Production rendering implementations in this set are unchanged from the original capture commit. The added `source_pose_snapshot` bridge and its tests were separately reviewed against the original `authored_viewmodel.rs`; they do not replace production drawing with the oracle.
 
 | Bound file | SHA-256 |
 | --- | --- |
