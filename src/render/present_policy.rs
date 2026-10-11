@@ -216,7 +216,10 @@ mod tests {
 
     #[test]
     fn absent_opt_in_preserves_fifo() {
-        for args in [vec![], vec!["vector-range", "--renderer=dx12", "--windowed"]] {
+        for args in [
+            vec![],
+            vec!["vector-range", "--renderer=dx12", "--windowed"],
+        ] {
             let request = parse_present_mode_args(args).unwrap();
             assert_eq!(request, PresentModeRequest::DefaultFifo);
             assert!(!request.is_explicit());
@@ -241,7 +244,10 @@ mod tests {
 
     #[test]
     fn owned_process_arguments_are_supported() {
-        let args = vec!["vector-range".to_owned(), "--present-mode=immediate".to_owned()];
+        let args = vec![
+            "vector-range".to_owned(),
+            "--present-mode=immediate".to_owned(),
+        ];
         assert_eq!(
             parse_present_mode_args(args).unwrap(),
             PresentModeRequest::Explicit(Immediate)
