@@ -50,7 +50,16 @@ class CpuImageWorkflowTests(unittest.TestCase):
         self.assertIn("throw 'Reviewed baseline source retrieval failed'", fetch['run'])
         self.assertEqual(self.workflow['env'], {'GIT_CONFIG_COUNT': '1',
             'GIT_CONFIG_KEY_0': 'core.autocrlf', 'GIT_CONFIG_VALUE_0': 'false'})
-        self.assertEqual(self.job['env'], {'CARGO_HOME': '${{ runner.temp }}/cpu-image-cargo'})
+        self.assertEqual(self.job['env'], {'CARGO_HOME': '${{ github.workspace }}/.cpu-image-cargo'})
+
+    def test_runner_context_is_not_used_in_pre_runner_environment_scopes(self):
+        # GitHub rejects this before assigning any job, unlike a step-level env.
+        # https://docs.github.com/en/actions/reference/workflows-and-actions/contexts
+        for scope in (self.workflow.get('env', {}), self.job.get('env', {})):
+            for value in scope.values():
+                self.assertNotIn('${{ runner.', value)
+        self.assertEqual(self.job['env']['CARGO_HOME'],
+                         '${{ github.workspace }}/.cpu-image-cargo')
 
     def test_pinned_compiler_and_guards_precede_two_fresh_builds(self):
         compiler = next(s for s in self.steps if 'rustup toolchain install' in s.get('run', ''))

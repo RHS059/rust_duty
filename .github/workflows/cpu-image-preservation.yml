@@ -34,7 +34,7 @@ jobs:
     if: github.repository == 'RHS059/rust_duty' && github.ref == 'refs/heads/aella/wgpu-1080p-diagnostics'
     runs-on: windows-latest
     env:
-      CARGO_HOME: ${{ runner.temp }}/cpu-image-cargo
+      CARGO_HOME: ${{ github.workspace }}/.cpu-image-cargo
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
