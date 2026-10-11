@@ -80,7 +80,11 @@ impl WgpuRenderer {
             return Err(format!("frame validation: {error}"));
         }
         device_check?;
-        let EncodedFrame { readbacks, presentation, timing: _ } = encoded?;
+        let EncodedFrame {
+            readbacks,
+            presentation,
+            timing: _,
+        } = encoded?;
         let mut output = FrameOutput::default();
         for readback in readbacks {
             output.captures.push(readback.finish(&self.gpu.device)?);
@@ -209,10 +213,18 @@ impl WgpuRenderer {
                 &self.main.binding,
             );
         }
-        if let Some(timing) = &mut timing { timing.end_encoding(&mut encoder)?; }
+        if let Some(timing) = &mut timing {
+            timing.end_encoding(&mut encoder)?;
+        }
         self.gpu.queue.submit([encoder.finish()]);
-        if let Some(timing) = &mut timing { timing.after_submit(); }
-        Ok(EncodedFrame { readbacks, presentation, timing })
+        if let Some(timing) = &mut timing {
+            timing.after_submit();
+        }
+        Ok(EncodedFrame {
+            readbacks,
+            presentation,
+            timing,
+        })
     }
     fn output(&mut self, target: Option<&RenderTarget>) -> Result<Arc<GpuTexture>, String> {
         match target {

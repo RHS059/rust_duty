@@ -53,7 +53,9 @@ PRESENT_CANDIDATE_SOURCE_PATHS = (*CPU_CANDIDATE_SOURCE_PATHS, *PRESENT_SOURCE_P
 AUDITED_PRESENT_CANDIDATE_MANIFEST = 'a6af645f2e1b5c4c71b9a65964a963a1ad1217a75efff7b0cf8f9c39280880a6'
 GPU_SOURCE_PATHS = ('src/frame_gpu_capture.rs', 'src/render/gpu_timing.rs')
 GPU_CANDIDATE_SOURCE_PATHS = (*PRESENT_CANDIDATE_SOURCE_PATHS, *GPU_SOURCE_PATHS)
-AUDITED_GPU_CANDIDATE_MANIFEST = '445974fef81cb3f1d97ce7a21a0ebabc48e8fab92794f0898ad89dec89e7db2e'
+# Preserve the first published 29-file WIP witness after formatting/fixes.
+AUDITED_GPU_INITIAL_MANIFEST = '445974fef81cb3f1d97ce7a21a0ebabc48e8fab92794f0898ad89dec89e7db2e'
+AUDITED_GPU_CANDIDATE_MANIFEST = '9b7ae93be3a4d4aed9b662d0c27ff18d0b1e12e99c4dc916422c98e0c5eae3c6'
 BACKENDS = {'dx12': 'Dx12', 'vulkan': 'Vulkan', 'metal': 'Metal', 'gl-harness': 'Gl'}
 UNAVAILABLE = {
     'fps_cap': 'No application FPS limiter or CLI selector. Fifo may pace at display refresh; it is not a 60 FPS cap.',
@@ -115,7 +117,7 @@ def audited_inventory(digest):
         return CPU_CANDIDATE_SOURCE_PATHS
     if digest == AUDITED_PRESENT_CANDIDATE_MANIFEST:
         return PRESENT_CANDIDATE_SOURCE_PATHS
-    if digest == AUDITED_GPU_CANDIDATE_MANIFEST:
+    if digest in (AUDITED_GPU_INITIAL_MANIFEST, AUDITED_GPU_CANDIDATE_MANIFEST):
         return GPU_CANDIDATE_SOURCE_PATHS
     return None
 
@@ -180,7 +182,7 @@ def source_identity(repository):
                 committed = subprocess.check_output(['git', '-C', str(repository), 'show', commit + ':' + name])
                 require(data == committed, 'Uncommitted runtime source: ' + name)
                 candidate[name] = hashlib.sha256(data).hexdigest()
-            require(canonical_hash(candidate) == AUDITED_GPU_CANDIDATE_MANIFEST,
+            require(canonical_hash(candidate) in (AUDITED_GPU_INITIAL_MANIFEST, AUDITED_GPU_CANDIDATE_MANIFEST),
                     'Audited GPU runtime changed; cannot fall back to a narrower source inventory')
         else:
             require(canonical_hash(candidate) == AUDITED_PRESENT_CANDIDATE_MANIFEST,
@@ -333,9 +335,9 @@ def make_plan(source, renderer='dx12', repeats=3, warmup=15, seconds=45, smoke=F
             order.append({'run_id': f'r{repeat + 1:02d}-{index + 1:02d}-{name}',
                           'repeat': repeat + 1, 'case_id': name})
     unavailable = dict(UNAVAILABLE)
-    if canonical_hash(source['runtime_files_sha256']) in (AUDITED_PRESENT_CANDIDATE_MANIFEST, AUDITED_GPU_CANDIDATE_MANIFEST):
+    if canonical_hash(source['runtime_files_sha256']) in (AUDITED_PRESENT_CANDIDATE_MANIFEST, AUDITED_GPU_INITIAL_MANIFEST, AUDITED_GPU_CANDIDATE_MANIFEST):
         unavailable['vsync_choices'] = 'The runtime has an opt-in concrete present-mode selector; this matrix fixes Fifo and does not compare other modes.'
-    if canonical_hash(source['runtime_files_sha256']) == AUDITED_GPU_CANDIDATE_MANIFEST:
+    if canonical_hash(source['runtime_files_sha256']) in (AUDITED_GPU_INITIAL_MANIFEST, AUDITED_GPU_CANDIDATE_MANIFEST):
         unavailable['gpu_frame_duration'] = 'The runtime has opt-in GPU timestamp sidecars; this matrix leaves them disabled and does not compare GPU spans.'
     result = {'schema': PLAN_SCHEMA, 'source': source, 'source_origin': source_origin, 'renderer': renderer,
             'repeats': repeats, 'warmup_seconds': warmup, 'sample_seconds': seconds, 'smoke': smoke, 'pilot': pilot,

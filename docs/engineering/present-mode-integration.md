@@ -35,6 +35,8 @@ scope and are not supplied by this present-policy wiring.
 
 This local integration is work in progress. Pure policy tests from its isolated
 upstream harness do not execute these production launch/device paths. The added
-Rust integration-boundary regressions, full Rust build/Clippy/rustfmt, window
-resize/recovery, and selected RTX 3080 Ti Windows DX12 measurements must be run
-against the final combined commit before any native or performance claim.
+Rust integration-boundary regressions now pass in the Linux native-feature
+library suite, and formatting/all-target Clippy have run with Rust 1.99.0.
+Window resize/recovery and selected RTX 3080 Ti Windows DX12 measurements must
+still run against the exact combined revision before native or performance
+acceptance.

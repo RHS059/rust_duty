@@ -1,6 +1,6 @@
 //! Backend-neutral CPU text and feature-gated native GPU rendering.
-pub mod text;
 pub mod present_policy;
+pub mod text;
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct RuntimeDiagnostics {

@@ -181,6 +181,24 @@ class GpuTimingTests(unittest.TestCase):
                        error='validation failed', samples=[])
         self.assertEqual(gpu.summarize(sidecar, report, digest)['state'], 'incomplete')
 
+    def test_giant_integer_timestamp_period_returns_invalid_evidence_exit(self):
+        for location in ('availability', 'sample'):
+            report, sidecar, data, digest = fixture()
+            target = sidecar['availability'] if location == 'availability' else sidecar['samples'][0]
+            target['timestamp_period_ns'] = 10 ** 400
+            with self.subTest(location=location), self.assertRaises(ValueError):
+                gpu.validate(sidecar, report, digest)
+            with tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                primary, diagnostic = root / 'frames.json', root / 'gpu.json'
+                primary.write_bytes(data)
+                diagnostic.write_text(json.dumps(sidecar))
+                output = io.StringIO()
+                with contextlib.redirect_stderr(output), contextlib.redirect_stdout(io.StringIO()):
+                    self.assertEqual(gpu.main([str(primary), str(diagnostic)]), 2)
+                self.assertIn('GPU timing validation error:', output.getvalue())
+                self.assertNotIn('Traceback', output.getvalue())
+
     def test_cli_hashes_actual_bytes_and_writes_exclusively(self):
         _, sidecar, data, _ = fixture()
         with tempfile.TemporaryDirectory() as directory:

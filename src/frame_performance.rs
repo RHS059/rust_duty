@@ -663,35 +663,40 @@ impl FramePerformanceReport {
     /// A separate sidecar preserves the exact historical frames.json schema.
     /// The digest binds these details to the bytes of its completed frame export.
     pub fn cpu_substages_json(&self, frame_report_sha256: &str) -> Value {
-        let samples: Vec<_> = self.cpu_frame_stages.iter().map(|sample| {
-            let mut details = sample.frame.substages.to_json();
-            // An interrupted outer hook cannot certify containment. Retain its
-            // observed child calls, but never summarize them as complete detail.
-            let mut parent_missing = false;
-            let mut outside_parent = false;
-            for span in details["spans"].as_array().unwrap() {
-                let stage = if span["parent"] == "surface_acquire" {
-                    CpuFrameStage::SurfaceAcquire
-                } else {
-                    CpuFrameStage::RendererSubmit
-                };
-                match sample.frame.spans[stage.index()] {
-                    None => parent_missing = true,
-                    Some(parent) => {
-                        outside_parent |= span["started_at_ns"].as_u64().unwrap() < parent.started_at_ns
-                            || span["ended_at_ns"].as_u64().unwrap() > parent.ended_at_ns;
+        let samples: Vec<_> = self
+            .cpu_frame_stages
+            .iter()
+            .map(|sample| {
+                let mut details = sample.frame.substages.to_json();
+                // An interrupted outer hook cannot certify containment. Retain its
+                // observed child calls, but never summarize them as complete detail.
+                let mut parent_missing = false;
+                let mut outside_parent = false;
+                for span in details["spans"].as_array().unwrap() {
+                    let stage = if span["parent"] == "surface_acquire" {
+                        CpuFrameStage::SurfaceAcquire
+                    } else {
+                        CpuFrameStage::RendererSubmit
+                    };
+                    match sample.frame.spans[stage.index()] {
+                        None => parent_missing = true,
+                        Some(parent) => {
+                            outside_parent |= span["started_at_ns"].as_u64().unwrap()
+                                < parent.started_at_ns
+                                || span["ended_at_ns"].as_u64().unwrap() > parent.ended_at_ns;
+                        }
                     }
                 }
-            }
-            if parent_missing {
-                details["state"] = json!("incomplete");
-                details["error"] = json!("parent_span_unavailable");
-            } else if outside_parent {
-                details["state"] = json!("incomplete");
-                details["error"] = json!("substage_outside_parent");
-            }
-            json!({"record_index":sample.record_index,"details":details})
-        }).collect();
+                if parent_missing {
+                    details["state"] = json!("incomplete");
+                    details["error"] = json!("parent_span_unavailable");
+                } else if outside_parent {
+                    details["state"] = json!("incomplete");
+                    details["error"] = json!("substage_outside_parent");
+                }
+                json!({"record_index":sample.record_index,"details":details})
+            })
+            .collect();
         json!({"schema":crate::frame_cpu_substages::SCHEMA,
             "measurement":crate::frame_cpu_substages::MEASUREMENT,
             "interpretation":crate::frame_cpu_substages::INTERPRETATION,
@@ -701,23 +706,34 @@ impl FramePerformanceReport {
 
     /// Called only after the primary export succeeds, never during measurement.
     /// Sidecar failure remains independent of the historical frame export status.
-    pub fn write_cpu_substages_new(&self, frame_path: &Path) -> Result<Option<std::path::PathBuf>, String> {
+    pub fn write_cpu_substages_new(
+        &self,
+        frame_path: &Path,
+    ) -> Result<Option<std::path::PathBuf>, String> {
         if self.cpu_frame_stages.is_empty() {
             return Ok(None);
         }
-        let digest = rust_duty_launcher::file_hash(frame_path).map_err(|error| error.to_string())?;
+        let digest =
+            rust_duty_launcher::file_hash(frame_path).map_err(|error| error.to_string())?;
         let path = frame_path.with_extension("cpu-substages.json");
-        let file = OpenOptions::new().write(true).create_new(true).open(&path)
+        let file = OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .open(&path)
             .map_err(|error| format!("create {}: {error}", path.display()))?;
         let mut writer = BufWriter::new(file);
         let write = (|| -> Result<(), String> {
             serde_json::to_writer_pretty(&mut writer, &self.cpu_substages_json(&digest))
                 .map_err(|error| error.to_string())?;
             writer.flush().map_err(|error| error.to_string())?;
-            writer.get_ref().sync_all().map_err(|error| error.to_string())?;
+            writer
+                .get_ref()
+                .sync_all()
+                .map_err(|error| error.to_string())?;
             Ok(())
         })();
-        write.map_err(|error| format!("write {}: {error}; partial file possible", path.display()))?;
+        write
+            .map_err(|error| format!("write {}: {error}; partial file possible", path.display()))?;
         Ok(Some(path))
     }
 

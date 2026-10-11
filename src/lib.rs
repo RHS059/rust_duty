@@ -76,11 +76,11 @@ pub mod ui_theme;
 
 pub mod gpu_telemetry;
 
-pub mod frame_performance;
-pub mod frame_performance_session;
 pub mod frame_cpu_substages;
 #[cfg(feature = "wgpu-runtime")]
 pub(crate) mod frame_gpu_capture;
+pub mod frame_performance;
+pub mod frame_performance_session;
 
 // Public production UI paths are shared with native render fixtures.
 pub mod game_update;

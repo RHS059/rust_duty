@@ -83,7 +83,11 @@ impl CpuSubstages {
                 | (Some(AcquireValidation), AcquireTexture | EncodeSubmit)
                 | (Some(EncodeSubmit), SubmitValidation)
         );
-        let maximum = if matches!(stage, AcquireTexture | AcquireValidation) { 2 } else { 1 };
+        let maximum = if matches!(stage, AcquireTexture | AcquireValidation) {
+            2
+        } else {
+            1
+        };
         let already = self.spans[..self.count]
             .iter()
             .flatten()
@@ -108,17 +112,25 @@ impl CpuSubstages {
             self.invalidate("mismatched_or_non_monotonic_substage");
             return;
         }
-        self.spans[self.count] = Some(Span { stage, started_at_ns, ended_at_ns: at_ns });
+        self.spans[self.count] = Some(Span {
+            stage,
+            started_at_ns,
+            ended_at_ns: at_ns,
+        });
         self.count += 1;
     }
 
     pub fn to_json(&self) -> Value {
         let error = self.error.or(self.open.map(|_| "unterminated_substage"));
-        let spans: Vec<_> = self.spans[..self.count].iter().flatten().map(|span| {
-            json!({"stage":span.stage.label(), "parent":span.stage.parent(),
+        let spans: Vec<_> = self.spans[..self.count]
+            .iter()
+            .flatten()
+            .map(|span| {
+                json!({"stage":span.stage.label(), "parent":span.stage.parent(),
                 "started_at_ns":span.started_at_ns, "ended_at_ns":span.ended_at_ns,
                 "duration_ns":span.ended_at_ns - span.started_at_ns})
-        }).collect();
+            })
+            .collect();
         json!({"state":if error.is_some() { "incomplete" } else { "complete" },
             "error":error, "spans":spans})
     }
@@ -132,8 +144,17 @@ mod tests {
     fn retains_two_acquire_attempts_and_submission_without_allocation_growth() {
         use CpuSubstage::*;
         let mut details = CpuSubstages::default();
-        for (i, stage) in [AcquireTexture, AcquireValidation, AcquireTexture,
-            AcquireValidation, EncodeSubmit, SubmitValidation].into_iter().enumerate() {
+        for (i, stage) in [
+            AcquireTexture,
+            AcquireValidation,
+            AcquireTexture,
+            AcquireValidation,
+            EncodeSubmit,
+            SubmitValidation,
+        ]
+        .into_iter()
+        .enumerate()
+        {
             details.begin(stage, i as u64 * 10);
             details.end(stage, i as u64 * 10 + 7);
         }

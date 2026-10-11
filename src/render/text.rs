@@ -293,22 +293,28 @@ mod tests {
         let color = Color::new(0.25, 0.5, 0.75, 0.5);
         let mut quads = Vec::new();
         renderer
-            .for_each_quad("Ag ", Vec2::new(10., 20.), 16., color, |vertices, texture| {
-                quads.push((*vertices, texture.clone()));
-                Ok(())
-            })
+            .for_each_quad(
+                "Ag ",
+                Vec2::new(10., 20.),
+                16.,
+                color,
+                |vertices, texture| {
+                    quads.push((*vertices, texture.clone()));
+                    Ok(())
+                },
+            )
             .unwrap();
         assert_eq!(quads.len(), 2);
         for ((vertices, _), bounds) in quads.iter().zip([
             [(11., 12.), (17., 12.), (17., 20.), (11., 20.)],
             [(18., 14.), (23., 14.), (23., 23.), (18., 23.)],
         ]) {
-            for ((vertex, (x, y)), uv) in vertices.iter().zip(bounds).zip([
-                Vec2::ZERO,
-                Vec2::X,
-                Vec2::ONE,
-                Vec2::Y,
-            ]) {
+            for ((vertex, (x, y)), uv) in
+                vertices
+                    .iter()
+                    .zip(bounds)
+                    .zip([Vec2::ZERO, Vec2::X, Vec2::ONE, Vec2::Y])
+            {
                 assert_eq!(vertex.position, glam::vec3(x, y, 0.));
                 assert_eq!(vertex.uv, uv);
                 assert_eq!(vertex.normal, glam::Vec4::ZERO);
@@ -364,7 +370,9 @@ mod tests {
             .unwrap_err();
         assert_eq!(error, "text advance exceeds finite screen coordinates");
         assert_eq!(calls, 2);
-        assert!(renderer.meshes("AA", Vec2::ZERO, 16., Color::WHITE).is_err());
+        assert!(renderer
+            .meshes("AA", Vec2::ZERO, 16., Color::WHITE)
+            .is_err());
     }
 
     #[test]

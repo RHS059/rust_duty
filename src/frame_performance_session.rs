@@ -4,12 +4,12 @@
 //! clock nor allocate a timing buffer nor touch the filesystem. Enable only
 //! after obtaining runtime identity from the renderer that is actually in use.
 //! F8 simulation telemetry is a separate facility and is not used here.
+use crate::frame_cpu_substages::{CpuSubstage, CpuSubstages};
 use crate::frame_performance::{
     BoundaryReason, CaptureError, CaptureLimits, CaptureStatus, CpuFrameStage, CpuFrameStages,
     CpuWallSpan, Eligibility, FramePerformanceObserver, FramePerformanceReport, RunIdentity,
     WindowContext, WriteError,
 };
-use crate::frame_cpu_substages::{CpuSubstage, CpuSubstages};
 use std::cell::RefCell;
 use std::fmt;
 use std::path::PathBuf;
@@ -256,7 +256,9 @@ impl<C: MonotonicClock> PerformanceSession<C> {
         let at_ns = self.clock.now_ns();
         active.cpu_frame = None;
         #[cfg(feature = "wgpu-runtime")]
-        { active.gpu_attempt = None; }
+        {
+            active.gpu_attempt = None;
+        }
         if !active.observe_clock(at_ns) || active.observer.enable_cpu_frame_stages(at_ns).is_err() {
             return;
         }
@@ -272,7 +274,11 @@ impl<C: MonotonicClock> PerformanceSession<C> {
             last_stage: None,
         });
         #[cfg(feature = "wgpu-runtime")]
-        { active.gpu_attempt = active.gpu_capture.and_then(crate::frame_gpu_capture::begin_attempt); }
+        {
+            active.gpu_attempt = active
+                .gpu_capture
+                .and_then(crate::frame_gpu_capture::begin_attempt);
+        }
     }
 
     #[cfg(feature = "wgpu-runtime")]
@@ -287,8 +293,12 @@ impl<C: MonotonicClock> PerformanceSession<C> {
         self.cpu_substage(stage, false);
     }
     fn cpu_substage(&mut self, stage: CpuSubstage, begin: bool) {
-        let Some(active) = &mut self.active else { return; };
-        let Some(frame) = &mut active.cpu_frame else { return; };
+        let Some(active) = &mut self.active else {
+            return;
+        };
+        let Some(frame) = &mut active.cpu_frame else {
+            return;
+        };
         if frame.open_stage.map(|(parent, _)| parent.label()) != Some(stage.parent()) {
             frame.frame.substages.invalidate("substage_parent_mismatch");
             return;
@@ -303,7 +313,11 @@ impl<C: MonotonicClock> PerformanceSession<C> {
             details.invalidate("non_monotonic_substage");
             return;
         }
-        if begin { details.begin(stage, at_ns); } else { details.end(stage, at_ns); }
+        if begin {
+            details.begin(stage, at_ns);
+        } else {
+            details.end(stage, at_ns);
+        }
     }
 
     pub fn begin_cpu_stage(&mut self, stage: CpuFrameStage) {
@@ -554,7 +568,10 @@ impl<C: MonotonicClock> PerformanceSession<C> {
             match report.write_cpu_substages_new(&active.output_path) {
                 Ok(Some(path)) => {
                     eprintln!("CPU substage evidence saved to {}", path.display());
-                    Some(CpuSubstageExportNotice { output_path: path, error: None })
+                    Some(CpuSubstageExportNotice {
+                        output_path: path,
+                        error: None,
+                    })
                 }
                 Ok(None) => None,
                 Err(error) => {
@@ -565,7 +582,9 @@ impl<C: MonotonicClock> PerformanceSession<C> {
                     })
                 }
             }
-        } else { None };
+        } else {
+            None
+        };
         LAST_CPU_SUBSTAGE_NOTICE.with(|notice| *notice.borrow_mut() = detail_notice);
         Some(SessionCompletion {
             report,
@@ -669,21 +688,31 @@ mod gpu_lifecycle_tests {
 
     struct Clock(u64);
     impl MonotonicClock for Clock {
-        fn now_ns(&mut self) -> u64 { self.0 += 10; self.0 }
+        fn now_ns(&mut self) -> u64 {
+            self.0 += 10;
+            self.0
+        }
     }
     struct Directory(PathBuf);
     impl Directory {
         fn new() -> Self {
             static ID: AtomicU64 = AtomicU64::new(0);
-            let path = std::env::temp_dir().join(format!("rust-duty-gpu-session-{}-{}",
-                std::process::id(), ID.fetch_add(1, Ordering::Relaxed)));
+            let path = std::env::temp_dir().join(format!(
+                "rust-duty-gpu-session-{}-{}",
+                std::process::id(),
+                ID.fetch_add(1, Ordering::Relaxed)
+            ));
             std::fs::create_dir(&path).unwrap();
             Self(path)
         }
-        fn path(&self, name: &str) -> PathBuf { self.0.join(name) }
+        fn path(&self, name: &str) -> PathBuf {
+            self.0.join(name)
+        }
     }
     impl Drop for Directory {
-        fn drop(&mut self) { let _ = std::fs::remove_dir_all(&self.0); }
+        fn drop(&mut self) {
+            let _ = std::fs::remove_dir_all(&self.0);
+        }
     }
     fn identity() -> RunIdentity {
         RunIdentity {
@@ -691,18 +720,33 @@ mod gpu_lifecycle_tests {
                 actual_backend: Some("synthetic CPU lifecycle fixture".into()),
                 actual_adapter: json!({"gpu_timestamps_requested":true,
                     "gpu_timestamp_features_enabled":false}),
-                build: Value::Null, scene: Value::Null,
-                initial_window: WindowContext { physical_width: 960, physical_height: 540,
-                    scale_factor: 1.0, mode: WindowMode::Windowed },
+                build: Value::Null,
+                scene: Value::Null,
+                initial_window: WindowContext {
+                    physical_width: 960,
+                    physical_height: 540,
+                    scale_factor: 1.0,
+                    mode: WindowMode::Windowed,
+                },
             },
             operator_supplied: Value::Null,
         }
     }
     fn start(path: PathBuf, max_records: usize, diagnostics: bool) -> PerformanceSession<Clock> {
         let mut session = PerformanceSession::new(Clock(0));
-        session.start(identity(), path, CaptureLimits { max_records, ..CaptureLimits::default() }).unwrap();
+        session
+            .start(
+                identity(),
+                path,
+                CaptureLimits {
+                    max_records,
+                    ..CaptureLimits::default()
+                },
+            )
+            .unwrap();
         if diagnostics {
-            session.active.as_mut().unwrap().gpu_capture = Some(gpu::start_synthetic_session(max_records));
+            session.active.as_mut().unwrap().gpu_capture =
+                Some(gpu::start_synthetic_session(max_records));
         }
         session
     }
@@ -726,9 +770,15 @@ mod gpu_lifecycle_tests {
         assert!(!plain.with_extension("gpu-timing.json").exists());
         let b = normal_stop(&mut start(diagnostic.clone(), 8, true));
         assert_eq!(b.report.status, CaptureStatus::Complete);
-        assert_eq!(std::fs::read(&plain).unwrap(), std::fs::read(&diagnostic).unwrap());
+        assert_eq!(
+            std::fs::read(&plain).unwrap(),
+            std::fs::read(&diagnostic).unwrap()
+        );
         let sidecar = read(&diagnostic.with_extension("gpu-timing.json"));
-        assert_eq!(sidecar["frame_report_sha256"], rust_duty_launcher::file_hash(&diagnostic).unwrap());
+        assert_eq!(
+            sidecar["frame_report_sha256"],
+            rust_duty_launcher::file_hash(&diagnostic).unwrap()
+        );
         assert_eq!(sidecar["accounting_state"], "complete");
         assert_eq!(sidecar["samples"][0]["record_index"], 0);
         assert_eq!(sidecar["samples"][1]["record_index"], 1);
@@ -742,7 +792,10 @@ mod gpu_lifecycle_tests {
         let mut session = start(path.clone(), 8, true);
         session.begin_cpu_frame(960, 540);
         assert!(session.present_skipped().is_none());
-        assert_eq!(normal_stop(&mut session).report.status, CaptureStatus::Complete);
+        assert_eq!(
+            normal_stop(&mut session).report.status,
+            CaptureStatus::Complete
+        );
         let sidecar = read(&path.with_extension("gpu-timing.json"));
         assert_eq!(sidecar["samples"].as_array().unwrap().len(), 3);
         for (index, sample) in sidecar["samples"].as_array().unwrap().iter().enumerate() {
@@ -755,10 +808,19 @@ mod gpu_lifecycle_tests {
     fn shutdown_and_present_failure_close_open_attempts_before_export() {
         let directory = Directory::new();
         for shutdown in [false, true] {
-            let path = directory.path(if shutdown { "shutdown.json" } else { "failure.json" });
+            let path = directory.path(if shutdown {
+                "shutdown.json"
+            } else {
+                "failure.json"
+            });
             let mut session = start(path.clone(), 8, true);
             session.begin_cpu_frame(960, 540);
-            let result = if shutdown { session.shutdown() } else { session.present_failure() }.unwrap();
+            let result = if shutdown {
+                session.shutdown()
+            } else {
+                session.present_failure()
+            }
+            .unwrap();
             assert!(matches!(result.report.status, CaptureStatus::Incomplete(_)));
             assert!(result.export.is_ok());
             let sidecar = read(&path.with_extension("gpu-timing.json"));
@@ -802,8 +864,16 @@ mod gpu_lifecycle_tests {
     fn export_failures_retire_session_without_overwriting_existing_evidence() {
         let directory = Directory::new();
         for fail_primary in [true, false] {
-            let path = directory.path(if fail_primary { "primary.json" } else { "sidecar.json" });
-            let protected = if fail_primary { path.clone() } else { path.with_extension("gpu-timing.json") };
+            let path = directory.path(if fail_primary {
+                "primary.json"
+            } else {
+                "sidecar.json"
+            });
+            let protected = if fail_primary {
+                path.clone()
+            } else {
+                path.with_extension("gpu-timing.json")
+            };
             std::fs::write(&protected, b"existing evidence").unwrap();
             let result = normal_stop(&mut start(path.clone(), 8, true));
             assert_eq!(result.export.is_err(), fail_primary);
@@ -811,7 +881,9 @@ mod gpu_lifecycle_tests {
             let notice = take_gpu_timing_export_notice().unwrap();
             assert!(notice.export_error.is_some());
             assert!(!gpu::synthetic_session_is_active());
-            if fail_primary { assert!(!path.with_extension("gpu-timing.json").exists()); }
+            if fail_primary {
+                assert!(!path.with_extension("gpu-timing.json").exists());
+            }
         }
     }
 }

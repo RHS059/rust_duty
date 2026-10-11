@@ -1,8 +1,10 @@
 # Opt-in GPU timestamp session integration
 
-Status: new feature, local work in progress. Production Rust compilation,
-formatting, Clippy and native game validation have not run for this integration.
-There is no RTX 3080 Ti performance result or 1080p60 acceptance claim.
+Status: new feature, draft integration. Linux Rust 1.99.0 compilation, formatting,
+all-target Clippy and CPU-only library/lifecycle tests have now executed with
+`--no-default-features --features wgpu-runtime`. Windowed Windows DX12 production
+validation remains separate. There is no RTX 3080 Ti performance result or
+1080p60 acceptance claim.
 
 ## Entry and scope
 
@@ -94,18 +96,22 @@ performance pass.
 The existing matrix remains Fifo-only with GPU timestamps disabled. Its reviewed
 29-file runtime inventory includes both GPU modules and retains historical
 17/20/24/27-file artifact witnesses at their original scope. A changed live
-candidate cannot fall back to a narrower inventory.
+candidate cannot fall back to a narrower inventory. The first published 29-file
+WIP witness remains accepted only at its exact original digest when reviewed
+formatting and test fixes produce a newer same-scope inventory.
 
 ## Verification still required
 
 Added Rust CPU-only lifecycle tests cover default-off export, exact primary-byte
 parity, final-present joins, skips, shutdown, present failure, record limits,
-backward clocks, exclusive-write failures and renderer/session ownership. They
-have not executed. Python reader and witness tests use synthetic evidence and
-cannot establish Rust compilation or GPU execution.
+backward clocks, exclusive-write failures and renderer/session ownership. These
+CPU-only Rust tests have passed on Linux. Python reader and witness tests use
+synthetic evidence and cannot establish GPU execution. The complete native-feature
+library run at the initial WIP passed 474 tests with one pre-existing private-asset
+export test ignored; that ignored test is outside this diagnostic scope.
 
-Before native acceptance, run the combined Rust build, formatter, Clippy and
-unit tests, then actual windowed Windows DX12 capture/stop/restart, unsupported
+Before native acceptance, recheck the exact published revision on Windows,
+including actual windowed DX12 capture/stop/restart, unsupported
 features, validation rejection, pending-at-stop, renderer replacement, recovery,
 device loss and map-failure paths where reproducible. Preserve exact build,
 adapter, driver, display, physical extent, present configuration and all missing

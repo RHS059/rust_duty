@@ -466,8 +466,12 @@ mod tests {
         let path = temp("end-of-options");
         let preference = Preference::Adapter(id("RTX 3080 Ti"));
         preference.save(&path).unwrap();
-        let args = vec![format!("--graphics-settings={}", path.display()), "--".into(),
-            "--graphics-device=auto".into(), "--graphics-settings=ignored.json".into()];
+        let args = vec![
+            format!("--graphics-settings={}", path.display()),
+            "--".into(),
+            "--graphics-device=auto".into(),
+            "--graphics-settings=ignored.json".into(),
+        ];
         let mut options = LaunchOptions::default();
         let session = prepare_launch(&args, &mut options).unwrap();
         assert_eq!(session.path, path);

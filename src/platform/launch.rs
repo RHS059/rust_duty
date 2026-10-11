@@ -32,7 +32,11 @@ impl LaunchOptions {
                 break;
             }
             if arg == "--gpu-timestamps" {
-                if options.gpu_timestamps || args.get(index + 1).is_some_and(|next| !next.starts_with("--")) {
+                if options.gpu_timestamps
+                    || args
+                        .get(index + 1)
+                        .is_some_and(|next| !next.starts_with("--"))
+                {
                     return Err("--gpu-timestamps is a boolean flag accepted only once".into());
                 }
                 options.gpu_timestamps = true;
@@ -149,11 +153,23 @@ mod tests {
         assert!(!parse(&["--", "--gpu-timestamps"]).unwrap().gpu_timestamps);
         let enabled = parse(&["--renderer=dx12", "--gpu-timestamps"]).unwrap();
         assert!(enabled.gpu_timestamps);
-        assert!(matches!(enabled.runtime(true, true), Ok(RuntimeChoice::Wgpu { .. })));
-        assert!(parse(&["--gpu-timestamps"]).unwrap().runtime(true, true).is_err());
-        assert!(parse(&["--renderer=gl", "--gpu-timestamps"]).unwrap().runtime(true, true).is_err());
-        for args in [vec!["--gpu-timestamps", "--gpu-timestamps"],
-                     vec!["--gpu-timestamps=true"], vec!["--gpu-timestamps", "true"]] {
+        assert!(matches!(
+            enabled.runtime(true, true),
+            Ok(RuntimeChoice::Wgpu { .. })
+        ));
+        assert!(parse(&["--gpu-timestamps"])
+            .unwrap()
+            .runtime(true, true)
+            .is_err());
+        assert!(parse(&["--renderer=gl", "--gpu-timestamps"])
+            .unwrap()
+            .runtime(true, true)
+            .is_err());
+        for args in [
+            vec!["--gpu-timestamps", "--gpu-timestamps"],
+            vec!["--gpu-timestamps=true"],
+            vec!["--gpu-timestamps", "true"],
+        ] {
             assert!(parse(&args).is_err());
         }
     }
@@ -165,8 +181,14 @@ mod tests {
             let options = parse(&["--renderer=dx12", &flag]).unwrap();
             assert_eq!(options.present_mode.mode().label(), mode);
             assert!(options.present_mode.is_explicit());
-            assert!(matches!(options.runtime(true, true), Ok(RuntimeChoice::Wgpu { .. })));
-            assert!(parse(&["--renderer=gl", &flag]).unwrap().runtime(true, true).is_err());
+            assert!(matches!(
+                options.runtime(true, true),
+                Ok(RuntimeChoice::Wgpu { .. })
+            ));
+            assert!(parse(&["--renderer=gl", &flag])
+                .unwrap()
+                .runtime(true, true)
+                .is_err());
             assert!(parse(&[&flag]).unwrap().runtime(true, true).is_err());
             assert!(parse(&[&flag]).unwrap().runtime(false, true).is_ok());
         }
@@ -177,11 +199,23 @@ mod tests {
     }
     #[test]
     fn renderer_and_present_options_share_the_end_of_options_boundary() {
-        let options = parse(&["--", "--renderer=dx12", "--present-mode=immediate",
-            "--force-fallback-adapter", "--ui-theme=ignored.css"]).unwrap();
+        let options = parse(&[
+            "--",
+            "--renderer=dx12",
+            "--present-mode=immediate",
+            "--force-fallback-adapter",
+            "--ui-theme=ignored.css",
+        ])
+        .unwrap();
         assert_eq!(options, LaunchOptions::default());
-        let options = parse(&["--renderer=dx12", "--present-mode=mailbox", "--",
-            "--renderer=gl", "--present-mode=fifo"]).unwrap();
+        let options = parse(&[
+            "--renderer=dx12",
+            "--present-mode=mailbox",
+            "--",
+            "--renderer=gl",
+            "--present-mode=fifo",
+        ])
+        .unwrap();
         assert_eq!(options.renderer.as_deref(), Some("dx12"));
         assert_eq!(options.present_mode.mode().label(), "mailbox");
     }

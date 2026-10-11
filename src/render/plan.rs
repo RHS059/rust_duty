@@ -421,12 +421,21 @@ mod tests {
         assert_eq!(draw_run_len(&plan.commands[3..]), 1);
         let [vertices, indices, _] = plan.arenas[0].buffer_contents().unwrap();
         let expected_positions = [
-            (11., 12.), (17., 12.), (17., 20.), (11., 20.),
-            (18., 14.), (23., 14.), (23., 23.), (18., 23.),
-            (11., 12.), (17., 12.), (17., 20.), (11., 20.),
+            (11., 12.),
+            (17., 12.),
+            (17., 20.),
+            (11., 20.),
+            (18., 14.),
+            (23., 14.),
+            (23., 23.),
+            (18., 23.),
+            (11., 12.),
+            (17., 12.),
+            (17., 20.),
+            (11., 20.),
         ];
         assert_eq!(vertices.len(), expected_positions.len() * 40);
-        for (packed, (x, y)) in vertices.chunks_exact(40).zip(expected_positions) {
+        for (packed, (x, y)) in vertices.as_chunks::<40>().0.iter().zip(expected_positions) {
             let float = |offset| f32::from_le_bytes(packed[offset..offset + 4].try_into().unwrap());
             assert_eq!([float(0), float(4), float(8)], [x, y, 0.]);
             assert_eq!(&packed[20..24], &[255; 4]);
@@ -444,8 +453,8 @@ mod tests {
     fn streamed_text_obeys_upload_chunk_limits_and_failure_is_not_a_plan() {
         let mut list = DrawList::new(960, 540);
         list.draw_text("AB", Vec2::ZERO, 16., Color::WHITE);
-        let plan = FramePlan::new(&list, &mut TextRenderer::new().unwrap(), 64, 256, false)
-            .unwrap();
+        let plan =
+            FramePlan::new(&list, &mut TextRenderer::new().unwrap(), 64, 256, false).unwrap();
         assert_eq!(plan.arenas.len(), 2);
         assert_eq!(plan.commands.len(), 2);
         for (index, command) in plan.commands.iter().enumerate() {
@@ -456,11 +465,9 @@ mod tests {
             assert_eq!(draw.geometry.range.vertices, 0..160);
             assert_eq!(draw.geometry.range.count, 6);
         }
-        assert!(FramePlan::new(&list, &mut TextRenderer::new().unwrap(), 64, 128, false)
-            .is_err());
+        assert!(FramePlan::new(&list, &mut TextRenderer::new().unwrap(), 64, 128, false).is_err());
         list.draw_text("invalid later text", Vec2::ZERO, f32::NAN, Color::WHITE);
-        assert!(FramePlan::new(&list, &mut TextRenderer::new().unwrap(), 64, 256, false)
-            .is_err());
+        assert!(FramePlan::new(&list, &mut TextRenderer::new().unwrap(), 64, 256, false).is_err());
     }
 
     #[test]

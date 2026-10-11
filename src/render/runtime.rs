@@ -26,8 +26,15 @@ pub fn create_frame_hooks_with_present_mode(
     force_fallback: bool,
     present_mode: super::present_policy::PresentModeRequest,
 ) -> Result<Box<dyn FrameHooks>, String> {
-    create_frame_hooks_with_diagnostics(window, selection, force_fallback,
-        super::RuntimeDiagnostics { present_mode, gpu_timestamps: false })
+    create_frame_hooks_with_diagnostics(
+        window,
+        selection,
+        force_fallback,
+        super::RuntimeDiagnostics {
+            present_mode,
+            gpu_timestamps: false,
+        },
+    )
 }
 
 pub fn create_frame_hooks_with_diagnostics(

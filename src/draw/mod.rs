@@ -362,6 +362,7 @@ mod tests {
             panic!("expected one line run")
         };
         assert_eq!(*model, Mat4::IDENTITY);
+        assert_ne!(lines[0].start, source[0].start);
         for (actual, expected) in lines.iter().zip([line(1.), line(2.), line(3.)]) {
             assert_eq!(actual.start, expected.start);
             assert_eq!(actual.end, expected.end);

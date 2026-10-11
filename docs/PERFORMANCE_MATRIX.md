@@ -331,6 +331,8 @@ extending the reviewed present-policy inventory with `src/frame_gpu_capture.rs`
 and `src/render/gpu_timing.rs`. Live dirty, mutated, missing or partial GPU source
 cannot silently fall back to a historical witness. Historical artifact witnesses
 remain accepted only with their original exact inventories and external hashes.
+The initial published 29-file WIP digest is also retained explicitly when a
+reviewed formatting/test-fix revision changes that same inventory's bytes.
 This matrix still leaves GPU timestamps disabled and fixes Fifo; use the separate
 [GPU sidecar reader](engineering/gpu-session-integration.md) for explicitly opted-in
 captures. Neither inventory acceptance nor a valid sidecar proves native runtime

@@ -1004,6 +1004,25 @@ class SourceWitnessTests(unittest.TestCase):
         self.assertEqual(plan['fixed_runtime']['present_mode'], 'Fifo')
         self.assertIn('leaves them disabled', plan['unavailable_axes']['gpu_frame_duration'])
 
+    def test_first_gpu_witness_remains_exact_after_reviewed_same_scope_revision(self):
+        self.gpu_fixture()
+        witness = self.root / 'first-gpu-witness'
+        digest = m.export_witness(self.repository, witness)
+        initial = m.AUDITED_GPU_CANDIDATE_MANIFEST
+        with mock.patch.object(m, 'AUDITED_GPU_INITIAL_MANIFEST', initial), \
+                mock.patch.object(m, 'AUDITED_GPU_CANDIDATE_MANIFEST', '0' * 64):
+            source = m.artifact_source(witness, digest)
+            self.assertEqual(m.canonical_hash(source['runtime_files_sha256']), initial)
+            self.assertEqual(m.source_identity(self.repository), source)
+            plan = m.make_plan(source, smoke=True)
+            m.validate_plan(plan)
+            self.assertIn('leaves them disabled', plan['unavailable_axes']['gpu_frame_duration'])
+            changed = self.repository / m.GPU_SOURCE_PATHS[0]
+            changed.write_bytes(changed.read_bytes() + b'// Unreviewed same-scope change\n')
+            self.commit_gpu_fixture()
+            with self.assertRaisesRegex(ValueError, 'cannot fall back'):
+                m.source_identity(self.repository)
+
     def test_gpu_sources_cannot_change_or_disappear_into_narrower_inventory(self):
         self.gpu_fixture()
         for name in m.GPU_SOURCE_PATHS:

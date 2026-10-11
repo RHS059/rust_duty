@@ -24,7 +24,14 @@ NUMERIC = ('start_ticks', 'end_ticks', 'timestamp_period_ns', 'elapsed_ns')
 
 
 def positive(value):
-    return type(value) in (int, float) and math.isfinite(value) and value > 0
+    if type(value) not in (int, float):
+        return False
+    try:
+        return math.isfinite(value) and value > 0
+    except OverflowError:
+        # JSON integers are unbounded; a period outside f64 cannot be emitted
+        # by the producer and must fail validation instead of raising a traceback.
+        return False
 
 
 def validate(sidecar, report, report_sha256):
