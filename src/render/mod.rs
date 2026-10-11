@@ -1,5 +1,15 @@
 //! Backend-neutral CPU text and feature-gated native GPU rendering.
 pub mod text;
+pub mod present_policy;
+
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct RuntimeDiagnostics {
+    pub present_mode: present_policy::PresentModeRequest,
+    pub gpu_timestamps: bool,
+}
+
+#[cfg(feature = "wgpu-runtime")]
+pub(crate) mod gpu_timing;
 
 #[cfg(feature = "wgpu-runtime")]
 mod arena;

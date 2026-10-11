@@ -9,6 +9,7 @@ use crate::frame_performance::{
     CpuWallSpan, Eligibility, FramePerformanceObserver, FramePerformanceReport, RunIdentity,
     WindowContext, WriteError,
 };
+use crate::frame_cpu_substages::{CpuSubstage, CpuSubstages};
 use std::cell::RefCell;
 use std::fmt;
 use std::path::PathBuf;
@@ -78,6 +79,28 @@ pub struct CompletionNotice {
     pub export_error: Option<String>,
 }
 
+/// Independent optional diagnostic export, never a replacement for frame status.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct CpuSubstageExportNotice {
+    pub output_path: PathBuf,
+    pub error: Option<String>,
+}
+pub fn take_cpu_substage_export_notice() -> Option<CpuSubstageExportNotice> {
+    LAST_CPU_SUBSTAGE_NOTICE.with(|notice| notice.borrow_mut().take())
+}
+
+#[cfg(feature = "wgpu-runtime")]
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct GpuTimingExportNotice {
+    pub output_path: PathBuf,
+    pub accounting_complete: bool,
+    pub export_error: Option<String>,
+}
+#[cfg(feature = "wgpu-runtime")]
+pub fn take_gpu_timing_export_notice() -> Option<GpuTimingExportNotice> {
+    LAST_GPU_TIMING_NOTICE.with(|notice| notice.borrow_mut().take())
+}
+
 /// Consume the latest completion once. Disabled polling reads no clocks/files.
 pub fn take_completion_notice() -> Option<CompletionNotice> {
     LAST_COMPLETION_NOTICE.with(|notice| notice.borrow_mut().take())
@@ -124,6 +147,10 @@ struct ActiveCapture {
     last_clock_ns: u64,
     clock_failure: Option<(u64, CaptureError)>,
     cpu_frame: Option<PendingCpuFrame>,
+    #[cfg(feature = "wgpu-runtime")]
+    gpu_capture: Option<u64>,
+    #[cfg(feature = "wgpu-runtime")]
+    gpu_attempt: Option<crate::render::gpu_timing::FrameKey>,
 }
 struct PendingCpuFrame {
     frame: CpuFrameStages,
@@ -136,6 +163,12 @@ impl ActiveCapture {
             // Only matched begin/end pairs have spans. An interrupted stage is
             // unavailable; never synthesize its end from a failure or stop.
             self.observer.record_cpu_frame_stages(frame.frame, at_ns);
+            #[cfg(feature = "wgpu-runtime")]
+            if let Some(key) = self.gpu_attempt.take() {
+                if let Some(index) = self.observer.last_record_index() {
+                    crate::frame_gpu_capture::join_cpu_record(key, index);
+                }
+            }
         }
     }
     fn observe_clock(&mut self, at_ns: u64) -> bool {
@@ -205,6 +238,10 @@ impl<C: MonotonicClock> PerformanceSession<C> {
             last_clock_ns: started_at_ns,
             clock_failure: None,
             cpu_frame: None,
+            #[cfg(feature = "wgpu-runtime")]
+            gpu_capture: crate::frame_gpu_capture::start_session(limits.max_records),
+            #[cfg(feature = "wgpu-runtime")]
+            gpu_attempt: None,
         });
         Ok(())
     }
@@ -218,6 +255,8 @@ impl<C: MonotonicClock> PerformanceSession<C> {
         };
         let at_ns = self.clock.now_ns();
         active.cpu_frame = None;
+        #[cfg(feature = "wgpu-runtime")]
+        { active.gpu_attempt = None; }
         if !active.observe_clock(at_ns) || active.observer.enable_cpu_frame_stages(at_ns).is_err() {
             return;
         }
@@ -227,10 +266,44 @@ impl<C: MonotonicClock> PerformanceSession<C> {
                 physical_width,
                 physical_height,
                 spans: [None; 4],
+                substages: CpuSubstages::default(),
             },
             open_stage: None,
             last_stage: None,
         });
+        #[cfg(feature = "wgpu-runtime")]
+        { active.gpu_attempt = active.gpu_capture.and_then(crate::frame_gpu_capture::begin_attempt); }
+    }
+
+    #[cfg(feature = "wgpu-runtime")]
+    pub(crate) fn gpu_frame_key(&self) -> Option<crate::render::gpu_timing::FrameKey> {
+        self.active.as_ref()?.gpu_attempt
+    }
+
+    pub fn begin_cpu_substage(&mut self, stage: CpuSubstage) {
+        self.cpu_substage(stage, true);
+    }
+    pub fn end_cpu_substage(&mut self, stage: CpuSubstage) {
+        self.cpu_substage(stage, false);
+    }
+    fn cpu_substage(&mut self, stage: CpuSubstage, begin: bool) {
+        let Some(active) = &mut self.active else { return; };
+        let Some(frame) = &mut active.cpu_frame else { return; };
+        if frame.open_stage.map(|(parent, _)| parent.label()) != Some(stage.parent()) {
+            frame.frame.substages.invalidate("substage_parent_mismatch");
+            return;
+        }
+        let at_ns = self.clock.now_ns();
+        // Optional diagnostics must never advance or invalidate the primary
+        // observer's clock witness. Their errors stay in their own sidecar.
+        let frame = active.cpu_frame.as_mut().unwrap();
+        let (_, parent_start) = frame.open_stage.unwrap();
+        let details = &mut frame.frame.substages;
+        if at_ns < parent_start {
+            details.invalidate("non_monotonic_substage");
+            return;
+        }
+        if begin { details.begin(stage, at_ns); } else { details.end(stage, at_ns); }
     }
 
     pub fn begin_cpu_stage(&mut self, stage: CpuFrameStage) {
@@ -450,7 +523,50 @@ impl<C: MonotonicClock> PerformanceSession<C> {
                 report.incomplete_at_ns = Some(at_ns);
             }
         }
+        #[cfg(feature = "wgpu-runtime")]
+        let gpu_report = active.gpu_capture.map(|session| {
+            crate::frame_gpu_capture::finish_session(session, report.raw_records().len())
+                .ok_or_else(|| "GPU timing capture lost its session state".to_owned())
+        });
         let export = report.write_new(&active.output_path);
+        #[cfg(feature = "wgpu-runtime")]
+        {
+            let gpu_notice = gpu_report.map(|result| {
+                let path = active.output_path.with_extension("gpu-timing.json");
+                let complete = result.as_ref().is_ok_and(|report| report.accounting_complete());
+                let result = if export.is_ok() {
+                    result.and_then(|report| report.write_new(&active.output_path))
+                } else {
+                    Err("Primary frame export failed; no GPU sidecar was written".to_owned())
+                };
+                match &result {
+                    Ok(path) => eprintln!("GPU timing evidence saved to {} (accounting complete={complete}; GPU/display performance unclassified)", path.display()),
+                    Err(error) => eprintln!("GPU timing export failed: {error}"),
+                }
+                GpuTimingExportNotice { output_path: path, accounting_complete: complete,
+                    export_error: result.err() }
+            });
+            LAST_GPU_TIMING_NOTICE.with(|notice| *notice.borrow_mut() = gpu_notice);
+        }
+        // Diagnostic file I/O and hashing occur only after the final present
+        // and successful primary write; no extra GPU wait or poll is added.
+        let detail_notice = if export.is_ok() {
+            match report.write_cpu_substages_new(&active.output_path) {
+                Ok(Some(path)) => {
+                    eprintln!("CPU substage evidence saved to {}", path.display());
+                    Some(CpuSubstageExportNotice { output_path: path, error: None })
+                }
+                Ok(None) => None,
+                Err(error) => {
+                    eprintln!("CPU substage export failed: {error}");
+                    Some(CpuSubstageExportNotice {
+                        output_path: active.output_path.with_extension("cpu-substages.json"),
+                        error: Some(error),
+                    })
+                }
+            }
+        } else { None };
+        LAST_CPU_SUBSTAGE_NOTICE.with(|notice| *notice.borrow_mut() = detail_notice);
         Some(SessionCompletion {
             report,
             output_path: active.output_path,
@@ -460,10 +576,20 @@ impl<C: MonotonicClock> PerformanceSession<C> {
 }
 
 thread_local! {
+    static LAST_CPU_SUBSTAGE_NOTICE: RefCell<Option<CpuSubstageExportNotice>> = const { RefCell::new(None) };
     static LAST_COMPLETION_NOTICE: RefCell<Option<CompletionNotice>> = const { RefCell::new(None) };
     static SESSION: RefCell<PerformanceSession<InstantClock>> = const {
         RefCell::new(PerformanceSession::new(InstantClock::new()))
     };
+}
+#[cfg(feature = "wgpu-runtime")]
+thread_local! {
+    static LAST_GPU_TIMING_NOTICE: RefCell<Option<GpuTimingExportNotice>> = const { RefCell::new(None) };
+}
+
+#[cfg(feature = "wgpu-runtime")]
+pub(crate) fn gpu_frame_key() -> Option<crate::render::gpu_timing::FrameKey> {
+    SESSION.with(|session| session.borrow().gpu_frame_key())
 }
 
 pub fn is_active() -> bool {
@@ -503,6 +629,14 @@ pub fn measure_cpu_stage<T>(stage: CpuFrameStage, call: impl FnOnce() -> T) -> T
     end_cpu_stage(stage);
     result
 }
+/// Nested diagnostics do not open another disjoint parent stage. The existing
+/// closure still runs exactly once, including its normal error return.
+pub fn measure_cpu_substage<T>(stage: CpuSubstage, call: impl FnOnce() -> T) -> T {
+    SESSION.with(|session| session.borrow_mut().begin_cpu_substage(stage));
+    let result = call();
+    SESSION.with(|session| session.borrow_mut().end_cpu_substage(stage));
+    result
+}
 pub fn set_eligibility(eligibility: Eligibility) -> Option<SessionCompletion> {
     SESSION.with(|session| session.borrow_mut().set_eligibility(eligibility))
 }
@@ -523,4 +657,161 @@ pub fn present_skipped() -> Option<SessionCompletion> {
 }
 pub fn shutdown() -> Option<SessionCompletion> {
     SESSION.with(|session| session.borrow_mut().shutdown())
+}
+
+#[cfg(all(test, feature = "wgpu-runtime"))]
+mod gpu_lifecycle_tests {
+    use super::*;
+    use crate::frame_gpu_capture as gpu;
+    use crate::frame_performance::{RuntimeIdentity, WindowMode};
+    use serde_json::{json, Value};
+    use std::sync::atomic::{AtomicU64, Ordering};
+
+    struct Clock(u64);
+    impl MonotonicClock for Clock {
+        fn now_ns(&mut self) -> u64 { self.0 += 10; self.0 }
+    }
+    struct Directory(PathBuf);
+    impl Directory {
+        fn new() -> Self {
+            static ID: AtomicU64 = AtomicU64::new(0);
+            let path = std::env::temp_dir().join(format!("rust-duty-gpu-session-{}-{}",
+                std::process::id(), ID.fetch_add(1, Ordering::Relaxed)));
+            std::fs::create_dir(&path).unwrap();
+            Self(path)
+        }
+        fn path(&self, name: &str) -> PathBuf { self.0.join(name) }
+    }
+    impl Drop for Directory {
+        fn drop(&mut self) { let _ = std::fs::remove_dir_all(&self.0); }
+    }
+    fn identity() -> RunIdentity {
+        RunIdentity {
+            runtime: RuntimeIdentity {
+                actual_backend: Some("synthetic CPU lifecycle fixture".into()),
+                actual_adapter: json!({"gpu_timestamps_requested":true,
+                    "gpu_timestamp_features_enabled":false}),
+                build: Value::Null, scene: Value::Null,
+                initial_window: WindowContext { physical_width: 960, physical_height: 540,
+                    scale_factor: 1.0, mode: WindowMode::Windowed },
+            },
+            operator_supplied: Value::Null,
+        }
+    }
+    fn start(path: PathBuf, max_records: usize, diagnostics: bool) -> PerformanceSession<Clock> {
+        let mut session = PerformanceSession::new(Clock(0));
+        session.start(identity(), path, CaptureLimits { max_records, ..CaptureLimits::default() }).unwrap();
+        if diagnostics {
+            session.active.as_mut().unwrap().gpu_capture = Some(gpu::start_synthetic_session(max_records));
+        }
+        session
+    }
+    fn read(path: &std::path::Path) -> Value {
+        serde_json::from_slice(&std::fs::read(path).unwrap()).unwrap()
+    }
+    fn normal_stop(session: &mut PerformanceSession<Clock>) -> SessionCompletion {
+        session.begin_cpu_frame(960, 540);
+        assert!(session.present_success().is_none());
+        session.begin_cpu_frame(960, 540);
+        session.request_stop();
+        session.present_success().unwrap()
+    }
+    #[test]
+    fn gpu_joining_keeps_primary_bytes_and_final_present_unchanged() {
+        let directory = Directory::new();
+        let plain = directory.path("plain.json");
+        let diagnostic = directory.path("diagnostic.json");
+        let a = normal_stop(&mut start(plain.clone(), 8, false));
+        assert_eq!(a.report.status, CaptureStatus::Complete);
+        assert!(!plain.with_extension("gpu-timing.json").exists());
+        let b = normal_stop(&mut start(diagnostic.clone(), 8, true));
+        assert_eq!(b.report.status, CaptureStatus::Complete);
+        assert_eq!(std::fs::read(&plain).unwrap(), std::fs::read(&diagnostic).unwrap());
+        let sidecar = read(&diagnostic.with_extension("gpu-timing.json"));
+        assert_eq!(sidecar["frame_report_sha256"], rust_duty_launcher::file_hash(&diagnostic).unwrap());
+        assert_eq!(sidecar["accounting_state"], "complete");
+        assert_eq!(sidecar["samples"][0]["record_index"], 0);
+        assert_eq!(sidecar["samples"][1]["record_index"], 1);
+        assert_eq!(sidecar["samples"][1]["status"], "not_submitted");
+        assert!(!gpu::synthetic_session_is_active());
+    }
+    #[test]
+    fn skipped_attempt_has_its_own_join_and_no_fabricated_duration() {
+        let directory = Directory::new();
+        let path = directory.path("frames.json");
+        let mut session = start(path.clone(), 8, true);
+        session.begin_cpu_frame(960, 540);
+        assert!(session.present_skipped().is_none());
+        assert_eq!(normal_stop(&mut session).report.status, CaptureStatus::Complete);
+        let sidecar = read(&path.with_extension("gpu-timing.json"));
+        assert_eq!(sidecar["samples"].as_array().unwrap().len(), 3);
+        for (index, sample) in sidecar["samples"].as_array().unwrap().iter().enumerate() {
+            assert_eq!(sample["attempt"], index);
+            assert_eq!(sample["record_index"], index);
+            assert!(sample["elapsed_ns"].is_null());
+        }
+    }
+    #[test]
+    fn shutdown_and_present_failure_close_open_attempts_before_export() {
+        let directory = Directory::new();
+        for shutdown in [false, true] {
+            let path = directory.path(if shutdown { "shutdown.json" } else { "failure.json" });
+            let mut session = start(path.clone(), 8, true);
+            session.begin_cpu_frame(960, 540);
+            let result = if shutdown { session.shutdown() } else { session.present_failure() }.unwrap();
+            assert!(matches!(result.report.status, CaptureStatus::Incomplete(_)));
+            assert!(result.export.is_ok());
+            let sidecar = read(&path.with_extension("gpu-timing.json"));
+            assert_eq!(sidecar["accounting_state"], "complete");
+            assert_eq!(sidecar["samples"][0]["record_index"], 0);
+            assert!(!gpu::synthetic_session_is_active());
+        }
+    }
+    #[test]
+    fn boundary_record_limit_retains_unjoined_attempt_as_incomplete() {
+        let directory = Directory::new();
+        let path = directory.path("limit.json");
+        let mut session = start(path.clone(), 2, true);
+        session.begin_cpu_frame(960, 540);
+        assert!(session.present_success().is_none());
+        assert!(session.boundary(BoundaryReason::Resize).is_none());
+        session.begin_cpu_frame(960, 540);
+        let result = session.boundary(BoundaryReason::Resize).unwrap();
+        assert!(matches!(result.report.status, CaptureStatus::Incomplete(_)));
+        let sidecar = read(&path.with_extension("gpu-timing.json"));
+        assert_eq!(sidecar["accounting_state"], "incomplete");
+        assert_eq!(sidecar["samples"][0]["record_index"], 0);
+        assert!(sidecar["samples"][1]["record_index"].is_null());
+        assert!(!gpu::synthetic_session_is_active());
+    }
+    #[test]
+    fn backward_clock_boundary_keeps_open_attempt_unjoined() {
+        let directory = Directory::new();
+        let path = directory.path("clock.json");
+        let mut session = start(path.clone(), 8, true);
+        session.begin_cpu_frame(960, 540);
+        session.clock.0 = 0;
+        let result = session.boundary(BoundaryReason::Resize).unwrap();
+        assert!(matches!(result.report.status, CaptureStatus::Incomplete(_)));
+        let sidecar = read(&path.with_extension("gpu-timing.json"));
+        assert_eq!(sidecar["accounting_state"], "incomplete");
+        assert!(sidecar["samples"][0]["record_index"].is_null());
+        assert!(!gpu::synthetic_session_is_active());
+    }
+    #[test]
+    fn export_failures_retire_session_without_overwriting_existing_evidence() {
+        let directory = Directory::new();
+        for fail_primary in [true, false] {
+            let path = directory.path(if fail_primary { "primary.json" } else { "sidecar.json" });
+            let protected = if fail_primary { path.clone() } else { path.with_extension("gpu-timing.json") };
+            std::fs::write(&protected, b"existing evidence").unwrap();
+            let result = normal_stop(&mut start(path.clone(), 8, true));
+            assert_eq!(result.export.is_err(), fail_primary);
+            assert_eq!(std::fs::read(&protected).unwrap(), b"existing evidence");
+            let notice = take_gpu_timing_export_notice().unwrap();
+            assert!(notice.export_error.is_some());
+            assert!(!gpu::synthetic_session_is_active());
+            if fail_primary { assert!(!path.with_extension("gpu-timing.json").exists()); }
+        }
+    }
 }

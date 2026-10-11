@@ -11,6 +11,12 @@ use crate::draw::{BlendMode, Color, Command, DrawList, FrameOutput, RenderTarget
 use crate::{frame_performance::CpuFrameStage, frame_performance_session as performance};
 use std::sync::Arc;
 
+struct EncodedFrame {
+    readbacks: Vec<Readback>,
+    presentation: Option<wgpu::SurfaceTexture>,
+    timing: Option<crate::frame_gpu_capture::GpuAttempt>,
+}
+
 impl WgpuRenderer {
     pub(super) fn submit_frame(&mut self, list: &DrawList) -> Result<FrameOutput, String> {
         let (output, presentation) =
@@ -56,13 +62,25 @@ impl WgpuRenderer {
             .gpu
             .device
             .push_error_scope(wgpu::ErrorFilter::Validation);
-        let encoded = self.encode_frame(list, presentation);
-        let validation = pollster::block_on(error_scope.pop());
+        let encoded = performance::measure_cpu_substage(
+            crate::frame_cpu_substages::CpuSubstage::EncodeSubmit,
+            || self.encode_frame(list, presentation),
+        );
+        let validation = performance::measure_cpu_substage(
+            crate::frame_cpu_substages::CpuSubstage::SubmitValidation,
+            || pollster::block_on(error_scope.pop()),
+        );
+        let device_check = self.gpu.check_errors();
+        if let Ok(encoded) = &encoded {
+            if let Some(timing) = &encoded.timing {
+                timing.validate_submission(validation.is_none() && device_check.is_ok());
+            }
+        }
         if let Some(error) = validation {
             return Err(format!("frame validation: {error}"));
         }
-        self.gpu.check_errors()?;
-        let (readbacks, presentation) = encoded?;
+        device_check?;
+        let EncodedFrame { readbacks, presentation, timing: _ } = encoded?;
         let mut output = FrameOutput::default();
         for readback in readbacks {
             output.captures.push(readback.finish(&self.gpu.device)?);
@@ -73,7 +91,7 @@ impl WgpuRenderer {
         &mut self,
         list: &DrawList,
         presentation: Option<wgpu::SurfaceTexture>,
-    ) -> Result<(Vec<Readback>, Option<wgpu::SurfaceTexture>), String> {
+    ) -> Result<EncodedFrame, String> {
         if self.main.descriptor.width != list.width || self.main.descriptor.height != list.height {
             self.main = Arc::new(GpuTexture::new(
                 &self.gpu.device,
@@ -101,6 +119,13 @@ impl WgpuRenderer {
             .create_command_encoder(&wgpu::CommandEncoderDescriptor {
                 label: Some("ordered presentation frame"),
             });
+        let mut timing = if let Some(registration) = self.gpu.gpu_diagnostics {
+            performance::gpu_frame_key().and_then(|key| {
+                crate::frame_gpu_capture::begin_gpu_frame(registration, key, &mut encoder)
+            })
+        } else {
+            None
+        };
         clear(&mut encoder, &self.main, Color::TRANSPARENT);
         let mut readbacks = Vec::new();
         let mut commands = plan.commands.as_slice();
@@ -184,8 +209,10 @@ impl WgpuRenderer {
                 &self.main.binding,
             );
         }
+        if let Some(timing) = &mut timing { timing.end_encoding(&mut encoder)?; }
         self.gpu.queue.submit([encoder.finish()]);
-        Ok((readbacks, presentation))
+        if let Some(timing) = &mut timing { timing.after_submit(); }
+        Ok(EncodedFrame { readbacks, presentation, timing })
     }
     fn output(&mut self, target: Option<&RenderTarget>) -> Result<Arc<GpuTexture>, String> {
         match target {

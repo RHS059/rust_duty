@@ -121,10 +121,14 @@ fn main() {
                     width as u32,
                     height as u32,
                     move |window| {
-                        vector_range::render::runtime::create_frame_hooks(
+                        vector_range::render::runtime::create_frame_hooks_with_diagnostics(
                             window,
                             selection,
                             force_fallback,
+                            vector_range::render::RuntimeDiagnostics {
+                                present_mode: options.present_mode,
+                                gpu_timestamps: options.gpu_timestamps,
+                            },
                         )
                     },
                     app::run(options.ui_theme),

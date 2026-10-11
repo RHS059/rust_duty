@@ -34,6 +34,26 @@ SOURCE_PATHS = ('src/main.rs', 'src/app.rs', 'src/settings.rs', 'src/world_draw.
                 'src/render/runtime.rs', 'src/frame_performance.rs',
                 'src/frame_performance_session.rs', 'src/graphics_device.rs',
                 'src/telemetry_export.rs', 'src/control.rs', 'src/asset_path.rs')
+# Additional exact inventory for optional CPU substage sidecars. Keep the
+# historical 17-file binding for pinned packages; never accept arbitrary edits.
+SUBSTAGE_SOURCE_PATHS = (*SOURCE_PATHS, 'src/frame_cpu_substages.rs',
+                        'src/render/frame.rs', 'src/lib.rs')
+AUDITED_SUBSTAGE_RUNTIME_MANIFEST = '9e95260bd852422caecb57b23abb3fb60ceeaae3f4d77bb7e1d2d57d36dc4ac7'
+# Reviewed allocation-only CPU changes are also part of the candidate's exact
+# source witness. A live checkout must never fall back to the narrower inventory
+# when one of these files changes. Historical artifact witnesses remain valid.
+CPU_SOURCE_PATHS = ('src/draw/mod.rs', 'src/render/lines.rs',
+                    'src/render/text.rs', 'src/render/plan.rs')
+CPU_BASELINE_MANIFEST = '66a130aeeaeaa6ce80cfc3525d1e46388f7cd5b1c0755da2e1e302d9b055ee22'
+CPU_CANDIDATE_SOURCE_PATHS = (*SUBSTAGE_SOURCE_PATHS, *CPU_SOURCE_PATHS)
+AUDITED_CPU_CANDIDATE_MANIFEST = '0a904c635739b3365ff99569466098e71b3d81e8e456939163421aad311fe4c5'
+PRESENT_SOURCE_PATHS = ('src/render/present_policy.rs', 'src/render/mod.rs', 'src/render/backend.rs')
+PRESENT_BASELINE_MANIFEST = '71695b3988c2fae2652a9b14ce923ddb135004b14fe084e90e81772214fa657e'
+PRESENT_CANDIDATE_SOURCE_PATHS = (*CPU_CANDIDATE_SOURCE_PATHS, *PRESENT_SOURCE_PATHS)
+AUDITED_PRESENT_CANDIDATE_MANIFEST = 'a6af645f2e1b5c4c71b9a65964a963a1ad1217a75efff7b0cf8f9c39280880a6'
+GPU_SOURCE_PATHS = ('src/frame_gpu_capture.rs', 'src/render/gpu_timing.rs')
+GPU_CANDIDATE_SOURCE_PATHS = (*PRESENT_CANDIDATE_SOURCE_PATHS, *GPU_SOURCE_PATHS)
+AUDITED_GPU_CANDIDATE_MANIFEST = '445974fef81cb3f1d97ce7a21a0ebabc48e8fab92794f0898ad89dec89e7db2e'
 BACKENDS = {'dx12': 'Dx12', 'vulkan': 'Vulkan', 'metal': 'Metal', 'gl-harness': 'Gl'}
 UNAVAILABLE = {
     'fps_cap': 'No application FPS limiter or CLI selector. Fifo may pace at display refresh; it is not a 60 FPS cap.',
@@ -86,6 +106,20 @@ def canonical_hash(value):
                                     allow_nan=False).encode()).hexdigest()
 
 
+def audited_inventory(digest):
+    if digest == AUDITED_RUNTIME_MANIFEST:
+        return SOURCE_PATHS
+    if digest == AUDITED_SUBSTAGE_RUNTIME_MANIFEST:
+        return SUBSTAGE_SOURCE_PATHS
+    if digest == AUDITED_CPU_CANDIDATE_MANIFEST:
+        return CPU_CANDIDATE_SOURCE_PATHS
+    if digest == AUDITED_PRESENT_CANDIDATE_MANIFEST:
+        return PRESENT_CANDIDATE_SOURCE_PATHS
+    if digest == AUDITED_GPU_CANDIDATE_MANIFEST:
+        return GPU_CANDIDATE_SOURCE_PATHS
+    return None
+
+
 def source_identity(repository):
     repository = Path(repository)
     commit = subprocess.check_output(['git', '-C', str(repository), 'rev-parse', 'HEAD'], text=True).strip()
@@ -95,7 +129,73 @@ def source_identity(repository):
         committed = subprocess.check_output(['git', '-C', str(repository), 'show', commit + ':' + name])
         require(data == committed, 'Uncommitted runtime source: ' + name)
         result[name] = hashlib.sha256(data).hexdigest()
-    require(canonical_hash(result) == AUDITED_RUNTIME_MANIFEST,
+    if canonical_hash(result) != AUDITED_RUNTIME_MANIFEST:
+        for name in SUBSTAGE_SOURCE_PATHS[len(SOURCE_PATHS):]:
+            path = repository / name
+            require(path.is_file() and not path.is_symlink(),
+                    'Audited runtime support changed; missing sidecar inventory: ' + name)
+            data = path.read_bytes()
+            committed = subprocess.check_output(['git', '-C', str(repository), 'show', commit + ':' + name])
+            require(data == committed, 'Uncommitted runtime source: ' + name)
+            result[name] = hashlib.sha256(data).hexdigest()
+    cpu_sources = {}
+    for name in CPU_SOURCE_PATHS:
+        path = repository / name
+        require(path.is_file() and not path.is_symlink(),
+                'Audited runtime support changed; missing CPU inventory: ' + name)
+        data = path.read_bytes()
+        committed = subprocess.check_output(['git', '-C', str(repository), 'show', commit + ':' + name])
+        require(data == committed, 'Uncommitted runtime source: ' + name)
+        cpu_sources[name] = hashlib.sha256(data).hexdigest()
+    candidate = {**result, **cpu_sources}
+    present_sources = {}
+    for name in PRESENT_SOURCE_PATHS[1:]:
+        path = repository / name
+        require(path.is_file() and not path.is_symlink(),
+                'Audited runtime support changed; missing present inventory: ' + name)
+        data = path.read_bytes()
+        committed = subprocess.check_output(['git', '-C', str(repository), 'show', commit + ':' + name])
+        require(data == committed, 'Uncommitted runtime source: ' + name)
+        present_sources[name] = hashlib.sha256(data).hexdigest()
+    present_policy = repository / PRESENT_SOURCE_PATHS[0]
+    gpu_present = any((repository / name).exists() or (repository / name).is_symlink()
+                      for name in GPU_SOURCE_PATHS)
+    require(not gpu_present or present_policy.exists(),
+            'GPU runtime source cannot fall back to a narrower source inventory')
+    if present_policy.exists() or present_policy.is_symlink():
+        for name in PRESENT_SOURCE_PATHS:
+            path = repository / name
+            require(path.is_file() and not path.is_symlink(),
+                    'Audited runtime support changed; missing present inventory: ' + name)
+            data = path.read_bytes()
+            committed = subprocess.check_output(['git', '-C', str(repository), 'show', commit + ':' + name])
+            require(data == committed, 'Uncommitted runtime source: ' + name)
+            candidate[name] = hashlib.sha256(data).hexdigest()
+        if gpu_present:
+            for name in GPU_SOURCE_PATHS:
+                path = repository / name
+                require(path.is_file() and not path.is_symlink(),
+                        'Audited runtime support changed; missing GPU inventory: ' + name)
+                data = path.read_bytes()
+                committed = subprocess.check_output(['git', '-C', str(repository), 'show', commit + ':' + name])
+                require(data == committed, 'Uncommitted runtime source: ' + name)
+                candidate[name] = hashlib.sha256(data).hexdigest()
+            require(canonical_hash(candidate) == AUDITED_GPU_CANDIDATE_MANIFEST,
+                    'Audited GPU runtime changed; cannot fall back to a narrower source inventory')
+        else:
+            require(canonical_hash(candidate) == AUDITED_PRESENT_CANDIDATE_MANIFEST,
+                    'Audited present runtime changed; cannot fall back to a narrower source inventory')
+        result = candidate
+    elif canonical_hash(candidate) == AUDITED_CPU_CANDIDATE_MANIFEST:
+        require(canonical_hash(present_sources) == PRESENT_BASELINE_MANIFEST,
+                'Audited present runtime changed; cannot fall back to a narrower source inventory')
+        result = candidate
+    else:
+        require(canonical_hash(present_sources) == PRESENT_BASELINE_MANIFEST,
+                'Audited present runtime changed; cannot fall back to a narrower source inventory')
+        require(canonical_hash(cpu_sources) == CPU_BASELINE_MANIFEST,
+                'Audited CPU runtime changed; cannot fall back to a narrower source inventory')
+    require(audited_inventory(canonical_hash(result)) is not None,
             'Audited runtime support changed; review the matrix inventory before updating its source binding')
     return {'commit': commit, 'runtime_files_sha256': result}
 
@@ -123,7 +223,8 @@ def export_witness(repository, output, harness=None):
     require(source_identity(repository) == source, 'Git/source identity changed during witness export')
     witness = {'schema': 'rust-duty-matrix-source-witness/v1', 'source': source,
                'origin': 'Exported from a live Git checkout; every runtime file matched its committed blob.',
-               'audited_runtime_manifest_sha256': AUDITED_RUNTIME_MANIFEST, 'harness': entrypoint}
+               'audited_runtime_manifest_sha256': canonical_hash(source['runtime_files_sha256']),
+               'harness': entrypoint}
     write_json(output / 'SOURCE_WITNESS.json', witness)
     return sha256(output / 'SOURCE_WITNESS.json')
 
@@ -139,17 +240,18 @@ def artifact_source(directory, expected_digest):
     require(set(witness) == {'schema', 'source', 'origin', 'audited_runtime_manifest_sha256', 'harness'}
             and witness['schema'] == 'rust-duty-matrix-source-witness/v1'
             and witness['origin'] == 'Exported from a live Git checkout; every runtime file matched its committed blob.'
-            and witness['audited_runtime_manifest_sha256'] == AUDITED_RUNTIME_MANIFEST,
+            and audited_inventory(witness['audited_runtime_manifest_sha256']) is not None,
             'Invalid source witness schema/provenance')
     source = witness['source']
     require(isinstance(source, dict) and set(source) == {'commit', 'runtime_files_sha256'}
             and isinstance(source['commit'], str) and re.fullmatch('[0-9a-f]{40}', source['commit']),
             'Invalid witnessed source identity')
     recorded = source['runtime_files_sha256']
-    require(isinstance(recorded, dict) and set(recorded) == set(SOURCE_PATHS)
-            and canonical_hash(recorded) == AUDITED_RUNTIME_MANIFEST,
+    inventory = audited_inventory(witness['audited_runtime_manifest_sha256'])
+    require(isinstance(recorded, dict) and set(recorded) == set(inventory)
+            and canonical_hash(recorded) == witness['audited_runtime_manifest_sha256'],
             'Witness does not contain exactly the audited runtime support inventory')
-    allowed = {'SOURCE_WITNESS.json', *SOURCE_PATHS}
+    allowed = {'SOURCE_WITNESS.json', *inventory}
     harness = witness['harness']
     if harness is not None:
         require(isinstance(harness, dict) and set(harness) == {'source_path', 'source_sha256'}
@@ -230,9 +332,14 @@ def make_plan(source, renderer='dx12', repeats=3, warmup=15, seconds=45, smoke=F
         for index, name in enumerate(['baseline'] if smoke else ['baseline', *rotated, 'baseline']):
             order.append({'run_id': f'r{repeat + 1:02d}-{index + 1:02d}-{name}',
                           'repeat': repeat + 1, 'case_id': name})
+    unavailable = dict(UNAVAILABLE)
+    if canonical_hash(source['runtime_files_sha256']) in (AUDITED_PRESENT_CANDIDATE_MANIFEST, AUDITED_GPU_CANDIDATE_MANIFEST):
+        unavailable['vsync_choices'] = 'The runtime has an opt-in concrete present-mode selector; this matrix fixes Fifo and does not compare other modes.'
+    if canonical_hash(source['runtime_files_sha256']) == AUDITED_GPU_CANDIDATE_MANIFEST:
+        unavailable['gpu_frame_duration'] = 'The runtime has opt-in GPU timestamp sidecars; this matrix leaves them disabled and does not compare GPU spans.'
     result = {'schema': PLAN_SCHEMA, 'source': source, 'source_origin': source_origin, 'renderer': renderer,
             'repeats': repeats, 'warmup_seconds': warmup, 'sample_seconds': seconds, 'smoke': smoke, 'pilot': pilot,
-            'cases': cases, 'order': order, 'unavailable_axes': UNAVAILABLE,
+            'cases': cases, 'order': order, 'unavailable_axes': unavailable,
             'fixed_runtime': {'present_mode': 'Fifo', 'application_fps_cap': None,
                               'native_sample_count': 1, 'viewmodel_extent': [1440, 900],
                               'reference_viewport': False, 'scene': 'vector_range_default_range',
@@ -247,7 +354,7 @@ def make_plan(source, renderer='dx12', repeats=3, warmup=15, seconds=45, smoke=F
         # Keep historical plans byte/schema-compatible. Only the new selection
         # carries this optional discriminator and its narrower evidence scope.
         result['static_diagnostics'] = True
-        result['unavailable_axes'] = {**UNAVAILABLE,
+        result['unavailable_axes'] = {**unavailable,
             'evolving_ads_movement': 'Unproven by this static selection. Prior WARP ADS remained at ADS=0 with no simulation-time progression; movement/ADS require a host where simulation advances.'}
     return result
 

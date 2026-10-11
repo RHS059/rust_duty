@@ -53,13 +53,30 @@ impl WgpuRenderer {
         selection: BackendSelection,
         force_fallback: bool,
     ) -> Result<Self, String> {
-        Self::new(width, height, selection, force_fallback, None).await
+        Self::new(width, height, selection, force_fallback, None, Default::default()).await
     }
     /// The surface owns an Arc clone, so the window cannot disappear while it is presented.
     pub async fn new_windowed(
         window: Arc<winit::window::Window>,
         selection: BackendSelection,
         force_fallback: bool,
+    ) -> Result<Self, String> {
+        Self::new_windowed_with_present_mode(window, selection, force_fallback, Default::default()).await
+    }
+    pub async fn new_windowed_with_present_mode(
+        window: Arc<winit::window::Window>,
+        selection: BackendSelection,
+        force_fallback: bool,
+        present_mode: super::present_policy::PresentModeRequest,
+    ) -> Result<Self, String> {
+        Self::new_windowed_with_diagnostics(window, selection, force_fallback,
+            super::RuntimeDiagnostics { present_mode, gpu_timestamps: false }).await
+    }
+    pub async fn new_windowed_with_diagnostics(
+        window: Arc<winit::window::Window>,
+        selection: BackendSelection,
+        force_fallback: bool,
+        diagnostics: super::RuntimeDiagnostics,
     ) -> Result<Self, String> {
         let size = window.inner_size();
         Self::new(
@@ -68,6 +85,7 @@ impl WgpuRenderer {
             selection,
             force_fallback,
             Some(window),
+            diagnostics,
         )
         .await
     }
@@ -77,8 +95,9 @@ impl WgpuRenderer {
         selection: BackendSelection,
         force_fallback: bool,
         window: Option<Arc<winit::window::Window>>,
+        diagnostics: super::RuntimeDiagnostics,
     ) -> Result<Self, String> {
-        let gpu = device::Gpu::new(selection, force_fallback, window, width, height).await?;
+        let gpu = device::Gpu::new_with_diagnostics(selection, force_fallback, window, width, height, diagnostics).await?;
         let error_scope = gpu.device.push_error_scope(wgpu::ErrorFilter::Validation);
         let result = (|| {
             let pipelines = mesh::Pipelines::new(&gpu.device);

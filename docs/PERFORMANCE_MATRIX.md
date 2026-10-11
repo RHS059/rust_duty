@@ -25,7 +25,7 @@ match its case. DPI scale must stay constant between runs.
 | Axis | Implemented matrix support |
 | --- | --- |
 | Surface resolution | 1280×720, 1920×1080, 2560×1440, diagnostic 3840×2160 via real window resize |
-| Present mode / FPS limit | Native `Fifo` only; no application limiter or vsync selector. Fifo is not necessarily 60 Hz |
+| Present mode / FPS limit | Matrix stays at native `Fifo`; the integrated candidate exposes opt-in concrete present modes separately. No application limiter; Fifo is not necessarily 60 Hz |
 | AA | Native single-sample targets/pipelines; no AA selection. Legacy requests 4x window MSAA, single-sample viewmodel texture |
 | LOD / visibility | No selectable LOD, frustum/occlusion-culling or offscreen mesh hiding mode; mesh `cull_mode=None` |
 | Scene complexity | Existing `--procedural-weapon` versus packaged presentation in the same default range |
@@ -67,6 +67,58 @@ match the native runtime's exact requested/actual fingerprint evidence.
   Mouse motion and other user input must be absent on the dedicated desktop.
   The driver checks focus/extent at the same 100 ms cadence in all cases. Its
   overhead remains in the protocol, including subprocess calls on X11.
+
+## RTX 3080 Ti / Windows DX12 capture checklist
+
+The target is stable **1920×1080 physical pixels at 60 FPS on the selected
+RTX 3080 Ti using the production wgpu DX12 runtime**. A software-adapter run,
+another backend, a build-only check, or an average alone cannot establish it.
+Keep the existing evidence-quality checks below; this checklist adds no new
+automatic pass threshold.
+
+Before comparing a baseline and candidate:
+
+1. Record both exact source commits, executable SHA-256 values, embedded build
+   labels and `BUILD_IDENTITY.json` files. Retain the actual build command,
+   Cargo profile/features, Rust toolchain, target and any compiler/profile
+   overrides from their build receipts. Current build identity binds the binary
+   and source but does not independently report the optimization profile,
+   `debug_assertions`, enabled features or compiler fingerprint. Do not infer
+   these from a filename or invent missing values. `Cargo.toml` configures thin
+   LTO and one codegen unit for release; the actual build must use that profile.
+   The convenience `run.bat` uses release but does not enable `wgpu-runtime`;
+   its default launch is legacy Macroquad, so it is not this DX12 protocol.
+2. Use the already selected exact DX12 `graphics-device.json`, not Auto, a name
+   substring or forced fallback. Keep the observed adapter fingerprint,
+   `driver` and `driver_info` with each trace. Record CPU model, Windows version,
+   display/refresh rate and power settings in `--hardware` notes, explicitly as
+   operator claims. Keep the same monitor, refresh, DPI and window mode for both
+   builds. Native Fifo does not itself mean 60 Hz; refresh/cadence is not
+   independently observed by this runner.
+3. Retain settings, graphics preferences, adjacent asset/UI hashes and observed
+   scene/presentation identity. Use the same default range, packaged presentation
+   and action protocol. Require actual 1920×1080 surface and CPU-stage extents;
+   do not use `--reference-viewport`. The viewmodel target remains 1440×900, so
+   label a resolution sweep accordingly. Keep Record on for all compared cases
+   and avoid screenshots/readbacks or unrelated GPU workloads during samples.
+4. Run the setup smoke, then the bounded pilot on each build on the same
+   dedicated Windows desktop. Preserve baseline brackets and individual runs.
+   Check simulation progression as well as ADS/movement outcomes; a static or
+   stalled scene cannot establish evolving-gameplay performance. A changed
+   inventoried runtime requires review of the source binding before capture;
+   do not bypass that check or reuse an older package as the candidate.
+5. Return each run's retained interval count/duration, p50/p95/p99, effective
+   present Hz, paired CPU-stage distributions and all failures with the raw
+   session exports. The 60 Hz budget is about 16.67 ms, but present-return
+   intervals are CPU pacing evidence, not scan-out or GPU execution time.
+   Compare application/draw-list, renderer-submit, acquire and present spans
+   before attributing a regression. GPU occupancy is not GPU frame duration;
+   current traces have no timestamp-query durations, actual-game draw/pass/
+   triangle counts or Record-off overhead measurement. Report these as missing.
+
+A repeatable RTX pilot is the next measurement after a source optimization.
+Synthetic submission benchmarks can explain a narrower cost but cannot replace
+that same-device, same-scene comparison or claim the 1080p60 target is met.
 
 ## Bounded experiment
 
@@ -128,8 +180,38 @@ setup success; the original failed receipt stays failed.
 ## Prepare and run
 
 Run commands from a checkout with the same source commit as the package. The
-17 inventoried runtime files must match the reviewed support manifest and be
-clean. An unknown source change requires an inventory review before its binding
+inventoried runtime files must match one exact reviewed support manifest and be
+clean. The historical 17-file inventory remains accepted unchanged for the
+source-49 package and pinned Windows software caller. The optional CPU substage
+build has a separate 20-file inventory: those same 17 paths plus
+`src/frame_cpu_substages.rs`, `src/render/frame.rs`, and `src/lib.rs`. Its recorder,
+session and device files were already in the original inventory. This expands
+the reviewed diagnostic support surface without changing the source-49 binding,
+render controls, four-span frame schema or measurement acceptance checks.
+The combined CPU candidate has a separate exact 24-file inventory, adding
+`src/draw/mod.rs`, `src/render/lines.rs`, `src/render/text.rs`, and
+`src/render/plan.rs` to the sidecar inventory. Its line recorder coalesces adjacent
+bit-identical model runs, and its text planner streams stack quads. New live
+exports check these four files even for historical builds: a narrower 17/20-file
+inventory is allowed only when their exact reviewed baseline bytes are unchanged.
+This prevents an edited CPU path from silently receiving a historical witness.
+Already exported historical witnesses keep their original bounded scope.
+The combined digest is
+`0a904c635739b3365ff99569466098e71b3d81e8e456939163421aad311fe4c5`.
+Source-level allocation reductions do not establish a measured CPU time or FPS
+gain. Line recording is inside `game_recording`; text planning is one part of
+`encode_submit`, which also includes uploads, encoding and queue submission.
+The present-policy integration has an exact 27-file inventory, adding
+`src/render/present_policy.rs`, `src/render/mod.rs`, and `src/render/backend.rs`.
+Its digest is
+`a6af645f2e1b5c4c71b9a65964a963a1ad1217a75efff7b0cf8f9c39280880a6`.
+New live exports also guard the baseline module declarations/backend bytes;
+removing the helper cannot authorize fallback to an older inventory. Historical
+17/20/24-file artifact witnesses remain valid at their original scopes. The
+present integration's plan states that this runner fixes Fifo; it does not pass
+a mode selector or relax actual Fifo validation. See the
+[integration boundaries and remaining checks](engineering/present-mode-integration.md).
+An unknown source change requires an inventory review before its binding
 is updated. Use a writable workspace directory as `TMPDIR` when
 the host's `/tmp` is full. Outputs are exclusively created and never overwritten.
 
@@ -145,8 +227,8 @@ python tools/performance_matrix.py prepare --repository . --renderer dx12 \
 ```
 
 For a portable machine without Git, export a bounded source witness from that
-verified checkout before allocating runtime. The export includes exactly the 17
-inventoried runtime files, `SOURCE_WITNESS.json`, and optionally the isolated GL
+verified checkout before allocating runtime. The export includes exactly its
+reviewed inventory's 17, 20, 24, 27 or 29 runtime files, `SOURCE_WITNESS.json`, and optionally the isolated GL
 harness. It creates no Git repository and makes no claim about the destination's
 HEAD. The source commit comes from the checked export's real Git identity.
 
@@ -161,7 +243,9 @@ Omit `--harness` for a production entrypoint. On the destination, replace
 `--source-witness source-witness --witness-sha256 EXPECTED_DIGEST`. The expected
 digest is required independently; it is never automatically trusted from the
 same artifact. Every source file, the reviewed support manifest and optional
-harness are checked before execution and again afterward. Extra files or links
+harness are checked before execution and again afterward. Each witness must
+declare the exact matching inventory digest and path set; mixing the old digest
+with the new paths, or dropping a sidecar source file, fails closed. Extra files or links
 fail closed. Source commit equality with the package and recorded session still
 applies. Plans, execution manifests and analysis distinguish `live-git` from
 `artifact-witness` and retain the witness digest.
@@ -239,3 +323,15 @@ can also dominate pacing. Neither observation isolates GPU duration. Compare
 actual devices only within their observed backend/present/display conditions,
 then re-run the bounded pilot on the selected RTX 3080 Ti before claiming the
 1080p60 goal has been met.
+
+### GPU-enabled source inventory
+
+The optional GPU/session integration has an exact 29-file runtime inventory,
+extending the reviewed present-policy inventory with `src/frame_gpu_capture.rs`
+and `src/render/gpu_timing.rs`. Live dirty, mutated, missing or partial GPU source
+cannot silently fall back to a historical witness. Historical artifact witnesses
+remain accepted only with their original exact inventories and external hashes.
+This matrix still leaves GPU timestamps disabled and fixes Fifo; use the separate
+[GPU sidecar reader](engineering/gpu-session-integration.md) for explicitly opted-in
+captures. Neither inventory acceptance nor a valid sidecar proves native runtime
+correctness or target performance.

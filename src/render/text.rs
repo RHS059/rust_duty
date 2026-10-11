@@ -14,6 +14,7 @@ const FONT_BYTES: &[u8] = include_bytes!("font/ProggyClean.ttf");
 const MAX_SIZE_PX: f32 = 1024.0;
 const MAX_CACHED_GLYPHS: usize = 4096;
 const MAX_CACHE_BYTES: usize = 32 * 1024 * 1024;
+pub(super) const QUAD_INDICES: [u16; 6] = [0, 1, 2, 0, 2, 3];
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 struct GlyphKey {
@@ -154,6 +155,30 @@ impl TextRenderer {
         size: f32,
         color: Color,
     ) -> Result<Vec<Mesh>, String> {
+        let mut meshes = Vec::new();
+        self.for_each_quad(text, baseline, size, color, |vertices, texture| {
+            meshes.push(Mesh {
+                vertices: vertices.to_vec(),
+                indices: QUAD_INDICES.to_vec(),
+                texture: Some(texture.clone()),
+            });
+            Ok(())
+        })?;
+        Ok(meshes)
+    }
+
+    /// Emits borrowed stack geometry in glyph order. The consumer must copy
+    /// geometry before returning; cached texture handles remain immutable.
+    /// An error aborts the stream. Runtime consumers discard their unfinished
+    /// frame plan, so no prefix is submitted after a later glyph fails.
+    pub(super) fn for_each_quad(
+        &mut self,
+        text: &str,
+        baseline: Vec2,
+        size: f32,
+        color: Color,
+        mut emit: impl FnMut(&[Vertex; 4], &Texture) -> Result<(), String>,
+    ) -> Result<(), String> {
         validate_size(size)?;
         if !baseline.is_finite()
             || ![color.r, color.g, color.b, color.a]
@@ -162,7 +187,6 @@ impl TextRenderer {
         {
             return Err("text baseline and color must be finite".into());
         }
-        let mut meshes = Vec::new();
         let mut advance = 0.0;
         for character in text.chars() {
             let key = self.key(character, size);
@@ -174,25 +198,25 @@ impl TextRenderer {
                 let top = baseline.y - metrics.ymin as f32 - metrics.height as f32;
                 let right = left + metrics.width as f32;
                 let bottom = top + metrics.height as f32;
-                let mesh = Mesh {
-                    vertices: vec![
-                        Vertex::new(left, top, 0.0, 0.0, 0.0, color),
-                        Vertex::new(right, top, 0.0, 1.0, 0.0, color),
-                        Vertex::new(right, bottom, 0.0, 1.0, 1.0, color),
-                        Vertex::new(left, bottom, 0.0, 0.0, 1.0, color),
-                    ],
-                    indices: vec![0, 1, 2, 0, 2, 3],
-                    texture: Some(texture.clone()),
-                };
-                mesh.validate()?;
-                meshes.push(mesh);
+                let vertices = [
+                    Vertex::new(left, top, 0.0, 0.0, 0.0, color),
+                    Vertex::new(right, top, 0.0, 1.0, 0.0, color),
+                    Vertex::new(right, bottom, 0.0, 1.0, 1.0, color),
+                    Vertex::new(left, bottom, 0.0, 0.0, 1.0, color),
+                ];
+                // UVs, normals and fixed local indices are finite/in-range by
+                // construction. Retain Mesh::validate's position overflow gate.
+                if vertices.iter().any(|vertex| !vertex.position.is_finite()) {
+                    return Err("non-finite mesh vertex".into());
+                }
+                emit(&vertices, texture)?;
             }
             advance += metrics.advance_width;
             if !advance.is_finite() {
                 return Err("text advance exceeds finite screen coordinates".into());
             }
         }
-        Ok(meshes)
+        Ok(())
     }
 
     fn key(&self, character: char, size: f32) -> GlyphKey {
@@ -261,6 +285,86 @@ mod tests {
 
     fn renderer() -> TextRenderer {
         TextRenderer::new().expect("embedded, licensed font is valid")
+    }
+
+    #[test]
+    fn streamed_quads_match_fixed_geometry_and_preserve_texture_identity() {
+        let mut renderer = renderer();
+        let color = Color::new(0.25, 0.5, 0.75, 0.5);
+        let mut quads = Vec::new();
+        renderer
+            .for_each_quad("Ag ", Vec2::new(10., 20.), 16., color, |vertices, texture| {
+                quads.push((*vertices, texture.clone()));
+                Ok(())
+            })
+            .unwrap();
+        assert_eq!(quads.len(), 2);
+        for ((vertices, _), bounds) in quads.iter().zip([
+            [(11., 12.), (17., 12.), (17., 20.), (11., 20.)],
+            [(18., 14.), (23., 14.), (23., 23.), (18., 23.)],
+        ]) {
+            for ((vertex, (x, y)), uv) in vertices.iter().zip(bounds).zip([
+                Vec2::ZERO,
+                Vec2::X,
+                Vec2::ONE,
+                Vec2::Y,
+            ]) {
+                assert_eq!(vertex.position, glam::vec3(x, y, 0.));
+                assert_eq!(vertex.uv, uv);
+                assert_eq!(vertex.normal, glam::Vec4::ZERO);
+                assert_eq!(vertex.color, <[u8; 4]>::from(color));
+            }
+        }
+        assert_eq!(QUAD_INDICES, [0, 1, 2, 0, 2, 3]);
+        let collected = renderer
+            .meshes("Ag ", Vec2::new(10., 20.), 16., color)
+            .unwrap();
+        for (mesh, (vertices, texture)) in collected.iter().zip(&quads) {
+            assert_eq!(mesh.vertices.as_slice(), vertices);
+            assert_eq!(mesh.indices, QUAD_INDICES);
+            assert_eq!(mesh.texture.as_ref().unwrap().id, texture.id);
+        }
+    }
+
+    #[test]
+    fn streamed_sink_error_stops_without_visiting_later_glyphs() {
+        let mut renderer = renderer();
+        let mut calls = 0;
+        let error = renderer
+            .for_each_quad("ABC", Vec2::ZERO, 16., Color::WHITE, |_, _| {
+                calls += 1;
+                Err("synthetic sink failure".into())
+            })
+            .unwrap_err();
+        assert_eq!(error, "synthetic sink failure");
+        assert_eq!(calls, 1);
+        assert_eq!(renderer.glyphs.len(), 1);
+    }
+
+    #[test]
+    fn streamed_invalid_input_never_reaches_sink_and_late_overflow_fails() {
+        let mut renderer = renderer();
+        let mut calls = 0;
+        assert!(renderer
+            .for_each_quad("A", Vec2::ZERO, f32::NAN, Color::WHITE, |_, _| {
+                calls += 1;
+                Ok(())
+            })
+            .is_err());
+        assert_eq!(calls, 0);
+        assert!(renderer.glyphs.is_empty());
+        renderer.meshes("A", Vec2::ZERO, 16., Color::WHITE).unwrap();
+        let key = renderer.key('A', 16.);
+        renderer.glyphs.get_mut(&key).unwrap().metrics.advance_width = f32::MAX;
+        let error = renderer
+            .for_each_quad("AA", Vec2::ZERO, 16., Color::WHITE, |_, _| {
+                calls += 1;
+                Ok(())
+            })
+            .unwrap_err();
+        assert_eq!(error, "text advance exceeds finite screen coordinates");
+        assert_eq!(calls, 2);
+        assert!(renderer.meshes("AA", Vec2::ZERO, 16., Color::WHITE).is_err());
     }
 
     #[test]
