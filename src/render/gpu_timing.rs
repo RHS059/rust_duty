@@ -40,9 +40,13 @@ pub enum Availability {
     Disabled,
     /// Required bits are missing from the created device. This does not establish
     /// whether the adapter advertised them before device creation.
-    DeviceFeaturesNotEnabled { missing_features: wgpu::Features },
+    DeviceFeaturesNotEnabled {
+        missing_features: wgpu::Features,
+    },
     InvalidTimestampPeriod,
-    Available { timestamp_period_ns: f64 },
+    Available {
+        timestamp_period_ns: f64,
+    },
 }
 
 fn availability(enabled: bool, enabled_features: wgpu::Features, period_ns: f64) -> Availability {
