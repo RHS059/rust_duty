@@ -5,6 +5,26 @@ import yaml
 
 
 class QualityDependencyTests(unittest.TestCase):
+    def test_windows_quality_checkouts_preserve_exact_committed_bytes(self):
+        root = Path(__file__).resolve().parents[1] / '.github/workflows'
+        checked = []
+        for filename in ('build.yml', 'windows-source-bound-recovery.yml'):
+            workflow = yaml.safe_load((root / filename).read_text())
+            for name, job in workflow['jobs'].items():
+                steps = job.get('steps', [])
+                if not any('ci_quality_checks.py' in step.get('run', '') for step in steps):
+                    continue
+                self.assertEqual(job['runs-on'], 'windows-latest')
+                checkout = next(step for step in steps
+                                if step.get('uses', '').startswith('actions/checkout@'))
+                env = {**workflow.get('env', {}), **job.get('env', {}),
+                       **checkout.get('env', {})}
+                self.assertEqual(env.get('GIT_CONFIG_COUNT'), '1', filename)
+                self.assertEqual(env.get('GIT_CONFIG_KEY_0'), 'core.autocrlf', filename)
+                self.assertEqual(env.get('GIT_CONFIG_VALUE_0'), 'false', filename)
+                checked.append((filename, name))
+        self.assertEqual(len(checked), 2)
+
     def test_all_full_quality_jobs_install_pinned_yaml_before_discovery(self):
         root=Path(__file__).resolve().parents[1]/'.github/workflows'
         checked=[]
