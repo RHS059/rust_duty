@@ -27,7 +27,7 @@ jobs:
       - name: Check out the independently owned exact present-policy source
         uses: actions/checkout@v4
         with:
-          ref: fc4787e0e6ba694883ac348e18cfae4d86cfbdde
+          ref: f97c878f63a72c979ed6033fa72689490cbfd024
           path: .present-policy-source
           persist-credentials: false
           sparse-checkout: src/render/present_policy.rs

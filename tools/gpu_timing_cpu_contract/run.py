@@ -14,7 +14,7 @@ import sys
 ROOT = Path(__file__).resolve().parents[2]
 HARNESS = Path(__file__).resolve().parent
 EVIDENCE = ROOT / 'evidence' / 'gpu-timing-cpu-contract'
-PRESENT_SHA = 'fc4787e0e6ba694883ac348e18cfae4d86cfbdde'
+PRESENT_SHA = 'f97c878f63a72c979ed6033fa72689490cbfd024'
 
 
 def run(name, command, *, input_bytes=None):
@@ -67,6 +67,15 @@ def main():
     # Exact formatter output can be recovered from read-only logs when artifact
     # downloads are unavailable. These are public project source bytes, no secrets.
     print('FORMATTED_SOURCE_JSON=' + json.dumps(formatted, separators=(',', ':')), flush=True)
+    lock = HARNESS / 'Cargo.lock'
+    committed_lock = lock.read_bytes()
+    if run('lock-normalization', ['cargo', 'metadata', '--manifest-path', str(HARNESS / 'Cargo.toml'), '--format-version', '1']).returncode != 0:
+        failures.append('lock-normalization')
+    normalized_lock = lock.read_bytes()
+    if normalized_lock != committed_lock:
+        failures.append('lockfile_changed_requires_commit')
+    print('NORMALIZED_LOCK_BASE64=' + base64.b64encode(normalized_lock).decode('ascii'), flush=True)
+    (EVIDENCE / 'Cargo.lock').write_bytes(normalized_lock)
     for name, command in [
         ('clippy', ['cargo', 'clippy', '--manifest-path', str(HARNESS / 'Cargo.toml'), '--locked', '--all-targets', '--', '-D', 'warnings']),
         ('unit-tests', ['cargo', 'test', '--manifest-path', str(HARNESS / 'Cargo.toml'), '--locked', '--', '--nocapture']),

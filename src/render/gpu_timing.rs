@@ -185,7 +185,10 @@ impl Lifecycle {
     }
 
     fn release(&mut self) -> FrameKey {
-        let frame = self.frame.take().expect("occupied timestamp slot has a frame");
+        let frame = self
+            .frame
+            .take()
+            .expect("occupied timestamp slot has a frame");
         self.phase = Phase::Free;
         frame
     }
@@ -274,7 +277,11 @@ impl GpuTimer {
     /// Place immediately before the first command to include in the GPU span.
     /// No free slot means no timestamp commands and an explicit unavailable
     /// sample. Gameplay is still submitted normally; this never drops a frame.
-    pub fn begin_frame(&mut self, frame: FrameKey, encoder: &mut wgpu::CommandEncoder) -> BeginFrame {
+    pub fn begin_frame(
+        &mut self,
+        frame: FrameKey,
+        encoder: &mut wgpu::CommandEncoder,
+    ) -> BeginFrame {
         let unavailable = if self.stopped {
             Some(SampleStatus::Stopped)
         } else {
@@ -306,7 +313,10 @@ impl GpuTimer {
         if !Arc::ptr_eq(&self.owner, &ticket.owner) {
             return Err("timestamp ticket belongs to another timer");
         }
-        let slot = self.slots.get_mut(ticket.slot).ok_or("timestamp timer stopped")?;
+        let slot = self
+            .slots
+            .get_mut(ticket.slot)
+            .ok_or("timestamp timer stopped")?;
         if slot.lifecycle.generation != ticket.generation {
             return Err("stale timestamp ticket");
         }
@@ -321,7 +331,8 @@ impl GpuTimer {
         encoder: &mut wgpu::CommandEncoder,
     ) -> Result<(), &'static str> {
         let slot = self.slot(ticket)?;
-        slot.lifecycle.transition(ticket.generation, Phase::Recording, Phase::Encoded)?;
+        slot.lifecycle
+            .transition(ticket.generation, Phase::Recording, Phase::Encoded)?;
         encoder.write_timestamp(&slot.queries, 1);
         // Offset zero meets QUERY_RESOLVE_BUFFER_ALIGNMENT (256). Two queries
         // write exactly two u64 values; no 256-byte buffer length is required.
@@ -334,20 +345,30 @@ impl GpuTimer {
     /// merely sets an atomic flag and never blocks the submit/polling thread.
     pub fn after_submit(&mut self, ticket: &SampleTicket) -> Result<(), &'static str> {
         let slot = self.slot(ticket)?;
-        slot.lifecycle.transition(ticket.generation, Phase::Encoded, Phase::Pending)?;
+        slot.lifecycle
+            .transition(ticket.generation, Phase::Encoded, Phase::Pending)?;
         let completion = slot.completion.clone();
-        slot.readback.slice(..).map_async(wgpu::MapMode::Read, move |result| {
-            completion.store(
-                if result.is_ok() { CALLBACK_READY } else { CALLBACK_FAILED },
-                Ordering::Release,
-            );
-        });
+        slot.readback
+            .slice(..)
+            .map_async(wgpu::MapMode::Read, move |result| {
+                completion.store(
+                    if result.is_ok() {
+                        CALLBACK_READY
+                    } else {
+                        CALLBACK_FAILED
+                    },
+                    Ordering::Release,
+                );
+            });
         Ok(())
     }
 
     /// An encoding/submission path that abandoned its encoder must release its
     /// ticket. Never use this after submission, including a failed present.
-    pub fn abandon_unsubmitted(&mut self, ticket: &SampleTicket) -> Result<GpuSample, &'static str> {
+    pub fn abandon_unsubmitted(
+        &mut self,
+        ticket: &SampleTicket,
+    ) -> Result<GpuSample, &'static str> {
         let slot = self.slot(ticket)?;
         if !matches!(slot.lifecycle.phase, Phase::Recording | Phase::Encoded) {
             return Err("only an unsubmitted timestamp reservation can be abandoned");
@@ -362,7 +383,10 @@ impl GpuTimer {
     /// existing PollType::Poll. This method itself never polls or waits. Result
     /// count is bounded by SLOT_COUNT; results may arrive after later CPU frames.
     pub fn collect_ready(&mut self) -> Vec<GpuSample> {
-        let Availability::Available { timestamp_period_ns } = self.availability else {
+        let Availability::Available {
+            timestamp_period_ns,
+        } = self.availability
+        else {
             return Vec::new();
         };
         let mut samples = Vec::new();
@@ -421,7 +445,10 @@ mod tests {
     use super::*;
 
     fn key(attempt: u64) -> FrameKey {
-        FrameKey { session: 42, attempt }
+        FrameKey {
+            session: 42,
+            attempt,
+        }
     }
 
     #[test]
@@ -437,18 +464,24 @@ mod tests {
             ] {
                 let requested = requested_features(enabled, available);
                 assert!(available.contains(requested));
-                assert_eq!(requested, if enabled && available.contains(required) {
-                    required
-                } else {
-                    wgpu::Features::empty()
-                });
+                assert_eq!(
+                    requested,
+                    if enabled && available.contains(required) {
+                        required
+                    } else {
+                        wgpu::Features::empty()
+                    }
+                );
             }
         }
     }
 
     #[test]
     fn unsupported_disabled_and_invalid_period_are_distinct() {
-        assert_eq!(availability(false, required_features(), 0.0), Availability::Disabled);
+        assert_eq!(
+            availability(false, required_features(), 0.0),
+            Availability::Disabled
+        );
         assert_eq!(
             availability(true, wgpu::Features::TIMESTAMP_QUERY, 1.0),
             Availability::Unsupported {
@@ -456,9 +489,17 @@ mod tests {
             }
         );
         for period in [0.0, -1.0, f64::NAN, f64::INFINITY] {
-            assert_eq!(availability(true, required_features(), period), Availability::InvalidTimestampPeriod);
+            assert_eq!(
+                availability(true, required_features(), period),
+                Availability::InvalidTimestampPeriod
+            );
         }
-        assert_eq!(availability(true, required_features(), 2.5), Availability::Available { timestamp_period_ns: 2.5 });
+        assert_eq!(
+            availability(true, required_features(), 2.5),
+            Availability::Available {
+                timestamp_period_ns: 2.5
+            }
+        );
     }
 
     #[test]
@@ -485,10 +526,14 @@ mod tests {
     #[test]
     fn unavailable_samples_never_synthesize_timestamps_or_zero_duration() {
         for status in [
-            SampleStatus::Disabled, SampleStatus::Unsupported,
-            SampleStatus::InvalidTimestampPeriod, SampleStatus::RingFull,
-            SampleStatus::MapFailed, SampleStatus::AbandonedBeforeSubmit,
-            SampleStatus::PendingAtStop, SampleStatus::Stopped,
+            SampleStatus::Disabled,
+            SampleStatus::Unsupported,
+            SampleStatus::InvalidTimestampPeriod,
+            SampleStatus::RingFull,
+            SampleStatus::MapFailed,
+            SampleStatus::AbandonedBeforeSubmit,
+            SampleStatus::PendingAtStop,
+            SampleStatus::Stopped,
         ] {
             let sample = GpuSample::unavailable(key(3), status);
             assert_eq!(sample.frame, key(3));
@@ -505,14 +550,20 @@ mod tests {
         let mut slot = Lifecycle::new();
         let first = slot.reserve(key(1)).unwrap();
         assert!(slot.reserve(key(2)).is_none());
-        assert!(slot.transition(first, Phase::Encoded, Phase::Pending).is_err());
-        slot.transition(first, Phase::Recording, Phase::Encoded).unwrap();
-        slot.transition(first, Phase::Encoded, Phase::Pending).unwrap();
+        assert!(slot
+            .transition(first, Phase::Encoded, Phase::Pending)
+            .is_err());
+        slot.transition(first, Phase::Recording, Phase::Encoded)
+            .unwrap();
+        slot.transition(first, Phase::Encoded, Phase::Pending)
+            .unwrap();
         assert!(slot.reserve(key(2)).is_none());
         assert_eq!(slot.release(), key(1));
         let second = slot.reserve(key(2)).unwrap();
         assert_ne!(first, second);
-        assert!(slot.transition(first, Phase::Recording, Phase::Encoded).is_err());
+        assert!(slot
+            .transition(first, Phase::Recording, Phase::Encoded)
+            .is_err());
         assert_eq!(slot.frame, Some(key(2)));
     }
 
@@ -521,8 +572,10 @@ mod tests {
         let mut slots: Vec<_> = (0..SLOT_COUNT).map(|_| Lifecycle::new()).collect();
         for (index, slot) in slots.iter_mut().enumerate() {
             let generation = slot.reserve(key(index as u64)).unwrap();
-            slot.transition(generation, Phase::Recording, Phase::Encoded).unwrap();
-            slot.transition(generation, Phase::Encoded, Phase::Pending).unwrap();
+            slot.transition(generation, Phase::Recording, Phase::Encoded)
+                .unwrap();
+            slot.transition(generation, Phase::Encoded, Phase::Pending)
+                .unwrap();
         }
         assert!(slots.iter_mut().all(|slot| slot.reserve(key(99)).is_none()));
         for (index, slot) in slots.iter_mut().enumerate() {
