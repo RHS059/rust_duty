@@ -30,6 +30,11 @@ class GpuSessionWorkflowTests(unittest.TestCase):
                           'workflow_call', 'strategy:', 'merge-pull-request', 'gh pr merge'):
             self.assertNotIn(forbidden, self.body)
 
+    def test_all_source_bound_tools_trigger_native_revalidation(self):
+        # Includes transitive process/atomic-output helpers and any future tools
+        # that enter source_binding(), not only the top-level runner/readers.
+        self.assertIn('tools/**', self.workflow['on']['push']['paths'])
+
     def test_checkout_contains_compile_sources_but_no_optional_or_private_assets(self):
         checkout = next(step['with'] for step in self.steps if step.get('uses') == 'actions/checkout@v4')
         self.assertEqual(checkout['persist-credentials'], 'false')
