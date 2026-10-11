@@ -1,0 +1,96 @@
+name: Bounded Windows GPU-session integration
+on:
+  push:
+    branches: [aella/wgpu-1080p-diagnostics]
+    paths:
+      - '.github/workflows/gpu-session-contract.yml'
+      - 'examples/gpu_session_contract.rs'
+      - 'tools/run_gpu_session_contract.py'
+      - 'tools/test_gpu_session_contract.py'
+      - 'tools/test_gpu_session_workflow.py'
+      - 'tools/summarize_gpu_timing.py'
+      - 'tools/summarize_cpu_substages.py'
+      - 'tools/summarize_frame_performance.py'
+      - 'tools/performance_matrix.py'
+      - 'tools/dx12_contract_process.py'
+      - 'src/**'
+      - 'updater/**'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - 'build.rs'
+      - 'build_number.rs'
+      - 'rust-toolchain.toml'
+      - 'rust-toolchain'
+      - '.cargo/**'
+      - '.gitattributes'
+permissions:
+  contents: read
+concurrency:
+  group: gpu-session-contract-${{ github.ref }}
+  cancel-in-progress: false
+env:
+  GIT_CONFIG_COUNT: '1'
+  GIT_CONFIG_KEY_0: core.autocrlf
+  GIT_CONFIG_VALUE_0: 'false'
+jobs:
+  windowed-gpu-session:
+    if: github.repository == 'RHS059/rust_duty' && github.ref == 'refs/heads/aella/wgpu-1080p-diagnostics'
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /.gitattributes
+            /.gitignore
+            /.cargo/
+            /Cargo.toml
+            /Cargo.lock
+            /build.rs
+            /build_number.rs
+            /rust-toolchain.toml
+            /rust-toolchain
+            /LICENSE
+            /THIRD_PARTY_LICENSES.txt
+            /src/
+            /updater/
+            /examples/gpu_session_contract.rs
+            /tools/
+            /.github/workflows/gpu-session-contract.yml
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install pinned evidence-reader dependencies
+        run: python -m pip install Pillow==11.3.0 PyYAML==6.0.3
+      - name: Check the new fixture's formatting
+        run: rustfmt --edition 2021 --check examples/gpu_session_contract.rs
+      - name: Test fixture, strict-reader, process and workflow guards
+        env:
+          PYTHONPATH: tools
+        run: >-
+          python -m unittest -v test_gpu_session_contract test_summarize_gpu_timing
+          test_dx12_contract_process test_gpu_session_workflow
+      - name: Build and verify enabled and default-off production session paths
+        timeout-minutes: 24
+        run: >-
+          python tools/run_gpu_session_contract.py --root .
+          --evidence evidence/gpu-session --timeout 90 --build-timeout 1200
+      - name: Retain source binding, exact exports and process evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gpu-session-contract-attempt-${{ github.run_attempt }}
+          path: |
+            evidence/gpu-session/**
+            !evidence/gpu-session/target/**
+            !evidence/gpu-session/**/*.exe
+            !evidence/gpu-session/**/*.dll
+            !evidence/gpu-session/**/assets/**
+          include-hidden-files: true
+          if-no-files-found: warn
+          retention-days: 7
