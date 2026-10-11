@@ -40,7 +40,9 @@ Aella's held renderer/compiler/publication work.
 
 The stop case proves owner/session separation. `unmap` may synchronously cancel
 the old map callback; this harness does **not** claim an old map callback was
-observed arriving after restart. Map failure and device loss are not induced.
+observed arriving after restart. The accepted-verdict `pending_at_stop` race is
+not exercised by this withheld-verdict scenario. Map failure and device loss are
+not induced.
 
 The queue witness uses the pinned wgpu guarantee that mapped-buffer callbacks
 registered for the same submission have run before

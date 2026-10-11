@@ -257,7 +257,8 @@ def main():
     summary = {'status': status, 'failed_checks': failures,
                'scenarios': [{'name': r['name'], 'status': r['status'], 'reason': r.get('reason')} for r in results],
                'not_tested': ['game integration', 'presentation', 'hardware FPS', 'instrumentation overhead',
-                              'forced device loss', 'deterministic map failure', 'old helper map callback proven delivered after restart'],
+                              'forced device loss', 'deterministic map failure', 'accepted-verdict pending_at_stop race',
+                              'old helper map callback proven delivered after restart'],
                'fps_verdict': None, 'hardware_performance_verdict': None}
     (EVIDENCE / 'result.json').write_text(json.dumps(summary, indent=2) + '\n', encoding='utf-8')
     print('DX12_CONTRACT_RESULT=' + json.dumps(summary), flush=True)
