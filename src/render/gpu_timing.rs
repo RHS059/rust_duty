@@ -38,7 +38,9 @@ pub fn required_features() -> wgpu::Features {
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Availability {
     Disabled,
-    Unsupported { missing_features: wgpu::Features },
+    /// Required bits are missing from the created device. This does not establish
+    /// whether the adapter advertised them before device creation.
+    DeviceFeaturesNotEnabled { missing_features: wgpu::Features },
     InvalidTimestampPeriod,
     Available { timestamp_period_ns: f64 },
 }
@@ -47,7 +49,7 @@ fn availability(enabled: bool, enabled_features: wgpu::Features, period_ns: f64)
     if !enabled {
         Availability::Disabled
     } else if !enabled_features.contains(required_features()) {
-        Availability::Unsupported {
+        Availability::DeviceFeaturesNotEnabled {
             missing_features: required_features() - enabled_features,
         }
     } else if !period_ns.is_finite() || period_ns <= 0.0 {
@@ -71,7 +73,7 @@ pub struct FrameKey {
 pub enum SampleStatus {
     Measured,
     Disabled,
-    Unsupported,
+    DeviceFeaturesNotEnabled,
     InvalidTimestampPeriod,
     RingFull,
     MapFailed,
@@ -88,7 +90,7 @@ impl SampleStatus {
         match self {
             Self::Measured => "measured",
             Self::Disabled => "disabled",
-            Self::Unsupported => "unsupported",
+            Self::DeviceFeaturesNotEnabled => "device_features_not_enabled",
             Self::InvalidTimestampPeriod => "invalid_timestamp_period",
             Self::RingFull => "ring_full",
             Self::MapFailed => "map_failed",
@@ -222,7 +224,10 @@ impl Lifecycle {
         generation: u64,
         verdict: SubmissionValidation,
     ) -> Result<(), &'static str> {
-        if self.generation != generation || self.phase != Phase::Pending || self.validation.is_some() {
+        if self.generation != generation
+            || self.phase != Phase::Pending
+            || self.validation.is_some()
+        {
             return Err("submission validation requires one current submitted reservation");
         }
         self.validation = Some(verdict);
@@ -288,7 +293,8 @@ pub struct GpuTimer {
 
 impl GpuTimer {
     /// Create once for an opted-in diagnostic session. No device/surface is
-    /// created here. Disabled/unsupported sessions allocate no GPU resources.
+    /// created here. Disabled/unavailable sessions allocate no GPU resources.
+    /// Availability inspects enabled device features, not adapter capabilities.
     pub fn new(device: &wgpu::Device, queue: &wgpu::Queue, enabled: bool) -> Self {
         let features = device.features();
         let period_ns = if enabled && features.contains(required_features()) {
@@ -349,7 +355,9 @@ impl GpuTimer {
         } else {
             match self.availability {
                 Availability::Disabled => Some(SampleStatus::Disabled),
-                Availability::Unsupported { .. } => Some(SampleStatus::Unsupported),
+                Availability::DeviceFeaturesNotEnabled { .. } => {
+                    Some(SampleStatus::DeviceFeaturesNotEnabled)
+                }
                 Availability::InvalidTimestampPeriod => Some(SampleStatus::InvalidTimestampPeriod),
                 Availability::Available { .. } => None,
             }
@@ -435,7 +443,9 @@ impl GpuTimer {
         ticket: &SampleTicket,
         verdict: SubmissionValidation,
     ) -> Result<(), &'static str> {
-        self.slot(ticket)?.lifecycle.confirm_submission(ticket.generation, verdict)
+        self.slot(ticket)?
+            .lifecycle
+            .confirm_submission(ticket.generation, verdict)
     }
 
     /// An encoding/submission path that abandoned its encoder must release its
@@ -474,19 +484,24 @@ impl GpuTimer {
                 continue;
             }
             let frame = slot.lifecycle.frame.expect("pending timestamp has a frame");
-            let validation = slot.lifecycle.validation.expect("ready sample has a validation verdict");
-            let ticks = if validation == SubmissionValidation::Accepted && completion == CALLBACK_READY {
-                match slot.readback.slice(..).get_mapped_range() {
-                    Ok(mapped) => Ok([
-                        u64::from_le_bytes(mapped[0..8].try_into().unwrap()),
-                        u64::from_le_bytes(mapped[8..16].try_into().unwrap()),
-                    ]),
-                    Err(_) => Err(()),
-                }
-            } else {
-                Err(())
-            };
-            let sample = GpuSample::from_validated_readback(frame, validation, ticks, timestamp_period_ns);
+            let validation = slot
+                .lifecycle
+                .validation
+                .expect("ready sample has a validation verdict");
+            let ticks =
+                if validation == SubmissionValidation::Accepted && completion == CALLBACK_READY {
+                    match slot.readback.slice(..).get_mapped_range() {
+                        Ok(mapped) => Ok([
+                            u64::from_le_bytes(mapped[0..8].try_into().unwrap()),
+                            u64::from_le_bytes(mapped[8..16].try_into().unwrap()),
+                        ]),
+                        Err(_) => Err(()),
+                    }
+                } else {
+                    Err(())
+                };
+            let sample =
+                GpuSample::from_validated_readback(frame, validation, ticks, timestamp_period_ns);
             // The mapped view above has been dropped before unmapping or reuse.
             slot.readback.unmap();
             slot.lifecycle.release();
@@ -551,16 +566,29 @@ mod tests {
     }
 
     #[test]
-    fn unsupported_disabled_and_invalid_period_are_distinct() {
+    fn missing_enabled_features_disabled_and_invalid_period_are_distinct() {
         assert_eq!(
             availability(false, required_features(), 0.0),
             Availability::Disabled
         );
         assert_eq!(
             availability(true, wgpu::Features::TIMESTAMP_QUERY, 1.0),
-            Availability::Unsupported {
+            Availability::DeviceFeaturesNotEnabled {
                 missing_features: wgpu::Features::TIMESTAMP_QUERY_INSIDE_ENCODERS,
             }
+        );
+        // An adapter may support the pair while an earlier disabled session
+        // requested neither bit on this device. Do not label it unsupported.
+        let unrequested = requested_features(false, required_features());
+        assert_eq!(
+            availability(true, unrequested, 1.0),
+            Availability::DeviceFeaturesNotEnabled {
+                missing_features: required_features(),
+            }
+        );
+        assert_eq!(
+            SampleStatus::DeviceFeaturesNotEnabled.label(),
+            "device_features_not_enabled"
         );
         for period in [0.0, -1.0, f64::NAN, f64::INFINITY] {
             assert_eq!(
@@ -601,7 +629,7 @@ mod tests {
     fn unavailable_samples_never_synthesize_timestamps_or_zero_duration() {
         for status in [
             SampleStatus::Disabled,
-            SampleStatus::Unsupported,
+            SampleStatus::DeviceFeaturesNotEnabled,
             SampleStatus::InvalidTimestampPeriod,
             SampleStatus::RingFull,
             SampleStatus::MapFailed,
@@ -672,11 +700,14 @@ mod tests {
     fn map_success_never_qualifies_before_explicit_submission_validation() {
         let mut slot = Lifecycle::new();
         let generation = slot.reserve(key(1)).unwrap();
-        slot.transition(generation, Phase::Recording, Phase::Encoded).unwrap();
-        slot.transition(generation, Phase::Encoded, Phase::Pending).unwrap();
+        slot.transition(generation, Phase::Recording, Phase::Encoded)
+            .unwrap();
+        slot.transition(generation, Phase::Encoded, Phase::Pending)
+            .unwrap();
         assert!(!slot.completion_ready(CALLBACK_READY));
         assert!(!slot.completion_ready(CALLBACK_FAILED));
-        slot.confirm_submission(generation, SubmissionValidation::Accepted).unwrap();
+        slot.confirm_submission(generation, SubmissionValidation::Accepted)
+            .unwrap();
         assert!(slot.completion_ready(CALLBACK_READY));
         assert!(!slot.completion_ready(CALLBACK_PENDING));
     }
@@ -685,7 +716,10 @@ mod tests {
     fn rejected_submission_discards_successfully_mapped_zero_or_prior_frame_ticks() {
         for stale in [[0, 0], [1_000, 1_100]] {
             let sample = GpuSample::from_validated_readback(
-                key(99), SubmissionValidation::Rejected, Ok(stale), 2.5,
+                key(99),
+                SubmissionValidation::Rejected,
+                Ok(stale),
+                2.5,
             );
             assert_eq!(sample.frame, key(99));
             assert_eq!(sample.status, SampleStatus::SubmissionRejected);
@@ -698,11 +732,17 @@ mod tests {
     #[test]
     fn accepted_submission_and_mapping_are_both_required_for_measured_ticks() {
         let measured = GpuSample::from_validated_readback(
-            key(1), SubmissionValidation::Accepted, Ok([100, 110]), 2.0,
+            key(1),
+            SubmissionValidation::Accepted,
+            Ok([100, 110]),
+            2.0,
         );
         assert_eq!(measured.elapsed_ns, Some(20.0));
         let failed = GpuSample::from_validated_readback(
-            key(2), SubmissionValidation::Accepted, Err(()), 2.0,
+            key(2),
+            SubmissionValidation::Accepted,
+            Err(()),
+            2.0,
         );
         assert_eq!(failed.status, SampleStatus::MapFailed);
         assert_eq!(failed.elapsed_ns, None);
@@ -712,34 +752,54 @@ mod tests {
     fn rejection_still_waits_for_callback_and_verdict_never_leaks_into_reused_slot() {
         let mut slot = Lifecycle::new();
         let first = slot.reserve(key(1)).unwrap();
-        slot.transition(first, Phase::Recording, Phase::Encoded).unwrap();
-        slot.transition(first, Phase::Encoded, Phase::Pending).unwrap();
-        slot.confirm_submission(first, SubmissionValidation::Rejected).unwrap();
+        slot.transition(first, Phase::Recording, Phase::Encoded)
+            .unwrap();
+        slot.transition(first, Phase::Encoded, Phase::Pending)
+            .unwrap();
+        slot.confirm_submission(first, SubmissionValidation::Rejected)
+            .unwrap();
         assert!(!slot.completion_ready(CALLBACK_PENDING));
         assert!(slot.completion_ready(CALLBACK_READY));
-        assert!(slot.confirm_submission(first, SubmissionValidation::Accepted).is_err());
+        assert!(slot
+            .confirm_submission(first, SubmissionValidation::Accepted)
+            .is_err());
         slot.release();
         let second = slot.reserve(key(2)).unwrap();
-        slot.transition(second, Phase::Recording, Phase::Encoded).unwrap();
-        slot.transition(second, Phase::Encoded, Phase::Pending).unwrap();
+        slot.transition(second, Phase::Recording, Phase::Encoded)
+            .unwrap();
+        slot.transition(second, Phase::Encoded, Phase::Pending)
+            .unwrap();
         assert_eq!(slot.validation, None);
         assert!(!slot.completion_ready(CALLBACK_READY));
-        assert!(slot.confirm_submission(first, SubmissionValidation::Accepted).is_err());
+        assert!(slot
+            .confirm_submission(first, SubmissionValidation::Accepted)
+            .is_err());
     }
 
     #[test]
     fn terminal_status_distinguishes_unconfirmed_rejected_and_pending_accepted_work() {
         for (verdict, expected) in [
             (None, SampleStatus::ValidationUnconfirmedAtStop),
-            (Some(SubmissionValidation::Rejected), SampleStatus::SubmissionRejected),
-            (Some(SubmissionValidation::Accepted), SampleStatus::PendingAtStop),
+            (
+                Some(SubmissionValidation::Rejected),
+                SampleStatus::SubmissionRejected,
+            ),
+            (
+                Some(SubmissionValidation::Accepted),
+                SampleStatus::PendingAtStop,
+            ),
         ] {
             let mut slot = Lifecycle::new();
             assert_eq!(slot.terminal_status(), None);
             let generation = slot.reserve(key(1)).unwrap();
-            assert_eq!(slot.terminal_status(), Some(SampleStatus::AbandonedBeforeSubmit));
-            slot.transition(generation, Phase::Recording, Phase::Encoded).unwrap();
-            slot.transition(generation, Phase::Encoded, Phase::Pending).unwrap();
+            assert_eq!(
+                slot.terminal_status(),
+                Some(SampleStatus::AbandonedBeforeSubmit)
+            );
+            slot.transition(generation, Phase::Recording, Phase::Encoded)
+                .unwrap();
+            slot.transition(generation, Phase::Encoded, Phase::Pending)
+                .unwrap();
             if let Some(verdict) = verdict {
                 slot.confirm_submission(generation, verdict).unwrap();
             }

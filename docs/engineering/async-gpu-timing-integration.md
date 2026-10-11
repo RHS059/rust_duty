@@ -32,12 +32,18 @@ free. The normal error check uses `Poll`, while PNG capture uses an explicit Wai
    `requested_features(true, adapter.features())` before request_device and merge
    those supported bits with the renderer's existing requirements. The helper
    requires both `TIMESTAMP_QUERY` and `TIMESTAMP_QUERY_INSIDE_ENCODERS`. If either
-   is absent it requests neither; rendering remains available and timing reports
-   unsupported. Keep all current validation/error policies. Do not introduce an
-   adapter/backend fallback just to obtain timing support.
+   is absent it requests neither; rendering remains available. Record the actual
+   adapter feature set and whether the pair was supported during negotiation.
+   Keep all current validation/error policies. Do not introduce an adapter/backend
+   fallback just to obtain timing support.
 2. Create `GpuTimer::new(&device, &queue, enabled)` once per diagnostic session,
    inside the renderer's normal validation boundary. Record `availability()` and
-   the precise measurement scope in the session identity. Disabled/unsupported
+   the precise measurement scope in the session identity. The helper checks
+   `device.features()` and reports `device_features_not_enabled` when bits are
+   absent; that does not prove the adapter lacks support. Distinguish observed
+   adapter-unsupported capability from supported-but-unrequested features using
+   negotiation evidence. A mid-run opt-in cannot add device features: report
+   unavailable rather than silently recreating the device. Disabled/unavailable
    sessions allocate no GPU query or buffer resources.
 3. Allocate a stable `FrameKey { session, attempt }` before recording. Use the same
    key for the CPU frame attempt and its later present outcome. Never join delayed
@@ -86,7 +92,8 @@ The integration owner decides the additive, source-bound sidecar destination.
   failed values are unavailable, never zero. Equal valid ticks may produce a real
   measured zero; reversed ticks are explicitly invalid instead of wrapping.
 - Distinguish `ring_full` samples from dropped gameplay frames. Retain measured,
-  unsupported, map-failed, invalid-order, abandoned and pending counts separately.
+  missing-enabled-device-features, map-failed, invalid-order, abandoned and
+  pending counts separately.
 - Do not emit a hardware classification or performance/FPS pass from this module.
   Do not subtract CPU spans from end-to-end time and call the remainder GPU time.
 
