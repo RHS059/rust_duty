@@ -1,0 +1,49 @@
+name: Isolated Windows DX12 GPU timing correctness
+on:
+  workflow_dispatch:
+  push:
+    branches: ['diagnostic/gpu-timing-dx12-contract']
+    paths:
+      - '.github/workflows/gpu-timing-dx12-contract.yml'
+      - 'tools/gpu_timing_dx12_contract/**'
+permissions:
+  contents: read
+concurrency:
+  group: isolated-gpu-timing-dx12-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  dx12-contract:
+    if: github.repository == 'RHS059/rust_duty'
+    runs-on: windows-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          sparse-checkout: tools/gpu_timing_dx12_contract
+      - name: Check out immutable published GPU helper
+        uses: actions/checkout@v4
+        with:
+          ref: f5a7493302842a2b7bbd1c19e244d325d67a21b5
+          path: .gpu-helper-source
+          persist-credentials: false
+          sparse-checkout: src/render/gpu_timing.rs
+          sparse-checkout-cone-mode: false
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Test evidence parser negative controls
+        run: python -m unittest discover -s tools/gpu_timing_dx12_contract -p test_run.py -v
+      - name: Compile and exercise bounded actual DX12 callbacks
+        run: python tools/gpu_timing_dx12_contract/run.py
+      - name: Retain exact inputs and every success or failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gpu-timing-dx12-contract-${{ github.run_id }}-${{ github.run_attempt }}
+          path: evidence/gpu-timing-dx12-contract/
+          if-no-files-found: error
+          retention-days: 14
