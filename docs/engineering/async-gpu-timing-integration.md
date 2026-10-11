@@ -53,16 +53,21 @@ free. The normal error check uses `Poll`, while PNG capture uses an explicit Wai
    Wait, blocking channel receive or GPU-completion callback wait.
 6. If an encoder is abandoned before submission, drop that encoder and call
    `abandon_unsubmitted(&ticket)`. Never call it after submission. A subsequent
-   validation/present failure is retained separately from any GPU result. An
-   already-submitted ticket still needs `after_submit`, even if later validation
-   or presentation fails, so it can safely retire asynchronously.
+   already-submitted ticket still needs `after_submit` even on later failure.
+   After popping the encoding/submission validation scope and checking device
+   errors, call `record_submission_validation(ticket, Accepted|Rejected)`. Mapping
+   success is not proof of execution: until this explicit verdict, no measured
+   sample can be published. Rejected work retires asynchronously and emits
+   `submission_rejected` without interpreting stale/zero mapped bytes. A
+   present-only failure remains independent of an accepted submission.
 7. After an existing nonblocking device poll, call `collect_ready()`. It returns
    at most four already-completed results, reads mapped bytes, unmaps and releases
    the slots. It never polls, waits or submits internally. Callback bodies only
    set an atomic flag. If no slot is free, the next attempt reports `ring_full`
    without overwriting resources or stalling gameplay.
 8. At terminal session shutdown, call `finish_nonblocking()`. Retain
-   `pending_at_stop` and `abandoned_before_submit`; do not wait for a tidier export.
+   `pending_at_stop`, `validation_unconfirmed_at_stop`, `submission_rejected` and
+   `abandoned_before_submit`; do not wait for a tidier export.
    This permanently stops that timer. New sessions create a new timer and unique
    session key. Late callbacks retain only old per-slot state and cannot attach
    to a replacement timer. Existing fatal device-loss handling remains intact.

@@ -78,6 +78,8 @@ pub enum SampleStatus {
     InvalidTimestampOrder,
     AbandonedBeforeSubmit,
     PendingAtStop,
+    SubmissionRejected,
+    ValidationUnconfirmedAtStop,
     Stopped,
 }
 
@@ -93,6 +95,8 @@ impl SampleStatus {
             Self::InvalidTimestampOrder => "invalid_timestamp_order",
             Self::AbandonedBeforeSubmit => "abandoned_before_submit",
             Self::PendingAtStop => "pending_at_stop",
+            Self::SubmissionRejected => "submission_rejected",
+            Self::ValidationUnconfirmedAtStop => "validation_unconfirmed_at_stop",
             Self::Stopped => "stopped",
         }
     }
@@ -138,6 +142,32 @@ impl GpuSample {
             elapsed_ns,
         }
     }
+
+    fn from_validated_readback(
+        frame: FrameKey,
+        validation: SubmissionValidation,
+        ticks: Result<[u64; 2], ()>,
+        period_ns: f64,
+    ) -> Self {
+        if validation == SubmissionValidation::Rejected {
+            // A rejected submission can leave a successfully mapped buffer full
+            // of previous/zero values. Never attach those values to this frame.
+            return Self::unavailable(frame, SampleStatus::SubmissionRejected);
+        }
+        match ticks {
+            Ok([start, end]) => Self::from_ticks(frame, start, end, period_ns),
+            Err(()) => Self::unavailable(frame, SampleStatus::MapFailed),
+        }
+    }
+}
+
+/// Evidence from the renderer's encoding/submission validation scope and device
+/// checks, not from buffer mapping or from the present outcome. Successful map
+/// completion alone cannot establish that this frame's commands were accepted.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum SubmissionValidation {
+    Accepted,
+    Rejected,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -154,6 +184,7 @@ struct Lifecycle {
     generation: u64,
     frame: Option<FrameKey>,
     phase: Phase,
+    validation: Option<SubmissionValidation>,
 }
 
 impl Lifecycle {
@@ -162,6 +193,7 @@ impl Lifecycle {
             generation: 0,
             frame: None,
             phase: Phase::Free,
+            validation: None,
         }
     }
 
@@ -172,6 +204,7 @@ impl Lifecycle {
         // Exhaustion never wraps and can therefore never validate a stale ticket.
         self.generation = self.generation.checked_add(1)?;
         self.frame = Some(frame);
+        self.validation = None;
         self.phase = Phase::Recording;
         Some(self.generation)
     }
@@ -184,12 +217,41 @@ impl Lifecycle {
         Ok(())
     }
 
+    fn confirm_submission(
+        &mut self,
+        generation: u64,
+        verdict: SubmissionValidation,
+    ) -> Result<(), &'static str> {
+        if self.generation != generation || self.phase != Phase::Pending || self.validation.is_some() {
+            return Err("submission validation requires one current submitted reservation");
+        }
+        self.validation = Some(verdict);
+        Ok(())
+    }
+
+    fn completion_ready(&self, callback: u8) -> bool {
+        self.phase == Phase::Pending && self.validation.is_some() && callback != CALLBACK_PENDING
+    }
+
+    fn terminal_status(&self) -> Option<SampleStatus> {
+        match self.phase {
+            Phase::Free => None,
+            Phase::Pending => Some(match self.validation {
+                None => SampleStatus::ValidationUnconfirmedAtStop,
+                Some(SubmissionValidation::Rejected) => SampleStatus::SubmissionRejected,
+                Some(SubmissionValidation::Accepted) => SampleStatus::PendingAtStop,
+            }),
+            Phase::Recording | Phase::Encoded => Some(SampleStatus::AbandonedBeforeSubmit),
+        }
+    }
+
     fn release(&mut self) -> FrameKey {
         let frame = self
             .frame
             .take()
             .expect("occupied timestamp slot has a frame");
         self.phase = Phase::Free;
+        self.validation = None;
         frame
     }
 }
@@ -363,6 +425,19 @@ impl GpuTimer {
         Ok(())
     }
 
+    /// Call after the encoding/submission error scope has been popped and the
+    /// corresponding device-error check has passed or failed. Until an explicit
+    /// verdict arrives, even a successful map cannot publish a measured sample.
+    /// Rejected submissions still retire through their asynchronous map callback.
+    /// A present-only failure is independent and does not change this verdict.
+    pub fn record_submission_validation(
+        &mut self,
+        ticket: &SampleTicket,
+        verdict: SubmissionValidation,
+    ) -> Result<(), &'static str> {
+        self.slot(ticket)?.lifecycle.confirm_submission(ticket.generation, verdict)
+    }
+
     /// An encoding/submission path that abandoned its encoder must release its
     /// ticket. Never use this after submission, including a failed present.
     pub fn abandon_unsubmitted(
@@ -395,22 +470,23 @@ impl GpuTimer {
                 continue;
             }
             let completion = slot.completion.load(Ordering::Acquire);
-            if completion == CALLBACK_PENDING {
+            if !slot.lifecycle.completion_ready(completion) {
                 continue;
             }
             let frame = slot.lifecycle.frame.expect("pending timestamp has a frame");
-            let sample = if completion == CALLBACK_READY {
+            let validation = slot.lifecycle.validation.expect("ready sample has a validation verdict");
+            let ticks = if validation == SubmissionValidation::Accepted && completion == CALLBACK_READY {
                 match slot.readback.slice(..).get_mapped_range() {
-                    Ok(mapped) => {
-                        let start = u64::from_le_bytes(mapped[0..8].try_into().unwrap());
-                        let end = u64::from_le_bytes(mapped[8..16].try_into().unwrap());
-                        GpuSample::from_ticks(frame, start, end, timestamp_period_ns)
-                    }
-                    Err(_) => GpuSample::unavailable(frame, SampleStatus::MapFailed),
+                    Ok(mapped) => Ok([
+                        u64::from_le_bytes(mapped[0..8].try_into().unwrap()),
+                        u64::from_le_bytes(mapped[8..16].try_into().unwrap()),
+                    ]),
+                    Err(_) => Err(()),
                 }
             } else {
-                GpuSample::unavailable(frame, SampleStatus::MapFailed)
+                Err(())
             };
+            let sample = GpuSample::from_validated_readback(frame, validation, ticks, timestamp_period_ns);
             // The mapped view above has been dropped before unmapping or reuse.
             slot.readback.unmap();
             slot.lifecycle.release();
@@ -426,10 +502,8 @@ impl GpuTimer {
         let mut samples = self.collect_ready();
         self.stopped = true;
         for mut slot in self.slots.drain(..) {
-            let status = match slot.lifecycle.phase {
-                Phase::Free => continue,
-                Phase::Pending => SampleStatus::PendingAtStop,
-                Phase::Recording | Phase::Encoded => SampleStatus::AbandonedBeforeSubmit,
+            let Some(status) = slot.lifecycle.terminal_status() else {
+                continue;
             };
             if slot.lifecycle.phase == Phase::Pending {
                 slot.readback.unmap();
@@ -533,6 +607,8 @@ mod tests {
             SampleStatus::MapFailed,
             SampleStatus::AbandonedBeforeSubmit,
             SampleStatus::PendingAtStop,
+            SampleStatus::SubmissionRejected,
+            SampleStatus::ValidationUnconfirmedAtStop,
             SampleStatus::Stopped,
         ] {
             let sample = GpuSample::unavailable(key(3), status);
@@ -590,5 +666,84 @@ mod tests {
         assert!(slot.reserve(key(1)).is_none());
         assert_eq!(slot.phase, Phase::Free);
         assert_eq!(slot.frame, None);
+    }
+
+    #[test]
+    fn map_success_never_qualifies_before_explicit_submission_validation() {
+        let mut slot = Lifecycle::new();
+        let generation = slot.reserve(key(1)).unwrap();
+        slot.transition(generation, Phase::Recording, Phase::Encoded).unwrap();
+        slot.transition(generation, Phase::Encoded, Phase::Pending).unwrap();
+        assert!(!slot.completion_ready(CALLBACK_READY));
+        assert!(!slot.completion_ready(CALLBACK_FAILED));
+        slot.confirm_submission(generation, SubmissionValidation::Accepted).unwrap();
+        assert!(slot.completion_ready(CALLBACK_READY));
+        assert!(!slot.completion_ready(CALLBACK_PENDING));
+    }
+
+    #[test]
+    fn rejected_submission_discards_successfully_mapped_zero_or_prior_frame_ticks() {
+        for stale in [[0, 0], [1_000, 1_100]] {
+            let sample = GpuSample::from_validated_readback(
+                key(99), SubmissionValidation::Rejected, Ok(stale), 2.5,
+            );
+            assert_eq!(sample.frame, key(99));
+            assert_eq!(sample.status, SampleStatus::SubmissionRejected);
+            assert_eq!(sample.start_ticks, None);
+            assert_eq!(sample.end_ticks, None);
+            assert_eq!(sample.elapsed_ns, None);
+        }
+    }
+
+    #[test]
+    fn accepted_submission_and_mapping_are_both_required_for_measured_ticks() {
+        let measured = GpuSample::from_validated_readback(
+            key(1), SubmissionValidation::Accepted, Ok([100, 110]), 2.0,
+        );
+        assert_eq!(measured.elapsed_ns, Some(20.0));
+        let failed = GpuSample::from_validated_readback(
+            key(2), SubmissionValidation::Accepted, Err(()), 2.0,
+        );
+        assert_eq!(failed.status, SampleStatus::MapFailed);
+        assert_eq!(failed.elapsed_ns, None);
+    }
+
+    #[test]
+    fn rejection_still_waits_for_callback_and_verdict_never_leaks_into_reused_slot() {
+        let mut slot = Lifecycle::new();
+        let first = slot.reserve(key(1)).unwrap();
+        slot.transition(first, Phase::Recording, Phase::Encoded).unwrap();
+        slot.transition(first, Phase::Encoded, Phase::Pending).unwrap();
+        slot.confirm_submission(first, SubmissionValidation::Rejected).unwrap();
+        assert!(!slot.completion_ready(CALLBACK_PENDING));
+        assert!(slot.completion_ready(CALLBACK_READY));
+        assert!(slot.confirm_submission(first, SubmissionValidation::Accepted).is_err());
+        slot.release();
+        let second = slot.reserve(key(2)).unwrap();
+        slot.transition(second, Phase::Recording, Phase::Encoded).unwrap();
+        slot.transition(second, Phase::Encoded, Phase::Pending).unwrap();
+        assert_eq!(slot.validation, None);
+        assert!(!slot.completion_ready(CALLBACK_READY));
+        assert!(slot.confirm_submission(first, SubmissionValidation::Accepted).is_err());
+    }
+
+    #[test]
+    fn terminal_status_distinguishes_unconfirmed_rejected_and_pending_accepted_work() {
+        for (verdict, expected) in [
+            (None, SampleStatus::ValidationUnconfirmedAtStop),
+            (Some(SubmissionValidation::Rejected), SampleStatus::SubmissionRejected),
+            (Some(SubmissionValidation::Accepted), SampleStatus::PendingAtStop),
+        ] {
+            let mut slot = Lifecycle::new();
+            assert_eq!(slot.terminal_status(), None);
+            let generation = slot.reserve(key(1)).unwrap();
+            assert_eq!(slot.terminal_status(), Some(SampleStatus::AbandonedBeforeSubmit));
+            slot.transition(generation, Phase::Recording, Phase::Encoded).unwrap();
+            slot.transition(generation, Phase::Encoded, Phase::Pending).unwrap();
+            if let Some(verdict) = verdict {
+                slot.confirm_submission(generation, verdict).unwrap();
+            }
+            assert_eq!(slot.terminal_status(), Some(expected));
+        }
     }
 }

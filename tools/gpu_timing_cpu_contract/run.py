@@ -67,6 +67,12 @@ def main():
     # Exact formatter output can be recovered from read-only logs when artifact
     # downloads are unavailable. These are public project source bytes, no secrets.
     print('FORMATTED_SOURCE_JSON=' + json.dumps(formatted, separators=(',', ':')), flush=True)
+    standalone = EVIDENCE / 'present-policy-tests.exe'
+    compiled = run('present-policy-standalone-compile', ['rustc', '--edition=2021', '--test', '-D', 'warnings', str(present), '-o', str(standalone)])
+    if compiled.returncode != 0:
+        failures.append('present-policy-standalone-compile')
+    elif run('present-policy-standalone-tests', [str(standalone)]).returncode != 0:
+        failures.append('present-policy-standalone-tests')
     lock = HARNESS / 'Cargo.lock'
     committed_lock = lock.read_bytes()
     if run('lock-normalization', ['cargo', 'metadata', '--manifest-path', str(HARNESS / 'Cargo.toml'), '--format-version', '1']).returncode != 0:
