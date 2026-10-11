@@ -1,0 +1,106 @@
+name: Bounded Windows CPU image preservation
+on:
+  push:
+    branches: [aella/wgpu-1080p-diagnostics]
+    paths:
+      - '.github/workflows/cpu-image-preservation.yml'
+      - 'examples/renderer_contract.rs'
+      - 'examples/pass_submission_benchmark.rs'
+      - 'examples/gpu_session_contract.rs'
+      - 'tools/**'
+      - 'src/**'
+      - 'updater/**'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - 'build.rs'
+      - 'build_number.rs'
+      - 'rust-toolchain.toml'
+      - 'rust-toolchain'
+      - '.cargo/**'
+      - '.gitattributes'
+      - 'LICENSE'
+      - 'THIRD_PARTY_LICENSES.txt'
+permissions:
+  contents: read
+concurrency:
+  group: cpu-image-preservation-${{ github.ref }}
+  cancel-in-progress: false
+env:
+  GIT_CONFIG_COUNT: '1'
+  GIT_CONFIG_KEY_0: core.autocrlf
+  GIT_CONFIG_VALUE_0: 'false'
+jobs:
+  exact-cpu-image-pair:
+    if: github.repository == 'RHS059/rust_duty' && github.ref == 'refs/heads/aella/wgpu-1080p-diagnostics'
+    runs-on: windows-latest
+    env:
+      CARGO_HOME: ${{ runner.temp }}/cpu-image-cargo
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /.gitattributes
+            /.gitignore
+            /.cargo/
+            /.github/workflows/
+            /Cargo.toml
+            /Cargo.lock
+            /build.rs
+            /build_number.rs
+            /rust-toolchain.toml
+            /rust-toolchain
+            /LICENSE
+            /THIRD_PARTY_LICENSES.txt
+            /src/
+            /updater/
+            /examples/renderer_contract.rs
+            /examples/pass_submission_benchmark.rs
+            /examples/gpu_session_contract.rs
+            /tools/
+      - name: Retrieve only the exact reviewed baseline source object
+        shell: pwsh
+        run: |
+          git fetch --no-write-fetch-head --no-tags --depth=1 origin 70ff2933ebe69b7180e207c7defebeaeb6e240e1
+          if ($LASTEXITCODE -ne 0) { throw 'Reviewed baseline source retrieval failed' }
+      - name: Install and select the exact comparison compiler binaries
+        shell: pwsh
+        run: |
+          rustup toolchain install 1.99.0-x86_64-pc-windows-msvc --profile minimal
+          if ($LASTEXITCODE -ne 0) { throw 'Pinned compiler installation failed' }
+          $rustc = rustup which --toolchain 1.99.0-x86_64-pc-windows-msvc rustc
+          if ($LASTEXITCODE -ne 0) { throw 'Pinned compiler lookup failed' }
+          # Direct binaries avoid a nested stable toolchain file choosing another compiler.
+          Split-Path -Parent $rustc | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install pinned evidence-reader dependencies
+        run: python -m pip install Pillow==11.3.0 PyYAML==6.0.3
+      - name: Check source-pair, compiler-context, exact-image and workflow guards
+        env:
+          PYTHONPATH: tools
+        run: >-
+          python -m unittest -v test_cpu_image_preservation test_pass_submission_benchmark
+          test_renderer_contract test_cpu_image_workflow
+      - name: Build both reviewed variants and compare original image controls
+        timeout-minutes: 54
+        run: >-
+          python tools/run_cpu_image_preservation.py run --root .
+          --output evidence/cpu-image-native --build-timeout 1200 --process-timeout 180
+      - name: Retain source, process and image evidence on either outcome
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cpu-image-preservation-attempt-${{ github.run_attempt }}
+          path: |
+            evidence/cpu-image-native/**
+            !evidence/cpu-image-native/*-target/**
+            !evidence/cpu-image-native/**/*.exe
+            !evidence/cpu-image-native/**/*.dll
+            !evidence/cpu-image-native/**/assets/**
+          include-hidden-files: true
+          if-no-files-found: warn
+          retention-days: 7

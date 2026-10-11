@@ -97,6 +97,12 @@ those freshly built, hash-verified binaries:
 python tools/run_cpu_image_preservation.py run --root . --output evidence/cpu-image-native --build-timeout 1200 --process-timeout 180
 ```
 
+The push-only [Windows workflow](../../.github/workflows/cpu-image-preservation.yml)
+on the diagnostics draft branch executes that same native command. It retrieves
+only the pinned baseline Git source, selects the direct Rust 1.99.0 binaries,
+and uses a fresh Cargo home. Source, process, image and failure receipts are
+retained on either outcome; compiled binaries and build trees are excluded.
+
 There are two bounded builds and four bounded native fixture processes. Retain
 the source/command/image receipts and logs; no binary distribution is needed.
 The incidental timing fields in the reused mixed fixture remain raw diagnostic
