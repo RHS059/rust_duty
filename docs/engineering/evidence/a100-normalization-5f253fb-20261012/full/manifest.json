@@ -1,0 +1,88 @@
+{
+  "schema": "a100-full-evidence-lossless-transfer/v1",
+  "compression": {
+    "format": "XZ",
+    "method": "Python lzma.open(...,'xb',preset=9)",
+    "original_zip_unchanged": true
+  },
+  "compressed": {
+    "name": "a100-5f253fb-full-correctness-vertex-probe-r1.zip.xz",
+    "bytes": 46171336,
+    "sha256": "dd7c707ec16d784ffbf02792ead7636be20dee8956e3e70b7b775a169e3a2d6d"
+  },
+  "original": {
+    "name": "a100-5f253fb-full-correctness-vertex-probe-r1.zip",
+    "bytes": 147411430,
+    "sha256": "dd8b187a5c6077a8998eb8caecd356ffebc843678ee67ae5a3a03489c66effdb"
+  },
+  "parts": [
+    {
+      "index": 0,
+      "offset": 0,
+      "bytes": 6291456,
+      "sha256": "73c211af52424776e10c739a6275f53f513e658482ef8c2342971fd210437f8b",
+      "name": "a100-full.xz.part000",
+      "git_blob_sha1": "b04a2ce5c25f4e373b284f80f4a90f48688b0d09"
+    },
+    {
+      "index": 1,
+      "offset": 6291456,
+      "bytes": 6291456,
+      "sha256": "468165d30ecfed6aee33b7ad2cf3930223332bab38ca61ce460c1ebd987e7105",
+      "name": "a100-full.xz.part001",
+      "git_blob_sha1": "0a1a3ce30e940e8e3e377cd77daf6efc8edb14cb"
+    },
+    {
+      "index": 2,
+      "offset": 12582912,
+      "bytes": 6291456,
+      "sha256": "b8cb9b615be441a4dd4c2dea9f65e4539f3843d2769e21a786355eea576b4c3c",
+      "name": "a100-full.xz.part002",
+      "git_blob_sha1": "8bba69ad4a34aac1a7e09f6bb90f2567e7735706"
+    },
+    {
+      "index": 3,
+      "offset": 18874368,
+      "bytes": 6291456,
+      "sha256": "5d7cf4973cbfae6948a1be425067333f130b05d3fa32a2c8b4eae205c6aeb0eb",
+      "name": "a100-full.xz.part003",
+      "git_blob_sha1": "d0a26522a2818dd5c610ce727ce7eb8ec85e468c"
+    },
+    {
+      "index": 4,
+      "offset": 25165824,
+      "bytes": 6291456,
+      "sha256": "87c7a505923eca64f19debf55db15596b0cf519fd7f169bfdb20eea3f19376c2",
+      "name": "a100-full.xz.part004",
+      "git_blob_sha1": "7e008f10d8474d5f81e71530e39d86712c79567e"
+    },
+    {
+      "index": 5,
+      "offset": 31457280,
+      "bytes": 6291456,
+      "sha256": "89fe47d3f167f819ce5e45df452ceaf15a020bfd44883675d33f7af13e0627c1",
+      "name": "a100-full.xz.part005",
+      "git_blob_sha1": "5d76972d89c3f3cc5f33c9afd467b35efd7148a7"
+    },
+    {
+      "index": 6,
+      "offset": 37748736,
+      "bytes": 6291456,
+      "sha256": "5ac11f4c5368a90722485c5df541469fe02c1c5ad5cb1df88f71bc19ee1a34d6",
+      "name": "a100-full.xz.part006",
+      "git_blob_sha1": "80c65caa2b82bcd9066c58f51e160bc1c74b32a1"
+    },
+    {
+      "index": 7,
+      "offset": 44040192,
+      "bytes": 2131144,
+      "sha256": "09cebc85d61399351966a24e202442a1544b7de81a8ec651cffb29a173c72d49",
+      "name": "a100-full.xz.part007",
+      "git_blob_sha1": "b32e21f562f3c5ac417eab9ce9c967bb5b96b3ef"
+    }
+  ],
+  "verified_zip_entries": 596,
+  "verified_uncompressed_bytes": 615496986,
+  "zip_crc": "PASS",
+  "verified": true
+}

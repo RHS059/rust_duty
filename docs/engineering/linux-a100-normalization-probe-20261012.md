@@ -37,7 +37,7 @@ normalization routes in these samples cannot prove backend-wide equivalence.
 No threshold was relaxed and no source correction is included in this evidence
 publication.
 
-## Independent compact-stage audit
+## Independent compact-stage audit (frozen snapshot)
 
 The independent audit verifies all 457 source Git blobs and 133 production
 compile inputs, actual Rust 1.99.0 build receipts, build exit 0, fixture exit 1,
@@ -47,13 +47,25 @@ plus the original Git-source `animations.cfg`, preserving the original 77-file
 set. The original release animation-config mismatch and its isolated repair
 are retained in the setup evidence.
 
-At this publication stage the full archive has been verified on its producing
-runtime but its transfer is pending. The independent raw-corner replay uses
+At the initial compact-stage publication the full archive had been verified on
+its producing runtime but its transfer was pending. The independent raw-corner replay uses
 explicitly cross-artifact retained Windows WARP bytes with matching hashes;
-it is not a replay of downloaded current A100 raw corner files. The current
-ELF is receipt-bound, not yet locally rehashed. The audit explicitly records
-`full_zip_available_and_replayed: false`. A later full-byte audit must remain
-distinct from this frozen compact-stage snapshot.
+it is not a replay of downloaded current A100 raw corner files. At that stage the current
+ELF was receipt-bound and not yet locally rehashed. The audit explicitly records
+`full_zip_available_and_replayed: false`. The completed full-byte audit below remains distinct from this frozen
+compact-stage snapshot.
+
+## Completed direct full-byte audit
+
+The separate [full-stage audit](evidence/a100-normalization-5f253fb-20261012/independent-full-audit.json)
+(SHA-256 `41dcb9ef3147587c91a9ee85dfd07082193da9eb4e4aafd1d4661d556f571d04`)
+directly replays all 44 retained current A100 corner streams and hashes the
+7,012,328-byte x86-64 ELF against the original source/build receipt. All 551
+files shared by compact/full packets are byte-identical. The full archive hash
+and all 596 ZIP member CRCs pass. No cross-artifact corner substitution is
+needed for this separate full-stage audit. The original compact audit and
+per-vertex metrics remain unchanged; the strict image failure and probe
+conclusions are unchanged too.
 
 ## Evidence and retention
 
@@ -71,9 +83,13 @@ the full packet retains those bytes. The compact packet remains unmodified.
 
 The full archive is 147,411,430 bytes, SHA-256
 `dd8b187a5c6077a8998eb8caecd356ffebc843678ee67ae5a3a03489c66effdb`.
-Its durable retention is documented separately when local verification and
-publication are complete. The compact packet alone is not a full raw-stream or
-executable-byte publication.
+It is durably retained as [eight ordered lossless XZ parts](evidence/a100-normalization-5f253fb-20261012/full/README.md)
+with per-part hashes, reconstruction instructions, and a tested Python verifier.
+The concatenated XZ is 46,171,336 bytes, SHA-256
+`dd7c707ec16d784ffbf02792ead7636be20dee8956e3e70b7b775a169e3a2d6d`.
+Reconstruction reproduces the exact original ZIP, including raw corners and
+ELF; it does not repack or modify its members. The compact packet remains
+available separately for convenient review.
 
 ## Acceptance remains open
 
