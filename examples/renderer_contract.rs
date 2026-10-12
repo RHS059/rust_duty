@@ -721,7 +721,7 @@ mod fixture {
                     json!({"dpi_percent":100*scale,"font_size_physical_px":size,
                         "text":"Ag", "measured_with_trailing_space":"Ag ",
                         "metrics":{"width":dimensions.width,"height":dimensions.height,"offset_y":dimensions.offset_y},
-                        "ink_bounds_exclusive":actual_bounds,"claim":"raster dimensions only; no font-style or OS-DPI claim"}))?;
+                        "ink_bounds_exclusive":actual_bounds,"ink_hull_exclusive":expected_bounds,"claim":"raster dimensions only; no font-style or OS-DPI claim"}))?;
             }
             Ok(())
         }

@@ -161,13 +161,16 @@ def build_fixture(output):
         image = Image.new('RGBA', (64 * scale, 48 * scale), (0, 0, 0, 255))
         # The renderer contract checks ink bounds, not the shape of these glyphs.
         # A rectangle is intentionally sufficient synthetic data for that boundary.
-        ImageDraw.Draw(image).rectangle((11 * scale, 12 * scale,
-                                        23 * scale - 1, 23 * scale - 1), fill='white')
+        # Its right edge stops one pixel short of the hull, as a blank
+        # antialiased edge column may on the GPU.
+        hull = contract.TEXT_HULL[scale]
+        ImageDraw.Draw(image).rectangle((hull[0], hull[1], hull[2] - 2, hull[3] - 1), fill='white')
         capture(filename, 'physical-pixel-text-rasterization', image, extra={
             'dpi_percent': 100 * scale, 'font_size_physical_px': 16.0 * scale,
             'text': 'Ag', 'measured_with_trailing_space': 'Ag ',
-            'metrics': {'width': 21.0 * scale, 'height': 11.0 * scale, 'offset_y': 8.0 * scale},
-            'ink_bounds_exclusive': [11 * scale, 12 * scale, 23 * scale, 23 * scale],
+            'metrics': contract.TEXT_METRICS[scale],
+            'ink_bounds_exclusive': [hull[0], hull[1], hull[2] - 1, hull[3]],
+            'ink_hull_exclusive': hull,
             'claim': 'raster dimensions only; no font-style or OS-DPI claim',
         })
 
@@ -530,6 +533,8 @@ class RendererContractTests(unittest.TestCase):
     def test_text_metrics_and_bounds_cannot_be_forged_consistently(self):
         for field, value in [('dpi_percent', 101), ('font_size_physical_px', 15.0),
                              ('ink_bounds_exclusive', [0, 0, 64, 48]),
+                             ('ink_bounds_exclusive', [10, 8, 25, 24]),
+                             ('ink_hull_exclusive', [0, 0, 64, 48]),
                              ('metrics', {'width': 22.0, 'height': 11.0, 'offset_y': 8.0}),
                              ('measured_with_trailing_space', 'Ag')]:
             self.reset()
