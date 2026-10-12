@@ -10,6 +10,11 @@ import recover_windows_cpu_profile as recovery
 
 
 class RecoveryTests(unittest.TestCase):
+    def setUp(self):
+        self.trace_pin = patch.object(recovery, 'TRACE_SHA256', hashlib.sha256(b'ETL fixture').hexdigest())
+        self.trace_pin.start()
+        self.addCleanup(self.trace_pin.stop)
+
     def fixture(self, root):
         original = root / 'original'
         original.mkdir()
@@ -46,6 +51,15 @@ class RecoveryTests(unittest.TestCase):
                     path.write_bytes(prior)
                 (original / 'extra').write_bytes(b'no')
                 with self.assertRaisesRegex(ValueError, 'Unexpected'):
+                    recovery.checked_inputs(original)
+
+    def test_substituted_nonempty_trace_is_rejected(self):
+        with tempfile.TemporaryDirectory() as directory:
+            original, pins = self.fixture(Path(directory))
+            with patch.object(recovery, 'PINNED_REPORTS', pins):
+                recovery.checked_inputs(original)
+                (original / 'cpu.etl').write_bytes(b'nonempty substituted trace')
+                with self.assertRaisesRegex(ValueError, 'Original trace bytes differ'):
                     recovery.checked_inputs(original)
 
     def test_failed_original_is_never_upgraded(self):

@@ -17,6 +17,7 @@ RUN_ID = '38194089349'
 ARTIFACT_ID = '11723285843'
 SOURCE = 'f2eab4d4d3d527d153b08a7a9ae403fb40509b0d'
 ARCHIVE_SHA256 = '98eea81efe3266abad6aa676ab6b1f26a2a69f094f8acd6bcc71886bd9327d1e'
+TRACE_SHA256 = 'b1a49c1eaba233c2fb58363e822c61cf014f9277625cdc314630952a2da4204d'
 # These exact bytes were independently retained in the verified compact artifact.
 PINNED_REPORTS = {'asset-producers.json': 'c996e84b05421f0ce9e76ee64c7636d8f7974a080689769147d31e1a47577cfe',
  'assets.json': '541f1df72ea57d785164c8a8da640d7801b99404ba345bee5be22c0f07144ae1',
@@ -51,7 +52,7 @@ def checked_inputs(folder):
     for name, key in [('vector-range.exe', 'exe_sha256'), ('vector_range.pdb', 'pdb_sha256')]:
         require(files[name] == capture[key] == build[key], 'Retained binary mismatch: ' + name)
     require(files['runtime/settings.cfg'] == capture['initial_settings_sha256'], 'Retained settings mismatch')
-    require((folder / 'cpu.etl').stat().st_size > 0, 'Missing trace bytes')
+    require(files['cpu.etl'] == TRACE_SHA256, 'Original trace bytes differ from the independently verified ETL')
     validate_scene_log((folder / 'game.log').read_text(encoding='utf-8'))
     for key in ('pid', 'renderer_window_thread_id'):
         require(type(capture[key]) is int and capture[key] > 0, 'Invalid recorded process/thread')

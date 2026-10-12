@@ -61,7 +61,9 @@ Run 38194089349 saved its ETL before a 20-second F10 shutdown timeout. Its origi
 capture remains failed, with owned-process cleanup exit 1. The separate recovery
 workflow consumes only immutable artifact 11723285843 from that run. It verifies
 all 15 original compact-report hashes and the exact 19-file inventory, including
-retained EXE/PDB bytes against the original build/capture hashes. It never launches
+retained EXE/PDB bytes against the original build/capture hashes. The exact ETL
+SHA-256 is pinned separately, as verified by both independent extraction and the
+completed native recovery receipt. A substituted nonempty trace is rejected. It never launches
 the retained executable or changes the original receipt.
 
 Recovery writes new xperf reports with the original process/thread IDs and records
