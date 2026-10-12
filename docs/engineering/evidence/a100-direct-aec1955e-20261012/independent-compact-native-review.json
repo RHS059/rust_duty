@@ -1,0 +1,103 @@
+{
+  "schema": "independent-direct-compact-native-review/v1",
+  "source": "aec1955e93867fb88df7b0d51526e338b8375761",
+  "tree": "a64256619f1f880ec9aa726ca6e2131e149d3efe",
+  "archive_sha256": "5371b5701726e8dc16a8819ce3b0e73d4396b6010a8fa6a05d4c645b541aaab2",
+  "archive_bytes": 1454244,
+  "game_elf_receipt_sha256": "4c8253a25d518a6e8605fe5691bcb900d377edc26374a8269737cb8e46f50665",
+  "native_test_elf_receipt_sha256": "4710795180cdb2f22a115c59794f80af3c6d610ed6166398c8689eadf9910456",
+  "build_pin_and_process_receipts_verified": true,
+  "native_compile_artifact_process_and_pixel_checks_replayed": true,
+  "native_five_images_and_four_game_screenshots_directly_viewed": true,
+  "native_fixture_passed": true,
+  "native_result_sha256": "ff0bc4178d0cc146a23238bc3547d96b797b37b3adab814b82c702b5791c3411",
+  "metrics_controller_derived": [
+    {
+      "run": 1,
+      "mode": "offscreen",
+      "eligible_count": 5228,
+      "frame_p50_ms": 5.885511,
+      "gpu_p50_ms": 1.3056,
+      "encode_submit_p50_ms": 1.350529,
+      "resident_draws": 86,
+      "render_passes": 4
+    },
+    {
+      "run": 2,
+      "mode": "direct",
+      "eligible_count": 5367,
+      "frame_p50_ms": 5.721387,
+      "gpu_p50_ms": 1.175552,
+      "encode_submit_p50_ms": 1.319332,
+      "resident_draws": 86,
+      "render_passes": 3
+    },
+    {
+      "run": 3,
+      "mode": "direct",
+      "eligible_count": 5396,
+      "frame_p50_ms": 5.685009,
+      "gpu_p50_ms": 1.175552,
+      "encode_submit_p50_ms": 1.313673,
+      "resident_draws": 86,
+      "render_passes": 3
+    },
+    {
+      "run": 4,
+      "mode": "offscreen",
+      "eligible_count": 5221,
+      "frame_p50_ms": 5.883115,
+      "gpu_p50_ms": 1.3056,
+      "encode_submit_p50_ms": 1.337621,
+      "resident_draws": 86,
+      "render_passes": 4
+    }
+  ],
+  "means_of_run_medians": {
+    "offscreen": {
+      "frame_p50_ms": 5.884313000000001,
+      "gpu_p50_ms": 1.3056,
+      "encode_submit_p50_ms": 1.3440750000000001
+    },
+    "direct": {
+      "frame_p50_ms": 5.703198,
+      "gpu_p50_ms": 1.175552,
+      "encode_submit_p50_ms": 1.3165025
+    }
+  },
+  "screenshots": [
+    {
+      "run": 1,
+      "mode": "offscreen",
+      "sha256": "8931c83633759381c3318ceb0e60a7ad341921620850612e2ee09ad013fb770c",
+      "qualitative_review": "Hands, glove and rifle visible in same pose/framing; same world, crosshair and HUD. Direct edges use native-resolution sampling; no strict image-equality claim."
+    },
+    {
+      "run": 2,
+      "mode": "direct",
+      "sha256": "6a7afa1b4d59a2a458e0fb44fafa8d544bae2789a2bc8b834ef2d305527bd081",
+      "qualitative_review": "Hands, glove and rifle visible in same pose/framing; same world, crosshair and HUD. Direct edges use native-resolution sampling; no strict image-equality claim."
+    },
+    {
+      "run": 3,
+      "mode": "direct",
+      "sha256": "5cd4aabdba3d575febee5dcdb6306965fbbb063258b1268f54c631293a59a074",
+      "qualitative_review": "Hands, glove and rifle visible in same pose/framing; same world, crosshair and HUD. Direct edges use native-resolution sampling; no strict image-equality claim."
+    },
+    {
+      "run": 4,
+      "mode": "offscreen",
+      "sha256": "58fe37862ee9bfcddf64d2367884478dd06a133bc01f0bfe599ccb73ad6b3b92",
+      "qualitative_review": "Hands, glove and rifle visible in same pose/framing; same world, crosshair and HUD. Direct edges use native-resolution sampling; no strict image-equality claim."
+    }
+  ],
+  "full_raw_performance_replay": false,
+  "raw_game_and_test_elf_bytes_inspected": false,
+  "limits": [
+    "Compact evidence only: complete performance timeseries, materialized source bytes and raw ELF exports still pending.",
+    "Native fixture validates five exact center/world/HUD probes and CPU pass planning; not actual-game full-image or gameplay-wide acceptance.",
+    "Offscreen control already includes shared renderer pass consolidation; compare only these same-binary legs for isolated direct-route gain.",
+    "Four in-game screenshots are post-record qualitative checks with intentional resolution/filtering differences.",
+    "Prior strict18RGBpixel arithmetic failure remains failed; no RTX/DX12 result."
+  ]
+}

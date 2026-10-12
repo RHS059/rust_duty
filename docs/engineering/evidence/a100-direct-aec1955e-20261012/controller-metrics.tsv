@@ -1,0 +1,5 @@
+run	mode	eligible_count	frame_p50_ms	gpu_p50_ms	encode_submit_p50_ms	resident_draws	render_passes
+1	offscreen	5228	5.885511	1.3056	1.350529	86	4
+2	direct	5367	5.721387	1.175552	1.319332	86	3
+3	direct	5396	5.685009	1.175552	1.313673	86	3
+4	offscreen	5221	5.883115	1.3056	1.337621	86	4
