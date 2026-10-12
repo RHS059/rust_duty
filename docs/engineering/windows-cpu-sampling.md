@@ -6,15 +6,21 @@ an ephemeral GitHub-hosted Windows2022 runner. Missing tools fail explicitly;
 there is no installer, registry change, persistent logger or desktop handoff.
 
 The push-only workflow is limited to `aella/wgpu-1080p-diagnostics`. It reuses the
-existing reload export and verifies/materializes the committed original
-locomotion companions. The standalone weapon-asset directory is excluded from
+existing reload, walk, ADS, directional and jump producers, then verifies and
+materializes their original companions through the existing package verifier. The standalone weapon-asset directory is excluded from
 checkout and compilation. No assets are uploaded with the profiler artifact.
 
 A fresh Rust1.99 MSVC build retains the normal release optimizer/thin LTO and
 adds full PDB information without stripping. This instrumented build identity is
 retained separately from retail/preview executables. The exact source tree,
-tracked input bytes, materialized asset hashes, compiler, build settings, EXE and
-PDB hashes are recorded. PDBs and the matching executable stay with the trace.
+tracked compile/tool/UI/settings bytes, materialized asset hashes, compiler, build settings, EXE and
+PDB hashes are recorded. Only the five generated companion folders may differ
+from their committed transport bytes: both hashes remain explicit, and the exact
+materialized inventory must remain unchanged through build/capture. All other
+tracked bytes remain exact. Source commit, CI run/attempt, the five same-run
+artifact names and package-verification receipt bind the producer boundary;
+GitHub's retained job log supplies artifact IDs/digests for independent joining.
+PDBs and the matching executable stay with the trace.
 
 The game first uses `--physical-1080p` to verify its initial 1920×1080 client
 area before hooks or application polling. The existing desktop driver then

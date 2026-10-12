@@ -23,6 +23,9 @@ SETTINGS = {'CARGO_INCREMENTAL': '0', 'CARGO_BUILD_JOBS': '2',
             'CARGO_PROFILE_RELEASE_DEBUG': '2', 'CARGO_PROFILE_RELEASE_STRIP': 'none'}
 EXTENT = [1920, 1080]
 SECONDS = 30
+# These existing producers may replace committed transport metadata. Their exact
+# materialized bytes are separately bound and verified by package_game.
+GENERATED_ASSET_PREFIXES = tuple('assets/' + name + '/' for name in ('reload', 'walk', 'ads', 'directional', 'jump'))
 
 
 def require(value, message):
@@ -53,14 +56,15 @@ def checked_source(root):
         return subprocess.check_output(['git', '-C', str(root), *args])
     commit = git('rev-parse', 'HEAD').decode().strip()
     require(commit == os.environ.get('GITHUB_SHA'), 'Source must be this actual CI checkout')
-    require(not git('diff', '--name-only', 'HEAD').strip(), 'Tracked source changed')
+    changed = git('diff', '--name-only', 'HEAD').decode().splitlines()
+    require(all(name.startswith(GENERATED_ASSET_PREFIXES) for name in changed), 'Tracked source changed')
     for extra in ([], ['--ignored']):
         untracked = git('ls-files', '--others', '--exclude-standard', *extra, '--',
                         'src', 'updater', 'tools', 'ui', 'Cargo.toml', 'Cargo.lock',
                         'build.rs', 'build_number.rs', 'settings.cfg', '.cargo',
                         'rust-toolchain', 'rust-toolchain.toml')
         require(not untracked.strip(), 'Untracked or ignored compile/tool inputs')
-    files = {}
+    files, generated_transports = {}, {}
     for name in git('ls-files', '-z').decode().split('\0'):
         if not name:
             continue
@@ -70,9 +74,15 @@ def checked_source(root):
         path = root / name
         require(path.is_file() and not path.is_symlink(), 'Missing/unsafe tracked input: ' + name)
         raw = path.read_bytes()
-        require(raw == git('show', commit + ':' + name), 'Checkout bytes differ: ' + name)
-        files[name] = hashlib.sha256(raw).hexdigest()
-    return {'commit': commit, 'tree': git('rev-parse', 'HEAD^{tree}').decode().strip(), 'files_sha256': files}
+        committed = git('show', commit + ':' + name)
+        if name.startswith(GENERATED_ASSET_PREFIXES):
+            generated_transports[name] = {'committed_sha256': hashlib.sha256(committed).hexdigest(),
+                                          'materialized_sha256': hashlib.sha256(raw).hexdigest()}
+        else:
+            require(raw == committed, 'Checkout bytes differ: ' + name)
+            files[name] = hashlib.sha256(raw).hexdigest()
+    return {'commit': commit, 'tree': git('rev-parse', 'HEAD^{tree}').decode().strip(),
+            'files_sha256': files, 'generated_asset_transports': generated_transports}
 
 
 def command_log(command, root, output, *, env=None, timeout=120):
@@ -144,6 +154,12 @@ def capture(root, output):
             'Need the existing validated original authored companions')
     write(output / 'source.json', source)
     write(output / 'assets.json', assets)
+    write(output / 'asset-producers.json', {'github_run_id': os.environ.get('GITHUB_RUN_ID'),
+          'github_run_attempt': os.environ.get('GITHUB_RUN_ATTEMPT'), 'source_commit': source['commit'],
+          'same_run_artifacts': ['generated-' + name + '-runtime'
+                                 for name in ('reload', 'walk', 'ads', 'directional', 'jump')],
+          'verification_receipt_sha256': digest(output / 'materialize.json'),
+          'materialized_assets_sha256': digest(output / 'assets.json')})
     compiler = toolchain_at(root)
     require('release: 1.99.0\n' in compiler['rustc']
             and 'host: x86_64-pc-windows-msvc\n' in compiler['rustc'], 'Need pinned Rust1.99 MSVC')

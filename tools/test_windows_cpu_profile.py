@@ -96,6 +96,50 @@ class ProfileGuards(unittest.TestCase):
                         profile.checked_source(root)
                     path.unlink()
 
+    def test_generated_asset_boundary_does_not_relax_source_bytes(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            def git(*args):
+                return subprocess.check_output(['git', '-C', str(root), *args])
+            git('init', '-q')
+            git('config', 'user.name', 'Profile Test')
+            git('config', 'user.email', 'test@example.invalid')
+            for name in ('assets/directional/manifest.json', 'assets/authoring/input.py',
+                         'src/app.rs', 'tools/probe.py', 'ui/theme.css', 'settings.cfg'):
+                path = root / name
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_bytes(b'committed\n')
+            git('add', '.')
+            git('commit', '-qm', 'fixture')
+            sha = git('rev-parse', 'HEAD').decode().strip()
+            with patch.dict(os.environ, {'GITHUB_SHA': sha}):
+                path = root / 'assets/directional/manifest.json'
+                path.write_bytes(b'generated\n')
+                source = profile.checked_source(root)
+                bound = source['generated_asset_transports']['assets/directional/manifest.json']
+                self.assertEqual(bound['materialized_sha256'], profile.digest(path))
+                self.assertNotEqual(bound['materialized_sha256'], bound['committed_sha256'])
+                for name in ('assets/authoring/input.py', 'src/app.rs', 'tools/probe.py',
+                             'ui/theme.css', 'settings.cfg'):
+                    changed = root / name
+                    changed.write_bytes(b'changed\n')
+                    with self.assertRaisesRegex(ValueError, 'Tracked source changed'):
+                        profile.checked_source(root)
+                    changed.write_bytes(b'committed\n')
+
+    def test_profile_has_every_existing_companion_dependency(self):
+        root = Path(__file__).resolve().parents[1]
+        text = (root / '.github/workflows/windows-cpu-profile.yml').read_text()
+        # These checks are deliberately usable before optional YAML dependencies.
+        self.assertIn('needs: [animation-assets, walk-assets, ads-assets, directional-assets, jump-assets]', text)
+        for name, workflow in (('reload', 'blender'), ('walk', 'walk'), ('ads', 'ads'),
+                               ('directional', 'directional'), ('jump', 'jump')):
+            self.assertIn('uses: ./.github/workflows/' + workflow + '-assets.yml', text)
+            self.assertIn('name: generated-' + name + '-runtime', text)
+            self.assertIn('path: assets/' + name, text)
+        self.assertLess(text.index('name: generated-jump-runtime'),
+                        text.index('python tools/package_game.py materialize'))
+
     def test_cleanup_retains_all_independent_failures(self):
         process = MagicMock()
         process.poll.return_value = None
