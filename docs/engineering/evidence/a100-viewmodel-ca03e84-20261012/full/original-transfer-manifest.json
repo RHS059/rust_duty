@@ -1,0 +1,39 @@
+{
+  "verified": true,
+  "method": "ZIP_STORED full original, lossless Python lzma preset=9 XZ, bounded ordered base64 transport",
+  "full_archive": {
+    "file": "a100-ca03e84-full-viewmodel-isolation-r3-stored.zip",
+    "bytes": 131468206,
+    "sha256": "f62abf0f70c8ce9db540b3630b5bf2677ba40bd4ef33ec4f4dbf7f4d697d90c5",
+    "zip_entries": 672,
+    "all_crc_pass": true
+  },
+  "compressed": {
+    "file": "a100-ca03e84-full-viewmodel-isolation-r3-stored.zip.xz",
+    "bytes": 13570556,
+    "sha256": "8d7947bfd9d943f49df098f07993106196a4a6552a8f545179fa44e8a1ecff5d"
+  },
+  "ordered_parts": [
+    {
+      "index": 0,
+      "offset": 0,
+      "file": "a100-viewmodel.xz.part000",
+      "bytes": 6291456,
+      "sha256": "7d4d86698c670164fb974df0de5f6cf8be473507f1684078073ba7e9832c93eb"
+    },
+    {
+      "index": 1,
+      "offset": 6291456,
+      "file": "a100-viewmodel.xz.part001",
+      "bytes": 6291456,
+      "sha256": "7bfba40c4219f13d28d062c32b4f4675c624a4fb63836c397a72dde6453968f1"
+    },
+    {
+      "index": 2,
+      "offset": 12582912,
+      "file": "a100-viewmodel.xz.part002",
+      "bytes": 987644,
+      "sha256": "a94b3ca8cd34fec1cebda23addb00d1b5fa4d4f8d07fba5ddf997e7149146744"
+    }
+  ]
+}

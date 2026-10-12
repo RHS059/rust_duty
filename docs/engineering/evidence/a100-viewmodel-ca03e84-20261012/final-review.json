@@ -1,0 +1,378 @@
+{
+  "schema": "independent-a100-viewmodel-final-review/v1",
+  "status": "ready_to_publish_labeled_diagnostic_evidence",
+  "source": "ca03e84104d47ecf76ff4feaa4fa307457c0ae2a",
+  "raw_audit_sha256": "6373f3377756d651eed3da6b15fcf5ff62e304028a8eac5d3b559172a0585977",
+  "raw_audit_file": "/workspace/shared/rust-integration-review/ca03e84-independent-viewmodel-performance-audit.json",
+  "archive_sha256": "f62abf0f70c8ce9db540b3630b5bf2677ba40bd4ef33ec4f4dbf7f4d697d90c5",
+  "single_elf_sha256": "2be1b817850cb7c74fed411b7148e397aefa1664e07e11095cdd1097cd4c3cc9",
+  "raw_source_process_cpu_gpu_audit_passed": true,
+  "all_four_original_screenshots_directly_viewed": true,
+  "screenshots": [
+    {
+      "run": 1,
+      "mode": "visible",
+      "file": "/workspace/shared/a100-current-ca03e84/full-evidence/successful-r3/viewmodel-r01-visible/display.png",
+      "sha256": "1ce2830d7b3cd6d2a94270d9443bb551206ffc963250f3789a52ab2f38ef9ac1",
+      "size_bytes": 349824,
+      "extent": [
+        2560,
+        1440
+      ],
+      "direct_visual_review": "Rifle, glove and forearm visible; same world camera, crosshair and HUD layout.",
+      "capture_outside_record_verified": true
+    },
+    {
+      "run": 2,
+      "mode": "hidden",
+      "file": "/workspace/shared/a100-current-ca03e84/full-evidence/successful-r3/viewmodel-r02-hidden/display.png",
+      "sha256": "5e870d703c4bb770804259bf59c362b1ecc338c3dd881c8fb08076c520f6e7fb",
+      "size_bytes": 139976,
+      "extent": [
+        2560,
+        1440
+      ],
+      "direct_visual_review": "Rifle, glove and forearm absent; same world camera, crosshair and HUD layout.",
+      "capture_outside_record_verified": true
+    },
+    {
+      "run": 3,
+      "mode": "hidden",
+      "file": "/workspace/shared/a100-current-ca03e84/full-evidence/successful-r3/viewmodel-r03-hidden/display.png",
+      "sha256": "6b7fc8d84c9be17db839a1afbe27e08b11095edf5a65c624ad35fe3f880e5483",
+      "size_bytes": 140140,
+      "extent": [
+        2560,
+        1440
+      ],
+      "direct_visual_review": "Rifle, glove and forearm absent; same world camera, crosshair and HUD layout.",
+      "capture_outside_record_verified": true
+    },
+    {
+      "run": 4,
+      "mode": "visible",
+      "file": "/workspace/shared/a100-current-ca03e84/full-evidence/successful-r3/viewmodel-r04-visible/display.png",
+      "sha256": "e424e20354604ee8ba7d2afed7e8b0c74edbf4f94735da78174c726a7aaded52",
+      "size_bytes": 349594,
+      "extent": [
+        2560,
+        1440
+      ],
+      "direct_visual_review": "Rifle, glove and forearm visible; same world camera, crosshair and HUD layout.",
+      "capture_outside_record_verified": true
+    }
+  ],
+  "setup": [
+    {
+      "folder": "display-setup",
+      "result_sha256": "2e4a201d409f64364babd267569f3150176885669a0aa0d5201565d8395f2b6f",
+      "exit_code": 0,
+      "official_ubuntu_archive_uris": 25,
+      "retained_setup_log_hashes_verified": true
+    },
+    {
+      "folder": "xkb-repair",
+      "result_sha256": "6cbf0fea14c00650f00339aee9317b3e67c24e9f531041a9ec45315801705763",
+      "exit_code": 0,
+      "official_ubuntu_archive_uris": 2,
+      "retained_setup_log_hashes_verified": true
+    }
+  ],
+  "launch_package_and_review_hashes_verified": true,
+  "metrics": [
+    {
+      "run": 1,
+      "mode": "visible",
+      "eligible_count": 4718,
+      "record_seconds": 31.034273417,
+      "frame_p50_ms": 6.526146,
+      "frame_p95_ms": 7.049616,
+      "frame_p99_ms": 7.567802,
+      "derived_median_rate_fps": 153.2297928976765,
+      "producer_throughput_intervals_per_second": 152.11992024055692,
+      "game_recording_p50_ms": 0.338452,
+      "renderer_submit_p50_ms": 1.602179,
+      "present_call_p50_ms": 4.429188,
+      "encode_submit_p50_ms": 1.521009,
+      "gpu_p50_ms": 1.508352,
+      "gpu_p95_ms": 1.513472,
+      "all_gpu_samples_measured": true,
+      "draw_calls_p50": 600,
+      "render_passes": 13,
+      "resident_draws": 86,
+      "resident_uniform_bytes_uploaded": 54768
+    },
+    {
+      "run": 2,
+      "mode": "hidden",
+      "eligible_count": 5776,
+      "record_seconds": 31.017865288,
+      "frame_p50_ms": 5.321608,
+      "frame_p95_ms": 5.807054,
+      "frame_p99_ms": 6.232827,
+      "derived_median_rate_fps": 187.91312700973089,
+      "producer_throughput_intervals_per_second": 186.33175518200522,
+      "game_recording_p50_ms": 0.271163,
+      "renderer_submit_p50_ms": 1.306634,
+      "present_call_p50_ms": 3.595921,
+      "encode_submit_p50_ms": 1.232947,
+      "gpu_p50_ms": 0.730112,
+      "gpu_p95_ms": 0.736256,
+      "all_gpu_samples_measured": true,
+      "draw_calls_p50": 513,
+      "render_passes": 11,
+      "resident_draws": 0,
+      "resident_uniform_bytes_uploaded": 0
+    },
+    {
+      "run": 3,
+      "mode": "hidden",
+      "eligible_count": 5787,
+      "record_seconds": 31.022347818,
+      "frame_p50_ms": 5.313283,
+      "frame_p95_ms": 5.737093,
+      "frame_p99_ms": 6.23699,
+      "derived_median_rate_fps": 188.20755453831464,
+      "producer_throughput_intervals_per_second": 186.6610767079096,
+      "game_recording_p50_ms": 0.26912,
+      "renderer_submit_p50_ms": 1.305289,
+      "present_call_p50_ms": 3.594176,
+      "encode_submit_p50_ms": 1.230367,
+      "gpu_p50_ms": 0.730112,
+      "gpu_p95_ms": 0.736256,
+      "all_gpu_samples_measured": true,
+      "draw_calls_p50": 513,
+      "render_passes": 11,
+      "resident_draws": 0,
+      "resident_uniform_bytes_uploaded": 0
+    },
+    {
+      "run": 4,
+      "mode": "visible",
+      "eligible_count": 4717,
+      "record_seconds": 31.023036498,
+      "frame_p50_ms": 6.546757,
+      "frame_p95_ms": 6.940132,
+      "frame_p99_ms": 7.42812,
+      "derived_median_rate_fps": 152.74738317001837,
+      "producer_throughput_intervals_per_second": 152.14143957991126,
+      "game_recording_p50_ms": 0.338728,
+      "renderer_submit_p50_ms": 1.625444,
+      "present_call_p50_ms": 4.422842,
+      "encode_submit_p50_ms": 1.542896,
+      "gpu_p50_ms": 1.508352,
+      "gpu_p95_ms": 1.512448,
+      "all_gpu_samples_measured": true,
+      "draw_calls_p50": 600,
+      "render_passes": 13,
+      "resident_draws": 86,
+      "resident_uniform_bytes_uploaded": 54768
+    }
+  ],
+  "hud_cohort_metrics": [
+    {
+      "run": 1,
+      "mode": "visible",
+      "text_characters": 384,
+      "count": 3825,
+      "frame_interval": {
+        "sample_count": 3825,
+        "total_ns": 25109025534,
+        "min_ns": 6103949,
+        "max_ns": 8930860,
+        "p50_ns": 6524038,
+        "p95_ns": 6964339,
+        "p99_ns": 7435846,
+        "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+      }
+    },
+    {
+      "run": 1,
+      "mode": "visible",
+      "text_characters": 471,
+      "count": 892,
+      "frame_interval": {
+        "sample_count": 892,
+        "total_ns": 5887735632,
+        "min_ns": 5963462,
+        "max_ns": 9230393,
+        "p50_ns": 6549299,
+        "p95_ns": 7409145,
+        "p99_ns": 7749034,
+        "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+      }
+    },
+    {
+      "run": 1,
+      "mode": "visible",
+      "text_characters": 485,
+      "count": 1,
+      "frame_interval": {
+        "sample_count": 1,
+        "total_ns": 18243263,
+        "min_ns": 18243263,
+        "max_ns": 18243263,
+        "p50_ns": 18243263,
+        "p95_ns": 18243263,
+        "p99_ns": 18243263,
+        "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+      }
+    },
+    {
+      "run": 2,
+      "mode": "hidden",
+      "text_characters": 384,
+      "count": 4711,
+      "frame_interval": {
+        "sample_count": 4711,
+        "total_ns": 25097787148,
+        "min_ns": 4921974,
+        "max_ns": 8433033,
+        "p50_ns": 5291633,
+        "p95_ns": 5684452,
+        "p99_ns": 6165233,
+        "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+      }
+    },
+    {
+      "run": 2,
+      "mode": "hidden",
+      "text_characters": 471,
+      "count": 1064,
+      "frame_interval": {
+        "sample_count": 1064,
+        "total_ns": 5884596295,
+        "min_ns": 4976242,
+        "max_ns": 7065752,
+        "p50_ns": 5484637,
+        "p95_ns": 6050617,
+        "p99_ns": 6374449,
+        "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+      }
+    },
+    {
+      "run": 2,
+      "mode": "hidden",
+      "text_characters": 485,
+      "count": 1,
+      "frame_interval": {
+        "sample_count": 1,
+        "total_ns": 16090190,
+        "min_ns": 16090190,
+        "max_ns": 16090190,
+        "p50_ns": 16090190,
+        "p95_ns": 16090190,
+        "p99_ns": 16090190,
+        "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+      }
+    },
+    {
+      "run": 3,
+      "mode": "hidden",
+      "text_characters": 384,
+      "count": 4717,
+      "frame_interval": {
+        "sample_count": 4717,
+        "total_ns": 25090340273,
+        "min_ns": 4891453,
+        "max_ns": 7493287,
+        "p50_ns": 5282000,
+        "p95_ns": 5654756,
+        "p99_ns": 6185565,
+        "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+      }
+    },
+    {
+      "run": 3,
+      "mode": "hidden",
+      "text_characters": 471,
+      "count": 1069,
+      "frame_interval": {
+        "sample_count": 1069,
+        "total_ns": 5887557324,
+        "min_ns": 5063677,
+        "max_ns": 7126568,
+        "p50_ns": 5463036,
+        "p95_ns": 5967796,
+        "p99_ns": 6516973,
+        "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+      }
+    },
+    {
+      "run": 3,
+      "mode": "hidden",
+      "text_characters": 485,
+      "count": 1,
+      "frame_interval": {
+        "sample_count": 1,
+        "total_ns": 24816531,
+        "min_ns": 24816531,
+        "max_ns": 24816531,
+        "p50_ns": 24816531,
+        "p95_ns": 24816531,
+        "p99_ns": 24816531,
+        "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+      }
+    },
+    {
+      "run": 4,
+      "mode": "visible",
+      "text_characters": 384,
+      "count": 3807,
+      "frame_interval": {
+        "sample_count": 3807,
+        "total_ns": 25104991560,
+        "min_ns": 6110224,
+        "max_ns": 8201979,
+        "p50_ns": 6561570,
+        "p95_ns": 6957921,
+        "p99_ns": 7445321,
+        "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+      }
+    },
+    {
+      "run": 4,
+      "mode": "visible",
+      "text_characters": 471,
+      "count": 909,
+      "frame_interval": {
+        "sample_count": 909,
+        "total_ns": 5881105322,
+        "min_ns": 5887043,
+        "max_ns": 7377834,
+        "p50_ns": 6448782,
+        "p95_ns": 6868977,
+        "p99_ns": 7201252,
+        "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+      }
+    },
+    {
+      "run": 4,
+      "mode": "visible",
+      "text_characters": 485,
+      "count": 1,
+      "frame_interval": {
+        "sample_count": 1,
+        "total_ns": 17947861,
+        "min_ns": 17947861,
+        "max_ns": 17947861,
+        "p50_ns": 17947861,
+        "p95_ns": 17947861,
+        "p99_ns": 17947861,
+        "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+      }
+    }
+  ],
+  "descriptive_comparison": {
+    "method": "Compare averages of the two per-run frame medians, retaining every run separately; no confidence interval or pooled-frame inference.",
+    "mean_visible_run_median_ms": 6.5364515,
+    "mean_hidden_run_median_ms": 5.3174455,
+    "difference_ms": 1.2190060000000003,
+    "relative_frame_median_reduction_percent": 18.649354317093923,
+    "relative_inverse_frame_median_rate_increase_percent": 22.924654328850202,
+    "gpu_p50_reduction_ms": 0.7782399999999999
+  },
+  "counter_findings": "Every visible frame has 75 rigid +11 skin resident draws, 54,768 resident uniform bytes uploaded, 2 resident buffer allocations and 2 bindings; all zero with hidden. Both modes have zero resident vertex/index uploads and cache misses. Render passes13 versus11. The standard HUD cohort is384characters,600totaldraws visible versus513hidden; alternate transient telemetry HUD cohorts also match by character count.",
+  "strict_prior_image_gate_passed": false,
+  "scope": "Same-binary stationary Linux A100 Vulkan Immediate diagnostic removes the complete viewmodel rendering layer, including prepare/clear/geometry/composite. World/HUD/simulation retained. This is not a usable visual optimization, direct-main-target proof, offscreen-pass attribution, display-refresh claim, or RTX/DX12 result. GPU and CPU stages overlap; do not sum their deltas. Target-only next control is separately prepared on61f7b4de."
+}
