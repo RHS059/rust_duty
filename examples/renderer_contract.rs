@@ -678,7 +678,12 @@ mod fixture {
                 let height = 48 * scale;
                 let size = 16. * scale as f32;
                 let dimensions = self.renderer.measure_text("Ag ", size)?;
-                let expected = [21., 11., 8.].map(|v| v * scale as f32);
+                // Barlow Condensed metrics, recorded in text's CPU golden tests.
+                let expected = if scale == 1 {
+                    [17.392002, 16., 12.]
+                } else {
+                    [34.784004, 30., 23.]
+                };
                 if [dimensions.width, dimensions.height, dimensions.offset_y] != expected {
                     return Err(format!(
                         "text {size}px dimensions changed: {dimensions:?}, expected {expected:?}"
@@ -690,12 +695,26 @@ mod fixture {
                 list.capture_png(None, self.path(filename));
                 self.submit(&list, &[filename])?;
                 let image = read_png(&self.path(filename), width, height)?;
-                // Fixed ProggyClean raster bounds, independently recorded in text's CPU contract.
-                let expected_bounds = [11 * scale, 12 * scale, 23 * scale, 23 * scale];
+                // Barlow glyph quad hull for "Ag", recorded in text's CPU golden tests.
+                // Edge texels of an anti-aliased glyph may be blank, so ink must lie
+                // inside the hull and reach within one pixel of each side.
+                let expected_bounds: [u32; 4] = if scale == 1 {
+                    [10, 8, 25, 24]
+                } else {
+                    [20, 17, 48, 47]
+                };
                 let actual_bounds = ink_bounds(&image)?;
-                if actual_bounds != expected_bounds {
+                let inside = actual_bounds[0] >= expected_bounds[0]
+                    && actual_bounds[1] >= expected_bounds[1]
+                    && actual_bounds[2] <= expected_bounds[2]
+                    && actual_bounds[3] <= expected_bounds[3];
+                let reaches = actual_bounds
+                    .iter()
+                    .zip(expected_bounds)
+                    .all(|(a, e)| a.abs_diff(e) <= 1);
+                if !inside || !reaches {
                     return Err(format!(
-                        "{filename}: ink bounds {actual_bounds:?}, expected {expected_bounds:?}"
+                        "{filename}: ink bounds {actual_bounds:?}, expected within 1px inside {expected_bounds:?}"
                     ));
                 }
                 self.record(filename, "physical-pixel-text-rasterization", (width,height), OPAQUE, &[],
@@ -1175,9 +1194,14 @@ mod fixture {
                         }
                     }
                 }
+                // Barlow "Ag" with the fractional g origin truncated, as composited here.
                 assert_eq!(
                     ink_bounds(&image).unwrap(),
-                    [11 * scale, 12 * scale, 23 * scale, 23 * scale]
+                    if scale == 1 {
+                        [10, 8, 24, 24]
+                    } else {
+                        [20, 17, 47, 47]
+                    }
                 );
             }
         }

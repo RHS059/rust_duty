@@ -8,8 +8,8 @@
   },
   "cargo_lock_hash_policy": "CRLF converted to LF; no other changes",
   "cargo_lock_sha256": "2aa35ed5561b7e40f515520ec36cb7eaa5c4175f12f0fcf9c764dd0ae6cbdeef",
-  "notice_bytes": 2424942,
-  "notice_sha256": "3d98df5fbf94470968a642f6cb59a0ba5464f411cc241eee1108d1dcb1864879",
+  "notice_bytes": 2429607,
+  "notice_sha256": "f14caa8bf7f5047df6c147c9b695fbd30c8cebf8903006bcf3a79149264a2e19",
   "packages": [
     {
       "archive_sha256": "320119579fcad9c21884f5c4861d16174d0e06250625266f50fe6898340abefa",
@@ -7775,7 +7775,7 @@
       "version": "1.0.23"
     }
   ],
-  "preserved_baseline_bytes": 474051,
+  "preserved_baseline_bytes": 478716,
   "preserved_baseline_caveats": [
     {
       "caveat": "Pre-existing baseline notice retained unchanged. The exact package and upstream commit declare MIT but supply no original package-specific license/copyright text; this collection does not certify that attribution.",
@@ -7785,7 +7785,7 @@
       "version": "0.2.3"
     }
   ],
-  "preserved_baseline_sha256": "4daeda1ea17b348547441dc0cb00f09120234614182ef3ec84b8aafd54d8848c",
+  "preserved_baseline_sha256": "5684c7d66fa13bd1c31ca6cba5ed6afc7eb6b94add046dc8b8b6bbd39b4cac20",
   "resolved_root_features": [
     "audio",
     "default",

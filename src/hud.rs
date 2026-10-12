@@ -9,6 +9,7 @@ use crate::{
     settings::Settings,
     sim::{Simulation, MAGAZINE, SPRINT_DURATION},
 };
+use glam::{vec3, Mat4, Vec3};
 /// World-space marker colours used outside the HUD (impact spheres).
 pub const INK: Color = Color::new(0.035, 0.055, 0.072, 1.);
 pub const CYAN: Color = Color::new(0.33, 0.84, 0.87, 1.);
@@ -79,8 +80,14 @@ fn draw_notice(notice: &str, screen_width: f32, screen_height: f32) {
     let px = type_px(size::LABEL, s);
     let baseline = screen_height * 0.42;
     let plate = plated(notice, inset_x, baseline, px, field::TEXT, s);
-    // Category rule on the leading edge, same shape language as the clusters.
-    hud_rectangle(plate.x, plate.y, (3. * s).max(1.), plate.h, ACCENT);
+    // Category rule on the leading edge (FIELD `.h-notes`: objective tone).
+    hud_rectangle(
+        plate.x,
+        plate.y,
+        (4. * s).max(1.),
+        plate.h,
+        field::OBJECTIVE,
+    );
 }
 
 pub fn telemetry_indicator(status: &str) {
@@ -153,7 +160,7 @@ pub fn action_hud(sim: &Simulation, w: f32, h: f32) {
         centered_plated(
             hint,
             w * 0.5,
-            h * 0.5 + 200. * s,
+            h * 0.62,
             type_px(size::LABEL, s),
             field::TEXT,
             s,
@@ -193,6 +200,71 @@ pub fn action_hud(sim: &Simulation, w: f32, h: f32) {
         );
     }
 }
+/// FIELD showcase type size: a reference-px token at this screen scale, with the
+/// legibility floor. (The showcase sizes its HUD at 1:1 reference px.)
+fn fpx(token: f32, s: f32) -> f32 {
+    (token * s).max(field::MIN_TEXT_PX)
+}
+/// HUD shape colour under the HUD scope's theme opacity.
+fn shade_of(color: Color) -> Color {
+    ui_theme::style(UiScope::Hud, &[]).apply_opacity(color)
+}
+/// Down-pointing enemy chevron with a halo, its top edge centred on `top`.
+fn chevron(cx: f32, top: f32, width: f32, height: f32, color: Color, s: f32) {
+    let halo = (2. * s).max(1.);
+    draw_triangle(
+        vec2(cx - width * 0.5 - halo * 1.5, top - halo),
+        vec2(cx + width * 0.5 + halo * 1.5, top - halo),
+        vec2(cx, top + height + halo * 2.),
+        shade_of(Color::new(
+            field::HALO.r,
+            field::HALO.g,
+            field::HALO.b,
+            color.a,
+        )),
+    );
+    draw_triangle(
+        vec2(cx - width * 0.5, top),
+        vec2(cx + width * 0.5, top),
+        vec2(cx, top + height),
+        shade_of(color),
+    );
+}
+/// Keyboard glyph (FIELD `.glyph`): key text in a 2 ref-px box of its colour.
+fn key_glyph(key: &str, cx: f32, top: f32, px: f32, color: Color, s: f32) -> f32 {
+    let dims = label_style(color).measure(key, px);
+    let pad = 5. * s;
+    let bw = (dims.width + 2. * pad).max(px * 1.4);
+    let bh = dims.height + 2. * pad;
+    let x = cx - bw * 0.5;
+    draw_rectangle_lines(x, top, bw, bh, (2. * s).max(1.), shade_of(color));
+    label(
+        key,
+        cx - dims.width * 0.5,
+        top + pad + dims.offset_y,
+        px,
+        color,
+    );
+    bh
+}
+/// Compass heading in degrees clockwise from north (-Z), 0..360.
+fn heading_degrees(yaw: f32) -> f32 {
+    (yaw.to_degrees() + 90.).rem_euclid(360.)
+}
+/// Bearing from `from` to `to` in the same frame as `heading_degrees`.
+fn bearing_degrees(from: Vec3, to: Vec3) -> f32 {
+    (to.x - from.x)
+        .atan2(-(to.z - from.z))
+        .to_degrees()
+        .rem_euclid(360.)
+}
+fn live_targets(sim: &Simulation) -> impl Iterator<Item = (usize, &crate::sim::Target)> {
+    sim.targets
+        .iter()
+        .enumerate()
+        .filter(|(_, t)| t.health > 0. && t.respawn <= 0.)
+}
+
 #[allow(clippy::too_many_arguments)]
 pub fn hud(
     sim: &Simulation,
@@ -209,86 +281,22 @@ pub fn hud(
     let s = field::scale(h);
     let (inset_x, inset_y) = field::safe_inset(w, h);
     let p = &sim.player;
-    let label_px = type_px(size::LABEL, s);
-    let small_px = type_px(size::SMALL, s);
-    let gap = 8. * s;
 
-    // Top centre: objective strip.
-    {
-        let text = "RANGE 01  ·  CLEAR THE LANE";
-        let dims = label_style(field::TEXT).measure(text, label_px);
-        let x = w * 0.5 - dims.width * 0.5;
-        let baseline = inset_y + dims.offset_y;
-        field::cluster_shade(
-            Rect::new(
-                x - gap,
-                inset_y - gap,
-                dims.width + 2. * gap,
-                dims.height + 2. * gap,
-            ),
-            s,
-        );
-        hud_rectangle(
-            x - gap,
-            inset_y + dims.height + gap - (2. * s).max(1.),
-            dims.width + 2. * gap,
-            (2. * s).max(1.),
-            ACCENT,
-        );
-        label(text, x, baseline, label_px, field::TEXT);
-    }
+    draw_markers(sim, cfg, w, h, s);
+    draw_minimap(sim, inset_x, inset_y, s);
+    draw_compass(sim, w, inset_y, s);
+    draw_score(sim, w, inset_x, inset_y, s);
+    draw_feed(sim, w, inset_x, inset_y + 76. * s, s);
 
-    // Top right: score cluster.
-    {
-        let acc = if sim.stats.shots > 0 {
-            sim.stats.hits as f32 / sim.stats.shots as f32 * 100.
-        } else {
-            0.
-        };
-        let line1 = format!(
-            "{:02} TARGETS   {:03} HITS",
-            sim.stats.kills, sim.stats.hits
-        );
-        let line2 = format!("ACCURACY  {:05.1}%", acc);
-        let d1 = label_style(field::TEXT).measure(&line1, label_px);
-        let d2 = label_style(MUTED).measure(&line2, small_px);
-        let width = d1.width.max(d2.width);
-        let x = w - inset_x - width;
-        let row = label_px * 1.3;
-        field::cluster_shade(
-            Rect::new(
-                x - gap,
-                inset_y - gap,
-                width + 2. * gap,
-                row + d2.height + 2. * gap,
-            ),
-            s,
-        );
-        label(
-            &line1,
-            w - inset_x - d1.width,
-            inset_y + d1.offset_y,
-            label_px,
-            field::TEXT,
-        );
-        label(
-            &line2,
-            w - inset_x - d2.width,
-            inset_y + row + d2.offset_y,
-            small_px,
-            MUTED,
-        );
-    }
-
-    // Centre: reticle (§7.1) and hit feedback (§7.2).
+    // Centre: reticle (§7.1) and hit feedback (§7.2), showcase geometry.
     let (x, y) = (w * 0.5, h * 0.5);
     if p.ads < 0.95 {
         let fov =
             cfg.fov + (cfg.ads_fov - cfg.fov) * crate::reference_motion::visual_world_ads(p.ads);
         let spread = (sim.spread_degrees(cfg).to_radians().tan() * w
             / (2. * (fov.to_radians() * 0.5).tan()))
-        .max(2.);
-        let arm = 10. * s;
+        .max(12. * s);
+        let arm = 12. * s;
         let stroke = (2. * s).max(1.);
         let c = ui_theme::style(UiScope::Hud, &[UiClass::Accent]).tint(Color::new(
             field::TEXT.r,
@@ -304,21 +312,23 @@ pub fn hud(
         ] {
             field::halo_line(a, b, stroke, c, s);
         }
-        field::halo_dot(vec2(x, y), (1.5 * s).max(1.), c, s);
+        field::halo_dot(vec2(x, y), (2. * s).max(1.), c, s);
     }
     if hit_timer > 0. {
-        // Headshot: larger and a tone change.
-        let (inner, outer, c) = if head {
-            (10. * s, 22. * s, field::WARNING)
+        // Headshot: longer bars and the warning tone.
+        let (len, c) = if head {
+            (20. * s, field::WARNING)
         } else {
-            (8. * s, 16. * s, field::TEXT)
+            (14. * s, field::TEXT)
         };
         let c = ui_theme::style(UiScope::Hud, &[UiClass::Accent]).tint(c);
+        let inner = 20. * s - len * 0.5;
         for (dx, dy) in [(-1., -1.), (1., -1.), (-1., 1.), (1., 1.)] {
+            let d = vec2(dx, dy).normalize();
             field::halo_line(
-                vec2(x + dx * inner, y + dy * inner),
-                vec2(x + dx * outer, y + dy * outer),
-                (2.5 * s).max(1.),
+                vec2(x, y) + d * inner,
+                vec2(x, y) + d * (inner + len),
+                (3. * s).max(1.),
                 c,
                 s,
             );
@@ -334,7 +344,7 @@ pub fn hud(
         "[Esc] Pause   [F1] Telemetry   [F2] Reset",
         w * 0.5,
         h - inset_y,
-        small_px,
+        fpx(20., s),
         MUTED,
         s,
     );
@@ -342,9 +352,10 @@ pub fn hud(
         draw_notice(notice, w, h);
     }
     if debug {
-        let px = type_px(size::SMALL, s);
+        let px = fpx(20., s);
         let row = px * 1.25;
-        let top = inset_y + label_px * 2.;
+        // Below the minimap.
+        let top = inset_y + 290. * s;
         let rows = [
             format!("SIM 120 Hz   RENDER {} fps", get_fps()),
             format!(
@@ -378,6 +389,7 @@ pub fn hud(
             .iter()
             .map(|r| label_style(MUTED).measure(r, px).width)
             .fold(0., f32::max);
+        let gap = 8. * s;
         field::cluster_shade(
             Rect::new(
                 inset_x - gap,
@@ -399,19 +411,341 @@ pub fn hud(
     }
 }
 
+/// Spatial markers (§7.6): an enemy chevron and range tag over each live target.
+fn draw_markers(sim: &Simulation, cfg: &Settings, w: f32, h: f32, s: f32) {
+    let p = &sim.player;
+    let alpha = 1. - p.ads;
+    if alpha <= 0.05 || w <= 0. || h <= 0. {
+        return;
+    }
+    // Same camera as the world pass (lean roll aside), as ammo_supply projects.
+    let fov = cfg.fov + (cfg.ads_fov - cfg.fov) * crate::reference_motion::visual_world_ads(p.ads);
+    let aspect = w / h;
+    let eye = p.eye();
+    let view_projection = Mat4::perspective_rh_gl(
+        2. * ((fov.to_radians() * 0.5).tan() / aspect).atan(),
+        aspect,
+        0.035,
+        200.,
+    ) * Mat4::look_at_rh(eye, eye + p.direction(), Vec3::Y);
+    let px = fpx(26., s);
+    let color = Color::new(field::ENEMY.r, field::ENEMY.g, field::ENEMY.b, alpha);
+    for (_, t) in live_targets(sim) {
+        let anchor = vec3(
+            (t.bounds.min.x + t.bounds.max.x) * 0.5,
+            t.bounds.max.y + 0.2,
+            (t.bounds.min.z + t.bounds.max.z) * 0.5,
+        );
+        let clip = view_projection * anchor.extend(1.);
+        if clip.w <= 0.035 {
+            continue;
+        }
+        let ndc = clip.truncate() / clip.w;
+        let (sx, sy) = ((ndc.x * 0.5 + 0.5) * w, (0.5 - ndc.y * 0.5) * h);
+        if !(0. ..=w).contains(&sx) || !(0. ..=h).contains(&sy) {
+            continue;
+        }
+        // Keep the 120 ref-px reticle clear zone (§7.1): fade out approaching it.
+        let clear = 120. * s;
+        let fade = ((vec2(sx - w * 0.5, sy - h * 0.5).length() - clear) / clear).clamp(0., 1.);
+        if fade <= 0. {
+            continue;
+        }
+        let color = Color::new(color.r, color.g, color.b, alpha * fade);
+        let text = format!("{:.0} m", (anchor - eye).length());
+        let dims = label_style(color).measure(&text, px);
+        let baseline = (sy - dims.height + dims.offset_y).round();
+        let (pad_x, pad_y) = (8. * s, 4. * s);
+        let plate = Rect::new(
+            (sx - dims.width * 0.5).round() - pad_x,
+            baseline - dims.offset_y - pad_y,
+            dims.width + 2. * pad_x,
+            dims.height + 2. * pad_y,
+        );
+        // Tag plate (§3.3) that fades with its marker.
+        draw_rectangle(
+            plate.x,
+            plate.y,
+            plate.w,
+            plate.h,
+            ui_theme::style(UiScope::Hud, &[UiClass::Panel]).background(Color::new(
+                field::SCRIM.r,
+                field::SCRIM.g,
+                field::SCRIM.b,
+                field::SCRIM_ALPHA * color.a,
+            )),
+        );
+        label(&text, (sx - dims.width * 0.5).round(), baseline, px, color);
+        chevron(sx, plate.y - 26. * s, 24. * s, 20. * s, color, s);
+    }
+}
+
+/// Minimap (§7.7): player-up, 250 ref-px square, live targets as enemy chevrons.
+fn draw_minimap(sim: &Simulation, x: f32, y: f32, s: f32) {
+    let size = 250. * s;
+    let p = &sim.player;
+    field::cluster_shade(Rect::new(x, y, size, size), s);
+    let grid = shade_of(Color::new(field::TEXT.r, field::TEXT.g, field::TEXT.b, 0.1));
+    for i in 1..5 {
+        let o = i as f32 * 50. * s;
+        draw_rectangle(x + o, y, 1., size, grid);
+        draw_rectangle(x, y + o, size, 1., grid);
+    }
+    draw_rectangle_lines(
+        x,
+        y,
+        size,
+        size,
+        (2. * s).max(1.),
+        shade_of(Color::new(field::TEXT.r, field::TEXT.g, field::TEXT.b, 0.3)),
+    );
+    let centre = vec2(x + size * 0.5, y + size * 0.5);
+    let forward = vec2(p.yaw.cos(), p.yaw.sin());
+    let right = vec2(-forward.y, forward.x);
+    // 2.5 ref px per metre: the map edge is 50 m out.
+    let per_metre = 2.5 * s;
+    let pad = 12. * s;
+    for (_, t) in live_targets(sim) {
+        let c = t.bounds.center();
+        let d = vec2(c.x - p.position.x, c.z - p.position.z);
+        let local = vec2(d.dot(right), -d.dot(forward)) * per_metre;
+        let at =
+            (centre + local).clamp(vec2(x + pad, y + pad), vec2(x + size - pad, y + size - pad));
+        chevron(at.x, at.y - 8. * s, 18. * s, 16. * s, field::ENEMY, s);
+    }
+    // Player arrow.
+    draw_triangle(
+        centre + vec2(0., -14. * s),
+        centre + vec2(-10. * s, 6. * s),
+        centre + vec2(10. * s, 6. * s),
+        shade_of(field::TEXT),
+    );
+}
+
+/// Compass strip (§7.7): 720 ref px for 180°, cardinal labels, enemy bearings
+/// above the line and the numeric heading below.
+fn draw_compass(sim: &Simulation, w: f32, top: f32, s: f32) {
+    let width = 720. * s;
+    let left = w * 0.5 - width * 0.5;
+    let line_y = top + 30. * s;
+    let px = fpx(26., s);
+    let heading = heading_degrees(sim.player.yaw);
+    let per_degree = width / 180.;
+    let offset = |bearing: f32| (bearing - heading + 540.).rem_euclid(360.) - 180.;
+    field::cluster_shade(
+        Rect::new(left - 24. * s, top - 26. * s, width + 48. * s, 76. * s),
+        s,
+    );
+    draw_rectangle(
+        left,
+        line_y,
+        width,
+        (2. * s).max(1.),
+        shade_of(Color::new(field::TEXT.r, field::TEXT.g, field::TEXT.b, 0.7)),
+    );
+    const CARDINALS: [&str; 8] = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
+    for i in 0..16 {
+        let bearing = i as f32 * 22.5;
+        let d = offset(bearing);
+        if d.abs() > 88. {
+            continue;
+        }
+        let cx = w * 0.5 + d * per_degree;
+        if i % 2 == 0 {
+            let text = CARDINALS[i / 2];
+            let dims = label_style(field::TEXT).measure(text, px);
+            label(
+                text,
+                (cx - dims.width * 0.5).round(),
+                (line_y - 4. * s - dims.height + dims.offset_y).round(),
+                px,
+                field::TEXT,
+            );
+        } else {
+            draw_rectangle(
+                cx - s,
+                line_y - 10. * s,
+                (2. * s).max(1.),
+                10. * s,
+                shade_of(field::TEXT2),
+            );
+        }
+    }
+    for (_, t) in live_targets(sim) {
+        let d = offset(bearing_degrees(sim.player.position, t.bounds.center()));
+        if d.abs() <= 88. {
+            chevron(
+                w * 0.5 + d * per_degree,
+                top - 22. * s,
+                16. * s,
+                14. * s,
+                field::ENEMY,
+                s,
+            );
+        }
+    }
+    // Heading readout, centred under the line: "NW 318°".
+    let dir = CARDINALS[((heading + 22.5) / 45.) as usize % 8];
+    let value = format!("{:03.0}°", heading.round() % 360.);
+    let d1 = label_style(MUTED).measure(dir, px);
+    let d2 = label_style(field::TEXT).measure(&value, px);
+    let gap = 8. * s;
+    let x = w * 0.5 - (d1.width + gap + d2.width) * 0.5;
+    let base = (line_y + 10. * s + d1.offset_y.max(d2.offset_y)).round();
+    label(dir, x, base, px, MUTED);
+    label(&value, x + d1.width + gap, base, px, field::TEXT);
+}
+
+/// Score (top right): targets down in the friendly tone, session clock, accuracy.
+fn draw_score(sim: &Simulation, w: f32, inset_x: f32, top: f32, s: f32) {
+    let big = fpx(40., s);
+    let small = fpx(28., s);
+    let acc = if sim.stats.shots > 0 {
+        sim.stats.hits as f32 / sim.stats.shots as f32 * 100.
+    } else {
+        0.
+    };
+    let secs = sim.time.max(0.) as u64;
+    let parts = [
+        (format!("{}", sim.stats.kills), big, field::FRIENDLY),
+        (
+            format!("{:02}:{:02}", secs / 60, secs % 60),
+            small,
+            field::TEXT,
+        ),
+        (format!("{acc:.0}%"), big, field::TEXT2),
+    ];
+    let gap = 16. * s;
+    let dims: Vec<_> = parts
+        .iter()
+        .map(|(t, px, c)| label_style(*c).measure(t, *px))
+        .collect();
+    let width = dims.iter().map(|d| d.width).sum::<f32>() + gap * 2.;
+    let ascent = dims.iter().map(|d| d.offset_y).fold(0., f32::max);
+    let descent = dims
+        .iter()
+        .map(|d| d.height - d.offset_y)
+        .fold(0., f32::max);
+    let mut x = w - inset_x - width;
+    field::cluster_shade(
+        Rect::new(
+            x - 16. * s,
+            top - 10. * s,
+            width + 32. * s,
+            ascent + descent + 20. * s,
+        ),
+        s,
+    );
+    let base = (top + ascent).round();
+    for ((text, px, color), d) in parts.iter().zip(&dims) {
+        label(text, x, base, *px, *color);
+        x += d.width + gap;
+    }
+}
+
+/// Kill feed (§7.8): recent kills, newest first, while the target is down.
+fn draw_feed(sim: &Simulation, w: f32, inset_x: f32, top: f32, s: f32) {
+    let px = fpx(26., s);
+    let (pad_x, pad_y, row_gap) = (12. * s, 5. * s, 6. * s);
+    let mut y = top;
+    let mut down: Vec<_> = sim
+        .targets
+        .iter()
+        .enumerate()
+        .filter(|(_, t)| t.respawn > 0.)
+        .collect();
+    // Most recent kill has the most respawn time left.
+    down.sort_by(|a, b| b.1.respawn.total_cmp(&a.1.respawn));
+    for (i, t) in down.into_iter().take(5) {
+        let alpha = (t.respawn / 0.25).clamp(0., 1.);
+        let you = Color::new(
+            field::FRIENDLY.r,
+            field::FRIENDLY.g,
+            field::FRIENDLY.b,
+            alpha,
+        );
+        let enemy = Color::new(field::ENEMY.r, field::ENEMY.g, field::ENEMY.b, alpha);
+        let victim = format!("TARGET {}", i + 1);
+        let d1 = label_style(you).measure("YOU", px);
+        let d2 = label_style(enemy).measure(&victim, px);
+        let arrow = 22. * s;
+        let gap = 8. * s;
+        let inner = d1.width + gap + arrow + gap + d2.width;
+        let ascent = d1.offset_y.max(d2.offset_y);
+        let row_h = ascent + (d1.height - d1.offset_y).max(d2.height - d2.offset_y) + 2. * pad_y;
+        let right = w - inset_x;
+        let left = right - inner - 2. * pad_x;
+        draw_rectangle(
+            left,
+            y,
+            right - left,
+            row_h,
+            shade_of(Color::new(
+                field::SCRIM.r,
+                field::SCRIM.g,
+                field::SCRIM.b,
+                field::SCRIM_ALPHA * alpha,
+            )),
+        );
+        // Your kills carry the accent edge.
+        draw_rectangle(
+            left,
+            y,
+            3. * s,
+            row_h,
+            shade_of(Color::new(
+                field::ACCENT.r,
+                field::ACCENT.g,
+                field::ACCENT.b,
+                alpha,
+            )),
+        );
+        let base = (y + pad_y + ascent).round();
+        let mut x = left + pad_x;
+        label("YOU", x, base, px, you);
+        x += d1.width + gap;
+        let mid = y + row_h * 0.5;
+        let c = shade_of(Color::new(
+            field::TEXT2.r,
+            field::TEXT2.g,
+            field::TEXT2.b,
+            alpha,
+        ));
+        draw_line(x, mid, x + arrow, mid, (2. * s).max(1.), c);
+        draw_line(
+            x + arrow - 6. * s,
+            mid - 5. * s,
+            x + arrow,
+            mid,
+            (2. * s).max(1.),
+            c,
+        );
+        draw_line(
+            x + arrow - 6. * s,
+            mid + 5. * s,
+            x + arrow,
+            mid,
+            (2. * s).max(1.),
+            c,
+        );
+        x += arrow + gap;
+        label(&victim, x, base, px, enemy);
+        y += row_h + row_gap;
+    }
+}
+
 /// Bottom clusters use measured text extents, including the small-window font floor.
 fn draw_bottom_clusters(sim: &Simulation, cfg: &Settings, w: f32, h: f32, weapon_label: &str) {
     let s = field::scale(h);
-    let (inset_x, inset_y) = field::safe_inset(w, h);
+    let (inset_x, _) = field::safe_inset(w, h);
     let p = &sim.player;
-    let label_px = type_px(size::LABEL, s);
-    let small_px = type_px(size::SMALL, s);
-    let gap = (8. * s).max(4.);
-    // Bottom right: ammo and weapon (§7.5).
+    let bottom = h - 64. * s;
+    let lbl_px = fpx(26., s);
+    // Bottom right: ability slots, magazine, reserve, status and weapon (§7.5).
     {
-        let hero_px = type_px(size::NUM_HERO, s);
-        let mag = format!("{:02}", p.ammo);
-        let reserve = format!("/ {:03}", p.reserve);
+        let mag_px = fpx(96., s);
+        let mag = format!("{}", p.ammo);
+        let reserve = format!("/ {}", p.reserve);
         let (mag_color, status) = if p.ammo == 0 {
             (field::CRITICAL, Some(("RELOAD  [R]", field::CRITICAL)))
         } else if p.ammo * 4 <= MAGAZINE {
@@ -428,42 +762,144 @@ fn draw_bottom_clusters(sim: &Simulation, cfg: &Settings, w: f32, h: f32, weapon
         } else {
             None
         };
-        let dm = label_style(mag_color).measure(&mag, hero_px);
-        let dr = label_style(MUTED).measure(&reserve, label_px);
-        let dw = label_style(MUTED).measure(weapon_label, small_px);
         let line = state.map(|t| (t, MUTED)).or(status);
-        let status_dims = line.map(|(text, color)| label_style(color).measure(text, small_px));
-        let width = (dm.width + gap + dr.width)
-            .max(dw.width)
-            .max(status_dims.map_or(0., |d| d.width))
-            .max(200. * s);
-        let x = w - inset_x - width;
-        let bottom = h - inset_y;
-        let bar_y = bottom - (4. * s).max(1.);
-        // Status gets its own measured row below magazine + reserve.
-        let status_base = status_dims.map(|d| bar_y - gap - (d.height - d.offset_y));
-        let ammo_bottom = status_dims
-            .zip(status_base)
-            .map_or(bar_y - gap, |(d, base)| base - d.offset_y - gap);
-        let mag_base = ammo_bottom - (dm.height - dm.offset_y).max(dr.height - dr.offset_y);
-        let ammo_top = mag_base - dm.offset_y.max(dr.offset_y);
-        let name_base = ammo_top - gap - (dw.height - dw.offset_y);
-        let top = name_base - dw.offset_y;
+        let right = w - inset_x;
+        let dm = label_style(mag_color).measure(&mag, mag_px);
+        let dr = label_style(MUTED).measure(&reserve, lbl_px);
+        let dw = label_style(MUTED).measure(weapon_label, lbl_px);
+        let ds = line.map(|(t, c)| label_style(c).measure(t, lbl_px));
+        let row = |d: &TextDimensions| d.height.max(lbl_px * 0.75) + 4. * s;
+        // Stack bottom-up: weapon, status, reserve, magazine, slots.
+        let wpn_top = bottom - row(&dw);
+        let status_top = ds.as_ref().map_or(wpn_top, |d| wpn_top - row(d));
+        let res_top = status_top - row(&dr);
+        let mag_top = res_top - dm.height - 4. * s;
+        let tac = (p.tac_charge / cfg.action.tac_sprint_duration.max(1e-3)).clamp(0., 1.);
+        let slots = [
+            ("MOUNT", "V", p.mount.is_some(), 1.),
+            ("TAC", "2x", p.tac_sprint.is_some() || tac >= 1., tac),
+        ];
+        let slot_px = fpx(20., s);
+        let pad = 5. * s;
+        // 84 ref px, grown to fit its text where the legibility floor applies.
+        let slot = slots
+            .iter()
+            .map(|(name, key, ..)| {
+                let dn = label_style(MUTED).measure(name, slot_px);
+                let dk = label_style(field::TEXT).measure(key, slot_px);
+                (dn.width + 4. * pad)
+                    .max(dn.height + dk.height + 8. * pad)
+                    .max(dk.width + 6. * pad)
+            })
+            .fold(84. * s, f32::max);
+        let slot_gap = 10. * s;
+        let slots_top = mag_top - 12. * s - slot;
+        let width = [
+            dm.width,
+            dr.width,
+            dw.width,
+            ds.map_or(0., |d| d.width),
+            slot * 2. + slot_gap,
+        ]
+        .into_iter()
+        .fold(0., f32::max);
         field::cluster_shade(
             Rect::new(
-                x - gap,
-                top - gap,
-                width + 2. * gap,
-                bottom - top + 2. * gap,
+                right - width - 16. * s,
+                slots_top - 10. * s,
+                width + 32. * s,
+                bottom - slots_top + 20. * s,
             ),
             s,
         );
-        label(weapon_label, x, name_base, small_px, MUTED);
-        label(&mag, x, mag_base, hero_px, mag_color);
-        label(&reserve, x + dm.width + gap, mag_base, label_px, MUTED);
-        if let Some(((text, color), baseline)) = line.zip(status_base) {
-            label(text, x, baseline, small_px, color);
+        for (i, (name, key, ready, charge)) in slots.into_iter().enumerate() {
+            let sx = right - slot * (2 - i) as f32 - slot_gap * (1 - i) as f32;
+            draw_rectangle(
+                sx,
+                slots_top,
+                slot,
+                slot,
+                shade_of(Color::new(
+                    field::SCRIM.r,
+                    field::SCRIM.g,
+                    field::SCRIM.b,
+                    0.7,
+                )),
+            );
+            // Cooldown fills from the top as the scrim drains.
+            if charge < 1. {
+                draw_rectangle(
+                    sx,
+                    slots_top,
+                    slot,
+                    slot * (1. - charge),
+                    shade_of(Color::new(
+                        field::SCRIM.r,
+                        field::SCRIM.g,
+                        field::SCRIM.b,
+                        0.75,
+                    )),
+                );
+            }
+            let (border, bw) = if ready {
+                (field::ACCENT, 3. * s)
+            } else {
+                (
+                    Color::new(field::TEXT.r, field::TEXT.g, field::TEXT.b, 0.35),
+                    2. * s,
+                )
+            };
+            draw_rectangle_lines(sx, slots_top, slot, slot, bw.max(1.), shade_of(border));
+            let dn = label_style(MUTED).measure(name, slot_px);
+            let glyph_h = label_style(field::TEXT).measure(key, slot_px).height + 2. * pad;
+            let block = dn.height + 4. * s + glyph_h;
+            let t0 = slots_top + (slot - block) * 0.5;
+            label(
+                name,
+                sx + (slot - dn.width) * 0.5,
+                t0 + dn.offset_y,
+                slot_px,
+                MUTED,
+            );
+            key_glyph(
+                key,
+                sx + slot * 0.5,
+                t0 + dn.height + 4. * s,
+                slot_px,
+                field::TEXT,
+                s,
+            );
         }
+        label(
+            &mag,
+            right - dm.width,
+            (mag_top + dm.offset_y).round(),
+            mag_px,
+            mag_color,
+        );
+        label(
+            &reserve,
+            right - dr.width,
+            (res_top + dr.offset_y).round(),
+            lbl_px,
+            MUTED,
+        );
+        if let (Some((text, color)), Some(d)) = (line, ds) {
+            label(
+                text,
+                right - d.width,
+                (status_top + d.offset_y).round(),
+                lbl_px,
+                color,
+            );
+        }
+        label(
+            weapon_label,
+            right - dw.width,
+            (wpn_top + dw.offset_y).round(),
+            lbl_px,
+            MUTED,
+        );
         let progress = if let Some(mantle) = p.mantle {
             Some(mantle.progress())
         } else if p.reload_left > 0. {
@@ -472,18 +908,20 @@ fn draw_bottom_clusters(sim: &Simulation, cfg: &Settings, w: f32, h: f32, weapon
             None
         };
         if let Some(progress) = progress {
-            hud_rectangle(x, bar_y, width, (4. * s).max(1.), field::TRACK);
+            let bar_y = res_top - 3. * s;
+            let bar_w = width.max(dm.width);
+            hud_rectangle(right - bar_w, bar_y, bar_w, (4. * s).max(1.), field::TRACK);
             hud_rectangle(
-                x,
+                right - bar_w,
                 bar_y,
-                width * progress.clamp(0., 1.),
+                bar_w * progress.clamp(0., 1.),
                 (4. * s).max(1.),
                 ACCENT,
             );
         }
     }
 
-    // Bottom left: stance, speed and stamina (§7.4 segmented meters).
+    // Bottom left: stance + stamina (accent meter) above health (white meter).
     {
         let stance = if p.dead() {
             "DOWN"
@@ -512,37 +950,69 @@ fn draw_bottom_clusters(sim: &Simulation, cfg: &Settings, w: f32, h: f32, weapon
         } else {
             "STANDING"
         };
-        let speed = format!("{:04.1} m/s", p.speed());
-        let ds = label_style(field::TEXT).measure(stance, label_px);
-        let dv = label_style(MUTED).measure(&speed, small_px);
-        let width = (300. * s).max(ds.width + gap + dv.width);
         let x = inset_x;
-        let bottom = h - inset_y;
-        let tac_y = bottom - (3. * s).max(1.);
-        let bar_h = (8. * s).max(2.);
-        let bar_y = tac_y - gap - bar_h;
-        let base = bar_y - gap * 1.5 - (ds.height - ds.offset_y).max(dv.height - dv.offset_y);
-        let top = base - ds.offset_y.max(dv.offset_y);
+        let seg_w = 78. * s;
+        let gap = 5. * s;
+        let width = seg_w * 4. + gap * 3.;
+        let hp = p.health.clamp(0., 100.);
+        let hp_color = if hp <= 25. {
+            field::CRITICAL
+        } else if hp <= 50. {
+            field::WARNING
+        } else {
+            field::TEXT
+        };
+        let health = format!("HEALTH {:.0}", hp);
+        let speed = format!("{} · {:.1} m/s", stance, p.speed());
+        let dh = label_style(MUTED).measure(&health, lbl_px);
+        let dsp = label_style(MUTED).measure(&speed, lbl_px);
+        let bar_h = 12. * s;
+        let hp_bar = bottom - bar_h;
+        let hp_top = hp_bar - gap - dh.height;
+        let st_bar = hp_top - 8. * s - 8. * s;
+        let sp_top = st_bar - gap - dsp.height;
+        let full = width.max(dh.width).max(dsp.width);
         field::cluster_shade(
             Rect::new(
-                x - gap,
-                top - gap,
-                width + 2. * gap,
-                bottom - top + 2. * gap,
+                x - 16. * s,
+                sp_top - 10. * s,
+                full + 32. * s,
+                bottom - sp_top + 20. * s,
             ),
             s,
         );
-        label(stance, x, base, label_px, field::TEXT);
-        label(&speed, x + width - dv.width, base, small_px, MUTED);
+        label(&speed, x, (sp_top + dsp.offset_y).round(), lbl_px, MUTED);
         let stamina = p.stamina / SPRINT_DURATION;
         let fill = if stamina <= 0.25 {
             field::WARNING
         } else {
-            field::TEXT2
+            field::ACCENT
         };
-        field::segmented_bar(Rect::new(x, bar_y, width, bar_h), 4, stamina, fill, s);
-        let tac = (p.tac_charge / cfg.action.tac_sprint_duration.max(1e-3)).min(1.);
-        hud_rectangle(x, tac_y, width * tac, (3. * s).max(1.), ACCENT);
+        field::segmented_bar(
+            Rect::new(x, st_bar, width * 0.75, 8. * s),
+            3,
+            stamina,
+            fill,
+            s,
+        );
+        label(&health, x, (hp_top + dh.offset_y).round(), lbl_px, MUTED);
+        field::segmented_bar(
+            Rect::new(x, hp_bar, width, bar_h),
+            4,
+            hp / 100.,
+            hp_color,
+            s,
+        );
+        if hp <= 25. && !p.dead() {
+            let dc = label_style(field::CRITICAL).measure("CRITICAL", fpx(28., s));
+            label(
+                "CRITICAL",
+                x + full - dc.width,
+                (hp_top + dc.offset_y).round(),
+                fpx(28., s),
+                field::CRITICAL,
+            );
+        }
     }
 }
 
@@ -602,7 +1072,7 @@ mod tests {
                             bounds.push((text, min, max));
                         }
                     }
-                    assert_eq!(bounds.len(), if state == 0 { 5 } else { 6 });
+                    assert_eq!(bounds.len(), if state == 0 { 9 } else { 10 });
                     for (i, (text, min, max)) in bounds.iter().enumerate() {
                         for (other, omin, omax) in &bounds[i + 1..] {
                             assert!(

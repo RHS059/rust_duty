@@ -380,16 +380,16 @@ mod fixture {
         Ok(())
     }
 
-    /// Logical FIELD HUD clusters (title-safe, 960x540): objective strip, score,
-    /// stance, ammo.
+    /// Logical FIELD HUD clusters (title-safe, 960x540): compass, score,
+    /// health, ammo.
     pub const CORNERS: [[f64; 4]; 4] = [
-        [380., 10., 580., 50.],
+        [300., 10., 660., 70.],
         [690., 10., 936., 75.],
         [30., 440., 220., 530.],
         [750., 420., 936., 530.],
     ];
-    /// Telemetry (debug) readout drawn in the top-left column.
-    pub const DEBUG_PANEL: [f64; 4] = [30., 35., 340., 225.];
+    /// Telemetry (debug) readout drawn in the left column, below the minimap.
+    pub const DEBUG_PANEL: [f64; 4] = [30., 160., 340., 340.];
     /// The scaled pause menu is centred horizontally.
     pub const MENU_BAND: [f64; 4] = [200., 0., 760., 540.];
     /// Warm accent family: the HUD/menu accent #FA9E38, GOLD #FFCB00 and the

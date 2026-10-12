@@ -73,7 +73,11 @@ pub fn safe_inset(w: f32, h: f32) -> (f32, f32) {
 pub fn cluster_shade(core: Rect, s: f32) {
     let style = ui_theme::style(UiScope::Hud, &[UiClass::Panel]);
     let feather = 40. * s;
-    for (step, alpha) in [(1.0, 0.10), (0.75, 0.16), (0.5, 0.22), (0.25, 0.30)] {
+    // Twelve thin steps so the falloff reads as a soft edge over bright scenes.
+    const STEPS: usize = 12;
+    for i in 0..STEPS {
+        let step = 1. - i as f32 / STEPS as f32;
+        let alpha = 0.07;
         let d = feather * step;
         draw_rectangle(
             core.x - d,

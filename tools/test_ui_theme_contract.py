@@ -80,7 +80,13 @@ def bounds(logical, percent):
 
 @lru_cache(maxsize=30)
 def rational_text(reloaded, percent, font_size=None, alpha=None):
-    """Rational geometry and blending, independently expressed as occupied cells."""
+    """The pinned Barlow raster for the fixture's own size and opacity.
+
+    A different size or opacity is synthesized as rational occupied cells,
+    which only needs to differ from the true raster.
+    """
+    if font_size is None and alpha is None:
+        return contract._text_expectation(reloaded, percent)
     background = (80, 32, 128, 255) if reloaded else (32, 64, 96, 255)
     color = (224, 128, 64) if reloaded else (64, 224, 128)
     font_size = (32 if reloaded else 16) if font_size is None else font_size
@@ -178,7 +184,7 @@ def build_fixture(output, *, active_path=None):
                       'pixel_bounds': bounds((36, 36, 80, 68), percent), 'expected_ink_pixels': ink,
                       'checked_pixels': text_size[0] * text_size[1], 'maximum_channel_error': 0,
                       'channel_tolerance': 4, 'required_match_fraction': 1.0,
-                      'oracle': 'independent fixed ProggyClean H/I design-grid area coverage, including negative-space pixels',
+                      'oracle': 'direct fontdue raster of the embedded Barlow Condensed H/I, including negative-space pixels',
                       'human_legibility_approved': False}
             record = {'schema_version': 1, 'filename': filename, 'phase': phase,
                       'requested': 'dx12', 'backend': 'Dx12', 'adapter': ADAPTER,
@@ -599,12 +605,13 @@ class UiThemeOutputTests(unittest.TestCase):
     def test_independent_known_glyph_samples_and_ink_counts(self):
         size, raw, ink = rational_text(False, 100)
         im = Image.frombytes('RGBA', size, raw)
-        self.assertEqual(ink, 32)  # 20 H cells + 12 I cells, all 1x1 at 100%.
-        for x, y in ((41, 52), (46, 59), (43, 55), (66, 52), (67, 56)):
+        self.assertEqual(ink, 111)  # Barlow H and I at 16px, including antialiased edges.
+        # H stems, crossbar and I stem; then the H counter and the space around both.
+        for x, y in ((41, 52), (45, 58), (43, 54), (65, 50), (65, 57)):
             self.assertEqual(im.getpixel((x - 36, y - 36)), (64, 224, 128, 255))
-        for x, y in ((42, 52), (45, 59), (65, 55), (40, 52), (68, 56)):
+        for x, y in ((43, 51), (39, 52), (47, 52), (60, 52), (67, 52)):
             self.assertEqual(im.getpixel((x - 36, y - 36)), (32, 64, 96, 255))
-        self.assertEqual(rational_text(True, 100)[2], 128)
+        self.assertEqual(rational_text(True, 100)[2], 357)
         self.assertEqual(contract._round_positive(32.5), 33)
         self.assertEqual(contract._round_positive(33.5), 34)
 
@@ -624,9 +631,9 @@ class UiThemeOutputTests(unittest.TestCase):
                 self.reject('styled H/I raster')
 
     def test_text_negative_space_wrong_color_missing_stroke_and_flip(self):
-        changes = [('filled H hole', lambda im: im.putpixel((42, 52), (64, 224, 128, 255))),
+        changes = [('filled H hole', lambda im: im.putpixel((43, 51), (64, 224, 128, 255))),
                    ('wrong glyph color', lambda im: im.putpixel((41, 52), (255, 0, 255, 255))),
-                   ('missing crossbar', lambda im: im.putpixel((43, 55), (32, 64, 96, 255))),
+                   ('missing crossbar', lambda im: im.putpixel((43, 54), (32, 64, 96, 255))),
                    ('flip', lambda im: im.transpose(Image.Transpose.FLIP_TOP_BOTTOM))]
         for label, mutate in changes:
             with self.subTest(label=label):

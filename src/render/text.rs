@@ -1,6 +1,6 @@
 //! CPU-only text rasterization into the provisional backend-neutral draw contract.
 //!
-//! Uses the legacy default font, but no macroquad context or GPU resources. Each
+//! Uses FIELD's Barlow Condensed SemiBold (OFL), but no macroquad context or GPU resources. Each
 //! cached glyph has an immutable texture ID so a backend uploads it only once.
 //! Callers supply physical-pixel sizes and baselines, including their DPI scale;
 //! rasterization happens at that size rather than stretching a lower-DPI bitmap.
@@ -10,7 +10,7 @@ use fontdue::{Font, FontSettings, Metrics};
 use glam::Vec2;
 use std::collections::HashMap;
 
-const FONT_BYTES: &[u8] = include_bytes!("font/ProggyClean.ttf");
+pub(crate) const FONT_BYTES: &[u8] = include_bytes!("font/BarlowCondensed-SemiBold.ttf");
 const MAX_SIZE_PX: f32 = 1024.0;
 const MAX_CACHED_GLYPHS: usize = 4096;
 const MAX_CACHE_BYTES: usize = 32 * 1024 * 1024;
@@ -196,6 +196,13 @@ impl TextRenderer {
     }
 
     fn key(&self, character: char, size: f32) -> GlyphKey {
+        // Control characters advance like a space, as with the previous bitmap
+        // font, instead of drawing Barlow's missing-glyph box.
+        let character = if character.is_control() {
+            ' '
+        } else {
+            character
+        };
         GlyphKey {
             index: self.font.lookup_glyph_index(character),
             size_bits: size.to_bits(),
@@ -266,32 +273,49 @@ mod tests {
     #[test]
     fn legacy_default_font_baseline_and_advance_goldens() {
         let mut renderer = renderer();
-        // These are fixed ProggyClean metrics at its 16px design size, not
+        // These are fixed Barlow Condensed SemiBold metrics at 16px, not
         // expectations recomputed by the implementation under test.
         let expected = TextDimensions {
-            width: 21.0,
-            height: 11.0,
-            offset_y: 8.0,
+            width: 17.392002,
+            height: 16.0,
+            offset_y: 12.0,
         };
         assert_eq!(renderer.measure_text("Ag ", 16.0), expected);
         let meshes = renderer
             .meshes("Ag ", Vec2::new(10.0, 20.0), 16.0, Color::WHITE)
             .unwrap();
         assert_eq!(meshes.len(), 2);
-        assert_eq!(meshes[0].vertices[0].position, glam::vec3(11.0, 12.0, 0.0));
-        assert_eq!(meshes[0].vertices[2].position, glam::vec3(17.0, 20.0, 0.0));
-        assert_eq!(meshes[1].vertices[0].position, glam::vec3(18.0, 14.0, 0.0));
-        assert_eq!(meshes[1].vertices[2].position, glam::vec3(23.0, 23.0, 0.0));
+        assert_eq!(meshes[0].vertices[0].position, glam::vec3(10.0, 8.0, 0.0));
+        assert_eq!(meshes[0].vertices[2].position, glam::vec3(18.0, 20.0, 0.0));
+        assert_eq!(
+            meshes[1].vertices[0].position,
+            glam::vec3(17.296001, 11.0, 0.0)
+        );
+        assert_eq!(
+            meshes[1].vertices[2].position,
+            glam::vec3(24.296001, 24.0, 0.0)
+        );
         assert_eq!(meshes[0].vertices[0].uv, Vec2::ZERO);
         assert_eq!(meshes[0].vertices[2].uv, Vec2::ONE);
         assert_eq!(renderer.measure_text("Ag ", 16.0), expected);
         // Like draw_text (as distinct from draw_multiline_text), a newline
         // does not implement a line break or change the supplied baseline.
-        assert_eq!(renderer.measure_text("A\ng", 16.0), expected);
+        // A newline advances like a space and draws nothing.
+        assert_eq!(
+            renderer.measure_text("A\ng", 16.0),
+            renderer.measure_text("A g", 16.0)
+        );
         let newline = renderer
             .meshes("A\ng", Vec2::new(10.0, 20.0), 16.0, Color::WHITE)
             .unwrap();
-        assert_eq!(newline[1].vertices[0].position, glam::vec3(25.0, 14.0, 0.0));
+        let spaced = renderer
+            .meshes("A g", Vec2::new(10.0, 20.0), 16.0, Color::WHITE)
+            .unwrap();
+        assert_eq!(newline.len(), 2);
+        assert_eq!(
+            newline[1].vertices[0].position,
+            spaced[1].vertices[0].position
+        );
     }
 
     #[test]
@@ -301,9 +325,9 @@ mod tests {
         assert_eq!(
             dimensions,
             TextDimensions {
-                width: 42.0,
-                height: 22.0,
-                offset_y: 16.0
+                width: 34.784004,
+                height: 30.0,
+                offset_y: 23.0
             }
         );
         let one = renderer
@@ -313,14 +337,17 @@ mod tests {
             .meshes("Ag", Vec2::new(20.0, 40.0), 32.0, Color::WHITE)
             .unwrap();
         for (low, high) in one.iter().zip(&two) {
+            // An outline font rasterizes each size on its own pixel grid, so
+            // doubling holds to within a pixel or two rather than exactly.
             for (low_vertex, high_vertex) in low.vertices.iter().zip(&high.vertices) {
-                assert_eq!(high_vertex.position, low_vertex.position * 2.0);
+                let error = (high_vertex.position - low_vertex.position * 2.0).abs();
+                assert!(error.max_element() <= 1.0, "{error:?}");
             }
             let low_texture = low.texture.as_ref().unwrap();
             let high_texture = high.texture.as_ref().unwrap();
             assert_ne!(low_texture.id, high_texture.id);
-            assert_eq!(high_texture.width, low_texture.width * 2);
-            assert_eq!(high_texture.height, low_texture.height * 2);
+            assert!(high_texture.width.abs_diff(low_texture.width * 2) <= 2);
+            assert!(high_texture.height.abs_diff(low_texture.height * 2) <= 2);
         }
     }
 

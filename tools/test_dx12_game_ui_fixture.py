@@ -65,7 +65,7 @@ def ui(percent, case, corners=4, accent=True):
     elif case.startswith('updater-'):
         # Independent FreeType rendering of the pinned production font at the
         # source-defined default panel/message locations; no oracle thresholds.
-        font = Path(fixture.build_identity.__file__).resolve().parents[1] / 'src/render/font/ProggyClean.ttf'
+        font = Path(fixture.build_identity.__file__).resolve().parents[1] / 'src/render/font/BarlowCondensed-SemiBold.ttf'
         box(18, 18, 618, 168, OVERLAY)
         if accent:
             title = 'Game is up to date' if case == 'updater-current' else 'Update unavailable'
@@ -78,13 +78,13 @@ def ui(percent, case, corners=4, accent=True):
         for x0, y0, _, _ in fixture.CORNERS[:corners]:
             box(x0 + 10, y0 + 10, x0 + 60, y0 + 20, WHITE)
         if case == 'hud-telemetry':
-            font = Path(fixture.build_identity.__file__).resolve().parents[1] / 'src/render/font/ProggyClean.ttf'
-            box(30, 35, 340, 225, OVERLAY)
+            font = Path(fixture.build_identity.__file__).resolve().parents[1] / 'src/render/font/BarlowCondensed-SemiBold.ttf'
+            box(30, 160, 340, 340, OVERLAY)
             rows = ['SIM 120 Hz   RENDER 60 fps', 'TIME    0.00 s   DIST    0.0 m',
                     'POS  0.00  0.00  0.00', 'VEL  0.00  0.00  0.00', 'ADS 0.00   FOV 100/ 65',
                     'RECOIL  0.00 /  0.00 deg', 'SHOTS 0   HEADSHOTS 0', 'F8 CSV   OFF']
             for row, text in enumerate(rows):
-                draw.text((48*s, (75+row*20)*s), text, font=ImageFont.truetype(str(font), 16*s),
+                draw.text((48*s, (188+row*20)*s), text, font=ImageFont.truetype(str(font), 16*s),
                           fill=(158, 176, 184, 255), anchor='ls')
     return image
 
@@ -286,7 +286,7 @@ class GameUiFixtureTests(unittest.TestCase):
         for percent in fixture.SCALES:
             s = percent // 100
             image = ui(percent, 'hud')
-            ImageDraw.Draw(image).rectangle((24*s, 119*s, 334*s-1, 326*s-1), fill=OVERLAY)
+            ImageDraw.Draw(image).rectangle((24*s, 165*s, 334*s-1, 350*s-1), fill=OVERLAY)
             self.replace(f'hud-telemetry-{percent}.png', image, percent)
         self.rejects('text missing from row')
 
@@ -294,7 +294,7 @@ class GameUiFixtureTests(unittest.TestCase):
         for percent, row in ((100, 0), (200, 7)):
             s = percent // 100
             image = ui(percent, 'hud-telemetry')
-            ImageDraw.Draw(image).rectangle((48*s, (63+row*20)*s, 334*s-1, (79+row*20)*s-1), fill=OVERLAY)
+            ImageDraw.Draw(image).rectangle((48*s, (176+row*20)*s, 334*s-1, (192+row*20)*s-1), fill=OVERLAY)
             self.replace(f'hud-telemetry-{percent}.png', image, percent)
             with self.subTest(percent=percent, row=row):
                 self.rejects(f'text missing from row {row + 1}')
@@ -467,7 +467,7 @@ class ScalingCoverageTests(unittest.TestCase):
         self.check(one, two)
 
     def test_bundled_font_raster_coverage_scales_at_both_sizes(self):
-        font = Path(fixture.build_identity.__file__).resolve().parents[1] / 'src/render/font/ProggyClean.ttf'
+        font = Path(fixture.build_identity.__file__).resolve().parents[1] / 'src/render/font/BarlowCondensed-SemiBold.ttf'
         for text in ('AMMO FULL', 'HOLD TO REFILL AMMO'):
             images = []
             for scale in (1, 2):

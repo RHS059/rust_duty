@@ -332,35 +332,45 @@ mod fixture {
         )
     }
 
-    // Independently transcribed from the embedded licensed ProggyClean design
-    // grid: H and I at 16px, independently placed at x=40/64 logical.
-    // Integer physical baselines at all five scales isolate glyph rasterization
-    // from fractional advance/sampler interpolation. This oracle never calls fontdue,
-    // TextRenderer, measure_text, UiStyle, shaders, or the image under test.
-    const GLYPHS: [[&str; 8]; 2] = [
-        [
-            "100001", "100001", "100001", "111111", "100001", "100001", "100001", "100001",
-        ],
-        [
-            "011100", "001000", "001000", "001000", "001000", "001000", "001000", "011100",
-        ],
-    ];
-    fn overlap(lo: f64, hi: f64, pixel: u32) -> f64 {
-        (hi.min(f64::from(pixel) + 1.) - lo.max(f64::from(pixel))).max(0.)
+    // Expected text coverage from a direct fontdue raster of the embedded Barlow
+    // Condensed file: H and I at the themed size, independently placed at
+    // x=40/64 logical. Integer physical baselines at all five scales isolate
+    // glyph rasterization from fractional advance/sampler interpolation. This
+    // oracle never calls TextRenderer, measure_text, UiStyle, shaders, or the
+    // image under test.
+    const FONT: &[u8] = include_bytes!("../src/render/font/BarlowCondensed-SemiBold.ttf");
+    type Raster = (fontdue::Metrics, Vec<u8>);
+    fn glyph_raster(glyph: char, size: f32) -> std::rc::Rc<Raster> {
+        thread_local! {
+            static CACHE: std::cell::RefCell<std::collections::HashMap<(char, u32), std::rc::Rc<Raster>>> =
+                Default::default();
+        }
+        CACHE.with(|cache| {
+            cache
+                .borrow_mut()
+                .entry((glyph, size.to_bits()))
+                .or_insert_with(|| {
+                    let font = fontdue::Font::from_bytes(FONT, fontdue::FontSettings::default())
+                        .expect("embedded Barlow font");
+                    std::rc::Rc::new(font.rasterize(glyph, size))
+                })
+                .clone()
+        })
     }
     fn text_pixel(x: u32, y: u32, scale: f64, e: Expected) -> [u8; 4] {
-        let q = f64::from(e.font_size) / 16. * scale;
+        let size = (f64::from(e.font_size) * scale) as f32;
         let mut coverage = 0.;
-        for (glyph, rows) in GLYPHS.iter().enumerate() {
-            for (row, line) in rows.iter().enumerate() {
-                for (column, cell) in line.bytes().enumerate() {
-                    if cell != b'1' {
-                        continue;
-                    }
-                    let left = (40. + 24. * glyph as f64) * scale + (1. + column as f64) * q;
-                    let top = 60. * scale + (-8. + row as f64) * q;
-                    coverage += overlap(left, left + q, x) * overlap(top, top + q, y);
-                }
+        for (glyph, baseline_x) in [('H', 40.), ('I', 64.)] {
+            let raster = glyph_raster(glyph, size);
+            let (metrics, bitmap) = (&raster.0, &raster.1);
+            let left = (baseline_x * scale) as i64 + i64::from(metrics.xmin);
+            let top = (60. * scale) as i64 - i64::from(metrics.ymin) - metrics.height as i64;
+            let (column, row) = (i64::from(x) - left, i64::from(y) - top);
+            if (0..metrics.width as i64).contains(&column)
+                && (0..metrics.height as i64).contains(&row)
+            {
+                coverage +=
+                    f64::from(bitmap[row as usize * metrics.width + column as usize]) / 255.;
             }
         }
         let alpha = coverage.clamp(0., 1.) * f64::from(e.text_alpha) / 255.;
@@ -397,7 +407,7 @@ mod fixture {
             return Err("text expectation contains no ink".into());
         }
         Ok(
-            json!({"glyphs":[{"text":"H","baseline_logical":[40,60]},{"text":"I","baseline_logical":[64,60]}],"font_size_css_px":e.font_size,"font_size_physical_px":f64::from(e.font_size)*scale,"pixel_bounds":b,"expected_ink_pixels":ink,"checked_pixels":(b[2]-b[0])*(b[3]-b[1]),"maximum_channel_error":max_error,"channel_tolerance":TOLERANCE,"required_match_fraction":1.0,"oracle":"independent fixed ProggyClean H/I design-grid area coverage, including negative-space pixels","human_legibility_approved":false}),
+            json!({"glyphs":[{"text":"H","baseline_logical":[40,60]},{"text":"I","baseline_logical":[64,60]}],"font_size_css_px":e.font_size,"font_size_physical_px":f64::from(e.font_size)*scale,"pixel_bounds":b,"expected_ink_pixels":ink,"checked_pixels":(b[2]-b[0])*(b[3]-b[1]),"maximum_channel_error":max_error,"channel_tolerance":TOLERANCE,"required_match_fraction":1.0,"oracle":"direct fontdue raster of the embedded Barlow Condensed H/I, including negative-space pixels","human_legibility_approved":false}),
         )
     }
 
@@ -680,52 +690,51 @@ mod fixture {
             }
         }
         #[test]
-        fn fixed_design_grid_has_independent_known_samples() {
-            let e = expected(false);
-            // Known 16px H stems, crossbar, hole, and I cap; not recomputed using
-            // production font metrics or image generation output.
-            for (x, y) in [(41, 52), (46, 59), (43, 55), (66, 52), (67, 56)] {
-                assert_eq!(text_pixel(x, y, 1., e), [64, 224, 128, 255]);
-            }
-            for (x, y) in [(42, 52), (45, 59), (65, 55), (40, 52), (68, 56)] {
-                assert_eq!(text_pixel(x, y, 1., e), e.background);
-            }
-        }
-        #[test]
-        fn fixed_mask_matches_embedded_font_cpu_raster_at_all_scales() {
-            // CPU-only oracle qualification, not a GPU render or capture golden.
-            let font = fontdue::Font::from_bytes(
-                &include_bytes!("../src/render/font/ProggyClean.ttf")[..],
-                fontdue::FontSettings::default(),
-            )
-            .unwrap();
+        fn oracle_matches_production_cpu_text_raster_at_all_scales() {
+            // CPU-only oracle qualification, not a GPU render or capture golden:
+            // the production TextRenderer's quads, composited 1:1, reproduce it.
+            let mut renderer = vector_range::render::text::TextRenderer::new().unwrap();
             for percent in SCALES {
                 for reloaded in [false, true] {
                     let scale = f64::from(percent) / 100.;
                     let size = physical_size(percent);
                     let e = expected(reloaded);
                     let mut control = RgbaImage::from_pixel(size[0], size[1], Rgba(e.background));
-                    for (glyph, baseline_x) in [('H', 40.), ('I', 64.)] {
-                        let (metrics, bitmap) =
-                            font.rasterize(glyph, e.font_size as f32 * scale as f32);
-                        let left = (baseline_x * scale) as i32 + metrics.xmin;
-                        let top = (60. * scale) as i32 - metrics.ymin - metrics.height as i32;
-                        for row in 0..metrics.height {
-                            for column in 0..metrics.width {
-                                let alpha = f64::from(bitmap[row * metrics.width + column]) / 255.
-                                    * f64::from(e.text_alpha)
-                                    / 255.;
-                                let mut rgba = e.background;
-                                for (i, value) in rgba[..3].iter_mut().enumerate() {
-                                    *value = (f64::from(e.text_rgb[i]) * alpha
-                                        + f64::from(e.background[i]) * (1. - alpha))
-                                        .round() as u8;
+                    for (glyph, baseline_x) in [("H", 40.), ("I", 64.)] {
+                        let meshes = renderer
+                            .meshes(
+                                glyph,
+                                glam::Vec2::new(baseline_x, 60.) * scale as f32,
+                                e.font_size as f32 * scale as f32,
+                                vector_range::draw::Color::WHITE,
+                            )
+                            .unwrap();
+                        for mesh in meshes {
+                            let texture = mesh.texture.unwrap();
+                            let vector_range::draw::TextureSource::Rgba8(pixels) = &texture.source
+                            else {
+                                panic!("glyph texture is not RGBA8")
+                            };
+                            let origin = mesh.vertices[0].position;
+                            for row in 0..texture.height {
+                                for column in 0..texture.width {
+                                    let i = ((row * texture.width + column) * 4) as usize;
+                                    let alpha = f64::from(pixels[i + 3]) / 255.
+                                        * f64::from(e.text_alpha)
+                                        / 255.;
+                                    let mut rgba = e.background;
+                                    for (c, value) in rgba[..3].iter_mut().enumerate() {
+                                        *value = (f64::from(e.text_rgb[c]) * alpha
+                                            + f64::from(e.background[c]) * (1. - alpha))
+                                            .round()
+                                            as u8;
+                                    }
+                                    control.put_pixel(
+                                        origin.x as u32 + column,
+                                        origin.y as u32 + row,
+                                        Rgba(rgba),
+                                    );
                                 }
-                                control.put_pixel(
-                                    (left + column as i32) as u32,
-                                    (top + row as i32) as u32,
-                                    Rgba(rgba),
-                                );
                             }
                         }
                     }
