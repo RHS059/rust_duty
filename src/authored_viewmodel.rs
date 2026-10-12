@@ -1033,7 +1033,10 @@ mod tests {
                     6..=7 => vertex.uv[component - 6] = value,
                     _ => vertex.weights[component - 8] = value,
                 }
-                assert!(keys.insert(skin_vertex_key(&vertex)), "float bits were lost");
+                assert!(
+                    keys.insert(skin_vertex_key(&vertex)),
+                    "float bits were lost"
+                );
             }
         }
         for influence in 0..8 {
@@ -1054,7 +1057,12 @@ mod tests {
             .chain(&vertex.uv)
             .flat_map(|value| value.to_le_bytes())
             .chain(vertex.joints.iter().flat_map(|joint| joint.to_le_bytes()))
-            .chain(vertex.weights.iter().flat_map(|weight| weight.to_le_bytes()))
+            .chain(
+                vertex
+                    .weights
+                    .iter()
+                    .flat_map(|weight| weight.to_le_bytes()),
+            )
             .collect()
     }
 
@@ -1117,8 +1125,10 @@ mod tests {
         batch.mesh.vertices.truncate(batch.source_vertices.len());
         batch.mesh.indices = indices;
         for (angle, cant, alpha) in [(0., 0., 1.), (0.4, 0.25, 0.5), (-0.8, -0.3, 0.)] {
-            let root =
-                Mat4::from_rotation_translation(Quat::from_rotation_y(angle), vec3(angle, 0.2, -0.5));
+            let root = Mat4::from_rotation_translation(
+                Quat::from_rotation_y(angle),
+                vec3(angle, 0.2, -0.5),
+            );
             let light = SceneLighting::range().in_view(vec3(angle.sin(), 0.2, -angle.cos()));
             let mut outputs = Vec::new();
             for model in [&mut baseline, &mut candidate] {
