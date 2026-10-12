@@ -1,0 +1,42 @@
+{
+  "schema": "a100-target-full-publication/v1",
+  "compressed": {
+    "name": "a100-target-61f7b4de-full-stored.zip.xz",
+    "bytes": 18505480,
+    "sha256": "70b31dd16bdf8ce1df059a3a578fe1906a0931212bc8d6c4bc626d71af1279a8"
+  },
+  "original": {
+    "name": "a100-target-61f7b4de-full-stored.zip",
+    "bytes": 185810810,
+    "sha256": "fa415bf6904e7fe9ce6c3252b582dd522ca9ac5aa4dcc1c35b23366f6ec13f09",
+    "entries": 693
+  },
+  "parts": [
+    {
+      "index": 0,
+      "offset": 0,
+      "bytes": 6291456,
+      "sha256": "7696f86319f5a64fcd52a3a78dba3bfed9a30a0f9aa5f9d6b82315bb0bb9d552",
+      "name": "a100-target.xz.part000",
+      "git_blob_sha1": "44c5f090fa984437fed9f3f9f2d821addd6dd42b"
+    },
+    {
+      "index": 1,
+      "offset": 6291456,
+      "bytes": 6291456,
+      "sha256": "22e80f8d7f2946e755884108e189d172eeafdb7e94208cc071c4e95a990cfe53",
+      "name": "a100-target.xz.part001",
+      "git_blob_sha1": "6885311e9f5d321d019d1b566b07855cbe508b7a"
+    },
+    {
+      "index": 2,
+      "offset": 12582912,
+      "bytes": 5922568,
+      "sha256": "4f4ad4ff13d63c6c27592c5bacaa578535e040c30da0bf3c36d166f6efdb9a03",
+      "name": "a100-target.xz.part002",
+      "git_blob_sha1": "de45d9136a2154db99ba14698b9d427fc3eef7d9"
+    }
+  ],
+  "zip_entries": 693,
+  "crc": "PASS"
+}

@@ -1,0 +1,51 @@
+{
+  "schema": "target-only-six-leg-screenshot-review/v1",
+  "source": "61f7b4de3422dad34c7ed94ac661339f205babaf",
+  "tree": "0709c9595fdd8b75198dcf41ee511f21488ca87f",
+  "elf_sha256": "51b5dc571465462dabe15387a47f52d31f519886cf4ec5183104e583973e8d9a",
+  "screenshots": [
+    {
+      "index": 1,
+      "mode": "visible",
+      "sha256": "91799a9909faa445265edd20f9f8b32b2762cda60f48a4ed52823a20cd9a36bf",
+      "visually_reviewed": true,
+      "finding": "Hands and weapon visible; world and HUD retained."
+    },
+    {
+      "index": 2,
+      "mode": "target-only",
+      "sha256": "417041a7604d2cce8c5f08fc5adb2b92275f675105bc9ebf8ea54222b1fc43ef",
+      "visually_reviewed": true,
+      "finding": "Hands and weapon absent; world and HUD retained."
+    },
+    {
+      "index": 3,
+      "mode": "hidden",
+      "sha256": "7cb4b98b46cf542c8780ab86a1a4cbd95045af7f91f106165b788f048b6fe40d",
+      "visually_reviewed": true,
+      "finding": "Hands and weapon absent; world and HUD retained."
+    },
+    {
+      "index": 4,
+      "mode": "hidden",
+      "sha256": "deb2a0a612e4cb49654251d4392f7f010f04b6c1c5d2d93fb48195ce1b78b3b9",
+      "visually_reviewed": true,
+      "finding": "Hands and weapon absent; world and HUD retained."
+    },
+    {
+      "index": 5,
+      "mode": "target-only",
+      "sha256": "af05901de9364524871e95fed9570a1179b9b633d6edb7b4130c80126fe48c89",
+      "visually_reviewed": true,
+      "finding": "Hands and weapon absent; world and HUD retained."
+    },
+    {
+      "index": 6,
+      "mode": "visible",
+      "sha256": "645989920c6cdad6835eb2427a3ef8250b266f31bcaeb8fe0a40b7095d94349e",
+      "visually_reviewed": true,
+      "finding": "Hands and weapon visible; world and HUD retained."
+    }
+  ],
+  "scope": "Original 2560x1440 display screenshots, viewed after recording stopped. Qualitative layer-presence review; not a strict image-equivalence pass or raw timing replay."
+}
