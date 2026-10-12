@@ -252,6 +252,9 @@ impl LegacyRenderer {
     ) -> Result<(), String> {
         match command {
             Command::Camera(next) => {
+                if next.depth_range != [0., 1.] {
+                    return Err("viewport depth ranges require the native renderer".into());
+                }
                 if !next.view_projection.is_finite() {
                     return Err("non-finite camera matrix".into());
                 }
@@ -1063,6 +1066,7 @@ mod tests {
                 view_projection: projection,
                 target: None,
                 depth_test: true,
+                depth_range: [0., 1.],
             },
             None,
         );
@@ -1076,6 +1080,7 @@ mod tests {
             view_projection: Mat4::IDENTITY,
             target,
             depth_test: true,
+            depth_range: [0., 1.],
         }
     }
 

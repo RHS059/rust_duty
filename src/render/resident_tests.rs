@@ -324,6 +324,7 @@ fn native_resident_poses_preserve_order_and_queued_results() {
                 view_projection: Mat4::perspective_rh_gl(1.0, 1., 0.1, 10.),
                 target: Some(target.clone()),
                 depth_test: true,
+                depth_range: [0., 1.],
             });
             list.clear(Color::TRANSPARENT);
             for (z, color, alpha) in [

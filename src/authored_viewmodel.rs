@@ -760,6 +760,27 @@ impl AuthoredViewmodel {
             }
         }
     }
+    /// A zero/fractional-opacity actor still writes viewmodel depth. Drawing the
+    /// whole original-order layer after world preserves the world behind it.
+    pub fn requires_world_behind(&self) -> bool {
+        let Some(visual) = &self.reload_presentation else {
+            return false;
+        };
+        let actors = self.reload_renderers[visual.index].animation.actors();
+        actors.iter().enumerate().any(|(index, actor)| {
+            !actor.mesh_indices.is_empty()
+                && visual
+                    .pose
+                    .actor_visible
+                    .get(index)
+                    .copied()
+                    .unwrap_or(false)
+                && visual
+                    .opacity
+                    .get(index)
+                    .is_none_or(|alpha| !alpha.is_finite() || *alpha < 1.)
+        })
+    }
     pub fn error(&self) -> Option<&str> {
         self.error.as_deref()
     }
@@ -959,6 +980,11 @@ impl AuthoredViewmodel {
 }
 
 #[cfg(test)]
+pub(crate) fn direct_target_test_fixture() -> AuthoredViewmodel {
+    tests::contact_fixture()
+}
+
+#[cfg(test)]
 mod tests {
     use super::*;
     use vector_range::{
@@ -1009,7 +1035,7 @@ mod tests {
             .any(|c| matches!(c, vector_range::draw::Command::Mesh { .. })));
     }
 
-    fn contact_fixture() -> AuthoredViewmodel {
+    pub(super) fn contact_fixture() -> AuthoredViewmodel {
         fn words(bytes: &mut Vec<u8>, values: &[u32]) {
             bytes.extend(values.iter().flat_map(|value| value.to_le_bytes()));
         }
@@ -1457,6 +1483,47 @@ mod tests {
         assert!(model.source_pose_snapshot(0., root).is_err());
         model.set_cant(0.);
         assert!(model.source_pose_snapshot(f64::NAN, root).is_err());
+    }
+
+    #[test]
+    fn direct_target_routes_whole_layer_after_world_for_visible_nonopaque_actors() {
+        let mut model = contact_fixture();
+        assert!(!model.requires_world_behind());
+        let renderer = contact_fixture();
+        let pose = renderer.animation.sample_clamped("contact", 0.).unwrap();
+        model.reload_renderers.push(renderer);
+        model.reload_presentation = Some(ReloadPresentation {
+            index: 0,
+            pose,
+            opacity: vec![1.],
+            fade: None,
+            outgoing: false,
+            from_ads: 0.,
+            visible_ads: 0.,
+            weight: 1.,
+        });
+        for (alpha, after) in [
+            (1., false),
+            (2., false),
+            (0.999, true),
+            (0.5, true),
+            (0., true),
+            (-1., true),
+            (f32::NAN, true),
+        ] {
+            model.reload_presentation.as_mut().unwrap().opacity[0] = alpha;
+            assert_eq!(model.requires_world_behind(), after, "opacity {alpha}");
+        }
+        model
+            .reload_presentation
+            .as_mut()
+            .unwrap()
+            .pose
+            .actor_visible[0] = false;
+        assert!(
+            !model.requires_world_behind(),
+            "invisible actors do not depth-block the world"
+        );
     }
 
     #[test]

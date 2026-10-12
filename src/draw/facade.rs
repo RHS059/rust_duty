@@ -424,7 +424,20 @@ pub fn set_camera(camera: &Camera3D) {
             view_projection,
             target: camera.render_target.clone(),
             depth_test: true,
+            depth_range: [0., 1.],
         };
+        frame.list.camera(frame.camera.clone());
+        Ok(())
+    });
+}
+/// Map surviving fragments into a bounded depth slice after normal clipping.
+/// Selecting any new camera restores its default full depth range.
+pub fn set_depth_range(min: f32, max: f32) {
+    record("set_depth_range", |frame| {
+        if !min.is_finite() || !max.is_finite() || min < 0. || max > 1. || min > max {
+            return Err("viewport depth range must be finite and ordered within 0..1".into());
+        }
+        frame.camera.depth_range = [min, max];
         frame.list.camera(frame.camera.clone());
         Ok(())
     });
@@ -965,6 +978,44 @@ mod tests {
             up: Vec3::Y,
             render_target: target,
             ..Camera3D::default()
+        }
+    }
+
+    #[test]
+    fn viewport_depth_range_preserves_projection_and_resets_with_camera() {
+        begin(1.);
+        set_camera(&perspective(None));
+        set_depth_range(0., 0.05);
+        set_default_camera();
+        let list = take_draw_list().unwrap();
+        let cameras: Vec<_> = list
+            .commands
+            .iter()
+            .filter_map(|c| {
+                if let Command::Camera(camera) = c {
+                    Some(camera)
+                } else {
+                    None
+                }
+            })
+            .collect();
+        assert_eq!(cameras[1].view_projection, cameras[2].view_projection);
+        assert_eq!(cameras[1].depth_range, [0., 1.]);
+        assert_eq!(cameras[2].depth_range, [0., 0.05]);
+        assert_eq!(cameras[3].depth_range, [0., 1.]);
+        assert!(!cameras[3].depth_test);
+        for [min, max] in [
+            [-0.1, 1.],
+            [0., 1.1],
+            [0.5, 0.4],
+            [f32::NAN, 1.],
+            [0., f32::INFINITY],
+        ] {
+            begin(1.);
+            set_depth_range(min, max);
+            assert!(take_draw_list()
+                .unwrap_err()
+                .contains("viewport depth range"));
         }
     }
 

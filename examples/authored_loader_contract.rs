@@ -411,6 +411,7 @@ fn run() -> Result<(), String> {
             view_projection: camera,
             target: None,
             depth_test: true,
+            depth_range: [0., 1.],
         });
         list.clear(BACKGROUND);
         list.commands.extend(

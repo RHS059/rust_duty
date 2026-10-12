@@ -3,7 +3,10 @@ use super::{
     arena::DrawSlice,
     capture::{CaptureEncoding, Readback},
     mesh::{FragmentKind, FrameGeometry},
-    plan::{draw_attachment, draw_run_len, FramePlan, PreparedCommand, PreparedDraw},
+    plan::{
+        clear_draw_run, draw_attachment, draw_run_len, starts_with_main_clear, FramePlan,
+        PreparedCommand, PreparedDraw,
+    },
     target::{self, GpuTexture},
     WgpuRenderer,
 };
@@ -246,7 +249,11 @@ impl WgpuRenderer {
                 } else {
                     None
                 };
-                clear(&mut encoder, &self.main, Color::TRANSPARENT);
+                // An explicit first main clear already initializes both color
+                // and depth. Keep the fallback for capture-only/uncleared lists.
+                if !starts_with_main_clear(&plan.commands) {
+                    clear(&mut encoder, &self.main, Color::TRANSPARENT);
+                }
                 let mut readbacks = Vec::new();
                 let mut commands = plan.commands.as_slice();
                 while let Some((command, _)) = commands.split_first() {
@@ -258,8 +265,20 @@ impl WgpuRenderer {
                             }
                         }
                         PreparedCommand::Clear { target, color } => {
-                            let output = self.output(target.as_ref())?;
-                            clear(&mut encoder, &output, *color);
+                            if let Some(run) = clear_draw_run(commands) {
+                                consumed = run.end;
+                                self.draw_prepared_run(
+                                    &mut encoder,
+                                    &geometry,
+                                    residents.as_ref(),
+                                    &plan,
+                                    &commands[run],
+                                    Some(*color),
+                                )?;
+                            } else {
+                                let output = self.output(target.as_ref())?;
+                                clear(&mut encoder, &output, *color);
+                            }
                         }
                         PreparedCommand::Draw(_) | PreparedCommand::Resident(_) => {
                             consumed = draw_run_len(commands);
@@ -269,6 +288,7 @@ impl WgpuRenderer {
                                 residents.as_ref(),
                                 &plan,
                                 &commands[..consumed],
+                                None,
                             )?;
                         }
                         PreparedCommand::Capture { target, path } => {
@@ -369,6 +389,7 @@ impl WgpuRenderer {
         residents: Option<&super::resident::Frame>,
         plan: &FramePlan,
         commands: &[PreparedCommand],
+        clear_color: Option<Color>,
     ) -> Result<(), String> {
         let (target, depth) = draw_attachment(&commands[0]).expect("draw run begins with a draw");
         let output = self.output(target)?;
@@ -380,7 +401,9 @@ impl WgpuRenderer {
                 depth_slice: None,
                 resolve_target: None,
                 ops: wgpu::Operations {
-                    load: wgpu::LoadOp::Load,
+                    load: clear_color.map_or(wgpu::LoadOp::Load, |color| {
+                        wgpu::LoadOp::Clear(target::clear_color(color))
+                    }),
                     store: wgpu::StoreOp::Store,
                 },
             })],
@@ -391,7 +414,11 @@ impl WgpuRenderer {
                     .map(|view| wgpu::RenderPassDepthStencilAttachment {
                         view,
                         depth_ops: Some(wgpu::Operations {
-                            load: wgpu::LoadOp::Load,
+                            load: if clear_color.is_some() {
+                                wgpu::LoadOp::Clear(1.)
+                            } else {
+                                wgpu::LoadOp::Load
+                            },
                             store: wgpu::StoreOp::Store,
                         }),
                         stencil_ops: None,
@@ -401,8 +428,30 @@ impl WgpuRenderer {
             },
             ..Default::default()
         });
+        let mut viewport_depth = None;
         for command in commands {
+            let range = match command {
+                PreparedCommand::Draw(draw) => Some(draw.depth_range),
+                PreparedCommand::Resident(draw) => Some(draw.depth_range),
+                _ => None,
+            };
+            if let Some(range) = range {
+                if viewport_depth != Some(range) {
+                    // Applied by the rasterizer after homogeneous clipping.
+                    // Matrices, clip planes and XY framing stay unchanged.
+                    pass.set_viewport(
+                        0.,
+                        0.,
+                        output.descriptor.width as f32,
+                        output.descriptor.height as f32,
+                        range[0],
+                        range[1],
+                    );
+                    viewport_depth = Some(range);
+                }
+            }
             match command {
+                PreparedCommand::Camera(_) => {}
                 PreparedCommand::Draw(draw) => {
                     self.draw_prepared_mesh(&mut pass, geometry, draw)?
                 }
@@ -613,6 +662,12 @@ fn validate(list: &DrawList, limits: &wgpu::Limits) -> Result<(), String> {
                 if !camera.view_projection.is_finite() {
                     return Err("non-finite camera transform".into());
                 }
+                let [min, max] = camera.depth_range;
+                if !min.is_finite() || !max.is_finite() || min < 0. || max > 1. || min > max {
+                    return Err(
+                        "viewport depth range must be finite and ordered within 0..1".into(),
+                    );
+                }
                 if let Some(t) = &camera.target {
                     target(t)?;
                     if camera.depth_test
@@ -721,6 +776,7 @@ mod tests {
         PreparedCommand::Draw(PreparedDraw {
             target: target.cloned(),
             depth_test,
+            depth_range: [0., 1.],
             texture: None,
             blend: BlendMode::Alpha,
             lines: false,
@@ -762,7 +818,7 @@ mod tests {
     }
 
     #[test]
-    fn grouping_preserves_camera_clear_capture_and_attachment_boundaries() {
+    fn grouping_continues_same_camera_attachment_but_preserves_real_barriers() {
         let a = RenderTarget::new(40, 20, true).unwrap();
         let b = RenderTarget::new(40, 20, true).unwrap();
         let commands = vec![
@@ -791,17 +847,7 @@ mod tests {
         let runs = draw_runs(&commands);
         assert_eq!(
             runs,
-            [
-                0..2,
-                3..4,
-                5..6,
-                7..8,
-                8..10,
-                10..11,
-                11..12,
-                12..13,
-                13..15
-            ]
+            [0..4, 5..6, 7..8, 8..10, 10..11, 11..12, 12..13, 13..15]
         );
         // Flatten the actual grouping rule and compare with the original
         // logical draw sequence, including exact immutable draw identities.
@@ -815,11 +861,10 @@ mod tests {
         let after: Vec<_> = runs
             .into_iter()
             .flat_map(|range| &commands[range])
-            .map(|command| {
-                let PreparedCommand::Draw(draw) = command else {
-                    panic!("draw run crossed a barrier")
-                };
-                draw as *const PreparedDraw
+            .filter_map(|command| match command {
+                PreparedCommand::Draw(draw) => Some(draw as *const PreparedDraw),
+                PreparedCommand::Camera(_) => None,
+                _ => panic!("draw run crossed a barrier"),
             })
             .collect();
         assert_eq!(after, before);
@@ -854,6 +899,103 @@ mod tests {
         .unwrap();
         assert!(draw_runs(&plan.commands).is_empty());
         assert!(plan.present.is_none());
+    }
+
+    #[test]
+    fn clear_folding_preserves_capture_target_and_depth_boundaries() {
+        let mut near = Camera::screen(100, 50);
+        near.depth_test = true;
+        near.depth_range = [0., 0.05];
+        let mut world = near.clone();
+        world.depth_range = [0.1, 1.];
+        let mut commands = vec![
+            PreparedCommand::Clear {
+                target: None,
+                color: Color::WHITE,
+            },
+            PreparedCommand::Camera(near),
+            draw(None, true, 0),
+            PreparedCommand::Camera(world),
+            draw(None, true, 1),
+            PreparedCommand::Camera(Camera::screen(100, 50)),
+            draw(None, false, 2),
+        ];
+        assert!(starts_with_main_clear(&commands));
+        assert_eq!(clear_draw_run(&commands), Some(2..5));
+        let target = RenderTarget::new(10, 10, true).unwrap();
+        let PreparedCommand::Camera(camera) = &mut commands[1] else {
+            unreachable!()
+        };
+        camera.target = Some(target);
+        assert_eq!(clear_draw_run(&commands), None);
+        commands[1] = PreparedCommand::Capture {
+            target: None,
+            path: "before.png".into(),
+        };
+        assert_eq!(clear_draw_run(&commands), None);
+        assert!(!starts_with_main_clear(&commands[1..]));
+        commands[1] = draw(None, false, 0);
+        assert_eq!(clear_draw_run(&commands), None);
+        assert_eq!(clear_draw_run(&commands[..1]), None);
+        let only_camera = [PreparedCommand::Camera(Camera::screen(100, 50))];
+        assert!(!starts_with_main_clear(&only_camera));
+    }
+
+    #[test]
+    fn viewport_depth_is_snapshotted_without_changing_clip_matrices() {
+        let mut list = DrawList::new(100, 50);
+        let mut camera = Camera::screen(100, 50);
+        camera.depth_test = true;
+        camera.view_projection = Mat4::perspective_rh_gl(1., 2., 0.01, 5.);
+        let matrix = camera.view_projection;
+        let mesh = super::super::sprite2d::quad(Rect::new(1., 2., 3., 4.), Color::WHITE, None);
+        for range in [[0., 0.05], [0.1, 1.]] {
+            camera.depth_range = range;
+            list.camera(camera.clone());
+            list.draw_mesh(&mesh, Mat4::IDENTITY, BlendMode::Alpha);
+        }
+        let plan = FramePlan::new(
+            &list,
+            &mut super::super::text::TextRenderer::new().unwrap(),
+            256,
+            1 << 20,
+            false,
+        )
+        .unwrap();
+        assert_eq!(draw_run_len(&plan.commands[1..]), 3);
+        let draws: Vec<_> = plan
+            .commands
+            .iter()
+            .filter_map(|c| {
+                if let PreparedCommand::Draw(d) = c {
+                    Some(d)
+                } else {
+                    None
+                }
+            })
+            .collect();
+        assert_eq!(draws[0].depth_range, [0., 0.05]);
+        assert_eq!(draws[1].depth_range, [0.1, 1.]);
+        let expected: Vec<_> = super::super::arena::clip_matrix(matrix, Mat4::IDENTITY)
+            .to_cols_array()
+            .into_iter()
+            .flat_map(f32::to_le_bytes)
+            .collect();
+        for draw in draws {
+            let bytes = plan.arenas[draw.geometry.arena_index]
+                .buffer_contents()
+                .unwrap()[2];
+            let offset = draw.geometry.range.matrix_offset as usize;
+            assert_eq!(&bytes[offset..offset + 64], expected.as_slice());
+        }
+        for range in [[-0.1, 1.], [0., 1.1], [0.5, 0.4], [f32::NAN, 1.]] {
+            camera.depth_range = range;
+            let mut invalid = DrawList::new(100, 50);
+            invalid.camera(camera.clone());
+            assert!(validate(&invalid, &wgpu::Limits::default())
+                .unwrap_err()
+                .contains("viewport depth range"));
+        }
     }
 
     #[test]
@@ -965,6 +1107,7 @@ mod tests {
             view_projection: Mat4::IDENTITY,
             target: Some(RenderTarget::new(64, 64, false).unwrap()),
             depth_test: true,
+            depth_range: [0., 1.],
         });
         assert!(validate(&list, &wgpu::Limits::default())
             .unwrap_err()
@@ -972,5 +1115,163 @@ mod tests {
         list.commands.clear();
         list.clear(Color::new(f32::NAN, 0., 0., 1.));
         assert!(validate(&list, &wgpu::Limits::default()).is_err());
+    }
+
+    #[test]
+    #[ignore = "explicit native viewport-depth clipping/order/alpha contract"]
+    fn native_depth_slices_preserve_clip_planes_and_ordered_fades() {
+        use crate::draw::{Renderer, Vertex};
+        use glam::Vec2;
+        let backend = if cfg!(target_os = "windows") {
+            super::super::BackendSelection::Dx12
+        } else {
+            super::super::BackendSelection::Vulkan
+        };
+        let mut renderer = pollster::block_on(WgpuRenderer::new_headless(
+            64,
+            64,
+            backend,
+            cfg!(target_os = "windows"),
+        ))
+        .expect("explicit native adapter required");
+        let adapter = renderer.gpu.actual_adapter_info();
+        if cfg!(target_os = "windows") {
+            assert_eq!(adapter.device_type, wgpu::DeviceType::Cpu);
+        } else {
+            assert!(matches!(
+                adapter.device_type,
+                wgpu::DeviceType::DiscreteGpu | wgpu::DeviceType::IntegratedGpu
+            ));
+        }
+        eprintln!("direct viewport-depth actual adapter: {adapter:?}");
+        let output = std::env::var_os("RUST_DUTY_DIRECT_TEST_OUTPUT")
+            .map(std::path::PathBuf::from)
+            .unwrap_or_else(|| {
+                std::env::temp_dir().join(format!("rust-duty-direct-depth-{}", std::process::id()))
+            });
+        std::fs::create_dir(&output).expect("native evidence directory must be fresh");
+        let quad = |extent: f32, z: f32, color: Color| Mesh {
+            vertices: [
+                [-extent, -extent],
+                [extent, -extent],
+                [extent, extent],
+                [-extent, extent],
+            ]
+            .into_iter()
+            .map(|[x, y]| Vertex::new2(Vec3::new(x, y, z), Vec2::ZERO, color))
+            .collect(),
+            indices: vec![0, 1, 2, 0, 2, 3],
+            texture: None,
+        };
+        let camera = |range| Camera {
+            view_projection: Mat4::IDENTITY,
+            target: None,
+            depth_test: true,
+            depth_range: range,
+        };
+        let green = Color::new(0., 1., 0., 1.);
+        let red = Color::new(1., 0., 0., 1.);
+        let blue = Color::new(0., 0., 1., 1.);
+        let mut report = Vec::new();
+        for (name, z, fade) in [
+            ("opaque-first", 0.8, false),
+            ("resident-first", 0.8, false),
+            ("near-clipped", -2., false),
+            ("far-clipped", 2., false),
+            ("ordered-fade", -0.5, true),
+        ] {
+            let mut list = DrawList::new(64, 64);
+            list.clear(Color::new(0., 0., 0., 1.));
+            if fade {
+                list.camera(camera([0.1, 1.]));
+                list.draw_mesh(&quad(1., -0.8, green), Mat4::IDENTITY, BlendMode::Alpha);
+                list.camera(camera([0., 0.05]));
+                list.draw_mesh(
+                    &quad(0.5, z, Color::new(1., 0., 0., 128. / 255.)),
+                    Mat4::IDENTITY,
+                    BlendMode::Alpha,
+                );
+                // This later, deeper blue actor must remain occluded by the
+                // fading red actor's original depth write. Reordering fails.
+                list.draw_mesh(&quad(0.5, 0.5, blue), Mat4::IDENTITY, BlendMode::Alpha);
+            } else {
+                list.camera(camera([0., 0.05]));
+                let foreground = quad(0.5, z, red);
+                if name == "resident-first" {
+                    use crate::draw::resident::{
+                        ResidentDraw, ResidentMesh, RigidVertex, Vertices,
+                    };
+                    let mesh = ResidentMesh::new(
+                        Vertices::Rigid(
+                            foreground
+                                .vertices
+                                .iter()
+                                .map(|v| RigidVertex {
+                                    position: v.position.to_array(),
+                                    uv: v.uv.to_array(),
+                                    normal: [0., 0., 1.],
+                                })
+                                .collect(),
+                        ),
+                        foreground.indices.clone(),
+                        None,
+                    )
+                    .unwrap();
+                    let draw = ResidentDraw::new(
+                        mesh,
+                        Mat4::IDENTITY,
+                        crate::scene_lighting::SceneLighting {
+                            direction_to_light: Vec3::Z,
+                            ambient: 1.,
+                            diffuse: 0.,
+                        },
+                        red,
+                        1.,
+                        None,
+                    )
+                    .unwrap();
+                    list.draw_resident(draw, Mat4::IDENTITY, BlendMode::Alpha);
+                } else {
+                    list.draw_mesh(&foreground, Mat4::IDENTITY, BlendMode::Alpha);
+                }
+                list.camera(camera([0.1, 1.]));
+                list.draw_mesh(&quad(1., -0.8, green), Mat4::IDENTITY, BlendMode::Alpha);
+            }
+            // HUD is screen-space and restores the full viewport depth range.
+            list.camera(Camera::screen(64, 64));
+            list.draw_rect(Rect::new(1., 1., 4., 4.), Color::WHITE);
+            let plan = FramePlan::new(
+                &list,
+                &mut super::super::text::TextRenderer::new().unwrap(),
+                256,
+                1 << 20,
+                false,
+            )
+            .unwrap();
+            assert_eq!(
+                clear_draw_run(&plan.commands),
+                Some(2..if fade { 6 } else { 5 })
+            );
+            let path = output.join(format!("{name}.png"));
+            list.capture_png(None, path.clone());
+            assert_eq!(renderer.submit(&list).unwrap().captures.len(), 1);
+            let image = image::open(path).unwrap().to_rgba8();
+            let expected = if fade {
+                [128, 127, 0, 255]
+            } else if (-1. ..=1.).contains(&z) {
+                [255, 0, 0, 255]
+            } else {
+                [0, 255, 0, 255]
+            };
+            assert_eq!(image.get_pixel(32, 32).0, expected, "{name}");
+            assert_eq!(image.get_pixel(8, 32).0, [0, 255, 0, 255], "{name}: world");
+            assert_eq!(image.get_pixel(2, 2).0, [255; 4], "{name}: HUD");
+            report.push(serde_json::json!({"case":name,"center_rgba":expected,"world_and_hud_verified":true,"one_3d_draw_pass":true}));
+        }
+        std::fs::write(
+            output.join("depth-slice-report.json"),
+            serde_json::to_vec_pretty(&report).unwrap(),
+        )
+        .unwrap();
     }
 }

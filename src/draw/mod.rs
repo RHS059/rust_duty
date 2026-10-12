@@ -172,6 +172,8 @@ pub struct Camera {
     pub view_projection: Mat4,
     pub target: Option<RenderTarget>,
     pub depth_test: bool,
+    /// Post-clipping viewport depth mapping; never modifies the projection.
+    pub depth_range: [f32; 2],
 }
 impl Camera {
     pub fn screen(width: u32, height: u32) -> Self {
@@ -179,6 +181,7 @@ impl Camera {
             view_projection: Mat4::orthographic_rh_gl(0., width as f32, height as f32, 0., -1., 1.),
             target: None,
             depth_test: false,
+            depth_range: [0., 1.],
         }
     }
 }

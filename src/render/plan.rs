@@ -14,6 +14,7 @@ pub(crate) struct GeometrySlice {
 pub(crate) struct PreparedDraw {
     pub target: Option<RenderTarget>,
     pub depth_test: bool,
+    pub depth_range: [f32; 2],
     pub texture: Option<Texture>,
     pub blend: BlendMode,
     pub lines: bool,
@@ -22,6 +23,7 @@ pub(crate) struct PreparedDraw {
 pub(crate) struct PreparedResident {
     pub target: Option<RenderTarget>,
     pub depth_test: bool,
+    pub depth_range: [f32; 2],
     pub blend: BlendMode,
     pub index: usize,
 }
@@ -39,8 +41,9 @@ pub(crate) enum PreparedCommand {
     },
 }
 /// Consecutive draws may share a pass only while its attachments stay the same.
-/// Camera commands, clears, and captures remain barriers even for the same target.
-/// Pipeline, texture, and arena changes are rebound for each draw inside the pass.
+/// Same-attachment cameras can continue a pass: projection and viewport depth
+/// are already snapshotted on each prepared draw. Clears, captures and changes
+/// to target/depth attachments remain barriers. Draw order never changes.
 pub(crate) fn draw_attachment(command: &PreparedCommand) -> Option<(Option<&RenderTarget>, bool)> {
     match command {
         PreparedCommand::Draw(draw) => Some((draw.target.as_ref(), draw.depth_test)),
@@ -56,10 +59,48 @@ pub(crate) fn draw_run_len(commands: &[PreparedCommand]) -> usize {
     commands
         .iter()
         .take_while(|command| {
-            draw_attachment(command)
-                .is_some_and(|(t, d)| t.map(|t| t.texture.id) == id && d == depth)
+            let attachment = match command {
+                PreparedCommand::Camera(camera) => {
+                    Some((camera.target.as_ref(), camera.depth_test))
+                }
+                _ => draw_attachment(command),
+            };
+            attachment.is_some_and(|(t, d)| t.map(|t| t.texture.id) == id && d == depth)
         })
         .count()
+}
+
+/// Fold a clear into the immediately following depth draw run only. Camera
+/// selection is harmless here, but no capture, second clear or target change
+/// may be crossed. Depth is still cleared, even with zero drawn geometry.
+pub(crate) fn clear_draw_run(commands: &[PreparedCommand]) -> Option<std::ops::Range<usize>> {
+    let PreparedCommand::Clear { target, .. } = commands.first()? else {
+        return None;
+    };
+    let id = target.as_ref().map(|t| t.texture.id);
+    for (index, command) in commands.iter().enumerate().skip(1) {
+        if let PreparedCommand::Camera(camera) = command {
+            if camera.target.as_ref().map(|t| t.texture.id) != id {
+                return None;
+            }
+            continue;
+        }
+        let (draw_target, depth) = draw_attachment(command)?;
+        if !depth || draw_target.map(|t| t.texture.id) != id {
+            return None;
+        }
+        return Some(index..index + draw_run_len(&commands[index..]));
+    }
+    None
+}
+
+pub(crate) fn starts_with_main_clear(commands: &[PreparedCommand]) -> bool {
+    matches!(
+        commands
+            .iter()
+            .find(|c| !matches!(c, PreparedCommand::Camera(_))),
+        Some(PreparedCommand::Clear { target: None, .. })
+    )
 }
 pub(crate) struct FramePlan {
     pub arenas: Vec<FrameArena>,
@@ -110,6 +151,7 @@ impl FramePlan {
                             .push(PreparedCommand::Resident(PreparedResident {
                                 target: camera.target.clone(),
                                 depth_test: camera.depth_test,
+                                depth_range: camera.depth_range,
                                 blend: *blend,
                                 index,
                             }));
@@ -223,6 +265,7 @@ impl FramePlan {
         self.commands.push(PreparedCommand::Draw(PreparedDraw {
             target: camera.target.clone(),
             depth_test: camera.depth_test,
+            depth_range: camera.depth_range,
             texture: Some(texture.clone()),
             blend: BlendMode::Alpha,
             lines: false,
@@ -250,6 +293,7 @@ impl FramePlan {
         self.commands.push(PreparedCommand::Draw(PreparedDraw {
             target: camera.target.clone(),
             depth_test: camera.depth_test,
+            depth_range: camera.depth_range,
             texture: mesh.texture.clone(),
             blend,
             lines,
@@ -552,6 +596,7 @@ mod tests {
             view_projection: Mat4::from_scale(Vec3::splat(7.)),
             target: Some(target.clone()),
             depth_test: true,
+            depth_range: [0.1, 0.9],
         };
         let texture = Texture::rgba8(1, 1, &[255; 4], crate::draw::Sampler::default()).unwrap();
         list.camera(camera);
