@@ -406,7 +406,11 @@ fn changed_frames_without_cpu_waits_match_fresh_immutable_uploads() {
         if frame == 6 {
             assert!(pair[2].iter().all(|&byte| byte == 0));
         } else {
-            assert!(pair[2].as_chunks::<4>().0.iter().any(|pixel| pixel[3] == 255));
+            assert!(pair[2]
+                .as_chunks::<4>()
+                .0
+                .iter()
+                .any(|pixel| pixel[3] == 255));
         }
     }
     assert_ne!(
@@ -532,7 +536,11 @@ fn uncached_fallback_and_abandoned_writes_match_immutable_pixels() {
     );
     for (index, pair) in pixels.as_chunks::<2>().0.iter().enumerate() {
         assert_eq!(pair[0], pair[1]);
-        assert!(pair[0].as_chunks::<4>().0.iter().any(|pixel| pixel[3] == 255));
+        assert!(pair[0]
+            .as_chunks::<4>()
+            .0
+            .iter()
+            .any(|pixel| pixel[3] == 255));
         eprintln!(
             "upload_reuse_native fallback_or_abandoned_pair={index} sha256={}",
             rust_duty_launcher::bytes_hash(&pair[0]),
