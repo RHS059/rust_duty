@@ -1,21 +1,17 @@
 //! Original two-bone arm IK and CPU skinning for an optional private arm rig.
 //! All motion is authored here; no commercial-game animation data is imported.
+use crate::draw::facade::*;
 use crate::skinned_asset::SkinnedAsset;
 use crate::weapon_ik::{blend_hand_constraint, HandPose, WeaponIkTargets};
-use macroquad::prelude::*;
 
 // The converter accepts REPEAT sampling, including UVs outside [0, 1]. Keep
 // construction and CPU regression checks on the same sampler configuration.
-fn texture_sampler() -> (
-    FilterMode,
-    macroquad::miniquad::TextureWrap,
-    macroquad::miniquad::TextureWrap,
-) {
-    (
-        FilterMode::Linear,
-        macroquad::miniquad::TextureWrap::Repeat,
-        macroquad::miniquad::TextureWrap::Repeat,
-    )
+fn texture_sampler() -> Sampler {
+    Sampler {
+        filter: FilterMode::Linear,
+        wrap_x: WrapMode::Repeat,
+        wrap_y: WrapMode::Repeat,
+    }
 }
 
 /// IK replaces joint orientations, so its accumulated transforms must be
@@ -265,7 +261,7 @@ pub struct ArmModel {
     finger_hinges: std::collections::HashMap<usize, Vec3>,
 }
 impl ArmModel {
-    /// GPU construction must be called after the window/render context exists.
+    /// Builds CPU mesh and texture descriptors without requiring a render context.
     pub fn new(asset: SkinnedAsset) -> Result<Self, String> {
         let names = asset
             .bones
@@ -365,20 +361,13 @@ impl ArmModel {
                 for alpha in pixels.iter_mut().skip(3).step_by(4) {
                     *alpha = 255;
                 }
-                let t = Texture2D::from_rgba8(
-                    part.texture_width as u16,
-                    part.texture_height as u16,
+                let t = Texture::rgba8(
+                    part.texture_width,
+                    part.texture_height,
                     &pixels,
-                );
-                let (filter, wrap_x, wrap_y) = texture_sampler();
-                t.set_filter(filter);
-                unsafe {
-                    get_internal_gl().quad_context.texture_set_wrap(
-                        t.raw_miniquad_id(),
-                        wrap_x,
-                        wrap_y,
-                    );
-                }
+                    texture_sampler(),
+                )
+                .map_err(|error| format!("arm mesh {source_mesh} texture: {error}"))?;
                 Some(t)
             };
             for chunk in part.indices.chunks(4998) {
@@ -902,10 +891,57 @@ mod tests {
 
     #[test]
     fn renderer_sampler_is_linear_repeat_on_both_axes() {
-        let (filter, wrap_x, wrap_y) = texture_sampler();
-        assert_eq!(filter, FilterMode::Linear);
-        assert_eq!(wrap_x, macroquad::miniquad::TextureWrap::Repeat);
-        assert_eq!(wrap_y, macroquad::miniquad::TextureWrap::Repeat);
+        let sampler = texture_sampler();
+        assert_eq!(sampler.filter, FilterMode::Linear);
+        assert_eq!(sampler.wrap_x, WrapMode::Repeat);
+        assert_eq!(sampler.wrap_y, WrapMode::Repeat);
+    }
+
+    fn textured_fixture() -> SkinnedAsset {
+        let mut asset = fixture();
+        asset.meshes.push(crate::skinned_asset::SkinMesh {
+            base_color: [1.; 4],
+            metallic: 0.,
+            roughness: 1.,
+            texture_width: 1,
+            texture_height: 1,
+            rgba: vec![20, 40, 60, 80],
+            vertices: [Vec3::ZERO, Vec3::X, Vec3::Y]
+                .into_iter()
+                .map(|position| crate::skinned_asset::SkinVertex {
+                    position: position.to_array(),
+                    normal: Vec3::Z.to_array(),
+                    uv: [0., 0.],
+                    joints: [0; 8],
+                    weights: [1., 0., 0., 0., 0., 0., 0., 0.],
+                })
+                .collect(),
+            indices: vec![0, 1, 2],
+        });
+        asset
+    }
+
+    #[test]
+    fn textured_arm_construction_needs_no_gpu_and_keeps_opaque_repeat_sampling() {
+        let model = ArmModel::new(textured_fixture()).unwrap();
+        assert_eq!(model.batches.len(), 1);
+        let texture = model.batches[0].mesh.texture.as_ref().unwrap();
+        assert_eq!((texture.width, texture.height), (1, 1));
+        assert_eq!(texture.sampler, texture_sampler());
+        let crate::draw::TextureSource::Rgba8(bytes) = &texture.source else {
+            panic!("arm texture must retain its CPU RGBA8 source");
+        };
+        assert_eq!(bytes.as_ref(), &[20, 40, 60, 255]);
+        assert_eq!(model.batches[0].mesh.indices, [0, 1, 2]);
+    }
+
+    #[test]
+    fn textured_arm_rejects_mismatched_rgba_extent() {
+        let mut asset = textured_fixture();
+        asset.meshes[0].texture_width = 2;
+        let error = ArmModel::new(asset).err().expect("invalid texture extent");
+        assert!(error.contains("arm mesh 0 texture"), "{error}");
+        assert!(error.contains("RGBA8"), "{error}");
     }
 
     #[test]

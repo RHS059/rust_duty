@@ -18,6 +18,7 @@ from urllib.parse import urlsplit
 from urllib.request import HTTPRedirectHandler, Request, build_opener
 
 from release_update import REPOSITORY, verify_manifest
+from stage_release_game import verify_bundle_members
 
 
 TARGETS = {"x86_64-pc-windows-msvc", "x86_64-unknown-linux-gnu"}
@@ -101,7 +102,9 @@ def validate_install(root, manifest):
     version_dir = root / "versions" / f'{active["sequence"]}-{active["version"]}'
     check_file(version_dir / "payload.rdb", manifest["bundle"], "reconstructed B bundle")
     require((version_dir / manifest["entrypoint"]).is_file(), "activated game executable is missing")
-    require(not (version_dir / "assets").exists(), "code-only release unexpectedly contains assets")
+    # A complete game intentionally includes authored runtime assets. Verify all
+    # extracted bytes against the authenticated bundle rather than banning assets.
+    verify_bundle_members(version_dir / "payload.rdb", version_dir, exact=False)
     require(not (version_dir / "private-assets").exists(), "release unexpectedly contains private assets")
     return state
 

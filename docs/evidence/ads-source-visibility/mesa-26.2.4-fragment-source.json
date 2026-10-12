@@ -1,0 +1,28 @@
+{
+  "schema": "rust-duty-rigid-fragment-source-evidence/v1",
+  "official_archive": "https://archive.mesa3d.org/mesa-26.2.4.tar.xz",
+  "official_release_checksums": "https://docs.mesa3d.org/relnotes/26.2.4.html",
+  "archive_sha256": "bce5f7fbebb934373b86c999a064d52fb5065878dc57f287f95346648ec832e9",
+  "files": {
+    "VERSION": "6fdb5e1a17496d2a90f08d87bf219fa0cbe025d0b95962ed326788c76ebbc947",
+    "src/mesa/state_tracker/st_format.c": "2521e311680af16d2c2769037de892c764d11004c01b6c5203a3044d3fc9bde4",
+    "src/mesa/state_tracker/st_extensions.c": "dbed39e3997c3fbc5e3a02c0fd6845cb43ab67f2c7972362ce20c225a24138ff",
+    "src/gallium/drivers/llvmpipe/lp_screen.c": "87022307050c2207ec2d59ba7af06d09ddfd8991b1d0b39153b42d5564c1cbed",
+    "src/gallium/drivers/llvmpipe/lp_state_setup.c": "b0864df5c36f241c8748df37b4df310385e5285906207eb36e5672598cef3e4b",
+    "src/gallium/drivers/llvmpipe/lp_bld_interp.c": "39bf4a96638ebce225048ba61a68130fb272a9bebafd94ab1f9625baef025a23",
+    "src/gallium/drivers/llvmpipe/lp_state_fs.c": "6d94b3043d0ae2f957c25f48d7f2b2db56783e5d3e9320e24cb0c8da87bd493c",
+    "src/gallium/drivers/llvmpipe/lp_bld_blend_aos.c": "9824bebdcab7bc5a94d74f3cb7afcbe5c191c15bf78d1247aa1fffb0af497109",
+    "src/gallium/auxiliary/gallivm/lp_bld_arit.c": "ceabbb2152b23dfe9a42489bd3aaa0fb10556c3dbd994556d1125434ffadd94c",
+    "src/gallium/auxiliary/gallivm/lp_bld_conv.c": "4fd4858b7736318d8d814dc4ac9e4ab97af59ea836197c5c1109dad176a7d0a4",
+    "src/gallium/auxiliary/gallivm/lp_bld_nir.c": "563e8c45b66dc042c4cc242f45a1254c431702e2e410908486d980a06aed878e",
+    "src/compiler/glsl/glsl_parser_extras.cpp": "9e51f12009e8b99971def84d156830e61367d7e782576b323559051857d33965",
+    "src/compiler/glsl/lower_precision.cpp": "7cb3beb503117dd6a4953b5a748ea58a479036881b34117e371c92067875449a",
+    "src/compiler/nir/nir_lower_fp16_conv.c": "b1e90db1de2c6839bcd78e2aa65118409660d853ab17fe7de3808ecffc5cc7a4",
+    "src/mesa/state_tracker/st_atom_blend.c": "7a4bac91b8d94b67fde787fe561daec37067b54cb7273c904e35863eef4876e9",
+    "src/gallium/auxiliary/util/u_screen.c": "321a3db477feb5614d738dfe5160051cbcf38c3b9f0a4cff04f9ed883853e598",
+    "src/gallium/auxiliary/gallivm/lp_bld_sample_soa.c": "4f333f9556449e9f17b357b24769cd1c63062a3aa05ccd1a57a6db6b294bb990"
+  },
+  "fragment_bound_established": false,
+  "native_input_execution_binding_established": false,
+  "acceptance_complete": false
+}

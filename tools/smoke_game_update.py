@@ -14,6 +14,8 @@ import subprocess
 import tempfile
 import time
 
+from release_update import one_file_executable
+
 from smoke_live_update import (
     check_file, check_manifest, check_sentinels, latest_manifest, require,
     seed_sentinels, sha256, validate_install,
@@ -61,15 +63,28 @@ def run(args):
             require(result.returncode == 0, f"command failed: {result.stderr[-2000:]}")
             return result
 
-        execute([args.launcher.resolve(), "--root", metadata, "install-local",
+        mode = getattr(args, 'baseline_mode', 'full')
+        seed_metadata = metadata if mode == 'full' else work / 'baseline-extraction'
+        execute([args.launcher.resolve(), "--root", seed_metadata, "install-local",
                  args.bundle_a.resolve(), args.version_a, a["entrypoint"]])
-        base = metadata / "versions" / f'0-{args.version_a}' / a["entrypoint"]
+        base = seed_metadata / "versions" / f'0-{args.version_a}' / a["entrypoint"]
         game = root / a["entrypoint"]
         shutil.copy2(base, game)
         old_hash = sha256(game)
+        baseline_sha = a['bundle']['sha256']
+        if mode == 'one-file':
+            one_file = work / 'running-executable-baseline.rdb'
+            one_file.write_bytes(one_file_executable(a['entrypoint'], game.read_bytes()))
+            baseline_sha = sha256(one_file)
+            # Seed only this disposable smoke root. The published A bytes
+            # stay unchanged; this models a game that retained only its EXE image.
+            execute([args.launcher.resolve(), '--root', metadata, 'install-local',
+                     one_file, args.version_a, a['entrypoint']])
+        report['baseline_mode'] = mode
+        report['baseline_sha256'] = baseline_sha
         sentinels = seed_sentinels(root)
         delta = next((d for d in b["deltas"] if d["base_version"] == args.version_a
-                     and d["base_sha256"] == a["bundle"]["sha256"]), None)
+                     and d["base_sha256"] == baseline_sha), None)
         require(delta is not None, "B has no exact A delta")
         first = execute([game, "--update-headless", "--update-apply",
                          "--update-timeout-seconds=150"], timeout=180)
@@ -117,4 +132,5 @@ if __name__ == "__main__":
         parser.add_argument("--" + name, type=Path, required=True)
     for name in ["version-a", "version-b", "target"]:
         parser.add_argument("--" + name, required=True)
+    parser.add_argument("--baseline-mode", choices=("full", "one-file"), default="full")
     run(parser.parse_args())

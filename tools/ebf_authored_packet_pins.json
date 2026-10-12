@@ -1,0 +1,942 @@
+{
+  "schema": "rust-duty-ebf-authored-packet-pins/v1",
+  "attempt": {
+    "id": 37490373763,
+    "name": "Rust prototype checks and playable builds",
+    "head_branch": "main",
+    "head_sha": "ebf4bcb7f489766e3c7ec188c35db9bb4146c62b",
+    "path": ".github/workflows/build.yml",
+    "event": "push",
+    "status": "completed",
+    "conclusion": "failure",
+    "workflow_id": 371476848,
+    "run_attempt": 1,
+    "created_at": "2026-10-06T15:46:50Z",
+    "run_started_at": "2026-10-06T15:46:50Z",
+    "updated_at": "2026-10-06T18:46:49Z"
+  },
+  "jobs": {
+    "inputs": {
+      "id": 112401828417,
+      "run_id": 37490373763,
+      "workflow_name": "Rust prototype checks and playable builds",
+      "head_branch": "main",
+      "run_attempt": 1,
+      "head_sha": "ebf4bcb7f489766e3c7ec188c35db9bb4146c62b",
+      "status": "completed",
+      "conclusion": "success",
+      "created_at": "2026-10-06T17:16:08Z",
+      "started_at": "2026-10-06T17:16:10Z",
+      "completed_at": "2026-10-06T17:40:44Z",
+      "name": "dx12-authored-validation / authored-inputs",
+      "labels": [
+        "windows-latest"
+      ],
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-10-06T17:16:11Z",
+          "completed_at": "2026-10-06T17:16:13Z"
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-10-06T17:16:13Z",
+          "completed_at": "2026-10-06T17:16:23Z"
+        },
+        {
+          "name": "Run actions/setup-python@v5",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2026-10-06T17:16:23Z",
+          "completed_at": "2026-10-06T17:16:24Z"
+        },
+        {
+          "name": "Install capture and materialization dependencies",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4,
+          "started_at": "2026-10-06T17:16:24Z",
+          "completed_at": "2026-10-06T17:16:30Z"
+        },
+        {
+          "name": "Fetch validated reload companions from this run",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5,
+          "started_at": "2026-10-06T17:16:30Z",
+          "completed_at": "2026-10-06T17:16:33Z"
+        },
+        {
+          "name": "Fetch validated walk companions from this run",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6,
+          "started_at": "2026-10-06T17:16:33Z",
+          "completed_at": "2026-10-06T17:16:35Z"
+        },
+        {
+          "name": "Fetch validated ads companions from this run",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7,
+          "started_at": "2026-10-06T17:16:35Z",
+          "completed_at": "2026-10-06T17:16:38Z"
+        },
+        {
+          "name": "Fetch validated directional companions from this run",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 8,
+          "started_at": "2026-10-06T17:16:38Z",
+          "completed_at": "2026-10-06T17:16:40Z"
+        },
+        {
+          "name": "Fetch validated jump companions from this run",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 9,
+          "started_at": "2026-10-06T17:16:40Z",
+          "completed_at": "2026-10-06T17:16:43Z"
+        },
+        {
+          "name": "Fetch this attempt's historical Linux jump-gameplay evidence",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 10,
+          "started_at": "2026-10-06T17:16:43Z",
+          "completed_at": "2026-10-06T17:16:45Z"
+        },
+        {
+          "name": "Fetch this attempt's historical Linux reload-gameplay evidence",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 11,
+          "started_at": "2026-10-06T17:16:45Z",
+          "completed_at": "2026-10-06T17:16:48Z"
+        },
+        {
+          "name": "Fetch this attempt's historical Linux walk-gameplay evidence",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 12,
+          "started_at": "2026-10-06T17:16:48Z",
+          "completed_at": "2026-10-06T17:16:50Z"
+        },
+        {
+          "name": "Fetch this attempt's historical Linux ads-gameplay evidence",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 13,
+          "started_at": "2026-10-06T17:16:50Z",
+          "completed_at": "2026-10-06T17:16:53Z"
+        },
+        {
+          "name": "Fetch this attempt's historical Linux ads-placement evidence",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 14,
+          "started_at": "2026-10-06T17:16:53Z",
+          "completed_at": "2026-10-06T17:16:55Z"
+        },
+        {
+          "name": "Fetch this attempt's historical Linux layered evidence",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 15,
+          "started_at": "2026-10-06T17:16:55Z",
+          "completed_at": "2026-10-06T17:16:59Z"
+        },
+        {
+          "name": "Fetch this attempt's historical Linux reload-return evidence",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 16,
+          "started_at": "2026-10-06T17:16:59Z",
+          "completed_at": "2026-10-06T17:17:02Z"
+        },
+        {
+          "name": "Materialize and verify this run's source-bound companions",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 17,
+          "started_at": "2026-10-06T17:17:02Z",
+          "completed_at": "2026-10-06T17:18:12Z"
+        },
+        {
+          "name": "Install workflow contract test dependency",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 18,
+          "started_at": "2026-10-06T17:18:12Z",
+          "completed_at": "2026-10-06T17:18:14Z"
+        },
+        {
+          "name": "Test strict authored and shard contracts with synthetic inputs",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 19,
+          "started_at": "2026-10-06T17:18:14Z",
+          "completed_at": "2026-10-06T17:34:29Z"
+        },
+        {
+          "name": "Run dtolnay/rust-toolchain@stable",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 20,
+          "started_at": "2026-10-06T17:34:29Z",
+          "completed_at": "2026-10-06T17:34:54Z"
+        },
+        {
+          "name": "Fingerprint exact authored-input compiler",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 21,
+          "started_at": "2026-10-06T17:34:54Z",
+          "completed_at": "2026-10-06T17:34:54Z"
+        },
+        {
+          "name": "Reuse compiler-matched Cargo dependencies and build intermediates",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 22,
+          "started_at": "2026-10-06T17:34:54Z",
+          "completed_at": "2026-10-06T17:35:23Z"
+        },
+        {
+          "name": "Build one silent dual-runtime executable and renderer fixture",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 23,
+          "started_at": "2026-10-06T17:35:23Z",
+          "completed_at": "2026-10-06T17:37:55Z"
+        },
+        {
+          "name": "Stage pinned official app-local Mesa reference",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 24,
+          "started_at": "2026-10-06T17:37:55Z",
+          "completed_at": "2026-10-06T17:38:19Z"
+        },
+        {
+          "name": "Bind binaries, source, assets and historical downloads to this attempt",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 25,
+          "started_at": "2026-10-06T17:38:19Z",
+          "completed_at": "2026-10-06T17:39:10Z"
+        },
+        {
+          "name": "Retain the single compiled pair and exact input manifests",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 26,
+          "started_at": "2026-10-06T17:39:10Z",
+          "completed_at": "2026-10-06T17:39:17Z"
+        },
+        {
+          "name": "Retain input preparation diagnostics on failure",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 27,
+          "started_at": "2026-10-06T17:39:17Z",
+          "completed_at": "2026-10-06T17:39:19Z"
+        },
+        {
+          "name": "Test current-run oracle preparation receipts",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 28,
+          "started_at": "2026-10-06T17:39:19Z",
+          "completed_at": "2026-10-06T17:39:28Z"
+        },
+        {
+          "name": "Prepare one source oracle using the captured Windows compiler",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 29,
+          "started_at": "2026-10-06T17:39:28Z",
+          "completed_at": "2026-10-06T17:40:07Z"
+        },
+        {
+          "name": "Retain the small source oracle with its independently anchored receipt",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 30,
+          "started_at": "2026-10-06T17:40:07Z",
+          "completed_at": "2026-10-06T17:40:09Z"
+        },
+        {
+          "name": "Retain source oracle preparation diagnostics",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 31,
+          "started_at": "2026-10-06T17:40:09Z",
+          "completed_at": "2026-10-06T17:40:11Z"
+        },
+        {
+          "name": "Post Reuse compiler-matched Cargo dependencies and build intermediates",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 60,
+          "started_at": "2026-10-06T17:40:11Z",
+          "completed_at": "2026-10-06T17:40:39Z"
+        },
+        {
+          "name": "Post Run actions/setup-python@v5",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 61,
+          "started_at": "2026-10-06T17:40:39Z",
+          "completed_at": "2026-10-06T17:40:39Z"
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 62,
+          "started_at": "2026-10-06T17:40:39Z",
+          "completed_at": "2026-10-06T17:40:41Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 63,
+          "started_at": "2026-10-06T17:40:41Z",
+          "completed_at": "2026-10-06T17:40:41Z"
+        }
+      ]
+    },
+    "aggregate": {
+      "id": 112433359074,
+      "run_id": 37490373763,
+      "workflow_name": "Rust prototype checks and playable builds",
+      "head_branch": "main",
+      "run_attempt": 1,
+      "head_sha": "ebf4bcb7f489766e3c7ec188c35db9bb4146c62b",
+      "status": "completed",
+      "conclusion": "failure",
+      "created_at": "2026-10-06T18:27:29Z",
+      "started_at": "2026-10-06T18:27:31Z",
+      "completed_at": "2026-10-06T18:46:44Z",
+      "name": "dx12-authored-validation / authored-aggregate",
+      "labels": [
+        "windows-latest"
+      ],
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-10-06T18:27:31Z",
+          "completed_at": "2026-10-06T18:27:33Z"
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-10-06T18:27:33Z",
+          "completed_at": "2026-10-06T18:27:44Z"
+        },
+        {
+          "name": "Run actions/setup-python@v5",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2026-10-06T18:27:44Z",
+          "completed_at": "2026-10-06T18:27:45Z"
+        },
+        {
+          "name": "Install capture and materialization dependencies",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4,
+          "started_at": "2026-10-06T18:27:45Z",
+          "completed_at": "2026-10-06T18:27:53Z"
+        },
+        {
+          "name": "Fetch validated reload companions from this run",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5,
+          "started_at": "2026-10-06T18:27:53Z",
+          "completed_at": "2026-10-06T18:27:55Z"
+        },
+        {
+          "name": "Fetch validated walk companions from this run",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6,
+          "started_at": "2026-10-06T18:27:55Z",
+          "completed_at": "2026-10-06T18:27:56Z"
+        },
+        {
+          "name": "Fetch validated ads companions from this run",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7,
+          "started_at": "2026-10-06T18:27:56Z",
+          "completed_at": "2026-10-06T18:27:57Z"
+        },
+        {
+          "name": "Fetch validated directional companions from this run",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 8,
+          "started_at": "2026-10-06T18:27:57Z",
+          "completed_at": "2026-10-06T18:27:59Z"
+        },
+        {
+          "name": "Fetch validated jump companions from this run",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 9,
+          "started_at": "2026-10-06T18:27:59Z",
+          "completed_at": "2026-10-06T18:28:00Z"
+        },
+        {
+          "name": "Materialize and verify this run's source-bound companions",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 10,
+          "started_at": "2026-10-06T18:28:00Z",
+          "completed_at": "2026-10-06T18:29:10Z"
+        },
+        {
+          "name": "Fetch this attempt's historical Linux jump-gameplay evidence",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 11,
+          "started_at": "2026-10-06T18:29:10Z",
+          "completed_at": "2026-10-06T18:29:12Z"
+        },
+        {
+          "name": "Fetch this attempt's historical Linux reload-gameplay evidence",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 12,
+          "started_at": "2026-10-06T18:29:12Z",
+          "completed_at": "2026-10-06T18:29:14Z"
+        },
+        {
+          "name": "Fetch this attempt's historical Linux walk-gameplay evidence",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 13,
+          "started_at": "2026-10-06T18:29:14Z",
+          "completed_at": "2026-10-06T18:29:15Z"
+        },
+        {
+          "name": "Fetch this attempt's historical Linux ads-gameplay evidence",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 14,
+          "started_at": "2026-10-06T18:29:15Z",
+          "completed_at": "2026-10-06T18:29:17Z"
+        },
+        {
+          "name": "Fetch this attempt's historical Linux ads-placement evidence",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 15,
+          "started_at": "2026-10-06T18:29:17Z",
+          "completed_at": "2026-10-06T18:29:19Z"
+        },
+        {
+          "name": "Fetch this attempt's historical Linux layered evidence",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 16,
+          "started_at": "2026-10-06T18:29:19Z",
+          "completed_at": "2026-10-06T18:29:22Z"
+        },
+        {
+          "name": "Fetch this attempt's historical Linux reload-return evidence",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 17,
+          "started_at": "2026-10-06T18:29:22Z",
+          "completed_at": "2026-10-06T18:29:24Z"
+        },
+        {
+          "name": "Fetch this attempt's single compiled input pair and manifests",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 18,
+          "started_at": "2026-10-06T18:29:24Z",
+          "completed_at": "2026-10-06T18:29:27Z"
+        },
+        {
+          "name": "Fetch every available scenario artifact from this attempt",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 19,
+          "started_at": "2026-10-06T18:29:27Z",
+          "completed_at": "2026-10-06T18:29:53Z"
+        },
+        {
+          "name": "Preserve the complete downloaded scenario set for closed-set validation",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 20,
+          "started_at": "2026-10-06T18:29:53Z",
+          "completed_at": "2026-10-06T18:29:54Z"
+        },
+        {
+          "name": "Fetch only this attempt's independently bound small source oracle",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 21,
+          "started_at": "2026-10-06T18:29:54Z",
+          "completed_at": "2026-10-06T18:29:55Z"
+        },
+        {
+          "name": "Require current-run source proof for any deferred offset coverage",
+          "status": "completed",
+          "conclusion": "failure",
+          "number": 22,
+          "started_at": "2026-10-06T18:29:55Z",
+          "completed_at": "2026-10-06T18:37:49Z"
+        },
+        {
+          "name": "Require every full shard, exact same-Windows parity and existing pair validators",
+          "status": "completed",
+          "conclusion": "failure",
+          "number": 23,
+          "started_at": "2026-10-06T18:37:49Z",
+          "completed_at": "2026-10-06T18:45:23Z"
+        },
+        {
+          "name": "Retain strict aggregate diagnostics and open visual review guides",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 24,
+          "started_at": "2026-10-06T18:45:23Z",
+          "completed_at": "2026-10-06T18:46:31Z"
+        },
+        {
+          "name": "Retain source proof and correction diagnostics separately",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 25,
+          "started_at": "2026-10-06T18:46:31Z",
+          "completed_at": "2026-10-06T18:46:41Z"
+        },
+        {
+          "name": "Post Run actions/setup-python@v5",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 49,
+          "started_at": "2026-10-06T18:46:41Z",
+          "completed_at": "2026-10-06T18:46:41Z"
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 50,
+          "started_at": "2026-10-06T18:46:41Z",
+          "completed_at": "2026-10-06T18:46:43Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 51,
+          "started_at": "2026-10-06T18:46:43Z",
+          "completed_at": "2026-10-06T18:46:43Z"
+        }
+      ]
+    }
+  },
+  "artifacts": {
+    "inputs": {
+      "id": 11431661878,
+      "name": "dx12-authored-inputs-attempt-1",
+      "size_in_bytes": 65251678,
+      "digest": "sha256:116c8982cfd2df0d5771f95d064f74e4d99bc52aa773c97391e1a555919ade34",
+      "created_at": "2026-10-06T17:39:17Z",
+      "updated_at": "2026-10-06T17:39:17Z",
+      "expires_at": "2026-10-13T17:39:10Z",
+      "workflow_run": {
+        "id": 37490373763,
+        "repository_id": 1398577887,
+        "head_repository_id": 1398577887,
+        "head_branch": "main",
+        "head_sha": "ebf4bcb7f489766e3c7ec188c35db9bb4146c62b"
+      }
+    },
+    "source": {
+      "id": 11435824885,
+      "name": "dx12-authored-current-source-evidence-attempt-1",
+      "size_in_bytes": 92283402,
+      "digest": "sha256:a22d9421895947a2ff7916f4e647ec7e79622c3e9bc023d23b1574f2fc20cdb6",
+      "created_at": "2026-10-06T18:46:41Z",
+      "updated_at": "2026-10-06T18:46:41Z",
+      "expires_at": "2026-10-13T18:46:32Z",
+      "workflow_run": {
+        "id": 37490373763,
+        "repository_id": 1398577887,
+        "head_repository_id": 1398577887,
+        "head_branch": "main",
+        "head_sha": "ebf4bcb7f489766e3c7ec188c35db9bb4146c62b"
+      }
+    },
+    "shards/jump-gameplay": {
+      "id": 11431862961,
+      "name": "dx12-authored-shard-jump-gameplay-evidence-attempt-1",
+      "size_in_bytes": 136689885,
+      "digest": "sha256:bb63bd5005de9f835211736b5e0f66bb2b234fcbf476071606b1e61398cd8d64",
+      "created_at": "2026-10-06T17:57:25Z",
+      "updated_at": "2026-10-06T17:57:25Z",
+      "expires_at": "2026-10-13T17:57:14Z",
+      "workflow_run": {
+        "id": 37490373763,
+        "repository_id": 1398577887,
+        "head_repository_id": 1398577887,
+        "head_branch": "main",
+        "head_sha": "ebf4bcb7f489766e3c7ec188c35db9bb4146c62b"
+      }
+    },
+    "shards/reload-gameplay": {
+      "id": 11431787788,
+      "name": "dx12-authored-shard-reload-gameplay-evidence-attempt-1",
+      "size_in_bytes": 109061888,
+      "digest": "sha256:c68d230bc183e9fa74aabd48a7218690db73acce84e57f9b666b0b1b383f9c1b",
+      "created_at": "2026-10-06T17:50:39Z",
+      "updated_at": "2026-10-06T17:50:39Z",
+      "expires_at": "2026-10-13T17:50:29Z",
+      "workflow_run": {
+        "id": 37490373763,
+        "repository_id": 1398577887,
+        "head_repository_id": 1398577887,
+        "head_branch": "main",
+        "head_sha": "ebf4bcb7f489766e3c7ec188c35db9bb4146c62b"
+      }
+    },
+    "shards/walk-gameplay": {
+      "id": 11432900257,
+      "name": "dx12-authored-shard-walk-gameplay-evidence-attempt-1",
+      "size_in_bytes": 103321718,
+      "digest": "sha256:544f7173151c8acbbc42d1bb9aa01a4b4acc59d3abca8f9c3d75794f8b533bda",
+      "created_at": "2026-10-06T17:54:30Z",
+      "updated_at": "2026-10-06T17:54:30Z",
+      "expires_at": "2026-10-13T17:54:21Z",
+      "workflow_run": {
+        "id": 37490373763,
+        "repository_id": 1398577887,
+        "head_repository_id": 1398577887,
+        "head_branch": "main",
+        "head_sha": "ebf4bcb7f489766e3c7ec188c35db9bb4146c62b"
+      }
+    },
+    "shards/ads-gameplay": {
+      "id": 11432188723,
+      "name": "dx12-authored-shard-ads-gameplay-evidence-attempt-1",
+      "size_in_bytes": 152700541,
+      "digest": "sha256:a209b3071d954c0870af02ebd88a3ca8c296f5fe1293c82d7f7007e18eb5b1e3",
+      "created_at": "2026-10-06T18:04:49Z",
+      "updated_at": "2026-10-06T18:04:49Z",
+      "expires_at": "2026-10-13T18:04:38Z",
+      "workflow_run": {
+        "id": 37490373763,
+        "repository_id": 1398577887,
+        "head_repository_id": 1398577887,
+        "head_branch": "main",
+        "head_sha": "ebf4bcb7f489766e3c7ec188c35db9bb4146c62b"
+      }
+    },
+    "shards/ads-offset": {
+      "id": 11434250560,
+      "name": "dx12-authored-shard-ads-offset-evidence-attempt-1",
+      "size_in_bytes": 92503989,
+      "digest": "sha256:7115ece4743ec8dc20c75cee5bfd96b357f482ff9456785622d9bcc53faf8684",
+      "created_at": "2026-10-06T18:14:09Z",
+      "updated_at": "2026-10-06T18:14:09Z",
+      "expires_at": "2026-10-13T18:13:57Z",
+      "workflow_run": {
+        "id": 37490373763,
+        "repository_id": 1398577887,
+        "head_repository_id": 1398577887,
+        "head_branch": "main",
+        "head_sha": "ebf4bcb7f489766e3c7ec188c35db9bb4146c62b"
+      }
+    },
+    "shards/layered-30": {
+      "id": 11434215206,
+      "name": "dx12-authored-shard-layered-30-evidence-attempt-1",
+      "size_in_bytes": 113484587,
+      "digest": "sha256:f813cb7a0615cdd63bfad1d543308593c58ee5b19cbfc71456117aa43d9c2790",
+      "created_at": "2026-10-06T18:11:23Z",
+      "updated_at": "2026-10-06T18:11:23Z",
+      "expires_at": "2026-10-13T18:11:12Z",
+      "workflow_run": {
+        "id": 37490373763,
+        "repository_id": 1398577887,
+        "head_repository_id": 1398577887,
+        "head_branch": "main",
+        "head_sha": "ebf4bcb7f489766e3c7ec188c35db9bb4146c62b"
+      }
+    },
+    "shards/layered-60": {
+      "id": 11435702613,
+      "name": "dx12-authored-shard-layered-60-evidence-attempt-1",
+      "size_in_bytes": 164850218,
+      "digest": "sha256:0ee6837afb28d848ab431899dc8460f0a99eefd6f699a35601e093df893989c2",
+      "created_at": "2026-10-06T18:27:24Z",
+      "updated_at": "2026-10-06T18:27:24Z",
+      "expires_at": "2026-10-13T18:27:09Z",
+      "workflow_run": {
+        "id": 37490373763,
+        "repository_id": 1398577887,
+        "head_repository_id": 1398577887,
+        "head_branch": "main",
+        "head_sha": "ebf4bcb7f489766e3c7ec188c35db9bb4146c62b"
+      }
+    },
+    "shards/reload-return": {
+      "id": 11435061576,
+      "name": "dx12-authored-shard-reload-return-evidence-attempt-1",
+      "size_in_bytes": 141261769,
+      "digest": "sha256:314e13fbda4b8627272177dd24288756aa45d6e628ee5038e024e00d18607a3f",
+      "created_at": "2026-10-06T18:20:05Z",
+      "updated_at": "2026-10-06T18:20:05Z",
+      "expires_at": "2026-10-13T18:19:52Z",
+      "workflow_run": {
+        "id": 37490373763,
+        "repository_id": 1398577887,
+        "head_repository_id": 1398577887,
+        "head_branch": "main",
+        "head_sha": "ebf4bcb7f489766e3c7ec188c35db9bb4146c62b"
+      }
+    },
+    "shards/lighting-orientation": {
+      "id": 11435830016,
+      "name": "dx12-authored-shard-lighting-orientation-evidence-attempt-1",
+      "size_in_bytes": 64533082,
+      "digest": "sha256:f7a683c596b7e9454c481a9486fc712b2f07e18958dbfd472892583beedd70ab",
+      "created_at": "2026-10-06T18:13:44Z",
+      "updated_at": "2026-10-06T18:13:44Z",
+      "expires_at": "2026-10-13T18:13:39Z",
+      "workflow_run": {
+        "id": 37490373763,
+        "repository_id": 1398577887,
+        "head_repository_id": 1398577887,
+        "head_branch": "main",
+        "head_sha": "ebf4bcb7f489766e3c7ec188c35db9bb4146c62b"
+      }
+    },
+    "reload": {
+      "id": 11427510261,
+      "name": "generated-reload-runtime-attempt-1",
+      "size_in_bytes": 36917669,
+      "digest": "sha256:4b983a67aaff8ac315926add1ac2bc4496ce15351929a5be2b3684ca91ddf756",
+      "created_at": "2026-10-06T16:13:25Z",
+      "updated_at": "2026-10-06T16:13:25Z",
+      "expires_at": "2027-01-04T15:46:51Z",
+      "workflow_run": {
+        "id": 37490373763,
+        "repository_id": 1398577887,
+        "head_repository_id": 1398577887,
+        "head_branch": "main",
+        "head_sha": "ebf4bcb7f489766e3c7ec188c35db9bb4146c62b"
+      }
+    },
+    "walk": {
+      "id": 11426676514,
+      "name": "generated-walk-runtime-attempt-1",
+      "size_in_bytes": 16972581,
+      "digest": "sha256:c44038d960047aea4af6aa2f5d12313b9b9b3fa0ba70686e3673d7cd14a7b66b",
+      "created_at": "2026-10-06T16:13:19Z",
+      "updated_at": "2026-10-06T16:13:19Z",
+      "expires_at": "2027-01-04T15:46:51Z",
+      "workflow_run": {
+        "id": 37490373763,
+        "repository_id": 1398577887,
+        "head_repository_id": 1398577887,
+        "head_branch": "main",
+        "head_sha": "ebf4bcb7f489766e3c7ec188c35db9bb4146c62b"
+      }
+    },
+    "ads": {
+      "id": 11426641601,
+      "name": "generated-ads-runtime-attempt-1",
+      "size_in_bytes": 21048672,
+      "digest": "sha256:483f86a97036a1912befad11a1180450b9704905dd877bef2a0495c50aedaf4f",
+      "created_at": "2026-10-06T16:14:05Z",
+      "updated_at": "2026-10-06T16:14:05Z",
+      "expires_at": "2027-01-04T15:46:51Z",
+      "workflow_run": {
+        "id": 37490373763,
+        "repository_id": 1398577887,
+        "head_repository_id": 1398577887,
+        "head_branch": "main",
+        "head_sha": "ebf4bcb7f489766e3c7ec188c35db9bb4146c62b"
+      }
+    },
+    "directional": {
+      "id": 11426323453,
+      "name": "generated-directional-runtime-attempt-1",
+      "size_in_bytes": 23552534,
+      "digest": "sha256:3de80b01419cc0165abaedaa8da9d3d5764013d67e79a05ce698f9c3f4e0176b",
+      "created_at": "2026-10-06T16:14:04Z",
+      "updated_at": "2026-10-06T16:14:04Z",
+      "expires_at": "2027-01-04T15:46:51Z",
+      "workflow_run": {
+        "id": 37490373763,
+        "repository_id": 1398577887,
+        "head_repository_id": 1398577887,
+        "head_branch": "main",
+        "head_sha": "ebf4bcb7f489766e3c7ec188c35db9bb4146c62b"
+      }
+    },
+    "jump": {
+      "id": 11427555732,
+      "name": "generated-jump-runtime-attempt-1",
+      "size_in_bytes": 21570566,
+      "digest": "sha256:00ec7c8d450bb7b7a071a9bad680fda177d7c40211b111f2a49513b28b8f746f",
+      "created_at": "2026-10-06T16:17:42Z",
+      "updated_at": "2026-10-06T16:17:42Z",
+      "expires_at": "2027-01-04T15:46:51Z",
+      "workflow_run": {
+        "id": 37490373763,
+        "repository_id": 1398577887,
+        "head_repository_id": 1398577887,
+        "head_branch": "main",
+        "head_sha": "ebf4bcb7f489766e3c7ec188c35db9bb4146c62b"
+      }
+    },
+    "legacy/jump-gameplay": {
+      "id": 11429064984,
+      "name": "native-gameplay-jump-evidence-attempt-1",
+      "size_in_bytes": 37458188,
+      "digest": "sha256:0c649339e8bf2fa0357589347e750714bc98dee58479be6804f43d9fded334c9",
+      "created_at": "2026-10-06T17:11:59Z",
+      "updated_at": "2026-10-06T17:11:59Z",
+      "expires_at": "2027-01-04T15:46:51Z",
+      "workflow_run": {
+        "id": 37490373763,
+        "repository_id": 1398577887,
+        "head_repository_id": 1398577887,
+        "head_branch": "main",
+        "head_sha": "ebf4bcb7f489766e3c7ec188c35db9bb4146c62b"
+      }
+    },
+    "legacy/reload-gameplay": {
+      "id": 11430745084,
+      "name": "native-gameplay-reload-evidence-attempt-1",
+      "size_in_bytes": 23654597,
+      "digest": "sha256:78d7f76c26b318f9e2e384a5e0ef87aae4f42de94d18170357dd8937c63f74c6",
+      "created_at": "2026-10-06T17:12:19Z",
+      "updated_at": "2026-10-06T17:12:19Z",
+      "expires_at": "2027-01-04T15:46:51Z",
+      "workflow_run": {
+        "id": 37490373763,
+        "repository_id": 1398577887,
+        "head_repository_id": 1398577887,
+        "head_branch": "main",
+        "head_sha": "ebf4bcb7f489766e3c7ec188c35db9bb4146c62b"
+      }
+    },
+    "legacy/walk-gameplay": {
+      "id": 11429792703,
+      "name": "native-gameplay-walk-evidence-attempt-1",
+      "size_in_bytes": 20775004,
+      "digest": "sha256:3108101ee3b45e8083f648ba187481d827682413999a413c64ad033929dd3791",
+      "created_at": "2026-10-06T17:12:39Z",
+      "updated_at": "2026-10-06T17:12:39Z",
+      "expires_at": "2027-01-04T15:46:51Z",
+      "workflow_run": {
+        "id": 37490373763,
+        "repository_id": 1398577887,
+        "head_repository_id": 1398577887,
+        "head_branch": "main",
+        "head_sha": "ebf4bcb7f489766e3c7ec188c35db9bb4146c62b"
+      }
+    },
+    "legacy/ads-gameplay": {
+      "id": 11429423536,
+      "name": "native-gameplay-ads-evidence-attempt-1",
+      "size_in_bytes": 45397055,
+      "digest": "sha256:9f53de5bf00a425b408e5975bcdc973e04764bd787c6ec3ccb8fd1218493a7ab",
+      "created_at": "2026-10-06T17:13:16Z",
+      "updated_at": "2026-10-06T17:13:16Z",
+      "expires_at": "2027-01-04T15:46:51Z",
+      "workflow_run": {
+        "id": 37490373763,
+        "repository_id": 1398577887,
+        "head_repository_id": 1398577887,
+        "head_branch": "main",
+        "head_sha": "ebf4bcb7f489766e3c7ec188c35db9bb4146c62b"
+      }
+    },
+    "legacy/ads-placement": {
+      "id": 11430875185,
+      "name": "native-ads-placement-evidence-attempt-1",
+      "size_in_bytes": 14940885,
+      "digest": "sha256:1f5ae746958a8a8a8b17f2b77aed129c8d5dc6273e258d12ae029f1ddf960440",
+      "created_at": "2026-10-06T17:13:46Z",
+      "updated_at": "2026-10-06T17:13:46Z",
+      "expires_at": "2027-01-04T15:46:51Z",
+      "workflow_run": {
+        "id": 37490373763,
+        "repository_id": 1398577887,
+        "head_repository_id": 1398577887,
+        "head_branch": "main",
+        "head_sha": "ebf4bcb7f489766e3c7ec188c35db9bb4146c62b"
+      }
+    },
+    "legacy/layered": {
+      "id": 11430555834,
+      "name": "native-layered-locomotion-evidence-attempt-1",
+      "size_in_bytes": 77307877,
+      "digest": "sha256:389c73c7ee55755993fb8e2d333f31929970c2fd39a6d8fcfef2529388fad105",
+      "created_at": "2026-10-06T17:14:51Z",
+      "updated_at": "2026-10-06T17:14:51Z",
+      "expires_at": "2027-01-04T15:46:51Z",
+      "workflow_run": {
+        "id": 37490373763,
+        "repository_id": 1398577887,
+        "head_repository_id": 1398577887,
+        "head_branch": "main",
+        "head_sha": "ebf4bcb7f489766e3c7ec188c35db9bb4146c62b"
+      }
+    },
+    "legacy/reload-return": {
+      "id": 11429638583,
+      "name": "native-reload-return-evidence-attempt-1",
+      "size_in_bytes": 39775593,
+      "digest": "sha256:9a434f9e58b4a8442e82556d49aba81fa5235b624f0a7bcd6b6f5d2e7f999378",
+      "created_at": "2026-10-06T17:15:24Z",
+      "updated_at": "2026-10-06T17:15:24Z",
+      "expires_at": "2027-01-04T15:46:51Z",
+      "workflow_run": {
+        "id": 37490373763,
+        "repository_id": 1398577887,
+        "head_repository_id": 1398577887,
+        "head_branch": "main",
+        "head_sha": "ebf4bcb7f489766e3c7ec188c35db9bb4146c62b"
+      }
+    }
+  },
+  "logs": {
+    "inputs": {
+      "bytes": 245317,
+      "sha256": "8a203e97cb94761cef4d6ef4c6d3946dccb4c3999946486a1a783f35d2f2bf8a"
+    },
+    "aggregate": {
+      "bytes": 229363,
+      "sha256": "b9c13e29d7096635b052408f54e225c8249936c8a3b74163c68ceee83ad531b3"
+    }
+  }
+}

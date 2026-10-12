@@ -1,0 +1,59 @@
+name: Windows GL same-platform reference feasibility
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/windows-gl-reference-probe.yml'
+      - 'tools/stage_windows_gl_reference.ps1'
+      - 'tools/windows_gl_reference_lock.json'
+      - 'tools/run_windows_gl_reference_probe.py'
+      - 'tools/test_windows_gl_reference_probe.py'
+      - 'src/**'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+permissions:
+  contents: read
+jobs:
+  reference-probe:
+    runs-on: windows-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install existing validator dependency
+        run: python -m pip install Pillow==11.3.0
+      - name: Test fail-closed probe validation
+        run: python -m unittest discover -s tools -p test_windows_gl_reference_probe.py -v
+      - name: Build one binary with both legacy and wgpu backends
+        run: cargo build --locked --release --no-default-features --features legacy-macroquad,wgpu-runtime --bin vector-range
+      - name: Stage pinned app-local official Mesa reference
+        shell: pwsh
+        timeout-minutes: 10
+        run: |
+          Get-Command tar.exe | Format-List Source,Version
+          tar.exe --version
+          if ($LASTEXITCODE -ne 0) { throw "tar.exe is not usable" }
+          New-Item -ItemType Directory -Path evidence -Force | Out-Null
+          ./tools/stage_windows_gl_reference.ps1 -Manifest tools/windows_gl_reference_lock.json -OutputDirectory evidence/gl-runtime
+      - name: Exercise actual Windows OpenGl procedural capture
+        timeout-minutes: 5
+        run: >-
+          python tools/run_windows_gl_reference_probe.py
+          --executable target/release/vector-range.exe
+          --runtime evidence/gl-runtime --manifest tools/windows_gl_reference_lock.json
+          --root . --evidence evidence/gl-probe --timeout 180
+      - name: Retain diagnostic evidence without distributing runtime binaries
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-gl-reference-probe-attempt-${{ github.run_attempt }}
+          path: |
+            evidence/gl-probe/
+            evidence/gl-runtime/staging-receipt.json
+            evidence/gl-runtime/windows_gl_reference_lock.json
+          if-no-files-found: warn
+          retention-days: 7

@@ -66,7 +66,7 @@ a claim of baseline compliance; do not require every unrelated surface for a sma
 Existing starting points: [session transitions](../src/session.rs),
 [input handling](../src/control.rs), [settings tests](../src/settings.rs),
 [update-panel tests](../src/game_update.rs), [toggle contracts](../tests/toggle_controls.rs),
-and [verification commands](../README.md#verify). Follow
+and [historical verification commands](https://github.com/RHS059/rust_duty/blob/70372028c6ae9fb0c990f2c9a22ca603a1a2bff3/README.md#verify). Follow
 [engineering evidence guidance](ENGINEERING_PRACTICES.md) for the affected boundary.
 Historical [verification records](VERIFICATION.md) are not fresh results.
 

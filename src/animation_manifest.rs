@@ -1,4 +1,5 @@
 //! Stable semantic animation slots. Asset revisions change this file's data, not input wiring.
+use crate::action::{ActionSlot, ActionTimings};
 use crate::authored_locomotion_path::AuthoredLocomotionPathConfig;
 use std::{
     collections::BTreeMap,
@@ -29,6 +30,14 @@ pub struct AdsReference {
     pub hold_clip: String,
     pub exit_clip: String,
 }
+/// An authored traversal/weapon-action clip. Its duration comes from the clip;
+/// gameplay gates use the named normalized events.
+#[derive(Clone, Debug, PartialEq)]
+pub struct ActionClipBinding {
+    pub asset: PathBuf,
+    pub clip: String,
+    pub events: Vec<(String, f32)>,
+}
 #[derive(Clone, Debug)]
 pub struct AnimationManifest {
     pub locomotion_asset: PathBuf,
@@ -40,10 +49,28 @@ pub struct AnimationManifest {
     pub layer_anchor_actor: String,
     pub empty: Option<ClipReference>,
     pub ads: Option<AdsReference>,
+    /// Optional common jump; absent in legacy and unreviewed asset bundles.
+    pub jump_asset: Option<PathBuf>,
     pub receiver_ads_wip: bool,
+    pub forward_ads_v9_wip: bool,
     pub ads_visual_transition_seconds: Option<f64>,
+    /// Optional action slots. Absent or `unavailable` keeps placeholder timing.
+    pub actions: BTreeMap<ActionSlot, ActionClipBinding>,
 }
 impl AnimationManifest {
+    /// Replace placeholder action timings with authored clip durations/events.
+    /// `duration` resolves an asset/clip pair (the game loads the `.vra`).
+    pub fn bind_action_timings(
+        &self,
+        timings: &mut ActionTimings,
+        duration: impl Fn(&Path, &str) -> Result<f32, String>,
+    ) -> Result<(), String> {
+        for (slot, binding) in &self.actions {
+            let seconds = duration(&binding.asset, &binding.clip)?;
+            timings.bind(*slot, seconds, binding.events.clone())?;
+        }
+        Ok(())
+    }
     pub fn load(path: &Path) -> Result<Self, String> {
         let text = std::fs::read_to_string(path)
             .map_err(|error| format!("animation manifest {}: {error}", path.display()))?;
@@ -111,12 +138,28 @@ impl AnimationManifest {
             })
         }
         policy(&mut values, "schema", "rust-duty-animation-slots/v1")?;
-        // Separate rigs are never blended. Native time is never scaled to weapon stats.
-        policy(&mut values, "reload.route", "whole_model_cut")?;
+        // Historical bundles retain their old spelling; the current renderer
+        // maps compatible named/rest-checked poses before crossfading.
+        let reload_route = take(&mut values, "reload.route")?;
+        if !matches!(
+            reload_route.as_str(),
+            "anchored_crossfade" | "whole_model_cut"
+        ) {
+            return Err("reload.route must be anchored_crossfade".into());
+        }
         policy(&mut values, "reload.clock", "native_complete")?;
         for slot in ["fire", "mantle"] {
             policy(&mut values, slot, "unavailable")?;
         }
+        let jump_asset = if values.contains_key("jump") {
+            policy(&mut values, "jump", "unavailable")?;
+            None
+        } else if values.keys().any(|key| key.starts_with("jump.")) {
+            policy(&mut values, "jump.clock", "native_ground_contact")?;
+            Some(asset(&mut values, "jump.asset", directory)?)
+        } else {
+            None
+        };
         let ads = if values.contains_key("ads") {
             policy(&mut values, "ads", "unavailable")?;
             None
@@ -129,11 +172,13 @@ impl AnimationManifest {
                 exit_clip: take(&mut values, "ads.exit.clip")?,
             })
         };
-        let receiver_ads_wip = match values.remove("layers.ads_walk").as_deref() {
-            None | Some("optical_projection") => false,
-            Some("receiver_v4_wip") => true,
-            _ => return Err("unsupported ADS walk layer policy".into()),
-        };
+        let (receiver_ads_wip, forward_ads_v9_wip) =
+            match values.remove("layers.ads_walk").as_deref() {
+                None | Some("optical_projection") => (false, false),
+                Some("receiver_v4_wip") => (true, false),
+                Some("receiver_v9_forward_wip") => (true, true),
+                _ => return Err("unsupported ADS walk layer policy".into()),
+            };
         let ads_visual_transition_seconds = values
             .remove("ads.visual_transition_seconds")
             .map(|value| {
@@ -203,6 +248,47 @@ impl AnimationManifest {
         } else {
             Some(reference(&mut values, "reload.empty", directory)?)
         };
+        let mut actions = BTreeMap::new();
+        for slot in ActionSlot::ALL {
+            let key = format!("action.{}", slot.name());
+            if values.contains_key(&key) {
+                policy(&mut values, &key, "unavailable")?;
+                continue;
+            }
+            if !values.contains_key(&format!("{key}.clip")) {
+                continue;
+            }
+            let reference = reference(&mut values, &key, directory)?;
+            let events = values
+                .remove(&format!("{key}.events"))
+                .map(|list| {
+                    list.split(',')
+                        .map(|pair| {
+                            let (name, at) = pair
+                                .split_once(':')
+                                .ok_or_else(|| format!("{key}.events needs name:time pairs"))?;
+                            let at: f32 = at
+                                .trim()
+                                .parse()
+                                .map_err(|_| format!("{key}.events has an invalid time"))?;
+                            if !(0. ..=1.).contains(&at) {
+                                return Err(format!("{key}.events must be normalized 0..1"));
+                            }
+                            Ok((name.trim().to_owned(), at))
+                        })
+                        .collect::<Result<Vec<_>, String>>()
+                })
+                .transpose()?
+                .unwrap_or_default();
+            actions.insert(
+                slot,
+                ActionClipBinding {
+                    asset: reference.asset,
+                    clip: reference.clip,
+                    events,
+                },
+            );
+        }
         if !values.is_empty() {
             return Err(format!("unknown animation slots: {:?}", values.keys()));
         }
@@ -216,8 +302,11 @@ impl AnimationManifest {
             layer_anchor_actor,
             empty,
             ads,
+            jump_asset,
             receiver_ads_wip,
+            forward_ads_v9_wip,
             ads_visual_transition_seconds,
+            actions,
         })
     }
 }

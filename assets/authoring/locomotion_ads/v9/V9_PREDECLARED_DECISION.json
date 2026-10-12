@@ -1,0 +1,20 @@
+{
+  "candidate": "ads-v9-depthphase-forward-public47-r5",
+  "status": "one declared candidate, before build/render",
+  "observed_residual": "Visible source cuff has large downward pulses near output28/78 and small ones55/104. Saved v8 foreground surface has large pulses55/102 and small32/80; beats are similar, strong/weak alternation differs. Material points differ across weapon geometry, so no gain is inferred.",
+  "source_cuff_scope": "Visible seam, not anatomical wrist;26raw proxy crops manually checked; other frames retained as tracker predictions.",
+  "probe_not_selected": "45% articulation reduced visible-surface travel and increased joint-anchor residue to2.54mm. It is not the next motion candidate.",
+  "chosen_change": "Only vertical optical-target channel samples the same native r5 forward curve19frames later, half of its38-frame native period. Horizontal target and15% articulation use primary phase.",
+  "protected": [
+    "sourcefiles",
+    "camera",
+    "mesh/rest/weights",
+    "wristlimits",
+    "primary rate4/5",
+    "prior23/240s reference offset",
+    "sourcewindow2298-2423",
+    "existing amplitude factors",
+    "fulloptical-axis constraint"
+  ],
+  "stop": "One finite half-period candidate; inspect actual contact/skin/motion. No global retiming, per-frame fitting, gain sweep or acceptance score."
+}

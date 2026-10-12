@@ -1,0 +1,14 @@
+{
+  "version": "v9_depth_phase_trial1",
+  "vertical_channel_native_offset_frames": 19,
+  "native_action": "hip_walk_forward_r5",
+  "hip_source_commit": "493c202477604892ee6d332fc24ef01e8703f1ae",
+  "status": "diagnostic, unreviewed",
+  "source_ads_sha256": "3acdf3e2d04757d719ba59ede08decdf8bad48e2e87d9448046fe8edcbba4f58",
+  "source_hip_sha256": "36d76491c2cf6238b8a1e10069dddd5b0d63e199063e1f4012b34f3fd4b1e18d",
+  "articulation_weight": 0.15,
+  "weapon_policy": "v6 mapping with primary X and half-period native Y; no amplitude gain; primary phase4/5",
+  "hypothesis": "Use the same native forward curve at half-period offset only for the vertical optical target, to test the observed reversal of strong/weak cuff pulses. Primary clock, horizontal target and articulation remain unchanged.",
+  "protected": "Original source files, camera, geometry, skin weights, rest, authored Actions, wrist limits and native phase ordering.",
+  "stop_condition": "Report contact, wrist-limit or connected-joint defects without widening limits. Preserve this failed or successful source checkpoint. No fidelity claim from numerical checks."
+}

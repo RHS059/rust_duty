@@ -14,8 +14,14 @@ def verify_walk_episode_clocks(rows):
         if a is None or b is None:
             continue
         elapsed=current['simulation_time']-previous['simulation_time']
-        minimum=min(previous.get('walk_min_rate',1),current.get('walk_min_rate',1))
-        if minimum not in (1,0.85) or b-a < elapsed*minimum-1e-6 or b-a > elapsed+1e-6:
+        # Explicit runtime policies: native hip, v4 ADS and v9 forward ADS.
+        # Keep validating each reported bound rather than accepting arbitrary
+        # slow clocks or allowing an invalid row to hide behind the lower one.
+        rates=(previous.get('walk_min_rate',1),current.get('walk_min_rate',1))
+        if any(rate not in (1,0.85,0.80) for rate in rates):
+            raise ValueError('unsupported walk phase rate policy')
+        minimum=min(rates)
+        if b-a < elapsed*minimum-1e-6 or b-a > elapsed+1e-6:
             raise ValueError('active walk phase did not follow committed time')
 
 
@@ -98,7 +104,7 @@ def verify(folder: Path):
         'aimed_walking_frames': len(aimed_walk), **layer_overlap,
         'shots': rows[-1]['shots'], 'final_ammo': rows[-1]['ammo'], 'final_reserve': rows[-1]['reserve'],
         'returned_to_ready': True, 'reacquired_after_reload': True,
-        'scope': 'Committed simulation input and native Linux rendered frames. Reload cuts remain documented WIP seams; Windows gameplay and aesthetic approval are separate.'}
+        'scope': 'Committed simulation input and native Linux rendered frames. Reload return uses mapped pose crossfades; Windows gameplay and aesthetic approval are separate.'}
     (folder / 'verification.json').write_text(json.dumps(report, indent=2) + '\n')
     return report
 

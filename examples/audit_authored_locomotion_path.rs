@@ -1,6 +1,6 @@
 //! CPU audit of the actual locomotion pack, including interrupted transitions.
 //! Output is measurement evidence, not a native-render or skin-contact pass.
-use macroquad::math::{Mat4, Vec3};
+use glam::{Mat4, Vec3};
 use std::error::Error;
 use vector_range::{
     authored_locomotion_path::{AuthoredLocomotionPath, AuthoredLocomotionPathConfig},

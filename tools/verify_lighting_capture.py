@@ -12,6 +12,8 @@ import subprocess
 
 from PIL import Image, ImageChops, ImageDraw, ImageStat
 
+RENDERERS = ('auto', 'dx12', 'vulkan', 'metal', 'gl')
+
 VIEWS = [('front', -90, 0), ('right', 0, 0), ('back', 90, 0),
          ('left', 180, 0), ('up', -90, 35), ('down', -90, -35)]
 
@@ -82,7 +84,9 @@ def contact_sheet(folder, pose, suffix=''):
     canvas.save(folder / f'{pose}{"_world" if suffix else ""}_directions.png')
 
 
-def capture(binary, folder):
+def capture(binary, folder, renderer=None):
+    if renderer is not None and renderer not in RENDERERS:
+        raise ValueError(f'unknown renderer: {renderer}')
     binary = binary.resolve()
     folder = folder.resolve()
     folder.mkdir(parents=True, exist_ok=True)
@@ -96,6 +100,8 @@ def capture(binary, folder):
                        f'--capture-yaw={yaw}', f'--capture-pitch={pitch}',
                        f'--viewmodel-asset={root}/assets/{asset}/asset.vra',
                        f'--viewmodel-clip={clip}', f'--viewmodel-time={time}', f'--output={output}']
+            if renderer is not None:
+                command.append(f'--renderer={renderer}')
             result = subprocess.run(command, cwd=root, text=True, capture_output=True, timeout=60)
             (folder / f'{pose}_{name}.log').write_text(result.stdout + result.stderr)
             if result.returncode:
@@ -108,7 +114,11 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('folder', type=Path)
     parser.add_argument('--binary', type=Path)
+    parser.add_argument('--renderer', choices=RENDERERS,
+                        help='Explicit backend for each newly generated native capture')
     args = parser.parse_args()
+    if args.renderer and not args.binary:
+        parser.error('--renderer requires --binary')
     if args.binary:
-        capture(args.binary, args.folder)
+        capture(args.binary, args.folder, args.renderer)
     print(json.dumps(verify(args.folder), indent=2))

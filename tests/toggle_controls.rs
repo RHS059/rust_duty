@@ -1,6 +1,6 @@
 //! Pure input contracts plus simulation integration: presentation edges must not
 //! repeat when a render frame produces zero, one, or many fixed simulation ticks.
-use macroquad::math::{vec2, vec3};
+use glam::{vec2, vec3};
 use vector_range::{
     clock::FixedClock,
     control::{

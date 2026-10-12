@@ -1,7 +1,7 @@
 //! Public-API contract tests for the original Kestrel-30 weapon simulation.
 //! Event timestamps describe the beginning of an update; post-update state is
 //! observed at its end. No tests call private methods or depend on RNG seeds.
-use macroquad::math::{vec2, Vec2, Vec3};
+use glam::{vec2, Vec2, Vec3};
 use vector_range::{
     settings::Settings,
     sim::{Input, Simulation, FIXED_DT, MAGAZINE},
