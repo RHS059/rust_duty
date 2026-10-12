@@ -175,6 +175,10 @@ impl Pipelines {
         self.pipelines
             .entry(key)
             .or_insert_with(|| {
+                crate::frame_performance_session::add_encode_counter(
+                    crate::frame_encode_detail::EncodeCounter::PipelineCacheMisses,
+                    1,
+                );
                 device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
                     label: Some("CPU-lit mesh pipeline"),
                     layout: Some(&self.layout),

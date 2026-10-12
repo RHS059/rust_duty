@@ -120,6 +120,20 @@ impl CpuSubstages {
         self.count += 1;
     }
 
+    /// Read-only evidence access for deeper diagnostics. A separately tracked
+    /// hook is not proof that this recorder retained its parent span.
+    pub(crate) fn retained_encode_submit(&self) -> Option<(u64, u64)> {
+        self.spans[..self.count]
+            .iter()
+            .flatten()
+            .find(|span| span.stage == CpuSubstage::EncodeSubmit)
+            .map(|span| (span.started_at_ns, span.ended_at_ns))
+    }
+
+    pub(crate) fn is_complete(&self) -> bool {
+        self.error.is_none() && self.open.is_none()
+    }
+
     pub fn to_json(&self) -> Value {
         let error = self.error.or(self.open.map(|_| "unterminated_substage"));
         let spans: Vec<_> = self.spans[..self.count]

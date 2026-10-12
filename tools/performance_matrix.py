@@ -62,6 +62,11 @@ AUDITED_GPU_CANDIDATE_MANIFEST = '9b7ae93be3a4d4aed9b662d0c27ff18d0b1e12e99c4dc9
 # Same instrumented production tree with exactly the four image-validated CPU
 # files restored from 70ff2933; never an alias for another historical build.
 AUDITED_GPU_CPU_BASELINE_MANIFEST = 'dbabe2822dd73410a7f05c0f03807aa80d5720351c4a9c13ebdee1276fecc195'
+# Separate detail-enabled inventory. Historical GPU/CPU pins and the immutable
+# source-pair builder remain unchanged; no old artifact is relabeled.
+ENCODE_DETAIL_SOURCE_PATHS = (*GPU_CANDIDATE_SOURCE_PATHS, 'src/frame_encode_detail.rs',
+                             'src/render/arena.rs', 'Cargo.toml', 'Cargo.lock')
+AUDITED_ENCODE_DETAIL_MANIFEST = 'bd33a722405c3ec0073ebd28dc390c7cddffcf84ab48b2ba1833d9b97ed862e4'
 BACKENDS = {'dx12': 'Dx12', 'vulkan': 'Vulkan', 'metal': 'Metal', 'gl-harness': 'Gl'}
 UNAVAILABLE = {
     'fps_cap': 'No application FPS limiter or CLI selector. Fifo may pace at display refresh; it is not a 60 FPS cap.',
@@ -115,6 +120,8 @@ def canonical_hash(value):
 
 
 def audited_inventory(digest):
+    if digest == AUDITED_ENCODE_DETAIL_MANIFEST:
+        return ENCODE_DETAIL_SOURCE_PATHS
     if digest == AUDITED_RUNTIME_MANIFEST:
         return SOURCE_PATHS
     if digest == AUDITED_SUBSTAGE_RUNTIME_MANIFEST:
@@ -188,8 +195,21 @@ def source_identity(repository):
                 committed = subprocess.check_output(['git', '-C', str(repository), 'show', commit + ':' + name])
                 require(data == committed, 'Uncommitted runtime source: ' + name)
                 candidate[name] = hashlib.sha256(data).hexdigest()
-            require(canonical_hash(candidate) in (AUDITED_GPU_INITIAL_MANIFEST, AUDITED_GPU_CANDIDATE_MANIFEST, AUDITED_GPU_CPU_BASELINE_MANIFEST),
-                    'Audited GPU runtime changed; cannot fall back to a narrower source inventory')
+            detail = repository / 'src/frame_encode_detail.rs'
+            if detail.exists() or detail.is_symlink():
+                for name in ENCODE_DETAIL_SOURCE_PATHS[len(GPU_CANDIDATE_SOURCE_PATHS):]:
+                    path = repository / name
+                    require(path.is_file() and not path.is_symlink(),
+                            'Audited encode-detail inventory is missing: ' + name)
+                    data = path.read_bytes()
+                    committed = subprocess.check_output(['git', '-C', str(repository), 'show', commit + ':' + name])
+                    require(data == committed, 'Uncommitted encode-detail source: ' + name)
+                    candidate[name] = hashlib.sha256(data).hexdigest()
+                require(canonical_hash(candidate) == AUDITED_ENCODE_DETAIL_MANIFEST,
+                        'Audited encode-detail runtime changed; cannot fall back to historical pins')
+            else:
+                require(canonical_hash(candidate) in (AUDITED_GPU_INITIAL_MANIFEST, AUDITED_GPU_CANDIDATE_MANIFEST, AUDITED_GPU_CPU_BASELINE_MANIFEST),
+                        'Audited GPU runtime changed; cannot fall back to a narrower source inventory')
         else:
             require(canonical_hash(candidate) == AUDITED_PRESENT_CANDIDATE_MANIFEST,
                     'Audited present runtime changed; cannot fall back to a narrower source inventory')

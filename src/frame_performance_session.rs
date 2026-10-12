@@ -5,6 +5,8 @@
 //! after obtaining runtime identity from the renderer that is actually in use.
 //! F8 simulation telemetry is a separate facility and is not used here.
 use crate::frame_cpu_substages::{CpuSubstage, CpuSubstages};
+use crate::frame_encode_detail::{CpuEncodeCapture, CpuEncodeDetails};
+pub use crate::frame_encode_detail::{EncodeCounter, EncodePhase};
 use crate::frame_performance::{
     BoundaryReason, CaptureError, CaptureLimits, CaptureStatus, CpuFrameStage, CpuFrameStages,
     CpuWallSpan, Eligibility, FramePerformanceObserver, FramePerformanceReport, RunIdentity,
@@ -89,6 +91,16 @@ pub fn take_cpu_substage_export_notice() -> Option<CpuSubstageExportNotice> {
     LAST_CPU_SUBSTAGE_NOTICE.with(|notice| notice.borrow_mut().take())
 }
 
+/// Encode diagnostics export independently; failure does not alter primary status.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct CpuEncodeDetailExportNotice {
+    pub output_path: PathBuf,
+    pub error: Option<String>,
+}
+pub fn take_cpu_encode_detail_export_notice() -> Option<CpuEncodeDetailExportNotice> {
+    LAST_CPU_ENCODE_DETAIL_NOTICE.with(|notice| notice.borrow_mut().take())
+}
+
 #[cfg(feature = "wgpu-runtime")]
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct GpuTimingExportNotice {
@@ -147,6 +159,7 @@ struct ActiveCapture {
     last_clock_ns: u64,
     clock_failure: Option<(u64, CaptureError)>,
     cpu_frame: Option<PendingCpuFrame>,
+    encode_capture: CpuEncodeCapture,
     #[cfg(feature = "wgpu-runtime")]
     gpu_capture: Option<u64>,
     #[cfg(feature = "wgpu-runtime")]
@@ -156,10 +169,20 @@ struct PendingCpuFrame {
     frame: CpuFrameStages,
     open_stage: Option<(CpuFrameStage, u64)>,
     last_stage: Option<CpuFrameStage>,
+    encode_details: CpuEncodeDetails,
 }
 impl ActiveCapture {
     fn retain_cpu_frame(&mut self, at_ns: u64) {
-        if let Some(frame) = self.cpu_frame.take() {
+        if let Some(mut frame) = self.cpu_frame.take() {
+            frame
+                .encode_details
+                .validate_substages(&frame.frame.substages);
+            frame.encode_details.validate_bounds(
+                frame.frame.started_at_ns,
+                at_ns,
+                frame.frame.spans[CpuFrameStage::RendererSubmit.index()],
+            );
+            self.encode_capture.retain(frame.encode_details);
             // Only matched begin/end pairs have spans. An interrupted stage is
             // unavailable; never synthesize its end from a failure or stop.
             self.observer.record_cpu_frame_stages(frame.frame, at_ns);
@@ -238,6 +261,7 @@ impl<C: MonotonicClock> PerformanceSession<C> {
             last_clock_ns: started_at_ns,
             clock_failure: None,
             cpu_frame: None,
+            encode_capture: CpuEncodeCapture::new(limits.max_records),
             #[cfg(feature = "wgpu-runtime")]
             gpu_capture: crate::frame_gpu_capture::start_session(limits.max_records),
             #[cfg(feature = "wgpu-runtime")]
@@ -262,6 +286,7 @@ impl<C: MonotonicClock> PerformanceSession<C> {
         if !active.observe_clock(at_ns) || active.observer.enable_cpu_frame_stages(at_ns).is_err() {
             return;
         }
+        active.encode_capture.begin_attempt();
         active.cpu_frame = Some(PendingCpuFrame {
             frame: CpuFrameStages {
                 started_at_ns: at_ns,
@@ -272,6 +297,7 @@ impl<C: MonotonicClock> PerformanceSession<C> {
             },
             open_stage: None,
             last_stage: None,
+            encode_details: CpuEncodeDetails::default(),
         });
         #[cfg(feature = "wgpu-runtime")]
         {
@@ -317,6 +343,70 @@ impl<C: MonotonicClock> PerformanceSession<C> {
             details.begin(stage, at_ns);
         } else {
             details.end(stage, at_ns);
+        }
+        if stage == CpuSubstage::EncodeSubmit {
+            if begin {
+                frame.encode_details.begin_parent(at_ns);
+            } else {
+                frame.encode_details.end_parent(at_ns);
+            }
+        }
+    }
+
+    pub fn begin_encode_phase(&mut self, phase: EncodePhase) {
+        self.encode_phase(phase, true);
+    }
+    pub fn end_encode_phase(&mut self, phase: EncodePhase) {
+        self.encode_phase(phase, false);
+    }
+    fn encode_phase(&mut self, phase: EncodePhase, begin: bool) {
+        let Some(active) = &mut self.active else {
+            return;
+        };
+        let Some(frame) = &mut active.cpu_frame else {
+            return;
+        };
+        if frame.open_stage.map(|(stage, _)| stage) != Some(CpuFrameStage::RendererSubmit) {
+            frame.encode_details.invalidate("encode_renderer_parent_mismatch");
+            return;
+        }
+        // Nested clocks are diagnostic-only: never advance the primary clock
+        // witness or open another CpuSubstages span inside EncodeSubmit.
+        let at_ns = self.clock.now_ns();
+        if begin {
+            frame.encode_details.begin(phase, at_ns);
+        } else {
+            frame.encode_details.end(phase, at_ns);
+        }
+    }
+
+    /// True only after the first phase started in this capture's encode call.
+    pub fn encode_details_active(&self) -> bool {
+        self.active
+            .as_ref()
+            .and_then(|active| active.cpu_frame.as_ref())
+            .is_some_and(|frame| frame.encode_details.is_active())
+    }
+
+    pub fn add_encode_counter(&mut self, counter: EncodeCounter, amount: u64) {
+        if let Some(frame) = self
+            .active
+            .as_mut()
+            .and_then(|active| active.cpu_frame.as_mut())
+        {
+            frame.encode_details.add_counter(counter, amount);
+        }
+    }
+
+    /// Call only after the encode operation succeeds. A paired error-returning
+    /// closure is still timed, but cannot become complete without this marker.
+    pub fn complete_encode_details(&mut self) {
+        if let Some(frame) = self
+            .active
+            .as_mut()
+            .and_then(|active| active.cpu_frame.as_mut())
+        {
+            frame.encode_details.complete();
         }
     }
 
@@ -586,6 +676,28 @@ impl<C: MonotonicClock> PerformanceSession<C> {
             None
         };
         LAST_CPU_SUBSTAGE_NOTICE.with(|notice| *notice.borrow_mut() = detail_notice);
+        let encode_notice = if export.is_ok() {
+            match active.encode_capture.write_new(&active.output_path) {
+                Ok(Some(path)) => {
+                    eprintln!("CPU encode-detail evidence saved to {}", path.display());
+                    Some(CpuEncodeDetailExportNotice {
+                        output_path: path,
+                        error: None,
+                    })
+                }
+                Ok(None) => None,
+                Err(error) => {
+                    eprintln!("CPU encode-detail export failed: {error}");
+                    Some(CpuEncodeDetailExportNotice {
+                        output_path: active.output_path.with_extension("cpu-encode-detail.json"),
+                        error: Some(error),
+                    })
+                }
+            }
+        } else {
+            None
+        };
+        LAST_CPU_ENCODE_DETAIL_NOTICE.with(|notice| *notice.borrow_mut() = encode_notice);
         Some(SessionCompletion {
             report,
             output_path: active.output_path,
@@ -595,6 +707,7 @@ impl<C: MonotonicClock> PerformanceSession<C> {
 }
 
 thread_local! {
+    static LAST_CPU_ENCODE_DETAIL_NOTICE: RefCell<Option<CpuEncodeDetailExportNotice>> = const { RefCell::new(None) };
     static LAST_CPU_SUBSTAGE_NOTICE: RefCell<Option<CpuSubstageExportNotice>> = const { RefCell::new(None) };
     static LAST_COMPLETION_NOTICE: RefCell<Option<CompletionNotice>> = const { RefCell::new(None) };
     static SESSION: RefCell<PerformanceSession<InstantClock>> = const {
@@ -655,6 +768,23 @@ pub fn measure_cpu_substage<T>(stage: CpuSubstage, call: impl FnOnce() -> T) -> 
     let result = call();
     SESSION.with(|session| session.borrow_mut().end_cpu_substage(stage));
     result
+}
+/// Capture-only nested timing. The closure executes once, outside the TLS
+/// borrow, and keeps its return value/error unchanged. Disabled calls read no clock.
+pub fn measure_encode_phase<T>(phase: EncodePhase, call: impl FnOnce() -> T) -> T {
+    SESSION.with(|session| session.borrow_mut().begin_encode_phase(phase));
+    let result = call();
+    SESSION.with(|session| session.borrow_mut().end_encode_phase(phase));
+    result
+}
+pub fn encode_details_active() -> bool {
+    SESSION.with(|session| session.borrow().encode_details_active())
+}
+pub fn add_encode_counter(counter: EncodeCounter, amount: u64) {
+    SESSION.with(|session| session.borrow_mut().add_encode_counter(counter, amount));
+}
+pub fn complete_encode_details() {
+    SESSION.with(|session| session.borrow_mut().complete_encode_details());
 }
 pub fn set_eligibility(eligibility: Eligibility) -> Option<SessionCompletion> {
     SESSION.with(|session| session.borrow_mut().set_eligibility(eligibility))
@@ -885,5 +1015,429 @@ mod gpu_lifecycle_tests {
                 assert!(!path.with_extension("gpu-timing.json").exists());
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod encode_detail_lifecycle_tests {
+    use super::*;
+    use crate::frame_performance::{RuntimeIdentity, WindowMode};
+    use serde_json::{json, Value};
+    use std::sync::atomic::{AtomicU64, Ordering};
+
+    struct Clock {
+        now: u64,
+        reads: usize,
+    }
+    impl MonotonicClock for Clock {
+        fn now_ns(&mut self) -> u64 {
+            self.reads += 1;
+            self.now
+        }
+    }
+    struct Directory(PathBuf);
+    impl Directory {
+        fn new() -> Self {
+            static ID: AtomicU64 = AtomicU64::new(0);
+            let path = std::env::temp_dir().join(format!(
+                "rust-duty-encode-session-{}-{}",
+                std::process::id(),
+                ID.fetch_add(1, Ordering::Relaxed)
+            ));
+            std::fs::create_dir(&path).unwrap();
+            Self(path)
+        }
+        fn path(&self, name: &str) -> PathBuf {
+            self.0.join(name)
+        }
+    }
+    impl Drop for Directory {
+        fn drop(&mut self) {
+            let _ = std::fs::remove_dir_all(&self.0);
+        }
+    }
+    fn start(path: PathBuf, max_records: usize) -> PerformanceSession<Clock> {
+        let mut session = PerformanceSession::new(Clock { now: 10, reads: 0 });
+        session
+            .start(
+                RunIdentity {
+                    runtime: RuntimeIdentity {
+                        actual_backend: Some("synthetic encode lifecycle fixture".into()),
+                        actual_adapter: json!({"instance_descriptor": {
+                            "schema":"rust-duty-wgpu-instance-descriptor/v1",
+                            "wgpu_version":"30.0.1", "flags_bits":0,
+                            "debug":false, "validation":false,
+                            "gpu_based_validation":false, "validation_indirect_call":false,
+                            "application_debug_assertions":false,
+                            "environment_overrides_applied":false
+                        }}),
+                        build: Value::Null,
+                        scene: Value::Null,
+                        initial_window: WindowContext {
+                            physical_width: 960,
+                            physical_height: 540,
+                            scale_factor: 1.0,
+                            mode: WindowMode::Windowed,
+                        },
+                    },
+                    operator_supplied: Value::Null,
+                },
+                path,
+                CaptureLimits {
+                    max_records,
+                    ..CaptureLimits::default()
+                },
+            )
+            .unwrap();
+        session
+    }
+    fn read(path: &std::path::Path) -> Value {
+        serde_json::from_slice(&std::fs::read(path).unwrap()).unwrap()
+    }
+    fn encode_frame(session: &mut PerformanceSession<Clock>, base: u64, observe: bool) {
+        session.clock.now = base;
+        session.begin_cpu_frame(960, 540);
+        assert!(!session.encode_details_active());
+        session.add_encode_counter(EncodeCounter::DrawCalls, 99);
+        session.clock.now = base + 10;
+        session.begin_cpu_stage(CpuFrameStage::RendererSubmit);
+        session.clock.now = base + 20;
+        session.begin_cpu_substage(CpuSubstage::EncodeSubmit);
+        assert!(!session.encode_details_active());
+        if observe {
+            for (index, phase) in EncodePhase::ALL.into_iter().enumerate() {
+                session.clock.now = base + 21 + index as u64 * 2;
+                session.begin_encode_phase(phase);
+                assert!(session.encode_details_active());
+                session.add_encode_counter(EncodeCounter::DrawCalls, 1);
+                session.clock.now += 1;
+                session.end_encode_phase(phase);
+            }
+            session.complete_encode_details();
+            assert!(!session.encode_details_active());
+        }
+        session.clock.now = base + 40;
+        session.end_cpu_substage(CpuSubstage::EncodeSubmit);
+        session.clock.now = base + 50;
+        session.end_cpu_stage(CpuFrameStage::RendererSubmit);
+        session.clock.now = base + 60;
+    }
+    fn normal_stop(session: &mut PerformanceSession<Clock>, observe: bool) -> SessionCompletion {
+        encode_frame(session, 20, observe);
+        assert!(session.present_success().is_none());
+        encode_frame(session, 90, observe);
+        session.request_stop();
+        session.clock.now += 10;
+        session.present_success().unwrap()
+    }
+
+    #[test]
+    fn encode_sidecar_joins_exact_primary_and_leaves_old_outputs_unchanged() {
+        let directory = Directory::new();
+        let plain = directory.path("plain.json");
+        let observed = directory.path("observed.json");
+        assert_eq!(
+            normal_stop(&mut start(plain.clone(), 8), false).report.status,
+            CaptureStatus::Complete
+        );
+        assert_eq!(
+            normal_stop(&mut start(observed.clone(), 8), true).report.status,
+            CaptureStatus::Complete
+        );
+        assert_eq!(
+            std::fs::read(&plain).unwrap(),
+            std::fs::read(&observed).unwrap()
+        );
+        assert_eq!(
+            read(&plain.with_extension("cpu-substages.json")),
+            read(&observed.with_extension("cpu-substages.json"))
+        );
+        let primary = read(&observed);
+        let sidecar = read(&observed.with_extension("cpu-encode-detail.json"));
+        assert_eq!(sidecar["schema"], crate::frame_encode_detail::SCHEMA);
+        assert_eq!(sidecar["measurement"], crate::frame_encode_detail::MEASUREMENT);
+        assert_eq!(sidecar["frame_status"], primary["status"]);
+        assert_eq!(
+            sidecar["frame_report_sha256"],
+            rust_duty_launcher::file_hash(&observed).unwrap()
+        );
+        for (index, sample) in sidecar["samples"].as_array().unwrap().iter().enumerate() {
+            assert_eq!(sample["record_index"], index);
+            assert_eq!(sample["details"]["state"], "complete");
+            assert_eq!(sample["details"]["spans"].as_array().unwrap().len(), 5);
+            assert_eq!(sample["details"]["counters"]["draw_calls"], 5);
+        }
+        let absent = read(&plain.with_extension("cpu-encode-detail.json"));
+        assert_eq!(
+            absent["samples"][0]["details"]["error"],
+            "encode_not_observed"
+        );
+        assert_eq!(
+            absent["samples"][0]["details"]["counters"]["draw_calls"],
+            0
+        );
+    }
+
+    #[test]
+    fn skipped_unvisited_attempts_join_across_intervening_boundaries() {
+        let directory = Directory::new();
+        let path = directory.path("frames.json");
+        let mut session = start(path.clone(), 8);
+        session.clock.now = 11;
+        session.begin_cpu_frame(960, 540);
+        session.clock.now = 12;
+        assert!(session.present_skipped().is_none());
+        session.clock.now = 13;
+        assert!(session.boundary(BoundaryReason::Resize).is_none());
+        normal_stop(&mut session, true);
+        let sidecar = read(&path.with_extension("cpu-encode-detail.json"));
+        let samples = sidecar["samples"].as_array().unwrap();
+        assert_eq!(samples.len(), 3);
+        assert_eq!(samples[0]["record_index"], 0);
+        assert_eq!(samples[1]["record_index"], 2);
+        assert_eq!(samples[2]["record_index"], 3);
+        assert_eq!(samples[0]["details"]["state"], "incomplete");
+        assert!(samples[0]["details"]["spans"].as_array().unwrap().is_empty());
+    }
+
+    #[test]
+    fn shutdown_and_failure_keep_observed_partial_counters_and_phase_prefix() {
+        let directory = Directory::new();
+        for shutdown in [false, true] {
+            let path = directory.path(if shutdown {
+                "shutdown.json"
+            } else {
+                "failure.json"
+            });
+            let mut session = start(path.clone(), 8);
+            session.clock.now = 20;
+            session.begin_cpu_frame(960, 540);
+            session.clock.now = 30;
+            session.begin_cpu_stage(CpuFrameStage::RendererSubmit);
+            session.clock.now = 40;
+            session.begin_cpu_substage(CpuSubstage::EncodeSubmit);
+            session.clock.now = 41;
+            session.begin_encode_phase(EncodePhase::FramePlan);
+            session.add_encode_counter(EncodeCounter::PreparedDraws, 7);
+            session.clock.now = 42;
+            session.end_encode_phase(EncodePhase::FramePlan);
+            session.clock.now = 43;
+            session.begin_encode_phase(EncodePhase::GeometryUpload);
+            session.clock.now = 50;
+            let result = if shutdown {
+                session.shutdown()
+            } else {
+                session.present_failure()
+            }
+            .unwrap();
+            assert!(matches!(result.report.status, CaptureStatus::Incomplete(_)));
+            let sidecar = read(&path.with_extension("cpu-encode-detail.json"));
+            assert_eq!(sidecar["frame_status"], read(&path)["status"]);
+            let details = &sidecar["samples"][0]["details"];
+            assert_eq!(details["state"], "incomplete");
+            assert_eq!(details["spans"].as_array().unwrap().len(), 1);
+            assert_eq!(details["counters"]["prepared_draws"], 7);
+        }
+    }
+
+    #[test]
+    fn disabled_hooks_and_counters_never_read_clock_or_create_capture() {
+        let mut session = PerformanceSession::new(Clock { now: 0, reads: 0 });
+        for phase in EncodePhase::ALL {
+            session.begin_encode_phase(phase);
+            session.end_encode_phase(phase);
+        }
+        session.add_encode_counter(EncodeCounter::TextCharacters, 9);
+        session.complete_encode_details();
+        assert!(!session.encode_details_active());
+        assert_eq!(session.clock.reads, 0);
+        assert!(session.active.is_none());
+        let calls = std::cell::Cell::new(0);
+        let result = measure_encode_phase(EncodePhase::FramePlan, || {
+            calls.set(calls.get() + 1);
+            Err::<(), _>("original error")
+        });
+        assert_eq!(result, Err("original error"));
+        assert_eq!(calls.get(), 1);
+    }
+
+    #[test]
+    fn captures_without_cpu_attempts_do_not_write_encode_sidecars() {
+        let directory = Directory::new();
+        let path = directory.path("frames.json");
+        let mut session = start(path.clone(), 8);
+        session.clock.now = 20;
+        assert!(session.present_success().is_none());
+        session.clock.now = 30;
+        session.request_stop();
+        assert!(session.present_success().unwrap().export.is_ok());
+        assert!(!path.with_extension("cpu-encode-detail.json").exists());
+    }
+
+    #[test]
+    fn record_limit_keeps_only_rows_joined_to_retained_cpu_records() {
+        let directory = Directory::new();
+        let path = directory.path("frames.json");
+        let mut session = start(path.clone(), 2);
+        encode_frame(&mut session, 20, true);
+        assert!(session.present_success().is_none());
+        session.clock.now += 1;
+        assert!(session.boundary(BoundaryReason::Resize).is_none());
+        encode_frame(&mut session, 90, true);
+        let result = session.present_success().unwrap();
+        assert!(matches!(result.report.status, CaptureStatus::Incomplete(_)));
+        let sidecar = read(&path.with_extension("cpu-encode-detail.json"));
+        assert_eq!(sidecar["samples"].as_array().unwrap().len(), 1);
+        assert_eq!(sidecar["samples"][0]["record_index"], 0);
+    }
+
+    #[test]
+    fn full_record_buffer_without_retained_cpu_rows_has_no_encode_sidecar() {
+        let directory = Directory::new();
+        let path = directory.path("frames.json");
+        let mut session = start(path.clone(), 1);
+        session.clock.now = 20;
+        assert!(session.boundary(BoundaryReason::Resize).is_none());
+        encode_frame(&mut session, 30, true);
+        let completion = session.present_success().unwrap();
+        assert!(matches!(completion.report.status, CaptureStatus::Incomplete(_)));
+        assert!(completion.export.is_ok());
+        let primary = read(&path);
+        assert_eq!(primary["records"].as_array().unwrap().len(), 1);
+        assert!(primary.get("cpu_frame_stages").is_none());
+        assert!(!path.with_extension("cpu-substages.json").exists());
+        assert!(!path.with_extension("cpu-encode-detail.json").exists());
+        assert!(take_cpu_encode_detail_export_notice().is_none());
+    }
+
+    #[test]
+    fn sidecar_and_primary_write_failures_preserve_existing_files() {
+        let directory = Directory::new();
+        for primary_failure in [false, true] {
+            let path = directory.path(if primary_failure {
+                "primary.json"
+            } else {
+                "sidecar.json"
+            });
+            let protected = if primary_failure {
+                path.clone()
+            } else {
+                path.with_extension("cpu-encode-detail.json")
+            };
+            std::fs::write(&protected, b"existing evidence").unwrap();
+            let completion = normal_stop(&mut start(path.clone(), 8), true);
+            assert_eq!(completion.export.is_err(), primary_failure);
+            assert_eq!(std::fs::read(&protected).unwrap(), b"existing evidence");
+            let notice = take_cpu_encode_detail_export_notice();
+            if primary_failure {
+                assert!(notice.is_none());
+                assert!(!path.with_extension("cpu-encode-detail.json").exists());
+            } else {
+                assert!(notice.unwrap().error.is_some());
+                assert_eq!(completion.report.status, CaptureStatus::Complete);
+            }
+        }
+    }
+
+    #[test]
+    fn earlier_substage_error_cannot_fabricate_a_complete_encode_parent() {
+        let directory = Directory::new();
+        let path = directory.path("frames.json");
+        let mut session = start(path.clone(), 8);
+        session.clock.now = 20;
+        session.begin_cpu_frame(960, 540);
+        session.clock.now = 21;
+        session.begin_cpu_stage(CpuFrameStage::SurfaceAcquire);
+        session.clock.now = 22;
+        session.begin_cpu_substage(CpuSubstage::AcquireTexture);
+        session.clock.now = 23;
+        session.end_cpu_substage(CpuSubstage::AcquireValidation);
+        session.clock.now = 24;
+        session.end_cpu_stage(CpuFrameStage::SurfaceAcquire);
+        session.clock.now = 30;
+        session.begin_cpu_stage(CpuFrameStage::RendererSubmit);
+        session.clock.now = 40;
+        session.begin_cpu_substage(CpuSubstage::EncodeSubmit);
+        for (index, phase) in EncodePhase::ALL.into_iter().enumerate() {
+            session.clock.now = 41 + index as u64 * 2;
+            session.begin_encode_phase(phase);
+            session.add_encode_counter(EncodeCounter::DrawCalls, 1);
+            session.clock.now += 1;
+            session.end_encode_phase(phase);
+        }
+        session.complete_encode_details();
+        session.clock.now = 60;
+        session.end_cpu_substage(CpuSubstage::EncodeSubmit);
+        session.clock.now = 70;
+        session.end_cpu_stage(CpuFrameStage::RendererSubmit);
+        session.clock.now = 80;
+        assert!(session.present_success().is_none());
+        encode_frame(&mut session, 90, true);
+        session.request_stop();
+        session.clock.now = 160;
+        assert_eq!(
+            session.present_success().unwrap().report.status,
+            CaptureStatus::Complete
+        );
+        let parent = read(&path.with_extension("cpu-substages.json"));
+        assert_eq!(parent["samples"][0]["details"]["state"], "incomplete");
+        assert!(parent["samples"][0]["details"]["spans"]
+            .as_array()
+            .unwrap()
+            .is_empty());
+        let sidecar = read(&path.with_extension("cpu-encode-detail.json"));
+        let details = &sidecar["samples"][0]["details"];
+        assert_eq!(details["state"], "incomplete");
+        assert_eq!(details["error"], "encode_ancestor_incomplete");
+        assert_eq!(details["spans"].as_array().unwrap().len(), 5);
+        assert_eq!(details["counters"]["draw_calls"], 5);
+        // Missing encode parent is reader-valid only for an incomplete row.
+        // Every retained child still lies inside the available renderer/frame.
+        for span in details["spans"].as_array().unwrap() {
+            assert!(span["started_at_ns"].as_u64().unwrap() >= 30);
+            assert!(span["ended_at_ns"].as_u64().unwrap() <= 70);
+        }
+        assert_eq!(sidecar["samples"][1]["details"]["state"], "complete");
+    }
+
+    #[test]
+    fn diagnostic_clock_error_does_not_invalidate_primary_capture() {
+        let directory = Directory::new();
+        let path = directory.path("frames.json");
+        let mut session = start(path.clone(), 8);
+        encode_frame(&mut session, 20, true);
+        assert!(session.present_success().is_none());
+        session.clock.now = 90;
+        session.begin_cpu_frame(960, 540);
+        session.clock.now = 100;
+        session.begin_cpu_stage(CpuFrameStage::RendererSubmit);
+        session.clock.now = 110;
+        session.begin_cpu_substage(CpuSubstage::EncodeSubmit);
+        session.clock.now = 111;
+        session.begin_encode_phase(EncodePhase::FramePlan);
+        session.clock.now = 109;
+        session.end_encode_phase(EncodePhase::FramePlan);
+        assert!(session.encode_details_active());
+        session.add_encode_counter(EncodeCounter::PreparedDraws, 7);
+        session.clock.now = 120;
+        session.end_cpu_substage(CpuSubstage::EncodeSubmit);
+        session.clock.now = 130;
+        session.end_cpu_stage(CpuFrameStage::RendererSubmit);
+        session.clock.now = 140;
+        session.request_stop();
+        assert_eq!(
+            session.present_success().unwrap().report.status,
+            CaptureStatus::Complete
+        );
+        let sidecar = read(&path.with_extension("cpu-encode-detail.json"));
+        assert_eq!(sidecar["samples"][1]["details"]["state"], "incomplete");
+        assert_eq!(
+            sidecar["samples"][1]["details"]["counters"]["prepared_draws"],
+            7
+        );
+        assert_eq!(
+            sidecar["frame_status"],
+            json!({"state":"complete","error":null})
+        );
     }
 }

@@ -203,6 +203,10 @@ impl WgpuRenderer {
             }
             return Ok(texture.clone());
         }
+        crate::frame_performance_session::add_encode_counter(
+            crate::frame_encode_detail::EncodeCounter::TextureCacheMisses,
+            1,
+        );
         let texture = Arc::new(target::GpuTexture::new(
             &self.gpu.device,
             &self.gpu.queue,

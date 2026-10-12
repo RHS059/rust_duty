@@ -1,0 +1,88 @@
+name: Bounded CPU encode-detail checks
+on:
+  push:
+    branches: [halcyon/cpu-encode-detail]
+    paths:
+      - '.github/workflows/cpu-encode-detail.yml'
+      - 'tools/**'
+      - 'src/**'
+      - 'updater/**'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - 'build.rs'
+      - 'build_number.rs'
+      - 'rust-toolchain.toml'
+      - '.gitattributes'
+permissions:
+  contents: read
+concurrency:
+  group: cpu-encode-detail-${{ github.ref }}
+  cancel-in-progress: false
+env:
+  GIT_CONFIG_COUNT: '1'
+  GIT_CONFIG_KEY_0: core.autocrlf
+  GIT_CONFIG_VALUE_0: 'false'
+jobs:
+  source-contracts:
+    if: github.repository == 'RHS059/rust_duty' && github.ref == 'refs/heads/halcyon/cpu-encode-detail'
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /.gitattributes
+            /.gitignore
+            /Cargo.toml
+            /Cargo.lock
+            /build.rs
+            /build_number.rs
+            /rust-toolchain.toml
+            /LICENSE
+            /THIRD_PARTY_LICENSES.txt
+            /src/
+            /updater/
+            /tools/
+            /.github/workflows/cpu-encode-detail.yml
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install pinned evidence-reader dependencies
+        run: python -m pip install Pillow==11.3.0 PyYAML==6.0.3
+      - name: Validate current source inventory and strict readers
+        env:
+          PYTHONPATH: tools
+        run: >-
+          python -m unittest -v test_summarize_cpu_encode_detail
+          test_summarize_cpu_substages test_summarize_frame_performance
+          test_cpu_encode_detail_workflow test_cpu_encode_detail_source
+      - name: Run capture-only Rust contracts without native rendering
+        run: cargo test --locked --no-default-features --features wgpu-runtime --lib encode_detail
+      - name: Check source formatting on separate copies
+        if: always()
+        shell: pwsh
+        run: |
+          $files = @('src/frame_encode_detail.rs', 'src/frame_performance_session.rs', 'src/frame_cpu_substages.rs', 'src/lib.rs', 'src/render/frame.rs', 'src/render/device.rs', 'src/render/mesh.rs', 'src/render/backend.rs')
+          $changed = $false
+          foreach ($file in $files) {
+            $copy = Join-Path 'format-evidence' $file
+            New-Item -ItemType Directory -Force (Split-Path $copy) | Out-Null
+            Copy-Item $file $copy
+            rustfmt --edition 2021 --config skip_children=true $copy
+            if ($LASTEXITCODE -ne 0) { throw "rustfmt failed: $file" }
+            if ((Get-FileHash $file -Algorithm SHA256).Hash -ne (Get-FileHash $copy -Algorithm SHA256).Hash) { $changed = $true }
+          }
+          if ($changed) { throw 'Formatting differs; exact proposed files retained separately. Tested source was not modified.' }
+      - name: Retain formatter proposals without rewriting tested source
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cpu-encode-detail-format-attempt-${{ github.run_attempt }}
+          path: format-evidence/**
+          if-no-files-found: warn
+          retention-days: 7
