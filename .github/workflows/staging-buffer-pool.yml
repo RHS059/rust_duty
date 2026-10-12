@@ -162,7 +162,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'DX12/WARP staging correctness failed' }
           if ((Get-FileReceipt $exe).sha256 -ne $receipt.executable.sha256) { throw 'Test executable changed during native proof' }
           if ((Get-FileReceipt $pdb).sha256 -ne $receipt.pdb.sha256) { throw 'Test PDB changed during native proof' }
-          if (-not (Select-String -Path staging-pool-evidence/native-tests.txt -SimpleMatch 'test result: ok. 3 passed; 0 failed; 0 ignored;')) {
+          if (-not (Select-String -Path staging-pool-evidence/native-tests.txt -SimpleMatch -Pattern 'test result: ok. 3 passed; 0 failed; 0 ignored;')) {
             throw 'All three native tests must run; missing WARP or zero selected tests is not a pass'
           }
       - name: Verify unchanged tested source
