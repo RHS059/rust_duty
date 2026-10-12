@@ -1,6 +1,6 @@
 //! Cosmetic reload cancellation crossfade. Never feeds movement, aim rays or ammo.
 use crate::weapon_animation::{sample_weapon_animation, AnimationInput, WeaponAnimationPose};
-use macroquad::math::{EulerRot, Mat4, Quat, Vec3};
+use glam::{EulerRot, Mat4, Quat, Vec3};
 /// One frame shared by gun meshes, arm grip targets, and muzzle effects.
 #[derive(Clone, Copy)]
 pub struct WeaponFrame {
@@ -479,7 +479,7 @@ pub fn magazine_frame(weapon: Mat4, offset: Vec3, euler: Vec3) -> Mat4 {
     weapon
         * Mat4::from_translation(offset + pivot)
         * Mat4::from_quat(Quat::from_euler(
-            macroquad::math::EulerRot::YXZ,
+            glam::EulerRot::YXZ,
             euler.x,
             euler.y,
             euler.z,

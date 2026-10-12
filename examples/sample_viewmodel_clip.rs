@@ -1,6 +1,6 @@
 //! CPU-only VRANIM01 parity probe. Each requested time produces one JSON line.
 //! Usage: sample_viewmodel_clip PATH.vra CLIP TIME [TIME...] [--clamp] [--game-axis]
-use macroquad::math::{Mat4, Vec3};
+use glam::{Mat4, Vec3};
 use std::{
     error::Error,
     io::{self, BufWriter, Write},

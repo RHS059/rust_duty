@@ -1,4 +1,5 @@
 import argparse
+import hashlib
 import importlib.util
 import json
 from pathlib import Path
@@ -6,6 +7,8 @@ import random
 import struct
 import tempfile
 import unittest
+
+from stage_release_game import bundle_records
 
 spec = importlib.util.spec_from_file_location("release_update", Path(__file__).with_name("release_update.py"))
 release = importlib.util.module_from_spec(spec)
@@ -139,4 +142,67 @@ class ReleaseTests(unittest.TestCase):
                 release.make_delta(root / "old", root / "new", root / "delta")
                 self.assertEqual(apply(base, (root / "delta").read_bytes()), new)
 
+
+    def test_content_delta_reuses_running_executable_without_redownload(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            executable = b"UNCHANGED-LAUNCHER" * 20000
+            old = root / "old-input"
+            (old / "assets").mkdir(parents=True)
+            (old / "game.exe").write_bytes(executable)
+            (old / "assets/note.txt").write_bytes(b"old content")
+            old_bundle = root / "old.rdb"
+            release.pack(old, old_bundle, "game.exe")
+            new = root / "new-input"
+            (new / "assets").mkdir(parents=True)
+            (new / "game.exe").write_bytes(executable)
+            (new / "assets/note.txt").write_bytes(b"new content for this update")
+            ui_resources = {"ui/theme.css": b"#hud .label { color: #e8edf2; }\n",
+                            "docs/UI_THEME.md": b"# Native theme documentation\n",
+                            "ui/examples/high-contrast.css": b".panel { background-color: #000000f2; }\n",
+                            "ui/examples/large-type.css": b"#pause-menu .label { font-size: 26px; }\n",
+                            "docs/UI_THEME_EXAMPLES.md": b"# Theme examples\n95%-opaque black panels.\n"}
+            for relative, content in ui_resources.items():
+                path = new / relative
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_bytes(content)
+            output = root / "out"
+            result = release.prepare(argparse.Namespace(
+                input=new, output=output, version="1.1.0", sequence=2, target="test-target",
+                entrypoint="game.exe", previous=old_bundle, previous_version="1.0.0"))
+            manifest = json.loads((output / "update-test-target.json").read_text())
+            self.assertEqual(len(manifest["deltas"]), 2)
+            running = next(item for item in manifest["deltas"] if "running-to-" in item["asset"]["name"])
+            patch = (output / running["asset"]["name"]).read_bytes()
+            full = (output / manifest["bundle"]["name"]).read_bytes()
+            baseline = release.one_file_executable("game.exe", executable)
+            self.assertEqual(running["base_sha256"], hashlib.sha256(baseline).hexdigest())
+            self.assertNotIn(executable, patch)
+            self.assertLess(len(patch), len(executable))
+            self.assertGreater(result["running_executable_delta"]["copied_bytes"], 0)
+            self.assertEqual(apply(baseline, patch), full)
+            # A one-file executable baseline still reconstructs every resource
+            # in the new complete bundle; it is not an executable-only update.
+            records = bundle_records(output / manifest["bundle"]["name"])
+            for relative, content in ui_resources.items():
+                self.assertEqual(records[relative], {"size": len(content),
+                                                     "sha256": hashlib.sha256(content).hexdigest()})
+            # The installed version does not switch as part of preparing the patch.
+            self.assertEqual(manifest["version"], "1.1.0")
+            self.assertEqual(running["base_version"], "1.0.0")
+
 if __name__ == "__main__": unittest.main()
+
+
+class PreviousBundleExecutableTests(unittest.TestCase):
+    def test_complete_previous_inventory_is_validated_before_extracting(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            image = release.one_file_executable("game", b"exe")
+            path = root / "old.rdb"
+            path.write_bytes(image)
+            self.assertEqual(release.extract_bundle_file(path, "game"), b"exe")
+            for bad in (image[:-1], image + b"trailing", image[:8] + struct.pack("<I", 2) + image[12:] + image[12:]):
+                path.write_bytes(bad)
+                with self.assertRaises(ValueError):
+                    release.extract_bundle_file(path, "game")

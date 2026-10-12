@@ -43,7 +43,7 @@ mod tests {
         settings::Settings,
         sim::{Input, Simulation, FIXED_DT},
     };
-    use macroquad::math::vec2;
+    use glam::vec2;
     #[test]
     fn explicit_capture_rates_have_exact_integer_tick_strides() {
         for (hz, stride) in [(30, 4), (60, 2)] {

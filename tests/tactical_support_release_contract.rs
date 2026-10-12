@@ -71,7 +71,7 @@ fn support_release_opens_away_from_weapon_without_a_seated_magazine_grasp() {
 
 #[test]
 fn first_visible_replacement_at_source_8_50_is_rigidly_attached_to_the_hand() {
-    use macroquad::math::Quat;
+    use glam::Quat;
     for phase in [(8.50_f32 - 7.8) / 2.21, 0.316742, 0.3205882] {
         let pose = sample_weapon_animation(AnimationInput {
             reload_progress: Some(phase),

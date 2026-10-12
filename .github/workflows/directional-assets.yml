@@ -42,16 +42,41 @@ jobs:
         run: python tools/build_directional_assets.py --blender blender --sampler target/release/examples/sample_viewmodel_clip --work build-directional/work --output build-directional/runtime
       - name: Revalidate source, old clip bytes and generated companions
         run: python tools/check_generated_assets.py --kind directional --directory build-directional/runtime
-      - name: Upload directional source and parity evidence
+      - name: Archive this attempt - Upload directional source and parity evidence
         if: always()
+        id: archive_attempt_1
         uses: actions/upload-artifact@v4
         with:
+          name: directional-export-diagnostics-attempt-${{ github.run_attempt }}
+          path: build-directional/runtime/*.json
+          if-no-files-found: warn
+      - name: Upload directional source and parity evidence
+        if: ${{ (always()) && steps.archive_attempt_1.outcome == 'success' && steps.archive_attempt_1.outputs.artifact-id != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          overwrite: true
           name: directional-export-diagnostics
           path: build-directional/runtime/*.json
           if-no-files-found: warn
-      - name: Publish verified WIP directional companions for complete game builds
+      - name: Archive this attempt - Publish verified WIP directional companions for complete game builds
+        id: archive_attempt_2
         uses: actions/upload-artifact@v4
         with:
+          name: generated-directional-runtime-attempt-${{ github.run_attempt }}
+          path: |
+            build-directional/runtime/asset.vra
+            build-directional/runtime/asset.vrs
+            build-directional/runtime/asset.vrm
+            build-directional/runtime/asset.vrs.gz
+            build-directional/runtime/asset.vra.gz
+            build-directional/runtime/*.json
+            build-directional/runtime/README.md
+          if-no-files-found: error
+      - name: Publish verified WIP directional companions for complete game builds
+        if: ${{ (success()) && steps.archive_attempt_2.outcome == 'success' && steps.archive_attempt_2.outputs.artifact-id != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          overwrite: true
           name: generated-directional-runtime
           path: |
             build-directional/runtime/asset.vra

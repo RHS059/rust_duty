@@ -174,3 +174,16 @@ impl AuthoredJump {
         }]
     }
 }
+
+/// Ordinary committed input for native HIP, ADS, extended-air endpoint and reload
+/// interruption witnesses. It never selects a clip or changes player physics.
+pub fn gameplay_jump_replay_input(time: f64) -> crate::sim::Input {
+    crate::sim::Input {
+        jump: (0.25..0.30).contains(&time)
+            || (1.75..1.80).contains(&time)
+            || (3.25..3.30).contains(&time),
+        ads: (1.25..3.0).contains(&time),
+        reload: (3.4..3.45).contains(&time),
+        ..crate::sim::Input::default()
+    }
+}

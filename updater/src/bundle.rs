@@ -3,7 +3,7 @@ use crate::{invalid, Result, MAX_ASSET};
 use std::{
     collections::HashSet,
     fs::{File, OpenOptions},
-    io::Read,
+    io::{Read, Write},
     path::{Path, PathBuf},
 };
 pub const MAGIC: &[u8; 8] = b"RDBND001";
@@ -193,6 +193,35 @@ fn read_bundle(
     let mut tail = [0];
     if !has_entry || input.read(&mut tail)? != 0 {
         return Err(invalid("missing entrypoint or trailing bundle data"));
+    }
+    Ok(())
+}
+
+/// One-file RDBND001 image of an executable. This is the baseline `adopt` and
+/// the in-game updater store for a build that is already running, so a content
+/// delta can COPY those bytes instead of downloading them again.
+pub fn write_single_executable(
+    name: &str,
+    source: &mut impl Read,
+    source_len: u64,
+    output: &mut impl Write,
+) -> Result<()> {
+    safe_path(name)?;
+    if name.len() > u16::MAX as usize || source_len == 0 || source_len > MAX_ASSET - 1024 {
+        return Err(invalid("invalid running executable size"));
+    }
+    output.write_all(MAGIC)?;
+    output.write_all(&1u32.to_le_bytes())?;
+    output.write_all(&(name.len() as u16).to_le_bytes())?;
+    output.write_all(name.as_bytes())?;
+    output.write_all(&[1u8])?;
+    output.write_all(&source_len.to_le_bytes())?;
+    crate::delta::copy_exact(source, output, source_len, &mut [0; 65536])?;
+    let mut extra = [0u8; 1];
+    if source.read(&mut extra)? != 0 {
+        return Err(invalid(
+            "running executable changed during baseline capture",
+        ));
     }
     Ok(())
 }

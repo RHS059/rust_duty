@@ -1,0 +1,8 @@
+{
+  "held_skin_max_component_errors_m": {
+    "Actual arms mesh 0": 8.344650268554688e-07,
+    "Actual arms mesh 1": 7.152557373046875e-07,
+    "Actual arms mesh 2": 7.152557373046875e-07
+  },
+  "clone_method": "Same original skin mesh data and modifier settings, copied rest armature, constraints removed only from diagnostic copy; exact evaluated globals assigned."
+}

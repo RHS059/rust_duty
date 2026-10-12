@@ -1,0 +1,82 @@
+name: Strict Windows OpenGl and DX12 reload-return comparison
+on:
+  workflow_call:
+permissions:
+  contents: read
+jobs:
+  same-platform-return:
+    runs-on: windows-latest
+    timeout-minutes: 100
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Fetch this run's validated reload companions
+        uses: actions/download-artifact@v4
+        with:
+          name: generated-reload-runtime
+          path: assets/reload
+      - name: Fetch this run's validated walk companions
+        uses: actions/download-artifact@v4
+        with:
+          name: generated-walk-runtime
+          path: assets/walk
+      - name: Fetch this run's validated ADS companions
+        uses: actions/download-artifact@v4
+        with:
+          name: generated-ads-runtime
+          path: assets/ads
+      - name: Fetch this run's validated directional companions
+        uses: actions/download-artifact@v4
+        with:
+          name: generated-directional-runtime
+          path: assets/directional
+      - name: Fetch this run's validated Jump companions
+        uses: actions/download-artifact@v4
+        with:
+          name: generated-jump-runtime
+          path: assets/jump
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install existing asset and capture validation dependencies
+        run: python -m pip install -r tools/requirements-assets.txt
+      - name: Revalidate and materialize exact current companion inputs
+        run: >-
+          python tools/package_game.py materialize --root .
+          --include-walk --include-ads --include-directional --include-jump --require-generated
+      - name: Test strict pair orchestration and evidence guards
+        env:
+          PYTHONPATH: tools
+        run: python -m unittest -v test_windows_same_platform_return test_windows_gl_reference_probe test_windows_same_platform_workflow
+      - name: Build one executable containing both backends
+        run: cargo build --locked --release --no-default-features --features legacy-macroquad,wgpu-runtime --bin vector-range
+      - name: Stage pinned app-local OpenGL reference
+        shell: pwsh
+        timeout-minutes: 10
+        run: |
+          Get-Command tar.exe | Format-List Source,Version
+          tar.exe --version
+          if ($LASTEXITCODE -ne 0) { throw "tar.exe is not usable" }
+          New-Item -ItemType Directory -Path evidence -Force | Out-Null
+          ./tools/stage_windows_gl_reference.ps1 -Manifest tools/windows_gl_reference_lock.json -OutputDirectory evidence/gl-runtime
+      - name: Run both native backends and unchanged strict reload-return checks
+        timeout-minutes: 76
+        run: >-
+          python tools/run_windows_same_platform_return.py
+          --executable target/release/vector-range.exe
+          --runtime evidence/gl-runtime --manifest tools/windows_gl_reference_lock.json
+          --root . --evidence evidence/same-platform-return
+          --timeout 1800 --run-timeout 4500
+      - name: Retain exact attempted pair and comparison diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-same-platform-return-attempt-${{ github.run_attempt }}
+          path: |
+            evidence/same-platform-return/
+            evidence/gl-runtime/staging-receipt.json
+            evidence/gl-runtime/windows_gl_reference_lock.json
+          if-no-files-found: warn
+          retention-days: 7

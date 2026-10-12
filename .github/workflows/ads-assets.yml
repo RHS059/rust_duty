@@ -42,16 +42,40 @@ jobs:
         run: python tools/build_ads_assets.py --blender blender --sampler target/release/examples/sample_viewmodel_clip --work build-ads/work --output build-ads/runtime
       - name: Revalidate source, old clip bytes and generated companions
         run: python tools/check_generated_assets.py --kind ads --directory build-ads/runtime
-      - name: Upload ADS source and parity evidence
+      - name: Archive this attempt - Upload ADS source and parity evidence
         if: always()
+        id: archive_attempt_1
         uses: actions/upload-artifact@v4
         with:
+          name: ads-export-diagnostics-attempt-${{ github.run_attempt }}
+          path: build-ads/runtime/*.json
+          if-no-files-found: warn
+      - name: Upload ADS source and parity evidence
+        if: ${{ (always()) && steps.archive_attempt_1.outcome == 'success' && steps.archive_attempt_1.outputs.artifact-id != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          overwrite: true
           name: ads-export-diagnostics
           path: build-ads/runtime/*.json
           if-no-files-found: warn
-      - name: Publish verified ADS companions for complete game builds
+      - name: Archive this attempt - Publish verified ADS companions for complete game builds
+        id: archive_attempt_2
         uses: actions/upload-artifact@v4
         with:
+          name: generated-ads-runtime-attempt-${{ github.run_attempt }}
+          path: |
+            build-ads/runtime/asset.vra
+            build-ads/runtime/asset.vrs
+            build-ads/runtime/asset.vrm
+            build-ads/runtime/asset.vrs.gz
+            build-ads/runtime/asset.vra.gz
+            build-ads/runtime/*.json
+          if-no-files-found: error
+      - name: Publish verified ADS companions for complete game builds
+        if: ${{ (success()) && steps.archive_attempt_2.outcome == 'success' && steps.archive_attempt_2.outputs.artifact-id != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          overwrite: true
           name: generated-ads-runtime
           path: |
             build-ads/runtime/asset.vra

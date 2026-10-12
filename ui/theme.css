@@ -1,0 +1,13 @@
+/* Native UI theme: deliberately empty to preserve the existing appearance.
+   Edit this file, then press F7 in the focused game to reload it.
+   An invalid replacement keeps the entire last-good theme.
+   This is bounded CSS-inspired native styling, not browser CSS.
+   See docs/UI_THEME.md for selectors, limits, and supported declarations.
+
+   Example (uncomment to opt in):
+   #hud .muted { color: #c2d0d8; }
+   #pause-menu .panel { background-color: #18212bee; border-color: #697887; border-width: 1px; }
+   #pause-menu .button { font-size: 24px; }
+   #updater-panel .warning { color: #ffbe67; }
+   #ammo-hint .accent { color: #a5e0bc; }
+*/

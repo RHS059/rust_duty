@@ -1,0 +1,93 @@
+{
+  "capture_context": {
+    "source_commit": "8f571464be706d0abde862e124582a188f633baf",
+    "run_id": "37415102452",
+    "run_attempt": "1"
+  },
+  "source_context": {
+    "source_commit": "371bca3d848f5b749cf9ea989fa1fbfaca8c20cc",
+    "run_id": "37427554951",
+    "run_attempt": "1"
+  },
+  "artifact_sha256": [
+    [
+      "fragment",
+      "edaecbca5d3a485187a02d2662588170b32b6df59f9e1cc1e032ebfc99648696"
+    ],
+    [
+      "geometry",
+      "458655709d010fd004eccc04234094ec09d66428e286e47c892ab5578d9a3204"
+    ],
+    [
+      "native_source",
+      "93d730d84e5f0055cd51e4e613f7210974ae7a4682bdb7e7f8e246d3ad1227ca"
+    ],
+    [
+      "source_receipt",
+      "241bb21d23bb711daaff9dac33b75b504e1c69104fa0949099b38f0f86453370"
+    ]
+  ],
+  "native_profile_binding_verified": false,
+  "native_geometry_profile_verified": false,
+  "native_fragment_profile_verified": false,
+  "acceptance_complete": false,
+  "acceptance_verdict": null,
+  "schema": "rust-duty-reviewed-gl-supplement-binding/v1",
+  "status": "reviewed_conditional_evidence_bound",
+  "frame_ids": [
+    17,
+    18,
+    19,
+    20,
+    58,
+    59,
+    60,
+    61,
+    77,
+    78,
+    79,
+    80,
+    81,
+    82,
+    83,
+    84,
+    85,
+    163,
+    164,
+    165,
+    170,
+    171,
+    172,
+    173,
+    174,
+    175,
+    176,
+    177,
+    178,
+    179,
+    216,
+    217,
+    258,
+    259,
+    315,
+    316,
+    317,
+    318,
+    319,
+    320,
+    321,
+    322,
+    414,
+    415,
+    467,
+    468,
+    469,
+    517,
+    518,
+    519
+  ],
+  "required_samples": 47558,
+  "minimum_required_samples": 4,
+  "examined_overlapping_subtriangles": 53473,
+  "unsafe_subtriangles": 1487
+}

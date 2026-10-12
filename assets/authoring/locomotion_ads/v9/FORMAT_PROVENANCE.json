@@ -1,0 +1,19 @@
+{
+  "format": "Blender4.3.2 native Zstandard, directly openable",
+  "render_source": {
+    "sha256": "4de3a9001f0aed96123d566e30259119453e9beba253352a783f598bb739c8d3",
+    "bytes": 17534447
+  },
+  "published_source": {
+    "filename": "ads_v9_depthphase_public47_hipr5_diagnostic.blend",
+    "sha256": "094c54c25815126479ca30051a15b8e8dd8f0b4f7bab0767ba96599534652c62",
+    "git_blob_sha": "2743a99f56d6f1be7dabaa345ff722d1c00aa232",
+    "bytes": 11971011
+  },
+  "decoded_native_stream": {
+    "sha256": "7247b12f7e620a072e5964dea4486587b61122ccf2ad8aa226c53b6772064ec9",
+    "bytes": 102920700,
+    "original_and_published_identical": true
+  },
+  "method": "Decode original native zstd stream, encode losslessly with installed zstd19. Original source file unchanged. Compact file reopened in Blender and compared against original across all source data and10 evaluated poses. Native file bytes differ; decoded content is identical."
+}
