@@ -371,7 +371,9 @@ fn changed_queued_frames_match_queuewrite_at_every_pixel() {
         &[1, 1, 1],
     ];
     for (frame, counts) in cases.iter().enumerate() {
-        staging.begin_frame_with_device(&fixture.gpu.device).unwrap();
+        staging
+            .begin_frame_with_device(&fixture.gpu.device)
+            .unwrap();
         control.begin_frame().unwrap();
         let batches: Vec<_> = if counts.is_empty() {
             vec![batch(&fixture.gpu, frame, 0, 0)]
@@ -383,7 +385,10 @@ fn changed_queued_frames_match_queuewrite_at_every_pixel() {
                 .collect()
         };
         let bytes = upload_bytes(&batches);
-        let mut encoder = fixture.gpu.device.create_command_encoder(&Default::default());
+        let mut encoder = fixture
+            .gpu
+            .device
+            .create_command_encoder(&Default::default());
         let staged = staged_geometry(&fixture, &mut staging, &batches, &mut encoder);
         let queued = queue_geometry(&fixture, &mut control, &batches);
         let current: Vec<_> = staged.iter().flatten().map(handles).collect();
@@ -409,7 +414,14 @@ fn changed_queued_frames_match_queuewrite_at_every_pixel() {
             assert!(stats.staging_buffer_allocations + stats.staging_buffer_reuses > 0);
         }
         staged_bytes += stats.staging_copy_bytes;
-        record_pair(&fixture, &mut encoder, &batches, &staged, &queued, &mut observations);
+        record_pair(
+            &fixture,
+            &mut encoder,
+            &batches,
+            &staged,
+            &queued,
+            &mut observations,
+        );
         let commands = encoder.finish();
         // CPU input and temporary destination handles are gone before submit.
         // The encoded copies/draws must keep both GPU resource types alive.
@@ -424,13 +436,21 @@ fn changed_queued_frames_match_queuewrite_at_every_pixel() {
     let pixels = read_after_submissions(&fixture.gpu, &observations);
     // The terminal readback also completes source remaps. Exercise a real
     // mapped-source checkout now, without an extra submission or blocking wait.
-    staging.begin_frame_with_device(&fixture.gpu.device).unwrap();
+    staging
+        .begin_frame_with_device(&fixture.gpu.device)
+        .unwrap();
     let probe = [batch(&fixture.gpu, 40, 0, 1)];
-    let mut encoder = fixture.gpu.device.create_command_encoder(&Default::default());
+    let mut encoder = fixture
+        .gpu
+        .device
+        .create_command_encoder(&Default::default());
     let geometry = staged_geometry(&fixture, &mut staging, &probe, &mut encoder);
     assert_eq!(staging.staging_stats().staging_buffer_allocations, 0);
     assert_eq!(staging.staging_stats().staging_buffer_reuses, 1);
-    assert_eq!(staging.staging_stats().staging_copy_bytes, upload_bytes(&probe));
+    assert_eq!(
+        staging.staging_stats().staging_copy_bytes,
+        upload_bytes(&probe)
+    );
     drop(encoder);
     drop(geometry);
     staging.clear();
@@ -440,11 +460,21 @@ fn changed_queued_frames_match_queuewrite_at_every_pixel() {
     assert!(pixels[6 * 4 + 2].iter().all(|&byte| byte == 0));
     for (frame, pair) in pixels.as_chunks::<4>().0.iter().enumerate() {
         if frame != 6 {
-            assert!(pair[2].as_chunks::<4>().0.iter().any(|pixel| pixel[3] == 255));
+            assert!(pair[2]
+                .as_chunks::<4>()
+                .0
+                .iter()
+                .any(|pixel| pixel[3] == 255));
         }
     }
-    assert_ne!(pixels[2], pixels[6], "changed inputs must change final pixels");
-    assert_ne!(pixels[8], pixels[10], "later draws must change the checkpoint");
+    assert_ne!(
+        pixels[2], pixels[6],
+        "changed inputs must change final pixels"
+    );
+    assert_ne!(
+        pixels[8], pixels[10],
+        "later draws must change the checkpoint"
+    );
     eprintln!(
         "staging_upload_native queued_frames={} matched_pixel_pairs={} copy_bytes={staged_bytes} cpu_waits_between_submits=0",
         cases.len(), cases.len() * 2,
@@ -467,13 +497,19 @@ fn exhausted_budget_and_busy_sources_use_padded_queuewrite_fallback() {
         (4096, 1, 3),
         (4096, super::staging::MAX_CHUNKS, 9),
     ];
-    assert_eq!(super::staging::MAX_CHUNKS, 8, "production source-slot bound");
+    assert_eq!(
+        super::staging::MAX_CHUNKS,
+        8,
+        "production source-slot bound"
+    );
     for (scenario, (budget, slots, frames)) in scenarios.into_iter().enumerate() {
         let mut staging = UploadCache::for_staging_test(true, RETAINED_BYTES, budget, slots);
         staging.hold_ready_for_test(true);
         let mut previous = None;
         for frame in 0..frames {
-            staging.begin_frame_with_device(&fixture.gpu.device).unwrap();
+            staging
+                .begin_frame_with_device(&fixture.gpu.device)
+                .unwrap();
             control.begin_frame().unwrap();
             let draws = if frame + 1 == frames { 3 } else { 1 };
             let batches = [batch(&fixture.gpu, scenario * 3 + frame, 0, draws)];
@@ -482,7 +518,10 @@ fn exhausted_budget_and_busy_sources_use_padded_queuewrite_fallback() {
             let bytes = upload_bytes(&batches);
             let unpadded: u64 = contents.iter().map(|part| part.len() as u64).sum();
             assert_eq!(bytes, unpadded + 2, "exactly two zero-padding bytes");
-            let mut encoder = fixture.gpu.device.create_command_encoder(&Default::default());
+            let mut encoder = fixture
+                .gpu
+                .device
+                .create_command_encoder(&Default::default());
             let staged = staged_geometry(&fixture, &mut staging, &batches, &mut encoder);
             let queued = queue_geometry(&fixture, &mut control, &batches);
             let current = handles(staged[0].as_ref().unwrap());
@@ -516,7 +555,14 @@ fn exhausted_budget_and_busy_sources_use_padded_queuewrite_fallback() {
             assert!(stats.staging_retained_bytes <= budget);
             assert!(stats.staging_pending_buffers <= slots as u64);
             assert_eq!(stats.staging_map_failures, 0);
-            record_pair(&fixture, &mut encoder, &batches, &staged, &queued, &mut observations);
+            record_pair(
+                &fixture,
+                &mut encoder,
+                &batches,
+                &staged,
+                &queued,
+                &mut observations,
+            );
             let commands = encoder.finish();
             drop(batches);
             drop(staged);
@@ -549,7 +595,11 @@ fn exhausted_budget_and_busy_sources_use_padded_queuewrite_fallback() {
     assert!(validation.is_none(), "fallback validation: {validation:?}");
     assert_pairs(&pixels, "budget-and-busy");
     for pair in pixels.as_chunks::<4>().0 {
-        assert!(pair[2].as_chunks::<4>().0.iter().any(|pixel| pixel[3] == 255));
+        assert!(pair[2]
+            .as_chunks::<4>()
+            .0
+            .iter()
+            .any(|pixel| pixel[3] == 255));
     }
     eprintln!("staging_upload_native fallback_frames=6 padded_odd_u16_frames=15 cpu_waits_between_submits=0");
 }
@@ -561,18 +611,19 @@ fn aborted_encoder_and_postsubmit_clear_never_recycle_late_callbacks() {
         .gpu
         .device
         .push_error_scope(wgpu::ErrorFilter::Validation);
-    let mut staging = UploadCache::for_staging_test(
-        true,
-        RETAINED_BYTES,
-        4096,
-        super::staging::MAX_CHUNKS,
-    );
+    let mut staging =
+        UploadCache::for_staging_test(true, RETAINED_BYTES, 4096, super::staging::MAX_CHUNKS);
     staging.hold_ready_for_test(true);
     let mut control = UploadCache::for_test(true, RETAINED_BYTES);
     let mut observations = Vec::new();
-    staging.begin_frame_with_device(&fixture.gpu.device).unwrap();
+    staging
+        .begin_frame_with_device(&fixture.gpu.device)
+        .unwrap();
     let abandoned_batch = [batch(&fixture.gpu, 20, 0, 1)];
-    let mut abandoned_encoder = fixture.gpu.device.create_command_encoder(&Default::default());
+    let mut abandoned_encoder = fixture
+        .gpu
+        .device
+        .create_command_encoder(&Default::default());
     let abandoned = staged_geometry(
         &fixture,
         &mut staging,
@@ -585,17 +636,24 @@ fn aborted_encoder_and_postsubmit_clear_never_recycle_late_callbacks() {
     drop(abandoned_batch);
     drop(abandoned);
     // The begin-frame rejection must discard the abandoned upload generation.
-    assert!(staging.begin_frame_with_device(&fixture.gpu.device).is_err());
+    assert!(staging
+        .begin_frame_with_device(&fixture.gpu.device)
+        .is_err());
     assert_eq!(staging.retained_bytes(), 0);
     let mut old_handles = vec![abandoned_handles];
     // Finishing an encoder transfers its deferred callback to the command
     // buffer. Dropping that buffer without submit is a separate cancellation
     // boundary and must never turn this source into a ready pooled checkout.
-    staging.begin_frame_with_device(&fixture.gpu.device).unwrap();
+    staging
+        .begin_frame_with_device(&fixture.gpu.device)
+        .unwrap();
     assert_eq!(staging.staging_stats().staging_retained_bytes, 0);
     assert_eq!(staging.staging_stats().staging_pending_buffers, 0);
     let cancelled_batch = [batch(&fixture.gpu, 25, 0, 1)];
-    let mut cancelled_encoder = fixture.gpu.device.create_command_encoder(&Default::default());
+    let mut cancelled_encoder = fixture
+        .gpu
+        .device
+        .create_command_encoder(&Default::default());
     let cancelled = staged_geometry(
         &fixture,
         &mut staging,
@@ -612,7 +670,9 @@ fn aborted_encoder_and_postsubmit_clear_never_recycle_late_callbacks() {
     staging.clear();
     assert_eq!(staging.retained_bytes(), 0);
     for frame in 0..3 {
-        staging.begin_frame_with_device(&fixture.gpu.device).unwrap();
+        staging
+            .begin_frame_with_device(&fixture.gpu.device)
+            .unwrap();
         if frame == 0 {
             assert_eq!(staging.staging_stats().staging_retained_bytes, 0);
             assert_eq!(staging.staging_stats().staging_pending_buffers, 0);
@@ -620,7 +680,10 @@ fn aborted_encoder_and_postsubmit_clear_never_recycle_late_callbacks() {
         }
         control.begin_frame().unwrap();
         let batches = [batch(&fixture.gpu, 21 + frame, frame, 1)];
-        let mut encoder = fixture.gpu.device.create_command_encoder(&Default::default());
+        let mut encoder = fixture
+            .gpu
+            .device
+            .create_command_encoder(&Default::default());
         let staged = staged_geometry(&fixture, &mut staging, &batches, &mut encoder);
         let queued = queue_geometry(&fixture, &mut control, &batches);
         let current = handles(staged[0].as_ref().unwrap());
@@ -634,7 +697,14 @@ fn aborted_encoder_and_postsubmit_clear_never_recycle_late_callbacks() {
         assert_eq!(stats.staging_buffer_reuses, 0);
         assert_eq!(stats.staging_fallback_arenas, 0);
         assert_eq!(stats.staging_copy_bytes, upload_bytes(&batches));
-        record_pair(&fixture, &mut encoder, &batches, &staged, &queued, &mut observations);
+        record_pair(
+            &fixture,
+            &mut encoder,
+            &batches,
+            &staged,
+            &queued,
+            &mut observations,
+        );
         let commands = encoder.finish();
         drop(batches);
         drop(staged);
@@ -658,11 +728,16 @@ fn aborted_encoder_and_postsubmit_clear_never_recycle_late_callbacks() {
     // The final test-only poll above has delivered all old map callbacks. Draining
     // them on the next begin must not resurrect any cleared pool generation.
     staging.hold_ready_for_test(false);
-    staging.begin_frame_with_device(&fixture.gpu.device).unwrap();
+    staging
+        .begin_frame_with_device(&fixture.gpu.device)
+        .unwrap();
     assert_eq!(staging.staging_stats().staging_retained_bytes, 0);
     assert_eq!(staging.staging_stats().staging_pending_buffers, 0);
     let probe = [batch(&fixture.gpu, 30, 0, 1)];
-    let mut encoder = fixture.gpu.device.create_command_encoder(&Default::default());
+    let mut encoder = fixture
+        .gpu
+        .device
+        .create_command_encoder(&Default::default());
     let geometry = staged_geometry(&fixture, &mut staging, &probe, &mut encoder);
     let stats = staging.staging_stats();
     assert!(
@@ -677,7 +752,10 @@ fn aborted_encoder_and_postsubmit_clear_never_recycle_late_callbacks() {
     drop(geometry);
     staging.clear();
     let validation = pollster::block_on(scope.pop());
-    assert!(validation.is_none(), "aborted/clear validation: {validation:?}");
+    assert!(
+        validation.is_none(),
+        "aborted/clear validation: {validation:?}"
+    );
     fixture.gpu.check_errors().unwrap();
     eprintln!("staging_upload_native aborted_encoders=2 dropped_unsubmitted_command_buffers=1 postsubmit_clears=3 late_callback_reuses=0 cpu_waits_between_submits=0");
 }
