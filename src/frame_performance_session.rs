@@ -367,7 +367,9 @@ impl<C: MonotonicClock> PerformanceSession<C> {
             return;
         };
         if frame.open_stage.map(|(stage, _)| stage) != Some(CpuFrameStage::RendererSubmit) {
-            frame.encode_details.invalidate("encode_renderer_parent_mismatch");
+            frame
+                .encode_details
+                .invalidate("encode_renderer_parent_mismatch");
             return;
         }
         // Nested clocks are diagnostic-only: never advance the primary clock
@@ -1137,11 +1139,15 @@ mod encode_detail_lifecycle_tests {
         let plain = directory.path("plain.json");
         let observed = directory.path("observed.json");
         assert_eq!(
-            normal_stop(&mut start(plain.clone(), 8), false).report.status,
+            normal_stop(&mut start(plain.clone(), 8), false)
+                .report
+                .status,
             CaptureStatus::Complete
         );
         assert_eq!(
-            normal_stop(&mut start(observed.clone(), 8), true).report.status,
+            normal_stop(&mut start(observed.clone(), 8), true)
+                .report
+                .status,
             CaptureStatus::Complete
         );
         assert_eq!(
@@ -1155,7 +1161,10 @@ mod encode_detail_lifecycle_tests {
         let primary = read(&observed);
         let sidecar = read(&observed.with_extension("cpu-encode-detail.json"));
         assert_eq!(sidecar["schema"], crate::frame_encode_detail::SCHEMA);
-        assert_eq!(sidecar["measurement"], crate::frame_encode_detail::MEASUREMENT);
+        assert_eq!(
+            sidecar["measurement"],
+            crate::frame_encode_detail::MEASUREMENT
+        );
         assert_eq!(sidecar["frame_status"], primary["status"]);
         assert_eq!(
             sidecar["frame_report_sha256"],
@@ -1172,10 +1181,7 @@ mod encode_detail_lifecycle_tests {
             absent["samples"][0]["details"]["error"],
             "encode_not_observed"
         );
-        assert_eq!(
-            absent["samples"][0]["details"]["counters"]["draw_calls"],
-            0
-        );
+        assert_eq!(absent["samples"][0]["details"]["counters"]["draw_calls"], 0);
     }
 
     #[test]
@@ -1197,7 +1203,10 @@ mod encode_detail_lifecycle_tests {
         assert_eq!(samples[1]["record_index"], 2);
         assert_eq!(samples[2]["record_index"], 3);
         assert_eq!(samples[0]["details"]["state"], "incomplete");
-        assert!(samples[0]["details"]["spans"].as_array().unwrap().is_empty());
+        assert!(samples[0]["details"]["spans"]
+            .as_array()
+            .unwrap()
+            .is_empty());
     }
 
     #[test]
@@ -1300,7 +1309,10 @@ mod encode_detail_lifecycle_tests {
         assert!(session.boundary(BoundaryReason::Resize).is_none());
         encode_frame(&mut session, 30, true);
         let completion = session.present_success().unwrap();
-        assert!(matches!(completion.report.status, CaptureStatus::Incomplete(_)));
+        assert!(matches!(
+            completion.report.status,
+            CaptureStatus::Incomplete(_)
+        ));
         assert!(completion.export.is_ok());
         let primary = read(&path);
         assert_eq!(primary["records"].as_array().unwrap().len(), 1);

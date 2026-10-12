@@ -20,6 +20,10 @@ class CpuEncodeDetailWorkflowTests(unittest.TestCase):
         self.assertIn("github.ref == 'refs/heads/halcyon/cpu-encode-detail'", job['if'])
         checkout = job['steps'][0]['with']
         self.assertEqual(checkout['persist-credentials'], 'false')
+        fixture_paths = {line.strip() for line in checkout['sparse-checkout'].splitlines()
+                         if line.strip().startswith('/tests/')}
+        self.assertEqual(fixture_paths, {'/tests/fixtures/triangle.vrm',
+                                         '/tests/fixtures/two_bone_triangle.vrs'})
         self.assertNotIn('/assets', checkout['sparse-checkout'])
         self.assertNotIn('uploaded_references', checkout['sparse-checkout'])
         self.assertIn('tools/**', workflow['on']['push']['paths'])

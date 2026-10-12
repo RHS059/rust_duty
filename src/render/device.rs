@@ -738,11 +738,26 @@ mod tests {
         ] {
             let evidence = instance_descriptor_evidence(flags);
             assert_eq!(evidence["flags_bits"], flags.bits());
-            assert_eq!(evidence["debug"], flags.contains(wgpu::InstanceFlags::DEBUG));
-            assert_eq!(evidence["validation"], flags.contains(wgpu::InstanceFlags::VALIDATION));
-            assert_eq!(evidence["gpu_based_validation"], flags.contains(wgpu::InstanceFlags::GPU_BASED_VALIDATION));
-            assert_eq!(evidence["validation_indirect_call"], flags.contains(wgpu::InstanceFlags::VALIDATION_INDIRECT_CALL));
-            assert_eq!(evidence["application_debug_assertions"], cfg!(debug_assertions));
+            assert_eq!(
+                evidence["debug"],
+                flags.contains(wgpu::InstanceFlags::DEBUG)
+            );
+            assert_eq!(
+                evidence["validation"],
+                flags.contains(wgpu::InstanceFlags::VALIDATION)
+            );
+            assert_eq!(
+                evidence["gpu_based_validation"],
+                flags.contains(wgpu::InstanceFlags::GPU_BASED_VALIDATION)
+            );
+            assert_eq!(
+                evidence["validation_indirect_call"],
+                flags.contains(wgpu::InstanceFlags::VALIDATION_INDIRECT_CALL)
+            );
+            assert_eq!(
+                evidence["application_debug_assertions"],
+                cfg!(debug_assertions)
+            );
             assert_eq!(evidence["environment_overrides_applied"], false);
         }
     }

@@ -148,12 +148,12 @@ impl WgpuRenderer {
             });
         let (encoder, mut timing, readbacks) =
             performance::measure_encode_phase(EncodePhase::CommandEncoding, || {
-                let mut encoder = self
-                    .gpu
-                    .device
-                    .create_command_encoder(&wgpu::CommandEncoderDescriptor {
-                        label: Some("ordered presentation frame"),
-                    });
+                let mut encoder =
+                    self.gpu
+                        .device
+                        .create_command_encoder(&wgpu::CommandEncoderDescriptor {
+                            label: Some("ordered presentation frame"),
+                        });
                 let mut timing = if let Some(registration) = self.gpu.gpu_diagnostics {
                     performance::gpu_frame_key().and_then(|key| {
                         crate::frame_gpu_capture::begin_gpu_frame(registration, key, &mut encoder)

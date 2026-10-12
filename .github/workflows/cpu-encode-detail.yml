@@ -7,6 +7,8 @@ on:
       - 'tools/**'
       - 'src/**'
       - 'updater/**'
+      - 'tests/fixtures/triangle.vrm'
+      - 'tests/fixtures/two_bone_triangle.vrs'
       - 'Cargo.toml'
       - 'Cargo.lock'
       - 'build.rs'
@@ -45,6 +47,8 @@ jobs:
             /src/
             /updater/
             /tools/
+            /tests/fixtures/triangle.vrm
+            /tests/fixtures/two_bone_triangle.vrs
             /.github/workflows/cpu-encode-detail.yml
       - uses: dtolnay/rust-toolchain@stable
         with:

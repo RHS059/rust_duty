@@ -215,10 +215,7 @@ impl CpuEncodeDetails {
         if self.error.is_some() {
             return;
         }
-        if self.success
-            || !self.parent_is_open()
-            || self.open.is_some()
-            || self.count != MAX_SPANS
+        if self.success || !self.parent_is_open() || self.open.is_some() || self.count != MAX_SPANS
         {
             self.invalidate("encode_success_without_all_phases");
             return;
@@ -321,7 +318,12 @@ impl CpuEncodeDetails {
             .collect();
         let counters: serde_json::Map<String, Value> = EncodeCounter::ALL
             .into_iter()
-            .map(|counter| (counter.label().into(), json!(self.counters[counter as usize])))
+            .map(|counter| {
+                (
+                    counter.label().into(),
+                    json!(self.counters[counter as usize]),
+                )
+            })
             .collect();
         json!({"state":if error.is_some() { "incomplete" } else { "complete" },
             "error":error,"spans":spans,"counters":counters})
@@ -367,7 +369,8 @@ impl CpuEncodeCapture {
         // The persisted primary report supplies exact status and retained CPU
         // record indices. No additional frame/session clock calls are needed.
         let frame_bytes = std::fs::read(frame_path).map_err(|error| error.to_string())?;
-        let primary: Value = serde_json::from_slice(&frame_bytes).map_err(|error| error.to_string())?;
+        let primary: Value =
+            serde_json::from_slice(&frame_bytes).map_err(|error| error.to_string())?;
         // Match the optional CPU-substage exporter: an attempted frame without
         // a retained CPU terminal record cannot supply an analyzable parent row.
         let Some(cpu_samples) = primary["cpu_frame_stages"]["samples"]
@@ -414,7 +417,8 @@ impl CpuEncodeCapture {
                 .map_err(|error| error.to_string())?;
             Ok(())
         })();
-        write.map_err(|error| format!("write {}: {error}; partial file possible", path.display()))?;
+        write
+            .map_err(|error| format!("write {}: {error}; partial file possible", path.display()))?;
         Ok(Some(path))
     }
 }
@@ -574,7 +578,10 @@ mod tests {
         details.complete();
         finish(&mut details);
         assert_eq!(details.to_json()["state"], "incomplete");
-        assert_eq!(details.to_json()["spans"].as_array().unwrap().len(), MAX_SPANS);
+        assert_eq!(
+            details.to_json()["spans"].as_array().unwrap().len(),
+            MAX_SPANS
+        );
     }
     #[test]
     fn bounded_buffer_does_not_grow_with_excess_rows() {

@@ -66,7 +66,7 @@ AUDITED_GPU_CPU_BASELINE_MANIFEST = 'dbabe2822dd73410a7f05c0f03807aa80d5720351c4
 # source-pair builder remain unchanged; no old artifact is relabeled.
 ENCODE_DETAIL_SOURCE_PATHS = (*GPU_CANDIDATE_SOURCE_PATHS, 'src/frame_encode_detail.rs',
                              'src/render/arena.rs', 'Cargo.toml', 'Cargo.lock')
-AUDITED_ENCODE_DETAIL_MANIFEST = 'bd33a722405c3ec0073ebd28dc390c7cddffcf84ab48b2ba1833d9b97ed862e4'
+AUDITED_ENCODE_DETAIL_MANIFEST = '480e05173ad3ad42879fc1620e01fd4e9035148fadebbb2acb5b1b0cc21c8bf7'
 BACKENDS = {'dx12': 'Dx12', 'vulkan': 'Vulkan', 'metal': 'Metal', 'gl-harness': 'Gl'}
 UNAVAILABLE = {
     'fps_cap': 'No application FPS limiter or CLI selector. Fifo may pace at display refresh; it is not a 60 FPS cap.',
