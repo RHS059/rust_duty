@@ -4,6 +4,8 @@ import argparse
 import copy
 import json
 import os
+import math
+import struct
 from pathlib import Path
 import subprocess
 import sys
@@ -155,7 +157,7 @@ def validate_probe_parent(report, receipt_sha256):
     return report
 
 
-def validate_vertex_probe(directory, report, receipt_sha256, root):
+def validate_vertex_probe(directory, report, receipt_sha256, root, capture_directory=None):
     """Strict provenance/shape/completeness only; arithmetic deltas are retained."""
     directory, root = Path(directory), Path(root)
     validate_probe_parent(report,receipt_sha256)
@@ -172,7 +174,10 @@ def validate_vertex_probe(directory, report, receipt_sha256, root):
             and all(p.is_file() and not p.is_symlink() for p in directory.iterdir()),
             'vertex probe output inventory differs')
     result = matrix.json_read(directory / 'probe-result.json')
-    require(isinstance(result,dict) and result.get('schema') == 'rust-duty-resident-vertex-probe-result/v1'
+    require(isinstance(result,dict), 'vertex probe result must be an object')
+    version = 2 if result.get('schema') == 'rust-duty-resident-vertex-probe-result/v2' else 1
+    captures = Path(capture_directory) if capture_directory is not None else directory.parent / 'captures'
+    require(isinstance(result,dict) and result.get('schema') == f'rust-duty-resident-vertex-probe-result/v{version}'
             and result.get('source_receipt_sha256') == receipt_sha256
             and result.get('image_gate_passed') is report.get('passed')
             and type(result.get('image_gate_passed')) is bool
@@ -183,12 +188,15 @@ def validate_vertex_probe(directory, report, receipt_sha256, root):
     totals = dict(selected_vertices=0, current_clip_differences=0, current_color_differences=0,
                   historical_clip_differences=0, historical_color_differences=0,
                   normalization_clip_differences=0, normalization_color_differences=0)
+    if version == 2:
+        totals.update(intermediate_vertices=0, skin_route_clip_differences=0, world_route_clip_differences=0,
+                      intermediate_route_clip_differences=0, world_cpu_position_differences=0)
     shader_paths = {'production_resident_shader_sha256':'src/render/resident.wgsl',
                     'production_cpu_shader_sha256':'src/render/mesh.wgsl',
                     'probe_implementation_sha256':'src/render/resident_vertex_probe.rs'}
     for case in report['cases']:
         value = matrix.json_read(directory / (case['name'] + '.json'))
-        require(isinstance(value,dict) and value.get('schema') == 'rust-duty-resident-vertex-probe/v1'
+        require(isinstance(value,dict) and value.get('schema') == f'rust-duty-resident-vertex-probe/v{version}'
                 and value.get('case') == case['name'] and value.get('metadata') == case['metadata']
                 and value.get('source_receipt_sha256') == receipt_sha256
                 and value.get('camera_bits') == report['camera']['view_projection_bits'],
@@ -240,6 +248,9 @@ def validate_vertex_probe(directory, report, receipt_sha256, root):
         require(set(HISTORICAL_PROBE_PIXELS.get(case['name'],())) <= seen_pixels,
                 'historically requested vertex probe pixels are absent')
         actual, command_ids = set(), []
+        cpu_corners = None
+        if version == 2:
+            require(value.get('skin_intermediate_errors') == [], 'skin intermediate probe did not complete')
         for draw in draws:
             require(isinstance(draw,dict), 'vertex probe draw must be an object')
             command, corners, count = draw.get('command'), draw.get('triangle_corner_offsets'), draw.get('vertex_count')
@@ -272,6 +283,27 @@ def validate_vertex_probe(directory, report, receipt_sha256, root):
                             and sample['color_bits'] != [2**32-1]*4,
                             'vertex probe sample words invalid or unwritten')
                 routes.append(samples)
+            if version == 2:
+                require('skin_intermediates' in draw, 'skin intermediate field is absent')
+                if draw['kind'] == 'rigid':
+                    require(draw['skin_intermediates'] is None, 'rigid draw has skin observations')
+                else:
+                    if cpu_corners is None:
+                        path=captures / (case['name']+'-cpu.corners.bin')
+                        require(path.is_file() and not path.is_symlink(), 'raw CPU corners required for skin stage replay')
+                        require(path.stat().st_size==sum(c['indices']*40 for c in case['cpu_commands']),
+                                'skin stage raw CPU corner size differs')
+                        cpu_corners=path.read_bytes()
+                        require(pair.controls.digest(cpu_corners)==case['cpu_expanded_sha256'],
+                                'skin stage raw CPU corners differ from parent')
+                        offset=0
+                        for command in case['cpu_commands']:
+                            end=offset+command['indices']*40
+                            require(pair.controls.digest(cpu_corners[offset:end])==command['expanded_sha256'],
+                                    'skin stage raw CPU command slice differs from parent')
+                            offset=end
+                    extra=validate_skin_intermediates(draw,case,cpu_corners,root)
+                    for key,increment in extra.items():totals[key]+=increment
             for cpu,current,historical in zip(*routes):
                 require(current['source_vertex']==historical['source_vertex'], 'resident probe vertex order differs')
                 totals['selected_vertices']+=1
@@ -281,10 +313,96 @@ def validate_vertex_probe(directory, report, receipt_sha256, root):
                     totals[f'normalization_{key}_differences']+=current[field]!=historical[field]
         require(command_ids==sorted(command_ids) and actual==selected,
                 'vertex probe selected triangles are missing/extra/reordered')
-    return {'schema':'rust-duty-resident-vertex-probe-summary/v1', 'diagnostic_completed':True,
+    return {'schema':f'rust-duty-resident-vertex-probe-summary/v{version}', 'diagnostic_completed':True,
             'image_gate_passed':report['passed'], **totals,
             'scope':'instrumented vertex-stage differences only; strict original pixel verdict is unchanged'}
 
+
+
+def skin_stage_shader(root, count):
+    require(type(count) is int and 1<=count<=192, 'skin stage vertex count outside bound')
+    root=Path(root)
+    source=(root/'src/render/resident.wgsl').read_text(encoding='utf-8')
+    template=(root/'src/render/resident_vertex_probe.wgsl').read_text(encoding='utf-8')
+    def replace(value,old,new):
+        require(value.count(old)==1,'skin stage shader substitution differs')
+        return value.replace(old,new,1)
+    source=replace(source,'struct VertexOutput {\n','struct VertexOutput {\n    @location(2) skin_position: vec4<f32>,\n    @location(3) world_position: vec4<f32>,\n')
+    anchor='    let world_position = (draw.root * vec4<f32>(position, 1.0)).xyz;'
+    source=replace(source,anchor,anchor+'\n    output.skin_position = vec4<f32>(position, 1.0);\n    output.world_position = vec4<f32>(world_position, 1.0);')
+    source=replace(source,'@vertex fn vs_rigid(','fn original_vs_rigid(')
+    source=replace(source,'@vertex fn vs_skin(','fn original_vs_skin(')
+    template=replace(template,'__INPUT__','SkinInput')
+    template=replace(template,'__ENTRY__','original_vs_skin')
+    template=replace(template,'__COUNT__',str(count*2))
+    template=replace(template,'    output.color = actual.color;',
+                     '    output.color = select(actual.skin_position, actual.world_position, (index & 1u) != 0u);')
+    return source+'\n'+template
+
+
+def validate_skin_intermediates(draw, case, cpu_corners, root):
+    """Validate actual-input snapshots and instrumented outputs, not shader equality."""
+    value=draw['skin_intermediates'];count=draw['vertex_count']
+    keys={'schema','shader_sha256','bone_count','vertex_stride','uploaded_vertices_hex',
+          'uploaded_vertices_sha256','draw_uniforms_hex','draw_uniforms_sha256','palette_hex',
+          'palette_sha256','cpu_world_position_bits','samples'}
+    require(type(value) is dict and set(value)==keys and value['schema']=='rust-duty-skin-intermediates/v1',
+            'skin intermediate fields/schema differ')
+    require(type(value['vertex_stride']) is int and value['vertex_stride']==80
+            and type(value['bone_count']) is int and 1<=value['bone_count']<=128
+            and 1<=count<=192, 'skin intermediate layout/count differs')
+    require(value['shader_sha256']==pair.controls.digest(skin_stage_shader(root,count).encode()),
+            'skin intermediate shader identity differs')
+    identity=[0x3f800000 if i%5==0 else 0 for i in range(16)]
+    require(draw['cpu_model_bits']==identity and draw['resident_model_bits']==identity,
+            'skin stage comparison requires identity per-command models')
+    def payload(name,size):
+        text=value[name+'_hex']
+        require(type(text) is str and len(text)==size*2 and all(c in '0123456789abcdef' for c in text),
+                'skin stage upload hex is malformed or outside bound')
+        raw=bytes.fromhex(text)
+        require(value[name+'_sha256']==pair.controls.digest(raw), 'skin stage upload hash differs')
+        return raw
+    vertices=payload('uploaded_vertices',count*160)
+    uniforms=payload('draw_uniforms',240)
+    palette=payload('palette',16384)
+    require(all(math.isfinite(v) for raw in (uniforms,palette) for v in struct.unpack('<'+'f'*(len(raw)//4),raw)),
+            'skin stage uniform input is nonfinite')
+    f32=lambda v:struct.unpack('<f',struct.pack('<f',v))[0]
+    for i in range(count):
+        raw=vertices[i*160:i*160+80]
+        require(raw==vertices[i*160+80:i*160+160], 'skin/world source copies differ')
+        require(all(math.isfinite(v) for v in struct.unpack_from('<8f',raw)), 'skin vertex input is nonfinite')
+        require(all(j<value['bone_count'] for j in struct.unpack_from('<8H',raw,32)), 'skin vertex joint outside palette')
+        weights=struct.unpack_from('<8f',raw,48)
+        require(all(math.isfinite(v) and 0<=v<=1 for v in weights), 'skin vertex weights invalid')
+        total=0.
+        for weight in weights:total=f32(total+weight)
+        require(f32(.9999)<=total<=f32(1.0001), 'skin vertex weights not normalized')
+    def words(v,size):return type(v) is list and len(v)==size and all(type(n) is int and 0<=n<2**32 for n in v)
+    cpu=value['cpu_world_position_bits'];samples=value['samples']
+    require(type(cpu) is list and len(cpu)==count and all(words(v,3) for v in cpu), 'skin CPU position words differ')
+    require(type(samples) is list and len(samples)==count, 'skin intermediate sample count differs')
+    offset=sum(c['indices']*40 for c in case['cpu_commands'][:draw['command']])
+    expected=[]
+    for corner in draw['triangle_corner_offsets']:
+        expected.extend([list(struct.unpack_from('<3I',cpu_corners,offset+(corner+j)*40)) for j in range(3)])
+    require(cpu==expected, 'skin CPU position words differ from original raw corners')
+    totals=dict(intermediate_vertices=count,skin_route_clip_differences=0,world_route_clip_differences=0,
+                intermediate_route_clip_differences=0,world_cpu_position_differences=0)
+    sample_keys={'source_vertex','skin_position_bits','world_position_bits','skin_route_clip_bits','world_route_clip_bits'}
+    for sample,current,position in zip(samples,draw['current_vertex_stage'],cpu):
+        require(type(sample) is dict and set(sample)==sample_keys and type(sample['source_vertex']) is int
+                and sample['source_vertex']==current['source_vertex']
+                and all(words(sample[k],4) for k in sample_keys-{'source_vertex'}),
+                'skin intermediate words/order differ')
+        require(sample['skin_position_bits'][3]==0x3f800000 and sample['world_position_bits'][3]==0x3f800000,
+                'skin intermediate point is unwritten or homogeneous word differs')
+        totals['skin_route_clip_differences']+=sample['skin_route_clip_bits']!=current['clip_bits']
+        totals['world_route_clip_differences']+=sample['world_route_clip_bits']!=current['clip_bits']
+        totals['intermediate_route_clip_differences']+=sample['skin_route_clip_bits']!=sample['world_route_clip_bits']
+        totals['world_cpu_position_differences']+=sample['world_position_bits'][:3]!=position
+    return totals
 
 def vertex_probe_shader(root, route, kind, count):
     root=Path(root)

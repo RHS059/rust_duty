@@ -596,7 +596,7 @@ fn run() -> Result<(), String> {
         }
         write(
             &path.join("probe-result.json"),
-            &json!({"schema":"rust-duty-resident-vertex-probe-result/v1",
+            &json!({"schema":"rust-duty-resident-vertex-probe-result/v2",
             "source_receipt_sha256":option_env!("PASS_SUBMISSION_SOURCE_SHA256").unwrap_or("unbound"),
             "image_gate_passed":all_pass,"probe_completed":probe_errors.is_empty(),"errors":probe_errors}),
         )?;

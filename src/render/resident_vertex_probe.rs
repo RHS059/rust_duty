@@ -26,6 +26,27 @@ pub struct VertexSample {
     pub color_bits: [u32; 4],
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct SkinStageSample {
+    pub source_vertex: u32,
+    pub skin_position_bits: [u32; 4],
+    pub world_position_bits: [u32; 4],
+    pub skin_route_clip_bits: [u32; 4],
+    pub world_route_clip_bits: [u32; 4],
+}
+
+/// Exact inputs and outputs of the instrumented skin-stage shader. Exposing
+/// intermediate values can change optimization; these are not production traces.
+#[derive(Debug)]
+pub struct SkinStageCapture {
+    pub shader_source: String,
+    pub vertex_bytes: Vec<u8>,
+    pub draw_uniform_bytes: Vec<u8>,
+    pub palette_bytes: Vec<u8>,
+    pub bone_count: usize,
+    pub samples: Vec<SkinStageSample>,
+}
+
 fn decode_samples(mapped: &[u8], row: usize, indices: &[u32]) -> Result<Vec<VertexSample>, String> {
     if mapped.len() != row * 2 || indices.len() * 16 > row {
         return Err("resident probe readback extent differs".into());
@@ -71,6 +92,58 @@ pub fn shader_source(mode: Arithmetic, skin: bool, count: usize) -> Result<Strin
 
 pub fn cpu_shader_source(count: usize) -> Result<String, String> {
     make_shader(Arithmetic::Current, Kind::Cpu, count)
+}
+
+/// `count` is the number of selected source vertices, each invoked twice in
+/// one pass. Both invocations retain the shader's final clip-position result.
+pub fn skin_stage_shader_source(count: usize) -> Result<String, String> {
+    make_skin_stage_shader(
+        include_str!("resident.wgsl"),
+        include_str!("resident_vertex_probe.wgsl"),
+        count,
+    )
+}
+
+fn skin_stage_count(count: usize) -> Result<(), String> {
+    if count == 0 || count > MAX_VERTICES / 2 {
+        return Err("resident skin-stage probe count is outside 1..=192".into());
+    }
+    Ok(())
+}
+
+fn replace_unique(source: &str, anchor: &str, replacement: &str) -> Result<String, String> {
+    if source.matches(anchor).count() != 1 {
+        return Err(format!(
+            "resident skin-stage probe source anchor is not unique: {anchor:?}"
+        ));
+    }
+    Ok(source.replacen(anchor, replacement, 1))
+}
+
+const SKIN_STAGE_FIELDS: &str = "struct VertexOutput {\n    @location(2) skin_position: vec4<f32>,\n    @location(3) world_position: vec4<f32>,\n";
+const SKIN_STAGE_POSITION: &str =
+    "    let world_position = (draw.root * vec4<f32>(position, 1.0)).xyz;";
+const SKIN_STAGE_VALUES: &str = "    let world_position = (draw.root * vec4<f32>(position, 1.0)).xyz;\n    output.skin_position = vec4<f32>(position, 1.0);\n    output.world_position = vec4<f32>(world_position, 1.0);";
+const SKIN_STAGE_ROUTE: &str =
+    "    output.color = select(actual.skin_position, actual.world_position, (index & 1u) != 0u);";
+
+fn make_skin_stage_shader(original: &str, template: &str, count: usize) -> Result<String, String> {
+    skin_stage_count(count)?;
+    let source = replace_unique(original, "struct VertexOutput {\n", SKIN_STAGE_FIELDS)?;
+    let source = replace_unique(&source, SKIN_STAGE_POSITION, SKIN_STAGE_VALUES)?;
+    let source = replace_unique(&source, "@vertex fn vs_rigid(", "fn original_vs_rigid(")?;
+    let source = replace_unique(&source, "@vertex fn vs_skin(", "fn original_vs_skin(")?;
+    // Preserve the original final clip expression and the wrapper's clip output.
+    // Only the second four-word target selects the observable intermediate.
+    let suffix = replace_unique(template, "__INPUT__", "SkinInput")?;
+    let suffix = replace_unique(&suffix, "__ENTRY__", "original_vs_skin")?;
+    let suffix = replace_unique(&suffix, "__COUNT__", &(count * 2).to_string())?;
+    let suffix = replace_unique(
+        &suffix,
+        "    output.color = actual.color;",
+        SKIN_STAGE_ROUTE,
+    )?;
+    Ok(format!("{source}\n{suffix}"))
 }
 
 fn make_shader(mode: Arithmetic, kind: Kind, count: usize) -> Result<String, String> {
@@ -126,6 +199,91 @@ fn selected_bytes(draw: &ResidentDraw, indices: &[u32]) -> Result<(Vec<u8>, bool
         selected.extend_from_slice(&all[start..start + stride]);
     }
     Ok((selected, skin))
+}
+
+fn selected_skin_stage_bytes(
+    draw: &ResidentDraw,
+    indices: &[u32],
+) -> Result<(Vec<u8>, usize), String> {
+    skin_stage_count(indices.len())?;
+    let bone_count = match (draw.mesh().vertices(), draw.palette()) {
+        (Vertices::Skin { bones, .. }, Some(palette)) if *bones == palette.positions().len() => {
+            *bones
+        }
+        _ => return Err("resident skin-stage probe requires skin geometry and palette".into()),
+    };
+    let (selected, _) = selected_bytes(draw, indices)?;
+    let mut duplicated = Vec::with_capacity(selected.len() * 2);
+    for vertex in selected.as_chunks::<80>().0 {
+        duplicated.extend_from_slice(vertex);
+        duplicated.extend_from_slice(vertex);
+    }
+    Ok((duplicated, bone_count))
+}
+
+fn skin_stage_samples(
+    samples: &[VertexSample],
+    indices: &[u32],
+) -> Result<Vec<SkinStageSample>, String> {
+    skin_stage_count(indices.len())?;
+    if samples.len() != indices.len() * 2 {
+        return Err("resident skin-stage probe sample count differs".into());
+    }
+    samples
+        .as_chunks::<2>()
+        .0
+        .iter()
+        .zip(indices)
+        .map(|(pair, &source_vertex)| {
+            if pair
+                .iter()
+                .any(|sample| sample.source_vertex != source_vertex)
+            {
+                return Err("resident skin-stage probe sample ordering differs".into());
+            }
+            Ok(SkinStageSample {
+                source_vertex,
+                skin_position_bits: pair[0].color_bits,
+                world_position_bits: pair[1].color_bits,
+                skin_route_clip_bits: pair[0].clip_bits,
+                world_route_clip_bits: pair[1].clip_bits,
+            })
+        })
+        .collect()
+}
+
+/// One bounded diagnostic pass using the existing two integer render targets.
+/// The returned upload contains adjacent skin/world duplicates of each selected
+/// vertex. Intermediate exposure may alter compilation, so compare both route
+/// clip results with the original probe before interpreting stage differences.
+pub fn capture_skin_stages(
+    renderer: &mut WgpuRenderer,
+    draw: &ResidentDraw,
+    projection: Mat4,
+    indices: &[u32],
+) -> Result<SkinStageCapture, String> {
+    let (vertex_bytes, bone_count) = selected_skin_stage_bytes(draw, indices)?;
+    let shader_source = skin_stage_shader_source(indices.len())?;
+    let draw_uniform_bytes = resident::draw_bytes(draw, projection)?;
+    let palette_bytes = resident::palette_bytes(draw.palette());
+    let duplicated_indices: Vec<_> = indices.iter().flat_map(|&index| [index, index]).collect();
+    let raw_samples = capture_prepared(
+        renderer,
+        &vertex_bytes,
+        Kind::Skin,
+        &draw_uniform_bytes,
+        &palette_bytes,
+        &duplicated_indices,
+        shader_source.clone(),
+    )?;
+    Ok(SkinStageCapture {
+        shader_source,
+        vertex_bytes,
+        draw_uniform_bytes,
+        palette_bytes,
+        bone_count,
+        samples: skin_stage_samples(&raw_samples, indices)?,
+    })
 }
 
 /// Blocks for one small explicit readback. Never called by normal rendering.
@@ -526,6 +684,182 @@ pub(super) fn verify_exact_unorm(renderer: &mut WgpuRenderer, output: &std::path
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn skin_stage_draw(skin: bool) -> ResidentDraw {
+        use crate::draw::resident::{ResidentMesh, RigidVertex, SkinPalette, SkinVertex};
+        let vertices: Vec<_> = (0..4)
+            .map(|i| RigidVertex {
+                position: [i as f32 + 0.25, -0.0, -2.5],
+                uv: [0.125 * i as f32, 0.75],
+                normal: [0.0, 1.0, 0.0],
+            })
+            .collect();
+        let geometry = if skin {
+            Vertices::Skin {
+                vertices: vertices
+                    .into_iter()
+                    .map(|vertex| SkinVertex {
+                        vertex,
+                        joints: [1, 0, 1, 0, 1, 0, 1, 0],
+                        weights: [0.125; 8],
+                    })
+                    .collect(),
+                bones: 2,
+            }
+        } else {
+            Vertices::Rigid(vertices)
+        };
+        ResidentDraw::new(
+            ResidentMesh::new(geometry, vec![0, 1, 2], None).unwrap(),
+            Mat4::IDENTITY,
+            crate::scene_lighting::SceneLighting::range(),
+            crate::draw::Color::new(1.0, 1.0, 1.0, 1.0),
+            1.0,
+            skin.then(|| SkinPalette::new(vec![Mat4::IDENTITY; 2]).unwrap()),
+        )
+        .unwrap()
+    }
+
+    #[test]
+    fn skin_stage_shaders_validate_and_preserve_original_clip_expressions() {
+        for count in [1, 3, MAX_VERTICES / 2] {
+            let source = skin_stage_shader_source(count).unwrap();
+            let module = wgpu::naga::front::wgsl::parse_str(&source).unwrap();
+            wgpu::naga::valid::Validator::new(
+                wgpu::naga::valid::ValidationFlags::all(),
+                wgpu::naga::valid::Capabilities::all(),
+            )
+            .validate(&module)
+            .unwrap();
+            // Reversing only the documented instrumentation restores the exact
+            // original current-arithmetic probe with the doubled invocation count.
+            let restored = source
+                .replace(SKIN_STAGE_FIELDS, "struct VertexOutput {\n")
+                .replace(SKIN_STAGE_VALUES, SKIN_STAGE_POSITION)
+                .replace(SKIN_STAGE_ROUTE, "    output.color = actual.color;");
+            assert_eq!(
+                restored,
+                shader_source(Arithmetic::Current, true, count * 2).unwrap()
+            );
+            assert_eq!(source.matches("output.clip = actual.position;").count(), 1);
+            assert_eq!(
+                source
+                    .matches(
+                        "output.position = draw.view_projection * vec4<f32>(world_position, 1.0);"
+                    )
+                    .count(),
+                1
+            );
+            assert_eq!(source.matches(SKIN_STAGE_ROUTE).count(), 1);
+        }
+        for count in [0, MAX_VERTICES / 2 + 1, MAX_VERTICES, usize::MAX] {
+            assert!(skin_stage_shader_source(count).is_err());
+        }
+    }
+
+    #[test]
+    fn skin_stage_shader_rejects_missing_or_ambiguous_substitution_anchors() {
+        let original = include_str!("resident.wgsl");
+        let template = include_str!("resident_vertex_probe.wgsl");
+        for anchor in [
+            "struct VertexOutput {\n",
+            SKIN_STAGE_POSITION,
+            "@vertex fn vs_rigid(",
+            "@vertex fn vs_skin(",
+        ] {
+            for changed in [
+                original.replacen(anchor, "", 1),
+                format!("{original}\n{anchor}"),
+            ] {
+                assert!(make_skin_stage_shader(&changed, template, 1).is_err());
+            }
+        }
+        for anchor in [
+            "__INPUT__",
+            "__ENTRY__",
+            "__COUNT__",
+            "    output.color = actual.color;",
+        ] {
+            for changed in [
+                template.replacen(anchor, "", 1),
+                format!("{template}\n{anchor}"),
+            ] {
+                assert!(make_skin_stage_shader(original, &changed, 1).is_err());
+            }
+        }
+    }
+
+    #[test]
+    fn skin_stage_selection_duplicates_exact_wire_bytes_in_requested_order() {
+        let draw = skin_stage_draw(true);
+        let indices = [3, 0, 3, 1];
+        let (selected, is_skin) = selected_bytes(&draw, &indices).unwrap();
+        let (duplicated, bones) = selected_skin_stage_bytes(&draw, &indices).unwrap();
+        assert!(is_skin);
+        assert_eq!(bones, 2);
+        assert_eq!(duplicated.len(), indices.len() * 2 * 80);
+        let all = resident::vertices(draw.mesh());
+        for (i, &source_vertex) in indices.iter().enumerate() {
+            let original = &all[source_vertex as usize * 80..(source_vertex as usize + 1) * 80];
+            assert_eq!(&selected[i * 80..(i + 1) * 80], original);
+            assert_eq!(&duplicated[i * 160..i * 160 + 80], original);
+            assert_eq!(&duplicated[i * 160 + 80..(i + 1) * 160], original);
+        }
+        // Signed zero, u16 joint order, and all eight weights survive unchanged.
+        assert_eq!(&duplicated[4..8], &(-0.0f32).to_le_bytes());
+        assert_eq!(
+            &duplicated[32..48],
+            &[1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0]
+        );
+        assert_eq!(&duplicated[48..80], &0.125f32.to_le_bytes().repeat(8));
+        let (maximum, _) = selected_skin_stage_bytes(&draw, &[0; MAX_VERTICES / 2]).unwrap();
+        assert_eq!(maximum.len(), MAX_VERTICES * 80);
+    }
+
+    #[test]
+    fn skin_stage_selection_rejects_non_skin_unbounded_and_invalid_indices() {
+        let draw = skin_stage_draw(true);
+        for indices in [
+            vec![],
+            vec![0; MAX_VERTICES / 2 + 1],
+            vec![4],
+            vec![u32::MAX],
+        ] {
+            assert!(selected_skin_stage_bytes(&draw, &indices).is_err());
+        }
+        assert!(selected_skin_stage_bytes(&skin_stage_draw(false), &[0])
+            .unwrap_err()
+            .contains("skin geometry and palette"));
+    }
+
+    #[test]
+    fn skin_stage_samples_keep_both_clip_results_and_reject_bad_pairing() {
+        let indices = [3, 0, 3];
+        let mut raw: Vec<_> = indices
+            .iter()
+            .flat_map(|&source_vertex| [source_vertex, source_vertex])
+            .enumerate()
+            .map(|(i, source_vertex)| VertexSample {
+                source_vertex,
+                clip_bits: [i as u32, 0x80000000, 0x7fc00001, 0x7f800000],
+                color_bits: [i as u32 + 1, 0xffffffff, 0x80000000, 1.0f32.to_bits()],
+            })
+            .collect();
+        let samples = skin_stage_samples(&raw, &indices).unwrap();
+        for (i, sample) in samples.iter().enumerate() {
+            assert_eq!(sample.source_vertex, indices[i]);
+            assert_eq!(sample.skin_position_bits, raw[i * 2].color_bits);
+            assert_eq!(sample.world_position_bits, raw[i * 2 + 1].color_bits);
+            assert_eq!(sample.skin_route_clip_bits, raw[i * 2].clip_bits);
+            assert_eq!(sample.world_route_clip_bits, raw[i * 2 + 1].clip_bits);
+            assert_ne!(sample.skin_route_clip_bits, sample.world_route_clip_bits);
+        }
+        assert!(skin_stage_samples(&raw[..5], &indices).is_err());
+        assert!(skin_stage_samples(&raw, &[]).is_err());
+        raw[1].source_vertex = 2;
+        assert!(skin_stage_samples(&raw, &indices).is_err());
+    }
+
     #[test]
     fn exhaustive_byte_probe_shader_validates_without_a_gpu() {
         let module = wgpu::naga::front::wgsl::parse_str(&exact_unorm_probe_shader(264)).unwrap();

@@ -63,5 +63,26 @@ class ResidentAuthoredWorkflowTests(unittest.TestCase):
         self.assertIn('probe_errors.push',source)
 
 
+    def test_skin_stage_diagnostic_retains_original_gate_and_explicit_input_scope(self):
+        source=(ROOT/'examples/resident_authored_contract.rs').read_text()
+        self.assertIn('rust-duty-resident-vertex-probe-result/v2',source)
+        workflow=(ROOT/'.github/workflows/resident-authored-contract.yml').read_text()
+        self.assertIn('test_resident_vertex_probe test_resident_skin_probe',workflow)
+        self.assertLess(source.index('&output.join("report.json")'),source.index('vertex_diagnostic::run('))
+        diagnostic=(ROOT/'examples/support/resident_vertex_diagnostic.rs').read_text()
+        self.assertIn('rust-duty-resident-vertex-probe/v2',diagnostic)
+        self.assertIn('capture_skin_stages(',diagnostic)
+        self.assertIn('skin_intermediate_errors',diagnostic)
+        self.assertIn('identity per-command models',diagnostic)
+        self.assertLess(diagnostic.index('"skin_intermediate_errors":intermediate_errors'),
+                        diagnostic.index('intermediate_errors.is_empty()'))
+        for field in ('uploaded_vertices_hex','draw_uniforms_hex','palette_hex',
+                      'cpu_world_position_bits','skin_route_clip_bits','world_route_clip_bits'):
+            self.assertIn(field,diagnostic)
+        doc=(ROOT/'docs/engineering/resident-skin-stage-diagnostic.md').read_text()
+        self.assertIn('compact report/PNG packet alone cannot',doc)
+        self.assertIn('can change compiler optimization',doc)
+
+
 if __name__ == '__main__':
     unittest.main()

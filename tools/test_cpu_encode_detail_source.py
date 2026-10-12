@@ -45,8 +45,8 @@ class CpuEncodeDetailSourceTests(unittest.TestCase):
         hashes = {name: hashlib.sha256((ROOT / name).read_bytes()).hexdigest()
                   for name in matrix.ARITHMETIC_SOURCE_PATHS}
         self.assertEqual(len(hashes), len(matrix.ARITHMETIC_SOURCE_PATHS))
-        self.assertEqual(matrix.canonical_hash(hashes), matrix.AUDITED_EXACT_UNORM_CANDIDATE_MANIFEST)
-        self.assertEqual(matrix.audited_inventory(matrix.AUDITED_EXACT_UNORM_CANDIDATE_MANIFEST),
+        self.assertEqual(matrix.canonical_hash(hashes), matrix.AUDITED_SKIN_STAGE_CANDIDATE_MANIFEST)
+        self.assertEqual(matrix.audited_inventory(matrix.AUDITED_SKIN_STAGE_CANDIDATE_MANIFEST),
                          matrix.ARITHMETIC_SOURCE_PATHS)
         self.assertIn('src/frame_encode_detail.rs', hashes)
         self.assertIn('src/render/arena.rs', hashes)

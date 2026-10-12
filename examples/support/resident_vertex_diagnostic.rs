@@ -163,6 +163,7 @@ pub(super) fn run(
         json!({"pixel":pixel,"triangles":hits.iter().map(|h|json!({"command":h.command,"corner":h.corner,"cpu_depth":h.depth})).collect::<Vec<_>>()})
     }).collect();
     let mut rows = Vec::new();
+    let mut intermediate_errors = Vec::new();
     for (command, corners) in selected {
         let Command::Mesh { mesh, model, .. } = cpu_commands[command] else {
             unreachable!()
@@ -214,7 +215,51 @@ pub(super) fn run(
             probe::Arithmetic::HistoricalInverseSqrt,
         )?;
         let skin = draw.palette().is_some();
-        rows.push(json!({"command":command,"triangle_corner_offsets":corners,
+        let skin_intermediates = if skin {
+            require(
+                *model == Mat4::IDENTITY && *native_model == Mat4::IDENTITY,
+                "skin stage diagnostic requires identity per-command models",
+            )?;
+            match probe::capture_skin_stages(
+                renderer,
+                draw,
+                remap(camera, *native_model),
+                &native_indices,
+            ) {
+                Ok(stages) => {
+                    let hex = |bytes: &[u8]| {
+                        bytes
+                            .iter()
+                            .map(|byte| format!("{byte:02x}"))
+                            .collect::<String>()
+                    };
+                    json!({"schema":"rust-duty-skin-intermediates/v1",
+                        "shader_sha256":bytes_hash(stages.shader_source.as_bytes()),
+                        "bone_count":stages.bone_count,"vertex_stride":80,
+                        "uploaded_vertices_hex":hex(&stages.vertex_bytes),
+                        "uploaded_vertices_sha256":bytes_hash(&stages.vertex_bytes),
+                        "draw_uniforms_hex":hex(&stages.draw_uniform_bytes),
+                        "draw_uniforms_sha256":bytes_hash(&stages.draw_uniform_bytes),
+                        "palette_hex":hex(&stages.palette_bytes),
+                        "palette_sha256":bytes_hash(&stages.palette_bytes),
+                        "cpu_world_position_bits":cpu_indices.iter().map(|&index|
+                            model.transform_point3(mesh.vertices[index as usize].position).to_array().map(f32::to_bits)).collect::<Vec<_>>(),
+                        "samples":stages.samples.iter().map(|sample|json!({
+                            "source_vertex":sample.source_vertex,
+                            "skin_position_bits":sample.skin_position_bits,
+                            "world_position_bits":sample.world_position_bits,
+                            "skin_route_clip_bits":sample.skin_route_clip_bits,
+                            "world_route_clip_bits":sample.world_route_clip_bits})).collect::<Vec<_>>()})
+                }
+                Err(error) => {
+                    intermediate_errors.push(json!({"command":command,"error":error}));
+                    json!({"error":error})
+                }
+            }
+        } else {
+            Value::Null
+        };
+        rows.push(json!({"command":command,"triangle_corner_offsets":corners,"skin_intermediates":skin_intermediates,
             "kind":if skin{"skin"}else{"rigid"},
             "vertex_count":cpu_indices.len(),
             "cpu_probe_shader_sha256":bytes_hash(probe::cpu_shader_source(cpu_indices.len())?.as_bytes()),
@@ -232,7 +277,7 @@ pub(super) fn run(
     write(
         &directory.join(format!("{}.json", cpu.name)),
         &json!({
-            "schema":"rust-duty-resident-vertex-probe/v1","case":cpu.name,
+            "schema":"rust-duty-resident-vertex-probe/v2","case":cpu.name,
             "source_receipt_sha256":option_env!("PASS_SUBMISSION_SOURCE_SHA256").unwrap_or("unbound"),
             "camera_bits":bits(camera),"metadata":cpu.metadata,
             "production_resident_shader_sha256":bytes_hash(include_bytes!("../../src/render/resident.wgsl")),
@@ -243,13 +288,17 @@ pub(super) fn run(
             "changed_pixel_count":changed.len(),"selection_limit_pixels":MAX_PIXELS,"selection_limit_triangles_per_pixel":PER_PIXEL,
             "changed_pixels_not_selected":omitted,"requested_pixels_without_triangle":uncovered,
             "selection_complete":uncovered==0 && omitted==0,
-            "pixels":pixel_rows,"draws":rows,
-            "scope":"actual instrumented vertex-stage clip/color bits; nearest CPU-projected triangles are a selection aid, not GPU primitive IDs; altered entry points may alter optimization; original exact-image verdict remains authoritative"
+            "pixels":pixel_rows,"draws":rows,"skin_intermediate_errors":intermediate_errors,
+            "scope":"actual instrumented vertex-stage clip/color bits; nearest CPU-projected triangles are a selection aid, not GPU primitive IDs; intermediate outputs and altered entry points may alter optimization; paired intermediate invocations retain their own final clip words; original exact-image verdict remains authoritative"
         }),
     )?;
     require(
         uncovered == 0 && omitted == 0,
         "vertex probe selection incomplete; counts and available samples retained",
+    )?;
+    require(
+        intermediate_errors.is_empty(),
+        "skin intermediate probe failed; available original and stage samples retained",
     )
 }
 

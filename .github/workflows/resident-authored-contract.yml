@@ -85,7 +85,7 @@ jobs:
       - name: Check actual-loader resident reader and native orchestration guards
         env:
           PYTHONPATH: tools
-        run: python -m unittest -v test_resident_authored_contract test_resident_authored_runner test_resident_authored_workflow test_resident_encode_detail test_resident_vertex_probe
+        run: python -m unittest -v test_resident_authored_contract test_resident_authored_runner test_resident_authored_workflow test_resident_encode_detail test_resident_vertex_probe test_resident_skin_probe
       - name: Fetch validated original reload companion
         uses: actions/download-artifact@v4
         with:
