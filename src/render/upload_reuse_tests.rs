@@ -395,7 +395,7 @@ fn changed_frames_without_cpu_waits_match_fresh_immutable_uploads() {
         validation.is_none(),
         "native upload validation: {validation:?}"
     );
-    for (frame, pair) in pixels.chunks_exact(4).enumerate() {
+    for (frame, pair) in pixels.as_chunks::<4>().0.iter().enumerate() {
         assert_eq!(pair[0], pair[1], "frame {frame} mid-frame checkpoint");
         assert_eq!(pair[2], pair[3], "frame {frame} final pixels");
         eprintln!(
@@ -406,7 +406,7 @@ fn changed_frames_without_cpu_waits_match_fresh_immutable_uploads() {
         if frame == 6 {
             assert!(pair[2].iter().all(|&byte| byte == 0));
         } else {
-            assert!(pair[2].chunks_exact(4).any(|pixel| pixel[3] == 255));
+            assert!(pair[2].as_chunks::<4>().0.iter().any(|pixel| pixel[3] == 255));
         }
     }
     assert_ne!(
@@ -530,9 +530,9 @@ fn uncached_fallback_and_abandoned_writes_match_immutable_pixels() {
         validation.is_none(),
         "fallback/recovery validation: {validation:?}"
     );
-    for (index, pair) in pixels.chunks_exact(2).enumerate() {
+    for (index, pair) in pixels.as_chunks::<2>().0.iter().enumerate() {
         assert_eq!(pair[0], pair[1]);
-        assert!(pair[0].chunks_exact(4).any(|pixel| pixel[3] == 255));
+        assert!(pair[0].as_chunks::<4>().0.iter().any(|pixel| pixel[3] == 255));
         eprintln!(
             "upload_reuse_native fallback_or_abandoned_pair={index} sha256={}",
             rust_duty_launcher::bytes_hash(&pair[0]),
@@ -676,6 +676,8 @@ fn renderer_mid_frame_capture_and_rejected_then_valid_frames_match_immutable() {
         .to_rgba8();
     assert!(empty
         .as_raw()
-        .chunks_exact(4)
-        .all(|pixel| pixel == [0, 0, 0, 255]));
+        .as_chunks::<4>()
+        .0
+        .iter()
+        .all(|pixel| *pixel == [0, 0, 0, 255]));
 }
