@@ -14,7 +14,10 @@ on:
       - 'Cargo.lock'
       - 'build.rs'
       - 'build_number.rs'
+      - 'rust-toolchain'
       - 'rust-toolchain.toml'
+      - 'LICENSE'
+      - 'THIRD_PARTY_LICENSES.txt'
       - '.gitattributes'
 permissions:
   contents: read
@@ -44,6 +47,7 @@ jobs:
             /Cargo.lock
             /build.rs
             /build_number.rs
+            /rust-toolchain
             /rust-toolchain.toml
             /LICENSE
             /THIRD_PARTY_LICENSES.txt
@@ -72,7 +76,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Cannot identify Cargo' }
           if (Test-Path 'assets/weapons/hk416a5.vrm') { throw 'This isolated proof must not embed a weapon asset' }
           if ($env:VR_WEAPON_ASSET) { throw 'This proof cannot use a local asset override' }
-          $sources = @(git ls-files -- src updater tools .cargo Cargo.toml Cargo.lock build.rs build_number.rs rust-toolchain.toml .gitattributes LICENSE THIRD_PARTY_LICENSES.txt tests/fixtures/triangle.vrm tests/fixtures/two_bone_triangle.vrs .github/workflows/staging-buffer-pool.yml)
+          $sources = @(git ls-files -- src updater tools .cargo Cargo.toml Cargo.lock build.rs build_number.rs rust-toolchain rust-toolchain.toml .gitattributes LICENSE THIRD_PARTY_LICENSES.txt tests/fixtures/triangle.vrm tests/fixtures/two_bone_triangle.vrs .github/workflows/staging-buffer-pool.yml)
           if ($LASTEXITCODE -ne 0 -or $sources.Count -eq 0) { throw 'Cannot inventory tested source' }
           $inventory = @($sources | Sort-Object -Unique | ForEach-Object {
             if (-not (Test-Path -LiteralPath $_ -PathType Leaf)) { throw "Required tracked input is missing: $_" }

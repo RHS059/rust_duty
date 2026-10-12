@@ -1,6 +1,7 @@
 //! Native bounded-staging proof, separate from the immutable finite probe.
 //! Requires DX12/WARP: missing initialization fails these tests on Windows.
-//! Every changed frame is submitted before readback mapping or a CPU GPU-wait.
+//! Each labelled batch submits its frames before its own readback/GPU-wait.
+//! The separate warm phase deliberately completes remaps between changed frames.
 #![cfg(target_os = "windows")]
 
 use super::super::{
@@ -22,6 +23,10 @@ fn warp() -> Gpu {
     let gpu = pollster::block_on(Gpu::new(BackendSelection::Dx12, true, None, WIDTH, HEIGHT))
         .expect("native staging-upload proof requires DX12/WARP; initialization must not skip");
     assert_eq!(gpu.info.backend, "Dx12");
+    let actual = gpu.device.adapter_info();
+    assert_eq!(actual.backend, wgpu::Backend::Dx12);
+    assert_eq!(actual.device_type, wgpu::DeviceType::Cpu);
+    eprintln!("staging_upload_native actual_adapter={actual:?}");
     gpu
 }
 
@@ -222,7 +227,7 @@ impl NativeFixture {
     }
 }
 
-/// Readback maps and the only blocking poll follow all changed-frame submits.
+/// Readback maps and this batch's blocking poll follow all of its submits.
 fn read_after_submissions(gpu: &Gpu, buffers: &[wgpu::Buffer]) -> Vec<Vec<u8>> {
     let (tx, rx) = mpsc::channel();
     for (index, buffer) in buffers.iter().enumerate() {
@@ -434,28 +439,6 @@ fn changed_queued_frames_match_queuewrite_at_every_pixel() {
         previous = current;
     }
     let pixels = read_after_submissions(&fixture.gpu, &observations);
-    // The terminal readback also completes source remaps. Exercise a real
-    // mapped-source checkout now, without an extra submission or blocking wait.
-    staging
-        .begin_frame_with_device(&fixture.gpu.device)
-        .unwrap();
-    let probe = [batch(&fixture.gpu, 40, 0, 1)];
-    let mut encoder = fixture
-        .gpu
-        .device
-        .create_command_encoder(&Default::default());
-    let geometry = staged_geometry(&fixture, &mut staging, &probe, &mut encoder);
-    assert_eq!(staging.staging_stats().staging_buffer_allocations, 0);
-    assert_eq!(staging.staging_stats().staging_buffer_reuses, 1);
-    assert_eq!(
-        staging.staging_stats().staging_copy_bytes,
-        upload_bytes(&probe)
-    );
-    drop(encoder);
-    drop(geometry);
-    staging.clear();
-    let validation = pollster::block_on(scope.pop());
-    assert!(validation.is_none(), "staging validation: {validation:?}");
     assert_pairs(&pixels, "changed-queued");
     assert!(pixels[6 * 4 + 2].iter().all(|&byte| byte == 0));
     for (frame, pair) in pixels.as_chunks::<4>().0.iter().enumerate() {
@@ -479,6 +462,60 @@ fn changed_queued_frames_match_queuewrite_at_every_pixel() {
         "staging_upload_native queued_frames={} matched_pixel_pairs={} copy_bytes={staged_bytes} cpu_waits_between_submits=0",
         cases.len(), cases.len() * 2,
     );
+    // Separately labelled warm phase: the original no-wait batch above is
+    // already complete. Each readback here guarantees remapping before the next
+    // checkout, so these assertions cannot pass solely on fresh source buffers.
+    let mut previous_warm_final = pixels[2].clone();
+    for seed in [40, 41] {
+        staging
+            .begin_frame_with_device(&fixture.gpu.device)
+            .unwrap();
+        control.begin_frame().unwrap();
+        let batches = [batch(&fixture.gpu, seed, 0, 1)];
+        let mut encoder = fixture
+            .gpu
+            .device
+            .create_command_encoder(&Default::default());
+        let staged = staged_geometry(&fixture, &mut staging, &batches, &mut encoder);
+        let queued = queue_geometry(&fixture, &mut control, &batches);
+        let stats = staging.staging_stats();
+        assert_eq!(stats.staging_buffer_allocations, 0);
+        assert_eq!(stats.staging_buffer_reuses, 1);
+        assert_eq!(stats.staging_copy_bytes, upload_bytes(&batches));
+        assert_eq!(stats.staging_queue_write_calls, 0);
+        assert_eq!(stats.staging_queue_write_bytes, 0);
+        assert_eq!(stats.staging_fallback_arenas, 0);
+        assert_eq!(stats.staging_map_failures, 0);
+        let mut warm_observations = Vec::new();
+        record_pair(
+            &fixture,
+            &mut encoder,
+            &batches,
+            &staged,
+            &queued,
+            &mut warm_observations,
+        );
+        let commands = encoder.finish();
+        drop(batches);
+        drop(staged);
+        drop(queued);
+        fixture.gpu.queue.submit([commands]);
+        staging.submitted();
+        control.submitted();
+        let warm_pixels = read_after_submissions(&fixture.gpu, &warm_observations);
+        assert_pairs(&warm_pixels, &format!("warm-reuse-submitted-{seed}"));
+        assert_ne!(
+            warm_pixels[2], previous_warm_final,
+            "changed warm source data must change the submitted image"
+        );
+        previous_warm_final = warm_pixels[2].clone();
+        eprintln!(
+            "staging_upload_native warm_seed={seed} submitted_source_allocations=0 submitted_source_reuses=1 matched_pixel_pairs=2 copy_bytes={} post_batch_readback=true",
+            stats.staging_copy_bytes,
+        );
+    }
+    let validation = pollster::block_on(scope.pop());
+    assert!(validation.is_none(), "staging validation: {validation:?}");
 }
 
 #[test]
