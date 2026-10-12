@@ -28,3 +28,28 @@ The existing exact image-parity failure remains a separate result. This
 intentional visibility experiment cannot pass that gate or establish a shader
 arithmetic fix. Compare frame, recording, renderer, present/acquire/submit and
 GPU distributions separately; their durations overlap and must not be added.
+
+## Retained-target control
+
+`--diagnostic-viewmodel-render=target-only` retains the ordinary viewmodel camera,
+render target and transparent color/depth clear, then composites the empty target
+through the ordinary full-screen sprite. It returns before pose-to-draw preparation
+and all hands/weapon geometry submission. The same live-manifest requirements and
+committed simulation/animation updates apply. The trace marks
+`viewmodel_submitted: false` and `target_clear_and_composite: true`; hidden marks
+both false, while visible marks both true.
+
+The normal game target is 1440×900, independently of the 1920×1080 window. The
+reference viewport uses 960×540. The composite always covers the actual window.
+The renderer clears color and depth in one pass, draws any viewmodel geometry in
+an ordered run, then returns to the main target. An empty target has no geometry
+run; its clear and full-screen composite remain real GPU work. World rendering
+still happens first in all three modes.
+
+Use visible versus target-only to isolate the added render preparation, draw,
+vertex and fragment work, and target-only versus hidden to estimate the retained
+clear/composite path. These are measured differences with overlapping CPU/GPU
+stages, not additive standalone GPU timers. This control does not emulate an
+offscreen-translated mesh, change target resolution, alter projection/depth ranges,
+or establish that a direct-main-target rewrite preserves images or actor fades.
+No performance result is claimed until the same-binary native runs are audited.

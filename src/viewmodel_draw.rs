@@ -12,6 +12,7 @@ use vector_range::{
 pub(crate) enum RenderDiagnostic {
     Visible,
     Hidden,
+    TargetOnly,
 }
 impl RenderDiagnostic {
     pub(crate) fn from_args(args: &[String]) -> Result<Option<Self>, String> {
@@ -23,15 +24,16 @@ impl RenderDiagnostic {
                 if value.is_some() {
                     return Err("duplicate --diagnostic-viewmodel-render".into());
                 }
-                value = Some(match arg.as_str() {
-                    "--diagnostic-viewmodel-render=visible" => Self::Visible,
-                    "--diagnostic-viewmodel-render=hidden" => Self::Hidden,
-                    _ => {
-                        return Err(
-                            "--diagnostic-viewmodel-render requires visible or hidden".into()
-                        )
-                    }
-                });
+                value =
+                    Some(match arg.as_str() {
+                        "--diagnostic-viewmodel-render=visible" => Self::Visible,
+                        "--diagnostic-viewmodel-render=hidden" => Self::Hidden,
+                        "--diagnostic-viewmodel-render=target-only" => Self::TargetOnly,
+                        _ => return Err(
+                            "--diagnostic-viewmodel-render requires visible, hidden or target-only"
+                                .into(),
+                        ),
+                    });
             }
         }
         Ok(value)
@@ -54,6 +56,7 @@ impl RenderDiagnostic {
         match self {
             Self::Visible => "visible",
             Self::Hidden => "hidden",
+            Self::TargetOnly => "target-only",
         }
     }
 
@@ -62,6 +65,7 @@ impl RenderDiagnostic {
             "schema":"rust-duty-viewmodel-render-isolation/v1",
             "mode":self.name(),
             "viewmodel_submitted":self == Self::Visible,
+            "target_clear_and_composite":self != Self::Hidden,
             "scope":"authored_manifest_layer_including_prepare_clear_and_composite",
         });
     }
@@ -174,6 +178,7 @@ pub(crate) fn weapon(
     muzzle_fx: &mut MuzzleFx,
     barrel_flash: bool,
     layers: &[LayerOffset],
+    render_diagnostic: Option<RenderDiagnostic>,
 ) {
     let lighting = SceneLighting::range().in_view(sim.player.direction());
     set_camera(&Camera3D {
@@ -191,6 +196,13 @@ pub(crate) fn weapon(
     } else {
         Color::new(0., 0., 0., 0.)
     });
+    if render_diagnostic == Some(RenderDiagnostic::TargetOnly) {
+        // Use exactly the normal camera, target clear and full-screen composite.
+        // Committed simulation/animation still advance in app.rs; only render
+        // preparation and geometry submission below this boundary are omitted.
+        composite_viewmodel(rt);
+        return;
+    }
     // Fade saved hip placement with the same visual transition that poses the
     // weapon. Input intent and gameplay readiness can lead the authored pose.
     let placement_aim = authored.as_ref().map_or_else(
@@ -413,6 +425,7 @@ mod tests {
         for (name, expected) in [
             ("visible", RenderDiagnostic::Visible),
             ("hidden", RenderDiagnostic::Hidden),
+            ("target-only", RenderDiagnostic::TargetOnly),
         ] {
             assert_eq!(
                 RenderDiagnostic::from_args(&[format!("--diagnostic-viewmodel-render={name}")])
@@ -439,7 +452,11 @@ mod tests {
 
     #[test]
     fn diagnostic_requires_live_authored_manifest() {
-        for mode in [RenderDiagnostic::Visible, RenderDiagnostic::Hidden] {
+        for mode in [
+            RenderDiagnostic::Visible,
+            RenderDiagnostic::Hidden,
+            RenderDiagnostic::TargetOnly,
+        ] {
             assert!(mode.check_route(true, true, true, false).is_ok());
             for inputs in [
                 (false, true, true, false),
@@ -493,7 +510,11 @@ mod tests {
 
     #[test]
     fn visible_and_default_submit_once_and_scene_has_explicit_mode() {
-        for mode in [None, Some(RenderDiagnostic::Visible)] {
+        for mode in [
+            None,
+            Some(RenderDiagnostic::Visible),
+            Some(RenderDiagnostic::TargetOnly),
+        ] {
             let mut calls = 0;
             submit_weapon_layer(mode, || calls += 1);
             assert_eq!(calls, 1);
@@ -504,6 +525,99 @@ mod tests {
         assert_eq!(
             scene["viewmodel_render_diagnostic"]["viewmodel_submitted"],
             false
+        );
+    }
+
+    #[test]
+    fn target_only_keeps_exact_camera_clear_composite_and_hud_without_geometry() {
+        let sim = Simulation::new();
+        let cfg = Settings::default();
+        let target = RenderTarget::new(1440, 900, true).unwrap();
+        let framing = ViewmodelFraming::from_args(&[]);
+        let mut locomotion =
+            vector_range::locomotion_presentation::LocomotionPresentation::default();
+        let mut animation = vector_range::view_animation::ViewAnimation::default();
+        let mut effects = MuzzleFx::default();
+        let mut records = Vec::new();
+        for mode in [
+            Some(RenderDiagnostic::Visible),
+            Some(RenderDiagnostic::TargetOnly),
+        ] {
+            begin_frame(1920, 1080, 1.).unwrap();
+            weapon(
+                &sim,
+                &target,
+                16. / 9.,
+                &mut locomotion,
+                None,
+                None,
+                None,
+                &mut animation,
+                &cfg,
+                vector_range::settings::WalkTranslation::default(),
+                framing,
+                None,
+                &mut effects,
+                false,
+                &[],
+                mode,
+            );
+            draw_rectangle(1., 2., 3., 4., WHITE);
+            records.push(take_draw_list().unwrap());
+        }
+        let target_only = &records[1].commands;
+        assert_eq!(target_only.len(), 6);
+        let [Command::Camera(_), Command::Camera(camera), Command::Clear(color), Command::Camera(screen), Command::Sprite {
+            texture,
+            destination,
+            tint,
+        }, Command::Rect { .. }] = target_only.as_slice()
+        else {
+            panic!("target-only must retain only target camera/clear and screen composite/HUD");
+        };
+        assert_eq!(*color, Color::TRANSPARENT);
+        assert_eq!(
+            camera.target.as_ref().unwrap().texture.id,
+            target.texture.id
+        );
+        assert!(camera.depth_test);
+        assert_eq!(texture.id, target.texture.id);
+        assert_eq!(*destination, Rect::new(0., 0., 1920., 1080.));
+        assert_eq!(*tint, WHITE);
+        assert!(screen.target.is_none());
+        assert!(!screen.depth_test);
+        let visible = &records[0].commands;
+        let Command::Camera(visible_camera) = &visible[1] else {
+            panic!("missing normal target camera")
+        };
+        assert_eq!(camera.view_projection, visible_camera.view_projection);
+        assert_eq!(
+            camera.target.as_ref().unwrap().texture.id,
+            visible_camera.target.as_ref().unwrap().texture.id
+        );
+        let Command::Clear(visible_clear) = &visible[2] else {
+            panic!("missing normal target clear")
+        };
+        assert_eq!(color, visible_clear);
+        let suffix = visible.len() - 3;
+        let Command::Camera(visible_screen) = &visible[suffix] else {
+            panic!("missing normal screen camera")
+        };
+        assert_eq!(screen.view_projection, visible_screen.view_projection);
+        assert!(
+            matches!(&visible[suffix+1], Command::Sprite {texture:t,destination:d,tint:c}
+            if t.id == texture.id && d == destination && c == tint)
+        );
+        let mut scene = serde_json::json!({});
+        RenderDiagnostic::TargetOnly.record_scene(&mut scene);
+        assert_eq!(scene["viewmodel_render_diagnostic"]["mode"], "target-only");
+        assert_eq!(
+            scene["viewmodel_render_diagnostic"]["viewmodel_submitted"],
+            false
+        );
+        assert_eq!(
+            scene["viewmodel_render_diagnostic"]["target_clear_and_composite"],
+            true
         );
     }
 
@@ -541,6 +655,7 @@ mod tests {
                 &mut effects,
                 false,
                 &[],
+                None,
             );
             assert_eq!(current_model_matrix().unwrap(), parent);
         });

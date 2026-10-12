@@ -1277,6 +1277,7 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
                     &mut muzzle_fx,
                     authored_path.is_none(),
                     &layers,
+                    viewmodel_render_diagnostic,
                 );
             });
         }
