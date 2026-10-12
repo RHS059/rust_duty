@@ -83,11 +83,16 @@ class LoaderNativeFlowTests(unittest.TestCase):
                         report['cases'][0]['commands'][0]['expanded_sha256']='e'*64
                         (out/'report.json').write_bytes(json.dumps(report).encode())
                 return
-            out.mkdir();(out/'control.png').write_bytes(b'synthetic control')
+            out.mkdir()
             if name=='renderer_contract':
+                (out/'control.png').write_bytes(b'synthetic control')
                 self.assertIn('--renderer=dx12',command);self.assertIn('--force-fallback-adapter',command)
                 (out/'capture-is-directory.png').mkdir()
-            else:matrix.write_json(out/'report.json',{'synthetic':True})
+            else:
+                for filename in ('before.png','after.png'):(out/filename).write_bytes(b'synthetic control')
+                matrix.write_json(out/'report.json',{'synthetic':True})
+                if mutation == label+'_mixed_extra_file':(out/'unexpected.bin').write_bytes(b'extra')
+                if mutation == label+'_mixed_extra_directory':(out/'unexpected').mkdir()
         patches=[patch.object(loader.sys,'platform','win32'),patch.object(loader,'__file__',str(root/'tools/run_authored_loader_pair.py')),
                  patch.object(loader,'EXTENT',[128,8]),patch.object(pair,'check_environment'),
                  patch.object(pair,'check_cargo_configuration',side_effect=config),patch.object(pair,'git',return_value=b''),
@@ -145,6 +150,20 @@ class LoaderNativeFlowTests(unittest.TestCase):
         with self.assertRaises(subprocess.TimeoutExpired):self.flow('build_timeout')
         self.assertEqual(self.last[2],[('build','baseline')])
         self.assertEqual(matrix.json_read(self.last[1]/'failure.json')['type'],'TimeoutExpired')
+
+    def test_mixed_extra_entries_fail_before_first_output_retention(self):
+        for label in ('baseline','candidate'):
+            for kind in ('file','directory'):
+                with self.subTest(label=label,kind=kind),patch.object(
+                        loader.controls,'source_manifest',wraps=loader.controls.source_manifest) as snapshots:
+                    with self.assertRaisesRegex(ValueError,'mixed fixture outputs are not closed'):
+                        self.flow(label+'_mixed_extra_'+kind)
+                    output=self.last[1]
+                    invalid=output/(label+'-pass_submission_benchmark')
+                    self.assertNotIn(invalid,[Path(call.args[0]) for call in snapshots.call_args_list])
+                    self.assertFalse((output/'summary.json').exists())
+                    self.assertEqual(matrix.json_read(output/'failure.json')['error'],
+                                     'mixed fixture outputs are not closed')
 
 
 if __name__=='__main__':unittest.main()

@@ -267,6 +267,9 @@ def run(root, output, build_timeout=1200, process_timeout=600):
             log=output/(destination+'-process');directory=output/destination
             pair.logged([binary['path'],*extra,'--output-dir',str(directory)],receipts[label]['source'],log,
                         dict(os.environ),process_timeout,binary['sha256'])
+            if name == 'pass_submission_benchmark':
+                require({p.name for p in directory.iterdir()} == {'before.png','after.png','report.json'},
+                        'mixed fixture outputs are not closed')
             retain(log);retain(directory);verify();return directory,log
         prepare,_=execute('baseline',EXAMPLE,'camera-prepare',['--manifest',str(root/'assets/animations.cfg')])
         original=validate_report(matrix.json_read(prepare/'report.json'),receipts['baseline']['receipt_sha256'],False)
