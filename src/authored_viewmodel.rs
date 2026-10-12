@@ -17,6 +17,20 @@ struct SkinBatch {
     source_vertices: Vec<usize>,
     mesh: Mesh,
 }
+type SkinVertexKey = ([u32; 3], [u32; 3], [u32; 2], [u16; 8], [u32; 8]);
+
+// Equality is the complete immutable source record, not approximate geometry
+// or the current pose. Keep all eight ordered influences, even zero weights.
+fn skin_vertex_key(vertex: &vector_range::skinned_asset::SkinVertex) -> SkinVertexKey {
+    (
+        vertex.position.map(f32::to_bits),
+        vertex.normal.map(f32::to_bits),
+        vertex.uv.map(f32::to_bits),
+        vertex.joints,
+        vertex.weights.map(f32::to_bits),
+    )
+}
+
 struct ReloadPresentation {
     index: usize,
     pose: ViewmodelPose,
@@ -154,19 +168,12 @@ impl AuthoredViewmodel {
                 .map_err(|error| format!("authored skin mesh {source_mesh} texture: {error}"))?;
                 Some(texture)
             };
-            for chunk in part.indices.chunks(4_998) {
-                let mut remap = std::collections::HashMap::new();
-                let mut source_vertices = Vec::new();
-                let indices = chunk
-                    .iter()
-                    .map(|&source| {
-                        *remap.entry(source).or_insert_with(|| {
-                            let index = source_vertices.len() as u16;
-                            source_vertices.push(source as usize);
-                            index
-                        })
-                    })
-                    .collect();
+            for (sources, indices) in
+                crate::weapon_model::partition_triangles(&part.indices, |index| {
+                    skin_vertex_key(&part.vertices[index as usize])
+                })
+            {
+                let source_vertices: Vec<_> = sources.into_iter().map(|i| i as usize).collect();
                 let vertices = source_vertices
                     .iter()
                     .map(|&index| {
@@ -1009,6 +1016,156 @@ mod tests {
             return_blend: None,
             reload_presentation: None,
             cant: 0.,
+        }
+    }
+
+    #[test]
+    fn skin_key_preserves_all_float_bits_and_eight_ordered_influences() {
+        let original = contact_fixture().skin.meshes[0].vertices[0].clone();
+        for component in 0..16 {
+            let mut keys = std::collections::HashSet::new();
+            for bits in [0, 0x8000_0000, 1, 0x7fc0_0001, 0x7fc0_0002] {
+                let mut vertex = original.clone();
+                let value = f32::from_bits(bits);
+                match component {
+                    0..=2 => vertex.position[component] = value,
+                    3..=5 => vertex.normal[component - 3] = value,
+                    6..=7 => vertex.uv[component - 6] = value,
+                    _ => vertex.weights[component - 8] = value,
+                }
+                assert!(
+                    keys.insert(skin_vertex_key(&vertex)),
+                    "float bits were lost"
+                );
+            }
+        }
+        for influence in 0..8 {
+            let mut keys = std::collections::HashSet::new();
+            for joint in [0, 1, u16::MAX] {
+                let mut vertex = original.clone();
+                vertex.joints[influence] = joint;
+                assert!(keys.insert(skin_vertex_key(&vertex)), "joint slot was lost");
+            }
+        }
+    }
+
+    fn source_vertex_bytes(vertex: &SkinVertex) -> Vec<u8> {
+        vertex
+            .position
+            .iter()
+            .chain(&vertex.normal)
+            .chain(&vertex.uv)
+            .flat_map(|value| value.to_le_bytes())
+            .chain(vertex.joints.iter().flat_map(|joint| joint.to_le_bytes()))
+            .chain(
+                vertex
+                    .weights
+                    .iter()
+                    .flat_map(|weight| weight.to_le_bytes()),
+            )
+            .collect()
+    }
+
+    #[test]
+    fn skin_partition_reconstructs_every_original_source_record() {
+        let mut vertices = contact_fixture().skin.meshes[0].vertices.clone();
+        vertices.push(vertices[0].clone());
+        for influence in 0..8 {
+            let mut joint = vertices[0].clone();
+            joint.joints[influence] = 1;
+            vertices.push(joint);
+            let mut weight = vertices[0].clone();
+            weight.weights[influence] = f32::from_bits(0x3e80_0001);
+            vertices.push(weight);
+        }
+        for bits in [0x8000_0000, 0x7fc0_0001, 0x7fc0_0002] {
+            let mut vertex = vertices[0].clone();
+            vertex.uv[0] = f32::from_bits(bits);
+            vertices.push(vertex);
+        }
+        let original: Vec<_> = (0..10_005)
+            .map(|index| (index % vertices.len()) as u32)
+            .collect();
+        let batches = crate::weapon_model::partition_triangles(&original, |source| {
+            skin_vertex_key(&vertices[source as usize])
+        });
+        assert_eq!(batches.len(), 3);
+        for (input, (sources, indices)) in original.chunks(4_998).zip(&batches) {
+            assert_eq!(input.len(), indices.len());
+            assert!(sources.len() <= input.len());
+            for (&source, &index) in input.iter().zip(indices) {
+                assert_eq!(
+                    source_vertex_bytes(&vertices[source as usize]),
+                    source_vertex_bytes(&vertices[sources[index as usize] as usize])
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn reused_skin_vertices_keep_animated_draw_corners_bit_exact() {
+        let mut baseline = contact_fixture();
+        let mut candidate = contact_fixture();
+        for model in [&mut baseline, &mut candidate] {
+            let part = &mut model.skin.meshes[0];
+            part.vertices.extend(part.vertices.clone());
+            part.indices = vec![0, 1, 2, 3, 4, 5];
+            let batch = &mut model.batches[0];
+            batch.source_vertices = vec![0, 1, 2, 3, 4, 5];
+            batch.mesh.vertices.extend(batch.mesh.vertices.clone());
+            batch.mesh.indices = vec![0, 1, 2, 3, 4, 5];
+        }
+        let part = &candidate.skin.meshes[0];
+        let (sources, indices) = crate::weapon_model::partition_triangles(&part.indices, |index| {
+            skin_vertex_key(&part.vertices[index as usize])
+        })
+        .remove(0);
+        let batch = &mut candidate.batches[0];
+        batch.source_vertices = sources.into_iter().map(|i| i as usize).collect();
+        batch.mesh.vertices.truncate(batch.source_vertices.len());
+        batch.mesh.indices = indices;
+        for (angle, cant, alpha) in [(0., 0., 1.), (0.4, 0.25, 0.5), (-0.8, -0.3, 0.)] {
+            let root = Mat4::from_rotation_translation(
+                Quat::from_rotation_y(angle),
+                vec3(angle, 0.2, -0.5),
+            );
+            let light = SceneLighting::range().in_view(vec3(angle.sin(), 0.2, -angle.cos()));
+            let mut outputs = Vec::new();
+            for model in [&mut baseline, &mut candidate] {
+                model.cant = cant;
+                let mut pose = model.animation.sample_clamped("contact", 0.).unwrap();
+                pose.bone_locals[0].translation[0] += angle;
+                begin_frame(640, 480, 1.).unwrap();
+                model
+                    .draw_pose_opacity(&pose, light, root, Some(&[alpha]))
+                    .unwrap();
+                outputs.push(take_draw_list().unwrap());
+            }
+            let expanded = |list: &vector_range::draw::DrawList| {
+                list.commands
+                    .iter()
+                    .filter_map(|command| match command {
+                        Command::Mesh { mesh, model, blend } => Some((
+                            mesh.indices
+                                .iter()
+                                .map(|&i| {
+                                    let vertex = mesh.vertices[i as usize];
+                                    (
+                                        vertex.position.to_array().map(f32::to_bits),
+                                        vertex.normal.to_array().map(f32::to_bits),
+                                        vertex.uv.to_array().map(f32::to_bits),
+                                        vertex.color,
+                                    )
+                                })
+                                .collect::<Vec<_>>(),
+                            model.to_cols_array().map(f32::to_bits),
+                            *blend,
+                        )),
+                        _ => None,
+                    })
+                    .collect::<Vec<_>>()
+            };
+            assert_eq!(expanded(&outputs[0]), expanded(&outputs[1]));
         }
     }
 

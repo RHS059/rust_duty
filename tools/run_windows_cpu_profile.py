@@ -579,9 +579,10 @@ def compare_uploads(root, output, experiment='geometry-reuse'):
     production = pair.read_sources(root, source['commit'], pair.PRODUCTION_PATHS)
     require(all((root / name).read_bytes() == raw for name, raw in production.items()),
             'Committed production bytes differ')
-    require(experiment in ('geometry-reuse', 'arena-serialization'), 'Unknown profile experiment')
+    require(experiment in ('geometry-reuse', 'arena-serialization', 'authored-dedup'), 'Unknown profile experiment')
     variants = (pair.geometry_production_pair(production) if experiment == 'geometry-reuse' else
-                pair.serialization_production_pair(production,
+                pair.loader_production_pair(production, pair.read_sources(root, pair.LOADER_BASELINE_COMMIT, sorted(pair.LOADER_BASELINE)))
+                if experiment == 'authored-dedup' else pair.serialization_production_pair(production,
                     pair.read_sources(root, pair.BASELINE_CPU_COMMIT, [pair.ARENA_PATH])))
     binding = {'source_commit': source['commit'], 'profile_source': source}
     receipts = pair.materialize_variants(output / 'sources', variants, binding,
@@ -715,7 +716,7 @@ def compare_uploads(root, output, experiment='geometry-reuse'):
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('mode', choices=('preflight', 'capture', 'compare-uploads', 'compare-serialization'))
+    parser.add_argument('mode', choices=('preflight', 'capture', 'compare-uploads', 'compare-serialization', 'compare-loaders'))
     parser.add_argument('--root', type=Path, default=Path('.'))
     parser.add_argument('--output', type=Path, required=True)
     args = parser.parse_args(argv)
@@ -726,6 +727,7 @@ def main(argv=None):
             capture(args.root, args.output)
         else:
             compare_uploads(args.root, args.output,
+                            'authored-dedup' if args.mode == 'compare-loaders' else
                             'arena-serialization' if args.mode == 'compare-serialization' else 'geometry-reuse')
         return 0
     except (ValueError, OSError, KeyError, DriverError, subprocess.SubprocessError) as error:

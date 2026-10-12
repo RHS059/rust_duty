@@ -81,6 +81,15 @@ AUDITED_UPLOAD_REUSE_MANIFEST = '2dbfe6bbab145c675e2517eee8c2ec2476e467e32ec66b8
 AUDITED_UPLOAD_IMMUTABLE_CONTROL_MANIFEST = 'd80012eb4d1d4a5e669b98aae8910fc24302f1fc38bd92ed8a3593a0fae70dd7'
 # Exact arena-only serialization experiment; all upload history remains unchanged.
 AUDITED_ARENA_SERIALIZATION_MANIFEST = '3a995ea0fb0e8d4173921c7fadd0689eab6c67fc9c5fe8339173129527acae43'
+# The two loader modules were unchanged throughout the historical inventories.
+# Verify them even for a narrow live witness, or CPU-only loader edits could hide.
+LOADER_BASELINE = {
+    'src/authored_viewmodel.rs': 'c87f0a15241d8a03ec3426eef3b6c3809b257789e4d533c9006e80c3807fdaf5',
+    'src/weapon_model.rs': 'b6496c9409485023d97cc8e08e43ccbecacef35c72611e2b1f7fa594a1237071',
+}
+LOADER_SOURCE_PATHS = (*UPLOAD_REUSE_SOURCE_PATHS, *LOADER_BASELINE)
+AUDITED_AUTHORED_DEDUP_MANIFEST = 'fff66052fe41e445d50eaf2ae689a29cc68b7d3c3d4502d21d147424c60d3e06'
+
 
 BACKENDS = {'dx12': 'Dx12', 'vulkan': 'Vulkan', 'metal': 'Metal', 'gl-harness': 'Gl'}
 UNAVAILABLE = {
@@ -135,6 +144,8 @@ def canonical_hash(value):
 
 
 def audited_inventory(digest):
+    if digest == AUDITED_AUTHORED_DEDUP_MANIFEST:
+        return LOADER_SOURCE_PATHS
     if digest in (AUDITED_ARENA_SERIALIZATION_MANIFEST, AUDITED_UPLOAD_REUSE_INITIAL_MANIFEST, AUDITED_UPLOAD_IMMUTABLE_INITIAL_CONTROL_MANIFEST,
                   AUDITED_UPLOAD_REUSE_MANIFEST, AUDITED_UPLOAD_IMMUTABLE_CONTROL_MANIFEST):
         return UPLOAD_REUSE_SOURCE_PATHS
@@ -256,6 +267,19 @@ def source_identity(repository):
                 'Audited present runtime changed; cannot fall back to a narrower source inventory')
         require(canonical_hash(cpu_sources) == CPU_BASELINE_MANIFEST,
                 'Audited CPU runtime changed; cannot fall back to a narrower source inventory')
+    loader = {}
+    for name in LOADER_BASELINE:
+        path = repository / name
+        require(path.is_file() and not path.is_symlink(), 'Missing/unsafe authored loader: ' + name)
+        data = path.read_bytes()
+        committed = subprocess.check_output(['git', '-C', str(repository), 'show', commit + ':' + name])
+        require(data == committed, 'Uncommitted authored loader: ' + name)
+        loader[name] = hashlib.sha256(data).hexdigest()
+    if loader != LOADER_BASELINE:
+        expanded = {**result, **loader}
+        require(canonical_hash(expanded) == AUDITED_AUTHORED_DEDUP_MANIFEST,
+                'Authored loader changed; cannot fall back to a narrower historical witness')
+        result = expanded
     require(audited_inventory(canonical_hash(result)) is not None,
             'Audited runtime support changed; review the matrix inventory before updating its source binding')
     return {'commit': commit, 'runtime_files_sha256': result}

@@ -26,6 +26,10 @@ class GeometryProfilePairTests(unittest.TestCase):
                       'src/lib.rs': b'// Synthetic noncompilable source receipt.\n',
                       pair.UPLOAD_POLICY_PATH: b'pub const REUSE_ENABLED: bool = true;\n'}
         old_arena = {pair.ARENA_PATH: b'// Historical scalar arena fixture.\n'}
+        old_loader = {name: ('old synthetic loader '+name).encode() for name in pair.LOADER_BASELINE}
+        if experiment == 'authored-dedup':
+            production.update({name: ('new synthetic loader '+name).encode() for name in pair.LOADER_BASELINE})
+            production[pair.ARENA_PATH] = b'// Same current arena serializer in both variants.\n'
         if experiment == 'arena-serialization':
             production[pair.ARENA_PATH] = b'// New serialization arena fixture.\n'
         for name, raw in {**production, 'settings.cfg': b'settings fixture\n',
@@ -198,7 +202,9 @@ class GeometryProfilePairTests(unittest.TestCase):
                        patch.object(pair, 'check_environment'), patch.object(pair, 'check_cargo_configuration', side_effect=config),
                        patch.object(pair, 'toolchain_at', side_effect=toolchain),
                        patch.object(pair, 'read_sources', side_effect=lambda _root, commit, paths:
-                                    copy.deepcopy(old_arena if paths == [pair.ARENA_PATH] else production)),
+                                    copy.deepcopy(old_arena if paths == [pair.ARENA_PATH] else
+                                                  old_loader if paths == sorted(pair.LOADER_BASELINE) else production)),
+                       patch.object(pair, 'LOADER_BASELINE', pair.hashes(old_loader)),
                        patch.object(pair, 'ARENA_BASELINE_SHA256', pair.controls.digest(old_arena[pair.ARENA_PATH])),
                        patch.object(pair, 'PRODUCTION_MANIFEST', matrix.canonical_hash(pair.hashes(production))),
                        patch.object(profile, 'command_log', side_effect=build),

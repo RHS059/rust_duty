@@ -4,6 +4,7 @@ from pathlib import Path
 import subprocess
 import tempfile
 import unittest
+from unittest.mock import patch
 
 import performance_matrix as matrix
 
@@ -27,11 +28,17 @@ class CpuEncodeDetailSourceTests(unittest.TestCase):
         subprocess.run(['git', 'init', '-q', str(root)], check=True, capture_output=True)
         subprocess.run(['git', '-C', str(root), 'config', 'core.autocrlf', 'false'],
                        check=True, capture_output=True)
-        for name in matrix.UPLOAD_REUSE_SOURCE_PATHS:
+        for name in matrix.LOADER_SOURCE_PATHS:
             path = root / name
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_bytes((ROOT / name).read_bytes())
         commit(root)
+        # This synthetic history fixture tests old renderer classes independently
+        # of loaders. New loader admission has its own exact negative suite.
+        guard = patch.object(matrix, 'LOADER_BASELINE',
+                             {name: matrix.sha256(root / name) for name in matrix.LOADER_BASELINE})
+        guard.start()
+        self.addCleanup(guard.stop)
         return root
 
     def test_current_detail_inventory_has_its_own_exact_digest(self):

@@ -63,15 +63,15 @@ jobs:
         run: |
           python -m pip install Pillow==11.3.0 PyYAML==6.0.3
           if ($LASTEXITCODE -ne 0) { throw 'Reader dependency installation failed' }
-      - name: Fetch the exact unchanged arena baseline object
+      - name: Fetch the exact unchanged loader baseline object
         run: |
-          git fetch --no-write-fetch-head --no-tags --depth=1 origin 70ff2933ebe69b7180e207c7defebeaeb6e240e1
-          if ($LASTEXITCODE -ne 0) { throw 'Pinned arena baseline object unavailable' }
+          git fetch --no-write-fetch-head --no-tags --depth=1 origin 5a88053e1668000744bbebbf967c6d24833dddd5
+          if ($LASTEXITCODE -ne 0) { throw 'Pinned loader baseline object unavailable' }
       - name: Verify installed profiler and bounded capture guards
         env:
           PYTHONPATH: tools
         run: |
-          python -m unittest -v test_windows_cpu_profile test_geometry_profile_pair test_arena_serialization_pair
+          python -m unittest -v test_windows_cpu_profile test_geometry_profile_pair test_arena_serialization_pair test_authored_loader_pair
           if ($LASTEXITCODE -ne 0) { throw 'Profiler guard tests failed' }
           python tools/run_windows_cpu_profile.py preflight --root . --output evidence/cpu-profile
       - name: Fetch the existing validated original reload companion
@@ -110,9 +110,9 @@ jobs:
       - name: Verify and materialize source-bound original locomotion companions
         run: |
           python tools/package_game.py materialize --root . --include-walk --include-ads --include-directional --include-jump --require-generated > evidence/cpu-profile/materialize.json
-      - name: Build matched serialization variants and sample the stationary authored scene in ABBA order
+      - name: Build matched loader variants and sample the stationary authored scene in ABBA order
         timeout-minutes: 84
-        run: python tools/run_windows_cpu_profile.py compare-serialization --root . --output evidence/cpu-profile
+        run: python tools/run_windows_cpu_profile.py compare-loaders --root . --output evidence/cpu-profile
       - name: Retain raw trace, matching symbols, exports and exact input receipts
         if: always()
         uses: actions/upload-artifact@v4

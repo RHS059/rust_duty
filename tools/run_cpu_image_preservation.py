@@ -33,7 +33,7 @@ CPU_BASELINE = {
 # All production and conditional-test compile inputs, not merely changed files
 # or the narrow runtime witness. Update only after exact-source review.
 # Historical timing pair admission keeps its own immutable closed digest.
-PRODUCTION_MANIFEST = 'e8a9e43fd39a841868d069512b2bf1b69dac09144de1e1afdd29b355175f5bb6'
+PRODUCTION_MANIFEST = '1356f45eed20a65346298cc102ab986377d2c4ced388c813a9eaa1a0b0091589'
 PRODUCTION_PATHS = ['Cargo.toml', 'Cargo.lock', 'build.rs', 'build_number.rs',
                     'LICENSE', 'THIRD_PARTY_LICENSES.txt', 'rust-toolchain',
                     'rust-toolchain.toml', '.cargo', '.gitattributes', 'src', 'updater']
@@ -44,7 +44,12 @@ UPLOAD_POLICY_ENABLED = b'REUSE_ENABLED: bool = true;'
 UPLOAD_POLICY_DISABLED = b'REUSE_ENABLED: bool = false;'
 ARENA_PATH = 'src/render/arena.rs'
 ARENA_BASELINE_SHA256 = '5e39d00125b34d07ec23f845841809c0effa678980b1395988880b7d23674ddb'
-EXPERIMENTS = ('cpu-overlay', 'geometry-reuse', 'arena-serialization')
+LOADER_BASELINE_COMMIT = '5a88053e1668000744bbebbf967c6d24833dddd5'
+LOADER_BASELINE = {
+    'src/authored_viewmodel.rs': 'c87f0a15241d8a03ec3426eef3b6c3809b257789e4d533c9006e80c3807fdaf5',
+    'src/weapon_model.rs': 'b6496c9409485023d97cc8e08e43ccbecacef35c72611e2b1f7fa594a1237071',
+}
+EXPERIMENTS = ('cpu-overlay', 'geometry-reuse', 'arena-serialization', 'authored-dedup')
 SCHEMA = 'rust-duty-cpu-image-preservation/v1'
 FORBIDDEN_ENV = {'RUSTFLAGS', 'RUSTDOCFLAGS', 'CARGO_ENCODED_RUSTFLAGS',
                  'CARGO_ENCODED_RUSTDOCFLAGS', 'RUSTC', 'RUSTC_WRAPPER',
@@ -129,8 +134,29 @@ def serialization_production_pair(production, old_arena):
     return {'baseline': baseline, 'candidate': production.copy()}
 
 
+def loader_production_pair(production, old_loader):
+    """Only the two authored CPU loaders differ; serializer/reuse stay identical."""
+    require(matrix.canonical_hash(hashes(production)) == PRODUCTION_MANIFEST,
+            'integrated production compile inventory is not the reviewed candidate')
+    require(hashes(old_loader) == LOADER_BASELINE, 'baseline loaders differ from reviewed bytes')
+    policy = production.get(UPLOAD_POLICY_PATH, b'')
+    require(policy.count(UPLOAD_POLICY_ENABLED) == 1 and UPLOAD_POLICY_DISABLED not in policy,
+            'loader comparison requires enabled upload reuse on both sides')
+    baseline = {**production, **old_loader}
+    require(set(baseline) == set(production) and
+            {name for name in baseline if baseline[name] != production[name]} == set(LOADER_BASELINE),
+            'loader comparison must change exactly both loader files')
+    return {'baseline': baseline, 'candidate': production.copy()}
+
+
 def experiment_metadata(experiment):
     require(experiment in EXPERIMENTS, 'unknown source-pair experiment')
+    if experiment == 'authored-dedup':
+        return {'experiment': experiment, 'baseline_is_four_file_counterfactual': False,
+                'baseline_loader_origin': LOADER_BASELINE_COMMIT,
+                'baseline_loader_sha256': LOADER_BASELINE, 'overlay_paths': sorted(LOADER_BASELINE),
+                'upload_policies': dict.fromkeys(('baseline', 'candidate'), 'bounded_reuse_v1'),
+                'scope': 'exact authored-loader dedup counterfactual; serializer and destination reuse unchanged'}
     if experiment == 'cpu-overlay':
         return {'baseline_cpu_origin': BASELINE_CPU_COMMIT,
                 'baseline_is_four_file_counterfactual': True,
@@ -189,10 +215,11 @@ def prepare(root, output, experiment='cpu-overlay'):
     for name, raw in {**production, **harness}.items():
         require((root / name).read_bytes() == raw, 'checkout bytes differ from committed source: ' + name)
     metadata = experiment_metadata(experiment)
-    if experiment in ('geometry-reuse', 'arena-serialization'):
+    if experiment in ('geometry-reuse', 'arena-serialization', 'authored-dedup'):
         require(set(harness) == set(HARNESS_PATHS), 'both common image fixtures are required')
         pair = (geometry_production_pair(production) if experiment == 'geometry-reuse' else
-                serialization_production_pair(production,
+                loader_production_pair(production, read_sources(root, LOADER_BASELINE_COMMIT, sorted(LOADER_BASELINE)))
+                if experiment == 'authored-dedup' else serialization_production_pair(production,
                     read_sources(root, BASELINE_CPU_COMMIT, [ARENA_PATH])))
         variants = {label: {**sources, **harness} for label, sources in pair.items()}
     else:
@@ -257,10 +284,12 @@ def verify_retained_outputs(outputs, binaries, directories=None):
             require(matrix.sha256(binary['path']) == binary['sha256'], 'retained executable changed')
 
 
-def archive_control_outputs(output, outputs, directories):
+def archive_control_outputs(output, outputs, directories, filename='control-outputs.zip'):
     """Retain directory entries that file-only CI artifact uploads otherwise drop."""
     verify_retained_outputs(outputs, {}, directories)
-    path = output / 'control-outputs.zip'
+    require(filename.endswith('.zip') and Path(filename).name == filename and '\\' not in filename,
+            'archive filename must be a local ZIP basename')
+    path = output / filename
     files = {f'{root.relative_to(output).as_posix()}/{name}': digest
              for root, manifest in outputs.items() for name, digest in manifest.items()}
     dirs = sorted(name for root, children in directories.items()
