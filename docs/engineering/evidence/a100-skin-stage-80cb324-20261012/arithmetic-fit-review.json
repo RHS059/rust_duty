@@ -1,0 +1,120 @@
+{
+  "schema": "independent-saved-skin-arithmetic-fit-review/v1",
+  "source": "80cb324c744e3299d1dd2417c571cdc69c6e46cf",
+  "fit_receipt_sha256": "7458b161b7d406ed0095ef6b80d20421a2491ad2b667e57cbb750a142c634867",
+  "script_sha256": "ed5573e6a469bb6f7d17800786b80580cd58155f3d8a040b225b40edf0f8bbdb",
+  "input_probe_sha256": {
+    "ads-0.json": "b0dfb58ee975748f2cc924c21c5de50be6172432e73c8dabcd717594944b9dc4",
+    "ads-1.json": "69172a6549404eb663656e8a25f6e778f5acae4313bcdd79e2878b12060f599a",
+    "ads-2.json": "9792c0b0b58082e353dad1b3467bce3fd763a309851ca4277898435385fef9c0",
+    "ads-3.json": "00a1ca1c1f6bbc2e54339f89adfe9b0616072b1d18fb851038528ca8febab045",
+    "manifest-0.json": "67bf8d00d7a6f17dba5858ec97b707652e10db076e7ff38f1ee594118d4fe4a8",
+    "manifest-12.json": "45d79efb214a62e76f49eb0ba97135840683ef07fc81d18ea2f7bc14f28b0b92",
+    "manifest-24.json": "21c6b5b5671581b29d2dbd8598757f2c6e5fdc57c4ab8ac9127a7894106c6f7e",
+    "probe-result.json": "0aa01415a2e76532888ccff024cdea1a4ad62e828c076aeb06a7bcdaa2248fcb",
+    "ready-0.json": "1b29b4b802c325823520507f08070ce7cd840b1723cdc59ef392a7caffd9e3dd",
+    "ready-1.json": "3828e3b0b924a6fdd431939fdc0a99afd10ae82635b43551b67976650abc4363",
+    "ready-2.json": "0c042202d160269f312b97c7ac778c623badd0e009cb6905ac025c589e856a6a",
+    "ready-3.json": "81f1db1b7de4f8262be724822a3efa56c0fd319254a0007a7c34751130c3724f",
+    "reload-0.json": "39de34f424a675af2fbf2bcfe31e92ba0973c11401c639be68f379b62833bfb5",
+    "reload-1.json": "f875cbeaf1537934589dde4e26c95fe05cd953adc75e7a47229e93b6533fbb26",
+    "reload-2.json": "0efbcb52b4317f595f75284a3d21f4084a599168202fbc8f7e7f0fcb110ec6ee",
+    "reload-3.json": "f798bba3d304f3a095d6c760e99f1c88843bce430726ba72921272d8d2cbb855",
+    "rigid-alpha-0.json": "67baa7ba055b7258a26a1c99c397aaffa678601afcd98fc4e7cdfd185fdefaf4",
+    "rigid-alpha-1.json": "c977ffac1c8550677e034eaeba18f09da772a80a310fbdaa1e89d674a2dc278b",
+    "rigid-alpha-2.json": "0a9eccf504f5d3598dcfc48fb084e2dc739b4b0b2e36b7466e4bdad188cd04b8",
+    "walk-0.json": "731b0c055843788e799ce734bb7d57cc05b4fbd1616045d2c742dc503c706763",
+    "walk-1.json": "7050a5d66b6bc24e1f4d999c43777190c0ef6714ab653388876064813eabcd81",
+    "walk-2.json": "3338728e2964bc3d3c74620488897db8c4563673a9b4cc32d6a5bdf19372d7d3",
+    "walk-3.json": "f2eed56aa8eaa70e7dd68ed12ed8e7aa41d978bc2f8270f85517053ace01df4d"
+  },
+  "prior_raw_cpu_binding_receipt_sha256": "572e3becb20138ea96a71384c10ac3a4f991fb00d8de14348a11af8f7694aead",
+  "method": "Independent direct decoding of current retained payloads; native libm fmaf plus separately implemented exact rational IEEE754 rounding. All384 fixed-family scores compared to proposed receipt. No imported fitting code.",
+  "system_math_library": "libm.so.6",
+  "samples": 105,
+  "components": 315,
+  "all_cpu_oracle_positions_exact": true,
+  "all_384_family_scores_match": true,
+  "complete_fits": [
+    {
+      "order": [
+        1,
+        0,
+        2,
+        3
+      ],
+      "fused_add_mask": 3,
+      "fused_weight_accumulation": true
+    },
+    {
+      "order": [
+        1,
+        0,
+        2,
+        3
+      ],
+      "fused_add_mask": 7,
+      "fused_weight_accumulation": true
+    }
+  ],
+  "counts": {
+    "rational_crosschecked_fma_operations": 1872,
+    "separate_weight_tuples_matched": 78
+  },
+  "separate_weight_counterexamples": [
+    {
+      "case": "ads-1",
+      "command": 0,
+      "sample": 3,
+      "source_vertex": 1191,
+      "separate_weight_bits": [
+        1032857704,
+        3184080144,
+        3204631712
+      ],
+      "observed_bits": [
+        1032857704,
+        3184080143,
+        3204631712
+      ]
+    },
+    {
+      "case": "ads-1",
+      "command": 0,
+      "sample": 4,
+      "source_vertex": 1194,
+      "separate_weight_bits": [
+        1034294666,
+        3185347442,
+        3204711225
+      ],
+      "observed_bits": [
+        1034294667,
+        3185347441,
+        3204711225
+      ]
+    },
+    {
+      "case": "ads-1",
+      "command": 3,
+      "sample": 0,
+      "source_vertex": 797,
+      "separate_weight_bits": [
+        1030735332,
+        3184894924,
+        3190786976
+      ],
+      "observed_bits": [
+        1030735332,
+        3184894923,
+        3190786976
+      ]
+    }
+  ],
+  "limits": [
+    "Numerical compatibility within selected instrumented samples is not observed GPU instructions or proof of a unique cause.",
+    "All24 selected skin roots are identity.",
+    "The384-family space only covers fixed left-fold dot orders and source-ordered influence accumulation.",
+    "Strict image verdict remains false; no correction or tolerance acceptance follows from this fit."
+  ]
+}

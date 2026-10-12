@@ -64,10 +64,30 @@ receipt-bound. The ordinary metrics remain identical to the preceding run.
 
 The complete ZIP_STORED archive is 626,639,135 bytes, SHA-256
 `7bc09f2d5ec8fd69d195c7a5dff4c023ebf944516a8ce2cfc0ac74ad4712a8b3`.
-It also retains both compiled ELFs and all 44 raw corner streams. At compact
-publication, full transfer and direct current ELF/corner-byte verification are
-pending. Any prior-artifact replay in the frozen compact audit is explicitly
-labeled; a separate full-stage audit will record direct-byte verification.
+It also retains both compiled ELFs and all 44 raw corner streams. At the initial compact publication, full transfer and direct current ELF/corner
+verification were pending; that frozen compact audit is preserved unchanged.
+
+## Completed full-byte audit and durable retention
+
+The separate [direct full-stage audit](evidence/a100-skin-stage-80cb324-20261012/independent-full-audit.json)
+(SHA-256 `d5f76f2dd155828bbcb4652e842adfa493c8a31e05065b477bac2f9439422eab`)
+verifies the original full archive hash, all 604 member CRCs and path/inventory
+checks, and all 558 byte-identical shared compact/full files. It directly
+replays all 44 current raw corner streams and command slices, uses current CPU
+raw bytes for the strict version-2 replay, and hashes both current x86-64 ELFs
+against the build receipts. No prior-artifact corner substitute is needed for
+this separate direct-byte audit. The reported failures and sample counts are
+unchanged.
+
+The exact original archive is retained in [four lossless ordered XZ parts](evidence/a100-skin-stage-80cb324-20261012/full/README.md)
+with per-part hashes and a tested reconstruction verifier. Concatenated XZ size
+is 21,247,544 bytes, SHA-256
+`50f0625b040e5b0968ae0763f457387c19b204fd16be079f8649fe51244f0656`.
+Reconstruction reproduces all 626,639,135 original ZIP bytes exactly.
+
+A separate [reviewed offline arithmetic-fit appendix](a100-skin-arithmetic-fit-20261012.md)
+records compatible finite-sample models. It does not identify actual GPU
+instructions, a portable correction, or the cause of the final-image failure.
 
 ## Remaining acceptance
 
