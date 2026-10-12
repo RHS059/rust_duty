@@ -28,8 +28,8 @@ class CpuImageWorkflowTests(unittest.TestCase):
         self.assertEqual(self.workflow['permissions'], {'contents': 'read'})
         self.assertEqual(self.workflow['concurrency'], {
             'group': 'cpu-image-preservation-${{ github.ref }}', 'cancel-in-progress': 'false'})
-        self.assertEqual(set(self.workflow['jobs']), {'exact-cpu-image-pair', 'animation-assets', 'walk-assets', 'ads-assets', 'directional-assets', 'jump-assets'})
-        self.assertEqual(set(self.job['needs']), {'animation-assets','walk-assets','ads-assets','directional-assets','jump-assets'})
+        self.assertEqual(set(self.workflow['jobs']), {'pair-admission', 'exact-cpu-image-pair', 'animation-assets', 'walk-assets', 'ads-assets', 'directional-assets', 'jump-assets'})
+        self.assertEqual(set(self.job['needs']), {'pair-admission','animation-assets','walk-assets','ads-assets','directional-assets','jump-assets'})
         self.assertEqual(self.job['runs-on'], 'windows-latest')
         self.assertEqual(self.job['timeout-minutes'], '60')
         self.assertIn("github.ref == 'refs/heads/" + BRANCH + "'", self.job['if'])
@@ -51,7 +51,7 @@ class CpuImageWorkflowTests(unittest.TestCase):
             job=self.workflow['jobs'][name+'-assets']
             self.assertEqual(job['uses'], './.github/workflows/'+('blender' if name=='animation' else name)+'-assets.yml')
         for name in ('ads','directional','jump'):
-            self.assertEqual(self.workflow['jobs'][name+'-assets']['needs'], ['walk-assets'])
+            self.assertEqual(self.workflow['jobs'][name+'-assets']['needs'], ['pair-admission', 'walk-assets'])
         fetch = next(s for s in self.steps if 'git fetch' in s.get('run', ''))
         self.assertIn('git fetch --no-write-fetch-head --no-tags --depth=1 origin ' + LOADER_BASELINE_COMMIT, fetch['run'])
         self.assertIn("throw 'Reviewed baseline source retrieval failed'", fetch['run'])

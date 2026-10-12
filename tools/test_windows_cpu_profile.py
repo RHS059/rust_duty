@@ -151,7 +151,7 @@ class ProfileGuards(unittest.TestCase):
         root = Path(__file__).resolve().parents[1]
         text = (root / '.github/workflows/windows-cpu-profile.yml').read_text()
         # These checks are deliberately usable before optional YAML dependencies.
-        self.assertIn('needs: [animation-assets, walk-assets, ads-assets, directional-assets, jump-assets]', text)
+        self.assertIn('needs: [pair-admission, animation-assets, walk-assets, ads-assets, directional-assets, jump-assets]', text)
         for name, workflow in (('reload', 'blender'), ('walk', 'walk'), ('ads', 'ads'),
                                ('directional', 'directional'), ('jump', 'jump')):
             self.assertIn('uses: ./.github/workflows/' + workflow + '-assets.yml', text)

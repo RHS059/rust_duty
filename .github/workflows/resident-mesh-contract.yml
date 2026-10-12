@@ -9,6 +9,7 @@ concurrency:
   group: resident-mesh-${{ github.ref }}
   cancel-in-progress: false
 env:
+  RUSTUP_TOOLCHAIN: '1.99.0'
   GIT_CONFIG_COUNT: '1'
   GIT_CONFIG_KEY_0: core.autocrlf
   GIT_CONFIG_VALUE_0: 'false'
@@ -58,6 +59,8 @@ jobs:
           New-Item -ItemType Directory resident-mesh-evidence | Out-Null
           git rev-parse HEAD | Set-Content resident-mesh-evidence/commit.txt
           rustc -Vv | Set-Content resident-mesh-evidence/rustc.txt
+          if ($LASTEXITCODE -ne 0) { throw 'Compiler identity command failed' }
+          if (-not (Select-String -Path resident-mesh-evidence/rustc.txt -Pattern '^release: 1\.99\.0$')) { throw 'Expected actual Rust 1.99.0' }
       - name: Test exact readers and source workflow
         env:
           PYTHONPATH: tools
@@ -91,7 +94,7 @@ jobs:
           foreach ($source in $sources) { if ((Receipt $source.path).sha256 -ne $source.sha256) { throw 'Native source changed' } }
           if ((Receipt $exe).sha256 -ne $receipt.executable.sha256) { throw 'Native executable changed' }
           if ($code -ne 0) { throw 'Native resident contract failed' }
-          if (-not (Select-String resident-mesh-evidence/native-tests.txt -SimpleMatch 'test result: ok. 1 passed; 0 failed; 0 ignored;')) { throw 'Native test did not execute exactly once' }
+          if (-not (Select-String -Path resident-mesh-evidence/native-tests.txt -SimpleMatch -Pattern 'test result: ok. 1 passed; 0 failed; 0 ignored;')) { throw 'Native test did not execute exactly once' }
       - name: Replay the unchanged 21-image renderer controls
         shell: pwsh
         run: |

@@ -23,23 +23,69 @@ concurrency:
   group: windows-cpu-profile-${{ github.ref }}
   cancel-in-progress: false
 jobs:
+  pair-admission:
+    if: github.repository == 'RHS059/rust_duty' && github.ref == 'refs/heads/aella/wgpu-1080p-diagnostics'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      PYTHONDONTWRITEBYTECODE: '1'
+    outputs:
+      admitted: ${{ steps.source.outputs.admitted }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /Cargo.toml
+            /Cargo.lock
+            /build.rs
+            /build_number.rs
+            /LICENSE
+            /THIRD_PARTY_LICENSES.txt
+            /rust-toolchain
+            /rust-toolchain.toml
+            /.cargo/
+            /.gitattributes
+            /src/
+            /updater/
+            /tools/
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install pinned source-reader dependencies
+        run: python -m pip install Pillow==11.3.0 PyYAML==6.0.3
+      - name: Check closed admission and scheduling guards
+        env:
+          PYTHONPATH: tools
+        run: python -m unittest -v test_historical_pair_admission
+      - name: Admit only the unchanged historical production inventory
+        id: source
+        run: python tools/check_historical_pair_admission.py --root . --github-output "$GITHUB_OUTPUT"
   # Reuse existing source-bound companions; no new authoring or rendering work.
   animation-assets:
+    needs: [pair-admission]
+    if: needs.pair-admission.outputs.admitted == 'true'
     uses: ./.github/workflows/blender-assets.yml
   walk-assets:
+    needs: [pair-admission]
+    if: needs.pair-admission.outputs.admitted == 'true'
     uses: ./.github/workflows/walk-assets.yml
   directional-assets:
-    needs: [walk-assets]
+    needs: [pair-admission, walk-assets]
+    if: needs.pair-admission.outputs.admitted == 'true'
     uses: ./.github/workflows/directional-assets.yml
   ads-assets:
-    needs: [walk-assets]
+    needs: [pair-admission, walk-assets]
+    if: needs.pair-admission.outputs.admitted == 'true'
     uses: ./.github/workflows/ads-assets.yml
   jump-assets:
-    needs: [walk-assets]
+    needs: [pair-admission, walk-assets]
+    if: needs.pair-admission.outputs.admitted == 'true'
     uses: ./.github/workflows/jump-assets.yml
   cpu-sampling:
-    needs: [animation-assets, walk-assets, ads-assets, directional-assets, jump-assets]
-    if: github.repository == 'RHS059/rust_duty' && github.ref == 'refs/heads/aella/wgpu-1080p-diagnostics'
+    needs: [pair-admission, animation-assets, walk-assets, ads-assets, directional-assets, jump-assets]
+    if: github.repository == 'RHS059/rust_duty' && github.ref == 'refs/heads/aella/wgpu-1080p-diagnostics' && needs.pair-admission.outputs.admitted == 'true'
     runs-on: windows-2022
     timeout-minutes: 90
     env:
