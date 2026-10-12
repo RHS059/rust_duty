@@ -55,6 +55,12 @@ jobs:
     needs: [animation-assets, walk-assets, ads-assets, directional-assets, jump-assets]
     name: windows-latest
     runs-on: windows-latest
+    # Source-bound guards compare checkout bytes with immutable Git blobs.
+    # Apply before checkout; do not normalize bytes inside those validators.
+    env:
+      GIT_CONFIG_COUNT: '1'
+      GIT_CONFIG_KEY_0: core.autocrlf
+      GIT_CONFIG_VALUE_0: 'false'
     steps:
       - uses: actions/checkout@v4
       - name: Fetch validated animation companions from this run

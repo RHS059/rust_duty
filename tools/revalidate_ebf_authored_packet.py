@@ -197,6 +197,7 @@ def extract_archive(archive, destination, metadata):
         require(0 < len(entries) <= 100000, 'archive entry count is invalid')
         names, seen, total = set(), {}, 0
         for entry in entries:
+            require(entry.orig_filename == entry.filename, 'NUL/aliased ZIP filename forbidden')
             name = entry.filename.removesuffix('/') if entry.is_dir() else entry.filename
             shared._safe_key(name)
             require(name not in names, 'duplicate archive member')
@@ -411,10 +412,13 @@ def materialize_root(source, verifier, inputs, destination, manifest):
     expected = native['runtime_and_manifest_sha256']
     require(all(name == 'settings.cfg' or (name.startswith('assets/') and Path(name).suffix in
                 ('.vra', '.vrs', '.vrm', '.json', '.cfg')) for name in expected), 'unsupported native runtime input')
+    # Match the enumerated spelling before creating the staging tree. A
+    # case-insensitive host must not silently accept a differently cased path.
+    for name in expected:
+        require(name in candidates, f'missing original runtime input: {name}')
     destination.mkdir(parents=True)
     records = {}
     for name, digest in expected.items():
-        require(name in candidates, f'missing original runtime input: {name}')
         raw, records[name] = recovery.select_native_bytes(candidates[name], digest)
         write_bytes(destination / name, raw)
     for name, field in (('Cargo.toml', 'cargo_manifest_sha256'), ('Cargo.lock', 'cargo_lock_sha256')):
