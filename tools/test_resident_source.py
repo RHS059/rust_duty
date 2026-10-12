@@ -1,4 +1,4 @@
-"""Exact current resident inventory and one-line counterfactual admission."""
+"""Exact combined resident/staging inventory, control and historical admission."""
 import tempfile
 from pathlib import Path
 import subprocess
@@ -13,27 +13,27 @@ class SourceTests(unittest.TestCase):
     def checkout(self):
         temp=tempfile.TemporaryDirectory();self.addCleanup(temp.cleanup);root=Path(temp.name)
         git(root,'init','-q');git(root,'config','core.autocrlf','false')
-        for name in matrix.RESIDENT_SOURCE_PATHS:
+        for name in matrix.STAGING_SOURCE_PATHS:
             p=root/name;p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes((ROOT/name).read_bytes())
         commit(root);return root
     def test_exact_candidate_and_control_witnesses(self):
         root=self.checkout()
         source=matrix.source_identity(root)
-        self.assertEqual(len(source['runtime_files_sha256']),43)
-        self.assertEqual(matrix.canonical_hash(source['runtime_files_sha256']),matrix.AUDITED_RESIDENT_CANDIDATE_MANIFEST)
+        self.assertEqual(len(source['runtime_files_sha256']),46)
+        self.assertEqual(matrix.canonical_hash(source['runtime_files_sha256']),matrix.AUDITED_STAGING_CANDIDATE_MANIFEST)
         matrix.export_witness(root,root/'candidate-witness')
         self.assertEqual(matrix.artifact_source(root/'candidate-witness',matrix.sha256(root/'candidate-witness/SOURCE_WITNESS.json')),source)
-        path=root/'src/frame_resident_policy.rs';raw=path.read_bytes()
-        self.assertEqual(raw.count(b'ENABLED: bool = true;'),1)
-        path.write_bytes(raw.replace(b'ENABLED: bool = true;',b'ENABLED: bool = false;'));commit(root)
+        path=root/'src/frame_staging_policy.rs';raw=path.read_bytes()
+        self.assertEqual(raw.count(b'STAGING_REUSE_ENABLED: bool = true;'),1)
+        path.write_bytes(raw.replace(b'STAGING_REUSE_ENABLED: bool = true;',b'STAGING_REUSE_ENABLED: bool = false;'));commit(root)
         control=matrix.source_identity(root)
-        self.assertEqual(matrix.canonical_hash(control['runtime_files_sha256']),matrix.AUDITED_RESIDENT_CONTROL_MANIFEST)
-        self.assertEqual({n for n in source['runtime_files_sha256'] if source['runtime_files_sha256'][n]!=control['runtime_files_sha256'][n]},{'src/frame_resident_policy.rs'})
+        self.assertEqual(matrix.canonical_hash(control['runtime_files_sha256']),matrix.AUDITED_STAGING_CONTROL_MANIFEST)
+        self.assertEqual({n for n in source['runtime_files_sha256'] if source['runtime_files_sha256'][n]!=control['runtime_files_sha256'][n]},{'src/frame_staging_policy.rs'})
     def test_new_or_previously_unbound_files_never_use_narrow_fallback(self):
-        for name in matrix.RESIDENT_SOURCE_PATHS[len(matrix.LOADER_SOURCE_PATHS):]:
+        for name in matrix.STAGING_SOURCE_PATHS[len(matrix.LOADER_SOURCE_PATHS):]:
             with self.subTest(name=name):
                 root=self.checkout();path=root/name;raw=path.read_bytes();path.write_bytes(raw+b'\n// Unreviewed mutation\n')
-                with self.assertRaisesRegex(ValueError,'Uncommitted resident source'):matrix.source_identity(root)
+                with self.assertRaisesRegex(ValueError,'Uncommitted staging source'):matrix.source_identity(root)
                 commit(root)
                 with self.assertRaisesRegex(ValueError,'cannot fall back'):matrix.source_identity(root)
     def test_missing_module_and_changed_old_runtime_are_rejected(self):
@@ -41,6 +41,26 @@ class SourceTests(unittest.TestCase):
             with self.subTest(name=name):
                 root=self.checkout();(root/name).unlink();commit(root)
                 with self.assertRaisesRegex(ValueError,'cannot fall back'):matrix.source_identity(root)
+    def test_separate_resident_cpu_control_preserves_enabled_staging(self):
+        root=self.checkout();candidate=matrix.source_identity(root);path=root/'src/frame_resident_policy.rs'
+        path.write_bytes(path.read_bytes().replace(b'ENABLED: bool = true;',b'ENABLED: bool = false;'));commit(root)
+        control=matrix.source_identity(root)
+        self.assertEqual(matrix.canonical_hash(control['runtime_files_sha256']),
+                         matrix.AUDITED_STAGING_RESIDENT_CPU_CONTROL_MANIFEST)
+        self.assertEqual({name for name in candidate['runtime_files_sha256']
+                          if candidate['runtime_files_sha256'][name]!=control['runtime_files_sha256'][name]},
+                         {'src/frame_resident_policy.rs'})
+        matrix.export_witness(root,root/'resident-control-witness')
+        self.assertEqual(matrix.artifact_source(root/'resident-control-witness',
+                         matrix.sha256(root/'resident-control-witness/SOURCE_WITNESS.json')),control)
+        path=root/'src/frame_staging_policy.rs'
+        path.write_bytes(path.read_bytes().replace(b'STAGING_REUSE_ENABLED: bool = true;',
+                                                   b'STAGING_REUSE_ENABLED: bool = false;'));commit(root)
+        with self.assertRaisesRegex(ValueError,'cannot fall back'): matrix.source_identity(root)
+        self.assertEqual(matrix.AUDITED_RESIDENT_CANDIDATE_MANIFEST,'c754f89052fc3812dbbdc9675a452b056a881696d3cf9fbd7398fc580bcbfe6f')
+        self.assertEqual(matrix.AUDITED_RESIDENT_CONTROL_MANIFEST,'4eeea34f29b7d20a24060af152e7cd2170322674a3d2c0abaad8603497a6ac6b')
+        for pin in (matrix.AUDITED_RESIDENT_CANDIDATE_MANIFEST,matrix.AUDITED_RESIDENT_CONTROL_MANIFEST):
+            self.assertEqual(matrix.audited_inventory(pin),matrix.RESIDENT_SOURCE_PATHS)
     def test_historical_loader_and_renderer_classes_keep_their_pins(self):
         self.assertEqual(matrix.AUDITED_AUTHORED_DEDUP_MANIFEST,'fff66052fe41e445d50eaf2ae689a29cc68b7d3c3d4502d21d147424c60d3e06')
         self.assertEqual(matrix.audited_inventory(matrix.AUDITED_AUTHORED_DEDUP_MANIFEST),matrix.LOADER_SOURCE_PATHS)

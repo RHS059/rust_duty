@@ -225,6 +225,17 @@ impl ResidentDraw {
             bound = palette.0.position_bounds.map(|row| {
                 (row[0] * bound[0] + row[1] * bound[1] + row[2] * bound[2] + row[3]) * 1.001
             });
+            // Bone multiplication precedes influence weighting and root. A
+            // later small weight or root cannot make an intermediate Inf safe.
+            // Absolute row bounds also cover partial sums without cancellation.
+            if bound
+                .iter()
+                .any(|value| !value.is_finite() || *value > f64::from(f32::MAX))
+            {
+                return Err(
+                    "resident bone-space position could overflow; use CPU reference".into(),
+                );
+            }
         }
         for row in root.transpose().to_cols_array_2d().into_iter().take(3) {
             let world = f64::from(row[0]).abs() * bound[0]
@@ -552,6 +563,74 @@ mod tests {
         )
         .is_err());
     }
+
+    #[test]
+    fn skin_intermediate_overflow_cannot_be_hidden_by_root_or_weight() {
+        let source = RigidVertex {
+            position: [10_000., 0., 0.],
+            normal: [0., 1., 0.],
+            uv: [0.; 2],
+        };
+        for (weight, root) in [
+            (1., Mat4::from_rotation_z(std::f32::consts::FRAC_PI_4)),
+            (0.0001, Mat4::from_scale(Vec3::splat(0.25))),
+        ] {
+            let mut weights = [0.; 8];
+            weights[0] = weight;
+            weights[1] = 1. - weight;
+            let skin = SkinVertex {
+                vertex: source,
+                joints: [0, 1, 1, 1, 1, 1, 1, 1],
+                weights,
+            };
+            let mesh = ResidentMesh::new(
+                Vertices::Skin {
+                    vertices: vec![skin; 3],
+                    bones: 2,
+                },
+                vec![0, 1, 2],
+                None,
+            )
+            .unwrap();
+            // The CPU path multiplies by each bone before weighting and root.
+            // A finite final f64 bound cannot undo this intermediate f32 Inf.
+            let overflowing = Mat4::from_scale(Vec3::new(4e34, 1., 1.));
+            let intermediate = overflowing.transform_point3(Vec3::from_array(source.position));
+            assert!(!intermediate.is_finite());
+            let mathematical_skin_x =
+                4e38_f64 * f64::from(weight) + 10_000. * f64::from(1. - weight);
+            let world_x = f64::from(root.x_axis.x).abs() * mathematical_skin_x;
+            assert!(world_x < f64::from(f32::MAX));
+            let palette = SkinPalette::new(vec![overflowing, Mat4::IDENTITY]).unwrap();
+            assert!(ResidentDraw::new(
+                mesh.clone(),
+                root,
+                SceneLighting::range(),
+                Color::WHITE,
+                1.,
+                Some(palette)
+            )
+            .is_err());
+
+            let finite = Mat4::from_scale(Vec3::new(3e34, 1., 1.));
+            let palette = SkinPalette::new(vec![finite, Mat4::IDENTITY]).unwrap();
+            let draw = ResidentDraw::new(
+                mesh,
+                root,
+                SceneLighting::range(),
+                Color::WHITE,
+                1.,
+                Some(palette),
+            )
+            .unwrap();
+            assert!(draw
+                .reference_mesh()
+                .vertices
+                .iter()
+                .all(|v| v.position.is_finite()));
+        }
+    }
+
     #[test]
     fn invalid_geometry_palette_and_zero_weight_joint_are_rejected() {
         assert!(ResidentMesh::new(Vertices::Rigid(vec![vertex()]), vec![0, 1, 2], None).is_err());

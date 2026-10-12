@@ -11,6 +11,7 @@ import summarize_frame_performance as frames
 SCHEMA_V1 = 'rust_duty_cpu_encode_detail_v1'
 SCHEMA_V2 = 'rust_duty_cpu_encode_detail_v2'
 SCHEMA_V3 = 'rust_duty_cpu_encode_detail_v3'
+SCHEMA_V4 = 'rust_duty_cpu_encode_detail_v4'
 # Keep historical imports stable; select the exact counter contract from each
 # input's schema rather than expanding v1 or fabricating unavailable values.
 SCHEMA = SCHEMA_V1
@@ -19,6 +20,8 @@ MEASUREMENT = 'cpu_wall_clock_nested_encode_phase_ns'
 INTERPRETATION = ('CPU call durations nested inside encode_submit and renderer_submit, not GPU time. '
                   'Parent and child durations must not be added. Missing or incomplete phases are '
                   'unavailable; counters on incomplete rows are observed partial values, not complete frame totals.')
+INTERPRETATION_V4 = INTERPRETATION + (' In v4, geometry_upload includes pooled staging copies; encoder creation is aggregate residual before geometry_upload. Staging retained bytes and pending buffers are upload-exit gauges, not cumulative allocations.')
+STAGING_POLICIES = ('bounded_staging_v1', 'queue_write_staging_v1')
 PHASES = ('frame_plan', 'geometry_upload', 'command_encoding', 'encoder_finish', 'queue_submit')
 COUNTERS_V1 = ('prepared_draws', 'text_characters', 'upload_arenas', 'vertex_bytes', 'index_bytes',
                'uniform_bytes', 'draw_calls', 'render_passes', 'texture_cache_misses', 'pipeline_cache_misses')
@@ -26,6 +29,9 @@ COUNTERS_V2 = COUNTERS_V1 + ('gpu_buffer_allocations', 'gpu_buffer_reuses',
                              'gpu_buffer_allocated_bytes', 'transform_binding_allocations',
                              'uncached_upload_arenas')
 COUNTERS_V3 = COUNTERS_V2 + ('resident_draws', 'resident_rigid_draws', 'resident_skinned_draws', 'resident_vertex_bytes_uploaded', 'resident_index_bytes_uploaded', 'resident_uniform_bytes_uploaded', 'resident_cache_hits', 'resident_cache_misses', 'resident_transient_meshes', 'resident_buffer_allocations', 'resident_binding_allocations')
+STAGING_FIELDS = ('staging_buffer_allocations', 'staging_buffer_reuses', 'staging_buffer_allocated_bytes', 'staging_copy_bytes', 'staging_queue_write_calls', 'staging_queue_write_bytes', 'staging_fallback_arenas', 'staging_retained_bytes', 'staging_pending_buffers', 'staging_map_failures')
+COUNTERS_V4 = COUNTERS_V3 + STAGING_FIELDS
+STAGING_GAUGES = ('staging_retained_bytes', 'staging_pending_buffers')
 COUNTERS = COUNTERS_V1
 MAX_ERROR_BYTES = 256
 # Reuse the exact-byte bounded reader, duplicate-key rejection and finite-number
@@ -105,6 +111,50 @@ def validate_resident_counters(counters):
                     'resident snapshot bytes contradict draws')
 
 
+
+def validate_staging_counters(counters, policy):
+    """Complete cached arenas use one whole-group source route before submit.
+
+    Immutable uncached arenas and resident uploads are outside this source pool.
+    Pending/retained observations are bounded upload-exit gauges. No relationship
+    interprets them as total driver memory or silently completes partial rows.
+    """
+    groups = counters['upload_arenas'] - counters['uncached_upload_arenas']
+    allocated = counters['staging_buffer_allocations']
+    reused = counters['staging_buffer_reuses']
+    fallback = counters['staging_fallback_arenas']
+    pooled = allocated + reused
+    copied = counters['staging_copy_bytes']
+    written = counters['staging_queue_write_bytes']
+    retained = counters['staging_retained_bytes']
+    pending = counters['staging_pending_buffers']
+    new_bytes = counters['staging_buffer_allocated_bytes']
+    frames._require(groups >= 0 and pooled + fallback == groups,
+                    'staging routes do not match cached nonempty arenas')
+    frames._require(counters['staging_queue_write_calls'] == 3 * fallback,
+                    'staging fallback must write all three arena buffers')
+    frames._require((copied == 0) == (pooled == 0) and copied >= pooled * 12 and copied % 4 == 0
+                    and (written == 0) == (fallback == 0) and written >= fallback * 12 and written % 4 == 0,
+                    'staging payload bytes contradict routes')
+    frames._require((new_bytes == 0) == (allocated == 0) and new_bytes >= allocated * 8
+                    and new_bytes % 8 == 0 and new_bytes <= retained <= 64 * 1024 * 1024
+                    and retained % 8 == 0 and pooled <= pending <= 8
+                    and retained >= pending * 8 and copied <= retained,
+                    'staging live capacity or pending ownership contradicts bounds')
+    frames._require(counters['staging_map_failures'] == 0,
+                    'complete staging upload cannot contain a map failure')
+    payload = counters['vertex_bytes'] + counters['index_bytes'] + counters['uniform_bytes']
+    frames._require(copied + written <= payload + 2 * counters['upload_arenas'],
+                    'staging transfers exceed padded arena payloads')
+    if counters['uncached_upload_arenas'] == 0:
+        padding = copied + written - payload
+        frames._require(0 <= padding <= 2 * groups and padding % 2 == 0,
+                        'staging transfers do not preserve complete padded payloads')
+    if policy == 'queue_write_staging_v1':
+        frames._require(not any((allocated, reused, new_bytes, copied, retained, pending)),
+                        'pooled staging observations contradict queue-write policy')
+
+
 def validate(detail, substage, primary, primary_digest):
     """Validate all three contracts and join every retained CPU frame attempt."""
     frames._require(isinstance(primary_digest, str) and len(primary_digest) == 64
@@ -113,21 +163,24 @@ def validate(detail, substage, primary, primary_digest):
     substages.validate(substage, primary, primary_digest)
     validate_instance_descriptor(primary)
     frames._finite_tree(detail)
-    v3 = isinstance(detail, dict) and detail.get('schema') == SCHEMA_V3
-    v2 = isinstance(detail, dict) and detail.get('schema') in (SCHEMA_V2, SCHEMA_V3)
+    v4 = isinstance(detail, dict) and detail.get('schema') == SCHEMA_V4
+    v3 = isinstance(detail, dict) and detail.get('schema') in (SCHEMA_V3, SCHEMA_V4)
+    v2 = isinstance(detail, dict) and detail.get('schema') in (SCHEMA_V2, SCHEMA_V3, SCHEMA_V4)
     fields = ('schema', 'measurement', 'interpretation', 'frame_report_sha256',
-              'frame_status', 'samples') + (('upload_policy',) if v2 else ()) + (('resident_policy',) if v3 else ())
+              'frame_status', 'samples') + (('upload_policy',) if v2 else ()) + (('resident_policy',) if v3 else ()) + (('staging_policy',) if v4 else ())
     frames._object(detail, fields, 'CPU encode detail sidecar')
-    frames._require(detail['schema'] in (SCHEMA_V1, SCHEMA_V2, SCHEMA_V3),
+    frames._require(detail['schema'] in (SCHEMA_V1, SCHEMA_V2, SCHEMA_V3, SCHEMA_V4),
                     'CPU encode detail binding differs: schema')
     if v2:
         frames._require(detail['upload_policy'] in UPLOAD_POLICIES,
                         'unsupported CPU encode upload_policy')
     if v3:
         frames._require(detail['resident_policy'] in ('vertex_lit_skin_v1', 'cpu_vertex_reference_v1'), 'unsupported resident_policy')
-    counter_names = COUNTERS_V3 if v3 else COUNTERS_V2 if v2 else COUNTERS_V1
+    if v4:
+        frames._require(detail['staging_policy'] in STAGING_POLICIES, 'unsupported staging_policy')
+    counter_names = COUNTERS_V4 if v4 else COUNTERS_V3 if v3 else COUNTERS_V2 if v2 else COUNTERS_V1
     for field, expected in (('measurement', MEASUREMENT),
-                            ('interpretation', INTERPRETATION),
+                            ('interpretation', INTERPRETATION_V4 if v4 else INTERPRETATION),
                             ('frame_report_sha256', primary_digest),
                             ('frame_status', primary['status'])):
         frames._require(detail[field] == expected, 'CPU encode detail binding differs: ' + field)
@@ -161,6 +214,8 @@ def validate(detail, substage, primary, primary_digest):
             if detail['resident_policy'] == 'cpu_vertex_reference_v1':
                 frames._require(all(counters[name] == 0 for name in COUNTERS_V3[len(COUNTERS_V2):]),
                                 'resident observations contradict CPU reference policy')
+        if v4 and complete:
+            validate_staging_counters(counters, detail['staging_policy'])
         spans = details['spans']
         frames._require(isinstance(spans, list) and len(spans) <= len(PHASES),
                         'encode phase capacity exceeded')
@@ -207,7 +262,7 @@ def counter_statistics(values):
 
 def summarize(detail, substage, primary, primary_digest):
     validate(detail, substage, primary, primary_digest)
-    counter_names = COUNTERS_V3 if detail['schema'] == SCHEMA_V3 else COUNTERS_V2 if detail['schema'] == SCHEMA_V2 else COUNTERS_V1
+    counter_names = COUNTERS_V4 if detail['schema'] == SCHEMA_V4 else COUNTERS_V3 if detail['schema'] == SCHEMA_V3 else COUNTERS_V2 if detail['schema'] == SCHEMA_V2 else COUNTERS_V1
     values = {phase: [] for phase in PHASES}
     counters = {name: [] for name in counter_names}
     incomplete = sum(sample['details']['state'] != 'complete' for sample in detail['samples'])
@@ -244,10 +299,16 @@ def summarize(detail, substage, primary, primary_digest):
                                'per_frame_total_ns': substages.statistics(values[phase])}
                        for phase in PHASES},
             'counters': {name: counter_statistics(counters[name]) for name in counter_names}}
-    if detail['schema'] in (SCHEMA_V2, SCHEMA_V3):
+    if detail['schema'] in (SCHEMA_V2, SCHEMA_V3, SCHEMA_V4):
         result['upload_policy'] = detail['upload_policy']
-    if detail['schema'] == SCHEMA_V3:
+    if detail['schema'] in (SCHEMA_V3, SCHEMA_V4):
         result['resident_policy'] = detail['resident_policy']
+    if detail['schema'] == SCHEMA_V4:
+        result['staging_policy'] = detail['staging_policy']
+        result['gauges'] = {name: result['counters'].pop(name) for name in STAGING_GAUGES}
+        for observation in result['gauges'].values():
+            del observation['total']
+        result['scope'] += (' Geometry upload includes pooled staging copies; encoder creation is encode_submit residual before that phase. Staging gauges describe retained source capacity and pending sources at upload exit, not cumulative allocation totals. GPU command-span timestamps start after staged copies and exclude them.')
     return result
 
 

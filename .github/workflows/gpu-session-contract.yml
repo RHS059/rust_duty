@@ -68,7 +68,7 @@ jobs:
         run: >-
           python -m unittest -v test_gpu_session_contract test_summarize_gpu_timing
           test_dx12_contract_process test_gpu_session_workflow
-          test_summarize_cpu_encode_detail test_cpu_encode_substages test_cpu_encode_detail_source
+          test_summarize_cpu_encode_detail test_staging_encode_detail test_cpu_encode_substages test_cpu_encode_detail_source
       - name: Build and verify enabled and default-off production session paths
         timeout-minutes: 24
         run: >-

@@ -1,13 +1,21 @@
-//! Bounded destination buffers. Queue staging remains owned by wgpu.
+//! Bounded destination buffers with an additive bounded staging-source seam.
 //!
 //! Each slot is written once per frame, after the preceding frame's submit.
-//! Queue writes execute before this frame's commands and after older submits;
+//! Legacy queue writes and explicit staged copies follow older submissions;
 //! no mapped destination, wait, poll, extra submit, or explicit destroy is used.
 use super::{
     arena::{FrameArena, MATRIX_BYTES},
     mesh::{FrameGeometry, Pipelines},
 };
 use crate::frame_performance_session::{add_encode_counter, EncodeCounter};
+
+#[path = "upload_staging.rs"]
+mod staging;
+pub(super) use staging::StagingStats;
+
+#[cfg(all(test, target_os = "windows"))]
+#[path = "upload_staging_tests.rs"]
+mod staging_tests;
 
 pub(super) const MAX_SLOTS: usize = 8;
 pub(super) const RETAINED_BYTES: u64 = 64 * 1024 * 1024;
@@ -34,6 +42,7 @@ pub(super) struct UploadCache {
     active: bool,
     used: u8,
     pub stats: UploadStats,
+    staging: staging::StagingPool,
 }
 impl Default for UploadCache {
     fn default() -> Self {
@@ -44,6 +53,7 @@ impl Default for UploadCache {
             active: false,
             used: 0,
             stats: UploadStats::default(),
+            staging: staging::StagingPool::default(),
         }
     }
 }
@@ -55,6 +65,45 @@ impl UploadCache {
             budget,
             ..Self::default()
         }
+    }
+
+    #[cfg(all(test, target_os = "windows"))]
+    pub fn for_staging_test(
+        enabled: bool,
+        destination_budget: u64,
+        staging_budget: u64,
+        staging_slots: usize,
+    ) -> Self {
+        Self {
+            enabled: true,
+            budget: destination_budget,
+            staging: staging::StagingPool::for_test(enabled, staging_budget, staging_slots),
+            ..Self::default()
+        }
+    }
+
+    #[cfg(all(test, target_os = "windows"))]
+    pub fn hold_ready_for_test(&mut self, hold: bool) {
+        self.staging.hold_ready_for_test(hold);
+    }
+
+    /// Additive integration seam; the legacy caller remains queue-write-only.
+    #[allow(dead_code)]
+    pub fn begin_frame_with_device(&mut self, device: &wgpu::Device) -> Result<(), String> {
+        self.begin_frame()?;
+        self.staging.begin(device)
+    }
+
+    /// Aella's combined v3 instrumentation reads these without changing the
+    /// historical destination-allocation counters.
+    #[allow(dead_code)]
+    pub fn staging_stats(&self) -> StagingStats {
+        self.staging.stats()
+    }
+
+    #[allow(dead_code)]
+    pub fn staging_policy_identity() -> &'static str {
+        staging::policy::identity()
     }
 
     pub fn begin_frame(&mut self) -> Result<(), String> {
@@ -70,6 +119,7 @@ impl UploadCache {
 
     /// Call only after Queue::submit. Idle slots are explicitly trimmed here.
     pub fn submitted(&mut self) {
+        self.staging.submitted();
         for (index, slot) in self.slots.iter_mut().enumerate() {
             if self.used & (1 << index) == 0 {
                 *slot = None;
@@ -82,6 +132,7 @@ impl UploadCache {
     /// Pending writes after a failed encode retain their old destinations inside
     /// wgpu; fresh slots cannot alias those abandoned destinations next frame.
     pub fn clear(&mut self) {
+        self.staging.clear();
         self.slots = std::array::from_fn(|_| None);
         self.active = false;
         self.used = 0;
@@ -95,6 +146,8 @@ impl UploadCache {
             .sum()
     }
 
+    // Retain the original queue-write API for independent reference fixtures.
+    #[allow(dead_code)]
     pub fn upload(
         &mut self,
         device: &wgpu::Device,
@@ -102,6 +155,34 @@ impl UploadCache {
         pipelines: &Pipelines,
         index: usize,
         arena: &FrameArena,
+    ) -> Result<Option<FrameGeometry>, String> {
+        self.upload_inner(device, queue, pipelines, index, arena, None)
+    }
+
+    /// Copies are recorded before the caller's timestamp start/draws. The caller
+    /// keeps its single submit and calls submitted immediately after it returns.
+    #[allow(dead_code, clippy::too_many_arguments)]
+    pub fn upload_with_encoder(
+        &mut self,
+        device: &wgpu::Device,
+        queue: &wgpu::Queue,
+        pipelines: &Pipelines,
+        index: usize,
+        arena: &FrameArena,
+        encoder: &mut wgpu::CommandEncoder,
+    ) -> Result<Option<FrameGeometry>, String> {
+        self.upload_inner(device, queue, pipelines, index, arena, Some(encoder))
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    fn upload_inner(
+        &mut self,
+        device: &wgpu::Device,
+        queue: &wgpu::Queue,
+        pipelines: &Pipelines,
+        index: usize,
+        arena: &FrameArena,
+        encoder: Option<&mut wgpu::CommandEncoder>,
     ) -> Result<Option<FrameGeometry>, String> {
         if !self.active {
             return Err("frame upload requires begin_frame".into());
@@ -193,20 +274,29 @@ impl UploadCache {
             transform,
         });
         let slot = self.slots[index].as_ref().expect("inserted upload slot");
-        // Preflight all lengths/capacities before the first write. write_buffer_with
-        // lets odd-u16 index payloads receive zero padding without a CPU scratch Vec.
-        for i in 0..3 {
-            let mut staging = queue
-                .write_buffer_with(
-                    &slot.buffers[i],
-                    0,
-                    wgpu::BufferSize::new(sizes[i]).expect("nonempty arena payload"),
-                )
-                .ok_or("cannot stage frame geometry upload")?;
-            staging
-                .slice(..contents[i].len())
-                .copy_from_slice(contents[i]);
-            staging.slice(contents[i].len()..).fill(0);
+        if let Some(encoder) = encoder {
+            let writes = std::array::from_fn::<_, 3, _>(|i| staging::UploadSlice {
+                destination: &slot.buffers[i],
+                offset: 0,
+                bytes: contents[i],
+            });
+            self.staging.upload(queue, encoder, &writes)?;
+        } else {
+            // Preflight all lengths/capacities before the first write. write_buffer_with
+            // lets odd-u16 index payloads receive zero padding without a CPU scratch Vec.
+            for i in 0..3 {
+                let mut staging = queue
+                    .write_buffer_with(
+                        &slot.buffers[i],
+                        0,
+                        wgpu::BufferSize::new(sizes[i]).expect("nonempty arena payload"),
+                    )
+                    .ok_or("cannot stage frame geometry upload")?;
+                staging
+                    .slice(..contents[i].len())
+                    .copy_from_slice(contents[i]);
+                staging.slice(contents[i].len()..).fill(0);
+            }
         }
         Ok(Some(FrameGeometry {
             vertices: slot.buffers[0].clone(),

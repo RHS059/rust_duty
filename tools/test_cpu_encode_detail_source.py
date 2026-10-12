@@ -28,7 +28,7 @@ class CpuEncodeDetailSourceTests(unittest.TestCase):
         subprocess.run(['git', 'init', '-q', str(root)], check=True, capture_output=True)
         subprocess.run(['git', '-C', str(root), 'config', 'core.autocrlf', 'false'],
                        check=True, capture_output=True)
-        for name in matrix.RESIDENT_SOURCE_PATHS:
+        for name in matrix.STAGING_SOURCE_PATHS:
             path = root / name
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_bytes((ROOT / name).read_bytes())
@@ -43,11 +43,11 @@ class CpuEncodeDetailSourceTests(unittest.TestCase):
 
     def test_current_detail_inventory_has_its_own_exact_digest(self):
         hashes = {name: hashlib.sha256((ROOT / name).read_bytes()).hexdigest()
-                  for name in matrix.RESIDENT_SOURCE_PATHS}
-        self.assertEqual(len(hashes), len(matrix.RESIDENT_SOURCE_PATHS))
-        self.assertEqual(matrix.canonical_hash(hashes), matrix.AUDITED_RESIDENT_CANDIDATE_MANIFEST)
-        self.assertEqual(matrix.audited_inventory(matrix.AUDITED_RESIDENT_CANDIDATE_MANIFEST),
-                         matrix.RESIDENT_SOURCE_PATHS)
+                  for name in matrix.STAGING_SOURCE_PATHS}
+        self.assertEqual(len(hashes), len(matrix.STAGING_SOURCE_PATHS))
+        self.assertEqual(matrix.canonical_hash(hashes), matrix.AUDITED_STAGING_CANDIDATE_MANIFEST)
+        self.assertEqual(matrix.audited_inventory(matrix.AUDITED_STAGING_CANDIDATE_MANIFEST),
+                         matrix.STAGING_SOURCE_PATHS)
         self.assertIn('src/frame_encode_detail.rs', hashes)
         self.assertIn('src/render/arena.rs', hashes)
         self.assertIn('Cargo.toml', hashes)
@@ -121,7 +121,7 @@ class CpuEncodeDetailSourceTests(unittest.TestCase):
         root = self.checkout()
         path = root / 'src/frame_encode_detail.rs'
         path.write_bytes(path.read_bytes() + b'\n// Synthetic unreviewed change.\n')
-        with self.assertRaisesRegex(ValueError, 'Uncommitted resident source'):
+        with self.assertRaisesRegex(ValueError, 'Uncommitted staging source'):
             matrix.source_identity(root)
         commit(root)
         with self.assertRaisesRegex(ValueError, 'cannot fall back'):

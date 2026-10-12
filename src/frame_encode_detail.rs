@@ -9,12 +9,14 @@ use std::path::{Path, PathBuf};
 
 #[path = "frame_resident_policy.rs"]
 pub mod resident_policy;
+#[path = "frame_staging_policy.rs"]
+pub mod staging_policy;
 #[path = "frame_upload_policy.rs"]
 pub mod upload_policy;
 
-pub const SCHEMA: &str = "rust_duty_cpu_encode_detail_v3";
+pub const SCHEMA: &str = "rust_duty_cpu_encode_detail_v4";
 pub const MEASUREMENT: &str = "cpu_wall_clock_nested_encode_phase_ns";
-pub const INTERPRETATION: &str = "CPU call durations nested inside encode_submit and renderer_submit, not GPU time. Parent and child durations must not be added. Missing or incomplete phases are unavailable; counters on incomplete rows are observed partial values, not complete frame totals.";
+pub const INTERPRETATION: &str = "CPU call durations nested inside encode_submit and renderer_submit, not GPU time. Parent and child durations must not be added. Missing or incomplete phases are unavailable; counters on incomplete rows are observed partial values, not complete frame totals. In v4, geometry_upload includes pooled staging copies; encoder creation is aggregate residual before geometry_upload. Staging retained bytes and pending buffers are upload-exit gauges, not cumulative allocations.";
 pub const MAX_SPANS: usize = 5;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -77,9 +79,19 @@ pub enum EncodeCounter {
     ResidentTransientMeshes,
     ResidentBufferAllocations,
     ResidentBindingAllocations,
+    StagingBufferAllocations,
+    StagingBufferReuses,
+    StagingBufferAllocatedBytes,
+    StagingCopyBytes,
+    StagingQueueWriteCalls,
+    StagingQueueWriteBytes,
+    StagingFallbackArenas,
+    StagingRetainedBytes,
+    StagingPendingBuffers,
+    StagingMapFailures,
 }
 impl EncodeCounter {
-    const ALL: [Self; 26] = [
+    const ALL: [Self; 36] = [
         Self::PreparedDraws,
         Self::TextCharacters,
         Self::UploadArenas,
@@ -106,6 +118,16 @@ impl EncodeCounter {
         Self::ResidentTransientMeshes,
         Self::ResidentBufferAllocations,
         Self::ResidentBindingAllocations,
+        Self::StagingBufferAllocations,
+        Self::StagingBufferReuses,
+        Self::StagingBufferAllocatedBytes,
+        Self::StagingCopyBytes,
+        Self::StagingQueueWriteCalls,
+        Self::StagingQueueWriteBytes,
+        Self::StagingFallbackArenas,
+        Self::StagingRetainedBytes,
+        Self::StagingPendingBuffers,
+        Self::StagingMapFailures,
     ];
     pub fn label(self) -> &'static str {
         match self {
@@ -135,6 +157,16 @@ impl EncodeCounter {
             Self::ResidentTransientMeshes => "resident_transient_meshes",
             Self::ResidentBufferAllocations => "resident_buffer_allocations",
             Self::ResidentBindingAllocations => "resident_binding_allocations",
+            Self::StagingBufferAllocations => "staging_buffer_allocations",
+            Self::StagingBufferReuses => "staging_buffer_reuses",
+            Self::StagingBufferAllocatedBytes => "staging_buffer_allocated_bytes",
+            Self::StagingCopyBytes => "staging_copy_bytes",
+            Self::StagingQueueWriteCalls => "staging_queue_write_calls",
+            Self::StagingQueueWriteBytes => "staging_queue_write_bytes",
+            Self::StagingFallbackArenas => "staging_fallback_arenas",
+            Self::StagingRetainedBytes => "staging_retained_bytes",
+            Self::StagingPendingBuffers => "staging_pending_buffers",
+            Self::StagingMapFailures => "staging_map_failures",
         }
     }
 }
@@ -147,7 +179,7 @@ struct EncodeSpan {
 }
 
 /// All per-call state is fixed storage. Counter updates never read a clock.
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug)]
 pub(crate) struct CpuEncodeDetails {
     spans: [Option<EncodeSpan>; MAX_SPANS],
     count: usize,
@@ -159,6 +191,22 @@ pub(crate) struct CpuEncodeDetails {
     first_phase_started: bool,
     success: bool,
     error: Option<&'static str>,
+}
+impl Default for CpuEncodeDetails {
+    fn default() -> Self {
+        Self {
+            spans: [None; MAX_SPANS],
+            count: 0,
+            open: None,
+            parent_start: None,
+            parent_end: None,
+            counters: [0; EncodeCounter::ALL.len()],
+            observed: false,
+            first_phase_started: false,
+            success: false,
+            error: None,
+        }
+    }
 }
 impl CpuEncodeDetails {
     pub fn invalidate(&mut self, error: &'static str) {
@@ -457,7 +505,7 @@ impl CpuEncodeCapture {
                 "details":details.to_json()}));
         }
         let value = json!({"schema":SCHEMA,"measurement":MEASUREMENT,
-            "upload_policy":upload_policy::identity(), "resident_policy":resident_policy::identity(),
+            "upload_policy":upload_policy::identity(), "resident_policy":resident_policy::identity(), "staging_policy":staging_policy::identity(),
             "interpretation":INTERPRETATION,"frame_report_sha256":digest,
             "frame_status":primary["status"],"samples":samples});
         let path = frame_path.with_extension("cpu-encode-detail.json");
@@ -524,7 +572,7 @@ mod tests {
         assert_eq!(value["spans"][4]["duration_ns"], 5);
     }
     #[test]
-    fn v3_counters_are_exact_fixed_storage_per_attempt_sums() {
+    fn v4_counters_are_exact_fixed_storage_per_attempt_sums() {
         let names = [
             "prepared_draws",
             "text_characters",
@@ -552,6 +600,16 @@ mod tests {
             "resident_transient_meshes",
             "resident_buffer_allocations",
             "resident_binding_allocations",
+            "staging_buffer_allocations",
+            "staging_buffer_reuses",
+            "staging_buffer_allocated_bytes",
+            "staging_copy_bytes",
+            "staging_queue_write_calls",
+            "staging_queue_write_bytes",
+            "staging_fallback_arenas",
+            "staging_retained_bytes",
+            "staging_pending_buffers",
+            "staging_map_failures",
         ];
         let mut details = CpuEncodeDetails::default();
         assert_eq!(details.counters.len(), names.len());
@@ -606,7 +664,7 @@ mod tests {
         }
     }
     #[test]
-    fn writer_emits_v3_with_explicit_upload_and_resident_policies() {
+    fn writer_emits_v4_with_explicit_upload_resident_and_staging_policies() {
         let directory = std::env::temp_dir().join(format!(
             "rust-duty-encode-v2-{}-{}",
             std::process::id(),
@@ -626,10 +684,11 @@ mod tests {
         capture.retain(CpuEncodeDetails::default());
         let output = capture.write_new(&frame_path).unwrap().unwrap();
         let value: Value = serde_json::from_slice(&std::fs::read(&output).unwrap()).unwrap();
-        assert_eq!(value["schema"], "rust_duty_cpu_encode_detail_v3");
+        assert_eq!(value["schema"], "rust_duty_cpu_encode_detail_v4");
         assert_eq!(value["upload_policy"], upload_policy::identity());
         assert_eq!(value["resident_policy"], resident_policy::identity());
-        assert_eq!(value.as_object().unwrap().len(), 8);
+        assert_eq!(value["staging_policy"], staging_policy::identity());
+        assert_eq!(value.as_object().unwrap().len(), 9);
         assert_eq!(
             value["frame_report_sha256"],
             rust_duty_launcher::bytes_hash(&bytes)

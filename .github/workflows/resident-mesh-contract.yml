@@ -64,7 +64,7 @@ jobs:
       - name: Test exact readers and source workflow
         env:
           PYTHONPATH: tools
-        run: python -m unittest -v test_resident_encode_detail test_summarize_cpu_encode_detail test_cpu_encode_substages test_summarize_cpu_substages test_resident_mesh_workflow test_renderer_contract test_dx12_contract_process
+        run: python -m unittest -v test_resident_encode_detail test_summarize_cpu_encode_detail test_staging_encode_detail test_cpu_encode_substages test_summarize_cpu_substages test_resident_mesh_workflow test_renderer_contract test_dx12_contract_process
       - name: Test pure geometry, recorder, shader and production routing
         run: cargo test --locked --no-default-features --features wgpu-runtime --lib --bin vector-range
       - name: Check formatting and Clippy

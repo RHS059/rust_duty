@@ -101,6 +101,13 @@ RESIDENT_SOURCE_PATHS = (*LOADER_SOURCE_PATHS, *RESIDENT_NEW_PATHS,
                          'src/draw/facade.rs', 'src/legacy_macroquad/mod.rs')
 AUDITED_RESIDENT_CANDIDATE_MANIFEST = 'c754f89052fc3812dbbdc9675a452b056a881696d3cf9fbd7398fc580bcbfe6f'
 AUDITED_RESIDENT_CONTROL_MANIFEST = '4eeea34f29b7d20a24060af152e7cd2170322674a3d2c0abaad8603497a6ac6b'
+# The staging source pool has its own expanded class and one-line control.
+STAGING_NEW_PATHS = ('src/frame_staging_policy.rs', 'src/render/upload_staging.rs', 'src/render/upload_staging_layout.rs')
+STAGING_SOURCE_PATHS = (*RESIDENT_SOURCE_PATHS, *STAGING_NEW_PATHS)
+AUDITED_STAGING_CANDIDATE_MANIFEST = 'fc6c5bc8b09562dea007388988dc610b8f3b91c479be4eb4ba1cedb3d0953402'
+AUDITED_STAGING_CONTROL_MANIFEST = 'f91a20a9445b96ca3e0ddbc13449ea574470ce9ec0700b3a79984be694dd54aa'
+# Separate resident on/off pair with staging enabled identically on both sides.
+AUDITED_STAGING_RESIDENT_CPU_CONTROL_MANIFEST = '7a3524dceb1fa8042fb5c3060047e4ed64fc7cc0a8dcf15c5c9c832d01c7c06c'
 
 
 
@@ -157,6 +164,9 @@ def canonical_hash(value):
 
 
 def audited_inventory(digest):
+    if digest in (AUDITED_STAGING_CANDIDATE_MANIFEST, AUDITED_STAGING_CONTROL_MANIFEST,
+                  AUDITED_STAGING_RESIDENT_CPU_CONTROL_MANIFEST):
+        return STAGING_SOURCE_PATHS
     if digest in (AUDITED_RESIDENT_CANDIDATE_MANIFEST, AUDITED_RESIDENT_CONTROL_MANIFEST):
         return RESIDENT_SOURCE_PATHS
     if digest == AUDITED_AUTHORED_DEDUP_MANIFEST:
@@ -182,6 +192,20 @@ def audited_inventory(digest):
 def source_identity(repository):
     repository = Path(repository)
     commit = subprocess.check_output(['git', '-C', str(repository), 'rev-parse', 'HEAD'], text=True).strip()
+    if any((repository / name).exists() or (repository / name).is_symlink() for name in STAGING_NEW_PATHS):
+        result = {}
+        for name in STAGING_SOURCE_PATHS:
+            path = repository / name
+            require(path.is_file() and not path.is_symlink(),
+                    'Staging inventory is missing; cannot fall back to a historical witness: ' + name)
+            data = path.read_bytes()
+            committed = subprocess.check_output(['git', '-C', str(repository), 'show', commit + ':' + name])
+            require(data == committed, 'Uncommitted staging source: ' + name)
+            result[name] = hashlib.sha256(data).hexdigest()
+        require(canonical_hash(result) in (AUDITED_STAGING_CANDIDATE_MANIFEST, AUDITED_STAGING_CONTROL_MANIFEST,
+                  AUDITED_STAGING_RESIDENT_CPU_CONTROL_MANIFEST),
+                'Staging source changed; cannot fall back to a narrower historical witness')
+        return {'commit': commit, 'runtime_files_sha256': result}
     if any((repository / name).exists() or (repository / name).is_symlink() for name in RESIDENT_NEW_PATHS):
         result = {}
         for name in RESIDENT_SOURCE_PATHS:

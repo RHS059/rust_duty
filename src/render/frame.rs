@@ -136,42 +136,61 @@ impl WgpuRenderer {
         if performance::encode_details_active() {
             record_plan_counts(list, &plan);
         }
+        // One encoder owns staging copies and draws. Creation stays within the
+        // EncodeSubmit aggregate, before the measured GeometryUpload child.
+        let mut encoder = self
+            .gpu
+            .device
+            .create_command_encoder(&wgpu::CommandEncoderDescriptor {
+                label: Some("ordered presentation frame"),
+            });
         let (geometry, residents) =
             performance::measure_encode_phase(EncodePhase::GeometryUpload, || {
-                self.upload_cache.begin_frame()?;
-                let geometry = plan
-                    .arenas
-                    .iter()
-                    .enumerate()
-                    .map(|(index, arena)| {
-                        if performance::encode_details_active() {
-                            if let Some([vertices, indices, matrices]) = arena.buffer_contents() {
-                                performance::add_encode_counter(EncodeCounter::UploadArenas, 1);
-                                performance::add_encode_counter(
-                                    EncodeCounter::VertexBytes,
-                                    vertices.len() as u64,
-                                );
-                                performance::add_encode_counter(
-                                    EncodeCounter::IndexBytes,
-                                    indices.len() as u64,
-                                );
-                                performance::add_encode_counter(
-                                    EncodeCounter::UniformBytes,
-                                    matrices.len() as u64,
-                                );
+                let result = (|| {
+                    self.upload_cache
+                        .begin_frame_with_device(&self.gpu.device)?;
+                    let geometry = plan
+                        .arenas
+                        .iter()
+                        .enumerate()
+                        .map(|(index, arena)| {
+                            if performance::encode_details_active() {
+                                if let Some([vertices, indices, matrices]) = arena.buffer_contents()
+                                {
+                                    performance::add_encode_counter(EncodeCounter::UploadArenas, 1);
+                                    performance::add_encode_counter(
+                                        EncodeCounter::VertexBytes,
+                                        vertices.len() as u64,
+                                    );
+                                    performance::add_encode_counter(
+                                        EncodeCounter::IndexBytes,
+                                        indices.len() as u64,
+                                    );
+                                    performance::add_encode_counter(
+                                        EncodeCounter::UniformBytes,
+                                        matrices.len() as u64,
+                                    );
+                                }
                             }
-                        }
-                        self.upload_cache.upload(
-                            &self.gpu.device,
-                            &self.gpu.queue,
-                            &self.pipelines,
-                            index,
-                            arena,
-                        )
-                    })
-                    .collect::<Result<Vec<_>, String>>()?;
-                let residents = self.resident.prepare(&self.gpu.device, &plan.residents)?;
-                Ok::<_, String>((geometry, residents))
+                            self.upload_cache.upload_with_encoder(
+                                &self.gpu.device,
+                                &self.gpu.queue,
+                                &self.pipelines,
+                                index,
+                                arena,
+                                &mut encoder,
+                            )
+                        })
+                        .collect::<Result<Vec<_>, String>>()?;
+                    let residents = self.resident.prepare(&self.gpu.device, &plan.residents)?;
+                    Ok::<_, String>((geometry, residents))
+                })();
+                // Snapshot exactly once even on upload failure. Incomplete rows
+                // retain partial observations; gauges are sampled before submit.
+                if performance::encode_details_active() {
+                    record_staging_counts(self.upload_cache.staging_stats());
+                }
+                result
             })?;
         if let Some(frame) = &residents {
             performance::add_encode_counter(EncodeCounter::ResidentDraws, frame.counts.draws);
@@ -218,12 +237,8 @@ impl WgpuRenderer {
         }
         let (encoder, mut timing, readbacks) =
             performance::measure_encode_phase(EncodePhase::CommandEncoding, || {
-                let mut encoder =
-                    self.gpu
-                        .device
-                        .create_command_encoder(&wgpu::CommandEncoderDescriptor {
-                            label: Some("ordered presentation frame"),
-                        });
+                // Copies precede the start query. These GPU timestamps continue
+                // to describe the explicit draw span, excluding upload copies.
                 let mut timing = if let Some(registration) = self.gpu.gpu_diagnostics {
                     performance::gpu_frame_key().and_then(|key| {
                         crate::frame_gpu_capture::begin_gpu_frame(registration, key, &mut encoder)
@@ -480,6 +495,46 @@ fn plan_counts(list: &DrawList, plan: &FramePlan) -> (u64, u64) {
         .count() as u64;
     (prepared_draws, text_characters)
 }
+fn record_staging_counts(stats: super::upload_cache::StagingStats) {
+    performance::add_encode_counter(
+        EncodeCounter::StagingBufferAllocations,
+        stats.staging_buffer_allocations,
+    );
+    performance::add_encode_counter(
+        EncodeCounter::StagingBufferReuses,
+        stats.staging_buffer_reuses,
+    );
+    performance::add_encode_counter(
+        EncodeCounter::StagingBufferAllocatedBytes,
+        stats.staging_buffer_allocated_bytes,
+    );
+    performance::add_encode_counter(EncodeCounter::StagingCopyBytes, stats.staging_copy_bytes);
+    performance::add_encode_counter(
+        EncodeCounter::StagingQueueWriteCalls,
+        stats.staging_queue_write_calls,
+    );
+    performance::add_encode_counter(
+        EncodeCounter::StagingQueueWriteBytes,
+        stats.staging_queue_write_bytes,
+    );
+    performance::add_encode_counter(
+        EncodeCounter::StagingFallbackArenas,
+        stats.staging_fallback_arenas,
+    );
+    performance::add_encode_counter(
+        EncodeCounter::StagingRetainedBytes,
+        stats.staging_retained_bytes,
+    );
+    performance::add_encode_counter(
+        EncodeCounter::StagingPendingBuffers,
+        stats.staging_pending_buffers,
+    );
+    performance::add_encode_counter(
+        EncodeCounter::StagingMapFailures,
+        stats.staging_map_failures,
+    );
+}
+
 fn record_plan_counts(list: &DrawList, plan: &FramePlan) {
     let (draws, characters) = plan_counts(list, plan);
     performance::add_encode_counter(EncodeCounter::PreparedDraws, draws);

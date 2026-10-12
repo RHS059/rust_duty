@@ -27,6 +27,7 @@ class WorkflowTests(unittest.TestCase):
         self.assertIn('$control.executable_sha256 -ne $before', commands)
         self.assertIn('Control executable changed', commands)
         self.assertIn('test_renderer_contract test_dx12_contract_process', commands)
+        self.assertIn('test_staging_encode_detail', commands)
         self.assertIn('control-outputs.zip',commands)
         self.assertIn('Env:VR_WEAPON_ASSET', commands)
         steps=job['steps']
