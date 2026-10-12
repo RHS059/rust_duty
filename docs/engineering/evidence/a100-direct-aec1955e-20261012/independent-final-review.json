@@ -1,0 +1,376 @@
+{
+  "schema": "independent-a100-direct-target-final-review/v1",
+  "status": "ready_to_publish_labeled_matched_performance_and_bounded_native_evidence",
+  "source": "aec1955e93867fb88df7b0d51526e338b8375761",
+  "tree": "a64256619f1f880ec9aa726ca6e2131e149d3efe",
+  "raw_audit_sha256": "88ca42c3ed3abc5a17201b58df7f586916171ed037e6f4e6e65fecda9ef9a34c",
+  "archive_sha256": "b679f8d20ab9a855b6b136ef6d8e4515c4bd1980ed3242c192daa68dd2e0a5b4",
+  "archive_bytes": 142867383,
+  "archive_entries": 649,
+  "single_game_elf_sha256": "4c8253a25d518a6e8605fe5691bcb900d377edc26374a8269737cb8e46f50665",
+  "native_test_elf_sha256": "4710795180cdb2f22a115c59794f80af3c6d610ed6166398c8689eadf9910456",
+  "raw_source_process_cpu_gpu_and_both_elf_audit_passed": true,
+  "eligible_gpu_samples_measured": 21212,
+  "native_artifact_process_and_five_case_pixels_replayed": true,
+  "native_five_images_and_four_game_screenshots_directly_viewed": true,
+  "native_actual_adapter": "direct viewport-depth actual adapter: AdapterInfo { name: \"NVIDIA A100-SXM4-40GB\", vendor: 4318, device: 8368, device_type: DiscreteGpu, device_pci_bus_id: \"0000:00:04.0\", driver: \"NVIDIA\", driver_info: \"580.82.07\", backend: Vulkan, subgroup_min_size: 32, subgroup_max_size: 32, transient_saves_memory: Some(false), limit_bucket: None }",
+  "native_cases": [
+    {
+      "case": "opaque-first",
+      "center_rgba": [
+        255,
+        0,
+        0,
+        255
+      ],
+      "one_3d_draw_pass": true,
+      "world_and_hud_verified": true
+    },
+    {
+      "case": "resident-first",
+      "center_rgba": [
+        255,
+        0,
+        0,
+        255
+      ],
+      "one_3d_draw_pass": true,
+      "world_and_hud_verified": true
+    },
+    {
+      "case": "near-clipped",
+      "center_rgba": [
+        0,
+        255,
+        0,
+        255
+      ],
+      "one_3d_draw_pass": true,
+      "world_and_hud_verified": true
+    },
+    {
+      "case": "far-clipped",
+      "center_rgba": [
+        0,
+        255,
+        0,
+        255
+      ],
+      "one_3d_draw_pass": true,
+      "world_and_hud_verified": true
+    },
+    {
+      "case": "ordered-fade",
+      "center_rgba": [
+        128,
+        127,
+        0,
+        255
+      ],
+      "one_3d_draw_pass": true,
+      "world_and_hud_verified": true
+    }
+  ],
+  "native_retained_input_joins": [
+    {
+      "original_path": "/content/run-direct-depth-contract-aec1955e.py",
+      "sha256": "e0157dca10431df4420f79f802613864034075a396138f8f25e348c572cdbd87",
+      "verification": "raw exported bytes verified",
+      "local_matches": [
+        "native-wrapper/run-direct-depth-contract-aec1955e.py"
+      ]
+    },
+    {
+      "original_path": "/content/rust-duty-a100-probe-setup-5f253fb-r1/rustup/toolchains/1.99.0-x86_64-unknown-linux-gnu/bin/cargo",
+      "sha256": "e951141cc55a6cd7b9876d187bd30a3720e6086b99413af95e3b8de1cdd72f14",
+      "verification": "compiler executable hash matches successful build receipt; toolchain bytes not exported",
+      "local_matches": []
+    },
+    {
+      "original_path": "/content/rust-duty-a100-probe-setup-5f253fb-r1/rustup/toolchains/1.99.0-x86_64-unknown-linux-gnu/bin/rustc",
+      "sha256": "f3834d26669b03f6855fa54bd2381443123e860167bc0c7a8dd137e5cf6e5e4f",
+      "verification": "compiler executable hash matches successful build receipt; toolchain bytes not exported",
+      "local_matches": []
+    },
+    {
+      "original_path": "/content/rust-duty-direct-viewmodel-build-aec1955e-r1/build-result.json",
+      "sha256": "9a11b927c60c749da08445054b3ce8ebc3d141ccb27f5a9302b9b763053ade95",
+      "verification": "raw exported bytes verified",
+      "local_matches": [
+        "build/build-result.json"
+      ]
+    },
+    {
+      "original_path": "/content/rust-duty-direct-viewmodel-build-aec1955e-r1/pair-pins.json",
+      "sha256": "9c14ed955206cd2ec3f69cba6d6536ad191cead47facc911ed75a07e261f5394",
+      "verification": "raw exported bytes verified",
+      "local_matches": [
+        "build/pair-pins.json"
+      ]
+    },
+    {
+      "original_path": "/content/rust-duty-direct-viewmodel-build-aec1955e-r1/source-bundle.json",
+      "sha256": "4a30d2bdbf0f9c23d389e38bc504439178da59ad3387bdd5c56482a20e4a336b",
+      "verification": "raw exported bytes verified",
+      "local_matches": [
+        "build/source-bundle.json",
+        "reviewed-package/source-bundle.json"
+      ]
+    },
+    {
+      "original_path": "/content/rust-duty-direct-viewmodel-package-aec1955e-r1/original-assets.json",
+      "sha256": "756ad13125e39d67d669493a82d4f2959273dd9902c3752ef3ccde6744a9fa9b",
+      "verification": "raw exported bytes verified",
+      "local_matches": [
+        "build/original-assets.json",
+        "reviewed-package/original-assets.json"
+      ]
+    },
+    {
+      "original_path": "/content/rust-duty-direct-viewmodel-package-aec1955e-r1/original-nvidia-egl.json",
+      "sha256": "4779640fbe3b520e5556675b0c9a13adae338f63ff05288d8b23cacc202fa207",
+      "verification": "raw exported bytes verified",
+      "local_matches": [
+        "build/original-nvidia-egl.json",
+        "reviewed-package/original-nvidia-egl.json"
+      ]
+    },
+    {
+      "original_path": "/content/rust-duty-direct-viewmodel-package-aec1955e-r1/original-nvidia-vulkan.json",
+      "sha256": "3a24e06eee4d71613991833ea6ff0bd6ef4ed71c631af5440abfaca8d064b6b2",
+      "verification": "raw exported bytes verified",
+      "local_matches": [
+        "build/original-nvidia-vulkan.json",
+        "reviewed-package/original-nvidia-vulkan.json"
+      ]
+    },
+    {
+      "original_path": "/content/rust-duty-direct-viewmodel-package-aec1955e-r1/original-preparation.json",
+      "sha256": "4c91ae198e8747379c29b81a245393165f255af69b89644d75efb917b81752c1",
+      "verification": "raw exported bytes verified",
+      "local_matches": [
+        "reviewed-package/original-preparation.json"
+      ]
+    },
+    {
+      "original_path": "/content/rust-duty-direct-viewmodel-package-aec1955e-r1/owned_process.py",
+      "sha256": "2b28991806d8d0541ca69ae115ef68486f487074177717bba2abd145921b0773",
+      "verification": "raw exported bytes verified",
+      "local_matches": [
+        "reviewed-package/owned_process.py"
+      ]
+    },
+    {
+      "original_path": "/content/rust-duty-direct-viewmodel-package-aec1955e-r1/run-a100-viewmodel-pair.py",
+      "sha256": "db2a4fe04ab7a49deb4198895e2cff2b66660c1748760fa806766fa53052439f",
+      "verification": "raw exported bytes verified",
+      "local_matches": [
+        "reviewed-package/run-a100-viewmodel-pair.py"
+      ]
+    },
+    {
+      "original_path": "/content/rust-duty-direct-viewmodel-package-aec1955e-r1/source-bundle.zip",
+      "sha256": "d4a07bc66c3a5f9534894887ed29e6988a49d5784fc80b4330c84a0e82d84859",
+      "verification": "raw exported bytes verified",
+      "local_matches": [
+        "reviewed-package/source-bundle.zip"
+      ]
+    },
+    {
+      "original_path": "/content/rust-duty-direct-viewmodel-pair-aec1955e-r1/result.json",
+      "sha256": "3e3b9a5ec9e26b6b9d3b5284ebfa5a8ff6b6d59fe3af38b9efc196421d7f6b99",
+      "verification": "raw exported bytes verified",
+      "local_matches": [
+        "successful-r1/result.json"
+      ]
+    }
+  ],
+  "screenshots": [
+    {
+      "run": 1,
+      "mode": "offscreen",
+      "sha256": "8931c83633759381c3318ceb0e60a7ad341921620850612e2ee09ad013fb770c",
+      "extent": [
+        2560,
+        1440
+      ],
+      "direct_visual_review": "Authored hands, glove and rifle retained with same world camera, crosshair and HUD. Post-record silhouettes are not pixel-identical; these unsynchronized animation captures cannot isolate animation versus sampling differences.",
+      "capture_outside_record_verified": true
+    },
+    {
+      "run": 2,
+      "mode": "direct",
+      "sha256": "6a7afa1b4d59a2a458e0fb44fafa8d544bae2789a2bc8b834ef2d305527bd081",
+      "extent": [
+        2560,
+        1440
+      ],
+      "direct_visual_review": "Authored hands, glove and rifle retained with same world camera, crosshair and HUD. Post-record silhouettes are not pixel-identical; these unsynchronized animation captures cannot isolate animation versus sampling differences.",
+      "capture_outside_record_verified": true
+    },
+    {
+      "run": 3,
+      "mode": "direct",
+      "sha256": "5cd4aabdba3d575febee5dcdb6306965fbbb063258b1268f54c631293a59a074",
+      "extent": [
+        2560,
+        1440
+      ],
+      "direct_visual_review": "Authored hands, glove and rifle retained with same world camera, crosshair and HUD. Post-record silhouettes are not pixel-identical; these unsynchronized animation captures cannot isolate animation versus sampling differences.",
+      "capture_outside_record_verified": true
+    },
+    {
+      "run": 4,
+      "mode": "offscreen",
+      "sha256": "58fe37862ee9bfcddf64d2367884478dd06a133bc01f0bfe599ccb73ad6b3b92",
+      "extent": [
+        2560,
+        1440
+      ],
+      "direct_visual_review": "Authored hands, glove and rifle retained with same world camera, crosshair and HUD. Post-record silhouettes are not pixel-identical; these unsynchronized animation captures cannot isolate animation versus sampling differences.",
+      "capture_outside_record_verified": true
+    }
+  ],
+  "setup": [
+    {
+      "folder": "display-setup",
+      "result_sha256": "2e4a201d409f64364babd267569f3150176885669a0aa0d5201565d8395f2b6f",
+      "official_ubuntu_archive_uris": 25
+    },
+    {
+      "folder": "xkb-repair",
+      "result_sha256": "6cbf0fea14c00650f00339aee9317b3e67c24e9f531041a9ec45315801705763",
+      "official_ubuntu_archive_uris": 2
+    }
+  ],
+  "metrics": [
+    {
+      "run": 1,
+      "mode": "offscreen",
+      "eligible_count": 5228,
+      "record_seconds": 31.024306798,
+      "frame_p50_ms": 5.885511,
+      "frame_p95_ms": 6.386743,
+      "frame_p99_ms": 6.875408,
+      "derived_median_rate_fps": 169.9087810727055,
+      "producer_throughput_intervals_per_second": 168.61408765031106,
+      "game_recording_p50_ms": 0.306458,
+      "renderer_submit_p50_ms": 1.427187,
+      "present_call_p50_ms": 4.042566,
+      "encode_submit_p50_ms": 1.350529,
+      "gpu_p50_ms": 1.3056,
+      "gpu_p95_ms": 1.307648,
+      "all_gpu_samples_measured": true,
+      "draw_calls_p50": 600,
+      "render_passes": 4,
+      "resident_draws": 86,
+      "resident_uniform_bytes_uploaded": 54768
+    },
+    {
+      "run": 2,
+      "mode": "direct",
+      "eligible_count": 5367,
+      "record_seconds": 31.018953583,
+      "frame_p50_ms": 5.721387,
+      "frame_p95_ms": 6.181259,
+      "frame_p99_ms": 6.807928,
+      "derived_median_rate_fps": 174.7827930535026,
+      "producer_throughput_intervals_per_second": 173.13580499565438,
+      "game_recording_p50_ms": 0.316454,
+      "renderer_submit_p50_ms": 1.396035,
+      "present_call_p50_ms": 3.887889,
+      "encode_submit_p50_ms": 1.319332,
+      "gpu_p50_ms": 1.175552,
+      "gpu_p95_ms": 1.178624,
+      "all_gpu_samples_measured": true,
+      "draw_calls_p50": 599,
+      "render_passes": 3,
+      "resident_draws": 86,
+      "resident_uniform_bytes_uploaded": 54768
+    },
+    {
+      "run": 3,
+      "mode": "direct",
+      "eligible_count": 5396,
+      "record_seconds": 31.011864346,
+      "frame_p50_ms": 5.685009,
+      "frame_p95_ms": 6.216396,
+      "frame_p99_ms": 6.793548,
+      "derived_median_rate_fps": 175.90121669112574,
+      "producer_throughput_intervals_per_second": 174.10595992420645,
+      "game_recording_p50_ms": 0.308585,
+      "renderer_submit_p50_ms": 1.388818,
+      "present_call_p50_ms": 3.876761,
+      "encode_submit_p50_ms": 1.313673,
+      "gpu_p50_ms": 1.175552,
+      "gpu_p95_ms": 1.178624,
+      "all_gpu_samples_measured": true,
+      "draw_calls_p50": 599,
+      "render_passes": 3,
+      "resident_draws": 86,
+      "resident_uniform_bytes_uploaded": 54768
+    },
+    {
+      "run": 4,
+      "mode": "offscreen",
+      "eligible_count": 5221,
+      "record_seconds": 31.017635755,
+      "frame_p50_ms": 5.883115,
+      "frame_p95_ms": 6.412787,
+      "frame_p99_ms": 6.989463,
+      "derived_median_rate_fps": 169.97797935277484,
+      "producer_throughput_intervals_per_second": 168.43044967299082,
+      "game_recording_p50_ms": 0.308279,
+      "renderer_submit_p50_ms": 1.413365,
+      "present_call_p50_ms": 4.044848,
+      "encode_submit_p50_ms": 1.337621,
+      "gpu_p50_ms": 1.3056,
+      "gpu_p95_ms": 1.307648,
+      "all_gpu_samples_measured": true,
+      "draw_calls_p50": 600,
+      "render_passes": 4,
+      "resident_draws": 86,
+      "resident_uniform_bytes_uploaded": 54768
+    }
+  ],
+  "descriptive_comparison": {
+    "method": "Average the two run medians within each mode; retain all four legs separately. No pooled-frame confidence interval or statistical-significance claim.",
+    "means_of_run_medians": {
+      "offscreen": {
+        "frame_p50_ms": 5.884313000000001,
+        "gpu_p50_ms": 1.3056,
+        "encode_submit_p50_ms": 1.3440750000000001,
+        "game_recording_p50_ms": 0.30736850000000004,
+        "renderer_submit_p50_ms": 1.4202759999999999
+      },
+      "direct": {
+        "frame_p50_ms": 5.703198,
+        "gpu_p50_ms": 1.175552,
+        "encode_submit_p50_ms": 1.3165025,
+        "game_recording_p50_ms": 0.3125195,
+        "renderer_submit_p50_ms": 1.3924265
+      }
+    },
+    "offscreen_minus_direct_ms": {
+      "frame_p50_ms": 0.18111500000000014,
+      "gpu_p50_ms": 0.13004800000000016,
+      "encode_submit_p50_ms": 0.027572500000000222,
+      "game_recording_p50_ms": -0.005150999999999961,
+      "renderer_submit_p50_ms": 0.02784949999999986
+    },
+    "frame_median_reduction_percent": 3.0779294031435804,
+    "gpu_median_reduction_percent": 9.960784313725503
+  },
+  "counter_findings": "Both86resident draws (75rigid+11skin),54768uniform bytes,zero warm vertex/index uploads and misses. Offscreen4passes/direct3; standard384-character HUD cohort600/599draws.",
+  "all_packet_bytes_unchanged": true,
+  "strict_prior_arithmetic_image_gate_passed": false,
+  "limits": [
+    "Same-binary stationary A100 Vulkan Immediate experiment only; no RTX/DX12 or broad gameplay result.",
+    "The offscreen control already includes shared renderer pass consolidation. Do not attribute earlier-source13passes versus current4passes or sum older omission deltas as this measured gain.",
+    "Direct uses native1920x1080 rasterization instead of filtered1440x900 offscreen sampling; qualitative screenshots do not prove full actual-game pixel equality.",
+    "The five-case native fixture verifies clipping, resident-first depth, ordered fade, world/HUD pixels and CPU pass planning; it is not an actual-loader22pose gate or broad authored-animation approval.",
+    "CPU/GPU stages overlap; timestamp command spans exclude earlier upload copies.",
+    "Original public assets and Cargo/rustc executable hashes are receipt-bound; their complete raw bytes are not exported here.",
+    "Prior strict arithmetic failure18RGBpixels across11pairs maximumdelta3 remains failed."
+  ]
+}
