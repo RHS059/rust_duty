@@ -1,0 +1,144 @@
+{
+  "schema": "independent-coalesced-native-all-pixel-review/v1",
+  "source": "332e389a08330ce2be701f251ec355f94b12e5fb",
+  "native_report_sha256": "cd3dd2e7c952c8e0f96ae826d46e92ec4dbaaaf0c8f1c85dd3cf779997bdc857",
+  "exact_pairs_replayed": 22,
+  "all44_original_png_hashes_verified": true,
+  "all_full_rgba_equal": true,
+  "pairs": [
+    {
+      "case": "ready-0",
+      "strict_full_rgba_equal": true,
+      "foreground_pixels": 7066,
+      "original_png_hashes_verified": true
+    },
+    {
+      "case": "ready-1",
+      "strict_full_rgba_equal": true,
+      "foreground_pixels": 7066,
+      "original_png_hashes_verified": true
+    },
+    {
+      "case": "ready-2",
+      "strict_full_rgba_equal": true,
+      "foreground_pixels": 7066,
+      "original_png_hashes_verified": true
+    },
+    {
+      "case": "ready-3",
+      "strict_full_rgba_equal": true,
+      "foreground_pixels": 7066,
+      "original_png_hashes_verified": true
+    },
+    {
+      "case": "walk-0",
+      "strict_full_rgba_equal": true,
+      "foreground_pixels": 7092,
+      "original_png_hashes_verified": true
+    },
+    {
+      "case": "walk-1",
+      "strict_full_rgba_equal": true,
+      "foreground_pixels": 7035,
+      "original_png_hashes_verified": true
+    },
+    {
+      "case": "walk-2",
+      "strict_full_rgba_equal": true,
+      "foreground_pixels": 7008,
+      "original_png_hashes_verified": true
+    },
+    {
+      "case": "walk-3",
+      "strict_full_rgba_equal": true,
+      "foreground_pixels": 7092,
+      "original_png_hashes_verified": true
+    },
+    {
+      "case": "ads-0",
+      "strict_full_rgba_equal": true,
+      "foreground_pixels": 7066,
+      "original_png_hashes_verified": true
+    },
+    {
+      "case": "ads-1",
+      "strict_full_rgba_equal": true,
+      "foreground_pixels": 6807,
+      "original_png_hashes_verified": true
+    },
+    {
+      "case": "ads-2",
+      "strict_full_rgba_equal": true,
+      "foreground_pixels": 6798,
+      "original_png_hashes_verified": true
+    },
+    {
+      "case": "ads-3",
+      "strict_full_rgba_equal": true,
+      "foreground_pixels": 7066,
+      "original_png_hashes_verified": true
+    },
+    {
+      "case": "reload-0",
+      "strict_full_rgba_equal": true,
+      "foreground_pixels": 6938,
+      "original_png_hashes_verified": true
+    },
+    {
+      "case": "reload-1",
+      "strict_full_rgba_equal": true,
+      "foreground_pixels": 8313,
+      "original_png_hashes_verified": true
+    },
+    {
+      "case": "reload-2",
+      "strict_full_rgba_equal": true,
+      "foreground_pixels": 6964,
+      "original_png_hashes_verified": true
+    },
+    {
+      "case": "reload-3",
+      "strict_full_rgba_equal": true,
+      "foreground_pixels": 6938,
+      "original_png_hashes_verified": true
+    },
+    {
+      "case": "manifest-0",
+      "strict_full_rgba_equal": true,
+      "foreground_pixels": 7066,
+      "original_png_hashes_verified": true
+    },
+    {
+      "case": "manifest-12",
+      "strict_full_rgba_equal": true,
+      "foreground_pixels": 7066,
+      "original_png_hashes_verified": true
+    },
+    {
+      "case": "manifest-24",
+      "strict_full_rgba_equal": true,
+      "foreground_pixels": 7066,
+      "original_png_hashes_verified": true
+    },
+    {
+      "case": "rigid-alpha-0",
+      "strict_full_rgba_equal": true,
+      "foreground_pixels": 927,
+      "original_png_hashes_verified": true
+    },
+    {
+      "case": "rigid-alpha-1",
+      "strict_full_rgba_equal": true,
+      "foreground_pixels": 927,
+      "original_png_hashes_verified": true
+    },
+    {
+      "case": "rigid-alpha-2",
+      "strict_full_rgba_equal": true,
+      "foreground_pixels": 927,
+      "original_png_hashes_verified": true
+    }
+  ],
+  "native_ordered_layout_stream_replay": "pending",
+  "prior_arithmetic_gate_passed": false
+}
