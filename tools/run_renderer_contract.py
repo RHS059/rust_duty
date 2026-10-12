@@ -210,6 +210,24 @@ def command(output):
             '--example', 'renderer_contract', '--', '--renderer=dx12', '--force-fallback-adapter', '--output-dir', str(output)]
 
 
+def validate_run_outputs(output):
+    """Keep native pixels and this CI attempt's build identity in both modes."""
+    report = validate_outputs(output)
+    if os.environ.get('GITHUB_ACTIONS') == 'true':
+        import build_identity
+        identity = build_identity.context()
+        require(report['build_version'] == identity['version'] and report['build_number'] == identity['build_number'],
+                'renderer report build identity does not match this CI attempt')
+    return report
+
+
+def run_prebuilt(executable, root, evidence, output, timeout):
+    """Run exactly the supplied fresh binary, without another Cargo invocation."""
+    import dx12_contract_process
+    return dx12_contract_process.run(executable, root, evidence, output, timeout,
+                                     'renderer-contract', validate_run_outputs)
+
+
 def run(root, evidence, output, timeout):
     root, evidence, output = (Path(path).resolve() for path in (root, evidence, output))
     require(root.is_dir(), 'missing renderer-contract working directory')
@@ -229,12 +247,7 @@ def run(root, evidence, output, timeout):
             process = subprocess.run(argv, cwd=root, stdout=stdout, stderr=stderr, timeout=timeout, check=False)
         require(process.returncode == 0, f'renderer contract exited with code {process.returncode}')
         identities = smoke.validate_renderer_log(evidence)
-        report = validate_outputs(output)
-        if os.environ.get('GITHUB_ACTIONS') == 'true':
-            import build_identity
-            identity = build_identity.context()
-            require(report['build_version'] == identity['version'] and report['build_number'] == identity['build_number'],
-                    'renderer report build identity does not match this CI attempt')
+        report = validate_run_outputs(output)
         report.update(exit_code=0, renderer_logs=identities, dx12_shader_compiler='Fxc')
     except (OSError, ValueError, subprocess.SubprocessError) as error:
         (evidence / 'failure.json').write_text(json.dumps({'passed': False, 'error': str(error)}, indent=2), encoding='utf-8')
@@ -246,13 +259,17 @@ def run(root, evidence, output, timeout):
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--root', type=Path, default=Path.cwd())
+    parser.add_argument('--executable', type=Path, help='Run this already-built binary without invoking Cargo')
     parser.add_argument('--evidence', type=Path, required=True)
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--timeout', type=float, default=1200)
     args = parser.parse_args(argv)
     try:
         require(sys.platform == 'win32', 'the actual renderer contract requires Windows')
-        report = run(args.root, args.evidence, args.output, args.timeout)
+        if args.executable is None:
+            report = run(args.root, args.evidence, args.output, args.timeout)
+        else:
+            report = run_prebuilt(args.executable, args.root, args.evidence, args.output, args.timeout)
     except (OSError, ValueError, subprocess.SubprocessError) as error:
         parser.exit(1, f'Renderer contract validation failed: {error}\n')
     print(json.dumps(report, indent=2))

@@ -151,5 +151,44 @@ class ResidentAuthoredFlowTests(unittest.TestCase):
                         else: self.assertIs(launch.call_args.kwargs['start_new_session'], True)
 
 
+class ResidentReportBoundTests(unittest.TestCase):
+    def test_report_has_an_explicit_bounded_double_inventory_budget(self):
+        self.assertEqual(resident.REPORT_MAX_BYTES, 4 * 1024 * 1024)
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / 'report.json'
+            # Whitespace is valid JSON, so these exercise exact byte boundaries
+            # without weakening the independent report schema/content checks.
+            for size in (2 * 1024 * 1024 + 1, resident.REPORT_MAX_BYTES):
+                path.write_bytes(b'{}' + b' ' * (size - 2))
+                self.assertEqual(resident.read_report(path), {})
+                with self.assertRaisesRegex(ValueError, 'JSON exceeds bound'):
+                    resident.matrix.json_read(path)
+            path.write_bytes(b'{}' + b' ' * (resident.REPORT_MAX_BYTES - 1))
+            with self.assertRaisesRegex(ValueError, 'JSON exceeds bound'):
+                resident.read_report(path)
+
+    def test_large_paired_report_replays_retained_outputs(self):
+        from test_resident_authored_contract import fixture, write_outputs, RECEIPT
+        with tempfile.TemporaryDirectory() as temp, \
+                patch.object(resident.authored, 'EXTENT', [32, 32]):
+            directory = Path(temp) / 'captures'
+            report = fixture()
+            write_outputs(directory, report)
+            path = directory / 'report.json'
+            raw = path.read_bytes()
+            path.write_bytes(raw + b' ' * (2 * 1024 * 1024 + 1 - len(raw)))
+            retained = resident.read_report(path)
+            self.assertEqual(retained, report)
+            self.assertTrue(resident.validate_outputs(directory, retained, RECEIPT)['passed'])
+
+    def test_larger_report_keeps_strict_json_parsing(self):
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / 'report.json'
+            for raw in (b'{"x":1,"x":2}', b'{"x":NaN}', b'[]'):
+                with self.subTest(raw=raw):
+                    path.write_bytes(raw + b' ' * (2 * 1024 * 1024))
+                    with self.assertRaises(ValueError): resident.read_report(path)
+
+
 if __name__ == '__main__':
     unittest.main()

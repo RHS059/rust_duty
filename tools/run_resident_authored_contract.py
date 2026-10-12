@@ -18,8 +18,15 @@ import summarize_cpu_encode_detail as detail
 
 SCHEMA = 'rust-duty-resident-authored-contract/v1'
 EXAMPLE = 'resident_authored_contract'
+# Two complete 22-pose command inventories exceed the generic 2 MiB JSON cap.
+# Bound only this paired report; camera, process and source JSON keep their limits.
+REPORT_MAX_BYTES = 4 * 1024 * 1024
 STATS = tuple(name.removeprefix('resident_') for name in detail.COUNTERS_V3[len(detail.COUNTERS_V2):])
 require = authored.require
+
+
+def read_report(path):
+    return matrix.json_read(path, limit=REPORT_MAX_BYTES)
 
 
 def validate_report(report, receipt_sha256):
@@ -77,7 +84,7 @@ def validate_report(report, receipt_sha256):
 def validate_outputs(directory, report, receipt_sha256):
     directory = Path(directory)
     validate_report(report, receipt_sha256)
-    require(matrix.json_read(directory / 'report.json') == report, 'retained report changed')
+    require(read_report(directory / 'report.json') == report, 'retained report changed')
     expected = {'report.json', 'camera.json'} | {
         f'{name}-{label}{suffix}' for name in authored.CASE_NAMES for label in ('cpu', 'resident')
         for suffix in ('.corners.bin', '.png')}
@@ -208,7 +215,7 @@ def run(root, output, build_timeout=1200, process_timeout=900):
         verify()
         logged([str(executable), '--manifest', str(root / 'assets/animations.cfg'), '--output-dir', str(output / 'captures')],
                root, output / 'process', env, process_timeout, executable_hash)
-        report = matrix.json_read(output / 'captures/report.json')
+        report = read_report(output / 'captures/report.json')
         summary = validate_outputs(output / 'captures', report, receipt_hash)
         retain(output / 'process')
         retain(output / 'captures')

@@ -64,7 +64,7 @@ jobs:
       - name: Test exact readers and source workflow
         env:
           PYTHONPATH: tools
-        run: python -m unittest -v test_resident_encode_detail test_summarize_cpu_encode_detail test_cpu_encode_substages test_summarize_cpu_substages test_resident_mesh_workflow
+        run: python -m unittest -v test_resident_encode_detail test_summarize_cpu_encode_detail test_cpu_encode_substages test_summarize_cpu_substages test_resident_mesh_workflow test_renderer_contract test_dx12_contract_process
       - name: Test pure geometry, recorder, shader and production routing
         run: cargo test --locked --no-default-features --features wgpu-runtime --lib --bin vector-range
       - name: Check formatting and Clippy
@@ -102,8 +102,10 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Renderer control build failed' }
           $exe = 'target/debug/examples/renderer_contract.exe'
           $before = (Get-FileHash $exe -Algorithm SHA256).Hash.ToLowerInvariant()
-          python tools/run_renderer_contract.py --root . --evidence resident-mesh-evidence/control-process --output resident-mesh-evidence/control-outputs --timeout 300
+          python tools/run_renderer_contract.py --executable $exe --root . --evidence resident-mesh-evidence/control-process --output resident-mesh-evidence/control-outputs --timeout 300
           if ($LASTEXITCODE -ne 0) { throw 'Original renderer controls failed' }
+          $control = Get-Content resident-mesh-evidence/control-process/summary.json | ConvertFrom-Json
+          if ($control.executable_sha256 -ne $before) { throw 'Control process executable differs from fresh build' }
           if ((Get-FileHash $exe -Algorithm SHA256).Hash.ToLowerInvariant() -ne $before) { throw 'Control executable changed' }
           $before | Set-Content resident-mesh-evidence/control-executable-sha256.txt
           python -c "from pathlib import Path; from zipfile import ZipFile,ZIP_DEFLATED; p=Path('resident-mesh-evidence/control-outputs'); z=ZipFile('resident-mesh-evidence/control-outputs.zip','x',ZIP_DEFLATED); [z.write(v,v.relative_to(p).as_posix()) for v in sorted(p.rglob('*'))]; z.close()"

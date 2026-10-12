@@ -7,6 +7,7 @@ No Cargo command or renderer process is executed by this suite.
 """
 
 import copy
+import hashlib
 import io
 import json
 import os
@@ -15,7 +16,7 @@ import shutil
 import subprocess
 import tempfile
 import unittest
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 from PIL import Image, ImageDraw
 
@@ -756,6 +757,82 @@ class RendererContractTests(unittest.TestCase):
         self.assertEqual(status, 1)
         self.assertFalse((self.root / 'evidence').exists())
         self.assertFalse((self.root / 'actual-output').exists())
+
+
+class PrebuiltRendererContractTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.temporary = tempfile.TemporaryDirectory()
+        cls.addClassCleanup(cls.temporary.cleanup)
+        cls.reference = Path(cls.temporary.name).resolve() / 'reference'
+        build_fixture(cls.reference)
+
+    def exercise(self, mutation=None, ci_identity=None):
+        import dx12_contract_process as process
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary).resolve()
+            executable = root / 'renderer_contract.exe'
+            executable.write_bytes(b'fresh synthetic binary, never executed')
+            executable.chmod(0o700)
+            expected_hash = hashlib.sha256(executable.read_bytes()).hexdigest()
+            evidence, output = root / 'process', root / 'outputs'
+
+            def launch(argv, **kwargs):
+                self.assertEqual(argv, [str(executable), '--renderer=dx12',
+                                       '--force-fallback-adapter', '--output-dir', str(output)])
+                shutil.copytree(self.reference, output, dirs_exist_ok=True)
+                kwargs['stderr'].write(GOOD_LOG.encode())
+                if mutation == 'executable':
+                    executable.write_bytes(b'replaced after launch')
+                elif mutation == 'pixels':
+                    (output / 'quadrant.png').write_bytes(b'not a PNG')
+                child = Mock(returncode=0)
+                child.wait.return_value = 0
+                return child
+
+            with patch.object(contract.sys, 'platform', 'win32'), \
+                    patch.dict(os.environ, {'GITHUB_ACTIONS': 'true' if ci_identity else 'false'}), \
+                    patch('build_identity.context', return_value=ci_identity), \
+                    patch.object(process.subprocess, 'Popen', side_effect=launch) as spawn, \
+                    patch.object(process.subprocess, 'run') as cargo, \
+                    patch.object(contract.sys, 'stdout', io.StringIO()), \
+                    patch.object(contract.sys, 'stderr', io.StringIO()):
+                argv = ['--executable', str(executable), '--root', str(root),
+                        '--evidence', str(evidence), '--output', str(output), '--timeout', '17']
+                if mutation or ci_identity:
+                    with self.assertRaises(SystemExit) as error:
+                        contract.main(argv)
+                    self.assertEqual(error.exception.code, 1)
+                    self.assertFalse((evidence / 'summary.json').exists())
+                    failure = json.loads((evidence / 'failure.json').read_text())
+                    self.assertIs(failure['passed'], False)
+                    if mutation == 'executable':
+                        self.assertIn('executable changed', failure['error'])
+                    elif ci_identity:
+                        self.assertIn('CI attempt', failure['error'])
+                else:
+                    self.assertEqual(contract.main(argv), 0)
+                    summary = json.loads((evidence / 'summary.json').read_text())
+                    invocation = json.loads((evidence / 'invocation.json').read_text())
+                    self.assertEqual(summary['captures'], 21)
+                    self.assertEqual(summary['executable_sha256'], expected_hash)
+                    self.assertEqual(invocation['executable_sha256'], expected_hash)
+                    self.assertEqual(invocation['command'][0], str(executable))
+                    self.assertIs(summary['passed'], True)
+                spawn.assert_called_once()
+                cargo.assert_not_called()
+
+    def test_prebuilt_cli_runs_exact_binary_without_cargo(self):
+        self.exercise()
+
+    def test_prebuilt_binary_mutation_cannot_publish_success(self):
+        self.exercise(mutation='executable')
+
+    def test_prebuilt_mode_preserves_original_pixel_validation(self):
+        self.exercise(mutation='pixels')
+
+    def test_prebuilt_mode_preserves_ci_identity_validation(self):
+        self.exercise(ci_identity={'version': 'wrong', 'build_number': 'wrong'})
 
 
 if __name__ == '__main__':
