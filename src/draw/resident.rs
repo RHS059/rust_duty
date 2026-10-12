@@ -106,6 +106,74 @@ impl ResidentMesh {
         })))
     }
 
+    /// Concatenate immutable chunks without changing any vertex word or index
+    /// order. Callers must keep actor, pose, material and render-state boundaries;
+    /// this only checks the geometry-owned texture, kind, palette size and bounds.
+    pub fn coalesce(meshes: &[Self]) -> Result<Self, String> {
+        let first = meshes.first().ok_or("no resident chunks to coalesce")?;
+        let mut vertices = 0usize;
+        let mut indices = 0usize;
+        for mesh in meshes {
+            vertices = vertices
+                .checked_add(mesh.vertex_count())
+                .ok_or("resident vertex overflow")?;
+            indices = indices
+                .checked_add(mesh.indices().len())
+                .ok_or("resident index overflow")?;
+            if vertices > MAX_VERTICES || indices > MAX_INDICES {
+                return Err("coalesced resident geometry exceeds existing bounds".into());
+            }
+            if mesh.texture().map(|t| t.id) != first.texture().map(|t| t.id) {
+                return Err("resident chunks have different textures".into());
+            }
+            match (first.vertices(), mesh.vertices()) {
+                (Vertices::Rigid(_), Vertices::Rigid(_)) => {}
+                (Vertices::Skin { bones: a, .. }, Vertices::Skin { bones: b, .. }) if a == b => {}
+                _ => return Err("resident chunks have different vertex or palette layouts".into()),
+            }
+        }
+        if meshes.len() == 1 {
+            return Ok(first.clone());
+        }
+        let mut local_indices = Vec::with_capacity(indices);
+        let mut offset = 0usize;
+        for mesh in meshes {
+            for &index in mesh.indices() {
+                local_indices.push(
+                    u16::try_from(offset + usize::from(index))
+                        .map_err(|_| "coalesced resident index overflow")?,
+                );
+            }
+            offset += mesh.vertex_count();
+        }
+        let vertices = match first.vertices() {
+            Vertices::Rigid(_) => {
+                let mut combined = Vec::with_capacity(vertices);
+                for mesh in meshes {
+                    let Vertices::Rigid(values) = mesh.vertices() else {
+                        unreachable!()
+                    };
+                    combined.extend_from_slice(values);
+                }
+                Vertices::Rigid(combined)
+            }
+            Vertices::Skin { bones, .. } => {
+                let mut combined = Vec::with_capacity(vertices);
+                for mesh in meshes {
+                    let Vertices::Skin { vertices, .. } = mesh.vertices() else {
+                        unreachable!()
+                    };
+                    combined.extend_from_slice(vertices);
+                }
+                Vertices::Skin {
+                    vertices: combined,
+                    bones: *bones,
+                }
+            }
+        };
+        Self::new(vertices, local_indices, first.texture().cloned())
+    }
+
     pub fn id(&self) -> ResourceId {
         self.0.id
     }
@@ -389,6 +457,130 @@ mod tests {
     fn mesh() -> ResidentMesh {
         ResidentMesh::new(Vertices::Rigid(vec![vertex(); 3]), vec![0, 1, 2], None).unwrap()
     }
+    fn record_words(mesh: &ResidentMesh) -> Vec<Vec<u32>> {
+        let rigid = |v: &RigidVertex| {
+            v.position
+                .iter()
+                .chain(&v.normal)
+                .chain(&v.uv)
+                .map(|v| v.to_bits())
+                .collect::<Vec<_>>()
+        };
+        mesh.indices()
+            .iter()
+            .map(|&i| match mesh.vertices() {
+                Vertices::Rigid(vertices) => rigid(&vertices[i as usize]),
+                Vertices::Skin { vertices, .. } => {
+                    let v = &vertices[i as usize];
+                    let mut words = rigid(&v.vertex);
+                    words.extend(v.joints.map(u32::from));
+                    words.extend(v.weights.map(f32::to_bits));
+                    words
+                }
+            })
+            .collect()
+    }
+
+    #[test]
+    fn coalescing_preserves_all_ordered_source_words_and_chunk_duplicates() {
+        for skin in [false, true] {
+            let chunks: Vec<_> = (0..4)
+                .map(|chunk| {
+                    let vertices: Vec<_> = (0..3)
+                        .map(|index| RigidVertex {
+                            position: [chunk as f32, index as f32, -0.0],
+                            normal: [0.0, -0.0, 1.0],
+                            uv: [f32::from_bits(1), -0.0],
+                        })
+                        .collect();
+                    ResidentMesh::new(
+                        if skin {
+                            Vertices::Skin {
+                                vertices: vertices
+                                    .into_iter()
+                                    .map(|vertex| SkinVertex {
+                                        vertex,
+                                        joints: [0, 1, 2, 3, 4, 5, 6, 127],
+                                        weights: [0.125; 8],
+                                    })
+                                    .collect(),
+                                bones: 128,
+                            }
+                        } else {
+                            Vertices::Rigid(vertices)
+                        },
+                        vec![2, 0, 1, 1, 0, 2],
+                        None,
+                    )
+                    .unwrap()
+                })
+                .collect();
+            let combined = ResidentMesh::coalesce(&chunks).unwrap();
+            assert_eq!(combined.vertex_count(), 12);
+            assert_eq!(
+                combined.indices(),
+                &[2, 0, 1, 1, 0, 2, 5, 3, 4, 4, 3, 5, 8, 6, 7, 7, 6, 8, 11, 9, 10, 10, 9, 11]
+            );
+            assert_eq!(
+                record_words(&combined),
+                chunks.iter().flat_map(record_words).collect::<Vec<_>>()
+            );
+            assert_eq!(
+                ResidentMesh::coalesce(&chunks[..1]).unwrap().id(),
+                chunks[0].id()
+            );
+        }
+    }
+
+    #[test]
+    fn coalescing_rejects_layout_texture_and_existing_bound_violations() {
+        assert!(ResidentMesh::coalesce(&[]).is_err());
+        let rigid = mesh();
+        let skin = |bones| {
+            ResidentMesh::new(
+                Vertices::Skin {
+                    vertices: vec![
+                        SkinVertex {
+                            vertex: vertex(),
+                            joints: [0; 8],
+                            weights: [1., 0., 0., 0., 0., 0., 0., 0.]
+                        };
+                        3
+                    ],
+                    bones,
+                },
+                vec![0, 1, 2],
+                None,
+            )
+            .unwrap()
+        };
+        assert!(ResidentMesh::coalesce(&[rigid.clone(), skin(1)]).is_err());
+        assert!(ResidentMesh::coalesce(&[skin(1), skin(2)]).is_err());
+        let texture = Texture::rgba8(1, 1, &[255; 4], super::super::Sampler::default()).unwrap();
+        let textured = ResidentMesh::new(
+            Vertices::Rigid(vec![vertex(); 3]),
+            vec![0, 1, 2],
+            Some(texture),
+        )
+        .unwrap();
+        assert!(ResidentMesh::coalesce(&[rigid.clone(), textured.clone()]).is_err());
+        assert!(ResidentMesh::coalesce(&[textured.clone(), textured]).is_ok());
+        let indices =
+            ResidentMesh::new(Vertices::Rigid(vec![vertex(); 3]), vec![0; 65_535], None).unwrap();
+        assert!(ResidentMesh::coalesce(&[indices.clone()]).is_ok());
+        assert!(ResidentMesh::coalesce(&[indices, rigid.clone()]).is_err());
+        let vertices = ResidentMesh::new(
+            Vertices::Rigid(vec![vertex(); 65_533]),
+            vec![65_532; 3],
+            None,
+        )
+        .unwrap();
+        let at_limit = ResidentMesh::coalesce(&[vertices.clone(), rigid.clone()]).unwrap();
+        assert_eq!(at_limit.vertex_count(), 65_536);
+        assert_eq!(&at_limit.indices()[3..], &[65_533, 65_534, 65_535]);
+        assert!(ResidentMesh::coalesce(&[vertices, rigid.clone(), rigid]).is_err());
+    }
+
     #[test]
     fn singular_state_falls_back_and_extreme_normals_keep_cpu_y_fallback() {
         assert!(SkinPalette::new(vec![Mat4::ZERO]).is_err());

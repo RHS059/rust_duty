@@ -418,3 +418,130 @@ fn native_resident_poses_preserve_order_and_queued_results() {
     super::resident_vertex_probe::verify_exact_unorm(&mut renderer, &output);
     eprintln!("resident native contract: 12 queued pose frames and 3 textured perspective frames, 27 exact pixel pairs, cold/warm uploads and fresh-device cache passed");
 }
+
+#[test]
+#[ignore = "explicit native resident chunk coalescing image contract"]
+fn native_coalesced_chunks_preserve_order_and_pixels() {
+    let output = directory();
+    let mut renderer = required_native_renderer();
+    let texture = crate::draw::Texture::rgba8(
+        2,
+        2,
+        &[
+            255, 32, 64, 255, 32, 255, 64, 255, 64, 32, 255, 255, 240, 200, 32, 255,
+        ],
+        crate::draw::Sampler::default(),
+    )
+    .unwrap();
+    let mut pairs = Vec::new();
+    for skin in [false, true] {
+        let chunks: Vec<_> = (0..8)
+            .map(|chunk| {
+                let base = source(skin, [1., 2., 3.]);
+                let change = |mut v: RigidVertex, corner: usize| {
+                    v.position[0] += (chunk % 3) as f32 * 2.;
+                    v.position[1] += (chunk % 2) as f32 * 3.;
+                    v.position[2] = (chunk as f32 - 4.) * 0.1;
+                    v.uv = [[0., 0.], [1., 0.], [0., 1.]][corner];
+                    v
+                };
+                let vertices = match base.vertices() {
+                    Vertices::Rigid(vertices) => Vertices::Rigid(
+                        vertices
+                            .iter()
+                            .copied()
+                            .enumerate()
+                            .map(|(i, v)| change(v, i))
+                            .collect(),
+                    ),
+                    Vertices::Skin { vertices, bones } => Vertices::Skin {
+                        vertices: vertices
+                            .iter()
+                            .copied()
+                            .enumerate()
+                            .map(|(i, mut v)| {
+                                v.vertex = change(v.vertex, i);
+                                v
+                            })
+                            .collect(),
+                        bones: *bones,
+                    },
+                };
+                ResidentMesh::new(vertices, vec![0, 1, 2], Some(texture.clone())).unwrap()
+            })
+            .collect();
+        let combined = ResidentMesh::coalesce(&chunks).unwrap();
+        for depth in [false, true] {
+            for blend in [BlendMode::Alpha, BlendMode::Opaque, BlendMode::Additive] {
+                for step in [0, 1] {
+                    let old = RenderTarget::new(SIZE, SIZE, depth).unwrap();
+                    let new = RenderTarget::new(SIZE, SIZE, depth).unwrap();
+                    let mut list = DrawList::new(SIZE, SIZE);
+                    for (target, meshes) in [
+                        (&old, chunks.as_slice()),
+                        (&new, std::slice::from_ref(&combined)),
+                    ] {
+                        let mut camera = camera(target);
+                        camera.depth_test = depth;
+                        list.camera(camera);
+                        list.clear(Color::TRANSPARENT);
+                        for mesh in meshes {
+                            list.draw_resident(draw(mesh.clone(), step), Mat4::IDENTITY, blend);
+                        }
+                    }
+                    assert_eq!(renderer.submit(&list).unwrap().resident.draws, 9);
+                    pairs.push((old, new, skin, depth, format!("{blend:?}"), step));
+                }
+            }
+        }
+    }
+    // Queue every pose/target before any capture or blocking readback.
+    let mut captures = DrawList::new(SIZE, SIZE);
+    for (i, (old, new, ..)) in pairs.iter().enumerate() {
+        captures.capture_png(Some(old), output.join(format!("{i:02}-chunks.png")));
+        captures.capture_png(Some(new), output.join(format!("{i:02}-coalesced.png")));
+    }
+    assert_eq!(renderer.submit(&captures).unwrap().captures.len(), 48);
+    let mut report = Vec::new();
+    for (i, (_, _, skin, depth, blend, step)) in pairs.iter().enumerate() {
+        let old = image::open(output.join(format!("{i:02}-chunks.png")))
+            .unwrap()
+            .to_rgba8();
+        let new = image::open(output.join(format!("{i:02}-coalesced.png")))
+            .unwrap()
+            .to_rgba8();
+        let changed = old
+            .as_raw()
+            .iter()
+            .zip(new.as_raw())
+            .filter(|(a, b)| a != b)
+            .count();
+        let max = old
+            .as_raw()
+            .iter()
+            .zip(new.as_raw())
+            .map(|(a, b)| a.abs_diff(*b))
+            .max()
+            .unwrap();
+        let foreground = old.pixels().filter(|p| p.0.iter().any(|v| *v != 0)).count();
+        report.push(
+            serde_json::json!({"pair":i,"skin":skin,"depth":depth,"blend":blend,"step":step,
+            "changed_channels":changed,"max_channel_delta":max,"foreground_pixels":foreground}),
+        );
+    }
+    std::fs::write(
+        output.join("coalesced-pixel-report.json"),
+        serde_json::to_vec_pretty(&report).unwrap(),
+    )
+    .unwrap();
+    for row in report {
+        assert!(
+            row["foreground_pixels"].as_u64().unwrap() > 0,
+            "empty fixture: {row}"
+        );
+        assert_eq!(
+            row["changed_channels"], 0,
+            "coalescing changed pixels: {row}"
+        );
+    }
+}

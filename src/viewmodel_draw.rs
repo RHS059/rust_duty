@@ -129,6 +129,78 @@ impl TargetDiagnostic {
     }
 }
 
+impl weapon_model::ResidentBatching {
+    pub(crate) fn from_args(args: &[String]) -> Result<Option<Self>, String> {
+        let mut value = None;
+        for arg in args.iter().take_while(|arg| arg.as_str() != "--") {
+            if arg == "--diagnostic-resident-batching"
+                || arg.starts_with("--diagnostic-resident-batching=")
+            {
+                if value.is_some() {
+                    return Err("duplicate --diagnostic-resident-batching".into());
+                }
+                value = Some(match arg.as_str() {
+                    "--diagnostic-resident-batching=legacy" => Self::LegacyChunks,
+                    "--diagnostic-resident-batching=coalesced" => Self::CoalescedParts,
+                    _ => {
+                        return Err(
+                            "--diagnostic-resident-batching requires legacy or coalesced".into(),
+                        )
+                    }
+                });
+            }
+        }
+        Ok(value)
+    }
+
+    pub(crate) fn name(self) -> &'static str {
+        match self {
+            Self::LegacyChunks => "legacy",
+            Self::CoalescedParts => "coalesced",
+        }
+    }
+
+    pub(crate) fn check_native_route(
+        self,
+        native: bool,
+        reference: bool,
+        capture: bool,
+        visibility: Option<RenderDiagnostic>,
+    ) -> Result<(), String> {
+        if !native
+            || reference
+            || capture
+            || matches!(
+                visibility,
+                Some(RenderDiagnostic::Hidden | RenderDiagnostic::TargetOnly)
+            )
+        {
+            return Err("resident batching diagnostic requires native normal-play authored geometry without capture".into());
+        }
+        Ok(())
+    }
+
+    pub(crate) fn record_scene(self, scene: &mut serde_json::Value) {
+        scene["resident_batching_diagnostic"] = serde_json::json!({
+            "schema":"rust-duty-resident-batching/v1", "mode":self.name(),
+            "scope":"same_part_resident_chunks", "triangle_order":"preserved",
+        });
+    }
+}
+
+pub(crate) fn resident_batching_policy(
+    requested: Option<weapon_model::ResidentBatching>,
+    native: bool,
+    reference: bool,
+    capture: bool,
+) -> weapon_model::ResidentBatching {
+    if native && !reference && !capture {
+        requested.unwrap_or(weapon_model::ResidentBatching::CoalescedParts)
+    } else {
+        weapon_model::ResidentBatching::LegacyChunks
+    }
+}
+
 pub(crate) fn direct_target_active(
     requested: Option<TargetDiagnostic>,
     visibility: Option<RenderDiagnostic>,
@@ -520,6 +592,77 @@ pub(crate) fn composite_viewmodel(rt: &RenderTarget) {
 mod tests {
     use super::*;
     use vector_range::draw::Command;
+
+    #[test]
+    fn resident_batching_diagnostic_is_explicit_and_preserves_control_routes() {
+        use weapon_model::ResidentBatching::{self, CoalescedParts, LegacyChunks};
+        let parse = |args: &[&str]| {
+            ResidentBatching::from_args(&args.iter().map(|s| (*s).to_owned()).collect::<Vec<_>>())
+        };
+        assert_eq!(parse(&[]).unwrap(), None);
+        assert_eq!(
+            parse(&["--diagnostic-resident-batching=legacy"]).unwrap(),
+            Some(LegacyChunks)
+        );
+        assert_eq!(
+            parse(&["--diagnostic-resident-batching=coalesced"]).unwrap(),
+            Some(CoalescedParts)
+        );
+        assert_eq!(
+            parse(&["--", "--diagnostic-resident-batching=bad"]).unwrap(),
+            None
+        );
+        for args in [
+            vec!["--diagnostic-resident-batching"],
+            vec!["--diagnostic-resident-batching=bad"],
+            vec![
+                "--diagnostic-resident-batching=legacy",
+                "--diagnostic-resident-batching=coalesced",
+            ],
+        ] {
+            assert!(parse(&args).is_err());
+        }
+        for policy in [LegacyChunks, CoalescedParts] {
+            assert!(policy
+                .check_native_route(true, false, false, Some(RenderDiagnostic::Visible))
+                .is_ok());
+            for (native, reference, capture, visibility) in [
+                (false, false, false, None),
+                (true, true, false, None),
+                (true, false, true, None),
+                (true, false, false, Some(RenderDiagnostic::Hidden)),
+                (true, false, false, Some(RenderDiagnostic::TargetOnly)),
+            ] {
+                assert!(policy
+                    .check_native_route(native, reference, capture, visibility)
+                    .is_err());
+            }
+            assert_eq!(
+                resident_batching_policy(Some(policy), true, false, false),
+                policy
+            );
+            assert_eq!(
+                resident_batching_policy(Some(policy), false, false, false),
+                LegacyChunks
+            );
+            assert_eq!(
+                resident_batching_policy(Some(policy), true, true, false),
+                LegacyChunks
+            );
+            assert_eq!(
+                resident_batching_policy(Some(policy), true, false, true),
+                LegacyChunks
+            );
+        }
+        assert_eq!(
+            resident_batching_policy(None, true, false, false),
+            CoalescedParts
+        );
+        let mut scene = serde_json::json!({"world":"unchanged"});
+        CoalescedParts.record_scene(&mut scene);
+        assert_eq!(scene["resident_batching_diagnostic"]["mode"], "coalesced");
+        assert_eq!(scene["world"], "unchanged");
+    }
 
     #[test]
     fn direct_target_policy_is_explicit_and_preserves_capture_legacy_controls() {
