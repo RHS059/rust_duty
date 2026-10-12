@@ -325,134 +325,7 @@ pub fn hud(
         }
     }
 
-    // Bottom right: ammo and weapon (§7.5).
-    {
-        let hero_px = type_px(size::NUM_HERO, s);
-        let mag = format!("{:02}", p.ammo);
-        let reserve = format!("/ {:03}", p.reserve);
-        let (mag_color, status) = if p.ammo == 0 {
-            (field::CRITICAL, Some(("RELOAD  [R]", field::CRITICAL)))
-        } else if p.ammo * 4 <= MAGAZINE {
-            (field::WARNING, Some(("LOW AMMO", field::WARNING)))
-        } else {
-            (field::TEXT, None)
-        };
-        let state = if p.mantle.is_some() {
-            Some("MANTLING")
-        } else if p.reload_left > 0. {
-            Some("RELOADING")
-        } else if p.sprint_out > 0. {
-            Some("RAISING WEAPON")
-        } else {
-            None
-        };
-        let dm = label_style(mag_color).measure(&mag, hero_px);
-        let dr = label_style(MUTED).measure(&reserve, label_px);
-        let dw = label_style(MUTED).measure(weapon_label, small_px);
-        let width = (dm.width + gap + dr.width).max(dw.width).max(200. * s);
-        let x = w - inset_x - width;
-        let bottom = h - inset_y;
-        let bar_y = bottom - 4. * s;
-        let mag_base = bar_y - 12. * s;
-        let name_base = mag_base - dm.height - gap;
-        let top = name_base - dw.offset_y;
-        field::cluster_shade(
-            Rect::new(
-                x - gap,
-                top - gap,
-                width + 2. * gap,
-                bottom - top + 2. * gap,
-            ),
-            s,
-        );
-        label(weapon_label, x, name_base, small_px, MUTED);
-        label(&mag, x, mag_base, hero_px, mag_color);
-        label(&reserve, x + dm.width + gap, mag_base, label_px, MUTED);
-        let line = state.map(|t| (t, MUTED)).or(status);
-        if let Some((text, color)) = line {
-            let dt = label_style(color).measure(text, small_px);
-            label(text, w - inset_x - dt.width, mag_base, small_px, color);
-        }
-        let progress = if let Some(mantle) = p.mantle {
-            Some(mantle.progress())
-        } else if p.reload_left > 0. {
-            Some(1. - p.reload_left / p.reload_total)
-        } else {
-            None
-        };
-        if let Some(progress) = progress {
-            hud_rectangle(x, bar_y, width, (4. * s).max(1.), field::TRACK);
-            hud_rectangle(
-                x,
-                bar_y,
-                width * progress.clamp(0., 1.),
-                (4. * s).max(1.),
-                ACCENT,
-            );
-        }
-    }
-
-    // Bottom left: stance, speed and stamina (§7.4 segmented meters).
-    {
-        let stance = if p.dead() {
-            "DOWN"
-        } else if p.mantle.is_some_and(|m| m.from_hang) {
-            "PULLING UP"
-        } else if matches!(p.action, crate::sim::Action::Hang(_)) {
-            "HANGING"
-        } else if matches!(p.action, crate::sim::Action::Slide(_)) {
-            "SLIDING"
-        } else if matches!(p.action, crate::sim::Action::Dive(_)) {
-            "DIVING"
-        } else if p.mount.is_some() {
-            "MOUNTED"
-        } else if p.tac_sprint.is_some() {
-            "TAC SPRINT"
-        } else if p.mantle.is_some() {
-            "MANTLING"
-        } else if !p.grounded {
-            "AIRBORNE"
-        } else if p.prone {
-            "PRONE"
-        } else if p.crouched {
-            "CROUCHED"
-        } else if p.sprinting {
-            "SPRINT"
-        } else {
-            "STANDING"
-        };
-        let width = 300. * s;
-        let x = inset_x;
-        let bottom = h - inset_y;
-        let tac_y = bottom - (3. * s).max(1.);
-        let bar_h = (8. * s).max(2.);
-        let bar_y = tac_y - gap - bar_h;
-        let ds = label_style(field::TEXT).measure(stance, label_px);
-        let base = bar_y - gap * 1.5;
-        let top = base - ds.offset_y;
-        field::cluster_shade(
-            Rect::new(
-                x - gap,
-                top - gap,
-                width + 2. * gap,
-                bottom - top + 2. * gap,
-            ),
-            s,
-        );
-        label(stance, x, base, label_px, field::TEXT);
-        let speed = format!("{:04.1} m/s", p.speed());
-        let dv = label_style(MUTED).measure(&speed, small_px);
-        label(&speed, x + width - dv.width, base, small_px, MUTED);
-        let stamina = p.stamina / SPRINT_DURATION;
-        let fill = if stamina <= 0.25 {
-            field::WARNING
-        } else {
-            field::TEXT2
-        };
-        field::segmented_bar(Rect::new(x, bar_y, width, bar_h), 4, stamina, fill, s);
-        let tac = (p.tac_charge / cfg.action.tac_sprint_duration.max(1e-3)).min(1.);
-        hud_rectangle(x, tac_y, width * tac, (3. * s).max(1.), ACCENT);
-    }
+    draw_bottom_clusters(sim, cfg, w, h, weapon_label);
 
     action_hud(sim, w, h);
 
@@ -526,9 +399,203 @@ pub fn hud(
     }
 }
 
+/// Bottom clusters use measured text extents, including the small-window font floor.
+fn draw_bottom_clusters(sim: &Simulation, cfg: &Settings, w: f32, h: f32, weapon_label: &str) {
+    let s = field::scale(h);
+    let (inset_x, inset_y) = field::safe_inset(w, h);
+    let p = &sim.player;
+    let label_px = type_px(size::LABEL, s);
+    let small_px = type_px(size::SMALL, s);
+    let gap = (8. * s).max(4.);
+    // Bottom right: ammo and weapon (§7.5).
+    {
+        let hero_px = type_px(size::NUM_HERO, s);
+        let mag = format!("{:02}", p.ammo);
+        let reserve = format!("/ {:03}", p.reserve);
+        let (mag_color, status) = if p.ammo == 0 {
+            (field::CRITICAL, Some(("RELOAD  [R]", field::CRITICAL)))
+        } else if p.ammo * 4 <= MAGAZINE {
+            (field::WARNING, Some(("LOW AMMO", field::WARNING)))
+        } else {
+            (field::TEXT, None)
+        };
+        let state = if p.mantle.is_some() {
+            Some("MANTLING")
+        } else if p.reload_left > 0. {
+            Some("RELOADING")
+        } else if p.sprint_out > 0. {
+            Some("RAISING WEAPON")
+        } else {
+            None
+        };
+        let dm = label_style(mag_color).measure(&mag, hero_px);
+        let dr = label_style(MUTED).measure(&reserve, label_px);
+        let dw = label_style(MUTED).measure(weapon_label, small_px);
+        let line = state.map(|t| (t, MUTED)).or(status);
+        let status_dims = line.map(|(text, color)| label_style(color).measure(text, small_px));
+        let width = (dm.width + gap + dr.width)
+            .max(dw.width)
+            .max(status_dims.map_or(0., |d| d.width))
+            .max(200. * s);
+        let x = w - inset_x - width;
+        let bottom = h - inset_y;
+        let bar_y = bottom - (4. * s).max(1.);
+        // Status gets its own measured row below magazine + reserve.
+        let status_base = status_dims.map(|d| bar_y - gap - (d.height - d.offset_y));
+        let ammo_bottom = status_dims.zip(status_base)
+            .map_or(bar_y - gap, |(d, base)| base - d.offset_y - gap);
+        let mag_base = ammo_bottom - (dm.height - dm.offset_y).max(dr.height - dr.offset_y);
+        let ammo_top = mag_base - dm.offset_y.max(dr.offset_y);
+        let name_base = ammo_top - gap - (dw.height - dw.offset_y);
+        let top = name_base - dw.offset_y;
+        field::cluster_shade(
+            Rect::new(
+                x - gap,
+                top - gap,
+                width + 2. * gap,
+                bottom - top + 2. * gap,
+            ),
+            s,
+        );
+        label(weapon_label, x, name_base, small_px, MUTED);
+        label(&mag, x, mag_base, hero_px, mag_color);
+        label(&reserve, x + dm.width + gap, mag_base, label_px, MUTED);
+        if let Some(((text, color), baseline)) = line.zip(status_base) {
+            label(text, x, baseline, small_px, color);
+        }
+        let progress = if let Some(mantle) = p.mantle {
+            Some(mantle.progress())
+        } else if p.reload_left > 0. {
+            Some(1. - p.reload_left / p.reload_total)
+        } else {
+            None
+        };
+        if let Some(progress) = progress {
+            hud_rectangle(x, bar_y, width, (4. * s).max(1.), field::TRACK);
+            hud_rectangle(
+                x,
+                bar_y,
+                width * progress.clamp(0., 1.),
+                (4. * s).max(1.),
+                ACCENT,
+            );
+        }
+    }
+
+    // Bottom left: stance, speed and stamina (§7.4 segmented meters).
+    {
+        let stance = if p.dead() {
+            "DOWN"
+        } else if p.mantle.is_some_and(|m| m.from_hang) {
+            "PULLING UP"
+        } else if matches!(p.action, crate::sim::Action::Hang(_)) {
+            "HANGING"
+        } else if matches!(p.action, crate::sim::Action::Slide(_)) {
+            "SLIDING"
+        } else if matches!(p.action, crate::sim::Action::Dive(_)) {
+            "DIVING"
+        } else if p.mount.is_some() {
+            "MOUNTED"
+        } else if p.tac_sprint.is_some() {
+            "TAC SPRINT"
+        } else if p.mantle.is_some() {
+            "MANTLING"
+        } else if !p.grounded {
+            "AIRBORNE"
+        } else if p.prone {
+            "PRONE"
+        } else if p.crouched {
+            "CROUCHED"
+        } else if p.sprinting {
+            "SPRINT"
+        } else {
+            "STANDING"
+        };
+        let speed = format!("{:04.1} m/s", p.speed());
+        let ds = label_style(field::TEXT).measure(stance, label_px);
+        let dv = label_style(MUTED).measure(&speed, small_px);
+        let width = (300. * s).max(ds.width + gap + dv.width);
+        let x = inset_x;
+        let bottom = h - inset_y;
+        let tac_y = bottom - (3. * s).max(1.);
+        let bar_h = (8. * s).max(2.);
+        let bar_y = tac_y - gap - bar_h;
+        let base = bar_y - gap * 1.5 - (ds.height - ds.offset_y).max(dv.height - dv.offset_y);
+        let top = base - ds.offset_y.max(dv.offset_y);
+        field::cluster_shade(
+            Rect::new(
+                x - gap,
+                top - gap,
+                width + 2. * gap,
+                bottom - top + 2. * gap,
+            ),
+            s,
+        );
+        label(stance, x, base, label_px, field::TEXT);
+        label(&speed, x + width - dv.width, base, small_px, MUTED);
+        let stamina = p.stamina / SPRINT_DURATION;
+        let fill = if stamina <= 0.25 {
+            field::WARNING
+        } else {
+            field::TEXT2
+        };
+        field::segmented_bar(Rect::new(x, bar_y, width, bar_h), 4, stamina, fill, s);
+        let tac = (p.tac_charge / cfg.action.tac_sprint_duration.max(1e-3)).min(1.);
+        hud_rectangle(x, tac_y, width * tac, (3. * s).max(1.), ACCENT);
+    }
+
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn bottom_cluster_glyphs_do_not_overlap_across_states_and_viewports() {
+        use crate::{draw::Command, render::text::TextRenderer};
+        let _reset = ThemeReset;
+        let mut renderer = TextRenderer::new().unwrap();
+        for css in ["", include_str!("../ui/examples/high-contrast.css"), "#hud .label {font-size:21.5px}"] {
+            ui_theme::set_theme(ui_theme::UiTheme::parse("test.css", css).unwrap());
+            for (w, h) in [(640, 360), (960, 540), (1920, 1080), (3840, 2160)] {
+                for state in 0..5 {
+                    let mut sim = Simulation::new();
+                    match state {
+                        1 => sim.player.ammo = 1,
+                        2 => sim.player.ammo = 0,
+                        3 => { sim.player.reload_left = 1.; sim.player.reload_total = 2.; }
+                        4 => sim.player.sprint_out = 1.,
+                        _ => {}
+                    }
+                    begin_frame(w, h, 1.).unwrap();
+                    draw_bottom_clusters(&sim, &Settings::default(), w as f32, h as f32, "HK416");
+                    let mut bounds = Vec::new();
+                    for command in take_draw_list().unwrap().commands {
+                        if let Command::Text { text, baseline, size, color } = command {
+                            let mut min = vec2(f32::INFINITY, f32::INFINITY);
+                            let mut max = vec2(f32::NEG_INFINITY, f32::NEG_INFINITY);
+                            for mesh in renderer.meshes(&text, baseline, size, color).unwrap() {
+                                for vertex in mesh.vertices {
+                                    min = min.min(vertex.position.truncate());
+                                    max = max.max(vertex.position.truncate());
+                                }
+                            }
+                            assert!(min.x >= 0. && min.y >= 0. && max.x <= w as f32 && max.y <= h as f32,
+                                "{text} outside {w}x{h}: {min:?}..{max:?}");
+                            bounds.push((text, min, max));
+                        }
+                    }
+                    assert_eq!(bounds.len(), if state == 0 { 5 } else { 6 });
+                    for (i, (text, min, max)) in bounds.iter().enumerate() {
+                        for (other, omin, omax) in &bounds[i + 1..] {
+                            assert!(max.x <= omin.x || omax.x <= min.x || max.y <= omin.y || omax.y <= min.y,
+                                "{text} overlaps {other} at {w}x{h}, state {state}, CSS {css}");
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     #[test]
     fn persistent_telemetry_indicator_stays_inside_tiny_viewports() {
         use crate::draw::Command;

@@ -40,6 +40,8 @@ NOTICES = ("LICENSE", "THIRD_PARTY_LICENSES.txt",
 RUNTIME_FILES = (
     "ui/theme.css", "docs/UI_THEME.md",
     "ui/examples/high-contrast.css", "ui/examples/large-type.css",
+    "ui/examples/field-spartan.css", "ui/examples/field-arena.css",
+    "ui/examples/field-dread.css",
     "docs/UI_THEME_EXAMPLES.md", "docs/FRAME_PERFORMANCE.md", "docs/GPU_TELEMETRY.md",
 )
 BUILD_FILES = (

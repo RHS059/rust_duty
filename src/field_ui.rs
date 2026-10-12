@@ -3,6 +3,7 @@
 //! Sizes are authored at the 1920x1080 reference and scaled by screen height, using
 //! the FIELD desk platform factor (0.8). See game_pd_ui `DESIGN_SYSTEM.md`.
 use crate::draw::{facade::*, Rect};
+use crate::ui_theme::{self, UiClass, UiScope};
 
 const fn hex(rgb: u32) -> Color {
     Color::new(
@@ -70,6 +71,7 @@ pub fn safe_inset(w: f32, h: f32) -> (f32, f32) {
 /// Cluster shade (§3.3): a solid 86 % scrim core under the content, feathered
 /// 40 reference px outside it. Drawn outermost first, in four steps.
 pub fn cluster_shade(core: Rect, s: f32) {
+    let style = ui_theme::style(UiScope::Hud, &[UiClass::Panel]);
     let feather = 40. * s;
     for (step, alpha) in [(1.0, 0.10), (0.75, 0.16), (0.5, 0.22), (0.25, 0.30)] {
         let d = feather * step;
@@ -78,10 +80,15 @@ pub fn cluster_shade(core: Rect, s: f32) {
             core.y - d,
             core.w + 2. * d,
             core.h + 2. * d,
-            with_alpha(SCRIM, alpha),
+            // Preserve the feather's relative density after resolving the theme.
+            {
+                let mut color = style.background(SCRIM_86);
+                color.a *= alpha / SCRIM_ALPHA;
+                color
+            },
         );
     }
-    draw_rectangle(core.x, core.y, core.w, core.h, SCRIM_86);
+    style.rect(core, SCRIM_86, TEXT3, 1.);
 }
 
 /// Tag plate (§3.3): single mid-screen label on 86 % scrim, 8 ref-px side padding.
@@ -94,7 +101,7 @@ pub fn tag_plate(text_x: f32, baseline: f32, dims: TextDimensions, s: f32) -> Re
         dims.width + 2. * pad_x,
         dims.height + 2. * pad_y,
     );
-    draw_rectangle(r.x, r.y, r.w, r.h, SCRIM_86);
+    ui_theme::style(UiScope::Hud, &[UiClass::Panel]).rect(r, SCRIM_86, TEXT3, 1.);
     r
 }
 
@@ -125,13 +132,20 @@ pub fn halo_dot(center: Vec2, radius: f32, color: Color, s: f32) {
 
 /// Segmented meter (§7.4): loss reads at a glance. `fraction` is clamped to 0..=1.
 pub fn segmented_bar(r: Rect, segments: u32, fraction: f32, fill: Color, s: f32) {
+    let track = ui_theme::style(UiScope::Hud, &[UiClass::Muted]).tint(TRACK);
+    let class = if fill == WARNING {
+        UiClass::Warning
+    } else {
+        UiClass::Muted
+    };
+    let fill = ui_theme::style(UiScope::Hud, &[class]).tint(fill);
     let segments = segments.max(1);
     let gap = (4. * s).max(1.);
     let seg_w = (r.w - gap * (segments - 1) as f32) / segments as f32;
     let filled = fraction.clamp(0., 1.) * segments as f32;
     for i in 0..segments {
         let x = r.x + i as f32 * (seg_w + gap);
-        draw_rectangle(x, r.y, seg_w, r.h, TRACK);
+        draw_rectangle(x, r.y, seg_w, r.h, track);
         let part = (filled - i as f32).clamp(0., 1.);
         if part > 0. {
             draw_rectangle(x, r.y, seg_w * part, r.h, fill);
@@ -142,6 +156,47 @@ pub fn segmented_bar(r: Rect, segments: u32, fraction: f32, fill: Color, s: f32)
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn backings_resolve_high_contrast_background_and_border() {
+        use crate::draw::Command;
+        ui_theme::set_theme(ui_theme::UiTheme::parse("high-contrast.css",
+            include_str!("../ui/examples/high-contrast.css")).unwrap());
+        begin_frame(400, 200, 1.).unwrap();
+        let core = Rect::new(50., 50., 100., 30.);
+        cluster_shade(core, 1.);
+        let plate = tag_plate(50., 130., measure_text("NOTICE", None, 16, 1.), 1.);
+        let list = take_draw_list().unwrap();
+        ui_theme::set_theme(ui_theme::UiTheme::default());
+        for target in [core, plate] {
+            assert!(list.commands.iter().any(|c| matches!(c,
+                Command::Rect { rect, color } if *rect == target
+                    && *color == Color::new(0., 0., 0., 242. / 255.))));
+            assert!(list.commands.iter().any(|c| matches!(c,
+                Command::Rect { rect, color } if rect.x == target.x && rect.y == target.y
+                    && rect.w == target.w && rect.h == 2. && *color == WHITE)));
+        }
+    }
+
+    #[test]
+    fn zero_hud_opacity_hides_backings_and_stamina() {
+        use crate::draw::Command;
+        ui_theme::set_theme(ui_theme::UiTheme::parse("hidden.css",
+            "#hud {opacity:0} #hud .panel {background-color:#ff0000;border-color:#ffffff;border-width:2px}").unwrap());
+        begin_frame(400, 200, 1.).unwrap();
+        cluster_shade(Rect::new(50., 50., 100., 30.), 1.);
+        tag_plate(50., 130., measure_text("NOTICE", None, 16, 1.), 1.);
+        segmented_bar(Rect::new(50., 160., 100., 4.), 4, 0.6, TEXT2, 1.);
+        segmented_bar(Rect::new(50., 180., 100., 4.), 4, 0.2, WARNING, 1.);
+        let list = take_draw_list().unwrap();
+        ui_theme::set_theme(ui_theme::UiTheme::default());
+        assert!(!list.commands.is_empty());
+        for command in list.commands {
+            if let Command::Rect { color, .. } = command {
+                assert_eq!(color.a, 0., "HUD primitive bypassed theme opacity");
+            }
+        }
+    }
 
     #[test]
     fn operator_tokens_match_game_pd_ui() {

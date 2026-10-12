@@ -21,6 +21,9 @@ UI_RESOURCES = {
     "docs/UI_THEME.md": b"# Native theme fixture\n",
     "ui/examples/high-contrast.css": b".panel { background-color: #000000f2; border-width: 2px; }\n",
     "ui/examples/large-type.css": b"#pause-menu .label { font-size: 26px; }\n",
+    "ui/examples/field-spartan.css": (ROOT / "ui/examples/field-spartan.css").read_bytes(),
+    "ui/examples/field-arena.css": (ROOT / "ui/examples/field-arena.css").read_bytes(),
+    "ui/examples/field-dread.css": (ROOT / "ui/examples/field-dread.css").read_bytes(),
     "docs/UI_THEME_EXAMPLES.md": b"# Theme examples fixture\nHigh contrast uses 95%-opaque black panels.\n",
 }
 
