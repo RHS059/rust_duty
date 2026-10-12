@@ -716,6 +716,174 @@ class DriverTests(unittest.TestCase):
         run.assert_not_called()
 
 
+class BuildComparisonTests(unittest.TestCase):
+    """Original source-pair fixtures; no native process or downloaded binary."""
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        self.root = Path(self.temp.name)
+        self.sources = {label: {'commit': char * 40, 'runtime_files_sha256': {
+            **{name: (label + name) for name in m.CPU_SOURCE_PATHS}, 'src/common.rs': 'common'}}
+            for label, char in (('baseline', 'a'), ('candidate', 'b'))}
+        for label, name in (('baseline', 'AUDITED_GPU_CPU_BASELINE_MANIFEST'),
+                            ('candidate', 'AUDITED_GPU_CANDIDATE_MANIFEST')):
+            item = mock.patch.object(m, name, m.canonical_hash(self.sources[label]['runtime_files_sha256']))
+            item.start()
+            self.addCleanup(item.stop)
+        settings = self.root / 'settings.cfg'
+        settings.write_bytes(b'original settings')
+        self.args = SimpleNamespace(execute=True, driver='win32', force_fallback=True,
+            graphics_settings=None, hardware=None, settings=settings, output=self.root / 'comparison',
+            baseline_source_witness=self.root / 'baseline', baseline_witness_sha256='1' * 64,
+            candidate_source_witness=self.root / 'candidate', candidate_witness_sha256='2' * 64,
+            baseline_executable=self.root / 'baseline.exe', candidate_executable=self.root / 'candidate.exe',
+            warmup_seconds=15, sample_seconds=45, procedural_baseline=True,
+            lock_file=self.root / 'desktop.lock',
+            baseline_build_receipt=self.root / 'baseline-build.json',
+            candidate_build_receipt=self.root / 'candidate-build.json')
+        import run_cpu_image_preservation as pair
+        production = {label: {**source['runtime_files_sha256'], 'Cargo.toml': 'same manifest'}
+                      for label, source in self.sources.items()}
+        for item in (mock.patch.object(pair, 'PRODUCTION_MANIFEST', m.canonical_hash(production['candidate'])),
+                     mock.patch.object(pair, 'CPU_BASELINE', {name: production['baseline'][name] for name in m.CPU_SOURCE_PATHS})):
+            item.start()
+            self.addCleanup(item.stop)
+        for label in ('baseline', 'candidate'):
+            dump(getattr(self.args, label + '_build_receipt'), {
+                'schema': 'rust-duty-performance-release-build/v1', 'source_commit': self.sources[label]['commit'],
+                'production_files_sha256': production[label], 'executable_sha256': label,
+                'ci_run_source_commit': self.sources['candidate']['commit'],
+                'command': ['cargo', 'build', '--locked', '--release', '--no-default-features',
+                            '--features', 'wgpu-runtime', '--bin', 'vector-range'],
+                'build_settings': {'CARGO_INCREMENTAL': '0', 'CARGO_BUILD_JOBS': '2', 'CARGO_PROFILE_RELEASE_DEBUG': '0'},
+                'build_result': {'exit_code': 0}, 'toolchain': {
+                    'rustc': 'rustc 1.99.0\nhost: x86_64-pc-windows-msvc\nrelease: 1.99.0\n',
+                    'cargo': 'cargo 1.99.0 synthetic'}})
+        self.calls = []
+
+    def exercise(self, mutation=None):
+        def source(path, digest):
+            return copy.deepcopy(self.sources[Path(path).name])
+        def package(exe, source, renderer):
+            return {'adjacent_files_sha256': {'ui/theme.css': (
+                'changed' if mutation == 'assets' and Path(exe).stem == 'candidate' else 'same')},
+                'executable_sha256': Path(exe).stem,
+                'build': {'repository': 'RHS059/rust_duty', 'target': 'x86_64-pc-windows-msvc',
+                    'display_version': 'different' if mutation == 'label' and Path(exe).stem == 'candidate' else 'same',
+                    'source': {'commit': source['commit'], 'workflow': '.github/workflows/build.yml',
+                               'run_attempt': 2 if mutation == 'run-attempt' and Path(exe).stem == 'candidate' else 1}}}
+        def run(args):
+            self.assertTrue(self.args.lock_file.is_file())
+            self.assertNotEqual(args.lock_file, self.args.lock_file)
+            self.assertFalse(args.continue_after_exit_timeout)
+            label = Path(args.executable).stem
+            self.calls.append(label)
+            plan = m.json_read(args.plan)
+            self.assertTrue(plan['gpu_timestamps'] and plan['baseline_only'] and plan['procedural_baseline'])
+            self.assertEqual(len(plan['order']), 1)
+            args.output.mkdir()
+            if mutation == 'settings':
+                self.args.settings.write_bytes(b'changed settings')
+            pinned = package(args.executable, self.sources[label], 'dx12')
+            if mutation == 'child-package' and len(self.calls) == 2:
+                pinned['executable_sha256'] = 'changed executable'
+            dump(args.output / 'MANIFEST.json', {'settings_sha256': m.sha256(args.settings),
+                'graphics': {'schema': 'rust-duty-graphics-device/v1', 'adapter': None},
+                'package': pinned, 'plan': plan})
+            if mutation == 'earlier-evidence' and len(self.calls) == 2:
+                (self.args.output / 'r01-baseline/MANIFEST.json').write_bytes(b'changed old evidence')
+        def analyze(folder):
+            n = int(Path(folder).name.split('-')[0][1:])
+            ready = not (mutation == 'undersampled' and n == 2)
+            adapter = {'name': 'changed' if mutation == 'adapter' and n == 2 else 'same'}
+            return {'state': 'complete', 'measurement_readiness': {'ready': ready},
+                    'runs': [{'runtime_observed': {'actual_adapter': adapter,
+                         'initial_window': {'physical_width': 1920, 'physical_height': 1080, 'scale_factor': 1},
+                         'scene': {'presentation': 'procedural'}},
+                         'started_unix_ns': 0 if mutation == 'overlap' and n == 2 else n * 100,
+                         'finished_unix_ns': n * 100 + 50}]}
+        with mock.patch.object(m, 'artifact_source', side_effect=source), \
+                mock.patch.object(m, 'package_identity', side_effect=package), \
+                mock.patch.object(m, 'run_matrix', side_effect=run), \
+                mock.patch.object(m, 'analyze_matrix', side_effect=analyze):
+            return m.compare_builds(self.args)
+
+    def test_eight_run_bracketed_order_holds_outer_lock_and_keeps_no_performance_verdict(self):
+        result = self.exercise()
+        self.assertEqual(self.calls, ['baseline', 'candidate', 'candidate', 'baseline'] * 2)
+        self.assertFalse(self.args.lock_file.exists())
+        self.assertEqual(result['state'], 'complete')
+        self.assertIsNone(result['performance_improvement'])
+        self.assertFalse(result['target_1080p60_proven'])
+        self.assertEqual(result, m.json_read(self.args.output / 'COMPARE_SUMMARY.json'))
+
+    def test_different_assets_stop_before_any_game(self):
+        with self.assertRaisesRegex(ValueError, 'adjacent assets'):
+            self.exercise('assets')
+        self.assertEqual(self.calls, [])
+
+    def test_changed_settings_adapter_overlapping_or_undersampled_run_stops_comparison(self):
+        for mutation in ('settings', 'adapter', 'overlap', 'undersampled'):
+            with self.subTest(mutation=mutation):
+                if self.args.output.exists():
+                    shutil.rmtree(self.args.output)
+                self.args.settings.write_bytes(b'original settings')
+                self.calls.clear()
+                with self.assertRaises(ValueError):
+                    self.exercise(mutation)
+                self.assertLessEqual(len(self.calls), 2)
+                self.assertFalse(self.args.lock_file.exists())
+                self.assertEqual(m.json_read(self.args.output / 'COMPARE_FAILURE.json')['state'], 'incomplete')
+
+    def test_changed_child_package_and_earlier_retained_evidence_fail(self):
+        for mutation, error in (('child-package', 'child package'), ('earlier-evidence', 'Earlier comparison evidence')):
+            with self.subTest(mutation=mutation):
+                if self.args.output.exists():
+                    shutil.rmtree(self.args.output)
+                self.calls.clear()
+                with self.assertRaisesRegex(ValueError, error):
+                    self.exercise(mutation)
+                self.assertFalse(self.args.lock_file.exists())
+
+    def test_unreviewed_non_runtime_compile_input_or_compiler_identity_fails(self):
+        receipt = m.json_read(self.args.candidate_build_receipt)
+        original = copy.deepcopy(receipt)
+        receipt['production_files_sha256']['Cargo.toml'] = 'different manifest'
+        dump(self.args.candidate_build_receipt, receipt)
+        with self.assertRaisesRegex(ValueError, 'closed reviewed production'):
+            self.exercise()
+        receipt = copy.deepcopy(original)
+        receipt['toolchain']['rustc'] = 'unreviewed compiler'
+        dump(self.args.candidate_build_receipt, receipt)
+        with self.assertRaisesRegex(ValueError, 'compiler identities'):
+            self.exercise()
+        self.assertEqual(self.calls, [])
+
+    def test_mixed_ci_attempts_labels_or_receipt_source_fail_before_launch(self):
+        for mutation in ('label', 'run-attempt'):
+            with self.subTest(mutation=mutation), self.assertRaisesRegex(ValueError, 'CI run identities'):
+                self.exercise(mutation)
+        receipt = m.json_read(self.args.baseline_build_receipt)
+        receipt['ci_run_source_commit'] = 'c' * 40
+        dump(self.args.baseline_build_receipt, receipt)
+        with self.assertRaisesRegex(ValueError, 'different candidate CI source'):
+            self.exercise()
+        self.assertEqual(self.calls, [])
+
+    def test_unreviewed_source_or_reused_commit_is_rejected_before_launch(self):
+        self.sources['baseline']['runtime_files_sha256']['src/common.rs'] = 'unreviewed'
+        with self.assertRaisesRegex(ValueError, 'exact reviewed baseline'):
+            self.exercise()
+        self.sources['baseline']['runtime_files_sha256']['src/common.rs'] = 'common'
+        self.sources['baseline']['commit'] = self.sources['candidate']['commit']
+        receipt = m.json_read(self.args.baseline_build_receipt)
+        receipt['source_commit'] = self.sources['candidate']['commit']
+        dump(self.args.baseline_build_receipt, receipt)
+        with self.assertRaisesRegex(ValueError, 'distinct real source commits'):
+            self.exercise()
+        self.assertEqual(self.calls, [])
+
+
 class SourceWitnessTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
@@ -1033,6 +1201,49 @@ class SourceWitnessTests(unittest.TestCase):
         m.validate_plan(plan)
         self.assertEqual(plan['fixed_runtime']['present_mode'], 'Fifo')
         self.assertIn('leaves them disabled', plan['unavailable_axes']['gpu_frame_duration'])
+
+    def gpu_cpu_baseline_fixture(self):
+        self.gpu_fixture()
+        for name in m.CPU_SOURCE_PATHS:
+            (self.repository / name).write_text('// Synthetic reviewed CPU baseline: ' + name + '\n',
+                                                encoding='utf-8', newline='\n')
+        self.commit_gpu_fixture()
+        hashes = {name: m.sha256(self.repository / name) for name in m.GPU_CANDIDATE_SOURCE_PATHS}
+        audit = mock.patch.object(m, 'AUDITED_GPU_CPU_BASELINE_MANIFEST', m.canonical_hash(hashes))
+        audit.start()
+        self.addCleanup(audit.stop)
+
+    def test_exact_gpu_cpu_baseline_roundtrip_and_timestamp_plan(self):
+        self.gpu_cpu_baseline_fixture()
+        witness = self.root / 'gpu-cpu-baseline-witness'
+        digest = m.export_witness(self.repository, witness)
+        source = m.artifact_source(witness, digest)
+        self.assertEqual(source, m.source_identity(self.repository))
+        self.assertEqual(len(source['runtime_files_sha256']), 29)
+        self.assertEqual(m.canonical_hash(source['runtime_files_sha256']), m.AUDITED_GPU_CPU_BASELINE_MANIFEST)
+        plan = m.make_plan(source, repeats=1, baseline_only=True, gpu_timestamps=True)
+        m.validate_plan(plan)
+        self.assertEqual([row['case_id'] for row in plan['order']], ['baseline'])
+        self.assertEqual(plan['cases'][0]['settings']['surface_extent'], [1920, 1080])
+        self.assertTrue(plan['gpu_timestamps'])
+        self.assertEqual(plan['fixed_runtime']['present_mode'], 'Fifo')
+
+    def test_each_gpu_cpu_baseline_file_rejects_dirty_and_committed_mutations(self):
+        self.gpu_cpu_baseline_fixture()
+        for name in m.CPU_SOURCE_PATHS:
+            path = self.repository / name
+            original = path.read_bytes()
+            with self.subTest(name=name):
+                path.write_bytes(original + b'// Unreviewed mixed baseline\n')
+                with self.assertRaisesRegex(ValueError, 'Uncommitted runtime source'):
+                    m.source_identity(self.repository)
+                self.commit_gpu_fixture()
+                with self.assertRaisesRegex(ValueError, 'cannot fall back'):
+                    m.source_identity(self.repository)
+                path.write_bytes(original)
+                self.commit_gpu_fixture()
+                self.assertEqual(m.canonical_hash(m.source_identity(self.repository)['runtime_files_sha256']),
+                                 m.AUDITED_GPU_CPU_BASELINE_MANIFEST)
 
     def test_first_gpu_witness_remains_exact_after_reviewed_same_scope_revision(self):
         self.gpu_fixture()

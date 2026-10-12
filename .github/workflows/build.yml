@@ -51,6 +51,123 @@ jobs:
     uses: ./.github/workflows/wgpu-dx12-smoke.yml
   dx12-renderer-contract:
     uses: ./.github/workflows/wgpu-renderer-contract.yml
+  dx12-performance-pair:
+    # Preserve the real push or PR-merge source identity of the surviving build.
+    # Existing workflow concurrency may replace the push with its PR duplicate.
+    if: github.repository == 'RHS059/rust_duty' && ((github.event_name == 'push' && github.ref == 'refs/heads/aella/wgpu-1080p-diagnostics') || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'aella/wgpu-1080p-diagnostics'))
+    runs-on: windows-latest
+    timeout-minutes: 95
+    env:
+      GIT_CONFIG_COUNT: '1'
+      GIT_CONFIG_KEY_0: core.autocrlf
+      GIT_CONFIG_VALUE_0: 'false'
+      CARGO_HOME: ${{ github.workspace }}/.performance-pair-cargo
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: candidate
+          ref: ${{ github.sha }}
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /.gitattributes
+            /.gitignore
+            /.cargo/
+            /.github/workflows/
+            /Cargo.toml
+            /Cargo.lock
+            /build.rs
+            /build_number.rs
+            /rust-toolchain.toml
+            /rust-toolchain
+            /LICENSE
+            /THIRD_PARTY_LICENSES.txt
+            /src/
+            /updater/
+            /ui/
+            /settings.cfg
+            /tools/
+      - uses: actions/checkout@v4
+        with:
+          path: baseline
+          ref: 4604e7e4648d05f4750f73f7d4d72ea23ddfb1ef
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /.gitattributes
+            /.gitignore
+            /.cargo/
+            /Cargo.toml
+            /Cargo.lock
+            /build.rs
+            /build_number.rs
+            /rust-toolchain.toml
+            /rust-toolchain
+            /LICENSE
+            /THIRD_PARTY_LICENSES.txt
+            /src/
+            /updater/
+            /ui/
+            /settings.cfg
+      - name: Select exact Rust1.99 MSVC compiler binaries
+        shell: pwsh
+        run: |
+          rustup toolchain install 1.99.0-x86_64-pc-windows-msvc --profile minimal
+          if ($LASTEXITCODE -ne 0) { throw 'Pinned compiler installation failed' }
+          $rustc = rustup which --toolchain 1.99.0-x86_64-pc-windows-msvc rustc
+          if ($LASTEXITCODE -ne 0) { throw 'Pinned compiler lookup failed' }
+          Split-Path -Parent $rustc | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install pinned reader dependencies
+        run: python -m pip install Pillow==11.3.0 PyYAML==6.0.3
+      - name: Exercise source, release, sidecar and workflow guards
+        working-directory: candidate
+        env:
+          PYTHONPATH: tools
+        run: >-
+          python -m unittest -v test_performance_matrix test_matrix_gpu_diagnostics
+          test_build_performance_pair test_performance_matrix_workflow
+          test_summarize_cpu_substages test_summarize_gpu_timing
+      - name: Fresh source-bound release builds without game assets
+        timeout-minutes: 62
+        run: >-
+          python candidate/tools/build_performance_pair.py --root candidate --baseline baseline
+          --output evidence/performance-build --build-timeout 1800
+      - name: Measure eight sequential real-game WARP captures
+        timeout-minutes: 25
+        shell: pwsh
+        run: |
+          $pair = Get-Content evidence/performance-build/BUILD_PAIR.json -Raw | ConvertFrom-Json
+          if (-not $pair.passed) { throw 'Fresh build pair is incomplete' }
+          python candidate/tools/performance_matrix.py compare `
+            --baseline-source-witness evidence/performance-build/baseline/source-witness `
+            --baseline-witness-sha256 $pair.variants.baseline.source_witness_sha256 `
+            --baseline-executable evidence/performance-build/baseline/package/vector-range.exe `
+            --baseline-build-receipt evidence/performance-build/baseline/build-receipt.json `
+            --candidate-source-witness evidence/performance-build/candidate/source-witness `
+            --candidate-witness-sha256 $pair.variants.candidate.source_witness_sha256 `
+            --candidate-executable evidence/performance-build/candidate/package/vector-range.exe `
+            --candidate-build-receipt evidence/performance-build/candidate/build-receipt.json `
+            --settings evidence/performance-build/candidate/package/settings.cfg `
+            --procedural-baseline --force-fallback --driver win32 `
+            --warmup-seconds 10 --sample-seconds 120 --execute --output evidence/performance-timing
+          if ($LASTEXITCODE -ne 0) { throw 'Source-paired timing capture failed; retain original evidence' }
+      - name: Retain exact source, build and raw timing evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dx12-performance-pair-attempt-${{ github.run_attempt }}
+          path: |
+            evidence/performance-build/**
+            evidence/performance-timing/**
+            !evidence/performance-build/*/target/**
+            !evidence/**/*.dll
+            !evidence/**/assets/**
+          include-hidden-files: true
+          if-no-files-found: warn
+          retention-days: 7
   build:
     needs: [animation-assets, walk-assets, ads-assets, directional-assets, jump-assets]
     name: windows-latest

@@ -52,9 +52,10 @@ match the native runtime's exact requested/actual fingerprint evidence.
   present interval. Focus/pause/resize/capture boundaries invalidate a run.
 - Existing GPU occupancy/memory files are retained with their status, including
   unsupported platforms. They are not synchronized GPU frame timestamps.
-- GPU durations, actual-game draw/pass/triangle counts, Record-off overhead and
-  unimplemented graphics settings are explicitly unavailable, never estimated
-  from the synthetic pass-submission example.
+- GPU durations remain unavailable by default. Reviewed DX12 sources can opt in
+  to the strictly joined command-buffer timing path below. Actual-game draw/pass/
+  triangle counts, Record-off overhead and unimplemented graphics settings remain
+  unavailable, never estimated from the synthetic pass-submission example.
 - F1's requested state is supported by the driver command, but the current
   telemetry does not independently report HUD state. Movement/ADS are checked
   against the gameplay CSV. CSV `render_fps` is never used for frame statistics.
@@ -113,8 +114,9 @@ Before comparing a baseline and candidate:
    intervals are CPU pacing evidence, not scan-out or GPU execution time.
    Compare application/draw-list, renderer-submit, acquire and present spans
    before attributing a regression. GPU occupancy is not GPU frame duration;
-   current traces have no timestamp-query durations, actual-game draw/pass/
-   triangle counts or Record-off overhead measurement. Report these as missing.
+   default traces have no timestamp-query durations. Opted-in command-buffer
+   durations are separate from present intervals. Actual-game draw/pass/triangle
+   counts and Record-off overhead remain missing.
 
 A repeatable RTX pilot is the next measurement after a source optimization.
 Synthetic submission benchmarks can explain a narrower cost but cannot replace
@@ -333,7 +335,84 @@ cannot silently fall back to a historical witness. Historical artifact witnesses
 remain accepted only with their original exact inventories and external hashes.
 The initial published 29-file WIP digest is also retained explicitly when a
 reviewed formatting/test-fix revision changes that same inventory's bytes.
-This matrix still leaves GPU timestamps disabled and fixes Fifo; use the separate
-[GPU sidecar reader](engineering/gpu-session-integration.md) for explicitly opted-in
-captures. Neither inventory acceptance nor a valid sidecar proves native runtime
-correctness or target performance.
+The default matrix still leaves GPU timestamps disabled and fixes Fifo. The
+explicit `--gpu-timestamps` plan option is limited to the exact current candidate
+and four-file counterfactual inventories below. It waits for, hashes and runs the
+unchanged strict [CPU/GPU sidecar readers](engineering/gpu-session-integration.md)
+against the original primary bytes. Neither source acceptance nor a valid sidecar
+proves target performance.
+
+
+### Exact four-file CPU comparison
+
+The current candidate runtime digest is
+`9b7ae93be3a4d4aed9b662d0c27ff18d0b1e12e99c4dc916422c98e0c5eae3c6`.
+The counterfactual runtime digest is
+`dbabe2822dd73410a7f05c0f03807aa80d5720351c4a9c13ebdee1276fecc195`;
+its real source commit is `4604e7e4648d05f4750f73f7d4d72ea23ddfb1ef`
+(full tree `6027ffefbad4becad75a06e65516898be1bb5990`). It restores only
+`src/draw/mod.rs`, `src/render/lines.rs`, `src/render/text.rs` and
+`src/render/plan.rs` from `70ff2933ebe69b7180e207c7defebeaeb6e240e1`.
+The baseline is a real separate Git source, not an alias for the candidate or an
+unmodified historical release. Both retain the same diagnostics and Fifo policy.
+
+`tools/build_performance_pair.py` creates fresh release packages from those exact
+checked-out sources in the actual `build.yml` CI run. The closed 118-file compile
+inventory, compiler identity in each source directory, Cargo configuration and
+environment, fixed release command/profile/features, original build logs,
+executable hashes, source witnesses, public UI/settings and real build identities
+and asset-free package executables are retained in the job artifact. The candidate's actual `GITHUB_SHA` can be a PR merge commit; it is
+never rewritten to a branch-head SHA. The baseline retains its actual separate
+commit and the receipt also records the CI run's candidate source.
+
+The branch-scoped `dx12-performance-pair` job builds without embedded or adjacent
+game assets and runs the production default range with procedural presentation,
+1920×1080 physical surface, DX12/WARP and Fifo. It uses 10 seconds warmup and
+120 seconds Record per process, to give slow software captures a chance to reach
+the unchanged minimum of 100 present intervals and 100 measured eligible GPU rows.
+Unavailable/undersampled timing remains explicit and fails readiness. This is a
+native protocol check; WARP results do not establish RTX 3080 Ti performance.
+
+For the selected RTX, use the same freshly built reviewed packages and run on an
+already available dedicated Windows desktop. The following PowerShell command
+uses `BUILD_PAIR.json` from that build; `graphics-device.json` must select the
+exact DX12 adapter fingerprint. Hardware notes are retained as operator claims.
+
+```powershell
+$pair = Get-Content evidence/performance-build/BUILD_PAIR.json -Raw | ConvertFrom-Json
+python tools/performance_matrix.py compare `
+  --baseline-source-witness evidence/performance-build/baseline/source-witness `
+  --baseline-witness-sha256 $pair.variants.baseline.source_witness_sha256 `
+  --baseline-executable evidence/performance-build/baseline/package/vector-range.exe `
+  --baseline-build-receipt evidence/performance-build/baseline/build-receipt.json `
+  --candidate-source-witness evidence/performance-build/candidate/source-witness `
+  --candidate-witness-sha256 $pair.variants.candidate.source_witness_sha256 `
+  --candidate-executable evidence/performance-build/candidate/package/vector-range.exe `
+  --candidate-build-receipt evidence/performance-build/candidate/build-receipt.json `
+  --settings evidence/performance-build/candidate/package/settings.cfg `
+  --graphics-settings graphics-device.json --hardware hardware.json `
+  --procedural-baseline --driver win32 --warmup-seconds 15 --sample-seconds 45 `
+  --execute --output evidence/rtx-cpu-comparison
+```
+
+The order is baseline/candidate/candidate/baseline, repeated twice. One common
+desktop lock spans all eight fresh processes. Source, package, build receipt,
+settings, actual adapter/driver, physical extent/DPI, Fifo and scene must stay
+matched; previous captures are rehashed and reanalyzed before final acceptance.
+Failures stop the sequence and retain the incomplete evidence. No forced-exit
+continuation is allowed. Each run retains its own distributions and measured
+subset count; percentiles are never pooled or subtracted to infer a stage cost.
+
+This is controlled stationary input with the real per-frame grid/HUD and draw
+recording, not deterministic gameplay replay or authored-presentation approval.
+`game_recording` includes the line-recording change and other application work;
+`encode_submit` includes FramePlan/text streaming, uploads, encoding and queue
+submission, nested inside `renderer_submit`. Do not add parent and child spans.
+GPU timestamps cover one ordered command buffer and exclude queue wait, other
+submissions, present/DWM and display scanout. Missing/pending/rejected rows stay
+null and outside measured percentiles. A long acquire span with short GPU ticks
+suggests pacing but does not isolate vsync, compositor or backpressure. Fifo can
+hide CPU improvements in present cadence. Timestamp-off overhead and matched
+Immediate/Fifo discrimination remain separate investigations; this comparison
+holds timestamps on and Fifo fixed in both variants. `performance_improvement`
+stays null and `target_1080p60_proven` stays false until the evidence is reviewed.
