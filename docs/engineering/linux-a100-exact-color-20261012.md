@@ -57,10 +57,27 @@ at this compact stage. The audit SHA-256 is
 The full ZIP_STORED archive is 625,606,155 bytes, SHA-256
 `7a75575364990e4963f012e2ee8dad5a75a14595a351f3c4d618033cdbbc6237`.
 It additionally retains both compiled ELFs and all 44 raw corner streams.
-At compact publication, full transfer and direct current executable/corner-byte
-verification are pending; receipt binding and any cross-artifact replay in the
-frozen compact audit are explicitly labeled. A separate full-stage audit and
-lossless durable storage will be linked only after verification completes.
+At the initial compact publication, full transfer was pending and both newly
+built ELFs were receipt-bound. That frozen compact-stage audit is unchanged.
+
+## Completed direct full-byte audit and durable retention
+
+The separate [full-stage audit](evidence/a100-exact-color-0476992-20261012/independent-full-audit.json)
+(SHA-256 `23301aaa42b7dcc0431f29a14c586f758d0acc72866d34d19ca924e498045caf`)
+replays all 44 current A100 raw corner streams and command slices directly.
+Both current x86-64 ELFs match their original source receipts: the authored
+fixture is 7,018,024 bytes and the conversion contract is 9,660,352 bytes.
+All 557 shared compact/full files are byte-identical, the original full ZIP
+hash matches, and all 603 member CRCs pass. No cross-artifact substitute is
+needed for this separate full-stage audit. The strict image failure remains.
+
+The exact original ZIP is now retained in [four ordered lossless XZ parts](evidence/a100-exact-color-0476992-20261012/full/README.md)
+with per-part SHA-256 values and tested reconstruction instructions. Concatenated
+XZ size is 21,177,536 bytes, SHA-256
+`fb2055d959c44f576cd9e14a9a453e020f745ad38cac66fd0af92f45e68b7dea`.
+Decompression reproduces the original 625,606,155-byte ZIP exactly; neither
+archive members nor evidence bytes are altered. The compact packet and metrics
+remain available separately and unchanged.
 
 ## Remaining work
 

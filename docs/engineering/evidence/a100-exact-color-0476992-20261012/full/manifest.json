@@ -1,0 +1,57 @@
+{
+  "schema": "a100-exact-color-full-evidence-transfer/v1",
+  "compression": {
+    "format": "XZ",
+    "method": "Python lzma.open(...,'xb',preset=9)",
+    "original_zip_method": "ZIP_STORED",
+    "original_file_bytes_unchanged": true
+  },
+  "compressed": {
+    "name": "a100-0476992-full-exact-color-r1-stored.zip.xz",
+    "bytes": 21177536,
+    "sha256": "fb2055d959c44f576cd9e14a9a453e020f745ad38cac66fd0af92f45e68b7dea"
+  },
+  "original": {
+    "name": "a100-0476992-full-exact-color-r1-stored.zip",
+    "bytes": 625606155,
+    "sha256": "7a75575364990e4963f012e2ee8dad5a75a14595a351f3c4d618033cdbbc6237"
+  },
+  "parts": [
+    {
+      "index": 0,
+      "offset": 0,
+      "bytes": 6291456,
+      "sha256": "795c139d8b9a7786277c029d0181eafd224ffa74da212bd925e8a7b23769e1d8",
+      "name": "a100-exact-color.xz.part000",
+      "git_blob_sha1": "71e1eb7ed96c27bc774f9c25b7d3f8cda14135da"
+    },
+    {
+      "index": 1,
+      "offset": 6291456,
+      "bytes": 6291456,
+      "sha256": "7c00ea2c9126640de759d6a66860551b8ab121564441579be9c3d5efa488e151",
+      "name": "a100-exact-color.xz.part001",
+      "git_blob_sha1": "b6ce705b5d25c56282fee5750559180e93f7ccc9"
+    },
+    {
+      "index": 2,
+      "offset": 12582912,
+      "bytes": 6291456,
+      "sha256": "bb1597607f73e485062b6b3fa4cbb7e6f4a8e77c4408acbaada7f91d1f085638",
+      "name": "a100-exact-color.xz.part002",
+      "git_blob_sha1": "f8eb4efc26c8657e827bba176626a2bebfc688ad"
+    },
+    {
+      "index": 3,
+      "offset": 18874368,
+      "bytes": 2303168,
+      "sha256": "72886842fddf7c6d78214ac18628b474d7729f56109f0c5dd44c19d1324d07ac",
+      "name": "a100-exact-color.xz.part003",
+      "git_blob_sha1": "30dd57abf0d77a75cc133e2f92be1a8429aa2725"
+    }
+  ],
+  "verified_zip_entries": 603,
+  "verified_uncompressed_bytes": 625504417,
+  "zip_crc": "PASS",
+  "verified": true
+}
