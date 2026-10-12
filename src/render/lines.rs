@@ -218,12 +218,12 @@ mod tests {
             );
         }
         let list = facade::take_draw_list().unwrap();
-        assert_eq!(list.commands.len(), 2); // Initial camera + one recorded line run.
+        assert_eq!(list.commands.len(), 131); // Initial camera + 130 line commands.
         let Command::Lines { lines, model } = &list.commands[1] else {
             panic!("first grid line")
         };
         let (consumed, batches) = adjacent_batches(lines, *model, &list.commands[2..]);
-        assert_eq!(consumed, 0); // Recording already coalesced all 130 lines.
+        assert_eq!(consumed, 129);
         let batches: Vec<_> = batches.collect();
         assert_eq!(batches.len(), 1);
         let original: Vec<_> = list.commands[1..]
