@@ -1,6 +1,9 @@
 //! CPU draw adapter for the authorized test model and optional local overrides.
 use vector_range::draw::facade::*;
-use vector_range::{asset::WeaponAsset, scene_lighting::SceneLighting};
+use vector_range::{
+    asset::{AssetVertex, WeaponAsset},
+    scene_lighting::SceneLighting,
+};
 
 pub struct WeaponModel {
     meshes: Vec<(usize, Mesh, Color)>,
@@ -53,7 +56,9 @@ impl WeaponModel {
             };
             // Keep the established u16 batches, splitting triangle lists
             // without index truncation or dropped triangles.
-            for (source_vertices, indices) in partition_triangles(&part.indices) {
+            for (source_vertices, indices) in partition_triangles(&part.indices, |index| {
+                rigid_vertex_key(&part.vertices[index as usize])
+            }) {
                 let vertices = source_vertices
                     .iter()
                     .map(|&index| {
@@ -177,9 +182,23 @@ impl WeaponModel {
     }
 }
 
-// Limit chunks to the engine's default draw capacity, remapping only referenced
-// vertices so a detailed model does not upload three vertices per triangle.
-fn partition_triangles(indices: &[u32]) -> Vec<(Vec<u32>, Vec<u16>)> {
+// Preserve every source float bit, including signed zero. Material/texture and
+// actor identity are kept outside this key: each part is partitioned separately.
+fn rigid_vertex_key(vertex: &AssetVertex) -> [u32; 8] {
+    let [x, y, z] = vertex.position;
+    let [nx, ny, nz] = vertex.normal;
+    let [u, v] = vertex.uv;
+    [x, y, z, nx, ny, nz, u, v].map(f32::to_bits)
+}
+
+// Keep original triangle order and 4,998-index boundaries. First occurrence
+// wins within each chunk; HashMap iteration order never determines output.
+// Callers use complete immutable source-vertex keys after asset validation.
+// No vertices are merged across chunks, materials, actors or pose providers.
+pub(crate) fn partition_triangles<K: Eq + std::hash::Hash>(
+    indices: &[u32],
+    vertex_key: impl Fn(u32) -> K,
+) -> Vec<(Vec<u32>, Vec<u16>)> {
     indices
         .chunks(4_998)
         .map(|chunk| {
@@ -188,7 +207,7 @@ fn partition_triangles(indices: &[u32]) -> Vec<(Vec<u32>, Vec<u16>)> {
             let local = chunk
                 .iter()
                 .map(|&source| {
-                    *map.entry(source).or_insert_with(|| {
+                    *map.entry(vertex_key(source)).or_insert_with(|| {
                         let index = sources.len() as u16;
                         sources.push(source);
                         index
@@ -321,9 +340,107 @@ mod tests {
     }
 
     #[test]
+    fn rigid_key_preserves_every_float_bit() {
+        let original = textured_asset().meshes[0].vertices[0].clone();
+        let original_key = rigid_vertex_key(&original);
+        for component in 0..8 {
+            let mut keys = std::collections::HashSet::new();
+            for bits in [0, 0x8000_0000, 1, 0x7fc0_0001, 0x7fc0_0002] {
+                let mut vertex = original.clone();
+                let value = f32::from_bits(bits);
+                match component {
+                    0..=2 => vertex.position[component] = value,
+                    3..=5 => vertex.normal[component - 3] = value,
+                    _ => vertex.uv[component - 6] = value,
+                }
+                let key = rigid_vertex_key(&vertex);
+                assert_eq!(key[component], bits);
+                for other in 0..8 {
+                    if other != component {
+                        assert_eq!(key[other], original_key[other]);
+                    }
+                }
+                assert!(keys.insert(key), "must not canonicalize float bits");
+            }
+        }
+    }
+
+    #[test]
+    fn construction_reuses_exact_vertices_but_keeps_seams_and_materials() {
+        let mut asset = textured_asset();
+        let part = &mut asset.meshes[0];
+        let original = part.vertices[0].clone();
+        part.vertices.push(original.clone());
+        part.vertices.push(AssetVertex {
+            normal: Vec3::Y.to_array(),
+            ..original.clone()
+        });
+        part.vertices.push(AssetVertex {
+            uv: [0.5, 0.75],
+            ..original
+        });
+        part.indices = vec![0, 1, 2, 3, 4, 5];
+        let mut other_material = part.clone();
+        other_material.base_color[0] = 0.25;
+        asset.meshes.push(other_material);
+        let model = WeaponModel::from_asset(asset.clone());
+        assert_eq!(model.meshes.len(), 2);
+        for (part_index, mesh, albedo) in &model.meshes {
+            let source = &asset.meshes[*part_index];
+            assert_eq!(mesh.vertices.len(), 5);
+            assert_eq!(mesh.indices, [0, 1, 2, 0, 3, 4]);
+            assert_eq!(albedo.r.to_bits(), source.base_color[0].to_bits());
+            for (&input, &output) in source.indices.iter().zip(&mesh.indices) {
+                let actual = &mesh.vertices[output as usize];
+                let expected = &source.vertices[input as usize];
+                assert_eq!(
+                    actual.position.to_array().map(f32::to_bits),
+                    expected.position.map(f32::to_bits)
+                );
+                assert_eq!(
+                    actual.normal.truncate().to_array().map(f32::to_bits),
+                    expected.normal.map(f32::to_bits)
+                );
+                assert_eq!(
+                    actual.uv.to_array().map(f32::to_bits),
+                    expected.uv.map(f32::to_bits)
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn partition_is_deterministic_first_occurrence_and_never_crosses_chunks() {
+        let keys = [7, 9, 7, 9, 7, 9];
+        let original = [4, 2, 3, 1, 0, 5];
+        for _ in 0..8 {
+            assert_eq!(
+                partition_triangles(&original, |source| keys[source as usize]),
+                [(vec![4, 3], vec![0, 0, 1, 1, 0, 1])]
+            );
+        }
+        let original: Vec<u32> = (0..9_996).collect();
+        let batches = partition_triangles(&original, |_| 0u8);
+        assert_eq!(batches.len(), 2);
+        assert_eq!(batches[0], (vec![0], vec![0; 4_998]));
+        assert_eq!(batches[1], (vec![4_998], vec![0; 4_998]));
+        assert!(partition_triangles::<u32>(&[], |source| source).is_empty());
+    }
+
+    #[test]
+    #[should_panic]
+    fn construction_does_not_hide_invalid_referenced_indices() {
+        let mut asset = textured_asset();
+        asset.meshes[0].indices = vec![0, 1, u32::MAX];
+        // Public asset decoders reject this earlier; manually constructed input
+        // still reaches the same checked slice access instead of being merged.
+        let _ = WeaponModel::from_asset(asset);
+    }
+
+    #[test]
     fn preserves_large_indexed_model_without_u16_truncation() {
         let original: Vec<u32> = (0..90_000).collect();
-        let batches = partition_triangles(&original);
+        let batches = partition_triangles(&original, |source| source);
         let restored: Vec<u32> = batches
             .iter()
             .flat_map(|(vertices, indices)| indices.iter().map(|&i| vertices[i as usize]))
@@ -335,7 +452,7 @@ mod tests {
     }
     #[test]
     fn reuses_vertices_within_batch() {
-        let parts = partition_triangles(&[0, 1, 2, 0, 2, 3]);
+        let parts = partition_triangles(&[0, 1, 2, 0, 2, 3], |source| source);
         assert_eq!(parts[0].0, [0, 1, 2, 3]);
         assert_eq!(parts[0].1, [0, 1, 2, 0, 2, 3]);
     }
