@@ -58,6 +58,14 @@ class UploadBufferReuseWorkflowTests(unittest.TestCase):
         self.assertIn('rustfmt --edition 2021 --config skip_children=true $copy', body)
         self.assertIn('Tested source was not modified', body)
 
+    def test_test_only_cache_constructor_matches_its_windows_callers(self):
+        cache = (ROOT / 'src/render/upload_cache.rs').read_text()
+        self.assertRegex(cache, r'#\[cfg\(all\(test, target_os = "windows"\)\)\]\s+'
+                         r'pub fn for_test\(')
+        native = (ROOT / 'src/render/upload_reuse_tests.rs').read_text()
+        self.assertIn('#![cfg(target_os = "windows")]', native)
+        self.assertIn('UploadCache::for_test(', native)
+
     def test_native_queue_proof_defers_all_readback_until_after_submissions(self):
         source = (ROOT / 'src/render/upload_reuse_tests.rs').read_text()
         self.assertIn('#![cfg(target_os = "windows")]', source)
