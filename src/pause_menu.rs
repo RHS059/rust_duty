@@ -10,19 +10,18 @@ use crate::{
 
 const ACCENT: Color = crate::field_ui::ACCENT;
 const MUTED: Color = crate::field_ui::TEXT2;
-/// FIELD menu surface (Operator `surface`) and world dim behind the menu.
-const PANEL_FILL: Color = Color::new(
-    crate::field_ui::SURFACE.r,
-    crate::field_ui::SURFACE.g,
-    crate::field_ui::SURFACE.b,
-    0.97,
-);
+/// FIELD menu surface (Operator `surface`, opaque so the HUD never ghosts through).
+const PANEL_FILL: Color = crate::field_ui::SURFACE;
+/// Slight world dim (FIELD §13, single-player pause): the game stays readable
+/// to the right of the menu column.
 const BACKDROP: Color = Color::new(
     crate::field_ui::SCRIM.r,
     crate::field_ui::SCRIM.g,
     crate::field_ui::SCRIM.b,
-    0.80,
+    0.40,
 );
+/// The menu column slides in from the left when the menu opens.
+const SLIDE_SECONDS: f32 = 0.18;
 fn text_style(class: UiClass, color: Color) -> UiStyle {
     let tone = if color == ACCENT {
         UiClass::Accent
@@ -39,6 +38,10 @@ struct Layout {
     scale: f32,
     bands: Vec<FlowBand>,
     viewport: Vec2,
+    /// Left margin before any slide; the column mirrors it on the right.
+    margin: f32,
+    /// How far the column is still off-screen to the left.
+    shift: f32,
 }
 impl Layout {
     fn new(width: f32, height: f32) -> Self {
@@ -118,15 +121,38 @@ impl Layout {
         let scale = (available_width / 610.)
             .min(available_height / content_height)
             .min(1.);
+        // FIELD screen frame (§8.1): anchored at the title-safe left edge and
+        // top, falling back to centring where the viewport is too small.
+        let margin = (width * 0.05).min((width - 610. * scale) * 0.5).max(0.);
         Self {
             origin: vec2(
-                (width - 610. * scale) * 0.5,
-                (height - content_height * scale) * 0.5,
+                margin,
+                ((height - content_height * scale) * 0.5)
+                    .min(height * 0.05)
+                    .max(0.),
             ),
             scale,
             bands,
             viewport: vec2(width, height),
+            margin,
+            shift: 0.,
         }
+    }
+    /// Offset for the opening slide; `remaining` is 1 when closed, 0 when open.
+    /// Ease-out cubic, so the column decelerates into place.
+    fn slid(mut self, remaining: f32) -> Self {
+        self.shift = remaining.clamp(0., 1.).powi(3) * self.column().w;
+        self.origin.x -= self.shift;
+        self
+    }
+    /// The full-height menu column behind the content.
+    fn column(&self) -> Rect {
+        Rect::new(
+            -self.shift,
+            0.,
+            self.margin * 2. + 610. * self.scale,
+            self.viewport.y,
+        )
     }
     fn point(&self, point: Vec2) -> Vec2 {
         self.origin + vec2(point.x, flow_y(point.y, &self.bands)) * self.scale
@@ -183,6 +209,8 @@ pub struct PauseMenu {
     graphics_choice: usize,
     graphics_focus: Option<usize>,
     graphics_status: Option<String>,
+    /// Opening slide still to run: 1 = off-screen, 0 = in place.
+    slide: f32,
 }
 #[derive(Default)]
 pub struct MenuKeys {
@@ -201,6 +229,15 @@ pub struct MenuAction {
     pub telemetry: bool,
 }
 impl PauseMenu {
+    /// Runs the opening slide while the menu is shown and re-arms it while
+    /// the game is active, so each open slides in from the left.
+    pub fn animate(&mut self, shown: bool, dt: f32) {
+        self.slide = if shown {
+            (self.slide - dt / SLIDE_SECONDS).max(0.)
+        } else {
+            1.
+        };
+    }
     pub fn telemetry_state(&mut self, recording: bool, stopping: bool) {
         self.telemetry_recording = recording;
         self.telemetry_stopping = stopping;
@@ -429,10 +466,10 @@ impl PauseMenu {
                 ..Default::default()
             };
         }
-        let layout = Layout::new(size.x, size.y);
+        let layout = Layout::new(size.x, size.y).slid(self.slide);
         let point = pointer;
         if self.graphics_open {
-            let layout = Layout::graphics(size.x, size.y);
+            let layout = Layout::graphics(size.x, size.y).slid(self.slide);
             if pressed {
                 if let Some(index) = [RESUME, GPU_PREVIOUS, GPU_NEXT, GPU_SAVE]
                     .iter()
@@ -524,7 +561,7 @@ impl PauseMenu {
             initial,
             mode,
             status,
-            Layout::new(screen_width(), screen_height()),
+            Layout::new(screen_width(), screen_height()).slid(self.slide),
         );
     }
     fn draw_with_layout(
@@ -537,7 +574,9 @@ impl PauseMenu {
         layout: Layout,
     ) {
         if self.graphics_open {
-            self.draw_graphics(&Layout::graphics(layout.viewport.x, layout.viewport.y));
+            self.draw_graphics(
+                &Layout::graphics(layout.viewport.x, layout.viewport.y).slid(self.slide),
+            );
             return;
         }
         let ink = PANEL_FILL;
@@ -566,13 +605,18 @@ impl PauseMenu {
         };
         draw_rectangle(0., 0., layout.viewport.x, layout.viewport.y, BACKDROP);
         ui_theme::style(UiScope::PauseMenu, &[UiClass::Panel]).rect(
-            layout.rect(Rect::new(0., 0., 610., 909.)),
+            layout.column(),
             ink,
             accent,
             layout.scale,
         );
-        rect(
-            Rect::new(0., 0., 610., 3.),
+        // Accent rule across the top of the column.
+        let column = layout.column();
+        draw_rectangle(
+            column.x,
+            0.,
+            column.w,
+            3. * layout.scale,
             ui_theme::style(UiScope::PauseMenu, &[UiClass::Accent]).tint(accent),
         );
         text("VECTOR RANGE", 32., 52., 34., WHITE);
@@ -780,7 +824,7 @@ impl PauseMenu {
         let state = graphics_device::snapshot();
         draw_rectangle(0., 0., layout.viewport.x, layout.viewport.y, BACKDROP);
         ui_theme::style(UiScope::PauseMenu, &[UiClass::Panel]).rect(
-            layout.rect(Rect::new(0., 0., 610., 909.)),
+            layout.column(),
             PANEL_FILL,
             ACCENT,
             layout.scale,
@@ -1532,8 +1576,9 @@ mod tests {
         let layout = Layout::new(1000., 800.);
         let scale = 776. / 909.;
         assert_eq!(layout.scale, scale);
+        // Left-anchored at the 5 % title-safe margin, top-aligned within it.
         let expected = Rect::new(
-            (1000. - 610. * scale) / 2. + 32. * scale,
+            50. + 32. * scale,
             12. + 99. * scale,
             546. * scale,
             45. * scale,
@@ -1547,6 +1592,28 @@ mod tests {
         ] {
             assert!((a - b).abs() < 0.001);
         }
+    }
+    #[test]
+    fn menu_column_slides_in_from_the_left_and_lands_in_place() {
+        let _reset = ThemeReset;
+        ui_theme::set_theme(ui_theme::UiTheme::default());
+        let mut menu = PauseMenu::default();
+        menu.animate(false, 0.016);
+        let closed = Layout::new(1000., 800.).slid(menu.slide);
+        let column = closed.column();
+        assert!(
+            column.x + column.w <= 0.001,
+            "closed column still on screen: {column:?}"
+        );
+        assert!(closed.rect(RESUME).x + closed.rect(RESUME).w <= 0.);
+        menu.animate(true, SLIDE_SECONDS * 0.5);
+        let mid = Layout::new(1000., 800.).slid(menu.slide);
+        assert!(mid.rect(RESUME).x < Layout::new(1000., 800.).rect(RESUME).x);
+        assert!(mid.rect(RESUME).x > closed.rect(RESUME).x);
+        menu.animate(true, SLIDE_SECONDS);
+        let open = Layout::new(1000., 800.).slid(menu.slide);
+        assert_eq!(open.rect(RESUME), Layout::new(1000., 800.).rect(RESUME));
+        assert_eq!(open.column().x, 0.);
     }
     #[test]
     fn styled_pause_button_uses_identical_painted_and_clickable_bounds() {

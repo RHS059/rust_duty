@@ -390,8 +390,8 @@ mod fixture {
     ];
     /// Telemetry (debug) readout drawn in the left column, below the minimap.
     pub const DEBUG_PANEL: [f64; 4] = [30., 160., 340., 340.];
-    /// The scaled pause menu is centred horizontally.
-    pub const MENU_BAND: [f64; 4] = [200., 0., 760., 540.];
+    /// The scaled pause menu is a column anchored on the left (FIELD screen frame).
+    pub const MENU_BAND: [f64; 4] = [0., 0., 480., 540.];
     /// Warm accent family: the HUD/menu accent #FA9E38, GOLD #FFCB00 and the
     /// supply gold; excludes white, cyan, muted grey and the dark panels.
     pub fn is_warm(p: [u8; 4]) -> bool {
@@ -460,7 +460,7 @@ mod fixture {
         match case {
             "pause-menu" if ink.warm_menu_band < 500 * area || ink.white < 75 * area => {
                 Err(format!(
-                    "pause-menu: expected accent and white text in the centred menu, got warm {} white {}",
+                    "pause-menu: expected accent and white text in the left menu column, got warm {} white {}",
                     ink.warm_menu_band, ink.white
                 ))
             }
@@ -1050,7 +1050,7 @@ mod fixture {
                 let plain = measure_ui(&hud, s);
                 check_ui_case("hud", plain, s).unwrap();
                 let mut telemetry = hud.clone();
-                fill(&mut telemetry, [40, 140, 300, 160], scale, WHITE);
+                fill(&mut telemetry, [40, 200, 300, 220], scale, WHITE);
                 let debug = measure_ui(&telemetry, s);
                 check_ui_case("hud-telemetry", debug, s).unwrap();
                 check_telemetry(plain, debug, s).unwrap();
@@ -1065,13 +1065,13 @@ mod fixture {
                 assert!(check_ui_case("hud", measure_ui(&missing, s), s).is_err());
 
                 let mut menu = blank(scale);
-                fill(&mut menu, [300, 40, 660, 100], scale, WHITE);
-                fill(&mut menu, [300, 120, 500, 130], scale, ACCENT);
+                fill(&mut menu, [60, 40, 420, 100], scale, WHITE);
+                fill(&mut menu, [60, 120, 260, 130], scale, ACCENT);
                 check_ui_case("pause-menu", measure_ui(&menu, s), s).unwrap();
-                let mut off_centre = blank(scale);
-                fill(&mut off_centre, [300, 40, 660, 100], scale, WHITE);
-                fill(&mut off_centre, [0, 120, 190, 135], scale, ACCENT);
-                assert!(check_ui_case("pause-menu", measure_ui(&off_centre, s), s).is_err());
+                let mut off_column = blank(scale);
+                fill(&mut off_column, [60, 40, 420, 100], scale, WHITE);
+                fill(&mut off_column, [600, 120, 790, 135], scale, ACCENT);
+                assert!(check_ui_case("pause-menu", measure_ui(&off_column, s), s).is_err());
 
                 let mut updater = blank(scale);
                 fill(&mut updater, [200, 100, 400, 105], scale, GOLD);

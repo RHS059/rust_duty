@@ -43,7 +43,7 @@ FULL_TEXT_BAND = (90, 100, 390, 128)
 # FIELD HUD clusters (compass, score, health, ammo), telemetry readout, menu band.
 CORNERS = ((300, 10, 660, 70), (690, 10, 936, 75), (30, 440, 220, 530), (750, 420, 936, 530))
 DEBUG_PANEL = (30, 160, 340, 340)
-MENU_BAND = (200, 0, 760, 540)
+MENU_BAND = (0, 0, 480, 540)
 CASES = ('pause-menu', 'updater-current', 'updater-unavailable', 'hud', 'hud-telemetry',
          'ammo-idle', 'ammo-half', 'ammo-complete', 'ammo-full')
 ELEMENTS = {'pause-menu': 'pause-menu', 'updater-current': 'updater-panel', 'updater-unavailable': 'updater-panel',
@@ -178,7 +178,7 @@ def check_ui_case(case, ink, scale):
     require(ink['lit_bounds'] is not None and ink['lit_pixels'] > 0, f'{case}: capture is empty')
     if case == 'pause-menu':
         require(ink['warm_menu_band'] >= 500 * area and ink['white'] >= 75 * area,
-                f"pause-menu: expected accent and white text in the centred menu, got warm "
+                f"pause-menu: expected accent and white text in the left menu column, got warm "
                 f"{ink['warm_menu_band']} white {ink['white']}")
     elif case.startswith('updater-'):
         require(ink['warm'] >= 50 * area and ink['white'] >= 50 * area,

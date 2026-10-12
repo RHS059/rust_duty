@@ -59,9 +59,9 @@ def ui(percent, case, corners=4, accent=True):
         draw.rectangle((x0 * s, y0 * s, x1 * s - 1, y1 * s - 1), fill=fill)
     if case == 'pause-menu':
         box(0, 0, w, h, OVERLAY)
-        box(300, 40, 660, 100, WHITE)
+        box(60, 40, 420, 100, WHITE)
         if accent:
-            box(300, 120, 500, 130, ACCENT)
+            box(60, 120, 260, 130, ACCENT)
     elif case.startswith('updater-'):
         # Independent FreeType rendering of the pinned production font at the
         # source-defined default panel/message locations; no oracle thresholds.

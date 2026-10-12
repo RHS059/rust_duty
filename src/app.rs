@@ -1293,6 +1293,7 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
                 supply.ammo_full(&sim.player),
             );
         }
+        pause_menu.animate(!active, dt);
         if !active {
             pause_menu.telemetry_state(recording.is_some(), frame_trace::is_stop_requested());
             pause_menu.draw(
