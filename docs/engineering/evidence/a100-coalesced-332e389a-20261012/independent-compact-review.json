@@ -1,0 +1,172 @@
+{
+  "schema": "independent-coalesced-compact-review/v1",
+  "source": "332e389a08330ce2be701f251ec355f94b12e5fb",
+  "tree": "c38e6b703403c4a329adb04ade95673cb1dfc9c0",
+  "archive_sha256": "6bdc2197084aa5b0ed441e7f522637e98247f504f18a5ce60dae7610140aed48",
+  "archive_bytes": 4255017,
+  "archive_entries": 70,
+  "game_elf_receipt_sha256": "1dc3fed58cbb6ace46495d53805d7dd6608a6d1d6c421b2ba452cfd6fbd70da0",
+  "native_elf_receipt_sha256": "3a2f2256ccc97f6304af02f6ceceff2801ae0eff4015844060c1eda38b175c73",
+  "build_pin_source_manifest_and_owned_process_joins_verified": true,
+  "native_report_source_and_original_decoded_counts_verified": true,
+  "native22_pair_strict_gate": "Producer and source-bound controller report pass; full raw native stream/44image replay remains pending.",
+  "native_report_sha256": "cd3dd2e7c952c8e0f96ae826d46e92ec4dbaaaf0c8f1c85dd3cf779997bdc857",
+  "native_expected_counts": {
+    "legacy": {
+      "resident_draws": 86,
+      "resident_rigid_draws": 75,
+      "resident_skinned_draws": 11
+    },
+    "coalesced": {
+      "resident_draws": 34,
+      "resident_rigid_draws": 31,
+      "resident_skinned_draws": 3
+    }
+  },
+  "native_summary_reported": {
+    "actual_resident_draw_reduction": true,
+    "exact_pairs": 22,
+    "ordered_source_part_material_pose_and_corners": true,
+    "passed": true,
+    "scope": "Separate legacy-resident/coalesced-resident correctness gate; historical CPU/resident gate unchanged; no performance acceptance.",
+    "strict_full_rgba_equality": true,
+    "unique_layout_stream_bytes": 203849760,
+    "unique_ordered_stream_bytes": 468377440
+  },
+  "native_pairs_replayed_locally": [
+    {
+      "case": "ready-0",
+      "strict_rgba_equal_locally_replayed": true,
+      "foreground_pixels": 7066,
+      "legacy_sha256": "a1046815f509fd1b3bcb87db7e4a8c40510af8f475bf4857dc99cd0c64b54cc1",
+      "coalesced_sha256": "a1046815f509fd1b3bcb87db7e4a8c40510af8f475bf4857dc99cd0c64b54cc1"
+    },
+    {
+      "case": "rigid-alpha-1",
+      "strict_rgba_equal_locally_replayed": true,
+      "foreground_pixels": 927,
+      "legacy_sha256": "a933e266234d33e4c4e7894b087194b16460f7a0946cc6f4a2763888ecfe7a03",
+      "coalesced_sha256": "a933e266234d33e4c4e7894b087194b16460f7a0946cc6f4a2763888ecfe7a03"
+    }
+  ],
+  "all_four_game_screenshots_and_two_representative_native_pairs_visually_reviewed": true,
+  "screenshots": [
+    {
+      "run": 1,
+      "mode": "legacy",
+      "sha256": "2a5957ded9c73aac9ac4ad13b4da488f5f5b8ae86f18266eac2faf65bc5dee47",
+      "direct_visual_review": "Hands, glove, forearm and rifle retained with same range camera/crosshair and HUD. Post-record snapshots are qualitative, not frame-synchronized image equality."
+    },
+    {
+      "run": 2,
+      "mode": "coalesced",
+      "sha256": "fc2deb8632ad5808308b1d8b1303bbd7f5b0c5be78cd1b38a5eecec22b7d5b52",
+      "direct_visual_review": "Hands, glove, forearm and rifle retained with same range camera/crosshair and HUD. Post-record snapshots are qualitative, not frame-synchronized image equality."
+    },
+    {
+      "run": 3,
+      "mode": "coalesced",
+      "sha256": "f4099e14849e7d8478518a51e422628ec9690696fd60bf1693f9e1c5b208bf94",
+      "direct_visual_review": "Hands, glove, forearm and rifle retained with same range camera/crosshair and HUD. Post-record snapshots are qualitative, not frame-synchronized image equality."
+    },
+    {
+      "run": 4,
+      "mode": "legacy",
+      "sha256": "4c3bc53926dcd4cfcc8b8a668a1a6734deb89aaebae3e665044f41ebcdf9e268",
+      "direct_visual_review": "Hands, glove, forearm and rifle retained with same range camera/crosshair and HUD. Post-record snapshots are qualitative, not frame-synchronized image equality."
+    }
+  ],
+  "metrics_controller_derived": [
+    {
+      "run": 1,
+      "mode": "legacy",
+      "eligible_count": 5385,
+      "frame_p50_ms": 5.710171,
+      "frame_p95_ms": 6.134409,
+      "frame_p99_ms": 6.698713,
+      "gpu_p50_ms": 1.175552,
+      "encode_submit_p50_ms": 1.328101,
+      "resident_draws": 86,
+      "render_passes": 3,
+      "draw_calls_p50": 600,
+      "resident_uniform_bytes_p50": 54768,
+      "resident_uniform_allocations_p50": 2
+    },
+    {
+      "run": 2,
+      "mode": "coalesced",
+      "eligible_count": 5489,
+      "frame_p50_ms": 5.597254,
+      "frame_p95_ms": 6.003187,
+      "frame_p99_ms": 6.570273,
+      "gpu_p50_ms": 1.175552,
+      "encode_submit_p50_ms": 1.221,
+      "resident_draws": 34,
+      "render_passes": 3,
+      "draw_calls_p50": 548,
+      "resident_uniform_bytes_p50": 41456,
+      "resident_uniform_allocations_p50": 2
+    },
+    {
+      "run": 3,
+      "mode": "coalesced",
+      "eligible_count": 5432,
+      "frame_p50_ms": 5.65146,
+      "frame_p95_ms": 6.073559,
+      "frame_p99_ms": 6.675276,
+      "gpu_p50_ms": 1.175552,
+      "encode_submit_p50_ms": 1.248757,
+      "resident_draws": 34,
+      "render_passes": 3,
+      "draw_calls_p50": 548,
+      "resident_uniform_bytes_p50": 41456,
+      "resident_uniform_allocations_p50": 2
+    },
+    {
+      "run": 4,
+      "mode": "legacy",
+      "eligible_count": 5376,
+      "frame_p50_ms": 5.707708,
+      "frame_p95_ms": 6.210655,
+      "frame_p99_ms": 6.785746,
+      "gpu_p50_ms": 1.175552,
+      "encode_submit_p50_ms": 1.32074,
+      "resident_draws": 86,
+      "render_passes": 3,
+      "draw_calls_p50": 600,
+      "resident_uniform_bytes_p50": 54768,
+      "resident_uniform_allocations_p50": 2
+    }
+  ],
+  "means_of_run_medians": {
+    "legacy": {
+      "frame_p50_ms": 5.7089395,
+      "gpu_p50_ms": 1.175552,
+      "encode_submit_p50_ms": 1.3244205
+    },
+    "coalesced": {
+      "frame_p50_ms": 5.624357,
+      "gpu_p50_ms": 1.175552,
+      "encode_submit_p50_ms": 1.2348785
+    }
+  },
+  "legacy_minus_coalesced_ms": {
+    "frame_p50_ms": 0.08458249999999978,
+    "gpu_p50_ms": 0.0,
+    "encode_submit_p50_ms": 0.08954200000000001
+  },
+  "frame_mean_of_medians_reduction_percent": 1.4815798976324726,
+  "gpu_median_gain_observed": false,
+  "raw_performance_replayed": false,
+  "raw_game_and_native_elf_bytes_inspected": false,
+  "full_native_stream_and_44_image_replay": false,
+  "omitted_run_file_count": 136,
+  "exact_present_bytes_and_omission_inventory_verified": true,
+  "strict_prior_arithmetic_image_gate_passed": false,
+  "limits": [
+    "Compact packet retains receipts and summary/report hashes, but omits performance timeseries, raw ELF bytes,20native streams and40native PNGs. Full native22pair and raw performance replay are pending.",
+    "All four GPU medians are identical1.175552ms despite86-to34residentdraw reduction. Small frame change is descriptive over two runs per mode without a statistical-significance claim.",
+    "Direct target and original geometry remain fixed within this same-ELF comparison; do not combine independent-source deltas into a claimed total speedup.",
+    "Native overview gate compares legacy-resident/coalesced-resident, separate from the still-failing historical18RGBpixel CPU/resident arithmetic gate. No RTX/DX12 or broad gameplay acceptance."
+  ]
+}
