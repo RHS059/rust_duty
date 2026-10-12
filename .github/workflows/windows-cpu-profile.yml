@@ -59,6 +59,10 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Install pinned reader dependencies before importing guards
+        run: |
+          python -m pip install Pillow==11.3.0 PyYAML==6.0.3
+          if ($LASTEXITCODE -ne 0) { throw 'Reader dependency installation failed' }
       - name: Verify installed profiler and bounded capture guards
         env:
           PYTHONPATH: tools
@@ -101,8 +105,6 @@ jobs:
           Split-Path -Parent $rustc | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
       - name: Verify and materialize source-bound original locomotion companions
         run: |
-          python -m pip install Pillow==11.3.0 PyYAML==6.0.3
-          if ($LASTEXITCODE -ne 0) { throw 'Reader dependency installation failed' }
           python tools/package_game.py materialize --root . --include-walk --include-ads --include-directional --include-jump --require-generated > evidence/cpu-profile/materialize.json
       - name: Build matched upload variants and sample the stationary authored scene in ABBA order
         timeout-minutes: 84

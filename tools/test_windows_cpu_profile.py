@@ -394,6 +394,22 @@ class ProfileGuards(unittest.TestCase):
         self.assertEqual(profile.SECONDS, 30)
         self.assertEqual(profile.EXTENT, [1920, 1080])
 
+    def test_pinned_reader_dependencies_precede_all_guard_imports(self):
+        import yaml
+        root = Path(__file__).resolve().parents[1]
+        workflow = yaml.safe_load((root / '.github/workflows/windows-cpu-profile.yml').read_text())
+        steps = workflow['jobs']['cpu-sampling']['steps']
+        installs = [index for index, step in enumerate(steps)
+                    if 'python -m pip install Pillow==11.3.0 PyYAML==6.0.3' in step.get('run', '')]
+        self.assertEqual(len(installs), 1)
+        imports = [index for index, step in enumerate(steps)
+                   if ('python -m unittest' in step.get('run', '')
+                       or 'python tools/run_windows_cpu_profile.py' in step.get('run', '')
+                       or 'python tools/package_game.py' in step.get('run', ''))]
+        self.assertTrue(imports)
+        self.assertLess(installs[0], min(imports))
+        self.assertIn('if ($LASTEXITCODE -ne 0)', steps[installs[0]]['run'])
+
     def test_workflow_is_bounded_read_only_and_retains_symbols(self):
         root = Path(__file__).resolve().parents[1]
         workflow = (root / '.github/workflows/windows-cpu-profile.yml').read_text()
