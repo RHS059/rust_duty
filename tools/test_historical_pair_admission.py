@@ -119,7 +119,8 @@ class HistoricalPairAdmissionTests(unittest.TestCase):
             sparse = set(checkout['sparse-checkout'].splitlines())
             self.assertTrue({'/src/', '/updater/', '/tools/', '/Cargo.lock', '/LICENSE',
                              '/THIRD_PARTY_LICENSES.txt', '/.cargo/', '/rust-toolchain',
-                             '/rust-toolchain.toml'} <= sparse)
+                             '/rust-toolchain.toml', '/.github/workflows/cpu-image-preservation.yml',
+                             '/.github/workflows/windows-cpu-profile.yml'} <= sparse)
             self.assertFalse(any('assets' in x for x in sparse))
             for name in ('animation-assets', 'walk-assets', 'ads-assets',
                          'directional-assets', 'jump-assets', native):
