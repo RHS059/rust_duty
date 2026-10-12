@@ -128,6 +128,38 @@ negative, overflowing, boolean, floating-point, null, missing, and unknown
 counter values or fields. Python preserves full u64 values exactly; downstream
 readers must not silently convert them to imprecise floating-point numbers.
 
+### Complete-v2 counter consistency
+
+For a complete v2 row, the reader also checks the relationships established by
+the producer's three destination buffers per nonempty arena:
+
+- allocations plus reuses equal three times `upload_arenas`
+- `uncached_upload_arenas` cannot exceed `upload_arenas`
+- allocations are at least three times uncached arenas; reuses cannot exceed
+  three times the remaining cached arenas
+- `transform_binding_allocations` is at least the uncached-arena count and no
+  greater than either the buffer-allocation count or the total arena count
+- the buffer-allocation count is zero exactly when `gpu_buffer_allocated_bytes`
+  is zero; otherwise allocated bytes are at least four times the allocation count
+
+Here allocations and reuses mean `gpu_buffer_allocations` and
+`gpu_buffer_reuses`. These checks do not reconstruct buffer capacities, require
+exact byte equality with payloads, or impose an invented allocation-size model.
+The four-byte minimum is only a conservative lower bound for nonempty
+four-byte-aligned destination allocations. Arithmetic is exact, including
+intermediate products above the u64 field range.
+
+For `immutable_per_frame_v1`, a complete row additionally requires exactly three
+allocations per arena, zero reuses, and both transform-binding allocations and
+uncached arenas equal to the arena count. A cold cached row cannot be relabeled
+as immutable evidence just because it allocated three buffers.
+
+These relationships apply only to complete v2 rows. Incomplete v2 rows retain
+any observed partial values that meet the exact-field and u64 bounds, because
+counting and a subsequent upload may be interrupted at different points. They
+still cannot enter complete-frame distributions. v1 validation and summaries
+remain unchanged.
+
 ## Upload policy identity
 
 v2 records the policy actually selected by the shared source selector:

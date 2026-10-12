@@ -49,8 +49,15 @@ def fixture():
 def v2_fixture(upload_policy='bounded_reuse_v1'):
     primary, substage, encode, data, digest = fixture()
     encode.update(schema='rust_duty_cpu_encode_detail_v2', upload_policy=upload_policy)
-    encode['samples'][0]['details']['counters'] = {
-        name: index + 1 for index, name in enumerate(V2_COUNTERS)}
+    counters = encode['samples'][0]['details']['counters']
+    # One triangle arena: 120 vertex bytes, 6 index bytes, and a 64-byte matrix.
+    # The cache rounds vertex capacity to 128; immutable creation pads to four.
+    counters.update(upload_arenas=1, vertex_bytes=120, index_bytes=6, uniform_bytes=64,
+                    gpu_buffer_allocations=3, gpu_buffer_reuses=0,
+                    gpu_buffer_allocated_bytes=200, transform_binding_allocations=1,
+                    uncached_upload_arenas=0)
+    if upload_policy == 'immutable_per_frame_v1':
+        counters.update(gpu_buffer_allocated_bytes=192, uncached_upload_arenas=1)
     return primary, substage, encode, data, digest
 
 
@@ -561,8 +568,8 @@ class CpuEncodeDetailV2Tests(CpuEncodeDetailTests):
                 self.assertEqual(result['upload_policy'], policy)
                 self.assertEqual(tuple(result['counters']), V2_COUNTERS)
                 self.assertEqual(len(result['counters']), 15)
-                for index, name in enumerate(V2_COUNTERS, 1):
-                    self.assertEqual(result['counters'][name]['total'], index)
+                for name, expected in encode['samples'][0]['details']['counters'].items():
+                    self.assertEqual(result['counters'][name]['total'], expected)
                     self.assertEqual(result['counters'][name]['sample_count'], 1)
 
     def test_policy_is_required_exact_and_not_inferred_from_counters(self):
@@ -580,15 +587,107 @@ class CpuEncodeDetailV2Tests(CpuEncodeDetailTests):
     def test_new_counters_are_per_attempt_sums_not_last_value_gauges(self):
         primary, substage, encode, _, _ = v2_fixture()
         append_attempt(primary, substage, encode)
-        for name in V2_COUNTERS[10:]:
-            encode['samples'][0]['details']['counters'][name] = 2**64 - 1
-            encode['samples'][1]['details']['counters'][name] = 7
+        observations = ((2, 3, 3, 2**64 - 1, 1, 1), (3, 7, 2, 400, 3, 2))
+        names = ('upload_arenas', *V2_COUNTERS[10:])
+        for row, values in zip(encode['samples'], observations):
+            row['details']['counters'].update(zip(names, values))
         _, digest = rebind(primary, substage, encode)
         result = detail.summarize(encode, substage, primary, digest)
-        for name in V2_COUNTERS[10:]:
-            self.assertEqual(result['counters'][name]['total'], 2**64 + 6)
+        for name, first, second in zip(names, *observations):
+            self.assertEqual(result['counters'][name]['total'], first + second)
             self.assertEqual(result['counters'][name]['sample_count'], 2)
-            self.assertEqual(result['counters'][name]['min'], 7)
+            self.assertEqual(result['counters'][name]['min'], min(first, second))
+        self.assertEqual(result['counters']['gpu_buffer_allocated_bytes']['total'], 2**64 + 399)
+
+    def test_complete_empty_reused_grown_fallback_and_mixed_controls(self):
+        # arenas, new buffers, reused buffers, new capacity bytes, bindings, uncached.
+        cases = (
+            ('empty', (0, 0, 0, 0, 0, 0)),
+            ('cold', (1, 3, 0, 200, 1, 0)),
+            ('reused', (1, 0, 3, 0, 0, 0)),
+            ('grown_vertex', (1, 1, 2, 256, 0, 0)),
+            ('grown_uniform', (1, 1, 2, 128, 1, 0)),
+            ('fallback', (1, 3, 0, 192, 1, 1)),
+            ('mixed', (3, 4, 5, 448, 1, 1)),
+            ('only_safe_byte_lower_bound', (1, 3, 0, 12, 1, 0)),
+        )
+        names = ('upload_arenas', *V2_COUNTERS[10:])
+        for label, values in cases:
+            primary, substage, encode, _, digest = v2_fixture()
+            encode['samples'][0]['details']['counters'].update(zip(names, values))
+            with self.subTest(case=label):
+                result = detail.summarize(encode, substage, primary, digest)
+                self.assertEqual(result['summarized_attempts'], 1)
+                for name, value in zip(names, values):
+                    self.assertEqual(result['counters'][name]['total'], value)
+        for arenas in (0, 1, 3):
+            primary, substage, encode, _, digest = v2_fixture('immutable_per_frame_v1')
+            values = (arenas, 3 * arenas, 0, 192 * arenas, arenas, arenas)
+            encode['samples'][0]['details']['counters'].update(zip(names, values))
+            with self.subTest(immutable_arenas=arenas):
+                self.assertEqual(detail.summarize(encode, substage, primary, digest)
+                                 ['summarized_attempts'], 1)
+
+    def test_complete_counter_contradictions_fail_but_partial_observations_survive(self):
+        names = ('upload_arenas', *V2_COUNTERS[10:])
+        # Each control starts valid; these bounded integer mutations reach the
+        # intended logical check instead of failing shape, types, or binding.
+        cases = (
+            ('missing_buffer', (1, 2, 0, 200, 1, 0), 'three buffers'),
+            ('extra_buffer', (1, 3, 1, 200, 1, 0), 'three buffers'),
+            ('uncached_exceeds_arenas', (1, 3, 0, 200, 1, 2), 'uncached arenas exceed'),
+            ('fallback_reuses', (1, 2, 1, 200, 1, 1), 'uncached arenas require'),
+            ('fallback_binding_missing', (1, 3, 0, 200, 0, 1), 'transform bindings'),
+            ('binding_without_allocation', (1, 0, 3, 0, 1, 0), 'transform bindings'),
+            ('bindings_exceed_arenas', (1, 3, 0, 200, 2, 0), 'transform bindings'),
+            ('bytes_without_allocation', (1, 0, 3, 4, 0, 0), 'allocated bytes'),
+            ('allocation_without_bytes', (1, 3, 0, 0, 1, 0), 'allocated bytes'),
+            ('undersized_allocations', (1, 3, 0, 11, 1, 0), 'allocated bytes'),
+            ('unbounded_intermediate_product', (2**64 - 1, 0, 2**64 - 1, 0, 0, 0),
+             'three buffers'),
+        )
+        for label, values, error in cases:
+            primary, substage, encode, _, digest = v2_fixture()
+            detail.validate(encode, substage, primary, digest)
+            row = encode['samples'][0]['details']
+            row['counters'].update(zip(names, values))
+            with self.subTest(case=label), self.assertRaisesRegex(ValueError, error):
+                detail.validate(encode, substage, primary, digest)
+            row.update(state='incomplete', error='encode_incomplete')
+            before = copy.deepcopy(row['counters'])
+            result = detail.summarize(encode, substage, primary, digest)
+            self.assert_unavailable(result)
+            self.assertEqual(row['counters'], before)
+
+    def test_immutable_policy_rejects_coherent_cached_counts_only_on_complete_rows(self):
+        names = ('upload_arenas', *V2_COUNTERS[10:])
+        # Every tuple is a valid bounded_reuse_v1 complete attempt. Relabeling
+        # alone must fail the immutable policy check, including a cold-cache row.
+        for values in ((1, 3, 0, 200, 1, 0), (1, 0, 3, 0, 0, 0),
+                       (1, 1, 2, 256, 0, 0), (2, 3, 3, 192, 1, 1)):
+            primary, substage, encode, _, digest = v2_fixture()
+            row = encode['samples'][0]['details']
+            row['counters'].update(zip(names, values))
+            detail.validate(encode, substage, primary, digest)
+            encode['upload_policy'] = 'immutable_per_frame_v1'
+            with self.subTest(values=values), self.assertRaisesRegex(ValueError, 'upload policy'):
+                detail.validate(encode, substage, primary, digest)
+            row.update(state='incomplete', error='encode_incomplete')
+            self.assert_unavailable(detail.summarize(encode, substage, primary, digest))
+
+    def test_partial_rows_keep_any_bounded_counter_values_under_either_policy(self):
+        for policy in ('bounded_reuse_v1', 'immutable_per_frame_v1'):
+            primary, substage, encode, _, digest = v2_fixture(policy)
+            row = encode['samples'][0]['details']
+            row.update(state='incomplete', error='encode_incomplete')
+            row['counters'] = dict.fromkeys(V2_COUNTERS, 2**64 - 1)
+            before = copy.deepcopy(row['counters'])
+            with self.subTest(policy=policy):
+                self.assert_unavailable(detail.summarize(encode, substage, primary, digest))
+                self.assertEqual(row['counters'], before)
+                row['counters']['gpu_buffer_reuses'] = -1
+                with self.assertRaisesRegex(ValueError, 'unsigned integer'):
+                    detail.validate(encode, substage, primary, digest)
 
 
 class CpuEncodeDetailVersionTests(unittest.TestCase):
@@ -664,7 +763,10 @@ class CpuEncodeDetailV2CliTests(CpuEncodeDetailCliTests):
                      lambda e: e['samples'][0]['details']['counters'].pop('gpu_buffer_allocations'),
                      lambda e: e['samples'][0]['details']['counters'].update(retained_gpu_bytes=0),
                      lambda e: e['samples'][0]['details']['counters'].update(gpu_buffer_reuses=True),
-                     lambda e: e['samples'][0]['details']['counters'].update(gpu_buffer_allocated_bytes=-1)]
+                     lambda e: e['samples'][0]['details']['counters'].update(gpu_buffer_allocated_bytes=-1),
+                     lambda e: e['samples'][0]['details']['counters'].update(gpu_buffer_reuses=1),
+                     lambda e: e['samples'][0]['details']['counters'].update(gpu_buffer_allocated_bytes=11),
+                     lambda e: e.update(upload_policy='immutable_per_frame_v1')]
         for mutate in mutations:
             encode = copy.deepcopy(original)
             mutate(encode)

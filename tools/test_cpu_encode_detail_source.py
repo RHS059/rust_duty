@@ -65,6 +65,15 @@ class CpuEncodeDetailSourceTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'exact reviewed DX12'):
             matrix.make_plan(source, gpu_timestamps=True)
 
+    def test_initial_reuse_artifact_pins_remain_replayable(self):
+        self.assertEqual(matrix.AUDITED_UPLOAD_REUSE_INITIAL_MANIFEST,
+                         '30034419d16eaf4cfa336e5bde862dd660a54ff3736dbc30cfd1f47b0d896460')
+        self.assertEqual(matrix.AUDITED_UPLOAD_IMMUTABLE_INITIAL_CONTROL_MANIFEST,
+                         'dd7325d511b76829660abe3cd8d0bb4a5c17ae970a68025d888eafe8e74fcfcc')
+        for pin in (matrix.AUDITED_UPLOAD_REUSE_INITIAL_MANIFEST,
+                    matrix.AUDITED_UPLOAD_IMMUTABLE_INITIAL_CONTROL_MANIFEST):
+            self.assertEqual(matrix.audited_inventory(pin), matrix.UPLOAD_REUSE_SOURCE_PATHS)
+
     def test_one_line_immutable_control_keeps_all_other_inventory_bytes(self):
         root = self.checkout()
         before = matrix.source_identity(root)

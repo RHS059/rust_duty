@@ -41,6 +41,7 @@ class UploadBufferReuseWorkflowTests(unittest.TestCase):
                       '--lib --no-run --message-format=json', body)
         self.assertIn('& $exe render::upload_reuse_tests --nocapture --test-threads=1', body)
         self.assertIn('Get-FileReceipt $exe', body)
+        self.assertIn('cargo clippy --locked --no-default-features --features wgpu-runtime --lib --tests -- -D warnings', body)
         self.assertIn('Get-FileReceipt $pdb', body)
         self.assertIn('git ls-files -- src updater tools Cargo.toml Cargo.lock', body)
         self.assertIn('Test executable changed during native proof', body)

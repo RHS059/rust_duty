@@ -22,14 +22,8 @@ const WIDTH: u32 = 64;
 const HEIGHT: u32 = 64;
 
 fn warp() -> Gpu {
-    let gpu = pollster::block_on(Gpu::new(
-        BackendSelection::Dx12,
-        true,
-        None,
-        WIDTH,
-        HEIGHT,
-    ))
-    .expect("native upload-reuse proof requires DX12/WARP; initialization must not skip");
+    let gpu = pollster::block_on(Gpu::new(BackendSelection::Dx12, true, None, WIDTH, HEIGHT))
+        .expect("native upload-reuse proof requires DX12/WARP; initialization must not skip");
     assert_eq!(gpu.info.backend, "Dx12");
     gpu
 }
@@ -49,7 +43,7 @@ fn mesh(seed: usize, ordinal: usize) -> Mesh {
             .to_vec(),
         // A single triangle has an odd number of u16 indices. Changing the
         // triangle's half makes a stale index upload visible, even without culling.
-        indices: if seed % 2 == 0 {
+        indices: if seed.is_multiple_of(2) {
             vec![0, 1, 2]
         } else {
             vec![1, 3, 2]
@@ -236,9 +230,11 @@ fn read_after_submissions(gpu: &Gpu, buffers: &[wgpu::Buffer]) -> Vec<Vec<u8>> {
     let (tx, rx) = mpsc::channel();
     for (index, buffer) in buffers.iter().enumerate() {
         let tx = tx.clone();
-        buffer.slice(..).map_async(wgpu::MapMode::Read, move |result| {
-            let _ = tx.send((index, result));
-        });
+        buffer
+            .slice(..)
+            .map_async(wgpu::MapMode::Read, move |result| {
+                let _ = tx.send((index, result));
+            });
     }
     drop(tx);
     gpu.device
@@ -268,7 +264,10 @@ fn read_after_submissions(gpu: &Gpu, buffers: &[wgpu::Buffer]) -> Vec<Vec<u8>> {
 #[test]
 fn changed_frames_without_cpu_waits_match_fresh_immutable_uploads() {
     let fixture = NativeFixture::new();
-    let scope = fixture.gpu.device.push_error_scope(wgpu::ErrorFilter::Validation);
+    let scope = fixture
+        .gpu
+        .device
+        .push_error_scope(wgpu::ErrorFilter::Validation);
     let mut cache = UploadCache::default();
     let mut observations = Vec::new();
     let mut previous = Vec::<Handles>::new();
@@ -276,7 +275,14 @@ fn changed_frames_without_cpu_waits_match_fresh_immutable_uploads() {
     // Repeated sizes, growth, shrink, several slots, an empty frame, then a
     // slot-count overflow. Even the uncached arena must retain its own pixels.
     let cases: &[&[usize]] = &[
-        &[1], &[1], &[9], &[1], &[1, 1, 1], &[1, 1, 1], &[], &[1],
+        &[1],
+        &[1],
+        &[9],
+        &[1],
+        &[1, 1, 1],
+        &[1, 1, 1],
+        &[],
+        &[1],
         &[1, 1, 1, 1, 1, 1, 1, 1, 1],
     ];
     for (frame, counts) in cases.iter().enumerate() {
@@ -316,7 +322,10 @@ fn changed_frames_without_cpu_waits_match_fresh_immutable_uploads() {
         let current: Vec<_> = reused.iter().flatten().map(handles).collect();
         match frame {
             1 | 3 => {
-                assert_eq!(current, previous, "same-size and shrinking frames must reuse handles");
+                assert_eq!(
+                    current, previous,
+                    "same-size and shrinking frames must reuse handles"
+                );
                 assert_eq!(cache.stats.allocations, 0);
                 assert_eq!(cache.stats.reuses, 3);
                 assert_eq!(cache.stats.bindings, 0);
@@ -359,22 +368,33 @@ fn changed_frames_without_cpu_waits_match_fresh_immutable_uploads() {
             _ => {}
         }
         assert!(cache.retained_bytes() <= RETAINED_BYTES);
-        let mut encoder = fixture.gpu.device.create_command_encoder(
-            &wgpu::CommandEncoderDescriptor { label: Some("changed frame with immutable control") },
-        );
+        let mut encoder =
+            fixture
+                .gpu
+                .device
+                .create_command_encoder(&wgpu::CommandEncoderDescriptor {
+                    label: Some("changed frame with immutable control"),
+                });
         let [reuse_mid, reuse_final] = fixture.encode(&mut encoder, 0, &batches, &reused);
         let [fresh_mid, fresh_final] = fixture.encode(&mut encoder, 1, &batches, &immutable);
         observations.extend([reuse_mid, fresh_mid, reuse_final, fresh_final]);
         fixture.gpu.queue.submit([encoder.finish()]);
         cache.submitted();
         if frame == 6 {
-            assert_eq!(cache.retained_bytes(), 0, "empty frame trims every idle slot");
+            assert_eq!(
+                cache.retained_bytes(),
+                0,
+                "empty frame trims every idle slot"
+            );
         }
         previous = current;
     }
     let pixels = read_after_submissions(&fixture.gpu, &observations);
     let validation = pollster::block_on(scope.pop());
-    assert!(validation.is_none(), "native upload validation: {validation:?}");
+    assert!(
+        validation.is_none(),
+        "native upload validation: {validation:?}"
+    );
     for (frame, pair) in pixels.chunks_exact(4).enumerate() {
         assert_eq!(pair[0], pair[1], "frame {frame} mid-frame checkpoint");
         assert_eq!(pair[2], pair[3], "frame {frame} final pixels");
@@ -389,32 +409,59 @@ fn changed_frames_without_cpu_waits_match_fresh_immutable_uploads() {
             assert!(pair[2].chunks_exact(4).any(|pixel| pixel[3] == 255));
         }
     }
-    assert_ne!(pixels[2], pixels[6], "consecutive input changes must be visible");
-    assert_ne!(pixels[8], pixels[10], "later draws must change the growth-frame checkpoint");
-    eprintln!("upload_reuse_native queued_frames=9 matched_pixel_pairs=18 cpu_waits_between_submits=0");
+    assert_ne!(
+        pixels[2], pixels[6],
+        "consecutive input changes must be visible"
+    );
+    assert_ne!(
+        pixels[8], pixels[10],
+        "later draws must change the growth-frame checkpoint"
+    );
+    eprintln!(
+        "upload_reuse_native queued_frames=9 matched_pixel_pairs=18 cpu_waits_between_submits=0"
+    );
 }
 
 #[test]
 fn uncached_fallback_and_abandoned_writes_match_immutable_pixels() {
     let fixture = NativeFixture::new();
-    let scope = fixture.gpu.device.push_error_scope(wgpu::ErrorFilter::Validation);
+    let scope = fixture
+        .gpu
+        .device
+        .push_error_scope(wgpu::ErrorFilter::Validation);
     let mut cache = UploadCache::for_test(true, 0);
     let mut observations = Vec::new();
     for seed in 0..3 {
         cache.begin_frame().unwrap();
         let batches = [batch(&fixture.gpu, seed, 0, 1)];
-        let reused = [cache.upload(
-            &fixture.gpu.device, &fixture.gpu.queue, &fixture.pipelines, 0, &batches[0].arena,
-        ).unwrap()];
-        let fresh = [fixture.pipelines.upload_geometry(&fixture.gpu.device, &batches[0].arena)];
+        let reused = [cache
+            .upload(
+                &fixture.gpu.device,
+                &fixture.gpu.queue,
+                &fixture.pipelines,
+                0,
+                &batches[0].arena,
+            )
+            .unwrap()];
+        let fresh = [fixture
+            .pipelines
+            .upload_geometry(&fixture.gpu.device, &batches[0].arena)];
         assert_eq!(cache.stats.uncached_arenas, 1);
         assert_eq!(cache.stats.allocations, 3);
         assert_eq!(cache.stats.reuses, 0);
         assert_eq!(cache.retained_bytes(), 0);
-        let mut encoder = fixture.gpu.device.create_command_encoder(&Default::default());
+        let mut encoder = fixture
+            .gpu
+            .device
+            .create_command_encoder(&Default::default());
         let reused = fixture.encode(&mut encoder, 0, &batches, &reused);
         let fresh = fixture.encode(&mut encoder, 1, &batches, &fresh);
-        observations.extend([reused[0].clone(), fresh[0].clone(), reused[1].clone(), fresh[1].clone()]);
+        observations.extend([
+            reused[0].clone(),
+            fresh[0].clone(),
+            reused[1].clone(),
+            fresh[1].clone(),
+        ]);
         fixture.gpu.queue.submit([encoder.finish()]);
         cache.submitted();
     }
@@ -423,28 +470,54 @@ fn uncached_fallback_and_abandoned_writes_match_immutable_pixels() {
     let mut cache = UploadCache::default();
     cache.begin_frame().unwrap();
     let abandoned = batch(&fixture.gpu, 4, 0, 1);
-    let old = cache.upload(
-        &fixture.gpu.device, &fixture.gpu.queue, &fixture.pipelines, 0, &abandoned.arena,
-    ).unwrap().unwrap();
+    let old = cache
+        .upload(
+            &fixture.gpu.device,
+            &fixture.gpu.queue,
+            &fixture.pipelines,
+            0,
+            &abandoned.arena,
+        )
+        .unwrap()
+        .unwrap();
     let replacement = batch(&fixture.gpu, 5, 3, 1);
-    let duplicate = cache.upload(
-        &fixture.gpu.device, &fixture.gpu.queue, &fixture.pipelines, 0, &replacement.arena,
-    ).err().expect("a live slot cannot be written twice before submit");
+    let duplicate = cache
+        .upload(
+            &fixture.gpu.device,
+            &fixture.gpu.queue,
+            &fixture.pipelines,
+            0,
+            &replacement.arena,
+        )
+        .err()
+        .expect("a live slot cannot be written twice before submit");
     assert!(duplicate.contains("slot written twice"));
     cache.clear();
     assert_eq!(cache.retained_bytes(), 0);
     cache.begin_frame().unwrap();
     let batches = [replacement];
-    let next = cache.upload(
-        &fixture.gpu.device, &fixture.gpu.queue, &fixture.pipelines, 0, &batches[0].arena,
-    ).unwrap().unwrap();
+    let next = cache
+        .upload(
+            &fixture.gpu.device,
+            &fixture.gpu.queue,
+            &fixture.pipelines,
+            0,
+            &batches[0].arena,
+        )
+        .unwrap()
+        .unwrap();
     assert_ne!(old.vertices, next.vertices);
     assert_ne!(old.indices, next.indices);
     assert_ne!(old.transform, next.transform);
     assert_eq!(cache.stats.allocations, 3);
     let reused = [Some(next)];
-    let fresh = [fixture.pipelines.upload_geometry(&fixture.gpu.device, &batches[0].arena)];
-    let mut encoder = fixture.gpu.device.create_command_encoder(&Default::default());
+    let fresh = [fixture
+        .pipelines
+        .upload_geometry(&fixture.gpu.device, &batches[0].arena)];
+    let mut encoder = fixture
+        .gpu
+        .device
+        .create_command_encoder(&Default::default());
     let [reuse_mid, reuse_final] = fixture.encode(&mut encoder, 0, &batches, &reused);
     let [fresh_mid, fresh_final] = fixture.encode(&mut encoder, 1, &batches, &fresh);
     observations.extend([reuse_mid, fresh_mid, reuse_final, fresh_final]);
@@ -453,7 +526,10 @@ fn uncached_fallback_and_abandoned_writes_match_immutable_pixels() {
 
     let pixels = read_after_submissions(&fixture.gpu, &observations);
     let validation = pollster::block_on(scope.pop());
-    assert!(validation.is_none(), "fallback/recovery validation: {validation:?}");
+    assert!(
+        validation.is_none(),
+        "fallback/recovery validation: {validation:?}"
+    );
     for (index, pair) in pixels.chunks_exact(2).enumerate() {
         assert_eq!(pair[0], pair[1]);
         assert!(pair[0].chunks_exact(4).any(|pixel| pixel[3] == 255));
@@ -472,7 +548,8 @@ impl Captures {
             .unwrap()
             .as_nanos();
         let path = std::env::temp_dir().join(format!(
-            "rust-duty-upload-reuse-{}-{nonce}", std::process::id(),
+            "rust-duty-upload-reuse-{}-{nonce}",
+            std::process::id(),
         ));
         std::fs::create_dir_all(&path).unwrap();
         Self(path)
@@ -497,8 +574,12 @@ fn captured_list(captures: &Captures, prefix: &str, seed: usize) -> DrawList {
 }
 
 fn assert_captures_equal(captures: &Captures, suffix: &str) {
-    let reused = image::open(captures.path(&format!("reuse-{suffix}"))).unwrap().to_rgba8();
-    let fresh = image::open(captures.path(&format!("fresh-{suffix}"))).unwrap().to_rgba8();
+    let reused = image::open(captures.path(&format!("reuse-{suffix}")))
+        .unwrap()
+        .to_rgba8();
+    let fresh = image::open(captures.path(&format!("fresh-{suffix}")))
+        .unwrap()
+        .to_rgba8();
     assert_eq!(reused.dimensions(), (WIDTH, HEIGHT));
     assert_eq!(reused, fresh, "production submit {suffix}");
     eprintln!(
@@ -511,15 +592,27 @@ fn assert_captures_equal(captures: &Captures, suffix: &str) {
 fn renderer_mid_frame_capture_and_rejected_then_valid_frames_match_immutable() {
     let captures = Captures::new();
     let mut reused = pollster::block_on(WgpuRenderer::new_headless(
-        WIDTH, HEIGHT, BackendSelection::Dx12, true,
-    )).expect("production renderer requires DX12/WARP; initialization must not skip");
+        WIDTH,
+        HEIGHT,
+        BackendSelection::Dx12,
+        true,
+    ))
+    .expect("production renderer requires DX12/WARP; initialization must not skip");
     let mut fresh = pollster::block_on(WgpuRenderer::new_headless(
-        WIDTH, HEIGHT, BackendSelection::Dx12, true,
-    )).expect("immutable control requires DX12/WARP; initialization must not skip");
+        WIDTH,
+        HEIGHT,
+        BackendSelection::Dx12,
+        true,
+    ))
+    .expect("immutable control requires DX12/WARP; initialization must not skip");
     fresh.upload_cache = UploadCache::for_test(false, RETAINED_BYTES);
     for seed in 0..2 {
-        reused.submit(&captured_list(&captures, "reuse", seed)).unwrap();
-        fresh.submit(&captured_list(&captures, "fresh", seed)).unwrap();
+        reused
+            .submit(&captured_list(&captures, "reuse", seed))
+            .unwrap();
+        fresh
+            .submit(&captured_list(&captures, "fresh", seed))
+            .unwrap();
         assert_captures_equal(&captures, "mid");
         assert_captures_equal(&captures, "final");
         if seed == 1 {
@@ -528,7 +621,9 @@ fn renderer_mid_frame_capture_and_rejected_then_valid_frames_match_immutable() {
         }
     }
     let mid = image::open(captures.path("reuse-mid")).unwrap().to_rgba8();
-    let end = image::open(captures.path("reuse-final")).unwrap().to_rgba8();
+    let end = image::open(captures.path("reuse-final"))
+        .unwrap()
+        .to_rgba8();
     assert_ne!(mid, end, "capture copy must precede later geometry");
 
     for renderer in [&mut reused, &mut fresh] {
@@ -537,7 +632,10 @@ fn renderer_mid_frame_capture_and_rejected_then_valid_frames_match_immutable() {
         let mut invalid_mesh = mesh(3, 0);
         invalid_mesh.indices[0] = 99;
         invalid.draw_mesh(&invalid_mesh, Mat4::IDENTITY, BlendMode::Opaque);
-        assert!(renderer.submit(&invalid).unwrap_err().contains("mesh index out of range"));
+        assert!(renderer
+            .submit(&invalid)
+            .unwrap_err()
+            .contains("mesh index out of range"));
 
         // Rejected during command encoding, after all geometry queue writes.
         // The next valid frame must never alias an abandoned upload destination.
@@ -550,11 +648,16 @@ fn renderer_mid_frame_capture_and_rejected_then_valid_frames_match_immutable() {
         self_sampling.texture = Some(target.texture.clone());
         rejected.draw_mesh(&self_sampling, model(4), BlendMode::Opaque);
         rejected.capture_png(None, captures.path("must-not-exist"));
-        assert!(renderer.submit(&rejected).unwrap_err().contains("cannot sample the current render target"));
+        assert!(renderer
+            .submit(&rejected)
+            .unwrap_err()
+            .contains("cannot sample the current render target"));
         assert_eq!(renderer.upload_cache.retained_bytes(), 0);
         assert!(!captures.path("must-not-exist").exists());
     }
-    reused.submit(&captured_list(&captures, "reuse", 7)).unwrap();
+    reused
+        .submit(&captured_list(&captures, "reuse", 7))
+        .unwrap();
     fresh.submit(&captured_list(&captures, "fresh", 7)).unwrap();
     assert_captures_equal(&captures, "mid");
     assert_captures_equal(&captures, "final");
@@ -568,6 +671,11 @@ fn renderer_mid_frame_capture_and_rejected_then_valid_frames_match_immutable() {
         assert_eq!(renderer.upload_cache.retained_bytes(), 0);
     }
     assert_captures_equal(&captures, "empty");
-    let empty = image::open(captures.path("reuse-empty")).unwrap().to_rgba8();
-    assert!(empty.as_raw().chunks_exact(4).all(|pixel| pixel == [0, 0, 0, 255]));
+    let empty = image::open(captures.path("reuse-empty"))
+        .unwrap()
+        .to_rgba8();
+    assert!(empty
+        .as_raw()
+        .chunks_exact(4)
+        .all(|pixel| pixel == [0, 0, 0, 255]));
 }

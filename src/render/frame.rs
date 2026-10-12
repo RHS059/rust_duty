@@ -155,7 +155,11 @@ impl WgpuRenderer {
                             }
                         }
                         self.upload_cache.upload(
-                            &self.gpu.device, &self.gpu.queue, &self.pipelines, index, arena,
+                            &self.gpu.device,
+                            &self.gpu.queue,
+                            &self.pipelines,
+                            index,
+                            arena,
                         )
                     })
                     .collect::<Result<Vec<_>, String>>()

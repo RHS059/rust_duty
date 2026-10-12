@@ -75,8 +75,10 @@ AUDITED_ENCODE_DETAIL_MANIFEST = 'b673d91755f8e733ee075d79ae97f8c2afff7df5488e38
 # New upload experiment: keep every older inventory and digest unchanged.
 UPLOAD_REUSE_SOURCE_PATHS = (*ENCODE_DETAIL_SOURCE_PATHS, 'src/frame_upload_policy.rs',
                              'src/render/upload_cache.rs')
-AUDITED_UPLOAD_REUSE_MANIFEST = '30034419d16eaf4cfa336e5bde862dd660a54ff3736dbc30cfd1f47b0d896460'
-AUDITED_UPLOAD_IMMUTABLE_CONTROL_MANIFEST = 'dd7325d511b76829660abe3cd8d0bb4a5c17ae970a68025d888eafe8e74fcfcc'
+AUDITED_UPLOAD_REUSE_INITIAL_MANIFEST = '30034419d16eaf4cfa336e5bde862dd660a54ff3736dbc30cfd1f47b0d896460'
+AUDITED_UPLOAD_IMMUTABLE_INITIAL_CONTROL_MANIFEST = 'dd7325d511b76829660abe3cd8d0bb4a5c17ae970a68025d888eafe8e74fcfcc'
+AUDITED_UPLOAD_REUSE_MANIFEST = '2dbfe6bbab145c675e2517eee8c2ec2476e467e32ec66b8c8938c05d55434493'
+AUDITED_UPLOAD_IMMUTABLE_CONTROL_MANIFEST = 'd80012eb4d1d4a5e669b98aae8910fc24302f1fc38bd92ed8a3593a0fae70dd7'
 
 BACKENDS = {'dx12': 'Dx12', 'vulkan': 'Vulkan', 'metal': 'Metal', 'gl-harness': 'Gl'}
 UNAVAILABLE = {
@@ -131,7 +133,8 @@ def canonical_hash(value):
 
 
 def audited_inventory(digest):
-    if digest in (AUDITED_UPLOAD_REUSE_MANIFEST, AUDITED_UPLOAD_IMMUTABLE_CONTROL_MANIFEST):
+    if digest in (AUDITED_UPLOAD_REUSE_INITIAL_MANIFEST, AUDITED_UPLOAD_IMMUTABLE_INITIAL_CONTROL_MANIFEST,
+                  AUDITED_UPLOAD_REUSE_MANIFEST, AUDITED_UPLOAD_IMMUTABLE_CONTROL_MANIFEST):
         return UPLOAD_REUSE_SOURCE_PATHS
     if digest in (AUDITED_ENCODE_DETAIL_INITIAL_MANIFEST, AUDITED_ENCODE_DETAIL_FORMATTED_MANIFEST, AUDITED_ENCODE_DETAIL_MANIFEST):
         return ENCODE_DETAIL_SOURCE_PATHS
@@ -229,7 +232,8 @@ def source_identity(repository):
                         committed = subprocess.check_output(['git', '-C', str(repository), 'show', commit + ':' + name])
                         require(data == committed, 'Uncommitted upload-reuse source: ' + name)
                         candidate[name] = hashlib.sha256(data).hexdigest()
-                    require(canonical_hash(candidate) in (AUDITED_UPLOAD_REUSE_MANIFEST, AUDITED_UPLOAD_IMMUTABLE_CONTROL_MANIFEST),
+                    require(canonical_hash(candidate) in (AUDITED_UPLOAD_REUSE_INITIAL_MANIFEST, AUDITED_UPLOAD_IMMUTABLE_INITIAL_CONTROL_MANIFEST,
+                  AUDITED_UPLOAD_REUSE_MANIFEST, AUDITED_UPLOAD_IMMUTABLE_CONTROL_MANIFEST),
                             'Audited upload-reuse runtime changed; cannot fall back to historical pins')
                 else:
                     require(canonical_hash(candidate) in (AUDITED_ENCODE_DETAIL_INITIAL_MANIFEST, AUDITED_ENCODE_DETAIL_FORMATTED_MANIFEST, AUDITED_ENCODE_DETAIL_MANIFEST),

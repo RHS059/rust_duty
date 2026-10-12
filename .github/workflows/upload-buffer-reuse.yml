@@ -52,7 +52,7 @@ jobs:
             /.github/workflows/upload-buffer-reuse.yml
       - uses: dtolnay/rust-toolchain@stable
         with:
-          components: rustfmt
+          components: rustfmt, clippy
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -92,6 +92,8 @@ jobs:
             cargo test --locked --no-default-features --features wgpu-runtime --lib $filter
             if ($LASTEXITCODE -ne 0) { throw "Rust contracts failed: $filter" }
           }
+      - name: Lint scoped native library and test code
+        run: cargo clippy --locked --no-default-features --features wgpu-runtime --lib --tests -- -D warnings
       - name: Compare queued reusable uploads with immutable uploads on DX12 WARP
         shell: pwsh
         run: |

@@ -48,9 +48,13 @@ impl Default for UploadCache {
     }
 }
 impl UploadCache {
-    #[cfg(test)]
+    #[cfg(all(test, target_os = "windows"))]
     pub fn for_test(enabled: bool, budget: u64) -> Self {
-        Self { enabled, budget, ..Self::default() }
+        Self {
+            enabled,
+            budget,
+            ..Self::default()
+        }
     }
 
     pub fn begin_frame(&mut self) -> Result<(), String> {
@@ -84,7 +88,11 @@ impl UploadCache {
     }
 
     pub fn retained_bytes(&self) -> u64 {
-        self.slots.iter().flatten().map(|slot| slot.capacities.iter().sum::<u64>()).sum()
+        self.slots
+            .iter()
+            .flatten()
+            .map(|slot| slot.capacities.iter().sum::<u64>())
+            .sum()
     }
 
     pub fn upload(
@@ -98,21 +106,29 @@ impl UploadCache {
         if !self.active {
             return Err("frame upload requires begin_frame".into());
         }
-        let Some(contents) = arena.buffer_contents() else { return Ok(None); };
+        let Some(contents) = arena.buffer_contents() else {
+            return Ok(None);
+        };
         let mut sizes = [0; 3];
         for i in 0..3 {
-            sizes[i] = padded_size(contents[i].len() as u64)
-                .ok_or("frame upload size overflow")?;
+            sizes[i] = padded_size(contents[i].len() as u64).ok_or("frame upload size overflow")?;
         }
         let old = self.slots.get(index).and_then(Option::as_ref);
         let previous = old.map_or([0; 3], |slot| slot.capacities);
         let capacities = capacity_plan(previous, sizes, device.limits().max_buffer_size);
-        let cacheable = self.enabled && index < MAX_SLOTS && capacities.is_some_and(|next| {
-            fits_budget(self.retained_bytes(), previous, next, self.budget)
-        });
+        let cacheable = self.enabled
+            && index < MAX_SLOTS
+            && capacities.is_some_and(|next| {
+                fits_budget(self.retained_bytes(), previous, next, self.budget)
+            });
         if !cacheable {
-            self.record(UploadStats { allocations: 3, allocated_bytes: sizes.iter().sum(), bindings: 1,
-                uncached_arenas: 1, ..UploadStats::default() });
+            self.record(UploadStats {
+                allocations: 3,
+                allocated_bytes: sizes.iter().sum(),
+                bindings: 1,
+                uncached_arenas: 1,
+                ..UploadStats::default()
+            });
             return Ok(pipelines.upload_geometry(device, arena));
         }
         if self.used & (1 << index) != 0 {
@@ -121,49 +137,82 @@ impl UploadCache {
         self.used |= 1 << index;
         let capacities = capacities.expect("cacheable capacity plan");
         let old = self.slots[index].take();
-        let usages = [wgpu::BufferUsages::VERTEX, wgpu::BufferUsages::INDEX, wgpu::BufferUsages::UNIFORM];
-        let labels = ["cached frame vertices", "cached frame indices", "cached frame transforms"];
+        let usages = [
+            wgpu::BufferUsages::VERTEX,
+            wgpu::BufferUsages::INDEX,
+            wgpu::BufferUsages::UNIFORM,
+        ];
+        let labels = [
+            "cached frame vertices",
+            "cached frame indices",
+            "cached frame transforms",
+        ];
         let mut stats = UploadStats::default();
         let buffers = std::array::from_fn(|i| {
-            if let Some(slot) = old.as_ref().filter(|slot| slot.capacities[i] == capacities[i]) {
+            if let Some(slot) = old
+                .as_ref()
+                .filter(|slot| slot.capacities[i] == capacities[i])
+            {
                 stats.reuses += 1;
                 slot.buffers[i].clone()
             } else {
                 stats.allocations += 1;
                 stats.allocated_bytes += capacities[i];
                 device.create_buffer(&wgpu::BufferDescriptor {
-                    label: Some(labels[i]), size: capacities[i],
-                    usage: usages[i] | wgpu::BufferUsages::COPY_DST, mapped_at_creation: false,
+                    label: Some(labels[i]),
+                    size: capacities[i],
+                    usage: usages[i] | wgpu::BufferUsages::COPY_DST,
+                    mapped_at_creation: false,
                 })
             }
         });
-        let transform = if let Some(slot) = old.as_ref().filter(|slot| slot.capacities[2] == capacities[2]) {
+        let transform = if let Some(slot) = old
+            .as_ref()
+            .filter(|slot| slot.capacities[2] == capacities[2])
+        {
             slot.transform.clone()
         } else {
             stats.bindings = 1;
             device.create_bind_group(&wgpu::BindGroupDescriptor {
-                label: Some("cached frame transform slots"), layout: &pipelines.transform_layout,
-                entries: &[wgpu::BindGroupEntry { binding: 0,
+                label: Some("cached frame transform slots"),
+                layout: &pipelines.transform_layout,
+                entries: &[wgpu::BindGroupEntry {
+                    binding: 0,
                     resource: wgpu::BindingResource::Buffer(wgpu::BufferBinding {
-                        buffer: &buffers[2], offset: 0, size: wgpu::BufferSize::new(MATRIX_BYTES),
+                        buffer: &buffers[2],
+                        offset: 0,
+                        size: wgpu::BufferSize::new(MATRIX_BYTES),
                     }),
                 }],
             })
         };
         self.record(stats);
-        self.slots[index] = Some(Slot { buffers, capacities, transform });
+        self.slots[index] = Some(Slot {
+            buffers,
+            capacities,
+            transform,
+        });
         let slot = self.slots[index].as_ref().expect("inserted upload slot");
         // Preflight all lengths/capacities before the first write. write_buffer_with
         // lets odd-u16 index payloads receive zero padding without a CPU scratch Vec.
         for i in 0..3 {
-            let mut staging = queue.write_buffer_with(&slot.buffers[i], 0,
-                wgpu::BufferSize::new(sizes[i]).expect("nonempty arena payload"))
+            let mut staging = queue
+                .write_buffer_with(
+                    &slot.buffers[i],
+                    0,
+                    wgpu::BufferSize::new(sizes[i]).expect("nonempty arena payload"),
+                )
                 .ok_or("cannot stage frame geometry upload")?;
-            staging.slice(..contents[i].len()).copy_from_slice(contents[i]);
+            staging
+                .slice(..contents[i].len())
+                .copy_from_slice(contents[i]);
             staging.slice(contents[i].len()..).fill(0);
         }
-        Ok(Some(FrameGeometry { vertices: slot.buffers[0].clone(), indices: slot.buffers[1].clone(),
-            transform: slot.transform.clone() }))
+        Ok(Some(FrameGeometry {
+            vertices: slot.buffers[0].clone(),
+            indices: slot.buffers[1].clone(),
+            transform: slot.transform.clone(),
+        }))
     }
 
     fn record(&mut self, stats: UploadStats) {
@@ -175,10 +224,15 @@ impl UploadCache {
         for (counter, value) in [
             (EncodeCounter::GpuBufferAllocations, stats.allocations),
             (EncodeCounter::GpuBufferReuses, stats.reuses),
-            (EncodeCounter::GpuBufferAllocatedBytes, stats.allocated_bytes),
+            (
+                EncodeCounter::GpuBufferAllocatedBytes,
+                stats.allocated_bytes,
+            ),
             (EncodeCounter::TransformBindingAllocations, stats.bindings),
             (EncodeCounter::UncachedUploadArenas, stats.uncached_arenas),
-        ] { add_encode_counter(counter, value); }
+        ] {
+            add_encode_counter(counter, value);
+        }
     }
 }
 
@@ -189,9 +243,13 @@ fn padded_size(size: u64) -> Option<u64> {
 fn capacity_plan(previous: [u64; 3], sizes: [u64; 3], limit: u64) -> Option<[u64; 3]> {
     let mut result = previous;
     for i in 0..3 {
-        if sizes[i] == 0 || sizes[i] > limit { return None; }
+        if sizes[i] == 0 || sizes[i] > limit {
+            return None;
+        }
         if sizes[i] > previous[i] {
-            result[i] = sizes[i].checked_next_power_of_two().filter(|&value| value <= limit)
+            result[i] = sizes[i]
+                .checked_next_power_of_two()
+                .filter(|&value| value <= limit)
                 .unwrap_or(sizes[i]);
         }
     }
@@ -199,7 +257,9 @@ fn capacity_plan(previous: [u64; 3], sizes: [u64; 3], limit: u64) -> Option<[u64
 }
 
 fn fits_budget(retained: u64, previous: [u64; 3], next: [u64; 3], budget: u64) -> bool {
-    previous.into_iter().try_fold(retained, u64::checked_sub)
+    previous
+        .into_iter()
+        .try_fold(retained, u64::checked_sub)
         .and_then(|bytes| next.into_iter().try_fold(bytes, u64::checked_add))
         .is_some_and(|bytes| bytes <= budget)
 }
@@ -211,8 +271,18 @@ mod tests {
     fn upload_cache_capacity_and_padding_are_checked() {
         assert_eq!(padded_size(6), Some(8));
         assert_eq!(padded_size(u64::MAX), None);
-        assert_eq!(capacity_plan([128, 8, 64], [120, 6, 64], 1024), Some([128, 8, 64]));
-        assert_eq!(capacity_plan([128, 8, 64], [132, 8, 320], 1024), Some([256, 8, 512]));
+        assert_eq!(
+            capacity_plan([128, 8, 64], [120, 6, 64], 1024),
+            Some([128, 8, 64])
+        );
+        assert_eq!(
+            capacity_plan([128, 8, 64], [132, 8, 320], 1024),
+            Some([256, 8, 512])
+        );
+        assert_eq!(
+            capacity_plan([128, 8, 64], [132, 8, 64], 1024),
+            Some([256, 8, 64])
+        );
         assert_eq!(capacity_plan([0; 3], [120, 8, 64], 120), Some([120, 8, 64]));
         assert_eq!(capacity_plan([0; 3], [0, 8, 64], 1024), None);
         assert_eq!(capacity_plan([0; 3], [1025, 8, 64], 1024), None);

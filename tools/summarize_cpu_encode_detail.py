@@ -53,6 +53,36 @@ def validate_instance_descriptor(primary):
                     'instance descriptor environment overrides must be false')
 
 
+def validate_upload_counters(counters, upload_policy):
+    """Complete v2 attempts account for three destination buffers per arena.
+
+    These are relationships between CPU observations, not exact payload sizes or
+    driver allocation claims. Incomplete attempts must retain partial values.
+    Python arithmetic stays exact even if intermediate sums exceed u64.
+    """
+    arenas = counters['upload_arenas']
+    allocations = counters['gpu_buffer_allocations']
+    reuses = counters['gpu_buffer_reuses']
+    allocated_bytes = counters['gpu_buffer_allocated_bytes']
+    bindings = counters['transform_binding_allocations']
+    uncached = counters['uncached_upload_arenas']
+    frames._require(allocations + reuses == 3 * arenas,
+                    'complete v2 allocations and reuses must account for three buffers per arena')
+    frames._require(uncached <= arenas,
+                    'complete v2 uncached arenas exceed upload arenas')
+    frames._require(allocations >= 3 * uncached and reuses <= 3 * (arenas - uncached),
+                    'complete v2 uncached arenas require three allocations and no reused buffers')
+    frames._require(uncached <= bindings <= allocations and bindings <= arenas,
+                    'complete v2 transform bindings contradict allocated buffers or upload arenas')
+    frames._require((allocations == 0) == (allocated_bytes == 0)
+                    and allocated_bytes >= 4 * allocations,
+                    'complete v2 allocated bytes contradict nonempty destination allocations')
+    if upload_policy == 'immutable_per_frame_v1':
+        frames._require(allocations == 3 * arenas and reuses == 0
+                        and bindings == uncached == arenas,
+                        'complete v2 counters contradict immutable_per_frame_v1 upload policy')
+
+
 def validate(detail, substage, primary, primary_digest):
     """Validate all three contracts and join every retained CPU frame attempt."""
     frames._require(isinstance(primary_digest, str) and len(primary_digest) == 64
@@ -99,6 +129,8 @@ def validate(detail, substage, primary, primary_digest):
         frames._object(counters, counter_names, 'encode counters')
         for name in counter_names:
             frames._uint(counters[name], 'encode counter ' + name)
+        if v2 and complete:
+            validate_upload_counters(counters, detail['upload_policy'])
         spans = details['spans']
         frames._require(isinstance(spans, list) and len(spans) <= len(PHASES),
                         'encode phase capacity exceeded')
