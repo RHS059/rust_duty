@@ -696,7 +696,22 @@ class DriverTests(unittest.TestCase):
         self.assertEqual(driver.key.call_args_list,
                          [mock.call('w', True), mock.call('w', False), mock.call('s', True), mock.call('s', False)])
         self.assertEqual(result['elapsed_seconds'], 4.1)
+        self.assertEqual(result['replay_basis'], 'wall-clock W/S alternation every two seconds; not fixed simulation replay')
         self.assertEqual(driver.aim.call_args_list[-1], mock.call(False))
+
+    def test_stationary_replay_descriptions_match_actual_inputs(self):
+        for action, description, aim in [('baseline', 'stationary baseline', False),
+                                         ('ads', 'stationary held ADS', True)]:
+            with self.subTest(action=action):
+                driver, process = mock.Mock(), mock.Mock()
+                process.poll.return_value = None
+                with mock.patch.object(d.time, 'monotonic', side_effect=[0, 0, 2, 4, 4.1]), mock.patch.object(d.time, 'sleep'):
+                    result = d.replay(driver, process, [1920, 1080], action, 4)
+                driver.key.assert_not_called()
+                self.assertEqual(result['input_transitions'], [])
+                self.assertIn(description, result['replay_basis'])
+                self.assertNotIn('W/S', result['replay_basis'])
+                self.assertEqual(driver.aim.call_args_list, [mock.call(aim), mock.call(False)])
 
     def test_focus_failure_releases_held_inputs(self):
         driver = mock.Mock()

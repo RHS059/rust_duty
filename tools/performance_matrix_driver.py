@@ -376,5 +376,7 @@ def replay(driver, process, size, action, duration):
                 driver.key(held, False)
         finally:
             driver.aim(False)
+    basis = ('wall-clock W/S alternation every two seconds' if action == 'movement' else
+             'wall-clock stationary held ADS' if action == 'ads' else 'wall-clock stationary baseline')
     return {'elapsed_seconds': time.monotonic() - started, 'input_transitions': events,
-            'replay_basis': 'wall-clock W/S alternation every two seconds; not fixed simulation replay'}
+            'replay_basis': basis + '; not fixed simulation replay'}

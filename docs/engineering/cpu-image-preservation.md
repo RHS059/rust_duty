@@ -141,7 +141,7 @@ hardware performance remain unrun.
 
 ## Destination-buffer reuse comparison
 
-The separately named `--experiment geometry-reuse` mode uses the current
+The separately named `--experiment geometry-reuse` mode at `eef5758` used the
 122-file closed compile inventory (`f796c8d9e5de81598a42fe77854b047ec961f0e17da709502889b65c143b2c5b`).
 Both variants retain the same new v2 phase/allocation counters. The only source
 change is `src/frame_upload_policy.rs`, replacing `REUSE_ENABLED: bool = true`
@@ -149,7 +149,7 @@ with `false` in the explicitly labeled baseline. The latter selects the original
 immutable per-frame uploader. It is a one-line policy counterfactual, not the
 historical four-file CPU baseline or an unmodified retail commit.
 
-The existing Windows workflow runs:
+That experiment ran the Windows workflow with:
 
 ```text
 python tools/run_cpu_image_preservation.py run --root . --output evidence/cpu-image-native --build-timeout 1200 --process-timeout 180 --experiment geometry-reuse
@@ -162,3 +162,24 @@ Queued earlier-frame-copy versus later-write lifetime coverage is supplied by
 the separate `render::upload_reuse_tests` suite on DX12/WARP; serial image
 readbacks alone do not establish in-flight ordering safety. Neither result
 changes the authored ADS coverage failure or establishes an RTX speedup.
+
+
+## Vertex serialization comparison
+
+The separately named `--experiment arena-serialization` restores only
+`src/render/arena.rs` from exact commit `70ff2933ebe69b7180e207c7defebeaeb6e240e1`.
+Its SHA-256 is `5e39d00125b34d07ec23f845841809c0effa678980b1395988880b7d23674ddb`,
+byte-identical to the arena in the measured `eef5758` upload experiment. This
+is a one-file counterfactual on the current instrumented renderer, not a
+historical whole-game baseline. The 122-input candidate digest is
+`e8a9e43fd39a841868d069512b2bf1b69dac09144de1e1afdd29b355175f5bb6`.
+Both builds retain `REUSE_ENABLED=true` and the same allocation counters.
+Only the vertex byte serializer differs in production behavior; the candidate
+also carries its exact-bit/growth regression tests in that file.
+
+The existing Windows image workflow now selects this experiment. The unchanged
+21 fixed-image validators, four mixed-image comparisons, archive structure,
+draw order and queued-upload safety tests remain required. PR51's authored
+vertex deduplication is absent from both builds. Local serialization-loop
+results guide investigation only; native game and target-hardware improvement
+must be measured separately.

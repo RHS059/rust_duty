@@ -15,7 +15,7 @@ import run_windows_cpu_profile as profile
 
 
 class GeometryProfilePairTests(unittest.TestCase):
-    def flow(self, mutation=None, failed_shutdown=False):
+    def flow(self, mutation=None, failed_shutdown=False, experiment='geometry-reuse'):
         temporary = tempfile.TemporaryDirectory()
         self.addCleanup(temporary.cleanup)
         base = Path(temporary.name).resolve()
@@ -25,6 +25,9 @@ class GeometryProfilePairTests(unittest.TestCase):
         production = {'Cargo.toml': b'[package]\nname="synthetic"\n',
                       'src/lib.rs': b'// Synthetic noncompilable source receipt.\n',
                       pair.UPLOAD_POLICY_PATH: b'pub const REUSE_ENABLED: bool = true;\n'}
+        old_arena = {pair.ARENA_PATH: b'// Historical scalar arena fixture.\n'}
+        if experiment == 'arena-serialization':
+            production[pair.ARENA_PATH] = b'// New serialization arena fixture.\n'
         for name, raw in {**production, 'settings.cfg': b'settings fixture\n',
                           'ui/theme.css': b'fixture\n', 'assets/animations.cfg': b'fixture\n',
                           'assets/locomotion/asset.vrs': b'synthetic asset\n'}.items():
@@ -127,7 +130,7 @@ class GeometryProfilePairTests(unittest.TestCase):
             measured = {'session': 's1', 'adapter': {'backend': 'Dx12', 'name': 'synthetic WARP'},
                         'build': {'version': 'synthetic'}, 'scene': {'name': 'synthetic range'},
                         'initial_window': {'physical_width': 1920, 'physical_height': 1080},
-                        'upload_policy': pair.experiment_metadata('geometry-reuse')['upload_policies'][label],
+                        'upload_policy': pair.experiment_metadata(experiment)['upload_policies'][label],
                         'tail_comparison_ready': True, 'present_intervals': 101}
             if mutation == 'policy' and label == 'candidate':
                 measured['upload_policy'] = 'immutable_per_frame_v1'
@@ -194,7 +197,9 @@ class GeometryProfilePairTests(unittest.TestCase):
                        patch.object(profile, 'require_host'), patch.object(profile, 'checked_source', side_effect=source),
                        patch.object(pair, 'check_environment'), patch.object(pair, 'check_cargo_configuration', side_effect=config),
                        patch.object(pair, 'toolchain_at', side_effect=toolchain),
-                       patch.object(pair, 'read_sources', return_value=copy.deepcopy(production)),
+                       patch.object(pair, 'read_sources', side_effect=lambda _root, commit, paths:
+                                    copy.deepcopy(old_arena if paths == [pair.ARENA_PATH] else production)),
+                       patch.object(pair, 'ARENA_BASELINE_SHA256', pair.controls.digest(old_arena[pair.ARENA_PATH])),
                        patch.object(pair, 'PRODUCTION_MANIFEST', matrix.canonical_hash(pair.hashes(production))),
                        patch.object(profile, 'command_log', side_effect=build),
                        patch.object(profile, 'sample_build', side_effect=sample),
@@ -203,7 +208,7 @@ class GeometryProfilePairTests(unittest.TestCase):
                        patch.object(profile.subprocess, 'Popen', side_effect=AssertionError('Real process forbidden'))]
             for p in patches:
                 stack.enter_context(p)
-            return profile.compare_uploads(root, output)
+            return profile.compare_uploads(root, output, experiment)
 
     def test_two_fresh_symbolized_builds_and_four_locked_abba_captures(self):
         self.flow()

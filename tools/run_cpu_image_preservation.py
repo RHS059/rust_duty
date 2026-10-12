@@ -33,7 +33,7 @@ CPU_BASELINE = {
 # All production and conditional-test compile inputs, not merely changed files
 # or the narrow runtime witness. Update only after exact-source review.
 # Historical timing pair admission keeps its own immutable closed digest.
-PRODUCTION_MANIFEST = 'f796c8d9e5de81598a42fe77854b047ec961f0e17da709502889b65c143b2c5b'
+PRODUCTION_MANIFEST = 'e8a9e43fd39a841868d069512b2bf1b69dac09144de1e1afdd29b355175f5bb6'
 PRODUCTION_PATHS = ['Cargo.toml', 'Cargo.lock', 'build.rs', 'build_number.rs',
                     'LICENSE', 'THIRD_PARTY_LICENSES.txt', 'rust-toolchain',
                     'rust-toolchain.toml', '.cargo', '.gitattributes', 'src', 'updater']
@@ -42,7 +42,9 @@ HARNESS_PATHS = [f'examples/{name}.rs' for name in EXAMPLES]
 UPLOAD_POLICY_PATH = 'src/frame_upload_policy.rs'
 UPLOAD_POLICY_ENABLED = b'REUSE_ENABLED: bool = true;'
 UPLOAD_POLICY_DISABLED = b'REUSE_ENABLED: bool = false;'
-EXPERIMENTS = ('cpu-overlay', 'geometry-reuse')
+ARENA_PATH = 'src/render/arena.rs'
+ARENA_BASELINE_SHA256 = '5e39d00125b34d07ec23f845841809c0effa678980b1395988880b7d23674ddb'
+EXPERIMENTS = ('cpu-overlay', 'geometry-reuse', 'arena-serialization')
 SCHEMA = 'rust-duty-cpu-image-preservation/v1'
 FORBIDDEN_ENV = {'RUSTFLAGS', 'RUSTDOCFLAGS', 'CARGO_ENCODED_RUSTFLAGS',
                  'CARGO_ENCODED_RUSTDOCFLAGS', 'RUSTC', 'RUSTC_WRAPPER',
@@ -111,6 +113,22 @@ def geometry_production_pair(production):
     return {'baseline': baseline, 'candidate': production.copy()}
 
 
+def serialization_production_pair(production, old_arena):
+    """Restore only the exact historical arena; destination reuse stays on."""
+    require(matrix.canonical_hash(hashes(production)) == PRODUCTION_MANIFEST,
+            'integrated production compile inventory is not the reviewed candidate')
+    require(hashes(old_arena) == {ARENA_PATH: ARENA_BASELINE_SHA256},
+            'baseline arena differs from its exact reviewed bytes')
+    policy = production.get(UPLOAD_POLICY_PATH, b'')
+    require(policy.count(UPLOAD_POLICY_ENABLED) == 1 and UPLOAD_POLICY_DISABLED not in policy,
+            'serialization comparison requires enabled upload reuse in both variants')
+    baseline = {**production, **old_arena}
+    require(set(baseline) == set(production) and
+            {name for name in baseline if baseline[name] != production[name]} == {ARENA_PATH},
+            'serialization comparison must change exactly the arena source')
+    return {'baseline': baseline, 'candidate': production.copy()}
+
+
 def experiment_metadata(experiment):
     require(experiment in EXPERIMENTS, 'unknown source-pair experiment')
     if experiment == 'cpu-overlay':
@@ -118,6 +136,13 @@ def experiment_metadata(experiment):
                 'baseline_is_four_file_counterfactual': True,
                 'overlay_paths': sorted(CPU_BASELINE),
                 'scope': 'asset-free image-preservation experiment; not a whole-game baseline'}
+    if experiment == 'arena-serialization':
+        return {'experiment': experiment, 'baseline_is_four_file_counterfactual': False,
+                'baseline_arena_origin': BASELINE_CPU_COMMIT,
+                'baseline_arena_sha256': ARENA_BASELINE_SHA256,
+                'overlay_paths': [ARENA_PATH],
+                'upload_policies': {'baseline': 'bounded_reuse_v1', 'candidate': 'bounded_reuse_v1'},
+                'scope': 'exact arena serialization counterfactual; destination reuse unchanged'}
     return {'experiment': experiment, 'baseline_is_four_file_counterfactual': False,
             'overlay_paths': [UPLOAD_POLICY_PATH],
             'upload_policies': {'baseline': 'immutable_per_frame_v1', 'candidate': 'bounded_reuse_v1'},
@@ -164,10 +189,12 @@ def prepare(root, output, experiment='cpu-overlay'):
     for name, raw in {**production, **harness}.items():
         require((root / name).read_bytes() == raw, 'checkout bytes differ from committed source: ' + name)
     metadata = experiment_metadata(experiment)
-    if experiment == 'geometry-reuse':
+    if experiment in ('geometry-reuse', 'arena-serialization'):
         require(set(harness) == set(HARNESS_PATHS), 'both common image fixtures are required')
-        variants = {label: {**sources, **harness}
-                    for label, sources in geometry_production_pair(production).items()}
+        pair = (geometry_production_pair(production) if experiment == 'geometry-reuse' else
+                serialization_production_pair(production,
+                    read_sources(root, BASELINE_CPU_COMMIT, [ARENA_PATH])))
+        variants = {label: {**sources, **harness} for label, sources in pair.items()}
     else:
         variants = source_pair(production,
                                read_sources(root, BASELINE_CPU_COMMIT, sorted(CPU_BASELINE)), harness)

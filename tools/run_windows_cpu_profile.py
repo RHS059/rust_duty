@@ -556,7 +556,7 @@ def retained_inventory(folder):
     return result
 
 
-def compare_uploads(root, output):
+def compare_uploads(root, output, experiment='geometry-reuse'):
     """Run one source-bound ABBA diagnostic; shutdown failures remain failures."""
     import tempfile
     import performance_matrix as matrix
@@ -579,13 +579,15 @@ def compare_uploads(root, output):
     production = pair.read_sources(root, source['commit'], pair.PRODUCTION_PATHS)
     require(all((root / name).read_bytes() == raw for name, raw in production.items()),
             'Committed production bytes differ')
-    variants = pair.geometry_production_pair(production)
+    require(experiment in ('geometry-reuse', 'arena-serialization'), 'Unknown profile experiment')
+    variants = (pair.geometry_production_pair(production) if experiment == 'geometry-reuse' else
+                pair.serialization_production_pair(production,
+                    pair.read_sources(root, pair.BASELINE_CPU_COMMIT, [pair.ARENA_PATH])))
     binding = {'source_commit': source['commit'], 'profile_source': source}
     receipts = pair.materialize_variants(output / 'sources', variants, binding,
-        {**pair.experiment_metadata('geometry-reuse'),
-         'scope': 'One-line upload policy counterfactual; complete compiled bytes, not a fabricated Git commit'})
+        pair.experiment_metadata(experiment))
     write(output / 'pair-inputs.json', {'schema': 'rust-duty-upload-profile-pair/v1',
-          'source': source, 'assets_sha256': assets, 'toolchain': compiler, 'build_command': BUILD,
+          'experiment': experiment, 'source': source, 'assets_sha256': assets, 'toolchain': compiler, 'build_command': BUILD,
           'build_settings': SETTINGS, 'order': list(PAIR_ORDER), 'sample_seconds': SECONDS,
           'warmup_seconds': 10, 'record_enabled': True, 'physical_extent': EXTENT,
           'materialize_receipt_sha256': digest(output / 'materialize.json'),
@@ -681,7 +683,7 @@ def compare_uploads(root, output):
                         <= capture['sample_started_unix_ns'] < capture['sample_finished_unix_ns']
                         <= capture['record_stop']['requested_unix_ns'] <= capture['record_stop']['observed_unix_ns'],
                         'Record request window does not contain the WPR replay window')
-                require(measured['upload_policy'] == pair.experiment_metadata('geometry-reuse')['upload_policies'][label],
+                require(measured['upload_policy'] == pair.experiment_metadata(experiment)['upload_policies'][label],
                         'Actual measured upload policy differs from compiled source variant')
                 for name in ('vector-range.exe', 'vector_range.pdb'):
                     require(digest(folder / name) == digest(value['target'] / 'release' / name),
@@ -699,7 +701,7 @@ def compare_uploads(root, output):
         verify_all()
         passed = all(item['capture_passed'] for item in results)
         write(output / 'pair-summary.json', {'schema': 'rust-duty-upload-profile-pair/v1',
-              'passed': passed, 'diagnostic_runs_complete': len(results), 'runs': results,
+              'experiment': experiment, 'passed': passed, 'diagnostic_runs_complete': len(results), 'runs': results,
               'retained_files_sha256': {str(path.relative_to(output)): files for path, files in snapshots.items()},
               'target_1080p60_proven': False, 'performance_improvement': None,
               'scope': 'ABBA per-run Record summaries and separately bounded WPR traces. No pooled quantiles, parent/child percentile subtraction or RTX extrapolation.'})
@@ -713,7 +715,7 @@ def compare_uploads(root, output):
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('mode', choices=('preflight', 'capture', 'compare-uploads'))
+    parser.add_argument('mode', choices=('preflight', 'capture', 'compare-uploads', 'compare-serialization'))
     parser.add_argument('--root', type=Path, default=Path('.'))
     parser.add_argument('--output', type=Path, required=True)
     args = parser.parse_args(argv)
@@ -723,7 +725,8 @@ def main(argv=None):
         elif args.mode == 'capture':
             capture(args.root, args.output)
         else:
-            compare_uploads(args.root, args.output)
+            compare_uploads(args.root, args.output,
+                            'arena-serialization' if args.mode == 'compare-serialization' else 'geometry-reuse')
         return 0
     except (ValueError, OSError, KeyError, DriverError, subprocess.SubprocessError) as error:
         print(str(error), file=sys.stderr)

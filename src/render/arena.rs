@@ -37,13 +37,28 @@ impl From<Vertex> for GpuVertex {
 impl GpuVertex {
     pub const STRIDE: u64 = 40;
     pub fn append_bytes(self, bytes: &mut Vec<u8>) {
-        for v in self.position.into_iter().chain(self.uv) {
-            bytes.extend(v.to_le_bytes());
+        // Pack on the stack first, so a vertex updates the Vec length/capacity
+        // once rather than once per scalar. Explicit little-endian fields keep
+        // the existing 40-byte format independent of host layout or padding.
+        let mut packed = [0_u8; Self::STRIDE as usize];
+        for (slot, value) in packed[..20]
+            .as_chunks_mut::<4>()
+            .0
+            .iter_mut()
+            .zip(self.position.into_iter().chain(self.uv))
+        {
+            *slot = value.to_le_bytes();
         }
-        bytes.extend(self.color);
-        for v in self.normal {
-            bytes.extend(v.to_le_bytes());
+        packed[20..24].copy_from_slice(&self.color);
+        for (slot, value) in packed[24..]
+            .as_chunks_mut::<4>()
+            .0
+            .iter_mut()
+            .zip(self.normal)
+        {
+            *slot = value.to_le_bytes();
         }
+        bytes.extend_from_slice(&packed);
     }
 }
 
@@ -204,6 +219,99 @@ mod tests {
             .flat_map(f32::to_le_bytes)
             .collect()
     }
+    // Historical scalar encoder: an independent byte oracle for the optimized
+    // one-extension path, including signed zero and every NaN payload bit.
+    fn scalar_vertex_bytes(vertex: GpuVertex) -> Vec<u8> {
+        let mut bytes = Vec::new();
+        for value in vertex.position.into_iter().chain(vertex.uv) {
+            bytes.extend(value.to_le_bytes());
+        }
+        bytes.extend(vertex.color);
+        for value in vertex.normal {
+            bytes.extend(value.to_le_bytes());
+        }
+        bytes
+    }
+
+    fn bit_pattern_vertices() -> Vec<GpuVertex> {
+        let special = [
+            0,
+            0x8000_0000,
+            1,
+            0x007f_ffff,
+            0x0080_0000,
+            0x7f7f_ffff,
+            0xff7f_ffff,
+            0x7f80_0000,
+            0xff80_0000,
+            0x7fc0_1234,
+            0x7f80_0001,
+            0xffc0_abcd,
+        ];
+        let mut state = 0x0123_4567_u32;
+        (0..2048)
+            .map(|index| {
+                let values: [f32; 9] = std::array::from_fn(|field| {
+                    state ^= state << 13;
+                    state ^= state >> 17;
+                    state ^= state << 5;
+                    f32::from_bits(if index < special.len() {
+                        special[(index + field) % special.len()]
+                    } else {
+                        state
+                    })
+                });
+                GpuVertex {
+                    position: values[..3].try_into().unwrap(),
+                    uv: values[3..5].try_into().unwrap(),
+                    color: (index as u32).to_le_bytes(),
+                    normal: values[5..].try_into().unwrap(),
+                }
+            })
+            .collect()
+    }
+
+    #[test]
+    fn packed_vertices_match_scalar_encoding_for_special_and_random_float_bits() {
+        for vertex in bit_pattern_vertices() {
+            let mut actual = Vec::new();
+            vertex.append_bytes(&mut actual);
+            assert_eq!(actual.len(), GpuVertex::STRIDE as usize);
+            assert_eq!(actual, scalar_vertex_bytes(vertex));
+            assert_eq!(&actual[20..24], &vertex.color);
+        }
+    }
+
+    #[test]
+    fn packed_vertex_extension_preserves_prefix_and_order_across_growth() {
+        let vertices = bit_pattern_vertices();
+        for capacity in [0, 1, 39, 40, 41, 81] {
+            let mut actual = Vec::with_capacity(capacity);
+            actual.extend_from_slice(&[0x17, 0xa9, 0xff]);
+            let mut expected = actual.clone();
+            for vertex in &vertices[..128] {
+                vertex.append_bytes(&mut actual);
+                expected.extend(scalar_vertex_bytes(*vertex));
+                assert_eq!(actual, expected);
+            }
+        }
+    }
+
+    #[test]
+    fn pre_reserved_vertex_extension_does_not_grow_or_replace_destination() {
+        let vertices = bit_pattern_vertices();
+        let mut actual = Vec::with_capacity(7 + vertices.len() * GpuVertex::STRIDE as usize);
+        actual.extend_from_slice(&[0xa5; 7]);
+        let pointer = actual.as_ptr();
+        let capacity = actual.capacity();
+        for vertex in vertices {
+            vertex.append_bytes(&mut actual);
+            assert_eq!(actual.as_ptr(), pointer);
+            assert_eq!(actual.capacity(), capacity);
+        }
+        assert_eq!(&actual[..7], &[0xa5; 7]);
+    }
+
     #[test]
     fn distinct_draws_preserve_bytes_local_indices_and_aligned_matrices() {
         let mut arena = FrameArena::new(256, 4096).unwrap();
@@ -234,7 +342,7 @@ mod tests {
         let [vertices, indices, matrices] = arena.buffer_contents().unwrap();
         let mut expected = Vec::new();
         for v in a.into_iter().chain(b) {
-            GpuVertex::from(v).append_bytes(&mut expected);
+            expected.extend(scalar_vertex_bytes(GpuVertex::from(v)));
         }
         assert_eq!(vertices, expected);
         assert_eq!(indices, [2, 0, 0, 0, 1, 0, 1, 0, 2, 0, 0, 0]);

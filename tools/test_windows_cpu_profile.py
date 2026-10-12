@@ -421,8 +421,9 @@ class ProfileGuards(unittest.TestCase):
         self.assertNotIn('workflow_dispatch', workflow)
         self.assertIn('timeout-minutes: 90', workflow)
         self.assertIn('timeout-minutes: 84', workflow)
-        self.assertIn('run_windows_cpu_profile.py compare-uploads --root .', workflow)
-        self.assertIn('test_windows_cpu_profile test_geometry_profile_pair', workflow)
+        self.assertIn('run_windows_cpu_profile.py compare-serialization --root .', workflow)
+        self.assertIn('test_windows_cpu_profile test_geometry_profile_pair test_arena_serialization_pair', workflow)
+        self.assertIn('git fetch --no-write-fetch-head --no-tags --depth=1 origin 70ff2933ebe69b7180e207c7defebeaeb6e240e1', workflow)
         for folder in ('target', 'symbols', 'symcache'):
             self.assertIn('!evidence/cpu-profile/**/' + folder + '/**', workflow)
         self.assertIn('evidence/cpu-profile/r*/runtime/telemetry-sessions/**', workflow)

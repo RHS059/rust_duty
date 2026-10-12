@@ -38,8 +38,8 @@ class CpuEncodeDetailSourceTests(unittest.TestCase):
         hashes = {name: hashlib.sha256((ROOT / name).read_bytes()).hexdigest()
                   for name in matrix.UPLOAD_REUSE_SOURCE_PATHS}
         self.assertEqual(len(hashes), len(matrix.UPLOAD_REUSE_SOURCE_PATHS))
-        self.assertEqual(matrix.canonical_hash(hashes), matrix.AUDITED_UPLOAD_REUSE_MANIFEST)
-        self.assertEqual(matrix.audited_inventory(matrix.AUDITED_UPLOAD_REUSE_MANIFEST),
+        self.assertEqual(matrix.canonical_hash(hashes), matrix.AUDITED_ARENA_SERIALIZATION_MANIFEST)
+        self.assertEqual(matrix.audited_inventory(matrix.AUDITED_ARENA_SERIALIZATION_MANIFEST),
                          matrix.UPLOAD_REUSE_SOURCE_PATHS)
         self.assertIn('src/frame_encode_detail.rs', hashes)
         self.assertIn('src/render/arena.rs', hashes)
@@ -74,20 +74,24 @@ class CpuEncodeDetailSourceTests(unittest.TestCase):
                     matrix.AUDITED_UPLOAD_IMMUTABLE_INITIAL_CONTROL_MANIFEST):
             self.assertEqual(matrix.audited_inventory(pin), matrix.UPLOAD_REUSE_SOURCE_PATHS)
 
-    def test_one_line_immutable_control_keeps_all_other_inventory_bytes(self):
+    def test_new_serializer_cannot_adopt_historical_immutable_control(self):
         root = self.checkout()
-        before = matrix.source_identity(root)
         policy = root / 'src/frame_upload_policy.rs'
         original = policy.read_bytes()
         self.assertEqual(original.count(b'REUSE_ENABLED: bool = true;'), 1)
         policy.write_bytes(original.replace(b'REUSE_ENABLED: bool = true;', b'REUSE_ENABLED: bool = false;'))
         commit(root)
-        after = matrix.source_identity(root)
-        self.assertEqual(matrix.canonical_hash(after['runtime_files_sha256']),
-                         matrix.AUDITED_UPLOAD_IMMUTABLE_CONTROL_MANIFEST)
-        changed = [name for name in before['runtime_files_sha256']
-                   if before['runtime_files_sha256'][name] != after['runtime_files_sha256'][name]]
-        self.assertEqual(changed, ['src/frame_upload_policy.rs'])
+        # The new serializer has only its explicitly reviewed reuse-on class.
+        # A two-change combination must not inherit the old immutable witness.
+        with self.assertRaisesRegex(ValueError, 'cannot fall back'):
+            matrix.source_identity(root)
+        self.assertEqual(matrix.AUDITED_UPLOAD_REUSE_MANIFEST,
+                         '2dbfe6bbab145c675e2517eee8c2ec2476e467e32ec66b8c8938c05d55434493')
+        self.assertEqual(matrix.AUDITED_UPLOAD_IMMUTABLE_CONTROL_MANIFEST,
+                         'd80012eb4d1d4a5e669b98aae8910fc24302f1fc38bd92ed8a3593a0fae70dd7')
+        for pin in (matrix.AUDITED_UPLOAD_REUSE_MANIFEST,
+                    matrix.AUDITED_UPLOAD_IMMUTABLE_CONTROL_MANIFEST):
+            self.assertEqual(matrix.audited_inventory(pin), matrix.UPLOAD_REUSE_SOURCE_PATHS)
 
     def test_reuse_inventory_cannot_drop_policy_or_cache(self):
         for name in ('src/frame_upload_policy.rs', 'src/render/upload_cache.rs'):

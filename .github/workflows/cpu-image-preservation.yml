@@ -83,14 +83,14 @@ jobs:
         env:
           PYTHONPATH: tools
         run: >-
-          python -m unittest -v test_cpu_image_preservation test_pass_submission_benchmark
+          python -m unittest -v test_cpu_image_preservation test_arena_serialization_pair test_pass_submission_benchmark
           test_renderer_contract test_cpu_image_workflow
       - name: Build both reviewed variants and compare original image controls
         timeout-minutes: 54
         run: >-
           python tools/run_cpu_image_preservation.py run --root .
           --output evidence/cpu-image-native --build-timeout 1200 --process-timeout 180
-          --experiment geometry-reuse
+          --experiment arena-serialization
       - name: Retain source, process and image evidence on either outcome
         if: always()
         uses: actions/upload-artifact@v4

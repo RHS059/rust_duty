@@ -124,3 +124,23 @@ buffer. wgpu's queued `write_buffer_with` staging copies execute before that
 buffer and are outside its timestamps. This CPU comparison keeps timestamps
 off; any later GPU-sidecar review must retain that exclusion and must not call
 the command span total upload-plus-render GPU time.
+
+
+## Isolated serialization ABBA
+
+`compare-serialization` reuses the same fresh-build, source/asset/compiler,
+Record, WPR, shutdown and retained-output checks as `compare-uploads`. Its
+explicit `arena-serialization` receipts restore only the exact historical
+arena described in [the image comparison](cpu-image-preservation.md#vertex-serialization-comparison).
+Both variants keep bounded destination-buffer reuse enabled. The Windows
+workflow now runs this named comparison; the old upload-policy mode remains
+available with its original meaning.
+
+The earlier [upload-reuse result](windows-upload-reuse-abba-20261012.md) is bound
+to its original sources and is not relabeled as serialization evidence. Both
+new builds retain the same UI and capture policy, including the session/PID
+text. PID digit lengths can therefore change the HUD's text/draw count by one
+or two, as in the prior result; audit the actual per-run counters rather than
+claiming bit-identical workload. Raw per-run frame/CPU distributions, allocation
+counts, separate trace/Record windows and unresolved symbols remain explicit.
+No structural deduplication or renderer validation removal is part of this pair.

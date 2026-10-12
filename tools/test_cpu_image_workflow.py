@@ -70,12 +70,12 @@ class CpuImageWorkflowTests(unittest.TestCase):
         execution = next(s for s in self.steps if 'run_cpu_image_preservation.py run' in s.get('run', ''))
         self.assertLess(self.steps.index(compiler), self.steps.index(execution))
         self.assertLess(self.steps.index(guards), self.steps.index(execution))
-        for name in ('test_cpu_image_preservation', 'test_pass_submission_benchmark',
+        for name in ('test_cpu_image_preservation', 'test_arena_serialization_pair', 'test_pass_submission_benchmark',
                      'test_renderer_contract', 'test_cpu_image_workflow'):
             self.assertIn(name, guards['run'])
         self.assertEqual(execution['timeout-minutes'], '54')
         for argument in ('--root .', '--output evidence/cpu-image-native',
-                         '--build-timeout 1200', '--process-timeout 180', '--experiment geometry-reuse'):
+                         '--build-timeout 1200', '--process-timeout 180', '--experiment arena-serialization'):
             self.assertIn(argument, execution['run'])
         for forbidden in ('--renderer=vulkan', '--renderer=gl', '--disable-validation', 'Start-Process'):
             self.assertNotIn(forbidden, self.body)
