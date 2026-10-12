@@ -3,6 +3,7 @@ import io
 import os
 from pathlib import Path
 import subprocess
+import shutil
 import tarfile
 import tempfile
 import unittest
@@ -10,6 +11,7 @@ from unittest.mock import Mock, patch
 
 import run_cpu_image_preservation as image
 import test_pass_submission_benchmark as shared_tests
+import test_renderer_contract as renderer_tests
 
 
 class SourcePairTests(unittest.TestCase):
@@ -113,6 +115,51 @@ class ArchiveTests(unittest.TestCase):
             with self.subTest(name=name), patch.object(image, 'git', side_effect=[b'src/a.rs\0', self.archive(name, kind)]):
                 with self.assertRaises(ValueError):
                     image.read_sources(Path('.'), 'commit', ['src'])
+
+
+class ControlArchiveTests(unittest.TestCase):
+    def test_file_only_transport_preserves_empty_directory_and_strict_renderer_replay(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            output = root / 'native'
+            control = output / 'baseline-renderer_contract'
+            renderer_tests.build_fixture(control)
+            outputs = {control: image.controls.source_manifest(control)}
+            directories = {control: image.directory_manifest(control)}
+            self.assertIn('capture-is-directory.png', directories[control])
+            self.assertTrue(image.renderer.validate_outputs(control)['passed'])
+            receipt = image.archive_control_outputs(output, outputs, directories)
+            download = root / 'file-only-download'
+            download.mkdir()
+            archive = download / receipt['file']
+            shutil.copyfile(output / receipt['file'], archive)
+            self.assertEqual(image.matrix.sha256(archive), receipt['sha256'])
+            with image.zipfile.ZipFile(archive) as stored:
+                self.assertIn('baseline-renderer_contract/capture-is-directory.png/', stored.namelist())
+                stored.extractall(download / 'replay')  # Only this test's freshly authored fixture.
+            replay = download / 'replay/baseline-renderer_contract'
+            self.assertEqual(image.controls.source_manifest(replay), outputs[control])
+            self.assertEqual(image.directory_manifest(replay), directories[control])
+            self.assertTrue(image.renderer.validate_outputs(replay)['passed'])
+            with self.assertRaises(FileExistsError):
+                image.archive_control_outputs(output, outputs, directories)
+
+    def test_missing_or_added_empty_directory_fails_even_when_file_bytes_match(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            control = root / 'control'
+            control.mkdir()
+            empty = control / 'capture-is-directory.png'
+            empty.mkdir()
+            outputs = {control: image.controls.source_manifest(control)}
+            directories = {control: image.directory_manifest(control)}
+            empty.rmdir()
+            with self.assertRaisesRegex(ValueError, 'directories changed'):
+                image.archive_control_outputs(root, outputs, directories)
+            empty.mkdir()
+            (control / 'unexpected-empty').mkdir()
+            with self.assertRaisesRegex(ValueError, 'directories changed'):
+                image.verify_retained_outputs(outputs, {}, directories)
 
 
 class CompilerConfigurationTests(unittest.TestCase):
@@ -282,6 +329,7 @@ class RunnerFlowTests(unittest.TestCase):
                 # The fixed 21-image validator/comparator have their own real
                 # PNG controls. Here their calls are verified, not reimplemented.
                 (captures / 'synthetic.png').write_bytes(b'bound control')
+                (captures / 'capture-is-directory.png').mkdir()
             else:
                 control = Image.new('RGBA', (320, 180), (1, 2, 3, 255))
                 control.putpixel((2, 3), (8, 9, 10, 255))
@@ -292,6 +340,8 @@ class RunnerFlowTests(unittest.TestCase):
                 if mutation == 'wrong-compiled-receipt':
                     report['source_receipt_sha256'] = 'unbound'
                 image.matrix.write_json(captures / 'report.json', report)
+            if mutation == 'earlier-directory' and label == 'candidate' and name == 'renderer_contract':
+                (output / 'baseline-renderer_contract/capture-is-directory.png').rmdir()
             if mutation == 'earlier-output' and label == 'candidate':
                 (output / 'baseline-renderer_contract/synthetic.png').write_bytes(b'changed')
 
@@ -327,6 +377,9 @@ class RunnerFlowTests(unittest.TestCase):
         self.assertIsNone(result['performance_improvement'])
         self.assertEqual(len(result['exact_mixed_pixels']), 4)
         self.assertEqual(len(result['control_output_files_sha256']), 4)
+        self.assertEqual(result['control_outputs_archive']['file'], 'control-outputs.zip')
+        self.assertIn('baseline-renderer_contract/capture-is-directory.png',
+                      result['control_outputs_archive']['directories'])
 
     def test_changed_build_source_cannot_reach_a_pass(self):
         with self.assertRaisesRegex(ValueError, 'variant source changed'):
@@ -339,6 +392,10 @@ class RunnerFlowTests(unittest.TestCase):
     def test_later_control_cannot_change_earlier_output(self):
         with self.assertRaisesRegex(ValueError, 'control output changed'):
             self.run_flow('earlier-output')
+
+    def test_later_control_cannot_remove_earlier_empty_directory(self):
+        with self.assertRaisesRegex(ValueError, 'directories changed'):
+            self.run_flow('earlier-directory')
 
     def test_materialized_directory_toolchain_must_match_the_recorded_one(self):
         with self.assertRaisesRegex(ValueError, 'materialized source directory'):

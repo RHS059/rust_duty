@@ -102,6 +102,13 @@ on the diagnostics draft branch executes that same native command. It retrieves
 only the pinned baseline Git source, selects the direct Rust 1.99.0 binaries,
 and uses a fresh Cargo home. Source, process, image and failure receipts are
 retained on either outcome; compiled binaries and build trees are excluded.
+A successful run also retains `control-outputs.zip`, bound by SHA-256 in the
+summary. This inner archive explicitly preserves empty negative-fixture
+directories, including `capture-is-directory.png`, which file-only artifact
+uploads otherwise omit. Extract that archive into a separate replay directory
+when rerunning the original strict renderer validator. The separately retained
+PNG/JSON files remain useful for direct inspection; no missing directory is
+inferred or fabricated during validation.
 
 There are two bounded builds and four bounded native fixture processes. Retain
 the source/command/image receipts and logs; no binary distribution is needed.

@@ -14,6 +14,7 @@ from pathlib import Path
 import subprocess
 import sys
 import tarfile
+import zipfile
 
 import dx12_contract_process as process
 import performance_matrix as matrix
@@ -168,12 +169,46 @@ def verify_sources(receipts):
         require(matrix.sha256(value['verifier_path']) == value['verifier_sha256'], 'verifier receipt changed')
 
 
-def verify_retained_outputs(outputs, binaries):
+def directory_manifest(root):
+    require(root.is_dir() and not root.is_symlink(), 'control output directory changed')
+    paths = sorted(root.rglob('*'))
+    require(not any(path.is_symlink() for path in paths), 'control output symlink is unsupported')
+    return [path.relative_to(root).as_posix() for path in paths if path.is_dir()]
+
+
+def verify_retained_outputs(outputs, binaries, directories=None):
     for path, expected in outputs.items():
         require(controls.source_manifest(path) == expected, 'validated control output changed')
+    if directories is not None:
+        for path, expected in directories.items():
+            require(directory_manifest(path) == expected, 'validated control directories changed')
     for variant in binaries.values():
         for binary in variant.values():
             require(matrix.sha256(binary['path']) == binary['sha256'], 'retained executable changed')
+
+
+def archive_control_outputs(output, outputs, directories):
+    """Retain directory entries that file-only CI artifact uploads otherwise drop."""
+    verify_retained_outputs(outputs, {}, directories)
+    path = output / 'control-outputs.zip'
+    files = {f'{root.relative_to(output).as_posix()}/{name}': digest
+             for root, manifest in outputs.items() for name, digest in manifest.items()}
+    dirs = sorted(name for root, children in directories.items()
+                  for name in [root.relative_to(output).as_posix(),
+                               *(f'{root.relative_to(output).as_posix()}/{child}' for child in children)])
+    with zipfile.ZipFile(path, 'x', compression=zipfile.ZIP_DEFLATED) as archive:
+        for name in dirs:
+            archive.write(output / name, name + '/')
+        for name in sorted(files):
+            archive.write(output / name, name)
+    with zipfile.ZipFile(path) as archive:
+        require(archive.testzip() is None, 'retained control archive has a corrupt entry')
+        require(set(archive.namelist()) == set(files) | {name + '/' for name in dirs},
+                'retained control archive inventory differs')
+        require(all(controls.digest(archive.read(name)) == digest for name, digest in files.items()),
+                'retained control archive bytes differ')
+    verify_retained_outputs(outputs, {}, directories)
+    return {'file': path.name, 'sha256': matrix.sha256(path), 'directories': dirs}
 
 
 def check_environment(env):
@@ -219,7 +254,7 @@ def run(root, output, build_timeout=1200, process_timeout=180):
     root, output = Path(root).resolve(), Path(output).resolve()
     try:
         matrix.write_json(output / 'toolchain.json', compiler)
-        binaries, devices, fixed, outputs = {}, [], {}, {}
+        binaries, devices, fixed, outputs, directories = {}, [], {}, {}, {}
         for label, receipt in receipts.items():
             target = output / (label + '-target')
             env = dict(os.environ, CARGO_TARGET_DIR=str(target), CARGO_INCREMENTAL='0',
@@ -262,9 +297,10 @@ def run(root, output, build_timeout=1200, process_timeout=180):
                             'mixed fixture outputs are not closed')
                     controls.validate_report(matrix.json_read(directory / 'report.json'), receipt['receipt_sha256'])
                 outputs[directory] = controls.source_manifest(directory)
+                directories[directory] = directory_manifest(directory)
                 verify_sources(receipts)
         same_device = controls.require_same_devices(devices)
-        verify_retained_outputs(outputs, binaries)
+        verify_retained_outputs(outputs, binaries, directories)
         for receipt in receipts.values():
             check_cargo_configuration(receipt['source'], os.environ)
             require(toolchain_at(receipt['source']) == compiler, 'variant toolchain changed during execution')
@@ -272,14 +308,16 @@ def run(root, output, build_timeout=1200, process_timeout=180):
                                                   output / 'candidate-renderer_contract')
         mixed = controls.exact_pixels([output / (label + '-pass_submission_benchmark') / name
                                        for label in ('baseline', 'candidate') for name in ('before.png', 'after.png')])
-        verify_retained_outputs(outputs, binaries)
+        verify_retained_outputs(outputs, binaries, directories)
         require(session.source_binding(root) == binding, 'verifier/source changed during execution')
         verify_sources(receipts)
         require(toolchain_at(root) == compiler, 'toolchain changed during execution')
+        control_archive = archive_control_outputs(output, outputs, directories)
         result = {'schema': SCHEMA, 'passed': True, 'source_commit': binding['source_commit'],
                   'production_manifest_sha256': PRODUCTION_MANIFEST, 'device': same_device,
                   'fixed_validations': fixed, 'exact_fixed_pixels': exact_contract, 'exact_mixed_pixels': mixed,
                   'control_output_files_sha256': {str(path.relative_to(output)): value for path, value in outputs.items()},
+                  'control_outputs_archive': control_archive,
                   'executables': binaries, 'gpu_lifecycle_verified': False, 'authored_acceptance': False,
                   'performance_improvement': None,
                   'scope': 'four-file CPU overlay image preservation only; no FPS, RTX or authored source-visibility verdict'}
