@@ -27,7 +27,7 @@ class CpuEncodeDetailSourceTests(unittest.TestCase):
         subprocess.run(['git', 'init', '-q', str(root)], check=True, capture_output=True)
         subprocess.run(['git', '-C', str(root), 'config', 'core.autocrlf', 'false'],
                        check=True, capture_output=True)
-        for name in matrix.ENCODE_DETAIL_SOURCE_PATHS:
+        for name in matrix.UPLOAD_REUSE_SOURCE_PATHS:
             path = root / name
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_bytes((ROOT / name).read_bytes())
@@ -36,15 +36,17 @@ class CpuEncodeDetailSourceTests(unittest.TestCase):
 
     def test_current_detail_inventory_has_its_own_exact_digest(self):
         hashes = {name: hashlib.sha256((ROOT / name).read_bytes()).hexdigest()
-                  for name in matrix.ENCODE_DETAIL_SOURCE_PATHS}
-        self.assertEqual(len(hashes), len(matrix.ENCODE_DETAIL_SOURCE_PATHS))
-        self.assertEqual(matrix.canonical_hash(hashes), matrix.AUDITED_ENCODE_DETAIL_MANIFEST)
-        self.assertEqual(matrix.audited_inventory(matrix.AUDITED_ENCODE_DETAIL_MANIFEST),
-                         matrix.ENCODE_DETAIL_SOURCE_PATHS)
+                  for name in matrix.UPLOAD_REUSE_SOURCE_PATHS}
+        self.assertEqual(len(hashes), len(matrix.UPLOAD_REUSE_SOURCE_PATHS))
+        self.assertEqual(matrix.canonical_hash(hashes), matrix.AUDITED_UPLOAD_REUSE_MANIFEST)
+        self.assertEqual(matrix.audited_inventory(matrix.AUDITED_UPLOAD_REUSE_MANIFEST),
+                         matrix.UPLOAD_REUSE_SOURCE_PATHS)
         self.assertIn('src/frame_encode_detail.rs', hashes)
         self.assertIn('src/render/arena.rs', hashes)
         self.assertIn('Cargo.toml', hashes)
         self.assertIn('Cargo.lock', hashes)
+        self.assertIn('src/frame_upload_policy.rs', hashes)
+        self.assertIn('src/render/upload_cache.rs', hashes)
 
     def test_historical_pins_and_paired_matrix_scope_stay_exact(self):
         self.assertEqual(matrix.AUDITED_GPU_CANDIDATE_MANIFEST, OLD_CANDIDATE)
@@ -62,6 +64,30 @@ class CpuEncodeDetailSourceTests(unittest.TestCase):
         source = matrix.source_identity(self.checkout())
         with self.assertRaisesRegex(ValueError, 'exact reviewed DX12'):
             matrix.make_plan(source, gpu_timestamps=True)
+
+    def test_one_line_immutable_control_keeps_all_other_inventory_bytes(self):
+        root = self.checkout()
+        before = matrix.source_identity(root)
+        policy = root / 'src/frame_upload_policy.rs'
+        original = policy.read_bytes()
+        self.assertEqual(original.count(b'REUSE_ENABLED: bool = true;'), 1)
+        policy.write_bytes(original.replace(b'REUSE_ENABLED: bool = true;', b'REUSE_ENABLED: bool = false;'))
+        commit(root)
+        after = matrix.source_identity(root)
+        self.assertEqual(matrix.canonical_hash(after['runtime_files_sha256']),
+                         matrix.AUDITED_UPLOAD_IMMUTABLE_CONTROL_MANIFEST)
+        changed = [name for name in before['runtime_files_sha256']
+                   if before['runtime_files_sha256'][name] != after['runtime_files_sha256'][name]]
+        self.assertEqual(changed, ['src/frame_upload_policy.rs'])
+
+    def test_reuse_inventory_cannot_drop_policy_or_cache(self):
+        for name in ('src/frame_upload_policy.rs', 'src/render/upload_cache.rs'):
+            with self.subTest(name=name):
+                root = self.checkout()
+                (root / name).unlink()
+                commit(root)
+                with self.assertRaisesRegex(ValueError, 'upload-reuse inventory is missing'):
+                    matrix.source_identity(root)
 
     def test_committed_current_source_witness_roundtrip(self):
         root = self.checkout()

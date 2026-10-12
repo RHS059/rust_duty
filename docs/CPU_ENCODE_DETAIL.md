@@ -22,10 +22,13 @@ new output, so check the exit status as well as the file's existence.
 
 ## Timing contract
 
-The sidecar schema is `rust_duty_cpu_encode_detail_v1`; measurement is
-`cpu_wall_clock_nested_encode_phase_ns`. Top-level fields are exactly `schema`,
-`measurement`, `interpretation`, `frame_report_sha256`, `frame_status`, `samples`.
-The interpretation is exactly:
+The writer emits `rust_duty_cpu_encode_detail_v2`; the reader accepts that
+version and the unchanged historical `rust_duty_cpu_encode_detail_v1` contract.
+Both use measurement `cpu_wall_clock_nested_encode_phase_ns`. Their shared
+top-level fields are exactly `schema`, `measurement`, `interpretation`,
+`frame_report_sha256`, `frame_status`, `samples`. v2 additionally requires
+`upload_policy`, exactly `bounded_reuse_v1` or `immutable_per_frame_v1`. v1 has no
+policy field and rejects one as unknown. The interpretation remains exactly:
 
 > CPU call durations nested inside encode_submit and renderer_submit, not GPU
 > time. Parent and child durations must not be added. Missing or incomplete phases
@@ -69,13 +72,22 @@ zero-duration complete frame.
 
 ## Counter contract
 
-Every row carries exactly these ten counters as integers in `[0, 2^64 - 1]`:
+Every row carries exact unsigned 64-bit integer counters in `[0, 2^64 - 1]`.
+v1 requires exactly the original ten names below. v2 retains all ten and requires
+exactly five additional names; it never changes the old timing or counter types.
+A file declares one schema for all its rows, including incomplete rows. Mixing
+counter sets, dropping fields, or extending either set with unknown fields is
+rejected. Historical v1 summaries retain their original schema and ten counters;
+they do not receive fabricated zeros for unavailable v2 observations.
+
+The original counters are:
 
 - `prepared_draws`: prepared draw commands in the frame plan, excluding its
   separately stored presentation draw
 - `text_characters`: Unicode scalar values in input text commands, including
   whitespace; this is not a drawable-glyph or glyph-cache count
-- `upload_arenas`: nonempty geometry arenas submitted for buffer creation
+- `upload_arenas`: nonempty geometry arenas submitted for upload; v1 used
+  per-frame buffer creation, while v2 can update reusable destination buffers
 - `vertex_bytes`, `index_bytes`, `uniform_bytes`: lengths of the corresponding
   arena upload buffers, including any padding present in those buffers
 - `draw_calls`: observed encoded indexed-draw calls, including presentation
@@ -84,8 +96,30 @@ Every row carries exactly these ten counters as integers in `[0, 2^64 - 1]`:
 - `texture_cache_misses`: observed texture-cache misses taking the creation path
 - `pipeline_cache_misses`: observed pipeline-cache misses taking the creation path
 
-These are CPU-side observations at the existing call sites, not driver-internal
-counts, physical transfer measurements, allocation profiling, or GPU completion.
+The five additional v2 counters are:
+
+- `gpu_buffer_allocations`: destination vertex, index, and uniform buffers created
+  during this attempt, including uncached fallback buffers
+- `gpu_buffer_reuses`: existing destination buffers reused during this attempt;
+  each reused buffer counts once for its arena upload in this frame
+- `gpu_buffer_allocated_bytes`: sum of the allocated capacities of all destination
+  buffers created during this attempt, including padding, growth capacity, and
+  uncached fallback allocations; this is not the logical payload length
+- `transform_binding_allocations`: transform bind groups created during this
+  attempt, including uncached fallback bindings
+- `uncached_upload_arenas`: nonempty arenas uploaded using the uncached path
+  during this attempt, whether by fallback or the immutable allocation control
+
+All fifteen values are per-attempt counts or sums. None is a gauge of live
+buffers, retained cache bytes, peak occupancy, driver memory, or GPU residency.
+A newly created attempt starts at zero; reuse reports the buffers used this
+frame, not every retained buffer. Counters describe destination resources and do
+not include hidden queue staging allocations. Payload byte counters retain their
+original meaning and may differ from newly allocated capacity bytes.
+
+These are CPU-side observations at the instrumented call sites, not
+driver-internal counts, physical transfer measurements, full allocation
+profiling, or GPU completion.
 Counters on interrupted rows are observed partial values and may precede a
 subsequent operation's failure. They are retained in source evidence but never
 summarized as complete frame totals. Counter overflow invalidates the producer
@@ -93,6 +127,21 @@ row; it must not wrap or invent a saturated successful count. The reader rejects
 negative, overflowing, boolean, floating-point, null, missing, and unknown
 counter values or fields. Python preserves full u64 values exactly; downstream
 readers must not silently convert them to imprecise floating-point numbers.
+
+## Upload policy identity
+
+v2 records the policy actually selected by the shared source selector:
+
+- `bounded_reuse_v1`: bounded destination-buffer and transform-binding reuse
+- `immutable_per_frame_v1`: matched uncached, per-frame allocation control
+
+Both policies emit the same v2 counter set and retain the same phase and
+incomplete-attempt rules. The summary preserves `upload_policy`; it never infers
+policy from zero allocations or a single warm frame. The sole source toggle is
+`REUSE_ENABLED` in `src/frame_upload_policy.rs`. Changing it to `false` selects the
+immutable control while retaining instrumentation. A matched comparison still
+requires separate exact source identities and same-device, same-scene captures.
+The policy label is source metadata, not proof of a measured performance gain.
 
 ## Identity and binding
 
@@ -104,7 +153,7 @@ nonsymlink inputs; duplicate JSON keys and non-finite numbers are rejected.
 Record-index and parent-span checks join the three sources; no time-based
 nearest-neighbor matching or missing-row substitution is performed.
 
-New encode-detail evidence also requires
+Both supported encode-detail versions also require
 `identity.runtime_observed.actual_adapter.instance_descriptor` in the primary
 report. Its exact fields are:
 

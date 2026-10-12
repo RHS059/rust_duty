@@ -7,7 +7,10 @@ use std::fs::OpenOptions;
 use std::io::{BufWriter, Write};
 use std::path::{Path, PathBuf};
 
-pub const SCHEMA: &str = "rust_duty_cpu_encode_detail_v1";
+#[path = "frame_upload_policy.rs"]
+pub mod upload_policy;
+
+pub const SCHEMA: &str = "rust_duty_cpu_encode_detail_v2";
 pub const MEASUREMENT: &str = "cpu_wall_clock_nested_encode_phase_ns";
 pub const INTERPRETATION: &str = "CPU call durations nested inside encode_submit and renderer_submit, not GPU time. Parent and child durations must not be added. Missing or incomplete phases are unavailable; counters on incomplete rows are observed partial values, not complete frame totals.";
 pub const MAX_SPANS: usize = 5;
@@ -51,9 +54,19 @@ pub enum EncodeCounter {
     RenderPasses,
     TextureCacheMisses,
     PipelineCacheMisses,
+    /// Destination buffers created during this attempt, including fallback.
+    GpuBufferAllocations,
+    /// Existing destination buffers reused by this attempt.
+    GpuBufferReuses,
+    /// Sum of capacities of newly created destination buffers, not retained bytes.
+    GpuBufferAllocatedBytes,
+    /// Transform bind groups created during this attempt, including fallback.
+    TransformBindingAllocations,
+    /// Nonempty arenas uploaded through an uncached path during this attempt.
+    UncachedUploadArenas,
 }
 impl EncodeCounter {
-    const ALL: [Self; 10] = [
+    const ALL: [Self; 15] = [
         Self::PreparedDraws,
         Self::TextCharacters,
         Self::UploadArenas,
@@ -64,6 +77,11 @@ impl EncodeCounter {
         Self::RenderPasses,
         Self::TextureCacheMisses,
         Self::PipelineCacheMisses,
+        Self::GpuBufferAllocations,
+        Self::GpuBufferReuses,
+        Self::GpuBufferAllocatedBytes,
+        Self::TransformBindingAllocations,
+        Self::UncachedUploadArenas,
     ];
     pub fn label(self) -> &'static str {
         match self {
@@ -77,6 +95,11 @@ impl EncodeCounter {
             Self::RenderPasses => "render_passes",
             Self::TextureCacheMisses => "texture_cache_misses",
             Self::PipelineCacheMisses => "pipeline_cache_misses",
+            Self::GpuBufferAllocations => "gpu_buffer_allocations",
+            Self::GpuBufferReuses => "gpu_buffer_reuses",
+            Self::GpuBufferAllocatedBytes => "gpu_buffer_allocated_bytes",
+            Self::TransformBindingAllocations => "transform_binding_allocations",
+            Self::UncachedUploadArenas => "uncached_upload_arenas",
         }
     }
 }
@@ -96,7 +119,7 @@ pub(crate) struct CpuEncodeDetails {
     open: Option<(EncodePhase, u64)>,
     parent_start: Option<u64>,
     parent_end: Option<u64>,
-    counters: [u64; 10],
+    counters: [u64; EncodeCounter::ALL.len()],
     observed: bool,
     first_phase_started: bool,
     success: bool,
@@ -399,6 +422,7 @@ impl CpuEncodeCapture {
                 "details":details.to_json()}));
         }
         let value = json!({"schema":SCHEMA,"measurement":MEASUREMENT,
+            "upload_policy":upload_policy::identity(),
             "interpretation":INTERPRETATION,"frame_report_sha256":digest,
             "frame_status":primary["status"],"samples":samples});
         let path = frame_path.with_extension("cpu-encode-detail.json");
@@ -463,6 +487,114 @@ mod tests {
         assert_eq!(value["spans"].as_array().unwrap().len(), MAX_SPANS);
         assert_eq!(value["spans"][4]["stage"], "queue_submit");
         assert_eq!(value["spans"][4]["duration_ns"], 5);
+    }
+    #[test]
+    fn v2_counters_are_exact_fixed_storage_per_attempt_sums() {
+        let names = [
+            "prepared_draws",
+            "text_characters",
+            "upload_arenas",
+            "vertex_bytes",
+            "index_bytes",
+            "uniform_bytes",
+            "draw_calls",
+            "render_passes",
+            "texture_cache_misses",
+            "pipeline_cache_misses",
+            "gpu_buffer_allocations",
+            "gpu_buffer_reuses",
+            "gpu_buffer_allocated_bytes",
+            "transform_binding_allocations",
+            "uncached_upload_arenas",
+        ];
+        let mut details = CpuEncodeDetails::default();
+        assert_eq!(details.counters.len(), names.len());
+        for counter in EncodeCounter::ALL {
+            details.add_counter(counter, 99);
+        }
+        details.begin_parent(8);
+        details.begin(EncodePhase::FramePlan, 10);
+        for (index, counter) in EncodeCounter::ALL.into_iter().enumerate() {
+            assert_eq!(counter.label(), names[index]);
+            details.add_counter(counter, index as u64 + 1);
+            details.add_counter(counter, 2);
+        }
+        details.end(EncodePhase::FramePlan, 15);
+        for (index, phase) in EncodePhase::ALL.into_iter().enumerate().skip(1) {
+            details.begin(phase, 10 + index as u64 * 10);
+            details.end(phase, 15 + index as u64 * 10);
+        }
+        details.complete();
+        for counter in EncodeCounter::ALL {
+            details.add_counter(counter, 99);
+        }
+        finish(&mut details);
+        let value = details.to_json();
+        assert_eq!(value["state"], "complete");
+        let counters = value["counters"].as_object().unwrap();
+        assert_eq!(counters.len(), names.len());
+        let next_attempt = CpuEncodeDetails::default().to_json();
+        for (index, name) in names.into_iter().enumerate() {
+            assert_eq!(counters[name], index as u64 + 3);
+            assert_eq!(next_attempt["counters"][name], 0);
+        }
+    }
+    #[test]
+    fn every_counter_preserves_observed_partial_value_on_overflow() {
+        for counter in EncodeCounter::ALL {
+            let mut details = CpuEncodeDetails::default();
+            details.begin_parent(8);
+            details.begin(EncodePhase::FramePlan, 10);
+            details.add_counter(counter, u64::MAX);
+            details.add_counter(counter, 1);
+            details.complete();
+            finish(&mut details);
+            let value = details.to_json();
+            assert_eq!(value["state"], "incomplete");
+            assert_eq!(value["error"], "encode_counter_overflow");
+            assert_eq!(value["counters"][counter.label()], u64::MAX);
+            assert_eq!(value["counters"].as_object().unwrap().len(), 15);
+        }
+    }
+    #[test]
+    fn writer_emits_only_v2_with_the_runtime_upload_policy() {
+        let directory = std::env::temp_dir().join(format!(
+            "rust-duty-encode-v2-{}-{}",
+            std::process::id(),
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+        ));
+        std::fs::create_dir(&directory).unwrap();
+        let frame_path = directory.join("frames.json");
+        let primary = json!({"status":{"state":"complete","error":null},
+            "cpu_frame_stages":{"samples":[{"record_index":1}]}});
+        let bytes = serde_json::to_vec(&primary).unwrap();
+        std::fs::write(&frame_path, &bytes).unwrap();
+        let mut capture = CpuEncodeCapture::new(1);
+        capture.begin_attempt();
+        capture.retain(CpuEncodeDetails::default());
+        let output = capture.write_new(&frame_path).unwrap().unwrap();
+        let value: Value = serde_json::from_slice(&std::fs::read(&output).unwrap()).unwrap();
+        assert_eq!(value["schema"], "rust_duty_cpu_encode_detail_v2");
+        assert_eq!(value["upload_policy"], upload_policy::identity());
+        assert_eq!(value.as_object().unwrap().len(), 7);
+        assert_eq!(
+            value["frame_report_sha256"],
+            rust_duty_launcher::bytes_hash(&bytes)
+        );
+        assert_eq!(value["samples"][0]["record_index"], 1);
+        assert_eq!(value["samples"][0]["details"]["state"], "incomplete");
+        assert_eq!(
+            value["samples"][0]["details"]["counters"]
+                .as_object()
+                .unwrap()
+                .len(),
+            15
+        );
+        assert!(capture.write_new(&frame_path).is_err());
+        std::fs::remove_dir_all(directory).unwrap();
     }
     #[test]
     fn absent_interrupted_and_partial_rows_are_explicitly_incomplete() {

@@ -14,6 +14,15 @@ import summarize_cpu_substages as substages
 import summarize_frame_performance as frames
 from test_summarize_cpu_substages import fixture as substage_fixture
 
+# Independent exact field expectations: a new producer key must not silently
+# expand either version's reader contract merely by changing production tuples.
+V1_COUNTERS = ('prepared_draws', 'text_characters', 'upload_arenas', 'vertex_bytes',
+               'index_bytes', 'uniform_bytes', 'draw_calls', 'render_passes',
+               'texture_cache_misses', 'pipeline_cache_misses')
+V2_COUNTERS = V1_COUNTERS + ('gpu_buffer_allocations', 'gpu_buffer_reuses',
+                            'gpu_buffer_allocated_bytes', 'transform_binding_allocations',
+                            'uncached_upload_arenas')
+
 
 def span(stage, begin, end):
     return {'stage': stage, 'started_at_ns': begin, 'ended_at_ns': end, 'duration_ns': end - begin}
@@ -21,19 +30,27 @@ def span(stage, begin, end):
 
 def fixture():
     primary, substage, data, digest = substage_fixture()
-    encode = {'schema': detail.SCHEMA, 'measurement': detail.MEASUREMENT,
+    encode = {'schema': 'rust_duty_cpu_encode_detail_v1', 'measurement': detail.MEASUREMENT,
               'interpretation': detail.INTERPRETATION, 'frame_report_sha256': digest,
               'frame_status': copy.deepcopy(primary['status']), 'samples': [
                   {'record_index': 1, 'details': {'state': 'complete', 'error': None,
                       'spans': [span(name, begin, end) for name, begin, end in zip(
                           detail.PHASES, (145, 148, 152, 156, 160), (147, 151, 156, 159, 165))],
-                      'counters': {name: index + 1 for index, name in enumerate(detail.COUNTERS)}}}]}
+                      'counters': {name: index + 1 for index, name in enumerate(V1_COUNTERS)}}}]}
     primary['identity']['runtime_observed']['actual_adapter']['instance_descriptor'] = {
         'schema': 'rust-duty-wgpu-instance-descriptor/v1', 'wgpu_version': '30.0.1',
         'flags_bits': 35, 'debug': True, 'validation': True, 'gpu_based_validation': False,
         'validation_indirect_call': True, 'application_debug_assertions': False,
         'environment_overrides_applied': False}
     data, digest = rebind(primary, substage, encode)
+    return primary, substage, encode, data, digest
+
+
+def v2_fixture(upload_policy='bounded_reuse_v1'):
+    primary, substage, encode, data, digest = fixture()
+    encode.update(schema='rust_duty_cpu_encode_detail_v2', upload_policy=upload_policy)
+    encode['samples'][0]['details']['counters'] = {
+        name: index + 1 for index, name in enumerate(V2_COUNTERS)}
     return primary, substage, encode, data, digest
 
 
@@ -80,8 +97,11 @@ def append_attempt(primary, substage, encode, kind='successful_present_return', 
 
 
 class CpuEncodeDetailTests(unittest.TestCase):
+    fixture = staticmethod(fixture)
+    counter_names = V1_COUNTERS
+
     def test_complete_control_binds_both_parents_without_mutating_evidence(self):
-        primary, substage, encode, _, digest = fixture()
+        primary, substage, encode, _, digest = self.fixture()
         originals = copy.deepcopy((primary, substage, encode))
         result = detail.summarize(encode, substage, primary, digest)
         self.assertEqual(result['diagnostic_status'], 'complete')
@@ -106,7 +126,7 @@ class CpuEncodeDetailTests(unittest.TestCase):
 
     def test_missing_phases_require_incomplete_and_never_zero_fill_partial_counters(self):
         for count in range(5):
-            primary, substage, encode, _, digest = fixture()
+            primary, substage, encode, _, digest = self.fixture()
             row = encode['samples'][0]['details']
             row['spans'] = row['spans'][:count]
             with self.subTest(count=count), self.assertRaisesRegex(ValueError, 'all five'):
@@ -120,10 +140,10 @@ class CpuEncodeDetailTests(unittest.TestCase):
             self.assert_unavailable(result)
 
     def test_zero_length_observations_and_zero_counters_are_real_complete_samples(self):
-        primary, substage, encode, _, digest = fixture()
+        primary, substage, encode, _, digest = self.fixture()
         row = encode['samples'][0]['details']
         row['spans'] = [span(name, 145, 145) for name in detail.PHASES]
-        row['counters'] = dict.fromkeys(detail.COUNTERS, 0)
+        row['counters'] = dict.fromkeys(self.counter_names, 0)
         result = detail.summarize(encode, substage, primary, digest)
         self.assertEqual(result['summarized_attempts'], 1)
         for phase in result['stages'].values():
@@ -133,7 +153,7 @@ class CpuEncodeDetailTests(unittest.TestCase):
             self.assertEqual(counter['p50'], 0)
 
     def test_complete_rows_are_suppressed_when_primary_is_incomplete(self):
-        primary, substage, encode, _, _ = fixture()
+        primary, substage, encode, _, _ = self.fixture()
         primary.update(incomplete_at_ns=205, status={'state': 'incomplete', 'error': 'synthetic failure'})
         _, digest = rebind(primary, substage, encode)
         result = detail.summarize(encode, substage, primary, digest)
@@ -141,7 +161,7 @@ class CpuEncodeDetailTests(unittest.TestCase):
         self.assert_unavailable(result)
 
     def test_incomplete_existing_substage_suppresses_even_full_encode_details(self):
-        primary, substage, encode, _, digest = fixture()
+        primary, substage, encode, _, digest = self.fixture()
         substage['samples'][0]['details'].update(state='incomplete', error='unterminated_substage')
         result = detail.summarize(encode, substage, primary, digest)
         self.assertEqual(result['diagnostic_status'], 'incomplete')
@@ -151,7 +171,7 @@ class CpuEncodeDetailTests(unittest.TestCase):
     def test_failed_skipped_and_ineligible_attempts_are_not_summarized(self):
         for kind, eligible in (('successful_present_return', False), ('skipped_frame', True),
                                ('boundary', True)):
-            primary, substage, encode, _, _ = fixture()
+            primary, substage, encode, _, _ = self.fixture()
             append_attempt(primary, substage, encode, kind, eligible)
             encode['samples'][1]['details']['counters']['prepared_draws'] = 999
             _, digest = rebind(primary, substage, encode)
@@ -162,7 +182,7 @@ class CpuEncodeDetailTests(unittest.TestCase):
                 self.assertEqual(result['counters']['prepared_draws']['total'], 1)
 
     def test_baseline_present_without_interval_is_not_summarized(self):
-        primary, substage, encode, _, _ = fixture()
+        primary, substage, encode, _, _ = self.fixture()
         parent = copy.deepcopy(primary['cpu_frame_stages']['samples'][0])
         parent.update(record_index=0, started_at_ns=100, finished_at_ns=100)
         for key in parent['spans']:
@@ -185,7 +205,7 @@ class CpuEncodeDetailTests(unittest.TestCase):
 
     def test_parentless_partial_observations_remain_incomplete_and_bounded(self):
         for missing in ('renderer', 'encode', 'both'):
-            primary, substage, encode, _, _ = fixture()
+            primary, substage, encode, _, _ = self.fixture()
             if missing in ('renderer', 'both'):
                 primary['cpu_frame_stages']['samples'][0]['spans']['renderer_submit'] = None
                 substage['samples'][0]['details'].update(state='incomplete', error='parent_span_unavailable')
@@ -210,7 +230,7 @@ class CpuEncodeDetailTests(unittest.TestCase):
                      lambda s: s['samples'][0].update(record_index=0),
                      lambda s: s['samples'][0]['details'].update(state='incomplete', error='invented')]
         for mutate in mutations:
-            primary, substage, encode, _, digest = fixture()
+            primary, substage, encode, _, digest = self.fixture()
             mutate(substage)
             with self.subTest(mutate=mutate), self.assertRaises(ValueError):
                 detail.validate(encode, substage, primary, digest)
@@ -228,13 +248,13 @@ class CpuEncodeDetailTests(unittest.TestCase):
                      lambda d: d.update(environment_overrides_applied=0),
                      lambda d: d.update(unexpected=True), lambda d: d.pop('validation')]
         for mutate in mutations:
-            primary, substage, encode, _, _ = fixture()
+            primary, substage, encode, _, _ = self.fixture()
             mutate(primary['identity']['runtime_observed']['actual_adapter']['instance_descriptor'])
             _, digest = rebind(primary, substage, encode)
             with self.subTest(mutate=mutate), self.assertRaises(ValueError):
                 detail.validate(encode, substage, primary, digest)
         for adapter in (None, {}, {'instance_descriptor': None}):
-            primary, substage, encode, _, _ = fixture()
+            primary, substage, encode, _, _ = self.fixture()
             primary['identity']['runtime_observed']['actual_adapter'] = adapter
             _, digest = rebind(primary, substage, encode)
             with self.subTest(adapter=adapter), self.assertRaises(ValueError):
@@ -243,7 +263,7 @@ class CpuEncodeDetailTests(unittest.TestCase):
     def test_application_build_flag_does_not_infer_dependency_instance_flags(self):
         for application_debug_assertions in (False, True):
             for bits in (0, 3, 16, 32, 255):
-                primary, substage, encode, _, _ = fixture()
+                primary, substage, encode, _, _ = self.fixture()
                 descriptor = primary['identity']['runtime_observed']['actual_adapter']['instance_descriptor']
                 descriptor.update(flags_bits=bits, application_debug_assertions=application_debug_assertions)
                 for name, mask in detail.INSTANCE_FLAGS.items():
@@ -255,7 +275,7 @@ class CpuEncodeDetailTests(unittest.TestCase):
 
     def test_matching_malformed_expected_digest_is_not_a_sha256_binding(self):
         for digest in ('not-a-hash', 'G' * 64, 'A' * 64, 42):
-            primary, substage, encode, _, _ = fixture()
+            primary, substage, encode, _, _ = self.fixture()
             substage['frame_report_sha256'] = digest
             encode['frame_report_sha256'] = digest
             with self.subTest(digest=digest), self.assertRaisesRegex(ValueError, 'SHA-256'):
@@ -279,7 +299,7 @@ class CpuEncodeDetailTests(unittest.TestCase):
                      lambda d: d['samples'][0]['details'].update(state='incomplete', error='x' * 257),
                      lambda d: d['samples'][0]['details'].update(state='incomplete', error=7)]
         for mutate in mutations:
-            primary, substage, encode, _, digest = fixture()
+            primary, substage, encode, _, digest = self.fixture()
             mutate(encode)
             with self.subTest(mutate=mutate), self.assertRaises(ValueError):
                 detail.validate(encode, substage, primary, digest)
@@ -294,13 +314,13 @@ class CpuEncodeDetailTests(unittest.TestCase):
                      lambda s: s[0].update(ended_at_ns=2**64),
                      lambda s: s.append(copy.deepcopy(s[-1]))]
         for mutate in mutations:
-            primary, substage, encode, _, digest = fixture()
+            primary, substage, encode, _, digest = self.fixture()
             mutate(encode['samples'][0]['details']['spans'])
             with self.subTest(mutate=mutate), self.assertRaises(ValueError):
                 detail.validate(encode, substage, primary, digest)
 
     def test_incomplete_phase_sequence_must_be_a_prefix(self):
-        primary, substage, encode, _, digest = fixture()
+        primary, substage, encode, _, digest = self.fixture()
         row = encode['samples'][0]['details']
         row.update(state='incomplete', error='encode_incomplete')
         row['spans'] = [row['spans'][0], row['spans'][2]]
@@ -309,7 +329,7 @@ class CpuEncodeDetailTests(unittest.TestCase):
 
     def test_encode_parent_is_tighter_than_renderer_parent_even_if_marked_incomplete(self):
         for state in ('complete', 'incomplete'):
-            primary, substage, encode, _, digest = fixture()
+            primary, substage, encode, _, digest = self.fixture()
             row = encode['samples'][0]['details']
             row.update(state=state, error=None if state == 'complete' else 'encode_outside_parent')
             row['spans'][0].update(started_at_ns=144, duration_ns=3)  # Inside renderer, outside encode.
@@ -317,7 +337,7 @@ class CpuEncodeDetailTests(unittest.TestCase):
                 detail.validate(encode, substage, primary, digest)
 
     def test_renderer_parent_bounds_apply_when_substage_is_explicitly_invalid(self):
-        primary, substage, encode, _, digest = fixture()
+        primary, substage, encode, _, digest = self.fixture()
         child = substage['samples'][0]['details']
         child.update(state='incomplete', error='substage_outside_parent')
         child['spans'] = [child['spans'][4]]
@@ -330,13 +350,13 @@ class CpuEncodeDetailTests(unittest.TestCase):
             detail.validate(encode, substage, primary, digest)
 
     def test_counters_are_exact_nonnegative_u64_and_never_bool_float_or_null(self):
-        for name in detail.COUNTERS:
+        for name in self.counter_names:
             for invalid in (-1, 2**64, True, 1.0, '1', None, float('inf')):
-                primary, substage, encode, _, digest = fixture()
+                primary, substage, encode, _, digest = self.fixture()
                 encode['samples'][0]['details']['counters'][name] = invalid
                 with self.subTest(name=name, value=invalid), self.assertRaises(ValueError):
                     detail.validate(encode, substage, primary, digest)
-        primary, substage, encode, _, digest = fixture()
+        primary, substage, encode, _, digest = self.fixture()
         encode['samples'][0]['details']['counters']['vertex_bytes'] = 2**64 - 1
         result = detail.summarize(encode, substage, primary, digest)
         self.assertEqual(result['counters']['vertex_bytes']['total'], 2**64 - 1)
@@ -346,12 +366,12 @@ class CpuEncodeDetailTests(unittest.TestCase):
                      lambda s: s[0].update(record_index=True), lambda s: s[0].update(record_index=-1),
                      lambda s: s[0].update(record_index=0), lambda s: s[0].update(record_index=2**64)]
         for mutate in mutations:
-            primary, substage, encode, _, digest = fixture()
+            primary, substage, encode, _, digest = self.fixture()
             mutate(encode['samples'])
             with self.subTest(mutate=mutate), self.assertRaises(ValueError):
                 detail.validate(encode, substage, primary, digest)
         for mutate in (lambda s: s.reverse(), lambda s: s[1].update(record_index=1)):
-            primary, substage, encode, _, _ = fixture()
+            primary, substage, encode, _, _ = self.fixture()
             append_attempt(primary, substage, encode)
             _, digest = rebind(primary, substage, encode)
             mutate(encode['samples'])
@@ -359,7 +379,7 @@ class CpuEncodeDetailTests(unittest.TestCase):
                 detail.validate(encode, substage, primary, digest)
 
     def test_summary_nearest_rank_and_totals_use_only_complete_observations(self):
-        primary, substage, encode, _, _ = fixture()
+        primary, substage, encode, _, _ = self.fixture()
         append_attempt(primary, substage, encode)
         encode['samples'][1]['details']['spans'][0].update(ended_at_ns=246, duration_ns=1)
         encode['samples'][1]['details']['counters']['prepared_draws'] = 9
@@ -375,6 +395,8 @@ class CpuEncodeDetailTests(unittest.TestCase):
 
 
 class CpuEncodeDetailCliTests(unittest.TestCase):
+    fixture = staticmethod(fixture)
+
     def setUp(self):
         self.directory = tempfile.TemporaryDirectory()
         self.addCleanup(self.directory.cleanup)
@@ -382,7 +404,7 @@ class CpuEncodeDetailCliTests(unittest.TestCase):
         self.primary, self.substage, self.encode = [self.root / name for name in (
             'frames.json', 'frames.cpu-substages.json', 'frames.cpu-encode-detail.json')]
         self.output = self.root / 'summary.json'
-        primary, substage, encode, data, _ = fixture()
+        primary, substage, encode, data, _ = self.fixture()
         self.primary.write_bytes(data)
         self.substage.write_text(json.dumps(substage), encoding='utf-8')
         self.encode.write_text(json.dumps(encode), encoding='utf-8')
@@ -524,6 +546,132 @@ class CpuEncodeDetailCliTests(unittest.TestCase):
         result = self.cli(output=True)
         self.assertEqual(result.returncode, 1)
         self.assertFalse(self.output.exists())
+
+
+class CpuEncodeDetailV2Tests(CpuEncodeDetailTests):
+    fixture = staticmethod(v2_fixture)
+    counter_names = V2_COUNTERS
+
+    def test_both_upload_policies_preserve_identity_and_exact_fifteen_counters(self):
+        for policy in ('bounded_reuse_v1', 'immutable_per_frame_v1'):
+            primary, substage, encode, _, digest = v2_fixture(policy)
+            with self.subTest(policy=policy):
+                result = detail.summarize(encode, substage, primary, digest)
+                self.assertEqual(result['schema'], 'rust_duty_cpu_encode_detail_v2')
+                self.assertEqual(result['upload_policy'], policy)
+                self.assertEqual(tuple(result['counters']), V2_COUNTERS)
+                self.assertEqual(len(result['counters']), 15)
+                for index, name in enumerate(V2_COUNTERS, 1):
+                    self.assertEqual(result['counters'][name]['total'], index)
+                    self.assertEqual(result['counters'][name]['sample_count'], 1)
+
+    def test_policy_is_required_exact_and_not_inferred_from_counters(self):
+        primary, substage, original, _, digest = v2_fixture()
+        for policy in ('unknown', 'bounded_reuse_v2', '', None, 0, True, [], {}):
+            encode = copy.deepcopy(original)
+            encode['upload_policy'] = policy
+            with self.subTest(policy=policy), self.assertRaisesRegex(ValueError, 'upload_policy'):
+                detail.validate(encode, substage, primary, digest)
+        encode = copy.deepcopy(original)
+        del encode['upload_policy']
+        with self.assertRaisesRegex(ValueError, 'sidecar fields differ'):
+            detail.validate(encode, substage, primary, digest)
+
+    def test_new_counters_are_per_attempt_sums_not_last_value_gauges(self):
+        primary, substage, encode, _, _ = v2_fixture()
+        append_attempt(primary, substage, encode)
+        for name in V2_COUNTERS[10:]:
+            encode['samples'][0]['details']['counters'][name] = 2**64 - 1
+            encode['samples'][1]['details']['counters'][name] = 7
+        _, digest = rebind(primary, substage, encode)
+        result = detail.summarize(encode, substage, primary, digest)
+        for name in V2_COUNTERS[10:]:
+            self.assertEqual(result['counters'][name]['total'], 2**64 + 6)
+            self.assertEqual(result['counters'][name]['sample_count'], 2)
+            self.assertEqual(result['counters'][name]['min'], 7)
+
+
+class CpuEncodeDetailVersionTests(unittest.TestCase):
+    def test_v1_complete_and_incomplete_summaries_replay_exact_historical_bytes(self):
+        # SHA-256 of pretty-printed summaries from the unmodified v1 reader,
+        # recorded before v2 was added. No v2 key, zero-fill or relabel is allowed.
+        for incomplete, expected in (
+                (False, 'b9b5f611b3606969351b303f642f4456da1d6f4177174c0325dad4cb149081b7'),
+                (True, '28be570f95e4953c855249c6f9625dd62a28bf848332b85b0a58444ebd73506b')):
+            primary, substage, encode, _, digest = fixture()
+            if incomplete:
+                encode['samples'][0]['details'].update(
+                    state='incomplete', error='encode_incomplete', spans=[])
+            result = detail.summarize(encode, substage, primary, digest)
+            raw = (json.dumps(result, indent=2, allow_nan=False) + '\n').encode('utf-8')
+            with self.subTest(incomplete=incomplete):
+                self.assertEqual(hashlib.sha256(raw).hexdigest(), expected)
+                self.assertEqual(result['schema'], 'rust_duty_cpu_encode_detail_v1')
+                self.assertEqual(tuple(result['counters']), V1_COUNTERS)
+                self.assertNotIn('upload_policy', result)
+
+    def test_each_counter_is_required_and_unknown_keys_fail_on_both_row_states(self):
+        for make_fixture, names in ((fixture, V1_COUNTERS), (v2_fixture, V2_COUNTERS)):
+            for incomplete in (False, True):
+                primary, substage, original, _, digest = make_fixture()
+                if incomplete:
+                    original['samples'][0]['details'].update(
+                        state='incomplete', error='encode_incomplete', spans=[])
+                detail.validate(original, substage, primary, digest)  # Valid control first.
+                for name in names:
+                    encode = copy.deepcopy(original)
+                    del encode['samples'][0]['details']['counters'][name]
+                    with self.subTest(schema=encode['schema'], incomplete=incomplete, missing=name):
+                        with self.assertRaisesRegex(ValueError, 'encode counters fields differ'):
+                            detail.validate(encode, substage, primary, digest)
+                encode = copy.deepcopy(original)
+                encode['samples'][0]['details']['counters']['retained_gpu_bytes'] = 0
+                with self.subTest(schema=encode['schema'], incomplete=incomplete, unknown=True):
+                    with self.assertRaisesRegex(ValueError, 'encode counters fields differ'):
+                        detail.validate(encode, substage, primary, digest)
+
+    def test_versions_cannot_mix_counter_sets_or_borrow_policy_identity(self):
+        for make_fixture, wrong_names in ((fixture, V2_COUNTERS), (v2_fixture, V1_COUNTERS)):
+            primary, substage, encode, _, _ = make_fixture()
+            append_attempt(primary, substage, encode)
+            _, digest = rebind(primary, substage, encode)
+            detail.validate(encode, substage, primary, digest)
+            encode['samples'][1]['details']['counters'] = dict.fromkeys(wrong_names, 0)
+            with self.subTest(schema=encode['schema']), self.assertRaisesRegex(
+                    ValueError, 'encode counters fields differ'):
+                detail.validate(encode, substage, primary, digest)
+        primary, substage, encode, _, digest = fixture()
+        encode['upload_policy'] = 'immutable_per_frame_v1'
+        with self.assertRaisesRegex(ValueError, 'sidecar fields differ'):
+            detail.validate(encode, substage, primary, digest)
+
+
+class CpuEncodeDetailV2CliTests(CpuEncodeDetailCliTests):
+    fixture = staticmethod(v2_fixture)
+
+    def test_v2_policy_and_fifteen_counters_survive_actual_cli(self):
+        result = self.cli(output=True)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        summary = json.loads(result.stdout)
+        self.assertEqual(summary['schema'], 'rust_duty_cpu_encode_detail_v2')
+        self.assertEqual(summary['upload_policy'], 'bounded_reuse_v1')
+        self.assertEqual(tuple(summary['counters']), V2_COUNTERS)
+
+    def test_missing_unknown_wrong_type_and_negative_v2_fields_fail_actual_cli(self):
+        original = json.loads(self.encode.read_text())
+        mutations = [lambda e: e.pop('upload_policy'),
+                     lambda e: e.update(upload_policy='unknown'),
+                     lambda e: e['samples'][0]['details']['counters'].pop('gpu_buffer_allocations'),
+                     lambda e: e['samples'][0]['details']['counters'].update(retained_gpu_bytes=0),
+                     lambda e: e['samples'][0]['details']['counters'].update(gpu_buffer_reuses=True),
+                     lambda e: e['samples'][0]['details']['counters'].update(gpu_buffer_allocated_bytes=-1)]
+        for mutate in mutations:
+            encode = copy.deepcopy(original)
+            mutate(encode)
+            self.encode.write_text(json.dumps(encode), encoding='utf-8')
+            with self.subTest(mutate=mutate):
+                self.assertEqual(self.cli(output=True).returncode, 1)
+                self.assertFalse(self.output.exists())
 
 
 if __name__ == '__main__':

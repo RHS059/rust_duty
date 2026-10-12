@@ -10,6 +10,7 @@ use std::{collections::HashMap, sync::Arc};
 pub struct WgpuRenderer {
     pub(super) gpu: device::Gpu,
     pub(super) pipelines: mesh::Pipelines,
+    pub(super) upload_cache: super::upload_cache::UploadCache,
     pub(super) main: Arc<target::GpuTexture>,
     pub(super) white: Arc<target::GpuTexture>,
     textures: HashMap<ResourceId, Arc<target::GpuTexture>>,
@@ -149,6 +150,7 @@ impl WgpuRenderer {
         Ok(Self {
             gpu,
             pipelines,
+            upload_cache: super::upload_cache::UploadCache::default(),
             main,
             white,
             text,

@@ -72,6 +72,12 @@ AUDITED_ENCODE_DETAIL_INITIAL_MANIFEST = 'bd33a722405c3ec0073ebd28dc390c7cddffcf
 AUDITED_ENCODE_DETAIL_FORMATTED_MANIFEST = '480e05173ad3ad42879fc1620e01fd4e9035148fadebbb2acb5b1b0cc21c8bf7'
 # Combined physical-window and formatted producer; historical Hal bytes retain their own pin.
 AUDITED_ENCODE_DETAIL_MANIFEST = 'b673d91755f8e733ee075d79ae97f8c2afff7df5488e38cf5c3e8030b7c763c0'
+# New upload experiment: keep every older inventory and digest unchanged.
+UPLOAD_REUSE_SOURCE_PATHS = (*ENCODE_DETAIL_SOURCE_PATHS, 'src/frame_upload_policy.rs',
+                             'src/render/upload_cache.rs')
+AUDITED_UPLOAD_REUSE_MANIFEST = '30034419d16eaf4cfa336e5bde862dd660a54ff3736dbc30cfd1f47b0d896460'
+AUDITED_UPLOAD_IMMUTABLE_CONTROL_MANIFEST = 'dd7325d511b76829660abe3cd8d0bb4a5c17ae970a68025d888eafe8e74fcfcc'
+
 BACKENDS = {'dx12': 'Dx12', 'vulkan': 'Vulkan', 'metal': 'Metal', 'gl-harness': 'Gl'}
 UNAVAILABLE = {
     'fps_cap': 'No application FPS limiter or CLI selector. Fifo may pace at display refresh; it is not a 60 FPS cap.',
@@ -125,6 +131,8 @@ def canonical_hash(value):
 
 
 def audited_inventory(digest):
+    if digest in (AUDITED_UPLOAD_REUSE_MANIFEST, AUDITED_UPLOAD_IMMUTABLE_CONTROL_MANIFEST):
+        return UPLOAD_REUSE_SOURCE_PATHS
     if digest in (AUDITED_ENCODE_DETAIL_INITIAL_MANIFEST, AUDITED_ENCODE_DETAIL_FORMATTED_MANIFEST, AUDITED_ENCODE_DETAIL_MANIFEST):
         return ENCODE_DETAIL_SOURCE_PATHS
     if digest == AUDITED_RUNTIME_MANIFEST:
@@ -210,8 +218,22 @@ def source_identity(repository):
                     committed = subprocess.check_output(['git', '-C', str(repository), 'show', commit + ':' + name])
                     require(data == committed, 'Uncommitted encode-detail source: ' + name)
                     candidate[name] = hashlib.sha256(data).hexdigest()
-                require(canonical_hash(candidate) in (AUDITED_ENCODE_DETAIL_INITIAL_MANIFEST, AUDITED_ENCODE_DETAIL_FORMATTED_MANIFEST, AUDITED_ENCODE_DETAIL_MANIFEST),
-                        'Audited encode-detail runtime changed; cannot fall back to historical pins')
+                reuse_present = any((repository / name).exists() or (repository / name).is_symlink()
+                                    for name in UPLOAD_REUSE_SOURCE_PATHS[len(ENCODE_DETAIL_SOURCE_PATHS):])
+                if reuse_present:
+                    for name in UPLOAD_REUSE_SOURCE_PATHS[len(ENCODE_DETAIL_SOURCE_PATHS):]:
+                        path = repository / name
+                        require(path.is_file() and not path.is_symlink(),
+                                'Audited upload-reuse inventory is missing: ' + name)
+                        data = path.read_bytes()
+                        committed = subprocess.check_output(['git', '-C', str(repository), 'show', commit + ':' + name])
+                        require(data == committed, 'Uncommitted upload-reuse source: ' + name)
+                        candidate[name] = hashlib.sha256(data).hexdigest()
+                    require(canonical_hash(candidate) in (AUDITED_UPLOAD_REUSE_MANIFEST, AUDITED_UPLOAD_IMMUTABLE_CONTROL_MANIFEST),
+                            'Audited upload-reuse runtime changed; cannot fall back to historical pins')
+                else:
+                    require(canonical_hash(candidate) in (AUDITED_ENCODE_DETAIL_INITIAL_MANIFEST, AUDITED_ENCODE_DETAIL_FORMATTED_MANIFEST, AUDITED_ENCODE_DETAIL_MANIFEST),
+                            'Audited encode-detail runtime changed; cannot fall back to historical pins')
             else:
                 require(canonical_hash(candidate) in (AUDITED_GPU_INITIAL_MANIFEST, AUDITED_GPU_CANDIDATE_MANIFEST, AUDITED_GPU_CPU_BASELINE_MANIFEST),
                         'Audited GPU runtime changed; cannot fall back to a narrower source inventory')

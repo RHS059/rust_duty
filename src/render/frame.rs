@@ -20,6 +20,16 @@ struct EncodedFrame {
 
 impl WgpuRenderer {
     pub(super) fn submit_frame(&mut self, list: &DrawList) -> Result<FrameOutput, String> {
+        let result = self.submit_frame_inner(list);
+        if result.is_err() {
+            // Covers preflight, encode, validation, device and readback failures.
+            // Never reuse destinations of queue writes from an abandoned frame.
+            self.upload_cache.clear();
+        }
+        result
+    }
+
+    fn submit_frame_inner(&mut self, list: &DrawList) -> Result<FrameOutput, String> {
         let (output, presentation) =
             performance::measure_cpu_stage(CpuFrameStage::RendererSubmit, || {
                 self.submit_before_present(list)
@@ -122,9 +132,11 @@ impl WgpuRenderer {
         }
         let geometry: Vec<_> =
             performance::measure_encode_phase(EncodePhase::GeometryUpload, || {
+                self.upload_cache.begin_frame()?;
                 plan.arenas
                     .iter()
-                    .map(|arena| {
+                    .enumerate()
+                    .map(|(index, arena)| {
                         if performance::encode_details_active() {
                             if let Some([vertices, indices, matrices]) = arena.buffer_contents() {
                                 performance::add_encode_counter(EncodeCounter::UploadArenas, 1);
@@ -142,10 +154,12 @@ impl WgpuRenderer {
                                 );
                             }
                         }
-                        self.pipelines.upload_geometry(&self.gpu.device, arena)
+                        self.upload_cache.upload(
+                            &self.gpu.device, &self.gpu.queue, &self.pipelines, index, arena,
+                        )
                     })
-                    .collect()
-            });
+                    .collect::<Result<Vec<_>, String>>()
+            })?;
         let (encoder, mut timing, readbacks) =
             performance::measure_encode_phase(EncodePhase::CommandEncoding, || {
                 let mut encoder =
@@ -255,6 +269,7 @@ impl WgpuRenderer {
         performance::measure_encode_phase(EncodePhase::QueueSubmit, || {
             self.gpu.queue.submit([command_buffer])
         });
+        self.upload_cache.submitted();
         if let Some(timing) = &mut timing {
             timing.after_submit();
         }

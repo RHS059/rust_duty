@@ -89,7 +89,7 @@ struct PipelineKey {
 }
 pub(crate) struct Pipelines {
     pub texture_layout: wgpu::BindGroupLayout,
-    transform_layout: wgpu::BindGroupLayout,
+    pub(super) transform_layout: wgpu::BindGroupLayout,
     layout: wgpu::PipelineLayout,
     shader: wgpu::ShaderModule,
     pipelines: HashMap<PipelineKey, wgpu::RenderPipeline>,

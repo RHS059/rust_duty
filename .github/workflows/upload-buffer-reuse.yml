@@ -1,0 +1,142 @@
+name: Bounded upload-buffer reuse proof
+on:
+  push:
+    branches: [halcyon/upload-buffer-reuse]
+    paths:
+      - '.github/workflows/upload-buffer-reuse.yml'
+      - 'src/**'
+      - 'tools/**'
+      - 'updater/**'
+      - 'tests/fixtures/triangle.vrm'
+      - 'tests/fixtures/two_bone_triangle.vrs'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - 'build.rs'
+      - 'build_number.rs'
+      - 'rust-toolchain.toml'
+      - '.gitattributes'
+permissions:
+  contents: read
+concurrency:
+  group: upload-buffer-reuse-${{ github.ref }}
+  cancel-in-progress: false
+env:
+  GIT_CONFIG_COUNT: '1'
+  GIT_CONFIG_KEY_0: core.autocrlf
+  GIT_CONFIG_VALUE_0: 'false'
+jobs:
+  native-upload-reuse:
+    if: github.repository == 'RHS059/rust_duty' && github.ref == 'refs/heads/halcyon/upload-buffer-reuse'
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /.gitattributes
+            /.gitignore
+            /Cargo.toml
+            /Cargo.lock
+            /build.rs
+            /build_number.rs
+            /rust-toolchain.toml
+            /LICENSE
+            /THIRD_PARTY_LICENSES.txt
+            /src/
+            /updater/
+            /tools/
+            /tests/fixtures/triangle.vrm
+            /tests/fixtures/two_bone_triangle.vrs
+            /.github/workflows/upload-buffer-reuse.yml
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install pinned evidence-reader dependencies
+        run: python -m pip install Pillow==11.3.0 PyYAML==6.0.3
+      - name: Prepare formatter proposals without changing tested source
+        shell: pwsh
+        run: |
+          $files = @('src/lib.rs', 'src/frame_encode_detail.rs', 'src/frame_upload_policy.rs', 'src/render/mod.rs', 'src/render/backend.rs', 'src/render/frame.rs', 'src/render/mesh.rs', 'src/render/upload_cache.rs', 'src/render/upload_reuse_tests.rs')
+          foreach ($file in $files) {
+            $copy = Join-Path 'upload-reuse-evidence/format' $file
+            New-Item -ItemType Directory -Force (Split-Path $copy) | Out-Null
+            Copy-Item $file $copy
+            rustfmt --edition 2021 --config skip_children=true $copy
+            if ($LASTEXITCODE -ne 0) {
+              Add-Content 'upload-reuse-evidence/format-needs-review.txt' "rustfmt failed: $file"
+              continue
+            }
+            if ((Get-FileHash $file -Algorithm SHA256).Hash -ne (Get-FileHash $copy -Algorithm SHA256).Hash) {
+              Add-Content 'upload-reuse-evidence/format-needs-review.txt' "Formatting differs: $file"
+            }
+          }
+          # Parse failures are retained in the marker and fail the late check.
+          # Do not let PowerShell's last native exit code skip native evidence.
+          exit 0
+      - name: Validate strict readers and the focused workflow
+        env:
+          PYTHONPATH: tools
+        run: >-
+          python -m unittest -v test_summarize_cpu_encode_detail
+          test_summarize_cpu_substages test_summarize_frame_performance
+          test_cpu_encode_detail_source test_upload_buffer_reuse_workflow
+      - name: Run pure upload, planning and capture-counter contracts
+        shell: pwsh
+        run: |
+          foreach ($filter in @('render::upload_cache::tests', 'render::arena::tests', 'render::plan::tests', 'render::frame::tests', 'encode_detail')) {
+            cargo test --locked --no-default-features --features wgpu-runtime --lib $filter
+            if ($LASTEXITCODE -ne 0) { throw "Rust contracts failed: $filter" }
+          }
+      - name: Compare queued reusable uploads with immutable uploads on DX12 WARP
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force upload-reuse-evidence | Out-Null
+          git rev-parse HEAD | Set-Content upload-reuse-evidence/commit.txt
+          rustc --version --verbose | Set-Content upload-reuse-evidence/rustc.txt
+          cargo test --locked --no-default-features --features wgpu-runtime --lib --no-run --message-format=json > upload-reuse-evidence/build.jsonl 2> upload-reuse-evidence/build-stderr.txt
+          if ($LASTEXITCODE -ne 0) { throw 'Native test executable build failed' }
+          $artifacts = @(Get-Content upload-reuse-evidence/build.jsonl | ForEach-Object { $_ | ConvertFrom-Json } | Where-Object { $_.reason -eq 'compiler-artifact' -and $_.profile.test -and $_.executable })
+          if ($artifacts.Count -ne 1) { throw 'Expected exactly one built library test executable' }
+          $exe = $artifacts[0].executable
+          function Get-FileReceipt([string]$path) {
+            [ordered]@{ path = $path; size = (Get-Item -LiteralPath $path).Length; sha256 = (Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash.ToLowerInvariant() }
+          }
+          $pdb = [System.IO.Path]::ChangeExtension($exe, '.pdb')
+          $sources = @(git ls-files -- src updater tools Cargo.toml Cargo.lock build.rs build_number.rs rust-toolchain.toml .gitattributes tests/fixtures/triangle.vrm tests/fixtures/two_bone_triangle.vrs .github/workflows/upload-buffer-reuse.yml)
+          if ($LASTEXITCODE -ne 0) { throw 'Cannot inventory tested source' }
+          $inventory = @($sources | Sort-Object | Where-Object { Test-Path -LiteralPath $_ -PathType Leaf } | ForEach-Object { Get-FileReceipt $_ })
+          $receipt = [ordered]@{
+            schema = 'rust-duty-upload-reuse-native-test/v1'
+            commit = (git rev-parse HEAD).Trim()
+            features = 'no-default-features,wgpu-runtime'
+            executable = (Get-FileReceipt $exe)
+            pdb = $(if (Test-Path -LiteralPath $pdb) { Get-FileReceipt $pdb } else { $null })
+            sources = $inventory
+          }
+          $receipt | ConvertTo-Json -Depth 8 | Set-Content -Encoding utf8 upload-reuse-evidence/build-receipt.json
+          & $exe render::upload_reuse_tests --nocapture --test-threads=1 2>&1 | Tee-Object -FilePath upload-reuse-evidence/native-tests.txt
+          if ($LASTEXITCODE -ne 0) { throw 'DX12/WARP upload-reuse correctness failed' }
+          if ((Get-FileReceipt $exe).sha256 -ne $receipt.executable.sha256) { throw 'Test executable changed during native proof' }
+          if (-not (Select-String -Path upload-reuse-evidence/native-tests.txt -SimpleMatch 'test result: ok. 3 passed; 0 failed; 0 ignored;')) {
+            throw 'All three native tests must run; missing WARP or zero selected tests is not a pass'
+          }
+      - name: Require reviewed formatting after native evidence
+        if: always()
+        shell: pwsh
+        run: |
+          if (Test-Path 'upload-reuse-evidence/format-needs-review.txt') {
+            throw 'Formatting differs or failed; proposals retained separately. Tested source was not modified.'
+          }
+      - name: Retain exact native logs and formatter proposals
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: upload-buffer-reuse-attempt-${{ github.run_attempt }}
+          path: upload-reuse-evidence/**
+          if-no-files-found: warn
+          retention-days: 7
