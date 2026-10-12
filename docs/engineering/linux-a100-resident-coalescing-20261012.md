@@ -4,6 +4,8 @@ Measured source: `332e389a08330ce2be701f251ec355f94b12e5fb`, tree `c38e6b703403c
 
 ## Initial compact-stage result and evidence boundary
 
+This section records the first publication stage. Its retention limitations are closed by the final full-archive audit below; the original compact receipt remains unchanged.
+
 The producer and strict controller report all 22 legacy-resident/coalesced-resident native image pairs and ordered source-part/material/pose/corner checks passing. Resident draws fall from 86 (75 rigid, 11 skinned) to 34 (31 rigid, 3 skinned). The compact packet contains every native report, two representative PNG pairs and four game screenshots. Remaining native PNGs, binary layout/corner streams, raw performance timeseries and both executable bytes are omitted from this compact packet, with their hashes and explicit omission list retained. Full transfer and independent raw replay remain pending at this publication stage.
 
 This is a separate legacy-resident/coalesced-resident gate. The earlier CPU/resident strict image failure remains **FAILED: 18 RGB pixels across 11 of 22 pairs, maximum difference 3**, with unchanged alpha/masks. These new reports do not waive that failure or the earlier gameplay/ADS visibility gates.
@@ -42,4 +44,17 @@ The [independent raw telemetry review](evidence/a100-coalesced-332e389a-20261012
 
 [Raw telemetry XZ](evidence/a100-coalesced-332e389a-20261012/a100-coalesced-332e389a-raw-telemetry.zip.xz) is 5,653,528 bytes, SHA256 `c96bb800c310dae41bbccf04e389709127a7fa2c355e905f7cb09cfbb4fa3dd4`. Standard XZ decompression reproduces the exact 104,280,160-byte ZIP, SHA256 `6faa942ec896b17f234c40b7b48fa36c51e4b71e61c788c8f28bbfd470559b33`, containing 46 files with passing CRCs. The [manifest](evidence/a100-coalesced-332e389a-20261012/raw-telemetry-manifest.json) binds both representations.
 
-Native layout/ordered-stream bytes, current materialized source and game/native ELF bytes, and the complete original full archive remain pending local reconstruction and independent replay. Those source/executable identities are currently receipt-bound. Exact pixels and raw timing do not stand in for the remaining ordered-source proof. The historical CPU/resident arithmetic failure remains failed.
+At the supplemental stage, native layout/ordered streams, materialized source, both ELFs and the complete original outer archive were still pending. The final stage below closes these retention/replay gaps. The historical CPU/resident arithmetic failure remains failed.
+
+
+## Final complete archive and independent audit
+
+The complete original archive has now been reconstructed byte-for-byte: **839,406,313 bytes**, SHA256 `0453642bac3a105163fa77d0b25ff1e03c4df9e66a9054d4600aeb6981771973`, **706 entries**, all CRCs passing. Recovery reused original-hash-matching retained bytes and CPU reconstruction, without another GPU execution. The self-contained [full retention directory](evidence/a100-coalesced-332e389a-20261012/full/) contains ordered compressed parts, a SHA256 manifest, and a reconstruction/verification script; it does not depend on Colab or any other local workspace. The [complete artifact index](evidence/a100-coalesced-332e389a-20261012/full-artifact-index.json) records every original entry.
+
+- [Final independent review](evidence/a100-coalesced-332e389a-20261012/independent-final-review.json): SHA256 `1dfb4c7e2c9b2b37d820c569d78899038f15f0262a210c84df23f5d3e50fffff`.
+- [Detailed archive and raw performance audit](evidence/a100-coalesced-332e389a-20261012/independent-performance-audit.json): SHA256 `2ffaa5b2d942bf1dccf407b8b7aaa03e47c39299fb206b82ddb888f7ac8dea23`.
+- [Original-hash native recovery audit](evidence/a100-coalesced-332e389a-20261012/independent-full-native-recovery-review.json): SHA256 `867d78deb4e4ac83cf758f044c8e3bfdb2c345cc2561dcd2a347dff605965f7c`.
+
+The independent final audit verifies 464 Git-bound source files, 134 compile inputs, both original game/native ELF hashes, process/device/build joins and all four raw performance legs. Six layout streams and 14 ordered streams (672,227,200 bytes) match their original hashes. The unchanged strict reader independently passes all 22 source/part/material/state/pose/corner cases and all 44 full-RGBA PNGs. The successful-run inventory is complete at 186 original files, 805,362,039 bytes. Export-retention gaps are closed.
+
+The 77 public runtime asset binaries and toolchain binaries outside the exported evidence remain receipt-bound. The 22-case fixture is bounded, game screenshots are unsynchronized, GPU medians remain unchanged, and the earlier CPU/resident 18-pixel failure remains failed. See the [implementation closeout](direct-viewmodel-coalescer-closeout-20261012.md) for source behavior and remaining acceptance limits.

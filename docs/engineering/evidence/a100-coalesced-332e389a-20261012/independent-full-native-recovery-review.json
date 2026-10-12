@@ -1,0 +1,300 @@
+{
+  "schema": "rust-duty-coalesced-full-native-recovery-review/v1",
+  "passed": true,
+  "source_commit": "332e389a08330ce2be701f251ec355f94b12e5fb",
+  "source_tree": "c38e6b703403c4a329adb04ade95673cb1dfc9c0",
+  "full_original_run_file_inventory_verified": true,
+  "original_run_files": 186,
+  "original_run_bytes": 805362039,
+  "output_manifest": {
+    "path": "/workspace/shared/a100-coalesced-332e389a/results-native/run/output-manifest.json",
+    "bytes": 24854,
+    "sha256": "f347880b6c46d6edf8dafcbf6897dccbb83c5434a50827d47130a46f8c7f301d"
+  },
+  "native_report": {
+    "path": "/workspace/shared/a100-coalesced-332e389a/recovered-run/native-contract/report.json",
+    "bytes": 26123033,
+    "sha256": "cd3dd2e7c952c8e0f96ae826d46e92ec4dbaaaf0c8f1c85dd3cf779997bdc857"
+  },
+  "native_original_file_count": 66,
+  "native_reader": {
+    "path": "/workspace/shared/rust-direct-resident-coalescing/tools/run_resident_coalesced_authored_contract.py",
+    "bytes": 16205,
+    "sha256": "7bcece59883435cc4ff09aa221ae0a5ac67a4e30642e89e3ae6b284258c87096"
+  },
+  "native_reader_log": {
+    "path": "/workspace/shared/a100-coalesced-332e389a/independent-full-native-reader.log",
+    "bytes": 408,
+    "sha256": "606217cf8f5e5ac2c565cb0c6fcb7c1ed8849e152c32df1ee8cd3e4fcd65a30c"
+  },
+  "native_reader_summary": {
+    "passed": true,
+    "exact_pairs": 22,
+    "ordered_source_part_material_pose_and_corners": true,
+    "strict_full_rgba_equality": true,
+    "actual_resident_draw_reduction": true,
+    "unique_ordered_stream_bytes": 468377440,
+    "unique_layout_stream_bytes": 203849760,
+    "scope": "Separate legacy-resident/coalesced-resident correctness gate; historical CPU/resident gate unchanged; no performance acceptance."
+  },
+  "all_44_native_pngs_original_sha_and_full_rgba_verified": true,
+  "unique_original_stream_bytes": 672227200,
+  "native_streams": [
+    {
+      "path": "/workspace/shared/a100-coalesced-332e389a/recovered-run/native-contract/layout-12c0d6c7c013f78d219d106739dcd3bad4544b9c81adf03b1c064d84412dba60.bin",
+      "bytes": 20673120,
+      "sha256": "12c0d6c7c013f78d219d106739dcd3bad4544b9c81adf03b1c064d84412dba60",
+      "name": "layout-12c0d6c7c013f78d219d106739dcd3bad4544b9c81adf03b1c064d84412dba60.bin",
+      "recovery": "Losslessly transported original layout payload"
+    },
+    {
+      "path": "/workspace/shared/a100-coalesced-332e389a/recovered-run/native-contract/layout-568d6edfee12aa6016e879fea317841c1b3593ab297d8885719b6ad80382fafe.bin",
+      "bytes": 104379680,
+      "sha256": "568d6edfee12aa6016e879fea317841c1b3593ab297d8885719b6ad80382fafe",
+      "name": "layout-568d6edfee12aa6016e879fea317841c1b3593ab297d8885719b6ad80382fafe.bin",
+      "recovery": "Reassembled from original-SHA-verified immutable source-layout donor bytes, accepted only at original full-layout SHA256"
+    },
+    {
+      "path": "/workspace/shared/a100-coalesced-332e389a/recovered-run/native-contract/layout-66a75c115ecc61f5fe8f9d945c76279aca769861202053ecf365f9187e962018.bin",
+      "bytes": 20673120,
+      "sha256": "66a75c115ecc61f5fe8f9d945c76279aca769861202053ecf365f9187e962018",
+      "name": "layout-66a75c115ecc61f5fe8f9d945c76279aca769861202053ecf365f9187e962018.bin",
+      "recovery": "Losslessly transported original layout payload"
+    },
+    {
+      "path": "/workspace/shared/a100-coalesced-332e389a/recovered-run/native-contract/layout-7113eb27bd9b2e7cf832eddfccc7c2c4710b788052e975587e3aaffe30515ceb.bin",
+      "bytes": 15763520,
+      "sha256": "7113eb27bd9b2e7cf832eddfccc7c2c4710b788052e975587e3aaffe30515ceb",
+      "name": "layout-7113eb27bd9b2e7cf832eddfccc7c2c4710b788052e975587e3aaffe30515ceb.bin",
+      "recovery": "Reassembled from original-SHA-verified immutable source-layout donor bytes, accepted only at original full-layout SHA256"
+    },
+    {
+      "path": "/workspace/shared/a100-coalesced-332e389a/recovered-run/native-contract/layout-bb75960244922cd7544fb922a85da1d2e4874b823b60a8429e6b37541351fa6f.bin",
+      "bytes": 21687200,
+      "sha256": "bb75960244922cd7544fb922a85da1d2e4874b823b60a8429e6b37541351fa6f",
+      "name": "layout-bb75960244922cd7544fb922a85da1d2e4874b823b60a8429e6b37541351fa6f.bin",
+      "recovery": "Losslessly transported original layout payload"
+    },
+    {
+      "path": "/workspace/shared/a100-coalesced-332e389a/recovered-run/native-contract/layout-fbab649e26c5eb7ee03d4807c89f3fb8a072381cc25e9acbec3faf48a3d650a8.bin",
+      "bytes": 20673120,
+      "sha256": "fbab649e26c5eb7ee03d4807c89f3fb8a072381cc25e9acbec3faf48a3d650a8",
+      "name": "layout-fbab649e26c5eb7ee03d4807c89f3fb8a072381cc25e9acbec3faf48a3d650a8.bin",
+      "recovery": "Losslessly transported original layout payload"
+    },
+    {
+      "path": "/workspace/shared/a100-coalesced-332e389a/recovered-run/native-contract/ordered-00efeb3cec5a8af124111cdda9670d93ea5bc458189c033ab900eb0e43142984.bin",
+      "bytes": 34433760,
+      "sha256": "00efeb3cec5a8af124111cdda9670d93ea5bc458189c033ab900eb0e43142984",
+      "name": "ordered-00efeb3cec5a8af124111cdda9670d93ea5bc458189c033ab900eb0e43142984.bin",
+      "recovery": "CPU reconstructed using exact frozen ResidentDraw::reference_mesh implementation and recorded state, accepted only at original full-stream SHA256"
+    },
+    {
+      "path": "/workspace/shared/a100-coalesced-332e389a/recovered-run/native-contract/ordered-22b7a7f359c5f7951a7f0191afe4c9ef6110b196af3f632f3ba8d538430eb732.bin",
+      "bytes": 34433760,
+      "sha256": "22b7a7f359c5f7951a7f0191afe4c9ef6110b196af3f632f3ba8d538430eb732",
+      "name": "ordered-22b7a7f359c5f7951a7f0191afe4c9ef6110b196af3f632f3ba8d538430eb732.bin",
+      "recovery": "CPU reconstructed using exact frozen ResidentDraw::reference_mesh implementation and recorded state, accepted only at original full-stream SHA256"
+    },
+    {
+      "path": "/workspace/shared/a100-coalesced-332e389a/recovered-run/native-contract/ordered-252171873d45a2ac4006f8881675ad09bb4b0d8d99d54880506a10c3bf13bf10.bin",
+      "bytes": 34433760,
+      "sha256": "252171873d45a2ac4006f8881675ad09bb4b0d8d99d54880506a10c3bf13bf10",
+      "name": "ordered-252171873d45a2ac4006f8881675ad09bb4b0d8d99d54880506a10c3bf13bf10.bin",
+      "recovery": "CPU reconstructed using exact frozen ResidentDraw::reference_mesh implementation and recorded state, accepted only at original full-stream SHA256"
+    },
+    {
+      "path": "/workspace/shared/a100-coalesced-332e389a/recovered-run/native-contract/ordered-3167a3b30154a8e35ad4a52713db4e58a126347f639d37461a260ec051cc0f05.bin",
+      "bytes": 27586160,
+      "sha256": "3167a3b30154a8e35ad4a52713db4e58a126347f639d37461a260ec051cc0f05",
+      "name": "ordered-3167a3b30154a8e35ad4a52713db4e58a126347f639d37461a260ec051cc0f05.bin",
+      "recovery": "CPU reconstructed using exact frozen ResidentDraw::reference_mesh implementation and recorded state, accepted only at original full-stream SHA256"
+    },
+    {
+      "path": "/workspace/shared/a100-coalesced-332e389a/recovered-run/native-contract/ordered-6ea4653ecbe4c4cda302e7f48bd5fb2bd919e6b2be9800c8e25980ee973bfc57.bin",
+      "bytes": 34433760,
+      "sha256": "6ea4653ecbe4c4cda302e7f48bd5fb2bd919e6b2be9800c8e25980ee973bfc57",
+      "name": "ordered-6ea4653ecbe4c4cda302e7f48bd5fb2bd919e6b2be9800c8e25980ee973bfc57.bin",
+      "recovery": "CPU reconstructed using exact frozen ResidentDraw::reference_mesh implementation and recorded state, accepted only at original full-stream SHA256"
+    },
+    {
+      "path": "/workspace/shared/a100-coalesced-332e389a/recovered-run/native-contract/ordered-72d22318df1b84c7db659d7365510e712c61f6f91c4d2e3db6e426ac798fd7e5.bin",
+      "bytes": 27586160,
+      "sha256": "72d22318df1b84c7db659d7365510e712c61f6f91c4d2e3db6e426ac798fd7e5",
+      "name": "ordered-72d22318df1b84c7db659d7365510e712c61f6f91c4d2e3db6e426ac798fd7e5.bin",
+      "recovery": "CPU reconstructed using exact frozen ResidentDraw::reference_mesh implementation and recorded state, accepted only at original full-stream SHA256"
+    },
+    {
+      "path": "/workspace/shared/a100-coalesced-332e389a/recovered-run/native-contract/ordered-739e0d7bfdc25cdbdf5158e4447fba8f4f85a1ba53a8310d8cce67c780b12370.bin",
+      "bytes": 34433760,
+      "sha256": "739e0d7bfdc25cdbdf5158e4447fba8f4f85a1ba53a8310d8cce67c780b12370",
+      "name": "ordered-739e0d7bfdc25cdbdf5158e4447fba8f4f85a1ba53a8310d8cce67c780b12370.bin",
+      "recovery": "CPU reconstructed using exact frozen ResidentDraw::reference_mesh implementation and recorded state, accepted only at original full-stream SHA256"
+    },
+    {
+      "path": "/workspace/shared/a100-coalesced-332e389a/recovered-run/native-contract/ordered-88cf34fdaef0ef42da3b0ddc1dbc3b002130c892860b12d0f3702c41f1121dc8.bin",
+      "bytes": 34433760,
+      "sha256": "88cf34fdaef0ef42da3b0ddc1dbc3b002130c892860b12d0f3702c41f1121dc8",
+      "name": "ordered-88cf34fdaef0ef42da3b0ddc1dbc3b002130c892860b12d0f3702c41f1121dc8.bin",
+      "recovery": "CPU reconstructed using exact frozen ResidentDraw::reference_mesh implementation and recorded state, accepted only at original full-stream SHA256"
+    },
+    {
+      "path": "/workspace/shared/a100-coalesced-332e389a/recovered-run/native-contract/ordered-b4ae9ef5199b0ef10b09ed4a20ddd9518f73b4793fe4c40ea3a1aafa4588cc6c.bin",
+      "bytes": 34433760,
+      "sha256": "b4ae9ef5199b0ef10b09ed4a20ddd9518f73b4793fe4c40ea3a1aafa4588cc6c",
+      "name": "ordered-b4ae9ef5199b0ef10b09ed4a20ddd9518f73b4793fe4c40ea3a1aafa4588cc6c.bin",
+      "recovery": "CPU reconstructed using exact frozen ResidentDraw::reference_mesh implementation and recorded state, accepted only at original full-stream SHA256"
+    },
+    {
+      "path": "/workspace/shared/a100-coalesced-332e389a/recovered-run/native-contract/ordered-ba7ae2d9ee61c837f21b53f300f6160042b90b048183a4cceef9713ccf69c973.bin",
+      "bytes": 34433760,
+      "sha256": "ba7ae2d9ee61c837f21b53f300f6160042b90b048183a4cceef9713ccf69c973",
+      "name": "ordered-ba7ae2d9ee61c837f21b53f300f6160042b90b048183a4cceef9713ccf69c973.bin",
+      "recovery": "CPU reconstructed using exact frozen ResidentDraw::reference_mesh implementation and recorded state, accepted only at original full-stream SHA256"
+    },
+    {
+      "path": "/workspace/shared/a100-coalesced-332e389a/recovered-run/native-contract/ordered-bb58da01972837988244fa66b18d5a4b08ad6ce82428fa642898991712037230.bin",
+      "bytes": 34433760,
+      "sha256": "bb58da01972837988244fa66b18d5a4b08ad6ce82428fa642898991712037230",
+      "name": "ordered-bb58da01972837988244fa66b18d5a4b08ad6ce82428fa642898991712037230.bin",
+      "recovery": "CPU reconstructed using exact frozen ResidentDraw::reference_mesh implementation and recorded state, accepted only at original full-stream SHA256"
+    },
+    {
+      "path": "/workspace/shared/a100-coalesced-332e389a/recovered-run/native-contract/ordered-c0a6f78adf2f89021890068f13c615931b065cb8d3386332c4a4441f8c8183fc.bin",
+      "bytes": 34433760,
+      "sha256": "c0a6f78adf2f89021890068f13c615931b065cb8d3386332c4a4441f8c8183fc",
+      "name": "ordered-c0a6f78adf2f89021890068f13c615931b065cb8d3386332c4a4441f8c8183fc.bin",
+      "recovery": "CPU reconstructed using exact frozen ResidentDraw::reference_mesh implementation and recorded state, accepted only at original full-stream SHA256"
+    },
+    {
+      "path": "/workspace/shared/a100-coalesced-332e389a/recovered-run/native-contract/ordered-fe9989d14ae95e3f96025c887fd5e3b64444e5b1fd8409597c276298e79b8f15.bin",
+      "bytes": 34433760,
+      "sha256": "fe9989d14ae95e3f96025c887fd5e3b64444e5b1fd8409597c276298e79b8f15",
+      "name": "ordered-fe9989d14ae95e3f96025c887fd5e3b64444e5b1fd8409597c276298e79b8f15.bin",
+      "recovery": "CPU reconstructed using exact frozen ResidentDraw::reference_mesh implementation and recorded state, accepted only at original full-stream SHA256"
+    },
+    {
+      "path": "/workspace/shared/a100-coalesced-332e389a/recovered-run/native-contract/ordered-feeca3900ece64143981e444e74cf4849b1c16db539143f2808092568b1d4b78.bin",
+      "bytes": 34433760,
+      "sha256": "feeca3900ece64143981e444e74cf4849b1c16db539143f2808092568b1d4b78",
+      "name": "ordered-feeca3900ece64143981e444e74cf4849b1c16db539143f2808092568b1d4b78.bin",
+      "recovery": "CPU reconstructed using exact frozen ResidentDraw::reference_mesh implementation and recorded state, accepted only at original full-stream SHA256"
+    }
+  ],
+  "retained_original_elfs": {
+    "vector-range": {
+      "path": "/workspace/shared/a100-coalesced-332e389a/retained-elfs/vector-range",
+      "bytes": 13093440,
+      "sha256": "1dc3fed58cbb6ace46495d53805d7dd6608a6d1d6c421b2ba452cfd6fbd70da0"
+    },
+    "resident_coalesced_authored_contract": {
+      "path": "/workspace/shared/a100-coalesced-332e389a/retained-elfs/resident_coalesced_authored_contract",
+      "bytes": 6968800,
+      "sha256": "3a2f2256ccc97f6304af02f6ceceff2801ae0eff4015844060c1eda38b175c73"
+    }
+  },
+  "native_elf_embedded_source_receipt_verified": true,
+  "native_backend": {
+    "adapter": "NVIDIA A100-SXM4-40GB",
+    "backend": "Vulkan",
+    "requested": "vulkan"
+  },
+  "recovery_helpers_and_logs": [
+    {
+      "path": "/workspace/shared/native-ordered-reconstruction/Cargo.toml",
+      "bytes": 349,
+      "sha256": "92b529082cfe6df2dd52d74ade8fcd043a8289dccb2b0e79dae72fa2dc344946"
+    },
+    {
+      "path": "/workspace/shared/native-ordered-reconstruction/Cargo.lock",
+      "bytes": 98059,
+      "sha256": "9a2b0c1b9dbc03df422e2db5a395fa7dc1c4b85e993ef900cb1455a4b51d3373"
+    },
+    {
+      "path": "/workspace/shared/native-ordered-reconstruction/src/main.rs",
+      "bytes": 6733,
+      "sha256": "dd86c676295e310899675564127b634c393826cb6e88a2ff6d9c1e8031ce7ae5"
+    },
+    {
+      "path": "/workspace/shared/native-ordered-reconstruction/reconstruct_layouts.py",
+      "bytes": 4405,
+      "sha256": "452a4c4dac9b5c01ff4510401b0ebac88dca51ee8fb4855a10b2dcc6c17578b3"
+    },
+    {
+      "path": "/workspace/shared/native-ordered-reconstruction/recover_run_inventory.py",
+      "bytes": 2529,
+      "sha256": "f6ac4fc8a607ffcc32c5169e911378fbc735120ac71dad4d19730876116a3c7d"
+    },
+    {
+      "path": "/workspace/shared/native-ordered-reconstruction/build.log",
+      "bytes": 415,
+      "sha256": "ad29e16e426c4f0d4b68235fede5a94259aa8fc7219afb663b4ddeb32bf8e985"
+    },
+    {
+      "path": "/workspace/shared/native-ordered-reconstruction/synthetic-test-r2.log",
+      "bytes": 3703,
+      "sha256": "25954fa8629d0d20e9c7ebb5d3293cc6c6b8c985845a75959717bf510217d6b0"
+    }
+  ],
+  "supporting_evidence": [
+    {
+      "path": "/workspace/shared/a100-coalesced-332e389a/independent-all-native-pixels-review.json",
+      "bytes": 3796,
+      "sha256": "8c65740fe3f17a0c86fba5ee6dbe87e7842e5424b767572b6f8f1f8a856899f8"
+    },
+    {
+      "path": "/workspace/shared/a100-coalesced-332e389a/independent-raw-telemetry-review.json",
+      "bytes": 86380,
+      "sha256": "94b4b3337a55e471563d50c1ad14171dc2a965a19a4a4ec68205e9815497b7f8"
+    },
+    {
+      "path": "/workspace/shared/a100-coalesced-332e389a/run-file-recovery.json",
+      "bytes": 2798,
+      "sha256": "bdc1217b069e909df6fe11011b168b6276ae1b6fbc6dbeed3ef2f7c22c4da9ca"
+    },
+    {
+      "path": "/workspace/shared/a100-coalesced-332e389a/native-layout-reconstructed/layout-reconstruction.json",
+      "bytes": 1492,
+      "sha256": "887974d0171ab2cb10bc48bc4abc99c5e6d7286e34224041d4956d8ae5b6e35f"
+    },
+    {
+      "path": "/workspace/shared/a100-coalesced-332e389a/native-ordered-reconstructed/reconstruction.json",
+      "bytes": 4431,
+      "sha256": "01dd26c3cefee876a98efece4b912f494d6d5956ca3ce02d50275d7d6c34b1fa"
+    },
+    {
+      "path": "/workspace/shared/a100-coalesced-332e389a/layout-reconstruction-partial-r1.json",
+      "bytes": 1169,
+      "sha256": "db73d2dee3ae3942e62fa1d0d3be694081da012b031c16d30396a9dddf3dc37e"
+    },
+    {
+      "path": "/workspace/shared/a100-coalesced-332e389a/ordered-reconstruction-partial-r1.json",
+      "bytes": 3400,
+      "sha256": "73444f2b3a04aa155f6240f191d4e24538f3c5bc44c6e23e06018a0ce101b1cf"
+    },
+    {
+      "path": "/workspace/shared/a100-coalesced-332e389a/coalesced-native-layout-primary-332e389a.zip",
+      "bytes": 3305060,
+      "sha256": "83d6cbb3d586ae634635f50dd3d20343f88211007d11c8d39e38946f6782b70c"
+    },
+    {
+      "path": "/workspace/shared/a100-coalesced-332e389a/coalesced-native-layout-reload-332e389a.zip",
+      "bytes": 3088644,
+      "sha256": "76358999398e753ba85264bd1a30824a1b9018ab2ae0bd6db817895255e8dd48"
+    },
+    {
+      "path": "/workspace/shared/a100-coalesced-332e389a/coalesced-retained-elfs-332e389a.zip",
+      "bytes": 20064938,
+      "sha256": "31f4481edab36ea55fa0bde25dc26982d2bf4ee942fb089596b69b462d556873"
+    }
+  ],
+  "no_new_gpu_execution": true,
+  "whole_original_zip_reconstructed": false,
+  "scope_limits": [
+    "Full original ZIP structural reconstruction and its source/build/package inventory remain pending in this receipt.",
+    "Exact hash recovery preserves original captured bytes; it does not introduce a new GPU run or expand the 22 native fixture cases.",
+    "Historical CPU/resident strict image failure remains failed; this separate legacy-resident/coalesced-resident gate does not replace it.",
+    "Post-Record game screenshots are qualitative, unsynchronized comparisons, not strict game image equivalence.",
+    "Coalescer GPU medians were identical across all four matched performance legs; no GPU median gain is established."
+  ]
+}
