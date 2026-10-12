@@ -43,3 +43,8 @@ pub use device::BackendSelection;
 #[cfg(feature = "wgpu-runtime")]
 #[doc(hidden)]
 pub mod finite_warp_probe;
+
+#[cfg(feature = "wgpu-runtime")]
+mod upload_cache;
+#[cfg(all(test, feature = "wgpu-runtime"))]
+mod upload_reuse_tests;

@@ -10,7 +10,7 @@ existing reload, walk, ADS, directional and jump producers, then verifies and
 materializes their original companions through the existing package verifier. The standalone weapon-asset directory is excluded from
 checkout and compilation. No assets are uploaded with the profiler artifact.
 
-A fresh Rust1.99 MSVC build retains the normal release optimizer/thin LTO and
+A fresh Rust 1.99 MSVC build retains the normal release optimizer/thin LTO and
 adds full PDB information without stripping. This instrumented build identity is
 retained separately from retail/preview executables. The exact source tree,
 tracked compile/tool/UI/settings bytes, materialized asset hashes, compiler, build settings, EXE and
@@ -81,3 +81,46 @@ Official references:
 - [xperf stack filtering](https://learn.microsoft.com/en-us/previous-versions/windows/desktop/xperf/the-stack-action)
 - [Symbol lookup and PDBs](https://learn.microsoft.com/en-us/previous-versions/windows/desktop/xperf/symbols)
 - [Windows2022 installed tool inventory](https://github.com/actions/runner-images/blob/main/images/windows/Windows2022-Readme.md)
+
+## Matched upload-policy experiment
+
+The comparison mode uses the same source-reviewed renderer and v2 counters for
+both variants. Only `src/frame_upload_policy.rs: REUSE_ENABLED` changes from
+`true` (bounded reuse) to `false` (immutable per-frame allocation). These are
+explicit counterfactual source trees with full byte inventories, not two
+historical retail commits. The earlier four-file CPU comparison remains a
+separate tool mode and is not repurposed as evidence for upload reuse.
+
+`python tools/run_windows_cpu_profile.py compare-uploads --root . --output evidence/cpu-profile`
+requires the existing preflight and same-run materialized companions. It builds
+both variants fresh with identical Rust 1.99 MSVC release/PDB settings, then runs
+baseline, candidate, candidate, baseline sequentially under one desktop lock.
+Each process gets a fresh settings/output directory, ten seconds of warmup and
+30 seconds of stationary WPR sampling at verified physical 1920×1080 on DX12/WARP
+with Immediate present. The same exact generated assets, UI and settings feed
+both variants. Input/source/toolchain, executable/PDB and earlier output hashes
+are rechecked through final acceptance.
+
+Record is enabled identically in this comparison only. Raw primary, CPU
+substage and v2 encode-detail reports are strictly joined to the executable,
+observed scene/device/extent and exact primary bytes. Record start/stop requests
+surround the WPR replay window; their timestamps and completion margins remain
+explicit. The ETL includes its own start/stop margins. CPU sample shares are
+never divided by a different window's frame count. Per-run CPU distributions
+and allocation counts remain separate; no pooling or parent/child percentile subtraction is
+performed. Fewer than 100 intervals are retained with tail readiness false.
+GPU timestamps remain off in this CPU investigation.
+
+Only the explicit normal-shutdown failure may continue to another diagnostic
+run after the process is confirmed exited, the stopped trace is exported and
+all retained measurement/input hashes recheck. Every such capture remains
+failed, and the final workflow remains failed even if all four diagnostic
+traces are available. Other validation/build/export failures stop the pair.
+`performance_improvement` stays null until independent raw review; WARP sample
+shares never establish RTX speed or the 1080p60 target.
+
+The separate GPU timestamp sidecar measures only the explicit frame command
+buffer. wgpu's queued `write_buffer_with` staging copies execute before that
+buffer and are outside its timestamps. This CPU comparison keeps timestamps
+off; any later GPU-sidecar review must retain that exclusion and must not call
+the command span total upload-plus-render GPU time.

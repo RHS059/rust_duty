@@ -41,7 +41,7 @@ jobs:
     needs: [animation-assets, walk-assets, ads-assets, directional-assets, jump-assets]
     if: github.repository == 'RHS059/rust_duty' && github.ref == 'refs/heads/aella/wgpu-1080p-diagnostics'
     runs-on: windows-2022
-    timeout-minutes: 45
+    timeout-minutes: 90
     env:
       PYTHONDONTWRITEBYTECODE: '1'
       GIT_CONFIG_COUNT: '1'
@@ -63,7 +63,7 @@ jobs:
         env:
           PYTHONPATH: tools
         run: |
-          python -m unittest -v test_windows_cpu_profile
+          python -m unittest -v test_windows_cpu_profile test_geometry_profile_pair
           if ($LASTEXITCODE -ne 0) { throw 'Profiler guard tests failed' }
           python tools/run_windows_cpu_profile.py preflight --root . --output evidence/cpu-profile
       - name: Fetch the existing validated original reload companion
@@ -104,9 +104,9 @@ jobs:
           python -m pip install Pillow==11.3.0 PyYAML==6.0.3
           if ($LASTEXITCODE -ne 0) { throw 'Reader dependency installation failed' }
           python tools/package_game.py materialize --root . --include-walk --include-ads --include-directional --include-jump --require-generated > evidence/cpu-profile/materialize.json
-      - name: Build optimized symbols and sample the stationary authored scene
-        timeout-minutes: 38
-        run: python tools/run_windows_cpu_profile.py capture --root . --output evidence/cpu-profile
+      - name: Build matched upload variants and sample the stationary authored scene in ABBA order
+        timeout-minutes: 84
+        run: python tools/run_windows_cpu_profile.py compare-uploads --root . --output evidence/cpu-profile
       - name: Retain raw trace, matching symbols, exports and exact input receipts
         if: always()
         uses: actions/upload-artifact@v4
@@ -114,9 +114,9 @@ jobs:
           name: windows-cpu-profile-attempt-${{ github.run_attempt }}
           path: |
             evidence/cpu-profile/**
-            !evidence/cpu-profile/target/**
-            !evidence/cpu-profile/symbols/**
-            !evidence/cpu-profile/symcache/**
+            !evidence/cpu-profile/**/target/**
+            !evidence/cpu-profile/**/symbols/**
+            !evidence/cpu-profile/**/symcache/**
             !evidence/cpu-profile/**/assets/**
           include-hidden-files: true
           if-no-files-found: warn
@@ -130,5 +130,12 @@ jobs:
             evidence/cpu-profile/*.json
             evidence/cpu-profile/*.log
             evidence/cpu-profile/*.txt
+            evidence/cpu-profile/sources/*.json
+            evidence/cpu-profile/*-build/*.json
+            evidence/cpu-profile/*-build/*.log
+            evidence/cpu-profile/r*/*.json
+            evidence/cpu-profile/r*/*.log
+            evidence/cpu-profile/r*/*.txt
+            evidence/cpu-profile/r*/runtime/telemetry-sessions/**
           if-no-files-found: warn
           retention-days: 7

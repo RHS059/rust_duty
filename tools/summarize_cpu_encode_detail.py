@@ -8,14 +8,23 @@ from exclusive_output import write_text_exclusive
 import summarize_cpu_substages as substages
 import summarize_frame_performance as frames
 
-SCHEMA = 'rust_duty_cpu_encode_detail_v1'
+SCHEMA_V1 = 'rust_duty_cpu_encode_detail_v1'
+SCHEMA_V2 = 'rust_duty_cpu_encode_detail_v2'
+# Keep historical imports stable; select the exact counter contract from each
+# input's schema rather than expanding v1 or fabricating unavailable values.
+SCHEMA = SCHEMA_V1
+UPLOAD_POLICIES = ('bounded_reuse_v1', 'immutable_per_frame_v1')
 MEASUREMENT = 'cpu_wall_clock_nested_encode_phase_ns'
 INTERPRETATION = ('CPU call durations nested inside encode_submit and renderer_submit, not GPU time. '
                   'Parent and child durations must not be added. Missing or incomplete phases are '
                   'unavailable; counters on incomplete rows are observed partial values, not complete frame totals.')
 PHASES = ('frame_plan', 'geometry_upload', 'command_encoding', 'encoder_finish', 'queue_submit')
-COUNTERS = ('prepared_draws', 'text_characters', 'upload_arenas', 'vertex_bytes', 'index_bytes',
-            'uniform_bytes', 'draw_calls', 'render_passes', 'texture_cache_misses', 'pipeline_cache_misses')
+COUNTERS_V1 = ('prepared_draws', 'text_characters', 'upload_arenas', 'vertex_bytes', 'index_bytes',
+               'uniform_bytes', 'draw_calls', 'render_passes', 'texture_cache_misses', 'pipeline_cache_misses')
+COUNTERS_V2 = COUNTERS_V1 + ('gpu_buffer_allocations', 'gpu_buffer_reuses',
+                             'gpu_buffer_allocated_bytes', 'transform_binding_allocations',
+                             'uncached_upload_arenas')
+COUNTERS = COUNTERS_V1
 MAX_ERROR_BYTES = 256
 # Reuse the exact-byte bounded reader, duplicate-key rejection and finite-number
 # checks used by the existing sidecar. No second read or reserialized hash.
@@ -44,6 +53,36 @@ def validate_instance_descriptor(primary):
                     'instance descriptor environment overrides must be false')
 
 
+def validate_upload_counters(counters, upload_policy):
+    """Complete v2 attempts account for three destination buffers per arena.
+
+    These are relationships between CPU observations, not exact payload sizes or
+    driver allocation claims. Incomplete attempts must retain partial values.
+    Python arithmetic stays exact even if intermediate sums exceed u64.
+    """
+    arenas = counters['upload_arenas']
+    allocations = counters['gpu_buffer_allocations']
+    reuses = counters['gpu_buffer_reuses']
+    allocated_bytes = counters['gpu_buffer_allocated_bytes']
+    bindings = counters['transform_binding_allocations']
+    uncached = counters['uncached_upload_arenas']
+    frames._require(allocations + reuses == 3 * arenas,
+                    'complete v2 allocations and reuses must account for three buffers per arena')
+    frames._require(uncached <= arenas,
+                    'complete v2 uncached arenas exceed upload arenas')
+    frames._require(allocations >= 3 * uncached and reuses <= 3 * (arenas - uncached),
+                    'complete v2 uncached arenas require three allocations and no reused buffers')
+    frames._require(uncached <= bindings <= allocations and bindings <= arenas,
+                    'complete v2 transform bindings contradict allocated buffers or upload arenas')
+    frames._require((allocations == 0) == (allocated_bytes == 0)
+                    and allocated_bytes >= 4 * allocations,
+                    'complete v2 allocated bytes contradict nonempty destination allocations')
+    if upload_policy == 'immutable_per_frame_v1':
+        frames._require(allocations == 3 * arenas and reuses == 0
+                        and bindings == uncached == arenas,
+                        'complete v2 counters contradict immutable_per_frame_v1 upload policy')
+
+
 def validate(detail, substage, primary, primary_digest):
     """Validate all three contracts and join every retained CPU frame attempt."""
     frames._require(isinstance(primary_digest, str) and len(primary_digest) == 64
@@ -52,9 +91,17 @@ def validate(detail, substage, primary, primary_digest):
     substages.validate(substage, primary, primary_digest)
     validate_instance_descriptor(primary)
     frames._finite_tree(detail)
-    frames._object(detail, ('schema', 'measurement', 'interpretation', 'frame_report_sha256',
-                            'frame_status', 'samples'), 'CPU encode detail sidecar')
-    for field, expected in (('schema', SCHEMA), ('measurement', MEASUREMENT),
+    v2 = isinstance(detail, dict) and detail.get('schema') == SCHEMA_V2
+    fields = ('schema', 'measurement', 'interpretation', 'frame_report_sha256',
+              'frame_status', 'samples') + (('upload_policy',) if v2 else ())
+    frames._object(detail, fields, 'CPU encode detail sidecar')
+    frames._require(detail['schema'] in (SCHEMA_V1, SCHEMA_V2),
+                    'CPU encode detail binding differs: schema')
+    if v2:
+        frames._require(detail['upload_policy'] in UPLOAD_POLICIES,
+                        'unsupported CPU encode upload_policy')
+    counter_names = COUNTERS_V2 if v2 else COUNTERS_V1
+    for field, expected in (('measurement', MEASUREMENT),
                             ('interpretation', INTERPRETATION),
                             ('frame_report_sha256', primary_digest),
                             ('frame_status', primary['status'])):
@@ -79,9 +126,11 @@ def validate(detail, substage, primary, primary_digest):
                             and bool(error.strip()) and len(error.encode('utf-8')) <= MAX_ERROR_BYTES),
                         'invalid encode diagnostic state')
         counters = details['counters']
-        frames._object(counters, COUNTERS, 'encode counters')
-        for name in COUNTERS:
+        frames._object(counters, counter_names, 'encode counters')
+        for name in counter_names:
             frames._uint(counters[name], 'encode counter ' + name)
+        if v2 and complete:
+            validate_upload_counters(counters, detail['upload_policy'])
         spans = details['spans']
         frames._require(isinstance(spans, list) and len(spans) <= len(PHASES),
                         'encode phase capacity exceeded')
@@ -128,8 +177,9 @@ def counter_statistics(values):
 
 def summarize(detail, substage, primary, primary_digest):
     validate(detail, substage, primary, primary_digest)
+    counter_names = COUNTERS_V2 if detail['schema'] == SCHEMA_V2 else COUNTERS_V1
     values = {phase: [] for phase in PHASES}
-    counters = {name: [] for name in COUNTERS}
+    counters = {name: [] for name in counter_names}
     incomplete = sum(sample['details']['state'] != 'complete' for sample in detail['samples'])
     incomplete_substages = sum(sample['details']['state'] != 'complete' for sample in substage['samples'])
     primary_complete = primary['status']['state'] == 'complete'
@@ -145,9 +195,9 @@ def summarize(detail, substage, primary, primary_digest):
         summarized += 1
         for span in details['spans']:
             values[span['stage']].append(span['duration_ns'])
-        for name in COUNTERS:
+        for name in counter_names:
             counters[name].append(details['counters'][name])
-    return {'schema': SCHEMA, 'frame_report_sha256': primary_digest,
+    result = {'schema': detail['schema'], 'frame_report_sha256': primary_digest,
             'frame_status': primary['status'],
             'diagnostic_status': ('complete' if primary_complete and not incomplete
                                   and not incomplete_substages else 'incomplete'),
@@ -163,7 +213,10 @@ def summarize(detail, substage, primary, primary_digest):
             'stages': {phase: {'parent': 'encode_submit',
                                'per_frame_total_ns': substages.statistics(values[phase])}
                        for phase in PHASES},
-            'counters': {name: counter_statistics(counters[name]) for name in COUNTERS}}
+            'counters': {name: counter_statistics(counters[name]) for name in counter_names}}
+    if detail['schema'] == SCHEMA_V2:
+        result['upload_policy'] = detail['upload_policy']
+    return result
 
 
 def main(argv=None):

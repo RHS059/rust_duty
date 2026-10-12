@@ -90,6 +90,7 @@ jobs:
         run: >-
           python tools/run_cpu_image_preservation.py run --root .
           --output evidence/cpu-image-native --build-timeout 1200 --process-timeout 180
+          --experiment geometry-reuse
       - name: Retain source, process and image evidence on either outcome
         if: always()
         uses: actions/upload-artifact@v4

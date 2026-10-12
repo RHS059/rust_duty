@@ -75,7 +75,7 @@ class CpuImageWorkflowTests(unittest.TestCase):
             self.assertIn(name, guards['run'])
         self.assertEqual(execution['timeout-minutes'], '54')
         for argument in ('--root .', '--output evidence/cpu-image-native',
-                         '--build-timeout 1200', '--process-timeout 180'):
+                         '--build-timeout 1200', '--process-timeout 180', '--experiment geometry-reuse'):
             self.assertIn(argument, execution['run'])
         for forbidden in ('--renderer=vulkan', '--renderer=gl', '--disable-validation', 'Start-Process'):
             self.assertNotIn(forbidden, self.body)

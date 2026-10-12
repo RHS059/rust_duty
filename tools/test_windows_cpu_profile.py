@@ -50,6 +50,26 @@ class ProfileGuards(unittest.TestCase):
             with self.assertRaises(FileExistsError):
                 profile.command_log(['x'], root, root / 'result.log')
 
+    def test_build_timeout_or_interrupt_retires_owned_descendants_and_retains_cleanup(self):
+        import dx12_contract_process as processes
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            for index, error in enumerate((subprocess.TimeoutExpired('cargo', 5), KeyboardInterrupt())):
+                child = MagicMock()
+                child.wait.side_effect = error
+                receipt = {'pid': 1234, 'succeeded': False, 'errors': ['synthetic tree cleanup failure']}
+                log = root / f'build-{index}.log'
+                with patch.object(profile.subprocess, 'CREATE_NEW_PROCESS_GROUP', 512, create=True), \
+                        patch.object(profile.subprocess, 'Popen', return_value=child) as launch, \
+                        patch.object(processes, '_terminate_process_tree', return_value=receipt) as cleanup:
+                    with self.assertRaises(type(error)) as caught:
+                        profile.command_log(['cargo', 'build'], root, log, timeout=5, owned_tree=True)
+                    self.assertIs(caught.exception, error)
+                cleanup.assert_called_once_with(child)
+                self.assertEqual(launch.call_args.kwargs['creationflags'], 512)
+                self.assertEqual(profile.json.loads(log.with_suffix('.cleanup.json').read_text()), receipt)
+                self.assertTrue(log.is_file())
+
     def test_source_bytes_must_match_real_git_identity(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -383,7 +403,15 @@ class ProfileGuards(unittest.TestCase):
         self.assertIn('persist-credentials: false', workflow)
         self.assertNotIn('secrets:', workflow)
         self.assertNotIn('workflow_dispatch', workflow)
-        self.assertIn('timeout-minutes: 45', workflow)
+        self.assertIn('timeout-minutes: 90', workflow)
+        self.assertIn('timeout-minutes: 84', workflow)
+        self.assertIn('run_windows_cpu_profile.py compare-uploads --root .', workflow)
+        self.assertIn('test_windows_cpu_profile test_geometry_profile_pair', workflow)
+        for folder in ('target', 'symbols', 'symcache'):
+            self.assertIn('!evidence/cpu-profile/**/' + folder + '/**', workflow)
+        self.assertIn('evidence/cpu-profile/r*/runtime/telemetry-sessions/**', workflow)
+        compact = workflow.split('name: windows-cpu-profile-reports-attempt-', 1)[1]
+        self.assertIn('evidence/cpu-profile/sources/*.json', compact)
         self.assertIn('if: always()', workflow)
         self.assertNotIn('!evidence/cpu-profile/*.pdb', workflow)
         self.assertNotIn('${{ runner.', workflow)

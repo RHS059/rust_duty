@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Compare only the reviewed four-file CPU overlay on Windows DX12/WARP.
+"""Compare a named exact-source renderer experiment on Windows DX12/WARP.
 
-Both variants are freshly built from exact source bytes. The baseline is the
-same integrated renderer with four old CPU files, not a historical whole game.
-Existing fixed renderer and mixed line/text fixtures own the image checks.
-Their incidental wall times are retained but never scored as performance.
+The historical CPU mode restores four old CPU files. Geometry-reuse mode changes
+only its compile-time upload policy and retains identical allocation diagnostics.
+Both variants are freshly built. Existing fixed renderer and mixed line/text
+fixtures own image checks; their wall times are never scored as performance.
 """
 import argparse
 import io
@@ -30,15 +30,19 @@ CPU_BASELINE = {
     'src/render/text.rs': '06ad5a1489c96152f516cfbade027ef2a7fa83f583889bed46c99f5dcd04a446',
     'src/render/plan.rs': 'c23e97a848435a610f5be0c72341ef8e5090fa2cd66846cda1b29159558a4c7e',
 }
-# All 119 compile inputs, not merely the four changed files or narrow runtime
-# witness. This exact candidate includes physical launch and encode profiling.
+# All production and conditional-test compile inputs, not merely changed files
+# or the narrow runtime witness. Update only after exact-source review.
 # Historical timing pair admission keeps its own immutable closed digest.
-PRODUCTION_MANIFEST = '11307369b7eef246f7b641e2646036aa1b211370a8139a66796d871597ef1219'
+PRODUCTION_MANIFEST = 'f796c8d9e5de81598a42fe77854b047ec961f0e17da709502889b65c143b2c5b'
 PRODUCTION_PATHS = ['Cargo.toml', 'Cargo.lock', 'build.rs', 'build_number.rs',
                     'LICENSE', 'THIRD_PARTY_LICENSES.txt', 'rust-toolchain',
                     'rust-toolchain.toml', '.cargo', '.gitattributes', 'src', 'updater']
 EXAMPLES = ('renderer_contract', 'pass_submission_benchmark')
 HARNESS_PATHS = [f'examples/{name}.rs' for name in EXAMPLES]
+UPLOAD_POLICY_PATH = 'src/frame_upload_policy.rs'
+UPLOAD_POLICY_ENABLED = b'REUSE_ENABLED: bool = true;'
+UPLOAD_POLICY_DISABLED = b'REUSE_ENABLED: bool = false;'
+EXPERIMENTS = ('cpu-overlay', 'geometry-reuse')
 SCHEMA = 'rust-duty-cpu-image-preservation/v1'
 FORBIDDEN_ENV = {'RUSTFLAGS', 'RUSTDOCFLAGS', 'CARGO_ENCODED_RUSTFLAGS',
                  'CARGO_ENCODED_RUSTDOCFLAGS', 'RUSTC', 'RUSTC_WRAPPER',
@@ -93,19 +97,37 @@ def source_pair(production, old_cpu, harness):
     return {'baseline': baseline, 'candidate': candidate}
 
 
-def prepare(root, output):
-    root, output = Path(root).resolve(), Path(output)
-    require(root == Path(__file__).resolve().parents[1], 'runner and checkout must be the same source tree')
+def geometry_production_pair(production):
+    """Same instrumented renderer, only the reviewed upload policy differs."""
+    require(matrix.canonical_hash(hashes(production)) == PRODUCTION_MANIFEST,
+            'integrated production compile inventory is not the reviewed candidate')
+    policy = production.get(UPLOAD_POLICY_PATH, b'')
+    require(policy.count(UPLOAD_POLICY_ENABLED) == 1 and UPLOAD_POLICY_DISABLED not in policy,
+            'reviewed enabled upload policy is absent or ambiguous')
+    baseline = {**production, UPLOAD_POLICY_PATH:
+                policy.replace(UPLOAD_POLICY_ENABLED, UPLOAD_POLICY_DISABLED)}
+    require({name for name in baseline if baseline[name] != production[name]} == {UPLOAD_POLICY_PATH},
+            'geometry experiment must change only the upload policy')
+    return {'baseline': baseline, 'candidate': production.copy()}
+
+
+def experiment_metadata(experiment):
+    require(experiment in EXPERIMENTS, 'unknown source-pair experiment')
+    if experiment == 'cpu-overlay':
+        return {'baseline_cpu_origin': BASELINE_CPU_COMMIT,
+                'baseline_is_four_file_counterfactual': True,
+                'overlay_paths': sorted(CPU_BASELINE),
+                'scope': 'asset-free image-preservation experiment; not a whole-game baseline'}
+    return {'experiment': experiment, 'baseline_is_four_file_counterfactual': False,
+            'overlay_paths': [UPLOAD_POLICY_PATH],
+            'upload_policies': {'baseline': 'immutable_per_frame_v1', 'candidate': 'bounded_reuse_v1'},
+            'scope': 'compile-time upload policy counterfactual on otherwise identical instrumented sources'}
+
+
+def materialize_variants(output, variants, binding, metadata):
+    """Write exact closed sources and immutable receipts; never fabricate Git identity."""
+    output = Path(output).resolve()
     require(not output.exists() and not output.is_symlink(), 'refusing stale comparison evidence')
-    binding = session.source_binding(root)
-    commit = binding['source_commit']
-    production = read_sources(root, commit, PRODUCTION_PATHS)
-    harness = read_sources(root, commit, HARNESS_PATHS)
-    for name, raw in {**production, **harness}.items():
-        require((root / name).read_bytes() == raw, 'checkout bytes differ from committed source: ' + name)
-    variants = source_pair(production,
-                           read_sources(root, BASELINE_CPU_COMMIT, sorted(CPU_BASELINE)), harness)
-    output = output.resolve()
     output.mkdir(parents=True, exist_ok=False)
     verifier_path = output / 'verifier-source.json'
     matrix.write_json(verifier_path, binding)
@@ -119,17 +141,37 @@ def prepare(root, output):
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_bytes(raw)
         require(controls.source_manifest(destination) == hashes(sources), 'materialized source differs')
-        receipt = {'schema': SCHEMA, 'variant': label, 'integrated_source_commit': commit,
+        receipt = {'schema': SCHEMA, 'variant': label,
+                   'integrated_source_commit': binding['source_commit'],
                    'production_manifest_sha256': PRODUCTION_MANIFEST,
-                   'baseline_cpu_origin': BASELINE_CPU_COMMIT,
-                   'baseline_is_four_file_counterfactual': True,
-                   'overlay_paths': sorted(CPU_BASELINE), 'files_sha256': hashes(sources),
-                   'scope': 'asset-free image-preservation experiment; not a whole-game baseline'}
+                   'files_sha256': hashes(sources), **metadata}
         path = output / (label + '-source.json')
         matrix.write_json(path, receipt)
         receipts[label] = {'source': destination, 'files': receipt['files_sha256'],
                            'receipt_path': path, 'receipt_sha256': matrix.sha256(path),
                            'verifier_path': verifier_path, 'verifier_sha256': verifier_sha256}
+    return receipts
+
+
+def prepare(root, output, experiment='cpu-overlay'):
+    root, output = Path(root).resolve(), Path(output)
+    require(root == Path(__file__).resolve().parents[1], 'runner and checkout must be the same source tree')
+    require(not output.exists() and not output.is_symlink(), 'refusing stale comparison evidence')
+    binding = session.source_binding(root)
+    commit = binding['source_commit']
+    production = read_sources(root, commit, PRODUCTION_PATHS)
+    harness = read_sources(root, commit, HARNESS_PATHS)
+    for name, raw in {**production, **harness}.items():
+        require((root / name).read_bytes() == raw, 'checkout bytes differ from committed source: ' + name)
+    metadata = experiment_metadata(experiment)
+    if experiment == 'geometry-reuse':
+        require(set(harness) == set(HARNESS_PATHS), 'both common image fixtures are required')
+        variants = {label: {**sources, **harness}
+                    for label, sources in geometry_production_pair(production).items()}
+    else:
+        variants = source_pair(production,
+                               read_sources(root, BASELINE_CPU_COMMIT, sorted(CPU_BASELINE)), harness)
+    receipts = materialize_variants(output, variants, binding, metadata)
     require(session.source_binding(root) == binding, 'source changed during preparation')
     return binding, receipts
 
@@ -232,7 +274,7 @@ def cargo_config_paths(source, env):
 
 
 def check_cargo_configuration(source, env):
-    # The reviewed 118-file production tree has no Cargo config. Never read or
+    # The reviewed production tree has no Cargo config. Never read or
     # copy private config contents; refuse an unbound compiler/dependency input.
     require(not any(path.exists() or path.is_symlink() for path in cargo_config_paths(source, env)),
             'unbound Cargo configuration exists in a source ancestor or Cargo home')
@@ -243,7 +285,7 @@ def toolchain_at(directory):
             for name, flag in (('rustc', '-Vv'), ('cargo', '-V'))}
 
 
-def run(root, output, build_timeout=1200, process_timeout=180):
+def run(root, output, build_timeout=1200, process_timeout=180, experiment='cpu-overlay'):
     require(sys.platform == 'win32', 'image preservation requires Windows DX12/WARP')
     require(gpu.positive(build_timeout) and gpu.positive(process_timeout), 'timeouts must be finite and positive')
     check_environment(os.environ)
@@ -251,7 +293,7 @@ def run(root, output, build_timeout=1200, process_timeout=180):
     rustc = compiler['rustc']
     require('release: 1.99.0\n' in rustc and 'host: x86_64-pc-windows-msvc\n' in rustc,
             'use reviewed Rust 1.99.0 Windows MSVC toolchain')
-    binding, receipts = prepare(root, output)
+    binding, receipts = prepare(root, output, experiment)
     root, output = Path(root).resolve(), Path(output).resolve()
     try:
         matrix.write_json(output / 'toolchain.json', compiler)
@@ -320,8 +362,8 @@ def run(root, output, build_timeout=1200, process_timeout=180):
                   'control_output_files_sha256': {str(path.relative_to(output)): value for path, value in outputs.items()},
                   'control_outputs_archive': control_archive,
                   'executables': binaries, 'gpu_lifecycle_verified': False, 'authored_acceptance': False,
-                  'performance_improvement': None,
-                  'scope': 'four-file CPU overlay image preservation only; no FPS, RTX or authored source-visibility verdict'}
+                  'performance_improvement': None, 'experiment': experiment,
+                  'scope': experiment_metadata(experiment)['scope'] + '; no FPS, RTX or authored source-visibility verdict'}
         matrix.write_json(output / 'summary.json', result)
         return result
     except BaseException as error:
@@ -332,6 +374,7 @@ def run(root, output, build_timeout=1200, process_timeout=180):
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('mode', choices=('prepare', 'run'))
+    parser.add_argument('--experiment', choices=EXPERIMENTS, default='cpu-overlay')
     parser.add_argument('--root', type=Path, default=Path('.'))
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--build-timeout', type=float, default=1200)
@@ -339,10 +382,10 @@ def main(argv=None):
     args = parser.parse_args(argv)
     try:
         if args.mode == 'prepare':
-            binding, _ = prepare(args.root, args.output)
+            binding, _ = prepare(args.root, args.output, args.experiment)
             print(json.dumps({'prepared': True, 'source_commit': binding['source_commit'], 'executed': False}))
         else:
-            print(json.dumps(run(args.root, args.output, args.build_timeout, args.process_timeout), allow_nan=False))
+            print(json.dumps(run(args.root, args.output, args.build_timeout, args.process_timeout, args.experiment), allow_nan=False))
         return 0
     except (ValueError, OSError, subprocess.SubprocessError) as error:
         print('cpu-image-preservation: ' + str(error), file=sys.stderr)

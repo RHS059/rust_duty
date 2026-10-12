@@ -94,6 +94,49 @@ class SourcePairTests(unittest.TestCase):
                     image.prepare(root, root / 'evidence')
 
 
+class GeometrySourcePairTests(unittest.TestCase):
+    def setUp(self):
+        self.production = {'Cargo.toml': b'manifest', 'src/untouched.rs': b'unchanged',
+                           image.UPLOAD_POLICY_PATH: b'pub const REUSE_ENABLED: bool = true;\n'}
+        self.pin = patch.object(image, 'PRODUCTION_MANIFEST',
+                                image.matrix.canonical_hash(image.hashes(self.production)))
+        self.pin.start()
+        self.addCleanup(self.pin.stop)
+
+    def test_same_instrumentation_only_one_policy_line_changes(self):
+        pair = image.geometry_production_pair(self.production)
+        self.assertEqual(pair['candidate'], self.production)
+        self.assertEqual(pair['baseline'][image.UPLOAD_POLICY_PATH],
+                         b'pub const REUSE_ENABLED: bool = false;\n')
+        self.assertEqual({name for name in self.production
+                          if pair['baseline'][name] != pair['candidate'][name]}, {image.UPLOAD_POLICY_PATH})
+        self.assertEqual(image.experiment_metadata('geometry-reuse')['upload_policies'],
+                         {'baseline': 'immutable_per_frame_v1', 'candidate': 'bounded_reuse_v1'})
+        self.assertFalse(image.experiment_metadata('geometry-reuse')['baseline_is_four_file_counterfactual'])
+        self.assertTrue(image.experiment_metadata('cpu-overlay')['baseline_is_four_file_counterfactual'])
+
+    def test_closed_inventory_rejects_extra_missing_or_changed_inputs(self):
+        for production in ({**self.production, 'src/extra.rs': b'extra'},
+                           {k: v for k, v in self.production.items() if k != 'Cargo.toml'},
+                           {**self.production, 'src/untouched.rs': b'changed'}):
+            with self.subTest(production=production), self.assertRaisesRegex(ValueError, 'compile inventory'):
+                image.geometry_production_pair(production)
+
+    def test_even_rebound_manifest_cannot_enable_a_missing_or_ambiguous_policy(self):
+        for raw in (b'', image.UPLOAD_POLICY_DISABLED, image.UPLOAD_POLICY_ENABLED * 2,
+                    image.UPLOAD_POLICY_ENABLED + image.UPLOAD_POLICY_DISABLED):
+            production = {**self.production, image.UPLOAD_POLICY_PATH: raw}
+            with self.subTest(raw=raw), patch.object(image, 'PRODUCTION_MANIFEST',
+                    image.matrix.canonical_hash(image.hashes(production))):
+                with self.assertRaisesRegex(ValueError, 'upload policy'):
+                    image.geometry_production_pair(production)
+
+    def test_unknown_experiment_is_not_a_source_alias(self):
+        for value in ('reuse', 'baseline', None, True):
+            with self.subTest(value=value), self.assertRaisesRegex(ValueError, 'unknown'):
+                image.experiment_metadata(value)
+
+
 class ArchiveTests(unittest.TestCase):
     def archive(self, name, kind=tarfile.REGTYPE):
         stream = io.BytesIO()

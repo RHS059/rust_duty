@@ -138,3 +138,27 @@ Status at preparation: Linux source/guard validation and the mixed example's
 37 baseline / 42 candidate unit tests are available. Native image comparison,
 enabled windowed GPU-session execution, authored baseline replay and target
 hardware performance remain unrun.
+
+## Destination-buffer reuse comparison
+
+The separately named `--experiment geometry-reuse` mode uses the current
+122-file closed compile inventory (`f796c8d9e5de81598a42fe77854b047ec961f0e17da709502889b65c143b2c5b`).
+Both variants retain the same new v2 phase/allocation counters. The only source
+change is `src/frame_upload_policy.rs`, replacing `REUSE_ENABLED: bool = true`
+with `false` in the explicitly labeled baseline. The latter selects the original
+immutable per-frame uploader. It is a one-line policy counterfactual, not the
+historical four-file CPU baseline or an unmodified retail commit.
+
+The existing Windows workflow runs:
+
+```text
+python tools/run_cpu_image_preservation.py run --root . --output evidence/cpu-image-native --build-timeout 1200 --process-timeout 180 --experiment geometry-reuse
+```
+
+The two shared image fixtures, all 21 fixed image expectations, four mixed-image
+comparisons, exact pixel equality and directory-bearing retained archive remain
+unchanged. The old CPU overlay remains available as `--experiment cpu-overlay`.
+Queued earlier-frame-copy versus later-write lifetime coverage is supplied by
+the separate `render::upload_reuse_tests` suite on DX12/WARP; serial image
+readbacks alone do not establish in-flight ordering safety. Neither result
+changes the authored ADS coverage failure or establishes an RTX speedup.
