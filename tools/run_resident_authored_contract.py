@@ -21,6 +21,12 @@ EXAMPLE = 'resident_authored_contract'
 # Two complete 22-pose command inventories exceed the generic 2 MiB JSON cap.
 # Bound only this paired report; camera, process and source JSON keep their limits.
 REPORT_MAX_BYTES = 4 * 1024 * 1024
+HISTORICAL_PROBE_PIXELS = {
+    **{name: [(544,257)] for name in ('ready-0','ready-1','ready-3','manifest-0','manifest-12','manifest-24')},
+    'walk-0':[(561,238)],'walk-3':[(561,238)],'walk-1':[(551,253)],
+    'ads-1':[(546,246),(547,246),(519,261),(519,263)],
+    'reload-1':[(508,233),(510,233),(524,233),(524,234),(505,270)],
+}
 STATS = tuple(name.removeprefix('resident_') for name in detail.COUNTERS_V3[len(detail.COUNTERS_V2):])
 require = authored.require
 
@@ -119,6 +125,188 @@ def validate_outputs(directory, report, receipt_sha256):
             'scope': 'fixed authored overview correctness; no frame-rate or gameplay-visibility verdict'}
 
 
+def validate_probe_parent(report, receipt_sha256):
+    """Validate a complete image report structurally, retaining pixel failure.
+
+    The original strict validator still owns acceptance. This helper permits
+    only bounded numerical pixel differences for diagnostic replay; all source,
+    pose, command, corner, path, resource and visibility predicates still apply.
+    It never changes the caller's report or returns a passed verdict.
+    """
+    require(isinstance(report,dict) and type(report.get('passed')) is bool,
+            'vertex probe parent verdict must be boolean')
+    cases=report.get('cases')
+    require(isinstance(cases,list) and all(isinstance(c,dict) for c in cases)
+            and [c.get('name') for c in cases] == authored.CASE_NAMES,
+            'vertex probe parent case inventory differs')
+    exact=True
+    for case in cases:
+        count,delta=case.get('differing_pixels'),case.get('maximum_channel_delta')
+        require(type(count) is int and 0<=count<=authored.EXTENT[0]*authored.EXTENT[1]
+                and type(delta) is int and 0<=delta<=255 and (count==0)==(delta==0),
+                'vertex probe parent pixel metrics invalid')
+        exact=exact and count==0
+    require(report['passed'] is exact, 'vertex probe parent pixel verdict contradicts metrics')
+    structural=copy.deepcopy(report)
+    structural['passed']=True
+    for case in structural['cases']:
+        case.update(differing_pixels=0,maximum_channel_delta=0)
+    validate_report(structural,receipt_sha256)
+    return report
+
+
+def validate_vertex_probe(directory, report, receipt_sha256, root):
+    """Strict provenance/shape/completeness only; arithmetic deltas are retained."""
+    directory, root = Path(directory), Path(root)
+    validate_probe_parent(report,receipt_sha256)
+    require(authored.digest_string(receipt_sha256), 'vertex probe source receipt digest invalid')
+    require(report.get('source_receipt_sha256') == receipt_sha256,
+            'vertex probe parent source receipt differs')
+    require(isinstance(report.get('cases'),list)
+            and all(isinstance(c,dict) for c in report['cases'])
+            and [c.get('name') for c in report['cases']] == authored.CASE_NAMES,
+            'vertex probe parent case inventory differs')
+    expected = {'probe-result.json'} | {name + '.json' for name in authored.CASE_NAMES}
+    require(directory.is_dir() and not directory.is_symlink()
+            and {p.name for p in directory.iterdir()} == expected
+            and all(p.is_file() and not p.is_symlink() for p in directory.iterdir()),
+            'vertex probe output inventory differs')
+    result = matrix.json_read(directory / 'probe-result.json')
+    require(isinstance(result,dict) and result.get('schema') == 'rust-duty-resident-vertex-probe-result/v1'
+            and result.get('source_receipt_sha256') == receipt_sha256
+            and result.get('image_gate_passed') is report.get('passed')
+            and type(result.get('image_gate_passed')) is bool
+            and result.get('probe_completed') is True and result.get('errors') == [],
+            'vertex probe did not complete or parent verdict differs')
+    def uint(value, maximum=2**32-1):
+        return type(value) is int and 0 <= value <= maximum
+    totals = dict(selected_vertices=0, current_clip_differences=0, current_color_differences=0,
+                  historical_clip_differences=0, historical_color_differences=0,
+                  normalization_clip_differences=0, normalization_color_differences=0)
+    shader_paths = {'production_resident_shader_sha256':'src/render/resident.wgsl',
+                    'production_cpu_shader_sha256':'src/render/mesh.wgsl',
+                    'probe_implementation_sha256':'src/render/resident_vertex_probe.rs'}
+    for case in report['cases']:
+        value = matrix.json_read(directory / (case['name'] + '.json'))
+        require(isinstance(value,dict) and value.get('schema') == 'rust-duty-resident-vertex-probe/v1'
+                and value.get('case') == case['name'] and value.get('metadata') == case['metadata']
+                and value.get('source_receipt_sha256') == receipt_sha256
+                and value.get('camera_bits') == report['camera']['view_projection_bits'],
+                'vertex probe source/case/camera differs')
+        require(all(value.get(key) == matrix.sha256(root / path) for key,path in shader_paths.items()),
+                'vertex probe shader or implementation bytes differ')
+        require(value.get('selection_complete') is True
+                and uint(value.get('changed_pixel_count'), 960*540)
+                and value['changed_pixel_count'] == case['differing_pixels']
+                and type(value.get('selection_limit_pixels')) is int and value['selection_limit_pixels'] == 16
+                and type(value.get('selection_limit_triangles_per_pixel')) is int
+                and value['selection_limit_triangles_per_pixel'] == 2
+                and type(value.get('changed_pixels_not_selected')) is int and value['changed_pixels_not_selected'] == 0
+                and type(value.get('requested_pixels_without_triangle')) is int and value['requested_pixels_without_triangle'] == 0,
+                'vertex probe selection incomplete or counters differ')
+        pixels, draws = value.get('pixels'), value.get('draws')
+        require(isinstance(pixels,list) and len(pixels)<=16 and isinstance(draws,list)
+                and len(draws)<=32 and value['changed_pixel_count'] <= len(pixels),
+                'vertex probe selection bounds differ')
+        require(type(value.get('representative_probe_shader_count')) is int
+                and value['representative_probe_shader_count'] == 3
+                and all(value.get(key) == pair.controls.digest(vertex_probe_shader(root,route,'skin',3).encode('utf-8'))
+                        for route,key in (('current','current_skin_probe_shader_sha256'),
+                                          ('historical','historical_skin_probe_shader_sha256'))),
+                'representative vertex probe shader identity differs')
+        selected, seen_pixels, selected_order = set(), set(), {}
+        for pixel in pixels:
+            require(isinstance(pixel,dict), 'vertex probe pixel must be an object')
+            point, triangles = pixel.get('pixel'), pixel.get('triangles')
+            require(isinstance(point,list) and len(point)==2 and uint(point[0],959) and uint(point[1],539)
+                    and tuple(point) not in seen_pixels and isinstance(triangles,list)
+                    and 1<=len(triangles)<=2, 'invalid/duplicate/uncovered probe pixel')
+            seen_pixels.add(tuple(point))
+            hit_order, hit_ids = [], set()
+            for triangle in triangles:
+                require(isinstance(triangle,dict), 'vertex probe triangle must be an object')
+                command, corner = triangle.get('command'), triangle.get('corner')
+                require(uint(command,len(case['cpu_commands'])-1) and uint(corner)
+                        and corner%3==0 and corner+3<=case['cpu_commands'][command]['indices']
+                        and type(triangle.get('cpu_depth')) in (int,float),
+                        'vertex probe triangle range/type differs')
+                require((command,corner) not in hit_ids, 'duplicate probe triangle')
+                hit_ids.add((command,corner))
+                hit_order.append((triangle['cpu_depth'],command,corner))
+                selected.add((command,corner))
+                order=selected_order.setdefault(command,[])
+                if corner not in order: order.append(corner)
+            require(hit_order == sorted(hit_order), 'probe triangle depth/order differs')
+        require(set(HISTORICAL_PROBE_PIXELS.get(case['name'],())) <= seen_pixels,
+                'historically requested vertex probe pixels are absent')
+        actual, command_ids = set(), []
+        for draw in draws:
+            require(isinstance(draw,dict), 'vertex probe draw must be an object')
+            command, corners, count = draw.get('command'), draw.get('triangle_corner_offsets'), draw.get('vertex_count')
+            require(uint(command,len(case['cpu_commands'])-1) and command not in command_ids
+                    and isinstance(corners,list) and corners and all(uint(v) for v in corners)
+                    and len(corners)==len(set(corners)) and corners==selected_order.get(command)
+                    and uint(count,384) and count==len(corners)*3
+                    and draw.get('kind') in ('skin','rigid'), 'vertex probe draw selection differs')
+            command_ids.append(command)
+            actual.update((command,corner) for corner in corners)
+            for key in ('cpu_model_bits','resident_model_bits'):
+                words=draw.get(key)
+                require(isinstance(words,list) and len(words)==16 and all(uint(v) for v in words),
+                        'vertex probe matrix words invalid')
+            for route,key in (('cpu','cpu_probe_shader_sha256'),('current','current_probe_shader_sha256'),
+                              ('historical','historical_probe_shader_sha256')):
+                expected_source = vertex_probe_shader(root,route,draw['kind'],count)
+                require(draw.get(key) == pair.controls.digest(expected_source.encode('utf-8')),
+                        'vertex probe generated shader identity differs')
+            routes=[]
+            for key in ('cpu_vertex_stage','current_vertex_stage','historical_inverse_sqrt_vertex_stage'):
+                samples=draw.get(key)
+                require(isinstance(samples,list) and len(samples)==count,'vertex probe sample count differs')
+                parent = case['cpu_commands' if key=='cpu_vertex_stage' else 'resident_commands'][command]
+                for sample in samples:
+                    require(isinstance(sample,dict) and set(sample)=={'source_vertex','clip_bits','color_bits'}
+                            and uint(sample['source_vertex'],parent['stored_vertices']-1)
+                            and all(isinstance(sample[k],list) and len(sample[k])==4
+                                    and all(uint(v) for v in sample[k]) for k in ('clip_bits','color_bits'))
+                            and sample['color_bits'] != [2**32-1]*4,
+                            'vertex probe sample words invalid or unwritten')
+                routes.append(samples)
+            for cpu,current,historical in zip(*routes):
+                require(current['source_vertex']==historical['source_vertex'], 'resident probe vertex order differs')
+                totals['selected_vertices']+=1
+                for key,field in (('clip','clip_bits'),('color','color_bits')):
+                    totals[f'current_{key}_differences']+=cpu[field]!=current[field]
+                    totals[f'historical_{key}_differences']+=cpu[field]!=historical[field]
+                    totals[f'normalization_{key}_differences']+=current[field]!=historical[field]
+        require(command_ids==sorted(command_ids) and actual==selected,
+                'vertex probe selected triangles are missing/extra/reordered')
+    return {'schema':'rust-duty-resident-vertex-probe-summary/v1', 'diagnostic_completed':True,
+            'image_gate_passed':report['passed'], **totals,
+            'scope':'instrumented vertex-stage differences only; strict original pixel verdict is unchanged'}
+
+
+def vertex_probe_shader(root, route, kind, count):
+    root=Path(root)
+    require(route in ('cpu','current','historical') and kind in ('rigid','skin')
+            and type(count) is int and 1<=count<=384,'invalid probe shader selection')
+    source=(root/'src/render/resident.wgsl').read_text(encoding='utf-8')
+    current='let reciprocal = 1.0 / sqrt(length_squared);'
+    historical='let reciprocal = inverseSqrt(length_squared);'
+    require(source.count(current)==1 and historical not in source,'probe normalization source changed')
+    if route=='cpu':
+        source=(root/'src/render/mesh.wgsl').read_text(encoding='utf-8').replace('@vertex fn vs_main','fn original_vs_main')
+        input_name,entry='VertexInput','original_vs_main'
+    else:
+        if route=='historical': source=source.replace(current,historical,1)
+        source=source.replace('@vertex fn vs_rigid','fn original_vs_rigid').replace('@vertex fn vs_skin','fn original_vs_skin')
+        input_name,entry=('SkinInput','original_vs_skin') if kind=='skin' else ('RigidInput','original_vs_rigid')
+    template=(root/'src/render/resident_vertex_probe.wgsl').read_text(encoding='utf-8')
+    require(all(template.count(token)==1 for token in ('__INPUT__','__ENTRY__','__COUNT__')),
+            'probe shader template substitution differs')
+    return source+'\n'+template.replace('__INPUT__',input_name).replace('__ENTRY__',entry).replace('__COUNT__',str(count))
+
+
 def logged(command, root, output, env, timeout, executable_sha256=None):
     require(pair.gpu.positive(timeout), 'timeout must be finite and positive')
     output.mkdir(parents=True, exist_ok=False)
@@ -162,9 +350,10 @@ def device_evidence(log, report):
     return evidence
 
 
-def run(root, output, build_timeout=1200, process_timeout=900):
+def run(root, output, build_timeout=1200, process_timeout=900, vertex_probe=False):
     root, output = Path(root).resolve(), Path(output).resolve()
     require(sys.platform in ('win32', 'linux'), 'unsupported native host')
+    require(type(vertex_probe) is bool, 'vertex probe opt-in must be boolean')
     require(root == Path(__file__).resolve().parents[1], 'runner and source checkout differ')
     require(pair.gpu.positive(build_timeout) and pair.gpu.positive(process_timeout), 'invalid timeouts')
     pair.check_environment(os.environ)
@@ -213,12 +402,18 @@ def run(root, output, build_timeout=1200, process_timeout=900):
         retain(output / 'build')
         retained[output / 'executable.json'] = matrix.sha256(output / 'executable.json')
         verify()
-        logged([str(executable), '--manifest', str(root / 'assets/animations.cfg'), '--output-dir', str(output / 'captures')],
+        command = [str(executable), '--manifest', str(root / 'assets/animations.cfg'), '--output-dir', str(output / 'captures')]
+        if vertex_probe:
+            command += ['--vertex-probe-dir', str(output / 'vertex-probe')]
+        logged(command,
                root, output / 'process', env, process_timeout, executable_hash)
         report = read_report(output / 'captures/report.json')
         summary = validate_outputs(output / 'captures', report, receipt_hash)
         retain(output / 'process')
         retain(output / 'captures')
+        if vertex_probe:
+            retain(output / 'vertex-probe')
+            summary['vertex_probe'] = validate_vertex_probe(output / 'vertex-probe', report, receipt_hash, root)
         summary['device_evidence'] = device_evidence(output / 'process/stderr.log', report)
         verify()
         summary.update(source_commit=source['commit'], source_receipt_sha256=receipt_hash,
@@ -246,9 +441,10 @@ def main(argv=None):
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--build-timeout', type=float, default=1200)
     parser.add_argument('--process-timeout', type=float, default=900)
+    parser.add_argument('--vertex-probe', action='store_true')
     args = parser.parse_args(argv)
     try:
-        print(json.dumps(run(args.root, args.output, args.build_timeout, args.process_timeout), indent=2))
+        print(json.dumps(run(args.root, args.output, args.build_timeout, args.process_timeout, args.vertex_probe), indent=2))
         return 0
     except (ValueError, OSError, subprocess.SubprocessError) as error:
         print(str(error), file=sys.stderr)

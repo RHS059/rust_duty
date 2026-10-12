@@ -2,6 +2,9 @@
 #![allow(dead_code)]
 #[path = "../src/authored_viewmodel.rs"]
 mod authored_viewmodel;
+#[cfg(feature = "wgpu-runtime")]
+#[path = "support/resident_vertex_diagnostic.rs"]
+mod vertex_diagnostic;
 #[path = "../src/weapon_model.rs"]
 mod weapon_model;
 
@@ -421,8 +424,18 @@ fn run() -> Result<(), String> {
         "expected --output-dir",
     )?;
     let output = PathBuf::from(args.next().ok_or("missing output directory")?);
+    let probe_output = match args.next() {
+        None => None,
+        Some(flag) if flag == "--vertex-probe-dir" => Some(PathBuf::from(
+            args.next().ok_or("missing vertex probe directory")?,
+        )),
+        Some(_) => return Err("unexpected trailing argument".into()),
+    };
     require(args.next().is_none(), "unexpected trailing argument")?;
     fs::create_dir(&output).map_err(|e| e.to_string())?;
+    if let Some(path) = &probe_output {
+        fs::create_dir(path).map_err(|e| e.to_string())?;
+    }
     let (backend, fallback) = if cfg!(target_os = "windows") {
         (BackendSelection::Dx12, true)
     } else if cfg!(target_os = "linux") {
@@ -464,7 +477,8 @@ fn run() -> Result<(), String> {
     write(&output.join("camera.json"), &camera_report)?;
     let mut rows = Vec::new();
     let mut all_pass = true;
-    for (cpu, gpu) in cpu_cases.into_iter().zip(gpu_cases) {
+    let mut probe_errors = Vec::new();
+    for (cpu, gpu) in cpu_cases.iter().zip(&gpu_cases) {
         require(
             cpu.name == gpu.name && cpu.metadata == gpu.metadata,
             "pose sequence or metadata differs",
@@ -563,9 +577,37 @@ fn run() -> Result<(), String> {
         "backend":{"requested":renderer.info().requested,"backend":renderer.info().backend,"adapter":renderer.info().adapter},
         "scope":"actual original-loader CPU oracle versus resident GPU shader; fixed diagnostic overview, no performance or gameplay-framing verdict"}),
     )?;
+    if let Some(path) = &probe_output {
+        // Only after the complete authoritative report is on disk may an
+        // optional diagnostic submit/map/wait affect this device.
+        for (cpu, gpu) in cpu_cases.iter().zip(&gpu_cases) {
+            let result = (|| {
+                let a = image::open(output.join(format!("{}-cpu.png", cpu.name)))
+                    .map_err(|e| e.to_string())?
+                    .to_rgba8();
+                let b = image::open(output.join(format!("{}-resident.png", cpu.name)))
+                    .map_err(|e| e.to_string())?
+                    .to_rgba8();
+                vertex_diagnostic::run(path, &mut renderer, cpu, gpu, camera, &a, &b)
+            })();
+            if let Err(error) = result {
+                probe_errors.push(json!({"case":cpu.name,"error":error}));
+            }
+        }
+        write(
+            &path.join("probe-result.json"),
+            &json!({"schema":"rust-duty-resident-vertex-probe-result/v1",
+            "source_receipt_sha256":option_env!("PASS_SUBMISSION_SOURCE_SHA256").unwrap_or("unbound"),
+            "image_gate_passed":all_pass,"probe_completed":probe_errors.is_empty(),"errors":probe_errors}),
+        )?;
+    }
     require(
         all_pass,
         "resident authored corner or pixel parity failed; original evidence retained",
+    )?;
+    require(
+        probe_errors.is_empty(),
+        "vertex-stage probe failed; original image verdict retained separately",
     )
 }
 fn main() {

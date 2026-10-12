@@ -46,6 +46,11 @@ pub use device::BackendSelection;
 #[doc(hidden)]
 pub mod finite_warp_probe;
 
+/// Bounded vertex-stage arithmetic readback; invoked only by explicit diagnostics.
+#[cfg(feature = "wgpu-runtime")]
+#[doc(hidden)]
+pub mod resident_vertex_probe;
+
 #[cfg(feature = "wgpu-runtime")]
 mod upload_cache;
 #[cfg(all(test, feature = "wgpu-runtime"))]

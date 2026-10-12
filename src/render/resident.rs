@@ -15,7 +15,7 @@ fn floats(output: &mut Vec<u8>, values: impl IntoIterator<Item = f32>) {
     }
 }
 
-fn vertices(mesh: &ResidentMesh) -> Vec<u8> {
+pub(super) fn vertices(mesh: &ResidentMesh) -> Vec<u8> {
     let mut output = Vec::with_capacity(
         mesh.vertex_count()
             * match mesh.vertices() {
@@ -57,7 +57,7 @@ fn indices(mesh: &ResidentMesh) -> Vec<u8> {
     output
 }
 
-fn palette_bytes(palette: Option<&SkinPalette>) -> Vec<u8> {
+pub(super) fn palette_bytes(palette: Option<&SkinPalette>) -> Vec<u8> {
     // Fixed WGSL arrays: a 72-bone skeleton still starts normals at byte8192.
     let mut output = Vec::with_capacity(PALETTE_BYTES);
     for normal in [false, true] {
@@ -78,7 +78,7 @@ fn palette_bytes(palette: Option<&SkinPalette>) -> Vec<u8> {
     output
 }
 
-fn draw_bytes(draw: &ResidentDraw, view_projection: Mat4) -> Result<Vec<u8>, String> {
+pub(super) fn draw_bytes(draw: &ResidentDraw, view_projection: Mat4) -> Result<Vec<u8>, String> {
     if !view_projection.is_finite() || !(view_projection * draw.root()).is_finite() {
         return Err("nonfinite resident view-projection".into());
     }
@@ -492,6 +492,58 @@ mod tests {
     }
     fn word(bytes: &[u8], offset: usize) -> f32 {
         f32::from_le_bytes(bytes[offset..offset + 4].try_into().unwrap())
+    }
+    #[test]
+    fn normalization_uses_cpu_sqrt_then_reciprocal_and_keeps_byte_fences() {
+        use wgpu::naga::{BinaryOperator, Expression, MathFunction};
+        let module = wgpu::naga::front::wgsl::parse_str(include_str!("resident.wgsl")).unwrap();
+        let (_, function) = module
+            .functions
+            .iter()
+            .find(|(_, f)| f.name.as_deref() == Some("normal_or_y"))
+            .unwrap();
+        assert_eq!(
+            function
+                .expressions
+                .iter()
+                .filter(|(_, e)| matches!(
+                    e,
+                    Expression::Math {
+                        fun: MathFunction::Sqrt,
+                        ..
+                    }
+                ))
+                .count(),
+            1
+        );
+        assert!(!function.expressions.iter().any(|(_, e)| matches!(
+            e,
+            Expression::Math {
+                fun: MathFunction::InverseSqrt,
+                ..
+            }
+        )));
+        assert!(function.expressions.iter().any(|(_, e)| matches!(
+            e,
+            Expression::Binary {
+                op: BinaryOperator::Divide,
+                ..
+            }
+        )));
+        // Independently generated float32 boundary inputs. These expectations
+        // are the existing CPU oracle, not an assertion about GPU execution.
+        for (bits, byte) in [
+            ([3213363676, 1066472058, 1057255481], 241),
+            ([1071908497, 1070192988, 1069430069], 177),
+            ([1071008643, 1050453308, 1069358016], 125),
+            ([1061214333, 1053540367, 1072746884], 173),
+        ] {
+            let normal = glam::Vec3::from_array(bits.map(f32::from_bits));
+            let color: [u8; 4] = SceneLighting::range()
+                .shade(Color::WHITE, normal.try_normalize().unwrap())
+                .into();
+            assert_eq!(color, [byte, byte, byte, 255]);
+        }
     }
     #[test]
     fn shader_validates_and_uniform_layouts_match_the_explicit_bytes() {

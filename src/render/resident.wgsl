@@ -41,7 +41,10 @@ fn normal_or_y(value: vec3<f32>) -> vec3<f32> {
     // Match glam::try_normalize: even finite inputs can overflow dot(), or
     // underflow its reciprocal. Zero/nonfinite reciprocals use the +Y fallback.
     if length_squared > 0.0 && length_squared <= 3.4028234663852886e38 {
-        let reciprocal = inverseSqrt(length_squared);
+        // Keep the CPU operation sequence: sqrt is rounded before reciprocal.
+        // inverseSqrt is a different permitted approximation near byte fences.
+        // Backend reassociation/accuracy still requires native parity checks.
+        let reciprocal = 1.0 / sqrt(length_squared);
         if reciprocal > 0.0 && reciprocal <= 3.4028234663852886e38 {
             return value * reciprocal;
         }

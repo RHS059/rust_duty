@@ -11,7 +11,7 @@ import run_resident_authored_contract as resident
 
 
 class ResidentAuthoredFlowTests(unittest.TestCase):
-    def flow(self, mutation=None, host='win32'):
+    def flow(self, mutation=None, host='win32', vertex_probe=False):
         temp = tempfile.TemporaryDirectory()
         self.addCleanup(temp.cleanup)
         base = Path(temp.name).resolve()
@@ -40,6 +40,8 @@ class ResidentAuthoredFlowTests(unittest.TestCase):
                 path = output / 'captures/unexpected'
                 if mutation.endswith('directory'): path.mkdir()
                 else: path.write_bytes(b'after accepted retention')
+            if len(compiler_calls) == 4 and mutation == 'final-probe-file':
+                (output / 'vertex-probe/unexpected.json').write_bytes(b'late probe file')
             return {**compiler, 'changed': True} if compiler_changed else compiler.copy()
         def logged(command, cwd, directory, env, timeout, executable_sha256=None):
             self.assertEqual(cwd, root)
@@ -59,7 +61,12 @@ class ResidentAuthoredFlowTests(unittest.TestCase):
                 if mutation == 'build-source': (root / 'src/main.rs').write_bytes(b'changed')
                 return
             events.append('process')
-            self.assertEqual(command[1:], ['--manifest', str(root / 'assets/animations.cfg'), '--output-dir', str(output / 'captures')])
+            expected = ['--manifest', str(root / 'assets/animations.cfg'), '--output-dir', str(output / 'captures')]
+            if vertex_probe:
+                expected += ['--vertex-probe-dir', str(output / 'vertex-probe')]
+                (output / 'vertex-probe').mkdir()
+                (output / 'vertex-probe/synthetic.json').write_bytes(b'synthetic probe')
+            self.assertEqual(command[1:], expected)
             self.assertEqual(resident.matrix.sha256(Path(command[0])), executable_sha256)
             captures = output / 'captures'; captures.mkdir()
             resident.matrix.write_json(captures / 'report.json', {'source_receipt_sha256': env['PASS_SUBMISSION_SOURCE_SHA256']})
@@ -78,7 +85,19 @@ class ResidentAuthoredFlowTests(unittest.TestCase):
                 target = output / ('process' if mutation == 'extra-process-file' else 'captures') / 'unexpected'
                 if mutation.endswith('directory'): target.mkdir()
                 else: target.write_bytes(b'added after validation')
+            if mutation == 'extra-probe-file':
+                (output / 'vertex-probe/unexpected.json').write_bytes(b'after accepted probe')
             return {'synthetic': True}
+        def validate_probe(directory, report, digest, source_root):
+            self.assertTrue(vertex_probe)
+            self.assertEqual(directory, output / 'vertex-probe')
+            self.assertEqual(source_root, root)
+            self.assertEqual(digest, resident.matrix.sha256(output / 'inputs.json'))
+            events.append('probe-validated')
+            if mutation == 'probe-validation': raise ValueError('synthetic invalid vertex probe')
+            if mutation == 'probe-reader-change': (directory/'synthetic.json').write_bytes(b'changed during reader')
+            if mutation == 'probe-reader-extra': (directory/'extra.json').write_bytes(b'extra during reader')
+            return {'diagnostic_completed': True}
         def validate(directory, report, digest):
             self.assertEqual(report['source_receipt_sha256'], digest)
             if mutation == 'validation': raise ValueError('synthetic strict reader failure')
@@ -92,11 +111,22 @@ class ResidentAuthoredFlowTests(unittest.TestCase):
                    patch.object(resident.pair, 'git', return_value=b''),
                    patch.object(resident, 'logged', side_effect=logged),
                    patch.object(resident, 'validate_outputs', side_effect=validate),
+                   patch.object(resident, 'validate_vertex_probe', side_effect=validate_probe),
                    patch.object(resident, 'device_evidence', side_effect=device),
                    patch.object(subprocess, 'Popen', side_effect=AssertionError('real processes forbidden'))]
         with contextlib.ExitStack() as stack:
             for value in patches: stack.enter_context(value)
-            return resident.run(root, output)
+            return resident.run(root, output, vertex_probe=vertex_probe)
+
+    def test_explicit_vertex_probe_is_bound_and_late_mutations_are_rejected(self):
+        summary=self.flow(vertex_probe=True)
+        self.assertTrue(summary['vertex_probe']['diagnostic_completed'])
+        self.assertEqual(self.last[2],['build','process','probe-validated'])
+        for mutation in ('probe-validation','probe-reader-change','probe-reader-extra','extra-probe-file','final-probe-file'):
+            with self.subTest(mutation=mutation),self.assertRaises(ValueError):
+                self.flow(mutation,vertex_probe=True)
+            self.assertTrue((self.last[1]/'failure.json').is_file())
+            self.assertFalse((self.last[1]/'summary.json').exists())
 
     def test_single_fresh_native_build_and_actual_loader_process_on_both_hosts(self):
         for host in ('win32','linux'):

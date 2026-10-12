@@ -14,6 +14,7 @@ on:
       - 'examples/gpu_session_contract.rs'
       - 'examples/authored_loader_contract.rs'
       - 'examples/resident_authored_contract.rs'
+      - 'examples/support/resident_vertex_diagnostic.rs'
       - 'assets/**'
       - 'tools/**'
       - 'src/**'
@@ -84,7 +85,7 @@ jobs:
       - name: Check actual-loader resident reader and native orchestration guards
         env:
           PYTHONPATH: tools
-        run: python -m unittest -v test_resident_authored_contract test_resident_authored_runner test_resident_authored_workflow test_resident_encode_detail
+        run: python -m unittest -v test_resident_authored_contract test_resident_authored_runner test_resident_authored_workflow test_resident_encode_detail test_resident_vertex_probe
       - name: Fetch validated original reload companion
         uses: actions/download-artifact@v4
         with:
@@ -119,7 +120,7 @@ jobs:
         timeout-minutes: 38
         run: >-
           python tools/run_resident_authored_contract.py --root .
-          --output evidence/resident-authored --build-timeout 1200 --process-timeout 900
+          --output evidence/resident-authored --build-timeout 1200 --process-timeout 900 --vertex-probe
       - name: Retain complete original source, process, corner and image evidence
         id: authored_resident_all
         if: always()
@@ -144,6 +145,7 @@ jobs:
             evidence/resident-authored/process/**
             evidence/resident-authored/captures/*.json
             evidence/resident-authored/captures/*.png
+            evidence/resident-authored/vertex-probe/*.json
           if-no-files-found: warn
           retention-days: 7
       - name: Retain original CPU corner streams separately

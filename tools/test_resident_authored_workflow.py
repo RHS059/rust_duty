@@ -12,7 +12,7 @@ class ResidentAuthoredWorkflowTests(unittest.TestCase):
         self.assertEqual(set(workflow['on']), {'push'})
         self.assertEqual(workflow['on']['push']['branches'], ['aella/wgpu-1080p-diagnostics'])
         paths = set(workflow['on']['push']['paths'])
-        self.assertTrue({'examples/resident_authored_contract.rs', 'tools/**', 'src/**',
+        self.assertTrue({'examples/resident_authored_contract.rs', 'examples/support/resident_vertex_diagnostic.rs', 'tools/**', 'src/**',
                          '.cargo/**', 'rust-toolchain', 'rust-toolchain.toml'} <= paths)
         for name in ('blender', 'walk', 'ads', 'directional', 'jump'):
             self.assertIn('.github/workflows/' + name + '-assets.yml', paths)
@@ -35,6 +35,7 @@ class ResidentAuthoredWorkflowTests(unittest.TestCase):
         self.assertLess(guards, run)
         self.assertLess(materialize, run)
         self.assertEqual(steps[run]['timeout-minutes'], '38')
+        self.assertIn('--vertex-probe',steps[run]['run'])
         self.assertIn('--require-generated', steps[materialize]['run'])
         for name in ('reload', 'walk', 'ads', 'directional', 'jump'):
             self.assertTrue(any(s.get('with', {}).get('name') == 'generated-' + name + '-runtime'
@@ -51,12 +52,15 @@ class ResidentAuthoredWorkflowTests(unittest.TestCase):
         self.assertIn('evidence/resident-authored/captures/*-cpu.corners.bin', paths)
         self.assertIn('evidence/resident-authored/captures/*-resident.corners.bin', paths)
         self.assertTrue(any('captures/*.png' in p and 'build/**' in p and 'process/**' in p for p in paths))
+        self.assertTrue(any('vertex-probe/*.json' in p and 'captures/*.png' in p for p in paths))
         source = (ROOT / 'examples/resident_authored_contract.rs').read_text()
         self.assertIn('fixture(&manifest, None)', source)
         self.assertIn('fixture(&manifest, Some(&renderer))', source)
         self.assertIn('renderer.supports_resident_meshes()', source)
         self.assertIn('result.resident.draws == expected', source)
         self.assertLess(source.index('&output.join("report.json")'), source.index('require(\n        all_pass'))
+        self.assertLess(source.index('&output.join("report.json")'),source.index('vertex_diagnostic::run('))
+        self.assertIn('probe_errors.push',source)
 
 
 if __name__ == '__main__':

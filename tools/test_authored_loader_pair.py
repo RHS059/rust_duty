@@ -307,7 +307,7 @@ class CurrentLoaderWitnessTests(unittest.TestCase):
         subprocess.run(['git', 'init', '-q', str(root)], check=True, capture_output=True)
         subprocess.run(['git', '-C', str(root), 'config', 'core.autocrlf', 'false'], check=True, capture_output=True)
         current = Path(matrix.__file__).resolve().parents[1]
-        for name in matrix.STAGING_SOURCE_PATHS:
+        for name in matrix.ARITHMETIC_SOURCE_PATHS:
             path = root / name
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_bytes((current / name).read_bytes())
@@ -317,10 +317,10 @@ class CurrentLoaderWitnessTests(unittest.TestCase):
     def test_current_expanded_source_bytes_and_retained_witness_roundtrip(self):
         root = self.checkout()
         source = matrix.source_identity(root)
-        self.assertEqual(len(source['runtime_files_sha256']), 46)
-        self.assertEqual(set(source['runtime_files_sha256']), set(matrix.STAGING_SOURCE_PATHS))
-        self.assertEqual(matrix.canonical_hash(source['runtime_files_sha256']), matrix.AUDITED_STAGING_CANDIDATE_MANIFEST)
-        self.assertEqual(matrix.audited_inventory(matrix.AUDITED_STAGING_CANDIDATE_MANIFEST), matrix.STAGING_SOURCE_PATHS)
+        self.assertEqual(len(source['runtime_files_sha256']), 48)
+        self.assertEqual(set(source['runtime_files_sha256']), set(matrix.ARITHMETIC_SOURCE_PATHS))
+        self.assertEqual(matrix.canonical_hash(source['runtime_files_sha256']), matrix.AUDITED_ARITHMETIC_CANDIDATE_MANIFEST)
+        self.assertEqual(matrix.audited_inventory(matrix.AUDITED_ARITHMETIC_CANDIDATE_MANIFEST), matrix.ARITHMETIC_SOURCE_PATHS)
         output = root / 'witness'
         digest = matrix.export_witness(root, output)
         with patch.object(matrix.subprocess, 'check_output', side_effect=AssertionError('artifact replay cannot use Git')):

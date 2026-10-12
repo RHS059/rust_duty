@@ -108,6 +108,11 @@ AUDITED_STAGING_CANDIDATE_MANIFEST = 'fc6c5bc8b09562dea007388988dc610b8f3b91c479
 AUDITED_STAGING_CONTROL_MANIFEST = 'f91a20a9445b96ca3e0ddbc13449ea574470ce9ec0700b3a79984be694dd54aa'
 # Separate resident on/off pair with staging enabled identically on both sides.
 AUDITED_STAGING_RESIDENT_CPU_CONTROL_MANIFEST = '7a3524dceb1fa8042fb5c3060047e4ed64fc7cc0a8dcf15c5c9c832d01c7c06c'
+ARITHMETIC_NEW_PATHS = ('src/render/resident_vertex_probe.rs', 'src/render/resident_vertex_probe.wgsl')
+ARITHMETIC_SOURCE_PATHS = (*STAGING_SOURCE_PATHS, *ARITHMETIC_NEW_PATHS)
+AUDITED_ARITHMETIC_CANDIDATE_MANIFEST = 'b5120632999e1c599f89740ec8550432da06575b9175d3ba937f9474a5a707d0'
+AUDITED_ARITHMETIC_STAGING_CONTROL_MANIFEST = '90ff8383a7a028a0860630f8b4d9eb8425110288e8597b7e3d3df5bab4ea9de2'
+AUDITED_ARITHMETIC_RESIDENT_CPU_CONTROL_MANIFEST = 'a20487a0640d940f1fdda9da7419345f5b46f4cd3a58c25df7806eae3417f82e'
 
 
 
@@ -164,6 +169,9 @@ def canonical_hash(value):
 
 
 def audited_inventory(digest):
+    if digest in (AUDITED_ARITHMETIC_CANDIDATE_MANIFEST, AUDITED_ARITHMETIC_STAGING_CONTROL_MANIFEST,
+                  AUDITED_ARITHMETIC_RESIDENT_CPU_CONTROL_MANIFEST):
+        return ARITHMETIC_SOURCE_PATHS
     if digest in (AUDITED_STAGING_CANDIDATE_MANIFEST, AUDITED_STAGING_CONTROL_MANIFEST,
                   AUDITED_STAGING_RESIDENT_CPU_CONTROL_MANIFEST):
         return STAGING_SOURCE_PATHS
@@ -192,6 +200,20 @@ def audited_inventory(digest):
 def source_identity(repository):
     repository = Path(repository)
     commit = subprocess.check_output(['git', '-C', str(repository), 'rev-parse', 'HEAD'], text=True).strip()
+    if any((repository / name).exists() or (repository / name).is_symlink() for name in ARITHMETIC_NEW_PATHS):
+        result = {}
+        for name in ARITHMETIC_SOURCE_PATHS:
+            path = repository / name
+            require(path.is_file() and not path.is_symlink(),
+                    'Arithmetic inventory is missing; cannot fall back to a historical witness: ' + name)
+            data = path.read_bytes()
+            committed = subprocess.check_output(['git', '-C', str(repository), 'show', commit + ':' + name])
+            require(data == committed, 'Uncommitted arithmetic source: ' + name)
+            result[name] = hashlib.sha256(data).hexdigest()
+        require(canonical_hash(result) in (AUDITED_ARITHMETIC_CANDIDATE_MANIFEST,
+                  AUDITED_ARITHMETIC_STAGING_CONTROL_MANIFEST, AUDITED_ARITHMETIC_RESIDENT_CPU_CONTROL_MANIFEST),
+                'Arithmetic source changed; cannot fall back to a narrower historical witness')
+        return {'commit': commit, 'runtime_files_sha256': result}
     if any((repository / name).exists() or (repository / name).is_symlink() for name in STAGING_NEW_PATHS):
         result = {}
         for name in STAGING_SOURCE_PATHS:

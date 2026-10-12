@@ -13,27 +13,27 @@ class SourceTests(unittest.TestCase):
     def checkout(self):
         temp=tempfile.TemporaryDirectory();self.addCleanup(temp.cleanup);root=Path(temp.name)
         git(root,'init','-q');git(root,'config','core.autocrlf','false')
-        for name in matrix.STAGING_SOURCE_PATHS:
+        for name in matrix.ARITHMETIC_SOURCE_PATHS:
             p=root/name;p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes((ROOT/name).read_bytes())
         commit(root);return root
     def test_exact_candidate_and_control_witnesses(self):
         root=self.checkout()
         source=matrix.source_identity(root)
-        self.assertEqual(len(source['runtime_files_sha256']),46)
-        self.assertEqual(matrix.canonical_hash(source['runtime_files_sha256']),matrix.AUDITED_STAGING_CANDIDATE_MANIFEST)
+        self.assertEqual(len(source['runtime_files_sha256']),48)
+        self.assertEqual(matrix.canonical_hash(source['runtime_files_sha256']),matrix.AUDITED_ARITHMETIC_CANDIDATE_MANIFEST)
         matrix.export_witness(root,root/'candidate-witness')
         self.assertEqual(matrix.artifact_source(root/'candidate-witness',matrix.sha256(root/'candidate-witness/SOURCE_WITNESS.json')),source)
         path=root/'src/frame_staging_policy.rs';raw=path.read_bytes()
         self.assertEqual(raw.count(b'STAGING_REUSE_ENABLED: bool = true;'),1)
         path.write_bytes(raw.replace(b'STAGING_REUSE_ENABLED: bool = true;',b'STAGING_REUSE_ENABLED: bool = false;'));commit(root)
         control=matrix.source_identity(root)
-        self.assertEqual(matrix.canonical_hash(control['runtime_files_sha256']),matrix.AUDITED_STAGING_CONTROL_MANIFEST)
+        self.assertEqual(matrix.canonical_hash(control['runtime_files_sha256']),matrix.AUDITED_ARITHMETIC_STAGING_CONTROL_MANIFEST)
         self.assertEqual({n for n in source['runtime_files_sha256'] if source['runtime_files_sha256'][n]!=control['runtime_files_sha256'][n]},{'src/frame_staging_policy.rs'})
     def test_new_or_previously_unbound_files_never_use_narrow_fallback(self):
-        for name in matrix.STAGING_SOURCE_PATHS[len(matrix.LOADER_SOURCE_PATHS):]:
+        for name in matrix.ARITHMETIC_SOURCE_PATHS[len(matrix.LOADER_SOURCE_PATHS):]:
             with self.subTest(name=name):
                 root=self.checkout();path=root/name;raw=path.read_bytes();path.write_bytes(raw+b'\n// Unreviewed mutation\n')
-                with self.assertRaisesRegex(ValueError,'Uncommitted staging source'):matrix.source_identity(root)
+                with self.assertRaisesRegex(ValueError,'Uncommitted arithmetic source'):matrix.source_identity(root)
                 commit(root)
                 with self.assertRaisesRegex(ValueError,'cannot fall back'):matrix.source_identity(root)
     def test_missing_module_and_changed_old_runtime_are_rejected(self):
@@ -46,7 +46,7 @@ class SourceTests(unittest.TestCase):
         path.write_bytes(path.read_bytes().replace(b'ENABLED: bool = true;',b'ENABLED: bool = false;'));commit(root)
         control=matrix.source_identity(root)
         self.assertEqual(matrix.canonical_hash(control['runtime_files_sha256']),
-                         matrix.AUDITED_STAGING_RESIDENT_CPU_CONTROL_MANIFEST)
+                         matrix.AUDITED_ARITHMETIC_RESIDENT_CPU_CONTROL_MANIFEST)
         self.assertEqual({name for name in candidate['runtime_files_sha256']
                           if candidate['runtime_files_sha256'][name]!=control['runtime_files_sha256'][name]},
                          {'src/frame_resident_policy.rs'})
@@ -65,6 +65,22 @@ class SourceTests(unittest.TestCase):
         self.assertEqual(matrix.AUDITED_AUTHORED_DEDUP_MANIFEST,'fff66052fe41e445d50eaf2ae689a29cc68b7d3c3d4502d21d147424c60d3e06')
         self.assertEqual(matrix.audited_inventory(matrix.AUDITED_AUTHORED_DEDUP_MANIFEST),matrix.LOADER_SOURCE_PATHS)
         self.assertEqual(matrix.audited_inventory(matrix.AUDITED_ARENA_SERIALIZATION_MANIFEST),matrix.UPLOAD_REUSE_SOURCE_PATHS)
+    def test_historical_staging_digest_is_not_rebound_to_arithmetic_bytes(self):
+        # These immutable old file hashes make this test independent of Git fetch
+        # depth while retaining the exact previous inventory and class identity.
+        hashes={name:matrix.sha256(ROOT/name) for name in matrix.STAGING_SOURCE_PATHS}
+        hashes.update({
+            'src/render/mod.rs':'b4784d74d2a8623bce0ac22f1c261662e4a76b3efdb7e834fece61fde320c153',
+            'src/render/resident.rs':'5f5d286ea67f26b2bacc24a0f79c19f3e39bec1bdb691f3042a501bb303deef4',
+            'src/render/resident.wgsl':'2550ae502da2dc8283c70ae2d29281c3ab7fe27afa01ef8ef924bf36952baa13',
+        })
+        self.assertEqual(len(hashes),46)
+        self.assertEqual(matrix.canonical_hash(hashes),matrix.AUDITED_STAGING_CANDIDATE_MANIFEST)
+        self.assertEqual(matrix.AUDITED_STAGING_CANDIDATE_MANIFEST,
+                         'fc6c5bc8b09562dea007388988dc610b8f3b91c479be4eb4ba1cedb3d0953402')
+        for pin in (matrix.AUDITED_STAGING_CANDIDATE_MANIFEST,matrix.AUDITED_STAGING_CONTROL_MANIFEST,
+                    matrix.AUDITED_STAGING_RESIDENT_CPU_CONTROL_MANIFEST):
+            self.assertEqual(matrix.audited_inventory(pin),matrix.STAGING_SOURCE_PATHS)
 class HistoricalResidentGuardTests(unittest.TestCase):
     import test_performance_matrix as protocol
     setUp=protocol.SourceWitnessTests.setUp
