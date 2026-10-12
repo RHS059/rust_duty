@@ -5,8 +5,9 @@
 //! after obtaining runtime identity from the renderer that is actually in use.
 //! F8 simulation telemetry is a separate facility and is not used here.
 use crate::frame_performance::{
-    BoundaryReason, CaptureError, CaptureLimits, CaptureStatus, Eligibility,
-    FramePerformanceObserver, FramePerformanceReport, RunIdentity, WindowContext, WriteError,
+    BoundaryReason, CaptureError, CaptureLimits, CaptureStatus, CpuFrameStage, CpuFrameStages,
+    CpuWallSpan, Eligibility, FramePerformanceObserver, FramePerformanceReport, RunIdentity,
+    WindowContext, WriteError,
 };
 use std::cell::RefCell;
 use std::fmt;
@@ -122,8 +123,21 @@ struct ActiveCapture {
     // interval chain. Keep their clock witness separate from retained records.
     last_clock_ns: u64,
     clock_failure: Option<(u64, CaptureError)>,
+    cpu_frame: Option<PendingCpuFrame>,
+}
+struct PendingCpuFrame {
+    frame: CpuFrameStages,
+    open_stage: Option<(CpuFrameStage, u64)>,
+    last_stage: Option<CpuFrameStage>,
 }
 impl ActiveCapture {
+    fn retain_cpu_frame(&mut self, at_ns: u64) {
+        if let Some(frame) = self.cpu_frame.take() {
+            // Only matched begin/end pairs have spans. An interrupted stage is
+            // unavailable; never synthesize its end from a failure or stop.
+            self.observer.record_cpu_frame_stages(frame.frame, at_ns);
+        }
+    }
     fn observe_clock(&mut self, at_ns: u64) -> bool {
         if self.clock_failure.is_some() {
             return false;
@@ -190,8 +204,79 @@ impl<C: MonotonicClock> PerformanceSession<C> {
             stop_requested_ns: None,
             last_clock_ns: started_at_ns,
             clock_failure: None,
+            cpu_frame: None,
         });
         Ok(())
+    }
+
+    /// Begin a frame attempt using the renderer's physical target dimensions.
+    /// A capture enabled midway through an application frame starts timing on
+    /// the next attempt, so it never invents the earlier acquisition/CPU work.
+    pub fn begin_cpu_frame(&mut self, physical_width: u32, physical_height: u32) {
+        let Some(active) = &mut self.active else {
+            return;
+        };
+        let at_ns = self.clock.now_ns();
+        active.cpu_frame = None;
+        if !active.observe_clock(at_ns) || active.observer.enable_cpu_frame_stages(at_ns).is_err() {
+            return;
+        }
+        active.cpu_frame = Some(PendingCpuFrame {
+            frame: CpuFrameStages {
+                started_at_ns: at_ns,
+                physical_width,
+                physical_height,
+                spans: [None; 4],
+            },
+            open_stage: None,
+            last_stage: None,
+        });
+    }
+
+    pub fn begin_cpu_stage(&mut self, stage: CpuFrameStage) {
+        let Some(active) = &mut self.active else {
+            return;
+        };
+        let Some(frame) = &active.cpu_frame else {
+            return;
+        };
+        // Misordered/overlapping hooks invalidate this attempt's diagnostics,
+        // not the existing successful-present measurement or its anchor.
+        if frame.open_stage.is_some() || frame.last_stage.is_some_and(|last| stage <= last) {
+            active.cpu_frame = None;
+            return;
+        }
+        let at_ns = self.clock.now_ns();
+        if active.observe_clock(at_ns) {
+            let frame = active.cpu_frame.as_mut().unwrap();
+            frame.open_stage = Some((stage, at_ns));
+            frame.last_stage = Some(stage);
+        }
+    }
+
+    pub fn end_cpu_stage(&mut self, stage: CpuFrameStage) {
+        let Some(active) = &mut self.active else {
+            return;
+        };
+        let Some(frame) = &active.cpu_frame else {
+            return;
+        };
+        let Some((opened_stage, started_at_ns)) = frame.open_stage else {
+            return;
+        };
+        if stage != opened_stage {
+            active.cpu_frame = None;
+            return;
+        }
+        let at_ns = self.clock.now_ns();
+        if active.observe_clock(at_ns) {
+            let frame = active.cpu_frame.as_mut().unwrap();
+            frame.frame.spans[stage.index()] = Some(CpuWallSpan {
+                started_at_ns,
+                ended_at_ns: at_ns,
+            });
+            frame.open_stage = None;
+        }
     }
 
     /// Defer export until this application's pending frame has actually
@@ -275,6 +360,9 @@ impl<C: MonotonicClock> PerformanceSession<C> {
             .observer
             .record_present_return(at_ns, active.eligibility)
             .is_err();
+        if !failed {
+            active.retain_cpu_frame(at_ns);
+        }
         if failed || active.stop_requested_ns.is_some() {
             return self.finish(at_ns, None);
         }
@@ -301,6 +389,9 @@ impl<C: MonotonicClock> PerformanceSession<C> {
             .observer
             .record_skipped_frame(at_ns, BoundaryReason::SurfaceSkipped)
             .is_err();
+        if !failed {
+            active.retain_cpu_frame(at_ns);
+        }
         let stopping = active.stop_requested_ns.is_some();
         if failed || stopping {
             return self.finish(at_ns, stopping.then_some(CaptureError::FinalPresentMissing));
@@ -326,7 +417,9 @@ impl<C: MonotonicClock> PerformanceSession<C> {
         }
         // Preserve an earlier clock/context/buffer error; the observer latches
         // it when this boundary cannot be retained.
-        let _ = active.observer.boundary(at_ns, reason);
+        if active.observer.boundary(at_ns, reason).is_ok() {
+            active.retain_cpu_frame(at_ns);
+        }
         self.finish(at_ns, Some(error))
     }
 
@@ -388,6 +481,27 @@ pub fn start(
 }
 pub fn request_stop() {
     SESSION.with(|session| session.borrow_mut().request_stop());
+}
+pub fn begin_cpu_frame(physical_width: u32, physical_height: u32) {
+    SESSION.with(|session| {
+        session
+            .borrow_mut()
+            .begin_cpu_frame(physical_width, physical_height)
+    });
+}
+pub fn begin_cpu_stage(stage: CpuFrameStage) {
+    SESSION.with(|session| session.borrow_mut().begin_cpu_stage(stage));
+}
+pub fn end_cpu_stage(stage: CpuFrameStage) {
+    SESSION.with(|session| session.borrow_mut().end_cpu_stage(stage));
+}
+/// Bracket a synchronous CPU call, including an error return. The session is
+/// never borrowed across the call. Disabled sessions do not read the clock.
+pub fn measure_cpu_stage<T>(stage: CpuFrameStage, call: impl FnOnce() -> T) -> T {
+    begin_cpu_stage(stage);
+    let result = call();
+    end_cpu_stage(stage);
+    result
 }
 pub fn set_eligibility(eligibility: Eligibility) -> Option<SessionCompletion> {
     SESSION.with(|session| session.borrow_mut().set_eligibility(eligibility))

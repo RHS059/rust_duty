@@ -3,7 +3,7 @@
 use super::{BackendSelection, WgpuRenderer};
 use crate::{
     draw::{facade, Command, Renderer},
-    frame_performance::BoundaryReason,
+    frame_performance::{BoundaryReason, CpuFrameStage},
     frame_performance_session::{self as performance, log_completion},
     platform::window::{FrameHooks, FrameStart},
 };
@@ -70,6 +70,7 @@ impl<R: FrameRenderer> FrameHooks for DrawHooks<R> {
             log_completion(performance::present_failure());
             return Err("begin_frame called before completing the previous frame".into());
         }
+        performance::begin_cpu_frame(self.width, self.height);
         if self.width == 0 || self.height == 0 {
             log_completion(performance::present_skipped());
             return Ok(FrameStart::Skip);
@@ -89,6 +90,7 @@ impl<R: FrameRenderer> FrameHooks for DrawHooks<R> {
                 return Err(error);
             }
         }
+        performance::begin_cpu_stage(CpuFrameStage::GameRecording);
         if let Err(error) = facade::begin_frame(self.width, self.height, self.scale) {
             log_completion(performance::present_failure());
             return Err(error);
@@ -122,6 +124,7 @@ impl<R: FrameRenderer> FrameHooks for DrawHooks<R> {
         }
         // submit finishes all ordered captures synchronously. A write/map/GPU
         // error escapes to winit, including on the application's final frame.
+        performance::end_cpu_stage(CpuFrameStage::GameRecording);
         if let Err(error) = self.renderer.submit(&list) {
             log_completion(performance::present_failure());
             return Err(error);
@@ -375,6 +378,23 @@ mod tests {
         assert!(
             report["stop_requested_ns"].as_u64().unwrap() <= presents[1]["at_ns"].as_u64().unwrap()
         );
+        let samples = report["cpu_frame_stages"]["samples"].as_array().unwrap();
+        assert_eq!(samples.len(), 2);
+        for sample in samples {
+            assert_eq!(sample["physical_width"], 320);
+            assert_eq!(sample["physical_height"], 180);
+            let span = &sample["spans"]["game_recording"];
+            let start = span["started_at_ns"].as_u64().unwrap();
+            let end = span["ended_at_ns"].as_u64().unwrap();
+            assert!(sample["started_at_ns"].as_u64().unwrap() <= start);
+            assert!(end <= sample["finished_at_ns"].as_u64().unwrap());
+            assert_eq!(span["duration_ns"].as_u64().unwrap(), end - start);
+            // This fake renderer has no real acquire, encoder or present call.
+            // Missing hooks must remain unavailable instead of inferred time.
+            for stage in ["surface_acquire", "renderer_submit", "present_call"] {
+                assert!(sample["spans"][stage].is_null());
+            }
+        }
     }
 
     #[test]

@@ -496,5 +496,99 @@ class PerformanceSummaryTests(unittest.TestCase):
         self.assertEqual(link.readlink(), original_link)
 
 
+def with_cpu_stages():
+    report = control()
+    spans = {name: {'started_at_ns': begin, 'ended_at_ns': end, 'duration_ns': end - begin}
+             for name, begin, end in zip(perf.CPU_STAGE_DEFINITIONS,
+                                         (110, 120, 140, 190), (120, 140, 180, 195))}
+    report['cpu_frame_stages'] = {
+        'measurement': perf.CPU_STAGE_MEASUREMENT,
+        'interpretation': perf.CPU_STAGE_INTERPRETATION,
+        'stage_definitions': dict(perf.CPU_STAGE_DEFINITIONS),
+        'samples': [{'record_index': 1, 'started_at_ns': 105, 'finished_at_ns': 200,
+                     'physical_width': 960, 'physical_height': 540, 'spans': spans}],
+    }
+    return report
+
+
+class CpuStageSummaryTests(unittest.TestCase):
+    def test_sample_cannot_start_before_an_uninstrumented_terminal_frame(self):
+        report = with_cpu_stages()
+        report['start_ns'] = 0
+        sample = report['cpu_frame_stages']['samples'][0]
+        sample['started_at_ns'] = 99  # Earlier uninstrumented present is at 100.
+        with self.assertRaisesRegex(ValueError, 'CPU frame times'):
+            perf.validate_report(report)
+        sample['started_at_ns'] = 100
+        perf.validate_report(report)
+
+    def test_optional_extension_keeps_old_reports_and_primary_statistics(self):
+        original = control()
+        perf.validate_report(original)
+        report = with_cpu_stages()
+        perf.validate_report(report)
+        self.assertEqual(report['summary'], original['summary'])
+        self.assertEqual(report['records'], original['records'])
+        result = perf._cpu_stage_summary(report['cpu_frame_stages'], report['records'])
+        self.assertNotIn('samples', result)
+        self.assertEqual(result['summary']['renderer_submit']['p95_ns'], 40)
+        self.assertNotIn('fps', result)
+
+    def test_null_is_unavailable_and_zero_is_a_real_paired_duration(self):
+        report = with_cpu_stages()
+        spans = report['cpu_frame_stages']['samples'][0]['spans']
+        spans['game_recording'] = None
+        spans['present_call'] = {'started_at_ns': 190, 'ended_at_ns': 190, 'duration_ns': 0}
+        perf.validate_report(report)
+        result = perf._cpu_stage_summary(report['cpu_frame_stages'], report['records'])
+        self.assertEqual(result['summary']['game_recording']['sample_count'], 0)
+        self.assertIsNone(result['summary']['game_recording']['p50_ns'])
+        self.assertEqual(result['summary']['present_call']['sample_count'], 1)
+        self.assertEqual(result['summary']['present_call']['p50_ns'], 0)
+
+    def test_rejects_fabricated_overlapping_negative_or_out_of_frame_cpu_spans(self):
+        mutations = [
+            lambda s: s['spans']['surface_acquire'].update(duration_ns=11),
+            lambda s: s['spans']['surface_acquire'].update(started_at_ns=-1),
+            lambda s: s['spans']['surface_acquire'].update(duration_ns=True),
+            lambda s: s['spans']['game_recording'].update(started_at_ns=119, duration_ns=21),
+            lambda s: s['spans']['present_call'].update(ended_at_ns=201, duration_ns=11),
+            lambda s: s.update(started_at_ns=130),
+            lambda s: s.update(finished_at_ns=201),
+            lambda s: s.update(record_index=True),
+            lambda s: s.update(record_index=2),
+            lambda s: s.update(physical_width=-1920),
+            lambda s: s.update(physical_height=2**32),
+            lambda s: s['spans'].update(gpu_time=1),
+        ]
+        for mutate in mutations:
+            with self.subTest(mutate=mutate):
+                report = with_cpu_stages()
+                mutate(report['cpu_frame_stages']['samples'][0])
+                with self.assertRaises(ValueError):
+                    perf.validate_report(report)
+
+    def test_rejects_duplicate_samples_and_unknown_semantics(self):
+        report = with_cpu_stages()
+        report['cpu_frame_stages']['samples'] *= 2
+        with self.assertRaises(ValueError):
+            perf.validate_report(report)
+        for field in ('measurement', 'interpretation', 'stage_definitions'):
+            report = with_cpu_stages()
+            report['cpu_frame_stages'][field] = 'GPU timing'
+            with self.assertRaises(ValueError):
+                perf.validate_report(report)
+
+    def test_paused_retry_and_baseline_samples_do_not_enter_eligible_summary(self):
+        report = with_cpu_stages()
+        extension = report['cpu_frame_stages']
+        for record in [present(200, eligible=False, reason='paused'), present(200),
+                       {'kind': 'skipped_frame', 'at_ns': 200, 'reason': 'surface_skipped',
+                        'resets_interval_anchor': False}]:
+            result = perf._cpu_stage_summary(extension, [present(100), record])
+            self.assertEqual(result['retained_attempt_count'], 1)
+            self.assertEqual(result['summary']['renderer_submit']['sample_count'], 0)
+
+
 if __name__ == '__main__':
     unittest.main()

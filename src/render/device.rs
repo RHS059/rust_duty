@@ -1,5 +1,8 @@
 //! Native adapter selection. An explicit backend never falls back to another API.
-use crate::draw::BackendInfo;
+use crate::{
+    draw::BackendInfo,
+    graphics_device::{self, Candidate, Fingerprint, Preference},
+};
 use std::{
     str::FromStr,
     sync::{Arc, Mutex},
@@ -158,6 +161,43 @@ fn configure_instance(descriptor: &mut wgpu::InstanceDescriptor, backends: wgpu:
     descriptor.backend_options.dx12.shader_compiler = wgpu::Dx12Compiler::Fxc;
 }
 
+fn fingerprint(info: &wgpu::AdapterInfo) -> Fingerprint {
+    Fingerprint {
+        backend: match info.backend {
+            wgpu::Backend::Dx12 => "dx12",
+            wgpu::Backend::Vulkan => "vulkan",
+            wgpu::Backend::Metal => "metal",
+            wgpu::Backend::Gl => "gl",
+            _ => "unknown",
+        }
+        .into(),
+        name: info.name.clone(),
+        vendor: info.vendor,
+        device: info.device,
+        device_type: format!("{:?}", info.device_type),
+    }
+}
+
+fn candidates(adapters: &[wgpu::Adapter], surface: Option<&wgpu::Surface<'_>>) -> Vec<Candidate> {
+    adapters
+        .iter()
+        .map(|adapter| Candidate {
+            id: fingerprint(&adapter.get_info()),
+            surface_supported: surface.is_none_or(|surface| adapter.is_surface_supported(surface)),
+        })
+        .collect()
+}
+
+pub(crate) async fn menu_candidates() -> Vec<Candidate> {
+    let mut descriptor = wgpu::InstanceDescriptor::new_without_display_handle();
+    configure_instance(&mut descriptor, wgpu::Backends::PRIMARY);
+    let instance = wgpu::Instance::new(descriptor);
+    candidates(
+        &instance.enumerate_adapters(wgpu::Backends::PRIMARY).await,
+        None,
+    )
+}
+
 impl Gpu {
     pub async fn new(
         selection: BackendSelection,
@@ -169,6 +209,30 @@ impl Gpu {
         if width == 0 || height == 0 {
             return Err("renderer extent must be nonzero".into());
         }
+        // Headless jobs and forced WARP/lavapipe never consult interactive preferences.
+        let preferred = graphics_device::device_preference(window.is_some(), force_fallback);
+        if let Preference::Adapter(id) = preferred {
+            let backend: BackendSelection = id.backend.parse()?;
+            if selection != BackendSelection::Auto && selection != backend {
+                return Err(format!(
+                    "Selected graphics device uses {}, conflicting with renderer {}",
+                    id.backend,
+                    selection.as_str()
+                ));
+            }
+            // An explicit device has exactly one initialization attempt. No API or
+            // software retry may silently replace it after any initialization failure.
+            return Self::new_for_backends(
+                selection,
+                false,
+                window,
+                width,
+                height,
+                backend.backends(),
+                Some(id),
+            )
+            .await;
+        }
         initialize_with_policy(selection, cfg!(target_os = "windows"), |backends| {
             Self::new_for_backends(
                 selection,
@@ -177,6 +241,7 @@ impl Gpu {
                 width,
                 height,
                 backends,
+                None,
             )
         })
         .await
@@ -189,6 +254,7 @@ impl Gpu {
         width: u32,
         height: u32,
         backends: wgpu::Backends,
+        preferred: Option<Fingerprint>,
     ) -> Result<Self, String> {
         if !backends.intersects(wgpu::Instance::enabled_backend_features()) {
             return Err(format!("{backends:?} is not available in this build"));
@@ -211,29 +277,49 @@ impl Gpu {
             compatible_surface: surface.as_ref(),
             ..Default::default()
         };
-        let adapter = match instance.request_adapter(&request(force_fallback)).await {
-            Ok(adapter) => adapter,
-            Err(first) if !force_fallback => instance
-                .request_adapter(&request(true))
-                .await
-                .map_err(|second| {
-                    format!(
-                        "no {} adapter (hardware: {first}; fallback: {second})",
+        // Keep the actual Adapter objects: the resolved fingerprint indexes this
+        // exact inventory, never a fresh request_adapter ranking or substring match.
+        let adapters = if window.is_some() || preferred.is_some() {
+            instance.enumerate_adapters(backends).await
+        } else {
+            Vec::new()
+        };
+        let inventory = candidates(&adapters, surface.as_ref());
+        if window.is_some() {
+            graphics_device::update_catalog(inventory.clone());
+        }
+        let adapter = if let Some(id) = &preferred {
+            let index = graphics_device::exact_match(id, &inventory)?;
+            adapters
+                .into_iter()
+                .nth(index)
+                .expect("resolved adapter inventory index")
+        } else {
+            match instance.request_adapter(&request(force_fallback)).await {
+                Ok(adapter) => adapter,
+                Err(first) if !force_fallback => instance
+                    .request_adapter(&request(true))
+                    .await
+                    .map_err(|second| {
+                        format!(
+                            "no {} adapter (hardware: {first}; fallback: {second})",
+                            selection.as_str()
+                        )
+                    })?,
+                Err(error) => {
+                    return Err(format!(
+                        "no {} software adapter: {error}",
                         selection.as_str()
-                    )
-                })?,
-            Err(error) => {
-                return Err(format!(
-                    "no {} software adapter: {error}",
-                    selection.as_str()
-                ))
+                    ))
+                }
             }
         };
         let adapter_info = adapter.get_info();
+        let actual_id = fingerprint(&adapter_info);
         let info = BackendInfo {
             requested: selection.as_str().into(),
             backend: format!("{:?}", adapter_info.backend),
-            adapter: adapter_info.name,
+            adapter: adapter_info.name.clone(),
         };
         let limits = wgpu::Limits::downlevel_defaults().using_resolution(adapter.limits());
         let (device, queue) = adapter
@@ -287,18 +373,36 @@ impl Gpu {
         );
         // Runtime evidence uses the actual adapter classification, not the
         // absence of a fallback request or a guess based on the adapter name.
+        let evidence = serde_json::json!({
+            "name": adapter_info.name,
+            "backend": info.backend,
+            "device_type": format!("{:?}", adapter_info.device_type),
+            "vendor_id": adapter_info.vendor,
+            "device_id": adapter_info.device,
+            "driver": adapter_info.driver,
+            "driver_info": adapter_info.driver_info,
+            "present_mode": surface.as_ref().map(|s| format!("{:?}", s.config.present_mode)),
+            "force_fallback_requested": force_fallback,
+            "selection_mode": if force_fallback { "forced_fallback" } else if preferred.is_some() { "explicit_fingerprint" } else { "automatic" },
+            "requested_fingerprint": preferred.as_ref().map(Fingerprint::json),
+            "actual_fingerprint": actual_id.json(),
+        });
+        // Keep the existing seven-field diagnostic contract for pinned benchmark
+        // consumers. Richer selection identity has a separate, additive log and
+        // is also retained in the local session/frame exports.
         eprintln!(
             "renderer device_evidence={}",
             serde_json::json!({
-                "device_type": format!("{:?}", adapter_info.device_type),
-                "vendor_id": adapter_info.vendor,
-                "device_id": adapter_info.device,
-                "driver": adapter_info.driver,
-                "driver_info": adapter_info.driver_info,
-                "present_mode": surface.as_ref().map(|s| format!("{:?}", s.config.present_mode)),
-                "force_fallback_requested": force_fallback,
+                "device_type": evidence["device_type"], "vendor_id": evidence["vendor_id"],
+                "device_id": evidence["device_id"], "driver": evidence["driver"],
+                "driver_info": evidence["driver_info"], "present_mode": evidence["present_mode"],
+                "force_fallback_requested": evidence["force_fallback_requested"],
             })
         );
+        eprintln!("renderer graphics_device_evidence={evidence}");
+        if surface.is_some() {
+            graphics_device::update_actual(info.clone(), evidence);
+        }
         if adapter_info.backend == wgpu::Backend::Dx12 {
             eprintln!("renderer dx12_shader_compiler=Fxc");
         }

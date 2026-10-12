@@ -310,3 +310,146 @@ Local immutable `178cd9a21bad5ce1f103afa66c8eee842ee6d2e9` has fresh default841,
 silent757 and combined899 passing production tests, with two existing ignored
 tests in each mode. All three strict all-target clippy lanes and formatting pass. These
 local results are not attributed to the older native run above.
+
+## Main integration checkpoint (2026-10-06, 01:46 UTC)
+
+This section supersedes the earlier package count without rewriting its
+historical evidence. Agent delivery is **15 of 19**: the fourteen packages
+listed above plus WP1.4. Native production UI checks exercised both Windows
+GL and DX12 (18 captures per backend). Remaining packages are **0.3, 3.1,
+3.2 and 4.3**. Original WP4.1 is removed; 4.4 and 5.1 are later hardware/human
+acceptance, and 5.2 is deferred fallback removal. None is counted as an
+agent-completed package. The complete Windows build and menu recording/export
+feature remain explicit delivery criteria outside that denominator.
+
+Published main `6215fd99a981a3b79b725940919d7e37472e2d24`, tree
+`255cf1413a9de0c47da8a8195a3d6829fa361dd6`, combines the rendered frame witness,
+landmark review correction, bounded renderer upload arenas, Windows exclusive
+output correction and Hal's GPU telemetry. Its exact tree was locally tested as
+`5f03245ebb5ae9811fec5cc945117a15080df55f`:
+
+- Rust all-target tests: default 932; no-default 862; combined default-audio plus
+  wgpu 1014; no-default plus wgpu 970. Each retains two declared private-asset/
+  regenerated-oracle ignores. Four strict all-target clippy lanes, doctests and
+  formatting pass. All 676 tracked file hashes remained unchanged.
+- Full Python discovery: 1148 tests pass with four declared skips (missing
+  directional and Jump distribution outputs, opt-in Blender, and native Windows
+  exception translation). The Windows-specific output test requires Windows.
+- Arena CPU evidence preserves draw/state/target/capture order and exact payload
+  bytes under both ordinary and bounded-chunk cases. The representative
+  337-draw production world/HUD/presentation frame changes from 1011 to three
+  application buffers and one transform bind group. These counts are not an
+  FPS measurement. Independent mixed-command rollover review also passes.
+
+[Independent run37398072532](https://github.com/RHS059/rust_duty/actions/runs/37398072532)
+on descendant `a2fc4734b7f1afcdc92e46d3d813a423fd1d119e` passes native renderer
+contract and production GL/DX12 UI jobs, but its recovery lanes fail before
+compilation at the strict current-source `src/lib.rs` pin. No optimized playable
+artifact was produced by that attempt. Main
+`bc9e7c08d35faea04745a101772a5a8869c00cde` refreshes reviewed eligibility after
+auditing all original pins and the telemetry registration. Historical artifact
+hashes and exact source/worktree checks are retained; 41 focused tests pass.
+The five-pack Windows revalidation then passes in
+[run37400567976](https://github.com/RHS059/rust_duty/actions/runs/37400567976).
+Its compilation, native smoke, playable artifact, strict return and full quality
+outcomes are still pending at this checkpoint.
+
+The protected complete run
+[37393515030](https://github.com/RHS059/rust_duty/actions/runs/37393515030)
+continues on older `b78a9b27d53409f7e2843acbc63d64999afec56c`. Its baseline,
+strict same-Windows 391-frame return, renderer/UI and smoke pass. Full Windows
+quality fails one exclusive-output exception test (1163 tests, 11 skips); the
+constructor correction is included in the later main above, awaiting its native
+quality outcome. Jump, reload and walk authored shards pass. ADS completes both
+captures and individual validators, then exact cross-backend comparison fails
+at frame0297 with ammo 9 versus 10. Remaining authored shards and the aggregate
+have not completed. No equality or frame coverage requirement is relaxed.
+This old-source result is not current-arena acceptance.
+
+Menu recording exposes local session export, visible recording status and
+observations guidance. Hal's Windows background PDH sampling is included on
+main; actual live PDH values and the adapter-LUID association are not established
+by Linux source tests or UI captures. The user confirms that the original GL and
+DX12 exports were recorded back-to-back with the same version and different
+launchers. Both identities match the executable and source `3a0c73b`. Recovered
+raw CSVs show mean sampled FPS 81.2007 versus 21.3309; the deficit persists in
+all eight shared gameplay-state bins and at the same initial stationary spawn.
+This is a sustained regression. Those exports do not record CPU-stage or GPU
+duration/utilization, so they cannot identify its particular CPU/GPU cause.
+They predate the upload-arena and subsequent pass-batching work; no measured
+FPS improvement for those revisions is claimed. No human visual approval,
+hardware performance acceptance or renderer cutover is claimed.
+
+### Deterministic capture firing reset correction
+
+The native ADS failure is reproduced using the actual current Simulation and
+SessionController: host frames above the 250 ms discard threshold cleared
+`firing_sequence` between committed ticks. The third shot moved from
+4.941666924 s to 4.950000258 s, first changing ammo at frame0297 exactly as in
+CI. Direct native focus cleanup had the same authority over that state.
+
+The correction centralizes firing-interruption policy: live input still resets
+on the identical pause/resume/focus/time boundaries; scripted gameplay captures
+do not inherit host-frame firing resets. Existing clock, input-latch, blocked
+startup and pause cleanup remain unchanged. Simulation, weapon cadence, authored
+inputs, assets, comparison equality and frame coverage are unchanged.
+
+A fresh source harness passes 84 tests, including three new capture/session
+contracts. The complete ADS replay is compared at every presentation frame under
+normal, slow, invalid and focus-changing host timing at 30 Hz, 60 Hz and the
+existing default rate. Removing the capture guard causes two regressions to fail;
+the actual live-hitch regression still passes. This causal CPU result is separate
+from application compilation and the required fresh native GL/DX12 replay result.
+
+Integrated Cargo verification additionally passes all four new contracts in
+combined and no-default configurations, all 26 actual application-bin tests,
+combined all-target clippy with warnings denied, formatting and diff checks.
+These tests compile the real application; fresh native replay parity remains
+pending. The policy contracts exercise simulation/session behavior; a separate static
+call-site guard rejects restored duplicate app resets. Neither executes the
+asynchronous application frame loop.
+
+## Completed optimized Windows WIP (2026-10-06, 02:23 UTC)
+
+[Run37400567976](https://github.com/RHS059/rust_duty/actions/runs/37400567976)
+completed successfully on `bc9e7c08d35faea04745a101772a5a8869c00cde`:
+
+- All five exact original companion ZIPs passed current-source/structural checks.
+- Release, audio-enabled dual-runtime executable compiled and passed the actual
+  127-frame Windows DX12/WARP smoke.
+- All 391 frames per backend passed the strict same-Windows return comparison:
+  GL llvmpipe, DX12 Microsoft Basic Render Driver, explicit Fxc, every field exact.
+- Renderer contract and both production UI jobs passed.
+- Full workflow quality passed: game 880 tests/2 ignored, updater 53/2 ignored,
+  and Python 1174 tests/11 declared skips. These are the workflow's ordinary
+  Cargo targets, not the separate four-profile all-target source matrix.
+- The original Windows WinError3 output regression now passes natively.
+
+[Playable WIP artifact11385711086](https://github.com/RHS059/rust_duty/actions/runs/37400567976/artifacts/11385711086)
+is 109,528,337 bytes, ZIP SHA-256
+`ad13c7ded99ba14c8281e79d3988f5b10461c6dc18f0757bf7d2149f8475a6b0`.
+The smoke/return-tested EXE SHA-256 is
+`bd35d286ece1f9db54c13388877317fb42b293ea29404500f16105566274e3bd`.
+Native evidence is artifact11386180891. GitHub metadata and completed job logs
+establish these identities; an additional local ZIP inspection was blocked by
+HTTP403, and no alternate transfer or retry was attempted.
+
+This binary includes frame arenas and GPU telemetry but predates the subsequent
+`3e64a7d` deterministic firing-reset correction. That revision's complete run
+37401559622 has started. The older protected b78a9b run finished with seven of
+nine authored shards passing and a correctly failing aggregate: ADS ammo differs
+at0297; the extreme-offset fixture also fails positive-coverage checks before
+reaching its hidden0297 ammo difference.
+
+Independent source projection proves the preserved (+0.20,-0.20,+0.20)m offset
+places the complete hip model outside the viewport for160 of553 frames. Fifty
+additional partially clipped frames are below1% coverage. Source visibility and
+native pixels are retained as diagnostics; neither threshold nor geometry has
+been changed, and this acceptance-contract conflict remains open.
+
+The separately documented calibrated static fixture is now a fail-closed WIP
+runner using the approved single untextured legacy HK416. Its source/Rust default
+contracts and synthetic Python checks pass; no native detector applicability or
+landmark acceptance is claimed until real Windows output is examined. It shares
+the GL UI job's dual-runtime build and pinned Mesa and leaves all authored replay
+and aggregate requirements intact. The accepted count remains15/19.

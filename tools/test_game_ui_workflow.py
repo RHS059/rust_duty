@@ -39,17 +39,38 @@ class GameUiWorkflowTests(unittest.TestCase):
         self.assertEqual(job['runs-on'], 'windows-latest')
         self.assertNotIn('needs', job)
         commands = [step.get('run', '') for step in job['steps']]
-        self.assertIn('cargo build --locked --no-default-features --features legacy-macroquad,wgpu-runtime --example game_ui_contract', commands)
+        self.assertIn('cargo build --locked --no-default-features --features legacy-macroquad,wgpu-runtime --example game_ui_contract --example legacy_capture_contract --bin vector-range', commands)
+        self.assertIn('python -m pip install Pillow==11.3.0 PyYAML==6.0.3', commands)
+        guards = next(command for command in commands if 'python -m unittest' in command)
+        self.assertIn('test_game_ui_workflow', guards.split())
         self.assertTrue(any('stage_windows_gl_reference.ps1 -Manifest tools/windows_gl_reference_lock.json' in command for command in commands))
         native = next(command for command in commands if 'tools/run_windows_gl_game_ui.py' in command)
         self.assertIn('--runtime evidence/game-ui-gl-runtime', native)
         self.assertIn('--manifest tools/windows_gl_reference_lock.json', native)
         self.assertIn('--timeout 600', native)
         self.assertFalse(any('continue-on-error' in step for step in job['steps']))
-        upload = job['steps'][-1]
+        upload = next(step for step in job['steps'] if step.get('with', {}).get('name') == 'gl-game-ui-contract-attempt-${{ github.run_attempt }}')
         self.assertEqual(upload['if'], 'always()')
         self.assertNotIn('*.dll', upload['with']['path'])
 
+
+    def test_static_calibration_reuses_current_dual_build_and_pinned_runtime(self):
+        steps = self.workflow['jobs']['game-ui-gl-contract']['steps']
+        builds = [step['run'] for step in steps if 'cargo build' in step.get('run', '')]
+        self.assertEqual(len(builds), 1)
+        self.assertIn('--example game_ui_contract --example legacy_capture_contract --bin vector-range', builds[0])
+        runner = next(step for step in steps if 'run_calibrated_presentation.py' in step.get('run', ''))
+        self.assertIn('--executable target/debug/vector-range.exe --root .', runner['run'])
+        self.assertIn('--runtime evidence/game-ui-gl-runtime', runner['run'])
+        self.assertIn('--evidence evidence/calibrated-static --timeout 180', runner['run'])
+        self.assertNotIn('continue-on-error', runner)
+        ui = next(step for step in steps if 'run_windows_gl_game_ui.py' in step.get('run', ''))
+        self.assertLess(steps.index(ui), steps.index(runner))
+        archive = next(step for step in steps if step.get('with', {}).get('name') == 'calibrated-static-presentation-attempt-${{ github.run_attempt }}')
+        self.assertEqual(archive['if'], 'always()')
+        self.assertEqual(archive['with']['name'], 'calibrated-static-presentation-attempt-${{ github.run_attempt }}')
+        self.assertEqual(archive['with']['path'], 'evidence/calibrated-static/')
+        self.assertEqual(archive['with']['if-no-files-found'], 'error')
 
 if __name__ == '__main__':
     unittest.main()

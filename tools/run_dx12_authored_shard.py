@@ -16,7 +16,7 @@ import run_dx12_authored as authored
 import verify_capture_frame_witness as frame_witness
 from run_windows_same_platform_return import runtime_environment
 from verify_capture_telemetry import read_record, validate
-from verify_render_capture import verify as verify_png
+from verify_render_capture import CaptureStructureError, verify as verify_png
 
 
 ROLES = ('windows-legacy', 'dx12')
@@ -78,7 +78,7 @@ def role_witness_identity(binding, scenario, role):
     })
 
 
-def validate_role_images(folder, role, expected_frames, *, expected_witness_identity=None):
+def validate_role_images(folder, role, expected_frames, *, expected_witness_identity=None, source_visibility=None):
     require(role in ROLES, 'unknown capture role')
     require(type(expected_frames) is int and expected_frames > 0, 'invalid expected frame count')
     backend, requested = ('OpenGl', 'gl') if role == 'windows-legacy' else ('Dx12', 'dx12')
@@ -87,11 +87,17 @@ def validate_role_images(folder, role, expected_frames, *, expected_witness_iden
     require(len(images) == expected_frames,
             f'{role}: expected all {expected_frames} frames, got {len(images)}')
     adapters, coverage = set(), []
-    for path in images:
+    for index, path in enumerate(images):
         metadata = authored.capture_metadata(path, backend)
         require(metadata.get('requested') == requested, f'{path}: wrong requested renderer')
         adapters.add(metadata['adapter'])
-        coverage.append(verify_png(path, authored.EXTENT, authored.BACKGROUND, 0.01, 8, None)['foreground_coverage'])
+        try:
+            image_result = verify_png(path, authored.EXTENT, authored.BACKGROUND, 0.01, 8, None)
+        except CaptureStructureError as error:
+            if source_visibility is None:
+                raise
+            image_result = source_visibility.verify_image(path, role, index, original_error=str(error))
+        coverage.append(image_result['foreground_coverage'])
     require(len(adapters) == 1, f'{role}: capture adapters differ')
     if role == 'windows-legacy':
         require(next(iter(adapters)).casefold().startswith('llvmpipe'), 'authored GL capture must actually use llvmpipe')

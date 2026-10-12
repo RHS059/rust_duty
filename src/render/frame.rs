@@ -1,18 +1,35 @@
 //! Commands are encoded in list order, including copies at mid-frame capture checkpoints.
 use super::{
+    arena::DrawSlice,
     capture::{CaptureEncoding, Readback},
-    mesh::{clip_matrix, FragmentKind},
+    mesh::{FragmentKind, FrameGeometry},
+    plan::{draw_run_len, FramePlan, PreparedCommand, PreparedDraw},
     target::{self, GpuTexture},
     WgpuRenderer,
 };
-use crate::draw::{
-    BlendMode, Camera, Color, Command, DrawList, FrameOutput, Mesh, RenderTarget, TextureSource,
-};
-use glam::Mat4;
+use crate::draw::{BlendMode, Color, Command, DrawList, FrameOutput, RenderTarget, TextureSource};
+use crate::{frame_performance::CpuFrameStage, frame_performance_session as performance};
 use std::sync::Arc;
 
 impl WgpuRenderer {
     pub(super) fn submit_frame(&mut self, list: &DrawList) -> Result<FrameOutput, String> {
+        let (output, presentation) =
+            performance::measure_cpu_stage(CpuFrameStage::RendererSubmit, || {
+                self.submit_before_present(list)
+            })?;
+        if let Some(presentation) = presentation {
+            performance::measure_cpu_stage(CpuFrameStage::PresentCall, || {
+                self.gpu.queue.present(presentation);
+            });
+        }
+        self.gpu.check_errors()?;
+        Ok(output)
+    }
+
+    fn submit_before_present(
+        &mut self,
+        list: &DrawList,
+    ) -> Result<(FrameOutput, Option<wgpu::SurfaceTexture>), String> {
         // Take ownership up front: failures drop this surface texture, and no
         // command path can acquire another texture after app/input advance.
         let presentation = super::backend::take_presentation(
@@ -50,11 +67,7 @@ impl WgpuRenderer {
         for readback in readbacks {
             output.captures.push(readback.finish(&self.gpu.device)?);
         }
-        if let Some(presentation) = presentation {
-            self.gpu.queue.present(presentation);
-        }
-        self.gpu.check_errors()?;
-        Ok(output)
+        Ok((output, presentation))
     }
     fn encode_frame(
         &mut self,
@@ -69,6 +82,19 @@ impl WgpuRenderer {
                 &RenderTarget::new(list.width, list.height, true)?.texture,
             )?);
         }
+        let limits = self.gpu.device.limits();
+        let plan = FramePlan::new(
+            list,
+            &mut self.text,
+            limits.min_uniform_buffer_offset_alignment,
+            limits.max_buffer_size,
+            presentation.is_some(),
+        )?;
+        let geometry: Vec<_> = plan
+            .arenas
+            .iter()
+            .map(|arena| self.pipelines.upload_geometry(&self.gpu.device, arena))
+            .collect();
         let mut encoder = self
             .gpu
             .device
@@ -76,91 +102,33 @@ impl WgpuRenderer {
                 label: Some("ordered presentation frame"),
             });
         clear(&mut encoder, &self.main, Color::TRANSPARENT);
-        let mut camera = Camera::screen(list.width, list.height);
         let mut readbacks = Vec::new();
-        let mut commands = list.commands.as_slice();
+        let mut commands = plan.commands.as_slice();
         while let Some((command, following)) = commands.split_first() {
-            commands = following;
+            let mut consumed = 1;
             match command {
-                Command::Camera(next) => {
-                    if let Some(target) = &next.target {
+                PreparedCommand::Camera(camera) => {
+                    if let Some(target) = &camera.target {
                         self.texture(&target.texture)?;
                     }
-                    camera = next.clone();
                 }
-                Command::Clear(color) => {
-                    let output = self.output(camera.target.as_ref())?;
+                PreparedCommand::Clear { target, color } => {
+                    let output = self.output(target.as_ref())?;
                     clear(&mut encoder, &output, *color);
                 }
-                Command::Mesh { mesh, model, blend } => {
-                    self.draw_mesh(&mut encoder, &camera, mesh, *model, *blend, false)?
-                }
-                Command::Lines { lines, model } => {
-                    let (consumed, batches) =
-                        super::lines::adjacent_batches(lines, *model, commands);
-                    commands = &commands[consumed..];
-                    for (vertices, indices) in batches {
-                        self.draw_mesh(
-                            &mut encoder,
-                            &camera,
-                            &Mesh {
-                                vertices,
-                                indices,
-                                texture: None,
-                            },
-                            *model,
-                            BlendMode::Alpha,
-                            true,
-                        )?;
-                    }
-                }
-                Command::Rect { rect, color } => {
-                    let screen = self.screen_camera(camera.target.as_ref())?;
-                    self.draw_mesh(
+                PreparedCommand::Draw(draw) => {
+                    consumed = draw_run_len(commands);
+                    self.draw_prepared_run(
                         &mut encoder,
-                        &screen,
-                        &super::sprite2d::quad(*rect, *color, None),
-                        Mat4::IDENTITY,
-                        BlendMode::Alpha,
-                        false,
+                        &geometry,
+                        draw,
+                        &following[..consumed - 1],
                     )?;
                 }
-                Command::Sprite {
-                    texture,
-                    destination,
-                    tint,
-                } => {
-                    let screen = self.screen_camera(camera.target.as_ref())?;
-                    self.draw_mesh(
-                        &mut encoder,
-                        &screen,
-                        &super::sprite2d::quad(*destination, *tint, Some(texture.clone())),
-                        Mat4::IDENTITY,
-                        BlendMode::Alpha,
-                        false,
-                    )?;
-                }
-                Command::Text {
-                    text,
-                    baseline,
-                    size,
-                    color,
-                } => {
-                    let meshes = self.text.meshes(text, *baseline, *size, *color)?;
-                    let screen = self.screen_camera(camera.target.as_ref())?;
-                    for mesh in meshes {
-                        self.draw_mesh(
-                            &mut encoder,
-                            &screen,
-                            &mesh,
-                            Mat4::IDENTITY,
-                            BlendMode::Alpha,
-                            false,
-                        )?;
-                    }
-                }
-                Command::Capture { target, path } => {
+                PreparedCommand::Capture { target, path } => {
                     let output = self.output(target.as_ref())?;
+                    // Capture remains an in-order GPU copy, before later draws
+                    // or clears. All maps still finish after the same submission.
                     readbacks.push(Readback::encode(
                         &self.gpu.device,
                         &mut encoder,
@@ -170,6 +138,7 @@ impl WgpuRenderer {
                     )?);
                 }
             }
+            commands = &commands[consumed..];
         }
         if let Some(frame) = &presentation {
             let surface = self
@@ -180,18 +149,6 @@ impl WgpuRenderer {
             let view = frame
                 .texture
                 .create_view(&wgpu::TextureViewDescriptor::default());
-            let screen = Camera::screen(list.width, list.height);
-            let mesh = super::sprite2d::quad(
-                crate::draw::Rect::new(0., 0., list.width as f32, list.height as f32),
-                Color::WHITE,
-                None,
-            );
-            let geometry = self.pipelines.geometry(
-                &self.gpu.device,
-                &mesh.vertices,
-                &mesh.indices,
-                clip_matrix(screen.view_projection, Mat4::IDENTITY),
-            );
             let pipeline = self.pipelines.pipeline(
                 &self.gpu.device,
                 surface.config.format,
@@ -213,7 +170,19 @@ impl WgpuRenderer {
                 })],
                 ..Default::default()
             });
-            issue(&mut pass, &pipeline, &geometry, &self.main.binding);
+            let present = plan
+                .present
+                .as_ref()
+                .expect("presentation has a draw slice");
+            issue(
+                &mut pass,
+                &pipeline,
+                geometry[present.arena_index]
+                    .as_ref()
+                    .expect("presentation has frame buffers"),
+                &present.range,
+                &self.main.binding,
+            );
         }
         self.gpu.queue.submit([encoder.finish()]);
         Ok((readbacks, presentation))
@@ -224,52 +193,16 @@ impl WgpuRenderer {
             None => Ok(self.main.clone()),
         }
     }
-    fn screen_camera(&mut self, target: Option<&RenderTarget>) -> Result<Camera, String> {
-        let output = self.output(target)?;
-        let mut camera = Camera::screen(output.descriptor.width, output.descriptor.height);
-        camera.target = target.cloned();
-        Ok(camera)
-    }
-    fn draw_mesh(
+    fn draw_prepared_run(
         &mut self,
         encoder: &mut wgpu::CommandEncoder,
-        camera: &Camera,
-        mesh: &Mesh,
-        model: Mat4,
-        blend: BlendMode,
-        lines: bool,
+        geometry: &[Option<FrameGeometry>],
+        first: &PreparedDraw,
+        following: &[PreparedCommand],
     ) -> Result<(), String> {
-        if mesh.indices.is_empty() {
-            return Ok(());
-        }
-        let output = self.output(camera.target.as_ref())?;
-        let texture = match &mesh.texture {
-            Some(texture) => self.texture(texture)?,
-            None => self.white.clone(),
-        };
-        if Arc::ptr_eq(&output, &texture) {
-            return Err("cannot sample the current render target while drawing into it".into());
-        }
-        if camera.depth_test && output.depth.is_none() {
-            return Err("depth-enabled camera requires a target with depth storage".into());
-        }
-        let transform = clip_matrix(camera.view_projection, model);
-        if !transform.is_finite() {
-            return Err("camera-model transform overflow".into());
-        }
-        let geometry =
-            self.pipelines
-                .geometry(&self.gpu.device, &mesh.vertices, &mesh.indices, transform);
-        let pipeline = self.pipelines.pipeline(
-            &self.gpu.device,
-            target::COLOR_FORMAT,
-            camera.depth_test,
-            lines,
-            blend,
-            FragmentKind::for_source(&texture.descriptor.source, blend),
-        );
+        let output = self.output(first.target.as_ref())?;
         let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-            label: Some("ordered draw"),
+            label: Some("ordered draw run"),
             color_attachments: &[Some(wgpu::RenderPassColorAttachment {
                 view: &output.view,
                 depth_slice: None,
@@ -279,7 +212,7 @@ impl WgpuRenderer {
                     store: wgpu::StoreOp::Store,
                 },
             })],
-            depth_stencil_attachment: if camera.depth_test {
+            depth_stencil_attachment: if first.depth_test {
                 output
                     .depth
                     .as_ref()
@@ -296,22 +229,71 @@ impl WgpuRenderer {
             },
             ..Default::default()
         });
-        issue(&mut pass, &pipeline, &geometry, &texture.binding);
+        self.draw_prepared_mesh(&mut pass, geometry, first)?;
+        for command in following {
+            let PreparedCommand::Draw(draw) = command else {
+                unreachable!("draw run ends before non-draw commands")
+            };
+            self.draw_prepared_mesh(&mut pass, geometry, draw)?;
+        }
+        Ok(())
+    }
+    fn draw_prepared_mesh(
+        &mut self,
+        pass: &mut wgpu::RenderPass<'_>,
+        geometry: &[Option<FrameGeometry>],
+        draw: &PreparedDraw,
+    ) -> Result<(), String> {
+        // Resolve and validate each draw at its original command position. The
+        // cached owned handles remain valid while wgpu records their use; no
+        // borrowed temporary resources or draws are saved for a later flush.
+        let output = self.output(draw.target.as_ref())?;
+        let texture = match &draw.texture {
+            Some(texture) => self.texture(texture)?,
+            None => self.white.clone(),
+        };
+        if Arc::ptr_eq(&output, &texture) {
+            return Err("cannot sample the current render target while drawing into it".into());
+        }
+        if draw.depth_test && output.depth.is_none() {
+            return Err("depth-enabled camera requires a target with depth storage".into());
+        }
+        let pipeline = self.pipelines.pipeline(
+            &self.gpu.device,
+            target::COLOR_FORMAT,
+            draw.depth_test,
+            draw.lines,
+            draw.blend,
+            FragmentKind::for_source(&texture.descriptor.source, draw.blend),
+        );
+        issue(
+            pass,
+            &pipeline,
+            geometry[draw.geometry.arena_index]
+                .as_ref()
+                .expect("prepared draw has frame buffers"),
+            &draw.geometry.range,
+            &texture.binding,
+        );
         Ok(())
     }
 }
 fn issue(
     pass: &mut wgpu::RenderPass<'_>,
     pipeline: &wgpu::RenderPipeline,
-    geometry: &super::mesh::Geometry,
+    geometry: &FrameGeometry,
+    slice: &DrawSlice,
     texture: &wgpu::BindGroup,
 ) {
     pass.set_pipeline(pipeline);
-    pass.set_bind_group(0, &geometry.transform, &[]);
+    pass.set_bind_group(0, &geometry.transform, &[slice.matrix_offset]);
     pass.set_bind_group(1, texture, &[]);
-    pass.set_vertex_buffer(0, geometry.vertices.slice(..));
-    pass.set_index_buffer(geometry.indices.slice(..), wgpu::IndexFormat::Uint16);
-    pass.draw_indexed(0..geometry.count, 0, 0..1);
+    pass.set_vertex_buffer(0, geometry.vertices.slice(slice.vertices.clone()));
+    pass.set_index_buffer(
+        geometry.indices.slice(slice.indices.clone()),
+        wgpu::IndexFormat::Uint16,
+    );
+    pass.draw_indexed(0..slice.count, 0, 0..1);
 }
 pub(super) fn clear(encoder: &mut wgpu::CommandEncoder, target: &GpuTexture, color: Color) {
     let _pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
@@ -455,6 +437,239 @@ fn validate(list: &DrawList, limits: &wgpu::Limits) -> Result<(), String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::draw::{Camera, Mesh, Rect, Sampler, Texture};
+    use glam::{Mat4, Vec3};
+    use std::ops::Range;
+
+    fn draw(target: Option<&RenderTarget>, depth_test: bool, index: u32) -> PreparedCommand {
+        PreparedCommand::Draw(PreparedDraw {
+            target: target.cloned(),
+            depth_test,
+            texture: None,
+            blend: BlendMode::Alpha,
+            lines: false,
+            geometry: super::super::plan::GeometrySlice {
+                arena_index: 0,
+                range: DrawSlice {
+                    vertices: u64::from(index) * 120..u64::from(index + 1) * 120,
+                    indices: u64::from(index) * 6..u64::from(index + 1) * 6,
+                    matrix_offset: index * 256,
+                    count: 3,
+                },
+            },
+        })
+    }
+
+    fn draw_runs(commands: &[PreparedCommand]) -> Vec<Range<usize>> {
+        let mut runs = Vec::new();
+        let mut position = 0;
+        while position < commands.len() {
+            let count = draw_run_len(&commands[position..]);
+            if count != 0 {
+                runs.push(position..position + count);
+            }
+            position += count.max(1);
+        }
+        runs
+    }
+
+    #[test]
+    fn grouping_preserves_camera_clear_capture_and_attachment_boundaries() {
+        let a = RenderTarget::new(40, 20, true).unwrap();
+        let b = RenderTarget::new(40, 20, true).unwrap();
+        let commands = vec![
+            draw(None, false, 0),
+            draw(None, false, 1),
+            PreparedCommand::Camera(Camera::screen(100, 50)),
+            draw(None, false, 2),
+            PreparedCommand::Clear {
+                target: None,
+                color: Color::WHITE,
+            },
+            draw(None, false, 3),
+            PreparedCommand::Capture {
+                target: Some(b.clone()),
+                path: "other-target.png".into(),
+            },
+            draw(None, false, 4),
+            draw(None, true, 5),
+            draw(None, true, 6),
+            draw(Some(&a), true, 7),
+            draw(Some(&b), true, 8),
+            draw(Some(&a), true, 9),
+            draw(Some(&a), false, 10),
+            draw(Some(&a), false, 11),
+        ];
+        let runs = draw_runs(&commands);
+        assert_eq!(
+            runs,
+            [
+                0..2,
+                3..4,
+                5..6,
+                7..8,
+                8..10,
+                10..11,
+                11..12,
+                12..13,
+                13..15
+            ]
+        );
+        // Flatten the actual grouping rule and compare with the original
+        // logical draw sequence, including exact immutable draw identities.
+        let before: Vec<_> = commands
+            .iter()
+            .filter_map(|command| match command {
+                PreparedCommand::Draw(draw) => Some(draw as *const PreparedDraw),
+                _ => None,
+            })
+            .collect();
+        let after: Vec<_> = runs
+            .into_iter()
+            .flat_map(|range| &commands[range])
+            .map(|command| {
+                let PreparedCommand::Draw(draw) = command else {
+                    panic!("draw run crossed a barrier")
+                };
+                draw as *const PreparedDraw
+            })
+            .collect();
+        assert_eq!(after, before);
+    }
+
+    #[test]
+    fn empty_draw_groups_do_not_open_passes() {
+        assert_eq!(draw_run_len(&[]), 0);
+        let commands = [
+            PreparedCommand::Camera(Camera::screen(100, 50)),
+            PreparedCommand::Camera(Camera::screen(100, 50)),
+            PreparedCommand::Clear {
+                target: None,
+                color: Color::WHITE,
+            },
+            PreparedCommand::Capture {
+                target: None,
+                path: "empty.png".into(),
+            },
+        ];
+        assert!(draw_runs(&commands).is_empty());
+        let mut list = DrawList::new(100, 50);
+        list.draw_mesh(&Mesh::default(), Mat4::IDENTITY, BlendMode::Opaque);
+        list.draw_text("  ", glam::Vec2::ZERO, 16., Color::WHITE);
+        let plan = FramePlan::new(
+            &list,
+            &mut super::super::text::TextRenderer::new().unwrap(),
+            256,
+            1024,
+            false,
+        )
+        .unwrap();
+        assert!(draw_runs(&plan.commands).is_empty());
+        assert!(plan.present.is_none());
+    }
+
+    #[test]
+    fn alternating_pipeline_texture_and_arena_state_stays_in_one_ordered_pass() {
+        let sampled = RenderTarget::new(40, 20, false).unwrap();
+        let image = Texture::rgba8(1, 1, &[255; 4], Sampler::default()).unwrap();
+        let mut commands: Vec<_> = (0..6).map(|i| draw(None, false, i)).collect();
+        for (i, command) in commands.iter_mut().enumerate() {
+            let PreparedCommand::Draw(draw) = command else {
+                unreachable!()
+            };
+            draw.blend = [BlendMode::Opaque, BlendMode::Alpha, BlendMode::Additive][i % 3];
+            draw.lines = i % 2 == 0;
+            draw.texture = match i % 3 {
+                0 => None,
+                1 => Some(image.clone()),
+                _ => Some(sampled.texture.clone()),
+            };
+            draw.geometry.arena_index = i / 2;
+        }
+        assert_eq!(draw_run_len(&commands), 6);
+        let runs = draw_runs(&commands);
+        assert_eq!(runs.len(), 1);
+        assert_eq!(runs[0], 0..6);
+        for (i, command) in commands.iter().enumerate() {
+            let PreparedCommand::Draw(draw) = command else {
+                unreachable!()
+            };
+            assert_eq!(
+                draw.blend,
+                [BlendMode::Opaque, BlendMode::Alpha, BlendMode::Additive][i % 3]
+            );
+            assert_eq!(draw.lines, i % 2 == 0);
+            assert_eq!(draw.geometry.arena_index, i / 2);
+            assert_eq!(draw.geometry.range.matrix_offset, i as u32 * 256);
+            assert_eq!(
+                draw.geometry.range.vertices,
+                i as u64 * 120..(i as u64 + 1) * 120
+            );
+            assert_eq!(
+                draw.geometry.range.indices,
+                i as u64 * 6..(i as u64 + 1) * 6
+            );
+            assert_eq!(
+                draw.texture.as_ref().map(|texture| texture.id),
+                match i % 3 {
+                    0 => None,
+                    1 => Some(image.id),
+                    _ => Some(sampled.texture.id),
+                }
+            );
+        }
+    }
+
+    #[test]
+    fn grouping_keeps_real_arena_rollover_matrices_and_presentation_separate() {
+        let mut list = DrawList::new(100, 50);
+        let mesh = super::super::sprite2d::quad(Rect::new(1., 2., 3., 4.), Color::WHITE, None);
+        for i in 0..3 {
+            list.draw_mesh(
+                &mesh,
+                Mat4::from_translation(Vec3::X * i as f32),
+                BlendMode::Alpha,
+            );
+        }
+        let plan = FramePlan::new(
+            &list,
+            &mut super::super::text::TextRenderer::new().unwrap(),
+            256,
+            256,
+            true,
+        )
+        .unwrap();
+        assert_eq!(plan.arenas.len(), 4);
+        let runs = draw_runs(&plan.commands);
+        assert_eq!(runs.len(), 1);
+        assert_eq!(runs[0], 0..3);
+        for (i, command) in plan.commands.iter().enumerate() {
+            let PreparedCommand::Draw(draw) = command else {
+                unreachable!()
+            };
+            assert_eq!(draw.geometry.arena_index, i);
+            assert_eq!(draw.geometry.range.matrix_offset, 0);
+            assert_eq!(draw.geometry.range.vertices, 0..160);
+            assert_eq!(draw.geometry.range.indices, 0..12);
+            assert_eq!(draw.geometry.range.count, 6);
+            let expected = super::super::arena::clip_matrix(
+                Camera::screen(100, 50).view_projection,
+                Mat4::from_translation(Vec3::X * i as f32),
+            )
+            .to_cols_array()
+            .into_iter()
+            .flat_map(f32::to_le_bytes)
+            .collect::<Vec<_>>();
+            assert_eq!(
+                &plan.arenas[i].buffer_contents().unwrap()[2][..64],
+                expected
+            );
+        }
+        let present = plan.present.unwrap();
+        assert_eq!(present.arena_index, 3);
+        assert_eq!(present.range.matrix_offset, 0);
+    }
+
     #[test]
     fn rejects_invalid_commands_before_encoding() {
         let mut list = DrawList::new(960, 540);

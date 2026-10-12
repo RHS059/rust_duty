@@ -17,6 +17,75 @@ use std::path::Path;
 const MAX_RECORDS: usize = 250_000;
 const MAX_METADATA_BYTES: usize = 256 * 1024;
 pub const MEASUREMENT: &str = "cpu_wall_clock_successful_present_return_interval_ns";
+pub const CPU_STAGE_MEASUREMENT: &str = "cpu_wall_clock_paired_frame_stage_ns";
+pub const CPU_STAGE_INTERPRETATION: &str = "Disjoint paired CPU wall-clock spans within one frame attempt, not GPU execution times. Missing spans are unavailable, not zero. Stages do not cover the whole present-return interval; no residual GPU time is inferred. Successful present-return intervals remain the primary end-to-end measurement.";
+
+/// Ordered, non-overlapping CPU spans. Renderer submission includes encoding,
+/// queue submission, validation and any requested diagnostic readback, but ends
+/// before the present call. No GPU completion fence is added by these hooks.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
+pub enum CpuFrameStage {
+    SurfaceAcquire,
+    GameRecording,
+    RendererSubmit,
+    PresentCall,
+}
+impl CpuFrameStage {
+    pub const ALL: [Self; 4] = [
+        Self::SurfaceAcquire,
+        Self::GameRecording,
+        Self::RendererSubmit,
+        Self::PresentCall,
+    ];
+    pub fn label(self) -> &'static str {
+        match self {
+            Self::SurfaceAcquire => "surface_acquire",
+            Self::GameRecording => "game_recording",
+            Self::RendererSubmit => "renderer_submit",
+            Self::PresentCall => "present_call",
+        }
+    }
+    pub(crate) fn index(self) -> usize {
+        self as usize
+    }
+}
+
+#[derive(Clone, Copy, Debug)]
+pub(crate) struct CpuWallSpan {
+    pub started_at_ns: u64,
+    pub ended_at_ns: u64,
+}
+
+#[derive(Clone, Debug)]
+pub(crate) struct CpuFrameStages {
+    pub started_at_ns: u64,
+    pub physical_width: u32,
+    pub physical_height: u32,
+    pub spans: [Option<CpuWallSpan>; 4],
+}
+#[derive(Debug)]
+struct CpuFrameSample {
+    record_index: usize,
+    finished_at_ns: u64,
+    frame: CpuFrameStages,
+}
+impl CpuFrameSample {
+    fn to_json(&self) -> Value {
+        let spans: serde_json::Map<String, Value> = CpuFrameStage::ALL
+            .into_iter()
+            .map(|stage| {
+                let span = self.frame.spans[stage.index()].map(|span| {
+                    json!({"started_at_ns":span.started_at_ns,"ended_at_ns":span.ended_at_ns,
+                        "duration_ns":span.ended_at_ns - span.started_at_ns})
+                });
+                (stage.label().into(), span.unwrap_or(Value::Null))
+            })
+            .collect();
+        json!({"record_index":self.record_index,"started_at_ns":self.frame.started_at_ns,
+            "finished_at_ns":self.finished_at_ns,"physical_width":self.frame.physical_width,
+            "physical_height":self.frame.physical_height,"spans":spans})
+    }
+}
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct CaptureLimits {
@@ -311,6 +380,7 @@ pub struct FramePerformanceObserver {
     previous_eligible_present_ns: Option<u64>,
     records: Vec<RawRecord>,
     failure: Option<(u64, CaptureError)>,
+    cpu_frame_stages: Vec<CpuFrameSample>,
 }
 impl FramePerformanceObserver {
     pub fn start(
@@ -348,7 +418,32 @@ impl FramePerformanceObserver {
             previous_eligible_present_ns: None,
             records,
             failure: None,
+            cpu_frame_stages: Vec::new(),
         })
+    }
+    /// Allocate once, only when recording an instrumented frame. At most one
+    /// sample belongs to each retained terminal record; this shares its limit.
+    pub(crate) fn enable_cpu_frame_stages(&mut self, at_ns: u64) -> Result<(), CaptureError> {
+        if self.cpu_frame_stages.capacity() == 0
+            && self
+                .cpu_frame_stages
+                .try_reserve_exact(self.limits.max_records)
+                .is_err()
+        {
+            return self.fail(at_ns, CaptureError::AllocationFailed);
+        }
+        Ok(())
+    }
+    pub(crate) fn record_cpu_frame_stages(&mut self, frame: CpuFrameStages, at_ns: u64) {
+        // Called only after the terminal event was retained successfully. The
+        // separately indexed extension leaves all v1 records and counts intact.
+        debug_assert!(!self.records.is_empty());
+        debug_assert!(self.cpu_frame_stages.len() < self.limits.max_records);
+        self.cpu_frame_stages.push(CpuFrameSample {
+            record_index: self.records.len() - 1,
+            finished_at_ns: at_ns,
+            frame,
+        });
     }
     /// Every successful present must pass its current eligibility explicitly.
     /// The first eligible present after start/exclusion is a baseline, not a sample.
@@ -518,6 +613,7 @@ impl FramePerformanceObserver {
             skipped_frame_count,
             summary,
             records: self.records,
+            cpu_frame_stages: self.cpu_frame_stages,
         }
     }
 }
@@ -556,13 +652,14 @@ pub struct FramePerformanceReport {
     pub skipped_frame_count: usize,
     pub summary: IntervalSummary,
     records: Vec<RawRecord>,
+    cpu_frame_stages: Vec<CpuFrameSample>,
 }
 impl FramePerformanceReport {
     pub fn raw_records(&self) -> &[RawRecord] {
         &self.records
     }
     pub fn to_json(&self) -> Value {
-        json!({"schema":"rust_duty_frame_performance_v1","measurement":MEASUREMENT,
+        let mut report = json!({"schema":"rust_duty_frame_performance_v1","measurement":MEASUREMENT,
             "clock":"caller_injected_monotonic_nanoseconds","interpretation":"CPU wall-clock intervals between successful present returns; not GPU time, display cadence or simulation time.",
             "identity":self.identity.to_json(),"status":self.status.to_json(),
             "start_ns":self.start_ns,"stop_requested_ns":self.stop_requested_ns,"stopped_at_ns":self.stopped_at_ns,
@@ -571,7 +668,20 @@ impl FramePerformanceReport {
             "successful_present_count":self.successful_present_count,"ineligible_present_count":self.ineligible_present_count,
             "skipped_frame_count":self.skipped_frame_count,
             "count_scope":"retained events only; incomplete capture does not assert counts for unobserved activity",
-            "summary":self.summary.to_json(),"records":self.records.iter().map(|record| record.to_json()).collect::<Vec<_>>()})
+            "summary":self.summary.to_json(),"records":self.records.iter().map(|record| record.to_json()).collect::<Vec<_>>()});
+        if !self.cpu_frame_stages.is_empty() {
+            report["cpu_frame_stages"] = json!({
+                "measurement":CPU_STAGE_MEASUREMENT,"interpretation":CPU_STAGE_INTERPRETATION,
+                "stage_definitions":{
+                    "surface_acquire":"CPU time in the surface acquisition call, including its internal recovery/retry; excludes surface resize/configuration before the call.",
+                    "game_recording":"CPU time from acquired-frame recorder setup through application/input work and draw-list preparation, ending before renderer submission.",
+                    "renderer_submit":"CPU time preparing resources, encoding and submitting commands, validating, and completing any requested diagnostic readbacks; excludes the present call and post-present error check.",
+                    "present_call":"CPU time in queue.present only; return does not establish GPU completion or display scan-out."
+                },
+                "samples":self.cpu_frame_stages.iter().map(CpuFrameSample::to_json).collect::<Vec<_>>()
+            });
+        }
+        report
     }
     /// Reserve a new path exclusively, then serialize, flush, and sync. Existing
     /// paths (including symlinks) are never overwritten. A failure after creation

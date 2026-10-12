@@ -475,12 +475,11 @@ def compare(parsed):
     dx, dy = x - target[0], y - target[1]
     result['measured_center'] = [x, y]
     result['delta'] = {'dx': dx, 'dy': dy, 'euclidean': math.hypot(dx, dy)}
-    if (x, y) == (float(target[0]), float(target[1])):
-        result['status'] = 'unaccepted-coincides-with-target'
-        result['reason'] = ('measured value equals the calibration target exactly and cannot '
-                            'be distinguished from a copied target; needs explicit human '
-                            'confirmation in the review record')
-    elif abs(dx) <= TOLERANCE_PX and abs(dy) <= TOLERANCE_PX:
+    # Provenance and missing/defaulted measurements are validated before this
+    # comparison. Equality with calibration is not evidence of copying: zero
+    # error belongs to the same inclusive per-axis tolerance as every other
+    # independently supplied measurement. This function is not a pixel detector.
+    if abs(dx) <= TOLERANCE_PX and abs(dy) <= TOLERANCE_PX:
         result['status'] = 'within-tolerance'
         result['accepted'] = True
     else:

@@ -18,7 +18,8 @@ REQUIRED_FILES = (
     'DX12_PREVIEW_README.txt', 'LICENSE', 'THIRD_PARTY_LICENSES.txt',
     'updater/notices/THIRD_PARTY_UPDATER_LICENSES.txt', 'ui/theme.css',
     'ui/examples/high-contrast.css', 'ui/examples/large-type.css',
-    'docs/UI_THEME.md', 'docs/UI_THEME_EXAMPLES.md', 'docs/FRAME_PERFORMANCE.md', 'assets/animations.cfg',
+    'docs/UI_THEME.md', 'docs/UI_THEME_EXAMPLES.md', 'docs/FRAME_PERFORMANCE.md',
+    'docs/GPU_TELEMETRY.md', 'assets/animations.cfg',
 )
 LAUNCHER = '@echo off\ncd /d "%~dp0"\n"%~dp0vector-range.exe" --renderer=dx12 --no-update\nexit /b %ERRORLEVEL%\n'
 MAX_TOTAL_BYTES = 4 * 1024**3

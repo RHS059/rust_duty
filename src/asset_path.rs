@@ -85,19 +85,37 @@ pub fn load_weapon(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::sync::atomic::{AtomicUsize, Ordering};
+
+    static NEXT_TEMP_ID: AtomicUsize = AtomicUsize::new(0);
+
     struct Temp(PathBuf);
     impl Temp {
         fn new() -> Self {
-            let path = std::env::temp_dir().join(format!(
-                "vector bundle spaces {} {}",
-                std::process::id(),
-                std::time::SystemTime::now()
-                    .duration_since(std::time::UNIX_EPOCH)
-                    .unwrap()
-                    .as_nanos()
-            ));
-            std::fs::create_dir_all(path.join("assets/weapons")).unwrap();
-            Self(path)
+            Self::new_in(&std::env::temp_dir(), &NEXT_TEMP_ID)
+        }
+
+        fn new_in(root: &Path, next_id: &AtomicUsize) -> Self {
+            loop {
+                let path = root.join(format!(
+                    "vector bundle spaces {} {}",
+                    std::process::id(),
+                    next_id.fetch_add(1, Ordering::Relaxed)
+                ));
+                // Claim a fresh directory before creating nested fixtures. An
+                // existing entry may belong to another test or an earlier run.
+                match std::fs::create_dir(&path) {
+                    Ok(()) => {
+                        let temp = Self(path);
+                        std::fs::create_dir_all(temp.0.join("assets/weapons")).unwrap();
+                        return temp;
+                    }
+                    Err(error) if error.kind() == std::io::ErrorKind::AlreadyExists => continue,
+                    Err(error) => {
+                        panic!("cannot create test directory {}: {error}", path.display())
+                    }
+                }
+            }
         }
     }
     impl Drop for Temp {
@@ -105,6 +123,49 @@ mod tests {
             let _ = std::fs::remove_dir_all(&self.0);
         }
     }
+
+    #[test]
+    fn temp_fixture_retries_occupied_paths_without_changing_them() {
+        let root = Temp::new();
+        let candidate = |id| {
+            root.0
+                .join(format!("vector bundle spaces {} {id}", std::process::id()))
+        };
+        std::fs::create_dir(candidate(0)).unwrap();
+        let sentinel = candidate(0).join("owned-by-another-test");
+        std::fs::write(&sentinel, b"keep directory").unwrap();
+        std::fs::write(candidate(1), b"keep file").unwrap();
+
+        let next_id = AtomicUsize::new(0);
+        let temp = Temp::new_in(&root.0, &next_id);
+        assert_eq!(temp.0, candidate(2));
+        assert!(temp.0.join("assets/weapons").is_dir());
+        drop(temp);
+        assert!(!candidate(2).exists());
+        assert_eq!(std::fs::read(sentinel).unwrap(), b"keep directory");
+        assert_eq!(std::fs::read(candidate(1)).unwrap(), b"keep file");
+    }
+
+    #[test]
+    fn temp_fixtures_are_distinct_during_parallel_allocation() {
+        let root = Temp::new();
+        let next_id = AtomicUsize::new(0);
+        let temps = std::thread::scope(|scope| {
+            let handles: Vec<_> = (0..16)
+                .map(|_| scope.spawn(|| Temp::new_in(&root.0, &next_id)))
+                .collect();
+            handles
+                .into_iter()
+                .map(|handle| handle.join().unwrap())
+                .collect::<Vec<_>>()
+        });
+        let paths: std::collections::BTreeSet<_> = temps.iter().map(|temp| &temp.0).collect();
+        assert_eq!(paths.len(), 16);
+        assert!(temps
+            .iter()
+            .all(|temp| temp.0.join("assets/weapons").is_dir()));
+    }
+
     #[test]
     fn locomotion_pack_is_discovered_next_to_executable() {
         let temp = Temp::new();

@@ -732,3 +732,53 @@ fn ordinary_skip_events_share_the_bounded_budget_and_latch_overflow() {
     assert_eq!(report.skipped_frame_count, 1);
     assert_eq!(report.raw_records().len(), 2);
 }
+
+#[test]
+fn optional_cpu_stage_extension_keeps_v1_records_counts_and_primary_summary() {
+    let mut traced = observer();
+    traced.enable_cpu_frame_stages(100).unwrap();
+    traced
+        .record_present_return(110, Eligibility::Eligible)
+        .unwrap();
+    traced.record_cpu_frame_stages(
+        CpuFrameStages {
+            started_at_ns: 100,
+            physical_width: 1920,
+            physical_height: 1080,
+            spans: [
+                Some(CpuWallSpan {
+                    started_at_ns: 101,
+                    ended_at_ns: 109,
+                }),
+                None,
+                None,
+                None,
+            ],
+        },
+        110,
+    );
+    traced
+        .record_present_return(120, Eligibility::Eligible)
+        .unwrap();
+    let mut original = observer();
+    original
+        .record_present_return(110, Eligibility::Eligible)
+        .unwrap();
+    original
+        .record_present_return(120, Eligibility::Eligible)
+        .unwrap();
+    let expected = original.stop(130).to_json();
+    let mut actual = traced.stop(130).to_json();
+    let extension = actual
+        .as_object_mut()
+        .unwrap()
+        .remove("cpu_frame_stages")
+        .unwrap();
+    assert_eq!(actual, expected);
+    assert_eq!(extension["samples"][0]["record_index"], 0);
+    assert_eq!(
+        extension["samples"][0]["spans"]["surface_acquire"]["duration_ns"],
+        8
+    );
+    assert_eq!(extension["measurement"], CPU_STAGE_MEASUREMENT);
+}

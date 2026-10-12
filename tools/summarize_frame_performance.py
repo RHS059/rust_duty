@@ -16,6 +16,17 @@ METHOD = 'nearest_rank_ceil_p_times_n_no_interpolation'
 INTERPRETATION = 'CPU wall-clock intervals between successful present returns; not GPU time, display cadence or simulation time.'
 COUNT_SCOPE = 'retained events only; incomplete capture does not assert counts for unobserved activity'
 BASIS = 'This observer does not authenticate hardware evidence.'
+# The optional four-span extension grows pretty-printed captures. This remains
+# bounded and accommodates the producer's maximum 250,000 retained records.
+MAX_REPORT_BYTES = 512 * 1024 * 1024
+CPU_STAGE_MEASUREMENT = 'cpu_wall_clock_paired_frame_stage_ns'
+CPU_STAGE_INTERPRETATION = 'Disjoint paired CPU wall-clock spans within one frame attempt, not GPU execution times. Missing spans are unavailable, not zero. Stages do not cover the whole present-return interval; no residual GPU time is inferred. Successful present-return intervals remain the primary end-to-end measurement.'
+CPU_STAGE_DEFINITIONS = {
+    'surface_acquire': 'CPU time in the surface acquisition call, including its internal recovery/retry; excludes surface resize/configuration before the call.',
+    'game_recording': 'CPU time from acquired-frame recorder setup through application/input work and draw-list preparation, ending before renderer submission.',
+    'renderer_submit': 'CPU time preparing resources, encoding and submitting commands, validating, and completing any requested diagnostic readbacks; excludes the present call and post-present error check.',
+    'present_call': 'CPU time in queue.present only; return does not establish GPU completion or display scan-out.',
+}
 REASONS = {'focus_lost', 'focus_regained', 'paused', 'resumed', 'resize', 'minimized',
            'surface_skipped', 'surface_error', 'capture_readback', 'diagnostic_capture',
            'renderer_changed', 'scene_changed', 'caller_excluded', 'shutdown'}
@@ -60,14 +71,82 @@ def _window(window):
     _require(window['mode'] in ('unknown', 'windowed', 'borderless', 'exclusive_fullscreen'), 'unknown window mode')
 
 
+def _cpu_frame_stages(extension, report):
+    _object(extension, ('measurement', 'interpretation', 'stage_definitions', 'samples'), 'CPU frame stages')
+    _require(extension['measurement'] == CPU_STAGE_MEASUREMENT
+             and extension['interpretation'] == CPU_STAGE_INTERPRETATION,
+             'unsupported CPU stage measurement or interpretation')
+    _require(extension['stage_definitions'] == CPU_STAGE_DEFINITIONS, 'unsupported CPU stage definitions')
+    samples, records = extension['samples'], report['records']
+    _require(isinstance(samples, list) and len(samples) <= len(records), 'CPU samples must be bounded by retained records')
+    previous_index, previous_end = -1, report['start_ns']
+    for sample in samples:
+        _object(sample, ('record_index', 'started_at_ns', 'finished_at_ns', 'physical_width',
+                         'physical_height', 'spans'), 'CPU frame sample')
+        index = _uint(sample['record_index'], 'CPU record_index')
+        _require(previous_index < index < len(records), 'CPU record indexes must reference distinct ordered retained records')
+        # Uninstrumented frames (for example capture enabled mid-frame) still
+        # constrain this attempt's start. Ordinary in-frame boundaries do not.
+        for earlier in range(previous_index + 1, index):
+            row = records[earlier]
+            if (row['kind'] in ('successful_present_return', 'skipped_frame')
+                    or (row['kind'] == 'boundary' and row['reason'] in ('surface_error', 'shutdown'))):
+                previous_end = max(previous_end, row['at_ns'])
+        previous_index = index
+        row = records[index]
+        _require(row['kind'] in ('successful_present_return', 'skipped_frame')
+                 or (row['kind'] == 'boundary' and row['reason'] in ('surface_error', 'shutdown')),
+                 'CPU sample must reference a terminal frame event')
+        start = _uint(sample['started_at_ns'], 'CPU frame start')
+        end = _uint(sample['finished_at_ns'], 'CPU frame end')
+        _require(previous_end <= start <= end == row['at_ns'], 'CPU frame times do not match the retained timeline')
+        previous_end = end
+        for field in ('physical_width', 'physical_height'):
+            _uint(sample[field], field, 2**32 - 1)
+        _object(sample['spans'], CPU_STAGE_DEFINITIONS, 'CPU stage spans')
+        span_end = start
+        for name in CPU_STAGE_DEFINITIONS:
+            span = sample['spans'][name]
+            if span is None:
+                continue
+            _object(span, ('started_at_ns', 'ended_at_ns', 'duration_ns'), f'CPU {name}')
+            begin = _uint(span['started_at_ns'], 'CPU span start')
+            finish = _uint(span['ended_at_ns'], 'CPU span end')
+            duration = _uint(span['duration_ns'], 'CPU span duration')
+            _require(span_end <= begin <= finish <= end, 'CPU spans must be disjoint, ordered and within their frame')
+            _require(duration == finish - begin, 'CPU duration differs from its paired timestamps')
+            span_end = finish
+
+
+def _cpu_stage_summary(extension, records):
+    result = {key: value for key, value in extension.items() if key != 'samples'}
+    result['scope'] = 'Paired stages on eligible successful-present records with a retained end-to-end interval; missing stages omitted, not zero-filled. No GPU or FPS estimate.'
+    result['retained_attempt_count'] = len(extension['samples'])
+    result['summary'] = {}
+    for name in CPU_STAGE_DEFINITIONS:
+        values = sorted(sample['spans'][name]['duration_ns'] for sample in extension['samples']
+                        if sample['spans'][name] is not None
+                        and records[sample['record_index']]['kind'] == 'successful_present_return'
+                        and records[sample['record_index']]['eligible']
+                        and records[sample['record_index']]['interval_ns'] is not None)
+        result['summary'][name] = {
+            'sample_count': len(values), 'total_ns': sum(values),
+            'min_ns': values[0] if values else None, 'max_ns': values[-1] if values else None,
+            **{f'p{p}_ns': values[(len(values) * p + 99) // 100 - 1] if values else None
+               for p in (50, 95, 99)}, 'percentile_method': METHOD,
+        }
+    return result
+
+
 def validate_report(report):
     """Check the actual v1 producer schema and recompute every retained statistic."""
     try:
         _finite_tree(report)
-        _object(report, ('schema', 'measurement', 'clock', 'interpretation', 'identity', 'status',
+        fields = ('schema', 'measurement', 'clock', 'interpretation', 'identity', 'status',
                          'start_ns', 'stop_requested_ns', 'stopped_at_ns', 'last_observed_ns',
                          'incomplete_at_ns', 'limits', 'successful_present_count',
-                         'ineligible_present_count', 'skipped_frame_count', 'count_scope', 'summary', 'records'), 'report')
+                         'ineligible_present_count', 'skipped_frame_count', 'count_scope', 'summary', 'records')
+        _object(report, fields + (('cpu_frame_stages',) if 'cpu_frame_stages' in report else ()), 'report')
         for key, expected in [('schema', SCHEMA), ('measurement', MEASUREMENT),
                               ('clock', 'caller_injected_monotonic_nanoseconds'),
                               ('interpretation', INTERPRETATION), ('count_scope', COUNT_SCOPE)]:
@@ -139,6 +218,8 @@ def validate_report(report):
             else:
                 raise ValueError(f'unknown record kind: {kind!r}')
         _require(report['last_observed_ns'] == previous, 'last_observed_ns does not match retained events')
+        if 'cpu_frame_stages' in report:
+            _cpu_frame_stages(report['cpu_frame_stages'], report)
         for name, expected in [('successful_present_count', presents), ('ineligible_present_count', ineligible),
                                ('skipped_frame_count', skipped)]:
             _require(report[name] == expected, f'{name} differs from retained records')
@@ -211,8 +292,8 @@ def read_report(path):
     if path.is_symlink():
         raise ValueError('report must not be a symlink')
     with path.open('rb') as source:
-        data = source.read(128 * 1024 * 1024 + 1)
-    _require(len(data) <= 128 * 1024 * 1024, 'report exceeds 128 MiB')
+        data = source.read(MAX_REPORT_BYTES + 1)
+    _require(len(data) <= MAX_REPORT_BYTES, 'report exceeds 512 MiB')
     try:
         report = json.loads(data.decode('utf-8'), object_pairs_hook=_unique, parse_constant=_constant)
         validate_report(report)
@@ -225,7 +306,9 @@ def summarize_report(report_path, output_path=None):
     """Print a validated summary; incomplete capture remains incomplete."""
     try:
         report = read_report(report_path)
-        result = {key: value for key, value in report.items() if key not in ('records', 'summary', 'status')}
+        result = {key: value for key, value in report.items() if key not in ('records', 'summary', 'status', 'cpu_frame_stages')}
+        if 'cpu_frame_stages' in report:
+            result['cpu_frame_stages'] = _cpu_stage_summary(report['cpu_frame_stages'], report['records'])
         result.update(report['summary'])
         result.update(status=report['status']['state'], error=report['status']['error'],
                       retained_record_count=len(report['records']),

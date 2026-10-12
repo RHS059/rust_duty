@@ -1,0 +1,24 @@
+{
+  "command": [
+    "C:\\Users\\runneradmin\\.rustup\\toolchains\\1.99.0-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+    "build",
+    "--locked",
+    "--release",
+    "--no-default-features",
+    "--features",
+    "legacy-macroquad,wgpu-runtime",
+    "--target",
+    "x86_64-pc-windows-msvc",
+    "--example",
+    "source_visibility_geometry_probe",
+    "--example",
+    "finite_warp_probe"
+  ],
+  "cwd": "D:/a/rust_duty/rust_duty/prepared/source",
+  "exit_code": 0,
+  "environment": {
+    "RUSTFLAGS": null,
+    "CARGO_ENCODED_RUSTFLAGS": null,
+    "RUSTC_WRAPPER": null
+  }
+}

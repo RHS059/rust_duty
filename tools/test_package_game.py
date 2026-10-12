@@ -16,6 +16,7 @@ release_spec.loader.exec_module(release)
 ROOT = Path(__file__).resolve().parents[1]
 UI_RESOURCES = {
     "docs/FRAME_PERFORMANCE.md": b"# Local recording and complete session-folder export fixture\n",
+    "docs/GPU_TELEMETRY.md": b"# GPU sample identity, limitations and observations guidance fixture\n",
     "ui/theme.css": b"#hud .label { color: #e8edf2; }\n",
     "docs/UI_THEME.md": b"# Native theme fixture\n",
     "ui/examples/high-contrast.css": b".panel { background-color: #000000f2; border-width: 2px; }\n",
@@ -168,6 +169,7 @@ class PackageGameTests(unittest.TestCase):
             self.assertEqual(included[relative], (self.root / relative).read_bytes())
         for relative in UI_RESOURCES:
             self.assertEqual(included[relative], (self.root / relative).read_bytes())
+        self.assertEqual(included["docs/GPU_TELEMETRY.md"], UI_RESOURCES["docs/GPU_TELEMETRY.md"])
         self.assertNotIn("settings.cfg", included)
         self.assertNotIn(unlisted_theme, included)
         self.assertEqual((self.root / "ui/theme.css").read_bytes(), UI_RESOURCES["ui/theme.css"])

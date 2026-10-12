@@ -18,9 +18,11 @@ grid: 0 ≤ x ≤ 959, 0 ≤ y ≤ 539; sub-pixel values are allowed.
 ## What the tool will never do
 
 - Detect, project, estimate or infer a landmark. There is no detector.
-- Substitute the calibration target for a missing measurement. A measured value
-  that exactly equals the target is reported `unaccepted-coincides-with-target`
-  because it cannot be distinguished from a copied target.
+- Substitute the calibration target for a missing measurement. Every measurement
+  still needs its own provenance and explicit `target_values_not_used: true`.
+  A valid independent measurement may exactly equal the target: zero error is
+  within the original inclusive ±4 px tolerance. Numerical equality alone does
+  not establish or invalidate provenance.
 - Treat a guide overlay, crosshair or the packet's ±4 px box as evidence.
   `*-guide.png` files, `image_role` other than `raw`, and (with `--packet`) any
   file whose SHA-256 matches a listed guide are rejected.
@@ -132,7 +134,7 @@ rejected. `--output` refuses to overwrite an existing file. `--require-backend`
 | Report `status` | `automated_landmark_gate` | Exit |
 | --- | --- | --- |
 | `within-tolerance` (both required landmarks measured, accepted) | `measured-within-tolerance` | 0 |
-| `open` (missing, unmeasurable, uncertain or target-coincident) | `open` | 1 |
+| `open` (missing, unmeasurable or uncertain) | `open` | 1 |
 | `outside-tolerance` (any required measurement > 4 px on an axis) | `failed` | 1 |
 | `invalid` (any rejected input; no partial pass) | `open` | 2 |
 

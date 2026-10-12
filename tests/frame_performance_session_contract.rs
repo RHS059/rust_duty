@@ -6,8 +6,8 @@ use std::path::PathBuf;
 use std::rc::Rc;
 use std::sync::atomic::{AtomicU64, Ordering};
 use vector_range::frame_performance::{
-    BoundaryReason, CaptureError, CaptureLimits, CaptureStatus, Eligibility, RecordKind,
-    RunIdentity, RuntimeIdentity, WindowContext, WindowMode, WriteStage,
+    BoundaryReason, CaptureError, CaptureLimits, CaptureStatus, CpuFrameStage, Eligibility,
+    RecordKind, RunIdentity, RuntimeIdentity, WindowContext, WindowMode, WriteStage,
 };
 use vector_range::frame_performance_session::{
     MonotonicClock, PerformanceSession, SessionCompletion, SessionStartError,
@@ -102,6 +102,11 @@ fn disabled_hooks_do_not_read_a_clock_or_create_output() {
     assert!(!session.is_active());
     assert!(!session.is_stop_requested());
     session.request_stop();
+    session.begin_cpu_frame(1920, 1080);
+    for stage in CpuFrameStage::ALL {
+        session.begin_cpu_stage(stage);
+        session.end_cpu_stage(stage);
+    }
     assert!(session.set_eligibility(Eligibility::Eligible).is_none());
     assert!(session.update_window_context(window()).is_none());
     assert!(session.boundary(BoundaryReason::Resize).is_none());
@@ -480,4 +485,263 @@ fn latest_completion_preserves_export_error_and_incomplete_capture_status() {
     );
     assert!(notice.export_error.is_none());
     assert!(take_completion_notice().is_none());
+}
+
+fn cpu_stage(
+    session: &mut PerformanceSession<FakeClock>,
+    clock: &FakeClock,
+    stage: CpuFrameStage,
+    start: u64,
+    end: u64,
+) {
+    clock.set(start);
+    session.begin_cpu_stage(stage);
+    clock.set(end);
+    session.end_cpu_stage(stage);
+}
+
+#[test]
+fn cpu_stages_are_paired_disjoint_and_preserve_final_present_and_export() {
+    let (mut session, clock, output) = started();
+    present(&mut session, &clock, 10);
+    clock.set(12);
+    session.begin_cpu_frame(1920, 1080);
+    cpu_stage(&mut session, &clock, CpuFrameStage::SurfaceAcquire, 13, 23);
+    cpu_stage(&mut session, &clock, CpuFrameStage::GameRecording, 24, 54);
+    clock.set(55);
+    session.request_stop();
+    assert!(!output.0.exists());
+    cpu_stage(&mut session, &clock, CpuFrameStage::RendererSubmit, 56, 96);
+    cpu_stage(&mut session, &clock, CpuFrameStage::PresentCall, 97, 99);
+    clock.set(100);
+    let done = session.present_success().unwrap();
+    assert_eq!(done.report.summary.total_interval_ns, 90);
+    assert_eq!(done.report.stop_requested_ns, 55);
+    assert_eq!(done.report.stopped_at_ns, Some(100));
+    let report = done.report.to_json();
+    assert_eq!(report, output.read());
+    let sample = &report["cpu_frame_stages"]["samples"][0];
+    assert_eq!(sample["record_index"], 1);
+    assert_eq!(sample["started_at_ns"], 12);
+    assert_eq!(sample["finished_at_ns"], 100);
+    assert_eq!(sample["physical_width"], 1920);
+    assert_eq!(sample["physical_height"], 1080);
+    let mut previous = 12;
+    let mut total = 0;
+    for (stage, expected) in CpuFrameStage::ALL.into_iter().zip([10, 30, 40, 2]) {
+        let span = &sample["spans"][stage.label()];
+        let start = span["started_at_ns"].as_u64().unwrap();
+        let end = span["ended_at_ns"].as_u64().unwrap();
+        let duration = span["duration_ns"].as_u64().unwrap();
+        assert!(previous <= start && start <= end && end <= 100);
+        assert_eq!(duration, end - start);
+        assert_eq!(duration, expected);
+        total += duration;
+        previous = end;
+    }
+    assert!(total < done.report.summary.total_interval_ns);
+    assert!(report["cpu_frame_stages"]["interpretation"]
+        .as_str()
+        .unwrap()
+        .contains("not GPU"));
+    assert!(sample.get("gpu_time_ns").is_none());
+    assert_eq!(done.export.unwrap(), CaptureStatus::Complete);
+}
+
+#[test]
+fn cpu_acquisition_retry_is_retained_without_resetting_the_present_anchor() {
+    let (mut session, clock, output) = started();
+    present(&mut session, &clock, 10);
+    clock.set(11);
+    session.begin_cpu_frame(1920, 1080);
+    cpu_stage(
+        &mut session,
+        &clock,
+        CpuFrameStage::SurfaceAcquire,
+        12,
+        1000,
+    );
+    clock.set(1001);
+    assert!(session.present_skipped().is_none());
+    clock.set(1002);
+    session.begin_cpu_frame(1920, 1080);
+    cpu_stage(
+        &mut session,
+        &clock,
+        CpuFrameStage::SurfaceAcquire,
+        1003,
+        1004,
+    );
+    let done = stop(&mut session, &clock, 1005, 1010);
+    assert_eq!(done.report.summary.total_interval_ns, 1000);
+    let report = output.read();
+    let samples = report["cpu_frame_stages"]["samples"].as_array().unwrap();
+    assert_eq!(samples.len(), 2);
+    assert_eq!(samples[0]["record_index"], 1);
+    assert_eq!(report["records"][1]["kind"], "skipped_frame");
+    assert_eq!(samples[0]["spans"]["surface_acquire"]["duration_ns"], 988);
+    assert!(samples[0]["spans"]["present_call"].is_null());
+    assert_eq!(samples[1]["spans"]["surface_acquire"]["duration_ns"], 1);
+}
+
+#[test]
+fn cpu_acquisition_and_submission_failures_keep_completed_spans_without_a_present() {
+    for failed_stage in [CpuFrameStage::SurfaceAcquire, CpuFrameStage::RendererSubmit] {
+        let (mut session, clock, output) = started();
+        present(&mut session, &clock, 10);
+        present(&mut session, &clock, 20);
+        clock.set(21);
+        session.begin_cpu_frame(1920, 1080);
+        cpu_stage(&mut session, &clock, failed_stage, 22, 28);
+        clock.set(29);
+        session.request_stop();
+        clock.set(30);
+        let done = session.present_failure().unwrap();
+        assert_eq!(
+            done.report.status,
+            CaptureStatus::Incomplete(CaptureError::PresentFailed)
+        );
+        assert_eq!(done.report.successful_present_count, 2);
+        assert_eq!(done.report.summary.total_interval_ns, 10);
+        let report = output.read();
+        let sample = &report["cpu_frame_stages"]["samples"][0];
+        assert_eq!(sample["record_index"], 2);
+        assert_eq!(report["records"][2]["reason"], "surface_error");
+        assert_eq!(sample["spans"][failed_stage.label()]["duration_ns"], 6);
+        assert!(sample["spans"]["present_call"].is_null());
+    }
+}
+
+#[test]
+fn cpu_dimensions_follow_resize_and_paused_stages_stay_ineligible() {
+    let (mut session, clock, output) = started();
+    present(&mut session, &clock, 10);
+    clock.set(11);
+    session.set_eligibility(Eligibility::Ineligible(BoundaryReason::Paused));
+    clock.set(12);
+    session.begin_cpu_frame(1920, 1080);
+    cpu_stage(&mut session, &clock, CpuFrameStage::GameRecording, 13, 20);
+    present(&mut session, &clock, 21);
+    clock.set(22);
+    session.update_window_context(WindowContext {
+        physical_width: 1280,
+        physical_height: 720,
+        ..window()
+    });
+    clock.set(23);
+    session.set_eligibility(Eligibility::Eligible);
+    clock.set(24);
+    session.begin_cpu_frame(1280, 720);
+    cpu_stage(&mut session, &clock, CpuFrameStage::SurfaceAcquire, 25, 26);
+    present(&mut session, &clock, 30);
+    let done = stop(&mut session, &clock, 31, 40);
+    assert_eq!(done.report.summary.total_interval_ns, 10);
+    assert_eq!(done.report.ineligible_present_count, 1);
+    let report = output.read();
+    let samples = report["cpu_frame_stages"]["samples"].as_array().unwrap();
+    assert_eq!(samples[0]["physical_width"], 1920);
+    let index = samples[0]["record_index"].as_u64().unwrap() as usize;
+    assert_eq!(report["records"][index]["ineligible_reason"], "paused");
+    assert!(report["records"][index]["interval_ns"].is_null());
+    assert_eq!(samples[1]["physical_width"], 1280);
+    assert_eq!(samples[1]["physical_height"], 720);
+}
+
+#[test]
+fn cpu_unpaired_and_midframe_stages_are_unavailable_and_never_leak_into_next_frame() {
+    let (mut session, clock, output) = started();
+    // Capturing begins after a frame's recording hook: its end cannot invent a start.
+    session.end_cpu_stage(CpuFrameStage::GameRecording);
+    present(&mut session, &clock, 10);
+    clock.set(11);
+    session.begin_cpu_frame(1920, 1080);
+    clock.set(12);
+    session.begin_cpu_stage(CpuFrameStage::GameRecording);
+    present(&mut session, &clock, 20);
+    clock.set(21);
+    session.begin_cpu_frame(1920, 1080);
+    cpu_stage(&mut session, &clock, CpuFrameStage::SurfaceAcquire, 22, 22);
+    let done = stop(&mut session, &clock, 23, 30);
+    assert_eq!(done.report.summary.total_interval_ns, 20);
+    let report = output.read();
+    let samples = report["cpu_frame_stages"]["samples"].as_array().unwrap();
+    assert_eq!(samples.len(), 2);
+    assert!(samples[0]["spans"]["game_recording"].is_null());
+    assert!(samples[1]["spans"]["game_recording"].is_null());
+    assert_eq!(samples[1]["spans"]["surface_acquire"]["duration_ns"], 0);
+}
+
+#[test]
+fn cpu_overlapping_or_mismatched_pairs_are_omitted_without_changing_primary_intervals() {
+    for mismatch in [false, true] {
+        let (mut session, clock, output) = started();
+        present(&mut session, &clock, 10);
+        clock.set(11);
+        session.begin_cpu_frame(1920, 1080);
+        session.begin_cpu_stage(CpuFrameStage::SurfaceAcquire);
+        if mismatch {
+            session.end_cpu_stage(CpuFrameStage::PresentCall);
+        } else {
+            session.begin_cpu_stage(CpuFrameStage::GameRecording);
+        }
+        session.end_cpu_stage(CpuFrameStage::SurfaceAcquire);
+        let done = stop(&mut session, &clock, 15, 20);
+        assert_eq!(done.report.summary.total_interval_ns, 10);
+        assert!(output.read().get("cpu_frame_stages").is_none());
+    }
+}
+
+#[test]
+fn cpu_backward_stage_clock_marks_capture_incomplete_without_unsigned_underflow() {
+    let (mut session, clock, output) = started();
+    present(&mut session, &clock, 10);
+    clock.set(11);
+    session.begin_cpu_frame(1920, 1080);
+    cpu_stage(&mut session, &clock, CpuFrameStage::SurfaceAcquire, 20, 19);
+    clock.set(21);
+    let done = session.present_success().unwrap();
+    assert!(matches!(
+        done.report.status,
+        CaptureStatus::Incomplete(CaptureError::NonMonotonicTimestamp { .. })
+    ));
+    assert_eq!(done.report.successful_present_count, 1);
+    assert!(output.read().get("cpu_frame_stages").is_none());
+}
+
+#[test]
+fn cpu_samples_cannot_outlive_the_bounded_record_buffer() {
+    let clock = FakeClock::default();
+    let output = OutputPath::new();
+    let mut session = PerformanceSession::new(clock.clone());
+    session
+        .start(
+            identity(),
+            output.0.clone(),
+            CaptureLimits {
+                max_records: 1,
+                ..CaptureLimits::default()
+            },
+        )
+        .unwrap();
+    session.begin_cpu_frame(1920, 1080);
+    cpu_stage(&mut session, &clock, CpuFrameStage::SurfaceAcquire, 1, 2);
+    present(&mut session, &clock, 3);
+    clock.set(4);
+    session.begin_cpu_frame(1920, 1080);
+    cpu_stage(&mut session, &clock, CpuFrameStage::SurfaceAcquire, 5, 6);
+    clock.set(7);
+    let done = session.present_success().unwrap();
+    assert_eq!(
+        done.report.status,
+        CaptureStatus::Incomplete(CaptureError::RecordLimitExceeded { max_records: 1 })
+    );
+    let report = output.read();
+    assert_eq!(report["records"].as_array().unwrap().len(), 1);
+    assert_eq!(
+        report["cpu_frame_stages"]["samples"]
+            .as_array()
+            .unwrap()
+            .len(),
+        1
+    );
 }

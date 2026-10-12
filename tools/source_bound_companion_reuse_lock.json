@@ -7,8 +7,8 @@
     "head_sha": "72663e2b18dda818c800dec96af1ce452dbdd4da",
     "tested_merge": "fbf6c33df03c155e23f75d485660b7648ee36024"
   },
-  "reviewed_source_commit": "bb496492879ad42b5ce5b3707828f4281a663fd0",
-  "eligible_assets_tree": "67adef966a2c0db0ee1535897a9011becb6e53a9",
+  "reviewed_source_commit": "1357347dd08f1c2004a6d00b3d0db6d50f55521b",
+  "eligible_assets_tree": "a691466f735dee7861b3476d700572255ed2cae5",
   "source_files": [
     {
       "path": ".github/actions/setup-blender/action.yml",
@@ -249,12 +249,44 @@
       "origin_sha256": "eec1033c8e711fd8ee17537e5486d96553735ce32880f1aa0188e86dd9889481"
     },
     {
+      "path": "src/gpu_telemetry.rs",
+      "bytes": 7594,
+      "sha256": "e8f8f1a2781142735a58940ae0b2a6e318a178527ce9459a5b031f84997cc383",
+      "git_blob": "3e883a7554f994b193c295bb3486866d465b9640",
+      "origin_absent": true,
+      "reviewed_difference": "Current-only binding for the reviewed GPU telemetry module registration. This path does not exist at origin.tested_merge, so no origin_sha256 is asserted. Not called by sample_viewmodel_clip; see docs/COMPANION_REUSE_REVIEW.md."
+    },
+    {
+      "path": "src/gpu_telemetry/counters.rs",
+      "bytes": 7782,
+      "sha256": "b9c7fa21698c53d32b2d98f0cb9cc4850fa444dd308d065f131656c7b3e13172",
+      "git_blob": "13ca0944c79c6cfba1075cc23d383cdb5affc12b",
+      "origin_absent": true,
+      "reviewed_difference": "Current-only binding for the reviewed GPU telemetry module registration. This path does not exist at origin.tested_merge, so no origin_sha256 is asserted. Not called by sample_viewmodel_clip; see docs/COMPANION_REUSE_REVIEW.md."
+    },
+    {
+      "path": "src/gpu_telemetry/windows.rs",
+      "bytes": 13418,
+      "sha256": "d2e6ec48b2017e73a0a811c0a6a52a44c2fff731a4721d6be3b526e827369681",
+      "git_blob": "20deb9491c41712ecbe02e02985e3d1a1ebffe16",
+      "origin_absent": true,
+      "reviewed_difference": "Current-only binding for the reviewed GPU telemetry module registration. This path does not exist at origin.tested_merge, so no origin_sha256 is asserted. Not called by sample_viewmodel_clip; see docs/COMPANION_REUSE_REVIEW.md."
+    },
+    {
+      "path": "src/graphics_device.rs",
+      "bytes": 18112,
+      "sha256": "731d3ad664ed8b8cc358e19f7ec321646af8fbe50872ccf63322128264418e8b",
+      "git_blob": "7e8d180025a490b7b0d280b1eaca563d9243cb05",
+      "origin_absent": true,
+      "reviewed_difference": "New current-only graphics-device preferences module registered by lib.rs. Its explicit launch/UI file operations and lazy thread-local session are unreachable from sample_viewmodel_clip; native adapter discovery is gated behind wgpu-runtime, disabled in the production CPU sampler. No startup constructor or exported replacement symbol. See docs/COMPANION_REUSE_REVIEW.md."
+    },
+    {
       "path": "src/lib.rs",
-      "bytes": 1677,
-      "sha256": "4a589c9d9a77c89361c63001be10c9d173984a022a9485473a71cfc41f6e9b3e",
-      "git_blob": "e8f7a46d761385b2dbc034f7adf973b6537168a4",
+      "bytes": 1726,
+      "sha256": "d99219a4e4fcc06d73d3841b0b6d6fa40edcb4ac2aa5e1882cd5f66cda7284b1",
+      "git_blob": "b2873bf2dbe7f8785402dab7b7e078920357231f",
       "origin_sha256": "b8be3461113a2967b93959878a744b8380cc296a1cb1b7eb770417edd0a5c551",
-      "reviewed_difference": "Adds performance and public UI/HUD module exports; asset parser and sampler modules unchanged. This is not an exact historical build-cache hit."
+      "reviewed_difference": "Adds performance, public UI/HUD, opt-in GPU telemetry, and graphics-device module exports; asset parser and sampler modules unchanged. Since a2fc4734 the only lib.rs change is pub mod graphics_device. The three telemetry modules and graphics-device module are separately pinned as current-only inputs, are absent at the artifact origin, and are not called by the CPU sampler. See docs/COMPANION_REUSE_REVIEW.md. This is not an exact historical build-cache hit."
     },
     {
       "path": "src/skinned_asset.rs",
@@ -363,11 +395,11 @@
     },
     {
       "path": "tools/package_game.py",
-      "bytes": 47723,
-      "sha256": "25f66b9760bbbc19a68c3ac844d75a282bfb85a2652c9b8594d80872ef880563",
-      "git_blob": "c38558bef40799b68b34f590023d0c6044c7a4d6",
+      "bytes": 47748,
+      "sha256": "c8420f79bb0d5070e42dbf05b97afa7bcc985562646a39caa7fce7808f808aef",
+      "git_blob": "1549e1d481c90b7fb49fc67bd02526f36b0cd62b",
       "origin_sha256": "37d72d21eb3ee5f4df786dd8e18be07697853e66ffdcad6cf5f84c4e12d6fd1e",
-      "reviewed_difference": "Only RUNTIME_FILES documentation/theme entries changed; all asset verifier bodies unchanged."
+      "reviewed_difference": "Only RUNTIME_FILES documentation/theme entries changed, including the linked GPU_TELEMETRY.md guide; all asset verifier bodies unchanged."
     },
     {
       "path": "tools/requirements-assets.txt",

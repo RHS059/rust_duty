@@ -150,13 +150,33 @@ class LandmarkReviewTests(unittest.TestCase):
         hip = self.entry(HIP, None, outcome='unmeasurable')
         self.assert_invalid(self.document(self.entry(ADS, [479, 268]), hip), 'reason')
 
-    def test_measurement_equal_to_target_is_not_accepted(self):
+    def test_explicit_zero_error_measurements_are_within_tolerance(self):
+        # Known synthetic feature locations are explicit measurements, not values
+        # filled in by the validator. These files are not native evidence.
+        self.ads_png = png_bytes(synthetic_frame(aperture=(480, 270)))
+        self.hip_png = png_bytes(synthetic_frame(guard=(526, 280)))
+        (self.review_dir / 'dx12-ads-raw.png').write_bytes(self.ads_png)
+        (self.review_dir / 'dx12-hip-raw.png').write_bytes(self.hip_png)
         report = self.run_review(self.document(self.entry(ADS, [480, 270]),
-                                               self.entry(HIP, [527, 281])))
-        self.assertEqual(report['status'], 'open')
-        result = next(r for r in report['results'] if r['landmark'] == ADS)
-        self.assertEqual(result['status'], 'unaccepted-coincides-with-target')
-        self.assertFalse(result['accepted'])
+                                               self.entry(HIP, [526, 280])))
+        self.assertEqual(report['status'], 'within-tolerance', report)
+        self.assertEqual(report['automated_landmark_gate'], 'measured-within-tolerance')
+        for result in report['results']:
+            self.assertEqual(result['delta'], {'dx': 0.0, 'dy': 0.0, 'euclidean': 0.0})
+            self.assertEqual(result['status'], 'within-tolerance')
+            self.assertTrue(result['accepted'])
+        self.assert_human_gates_open(report)
+
+    def test_zero_error_does_not_bypass_declared_measurement_requirements(self):
+        for changes, message in (
+                ({'target_values_not_used': False}, 'target_values_not_used'),
+                ({'measured_center': None}, 'needs measured_center')):
+            with self.subTest(changes=changes):
+                ads = self.entry(ADS, [480, 270], **changes)
+                self.assert_invalid(self.document(ads, self.entry(HIP, [526, 280])), message)
+        ads = self.entry(ADS, [480, 270])
+        ads['provenance']['method'] = 'copied-calibration-target'
+        self.assert_invalid(self.document(ads, self.entry(HIP, [526, 280])), 'is not a raw-pixel measurement')
 
     def test_missing_required_landmark_stays_open(self):
         report = self.run_review(self.document(self.entry(ADS, [479, 268])))

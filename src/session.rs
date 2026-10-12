@@ -45,6 +45,15 @@ pub struct SessionTransition {
     pub discard_timing: bool,
 }
 
+impl SessionTransition {
+    /// Live input boundaries cancel held firing. Scripted gameplay captures use
+    /// committed tick input, so rendering hitches and native focus changes must
+    /// not restart their simulation-owned burst cadence between capture frames.
+    pub fn interrupts_firing_sequence(self, gameplay_capture: bool, focus_changed: bool) -> bool {
+        !gameplay_capture && (self.paused || self.resumed || focus_changed || self.discard_timing)
+    }
+}
+
 #[derive(Clone, Copy, Debug, Default)]
 struct PressEdge {
     was_down: bool,
