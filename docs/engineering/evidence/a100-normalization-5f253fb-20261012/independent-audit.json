@@ -1,0 +1,6088 @@
+{
+  "schema": "independent-a100-current-arithmetic-audit/v1",
+  "source": "5f253fb0f60ec328d56cdd7fb19dbdca09c67b57",
+  "tree": "ec47266ebda27aad447647aadf8aee61adefbc6d",
+  "compact_zip_sha256": "883a01366cddd17cd42d7e284d939574c5a17fb5792674c21e2a1642600ff057",
+  "compact_files": 552,
+  "full_zip_available_and_replayed": false,
+  "raw_corner_provenance": "same-hash retained WARP corner content; full current ELF pending",
+  "raw_source_files_verified": 457,
+  "production_compile_inputs_verified": 133,
+  "source_receipt_sha256": "82b4ff33ff1bb681ee74e53efd5e41a879089fd195124f02815e02af78526969",
+  "source_bundle_sha256": "834f564e0c26f117081a7185c64c31818ecdcdd2457f613fabb2171e7c320444",
+  "runtime_manifest_sha256": "b5120632999e1c599f89740ec8550432da06575b9175d3ba937f9474a5a707d0",
+  "compiler": "rustc 1.99.0 (b940084d7 2026-09-28)\nbinary: rustc\ncommit-hash: b940084d7eb6a299eb4bfeb8e34901bc051e7ac4\ncommit-date: 2026-09-28\nhost: x86_64-unknown-linux-gnu\nrelease: 1.99.0\nLLVM version: 23.1.1\n",
+  "asset_files": 77,
+  "asset_provenance": "76 hash-bound public release files plus original Git-source animations.cfg; unchanged original77-file receipt",
+  "executable": {
+    "path": "/content/rust-duty-a100-probe-5f253fb-r1/resident_authored_contract",
+    "sha256": "42c47e39317094d54c858d99b27576e18b51977c493c5d7a1ca8a2d70aa13245",
+    "source_receipt_sha256": "82b4ff33ff1bb681ee74e53efd5e41a879089fd195124f02815e02af78526969"
+  },
+  "build_exit": 0,
+  "fixture_exit": 1,
+  "controller_final_checks_passed": true,
+  "strict_image_gate_passed": false,
+  "probe_summary": {
+    "schema": "rust-duty-resident-vertex-probe-summary/v1",
+    "diagnostic_completed": true,
+    "image_gate_passed": false,
+    "selected_vertices": 108,
+    "current_clip_differences": 84,
+    "current_color_differences": 29,
+    "historical_clip_differences": 84,
+    "historical_color_differences": 29,
+    "normalization_clip_differences": 0,
+    "normalization_color_differences": 0,
+    "scope": "instrumented vertex-stage differences only; strict original pixel verdict is unchanged"
+  },
+  "actual_device": {
+    "actual_fingerprint": {
+      "backend": "vulkan",
+      "device_id": 8368,
+      "device_type": "DiscreteGpu",
+      "name": "NVIDIA A100-SXM4-40GB",
+      "vendor_id": 4318
+    },
+    "backend": "Vulkan",
+    "device_id": 8368,
+    "device_type": "DiscreteGpu",
+    "driver": "NVIDIA",
+    "driver_info": "580.82.07",
+    "force_fallback_requested": false,
+    "gpu_timestamp_features_enabled": false,
+    "gpu_timestamps_requested": false,
+    "instance_descriptor": {
+      "application_debug_assertions": false,
+      "debug": false,
+      "environment_overrides_applied": false,
+      "flags_bits": 32,
+      "gpu_based_validation": false,
+      "schema": "rust-duty-wgpu-instance-descriptor/v1",
+      "validation": false,
+      "validation_indirect_call": true,
+      "wgpu_version": "30.0.1"
+    },
+    "name": "NVIDIA A100-SXM4-40GB",
+    "present_mode": null,
+    "present_policy": null,
+    "requested_fingerprint": null,
+    "selection_mode": "automatic",
+    "vendor_id": 4318
+  },
+  "cases": [
+    {
+      "case": "ready-0",
+      "differing_pixels": 1,
+      "maximum_channel_delta": 1,
+      "foreground_pixels": 7066,
+      "all_corners_equal": true,
+      "cpu_and_resident_images_equal_original": true
+    },
+    {
+      "case": "ready-1",
+      "differing_pixels": 1,
+      "maximum_channel_delta": 1,
+      "foreground_pixels": 7066,
+      "all_corners_equal": true,
+      "cpu_and_resident_images_equal_original": true
+    },
+    {
+      "case": "ready-2",
+      "differing_pixels": 0,
+      "maximum_channel_delta": 0,
+      "foreground_pixels": 7066,
+      "all_corners_equal": true,
+      "cpu_and_resident_images_equal_original": true
+    },
+    {
+      "case": "ready-3",
+      "differing_pixels": 1,
+      "maximum_channel_delta": 1,
+      "foreground_pixels": 7066,
+      "all_corners_equal": true,
+      "cpu_and_resident_images_equal_original": true
+    },
+    {
+      "case": "walk-0",
+      "differing_pixels": 1,
+      "maximum_channel_delta": 1,
+      "foreground_pixels": 7092,
+      "all_corners_equal": true,
+      "cpu_and_resident_images_equal_original": true
+    },
+    {
+      "case": "walk-1",
+      "differing_pixels": 1,
+      "maximum_channel_delta": 1,
+      "foreground_pixels": 7035,
+      "all_corners_equal": true,
+      "cpu_and_resident_images_equal_original": true
+    },
+    {
+      "case": "walk-2",
+      "differing_pixels": 0,
+      "maximum_channel_delta": 0,
+      "foreground_pixels": 7008,
+      "all_corners_equal": true,
+      "cpu_and_resident_images_equal_original": true
+    },
+    {
+      "case": "walk-3",
+      "differing_pixels": 1,
+      "maximum_channel_delta": 1,
+      "foreground_pixels": 7092,
+      "all_corners_equal": true,
+      "cpu_and_resident_images_equal_original": true
+    },
+    {
+      "case": "ads-0",
+      "differing_pixels": 0,
+      "maximum_channel_delta": 0,
+      "foreground_pixels": 7066,
+      "all_corners_equal": true,
+      "cpu_and_resident_images_equal_original": true
+    },
+    {
+      "case": "ads-1",
+      "differing_pixels": 4,
+      "maximum_channel_delta": 1,
+      "foreground_pixels": 6807,
+      "all_corners_equal": true,
+      "cpu_and_resident_images_equal_original": true
+    },
+    {
+      "case": "ads-2",
+      "differing_pixels": 0,
+      "maximum_channel_delta": 0,
+      "foreground_pixels": 6798,
+      "all_corners_equal": true,
+      "cpu_and_resident_images_equal_original": true
+    },
+    {
+      "case": "ads-3",
+      "differing_pixels": 0,
+      "maximum_channel_delta": 0,
+      "foreground_pixels": 7066,
+      "all_corners_equal": true,
+      "cpu_and_resident_images_equal_original": true
+    },
+    {
+      "case": "reload-0",
+      "differing_pixels": 0,
+      "maximum_channel_delta": 0,
+      "foreground_pixels": 6938,
+      "all_corners_equal": true,
+      "cpu_and_resident_images_equal_original": true
+    },
+    {
+      "case": "reload-1",
+      "differing_pixels": 5,
+      "maximum_channel_delta": 3,
+      "foreground_pixels": 8313,
+      "all_corners_equal": true,
+      "cpu_and_resident_images_equal_original": true
+    },
+    {
+      "case": "reload-2",
+      "differing_pixels": 0,
+      "maximum_channel_delta": 0,
+      "foreground_pixels": 6964,
+      "all_corners_equal": true,
+      "cpu_and_resident_images_equal_original": true
+    },
+    {
+      "case": "reload-3",
+      "differing_pixels": 0,
+      "maximum_channel_delta": 0,
+      "foreground_pixels": 6938,
+      "all_corners_equal": true,
+      "cpu_and_resident_images_equal_original": true
+    },
+    {
+      "case": "manifest-0",
+      "differing_pixels": 1,
+      "maximum_channel_delta": 1,
+      "foreground_pixels": 7066,
+      "all_corners_equal": true,
+      "cpu_and_resident_images_equal_original": true
+    },
+    {
+      "case": "manifest-12",
+      "differing_pixels": 1,
+      "maximum_channel_delta": 1,
+      "foreground_pixels": 7066,
+      "all_corners_equal": true,
+      "cpu_and_resident_images_equal_original": true
+    },
+    {
+      "case": "manifest-24",
+      "differing_pixels": 1,
+      "maximum_channel_delta": 1,
+      "foreground_pixels": 7066,
+      "all_corners_equal": true,
+      "cpu_and_resident_images_equal_original": true
+    },
+    {
+      "case": "rigid-alpha-0",
+      "differing_pixels": 0,
+      "maximum_channel_delta": 0,
+      "foreground_pixels": 927,
+      "all_corners_equal": true,
+      "cpu_and_resident_images_equal_original": true
+    },
+    {
+      "case": "rigid-alpha-1",
+      "differing_pixels": 0,
+      "maximum_channel_delta": 0,
+      "foreground_pixels": 927,
+      "all_corners_equal": true,
+      "cpu_and_resident_images_equal_original": true
+    },
+    {
+      "case": "rigid-alpha-2",
+      "differing_pixels": 0,
+      "maximum_channel_delta": 0,
+      "foreground_pixels": 927,
+      "all_corners_equal": true,
+      "cpu_and_resident_images_equal_original": true
+    }
+  ],
+  "changed_pixels": [
+    {
+      "case": "ready-0",
+      "x": 544,
+      "y": 257,
+      "cpu": [
+        60,
+        60,
+        60,
+        255
+      ],
+      "resident": [
+        59,
+        59,
+        59,
+        255
+      ],
+      "signed_delta": [
+        -1,
+        -1,
+        -1,
+        0
+      ]
+    },
+    {
+      "case": "ready-1",
+      "x": 544,
+      "y": 257,
+      "cpu": [
+        60,
+        60,
+        60,
+        255
+      ],
+      "resident": [
+        59,
+        59,
+        59,
+        255
+      ],
+      "signed_delta": [
+        -1,
+        -1,
+        -1,
+        0
+      ]
+    },
+    {
+      "case": "ready-3",
+      "x": 544,
+      "y": 257,
+      "cpu": [
+        60,
+        60,
+        60,
+        255
+      ],
+      "resident": [
+        59,
+        59,
+        59,
+        255
+      ],
+      "signed_delta": [
+        -1,
+        -1,
+        -1,
+        0
+      ]
+    },
+    {
+      "case": "walk-0",
+      "x": 561,
+      "y": 238,
+      "cpu": [
+        54,
+        54,
+        54,
+        255
+      ],
+      "resident": [
+        53,
+        53,
+        53,
+        255
+      ],
+      "signed_delta": [
+        -1,
+        -1,
+        -1,
+        0
+      ]
+    },
+    {
+      "case": "walk-1",
+      "x": 551,
+      "y": 253,
+      "cpu": [
+        65,
+        65,
+        65,
+        255
+      ],
+      "resident": [
+        66,
+        66,
+        66,
+        255
+      ],
+      "signed_delta": [
+        1,
+        1,
+        1,
+        0
+      ]
+    },
+    {
+      "case": "walk-3",
+      "x": 561,
+      "y": 238,
+      "cpu": [
+        54,
+        54,
+        54,
+        255
+      ],
+      "resident": [
+        53,
+        53,
+        53,
+        255
+      ],
+      "signed_delta": [
+        -1,
+        -1,
+        -1,
+        0
+      ]
+    },
+    {
+      "case": "ads-1",
+      "x": 546,
+      "y": 246,
+      "cpu": [
+        105,
+        105,
+        105,
+        255
+      ],
+      "resident": [
+        104,
+        104,
+        104,
+        255
+      ],
+      "signed_delta": [
+        -1,
+        -1,
+        -1,
+        0
+      ]
+    },
+    {
+      "case": "ads-1",
+      "x": 547,
+      "y": 246,
+      "cpu": [
+        54,
+        54,
+        54,
+        255
+      ],
+      "resident": [
+        53,
+        53,
+        53,
+        255
+      ],
+      "signed_delta": [
+        -1,
+        -1,
+        -1,
+        0
+      ]
+    },
+    {
+      "case": "ads-1",
+      "x": 519,
+      "y": 261,
+      "cpu": [
+        139,
+        139,
+        139,
+        255
+      ],
+      "resident": [
+        138,
+        138,
+        138,
+        255
+      ],
+      "signed_delta": [
+        -1,
+        -1,
+        -1,
+        0
+      ]
+    },
+    {
+      "case": "ads-1",
+      "x": 519,
+      "y": 263,
+      "cpu": [
+        117,
+        117,
+        117,
+        255
+      ],
+      "resident": [
+        116,
+        116,
+        116,
+        255
+      ],
+      "signed_delta": [
+        -1,
+        -1,
+        -1,
+        0
+      ]
+    },
+    {
+      "case": "reload-1",
+      "x": 508,
+      "y": 233,
+      "cpu": [
+        130,
+        130,
+        130,
+        255
+      ],
+      "resident": [
+        129,
+        129,
+        129,
+        255
+      ],
+      "signed_delta": [
+        -1,
+        -1,
+        -1,
+        0
+      ]
+    },
+    {
+      "case": "reload-1",
+      "x": 510,
+      "y": 233,
+      "cpu": [
+        102,
+        102,
+        102,
+        255
+      ],
+      "resident": [
+        103,
+        103,
+        103,
+        255
+      ],
+      "signed_delta": [
+        1,
+        1,
+        1,
+        0
+      ]
+    },
+    {
+      "case": "reload-1",
+      "x": 524,
+      "y": 233,
+      "cpu": [
+        100,
+        100,
+        100,
+        255
+      ],
+      "resident": [
+        101,
+        101,
+        101,
+        255
+      ],
+      "signed_delta": [
+        1,
+        1,
+        1,
+        0
+      ]
+    },
+    {
+      "case": "reload-1",
+      "x": 524,
+      "y": 234,
+      "cpu": [
+        54,
+        54,
+        54,
+        255
+      ],
+      "resident": [
+        52,
+        52,
+        52,
+        255
+      ],
+      "signed_delta": [
+        -2,
+        -2,
+        -2,
+        0
+      ]
+    },
+    {
+      "case": "reload-1",
+      "x": 505,
+      "y": 270,
+      "cpu": [
+        114,
+        114,
+        114,
+        255
+      ],
+      "resident": [
+        117,
+        117,
+        117,
+        255
+      ],
+      "signed_delta": [
+        3,
+        3,
+        3,
+        0
+      ]
+    },
+    {
+      "case": "manifest-0",
+      "x": 544,
+      "y": 257,
+      "cpu": [
+        60,
+        60,
+        60,
+        255
+      ],
+      "resident": [
+        59,
+        59,
+        59,
+        255
+      ],
+      "signed_delta": [
+        -1,
+        -1,
+        -1,
+        0
+      ]
+    },
+    {
+      "case": "manifest-12",
+      "x": 544,
+      "y": 257,
+      "cpu": [
+        60,
+        60,
+        60,
+        255
+      ],
+      "resident": [
+        59,
+        59,
+        59,
+        255
+      ],
+      "signed_delta": [
+        -1,
+        -1,
+        -1,
+        0
+      ]
+    },
+    {
+      "case": "manifest-24",
+      "x": 544,
+      "y": 257,
+      "cpu": [
+        60,
+        60,
+        60,
+        255
+      ],
+      "resident": [
+        59,
+        59,
+        59,
+        255
+      ],
+      "signed_delta": [
+        -1,
+        -1,
+        -1,
+        0
+      ]
+    }
+  ],
+  "probe_counts": {
+    "skin": 105,
+    "clip_tuple_differences": 84,
+    "color_tuple_differences": 29,
+    "rigid": 3
+  },
+  "probe_max_abs_clip_delta": 1.043081283569336e-07,
+  "all_probe_colors_same_reconstructed_rgba8": true,
+  "all_cpu_color_words_match_f32_byte_division": true,
+  "all_resident_color_words_match_f32_byte_times_f32_reciprocal": true,
+  "probe_samples": [
+    {
+      "case": "ready-0",
+      "command": 2,
+      "kind": "skin",
+      "sample": 0,
+      "source_vertex": 347,
+      "expanded_corner": 1620,
+      "cpu_clip_bits": [
+        1040892998,
+        1027951516,
+        1057746778,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1040892998,
+        1027951524,
+        1057746778,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "raw_rgba8": [
+        89,
+        89,
+        89,
+        255
+      ],
+      "clip_abs_delta": [
+        0.0,
+        2.9802322387695312e-08,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "case": "ready-0",
+      "command": 2,
+      "kind": "skin",
+      "sample": 1,
+      "source_vertex": 338,
+      "expanded_corner": 1621,
+      "cpu_clip_bits": [
+        1040818343,
+        1026958204,
+        1057732755,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1040818343,
+        1026958198,
+        1057732755,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "raw_rgba8": [
+        89,
+        89,
+        89,
+        255
+      ],
+      "clip_abs_delta": [
+        0.0,
+        2.2351741790771484e-08,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "case": "ready-0",
+      "command": 2,
+      "kind": "skin",
+      "sample": 2,
+      "source_vertex": 342,
+      "expanded_corner": 1622,
+      "cpu_clip_bits": [
+        1040776042,
+        1027392726,
+        1057748992,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1040776042,
+        1027392734,
+        1057748992,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "raw_rgba8": [
+        89,
+        89,
+        89,
+        255
+      ],
+      "clip_abs_delta": [
+        0.0,
+        2.9802322387695312e-08,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "case": "ready-0",
+      "command": 3,
+      "kind": "skin",
+      "sample": 0,
+      "source_vertex": 894,
+      "expanded_corner": 4563,
+      "cpu_clip_bits": [
+        1040891583,
+        1027652864,
+        1057562145,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1040891584,
+        1027652856,
+        1057562145,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "raw_rgba8": [
+        89,
+        89,
+        89,
+        255
+      ],
+      "clip_abs_delta": [
+        1.4901161193847656e-08,
+        2.9802322387695312e-08,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "case": "ready-0",
+      "command": 3,
+      "kind": "skin",
+      "sample": 1,
+      "source_vertex": 892,
+      "expanded_corner": 4564,
+      "cpu_clip_bits": [
+        1040756737,
+        1027352390,
+        1057542501,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1040756741,
+        1027352396,
+        1057542501,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1053214407,
+        1053214407,
+        1053214407,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1053214408,
+        1053214408,
+        1053214408,
+        1065353216
+      ],
+      "raw_rgba8": [
+        99,
+        99,
+        99,
+        255
+      ],
+      "clip_abs_delta": [
+        5.960464477539063e-08,
+        2.2351741790771484e-08,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        1,
+        1,
+        1,
+        0
+      ]
+    },
+    {
+      "case": "ready-0",
+      "command": 3,
+      "kind": "skin",
+      "sample": 2,
+      "source_vertex": 895,
+      "expanded_corner": 4565,
+      "cpu_clip_bits": [
+        1040808562,
+        1026376388,
+        1057549798,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1040808562,
+        1026376388,
+        1057549798,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "raw_rgba8": [
+        89,
+        89,
+        89,
+        255
+      ],
+      "clip_abs_delta": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "case": "ready-1",
+      "command": 2,
+      "kind": "skin",
+      "sample": 0,
+      "source_vertex": 347,
+      "expanded_corner": 1620,
+      "cpu_clip_bits": [
+        1040892998,
+        1027951516,
+        1057746778,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1040892998,
+        1027951524,
+        1057746778,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "raw_rgba8": [
+        89,
+        89,
+        89,
+        255
+      ],
+      "clip_abs_delta": [
+        0.0,
+        2.9802322387695312e-08,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "case": "ready-1",
+      "command": 2,
+      "kind": "skin",
+      "sample": 1,
+      "source_vertex": 338,
+      "expanded_corner": 1621,
+      "cpu_clip_bits": [
+        1040818343,
+        1026958204,
+        1057732755,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1040818343,
+        1026958198,
+        1057732755,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "raw_rgba8": [
+        89,
+        89,
+        89,
+        255
+      ],
+      "clip_abs_delta": [
+        0.0,
+        2.2351741790771484e-08,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "case": "ready-1",
+      "command": 2,
+      "kind": "skin",
+      "sample": 2,
+      "source_vertex": 342,
+      "expanded_corner": 1622,
+      "cpu_clip_bits": [
+        1040776042,
+        1027392726,
+        1057748992,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1040776042,
+        1027392734,
+        1057748992,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "raw_rgba8": [
+        89,
+        89,
+        89,
+        255
+      ],
+      "clip_abs_delta": [
+        0.0,
+        2.9802322387695312e-08,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "case": "ready-1",
+      "command": 3,
+      "kind": "skin",
+      "sample": 0,
+      "source_vertex": 894,
+      "expanded_corner": 4563,
+      "cpu_clip_bits": [
+        1040891583,
+        1027652864,
+        1057562145,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1040891584,
+        1027652856,
+        1057562145,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "raw_rgba8": [
+        89,
+        89,
+        89,
+        255
+      ],
+      "clip_abs_delta": [
+        1.4901161193847656e-08,
+        2.9802322387695312e-08,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "case": "ready-1",
+      "command": 3,
+      "kind": "skin",
+      "sample": 1,
+      "source_vertex": 892,
+      "expanded_corner": 4564,
+      "cpu_clip_bits": [
+        1040756737,
+        1027352390,
+        1057542501,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1040756741,
+        1027352396,
+        1057542501,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1053214407,
+        1053214407,
+        1053214407,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1053214408,
+        1053214408,
+        1053214408,
+        1065353216
+      ],
+      "raw_rgba8": [
+        99,
+        99,
+        99,
+        255
+      ],
+      "clip_abs_delta": [
+        5.960464477539063e-08,
+        2.2351741790771484e-08,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        1,
+        1,
+        1,
+        0
+      ]
+    },
+    {
+      "case": "ready-1",
+      "command": 3,
+      "kind": "skin",
+      "sample": 2,
+      "source_vertex": 895,
+      "expanded_corner": 4565,
+      "cpu_clip_bits": [
+        1040808562,
+        1026376388,
+        1057549798,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1040808562,
+        1026376388,
+        1057549798,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "raw_rgba8": [
+        89,
+        89,
+        89,
+        255
+      ],
+      "clip_abs_delta": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "case": "ready-3",
+      "command": 2,
+      "kind": "skin",
+      "sample": 0,
+      "source_vertex": 347,
+      "expanded_corner": 1620,
+      "cpu_clip_bits": [
+        1040892998,
+        1027951516,
+        1057746778,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1040892998,
+        1027951524,
+        1057746778,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "raw_rgba8": [
+        89,
+        89,
+        89,
+        255
+      ],
+      "clip_abs_delta": [
+        0.0,
+        2.9802322387695312e-08,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "case": "ready-3",
+      "command": 2,
+      "kind": "skin",
+      "sample": 1,
+      "source_vertex": 338,
+      "expanded_corner": 1621,
+      "cpu_clip_bits": [
+        1040818343,
+        1026958204,
+        1057732755,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1040818343,
+        1026958198,
+        1057732755,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "raw_rgba8": [
+        89,
+        89,
+        89,
+        255
+      ],
+      "clip_abs_delta": [
+        0.0,
+        2.2351741790771484e-08,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "case": "ready-3",
+      "command": 2,
+      "kind": "skin",
+      "sample": 2,
+      "source_vertex": 342,
+      "expanded_corner": 1622,
+      "cpu_clip_bits": [
+        1040776042,
+        1027392726,
+        1057748992,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1040776042,
+        1027392734,
+        1057748992,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "raw_rgba8": [
+        89,
+        89,
+        89,
+        255
+      ],
+      "clip_abs_delta": [
+        0.0,
+        2.9802322387695312e-08,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "case": "ready-3",
+      "command": 3,
+      "kind": "skin",
+      "sample": 0,
+      "source_vertex": 894,
+      "expanded_corner": 4563,
+      "cpu_clip_bits": [
+        1040891583,
+        1027652864,
+        1057562145,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1040891584,
+        1027652856,
+        1057562145,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "raw_rgba8": [
+        89,
+        89,
+        89,
+        255
+      ],
+      "clip_abs_delta": [
+        1.4901161193847656e-08,
+        2.9802322387695312e-08,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "case": "ready-3",
+      "command": 3,
+      "kind": "skin",
+      "sample": 1,
+      "source_vertex": 892,
+      "expanded_corner": 4564,
+      "cpu_clip_bits": [
+        1040756737,
+        1027352390,
+        1057542501,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1040756741,
+        1027352396,
+        1057542501,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1053214407,
+        1053214407,
+        1053214407,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1053214408,
+        1053214408,
+        1053214408,
+        1065353216
+      ],
+      "raw_rgba8": [
+        99,
+        99,
+        99,
+        255
+      ],
+      "clip_abs_delta": [
+        5.960464477539063e-08,
+        2.2351741790771484e-08,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        1,
+        1,
+        1,
+        0
+      ]
+    },
+    {
+      "case": "ready-3",
+      "command": 3,
+      "kind": "skin",
+      "sample": 2,
+      "source_vertex": 895,
+      "expanded_corner": 4565,
+      "cpu_clip_bits": [
+        1040808562,
+        1026376388,
+        1057549798,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1040808562,
+        1026376388,
+        1057549798,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "raw_rgba8": [
+        89,
+        89,
+        89,
+        255
+      ],
+      "clip_abs_delta": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "case": "walk-0",
+      "command": 0,
+      "kind": "skin",
+      "sample": 0,
+      "source_vertex": 1218,
+      "expanded_corner": 3831,
+      "cpu_clip_bits": [
+        1043169615,
+        1038499154,
+        1058221624,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1043169614,
+        1038499153,
+        1058221624,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "raw_rgba8": [
+        89,
+        89,
+        89,
+        255
+      ],
+      "clip_abs_delta": [
+        1.4901161193847656e-08,
+        7.450580596923828e-09,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "case": "walk-0",
+      "command": 0,
+      "kind": "skin",
+      "sample": 1,
+      "source_vertex": 1245,
+      "expanded_corner": 3832,
+      "cpu_clip_bits": [
+        1043228408,
+        1039180645,
+        1058232770,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1043228407,
+        1039180644,
+        1058232770,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "raw_rgba8": [
+        89,
+        89,
+        89,
+        255
+      ],
+      "clip_abs_delta": [
+        1.4901161193847656e-08,
+        7.450580596923828e-09,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "case": "walk-0",
+      "command": 0,
+      "kind": "skin",
+      "sample": 2,
+      "source_vertex": 1223,
+      "expanded_corner": 3833,
+      "cpu_clip_bits": [
+        1043159728,
+        1039127188,
+        1058217901,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1043159726,
+        1039127189,
+        1058217901,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "raw_rgba8": [
+        89,
+        89,
+        89,
+        255
+      ],
+      "clip_abs_delta": [
+        2.9802322387695312e-08,
+        7.450580596923828e-09,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "case": "walk-0",
+      "command": 0,
+      "kind": "skin",
+      "sample": 3,
+      "source_vertex": 1262,
+      "expanded_corner": 3954,
+      "cpu_clip_bits": [
+        1043148045,
+        1039384379,
+        1058263556,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1043148045,
+        1039384379,
+        1058263556,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "raw_rgba8": [
+        89,
+        89,
+        89,
+        255
+      ],
+      "clip_abs_delta": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "case": "walk-0",
+      "command": 0,
+      "kind": "skin",
+      "sample": 4,
+      "source_vertex": 1264,
+      "expanded_corner": 3955,
+      "cpu_clip_bits": [
+        1043238772,
+        1038806477,
+        1058254738,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1043238773,
+        1038806478,
+        1058254738,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "raw_rgba8": [
+        89,
+        89,
+        89,
+        255
+      ],
+      "clip_abs_delta": [
+        1.4901161193847656e-08,
+        7.450580596923828e-09,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "case": "walk-0",
+      "command": 0,
+      "kind": "skin",
+      "sample": 5,
+      "source_vertex": 1265,
+      "expanded_corner": 3956,
+      "cpu_clip_bits": [
+        1043156648,
+        1038867475,
+        1058268758,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1043156648,
+        1038867469,
+        1058268758,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "raw_rgba8": [
+        89,
+        89,
+        89,
+        255
+      ],
+      "clip_abs_delta": [
+        0.0,
+        4.470348358154297e-08,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "case": "walk-1",
+      "command": 1,
+      "kind": "skin",
+      "sample": 0,
+      "source_vertex": 612,
+      "expanded_corner": 3066,
+      "cpu_clip_bits": [
+        1041764611,
+        1032238590,
+        1058169812,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1041764611,
+        1032238590,
+        1058169812,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1058773916,
+        1058773916,
+        1058773916,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1058773916,
+        1058773916,
+        1058773916,
+        1065353216
+      ],
+      "raw_rgba8": [
+        155,
+        155,
+        155,
+        255
+      ],
+      "clip_abs_delta": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "case": "walk-1",
+      "command": 1,
+      "kind": "skin",
+      "sample": 1,
+      "source_vertex": 618,
+      "expanded_corner": 3067,
+      "cpu_clip_bits": [
+        1041680243,
+        1030887427,
+        1058160585,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1041680242,
+        1030887442,
+        1058160585,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1057260677,
+        1057260677,
+        1057260677,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1057260677,
+        1057260677,
+        1057260677,
+        1065353216
+      ],
+      "raw_rgba8": [
+        132,
+        132,
+        132,
+        255
+      ],
+      "clip_abs_delta": [
+        1.4901161193847656e-08,
+        5.587935447692871e-08,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "case": "walk-1",
+      "command": 1,
+      "kind": "skin",
+      "sample": 2,
+      "source_vertex": 616,
+      "expanded_corner": 3068,
+      "cpu_clip_bits": [
+        1041907155,
+        1030345614,
+        1058172404,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1041907155,
+        1030345614,
+        1058172404,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1057918607,
+        1057918607,
+        1057918607,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1057918607,
+        1057918607,
+        1057918607,
+        1065353216
+      ],
+      "raw_rgba8": [
+        142,
+        142,
+        142,
+        255
+      ],
+      "clip_abs_delta": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "case": "walk-1",
+      "command": 3,
+      "kind": "skin",
+      "sample": 0,
+      "source_vertex": 505,
+      "expanded_corner": 2532,
+      "cpu_clip_bits": [
+        1041701981,
+        1031948768,
+        1058368902,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1041701981,
+        1031948768,
+        1058368902,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "raw_rgba8": [
+        89,
+        89,
+        89,
+        255
+      ],
+      "clip_abs_delta": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "case": "walk-1",
+      "command": 3,
+      "kind": "skin",
+      "sample": 1,
+      "source_vertex": 508,
+      "expanded_corner": 2533,
+      "cpu_clip_bits": [
+        1041910719,
+        1031387859,
+        1058368710,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1041910719,
+        1031387851,
+        1058368710,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "raw_rgba8": [
+        89,
+        89,
+        89,
+        255
+      ],
+      "clip_abs_delta": [
+        0.0,
+        2.9802322387695312e-08,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "case": "walk-1",
+      "command": 3,
+      "kind": "skin",
+      "sample": 2,
+      "source_vertex": 511,
+      "expanded_corner": 2534,
+      "cpu_clip_bits": [
+        1041821860,
+        1030693659,
+        1058367528,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1041821860,
+        1030693671,
+        1058367528,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "raw_rgba8": [
+        89,
+        89,
+        89,
+        255
+      ],
+      "clip_abs_delta": [
+        0.0,
+        4.470348358154297e-08,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "case": "walk-3",
+      "command": 0,
+      "kind": "skin",
+      "sample": 0,
+      "source_vertex": 1218,
+      "expanded_corner": 3831,
+      "cpu_clip_bits": [
+        1043169615,
+        1038499154,
+        1058221624,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1043169614,
+        1038499153,
+        1058221624,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "raw_rgba8": [
+        89,
+        89,
+        89,
+        255
+      ],
+      "clip_abs_delta": [
+        1.4901161193847656e-08,
+        7.450580596923828e-09,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "case": "walk-3",
+      "command": 0,
+      "kind": "skin",
+      "sample": 1,
+      "source_vertex": 1245,
+      "expanded_corner": 3832,
+      "cpu_clip_bits": [
+        1043228408,
+        1039180645,
+        1058232770,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1043228407,
+        1039180644,
+        1058232770,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "raw_rgba8": [
+        89,
+        89,
+        89,
+        255
+      ],
+      "clip_abs_delta": [
+        1.4901161193847656e-08,
+        7.450580596923828e-09,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "case": "walk-3",
+      "command": 0,
+      "kind": "skin",
+      "sample": 2,
+      "source_vertex": 1223,
+      "expanded_corner": 3833,
+      "cpu_clip_bits": [
+        1043159728,
+        1039127188,
+        1058217901,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1043159726,
+        1039127189,
+        1058217901,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "raw_rgba8": [
+        89,
+        89,
+        89,
+        255
+      ],
+      "clip_abs_delta": [
+        2.9802322387695312e-08,
+        7.450580596923828e-09,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "case": "walk-3",
+      "command": 0,
+      "kind": "skin",
+      "sample": 3,
+      "source_vertex": 1262,
+      "expanded_corner": 3954,
+      "cpu_clip_bits": [
+        1043148045,
+        1039384379,
+        1058263556,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1043148045,
+        1039384379,
+        1058263556,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "raw_rgba8": [
+        89,
+        89,
+        89,
+        255
+      ],
+      "clip_abs_delta": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "case": "walk-3",
+      "command": 0,
+      "kind": "skin",
+      "sample": 4,
+      "source_vertex": 1264,
+      "expanded_corner": 3955,
+      "cpu_clip_bits": [
+        1043238772,
+        1038806477,
+        1058254738,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1043238773,
+        1038806478,
+        1058254738,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "raw_rgba8": [
+        89,
+        89,
+        89,
+        255
+      ],
+      "clip_abs_delta": [
+        1.4901161193847656e-08,
+        7.450580596923828e-09,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "case": "walk-3",
+      "command": 0,
+      "kind": "skin",
+      "sample": 5,
+      "source_vertex": 1265,
+      "expanded_corner": 3956,
+      "cpu_clip_bits": [
+        1043156648,
+        1038867475,
+        1058268758,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1043156648,
+        1038867469,
+        1058268758,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "raw_rgba8": [
+        89,
+        89,
+        89,
+        255
+      ],
+      "clip_abs_delta": [
+        0.0,
+        4.470348358154297e-08,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "case": "ads-1",
+      "command": 0,
+      "kind": "skin",
+      "sample": 0,
+      "source_vertex": 1340,
+      "expanded_corner": 4317,
+      "cpu_clip_bits": [
+        1041174523,
+        1035247771,
+        1058157629,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1041174524,
+        1035247772,
+        1058157629,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1055714541,
+        1055714541,
+        1055714541,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1055714542,
+        1055714542,
+        1055714542,
+        1065353216
+      ],
+      "raw_rgba8": [
+        118,
+        118,
+        118,
+        255
+      ],
+      "clip_abs_delta": [
+        1.4901161193847656e-08,
+        7.450580596923828e-09,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        1,
+        1,
+        1,
+        0
+      ]
+    },
+    {
+      "case": "ads-1",
+      "command": 0,
+      "kind": "skin",
+      "sample": 1,
+      "source_vertex": 1336,
+      "expanded_corner": 4318,
+      "cpu_clip_bits": [
+        1041378861,
+        1034510392,
+        1058165162,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1041378861,
+        1034510392,
+        1058165162,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1053082821,
+        1053082821,
+        1053082821,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1053082822,
+        1053082822,
+        1053082822,
+        1065353216
+      ],
+      "raw_rgba8": [
+        98,
+        98,
+        98,
+        255
+      ],
+      "clip_abs_delta": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        1,
+        1,
+        1,
+        0
+      ]
+    },
+    {
+      "case": "ads-1",
+      "command": 0,
+      "kind": "skin",
+      "sample": 2,
+      "source_vertex": 1341,
+      "expanded_corner": 4319,
+      "cpu_clip_bits": [
+        1041324379,
+        1035280542,
+        1058159993,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1041324379,
+        1035280542,
+        1058159994,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1054003923,
+        1054003923,
+        1054003923,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1054003924,
+        1054003924,
+        1054003924,
+        1065353216
+      ],
+      "raw_rgba8": [
+        105,
+        105,
+        105,
+        255
+      ],
+      "clip_abs_delta": [
+        0.0,
+        0.0,
+        5.960464477539063e-08,
+        0.0
+      ],
+      "color_word_delta": [
+        1,
+        1,
+        1,
+        0
+      ]
+    },
+    {
+      "case": "ads-1",
+      "command": 0,
+      "kind": "skin",
+      "sample": 3,
+      "source_vertex": 1191,
+      "expanded_corner": 3591,
+      "cpu_clip_bits": [
+        1041137040,
+        1035531838,
+        1058216449,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1041137039,
+        1035531839,
+        1058216449,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1057721228,
+        1057721228,
+        1057721228,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1057721228,
+        1057721228,
+        1057721228,
+        1065353216
+      ],
+      "raw_rgba8": [
+        139,
+        139,
+        139,
+        255
+      ],
+      "clip_abs_delta": [
+        1.4901161193847656e-08,
+        7.450580596923828e-09,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "case": "ads-1",
+      "command": 0,
+      "kind": "skin",
+      "sample": 4,
+      "source_vertex": 1194,
+      "expanded_corner": 3592,
+      "cpu_clip_bits": [
+        1041574970,
+        1034306962,
+        1058224256,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1041574971,
+        1034306962,
+        1058224256,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1059958190,
+        1059958190,
+        1059958190,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1059958190,
+        1059958190,
+        1059958190,
+        1065353216
+      ],
+      "raw_rgba8": [
+        173,
+        173,
+        173,
+        255
+      ],
+      "clip_abs_delta": [
+        1.4901161193847656e-08,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "case": "ads-1",
+      "command": 0,
+      "kind": "skin",
+      "sample": 5,
+      "source_vertex": 1193,
+      "expanded_corner": 3593,
+      "cpu_clip_bits": [
+        1041154791,
+        1035277884,
+        1058216804,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1041154791,
+        1035277884,
+        1058216804,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1060352948,
+        1060352948,
+        1060352948,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1060352948,
+        1060352948,
+        1060352948,
+        1065353216
+      ],
+      "raw_rgba8": [
+        179,
+        179,
+        179,
+        255
+      ],
+      "clip_abs_delta": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "case": "ads-1",
+      "command": 2,
+      "kind": "skin",
+      "sample": 0,
+      "source_vertex": 722,
+      "expanded_corner": 3510,
+      "cpu_clip_bits": [
+        1033964306,
+        1021616120,
+        1057469671,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1033964306,
+        1021616120,
+        1057469671,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1054135509,
+        1054135509,
+        1054135509,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1054135510,
+        1054135510,
+        1054135510,
+        1065353216
+      ],
+      "raw_rgba8": [
+        106,
+        106,
+        106,
+        255
+      ],
+      "clip_abs_delta": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        1,
+        1,
+        1,
+        0
+      ]
+    },
+    {
+      "case": "ads-1",
+      "command": 2,
+      "kind": "skin",
+      "sample": 1,
+      "source_vertex": 721,
+      "expanded_corner": 3511,
+      "cpu_clip_bits": [
+        1034783556,
+        1024892682,
+        1057482754,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1034783556,
+        1024892682,
+        1057482754,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1061405636,
+        1061405636,
+        1061405636,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1061405637,
+        1061405637,
+        1061405637,
+        1065353216
+      ],
+      "raw_rgba8": [
+        195,
+        195,
+        195,
+        255
+      ],
+      "clip_abs_delta": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        1,
+        1,
+        1,
+        0
+      ]
+    },
+    {
+      "case": "ads-1",
+      "command": 2,
+      "kind": "skin",
+      "sample": 2,
+      "source_vertex": 724,
+      "expanded_corner": 3512,
+      "cpu_clip_bits": [
+        1034572234,
+        1023476396,
+        1057477298,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1034572234,
+        1023476392,
+        1057477298,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1062326738,
+        1062326738,
+        1062326738,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1062326739,
+        1062326739,
+        1062326739,
+        1065353216
+      ],
+      "raw_rgba8": [
+        209,
+        209,
+        209,
+        255
+      ],
+      "clip_abs_delta": [
+        0.0,
+        1.4901161193847656e-08,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        1,
+        1,
+        1,
+        0
+      ]
+    },
+    {
+      "case": "ads-1",
+      "command": 3,
+      "kind": "skin",
+      "sample": 0,
+      "source_vertex": 797,
+      "expanded_corner": 4110,
+      "cpu_clip_bits": [
+        1033875296,
+        1025386170,
+        1057327936,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1033875297,
+        1025386172,
+        1057327936,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1064958458,
+        1064958458,
+        1064958458,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1064958459,
+        1064958459,
+        1064958459,
+        1065353216
+      ],
+      "raw_rgba8": [
+        249,
+        249,
+        249,
+        255
+      ],
+      "clip_abs_delta": [
+        7.450580596923828e-09,
+        7.450580596923828e-09,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        1,
+        1,
+        1,
+        0
+      ]
+    },
+    {
+      "case": "ads-1",
+      "command": 3,
+      "kind": "skin",
+      "sample": 1,
+      "source_vertex": 790,
+      "expanded_corner": 4111,
+      "cpu_clip_bits": [
+        1034347582,
+        1021294224,
+        1057304908,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1034347578,
+        1021294228,
+        1057304908,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1062984668,
+        1062984668,
+        1062984668,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1062984669,
+        1062984669,
+        1062984669,
+        1065353216
+      ],
+      "raw_rgba8": [
+        219,
+        219,
+        219,
+        255
+      ],
+      "clip_abs_delta": [
+        2.9802322387695312e-08,
+        7.450580596923828e-09,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        1,
+        1,
+        1,
+        0
+      ]
+    },
+    {
+      "case": "ads-1",
+      "command": 3,
+      "kind": "skin",
+      "sample": 2,
+      "source_vertex": 792,
+      "expanded_corner": 4112,
+      "cpu_clip_bits": [
+        1034609152,
+        1023924934,
+        1057311324,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1034609150,
+        1023924934,
+        1057311324,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1063708391,
+        1063708391,
+        1063708391,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1063708392,
+        1063708392,
+        1063708392,
+        1065353216
+      ],
+      "raw_rgba8": [
+        230,
+        230,
+        230,
+        255
+      ],
+      "clip_abs_delta": [
+        1.4901161193847656e-08,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        1,
+        1,
+        1,
+        0
+      ]
+    },
+    {
+      "case": "ads-1",
+      "command": 3,
+      "kind": "skin",
+      "sample": 3,
+      "source_vertex": 790,
+      "expanded_corner": 4089,
+      "cpu_clip_bits": [
+        1034347582,
+        1021294224,
+        1057304908,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1034347578,
+        1021294228,
+        1057304908,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1062984668,
+        1062984668,
+        1062984668,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1062984669,
+        1062984669,
+        1062984669,
+        1065353216
+      ],
+      "raw_rgba8": [
+        219,
+        219,
+        219,
+        255
+      ],
+      "clip_abs_delta": [
+        2.9802322387695312e-08,
+        7.450580596923828e-09,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        1,
+        1,
+        1,
+        0
+      ]
+    },
+    {
+      "case": "ads-1",
+      "command": 3,
+      "kind": "skin",
+      "sample": 4,
+      "source_vertex": 787,
+      "expanded_corner": 4090,
+      "cpu_clip_bits": [
+        1034243203,
+        1015824912,
+        1057300456,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1034243202,
+        1015824916,
+        1057300456,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1061734601,
+        1061734601,
+        1061734601,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1061734602,
+        1061734602,
+        1061734602,
+        1065353216
+      ],
+      "raw_rgba8": [
+        200,
+        200,
+        200,
+        255
+      ],
+      "clip_abs_delta": [
+        7.450580596923828e-09,
+        7.450580596923828e-09,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        1,
+        1,
+        1,
+        0
+      ]
+    },
+    {
+      "case": "ads-1",
+      "command": 3,
+      "kind": "skin",
+      "sample": 5,
+      "source_vertex": 789,
+      "expanded_corner": 4091,
+      "cpu_clip_bits": [
+        1034997006,
+        1018688764,
+        1057296153,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1034997004,
+        1018688760,
+        1057296153,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1062721496,
+        1062721496,
+        1062721496,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1062721497,
+        1062721497,
+        1062721497,
+        1065353216
+      ],
+      "raw_rgba8": [
+        215,
+        215,
+        215,
+        255
+      ],
+      "clip_abs_delta": [
+        1.4901161193847656e-08,
+        7.450580596923828e-09,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        1,
+        1,
+        1,
+        0
+      ]
+    },
+    {
+      "case": "ads-1",
+      "command": 4,
+      "kind": "skin",
+      "sample": 0,
+      "source_vertex": 419,
+      "expanded_corner": 2121,
+      "cpu_clip_bits": [
+        1041016687,
+        1035306388,
+        1058157092,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1041016686,
+        1035306388,
+        1058157092,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1060089776,
+        1060089776,
+        1060089776,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1060089776,
+        1060089776,
+        1060089776,
+        1065353216
+      ],
+      "raw_rgba8": [
+        175,
+        175,
+        175,
+        255
+      ],
+      "clip_abs_delta": [
+        1.4901161193847656e-08,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "case": "ads-1",
+      "command": 4,
+      "kind": "skin",
+      "sample": 1,
+      "source_vertex": 417,
+      "expanded_corner": 2122,
+      "cpu_clip_bits": [
+        1041222713,
+        1034627922,
+        1058161777,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1041222713,
+        1034627922,
+        1058161777,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1057392263,
+        1057392263,
+        1057392263,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1057392263,
+        1057392263,
+        1057392263,
+        1065353216
+      ],
+      "raw_rgba8": [
+        134,
+        134,
+        134,
+        255
+      ],
+      "clip_abs_delta": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "case": "ads-1",
+      "command": 4,
+      "kind": "skin",
+      "sample": 2,
+      "source_vertex": 420,
+      "expanded_corner": 2123,
+      "cpu_clip_bits": [
+        1041174523,
+        1035247771,
+        1058157629,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1041174524,
+        1035247772,
+        1058157629,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1058050193,
+        1058050193,
+        1058050193,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1058050193,
+        1058050193,
+        1058050193,
+        1065353216
+      ],
+      "raw_rgba8": [
+        144,
+        144,
+        144,
+        255
+      ],
+      "clip_abs_delta": [
+        1.4901161193847656e-08,
+        7.450580596923828e-09,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "case": "ads-1",
+      "command": 4,
+      "kind": "skin",
+      "sample": 3,
+      "source_vertex": 746,
+      "expanded_corner": 3714,
+      "cpu_clip_bits": [
+        1041063232,
+        1035169285,
+        1058213121,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1041063233,
+        1035169286,
+        1058213121,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1063511012,
+        1063511012,
+        1063511012,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1063511013,
+        1063511013,
+        1063511013,
+        1065353216
+      ],
+      "raw_rgba8": [
+        227,
+        227,
+        227,
+        255
+      ],
+      "clip_abs_delta": [
+        1.4901161193847656e-08,
+        7.450580596923828e-09,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        1,
+        1,
+        1,
+        0
+      ]
+    },
+    {
+      "case": "ads-1",
+      "command": 4,
+      "kind": "skin",
+      "sample": 4,
+      "source_vertex": 744,
+      "expanded_corner": 3715,
+      "cpu_clip_bits": [
+        1041141279,
+        1035054533,
+        1058225407,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1041141280,
+        1035054533,
+        1058225407,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1063379426,
+        1063379426,
+        1063379426,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1063379427,
+        1063379427,
+        1063379427,
+        1065353216
+      ],
+      "raw_rgba8": [
+        225,
+        225,
+        225,
+        255
+      ],
+      "clip_abs_delta": [
+        1.4901161193847656e-08,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        1,
+        1,
+        1,
+        0
+      ]
+    },
+    {
+      "case": "ads-1",
+      "command": 4,
+      "kind": "skin",
+      "sample": 5,
+      "source_vertex": 747,
+      "expanded_corner": 3716,
+      "cpu_clip_bits": [
+        1041466201,
+        1032221738,
+        1058228653,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1041466202,
+        1032221735,
+        1058228653,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1060747706,
+        1060747706,
+        1060747706,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1060747706,
+        1060747706,
+        1060747706,
+        1065353216
+      ],
+      "raw_rgba8": [
+        185,
+        185,
+        185,
+        255
+      ],
+      "clip_abs_delta": [
+        1.4901161193847656e-08,
+        2.2351741790771484e-08,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "case": "ads-1",
+      "command": 70,
+      "kind": "rigid",
+      "sample": 0,
+      "source_vertex": 995,
+      "expanded_corner": 2055,
+      "cpu_clip_bits": [
+        1034399271,
+        1019361780,
+        1057507438,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1034399271,
+        1019361780,
+        1057507438,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1045483729,
+        1046273245,
+        1047062761,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1045483730,
+        1046273246,
+        1047062762,
+        1065353216
+      ],
+      "raw_rgba8": [
+        52,
+        55,
+        58,
+        255
+      ],
+      "clip_abs_delta": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        1,
+        1,
+        1,
+        0
+      ]
+    },
+    {
+      "case": "ads-1",
+      "command": 70,
+      "kind": "rigid",
+      "sample": 1,
+      "source_vertex": 1123,
+      "expanded_corner": 2056,
+      "cpu_clip_bits": [
+        1034536916,
+        1019439460,
+        1057511490,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1034536916,
+        1019439460,
+        1057511490,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1042588837,
+        1043115181,
+        1043641525,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1042588837,
+        1043115181,
+        1043641525,
+        1065353216
+      ],
+      "raw_rgba8": [
+        41,
+        43,
+        45,
+        255
+      ],
+      "clip_abs_delta": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "case": "ads-1",
+      "command": 70,
+      "kind": "rigid",
+      "sample": 2,
+      "source_vertex": 1124,
+      "expanded_corner": 2057,
+      "cpu_clip_bits": [
+        1034548632,
+        1020240152,
+        1057512110,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1034548632,
+        1020240152,
+        1057512110,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1041799321,
+        1042325665,
+        1042852009,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1041799321,
+        1042325665,
+        1042852009,
+        1065353216
+      ],
+      "raw_rgba8": [
+        38,
+        40,
+        42,
+        255
+      ],
+      "clip_abs_delta": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "case": "reload-1",
+      "command": 0,
+      "kind": "skin",
+      "sample": 0,
+      "source_vertex": 1469,
+      "expanded_corner": 4947,
+      "cpu_clip_bits": [
+        1032090892,
+        1041010153,
+        1058263757,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1032090892,
+        1041010153,
+        1058263757,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "raw_rgba8": [
+        89,
+        89,
+        89,
+        255
+      ],
+      "clip_abs_delta": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "case": "reload-1",
+      "command": 0,
+      "kind": "skin",
+      "sample": 1,
+      "source_vertex": 1467,
+      "expanded_corner": 4948,
+      "cpu_clip_bits": [
+        1032156516,
+        1040682480,
+        1058282111,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1032156516,
+        1040682479,
+        1058282111,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "raw_rgba8": [
+        89,
+        89,
+        89,
+        255
+      ],
+      "clip_abs_delta": [
+        0.0,
+        1.4901161193847656e-08,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "case": "reload-1",
+      "command": 0,
+      "kind": "skin",
+      "sample": 2,
+      "source_vertex": 1470,
+      "expanded_corner": 4949,
+      "cpu_clip_bits": [
+        1031648950,
+        1040815234,
+        1058277901,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1031648941,
+        1040815234,
+        1058277901,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "raw_rgba8": [
+        89,
+        89,
+        89,
+        255
+      ],
+      "clip_abs_delta": [
+        3.3527612686157227e-08,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "case": "reload-1",
+      "command": 1,
+      "kind": "skin",
+      "sample": 0,
+      "source_vertex": 186,
+      "expanded_corner": 861,
+      "cpu_clip_bits": [
+        1035845154,
+        1040925454,
+        1057990059,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1035845154,
+        1040925456,
+        1057990059,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1060945085,
+        1060945085,
+        1060945085,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1060945085,
+        1060945085,
+        1060945085,
+        1065353216
+      ],
+      "raw_rgba8": [
+        188,
+        188,
+        188,
+        255
+      ],
+      "clip_abs_delta": [
+        0.0,
+        2.9802322387695312e-08,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "case": "reload-1",
+      "command": 1,
+      "kind": "skin",
+      "sample": 1,
+      "source_vertex": 187,
+      "expanded_corner": 862,
+      "cpu_clip_bits": [
+        1035626240,
+        1040562738,
+        1057990687,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1035626248,
+        1040562740,
+        1057990686,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1058444951,
+        1058444951,
+        1058444951,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1058444951,
+        1058444951,
+        1058444951,
+        1065353216
+      ],
+      "raw_rgba8": [
+        150,
+        150,
+        150,
+        255
+      ],
+      "clip_abs_delta": [
+        5.960464477539063e-08,
+        2.9802322387695312e-08,
+        5.960464477539063e-08,
+        0.0
+      ],
+      "color_word_delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "case": "reload-1",
+      "command": 1,
+      "kind": "skin",
+      "sample": 2,
+      "source_vertex": 183,
+      "expanded_corner": 863,
+      "cpu_clip_bits": [
+        1035998008,
+        1040703620,
+        1057991700,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1035998016,
+        1040703620,
+        1057991700,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1058642330,
+        1058642330,
+        1058642330,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1058642330,
+        1058642330,
+        1058642330,
+        1065353216
+      ],
+      "raw_rgba8": [
+        153,
+        153,
+        153,
+        255
+      ],
+      "clip_abs_delta": [
+        5.960464477539063e-08,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "case": "reload-1",
+      "command": 1,
+      "kind": "skin",
+      "sample": 3,
+      "source_vertex": 379,
+      "expanded_corner": 1839,
+      "cpu_clip_bits": [
+        1035752340,
+        1041011512,
+        1058050608,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1035752342,
+        1041011513,
+        1058050608,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "raw_rgba8": [
+        89,
+        89,
+        89,
+        255
+      ],
+      "clip_abs_delta": [
+        1.4901161193847656e-08,
+        1.4901161193847656e-08,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "case": "reload-1",
+      "command": 1,
+      "kind": "skin",
+      "sample": 4,
+      "source_vertex": 384,
+      "expanded_corner": 1840,
+      "cpu_clip_bits": [
+        1036077516,
+        1040937753,
+        1058045069,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1036077516,
+        1040937754,
+        1058045069,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "raw_rgba8": [
+        89,
+        89,
+        89,
+        255
+      ],
+      "clip_abs_delta": [
+        0.0,
+        1.4901161193847656e-08,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "case": "reload-1",
+      "command": 1,
+      "kind": "skin",
+      "sample": 5,
+      "source_vertex": 381,
+      "expanded_corner": 1841,
+      "cpu_clip_bits": [
+        1035854764,
+        1040784511,
+        1058047273,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1035854772,
+        1040784510,
+        1058047273,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "raw_rgba8": [
+        89,
+        89,
+        89,
+        255
+      ],
+      "clip_abs_delta": [
+        5.960464477539063e-08,
+        1.4901161193847656e-08,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "case": "reload-1",
+      "command": 1,
+      "kind": "skin",
+      "sample": 6,
+      "source_vertex": 433,
+      "expanded_corner": 2124,
+      "cpu_clip_bits": [
+        1035777030,
+        1040339650,
+        1057992206,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1035777030,
+        1040339650,
+        1057992206,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1052819649,
+        1052819649,
+        1052819649,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1052819650,
+        1052819650,
+        1052819650,
+        1065353216
+      ],
+      "raw_rgba8": [
+        96,
+        96,
+        96,
+        255
+      ],
+      "clip_abs_delta": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        1,
+        1,
+        1,
+        0
+      ]
+    },
+    {
+      "case": "reload-1",
+      "command": 1,
+      "kind": "skin",
+      "sample": 7,
+      "source_vertex": 434,
+      "expanded_corner": 2125,
+      "cpu_clip_bits": [
+        1035998008,
+        1040703620,
+        1057991700,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1035998016,
+        1040703620,
+        1057991700,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1057458056,
+        1057458056,
+        1057458056,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1057458056,
+        1057458056,
+        1057458056,
+        1065353216
+      ],
+      "raw_rgba8": [
+        135,
+        135,
+        135,
+        255
+      ],
+      "clip_abs_delta": [
+        5.960464477539063e-08,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "case": "reload-1",
+      "command": 1,
+      "kind": "skin",
+      "sample": 8,
+      "source_vertex": 432,
+      "expanded_corner": 2126,
+      "cpu_clip_bits": [
+        1035626240,
+        1040562738,
+        1057990687,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1035626248,
+        1040562740,
+        1057990686,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1058444951,
+        1058444951,
+        1058444951,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1058444951,
+        1058444951,
+        1058444951,
+        1065353216
+      ],
+      "raw_rgba8": [
+        150,
+        150,
+        150,
+        255
+      ],
+      "clip_abs_delta": [
+        5.960464477539063e-08,
+        2.9802322387695312e-08,
+        5.960464477539063e-08,
+        0.0
+      ],
+      "color_word_delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "case": "reload-1",
+      "command": 1,
+      "kind": "skin",
+      "sample": 9,
+      "source_vertex": 398,
+      "expanded_corner": 1899,
+      "cpu_clip_bits": [
+        1035995786,
+        1040568997,
+        1058040217,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1035995786,
+        1040568995,
+        1058040217,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "raw_rgba8": [
+        89,
+        89,
+        89,
+        255
+      ],
+      "clip_abs_delta": [
+        0.0,
+        2.9802322387695312e-08,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "case": "reload-1",
+      "command": 1,
+      "kind": "skin",
+      "sample": 10,
+      "source_vertex": 378,
+      "expanded_corner": 1900,
+      "cpu_clip_bits": [
+        1035535532,
+        1040599127,
+        1058049251,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1035535532,
+        1040599127,
+        1058049251,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "raw_rgba8": [
+        89,
+        89,
+        89,
+        255
+      ],
+      "clip_abs_delta": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "case": "reload-1",
+      "command": 1,
+      "kind": "skin",
+      "sample": 11,
+      "source_vertex": 381,
+      "expanded_corner": 1901,
+      "cpu_clip_bits": [
+        1035854764,
+        1040784511,
+        1058047273,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1035854772,
+        1040784510,
+        1058047273,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "raw_rgba8": [
+        89,
+        89,
+        89,
+        255
+      ],
+      "clip_abs_delta": [
+        5.960464477539063e-08,
+        1.4901161193847656e-08,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "case": "reload-1",
+      "command": 2,
+      "kind": "skin",
+      "sample": 0,
+      "source_vertex": 195,
+      "expanded_corner": 912,
+      "cpu_clip_bits": [
+        1029281332,
+        3147933072,
+        1057820428,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1029281324,
+        3147933072,
+        1057820428,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1058181779,
+        1058181779,
+        1058181779,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1058181779,
+        1058181779,
+        1058181779,
+        1065353216
+      ],
+      "raw_rgba8": [
+        146,
+        146,
+        146,
+        255
+      ],
+      "clip_abs_delta": [
+        2.9802322387695312e-08,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "case": "reload-1",
+      "command": 2,
+      "kind": "skin",
+      "sample": 1,
+      "source_vertex": 192,
+      "expanded_corner": 913,
+      "cpu_clip_bits": [
+        1029394018,
+        983682304,
+        1057819130,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1029394018,
+        983682304,
+        1057819130,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1062721496,
+        1062721496,
+        1062721496,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1062721497,
+        1062721497,
+        1062721497,
+        1065353216
+      ],
+      "raw_rgba8": [
+        215,
+        215,
+        215,
+        255
+      ],
+      "clip_abs_delta": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        1,
+        1,
+        1,
+        0
+      ]
+    },
+    {
+      "case": "reload-1",
+      "command": 2,
+      "kind": "skin",
+      "sample": 2,
+      "source_vertex": 121,
+      "expanded_corner": 914,
+      "cpu_clip_bits": [
+        1029235250,
+        3139454208,
+        1057829167,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1029235241,
+        3139454208,
+        1057829167,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1058773916,
+        1058773916,
+        1058773916,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1058773916,
+        1058773916,
+        1058773916,
+        1065353216
+      ],
+      "raw_rgba8": [
+        155,
+        155,
+        155,
+        255
+      ],
+      "clip_abs_delta": [
+        3.3527612686157227e-08,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "case": "reload-1",
+      "command": 2,
+      "kind": "skin",
+      "sample": 3,
+      "source_vertex": 120,
+      "expanded_corner": 546,
+      "cpu_clip_bits": [
+        1029433552,
+        3129517248,
+        1057844987,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1029433552,
+        3129517248,
+        1057844987,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1055451369,
+        1055451369,
+        1055451369,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1055451370,
+        1055451370,
+        1055451370,
+        1065353216
+      ],
+      "raw_rgba8": [
+        116,
+        116,
+        116,
+        255
+      ],
+      "clip_abs_delta": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        1,
+        1,
+        1,
+        0
+      ]
+    },
+    {
+      "case": "reload-1",
+      "command": 2,
+      "kind": "skin",
+      "sample": 4,
+      "source_vertex": 121,
+      "expanded_corner": 547,
+      "cpu_clip_bits": [
+        1029235250,
+        3139454208,
+        1057829167,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1029235241,
+        3139454208,
+        1057829167,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1058773916,
+        1058773916,
+        1058773916,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1058773916,
+        1058773916,
+        1058773916,
+        1065353216
+      ],
+      "raw_rgba8": [
+        155,
+        155,
+        155,
+        255
+      ],
+      "clip_abs_delta": [
+        3.3527612686157227e-08,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "case": "reload-1",
+      "command": 2,
+      "kind": "skin",
+      "sample": 5,
+      "source_vertex": 123,
+      "expanded_corner": 548,
+      "cpu_clip_bits": [
+        1029438962,
+        992928960,
+        1057839490,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1029438962,
+        992929408,
+        1057839490,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1059826604,
+        1059826604,
+        1059826604,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1059826604,
+        1059826604,
+        1059826604,
+        1065353216
+      ],
+      "raw_rgba8": [
+        171,
+        171,
+        171,
+        255
+      ],
+      "clip_abs_delta": [
+        0.0,
+        1.043081283569336e-07,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "case": "reload-1",
+      "command": 3,
+      "kind": "skin",
+      "sample": 0,
+      "source_vertex": 304,
+      "expanded_corner": 1455,
+      "cpu_clip_bits": [
+        1031885669,
+        1040840327,
+        1058120546,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1031885666,
+        1040840331,
+        1058120547,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1058905502,
+        1058905502,
+        1058905502,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1058905502,
+        1058905502,
+        1058905502,
+        1065353216
+      ],
+      "raw_rgba8": [
+        157,
+        157,
+        157,
+        255
+      ],
+      "clip_abs_delta": [
+        2.2351741790771484e-08,
+        5.960464477539063e-08,
+        5.960464477539063e-08,
+        0.0
+      ],
+      "color_word_delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "case": "reload-1",
+      "command": 3,
+      "kind": "skin",
+      "sample": 1,
+      "source_vertex": 307,
+      "expanded_corner": 1456,
+      "cpu_clip_bits": [
+        1030601664,
+        1041047811,
+        1058120750,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1030601665,
+        1041047811,
+        1058120750,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1064168942,
+        1064168942,
+        1064168942,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1064168943,
+        1064168943,
+        1064168943,
+        1065353216
+      ],
+      "raw_rgba8": [
+        237,
+        237,
+        237,
+        255
+      ],
+      "clip_abs_delta": [
+        3.725290298461914e-09,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        1,
+        1,
+        1,
+        0
+      ]
+    },
+    {
+      "case": "reload-1",
+      "command": 3,
+      "kind": "skin",
+      "sample": 2,
+      "source_vertex": 299,
+      "expanded_corner": 1457,
+      "cpu_clip_bits": [
+        1030618936,
+        1040791715,
+        1058093647,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1030618929,
+        1040791712,
+        1058093647,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1064168942,
+        1064168942,
+        1064168942,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1064168943,
+        1064168943,
+        1064168943,
+        1065353216
+      ],
+      "raw_rgba8": [
+        237,
+        237,
+        237,
+        255
+      ],
+      "clip_abs_delta": [
+        2.60770320892334e-08,
+        4.470348358154297e-08,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        1,
+        1,
+        1,
+        0
+      ]
+    },
+    {
+      "case": "reload-1",
+      "command": 3,
+      "kind": "skin",
+      "sample": 3,
+      "source_vertex": 433,
+      "expanded_corner": 2085,
+      "cpu_clip_bits": [
+        1031297152,
+        1040512209,
+        1058307885,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1031297152,
+        1040512210,
+        1058307885,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "raw_rgba8": [
+        89,
+        89,
+        89,
+        255
+      ],
+      "clip_abs_delta": [
+        0.0,
+        1.4901161193847656e-08,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "case": "reload-1",
+      "command": 3,
+      "kind": "skin",
+      "sample": 4,
+      "source_vertex": 438,
+      "expanded_corner": 2086,
+      "cpu_clip_bits": [
+        1030421920,
+        1040932480,
+        1058266369,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1030421918,
+        1040932480,
+        1058266369,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1057787021,
+        1057787021,
+        1057787021,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1057787021,
+        1057787021,
+        1057787021,
+        1065353216
+      ],
+      "raw_rgba8": [
+        140,
+        140,
+        140,
+        255
+      ],
+      "clip_abs_delta": [
+        7.450580596923828e-09,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "case": "reload-1",
+      "command": 3,
+      "kind": "skin",
+      "sample": 5,
+      "source_vertex": 439,
+      "expanded_corner": 2087,
+      "cpu_clip_bits": [
+        1031648950,
+        1040815234,
+        1058277901,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1031648941,
+        1040815234,
+        1058277901,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1054135509,
+        1054135509,
+        1054135509,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1054135510,
+        1054135510,
+        1054135510,
+        1065353216
+      ],
+      "raw_rgba8": [
+        106,
+        106,
+        106,
+        255
+      ],
+      "clip_abs_delta": [
+        3.3527612686157227e-08,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        1,
+        1,
+        1,
+        0
+      ]
+    },
+    {
+      "case": "reload-1",
+      "command": 3,
+      "kind": "skin",
+      "sample": 6,
+      "source_vertex": 305,
+      "expanded_corner": 1464,
+      "cpu_clip_bits": [
+        1032386524,
+        1040740368,
+        1058149851,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1032386524,
+        1040740367,
+        1058149851,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1056504057,
+        1056504057,
+        1056504057,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1056504058,
+        1056504058,
+        1056504058,
+        1065353216
+      ],
+      "raw_rgba8": [
+        124,
+        124,
+        124,
+        255
+      ],
+      "clip_abs_delta": [
+        0.0,
+        1.4901161193847656e-08,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        1,
+        1,
+        1,
+        0
+      ]
+    },
+    {
+      "case": "reload-1",
+      "command": 3,
+      "kind": "skin",
+      "sample": 7,
+      "source_vertex": 310,
+      "expanded_corner": 1465,
+      "cpu_clip_bits": [
+        1031620666,
+        1041088953,
+        1058132452,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1031620673,
+        1041088956,
+        1058132452,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1061405636,
+        1061405636,
+        1061405636,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1061405637,
+        1061405637,
+        1061405637,
+        1065353216
+      ],
+      "raw_rgba8": [
+        195,
+        195,
+        195,
+        255
+      ],
+      "clip_abs_delta": [
+        2.60770320892334e-08,
+        4.470348358154297e-08,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        1,
+        1,
+        1,
+        0
+      ]
+    },
+    {
+      "case": "reload-1",
+      "command": 3,
+      "kind": "skin",
+      "sample": 8,
+      "source_vertex": 304,
+      "expanded_corner": 1466,
+      "cpu_clip_bits": [
+        1031885669,
+        1040840327,
+        1058120546,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1031885666,
+        1040840331,
+        1058120547,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1058905502,
+        1058905502,
+        1058905502,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1058905502,
+        1058905502,
+        1058905502,
+        1065353216
+      ],
+      "raw_rgba8": [
+        157,
+        157,
+        157,
+        255
+      ],
+      "clip_abs_delta": [
+        2.2351741790771484e-08,
+        5.960464477539063e-08,
+        5.960464477539063e-08,
+        0.0
+      ],
+      "color_word_delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "case": "manifest-0",
+      "command": 2,
+      "kind": "skin",
+      "sample": 0,
+      "source_vertex": 347,
+      "expanded_corner": 1620,
+      "cpu_clip_bits": [
+        1040892998,
+        1027951516,
+        1057746778,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1040892998,
+        1027951524,
+        1057746778,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "raw_rgba8": [
+        89,
+        89,
+        89,
+        255
+      ],
+      "clip_abs_delta": [
+        0.0,
+        2.9802322387695312e-08,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "case": "manifest-0",
+      "command": 2,
+      "kind": "skin",
+      "sample": 1,
+      "source_vertex": 338,
+      "expanded_corner": 1621,
+      "cpu_clip_bits": [
+        1040818343,
+        1026958204,
+        1057732755,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1040818343,
+        1026958198,
+        1057732755,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "raw_rgba8": [
+        89,
+        89,
+        89,
+        255
+      ],
+      "clip_abs_delta": [
+        0.0,
+        2.2351741790771484e-08,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "case": "manifest-0",
+      "command": 2,
+      "kind": "skin",
+      "sample": 2,
+      "source_vertex": 342,
+      "expanded_corner": 1622,
+      "cpu_clip_bits": [
+        1040776042,
+        1027392726,
+        1057748992,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1040776042,
+        1027392734,
+        1057748992,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "raw_rgba8": [
+        89,
+        89,
+        89,
+        255
+      ],
+      "clip_abs_delta": [
+        0.0,
+        2.9802322387695312e-08,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "case": "manifest-0",
+      "command": 3,
+      "kind": "skin",
+      "sample": 0,
+      "source_vertex": 894,
+      "expanded_corner": 4563,
+      "cpu_clip_bits": [
+        1040891583,
+        1027652864,
+        1057562145,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1040891584,
+        1027652856,
+        1057562145,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "raw_rgba8": [
+        89,
+        89,
+        89,
+        255
+      ],
+      "clip_abs_delta": [
+        1.4901161193847656e-08,
+        2.9802322387695312e-08,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "case": "manifest-0",
+      "command": 3,
+      "kind": "skin",
+      "sample": 1,
+      "source_vertex": 892,
+      "expanded_corner": 4564,
+      "cpu_clip_bits": [
+        1040756737,
+        1027352390,
+        1057542501,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1040756741,
+        1027352396,
+        1057542501,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1053214407,
+        1053214407,
+        1053214407,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1053214408,
+        1053214408,
+        1053214408,
+        1065353216
+      ],
+      "raw_rgba8": [
+        99,
+        99,
+        99,
+        255
+      ],
+      "clip_abs_delta": [
+        5.960464477539063e-08,
+        2.2351741790771484e-08,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        1,
+        1,
+        1,
+        0
+      ]
+    },
+    {
+      "case": "manifest-0",
+      "command": 3,
+      "kind": "skin",
+      "sample": 2,
+      "source_vertex": 895,
+      "expanded_corner": 4565,
+      "cpu_clip_bits": [
+        1040808562,
+        1026376388,
+        1057549798,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1040808562,
+        1026376388,
+        1057549798,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "raw_rgba8": [
+        89,
+        89,
+        89,
+        255
+      ],
+      "clip_abs_delta": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "case": "manifest-12",
+      "command": 2,
+      "kind": "skin",
+      "sample": 0,
+      "source_vertex": 347,
+      "expanded_corner": 1620,
+      "cpu_clip_bits": [
+        1040892998,
+        1027951516,
+        1057746778,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1040892998,
+        1027951524,
+        1057746778,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "raw_rgba8": [
+        89,
+        89,
+        89,
+        255
+      ],
+      "clip_abs_delta": [
+        0.0,
+        2.9802322387695312e-08,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "case": "manifest-12",
+      "command": 2,
+      "kind": "skin",
+      "sample": 1,
+      "source_vertex": 338,
+      "expanded_corner": 1621,
+      "cpu_clip_bits": [
+        1040818343,
+        1026958204,
+        1057732755,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1040818343,
+        1026958198,
+        1057732755,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "raw_rgba8": [
+        89,
+        89,
+        89,
+        255
+      ],
+      "clip_abs_delta": [
+        0.0,
+        2.2351741790771484e-08,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "case": "manifest-12",
+      "command": 2,
+      "kind": "skin",
+      "sample": 2,
+      "source_vertex": 342,
+      "expanded_corner": 1622,
+      "cpu_clip_bits": [
+        1040776042,
+        1027392726,
+        1057748992,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1040776042,
+        1027392734,
+        1057748992,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "raw_rgba8": [
+        89,
+        89,
+        89,
+        255
+      ],
+      "clip_abs_delta": [
+        0.0,
+        2.9802322387695312e-08,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "case": "manifest-12",
+      "command": 3,
+      "kind": "skin",
+      "sample": 0,
+      "source_vertex": 894,
+      "expanded_corner": 4563,
+      "cpu_clip_bits": [
+        1040891583,
+        1027652864,
+        1057562145,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1040891584,
+        1027652856,
+        1057562145,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "raw_rgba8": [
+        89,
+        89,
+        89,
+        255
+      ],
+      "clip_abs_delta": [
+        1.4901161193847656e-08,
+        2.9802322387695312e-08,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "case": "manifest-12",
+      "command": 3,
+      "kind": "skin",
+      "sample": 1,
+      "source_vertex": 892,
+      "expanded_corner": 4564,
+      "cpu_clip_bits": [
+        1040756737,
+        1027352390,
+        1057542501,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1040756741,
+        1027352396,
+        1057542501,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1053214407,
+        1053214407,
+        1053214407,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1053214408,
+        1053214408,
+        1053214408,
+        1065353216
+      ],
+      "raw_rgba8": [
+        99,
+        99,
+        99,
+        255
+      ],
+      "clip_abs_delta": [
+        5.960464477539063e-08,
+        2.2351741790771484e-08,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        1,
+        1,
+        1,
+        0
+      ]
+    },
+    {
+      "case": "manifest-12",
+      "command": 3,
+      "kind": "skin",
+      "sample": 2,
+      "source_vertex": 895,
+      "expanded_corner": 4565,
+      "cpu_clip_bits": [
+        1040808562,
+        1026376388,
+        1057549798,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1040808562,
+        1026376388,
+        1057549798,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "raw_rgba8": [
+        89,
+        89,
+        89,
+        255
+      ],
+      "clip_abs_delta": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "case": "manifest-24",
+      "command": 2,
+      "kind": "skin",
+      "sample": 0,
+      "source_vertex": 347,
+      "expanded_corner": 1620,
+      "cpu_clip_bits": [
+        1040892998,
+        1027951516,
+        1057746778,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1040892998,
+        1027951524,
+        1057746778,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "raw_rgba8": [
+        89,
+        89,
+        89,
+        255
+      ],
+      "clip_abs_delta": [
+        0.0,
+        2.9802322387695312e-08,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "case": "manifest-24",
+      "command": 2,
+      "kind": "skin",
+      "sample": 1,
+      "source_vertex": 338,
+      "expanded_corner": 1621,
+      "cpu_clip_bits": [
+        1040818343,
+        1026958204,
+        1057732755,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1040818343,
+        1026958198,
+        1057732755,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "raw_rgba8": [
+        89,
+        89,
+        89,
+        255
+      ],
+      "clip_abs_delta": [
+        0.0,
+        2.2351741790771484e-08,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "case": "manifest-24",
+      "command": 2,
+      "kind": "skin",
+      "sample": 2,
+      "source_vertex": 342,
+      "expanded_corner": 1622,
+      "cpu_clip_bits": [
+        1040776042,
+        1027392726,
+        1057748992,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1040776042,
+        1027392734,
+        1057748992,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "raw_rgba8": [
+        89,
+        89,
+        89,
+        255
+      ],
+      "clip_abs_delta": [
+        0.0,
+        2.9802322387695312e-08,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "case": "manifest-24",
+      "command": 3,
+      "kind": "skin",
+      "sample": 0,
+      "source_vertex": 894,
+      "expanded_corner": 4563,
+      "cpu_clip_bits": [
+        1040891583,
+        1027652864,
+        1057562145,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1040891584,
+        1027652856,
+        1057562145,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "raw_rgba8": [
+        89,
+        89,
+        89,
+        255
+      ],
+      "clip_abs_delta": [
+        1.4901161193847656e-08,
+        2.9802322387695312e-08,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "case": "manifest-24",
+      "command": 3,
+      "kind": "skin",
+      "sample": 1,
+      "source_vertex": 892,
+      "expanded_corner": 4564,
+      "cpu_clip_bits": [
+        1040756737,
+        1027352390,
+        1057542501,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1040756741,
+        1027352396,
+        1057542501,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1053214407,
+        1053214407,
+        1053214407,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1053214408,
+        1053214408,
+        1053214408,
+        1065353216
+      ],
+      "raw_rgba8": [
+        99,
+        99,
+        99,
+        255
+      ],
+      "clip_abs_delta": [
+        5.960464477539063e-08,
+        2.2351741790771484e-08,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        1,
+        1,
+        1,
+        0
+      ]
+    },
+    {
+      "case": "manifest-24",
+      "command": 3,
+      "kind": "skin",
+      "sample": 2,
+      "source_vertex": 895,
+      "expanded_corner": 4565,
+      "cpu_clip_bits": [
+        1040808562,
+        1026376388,
+        1057549798,
+        1065353216
+      ],
+      "resident_clip_bits": [
+        1040808562,
+        1026376388,
+        1057549798,
+        1065353216
+      ],
+      "cpu_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "resident_color_bits": [
+        1051898547,
+        1051898547,
+        1051898547,
+        1065353216
+      ],
+      "raw_rgba8": [
+        89,
+        89,
+        89,
+        255
+      ],
+      "clip_abs_delta": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "color_word_delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  ],
+  "originals_unchanged": true,
+  "limits": [
+    "One source-bound release A100/Vulkan fixed960x540 correctness run, no frame-rate measurement or RTX inference.",
+    "Strict original exact-image failure persists unchanged at18RGBpixels across11pairs/max3; all44 current PNGs equal original1ef PNGs.",
+    "Instrumented current1/sqrt and historicalinverseSqrt routes are bit-identical at108 selected samples; this hypothesis did not discriminate or repair the failure.",
+    "Nearest CPU-projected triangles are selection aids, not authenticated GPU primitive IDs.",
+    "Instrumented shader output may change backend optimization. Observed byte-to-float conversion and clip deltas identify mechanisms to isolate, not full pixel causation.",
+    "Public asset binaries remain receipt-bound. Source manifest bytes and the original bootstrap overlay are independently verified."
+  ]
+}
