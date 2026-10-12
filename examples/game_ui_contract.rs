@@ -389,7 +389,7 @@ mod fixture {
         [750., 420., 936., 530.],
     ];
     /// Telemetry (debug) readout drawn in the top-left column.
-    pub const DEBUG_PANEL: [f64; 4] = [30., 35., 340., 180.];
+    pub const DEBUG_PANEL: [f64; 4] = [30., 35., 340., 225.];
     /// The scaled pause menu is centred horizontally.
     pub const MENU_BAND: [f64; 4] = [200., 0., 760., 540.];
     /// Warm accent family: the HUD/menu accent #FA9E38, GOLD #FFCB00 and the

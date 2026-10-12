@@ -40,9 +40,9 @@ INK_WINDOW = (90, 80, 390, 190)
 KEY_BOX = (230, 108, 250, 132)
 CAPTION_BAND = (90, 140, 390, 172)
 FULL_TEXT_BAND = (90, 100, 390, 128)
-# HUD corner panels (title, score, stance, weapon), telemetry panel, menu band.
-CORNERS = ((24, 24, 312, 105), (685, 24, 936, 105), (24, 435, 272, 516), (710, 415, 936, 516))
-DEBUG_PANEL = (24, 119, 334, 326)
+# FIELD HUD clusters (objective strip, score, stance, ammo), telemetry readout, menu band.
+CORNERS = ((380, 10, 580, 50), (690, 10, 936, 75), (30, 440, 220, 530), (750, 420, 936, 530))
+DEBUG_PANEL = (30, 35, 340, 225)
 MENU_BAND = (200, 0, 760, 540)
 CASES = ('pause-menu', 'updater-current', 'updater-unavailable', 'hud', 'hud-telemetry',
          'ammo-idle', 'ammo-half', 'ammo-complete', 'ammo-full')
@@ -202,10 +202,11 @@ def check_ui_text(case, image, scale):
     foreground = ImageChops.darker(ImageChops.darker(r, g), b).point(lambda v: 255 if v >= 100 else 0)
     area = scale * scale
     if case == 'hud-telemetry':
-        # Production rows start at x=40, baseline 145 + row*23, size 16.
+        # FIELD rows start at the title-safe x=48, baseline 75 + row*20, size 16
+        # (the 16px text floor at the 960x540 logical viewport).
         # ProggyClean's 16px glyph bounds fit baseline-12 through baseline+4.
         for row in range(8):
-            band = (40, 133 + row * 23, 334, 149 + row * 23)
+            band = (48, 63 + row * 20, 334, 79 + row * 20)
             require(count(foreground, band, scale) >= 20 * area,
                     f'hud-telemetry: text missing from row {row + 1}')
         return

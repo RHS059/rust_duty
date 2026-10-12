@@ -79,12 +79,12 @@ def ui(percent, case, corners=4, accent=True):
             box(x0 + 10, y0 + 10, x0 + 60, y0 + 20, WHITE)
         if case == 'hud-telemetry':
             font = Path(fixture.build_identity.__file__).resolve().parents[1] / 'src/render/font/ProggyClean.ttf'
-            box(24, 119, 334, 326, OVERLAY)
+            box(30, 35, 340, 225, OVERLAY)
             rows = ['SIM 120 Hz   RENDER 60 fps', 'TIME    0.00 s   DIST    0.0 m',
                     'POS  0.00  0.00  0.00', 'VEL  0.00  0.00  0.00', 'ADS 0.00   FOV 100/ 65',
                     'RECOIL  0.00 /  0.00 deg', 'SHOTS 0   HEADSHOTS 0', 'F8 CSV   OFF']
             for row, text in enumerate(rows):
-                draw.text((40*s, (145+row*23)*s), text, font=ImageFont.truetype(str(font), 16*s),
+                draw.text((48*s, (75+row*20)*s), text, font=ImageFont.truetype(str(font), 16*s),
                           fill=(158, 176, 184, 255), anchor='ls')
     return image
 
@@ -294,7 +294,7 @@ class GameUiFixtureTests(unittest.TestCase):
         for percent, row in ((100, 0), (200, 7)):
             s = percent // 100
             image = ui(percent, 'hud-telemetry')
-            ImageDraw.Draw(image).rectangle((40*s, (133+row*23)*s, 334*s-1, (149+row*23)*s-1), fill=OVERLAY)
+            ImageDraw.Draw(image).rectangle((48*s, (63+row*20)*s, 334*s-1, (79+row*20)*s-1), fill=OVERLAY)
             self.replace(f'hud-telemetry-{percent}.png', image, percent)
             with self.subTest(percent=percent, row=row):
                 self.rejects(f'text missing from row {row + 1}')
