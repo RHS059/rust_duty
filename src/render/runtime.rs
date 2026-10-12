@@ -118,11 +118,12 @@ impl<R: FrameRenderer> FrameHooks for DrawHooks<R> {
             }
         }
         performance::begin_cpu_stage(CpuFrameStage::GameRecording);
-        if let Err(error) = facade::begin_frame(self.width, self.height, self.scale) {
+        if let Err(error) =
+            facade::begin_frame_with_renderer(self.width, self.height, self.scale, &self.renderer)
+        {
             log_completion(performance::present_failure());
             return Err(error);
         }
-        facade::set_backend_info(self.renderer.info().clone());
         self.recording = true;
         Ok(FrameStart::Ready)
     }

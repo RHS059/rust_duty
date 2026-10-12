@@ -289,6 +289,11 @@ pub(crate) async fn menu_candidates() -> Vec<Candidate> {
 }
 
 impl Gpu {
+    #[cfg(test)]
+    pub(super) fn actual_adapter_info(&self) -> wgpu::AdapterInfo {
+        self.adapter.get_info()
+    }
+
     pub async fn new(
         selection: BackendSelection,
         force_fallback: bool,

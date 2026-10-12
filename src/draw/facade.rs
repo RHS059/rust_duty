@@ -81,6 +81,7 @@ struct FrameRecorder {
     screen_scale_override: Option<f32>,
     camera: Camera,
     model: Mat4,
+    resident_meshes: bool,
 }
 impl FrameRecorder {
     fn screen_scale(&self) -> f32 {
@@ -214,9 +215,25 @@ pub fn begin_frame(width: u32, height: u32, scale_factor: f64) -> Result<(), Str
             screen_scale_override: None,
             camera,
             model: Mat4::IDENTITY,
+            resident_meshes: false,
         });
         Ok(())
     })
+}
+
+/// Begins a frame with capabilities taken from the renderer that will submit it.
+/// Reference/legacy/mock renderers stay CPU-only unless they explicitly implement
+/// the capability. All capability state is discarded together with the frame.
+pub fn begin_frame_with_renderer(
+    width: u32,
+    height: u32,
+    scale_factor: f64,
+    renderer: &dyn super::Renderer,
+) -> Result<(), String> {
+    begin_frame(width, height, scale_factor)?;
+    set_backend_info(renderer.info().clone());
+    set_resident_meshes_enabled(renderer.supports_resident_meshes());
+    Ok(())
 }
 
 /// Consumes the frame once. Invalid recording returns errors, never a partial frame.
@@ -483,6 +500,39 @@ pub fn with_model_matrix<R>(matrix: Mat4, f: impl FnOnce() -> R) -> R {
     let result = f();
     drop(guard);
     result
+}
+
+/// Capability belongs to this frame, never to a cached backend name.
+pub(crate) fn set_resident_meshes_enabled(enabled: bool) {
+    RECORDER.with(|state| {
+        if let Some(frame) = state.borrow_mut().frame.as_mut() {
+            frame.resident_meshes = enabled;
+        }
+    });
+}
+pub fn resident_meshes_enabled() -> bool {
+    RECORDER.with(|state| {
+        state
+            .borrow()
+            .frame
+            .as_ref()
+            .is_some_and(|f| f.resident_meshes)
+    })
+}
+pub fn draw_resident(draw: super::resident::ResidentDraw, blend: BlendMode) {
+    record("draw_resident", |frame| {
+        if !frame.resident_meshes {
+            return frame.mesh(&draw.reference_mesh(), frame.model, blend);
+        }
+        if !(frame.camera.view_projection * frame.model * draw.root()).is_finite() {
+            return Err("resident camera-model transform overflow".into());
+        }
+        if let Some(texture) = draw.mesh().texture() {
+            frame.validate_sample(texture)?;
+        }
+        frame.list.draw_resident(draw, frame.model, blend);
+        Ok(())
+    });
 }
 
 pub fn draw_mesh(mesh: &Mesh) {
@@ -799,6 +849,25 @@ pub fn capture_png_with_frame_witness(
 mod tests {
     use super::*;
     use crate::draw::Command;
+
+    #[test]
+    fn resident_capability_is_frame_local_and_clears_on_success_and_error() {
+        begin_frame(64, 64, 1.).unwrap();
+        assert!(!resident_meshes_enabled());
+        set_resident_meshes_enabled(true);
+        assert!(resident_meshes_enabled());
+        take_draw_list().unwrap();
+        assert!(!resident_meshes_enabled());
+        begin_frame(64, 64, 1.).unwrap();
+        assert!(!resident_meshes_enabled());
+        set_resident_meshes_enabled(true);
+        draw_line_3d(Vec3::splat(f32::NAN), Vec3::ZERO, WHITE);
+        assert!(take_draw_list().is_err());
+        assert!(!resident_meshes_enabled());
+        begin_frame(64, 64, 1.).unwrap();
+        assert!(!resident_meshes_enabled());
+        take_draw_list().unwrap();
+    }
 
     #[test]
     fn frame_witness_is_drawn_before_readback_and_restores_camera() {

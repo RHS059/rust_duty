@@ -36,7 +36,7 @@ impl FragmentKind {
         }
     }
 }
-fn blend_state(mode: BlendMode, fragment: FragmentKind) -> Option<wgpu::BlendState> {
+pub(super) fn blend_state(mode: BlendMode, fragment: FragmentKind) -> Option<wgpu::BlendState> {
     let source_color = match fragment {
         FragmentKind::Straight => wgpu::BlendFactor::SrcAlpha,
         FragmentKind::AssociateStraight | FragmentKind::Associated | FragmentKind::Present => {
@@ -68,7 +68,7 @@ fn blend_state(mode: BlendMode, fragment: FragmentKind) -> Option<wgpu::BlendSta
         }),
     }
 }
-fn depth_state(enabled: bool, blend: BlendMode) -> Option<wgpu::DepthStencilState> {
+pub(super) fn depth_state(enabled: bool, blend: BlendMode) -> Option<wgpu::DepthStencilState> {
     enabled.then_some(wgpu::DepthStencilState {
         format: super::target::DEPTH_FORMAT,
         // Preserve legacy alpha-mesh depth writes (including actor opacity).

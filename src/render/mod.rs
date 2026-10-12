@@ -28,6 +28,8 @@ mod mesh;
 #[cfg(feature = "wgpu-runtime")]
 mod plan;
 #[cfg(feature = "wgpu-runtime")]
+mod resident;
+#[cfg(feature = "wgpu-runtime")]
 pub mod runtime;
 #[cfg(feature = "wgpu-runtime")]
 mod sprite2d;
@@ -48,3 +50,6 @@ pub mod finite_warp_probe;
 mod upload_cache;
 #[cfg(all(test, feature = "wgpu-runtime"))]
 mod upload_reuse_tests;
+
+#[cfg(all(test, feature = "wgpu-runtime"))]
+mod resident_tests;

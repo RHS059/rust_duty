@@ -7,10 +7,12 @@ use std::fs::OpenOptions;
 use std::io::{BufWriter, Write};
 use std::path::{Path, PathBuf};
 
+#[path = "frame_resident_policy.rs"]
+pub mod resident_policy;
 #[path = "frame_upload_policy.rs"]
 pub mod upload_policy;
 
-pub const SCHEMA: &str = "rust_duty_cpu_encode_detail_v2";
+pub const SCHEMA: &str = "rust_duty_cpu_encode_detail_v3";
 pub const MEASUREMENT: &str = "cpu_wall_clock_nested_encode_phase_ns";
 pub const INTERPRETATION: &str = "CPU call durations nested inside encode_submit and renderer_submit, not GPU time. Parent and child durations must not be added. Missing or incomplete phases are unavailable; counters on incomplete rows are observed partial values, not complete frame totals.";
 pub const MAX_SPANS: usize = 5;
@@ -64,9 +66,20 @@ pub enum EncodeCounter {
     TransformBindingAllocations,
     /// Nonempty arenas uploaded through an uncached path during this attempt.
     UncachedUploadArenas,
+    ResidentDraws,
+    ResidentRigidDraws,
+    ResidentSkinnedDraws,
+    ResidentVertexBytesUploaded,
+    ResidentIndexBytesUploaded,
+    ResidentUniformBytesUploaded,
+    ResidentCacheHits,
+    ResidentCacheMisses,
+    ResidentTransientMeshes,
+    ResidentBufferAllocations,
+    ResidentBindingAllocations,
 }
 impl EncodeCounter {
-    const ALL: [Self; 15] = [
+    const ALL: [Self; 26] = [
         Self::PreparedDraws,
         Self::TextCharacters,
         Self::UploadArenas,
@@ -82,6 +95,17 @@ impl EncodeCounter {
         Self::GpuBufferAllocatedBytes,
         Self::TransformBindingAllocations,
         Self::UncachedUploadArenas,
+        Self::ResidentDraws,
+        Self::ResidentRigidDraws,
+        Self::ResidentSkinnedDraws,
+        Self::ResidentVertexBytesUploaded,
+        Self::ResidentIndexBytesUploaded,
+        Self::ResidentUniformBytesUploaded,
+        Self::ResidentCacheHits,
+        Self::ResidentCacheMisses,
+        Self::ResidentTransientMeshes,
+        Self::ResidentBufferAllocations,
+        Self::ResidentBindingAllocations,
     ];
     pub fn label(self) -> &'static str {
         match self {
@@ -100,6 +124,17 @@ impl EncodeCounter {
             Self::GpuBufferAllocatedBytes => "gpu_buffer_allocated_bytes",
             Self::TransformBindingAllocations => "transform_binding_allocations",
             Self::UncachedUploadArenas => "uncached_upload_arenas",
+            Self::ResidentDraws => "resident_draws",
+            Self::ResidentRigidDraws => "resident_rigid_draws",
+            Self::ResidentSkinnedDraws => "resident_skinned_draws",
+            Self::ResidentVertexBytesUploaded => "resident_vertex_bytes_uploaded",
+            Self::ResidentIndexBytesUploaded => "resident_index_bytes_uploaded",
+            Self::ResidentUniformBytesUploaded => "resident_uniform_bytes_uploaded",
+            Self::ResidentCacheHits => "resident_cache_hits",
+            Self::ResidentCacheMisses => "resident_cache_misses",
+            Self::ResidentTransientMeshes => "resident_transient_meshes",
+            Self::ResidentBufferAllocations => "resident_buffer_allocations",
+            Self::ResidentBindingAllocations => "resident_binding_allocations",
         }
     }
 }
@@ -422,7 +457,7 @@ impl CpuEncodeCapture {
                 "details":details.to_json()}));
         }
         let value = json!({"schema":SCHEMA,"measurement":MEASUREMENT,
-            "upload_policy":upload_policy::identity(),
+            "upload_policy":upload_policy::identity(), "resident_policy":resident_policy::identity(),
             "interpretation":INTERPRETATION,"frame_report_sha256":digest,
             "frame_status":primary["status"],"samples":samples});
         let path = frame_path.with_extension("cpu-encode-detail.json");
@@ -489,7 +524,7 @@ mod tests {
         assert_eq!(value["spans"][4]["duration_ns"], 5);
     }
     #[test]
-    fn v2_counters_are_exact_fixed_storage_per_attempt_sums() {
+    fn v3_counters_are_exact_fixed_storage_per_attempt_sums() {
         let names = [
             "prepared_draws",
             "text_characters",
@@ -506,6 +541,17 @@ mod tests {
             "gpu_buffer_allocated_bytes",
             "transform_binding_allocations",
             "uncached_upload_arenas",
+            "resident_draws",
+            "resident_rigid_draws",
+            "resident_skinned_draws",
+            "resident_vertex_bytes_uploaded",
+            "resident_index_bytes_uploaded",
+            "resident_uniform_bytes_uploaded",
+            "resident_cache_hits",
+            "resident_cache_misses",
+            "resident_transient_meshes",
+            "resident_buffer_allocations",
+            "resident_binding_allocations",
         ];
         let mut details = CpuEncodeDetails::default();
         assert_eq!(details.counters.len(), names.len());
@@ -553,11 +599,14 @@ mod tests {
             assert_eq!(value["state"], "incomplete");
             assert_eq!(value["error"], "encode_counter_overflow");
             assert_eq!(value["counters"][counter.label()], u64::MAX);
-            assert_eq!(value["counters"].as_object().unwrap().len(), 15);
+            assert_eq!(
+                value["counters"].as_object().unwrap().len(),
+                EncodeCounter::ALL.len()
+            );
         }
     }
     #[test]
-    fn writer_emits_only_v2_with_the_runtime_upload_policy() {
+    fn writer_emits_v3_with_explicit_upload_and_resident_policies() {
         let directory = std::env::temp_dir().join(format!(
             "rust-duty-encode-v2-{}-{}",
             std::process::id(),
@@ -577,9 +626,10 @@ mod tests {
         capture.retain(CpuEncodeDetails::default());
         let output = capture.write_new(&frame_path).unwrap().unwrap();
         let value: Value = serde_json::from_slice(&std::fs::read(&output).unwrap()).unwrap();
-        assert_eq!(value["schema"], "rust_duty_cpu_encode_detail_v2");
+        assert_eq!(value["schema"], "rust_duty_cpu_encode_detail_v3");
         assert_eq!(value["upload_policy"], upload_policy::identity());
-        assert_eq!(value.as_object().unwrap().len(), 7);
+        assert_eq!(value["resident_policy"], resident_policy::identity());
+        assert_eq!(value.as_object().unwrap().len(), 8);
         assert_eq!(
             value["frame_report_sha256"],
             rust_duty_launcher::bytes_hash(&bytes)
@@ -591,7 +641,7 @@ mod tests {
                 .as_object()
                 .unwrap()
                 .len(),
-            15
+            EncodeCounter::ALL.len()
         );
         assert!(capture.write_new(&frame_path).is_err());
         std::fs::remove_dir_all(directory).unwrap();

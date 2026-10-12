@@ -284,6 +284,18 @@ impl LegacyRenderer {
                 });
                 material::gl_use_default_material();
             }
+            Command::Resident { draw, model, blend } => {
+                self.execute_command(
+                    &Command::Mesh {
+                        mesh: draw.reference_mesh(),
+                        model: *model,
+                        blend: *blend,
+                    },
+                    active,
+                    extent,
+                    output,
+                )?;
+            }
             Command::Lines { lines, model } => {
                 validate_model(*model)?;
                 if lines

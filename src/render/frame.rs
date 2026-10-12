@@ -3,7 +3,7 @@ use super::{
     arena::DrawSlice,
     capture::{CaptureEncoding, Readback},
     mesh::{FragmentKind, FrameGeometry},
-    plan::{draw_run_len, FramePlan, PreparedCommand, PreparedDraw},
+    plan::{draw_attachment, draw_run_len, FramePlan, PreparedCommand, PreparedDraw},
     target::{self, GpuTexture},
     WgpuRenderer,
 };
@@ -13,6 +13,7 @@ use performance::{EncodeCounter, EncodePhase};
 use std::sync::Arc;
 
 struct EncodedFrame {
+    resident: crate::draw::ResidentFrameStats,
     readbacks: Vec<Readback>,
     presentation: Option<wgpu::SurfaceTexture>,
     timing: Option<crate::frame_gpu_capture::GpuAttempt>,
@@ -25,6 +26,7 @@ impl WgpuRenderer {
             // Covers preflight, encode, validation, device and readback failures.
             // Never reuse destinations of queue writes from an abandoned frame.
             self.upload_cache.clear();
+            self.resident.clear();
         }
         result
     }
@@ -95,8 +97,12 @@ impl WgpuRenderer {
             readbacks,
             presentation,
             timing: _,
+            resident,
         } = encoded?;
-        let mut output = FrameOutput::default();
+        let mut output = FrameOutput {
+            resident,
+            ..Default::default()
+        };
         for readback in readbacks {
             output.captures.push(readback.finish(&self.gpu.device)?);
         }
@@ -130,10 +136,11 @@ impl WgpuRenderer {
         if performance::encode_details_active() {
             record_plan_counts(list, &plan);
         }
-        let geometry: Vec<_> =
+        let (geometry, residents) =
             performance::measure_encode_phase(EncodePhase::GeometryUpload, || {
                 self.upload_cache.begin_frame()?;
-                plan.arenas
+                let geometry = plan
+                    .arenas
                     .iter()
                     .enumerate()
                     .map(|(index, arena)| {
@@ -162,8 +169,53 @@ impl WgpuRenderer {
                             arena,
                         )
                     })
-                    .collect::<Result<Vec<_>, String>>()
+                    .collect::<Result<Vec<_>, String>>()?;
+                let residents = self.resident.prepare(&self.gpu.device, &plan.residents)?;
+                Ok::<_, String>((geometry, residents))
             })?;
+        if let Some(frame) = &residents {
+            performance::add_encode_counter(EncodeCounter::ResidentDraws, frame.counts.draws);
+            performance::add_encode_counter(
+                EncodeCounter::ResidentRigidDraws,
+                frame.counts.rigid_draws,
+            );
+            performance::add_encode_counter(
+                EncodeCounter::ResidentSkinnedDraws,
+                frame.counts.skinned_draws,
+            );
+            performance::add_encode_counter(
+                EncodeCounter::ResidentVertexBytesUploaded,
+                frame.counts.vertex_bytes_uploaded,
+            );
+            performance::add_encode_counter(
+                EncodeCounter::ResidentIndexBytesUploaded,
+                frame.counts.index_bytes_uploaded,
+            );
+            performance::add_encode_counter(
+                EncodeCounter::ResidentUniformBytesUploaded,
+                frame.counts.uniform_bytes_uploaded,
+            );
+            performance::add_encode_counter(
+                EncodeCounter::ResidentCacheHits,
+                frame.counts.cache_hits,
+            );
+            performance::add_encode_counter(
+                EncodeCounter::ResidentCacheMisses,
+                frame.counts.cache_misses,
+            );
+            performance::add_encode_counter(
+                EncodeCounter::ResidentBufferAllocations,
+                frame.counts.buffer_allocations,
+            );
+            performance::add_encode_counter(
+                EncodeCounter::ResidentBindingAllocations,
+                frame.counts.binding_allocations,
+            );
+            performance::add_encode_counter(
+                EncodeCounter::ResidentTransientMeshes,
+                frame.counts.transient_meshes,
+            );
+        }
         let (encoder, mut timing, readbacks) =
             performance::measure_encode_phase(EncodePhase::CommandEncoding, || {
                 let mut encoder =
@@ -182,7 +234,7 @@ impl WgpuRenderer {
                 clear(&mut encoder, &self.main, Color::TRANSPARENT);
                 let mut readbacks = Vec::new();
                 let mut commands = plan.commands.as_slice();
-                while let Some((command, following)) = commands.split_first() {
+                while let Some((command, _)) = commands.split_first() {
                     let mut consumed = 1;
                     match command {
                         PreparedCommand::Camera(camera) => {
@@ -194,13 +246,14 @@ impl WgpuRenderer {
                             let output = self.output(target.as_ref())?;
                             clear(&mut encoder, &output, *color);
                         }
-                        PreparedCommand::Draw(draw) => {
+                        PreparedCommand::Draw(_) | PreparedCommand::Resident(_) => {
                             consumed = draw_run_len(commands);
                             self.draw_prepared_run(
                                 &mut encoder,
                                 &geometry,
-                                draw,
-                                &following[..consumed - 1],
+                                residents.as_ref(),
+                                &plan,
+                                &commands[..consumed],
                             )?;
                         }
                         PreparedCommand::Capture { target, path } => {
@@ -279,6 +332,10 @@ impl WgpuRenderer {
         }
         performance::complete_encode_details();
         Ok(EncodedFrame {
+            resident: residents
+                .as_ref()
+                .map(|frame| frame.counts)
+                .unwrap_or_default(),
             readbacks,
             presentation,
             timing,
@@ -294,10 +351,12 @@ impl WgpuRenderer {
         &mut self,
         encoder: &mut wgpu::CommandEncoder,
         geometry: &[Option<FrameGeometry>],
-        first: &PreparedDraw,
-        following: &[PreparedCommand],
+        residents: Option<&super::resident::Frame>,
+        plan: &FramePlan,
+        commands: &[PreparedCommand],
     ) -> Result<(), String> {
-        let output = self.output(first.target.as_ref())?;
+        let (target, depth) = draw_attachment(&commands[0]).expect("draw run begins with a draw");
+        let output = self.output(target)?;
         performance::add_encode_counter(EncodeCounter::RenderPasses, 1);
         let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
             label: Some("ordered draw run"),
@@ -310,7 +369,7 @@ impl WgpuRenderer {
                     store: wgpu::StoreOp::Store,
                 },
             })],
-            depth_stencil_attachment: if first.depth_test {
+            depth_stencil_attachment: if depth {
                 output
                     .depth
                     .as_ref()
@@ -327,12 +386,31 @@ impl WgpuRenderer {
             },
             ..Default::default()
         });
-        self.draw_prepared_mesh(&mut pass, geometry, first)?;
-        for command in following {
-            let PreparedCommand::Draw(draw) = command else {
-                unreachable!("draw run ends before non-draw commands")
-            };
-            self.draw_prepared_mesh(&mut pass, geometry, draw)?;
+        for command in commands {
+            match command {
+                PreparedCommand::Draw(draw) => {
+                    self.draw_prepared_mesh(&mut pass, geometry, draw)?
+                }
+                PreparedCommand::Resident(draw) => {
+                    if draw.depth_test && output.depth.is_none() {
+                        return Err("resident depth camera requires depth storage".into());
+                    }
+                    let descriptor = &plan.residents[draw.index].0;
+                    let texture = match descriptor.mesh().texture() {
+                        Some(texture) => self.texture(texture)?,
+                        None => self.white.clone(),
+                    };
+                    self.resident.issue(
+                        &self.gpu.device,
+                        &mut pass,
+                        residents.expect("resident frame prepared"),
+                        draw.index,
+                        (draw.depth_test, draw.blend),
+                        &texture.binding,
+                    );
+                }
+                _ => unreachable!("draw run ends at barrier"),
+            }
         }
         Ok(())
     }
@@ -393,7 +471,12 @@ fn plan_counts(list: &DrawList, plan: &FramePlan) -> (u64, u64) {
     let prepared_draws = plan
         .commands
         .iter()
-        .filter(|command| matches!(command, PreparedCommand::Draw(_)))
+        .filter(|command| {
+            matches!(
+                command,
+                PreparedCommand::Draw(_) | PreparedCommand::Resident(_)
+            )
+        })
         .count() as u64;
     (prepared_draws, text_characters)
 }
@@ -498,6 +581,17 @@ fn validate(list: &DrawList, limits: &wgpu::Limits) -> Result<(), String> {
                     return Err("mesh exceeds adapter buffer limit".into());
                 }
                 if let Some(texture) = &mesh.texture {
+                    target::validate(texture, limits)?;
+                }
+            }
+            Command::Resident { draw, model, .. } => {
+                if !crate::frame_encode_detail::resident_policy::ENABLED {
+                    return Err("resident command requires enabled resident policy".into());
+                }
+                if !model.is_finite() {
+                    return Err("nonfinite resident model".into());
+                }
+                if let Some(texture) = draw.mesh().texture() {
                     target::validate(texture, limits)?;
                 }
             }

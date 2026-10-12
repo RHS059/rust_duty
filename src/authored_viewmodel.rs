@@ -12,8 +12,13 @@ use vector_range::{
     viewmodel_animation::{game_model_root, AnimationSet, ViewmodelPose},
 };
 
+use vector_range::draw::resident::{
+    ResidentDraw, ResidentMesh, RigidVertex, SkinPalette, SkinVertex, Vertices,
+};
+
 struct SkinBatch {
     source_mesh: usize,
+    resident: Option<ResidentMesh>,
     source_vertices: Vec<usize>,
     mesh: Mesh,
 }
@@ -182,6 +187,7 @@ impl AuthoredViewmodel {
                     })
                     .collect();
                 batches.push(SkinBatch {
+                    resident: None,
                     source_mesh,
                     source_vertices,
                     mesh: Mesh {
@@ -844,9 +850,68 @@ impl AuthoredViewmodel {
             .animation
             .skin_palette(pose, &self.skin.bones, game_model_root())
             .map_err(|e| e.to_string())?;
-        let normals: Vec<_> = palette.iter().map(|m| m.inverse().transpose()).collect();
+        let resident_palette = if resident_meshes_enabled() {
+            SkinPalette::new(palette.clone()).ok()
+        } else {
+            None
+        };
+        let mut normals = None;
         for batch in &mut self.batches {
             let part = &self.skin.meshes[batch.source_mesh];
+            if let Some(palette) = &resident_palette {
+                if batch.resident.is_none() {
+                    let vertices = batch
+                        .source_vertices
+                        .iter()
+                        .map(|&index| {
+                            let source = &part.vertices[index];
+                            SkinVertex {
+                                vertex: RigidVertex {
+                                    position: source.position,
+                                    uv: source.uv,
+                                    normal: source.normal,
+                                },
+                                joints: source.joints,
+                                weights: source.weights,
+                            }
+                        })
+                        .collect();
+                    batch.resident = ResidentMesh::new(
+                        Vertices::Skin {
+                            vertices,
+                            bones: self.skin.bones.len(),
+                        },
+                        batch.mesh.indices.clone(),
+                        batch.mesh.texture.clone(),
+                    )
+                    .ok();
+                }
+                if let Some(mesh) = &batch.resident {
+                    let albedo = Color::new(
+                        part.base_color[0],
+                        part.base_color[1],
+                        part.base_color[2],
+                        1.,
+                    );
+                    if let Ok(draw) = ResidentDraw::new(
+                        mesh.clone(),
+                        root,
+                        lighting,
+                        albedo,
+                        1.,
+                        Some(palette.clone()),
+                    ) {
+                        draw_resident(draw, BlendMode::Alpha);
+                        continue;
+                    }
+                }
+            }
+            let normals = normals.get_or_insert_with(|| {
+                palette
+                    .iter()
+                    .map(|m| m.inverse().transpose())
+                    .collect::<Vec<_>>()
+            });
             for (vertex, &index) in batch.mesh.vertices.iter_mut().zip(&batch.source_vertices) {
                 let source = &part.vertices[index];
                 let position = Vec3::from_array(source.position);
@@ -901,6 +966,48 @@ mod tests {
         draw::Command,
         skinned_asset::{crc32, Bone, SkinMesh, SkinVertex},
     };
+
+    #[test]
+    fn native_capability_records_resident_loader_geometry_without_mutating_cpu_vertices() {
+        struct Native(vector_range::draw::BackendInfo);
+        impl vector_range::draw::Renderer for Native {
+            fn info(&self) -> &vector_range::draw::BackendInfo {
+                &self.0
+            }
+            fn supports_resident_meshes(&self) -> bool {
+                true
+            }
+            fn measure_text(&self, _: &str, _: f32) -> Result<TextDimensions, String> {
+                unreachable!()
+            }
+            fn submit(
+                &mut self,
+                _: &vector_range::draw::DrawList,
+            ) -> Result<vector_range::draw::FrameOutput, String> {
+                unreachable!()
+            }
+        }
+        let mut model = contact_fixture();
+        let before = model.batches[0].mesh.vertices.clone();
+        let pose = model.animation.sample_clamped("contact", 0.).unwrap();
+        let native = Native(vector_range::draw::BackendInfo {
+            requested: "test".into(),
+            backend: "test".into(),
+            adapter: "test".into(),
+        });
+        vector_range::draw::facade::begin_frame_with_renderer(64, 64, 1., &native).unwrap();
+        model
+            .draw_pose_opacity(&pose, SceneLighting::range(), Mat4::IDENTITY, None)
+            .unwrap();
+        let list = vector_range::draw::facade::take_draw_list().unwrap();
+        assert_eq!(model.batches[0].mesh.vertices, before);
+        assert!(list.commands.iter().any(|c|matches!(c,vector_range::draw::Command::Resident{draw,..} if matches!(draw.mesh().vertices(),Vertices::Skin{..}))));
+        assert!(list.commands.iter().any(|c|matches!(c,vector_range::draw::Command::Resident{draw,..} if matches!(draw.mesh().vertices(),Vertices::Rigid(_)))));
+        assert!(!list
+            .commands
+            .iter()
+            .any(|c| matches!(c, vector_range::draw::Command::Mesh { .. })));
+    }
 
     fn contact_fixture() -> AuthoredViewmodel {
         fn words(bytes: &mut Vec<u8>, values: &[u32]) {
@@ -988,6 +1095,7 @@ mod tests {
             animation,
             skin,
             batches: vec![SkinBatch {
+                resident: None,
                 source_mesh: 0,
                 source_vertices: vec![0, 1, 2],
                 mesh: Mesh {

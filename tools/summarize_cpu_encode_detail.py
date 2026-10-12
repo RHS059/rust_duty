@@ -10,6 +10,7 @@ import summarize_frame_performance as frames
 
 SCHEMA_V1 = 'rust_duty_cpu_encode_detail_v1'
 SCHEMA_V2 = 'rust_duty_cpu_encode_detail_v2'
+SCHEMA_V3 = 'rust_duty_cpu_encode_detail_v3'
 # Keep historical imports stable; select the exact counter contract from each
 # input's schema rather than expanding v1 or fabricating unavailable values.
 SCHEMA = SCHEMA_V1
@@ -24,6 +25,7 @@ COUNTERS_V1 = ('prepared_draws', 'text_characters', 'upload_arenas', 'vertex_byt
 COUNTERS_V2 = COUNTERS_V1 + ('gpu_buffer_allocations', 'gpu_buffer_reuses',
                              'gpu_buffer_allocated_bytes', 'transform_binding_allocations',
                              'uncached_upload_arenas')
+COUNTERS_V3 = COUNTERS_V2 + ('resident_draws', 'resident_rigid_draws', 'resident_skinned_draws', 'resident_vertex_bytes_uploaded', 'resident_index_bytes_uploaded', 'resident_uniform_bytes_uploaded', 'resident_cache_hits', 'resident_cache_misses', 'resident_transient_meshes', 'resident_buffer_allocations', 'resident_binding_allocations')
 COUNTERS = COUNTERS_V1
 MAX_ERROR_BYTES = 256
 # Reuse the exact-byte bounded reader, duplicate-key rejection and finite-number
@@ -83,6 +85,26 @@ def validate_upload_counters(counters, upload_policy):
                         'complete v2 counters contradict immutable_per_frame_v1 upload policy')
 
 
+def validate_resident_counters(counters):
+    count = counters['resident_draws']
+    misses = counters['resident_cache_misses']
+    snapshots = 2 if count else 0
+    frames._require(counters['resident_buffer_allocations'] == 2 * misses + snapshots
+                    and counters['resident_binding_allocations'] == snapshots,
+                    'resident allocations contradict cold geometry and per-submission snapshots')
+    frames._require(count == counters['resident_rigid_draws'] + counters['resident_skinned_draws']
+                    and count == misses + counters['resident_cache_hits']
+                    and count <= counters['prepared_draws'], 'resident draw accounting mismatch')
+    frames._require(counters['resident_transient_meshes'] <= misses, 'resident transient meshes exceed cold meshes')
+    for name, minimum in (('resident_vertex_bytes_uploaded', 32), ('resident_index_bytes_uploaded', 8)):
+        frames._require((counters[name] == 0) == (misses == 0)
+                        and counters[name] >= misses * minimum and counters[name] % 4 == 0,
+                        'resident cold upload bytes contradict misses')
+    uniform = counters['resident_uniform_bytes_uploaded']
+    frames._require((uniform == 0) == (count == 0) and uniform >= count * 240 + (16384 if count else 0) and uniform % 4 == 0,
+                    'resident snapshot bytes contradict draws')
+
+
 def validate(detail, substage, primary, primary_digest):
     """Validate all three contracts and join every retained CPU frame attempt."""
     frames._require(isinstance(primary_digest, str) and len(primary_digest) == 64
@@ -91,16 +113,19 @@ def validate(detail, substage, primary, primary_digest):
     substages.validate(substage, primary, primary_digest)
     validate_instance_descriptor(primary)
     frames._finite_tree(detail)
-    v2 = isinstance(detail, dict) and detail.get('schema') == SCHEMA_V2
+    v3 = isinstance(detail, dict) and detail.get('schema') == SCHEMA_V3
+    v2 = isinstance(detail, dict) and detail.get('schema') in (SCHEMA_V2, SCHEMA_V3)
     fields = ('schema', 'measurement', 'interpretation', 'frame_report_sha256',
-              'frame_status', 'samples') + (('upload_policy',) if v2 else ())
+              'frame_status', 'samples') + (('upload_policy',) if v2 else ()) + (('resident_policy',) if v3 else ())
     frames._object(detail, fields, 'CPU encode detail sidecar')
-    frames._require(detail['schema'] in (SCHEMA_V1, SCHEMA_V2),
+    frames._require(detail['schema'] in (SCHEMA_V1, SCHEMA_V2, SCHEMA_V3),
                     'CPU encode detail binding differs: schema')
     if v2:
         frames._require(detail['upload_policy'] in UPLOAD_POLICIES,
                         'unsupported CPU encode upload_policy')
-    counter_names = COUNTERS_V2 if v2 else COUNTERS_V1
+    if v3:
+        frames._require(detail['resident_policy'] in ('vertex_lit_skin_v1', 'cpu_vertex_reference_v1'), 'unsupported resident_policy')
+    counter_names = COUNTERS_V3 if v3 else COUNTERS_V2 if v2 else COUNTERS_V1
     for field, expected in (('measurement', MEASUREMENT),
                             ('interpretation', INTERPRETATION),
                             ('frame_report_sha256', primary_digest),
@@ -131,6 +156,11 @@ def validate(detail, substage, primary, primary_digest):
             frames._uint(counters[name], 'encode counter ' + name)
         if v2 and complete:
             validate_upload_counters(counters, detail['upload_policy'])
+        if v3 and complete:
+            validate_resident_counters(counters)
+            if detail['resident_policy'] == 'cpu_vertex_reference_v1':
+                frames._require(all(counters[name] == 0 for name in COUNTERS_V3[len(COUNTERS_V2):]),
+                                'resident observations contradict CPU reference policy')
         spans = details['spans']
         frames._require(isinstance(spans, list) and len(spans) <= len(PHASES),
                         'encode phase capacity exceeded')
@@ -177,7 +207,7 @@ def counter_statistics(values):
 
 def summarize(detail, substage, primary, primary_digest):
     validate(detail, substage, primary, primary_digest)
-    counter_names = COUNTERS_V2 if detail['schema'] == SCHEMA_V2 else COUNTERS_V1
+    counter_names = COUNTERS_V3 if detail['schema'] == SCHEMA_V3 else COUNTERS_V2 if detail['schema'] == SCHEMA_V2 else COUNTERS_V1
     values = {phase: [] for phase in PHASES}
     counters = {name: [] for name in counter_names}
     incomplete = sum(sample['details']['state'] != 'complete' for sample in detail['samples'])
@@ -214,8 +244,10 @@ def summarize(detail, substage, primary, primary_digest):
                                'per_frame_total_ns': substages.statistics(values[phase])}
                        for phase in PHASES},
             'counters': {name: counter_statistics(counters[name]) for name in counter_names}}
-    if detail['schema'] == SCHEMA_V2:
+    if detail['schema'] in (SCHEMA_V2, SCHEMA_V3):
         result['upload_policy'] = detail['upload_policy']
+    if detail['schema'] == SCHEMA_V3:
+        result['resident_policy'] = detail['resident_policy']
     return result
 
 

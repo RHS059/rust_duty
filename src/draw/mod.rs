@@ -10,6 +10,7 @@ use std::{
 pub mod facade;
 pub mod frame_witness;
 pub mod geometry;
+pub mod resident;
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Color {
     pub r: f32,
@@ -221,6 +222,11 @@ pub enum Command {
         model: Mat4,
         blend: BlendMode,
     },
+    Resident {
+        draw: resident::ResidentDraw,
+        model: Mat4,
+        blend: BlendMode,
+    },
     Lines {
         lines: Vec<Line>,
         model: Mat4,
@@ -272,6 +278,9 @@ impl DrawList {
             model,
             blend,
         });
+    }
+    pub fn draw_resident(&mut self, draw: resident::ResidentDraw, model: Mat4, blend: BlendMode) {
+        self.commands.push(Command::Resident { draw, model, blend });
     }
     pub fn draw_lines(&mut self, lines: &[Line], model: Mat4) {
         // The renderer already combines adjacent line commands. Record that
@@ -328,11 +337,30 @@ pub struct BackendInfo {
     pub backend: String,
     pub adapter: String,
 }
+/// Observed resident-path work for this submission, including cold uploads.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct ResidentFrameStats {
+    pub draws: u64,
+    pub rigid_draws: u64,
+    pub skinned_draws: u64,
+    pub vertex_bytes_uploaded: u64,
+    pub index_bytes_uploaded: u64,
+    pub uniform_bytes_uploaded: u64,
+    pub cache_hits: u64,
+    pub cache_misses: u64,
+    pub transient_meshes: u64,
+    pub buffer_allocations: u64,
+    pub binding_allocations: u64,
+}
 #[derive(Clone, Debug, Default)]
 pub struct FrameOutput {
+    pub resident: ResidentFrameStats,
     pub captures: Vec<PathBuf>,
 }
 pub trait Renderer {
+    fn supports_resident_meshes(&self) -> bool {
+        false
+    }
     fn info(&self) -> &BackendInfo;
     fn measure_text(&self, text: &str, size: f32) -> Result<TextDimensions, String>;
     fn submit(&mut self, list: &DrawList) -> Result<FrameOutput, String>;

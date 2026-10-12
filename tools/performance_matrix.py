@@ -89,6 +89,19 @@ LOADER_BASELINE = {
 }
 LOADER_SOURCE_PATHS = (*UPLOAD_REUSE_SOURCE_PATHS, *LOADER_BASELINE)
 AUDITED_AUTHORED_DEDUP_MANIFEST = 'fff66052fe41e445d50eaf2ae689a29cc68b7d3c3d4502d21d147424c60d3e06'
+# Resident geometry/shader is a distinct expanded source class. The explicit
+# compile-time CPU reference control changes only its policy constant.
+RESIDENT_BASELINE = {
+    'src/draw/facade.rs': '18ce443544975ef4bac82f2c599a9f0c60f8a8b709a731437f6fa1083e7ca5b6',
+    'src/legacy_macroquad/mod.rs': 'f8aff43030d1e2e826fc296b4bcb716c0b13c685e1733b838bc5db09f41bf90c',
+}
+RESIDENT_NEW_PATHS = ('src/draw/resident.rs', 'src/render/resident.rs',
+                      'src/render/resident.wgsl', 'src/frame_resident_policy.rs')
+RESIDENT_SOURCE_PATHS = (*LOADER_SOURCE_PATHS, *RESIDENT_NEW_PATHS,
+                         'src/draw/facade.rs', 'src/legacy_macroquad/mod.rs')
+AUDITED_RESIDENT_CANDIDATE_MANIFEST = 'c754f89052fc3812dbbdc9675a452b056a881696d3cf9fbd7398fc580bcbfe6f'
+AUDITED_RESIDENT_CONTROL_MANIFEST = '4eeea34f29b7d20a24060af152e7cd2170322674a3d2c0abaad8603497a6ac6b'
+
 
 
 BACKENDS = {'dx12': 'Dx12', 'vulkan': 'Vulkan', 'metal': 'Metal', 'gl-harness': 'Gl'}
@@ -144,6 +157,8 @@ def canonical_hash(value):
 
 
 def audited_inventory(digest):
+    if digest in (AUDITED_RESIDENT_CANDIDATE_MANIFEST, AUDITED_RESIDENT_CONTROL_MANIFEST):
+        return RESIDENT_SOURCE_PATHS
     if digest == AUDITED_AUTHORED_DEDUP_MANIFEST:
         return LOADER_SOURCE_PATHS
     if digest in (AUDITED_ARENA_SERIALIZATION_MANIFEST, AUDITED_UPLOAD_REUSE_INITIAL_MANIFEST, AUDITED_UPLOAD_IMMUTABLE_INITIAL_CONTROL_MANIFEST,
@@ -167,6 +182,27 @@ def audited_inventory(digest):
 def source_identity(repository):
     repository = Path(repository)
     commit = subprocess.check_output(['git', '-C', str(repository), 'rev-parse', 'HEAD'], text=True).strip()
+    if any((repository / name).exists() or (repository / name).is_symlink() for name in RESIDENT_NEW_PATHS):
+        result = {}
+        for name in RESIDENT_SOURCE_PATHS:
+            path = repository / name
+            require(path.is_file() and not path.is_symlink(),
+                    'Resident inventory is missing; cannot fall back to a historical witness: ' + name)
+            data = path.read_bytes()
+            committed = subprocess.check_output(['git', '-C', str(repository), 'show', commit + ':' + name])
+            require(data == committed, 'Uncommitted resident source: ' + name)
+            result[name] = hashlib.sha256(data).hexdigest()
+        require(canonical_hash(result) in (AUDITED_RESIDENT_CANDIDATE_MANIFEST, AUDITED_RESIDENT_CONTROL_MANIFEST),
+                'Resident source changed; cannot fall back to a narrower historical witness')
+        return {'commit': commit, 'runtime_files_sha256': result}
+    for name, expected in RESIDENT_BASELINE.items():
+        path = repository / name
+        require(path.is_file() and not path.is_symlink(), 'Missing/unsafe historical resident support: ' + name)
+        data = path.read_bytes()
+        committed = subprocess.check_output(['git', '-C', str(repository), 'show', commit + ':' + name])
+        require(data == committed, 'Uncommitted resident support: ' + name)
+        require(hashlib.sha256(data).hexdigest() == expected,
+                'Resident support changed; cannot fall back to a narrower historical witness: ' + name)
     result = {}
     for name in SOURCE_PATHS:
         data = (repository / name).read_bytes()

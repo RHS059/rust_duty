@@ -909,7 +909,7 @@ class SourceWitnessTests(unittest.TestCase):
         self.repository = self.root / 'synthetic-repository'
         self.repository.mkdir()
         hashes = {}
-        for name in (*m.SOURCE_PATHS, *m.CPU_SOURCE_PATHS, *m.PRESENT_SOURCE_PATHS[1:], *m.LOADER_BASELINE):
+        for name in (*m.SOURCE_PATHS, *m.CPU_SOURCE_PATHS, *m.PRESENT_SOURCE_PATHS[1:], *m.LOADER_BASELINE, *m.RESIDENT_BASELINE):
             path = self.repository / name
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_bytes(('// Synthetic witness protocol fixture: ' + name + '\n').encode())
@@ -917,7 +917,7 @@ class SourceWitnessTests(unittest.TestCase):
         subprocess.run(['git', 'init', '--quiet', str(self.repository)], check=True,
                        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         subprocess.run(['git', '-C', str(self.repository), 'add', '--', *m.SOURCE_PATHS,
-                        *m.CPU_SOURCE_PATHS, *m.PRESENT_SOURCE_PATHS[1:], *m.LOADER_BASELINE],
+                        *m.CPU_SOURCE_PATHS, *m.PRESENT_SOURCE_PATHS[1:], *m.LOADER_BASELINE, *m.RESIDENT_BASELINE],
                        check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         hooks = self.root / 'empty-hooks'
         hooks.mkdir()
@@ -926,6 +926,9 @@ class SourceWitnessTests(unittest.TestCase):
                         '-c', 'commit.gpgsign=false', '-c', 'core.hooksPath=' + str(hooks),
                         'commit', '--quiet', '-m', 'Synthetic source-witness test fixture'],
                        check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        resident_audit = mock.patch.object(m, 'RESIDENT_BASELINE', {name: hashes[name] for name in m.RESIDENT_BASELINE})
+        resident_audit.start()
+        self.addCleanup(resident_audit.stop)
         loader_audit = mock.patch.object(m, 'LOADER_BASELINE', {name: hashes[name] for name in m.LOADER_BASELINE})
         loader_audit.start()
         self.addCleanup(loader_audit.stop)

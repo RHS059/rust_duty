@@ -5,8 +5,11 @@ use vector_range::{
     scene_lighting::SceneLighting,
 };
 
+use vector_range::draw::resident::{ResidentDraw, ResidentMesh, RigidVertex, Vertices};
+
 pub struct WeaponModel {
     meshes: Vec<(usize, Mesh, Color)>,
+    resident_meshes: Vec<Option<ResidentMesh>>,
     hk416_rig: bool,
     pub muzzle: Vec3,
 }
@@ -94,8 +97,29 @@ impl WeaponModel {
                 ));
             }
         }
+        let resident_meshes = meshes
+            .iter()
+            .map(|(_, mesh, _)| {
+                ResidentMesh::new(
+                    Vertices::Rigid(
+                        mesh.vertices
+                            .iter()
+                            .map(|v| RigidVertex {
+                                position: v.position.to_array(),
+                                uv: v.uv.to_array(),
+                                normal: v.normal.truncate().to_array(),
+                            })
+                            .collect(),
+                    ),
+                    mesh.indices.clone(),
+                    mesh.texture.clone(),
+                )
+                .ok()
+            })
+            .collect();
         Self {
             meshes,
+            resident_meshes,
             muzzle,
             hk416_rig,
         }
@@ -109,11 +133,26 @@ impl WeaponModel {
         opacity: &[f32],
         lighting: SceneLighting,
     ) {
-        for (part, mesh, albedo) in &mut self.meshes {
+        for ((part, mesh, albedo), resident) in self.meshes.iter_mut().zip(&self.resident_meshes) {
             if visible.get(*part).copied().unwrap_or(false) {
                 if let Some(&matrix) = transforms.get(*part) {
-                    lighting.shade_rigid(mesh, *albedo, matrix);
                     let alpha = opacity.get(*part).copied().unwrap_or(1.).clamp(0., 1.);
+                    if resident_meshes_enabled() {
+                        if let Some(resident) = resident {
+                            if let Ok(draw) = ResidentDraw::new(
+                                resident.clone(),
+                                matrix,
+                                lighting,
+                                *albedo,
+                                alpha,
+                                None,
+                            ) {
+                                draw_resident(draw, BlendMode::Alpha);
+                                continue;
+                            }
+                        }
+                    }
+                    lighting.shade_rigid(mesh, *albedo, matrix);
                     for vertex in &mut mesh.vertices {
                         vertex.color[3] = (alpha * 255.).round() as u8;
                     }
