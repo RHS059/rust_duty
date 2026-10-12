@@ -4,6 +4,8 @@ use crate::draw::facade::*;
 use crate::platform::runtime::{get_time, mouse_position, screen_height, screen_width};
 use crate::ui_theme::{self, flow_y, FlowBand, UiClass, UiScope, UiStyle};
 use rust_duty_launcher::game::{GameUpdater, UpdateAction, UpdatePhase, UpdateSnapshot};
+/// Updater accent follows the FIELD theme accent.
+const GOLD: Color = crate::field_ui::ACCENT;
 
 fn update_style(class: UiClass) -> UiStyle {
     ui_theme::style(UiScope::UpdaterPanel, &[UiClass::Label, class])
@@ -326,7 +328,7 @@ impl UpdatePanel {
         }
         let startup = self.startup.blocked();
         if startup {
-            clear_background(Color::new(0.015, 0.025, 0.036, 1.));
+            clear_background(crate::field_ui::SURFACE);
         }
         let layout = self.layout();
         let area = layout.area;
@@ -348,7 +350,12 @@ impl UpdatePanel {
         }
         ui_theme::style(UiScope::UpdaterPanel, &[UiClass::Panel]).rect(
             area,
-            Color::new(0.025, 0.043, 0.058, 0.98),
+            Color::new(
+                crate::field_ui::SURFACE.r,
+                crate::field_ui::SURFACE.g,
+                crate::field_ui::SURFACE.b,
+                0.98,
+            ),
             GOLD,
             layout.scale,
         );
@@ -463,9 +470,9 @@ impl UpdatePanel {
                     17.,
                     vec2(10., 21.),
                     if hovered {
-                        Color::new(0.23, 0.29, 0.32, 1.)
+                        crate::field_ui::TRACK
                     } else {
-                        Color::new(0.12, 0.18, 0.22, 1.)
+                        crate::field_ui::RAISED
                     },
                 );
                 if hovered && self.pointer_pressed {
@@ -514,7 +521,7 @@ impl UpdatePanel {
                 if hovered {
                     DARKGRAY
                 } else {
-                    Color::new(0.12, 0.18, 0.22, 1.)
+                    crate::field_ui::RAISED
                 },
             );
             if hovered && self.pointer_pressed {

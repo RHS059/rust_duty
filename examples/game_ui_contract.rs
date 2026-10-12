@@ -380,15 +380,16 @@ mod fixture {
         Ok(())
     }
 
-    /// Logical HUD corner panels: title, score, stance, weapon.
+    /// Logical FIELD HUD clusters (title-safe, 960x540): objective strip, score,
+    /// stance, ammo.
     pub const CORNERS: [[f64; 4]; 4] = [
-        [24., 24., 312., 105.],
-        [685., 24., 936., 105.],
-        [24., 435., 272., 516.],
-        [710., 415., 936., 516.],
+        [380., 10., 580., 50.],
+        [690., 10., 936., 75.],
+        [30., 440., 220., 530.],
+        [750., 420., 936., 530.],
     ];
-    /// Telemetry (debug) panel drawn under the title panel.
-    pub const DEBUG_PANEL: [f64; 4] = [24., 119., 334., 326.];
+    /// Telemetry (debug) readout drawn in the top-left column.
+    pub const DEBUG_PANEL: [f64; 4] = [30., 35., 340., 180.];
     /// The scaled pause menu is centred horizontally.
     pub const MENU_BAND: [f64; 4] = [200., 0., 760., 540.];
     /// Warm accent family: the HUD/menu accent #FA9E38, GOLD #FFCB00 and the
@@ -1057,7 +1058,7 @@ mod fixture {
                 let mut missing = hud.clone();
                 fill(
                     &mut missing,
-                    [710, 415, 936, 516],
+                    [750, 420, 936, 530],
                     scale,
                     Rgba([0, 0, 0, 255]),
                 );

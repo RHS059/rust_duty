@@ -8,8 +8,21 @@ use crate::{
     settings::{Settings, WalkTranslation},
 };
 
-const ACCENT: Color = Color::new(0.98, 0.62, 0.22, 1.);
-const MUTED: Color = Color::new(0.62, 0.69, 0.72, 1.);
+const ACCENT: Color = crate::field_ui::ACCENT;
+const MUTED: Color = crate::field_ui::TEXT2;
+/// FIELD menu surface (Operator `surface`) and world dim behind the menu.
+const PANEL_FILL: Color = Color::new(
+    crate::field_ui::SURFACE.r,
+    crate::field_ui::SURFACE.g,
+    crate::field_ui::SURFACE.b,
+    0.97,
+);
+const BACKDROP: Color = Color::new(
+    crate::field_ui::SCRIM.r,
+    crate::field_ui::SCRIM.g,
+    crate::field_ui::SCRIM.b,
+    0.80,
+);
 fn text_style(class: UiClass, color: Color) -> UiStyle {
     let tone = if color == ACCENT {
         UiClass::Accent
@@ -527,7 +540,7 @@ impl PauseMenu {
             self.draw_graphics(&Layout::graphics(layout.viewport.x, layout.viewport.y));
             return;
         }
-        let ink = Color::new(0.035, 0.057, 0.074, 0.97);
+        let ink = PANEL_FILL;
         let accent = ACCENT;
         let muted = MUTED;
         let rect = |r: Rect, color: Color| {
@@ -546,18 +559,12 @@ impl PauseMenu {
         let button = |r: Rect| {
             ui_theme::style(UiScope::PauseMenu, &[UiClass::Button]).rect(
                 layout.rect(r),
-                Color::new(0.13, 0.21, 0.25, 1.),
+                crate::field_ui::RAISED,
                 accent,
                 layout.scale,
             );
         };
-        draw_rectangle(
-            0.,
-            0.,
-            layout.viewport.x,
-            layout.viewport.y,
-            Color::new(0.015, 0.025, 0.035, 0.80),
-        );
+        draw_rectangle(0., 0., layout.viewport.x, layout.viewport.y, BACKDROP);
         ui_theme::style(UiScope::PauseMenu, &[UiClass::Panel]).rect(
             layout.rect(Rect::new(0., 0., 610., 909.)),
             ink,
@@ -622,7 +629,7 @@ impl PauseMenu {
             // The track spans exactly the same x interval as pointer normalization.
             style.rect(
                 layout.rect(Rect::new(r.x, r.y + 11., r.w, 5.)),
-                Color::new(0.19, 0.28, 0.31, 1.),
+                crate::field_ui::TRACK,
                 accent,
                 layout.scale,
             );
@@ -669,7 +676,7 @@ impl PauseMenu {
             // The track spans exactly the same x interval as pointer normalization.
             style.rect(
                 layout.rect(Rect::new(r.x, r.y + 11., r.w, 5.)),
-                Color::new(0.19, 0.28, 0.31, 1.),
+                crate::field_ui::TRACK,
                 accent,
                 layout.scale,
             );
@@ -771,16 +778,10 @@ impl PauseMenu {
     }
     fn draw_graphics(&self, layout: &Layout) {
         let state = graphics_device::snapshot();
-        draw_rectangle(
-            0.,
-            0.,
-            layout.viewport.x,
-            layout.viewport.y,
-            Color::new(0.015, 0.025, 0.035, 0.80),
-        );
+        draw_rectangle(0., 0., layout.viewport.x, layout.viewport.y, BACKDROP);
         ui_theme::style(UiScope::PauseMenu, &[UiClass::Panel]).rect(
             layout.rect(Rect::new(0., 0., 610., 909.)),
-            Color::new(0.035, 0.057, 0.074, 0.97),
+            PANEL_FILL,
             ACCENT,
             layout.scale,
         );
@@ -804,7 +805,7 @@ impl PauseMenu {
             let painted = layout.rect(rect);
             ui_theme::style(UiScope::PauseMenu, &[UiClass::Button]).rect(
                 painted,
-                Color::new(0.13, 0.21, 0.25, 1.),
+                crate::field_ui::RAISED,
                 ACCENT,
                 layout.scale,
             );
@@ -1174,9 +1175,7 @@ mod tests {
                     .commands
                     .iter()
                     .filter_map(|c| match c {
-                        Command::Rect { rect, color }
-                            if *color == Color::new(0.13, 0.21, 0.25, 1.) =>
-                        {
+                        Command::Rect { rect, color } if *color == crate::field_ui::RAISED => {
                             Some(*rect)
                         }
                         _ => None,

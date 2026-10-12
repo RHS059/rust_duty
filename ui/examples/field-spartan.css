@@ -1,0 +1,20 @@
+/* FIELD "Spartan" mood preset (RHS059/game_pd_ui tokens.json).
+   Operator is the built-in default. Select with --ui-theme=ui/examples/field-spartan.css,
+   then press F7 to reload after edits. See docs/UI_THEME_EXAMPLES.md. */
+
+.label { color: #e9fbff; }
+.muted { color: #a9d3dc; }
+.accent { color: #41e0e8; }
+.warning { color: #ffb547; }
+
+.panel {
+  background-color: #071318f2;
+  border-color: #7fa9b3;
+  border-width: 1px;
+}
+.button {
+  background-color: #0e1e25;
+  border-color: #41e0e8;
+  border-width: 1px;
+}
+.slider { color: #41e0e8; }

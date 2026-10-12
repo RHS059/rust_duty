@@ -80,6 +80,7 @@ pub mod frame_performance;
 pub mod frame_performance_session;
 
 // Public production UI paths are shared with native render fixtures.
+pub mod field_ui;
 pub mod game_update;
 pub mod hud;
 pub mod pause_menu;
