@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 import shutil
 import struct
+import subprocess
 import tempfile
 import unittest
 
@@ -54,7 +55,11 @@ class PackageGameTests(unittest.TestCase):
     def test_current_packager_pin_rejects_unrelated_script_drift(self):
         lock = reuse.read_json(ROOT / "tools/source_bound_companion_reuse_lock.json")
         row = next(row for row in lock["source_files"] if row["path"] == "tools/package_game.py")
-        original = (ROOT / row["path"]).read_bytes()
+        # This isolated mutation fixture starts from the committed LF blob on
+        # every OS. Production verify_source still checks actual worktree bytes.
+        original = subprocess.check_output([
+            "git", "-C", str(ROOT), "show", f"HEAD:{row['path']}",
+        ])
         script = self.base / "package_game.py"
         script.write_bytes(original)
         reuse.check_digest(script, row)
