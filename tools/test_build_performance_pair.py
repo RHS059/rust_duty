@@ -178,7 +178,7 @@ class BuildPerformancePairTests(unittest.TestCase):
                 mock.patch.object(builder.pair, 'toolchain_at', side_effect=compiler),
                 mock.patch.object(builder.pair, 'check_cargo_configuration', side_effect=configuration),
                 mock.patch.object(builder.pair, 'logged', side_effect=logged),
-                mock.patch.object(builder.pair, 'PRODUCTION_MANIFEST', builder.matrix.canonical_hash(
+                mock.patch.object(builder.matrix, 'AUDITED_GPU_PRODUCTION_MANIFEST', builder.matrix.canonical_hash(
                     builder.pair.hashes({name: raw for name, raw in candidate.items() if name != 'src/extra.rs'}))),
                 mock.patch.object(builder.pair, 'CPU_BASELINE', builder.pair.hashes(old)),
                 mock.patch.object(builder.matrix, 'source_identity', side_effect=lambda root: copy.deepcopy(sources[label_for(root)])),

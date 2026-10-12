@@ -57,7 +57,7 @@ def build_pair(root, baseline, output, build_timeout=1800):
         ('baseline', baseline, matrix.AUDITED_GPU_CPU_BASELINE_MANIFEST),
         ('candidate', root, matrix.AUDITED_GPU_CANDIDATE_MANIFEST))}
     hashes = {label: pair.hashes(value[1]) for label, value in inputs.items()}
-    matrix.require(matrix.canonical_hash(hashes['candidate']) == pair.PRODUCTION_MANIFEST
+    matrix.require(matrix.canonical_hash(hashes['candidate']) == matrix.AUDITED_GPU_PRODUCTION_MANIFEST
                    and hashes['baseline'] == {**hashes['candidate'], **pair.CPU_BASELINE},
                    'Build pair differs from the exact closed production inventories')
     matrix.require(inputs['baseline'][2] == inputs['candidate'][2], 'Public UI/settings differ between builds')

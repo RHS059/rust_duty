@@ -30,9 +30,10 @@ CPU_BASELINE = {
     'src/render/text.rs': '06ad5a1489c96152f516cfbade027ef2a7fa83f583889bed46c99f5dcd04a446',
     'src/render/plan.rs': 'c23e97a848435a610f5be0c72341ef8e5090fa2cd66846cda1b29159558a4c7e',
 }
-# All 118 compile inputs, not merely the four changed files or narrow runtime
-# witness. This is the exact integrated production tree reviewed at 698edf3.
-PRODUCTION_MANIFEST = 'd74a901c91ffd6746826e7e9c7f0ff447157774d3ea8d661d4912caf84e4a33c'
+# All 119 compile inputs, not merely the four changed files or narrow runtime
+# witness. This exact candidate includes physical launch and encode profiling.
+# Historical timing pair admission keeps its own immutable closed digest.
+PRODUCTION_MANIFEST = '11307369b7eef246f7b641e2646036aa1b211370a8139a66796d871597ef1219'
 PRODUCTION_PATHS = ['Cargo.toml', 'Cargo.lock', 'build.rs', 'build_number.rs',
                     'LICENSE', 'THIRD_PARTY_LICENSES.txt', 'rust-toolchain',
                     'rust-toolchain.toml', '.cargo', '.gitattributes', 'src', 'updater']

@@ -15,7 +15,7 @@ use std::{
 };
 use winit::{
     application::ApplicationHandler,
-    dpi::{LogicalSize, PhysicalPosition, PhysicalSize},
+    dpi::{LogicalSize, PhysicalPosition, PhysicalSize, Size},
     event::{DeviceEvent, DeviceId, ElementState, WindowEvent},
     event_loop::{ActiveEventLoop, ControlFlow, EventLoop},
     keyboard::{KeyCode as NativeKey, PhysicalKey},
@@ -306,12 +306,28 @@ pub fn run(
     make_hooks: impl FnOnce(Arc<Window>) -> Result<Box<dyn FrameHooks>, String> + 'static,
     future: impl Future<Output = Result<(), String>> + 'static,
 ) -> Result<(), String> {
+    run_with_size(
+        title,
+        LogicalSize::new(width.max(1) as f64, height.max(1) as f64).into(),
+        make_hooks,
+        future,
+    )
+}
+
+/// Explicit physical sizing bypasses DPI multiplication. Existing `run` callers
+/// retain logical sizing; UI/cursor conversion and later resize handling stay unchanged.
+pub fn run_with_size(
+    title: &str,
+    size: Size,
+    make_hooks: impl FnOnce(Arc<Window>) -> Result<Box<dyn FrameHooks>, String> + 'static,
+    future: impl Future<Output = Result<(), String>> + 'static,
+) -> Result<(), String> {
     let event_loop = EventLoop::new().map_err(|e| e.to_string())?;
     event_loop.set_control_flow(ControlFlow::Wait);
     STATE.with(|s| *s.borrow_mut() = State::default());
     let mut runtime = Runtime {
         title: title.to_owned(),
-        size: LogicalSize::new(width.max(1), height.max(1)),
+        size,
         window: None,
         make_hooks: Some(Box::new(make_hooks)),
         hooks: None,
@@ -328,6 +344,24 @@ pub fn run(
     runtime.error.map_or(Ok(()), Err)
 }
 
+/// A requested physical extent is evidence only after the OS reports it.
+/// Reject a clamped initial window before renderer or application work starts.
+fn verify_initial_extent(requested: Size, actual: PhysicalSize<u32>) -> Result<(), String> {
+    if let Size::Physical(expected) = requested {
+        if expected.width == 0 || expected.height == 0 || actual != expected {
+            return Err(format!(
+                "requested physical client {}x{}, observed {}x{}; no profiling frame started",
+                expected.width, expected.height, actual.width, actual.height
+            ));
+        }
+        eprintln!(
+            "window physical_extent_verified={}x{}",
+            actual.width, actual.height
+        );
+    }
+    Ok(())
+}
+
 /// Submit the recorded final frame before its application result can exit the loop.
 fn poll_and_submit(
     future: Pin<&mut dyn Future<Output = Result<(), String>>>,
@@ -342,7 +376,7 @@ fn poll_and_submit(
 
 struct Runtime {
     title: String,
-    size: LogicalSize<u32>,
+    size: Size,
     window: Option<Arc<Window>>,
     make_hooks: Option<HookFactory>,
     hooks: Option<Box<dyn FrameHooks>>,
@@ -441,6 +475,10 @@ impl ApplicationHandler for Runtime {
                 return;
             }
         };
+        if let Err(error) = verify_initial_extent(self.size, window.inner_size()) {
+            self.fail(event_loop, error);
+            return;
+        }
         STATE.with(|s| {
             let mut s = s.borrow_mut();
             s.window = Some(window.clone());
@@ -676,6 +714,40 @@ mod tests {
         }
     }
 
+    #[test]
+    fn physical_size_is_not_multiplied_by_desktop_dpi() {
+        let physical = PhysicalSize::new(1920, 1080);
+        for scale in [1.0, 1.25, 1.5, 2.0] {
+            let request = Size::Physical(physical);
+            assert_eq!(request.to_physical::<u32>(scale), physical);
+            assert!(verify_initial_extent(request, physical).is_ok());
+        }
+        let logical: Size = LogicalSize::new(1440.0, 900.0).into();
+        assert_eq!(
+            logical.to_physical::<u32>(1.5),
+            PhysicalSize::new(2160, 1350)
+        );
+        assert!(verify_initial_extent(logical, PhysicalSize::new(2160, 1350)).is_ok());
+    }
+    #[test]
+    fn requested_physical_extent_must_match_observed_client_before_rendering() {
+        let request = Size::Physical(PhysicalSize::new(1920, 1080));
+        for observed in [
+            PhysicalSize::new(1440, 900),
+            PhysicalSize::new(2880, 1620),
+            PhysicalSize::new(1920, 1040),
+            PhysicalSize::new(0, 0),
+        ] {
+            assert!(verify_initial_extent(request, observed)
+                .unwrap_err()
+                .contains("no profiling frame started"));
+        }
+        assert!(verify_initial_extent(
+            Size::Physical(PhysicalSize::new(0, 0)),
+            PhysicalSize::new(0, 0)
+        )
+        .is_err());
+    }
     #[test]
     fn skipped_surface_frame_preserves_edges_motion_and_generation() {
         let mut state = State::default();

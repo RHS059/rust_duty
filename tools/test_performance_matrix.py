@@ -744,7 +744,7 @@ class BuildComparisonTests(unittest.TestCase):
         import run_cpu_image_preservation as pair
         production = {label: {**source['runtime_files_sha256'], 'Cargo.toml': 'same manifest'}
                       for label, source in self.sources.items()}
-        for item in (mock.patch.object(pair, 'PRODUCTION_MANIFEST', m.canonical_hash(production['candidate'])),
+        for item in (mock.patch.object(m, 'AUDITED_GPU_PRODUCTION_MANIFEST', m.canonical_hash(production['candidate'])),
                      mock.patch.object(pair, 'CPU_BASELINE', {name: production['baseline'][name] for name in m.CPU_SOURCE_PATHS})):
             item.start()
             self.addCleanup(item.stop)

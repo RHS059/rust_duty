@@ -77,6 +77,7 @@ pub mod ui_theme;
 pub mod gpu_telemetry;
 
 pub mod frame_cpu_substages;
+pub mod frame_encode_detail;
 #[cfg(feature = "wgpu-runtime")]
 pub(crate) mod frame_gpu_capture;
 pub mod frame_performance;

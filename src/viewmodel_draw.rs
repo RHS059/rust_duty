@@ -47,7 +47,10 @@ impl ViewmodelFraming {
                     .then(|| [v[0], v[1], v[2], v[3]])
             });
         Self {
-            reference: args.iter().any(|a| a == "--reference-viewport"),
+            reference: args
+                .iter()
+                .take_while(|arg| arg.as_str() != "--")
+                .any(|arg| arg == "--reference-viewport"),
             hand_modes,
             left_grip_override: args
                 .iter()
@@ -426,6 +429,20 @@ mod tests {
 mod calibrated_reference_defaults {
     use super::*;
 
+    #[test]
+    fn reference_viewport_obeys_the_launch_end_of_options_boundary() {
+        assert!(
+            !ViewmodelFraming::from_args(&[
+                "--physical-1080p".into(),
+                "--".into(),
+                "--reference-viewport".into()
+            ])
+            .reference
+        );
+        assert!(
+            ViewmodelFraming::from_args(&["--reference-viewport".into(), "--".into()]).reference
+        );
+    }
     #[test]
     fn production_defaults_match_documented_static_calibration() {
         let framing = ViewmodelFraming::from_args(&["--reference-viewport".into()]);

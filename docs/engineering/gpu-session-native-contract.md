@@ -2,12 +2,12 @@
 
 This fixture adds the missing native session/export exercise. It does not replace
 the renderer, game-UI, CPU observer, or existing Windows pipeline contracts.
-Production runtime code is unchanged by this fixture.
+Physical-window selection uses the production size-aware entry point.
 
 ## What runs
 
-`examples/gpu_session_contract.rs` draws three original rectangles in a 320×180
-logical winit window using actual Windows DX12/WARP and default concrete Fifo.
+`examples/gpu_session_contract.rs` draws three original rectangles in a verified 1920×1080
+physical winit client area using actual Windows DX12/WARP and default concrete Fifo.
 There are no model, soldier, scene, capture-PNG, or authored-animation inputs.
 
 `tools/run_gpu_session_contract.py` builds that example once, into a new target
@@ -30,7 +30,8 @@ added to force callbacks to finish. Pending-at-stop rows remain explicit.
 
 Each primary and sidecar is validated with the existing strict readers against
 the primary's exact byte SHA-256. The contract additionally verifies actual
-Dx12/Cpu/Fifo evidence, source identity, per-session scene identity, frame counts,
+Dx12/Cpu/Fifo evidence, exact initial/per-frame physical extent, source identity,
+per-session scene identity, frame counts,
 normal stop ordering, unique ordered CPU joins, and complete CPU/GPU accounting.
 
 - If the device enables the required timestamp feature pair, **each** session
@@ -108,3 +109,13 @@ claiming the measured path ran. `passed: true` plus
 Local Linux Cargo check/Clippy and Python guard results establish compile/source
 and synthetic evidence behavior only. Native execution must come from the
 Windows command above; another backend is never substituted.
+
+
+The integrated encode profiler emits a third CPU diagnostic file for each
+recording: `session-0.cpu-encode-detail.json` and
+`session-1.cpu-encode-detail.json`. Both controls require these exact filenames,
+consume their export notices once after normal completion, and join their five
+phases and counters to the original primary bytes and retained `encode_submit`
+parents. Incomplete phase accounting fails this successful lifecycle fixture;
+it is never filled with zero durations. The strict summary is retained under
+`cpu_encode_sessions`. GPU default-off still requires no GPU sidecars.

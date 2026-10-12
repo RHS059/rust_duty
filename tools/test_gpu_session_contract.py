@@ -11,6 +11,7 @@ import run_gpu_session_contract as contract
 from test_summarize_cpu_substages import fixture as cpu_fixture
 from test_summarize_gpu_timing import fixture as gpu_fixture
 from test_summarize_frame_performance import present
+from test_summarize_cpu_encode_detail import fixture as encode_fixture
 
 
 def write(path, value):
@@ -24,14 +25,17 @@ def fixture(root, enabled=True, opt_in=True):
     binding = {'source_commit': 'a' * 40, 'source_sha256': 'b' * 64}
     adapter = {'backend': 'Dx12', 'name': 'Microsoft Basic Render Driver', 'device_type': 'Cpu',
                'force_fallback_requested': True, 'gpu_timestamps_requested': opt_in, 'present_mode': 'Fifo',
-               'gpu_timestamp_features_enabled': enabled}
+               'gpu_timestamp_features_enabled': enabled,
+               'instance_descriptor': encode_fixture()[0]['identity']['runtime_observed']['actual_adapter']['instance_descriptor']}
     completions = []
     for ordinal in range(2):
         report, sidecar, _, _ = gpu_fixture()
         _, cpu, _, _ = cpu_fixture()
+        _, _, encode, _, _ = encode_fixture()
         runtime = report['identity']['runtime_observed']
         runtime.update(actual_backend='Dx12', actual_adapter=copy.deepcopy(adapter), build=dict(binding),
                        scene={'fixture': 'gpu-session-contract', 'ordinal': ordinal, 'gameplay': False})
+        runtime['initial_window'].update(physical_width=1920, physical_height=1080)
         report['records'] = [present(100 * (i + 1), 100 if i else None) for i in range(contract.FRAMES)]
         end = contract.FRAMES * 100
         report.update(successful_present_count=contract.FRAMES, stop_requested_ns=end - 50,
@@ -39,13 +43,15 @@ def fixture(root, enabled=True, opt_in=True):
         report['summary'].update(interval_count=contract.FRAMES - 1, total_interval_ns=end - 100)
         template = report['cpu_frame_stages']['samples'][0]
         cpu_template = cpu['samples'][0]
+        encode_template = encode['samples'][0]
         gpu_template = sidecar['samples'][0]
         report['cpu_frame_stages']['samples'] = []
-        cpu['samples'], sidecar['samples'] = [], []
+        cpu['samples'], sidecar['samples'], encode['samples'] = [], [], []
         for index in range(1, contract.FRAMES):
             offset = 100 * (index - 1)
             parent = copy.deepcopy(template)
-            parent.update(record_index=index, started_at_ns=105 + offset, finished_at_ns=200 + offset)
+            parent.update(record_index=index, started_at_ns=105 + offset, finished_at_ns=200 + offset,
+                          physical_width=1920, physical_height=1080)
             for span in parent['spans'].values():
                 span['started_at_ns'] += offset
                 span['ended_at_ns'] += offset
@@ -56,6 +62,12 @@ def fixture(root, enabled=True, opt_in=True):
                 span['started_at_ns'] += offset
                 span['ended_at_ns'] += offset
             cpu['samples'].append(row)
+            row = copy.deepcopy(encode_template)
+            row['record_index'] = index
+            for span in row['details']['spans']:
+                span['started_at_ns'] += offset
+                span['ended_at_ns'] += offset
+            encode['samples'].append(row)
             row = dict(gpu_template, session=ordinal + 1, attempt=index - 1, record_index=index)
             if not enabled or index == contract.FRAMES - 1:
                 row.update(status='pending_at_stop' if enabled else 'device_features_not_enabled',
@@ -66,12 +78,13 @@ def fixture(root, enabled=True, opt_in=True):
         if not enabled:
             sidecar['availability'] = {'state': 'device_features_not_enabled'}
         digest = write(root / f'session-{ordinal}.json', report)
-        cpu['frame_report_sha256'] = sidecar['frame_report_sha256'] = digest
+        cpu['frame_report_sha256'] = sidecar['frame_report_sha256'] = encode['frame_report_sha256'] = digest
         if opt_in:
             write(root / f'session-{ordinal}.gpu-timing.json', sidecar)
         else:
             (root / f'session-{ordinal}.gpu-timing.json').unlink(missing_ok=True)
         write(root / f'session-{ordinal}.cpu-substages.json', cpu)
+        write(root / f'session-{ordinal}.cpu-encode-detail.json', encode)
         start = contract.IDLE + ordinal * (contract.FRAMES + contract.IDLE)
         completions.append({'ordinal': ordinal, 'started_after_present': start,
                             'completed_after_present': start + contract.FRAMES,
@@ -108,6 +121,60 @@ class GpuSessionContractTests(unittest.TestCase):
         self.assertEqual(result['sessions'][1]['status_counts']['pending_at_stop'], 1)
         self.assertNotIn('fps', result)
 
+    def test_honestly_rehashed_wrong_physical_extent_fails(self):
+        for width, height in ((1440, 900), (2880, 1620), (1920, 1040)):
+            with self.subTest(extent=(width, height)):
+                fixture(self.root)
+                path = self.root / 'session-1.json'
+                primary = json.loads(path.read_text())
+                primary['identity']['runtime_observed']['initial_window'].update(
+                    physical_width=width, physical_height=height)
+                for sample in primary['cpu_frame_stages']['samples']:
+                    sample.update(physical_width=width, physical_height=height)
+                digest = write(path, primary)
+                for suffix in ('cpu-substages', 'gpu-timing', 'cpu-encode-detail'):
+                    self.change(f'session-1.{suffix}.json', lambda v: v.update(frame_report_sha256=digest))
+                with self.assertRaisesRegex(ValueError, 'initial physical extent'):
+                    self.validate()
+
+    def test_honestly_rehashed_per_frame_extent_drift_fails(self):
+        path = self.root / 'session-0.json'
+        primary = json.loads(path.read_text())
+        primary['cpu_frame_stages']['samples'][-1]['physical_width'] = 1919
+        digest = write(path, primary)
+        for suffix in ('cpu-substages', 'gpu-timing', 'cpu-encode-detail'):
+            self.change(f'session-0.{suffix}.json', lambda v: v.update(frame_report_sha256=digest))
+        with self.assertRaisesRegex(ValueError, 'CPU frame physical extent'):
+            self.validate()
+
+    def test_cpu_encode_details_are_required_in_both_gpu_modes(self):
+        for opt_in in (True, False):
+            with self.subTest(opt_in=opt_in):
+                fixture(self.root, opt_in=opt_in)
+                result = contract.validate_outputs(self.root, self.binding, opt_in=opt_in)
+                self.assertEqual([s['summarized_attempts'] for s in result['cpu_encode_sessions']], [63, 63])
+                (self.root / 'session-1.cpu-encode-detail.json').unlink()
+                with self.assertRaisesRegex(ValueError, 'missing or unexpected'):
+                    contract.validate_outputs(self.root, self.binding, opt_in=opt_in)
+
+    def test_encode_sidecar_primary_binding_is_strict(self):
+        self.change('session-0.cpu-encode-detail.json',
+                    lambda v: v.update(frame_report_sha256='0' * 64))
+        with self.assertRaisesRegex(ValueError, 'binding differs'):
+            self.validate()
+
+    def test_incomplete_encode_row_is_not_a_native_phase_pass(self):
+        self.change('session-0.cpu-encode-detail.json',
+                    lambda v: v['samples'][0]['details'].update(state='incomplete', error='synthetic'))
+        with self.assertRaisesRegex(ValueError, 'CPU encode-detail accounting'):
+            self.validate()
+
+    def test_encode_child_must_fit_exact_retained_substage_parent(self):
+        self.change('session-0.cpu-encode-detail.json',
+                    lambda v: v['samples'][0]['details']['spans'][-1].update(ended_at_ns=171, duration_ns=11))
+        with self.assertRaisesRegex(ValueError, 'outside its frame or parent span'):
+            self.validate()
+
     def test_unsupported_device_is_unavailable_coverage_not_measured_pass(self):
         fixture(self.root, enabled=False)
         result = self.validate()
@@ -123,6 +190,16 @@ class GpuSessionContractTests(unittest.TestCase):
         (self.root / 'session-0.gpu-timing.json').write_text('{}')
         with self.assertRaisesRegex(ValueError, 'unexpected'):
             contract.validate_outputs(self.root, self.binding, opt_in=False)
+
+    def test_native_default_off_only_forbids_gpu_output_after_completion(self):
+        source = (Path(__file__).resolve().parents[1] / 'examples/gpu_session_contract.rs').read_text()
+        completion = source.split('fn completed(', 1)[1].split('pub fn run()', 1)[0]
+        absence = completion.split('} else {', 1)[1].split('let cpu =', 1)[0]
+        self.assertIn('!path.with_extension("gpu-timing.json").exists()', absence)
+        self.assertNotIn('cpu-substages.json', absence)
+        self.assertNotIn('cpu-encode-detail.json', absence)
+        for notice in ('take_cpu_substage_export_notice', 'take_cpu_encode_detail_export_notice'):
+            self.assertGreaterEqual(completion.count(notice), 2)
 
     def test_default_off_rejects_enabled_device_features(self):
         fixture(self.root, opt_in=False)
@@ -174,7 +251,7 @@ class GpuSessionContractTests(unittest.TestCase):
         value = json.loads(path.read_text())
         value['identity']['runtime_observed']['scene']['ordinal'] = 0
         digest = write(path, value)
-        for suffix in ('gpu-timing', 'cpu-substages'):
+        for suffix in ('gpu-timing', 'cpu-substages', 'cpu-encode-detail'):
             self.change(f'session-1.{suffix}.json', lambda v: v.update(frame_report_sha256=digest))
         with self.assertRaisesRegex(ValueError, 'primary identity'):
             self.validate()

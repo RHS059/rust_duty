@@ -15,6 +15,7 @@ import sys
 import dx12_contract_process as process
 import performance_matrix as matrix
 import summarize_cpu_substages as cpu
+import summarize_cpu_encode_detail as encode
 import summarize_gpu_timing as gpu
 
 FRAMES = 64
@@ -65,7 +66,7 @@ def source_binding(root):
 
 def validate_outputs(output, binding, opt_in=True):
     output = Path(output)
-    suffixes = ('.json', '.cpu-substages.json') + (('.gpu-timing.json',) if opt_in else ())
+    suffixes = ('.json', '.cpu-substages.json', '.cpu-encode-detail.json') + (('.gpu-timing.json',) if opt_in else ())
     expected = {REPORT} | {f'session-{i}{suffix}' for i in range(2) for suffix in suffixes}
     require({p.name for p in output.iterdir()} == expected, 'missing or unexpected fixture output')
     require(all(p.is_file() and not p.is_symlink() for p in output.iterdir()),
@@ -98,6 +99,7 @@ def validate_outputs(output, binding, opt_in=True):
     sessions = report.get('sessions')
     require(isinstance(sessions, list) and len(sessions) == 2, 'both session completions are required')
     summaries = []
+    encode_summaries = []
     session_ids = []
     features = adapter['gpu_timestamp_features_enabled']
     require(opt_in or not features, 'default-off constructor enabled timestamp features')
@@ -118,6 +120,16 @@ def validate_outputs(output, binding, opt_in=True):
                 and runtime['build'] == {key: binding[key] for key in ('source_commit', 'source_sha256')}
                 and runtime['scene'] == {'fixture': 'gpu-session-contract', 'ordinal': ordinal, 'gameplay': False},
                 'primary identity differs from fixture, source, or session ordinal')
+        window = runtime['initial_window']
+        require(window['physical_width'] == 1920 and window['physical_height'] == 1080
+                and window['mode'] == 'windowed', 'fixture initial physical extent must be 1920x1080 windowed')
+        require(all(row['physical_width'] == 1920 and row['physical_height'] == 1080
+                    for row in primary['cpu_frame_stages']['samples']),
+                'fixture CPU frame physical extent changed')
+        require(all(row['context']['physical_width'] == 1920 and row['context']['physical_height'] == 1080
+                    and row['context']['mode'] == 'windowed'
+                    for row in primary['records'] if row['kind'] == 'window_context'),
+                'fixture observed window context changed')
         require(primary['successful_present_count'] == FRAMES, 'session normal-present count differs')
         require(primary['records'][-1]['kind'] == 'successful_present_return'
                 and primary['stop_requested_ns'] is not None
@@ -127,6 +139,13 @@ def validate_outputs(output, binding, opt_in=True):
                 'real per-frame CPU/GPU attempts are missing')
         require(all(row['details']['state'] == 'complete' for row in substages['samples']),
                 'CPU substage accounting is incomplete')
+        details, _ = cpu.read_json(output / f'session-{ordinal}.cpu-encode-detail.json')
+        encode_summary = encode.summarize(details, substages, primary, digest)
+        require(encode_summary['diagnostic_status'] == 'complete'
+                and encode_summary['summarized_attempts'] == len(substages['samples'])
+                and encode_summary['summarized_attempts'] > 0,
+                'CPU encode-detail accounting or eligible phase observations are incomplete')
+        encode_summaries.append(encode_summary)
         if not opt_in:
             continue
         sidecar, _ = cpu.read_json(output / f'session-{ordinal}.gpu-timing.json')
@@ -154,6 +173,7 @@ def validate_outputs(output, binding, opt_in=True):
             'mode': mode,
             'measurement_path': 'disabled_control' if not opt_in else ('measured' if features else 'unavailable_device_features'),
             'measurement_path_verified': features, 'sessions': summaries,
+            'cpu_encode_sessions': encode_summaries,
             'scope': 'bounded synthetic DX12/WARP lifecycle only; no FPS, RTX, gameplay, or scan-out verdict'}
 
 

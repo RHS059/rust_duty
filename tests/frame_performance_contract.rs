@@ -805,3 +805,20 @@ fn optional_cpu_stage_extension_keeps_v1_records_counts_and_primary_summary() {
     std::fs::remove_file(sidecar_path).unwrap();
     std::fs::remove_file(path).unwrap();
 }
+
+#[test]
+fn encode_parent_access_requires_a_retained_pair_and_reports_incomplete_state() {
+    use frame_cpu_substages::{CpuSubstage, CpuSubstages};
+    let mut substages = CpuSubstages::default();
+    assert!(substages.is_complete());
+    assert_eq!(substages.retained_encode_submit(), None);
+    substages.begin(CpuSubstage::EncodeSubmit, 10);
+    assert!(!substages.is_complete());
+    assert_eq!(substages.retained_encode_submit(), None);
+    substages.end(CpuSubstage::EncodeSubmit, 20);
+    assert!(substages.is_complete());
+    assert_eq!(substages.retained_encode_submit(), Some((10, 20)));
+    substages.end(CpuSubstage::EncodeSubmit, 30);
+    assert!(!substages.is_complete());
+    assert_eq!(substages.retained_encode_submit(), Some((10, 20)));
+}

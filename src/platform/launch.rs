@@ -8,6 +8,7 @@ pub struct LaunchOptions {
     pub ui_theme: Option<std::path::PathBuf>,
     pub present_mode: PresentModeRequest,
     pub gpu_timestamps: bool,
+    pub physical_1080p: bool,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -30,6 +31,21 @@ impl LaunchOptions {
             let arg = &args[index];
             if arg == "--" {
                 break;
+            }
+            if arg == "--physical-1080p" {
+                if options.physical_1080p
+                    || args
+                        .get(index + 1)
+                        .is_some_and(|next| !next.starts_with("--"))
+                {
+                    return Err("--physical-1080p is a boolean flag accepted only once".into());
+                }
+                options.physical_1080p = true;
+                index += 1;
+                continue;
+            }
+            if arg.starts_with("--physical-1080p=") {
+                return Err("--physical-1080p is a boolean flag and takes no value".into());
             }
             if arg == "--gpu-timestamps" {
                 if options.gpu_timestamps
@@ -104,6 +120,14 @@ impl LaunchOptions {
             }
             index += 1;
         }
+        if options.physical_1080p
+            && args
+                .iter()
+                .take_while(|arg| arg.as_str() != "--")
+                .any(|arg| arg == "--reference-viewport")
+        {
+            return Err("--physical-1080p conflicts with --reference-viewport".into());
+        }
         Ok(options)
     }
 
@@ -117,6 +141,9 @@ impl LaunchOptions {
         let legacy =
             self.renderer.as_deref() == Some("gl") || (self.renderer.is_none() && legacy_available);
         if legacy {
+            if self.physical_1080p {
+                return Err("--physical-1080p requires the native wgpu runtime".into());
+            }
             if self.gpu_timestamps {
                 return Err("--gpu-timestamps requires the native wgpu runtime".into());
             }
@@ -241,6 +268,43 @@ mod tests {
                 requested: "auto".into(),
                 force_fallback: false
             }
+        );
+    }
+    #[test]
+    fn physical_1080p_is_explicit_native_only_and_does_not_change_defaults() {
+        assert!(!parse(&[]).unwrap().physical_1080p);
+        let options = parse(&["--renderer=dx12", "--physical-1080p"]).unwrap();
+        assert!(options.physical_1080p);
+        assert!(matches!(
+            options.runtime(true, true).unwrap(),
+            RuntimeChoice::Wgpu { .. }
+        ));
+        assert!(options.runtime(true, false).is_err());
+        assert!(parse(&["--physical-1080p"])
+            .unwrap()
+            .runtime(true, true)
+            .is_err());
+        assert!(parse(&["--renderer=gl", "--physical-1080p"])
+            .unwrap()
+            .runtime(true, true)
+            .is_err());
+    }
+    #[test]
+    fn physical_1080p_rejects_values_duplicates_and_reference_conflicts() {
+        for args in [
+            vec!["--physical-1080p=true"],
+            vec!["--physical-1080p", "false"],
+            vec!["--physical-1080p", "--physical-1080p"],
+            vec!["--physical-1080p", "--reference-viewport"],
+            vec!["--reference-viewport", "--physical-1080p"],
+        ] {
+            assert!(parse(&args).is_err(), "{args:?}");
+        }
+        assert!(!parse(&["--", "--physical-1080p"]).unwrap().physical_1080p);
+        assert!(
+            parse(&["--physical-1080p", "--", "--reference-viewport"])
+                .unwrap()
+                .physical_1080p
         );
     }
     #[test]

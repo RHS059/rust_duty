@@ -120,10 +120,18 @@ mod contract {
             cpu.output_path == path.with_extension("cpu-substages.json") && cpu.error.is_none(),
             "CPU substage export failed",
         )?;
+        let encode = performance::take_cpu_encode_detail_export_notice()
+            .ok_or("missing CPU encode-detail export notice")?;
+        require(
+            encode.output_path == path.with_extension("cpu-encode-detail.json")
+                && encode.error.is_none(),
+            "CPU encode-detail export failed",
+        )?;
         require(
             performance::take_completion_notice().is_none()
                 && performance::take_gpu_timing_export_notice().is_none()
-                && performance::take_cpu_substage_export_notice().is_none(),
+                && performance::take_cpu_substage_export_notice().is_none()
+                && performance::take_cpu_encode_detail_export_notice().is_none(),
             "completion notices were not consumed",
         )
     }
@@ -195,10 +203,9 @@ mod contract {
         let hook_state = state.clone();
         let app_state = state.clone();
         let app_output = output.clone();
-        let result = window::run(
+        let result = window::run_with_size(
             "Rust Duty GPU session contract",
-            320,
-            180,
+            winit::dpi::PhysicalSize::new(1920, 1080).into(),
             move |native| {
                 let inner = if enabled {
                     create_frame_hooks_with_diagnostics(
@@ -233,7 +240,9 @@ mod contract {
                     }
                     require(
                         performance::take_completion_notice().is_none()
-                            && performance::take_gpu_timing_export_notice().is_none(),
+                            && performance::take_gpu_timing_export_notice().is_none()
+                            && performance::take_cpu_substage_export_notice().is_none()
+                            && performance::take_cpu_encode_detail_export_notice().is_none(),
                         "stale completion crossed the idle gap",
                     )?;
                     let runtime = graphics::snapshot();
@@ -265,7 +274,9 @@ mod contract {
                                 performance::is_active()
                                     && performance::is_stop_requested()
                                     && !path.exists()
-                                    && !path.with_extension("gpu-timing.json").exists(),
+                                    && !path.with_extension("gpu-timing.json").exists()
+                                    && !path.with_extension("cpu-substages.json").exists()
+                                    && !path.with_extension("cpu-encode-detail.json").exists(),
                                 "export occurred before the final normal present",
                             )?;
                         }

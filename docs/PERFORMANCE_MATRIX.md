@@ -69,6 +69,27 @@ match the native runtime's exact requested/actual fingerprint evidence.
   The driver checks focus/extent at the same 100 ms cadence in all cases. Its
   overhead remains in the protocol, including subprocess calls on X11.
 
+## Explicit physical 1080p launch
+
+The native runtime accepts `--physical-1080p` to request a **1920×1080 physical
+client area**, independent of desktop DPI. Without the flag the existing
+1440×900 logical default is unchanged. The flag is native-only, takes no value,
+may appear once, and conflicts with `--reference-viewport`; all three consumers
+of the reference option honor the end-of-options `--` boundary.
+
+```powershell
+.\vector-range.exe --no-update --renderer=dx12 --physical-1080p --gpu-timestamps
+```
+
+The window must report the exact requested physical extent before renderer hooks
+or the application are started. A clamped/mismatched window exits with its
+requested and observed sizes rather than silently measuring another resolution.
+Successful creation logs `window physical_extent_verified=1920x1080`. This verifies
+initial sizing, not a permanent resolution lock: resizing, fullscreen changes or
+moving between monitors still follow existing behavior. Use the original Record
+trace's observed physical extent/DPI and boundary checks to verify the entire
+measured session. Existing logical UI and cursor conversions remain unchanged.
+
 ## RTX 3080 Ti / Windows DX12 capture checklist
 
 The target is stable **1920×1080 physical pixels at 60 FPS on the selected
@@ -343,9 +364,18 @@ against the original primary bytes. Neither source acceptance nor a valid sideca
 proves target performance.
 
 
-### Exact four-file CPU comparison
+### Historical exact four-file CPU comparison
 
-The current candidate runtime digest is
+This section is the retained a947be6/5a88053 timing protocol, not admission for
+the newer encode-detail and physical-launch source. The experimental autorun was
+removed when those additional production files changed. Its original first
+baseline capture failed the unchanged 100-measured-sample readiness rule
+(96 measured, 36 ring-full, 4 pending); no candidate capture or completed
+comparison exists. The raw failure and exact build receipts remain evidence.
+The tools still accept only the original exact pair below. A future profiled
+comparison requires a new reviewed matching baseline, never a renamed alias.
+
+The historical candidate runtime digest is
 `9b7ae93be3a4d4aed9b662d0c27ff18d0b1e12e99c4dc916422c98e0c5eae3c6`.
 The counterfactual runtime digest is
 `dbabe2822dd73410a7f05c0f03807aa80d5720351c4a9c13ebdee1276fecc195`;
@@ -365,9 +395,9 @@ and asset-free package executables are retained in the job artifact. The candida
 never rewritten to a branch-head SHA. The baseline retains its actual separate
 commit and the receipt also records the CI run's candidate source.
 
-The branch-scoped `dx12-performance-pair` job builds without embedded or adjacent
-game assets and runs the production default range with procedural presentation,
-1920×1080 physical surface, DX12/WARP and Fifo. It uses 10 seconds warmup and
+The historical branch-scoped `dx12-performance-pair` job built without embedded or adjacent
+game assets and ran the production default range with procedural presentation,
+1920×1080 physical surface, DX12/WARP and Fifo. It used 10 seconds warmup and
 120 seconds Record per process, to give slow software captures a chance to reach
 the unchanged minimum of 100 present intervals and 100 measured eligible GPU rows.
 Unavailable/undersampled timing remains explicit and fails readiness. This is a
@@ -416,3 +446,20 @@ hide CPU improvements in present cadence. Timestamp-off overhead and matched
 Immediate/Fifo discrimination remain separate investigations; this comparison
 holds timestamps on and Fifo fixed in both variants. `performance_improvement`
 stays null and `target_1080p60_proven` stays false until the evidence is reviewed.
+
+
+### Physical 1080p encode profiling
+
+The current profiling path uses the explicit `--physical-1080p` native launch
+selection above and the separate [CPU encode-detail report](CPU_ENCODE_DETAIL.md).
+For an existing verified DX12 hardware selection, launch the newly built game
+with `--no-update --renderer=dx12 --physical-1080p --gpu-timestamps`, then use the
+normal Record start/stop UI. Keep the primary, CPU substages, CPU encode detail,
+GPU timing, and build/device logs together. Initial physical size is checked
+before rendering; subsequent capture dimensions still need validation.
+
+The existing Windows GPU-session fixture now checks this physical path plus
+both new encode-detail sidecars for its enabled and default-off controls.
+[Sampled release CPU profiling](engineering/windows-cpu-sampling.md) is a
+separate bounded diagnostic of the authored scene. Neither synthetic scene
+nor WARP capture establishes target RTX performance or the 60 FPS floor.

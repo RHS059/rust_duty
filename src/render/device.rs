@@ -235,6 +235,22 @@ fn configure_instance(descriptor: &mut wgpu::InstanceDescriptor, backends: wgpu:
     descriptor.backend_options.dx12.shader_compiler = wgpu::Dx12Compiler::Fxc;
 }
 
+/// Final descriptor passed to wgpu, not a claim that a backend validation
+/// layer was installed. Application/dependency debug profiles may differ.
+fn instance_descriptor_evidence(flags: wgpu::InstanceFlags) -> serde_json::Value {
+    serde_json::json!({
+        "schema": "rust-duty-wgpu-instance-descriptor/v1",
+        "wgpu_version": "30.0.1",
+        "flags_bits": flags.bits(),
+        "debug": flags.contains(wgpu::InstanceFlags::DEBUG),
+        "validation": flags.contains(wgpu::InstanceFlags::VALIDATION),
+        "gpu_based_validation": flags.contains(wgpu::InstanceFlags::GPU_BASED_VALIDATION),
+        "validation_indirect_call": flags.contains(wgpu::InstanceFlags::VALIDATION_INDIRECT_CALL),
+        "application_debug_assertions": cfg!(debug_assertions),
+        "environment_overrides_applied": false,
+    })
+}
+
 fn fingerprint(info: &wgpu::AdapterInfo) -> Fingerprint {
     Fingerprint {
         backend: match info.backend {
@@ -360,6 +376,7 @@ impl Gpu {
             wgpu::InstanceDescriptor::new_without_display_handle()
         };
         configure_instance(&mut descriptor, backends);
+        let instance_descriptor = instance_descriptor_evidence(descriptor.flags);
         let instance = wgpu::Instance::new(descriptor);
         let surface = window
             .as_ref()
@@ -504,6 +521,7 @@ impl Gpu {
             "device_id": adapter_info.device,
             "driver": adapter_info.driver,
             "driver_info": adapter_info.driver_info,
+            "instance_descriptor": instance_descriptor,
             "present_mode": surface.as_ref().map(|s| format!("{:?}", s.config.present_mode)),
             "gpu_timestamps_requested": gpu_timestamps,
             "gpu_timestamp_features_enabled": device.features().contains(super::gpu_timing::required_features()),
@@ -705,6 +723,44 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn encode_detail_instance_evidence_reports_passed_bits_without_changing_defaults() {
+        let mut descriptor = wgpu::InstanceDescriptor::new_without_display_handle();
+        let flags = descriptor.flags;
+        configure_instance(&mut descriptor, wgpu::Backends::DX12);
+        assert_eq!(descriptor.flags, flags);
+        for flags in [
+            wgpu::InstanceFlags::empty(),
+            wgpu::InstanceFlags::DEBUG | wgpu::InstanceFlags::VALIDATION,
+            wgpu::InstanceFlags::GPU_BASED_VALIDATION
+                | wgpu::InstanceFlags::VALIDATION_INDIRECT_CALL,
+        ] {
+            let evidence = instance_descriptor_evidence(flags);
+            assert_eq!(evidence["flags_bits"], flags.bits());
+            assert_eq!(
+                evidence["debug"],
+                flags.contains(wgpu::InstanceFlags::DEBUG)
+            );
+            assert_eq!(
+                evidence["validation"],
+                flags.contains(wgpu::InstanceFlags::VALIDATION)
+            );
+            assert_eq!(
+                evidence["gpu_based_validation"],
+                flags.contains(wgpu::InstanceFlags::GPU_BASED_VALIDATION)
+            );
+            assert_eq!(
+                evidence["validation_indirect_call"],
+                flags.contains(wgpu::InstanceFlags::VALIDATION_INDIRECT_CALL)
+            );
+            assert_eq!(
+                evidence["application_debug_assertions"],
+                cfg!(debug_assertions)
+            );
+            assert_eq!(evidence["environment_overrides_applied"], false);
+        }
+    }
 
     #[test]
     fn concrete_surface_modes_never_accept_automatic_or_relaxed_substitutes() {

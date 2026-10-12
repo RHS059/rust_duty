@@ -9,6 +9,7 @@ use super::{
 };
 use crate::draw::{BlendMode, Color, Command, DrawList, FrameOutput, RenderTarget, TextureSource};
 use crate::{frame_performance::CpuFrameStage, frame_performance_session as performance};
+use performance::{EncodeCounter, EncodePhase};
 use std::sync::Arc;
 
 struct EncodedFrame {
@@ -105,121 +106,159 @@ impl WgpuRenderer {
             )?);
         }
         let limits = self.gpu.device.limits();
-        let plan = FramePlan::new(
-            list,
-            &mut self.text,
-            limits.min_uniform_buffer_offset_alignment,
-            limits.max_buffer_size,
-            presentation.is_some(),
-        )?;
-        let geometry: Vec<_> = plan
-            .arenas
-            .iter()
-            .map(|arena| self.pipelines.upload_geometry(&self.gpu.device, arena))
-            .collect();
-        let mut encoder = self
-            .gpu
-            .device
-            .create_command_encoder(&wgpu::CommandEncoderDescriptor {
-                label: Some("ordered presentation frame"),
+        let plan = performance::measure_encode_phase(EncodePhase::FramePlan, || {
+            FramePlan::new(
+                list,
+                &mut self.text,
+                limits.min_uniform_buffer_offset_alignment,
+                limits.max_buffer_size,
+                presentation.is_some(),
+            )
+        })?;
+        // Count the observed input/plan, not guessed glyphs or driver draws.
+        // No scan is performed when the capture is disabled.
+        if performance::encode_details_active() {
+            record_plan_counts(list, &plan);
+        }
+        let geometry: Vec<_> =
+            performance::measure_encode_phase(EncodePhase::GeometryUpload, || {
+                plan.arenas
+                    .iter()
+                    .map(|arena| {
+                        if performance::encode_details_active() {
+                            if let Some([vertices, indices, matrices]) = arena.buffer_contents() {
+                                performance::add_encode_counter(EncodeCounter::UploadArenas, 1);
+                                performance::add_encode_counter(
+                                    EncodeCounter::VertexBytes,
+                                    vertices.len() as u64,
+                                );
+                                performance::add_encode_counter(
+                                    EncodeCounter::IndexBytes,
+                                    indices.len() as u64,
+                                );
+                                performance::add_encode_counter(
+                                    EncodeCounter::UniformBytes,
+                                    matrices.len() as u64,
+                                );
+                            }
+                        }
+                        self.pipelines.upload_geometry(&self.gpu.device, arena)
+                    })
+                    .collect()
             });
-        let mut timing = if let Some(registration) = self.gpu.gpu_diagnostics {
-            performance::gpu_frame_key().and_then(|key| {
-                crate::frame_gpu_capture::begin_gpu_frame(registration, key, &mut encoder)
-            })
-        } else {
-            None
-        };
-        clear(&mut encoder, &self.main, Color::TRANSPARENT);
-        let mut readbacks = Vec::new();
-        let mut commands = plan.commands.as_slice();
-        while let Some((command, following)) = commands.split_first() {
-            let mut consumed = 1;
-            match command {
-                PreparedCommand::Camera(camera) => {
-                    if let Some(target) = &camera.target {
-                        self.texture(&target.texture)?;
+        let (encoder, mut timing, readbacks) =
+            performance::measure_encode_phase(EncodePhase::CommandEncoding, || {
+                let mut encoder =
+                    self.gpu
+                        .device
+                        .create_command_encoder(&wgpu::CommandEncoderDescriptor {
+                            label: Some("ordered presentation frame"),
+                        });
+                let mut timing = if let Some(registration) = self.gpu.gpu_diagnostics {
+                    performance::gpu_frame_key().and_then(|key| {
+                        crate::frame_gpu_capture::begin_gpu_frame(registration, key, &mut encoder)
+                    })
+                } else {
+                    None
+                };
+                clear(&mut encoder, &self.main, Color::TRANSPARENT);
+                let mut readbacks = Vec::new();
+                let mut commands = plan.commands.as_slice();
+                while let Some((command, following)) = commands.split_first() {
+                    let mut consumed = 1;
+                    match command {
+                        PreparedCommand::Camera(camera) => {
+                            if let Some(target) = &camera.target {
+                                self.texture(&target.texture)?;
+                            }
+                        }
+                        PreparedCommand::Clear { target, color } => {
+                            let output = self.output(target.as_ref())?;
+                            clear(&mut encoder, &output, *color);
+                        }
+                        PreparedCommand::Draw(draw) => {
+                            consumed = draw_run_len(commands);
+                            self.draw_prepared_run(
+                                &mut encoder,
+                                &geometry,
+                                draw,
+                                &following[..consumed - 1],
+                            )?;
+                        }
+                        PreparedCommand::Capture { target, path } => {
+                            let output = self.output(target.as_ref())?;
+                            // Capture remains an in-order GPU copy, before later draws
+                            // or clears. All maps still finish after the same submission.
+                            readbacks.push(Readback::encode(
+                                &self.gpu.device,
+                                &mut encoder,
+                                &output.texture,
+                                path.clone(),
+                                CaptureEncoding::for_target(target.as_ref()),
+                            )?);
+                        }
                     }
+                    commands = &commands[consumed..];
                 }
-                PreparedCommand::Clear { target, color } => {
-                    let output = self.output(target.as_ref())?;
-                    clear(&mut encoder, &output, *color);
-                }
-                PreparedCommand::Draw(draw) => {
-                    consumed = draw_run_len(commands);
-                    self.draw_prepared_run(
-                        &mut encoder,
-                        &geometry,
-                        draw,
-                        &following[..consumed - 1],
-                    )?;
-                }
-                PreparedCommand::Capture { target, path } => {
-                    let output = self.output(target.as_ref())?;
-                    // Capture remains an in-order GPU copy, before later draws
-                    // or clears. All maps still finish after the same submission.
-                    readbacks.push(Readback::encode(
+                if let Some(frame) = &presentation {
+                    let surface = self
+                        .gpu
+                        .surface
+                        .as_ref()
+                        .expect("a presentation frame has a surface");
+                    let view = frame
+                        .texture
+                        .create_view(&wgpu::TextureViewDescriptor::default());
+                    let pipeline = self.pipelines.pipeline(
                         &self.gpu.device,
-                        &mut encoder,
-                        &output.texture,
-                        path.clone(),
-                        CaptureEncoding::for_target(target.as_ref()),
-                    )?);
+                        surface.config.format,
+                        false,
+                        false,
+                        BlendMode::Opaque,
+                        FragmentKind::Present,
+                    );
+                    performance::add_encode_counter(EncodeCounter::RenderPasses, 1);
+                    let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                        label: Some("present main target"),
+                        color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                            view: &view,
+                            depth_slice: None,
+                            resolve_target: None,
+                            ops: wgpu::Operations {
+                                load: wgpu::LoadOp::Clear(wgpu::Color::BLACK),
+                                store: wgpu::StoreOp::Store,
+                            },
+                        })],
+                        ..Default::default()
+                    });
+                    let present = plan
+                        .present
+                        .as_ref()
+                        .expect("presentation has a draw slice");
+                    issue(
+                        &mut pass,
+                        &pipeline,
+                        geometry[present.arena_index]
+                            .as_ref()
+                            .expect("presentation has frame buffers"),
+                        &present.range,
+                        &self.main.binding,
+                    );
                 }
-            }
-            commands = &commands[consumed..];
-        }
-        if let Some(frame) = &presentation {
-            let surface = self
-                .gpu
-                .surface
-                .as_ref()
-                .expect("a presentation frame has a surface");
-            let view = frame
-                .texture
-                .create_view(&wgpu::TextureViewDescriptor::default());
-            let pipeline = self.pipelines.pipeline(
-                &self.gpu.device,
-                surface.config.format,
-                false,
-                false,
-                BlendMode::Opaque,
-                FragmentKind::Present,
-            );
-            let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-                label: Some("present main target"),
-                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                    view: &view,
-                    depth_slice: None,
-                    resolve_target: None,
-                    ops: wgpu::Operations {
-                        load: wgpu::LoadOp::Clear(wgpu::Color::BLACK),
-                        store: wgpu::StoreOp::Store,
-                    },
-                })],
-                ..Default::default()
-            });
-            let present = plan
-                .present
-                .as_ref()
-                .expect("presentation has a draw slice");
-            issue(
-                &mut pass,
-                &pipeline,
-                geometry[present.arena_index]
-                    .as_ref()
-                    .expect("presentation has frame buffers"),
-                &present.range,
-                &self.main.binding,
-            );
-        }
-        if let Some(timing) = &mut timing {
-            timing.end_encoding(&mut encoder)?;
-        }
-        self.gpu.queue.submit([encoder.finish()]);
+                if let Some(timing) = &mut timing {
+                    timing.end_encoding(&mut encoder)?;
+                }
+                Ok::<_, String>((encoder, timing, readbacks))
+            })?;
+        let command_buffer =
+            performance::measure_encode_phase(EncodePhase::EncoderFinish, || encoder.finish());
+        performance::measure_encode_phase(EncodePhase::QueueSubmit, || {
+            self.gpu.queue.submit([command_buffer])
+        });
         if let Some(timing) = &mut timing {
             timing.after_submit();
         }
+        performance::complete_encode_details();
         Ok(EncodedFrame {
             readbacks,
             presentation,
@@ -240,6 +279,7 @@ impl WgpuRenderer {
         following: &[PreparedCommand],
     ) -> Result<(), String> {
         let output = self.output(first.target.as_ref())?;
+        performance::add_encode_counter(EncodeCounter::RenderPasses, 1);
         let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
             label: Some("ordered draw run"),
             color_attachments: &[Some(wgpu::RenderPassColorAttachment {
@@ -317,6 +357,33 @@ impl WgpuRenderer {
         Ok(())
     }
 }
+/// Input Unicode scalars include spaces; prepared draws include all drawable
+/// geometry and are deliberately not reported as a glyph count.
+fn plan_counts(list: &DrawList, plan: &FramePlan) -> (u64, u64) {
+    let text_characters = list
+        .commands
+        .iter()
+        .flat_map(|command| {
+            let text = match command {
+                Command::Text { text, .. } => text.as_str(),
+                _ => "",
+            };
+            text.chars()
+        })
+        .count() as u64;
+    let prepared_draws = plan
+        .commands
+        .iter()
+        .filter(|command| matches!(command, PreparedCommand::Draw(_)))
+        .count() as u64;
+    (prepared_draws, text_characters)
+}
+fn record_plan_counts(list: &DrawList, plan: &FramePlan) {
+    let (draws, characters) = plan_counts(list, plan);
+    performance::add_encode_counter(EncodeCounter::PreparedDraws, draws);
+    performance::add_encode_counter(EncodeCounter::TextCharacters, characters);
+}
+
 fn issue(
     pass: &mut wgpu::RenderPass<'_>,
     pipeline: &wgpu::RenderPipeline,
@@ -332,9 +399,11 @@ fn issue(
         geometry.indices.slice(slice.indices.clone()),
         wgpu::IndexFormat::Uint16,
     );
+    performance::add_encode_counter(EncodeCounter::DrawCalls, 1);
     pass.draw_indexed(0..slice.count, 0, 0..1);
 }
 pub(super) fn clear(encoder: &mut wgpu::CommandEncoder, target: &GpuTexture, color: Color) {
+    performance::add_encode_counter(EncodeCounter::RenderPasses, 1);
     let _pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
         label: Some("clear camera target"),
         color_attachments: &[Some(wgpu::RenderPassColorAttachment {
@@ -510,6 +579,18 @@ mod tests {
             position += count.max(1);
         }
         runs
+    }
+
+    #[test]
+    fn encode_detail_counts_input_characters_separately_from_drawable_glyphs() {
+        let mut list = DrawList::new(320, 180);
+        list.draw_text("A B", glam::Vec2::new(1., 20.), 16., Color::WHITE);
+        let mut text = super::super::text::TextRenderer::new().unwrap();
+        let plan = FramePlan::new(&list, &mut text, 256, 1 << 20, true).unwrap();
+        // The space contributes an input scalar but emits no drawable quad.
+        // The presentation draw is separate from prepared scene commands.
+        assert_eq!(plan_counts(&list, &plan), (2, 3));
+        assert!(plan.present.is_some());
     }
 
     #[test]

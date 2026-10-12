@@ -275,84 +275,21 @@ class PerformanceMatrixWorkflowTests(unittest.TestCase):
                 self.assertIn('Error:', result['error'])
 
 
-class PerformancePairWorkflowTests(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        cls.body = (ROOT / '.github/workflows/build.yml').read_text(encoding='utf-8')
-        cls.workflow = yaml.load(cls.body, Loader=yaml.BaseLoader)
-        cls.job = cls.workflow['jobs']['dx12-performance-pair']
-        cls.steps = cls.job['steps']
-
-    def test_real_build_workflow_bounded_to_owned_push_and_pr(self):
-        condition = self.job['if']
-        for guard in ("github.repository == 'RHS059/rust_duty'", "github.event_name == 'push'",
-                      "github.event_name == 'pull_request'",
-                      'github.event.pull_request.head.repo.full_name == github.repository',
-                      "github.head_ref == 'aella/wgpu-1080p-diagnostics'",
-                      "github.ref == 'refs/heads/aella/wgpu-1080p-diagnostics'"):
-            self.assertIn(guard, condition)
-        self.assertEqual(self.workflow['permissions'], {'contents': 'read'})
-        self.assertEqual(self.job['runs-on'], 'windows-latest')
-        self.assertEqual(self.job['timeout-minutes'], '95')
-        self.assertNotIn('needs', self.job)
-        self.assertNotIn('continue-on-error', str(self.job))
-        self.assertNotIn('actions/download-artifact', str(self.job))
-
-    def test_exact_clean_asset_free_source_checkouts(self):
-        checkouts = [s['with'] for s in self.steps if s.get('uses') == 'actions/checkout@v4']
-        self.assertEqual([(s['path'], s['ref']) for s in checkouts], [
-            ('candidate', '${{ github.sha }}'), ('baseline', '4604e7e4648d05f4750f73f7d4d72ea23ddfb1ef')])
-        required = {'/Cargo.toml', '/Cargo.lock', '/build.rs', '/build_number.rs', '/src/', '/updater/',
-                    '/ui/', '/settings.cfg', '/.cargo/', '/.gitattributes', '/rust-toolchain',
-                    '/rust-toolchain.toml', '/LICENSE', '/THIRD_PARTY_LICENSES.txt'}
-        for checkout in checkouts:
-            self.assertEqual(checkout['persist-credentials'], 'false')
-            self.assertEqual(checkout['sparse-checkout-cone-mode'], 'false')
-            self.assertTrue(required <= set(checkout['sparse-checkout'].splitlines()))
-            self.assertNotIn('/assets', checkout['sparse-checkout'])
-        self.assertIn('/tools/', checkouts[0]['sparse-checkout'])
-        self.assertEqual(self.job['env'], {'GIT_CONFIG_COUNT': '1', 'GIT_CONFIG_KEY_0': 'core.autocrlf',
-            'GIT_CONFIG_VALUE_0': 'false', 'CARGO_HOME': '${{ github.workspace }}/.performance-pair-cargo'})
-        self.assertNotIn('${{ runner.', str(self.job['env']))
-
-    def test_reviewed_compiler_and_guards_before_fresh_builds(self):
-        compiler = next(s for s in self.steps if 'rustup toolchain install' in s.get('run', ''))
-        self.assertIn('1.99.0-x86_64-pc-windows-msvc --profile minimal', compiler['run'])
-        self.assertIn('rustup which --toolchain 1.99.0-x86_64-pc-windows-msvc rustc', compiler['run'])
-        self.assertIn('GITHUB_PATH', compiler['run'])
-        guards = next(s for s in self.steps if 'python -m unittest' in s.get('run', ''))
-        build = next(s for s in self.steps if 'build_performance_pair.py' in s.get('run', ''))
-        self.assertLess(self.steps.index(compiler), self.steps.index(build))
-        self.assertLess(self.steps.index(guards), self.steps.index(build))
-        for test in ('test_matrix_gpu_diagnostics', 'test_build_performance_pair', 'test_performance_matrix',
-                     'test_performance_matrix_workflow', 'test_summarize_cpu_substages', 'test_summarize_gpu_timing'):
-            self.assertIn(test, guards['run'])
-        self.assertEqual(guards['working-directory'], 'candidate')
-        self.assertIn('--root candidate --baseline baseline', build['run'])
-        self.assertIn('--build-timeout 1800', build['run'])
-        self.assertEqual(build['timeout-minutes'], '62')
-
-    def test_real_pair_command_binds_both_builds_and_keeps_software_scope(self):
-        run = next(s for s in self.steps if 'performance_matrix.py compare' in s.get('run', ''))
-        self.assertEqual(run['timeout-minutes'], '25')
-        for label in ('baseline', 'candidate'):
-            for suffix in ('source-witness', 'witness-sha256', 'executable', 'build-receipt'):
-                self.assertIn('--' + label + '-' + suffix, run['run'])
-            self.assertIn('$pair.variants.' + label + '.source_witness_sha256', run['run'])
-        for value in ('--procedural-baseline --force-fallback --driver win32',
-                      '--warmup-seconds 10 --sample-seconds 120 --execute', 'BUILD_PAIR.json'):
-            self.assertIn(value, run['run'])
-        self.assertNotIn('--continue-after-exit-timeout', run['run'])
-        self.assertNotIn('--disable-validation', run['run'])
-
-    def test_raw_evidence_and_fresh_asset_free_packages_retained(self):
-        upload = next(s for s in self.steps if s.get('uses') == 'actions/upload-artifact@v4')
-        self.assertEqual(upload['if'], 'always()')
-        self.assertEqual(upload['with']['retention-days'], '7')
-        self.assertEqual(upload['with']['include-hidden-files'], 'true')
-        self.assertEqual(upload['with']['path'].splitlines(), [
-            'evidence/performance-build/**', 'evidence/performance-timing/**',
-            '!evidence/performance-build/*/target/**', '!evidence/**/*.dll', '!evidence/**/assets/**'])
+class HistoricalPerformancePairWorkflowTests(unittest.TestCase):
+    def test_only_incompatible_pair_autorun_is_retired(self):
+        workflow = yaml.load((ROOT / '.github/workflows/build.yml').read_text(), Loader=yaml.BaseLoader)
+        self.assertNotIn('dx12-performance-pair', workflow['jobs'])
+        self.assertTrue({'build', 'dx12-renderer-contract', 'dx12-warp-smoke', 'native-validation',
+                         'animation-assets', 'walk-assets', 'directional-assets', 'ads-assets',
+                         'jump-assets', 'windows-same-platform-return',
+                         'windows-source-bound-recovery', 'dx12-authored-validation',
+                         'publish-game-update'} <= set(workflow['jobs']))
+        import performance_matrix as matrix
+        self.assertEqual(matrix.AUDITED_GPU_PRODUCTION_MANIFEST,
+                         'd74a901c91ffd6746826e7e9c7f0ff447157774d3ea8d661d4912caf84e4a33c')
+        self.assertEqual(matrix.AUDITED_GPU_CANDIDATE_MANIFEST,
+                         '9b7ae93be3a4d4aed9b662d0c27ff18d0b1e12e99c4dc916422c98e0c5eae3c6')
+        self.assertTrue((ROOT / 'tools/build_performance_pair.py').is_file())
 
 
 if __name__ == '__main__':

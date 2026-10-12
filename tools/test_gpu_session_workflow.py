@@ -55,7 +55,8 @@ class GpuSessionWorkflowTests(unittest.TestCase):
         execution = next(step for step in self.steps if 'run_gpu_session_contract.py --root' in step.get('run', ''))
         self.assertLess(self.steps.index(guards), self.steps.index(execution))
         for name in ('test_gpu_session_contract', 'test_summarize_gpu_timing',
-                     'test_dx12_contract_process', 'test_gpu_session_workflow'):
+                     'test_dx12_contract_process', 'test_gpu_session_workflow',
+                     'test_summarize_cpu_encode_detail', 'test_cpu_encode_substages', 'test_cpu_encode_detail_source'):
             self.assertIn(name, guards['run'])
         self.assertEqual(execution['timeout-minutes'], '24')
         for argument in ('--root .', '--evidence evidence/gpu-session', '--timeout 90', '--build-timeout 1200'):
