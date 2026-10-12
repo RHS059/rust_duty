@@ -181,15 +181,13 @@ fn directory() -> PathBuf {
     std::fs::create_dir(&path).expect("native evidence directory must be fresh");
     path
 }
-#[test]
-#[ignore = "explicit native DX12/WARP or Linux Vulkan hardware contract"]
-fn native_resident_poses_preserve_order_and_queued_results() {
+fn required_native_renderer() -> WgpuRenderer {
     let backend = if cfg!(target_os = "windows") {
         BackendSelection::Dx12
     } else {
         BackendSelection::Vulkan
     };
-    let mut renderer = pollster::block_on(WgpuRenderer::new_headless(
+    let renderer = pollster::block_on(WgpuRenderer::new_headless(
         SIZE,
         SIZE,
         backend,
@@ -215,6 +213,26 @@ fn native_resident_poses_preserve_order_and_queued_results() {
     } else {
         assert_eq!(renderer.info().backend, "Vulkan");
     }
+    renderer
+}
+
+#[test]
+#[ignore = "explicit native exact UNORM conversion contract"]
+fn native_exact_unorm_byte_conversion() {
+    let mut renderer = required_native_renderer();
+    let output = directory();
+    super::resident_vertex_probe::verify_exact_unorm(&mut renderer, &output);
+}
+
+#[test]
+#[ignore = "explicit native DX12/WARP or Linux Vulkan hardware contract"]
+fn native_resident_poses_preserve_order_and_queued_results() {
+    let mut renderer = required_native_renderer();
+    let backend = if cfg!(target_os = "windows") {
+        BackendSelection::Dx12
+    } else {
+        BackendSelection::Vulkan
+    };
     let output = directory();
     let sources = [
         source(false, [1., 2., 3.]),

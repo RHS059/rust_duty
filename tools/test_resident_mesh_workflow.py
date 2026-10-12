@@ -38,6 +38,14 @@ class WorkflowTests(unittest.TestCase):
         artifact=steps[-1]
         self.assertEqual(artifact['if'],'always()')
         self.assertEqual(artifact['with']['path'],'resident-mesh-evidence/**')
+    def test_conversion_entry_point_is_independent_of_image_assertions(self):
+        source=(ROOT/'src/render/resident_tests.rs').read_text()
+        body=source.split('fn native_exact_unorm_byte_conversion() {',1)[1].split('\n}',1)[0]
+        self.assertIn('required_native_renderer()',body)
+        self.assertIn('verify_exact_unorm(&mut renderer, &output)',body)
+        self.assertNotIn('native_resident_poses_preserve_order_and_queued_results',body)
+        self.assertNotIn('submit(',body)
+        self.assertIn('#[ignore = "explicit native exact UNORM conversion contract"]',source)
     def test_actual_native_test_keeps_waits_after_the_changing_frames(self):
         source=(ROOT/'src/render/resident_tests.rs').read_text()
         self.assertIn('for step in 0..12',source)
