@@ -193,6 +193,179 @@ class ProfileGuards(unittest.TestCase):
         self.assertIn("('renderer-stack', ['-butterfly', '-event', 'Profile', '-pid', str(process.pid)", source)
         self.assertIn("'-tid', str(receipt['renderer_window_thread_id'])", source)
 
+    def shutdown_fixture(self, owner=41):
+        driver, process = MagicMock(), MagicMock()
+        process.pid, process.returncode = 41, None
+        process.poll.return_value = None
+        driver.window = 123
+        driver.user.IsWindow.return_value = True
+        def identify(window, out):
+            out._obj.value = owner
+            return 77
+        driver.user.GetWindowThreadProcessId.side_effect = identify
+        driver.user.PostMessageW.return_value = True
+        return driver, process
+
+    def test_normal_f10_exit_never_posts_another_close(self):
+        driver, process = self.shutdown_fixture()
+        process.wait.return_value = 0
+        with patch.object(profile, 'exit_snapshot', return_value={'synthetic': True}):
+            result = profile.normal_shutdown(driver, process)
+        self.assertTrue(result['normal_exit'])
+        self.assertEqual(result['method'], 'f10')
+        self.assertFalse(result['wm_close']['attempted'])
+        driver.close.assert_called_once_with()
+        driver.user.PostMessageW.assert_not_called()
+        process.wait.assert_called_once_with(timeout=20)
+
+    def test_f10_timeout_retained_before_pid_verified_normal_window_close(self):
+        driver, process = self.shutdown_fixture()
+        process.wait.side_effect = [subprocess.TimeoutExpired('synthetic game', 20), 0]
+        with patch.object(profile, 'exit_snapshot', return_value={'synthetic': True}) as snapshot:
+            result = profile.normal_shutdown(driver, process)
+        self.assertTrue(result['normal_exit'])
+        self.assertEqual(result['method'], 'wm_close')
+        self.assertTrue(result['f10']['timed_out'])
+        self.assertIn('after', result['f10'])
+        self.assertEqual(result['wm_close']['owner_pid'], process.pid)
+        driver.user.PostMessageW.assert_called_once_with(123, 0x0010, 0, 0)
+        snapshot.assert_any_call(driver, process, probe_responsiveness=True)
+        self.assertEqual([call.kwargs for call in process.wait.call_args_list], [{'timeout': 20}] * 2)
+        process.terminate.assert_not_called()
+
+    def test_reused_or_missing_window_never_receives_close(self):
+        for absent in (False, True):
+            driver, process = self.shutdown_fixture(owner=99)
+            driver.user.IsWindow.return_value = not absent
+            process.wait.side_effect = subprocess.TimeoutExpired('synthetic game', 20)
+            with patch.object(profile, 'exit_snapshot', return_value={}):
+                result = profile.normal_shutdown(driver, process)
+            self.assertFalse(result['normal_exit'])
+            self.assertFalse(result['wm_close']['attempted'])
+            self.assertIn('error', result['wm_close'])
+            driver.user.PostMessageW.assert_not_called()
+            process.wait.assert_called_once_with(timeout=20)
+
+    def test_two_timeouts_preserve_failure_without_forced_shutdown(self):
+        driver, process = self.shutdown_fixture()
+        process.wait.side_effect = subprocess.TimeoutExpired('synthetic game', 20)
+        with patch.object(profile, 'exit_snapshot', return_value={}):
+            result = profile.normal_shutdown(driver, process)
+        self.assertFalse(result['normal_exit'])
+        self.assertTrue(result['f10']['timed_out'])
+        self.assertTrue(result['wm_close']['timed_out'])
+        process.terminate.assert_not_called()
+        process.kill.assert_not_called()
+
+    def test_nonzero_normal_exit_and_failed_post_are_not_success(self):
+        driver, process = self.shutdown_fixture()
+        process.wait.return_value = 3
+        with patch.object(profile, 'exit_snapshot', return_value={}):
+            result = profile.normal_shutdown(driver, process)
+        self.assertFalse(result['normal_exit'])
+        self.assertEqual(result['exit_code'], 3)
+        driver.user.PostMessageW.assert_not_called()
+        driver, process = self.shutdown_fixture()
+        process.wait.side_effect = subprocess.TimeoutExpired('synthetic game', 20)
+        driver.user.PostMessageW.return_value = False
+        with patch.object(profile, 'exit_snapshot', return_value={}):
+            result = profile.normal_shutdown(driver, process)
+        self.assertFalse(result['normal_exit'])
+        self.assertIn('Owned WM_CLOSE request failed', result['wm_close']['error'])
+        self.assertEqual(process.wait.call_count, 1)
+
+    def test_normal_verified_capture_and_export_are_both_required_for_pass(self):
+        with tempfile.TemporaryDirectory() as directory:
+            out = Path(directory)
+            receipt = {'shutdown': {'normal_exit': True, 'method': 'wm_close'},
+                       'post_capture_inputs_verified': True}
+            with patch.object(profile, 'cleanup_owned', return_value=([], 0)), \
+                    patch.object(profile, 'export_trace', return_value={'passed': True}):
+                result = profile.finalize_capture(out, out, MagicMock(), MagicMock(),
+                    'wpr.exe', 'rust-duty-test', False, True, {}, out, receipt, None)
+            self.assertIsNone(result)
+            self.assertTrue(receipt['passed'])
+
+    def test_failed_normal_exit_still_exports_stopped_trace_without_becoming_passed(self):
+        with tempfile.TemporaryDirectory() as directory:
+            out = Path(directory)
+            original = ValueError('original shutdown failed')
+            receipt = {'error': str(original), 'shutdown': {'normal_exit': False}}
+            def cleanup(*args):
+                args[-1].update(forced=True, process_action='terminate')
+                return [], 1
+            with patch.object(profile, 'cleanup_owned', side_effect=cleanup), \
+                    patch.object(profile, 'export_trace', return_value={'passed': True}) as export:
+                result = profile.finalize_capture(out, out, MagicMock(), MagicMock(),
+                    'wpr.exe', 'rust-duty-test', False, True, {}, out, receipt, original)
+            self.assertIs(result, original)
+            export.assert_called_once()
+            self.assertFalse(receipt['passed'])
+            self.assertTrue(receipt['trace_export']['passed'])
+            self.assertTrue(receipt['cleanup']['forced'])
+            self.assertEqual(receipt['exit_code'], 1)
+            self.assertTrue((out / 'capture.json').exists())
+
+    def test_export_failure_cannot_replace_original_error_or_claim_success(self):
+        with tempfile.TemporaryDirectory() as directory:
+            out = Path(directory)
+            for original in (None, ValueError('original source failure')):
+                receipt = {'shutdown': {'normal_exit': True}, 'post_capture_inputs_verified': True}
+                failure = ValueError('export failed')
+                with patch.object(profile, 'cleanup_owned', return_value=([], 0)), \
+                        patch.object(profile, 'export_trace', side_effect=failure):
+                    result = profile.finalize_capture(out, out, MagicMock(), MagicMock(),
+                        'wpr.exe', 'rust-duty-test', False, True, {}, out, receipt, original)
+                self.assertIs(result, failure if original is None else original)
+                self.assertFalse(receipt['passed'])
+                self.assertEqual(receipt['trace_export']['error'], 'export failed')
+
+    def test_interrupt_during_export_retains_receipt_then_propagates_without_retry(self):
+        with tempfile.TemporaryDirectory() as directory:
+            out = Path(directory)
+            for original in (None, ValueError('original shutdown failure')):
+                receipt = {'shutdown': {'normal_exit': original is None},
+                           'post_capture_inputs_verified': original is None}
+                if original is not None:
+                    receipt['error'] = str(original)
+                interrupt = KeyboardInterrupt()
+                with patch.object(profile, 'cleanup_owned', return_value=([], 1)), \
+                        patch.object(profile, 'export_trace', side_effect=interrupt) as export:
+                    result = profile.finalize_capture(out, out, MagicMock(), MagicMock(),
+                        'wpr.exe', 'rust-duty-test', False, True, {}, out, receipt, original)
+                self.assertIs(result, interrupt)
+                export.assert_called_once()
+                self.assertFalse(receipt['passed'])
+                self.assertEqual(receipt['trace_export']['error_type'], 'KeyboardInterrupt')
+                self.assertTrue((out / 'capture.json').exists())
+                if original is not None:
+                    self.assertEqual(receipt['error'], str(original))
+                    self.assertEqual(receipt['error_type'], 'ValueError')
+
+    def test_unsaved_or_interrupted_trace_never_starts_report_commands(self):
+        with tempfile.TemporaryDirectory() as directory:
+            out = Path(directory)
+            for saved, error in ((False, ValueError('save failed')), (True, KeyboardInterrupt())):
+                receipt = {}
+                with patch.object(profile, 'cleanup_owned', return_value=([], 1)), \
+                        patch.object(profile, 'export_trace') as export:
+                    result = profile.finalize_capture(out, out, MagicMock(), MagicMock(),
+                        'wpr.exe', 'rust-duty-test', False, saved, {}, out, receipt, error)
+                self.assertIs(result, error)
+                self.assertFalse(receipt['passed'])
+                export.assert_not_called()
+
+    def test_forced_cleanup_is_explicit_in_retained_observation(self):
+        driver, process = MagicMock(), MagicMock()
+        driver.release_inputs.return_value = []
+        process.poll.side_effect = [None, 1]
+        process.wait.return_value = 1
+        observation = {}
+        errors, code = profile.cleanup_owned(Path('.'), Path('out'), driver, process,
+                                              'wpr.exe', 'rust-duty-test', False, observation)
+        self.assertEqual((errors, code), ([], 1))
+        self.assertEqual(observation, {'forced': True, 'process_action': 'terminate'})
+
     def test_optimized_symbols_settings_are_explicit(self):
         self.assertIn('--release', profile.BUILD)
         self.assertIn('--locked', profile.BUILD)

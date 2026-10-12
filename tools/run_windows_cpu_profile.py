@@ -5,6 +5,8 @@ This is a diagnostic capture, not a frame-rate gate. No registry changes,
 profiler installation, persistent logger, or user-computer access is performed.
 """
 import argparse
+import ctypes
+from ctypes import wintypes
 import hashlib
 import json
 import os
@@ -194,6 +196,8 @@ def capture(root, output):
     wpr = tools['wpr']['path']
     process = None
     started = False
+    trace_saved = False
+    pending_error = None
     initial_settings = digest(runtime / 'settings.cfg')
     receipt = {'schema': 'rust-duty-windows-cpu-sampling/v1', 'command': command,
                'source_commit': source['commit'], **bound, 'passed': False,
@@ -227,10 +231,11 @@ def capture(root, output):
             command_log(wpr_command(wpr, instance, '-stop', output / 'cpu.etl', '-skipPdbGen', '-compress'),
                         root, output / 'wpr-stop.log', timeout=180)
             started = False
+            trace_saved = True
             receipt['after'] = exit_snapshot(driver, process)
             driver.check(EXTENT)
-            driver.close()
-            require(process.wait(timeout=20) == 0, 'Game did not exit normally')
+            receipt['shutdown'] = normal_shutdown(driver, process)
+            require(receipt['shutdown']['normal_exit'], 'Game did not exit normally; inspect shutdown attempts')
         require(digest(binary) == digest(output / binary.name) == bound['exe_sha256']
                 and digest(pdb) == digest(output / pdb.name) == bound['pdb_sha256'], 'Profiled/retained binary changed')
         receipt['runtime_after_sampling'] = inventory(runtime)
@@ -239,33 +244,107 @@ def capture(root, output):
         game = (output / 'game.log').read_text(encoding='utf-8', errors='replace')
         validate_scene_log(game)
         receipt['authored_error_log_clear'] = True
-        # Local build PDBs identify game functions. OS/driver symbols are resolved
-        # only through Microsoft's public symbol server; unresolved entries remain visible.
-        symbols = str(target / 'release') + ';srv*' + str(output / 'symbols') + '*https://msdl.microsoft.com/download/symbols'
-        export_env = dict(os.environ, _NT_SYMBOL_PATH=symbols, _NT_SYMCACHE_PATH=str(output / 'symcache'))
-        for action, args in [('profile', ['-detail']), ('process', []), ('tracestats', []), ('stack', ['-butterfly']),
-                             ('renderer-stack', ['-butterfly', '-event', 'Profile', '-pid', str(process.pid),
-                                                 '-tid', str(receipt['renderer_window_thread_id'])])]:
-            command_log([tools['xperf']['path'], '-i', output / 'cpu.etl', '-symbols',
-                         '-o', output / (action + '.txt'), '-a', 'stack' if action == 'renderer-stack' else action, *args], root,
-                        output / (action + '-export.log'), env=export_env, timeout=180)
-        receipt.update(passed=True, trace_sha256=digest(output / 'cpu.etl'),
-                       reports_sha256={name: digest(output / (name + '.txt'))
-                                       for name in ('profile', 'process', 'tracestats', 'stack', 'renderer-stack')})
+        receipt['post_capture_inputs_verified'] = True
     except BaseException as error:
         receipt['error'] = str(error)
-        raise
-    finally:
-        cleanup, code = cleanup_owned(root, output, driver, process, wpr, instance, started)
-        receipt['cleanup_errors'] = cleanup
-        if cleanup:
-            receipt['passed'] = False
-        receipt['exit_code'] = code
-        write(output / 'capture.json', receipt)
-        require(not cleanup, 'Cleanup incomplete; inspect capture.json')
+        pending_error = error
+    pending_error = finalize_capture(root, output, driver, process, wpr, instance,
+                                     started, trace_saved, tools, target, receipt, pending_error)
+    if pending_error is not None:
+        raise pending_error
 
 
-def cleanup_owned(root, output, driver, process, wpr, instance, started):
+def normal_shutdown(driver, process):
+    """Normal app/window requests only; forced cleanup remains a separate result."""
+    result = {'normal_exit': False, 'method': None,
+              'before': exit_snapshot(driver, process),
+              'f10': {'attempted': False}, 'wm_close': {'attempted': False}}
+    for method in ('f10', 'wm_close'):
+        if process.poll() is not None:
+            result.update(normal_exit=process.returncode == 0, method='already_exited',
+                          exit_code=process.returncode)
+            return result
+        attempt = result[method]
+        try:
+            if method == 'f10':
+                attempt['attempted'] = True
+                driver.close()
+            else:
+                # Never search for another window or post to a recycled HWND.
+                owner = wintypes.DWORD()
+                window = driver.window
+                require(window and driver.user.IsWindow(window), 'Bound game window is absent')
+                thread = driver.user.GetWindowThreadProcessId(window, ctypes.byref(owner))
+                require(thread and owner.value == process.pid, 'Bound window owner differs from launched PID')
+                attempt.update(hwnd=window, owner_pid=owner.value, owner_thread_id=thread,
+                               attempted=True, message='WM_CLOSE')
+                require(driver.user.PostMessageW(window, 0x0010, 0, 0), 'Owned WM_CLOSE request failed')
+            code = process.wait(timeout=20)
+            attempt['exit_code'] = code
+            result.update(normal_exit=code == 0, method=method, exit_code=code)
+            return result
+        except subprocess.TimeoutExpired as error:
+            attempt.update(timed_out=True, timeout_seconds=20, error=str(error))
+        except (OSError, ValueError, DriverError) as error:
+            attempt['error'] = str(error)
+        attempt['after'] = exit_snapshot(driver, process, probe_responsiveness=True)
+    return result
+
+
+def export_trace(root, output, tools, target, process, receipt):
+    # Local build PDBs identify game functions. OS/driver symbols use only the
+    # public Microsoft server; unresolved entries remain explicit in reports.
+    symbols = str(target / 'release') + ';srv*' + str(output / 'symbols') + '*https://msdl.microsoft.com/download/symbols'
+    export_env = dict(os.environ, _NT_SYMBOL_PATH=symbols, _NT_SYMCACHE_PATH=str(output / 'symcache'))
+    for action, args in [('profile', ['-detail']), ('process', []), ('tracestats', []), ('stack', ['-butterfly']),
+                         ('renderer-stack', ['-butterfly', '-event', 'Profile', '-pid', str(process.pid),
+                                             '-tid', str(receipt['renderer_window_thread_id'])])]:
+        command_log([tools['xperf']['path'], '-i', output / 'cpu.etl', '-symbols',
+                     '-o', output / (action + '.txt'), '-a', 'stack' if action == 'renderer-stack' else action, *args], root,
+                    output / (action + '-export.log'), env=export_env, timeout=180)
+    return {'passed': True, 'trace_sha256': digest(output / 'cpu.etl'),
+            'reports_sha256': {name: digest(output / (name + '.txt'))
+                              for name in ('profile', 'process', 'tracestats', 'stack', 'renderer-stack')}}
+
+
+def finalize_capture(root, output, driver, process, wpr, instance, started, trace_saved,
+                     tools, target, receipt, pending_error):
+    observation = {}
+    cleanup, code = cleanup_owned(root, output, driver, process, wpr, instance, started, observation)
+    receipt.update(cleanup_errors=cleanup, cleanup=observation, exit_code=code,
+                   trace_saved=trace_saved, trace_export={'passed': False})
+    export_error = None
+    # A failed normal exit does not erase a stopped trace. Explicit interrupts
+    # still stop work rather than beginning additional report-export commands.
+    if trace_saved and not isinstance(pending_error, (KeyboardInterrupt, SystemExit)):
+        try:
+            receipt['trace_export'] = export_trace(root, output, tools, target, process, receipt)
+        except BaseException as error:
+            export_error = error
+            receipt['trace_export'].update(error=str(error) or type(error).__name__,
+                                           error_type=type(error).__name__)
+    receipt['passed'] = (pending_error is None and not cleanup and not observation.get('forced', False)
+                         and receipt.get('shutdown', {}).get('normal_exit') is True
+                         and receipt.get('post_capture_inputs_verified') is True
+                         and receipt['trace_export']['passed'])
+    failure = export_error if isinstance(export_error, (KeyboardInterrupt, SystemExit)) else pending_error
+    if failure is None and cleanup:
+        failure = ValueError('Cleanup incomplete; inspect capture.json')
+    if failure is None and export_error is not None:
+        failure = export_error
+    if failure is None and not receipt['passed']:
+        failure = ValueError('Capture or trace export incomplete; inspect capture.json')
+    if failure is not None:
+        primary_error = pending_error if pending_error is not None else failure
+        receipt.setdefault('error', str(primary_error) or type(primary_error).__name__)
+        receipt['error_type'] = type(primary_error).__name__
+    write(output / 'capture.json', receipt)
+    return failure
+
+
+def cleanup_owned(root, output, driver, process, wpr, instance, started, observation=None):
+    observation = {} if observation is None else observation
+    observation.update(forced=False, process_action='not_launched')
     cleanup = []
     if started:
         try:
@@ -279,11 +358,14 @@ def cleanup_owned(root, output, driver, process, wpr, instance, started):
     code = None
     try:
         if process is not None:
+            observation['process_action'] = 'already_exited'
             if process.poll() is None:
+                observation.update(forced=True, process_action='terminate')
                 process.terminate()
                 try:
                     process.wait(timeout=5)
                 except subprocess.TimeoutExpired:
+                    observation['process_action'] = 'kill'
                     process.kill()
                     process.wait(timeout=5)
             code = process.poll()

@@ -46,6 +46,33 @@ samples, and keep WARP-worker/driver cost separate. CPU sample shares are not
 frame wall time; CI WARP is not an RTX3080Ti performance result. No expected FPS
 or authored-image gate is relaxed by this diagnostic.
 
+The normal shutdown path records its F10 attempt and any 20-second timeout,
+including a bounded responsiveness snapshot. It may then request WM_CLOSE only
+on the previously bound HWND after rechecking its owner PID. A zero exit through
+that normal window path is distinguished from forced process cleanup. The receipt
+retains `shutdown.f10`, `shutdown.wm_close`, `cleanup.forced`, `trace_saved` and a
+separate `trace_export` result. A stopped trace is exported even after an unresolved
+normal-exit failure; successful export never upgrades a failed capture. Explicit
+interrupts stop further exports while retaining their error receipt.
+
+## Preserved failed-capture recovery
+
+Run 38194089349 saved its ETL before a 20-second F10 shutdown timeout. Its original
+capture remains failed, with owned-process cleanup exit 1. The separate recovery
+workflow consumes only immutable artifact 11723285843 from that run. It verifies
+all 15 original compact-report hashes and the exact 19-file inventory, including
+retained EXE/PDB bytes against the original build/capture hashes. It never launches
+the retained executable or changes the original receipt.
+
+Recovery writes new xperf reports with the original process/thread IDs and records
+the ETL hash, full input inventory, installed exporter identity and export hashes.
+`exports_completed` does not upgrade `original_capture_passed=false`. The original
+archive digest is independently checked against the download action log; it is
+not falsely reported as rehashed by the runner after extraction. Source/settings
+post-capture guards that the original shutdown failure skipped remain unverified.
+The recovered trace can support bounded sampled-function analysis only after
+symbol adequacy, event loss and its original timing window are reviewed.
+
 Official references:
 - [WPR command line and instance ownership](https://learn.microsoft.com/en-us/windows-hardware/test/wpt/wpr-command-line-options)
 - [xperf profile reports](https://learn.microsoft.com/en-us/previous-versions/windows/desktop/xperf/profile)
