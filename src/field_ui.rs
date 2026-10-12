@@ -160,8 +160,13 @@ mod tests {
     #[test]
     fn backings_resolve_high_contrast_background_and_border() {
         use crate::draw::Command;
-        ui_theme::set_theme(ui_theme::UiTheme::parse("high-contrast.css",
-            include_str!("../ui/examples/high-contrast.css")).unwrap());
+        ui_theme::set_theme(
+            ui_theme::UiTheme::parse(
+                "high-contrast.css",
+                include_str!("../ui/examples/high-contrast.css"),
+            )
+            .unwrap(),
+        );
         begin_frame(400, 200, 1.).unwrap();
         let core = Rect::new(50., 50., 100., 30.);
         cluster_shade(core, 1.);

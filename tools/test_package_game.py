@@ -7,6 +7,8 @@ import struct
 import tempfile
 import unittest
 
+import revalidate_reused_companions as reuse
+
 spec = importlib.util.spec_from_file_location("package_game", Path(__file__).with_name("package_game.py"))
 package = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(package)
@@ -48,6 +50,22 @@ class PackageGameTests(unittest.TestCase):
             path = self.root / relative
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_bytes(contents)
+
+    def test_current_packager_pin_rejects_unrelated_script_drift(self):
+        lock = reuse.read_json(ROOT / "tools/source_bound_companion_reuse_lock.json")
+        row = next(row for row in lock["source_files"] if row["path"] == "tools/package_game.py")
+        original = (ROOT / row["path"]).read_bytes()
+        script = self.base / "package_game.py"
+        script.write_bytes(original)
+        reuse.check_digest(script, row)
+        # Changing validator code, even at the same byte length, must not inherit
+        # approval from the reviewed RUNTIME_FILES-only addition.
+        altered = original.replace(b"unsafe distribution path", b"unsafe distribution PATH", 1)
+        self.assertNotEqual(altered, original)
+        self.assertEqual(len(altered), len(original))
+        script.write_bytes(altered)
+        with self.assertRaisesRegex(ValueError, "byte/hash mismatch"):
+            reuse.check_digest(script, row)
 
     def test_repository_compressed_input_stages_exact_original(self):
         self.add_distribution_files()

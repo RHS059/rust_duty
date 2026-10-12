@@ -442,7 +442,8 @@ fn draw_bottom_clusters(sim: &Simulation, cfg: &Settings, w: f32, h: f32, weapon
         let bar_y = bottom - (4. * s).max(1.);
         // Status gets its own measured row below magazine + reserve.
         let status_base = status_dims.map(|d| bar_y - gap - (d.height - d.offset_y));
-        let ammo_bottom = status_dims.zip(status_base)
+        let ammo_bottom = status_dims
+            .zip(status_base)
             .map_or(bar_y - gap, |(d, base)| base - d.offset_y - gap);
         let mag_base = ammo_bottom - (dm.height - dm.offset_y).max(dr.height - dr.offset_y);
         let ammo_top = mag_base - dm.offset_y.max(dr.offset_y);
@@ -543,7 +544,6 @@ fn draw_bottom_clusters(sim: &Simulation, cfg: &Settings, w: f32, h: f32, weapon
         let tac = (p.tac_charge / cfg.action.tac_sprint_duration.max(1e-3)).min(1.);
         hud_rectangle(x, tac_y, width * tac, (3. * s).max(1.), ACCENT);
     }
-
 }
 
 #[cfg(test)]
@@ -554,7 +554,11 @@ mod tests {
         use crate::{draw::Command, render::text::TextRenderer};
         let _reset = ThemeReset;
         let mut renderer = TextRenderer::new().unwrap();
-        for css in ["", include_str!("../ui/examples/high-contrast.css"), "#hud .label {font-size:21.5px}"] {
+        for css in [
+            "",
+            include_str!("../ui/examples/high-contrast.css"),
+            "#hud .label {font-size:21.5px}",
+        ] {
             ui_theme::set_theme(ui_theme::UiTheme::parse("test.css", css).unwrap());
             for (w, h) in [(640, 360), (960, 540), (1920, 1080), (3840, 2160)] {
                 for state in 0..5 {
@@ -562,7 +566,10 @@ mod tests {
                     match state {
                         1 => sim.player.ammo = 1,
                         2 => sim.player.ammo = 0,
-                        3 => { sim.player.reload_left = 1.; sim.player.reload_total = 2.; }
+                        3 => {
+                            sim.player.reload_left = 1.;
+                            sim.player.reload_total = 2.;
+                        }
                         4 => sim.player.sprint_out = 1.,
                         _ => {}
                     }
@@ -570,7 +577,13 @@ mod tests {
                     draw_bottom_clusters(&sim, &Settings::default(), w as f32, h as f32, "HK416");
                     let mut bounds = Vec::new();
                     for command in take_draw_list().unwrap().commands {
-                        if let Command::Text { text, baseline, size, color } = command {
+                        if let Command::Text {
+                            text,
+                            baseline,
+                            size,
+                            color,
+                        } = command
+                        {
                             let mut min = vec2(f32::INFINITY, f32::INFINITY);
                             let mut max = vec2(f32::NEG_INFINITY, f32::NEG_INFINITY);
                             for mesh in renderer.meshes(&text, baseline, size, color).unwrap() {
@@ -579,16 +592,26 @@ mod tests {
                                     max = max.max(vertex.position.truncate());
                                 }
                             }
-                            assert!(min.x >= 0. && min.y >= 0. && max.x <= w as f32 && max.y <= h as f32,
-                                "{text} outside {w}x{h}: {min:?}..{max:?}");
+                            assert!(
+                                min.x >= 0.
+                                    && min.y >= 0.
+                                    && max.x <= w as f32
+                                    && max.y <= h as f32,
+                                "{text} outside {w}x{h}: {min:?}..{max:?}"
+                            );
                             bounds.push((text, min, max));
                         }
                     }
                     assert_eq!(bounds.len(), if state == 0 { 5 } else { 6 });
                     for (i, (text, min, max)) in bounds.iter().enumerate() {
                         for (other, omin, omax) in &bounds[i + 1..] {
-                            assert!(max.x <= omin.x || omax.x <= min.x || max.y <= omin.y || omax.y <= min.y,
-                                "{text} overlaps {other} at {w}x{h}, state {state}, CSS {css}");
+                            assert!(
+                                max.x <= omin.x
+                                    || omax.x <= min.x
+                                    || max.y <= omin.y
+                                    || omax.y <= min.y,
+                                "{text} overlaps {other} at {w}x{h}, state {state}, CSS {css}"
+                            );
                         }
                     }
                 }
