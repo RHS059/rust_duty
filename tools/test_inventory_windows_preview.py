@@ -125,6 +125,18 @@ class PreviewInventoryTests(unittest.TestCase):
         self.entries['vector-range.exe.fake'] = self.entries.pop('vector-range.exe')
         self.invalid()
 
+    def test_each_field_preset_is_required_by_exact_name(self):
+        for name in ('field-spartan.css', 'field-arena.css', 'field-dread.css'):
+            path = 'ui/examples/' + name
+            self.assertIn(path, inventory.REQUIRED_FILES)
+            for replacement in (None, path + '.fake'):
+                with self.subTest(preset=path, replacement=replacement):
+                    self.entries = dict(self.control)
+                    contents = self.entries.pop(path)
+                    if replacement:
+                        self.entries[replacement] = contents
+                    self.invalid(path)
+
     def test_hash_size_source_and_notice_binding(self):
         mutations = [
             ('BUILD_IDENTITY.json', lambda r: r['executable'].update(sha256='0' * 64)),
