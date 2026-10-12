@@ -40,6 +40,7 @@ struct Impact {
 }
 pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), String> {
     let args: Vec<String> = std::env::args().collect();
+    let viewmodel_render_diagnostic = RenderDiagnostic::from_args(&args)?;
     let executable =
         std::env::current_exe().unwrap_or_else(|_| std::path::PathBuf::from("vector-range.exe"));
     let authored_executable =
@@ -282,6 +283,17 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
     } else {
         None
     };
+    if let Some(mode) = viewmodel_render_diagnostic {
+        mode.check_route(
+            authored.is_some(),
+            args.iter()
+                .take_while(|arg| arg.as_str() != "--")
+                .any(|arg| arg.starts_with("--animation-manifest=")),
+            authored_clip == "locomotion",
+            authored_time.is_some(),
+        )?;
+        eprintln!("viewmodel_render_diagnostic mode={} scope=authored_manifest_layer animation_updates=preserved", mode.name());
+    }
     let model_missing = authored_path.is_none()
         && matches!(
             &model_source,
@@ -803,7 +815,7 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
                 ) {
                     Ok(export) => {
                         telemetry_csv_error = None;
-                        let scene = frame_trace_scene(
+                        let mut scene = frame_trace_scene(
                             profile,
                             weapon_id,
                             if model_error.is_some() {
@@ -820,6 +832,9 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
                             capture_sequence,
                             demo,
                         );
+                        if let Some(mode) = viewmodel_render_diagnostic {
+                            mode.record_scene(&mut scene);
+                        }
                         let trace = start_frame_trace(
                             scene,
                             trace_eligibility,
@@ -1245,23 +1260,25 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
             ),
         ];
         if (authored_path.is_none() || authored.is_some()) && !sim.player.dead() {
-            weapon(
-                &sim,
-                &target,
-                aspect,
-                &mut locomotion_state,
-                model.as_mut(),
-                authored.as_mut(),
-                arms.as_mut(),
-                &mut animation_state,
-                &cfg,
-                cfg.walking_translation(weapon_id),
-                framing,
-                presentation_reload,
-                &mut muzzle_fx,
-                authored_path.is_none(),
-                &layers,
-            );
+            submit_weapon_layer(viewmodel_render_diagnostic, || {
+                weapon(
+                    &sim,
+                    &target,
+                    aspect,
+                    &mut locomotion_state,
+                    model.as_mut(),
+                    authored.as_mut(),
+                    arms.as_mut(),
+                    &mut animation_state,
+                    &cfg,
+                    cfg.walking_translation(weapon_id),
+                    framing,
+                    presentation_reload,
+                    &mut muzzle_fx,
+                    authored_path.is_none(),
+                    &layers,
+                );
+            });
         }
         if let Some(warning) = authored.as_ref().and_then(|viewmodel| viewmodel.warning()) {
             label(warning, 24., screen_height() - 155., 15., YELLOW);

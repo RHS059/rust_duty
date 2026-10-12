@@ -5,6 +5,78 @@ use vector_range::scene_lighting::SceneLighting;
 use vector_range::{
     muzzle_fx::MuzzleFx, settings::Settings, sim::Simulation, weapon_sway::LayerOffset,
 };
+
+/// Explicit, render-only experiment for the normal authored-manifest route.
+/// Controller/simulation updates occur before this draw boundary in app.rs.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) enum RenderDiagnostic {
+    Visible,
+    Hidden,
+}
+impl RenderDiagnostic {
+    pub(crate) fn from_args(args: &[String]) -> Result<Option<Self>, String> {
+        let mut value = None;
+        for arg in args.iter().take_while(|arg| arg.as_str() != "--") {
+            if arg == "--diagnostic-viewmodel-render"
+                || arg.starts_with("--diagnostic-viewmodel-render=")
+            {
+                if value.is_some() {
+                    return Err("duplicate --diagnostic-viewmodel-render".into());
+                }
+                value = Some(match arg.as_str() {
+                    "--diagnostic-viewmodel-render=visible" => Self::Visible,
+                    "--diagnostic-viewmodel-render=hidden" => Self::Hidden,
+                    _ => {
+                        return Err(
+                            "--diagnostic-viewmodel-render requires visible or hidden".into()
+                        )
+                    }
+                });
+            }
+        }
+        Ok(value)
+    }
+
+    pub(crate) fn check_route(
+        self,
+        loaded: bool,
+        explicit_manifest: bool,
+        locomotion: bool,
+        fixed_time: bool,
+    ) -> Result<(), String> {
+        if !loaded || !explicit_manifest || !locomotion || fixed_time {
+            return Err("viewmodel render diagnostic requires the loaded explicit authored animation manifest and its live locomotion controller".into());
+        }
+        Ok(())
+    }
+
+    pub(crate) fn name(self) -> &'static str {
+        match self {
+            Self::Visible => "visible",
+            Self::Hidden => "hidden",
+        }
+    }
+
+    pub(crate) fn record_scene(self, scene: &mut serde_json::Value) {
+        scene["viewmodel_render_diagnostic"] = serde_json::json!({
+            "schema":"rust-duty-viewmodel-render-isolation/v1",
+            "mode":self.name(),
+            "viewmodel_submitted":self == Self::Visible,
+            "scope":"authored_manifest_layer_including_prepare_clear_and_composite",
+        });
+    }
+}
+
+pub(crate) fn submit_weapon_layer(mode: Option<RenderDiagnostic>, draw: impl FnOnce()) {
+    if mode == Some(RenderDiagnostic::Hidden) {
+        // weapon() normally restores this while compositing. HUD/warnings must
+        // keep their screen-space camera even when the entire layer is skipped.
+        set_default_camera();
+    } else {
+        draw();
+    }
+}
+
 #[derive(Clone, Copy)]
 pub(crate) struct ViewmodelFraming {
     pub(crate) hip: Vec3,
@@ -333,6 +405,107 @@ pub(crate) fn composite_viewmodel(rt: &RenderTarget) {
 mod tests {
     use super::*;
     use vector_range::draw::Command;
+
+    #[test]
+    fn diagnostic_is_explicit_closed_and_respects_separator() {
+        let args = |items: &[&str]| items.iter().map(|s| (*s).to_owned()).collect::<Vec<_>>();
+        assert_eq!(RenderDiagnostic::from_args(&[]).unwrap(), None);
+        for (name, expected) in [
+            ("visible", RenderDiagnostic::Visible),
+            ("hidden", RenderDiagnostic::Hidden),
+        ] {
+            assert_eq!(
+                RenderDiagnostic::from_args(&[format!("--diagnostic-viewmodel-render={name}")])
+                    .unwrap(),
+                Some(expected)
+            );
+        }
+        for items in [
+            vec!["--diagnostic-viewmodel-render"],
+            vec!["--diagnostic-viewmodel-render=no"],
+            vec![
+                "--diagnostic-viewmodel-render=hidden",
+                "--diagnostic-viewmodel-render=visible",
+            ],
+        ] {
+            assert!(RenderDiagnostic::from_args(&args(&items)).is_err());
+        }
+        assert_eq!(
+            RenderDiagnostic::from_args(&args(&["--", "--diagnostic-viewmodel-render=hidden"]))
+                .unwrap(),
+            None
+        );
+    }
+
+    #[test]
+    fn diagnostic_requires_live_authored_manifest() {
+        for mode in [RenderDiagnostic::Visible, RenderDiagnostic::Hidden] {
+            assert!(mode.check_route(true, true, true, false).is_ok());
+            for inputs in [
+                (false, true, true, false),
+                (true, false, true, false),
+                (true, true, false, false),
+                (true, true, true, true),
+            ] {
+                assert!(mode
+                    .check_route(inputs.0, inputs.1, inputs.2, inputs.3)
+                    .is_err());
+            }
+        }
+    }
+
+    #[test]
+    fn hidden_omits_the_layer_and_restores_hud_camera() {
+        begin_frame(960, 540, 1.).unwrap();
+        set_camera(&Camera3D {
+            position: vec3(1., 2., 3.),
+            target: Vec3::ZERO,
+            ..Default::default()
+        });
+        submit_weapon_layer(Some(RenderDiagnostic::Hidden), || {
+            panic!("hidden layer must not execute")
+        });
+        draw_rectangle(1., 2., 3., 4., WHITE);
+        let frame = take_draw_list().unwrap();
+        let camera = frame
+            .commands
+            .iter()
+            .rev()
+            .find_map(|command| match command {
+                Command::Camera(camera) => Some(camera),
+                _ => None,
+            })
+            .expect("hidden branch must restore the HUD camera");
+        assert!(camera.target.is_none());
+        assert_eq!(
+            camera.view_projection,
+            vector_range::draw::Camera::screen(960, 540).view_projection
+        );
+        assert_eq!(
+            frame
+                .commands
+                .iter()
+                .filter(|command| !matches!(command, Command::Camera(_)))
+                .count(),
+            1
+        );
+    }
+
+    #[test]
+    fn visible_and_default_submit_once_and_scene_has_explicit_mode() {
+        for mode in [None, Some(RenderDiagnostic::Visible)] {
+            let mut calls = 0;
+            submit_weapon_layer(mode, || calls += 1);
+            assert_eq!(calls, 1);
+        }
+        let mut scene = serde_json::json!({"world":"unchanged"});
+        RenderDiagnostic::Hidden.record_scene(&mut scene);
+        assert_eq!(scene["world"], "unchanged");
+        assert_eq!(
+            scene["viewmodel_render_diagnostic"]["viewmodel_submitted"],
+            false
+        );
+    }
 
     #[test]
     fn procedural_weapon_records_cant_scope_then_composites_without_gpu_state() {
