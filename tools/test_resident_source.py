@@ -20,14 +20,14 @@ class SourceTests(unittest.TestCase):
         root=self.checkout()
         source=matrix.source_identity(root)
         self.assertEqual(len(source['runtime_files_sha256']),48)
-        self.assertEqual(matrix.canonical_hash(source['runtime_files_sha256']),matrix.AUDITED_ARITHMETIC_CANDIDATE_MANIFEST)
+        self.assertEqual(matrix.canonical_hash(source['runtime_files_sha256']),matrix.AUDITED_EXACT_UNORM_CANDIDATE_MANIFEST)
         matrix.export_witness(root,root/'candidate-witness')
         self.assertEqual(matrix.artifact_source(root/'candidate-witness',matrix.sha256(root/'candidate-witness/SOURCE_WITNESS.json')),source)
         path=root/'src/frame_staging_policy.rs';raw=path.read_bytes()
         self.assertEqual(raw.count(b'STAGING_REUSE_ENABLED: bool = true;'),1)
         path.write_bytes(raw.replace(b'STAGING_REUSE_ENABLED: bool = true;',b'STAGING_REUSE_ENABLED: bool = false;'));commit(root)
         control=matrix.source_identity(root)
-        self.assertEqual(matrix.canonical_hash(control['runtime_files_sha256']),matrix.AUDITED_ARITHMETIC_STAGING_CONTROL_MANIFEST)
+        self.assertEqual(matrix.canonical_hash(control['runtime_files_sha256']),matrix.AUDITED_EXACT_UNORM_STAGING_CONTROL_MANIFEST)
         self.assertEqual({n for n in source['runtime_files_sha256'] if source['runtime_files_sha256'][n]!=control['runtime_files_sha256'][n]},{'src/frame_staging_policy.rs'})
     def test_new_or_previously_unbound_files_never_use_narrow_fallback(self):
         for name in matrix.ARITHMETIC_SOURCE_PATHS[len(matrix.LOADER_SOURCE_PATHS):]:
@@ -46,7 +46,7 @@ class SourceTests(unittest.TestCase):
         path.write_bytes(path.read_bytes().replace(b'ENABLED: bool = true;',b'ENABLED: bool = false;'));commit(root)
         control=matrix.source_identity(root)
         self.assertEqual(matrix.canonical_hash(control['runtime_files_sha256']),
-                         matrix.AUDITED_ARITHMETIC_RESIDENT_CPU_CONTROL_MANIFEST)
+                         matrix.AUDITED_EXACT_UNORM_RESIDENT_CPU_CONTROL_MANIFEST)
         self.assertEqual({name for name in candidate['runtime_files_sha256']
                           if candidate['runtime_files_sha256'][name]!=control['runtime_files_sha256'][name]},
                          {'src/frame_resident_policy.rs'})
@@ -65,6 +65,30 @@ class SourceTests(unittest.TestCase):
         self.assertEqual(matrix.AUDITED_AUTHORED_DEDUP_MANIFEST,'fff66052fe41e445d50eaf2ae689a29cc68b7d3c3d4502d21d147424c60d3e06')
         self.assertEqual(matrix.audited_inventory(matrix.AUDITED_AUTHORED_DEDUP_MANIFEST),matrix.LOADER_SOURCE_PATHS)
         self.assertEqual(matrix.audited_inventory(matrix.AUDITED_ARENA_SERIALIZATION_MANIFEST),matrix.UPLOAD_REUSE_SOURCE_PATHS)
+    def test_measured_arithmetic_classes_keep_exact_historical_bytes(self):
+        hashes={name:matrix.sha256(ROOT/name) for name in matrix.ARITHMETIC_SOURCE_PATHS}
+        hashes.update({
+            'src/render/resident.rs':'8d1c10b1f51e60d1db6e6260f6dfdc1c4f7511a5fb827dd966bdb87b84888887',
+            'src/render/resident.wgsl':'90acbcd974685c4f0cf18c67a4efd0b6b980b86f554181fcc7b0a1f67d5db25a',
+            'src/render/resident_vertex_probe.rs':'c3ebb9f6fb002fbdb0b18e5420caff0fde5a581c5baa63d34735a1e03c15dc33',
+        })
+        self.assertEqual(matrix.canonical_hash(hashes), matrix.AUDITED_ARITHMETIC_CANDIDATE_MANIFEST)
+        self.assertEqual(matrix.AUDITED_ARITHMETIC_CANDIDATE_MANIFEST,
+                         'b5120632999e1c599f89740ec8550432da06575b9175d3ba937f9474a5a707d0')
+        for name, token, expected in (
+            ('src/frame_staging_policy.rs', b'STAGING_REUSE_ENABLED: bool = true;',
+             matrix.AUDITED_ARITHMETIC_STAGING_CONTROL_MANIFEST),
+            ('src/frame_resident_policy.rs', b'ENABLED: bool = true;',
+             matrix.AUDITED_ARITHMETIC_RESIDENT_CPU_CONTROL_MANIFEST),
+        ):
+            import hashlib
+            control=hashes.copy(); raw=(ROOT/name).read_bytes()
+            self.assertEqual(raw.count(token), 1)
+            control[name]=hashlib.sha256(raw.replace(token,token.replace(b'true',b'false'))).hexdigest()
+            self.assertEqual(matrix.canonical_hash(control), expected)
+            self.assertEqual(matrix.audited_inventory(expected), matrix.ARITHMETIC_SOURCE_PATHS)
+        self.assertEqual(matrix.audited_inventory(matrix.AUDITED_ARITHMETIC_CANDIDATE_MANIFEST),
+                         matrix.ARITHMETIC_SOURCE_PATHS)
     def test_historical_staging_digest_is_not_rebound_to_arithmetic_bytes(self):
         # These immutable old file hashes make this test independent of Git fetch
         # depth while retaining the exact previous inventory and class identity.

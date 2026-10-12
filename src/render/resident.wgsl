@@ -52,10 +52,24 @@ fn normal_or_y(value: vec3<f32>) -> vec3<f32> {
     return vec3<f32>(0.0, 1.0, 0.0);
 }
 
+fn unorm8_exact(byte: u32) -> f32 {
+    if byte == 0u { return 0.0; }
+    if byte >= 255u { return 1.0; }
+    // Construct the correctly rounded IEEE-754 value of byte/255 using only
+    // exact integer arithmetic. A float division may become multiplication by
+    // rounded 1/255, which differs from the Unorm8x4 vertex fetch by one ULP.
+    let exponent = 31u - countLeadingZeros(byte);
+    // byte <= 254: the shifted numerator plus 127 fits u32. The odd divisor
+    // has no halfway cases; +127 then /255 rounds to the nearest significand.
+    let significand = ((byte << (31u - exponent)) + 127u) / 255u;
+    let bits = ((exponent + 119u) << 23u) + (significand - 8388608u);
+    return bitcast<f32>(bits);
+}
+
 fn color_byte(value: f32) -> f32 {
     // Rust's float-to-u8 conversion saturates infinities and maps NaN to zero.
     if value >= 1.0 { return 1.0; }
-    if value > 0.0 { return floor(value * 255.0) / 255.0; }
+    if value > 0.0 { return unorm8_exact(u32(floor(value * 255.0))); }
     return 0.0;
 }
 fn lit_vertex_rgb(normal: vec3<f32>) -> vec3<f32> {

@@ -396,5 +396,6 @@ fn native_resident_poses_preserve_order_and_queued_results() {
         BlendMode::Alpha,
     );
     assert_eq!(renderer.submit(&list).unwrap().resident.cache_misses, 1);
+    super::resident_vertex_probe::verify_exact_unorm(&mut renderer, &output);
     eprintln!("resident native contract: 12 queued pose frames and 3 textured perspective frames, 27 exact pixel pairs, cold/warm uploads and fresh-device cache passed");
 }

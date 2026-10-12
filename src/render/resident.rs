@@ -494,6 +494,74 @@ mod tests {
         f32::from_le_bytes(bytes[offset..offset + 4].try_into().unwrap())
     }
     #[test]
+    fn integer_unorm_conversion_matches_all_correctly_rounded_byte_values() {
+        for byte in 0u32..=255 {
+            let bits = if byte == 0 {
+                0
+            } else if byte == 255 {
+                1.0f32.to_bits()
+            } else {
+                let exponent = 31 - byte.leading_zeros();
+                let numerator = (u64::from(byte) << (31 - exponent)) + 127;
+                assert!(numerator <= u64::from(u32::MAX));
+                let significand = numerator as u32 / 255;
+                ((exponent + 119) << 23) + (significand - 8388608)
+            };
+            // Independent double-precision rational oracle. Exhaust all input
+            // bytes, including those whose reciprocal product rounds upward.
+            let expected = (f64::from(byte) / 255.0) as f32;
+            assert_eq!(bits, expected.to_bits(), "byte {byte}");
+        }
+        assert_ne!(
+            (99.0f32 * (1.0f32 / 255.0)).to_bits(),
+            (99.0f32 / 255.0).to_bits()
+        );
+    }
+    #[test]
+    fn shader_unorm_helper_uses_integer_division_and_bitcast() {
+        use wgpu::naga::{Expression, MathFunction, ScalarKind, TypeInner};
+        let module = wgpu::naga::front::wgsl::parse_str(include_str!("resident.wgsl")).unwrap();
+        let (_, function) = module
+            .functions
+            .iter()
+            .find(|(_, f)| f.name.as_deref() == Some("unorm8_exact"))
+            .unwrap();
+        assert!(matches!(
+            module.types[function.arguments[0].ty].inner,
+            TypeInner::Scalar(wgpu::naga::Scalar {
+                kind: ScalarKind::Uint,
+                width: 4
+            })
+        ));
+        assert!(function.expressions.iter().any(|(_, e)| matches!(
+            e,
+            Expression::Math {
+                fun: MathFunction::CountLeadingZeros,
+                ..
+            }
+        )));
+        assert!(function.expressions.iter().any(|(_, e)| matches!(
+            e,
+            Expression::As {
+                kind: ScalarKind::Float,
+                convert: None,
+                ..
+            }
+        )));
+        let (_, color) = module
+            .functions
+            .iter()
+            .find(|(_, f)| f.name.as_deref() == Some("color_byte"))
+            .unwrap();
+        assert!(!color.expressions.iter().any(|(_, e)| matches!(
+            e,
+            Expression::Binary {
+                op: wgpu::naga::BinaryOperator::Divide,
+                ..
+            }
+        )));
+    }
+    #[test]
     fn normalization_uses_cpu_sqrt_then_reciprocal_and_keeps_byte_fences() {
         use wgpu::naga::{BinaryOperator, Expression, MathFunction};
         let module = wgpu::naga::front::wgsl::parse_str(include_str!("resident.wgsl")).unwrap();

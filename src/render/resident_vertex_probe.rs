@@ -420,8 +420,122 @@ fn capture_prepared(
 }
 
 #[cfg(test)]
+fn exact_unorm_probe_shader(count: usize) -> String {
+    let mut source = make_shader(Arithmetic::Current, Kind::Rigid, count).unwrap();
+    assert_eq!(
+        source
+            .matches("let actual = original_vs_rigid(input);")
+            .count(),
+        1
+    );
+    source = source.replace(
+        "let actual = original_vs_rigid(input);",
+        "let actual = byte_probe(input);",
+    );
+    source.push_str(
+        "\nfn byte_probe(input: RigidInput) -> VertexOutput {\n\
+        var output: VertexOutput;\n\
+        let exact = unorm8_exact(u32(input.position.x));\n\
+        output.position = vec4<f32>(0.0,0.0,0.0,1.0);\n\
+        output.uv = vec2<f32>(0.0);\n\
+        output.color = vec4<f32>(exact,color_byte(input.position.y),exact,exact);\n\
+        return output;\n}\n",
+    );
+    source
+}
+
+/// Explicit native test only. Compare every byte with the actual Unorm8x4
+/// vertex-fetch path, and test the original truncation/saturation boundary.
+#[cfg(test)]
+pub(super) fn verify_exact_unorm(renderer: &mut WgpuRenderer, output: &std::path::Path) {
+    use crate::draw::{Mesh, Vertex};
+    use glam::{Vec2, Vec3, Vec4};
+    let mut values: Vec<(u8, f32)> = (0u32..=255)
+        .map(|byte| (byte as u8, ((f64::from(byte) + 0.25) / 255.0) as f32))
+        .collect();
+    values.extend([
+        (0, -1.),
+        (0, f32::NEG_INFINITY),
+        (0, f32::NAN),
+        (0, -0.),
+        (0, f32::from_bits(1)),
+        (255, 1.),
+        (255, f32::INFINITY),
+        (255, 2.),
+    ]);
+    let mesh = Mesh {
+        vertices: values
+            .iter()
+            .map(|&(byte, value)| Vertex {
+                position: Vec3::new(f32::from(byte), value, 0.),
+                uv: Vec2::ZERO,
+                color: [byte; 4],
+                normal: Vec4::ZERO,
+            })
+            .collect(),
+        indices: Vec::new(),
+        texture: None,
+    };
+    let indices: Vec<_> = (0..values.len() as u32).collect();
+    let cpu = capture_cpu_reference(renderer, &mesh, Mat4::IDENTITY, &indices).unwrap();
+    let source = exact_unorm_probe_shader(indices.len());
+    let bytes: Vec<_> = values
+        .iter()
+        .flat_map(|&(byte, value)| {
+            [f32::from(byte), value, 0., 0., 0., 0., 0., 0.]
+                .into_iter()
+                .flat_map(f32::to_le_bytes)
+        })
+        .collect();
+    let gpu = capture_prepared(
+        renderer,
+        &bytes,
+        Kind::Rigid,
+        &[0; 240],
+        &resident::palette_bytes(None),
+        &indices,
+        source.clone(),
+    )
+    .unwrap();
+    let rows: Vec<_> = values
+        .iter()
+        .zip(&cpu)
+        .zip(&gpu)
+        .map(|((&(byte, value), cpu), gpu)| {
+            let expected = ((f64::from(byte) / 255.0) as f32).to_bits();
+            serde_json::json!({"byte":byte,"input_bits":value.to_bits(),"expected_bits":expected,
+            "cpu_unorm8x4_bits":cpu.color_bits,"shader_bits":gpu.color_bits})
+        })
+        .collect();
+    std::fs::write(output.join("unorm-byte-report.json"), serde_json::to_vec_pretty(
+        &serde_json::json!({"schema":"rust-duty-exact-unorm-byte-contract/v1",
+            "production_shader_sha256":rust_duty_launcher::bytes_hash(include_bytes!("resident.wgsl")),
+            "probe_shader_sha256":rust_duty_launcher::bytes_hash(source.as_bytes()),
+            "byte_count":256,"boundary_count":8,"rows":rows})).unwrap()).unwrap();
+    for ((&(byte, _), cpu), gpu) in values.iter().zip(&cpu).zip(&gpu) {
+        let expected = [((f64::from(byte) / 255.0) as f32).to_bits(); 4];
+        assert_eq!(cpu.color_bits, expected, "actual Unorm8x4 byte {byte}");
+        assert_eq!(
+            gpu.color_bits, expected,
+            "exact shader conversion byte {byte}"
+        );
+    }
+    eprintln!("resident exact UNORM conversion: all 256 vertex-fetch byte values and 8 saturation/truncation boundaries passed");
+}
+
+#[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn exhaustive_byte_probe_shader_validates_without_a_gpu() {
+        let module = wgpu::naga::front::wgsl::parse_str(&exact_unorm_probe_shader(264)).unwrap();
+        wgpu::naga::valid::Validator::new(
+            wgpu::naga::valid::ValidationFlags::all(),
+            wgpu::naga::valid::Capabilities::all(),
+        )
+        .validate(&module)
+        .unwrap();
+    }
     #[test]
     fn unwritten_points_are_not_zero_samples_and_nonfinite_bits_are_retained() {
         let mut bytes = vec![255; 512];

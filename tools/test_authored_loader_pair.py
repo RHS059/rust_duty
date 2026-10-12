@@ -319,8 +319,8 @@ class CurrentLoaderWitnessTests(unittest.TestCase):
         source = matrix.source_identity(root)
         self.assertEqual(len(source['runtime_files_sha256']), 48)
         self.assertEqual(set(source['runtime_files_sha256']), set(matrix.ARITHMETIC_SOURCE_PATHS))
-        self.assertEqual(matrix.canonical_hash(source['runtime_files_sha256']), matrix.AUDITED_ARITHMETIC_CANDIDATE_MANIFEST)
-        self.assertEqual(matrix.audited_inventory(matrix.AUDITED_ARITHMETIC_CANDIDATE_MANIFEST), matrix.ARITHMETIC_SOURCE_PATHS)
+        self.assertEqual(matrix.canonical_hash(source['runtime_files_sha256']), matrix.AUDITED_EXACT_UNORM_CANDIDATE_MANIFEST)
+        self.assertEqual(matrix.audited_inventory(matrix.AUDITED_EXACT_UNORM_CANDIDATE_MANIFEST), matrix.ARITHMETIC_SOURCE_PATHS)
         output = root / 'witness'
         digest = matrix.export_witness(root, output)
         with patch.object(matrix.subprocess, 'check_output', side_effect=AssertionError('artifact replay cannot use Git')):
