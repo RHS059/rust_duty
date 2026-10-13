@@ -11,6 +11,19 @@ use glam::Vec2;
 use std::collections::HashMap;
 
 pub(crate) const FONT_BYTES: &[u8] = include_bytes!("font/BarlowCondensed-SemiBold.ttf");
+
+/// Control characters advance like a space in every backend, as with the
+/// previous bitmap font, instead of drawing Barlow's missing-glyph box.
+pub(crate) fn printable(text: &str) -> std::borrow::Cow<'_, str> {
+    if text.chars().any(char::is_control) {
+        text.chars()
+            .map(|c| if c.is_control() { ' ' } else { c })
+            .collect::<String>()
+            .into()
+    } else {
+        text.into()
+    }
+}
 const MAX_SIZE_PX: f32 = 1024.0;
 const MAX_CACHED_GLYPHS: usize = 4096;
 const MAX_CACHE_BYTES: usize = 32 * 1024 * 1024;
@@ -196,8 +209,7 @@ impl TextRenderer {
     }
 
     fn key(&self, character: char, size: f32) -> GlyphKey {
-        // Control characters advance like a space, as with the previous bitmap
-        // font, instead of drawing Barlow's missing-glyph box.
+        // Same mapping as `printable`, per character.
         let character = if character.is_control() {
             ' '
         } else {
@@ -315,6 +327,22 @@ mod tests {
         assert_eq!(
             newline[1].vertices[0].position,
             spaced[1].vertices[0].position
+        );
+    }
+
+    #[test]
+    fn printable_maps_control_characters_like_the_glyph_keys() {
+        let renderer = renderer();
+        assert_eq!(printable("A\ng\tz"), "A g z");
+        assert!(matches!(
+            printable("plain"),
+            std::borrow::Cow::Borrowed("plain")
+        ));
+        // The legacy backend measures `printable(text)`; the CPU renderer maps
+        // per glyph. Both must agree for every control character.
+        assert_eq!(
+            renderer.measure_text("A\ng\tz", 16.0),
+            renderer.measure_text(&printable("A\ng\tz"), 16.0)
         );
     }
 

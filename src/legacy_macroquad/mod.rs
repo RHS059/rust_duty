@@ -145,7 +145,8 @@ impl LegacyRenderer {
         if text.is_empty() {
             return Ok(draw::TextDimensions::default());
         }
-        let measured = macroquad::text::measure_text(text, Some(&self.font), size as u16, 1.0);
+        let text = crate::render::text::printable(text);
+        let measured = macroquad::text::measure_text(&text, Some(&self.font), size as u16, 1.0);
         Ok(draw::TextDimensions {
             width: measured.width,
             height: measured.height,
@@ -350,11 +351,13 @@ impl LegacyRenderer {
                 size,
                 color,
             } => {
-                prepare_default_text(&self.font, text, *size)?;
+                // Same control-character mapping as the wgpu text renderer.
+                let text = crate::render::text::printable(text);
+                prepare_default_text(&self.font, &text, *size)?;
                 let font = self.font.clone();
                 self.with_screen_camera(active, extent, false, || {
                     macroquad::text::draw_text_ex(
-                        text,
+                        &text,
                         baseline.x,
                         baseline.y,
                         macroquad::text::TextParams {

@@ -137,12 +137,9 @@ pub fn halo_dot(center: Vec2, radius: f32, color: Color, s: f32) {
 /// Segmented meter (§7.4): loss reads at a glance. `fraction` is clamped to 0..=1.
 pub fn segmented_bar(r: Rect, segments: u32, fraction: f32, fill: Color, s: f32) {
     let track = ui_theme::style(UiScope::Hud, &[UiClass::Muted]).tint(TRACK);
-    let class = if fill == WARNING {
-        UiClass::Warning
-    } else {
-        UiClass::Muted
-    };
-    let fill = ui_theme::style(UiScope::Hud, &[class]).tint(fill);
+    // Fills keep their signal colour (health, warning, critical): a theme may
+    // not change signal meanings (FIELD §14), only the HUD's opacity.
+    let fill = ui_theme::style(UiScope::Hud, &[]).apply_opacity(fill);
     let segments = segments.max(1);
     let gap = (4. * s).max(1.);
     let seg_w = (r.w - gap * (segments - 1) as f32) / segments as f32;
@@ -205,6 +202,57 @@ mod tests {
                 assert_eq!(color.a, 0., "HUD primitive bypassed theme opacity");
             }
         }
+    }
+
+    #[test]
+    fn meter_fills_keep_signal_colours_under_every_shipped_preset() {
+        use crate::draw::Command;
+        for (name, css) in [
+            (
+                "field-spartan.css",
+                include_str!("../ui/examples/field-spartan.css"),
+            ),
+            (
+                "field-arena.css",
+                include_str!("../ui/examples/field-arena.css"),
+            ),
+            (
+                "field-dread.css",
+                include_str!("../ui/examples/field-dread.css"),
+            ),
+            (
+                "high-contrast.css",
+                include_str!("../ui/examples/high-contrast.css"),
+            ),
+        ] {
+            ui_theme::set_theme(ui_theme::UiTheme::parse(name, css).unwrap());
+            for fill in [TEXT, CRITICAL, WARNING] {
+                begin_frame(400, 100, 1.).unwrap();
+                segmented_bar(Rect::new(0., 0., 100., 4.), 4, 0.5, fill, 1.);
+                let colors: Vec<Color> = take_draw_list()
+                    .unwrap()
+                    .commands
+                    .into_iter()
+                    .filter_map(|c| match c {
+                        Command::Rect { color, .. } => Some(color),
+                        _ => None,
+                    })
+                    .collect();
+                // Four tracks, then two filled segments in the signal colour.
+                let (track, filled) = (colors[0], colors[1]);
+                assert_eq!(
+                    [filled.r, filled.g, filled.b],
+                    [fill.r, fill.g, fill.b],
+                    "{name}"
+                );
+                assert_ne!(
+                    [filled.r, filled.g, filled.b],
+                    [track.r, track.g, track.b],
+                    "{name}"
+                );
+            }
+        }
+        ui_theme::set_theme(ui_theme::UiTheme::default());
     }
 
     #[test]

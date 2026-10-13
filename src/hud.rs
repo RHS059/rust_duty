@@ -411,6 +411,19 @@ pub fn hud(
     }
 }
 
+/// The world pass camera, lean roll included, so markers stay on their targets.
+fn world_view_projection(sim: &Simulation, cfg: &Settings, w: f32, h: f32) -> Mat4 {
+    let p = &sim.player;
+    let fov = cfg.fov + (cfg.ads_fov - cfg.fov) * crate::reference_motion::visual_world_ads(p.ads);
+    let aspect = w / h;
+    let eye = p.eye();
+    Mat4::perspective_rh_gl(
+        2. * ((fov.to_radians() * 0.5).tan() / aspect).atan(),
+        aspect,
+        0.035,
+        200.,
+    ) * Mat4::look_at_rh(eye, eye + p.direction(), p.camera_up(cfg.action.lean_roll))
+}
 /// Spatial markers (§7.6): an enemy chevron and range tag over each live target.
 fn draw_markers(sim: &Simulation, cfg: &Settings, w: f32, h: f32, s: f32) {
     let p = &sim.player;
@@ -418,16 +431,8 @@ fn draw_markers(sim: &Simulation, cfg: &Settings, w: f32, h: f32, s: f32) {
     if alpha <= 0.05 || w <= 0. || h <= 0. {
         return;
     }
-    // Same camera as the world pass (lean roll aside), as ammo_supply projects.
-    let fov = cfg.fov + (cfg.ads_fov - cfg.fov) * crate::reference_motion::visual_world_ads(p.ads);
-    let aspect = w / h;
     let eye = p.eye();
-    let view_projection = Mat4::perspective_rh_gl(
-        2. * ((fov.to_radians() * 0.5).tan() / aspect).atan(),
-        aspect,
-        0.035,
-        200.,
-    ) * Mat4::look_at_rh(eye, eye + p.direction(), Vec3::Y);
+    let view_projection = world_view_projection(sim, cfg, w, h);
     let px = fpx(26., s);
     let color = Color::new(field::ENEMY.r, field::ENEMY.g, field::ENEMY.b, alpha);
     for (_, t) in live_targets(sim) {
@@ -971,7 +976,10 @@ fn draw_bottom_clusters(sim: &Simulation, cfg: &Settings, w: f32, h: f32, weapon
         let hp_top = hp_bar - gap - dh.height;
         let st_bar = hp_top - 8. * s - 8. * s;
         let sp_top = st_bar - gap - dsp.height;
-        let full = width.max(dh.width).max(dsp.width);
+        let critical_px = fpx(28., s);
+        let dc = label_style(field::CRITICAL).measure("CRITICAL", critical_px);
+        // Reserve room for HEALTH and CRITICAL side by side, so they never overlap.
+        let full = width.max(dh.width + 2. * gap + dc.width).max(dsp.width);
         field::cluster_shade(
             Rect::new(
                 x - 16. * s,
@@ -1004,12 +1012,11 @@ fn draw_bottom_clusters(sim: &Simulation, cfg: &Settings, w: f32, h: f32, weapon
             s,
         );
         if hp <= 25. && !p.dead() {
-            let dc = label_style(field::CRITICAL).measure("CRITICAL", fpx(28., s));
             label(
                 "CRITICAL",
                 x + full - dc.width,
                 (hp_top + dc.offset_y).round(),
-                fpx(28., s),
+                critical_px,
                 field::CRITICAL,
             );
         }
@@ -1031,7 +1038,7 @@ mod tests {
         ] {
             ui_theme::set_theme(ui_theme::UiTheme::parse("test.css", css).unwrap());
             for (w, h) in [(640, 360), (960, 540), (1920, 1080), (3840, 2160)] {
-                for state in 0..5 {
+                for state in 0..6 {
                     let mut sim = Simulation::new();
                     match state {
                         1 => sim.player.ammo = 1,
@@ -1041,6 +1048,11 @@ mod tests {
                             sim.player.reload_total = 2.;
                         }
                         4 => sim.player.sprint_out = 1.,
+                        5 => {
+                            // Low health while prone: HEALTH and CRITICAL share a row.
+                            sim.player.health = 25.;
+                            sim.player.prone = true;
+                        }
                         _ => {}
                     }
                     begin_frame(w, h, 1.).unwrap();
@@ -1073,6 +1085,9 @@ mod tests {
                         }
                     }
                     assert_eq!(bounds.len(), if state == 0 { 9 } else { 10 });
+                    if state == 5 {
+                        assert!(bounds.iter().any(|(text, ..)| text == "CRITICAL"));
+                    }
                     for (i, (text, min, max)) in bounds.iter().enumerate() {
                         for (other, omin, omax) in &bounds[i + 1..] {
                             assert!(
@@ -1087,6 +1102,29 @@ mod tests {
                 }
             }
         }
+    }
+
+    #[test]
+    fn markers_project_with_the_lean_rolled_world_camera() {
+        let cfg = Settings::default();
+        let mut sim = Simulation::new();
+        let p = &sim.player;
+        let probe = p.eye() + p.direction() * 10. + Vec3::Y;
+        let project = |sim: &Simulation| {
+            let clip = world_view_projection(sim, &cfg, 1920., 1080.) * probe.extend(1.);
+            clip.x / clip.w
+        };
+        // Straight up from the view centre stays centred without lean...
+        assert!(project(&sim).abs() < 1e-4);
+        // ...and swings sideways as the world camera rolls with the lean.
+        sim.player.lean_fraction = 1.;
+        assert!(cfg.action.lean_roll > 0.);
+        assert!(project(&sim).abs() > 0.01);
+        let up = sim.player.camera_up(cfg.action.lean_roll);
+        let p = &sim.player;
+        let expected = Mat4::look_at_rh(p.eye(), p.eye() + p.direction(), up);
+        let view = Mat4::look_at_rh(p.eye(), p.eye() + p.direction(), Vec3::Y);
+        assert_ne!(expected, view);
     }
 
     #[test]

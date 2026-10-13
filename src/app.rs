@@ -1190,12 +1190,7 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
             position: eye,
             target: eye + forward,
             // Lean rolls the world camera; the viewmodel stays fixed to the view.
-            up: {
-                let roll = sim.player.lean_roll(cfg.action.lean_roll);
-                let right = forward.cross(Vec3::Y).normalize_or_zero();
-                // Leaning right tilts the head's up vector toward the right.
-                (Vec3::Y * roll.cos() + right * roll.sin()).normalize()
-            },
+            up: sim.player.camera_up(cfg.action.lean_roll),
             fovy: h_fov_to_v(fov, aspect),
             z_near: 0.035,
             z_far: 200.,
