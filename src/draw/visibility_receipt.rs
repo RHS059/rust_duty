@@ -25,8 +25,8 @@ pub fn matrix_bits(matrix: Mat4) -> [u32; 16] {
 /// consumes them. No bounds, vertex deduplication, winding sort or rounding.
 pub fn triangle_sha256(vertices: &[Vertex; 3]) -> String {
     let mut bytes = [0_u8; 72];
-    for (slot, vertex) in bytes.chunks_exact_mut(24).zip(vertices) {
-        for (out, value) in slot[..20].chunks_exact_mut(4).zip(
+    for (slot, vertex) in bytes.as_chunks_mut::<24>().0.iter_mut().zip(vertices) {
+        for (out, value) in slot[..20].as_chunks_mut::<4>().0.iter_mut().zip(
             vertex
                 .position
                 .to_array()
@@ -46,7 +46,9 @@ pub fn triangle_hashes(vertices: &[Vertex], indices: &[u16]) -> Result<Vec<Strin
         return Err("visibility receipt requires complete valid triangles".into());
     }
     Ok(indices
-        .chunks_exact(3)
+        .as_chunks::<3>()
+        .0
+        .iter()
         .map(|i| {
             triangle_sha256(&[
                 vertices[usize::from(i[0])],
@@ -322,8 +324,8 @@ pub(crate) fn packed_matrix(bytes: &[u8]) -> Result<Mat4, String> {
         return Err("visibility matrix slot is not 64 bytes".into());
     }
     let mut values = [0_f32; 16];
-    for (value, bytes) in values.iter_mut().zip(bytes.chunks_exact(4)) {
-        *value = f32::from_le_bytes(bytes.try_into().expect("four-byte chunk"));
+    for (value, bytes) in values.iter_mut().zip(bytes.as_chunks::<4>().0) {
+        *value = f32::from_le_bytes(*bytes);
     }
     let matrix = Mat4::from_cols_array(&values);
     if !matrix.is_finite() {
@@ -344,12 +346,18 @@ pub(crate) fn packed_triangle_hashes(
         return Err("visibility packed triangle extent is invalid".into());
     }
     indices
-        .chunks_exact(6)
+        .as_chunks::<6>()
+        .0
+        .iter()
         .map(|triangle| {
             let mut bytes = [0_u8; 72];
-            for (out, index) in bytes.chunks_exact_mut(24).zip(triangle.chunks_exact(2)) {
-                let offset =
-                    usize::from(u16::from_le_bytes(index.try_into().expect("u16 index"))) * stride;
+            for (out, index) in bytes
+                .as_chunks_mut::<24>()
+                .0
+                .iter_mut()
+                .zip(triangle.as_chunks::<2>().0)
+            {
+                let offset = usize::from(u16::from_le_bytes(*index)) * stride;
                 let input = vertices
                     .get(offset..offset + 24)
                     .ok_or("visibility packed index out of range")?;
@@ -794,6 +802,42 @@ mod tests {
                 None,
             )
             .unwrap();
+    }
+    #[test]
+    fn request_is_single_use_frame_bound_and_removes_stale_success() {
+        use std::sync::atomic::{AtomicU64, Ordering};
+        static NEXT: AtomicU64 = AtomicU64::new(0);
+        let directory = std::env::temp_dir().join(format!(
+            "rust-duty-visibility-request-{}-{}",
+            std::process::id(),
+            NEXT.fetch_add(1, Ordering::Relaxed)
+        ));
+        std::fs::create_dir_all(&directory).unwrap();
+        let path = directory.join("0007.png");
+        let target = RenderTarget::new(960, 540, true).unwrap();
+        let identity = "42".repeat(32);
+        let stale = sidecar(&path);
+        std::fs::write(&stale, b"prior successful receipt").unwrap();
+        assert!(FrameReceipt::begin("Dx12").is_none());
+        request(path.clone(), &target, 7, &identity).unwrap();
+        assert!(!stale.exists());
+        assert!(request(path.clone(), &target, 8, &identity).is_err());
+        let receipt = FrameReceipt::begin("Dx12").unwrap();
+        assert_eq!(receipt.request.path, path);
+        assert_eq!(receipt.request.frame_index, 7);
+        assert_eq!(receipt.request.identity, identity);
+        assert_eq!(receipt.request.target.texture.id, target.texture.id);
+        assert_eq!(receipt.backend, "Dx12");
+        assert!(FrameReceipt::begin("OpenGl").is_none());
+        drop(receipt);
+        assert!(!stale.exists());
+        request(path.clone(), &target, 8, &identity).unwrap();
+        let next = FrameReceipt::begin("OpenGl").unwrap();
+        assert_eq!(next.request.frame_index, 8);
+        assert_eq!(next.backend, "OpenGl");
+        assert!(next.finish(&[]).is_err());
+        assert!(!stale.exists());
+        std::fs::remove_dir(directory).unwrap();
     }
     #[test]
     fn canonical_hash_preserves_every_vertex_bit_order_and_duplicate() {

@@ -12,6 +12,12 @@ use crate::draw::{BlendMode, Color, Command, DrawList, FrameOutput, RenderTarget
 use crate::{frame_performance::CpuFrameStage, frame_performance_session as performance};
 use std::sync::Arc;
 
+type EncodedFrame = (
+    Vec<Readback>,
+    Option<wgpu::SurfaceTexture>,
+    Option<FrameReceipt>,
+);
+
 impl WgpuRenderer {
     pub(super) fn submit_frame(&mut self, list: &DrawList) -> Result<FrameOutput, String> {
         let (output, presentation, receipt) =
@@ -84,14 +90,7 @@ impl WgpuRenderer {
         &mut self,
         list: &DrawList,
         presentation: Option<wgpu::SurfaceTexture>,
-    ) -> Result<
-        (
-            Vec<Readback>,
-            Option<wgpu::SurfaceTexture>,
-            Option<FrameReceipt>,
-        ),
-        String,
-    > {
+    ) -> Result<EncodedFrame, String> {
         if self.main.descriptor.width != list.width || self.main.descriptor.height != list.height {
             self.main = Arc::new(GpuTexture::new(
                 &self.gpu.device,

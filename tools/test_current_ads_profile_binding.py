@@ -85,5 +85,126 @@ class CurrentProfileTests(unittest.TestCase):
             profile.verify_unchanged()
 
 
+class CurrentVisibleTraceTests(unittest.TestCase):
+    """Exact subset checks over synthetic source records, not native evidence."""
+    def setUp(self):
+        temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(temporary.cleanup)
+        self.root = Path(temporary.name)
+        self.visible = [7, 9]
+        self.manifest = {'traces': {'dx12': 'dx12-trace.jsonl'},
+                         'fallback_frames': {'dx12': [6, 7, 8, 9]}}
+        self.header = {'schema': current.gl.TRACE_SCHEMA, 'backend_profile': 'dx12: synthetic',
+                       'requested_frames': [6, 7, 8, 9], 'expected_frames': 553}
+        self.raw_rows = {frame: ('{"frame":%d,"matrix":[0.1234567890123456789],'
+                                '"color":[80,90,100,255]}' % frame) for frame in (6, 7, 8, 9)}
+        (self.root / 'dx12-trace.jsonl').write_text(json.dumps(self.header) + '\n' +
+            '\n'.join(self.raw_rows.values()) + '\n', encoding='utf-8')
+        self.trace_rows = current.gl.rows_by_frame(
+            list(current.gl.records(self.root / 'dx12-trace.jsonl'))[1:], 'synthetic source')
+        self.subset_header = {**self.header, 'requested_frames': self.visible}
+        self.write_subset()
+        (self.root / 'dx12-visible-frames.json').write_text(json.dumps(self.visible), encoding='utf-8')
+
+    def write_subset(self, *, header=None, frames=None, raw_rows=None):
+        header = self.subset_header if header is None else header
+        frames = self.visible if frames is None else frames
+        raw_rows = self.raw_rows if raw_rows is None else raw_rows
+        (self.root / 'dx12-visible-trace.jsonl').write_text(json.dumps(header) + '\n' +
+            '\n'.join(raw_rows[frame] for frame in frames) + '\n', encoding='utf-8')
+
+    def bind(self):
+        current._bind_visible_trace(current.source.BoundSourcePacket(), self.root,
+                                    self.manifest, self.trace_rows, self.visible)
+
+    def test_exact_subset_preserves_decimal_source_values(self):
+        self.bind()
+        value = self.trace_rows[7]['matrix'][0]
+        self.assertEqual(str(value), '0.1234567890123456789')
+        path = self.root / 'dx12-visible-trace.jsonl'
+        path.write_text(path.read_text().replace('0.1234567890123456789', '0.12345678901234568'))
+        with self.assertRaisesRegex(ValueError, 'source row'):
+            self.bind()
+
+    def test_changed_matrix_or_color_cannot_use_otherwise_matching_source_rows(self):
+        for original, replacement in (('[0.1234567890123456789]', '[0]'),
+                                      ('[80,90,100,255]', '[0,0,0,255]')):
+            with self.subTest(replacement=replacement):
+                rows = dict(self.raw_rows)
+                rows[7] = rows[7].replace(original, replacement)
+                self.write_subset(raw_rows=rows)
+                with self.assertRaisesRegex(ValueError, 'source row'):
+                    self.bind()
+
+    def test_missing_extra_duplicate_or_reordered_visible_rows_fail(self):
+        for frames in ([7], [7, 8, 9], [7, 7, 9], [9, 7]):
+            with self.subTest(frames=frames):
+                self.write_subset(frames=frames)
+                with self.assertRaises(ValueError):
+                    self.bind()
+
+    def test_header_must_change_only_requested_frames(self):
+        for field, value in (('backend_profile', 'opengl: synthetic'),
+                             ('expected_frames', 1), ('requested_frames', [7])):
+            with self.subTest(field=field):
+                self.write_subset(header={**self.subset_header, field: value})
+                with self.assertRaisesRegex(ValueError, 'trace header'):
+                    self.bind()
+        self.write_subset(header={**self.subset_header, 'unbound_field': True})
+        with self.assertRaisesRegex(ValueError, 'trace header'):
+            self.bind()
+
+    def test_selection_must_match_visible_rows_exactly(self):
+        path = self.root / 'dx12-visible-frames.json'
+        for selected in ([7], [7, 8, 9], [9, 7], [7, 7, 9], [True, 9], [7.0, 9]):
+            with self.subTest(selected=selected):
+                path.write_text(json.dumps(selected), encoding='utf-8')
+                with self.assertRaises(ValueError):
+                    self.bind()
+
+
+class CurrentWarpFragmentEvidenceTests(unittest.TestCase):
+    """Synthetic native-report controls preserve the former fragment obligations."""
+    def setUp(self):
+        self.source = {'required_contrast_runs': [[10000, 2]], 'required_contrast_samples': 2}
+        mask = bytearray(960 * 540)
+        mask[10000:10002] = bytes([1, 1])
+        self.result = {'checked_required_mask_sha256': current.hashlib.sha256(mask).hexdigest(),
+                       'source_triangles': 3, 'color_probe_triangles': 1,
+                       'color_probe_covered_sample_memberships': 2,
+                       **{key: 'a' * 64 for key in ('source_frame_sha256', 'draws_sha256',
+                           'color_observations_sha256', 'coverage_sha256')}}
+
+    def test_complete_source_required_mask_and_positive_fragment_evidence_pass(self):
+        current._bind_warp_fragment_evidence(self.result, self.source)
+
+    def test_missing_or_shrunken_checked_required_mask_fails(self):
+        for digest in (None, 'b' * 64):
+            with self.subTest(digest=digest), self.assertRaisesRegex(ValueError, 'required mask'):
+                current._bind_warp_fragment_evidence(
+                    {**self.result, 'checked_required_mask_sha256': digest}, self.source)
+        mask = bytearray(960 * 540)
+        mask[10000] = 1
+        with self.assertRaisesRegex(ValueError, 'required mask'):
+            current._bind_warp_fragment_evidence(
+                {**self.result, 'checked_required_mask_sha256': current.hashlib.sha256(mask).hexdigest()},
+                self.source)
+        with self.assertRaisesRegex(ValueError, 'sample count'):
+            current._bind_warp_fragment_evidence(self.result,
+                {**self.source, 'required_contrast_samples': 1})
+
+    def test_missing_zero_or_untyped_native_fragment_counts_fail(self):
+        for key in ('source_triangles', 'color_probe_triangles', 'color_probe_covered_sample_memberships'):
+            for value in (None, 0, -1, True, 1.0):
+                with self.subTest(key=key, value=value), self.assertRaises(ValueError):
+                    current._bind_warp_fragment_evidence({**self.result, key: value}, self.source)
+
+    def test_native_observation_hashes_cannot_be_missing_or_malformed(self):
+        for key in ('source_frame_sha256', 'draws_sha256', 'color_observations_sha256', 'coverage_sha256'):
+            for value in (None, '', 'x' * 64):
+                with self.subTest(key=key, value=value), self.assertRaises(ValueError):
+                    current._bind_warp_fragment_evidence({**self.result, key: value}, self.source)
+
+
 if __name__ == '__main__':
     unittest.main()

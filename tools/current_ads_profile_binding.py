@@ -84,6 +84,52 @@ def _process(ledger, folder, name, saved, expected_command, root):
     _compare(normalize(command), normalize(expected_command), 'current profile exact execution argv')
 
 
+def _bind_visible_trace(ledger, folder, manifest, trace_rows, visible):
+    """Bind the native probe's subset to the actual complete geometry output."""
+    selection_path = folder / 'dx12-visible-frames.json'
+    selection = json.loads(ledger._read(selection_path),
+                           parse_float=source.telemetry._parse_float,
+                           parse_constant=source.telemetry._reject_constant)
+    _compare(gl.frame_ids(selection), visible, 'current WARP visible frame selection')
+    full_path = ledger._portable(folder, manifest['traces']['dx12'])
+    ledger._remember(full_path)
+    complete = gl.records(full_path)
+    try:
+        full_header = next(complete, None)
+    finally:
+        complete.close()
+    require(type(full_header) is dict, 'current complete DX12 trace header missing')
+    _compare(full_header.get('requested_frames'), manifest['fallback_frames']['dx12'],
+             'current complete DX12 trace frame scope')
+    visible_path = folder / 'dx12-visible-trace.jsonl'
+    ledger._remember(visible_path)
+    records = list(gl.records(visible_path))
+    require(records, 'current WARP visible trace is empty')
+    wanted_header = deepcopy(full_header)
+    wanted_header['requested_frames'] = visible
+    gl.equal(records[0], wanted_header, 'current WARP visible trace header')
+    selected = gl.rows_by_frame(records[1:], 'current WARP visible trace')
+    _compare(list(selected), visible, 'current WARP visible trace row scope')
+    for frame in visible:
+        require(frame in trace_rows, 'current WARP visible frame missing from complete trace')
+        gl.equal(selected[frame], trace_rows[frame], 'current WARP visible trace source row')
+
+
+def _bind_warp_fragment_evidence(result, original):
+    """Retain the complete required-mask and positive fragment proof contract."""
+    required = gl.support_runs(original['required_contrast_runs'], 'current native required mask')
+    mask = bytearray(960 * 540)
+    for sample in required:
+        mask[sample] = 1
+    _compare(len(required), original['required_contrast_samples'], 'current required mask sample count')
+    _compare(result.get('checked_required_mask_sha256'), hashlib.sha256(mask).hexdigest(),
+             'current complete native required mask')
+    for key in ('source_triangles', 'color_probe_triangles', 'color_probe_covered_sample_memberships'):
+        gl.integer(result.get(key), 'current native ' + key, 1)
+    for key in ('source_frame_sha256', 'draws_sha256', 'color_observations_sha256', 'coverage_sha256'):
+        native._sha(result.get(key), 'current native ' + key)
+
+
 def _warp(ledger, folder, manifest, packet, trace_rows, prepared_receipt, executable, expected_path):
     visible = [frame for frame in manifest['fallback_frames']['dx12']
                if packet.rows_by_role['dx12'][frame]['classification'] != 'expected_empty_under_profile']
@@ -91,6 +137,7 @@ def _warp(ledger, folder, manifest, packet, trace_rows, prepared_receipt, execut
         require('dx12' not in manifest['proof_outputs'] and 'dx12-native' not in manifest['executions'],
                 'unexpected current native positive-support evidence')
         return None
+    _bind_visible_trace(ledger, folder, manifest, trace_rows, visible)
     report = ledger._json(folder / manifest['proof_outputs']['dx12'])
     expected = {'schema': 'rust-duty-current-warp-corroboration/v1', 'status': 'passed',
         'native_execution': True, 'later_corroboration': True, 'original_capture_reproduced': False,
@@ -128,6 +175,7 @@ def _warp(ledger, folder, manifest, packet, trace_rows, prepared_receipt, execut
                            'production_alpha_blend_endpoints_verified': True,
                            'negative_controls': {key: 'rejected' for key in historical.CONTROLS}}.items():
             _compare(result.get(key), value, 'current WARP frame ' + key)
+        _bind_warp_fragment_evidence(result, original)
         frame_dir = folder / 'warp' / f'frame-{frame:04}'
         for key, name in (('draws_sha256', 'draws.jsonl'), ('color_observations_sha256', 'color-observations.jsonl')):
             _compare(result.get(key), ledger._remember(frame_dir / name)['sha256'], 'current WARP raw ' + key)
