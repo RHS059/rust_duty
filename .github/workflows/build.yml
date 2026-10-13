@@ -18,6 +18,36 @@ concurrency:
   # Other development branches still replace stale work. Eligible draft publication stays protected.
   cancel-in-progress: ${{ (github.head_ref || github.ref_name) != 'main' && (github.event_name != 'push' || github.ref != 'refs/heads/aella/automatic-game-updates-r1') }}
 jobs:
+  current-ads-admission:
+    # Run before asset/native work so rejected caller identity is visible early.
+    # Ineligible branches/forks retain their original strict authored checks.
+    if: >-
+      github.repository == 'RHS059/rust_duty' &&
+      (((github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.base.repo.full_name == github.repository && github.base_ref == 'main'))
+    runs-on: windows-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    env:
+      GIT_CONFIG_COUNT: '1'
+      GIT_CONFIG_KEY_0: core.autocrlf
+      GIT_CONFIG_VALUE_0: 'false'
+    outputs:
+      admitted: ${{ steps.admission.outputs.admitted }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install shared tool dependencies
+        run: python -m pip install -r tools/requirements-assets.txt
+      - name: Diagnose and strictly bind the actual current build caller
+        id: admission
+        run: python tools/current_ads_build_context.py --root . --diagnostics --emit-admission-output
   windows-source-bound-recovery:
     if: (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'aella/wgpu-renderer-port') || (github.event_name == 'push' && github.ref == 'refs/heads/aella/wgpu-renderer-port') || (github.event_name == 'workflow_dispatch' && inputs.source_bound_recovery)
     permissions:
@@ -28,8 +58,15 @@ jobs:
     needs: [animation-assets, walk-assets, ads-assets, directional-assets, jump-assets]
     uses: ./.github/workflows/windows-same-platform-return.yml
   dx12-authored-validation:
-    needs: [animation-assets, walk-assets, ads-assets, directional-assets, jump-assets, native-validation]
+    needs: [animation-assets, walk-assets, ads-assets, directional-assets, jump-assets, native-validation, current-ads-admission]
+    if: >-
+      always() && !cancelled() && needs.animation-assets.result == 'success' && needs.walk-assets.result == 'success' &&
+      needs.ads-assets.result == 'success' && needs.directional-assets.result == 'success' &&
+      needs.jump-assets.result == 'success' && needs.native-validation.result == 'success' &&
+      (needs.current-ads-admission.result == 'success' || needs.current-ads-admission.result == 'skipped')
     uses: ./.github/workflows/wgpu-dx12-authored.yml
+    with:
+      source_proof_admitted: ${{ needs.current-ads-admission.outputs.admitted == 'true' }}
   animation-assets:
     uses: ./.github/workflows/blender-assets.yml
   walk-assets:

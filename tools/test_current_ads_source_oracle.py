@@ -1,7 +1,8 @@
 """Current-build producer guards and orchestration; no native Windows pass claimed."""
-from contextlib import ExitStack
+from contextlib import ExitStack, redirect_stdout
 from copy import deepcopy
 import hashlib
+import io
 import json
 import os
 from pathlib import Path, PureWindowsPath
@@ -11,6 +12,7 @@ import unittest
 from unittest.mock import Mock, patch
 
 import current_ads_source_oracle as current
+import current_ads_build_context as build_context
 
 
 CONTEXT = {'source_commit': '1' * 40, 'run_id': '1234', 'run_attempt': '2'}
@@ -46,7 +48,7 @@ class CurrentContextTests(unittest.TestCase):
                 'GITHUB_WORKFLOW_REF': current.REPOSITORY + '/.github/workflows/build.yml@' + ref,
                 'GITHUB_HEAD_REF': 'halcyon/current-frame-ads-certificate', 'GITHUB_BASE_REF': 'main'}
 
-    def context(self, environment, platform='win32', machine='AMD64', *, event=None, identity=False):
+    def context(self, environment, platform='win32', machine='AMD64', *, event=None, identity=False, root=None):
         if event is None:
             event = self.event(environment.get('GITHUB_EVENT_NAME'))
         with tempfile.TemporaryDirectory() as directory:
@@ -55,7 +57,10 @@ class CurrentContextTests(unittest.TestCase):
             with patch.dict(os.environ, {**environment, 'GITHUB_EVENT_PATH': str(path)}, clear=True), \
                     patch.object(current.sys, 'platform', platform), \
                     patch.object(current.platform, 'machine', return_value=machine):
-                return current.current_build_identity() if identity else current.current_main_context()
+                result = current.current_build_identity() if identity else current.current_main_context()
+                if root is not None:
+                    current.check_build_checkout(root, result if identity else current.current_build_identity())
+                return result
 
     def test_actual_main_push_and_dispatch_work_without_completed_history(self):
         self.assertEqual(self.context(ENVIRONMENT), CONTEXT)
@@ -121,8 +126,9 @@ class CurrentContextTests(unittest.TestCase):
             lambda e: e['pull_request'].update(state='closed'),
             lambda e: e['pull_request'].update(merged=True),
             lambda e: e['pull_request'].update(merged=0),
-            lambda e: e['pull_request'].update(merge_commit_sha='2' * 40),
-            lambda e: e['pull_request'].update(merge_commit_sha=None),
+            lambda e: e['pull_request'].update(merge_commit_sha='invalid'),
+            lambda e: e['pull_request'].update(merge_commit_sha=False),
+            lambda e: e['pull_request'].pop('merge_commit_sha'),
             lambda e: e['pull_request']['head'].update(ref='other'),
             lambda e: e['pull_request']['base'].update(ref='develop'),
             lambda e: e['pull_request']['head'].update(sha='bad'),
@@ -174,43 +180,117 @@ class CurrentContextTests(unittest.TestCase):
         self.assertNotEqual(first['event_payload_sha256'], third['event_payload_sha256'])
         self.assertNotEqual(first['pull_request'], third['pull_request'])
 
+    def merge_fixture(self):
+        temp = tempfile.TemporaryDirectory()
+        self.addCleanup(temp.cleanup)
+        root = Path(temp.name)
+        def git(*args):
+            return subprocess.check_output(['git', '-C', str(root), '-c', 'user.name=Synthetic test',
+                '-c', 'user.email=synthetic@example.invalid', *args], stderr=subprocess.PIPE).decode().strip()
+        git('init', '-q', '-b', 'main')
+        (root / 'base').write_text('base')
+        git('add', '.'); git('commit', '-qm', 'base')
+        base = git('rev-parse', 'HEAD')
+        git('checkout', '-qb', 'topic')
+        (root / 'head').write_text('head')
+        git('add', '.'); git('commit', '-qm', 'head')
+        head = git('rev-parse', 'HEAD')
+        git('checkout', '-q', 'main'); git('merge', '--no-ff', '-m', 'merge', 'topic')
+        merge = git('rev-parse', 'HEAD')
+        (root / '.git/shallow').write_text(merge + '\n', newline='\n')
+        event = self.event('pull_request')
+        event['pull_request'].update(merge_commit_sha=merge)
+        event['pull_request']['head']['sha'] = head
+        event['pull_request']['base']['sha'] = base
+        environment = {**self.pr_environment(), 'GITHUB_SHA': merge, 'GITHUB_WORKFLOW_SHA': merge}
+        return root, environment, event
+
+    def command(self, root, environment, event, *arguments):
+        event_path = root / 'event.json'
+        write(event_path, event)
+        output = root / 'github-output'
+        output.write_text('')
+        capture = io.StringIO()
+        with patch.dict(os.environ, {**environment, 'GITHUB_EVENT_PATH': str(event_path),
+                                     'GITHUB_OUTPUT': str(output), 'GITHUB_TOKEN': 'secret-do-not-print'}, clear=True), \
+                patch.object(current.sys, 'platform', 'win32'), \
+                patch.object(current.platform, 'machine', return_value='AMD64'), redirect_stdout(capture):
+            result = build_context.main(['--root', str(root), *arguments])
+        return result, capture.getvalue(), output.read_text()
+
     def test_merge_checkout_binds_ordered_base_and_head_even_when_shallow(self):
-        with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory)
-            def git(*args):
-                return subprocess.check_output(['git', '-C', str(root), '-c', 'user.name=Synthetic test',
-                    '-c', 'user.email=synthetic@example.invalid', *args], stderr=subprocess.PIPE).decode().strip()
-            git('init', '-q', '-b', 'main')
-            (root / 'base').write_text('base')
-            git('add', '.'); git('commit', '-qm', 'base')
-            base = git('rev-parse', 'HEAD')
-            git('checkout', '-qb', 'topic')
-            (root / 'head').write_text('head')
-            git('add', '.'); git('commit', '-qm', 'head')
-            head = git('rev-parse', 'HEAD')
-            git('checkout', '-q', 'main'); git('merge', '--no-ff', '-m', 'merge', 'topic')
-            merge = git('rev-parse', 'HEAD')
-            (root / '.git/shallow').write_text(merge + '\n', newline='\n')
-            event = self.event('pull_request')
-            event['pull_request'].update(merge_commit_sha=merge)
-            event['pull_request']['head']['sha'] = head
-            event['pull_request']['base']['sha'] = base
-            identity = self.context({**self.pr_environment(), 'GITHUB_SHA': merge, 'GITHUB_WORKFLOW_SHA': merge},
-                                    event=event, identity=True)
-            current.check_build_checkout(root, identity)
-            for side, replacement in [('base', head), ('head', base), ('base', '9' * 40), ('head', '8' * 40)]:
-                changed = deepcopy(identity)
-                changed['pull_request'][side]['sha'] = replacement
-                with self.subTest(side=side, replacement=replacement), self.assertRaisesRegex(ValueError, 'merge parents'):
-                    current.check_build_checkout(root, changed)
-            swapped = deepcopy(identity)
-            swapped['pull_request']['head']['sha'], swapped['pull_request']['base']['sha'] = base, head
-            with self.assertRaisesRegex(ValueError, 'merge parents'):
-                current.check_build_checkout(root, swapped)
+        root, environment, event = self.merge_fixture()
+        identity = self.context(environment, event=event, identity=True, root=root)
+        head, base = event['pull_request']['head']['sha'], event['pull_request']['base']['sha']
+        for side, replacement in [('base', head), ('head', base), ('base', '9' * 40), ('head', '8' * 40)]:
             changed = deepcopy(identity)
-            changed['capture_context']['source_commit'] = head
-            with self.assertRaisesRegex(ValueError, 'actual GitHub commit'):
+            changed['pull_request'][side]['sha'] = replacement
+            with self.subTest(side=side, replacement=replacement), self.assertRaisesRegex(ValueError, 'merge parents'):
                 current.check_build_checkout(root, changed)
+        swapped = deepcopy(identity)
+        swapped['pull_request']['head']['sha'], swapped['pull_request']['base']['sha'] = base, head
+        with self.assertRaisesRegex(ValueError, 'merge parents'):
+            current.check_build_checkout(root, swapped)
+        changed = deepcopy(identity)
+        changed['capture_context']['source_commit'] = head
+        with self.assertRaisesRegex(ValueError, 'actual GitHub commit'):
+            current.check_build_checkout(root, changed)
+
+    def test_nullable_and_stale_event_merge_hints_require_actual_sha_and_ordered_parents(self):
+        root, environment, event = self.merge_fixture()
+        for hint in (None, '4' * 40, environment['GITHUB_SHA']):
+            with self.subTest(hint=hint):
+                event['pull_request']['merge_commit_sha'] = hint
+                identity = self.context(environment, event=event, identity=True, root=root)
+                self.assertEqual(identity['pull_request']['merge_commit_sha'], environment['GITHUB_SHA'])
+                self.assertEqual(identity['pull_request']['event_merge_commit_sha'], hint)
+                result, _, output = self.command(root, environment, event, '--emit-admission-output')
+                self.assertEqual(result, 0)
+                self.assertEqual(output, 'admitted=true\n')
+                head = event['pull_request']['head']['sha']
+                with self.assertRaisesRegex(ValueError, 'actual GitHub commit'):
+                    self.command(root, {**environment, 'GITHUB_SHA': head, 'GITHUB_WORKFLOW_SHA': head},
+                                 event, '--emit-admission-output')
+                self.assertEqual((root / 'github-output').read_text(), '')
+                swapped = deepcopy(event)
+                swapped['pull_request']['head']['sha'], swapped['pull_request']['base']['sha'] = (
+                    swapped['pull_request']['base']['sha'], swapped['pull_request']['head']['sha'])
+                with self.assertRaisesRegex(ValueError, 'merge parents'):
+                    self.command(root, environment, swapped, '--emit-admission-output')
+                self.assertEqual((root / 'github-output').read_text(), '')
+
+    def test_diagnostics_are_allowlisted_and_cannot_emit_admission(self):
+        root, environment, event = self.merge_fixture()
+        event['pull_request']['merge_commit_sha'] = None
+        event['pull_request']['body'] = 'private-body-do-not-print'
+        event['sender'] = {'login': 'private-sender-do-not-print'}
+        result, output, step_output = self.command(root, environment, event, '--diagnostics-only')
+        self.assertEqual(result, 0)
+        self.assertEqual(step_output, '')
+        report = json.loads(output)
+        self.assertTrue(report['admitted'])
+        self.assertEqual(report['event']['pull_request.merge_commit_sha'], None)
+        self.assertEqual(report['checkout']['head'], environment['GITHUB_SHA'])
+        self.assertEqual(report['checkout']['parents'], [event['pull_request']['base']['sha'], event['pull_request']['head']['sha']])
+        for secret in ('secret-do-not-print', 'private-body-do-not-print', 'private-sender-do-not-print', 'GITHUB_TOKEN'):
+            self.assertNotIn(secret, output)
+        with self.assertRaisesRegex(ValueError, 'cannot emit an admission'):
+            self.command(root, environment, event, '--diagnostics-only', '--emit-admission-output')
+        self.assertEqual((root / 'github-output').read_text(), '')
+
+    def test_diagnostics_expose_rejection_without_turning_it_into_admission(self):
+        root, environment, event = self.merge_fixture()
+        event['pull_request']['head']['repo']['fork'] = True
+        result, output, step_output = self.command(root, environment, event, '--diagnostics-only')
+        self.assertEqual(result, 0)
+        self.assertEqual(step_output, '')
+        report = json.loads(output)
+        self.assertFalse(report['admitted'])
+        self.assertTrue(report['event']['pull_request.head.repo.fork'])
+        self.assertIn('fork', report['rejection'])
+        with self.assertRaisesRegex(ValueError, 'fork'):
+            self.command(root, environment, event, '--diagnostics', '--emit-admission-output')
+        self.assertEqual((root / 'github-output').read_text(), '')
 
     def test_prebuild_and_real_replay_paths_must_match_without_receipt_rewriting(self):
         current.check_replay_root(PureWindowsPath('D:/a/rust_duty/rust_duty'),

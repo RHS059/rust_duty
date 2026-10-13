@@ -1,28 +1,19 @@
 name: Authored DX12 WARP acceptance (no distribution)
 on:
   workflow_call:
+    inputs:
+      source_proof_admitted:
+        required: true
+        type: boolean
 permissions:
   contents: read
 env:
   GIT_CONFIG_COUNT: '1'
   GIT_CONFIG_KEY_0: core.autocrlf
   GIT_CONFIG_VALUE_0: 'false'
-  # Only the actual ordinary build caller can defer coverage for current proof.
-  # Forks, PR-target, branch pushes and alternate workflows remain ineligible.
-  CURRENT_ADS_SOURCE_PROOF: >-
-    ${{ github.repository == 'RHS059/rust_duty' && github.workflow_sha == github.sha &&
-    github.workflow_ref == format('{0}/.github/workflows/build.yml@{1}', github.repository, github.ref) &&
-    (((github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main') ||
-    (github.event_name == 'pull_request' && github.event.pull_request.state == 'open' &&
-    github.event.pull_request.merged == false && github.event.pull_request.head.repo.fork == false &&
-    github.event.pull_request.head.repo.full_name == github.repository &&
-    github.event.pull_request.base.repo.full_name == github.repository &&
-    github.event.pull_request.head.repo.id == github.repository_id &&
-    github.event.pull_request.base.repo.id == github.repository_id &&
-    github.base_ref == 'main' && github.event.pull_request.base.ref == github.base_ref &&
-    github.event.pull_request.head.ref == github.head_ref &&
-    github.ref == format('refs/pull/{0}/merge', github.event.number) &&
-    github.event.pull_request.merge_commit_sha == github.sha)) }}
+  # The ordinary caller's early strict identity check is the sole activation
+  # output. This job rechecks its own actual caller/SHA/raw merge parents below.
+  CURRENT_ADS_SOURCE_PROOF: ${{ inputs.source_proof_admitted }}
 # Same-run artifact downloads intentionally have no repository/run-id/token override.
 # Historical Linux artifacts remain exact diagnostics; strict renderer parity uses
 # a same-Windows, same-binary OpenGl reference. A partial attempt rerun without
@@ -46,6 +37,8 @@ jobs:
           python-version: '3.12'
       - name: Install capture and materialization dependencies
         run: python -m pip install -r tools/requirements-assets.txt
+      - name: Report sanitized current source-proof admission diagnostics
+        run: python tools/current_ads_build_context.py --root . --diagnostics-only
       - name: Verify current source-proof caller and exact merge parents
         if: env.CURRENT_ADS_SOURCE_PROOF == 'true'
         run: python tools/current_ads_build_context.py --root .

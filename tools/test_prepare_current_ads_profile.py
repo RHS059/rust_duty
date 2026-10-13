@@ -323,8 +323,8 @@ class CurrentProfilePreparationTests(unittest.TestCase):
         commands = self.mock_build_preparation()
         evidence = self.root.parent / 'prepared-evidence'
         output = self.root.parent / 'job-output'
-        # The host is not Windows: verify the real package API separately above.
-        # Only the producer's final native-path verification is mocked here.
+        # Verify the real package API separately above; only the producer's
+        # final native-path verification is mocked for this compiler fixture.
         with patch.object(prepare, 'verify_precompiled') as verified, patch.dict(os.environ, {'GITHUB_OUTPUT': str(output)}):
             report = prepare.prepare(self.root, self.manifest_path, evidence, COMPILER_SHA)
         self.assertTrue(report['passed'])
@@ -335,7 +335,10 @@ class CurrentProfilePreparationTests(unittest.TestCase):
         self.assertEqual(report['receipt_sha256'], receipt_hash)
         self.assertEqual((evidence / 'independent-receipt.sha256').read_text(), receipt_hash + '\n')
         self.assertEqual(output.read_text(), f'receipt_sha256={receipt_hash}\ncompiler_sha256={COMPILER_SHA}\n')
-        verified.assert_called_once_with(evidence / 'package', self.root, self.manifest_path, receipt_hash, COMPILER_SHA)
+        # Windows temporary roots can use a short (RUNNER~1) spelling. The
+        # producer deliberately resolves source/manifest paths before verifying.
+        verified.assert_called_once_with(evidence / 'package', self.root.resolve(strict=True),
+                                         self.manifest_path.resolve(strict=True), receipt_hash, COMPILER_SHA)
 
     def test_preparation_stops_before_second_build_when_native_inputs_change(self):
         commands = self.mock_build_preparation(mutate=lambda: (self.root / 'settings.cfg').write_text('changed\n'))
