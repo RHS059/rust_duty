@@ -24,12 +24,31 @@ ENVIRONMENT = {'GITHUB_SHA': CONTEXT['source_commit'], 'GITHUB_RUN_ID': '1234', 
                'RUNNER_OS': 'Windows', 'RUNNER_ARCH': 'X64'}
 
 
+def process_environment():
+    # Keep Git launchable on Windows while clearing every real GitHub identity
+    # variable. POSIX's fallback /bin:/usr/bin lookup hid a missing PATH here.
+    return {name: value for name, value in os.environ.items()
+            if name.upper() in ('PATH', 'PATHEXT', 'SYSTEMROOT', 'COMSPEC', 'TEMP', 'TMP')}
+
+
 def write(path, value):
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(value, default=float) + '\n', encoding='utf-8')
 
 
 class CurrentContextTests(unittest.TestCase):
+    def test_process_variables_never_supply_inherited_github_identity(self):
+        with patch.dict(os.environ, {**ENVIRONMENT, 'GITHUB_TOKEN': 'not-a-process-variable',
+                                     'PATH': 'git-command-directory', 'SystemRoot': 'windows-directory'}):
+            inherited = process_environment()
+            self.assertEqual(inherited['PATH'], 'git-command-directory')
+            self.assertTrue(any(name.upper() == 'SYSTEMROOT' for name in inherited))
+            self.assertFalse(any(name.startswith('GITHUB_') for name in inherited))
+            for name in ENVIRONMENT:
+                missing = {key: value for key, value in ENVIRONMENT.items() if key != name}
+                with self.subTest(missing=name), self.assertRaises(ValueError):
+                    self.context(missing, event=self.event())
+
     def event(self, name='push'):
         repository = {'full_name': current.REPOSITORY, 'id': 7654321, 'fork': False}
         if name == 'pull_request':
@@ -54,7 +73,7 @@ class CurrentContextTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / 'event.json'
             path.write_text(event if type(event) is str else json.dumps(event), encoding='utf-8')
-            with patch.dict(os.environ, {**environment, 'GITHUB_EVENT_PATH': str(path)}, clear=True), \
+            with patch.dict(os.environ, {**process_environment(), **environment, 'GITHUB_EVENT_PATH': str(path)}, clear=True), \
                     patch.object(current.sys, 'platform', platform), \
                     patch.object(current.platform, 'machine', return_value=machine):
                 result = current.current_build_identity() if identity else current.current_main_context()
@@ -211,7 +230,7 @@ class CurrentContextTests(unittest.TestCase):
         output = root / 'github-output'
         output.write_text('')
         capture = io.StringIO()
-        with patch.dict(os.environ, {**environment, 'GITHUB_EVENT_PATH': str(event_path),
+        with patch.dict(os.environ, {**process_environment(), **environment, 'GITHUB_EVENT_PATH': str(event_path),
                                      'GITHUB_OUTPUT': str(output), 'GITHUB_TOKEN': 'secret-do-not-print'}, clear=True), \
                 patch.object(current.sys, 'platform', 'win32'), \
                 patch.object(current.platform, 'machine', return_value='AMD64'), redirect_stdout(capture):

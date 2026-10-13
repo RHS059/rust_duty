@@ -45,6 +45,10 @@ jobs:
           python-version: '3.12'
       - name: Install shared tool dependencies
         run: python -m pip install -r tools/requirements-assets.txt
+      - name: Test Windows caller identity and merge-parent fixtures
+        env:
+          PYTHONPATH: tools
+        run: python -m unittest -v test_current_ads_source_oracle.CurrentContextTests
       - name: Diagnose and strictly bind the actual current build caller
         id: admission
         run: python tools/current_ads_build_context.py --root . --diagnostics --emit-admission-output

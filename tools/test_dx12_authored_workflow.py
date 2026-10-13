@@ -334,7 +334,11 @@ class AuthoredWorkflowTests(unittest.TestCase):
         commands = [step.get('run', '') for step in job['steps']]
         self.assertEqual([command for command in commands if command], [
             'python -m pip install -r tools/requirements-assets.txt',
+            'python -m unittest -v test_current_ads_source_oracle.CurrentContextTests',
             'python tools/current_ads_build_context.py --root . --diagnostics --emit-admission-output'])
+        fixtures = next(step for step in job['steps'] if '.CurrentContextTests' in step.get('run', ''))
+        self.assertEqual(fixtures['env'], {'PYTHONPATH': 'tools'})
+        self.assertNotIn('continue-on-error', fixtures)
         admission = next(step for step in job['steps'] if step.get('id') == 'admission')
         self.assertNotIn('if', admission)
         self.assertNotIn('continue-on-error', admission)
