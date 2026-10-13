@@ -127,7 +127,9 @@ jobs:
           $filters = @('render::upload_cache::staging::layout::tests', 'render::upload_cache::staging::tests', 'render::upload_cache::tests', 'render::arena::tests', 'render::plan::tests', 'render::frame::tests', 'encode_detail')
           foreach ($filter in $filters) {
             $log = 'staging-pool-evidence/pure-' + $filter.Replace('::', '-') + '.txt'
-            cargo test --locked --no-default-features --features wgpu-runtime --lib $filter 2>&1 | Tee-Object -FilePath $log
+            # This hardware-only contract has its own explicit native admission.
+            # Keep the CPU lane's zero-ignored guard strict for every other test.
+            cargo test --locked --no-default-features --features wgpu-runtime --lib $filter -- --skip render::frame::tests::native_depth_slices_preserve_clip_planes_and_ordered_fades 2>&1 | Tee-Object -FilePath $log
             if ($LASTEXITCODE -ne 0) { throw "Rust contracts failed: $filter" }
             if (-not (Select-String -Path $log -Pattern 'test result: ok\. [1-9][0-9]* passed; 0 failed; 0 ignored;')) {
               throw "The pure-contract filter selected no passing tests or ignored tests: $filter"

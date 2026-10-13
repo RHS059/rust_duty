@@ -4,13 +4,15 @@ from pathlib import Path
 import subprocess
 import tempfile
 import unittest
-from unittest.mock import patch
+import zipfile
 
 import performance_matrix as matrix
 
 ROOT = Path(__file__).resolve().parents[1]
 OLD_CANDIDATE = '9b7ae93be3a4d4aed9b662d0c27ff18d0b1e12e99c4dc916422c98e0c5eae3c6'
 OLD_BASELINE = 'dbabe2822dd73410a7f05c0f03807aa80d5720351c4a9c13ebdee1276fecc195'
+HISTORICAL_SOURCE = ROOT / 'tools/test_fixtures/skin-stage-source-663d191.zip'
+HISTORICAL_SOURCE_SHA256 = 'f534904b8dae31637d6983576679e3d16f477a5ff0026da921e18ad1299e2c4d'
 
 
 def commit(root):
@@ -21,30 +23,40 @@ def commit(root):
 
 
 class CpuEncodeDetailSourceTests(unittest.TestCase):
-    def checkout(self):
+    def historical_files(self):
+        # Original committed source bytes, never an allowlist patched to admit
+        # today's checkout. The fixture also works with shallow CI history.
+        self.assertEqual(matrix.sha256(HISTORICAL_SOURCE), HISTORICAL_SOURCE_SHA256)
+        with zipfile.ZipFile(HISTORICAL_SOURCE) as archive:
+            self.assertEqual(len(archive.namelist()), len(matrix.ARITHMETIC_SOURCE_PATHS))
+            self.assertEqual(set(archive.namelist()), set(matrix.ARITHMETIC_SOURCE_PATHS))
+            files = {name: archive.read(name) for name in matrix.ARITHMETIC_SOURCE_PATHS}
+        hashes = {name: hashlib.sha256(data).hexdigest() for name, data in files.items()}
+        self.assertEqual(matrix.canonical_hash(hashes), matrix.AUDITED_SKIN_STAGE_CANDIDATE_MANIFEST)
+        return files
+
+    def checkout(self, *, current=False):
         temporary = tempfile.TemporaryDirectory()
         self.addCleanup(temporary.cleanup)
         root = Path(temporary.name)
         subprocess.run(['git', 'init', '-q', str(root)], check=True, capture_output=True)
         subprocess.run(['git', '-C', str(root), 'config', 'core.autocrlf', 'false'],
                        check=True, capture_output=True)
-        for name in matrix.ARITHMETIC_SOURCE_PATHS:
+        files = ({name: (ROOT / name).read_bytes() for name in matrix.ARITHMETIC_SOURCE_PATHS}
+                 if current else self.historical_files())
+        for name, data in files.items():
             path = root / name
             path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_bytes((ROOT / name).read_bytes())
+            path.write_bytes(data)
         commit(root)
-        # This synthetic history fixture tests old renderer classes independently
-        # of loaders. New loader admission has its own exact negative suite.
-        guard = patch.object(matrix, 'LOADER_BASELINE',
-                             {name: matrix.sha256(root / name) for name in matrix.LOADER_BASELINE})
-        guard.start()
-        self.addCleanup(guard.stop)
         return root
 
-    def test_current_detail_inventory_has_its_own_exact_digest(self):
-        hashes = {name: hashlib.sha256((ROOT / name).read_bytes()).hexdigest()
-                  for name in matrix.ARITHMETIC_SOURCE_PATHS}
+    def test_historical_detail_inventory_keeps_its_exact_digest(self):
+        hashes = {name: hashlib.sha256(data).hexdigest()
+                  for name, data in self.historical_files().items()}
         self.assertEqual(len(hashes), len(matrix.ARITHMETIC_SOURCE_PATHS))
+        self.assertEqual(matrix.AUDITED_SKIN_STAGE_CANDIDATE_MANIFEST,
+                         'b531276d331ff2addea10aec89eea7eb743cbab89858709194cdc8286fc32a96')
         self.assertEqual(matrix.canonical_hash(hashes), matrix.AUDITED_SKIN_STAGE_CANDIDATE_MANIFEST)
         self.assertEqual(matrix.audited_inventory(matrix.AUDITED_SKIN_STAGE_CANDIDATE_MANIFEST),
                          matrix.ARITHMETIC_SOURCE_PATHS)
@@ -54,6 +66,18 @@ class CpuEncodeDetailSourceTests(unittest.TestCase):
         self.assertIn('Cargo.lock', hashes)
         self.assertIn('src/frame_upload_policy.rs', hashes)
         self.assertIn('src/render/upload_cache.rs', hashes)
+
+    def test_current_source_cannot_inherit_or_export_historical_admission(self):
+        root = self.checkout(current=True)
+        hashes = {name: matrix.sha256(root / name) for name in matrix.ARITHMETIC_SOURCE_PATHS}
+        self.assertNotEqual(matrix.canonical_hash(hashes), matrix.AUDITED_SKIN_STAGE_CANDIDATE_MANIFEST)
+        self.assertIsNone(matrix.audited_inventory(matrix.canonical_hash(hashes)))
+        with self.assertRaisesRegex(ValueError, 'Arithmetic source changed; cannot fall back'):
+            matrix.source_identity(root)
+        output = root / 'witness'
+        with self.assertRaisesRegex(ValueError, 'Arithmetic source changed; cannot fall back'):
+            matrix.export_witness(root, output)
+        self.assertFalse(output.exists())
 
     def test_historical_pins_and_paired_matrix_scope_stay_exact(self):
         self.assertEqual(matrix.AUDITED_GPU_CANDIDATE_MANIFEST, OLD_CANDIDATE)
@@ -109,7 +133,7 @@ class CpuEncodeDetailSourceTests(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, 'inventory is missing'):
                     matrix.source_identity(root)
 
-    def test_committed_current_source_witness_roundtrip(self):
+    def test_committed_historical_source_witness_roundtrip(self):
         root = self.checkout()
         source = matrix.source_identity(root)
         output = root / 'witness'

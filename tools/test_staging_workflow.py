@@ -77,6 +77,21 @@ class StagingWorkflowTests(unittest.TestCase):
         self.assertIn('github.run_attempt', upload['with']['name'])
         self.assertEqual(upload['with']['path'], 'staging-pool-evidence/**')
 
+    def test_pure_frame_filter_excludes_only_the_explicit_hardware_contract(self):
+        step = next(step for step in self.steps
+                    if step.get('name') == 'Run pure staging, destination and frame contracts')
+        command = step['run']
+        native = 'render::frame::tests::native_depth_slices_preserve_clip_planes_and_ordered_fades'
+        self.assertIn('--lib $filter -- --skip ' + native + ' 2>&1', command)
+        self.assertEqual(command.count('--skip'), 1)
+        self.assertNotIn('--ignored', command)
+        self.assertIn("'render::frame::tests'", command)
+        self.assertIn("-Pattern 'test result: ok\\. [1-9][0-9]* passed; 0 failed; 0 ignored;'", command)
+        self.assertIn('if ($LASTEXITCODE -ne 0)', command)
+        source = (ROOT / 'src/render/frame.rs').read_text()
+        self.assertRegex(source, r'#\[ignore = "explicit native viewport-depth clipping/order/alpha contract"\]\s+'
+                         r'fn native_depth_slices_preserve_clip_planes_and_ordered_fades\(')
+
 
 if __name__ == '__main__':
     unittest.main()
