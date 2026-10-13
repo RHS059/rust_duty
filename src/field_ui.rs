@@ -136,9 +136,10 @@ pub fn halo_dot(center: Vec2, radius: f32, color: Color, s: f32) {
 
 /// Segmented meter (§7.4): loss reads at a glance. `fraction` is clamped to 0..=1.
 pub fn segmented_bar(r: Rect, segments: u32, fraction: f32, fill: Color, s: f32) {
-    let track = ui_theme::style(UiScope::Hud, &[UiClass::Muted]).tint(TRACK);
-    // Fills keep their signal colour (health, warning, critical): a theme may
-    // not change signal meanings (FIELD §14), only the HUD's opacity.
+    // The empty track and the fills keep their FIELD roles: a theme may not
+    // change signal meanings (§14), and recolouring the track (e.g. an opaque
+    // high-contrast .muted) can make depletion invisible. Only opacity applies.
+    let track = ui_theme::style(UiScope::Hud, &[]).apply_opacity(TRACK);
     let fill = ui_theme::style(UiScope::Hud, &[]).apply_opacity(fill);
     let segments = segments.max(1);
     let gap = (4. * s).max(1.);
@@ -204,6 +205,28 @@ mod tests {
         }
     }
 
+    fn over_scrim(c: Color) -> [f32; 3] {
+        let a = c.a.clamp(0., 1.);
+        [
+            c.r * a + SCRIM.r * (1. - a),
+            c.g * a + SCRIM.g * (1. - a),
+            c.b * a + SCRIM.b * (1. - a),
+        ]
+    }
+    fn contrast(a: [f32; 3], b: [f32; 3]) -> f32 {
+        let lum = |c: [f32; 3]| {
+            let l = |v: f32| {
+                if v <= 0.03928 {
+                    v / 12.92
+                } else {
+                    ((v + 0.055) / 1.055).powf(2.4)
+                }
+            };
+            0.2126 * l(c[0]) + 0.7152 * l(c[1]) + 0.0722 * l(c[2])
+        };
+        let (x, y) = (lum(a), lum(b));
+        (x.max(y) + 0.05) / (x.min(y) + 0.05)
+    }
     #[test]
     fn meter_fills_keep_signal_colours_under_every_shipped_preset() {
         use crate::draw::Command;
@@ -226,7 +249,7 @@ mod tests {
             ),
         ] {
             ui_theme::set_theme(ui_theme::UiTheme::parse(name, css).unwrap());
-            for fill in [TEXT, CRITICAL, WARNING] {
+            for fill in [TEXT, CRITICAL, WARNING, ACCENT] {
                 begin_frame(400, 100, 1.).unwrap();
                 segmented_bar(Rect::new(0., 0., 100., 4.), 4, 0.5, fill, 1.);
                 let colors: Vec<Color> = take_draw_list()
@@ -245,11 +268,10 @@ mod tests {
                     [fill.r, fill.g, fill.b],
                     "{name}"
                 );
-                assert_ne!(
-                    [filled.r, filled.g, filled.b],
-                    [track.r, track.g, track.b],
-                    "{name}"
-                );
+                // Depletion must read: fill vs empty track, each over the HUD
+                // scrim backing, at least 3:1 (WCAG non-text contrast).
+                let ratio = contrast(over_scrim(filled), over_scrim(track));
+                assert!(ratio >= 3., "{name}: fill/track contrast {ratio:.2}:1");
             }
         }
         ui_theme::set_theme(ui_theme::UiTheme::default());
