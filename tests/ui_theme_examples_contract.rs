@@ -83,7 +83,13 @@ fn large_type_resolves_font_precedence_and_opacity() {
 
 #[test]
 fn examples_stay_inside_documented_limits() {
-    for name in ["high-contrast.css", "large-type.css"] {
+    for name in [
+        "high-contrast.css",
+        "large-type.css",
+        "field-spartan.css",
+        "field-arena.css",
+        "field-dread.css",
+    ] {
         let theme = example(name);
         for scope in [
             UiScope::Hud,

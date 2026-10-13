@@ -40,10 +40,10 @@ INK_WINDOW = (90, 80, 390, 190)
 KEY_BOX = (230, 108, 250, 132)
 CAPTION_BAND = (90, 140, 390, 172)
 FULL_TEXT_BAND = (90, 100, 390, 128)
-# HUD corner panels (title, score, stance, weapon), telemetry panel, menu band.
-CORNERS = ((24, 24, 312, 105), (685, 24, 936, 105), (24, 435, 272, 516), (710, 415, 936, 516))
-DEBUG_PANEL = (24, 119, 334, 326)
-MENU_BAND = (200, 0, 760, 540)
+# FIELD HUD clusters (compass, score, health, ammo), telemetry readout, menu band.
+CORNERS = ((300, 10, 660, 70), (690, 10, 936, 75), (30, 440, 220, 530), (750, 420, 936, 530))
+DEBUG_PANEL = (30, 160, 340, 340)
+MENU_BAND = (0, 0, 480, 540)
 CASES = ('pause-menu', 'updater-current', 'updater-unavailable', 'hud', 'hud-telemetry',
          'ammo-idle', 'ammo-half', 'ammo-complete', 'ammo-full')
 ELEMENTS = {'pause-menu': 'pause-menu', 'updater-current': 'updater-panel', 'updater-unavailable': 'updater-panel',
@@ -178,7 +178,7 @@ def check_ui_case(case, ink, scale):
     require(ink['lit_bounds'] is not None and ink['lit_pixels'] > 0, f'{case}: capture is empty')
     if case == 'pause-menu':
         require(ink['warm_menu_band'] >= 500 * area and ink['white'] >= 75 * area,
-                f"pause-menu: expected accent and white text in the centred menu, got warm "
+                f"pause-menu: expected accent and white text in the left menu column, got warm "
                 f"{ink['warm_menu_band']} white {ink['white']}")
     elif case.startswith('updater-'):
         require(ink['warm'] >= 50 * area and ink['white'] >= 50 * area,
@@ -202,15 +202,16 @@ def check_ui_text(case, image, scale):
     foreground = ImageChops.darker(ImageChops.darker(r, g), b).point(lambda v: 255 if v >= 100 else 0)
     area = scale * scale
     if case == 'hud-telemetry':
-        # Production rows start at x=40, baseline 145 + row*23, size 16.
-        # ProggyClean's 16px glyph bounds fit baseline-12 through baseline+4.
+        # FIELD rows start at the title-safe x=48 below the minimap, baseline
+        # 188 + row*20, size 16 (the 16px text floor at the 960x540 viewport).
+        # Barlow Condensed's 16px glyph bounds fit baseline-12 through baseline+4.
         for row in range(8):
-            band = (40, 133 + row * 23, 334, 149 + row * 23)
+            band = (48, 176 + row * 20, 334, 192 + row * 20)
             require(count(foreground, band, scale) >= 20 * area,
                     f'hud-telemetry: text missing from row {row + 1}')
         return
     # The default updater panel starts at (18,18); message baseline is (34,71).
-    # At 16px ProggyClean advances 7px: "Version is current." ends before x=180,
+    # At 16px Barlow Condensed, "Version is current." ends before x=180,
     # while the unavailable message extends beyond x=300. The title and buttons
     # lie outside this band, so they cannot stand in for the message.
     require(count(foreground, (34, 59, 600, 77), scale) >= 40 * area,

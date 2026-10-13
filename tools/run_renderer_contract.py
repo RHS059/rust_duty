@@ -108,12 +108,24 @@ def cases():
                        (64 * scale, 48 * scale), OPAQUE, [],
                        {'dpi_percent': 100 * scale, 'font_size_physical_px': float(16 * scale),
                         'text': 'Ag', 'measured_with_trailing_space': 'Ag ',
-                        'metrics': {'width': float(21 * scale), 'height': float(11 * scale), 'offset_y': float(8 * scale)},
-                        'ink_bounds_exclusive': [11 * scale, 12 * scale, 23 * scale, 23 * scale],
+                        # Barlow Condensed SemiBold metrics (f32), and the glyph quad hull of "Ag".
+                        'metrics': TEXT_METRICS[scale],
+                        'ink_hull_exclusive': TEXT_HULL[scale],
                         'claim': 'raster dimensions only; no font-style or OS-DPI claim'}))
     result.append(('after-errors.png', 'renderer-recovers-after-rejected-captures', (16, 16),
                    OPAQUE, solid([0, 255, 0, 255]), None))
     return result
+
+
+TEXT_METRICS = {1: {'width': 17.39200210571289, 'height': 16.0, 'offset_y': 12.0},
+                2: {'width': 34.78400421142578, 'height': 30.0, 'offset_y': 23.0}}
+TEXT_HULL = {1: [10, 8, 25, 24], 2: [20, 17, 48, 47]}
+
+
+def text_ink_bounds(image, size):
+    ink = [(x, y) for y in range(size[1]) for x in range(size[0]) if any(v > 8 for v in image.getpixel((x, y))[:3])]
+    require(ink, 'text capture has no text ink')
+    return [min(x for x, _ in ink), min(y for _, y in ink), max(x for x, _ in ink) + 1, max(y for _, y in ink) + 1]
 
 
 def verify_fraction(record, key, actual, location):
@@ -126,6 +138,15 @@ def verify_case(output, spec, metadata, renderer):
     with Image.open(path) as original:
         require(original.mode == 'RGBA', f'{filename}: expected RGBA8 PNG')
     image = load_png(path, size)
+    if filename.startswith('text-'):
+        # Antialiased edge texels may sample blank: ink stays inside the glyph
+        # hull and reaches within one pixel of each side. The report must
+        # record the bounds measured here, never its own.
+        bounds = text_ink_bounds(image, size)
+        hull = extra['ink_hull_exclusive']
+        require(bounds[0] >= hull[0] and bounds[1] >= hull[1] and bounds[2] <= hull[2] and bounds[3] <= hull[3]
+                and all(abs(a - b) <= 1 for a, b in zip(bounds, hull)), f'{filename}: text ink bounds differ')
+        extra = {**extra, 'ink_bounds_exclusive': bounds}
     expected = {'schema_version': 1, 'fixture_case': case, 'filename': filename,
                 **renderer, 'renderer': renderer, 'force_fallback_adapter': True,
                 'alpha_representation': alpha, 'diagnostic_raw_target': alpha == ASSOCIATED,
@@ -158,11 +179,6 @@ def verify_case(output, spec, metadata, renderer):
         require(isinstance(observed, dict) and observed.keys() == set(fields) | {'match_fraction'}, f'{filename}: probe fields differ')
         literal({key: observed[key] for key in fields}, fields, filename + '.' + label)
         verify_fraction(observed, 'match_fraction', matching / count, filename)
-    if filename.startswith('text-'):
-        ink = [(x, y) for y in range(size[1]) for x in range(size[0]) if any(v > 8 for v in image.getpixel((x, y))[:3])]
-        require(ink, f'{filename}: no text ink')
-        bounds = [min(x for x, _ in ink), min(y for _, y in ink), max(x for x, _ in ink) + 1, max(y for _, y in ink) + 1]
-        require(bounds == extra['ink_bounds_exclusive'], f'{filename}: text ink bounds differ')
 
 
 def validate_outputs(output):

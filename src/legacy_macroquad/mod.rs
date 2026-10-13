@@ -109,6 +109,8 @@ pub struct LegacyRenderer {
     textures: HashMap<ResourceId, CachedTexture>,
     materials: HashMap<(u8, bool, bool, bool), material::Material>,
     material_sources: HashMap<(u8, bool, bool, bool), visibility_receipt::MaterialSource>,
+    /// FIELD's Barlow Condensed, the same face the wgpu text renderer embeds.
+    font: macroquad::text::Font,
 }
 
 impl LegacyRenderer {
@@ -134,6 +136,8 @@ impl LegacyRenderer {
             textures: HashMap::new(),
             materials: HashMap::new(),
             material_sources: HashMap::new(),
+            font: macroquad::text::load_ttf_font_from_bytes(crate::render::text::FONT_BYTES)
+                .map_err(|error| format!("cannot load embedded text font: {error}"))?,
         })
     }
 
@@ -144,7 +148,8 @@ impl LegacyRenderer {
         if text.is_empty() {
             return Ok(draw::TextDimensions::default());
         }
-        let measured = macroquad::text::measure_text(text, None, size as u16, 1.0);
+        let text = crate::render::text::printable(text);
+        let measured = macroquad::text::measure_text(&text, Some(&self.font), size as u16, 1.0);
         Ok(draw::TextDimensions {
             width: measured.width,
             height: measured.height,
@@ -452,14 +457,21 @@ impl LegacyRenderer {
                 if let Some(receipt) = receipt {
                     receipt.unsupported(active.target.as_ref(), "text")?;
                 }
-                prepare_default_text(text, *size)?;
+                // Same control-character mapping as the wgpu text renderer.
+                let text = crate::render::text::printable(text);
+                prepare_default_text(&self.font, &text, *size)?;
+                let font = self.font.clone();
                 self.with_screen_camera(active, extent, false, || {
-                    macroquad::text::draw_text(
-                        text,
+                    macroquad::text::draw_text_ex(
+                        &text,
                         baseline.x,
                         baseline.y,
-                        *size,
-                        color_to_legacy(*color),
+                        macroquad::text::TextParams {
+                            font: Some(&font),
+                            font_size: *size as u16,
+                            color: color_to_legacy(*color),
+                            ..Default::default()
+                        },
                     );
                 })?;
             }
@@ -845,7 +857,7 @@ fn flush() {
 /// Do not extend this mid-frame workaround to another backend/version without
 /// checking that implementation. All font sizing, rasterization and drawing
 /// remain Macroquad's original default-font path.
-fn prepare_default_text(text: &str, size: f32) -> Result<(), String> {
+fn prepare_default_text(font: &macroquad::text::Font, text: &str, size: f32) -> Result<(), String> {
     prepare_default_text_with(
         text,
         size,
@@ -867,7 +879,7 @@ fn prepare_default_text(text: &str, size: f32) -> Result<(), String> {
             // The facade's CPU-only measurement would not prepare that atlas.
             // This is the same u16 truncation and scale used by draw_text;
             // Macroquad applies its own existing DPI adjustment in both paths.
-            macroquad::text::measure_text(text, None, font_size, 1.0);
+            macroquad::text::measure_text(text, Some(font), font_size, 1.0);
         },
     )
 }

@@ -4,8 +4,11 @@ import json
 from pathlib import Path
 import shutil
 import struct
+import subprocess
 import tempfile
 import unittest
+
+import revalidate_reused_companions as reuse
 
 spec = importlib.util.spec_from_file_location("package_game", Path(__file__).with_name("package_game.py"))
 package = importlib.util.module_from_spec(spec)
@@ -21,6 +24,9 @@ UI_RESOURCES = {
     "docs/UI_THEME.md": b"# Native theme fixture\n",
     "ui/examples/high-contrast.css": b".panel { background-color: #000000f2; border-width: 2px; }\n",
     "ui/examples/large-type.css": b"#pause-menu .label { font-size: 26px; }\n",
+    "ui/examples/field-spartan.css": (ROOT / "ui/examples/field-spartan.css").read_bytes(),
+    "ui/examples/field-arena.css": (ROOT / "ui/examples/field-arena.css").read_bytes(),
+    "ui/examples/field-dread.css": (ROOT / "ui/examples/field-dread.css").read_bytes(),
     "docs/UI_THEME_EXAMPLES.md": b"# Theme examples fixture\nHigh contrast uses 95%-opaque black panels.\n",
 }
 
@@ -45,6 +51,26 @@ class PackageGameTests(unittest.TestCase):
             path = self.root / relative
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_bytes(contents)
+
+    def test_current_packager_pin_rejects_unrelated_script_drift(self):
+        lock = reuse.read_json(ROOT / "tools/source_bound_companion_reuse_lock.json")
+        row = next(row for row in lock["source_files"] if row["path"] == "tools/package_game.py")
+        # This isolated mutation fixture starts from the committed LF blob on
+        # every OS. Production verify_source still checks actual worktree bytes.
+        original = subprocess.check_output([
+            "git", "-C", str(ROOT), "show", f"HEAD:{row['path']}",
+        ])
+        script = self.base / "package_game.py"
+        script.write_bytes(original)
+        reuse.check_digest(script, row)
+        # Changing validator code, even at the same byte length, must not inherit
+        # approval from the reviewed RUNTIME_FILES-only addition.
+        altered = original.replace(b"unsafe distribution path", b"unsafe distribution PATH", 1)
+        self.assertNotEqual(altered, original)
+        self.assertEqual(len(altered), len(original))
+        script.write_bytes(altered)
+        with self.assertRaisesRegex(ValueError, "byte/hash mismatch"):
+            reuse.check_digest(script, row)
 
     def test_repository_compressed_input_stages_exact_original(self):
         self.add_distribution_files()

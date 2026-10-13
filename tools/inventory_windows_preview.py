@@ -18,6 +18,8 @@ REQUIRED_FILES = (
     'DX12_PREVIEW_README.txt', 'LICENSE', 'THIRD_PARTY_LICENSES.txt',
     'updater/notices/THIRD_PARTY_UPDATER_LICENSES.txt', 'ui/theme.css',
     'ui/examples/high-contrast.css', 'ui/examples/large-type.css',
+    'ui/examples/field-spartan.css', 'ui/examples/field-arena.css',
+    'ui/examples/field-dread.css',
     'docs/UI_THEME.md', 'docs/UI_THEME_EXAMPLES.md', 'docs/FRAME_PERFORMANCE.md',
     'docs/GPU_TELEMETRY.md', 'assets/animations.cfg',
 )

@@ -3,7 +3,7 @@ use crate::ammo_supply::SupplyFocus;
 use crate::draw::facade::*;
 use crate::ui_theme::{self, UiClass, UiScope};
 
-pub const SUPPLY_GOLD: Color = Color::new(1., 0.76, 0.20, 1.);
+pub const SUPPLY_GOLD: Color = crate::field_ui::ACCENT;
 pub const HOLD_BACKPLATE: Color = Color::new(0., 0., 0., 0.25);
 const CIRCLE_RADIUS: f32 = 19.;
 
@@ -57,7 +57,7 @@ fn centered_text(text: &str, center_x: f32, baseline_y: f32, size: u16, color: C
         x + 1.,
         baseline_y + 1.,
         size,
-        style.apply_opacity(Color::new(0., 0., 0., 0.70)),
+        style.apply_opacity(crate::field_ui::HALO),
     );
     draw_text(text, x, baseline_y, size, style.tint(color));
 }
@@ -71,13 +71,7 @@ pub fn draw_ammo_supply_hint(focus: SupplyFocus, progress: f32, ammo_full: bool)
         return;
     }
     if ammo_full {
-        centered_text(
-            "AMMO FULL",
-            center.x,
-            center.y,
-            19,
-            Color::new(0.88, 0.93, 0.87, 1.),
-        );
+        centered_text("AMMO FULL", center.x, center.y, 19, crate::field_ui::TEXT);
         return;
     }
     let label = ui_theme::style(UiScope::AmmoHint, &[UiClass::Label]);

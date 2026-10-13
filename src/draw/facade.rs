@@ -939,9 +939,9 @@ mod tests {
         assert_eq!(
             measured,
             TextDimensions {
-                width: 21.,
-                height: 11.,
-                offset_y: 8.
+                width: 17.392002,
+                height: 16.,
+                offset_y: 12.
             }
         );
         assert_eq!(drawn, measured);

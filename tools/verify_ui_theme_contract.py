@@ -9,6 +9,8 @@ executable identity, process success and compiler logs belong to the runner.
 """
 
 import argparse
+import hashlib
+import io
 from functools import lru_cache
 import json
 import math
@@ -28,7 +30,7 @@ PHASES = ('initial', 'reloaded', 'invalid-last-good')
 WARP = 'Microsoft Basic Render Driver'
 SCOPE = 'headless native DX12 UiTheme-to-facade-to-PNG contract'
 TOLERANCE = 4
-ORACLE = 'independent fixed ProggyClean H/I design-grid area coverage, including negative-space pixels'
+ORACLE = 'direct fontdue raster of the embedded Barlow Condensed H/I, including negative-space pixels'
 INITIAL_CSS = (
     '#pause-menu .panel { background-color:#204060; border-color:#e0c020; border-width:4px; }\n'
     '#pause-menu .label { color:#40e080; font-size:16px; }\n'
@@ -45,10 +47,22 @@ INVALID_CSS = (
 )
 CSS_FILES = {'initial-theme.css': INITIAL_CSS, 'reloaded-theme.css': RELOADED_CSS,
              'rejected-theme.css': INVALID_CSS, 'active-theme.css': INVALID_CSS}
-GLYPHS = (
-    ('100001', '100001', '100001', '111111', '100001', '100001', '100001', '100001'),
-    ('011100', '001000', '001000', '001000', '001000', '001000', '001000', '011100'),
-)
+TEXT_ORACLE_DIR = Path(__file__).resolve().parent / 'ui_theme_text_oracle'
+# fontdue rasters of the embedded Barlow Condensed H/I, composited over the fixture
+# background (generated from the font file by ui_theme_contract's CPU oracle, never
+# from GPU output). Pinned so a report or capture cannot substitute them.
+TEXT_ORACLE_SHA256 = {
+    'initial-100.png': '86d02f84e06baaed22b4d56ba5784d95416cc825e4afc28a69157857c4b88272',
+    'initial-125.png': '295079a63fa57b061d917c7882c64e49fe98e0e35fe02c156ddd4d36d2ccc82d',
+    'initial-150.png': 'f5b43414d80bb1e647fb828959b6d37a3c6cd1ec71c47a281eb04337d2eeccbc',
+    'initial-175.png': '9b3188264b7763ab621fdfa0569ad02364d8365d518ddc3a1a43a23e9f6e71ec',
+    'initial-200.png': '8fd0d515242967b02992ba406b9d62436fee82928af7d2ceed326232d1320c38',
+    'reloaded-100.png': 'db54e41c8699610b50927bfa5e1958ec2236eeea8f60460dd791cbfc4ae612ba',
+    'reloaded-125.png': '7594f320fff91eb71840312cbb1f16aad1e0e4df29e131dc52a86f7542accb85',
+    'reloaded-150.png': 'd3b6ca244ba5a6a6aa89c21373bbef7eba890f72f7299734225402d2432e2c36',
+    'reloaded-175.png': '42d132301566b135ce86be38d0ec6903c03471bceca64f9a16b10439df243410',
+    'reloaded-200.png': '581cc12ad70957b44af3a23551064b176ec3424ee76fed9ed64b975617dd90c8',
+}
 
 
 def _colors(reloaded):
@@ -96,38 +110,17 @@ def _round_positive(value):
 
 @lru_cache(maxsize=10)
 def _text_expectation(reloaded, percent):
-    """Fixed design-grid area coverage; cached immutable bytes, never test pixels.
-
-    Accumulate each on-cell's geometric overlap in physical pixels. Quarter-step
-    scales make all cell edges/overlaps exactly binary representable. Blend only
-    after summing coverage, including the unpainted negative-space background.
-    """
-    background, _, _, _, _, _, rgb, alpha_byte, font_size = _colors(reloaded)
-    scale = percent / 100.
-    unit = font_size / 16. * scale
+    """Pinned glyph raster for this phase and scale; cached immutable bytes, never test pixels."""
+    background = _colors(reloaded)[0]
+    name = f"{'reloaded' if reloaded else 'initial'}-{percent}.png"
+    data = (TEXT_ORACLE_DIR / name).read_bytes()
+    require(hashlib.sha256(data).hexdigest() == TEXT_ORACLE_SHA256[name], f'{name}: text oracle changed')
     left, top, right, bottom = _bounds([36., 36., 80., 68.], percent)
     size = (right - left, bottom - top)
-    coverage = {}
-    for glyph, rows in enumerate(GLYPHS):
-        for row, cells in enumerate(rows):
-            for column, cell in enumerate(cells):
-                if cell != '1':
-                    continue
-                x0 = (40. + 24. * glyph) * scale + (1. + column) * unit
-                y0 = 60. * scale + (-8. + row) * unit
-                for y in range(max(top, math.floor(y0)), min(bottom, math.ceil(y0 + unit))):
-                    dy = max(0., min(y0 + unit, y + 1.) - max(y0, y))
-                    for x in range(max(left, math.floor(x0)), min(right, math.ceil(x0 + unit))):
-                        dx = max(0., min(x0 + unit, x + 1.) - max(x0, x))
-                        coverage[x, y] = coverage.get((x, y), 0.) + dx * dy
-    image = Image.new('RGBA', size, background)
-    ink = 0
-    for (x, y), area in coverage.items():
-        alpha = min(max(area, 0.), 1.) * alpha_byte / 255.
-        color = tuple(_round_positive(rgb[i] * alpha + background[i] * (1. - alpha))
-                      for i in range(3)) + (255,)
-        image.putpixel((x - left, y - top), color)
-        ink += color != background
+    with Image.open(io.BytesIO(data)) as source:
+        image = source.convert('RGBA')
+    require(image.size == size, f'{name}: text oracle extent differs')
+    ink = sum(1 for pixel in image.getdata() if pixel != background)
     require(ink > 0, 'fixed text expectation has no ink')
     return size, image.tobytes(), ink
 

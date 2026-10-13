@@ -403,6 +403,13 @@ impl Player {
     pub fn lean_roll(&self, max_degrees: f32) -> f32 {
         self.lean_fraction * max_degrees.to_radians()
     }
+    /// World camera up vector, rolled by the current lean.
+    pub fn camera_up(&self, max_lean_degrees: f32) -> Vec3 {
+        let roll = self.lean_roll(max_lean_degrees);
+        let right = self.direction().cross(Vec3::Y).normalize_or_zero();
+        // Leaning right tilts the head's up vector toward the right.
+        (Vec3::Y * roll.cos() + right * roll.sin()).normalize()
+    }
     /// Visible cant weight: full at the hip, none when aimed.
     pub fn cant_visual(&self) -> f32 {
         self.cant * (1. - self.ads)

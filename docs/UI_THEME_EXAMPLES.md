@@ -1,14 +1,19 @@
 # UI theme examples
 
-Two ready-to-use themes for the native UI language described in
+Ready-to-use themes for the native UI language described in
 [UI_THEME.md](UI_THEME.md). They use only the documented scopes, classes and
-properties. `tests/ui_theme_examples_contract.rs` parses both files with the
+properties. The built-in default is the FIELD Operator theme from
+[RHS059/game_pd_ui](https://github.com/RHS059/game_pd_ui); the `field-*` files
+switch to its other mood presets. `tests/ui_theme_examples_contract.rs` parses every file with the
 production `UiTheme::parse` and checks the resolved styles below.
 
 | File | Purpose |
 | --- | --- |
 | `ui/examples/high-contrast.css` | White text, yellow accents, red warnings, 95%-opaque black panels with 2px borders |
 | `ui/examples/large-type.css` | Larger pause-menu and updater text, modestly larger HUD and ammunition-hint text; colors unchanged |
+| `ui/examples/field-spartan.css` | FIELD Spartan mood (sci-fi visor): cyan accent on deep teal surfaces |
+| `ui/examples/field-arena.css` | FIELD Arena mood (competitive): lime accent, neutral surfaces |
+| `ui/examples/field-dread.css` | FIELD Dread mood (horror): muted brass accent, warm-grey text |
 
 ## Selecting a theme
 
