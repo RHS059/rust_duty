@@ -567,7 +567,7 @@ mod tests {
         assert!(ResidentMesh::coalesce(&[textured.clone(), textured]).is_ok());
         let indices =
             ResidentMesh::new(Vertices::Rigid(vec![vertex(); 3]), vec![0; 65_535], None).unwrap();
-        assert!(ResidentMesh::coalesce(&[indices.clone()]).is_ok());
+        assert!(ResidentMesh::coalesce(std::slice::from_ref(&indices)).is_ok());
         assert!(ResidentMesh::coalesce(&[indices, rigid.clone()]).is_err());
         let vertices = ResidentMesh::new(
             Vertices::Rigid(vec![vertex(); 65_533]),

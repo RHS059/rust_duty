@@ -27,7 +27,7 @@ use vector_range::{game_update, pause_menu};
 use vector_range::{
     muzzle_fx::MuzzleFx,
     settings::Settings,
-    sim::{FIXED_DT, Input, Shot, Simulation},
+    sim::{Input, Shot, Simulation, FIXED_DT},
 };
 struct Trace {
     shot: Shot,
@@ -1855,13 +1855,11 @@ mod tests {
         assert_eq!(identity.operator_supplied, serde_json::Value::Null);
         let scene = identity.runtime.scene.to_string();
         assert!(!scene.contains("path") && !scene.contains("/") && !scene.contains("\\"));
-        assert!(
-            !identity
-                .runtime
-                .actual_adapter
-                .to_string()
-                .contains("hardware")
-        );
+        assert!(!identity
+            .runtime
+            .actual_adapter
+            .to_string()
+            .contains("hardware"));
     }
 
     #[test]
@@ -1882,11 +1880,9 @@ mod tests {
             .unwrap_err();
         assert!(error.contains("denied"));
         let mut sequence = 0;
-        assert!(
-            next_frame_trace_path(&mut sequence, |_| Ok(true))
-                .unwrap_err()
-                .contains("1024")
-        );
+        assert!(next_frame_trace_path(&mut sequence, |_| Ok(true))
+            .unwrap_err()
+            .contains("1024"));
         assert_eq!(sequence, 1024);
     }
 
@@ -1967,27 +1963,25 @@ mod tests {
             let completion = frame_trace::present_success().unwrap();
             assert_eq!(completion.report.ineligible_present_count, 2);
             assert_eq!(completion.report.summary.interval_count, 0);
-            assert!(
-                completion
-                    .report
-                    .raw_records()
-                    .iter()
-                    .filter_map(|record| {
-                        if let RecordKind::PresentReturn {
-                            eligibility,
-                            interval_ns,
-                        } = record.kind
-                        {
-                            Some((eligibility, interval_ns))
-                        } else {
-                            None
-                        }
-                    })
-                    .all(
-                        |(eligibility, interval)| eligibility == Eligibility::Ineligible(reason)
-                            && interval.is_none()
-                    )
-            );
+            assert!(completion
+                .report
+                .raw_records()
+                .iter()
+                .filter_map(|record| {
+                    if let RecordKind::PresentReturn {
+                        eligibility,
+                        interval_ns,
+                    } = record.kind
+                    {
+                        Some((eligibility, interval_ns))
+                    } else {
+                        None
+                    }
+                })
+                .all(
+                    |(eligibility, interval)| eligibility == Eligibility::Ineligible(reason)
+                        && interval.is_none()
+                ));
             assert_eq!(
                 completion.export.unwrap(),
                 CaptureStatus::Incomplete(CaptureError::NoEligibleIntervals)
