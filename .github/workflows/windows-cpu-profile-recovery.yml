@@ -1,0 +1,56 @@
+name: Recover saved Windows CPU trace
+on:
+  push:
+    branches: [aella/wgpu-1080p-diagnostics]
+    paths:
+      - '.github/workflows/windows-cpu-profile-recovery.yml'
+      - 'tools/recover_windows_cpu_profile.py'
+      - 'tools/test_windows_cpu_profile_recovery.py'
+permissions:
+  contents: read
+  actions: read
+jobs:
+  recover:
+    if: github.repository == 'RHS059/rust_duty' && github.ref == 'refs/heads/aella/wgpu-1080p-diagnostics'
+    runs-on: windows-2022
+    timeout-minutes: 20
+    env:
+      PYTHONDONTWRITEBYTECODE: '1'
+      RECOVERY_RUN_ID: '38194089349'
+      RECOVERY_ARTIFACT_ID: '11723285843'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            tools
+            .github/workflows
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check recovery guards
+        env:
+          PYTHONPATH: tools
+        run: python -m unittest -v test_windows_cpu_profile_recovery
+      - name: Retrieve only the immutable failed-capture artifact
+        uses: actions/download-artifact@v4
+        with:
+          artifact-ids: '11723285843'
+          run-id: '38194089349'
+          github-token: ${{ github.token }}
+          path: evidence/original
+          merge-multiple: true
+      - name: Export the saved trace without launching the game
+        timeout-minutes: 17
+        run: python tools/recover_windows_cpu_profile.py --input evidence/original --output evidence/recovery
+      - name: Retain recovered reports and original-failure binding
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-cpu-recovered-reports-attempt-${{ github.run_attempt }}
+          path: |
+            evidence/recovery/*.json
+            evidence/recovery/*.log
+            evidence/recovery/*.txt
+          if-no-files-found: warn
+          retention-days: 7

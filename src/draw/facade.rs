@@ -81,6 +81,7 @@ struct FrameRecorder {
     screen_scale_override: Option<f32>,
     camera: Camera,
     model: Mat4,
+    resident_meshes: bool,
 }
 impl FrameRecorder {
     fn screen_scale(&self) -> f32 {
@@ -214,9 +215,25 @@ pub fn begin_frame(width: u32, height: u32, scale_factor: f64) -> Result<(), Str
             screen_scale_override: None,
             camera,
             model: Mat4::IDENTITY,
+            resident_meshes: false,
         });
         Ok(())
     })
+}
+
+/// Begins a frame with capabilities taken from the renderer that will submit it.
+/// Reference/legacy/mock renderers stay CPU-only unless they explicitly implement
+/// the capability. All capability state is discarded together with the frame.
+pub fn begin_frame_with_renderer(
+    width: u32,
+    height: u32,
+    scale_factor: f64,
+    renderer: &dyn super::Renderer,
+) -> Result<(), String> {
+    begin_frame(width, height, scale_factor)?;
+    set_backend_info(renderer.info().clone());
+    set_resident_meshes_enabled(renderer.supports_resident_meshes());
+    Ok(())
 }
 
 /// Consumes the frame once. Invalid recording returns errors, never a partial frame.
@@ -407,7 +424,20 @@ pub fn set_camera(camera: &Camera3D) {
             view_projection,
             target: camera.render_target.clone(),
             depth_test: true,
+            depth_range: [0., 1.],
         };
+        frame.list.camera(frame.camera.clone());
+        Ok(())
+    });
+}
+/// Map surviving fragments into a bounded depth slice after normal clipping.
+/// Selecting any new camera restores its default full depth range.
+pub fn set_depth_range(min: f32, max: f32) {
+    record("set_depth_range", |frame| {
+        if !min.is_finite() || !max.is_finite() || min < 0. || max > 1. || min > max {
+            return Err("viewport depth range must be finite and ordered within 0..1".into());
+        }
+        frame.camera.depth_range = [min, max];
         frame.list.camera(frame.camera.clone());
         Ok(())
     });
@@ -483,6 +513,39 @@ pub fn with_model_matrix<R>(matrix: Mat4, f: impl FnOnce() -> R) -> R {
     let result = f();
     drop(guard);
     result
+}
+
+/// Capability belongs to this frame, never to a cached backend name.
+pub(crate) fn set_resident_meshes_enabled(enabled: bool) {
+    RECORDER.with(|state| {
+        if let Some(frame) = state.borrow_mut().frame.as_mut() {
+            frame.resident_meshes = enabled;
+        }
+    });
+}
+pub fn resident_meshes_enabled() -> bool {
+    RECORDER.with(|state| {
+        state
+            .borrow()
+            .frame
+            .as_ref()
+            .is_some_and(|f| f.resident_meshes)
+    })
+}
+pub fn draw_resident(draw: super::resident::ResidentDraw, blend: BlendMode) {
+    record("draw_resident", |frame| {
+        if !frame.resident_meshes {
+            return frame.mesh(&draw.reference_mesh(), frame.model, blend);
+        }
+        if !(frame.camera.view_projection * frame.model * draw.root()).is_finite() {
+            return Err("resident camera-model transform overflow".into());
+        }
+        if let Some(texture) = draw.mesh().texture() {
+            frame.validate_sample(texture)?;
+        }
+        frame.list.draw_resident(draw, frame.model, blend);
+        Ok(())
+    });
 }
 
 pub fn draw_mesh(mesh: &Mesh) {
@@ -801,6 +864,25 @@ mod tests {
     use crate::draw::Command;
 
     #[test]
+    fn resident_capability_is_frame_local_and_clears_on_success_and_error() {
+        begin_frame(64, 64, 1.).unwrap();
+        assert!(!resident_meshes_enabled());
+        set_resident_meshes_enabled(true);
+        assert!(resident_meshes_enabled());
+        take_draw_list().unwrap();
+        assert!(!resident_meshes_enabled());
+        begin_frame(64, 64, 1.).unwrap();
+        assert!(!resident_meshes_enabled());
+        set_resident_meshes_enabled(true);
+        draw_line_3d(Vec3::splat(f32::NAN), Vec3::ZERO, WHITE);
+        assert!(take_draw_list().is_err());
+        assert!(!resident_meshes_enabled());
+        begin_frame(64, 64, 1.).unwrap();
+        assert!(!resident_meshes_enabled());
+        take_draw_list().unwrap();
+    }
+
+    #[test]
     fn frame_witness_is_drawn_before_readback_and_restores_camera() {
         begin(2.0);
         let target = RenderTarget::new(960, 540, true).unwrap();
@@ -896,6 +978,44 @@ mod tests {
             up: Vec3::Y,
             render_target: target,
             ..Camera3D::default()
+        }
+    }
+
+    #[test]
+    fn viewport_depth_range_preserves_projection_and_resets_with_camera() {
+        begin(1.);
+        set_camera(&perspective(None));
+        set_depth_range(0., 0.05);
+        set_default_camera();
+        let list = take_draw_list().unwrap();
+        let cameras: Vec<_> = list
+            .commands
+            .iter()
+            .filter_map(|c| {
+                if let Command::Camera(camera) = c {
+                    Some(camera)
+                } else {
+                    None
+                }
+            })
+            .collect();
+        assert_eq!(cameras[1].view_projection, cameras[2].view_projection);
+        assert_eq!(cameras[1].depth_range, [0., 1.]);
+        assert_eq!(cameras[2].depth_range, [0., 0.05]);
+        assert_eq!(cameras[3].depth_range, [0., 1.]);
+        assert!(!cameras[3].depth_test);
+        for [min, max] in [
+            [-0.1, 1.],
+            [0., 1.1],
+            [0.5, 0.4],
+            [f32::NAN, 1.],
+            [0., f32::INFINITY],
+        ] {
+            begin(1.);
+            set_depth_range(min, max);
+            assert!(take_draw_list()
+                .unwrap_err()
+                .contains("viewport depth range"));
         }
     }
 

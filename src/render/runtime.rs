@@ -17,12 +17,39 @@ pub fn create_frame_hooks(
     selection: BackendSelection,
     force_fallback: bool,
 ) -> Result<Box<dyn FrameHooks>, String> {
-    let size = window.inner_size();
-    let scale = window.scale_factor();
-    let renderer = pollster::block_on(WgpuRenderer::new_windowed(
+    create_frame_hooks_with_present_mode(window, selection, force_fallback, Default::default())
+}
+
+pub fn create_frame_hooks_with_present_mode(
+    window: Arc<Window>,
+    selection: BackendSelection,
+    force_fallback: bool,
+    present_mode: super::present_policy::PresentModeRequest,
+) -> Result<Box<dyn FrameHooks>, String> {
+    create_frame_hooks_with_diagnostics(
         window,
         selection,
         force_fallback,
+        super::RuntimeDiagnostics {
+            present_mode,
+            gpu_timestamps: false,
+        },
+    )
+}
+
+pub fn create_frame_hooks_with_diagnostics(
+    window: Arc<Window>,
+    selection: BackendSelection,
+    force_fallback: bool,
+    diagnostics: super::RuntimeDiagnostics,
+) -> Result<Box<dyn FrameHooks>, String> {
+    let size = window.inner_size();
+    let scale = window.scale_factor();
+    let renderer = pollster::block_on(WgpuRenderer::new_windowed_with_diagnostics(
+        window,
+        selection,
+        force_fallback,
+        diagnostics,
     ))?;
     Ok(Box::new(DrawHooks {
         renderer,
@@ -91,11 +118,12 @@ impl<R: FrameRenderer> FrameHooks for DrawHooks<R> {
             }
         }
         performance::begin_cpu_stage(CpuFrameStage::GameRecording);
-        if let Err(error) = facade::begin_frame(self.width, self.height, self.scale) {
+        if let Err(error) =
+            facade::begin_frame_with_renderer(self.width, self.height, self.scale, &self.renderer)
+        {
             log_completion(performance::present_failure());
             return Err(error);
         }
-        facade::set_backend_info(self.renderer.info().clone());
         self.recording = true;
         Ok(FrameStart::Ready)
     }

@@ -11,29 +11,41 @@ separate section at the end and stays open until the owner fills it in.
 
 ## Launcher
 
-Use only the preview's strict hardware-DX12 launcher, `PLAYTEST_DX12.cmd`, from
-the extracted `Rust-Duty-<label>-DX12-Preview-Windows-x64` artifact. As staged
-by `tools/stage_dx12_preview.py`, its full content is:
+Use the preview's strict hardware-DX12 launcher, `PLAYTEST_DX12.cmd`, from
+the extracted `Rust-Duty-<label>-DX12-Preview-Windows-x64` artifact. Check the
+`schema` and `human_launch` fields in `DX12_PREVIEW.json` before starting.
+Current `rust-duty-dx12-wip-preview/v2` packages have this exact launcher:
 
 ```bat
 @echo off
 cd /d "%~dp0"
-"%~dp0vector-range.exe" --renderer=dx12 --no-update
+"%~dp0vector-range.exe" --renderer=dx12 --physical-1080p --no-update
 exit /b %ERRORLEVEL%
 ```
 
+Historical `rust-duty-dx12-wip-preview/v1` packages have the same four lines,
+but their executable line is exactly:
+
+```bat
+"%~dp0vector-range.exe" --renderer=dx12 --no-update
+```
+
+The v1 launcher does not request 1080p. The v2 flag requests a physical
+1920 x 1080 client area and verifies the initial extent before application
+startup. If the desktop cannot supply it, startup fails with a size error.
+Later resizing or fullscreen changes can alter the extent; retain the actual
+per-frame dimensions for performance evidence. Neither package inventory nor
+the older 960 x 540 WARP smoke proves a 1080p hardware playtest.
+
 Explicit `--renderer=dx12` never silently changes API. There is no
 `--force-fallback-adapter`, so WARP is not forced. `--no-update` disables the
-release channel for this launch.
+release channel for this launch. Check the actual adapter as described below.
 
-Source status: neither `PLAYTEST_DX12.cmd` nor `tools/stage_dx12_preview.py` is
-in commit `72663e2` (PR 44 head when this checklist was written). Both come from
-the pending preview-packaging change (mailbox message
-`halcyon-dx12-preview-package-20261005-261`). If the extracted launcher is
-missing or differs from the text above, stop and record the run as blocked. Do
-not substitute `run.bat` (it uses Cargo with the default legacy renderer),
-double-clicking `vector-range.exe` (legacy default until M4), or any
-`--force-fallback-adapter` command.
+If the extracted launcher is missing or differs from its declared schema's
+exact form above, stop and record the run as blocked. Do not substitute
+`run.bat` (it uses Cargo with the default legacy renderer), double-clicking
+`vector-range.exe` (legacy default until M4), or any
+`--force-fallback-adapter` command. The launcher does not forward extra arguments.
 
 To keep the backend log, start it from a Command Prompt in the extracted
 folder. This only redirects output and leaves the launcher unchanged:

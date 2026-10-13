@@ -36,7 +36,7 @@ impl FragmentKind {
         }
     }
 }
-fn blend_state(mode: BlendMode, fragment: FragmentKind) -> Option<wgpu::BlendState> {
+pub(super) fn blend_state(mode: BlendMode, fragment: FragmentKind) -> Option<wgpu::BlendState> {
     let source_color = match fragment {
         FragmentKind::Straight => wgpu::BlendFactor::SrcAlpha,
         FragmentKind::AssociateStraight | FragmentKind::Associated | FragmentKind::Present => {
@@ -68,7 +68,7 @@ fn blend_state(mode: BlendMode, fragment: FragmentKind) -> Option<wgpu::BlendSta
         }),
     }
 }
-fn depth_state(enabled: bool, blend: BlendMode) -> Option<wgpu::DepthStencilState> {
+pub(super) fn depth_state(enabled: bool, blend: BlendMode) -> Option<wgpu::DepthStencilState> {
     enabled.then_some(wgpu::DepthStencilState {
         format: super::target::DEPTH_FORMAT,
         // Preserve legacy alpha-mesh depth writes (including actor opacity).
@@ -89,7 +89,7 @@ struct PipelineKey {
 }
 pub(crate) struct Pipelines {
     pub texture_layout: wgpu::BindGroupLayout,
-    transform_layout: wgpu::BindGroupLayout,
+    pub(super) transform_layout: wgpu::BindGroupLayout,
     layout: wgpu::PipelineLayout,
     shader: wgpu::ShaderModule,
     pipelines: HashMap<PipelineKey, wgpu::RenderPipeline>,
@@ -175,6 +175,10 @@ impl Pipelines {
         self.pipelines
             .entry(key)
             .or_insert_with(|| {
+                crate::frame_performance_session::add_encode_counter(
+                    crate::frame_encode_detail::EncodeCounter::PipelineCacheMisses,
+                    1,
+                );
                 device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
                     label: Some("CPU-lit mesh pipeline"),
                     layout: Some(&self.layout),

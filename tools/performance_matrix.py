@@ -11,7 +11,7 @@ import hashlib
 import json
 import math
 import os
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 import platform
 import re
 import statistics
@@ -19,9 +19,12 @@ import subprocess
 import sys
 import tempfile
 import time
+from types import SimpleNamespace
 
 from exclusive_output import write_bytes_exclusive, write_text_exclusive
 import summarize_frame_performance as frames
+import summarize_cpu_substages as cpu_substages
+import summarize_gpu_timing as gpu_timing
 from performance_matrix_driver import DriverError, create_driver, exit_snapshot, replay, tap, wait_until
 
 PLAN_SCHEMA = 'rust-duty-real-game-performance-matrix/v1'
@@ -34,6 +37,93 @@ SOURCE_PATHS = ('src/main.rs', 'src/app.rs', 'src/settings.rs', 'src/world_draw.
                 'src/render/runtime.rs', 'src/frame_performance.rs',
                 'src/frame_performance_session.rs', 'src/graphics_device.rs',
                 'src/telemetry_export.rs', 'src/control.rs', 'src/asset_path.rs')
+# Additional exact inventory for optional CPU substage sidecars. Keep the
+# historical 17-file binding for pinned packages; never accept arbitrary edits.
+SUBSTAGE_SOURCE_PATHS = (*SOURCE_PATHS, 'src/frame_cpu_substages.rs',
+                        'src/render/frame.rs', 'src/lib.rs')
+AUDITED_SUBSTAGE_RUNTIME_MANIFEST = '9e95260bd852422caecb57b23abb3fb60ceeaae3f4d77bb7e1d2d57d36dc4ac7'
+# Reviewed allocation-only CPU changes are also part of the candidate's exact
+# source witness. A live checkout must never fall back to the narrower inventory
+# when one of these files changes. Historical artifact witnesses remain valid.
+CPU_SOURCE_PATHS = ('src/draw/mod.rs', 'src/render/lines.rs',
+                    'src/render/text.rs', 'src/render/plan.rs')
+CPU_BASELINE_MANIFEST = '66a130aeeaeaa6ce80cfc3525d1e46388f7cd5b1c0755da2e1e302d9b055ee22'
+CPU_CANDIDATE_SOURCE_PATHS = (*SUBSTAGE_SOURCE_PATHS, *CPU_SOURCE_PATHS)
+AUDITED_CPU_CANDIDATE_MANIFEST = '0a904c635739b3365ff99569466098e71b3d81e8e456939163421aad311fe4c5'
+PRESENT_SOURCE_PATHS = ('src/render/present_policy.rs', 'src/render/mod.rs', 'src/render/backend.rs')
+PRESENT_BASELINE_MANIFEST = '71695b3988c2fae2652a9b14ce923ddb135004b14fe084e90e81772214fa657e'
+PRESENT_CANDIDATE_SOURCE_PATHS = (*CPU_CANDIDATE_SOURCE_PATHS, *PRESENT_SOURCE_PATHS)
+AUDITED_PRESENT_CANDIDATE_MANIFEST = 'a6af645f2e1b5c4c71b9a65964a963a1ad1217a75efff7b0cf8f9c39280880a6'
+GPU_SOURCE_PATHS = ('src/frame_gpu_capture.rs', 'src/render/gpu_timing.rs')
+GPU_CANDIDATE_SOURCE_PATHS = (*PRESENT_CANDIDATE_SOURCE_PATHS, *GPU_SOURCE_PATHS)
+# Preserve the first published 29-file WIP witness after formatting/fixes.
+AUDITED_GPU_INITIAL_MANIFEST = '445974fef81cb3f1d97ce7a21a0ebabc48e8fab92794f0898ad89dec89e7db2e'
+AUDITED_GPU_CANDIDATE_MANIFEST = '9b7ae93be3a4d4aed9b662d0c27ff18d0b1e12e99c4dc916422c98e0c5eae3c6'
+# Same instrumented production tree with exactly the four image-validated CPU
+# files restored from 70ff2933; never an alias for another historical build.
+AUDITED_GPU_CPU_BASELINE_MANIFEST = 'dbabe2822dd73410a7f05c0f03807aa80d5720351c4a9c13ebdee1276fecc195'
+# Closed compile identity for that historical timing pair, independent of later image candidates.
+AUDITED_GPU_PRODUCTION_MANIFEST = 'd74a901c91ffd6746826e7e9c7f0ff447157774d3ea8d661d4912caf84e4a33c'
+# Separate detail-enabled inventory. Historical GPU/CPU pins and the immutable
+# source-pair builder remain unchanged; no old artifact is relabeled.
+ENCODE_DETAIL_SOURCE_PATHS = (*GPU_CANDIDATE_SOURCE_PATHS, 'src/frame_encode_detail.rs',
+                             'src/render/arena.rs', 'Cargo.toml', 'Cargo.lock')
+AUDITED_ENCODE_DETAIL_INITIAL_MANIFEST = 'bd33a722405c3ec0073ebd28dc390c7cddffcf84ab48b2ba1833d9b97ed862e4'
+AUDITED_ENCODE_DETAIL_FORMATTED_MANIFEST = '480e05173ad3ad42879fc1620e01fd4e9035148fadebbb2acb5b1b0cc21c8bf7'
+# Combined physical-window and formatted producer; historical Hal bytes retain their own pin.
+AUDITED_ENCODE_DETAIL_MANIFEST = 'b673d91755f8e733ee075d79ae97f8c2afff7df5488e38cf5c3e8030b7c763c0'
+# New upload experiment: keep every older inventory and digest unchanged.
+UPLOAD_REUSE_SOURCE_PATHS = (*ENCODE_DETAIL_SOURCE_PATHS, 'src/frame_upload_policy.rs',
+                             'src/render/upload_cache.rs')
+AUDITED_UPLOAD_REUSE_INITIAL_MANIFEST = '30034419d16eaf4cfa336e5bde862dd660a54ff3736dbc30cfd1f47b0d896460'
+AUDITED_UPLOAD_IMMUTABLE_INITIAL_CONTROL_MANIFEST = 'dd7325d511b76829660abe3cd8d0bb4a5c17ae970a68025d888eafe8e74fcfcc'
+AUDITED_UPLOAD_REUSE_MANIFEST = '2dbfe6bbab145c675e2517eee8c2ec2476e467e32ec66b8c8938c05d55434493'
+AUDITED_UPLOAD_IMMUTABLE_CONTROL_MANIFEST = 'd80012eb4d1d4a5e669b98aae8910fc24302f1fc38bd92ed8a3593a0fae70dd7'
+# Exact arena-only serialization experiment; all upload history remains unchanged.
+AUDITED_ARENA_SERIALIZATION_MANIFEST = '3a995ea0fb0e8d4173921c7fadd0689eab6c67fc9c5fe8339173129527acae43'
+# The two loader modules were unchanged throughout the historical inventories.
+# Verify them even for a narrow live witness, or CPU-only loader edits could hide.
+LOADER_BASELINE = {
+    'src/authored_viewmodel.rs': 'c87f0a15241d8a03ec3426eef3b6c3809b257789e4d533c9006e80c3807fdaf5',
+    'src/weapon_model.rs': 'b6496c9409485023d97cc8e08e43ccbecacef35c72611e2b1f7fa594a1237071',
+}
+LOADER_SOURCE_PATHS = (*UPLOAD_REUSE_SOURCE_PATHS, *LOADER_BASELINE)
+AUDITED_AUTHORED_DEDUP_MANIFEST = 'fff66052fe41e445d50eaf2ae689a29cc68b7d3c3d4502d21d147424c60d3e06'
+# Resident geometry/shader is a distinct expanded source class. The explicit
+# compile-time CPU reference control changes only its policy constant.
+RESIDENT_BASELINE = {
+    'src/draw/facade.rs': '18ce443544975ef4bac82f2c599a9f0c60f8a8b709a731437f6fa1083e7ca5b6',
+    'src/legacy_macroquad/mod.rs': 'f8aff43030d1e2e826fc296b4bcb716c0b13c685e1733b838bc5db09f41bf90c',
+}
+RESIDENT_NEW_PATHS = ('src/draw/resident.rs', 'src/render/resident.rs',
+                      'src/render/resident.wgsl', 'src/frame_resident_policy.rs')
+RESIDENT_SOURCE_PATHS = (*LOADER_SOURCE_PATHS, *RESIDENT_NEW_PATHS,
+                         'src/draw/facade.rs', 'src/legacy_macroquad/mod.rs')
+AUDITED_RESIDENT_CANDIDATE_MANIFEST = 'c754f89052fc3812dbbdc9675a452b056a881696d3cf9fbd7398fc580bcbfe6f'
+AUDITED_RESIDENT_CONTROL_MANIFEST = '4eeea34f29b7d20a24060af152e7cd2170322674a3d2c0abaad8603497a6ac6b'
+# The staging source pool has its own expanded class and one-line control.
+STAGING_NEW_PATHS = ('src/frame_staging_policy.rs', 'src/render/upload_staging.rs', 'src/render/upload_staging_layout.rs')
+STAGING_SOURCE_PATHS = (*RESIDENT_SOURCE_PATHS, *STAGING_NEW_PATHS)
+AUDITED_STAGING_CANDIDATE_MANIFEST = 'fc6c5bc8b09562dea007388988dc610b8f3b91c479be4eb4ba1cedb3d0953402'
+AUDITED_STAGING_CONTROL_MANIFEST = 'f91a20a9445b96ca3e0ddbc13449ea574470ce9ec0700b3a79984be694dd54aa'
+# Separate resident on/off pair with staging enabled identically on both sides.
+AUDITED_STAGING_RESIDENT_CPU_CONTROL_MANIFEST = '7a3524dceb1fa8042fb5c3060047e4ed64fc7cc0a8dcf15c5c9c832d01c7c06c'
+ARITHMETIC_NEW_PATHS = ('src/render/resident_vertex_probe.rs', 'src/render/resident_vertex_probe.wgsl')
+ARITHMETIC_SOURCE_PATHS = (*STAGING_SOURCE_PATHS, *ARITHMETIC_NEW_PATHS)
+AUDITED_ARITHMETIC_CANDIDATE_MANIFEST = 'b5120632999e1c599f89740ec8550432da06575b9175d3ba937f9474a5a707d0'
+AUDITED_ARITHMETIC_STAGING_CONTROL_MANIFEST = '90ff8383a7a028a0860630f8b4d9eb8425110288e8597b7e3d3df5bab4ea9de2'
+AUDITED_ARITHMETIC_RESIDENT_CPU_CONTROL_MANIFEST = 'a20487a0640d940f1fdda9da7419345f5b46f4cd3a58c25df7806eae3417f82e'
+# Exact integer UNORM reconstruction; the measured arithmetic source keeps its pins.
+AUDITED_EXACT_UNORM_CANDIDATE_MANIFEST = '03f75a80585a5c26dacbf5b7c7f51804ab7bdce8ba0dabab65d5660f37c6615b'
+AUDITED_EXACT_UNORM_STAGING_CONTROL_MANIFEST = '4ac988bed98fc0d7dcede2e76f81b544ffb4e9d6b16f7294b77bce76902a52d1'
+AUDITED_EXACT_UNORM_RESIDENT_CPU_CONTROL_MANIFEST = 'a625deca12c42a2433073d6f6a12f9baafb2b69a9a3e7f91ce17daac01a4ad64'
+# Diagnostic-only skin/root observations; production WGSL is unchanged.
+AUDITED_SKIN_STAGE_CANDIDATE_MANIFEST = 'b531276d331ff2addea10aec89eea7eb743cbab89858709194cdc8286fc32a96'
+AUDITED_SKIN_STAGE_STAGING_CONTROL_MANIFEST = '0351da7746eb8b5719a3047b0ff422872b6dcb12f3966cab81b6d398a144fecb'
+AUDITED_SKIN_STAGE_RESIDENT_CPU_CONTROL_MANIFEST = 'acb90aaf4a2eff4b0e31dfaf45cdfcafef336a1fb9a6b44597770d1971519fe9'
+
+
+
 BACKENDS = {'dx12': 'Dx12', 'vulkan': 'Vulkan', 'metal': 'Metal', 'gl-harness': 'Gl'}
 UNAVAILABLE = {
     'fps_cap': 'No application FPS limiter or CLI selector. Fifo may pace at display refresh; it is not a 60 FPS cap.',
@@ -86,16 +176,209 @@ def canonical_hash(value):
                                     allow_nan=False).encode()).hexdigest()
 
 
+def audited_inventory(digest):
+    if digest in (AUDITED_ARITHMETIC_CANDIDATE_MANIFEST, AUDITED_ARITHMETIC_STAGING_CONTROL_MANIFEST,
+                  AUDITED_ARITHMETIC_RESIDENT_CPU_CONTROL_MANIFEST,
+                  AUDITED_EXACT_UNORM_CANDIDATE_MANIFEST, AUDITED_EXACT_UNORM_STAGING_CONTROL_MANIFEST,
+                  AUDITED_EXACT_UNORM_RESIDENT_CPU_CONTROL_MANIFEST,
+                  AUDITED_SKIN_STAGE_CANDIDATE_MANIFEST, AUDITED_SKIN_STAGE_STAGING_CONTROL_MANIFEST,
+                  AUDITED_SKIN_STAGE_RESIDENT_CPU_CONTROL_MANIFEST):
+        return ARITHMETIC_SOURCE_PATHS
+    if digest in (AUDITED_STAGING_CANDIDATE_MANIFEST, AUDITED_STAGING_CONTROL_MANIFEST,
+                  AUDITED_STAGING_RESIDENT_CPU_CONTROL_MANIFEST):
+        return STAGING_SOURCE_PATHS
+    if digest in (AUDITED_RESIDENT_CANDIDATE_MANIFEST, AUDITED_RESIDENT_CONTROL_MANIFEST):
+        return RESIDENT_SOURCE_PATHS
+    if digest == AUDITED_AUTHORED_DEDUP_MANIFEST:
+        return LOADER_SOURCE_PATHS
+    if digest in (AUDITED_ARENA_SERIALIZATION_MANIFEST, AUDITED_UPLOAD_REUSE_INITIAL_MANIFEST, AUDITED_UPLOAD_IMMUTABLE_INITIAL_CONTROL_MANIFEST,
+                  AUDITED_UPLOAD_REUSE_MANIFEST, AUDITED_UPLOAD_IMMUTABLE_CONTROL_MANIFEST):
+        return UPLOAD_REUSE_SOURCE_PATHS
+    if digest in (AUDITED_ENCODE_DETAIL_INITIAL_MANIFEST, AUDITED_ENCODE_DETAIL_FORMATTED_MANIFEST, AUDITED_ENCODE_DETAIL_MANIFEST):
+        return ENCODE_DETAIL_SOURCE_PATHS
+    if digest == AUDITED_RUNTIME_MANIFEST:
+        return SOURCE_PATHS
+    if digest == AUDITED_SUBSTAGE_RUNTIME_MANIFEST:
+        return SUBSTAGE_SOURCE_PATHS
+    if digest == AUDITED_CPU_CANDIDATE_MANIFEST:
+        return CPU_CANDIDATE_SOURCE_PATHS
+    if digest == AUDITED_PRESENT_CANDIDATE_MANIFEST:
+        return PRESENT_CANDIDATE_SOURCE_PATHS
+    if digest in (AUDITED_GPU_INITIAL_MANIFEST, AUDITED_GPU_CANDIDATE_MANIFEST, AUDITED_GPU_CPU_BASELINE_MANIFEST):
+        return GPU_CANDIDATE_SOURCE_PATHS
+    return None
+
+
 def source_identity(repository):
     repository = Path(repository)
     commit = subprocess.check_output(['git', '-C', str(repository), 'rev-parse', 'HEAD'], text=True).strip()
+    if any((repository / name).exists() or (repository / name).is_symlink() for name in ARITHMETIC_NEW_PATHS):
+        result = {}
+        for name in ARITHMETIC_SOURCE_PATHS:
+            path = repository / name
+            require(path.is_file() and not path.is_symlink(),
+                    'Arithmetic inventory is missing; cannot fall back to a historical witness: ' + name)
+            data = path.read_bytes()
+            committed = subprocess.check_output(['git', '-C', str(repository), 'show', commit + ':' + name])
+            require(data == committed, 'Uncommitted arithmetic source: ' + name)
+            result[name] = hashlib.sha256(data).hexdigest()
+        require(canonical_hash(result) in (AUDITED_ARITHMETIC_CANDIDATE_MANIFEST,
+                  AUDITED_ARITHMETIC_STAGING_CONTROL_MANIFEST, AUDITED_ARITHMETIC_RESIDENT_CPU_CONTROL_MANIFEST,
+                  AUDITED_EXACT_UNORM_CANDIDATE_MANIFEST, AUDITED_EXACT_UNORM_STAGING_CONTROL_MANIFEST,
+                  AUDITED_EXACT_UNORM_RESIDENT_CPU_CONTROL_MANIFEST,
+                  AUDITED_SKIN_STAGE_CANDIDATE_MANIFEST, AUDITED_SKIN_STAGE_STAGING_CONTROL_MANIFEST,
+                  AUDITED_SKIN_STAGE_RESIDENT_CPU_CONTROL_MANIFEST),
+                'Arithmetic source changed; cannot fall back to a narrower historical witness')
+        return {'commit': commit, 'runtime_files_sha256': result}
+    if any((repository / name).exists() or (repository / name).is_symlink() for name in STAGING_NEW_PATHS):
+        result = {}
+        for name in STAGING_SOURCE_PATHS:
+            path = repository / name
+            require(path.is_file() and not path.is_symlink(),
+                    'Staging inventory is missing; cannot fall back to a historical witness: ' + name)
+            data = path.read_bytes()
+            committed = subprocess.check_output(['git', '-C', str(repository), 'show', commit + ':' + name])
+            require(data == committed, 'Uncommitted staging source: ' + name)
+            result[name] = hashlib.sha256(data).hexdigest()
+        require(canonical_hash(result) in (AUDITED_STAGING_CANDIDATE_MANIFEST, AUDITED_STAGING_CONTROL_MANIFEST,
+                  AUDITED_STAGING_RESIDENT_CPU_CONTROL_MANIFEST),
+                'Staging source changed; cannot fall back to a narrower historical witness')
+        return {'commit': commit, 'runtime_files_sha256': result}
+    if any((repository / name).exists() or (repository / name).is_symlink() for name in RESIDENT_NEW_PATHS):
+        result = {}
+        for name in RESIDENT_SOURCE_PATHS:
+            path = repository / name
+            require(path.is_file() and not path.is_symlink(),
+                    'Resident inventory is missing; cannot fall back to a historical witness: ' + name)
+            data = path.read_bytes()
+            committed = subprocess.check_output(['git', '-C', str(repository), 'show', commit + ':' + name])
+            require(data == committed, 'Uncommitted resident source: ' + name)
+            result[name] = hashlib.sha256(data).hexdigest()
+        require(canonical_hash(result) in (AUDITED_RESIDENT_CANDIDATE_MANIFEST, AUDITED_RESIDENT_CONTROL_MANIFEST),
+                'Resident source changed; cannot fall back to a narrower historical witness')
+        return {'commit': commit, 'runtime_files_sha256': result}
+    for name, expected in RESIDENT_BASELINE.items():
+        path = repository / name
+        require(path.is_file() and not path.is_symlink(), 'Missing/unsafe historical resident support: ' + name)
+        data = path.read_bytes()
+        committed = subprocess.check_output(['git', '-C', str(repository), 'show', commit + ':' + name])
+        require(data == committed, 'Uncommitted resident support: ' + name)
+        require(hashlib.sha256(data).hexdigest() == expected,
+                'Resident support changed; cannot fall back to a narrower historical witness: ' + name)
     result = {}
     for name in SOURCE_PATHS:
         data = (repository / name).read_bytes()
         committed = subprocess.check_output(['git', '-C', str(repository), 'show', commit + ':' + name])
         require(data == committed, 'Uncommitted runtime source: ' + name)
         result[name] = hashlib.sha256(data).hexdigest()
-    require(canonical_hash(result) == AUDITED_RUNTIME_MANIFEST,
+    if canonical_hash(result) != AUDITED_RUNTIME_MANIFEST:
+        for name in SUBSTAGE_SOURCE_PATHS[len(SOURCE_PATHS):]:
+            path = repository / name
+            require(path.is_file() and not path.is_symlink(),
+                    'Audited runtime support changed; missing sidecar inventory: ' + name)
+            data = path.read_bytes()
+            committed = subprocess.check_output(['git', '-C', str(repository), 'show', commit + ':' + name])
+            require(data == committed, 'Uncommitted runtime source: ' + name)
+            result[name] = hashlib.sha256(data).hexdigest()
+    cpu_sources = {}
+    for name in CPU_SOURCE_PATHS:
+        path = repository / name
+        require(path.is_file() and not path.is_symlink(),
+                'Audited runtime support changed; missing CPU inventory: ' + name)
+        data = path.read_bytes()
+        committed = subprocess.check_output(['git', '-C', str(repository), 'show', commit + ':' + name])
+        require(data == committed, 'Uncommitted runtime source: ' + name)
+        cpu_sources[name] = hashlib.sha256(data).hexdigest()
+    candidate = {**result, **cpu_sources}
+    present_sources = {}
+    for name in PRESENT_SOURCE_PATHS[1:]:
+        path = repository / name
+        require(path.is_file() and not path.is_symlink(),
+                'Audited runtime support changed; missing present inventory: ' + name)
+        data = path.read_bytes()
+        committed = subprocess.check_output(['git', '-C', str(repository), 'show', commit + ':' + name])
+        require(data == committed, 'Uncommitted runtime source: ' + name)
+        present_sources[name] = hashlib.sha256(data).hexdigest()
+    present_policy = repository / PRESENT_SOURCE_PATHS[0]
+    gpu_present = any((repository / name).exists() or (repository / name).is_symlink()
+                      for name in GPU_SOURCE_PATHS)
+    require(not gpu_present or present_policy.exists(),
+            'GPU runtime source cannot fall back to a narrower source inventory')
+    if present_policy.exists() or present_policy.is_symlink():
+        for name in PRESENT_SOURCE_PATHS:
+            path = repository / name
+            require(path.is_file() and not path.is_symlink(),
+                    'Audited runtime support changed; missing present inventory: ' + name)
+            data = path.read_bytes()
+            committed = subprocess.check_output(['git', '-C', str(repository), 'show', commit + ':' + name])
+            require(data == committed, 'Uncommitted runtime source: ' + name)
+            candidate[name] = hashlib.sha256(data).hexdigest()
+        if gpu_present:
+            for name in GPU_SOURCE_PATHS:
+                path = repository / name
+                require(path.is_file() and not path.is_symlink(),
+                        'Audited runtime support changed; missing GPU inventory: ' + name)
+                data = path.read_bytes()
+                committed = subprocess.check_output(['git', '-C', str(repository), 'show', commit + ':' + name])
+                require(data == committed, 'Uncommitted runtime source: ' + name)
+                candidate[name] = hashlib.sha256(data).hexdigest()
+            detail = repository / 'src/frame_encode_detail.rs'
+            if detail.exists() or detail.is_symlink():
+                for name in ENCODE_DETAIL_SOURCE_PATHS[len(GPU_CANDIDATE_SOURCE_PATHS):]:
+                    path = repository / name
+                    require(path.is_file() and not path.is_symlink(),
+                            'Audited encode-detail inventory is missing: ' + name)
+                    data = path.read_bytes()
+                    committed = subprocess.check_output(['git', '-C', str(repository), 'show', commit + ':' + name])
+                    require(data == committed, 'Uncommitted encode-detail source: ' + name)
+                    candidate[name] = hashlib.sha256(data).hexdigest()
+                reuse_present = any((repository / name).exists() or (repository / name).is_symlink()
+                                    for name in UPLOAD_REUSE_SOURCE_PATHS[len(ENCODE_DETAIL_SOURCE_PATHS):])
+                if reuse_present:
+                    for name in UPLOAD_REUSE_SOURCE_PATHS[len(ENCODE_DETAIL_SOURCE_PATHS):]:
+                        path = repository / name
+                        require(path.is_file() and not path.is_symlink(),
+                                'Audited upload-reuse inventory is missing: ' + name)
+                        data = path.read_bytes()
+                        committed = subprocess.check_output(['git', '-C', str(repository), 'show', commit + ':' + name])
+                        require(data == committed, 'Uncommitted upload-reuse source: ' + name)
+                        candidate[name] = hashlib.sha256(data).hexdigest()
+                    require(canonical_hash(candidate) in (AUDITED_ARENA_SERIALIZATION_MANIFEST, AUDITED_UPLOAD_REUSE_INITIAL_MANIFEST, AUDITED_UPLOAD_IMMUTABLE_INITIAL_CONTROL_MANIFEST,
+                  AUDITED_UPLOAD_REUSE_MANIFEST, AUDITED_UPLOAD_IMMUTABLE_CONTROL_MANIFEST),
+                            'Audited upload-reuse runtime changed; cannot fall back to historical pins')
+                else:
+                    require(canonical_hash(candidate) in (AUDITED_ENCODE_DETAIL_INITIAL_MANIFEST, AUDITED_ENCODE_DETAIL_FORMATTED_MANIFEST, AUDITED_ENCODE_DETAIL_MANIFEST),
+                            'Audited encode-detail runtime changed; cannot fall back to historical pins')
+            else:
+                require(canonical_hash(candidate) in (AUDITED_GPU_INITIAL_MANIFEST, AUDITED_GPU_CANDIDATE_MANIFEST, AUDITED_GPU_CPU_BASELINE_MANIFEST),
+                        'Audited GPU runtime changed; cannot fall back to a narrower source inventory')
+        else:
+            require(canonical_hash(candidate) == AUDITED_PRESENT_CANDIDATE_MANIFEST,
+                    'Audited present runtime changed; cannot fall back to a narrower source inventory')
+        result = candidate
+    elif canonical_hash(candidate) == AUDITED_CPU_CANDIDATE_MANIFEST:
+        require(canonical_hash(present_sources) == PRESENT_BASELINE_MANIFEST,
+                'Audited present runtime changed; cannot fall back to a narrower source inventory')
+        result = candidate
+    else:
+        require(canonical_hash(present_sources) == PRESENT_BASELINE_MANIFEST,
+                'Audited present runtime changed; cannot fall back to a narrower source inventory')
+        require(canonical_hash(cpu_sources) == CPU_BASELINE_MANIFEST,
+                'Audited CPU runtime changed; cannot fall back to a narrower source inventory')
+    loader = {}
+    for name in LOADER_BASELINE:
+        path = repository / name
+        require(path.is_file() and not path.is_symlink(), 'Missing/unsafe authored loader: ' + name)
+        data = path.read_bytes()
+        committed = subprocess.check_output(['git', '-C', str(repository), 'show', commit + ':' + name])
+        require(data == committed, 'Uncommitted authored loader: ' + name)
+        loader[name] = hashlib.sha256(data).hexdigest()
+    if loader != LOADER_BASELINE:
+        expanded = {**result, **loader}
+        require(canonical_hash(expanded) == AUDITED_AUTHORED_DEDUP_MANIFEST,
+                'Authored loader changed; cannot fall back to a narrower historical witness')
+        result = expanded
+    require(audited_inventory(canonical_hash(result)) is not None,
             'Audited runtime support changed; review the matrix inventory before updating its source binding')
     return {'commit': commit, 'runtime_files_sha256': result}
 
@@ -123,7 +406,8 @@ def export_witness(repository, output, harness=None):
     require(source_identity(repository) == source, 'Git/source identity changed during witness export')
     witness = {'schema': 'rust-duty-matrix-source-witness/v1', 'source': source,
                'origin': 'Exported from a live Git checkout; every runtime file matched its committed blob.',
-               'audited_runtime_manifest_sha256': AUDITED_RUNTIME_MANIFEST, 'harness': entrypoint}
+               'audited_runtime_manifest_sha256': canonical_hash(source['runtime_files_sha256']),
+               'harness': entrypoint}
     write_json(output / 'SOURCE_WITNESS.json', witness)
     return sha256(output / 'SOURCE_WITNESS.json')
 
@@ -139,17 +423,18 @@ def artifact_source(directory, expected_digest):
     require(set(witness) == {'schema', 'source', 'origin', 'audited_runtime_manifest_sha256', 'harness'}
             and witness['schema'] == 'rust-duty-matrix-source-witness/v1'
             and witness['origin'] == 'Exported from a live Git checkout; every runtime file matched its committed blob.'
-            and witness['audited_runtime_manifest_sha256'] == AUDITED_RUNTIME_MANIFEST,
+            and audited_inventory(witness['audited_runtime_manifest_sha256']) is not None,
             'Invalid source witness schema/provenance')
     source = witness['source']
     require(isinstance(source, dict) and set(source) == {'commit', 'runtime_files_sha256'}
             and isinstance(source['commit'], str) and re.fullmatch('[0-9a-f]{40}', source['commit']),
             'Invalid witnessed source identity')
     recorded = source['runtime_files_sha256']
-    require(isinstance(recorded, dict) and set(recorded) == set(SOURCE_PATHS)
-            and canonical_hash(recorded) == AUDITED_RUNTIME_MANIFEST,
+    inventory = audited_inventory(witness['audited_runtime_manifest_sha256'])
+    require(isinstance(recorded, dict) and set(recorded) == set(inventory)
+            and canonical_hash(recorded) == witness['audited_runtime_manifest_sha256'],
             'Witness does not contain exactly the audited runtime support inventory')
-    allowed = {'SOURCE_WITNESS.json', *SOURCE_PATHS}
+    allowed = {'SOURCE_WITNESS.json', *inventory}
     harness = witness['harness']
     if harness is not None:
         require(isinstance(harness, dict) and set(harness) == {'source_path', 'source_sha256'}
@@ -180,8 +465,16 @@ def resolve_source(args):
 
 
 def make_plan(source, renderer='dx12', repeats=3, warmup=15, seconds=45, smoke=False, pilot=False, source_origin=None,
-              static_diagnostics=False):
+              static_diagnostics=False, gpu_timestamps=False, baseline_only=False, procedural_baseline=False):
     require(renderer in BACKENDS, 'Only native runtime exports real present-return intervals')
+    require(type(gpu_timestamps) is bool, 'gpu_timestamps must be boolean')
+    require(not gpu_timestamps or (renderer == 'dx12' and canonical_hash(source['runtime_files_sha256'])
+            in (AUDITED_GPU_CANDIDATE_MANIFEST, AUDITED_GPU_CPU_BASELINE_MANIFEST)),
+            'GPU timing requires exact reviewed DX12 candidate or four-file baseline source')
+    require(type(baseline_only) is bool and not (baseline_only and (smoke or pilot or static_diagnostics)),
+            'Baseline-only cannot be combined with another selection')
+    require(type(procedural_baseline) is bool and (not procedural_baseline or baseline_only),
+            'Procedural baseline requires baseline-only selection')
     require(type(repeats) is int and 1 <= repeats <= 5, 'repeats must be 1..5')
     require(type(warmup) is int and 10 <= warmup <= 60, 'warmup must be 10..60 seconds')
     require(type(seconds) is int and 10 <= seconds <= 120, 'sample must be 10..120 seconds')
@@ -191,7 +484,7 @@ def make_plan(source, renderer='dx12', repeats=3, warmup=15, seconds=45, smoke=F
              and source_origin['mode'] == 'artifact-witness' and isinstance(source_origin['witness_sha256'], str)
              and re.fullmatch('[0-9a-f]{64}', source_origin['witness_sha256'])), 'Invalid source origin')
     baseline = {'surface_extent': [1920, 1080], 'action': 'stationary',
-                'debug_hud': False, 'presentation': 'packaged', 'record': True}
+                'debug_hud': False, 'presentation': 'procedural' if procedural_baseline else 'packaged', 'record': True}
     cases = []
     def add(name, changes, rationale, kind='one_variable'):
         cases.append({'id': name, 'kind': kind, 'settings': {**baseline, **changes},
@@ -211,9 +504,10 @@ def make_plan(source, renderer='dx12', repeats=3, warmup=15, seconds=45, smoke=F
     require(type(pilot) is bool and not (smoke and pilot), 'Choose at most one of smoke/pilot')
     require(type(static_diagnostics) is bool and not (static_diagnostics and (smoke or pilot)),
             'Static diagnostics cannot be combined with smoke/pilot')
-    if smoke:
+    if smoke or baseline_only:
         cases = cases[:1]
-        repeats = 1
+        if smoke:
+            repeats = 1
     elif pilot:
         cases = [case for case in cases if case['id'] in ('baseline', '720p', '1440p', 'ads')]
         repeats = 1
@@ -227,12 +521,17 @@ def make_plan(source, renderer='dx12', repeats=3, warmup=15, seconds=45, smoke=F
     for repeat in range(repeats):
         # Rotate the finite order; baseline brackets diagnose clock/thermal drift.
         rotated = varied[repeat:] + varied[:repeat]
-        for index, name in enumerate(['baseline'] if smoke else ['baseline', *rotated, 'baseline']):
+        for index, name in enumerate(['baseline'] if smoke or baseline_only else ['baseline', *rotated, 'baseline']):
             order.append({'run_id': f'r{repeat + 1:02d}-{index + 1:02d}-{name}',
                           'repeat': repeat + 1, 'case_id': name})
+    unavailable = dict(UNAVAILABLE)
+    if canonical_hash(source['runtime_files_sha256']) in (AUDITED_PRESENT_CANDIDATE_MANIFEST, AUDITED_GPU_INITIAL_MANIFEST, AUDITED_GPU_CANDIDATE_MANIFEST, AUDITED_GPU_CPU_BASELINE_MANIFEST):
+        unavailable['vsync_choices'] = 'The runtime has an opt-in concrete present-mode selector; this matrix fixes Fifo and does not compare other modes.'
+    if canonical_hash(source['runtime_files_sha256']) in (AUDITED_GPU_INITIAL_MANIFEST, AUDITED_GPU_CANDIDATE_MANIFEST, AUDITED_GPU_CPU_BASELINE_MANIFEST):
+        unavailable['gpu_frame_duration'] = 'The runtime has opt-in GPU timestamp sidecars; this matrix leaves them disabled and does not compare GPU spans.'
     result = {'schema': PLAN_SCHEMA, 'source': source, 'source_origin': source_origin, 'renderer': renderer,
             'repeats': repeats, 'warmup_seconds': warmup, 'sample_seconds': seconds, 'smoke': smoke, 'pilot': pilot,
-            'cases': cases, 'order': order, 'unavailable_axes': UNAVAILABLE,
+            'cases': cases, 'order': order, 'unavailable_axes': unavailable,
             'fixed_runtime': {'present_mode': 'Fifo', 'application_fps_cap': None,
                               'native_sample_count': 1, 'viewmodel_extent': [1440, 900],
                               'reference_viewport': False, 'scene': 'vector_range_default_range',
@@ -247,15 +546,26 @@ def make_plan(source, renderer='dx12', repeats=3, warmup=15, seconds=45, smoke=F
         # Keep historical plans byte/schema-compatible. Only the new selection
         # carries this optional discriminator and its narrower evidence scope.
         result['static_diagnostics'] = True
-        result['unavailable_axes'] = {**UNAVAILABLE,
+        result['unavailable_axes'] = {**unavailable,
             'evolving_ads_movement': 'Unproven by this static selection. Prior WARP ADS remained at ADS=0 with no simulation-time progression; movement/ADS require a host where simulation advances.'}
+    if baseline_only:
+        result['baseline_only'] = True
+    if procedural_baseline:
+        result['procedural_baseline'] = True
+    if gpu_timestamps:
+        result['gpu_timestamps'] = True
+        result['fixed_runtime']['gpu_timestamps'] = True
+        result['unavailable_axes']['gpu_frame_duration'] = (
+            'Opt-in timestamp spans cover the main ordered command buffer only; full GPU frame time, '
+            'present/scan-out and other submissions remain unavailable.')
     return result
 
 
 def validate_plan(plan):
     expected = make_plan(plan['source'], plan['renderer'], plan['repeats'],
                          plan['warmup_seconds'], plan['sample_seconds'], plan['smoke'], plan['pilot'], plan['source_origin'],
-                         plan.get('static_diagnostics', False))
+                         plan.get('static_diagnostics', False), plan.get('gpu_timestamps', False),
+                         plan.get('baseline_only', False), plan.get('procedural_baseline', False))
     require(plan == expected, 'Plan changed or contains unsupported settings; regenerate it')
 
 
@@ -320,7 +630,7 @@ def desktop_lock(path):
         path.unlink()
 
 
-def case_command(executable, renderer, folder, case, fallback):
+def case_command(executable, renderer, folder, case, fallback, *, gpu_timestamps=False):
     command = [str(executable), '--no-update', '--hold-controls', '--renderer=' + ('gl' if renderer == 'gl-harness' else renderer),
                '--settings=' + str(folder / 'settings.cfg'),
                '--graphics-settings=' + str(folder / 'graphics-device.json'),
@@ -332,10 +642,14 @@ def case_command(executable, renderer, folder, case, fallback):
         command.append('--force-fallback-adapter')
     if case['settings']['presentation'] == 'procedural':
         command.append('--procedural-weapon')
+    require(type(gpu_timestamps) is bool and (not gpu_timestamps or renderer == 'dx12'),
+            'GPU timing command requires explicit DX12 opt-in')
+    if gpu_timestamps:
+        command.append('--gpu-timestamps')
     return command
 
 
-def sole_session(folder, complete=False):
+def sole_session(folder, complete=False, *, gpu_timestamps=False):
     root = folder / 'telemetry-sessions'
     sessions = list(root.iterdir()) if root.is_dir() else []
     require(len(sessions) <= 1, 'More than one Record session in a fresh process')
@@ -353,6 +667,9 @@ def sole_session(folder, complete=False):
             for name in ('CSV_STATUS.json', 'GPU_STATUS.json'):
                 json_read(session / name)
             frames.read_report(session / 'frames.json')
+            if gpu_timestamps:
+                for name in ('frames.cpu-substages.json', 'frames.gpu-timing.json'):
+                    cpu_substages.read_json(session / name)
         except (OSError, ValueError):
             return None
     return session
@@ -381,16 +698,32 @@ def cleanup_owned_process(process):
     return result
 
 
-def measurement_file_hashes(session):
+def measurement_file_hashes(session, *, gpu_timestamps=False):
     """Bind every session file consumed by the measurement analyzer."""
     names = ('frames.json', 'IDENTITY.json', 'CSV_STATUS.json', 'gameplay.csv',
              'GPU_STATUS.json', 'GPU_METADATA.json', 'gpu.jsonl')
+    if gpu_timestamps:
+        names += ('frames.cpu-substages.json', 'frames.gpu-timing.json')
     result = {}
     for name in names:
         path = session / name
         require(path.is_file() and not path.is_symlink(), 'Unsafe or missing measurement file: ' + name)
         result[name] = sha256(path)
     return result
+
+
+def summarize_diagnostics(frames_path, cpu_path, gpu_path):
+    """Use the existing exact-primary readers; retain missing GPU subset statuses."""
+    report, digest = cpu_substages.read_json(frames_path)
+    cpu, _ = cpu_substages.read_json(cpu_path)
+    gpu, _ = cpu_substages.read_json(gpu_path)
+    cpu_summary = cpu_substages.summarize(cpu, report, digest)
+    gpu_summary = gpu_timing.summarize(gpu, report, digest)
+    require(report['status']['state'] == 'complete' and cpu_summary['diagnostic_status'] == 'complete'
+            and gpu_summary['state'] == 'complete', 'Incomplete CPU/GPU diagnostic accounting')
+    return {'cpu_substages': cpu_summary, 'gpu_timing': gpu_summary,
+            'gpu_timing_readiness': {'ready': gpu_summary['measured_eligible_count'] >= 100,
+                                     'required_measured_eligible_samples': 100}}
 
 
 def run_case(plan, item, case, executable, output, settings, graphics, fallback, driver_name,
@@ -401,13 +734,16 @@ def run_case(plan, item, case, executable, output, settings, graphics, fallback,
     folder.mkdir()
     write_bytes_exclusive(folder / 'settings.cfg', settings)
     write_json(folder / 'graphics-device.json', graphics)
-    command = case_command(executable, plan['renderer'], folder, case, fallback)
+    gpu_enabled = plan.get('gpu_timestamps', False)
+    command = case_command(executable, plan['renderer'], folder, case, fallback, gpu_timestamps=gpu_enabled)
     started = time.time_ns()
     receipt = {'schema': 'rust-duty-matrix-run/v1', 'run': item, 'case': case,
                'command': command, 'driver': driver_name, 'started_unix_ns': started,
                'settings_before_sha256': sha256(folder / 'settings.cfg'),
                'graphics_before_sha256': sha256(folder / 'graphics-device.json'),
                'completed': False, 'graceful_shutdown': False}
+    if gpu_enabled:
+        receipt['working_directory'] = str(folder)
     write_json(folder / 'START.json', receipt)
     driver = create_driver(driver_name)
     env = dict(os.environ)
@@ -442,18 +778,18 @@ def run_case(plan, item, case, executable, output, settings, graphics, fallback,
             receipt['replay'] = replay(driver, process, size, case['settings']['action'], plan['sample_seconds'])
             driver.check(size)
             tap(driver, 'F8')
-            session = wait_until(lambda: sole_session(folder, complete=True), timeout=30,
+            session = wait_until(lambda: sole_session(folder, complete=True, gpu_timestamps=gpu_enabled), timeout=30,
                                  label='frame, CSV and GPU export completion')
             receipt['session'] = session.name
             if manifest is not None:
-                before_validation = measurement_file_hashes(session)
+                before_validation = measurement_file_hashes(session, gpu_timestamps=gpu_enabled)
                 # Validate actual exports before exit. The finished timestamp is
                 # provisional here; the persisted receipt includes cleanup time.
                 provisional = {**receipt, 'finished_unix_ns': time.time_ns(),
                                'settings_after_sha256': sha256(folder / 'settings.cfg'),
                                'graphics_after_sha256': sha256(folder / 'graphics-device.json')}
                 observed = analyze_measurements(folder, manifest, provisional)
-                require(measurement_file_hashes(session) == before_validation,
+                require(measurement_file_hashes(session, gpu_timestamps=gpu_enabled) == before_validation,
                         'Measurement exports changed during pre-exit validation')
                 receipt['measurement_files_before_exit'] = before_validation
                 receipt['measurement_validated_before_exit'] = True
@@ -543,6 +879,8 @@ def run_matrix(args):
                                   'machine': platform.machine(), 'processor': platform.processor()},
                 'operator_hardware': json_read(args.hardware) if args.hardware else None,
                 'hardware_identity_scope': 'Runtime adapter fingerprint is observed; CPU/display details are operator claims when supplied.'}
+    if plan.get('gpu_timestamps'):
+        manifest['executable_path'] = str(executable)
     write_json(output / 'MANIFEST.json', manifest)
     with desktop_lock(args.lock_file):
         cases = {case['id']: case for case in plan['cases']}
@@ -552,13 +890,171 @@ def run_matrix(args):
                      graphics, args.force_fallback, args.driver, manifest=manifest,
                      continue_after_exit_timeout=manifest['continue_after_exit_timeout'])
             # Fail on a bad capture before spending a full matrix on invalid setup.
-            analyze_run(output / item['run_id'], manifest,
-                        allow_forced_cleanup=manifest['continue_after_exit_timeout'])
+            analyzed = analyze_run(output / item['run_id'], manifest,
+                                   allow_forced_cleanup=manifest['continue_after_exit_timeout'])
+            if plan.get('gpu_timestamps'):
+                require(analyzed['gpu_timing_readiness']['ready'],
+                        'GPU measured subset is unavailable or has fewer than 100 eligible samples')
         require(package_identity(executable, plan['source'], plan['renderer']) == package, 'Package changed during matrix')
         after_source, after_origin, _ = resolve_source(args)
         require((after_source, after_origin) == (source, origin), 'Source witness changed during matrix')
     write_json(output / 'SUMMARY.json', analyze_matrix(output))
     return output
+
+
+def compare_builds(args):
+    """Eight fresh single-condition runs, reusing the established desktop runner."""
+    require(args.execute, 'Execution requires --execute')
+    require(args.driver == 'win32', 'The CPU/GPU comparison requires Windows DX12')
+    import run_cpu_image_preservation as pair
+    labels = ('baseline', 'candidate')
+    sources, packages, variants, builds, build_hashes = {}, {}, {}, {}, {}
+    for label, expected in zip(labels, (AUDITED_GPU_CPU_BASELINE_MANIFEST, AUDITED_GPU_CANDIDATE_MANIFEST)):
+        witness = Path(getattr(args, label + '_source_witness'))
+        witness_sha = getattr(args, label + '_witness_sha256')
+        source = artifact_source(witness, witness_sha)
+        require(canonical_hash(source['runtime_files_sha256']) == expected,
+                'Comparison source is not the exact reviewed ' + label)
+        executable = Path(getattr(args, label + '_executable')).resolve()
+        sources[label] = source
+        packages[label] = package_identity(executable, source, 'dx12')
+        variants[label] = (witness, witness_sha, executable)
+        receipt_path = Path(getattr(args, label + '_build_receipt'))
+        builds[label] = json_read(receipt_path)
+        build_hashes[label] = sha256(receipt_path)
+        build = builds[label]
+        require(build.get('schema') == 'rust-duty-performance-release-build/v1'
+                and build.get('source_commit') == source['commit']
+                and build.get('executable_sha256') == packages[label]['executable_sha256']
+                and build.get('command') == ['cargo', 'build', '--locked', '--release', '--no-default-features',
+                                             '--features', 'wgpu-runtime', '--bin', 'vector-range']
+                and build.get('build_settings') == {'CARGO_INCREMENTAL': '0', 'CARGO_BUILD_JOBS': '2',
+                                                     'CARGO_PROFILE_RELEASE_DEBUG': '0'}
+                and build.get('build_result') == {'exit_code': 0},
+                'Comparison requires source/executable-bound fixed release build receipt')
+        require(all(build.get('production_files_sha256', {}).get(name) == digest
+                    for name, digest in source['runtime_files_sha256'].items()),
+                'Release receipt runtime bytes differ from the source witness')
+    require(canonical_hash(builds['candidate']['production_files_sha256']) == AUDITED_GPU_PRODUCTION_MANIFEST
+            and builds['baseline']['production_files_sha256'] ==
+                {**builds['candidate']['production_files_sha256'], **pair.CPU_BASELINE},
+            'Release pair differs from the closed reviewed production compile inventories')
+    compiler = builds['candidate'].get('toolchain', {})
+    require(set(compiler) == {'rustc', 'cargo'} and builds['baseline'].get('toolchain') == compiler
+            and 'release: 1.99.0\n' in compiler['rustc']
+            and 'host: x86_64-pc-windows-msvc\n' in compiler['rustc']
+            and compiler['cargo'].startswith('cargo 1.99.0 '),
+            'Release pair compiler identities differ from the reviewed Windows toolchain')
+    require(sources['baseline']['commit'] != sources['candidate']['commit'],
+            'Counterfactual and candidate must retain distinct real source commits')
+    require(all(builds[label].get('ci_run_source_commit') == sources['candidate']['commit']
+                for label in labels), 'Release receipts belong to a different candidate CI source')
+    identities = {}
+    for label in labels:
+        identity = packages[label].get('build', {})
+        require(identity.get('repository') == 'RHS059/rust_duty'
+                and identity.get('target') == 'x86_64-pc-windows-msvc'
+                and identity.get('source', {}).get('workflow') == '.github/workflows/build.yml',
+                'Comparison package lacks the real reviewed build identity')
+        identities[label] = {**{key: value for key, value in identity.items() if key != 'executable'},
+                             'source': {key: value for key, value in identity['source'].items() if key != 'commit'}}
+    require(identities['baseline'] == identities['candidate'],
+            'Comparison package labels or CI run identities differ')
+    delta = {name for name in sources['candidate']['runtime_files_sha256']
+             if sources['baseline']['runtime_files_sha256'][name] != sources['candidate']['runtime_files_sha256'][name]}
+    require(delta == set(CPU_SOURCE_PATHS), 'Comparison differs outside the exact four CPU paths')
+    require(packages['baseline']['adjacent_files_sha256'] == packages['candidate']['adjacent_files_sha256'],
+            'Comparison packages have different adjacent assets or UI bytes')
+    settings_sha = sha256(args.settings)
+    if args.force_fallback:
+        require(args.graphics_settings is None, 'Do not mix fallback and explicit GPU selection')
+        graphics = {'schema': 'rust-duty-graphics-device/v1', 'adapter': None}
+    else:
+        require(args.graphics_settings is not None, 'Comparison requires exact GPU selection')
+        graphics = json_read(args.graphics_settings)
+        validate_graphics(graphics, 'dx12')
+    output = Path(args.output).absolute()
+    require(not output.exists() and not output.is_symlink(), 'Refusing stale comparison output')
+    plans = {label: make_plan(sources[label], 'dx12', repeats=1, warmup=args.warmup_seconds,
+                             seconds=args.sample_seconds, source_origin={'mode': 'artifact-witness',
+                             'witness_sha256': variants[label][1]}, baseline_only=True, gpu_timestamps=True,
+                             procedural_baseline=args.procedural_baseline) for label in labels}
+    output.mkdir(parents=True)
+    order = ['baseline', 'candidate', 'candidate', 'baseline'] * 2
+    inputs = {'schema': 'rust-duty-cpu-gpu-comparison/v1', 'sources': sources, 'packages': packages,
+              'settings_sha256': settings_sha, 'order': order, 'cpu_delta_paths': sorted(delta),
+              'force_fallback': args.force_fallback, 'driver': args.driver, 'graphics': graphics,
+              'build_receipts': builds, 'build_receipts_sha256': build_hashes,
+              'scope': 'Repeated same-host source comparison; no automatic FPS or performance-improvement verdict'}
+    write_json(output / 'COMPARE_INPUTS.json', inputs)
+    for label, plan in plans.items():
+        write_json(output / (label + '-plan.json'), plan)
+    retained = {output / 'COMPARE_INPUTS.json': sha256(output / 'COMPARE_INPUTS.json'),
+                **{output / (label + '-plan.json'): sha256(output / (label + '-plan.json')) for label in labels}}
+    results, run_files = [], {}
+    try:
+        # Child calls retain their usual lock/cleanup behavior. The outer common
+        # desktop lock stays held across the whole pair, including between runs.
+        with desktop_lock(args.lock_file):
+            for ordinal, label in enumerate(order, 1):
+                witness, witness_sha, executable = variants[label]
+                child = SimpleNamespace(execute=True, plan=output / (label + '-plan.json'),
+                    repository=None, source_witness=witness, witness_sha256=witness_sha,
+                    executable=executable, settings=Path(args.settings), graphics_settings=args.graphics_settings,
+                    force_fallback=args.force_fallback, hardware=args.hardware, driver=args.driver,
+                    output=output / f'r{ordinal:02d}-{label}', lock_file=output / 'owned-child-desktop.lock',
+                    continue_after_exit_timeout=False)
+                run_matrix(child)
+                summary = analyze_matrix(child.output)
+                require(summary['state'] == 'complete' and summary['measurement_readiness']['ready']
+                        and len(summary['runs']) == 1, 'Comparison run is incomplete or undersampled')
+                child_manifest = json_read(child.output / 'MANIFEST.json')
+                require(child_manifest['settings_sha256'] == settings_sha and child_manifest['graphics'] == graphics,
+                        'Comparison settings or GPU selection changed between runs')
+                require(child_manifest['package'] == packages[label] and child_manifest['plan'] == plans[label],
+                        'Comparison child package or plan differs from initial pinned inputs')
+                row = summary['runs'][0]
+                if results:
+                    first = results[0]['measurement']['runtime_observed']
+                    actual = row['runtime_observed']
+                    require(actual['actual_adapter'] == first['actual_adapter']
+                            and actual['initial_window'] == first['initial_window']
+                            and actual['scene'] == first['scene'],
+                            'Adapter, display extent/DPI/mode or scene changed across the source pair')
+                    require(results[-1]['measurement']['finished_unix_ns'] <= row['started_unix_ns'],
+                            'Comparison game processes overlap')
+                results.append({'ordinal': ordinal, 'variant': label, 'folder': child.output.name,
+                                'measurement': row})
+                run_files[child.output] = pair.controls.source_manifest(child.output)
+            for label, (witness, witness_sha, executable) in variants.items():
+                require(artifact_source(witness, witness_sha) == sources[label]
+                        and package_identity(executable, sources[label], 'dx12') == packages[label],
+                        'Comparison package/source changed during execution')
+            require(sha256(args.settings) == settings_sha, 'Comparison settings changed')
+            for label in labels:
+                require(sha256(getattr(args, label + '_build_receipt')) == build_hashes[label],
+                        'Comparison build receipt changed')
+            require(all(sha256(path) == digest for path, digest in retained.items()),
+                    'Comparison input receipt or plan changed')
+            for row in results:
+                folder = output / row['folder']
+                require(pair.controls.source_manifest(folder) == run_files[folder],
+                        'Earlier comparison evidence changed after its accepted run')
+                replayed = analyze_matrix(folder)
+                require(replayed['state'] == 'complete' and replayed['measurement_readiness']['ready']
+                        and replayed['runs'] == [row['measurement']],
+                        'Retained comparison measurement no longer replays')
+                require(pair.controls.source_manifest(folder) == run_files[folder],
+                        'Comparison evidence changed during final replay')
+        result = {**inputs, 'state': 'complete', 'runs': results, 'performance_improvement': None,
+                  'target_1080p60_proven': False,
+                  'statistics_scope': 'Per-run nearest-rank distributions and measured GPU subsets; never pooled'}
+        write_json(output / 'COMPARE_SUMMARY.json', result)
+        return result
+    except (OSError, ValueError, KeyError, TypeError, DriverError, subprocess.SubprocessError) as error:
+        write_json(output / 'COMPARE_FAILURE.json', {'state': 'incomplete', 'error': str(error),
+                                                    'completed_runs': len(results)})
+        raise
 
 
 def gameplay_summary(path):
@@ -662,9 +1158,10 @@ def analyze_run(folder, manifest, *, allow_forced_cleanup=False):
     require(graceful or (allow_forced_cleanup and recovered),
             'Run did not complete with its requested case and verified process exit')
     if recovered:
-        session = sole_session(folder, complete=True)
+        gpu_enabled = manifest['plan'].get('gpu_timestamps', False)
+        session = sole_session(folder, complete=True, gpu_timestamps=gpu_enabled)
         require(session is not None and
-                receipt.get('measurement_files_before_exit') == measurement_file_hashes(session),
+                receipt.get('measurement_files_before_exit') == measurement_file_hashes(session, gpu_timestamps=gpu_enabled),
                 'Measurement exports changed after pre-exit validation')
     result = analyze_measurements(folder, manifest, receipt)
     require(not recovered or result['sample_quality']['tail_comparison_ready'],
@@ -688,7 +1185,8 @@ def analyze_measurements(folder, manifest, receipt):
             'Settings hash mismatch')
     require(receipt['graphics_before_sha256'] == receipt['graphics_after_sha256'] == sha256(folder / 'graphics-device.json'), 'Graphics preference changed')
     require(json_read(folder / 'graphics-device.json') == manifest['graphics'], 'Graphics preference differs from manifest')
-    session = sole_session(folder, complete=True)
+    gpu_enabled = plan.get('gpu_timestamps', False)
+    session = sole_session(folder, complete=True, gpu_timestamps=gpu_enabled)
     require(session is not None and session.name == receipt.get('session'), 'Missing or ambiguous completed session')
     report = frames.read_report(session / 'frames.json')
     require(report['status']['state'] == 'complete', 'Incomplete frame trace')
@@ -698,6 +1196,19 @@ def analyze_measurements(folder, manifest, receipt):
     runtime = report['identity']['runtime_observed']
     require(runtime['actual_backend'] == BACKENDS[plan['renderer']], 'Observed backend differs from request')
     adapter = runtime['actual_adapter']
+    require(isinstance(adapter, dict) and adapter.get('gpu_timestamps_requested', False) is gpu_enabled,
+            'Runtime timestamp opt-in differs from the plan')
+    if gpu_enabled:
+        path_type = PureWindowsPath if manifest['host_observed']['system'] == 'Windows' else Path
+        original_folder = path_type(receipt['working_directory'])
+        require(original_folder.is_absolute() and original_folder.name == item['run_id'],
+                'Timestamp command working directory differs from its run')
+        expected = case_command(path_type(manifest['executable_path']), plan['renderer'], original_folder, case,
+                                manifest['force_fallback'], gpu_timestamps=True)
+        require(receipt.get('command') == expected, 'Timestamp command differs from the bound plan/package')
+    else:
+        require(not ((session / 'frames.gpu-timing.json').exists() or (session / 'frames.gpu-timing.json').is_symlink()),
+                'Unexpected GPU sidecar in default-off capture')
     require(isinstance(adapter, dict) and adapter.get('present_mode') == 'Fifo', 'Missing actual Fifo evidence')
     require(adapter.get('force_fallback_requested') is manifest['force_fallback'], 'Fallback evidence differs')
     if manifest['force_fallback']:
@@ -790,6 +1301,11 @@ def analyze_measurements(folder, manifest, receipt):
                                      'scope': 'An issued F1 command is not proof of actual HUD state; older receipts may omit the command field.'},
               'scope': 'Real-game CPU present-return intervals, not GPU time or display scan-out.',
               'acceptance_proven': False}
+    if gpu_enabled:
+        result.update(summarize_diagnostics(session / 'frames.json', session / 'frames.cpu-substages.json',
+                                            session / 'frames.gpu-timing.json'))
+        result['diagnostic_files_sha256'] = {name: sha256(session / name) for name in
+                                            ('frames.cpu-substages.json', 'frames.gpu-timing.json')}
     result['trace_sha256'] = sha256(session / 'frames.json')
     return result
 
@@ -844,8 +1360,9 @@ def analyze_matrix(output):
                     pairs.append({'run_id': run['run']['run_id'],
                                   'p99_delta_ms_from_bracketing_baseline_mean': (run['frame_summary_ns']['p99_ns'] - reference) / 1e6,
                                   'baseline_p99_drift_ms': (baselines[1]['frame_summary_ns']['p99_ns'] - baselines[0]['frame_summary_ns']['p99_ns']) / 1e6})
-    pilot_ready = bool(runs) and not failures and all(run['sample_quality']['tail_comparison_ready'] for run in runs)
-    measurement_ready = (len(runs) == len(plan['order']) and not measurement_failures
+    diagnostic_ready = not plan.get('gpu_timestamps') or all(run['gpu_timing_readiness']['ready'] for run in runs)
+    pilot_ready = bool(runs) and not failures and diagnostic_ready and all(run['sample_quality']['tail_comparison_ready'] for run in runs)
+    measurement_ready = (len(runs) == len(plan['order']) and not measurement_failures and diagnostic_ready
                          and all(run['sample_quality']['tail_comparison_ready'] for run in runs))
     return {'schema': 'rust-duty-real-game-matrix-analysis/v1',
             'state': ('setup_complete' if plan['smoke'] else 'complete') if not failures else 'incomplete',
@@ -863,7 +1380,10 @@ def analyze_matrix(output):
             'source_origin': manifest['source_origin'],
             'entrypoint_scope': plan['entrypoint_scope'],
             'host_observed': manifest['host_observed'], 'operator_hardware': manifest['operator_hardware'],
-            'scope': 'Per-run CPU pacing and CPU spans only. No pooled percentiles, GPU-time estimate, display-cadence claim, or RTX inference from another adapter.',
+            'scope': ('Per-run CPU pacing, CPU spans and separately measured eligible GPU command-buffer subsets. '
+                      'No pooled percentiles, display-cadence claim or RTX inference from another adapter.'
+                      if plan.get('gpu_timestamps') else
+                      'Per-run CPU pacing and CPU spans only. No pooled percentiles, GPU-time estimate, display-cadence claim, or RTX inference from another adapter.'),
             'runs': runs, 'failures': failures, 'case_comparisons': [] if plan['smoke'] else groups,
             'paired_baseline_comparisons': [] if plan['smoke'] else pairs, 'unavailable_axes': plan['unavailable_axes']}
 
@@ -884,6 +1404,12 @@ def main(argv=None):
     prepare.add_argument('--pilot', action='store_true', help='Baseline,720p,1440p,ADS,baseline before the full matrix')
     prepare.add_argument('--static-diagnostics', action='store_true',
                          help='Remaining static cases: baseline,4K,F1 command,procedural,baseline; evolving ADS/movement unproven')
+    prepare.add_argument('--gpu-timestamps', action='store_true',
+                         help='Opt in to exact-primary CPU/GPU sidecars on reviewed DX12 source')
+    prepare.add_argument('--baseline-only', action='store_true',
+                         help='One 1080p stationary statistical capture per repeat; no other cases')
+    prepare.add_argument('--procedural-baseline', action='store_true',
+                         help='Use existing asset-free procedural presentation for baseline-only comparisons')
     prepare.add_argument('--output', type=Path, required=True)
     run = sub.add_parser('run', help='Opt-in sequential real-game desktop execution')
     for name in ('plan', 'executable', 'settings', 'output'):
@@ -901,6 +1427,23 @@ def main(argv=None):
     run.add_argument('--execute', action='store_true')
     run.add_argument('--continue-after-exit-timeout', action='store_true',
                      help='Continue measurements after validated exports and verified owned-process cleanup; exit failure stays failed')
+    compare = sub.add_parser('compare', help='Eight sequential exact-source 1080p CPU/GPU captures')
+    for label in ('baseline', 'candidate'):
+        compare.add_argument('--' + label + '-source-witness', type=Path, required=True)
+        compare.add_argument('--' + label + '-witness-sha256', required=True)
+        compare.add_argument('--' + label + '-executable', type=Path, required=True)
+        compare.add_argument('--' + label + '-build-receipt', type=Path, required=True)
+    compare.add_argument('--settings', type=Path, required=True)
+    compare.add_argument('--graphics-settings', type=Path)
+    compare.add_argument('--force-fallback', action='store_true')
+    compare.add_argument('--hardware', type=Path)
+    compare.add_argument('--driver', choices=('win32',), required=True)
+    compare.add_argument('--warmup-seconds', type=int, default=15)
+    compare.add_argument('--sample-seconds', type=int, default=45)
+    compare.add_argument('--procedural-baseline', action='store_true')
+    compare.add_argument('--output', type=Path, required=True)
+    compare.add_argument('--lock-file', type=Path, default=Path(tempfile.gettempdir()) / 'rust-duty-performance-desktop.lock')
+    compare.add_argument('--execute', action='store_true')
     analyze = sub.add_parser('analyze', help='Read existing runs, preserve missing/incomplete evidence')
     analyze.add_argument('folder', type=Path)
     analyze.add_argument('--output', type=Path)
@@ -914,9 +1457,12 @@ def main(argv=None):
             source, origin, _ = resolve_source(args)
             result = make_plan(source, args.renderer, args.repeats,
                                args.warmup_seconds, args.sample_seconds, args.smoke, args.pilot, origin,
-                               args.static_diagnostics)
+                               args.static_diagnostics, args.gpu_timestamps, args.baseline_only, args.procedural_baseline)
             write_json(args.output, result)
             print(f'Prepared {len(result["order"])} sequential runs; no game launched: {args.output}')
+        elif args.command == 'compare':
+            result = compare_builds(args)
+            print(json.dumps(result, indent=2))
         elif args.command == 'run':
             folder = run_matrix(args)
             print(folder)

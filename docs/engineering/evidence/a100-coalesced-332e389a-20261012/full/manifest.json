@@ -1,0 +1,122 @@
+{
+  "schema": "a100-coalesced-full-publication/v1",
+  "compressed": {
+    "name": "a100-coalesced-332e389a-full-stored.zip.xz",
+    "bytes": 78987868,
+    "sha256": "f83ac8e2f63d25cf2b2a74e88ce2cc2b55fba469840185a98cad96e970996c47"
+  },
+  "original": {
+    "name": "a100-coalesced-332e389a-full-stored.zip",
+    "bytes": 839406313,
+    "sha256": "0453642bac3a105163fa77d0b25ff1e03c4df9e66a9054d4600aeb6981771973",
+    "entries": 706
+  },
+  "parts": [
+    {
+      "index": 0,
+      "offset": 0,
+      "name": "a100-coalesced.xz.part000",
+      "bytes": 6291456,
+      "sha256": "b5da3863aec2189dc1d304b690f91856f164dc27910360a9faa30866e777fa13",
+      "git_blob_sha1": "5dbecafeb4e67471237d3bfb83922511c51f5af3"
+    },
+    {
+      "index": 1,
+      "offset": 6291456,
+      "name": "a100-coalesced.xz.part001",
+      "bytes": 6291456,
+      "sha256": "c623f945d393f6df0bf2353047611675887c622b83bb10cfa6038c8a65128374",
+      "git_blob_sha1": "1a7c27f1e382e8ef9ccaf008bd221243563b17a4"
+    },
+    {
+      "index": 2,
+      "offset": 12582912,
+      "name": "a100-coalesced.xz.part002",
+      "bytes": 6291456,
+      "sha256": "8834d1bf81a05bc647899caf958b6565f00fecb2a3fae2626fe0e946177ae7ab",
+      "git_blob_sha1": "9ec3de6287123499477f0d52fb208c4b17e004c4"
+    },
+    {
+      "index": 3,
+      "offset": 18874368,
+      "name": "a100-coalesced.xz.part003",
+      "bytes": 6291456,
+      "sha256": "443abe42df7929db1ebda69c759db64255ca3fc70f334f5e30182f27556e2776",
+      "git_blob_sha1": "84007daa7612808ffc169856919847c2e96e339d"
+    },
+    {
+      "index": 4,
+      "offset": 25165824,
+      "name": "a100-coalesced.xz.part004",
+      "bytes": 6291456,
+      "sha256": "e3d46dd02066e645c4207f4e4654ef6439d31d37f89c893e567c9b511674398a",
+      "git_blob_sha1": "12ee78a93ffd81be014ea2cb1a614a28ae99d31d"
+    },
+    {
+      "index": 5,
+      "offset": 31457280,
+      "name": "a100-coalesced.xz.part005",
+      "bytes": 6291456,
+      "sha256": "11804f489d5d7894c70377ab9e29059325d79bd151970f5534e8e0a254123171",
+      "git_blob_sha1": "4d60f71d8b648ce8d00d001fe581a3c126cd2333"
+    },
+    {
+      "index": 6,
+      "offset": 37748736,
+      "name": "a100-coalesced.xz.part006",
+      "bytes": 6291456,
+      "sha256": "8b9cbf0482d8fd1748a4650b3290d2a5d2f588120a3ab5b486029f46ab25ba2f",
+      "git_blob_sha1": "59db8b4dcf2cee6aaa9dc533fa0111cde9343528"
+    },
+    {
+      "index": 7,
+      "offset": 44040192,
+      "name": "a100-coalesced.xz.part007",
+      "bytes": 6291456,
+      "sha256": "8e94bd19b48c2abe74a005b51f4812bde7ae5ee6c1fa55717814f218f68c60e3",
+      "git_blob_sha1": "98aa9a40e357ff3ec2fa76aa194930eb5ebf8ae4"
+    },
+    {
+      "index": 8,
+      "offset": 50331648,
+      "name": "a100-coalesced.xz.part008",
+      "bytes": 6291456,
+      "sha256": "51af6863803a4d307b32039c3152784f8496f2ae8955c3aeb1993c635840473d",
+      "git_blob_sha1": "d2768ee2d229e3f6cd475f4e3572f6f92eaf26f9"
+    },
+    {
+      "index": 9,
+      "offset": 56623104,
+      "name": "a100-coalesced.xz.part009",
+      "bytes": 6291456,
+      "sha256": "4876ed5a2a134fa7a1210a36ba5e700185cf12bea85cd315132f0772fdcb19b9",
+      "git_blob_sha1": "210f155565507929eb01215b0753133b2c4cf1ae"
+    },
+    {
+      "index": 10,
+      "offset": 62914560,
+      "name": "a100-coalesced.xz.part010",
+      "bytes": 6291456,
+      "sha256": "9fa2912978abeda15f91097a7696fe8277b43312ff4e289b00717c21bd8dc874",
+      "git_blob_sha1": "feba322de41c001f92872686ccc07772da3a59ee"
+    },
+    {
+      "index": 11,
+      "offset": 69206016,
+      "name": "a100-coalesced.xz.part011",
+      "bytes": 6291456,
+      "sha256": "22ed90cd3da4ce1a2413b0433f5d7068d253202dd698f324cb3d01499e43523d",
+      "git_blob_sha1": "5dac95bcb0c53f471500b0a7aba540b3de74499f"
+    },
+    {
+      "index": 12,
+      "offset": 75497472,
+      "name": "a100-coalesced.xz.part012",
+      "bytes": 3490396,
+      "sha256": "ea76972464e366660cdb1a55f6a885f31aaead57595c5c47dc2ddbe45bbbe20f",
+      "git_blob_sha1": "fec569a0af5557d730fb86321aabf5820821a4f2"
+    }
+  ],
+  "zip_entries": 706,
+  "crc": "PASS"
+}

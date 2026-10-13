@@ -1,5 +1,15 @@
 //! Backend-neutral CPU text and feature-gated native GPU rendering.
+pub mod present_policy;
 pub mod text;
+
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct RuntimeDiagnostics {
+    pub present_mode: present_policy::PresentModeRequest,
+    pub gpu_timestamps: bool,
+}
+
+#[cfg(feature = "wgpu-runtime")]
+pub(crate) mod gpu_timing;
 
 #[cfg(feature = "wgpu-runtime")]
 mod arena;
@@ -18,6 +28,8 @@ mod mesh;
 #[cfg(feature = "wgpu-runtime")]
 mod plan;
 #[cfg(feature = "wgpu-runtime")]
+mod resident;
+#[cfg(feature = "wgpu-runtime")]
 pub mod runtime;
 #[cfg(feature = "wgpu-runtime")]
 mod sprite2d;
@@ -33,3 +45,16 @@ pub use device::BackendSelection;
 #[cfg(feature = "wgpu-runtime")]
 #[doc(hidden)]
 pub mod finite_warp_probe;
+
+/// Bounded vertex-stage arithmetic readback; invoked only by explicit diagnostics.
+#[cfg(feature = "wgpu-runtime")]
+#[doc(hidden)]
+pub mod resident_vertex_probe;
+
+#[cfg(feature = "wgpu-runtime")]
+mod upload_cache;
+#[cfg(all(test, feature = "wgpu-runtime"))]
+mod upload_reuse_tests;
+
+#[cfg(all(test, feature = "wgpu-runtime"))]
+mod resident_tests;

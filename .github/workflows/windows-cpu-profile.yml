@@ -1,0 +1,195 @@
+name: Bounded Windows CPU sampling profile
+on:
+  push:
+    branches: [aella/wgpu-1080p-diagnostics]
+    paths:
+      - '.github/workflows/windows-cpu-profile.yml'
+      - 'tools/**'
+      - 'src/**'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - 'build.rs'
+      - 'build_number.rs'
+      - 'updater/**'
+      - 'ui/**'
+      - 'settings.cfg'
+      - 'rust-toolchain'
+      - 'rust-toolchain.toml'
+      - '.cargo/**'
+      - '.gitattributes'
+permissions:
+  contents: read
+concurrency:
+  group: windows-cpu-profile-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  pair-admission:
+    if: github.repository == 'RHS059/rust_duty' && github.ref == 'refs/heads/aella/wgpu-1080p-diagnostics'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      PYTHONDONTWRITEBYTECODE: '1'
+    outputs:
+      admitted: ${{ steps.source.outputs.admitted }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /Cargo.toml
+            /Cargo.lock
+            /build.rs
+            /build_number.rs
+            /LICENSE
+            /THIRD_PARTY_LICENSES.txt
+            /rust-toolchain
+            /rust-toolchain.toml
+            /.cargo/
+            /.gitattributes
+            /src/
+            /updater/
+            /tools/
+            /.github/workflows/cpu-image-preservation.yml
+            /.github/workflows/windows-cpu-profile.yml
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install pinned source-reader dependencies
+        run: python -m pip install Pillow==11.3.0 PyYAML==6.0.3
+      - name: Check closed admission and scheduling guards
+        env:
+          PYTHONPATH: tools
+        run: python -m unittest -v test_historical_pair_admission
+      - name: Admit only the unchanged historical production inventory
+        id: source
+        run: python tools/check_historical_pair_admission.py --root . --github-output "$GITHUB_OUTPUT"
+  # Reuse existing source-bound companions; no new authoring or rendering work.
+  animation-assets:
+    needs: [pair-admission]
+    if: needs.pair-admission.outputs.admitted == 'true'
+    uses: ./.github/workflows/blender-assets.yml
+  walk-assets:
+    needs: [pair-admission]
+    if: needs.pair-admission.outputs.admitted == 'true'
+    uses: ./.github/workflows/walk-assets.yml
+  directional-assets:
+    needs: [pair-admission, walk-assets]
+    if: needs.pair-admission.outputs.admitted == 'true'
+    uses: ./.github/workflows/directional-assets.yml
+  ads-assets:
+    needs: [pair-admission, walk-assets]
+    if: needs.pair-admission.outputs.admitted == 'true'
+    uses: ./.github/workflows/ads-assets.yml
+  jump-assets:
+    needs: [pair-admission, walk-assets]
+    if: needs.pair-admission.outputs.admitted == 'true'
+    uses: ./.github/workflows/jump-assets.yml
+  cpu-sampling:
+    needs: [pair-admission, animation-assets, walk-assets, ads-assets, directional-assets, jump-assets]
+    if: github.repository == 'RHS059/rust_duty' && github.ref == 'refs/heads/aella/wgpu-1080p-diagnostics' && needs.pair-admission.outputs.admitted == 'true'
+    runs-on: windows-2022
+    timeout-minutes: 90
+    env:
+      PYTHONDONTWRITEBYTECODE: '1'
+      GIT_CONFIG_COUNT: '1'
+      GIT_CONFIG_KEY_0: core.autocrlf
+      GIT_CONFIG_VALUE_0: 'false'
+      CARGO_HOME: ${{ github.workspace }}/.cpu-profile-cargo
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /*
+            !/assets/weapons/
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install pinned reader dependencies before importing guards
+        run: |
+          python -m pip install Pillow==11.3.0 PyYAML==6.0.3
+          if ($LASTEXITCODE -ne 0) { throw 'Reader dependency installation failed' }
+      - name: Fetch the exact unchanged loader baseline object
+        run: |
+          git fetch --no-write-fetch-head --no-tags --depth=1 origin 5a88053e1668000744bbebbf967c6d24833dddd5
+          if ($LASTEXITCODE -ne 0) { throw 'Pinned loader baseline object unavailable' }
+      - name: Verify installed profiler and bounded capture guards
+        env:
+          PYTHONPATH: tools
+        run: |
+          python -m unittest -v test_windows_cpu_profile test_geometry_profile_pair test_arena_serialization_pair test_authored_loader_pair
+          if ($LASTEXITCODE -ne 0) { throw 'Profiler guard tests failed' }
+          python tools/run_windows_cpu_profile.py preflight --root . --output evidence/cpu-profile
+      - name: Fetch the existing validated original reload companion
+        uses: actions/download-artifact@v4
+        with:
+          name: generated-reload-runtime
+          path: assets/reload
+      - name: Fetch existing validated walk companions
+        uses: actions/download-artifact@v4
+        with:
+          name: generated-walk-runtime
+          path: assets/walk
+      - name: Fetch existing validated ads companions
+        uses: actions/download-artifact@v4
+        with:
+          name: generated-ads-runtime
+          path: assets/ads
+      - name: Fetch existing validated directional companions
+        uses: actions/download-artifact@v4
+        with:
+          name: generated-directional-runtime
+          path: assets/directional
+      - name: Fetch existing validated jump companions
+        uses: actions/download-artifact@v4
+        with:
+          name: generated-jump-runtime
+          path: assets/jump
+      - name: Select exact Rust1.99 MSVC compiler binaries
+        shell: pwsh
+        run: |
+          rustup toolchain install 1.99.0-x86_64-pc-windows-msvc --profile minimal
+          if ($LASTEXITCODE -ne 0) { throw 'Pinned compiler installation failed' }
+          $rustc = rustup which --toolchain 1.99.0-x86_64-pc-windows-msvc rustc
+          if ($LASTEXITCODE -ne 0) { throw 'Pinned compiler lookup failed' }
+          Split-Path -Parent $rustc | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+      - name: Verify and materialize source-bound original locomotion companions
+        run: |
+          python tools/package_game.py materialize --root . --include-walk --include-ads --include-directional --include-jump --require-generated > evidence/cpu-profile/materialize.json
+      - name: Build matched loader variants and sample the stationary authored scene in ABBA order
+        timeout-minutes: 84
+        run: python tools/run_windows_cpu_profile.py compare-loaders --root . --output evidence/cpu-profile
+      - name: Retain raw trace, matching symbols, exports and exact input receipts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-cpu-profile-attempt-${{ github.run_attempt }}
+          path: |
+            evidence/cpu-profile/**
+            !evidence/cpu-profile/**/target/**
+            !evidence/cpu-profile/**/symbols/**
+            !evidence/cpu-profile/**/symcache/**
+            !evidence/cpu-profile/**/assets/**
+          include-hidden-files: true
+          if-no-files-found: warn
+          retention-days: 7
+      - name: Retain the compact reports independently of large ETL and PDB files
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-cpu-profile-reports-attempt-${{ github.run_attempt }}
+          path: |
+            evidence/cpu-profile/*.json
+            evidence/cpu-profile/*.log
+            evidence/cpu-profile/*.txt
+            evidence/cpu-profile/sources/*.json
+            evidence/cpu-profile/*-build/*.json
+            evidence/cpu-profile/*-build/*.log
+            evidence/cpu-profile/r*/*.json
+            evidence/cpu-profile/r*/*.log
+            evidence/cpu-profile/r*/*.txt
+            evidence/cpu-profile/r*/runtime/telemetry-sessions/**
+          if-no-files-found: warn
+          retention-days: 7

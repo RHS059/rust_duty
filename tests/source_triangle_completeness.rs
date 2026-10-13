@@ -174,6 +174,63 @@ impl Fixture {
         expected
     }
 
+    fn draw_resident(&self) -> Vec<vector_range::draw::resident::ResidentDraw> {
+        struct Native(vector_range::draw::BackendInfo);
+        impl vector_range::draw::Renderer for Native {
+            fn info(&self) -> &vector_range::draw::BackendInfo {
+                &self.0
+            }
+            fn supports_resident_meshes(&self) -> bool {
+                true
+            }
+            fn measure_text(&self, _: &str, _: f32) -> Result<TextDimensions, String> {
+                unreachable!()
+            }
+            fn submit(
+                &mut self,
+                _: &vector_range::draw::DrawList,
+            ) -> Result<vector_range::draw::FrameOutput, String> {
+                unreachable!()
+            }
+        }
+        let native = Native(vector_range::draw::BackendInfo {
+            requested: "test".into(),
+            backend: "test".into(),
+            adapter: "test".into(),
+        });
+        let mut model = authored_viewmodel::AuthoredViewmodel::load_with_batching(
+            self.directory.join("fixture.vra").to_str().unwrap(),
+            "complete",
+            Some(0.),
+            weapon_model::ResidentBatching::CoalescedParts,
+        )
+        .unwrap();
+        model.set_cant(0.17);
+        begin_frame_with_renderer(960, 540, 1., &native).unwrap();
+        model.draw(
+            0.,
+            SceneLighting::range(),
+            Mat4::from_translation(vec3(0.2, -0.2, 0.2)),
+        );
+        assert!(model.error().is_none(), "{:?}", model.error());
+        take_draw_list()
+            .unwrap()
+            .commands
+            .into_iter()
+            .filter_map(|command| match command {
+                Command::Resident { draw, model, blend } => {
+                    assert_eq!(model, Mat4::IDENTITY);
+                    assert_eq!(blend, BlendMode::Alpha);
+                    Some(draw)
+                }
+                Command::Mesh { .. } => {
+                    panic!("valid native fixture must not fall back to CPU chunks")
+                }
+                _ => None,
+            })
+            .collect()
+    }
+
     fn draw(&self) -> Vec<Mesh> {
         let mut model = authored_viewmodel::AuthoredViewmodel::load(
             self.directory.join("fixture.vra").to_str().unwrap(),
@@ -389,4 +446,73 @@ fn source_triangle_completeness_rejects_tail_omission_reordering_and_changed_ide
     assert!(verify_inventory(&expected, &invalid)
         .unwrap_err()
         .contains("token was changed"));
+}
+
+#[test]
+fn resident_coalescing_preserves_decoded_triangle_order_and_actor_boundaries() {
+    for visibility in [[true, true], [false, true], [true, false], [false, false]] {
+        let fixture = Fixture::new(visibility);
+        let expected = fixture.source_inventory();
+        let old = fixture.draw();
+        let resident = fixture.draw_resident();
+        assert_eq!(
+            resident.len(),
+            2 + visibility.into_iter().filter(|v| *v).count()
+        );
+        assert_eq!(old.len(), resident.len() * 3);
+        let meshes: Vec<_> = resident.iter().map(|draw| draw.reference_mesh()).collect();
+        assert_eq!(verify_inventory(&expected, &meshes), Ok(()));
+        assert_eq!(
+            meshes.iter().map(|m| m.indices.len()).collect::<Vec<_>>(),
+            vec![10_002; resident.len()]
+        );
+        assert_eq!(
+            old.iter().map(|m| m.vertices.len()).sum::<usize>(),
+            resident
+                .iter()
+                .map(|d| d.mesh().vertex_count())
+                .sum::<usize>()
+        );
+        // Complete immutable corner attributes came from independently decoded
+        // companions, not the candidate's own batching or CPU shade oracle.
+        let skin = SkinnedAsset::decode(&fixture.vrs).unwrap();
+        let rigid = WeaponAsset::decode(&fixture.vrm).unwrap();
+        for draw in resident {
+            use vector_range::draw::resident::Vertices;
+            match draw.mesh().vertices() {
+                Vertices::Rigid(vertices) => {
+                    let mesh = (vertices[0].uv[1] as u32 - RIGID) as usize;
+                    assert!(visibility[mesh]);
+                    let source = &rigid.meshes[mesh];
+                    for (&actual, &expected) in draw.mesh().indices().iter().zip(&source.indices) {
+                        let a = &vertices[actual as usize];
+                        let b = &source.vertices[expected as usize];
+                        assert_eq!(a.position.map(f32::to_bits), b.position.map(f32::to_bits));
+                        assert_eq!(a.normal.map(f32::to_bits), b.normal.map(f32::to_bits));
+                        assert_eq!(a.uv.map(f32::to_bits), b.uv.map(f32::to_bits));
+                    }
+                }
+                Vertices::Skin { vertices, bones } => {
+                    assert_eq!(*bones, skin.bones.len());
+                    let mesh = (vertices[0].vertex.uv[1] as u32 - SKIN) as usize;
+                    let source = &skin.meshes[mesh];
+                    for (&actual, &expected) in draw.mesh().indices().iter().zip(&source.indices) {
+                        let a = &vertices[actual as usize];
+                        let b = &source.vertices[expected as usize];
+                        assert_eq!(
+                            a.vertex.position.map(f32::to_bits),
+                            b.position.map(f32::to_bits)
+                        );
+                        assert_eq!(
+                            a.vertex.normal.map(f32::to_bits),
+                            b.normal.map(f32::to_bits)
+                        );
+                        assert_eq!(a.vertex.uv.map(f32::to_bits), b.uv.map(f32::to_bits));
+                        assert_eq!(a.joints, b.joints);
+                        assert_eq!(a.weights.map(f32::to_bits), b.weights.map(f32::to_bits));
+                    }
+                }
+            }
+        }
+    }
 }

@@ -1,0 +1,33 @@
+{
+  "schema": "independent-scalar-f32-skin-model-check/v1",
+  "source": "80cb324c744e3299d1dd2417c571cdc69c6e46cf",
+  "method": "Python float64 products of float32 operands, explicitly round every multiply/add to float32, following pinned glam scalar transform_point3 and authored ordered weights; no GPU/build/executable run",
+  "all_105_modeled_cpu_worlds_match_original_corner_words": true,
+  "counts": {
+    "samples": 105,
+    "skin_differences": 90,
+    "world_differences": 90,
+    "root_on_observed_differences": 0
+  },
+  "first_lexical_case_difference": {
+    "case": "ads-1",
+    "command": 0,
+    "sample": 0,
+    "source_vertex": 1340,
+    "modeled_skin_bits": [
+      1033799910,
+      3183960316,
+      3204146104
+    ],
+    "observed_skin_bits": [
+      1033799910,
+      3183960316,
+      3204146106
+    ]
+  },
+  "limits": [
+    "All sampled roots are identity.",
+    "Compatibility with a rounding sequence does not identify GPU instructions.",
+    "Original strict image failure remains unchanged."
+  ]
+}

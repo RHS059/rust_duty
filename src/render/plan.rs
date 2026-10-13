@@ -14,10 +14,18 @@ pub(crate) struct GeometrySlice {
 pub(crate) struct PreparedDraw {
     pub target: Option<RenderTarget>,
     pub depth_test: bool,
+    pub depth_range: [f32; 2],
     pub texture: Option<Texture>,
     pub blend: BlendMode,
     pub lines: bool,
     pub geometry: GeometrySlice,
+}
+pub(crate) struct PreparedResident {
+    pub target: Option<RenderTarget>,
+    pub depth_test: bool,
+    pub depth_range: [f32; 2],
+    pub blend: BlendMode,
+    pub index: usize,
 }
 pub(crate) enum PreparedCommand {
     Camera(Camera),
@@ -26,30 +34,77 @@ pub(crate) enum PreparedCommand {
         color: Color,
     },
     Draw(PreparedDraw),
+    Resident(PreparedResident),
     Capture {
         target: Option<RenderTarget>,
         path: PathBuf,
     },
 }
 /// Consecutive draws may share a pass only while its attachments stay the same.
-/// Camera commands, clears, and captures remain barriers even for the same target.
-/// Pipeline, texture, and arena changes are rebound for each draw inside the pass.
+/// Same-attachment cameras can continue a pass: projection and viewport depth
+/// are already snapshotted on each prepared draw. Clears, captures and changes
+/// to target/depth attachments remain barriers. Draw order never changes.
+pub(crate) fn draw_attachment(command: &PreparedCommand) -> Option<(Option<&RenderTarget>, bool)> {
+    match command {
+        PreparedCommand::Draw(draw) => Some((draw.target.as_ref(), draw.depth_test)),
+        PreparedCommand::Resident(draw) => Some((draw.target.as_ref(), draw.depth_test)),
+        _ => None,
+    }
+}
 pub(crate) fn draw_run_len(commands: &[PreparedCommand]) -> usize {
-    let Some(PreparedCommand::Draw(first)) = commands.first() else {
+    let Some((target, depth)) = commands.first().and_then(draw_attachment) else {
         return 0;
     };
-    let target = first.target.as_ref().map(|target| target.texture.id);
+    let id = target.map(|t| t.texture.id);
     commands
         .iter()
         .take_while(|command| {
-            matches!(command, PreparedCommand::Draw(draw)
-                if draw.target.as_ref().map(|target| target.texture.id) == target
-                    && draw.depth_test == first.depth_test)
+            let attachment = match command {
+                PreparedCommand::Camera(camera) => {
+                    Some((camera.target.as_ref(), camera.depth_test))
+                }
+                _ => draw_attachment(command),
+            };
+            attachment.is_some_and(|(t, d)| t.map(|t| t.texture.id) == id && d == depth)
         })
         .count()
 }
+
+/// Fold a clear into the immediately following depth draw run only. Camera
+/// selection is harmless here, but no capture, second clear or target change
+/// may be crossed. Depth is still cleared, even with zero drawn geometry.
+pub(crate) fn clear_draw_run(commands: &[PreparedCommand]) -> Option<std::ops::Range<usize>> {
+    let PreparedCommand::Clear { target, .. } = commands.first()? else {
+        return None;
+    };
+    let id = target.as_ref().map(|t| t.texture.id);
+    for (index, command) in commands.iter().enumerate().skip(1) {
+        if let PreparedCommand::Camera(camera) = command {
+            if camera.target.as_ref().map(|t| t.texture.id) != id {
+                return None;
+            }
+            continue;
+        }
+        let (draw_target, depth) = draw_attachment(command)?;
+        if !depth || draw_target.map(|t| t.texture.id) != id {
+            return None;
+        }
+        return Some(index..index + draw_run_len(&commands[index..]));
+    }
+    None
+}
+
+pub(crate) fn starts_with_main_clear(commands: &[PreparedCommand]) -> bool {
+    matches!(
+        commands
+            .iter()
+            .find(|c| !matches!(c, PreparedCommand::Camera(_))),
+        Some(PreparedCommand::Clear { target: None, .. })
+    )
+}
 pub(crate) struct FramePlan {
     pub arenas: Vec<FrameArena>,
+    pub residents: Vec<(crate::draw::resident::ResidentDraw, Mat4)>,
     matrix_alignment: u32,
     max_buffer_size: u64,
     pub commands: Vec<PreparedCommand>,
@@ -65,6 +120,7 @@ impl FramePlan {
     ) -> Result<Self, String> {
         let mut plan = Self {
             arenas: vec![FrameArena::new(matrix_alignment, max_buffer_size)?],
+            residents: Vec::new(),
             matrix_alignment,
             max_buffer_size,
             commands: Vec::new(),
@@ -85,6 +141,21 @@ impl FramePlan {
                 }),
                 Command::Mesh { mesh, model, blend } => {
                     plan.draw(&camera, mesh, *model, *blend, false)?
+                }
+                Command::Resident { draw, model, blend } => {
+                    if !draw.mesh().indices().is_empty() {
+                        let index = plan.residents.len();
+                        plan.residents
+                            .push((draw.clone(), clip_matrix(camera.view_projection, *model)));
+                        plan.commands
+                            .push(PreparedCommand::Resident(PreparedResident {
+                                target: camera.target.clone(),
+                                depth_test: camera.depth_test,
+                                depth_range: camera.depth_range,
+                                blend: *blend,
+                                index,
+                            }));
+                    }
                 }
                 Command::Lines { lines, model } => {
                     let (consumed, batches) =
@@ -129,9 +200,9 @@ impl FramePlan {
                     color,
                 } => {
                     let screen = screen_camera(list, &camera);
-                    for mesh in text.meshes(value, *baseline, *size, *color)? {
-                        plan.draw(&screen, &mesh, Mat4::IDENTITY, BlendMode::Alpha, false)?;
-                    }
+                    text.for_each_quad(value, *baseline, *size, *color, |vertices, texture| {
+                        plan.draw_text_quad(&screen, vertices, texture)
+                    })?;
                 }
                 Command::Capture { target, path } => plan.commands.push(PreparedCommand::Capture {
                     target: target.clone(),
@@ -180,6 +251,29 @@ impl FramePlan {
             range,
         })
     }
+    fn draw_text_quad(
+        &mut self,
+        camera: &Camera,
+        vertices: &[crate::draw::Vertex; 4],
+        texture: &Texture,
+    ) -> Result<(), String> {
+        let geometry = self.append(
+            vertices,
+            &super::text::QUAD_INDICES,
+            clip_matrix(camera.view_projection, Mat4::IDENTITY),
+        )?;
+        self.commands.push(PreparedCommand::Draw(PreparedDraw {
+            target: camera.target.clone(),
+            depth_test: camera.depth_test,
+            depth_range: camera.depth_range,
+            texture: Some(texture.clone()),
+            blend: BlendMode::Alpha,
+            lines: false,
+            geometry,
+        }));
+        Ok(())
+    }
+
     fn draw(
         &mut self,
         camera: &Camera,
@@ -199,6 +293,7 @@ impl FramePlan {
         self.commands.push(PreparedCommand::Draw(PreparedDraw {
             target: camera.target.clone(),
             depth_test: camera.depth_test,
+            depth_range: camera.depth_range,
             texture: mesh.texture.clone(),
             blend,
             lines,
@@ -224,6 +319,50 @@ mod tests {
     use super::*;
     use crate::draw::{Line, Vertex};
     use glam::{Vec2, Vec3};
+    #[test]
+    fn resident_draws_skip_vertex_arenas_and_preserve_mixed_capture_barriers() {
+        use crate::draw::resident::{ResidentDraw, ResidentMesh, RigidVertex, Vertices};
+        let source = mesh();
+        let resident = ResidentMesh::new(
+            Vertices::Rigid(
+                source
+                    .vertices
+                    .iter()
+                    .map(|v| RigidVertex {
+                        position: v.position.to_array(),
+                        uv: v.uv.to_array(),
+                        normal: [0., 1., 0.],
+                    })
+                    .collect(),
+            ),
+            source.indices.clone(),
+            None,
+        )
+        .unwrap();
+        let draw = ResidentDraw::new(
+            resident,
+            Mat4::IDENTITY,
+            crate::scene_lighting::SceneLighting::range(),
+            Color::WHITE,
+            1.,
+            None,
+        )
+        .unwrap();
+        let mut list = DrawList::new(64, 64);
+        list.draw_resident(draw.clone(), Mat4::IDENTITY, BlendMode::Alpha);
+        let plan = prepare(&list, false);
+        assert!(plan.arenas.iter().all(|a| a.buffer_contents().is_none()));
+        assert_eq!(plan.residents.len(), 1);
+        list.draw_mesh(&source, Mat4::IDENTITY, BlendMode::Alpha);
+        list.capture_png(None, "middle.png");
+        list.draw_resident(draw, Mat4::IDENTITY, BlendMode::Alpha);
+        let plan = prepare(&list, false);
+        assert_eq!(draw_run_len(&plan.commands), 2);
+        assert!(matches!(plan.commands[2], PreparedCommand::Capture { .. }));
+        assert_eq!(draw_run_len(&plan.commands[3..]), 1);
+        assert_eq!(plan.residents.len(), 2);
+    }
+
     fn mesh() -> Mesh {
         Mesh {
             vertices: [Vec3::ZERO, Vec3::X, Vec3::Y]
@@ -276,6 +415,7 @@ mod tests {
                 PreparedCommand::Camera(_) => "camera",
                 PreparedCommand::Clear { .. } => "clear",
                 PreparedCommand::Draw(_) => "draw",
+                PreparedCommand::Resident(_) => "resident",
                 PreparedCommand::Capture { .. } => "capture",
             })
             .collect();
@@ -385,6 +525,69 @@ mod tests {
             draws[1].texture.as_ref().unwrap().id
         );
     }
+
+    #[test]
+    fn streamed_text_packs_fixed_positions_and_keeps_capture_barrier() {
+        let mut list = DrawList::new(960, 540);
+        list.draw_text("Ag ", Vec2::new(10., 20.), 16., Color::WHITE);
+        list.capture_png(None, "text-prefix.png");
+        list.draw_text("A", Vec2::new(10., 20.), 16., Color::WHITE);
+        let plan = prepare(&list, false);
+        assert_eq!(plan.commands.len(), 4);
+        assert!(matches!(plan.commands[2], PreparedCommand::Capture { .. }));
+        assert_eq!(draw_run_len(&plan.commands), 2);
+        assert_eq!(draw_run_len(&plan.commands[3..]), 1);
+        let [vertices, indices, _] = plan.arenas[0].buffer_contents().unwrap();
+        let expected_positions = [
+            (11., 12.),
+            (17., 12.),
+            (17., 20.),
+            (11., 20.),
+            (18., 14.),
+            (23., 14.),
+            (23., 23.),
+            (18., 23.),
+            (11., 12.),
+            (17., 12.),
+            (17., 20.),
+            (11., 20.),
+        ];
+        assert_eq!(vertices.len(), expected_positions.len() * 40);
+        for (packed, (x, y)) in vertices.as_chunks::<40>().0.iter().zip(expected_positions) {
+            let float = |offset| f32::from_le_bytes(packed[offset..offset + 4].try_into().unwrap());
+            assert_eq!([float(0), float(4), float(8)], [x, y, 0.]);
+            assert_eq!(&packed[20..24], &[255; 4]);
+        }
+        let expected_indices: Vec<_> = [0_u16, 1, 2, 0, 2, 3]
+            .into_iter()
+            .cycle()
+            .take(18)
+            .flat_map(u16::to_le_bytes)
+            .collect();
+        assert_eq!(indices, expected_indices);
+    }
+
+    #[test]
+    fn streamed_text_obeys_upload_chunk_limits_and_failure_is_not_a_plan() {
+        let mut list = DrawList::new(960, 540);
+        list.draw_text("AB", Vec2::ZERO, 16., Color::WHITE);
+        let plan =
+            FramePlan::new(&list, &mut TextRenderer::new().unwrap(), 64, 256, false).unwrap();
+        assert_eq!(plan.arenas.len(), 2);
+        assert_eq!(plan.commands.len(), 2);
+        for (index, command) in plan.commands.iter().enumerate() {
+            let PreparedCommand::Draw(draw) = command else {
+                panic!("expected text draw")
+            };
+            assert_eq!(draw.geometry.arena_index, index);
+            assert_eq!(draw.geometry.range.vertices, 0..160);
+            assert_eq!(draw.geometry.range.count, 6);
+        }
+        assert!(FramePlan::new(&list, &mut TextRenderer::new().unwrap(), 64, 128, false).is_err());
+        list.draw_text("invalid later text", Vec2::ZERO, f32::NAN, Color::WHITE);
+        assert!(FramePlan::new(&list, &mut TextRenderer::new().unwrap(), 64, 256, false).is_err());
+    }
+
     #[test]
     fn screen_draws_use_target_extent_without_world_depth_or_matrix() {
         let mut list = DrawList::new(100, 50);
@@ -393,6 +596,7 @@ mod tests {
             view_projection: Mat4::from_scale(Vec3::splat(7.)),
             target: Some(target.clone()),
             depth_test: true,
+            depth_range: [0.1, 0.9],
         };
         let texture = Texture::rgba8(1, 1, &[255; 4], crate::draw::Sampler::default()).unwrap();
         list.camera(camera);

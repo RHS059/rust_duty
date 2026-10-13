@@ -1,0 +1,94 @@
+{
+  "schema": "rust-duty-ads-original-artifact-retention/v1",
+  "source": "2a1776a46fbcd9ad95371ea3ba49ab272a742c58",
+  "workflow_run": 38247668699,
+  "retention_only": true,
+  "new_tests_run": false,
+  "artifacts": [
+    {
+      "id": 11747654555,
+      "name": "resident-ads-all-attempt-1.zip",
+      "bytes": 42432817,
+      "sha256": "893d34d04675678ca4f78de3ab970094b12787d7faa363fc291f75b31b901a0b",
+      "entries": 4714,
+      "original_expires_at": "2026-10-19T12:46:00Z",
+      "parts": [
+        {
+          "name": "resident-ads-all.zip.part000",
+          "index": 0,
+          "offset": 0,
+          "bytes": 6291456,
+          "sha256": "9bba67a16a6c33a7763fa006802c1fab597a73b4011a0e5fc98c0ba6dae7d01d",
+          "git_blob_sha1": "1245c0454e0d47928be4cf523ce3dbf20d32545a"
+        },
+        {
+          "name": "resident-ads-all.zip.part001",
+          "index": 1,
+          "offset": 6291456,
+          "bytes": 6291456,
+          "sha256": "80fbe8d04955d0d03b84841a5294e714901f1a19ea45074593942d65a3546f61",
+          "git_blob_sha1": "2dc9552579f465ca55be77ed6f99009a388c0909"
+        },
+        {
+          "name": "resident-ads-all.zip.part002",
+          "index": 2,
+          "offset": 12582912,
+          "bytes": 6291456,
+          "sha256": "d19c63ffcceff6c5c62832df39334da8aab0c708fbf96e47224f651803ff437c",
+          "git_blob_sha1": "9566edef2ff2193b21d82f7d9e47a59739ae5514"
+        },
+        {
+          "name": "resident-ads-all.zip.part003",
+          "index": 3,
+          "offset": 18874368,
+          "bytes": 6291456,
+          "sha256": "c1075b5d74727d1b158d3ec72b14d05419e7542f75d25ab62ac60ddc96ae8e76",
+          "git_blob_sha1": "b1101b83aad49f81400e89a53a8ca870e35e9e5c"
+        },
+        {
+          "name": "resident-ads-all.zip.part004",
+          "index": 4,
+          "offset": 25165824,
+          "bytes": 6291456,
+          "sha256": "f62cc7ead1242d0488b19fb5bca6b8d5e401a01475fbf69649b2fe4aa9ccc9f6",
+          "git_blob_sha1": "1d6a85fc59238e69819c6f69c77a9c26c56b2aec"
+        },
+        {
+          "name": "resident-ads-all.zip.part005",
+          "index": 5,
+          "offset": 31457280,
+          "bytes": 6291456,
+          "sha256": "1d0200f22f0532c6324b4f1a6ea1edd4dcb4dc173544fe6898e3f3d473d55707",
+          "git_blob_sha1": "4a38cdb503c6a0c2e64854a4a05ca95a6e45eebb"
+        },
+        {
+          "name": "resident-ads-all.zip.part006",
+          "index": 6,
+          "offset": 37748736,
+          "bytes": 4684081,
+          "sha256": "687b46b962c717e71b7cae429dd5fd5a86438324b875d255f50f950746ea0432",
+          "git_blob_sha1": "d0f02fd0e725537e4effd2c709af5b824c091e86"
+        }
+      ]
+    },
+    {
+      "id": 11747314755,
+      "name": "resident-ads-reports-attempt-1.zip",
+      "bytes": 297639,
+      "sha256": "d749f5220070d0c02f67f7c3f2c801ccba33a32322f5829e51ecd58830174599",
+      "entries": 26,
+      "original_expires_at": "2026-10-19T12:46:07Z"
+    }
+  ],
+  "integrity": {
+    "github_artifact_digests_matched": true,
+    "all_zip_crcs_pass": true,
+    "all_member_paths_safe": true,
+    "credential_pattern_scan": "no findings",
+    "private_soldier_assets": "not present in inspected inventory",
+    "inspected_png_examples": [
+      "resident-off/0000.png",
+      "resident-on/0300.png"
+    ]
+  }
+}

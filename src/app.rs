@@ -40,6 +40,9 @@ struct Impact {
 }
 pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), String> {
     let args: Vec<String> = std::env::args().collect();
+    let viewmodel_render_diagnostic = RenderDiagnostic::from_args(&args)?;
+    let viewmodel_target_diagnostic = TargetDiagnostic::from_args(&args)?;
+    let resident_batching_diagnostic = weapon_model::ResidentBatching::from_args(&args)?;
     let executable =
         std::env::current_exe().unwrap_or_else(|_| std::path::PathBuf::from("vector-range.exe"));
     let authored_executable =
@@ -243,6 +246,14 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
     let authored_time = args
         .iter()
         .find_map(|s| s.strip_prefix("--viewmodel-time="));
+    // Match the existing capture parser, including its all-argument scan.
+    let batching_capture = args.iter().any(|arg| arg.starts_with("--capture"));
+    let resident_batching = resident_batching_policy(
+        resident_batching_diagnostic,
+        resident_meshes_enabled(),
+        framing.reference,
+        batching_capture,
+    );
     let mut authored = if let Some(path) = authored_path.as_ref() {
         let time = authored_time
             .map(|value| {
@@ -266,9 +277,17 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
                             .unwrap_or(std::path::Path::new("."))
                             .join("assets/animations.cfg")
                     });
-                authored_viewmodel::AuthoredViewmodel::load_manifest(&manifest)
+                authored_viewmodel::AuthoredViewmodel::load_manifest_with_batching(
+                    &manifest,
+                    resident_batching,
+                )
             } else {
-                authored_viewmodel::AuthoredViewmodel::load(path, authored_clip, time)
+                authored_viewmodel::AuthoredViewmodel::load_with_batching(
+                    path,
+                    authored_clip,
+                    time,
+                    resident_batching,
+                )
             }
         }) {
             Ok(viewmodel) => Some(viewmodel),
@@ -282,6 +301,64 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
     } else {
         None
     };
+    if let Some(mode) = viewmodel_render_diagnostic {
+        mode.check_route(
+            authored.is_some(),
+            args.iter()
+                .take_while(|arg| arg.as_str() != "--")
+                .any(|arg| arg.starts_with("--animation-manifest=")),
+            authored_clip == "locomotion",
+            authored_time.is_some(),
+        )?;
+        eprintln!(
+            "viewmodel_render_diagnostic mode={} scope=authored_manifest_layer animation_updates=preserved",
+            mode.name()
+        );
+    }
+    if let Some(mode) = viewmodel_target_diagnostic {
+        RenderDiagnostic::Visible.check_route(
+            authored.is_some(),
+            args.iter()
+                .take_while(|arg| arg.as_str() != "--")
+                .any(|arg| arg.starts_with("--animation-manifest=")),
+            authored_clip == "locomotion",
+            authored_time.is_some(),
+        )?;
+        if !resident_meshes_enabled()
+            || framing.reference
+            || batching_capture
+            || matches!(
+                viewmodel_render_diagnostic,
+                Some(RenderDiagnostic::Hidden | RenderDiagnostic::TargetOnly)
+            )
+        {
+            return Err("viewmodel target diagnostic requires native normal-play authored rendering without capture or a hidden layer".into());
+        }
+        eprintln!(
+            "viewmodel_target_diagnostic mode={} projection=unchanged depth=viewport opaque=before_world transparent=whole_layer_after_world",
+            mode.name()
+        );
+    }
+    if let Some(mode) = resident_batching_diagnostic {
+        RenderDiagnostic::Visible.check_route(
+            authored.is_some(),
+            args.iter()
+                .take_while(|arg| arg.as_str() != "--")
+                .any(|arg| arg.starts_with("--animation-manifest=")),
+            authored_clip == "locomotion",
+            authored_time.is_some(),
+        )?;
+        mode.check_native_route(
+            resident_meshes_enabled(),
+            framing.reference,
+            batching_capture,
+            viewmodel_render_diagnostic,
+        )?;
+        eprintln!(
+            "resident_batching_diagnostic mode={} policy=same_part_ordered_loading animation_updates=preserved",
+            mode.name()
+        );
+    }
     let model_missing = authored_path.is_none()
         && matches!(
             &model_source,
@@ -803,7 +880,7 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
                 ) {
                     Ok(export) => {
                         telemetry_csv_error = None;
-                        let scene = frame_trace_scene(
+                        let mut scene = frame_trace_scene(
                             profile,
                             weapon_id,
                             if model_error.is_some() {
@@ -820,6 +897,15 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
                             capture_sequence,
                             demo,
                         );
+                        if let Some(mode) = viewmodel_render_diagnostic {
+                            mode.record_scene(&mut scene);
+                        }
+                        if let Some(mode) = viewmodel_target_diagnostic {
+                            mode.record_scene(&mut scene);
+                        }
+                        if let Some(mode) = resident_batching_diagnostic {
+                            mode.record_scene(&mut scene);
+                        }
                         let trace = start_frame_trace(
                             scene,
                             trace_eligibility,
@@ -1181,6 +1267,40 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
         } else {
             screen_width() / screen_height()
         };
+        let direct_viewmodel = direct_target_active(
+            viewmodel_target_diagnostic,
+            viewmodel_render_diagnostic,
+            resident_meshes_enabled(),
+            authored.is_some(),
+            framing.reference,
+            capture,
+        ) && !sim.player.dead();
+        let viewmodel_after_world = authored
+            .as_ref()
+            .is_some_and(|model| model.requires_world_behind());
+        let direct_layers = direct_viewmodel.then(|| {
+            let action_pose = sim.action_pose();
+            [
+                look_sway.offset(&sway_tuning),
+                vector_range::weapon_sway::action_offset(
+                    &sim.player,
+                    &action_pose,
+                    cfg.action.obstruct_max_retract,
+                ),
+            ]
+        });
+        if direct_viewmodel && !viewmodel_after_world {
+            direct_weapon(
+                &sim,
+                aspect,
+                authored.as_mut().expect("direct route has authored model"),
+                &cfg,
+                framing,
+                direct_layers
+                    .as_ref()
+                    .expect("direct route has pose layers"),
+            );
+        }
         let eye = sim.player.eye();
         let forward = sim.player.direction();
         let fov = cfg.fov
@@ -1201,6 +1321,9 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
             z_far: 200.,
             ..Default::default()
         });
+        if direct_viewmodel {
+            set_depth_range(0.1, 1.);
+        }
         world(&sim, &texture);
         let body_frame = body.update(&sim, if active { dt } else { 0. }, &body_tuning);
         if !capture_lighting && capture_sequence.is_none() {
@@ -1235,33 +1358,52 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
         }
         // An explicitly requested invalid authored asset never falls through
         // to the legacy procedural renderer while its startup error is shown.
-        let action_pose = sim.action_pose();
-        let layers = [
-            look_sway.offset(&sway_tuning),
-            vector_range::weapon_sway::action_offset(
-                &sim.player,
-                &action_pose,
-                cfg.action.obstruct_max_retract,
-            ),
-        ];
+        let layers = direct_layers.unwrap_or_else(|| {
+            let action_pose = sim.action_pose();
+            [
+                look_sway.offset(&sway_tuning),
+                vector_range::weapon_sway::action_offset(
+                    &sim.player,
+                    &action_pose,
+                    cfg.action.obstruct_max_retract,
+                ),
+            ]
+        });
         if (authored_path.is_none() || authored.is_some()) && !sim.player.dead() {
-            weapon(
-                &sim,
-                &target,
-                aspect,
-                &mut locomotion_state,
-                model.as_mut(),
-                authored.as_mut(),
-                arms.as_mut(),
-                &mut animation_state,
-                &cfg,
-                cfg.walking_translation(weapon_id),
-                framing,
-                presentation_reload,
-                &mut muzzle_fx,
-                authored_path.is_none(),
-                &layers,
-            );
+            if direct_viewmodel {
+                if viewmodel_after_world {
+                    direct_weapon(
+                        &sim,
+                        aspect,
+                        authored.as_mut().expect("direct route has authored model"),
+                        &cfg,
+                        framing,
+                        &layers,
+                    );
+                }
+                set_default_camera();
+            } else {
+                submit_weapon_layer(viewmodel_render_diagnostic, || {
+                    weapon(
+                        &sim,
+                        &target,
+                        aspect,
+                        &mut locomotion_state,
+                        model.as_mut(),
+                        authored.as_mut(),
+                        arms.as_mut(),
+                        &mut animation_state,
+                        &cfg,
+                        cfg.walking_translation(weapon_id),
+                        framing,
+                        presentation_reload,
+                        &mut muzzle_fx,
+                        authored_path.is_none(),
+                        &layers,
+                        viewmodel_render_diagnostic,
+                    );
+                });
+            }
         }
         if let Some(warning) = authored.as_ref().and_then(|viewmodel| viewmodel.warning()) {
             label(warning, 24., screen_height() - 155., 15., YELLOW);
@@ -1338,7 +1480,13 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
                 MUTED,
             );
         } else if model_missing {
-            label("HK416 asset missing: extract the whole package beside the EXE (procedural fallback active)",24.,screen_height()-155.,16.,YELLOW);
+            label(
+                "HK416 asset missing: extract the whole package beside the EXE (procedural fallback active)",
+                24.,
+                screen_height() - 155.,
+                16.,
+                YELLOW,
+            );
         }
         telemetry_indicator(&telemetry_status);
         if crate::capture::write_frame(crate::capture::CaptureFrame {

@@ -1,0 +1,230 @@
+name: Bounded Windows CPU image preservation
+on:
+  push:
+    branches: [aella/wgpu-1080p-diagnostics]
+    paths:
+      - '.github/workflows/cpu-image-preservation.yml'
+      - '.github/workflows/blender-assets.yml'
+      - '.github/workflows/walk-assets.yml'
+      - '.github/workflows/ads-assets.yml'
+      - '.github/workflows/directional-assets.yml'
+      - '.github/workflows/jump-assets.yml'
+      - 'examples/renderer_contract.rs'
+      - 'examples/pass_submission_benchmark.rs'
+      - 'examples/gpu_session_contract.rs'
+      - 'examples/authored_loader_contract.rs'
+      - 'assets/**'
+      - 'tools/**'
+      - 'src/**'
+      - 'updater/**'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - 'build.rs'
+      - 'build_number.rs'
+      - 'rust-toolchain.toml'
+      - 'rust-toolchain'
+      - '.cargo/**'
+      - '.gitattributes'
+      - 'LICENSE'
+      - 'THIRD_PARTY_LICENSES.txt'
+permissions:
+  contents: read
+concurrency:
+  group: cpu-image-preservation-${{ github.ref }}
+  cancel-in-progress: false
+env:
+  PYTHONDONTWRITEBYTECODE: '1'
+  GIT_CONFIG_COUNT: '1'
+  GIT_CONFIG_KEY_0: core.autocrlf
+  GIT_CONFIG_VALUE_0: 'false'
+jobs:
+  pair-admission:
+    if: github.repository == 'RHS059/rust_duty' && github.ref == 'refs/heads/aella/wgpu-1080p-diagnostics'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      PYTHONDONTWRITEBYTECODE: '1'
+    outputs:
+      admitted: ${{ steps.source.outputs.admitted }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /Cargo.toml
+            /Cargo.lock
+            /build.rs
+            /build_number.rs
+            /LICENSE
+            /THIRD_PARTY_LICENSES.txt
+            /rust-toolchain
+            /rust-toolchain.toml
+            /.cargo/
+            /.gitattributes
+            /src/
+            /updater/
+            /tools/
+            /.github/workflows/cpu-image-preservation.yml
+            /.github/workflows/windows-cpu-profile.yml
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install pinned source-reader dependencies
+        run: python -m pip install Pillow==11.3.0 PyYAML==6.0.3
+      - name: Check closed admission and scheduling guards
+        env:
+          PYTHONPATH: tools
+        run: python -m unittest -v test_historical_pair_admission
+      - name: Admit only the unchanged historical production inventory
+        id: source
+        run: python tools/check_historical_pair_admission.py --root . --github-output "$GITHUB_OUTPUT"
+  animation-assets:
+    needs: [pair-admission]
+    if: needs.pair-admission.outputs.admitted == 'true'
+    uses: ./.github/workflows/blender-assets.yml
+  walk-assets:
+    needs: [pair-admission]
+    if: needs.pair-admission.outputs.admitted == 'true'
+    uses: ./.github/workflows/walk-assets.yml
+  directional-assets:
+    needs: [pair-admission, walk-assets]
+    if: needs.pair-admission.outputs.admitted == 'true'
+    uses: ./.github/workflows/directional-assets.yml
+  ads-assets:
+    needs: [pair-admission, walk-assets]
+    if: needs.pair-admission.outputs.admitted == 'true'
+    uses: ./.github/workflows/ads-assets.yml
+  jump-assets:
+    needs: [pair-admission, walk-assets]
+    if: needs.pair-admission.outputs.admitted == 'true'
+    uses: ./.github/workflows/jump-assets.yml
+  exact-cpu-image-pair:
+    needs: [pair-admission, animation-assets, walk-assets, ads-assets, directional-assets, jump-assets]
+    if: github.repository == 'RHS059/rust_duty' && github.ref == 'refs/heads/aella/wgpu-1080p-diagnostics' && needs.pair-admission.outputs.admitted == 'true'
+    runs-on: windows-latest
+    env:
+      CARGO_HOME: ${{ github.workspace }}/.cpu-image-cargo
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /*
+            !/assets/weapons/
+      - name: Retrieve only the exact reviewed baseline source object
+        shell: pwsh
+        run: |
+          git fetch --no-write-fetch-head --no-tags --depth=1 origin 5a88053e1668000744bbebbf967c6d24833dddd5
+          if ($LASTEXITCODE -ne 0) { throw 'Reviewed baseline source retrieval failed' }
+      - name: Install and select the exact comparison compiler binaries
+        shell: pwsh
+        run: |
+          rustup toolchain install 1.99.0-x86_64-pc-windows-msvc --profile minimal
+          if ($LASTEXITCODE -ne 0) { throw 'Pinned compiler installation failed' }
+          $rustc = rustup which --toolchain 1.99.0-x86_64-pc-windows-msvc rustc
+          if ($LASTEXITCODE -ne 0) { throw 'Pinned compiler lookup failed' }
+          # Direct binaries avoid a nested stable toolchain file choosing another compiler.
+          Split-Path -Parent $rustc | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install pinned evidence-reader dependencies
+        run: python -m pip install Pillow==11.3.0 PyYAML==6.0.3
+      - name: Check source-pair, compiler-context, exact-image and workflow guards
+        env:
+          PYTHONPATH: tools
+        run: >-
+          python -m unittest -v test_cpu_image_preservation test_arena_serialization_pair test_authored_loader_pair test_authored_loader_runner test_pass_submission_benchmark
+          test_renderer_contract test_cpu_image_workflow
+      - name: Fetch validated original reload companion
+        uses: actions/download-artifact@v4
+        with:
+          name: generated-reload-runtime
+          path: assets/reload
+      - name: Fetch validated walk companions
+        uses: actions/download-artifact@v4
+        with:
+          name: generated-walk-runtime
+          path: assets/walk
+      - name: Fetch validated ADS companions
+        uses: actions/download-artifact@v4
+        with:
+          name: generated-ads-runtime
+          path: assets/ads
+      - name: Fetch validated directional companions
+        uses: actions/download-artifact@v4
+        with:
+          name: generated-directional-runtime
+          path: assets/directional
+      - name: Fetch validated jump companions
+        uses: actions/download-artifact@v4
+        with:
+          name: generated-jump-runtime
+          path: assets/jump
+      - name: Verify and materialize the original public companion set
+        run: |
+          New-Item -ItemType Directory -Force evidence/cpu-image-native | Out-Null
+          python tools/package_game.py materialize --root . --include-walk --include-ads --include-directional --include-jump --require-generated > evidence/cpu-image-native/materialize.json
+          if ($LASTEXITCODE -ne 0) { throw 'Original companion verification failed' }
+      - name: Build both exact loader variants and compare real and synthetic native images
+        timeout-minutes: 54
+        run: >-
+          python tools/run_authored_loader_pair.py --root .
+          --output evidence/cpu-image-native --build-timeout 1200 --process-timeout 600
+      - name: Retain source, process and image evidence on either outcome
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cpu-image-preservation-attempt-${{ github.run_attempt }}
+          path: |
+            evidence/cpu-image-native/**
+            !evidence/cpu-image-native/*-target/**
+            !evidence/cpu-image-native/**/*.exe
+            !evidence/cpu-image-native/**/*.dll
+            !evidence/cpu-image-native/**/assets/**
+          include-hidden-files: true
+          if-no-files-found: warn
+          retention-days: 7
+      - name: Retain compact loader reports and images independently of raw corners
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: authored-loader-reports-attempt-${{ github.run_attempt }}
+          path: |
+            evidence/cpu-image-native/*.json
+            evidence/cpu-image-native/sources/*.json
+            evidence/cpu-image-native/control-outputs.zip
+            evidence/cpu-image-native/*-build/**
+            evidence/cpu-image-native/*-process/**
+            evidence/cpu-image-native/camera-prepare/*.json
+            evidence/cpu-image-native/*-authored/*.json
+            evidence/cpu-image-native/*-authored/*.png
+          if-no-files-found: warn
+          retention-days: 7
+      - name: Retain exact camera-prepare corners and images as an independent packet
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: camera-prepare-outputs-attempt-${{ github.run_attempt }}
+          path: evidence/cpu-image-native/camera-prepare-outputs.zip
+          if-no-files-found: warn
+          retention-days: 7
+      - name: Retain exact baseline-authored corners and images as an independent packet
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: baseline-authored-outputs-attempt-${{ github.run_attempt }}
+          path: evidence/cpu-image-native/baseline-authored-outputs.zip
+          if-no-files-found: warn
+          retention-days: 7
+      - name: Retain exact candidate-authored corners and images as an independent packet
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: candidate-authored-outputs-attempt-${{ github.run_attempt }}
+          path: evidence/cpu-image-native/candidate-authored-outputs.zip
+          if-no-files-found: warn
+          retention-days: 7

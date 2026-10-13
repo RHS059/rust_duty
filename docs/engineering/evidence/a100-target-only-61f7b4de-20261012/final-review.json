@@ -1,0 +1,592 @@
+{
+  "schema": "independent-a100-viewmodel-target-final-review/v1",
+  "status": "ready_to_publish_labeled_diagnostic_evidence",
+  "source": "61f7b4de3422dad34c7ed94ac661339f205babaf",
+  "raw_audit_sha256": "899dd5110694bbf8bb3896103d59ee88f1cb02d16dc78238797513402735bbd9",
+  "raw_audit_file": "/workspace/shared/rust-integration-review/61f7b4de-independent-target-performance-audit.json",
+  "archive_sha256": "fa415bf6904e7fe9ce6c3252b582dd522ca9ac5aa4dcc1c35b23366f6ec13f09",
+  "single_elf_sha256": "51b5dc571465462dabe15387a47f52d31f519886cf4ec5183104e583973e8d9a",
+  "raw_source_process_cpu_gpu_audit_passed": true,
+  "all_six_original_screenshots_directly_viewed": true,
+  "screenshots": [
+    {
+      "run": 1,
+      "mode": "visible",
+      "file": "/workspace/shared/a100-target-61f7b4de/full-evidence/successful-r1/viewmodel-r01-visible/display.png",
+      "sha256": "91799a9909faa445265edd20f9f8b32b2762cda60f48a4ed52823a20cd9a36bf",
+      "size_bytes": 349656,
+      "extent": [
+        2560,
+        1440
+      ],
+      "direct_visual_review": "Rifle, glove and forearm visible; same world camera, crosshair and HUD layout.",
+      "capture_outside_record_verified": true
+    },
+    {
+      "run": 2,
+      "mode": "target-only",
+      "file": "/workspace/shared/a100-target-61f7b4de/full-evidence/successful-r1/viewmodel-r02-target-only/display.png",
+      "sha256": "417041a7604d2cce8c5f08fc5adb2b92275f675105bc9ebf8ea54222b1fc43ef",
+      "size_bytes": 140003,
+      "extent": [
+        2560,
+        1440
+      ],
+      "direct_visual_review": "Rifle, glove and forearm absent; same world camera, crosshair and HUD layout.",
+      "capture_outside_record_verified": true
+    },
+    {
+      "run": 3,
+      "mode": "hidden",
+      "file": "/workspace/shared/a100-target-61f7b4de/full-evidence/successful-r1/viewmodel-r03-hidden/display.png",
+      "sha256": "7cb4b98b46cf542c8780ab86a1a4cbd95045af7f91f106165b788f048b6fe40d",
+      "size_bytes": 139845,
+      "extent": [
+        2560,
+        1440
+      ],
+      "direct_visual_review": "Rifle, glove and forearm absent; same world camera, crosshair and HUD layout.",
+      "capture_outside_record_verified": true
+    },
+    {
+      "run": 4,
+      "mode": "hidden",
+      "file": "/workspace/shared/a100-target-61f7b4de/full-evidence/successful-r1/viewmodel-r04-hidden/display.png",
+      "sha256": "deb2a0a612e4cb49654251d4392f7f010f04b6c1c5d2d93fb48195ce1b78b3b9",
+      "size_bytes": 140085,
+      "extent": [
+        2560,
+        1440
+      ],
+      "direct_visual_review": "Rifle, glove and forearm absent; same world camera, crosshair and HUD layout.",
+      "capture_outside_record_verified": true
+    },
+    {
+      "run": 5,
+      "mode": "target-only",
+      "file": "/workspace/shared/a100-target-61f7b4de/full-evidence/successful-r1/viewmodel-r05-target-only/display.png",
+      "sha256": "af05901de9364524871e95fed9570a1179b9b633d6edb7b4130c80126fe48c89",
+      "size_bytes": 139968,
+      "extent": [
+        2560,
+        1440
+      ],
+      "direct_visual_review": "Rifle, glove and forearm absent; same world camera, crosshair and HUD layout.",
+      "capture_outside_record_verified": true
+    },
+    {
+      "run": 6,
+      "mode": "visible",
+      "file": "/workspace/shared/a100-target-61f7b4de/full-evidence/successful-r1/viewmodel-r06-visible/display.png",
+      "sha256": "645989920c6cdad6835eb2427a3ef8250b266f31bcaeb8fe0a40b7095d94349e",
+      "size_bytes": 349548,
+      "extent": [
+        2560,
+        1440
+      ],
+      "direct_visual_review": "Rifle, glove and forearm visible; same world camera, crosshair and HUD layout.",
+      "capture_outside_record_verified": true
+    }
+  ],
+  "setup": [
+    {
+      "folder": "display-setup",
+      "result_sha256": "2e4a201d409f64364babd267569f3150176885669a0aa0d5201565d8395f2b6f",
+      "exit_code": 0,
+      "official_ubuntu_archive_uris": 25,
+      "retained_setup_log_hashes_verified": true
+    },
+    {
+      "folder": "xkb-repair",
+      "result_sha256": "6cbf0fea14c00650f00339aee9317b3e67c24e9f531041a9ec45315801705763",
+      "exit_code": 0,
+      "official_ubuntu_archive_uris": 2,
+      "retained_setup_log_hashes_verified": true
+    }
+  ],
+  "launch_source_pins_and_elf_hashes_verified": true,
+  "metrics": [
+    {
+      "run": 1,
+      "mode": "visible",
+      "eligible_count": 4821,
+      "record_seconds": 31.036741624,
+      "frame_p50_ms": 6.371566,
+      "frame_p95_ms": 6.974266,
+      "frame_p99_ms": 7.468192,
+      "derived_median_rate_fps": 156.94728737016928,
+      "producer_throughput_intervals_per_second": 155.426856608903,
+      "game_recording_p50_ms": 0.326436,
+      "renderer_submit_p50_ms": 1.587779,
+      "present_call_p50_ms": 4.327251,
+      "encode_submit_p50_ms": 1.508562,
+      "gpu_p50_ms": 1.508352,
+      "gpu_p95_ms": 1.512448,
+      "all_gpu_samples_measured": true,
+      "draw_calls_p50": 600,
+      "render_passes": 13,
+      "resident_draws": 86,
+      "resident_uniform_bytes_uploaded": 54768
+    },
+    {
+      "run": 2,
+      "mode": "target-only",
+      "eligible_count": 5665,
+      "record_seconds": 31.007382181,
+      "frame_p50_ms": 5.412575,
+      "frame_p95_ms": 5.936944,
+      "frame_p99_ms": 6.35524,
+      "derived_median_rate_fps": 184.7549456589516,
+      "producer_throughput_intervals_per_second": 182.81639672020117,
+      "game_recording_p50_ms": 0.259186,
+      "renderer_submit_p50_ms": 1.301439,
+      "present_call_p50_ms": 3.725469,
+      "encode_submit_p50_ms": 1.225954,
+      "gpu_p50_ms": 0.913408,
+      "gpu_p95_ms": 0.919552,
+      "all_gpu_samples_measured": true,
+      "draw_calls_p50": 514,
+      "render_passes": 12,
+      "resident_draws": 0,
+      "resident_uniform_bytes_uploaded": 0
+    },
+    {
+      "run": 3,
+      "mode": "hidden",
+      "eligible_count": 5919,
+      "record_seconds": 31.015826117,
+      "frame_p50_ms": 5.173262,
+      "frame_p95_ms": 5.715613,
+      "frame_p99_ms": 6.234442,
+      "derived_median_rate_fps": 193.30163444263988,
+      "producer_throughput_intervals_per_second": 190.95554282676326,
+      "game_recording_p50_ms": 0.26272,
+      "renderer_submit_p50_ms": 1.279476,
+      "present_call_p50_ms": 3.501229,
+      "encode_submit_p50_ms": 1.204959,
+      "gpu_p50_ms": 0.729088,
+      "gpu_p95_ms": 0.736256,
+      "all_gpu_samples_measured": true,
+      "draw_calls_p50": 513,
+      "render_passes": 11,
+      "resident_draws": 0,
+      "resident_uniform_bytes_uploaded": 0
+    },
+    {
+      "run": 4,
+      "mode": "hidden",
+      "eligible_count": 5853,
+      "record_seconds": 31.007359079,
+      "frame_p50_ms": 5.24379,
+      "frame_p95_ms": 5.727,
+      "frame_p99_ms": 6.216583,
+      "derived_median_rate_fps": 190.70176341920634,
+      "producer_throughput_intervals_per_second": 188.87819990951886,
+      "game_recording_p50_ms": 0.258806,
+      "renderer_submit_p50_ms": 1.294504,
+      "present_call_p50_ms": 3.559553,
+      "encode_submit_p50_ms": 1.220069,
+      "gpu_p50_ms": 0.730112,
+      "gpu_p95_ms": 0.736256,
+      "all_gpu_samples_measured": true,
+      "draw_calls_p50": 513,
+      "render_passes": 11,
+      "resident_draws": 0,
+      "resident_uniform_bytes_uploaded": 0
+    },
+    {
+      "run": 5,
+      "mode": "target-only",
+      "eligible_count": 5442,
+      "record_seconds": 31.016865525,
+      "frame_p50_ms": 5.672989,
+      "frame_p95_ms": 6.00165,
+      "frame_p99_ms": 6.507899,
+      "derived_median_rate_fps": 176.27391838764362,
+      "producer_throughput_intervals_per_second": 175.55834192867906,
+      "game_recording_p50_ms": 0.283822,
+      "renderer_submit_p50_ms": 1.365797,
+      "present_call_p50_ms": 3.874408,
+      "encode_submit_p50_ms": 1.286864,
+      "gpu_p50_ms": 0.913408,
+      "gpu_p95_ms": 0.919552,
+      "all_gpu_samples_measured": true,
+      "draw_calls_p50": 514,
+      "render_passes": 12,
+      "resident_draws": 0,
+      "resident_uniform_bytes_uploaded": 0
+    },
+    {
+      "run": 6,
+      "mode": "visible",
+      "eligible_count": 4575,
+      "record_seconds": 31.032644398,
+      "frame_p50_ms": 6.737872,
+      "frame_p95_ms": 7.224906,
+      "frame_p99_ms": 7.606526,
+      "derived_median_rate_fps": 148.41481108575528,
+      "producer_throughput_intervals_per_second": 147.51636532385658,
+      "game_recording_p50_ms": 0.351903,
+      "renderer_submit_p50_ms": 1.677301,
+      "present_call_p50_ms": 4.52055,
+      "encode_submit_p50_ms": 1.593904,
+      "gpu_p50_ms": 1.509376,
+      "gpu_p95_ms": 1.516544,
+      "all_gpu_samples_measured": true,
+      "draw_calls_p50": 600,
+      "render_passes": 13,
+      "resident_draws": 86,
+      "resident_uniform_bytes_uploaded": 54768
+    }
+  ],
+  "hud_cohort_metrics": [
+    {
+      "run": 1,
+      "mode": "visible",
+      "text_characters": 384,
+      "count": 3885,
+      "frame_interval": {
+        "sample_count": 3885,
+        "total_ns": 25114731844,
+        "min_ns": 6044029,
+        "max_ns": 9197303,
+        "p50_ns": 6393933,
+        "p95_ns": 6999982,
+        "p99_ns": 7528856,
+        "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+      }
+    },
+    {
+      "run": 1,
+      "mode": "visible",
+      "text_characters": 471,
+      "count": 935,
+      "frame_interval": {
+        "sample_count": 935,
+        "total_ns": 5884681194,
+        "min_ns": 5771884,
+        "max_ns": 7727814,
+        "p50_ns": 6235263,
+        "p95_ns": 6822645,
+        "p99_ns": 7392382,
+        "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+      }
+    },
+    {
+      "run": 1,
+      "mode": "visible",
+      "text_characters": 485,
+      "count": 1,
+      "frame_interval": {
+        "sample_count": 1,
+        "total_ns": 18392412,
+        "min_ns": 18392412,
+        "max_ns": 18392412,
+        "p50_ns": 18392412,
+        "p95_ns": 18392412,
+        "p99_ns": 18392412,
+        "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+      }
+    },
+    {
+      "run": 2,
+      "mode": "target-only",
+      "text_characters": 384,
+      "count": 4612,
+      "frame_interval": {
+        "sample_count": 4612,
+        "total_ns": 25081532690,
+        "min_ns": 5045553,
+        "max_ns": 7409777,
+        "p50_ns": 5390796,
+        "p95_ns": 5845972,
+        "p99_ns": 6288463,
+        "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+      }
+    },
+    {
+      "run": 2,
+      "mode": "target-only",
+      "text_characters": 471,
+      "count": 1052,
+      "frame_interval": {
+        "sample_count": 1052,
+        "total_ns": 5886560709,
+        "min_ns": 5053964,
+        "max_ns": 7441001,
+        "p50_ns": 5522249,
+        "p95_ns": 6215099,
+        "p99_ns": 6517359,
+        "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+      }
+    },
+    {
+      "run": 2,
+      "mode": "target-only",
+      "text_characters": 485,
+      "count": 1,
+      "frame_interval": {
+        "sample_count": 1,
+        "total_ns": 19280281,
+        "min_ns": 19280281,
+        "max_ns": 19280281,
+        "p50_ns": 19280281,
+        "p95_ns": 19280281,
+        "p99_ns": 19280281,
+        "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+      }
+    },
+    {
+      "run": 3,
+      "mode": "hidden",
+      "text_characters": 384,
+      "count": 4828,
+      "frame_interval": {
+        "sample_count": 4828,
+        "total_ns": 25090172460,
+        "min_ns": 4773317,
+        "max_ns": 6948809,
+        "p50_ns": 5137576,
+        "p95_ns": 5649161,
+        "p99_ns": 6042705,
+        "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+      }
+    },
+    {
+      "run": 3,
+      "mode": "hidden",
+      "text_characters": 471,
+      "count": 1090,
+      "frame_interval": {
+        "sample_count": 1090,
+        "total_ns": 5887215326,
+        "min_ns": 4874456,
+        "max_ns": 7373725,
+        "p50_ns": 5337239,
+        "p95_ns": 6026349,
+        "p99_ns": 6602409,
+        "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+      }
+    },
+    {
+      "run": 3,
+      "mode": "hidden",
+      "text_characters": 485,
+      "count": 1,
+      "frame_interval": {
+        "sample_count": 1,
+        "total_ns": 19355814,
+        "min_ns": 19355814,
+        "max_ns": 19355814,
+        "p50_ns": 19355814,
+        "p95_ns": 19355814,
+        "p99_ns": 19355814,
+        "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+      }
+    },
+    {
+      "run": 4,
+      "mode": "hidden",
+      "text_characters": 384,
+      "count": 4758,
+      "frame_interval": {
+        "sample_count": 4758,
+        "total_ns": 25088444922,
+        "min_ns": 4837271,
+        "max_ns": 7115810,
+        "p50_ns": 5224889,
+        "p95_ns": 5700232,
+        "p99_ns": 6178395,
+        "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+      }
+    },
+    {
+      "run": 4,
+      "mode": "hidden",
+      "text_characters": 471,
+      "count": 1094,
+      "frame_interval": {
+        "sample_count": 1094,
+        "total_ns": 5883066607,
+        "min_ns": 5013836,
+        "max_ns": 8249369,
+        "p50_ns": 5314775,
+        "p95_ns": 5885360,
+        "p99_ns": 6363030,
+        "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+      }
+    },
+    {
+      "run": 4,
+      "mode": "hidden",
+      "text_characters": 485,
+      "count": 1,
+      "frame_interval": {
+        "sample_count": 1,
+        "total_ns": 16712643,
+        "min_ns": 16712643,
+        "max_ns": 16712643,
+        "p50_ns": 16712643,
+        "p95_ns": 16712643,
+        "p99_ns": 16712643,
+        "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+      }
+    },
+    {
+      "run": 5,
+      "mode": "target-only",
+      "text_characters": 384,
+      "count": 4419,
+      "frame_interval": {
+        "sample_count": 4419,
+        "total_ns": 25096236561,
+        "min_ns": 5074916,
+        "max_ns": 7124323,
+        "p50_ns": 5658234,
+        "p95_ns": 5988733,
+        "p99_ns": 6518047,
+        "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+      }
+    },
+    {
+      "run": 5,
+      "mode": "target-only",
+      "text_characters": 471,
+      "count": 1022,
+      "frame_interval": {
+        "sample_count": 1022,
+        "total_ns": 5884580116,
+        "min_ns": 5254795,
+        "max_ns": 8885458,
+        "p50_ns": 5755166,
+        "p95_ns": 6032514,
+        "p99_ns": 6232875,
+        "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+      }
+    },
+    {
+      "run": 5,
+      "mode": "target-only",
+      "text_characters": 485,
+      "count": 1,
+      "frame_interval": {
+        "sample_count": 1,
+        "total_ns": 17425504,
+        "min_ns": 17425504,
+        "max_ns": 17425504,
+        "p50_ns": 17425504,
+        "p95_ns": 17425504,
+        "p99_ns": 17425504,
+        "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+      }
+    },
+    {
+      "run": 6,
+      "mode": "visible",
+      "text_characters": 384,
+      "count": 3714,
+      "frame_interval": {
+        "sample_count": 3714,
+        "total_ns": 25112161440,
+        "min_ns": 6107141,
+        "max_ns": 8286020,
+        "p50_ns": 6721385,
+        "p95_ns": 7243895,
+        "p99_ns": 7606526,
+        "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+      }
+    },
+    {
+      "run": 6,
+      "mode": "visible",
+      "text_characters": 471,
+      "count": 860,
+      "frame_interval": {
+        "sample_count": 860,
+        "total_ns": 5883399514,
+        "min_ns": 6225981,
+        "max_ns": 8296301,
+        "p50_ns": 6832791,
+        "p95_ns": 7186195,
+        "p99_ns": 7429729,
+        "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+      }
+    },
+    {
+      "run": 6,
+      "mode": "visible",
+      "text_characters": 485,
+      "count": 1,
+      "frame_interval": {
+        "sample_count": 1,
+        "total_ns": 17947208,
+        "min_ns": 17947208,
+        "max_ns": 17947208,
+        "p50_ns": 17947208,
+        "p95_ns": 17947208,
+        "p99_ns": 17947208,
+        "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+      }
+    }
+  ],
+  "descriptive_comparison": {
+    "method": "Average the two per-run medians within each mode, retaining all six legs separately. No confidence interval or pooled-frame inference; frame medians drift across repetitions.",
+    "means_of_run_medians": {
+      "visible": {
+        "frame_p50_ms": 6.554719,
+        "gpu_p50_ms": 1.508864,
+        "encode_submit_p50_ms": 1.5512329999999999,
+        "game_recording_p50_ms": 0.3391695,
+        "renderer_submit_p50_ms": 1.63254
+      },
+      "target-only": {
+        "frame_p50_ms": 5.542782000000001,
+        "gpu_p50_ms": 0.913408,
+        "encode_submit_p50_ms": 1.256409,
+        "game_recording_p50_ms": 0.271504,
+        "renderer_submit_p50_ms": 1.333618
+      },
+      "hidden": {
+        "frame_p50_ms": 5.208526,
+        "gpu_p50_ms": 0.7296,
+        "encode_submit_p50_ms": 1.212514,
+        "game_recording_p50_ms": 0.26076299999999997,
+        "renderer_submit_p50_ms": 1.28699
+      }
+    },
+    "differences_of_means_of_run_medians": {
+      "visible_minus_target-only": {
+        "frame_p50_ms": 1.0119369999999996,
+        "gpu_p50_ms": 0.595456,
+        "encode_submit_p50_ms": 0.29482399999999975,
+        "game_recording_p50_ms": 0.06766549999999999,
+        "renderer_submit_p50_ms": 0.29892200000000013
+      },
+      "target-only_minus_hidden": {
+        "frame_p50_ms": 0.3342560000000008,
+        "gpu_p50_ms": 0.18380799999999997,
+        "encode_submit_p50_ms": 0.04389500000000002,
+        "game_recording_p50_ms": 0.010741000000000056,
+        "renderer_submit_p50_ms": 0.04662799999999989
+      },
+      "visible_minus_hidden": {
+        "frame_p50_ms": 1.3461930000000004,
+        "gpu_p50_ms": 0.779264,
+        "encode_submit_p50_ms": 0.33871899999999977,
+        "game_recording_p50_ms": 0.07840650000000005,
+        "renderer_submit_p50_ms": 0.34555
+      }
+    }
+  },
+  "counter_findings": "Visible: 86 resident draws (75 rigid +11 skin), 54,768 uniform upload bytes and 13 passes. Target-only: no resident draws/uniform uploads and12 passes. Hidden: no resident draws/uniform uploads and11 passes. Every mode has zero resident vertex/index uploads and cold misses. Standard384-character HUD cohort has600/514/513 total draws respectively.",
+  "strict_prior_image_gate_passed": false,
+  "scope": "One same-binary stationary Linux A100 Vulkan Immediate ABCCBA. Target-only retains1440x900 target clear and full-screen composite but omits authored geometry preparation/submission and its draw-pass setup; hidden omits the entire layer. World/HUD/simulation retained.",
+  "limits": [
+    "Empty-target versus hidden measures the retained empty target/clear/composite route, not the full cost of routing nonempty geometry offscreen.",
+    "Visible versus target-only includes geometry preparation/submission and geometry-pass setup; it is not a pure triangle or shader cost.",
+    "These deltas do not predict the gain from native direct-target rendering, which also changes rasterization resolution/filtering and pass consolidation. That requires its separate matched same-ELF benchmark.",
+    "CPU and GPU stages overlap and must not be summed as separate budgets.",
+    "Screenshots are post-record qualitative checks, not strict frame-synchronized image equality.",
+    "Historical18RGBpixel strict arithmetic image failure remains failed; no RTX/DX12 or broad visual correctness claim."
+  ]
+}

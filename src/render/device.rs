@@ -1,4 +1,7 @@
 //! Native adapter selection. An explicit backend never falls back to another API.
+use super::present_policy::{
+    ConfiguredPresentMode, DiagnosticPresentMode, PresentModeRequest, PresentModeSelection,
+};
 use crate::{
     draw::BackendInfo,
     graphics_device::{self, Candidate, Fingerprint, Preference},
@@ -52,6 +55,9 @@ impl BackendSelection {
         let mut args = args.into_iter();
         while let Some(arg) = args.next() {
             let arg = arg.as_ref();
+            if arg == "--" {
+                break;
+            }
             let value = if arg == "--renderer" {
                 Some(
                     args.next()
@@ -95,6 +101,8 @@ pub(crate) struct Gpu {
     pub info: BackendInfo,
     pub surface: Option<Surface>,
     failures: DeviceFailures,
+    adapter: wgpu::Adapter,
+    pub(super) gpu_diagnostics: Option<crate::frame_gpu_capture::Registration>,
     // Keep instance and window ownership alive through surface teardown.
     pub _instance: wgpu::Instance,
 }
@@ -152,6 +160,72 @@ pub(crate) struct Surface {
     pub config: wgpu::SurfaceConfiguration,
     pub window: Arc<winit::window::Window>,
     reconfigure: bool,
+    present: ConfiguredPresentMode,
+}
+
+#[derive(Debug)]
+enum InitializationError {
+    Retryable(String),
+    Terminal(String),
+}
+impl From<String> for InitializationError {
+    fn from(error: String) -> Self {
+        Self::Retryable(error)
+    }
+}
+impl From<&str> for InitializationError {
+    fn from(error: &str) -> Self {
+        Self::Retryable(error.to_owned())
+    }
+}
+impl InitializationError {
+    fn message(self) -> String {
+        match self {
+            Self::Retryable(error) | Self::Terminal(error) => error,
+        }
+    }
+}
+
+fn diagnostic_mode(mode: wgpu::PresentMode) -> Option<DiagnosticPresentMode> {
+    match mode {
+        wgpu::PresentMode::Fifo => Some(DiagnosticPresentMode::Fifo),
+        wgpu::PresentMode::Mailbox => Some(DiagnosticPresentMode::Mailbox),
+        wgpu::PresentMode::Immediate => Some(DiagnosticPresentMode::Immediate),
+        _ => None,
+    }
+}
+
+fn concrete_mode(mode: DiagnosticPresentMode) -> wgpu::PresentMode {
+    match mode {
+        DiagnosticPresentMode::Fifo => wgpu::PresentMode::Fifo,
+        DiagnosticPresentMode::Mailbox => wgpu::PresentMode::Mailbox,
+        DiagnosticPresentMode::Immediate => wgpu::PresentMode::Immediate,
+    }
+}
+
+fn select_present_mode(
+    request: PresentModeRequest,
+    supported: &[wgpu::PresentMode],
+) -> Result<PresentModeSelection, String> {
+    let supported: Vec<_> = supported
+        .iter()
+        .copied()
+        .filter_map(diagnostic_mode)
+        .collect();
+    request
+        .select(&supported)
+        .map_err(|error| error.to_string())
+}
+
+fn verify_present_mode(
+    selection: PresentModeSelection,
+    actual: wgpu::PresentMode,
+) -> Result<ConfiguredPresentMode, String> {
+    let actual = diagnostic_mode(actual)
+        .ok_or("configured present mode is not a concrete diagnostic mode")?;
+    selection
+        .verify_applied(actual)
+        .map_err(|error| error.to_string())
 }
 
 fn configure_instance(descriptor: &mut wgpu::InstanceDescriptor, backends: wgpu::Backends) {
@@ -159,6 +233,22 @@ fn configure_instance(descriptor: &mut wgpu::InstanceDescriptor, backends: wgpu:
     // Pin the same system compiler for WARP CI and distributed Windows builds.
     // Auto can pick up a runner-only dxcompiler.dll and silently differ locally.
     descriptor.backend_options.dx12.shader_compiler = wgpu::Dx12Compiler::Fxc;
+}
+
+/// Final descriptor passed to wgpu, not a claim that a backend validation
+/// layer was installed. Application/dependency debug profiles may differ.
+fn instance_descriptor_evidence(flags: wgpu::InstanceFlags) -> serde_json::Value {
+    serde_json::json!({
+        "schema": "rust-duty-wgpu-instance-descriptor/v1",
+        "wgpu_version": "30.0.1",
+        "flags_bits": flags.bits(),
+        "debug": flags.contains(wgpu::InstanceFlags::DEBUG),
+        "validation": flags.contains(wgpu::InstanceFlags::VALIDATION),
+        "gpu_based_validation": flags.contains(wgpu::InstanceFlags::GPU_BASED_VALIDATION),
+        "validation_indirect_call": flags.contains(wgpu::InstanceFlags::VALIDATION_INDIRECT_CALL),
+        "application_debug_assertions": cfg!(debug_assertions),
+        "environment_overrides_applied": false,
+    })
 }
 
 fn fingerprint(info: &wgpu::AdapterInfo) -> Fingerprint {
@@ -199,12 +289,36 @@ pub(crate) async fn menu_candidates() -> Vec<Candidate> {
 }
 
 impl Gpu {
+    #[cfg(test)]
+    pub(super) fn actual_adapter_info(&self) -> wgpu::AdapterInfo {
+        self.adapter.get_info()
+    }
+
     pub async fn new(
         selection: BackendSelection,
         force_fallback: bool,
         window: Option<Arc<winit::window::Window>>,
         width: u32,
         height: u32,
+    ) -> Result<Self, String> {
+        Self::new_with_diagnostics(
+            selection,
+            force_fallback,
+            window,
+            width,
+            height,
+            Default::default(),
+        )
+        .await
+    }
+
+    pub async fn new_with_diagnostics(
+        selection: BackendSelection,
+        force_fallback: bool,
+        window: Option<Arc<winit::window::Window>>,
+        width: u32,
+        height: u32,
+        diagnostics: super::RuntimeDiagnostics,
     ) -> Result<Self, String> {
         if width == 0 || height == 0 {
             return Err("renderer extent must be nonzero".into());
@@ -226,20 +340,21 @@ impl Gpu {
                 selection,
                 false,
                 window,
-                width,
-                height,
+                [width, height],
+                diagnostics,
                 backend.backends(),
                 Some(id),
             )
-            .await;
+            .await
+            .map_err(InitializationError::message);
         }
         initialize_with_policy(selection, cfg!(target_os = "windows"), |backends| {
             Self::new_for_backends(
                 selection,
                 force_fallback,
                 window.clone(),
-                width,
-                height,
+                [width, height],
+                diagnostics,
                 backends,
                 None,
             )
@@ -251,13 +366,14 @@ impl Gpu {
         selection: BackendSelection,
         force_fallback: bool,
         window: Option<Arc<winit::window::Window>>,
-        width: u32,
-        height: u32,
+        extent: [u32; 2],
+        diagnostics: super::RuntimeDiagnostics,
         backends: wgpu::Backends,
         preferred: Option<Fingerprint>,
-    ) -> Result<Self, String> {
+    ) -> Result<Self, InitializationError> {
+        let [width, height] = extent;
         if !backends.intersects(wgpu::Instance::enabled_backend_features()) {
-            return Err(format!("{backends:?} is not available in this build"));
+            return Err(format!("{backends:?} is not available in this build").into());
         }
         let mut descriptor = if let Some(window) = &window {
             wgpu::InstanceDescriptor::new_with_display_handle(Box::new(window.clone()))
@@ -265,6 +381,7 @@ impl Gpu {
             wgpu::InstanceDescriptor::new_without_display_handle()
         };
         configure_instance(&mut descriptor, backends);
+        let instance_descriptor = instance_descriptor_evidence(descriptor.flags);
         let instance = wgpu::Instance::new(descriptor);
         let surface = window
             .as_ref()
@@ -307,10 +424,9 @@ impl Gpu {
                         )
                     })?,
                 Err(error) => {
-                    return Err(format!(
-                        "no {} software adapter: {error}",
-                        selection.as_str()
-                    ))
+                    return Err(
+                        format!("no {} software adapter: {error}", selection.as_str()).into(),
+                    )
                 }
             }
         };
@@ -321,11 +437,25 @@ impl Gpu {
             backend: format!("{:?}", adapter_info.backend),
             adapter: adapter_info.name.clone(),
         };
+        // Reject an unsupported diagnostic before device creation, so it cannot
+        // be obscured by a retryable device initialization failure on Auto.
+        let surface_capabilities = surface
+            .as_ref()
+            .map(|surface| surface.get_capabilities(&adapter));
+        let present_selection = surface_capabilities
+            .as_ref()
+            .map(|caps| select_present_mode(diagnostics.present_mode, &caps.present_modes))
+            .transpose()
+            .map_err(InitializationError::Terminal)?;
         let limits = wgpu::Limits::downlevel_defaults().using_resolution(adapter.limits());
+        let gpu_timestamps = diagnostics.gpu_timestamps && window.is_some();
+        let timestamp_features =
+            super::gpu_timing::requested_features(gpu_timestamps, adapter.features());
         let (device, queue) = adapter
             .request_device(&wgpu::DeviceDescriptor {
                 label: Some("Rust Duty render device"),
                 required_limits: limits,
+                required_features: timestamp_features,
                 ..Default::default()
             })
             .await
@@ -339,7 +469,8 @@ impl Gpu {
         let lost = failures.clone();
         device.set_device_lost_callback(move |reason, message| lost.lost(reason, message));
         let surface = if let Some(surface) = surface {
-            let caps = surface.get_capabilities(&adapter);
+            let caps = surface_capabilities.expect("surface capabilities were queried");
+            let selection = present_selection.expect("surface present mode was selected");
             let format = caps
                 .formats
                 .iter()
@@ -351,22 +482,36 @@ impl Gpu {
                 .get_default_config(&adapter, width, height)
                 .ok_or("adapter cannot present to this surface")?;
             config.format = format;
-            config.present_mode = wgpu::PresentMode::Fifo;
+            config.present_mode = concrete_mode(selection.selected_mode());
             let validation = device.push_error_scope(wgpu::ErrorFilter::Validation);
             surface.configure(&device, &config);
             if let Some(error) = validation.pop().await {
-                return Err(format!("configure {} surface: {error}", info.backend));
+                return Err(format!("configure {} surface: {error}", info.backend).into());
             }
+            let present = verify_present_mode(selection, config.present_mode)
+                .map_err(InitializationError::Terminal)?;
             Some(Surface {
                 surface,
                 config,
                 window: window.expect("surface creation requires window ownership"),
                 reconfigure: false,
+                present,
             })
         } else {
             None
         };
         check_device(&device, &failures)?;
+        let gpu_diagnostics = gpu_timestamps
+            .then(|| {
+                crate::frame_gpu_capture::register(
+                    &device,
+                    &queue,
+                    adapter
+                        .features()
+                        .contains(super::gpu_timing::required_features()),
+                )
+            })
+            .flatten();
         eprintln!(
             "renderer requested={} backend={} adapter={}",
             info.requested, info.backend, info.adapter
@@ -381,7 +526,15 @@ impl Gpu {
             "device_id": adapter_info.device,
             "driver": adapter_info.driver,
             "driver_info": adapter_info.driver_info,
+            "instance_descriptor": instance_descriptor,
             "present_mode": surface.as_ref().map(|s| format!("{:?}", s.config.present_mode)),
+            "gpu_timestamps_requested": gpu_timestamps,
+            "gpu_timestamp_features_enabled": device.features().contains(super::gpu_timing::required_features()),
+            "present_policy": surface.as_ref().map(|s| serde_json::json!({
+                "requested_mode": s.present.requested_label(),
+                "actual_mode": s.present.actual_label(),
+                "explicit_request": s.present.request().is_explicit(),
+            })),
             "force_fallback_requested": force_fallback,
             "selection_mode": if force_fallback { "forced_fallback" } else if preferred.is_some() { "explicit_fingerprint" } else { "automatic" },
             "requested_fingerprint": preferred.as_ref().map(Fingerprint::json),
@@ -412,12 +565,18 @@ impl Gpu {
             info,
             surface,
             failures,
+            adapter,
+            gpu_diagnostics,
             _instance: instance,
         })
     }
 
     pub(super) fn check_errors(&self) -> Result<(), String> {
-        check_device(&self.device, &self.failures)
+        let result = check_device(&self.device, &self.failures);
+        if let Some(registration) = self.gpu_diagnostics {
+            crate::frame_gpu_capture::collect_ready(registration);
+        }
+        result
     }
 
     pub fn resize(&mut self, width: u32, height: u32) -> Result<(), String> {
@@ -434,7 +593,7 @@ impl Gpu {
             {
                 surface.config.width = width;
                 surface.config.height = height;
-                configure(&self.device, surface)?;
+                configure(&self.device, &self.adapter, surface)?;
                 surface.reconfigure = false;
             }
         }
@@ -447,8 +606,15 @@ impl Gpu {
         };
         for attempt in 0..2 {
             let validation = self.device.push_error_scope(wgpu::ErrorFilter::Validation);
-            let status = surface.surface.get_current_texture();
-            if let Some(error) = pollster::block_on(validation.pop()) {
+            let status = crate::frame_performance_session::measure_cpu_substage(
+                crate::frame_cpu_substages::CpuSubstage::AcquireTexture,
+                || surface.surface.get_current_texture(),
+            );
+            let validation_result = crate::frame_performance_session::measure_cpu_substage(
+                crate::frame_cpu_substages::CpuSubstage::AcquireValidation,
+                || pollster::block_on(validation.pop()),
+            );
+            if let Some(error) = validation_result {
                 return Err(format!("acquire surface validation: {error}"));
             }
             // A lost device is terminal; it must not be mistaken for a lost
@@ -462,13 +628,15 @@ impl Gpu {
                 }
                 status => match acquisition_action(&status, attempt) {
                     AcquisitionAction::Skip => return Ok(None),
-                    AcquisitionAction::Reconfigure => configure(&self.device, surface)?,
+                    AcquisitionAction::Reconfigure => {
+                        configure(&self.device, &self.adapter, surface)?
+                    }
                     AcquisitionAction::Recreate => {
                         surface.surface = self
                             ._instance
                             .create_surface(surface.window.clone())
                             .map_err(|e| format!("recreate lost surface: {e}"))?;
-                        configure(&self.device, surface)?;
+                        configure(&self.device, &self.adapter, surface)?;
                     }
                     AcquisitionAction::Fail => {
                         return Err(format!("cannot acquire surface: {status:?}"));
@@ -477,6 +645,14 @@ impl Gpu {
             }
         }
         Err("surface acquisition recovery exhausted".into())
+    }
+}
+
+impl Drop for Gpu {
+    fn drop(&mut self) {
+        if let Some(registration) = self.gpu_diagnostics {
+            crate::frame_gpu_capture::unregister(registration);
+        }
     }
 }
 
@@ -497,12 +673,22 @@ fn acquisition_action(status: &wgpu::CurrentSurfaceTexture, attempt: u8) -> Acqu
     }
 }
 
-fn configure(device: &wgpu::Device, surface: &Surface) -> Result<(), String> {
+fn configure(
+    device: &wgpu::Device,
+    adapter: &wgpu::Adapter,
+    surface: &mut Surface,
+) -> Result<(), String> {
+    // Re-query the current surface, including a newly recreated one. A mode
+    // supported by the old surface never authorizes fallback on its replacement.
+    let caps = surface.surface.get_capabilities(adapter);
+    let selection = select_present_mode(surface.present.request(), &caps.present_modes)?;
+    surface.config.present_mode = concrete_mode(selection.selected_mode());
     let validation = device.push_error_scope(wgpu::ErrorFilter::Validation);
     surface.surface.configure(device, &surface.config);
     if let Some(error) = pollster::block_on(validation.pop()) {
         return Err(format!("configure surface: {error}"));
     }
+    surface.present = verify_present_mode(selection, surface.config.present_mode)?;
     Ok(())
 }
 
@@ -515,13 +701,21 @@ async fn initialize_with_policy<T, F, Fut>(
 ) -> Result<T, String>
 where
     F: FnMut(wgpu::Backends) -> Fut,
-    Fut: std::future::Future<Output = Result<T, String>>,
+    Fut: std::future::Future<Output = Result<T, InitializationError>>,
 {
     let mut errors = Vec::new();
     for backends in selection.attempts(windows) {
         match initialize(backends).await {
             Ok(value) => return Ok(value),
-            Err(error) => errors.push(format!("{backends:?}: {error}")),
+            Err(InitializationError::Retryable(error)) => {
+                errors.push(format!("{backends:?}: {error}"))
+            }
+            Err(InitializationError::Terminal(error)) => {
+                return Err(format!(
+                    "renderer {} initialization failed ({backends:?}: {error})",
+                    selection.as_str()
+                ));
+            }
         }
     }
     Err(format!(
@@ -534,6 +728,120 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn encode_detail_instance_evidence_reports_passed_bits_without_changing_defaults() {
+        let mut descriptor = wgpu::InstanceDescriptor::new_without_display_handle();
+        let flags = descriptor.flags;
+        configure_instance(&mut descriptor, wgpu::Backends::DX12);
+        assert_eq!(descriptor.flags, flags);
+        for flags in [
+            wgpu::InstanceFlags::empty(),
+            wgpu::InstanceFlags::DEBUG | wgpu::InstanceFlags::VALIDATION,
+            wgpu::InstanceFlags::GPU_BASED_VALIDATION
+                | wgpu::InstanceFlags::VALIDATION_INDIRECT_CALL,
+        ] {
+            let evidence = instance_descriptor_evidence(flags);
+            assert_eq!(evidence["flags_bits"], flags.bits());
+            assert_eq!(
+                evidence["debug"],
+                flags.contains(wgpu::InstanceFlags::DEBUG)
+            );
+            assert_eq!(
+                evidence["validation"],
+                flags.contains(wgpu::InstanceFlags::VALIDATION)
+            );
+            assert_eq!(
+                evidence["gpu_based_validation"],
+                flags.contains(wgpu::InstanceFlags::GPU_BASED_VALIDATION)
+            );
+            assert_eq!(
+                evidence["validation_indirect_call"],
+                flags.contains(wgpu::InstanceFlags::VALIDATION_INDIRECT_CALL)
+            );
+            assert_eq!(
+                evidence["application_debug_assertions"],
+                cfg!(debug_assertions)
+            );
+            assert_eq!(evidence["environment_overrides_applied"], false);
+        }
+    }
+
+    #[test]
+    fn concrete_surface_modes_never_accept_automatic_or_relaxed_substitutes() {
+        let other = [
+            wgpu::PresentMode::AutoVsync,
+            wgpu::PresentMode::AutoNoVsync,
+            wgpu::PresentMode::FifoRelaxed,
+        ];
+        for mode in [
+            DiagnosticPresentMode::Fifo,
+            DiagnosticPresentMode::Mailbox,
+            DiagnosticPresentMode::Immediate,
+        ] {
+            let request = PresentModeRequest::Explicit(mode);
+            assert!(select_present_mode(request, &other).is_err());
+            let exact = concrete_mode(mode);
+            let selected = select_present_mode(request, &[exact]).unwrap();
+            assert_eq!(
+                verify_present_mode(selected, exact).unwrap().request(),
+                request
+            );
+            for substitute in other {
+                assert!(verify_present_mode(selected, substitute).is_err());
+            }
+        }
+        assert_eq!(
+            concrete_mode(PresentModeRequest::default().mode()),
+            wgpu::PresentMode::Fifo
+        );
+    }
+
+    #[test]
+    fn changed_surface_capabilities_require_the_original_request_again() {
+        let request = PresentModeRequest::Explicit(DiagnosticPresentMode::Mailbox);
+        let original = select_present_mode(
+            request,
+            &[wgpu::PresentMode::Fifo, wgpu::PresentMode::Mailbox],
+        )
+        .unwrap();
+        let configured = verify_present_mode(original, wgpu::PresentMode::Mailbox).unwrap();
+        assert!(select_present_mode(configured.request(), &[wgpu::PresentMode::Fifo]).is_err());
+        assert!(select_present_mode(configured.request(), &[wgpu::PresentMode::Mailbox]).is_ok());
+    }
+
+    #[test]
+    fn unsupported_present_mode_is_terminal_even_for_windows_auto() {
+        let mut attempted = Vec::new();
+        let error = pollster::block_on(initialize_with_policy::<(), _, _>(
+            BackendSelection::Auto,
+            true,
+            |backends| {
+                attempted.push(backends);
+                let error = select_present_mode(
+                    PresentModeRequest::Explicit(DiagnosticPresentMode::Mailbox),
+                    &[wgpu::PresentMode::Fifo],
+                )
+                .unwrap_err();
+                std::future::ready(Err(InitializationError::Terminal(error)))
+            },
+        ))
+        .unwrap_err();
+        assert!(error.contains("not advertised"));
+        assert_eq!(attempted, [wgpu::Backends::DX12]);
+    }
+
+    #[test]
+    fn low_level_renderer_parser_stops_at_end_of_options() {
+        assert_eq!(
+            BackendSelection::from_args(["--", "--renderer=dx12"]).unwrap(),
+            BackendSelection::Auto
+        );
+        assert_eq!(
+            BackendSelection::from_args(["--renderer=dx12", "--", "--renderer=gl"]).unwrap(),
+            BackendSelection::Dx12
+        );
+    }
 
     #[test]
     fn uncaptured_error_classes_retain_their_diagnostics_as_fatal_results() {

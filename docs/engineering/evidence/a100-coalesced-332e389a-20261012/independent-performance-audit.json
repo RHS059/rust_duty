@@ -1,0 +1,2894 @@
+{
+  "schema": "independent-a100-coalesced-resident-abba-audit/v1",
+  "source": "332e389a08330ce2be701f251ec355f94b12e5fb",
+  "tree": "c38e6b703403c4a329adb04ade95673cb1dfc9c0",
+  "archive_sha256": "0453642bac3a105163fa77d0b25ff1e03c4df9e66a9054d4600aeb6981771973",
+  "archive_bytes": 839406313,
+  "archive_entries": 706,
+  "raw_elf_sha256": "1dc3fed58cbb6ace46495d53805d7dd6608a6d1d6c421b2ba452cfd6fbd70da0",
+  "source_files_git_and_sha_verified": 464,
+  "production_input_count": 134,
+  "runtime_manifest_sha256": "5fc8fddc2990022ec6f4398edb00a7e34f99d426b9e099495af4b114fe1ebb1f",
+  "compiler": "rustc 1.99.0 (b940084d7 2026-09-28)\nbinary: rustc\ncommit-hash: b940084d7eb6a299eb4bfeb8e34901bc051e7ac4\ncommit-date: 2026-09-28\nhost: x86_64-unknown-linux-gnu\nrelease: 1.99.0\nLLVM version: 23.1.1\n",
+  "cargo": "cargo 1.99.0 (5f94df478 2026-08-27)\nrelease: 1.99.0\ncommit-hash: 5f94df4789f005f9a352888e8355ffc645b7ed0e\ncommit-date: 2026-08-27\nhost: x86_64-unknown-linux-gnu\nlibgit2: 1.9.6 (sys:0.21.0 vendored)\nlibcurl: 8.21.0-DEV (sys:0.4.90+curl-8.21.0 vendored ssl:OpenSSL/3.6.3)\nssl: OpenSSL 3.6.3 9 Jun 2026\nos: Ubuntu 24.4.0 (noble) [64-bit]\n",
+  "capture_protocol_passed": true,
+  "raw_summaries_replayed": true,
+  "matched_runtime_identity": {
+    "actual_adapter": {
+      "actual_fingerprint": {
+        "backend": "vulkan",
+        "device_id": 8368,
+        "device_type": "DiscreteGpu",
+        "name": "NVIDIA A100-SXM4-40GB",
+        "vendor_id": 4318
+      },
+      "backend": "Vulkan",
+      "device_id": 8368,
+      "device_type": "DiscreteGpu",
+      "driver": "NVIDIA",
+      "driver_info": "580.82.07",
+      "force_fallback_requested": false,
+      "gpu_timestamp_features_enabled": true,
+      "gpu_timestamps_requested": true,
+      "instance_descriptor": {
+        "application_debug_assertions": false,
+        "debug": false,
+        "environment_overrides_applied": false,
+        "flags_bits": 32,
+        "gpu_based_validation": false,
+        "schema": "rust-duty-wgpu-instance-descriptor/v1",
+        "validation": false,
+        "validation_indirect_call": true,
+        "wgpu_version": "30.0.1"
+      },
+      "name": "NVIDIA A100-SXM4-40GB",
+      "present_mode": "Immediate",
+      "present_policy": {
+        "actual_mode": "immediate",
+        "explicit_request": true,
+        "requested_mode": "immediate"
+      },
+      "requested_fingerprint": {
+        "backend": "vulkan",
+        "device_id": 8368,
+        "device_type": "DiscreteGpu",
+        "name": "NVIDIA A100-SXM4-40GB",
+        "vendor_id": 4318
+      },
+      "selection_mode": "explicit_fingerprint",
+      "vendor_id": 4318
+    },
+    "actual_backend": "Vulkan",
+    "build": {
+      "label": "0.1.11+build.local.1791843689319888893.103972",
+      "number": "local.1791843689319888893.103972",
+      "version": "0.1.11"
+    },
+    "initial_window": {
+      "mode": "windowed",
+      "physical_height": 1080,
+      "physical_width": 1920,
+      "scale_factor": 1.0
+    },
+    "scene": {
+      "capture_sequence": null,
+      "demo": false,
+      "diagnostic_capture": false,
+      "name": "vector_range_default_range",
+      "presentation": "authored_viewmodel",
+      "profile_base": "m4a1",
+      "reference_viewport": false,
+      "weapon_id": "hk416a5"
+    }
+  },
+  "retained_input_joins": [
+    {
+      "original_path": "/content/rust-duty-coalesced-viewmodel-build-332e389a-r1/build-result.json",
+      "sha256": "43df1364839aaf7e0d5538bc00ce0daee48b35d6ead3145dc93524eb003a60ac",
+      "retained_packet_paths": [
+        "build/build-result.json"
+      ]
+    },
+    {
+      "original_path": "/content/rust-duty-coalesced-viewmodel-build-332e389a-r1/pair-pins.json",
+      "sha256": "1706bb26a43c7fb14a80eb13256a2e1e6c36a6fccc49fa1da130a3573f4f4729",
+      "retained_packet_paths": [
+        "build/pair-pins.json"
+      ]
+    },
+    {
+      "original_path": "/content/rust-duty-coalesced-viewmodel-build-332e389a-r1/source-bundle.json",
+      "sha256": "22a320be98f7d99ebbd72d23d2ade648d0795a0c5d3d7c2547b1715ed8c774ed",
+      "retained_packet_paths": [
+        "build/source-bundle.json",
+        "reviewed-package/source-bundle.json"
+      ]
+    },
+    {
+      "original_path": "/content/rust-duty-coalesced-viewmodel-package-332e389a-r1/build-viewmodel-isolation.py",
+      "sha256": "0054def937769952077cb3410dc87c3b6d8e6de6bacc7d3257d2612c746bca27",
+      "retained_packet_paths": [
+        "reviewed-package/build-viewmodel-isolation.py"
+      ]
+    },
+    {
+      "original_path": "/content/rust-duty-coalesced-viewmodel-package-332e389a-r1/original-assets.json",
+      "sha256": "756ad13125e39d67d669493a82d4f2959273dd9902c3752ef3ccde6744a9fa9b",
+      "retained_packet_paths": [
+        "build/original-assets.json",
+        "reviewed-package/original-assets.json"
+      ]
+    },
+    {
+      "original_path": "/content/rust-duty-coalesced-viewmodel-package-332e389a-r1/original-input-hashes.json",
+      "sha256": "7418c8c4d146f8c5e336b1e5c9c495bb38d4006d6fd39e2665acbf2cbca08fa1",
+      "retained_packet_paths": [
+        "reviewed-package/original-input-hashes.json"
+      ]
+    },
+    {
+      "original_path": "/content/rust-duty-coalesced-viewmodel-package-332e389a-r1/original-nvidia-egl.json",
+      "sha256": "4779640fbe3b520e5556675b0c9a13adae338f63ff05288d8b23cacc202fa207",
+      "retained_packet_paths": [
+        "build/original-nvidia-egl.json",
+        "reviewed-package/original-nvidia-egl.json"
+      ]
+    },
+    {
+      "original_path": "/content/rust-duty-coalesced-viewmodel-package-332e389a-r1/original-nvidia-vulkan.json",
+      "sha256": "3a24e06eee4d71613991833ea6ff0bd6ef4ed71c631af5440abfaca8d064b6b2",
+      "retained_packet_paths": [
+        "build/original-nvidia-vulkan.json",
+        "reviewed-package/original-nvidia-vulkan.json"
+      ]
+    },
+    {
+      "original_path": "/content/rust-duty-coalesced-viewmodel-package-332e389a-r1/original-preparation.json",
+      "sha256": "4c91ae198e8747379c29b81a245393165f255af69b89644d75efb917b81752c1",
+      "retained_packet_paths": [
+        "reviewed-package/original-preparation.json"
+      ]
+    },
+    {
+      "original_path": "/content/rust-duty-coalesced-viewmodel-package-332e389a-r1/original-resident-diag-r01-driver.py",
+      "sha256": "13fb5af588198d076a8ba9aa6fbb7fce16446eeb1ab19f9e25e1940acb609e35",
+      "retained_packet_paths": [
+        "reviewed-package/original-resident-diag-r01-driver.py"
+      ]
+    },
+    {
+      "original_path": "/content/rust-duty-coalesced-viewmodel-package-332e389a-r1/owned_process.py",
+      "sha256": "2b28991806d8d0541ca69ae115ef68486f487074177717bba2abd145921b0773",
+      "retained_packet_paths": [
+        "reviewed-package/owned_process.py"
+      ]
+    },
+    {
+      "original_path": "/content/rust-duty-coalesced-viewmodel-package-332e389a-r1/run-a100-viewmodel-pair.py",
+      "sha256": "36e05ee3aacf5f232ed5d853afbf8e9b61b870649d6c36af84d5af3c85aaad26",
+      "retained_packet_paths": [
+        "reviewed-package/run-a100-viewmodel-pair.py"
+      ]
+    },
+    {
+      "original_path": "/content/rust-duty-coalesced-viewmodel-package-332e389a-r1/source-bundle.zip",
+      "sha256": "3dc6696d9ea9a5dca0b392eb996f2b8454769cc4098130053b42e7d855f6a0d5",
+      "retained_packet_paths": [
+        "reviewed-package/source-bundle.zip"
+      ]
+    },
+    {
+      "original_path": "/content/rust-duty-coalesced-viewmodel-package-332e389a-r1/test_build_local.py",
+      "sha256": "98bad5bc7c6528259996d6af009864911425ec0964de81ef57fa48671a67e0be",
+      "retained_packet_paths": [
+        "reviewed-package/test_build_local.py"
+      ]
+    },
+    {
+      "original_path": "/content/rust-duty-coalesced-viewmodel-package-332e389a-r1/test_controller_local.py",
+      "sha256": "4c4ca50da0fd5974eb42c67d5c2a4a564869d3edcd374f522619f1aa4d42005b",
+      "retained_packet_paths": [
+        "reviewed-package/test_controller_local.py"
+      ]
+    },
+    {
+      "original_path": "/content/rust-duty-coalesced-viewmodel-package-332e389a-r1/viewmodel_driver.py",
+      "sha256": "3c574b203125e85bbbe311f98c04be8578884def2be54730066108cd9937546e",
+      "retained_packet_paths": [
+        "reviewed-package/viewmodel_driver.py"
+      ]
+    },
+    {
+      "original_path": "/content/rust-duty-coalesced-viewmodel-pair-332e389a-r1/viewmodel-r01-legacy-driver.json",
+      "sha256": "fcb8c59f15371b277c479f6f8ee6464a9c6e5eab15c41134d49bbae07ecaa456",
+      "retained_packet_paths": [
+        "successful-r1/viewmodel-r01-legacy-driver.json"
+      ]
+    },
+    {
+      "original_path": "/content/rust-duty-coalesced-viewmodel-pair-332e389a-r1/viewmodel-r02-coalesced-driver.json",
+      "sha256": "3e7a5cc73535886f4cb05aad2792afd3a310c55b32ac869ed6d648d238ac725b",
+      "retained_packet_paths": [
+        "successful-r1/viewmodel-r02-coalesced-driver.json"
+      ]
+    },
+    {
+      "original_path": "/content/rust-duty-coalesced-viewmodel-pair-332e389a-r1/viewmodel-r03-coalesced-driver.json",
+      "sha256": "322f385b3c6a399a62211102756b72b60bd14f0cfc70795622ce1fa7b578194a",
+      "retained_packet_paths": [
+        "successful-r1/viewmodel-r03-coalesced-driver.json"
+      ]
+    },
+    {
+      "original_path": "/content/rust-duty-coalesced-viewmodel-pair-332e389a-r1/viewmodel-r04-legacy-driver.json",
+      "sha256": "e53650b340c6dde934cb89609c1943a0a75f1070748c220cf00c17115425cf6d",
+      "retained_packet_paths": [
+        "successful-r1/viewmodel-r04-legacy-driver.json"
+      ]
+    }
+  ],
+  "file_only_export_omitted_empty_directories": [
+    "viewmodel-r01-legacy/xdg",
+    "viewmodel-r02-coalesced/xdg",
+    "viewmodel-r03-coalesced/xdg",
+    "viewmodel-r04-legacy/xdg"
+  ],
+  "failed_attempts": [],
+  "runs": [
+    {
+      "index": 1,
+      "mode": "legacy",
+      "primary_sha256": "da9a1000873f1dcd4077a5fa715066eb8d4319e7f5b8f7ba04054bc7fde10b66",
+      "interval": {
+        "interval_count": 5385,
+        "max_ns": 17317908,
+        "min_ns": 5292856,
+        "p50_ns": 5710171,
+        "p95_ns": 6134409,
+        "p99_ns": 6698713,
+        "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation",
+        "total_interval_ns": 31006651309
+      },
+      "outer_stages": {
+        "surface_acquire": {
+          "sample_count": 5385,
+          "total_ns": 55406415,
+          "min_ns": 8848,
+          "max_ns": 40447,
+          "p50_ns": 9878,
+          "p95_ns": 11744,
+          "p99_ns": 21907,
+          "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+        },
+        "game_recording": {
+          "sample_count": 5385,
+          "total_ns": 1700942084,
+          "min_ns": 247518,
+          "max_ns": 10772093,
+          "p50_ns": 317967,
+          "p95_ns": 379701,
+          "p99_ns": 434045,
+          "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+        },
+        "renderer_submit": {
+          "sample_count": 5385,
+          "total_ns": 7716889111,
+          "min_ns": 1316036,
+          "max_ns": 2416646,
+          "p50_ns": 1405450,
+          "p95_ns": 1574118,
+          "p99_ns": 1664983,
+          "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+        },
+        "present_call": {
+          "sample_count": 5385,
+          "total_ns": 20921173323,
+          "min_ns": 3386507,
+          "max_ns": 5322962,
+          "p50_ns": 3869662,
+          "p95_ns": 4112381,
+          "p99_ns": 4651647,
+          "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+        }
+      },
+      "cpu_substages": {
+        "schema": "rust_duty_cpu_substages_v1",
+        "frame_report_sha256": "da9a1000873f1dcd4077a5fa715066eb8d4319e7f5b8f7ba04054bc7fde10b66",
+        "frame_status": {
+          "error": null,
+          "state": "complete"
+        },
+        "diagnostic_status": "complete",
+        "incomplete_detail_attempts": 0,
+        "retained_attempts": 5385,
+        "scope": "Per-frame totals of observed CPU calls on complete details paired with eligible present intervals. Missing calls are omitted, not zero-filled. Parent spans include these times; do not add them. No GPU-time or performance-pass verdict.",
+        "stages": {
+          "acquire_texture": {
+            "parent": "surface_acquire",
+            "observed_calls": 5385,
+            "per_frame_total_ns": {
+              "sample_count": 5385,
+              "total_ns": 42562325,
+              "min_ns": 6651,
+              "max_ns": 36727,
+              "p50_ns": 7583,
+              "p95_ns": 9065,
+              "p99_ns": 17080,
+              "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+            }
+          },
+          "acquire_validation_cpu": {
+            "parent": "surface_acquire",
+            "observed_calls": 5385,
+            "per_frame_total_ns": {
+              "sample_count": 5385,
+              "total_ns": 5164913,
+              "min_ns": 735,
+              "max_ns": 15820,
+              "p50_ns": 916,
+              "p95_ns": 1071,
+              "p99_ns": 1324,
+              "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+            }
+          },
+          "encode_submit": {
+            "parent": "renderer_submit",
+            "observed_calls": 5385,
+            "per_frame_total_ns": {
+              "sample_count": 5385,
+              "total_ns": 7291673503,
+              "min_ns": 1243498,
+              "max_ns": 2275895,
+              "p50_ns": 1328101,
+              "p95_ns": 1487315,
+              "p99_ns": 1574555,
+              "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+            }
+          },
+          "submit_validation_cpu": {
+            "parent": "renderer_submit",
+            "observed_calls": 5385,
+            "per_frame_total_ns": {
+              "sample_count": 5385,
+              "total_ns": 7252707,
+              "min_ns": 1014,
+              "max_ns": 17772,
+              "p50_ns": 1321,
+              "p95_ns": 1492,
+              "p99_ns": 1635,
+              "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+            }
+          }
+        }
+      },
+      "encode_detail": {
+        "schema": "rust_duty_cpu_encode_detail_v4",
+        "frame_report_sha256": "da9a1000873f1dcd4077a5fa715066eb8d4319e7f5b8f7ba04054bc7fde10b66",
+        "frame_status": {
+          "error": null,
+          "state": "complete"
+        },
+        "diagnostic_status": "complete",
+        "incomplete_detail_attempts": 0,
+        "incomplete_substage_attempts": 0,
+        "retained_attempts": 5385,
+        "summarized_attempts": 5385,
+        "scope": "Observed CPU encode phases and counters only for complete detail and substage attempts on a complete primary capture, paired with eligible present intervals. Incomplete rows retain partial counters in the evidence, never in distributions. Missing observations are unavailable, not zero. Parent spans include child times; do not add or subtract parent/child percentiles or infer GPU time. No performance-pass verdict. Geometry upload includes pooled staging copies; encoder creation is encode_submit residual before that phase. Staging gauges describe retained source capacity and pending sources at upload exit, not cumulative allocation totals. GPU command-span timestamps start after staged copies and exclude them.",
+        "stages": {
+          "frame_plan": {
+            "parent": "encode_submit",
+            "per_frame_total_ns": {
+              "sample_count": 5385,
+              "total_ns": 1885303744,
+              "min_ns": 318356,
+              "max_ns": 671699,
+              "p50_ns": 345583,
+              "p95_ns": 388429,
+              "p99_ns": 413551,
+              "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+            }
+          },
+          "geometry_upload": {
+            "parent": "encode_submit",
+            "per_frame_total_ns": {
+              "sample_count": 5385,
+              "total_ns": 773623910,
+              "min_ns": 127309,
+              "max_ns": 265915,
+              "p50_ns": 142027,
+              "p95_ns": 161565,
+              "p99_ns": 171428,
+              "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+            }
+          },
+          "command_encoding": {
+            "parent": "encode_submit",
+            "per_frame_total_ns": {
+              "sample_count": 5385,
+              "total_ns": 1218490160,
+              "min_ns": 196267,
+              "max_ns": 420788,
+              "p50_ns": 223109,
+              "p95_ns": 261933,
+              "p99_ns": 279125,
+              "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+            }
+          },
+          "encoder_finish": {
+            "parent": "encode_submit",
+            "per_frame_total_ns": {
+              "sample_count": 5385,
+              "total_ns": 2977069433,
+              "min_ns": 483129,
+              "max_ns": 995627,
+              "p50_ns": 543618,
+              "p95_ns": 620676,
+              "p99_ns": 670939,
+              "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+            }
+          },
+          "queue_submit": {
+            "parent": "encode_submit",
+            "per_frame_total_ns": {
+              "sample_count": 5385,
+              "total_ns": 326431771,
+              "min_ns": 52103,
+              "max_ns": 117357,
+              "p50_ns": 58899,
+              "p95_ns": 73039,
+              "p99_ns": 81739,
+              "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+            }
+          }
+        },
+        "counters": {
+          "prepared_draws": {
+            "sample_count": 5385,
+            "total": 3308656,
+            "min": 599,
+            "max": 696,
+            "p50": 599,
+            "p95": 680,
+            "p99": 680,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "text_characters": {
+            "sample_count": 5385,
+            "total": 2163439,
+            "min": 385,
+            "max": 487,
+            "p50": 385,
+            "p95": 473,
+            "p99": 473,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "upload_arenas": {
+            "sample_count": 5385,
+            "total": 5385,
+            "min": 1,
+            "max": 1,
+            "p50": 1,
+            "p95": 1,
+            "p99": 1,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "vertex_bytes": {
+            "sample_count": 5385,
+            "total": 1243220560,
+            "min": 228400,
+            "max": 243920,
+            "p50": 228400,
+            "p95": 241360,
+            "p99": 241360,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "index_bytes": {
+            "sample_count": 5385,
+            "total": 86574912,
+            "min": 15892,
+            "max": 17056,
+            "p50": 15892,
+            "p95": 16864,
+            "p99": 16864,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "uniform_bytes": {
+            "sample_count": 5385,
+            "total": 728804416,
+            "min": 131392,
+            "max": 156224,
+            "p50": 131392,
+            "p95": 152128,
+            "p99": 152128,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "draw_calls": {
+            "sample_count": 5385,
+            "total": 3314041,
+            "min": 600,
+            "max": 697,
+            "p50": 600,
+            "p95": 681,
+            "p99": 681,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "render_passes": {
+            "sample_count": 5385,
+            "total": 16155,
+            "min": 3,
+            "max": 3,
+            "p50": 3,
+            "p95": 3,
+            "p99": 3,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "texture_cache_misses": {
+            "sample_count": 5385,
+            "total": 10,
+            "min": 0,
+            "max": 10,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "pipeline_cache_misses": {
+            "sample_count": 5385,
+            "total": 0,
+            "min": 0,
+            "max": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "gpu_buffer_allocations": {
+            "sample_count": 5385,
+            "total": 0,
+            "min": 0,
+            "max": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "gpu_buffer_reuses": {
+            "sample_count": 5385,
+            "total": 16155,
+            "min": 3,
+            "max": 3,
+            "p50": 3,
+            "p95": 3,
+            "p99": 3,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "gpu_buffer_allocated_bytes": {
+            "sample_count": 5385,
+            "total": 0,
+            "min": 0,
+            "max": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "transform_binding_allocations": {
+            "sample_count": 5385,
+            "total": 0,
+            "min": 0,
+            "max": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "uncached_upload_arenas": {
+            "sample_count": 5385,
+            "total": 0,
+            "min": 0,
+            "max": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "resident_draws": {
+            "sample_count": 5385,
+            "total": 463110,
+            "min": 86,
+            "max": 86,
+            "p50": 86,
+            "p95": 86,
+            "p99": 86,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "resident_rigid_draws": {
+            "sample_count": 5385,
+            "total": 403875,
+            "min": 75,
+            "max": 75,
+            "p50": 75,
+            "p95": 75,
+            "p99": 75,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "resident_skinned_draws": {
+            "sample_count": 5385,
+            "total": 59235,
+            "min": 11,
+            "max": 11,
+            "p50": 11,
+            "p95": 11,
+            "p99": 11,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "resident_vertex_bytes_uploaded": {
+            "sample_count": 5385,
+            "total": 0,
+            "min": 0,
+            "max": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "resident_index_bytes_uploaded": {
+            "sample_count": 5385,
+            "total": 0,
+            "min": 0,
+            "max": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "resident_uniform_bytes_uploaded": {
+            "sample_count": 5385,
+            "total": 294925680,
+            "min": 54768,
+            "max": 54768,
+            "p50": 54768,
+            "p95": 54768,
+            "p99": 54768,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "resident_cache_hits": {
+            "sample_count": 5385,
+            "total": 463110,
+            "min": 86,
+            "max": 86,
+            "p50": 86,
+            "p95": 86,
+            "p99": 86,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "resident_cache_misses": {
+            "sample_count": 5385,
+            "total": 0,
+            "min": 0,
+            "max": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "resident_transient_meshes": {
+            "sample_count": 5385,
+            "total": 0,
+            "min": 0,
+            "max": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "resident_buffer_allocations": {
+            "sample_count": 5385,
+            "total": 10770,
+            "min": 2,
+            "max": 2,
+            "p50": 2,
+            "p95": 2,
+            "p99": 2,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "resident_binding_allocations": {
+            "sample_count": 5385,
+            "total": 10770,
+            "min": 2,
+            "max": 2,
+            "p50": 2,
+            "p95": 2,
+            "p99": 2,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "staging_buffer_allocations": {
+            "sample_count": 5385,
+            "total": 0,
+            "min": 0,
+            "max": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "staging_buffer_reuses": {
+            "sample_count": 5385,
+            "total": 5385,
+            "min": 1,
+            "max": 1,
+            "p50": 1,
+            "p95": 1,
+            "p99": 1,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "staging_buffer_allocated_bytes": {
+            "sample_count": 5385,
+            "total": 0,
+            "min": 0,
+            "max": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "staging_copy_bytes": {
+            "sample_count": 5385,
+            "total": 2058599888,
+            "min": 375684,
+            "max": 417200,
+            "p50": 375684,
+            "p95": 410352,
+            "p99": 410352,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "staging_queue_write_calls": {
+            "sample_count": 5385,
+            "total": 0,
+            "min": 0,
+            "max": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "staging_queue_write_bytes": {
+            "sample_count": 5385,
+            "total": 0,
+            "min": 0,
+            "max": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "staging_fallback_arenas": {
+            "sample_count": 5385,
+            "total": 0,
+            "min": 0,
+            "max": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "staging_map_failures": {
+            "sample_count": 5385,
+            "total": 0,
+            "min": 0,
+            "max": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          }
+        },
+        "upload_policy": "bounded_reuse_v1",
+        "resident_policy": "vertex_lit_skin_v1",
+        "staging_policy": "bounded_staging_v1",
+        "gauges": {
+          "staging_retained_bytes": {
+            "sample_count": 5385,
+            "min": 1048576,
+            "max": 1048576,
+            "p50": 1048576,
+            "p95": 1048576,
+            "p99": 1048576,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "staging_pending_buffers": {
+            "sample_count": 5385,
+            "min": 1,
+            "max": 1,
+            "p50": 1,
+            "p95": 1,
+            "p99": 1,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          }
+        }
+      },
+      "gpu": {
+        "schema": "rust_duty_gpu_timing_summary_v1",
+        "frame_report_sha256": "da9a1000873f1dcd4077a5fa715066eb8d4319e7f5b8f7ba04054bc7fde10b66",
+        "state": "complete",
+        "availability": {
+          "state": "available",
+          "timestamp_period_ns": 1.0
+        },
+        "status_counts": {
+          "measured": 5385
+        },
+        "measured_eligible_count": 5385,
+        "unavailable_eligible_count": 0,
+        "p50_ns": 1175552.0,
+        "p95_ns": 1178624.0,
+        "p99_ns": 1185792.0,
+        "scope": "GPU timestamps around the main ordered frame command buffer; excludes other submissions, CPU work, surface acquisition, present/scan-out and trailing timestamp resolve/readback; backend/driver timestamp ordering and precision apply; eligible retained-present subset only; missing samples may bias this subset. No FPS, scan-out, or target-performance verdict."
+      },
+      "gameplay": {
+        "rows": 302,
+        "first_simulation_seconds": 2.325,
+        "last_simulation_seconds": 33.25,
+        "scope": "stationary grounded simulation progression; CSV has no health field; render_fps column is not used for performance claims",
+        "sha256": "698d17d067a7f8d29a601cb9a75923ef3238891deb39077171256294a06541a0"
+      },
+      "record_seconds": 31.026354651,
+      "record_key_seconds": 31.09701657295227,
+      "post_enter_warmup_seconds": 2.220151901245117,
+      "derived_median_rate_fps": 175.12610392928687,
+      "producer_throughput_intervals_per_second": 173.67241455180775,
+      "cohorts": [
+        {
+          "text_characters": 385,
+          "prepared_draws": 599,
+          "resident_draws": 86,
+          "count": 4360
+        },
+        {
+          "text_characters": 473,
+          "prepared_draws": 680,
+          "resident_draws": 86,
+          "count": 1024
+        },
+        {
+          "text_characters": 487,
+          "prepared_draws": 696,
+          "resident_draws": 86,
+          "count": 1
+        }
+      ],
+      "screenshot_sha256": "2a5957ded9c73aac9ac4ad13b4da488f5f5b8ae86f18266eac2faf65bc5dee47",
+      "os_gpu_metadata": {
+        "completion": "Read GPU_STATUS.json independently; missing, partial or interrupted status is not a completed GPU export. Stopping is asynchronous.",
+        "gpu_frame_duration_ms": {
+          "unavailable_reason": "GPU timestamp queries are not instrumented; CPU present-return intervals are not GPU duration",
+          "value": null
+        },
+        "memory_definition": "OS reported dedicated/shared usage bytes, not installed capacity or memory-controller utilization",
+        "nominal_sample_interval_ms": 1000,
+        "process_id": 106130,
+        "provider": "unavailable",
+        "recording_started_unix_ms": 1791844028014,
+        "renderer_adapter_binding": "unverified; Windows LUID/physical-adapter counters are not bound to the renderer adapter name",
+        "renderer_observed": {
+          "adapter": "NVIDIA A100-SXM4-40GB",
+          "backend": "Vulkan",
+          "requested": "vulkan"
+        },
+        "sample_limit": 86400,
+        "schema": "rust-duty-gpu-telemetry/v1",
+        "scope": "all recording wall time including paused/unfocused periods; not limited to eligible presented frames",
+        "timing": "sample start/end are monotonic milliseconds since GPU recorder start; the frame trace has its own clock origin",
+        "utilization_definition": "OS GPU engine occupancy, not shader/core occupancy; whole-adapter sums processes per engine and takes the busiest engine; game process takes its busiest engine"
+      },
+      "os_gpu_status": {
+        "error": null,
+        "gpu_frame_duration_available": false,
+        "note": "An exported sample may report unavailable metrics. Export completion is not hardware or performance validation.",
+        "samples_with_game_process_utilization": 0,
+        "samples_written": 32,
+        "schema": "rust-duty-gpu-status/v1",
+        "state": "stopped"
+      },
+      "local_identity_source": {
+        "error": "No such file or directory (os error 2)",
+        "state": "unavailable"
+      },
+      "normal_exit": 0
+    },
+    {
+      "index": 2,
+      "mode": "coalesced",
+      "primary_sha256": "10a2951e2c81b3c20edd776e4f23869fd578ef502d475371b49eec485c197988",
+      "interval": {
+        "interval_count": 5489,
+        "max_ns": 16503208,
+        "min_ns": 5189947,
+        "p50_ns": 5597254,
+        "p95_ns": 6003187,
+        "p99_ns": 6570273,
+        "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation",
+        "total_interval_ns": 30988034769
+      },
+      "outer_stages": {
+        "surface_acquire": {
+          "sample_count": 5489,
+          "total_ns": 56012995,
+          "min_ns": 8715,
+          "max_ns": 41297,
+          "p50_ns": 9753,
+          "p95_ns": 12003,
+          "p99_ns": 21895,
+          "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+        },
+        "game_recording": {
+          "sample_count": 5489,
+          "total_ns": 1623604592,
+          "min_ns": 228261,
+          "max_ns": 9706540,
+          "p50_ns": 296968,
+          "p95_ns": 368245,
+          "p99_ns": 443746,
+          "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+        },
+        "renderer_submit": {
+          "sample_count": 5489,
+          "total_ns": 7295610670,
+          "min_ns": 1226987,
+          "max_ns": 2091380,
+          "p50_ns": 1297323,
+          "p95_ns": 1473432,
+          "p99_ns": 1543732,
+          "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+        },
+        "present_call": {
+          "sample_count": 5489,
+          "total_ns": 21409829036,
+          "min_ns": 3415177,
+          "max_ns": 4996277,
+          "p50_ns": 3886766,
+          "p95_ns": 4113438,
+          "p99_ns": 4672997,
+          "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+        }
+      },
+      "cpu_substages": {
+        "schema": "rust_duty_cpu_substages_v1",
+        "frame_report_sha256": "10a2951e2c81b3c20edd776e4f23869fd578ef502d475371b49eec485c197988",
+        "frame_status": {
+          "error": null,
+          "state": "complete"
+        },
+        "diagnostic_status": "complete",
+        "incomplete_detail_attempts": 0,
+        "retained_attempts": 5489,
+        "scope": "Per-frame totals of observed CPU calls on complete details paired with eligible present intervals. Missing calls are omitted, not zero-filled. Parent spans include these times; do not add them. No GPU-time or performance-pass verdict.",
+        "stages": {
+          "acquire_texture": {
+            "parent": "surface_acquire",
+            "observed_calls": 5489,
+            "per_frame_total_ns": {
+              "sample_count": 5489,
+              "total_ns": 43490498,
+              "min_ns": 6676,
+              "max_ns": 35814,
+              "p50_ns": 7564,
+              "p95_ns": 9327,
+              "p99_ns": 17618,
+              "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+            }
+          },
+          "acquire_validation_cpu": {
+            "parent": "surface_acquire",
+            "observed_calls": 5489,
+            "per_frame_total_ns": {
+              "sample_count": 5489,
+              "total_ns": 5067931,
+              "min_ns": 693,
+              "max_ns": 18507,
+              "p50_ns": 883,
+              "p95_ns": 1061,
+              "p99_ns": 1362,
+              "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+            }
+          },
+          "encode_submit": {
+            "parent": "renderer_submit",
+            "observed_calls": 5489,
+            "per_frame_total_ns": {
+              "sample_count": 5489,
+              "total_ns": 6867359999,
+              "min_ns": 1155269,
+              "max_ns": 1961396,
+              "p50_ns": 1221000,
+              "p95_ns": 1389847,
+              "p99_ns": 1452875,
+              "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+            }
+          },
+          "submit_validation_cpu": {
+            "parent": "renderer_submit",
+            "observed_calls": 5489,
+            "per_frame_total_ns": {
+              "sample_count": 5489,
+              "total_ns": 6913958,
+              "min_ns": 823,
+              "max_ns": 18012,
+              "p50_ns": 1215,
+              "p95_ns": 1453,
+              "p99_ns": 1703,
+              "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+            }
+          }
+        }
+      },
+      "encode_detail": {
+        "schema": "rust_duty_cpu_encode_detail_v4",
+        "frame_report_sha256": "10a2951e2c81b3c20edd776e4f23869fd578ef502d475371b49eec485c197988",
+        "frame_status": {
+          "error": null,
+          "state": "complete"
+        },
+        "diagnostic_status": "complete",
+        "incomplete_detail_attempts": 0,
+        "incomplete_substage_attempts": 0,
+        "retained_attempts": 5489,
+        "summarized_attempts": 5489,
+        "scope": "Observed CPU encode phases and counters only for complete detail and substage attempts on a complete primary capture, paired with eligible present intervals. Incomplete rows retain partial counters in the evidence, never in distributions. Missing observations are unavailable, not zero. Parent spans include child times; do not add or subtract parent/child percentiles or infer GPU time. No performance-pass verdict. Geometry upload includes pooled staging copies; encoder creation is encode_submit residual before that phase. Staging gauges describe retained source capacity and pending sources at upload exit, not cumulative allocation totals. GPU command-span timestamps start after staged copies and exclude them.",
+        "stages": {
+          "frame_plan": {
+            "parent": "encode_submit",
+            "per_frame_total_ns": {
+              "sample_count": 5489,
+              "total_ns": 1866791176,
+              "min_ns": 306766,
+              "max_ns": 617891,
+              "p50_ns": 335702,
+              "p95_ns": 378943,
+              "p99_ns": 407158,
+              "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+            }
+          },
+          "geometry_upload": {
+            "parent": "encode_submit",
+            "per_frame_total_ns": {
+              "sample_count": 5489,
+              "total_ns": 681807006,
+              "min_ns": 108834,
+              "max_ns": 214865,
+              "p50_ns": 123136,
+              "p95_ns": 140925,
+              "p99_ns": 147725,
+              "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+            }
+          },
+          "command_encoding": {
+            "parent": "encode_submit",
+            "per_frame_total_ns": {
+              "sample_count": 5489,
+              "total_ns": 1139857186,
+              "min_ns": 180704,
+              "max_ns": 422758,
+              "p50_ns": 202663,
+              "p95_ns": 248451,
+              "p99_ns": 267806,
+              "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+            }
+          },
+          "encoder_finish": {
+            "parent": "encode_submit",
+            "per_frame_total_ns": {
+              "sample_count": 5489,
+              "total_ns": 2769489486,
+              "min_ns": 441284,
+              "max_ns": 956664,
+              "p50_ns": 492999,
+              "p95_ns": 577388,
+              "p99_ns": 611015,
+              "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+            }
+          },
+          "queue_submit": {
+            "parent": "encode_submit",
+            "per_frame_total_ns": {
+              "sample_count": 5489,
+              "total_ns": 312198338,
+              "min_ns": 48721,
+              "max_ns": 143209,
+              "p50_ns": 54996,
+              "p95_ns": 69162,
+              "p99_ns": 79670,
+              "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+            }
+          }
+        },
+        "counters": {
+          "prepared_draws": {
+            "sample_count": 5489,
+            "total": 3087468,
+            "min": 547,
+            "max": 644,
+            "p50": 547,
+            "p95": 628,
+            "p99": 628,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "text_characters": {
+            "sample_count": 5489,
+            "total": 2205591,
+            "min": 385,
+            "max": 487,
+            "p50": 385,
+            "p95": 473,
+            "p99": 473,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "upload_arenas": {
+            "sample_count": 5489,
+            "total": 5489,
+            "min": 1,
+            "max": 1,
+            "p50": 1,
+            "p95": 1,
+            "p99": 1,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "vertex_bytes": {
+            "sample_count": 5489,
+            "total": 1267285200,
+            "min": 228400,
+            "max": 243920,
+            "p50": 228400,
+            "p95": 241360,
+            "p99": 241360,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "index_bytes": {
+            "sample_count": 5489,
+            "total": 88251008,
+            "min": 15892,
+            "max": 17056,
+            "p50": 15892,
+            "p95": 16864,
+            "p99": 16864,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "uniform_bytes": {
+            "sample_count": 5489,
+            "total": 742966848,
+            "min": 131392,
+            "max": 156224,
+            "p50": 131392,
+            "p95": 152128,
+            "p99": 152128,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "draw_calls": {
+            "sample_count": 5489,
+            "total": 3092957,
+            "min": 548,
+            "max": 645,
+            "p50": 548,
+            "p95": 629,
+            "p99": 629,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "render_passes": {
+            "sample_count": 5489,
+            "total": 16467,
+            "min": 3,
+            "max": 3,
+            "p50": 3,
+            "p95": 3,
+            "p99": 3,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "texture_cache_misses": {
+            "sample_count": 5489,
+            "total": 10,
+            "min": 0,
+            "max": 10,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "pipeline_cache_misses": {
+            "sample_count": 5489,
+            "total": 0,
+            "min": 0,
+            "max": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "gpu_buffer_allocations": {
+            "sample_count": 5489,
+            "total": 0,
+            "min": 0,
+            "max": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "gpu_buffer_reuses": {
+            "sample_count": 5489,
+            "total": 16467,
+            "min": 3,
+            "max": 3,
+            "p50": 3,
+            "p95": 3,
+            "p99": 3,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "gpu_buffer_allocated_bytes": {
+            "sample_count": 5489,
+            "total": 0,
+            "min": 0,
+            "max": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "transform_binding_allocations": {
+            "sample_count": 5489,
+            "total": 0,
+            "min": 0,
+            "max": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "uncached_upload_arenas": {
+            "sample_count": 5489,
+            "total": 0,
+            "min": 0,
+            "max": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "resident_draws": {
+            "sample_count": 5489,
+            "total": 186626,
+            "min": 34,
+            "max": 34,
+            "p50": 34,
+            "p95": 34,
+            "p99": 34,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "resident_rigid_draws": {
+            "sample_count": 5489,
+            "total": 170159,
+            "min": 31,
+            "max": 31,
+            "p50": 31,
+            "p95": 31,
+            "p99": 31,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "resident_skinned_draws": {
+            "sample_count": 5489,
+            "total": 16467,
+            "min": 3,
+            "max": 3,
+            "p50": 3,
+            "p95": 3,
+            "p99": 3,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "resident_vertex_bytes_uploaded": {
+            "sample_count": 5489,
+            "total": 0,
+            "min": 0,
+            "max": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "resident_index_bytes_uploaded": {
+            "sample_count": 5489,
+            "total": 0,
+            "min": 0,
+            "max": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "resident_uniform_bytes_uploaded": {
+            "sample_count": 5489,
+            "total": 227551984,
+            "min": 41456,
+            "max": 41456,
+            "p50": 41456,
+            "p95": 41456,
+            "p99": 41456,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "resident_cache_hits": {
+            "sample_count": 5489,
+            "total": 186626,
+            "min": 34,
+            "max": 34,
+            "p50": 34,
+            "p95": 34,
+            "p99": 34,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "resident_cache_misses": {
+            "sample_count": 5489,
+            "total": 0,
+            "min": 0,
+            "max": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "resident_transient_meshes": {
+            "sample_count": 5489,
+            "total": 0,
+            "min": 0,
+            "max": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "resident_buffer_allocations": {
+            "sample_count": 5489,
+            "total": 10978,
+            "min": 2,
+            "max": 2,
+            "p50": 2,
+            "p95": 2,
+            "p99": 2,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "resident_binding_allocations": {
+            "sample_count": 5489,
+            "total": 10978,
+            "min": 2,
+            "max": 2,
+            "p50": 2,
+            "p95": 2,
+            "p99": 2,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "staging_buffer_allocations": {
+            "sample_count": 5489,
+            "total": 0,
+            "min": 0,
+            "max": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "staging_buffer_reuses": {
+            "sample_count": 5489,
+            "total": 5489,
+            "min": 1,
+            "max": 1,
+            "p50": 1,
+            "p95": 1,
+            "p99": 1,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "staging_buffer_allocated_bytes": {
+            "sample_count": 5489,
+            "total": 0,
+            "min": 0,
+            "max": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "staging_copy_bytes": {
+            "sample_count": 5489,
+            "total": 2098503056,
+            "min": 375684,
+            "max": 417200,
+            "p50": 375684,
+            "p95": 410352,
+            "p99": 410352,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "staging_queue_write_calls": {
+            "sample_count": 5489,
+            "total": 0,
+            "min": 0,
+            "max": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "staging_queue_write_bytes": {
+            "sample_count": 5489,
+            "total": 0,
+            "min": 0,
+            "max": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "staging_fallback_arenas": {
+            "sample_count": 5489,
+            "total": 0,
+            "min": 0,
+            "max": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "staging_map_failures": {
+            "sample_count": 5489,
+            "total": 0,
+            "min": 0,
+            "max": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          }
+        },
+        "upload_policy": "bounded_reuse_v1",
+        "resident_policy": "vertex_lit_skin_v1",
+        "staging_policy": "bounded_staging_v1",
+        "gauges": {
+          "staging_retained_bytes": {
+            "sample_count": 5489,
+            "min": 1048576,
+            "max": 1048576,
+            "p50": 1048576,
+            "p95": 1048576,
+            "p99": 1048576,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "staging_pending_buffers": {
+            "sample_count": 5489,
+            "min": 1,
+            "max": 1,
+            "p50": 1,
+            "p95": 1,
+            "p99": 1,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          }
+        }
+      },
+      "gpu": {
+        "schema": "rust_duty_gpu_timing_summary_v1",
+        "frame_report_sha256": "10a2951e2c81b3c20edd776e4f23869fd578ef502d475371b49eec485c197988",
+        "state": "complete",
+        "availability": {
+          "state": "available",
+          "timestamp_period_ns": 1.0
+        },
+        "status_counts": {
+          "measured": 5489
+        },
+        "measured_eligible_count": 5489,
+        "unavailable_eligible_count": 0,
+        "p50_ns": 1175552.0,
+        "p95_ns": 1178624.0,
+        "p99_ns": 1184768.0,
+        "scope": "GPU timestamps around the main ordered frame command buffer; excludes other submissions, CPU work, surface acquisition, present/scan-out and trailing timestamp resolve/readback; backend/driver timestamp ordering and precision apply; eligible retained-present subset only; missing samples may bias this subset. No FPS, scan-out, or target-performance verdict."
+      },
+      "gameplay": {
+        "rows": 303,
+        "first_simulation_seconds": 2.325,
+        "last_simulation_seconds": 33.25,
+        "scope": "stationary grounded simulation progression; CSV has no health field; render_fps column is not used for performance claims",
+        "sha256": "0bf4f75946cb06aa623266da6c57ced80474bbadf565d231e4b9ec0945ac138d"
+      },
+      "record_seconds": 31.00730162,
+      "record_key_seconds": 31.08851957321167,
+      "post_enter_warmup_seconds": 2.218965768814087,
+      "derived_median_rate_fps": 178.6590353055266,
+      "producer_throughput_intervals_per_second": 177.13288502861496,
+      "cohorts": [
+        {
+          "text_characters": 385,
+          "prepared_draws": 547,
+          "resident_draws": 34,
+          "count": 4440
+        },
+        {
+          "text_characters": 473,
+          "prepared_draws": 628,
+          "resident_draws": 34,
+          "count": 1048
+        },
+        {
+          "text_characters": 487,
+          "prepared_draws": 644,
+          "resident_draws": 34,
+          "count": 1
+        }
+      ],
+      "screenshot_sha256": "fc2deb8632ad5808308b1d8b1303bbd7f5b0c5be78cd1b38a5eecec22b7d5b52",
+      "os_gpu_metadata": {
+        "completion": "Read GPU_STATUS.json independently; missing, partial or interrupted status is not a completed GPU export. Stopping is asynchronous.",
+        "gpu_frame_duration_ms": {
+          "unavailable_reason": "GPU timestamp queries are not instrumented; CPU present-return intervals are not GPU duration",
+          "value": null
+        },
+        "memory_definition": "OS reported dedicated/shared usage bytes, not installed capacity or memory-controller utilization",
+        "nominal_sample_interval_ms": 1000,
+        "process_id": 106495,
+        "provider": "unavailable",
+        "recording_started_unix_ms": 1791844081714,
+        "renderer_adapter_binding": "unverified; Windows LUID/physical-adapter counters are not bound to the renderer adapter name",
+        "renderer_observed": {
+          "adapter": "NVIDIA A100-SXM4-40GB",
+          "backend": "Vulkan",
+          "requested": "vulkan"
+        },
+        "sample_limit": 86400,
+        "schema": "rust-duty-gpu-telemetry/v1",
+        "scope": "all recording wall time including paused/unfocused periods; not limited to eligible presented frames",
+        "timing": "sample start/end are monotonic milliseconds since GPU recorder start; the frame trace has its own clock origin",
+        "utilization_definition": "OS GPU engine occupancy, not shader/core occupancy; whole-adapter sums processes per engine and takes the busiest engine; game process takes its busiest engine"
+      },
+      "os_gpu_status": {
+        "error": null,
+        "gpu_frame_duration_available": false,
+        "note": "An exported sample may report unavailable metrics. Export completion is not hardware or performance validation.",
+        "samples_with_game_process_utilization": 0,
+        "samples_written": 31,
+        "schema": "rust-duty-gpu-status/v1",
+        "state": "stopped"
+      },
+      "local_identity_source": {
+        "error": "No such file or directory (os error 2)",
+        "state": "unavailable"
+      },
+      "normal_exit": 0
+    },
+    {
+      "index": 3,
+      "mode": "coalesced",
+      "primary_sha256": "c6420024b66d07fbc9a5057419198dcf45f6aaf38fb1c4b9b5111eb865d27da1",
+      "interval": {
+        "interval_count": 5432,
+        "max_ns": 20384047,
+        "min_ns": 5259858,
+        "p50_ns": 5651460,
+        "p95_ns": 6073559,
+        "p99_ns": 6675276,
+        "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation",
+        "total_interval_ns": 30991652516
+      },
+      "outer_stages": {
+        "surface_acquire": {
+          "sample_count": 5432,
+          "total_ns": 56542073,
+          "min_ns": 8802,
+          "max_ns": 81227,
+          "p50_ns": 9980,
+          "p95_ns": 11884,
+          "p99_ns": 22259,
+          "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+        },
+        "game_recording": {
+          "sample_count": 5432,
+          "total_ns": 1638917004,
+          "min_ns": 231427,
+          "max_ns": 13250857,
+          "p50_ns": 301530,
+          "p95_ns": 376220,
+          "p99_ns": 459271,
+          "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+        },
+        "renderer_submit": {
+          "sample_count": 5432,
+          "total_ns": 7385167392,
+          "min_ns": 1254815,
+          "max_ns": 2382453,
+          "p50_ns": 1324604,
+          "p95_ns": 1501791,
+          "p99_ns": 1625809,
+          "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+        },
+        "present_call": {
+          "sample_count": 5432,
+          "total_ns": 21273030302,
+          "min_ns": 3439646,
+          "max_ns": 5226533,
+          "p50_ns": 3895547,
+          "p95_ns": 4128823,
+          "p99_ns": 4680160,
+          "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+        }
+      },
+      "cpu_substages": {
+        "schema": "rust_duty_cpu_substages_v1",
+        "frame_report_sha256": "c6420024b66d07fbc9a5057419198dcf45f6aaf38fb1c4b9b5111eb865d27da1",
+        "frame_status": {
+          "error": null,
+          "state": "complete"
+        },
+        "diagnostic_status": "complete",
+        "incomplete_detail_attempts": 0,
+        "retained_attempts": 5432,
+        "scope": "Per-frame totals of observed CPU calls on complete details paired with eligible present intervals. Missing calls are omitted, not zero-filled. Parent spans include these times; do not add them. No GPU-time or performance-pass verdict.",
+        "stages": {
+          "acquire_texture": {
+            "parent": "surface_acquire",
+            "observed_calls": 5432,
+            "per_frame_total_ns": {
+              "sample_count": 5432,
+              "total_ns": 44248033,
+              "min_ns": 6779,
+              "max_ns": 79024,
+              "p50_ns": 7797,
+              "p95_ns": 9341,
+              "p99_ns": 18437,
+              "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+            }
+          },
+          "acquire_validation_cpu": {
+            "parent": "surface_acquire",
+            "observed_calls": 5432,
+            "per_frame_total_ns": {
+              "sample_count": 5432,
+              "total_ns": 5115114,
+              "min_ns": 703,
+              "max_ns": 15086,
+              "p50_ns": 901,
+              "p95_ns": 1077,
+              "p99_ns": 1300,
+              "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+            }
+          },
+          "encode_submit": {
+            "parent": "renderer_submit",
+            "observed_calls": 5432,
+            "per_frame_total_ns": {
+              "sample_count": 5432,
+              "total_ns": 6962506602,
+              "min_ns": 1182115,
+              "max_ns": 2240441,
+              "p50_ns": 1248757,
+              "p95_ns": 1417629,
+              "p99_ns": 1533632,
+              "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+            }
+          },
+          "submit_validation_cpu": {
+            "parent": "renderer_submit",
+            "observed_calls": 5432,
+            "per_frame_total_ns": {
+              "sample_count": 5432,
+              "total_ns": 7350095,
+              "min_ns": 885,
+              "max_ns": 15449,
+              "p50_ns": 1317,
+              "p95_ns": 1521,
+              "p99_ns": 1729,
+              "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+            }
+          }
+        }
+      },
+      "encode_detail": {
+        "schema": "rust_duty_cpu_encode_detail_v4",
+        "frame_report_sha256": "c6420024b66d07fbc9a5057419198dcf45f6aaf38fb1c4b9b5111eb865d27da1",
+        "frame_status": {
+          "error": null,
+          "state": "complete"
+        },
+        "diagnostic_status": "complete",
+        "incomplete_detail_attempts": 0,
+        "incomplete_substage_attempts": 0,
+        "retained_attempts": 5432,
+        "summarized_attempts": 5432,
+        "scope": "Observed CPU encode phases and counters only for complete detail and substage attempts on a complete primary capture, paired with eligible present intervals. Incomplete rows retain partial counters in the evidence, never in distributions. Missing observations are unavailable, not zero. Parent spans include child times; do not add or subtract parent/child percentiles or infer GPU time. No performance-pass verdict. Geometry upload includes pooled staging copies; encoder creation is encode_submit residual before that phase. Staging gauges describe retained source capacity and pending sources at upload exit, not cumulative allocation totals. GPU command-span timestamps start after staged copies and exclude them.",
+        "stages": {
+          "frame_plan": {
+            "parent": "encode_submit",
+            "per_frame_total_ns": {
+              "sample_count": 5432,
+              "total_ns": 1880418572,
+              "min_ns": 314880,
+              "max_ns": 655269,
+              "p50_ns": 341859,
+              "p95_ns": 381909,
+              "p99_ns": 421636,
+              "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+            }
+          },
+          "geometry_upload": {
+            "parent": "encode_submit",
+            "per_frame_total_ns": {
+              "sample_count": 5432,
+              "total_ns": 679692467,
+              "min_ns": 108549,
+              "max_ns": 248701,
+              "p50_ns": 123710,
+              "p95_ns": 142235,
+              "p99_ns": 150063,
+              "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+            }
+          },
+          "command_encoding": {
+            "parent": "encode_submit",
+            "per_frame_total_ns": {
+              "sample_count": 5432,
+              "total_ns": 1116061968,
+              "min_ns": 179708,
+              "max_ns": 588564,
+              "p50_ns": 201070,
+              "p95_ns": 243385,
+              "p99_ns": 264760,
+              "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+            }
+          },
+          "encoder_finish": {
+            "parent": "encode_submit",
+            "per_frame_total_ns": {
+              "sample_count": 5432,
+              "total_ns": 2880898337,
+              "min_ns": 463172,
+              "max_ns": 982457,
+              "p50_ns": 516792,
+              "p95_ns": 603432,
+              "p99_ns": 662774,
+              "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+            }
+          },
+          "queue_submit": {
+            "parent": "encode_submit",
+            "per_frame_total_ns": {
+              "sample_count": 5432,
+              "total_ns": 309027671,
+              "min_ns": 48513,
+              "max_ns": 161798,
+              "p50_ns": 54955,
+              "p95_ns": 69411,
+              "p99_ns": 81157,
+              "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+            }
+          }
+        },
+        "counters": {
+          "prepared_draws": {
+            "sample_count": 5432,
+            "total": 3054264,
+            "min": 547,
+            "max": 644,
+            "p50": 547,
+            "p95": 628,
+            "p99": 628,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "text_characters": {
+            "sample_count": 5432,
+            "total": 2181446,
+            "min": 385,
+            "max": 487,
+            "p50": 385,
+            "p95": 473,
+            "p99": 473,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "upload_arenas": {
+            "sample_count": 5432,
+            "total": 5432,
+            "min": 1,
+            "max": 1,
+            "p50": 1,
+            "p95": 1,
+            "p99": 1,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "vertex_bytes": {
+            "sample_count": 5432,
+            "total": 1253942400,
+            "min": 228400,
+            "max": 243920,
+            "p50": 228400,
+            "p95": 241360,
+            "p99": 241360,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "index_bytes": {
+            "sample_count": 5432,
+            "total": 87320864,
+            "min": 15892,
+            "max": 17056,
+            "p50": 15892,
+            "p95": 16864,
+            "p99": 16864,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "uniform_bytes": {
+            "sample_count": 5432,
+            "total": 734959104,
+            "min": 131392,
+            "max": 156224,
+            "p50": 131392,
+            "p95": 152128,
+            "p99": 152128,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "draw_calls": {
+            "sample_count": 5432,
+            "total": 3059696,
+            "min": 548,
+            "max": 645,
+            "p50": 548,
+            "p95": 629,
+            "p99": 629,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "render_passes": {
+            "sample_count": 5432,
+            "total": 16296,
+            "min": 3,
+            "max": 3,
+            "p50": 3,
+            "p95": 3,
+            "p99": 3,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "texture_cache_misses": {
+            "sample_count": 5432,
+            "total": 10,
+            "min": 0,
+            "max": 10,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "pipeline_cache_misses": {
+            "sample_count": 5432,
+            "total": 0,
+            "min": 0,
+            "max": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "gpu_buffer_allocations": {
+            "sample_count": 5432,
+            "total": 0,
+            "min": 0,
+            "max": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "gpu_buffer_reuses": {
+            "sample_count": 5432,
+            "total": 16296,
+            "min": 3,
+            "max": 3,
+            "p50": 3,
+            "p95": 3,
+            "p99": 3,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "gpu_buffer_allocated_bytes": {
+            "sample_count": 5432,
+            "total": 0,
+            "min": 0,
+            "max": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "transform_binding_allocations": {
+            "sample_count": 5432,
+            "total": 0,
+            "min": 0,
+            "max": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "uncached_upload_arenas": {
+            "sample_count": 5432,
+            "total": 0,
+            "min": 0,
+            "max": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "resident_draws": {
+            "sample_count": 5432,
+            "total": 184688,
+            "min": 34,
+            "max": 34,
+            "p50": 34,
+            "p95": 34,
+            "p99": 34,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "resident_rigid_draws": {
+            "sample_count": 5432,
+            "total": 168392,
+            "min": 31,
+            "max": 31,
+            "p50": 31,
+            "p95": 31,
+            "p99": 31,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "resident_skinned_draws": {
+            "sample_count": 5432,
+            "total": 16296,
+            "min": 3,
+            "max": 3,
+            "p50": 3,
+            "p95": 3,
+            "p99": 3,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "resident_vertex_bytes_uploaded": {
+            "sample_count": 5432,
+            "total": 0,
+            "min": 0,
+            "max": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "resident_index_bytes_uploaded": {
+            "sample_count": 5432,
+            "total": 0,
+            "min": 0,
+            "max": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "resident_uniform_bytes_uploaded": {
+            "sample_count": 5432,
+            "total": 225188992,
+            "min": 41456,
+            "max": 41456,
+            "p50": 41456,
+            "p95": 41456,
+            "p99": 41456,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "resident_cache_hits": {
+            "sample_count": 5432,
+            "total": 184688,
+            "min": 34,
+            "max": 34,
+            "p50": 34,
+            "p95": 34,
+            "p99": 34,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "resident_cache_misses": {
+            "sample_count": 5432,
+            "total": 0,
+            "min": 0,
+            "max": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "resident_transient_meshes": {
+            "sample_count": 5432,
+            "total": 0,
+            "min": 0,
+            "max": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "resident_buffer_allocations": {
+            "sample_count": 5432,
+            "total": 10864,
+            "min": 2,
+            "max": 2,
+            "p50": 2,
+            "p95": 2,
+            "p99": 2,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "resident_binding_allocations": {
+            "sample_count": 5432,
+            "total": 10864,
+            "min": 2,
+            "max": 2,
+            "p50": 2,
+            "p95": 2,
+            "p99": 2,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "staging_buffer_allocations": {
+            "sample_count": 5432,
+            "total": 0,
+            "min": 0,
+            "max": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "staging_buffer_reuses": {
+            "sample_count": 5432,
+            "total": 5432,
+            "min": 1,
+            "max": 1,
+            "p50": 1,
+            "p95": 1,
+            "p99": 1,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "staging_buffer_allocated_bytes": {
+            "sample_count": 5432,
+            "total": 0,
+            "min": 0,
+            "max": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "staging_copy_bytes": {
+            "sample_count": 5432,
+            "total": 2076222368,
+            "min": 375684,
+            "max": 417200,
+            "p50": 375684,
+            "p95": 410352,
+            "p99": 410352,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "staging_queue_write_calls": {
+            "sample_count": 5432,
+            "total": 0,
+            "min": 0,
+            "max": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "staging_queue_write_bytes": {
+            "sample_count": 5432,
+            "total": 0,
+            "min": 0,
+            "max": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "staging_fallback_arenas": {
+            "sample_count": 5432,
+            "total": 0,
+            "min": 0,
+            "max": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "staging_map_failures": {
+            "sample_count": 5432,
+            "total": 0,
+            "min": 0,
+            "max": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          }
+        },
+        "upload_policy": "bounded_reuse_v1",
+        "resident_policy": "vertex_lit_skin_v1",
+        "staging_policy": "bounded_staging_v1",
+        "gauges": {
+          "staging_retained_bytes": {
+            "sample_count": 5432,
+            "min": 1048576,
+            "max": 1048576,
+            "p50": 1048576,
+            "p95": 1048576,
+            "p99": 1048576,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "staging_pending_buffers": {
+            "sample_count": 5432,
+            "min": 1,
+            "max": 1,
+            "p50": 1,
+            "p95": 1,
+            "p99": 1,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          }
+        }
+      },
+      "gpu": {
+        "schema": "rust_duty_gpu_timing_summary_v1",
+        "frame_report_sha256": "c6420024b66d07fbc9a5057419198dcf45f6aaf38fb1c4b9b5111eb865d27da1",
+        "state": "complete",
+        "availability": {
+          "state": "available",
+          "timestamp_period_ns": 1.0
+        },
+        "status_counts": {
+          "measured": 5432
+        },
+        "measured_eligible_count": 5432,
+        "unavailable_eligible_count": 0,
+        "p50_ns": 1175552.0,
+        "p95_ns": 1179648.0,
+        "p99_ns": 1185792.0,
+        "scope": "GPU timestamps around the main ordered frame command buffer; excludes other submissions, CPU work, surface acquisition, present/scan-out and trailing timestamp resolve/readback; backend/driver timestamp ordering and precision apply; eligible retained-present subset only; missing samples may bias this subset. No FPS, scan-out, or target-performance verdict."
+      },
+      "gameplay": {
+        "rows": 303,
+        "first_simulation_seconds": 2.3333,
+        "last_simulation_seconds": 33.2583,
+        "scope": "stationary grounded simulation progression; CSV has no health field; render_fps column is not used for performance claims",
+        "sha256": "c60b1e831e65a6c4801cf4ab40e90c088ab8c54f7d52b8d10c7749e80a15a885"
+      },
+      "record_seconds": 31.010818928,
+      "record_key_seconds": 31.088813066482544,
+      "post_enter_warmup_seconds": 2.220909595489502,
+      "derived_median_rate_fps": 176.94542649156148,
+      "producer_throughput_intervals_per_second": 175.2730028576447,
+      "cohorts": [
+        {
+          "text_characters": 385,
+          "prepared_draws": 547,
+          "resident_draws": 34,
+          "count": 4408
+        },
+        {
+          "text_characters": 473,
+          "prepared_draws": 628,
+          "resident_draws": 34,
+          "count": 1023
+        },
+        {
+          "text_characters": 487,
+          "prepared_draws": 644,
+          "resident_draws": 34,
+          "count": 1
+        }
+      ],
+      "screenshot_sha256": "f4099e14849e7d8478518a51e422628ec9690696fd60bf1693f9e1c5b208bf94",
+      "os_gpu_metadata": {
+        "completion": "Read GPU_STATUS.json independently; missing, partial or interrupted status is not a completed GPU export. Stopping is asynchronous.",
+        "gpu_frame_duration_ms": {
+          "unavailable_reason": "GPU timestamp queries are not instrumented; CPU present-return intervals are not GPU duration",
+          "value": null
+        },
+        "memory_definition": "OS reported dedicated/shared usage bytes, not installed capacity or memory-controller utilization",
+        "nominal_sample_interval_ms": 1000,
+        "process_id": 106859,
+        "provider": "unavailable",
+        "recording_started_unix_ms": 1791844135621,
+        "renderer_adapter_binding": "unverified; Windows LUID/physical-adapter counters are not bound to the renderer adapter name",
+        "renderer_observed": {
+          "adapter": "NVIDIA A100-SXM4-40GB",
+          "backend": "Vulkan",
+          "requested": "vulkan"
+        },
+        "sample_limit": 86400,
+        "schema": "rust-duty-gpu-telemetry/v1",
+        "scope": "all recording wall time including paused/unfocused periods; not limited to eligible presented frames",
+        "timing": "sample start/end are monotonic milliseconds since GPU recorder start; the frame trace has its own clock origin",
+        "utilization_definition": "OS GPU engine occupancy, not shader/core occupancy; whole-adapter sums processes per engine and takes the busiest engine; game process takes its busiest engine"
+      },
+      "os_gpu_status": {
+        "error": null,
+        "gpu_frame_duration_available": false,
+        "note": "An exported sample may report unavailable metrics. Export completion is not hardware or performance validation.",
+        "samples_with_game_process_utilization": 0,
+        "samples_written": 31,
+        "schema": "rust-duty-gpu-status/v1",
+        "state": "stopped"
+      },
+      "local_identity_source": {
+        "error": "No such file or directory (os error 2)",
+        "state": "unavailable"
+      },
+      "normal_exit": 0
+    },
+    {
+      "index": 4,
+      "mode": "legacy",
+      "primary_sha256": "6268ec6b075a7e18ac8acab88115f7d1fa761368199aadc0024e32de05f09c38",
+      "interval": {
+        "interval_count": 5376,
+        "max_ns": 17004588,
+        "min_ns": 5276655,
+        "p50_ns": 5707708,
+        "p95_ns": 6210655,
+        "p99_ns": 6785746,
+        "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation",
+        "total_interval_ns": 30988069081
+      },
+      "outer_stages": {
+        "surface_acquire": {
+          "sample_count": 5376,
+          "total_ns": 56630889,
+          "min_ns": 8815,
+          "max_ns": 102303,
+          "p50_ns": 10088,
+          "p95_ns": 11859,
+          "p99_ns": 23659,
+          "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+        },
+        "game_recording": {
+          "sample_count": 5376,
+          "total_ns": 1655286569,
+          "min_ns": 238685,
+          "max_ns": 9990204,
+          "p50_ns": 309288,
+          "p95_ns": 371436,
+          "p99_ns": 439833,
+          "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+        },
+        "renderer_submit": {
+          "sample_count": 5376,
+          "total_ns": 7670790293,
+          "min_ns": 1306423,
+          "max_ns": 2315345,
+          "p50_ns": 1398645,
+          "p95_ns": 1565941,
+          "p99_ns": 1668883,
+          "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+        },
+        "present_call": {
+          "sample_count": 5376,
+          "total_ns": 21009433164,
+          "min_ns": 3397985,
+          "max_ns": 5135364,
+          "p50_ns": 3885400,
+          "p95_ns": 4167550,
+          "p99_ns": 4727564,
+          "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+        }
+      },
+      "cpu_substages": {
+        "schema": "rust_duty_cpu_substages_v1",
+        "frame_report_sha256": "6268ec6b075a7e18ac8acab88115f7d1fa761368199aadc0024e32de05f09c38",
+        "frame_status": {
+          "error": null,
+          "state": "complete"
+        },
+        "diagnostic_status": "complete",
+        "incomplete_detail_attempts": 0,
+        "retained_attempts": 5376,
+        "scope": "Per-frame totals of observed CPU calls on complete details paired with eligible present intervals. Missing calls are omitted, not zero-filled. Parent spans include these times; do not add them. No GPU-time or performance-pass verdict.",
+        "stages": {
+          "acquire_texture": {
+            "parent": "surface_acquire",
+            "observed_calls": 5376,
+            "per_frame_total_ns": {
+              "sample_count": 5376,
+              "total_ns": 44437145,
+              "min_ns": 6810,
+              "max_ns": 81824,
+              "p50_ns": 7925,
+              "p95_ns": 9337,
+              "p99_ns": 20627,
+              "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+            }
+          },
+          "acquire_validation_cpu": {
+            "parent": "surface_acquire",
+            "observed_calls": 5376,
+            "per_frame_total_ns": {
+              "sample_count": 5376,
+              "total_ns": 4969779,
+              "min_ns": 662,
+              "max_ns": 18478,
+              "p50_ns": 874,
+              "p95_ns": 1007,
+              "p99_ns": 1210,
+              "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+            }
+          },
+          "encode_submit": {
+            "parent": "renderer_submit",
+            "observed_calls": 5376,
+            "per_frame_total_ns": {
+              "sample_count": 5376,
+              "total_ns": 7245955189,
+              "min_ns": 1234286,
+              "max_ns": 2190311,
+              "p50_ns": 1320740,
+              "p95_ns": 1482057,
+              "p99_ns": 1583328,
+              "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+            }
+          },
+          "submit_validation_cpu": {
+            "parent": "renderer_submit",
+            "observed_calls": 5376,
+            "per_frame_total_ns": {
+              "sample_count": 5376,
+              "total_ns": 7202954,
+              "min_ns": 942,
+              "max_ns": 16115,
+              "p50_ns": 1303,
+              "p95_ns": 1514,
+              "p99_ns": 1699,
+              "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+            }
+          }
+        }
+      },
+      "encode_detail": {
+        "schema": "rust_duty_cpu_encode_detail_v4",
+        "frame_report_sha256": "6268ec6b075a7e18ac8acab88115f7d1fa761368199aadc0024e32de05f09c38",
+        "frame_status": {
+          "error": null,
+          "state": "complete"
+        },
+        "diagnostic_status": "complete",
+        "incomplete_detail_attempts": 0,
+        "incomplete_substage_attempts": 0,
+        "retained_attempts": 5376,
+        "summarized_attempts": 5376,
+        "scope": "Observed CPU encode phases and counters only for complete detail and substage attempts on a complete primary capture, paired with eligible present intervals. Incomplete rows retain partial counters in the evidence, never in distributions. Missing observations are unavailable, not zero. Parent spans include child times; do not add or subtract parent/child percentiles or infer GPU time. No performance-pass verdict. Geometry upload includes pooled staging copies; encoder creation is encode_submit residual before that phase. Staging gauges describe retained source capacity and pending sources at upload exit, not cumulative allocation totals. GPU command-span timestamps start after staged copies and exclude them.",
+        "stages": {
+          "frame_plan": {
+            "parent": "encode_submit",
+            "per_frame_total_ns": {
+              "sample_count": 5376,
+              "total_ns": 1862841084,
+              "min_ns": 315909,
+              "max_ns": 629860,
+              "p50_ns": 341430,
+              "p95_ns": 383545,
+              "p99_ns": 414358,
+              "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+            }
+          },
+          "geometry_upload": {
+            "parent": "encode_submit",
+            "per_frame_total_ns": {
+              "sample_count": 5376,
+              "total_ns": 768882507,
+              "min_ns": 128145,
+              "max_ns": 314094,
+              "p50_ns": 141592,
+              "p95_ns": 161029,
+              "p99_ns": 171935,
+              "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+            }
+          },
+          "command_encoding": {
+            "parent": "encode_submit",
+            "per_frame_total_ns": {
+              "sample_count": 5376,
+              "total_ns": 1238603780,
+              "min_ns": 199053,
+              "max_ns": 501415,
+              "p50_ns": 227074,
+              "p95_ns": 265657,
+              "p99_ns": 280244,
+              "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+            }
+          },
+          "encoder_finish": {
+            "parent": "encode_submit",
+            "per_frame_total_ns": {
+              "sample_count": 5376,
+              "total_ns": 2928693017,
+              "min_ns": 477058,
+              "max_ns": 940186,
+              "p50_ns": 534866,
+              "p95_ns": 614746,
+              "p99_ns": 655933,
+              "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+            }
+          },
+          "queue_submit": {
+            "parent": "encode_submit",
+            "per_frame_total_ns": {
+              "sample_count": 5376,
+              "total_ns": 333870962,
+              "min_ns": 52487,
+              "max_ns": 166322,
+              "p50_ns": 60011,
+              "p95_ns": 74740,
+              "p99_ns": 87627,
+              "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+            }
+          }
+        },
+        "counters": {
+          "prepared_draws": {
+            "sample_count": 5376,
+            "total": 3303103,
+            "min": 599,
+            "max": 696,
+            "p50": 599,
+            "p95": 680,
+            "p99": 680,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "text_characters": {
+            "sample_count": 5376,
+            "total": 2159798,
+            "min": 385,
+            "max": 487,
+            "p50": 385,
+            "p95": 473,
+            "p99": 473,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "upload_arenas": {
+            "sample_count": 5376,
+            "total": 5376,
+            "min": 1,
+            "max": 1,
+            "p50": 1,
+            "p95": 1,
+            "p99": 1,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "vertex_bytes": {
+            "sample_count": 5376,
+            "total": 1241139040,
+            "min": 228400,
+            "max": 243920,
+            "p50": 228400,
+            "p95": 241360,
+            "p99": 241360,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "index_bytes": {
+            "sample_count": 5376,
+            "total": 86429940,
+            "min": 15892,
+            "max": 17056,
+            "p50": 15892,
+            "p95": 16864,
+            "p99": 16864,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "uniform_bytes": {
+            "sample_count": 5376,
+            "total": 727580416,
+            "min": 131392,
+            "max": 156224,
+            "p50": 131392,
+            "p95": 152128,
+            "p99": 152128,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "draw_calls": {
+            "sample_count": 5376,
+            "total": 3308479,
+            "min": 600,
+            "max": 697,
+            "p50": 600,
+            "p95": 681,
+            "p99": 681,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "render_passes": {
+            "sample_count": 5376,
+            "total": 16128,
+            "min": 3,
+            "max": 3,
+            "p50": 3,
+            "p95": 3,
+            "p99": 3,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "texture_cache_misses": {
+            "sample_count": 5376,
+            "total": 10,
+            "min": 0,
+            "max": 10,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "pipeline_cache_misses": {
+            "sample_count": 5376,
+            "total": 0,
+            "min": 0,
+            "max": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "gpu_buffer_allocations": {
+            "sample_count": 5376,
+            "total": 0,
+            "min": 0,
+            "max": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "gpu_buffer_reuses": {
+            "sample_count": 5376,
+            "total": 16128,
+            "min": 3,
+            "max": 3,
+            "p50": 3,
+            "p95": 3,
+            "p99": 3,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "gpu_buffer_allocated_bytes": {
+            "sample_count": 5376,
+            "total": 0,
+            "min": 0,
+            "max": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "transform_binding_allocations": {
+            "sample_count": 5376,
+            "total": 0,
+            "min": 0,
+            "max": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "uncached_upload_arenas": {
+            "sample_count": 5376,
+            "total": 0,
+            "min": 0,
+            "max": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "resident_draws": {
+            "sample_count": 5376,
+            "total": 462336,
+            "min": 86,
+            "max": 86,
+            "p50": 86,
+            "p95": 86,
+            "p99": 86,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "resident_rigid_draws": {
+            "sample_count": 5376,
+            "total": 403200,
+            "min": 75,
+            "max": 75,
+            "p50": 75,
+            "p95": 75,
+            "p99": 75,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "resident_skinned_draws": {
+            "sample_count": 5376,
+            "total": 59136,
+            "min": 11,
+            "max": 11,
+            "p50": 11,
+            "p95": 11,
+            "p99": 11,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "resident_vertex_bytes_uploaded": {
+            "sample_count": 5376,
+            "total": 0,
+            "min": 0,
+            "max": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "resident_index_bytes_uploaded": {
+            "sample_count": 5376,
+            "total": 0,
+            "min": 0,
+            "max": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "resident_uniform_bytes_uploaded": {
+            "sample_count": 5376,
+            "total": 294432768,
+            "min": 54768,
+            "max": 54768,
+            "p50": 54768,
+            "p95": 54768,
+            "p99": 54768,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "resident_cache_hits": {
+            "sample_count": 5376,
+            "total": 462336,
+            "min": 86,
+            "max": 86,
+            "p50": 86,
+            "p95": 86,
+            "p99": 86,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "resident_cache_misses": {
+            "sample_count": 5376,
+            "total": 0,
+            "min": 0,
+            "max": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "resident_transient_meshes": {
+            "sample_count": 5376,
+            "total": 0,
+            "min": 0,
+            "max": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "resident_buffer_allocations": {
+            "sample_count": 5376,
+            "total": 10752,
+            "min": 2,
+            "max": 2,
+            "p50": 2,
+            "p95": 2,
+            "p99": 2,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "resident_binding_allocations": {
+            "sample_count": 5376,
+            "total": 10752,
+            "min": 2,
+            "max": 2,
+            "p50": 2,
+            "p95": 2,
+            "p99": 2,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "staging_buffer_allocations": {
+            "sample_count": 5376,
+            "total": 0,
+            "min": 0,
+            "max": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "staging_buffer_reuses": {
+            "sample_count": 5376,
+            "total": 5376,
+            "min": 1,
+            "max": 1,
+            "p50": 1,
+            "p95": 1,
+            "p99": 1,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "staging_buffer_allocated_bytes": {
+            "sample_count": 5376,
+            "total": 0,
+            "min": 0,
+            "max": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "staging_copy_bytes": {
+            "sample_count": 5376,
+            "total": 2055149396,
+            "min": 375684,
+            "max": 417200,
+            "p50": 375684,
+            "p95": 410352,
+            "p99": 410352,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "staging_queue_write_calls": {
+            "sample_count": 5376,
+            "total": 0,
+            "min": 0,
+            "max": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "staging_queue_write_bytes": {
+            "sample_count": 5376,
+            "total": 0,
+            "min": 0,
+            "max": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "staging_fallback_arenas": {
+            "sample_count": 5376,
+            "total": 0,
+            "min": 0,
+            "max": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "staging_map_failures": {
+            "sample_count": 5376,
+            "total": 0,
+            "min": 0,
+            "max": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          }
+        },
+        "upload_policy": "bounded_reuse_v1",
+        "resident_policy": "vertex_lit_skin_v1",
+        "staging_policy": "bounded_staging_v1",
+        "gauges": {
+          "staging_retained_bytes": {
+            "sample_count": 5376,
+            "min": 1048576,
+            "max": 1048576,
+            "p50": 1048576,
+            "p95": 1048576,
+            "p99": 1048576,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          },
+          "staging_pending_buffers": {
+            "sample_count": 5376,
+            "min": 1,
+            "max": 1,
+            "p50": 1,
+            "p95": 1,
+            "p99": 1,
+            "percentile_method": "nearest_rank_ceil_p_times_n_no_interpolation"
+          }
+        }
+      },
+      "gpu": {
+        "schema": "rust_duty_gpu_timing_summary_v1",
+        "frame_report_sha256": "6268ec6b075a7e18ac8acab88115f7d1fa761368199aadc0024e32de05f09c38",
+        "state": "complete",
+        "availability": {
+          "state": "available",
+          "timestamp_period_ns": 1.0
+        },
+        "status_counts": {
+          "measured": 5376
+        },
+        "measured_eligible_count": 5376,
+        "unavailable_eligible_count": 0,
+        "p50_ns": 1175552.0,
+        "p95_ns": 1178624.0,
+        "p99_ns": 1185792.0,
+        "scope": "GPU timestamps around the main ordered frame command buffer; excludes other submissions, CPU work, surface acquisition, present/scan-out and trailing timestamp resolve/readback; backend/driver timestamp ordering and precision apply; eligible retained-present subset only; missing samples may bias this subset. No FPS, scan-out, or target-performance verdict."
+      },
+      "gameplay": {
+        "rows": 302,
+        "first_simulation_seconds": 2.325,
+        "last_simulation_seconds": 33.25,
+        "scope": "stationary grounded simulation progression; CSV has no health field; render_fps column is not used for performance claims",
+        "sha256": "f2cc2b8fed2dd410f7b68f507722afbe249e65385f8dfd384e73a9a30d6ec58c"
+      },
+      "record_seconds": 31.007604964,
+      "record_key_seconds": 31.084568738937378,
+      "post_enter_warmup_seconds": 2.218538522720337,
+      "derived_median_rate_fps": 175.20167464768696,
+      "producer_throughput_intervals_per_second": 173.48612415790168,
+      "cohorts": [
+        {
+          "text_characters": 385,
+          "prepared_draws": 599,
+          "resident_draws": 86,
+          "count": 4353
+        },
+        {
+          "text_characters": 473,
+          "prepared_draws": 680,
+          "resident_draws": 86,
+          "count": 1022
+        },
+        {
+          "text_characters": 487,
+          "prepared_draws": 696,
+          "resident_draws": 86,
+          "count": 1
+        }
+      ],
+      "screenshot_sha256": "4c3bc53926dcd4cfcc8b8a668a1a6734deb89aaebae3e665044f41ebcdf9e268",
+      "os_gpu_metadata": {
+        "completion": "Read GPU_STATUS.json independently; missing, partial or interrupted status is not a completed GPU export. Stopping is asynchronous.",
+        "gpu_frame_duration_ms": {
+          "unavailable_reason": "GPU timestamp queries are not instrumented; CPU present-return intervals are not GPU duration",
+          "value": null
+        },
+        "memory_definition": "OS reported dedicated/shared usage bytes, not installed capacity or memory-controller utilization",
+        "nominal_sample_interval_ms": 1000,
+        "process_id": 107227,
+        "provider": "unavailable",
+        "recording_started_unix_ms": 1791844189573,
+        "renderer_adapter_binding": "unverified; Windows LUID/physical-adapter counters are not bound to the renderer adapter name",
+        "renderer_observed": {
+          "adapter": "NVIDIA A100-SXM4-40GB",
+          "backend": "Vulkan",
+          "requested": "vulkan"
+        },
+        "sample_limit": 86400,
+        "schema": "rust-duty-gpu-telemetry/v1",
+        "scope": "all recording wall time including paused/unfocused periods; not limited to eligible presented frames",
+        "timing": "sample start/end are monotonic milliseconds since GPU recorder start; the frame trace has its own clock origin",
+        "utilization_definition": "OS GPU engine occupancy, not shader/core occupancy; whole-adapter sums processes per engine and takes the busiest engine; game process takes its busiest engine"
+      },
+      "os_gpu_status": {
+        "error": null,
+        "gpu_frame_duration_available": false,
+        "note": "An exported sample may report unavailable metrics. Export completion is not hardware or performance validation.",
+        "samples_with_game_process_utilization": 0,
+        "samples_written": 31,
+        "schema": "rust-duty-gpu-status/v1",
+        "state": "stopped"
+      },
+      "local_identity_source": {
+        "error": "No such file or directory (os error 2)",
+        "state": "unavailable"
+      },
+      "normal_exit": 0
+    }
+  ],
+  "all_packet_bytes_unchanged": true,
+  "strict_arithmetic_image_gate_passed": false,
+  "limits": [
+    "One sequential same-ELF legacy/coalesced ABBA on A100 Vulkan Immediate, with direct main target fixed. Native actual-loader22pair gate is audited separately. No RTX/DX12 or broad gameplay claim.",
+    "The frame interval inverse is a derived median-rate equivalent, not display refresh; actual per-run producer throughput is separately reported.",
+    "The CPU parent/child stages and GPU command-span overlap and must not be added or subtracted as separate budgets. GPU timestamps exclude earlier upload copies.",
+    "Animation/simulation still advance, but the four captures are not frame-for-frame synchronized. CSV contains no health field.",
+    "The local IDENTITY source may be unavailable in materialized work directories; source is bound through Git-verified build inputs and the retained single ELF.",
+    "Original 77 public asset files are receipt-bound; asset binaries are not claimed directly inspected in this packet.",
+    "Strict prior A100 image parity still fails 18 RGB pixels across 11 pairs, maximum delta 3. It is not a blocker for clearly labeled diagnostic performance and is not reclassified."
+  ]
+}

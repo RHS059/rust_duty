@@ -10,6 +10,8 @@ use std::{collections::HashMap, sync::Arc};
 pub struct WgpuRenderer {
     pub(super) gpu: device::Gpu,
     pub(super) pipelines: mesh::Pipelines,
+    pub(super) resident: super::resident::ResidentRenderer,
+    pub(super) upload_cache: super::upload_cache::UploadCache,
     pub(super) main: Arc<target::GpuTexture>,
     pub(super) white: Arc<target::GpuTexture>,
     textures: HashMap<ResourceId, Arc<target::GpuTexture>>,
@@ -53,13 +55,47 @@ impl WgpuRenderer {
         selection: BackendSelection,
         force_fallback: bool,
     ) -> Result<Self, String> {
-        Self::new(width, height, selection, force_fallback, None).await
+        Self::new(
+            width,
+            height,
+            selection,
+            force_fallback,
+            None,
+            Default::default(),
+        )
+        .await
     }
     /// The surface owns an Arc clone, so the window cannot disappear while it is presented.
     pub async fn new_windowed(
         window: Arc<winit::window::Window>,
         selection: BackendSelection,
         force_fallback: bool,
+    ) -> Result<Self, String> {
+        Self::new_windowed_with_present_mode(window, selection, force_fallback, Default::default())
+            .await
+    }
+    pub async fn new_windowed_with_present_mode(
+        window: Arc<winit::window::Window>,
+        selection: BackendSelection,
+        force_fallback: bool,
+        present_mode: super::present_policy::PresentModeRequest,
+    ) -> Result<Self, String> {
+        Self::new_windowed_with_diagnostics(
+            window,
+            selection,
+            force_fallback,
+            super::RuntimeDiagnostics {
+                present_mode,
+                gpu_timestamps: false,
+            },
+        )
+        .await
+    }
+    pub async fn new_windowed_with_diagnostics(
+        window: Arc<winit::window::Window>,
+        selection: BackendSelection,
+        force_fallback: bool,
+        diagnostics: super::RuntimeDiagnostics,
     ) -> Result<Self, String> {
         let size = window.inner_size();
         Self::new(
@@ -68,6 +104,7 @@ impl WgpuRenderer {
             selection,
             force_fallback,
             Some(window),
+            diagnostics,
         )
         .await
     }
@@ -77,8 +114,17 @@ impl WgpuRenderer {
         selection: BackendSelection,
         force_fallback: bool,
         window: Option<Arc<winit::window::Window>>,
+        diagnostics: super::RuntimeDiagnostics,
     ) -> Result<Self, String> {
-        let gpu = device::Gpu::new(selection, force_fallback, window, width, height).await?;
+        let gpu = device::Gpu::new_with_diagnostics(
+            selection,
+            force_fallback,
+            window,
+            width,
+            height,
+            diagnostics,
+        )
+        .await?;
         let error_scope = gpu.device.push_error_scope(wgpu::ErrorFilter::Validation);
         let result = (|| {
             let pipelines = mesh::Pipelines::new(&gpu.device);
@@ -95,16 +141,20 @@ impl WgpuRenderer {
                 &Texture::rgba8(1, 1, &[255; 4], Sampler::default())?,
             )?);
             let text = text::TextRenderer::new()?;
-            Ok::<_, String>((pipelines, main, white, text))
+            let resident =
+                super::resident::ResidentRenderer::new(&gpu.device, &pipelines.texture_layout);
+            Ok::<_, String>((pipelines, main, white, text, resident))
         })();
         if let Some(error) = error_scope.pop().await {
             return Err(format!("renderer initialization validation: {error}"));
         }
         gpu.check_errors()?;
-        let (pipelines, main, white, text) = result?;
+        let (pipelines, main, white, text, resident) = result?;
         Ok(Self {
             gpu,
             pipelines,
+            resident,
+            upload_cache: super::upload_cache::UploadCache::default(),
             main,
             white,
             text,
@@ -159,6 +209,10 @@ impl WgpuRenderer {
             }
             return Ok(texture.clone());
         }
+        crate::frame_performance_session::add_encode_counter(
+            crate::frame_encode_detail::EncodeCounter::TextureCacheMisses,
+            1,
+        );
         let texture = Arc::new(target::GpuTexture::new(
             &self.gpu.device,
             &self.gpu.queue,
@@ -175,6 +229,9 @@ impl WgpuRenderer {
     }
 }
 impl Renderer for WgpuRenderer {
+    fn supports_resident_meshes(&self) -> bool {
+        crate::frame_encode_detail::resident_policy::ENABLED
+    }
     fn info(&self) -> &BackendInfo {
         &self.gpu.info
     }

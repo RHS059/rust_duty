@@ -1,0 +1,181 @@
+{
+  "schema": "rust-duty-coalesced-complete-independent-review/v1",
+  "passed": true,
+  "source_commit": "332e389a08330ce2be701f251ec355f94b12e5fb",
+  "source_tree": "c38e6b703403c4a329adb04ade95673cb1dfc9c0",
+  "archive": {
+    "path": "/workspace/shared/a100-coalesced-332e389a/a100-coalesced-332e389a-full-stored.zip",
+    "bytes": 839406313,
+    "sha256": "0453642bac3a105163fa77d0b25ff1e03c4df9e66a9054d4600aeb6981771973"
+  },
+  "archive_entries": 706,
+  "original_archive_bytes_exact": true,
+  "all_archive_crcs_and_full_inventory_verified": true,
+  "git_bound_source_files_verified": 464,
+  "compile_inputs": 134,
+  "runtime_manifest_sha256": "5fc8fddc2990022ec6f4398edb00a7e34f99d426b9e099495af4b114fe1ebb1f",
+  "game_elf": {
+    "path": "/workspace/shared/a100-coalesced-332e389a/full-evidence/build/vector-range",
+    "bytes": 13093440,
+    "sha256": "1dc3fed58cbb6ace46495d53805d7dd6608a6d1d6c421b2ba452cfd6fbd70da0"
+  },
+  "native_elf": {
+    "path": "/workspace/shared/a100-coalesced-332e389a/full-evidence/build/resident_coalesced_authored_contract",
+    "bytes": 6968800,
+    "sha256": "3a2f2256ccc97f6304af02f6ceceff2801ae0eff4015844060c1eda38b175c73"
+  },
+  "build_process_exit": 0,
+  "native_process_exit": 0,
+  "all_four_game_processes_normal_exit": true,
+  "native_process_precedes_all_timed_legs": true,
+  "native_actual_device": {
+    "actual_fingerprint": {
+      "backend": "vulkan",
+      "device_id": 8368,
+      "device_type": "DiscreteGpu",
+      "name": "NVIDIA A100-SXM4-40GB",
+      "vendor_id": 4318
+    },
+    "backend": "Vulkan",
+    "device_id": 8368,
+    "device_type": "DiscreteGpu",
+    "driver": "NVIDIA",
+    "driver_info": "580.82.07",
+    "force_fallback_requested": false,
+    "gpu_timestamp_features_enabled": false,
+    "gpu_timestamps_requested": false,
+    "instance_descriptor": {
+      "application_debug_assertions": false,
+      "debug": false,
+      "environment_overrides_applied": false,
+      "flags_bits": 32,
+      "gpu_based_validation": false,
+      "schema": "rust-duty-wgpu-instance-descriptor/v1",
+      "validation": false,
+      "validation_indirect_call": true,
+      "wgpu_version": "30.0.1"
+    },
+    "name": "NVIDIA A100-SXM4-40GB",
+    "present_mode": null,
+    "present_policy": null,
+    "requested_fingerprint": null,
+    "selection_mode": "automatic",
+    "vendor_id": 4318
+  },
+  "native_full_replay": {
+    "passed": true,
+    "exact_pairs": 22,
+    "ordered_source_part_material_pose_and_corners": true,
+    "strict_full_rgba_equality": true,
+    "actual_resident_draw_reduction": true,
+    "unique_ordered_stream_bytes": 468377440,
+    "unique_layout_stream_bytes": 203849760,
+    "scope": "Separate legacy-resident/coalesced-resident correctness gate; historical CPU/resident gate unchanged; no performance acceptance."
+  },
+  "native_file_count": 66,
+  "native_original_bytes_equal_recovered_run": true,
+  "original_run_file_count": 186,
+  "raw_performance_all_four_legs_replayed": true,
+  "total_eligible_gpu_samples": 21682,
+  "metrics_ms": {
+    "legacy_frame_p50s": [
+      5.710171,
+      5.707708
+    ],
+    "coalesced_frame_p50s": [
+      5.597254,
+      5.65146
+    ],
+    "mean_of_run_frame_p50_legacy": 5.7089395,
+    "mean_of_run_frame_p50_coalesced": 5.624357,
+    "mean_of_run_frame_p50_reduction": 0.0845825,
+    "mean_of_run_frame_p50_reduction_percent": 1.4815798976324763,
+    "legacy_encode_p50s": [
+      1.328101,
+      1.32074
+    ],
+    "coalesced_encode_p50s": [
+      1.221,
+      1.248757
+    ],
+    "all_four_gpu_p50s": [
+      1.175552,
+      1.175552,
+      1.175552,
+      1.175552
+    ]
+  },
+  "standard_draw_counters": {
+    "legacy": {
+      "resident": 86,
+      "rigid": 75,
+      "skinned": 11,
+      "total": 600,
+      "passes": 3,
+      "hud_text_characters": 385
+    },
+    "coalesced": {
+      "resident": 34,
+      "rigid": 31,
+      "skinned": 3,
+      "total": 548,
+      "passes": 3,
+      "hud_text_characters": 385
+    },
+    "all_warm_resident_upload_misses": 0
+  },
+  "supporting_reviews": [
+    {
+      "path": "/workspace/shared/rust-integration-review/332e389a-independent-coalesced-performance-audit.json",
+      "bytes": 103638,
+      "sha256": "2ffaa5b2d942bf1dccf407b8b7aaa03e47c39299fb206b82ddb888f7ac8dea23"
+    },
+    {
+      "path": "/workspace/shared/a100-coalesced-332e389a/independent-full-native-recovery-review.json",
+      "bytes": 17452,
+      "sha256": "867d78deb4e4ac83cf758f044c8e3bfdb2c345cc2561dcd2a347dff605965f7c"
+    },
+    {
+      "path": "/workspace/shared/a100-coalesced-332e389a/independent-raw-telemetry-review.json",
+      "bytes": 86380,
+      "sha256": "94b4b3337a55e471563d50c1ad14171dc2a965a19a4a4ec68205e9815497b7f8"
+    },
+    {
+      "path": "/workspace/shared/a100-coalesced-332e389a/independent-all-native-pixels-review.json",
+      "bytes": 3796,
+      "sha256": "8c65740fe3f17a0c86fba5ee6dbe87e7842e5424b767572b6f8f1f8a856899f8"
+    },
+    {
+      "path": "/workspace/shared/a100-coalesced-332e389a/independent-gpu-tick-followup-review.json",
+      "bytes": 871,
+      "sha256": "90651d50eedf0934349796585dde571cfee644c8694864f8d0a32d8398da7742"
+    },
+    {
+      "path": "/workspace/shared/a100-coalesced-332e389a/full-transfer-verification.json",
+      "bytes": 328,
+      "sha256": "1800f890ad006dd45b2fd3463f083b5dc3837f86fee3bca1dc850ff0c2561075"
+    },
+    {
+      "path": "/workspace/shared/a100-coalesced-332e389a/full-evidence-transfer-manifest.json",
+      "bytes": 2547,
+      "sha256": "4c694d5cf4ee3f83cac84b1bdc7cc5cbe258edf0ca111ab06725a8abac6da6d7"
+    },
+    {
+      "path": "/workspace/shared/rust-integration-review/exact-stored-zip-transport-independent-review.json",
+      "bytes": 1165,
+      "sha256": "e3943a1d7b4bbde67e29b85f3071a093750e13a8dfd3aa2b0eeecce2e720e8f2"
+    }
+  ],
+  "archive_retention_gaps": [],
+  "new_gpu_execution_during_recovery": false,
+  "scope_limits": [
+    "A complete original exported archive was recovered exactly; the export intentionally excludes target caches and private assets. Original 77 public runtime asset binaries are receipt-bound, not directly included in this packet.",
+    "A bounded 22-case actual-loader legacy-resident/coalesced-resident equivalence gate passed; this is not broad gameplay or cross-device acceptance.",
+    "Historical CPU/resident image failure remains failed: 18 RGB pixels across 11 pairs, maximum channel delta 3.",
+    "Four post-Record screenshots retain world, HUD, hands and weapon; they are not time-synchronized strict game image comparisons.",
+    "One sequential same-ELF legacy/coalesced/coalesced/legacy diagnostic on A100 Vulkan Immediate, with direct target fixed. No RTX or DX12 performance inference.",
+    "Coalescer GPU medians were identical; run means do not establish a GPU gain either. Observed 1024 ns sample tick lattice is not a certified hardware resolution.",
+    "CPU substage and GPU intervals overlap and are not additive budgets. GPU command timestamps exclude earlier upload copies.",
+    "Frame improvement uses the arithmetic mean of two run medians per mode; no independent-frame significance claim."
+  ]
+}

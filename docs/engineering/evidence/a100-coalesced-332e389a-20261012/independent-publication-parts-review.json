@@ -1,0 +1,18 @@
+{
+  "schema": "coalesced-publication-parts-independent-review/v1",
+  "passed": true,
+  "parts": 13,
+  "each_part_sha256_git_blob_and_external_original_manifest_verified": true,
+  "compressed_bytes": 78987868,
+  "compressed_sha256": "f83ac8e2f63d25cf2b2a74e88ce2cc2b55fba469840185a98cad96e970996c47",
+  "decompressed_original_bytes": 839406313,
+  "decompressed_original_sha256": "0453642bac3a105163fa77d0b25ff1e03c4df9e66a9054d4600aeb6981771973",
+  "streamed_bytes_equal_retained_original_zip": true,
+  "original_zip_entries": 706,
+  "all_original_crcs_verified": true,
+  "reconstruct_script_sha256": "95f336dcccd7b061f8781a360b975d706963ab6704c068c83ca3bcdb23bedf59",
+  "source_review": "Fresh-output-only standard-library reconstruction verifies ordered bounded filenames, per-part SHA, combined XZ SHA, bounded decompressed ZIP size/SHA and all706 original CRCs. No execution or extraction of archive contents.",
+  "no_additional_full_archive_copy_created": true,
+  "local_only": true,
+  "remote_publication_pending": true
+}

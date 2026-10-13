@@ -696,7 +696,22 @@ class DriverTests(unittest.TestCase):
         self.assertEqual(driver.key.call_args_list,
                          [mock.call('w', True), mock.call('w', False), mock.call('s', True), mock.call('s', False)])
         self.assertEqual(result['elapsed_seconds'], 4.1)
+        self.assertEqual(result['replay_basis'], 'wall-clock W/S alternation every two seconds; not fixed simulation replay')
         self.assertEqual(driver.aim.call_args_list[-1], mock.call(False))
+
+    def test_stationary_replay_descriptions_match_actual_inputs(self):
+        for action, description, aim in [('baseline', 'stationary baseline', False),
+                                         ('ads', 'stationary held ADS', True)]:
+            with self.subTest(action=action):
+                driver, process = mock.Mock(), mock.Mock()
+                process.poll.return_value = None
+                with mock.patch.object(d.time, 'monotonic', side_effect=[0, 0, 2, 4, 4.1]), mock.patch.object(d.time, 'sleep'):
+                    result = d.replay(driver, process, [1920, 1080], action, 4)
+                driver.key.assert_not_called()
+                self.assertEqual(result['input_transitions'], [])
+                self.assertIn(description, result['replay_basis'])
+                self.assertNotIn('W/S', result['replay_basis'])
+                self.assertEqual(driver.aim.call_args_list, [mock.call(aim), mock.call(False)])
 
     def test_focus_failure_releases_held_inputs(self):
         driver = mock.Mock()
@@ -716,6 +731,174 @@ class DriverTests(unittest.TestCase):
         run.assert_not_called()
 
 
+class BuildComparisonTests(unittest.TestCase):
+    """Original source-pair fixtures; no native process or downloaded binary."""
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        self.root = Path(self.temp.name)
+        self.sources = {label: {'commit': char * 40, 'runtime_files_sha256': {
+            **{name: (label + name) for name in m.CPU_SOURCE_PATHS}, 'src/common.rs': 'common'}}
+            for label, char in (('baseline', 'a'), ('candidate', 'b'))}
+        for label, name in (('baseline', 'AUDITED_GPU_CPU_BASELINE_MANIFEST'),
+                            ('candidate', 'AUDITED_GPU_CANDIDATE_MANIFEST')):
+            item = mock.patch.object(m, name, m.canonical_hash(self.sources[label]['runtime_files_sha256']))
+            item.start()
+            self.addCleanup(item.stop)
+        settings = self.root / 'settings.cfg'
+        settings.write_bytes(b'original settings')
+        self.args = SimpleNamespace(execute=True, driver='win32', force_fallback=True,
+            graphics_settings=None, hardware=None, settings=settings, output=self.root / 'comparison',
+            baseline_source_witness=self.root / 'baseline', baseline_witness_sha256='1' * 64,
+            candidate_source_witness=self.root / 'candidate', candidate_witness_sha256='2' * 64,
+            baseline_executable=self.root / 'baseline.exe', candidate_executable=self.root / 'candidate.exe',
+            warmup_seconds=15, sample_seconds=45, procedural_baseline=True,
+            lock_file=self.root / 'desktop.lock',
+            baseline_build_receipt=self.root / 'baseline-build.json',
+            candidate_build_receipt=self.root / 'candidate-build.json')
+        import run_cpu_image_preservation as pair
+        production = {label: {**source['runtime_files_sha256'], 'Cargo.toml': 'same manifest'}
+                      for label, source in self.sources.items()}
+        for item in (mock.patch.object(m, 'AUDITED_GPU_PRODUCTION_MANIFEST', m.canonical_hash(production['candidate'])),
+                     mock.patch.object(pair, 'CPU_BASELINE', {name: production['baseline'][name] for name in m.CPU_SOURCE_PATHS})):
+            item.start()
+            self.addCleanup(item.stop)
+        for label in ('baseline', 'candidate'):
+            dump(getattr(self.args, label + '_build_receipt'), {
+                'schema': 'rust-duty-performance-release-build/v1', 'source_commit': self.sources[label]['commit'],
+                'production_files_sha256': production[label], 'executable_sha256': label,
+                'ci_run_source_commit': self.sources['candidate']['commit'],
+                'command': ['cargo', 'build', '--locked', '--release', '--no-default-features',
+                            '--features', 'wgpu-runtime', '--bin', 'vector-range'],
+                'build_settings': {'CARGO_INCREMENTAL': '0', 'CARGO_BUILD_JOBS': '2', 'CARGO_PROFILE_RELEASE_DEBUG': '0'},
+                'build_result': {'exit_code': 0}, 'toolchain': {
+                    'rustc': 'rustc 1.99.0\nhost: x86_64-pc-windows-msvc\nrelease: 1.99.0\n',
+                    'cargo': 'cargo 1.99.0 synthetic'}})
+        self.calls = []
+
+    def exercise(self, mutation=None):
+        def source(path, digest):
+            return copy.deepcopy(self.sources[Path(path).name])
+        def package(exe, source, renderer):
+            return {'adjacent_files_sha256': {'ui/theme.css': (
+                'changed' if mutation == 'assets' and Path(exe).stem == 'candidate' else 'same')},
+                'executable_sha256': Path(exe).stem,
+                'build': {'repository': 'RHS059/rust_duty', 'target': 'x86_64-pc-windows-msvc',
+                    'display_version': 'different' if mutation == 'label' and Path(exe).stem == 'candidate' else 'same',
+                    'source': {'commit': source['commit'], 'workflow': '.github/workflows/build.yml',
+                               'run_attempt': 2 if mutation == 'run-attempt' and Path(exe).stem == 'candidate' else 1}}}
+        def run(args):
+            self.assertTrue(self.args.lock_file.is_file())
+            self.assertNotEqual(args.lock_file, self.args.lock_file)
+            self.assertFalse(args.continue_after_exit_timeout)
+            label = Path(args.executable).stem
+            self.calls.append(label)
+            plan = m.json_read(args.plan)
+            self.assertTrue(plan['gpu_timestamps'] and plan['baseline_only'] and plan['procedural_baseline'])
+            self.assertEqual(len(plan['order']), 1)
+            args.output.mkdir()
+            if mutation == 'settings':
+                self.args.settings.write_bytes(b'changed settings')
+            pinned = package(args.executable, self.sources[label], 'dx12')
+            if mutation == 'child-package' and len(self.calls) == 2:
+                pinned['executable_sha256'] = 'changed executable'
+            dump(args.output / 'MANIFEST.json', {'settings_sha256': m.sha256(args.settings),
+                'graphics': {'schema': 'rust-duty-graphics-device/v1', 'adapter': None},
+                'package': pinned, 'plan': plan})
+            if mutation == 'earlier-evidence' and len(self.calls) == 2:
+                (self.args.output / 'r01-baseline/MANIFEST.json').write_bytes(b'changed old evidence')
+        def analyze(folder):
+            n = int(Path(folder).name.split('-')[0][1:])
+            ready = not (mutation == 'undersampled' and n == 2)
+            adapter = {'name': 'changed' if mutation == 'adapter' and n == 2 else 'same'}
+            return {'state': 'complete', 'measurement_readiness': {'ready': ready},
+                    'runs': [{'runtime_observed': {'actual_adapter': adapter,
+                         'initial_window': {'physical_width': 1920, 'physical_height': 1080, 'scale_factor': 1},
+                         'scene': {'presentation': 'procedural'}},
+                         'started_unix_ns': 0 if mutation == 'overlap' and n == 2 else n * 100,
+                         'finished_unix_ns': n * 100 + 50}]}
+        with mock.patch.object(m, 'artifact_source', side_effect=source), \
+                mock.patch.object(m, 'package_identity', side_effect=package), \
+                mock.patch.object(m, 'run_matrix', side_effect=run), \
+                mock.patch.object(m, 'analyze_matrix', side_effect=analyze):
+            return m.compare_builds(self.args)
+
+    def test_eight_run_bracketed_order_holds_outer_lock_and_keeps_no_performance_verdict(self):
+        result = self.exercise()
+        self.assertEqual(self.calls, ['baseline', 'candidate', 'candidate', 'baseline'] * 2)
+        self.assertFalse(self.args.lock_file.exists())
+        self.assertEqual(result['state'], 'complete')
+        self.assertIsNone(result['performance_improvement'])
+        self.assertFalse(result['target_1080p60_proven'])
+        self.assertEqual(result, m.json_read(self.args.output / 'COMPARE_SUMMARY.json'))
+
+    def test_different_assets_stop_before_any_game(self):
+        with self.assertRaisesRegex(ValueError, 'adjacent assets'):
+            self.exercise('assets')
+        self.assertEqual(self.calls, [])
+
+    def test_changed_settings_adapter_overlapping_or_undersampled_run_stops_comparison(self):
+        for mutation in ('settings', 'adapter', 'overlap', 'undersampled'):
+            with self.subTest(mutation=mutation):
+                if self.args.output.exists():
+                    shutil.rmtree(self.args.output)
+                self.args.settings.write_bytes(b'original settings')
+                self.calls.clear()
+                with self.assertRaises(ValueError):
+                    self.exercise(mutation)
+                self.assertLessEqual(len(self.calls), 2)
+                self.assertFalse(self.args.lock_file.exists())
+                self.assertEqual(m.json_read(self.args.output / 'COMPARE_FAILURE.json')['state'], 'incomplete')
+
+    def test_changed_child_package_and_earlier_retained_evidence_fail(self):
+        for mutation, error in (('child-package', 'child package'), ('earlier-evidence', 'Earlier comparison evidence')):
+            with self.subTest(mutation=mutation):
+                if self.args.output.exists():
+                    shutil.rmtree(self.args.output)
+                self.calls.clear()
+                with self.assertRaisesRegex(ValueError, error):
+                    self.exercise(mutation)
+                self.assertFalse(self.args.lock_file.exists())
+
+    def test_unreviewed_non_runtime_compile_input_or_compiler_identity_fails(self):
+        receipt = m.json_read(self.args.candidate_build_receipt)
+        original = copy.deepcopy(receipt)
+        receipt['production_files_sha256']['Cargo.toml'] = 'different manifest'
+        dump(self.args.candidate_build_receipt, receipt)
+        with self.assertRaisesRegex(ValueError, 'closed reviewed production'):
+            self.exercise()
+        receipt = copy.deepcopy(original)
+        receipt['toolchain']['rustc'] = 'unreviewed compiler'
+        dump(self.args.candidate_build_receipt, receipt)
+        with self.assertRaisesRegex(ValueError, 'compiler identities'):
+            self.exercise()
+        self.assertEqual(self.calls, [])
+
+    def test_mixed_ci_attempts_labels_or_receipt_source_fail_before_launch(self):
+        for mutation in ('label', 'run-attempt'):
+            with self.subTest(mutation=mutation), self.assertRaisesRegex(ValueError, 'CI run identities'):
+                self.exercise(mutation)
+        receipt = m.json_read(self.args.baseline_build_receipt)
+        receipt['ci_run_source_commit'] = 'c' * 40
+        dump(self.args.baseline_build_receipt, receipt)
+        with self.assertRaisesRegex(ValueError, 'different candidate CI source'):
+            self.exercise()
+        self.assertEqual(self.calls, [])
+
+    def test_unreviewed_source_or_reused_commit_is_rejected_before_launch(self):
+        self.sources['baseline']['runtime_files_sha256']['src/common.rs'] = 'unreviewed'
+        with self.assertRaisesRegex(ValueError, 'exact reviewed baseline'):
+            self.exercise()
+        self.sources['baseline']['runtime_files_sha256']['src/common.rs'] = 'common'
+        self.sources['baseline']['commit'] = self.sources['candidate']['commit']
+        receipt = m.json_read(self.args.baseline_build_receipt)
+        receipt['source_commit'] = self.sources['candidate']['commit']
+        dump(self.args.baseline_build_receipt, receipt)
+        with self.assertRaisesRegex(ValueError, 'distinct real source commits'):
+            self.exercise()
+        self.assertEqual(self.calls, [])
+
+
 class SourceWitnessTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
@@ -726,14 +909,15 @@ class SourceWitnessTests(unittest.TestCase):
         self.repository = self.root / 'synthetic-repository'
         self.repository.mkdir()
         hashes = {}
-        for name in m.SOURCE_PATHS:
+        for name in (*m.SOURCE_PATHS, *m.CPU_SOURCE_PATHS, *m.PRESENT_SOURCE_PATHS[1:], *m.LOADER_BASELINE, *m.RESIDENT_BASELINE):
             path = self.repository / name
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_bytes(('// Synthetic witness protocol fixture: ' + name + '\n').encode())
             hashes[name] = m.sha256(path)
         subprocess.run(['git', 'init', '--quiet', str(self.repository)], check=True,
                        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        subprocess.run(['git', '-C', str(self.repository), 'add', '--', *m.SOURCE_PATHS],
+        subprocess.run(['git', '-C', str(self.repository), 'add', '--', *m.SOURCE_PATHS,
+                        *m.CPU_SOURCE_PATHS, *m.PRESENT_SOURCE_PATHS[1:], *m.LOADER_BASELINE, *m.RESIDENT_BASELINE],
                        check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         hooks = self.root / 'empty-hooks'
         hooks.mkdir()
@@ -742,7 +926,22 @@ class SourceWitnessTests(unittest.TestCase):
                         '-c', 'commit.gpgsign=false', '-c', 'core.hooksPath=' + str(hooks),
                         'commit', '--quiet', '-m', 'Synthetic source-witness test fixture'],
                        check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        audit = mock.patch.object(m, 'AUDITED_RUNTIME_MANIFEST', m.canonical_hash(hashes))
+        resident_audit = mock.patch.object(m, 'RESIDENT_BASELINE', {name: hashes[name] for name in m.RESIDENT_BASELINE})
+        resident_audit.start()
+        self.addCleanup(resident_audit.stop)
+        loader_audit = mock.patch.object(m, 'LOADER_BASELINE', {name: hashes[name] for name in m.LOADER_BASELINE})
+        loader_audit.start()
+        self.addCleanup(loader_audit.stop)
+        cpu_audit = mock.patch.object(m, 'CPU_BASELINE_MANIFEST',
+                                      m.canonical_hash({name: hashes[name] for name in m.CPU_SOURCE_PATHS}))
+        cpu_audit.start()
+        self.addCleanup(cpu_audit.stop)
+        present_audit = mock.patch.object(m, 'PRESENT_BASELINE_MANIFEST',
+                                          m.canonical_hash({name: hashes[name] for name in m.PRESENT_SOURCE_PATHS[1:]}))
+        present_audit.start()
+        self.addCleanup(present_audit.stop)
+        audit = mock.patch.object(m, 'AUDITED_RUNTIME_MANIFEST',
+                                  m.canonical_hash({name: hashes[name] for name in m.SOURCE_PATHS}))
         audit.start()
         self.addCleanup(audit.stop)
         self.witness = self.root / 'witness'
@@ -765,13 +964,43 @@ class SourceWitnessTests(unittest.TestCase):
         plan = m.make_plan(actual, smoke=True, source_origin=origin)
         m.validate_plan(plan)
 
+    def test_synthetic_source_ignores_windows_text_defaults(self):
+        # Emulate Windows' text-mode LF -> CRLF conversion on every host. The
+        # synthetic committed source must explicitly retain LF bytes.
+        write_text = Path.write_text
+
+        def windows_text(path, data, *args, **kwargs):
+            kwargs.setdefault('newline', '\r\n')
+            return write_text(path, data, *args, **kwargs)
+
+        with mock.patch.object(Path, 'write_text', windows_text):
+            self.gpu_fixture()
+            source = m.source_identity(self.repository)
+        self.assertEqual(len(source['runtime_files_sha256']), 29)
+        for name in source['runtime_files_sha256']:
+            self.assertNotIn(b'\r\n', (self.repository / name).read_bytes())
+
+    def test_git_clean_crlf_worktree_still_fails_exact_byte_guard(self):
+        path = self.repository / m.SOURCE_PATHS[0]
+        path.write_bytes(path.read_bytes().replace(b'\n', b'\r\n'))
+        # Git may call a CRLF worktree clean while its committed blob is LF.
+        # The production witness must reject that byte mismatch regardless.
+        subprocess.run(['git', '-C', str(self.repository), '-c', 'core.autocrlf=true',
+                        'add', '--', m.SOURCE_PATHS[0]], check=True, capture_output=True)
+        status = subprocess.check_output([
+            'git', '-C', str(self.repository), '-c', 'core.autocrlf=true',
+            'status', '--porcelain', '--untracked-files=no'])
+        self.assertEqual(status.strip(), b'')
+        with self.assertRaisesRegex(ValueError, 'Uncommitted runtime source'):
+            m.source_identity(self.repository)
+
     def test_separate_expected_digest_is_mandatory_and_not_self_accepted(self):
         for digest in (None, '', '0' * 64):
             with self.assertRaises(ValueError):
                 m.artifact_source(self.witness, digest)
 
     def test_file_mutation_is_rejected_even_with_original_manifest(self):
-        (self.witness / 'src/main.rs').write_text('// changed\n')
+        (self.witness / 'src/main.rs').write_text('// changed\n', encoding='utf-8', newline='\n')
         with self.assertRaisesRegex(ValueError, 'source bytes'):
             m.artifact_source(self.witness, self.digest)
 
@@ -790,12 +1019,304 @@ class SourceWitnessTests(unittest.TestCase):
             m.artifact_source(self.witness, m.sha256(self.witness / 'SOURCE_WITNESS.json'))
 
     def test_extra_files_and_source_mode_conflicts_rejected(self):
-        (self.witness / 'extra.rs').write_text('// not inventoried')
+        (self.witness / 'extra.rs').write_text('// not inventoried', encoding='utf-8', newline='\n')
         with self.assertRaisesRegex(ValueError, 'Unexpected'):
             m.artifact_source(self.witness, self.digest)
         args = SimpleNamespace(source_witness=self.witness, witness_sha256=self.digest, repository=self.repository)
         with self.assertRaisesRegex(ValueError, 'not both'):
             m.resolve_source(args)
+
+    def sidecar_fixture(self):
+        # Change an inventoried runtime file, then commit exactly the expanded
+        # synthetic inventory. This is not a production hash or performance run.
+        (self.repository / m.SOURCE_PATHS[0]).write_text('// Synthetic sidecar-enabled source\n', encoding='utf-8', newline='\n')
+        for name in m.SUBSTAGE_SOURCE_PATHS[len(m.SOURCE_PATHS):]:
+            path = self.repository / name
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text('// Synthetic additional sidecar source: ' + name + '\n', encoding='utf-8', newline='\n')
+        subprocess.run(['git', '-C', str(self.repository), 'add', '--', *m.SUBSTAGE_SOURCE_PATHS],
+                       check=True, capture_output=True)
+        subprocess.run(['git', '-C', str(self.repository), '-c', 'user.name=Matrix Protocol Test',
+                        '-c', 'user.email=matrix-protocol@example.invalid', '-c', 'commit.gpgsign=false',
+                        '-c', 'core.hooksPath=' + str(self.root / 'empty-hooks'),
+                        'commit', '--quiet', '-m', 'Synthetic reviewed sidecar inventory'],
+                       check=True, capture_output=True)
+        digest = m.canonical_hash({name: m.sha256(self.repository / name) for name in m.SUBSTAGE_SOURCE_PATHS})
+        audit = mock.patch.object(m, 'AUDITED_SUBSTAGE_RUNTIME_MANIFEST', digest)
+        audit.start()
+        self.addCleanup(audit.stop)
+        witness = self.root / 'sidecar-witness'
+        expected = m.export_witness(self.repository, witness)
+        return witness, expected
+
+    def test_sidecar_exact_inventory_roundtrips_and_historical_witness_still_works(self):
+        witness, expected = self.sidecar_fixture()
+        source = m.artifact_source(witness, expected)
+        self.assertEqual(set(source['runtime_files_sha256']), set(m.SUBSTAGE_SOURCE_PATHS))
+        self.assertEqual(len(source['runtime_files_sha256']), 20)
+        self.assertEqual(m.canonical_hash(source['runtime_files_sha256']), m.AUDITED_SUBSTAGE_RUNTIME_MANIFEST)
+        self.assertEqual(len(m.artifact_source(self.witness, self.digest)['runtime_files_sha256']), 17)
+
+    def test_inventory_label_cannot_substitute_for_exact_path_set_and_digest(self):
+        witness, expected = self.sidecar_fixture()
+        control = m.json_read(witness / 'SOURCE_WITNESS.json')
+        for mutate in (
+            lambda value: value.update(audited_runtime_manifest_sha256=m.AUDITED_RUNTIME_MANIFEST),
+            lambda value: value['source']['runtime_files_sha256'].pop('src/frame_cpu_substages.rs'),
+            lambda value: value['source']['runtime_files_sha256'].update({'src/lib.rs': '0' * 64}),
+        ):
+            value = copy.deepcopy(control)
+            mutate(value)
+            dump(witness / 'SOURCE_WITNESS.json', value)
+            with self.assertRaisesRegex(ValueError, 'audited runtime'):
+                m.artifact_source(witness, m.sha256(witness / 'SOURCE_WITNESS.json'))
+
+    def test_dirty_additional_source_is_rejected_before_export(self):
+        self.sidecar_fixture()
+        (self.repository / 'src/frame_cpu_substages.rs').write_text('// Unreviewed dirty bytes\n', encoding='utf-8', newline='\n')
+        with self.assertRaisesRegex(ValueError, 'Uncommitted runtime source'):
+            m.source_identity(self.repository)
+
+    def commit_cpu_fixture(self):
+        subprocess.run(['git', '-C', str(self.repository), 'add', '--', *m.CPU_SOURCE_PATHS],
+                       check=True, capture_output=True)
+        subprocess.run(['git', '-C', str(self.repository), '-c', 'user.name=Matrix Protocol Test',
+                        '-c', 'user.email=matrix-protocol@example.invalid', '-c', 'commit.gpgsign=false',
+                        '-c', 'core.hooksPath=' + str(self.root / 'empty-hooks'),
+                        'commit', '--quiet', '-m', 'Synthetic CPU inventory change'],
+                       check=True, capture_output=True)
+
+    def test_cpu_candidate_requires_exact_expanded_inventory_and_keeps_old_witnesses(self):
+        old_sidecar, old_digest = self.sidecar_fixture()
+        for name in m.CPU_SOURCE_PATHS:
+            (self.repository / name).write_text('// Synthetic reviewed CPU candidate: ' + name + '\n', encoding='utf-8', newline='\n')
+        self.commit_cpu_fixture()
+        hashes = {name: m.sha256(self.repository / name) for name in m.CPU_CANDIDATE_SOURCE_PATHS}
+        with mock.patch.object(m, 'AUDITED_CPU_CANDIDATE_MANIFEST', m.canonical_hash(hashes)):
+            witness = self.root / 'cpu-witness'
+            digest = m.export_witness(self.repository, witness)
+            source = m.artifact_source(witness, digest)
+            self.assertEqual(source['runtime_files_sha256'], hashes)
+            self.assertEqual(len(source['runtime_files_sha256']), 24)
+            self.assertEqual(len(m.artifact_source(self.witness, self.digest)['runtime_files_sha256']), 17)
+            self.assertEqual(len(m.artifact_source(old_sidecar, old_digest)['runtime_files_sha256']), 20)
+            control = m.json_read(witness / 'SOURCE_WITNESS.json')
+            for name in m.CPU_SOURCE_PATHS:
+                value = copy.deepcopy(control)
+                value['source']['runtime_files_sha256'].pop(name)
+                dump(witness / 'SOURCE_WITNESS.json', value)
+                with self.assertRaisesRegex(ValueError, 'audited runtime'):
+                    m.artifact_source(witness, m.sha256(witness / 'SOURCE_WITNESS.json'))
+
+    def test_changed_cpu_source_cannot_fall_back_to_old_or_sidecar_inventory(self):
+        for sidecar in (False, True):
+            if sidecar:
+                self.sidecar_fixture()
+            for name in m.CPU_SOURCE_PATHS:
+                with self.subTest(sidecar=sidecar, name=name):
+                    path = self.repository / name
+                    original = path.read_bytes()
+                    path.write_bytes(original + b'// Unreviewed CPU change\n')
+                    with self.assertRaisesRegex(ValueError, 'Uncommitted runtime source'):
+                        m.source_identity(self.repository)
+                    self.commit_cpu_fixture()
+                    with self.assertRaisesRegex(ValueError, 'cannot fall back'):
+                        m.source_identity(self.repository)
+                    path.write_bytes(original)
+                    self.commit_cpu_fixture()
+                    self.assertEqual(len(m.source_identity(self.repository)['runtime_files_sha256']),
+                                     20 if sidecar else 17)
+
+    def present_fixture(self):
+        self.sidecar_fixture()
+        for name in m.CPU_SOURCE_PATHS:
+            (self.repository / name).write_text('// Synthetic reviewed CPU candidate: ' + name + '\n', encoding='utf-8', newline='\n')
+        self.commit_cpu_fixture()
+        cpu_hashes = {name: m.sha256(self.repository / name) for name in m.CPU_CANDIDATE_SOURCE_PATHS}
+        audit = mock.patch.object(m, 'AUDITED_CPU_CANDIDATE_MANIFEST', m.canonical_hash(cpu_hashes))
+        audit.start()
+        self.addCleanup(audit.stop)
+        old_witness = self.root / 'cpu-witness'
+        old_digest = m.export_witness(self.repository, old_witness)
+        for name in m.PRESENT_SOURCE_PATHS:
+            (self.repository / name).write_text('// Synthetic reviewed present integration: ' + name + '\n', encoding='utf-8', newline='\n')
+        self.commit_present_fixture()
+        hashes = {name: m.sha256(self.repository / name) for name in m.PRESENT_CANDIDATE_SOURCE_PATHS}
+        audit = mock.patch.object(m, 'AUDITED_PRESENT_CANDIDATE_MANIFEST', m.canonical_hash(hashes))
+        audit.start()
+        self.addCleanup(audit.stop)
+        witness = self.root / 'present-witness'
+        digest = m.export_witness(self.repository, witness)
+        return witness, digest, old_witness, old_digest
+
+    def commit_present_fixture(self):
+        subprocess.run(['git', '-C', str(self.repository), 'add', '-A', '--', *m.PRESENT_SOURCE_PATHS],
+                       check=True, capture_output=True)
+        subprocess.run(['git', '-C', str(self.repository), '-c', 'user.name=Matrix Protocol Test',
+                        '-c', 'user.email=matrix-protocol@example.invalid', '-c', 'commit.gpgsign=false',
+                        '-c', 'core.hooksPath=' + str(self.root / 'empty-hooks'),
+                        'commit', '--quiet', '-m', 'Synthetic present inventory change'],
+                       check=True, capture_output=True)
+
+    def test_present_candidate_roundtrip_keeps_fifo_matrix_and_historical_evidence(self):
+        witness, digest, old_witness, old_digest = self.present_fixture()
+        source = m.artifact_source(witness, digest)
+        self.assertEqual(set(source['runtime_files_sha256']), set(m.PRESENT_CANDIDATE_SOURCE_PATHS))
+        self.assertEqual(len(source['runtime_files_sha256']), 27)
+        self.assertEqual(len(m.artifact_source(old_witness, old_digest)['runtime_files_sha256']), 24)
+        plan = m.make_plan(source, smoke=True)
+        m.validate_plan(plan)
+        self.assertEqual(plan['fixed_runtime']['present_mode'], 'Fifo')
+        self.assertIn('matrix fixes Fifo', plan['unavailable_axes']['vsync_choices'])
+
+    def test_present_sources_cannot_be_changed_or_removed_to_use_narrower_inventory(self):
+        self.present_fixture()
+        for name in m.PRESENT_SOURCE_PATHS:
+            with self.subTest(name=name):
+                path = self.repository / name
+                original = path.read_bytes()
+                path.write_bytes(original + b'// Unreviewed present change\n')
+                with self.assertRaisesRegex(ValueError, 'Uncommitted runtime source'):
+                    m.source_identity(self.repository)
+                self.commit_present_fixture()
+                with self.assertRaisesRegex(ValueError, 'cannot fall back'):
+                    m.source_identity(self.repository)
+                path.unlink()
+                self.commit_present_fixture()
+                with self.assertRaisesRegex(ValueError, 'missing present inventory|cannot fall back'):
+                    m.source_identity(self.repository)
+                path.write_bytes(original)
+                self.commit_present_fixture()
+                self.assertEqual(len(m.source_identity(self.repository)['runtime_files_sha256']), 27)
+
+
+    def commit_gpu_fixture(self):
+        subprocess.run(['git', '-C', str(self.repository), 'add', '-A', '--',
+                        *m.GPU_CANDIDATE_SOURCE_PATHS], check=True, capture_output=True)
+        subprocess.run(['git', '-C', str(self.repository), '-c', 'user.name=Matrix Protocol Test',
+                        '-c', 'user.email=matrix-protocol@example.invalid', '-c', 'commit.gpgsign=false',
+                        '-c', 'core.hooksPath=' + str(self.root / 'empty-hooks'),
+                        'commit', '--quiet', '-m', 'Synthetic GPU inventory change'],
+                       check=True, capture_output=True)
+
+    def gpu_fixture(self):
+        old_witness, old_digest, _, _ = self.present_fixture()
+        for name in (*m.GPU_SOURCE_PATHS, 'src/main.rs', 'src/render/mod.rs'):
+            (self.repository / name).write_text('// Synthetic reviewed GPU session source: ' + name + '\n', encoding='utf-8', newline='\n')
+        self.commit_gpu_fixture()
+        hashes = {name: m.sha256(self.repository / name) for name in m.GPU_CANDIDATE_SOURCE_PATHS}
+        audit = mock.patch.object(m, 'AUDITED_GPU_CANDIDATE_MANIFEST', m.canonical_hash(hashes))
+        audit.start()
+        self.addCleanup(audit.stop)
+        return old_witness, old_digest
+
+    def test_gpu_inventory_roundtrip_preserves_old_present_witness_and_default_off_matrix(self):
+        old_witness, old_digest = self.gpu_fixture()
+        witness = self.root / 'gpu-witness'
+        digest = m.export_witness(self.repository, witness)
+        source = m.artifact_source(witness, digest)
+        self.assertEqual(set(source['runtime_files_sha256']), set(m.GPU_CANDIDATE_SOURCE_PATHS))
+        self.assertEqual(len(source['runtime_files_sha256']), 29)
+        self.assertEqual(len(m.artifact_source(old_witness, old_digest)['runtime_files_sha256']), 27)
+        plan = m.make_plan(source, smoke=True)
+        m.validate_plan(plan)
+        self.assertEqual(plan['fixed_runtime']['present_mode'], 'Fifo')
+        self.assertIn('leaves them disabled', plan['unavailable_axes']['gpu_frame_duration'])
+
+    def gpu_cpu_baseline_fixture(self):
+        self.gpu_fixture()
+        for name in m.CPU_SOURCE_PATHS:
+            (self.repository / name).write_text('// Synthetic reviewed CPU baseline: ' + name + '\n',
+                                                encoding='utf-8', newline='\n')
+        self.commit_gpu_fixture()
+        hashes = {name: m.sha256(self.repository / name) for name in m.GPU_CANDIDATE_SOURCE_PATHS}
+        audit = mock.patch.object(m, 'AUDITED_GPU_CPU_BASELINE_MANIFEST', m.canonical_hash(hashes))
+        audit.start()
+        self.addCleanup(audit.stop)
+
+    def test_exact_gpu_cpu_baseline_roundtrip_and_timestamp_plan(self):
+        self.gpu_cpu_baseline_fixture()
+        witness = self.root / 'gpu-cpu-baseline-witness'
+        digest = m.export_witness(self.repository, witness)
+        source = m.artifact_source(witness, digest)
+        self.assertEqual(source, m.source_identity(self.repository))
+        self.assertEqual(len(source['runtime_files_sha256']), 29)
+        self.assertEqual(m.canonical_hash(source['runtime_files_sha256']), m.AUDITED_GPU_CPU_BASELINE_MANIFEST)
+        plan = m.make_plan(source, repeats=1, baseline_only=True, gpu_timestamps=True)
+        m.validate_plan(plan)
+        self.assertEqual([row['case_id'] for row in plan['order']], ['baseline'])
+        self.assertEqual(plan['cases'][0]['settings']['surface_extent'], [1920, 1080])
+        self.assertTrue(plan['gpu_timestamps'])
+        self.assertEqual(plan['fixed_runtime']['present_mode'], 'Fifo')
+
+    def test_each_gpu_cpu_baseline_file_rejects_dirty_and_committed_mutations(self):
+        self.gpu_cpu_baseline_fixture()
+        for name in m.CPU_SOURCE_PATHS:
+            path = self.repository / name
+            original = path.read_bytes()
+            with self.subTest(name=name):
+                path.write_bytes(original + b'// Unreviewed mixed baseline\n')
+                with self.assertRaisesRegex(ValueError, 'Uncommitted runtime source'):
+                    m.source_identity(self.repository)
+                self.commit_gpu_fixture()
+                with self.assertRaisesRegex(ValueError, 'cannot fall back'):
+                    m.source_identity(self.repository)
+                path.write_bytes(original)
+                self.commit_gpu_fixture()
+                self.assertEqual(m.canonical_hash(m.source_identity(self.repository)['runtime_files_sha256']),
+                                 m.AUDITED_GPU_CPU_BASELINE_MANIFEST)
+
+    def test_first_gpu_witness_remains_exact_after_reviewed_same_scope_revision(self):
+        self.gpu_fixture()
+        witness = self.root / 'first-gpu-witness'
+        digest = m.export_witness(self.repository, witness)
+        initial = m.AUDITED_GPU_CANDIDATE_MANIFEST
+        with mock.patch.object(m, 'AUDITED_GPU_INITIAL_MANIFEST', initial), \
+                mock.patch.object(m, 'AUDITED_GPU_CANDIDATE_MANIFEST', '0' * 64):
+            source = m.artifact_source(witness, digest)
+            self.assertEqual(m.canonical_hash(source['runtime_files_sha256']), initial)
+            self.assertEqual(m.source_identity(self.repository), source)
+            plan = m.make_plan(source, smoke=True)
+            m.validate_plan(plan)
+            self.assertIn('leaves them disabled', plan['unavailable_axes']['gpu_frame_duration'])
+            changed = self.repository / m.GPU_SOURCE_PATHS[0]
+            changed.write_bytes(changed.read_bytes() + b'// Unreviewed same-scope change\n')
+            self.commit_gpu_fixture()
+            with self.assertRaisesRegex(ValueError, 'cannot fall back'):
+                m.source_identity(self.repository)
+
+    def test_gpu_sources_cannot_change_or_disappear_into_narrower_inventory(self):
+        self.gpu_fixture()
+        for name in m.GPU_SOURCE_PATHS:
+            path = self.repository / name
+            original = path.read_bytes()
+            with self.subTest(name=name):
+                path.write_bytes(original + b'// Unreviewed GPU change\n')
+                with self.assertRaisesRegex(ValueError, 'Uncommitted runtime source'):
+                    m.source_identity(self.repository)
+                self.commit_gpu_fixture()
+                with self.assertRaisesRegex(ValueError, 'cannot fall back'):
+                    m.source_identity(self.repository)
+                path.unlink()
+                self.commit_gpu_fixture()
+                with self.assertRaisesRegex(ValueError, 'missing GPU inventory'):
+                    m.source_identity(self.repository)
+                path.write_bytes(original)
+                self.commit_gpu_fixture()
+                self.assertEqual(len(m.source_identity(self.repository)['runtime_files_sha256']), 29)
+        for name in m.GPU_SOURCE_PATHS:
+            (self.repository / name).unlink()
+        self.commit_gpu_fixture()
+        with self.assertRaisesRegex(ValueError, 'cannot fall back'):
+            m.source_identity(self.repository)
+
+    def test_gpu_file_added_to_old_inventory_cannot_be_silently_ignored(self):
+        for name in m.GPU_SOURCE_PATHS:
+            path = self.repository / name
+            path.write_text('// New unreviewed GPU source\n', encoding='utf-8', newline='\n')
+            with self.assertRaisesRegex(ValueError, 'cannot fall back'):
+                m.source_identity(self.repository)
+            path.unlink()
 
 
 if __name__ == '__main__':

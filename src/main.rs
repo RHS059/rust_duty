@@ -66,7 +66,10 @@ fn main() {
             cfg!(feature = "wgpu-runtime"),
         )
         .unwrap_or_else(|error| fatal(error));
-    let reference = args.iter().any(|arg| arg == "--reference-viewport");
+    let reference = args
+        .iter()
+        .take_while(|arg| arg.as_str() != "--")
+        .any(|arg| arg == "--reference-viewport");
     let (width, height) = if reference { (960, 540) } else { (1440, 900) };
     let title = format!("VECTOR RANGE | {}", vector_range::BUILD_LABEL);
     match runtime {
@@ -116,15 +119,26 @@ fn main() {
             #[cfg(feature = "wgpu-runtime")]
             {
                 let selection = requested.parse().unwrap_or_else(|error| fatal(error));
-                let run_result = vector_range::platform::window::run(
+                let initial_size = if options.physical_1080p {
+                    winit::dpi::Size::Physical(winit::dpi::PhysicalSize::new(1920, 1080))
+                } else {
+                    winit::dpi::Size::Logical(winit::dpi::LogicalSize::new(
+                        width as f64,
+                        height as f64,
+                    ))
+                };
+                let run_result = vector_range::platform::window::run_with_size(
                     &title,
-                    width as u32,
-                    height as u32,
+                    initial_size,
                     move |window| {
-                        vector_range::render::runtime::create_frame_hooks(
+                        vector_range::render::runtime::create_frame_hooks_with_diagnostics(
                             window,
                             selection,
                             force_fallback,
+                            vector_range::render::RuntimeDiagnostics {
+                                present_mode: options.present_mode,
+                                gpu_timestamps: options.gpu_timestamps,
+                            },
                         )
                     },
                     app::run(options.ui_theme),

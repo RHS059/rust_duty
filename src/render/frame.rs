@@ -3,16 +3,38 @@ use super::{
     arena::DrawSlice,
     capture::{CaptureEncoding, Readback},
     mesh::{FragmentKind, FrameGeometry},
-    plan::{draw_run_len, FramePlan, PreparedCommand, PreparedDraw},
+    plan::{
+        clear_draw_run, draw_attachment, draw_run_len, starts_with_main_clear, FramePlan,
+        PreparedCommand, PreparedDraw,
+    },
     target::{self, GpuTexture},
     WgpuRenderer,
 };
 use crate::draw::{BlendMode, Color, Command, DrawList, FrameOutput, RenderTarget, TextureSource};
 use crate::{frame_performance::CpuFrameStage, frame_performance_session as performance};
+use performance::{EncodeCounter, EncodePhase};
 use std::sync::Arc;
+
+struct EncodedFrame {
+    resident: crate::draw::ResidentFrameStats,
+    readbacks: Vec<Readback>,
+    presentation: Option<wgpu::SurfaceTexture>,
+    timing: Option<crate::frame_gpu_capture::GpuAttempt>,
+}
 
 impl WgpuRenderer {
     pub(super) fn submit_frame(&mut self, list: &DrawList) -> Result<FrameOutput, String> {
+        let result = self.submit_frame_inner(list);
+        if result.is_err() {
+            // Covers preflight, encode, validation, device and readback failures.
+            // Never reuse destinations of queue writes from an abandoned frame.
+            self.upload_cache.clear();
+            self.resident.clear();
+        }
+        result
+    }
+
+    fn submit_frame_inner(&mut self, list: &DrawList) -> Result<FrameOutput, String> {
         let (output, presentation) =
             performance::measure_cpu_stage(CpuFrameStage::RendererSubmit, || {
                 self.submit_before_present(list)
@@ -56,14 +78,34 @@ impl WgpuRenderer {
             .gpu
             .device
             .push_error_scope(wgpu::ErrorFilter::Validation);
-        let encoded = self.encode_frame(list, presentation);
-        let validation = pollster::block_on(error_scope.pop());
+        let encoded = performance::measure_cpu_substage(
+            crate::frame_cpu_substages::CpuSubstage::EncodeSubmit,
+            || self.encode_frame(list, presentation),
+        );
+        let validation = performance::measure_cpu_substage(
+            crate::frame_cpu_substages::CpuSubstage::SubmitValidation,
+            || pollster::block_on(error_scope.pop()),
+        );
+        let device_check = self.gpu.check_errors();
+        if let Ok(encoded) = &encoded {
+            if let Some(timing) = &encoded.timing {
+                timing.validate_submission(validation.is_none() && device_check.is_ok());
+            }
+        }
         if let Some(error) = validation {
             return Err(format!("frame validation: {error}"));
         }
-        self.gpu.check_errors()?;
-        let (readbacks, presentation) = encoded?;
-        let mut output = FrameOutput::default();
+        device_check?;
+        let EncodedFrame {
+            readbacks,
+            presentation,
+            timing: _,
+            resident,
+        } = encoded?;
+        let mut output = FrameOutput {
+            resident,
+            ..Default::default()
+        };
         for readback in readbacks {
             output.captures.push(readback.finish(&self.gpu.device)?);
         }
@@ -73,7 +115,7 @@ impl WgpuRenderer {
         &mut self,
         list: &DrawList,
         presentation: Option<wgpu::SurfaceTexture>,
-    ) -> Result<(Vec<Readback>, Option<wgpu::SurfaceTexture>), String> {
+    ) -> Result<EncodedFrame, String> {
         if self.main.descriptor.width != list.width || self.main.descriptor.height != list.height {
             self.main = Arc::new(GpuTexture::new(
                 &self.gpu.device,
@@ -83,109 +125,256 @@ impl WgpuRenderer {
             )?);
         }
         let limits = self.gpu.device.limits();
-        let plan = FramePlan::new(
-            list,
-            &mut self.text,
-            limits.min_uniform_buffer_offset_alignment,
-            limits.max_buffer_size,
-            presentation.is_some(),
-        )?;
-        let geometry: Vec<_> = plan
-            .arenas
-            .iter()
-            .map(|arena| self.pipelines.upload_geometry(&self.gpu.device, arena))
-            .collect();
+        let plan = performance::measure_encode_phase(EncodePhase::FramePlan, || {
+            FramePlan::new(
+                list,
+                &mut self.text,
+                limits.min_uniform_buffer_offset_alignment,
+                limits.max_buffer_size,
+                presentation.is_some(),
+            )
+        })?;
+        // Count the observed input/plan, not guessed glyphs or driver draws.
+        // No scan is performed when the capture is disabled.
+        if performance::encode_details_active() {
+            record_plan_counts(list, &plan);
+        }
+        // One encoder owns staging copies and draws. Creation stays within the
+        // EncodeSubmit aggregate, before the measured GeometryUpload child.
         let mut encoder = self
             .gpu
             .device
             .create_command_encoder(&wgpu::CommandEncoderDescriptor {
                 label: Some("ordered presentation frame"),
             });
-        clear(&mut encoder, &self.main, Color::TRANSPARENT);
-        let mut readbacks = Vec::new();
-        let mut commands = plan.commands.as_slice();
-        while let Some((command, following)) = commands.split_first() {
-            let mut consumed = 1;
-            match command {
-                PreparedCommand::Camera(camera) => {
-                    if let Some(target) = &camera.target {
-                        self.texture(&target.texture)?;
+        let (geometry, residents) =
+            performance::measure_encode_phase(EncodePhase::GeometryUpload, || {
+                let result = (|| {
+                    self.upload_cache
+                        .begin_frame_with_device(&self.gpu.device)?;
+                    let geometry = plan
+                        .arenas
+                        .iter()
+                        .enumerate()
+                        .map(|(index, arena)| {
+                            if performance::encode_details_active() {
+                                if let Some([vertices, indices, matrices]) = arena.buffer_contents()
+                                {
+                                    performance::add_encode_counter(EncodeCounter::UploadArenas, 1);
+                                    performance::add_encode_counter(
+                                        EncodeCounter::VertexBytes,
+                                        vertices.len() as u64,
+                                    );
+                                    performance::add_encode_counter(
+                                        EncodeCounter::IndexBytes,
+                                        indices.len() as u64,
+                                    );
+                                    performance::add_encode_counter(
+                                        EncodeCounter::UniformBytes,
+                                        matrices.len() as u64,
+                                    );
+                                }
+                            }
+                            self.upload_cache.upload_with_encoder(
+                                &self.gpu.device,
+                                &self.gpu.queue,
+                                &self.pipelines,
+                                index,
+                                arena,
+                                &mut encoder,
+                            )
+                        })
+                        .collect::<Result<Vec<_>, String>>()?;
+                    let residents = self.resident.prepare(&self.gpu.device, &plan.residents)?;
+                    Ok::<_, String>((geometry, residents))
+                })();
+                // Snapshot exactly once even on upload failure. Incomplete rows
+                // retain partial observations; gauges are sampled before submit.
+                if performance::encode_details_active() {
+                    record_staging_counts(self.upload_cache.staging_stats());
+                }
+                result
+            })?;
+        if let Some(frame) = &residents {
+            performance::add_encode_counter(EncodeCounter::ResidentDraws, frame.counts.draws);
+            performance::add_encode_counter(
+                EncodeCounter::ResidentRigidDraws,
+                frame.counts.rigid_draws,
+            );
+            performance::add_encode_counter(
+                EncodeCounter::ResidentSkinnedDraws,
+                frame.counts.skinned_draws,
+            );
+            performance::add_encode_counter(
+                EncodeCounter::ResidentVertexBytesUploaded,
+                frame.counts.vertex_bytes_uploaded,
+            );
+            performance::add_encode_counter(
+                EncodeCounter::ResidentIndexBytesUploaded,
+                frame.counts.index_bytes_uploaded,
+            );
+            performance::add_encode_counter(
+                EncodeCounter::ResidentUniformBytesUploaded,
+                frame.counts.uniform_bytes_uploaded,
+            );
+            performance::add_encode_counter(
+                EncodeCounter::ResidentCacheHits,
+                frame.counts.cache_hits,
+            );
+            performance::add_encode_counter(
+                EncodeCounter::ResidentCacheMisses,
+                frame.counts.cache_misses,
+            );
+            performance::add_encode_counter(
+                EncodeCounter::ResidentBufferAllocations,
+                frame.counts.buffer_allocations,
+            );
+            performance::add_encode_counter(
+                EncodeCounter::ResidentBindingAllocations,
+                frame.counts.binding_allocations,
+            );
+            performance::add_encode_counter(
+                EncodeCounter::ResidentTransientMeshes,
+                frame.counts.transient_meshes,
+            );
+        }
+        let (encoder, mut timing, readbacks) =
+            performance::measure_encode_phase(EncodePhase::CommandEncoding, || {
+                // Copies precede the start query. These GPU timestamps continue
+                // to describe the explicit draw span, excluding upload copies.
+                let mut timing = if let Some(registration) = self.gpu.gpu_diagnostics {
+                    performance::gpu_frame_key().and_then(|key| {
+                        crate::frame_gpu_capture::begin_gpu_frame(registration, key, &mut encoder)
+                    })
+                } else {
+                    None
+                };
+                // An explicit first main clear already initializes both color
+                // and depth. Keep the fallback for capture-only/uncleared lists.
+                if !starts_with_main_clear(&plan.commands) {
+                    clear(&mut encoder, &self.main, Color::TRANSPARENT);
+                }
+                let mut readbacks = Vec::new();
+                let mut commands = plan.commands.as_slice();
+                while let Some((command, _)) = commands.split_first() {
+                    let mut consumed = 1;
+                    match command {
+                        PreparedCommand::Camera(camera) => {
+                            if let Some(target) = &camera.target {
+                                self.texture(&target.texture)?;
+                            }
+                        }
+                        PreparedCommand::Clear { target, color } => {
+                            if let Some(run) = clear_draw_run(commands) {
+                                consumed = run.end;
+                                self.draw_prepared_run(
+                                    &mut encoder,
+                                    &geometry,
+                                    residents.as_ref(),
+                                    &plan,
+                                    &commands[run],
+                                    Some(*color),
+                                )?;
+                            } else {
+                                let output = self.output(target.as_ref())?;
+                                clear(&mut encoder, &output, *color);
+                            }
+                        }
+                        PreparedCommand::Draw(_) | PreparedCommand::Resident(_) => {
+                            consumed = draw_run_len(commands);
+                            self.draw_prepared_run(
+                                &mut encoder,
+                                &geometry,
+                                residents.as_ref(),
+                                &plan,
+                                &commands[..consumed],
+                                None,
+                            )?;
+                        }
+                        PreparedCommand::Capture { target, path } => {
+                            let output = self.output(target.as_ref())?;
+                            // Capture remains an in-order GPU copy, before later draws
+                            // or clears. All maps still finish after the same submission.
+                            readbacks.push(Readback::encode(
+                                &self.gpu.device,
+                                &mut encoder,
+                                &output.texture,
+                                path.clone(),
+                                CaptureEncoding::for_target(target.as_ref()),
+                            )?);
+                        }
                     }
+                    commands = &commands[consumed..];
                 }
-                PreparedCommand::Clear { target, color } => {
-                    let output = self.output(target.as_ref())?;
-                    clear(&mut encoder, &output, *color);
-                }
-                PreparedCommand::Draw(draw) => {
-                    consumed = draw_run_len(commands);
-                    self.draw_prepared_run(
-                        &mut encoder,
-                        &geometry,
-                        draw,
-                        &following[..consumed - 1],
-                    )?;
-                }
-                PreparedCommand::Capture { target, path } => {
-                    let output = self.output(target.as_ref())?;
-                    // Capture remains an in-order GPU copy, before later draws
-                    // or clears. All maps still finish after the same submission.
-                    readbacks.push(Readback::encode(
+                if let Some(frame) = &presentation {
+                    let surface = self
+                        .gpu
+                        .surface
+                        .as_ref()
+                        .expect("a presentation frame has a surface");
+                    let view = frame
+                        .texture
+                        .create_view(&wgpu::TextureViewDescriptor::default());
+                    let pipeline = self.pipelines.pipeline(
                         &self.gpu.device,
-                        &mut encoder,
-                        &output.texture,
-                        path.clone(),
-                        CaptureEncoding::for_target(target.as_ref()),
-                    )?);
+                        surface.config.format,
+                        false,
+                        false,
+                        BlendMode::Opaque,
+                        FragmentKind::Present,
+                    );
+                    performance::add_encode_counter(EncodeCounter::RenderPasses, 1);
+                    let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                        label: Some("present main target"),
+                        color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                            view: &view,
+                            depth_slice: None,
+                            resolve_target: None,
+                            ops: wgpu::Operations {
+                                load: wgpu::LoadOp::Clear(wgpu::Color::BLACK),
+                                store: wgpu::StoreOp::Store,
+                            },
+                        })],
+                        ..Default::default()
+                    });
+                    let present = plan
+                        .present
+                        .as_ref()
+                        .expect("presentation has a draw slice");
+                    issue(
+                        &mut pass,
+                        &pipeline,
+                        geometry[present.arena_index]
+                            .as_ref()
+                            .expect("presentation has frame buffers"),
+                        &present.range,
+                        &self.main.binding,
+                    );
                 }
-            }
-            commands = &commands[consumed..];
+                if let Some(timing) = &mut timing {
+                    timing.end_encoding(&mut encoder)?;
+                }
+                Ok::<_, String>((encoder, timing, readbacks))
+            })?;
+        let command_buffer =
+            performance::measure_encode_phase(EncodePhase::EncoderFinish, || encoder.finish());
+        performance::measure_encode_phase(EncodePhase::QueueSubmit, || {
+            self.gpu.queue.submit([command_buffer])
+        });
+        self.upload_cache.submitted();
+        if let Some(timing) = &mut timing {
+            timing.after_submit();
         }
-        if let Some(frame) = &presentation {
-            let surface = self
-                .gpu
-                .surface
+        performance::complete_encode_details();
+        Ok(EncodedFrame {
+            resident: residents
                 .as_ref()
-                .expect("a presentation frame has a surface");
-            let view = frame
-                .texture
-                .create_view(&wgpu::TextureViewDescriptor::default());
-            let pipeline = self.pipelines.pipeline(
-                &self.gpu.device,
-                surface.config.format,
-                false,
-                false,
-                BlendMode::Opaque,
-                FragmentKind::Present,
-            );
-            let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-                label: Some("present main target"),
-                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                    view: &view,
-                    depth_slice: None,
-                    resolve_target: None,
-                    ops: wgpu::Operations {
-                        load: wgpu::LoadOp::Clear(wgpu::Color::BLACK),
-                        store: wgpu::StoreOp::Store,
-                    },
-                })],
-                ..Default::default()
-            });
-            let present = plan
-                .present
-                .as_ref()
-                .expect("presentation has a draw slice");
-            issue(
-                &mut pass,
-                &pipeline,
-                geometry[present.arena_index]
-                    .as_ref()
-                    .expect("presentation has frame buffers"),
-                &present.range,
-                &self.main.binding,
-            );
-        }
-        self.gpu.queue.submit([encoder.finish()]);
-        Ok((readbacks, presentation))
+                .map(|frame| frame.counts)
+                .unwrap_or_default(),
+            readbacks,
+            presentation,
+            timing,
+        })
     }
     fn output(&mut self, target: Option<&RenderTarget>) -> Result<Arc<GpuTexture>, String> {
         match target {
@@ -197,10 +386,14 @@ impl WgpuRenderer {
         &mut self,
         encoder: &mut wgpu::CommandEncoder,
         geometry: &[Option<FrameGeometry>],
-        first: &PreparedDraw,
-        following: &[PreparedCommand],
+        residents: Option<&super::resident::Frame>,
+        plan: &FramePlan,
+        commands: &[PreparedCommand],
+        clear_color: Option<Color>,
     ) -> Result<(), String> {
-        let output = self.output(first.target.as_ref())?;
+        let (target, depth) = draw_attachment(&commands[0]).expect("draw run begins with a draw");
+        let output = self.output(target)?;
+        performance::add_encode_counter(EncodeCounter::RenderPasses, 1);
         let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
             label: Some("ordered draw run"),
             color_attachments: &[Some(wgpu::RenderPassColorAttachment {
@@ -208,18 +401,24 @@ impl WgpuRenderer {
                 depth_slice: None,
                 resolve_target: None,
                 ops: wgpu::Operations {
-                    load: wgpu::LoadOp::Load,
+                    load: clear_color.map_or(wgpu::LoadOp::Load, |color| {
+                        wgpu::LoadOp::Clear(target::clear_color(color))
+                    }),
                     store: wgpu::StoreOp::Store,
                 },
             })],
-            depth_stencil_attachment: if first.depth_test {
+            depth_stencil_attachment: if depth {
                 output
                     .depth
                     .as_ref()
                     .map(|view| wgpu::RenderPassDepthStencilAttachment {
                         view,
                         depth_ops: Some(wgpu::Operations {
-                            load: wgpu::LoadOp::Load,
+                            load: if clear_color.is_some() {
+                                wgpu::LoadOp::Clear(1.)
+                            } else {
+                                wgpu::LoadOp::Load
+                            },
                             store: wgpu::StoreOp::Store,
                         }),
                         stencil_ops: None,
@@ -229,12 +428,53 @@ impl WgpuRenderer {
             },
             ..Default::default()
         });
-        self.draw_prepared_mesh(&mut pass, geometry, first)?;
-        for command in following {
-            let PreparedCommand::Draw(draw) = command else {
-                unreachable!("draw run ends before non-draw commands")
+        let mut viewport_depth = None;
+        for command in commands {
+            let range = match command {
+                PreparedCommand::Draw(draw) => Some(draw.depth_range),
+                PreparedCommand::Resident(draw) => Some(draw.depth_range),
+                _ => None,
             };
-            self.draw_prepared_mesh(&mut pass, geometry, draw)?;
+            if let Some(range) = range {
+                if viewport_depth != Some(range) {
+                    // Applied by the rasterizer after homogeneous clipping.
+                    // Matrices, clip planes and XY framing stay unchanged.
+                    pass.set_viewport(
+                        0.,
+                        0.,
+                        output.descriptor.width as f32,
+                        output.descriptor.height as f32,
+                        range[0],
+                        range[1],
+                    );
+                    viewport_depth = Some(range);
+                }
+            }
+            match command {
+                PreparedCommand::Camera(_) => {}
+                PreparedCommand::Draw(draw) => {
+                    self.draw_prepared_mesh(&mut pass, geometry, draw)?
+                }
+                PreparedCommand::Resident(draw) => {
+                    if draw.depth_test && output.depth.is_none() {
+                        return Err("resident depth camera requires depth storage".into());
+                    }
+                    let descriptor = &plan.residents[draw.index].0;
+                    let texture = match descriptor.mesh().texture() {
+                        Some(texture) => self.texture(texture)?,
+                        None => self.white.clone(),
+                    };
+                    self.resident.issue(
+                        &self.gpu.device,
+                        &mut pass,
+                        residents.expect("resident frame prepared"),
+                        draw.index,
+                        (draw.depth_test, draw.blend),
+                        &texture.binding,
+                    );
+                }
+                _ => unreachable!("draw run ends at barrier"),
+            }
         }
         Ok(())
     }
@@ -278,6 +518,78 @@ impl WgpuRenderer {
         Ok(())
     }
 }
+/// Input Unicode scalars include spaces; prepared draws include all drawable
+/// geometry and are deliberately not reported as a glyph count.
+fn plan_counts(list: &DrawList, plan: &FramePlan) -> (u64, u64) {
+    let text_characters = list
+        .commands
+        .iter()
+        .flat_map(|command| {
+            let text = match command {
+                Command::Text { text, .. } => text.as_str(),
+                _ => "",
+            };
+            text.chars()
+        })
+        .count() as u64;
+    let prepared_draws = plan
+        .commands
+        .iter()
+        .filter(|command| {
+            matches!(
+                command,
+                PreparedCommand::Draw(_) | PreparedCommand::Resident(_)
+            )
+        })
+        .count() as u64;
+    (prepared_draws, text_characters)
+}
+fn record_staging_counts(stats: super::upload_cache::StagingStats) {
+    performance::add_encode_counter(
+        EncodeCounter::StagingBufferAllocations,
+        stats.staging_buffer_allocations,
+    );
+    performance::add_encode_counter(
+        EncodeCounter::StagingBufferReuses,
+        stats.staging_buffer_reuses,
+    );
+    performance::add_encode_counter(
+        EncodeCounter::StagingBufferAllocatedBytes,
+        stats.staging_buffer_allocated_bytes,
+    );
+    performance::add_encode_counter(EncodeCounter::StagingCopyBytes, stats.staging_copy_bytes);
+    performance::add_encode_counter(
+        EncodeCounter::StagingQueueWriteCalls,
+        stats.staging_queue_write_calls,
+    );
+    performance::add_encode_counter(
+        EncodeCounter::StagingQueueWriteBytes,
+        stats.staging_queue_write_bytes,
+    );
+    performance::add_encode_counter(
+        EncodeCounter::StagingFallbackArenas,
+        stats.staging_fallback_arenas,
+    );
+    performance::add_encode_counter(
+        EncodeCounter::StagingRetainedBytes,
+        stats.staging_retained_bytes,
+    );
+    performance::add_encode_counter(
+        EncodeCounter::StagingPendingBuffers,
+        stats.staging_pending_buffers,
+    );
+    performance::add_encode_counter(
+        EncodeCounter::StagingMapFailures,
+        stats.staging_map_failures,
+    );
+}
+
+fn record_plan_counts(list: &DrawList, plan: &FramePlan) {
+    let (draws, characters) = plan_counts(list, plan);
+    performance::add_encode_counter(EncodeCounter::PreparedDraws, draws);
+    performance::add_encode_counter(EncodeCounter::TextCharacters, characters);
+}
+
 fn issue(
     pass: &mut wgpu::RenderPass<'_>,
     pipeline: &wgpu::RenderPipeline,
@@ -293,9 +605,11 @@ fn issue(
         geometry.indices.slice(slice.indices.clone()),
         wgpu::IndexFormat::Uint16,
     );
+    performance::add_encode_counter(EncodeCounter::DrawCalls, 1);
     pass.draw_indexed(0..slice.count, 0, 0..1);
 }
 pub(super) fn clear(encoder: &mut wgpu::CommandEncoder, target: &GpuTexture, color: Color) {
+    performance::add_encode_counter(EncodeCounter::RenderPasses, 1);
     let _pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
         label: Some("clear camera target"),
         color_attachments: &[Some(wgpu::RenderPassColorAttachment {
@@ -348,6 +662,12 @@ fn validate(list: &DrawList, limits: &wgpu::Limits) -> Result<(), String> {
                 if !camera.view_projection.is_finite() {
                     return Err("non-finite camera transform".into());
                 }
+                let [min, max] = camera.depth_range;
+                if !min.is_finite() || !max.is_finite() || min < 0. || max > 1. || min > max {
+                    return Err(
+                        "viewport depth range must be finite and ordered within 0..1".into(),
+                    );
+                }
                 if let Some(t) = &camera.target {
                     target(t)?;
                     if camera.depth_test
@@ -371,6 +691,17 @@ fn validate(list: &DrawList, limits: &wgpu::Limits) -> Result<(), String> {
                     return Err("mesh exceeds adapter buffer limit".into());
                 }
                 if let Some(texture) = &mesh.texture {
+                    target::validate(texture, limits)?;
+                }
+            }
+            Command::Resident { draw, model, .. } => {
+                if !crate::frame_encode_detail::resident_policy::ENABLED {
+                    return Err("resident command requires enabled resident policy".into());
+                }
+                if !model.is_finite() {
+                    return Err("nonfinite resident model".into());
+                }
+                if let Some(texture) = draw.mesh().texture() {
                     target::validate(texture, limits)?;
                 }
             }
@@ -445,6 +776,7 @@ mod tests {
         PreparedCommand::Draw(PreparedDraw {
             target: target.cloned(),
             depth_test,
+            depth_range: [0., 1.],
             texture: None,
             blend: BlendMode::Alpha,
             lines: false,
@@ -474,7 +806,19 @@ mod tests {
     }
 
     #[test]
-    fn grouping_preserves_camera_clear_capture_and_attachment_boundaries() {
+    fn encode_detail_counts_input_characters_separately_from_drawable_glyphs() {
+        let mut list = DrawList::new(320, 180);
+        list.draw_text("A B", glam::Vec2::new(1., 20.), 16., Color::WHITE);
+        let mut text = super::super::text::TextRenderer::new().unwrap();
+        let plan = FramePlan::new(&list, &mut text, 256, 1 << 20, true).unwrap();
+        // The space contributes an input scalar but emits no drawable quad.
+        // The presentation draw is separate from prepared scene commands.
+        assert_eq!(plan_counts(&list, &plan), (2, 3));
+        assert!(plan.present.is_some());
+    }
+
+    #[test]
+    fn grouping_continues_same_camera_attachment_but_preserves_real_barriers() {
         let a = RenderTarget::new(40, 20, true).unwrap();
         let b = RenderTarget::new(40, 20, true).unwrap();
         let commands = vec![
@@ -503,17 +847,7 @@ mod tests {
         let runs = draw_runs(&commands);
         assert_eq!(
             runs,
-            [
-                0..2,
-                3..4,
-                5..6,
-                7..8,
-                8..10,
-                10..11,
-                11..12,
-                12..13,
-                13..15
-            ]
+            [0..4, 5..6, 7..8, 8..10, 10..11, 11..12, 12..13, 13..15]
         );
         // Flatten the actual grouping rule and compare with the original
         // logical draw sequence, including exact immutable draw identities.
@@ -527,11 +861,10 @@ mod tests {
         let after: Vec<_> = runs
             .into_iter()
             .flat_map(|range| &commands[range])
-            .map(|command| {
-                let PreparedCommand::Draw(draw) = command else {
-                    panic!("draw run crossed a barrier")
-                };
-                draw as *const PreparedDraw
+            .filter_map(|command| match command {
+                PreparedCommand::Draw(draw) => Some(draw as *const PreparedDraw),
+                PreparedCommand::Camera(_) => None,
+                _ => panic!("draw run crossed a barrier"),
             })
             .collect();
         assert_eq!(after, before);
@@ -566,6 +899,103 @@ mod tests {
         .unwrap();
         assert!(draw_runs(&plan.commands).is_empty());
         assert!(plan.present.is_none());
+    }
+
+    #[test]
+    fn clear_folding_preserves_capture_target_and_depth_boundaries() {
+        let mut near = Camera::screen(100, 50);
+        near.depth_test = true;
+        near.depth_range = [0., 0.05];
+        let mut world = near.clone();
+        world.depth_range = [0.1, 1.];
+        let mut commands = vec![
+            PreparedCommand::Clear {
+                target: None,
+                color: Color::WHITE,
+            },
+            PreparedCommand::Camera(near),
+            draw(None, true, 0),
+            PreparedCommand::Camera(world),
+            draw(None, true, 1),
+            PreparedCommand::Camera(Camera::screen(100, 50)),
+            draw(None, false, 2),
+        ];
+        assert!(starts_with_main_clear(&commands));
+        assert_eq!(clear_draw_run(&commands), Some(2..5));
+        let target = RenderTarget::new(10, 10, true).unwrap();
+        let PreparedCommand::Camera(camera) = &mut commands[1] else {
+            unreachable!()
+        };
+        camera.target = Some(target);
+        assert_eq!(clear_draw_run(&commands), None);
+        commands[1] = PreparedCommand::Capture {
+            target: None,
+            path: "before.png".into(),
+        };
+        assert_eq!(clear_draw_run(&commands), None);
+        assert!(!starts_with_main_clear(&commands[1..]));
+        commands[1] = draw(None, false, 0);
+        assert_eq!(clear_draw_run(&commands), None);
+        assert_eq!(clear_draw_run(&commands[..1]), None);
+        let only_camera = [PreparedCommand::Camera(Camera::screen(100, 50))];
+        assert!(!starts_with_main_clear(&only_camera));
+    }
+
+    #[test]
+    fn viewport_depth_is_snapshotted_without_changing_clip_matrices() {
+        let mut list = DrawList::new(100, 50);
+        let mut camera = Camera::screen(100, 50);
+        camera.depth_test = true;
+        camera.view_projection = Mat4::perspective_rh_gl(1., 2., 0.01, 5.);
+        let matrix = camera.view_projection;
+        let mesh = super::super::sprite2d::quad(Rect::new(1., 2., 3., 4.), Color::WHITE, None);
+        for range in [[0., 0.05], [0.1, 1.]] {
+            camera.depth_range = range;
+            list.camera(camera.clone());
+            list.draw_mesh(&mesh, Mat4::IDENTITY, BlendMode::Alpha);
+        }
+        let plan = FramePlan::new(
+            &list,
+            &mut super::super::text::TextRenderer::new().unwrap(),
+            256,
+            1 << 20,
+            false,
+        )
+        .unwrap();
+        assert_eq!(draw_run_len(&plan.commands[1..]), 3);
+        let draws: Vec<_> = plan
+            .commands
+            .iter()
+            .filter_map(|c| {
+                if let PreparedCommand::Draw(d) = c {
+                    Some(d)
+                } else {
+                    None
+                }
+            })
+            .collect();
+        assert_eq!(draws[0].depth_range, [0., 0.05]);
+        assert_eq!(draws[1].depth_range, [0.1, 1.]);
+        let expected: Vec<_> = super::super::arena::clip_matrix(matrix, Mat4::IDENTITY)
+            .to_cols_array()
+            .into_iter()
+            .flat_map(f32::to_le_bytes)
+            .collect();
+        for draw in draws {
+            let bytes = plan.arenas[draw.geometry.arena_index]
+                .buffer_contents()
+                .unwrap()[2];
+            let offset = draw.geometry.range.matrix_offset as usize;
+            assert_eq!(&bytes[offset..offset + 64], expected.as_slice());
+        }
+        for range in [[-0.1, 1.], [0., 1.1], [0.5, 0.4], [f32::NAN, 1.]] {
+            camera.depth_range = range;
+            let mut invalid = DrawList::new(100, 50);
+            invalid.camera(camera.clone());
+            assert!(validate(&invalid, &wgpu::Limits::default())
+                .unwrap_err()
+                .contains("viewport depth range"));
+        }
     }
 
     #[test]
@@ -677,6 +1107,7 @@ mod tests {
             view_projection: Mat4::IDENTITY,
             target: Some(RenderTarget::new(64, 64, false).unwrap()),
             depth_test: true,
+            depth_range: [0., 1.],
         });
         assert!(validate(&list, &wgpu::Limits::default())
             .unwrap_err()
@@ -684,5 +1115,163 @@ mod tests {
         list.commands.clear();
         list.clear(Color::new(f32::NAN, 0., 0., 1.));
         assert!(validate(&list, &wgpu::Limits::default()).is_err());
+    }
+
+    #[test]
+    #[ignore = "explicit native viewport-depth clipping/order/alpha contract"]
+    fn native_depth_slices_preserve_clip_planes_and_ordered_fades() {
+        use crate::draw::{Renderer, Vertex};
+        use glam::Vec2;
+        let backend = if cfg!(target_os = "windows") {
+            super::super::BackendSelection::Dx12
+        } else {
+            super::super::BackendSelection::Vulkan
+        };
+        let mut renderer = pollster::block_on(WgpuRenderer::new_headless(
+            64,
+            64,
+            backend,
+            cfg!(target_os = "windows"),
+        ))
+        .expect("explicit native adapter required");
+        let adapter = renderer.gpu.actual_adapter_info();
+        if cfg!(target_os = "windows") {
+            assert_eq!(adapter.device_type, wgpu::DeviceType::Cpu);
+        } else {
+            assert!(matches!(
+                adapter.device_type,
+                wgpu::DeviceType::DiscreteGpu | wgpu::DeviceType::IntegratedGpu
+            ));
+        }
+        eprintln!("direct viewport-depth actual adapter: {adapter:?}");
+        let output = std::env::var_os("RUST_DUTY_DIRECT_TEST_OUTPUT")
+            .map(std::path::PathBuf::from)
+            .unwrap_or_else(|| {
+                std::env::temp_dir().join(format!("rust-duty-direct-depth-{}", std::process::id()))
+            });
+        std::fs::create_dir(&output).expect("native evidence directory must be fresh");
+        let quad = |extent: f32, z: f32, color: Color| Mesh {
+            vertices: [
+                [-extent, -extent],
+                [extent, -extent],
+                [extent, extent],
+                [-extent, extent],
+            ]
+            .into_iter()
+            .map(|[x, y]| Vertex::new2(Vec3::new(x, y, z), Vec2::ZERO, color))
+            .collect(),
+            indices: vec![0, 1, 2, 0, 2, 3],
+            texture: None,
+        };
+        let camera = |range| Camera {
+            view_projection: Mat4::IDENTITY,
+            target: None,
+            depth_test: true,
+            depth_range: range,
+        };
+        let green = Color::new(0., 1., 0., 1.);
+        let red = Color::new(1., 0., 0., 1.);
+        let blue = Color::new(0., 0., 1., 1.);
+        let mut report = Vec::new();
+        for (name, z, fade) in [
+            ("opaque-first", 0.8, false),
+            ("resident-first", 0.8, false),
+            ("near-clipped", -2., false),
+            ("far-clipped", 2., false),
+            ("ordered-fade", -0.5, true),
+        ] {
+            let mut list = DrawList::new(64, 64);
+            list.clear(Color::new(0., 0., 0., 1.));
+            if fade {
+                list.camera(camera([0.1, 1.]));
+                list.draw_mesh(&quad(1., -0.8, green), Mat4::IDENTITY, BlendMode::Alpha);
+                list.camera(camera([0., 0.05]));
+                list.draw_mesh(
+                    &quad(0.5, z, Color::new(1., 0., 0., 128. / 255.)),
+                    Mat4::IDENTITY,
+                    BlendMode::Alpha,
+                );
+                // This later, deeper blue actor must remain occluded by the
+                // fading red actor's original depth write. Reordering fails.
+                list.draw_mesh(&quad(0.5, 0.5, blue), Mat4::IDENTITY, BlendMode::Alpha);
+            } else {
+                list.camera(camera([0., 0.05]));
+                let foreground = quad(0.5, z, red);
+                if name == "resident-first" {
+                    use crate::draw::resident::{
+                        ResidentDraw, ResidentMesh, RigidVertex, Vertices,
+                    };
+                    let mesh = ResidentMesh::new(
+                        Vertices::Rigid(
+                            foreground
+                                .vertices
+                                .iter()
+                                .map(|v| RigidVertex {
+                                    position: v.position.to_array(),
+                                    uv: v.uv.to_array(),
+                                    normal: [0., 0., 1.],
+                                })
+                                .collect(),
+                        ),
+                        foreground.indices.clone(),
+                        None,
+                    )
+                    .unwrap();
+                    let draw = ResidentDraw::new(
+                        mesh,
+                        Mat4::IDENTITY,
+                        crate::scene_lighting::SceneLighting {
+                            direction_to_light: Vec3::Z,
+                            ambient: 1.,
+                            diffuse: 0.,
+                        },
+                        red,
+                        1.,
+                        None,
+                    )
+                    .unwrap();
+                    list.draw_resident(draw, Mat4::IDENTITY, BlendMode::Alpha);
+                } else {
+                    list.draw_mesh(&foreground, Mat4::IDENTITY, BlendMode::Alpha);
+                }
+                list.camera(camera([0.1, 1.]));
+                list.draw_mesh(&quad(1., -0.8, green), Mat4::IDENTITY, BlendMode::Alpha);
+            }
+            // HUD is screen-space and restores the full viewport depth range.
+            list.camera(Camera::screen(64, 64));
+            list.draw_rect(Rect::new(1., 1., 4., 4.), Color::WHITE);
+            let plan = FramePlan::new(
+                &list,
+                &mut super::super::text::TextRenderer::new().unwrap(),
+                256,
+                1 << 20,
+                false,
+            )
+            .unwrap();
+            assert_eq!(
+                clear_draw_run(&plan.commands),
+                Some(2..if fade { 6 } else { 5 })
+            );
+            let path = output.join(format!("{name}.png"));
+            list.capture_png(None, path.clone());
+            assert_eq!(renderer.submit(&list).unwrap().captures.len(), 1);
+            let image = image::open(path).unwrap().to_rgba8();
+            let expected = if fade {
+                [128, 127, 0, 255]
+            } else if (-1. ..=1.).contains(&z) {
+                [255, 0, 0, 255]
+            } else {
+                [0, 255, 0, 255]
+            };
+            assert_eq!(image.get_pixel(32, 32).0, expected, "{name}");
+            assert_eq!(image.get_pixel(8, 32).0, [0, 255, 0, 255], "{name}: world");
+            assert_eq!(image.get_pixel(2, 2).0, [255; 4], "{name}: HUD");
+            report.push(serde_json::json!({"case":name,"center_rgba":expected,"world_and_hud_verified":true,"one_3d_draw_pass":true}));
+        }
+        std::fs::write(
+            output.join("depth-slice-report.json"),
+            serde_json::to_vec_pretty(&report).unwrap(),
+        )
+        .unwrap();
     }
 }

@@ -21,7 +21,11 @@ REQUIRED_FILES = (
     'docs/UI_THEME.md', 'docs/UI_THEME_EXAMPLES.md', 'docs/FRAME_PERFORMANCE.md',
     'docs/GPU_TELEMETRY.md', 'assets/animations.cfg',
 )
-LAUNCHER = '@echo off\ncd /d "%~dp0"\n"%~dp0vector-range.exe" --renderer=dx12 --no-update\nexit /b %ERRORLEVEL%\n'
+LEGACY_LAUNCHER = '@echo off\ncd /d "%~dp0"\n"%~dp0vector-range.exe" --renderer=dx12 --no-update\nexit /b %ERRORLEVEL%\n'
+LAUNCHER = LEGACY_LAUNCHER.replace('--renderer=dx12 --no-update',
+                                   '--renderer=dx12 --physical-1080p --no-update')
+PREVIEW_SCHEMAS = {'rust-duty-dx12-wip-preview/v1': LEGACY_LAUNCHER,
+                   'rust-duty-dx12-wip-preview/v2': LAUNCHER}
 MAX_TOTAL_BYTES = 4 * 1024**3
 MAX_ENTRIES = 20_000
 
@@ -76,7 +80,8 @@ def _hash(value, name):
 
 
 def _identity(preview, identity, executable, notices_hash, reuse=None):
-    require(preview.get('schema') == 'rust-duty-dx12-wip-preview/v1', 'wrong preview schema')
+    require(isinstance(preview.get('schema'), str) and preview['schema'] in PREVIEW_SCHEMAS,
+            'wrong preview schema')
     require(identity.get('schema') == 'rust-duty-build-identity/v1', 'wrong build identity schema')
     require(identity.get('target') == 'x86_64-pc-windows-msvc', 'wrong Windows build target')
     record = identity.get('executable')
@@ -105,7 +110,11 @@ def _identity(preview, identity, executable, notices_hash, reuse=None):
     require(type(identity.get('sequence')) is int and identity['sequence'] > 0, 'invalid build sequence')
     require(preview.get('status') == 'WIP preview; M4 approval pending' and preview.get('default_renderer') == 'legacy',
             'preview must remain WIP with legacy default')
-    require(preview.get('human_launch') == ['vector-range.exe', '--renderer=dx12', '--no-update'], 'unsafe declared human launcher')
+    launch = ['vector-range.exe', '--renderer=dx12']
+    if preview['schema'] == 'rust-duty-dx12-wip-preview/v2':
+        launch.append('--physical-1080p')
+    launch.append('--no-update')
+    require(preview.get('human_launch') == launch, 'unsafe declared human launcher')
     require(preview.get('enabled_features') == ['audio', 'legacy-macroquad', 'wgpu-runtime']
             and preview.get('dx12_shader_compiler') == 'Fxc', 'unexpected preview feature/compiler contract')
     require(preview.get('cargo_build_command') == ['cargo', 'build', '--locked', '--release', '--features',
@@ -207,7 +216,7 @@ def validate_zip_archive(zip_path, strict=False):
             identity = _json(saved['BUILD_IDENTITY.json'], 'BUILD_IDENTITY.json')
             _identity(preview, identity, by_name['vector-range.exe'], by_name['THIRD_PARTY_LICENSES.txt']['sha256'],
                       _json(saved['COMPANION_REUSE.json'], 'COMPANION_REUSE.json') if 'COMPANION_REUSE.json' in saved else None)
-            require(saved['PLAYTEST_DX12.cmd'].decode('utf-8').replace('\r\n', '\n') == LAUNCHER,
+            require(saved['PLAYTEST_DX12.cmd'].decode('utf-8').replace('\r\n', '\n') == PREVIEW_SCHEMAS[preview['schema']],
                     'launcher differs from the shipped DX12/no-update launcher')
             result = {'schema': 'rust-duty-windows-preview-inventory/v1', 'valid': True,
                       'package_root': prefix, 'files': sorted(relative), 'entries': sorted(entries, key=lambda r: r['path']),

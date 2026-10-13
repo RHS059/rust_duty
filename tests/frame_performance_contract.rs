@@ -1,5 +1,7 @@
 //! Deterministic tests of the real observer with injected monotonic timestamps.
 //! No GPU, window, private assets, clock sleeps, or performance pass budget.
+#[path = "../src/frame_cpu_substages.rs"]
+mod frame_cpu_substages;
 #[path = "../src/frame_performance.rs"]
 mod frame_performance;
 
@@ -745,6 +747,7 @@ fn optional_cpu_stage_extension_keeps_v1_records_counts_and_primary_summary() {
             started_at_ns: 100,
             physical_width: 1920,
             physical_height: 1080,
+            substages: Default::default(),
             spans: [
                 Some(CpuWallSpan {
                     started_at_ns: 101,
@@ -768,7 +771,10 @@ fn optional_cpu_stage_extension_keeps_v1_records_counts_and_primary_summary() {
         .record_present_return(120, Eligibility::Eligible)
         .unwrap();
     let expected = original.stop(130).to_json();
-    let mut actual = traced.stop(130).to_json();
+    #[cfg(feature = "wgpu-runtime")]
+    assert_eq!(traced.last_record_index(), Some(1));
+    let report = traced.stop(130);
+    let mut actual = report.to_json();
     let extension = actual
         .as_object_mut()
         .unwrap()
@@ -781,4 +787,38 @@ fn optional_cpu_stage_extension_keeps_v1_records_counts_and_primary_summary() {
         8
     );
     assert_eq!(extension["measurement"], CPU_STAGE_MEASUREMENT);
+    let path = scratch_path("optional-cpu-sidecar.json");
+    report.write_new(&path).unwrap();
+    let primary = std::fs::read(&path).unwrap();
+    let sidecar_path = report.write_cpu_substages_new(&path).unwrap().unwrap();
+    let sidecar: serde_json::Value =
+        serde_json::from_slice(&std::fs::read(&sidecar_path).unwrap()).unwrap();
+    assert_eq!(sidecar["schema"], frame_cpu_substages::SCHEMA);
+    assert_eq!(
+        sidecar["frame_report_sha256"],
+        rust_duty_launcher::file_hash(&path).unwrap()
+    );
+    assert_eq!(sidecar["samples"][0]["record_index"], 0);
+    assert_eq!(sidecar["samples"][0]["details"]["state"], "complete");
+    assert!(report.write_cpu_substages_new(&path).is_err());
+    assert_eq!(std::fs::read(&path).unwrap(), primary);
+    std::fs::remove_file(sidecar_path).unwrap();
+    std::fs::remove_file(path).unwrap();
+}
+
+#[test]
+fn encode_parent_access_requires_a_retained_pair_and_reports_incomplete_state() {
+    use frame_cpu_substages::{CpuSubstage, CpuSubstages};
+    let mut substages = CpuSubstages::default();
+    assert!(substages.is_complete());
+    assert_eq!(substages.retained_encode_submit(), None);
+    substages.begin(CpuSubstage::EncodeSubmit, 10);
+    assert!(!substages.is_complete());
+    assert_eq!(substages.retained_encode_submit(), None);
+    substages.end(CpuSubstage::EncodeSubmit, 20);
+    assert!(substages.is_complete());
+    assert_eq!(substages.retained_encode_submit(), Some((10, 20)));
+    substages.end(CpuSubstage::EncodeSubmit, 30);
+    assert!(!substages.is_complete());
+    assert_eq!(substages.retained_encode_submit(), Some((10, 20)));
 }

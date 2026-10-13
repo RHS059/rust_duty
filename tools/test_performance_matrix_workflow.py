@@ -275,5 +275,22 @@ class PerformanceMatrixWorkflowTests(unittest.TestCase):
                 self.assertIn('Error:', result['error'])
 
 
+class HistoricalPerformancePairWorkflowTests(unittest.TestCase):
+    def test_only_incompatible_pair_autorun_is_retired(self):
+        workflow = yaml.load((ROOT / '.github/workflows/build.yml').read_text(), Loader=yaml.BaseLoader)
+        self.assertNotIn('dx12-performance-pair', workflow['jobs'])
+        self.assertTrue({'build', 'dx12-renderer-contract', 'dx12-warp-smoke', 'native-validation',
+                         'animation-assets', 'walk-assets', 'directional-assets', 'ads-assets',
+                         'jump-assets', 'windows-same-platform-return',
+                         'windows-source-bound-recovery', 'dx12-authored-validation',
+                         'publish-game-update'} <= set(workflow['jobs']))
+        import performance_matrix as matrix
+        self.assertEqual(matrix.AUDITED_GPU_PRODUCTION_MANIFEST,
+                         'd74a901c91ffd6746826e7e9c7f0ff447157774d3ea8d661d4912caf84e4a33c')
+        self.assertEqual(matrix.AUDITED_GPU_CANDIDATE_MANIFEST,
+                         '9b7ae93be3a4d4aed9b662d0c27ff18d0b1e12e99c4dc916422c98e0c5eae3c6')
+        self.assertTrue((ROOT / 'tools/build_performance_pair.py').is_file())
+
+
 if __name__ == '__main__':
     unittest.main()

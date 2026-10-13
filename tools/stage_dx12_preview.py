@@ -24,12 +24,16 @@ from verify_capture_telemetry import read_record
 BUILD_COMMAND = ['cargo', 'build', '--locked', '--release', '--features',
                  'wgpu-runtime', '--bin', 'vector-range']
 FEATURES = ['audio', 'legacy-macroquad', 'wgpu-runtime']
-LAUNCHER = '@echo off\r\ncd /d "%~dp0"\r\n"%~dp0vector-range.exe" --renderer=dx12 --no-update\r\nexit /b %ERRORLEVEL%\r\n'
+LAUNCHER = '@echo off\r\ncd /d "%~dp0"\r\n"%~dp0vector-range.exe" --renderer=dx12 --physical-1080p --no-update\r\nexit /b %ERRORLEVEL%\r\n'
 INSTRUCTIONS = """Rust Duty DX12 WIP preview
 
 Extract the complete folder, then run PLAYTEST_DX12.cmd for the human DX12
-playtest. It requests DX12 with normal adapter selection (no forced WARP) and
-disables release-channel updates for this preview launch. Directly opening
+playtest. It requests DX12 with normal adapter selection (no forced WARP), a
+physical 1920 x 1080 client area, and disables release-channel updates for this
+preview launch. The game verifies the initial client size before starting; if
+the desktop cannot supply that extent, startup fails with a size error. Later
+window resizing can change the render extent, so record the actual dimensions
+when collecting performance evidence. Directly opening
 vector-range.exe still uses the legacy renderer by default until M4 sign-off.
 
 This exact executable passed the recorded CI DX12 WARP capture smoke before
@@ -135,13 +139,13 @@ def stage(root, binary, evidence, output, env=None):
         require(identity['executable']['sha256'] == binary_hash, 'preview identity hash mismatch')
         source = context['source']
         provenance = {
-            'schema': 'rust-duty-dx12-wip-preview/v1', 'status': 'WIP preview; M4 approval pending',
+            'schema': 'rust-duty-dx12-wip-preview/v2', 'status': 'WIP preview; M4 approval pending',
             'source': source, 'display_version': context['display_version'],
             'cargo_build_command': BUILD_COMMAND, 'enabled_features': FEATURES,
             'dx12_shader_compiler': 'Fxc',
             'game_dependency_notices': notice_provenance,
             'executable_sha256': binary_hash, 'default_renderer': 'legacy',
-            'human_launch': ['vector-range.exe', '--renderer=dx12', '--no-update'],
+            'human_launch': ['vector-range.exe', '--renderer=dx12', '--physical-1080p', '--no-update'],
             'smoke': {'backend': 'Dx12', 'adapter': smoke.WARP_ADAPTER,
                       'frames': smoke.FRAME_COUNT,
                       'evidence_artifact': f"dx12-warp-smoke-attempt-{source['run_attempt']}",

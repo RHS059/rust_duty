@@ -217,6 +217,9 @@ pub fn prepare_launch(args: &[String], options: &mut LaunchOptions) -> Result<Se
     let mut reset = false;
     let mut args = args.iter();
     while let Some(arg) = args.next() {
+        if arg == "--" {
+            break;
+        }
         if arg == "--graphics-device" || arg.starts_with("--graphics-device=") {
             let value = if arg == "--graphics-device" {
                 args.next()
@@ -456,6 +459,24 @@ mod tests {
             Preference::Adapter(_)
         ));
         assert_eq!(explicit_auto.renderer.as_deref(), Some("auto"));
+        fs::remove_file(path).unwrap();
+    }
+    #[test]
+    fn device_options_stop_at_the_same_end_of_options_boundary() {
+        let path = temp("end-of-options");
+        let preference = Preference::Adapter(id("RTX 3080 Ti"));
+        preference.save(&path).unwrap();
+        let args = vec![
+            format!("--graphics-settings={}", path.display()),
+            "--".into(),
+            "--graphics-device=auto".into(),
+            "--graphics-settings=ignored.json".into(),
+        ];
+        let mut options = LaunchOptions::default();
+        let session = prepare_launch(&args, &mut options).unwrap();
+        assert_eq!(session.path, path);
+        assert_eq!(session.preference, preference);
+        assert_eq!(options.renderer.as_deref(), Some("dx12"));
         fs::remove_file(path).unwrap();
     }
 }

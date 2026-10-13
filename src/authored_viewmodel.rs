@@ -1,4 +1,5 @@
 //! Opt-in playback adapter for Blender-baked viewmodels. No procedural posing.
+use crate::weapon_model::{ResidentBatching, ResidentSourceGroup};
 use vector_range::draw::facade::*;
 use vector_range::scene_lighting::SceneLighting;
 use vector_range::{
@@ -12,11 +13,29 @@ use vector_range::{
     viewmodel_animation::{game_model_root, AnimationSet, ViewmodelPose},
 };
 
+use vector_range::draw::resident::{
+    ResidentDraw, ResidentMesh, RigidVertex, SkinPalette, SkinVertex, Vertices,
+};
+
 struct SkinBatch {
     source_mesh: usize,
     source_vertices: Vec<usize>,
     mesh: Mesh,
 }
+type SkinVertexKey = ([u32; 3], [u32; 3], [u32; 2], [u16; 8], [u32; 8]);
+
+// Equality is the complete immutable source record, not approximate geometry
+// or the current pose. Keep all eight ordered influences, even zero weights.
+fn skin_vertex_key(vertex: &vector_range::skinned_asset::SkinVertex) -> SkinVertexKey {
+    (
+        vertex.position.map(f32::to_bits),
+        vertex.normal.map(f32::to_bits),
+        vertex.uv.map(f32::to_bits),
+        vertex.joints,
+        vertex.weights.map(f32::to_bits),
+    )
+}
+
 struct ReloadPresentation {
     index: usize,
     pose: ViewmodelPose,
@@ -34,6 +53,7 @@ pub struct AuthoredViewmodel {
     animation: AnimationSet,
     skin: SkinnedAsset,
     batches: Vec<SkinBatch>,
+    resident_batches: Vec<crate::weapon_model::ResidentBatch>,
     weapon: crate::weapon_model::WeaponModel,
     rigid_mesh_count: usize,
     clip: String,
@@ -116,7 +136,17 @@ impl AuthoredViewmodel {
         })
     }
     /// Loads CPU mesh and texture descriptors without requiring a render context.
+    #[allow(dead_code)] // Historical loader contracts keep the legacy batching default.
     pub fn load(path: &str, clip: &str, fixed_time: Option<f32>) -> Result<Self, String> {
+        Self::load_with_batching(path, clip, fixed_time, ResidentBatching::LegacyChunks)
+    }
+
+    pub(crate) fn load_with_batching(
+        path: &str,
+        clip: &str,
+        fixed_time: Option<f32>,
+        batching: ResidentBatching,
+    ) -> Result<Self, String> {
         if fixed_time.is_some_and(|time| !time.is_finite()) {
             return Err("authored viewmodel time must be finite".into());
         }
@@ -131,7 +161,7 @@ impl AuthoredViewmodel {
             .skin_palette(&initial, &skin.bones, game_model_root())
             .map_err(|e| e.to_string())?;
         let rigid_mesh_count = weapon.meshes.len();
-        let weapon = crate::weapon_model::WeaponModel::from_asset(weapon);
+        let weapon = crate::weapon_model::WeaponModel::from_asset_with_batching(weapon, batching);
         let mut batches = Vec::new();
         for (source_mesh, part) in skin.meshes.iter().enumerate() {
             let texture = if part.rgba.is_empty() {
@@ -154,19 +184,12 @@ impl AuthoredViewmodel {
                 .map_err(|error| format!("authored skin mesh {source_mesh} texture: {error}"))?;
                 Some(texture)
             };
-            for chunk in part.indices.chunks(4_998) {
-                let mut remap = std::collections::HashMap::new();
-                let mut source_vertices = Vec::new();
-                let indices = chunk
-                    .iter()
-                    .map(|&source| {
-                        *remap.entry(source).or_insert_with(|| {
-                            let index = source_vertices.len() as u16;
-                            source_vertices.push(source as usize);
-                            index
-                        })
-                    })
-                    .collect();
+            for (sources, indices) in
+                crate::weapon_model::partition_triangles(&part.indices, |index| {
+                    skin_vertex_key(&part.vertices[index as usize])
+                })
+            {
+                let source_vertices: Vec<_> = sources.into_iter().map(|i| i as usize).collect();
                 let vertices = source_vertices
                     .iter()
                     .map(|&index| {
@@ -185,6 +208,7 @@ impl AuthoredViewmodel {
                 });
             }
         }
+        let resident_batches = Self::resident_batches(&batches, &skin, batching);
         eprintln!(
             "Loaded Blender-authored viewmodel: {} bones, {} clips, selected {clip}",
             skin.bones.len(),
@@ -194,6 +218,7 @@ impl AuthoredViewmodel {
             animation,
             skin,
             batches,
+            resident_batches,
             weapon,
             rigid_mesh_count,
             clip: sample_clip.into(),
@@ -213,19 +238,99 @@ impl AuthoredViewmodel {
             cant: 0.,
         })
     }
+    fn resident_batches(
+        batches: &[SkinBatch],
+        skin: &SkinnedAsset,
+        batching: ResidentBatching,
+    ) -> Vec<crate::weapon_model::ResidentBatch> {
+        crate::weapon_model::coalesce_resident_batches(
+            batches
+                .iter()
+                .map(|batch| {
+                    let part = &skin.meshes[batch.source_mesh];
+                    let vertices = batch
+                        .source_vertices
+                        .iter()
+                        .map(|&index| {
+                            let source = &part.vertices[index];
+                            SkinVertex {
+                                vertex: RigidVertex {
+                                    position: source.position,
+                                    uv: source.uv,
+                                    normal: source.normal,
+                                },
+                                joints: source.joints,
+                                weights: source.weights,
+                            }
+                        })
+                        .collect();
+                    (
+                        batch.source_mesh,
+                        ResidentMesh::new(
+                            Vertices::Skin {
+                                vertices,
+                                bones: skin.bones.len(),
+                            },
+                            batch.mesh.indices.clone(),
+                            batch.mesh.texture.clone(),
+                        )
+                        .ok(),
+                    )
+                })
+                .collect(),
+            batching,
+        )
+    }
+
+    #[allow(dead_code)]
+    pub(crate) fn resident_source_groups(&self, prefix: &str) -> Vec<ResidentSourceGroup> {
+        let mut groups: Vec<_> = self
+            .resident_batches
+            .iter()
+            .map(|batch| ResidentSourceGroup {
+                model_key: prefix.to_owned(),
+                kind: "skin",
+                source_chunks: self.batches.len(),
+                sources: batch.sources.clone(),
+                source_parts: self
+                    .batches
+                    .get(batch.sources.clone())
+                    .unwrap_or(&[])
+                    .iter()
+                    .map(|chunk| chunk.source_mesh)
+                    .collect(),
+                mesh: batch.mesh.clone(),
+            })
+            .collect();
+        groups.extend(self.weapon.resident_source_groups(prefix));
+        for (index, model) in self.reload_renderers.iter().enumerate() {
+            groups.extend(model.resident_source_groups(&format!("{prefix}/reload/{index}")));
+        }
+        groups
+    }
+
     /// Gameplay route: every semantic slot binds data, and each complete model
     /// retains its own CRC-checked skin and rigid companions. No cross-rig poses.
+    #[allow(dead_code)] // Historical loader contracts keep the legacy batching default.
     pub fn load_manifest(path: &std::path::Path) -> Result<Self, String> {
+        Self::load_manifest_with_batching(path, ResidentBatching::LegacyChunks)
+    }
+
+    pub(crate) fn load_manifest_with_batching(
+        path: &std::path::Path,
+        batching: ResidentBatching,
+    ) -> Result<Self, String> {
         let manifest = AnimationManifest::load(path)?;
         let asset_name = |path: &std::path::Path| {
             path.to_str()
                 .map(str::to_owned)
                 .ok_or_else(|| "animation asset path is not Unicode".to_owned())
         };
-        let mut model = Self::load(
+        let mut model = Self::load_with_batching(
             &asset_name(&manifest.locomotion_asset)?,
             &manifest.locomotion.ready_clip,
             None,
+            batching,
         )?;
         let walk_clip = manifest
             .regular_walk
@@ -244,8 +349,12 @@ impl AuthoredViewmodel {
             let index = if let Some(index) = references.iter().position(|item| item == &reference) {
                 index
             } else {
-                let mut renderer =
-                    Self::load(&asset_name(&reference.asset)?, &reference.clip, Some(0.))?;
+                let mut renderer = Self::load_with_batching(
+                    &asset_name(&reference.asset)?,
+                    &reference.clip,
+                    Some(0.),
+                    batching,
+                )?;
                 renderer.return_map = Some(
                     PoseReturnMap::new(
                         &model.animation,
@@ -747,6 +856,27 @@ impl AuthoredViewmodel {
             }
         }
     }
+    /// A zero/fractional-opacity actor still writes viewmodel depth. Drawing the
+    /// whole original-order layer after world preserves the world behind it.
+    pub fn requires_world_behind(&self) -> bool {
+        let Some(visual) = &self.reload_presentation else {
+            return false;
+        };
+        let actors = self.reload_renderers[visual.index].animation.actors();
+        actors.iter().enumerate().any(|(index, actor)| {
+            !actor.mesh_indices.is_empty()
+                && visual
+                    .pose
+                    .actor_visible
+                    .get(index)
+                    .copied()
+                    .unwrap_or(false)
+                && visual
+                    .opacity
+                    .get(index)
+                    .is_none_or(|alpha| !alpha.is_finite() || *alpha < 1.)
+        })
+    }
     pub fn error(&self) -> Option<&str> {
         self.error.as_deref()
     }
@@ -837,34 +967,67 @@ impl AuthoredViewmodel {
             .animation
             .skin_palette(pose, &self.skin.bones, game_model_root())
             .map_err(|e| e.to_string())?;
-        let normals: Vec<_> = palette.iter().map(|m| m.inverse().transpose()).collect();
-        for batch in &mut self.batches {
-            let part = &self.skin.meshes[batch.source_mesh];
-            for (vertex, &index) in batch.mesh.vertices.iter_mut().zip(&batch.source_vertices) {
-                let source = &part.vertices[index];
-                let position = Vec3::from_array(source.position);
-                let normal = Vec3::from_array(source.normal);
-                let mut p = Vec3::ZERO;
-                let mut n = Vec3::ZERO;
-                for (&joint, &weight) in source.joints.iter().zip(&source.weights) {
-                    if weight > 0. {
-                        p += palette[joint as usize].transform_point3(position) * weight;
-                        n += normals[joint as usize].transform_vector3(normal) * weight;
-                    }
-                }
-                n = root.transform_vector3(n).try_normalize().unwrap_or(Vec3::Y);
-                let shade = lighting.irradiance(n);
-                vertex.position = root.transform_point3(p);
-                vertex.normal = n.extend(0.);
-                vertex.color = Color::new(
-                    part.base_color[0] * shade,
-                    part.base_color[1] * shade,
-                    part.base_color[2] * shade,
+        let resident_palette = if resident_meshes_enabled() {
+            SkinPalette::new(palette.clone()).ok()
+        } else {
+            None
+        };
+        let mut normals = None;
+        for resident_batch in &self.resident_batches {
+            let source_mesh = self.batches[resident_batch.sources.start].source_mesh;
+            let part = &self.skin.meshes[source_mesh];
+            if let (Some(palette), Some(mesh)) = (&resident_palette, &resident_batch.mesh) {
+                let albedo = Color::new(
+                    part.base_color[0],
+                    part.base_color[1],
+                    part.base_color[2],
                     1.,
-                )
-                .into();
+                );
+                if let Ok(draw) = ResidentDraw::new(
+                    mesh.clone(),
+                    root,
+                    lighting,
+                    albedo,
+                    1.,
+                    Some(palette.clone()),
+                ) {
+                    draw_resident(draw, BlendMode::Alpha);
+                    continue;
+                }
             }
-            draw_mesh(&batch.mesh);
+            for batch in &mut self.batches[resident_batch.sources.clone()] {
+                let normals = normals.get_or_insert_with(|| {
+                    palette
+                        .iter()
+                        .map(|m| m.inverse().transpose())
+                        .collect::<Vec<_>>()
+                });
+                for (vertex, &index) in batch.mesh.vertices.iter_mut().zip(&batch.source_vertices) {
+                    let source = &part.vertices[index];
+                    let position = Vec3::from_array(source.position);
+                    let normal = Vec3::from_array(source.normal);
+                    let mut p = Vec3::ZERO;
+                    let mut n = Vec3::ZERO;
+                    for (&joint, &weight) in source.joints.iter().zip(&source.weights) {
+                        if weight > 0. {
+                            p += palette[joint as usize].transform_point3(position) * weight;
+                            n += normals[joint as usize].transform_vector3(normal) * weight;
+                        }
+                    }
+                    n = root.transform_vector3(n).try_normalize().unwrap_or(Vec3::Y);
+                    let shade = lighting.irradiance(n);
+                    vertex.position = root.transform_point3(p);
+                    vertex.normal = n.extend(0.);
+                    vertex.color = Color::new(
+                        part.base_color[0] * shade,
+                        part.base_color[1] * shade,
+                        part.base_color[2] * shade,
+                        1.,
+                    )
+                    .into();
+                }
+                draw_mesh(&batch.mesh);
+            }
         }
         let actors = self
             .animation
@@ -887,6 +1050,11 @@ impl AuthoredViewmodel {
 }
 
 #[cfg(test)]
+pub(crate) fn direct_target_test_fixture() -> AuthoredViewmodel {
+    tests::contact_fixture()
+}
+
+#[cfg(test)]
 mod tests {
     use super::*;
     use vector_range::{
@@ -895,7 +1063,49 @@ mod tests {
         skinned_asset::{crc32, Bone, SkinMesh, SkinVertex},
     };
 
-    fn contact_fixture() -> AuthoredViewmodel {
+    #[test]
+    fn native_capability_records_resident_loader_geometry_without_mutating_cpu_vertices() {
+        struct Native(vector_range::draw::BackendInfo);
+        impl vector_range::draw::Renderer for Native {
+            fn info(&self) -> &vector_range::draw::BackendInfo {
+                &self.0
+            }
+            fn supports_resident_meshes(&self) -> bool {
+                true
+            }
+            fn measure_text(&self, _: &str, _: f32) -> Result<TextDimensions, String> {
+                unreachable!()
+            }
+            fn submit(
+                &mut self,
+                _: &vector_range::draw::DrawList,
+            ) -> Result<vector_range::draw::FrameOutput, String> {
+                unreachable!()
+            }
+        }
+        let mut model = contact_fixture();
+        let before = model.batches[0].mesh.vertices.clone();
+        let pose = model.animation.sample_clamped("contact", 0.).unwrap();
+        let native = Native(vector_range::draw::BackendInfo {
+            requested: "test".into(),
+            backend: "test".into(),
+            adapter: "test".into(),
+        });
+        vector_range::draw::facade::begin_frame_with_renderer(64, 64, 1., &native).unwrap();
+        model
+            .draw_pose_opacity(&pose, SceneLighting::range(), Mat4::IDENTITY, None)
+            .unwrap();
+        let list = vector_range::draw::facade::take_draw_list().unwrap();
+        assert_eq!(model.batches[0].mesh.vertices, before);
+        assert!(list.commands.iter().any(|c|matches!(c,vector_range::draw::Command::Resident{draw,..} if matches!(draw.mesh().vertices(),Vertices::Skin{..}))));
+        assert!(list.commands.iter().any(|c|matches!(c,vector_range::draw::Command::Resident{draw,..} if matches!(draw.mesh().vertices(),Vertices::Rigid(_)))));
+        assert!(!list
+            .commands
+            .iter()
+            .any(|c| matches!(c, vector_range::draw::Command::Mesh { .. })));
+    }
+
+    pub(super) fn contact_fixture() -> AuthoredViewmodel {
         fn words(bytes: &mut Vec<u8>, values: &[u32]) {
             bytes.extend(values.iter().flat_map(|value| value.to_le_bytes()));
         }
@@ -977,7 +1187,7 @@ mod tests {
                 indices: vec![0, 1, 2],
             }],
         });
-        AuthoredViewmodel {
+        let mut model = AuthoredViewmodel {
             animation,
             skin,
             batches: vec![SkinBatch {
@@ -992,6 +1202,7 @@ mod tests {
                     texture: None,
                 },
             }],
+            resident_batches: Vec::new(),
             weapon,
             rigid_mesh_count: 1,
             clip: "contact".into(),
@@ -1009,6 +1220,162 @@ mod tests {
             return_blend: None,
             reload_presentation: None,
             cant: 0.,
+        };
+        model.resident_batches = AuthoredViewmodel::resident_batches(
+            &model.batches,
+            &model.skin,
+            ResidentBatching::LegacyChunks,
+        );
+        model
+    }
+
+    #[test]
+    fn skin_key_preserves_all_float_bits_and_eight_ordered_influences() {
+        let original = contact_fixture().skin.meshes[0].vertices[0].clone();
+        for component in 0..16 {
+            let mut keys = std::collections::HashSet::new();
+            for bits in [0, 0x8000_0000, 1, 0x7fc0_0001, 0x7fc0_0002] {
+                let mut vertex = original.clone();
+                let value = f32::from_bits(bits);
+                match component {
+                    0..=2 => vertex.position[component] = value,
+                    3..=5 => vertex.normal[component - 3] = value,
+                    6..=7 => vertex.uv[component - 6] = value,
+                    _ => vertex.weights[component - 8] = value,
+                }
+                assert!(
+                    keys.insert(skin_vertex_key(&vertex)),
+                    "float bits were lost"
+                );
+            }
+        }
+        for influence in 0..8 {
+            let mut keys = std::collections::HashSet::new();
+            for joint in [0, 1, u16::MAX] {
+                let mut vertex = original.clone();
+                vertex.joints[influence] = joint;
+                assert!(keys.insert(skin_vertex_key(&vertex)), "joint slot was lost");
+            }
+        }
+    }
+
+    fn source_vertex_bytes(vertex: &SkinVertex) -> Vec<u8> {
+        vertex
+            .position
+            .iter()
+            .chain(&vertex.normal)
+            .chain(&vertex.uv)
+            .flat_map(|value| value.to_le_bytes())
+            .chain(vertex.joints.iter().flat_map(|joint| joint.to_le_bytes()))
+            .chain(
+                vertex
+                    .weights
+                    .iter()
+                    .flat_map(|weight| weight.to_le_bytes()),
+            )
+            .collect()
+    }
+
+    #[test]
+    fn skin_partition_reconstructs_every_original_source_record() {
+        let mut vertices = contact_fixture().skin.meshes[0].vertices.clone();
+        vertices.push(vertices[0].clone());
+        for influence in 0..8 {
+            let mut joint = vertices[0].clone();
+            joint.joints[influence] = 1;
+            vertices.push(joint);
+            let mut weight = vertices[0].clone();
+            weight.weights[influence] = f32::from_bits(0x3e80_0001);
+            vertices.push(weight);
+        }
+        for bits in [0x8000_0000, 0x7fc0_0001, 0x7fc0_0002] {
+            let mut vertex = vertices[0].clone();
+            vertex.uv[0] = f32::from_bits(bits);
+            vertices.push(vertex);
+        }
+        let original: Vec<_> = (0..10_005)
+            .map(|index| (index % vertices.len()) as u32)
+            .collect();
+        let batches = crate::weapon_model::partition_triangles(&original, |source| {
+            skin_vertex_key(&vertices[source as usize])
+        });
+        assert_eq!(batches.len(), 3);
+        for (input, (sources, indices)) in original.chunks(4_998).zip(&batches) {
+            assert_eq!(input.len(), indices.len());
+            assert!(sources.len() <= input.len());
+            for (&source, &index) in input.iter().zip(indices) {
+                assert_eq!(
+                    source_vertex_bytes(&vertices[source as usize]),
+                    source_vertex_bytes(&vertices[sources[index as usize] as usize])
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn reused_skin_vertices_keep_animated_draw_corners_bit_exact() {
+        let mut baseline = contact_fixture();
+        let mut candidate = contact_fixture();
+        for model in [&mut baseline, &mut candidate] {
+            let part = &mut model.skin.meshes[0];
+            part.vertices.extend(part.vertices.clone());
+            part.indices = vec![0, 1, 2, 3, 4, 5];
+            let batch = &mut model.batches[0];
+            batch.source_vertices = vec![0, 1, 2, 3, 4, 5];
+            batch.mesh.vertices.extend(batch.mesh.vertices.clone());
+            batch.mesh.indices = vec![0, 1, 2, 3, 4, 5];
+        }
+        let part = &candidate.skin.meshes[0];
+        let (sources, indices) = crate::weapon_model::partition_triangles(&part.indices, |index| {
+            skin_vertex_key(&part.vertices[index as usize])
+        })
+        .remove(0);
+        let batch = &mut candidate.batches[0];
+        batch.source_vertices = sources.into_iter().map(|i| i as usize).collect();
+        batch.mesh.vertices.truncate(batch.source_vertices.len());
+        batch.mesh.indices = indices;
+        for (angle, cant, alpha) in [(0., 0., 1.), (0.4, 0.25, 0.5), (-0.8, -0.3, 0.)] {
+            let root = Mat4::from_rotation_translation(
+                Quat::from_rotation_y(angle),
+                vec3(angle, 0.2, -0.5),
+            );
+            let light = SceneLighting::range().in_view(vec3(angle.sin(), 0.2, -angle.cos()));
+            let mut outputs = Vec::new();
+            for model in [&mut baseline, &mut candidate] {
+                model.cant = cant;
+                let mut pose = model.animation.sample_clamped("contact", 0.).unwrap();
+                pose.bone_locals[0].translation[0] += angle;
+                begin_frame(640, 480, 1.).unwrap();
+                model
+                    .draw_pose_opacity(&pose, light, root, Some(&[alpha]))
+                    .unwrap();
+                outputs.push(take_draw_list().unwrap());
+            }
+            let expanded = |list: &vector_range::draw::DrawList| {
+                list.commands
+                    .iter()
+                    .filter_map(|command| match command {
+                        Command::Mesh { mesh, model, blend } => Some((
+                            mesh.indices
+                                .iter()
+                                .map(|&i| {
+                                    let vertex = mesh.vertices[i as usize];
+                                    (
+                                        vertex.position.to_array().map(f32::to_bits),
+                                        vertex.normal.to_array().map(f32::to_bits),
+                                        vertex.uv.to_array().map(f32::to_bits),
+                                        vertex.color,
+                                    )
+                                })
+                                .collect::<Vec<_>>(),
+                            model.to_cols_array().map(f32::to_bits),
+                            *blend,
+                        )),
+                        _ => None,
+                    })
+                    .collect::<Vec<_>>()
+            };
+            assert_eq!(expanded(&outputs[0]), expanded(&outputs[1]));
         }
     }
 
@@ -1192,6 +1559,47 @@ mod tests {
         assert!(model.source_pose_snapshot(0., root).is_err());
         model.set_cant(0.);
         assert!(model.source_pose_snapshot(f64::NAN, root).is_err());
+    }
+
+    #[test]
+    fn direct_target_routes_whole_layer_after_world_for_visible_nonopaque_actors() {
+        let mut model = contact_fixture();
+        assert!(!model.requires_world_behind());
+        let renderer = contact_fixture();
+        let pose = renderer.animation.sample_clamped("contact", 0.).unwrap();
+        model.reload_renderers.push(renderer);
+        model.reload_presentation = Some(ReloadPresentation {
+            index: 0,
+            pose,
+            opacity: vec![1.],
+            fade: None,
+            outgoing: false,
+            from_ads: 0.,
+            visible_ads: 0.,
+            weight: 1.,
+        });
+        for (alpha, after) in [
+            (1., false),
+            (2., false),
+            (0.999, true),
+            (0.5, true),
+            (0., true),
+            (-1., true),
+            (f32::NAN, true),
+        ] {
+            model.reload_presentation.as_mut().unwrap().opacity[0] = alpha;
+            assert_eq!(model.requires_world_behind(), after, "opacity {alpha}");
+        }
+        model
+            .reload_presentation
+            .as_mut()
+            .unwrap()
+            .pose
+            .actor_visible[0] = false;
+        assert!(
+            !model.requires_world_behind(),
+            "invisible actors do not depth-block the world"
+        );
     }
 
     #[test]

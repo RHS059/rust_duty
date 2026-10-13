@@ -1,0 +1,125 @@
+name: Resident mesh native contract
+on:
+  push:
+    branches: [aella/wgpu-1080p-diagnostics]
+    paths: ['.github/workflows/resident-mesh-contract.yml', 'src/**', 'tools/**', 'updater/**', 'tests/fixtures/**', 'examples/renderer_contract.rs', 'Cargo.toml', 'Cargo.lock', 'build.rs', 'build_number.rs', 'rust-toolchain', 'rust-toolchain.toml', '.cargo/**', '.gitattributes', 'LICENSE', 'THIRD_PARTY_LICENSES.txt']
+permissions:
+  contents: read
+concurrency:
+  group: resident-mesh-${{ github.ref }}
+  cancel-in-progress: false
+env:
+  RUSTUP_TOOLCHAIN: '1.99.0'
+  GIT_CONFIG_COUNT: '1'
+  GIT_CONFIG_KEY_0: core.autocrlf
+  GIT_CONFIG_VALUE_0: 'false'
+  PYTHONDONTWRITEBYTECODE: '1'
+jobs:
+  native-resident-mesh:
+    if: github.repository == 'RHS059/rust_duty' && github.ref == 'refs/heads/aella/wgpu-1080p-diagnostics'
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /.gitattributes
+            /.gitignore
+            /Cargo.toml
+            /Cargo.lock
+            /build.rs
+            /build_number.rs
+            /rust-toolchain.toml
+            /rust-toolchain
+            /.cargo/
+            /LICENSE
+            /THIRD_PARTY_LICENSES.txt
+            /src/
+            /updater/
+            /tools/
+            /examples/renderer_contract.rs
+            /tests/fixtures/triangle.vrm
+            /tests/fixtures/two_bone_triangle.vrs
+            /.github/workflows/resident-mesh-contract.yml
+      - uses: dtolnay/rust-toolchain@1.99.0
+        with:
+          components: rustfmt, clippy
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install pinned reader dependencies
+        run: python -m pip install Pillow==11.3.0 PyYAML==6.0.3
+      - name: Check immutable input boundary
+        shell: pwsh
+        run: |
+          if (Test-Path assets/weapons) { throw 'Private weapon inputs are excluded' }
+          if (Test-Path Env:VR_WEAPON_ASSET) { throw 'External weapon override is excluded' }
+          New-Item -ItemType Directory resident-mesh-evidence | Out-Null
+          git rev-parse HEAD | Set-Content resident-mesh-evidence/commit.txt
+          rustc -Vv | Set-Content resident-mesh-evidence/rustc.txt
+          if ($LASTEXITCODE -ne 0) { throw 'Compiler identity command failed' }
+          if (-not (Select-String -Path resident-mesh-evidence/rustc.txt -Pattern '^release: 1\.99\.0$')) { throw 'Expected actual Rust 1.99.0' }
+      - name: Test exact readers and source workflow
+        env:
+          PYTHONPATH: tools
+        run: python -m unittest -v test_resident_encode_detail test_summarize_cpu_encode_detail test_staging_encode_detail test_cpu_encode_substages test_summarize_cpu_substages test_resident_mesh_workflow test_renderer_contract test_dx12_contract_process
+      - name: Test pure geometry, recorder, shader and production routing
+        run: cargo test --locked --no-default-features --features wgpu-runtime --lib --bin vector-range
+      - name: Check formatting and Clippy
+        shell: pwsh
+        run: |
+          cargo fmt --all -- --check
+          if ($LASTEXITCODE -ne 0) { throw 'Formatting failed' }
+          cargo clippy --locked --no-default-features --features wgpu-runtime --lib --tests -- -D warnings
+          if ($LASTEXITCODE -ne 0) { throw 'Clippy failed' }
+      - name: Execute queued resident draws on DX12 WARP
+        shell: pwsh
+        env:
+          RUST_DUTY_RESIDENT_TEST_OUTPUT: ${{ github.workspace }}/resident-mesh-evidence/pixels
+        run: |
+          cargo test --locked --no-default-features --features wgpu-runtime --lib --no-run --message-format=json > resident-mesh-evidence/build.jsonl 2> resident-mesh-evidence/build-stderr.txt
+          if ($LASTEXITCODE -ne 0) { throw 'Native contract build failed' }
+          $artifacts = @(Get-Content resident-mesh-evidence/build.jsonl | ForEach-Object { $_ | ConvertFrom-Json } | Where-Object { $_.reason -eq 'compiler-artifact' -and $_.profile.test -and $_.executable })
+          if ($artifacts.Count -ne 1) { throw 'Expected one library test executable' }
+          $exe = $artifacts[0].executable
+          function Receipt([string]$path) { [ordered]@{ path=$path; size=(Get-Item -LiteralPath $path).Length; sha256=(Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash.ToLowerInvariant() } }
+          $names = @(git ls-files -- src updater tools examples/renderer_contract.rs Cargo.toml Cargo.lock build.rs build_number.rs rust-toolchain rust-toolchain.toml .cargo .gitattributes LICENSE THIRD_PARTY_LICENSES.txt tests/fixtures/triangle.vrm tests/fixtures/two_bone_triangle.vrs .github/workflows/resident-mesh-contract.yml)
+          $sources = @($names | Sort-Object | ForEach-Object { Receipt $_ })
+          $receipt = [ordered]@{ schema='rust-duty-resident-native-test/v1'; commit=(git rev-parse HEAD).Trim(); executable=(Receipt $exe); sources=$sources }
+          $receipt | ConvertTo-Json -Depth 8 | Set-Content -Encoding utf8 resident-mesh-evidence/build-receipt.json
+          & $exe render::resident_tests::native_resident_poses_preserve_order_and_queued_results --exact --ignored --nocapture --test-threads=1 2>&1 | Tee-Object resident-mesh-evidence/native-tests.txt
+          $code = $LASTEXITCODE
+          foreach ($source in $sources) { if ((Receipt $source.path).sha256 -ne $source.sha256) { throw 'Native source changed' } }
+          if ((Receipt $exe).sha256 -ne $receipt.executable.sha256) { throw 'Native executable changed' }
+          if ($code -ne 0) { throw 'Native resident contract failed' }
+          if (-not (Select-String -Path resident-mesh-evidence/native-tests.txt -SimpleMatch -Pattern 'test result: ok. 1 passed; 0 failed; 0 ignored;')) { throw 'Native test did not execute exactly once' }
+      - name: Replay the unchanged 21-image renderer controls
+        shell: pwsh
+        run: |
+          cargo build --locked --no-default-features --features wgpu-runtime --example renderer_contract
+          if ($LASTEXITCODE -ne 0) { throw 'Renderer control build failed' }
+          $exe = 'target/debug/examples/renderer_contract.exe'
+          $before = (Get-FileHash $exe -Algorithm SHA256).Hash.ToLowerInvariant()
+          python tools/run_renderer_contract.py --executable $exe --root . --evidence resident-mesh-evidence/control-process --output resident-mesh-evidence/control-outputs --timeout 300
+          if ($LASTEXITCODE -ne 0) { throw 'Original renderer controls failed' }
+          $control = Get-Content resident-mesh-evidence/control-process/summary.json | ConvertFrom-Json
+          if ($control.executable_sha256 -ne $before) { throw 'Control process executable differs from fresh build' }
+          if ((Get-FileHash $exe -Algorithm SHA256).Hash.ToLowerInvariant() -ne $before) { throw 'Control executable changed' }
+          $before | Set-Content resident-mesh-evidence/control-executable-sha256.txt
+          python -c "from pathlib import Path; from zipfile import ZipFile,ZIP_DEFLATED; p=Path('resident-mesh-evidence/control-outputs'); z=ZipFile('resident-mesh-evidence/control-outputs.zip','x',ZIP_DEFLATED); [z.write(v,v.relative_to(p).as_posix()) for v in sorted(p.rglob('*'))]; z.close()"
+          if ($LASTEXITCODE -ne 0) { throw 'Original control directory retention failed' }
+          $receipt = Get-Content resident-mesh-evidence/build-receipt.json | ConvertFrom-Json
+          foreach ($source in $receipt.sources) {
+            if ((Get-FileHash -LiteralPath $source.path -Algorithm SHA256).Hash.ToLowerInvariant() -ne $source.sha256) { throw 'Source changed during original controls' }
+          }
+      - name: Retain source-bound logs and every native image
+        if: always()
+        uses: actions/upload-artifact@v4
+        id: resident_mesh_artifact
+        with:
+          name: resident-mesh-attempt-${{ github.run_attempt }}
+          path: resident-mesh-evidence/**
+          if-no-files-found: warn
+          retention-days: 7

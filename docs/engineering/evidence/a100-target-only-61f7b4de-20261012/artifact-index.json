@@ -1,0 +1,3476 @@
+{
+  "schema": "a100-target-publication-index/v1",
+  "archive": {
+    "name": "a100-target-61f7b4de-full-stored.zip",
+    "bytes": 185810810,
+    "sha256": "fa415bf6904e7fe9ce6c3252b582dd522ca9ac5aa4dcc1c35b23366f6ec13f09",
+    "entries": 693
+  },
+  "entries": [
+    {
+      "path": "successful-r1/output-manifest.json",
+      "bytes": 24029,
+      "sha256": "b2011dba3a50870bd118ea21918974df8d6f594b71b2b092c2abaf7821d6c3ed"
+    },
+    {
+      "path": "successful-r1/result.json",
+      "bytes": 144396,
+      "sha256": "71a2734c1ed8cbe69c9d3d44bd819c5d52185c19fecfed992186d37fbdaccdc7"
+    },
+    {
+      "path": "successful-r1/viewmodel-r01-visible/display.png",
+      "bytes": 349656,
+      "sha256": "91799a9909faa445265edd20f9f8b32b2762cda60f48a4ed52823a20cd9a36bf"
+    },
+    {
+      "path": "successful-r1/viewmodel-r01-visible/game.log",
+      "bytes": 2364,
+      "sha256": "01850f4db09c284b285a25a03db94d97e7458122cb70d814507de47ba0711387"
+    },
+    {
+      "path": "successful-r1/viewmodel-r01-visible/graphics.json",
+      "bytes": 208,
+      "sha256": "a11c54f16e33d12c5ae5fb5f73eeb7a5441b346c85ade47c09a038a82766deb1"
+    },
+    {
+      "path": "successful-r1/viewmodel-r01-visible/openbox.log",
+      "bytes": 85,
+      "sha256": "6f748c3cd02a858c087697c3afac639205c62b7b206558bd40d1bcbd98165a5c"
+    },
+    {
+      "path": "successful-r1/viewmodel-r01-visible/receipt.json",
+      "bytes": 4345,
+      "sha256": "54819ae1fbda5044f98ba8354ce525a33a10fb8e8129b98d692fc67342f172d7"
+    },
+    {
+      "path": "successful-r1/viewmodel-r01-visible/xvfb.log",
+      "bytes": 1174,
+      "sha256": "f172a1b0f5cf2a0d462c51dfc335af1a1dfc8e873cb66f61d018c8b1b35fe416"
+    },
+    {
+      "path": "successful-r1/viewmodel-r01-visible-driver.json",
+      "bytes": 817,
+      "sha256": "0c8a5b4f5978e3b739b360e80dc66b89c75d59ec133060c1a85a3a59982b513a"
+    },
+    {
+      "path": "successful-r1/viewmodel-r01-visible-process/process.json",
+      "bytes": 487,
+      "sha256": "647c80f60ccf381b7413b91b567a60cda715b5162f6212509e6a17e8d3045c6e"
+    },
+    {
+      "path": "successful-r1/viewmodel-r01-visible-process/stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "successful-r1/viewmodel-r01-visible-process/stdout.log",
+      "bytes": 3333,
+      "sha256": "49375762c30fb92817ba23cc3e8baec2641699860d3c4e4a4a98a851291184d0"
+    },
+    {
+      "path": "successful-r1/viewmodel-r01-visible-work/profiles/kestrel.cfg",
+      "bytes": 623,
+      "sha256": "36a3dd9e677a64e762e97771f949ee5bc5dea09adce57f8c93ad57c6eb1143f8"
+    },
+    {
+      "path": "successful-r1/viewmodel-r01-visible-work/profiles/m4a1-beta-visual.cfg",
+      "bytes": 2002,
+      "sha256": "37f2a7754864753fd845abd7fddcbc02f6d908d4cdd6102a51fefb6038c9fadb"
+    },
+    {
+      "path": "successful-r1/viewmodel-r01-visible-work/profiles/m4a1-candidate.cfg",
+      "bytes": 1628,
+      "sha256": "4ed5e2500933351b3b991ab0a1144a7f41eb8648b83513804ac2b7c2f9a216ea"
+    },
+    {
+      "path": "successful-r1/viewmodel-r01-visible-work/settings.cfg",
+      "bytes": 1819,
+      "sha256": "8bce6b463cedfd5d5534dac606963a4b5b90085a18d5d14e34dd23132cb2a9ca"
+    },
+    {
+      "path": "successful-r1/viewmodel-r01-visible-work/telemetry-sessions/session-1791839481766-76941-0/CSV_STATUS.json",
+      "bytes": 334,
+      "sha256": "a712e1cd826888b34fcb60da23df2f5196c24064df09ea8f1a2c706a5d4004cf"
+    },
+    {
+      "path": "successful-r1/viewmodel-r01-visible-work/telemetry-sessions/session-1791839481766-76941-0/GPU_METADATA.json",
+      "bytes": 1336,
+      "sha256": "69a69407673222f86b9db49bed00cdbf4175d99dbe5e6705661ec9e80130b7f7"
+    },
+    {
+      "path": "successful-r1/viewmodel-r01-visible-work/telemetry-sessions/session-1791839481766-76941-0/GPU_STATUS.json",
+      "bytes": 318,
+      "sha256": "517d1d47f64d1109f0ac194e9ee219a5cc731ac2f113a29e3c3a51c66cedb98e"
+    },
+    {
+      "path": "successful-r1/viewmodel-r01-visible-work/telemetry-sessions/session-1791839481766-76941-0/IDENTITY.json",
+      "bytes": 1912,
+      "sha256": "195458ef3c286ba0912cf0baef959fe670324bec5f4eef8583174ace1fc85c4d"
+    },
+    {
+      "path": "successful-r1/viewmodel-r01-visible-work/telemetry-sessions/session-1791839481766-76941-0/OBSERVATIONS.txt",
+      "bytes": 1606,
+      "sha256": "c2266a1c00b8c9ac14d05ae0cbbd0b262a96435dfe31a2f5b6dae5d3a653e7a5"
+    },
+    {
+      "path": "successful-r1/viewmodel-r01-visible-work/telemetry-sessions/session-1791839481766-76941-0/frames.cpu-encode-detail.json",
+      "bytes": 11962624,
+      "sha256": "3207823d2f455bce532a2721e98af7c3ef55bec4a2fd08c657452a076e29f65d"
+    },
+    {
+      "path": "successful-r1/viewmodel-r01-visible-work/telemetry-sessions/session-1791839481766-76941-0/frames.cpu-substages.json",
+      "bytes": 5007209,
+      "sha256": "323ce0e714b84baf10ff7d816ca800346ab6223e156440bc0b12a2daa7380b06"
+    },
+    {
+      "path": "successful-r1/viewmodel-r01-visible-work/telemetry-sessions/session-1791839481766-76941-0/frames.gpu-timing.json",
+      "bytes": 1242326,
+      "sha256": "98c952163f87afc9282529c03e2025a0e34a91b27f8a9adbe21a7424595c1db6"
+    },
+    {
+      "path": "successful-r1/viewmodel-r01-visible-work/telemetry-sessions/session-1791839481766-76941-0/frames.json",
+      "bytes": 4920939,
+      "sha256": "7a18d41a57bc8aef706260ddd998a83caaf78c7e0fde6f40d113b86fcb7c874c"
+    },
+    {
+      "path": "successful-r1/viewmodel-r01-visible-work/telemetry-sessions/session-1791839481766-76941-0/gameplay.csv",
+      "bytes": 24182,
+      "sha256": "094b63cfa3ff9bca4280171457a106b254cff61df5e65d6beb2e5fb643e086ea"
+    },
+    {
+      "path": "successful-r1/viewmodel-r01-visible-work/telemetry-sessions/session-1791839481766-76941-0/gpu.jsonl",
+      "bytes": 7229,
+      "sha256": "8d28892c375f44e313853afcea5a4ee6a84f51f409440c83643a7e265c924856"
+    },
+    {
+      "path": "successful-r1/viewmodel-r01-visible-work/telemetry.csv",
+      "bytes": 24182,
+      "sha256": "094b63cfa3ff9bca4280171457a106b254cff61df5e65d6beb2e5fb643e086ea"
+    },
+    {
+      "path": "successful-r1/viewmodel-r01-visible-work/ui/examples/high-contrast.css",
+      "bytes": 827,
+      "sha256": "a525b88b686908a03823be3926f75803c4d7d36cbdf6bce7ab04258a7b51ade0"
+    },
+    {
+      "path": "successful-r1/viewmodel-r01-visible-work/ui/examples/large-type.css",
+      "bytes": 714,
+      "sha256": "5943bd2b52ecb286d88c734e74d76f1c0062f63c00a5344e4c96f229235e30c3"
+    },
+    {
+      "path": "successful-r1/viewmodel-r01-visible-work/ui/theme.css",
+      "bytes": 646,
+      "sha256": "fdb3de1bb63e1b4b535c0195a1d4c62db1e8ae1d51c61f3b67c21c693c5f5902"
+    },
+    {
+      "path": "successful-r1/viewmodel-r02-target-only/display.png",
+      "bytes": 140003,
+      "sha256": "417041a7604d2cce8c5f08fc5adb2b92275f675105bc9ebf8ea54222b1fc43ef"
+    },
+    {
+      "path": "successful-r1/viewmodel-r02-target-only/game.log",
+      "bytes": 2368,
+      "sha256": "8adc2737baf11fbd8b26aeb208bb1a9d66299dd21575499a690c464fda5fe19c"
+    },
+    {
+      "path": "successful-r1/viewmodel-r02-target-only/graphics.json",
+      "bytes": 208,
+      "sha256": "a11c54f16e33d12c5ae5fb5f73eeb7a5441b346c85ade47c09a038a82766deb1"
+    },
+    {
+      "path": "successful-r1/viewmodel-r02-target-only/openbox.log",
+      "bytes": 85,
+      "sha256": "6f748c3cd02a858c087697c3afac639205c62b7b206558bd40d1bcbd98165a5c"
+    },
+    {
+      "path": "successful-r1/viewmodel-r02-target-only/receipt.json",
+      "bytes": 4358,
+      "sha256": "fcf6ddcb57e8ecd7b339e45d63faac81bfc3c766bdd1babc9aa40f59040a3dea"
+    },
+    {
+      "path": "successful-r1/viewmodel-r02-target-only/xvfb.log",
+      "bytes": 1174,
+      "sha256": "f172a1b0f5cf2a0d462c51dfc335af1a1dfc8e873cb66f61d018c8b1b35fe416"
+    },
+    {
+      "path": "successful-r1/viewmodel-r02-target-only-driver.json",
+      "bytes": 829,
+      "sha256": "d85135ea1095ad2a3ffdbb85511c81315b6a6e5fda4fb9a1374c59a3a662e95c"
+    },
+    {
+      "path": "successful-r1/viewmodel-r02-target-only-process/process.json",
+      "bytes": 493,
+      "sha256": "6a20e69fe71289cc24598d3b42dd2905b01268853d717c2813ffedbeba3b6c76"
+    },
+    {
+      "path": "successful-r1/viewmodel-r02-target-only-process/stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "successful-r1/viewmodel-r02-target-only-process/stdout.log",
+      "bytes": 3346,
+      "sha256": "3ff976cf30be9d94e3d026e0fcc209e26f1fe0bbb59879d5c0a787061017def8"
+    },
+    {
+      "path": "successful-r1/viewmodel-r02-target-only-work/profiles/kestrel.cfg",
+      "bytes": 623,
+      "sha256": "36a3dd9e677a64e762e97771f949ee5bc5dea09adce57f8c93ad57c6eb1143f8"
+    },
+    {
+      "path": "successful-r1/viewmodel-r02-target-only-work/profiles/m4a1-beta-visual.cfg",
+      "bytes": 2002,
+      "sha256": "37f2a7754864753fd845abd7fddcbc02f6d908d4cdd6102a51fefb6038c9fadb"
+    },
+    {
+      "path": "successful-r1/viewmodel-r02-target-only-work/profiles/m4a1-candidate.cfg",
+      "bytes": 1628,
+      "sha256": "4ed5e2500933351b3b991ab0a1144a7f41eb8648b83513804ac2b7c2f9a216ea"
+    },
+    {
+      "path": "successful-r1/viewmodel-r02-target-only-work/settings.cfg",
+      "bytes": 1819,
+      "sha256": "8bce6b463cedfd5d5534dac606963a4b5b90085a18d5d14e34dd23132cb2a9ca"
+    },
+    {
+      "path": "successful-r1/viewmodel-r02-target-only-work/telemetry-sessions/session-1791839530562-77282-0/CSV_STATUS.json",
+      "bytes": 334,
+      "sha256": "a712e1cd826888b34fcb60da23df2f5196c24064df09ea8f1a2c706a5d4004cf"
+    },
+    {
+      "path": "successful-r1/viewmodel-r02-target-only-work/telemetry-sessions/session-1791839530562-77282-0/GPU_METADATA.json",
+      "bytes": 1336,
+      "sha256": "b3e23178a441381ce3988e86818e220e1f0425c20a78fb54f8d8b76e913e0f68"
+    },
+    {
+      "path": "successful-r1/viewmodel-r02-target-only-work/telemetry-sessions/session-1791839530562-77282-0/GPU_STATUS.json",
+      "bytes": 318,
+      "sha256": "8d0638816441fb950980b58c1f3f41c926257447bd885087bb4ecbade543978f"
+    },
+    {
+      "path": "successful-r1/viewmodel-r02-target-only-work/telemetry-sessions/session-1791839530562-77282-0/IDENTITY.json",
+      "bytes": 1912,
+      "sha256": "195458ef3c286ba0912cf0baef959fe670324bec5f4eef8583174ace1fc85c4d"
+    },
+    {
+      "path": "successful-r1/viewmodel-r02-target-only-work/telemetry-sessions/session-1791839530562-77282-0/OBSERVATIONS.txt",
+      "bytes": 1606,
+      "sha256": "c2266a1c00b8c9ac14d05ae0cbbd0b262a96435dfe31a2f5b6dae5d3a653e7a5"
+    },
+    {
+      "path": "successful-r1/viewmodel-r02-target-only-work/telemetry-sessions/session-1791839530562-77282-0/frames.cpu-encode-detail.json",
+      "bytes": 14006427,
+      "sha256": "e944273b93502bd85bcf450a99dfd6dd803e5bd6a3f7c2ffc8bf350a4f57b6e1"
+    },
+    {
+      "path": "successful-r1/viewmodel-r02-target-only-work/telemetry-sessions/session-1791839530562-77282-0/frames.cpu-substages.json",
+      "bytes": 5883786,
+      "sha256": "cc8dc1e6c502c870da39c05df706149857e04601a008177dda8745f1d160afaf"
+    },
+    {
+      "path": "successful-r1/viewmodel-r02-target-only-work/telemetry-sessions/session-1791839530562-77282-0/frames.gpu-timing.json",
+      "bytes": 1454481,
+      "sha256": "b4f093e8302a6c6ec59a1adac8b68fa0c6f4d3c6f09154cde92486b052877988"
+    },
+    {
+      "path": "successful-r1/viewmodel-r02-target-only-work/telemetry-sessions/session-1791839530562-77282-0/frames.json",
+      "bytes": 5782117,
+      "sha256": "5127f7589291566116f080d992055f3a5b265bc2000bb4c36473c086569c3750"
+    },
+    {
+      "path": "successful-r1/viewmodel-r02-target-only-work/telemetry-sessions/session-1791839530562-77282-0/gameplay.csv",
+      "bytes": 24182,
+      "sha256": "188b52670dfa24e9d3e016161ebe1fa9a128ca7bd1b5ed28bf5b317a43122c1f"
+    },
+    {
+      "path": "successful-r1/viewmodel-r02-target-only-work/telemetry-sessions/session-1791839530562-77282-0/gpu.jsonl",
+      "bytes": 7015,
+      "sha256": "88be315b613c3688cbc204edd89ae39e014431b72ed11406c4633444ad9beec2"
+    },
+    {
+      "path": "successful-r1/viewmodel-r02-target-only-work/telemetry.csv",
+      "bytes": 24182,
+      "sha256": "188b52670dfa24e9d3e016161ebe1fa9a128ca7bd1b5ed28bf5b317a43122c1f"
+    },
+    {
+      "path": "successful-r1/viewmodel-r02-target-only-work/ui/examples/high-contrast.css",
+      "bytes": 827,
+      "sha256": "a525b88b686908a03823be3926f75803c4d7d36cbdf6bce7ab04258a7b51ade0"
+    },
+    {
+      "path": "successful-r1/viewmodel-r02-target-only-work/ui/examples/large-type.css",
+      "bytes": 714,
+      "sha256": "5943bd2b52ecb286d88c734e74d76f1c0062f63c00a5344e4c96f229235e30c3"
+    },
+    {
+      "path": "successful-r1/viewmodel-r02-target-only-work/ui/theme.css",
+      "bytes": 646,
+      "sha256": "fdb3de1bb63e1b4b535c0195a1d4c62db1e8ae1d51c61f3b67c21c693c5f5902"
+    },
+    {
+      "path": "successful-r1/viewmodel-r03-hidden/display.png",
+      "bytes": 139845,
+      "sha256": "7cb4b98b46cf542c8780ab86a1a4cbd95045af7f91f106165b788f048b6fe40d"
+    },
+    {
+      "path": "successful-r1/viewmodel-r03-hidden/game.log",
+      "bytes": 2363,
+      "sha256": "b5086af8dca95050e718850e5b77682e9924c391108167b0fa687dc532c90c36"
+    },
+    {
+      "path": "successful-r1/viewmodel-r03-hidden/graphics.json",
+      "bytes": 208,
+      "sha256": "a11c54f16e33d12c5ae5fb5f73eeb7a5441b346c85ade47c09a038a82766deb1"
+    },
+    {
+      "path": "successful-r1/viewmodel-r03-hidden/openbox.log",
+      "bytes": 85,
+      "sha256": "6f748c3cd02a858c087697c3afac639205c62b7b206558bd40d1bcbd98165a5c"
+    },
+    {
+      "path": "successful-r1/viewmodel-r03-hidden/receipt.json",
+      "bytes": 4339,
+      "sha256": "893f271a183d64c1e04516e3e2bd4beabde4ba5901a7cfe4189f60faf4279a57"
+    },
+    {
+      "path": "successful-r1/viewmodel-r03-hidden/xvfb.log",
+      "bytes": 1174,
+      "sha256": "f172a1b0f5cf2a0d462c51dfc335af1a1dfc8e873cb66f61d018c8b1b35fe416"
+    },
+    {
+      "path": "successful-r1/viewmodel-r03-hidden-driver.json",
+      "bytes": 814,
+      "sha256": "7079fc323d37237962003a4fdc97e5b17b6cdec456a1058171457912c4a64802"
+    },
+    {
+      "path": "successful-r1/viewmodel-r03-hidden-process/process.json",
+      "bytes": 485,
+      "sha256": "bda2ec8dd02e67d70cc2cb47f397ff10ee5f2e453a6358c3da723b77dfa63c19"
+    },
+    {
+      "path": "successful-r1/viewmodel-r03-hidden-process/stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "successful-r1/viewmodel-r03-hidden-process/stdout.log",
+      "bytes": 3327,
+      "sha256": "4dc3a5a9560734726201ac20c4fe05caae42c84f15048b9288c96917f7b9491d"
+    },
+    {
+      "path": "successful-r1/viewmodel-r03-hidden-work/profiles/kestrel.cfg",
+      "bytes": 623,
+      "sha256": "36a3dd9e677a64e762e97771f949ee5bc5dea09adce57f8c93ad57c6eb1143f8"
+    },
+    {
+      "path": "successful-r1/viewmodel-r03-hidden-work/profiles/m4a1-beta-visual.cfg",
+      "bytes": 2002,
+      "sha256": "37f2a7754864753fd845abd7fddcbc02f6d908d4cdd6102a51fefb6038c9fadb"
+    },
+    {
+      "path": "successful-r1/viewmodel-r03-hidden-work/profiles/m4a1-candidate.cfg",
+      "bytes": 1628,
+      "sha256": "4ed5e2500933351b3b991ab0a1144a7f41eb8648b83513804ac2b7c2f9a216ea"
+    },
+    {
+      "path": "successful-r1/viewmodel-r03-hidden-work/settings.cfg",
+      "bytes": 1819,
+      "sha256": "8bce6b463cedfd5d5534dac606963a4b5b90085a18d5d14e34dd23132cb2a9ca"
+    },
+    {
+      "path": "successful-r1/viewmodel-r03-hidden-work/telemetry-sessions/session-1791839579776-77627-0/CSV_STATUS.json",
+      "bytes": 334,
+      "sha256": "a712e1cd826888b34fcb60da23df2f5196c24064df09ea8f1a2c706a5d4004cf"
+    },
+    {
+      "path": "successful-r1/viewmodel-r03-hidden-work/telemetry-sessions/session-1791839579776-77627-0/GPU_METADATA.json",
+      "bytes": 1336,
+      "sha256": "4200680008962f98cb37aa58960403f8bc819fef69548d979a942f625ea27c53"
+    },
+    {
+      "path": "successful-r1/viewmodel-r03-hidden-work/telemetry-sessions/session-1791839579776-77627-0/GPU_STATUS.json",
+      "bytes": 318,
+      "sha256": "8d0638816441fb950980b58c1f3f41c926257447bd885087bb4ecbade543978f"
+    },
+    {
+      "path": "successful-r1/viewmodel-r03-hidden-work/telemetry-sessions/session-1791839579776-77627-0/IDENTITY.json",
+      "bytes": 1912,
+      "sha256": "195458ef3c286ba0912cf0baef959fe670324bec5f4eef8583174ace1fc85c4d"
+    },
+    {
+      "path": "successful-r1/viewmodel-r03-hidden-work/telemetry-sessions/session-1791839579776-77627-0/OBSERVATIONS.txt",
+      "bytes": 1606,
+      "sha256": "c2266a1c00b8c9ac14d05ae0cbbd0b262a96435dfe31a2f5b6dae5d3a653e7a5"
+    },
+    {
+      "path": "successful-r1/viewmodel-r03-hidden-work/telemetry-sessions/session-1791839579776-77627-0/frames.cpu-encode-detail.json",
+      "bytes": 14634555,
+      "sha256": "656589cfb4cacbc290a23aecd53b599161c5bb79c3831e6e9d2a99f57214a21f"
+    },
+    {
+      "path": "successful-r1/viewmodel-r03-hidden-work/telemetry-sessions/session-1791839579776-77627-0/frames.cpu-substages.json",
+      "bytes": 6147501,
+      "sha256": "4f5701cfeff214ddb41ae6f7d79d7b29ec9ef22f04c72b4ac5cb85e469f46702"
+    },
+    {
+      "path": "successful-r1/viewmodel-r03-hidden-work/telemetry-sessions/session-1791839579776-77627-0/frames.gpu-timing.json",
+      "bytes": 1519759,
+      "sha256": "cd063dc341441fe0a0b768383d515265337e922c1a7ebddb3210ac600f2b04ca"
+    },
+    {
+      "path": "successful-r1/viewmodel-r03-hidden-work/telemetry-sessions/session-1791839579776-77627-0/frames.json",
+      "bytes": 6039335,
+      "sha256": "6172c56278ea174075656c8efe8c1fc17ed0727c5d585d3917c5856fcdd669ff"
+    },
+    {
+      "path": "successful-r1/viewmodel-r03-hidden-work/telemetry-sessions/session-1791839579776-77627-0/gameplay.csv",
+      "bytes": 24262,
+      "sha256": "fe8db59b475c543c234e7ac47a7a4d846ca668903203feba02feeaa188ed6585"
+    },
+    {
+      "path": "successful-r1/viewmodel-r03-hidden-work/telemetry-sessions/session-1791839579776-77627-0/gpu.jsonl",
+      "bytes": 6980,
+      "sha256": "b66b4abf31796419b88614791eeaa647371c76f8b53fb299e9267ffbba6527c5"
+    },
+    {
+      "path": "successful-r1/viewmodel-r03-hidden-work/telemetry.csv",
+      "bytes": 24262,
+      "sha256": "fe8db59b475c543c234e7ac47a7a4d846ca668903203feba02feeaa188ed6585"
+    },
+    {
+      "path": "successful-r1/viewmodel-r03-hidden-work/ui/examples/high-contrast.css",
+      "bytes": 827,
+      "sha256": "a525b88b686908a03823be3926f75803c4d7d36cbdf6bce7ab04258a7b51ade0"
+    },
+    {
+      "path": "successful-r1/viewmodel-r03-hidden-work/ui/examples/large-type.css",
+      "bytes": 714,
+      "sha256": "5943bd2b52ecb286d88c734e74d76f1c0062f63c00a5344e4c96f229235e30c3"
+    },
+    {
+      "path": "successful-r1/viewmodel-r03-hidden-work/ui/theme.css",
+      "bytes": 646,
+      "sha256": "fdb3de1bb63e1b4b535c0195a1d4c62db1e8ae1d51c61f3b67c21c693c5f5902"
+    },
+    {
+      "path": "successful-r1/viewmodel-r04-hidden/display.png",
+      "bytes": 140085,
+      "sha256": "deb2a0a612e4cb49654251d4392f7f010f04b6c1c5d2d93fb48195ce1b78b3b9"
+    },
+    {
+      "path": "successful-r1/viewmodel-r04-hidden/game.log",
+      "bytes": 2363,
+      "sha256": "ee6a9cacafe3c1b5b278dfa479cb1c796480348f2535e6f3ac174d7033399d96"
+    },
+    {
+      "path": "successful-r1/viewmodel-r04-hidden/graphics.json",
+      "bytes": 208,
+      "sha256": "a11c54f16e33d12c5ae5fb5f73eeb7a5441b346c85ade47c09a038a82766deb1"
+    },
+    {
+      "path": "successful-r1/viewmodel-r04-hidden/openbox.log",
+      "bytes": 85,
+      "sha256": "6f748c3cd02a858c087697c3afac639205c62b7b206558bd40d1bcbd98165a5c"
+    },
+    {
+      "path": "successful-r1/viewmodel-r04-hidden/receipt.json",
+      "bytes": 4335,
+      "sha256": "42ed10c573d57206104c76a56f5ca88cedbde860e394a98ebe31baececa28771"
+    },
+    {
+      "path": "successful-r1/viewmodel-r04-hidden/xvfb.log",
+      "bytes": 1174,
+      "sha256": "f172a1b0f5cf2a0d462c51dfc335af1a1dfc8e873cb66f61d018c8b1b35fe416"
+    },
+    {
+      "path": "successful-r1/viewmodel-r04-hidden-driver.json",
+      "bytes": 814,
+      "sha256": "23f15df9a407ba684b3ffa6141c9d99d53c70e5726f86081be5d6503b89fd0b4"
+    },
+    {
+      "path": "successful-r1/viewmodel-r04-hidden-process/process.json",
+      "bytes": 484,
+      "sha256": "fdf31c999d1541e69a7f3bafe345889d5260dc0eb9b0c4a385a2961ac9cfbc05"
+    },
+    {
+      "path": "successful-r1/viewmodel-r04-hidden-process/stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "successful-r1/viewmodel-r04-hidden-process/stdout.log",
+      "bytes": 3323,
+      "sha256": "040dca3e1e3d99f936da69185a63b8c5b391c9d7a9383112a12dcf279191883c"
+    },
+    {
+      "path": "successful-r1/viewmodel-r04-hidden-work/profiles/kestrel.cfg",
+      "bytes": 623,
+      "sha256": "36a3dd9e677a64e762e97771f949ee5bc5dea09adce57f8c93ad57c6eb1143f8"
+    },
+    {
+      "path": "successful-r1/viewmodel-r04-hidden-work/profiles/m4a1-beta-visual.cfg",
+      "bytes": 2002,
+      "sha256": "37f2a7754864753fd845abd7fddcbc02f6d908d4cdd6102a51fefb6038c9fadb"
+    },
+    {
+      "path": "successful-r1/viewmodel-r04-hidden-work/profiles/m4a1-candidate.cfg",
+      "bytes": 1628,
+      "sha256": "4ed5e2500933351b3b991ab0a1144a7f41eb8648b83513804ac2b7c2f9a216ea"
+    },
+    {
+      "path": "successful-r1/viewmodel-r04-hidden-work/settings.cfg",
+      "bytes": 1819,
+      "sha256": "8bce6b463cedfd5d5534dac606963a4b5b90085a18d5d14e34dd23132cb2a9ca"
+    },
+    {
+      "path": "successful-r1/viewmodel-r04-hidden-work/telemetry-sessions/session-1791839629243-77979-0/CSV_STATUS.json",
+      "bytes": 334,
+      "sha256": "a712e1cd826888b34fcb60da23df2f5196c24064df09ea8f1a2c706a5d4004cf"
+    },
+    {
+      "path": "successful-r1/viewmodel-r04-hidden-work/telemetry-sessions/session-1791839629243-77979-0/GPU_METADATA.json",
+      "bytes": 1336,
+      "sha256": "d339da64ad0002b723c456739abbe941739aa7d088e8dc5f29afd2331fed2684"
+    },
+    {
+      "path": "successful-r1/viewmodel-r04-hidden-work/telemetry-sessions/session-1791839629243-77979-0/GPU_STATUS.json",
+      "bytes": 318,
+      "sha256": "8d0638816441fb950980b58c1f3f41c926257447bd885087bb4ecbade543978f"
+    },
+    {
+      "path": "successful-r1/viewmodel-r04-hidden-work/telemetry-sessions/session-1791839629243-77979-0/IDENTITY.json",
+      "bytes": 1912,
+      "sha256": "195458ef3c286ba0912cf0baef959fe670324bec5f4eef8583174ace1fc85c4d"
+    },
+    {
+      "path": "successful-r1/viewmodel-r04-hidden-work/telemetry-sessions/session-1791839629243-77979-0/OBSERVATIONS.txt",
+      "bytes": 1606,
+      "sha256": "c2266a1c00b8c9ac14d05ae0cbbd0b262a96435dfe31a2f5b6dae5d3a653e7a5"
+    },
+    {
+      "path": "successful-r1/viewmodel-r04-hidden-work/telemetry-sessions/session-1791839629243-77979-0/frames.cpu-encode-detail.json",
+      "bytes": 14471117,
+      "sha256": "f7ee8c2b55f053d8a5e60cb7084f54b2f450bdda0b0523284d7cc2b05d8ed5ed"
+    },
+    {
+      "path": "successful-r1/viewmodel-r04-hidden-work/telemetry-sessions/session-1791839629243-77979-0/frames.cpu-substages.json",
+      "bytes": 6078537,
+      "sha256": "44a6f73d10b6f5d2ee558ced232b21d81ddd9d45ca835a2ba759e18625fa1a3d"
+    },
+    {
+      "path": "successful-r1/viewmodel-r04-hidden-work/telemetry-sessions/session-1791839629243-77979-0/frames.gpu-timing.json",
+      "bytes": 1502797,
+      "sha256": "b848e822e8169be2d83d64123fdfd74688a6021383fd8eb9fa5a8ac6a8eb93b5"
+    },
+    {
+      "path": "successful-r1/viewmodel-r04-hidden-work/telemetry-sessions/session-1791839629243-77979-0/frames.json",
+      "bytes": 5973965,
+      "sha256": "c4a8dfacd5878702916b6e81c2a5f666adb37a7f482e17309d0a8287682dced9"
+    },
+    {
+      "path": "successful-r1/viewmodel-r04-hidden-work/telemetry-sessions/session-1791839629243-77979-0/gameplay.csv",
+      "bytes": 24182,
+      "sha256": "add8bd051cd75aabf46ff72f8b618dcec1150907dc9e00bc5dfa49a2fe592ad4"
+    },
+    {
+      "path": "successful-r1/viewmodel-r04-hidden-work/telemetry-sessions/session-1791839629243-77979-0/gpu.jsonl",
+      "bytes": 7038,
+      "sha256": "d384251f3e4a5ef26f969bd9d04e680216b5105ee46ade70e9949377400ef172"
+    },
+    {
+      "path": "successful-r1/viewmodel-r04-hidden-work/telemetry.csv",
+      "bytes": 24182,
+      "sha256": "add8bd051cd75aabf46ff72f8b618dcec1150907dc9e00bc5dfa49a2fe592ad4"
+    },
+    {
+      "path": "successful-r1/viewmodel-r04-hidden-work/ui/examples/high-contrast.css",
+      "bytes": 827,
+      "sha256": "a525b88b686908a03823be3926f75803c4d7d36cbdf6bce7ab04258a7b51ade0"
+    },
+    {
+      "path": "successful-r1/viewmodel-r04-hidden-work/ui/examples/large-type.css",
+      "bytes": 714,
+      "sha256": "5943bd2b52ecb286d88c734e74d76f1c0062f63c00a5344e4c96f229235e30c3"
+    },
+    {
+      "path": "successful-r1/viewmodel-r04-hidden-work/ui/theme.css",
+      "bytes": 646,
+      "sha256": "fdb3de1bb63e1b4b535c0195a1d4c62db1e8ae1d51c61f3b67c21c693c5f5902"
+    },
+    {
+      "path": "successful-r1/viewmodel-r05-target-only/display.png",
+      "bytes": 139968,
+      "sha256": "af05901de9364524871e95fed9570a1179b9b633d6edb7b4130c80126fe48c89"
+    },
+    {
+      "path": "successful-r1/viewmodel-r05-target-only/game.log",
+      "bytes": 2368,
+      "sha256": "d89f281bac38077349eac2aa6b635cbbe80898a629518199ed384ed1a4792f3d"
+    },
+    {
+      "path": "successful-r1/viewmodel-r05-target-only/graphics.json",
+      "bytes": 208,
+      "sha256": "a11c54f16e33d12c5ae5fb5f73eeb7a5441b346c85ade47c09a038a82766deb1"
+    },
+    {
+      "path": "successful-r1/viewmodel-r05-target-only/openbox.log",
+      "bytes": 85,
+      "sha256": "6f748c3cd02a858c087697c3afac639205c62b7b206558bd40d1bcbd98165a5c"
+    },
+    {
+      "path": "successful-r1/viewmodel-r05-target-only/receipt.json",
+      "bytes": 4348,
+      "sha256": "c57bcfdb7832a176a927c9d409692a93f65b1d0424abbb6b352bca39804a30e5"
+    },
+    {
+      "path": "successful-r1/viewmodel-r05-target-only/xvfb.log",
+      "bytes": 1174,
+      "sha256": "f172a1b0f5cf2a0d462c51dfc335af1a1dfc8e873cb66f61d018c8b1b35fe416"
+    },
+    {
+      "path": "successful-r1/viewmodel-r05-target-only-driver.json",
+      "bytes": 829,
+      "sha256": "a09db34429dcbaa65e976f97a7d899cf9a5dc4fd210b031ae05fdf46751e7106"
+    },
+    {
+      "path": "successful-r1/viewmodel-r05-target-only-process/process.json",
+      "bytes": 495,
+      "sha256": "921547d6fca46930426a9452622ca821233dd347c48d7693ecec448df62fd1df"
+    },
+    {
+      "path": "successful-r1/viewmodel-r05-target-only-process/stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "successful-r1/viewmodel-r05-target-only-process/stdout.log",
+      "bytes": 3336,
+      "sha256": "8d290444e7400d481fb2bf009205e1579c73c858bf1491debc184da9fcbecb85"
+    },
+    {
+      "path": "successful-r1/viewmodel-r05-target-only-work/profiles/kestrel.cfg",
+      "bytes": 623,
+      "sha256": "36a3dd9e677a64e762e97771f949ee5bc5dea09adce57f8c93ad57c6eb1143f8"
+    },
+    {
+      "path": "successful-r1/viewmodel-r05-target-only-work/profiles/m4a1-beta-visual.cfg",
+      "bytes": 2002,
+      "sha256": "37f2a7754864753fd845abd7fddcbc02f6d908d4cdd6102a51fefb6038c9fadb"
+    },
+    {
+      "path": "successful-r1/viewmodel-r05-target-only-work/profiles/m4a1-candidate.cfg",
+      "bytes": 1628,
+      "sha256": "4ed5e2500933351b3b991ab0a1144a7f41eb8648b83513804ac2b7c2f9a216ea"
+    },
+    {
+      "path": "successful-r1/viewmodel-r05-target-only-work/settings.cfg",
+      "bytes": 1819,
+      "sha256": "8bce6b463cedfd5d5534dac606963a4b5b90085a18d5d14e34dd23132cb2a9ca"
+    },
+    {
+      "path": "successful-r1/viewmodel-r05-target-only-work/telemetry-sessions/session-1791839678900-78324-0/CSV_STATUS.json",
+      "bytes": 334,
+      "sha256": "a712e1cd826888b34fcb60da23df2f5196c24064df09ea8f1a2c706a5d4004cf"
+    },
+    {
+      "path": "successful-r1/viewmodel-r05-target-only-work/telemetry-sessions/session-1791839678900-78324-0/GPU_METADATA.json",
+      "bytes": 1336,
+      "sha256": "aa22f01197e8492268c6c03de879291c34850f593ee7ea6fe0d90f41f8739122"
+    },
+    {
+      "path": "successful-r1/viewmodel-r05-target-only-work/telemetry-sessions/session-1791839678900-78324-0/GPU_STATUS.json",
+      "bytes": 318,
+      "sha256": "517d1d47f64d1109f0ac194e9ee219a5cc731ac2f113a29e3c3a51c66cedb98e"
+    },
+    {
+      "path": "successful-r1/viewmodel-r05-target-only-work/telemetry-sessions/session-1791839678900-78324-0/IDENTITY.json",
+      "bytes": 1912,
+      "sha256": "195458ef3c286ba0912cf0baef959fe670324bec5f4eef8583174ace1fc85c4d"
+    },
+    {
+      "path": "successful-r1/viewmodel-r05-target-only-work/telemetry-sessions/session-1791839678900-78324-0/OBSERVATIONS.txt",
+      "bytes": 1606,
+      "sha256": "c2266a1c00b8c9ac14d05ae0cbbd0b262a96435dfe31a2f5b6dae5d3a653e7a5"
+    },
+    {
+      "path": "successful-r1/viewmodel-r05-target-only-work/telemetry-sessions/session-1791839678900-78324-0/frames.cpu-encode-detail.json",
+      "bytes": 13454943,
+      "sha256": "6f94718bfb7ded9ed78d3cc2491557cf39b0237f98c973fa9e4a0e3f17eff0c6"
+    },
+    {
+      "path": "successful-r1/viewmodel-r05-target-only-work/telemetry-sessions/session-1791839678900-78324-0/frames.cpu-substages.json",
+      "bytes": 5654578,
+      "sha256": "b833208e8b555cd3c8f0e869b79b2303e5e9304955e0f8388796eaf3f7c73699"
+    },
+    {
+      "path": "successful-r1/viewmodel-r05-target-only-work/telemetry-sessions/session-1791839678900-78324-0/frames.gpu-timing.json",
+      "bytes": 1397170,
+      "sha256": "c6c5366fa10185d039cee605e221f9ee88ca23de06386989a9b18583386df886"
+    },
+    {
+      "path": "successful-r1/viewmodel-r05-target-only-work/telemetry-sessions/session-1791839678900-78324-0/frames.json",
+      "bytes": 5555290,
+      "sha256": "248cf7b15770f389745de8174ba820f03fc540ebe62254dbfd5b14155012f2d8"
+    },
+    {
+      "path": "successful-r1/viewmodel-r05-target-only-work/telemetry-sessions/session-1791839678900-78324-0/gameplay.csv",
+      "bytes": 24262,
+      "sha256": "20b29a66cf112aad960376482975f078d6b6487df0eebffea530d25f044dfaa1"
+    },
+    {
+      "path": "successful-r1/viewmodel-r05-target-only-work/telemetry-sessions/session-1791839678900-78324-0/gpu.jsonl",
+      "bytes": 7264,
+      "sha256": "1587acd3f8bcd2016af8aed78dc007727eb96b128736782aa427f27596bd01c3"
+    },
+    {
+      "path": "successful-r1/viewmodel-r05-target-only-work/telemetry.csv",
+      "bytes": 24262,
+      "sha256": "20b29a66cf112aad960376482975f078d6b6487df0eebffea530d25f044dfaa1"
+    },
+    {
+      "path": "successful-r1/viewmodel-r05-target-only-work/ui/examples/high-contrast.css",
+      "bytes": 827,
+      "sha256": "a525b88b686908a03823be3926f75803c4d7d36cbdf6bce7ab04258a7b51ade0"
+    },
+    {
+      "path": "successful-r1/viewmodel-r05-target-only-work/ui/examples/large-type.css",
+      "bytes": 714,
+      "sha256": "5943bd2b52ecb286d88c734e74d76f1c0062f63c00a5344e4c96f229235e30c3"
+    },
+    {
+      "path": "successful-r1/viewmodel-r05-target-only-work/ui/theme.css",
+      "bytes": 646,
+      "sha256": "fdb3de1bb63e1b4b535c0195a1d4c62db1e8ae1d51c61f3b67c21c693c5f5902"
+    },
+    {
+      "path": "successful-r1/viewmodel-r06-visible/display.png",
+      "bytes": 349548,
+      "sha256": "645989920c6cdad6835eb2427a3ef8250b266f31bcaeb8fe0a40b7095d94349e"
+    },
+    {
+      "path": "successful-r1/viewmodel-r06-visible/game.log",
+      "bytes": 2364,
+      "sha256": "5e629d3657b3c2cc3a6a4ec6e89bdf0bf678d3d18377fa95462886f7a436eead"
+    },
+    {
+      "path": "successful-r1/viewmodel-r06-visible/graphics.json",
+      "bytes": 208,
+      "sha256": "a11c54f16e33d12c5ae5fb5f73eeb7a5441b346c85ade47c09a038a82766deb1"
+    },
+    {
+      "path": "successful-r1/viewmodel-r06-visible/openbox.log",
+      "bytes": 85,
+      "sha256": "6f748c3cd02a858c087697c3afac639205c62b7b206558bd40d1bcbd98165a5c"
+    },
+    {
+      "path": "successful-r1/viewmodel-r06-visible/receipt.json",
+      "bytes": 4343,
+      "sha256": "dcd2b4c3b752dfc00cb6710085870feab84745b3b9f1ff5c4b43484d5e4ab8c8"
+    },
+    {
+      "path": "successful-r1/viewmodel-r06-visible/xvfb.log",
+      "bytes": 1174,
+      "sha256": "f172a1b0f5cf2a0d462c51dfc335af1a1dfc8e873cb66f61d018c8b1b35fe416"
+    },
+    {
+      "path": "successful-r1/viewmodel-r06-visible-driver.json",
+      "bytes": 817,
+      "sha256": "fa6706844cfd5e01eda91f2b884c55ae9366c27a077f75f00e08ebab474ba7e2"
+    },
+    {
+      "path": "successful-r1/viewmodel-r06-visible-process/process.json",
+      "bytes": 487,
+      "sha256": "42fdc5784795837e6b6977f34921afd6e7b9d6f6c691155d5c367b1980d31ef5"
+    },
+    {
+      "path": "successful-r1/viewmodel-r06-visible-process/stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "successful-r1/viewmodel-r06-visible-process/stdout.log",
+      "bytes": 3331,
+      "sha256": "b29dab6b59ab39392e8175235008108f7f9e509eabf686dd4093b04da9dee363"
+    },
+    {
+      "path": "successful-r1/viewmodel-r06-visible-work/profiles/kestrel.cfg",
+      "bytes": 623,
+      "sha256": "36a3dd9e677a64e762e97771f949ee5bc5dea09adce57f8c93ad57c6eb1143f8"
+    },
+    {
+      "path": "successful-r1/viewmodel-r06-visible-work/profiles/m4a1-beta-visual.cfg",
+      "bytes": 2002,
+      "sha256": "37f2a7754864753fd845abd7fddcbc02f6d908d4cdd6102a51fefb6038c9fadb"
+    },
+    {
+      "path": "successful-r1/viewmodel-r06-visible-work/profiles/m4a1-candidate.cfg",
+      "bytes": 1628,
+      "sha256": "4ed5e2500933351b3b991ab0a1144a7f41eb8648b83513804ac2b7c2f9a216ea"
+    },
+    {
+      "path": "successful-r1/viewmodel-r06-visible-work/settings.cfg",
+      "bytes": 1819,
+      "sha256": "8bce6b463cedfd5d5534dac606963a4b5b90085a18d5d14e34dd23132cb2a9ca"
+    },
+    {
+      "path": "successful-r1/viewmodel-r06-visible-work/telemetry-sessions/session-1791839728573-78676-0/CSV_STATUS.json",
+      "bytes": 334,
+      "sha256": "a712e1cd826888b34fcb60da23df2f5196c24064df09ea8f1a2c706a5d4004cf"
+    },
+    {
+      "path": "successful-r1/viewmodel-r06-visible-work/telemetry-sessions/session-1791839728573-78676-0/GPU_METADATA.json",
+      "bytes": 1336,
+      "sha256": "818c2b10f417cb334b2b1326eaba5bcc3b77d45ed1d04682f58813e73d5a1fcb"
+    },
+    {
+      "path": "successful-r1/viewmodel-r06-visible-work/telemetry-sessions/session-1791839728573-78676-0/GPU_STATUS.json",
+      "bytes": 318,
+      "sha256": "517d1d47f64d1109f0ac194e9ee219a5cc731ac2f113a29e3c3a51c66cedb98e"
+    },
+    {
+      "path": "successful-r1/viewmodel-r06-visible-work/telemetry-sessions/session-1791839728573-78676-0/IDENTITY.json",
+      "bytes": 1912,
+      "sha256": "195458ef3c286ba0912cf0baef959fe670324bec5f4eef8583174ace1fc85c4d"
+    },
+    {
+      "path": "successful-r1/viewmodel-r06-visible-work/telemetry-sessions/session-1791839728573-78676-0/OBSERVATIONS.txt",
+      "bytes": 1606,
+      "sha256": "c2266a1c00b8c9ac14d05ae0cbbd0b262a96435dfe31a2f5b6dae5d3a653e7a5"
+    },
+    {
+      "path": "successful-r1/viewmodel-r06-visible-work/telemetry-sessions/session-1791839728573-78676-0/frames.cpu-encode-detail.json",
+      "bytes": 11352730,
+      "sha256": "b17295a5daa79f3554c77e3b61c91ee40e740b92de5d0050f932764dc45e4ea1"
+    },
+    {
+      "path": "successful-r1/viewmodel-r06-visible-work/telemetry-sessions/session-1791839728573-78676-0/frames.cpu-substages.json",
+      "bytes": 4755286,
+      "sha256": "abd752f860613b2971a6b01f7535672bcc3fe05c0ff6666fe27a4adda324b9f9"
+    },
+    {
+      "path": "successful-r1/viewmodel-r06-visible-work/telemetry-sessions/session-1791839728573-78676-0/frames.gpu-timing.json",
+      "bytes": 1178926,
+      "sha256": "7cc2f819a0f05d731264d298c7b9ba827f6f246dcf5730a67a0775397839d1ba"
+    },
+    {
+      "path": "successful-r1/viewmodel-r06-visible-work/telemetry-sessions/session-1791839728573-78676-0/frames.json",
+      "bytes": 4671066,
+      "sha256": "8c340a756c08b8ed2e042658c5992bbeb645baf998b24edc4390f6d0dce929e2"
+    },
+    {
+      "path": "successful-r1/viewmodel-r06-visible-work/telemetry-sessions/session-1791839728573-78676-0/gameplay.csv",
+      "bytes": 24182,
+      "sha256": "5d4d40b016fb67e7cc1c28b91657bf5096dc9576aba317f4314f8e7dedcab17c"
+    },
+    {
+      "path": "successful-r1/viewmodel-r06-visible-work/telemetry-sessions/session-1791839728573-78676-0/gpu.jsonl",
+      "bytes": 7274,
+      "sha256": "f381cfd2ae19cc9ed5f5a90ea4339e786ccb029efc4eab5abcd8298aa8a84d7a"
+    },
+    {
+      "path": "successful-r1/viewmodel-r06-visible-work/telemetry.csv",
+      "bytes": 24182,
+      "sha256": "5d4d40b016fb67e7cc1c28b91657bf5096dc9576aba317f4314f8e7dedcab17c"
+    },
+    {
+      "path": "successful-r1/viewmodel-r06-visible-work/ui/examples/high-contrast.css",
+      "bytes": 827,
+      "sha256": "a525b88b686908a03823be3926f75803c4d7d36cbdf6bce7ab04258a7b51ade0"
+    },
+    {
+      "path": "successful-r1/viewmodel-r06-visible-work/ui/examples/large-type.css",
+      "bytes": 714,
+      "sha256": "5943bd2b52ecb286d88c734e74d76f1c0062f63c00a5344e4c96f229235e30c3"
+    },
+    {
+      "path": "successful-r1/viewmodel-r06-visible-work/ui/theme.css",
+      "bytes": 646,
+      "sha256": "fdb3de1bb63e1b4b535c0195a1d4c62db1e8ae1d51c61f3b67c21c693c5f5902"
+    },
+    {
+      "path": "build/build-process/process.json",
+      "bytes": 534,
+      "sha256": "3aa70628bcc41abda1a1c655e67bf238cfe9cbab0c4bf224e41fd4296451d982"
+    },
+    {
+      "path": "build/build-process/stderr.log",
+      "bytes": 7905,
+      "sha256": "6c4e7f3434164c99a24d94ee2bc2dda6788a54e611dd5a4c9b878fa16cd64814"
+    },
+    {
+      "path": "build/build-process/stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "build/build-result.json",
+      "bytes": 61165,
+      "sha256": "7f03c0b5b361a320bd3017da49dbfcf5af952f5237489c8b9edd13482a07f689"
+    },
+    {
+      "path": "build/build-source/.gitattributes",
+      "bytes": 703,
+      "sha256": "d91f62a5c25c3d4eb959b3086a79852fb8828a7896003df36faf5ccd445f8f74"
+    },
+    {
+      "path": "build/build-source/.gitignore",
+      "bytes": 1784,
+      "sha256": "3766f76487fe4886baa4960a5dbe5fade682d8d9bfe8666860168d9197f39090"
+    },
+    {
+      "path": "build/build-source/Cargo.lock",
+      "bytes": 105160,
+      "sha256": "2aa35ed5561b7e40f515520ec36cb7eaa5c4175f12f0fcf9c764dd0ae6cbdeef"
+    },
+    {
+      "path": "build/build-source/Cargo.toml",
+      "bytes": 915,
+      "sha256": "ec02a76fb9e8eb29178d707c0f6cfea8206b0299d81f6594fd3cfe0707f55584"
+    },
+    {
+      "path": "build/build-source/LICENSE",
+      "bytes": 1079,
+      "sha256": "2c8280aed73a6c3d654c8b8d2069f0fd2d6a7ce545caad84acd5cb25de2e19cd"
+    },
+    {
+      "path": "build/build-source/THIRD_PARTY_LICENSES.txt",
+      "bytes": 2424942,
+      "sha256": "3d98df5fbf94470968a642f6cb59a0ba5464f411cc241eee1108d1dcb1864879"
+    },
+    {
+      "path": "build/build-source/build.rs",
+      "bytes": 3266,
+      "sha256": "e054de56657900e8f2b7cf66a7abd776389164fec60aff4c181f9f3eef7de565"
+    },
+    {
+      "path": "build/build-source/build_number.rs",
+      "bytes": 2002,
+      "sha256": "df533d358c8f40b094fb9efd5e914c997a6e943d9076b965947913424c3999c5"
+    },
+    {
+      "path": "build/build-source/examples/resident_authored_contract.rs",
+      "bytes": 25970,
+      "sha256": "8dfd9515e5595751581dd7db62db7c507d72517526d8ea6a8cdf9d981ddecc66"
+    },
+    {
+      "path": "build/build-source/examples/support/resident_vertex_diagnostic.rs",
+      "bytes": 13634,
+      "sha256": "2deb3ea6d090c279a1352dfda927efbd558b0f1d9e00065ac9f5e02bb4c8905f"
+    },
+    {
+      "path": "build/build-source/profiles/kestrel.cfg",
+      "bytes": 623,
+      "sha256": "36a3dd9e677a64e762e97771f949ee5bc5dea09adce57f8c93ad57c6eb1143f8"
+    },
+    {
+      "path": "build/build-source/profiles/m4a1-beta-visual.cfg",
+      "bytes": 2002,
+      "sha256": "37f2a7754864753fd845abd7fddcbc02f6d908d4cdd6102a51fefb6038c9fadb"
+    },
+    {
+      "path": "build/build-source/profiles/m4a1-candidate.cfg",
+      "bytes": 1628,
+      "sha256": "4ed5e2500933351b3b991ab0a1144a7f41eb8648b83513804ac2b7c2f9a216ea"
+    },
+    {
+      "path": "build/build-source/rust-toolchain.toml",
+      "bytes": 86,
+      "sha256": "7458b2d74495e6fb1c1edeea4d5a793705476431dadb60627187111f91441e13"
+    },
+    {
+      "path": "build/build-source/settings.cfg",
+      "bytes": 1819,
+      "sha256": "8bce6b463cedfd5d5534dac606963a4b5b90085a18d5d14e34dd23132cb2a9ca"
+    },
+    {
+      "path": "build/build-source/src/action.rs",
+      "bytes": 24554,
+      "sha256": "072d58fd13c8c428c9c866b6f8fc131c39cac45b2da3f91272ab17deae435cf7"
+    },
+    {
+      "path": "build/build-source/src/ammo_supply.rs",
+      "bytes": 11007,
+      "sha256": "73ebe7fa399ae62f1a44c3ed15191589c072eda68d9291b226fc9d756a03d5c1"
+    },
+    {
+      "path": "build/build-source/src/ammo_supply_view.rs",
+      "bytes": 6742,
+      "sha256": "5184469c248b343fe84729a736f6dc992913cb947d698c2c83555cb3b03aad64"
+    },
+    {
+      "path": "build/build-source/src/animation_manifest.rs",
+      "bytes": 12503,
+      "sha256": "e60c65b57e366ca3eefc4b863ff3d3c1289f9fb3a50d9790e7ac9226e6c6a6fc"
+    },
+    {
+      "path": "build/build-source/src/app.rs",
+      "bytes": 76581,
+      "sha256": "d3af959591c86e32622eec6def093da1c5af9d97394b5ca11826a2f82885f51c"
+    },
+    {
+      "path": "build/build-source/src/arms.rs",
+      "bytes": 60235,
+      "sha256": "69eb12a369f5c9a88d43b1cae1d3a0180228193b94077b2b80afb279664db20f"
+    },
+    {
+      "path": "build/build-source/src/asset.rs",
+      "bytes": 10152,
+      "sha256": "eec1033c8e711fd8ee17537e5486d96553735ce32880f1aa0188e86dd9889481"
+    },
+    {
+      "path": "build/build-source/src/asset_path.rs",
+      "bytes": 9427,
+      "sha256": "8a79bd2d4dc391503d14c468cf15f4df051c400b0700090a5556bbfaf05825ec"
+    },
+    {
+      "path": "build/build-source/src/authored_ads.rs",
+      "bytes": 27476,
+      "sha256": "db3faa82cb05f6a7b44cbdeb500af84902f60ab67699bb5d67da714f01e28065"
+    },
+    {
+      "path": "build/build-source/src/authored_jump.rs",
+      "bytes": 6522,
+      "sha256": "948c3e31acceec3af04e5fe503eda6599ce3add0397424fdb1dd7a4065e809a1"
+    },
+    {
+      "path": "build/build-source/src/authored_locomotion_adapter.rs",
+      "bytes": 12345,
+      "sha256": "6694bcafc9fb9ae24ff11f51e40182cf90ccb691cf78f5e94857d51d7450315e"
+    },
+    {
+      "path": "build/build-source/src/authored_locomotion_path.rs",
+      "bytes": 24395,
+      "sha256": "591a1360f747b2a9c99f204bb9664be7e411f31c5f3fd3b39d5da9d39e69a789"
+    },
+    {
+      "path": "build/build-source/src/authored_pose_return.rs",
+      "bytes": 7303,
+      "sha256": "2d31138d5d34475a264021e03793b8b2db7953de42e60d7b465dcb90f7317eed"
+    },
+    {
+      "path": "build/build-source/src/authored_reload.rs",
+      "bytes": 5817,
+      "sha256": "551ddee6d1204034cba2864e1e194a8d89d7824fe4afd822e273296d94b0bed0"
+    },
+    {
+      "path": "build/build-source/src/authored_viewmodel.rs",
+      "bytes": 59960,
+      "sha256": "cb3f7c57e0662a5ae4f245d1d69ee422f4d2c6aa6bea62cce087f799ed0940e2"
+    },
+    {
+      "path": "build/build-source/src/authored_walk.rs",
+      "bytes": 16481,
+      "sha256": "15383c9d52c721194aaf50903f9143a7d13ece9b6152d8d5763a49e2fa379eec"
+    },
+    {
+      "path": "build/build-source/src/body_presentation.rs",
+      "bytes": 12872,
+      "sha256": "65caaa6852bb6758e87c86de74fcf98f66718fbd9fd060956ba6864dead50b7c"
+    },
+    {
+      "path": "build/build-source/src/capture.rs",
+      "bytes": 18262,
+      "sha256": "807eb12a983a9dd3f289ca71c0eff7368e722c268b0112f98a26c0f7e5f06d09"
+    },
+    {
+      "path": "build/build-source/src/clock.rs",
+      "bytes": 3912,
+      "sha256": "9f2bde0e35e8685bfa9f30d46549bddb8e8352bce0755165bfe0b903591f59bc"
+    },
+    {
+      "path": "build/build-source/src/control.rs",
+      "bytes": 15252,
+      "sha256": "325895b12c20358eac25d6fb76244808fc24f8f16727da2cd294385878e881a5"
+    },
+    {
+      "path": "build/build-source/src/draw/facade.rs",
+      "bytes": 54833,
+      "sha256": "04c0dad47470cdc6c184a5e2449eaccb70b29c327b5d1c1cb3c8a50611cdc1cd"
+    },
+    {
+      "path": "build/build-source/src/draw/frame_witness.rs",
+      "bytes": 5537,
+      "sha256": "fede582c4758f4e429f1389f0fceefb2b8821bf1abed1e57bf664c7248d94fd2"
+    },
+    {
+      "path": "build/build-source/src/draw/geometry.rs",
+      "bytes": 5058,
+      "sha256": "75d0a9b9ff434173b4f4460a3c3a08c6149ddee90feaff90f9ec57eb340f7891"
+    },
+    {
+      "path": "build/build-source/src/draw/mod.rs",
+      "bytes": 15994,
+      "sha256": "7772dfe482ee8601fcedcc63220554a85095e4761e818e5930ba92cbd85c208a"
+    },
+    {
+      "path": "build/build-source/src/draw/resident.rs",
+      "bytes": 22849,
+      "sha256": "ac3015eb1e5d3d605216a61b8348c3d78e6548ba92ac726d54969cd25cd65d8b"
+    },
+    {
+      "path": "build/build-source/src/frame_cpu_substages.rs",
+      "bytes": 7761,
+      "sha256": "575beb4227eaab9da6cbd53ee3247702b52591cb15eeea4e35892376d0f64bb4"
+    },
+    {
+      "path": "build/build-source/src/frame_encode_detail.rs",
+      "bytes": 32041,
+      "sha256": "e4afa1410aa3dc0d721ba31c98decbb6e4c95a1fbce75e80fe002e35d8d5a785"
+    },
+    {
+      "path": "build/build-source/src/frame_gpu_capture.rs",
+      "bytes": 20810,
+      "sha256": "76fb75c525d11109b55803ff6afdffa24737357ee0b5a8775c500f08cf4e4e1a"
+    },
+    {
+      "path": "build/build-source/src/frame_performance.rs",
+      "bytes": 34944,
+      "sha256": "ecc319b1469b70de1ea25b87b9e070b59c5e93b21dbec6cf8793092259abb3a6"
+    },
+    {
+      "path": "build/build-source/src/frame_performance_session.rs",
+      "bytes": 58218,
+      "sha256": "38462d1970bc0a3a4e8f4bc571aaf9471bea70a898f4db7f76c3f91c84149a38"
+    },
+    {
+      "path": "build/build-source/src/frame_resident_policy.rs",
+      "bytes": 333,
+      "sha256": "d7c4364908ffc0eba8e518d4d03bffeb5e57f39bf218e4ad68473d56f9d3ec28"
+    },
+    {
+      "path": "build/build-source/src/frame_staging_policy.rs",
+      "bytes": 324,
+      "sha256": "6c47d7fa92cc0c5a811f7707653a56d28be279a05b83202a9e3c68486549aa9f"
+    },
+    {
+      "path": "build/build-source/src/frame_upload_policy.rs",
+      "bytes": 339,
+      "sha256": "b11830fb147094f7b61cec29930d422d75bb8e69d75a0179dd4d44f280f6ec05"
+    },
+    {
+      "path": "build/build-source/src/game_update.rs",
+      "bytes": 33271,
+      "sha256": "a8fa7df462007faca3666c2937ea64d832a52a62303e6ebe10427045fd53f1f4"
+    },
+    {
+      "path": "build/build-source/src/gpu_telemetry/counters.rs",
+      "bytes": 7782,
+      "sha256": "b9c7fa21698c53d32b2d98f0cb9cc4850fa444dd308d065f131656c7b3e13172"
+    },
+    {
+      "path": "build/build-source/src/gpu_telemetry/tests.rs",
+      "bytes": 14612,
+      "sha256": "8a9e46c0006944bba3962143e570de0fb36b8fbdec70ecc99eb4391ce69d2465"
+    },
+    {
+      "path": "build/build-source/src/gpu_telemetry/windows.rs",
+      "bytes": 13418,
+      "sha256": "d2e6ec48b2017e73a0a811c0a6a52a44c2fff731a4721d6be3b526e827369681"
+    },
+    {
+      "path": "build/build-source/src/gpu_telemetry.rs",
+      "bytes": 7594,
+      "sha256": "e8f8f1a2781142735a58940ae0b2a6e318a178527ce9459a5b031f84997cc383"
+    },
+    {
+      "path": "build/build-source/src/graphics_device.rs",
+      "bytes": 18939,
+      "sha256": "7596c4821dd392048afc554992331f2649d9bdf47ba4eb4d97a0254b5502e698"
+    },
+    {
+      "path": "build/build-source/src/hud.rs",
+      "bytes": 16567,
+      "sha256": "0a3440310b1ad91812f527eaca9a5cfbcea833f69fe51d2c60baf947c1316ab4"
+    },
+    {
+      "path": "build/build-source/src/input_frame.rs",
+      "bytes": 11246,
+      "sha256": "7cff84966ee1af991face3bea79e87bbb3415d38e2381eaf39dba8c8673a4d5d"
+    },
+    {
+      "path": "build/build-source/src/layered_locomotion.rs",
+      "bytes": 26417,
+      "sha256": "d089129219f3f2c019b5acdd21ac06f00fc085be5e7595a18353d074cf670105"
+    },
+    {
+      "path": "build/build-source/src/legacy_macroquad/mod.rs",
+      "bytes": 57962,
+      "sha256": "e8fb7a5e389c1df264099e1b1afed2c53efed53efba9a351e3c7c1dbdfb9f013"
+    },
+    {
+      "path": "build/build-source/src/legacy_macroquad/precision_receipt.rs",
+      "bytes": 20236,
+      "sha256": "2f1a2a689926ae51643fa353a1aaa1c759a6dc81f4653dbf4fb840765eb3a4be"
+    },
+    {
+      "path": "build/build-source/src/legacy_macroquad/runtime.rs",
+      "bytes": 10383,
+      "sha256": "7b65c0c4426458f2c65275b89c1b71b0380d3033eaf865f991b429f18151275d"
+    },
+    {
+      "path": "build/build-source/src/lib.rs",
+      "bytes": 1918,
+      "sha256": "a0a61f9df3749c9d6d13cc17adcac7d977550266f210566d18a79bce74b6a473"
+    },
+    {
+      "path": "build/build-source/src/locomotion_presentation.rs",
+      "bytes": 7433,
+      "sha256": "d2f7e01e660c40f20f2ae0254c4cb940561777d0c9531490ffe68715db80c495"
+    },
+    {
+      "path": "build/build-source/src/main.rs",
+      "bytes": 7094,
+      "sha256": "f7b6a0fceb4964f9370db9897968aae559c5c7b15bd58dcf0eda9d6ef37ce473"
+    },
+    {
+      "path": "build/build-source/src/muzzle_fx.rs",
+      "bytes": 36248,
+      "sha256": "b49e08e861af65f4d844ad6bf8dd2f7c90d984dc6ae25b61a16bf674bafb93f1"
+    },
+    {
+      "path": "build/build-source/src/pause_menu.rs",
+      "bytes": 65356,
+      "sha256": "c08e8fc87407bc9cfda5cfadf7f92eb5802e7abb625e0b66e9d96c5d8f0bca9e"
+    },
+    {
+      "path": "build/build-source/src/platform/audio.rs",
+      "bytes": 7292,
+      "sha256": "ba6891e80207593a3bde98b6ee4f99c4c617f2402df05e6fd85047e08fb0d846"
+    },
+    {
+      "path": "build/build-source/src/platform/input.rs",
+      "bytes": 10033,
+      "sha256": "c869e553b0697f9fa8679f04c628405a08e3bd0ec30b40fa84f978ca03c417aa"
+    },
+    {
+      "path": "build/build-source/src/platform/launch.rs",
+      "bytes": 14441,
+      "sha256": "513f850e9563e6afb77587766fb865e9ace4473d23f290033c2bf6315899b658"
+    },
+    {
+      "path": "build/build-source/src/platform/mod.rs",
+      "bytes": 138,
+      "sha256": "5aa227aede4fed73c8b410cbf48b575b4d81592d9718502efcc2769f2aaf3b0e"
+    },
+    {
+      "path": "build/build-source/src/platform/runtime.rs",
+      "bytes": 2998,
+      "sha256": "cbf57e86d377529ff3eea58028c59eee6cf37e73c119d5cec2710c66ba319395"
+    },
+    {
+      "path": "build/build-source/src/platform/session_focus.rs",
+      "bytes": 25067,
+      "sha256": "6b964c7ac72182cb8a99f6e9b1cbdb81c55e83d48a9943601dc734e76213e0fd"
+    },
+    {
+      "path": "build/build-source/src/platform/window.rs",
+      "bytes": 34345,
+      "sha256": "3b08bd60b02f2672d38b7d52a4fc6f93bb6c56d13bf55288ed24bf615c87d9da"
+    },
+    {
+      "path": "build/build-source/src/reference_motion.rs",
+      "bytes": 9131,
+      "sha256": "5a63c94b05f4d959785142cc44c7fcef73c8d3374a06327ac827456537751929"
+    },
+    {
+      "path": "build/build-source/src/render/arena.rs",
+      "bytes": 15497,
+      "sha256": "30b2211a2f5ea4762fad3ae1b4a51a3ca7b1812343aadb03d75e5d410a29a004"
+    },
+    {
+      "path": "build/build-source/src/render/backend.rs",
+      "bytes": 10670,
+      "sha256": "f482b2ce638346a5ee1b318580c8a41fa93e3c6fe168b696916f412eb3c3e72f"
+    },
+    {
+      "path": "build/build-source/src/render/capture.rs",
+      "bytes": 7907,
+      "sha256": "21cb24be9f79e69c2593451c0ecf697302ded36dc859e40c1c96ccbaadff9487"
+    },
+    {
+      "path": "build/build-source/src/render/device.rs",
+      "bytes": 40078,
+      "sha256": "5363779315b547b4549d18c679f75e03b63e039d4c18f556eb80674b1ef9446a"
+    },
+    {
+      "path": "build/build-source/src/render/finite_warp_probe.rs",
+      "bytes": 61080,
+      "sha256": "69531dbc035e468785d8c501527c671d2becba31eaebb6dcdbc4582a5155fd5e"
+    },
+    {
+      "path": "build/build-source/src/render/font/LICENSE",
+      "bytes": 1501,
+      "sha256": "2ab177f9b9aaf988111d76363fe3b73ce29f32eb7f00a7f346acc41499d770e4"
+    },
+    {
+      "path": "build/build-source/src/render/font/ProggyClean.ttf",
+      "bytes": 41208,
+      "sha256": "527d2a443ce051f93f7e77b855609722b8cb220a9f104b4aa037be5c90b71324"
+    },
+    {
+      "path": "build/build-source/src/render/frame.rs",
+      "bytes": 38685,
+      "sha256": "c5b0c3af39d0fe031358ad9df86628e1d1a09eb2ee63c08e32827850db76e51e"
+    },
+    {
+      "path": "build/build-source/src/render/gpu_timing.rs",
+      "bytes": 30353,
+      "sha256": "160dbe14c07c481e51240607eafc91cd6a086842d1b570581c7c6056c57c08f1"
+    },
+    {
+      "path": "build/build-source/src/render/lines.rs",
+      "bytes": 9701,
+      "sha256": "d5728fe038459d6299d704e780d910adea143f8e796b3da8cf52a915548e982b"
+    },
+    {
+      "path": "build/build-source/src/render/mesh.rs",
+      "bytes": 23027,
+      "sha256": "87bbb86bbdaa545bc2be3de92493e7c5f8747342b08df03c760bb26a1ea20695"
+    },
+    {
+      "path": "build/build-source/src/render/mesh.wgsl",
+      "bytes": 2261,
+      "sha256": "9185a0b16773c8c46ca1a2513832a08c8e8b29c63b00632cfcb61673b71cca41"
+    },
+    {
+      "path": "build/build-source/src/render/mod.rs",
+      "bytes": 1541,
+      "sha256": "d1598c09346a0420e5ea7a4ca5487544c1ffa1d0f885a2a05129ddfc7c81a789"
+    },
+    {
+      "path": "build/build-source/src/render/plan.rs",
+      "bytes": 28997,
+      "sha256": "506eea35eba4cc53e232615f202840888251d87095ab4bd25f69a75da6535405"
+    },
+    {
+      "path": "build/build-source/src/render/present_policy.rs",
+      "bytes": 14294,
+      "sha256": "ffb4458aef9a911fc0867b9853736965f7ff4257e5594f10f0b294313a7f5417"
+    },
+    {
+      "path": "build/build-source/src/render/resident.rs",
+      "bytes": 27095,
+      "sha256": "c13fbc710c634a2bd9897c5fc866a29833215336a82bb306e9ebd8d585d59407"
+    },
+    {
+      "path": "build/build-source/src/render/resident.wgsl",
+      "bytes": 5530,
+      "sha256": "3d64e00b1142731c3583437fc469dfe128f6488719e4b1f9b58acbfdca9ded97"
+    },
+    {
+      "path": "build/build-source/src/render/resident_tests.rs",
+      "bytes": 14792,
+      "sha256": "90c0ca75a713c3cd0218ead39395a5a8fc457b9264dc9314b838889f2625232d"
+    },
+    {
+      "path": "build/build-source/src/render/resident_vertex_probe.rs",
+      "bytes": 36193,
+      "sha256": "e3016f81be481e73d4e38cf792eb555a7f2cb8d07a8c245a84d7d36f5ee452ef"
+    },
+    {
+      "path": "build/build-source/src/render/resident_vertex_probe.wgsl",
+      "bytes": 817,
+      "sha256": "ae35a9e0a74fd3f91ef40ab62b403a71ad56d22981c354f16ed0eccdd363bba2"
+    },
+    {
+      "path": "build/build-source/src/render/runtime.rs",
+      "bytes": 21438,
+      "sha256": "3cb528dc713c9fd6aeb66b056a6a1ef6e1b21cdfa7d575f2a9ce85fda5f91d4f"
+    },
+    {
+      "path": "build/build-source/src/render/sprite2d.rs",
+      "bytes": 1291,
+      "sha256": "862180ee20915e6b1ce13f279c90c808d3030a8c6f6cc06eb6e50810056de6d1"
+    },
+    {
+      "path": "build/build-source/src/render/target.rs",
+      "bytes": 7648,
+      "sha256": "8e7095a8d6e67efa9ff6671fdfef7727a8887207cd9870b59ce8e0d5b5a44639"
+    },
+    {
+      "path": "build/build-source/src/render/text.rs",
+      "bytes": 28516,
+      "sha256": "a0925e6a6ad6020b42dd17a044ad1e1bdfb92f4850979235d032d26007acfded"
+    },
+    {
+      "path": "build/build-source/src/render/upload_cache.rs",
+      "bytes": 13736,
+      "sha256": "2d0e11e7abe182df20b68973274b748be268d3025fa46a56129b2fb1cd10c2b7"
+    },
+    {
+      "path": "build/build-source/src/render/upload_reuse_tests.rs",
+      "bytes": 24497,
+      "sha256": "e508aa6fc6f7d40445dc34f58499534946dc756db101cc94fe93c82b69c7777f"
+    },
+    {
+      "path": "build/build-source/src/render/upload_staging.rs",
+      "bytes": 17990,
+      "sha256": "9cf332c719a93a4ff890c5c826e83a48424c83c5f5d566ff7d35c2175edc8ffa"
+    },
+    {
+      "path": "build/build-source/src/render/upload_staging_layout.rs",
+      "bytes": 9346,
+      "sha256": "0335c07224b2e9e0dd3b4cc00f491261632972ac173ad13f08ae60b14e1e64c4"
+    },
+    {
+      "path": "build/build-source/src/render/upload_staging_tests.rs",
+      "bytes": 30023,
+      "sha256": "032b33c13e2be9682dba198a2fe2d67d4366f7e941e3df4912d7785ebf0aa178"
+    },
+    {
+      "path": "build/build-source/src/scene_lighting.rs",
+      "bytes": 7974,
+      "sha256": "28de8685b9d0442d07294ae0f5db0ea42bd05d13128ad9b38b533a8f6bb10bc4"
+    },
+    {
+      "path": "build/build-source/src/session.rs",
+      "bytes": 20844,
+      "sha256": "1b96c95b8a25202e05a1d24e24c220622b05783e01dfce48c9602d2f15f75f69"
+    },
+    {
+      "path": "build/build-source/src/session_focus.rs",
+      "bytes": 144,
+      "sha256": "9f2dc43e24e9432181f91d4dc0c454c5065003831f37fb77ae37d3085d34215b"
+    },
+    {
+      "path": "build/build-source/src/settings.rs",
+      "bytes": 19501,
+      "sha256": "166107a7b4c0c714f02abfc7605783cb96eb908c40114c797bc0ab06ced17232"
+    },
+    {
+      "path": "build/build-source/src/sim/actions.rs",
+      "bytes": 59544,
+      "sha256": "9668f94873e15148e787593612dee1d9afabb821b94a7d236cb7320ce2513e0f"
+    },
+    {
+      "path": "build/build-source/src/sim.rs",
+      "bytes": 72979,
+      "sha256": "89ff17a11deae683b0b6c09dc5cb3038886c84ee862f7ed0329599ec63149623"
+    },
+    {
+      "path": "build/build-source/src/skinned_asset.rs",
+      "bytes": 16074,
+      "sha256": "f7b98e867468b74f9692b408a9a508423d86445dc260cef940a38fd7555d0f16"
+    },
+    {
+      "path": "build/build-source/src/sound.rs",
+      "bytes": 117,
+      "sha256": "d274d5942b7c5132e993ba36586eb6aa33bda5ae286f434fc58ccbd4f54c3a56"
+    },
+    {
+      "path": "build/build-source/src/telemetry_export.rs",
+      "bytes": 17446,
+      "sha256": "feff16f92c9d03ddd1dda7e18ccf3bc67ae1699b9857c71e354e7c6443d148ea"
+    },
+    {
+      "path": "build/build-source/src/traversal_replay.rs",
+      "bytes": 5446,
+      "sha256": "2db50898acadd5f9911a0304a9b9bcf7995a0d392d6977f1a7939f32b9941ead"
+    },
+    {
+      "path": "build/build-source/src/ui_theme.rs",
+      "bytes": 30410,
+      "sha256": "d5c07779b012fc41741dcafb65a94d8700fee9414b41ce424549ed7f0daecee1"
+    },
+    {
+      "path": "build/build-source/src/view_animation.rs",
+      "bytes": 30045,
+      "sha256": "4b981f7c9a1f22853cebd5087de96a486fb196609e13c6be19d922a5312387ee"
+    },
+    {
+      "path": "build/build-source/src/viewmodel_animation.rs",
+      "bytes": 24296,
+      "sha256": "c3f097585cc94c90b9a0bce986d36b707dbf8970058f5bb2db0e6e058f4b6251"
+    },
+    {
+      "path": "build/build-source/src/viewmodel_draw.rs",
+      "bytes": 28408,
+      "sha256": "d5adbfea16361fff7c3eb89f6d59cfb14ac2a2c736991337a128ff0d5a1ed469"
+    },
+    {
+      "path": "build/build-source/src/weapon_animation.rs",
+      "bytes": 28450,
+      "sha256": "5a09602514952df18eeb5bcf0ac4092aefb5aa0c9df98bcdc4ffad0226a59b08"
+    },
+    {
+      "path": "build/build-source/src/weapon_ik.rs",
+      "bytes": 6784,
+      "sha256": "9fce1ddce7cb77b39f0619bd465f4890fb54f0335461751377cfe66920ec7b36"
+    },
+    {
+      "path": "build/build-source/src/weapon_model.rs",
+      "bytes": 19912,
+      "sha256": "8df0c1e6f2b0a4c0dadf5f0e9edd16c717f3f77edfc8921e2806dc0173fe2b90"
+    },
+    {
+      "path": "build/build-source/src/weapon_sway.rs",
+      "bytes": 11919,
+      "sha256": "91160e6d84c86dd4b94aef04d20bf7142706a6a20bd9db61d12d54613ccddf5f"
+    },
+    {
+      "path": "build/build-source/src/world_draw.rs",
+      "bytes": 9218,
+      "sha256": "b841d3a8833c1cc0f473a404054b324dca9e5f2359104b3a6f89c40182748165"
+    },
+    {
+      "path": "build/build-source/tests/fixtures/triangle.vrm",
+      "bytes": 180,
+      "sha256": "16b4be0a09a4dbcc2da4bd05fcb942201fb2bed6e2554a3e7e0e56390dd664fc"
+    },
+    {
+      "path": "build/build-source/tests/fixtures/two_bone_triangle.vrs",
+      "bytes": 603,
+      "sha256": "288cbca226763ca9afdd43abf08d3352645f6b0e5c1647e29d48e9a7a8735e3b"
+    },
+    {
+      "path": "build/build-source/tools/a100_public_build.py",
+      "bytes": 24288,
+      "sha256": "a1a30d81cf735aeb8534be3d22979651c0848105f2bf57abdf541885bee9c88e"
+    },
+    {
+      "path": "build/build-source/tools/ads_fragment_error_bound.py",
+      "bytes": 7817,
+      "sha256": "ca9f4e3ed547003925eaba1332212de6420e8ea532603d50e79cb6e5d732d1f5"
+    },
+    {
+      "path": "build/build-source/tools/ads_source_visibility_binding.py",
+      "bytes": 29130,
+      "sha256": "9528da9a112af82c80f4466e21dc3dcd03731eef7c7b778a80b34615a1934975"
+    },
+    {
+      "path": "build/build-source/tools/aggregate_dx12_authored.py",
+      "bytes": 55072,
+      "sha256": "5bc45e7f73fca83654ffacfeece5659ca92ede5be6fb4a0ab49fc30184c16d9d"
+    },
+    {
+      "path": "build/build-source/tools/audit_source_visibility_geometry.py",
+      "bytes": 7360,
+      "sha256": "8e0056d96f1ec761547a7c015a2ff277314353a67a4465ebcd5f274f8714c43f"
+    },
+    {
+      "path": "build/build-source/tools/bind_reviewed_gl_supplement.py",
+      "bytes": 20263,
+      "sha256": "57da4303ec2cc3a353d77524aec0fd627cb4c8a058dd63455ad584fb02c17abb"
+    },
+    {
+      "path": "build/build-source/tools/build_ads_assets.py",
+      "bytes": 6496,
+      "sha256": "2de692460beb34c467b4568084952bcf1734346e4892a5f1539ca29a92819851"
+    },
+    {
+      "path": "build/build-source/tools/build_ads_source_packet.py",
+      "bytes": 38475,
+      "sha256": "f5703fa939bbd3cdf4708178581dec42ef52c4bce09c2a5e7b8b8287ebee65d9"
+    },
+    {
+      "path": "build/build-source/tools/build_blender_assets.py",
+      "bytes": 4739,
+      "sha256": "570ce2b564d11c5753c2865096523425f1924d93d82c22d02e86468efe7a62ef"
+    },
+    {
+      "path": "build/build-source/tools/build_directional_assets.py",
+      "bytes": 7623,
+      "sha256": "1f7ac3df1542b6e7dd97a64d5237681b9e6e9b8a8e9af17077a0c464556c958d"
+    },
+    {
+      "path": "build/build-source/tools/build_identity.py",
+      "bytes": 6368,
+      "sha256": "d97c8bb6f974e1d0797641e3cdaef6d90d03d9255639a52ff102542304107c5a"
+    },
+    {
+      "path": "build/build-source/tools/build_jump_assets.py",
+      "bytes": 7114,
+      "sha256": "83859b3b0c0fb433fe8df216d6b843ca18bf50c1c610ac9c8f3c87f6d0193062"
+    },
+    {
+      "path": "build/build-source/tools/build_linux_authored_inputs.py",
+      "bytes": 40715,
+      "sha256": "8098edd7468f28134094cffa7ca3f1c485142981ce6770594b3b15f7a59e5853"
+    },
+    {
+      "path": "build/build-source/tools/build_performance_pair.py",
+      "bytes": 10439,
+      "sha256": "5b4071c3466a76dc388d15fa0d6c1d62e5c61b4bd64c0b2c9a74f2cd45e1a755"
+    },
+    {
+      "path": "build/build-source/tools/build_walk_assets.py",
+      "bytes": 6006,
+      "sha256": "f2ec58318ee2458e1c75ccbfa94ec3e8df0127add3d19472d11ee7ddb696ed6d"
+    },
+    {
+      "path": "build/build-source/tools/calibrated_sight_contours.py",
+      "bytes": 7053,
+      "sha256": "72a5b3fafc107cf4f34485c23cd9dcd8567b3099e7af7f5b9a788e58f8fc1642"
+    },
+    {
+      "path": "build/build-source/tools/check_generated_assets.py",
+      "bytes": 1528,
+      "sha256": "a19aed6990a04148e0e89339e35952de73331d44fc059d679d091479bd14d3ae"
+    },
+    {
+      "path": "build/build-source/tools/check_historical_pair_admission.py",
+      "bytes": 2250,
+      "sha256": "e90ad8b0155a24d09ecd573a744c6e5e8d15031bd498da02e6549ab82f6ba1a0"
+    },
+    {
+      "path": "build/build-source/tools/ci_quality_checks.py",
+      "bytes": 4140,
+      "sha256": "9b6dcdb1e7f5da1dd8bf2904f24b750f66252914b7e6ec97ac5bdc5063d9144a"
+    },
+    {
+      "path": "build/build-source/tools/collect_ads_offset_evidence.py",
+      "bytes": 10001,
+      "sha256": "fb8ca0805032b96d50bcc9b820c002931271bb972af69af65e4f1f5e5862fc1a"
+    },
+    {
+      "path": "build/build-source/tools/collect_game_licenses.py",
+      "bytes": 17453,
+      "sha256": "bda69a4c3b787831c7cfac5b8205120c69547105fed0c08787e07c0f65f1eb6b"
+    },
+    {
+      "path": "build/build-source/tools/collect_updater_licenses.py",
+      "bytes": 3800,
+      "sha256": "a1e58c4c55b9f4321e28756a93b066ab3283f4cdebd42c7f3d128be20912d190"
+    },
+    {
+      "path": "build/build-source/tools/compare_source_visibility.py",
+      "bytes": 3867,
+      "sha256": "b5961debd7d1e1034a78feeb3a7fae7d96e29e38dc266e20a814ceb9f45c6bb6"
+    },
+    {
+      "path": "build/build-source/tools/create_weapon_ik_rig.py",
+      "bytes": 21807,
+      "sha256": "7b28c5663ecdeab647411ac9e511482a8e94b2508d436cfeba54eaec309dba42"
+    },
+    {
+      "path": "build/build-source/tools/current_ads_source_oracle.py",
+      "bytes": 20920,
+      "sha256": "e0ebe5025cc2fe5a5eb36313354b3e373cdb8a7c82fdfdca1d98761d353ea8a9"
+    },
+    {
+      "path": "build/build-source/tools/download_preflight_baseline.py",
+      "bytes": 3735,
+      "sha256": "b4e27f9092dfaa3d8f6d5a2c405271012806b73689ab5c23ecf474b94adb1c2c"
+    },
+    {
+      "path": "build/build-source/tools/dx12_authored_shards.py",
+      "bytes": 19393,
+      "sha256": "65de080a9ac5d1607dc55e915d1dd8cf012efbe7f456beefd29260281af74965"
+    },
+    {
+      "path": "build/build-source/tools/dx12_contract_process.py",
+      "bytes": 8484,
+      "sha256": "5bbaacbee50d9eb5bb4c49763328bfddd19404c8aa492f5b7f3cfd423df78790"
+    },
+    {
+      "path": "build/build-source/tools/ebf_authored_packet_pins.json",
+      "bytes": 33703,
+      "sha256": "55a9890795c3fe4f7d9dff67ab9ebb2264591882ae622a15472fe6e9bb64e5ba"
+    },
+    {
+      "path": "build/build-source/tools/exclusive_output.py",
+      "bytes": 5020,
+      "sha256": "a8f5ed95a0f9e4f085a865e0dcdc8d7ce0d323226e4e9de76893aca6d1c6fce3"
+    },
+    {
+      "path": "build/build-source/tools/export_ads_fbx.py",
+      "bytes": 10639,
+      "sha256": "d1f9d61dd0119bbce2c97eea97265b243b6da6097008943543b5423418ed40dd"
+    },
+    {
+      "path": "build/build-source/tools/export_directional_fbx.py",
+      "bytes": 11053,
+      "sha256": "105040590e5fa4d204728c5965b6eced096c9b993f968c643b4e88e02db58ba9"
+    },
+    {
+      "path": "build/build-source/tools/export_jump_fbx.py",
+      "bytes": 10669,
+      "sha256": "7dd60ee5323699f2b3c9fabea4be5d21186c67c13dff69e8f4726379dc31095b"
+    },
+    {
+      "path": "build/build-source/tools/export_reload_wip_fbx.py",
+      "bytes": 6198,
+      "sha256": "c092993b1c138aac80f8e0c31b8763bcfe8e959bff21c7d022b2338e5dcea86f"
+    },
+    {
+      "path": "build/build-source/tools/export_sampler_poses.py",
+      "bytes": 17046,
+      "sha256": "ecd0f8a7b58633c7c932604b60e8998a99889429f59c3e645736c0907eba2dd2"
+    },
+    {
+      "path": "build/build-source/tools/export_viewmodel.py",
+      "bytes": 16819,
+      "sha256": "dd39c05bbe8c2ac557020261e360da8f7e5debedb652daa75b223de2667f93cd"
+    },
+    {
+      "path": "build/build-source/tools/extract_native_profile_evidence.py",
+      "bytes": 14997,
+      "sha256": "15936cfe988c0c5d5c7fc487198330b6c184e1f36e02364d6d6cb40a53260582"
+    },
+    {
+      "path": "build/build-source/tools/fetch_legacy_facade_reference.py",
+      "bytes": 4485,
+      "sha256": "cf911142e6d75838e35c982cd8d810b728542938e31935bb91926da96c5af37e"
+    },
+    {
+      "path": "build/build-source/tools/fetch_source_bound_companions.py",
+      "bytes": 6510,
+      "sha256": "b56a8320f00499e1e223bb32b6fdafc2c5512ea3e08321cf6c34892ac2b3efa0"
+    },
+    {
+      "path": "build/build-source/tools/finite_ads_gpu_cpu_class.json",
+      "bytes": 4684,
+      "sha256": "91bd0030157ff8e1b4e70127b028e57543d8fc91fb3b6cc1202c4707491fb798"
+    },
+    {
+      "path": "build/build-source/tools/finite_ads_gpu_cpu_class.pending.json",
+      "bytes": 4545,
+      "sha256": "75ec05dcde99985aa1e33e7414027ebcd70997c9e767a71e3578c84dbd5a84f7"
+    },
+    {
+      "path": "build/build-source/tools/finite_ads_gpu_cpu_evidence/native-review.json",
+      "bytes": 39275,
+      "sha256": "bbc92e18d4092dbd8a1a005fc12d7d8457411a7e821b39dc28c7ca04a90459c5"
+    },
+    {
+      "path": "build/build-source/tools/finite_ads_pass_batching_class.json",
+      "bytes": 1218,
+      "sha256": "2895c1f4f0039f5a850c7b30196c5d77f4b2e563bc211f8b9fb51ca15f639c4c"
+    },
+    {
+      "path": "build/build-source/tools/finite_ads_pass_batching_class.pending.json",
+      "bytes": 1073,
+      "sha256": "c6224c6ccd73b2a3cfe004962983c00bdb495ebaada0716856aeae900e10762d"
+    },
+    {
+      "path": "build/build-source/tools/finite_ads_pass_batching_evidence/native-review.json",
+      "bytes": 13264,
+      "sha256": "4c2ae5f087ac1e548a9285f635fbb17de9de3defbaa4fab0da014fdb5c976699"
+    },
+    {
+      "path": "build/build-source/tools/finite_ads_profile_binding.py",
+      "bytes": 73071,
+      "sha256": "1a94528b56edf05655624c8768372a1883619c55ce9a4738b859fb7c0ac11c5c"
+    },
+    {
+      "path": "build/build-source/tools/finite_ads_reviewed_class.json",
+      "bytes": 576231,
+      "sha256": "96dfb631be9d59f6cf35d87e4f3c17a4a4303d74787bb773a8c47672efb53331"
+    },
+    {
+      "path": "build/build-source/tools/finite_ads_reviewed_evidence/comparisons/dx12-empty.json",
+      "bytes": 41232,
+      "sha256": "11c07892931608238e4828e50e0889fd93bfa180dcace47d7bfa8456aaf29940"
+    },
+    {
+      "path": "build/build-source/tools/finite_ads_reviewed_evidence/comparisons/dx12-visible.json",
+      "bytes": 13259,
+      "sha256": "27431e28e00ded2f681a0d436f476c5270d66c4eb8f54a0039db042903ea332a"
+    },
+    {
+      "path": "build/build-source/tools/finite_ads_reviewed_evidence/comparisons/opengl-empty.json",
+      "bytes": 41234,
+      "sha256": "a373cd959e6cb2d34cbfa189038e8b9b757b394d77b5f8e25078f6577a9b9de3"
+    },
+    {
+      "path": "build/build-source/tools/finite_ads_reviewed_evidence/comparisons/opengl-visible.json",
+      "bytes": 13261,
+      "sha256": "f0e2f202598027db75148e0677d3685b0b928a0dd128b7e52470a8d56b14c26e"
+    },
+    {
+      "path": "build/build-source/tools/finite_ads_reviewed_evidence/compiled-executables.json",
+      "bytes": 283,
+      "sha256": "2ace0197d7b165713bd50b59794314f1560e97825a862a36420f4c5a23523d87"
+    },
+    {
+      "path": "build/build-source/tools/finite_ads_reviewed_evidence/compiler/rustc-Vv-after.txt",
+      "bytes": 194,
+      "sha256": "5477f9bad65b15c4c5b31fc050fc72feba651ea1b330bc75cf356a4d6b0fbc80"
+    },
+    {
+      "path": "build/build-source/tools/finite_ads_reviewed_evidence/compiler/rustc-Vv-before.txt",
+      "bytes": 194,
+      "sha256": "5477f9bad65b15c4c5b31fc050fc72feba651ea1b330bc75cf356a4d6b0fbc80"
+    },
+    {
+      "path": "build/build-source/tools/finite_ads_reviewed_evidence/gl/reviewed-binding.json",
+      "bytes": 1738,
+      "sha256": "3e1878b8bb0e7191b9f83a06f78d09f04633d0a8c7fa27e4768c3e9f0532d19b"
+    },
+    {
+      "path": "build/build-source/tools/finite_ads_reviewed_evidence/inputs-and-implementation-after.json",
+      "bytes": 54669,
+      "sha256": "fb4d82d938969ab7bff474fe2220ba9e1cebc1e556c830dd525d6bde230c2d1e"
+    },
+    {
+      "path": "build/build-source/tools/finite_ads_reviewed_evidence/inputs-and-implementation-before.json",
+      "bytes": 53468,
+      "sha256": "51b0f4dbecfda98c7aa50f2a3ab1112689a63ff56c536fdcf6732b7ef0e302b8"
+    },
+    {
+      "path": "build/build-source/tools/finite_ads_reviewed_evidence/logs/build-two-diagnostics-once/invocation.json",
+      "bytes": 576,
+      "sha256": "0189da0d906126dd49b998d9ac921c93cde95aabb6531f8c25b6dea6e06075c4"
+    },
+    {
+      "path": "build/build-source/tools/finite_ads_reviewed_evidence/logs/finite-warp-native/invocation.json",
+      "bytes": 832,
+      "sha256": "c960574f3d2a5f78a7d7e115d2b0a30af08d4790a8d6f34d0414beac3357be9f"
+    },
+    {
+      "path": "build/build-source/tools/finite_ads_reviewed_evidence/native/report.json",
+      "bytes": 66113,
+      "sha256": "9b12dc5c5c542810c1d3bf3b4e263a774085c5dc08806fa40e4bde564e935d83"
+    },
+    {
+      "path": "build/build-source/tools/finite_ads_reviewed_evidence/preparation-receipt.json",
+      "bytes": 42523,
+      "sha256": "048a62d4e1cd62567c0b9d565a074c99c7ca7627d64bf1c4ad3eec85ed782fc6"
+    },
+    {
+      "path": "build/build-source/tools/finite_ads_reviewed_evidence/summary.json",
+      "bytes": 11561,
+      "sha256": "c17771b71f3014bdda051a109e8040aae01c2ea7c2170fa2f3a7e1d6bd91288d"
+    },
+    {
+      "path": "build/build-source/tools/game-dependency-notices.json",
+      "bytes": 277334,
+      "sha256": "13cd719c93d060ab0e4d76636098898e5ffac9884eec29c440e72c5b153f95fe"
+    },
+    {
+      "path": "build/build-source/tools/game-license-sources/manifest.json",
+      "bytes": 27337,
+      "sha256": "231b76f4da58222ebee7ba373c59566183fe32f626fa9e84dd9ea64a37b1fed5"
+    },
+    {
+      "path": "build/build-source/tools/game-license-sources/texts/0976403647ef6c51ad03594182c7b72588a167fd56feb1fc530f55534a597b20.txt",
+      "bytes": 1315,
+      "sha256": "0976403647ef6c51ad03594182c7b72588a167fd56feb1fc530f55534a597b20"
+    },
+    {
+      "path": "build/build-source/tools/game-license-sources/texts/0e658e29afa1efb28879143fdba54dd347784b7b73ea0fe187d7ef5c26d1b435.txt",
+      "bytes": 1061,
+      "sha256": "0e658e29afa1efb28879143fdba54dd347784b7b73ea0fe187d7ef5c26d1b435"
+    },
+    {
+      "path": "build/build-source/tools/game-license-sources/texts/10d30a673cd5e9349bdc02aeb48f14b3386d27d0da32df8f0a555d4aa16aa551.txt",
+      "bytes": 10818,
+      "sha256": "10d30a673cd5e9349bdc02aeb48f14b3386d27d0da32df8f0a555d4aa16aa551"
+    },
+    {
+      "path": "build/build-source/tools/game-license-sources/texts/2bb1070a6c73dfd28f509fa2d3380cc29999899bccd7487b29a0c88cc0270c02.txt",
+      "bytes": 1157,
+      "sha256": "2bb1070a6c73dfd28f509fa2d3380cc29999899bccd7487b29a0c88cc0270c02"
+    },
+    {
+      "path": "build/build-source/tools/game-license-sources/texts/756c8d2ab2dc24f256e1455b5f03937f4933d83d7bc9f2d55009fc962377d512.txt",
+      "bytes": 561,
+      "sha256": "756c8d2ab2dc24f256e1455b5f03937f4933d83d7bc9f2d55009fc962377d512"
+    },
+    {
+      "path": "build/build-source/tools/game-license-sources/texts/7da4f970dbddc732a045e82c6298655102cfdafe21db4f30635f0e8d8b5a215d.txt",
+      "bytes": 976,
+      "sha256": "7da4f970dbddc732a045e82c6298655102cfdafe21db4f30635f0e8d8b5a215d"
+    },
+    {
+      "path": "build/build-source/tools/game-license-sources/texts/7eb15307bafc2e83b48490a5a4f1024f860d00c98b173fb5b8fa11e4e6692a31.txt",
+      "bytes": 621,
+      "sha256": "7eb15307bafc2e83b48490a5a4f1024f860d00c98b173fb5b8fa11e4e6692a31"
+    },
+    {
+      "path": "build/build-source/tools/game-license-sources/texts/b185f94aadadfc7d2ddcb32b94c39d84e38cbcef2d8b6ee603ad4d0072802d94.txt",
+      "bytes": 626,
+      "sha256": "b185f94aadadfc7d2ddcb32b94c39d84e38cbcef2d8b6ee603ad4d0072802d94"
+    },
+    {
+      "path": "build/build-source/tools/game-license-sources/texts/b1d6df41ed3aa96806e74c729444d7c121d90e6660a6aed01d298e03fde475a0.txt",
+      "bytes": 1087,
+      "sha256": "b1d6df41ed3aa96806e74c729444d7c121d90e6660a6aed01d298e03fde475a0"
+    },
+    {
+      "path": "build/build-source/tools/game-license-sources/texts/bb6d1433171e4a2cba5241101f2ace3db9df3bdbdead10f1a7ed7dd8a4fc5cae.txt",
+      "bytes": 946,
+      "sha256": "bb6d1433171e4a2cba5241101f2ace3db9df3bdbdead10f1a7ed7dd8a4fc5cae"
+    },
+    {
+      "path": "build/build-source/tools/game-license-sources/texts/bf4da21bd20bcfb5b60b7ecc67fa864a79be049e21d6178076887f178dd6c71a.txt",
+      "bytes": 1643,
+      "sha256": "bf4da21bd20bcfb5b60b7ecc67fa864a79be049e21d6178076887f178dd6c71a"
+    },
+    {
+      "path": "build/build-source/tools/game-license-sources/texts/c8167fdeeed46d3f244d3f85c5bf998ce889343691c32be2c61a8bc4b5c08333.txt",
+      "bytes": 1093,
+      "sha256": "c8167fdeeed46d3f244d3f85c5bf998ce889343691c32be2c61a8bc4b5c08333"
+    },
+    {
+      "path": "build/build-source/tools/game-license-sources/texts/ce088b39d012e76928f81935bc2db10070cc0b8604b161feddf5e6ee7c5dad1b.txt",
+      "bytes": 259,
+      "sha256": "ce088b39d012e76928f81935bc2db10070cc0b8604b161feddf5e6ee7c5dad1b"
+    },
+    {
+      "path": "build/build-source/tools/game-license-sources/texts/cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30.txt",
+      "bytes": 11358,
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+    },
+    {
+      "path": "build/build-source/tools/game-license-sources/texts/ea43b1de38a6f90c488800d66dec1ed671e68cda530266bc96951fb5b6307613.txt",
+      "bytes": 23503,
+      "sha256": "ea43b1de38a6f90c488800d66dec1ed671e68cda530266bc96951fb5b6307613"
+    },
+    {
+      "path": "build/build-source/tools/game-license-sources/texts/fd2c1df341ac64aec9985e49a334f2f380f1af393e5a5f9052e7b4bb6ec8cecb.txt",
+      "bytes": 260,
+      "sha256": "fd2c1df341ac64aec9985e49a334f2f380f1af393e5a5f9052e7b4bb6ec8cecb"
+    },
+    {
+      "path": "build/build-source/tools/import_fbx_viewmodel.py",
+      "bytes": 12974,
+      "sha256": "b2b449ba916d4d8ffb6bb7c6109fa0714f340300aff8863f9b64d923f6b4f37a"
+    },
+    {
+      "path": "build/build-source/tools/inventory_windows_preview.py",
+      "bytes": 15482,
+      "sha256": "9f1c28a05e00c5da7becf58a43bcad623f6cb6024210789b83d33a37037b2081"
+    },
+    {
+      "path": "build/build-source/tools/linux_actual_game_gl.rs",
+      "bytes": 5006,
+      "sha256": "23d86f65054fb1fee335d0b5e2b72615e4cf862e4de836acba249361ee210b78"
+    },
+    {
+      "path": "build/build-source/tools/linux_gl43_context.patch",
+      "bytes": 1727,
+      "sha256": "1b72e875031273094e756dfa0c1a914dbecb8d8200f3d5547ceed30243144136"
+    },
+    {
+      "path": "build/build-source/tools/make_skin_fixture.py",
+      "bytes": 3683,
+      "sha256": "b976182837ab877aecb5b06fb314cddeda443528f8f5a7161099469d1ff05a23"
+    },
+    {
+      "path": "build/build-source/tools/make_viewmodel_fixture.py",
+      "bytes": 12590,
+      "sha256": "1491d04f991f53c94dfee0f741e8895566176ab29bb3110af7641a97142966f3"
+    },
+    {
+      "path": "build/build-source/tools/merge_walk_clip.py",
+      "bytes": 3526,
+      "sha256": "00965785031c6f87c68cffd5e2082db2cbf3bf51bb5fbb9a1b06c1f867b293a5"
+    },
+    {
+      "path": "build/build-source/tools/narrow_ads_fragment_support.py",
+      "bytes": 5346,
+      "sha256": "e554b742317f326133d3f118af229f65c2befab5edebddbb48e94ba1f3d659b4"
+    },
+    {
+      "path": "build/build-source/tools/package_game.py",
+      "bytes": 47748,
+      "sha256": "c8420f79bb0d5070e42dbf05b97afa7bcc985562646a39caa7fce7808f808aef"
+    },
+    {
+      "path": "build/build-source/tools/package_signing_setup.py",
+      "bytes": 1292,
+      "sha256": "d778f9c2996f7726666d7ef20c20c0e4ca4ac1c62c9cb0e8ef368e8d88b172bb"
+    },
+    {
+      "path": "build/build-source/tools/package_source_companion_evidence.py",
+      "bytes": 10948,
+      "sha256": "17141f934e8ec0e8f3e8bdfb0c715ab65da49fa0601f0ae0861d1398b3846755"
+    },
+    {
+      "path": "build/build-source/tools/package_updater.py",
+      "bytes": 2532,
+      "sha256": "68f6150f998cb4037d69e30d10629323e370a6950ef150b1f7ba3c606a426866"
+    },
+    {
+      "path": "build/build-source/tools/performance_matrix.py",
+      "bytes": 101336,
+      "sha256": "2c0fd0eea1b5fbedccbd845045e3afa3a624cd35bc5d815164268d361fda93ee"
+    },
+    {
+      "path": "build/build-source/tools/performance_matrix_driver.py",
+      "bytes": 17568,
+      "sha256": "e8d8da9551d1b1d113c6ebda8f40b557c0a9ba9a621cce52f3439832c7b96378"
+    },
+    {
+      "path": "build/build-source/tools/prepare_a100_text_export.py",
+      "bytes": 14466,
+      "sha256": "30b617651e76747fa241d11d4572bffcb1b0ad771d21b4785c2853e287c6fadf"
+    },
+    {
+      "path": "build/build-source/tools/prepare_ads_source_oracle.py",
+      "bytes": 12865,
+      "sha256": "09fc43afd595507d353c459d76cef579e0a01a84fac6b212428ee8b325a94872"
+    },
+    {
+      "path": "build/build-source/tools/prepare_fbx.py",
+      "bytes": 2936,
+      "sha256": "a8574922cadb68b3ac724ad92940501ae828c5270af50f84bba125888745fe28"
+    },
+    {
+      "path": "build/build-source/tools/prepare_finite_probe_inputs.py",
+      "bytes": 19933,
+      "sha256": "8486d3376ef8e8dd465e8aabad85eac86da5581f9073cd2dd27e3690c3e91793"
+    },
+    {
+      "path": "build/build-source/tools/prepare_linux_actual_game.py",
+      "bytes": 53395,
+      "sha256": "ac77ab291e5fb1abd6607a41793337a9fc51a88dc293db506f8e8ea7154e4296"
+    },
+    {
+      "path": "build/build-source/tools/prepare_public_a100.py",
+      "bytes": 13174,
+      "sha256": "d9fd04112005f9c98cf6b71b4c7f9d4bb966be77b1e7d10ff41b64b215b92248"
+    },
+    {
+      "path": "build/build-source/tools/publish-approved-weapon.ps1",
+      "bytes": 5159,
+      "sha256": "706dd2381c1aedbbdf15a84919502456d73a9629e35f8177b5c3474d235b210f"
+    },
+    {
+      "path": "build/build-source/tools/publish_game_build.py",
+      "bytes": 16433,
+      "sha256": "50b64e73671035d8108de04b2f8a6c8c36a1e00b21f8d80274b513cabbbdf53e"
+    },
+    {
+      "path": "build/build-source/tools/recover_ads_source_aggregate.py",
+      "bytes": 19098,
+      "sha256": "d03a283627cb91809b4567216ce400c53120a8558ef11bcabdf34856046f74b0"
+    },
+    {
+      "path": "build/build-source/tools/recover_windows_cpu_profile.py",
+      "bytes": 8094,
+      "sha256": "b4570df2c8381826b8d4a2ad2e41da7540b5b419bcd1401e8fc5c6b47c2e810f"
+    },
+    {
+      "path": "build/build-source/tools/reference_compare.sh",
+      "bytes": 1164,
+      "sha256": "9fa363d7dae62a70b8c0f157c1906a6c8e73211e26eb4563557c29ffe727b113"
+    },
+    {
+      "path": "build/build-source/tools/release_update.py",
+      "bytes": 19386,
+      "sha256": "7753dd9c0085deca4ef38f74a57ec76bab7bd5015e8e5bd31e10fe5d68b0f30c"
+    },
+    {
+      "path": "build/build-source/tools/requirements-assets.txt",
+      "bytes": 97,
+      "sha256": "bae44e696a843d95d63743023af62723d92aaa3e71c218938260724fb662a093"
+    },
+    {
+      "path": "build/build-source/tools/revalidate_ads_offset.py",
+      "bytes": 23480,
+      "sha256": "a6aa575d76a0d7e6de2df406ede9349403239f5ceab952cac25e3998d9b352ee"
+    },
+    {
+      "path": "build/build-source/tools/revalidate_ebf_authored_packet.py",
+      "bytes": 39435,
+      "sha256": "30519fa0b73dc49bf3960e011f461ebf8d1e8700163f54f32c57a73fb592743f"
+    },
+    {
+      "path": "build/build-source/tools/revalidate_reused_companions.py",
+      "bytes": 19117,
+      "sha256": "3f32a3e4f66b47ed0653765bba765984b16a7009a162be307edcbd34fc2af127"
+    },
+    {
+      "path": "build/build-source/tools/review_dx12_landmarks.py",
+      "bytes": 32706,
+      "sha256": "76edb984f54058a1f5fc6bcf11fc34b20110184681b3d6f1116ab937fb3b4513"
+    },
+    {
+      "path": "build/build-source/tools/review_frame_transitions.py",
+      "bytes": 8262,
+      "sha256": "a8cff3cbcee67e623e7093c2b1e61191b92b7931dfb0461e1834b4f78a38529e"
+    },
+    {
+      "path": "build/build-source/tools/run_authored_loader_pair.py",
+      "bytes": 21973,
+      "sha256": "d6cf55312098189545574d58565abc351dae4511bec896c9bbf3d9241a1972ce"
+    },
+    {
+      "path": "build/build-source/tools/run_calibrated_presentation.py",
+      "bytes": 8920,
+      "sha256": "51b5b490d2e4a7d0c9db1e2cdbd65ce149b9d6f6d7f7d59e7642830750d845cc"
+    },
+    {
+      "path": "build/build-source/tools/run_cpu_image_preservation.py",
+      "bytes": 26228,
+      "sha256": "f91a0926bdbccdaa4a16d1c75de26572f361b422c10e69c9b2897bbde6ff271f"
+    },
+    {
+      "path": "build/build-source/tools/run_dx12_authored.py",
+      "bytes": 38094,
+      "sha256": "09bf67e1882b86b02c8bec660b48014523bdb4ace953211185f40b4e76c0bae7"
+    },
+    {
+      "path": "build/build-source/tools/run_dx12_authored_shard.py",
+      "bytes": 21360,
+      "sha256": "aa22197873244de170b20eb48c849d7393342c70f6c79176e2258147130091fb"
+    },
+    {
+      "path": "build/build-source/tools/run_dx12_contract_example.py",
+      "bytes": 1616,
+      "sha256": "4b746079e813d58484914b7b0118b1c03dcf887e7dfd9a7db8da7c5814aaca05"
+    },
+    {
+      "path": "build/build-source/tools/run_dx12_game_ui_fixture.py",
+      "bytes": 21828,
+      "sha256": "eb2075e661fb8afe7c8ce6599c201e1405782232c24238047a2e14d07ed6340a"
+    },
+    {
+      "path": "build/build-source/tools/run_dx12_smoke.py",
+      "bytes": 9827,
+      "sha256": "8e69b3c18a20b679325334ca42dc9fc9e8be996d0568cd97af084553312db33d"
+    },
+    {
+      "path": "build/build-source/tools/run_finite_warp_profile.py",
+      "bytes": 26471,
+      "sha256": "c2bc9edd5430f7d5e5dd8ff3819222009a0e5f62304a83c92c857c357836ed00"
+    },
+    {
+      "path": "build/build-source/tools/run_gpu_session_contract.py",
+      "bytes": 16372,
+      "sha256": "7622be74b45cbbf4074c271fed6802b3d906ed98d41e69a4abb41348da7cdec5"
+    },
+    {
+      "path": "build/build-source/tools/run_graphics_cpu_contract.py",
+      "bytes": 34678,
+      "sha256": "219f382120de2b0fd3ee21e8df4bc9950c2cbf52f642e7c1096f85488664d48c"
+    },
+    {
+      "path": "build/build-source/tools/run_legacy_facade_equivalence.py",
+      "bytes": 22524,
+      "sha256": "1f1702bb6d3ef04b6e2553a7bbddf561cb138fce2e2176dab14fc2e7645fb970"
+    },
+    {
+      "path": "build/build-source/tools/run_pass_submission_benchmark.py",
+      "bytes": 25266,
+      "sha256": "c8472b964e953e13c864b054dd0b332661e3c59e0a8717aa17283d5a389d55b0"
+    },
+    {
+      "path": "build/build-source/tools/run_preflight_case.py",
+      "bytes": 3558,
+      "sha256": "e2af306b93d3e19d541edac8ec0b5cc831c57c0d3e1e742faf7e8d7cac589453"
+    },
+    {
+      "path": "build/build-source/tools/run_public_a100_matrix.py",
+      "bytes": 17419,
+      "sha256": "3a4b4a7d58304603bbcacd86e721f3548277762aebfcd4ed5a8e0a7bdb49200d"
+    },
+    {
+      "path": "build/build-source/tools/run_renderer_contract.py",
+      "bytes": 16868,
+      "sha256": "af6d427206613c2920d8e6fcd63c80c1ab90404b9cfdb6fd50e1fe48829c3f35"
+    },
+    {
+      "path": "build/build-source/tools/run_resident_ads_rounding.py",
+      "bytes": 17723,
+      "sha256": "5807f8f40566d48e98fc8dd760b5f9c88b5563f0c9bb2911e8a18f223ab6e234"
+    },
+    {
+      "path": "build/build-source/tools/run_resident_authored_contract.py",
+      "bytes": 37473,
+      "sha256": "40a71b8d1527428d12a552a1f76265e645ebf33fb7bf8b089eef9ce622191f86"
+    },
+    {
+      "path": "build/build-source/tools/run_windows_authored_matrix.py",
+      "bytes": 37023,
+      "sha256": "2aa349e041ba6a61eaecc086aa5a3a57e081a852c4c4c79a1311e02dad591d6d"
+    },
+    {
+      "path": "build/build-source/tools/run_windows_cpu_profile.py",
+      "bytes": 43763,
+      "sha256": "0ba2dcf9ead649135aed4298c3240275b284ea7985dc8cdcd2570591385f3c8d"
+    },
+    {
+      "path": "build/build-source/tools/run_windows_gl_capture_contract.py",
+      "bytes": 7033,
+      "sha256": "41d855ff429ff10f239aa41702b78cda87b1ed7d743d49280c82ac9ff2f69c3e"
+    },
+    {
+      "path": "build/build-source/tools/run_windows_gl_game_ui.py",
+      "bytes": 6232,
+      "sha256": "0429de0873f7fc4ea9390112d9792ac977e65f890cda9ef7e7e3be634905691d"
+    },
+    {
+      "path": "build/build-source/tools/run_windows_gl_reference_probe.py",
+      "bytes": 6994,
+      "sha256": "46f06453036d71784e3ee2008c5fd515e07f299da3ab9a77bddf88a96f9366f9"
+    },
+    {
+      "path": "build/build-source/tools/run_windows_same_platform_return.py",
+      "bytes": 20356,
+      "sha256": "a4384b954a2baae0a76be1ee2faa3ebc78032a148a6e245d6ece0c8244a07f8c"
+    },
+    {
+      "path": "build/build-source/tools/select_windows_build.py",
+      "bytes": 3653,
+      "sha256": "41e045bb202f0d8986b17a547a3334db22de0f289b2f048c34f3b0a0968a198e"
+    },
+    {
+      "path": "build/build-source/tools/setup-release-signing.ps1",
+      "bytes": 10428,
+      "sha256": "a685017e4ac7dc8d30e5947a2d0153c7c4430409e6e83d4dac0345965bdfd7a5"
+    },
+    {
+      "path": "build/build-source/tools/smoke_game_update.py",
+      "bytes": 7771,
+      "sha256": "1c3fc33f9843db9998573eba65a193ebd2b5f97bf8cfb4afefcd517a04783878"
+    },
+    {
+      "path": "build/build-source/tools/smoke_live_update.py",
+      "bytes": 14611,
+      "sha256": "7cbe9305e97007168b0e785245e958dc51aea8442dc295f3d230ea2065541512"
+    },
+    {
+      "path": "build/build-source/tools/source_bound_companion_reuse_lock.json",
+      "bytes": 28058,
+      "sha256": "2059f20aa1a36b98e9b3ce862a4027bd70ddce19e2d4b0d9a85049bbb14ea797"
+    },
+    {
+      "path": "build/build-source/tools/source_visibility_clipping.py",
+      "bytes": 8008,
+      "sha256": "c57f58076f8e3268bddd3263c4b1dc1ab6f54c1d1f9852626fb784ce3ce93875"
+    },
+    {
+      "path": "build/build-source/tools/stage_dx12_preview.py",
+      "bytes": 9940,
+      "sha256": "03661df4c8ad451aadca411f7e69e22ae8b795035612439ad9eaec8b2fa6ceb0"
+    },
+    {
+      "path": "build/build-source/tools/stage_release_game.py",
+      "bytes": 15589,
+      "sha256": "ed2f94743b2cbb0099564b5873ec07ca5f74b1ebc0ae5e239e4571cadd56dc87"
+    },
+    {
+      "path": "build/build-source/tools/stage_windows_gl_reference.ps1",
+      "bytes": 14639,
+      "sha256": "ef19b3b4a782abb636863249aebf8e58d5fd74dc2a47a5008b4ec37d1c32ae02"
+    },
+    {
+      "path": "build/build-source/tools/summarize_cpu_encode_detail.py",
+      "bytes": 21845,
+      "sha256": "912632138d23a874fe6e855ded49aed123ab9c5954bc464daa475252f5ca55c3"
+    },
+    {
+      "path": "build/build-source/tools/summarize_cpu_substages.py",
+      "bytes": 8801,
+      "sha256": "322340d311d0f4ed559967dc27bb4db7cfb4d75bd553ee6e06d590ab82c9de0a"
+    },
+    {
+      "path": "build/build-source/tools/summarize_dx12_progress.py",
+      "bytes": 10290,
+      "sha256": "a9e06249574341371c97dbbf82f8e386b63c6656ec13be9354f948f4002f85ad"
+    },
+    {
+      "path": "build/build-source/tools/summarize_frame_performance.py",
+      "bytes": 19124,
+      "sha256": "e88a3e94a031c3687ada16962f4d49649d71b1ed9861088fbb03422fb7bd3fbe"
+    },
+    {
+      "path": "build/build-source/tools/summarize_gpu_timing.py",
+      "bytes": 11310,
+      "sha256": "3b9762c70dbef51f35006a7ed0574df01f4e545b1cae9501c36a2bf3784bdcef"
+    },
+    {
+      "path": "build/build-source/tools/summarize_telemetry_session.py",
+      "bytes": 5309,
+      "sha256": "ba9b87ba9217ad68b3f3d0fa2ddee800966a1117d5a9e00567cbe16b271743bc"
+    },
+    {
+      "path": "build/build-source/tools/test_ads_distribution.py",
+      "bytes": 4842,
+      "sha256": "b0191aa98db8df9f6fc130fc64bb1d0285bfa65a8cd1734c740149db94353da9"
+    },
+    {
+      "path": "build/build-source/tools/test_ads_fragment_error_bound.py",
+      "bytes": 3502,
+      "sha256": "5a680e98dfc62c9516d1e5f40c95f313cab34aca76dfb3c27f3d786680b74d1c"
+    },
+    {
+      "path": "build/build-source/tools/test_ads_placement_capture.py",
+      "bytes": 3573,
+      "sha256": "a4ab015d2782e664173bcbc8008aa9749cdf07f89e846bb3d3ed1f606b68b297"
+    },
+    {
+      "path": "build/build-source/tools/test_ads_source_visibility_binding.py",
+      "bytes": 26635,
+      "sha256": "1d5e9f630810383989f4ceac111692fb48bb394dc9470897b5a91f7e13afd52b"
+    },
+    {
+      "path": "build/build-source/tools/test_aggregate_ads_source_supplement.py",
+      "bytes": 25488,
+      "sha256": "158e0be34f0aa127d945575c0e44469c89d513927510c782105f01a42d3bab8e"
+    },
+    {
+      "path": "build/build-source/tools/test_aggregate_dx12_authored.py",
+      "bytes": 35344,
+      "sha256": "080e13d6c7bfec8e7c41aeefba0228fca63d4f7e42763d841388f6bfce56e592"
+    },
+    {
+      "path": "build/build-source/tools/test_arena_serialization_pair.py",
+      "bytes": 12837,
+      "sha256": "c9fe6be534ff1e097262d7e212114e7f5bc84cf44fbf7335eeea263a2bb79829"
+    },
+    {
+      "path": "build/build-source/tools/test_authored_loader_pair.py",
+      "bytes": 28800,
+      "sha256": "ae5da42653838189273047f70a62ad91a85368c572e40605f94fe8ae21cc7769"
+    },
+    {
+      "path": "build/build-source/tools/test_authored_loader_runner.py",
+      "bytes": 12071,
+      "sha256": "fdb124a6e4631e21e9b393f49ed736c36fb1d3f54474cd449f451ddfc9c3f06e"
+    },
+    {
+      "path": "build/build-source/tools/test_bind_reviewed_gl_supplement.py",
+      "bytes": 15993,
+      "sha256": "830d4cb55344236f9e3fa7920fa2bc3c9b901e47d84c0313e22a97f4e1617202"
+    },
+    {
+      "path": "build/build-source/tools/test_blender_pipeline.py",
+      "bytes": 6219,
+      "sha256": "e70b3b3e6459aa5c32ac93d4d886cb4d77a75a34853e4c7c97d3d3877730c74f"
+    },
+    {
+      "path": "build/build-source/tools/test_build_ads_source_packet.py",
+      "bytes": 36614,
+      "sha256": "796de2ec1dfa2762fae9aef253e82fc57cd1306fd589790a4fcfaa9571d17e30"
+    },
+    {
+      "path": "build/build-source/tools/test_build_attempt_artifacts.py",
+      "bytes": 5406,
+      "sha256": "38b61f292f70580f99d96ef340c2c94980df5527be2e00f0d8fb88d33195788e"
+    },
+    {
+      "path": "build/build-source/tools/test_build_linux_authored_inputs.py",
+      "bytes": 11382,
+      "sha256": "d24c691438f565a15d40997586b3adf9cd82d327b52f7cfda64b9b07bc70d2a0"
+    },
+    {
+      "path": "build/build-source/tools/test_build_numbering.py",
+      "bytes": 6546,
+      "sha256": "80d7e653382032dc7966adbee3260e3b5b427d45d960b5ae5d8ab1f9bf2906f6"
+    },
+    {
+      "path": "build/build-source/tools/test_build_performance_pair.py",
+      "bytes": 19725,
+      "sha256": "8b287c648d0f09a29f5ba86304a1c18989272021f050773e560dd026204a5525"
+    },
+    {
+      "path": "build/build-source/tools/test_calibrated_feedback_workflow.py",
+      "bytes": 5243,
+      "sha256": "ca365cd6f13759312efb819f109133fedf4f056458b1696e074273d378563a3b"
+    },
+    {
+      "path": "build/build-source/tools/test_calibrated_presentation.py",
+      "bytes": 9730,
+      "sha256": "6c1aed684e44031b461c5bc52c4514aacff0578a33c118035c377a084d013b71"
+    },
+    {
+      "path": "build/build-source/tools/test_capture_frame_witness.py",
+      "bytes": 15484,
+      "sha256": "c77588ba410fe17427457c6e33faa9efc9f06d4cdfe7fb5d393a2719dd087224"
+    },
+    {
+      "path": "build/build-source/tools/test_capture_telemetry.py",
+      "bytes": 9386,
+      "sha256": "20bdac65685336a685963952cbb6b98b2daa54483c458d87bf3cb1212af96b46"
+    },
+    {
+      "path": "build/build-source/tools/test_ci_quality_checks.py",
+      "bytes": 2802,
+      "sha256": "d05458e5caaf58803c90560f28523a203355445660cb2e7b2da5ad80f85f91b3"
+    },
+    {
+      "path": "build/build-source/tools/test_collect_ads_offset_evidence.py",
+      "bytes": 9283,
+      "sha256": "296bd86d13d613bc3b83c1e9acf903f1647e1eef02f858b0832769c7ccebf419"
+    },
+    {
+      "path": "build/build-source/tools/test_collect_game_licenses.py",
+      "bytes": 38633,
+      "sha256": "f3b2d11b6a3f3f9698767757b3674c94d389997f2d1502969b7819c25251ad0e"
+    },
+    {
+      "path": "build/build-source/tools/test_compare_source_visibility.py",
+      "bytes": 3679,
+      "sha256": "5197a5ef632bd68d82125a343a0a92bb41a9266ac435929d5ce357b02f5bca88"
+    },
+    {
+      "path": "build/build-source/tools/test_cpu_encode_detail_source.py",
+      "bytes": 7428,
+      "sha256": "e4f5394f294c4861a12a0b46e740ef1acf346028b03a96827e174b66a20928bf"
+    },
+    {
+      "path": "build/build-source/tools/test_cpu_encode_detail_workflow.py",
+      "bytes": 2298,
+      "sha256": "4ed8efe796b0455ba63dc2ebc2ea77a9aaa93627dad39f5a85bfdf865fd4a6e9"
+    },
+    {
+      "path": "build/build-source/tools/test_cpu_encode_substages.py",
+      "bytes": 12481,
+      "sha256": "923a5b3e2b70656f0aba63cb3053c75bcd71376f1e8fd7b51b8e16352325e472"
+    },
+    {
+      "path": "build/build-source/tools/test_cpu_image_preservation.py",
+      "bytes": 25772,
+      "sha256": "898383f47656f8ee42c97eb8a26b45727ba93ff187966782a6111b88c9c4ec3f"
+    },
+    {
+      "path": "build/build-source/tools/test_cpu_image_workflow.py",
+      "bytes": 7972,
+      "sha256": "6d74d6823fe80bc5eb1dc9a09feedb54926772c4015fcb1173cfacd0f61c5935"
+    },
+    {
+      "path": "build/build-source/tools/test_current_ads_source_oracle.py",
+      "bytes": 25173,
+      "sha256": "36d24888176fb6747722b5a4ee45e4e236f9b967d3cbbadcf29805385822b5dc"
+    },
+    {
+      "path": "build/build-source/tools/test_directional_distribution.py",
+      "bytes": 9217,
+      "sha256": "34e3dc95d4672f6cbee86b58e2540a755c56f920e2852afe926885dd802f9dbf"
+    },
+    {
+      "path": "build/build-source/tools/test_download_preflight_baseline.py",
+      "bytes": 8718,
+      "sha256": "dd7ef701f877db1cbeb96ceaa637c2ddef504e93668809b66c5b6463555f0735"
+    },
+    {
+      "path": "build/build-source/tools/test_dx12_authored.py",
+      "bytes": 34359,
+      "sha256": "de1af348a57b91f9bbfcf1d9ea1af9ccc5a29f790349bfabd3f4ef2635bf4e46"
+    },
+    {
+      "path": "build/build-source/tools/test_dx12_authored_adversarial.py",
+      "bytes": 18008,
+      "sha256": "b13a4c700b21121520a2119ce0e68cca14834a31b146a535edc1ab9fd26f0bb8"
+    },
+    {
+      "path": "build/build-source/tools/test_dx12_authored_shards.py",
+      "bytes": 34626,
+      "sha256": "caf3b86417f7f0ac0f53b24681c0ba0878dafd8e8584849983bdbe2000048601"
+    },
+    {
+      "path": "build/build-source/tools/test_dx12_authored_workflow.py",
+      "bytes": 16144,
+      "sha256": "1ec8b685fca56f4c63c7c4424dc81e6e4fe0cb50ed8e6a31b46c54c870dd0184"
+    },
+    {
+      "path": "build/build-source/tools/test_dx12_capture_progress.py",
+      "bytes": 22059,
+      "sha256": "8266d01fc4b59e2ef25b27d4968def5fad581a6652b51c064dcdcf557cac3da0"
+    },
+    {
+      "path": "build/build-source/tools/test_dx12_contract_example.py",
+      "bytes": 7316,
+      "sha256": "392052d2b4cd2a6898fc90b13b9e010189180867ee7097be7889b19d38a123de"
+    },
+    {
+      "path": "build/build-source/tools/test_dx12_contract_process.py",
+      "bytes": 24976,
+      "sha256": "af461c1df18c81e1fc0d2e8adb7f030016290cf7f1ca03b5e5312037a9281bbb"
+    },
+    {
+      "path": "build/build-source/tools/test_dx12_game_ui_fixture.py",
+      "bytes": 24745,
+      "sha256": "3510f10a0e6a00c0df549fc02226a511fff14ca8756cf58451e89b461c9479e6"
+    },
+    {
+      "path": "build/build-source/tools/test_dx12_landmarks.py",
+      "bytes": 38895,
+      "sha256": "3be34c5aa7e8d785e1f59860e55eba8494b86cdc7699415839e3b0ef8b5a4ea5"
+    },
+    {
+      "path": "build/build-source/tools/test_dx12_preview.py",
+      "bytes": 14356,
+      "sha256": "589ad1da9e2d6b9a1285aff8fceaa1ec9eba28ae94cb496b0c5c667fb6548a13"
+    },
+    {
+      "path": "build/build-source/tools/test_dx12_smoke.py",
+      "bytes": 15192,
+      "sha256": "7b5bedd3903ec7185ccd1ca9dd1476c917a8565b9324189d83c8d17556417593"
+    },
+    {
+      "path": "build/build-source/tools/test_effects_contract.py",
+      "bytes": 34844,
+      "sha256": "c2f244c17dcb6a494bea6ae449981f88a55dfb35060a5cc2d4b23bbd458ad965"
+    },
+    {
+      "path": "build/build-source/tools/test_exclusive_output.py",
+      "bytes": 11071,
+      "sha256": "379159b232c101de499d304a007464163f6440ce4fb39e34174750931b67e6bf"
+    },
+    {
+      "path": "build/build-source/tools/test_extract_native_profile_evidence.py",
+      "bytes": 23662,
+      "sha256": "5f3e950ceb499d6639989feebfca884ce031235bf9b92331b6e822f404dce57a"
+    },
+    {
+      "path": "build/build-source/tools/test_fetch_legacy_facade_reference.py",
+      "bytes": 6573,
+      "sha256": "ccea8587eed69058563741380c171dbff0787f6e9e91b2c455ee3e5bfc256883"
+    },
+    {
+      "path": "build/build-source/tools/test_fetch_source_bound_companions.py",
+      "bytes": 3104,
+      "sha256": "509434299aaf63fca26198e08b320c91aa06788b1f0abb7aaa3b96517a0f6425"
+    },
+    {
+      "path": "build/build-source/tools/test_finite_ads_gpu_cpu.py",
+      "bytes": 13034,
+      "sha256": "0241c12ee3bf1b8d113b26ff99d9dd53aab9111338417d7575a528676a18dd14"
+    },
+    {
+      "path": "build/build-source/tools/test_finite_ads_gpu_cpu_native.py",
+      "bytes": 27048,
+      "sha256": "e83c614dea066825d4168849e945d5c9f85777e120059c084ce5aa67f793bb0e"
+    },
+    {
+      "path": "build/build-source/tools/test_finite_ads_pass_batching.py",
+      "bytes": 21027,
+      "sha256": "34e4810e142af8af9dd8b3ccc0257eb8fadfc3191ac4d65b0eff0766a4b6572e"
+    },
+    {
+      "path": "build/build-source/tools/test_finite_ads_profile_binding.py",
+      "bytes": 26401,
+      "sha256": "04ab6b30ec2e0950ccf76473621346d8740c2db5bda8257dcbe6517e62ff5222"
+    },
+    {
+      "path": "build/build-source/tools/test_finite_ads_profile_gate.py",
+      "bytes": 8678,
+      "sha256": "b2026dca71925dbd68818ce77b7c9acf1026668df56ad3cd54d3b8bd553c2fef"
+    },
+    {
+      "path": "build/build-source/tools/test_frame_transitions.py",
+      "bytes": 15574,
+      "sha256": "6508afa28198ec1dd9bf37b52c97348eec74057b0358896404b496c90e0e5142"
+    },
+    {
+      "path": "build/build-source/tools/test_game_ui_workflow.py",
+      "bytes": 4962,
+      "sha256": "005afc8474f59a23378e41881a3d2b4c6b426ea882aecb6682577c66dc935f82"
+    },
+    {
+      "path": "build/build-source/tools/test_geometry_profile_pair.py",
+      "bytes": 26806,
+      "sha256": "e40f5587eb983f3cf7687dcc505cd42ffc48c75f1daa4e3f7f9cc515811f724e"
+    },
+    {
+      "path": "build/build-source/tools/test_gpu_session_contract.py",
+      "bytes": 21606,
+      "sha256": "4d8e84f8ae37e0b898c788fa806744036384fceb3a8053540beb1b2d00a0d77e"
+    },
+    {
+      "path": "build/build-source/tools/test_gpu_session_workflow.py",
+      "bytes": 4655,
+      "sha256": "b9fe0c00e7fa4a60970b551ec86859a159b1c330569a51fb4478463b9302a336"
+    },
+    {
+      "path": "build/build-source/tools/test_graphics_cpu_contract.py",
+      "bytes": 11221,
+      "sha256": "c9e7e690b25aa85bdbe367e942808edf8a62665f645a3d8c130577aee7ab86f3"
+    },
+    {
+      "path": "build/build-source/tools/test_graphics_cpu_workflow.py",
+      "bytes": 3663,
+      "sha256": "5b80abee321b9c0153b408d40c24f97b646750cd16ed83dbec6b1992a7b00e25"
+    },
+    {
+      "path": "build/build-source/tools/test_historical_pair_admission.py",
+      "bytes": 6837,
+      "sha256": "8fb3bd6c53139ec2d99e17c0465e04e6cb371c6184b84edb58221fe1b6a526af"
+    },
+    {
+      "path": "build/build-source/tools/test_import_fbx_viewmodel.py",
+      "bytes": 3141,
+      "sha256": "e5585f607bd254de1b3fbf96f9586b07d506dfb545eed3403bbf3224b61164db"
+    },
+    {
+      "path": "build/build-source/tools/test_inventory_windows_preview.py",
+      "bytes": 18386,
+      "sha256": "2ebd86d8e733714b9bf35f8cfa2fcfeee5e2c2f5c44564ff81fc6b7bd0fb2734"
+    },
+    {
+      "path": "build/build-source/tools/test_jump_capture.py",
+      "bytes": 2532,
+      "sha256": "d24124a5863f5cd64a53ae15c8e866dd93dfc7f4e8b7542c64b57e901f976437"
+    },
+    {
+      "path": "build/build-source/tools/test_jump_distribution.py",
+      "bytes": 6271,
+      "sha256": "ae3886ecbb8799c7595d8d2b67b6129f19bc4b7641a4ca12dd02ff3575c8fea2"
+    },
+    {
+      "path": "build/build-source/tools/test_layered_capture.py",
+      "bytes": 3781,
+      "sha256": "a3cc754a1801572814037dfbdaebb9ffbdb5bb5dfbbfd32f28837d243ce720cd"
+    },
+    {
+      "path": "build/build-source/tools/test_layered_locomotion_capture.py",
+      "bytes": 4483,
+      "sha256": "16a8eb316db48dad060c3b49a6e1a2951742dc66f0e6720fa23d8fb0815fa4a2"
+    },
+    {
+      "path": "build/build-source/tools/test_legacy_facade_equivalence.py",
+      "bytes": 16847,
+      "sha256": "63e3143112f91892b653ff3d080929da1780a0dff30aa71d12adf97f7d1aef43"
+    },
+    {
+      "path": "build/build-source/tools/test_lighting_capture_cli.py",
+      "bytes": 2517,
+      "sha256": "0d5e3905ad6745fed80a74fb690fe6239f3efe7441f77644f5c5c45128e82e20"
+    },
+    {
+      "path": "build/build-source/tools/test_main_ci_concurrency.py",
+      "bytes": 2429,
+      "sha256": "e17dc11fadd89ea2288c58dec7deabd446986fc7e8731d6504ec12e86243ea4f"
+    },
+    {
+      "path": "build/build-source/tools/test_matrix_gpu_diagnostics.py",
+      "bytes": 29123,
+      "sha256": "df45c48510cd74cb40ecb2bb6210283e6b7d41935472a0dccbf390bb9d51ba4c"
+    },
+    {
+      "path": "build/build-source/tools/test_merge_walk_clip.py",
+      "bytes": 3642,
+      "sha256": "be40c1357dbf416fbc711bcb51213d36331c7a6766b81907c3fed8bed243c91a"
+    },
+    {
+      "path": "build/build-source/tools/test_narrow_ads_fragment_support.py",
+      "bytes": 1879,
+      "sha256": "29f942ce988751be6b592b4feb88868383852a3abc603eb7968def465cab2c85"
+    },
+    {
+      "path": "build/build-source/tools/test_package_game.py",
+      "bytes": 10903,
+      "sha256": "acd0d4ed4424d4d2f21f7d3e364fcbd5008c8b109dbabae411785a2968c07bab"
+    },
+    {
+      "path": "build/build-source/tools/test_pass_submission_benchmark.py",
+      "bytes": 11006,
+      "sha256": "23fee2d9ab8fe4f20a0f62efa2d2aa6fc2385a336376d6d2dc7a652956e630df"
+    },
+    {
+      "path": "build/build-source/tools/test_pass_submission_workflow.py",
+      "bytes": 3945,
+      "sha256": "b56fa8c98ec93d4594e2e15bb3175582b0c62adb6e9464a8c86c967744cd6dab"
+    },
+    {
+      "path": "build/build-source/tools/test_performance_matrix.py",
+      "bytes": 78195,
+      "sha256": "c24f017b2dd211f7c1d5db7a33c9282ec2b8c0fab3917854627efde39fe8d7bb"
+    },
+    {
+      "path": "build/build-source/tools/test_performance_matrix_workflow.py",
+      "bytes": 18043,
+      "sha256": "8837700c86ff51b9ebebe1a1137c7344a1a1052a4e77bfbe83f49abc8107661c"
+    },
+    {
+      "path": "build/build-source/tools/test_prepare_ads_source_oracle.py",
+      "bytes": 9202,
+      "sha256": "8bc166aad74fb297f3c427f7cb5e99484428940d7cba7521a64ba223122ed178"
+    },
+    {
+      "path": "build/build-source/tools/test_prepare_finite_probe_inputs.py",
+      "bytes": 19145,
+      "sha256": "f13e33597be546cb8b7c9d8453394e02bab056eea23f633fec5c0afd86188f93"
+    },
+    {
+      "path": "build/build-source/tools/test_preview_package_adversarial.py",
+      "bytes": 4540,
+      "sha256": "1180daa4a7cf9a66a0fffdcd81eff5f5296471d8dbf63a7c8fca06466e7494b0"
+    },
+    {
+      "path": "build/build-source/tools/test_publish_game_build.py",
+      "bytes": 23882,
+      "sha256": "16842bf0130d646615ccc5250f2420d784954a8da9168242d8092d258f769d16"
+    },
+    {
+      "path": "build/build-source/tools/test_quality_dependency_workflows.py",
+      "bytes": 2514,
+      "sha256": "bff8a2537255fb47731f09966f2a723ad6fadd5e51e5be616931e6cfe73743db"
+    },
+    {
+      "path": "build/build-source/tools/test_recover_ads_source_aggregate.py",
+      "bytes": 28403,
+      "sha256": "fc1c750cf16aa4970e0142626e077ff75e80a1eca065b97ee5eb1bf90316d074"
+    },
+    {
+      "path": "build/build-source/tools/test_release_update.py",
+      "bytes": 11820,
+      "sha256": "07f9ad4bdc501ae1ffdf21c9fb492d82859505b8b03fb663f82402720d0f2f59"
+    },
+    {
+      "path": "build/build-source/tools/test_reload_return_capture.py",
+      "bytes": 2756,
+      "sha256": "cd2b76ea19d61e9866cf252d5cd6fd21626dc5c18f87538eb3fd5841eb95e912"
+    },
+    {
+      "path": "build/build-source/tools/test_render_capture.py",
+      "bytes": 9240,
+      "sha256": "f73343d2adec9563f24ed354d7095fbe8c7ef374fc8a61aa90c55c381d11ef52"
+    },
+    {
+      "path": "build/build-source/tools/test_renderer_contract.py",
+      "bytes": 45101,
+      "sha256": "e40d1e5db9fc9a3e9a27872e1ed3af2b5093beb0b646fb0b5812340061bf5af6"
+    },
+    {
+      "path": "build/build-source/tools/test_renderer_frame_identity.py",
+      "bytes": 25827,
+      "sha256": "09371d25a015409517051717d7658cce02f422d5953dcca0ee2d8544bc2a42e9"
+    },
+    {
+      "path": "build/build-source/tools/test_resident_ads_rounding.py",
+      "bytes": 16647,
+      "sha256": "d31d6ea942031030a2912ee24e440e604d129d5fa0ac914a46fd9eb6f4df58a9"
+    },
+    {
+      "path": "build/build-source/tools/test_resident_ads_rounding_runner.py",
+      "bytes": 11008,
+      "sha256": "9c2da88a1c852a1a0a455c75cbd1b55ed3d5eaba30118f22b2dda354d9f46121"
+    },
+    {
+      "path": "build/build-source/tools/test_resident_ads_rounding_workflow.py",
+      "bytes": 5104,
+      "sha256": "56c321fe8018d333e08a8683cc11858b2a204652bcdf0dd259d6f2425551cd92"
+    },
+    {
+      "path": "build/build-source/tools/test_resident_authored_contract.py",
+      "bytes": 17393,
+      "sha256": "e457a2bc72ae44eb1178785ff9794d870c3ab2173c6e7db29c369644b5917b24"
+    },
+    {
+      "path": "build/build-source/tools/test_resident_authored_runner.py",
+      "bytes": 14635,
+      "sha256": "3127dc8665d01a1b0d025c605e662e01d5719712215cc47b0de4eb6e123c08c1"
+    },
+    {
+      "path": "build/build-source/tools/test_resident_authored_workflow.py",
+      "bytes": 5846,
+      "sha256": "dbd9a0bb2a8cf07a5fc013d73219da3fb19e20d1b46192527ff5af73d1446500"
+    },
+    {
+      "path": "build/build-source/tools/test_resident_encode_detail.py",
+      "bytes": 19126,
+      "sha256": "d39c4101f4dc82f7f74787e8bab18ac33adc3edd7bac16e06c0214dec1c700ac"
+    },
+    {
+      "path": "build/build-source/tools/test_resident_mesh_workflow.py",
+      "bytes": 3698,
+      "sha256": "a3b9593e5a8e92286529ce32e071ede3164cfd90b53d722eb1bd68e7e36e769e"
+    },
+    {
+      "path": "build/build-source/tools/test_resident_skin_probe.py",
+      "bytes": 12701,
+      "sha256": "be079b950f4ba21c05beb3c7c4b15f0e5264cf9d1f078143d0365ada1341e62c"
+    },
+    {
+      "path": "build/build-source/tools/test_resident_source.py",
+      "bytes": 11153,
+      "sha256": "c541c069383a9829ed70f82e95b2e55390ae83b445575f945e963c0cebdb30cc"
+    },
+    {
+      "path": "build/build-source/tools/test_resident_vertex_probe.py",
+      "bytes": 18893,
+      "sha256": "7fa4a0ff910384c9a4189731806be9a296fc380e9c77d7b2446b72204cab53d3"
+    },
+    {
+      "path": "build/build-source/tools/test_revalidate_ads_offset.py",
+      "bytes": 14965,
+      "sha256": "34213da5e75f881abe443c877c620f9631836ff331cc897dbbb4524b2ec68f5e"
+    },
+    {
+      "path": "build/build-source/tools/test_revalidate_ebf_authored_packet.py",
+      "bytes": 76604,
+      "sha256": "dc83687415a5b68c376dcb3d9015d8b0e80580500a665389391734e11ffd13a0"
+    },
+    {
+      "path": "build/build-source/tools/test_revalidate_reused_companions.py",
+      "bytes": 23512,
+      "sha256": "229cbc3c29871b1d921c7e9e51a524868ae125fa565a3bf346f2b683e51d0386"
+    },
+    {
+      "path": "build/build-source/tools/test_run_dx12_authored_shard.py",
+      "bytes": 59406,
+      "sha256": "e45d9099822fe0b47fd518692f85b480f384007c44315c2ae834751cd7d4ff64"
+    },
+    {
+      "path": "build/build-source/tools/test_run_finite_warp_profile.py",
+      "bytes": 22678,
+      "sha256": "06057af594df32e2ac61f474e9ce7c07c7aa5687a4bb8955c601bad4301015b3"
+    },
+    {
+      "path": "build/build-source/tools/test_run_preflight_case.py",
+      "bytes": 2234,
+      "sha256": "21e865d733c76e39102848619fe8df7dfdd7be596bc4b7d2ecfa6ace503777c1"
+    },
+    {
+      "path": "build/build-source/tools/test_smoke_game_update.py",
+      "bytes": 1321,
+      "sha256": "e31ccf9bb371491d7191691d2ab314b80b27aabfb17d4266b84321dd7adc3a7b"
+    },
+    {
+      "path": "build/build-source/tools/test_source_companion_evidence.py",
+      "bytes": 20842,
+      "sha256": "e14d2a479446b2eb5ec7c97bd6f0cae813412dc0f27af7970f67c76710a70f89"
+    },
+    {
+      "path": "build/build-source/tools/test_source_visibility_clipping.py",
+      "bytes": 2519,
+      "sha256": "7c58f0ee485726291134cda2ce53a584aae98bc8377dcc7e649f24a883155c4d"
+    },
+    {
+      "path": "build/build-source/tools/test_stage_release_game.py",
+      "bytes": 38341,
+      "sha256": "16d789f35abd0a6df9e9b22f8482dfb0d3ec978393c453bbcb20567462dce512"
+    },
+    {
+      "path": "build/build-source/tools/test_staging_encode_detail.py",
+      "bytes": 18745,
+      "sha256": "038e4ae84ca3a254b35b6868998767f1b36d3e9fa2cf0125f298167c1c181468"
+    },
+    {
+      "path": "build/build-source/tools/test_staging_workflow.py",
+      "bytes": 4569,
+      "sha256": "283bd9ecc19ad6e6025a76bc785a76b8c36e1be91a91a06d9083eb031e5be792"
+    },
+    {
+      "path": "build/build-source/tools/test_summarize_cpu_encode_detail.py",
+      "bytes": 46000,
+      "sha256": "a1c134e950d22f1f29e62be0036aa3218f1bb53f9dfcac76e3ed6cc8870f68d5"
+    },
+    {
+      "path": "build/build-source/tools/test_summarize_cpu_substages.py",
+      "bytes": 8509,
+      "sha256": "071a7e1bd1669174332fc07713459ec622e8918d19b2f4a2633b680a0a83d0db"
+    },
+    {
+      "path": "build/build-source/tools/test_summarize_dx12_progress.py",
+      "bytes": 10816,
+      "sha256": "e59672f61f4a2df686984756ab12dba7a78cecaf623e3e9a9556fe692345f790"
+    },
+    {
+      "path": "build/build-source/tools/test_summarize_frame_performance.py",
+      "bytes": 33743,
+      "sha256": "a396a0147e30beeb354e79b658f35b3a83457c8154d42b3a266bf47b19cb0f95"
+    },
+    {
+      "path": "build/build-source/tools/test_summarize_gpu_timing.py",
+      "bytes": 12495,
+      "sha256": "89e68290d15f798d661251f3a5ed96449b7cf5f02fa8960aa2054ea24120b194"
+    },
+    {
+      "path": "build/build-source/tools/test_summarize_telemetry_session.py",
+      "bytes": 5978,
+      "sha256": "a323aee308687dd0a651f2bdbd645bb7ef07012f05b4c67c4ecb566f66733db0"
+    },
+    {
+      "path": "build/build-source/tools/test_ui_theme_contract.py",
+      "bytes": 38513,
+      "sha256": "2daef5691399f7c073696ef7ff86ea6e50542e92a0b15abeb96d11fc05e7aec3"
+    },
+    {
+      "path": "build/build-source/tools/test_upload_buffer_reuse_workflow.py",
+      "bytes": 5610,
+      "sha256": "64b8a486e32d32126e4ffd8f989ad61fdc56ea9fe3fb26d51e9c01d3a8828551"
+    },
+    {
+      "path": "build/build-source/tools/test_validation_memo.py",
+      "bytes": 7352,
+      "sha256": "3a9d3fb4127cfff8fd1b2dad663a4a167ef66f9d98b09078f5f8b1b47734de9e"
+    },
+    {
+      "path": "build/build-source/tools/test_vrpack.py",
+      "bytes": 27359,
+      "sha256": "67b24478ab542b07427245a14f8ac0893f8db814cd03a032cd66c01646716c92"
+    },
+    {
+      "path": "build/build-source/tools/test_vrskin.py",
+      "bytes": 9361,
+      "sha256": "9ba0358e09335054bb3547394811ed096fe4355113efe63e1076bd073b1b2b03"
+    },
+    {
+      "path": "build/build-source/tools/test_vrview.py",
+      "bytes": 14863,
+      "sha256": "b300d9fd56501def6fb1f201d8f95542d7cb1693f49ba60dc55214d8b90f9f49"
+    },
+    {
+      "path": "build/build-source/tools/test_walk_distribution.py",
+      "bytes": 2257,
+      "sha256": "6e35b23135203f4e13384f189dd89eb5d2c5a3c4250454db683766dff7c95b04"
+    },
+    {
+      "path": "build/build-source/tools/test_windows_acquire_diagnostic.py",
+      "bytes": 21729,
+      "sha256": "6fc48548278507cf45b82d491f6a0e5b2ccfa82566e03cb7830851b09b444422"
+    },
+    {
+      "path": "build/build-source/tools/test_windows_authored_matrix.py",
+      "bytes": 29584,
+      "sha256": "f04c84a98bfe4b9d72faaa1045943a79f9723a00de19358e16b307e69049dcab"
+    },
+    {
+      "path": "build/build-source/tools/test_windows_cpu_profile.py",
+      "bytes": 26069,
+      "sha256": "8609e96aee96a875c0877c52c56c5a236f977dd21e9893f1a47060f385210e09"
+    },
+    {
+      "path": "build/build-source/tools/test_windows_cpu_profile_recovery.py",
+      "bytes": 9735,
+      "sha256": "a3bdc9fd285cf1356e62199ad90b754a55e3347ea3adb9461b7fb418c72e8185"
+    },
+    {
+      "path": "build/build-source/tools/test_windows_delivery.py",
+      "bytes": 5550,
+      "sha256": "081c082ae3564b4db3ecb68f9016ac9ae2d24078608fba606179bbed95056959"
+    },
+    {
+      "path": "build/build-source/tools/test_windows_gl_capture_contract.py",
+      "bytes": 8767,
+      "sha256": "b43b4fe817833c1b365740622e3cc9298ccab861028c45a62049f4690e8bc053"
+    },
+    {
+      "path": "build/build-source/tools/test_windows_gl_game_ui.py",
+      "bytes": 8260,
+      "sha256": "1d5202562507dc84b82d5cc72e18f3cc3e8a847fa48333bdfb41e02aebc394e1"
+    },
+    {
+      "path": "build/build-source/tools/test_windows_gl_reference_probe.py",
+      "bytes": 6024,
+      "sha256": "2bd6e440ddac4f7a378b6c6560a770da271c8a2881d99f9b43fbaec7520997a6"
+    },
+    {
+      "path": "build/build-source/tools/test_windows_migration_preview_workflow.py",
+      "bytes": 4270,
+      "sha256": "beffb82b11b9d6c37128ed6928149ace36529c6423e2d681af95eec251fca84b"
+    },
+    {
+      "path": "build/build-source/tools/test_windows_recovery_workflow.py",
+      "bytes": 10348,
+      "sha256": "e5179a0f029e1a34f4ad3a7ec9cde9a7c7f5afbf4541adda51c8d181c1aac549"
+    },
+    {
+      "path": "build/build-source/tools/test_windows_same_platform_return.py",
+      "bytes": 16077,
+      "sha256": "2712c749397bdafbd43a1b88f9fea8016e8cbb8102e41ed32d37010572652487"
+    },
+    {
+      "path": "build/build-source/tools/test_windows_same_platform_workflow.py",
+      "bytes": 2460,
+      "sha256": "4bfee8254309cad3cc086110a286319f821fa55cc243343af6e605147f9fd2fd"
+    },
+    {
+      "path": "build/build-source/tools/test_world_primitives_contract.py",
+      "bytes": 33622,
+      "sha256": "3a63b6bb0b1d3cc4f9480e43eaf34011108ccbaefbdcf0404d9e31053de5d362"
+    },
+    {
+      "path": "build/build-source/tools/verify_ads_placement_capture.py",
+      "bytes": 4085,
+      "sha256": "7e8ad42d60f1b4482e88293218eee82ed39a03e75e25fc7109e19b325cec618e"
+    },
+    {
+      "path": "build/build-source/tools/verify_calibrated_presentation.py",
+      "bytes": 13169,
+      "sha256": "b1815b85fbb4703ffb474b4c7c6abcdf067891fae2eaaecdf60cade0de92438f"
+    },
+    {
+      "path": "build/build-source/tools/verify_capture_frame_witness.py",
+      "bytes": 7118,
+      "sha256": "00011d1904499e1c2c0ea93b4cb74e389d1bf7b78cb0459567b3ae7f65f0f678"
+    },
+    {
+      "path": "build/build-source/tools/verify_capture_telemetry.py",
+      "bytes": 7918,
+      "sha256": "d42804a558fe5442551b78cd9943da202e76cc8b8f6f6c2fbb12ccd993fb1baa"
+    },
+    {
+      "path": "build/build-source/tools/verify_effects_contract.py",
+      "bytes": 11296,
+      "sha256": "d011a454987dfe2b071d5bef4fe7593accc6589d8a753b16eab39ee706e39185"
+    },
+    {
+      "path": "build/build-source/tools/verify_fbx_segment.py",
+      "bytes": 8418,
+      "sha256": "d68a9c6a0ddf6924f1668ecdf23229b7b385077c218b61921b2a762f438dcaf0"
+    },
+    {
+      "path": "build/build-source/tools/verify_gameplay_ads_capture.py",
+      "bytes": 7088,
+      "sha256": "beed8297a02e39b478da03610f0d3405112f02d2ce246838883a14aa5b85fcea"
+    },
+    {
+      "path": "build/build-source/tools/verify_gameplay_capture.py",
+      "bytes": 2987,
+      "sha256": "1c26a8cf3de935f9a737fc5ef0fdf010b7d0c2dc07c09c5899e2f89754cc2bb0"
+    },
+    {
+      "path": "build/build-source/tools/verify_gameplay_walk_capture.py",
+      "bytes": 3296,
+      "sha256": "eed8c7be5c8ef3c91915e304ec0621f3dbb072a9248da5fc1d4c44c09f55329c"
+    },
+    {
+      "path": "build/build-source/tools/verify_jump_capture.py",
+      "bytes": 4684,
+      "sha256": "724919ec44354b86bf93a5178bcc25e7640c3d1eb9603a2d75a6b40099f00511"
+    },
+    {
+      "path": "build/build-source/tools/verify_jump_seams.py",
+      "bytes": 2698,
+      "sha256": "ed44ad5b48d84c5ca9b4bde50152fb3d93c16213fa6c3a7a08082caebf0ad742"
+    },
+    {
+      "path": "build/build-source/tools/verify_layered_locomotion_capture.py",
+      "bytes": 5605,
+      "sha256": "2ec4ffe75db127209a675ed5377a50c266901c97badb09b3b965b63ef9ab89f5"
+    },
+    {
+      "path": "build/build-source/tools/verify_lighting_capture.py",
+      "bytes": 6517,
+      "sha256": "efe133e58007661c02861dfc941f095d93f9288bf76762fd1dc0e364052dec11"
+    },
+    {
+      "path": "build/build-source/tools/verify_locomotion_fbx.py",
+      "bytes": 7062,
+      "sha256": "84be01842d2579ce108904380d750a8e2798e29e93bf4114268a176881d96d38"
+    },
+    {
+      "path": "build/build-source/tools/verify_reload_return_capture.py",
+      "bytes": 5256,
+      "sha256": "a0da5e3c9b70a266f68928bc9442dffb6f0b6379c900d6b704a4efdae2fc9d85"
+    },
+    {
+      "path": "build/build-source/tools/verify_render_capture.py",
+      "bytes": 9246,
+      "sha256": "6bea6d0c9ebabe48bf50c8e45a370652d93bf926bbba3e8326bc754cbff395af"
+    },
+    {
+      "path": "build/build-source/tools/verify_renderer_frame_identity.py",
+      "bytes": 7845,
+      "sha256": "de5b6af1e89b011ccc2dbb085b228ee5641e9df23009ad23c06fc124df6b04b4"
+    },
+    {
+      "path": "build/build-source/tools/verify_skin_bind.py",
+      "bytes": 6843,
+      "sha256": "beb944399bbb327fe542a47f828e39dba8bb43d4f6ee5e2845e959aab4d2399e"
+    },
+    {
+      "path": "build/build-source/tools/verify_ui_theme_contract.py",
+      "bytes": 16782,
+      "sha256": "1a86db06f584f1517132592e771e86f0530e31345d584d017179db94b7b4df9b"
+    },
+    {
+      "path": "build/build-source/tools/verify_viewmodel_roundtrip.py",
+      "bytes": 5717,
+      "sha256": "b00734b9d273f29e85517ea34bc434015a37c8a5ca2c1495cd2e8cc9fac23103"
+    },
+    {
+      "path": "build/build-source/tools/verify_world_primitives_contract.py",
+      "bytes": 13698,
+      "sha256": "f9503f462b31c27971a07cbe950c623e5fc140d6251981e29884dc4d58134963"
+    },
+    {
+      "path": "build/build-source/tools/vrpack.py",
+      "bytes": 30543,
+      "sha256": "28a23ed9a9b0fe0123405a9800473e57d04419596deae8789c66c744ad05b685"
+    },
+    {
+      "path": "build/build-source/tools/vrskin.py",
+      "bytes": 19574,
+      "sha256": "e6aff7f5278bb8e6dd09ca75e69b8761b1b71bd30b3feddf84f8380cd88a5e14"
+    },
+    {
+      "path": "build/build-source/tools/vrview.py",
+      "bytes": 34515,
+      "sha256": "eefd755f6ef0943a4d8bf443ddfec601bc1336ec90ece722d017c9c4b6d73568"
+    },
+    {
+      "path": "build/build-source/tools/windows_acquire_diagnostic.py",
+      "bytes": 40449,
+      "sha256": "036c2b8e256e487763bfe191241667b6d101cec14de4b772ddf789f3e20ea4d1"
+    },
+    {
+      "path": "build/build-source/tools/windows_gl_reference_lock.json",
+      "bytes": 24748,
+      "sha256": "4c0e0033797ed12bacf7f3055fb66d680f4d2eda40491e108642cf8d8d943d8b"
+    },
+    {
+      "path": "build/build-source/ui/examples/high-contrast.css",
+      "bytes": 827,
+      "sha256": "a525b88b686908a03823be3926f75803c4d7d36cbdf6bce7ab04258a7b51ade0"
+    },
+    {
+      "path": "build/build-source/ui/examples/large-type.css",
+      "bytes": 714,
+      "sha256": "5943bd2b52ecb286d88c734e74d76f1c0062f63c00a5344e4c96f229235e30c3"
+    },
+    {
+      "path": "build/build-source/ui/theme.css",
+      "bytes": 646,
+      "sha256": "fdb3de1bb63e1b4b535c0195a1d4c62db1e8ae1d51c61f3b67c21c693c5f5902"
+    },
+    {
+      "path": "build/build-source/updater/.gitignore",
+      "bytes": 87,
+      "sha256": "a86cd8aa52d3443092040ecfac6fe0b482418675393578564efe7e9738e55928"
+    },
+    {
+      "path": "build/build-source/updater/Cargo.lock",
+      "bytes": 39797,
+      "sha256": "b41f0bb347d1796320fa800432fedae04283b467e62a3beb740c3e2327fbb8ad"
+    },
+    {
+      "path": "build/build-source/updater/Cargo.toml",
+      "bytes": 890,
+      "sha256": "a6b20d86a39cb8ce86b3f24c54714ccb33ff0e056b19daa1444069d4576e70fb"
+    },
+    {
+      "path": "build/build-source/updater/build.rs",
+      "bytes": 592,
+      "sha256": "7283ca0a0212bdd14f7a29bbf4ae2d67fa4d460e96d2893fe8ef91d95618beab"
+    },
+    {
+      "path": "build/build-source/updater/notices/README.md",
+      "bytes": 314,
+      "sha256": "25fdd6e7b3068a728a1eecc37643cb5aac0371709d50523f107241e93e37ec52"
+    },
+    {
+      "path": "build/build-source/updater/src/bin/rust-duty-release-sign.rs",
+      "bytes": 3636,
+      "sha256": "8b5b0ce480f5ce576bbf45ff608446a9bbd82d61dcf55b9df20be7b913d56802"
+    },
+    {
+      "path": "build/build-source/updater/src/bootstrap.rs",
+      "bytes": 6777,
+      "sha256": "c377d00eaed90967895bd1fb232a94ae3971e16424f27be79aaa60872d31e833"
+    },
+    {
+      "path": "build/build-source/updater/src/bundle.rs",
+      "bytes": 8103,
+      "sha256": "88421fa84afc4fdec69d5c3cea9b592c3654141c0d00546d2f8c229691c0948f"
+    },
+    {
+      "path": "build/build-source/updater/src/delta.rs",
+      "bytes": 2811,
+      "sha256": "479e10d2843d79c8268d66dc1b5d1d06d0ab26231d55629e0ed0e1168a81bbbb"
+    },
+    {
+      "path": "build/build-source/updater/src/download.rs",
+      "bytes": 9588,
+      "sha256": "91665ed22778ee173c5d99736b9a0fbcd7dbac16604364de664d0eee5567ad09"
+    },
+    {
+      "path": "build/build-source/updater/src/game.rs",
+      "bytes": 82734,
+      "sha256": "4b965e0c4fc273187511aaf60620d3de040103897e5c3ad30078164948b19e97"
+    },
+    {
+      "path": "build/build-source/updater/src/install.rs",
+      "bytes": 18050,
+      "sha256": "c7ab7aa5b691928a7e1b76a3e14ed5584808270d5880159180a8e3fcc2714b71"
+    },
+    {
+      "path": "build/build-source/updater/src/launch.rs",
+      "bytes": 5736,
+      "sha256": "02a4d32030e53bbbf109c1d67588c3247c3af1a46c3188636dcf1112243ef51b"
+    },
+    {
+      "path": "build/build-source/updater/src/lib.rs",
+      "bytes": 6585,
+      "sha256": "db7fd2fb02a7aec796568513323148269b3ad1b8aec4d22a358812947fae0700"
+    },
+    {
+      "path": "build/build-source/updater/src/main.rs",
+      "bytes": 18865,
+      "sha256": "d5e01a87b672abade3d3eb0660e0b9592941917d48b1fb13f2c5b79f99535211"
+    },
+    {
+      "path": "build/build-source/updater/src/manifest.rs",
+      "bytes": 3262,
+      "sha256": "724626bbc6fa5b25ca97d2f1e9fcacb008e04e1fcbfd763e26127904bbc66291"
+    },
+    {
+      "path": "build/build-source/updater/src/signing.rs",
+      "bytes": 7319,
+      "sha256": "2e2fbadb40445032a2488a698f6b7c562e6220837b4db76d6a595eae76b299d8"
+    },
+    {
+      "path": "build/build-source/updater/src/source.rs",
+      "bytes": 4585,
+      "sha256": "f9265c579ea60bbc251603103379215410b9d724e3738561f0cb0b4f8dcf16b4"
+    },
+    {
+      "path": "build/build-source/updater/src/tests.rs",
+      "bytes": 70050,
+      "sha256": "02b345e3ca0c8fada885ae57bcf6fbcbd7009e6cc9eecd033b6bcab2a65d6ace"
+    },
+    {
+      "path": "build/original-assets.json",
+      "bytes": 8715,
+      "sha256": "756ad13125e39d67d669493a82d4f2959273dd9902c3752ef3ccde6744a9fa9b"
+    },
+    {
+      "path": "build/original-nvidia-egl.json",
+      "bytes": 97,
+      "sha256": "4779640fbe3b520e5556675b0c9a13adae338f63ff05288d8b23cacc202fa207"
+    },
+    {
+      "path": "build/original-nvidia-vulkan.json",
+      "bytes": 121,
+      "sha256": "3a24e06eee4d71613991833ea6ff0bd6ef4ed71c631af5440abfaca8d064b6b2"
+    },
+    {
+      "path": "build/original-resident-inputs.json",
+      "bytes": 50120,
+      "sha256": "e506e6e6aa22317b1e0bbb1fcfa0350ead8c3c37b0a713465fde94af6ed93aea"
+    },
+    {
+      "path": "build/pair-pins.json",
+      "bytes": 1987,
+      "sha256": "dba58c0ed96083de0c832067ecb93a5652a8d0cafeb0fa3244c2bb640069b1d6"
+    },
+    {
+      "path": "build/source-bundle.json",
+      "bytes": 115816,
+      "sha256": "d32681b07162bd57e3871992afc4993af626574573f6d3f0533d23cb3b608738"
+    },
+    {
+      "path": "build/vector-range",
+      "bytes": 13068232,
+      "sha256": "51b5dc571465462dabe15387a47f52d31f519886cf4ec5183104e583973e8d9a"
+    },
+    {
+      "path": "reviewed-package/RUN_PLAN.md",
+      "bytes": 4567,
+      "sha256": "a97b5f9dc841f0f7a30552aa29050c9e053e9615a13c95c7e2dd5a335f393f94"
+    },
+    {
+      "path": "reviewed-package/build-tests.log",
+      "bytes": 319,
+      "sha256": "08afe34429f8bcdbeaa8b6d793092763e57e447f60fb77be5224493fe99e03e9"
+    },
+    {
+      "path": "reviewed-package/build-viewmodel-isolation.py",
+      "bytes": 7619,
+      "sha256": "3657d6bdf5945cef1d60783b90cb052cd6b16d4ae3a13c90fac34433971a7f2e"
+    },
+    {
+      "path": "reviewed-package/bundle-receipt.json",
+      "bytes": 763,
+      "sha256": "b3bfdaee818eb87897bb8aa4680a80d76d8a6ed05875da5168268ab75e69cd11"
+    },
+    {
+      "path": "reviewed-package/controller-tests.log",
+      "bytes": 2136,
+      "sha256": "c80adc00c188384a6439a2ad3936ba14d655e67753da507ef2d228c494a7b4d2"
+    },
+    {
+      "path": "reviewed-package/implementation-all-bin-tests.log",
+      "bytes": 4928,
+      "sha256": "3069cc36a42656defc45bc212f940c77d6a5a94acf7bba8d0b7b6b5b5599de05"
+    },
+    {
+      "path": "reviewed-package/implementation-clippy.log",
+      "bytes": 7534,
+      "sha256": "b41a4a664bfdd1925e40eafcb6147e3f37880b766f09f744a2e325a63b5aafee"
+    },
+    {
+      "path": "reviewed-package/implementation-tests.log",
+      "bytes": 8782,
+      "sha256": "d7c0b36f2d3e94e1c448f9958ebbddf98e2f34ba4baaeb117c0a4031b20c06f7"
+    },
+    {
+      "path": "reviewed-package/independent-build-tests.log",
+      "bytes": 319,
+      "sha256": "45a4f01f9068d4986944eb2347d312431e76c401968a7cbb59f698eb76599652"
+    },
+    {
+      "path": "reviewed-package/independent-controller-tests.log",
+      "bytes": 2136,
+      "sha256": "613b8aed114683e8ececeea5eff68214807df62081fb10327f16469c64211ce1"
+    },
+    {
+      "path": "reviewed-package/independent-preparation-review.json",
+      "bytes": 2746,
+      "sha256": "fcfc9ff049f61cad1cec28d27035a6fa7e3f01414f183bc6b35d8991ed99a8ab"
+    },
+    {
+      "path": "reviewed-package/independent-source-review.json",
+      "bytes": 3437,
+      "sha256": "12ecea8a8689408e19c73f8cf5cd75f7248676ce3b2ecd92529c417144ac9c8f"
+    },
+    {
+      "path": "reviewed-package/original-assets.json",
+      "bytes": 8715,
+      "sha256": "756ad13125e39d67d669493a82d4f2959273dd9902c3752ef3ccde6744a9fa9b"
+    },
+    {
+      "path": "reviewed-package/original-input-hashes.json",
+      "bytes": 1143,
+      "sha256": "7418c8c4d146f8c5e336b1e5c9c495bb38d4006d6fd39e2665acbf2cbca08fa1"
+    },
+    {
+      "path": "reviewed-package/original-nvidia-egl.json",
+      "bytes": 97,
+      "sha256": "4779640fbe3b520e5556675b0c9a13adae338f63ff05288d8b23cacc202fa207"
+    },
+    {
+      "path": "reviewed-package/original-nvidia-vulkan.json",
+      "bytes": 121,
+      "sha256": "3a24e06eee4d71613991833ea6ff0bd6ef4ed71c631af5440abfaca8d064b6b2"
+    },
+    {
+      "path": "reviewed-package/original-preparation.json",
+      "bytes": 103984,
+      "sha256": "4c91ae198e8747379c29b81a245393165f255af69b89644d75efb917b81752c1"
+    },
+    {
+      "path": "reviewed-package/original-resident-diag-r01-driver.py",
+      "bytes": 4743,
+      "sha256": "13fb5af588198d076a8ba9aa6fbb7fce16446eeb1ab19f9e25e1940acb609e35"
+    },
+    {
+      "path": "reviewed-package/original-resident-inputs.json",
+      "bytes": 50120,
+      "sha256": "e506e6e6aa22317b1e0bbb1fcfa0350ead8c3c37b0a713465fde94af6ed93aea"
+    },
+    {
+      "path": "reviewed-package/owned_process.py",
+      "bytes": 3633,
+      "sha256": "2b28991806d8d0541ca69ae115ef68486f487074177717bba2abd145921b0773"
+    },
+    {
+      "path": "reviewed-package/preparation-receipt.json",
+      "bytes": 4504,
+      "sha256": "c787ea669d6c067c32d7f61e0297206aeb153bbefce4b8b1f3c322f06e505561"
+    },
+    {
+      "path": "reviewed-package/run-a100-viewmodel-pair.py",
+      "bytes": 18850,
+      "sha256": "69668c3277b9f697737fdec6719b35b2772fcdedc6c329f7bfb8cdc8ab8f3c9a"
+    },
+    {
+      "path": "reviewed-package/runtime-upload-preflight.json",
+      "bytes": 969,
+      "sha256": "8d980804b5f7d75ad2d18d0505791c5df24a52bd97a5aa753b63fb07d2cc9dfd"
+    },
+    {
+      "path": "reviewed-package/source-bundle.json",
+      "bytes": 115816,
+      "sha256": "d32681b07162bd57e3871992afc4993af626574573f6d3f0533d23cb3b608738"
+    },
+    {
+      "path": "reviewed-package/source-bundle.zip",
+      "bytes": 2302159,
+      "sha256": "dfe1ae5e02734fbd4eb02ccf71d678e77086babde11db04901f38fd07d419cd0"
+    },
+    {
+      "path": "reviewed-package/test_build_local.py",
+      "bytes": 3051,
+      "sha256": "b70318626223d6bd326c9698e148d574f4da88463055ff45e81b70333e67bf45"
+    },
+    {
+      "path": "reviewed-package/test_controller_local.py",
+      "bytes": 21217,
+      "sha256": "e373746434b1ffc255863cea1ce01db72c26e466315647427f7890154858a66f"
+    },
+    {
+      "path": "reviewed-package/viewmodel_driver.py",
+      "bytes": 7360,
+      "sha256": "b9063d7155f54daad42dd33f0443e2ff5924ae1b56adb76a3a3202692c3121f3"
+    },
+    {
+      "path": "launch-receipts/build-launch.json",
+      "bytes": 692,
+      "sha256": "0aeac62fea08a38bd70f67956ac3f06a4eab7e1bbdddd7a5c6b7fc23d9cb986b"
+    },
+    {
+      "path": "launch-receipts/build.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "launch-receipts/build.stdout.log",
+      "bytes": 33,
+      "sha256": "3bf7cdce93ea1c86f2989ddcbde9e9bb7ba2abb9e8800497cb117e30d616e009"
+    },
+    {
+      "path": "launch-receipts/run-launch.json",
+      "bytes": 546,
+      "sha256": "4cd82d7662534871ea846d90f4d10b29626bf7ffc5ba96ef6d3738f95e2b1abc"
+    },
+    {
+      "path": "launch-receipts/run.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "launch-receipts/run.stdout.log",
+      "bytes": 236,
+      "sha256": "d992dbb3c6a82f2924d70440d361fee81ba02fefa61fdabc7eb8147c6fdc7c51"
+    },
+    {
+      "path": "display-setup/download-uris.log",
+      "bytes": 6021,
+      "sha256": "9dff28be7ff9caefa42033e30fdc8b969f2c52bfb6115f160fb51a5fb7b18dff"
+    },
+    {
+      "path": "display-setup/install.log",
+      "bytes": 11971,
+      "sha256": "831448171955cdbd5e603ab66fb2de68d7bff172bea4c32cd77d3669fd4a4c8d"
+    },
+    {
+      "path": "display-setup/launch.json",
+      "bytes": 2924,
+      "sha256": "f9d90538022d23d6c47dc498b807ab1121e23450bb70e5001c7de9ff96b15694"
+    },
+    {
+      "path": "display-setup/policy.log",
+      "bytes": 702,
+      "sha256": "f97062338fc95318597179787c6b29825049fd6d77184bced5b3e8040bc93ce8"
+    },
+    {
+      "path": "display-setup/result.json",
+      "bytes": 929,
+      "sha256": "2e4a201d409f64364babd267569f3150176885669a0aa0d5201565d8395f2b6f"
+    },
+    {
+      "path": "display-setup/simulation.log",
+      "bytes": 4817,
+      "sha256": "7d002b499741ff79936324f39fbf8c5402cd014ba9b86a4e0b7564eb42d9f063"
+    },
+    {
+      "path": "xkb-repair/install.log",
+      "bytes": 2817,
+      "sha256": "9d3dd4d72fac2ab55acf50ef383f952dabda351f0665e419a7af4b9d40f9ba7e"
+    },
+    {
+      "path": "xkb-repair/policy.log",
+      "bytes": 349,
+      "sha256": "d3ef44cfba265c6d0b5c109f9f16474ebb47fbd32f2404aad0a068a2a3fc8f13"
+    },
+    {
+      "path": "xkb-repair/result.json",
+      "bytes": 1100,
+      "sha256": "6cbf0fea14c00650f00339aee9317b3e67c24e9f531041a9ec45315801705763"
+    },
+    {
+      "path": "xkb-repair/simulation.log",
+      "bytes": 479,
+      "sha256": "07bd8221d48be3cd37b4631e29f7578b487b30efe36a34131386944d16f989b8"
+    },
+    {
+      "path": "xkb-repair/uris.log",
+      "bytes": 696,
+      "sha256": "fd2e2d97b92aa987240f67d72e5ad588999fd59a8201c81e3f7d4897754b27e0"
+    },
+    {
+      "path": "build-inputs/reviewed-runtime-package.zip",
+      "bytes": 2393048,
+      "sha256": "94227243e9a06e3f472efd65e3e35d8f3efe2c749996879a5715e1514fab6f63"
+    }
+  ]
+}

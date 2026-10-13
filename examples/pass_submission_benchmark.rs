@@ -253,7 +253,7 @@ mod diagnostic {
         use super::*;
         use vector_range::draw::Command;
         #[test]
-        fn fixture_is_bounded_and_has_exact_source_command_and_glyph_counts() {
+        fn fixture_is_bounded_and_has_exact_primitive_and_glyph_counts() {
             let list = fixture().unwrap();
             let mut text = vector_range::render::text::TextRenderer::new().unwrap();
             let mut counts = [0; 7];
@@ -265,8 +265,10 @@ mod diagnostic {
                         counts[0] += 1;
                     }
                     Command::Lines { lines, .. } => {
-                        assert_eq!(lines.len(), 1);
-                        counts[1] += 1;
+                        // Recording may coalesce adjacent calls. Count the same
+                        // semantic lines in both baseline and candidate fixtures.
+                        assert!(!lines.is_empty());
+                        counts[1] += lines.len();
                     }
                     Command::Rect { .. } => counts[2] += 1,
                     Command::Sprite { .. } => counts[3] += 1,

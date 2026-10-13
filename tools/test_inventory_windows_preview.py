@@ -150,9 +150,43 @@ class PreviewInventoryTests(unittest.TestCase):
     def test_launcher_cannot_hide_missing_flags_or_extra_commands(self):
         for launcher in (b'@echo off\nvector-range.exe\n',
                          self.control['PLAYTEST_DX12.cmd'].replace(b'--no-update', b''),
+                         self.control['PLAYTEST_DX12.cmd'].replace(b'--physical-1080p', b''),
+                         self.control['PLAYTEST_DX12.cmd'].replace(b'--physical-1080p', b'-- --physical-1080p'),
+                         self.control['PLAYTEST_DX12.cmd'].replace(b'--no-update', b'--no-update %*'),
                          self.control['PLAYTEST_DX12.cmd'] + b'echo injected command\n'):
             self.entries['PLAYTEST_DX12.cmd'] = launcher
             self.invalid('launcher differs')
+
+    def test_historical_v1_launcher_remains_exactly_replayable(self):
+        self.mutate_json('DX12_PREVIEW.json', lambda r: r.update(
+            schema='rust-duty-dx12-wip-preview/v1',
+            human_launch=['vector-range.exe', '--renderer=dx12', '--no-update']))
+        old_launcher = b'@echo off\r\ncd /d "%~dp0"\r\n"%~dp0vector-range.exe" --renderer=dx12 --no-update\r\nexit /b %ERRORLEVEL%\r\n'
+        self.entries['PLAYTEST_DX12.cmd'] = old_launcher
+        report = inventory.validate_zip_archive(self.archive(), strict=True)
+        self.assertTrue(report['valid'], report)
+        # Old metadata must not silently accept the new launcher or vice versa.
+        self.entries['PLAYTEST_DX12.cmd'] = self.control['PLAYTEST_DX12.cmd']
+        self.invalid('launcher differs')
+        self.entries = dict(self.control)
+        self.entries['PLAYTEST_DX12.cmd'] = old_launcher
+        self.invalid('launcher differs')
+
+    def test_physical_v2_metadata_cannot_omit_or_reorder_flags(self):
+        for args in (
+                ['vector-range.exe', '--renderer=dx12', '--no-update'],
+                ['vector-range.exe', '--renderer=dx12', '--', '--physical-1080p', '--no-update'],
+                ['vector-range.exe', '--renderer=legacy', '--physical-1080p', '--no-update'],
+                ['vector-range.exe', '--renderer=dx12', '--physical-1080p=1', '--no-update']):
+            with self.subTest(args=args):
+                self.entries = dict(self.control)
+                self.mutate_json('DX12_PREVIEW.json', lambda r: r.update(human_launch=args))
+                self.invalid('unsafe declared human launcher')
+        for schema in ('rust-duty-dx12-wip-preview/v3', [], {}, None):
+            with self.subTest(schema=schema):
+                self.entries = dict(self.control)
+                self.mutate_json('DX12_PREVIEW.json', lambda r: r.update(schema=schema))
+                self.invalid('wrong preview schema')
 
     def test_malformed_duplicate_nonfinite_json_and_utf8_reject(self):
         original = self.control['DX12_PREVIEW.json']

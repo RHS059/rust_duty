@@ -1,0 +1,213 @@
+name: Bounded staging-buffer pool proof
+on:
+  push:
+    branches: [halcyon/bounded-staging-upload, aella/wgpu-1080p-diagnostics]
+    paths:
+      - '.github/workflows/staging-buffer-pool.yml'
+      - 'src/**'
+      - 'tools/**'
+      - 'updater/**'
+      - '.cargo/**'
+      - 'tests/fixtures/triangle.vrm'
+      - 'tests/fixtures/two_bone_triangle.vrs'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - 'build.rs'
+      - 'build_number.rs'
+      - 'rust-toolchain'
+      - 'rust-toolchain.toml'
+      - 'LICENSE'
+      - 'THIRD_PARTY_LICENSES.txt'
+      - '.gitattributes'
+permissions:
+  contents: read
+concurrency:
+  group: staging-buffer-pool-${{ github.ref }}
+  cancel-in-progress: false
+env:
+  PYTHONDONTWRITEBYTECODE: '1'
+  RUSTUP_TOOLCHAIN: '1.99.0'
+  GIT_CONFIG_COUNT: '1'
+  GIT_CONFIG_KEY_0: core.autocrlf
+  GIT_CONFIG_VALUE_0: 'false'
+jobs:
+  native-staging-pool:
+    if: github.repository == 'RHS059/rust_duty' && (github.ref == 'refs/heads/halcyon/bounded-staging-upload' || github.ref == 'refs/heads/aella/wgpu-1080p-diagnostics')
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /.gitattributes
+            /.gitignore
+            /.cargo/
+            /Cargo.toml
+            /Cargo.lock
+            /build.rs
+            /build_number.rs
+            /rust-toolchain
+            /rust-toolchain.toml
+            /LICENSE
+            /THIRD_PARTY_LICENSES.txt
+            /src/
+            /updater/
+            /tools/
+            /tests/fixtures/triangle.vrm
+            /tests/fixtures/two_bone_triangle.vrs
+            /.github/workflows/staging-buffer-pool.yml
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Install pinned workflow parser
+        run: python -m pip install PyYAML==6.0.3
+      - name: Check staging evidence and workflow contracts
+        working-directory: tools
+        run: python -m unittest -v test_staging_workflow test_staging_encode_detail
+      - uses: dtolnay/rust-toolchain@1.99.0
+        with:
+          components: rustfmt, clippy
+      - name: Record exact unmodified source before compilation
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force staging-pool-evidence | Out-Null
+          $commit = (git rev-parse HEAD).Trim()
+          if ($LASTEXITCODE -ne 0 -or $commit -ne '${{ github.sha }}') { throw 'Checkout does not match the triggering commit' }
+          $dirty = @(git status --porcelain --untracked-files=no)
+          if ($LASTEXITCODE -ne 0 -or $dirty.Count -ne 0) { throw 'Tracked source is modified before compilation' }
+          $commit | Set-Content staging-pool-evidence/commit.txt
+          rustc --version --verbose | Set-Content staging-pool-evidence/rustc.txt
+          if ($LASTEXITCODE -ne 0) { throw 'Cannot identify Rust compiler' }
+          if (-not (Select-String -Path staging-pool-evidence/rustc.txt -Pattern '^release: 1\.99\.0$')) { throw 'Expected Rust 1.99.0' }
+          cargo --version --verbose | Set-Content staging-pool-evidence/cargo.txt
+          if ($LASTEXITCODE -ne 0) { throw 'Cannot identify Cargo' }
+          if (Test-Path 'assets/weapons/hk416a5.vrm') { throw 'This isolated proof must not embed a weapon asset' }
+          if (Test-Path Env:VR_WEAPON_ASSET) { throw 'This proof cannot use a local asset override' }
+          $sources = @(git ls-files -- src updater tools .cargo Cargo.toml Cargo.lock build.rs build_number.rs rust-toolchain rust-toolchain.toml .gitattributes LICENSE THIRD_PARTY_LICENSES.txt tests/fixtures/triangle.vrm tests/fixtures/two_bone_triangle.vrs .github/workflows/staging-buffer-pool.yml)
+          if ($LASTEXITCODE -ne 0 -or $sources.Count -eq 0) { throw 'Cannot inventory tested source' }
+          $inventory = @($sources | Sort-Object -Unique | ForEach-Object {
+            if (-not (Test-Path -LiteralPath $_ -PathType Leaf)) { throw "Required tracked input is missing: $_" }
+            [ordered]@{
+              path = $_
+              size = (Get-Item -LiteralPath $_).Length
+              sha256 = (Get-FileHash -LiteralPath $_ -Algorithm SHA256).Hash.ToLowerInvariant()
+            }
+          })
+          $inventory | ConvertTo-Json -Depth 8 | Set-Content -Encoding utf8 staging-pool-evidence/source-before.json
+      - name: Prepare formatter proposals without changing tested source
+        shell: pwsh
+        run: |
+          $files = @('src/frame_staging_policy.rs', 'src/render/upload_cache.rs', 'src/render/upload_staging.rs', 'src/render/upload_staging_layout.rs', 'src/render/upload_staging_tests.rs')
+          foreach ($file in $files) {
+            $copy = Join-Path 'staging-pool-evidence/format' $file
+            New-Item -ItemType Directory -Force (Split-Path $copy) | Out-Null
+            Copy-Item $file $copy
+            rustfmt --edition 2021 --config skip_children=true $copy
+            if ($LASTEXITCODE -ne 0) {
+              Add-Content 'staging-pool-evidence/format-needs-review.txt' "rustfmt failed: $file"
+              continue
+            }
+            if ((Get-FileHash $file -Algorithm SHA256).Hash -ne (Get-FileHash $copy -Algorithm SHA256).Hash) {
+              Add-Content 'staging-pool-evidence/format-needs-review.txt' "Formatting differs: $file"
+            }
+          }
+          # Compile/native feedback precedes the final formatting gate. These
+          # proposals are artifacts only; the tested checkout is never rewritten.
+          exit 0
+      - name: Check scoped native library and test code
+        shell: pwsh
+        run: |
+          cargo check --locked --no-default-features --features wgpu-runtime --lib --tests 2>&1 | Tee-Object -FilePath staging-pool-evidence/check.txt
+          if ($LASTEXITCODE -ne 0) { throw 'Scoped Rust check failed' }
+      - name: Run pure staging, destination and frame contracts
+        shell: pwsh
+        run: |
+          $filters = @('render::upload_cache::staging::layout::tests', 'render::upload_cache::staging::tests', 'render::upload_cache::tests', 'render::arena::tests', 'render::plan::tests', 'render::frame::tests', 'encode_detail')
+          foreach ($filter in $filters) {
+            $log = 'staging-pool-evidence/pure-' + $filter.Replace('::', '-') + '.txt'
+            # This hardware-only contract has its own explicit native admission.
+            # Keep the CPU lane's zero-ignored guard strict for every other test.
+            cargo test --locked --no-default-features --features wgpu-runtime --lib $filter -- --skip render::frame::tests::native_depth_slices_preserve_clip_planes_and_ordered_fades 2>&1 | Tee-Object -FilePath $log
+            if ($LASTEXITCODE -ne 0) { throw "Rust contracts failed: $filter" }
+            if (-not (Select-String -Path $log -Pattern 'test result: ok\. [1-9][0-9]* passed; 0 failed; 0 ignored;')) {
+              throw "The pure-contract filter selected no passing tests or ignored tests: $filter"
+            }
+          }
+      - name: Lint scoped native library and test code
+        shell: pwsh
+        run: |
+          cargo clippy --locked --no-default-features --features wgpu-runtime --lib --tests -- -D warnings 2>&1 | Tee-Object -FilePath staging-pool-evidence/clippy.txt
+          if ($LASTEXITCODE -ne 0) { throw 'Scoped Clippy failed' }
+      - name: Compare bounded staging with queuewrite on DX12 WARP
+        shell: pwsh
+        run: |
+          cargo test --locked --no-default-features --features wgpu-runtime --lib --no-run --message-format=json > staging-pool-evidence/build.jsonl 2> staging-pool-evidence/build-stderr.txt
+          if ($LASTEXITCODE -ne 0) { throw 'Native test executable build failed' }
+          $artifacts = @(Get-Content staging-pool-evidence/build.jsonl | ForEach-Object { $_ | ConvertFrom-Json } | Where-Object { $_.reason -eq 'compiler-artifact' -and $_.profile.test -and $_.executable })
+          if ($artifacts.Count -ne 1) { throw 'Expected exactly one built library test executable' }
+          $exe = $artifacts[0].executable
+          function Get-FileReceipt([string]$path) {
+            if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { throw "Missing receipt input: $path" }
+            [ordered]@{ path = $path; size = (Get-Item -LiteralPath $path).Length; sha256 = (Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash.ToLowerInvariant() }
+          }
+          $pdb = [System.IO.Path]::ChangeExtension($exe, '.pdb')
+          $sources = @(Get-Content staging-pool-evidence/source-before.json -Raw | ConvertFrom-Json)
+          foreach ($source in $sources) {
+            $now = Get-FileReceipt $source.path
+            if ($now.sha256 -ne $source.sha256 -or $now.size -ne $source.size) { throw "Compiled source changed: $($source.path)" }
+          }
+          $receipt = [ordered]@{
+            schema = 'rust-duty-staging-pool-native-test/v1'
+            commit = (git rev-parse HEAD).Trim()
+            toolchain = '1.99.0'
+            features = 'no-default-features,wgpu-runtime'
+            test_filter = 'render::upload_cache::staging_tests'
+            executable = (Get-FileReceipt $exe)
+            pdb = (Get-FileReceipt $pdb)
+            sources = $sources
+          }
+          $receipt | ConvertTo-Json -Depth 8 | Set-Content -Encoding utf8 staging-pool-evidence/build-receipt.json
+          & $exe render::upload_cache::staging_tests --nocapture --test-threads=1 2>&1 | Tee-Object -FilePath staging-pool-evidence/native-tests.txt
+          if ($LASTEXITCODE -ne 0) { throw 'DX12/WARP staging correctness failed' }
+          if ((Get-FileReceipt $exe).sha256 -ne $receipt.executable.sha256) { throw 'Test executable changed during native proof' }
+          if ((Get-FileReceipt $pdb).sha256 -ne $receipt.pdb.sha256) { throw 'Test PDB changed during native proof' }
+          if (-not (Select-String -Path staging-pool-evidence/native-tests.txt -SimpleMatch -Pattern 'test result: ok. 3 passed; 0 failed; 0 ignored;')) {
+            throw 'All three native tests must run; missing WARP or zero selected tests is not a pass'
+          }
+      - name: Verify unchanged tested source
+        if: always()
+        shell: pwsh
+        run: |
+          if (-not (Test-Path 'staging-pool-evidence/source-before.json')) { throw 'No pre-compilation source inventory' }
+          $sources = @(Get-Content staging-pool-evidence/source-before.json -Raw | ConvertFrom-Json)
+          $after = @($sources | ForEach-Object {
+            if (-not (Test-Path -LiteralPath $_.path -PathType Leaf)) { throw "Tested input disappeared: $($_.path)" }
+            $hash = (Get-FileHash -LiteralPath $_.path -Algorithm SHA256).Hash.ToLowerInvariant()
+            $size = (Get-Item -LiteralPath $_.path).Length
+            if ($hash -ne $_.sha256 -or $size -ne $_.size) { throw "Tested input changed: $($_.path)" }
+            [ordered]@{ path = $_.path; size = $size; sha256 = $hash }
+          })
+          $after | ConvertTo-Json -Depth 8 | Set-Content -Encoding utf8 staging-pool-evidence/source-after.json
+          $commit = (git rev-parse HEAD).Trim()
+          if ($LASTEXITCODE -ne 0 -or $commit -ne '${{ github.sha }}') { throw 'Commit changed during proof' }
+          $dirty = @(git status --porcelain --untracked-files=no)
+          if ($LASTEXITCODE -ne 0 -or $dirty.Count -ne 0) { throw 'Tracked source changed during proof' }
+          [ordered]@{ commit = $commit; unchanged_source = $true; source_count = $after.Count } | ConvertTo-Json | Set-Content -Encoding utf8 staging-pool-evidence/unchanged-source.json
+      - name: Require reviewed formatting after native evidence
+        if: always()
+        shell: pwsh
+        run: |
+          if (Test-Path 'staging-pool-evidence/format-needs-review.txt') {
+            throw 'Formatting differs or failed; proposals retained separately. Tested source was not modified.'
+          }
+      - name: Retain exact native logs and formatter proposals
+        id: staging_native_evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: staging-buffer-pool-attempt-${{ github.run_attempt }}
+          path: staging-pool-evidence/**
+          if-no-files-found: warn
+          retention-days: 7

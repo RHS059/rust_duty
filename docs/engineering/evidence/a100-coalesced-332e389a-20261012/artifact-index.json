@@ -1,0 +1,355 @@
+{
+  "archive_sha256": "6bdc2197084aa5b0ed441e7f522637e98247f504f18a5ce60dae7610140aed48",
+  "entries": [
+    {
+      "path": "run/native-contract/camera.json",
+      "bytes": 371,
+      "sha256": "975042208ad0c0f8e1af0f991f7c2a979f58b13cd34e3d4b72a0418aaff6acb8"
+    },
+    {
+      "path": "run/native-contract/ready-0-coalesced.png",
+      "bytes": 29037,
+      "sha256": "a1046815f509fd1b3bcb87db7e4a8c40510af8f475bf4857dc99cd0c64b54cc1"
+    },
+    {
+      "path": "run/native-contract/ready-0-legacy.png",
+      "bytes": 29037,
+      "sha256": "a1046815f509fd1b3bcb87db7e4a8c40510af8f475bf4857dc99cd0c64b54cc1"
+    },
+    {
+      "path": "run/native-contract/report.json",
+      "bytes": 26123033,
+      "sha256": "cd3dd2e7c952c8e0f96ae826d46e92ec4dbaaaf0c8f1c85dd3cf779997bdc857"
+    },
+    {
+      "path": "run/native-contract/rigid-alpha-1-coalesced.png",
+      "bytes": 13495,
+      "sha256": "a933e266234d33e4c4e7894b087194b16460f7a0946cc6f4a2763888ecfe7a03"
+    },
+    {
+      "path": "run/native-contract/rigid-alpha-1-legacy.png",
+      "bytes": 13495,
+      "sha256": "a933e266234d33e4c4e7894b087194b16460f7a0946cc6f4a2763888ecfe7a03"
+    },
+    {
+      "path": "run/native-process/process.json",
+      "bytes": 586,
+      "sha256": "1bfcee6451af0794c8b4417e4c3db1c331baa7a4895ccdf95d511bb6183c1701"
+    },
+    {
+      "path": "run/native-process/stderr.log",
+      "bytes": 2485,
+      "sha256": "c7c9ce50bc4d5c0f7826fd8fa43aeae26f26dc27056644190c10d62a7301551d"
+    },
+    {
+      "path": "run/native-process/stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "run/output-manifest.json",
+      "bytes": 24854,
+      "sha256": "f347880b6c46d6edf8dafcbf6897dccbb83c5434a50827d47130a46f8c7f301d"
+    },
+    {
+      "path": "run/result.json",
+      "bytes": 107708,
+      "sha256": "c5176a4af81bf52c39b6432c875ace6de92c179a60d94c7019a337d377be2fbc"
+    },
+    {
+      "path": "run/viewmodel-r01-legacy/display.png",
+      "bytes": 348544,
+      "sha256": "2a5957ded9c73aac9ac4ad13b4da488f5f5b8ae86f18266eac2faf65bc5dee47"
+    },
+    {
+      "path": "run/viewmodel-r01-legacy/game.log",
+      "bytes": 2602,
+      "sha256": "0480d944c736b870e44d84df72b4f1c1e91ba5dbddcce7b48f0a853ef434321d"
+    },
+    {
+      "path": "run/viewmodel-r01-legacy/graphics.json",
+      "bytes": 208,
+      "sha256": "a11c54f16e33d12c5ae5fb5f73eeb7a5441b346c85ade47c09a038a82766deb1"
+    },
+    {
+      "path": "run/viewmodel-r01-legacy/openbox.log",
+      "bytes": 85,
+      "sha256": "6f748c3cd02a858c087697c3afac639205c62b7b206558bd40d1bcbd98165a5c"
+    },
+    {
+      "path": "run/viewmodel-r01-legacy/receipt.json",
+      "bytes": 4496,
+      "sha256": "97a47e16cd6b2b62817181e1b09aed66bc11b2a43784bafd3d1f3126accd55bd"
+    },
+    {
+      "path": "run/viewmodel-r01-legacy/xvfb.log",
+      "bytes": 1174,
+      "sha256": "f172a1b0f5cf2a0d462c51dfc335af1a1dfc8e873cb66f61d018c8b1b35fe416"
+    },
+    {
+      "path": "run/viewmodel-r01-legacy-driver.json",
+      "bytes": 889,
+      "sha256": "fcb8c59f15371b277c479f6f8ee6464a9c6e5eab15c41134d49bbae07ecaa456"
+    },
+    {
+      "path": "run/viewmodel-r01-legacy-process/process.json",
+      "bytes": 494,
+      "sha256": "6d8a9db0cca8504cf3b07ed829bfb4354ffab100ea1b9b9f3db7e04f5d0c50fb"
+    },
+    {
+      "path": "run/viewmodel-r01-legacy-process/stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "run/viewmodel-r01-legacy-process/stdout.log",
+      "bytes": 3472,
+      "sha256": "d2e8c5b1079d6c03884c1e8365f7c0f37db199fad1ac24ce9afa4a71bda3dc1a"
+    },
+    {
+      "path": "run/viewmodel-r02-coalesced/display.png",
+      "bytes": 348493,
+      "sha256": "fc2deb8632ad5808308b1d8b1303bbd7f5b0c5be78cd1b38a5eecec22b7d5b52"
+    },
+    {
+      "path": "run/viewmodel-r02-coalesced/game.log",
+      "bytes": 2605,
+      "sha256": "8c84f77fc38ad217e8288c9f6b73b33653c9c3821b0f3a34eddc375b38de7b4b"
+    },
+    {
+      "path": "run/viewmodel-r02-coalesced/graphics.json",
+      "bytes": 208,
+      "sha256": "a11c54f16e33d12c5ae5fb5f73eeb7a5441b346c85ade47c09a038a82766deb1"
+    },
+    {
+      "path": "run/viewmodel-r02-coalesced/openbox.log",
+      "bytes": 85,
+      "sha256": "6f748c3cd02a858c087697c3afac639205c62b7b206558bd40d1bcbd98165a5c"
+    },
+    {
+      "path": "run/viewmodel-r02-coalesced/receipt.json",
+      "bytes": 4510,
+      "sha256": "ebb3501883897df476adc80c494924005c1717f5cdf3bcdc6bebd34650c7eb90"
+    },
+    {
+      "path": "run/viewmodel-r02-coalesced/xvfb.log",
+      "bytes": 1174,
+      "sha256": "f172a1b0f5cf2a0d462c51dfc335af1a1dfc8e873cb66f61d018c8b1b35fe416"
+    },
+    {
+      "path": "run/viewmodel-r02-coalesced-driver.json",
+      "bytes": 898,
+      "sha256": "3e7a5cc73535886f4cb05aad2792afd3a310c55b32ac869ed6d648d238ac725b"
+    },
+    {
+      "path": "run/viewmodel-r02-coalesced-process/process.json",
+      "bytes": 501,
+      "sha256": "0e192024fd18f5236dcc564a076d6391cbc19cf7b41c3a3d856d56c432f0bf67"
+    },
+    {
+      "path": "run/viewmodel-r02-coalesced-process/stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "run/viewmodel-r02-coalesced-process/stdout.log",
+      "bytes": 3486,
+      "sha256": "4e44f8aab1beb0afe866ffb78e31956705a14e49fecaf07a20235d2b70335173"
+    },
+    {
+      "path": "run/viewmodel-r03-coalesced/display.png",
+      "bytes": 348573,
+      "sha256": "f4099e14849e7d8478518a51e422628ec9690696fd60bf1693f9e1c5b208bf94"
+    },
+    {
+      "path": "run/viewmodel-r03-coalesced/game.log",
+      "bytes": 2605,
+      "sha256": "f44c105b5009a0d9a54cc5b29e3b8b3867dee0542ed4ad9185d06ff28c40cf43"
+    },
+    {
+      "path": "run/viewmodel-r03-coalesced/graphics.json",
+      "bytes": 208,
+      "sha256": "a11c54f16e33d12c5ae5fb5f73eeb7a5441b346c85ade47c09a038a82766deb1"
+    },
+    {
+      "path": "run/viewmodel-r03-coalesced/openbox.log",
+      "bytes": 85,
+      "sha256": "6f748c3cd02a858c087697c3afac639205c62b7b206558bd40d1bcbd98165a5c"
+    },
+    {
+      "path": "run/viewmodel-r03-coalesced/receipt.json",
+      "bytes": 4512,
+      "sha256": "6b763fd109dae604f5552c9bc2c202457d7a7087998c94cfb4485873e878fea4"
+    },
+    {
+      "path": "run/viewmodel-r03-coalesced/xvfb.log",
+      "bytes": 1174,
+      "sha256": "f172a1b0f5cf2a0d462c51dfc335af1a1dfc8e873cb66f61d018c8b1b35fe416"
+    },
+    {
+      "path": "run/viewmodel-r03-coalesced-driver.json",
+      "bytes": 898,
+      "sha256": "322f385b3c6a399a62211102756b72b60bd14f0cfc70795622ce1fa7b578194a"
+    },
+    {
+      "path": "run/viewmodel-r03-coalesced-process/process.json",
+      "bytes": 501,
+      "sha256": "a36eb32f8364467a49d8c9c306b19f873c0249795769e7b45f39b6e4eae61a67"
+    },
+    {
+      "path": "run/viewmodel-r03-coalesced-process/stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "run/viewmodel-r03-coalesced-process/stdout.log",
+      "bytes": 3488,
+      "sha256": "61bb765c60dc8b0ea4c11c2281c7fdf53aa7d016bbfff83badd49ca4aa6c8e89"
+    },
+    {
+      "path": "run/viewmodel-r04-legacy/display.png",
+      "bytes": 348679,
+      "sha256": "4c3bc53926dcd4cfcc8b8a668a1a6734deb89aaebae3e665044f41ebcdf9e268"
+    },
+    {
+      "path": "run/viewmodel-r04-legacy/game.log",
+      "bytes": 2602,
+      "sha256": "2926ac1a39130b18d82606428d2df2c0a57e6f0321918c97ea9ea30f6f355586"
+    },
+    {
+      "path": "run/viewmodel-r04-legacy/graphics.json",
+      "bytes": 208,
+      "sha256": "a11c54f16e33d12c5ae5fb5f73eeb7a5441b346c85ade47c09a038a82766deb1"
+    },
+    {
+      "path": "run/viewmodel-r04-legacy/openbox.log",
+      "bytes": 85,
+      "sha256": "6f748c3cd02a858c087697c3afac639205c62b7b206558bd40d1bcbd98165a5c"
+    },
+    {
+      "path": "run/viewmodel-r04-legacy/receipt.json",
+      "bytes": 4504,
+      "sha256": "e5f8533b08c9c4c3621ed0575bb89e52ec3b00fe620ba246a2d732ebeef884fd"
+    },
+    {
+      "path": "run/viewmodel-r04-legacy/xvfb.log",
+      "bytes": 1174,
+      "sha256": "f172a1b0f5cf2a0d462c51dfc335af1a1dfc8e873cb66f61d018c8b1b35fe416"
+    },
+    {
+      "path": "run/viewmodel-r04-legacy-driver.json",
+      "bytes": 889,
+      "sha256": "e53650b340c6dde934cb89609c1943a0a75f1070748c220cf00c17115425cf6d"
+    },
+    {
+      "path": "run/viewmodel-r04-legacy-process/process.json",
+      "bytes": 495,
+      "sha256": "9aa817c28092fccc8f72f917e187027dd4b3e035a6ffb7dca51ba66f7e637b02"
+    },
+    {
+      "path": "run/viewmodel-r04-legacy-process/stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "run/viewmodel-r04-legacy-process/stdout.log",
+      "bytes": 3480,
+      "sha256": "7f96e5653da606bf2d3c150477ee6ed5429a5602f505f1bcfb54e7e370cd292b"
+    },
+    {
+      "path": "build/build-process/process.json",
+      "bytes": 598,
+      "sha256": "0ba5250e0fb88f6a30b4724d6e58a940866b0860973fa629f0b889b48c8a8531"
+    },
+    {
+      "path": "build/build-process/stderr.log",
+      "bytes": 7911,
+      "sha256": "f4a03f82fc1373ee544d364404c3aa3b661526b513bf63a39a6447ae9be30073"
+    },
+    {
+      "path": "build/build-process/stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "build/build-result.json",
+      "bytes": 61954,
+      "sha256": "43df1364839aaf7e0d5538bc00ce0daee48b35d6ead3145dc93524eb003a60ac"
+    },
+    {
+      "path": "build/original-assets.json",
+      "bytes": 8715,
+      "sha256": "756ad13125e39d67d669493a82d4f2959273dd9902c3752ef3ccde6744a9fa9b"
+    },
+    {
+      "path": "build/original-nvidia-egl.json",
+      "bytes": 97,
+      "sha256": "4779640fbe3b520e5556675b0c9a13adae338f63ff05288d8b23cacc202fa207"
+    },
+    {
+      "path": "build/original-nvidia-vulkan.json",
+      "bytes": 121,
+      "sha256": "3a24e06eee4d71613991833ea6ff0bd6ef4ed71c631af5440abfaca8d064b6b2"
+    },
+    {
+      "path": "build/original-resident-inputs.json",
+      "bytes": 50120,
+      "sha256": "e506e6e6aa22317b1e0bbb1fcfa0350ead8c3c37b0a713465fde94af6ed93aea"
+    },
+    {
+      "path": "build/pair-pins.json",
+      "bytes": 2324,
+      "sha256": "1706bb26a43c7fb14a80eb13256a2e1e6c36a6fccc49fa1da130a3573f4f4729"
+    },
+    {
+      "path": "build/source-bundle.json",
+      "bytes": 116867,
+      "sha256": "22a320be98f7d99ebbd72d23d2ade648d0795a0c5d3d7c2547b1715ed8c774ed"
+    },
+    {
+      "path": "launch/build-launch.json",
+      "bytes": 704,
+      "sha256": "ce0fba7d4732dc8dfada6794aeb0bfb90c7b93960ba142ecbbd8bf2467d9f62b"
+    },
+    {
+      "path": "launch/build.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "launch/build.stdout.log",
+      "bytes": 33,
+      "sha256": "3bf7cdce93ea1c86f2989ddcbde9e9bb7ba2abb9e8800497cb117e30d616e009"
+    },
+    {
+      "path": "launch/pair-launch.json",
+      "bytes": 867,
+      "sha256": "818cac43cbe18b65eb35f559184caebed14c37216434cb3966aafa182d63abfb"
+    },
+    {
+      "path": "launch/pair.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "launch/pair.stdout.log",
+      "bytes": 166,
+      "sha256": "934334d061f828510bb27af30f42bbbef799830a280e9f064fe47294c9f6da1e"
+    },
+    {
+      "path": "review/independent-preparation-review.json",
+      "bytes": 3637,
+      "sha256": "b72c516008276aa616527b688b030136f471cae3cb1c22b740af9bdc91b3ceb1"
+    },
+    {
+      "path": "review/RUN_PLAN.md",
+      "bytes": 2693,
+      "sha256": "c2bc208b8175d3a6ad260e7479005c418ad511dd9d2aaa82384895794597c640"
+    },
+    {
+      "path": "compact-scope.json",
+      "bytes": 10369,
+      "sha256": "081172151c64583baa0f40ed3e273df45ad81c56cce1d37726ab3ef54d784870"
+    }
+  ]
+}

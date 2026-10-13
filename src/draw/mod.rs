@@ -10,6 +10,7 @@ use std::{
 pub mod facade;
 pub mod frame_witness;
 pub mod geometry;
+pub mod resident;
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Color {
     pub r: f32,
@@ -171,6 +172,8 @@ pub struct Camera {
     pub view_projection: Mat4,
     pub target: Option<RenderTarget>,
     pub depth_test: bool,
+    /// Post-clipping viewport depth mapping; never modifies the projection.
+    pub depth_range: [f32; 2],
 }
 impl Camera {
     pub fn screen(width: u32, height: u32) -> Self {
@@ -178,6 +181,7 @@ impl Camera {
             view_projection: Mat4::orthographic_rh_gl(0., width as f32, height as f32, 0., -1., 1.),
             target: None,
             depth_test: false,
+            depth_range: [0., 1.],
         }
     }
 }
@@ -218,6 +222,11 @@ pub enum Command {
     Clear(Color),
     Mesh {
         mesh: Mesh,
+        model: Mat4,
+        blend: BlendMode,
+    },
+    Resident {
+        draw: resident::ResidentDraw,
         model: Mat4,
         blend: BlendMode,
     },
@@ -273,7 +282,25 @@ impl DrawList {
             blend,
         });
     }
+    pub fn draw_resident(&mut self, draw: resident::ResidentDraw, model: Mat4, blend: BlendMode) {
+        self.commands.push(Command::Resident { draw, model, blend });
+    }
     pub fn draw_lines(&mut self, lines: &[Line], model: Mat4) {
+        // The renderer already combines adjacent line commands. Record that
+        // same run directly, avoiding one allocation and command per line.
+        // Never cross a state/capture barrier or merge distinct float bits.
+        if let Some(Command::Lines {
+            lines: previous,
+            model: previous_model,
+        }) = self.commands.last_mut()
+        {
+            if previous_model.to_cols_array().map(f32::to_bits)
+                == model.to_cols_array().map(f32::to_bits)
+            {
+                previous.extend_from_slice(lines);
+                return;
+            }
+        }
         self.commands.push(Command::Lines {
             lines: lines.to_vec(),
             model,
@@ -313,11 +340,30 @@ pub struct BackendInfo {
     pub backend: String,
     pub adapter: String,
 }
+/// Observed resident-path work for this submission, including cold uploads.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct ResidentFrameStats {
+    pub draws: u64,
+    pub rigid_draws: u64,
+    pub skinned_draws: u64,
+    pub vertex_bytes_uploaded: u64,
+    pub index_bytes_uploaded: u64,
+    pub uniform_bytes_uploaded: u64,
+    pub cache_hits: u64,
+    pub cache_misses: u64,
+    pub transient_meshes: u64,
+    pub buffer_allocations: u64,
+    pub binding_allocations: u64,
+}
 #[derive(Clone, Debug, Default)]
 pub struct FrameOutput {
+    pub resident: ResidentFrameStats,
     pub captures: Vec<PathBuf>,
 }
 pub trait Renderer {
+    fn supports_resident_meshes(&self) -> bool {
+        false
+    }
     fn info(&self) -> &BackendInfo;
     fn measure_text(&self, text: &str, size: f32) -> Result<TextDimensions, String>;
     fn submit(&mut self, list: &DrawList) -> Result<FrameOutput, String>;
@@ -325,6 +371,116 @@ pub trait Renderer {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn line(value: f32) -> Line {
+        Line {
+            start: Vec3::new(value, 2., 3.),
+            end: Vec3::new(4., value, 6.),
+            color: Color::new(value * 0.1, 0.5, 0.75, 0.25),
+        }
+    }
+
+    #[test]
+    fn adjacent_lines_share_one_owned_snapshot_in_original_order() {
+        let mut list = DrawList::new(960, 540);
+        let mut source = [line(1.), line(2.)];
+        list.draw_lines(&source, Mat4::IDENTITY);
+        list.draw_lines(&[], Mat4::IDENTITY);
+        list.draw_lines(&[line(3.)], Mat4::IDENTITY);
+        source[0] = line(9.);
+        assert_eq!(list.commands.len(), 1);
+        let Command::Lines { lines, model } = &list.commands[0] else {
+            panic!("expected one line run")
+        };
+        assert_eq!(*model, Mat4::IDENTITY);
+        assert_ne!(lines[0].start, source[0].start);
+        for (actual, expected) in lines.iter().zip([line(1.), line(2.), line(3.)]) {
+            assert_eq!(actual.start, expected.start);
+            assert_eq!(actual.end, expected.end);
+            assert_eq!(actual.color, expected.color);
+        }
+        assert_eq!(lines.len(), 3);
+    }
+
+    #[test]
+    fn recorded_line_runs_preserve_every_non_line_barrier() {
+        let texture = Texture::rgba8(1, 1, &[255; 4], Sampler::default()).unwrap();
+        for barrier in [
+            Command::Camera(Camera::screen(960, 540)),
+            Command::Clear(Color::TRANSPARENT),
+            Command::Mesh {
+                mesh: Mesh::default(),
+                model: Mat4::IDENTITY,
+                blend: BlendMode::Alpha,
+            },
+            Command::Rect {
+                rect: Rect::new(0., 0., 0., 0.),
+                color: Color::TRANSPARENT,
+            },
+            Command::Sprite {
+                texture,
+                destination: Rect::new(0., 0., 1., 1.),
+                tint: Color::WHITE,
+            },
+            Command::Text {
+                text: String::new(),
+                baseline: Vec2::ZERO,
+                size: 16.,
+                color: Color::WHITE,
+            },
+            Command::Capture {
+                target: None,
+                path: "line-barrier.png".into(),
+            },
+        ] {
+            let mut list = DrawList::new(960, 540);
+            list.draw_lines(&[line(1.)], Mat4::IDENTITY);
+            let kind = std::mem::discriminant(&barrier);
+            list.commands.push(barrier);
+            list.draw_lines(&[line(2.)], Mat4::IDENTITY);
+            assert_eq!(list.commands.len(), 3);
+            assert_eq!(std::mem::discriminant(&list.commands[1]), kind);
+            assert!(matches!(&list.commands[0], Command::Lines { lines, .. }
+                if lines.len() == 1 && lines[0].start == line(1.).start));
+            assert!(matches!(&list.commands[2], Command::Lines { lines, .. }
+                if lines.len() == 1 && lines[0].start == line(2.).start));
+        }
+    }
+
+    #[test]
+    fn recorded_line_models_require_identical_bits() {
+        let mut signed_zero = Mat4::IDENTITY.to_cols_array();
+        signed_zero[1] = -0.;
+        let mut one_ulp = Mat4::IDENTITY.to_cols_array();
+        one_ulp[0] = f32::from_bits(1_f32.to_bits() + 1);
+        for model in [
+            Mat4::from_cols_array(&signed_zero),
+            Mat4::from_cols_array(&one_ulp),
+            Mat4::from_translation(Vec3::X),
+        ] {
+            let mut list = DrawList::new(960, 540);
+            list.draw_lines(&[line(1.)], Mat4::IDENTITY);
+            list.draw_lines(&[line(2.)], model);
+            list.draw_lines(&[line(3.)], Mat4::IDENTITY);
+            assert_eq!(list.commands.len(), 3);
+        }
+    }
+
+    #[test]
+    fn recorded_line_run_does_not_truncate_at_gpu_batch_boundary() {
+        let mut list = DrawList::new(960, 540);
+        let first = vec![line(1.); 32_768];
+        list.draw_lines(&first, Mat4::IDENTITY);
+        list.draw_lines(&[line(2.)], Mat4::IDENTITY);
+        assert_eq!(list.commands.len(), 1);
+        let Command::Lines { lines, .. } = &list.commands[0] else {
+            panic!("expected one CPU line run")
+        };
+        assert_eq!(lines.len(), 32_769);
+        assert_eq!(lines[32_767].start, line(1.).start);
+        assert_eq!(lines[32_768].start, line(2.).start);
+    }
+
     #[test]
     fn draws_snapshot_skinned_vertices_and_capture_order() {
         let mut mesh = Mesh {
