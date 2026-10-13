@@ -137,7 +137,8 @@ the portable publication files. `SHA256SUMS` records this publication revision.
 
 ## Publication verification (2026-10-13)
 
-- All 28 source-free regressions passed in isolated publication staging
+- All 29 source-free regressions passed in isolated publication staging after the
+  Windows path-alias assertion correction; initial revision had 28
 - Fresh portable Blender 4.3.2 no-render validation passed all eleven takes,
   including all eight preservation checks per take; exit code 0
 - Python syntax and unchanged helper hashes passed
@@ -156,3 +157,8 @@ material fingerprint matched the original PR37 r2 proof. This updates route
 feasibility only: that experimental transport and its image packet are not
 included here, and a complete native animation sequence is still pending. The
 older killed-operator and black-window-PNG receipts remain valid historical failures.
+
+Revision r2 fixes the Windows test expectation for equivalent short and canonical
+temporary-directory names. Production code is byte-identical to the eleven-take
+validation. The initial Windows run had one failing assertion among 2019 tests
+(11 skipped); `evidence/ci-revision-r2.json` preserves the failure and correction.

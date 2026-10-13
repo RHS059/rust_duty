@@ -1,0 +1,26 @@
+{
+  "schema": "rust-duty-capture-ci-revision/v1",
+  "revision": "r2",
+  "reason": "Canonicalize the expected configured root in the test, matching the production path.resolve() contract on Windows 8.3 temp-directory aliases.",
+  "failed_commit": "dc9c12480fe11a56c617ad4ca2e24f0df90f29a0",
+  "failed_job_url": "https://github.com/RHS059/rust_duty/actions/runs/38447936695/job/115472301538",
+  "observed_windows_python_suite": {
+    "ran": 2019,
+    "failures": 1,
+    "skipped": 11,
+    "failed_test": "animation_review_capture.test_portability_and_crop.Portability.test_configured_root_has_precedence",
+    "cause": "Expanded runneradmin directory versus equivalent RUNNER~1 short alias in test expectation; production resolved the root correctly."
+  },
+  "correction": "Resolve expected path before comparison; add an equivalent child/../ root-spelling regression. No production behavior changed.",
+  "local_validation": {
+    "command": "python3 -m unittest discover -s tools -p 'test_*.py' -v",
+    "scope": "Isolated publication package, not full repository suite",
+    "passed": 29,
+    "failed": 0,
+    "skipped": 0,
+    "log_sha256": "f7a2cbbeb7e7beb35acc3ab4cf403563c7ef6fb5aff3c7f32d63723909766865"
+  },
+  "test_file_sha256": "29a36faf2a8715dd5fcb70607532d45725d251eb3f553ed1a3ec428c2bc101fb",
+  "no_render_validation": "Existing fresh eleven-take validation retained for byte-identical production code; not rerun for this test-only correction.",
+  "remote_ci": "Pending for new revision; exact commit tracked on PR59."
+}

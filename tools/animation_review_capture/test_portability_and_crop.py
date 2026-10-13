@@ -30,7 +30,17 @@ class Portability(unittest.TestCase):
     def test_configured_root_has_precedence(self):
         with tempfile.TemporaryDirectory() as folder, mock.patch.object(common, 'INPUT_ROOT'):
             common.configure_input_root(folder)
-            self.assertEqual(common.source_path(common.TAKES['entry-r4']), Path(folder) / 'sources/prone-entry-r4.blend')
+            # Windows TemporaryDirectory may use an 8.3 alias (RUNNER~1).
+            # The configured root deliberately resolves it to its canonical path.
+            self.assertEqual(common.source_path(common.TAKES['entry-r4']), Path(folder).resolve() / 'sources/prone-entry-r4.blend')
+
+    def test_configured_root_normalizes_equivalent_spelling(self):
+        with tempfile.TemporaryDirectory() as folder, mock.patch.object(common, 'INPUT_ROOT'):
+            root = Path(folder)
+            (root / 'child').mkdir()
+            common.configure_input_root(root / 'child' / '..')
+            self.assertEqual(common.INPUT_ROOT, root.resolve())
+            self.assertEqual(common.source_path(common.TAKES['entry-r4']), root.resolve() / 'sources/prone-entry-r4.blend')
 
     def test_environment_root_and_optimized_python_guard(self):
         with tempfile.TemporaryDirectory() as folder:
