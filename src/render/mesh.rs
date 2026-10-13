@@ -381,62 +381,60 @@ impl Pipelines {
                 BlendMode::Additive => 2,
             },
         };
-        self.pipelines
-            .entry(key)
-            .or_insert_with(|| {
-                let vertex_buffers = [Some(wgpu::VertexBufferLayout {
-                    array_stride: GpuVertex::STRIDE,
-                    step_mode: wgpu::VertexStepMode::Vertex,
-                    attributes: &GpuVertex::ATTRIBUTES,
-                })];
-                let targets = [Some(wgpu::ColorTargetState {
-                    format,
-                    blend: blend_state(blend, fragment),
-                    write_mask: wgpu::ColorWrites::ALL,
-                })];
-                let descriptor = wgpu::RenderPipelineDescriptor {
-                    label: Some("CPU-lit mesh pipeline"),
-                    layout: Some(&self.layout),
-                    vertex: wgpu::VertexState {
-                        module: &self.shader,
-                        entry_point: Some("vs_main"),
-                        compilation_options: Default::default(),
-                        buffers: &vertex_buffers,
+        self.pipelines.entry(key).or_insert_with(|| {
+            let vertex_buffers = [Some(wgpu::VertexBufferLayout {
+                array_stride: GpuVertex::STRIDE,
+                step_mode: wgpu::VertexStepMode::Vertex,
+                attributes: &GpuVertex::ATTRIBUTES,
+            })];
+            let targets = [Some(wgpu::ColorTargetState {
+                format,
+                blend: blend_state(blend, fragment),
+                write_mask: wgpu::ColorWrites::ALL,
+            })];
+            let descriptor = wgpu::RenderPipelineDescriptor {
+                label: Some("CPU-lit mesh pipeline"),
+                layout: Some(&self.layout),
+                vertex: wgpu::VertexState {
+                    module: &self.shader,
+                    entry_point: Some("vs_main"),
+                    compilation_options: Default::default(),
+                    buffers: &vertex_buffers,
+                },
+                primitive: wgpu::PrimitiveState {
+                    topology: if lines {
+                        wgpu::PrimitiveTopology::LineList
+                    } else {
+                        wgpu::PrimitiveTopology::TriangleList
                     },
-                    primitive: wgpu::PrimitiveState {
-                        topology: if lines {
-                            wgpu::PrimitiveTopology::LineList
-                        } else {
-                            wgpu::PrimitiveTopology::TriangleList
-                        },
-                        front_face: wgpu::FrontFace::Ccw,
-                        cull_mode: None,
-                        ..Default::default()
-                    },
-                    depth_stencil: depth_state(depth, blend),
-                    multisample: Default::default(),
-                    fragment: Some(wgpu::FragmentState {
-                        module: &self.shader,
-                        entry_point: Some(fragment.entry_point()),
-                        compilation_options: Default::default(),
-                        targets: &targets,
-                    }),
-                    multiview_mask: None,
-                    cache: None,
-                };
-                let visibility = self.capture_receipts.then(|| {
-                    Box::new(VisibilityPipelineDescriptor::capture(
-                        &descriptor,
-                        &self.shader,
-                        &self.layout,
-                        self.shader_source_bound,
-                    ))
-                });
-                CachedPipeline {
-                    pipeline: device.create_render_pipeline(&descriptor),
-                    visibility,
-                }
-            })
+                    front_face: wgpu::FrontFace::Ccw,
+                    cull_mode: None,
+                    ..Default::default()
+                },
+                depth_stencil: depth_state(depth, blend),
+                multisample: Default::default(),
+                fragment: Some(wgpu::FragmentState {
+                    module: &self.shader,
+                    entry_point: Some(fragment.entry_point()),
+                    compilation_options: Default::default(),
+                    targets: &targets,
+                }),
+                multiview_mask: None,
+                cache: None,
+            };
+            let visibility = self.capture_receipts.then(|| {
+                Box::new(VisibilityPipelineDescriptor::capture(
+                    &descriptor,
+                    &self.shader,
+                    &self.layout,
+                    self.shader_source_bound,
+                ))
+            });
+            CachedPipeline {
+                pipeline: device.create_render_pipeline(&descriptor),
+                visibility,
+            }
+        })
     }
     /// Later finite corroboration only. Reuse the production VS module, layout,
     /// primitive state and single-sample target; change only the fragment stage

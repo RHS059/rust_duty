@@ -621,7 +621,8 @@ impl Inventory {
         for chunk in touched_chunks {
             let start = chunk * TRIANGLE_CHUNK_SIZE;
             let end = (start + TRIANGLE_CHUNK_SIZE).min(triangle_hashes.len());
-            self.triangle_chunks.push(json!({"kind":kind,"mesh":index,"chunk":chunk,
+            self.triangle_chunks
+                .push(json!({"kind":kind,"mesh":index,"chunk":chunk,
                 "triangle_sha256":&triangle_hashes[start..end]}));
         }
         let separated_count: usize = separated.values().map(|(ids, _)| ids.len()).sum();
@@ -1151,7 +1152,10 @@ mod tests {
             &mut ordered_inputs,
         );
         assert!(expected.get("triangle_sha256").is_none());
-        assert_eq!(expected["triangle_chunk_sha256"].as_array().unwrap().len(), 2);
+        assert_eq!(
+            expected["triangle_chunk_sha256"].as_array().unwrap().len(),
+            2
+        );
         assert!(expected.to_string().len() < 4096);
         assert_eq!(ordered_inputs[&(1, 0)].len(), 257 * 128);
         for visible in [true, false] {
@@ -1222,26 +1226,27 @@ mod tests {
             1.,
             &mut ordered_inputs,
         );
-        let input = |positions: &[Vec3], uvs: &[[f32; 2]], colors: &[[u8; 4]], projection, model| {
-            let mut inventory = Inventory::new();
-            inventory.mesh(
-                "rigid",
-                0,
-                &[0, 1, 2],
-                positions,
-                uvs,
-                colors,
-                &rgba,
-                1,
-                1,
-                projection,
-                model,
-                Backend::OpenGl,
-                true,
-                1.,
-            );
-            inventory.geometry_inputs.remove(0)
-        };
+        let input =
+            |positions: &[Vec3], uvs: &[[f32; 2]], colors: &[[u8; 4]], projection, model| {
+                let mut inventory = Inventory::new();
+                inventory.mesh(
+                    "rigid",
+                    0,
+                    &[0, 1, 2],
+                    positions,
+                    uvs,
+                    colors,
+                    &rgba,
+                    1,
+                    1,
+                    projection,
+                    model,
+                    Backend::OpenGl,
+                    true,
+                    1.,
+                );
+                inventory.geometry_inputs.remove(0)
+            };
         let actual = input(&positions, &uvs, &colors, Mat4::IDENTITY, Mat4::IDENTITY);
         for field in [
             "triangles",
