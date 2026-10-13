@@ -145,6 +145,12 @@ jobs:
           cargo build --locked --release --no-default-features
           --features legacy-macroquad,wgpu-runtime
           --bin vector-range --example renderer_contract
+      - name: Test actual capture input and pipeline descriptor contracts
+        if: env.CURRENT_ADS_SOURCE_PROOF == 'true'
+        timeout-minutes: 20
+        run: >-
+          cargo test --locked --release --no-default-features
+          --features legacy-macroquad,wgpu-runtime --lib visibility
       - name: Stage pinned official app-local Mesa reference
         shell: pwsh
         timeout-minutes: 10

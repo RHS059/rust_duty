@@ -17,7 +17,9 @@ def fixture(role='dx12'):
     for kind, visible, digest in [('skin', True, '1'), ('rigid', True, '2'), ('rigid', False, '3')]:
         meshes.append({'kind': kind, 'mesh': 1 if digest == '3' else 0, 'triangles': 1,
                        'visible': visible, 'opacity_bits': current._float_bits(1),
-                       'triangle_sha256': [digest * 64], 'texture': deepcopy(texture),
+                       'triangle_stream_sha256': current.hashlib.sha256((digest * 64).encode()).hexdigest(),
+                       'triangle_chunk_sha256': [current.hashlib.sha256((digest * 64).encode()).hexdigest()],
+                       'texture': deepcopy(texture),
                        'view_projection_bits': matrix[:], 'model_bits': matrix[:],
                        'upload_transform_bits': matrix[:] if role == 'dx12' else None})
     row = {'frame': 7, 'source_triangles': 3, 'hidden_source_triangles': 1,
@@ -62,14 +64,17 @@ def fixture(role='dx12'):
         'view_projection_bits': witness_projection, 'model_bits': matrix[:],
         'upload_transform_bits': witness_upload, 'texture': deepcopy(texture), 'state': witness_state}
     witness_draw['texture']['rgba8_sha256'] = current.hashlib.sha256(bytes([255] * 4)).hexdigest()
-    draws = [{**{key: m[key] for key in ('triangle_sha256', 'view_projection_bits', 'model_bits',
+    draws = [{**{key: m[key] for key in ('view_projection_bits', 'model_bits',
                                        'upload_transform_bits', 'texture')}, 'triangle_count': 1,
               'state': deepcopy(state)} for m in meshes if m['visible']]
+    row['expected_ordered_draw_input_sha256'] = current.ordered_draw_input_sha256(
+        [(meshes[0], ['1' * 64]), (meshes[1], ['2' * 64])])
     receipt = {'schema': current.SCHEMA, 'capture_identity': 'a' * 64, 'frame_index': 7,
                'backend': current.source.BACKENDS[role][1], 'capture_path': '0007.png',
                'capture_sha256': 'b' * 64, 'target': {'resource_id': 3, 'width': 960, 'height': 540, 'depth': True},
                'witness_exclusion': [0, 0, 64, 22], 'witness_count': 1, 'triangle_count': 2,
                'draws': draws, 'submission_complete': True, 'capture_complete': True,
+               'ordered_draw_input_sha256': row['expected_ordered_draw_input_sha256'],
                'events': [{'kind': 'clear', 'rgba_bits': [current._float_bits(v) for v in (.14, .19, .24, 1)],
                            'depth_bits': current._float_bits(1)}, {'kind': 'draw', 'draw_index': 0},
                           {'kind': 'draw', 'draw_index': 1}, {'kind': 'witness', 'draw': witness_draw}, {'kind': 'capture'}]}
@@ -88,6 +93,37 @@ class CurrentNativeBindingTests(unittest.TestCase):
             self.assertFalse(result['visibility_verified'])
             self.assertEqual(result['triangles'], 2)
 
+    def test_ordered_input_codec_matches_native_golden_and_draw_splits(self):
+        row, receipt = fixture()
+        state = deepcopy(receipt['draws'][0])
+        state['texture']['rgba8_sha256'] = current.hashlib.sha256(bytes([255] * 4)).hexdigest()
+        self.assertEqual(current.draw_input_state_sha256(state),
+            '07821c444dd5613337ff95c79afa993f95ab10a7c6df9fdcdc78f61e4c9361b2')
+        hashes = ['1' * 64, '2' * 64, '1' * 64]
+        whole = current.ordered_draw_input_sha256([(state, hashes)])
+        split = current.ordered_draw_input_sha256([(state, hashes[:1]), (state, hashes[1:])])
+        self.assertEqual(whole, split)
+        for altered in (hashes[:-1], hashes[1:], list(reversed(hashes[:2]))):
+            self.assertNotEqual(whole, current.ordered_draw_input_sha256([(state, altered)]))
+        # Two independent expected meshes with identical state can share a draw.
+        receipt['draws'][0]['triangle_count'] = 2
+        receipt['draws'].pop()
+        receipt['events'].pop(2)
+        self.assertEqual(self.verify(row, receipt)['triangles'], 2)
+
+    def test_source_and_native_inventory_size_is_bounded_by_chunks_and_draws(self):
+        import json
+        row, receipt = fixture()
+        count = 98522
+        mesh = row['expected_draw_inventory'][0]
+        mesh.update(triangles=count, triangle_chunk_sha256=['1' * 64] * ((count + 255) // 256))
+        self.assertLess(len(json.dumps(mesh)), 28000)
+        self.assertNotIn('triangle_sha256', mesh)
+        for draw in receipt['draws']:
+            self.assertNotIn('triangle_sha256', draw)
+            self.assertLess(len(json.dumps(draw)), 2000)
+        self.assertEqual(len(receipt['events'][-2]['draw']['triangle_sha256']), 644)
+
     def test_missing_all_draws_and_partial_draws_fail(self):
         for remove in (slice(None), slice(0, 1)):
             row, receipt = fixture()
@@ -96,9 +132,11 @@ class CurrentNativeBindingTests(unittest.TestCase):
                 self.verify(row, receipt)
 
     def test_shrunken_swapped_or_missing_triangle_is_rejected(self):
-        for mutation in (lambda r: r['draws'][0]['triangle_sha256'].__setitem__(0, '9' * 64),
-                         lambda r: r['draws'].reverse(),
-                         lambda r: r['draws'][0]['triangle_sha256'].clear()):
+        for mutation in (lambda r: r.update(ordered_draw_input_sha256='9' * 64),
+                         lambda r: r.update(ordered_draw_input_sha256=current.ordered_draw_input_sha256(
+                             [(r['draws'][1], ['2' * 64]), (r['draws'][0], ['1' * 64])])),
+                         lambda r: r.update(ordered_draw_input_sha256=current.ordered_draw_input_sha256(
+                             [(r['draws'][0], ['1' * 64])]))):
             row, receipt = fixture()
             mutation(receipt)
             with self.assertRaises(ValueError):

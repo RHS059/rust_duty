@@ -288,14 +288,29 @@ impl WgpuRenderer {
         if draw.depth_test && output.depth.is_none() {
             return Err("depth-enabled camera requires a target with depth storage".into());
         }
-        let pipeline = self.pipelines.pipeline(
-            &self.gpu.device,
-            target::COLOR_FORMAT,
-            draw.depth_test,
-            draw.lines,
-            draw.blend,
-            FragmentKind::for_source(&texture.descriptor.source, draw.blend),
-        );
+        let fragment = FragmentKind::for_source(&texture.descriptor.source, draw.blend);
+        let pipeline = if receipt
+            .as_ref()
+            .is_some_and(|r| r.selects(draw.target.as_ref()))
+        {
+            self.pipelines.visibility_pipeline(
+                &self.gpu.device,
+                target::COLOR_FORMAT,
+                draw.depth_test,
+                draw.lines,
+                draw.blend,
+                fragment,
+            )?
+        } else {
+            self.pipelines.pipeline(
+                &self.gpu.device,
+                target::COLOR_FORMAT,
+                draw.depth_test,
+                draw.lines,
+                draw.blend,
+                fragment,
+            )
+        };
         issue(
             pass,
             &pipeline,

@@ -18,7 +18,10 @@ use vector_range::{
     animation_manifest::AnimationManifest,
     asset::WeaponAsset,
     draw::facade::{Color, FilterMode, Mat4, Sampler, Texture, Vec2, Vec3, Vec4, Vertex, WrapMode},
-    draw::visibility_receipt::{matrix_bits, texture_identity, triangle_sha256},
+    draw::visibility_receipt::{
+        append_ordered_draw_inputs, draw_input_state_sha256, matrix_bits, texture_identity,
+        triangle_sha256, triangle_stream_sha256,
+    },
     scene_lighting::SceneLighting,
     settings::Settings,
     sim::{Simulation, FIXED_DT},
@@ -26,6 +29,7 @@ use vector_range::{
     viewmodel_animation::{game_model_root, AnimationSet},
     weapon_sway,
 };
+const TRIANGLE_CHUNK_SIZE: usize = 256;
 const U: f64 = 1.0 / 8_388_608.0;
 fn gamma(n: f64, u: f64) -> f64 {
     n * u / (1.0 - n * u)
@@ -332,31 +336,8 @@ impl Samples {
             .collect()
     }
 }
-/// Independent pre-submission inventory. This enumerates original asset indices,
-/// including hidden meshes; it never learns expected geometry from draw commands.
-#[allow(clippy::too_many_arguments)]
-fn expected_mesh(
-    kind: &str,
-    mesh: usize,
-    indices: &[u32],
-    positions: &[Vec3],
-    uvs: &[[f32; 2]],
-    colors: &[[u8; 4]],
-    rgba: &[u8],
-    texture_width: u32,
-    texture_height: u32,
-    projection: Mat4,
-    model: Mat4,
-    backend: Backend,
-    visible: bool,
-    opacity: f32,
-) -> serde_json::Value {
-    assert_eq!(positions.len(), uvs.len());
-    assert_eq!(positions.len(), colors.len());
-    assert!(positions.iter().all(|position| position.is_finite()));
-    assert!(projection.is_finite() && model.is_finite() && opacity.is_finite());
-    assert!(indices.len().is_multiple_of(3));
-    let texture = if rgba.is_empty() {
+fn source_texture(rgba: &[u8], texture_width: u32, texture_height: u32) -> Option<Texture> {
+    if rgba.is_empty() {
         None
     } else {
         let mut pixels = rgba.to_vec();
@@ -376,8 +357,16 @@ fn expected_mesh(
             )
             .expect("validated source texture"),
         )
-    };
-    let triangles: Vec<_> = indices
+    }
+}
+/// This is the same canonical byte serialization used by issued draw receipts.
+fn source_triangle_hashes(
+    indices: &[u32],
+    positions: &[Vec3],
+    uvs: &[[f32; 2]],
+    colors: &[[u8; 4]],
+) -> Vec<String> {
+    indices
         .as_chunks::<3>()
         .0
         .iter()
@@ -393,17 +382,61 @@ fn expected_mesh(
             });
             triangle_sha256(&vertices)
         })
-        .collect();
+        .collect()
+}
+/// Independent pre-submission inventory. This enumerates original asset indices,
+/// including hidden meshes; it never learns expected geometry from draw commands.
+#[allow(clippy::too_many_arguments)]
+fn expected_mesh(
+    kind: &str,
+    mesh: usize,
+    indices: &[u32],
+    positions: &[Vec3],
+    uvs: &[[f32; 2]],
+    colors: &[[u8; 4]],
+    rgba: &[u8],
+    texture_width: u32,
+    texture_height: u32,
+    projection: Mat4,
+    model: Mat4,
+    backend: Backend,
+    visible: bool,
+    opacity: f32,
+    ordered_inputs: &mut std::collections::BTreeMap<(u8, usize), Vec<u8>>,
+) -> serde_json::Value {
+    assert_eq!(positions.len(), uvs.len());
+    assert_eq!(positions.len(), colors.len());
+    assert!(positions.iter().all(|position| position.is_finite()));
+    assert!(projection.is_finite() && model.is_finite() && opacity.is_finite());
+    assert!(indices.len().is_multiple_of(3));
+    let texture = source_texture(rgba, texture_width, texture_height);
+    let triangles = source_triangle_hashes(indices, positions, uvs, colors);
     // The production facade records the actual view multiplication, including
     // signed-zero bits, even for the identity reference camera.
     let view_projection = projection * Mat4::look_at_rh(Vec3::ZERO, -Vec3::Z, Vec3::Y);
+    let texture = texture_identity(texture.as_ref());
+    let upload_transform =
+        (backend == Backend::Dx12).then(|| dx12_remap() * view_projection * model);
+    if visible {
+        let state = draw_input_state_sha256(view_projection, model, upload_transform, &texture)
+            .expect("finite original source draw state");
+        let mut inputs = Vec::new();
+        append_ordered_draw_inputs(&mut inputs, &state, &triangles)
+            .expect("original canonical source triangles");
+        assert!(ordered_inputs
+            .insert((u8::from(kind != "skin"), mesh), inputs)
+            .is_none());
+    }
+    let chunks: Vec<_> = triangles
+        .chunks(TRIANGLE_CHUNK_SIZE)
+        .map(|chunk| triangle_stream_sha256(chunk).expect("canonical source chunk"))
+        .collect();
     json!({"kind":kind,"mesh":mesh,"triangles":triangles.len(),
            "visible":visible,"opacity_bits":opacity.to_bits(),
-           "triangle_sha256":triangles,"texture":texture_identity(texture.as_ref()),
+           "triangle_stream_sha256":triangle_stream_sha256(&triangles).expect("canonical source stream"),
+           "triangle_chunk_sha256":chunks,"texture":texture,
            "view_projection_bits":matrix_bits(view_projection),"model_bits":matrix_bits(model),
-           "upload_transform_bits":if backend==Backend::Dx12 {
-               Some(matrix_bits(dx12_remap() * view_projection * model))
-           } else { None }})
+           "upload_transform_bits":upload_transform.map(matrix_bits)})
 }
 struct Source {
     path: PathBuf,
@@ -433,6 +466,8 @@ impl Source {
 #[derive(Default)]
 struct Inventory {
     geometry_domain: Vec<serde_json::Value>,
+    geometry_inputs: Vec<serde_json::Value>,
+    triangle_chunks: Vec<serde_json::Value>,
     triangle_trace: Vec<serde_json::Value>,
     triangle_partition: Vec<serde_json::Value>,
     triangles: usize,
@@ -456,8 +491,11 @@ impl Inventory {
         index: usize,
         indices: &[u32],
         positions: &[Vec3],
+        uvs: &[[f32; 2]],
         colors: &[[u8; 4]],
-        texture: [[u8; 2]; 3],
+        rgba: &[u8],
+        texture_width: u32,
+        texture_height: u32,
         projection: Mat4,
         model: Mat4,
         backend: Backend,
@@ -467,6 +505,23 @@ impl Inventory {
         assert!(indices.len().is_multiple_of(3));
         assert!(positions.iter().all(|p| p.is_finite()));
         assert!(opacity.is_finite());
+        assert_eq!(positions.len(), uvs.len());
+        assert_eq!(positions.len(), colors.len());
+        let projection = projection * Mat4::look_at_rh(Vec3::ZERO, -Vec3::Z, Vec3::Y);
+        let actual_texture = source_texture(rgba, texture_width, texture_height);
+        let texture = match actual_texture.as_ref().map(|texture| &texture.source) {
+            Some(vector_range::draw::TextureSource::Rgba8(bytes)) => texture_bounds(bytes),
+            None => texture_bounds(&[]),
+            Some(vector_range::draw::TextureSource::Target { .. }) => {
+                unreachable!("source texture cannot be a target")
+            }
+        };
+        let triangle_hashes = source_triangle_hashes(indices, positions, uvs, colors);
+        self.geometry_inputs.push(json!({"kind":kind,"mesh":index,"vertices":positions.len(),
+            "triangles":triangle_hashes.len(),"triangle_stream_sha256":triangle_stream_sha256(&triangle_hashes).expect("canonical proof input stream"),
+            "visible":visible,"opacity_bits":opacity.to_bits(),"texture":texture_identity(actual_texture.as_ref()),
+            "texture_bounds":texture,"view_projection_bits":matrix_bits(projection),"model_bits":matrix_bits(model),
+            "upload_transform_bits":if backend == Backend::Dx12 {Some(matrix_bits(dx12_remap() * projection * model))} else {None}}));
         let count = indices.len() / 3;
         self.triangles += count;
         if !visible {
@@ -551,13 +606,23 @@ impl Inventory {
                 }
                 if possible_viewport {
                     traced.push(triangle_index);
-                    self.triangle_trace.push(json!({"kind":kind,"mesh":index,"triangle":triangle_index,"indices":triangle,"clip":vertices.map(|v|v.map(|b|[b.lo,b.hi])),"screen":screens.unwrap().iter().map(|v|v.map(|b|[b.lo,b.hi])).collect::<Vec<_>>(),"colors":colors,"texture_bounds":texture,"safe_contrast":contrast(colors,texture),"projection_bits":projection.to_cols_array().map(f32::to_bits),"model_bits":model.to_cols_array().map(f32::to_bits),"position_bits":triangle.map(|i|positions[i as usize].to_array().map(f32::to_bits))}));
+                    self.triangle_trace.push(json!({"kind":kind,"mesh":index,"triangle":triangle_index,"indices":triangle,"clip":vertices.map(|v|v.map(|b|[b.lo,b.hi])),"screen":screens.unwrap().iter().map(|v|v.map(|b|[b.lo,b.hi])).collect::<Vec<_>>(),"colors":colors,"texture_bounds":texture,"safe_contrast":contrast(colors,texture),"projection_bits":projection.to_cols_array().map(f32::to_bits),"model_bits":model.to_cols_array().map(f32::to_bits),"position_bits":triangle.map(|i|positions[i as usize].to_array().map(f32::to_bits)),"uv_bits":triangle.map(|i|uvs[i as usize].map(f32::to_bits))}));
                 }
                 self.samples
                     .as_mut()
                     .unwrap()
                     .triangle(vertices, contrast(colors, texture));
             }
+        }
+        let touched_chunks: std::collections::BTreeSet<_> = traced
+            .iter()
+            .map(|triangle| triangle / TRIANGLE_CHUNK_SIZE)
+            .collect();
+        for chunk in touched_chunks {
+            let start = chunk * TRIANGLE_CHUNK_SIZE;
+            let end = (start + TRIANGLE_CHUNK_SIZE).min(triangle_hashes.len());
+            self.triangle_chunks.push(json!({"kind":kind,"mesh":index,"chunk":chunk,
+                "triangle_sha256":&triangle_hashes[start..end]}));
         }
         let separated_count: usize = separated.values().map(|(ids, _)| ids.len()).sum();
         assert_eq!(traced.len() + separated_count, count);
@@ -746,6 +811,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let normals: Vec<_> = palette.iter().map(|m| m.inverse().transpose()).collect();
         let mut inventory = Inventory::new();
         let mut expected_draw_inventory = Vec::new();
+        let mut expected_ordered_draw_inputs = std::collections::BTreeMap::new();
         for (index, part) in source.skin.meshes.iter().enumerate() {
             let positions: Vec<_> = part
                 .vertices
@@ -808,14 +874,22 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 backend,
                 true,
                 1.,
+                &mut expected_ordered_draw_inputs,
             ));
             inventory.mesh(
                 "skin",
                 index,
                 &part.indices,
                 &positions,
+                &part
+                    .vertices
+                    .iter()
+                    .map(|vertex| vertex.uv)
+                    .collect::<Vec<_>>(),
                 &colors,
-                texture_bounds(&part.rgba),
+                &part.rgba,
+                part.texture_width,
+                part.texture_height,
                 projection,
                 Mat4::IDENTITY,
                 backend,
@@ -887,14 +961,22 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     backend,
                     visible,
                     alpha,
+                    &mut expected_ordered_draw_inputs,
                 ));
                 inventory.mesh(
                     "rigid",
                     index,
                     &part.indices,
                     &positions,
+                    &part
+                        .vertices
+                        .iter()
+                        .map(|vertex| vertex.uv)
+                        .collect::<Vec<_>>(),
                     &colors,
-                    texture_bounds(&part.rgba),
+                    &part.rgba,
+                    part.texture_width,
+                    part.texture_height,
                     projection,
                     snapshot.root * matrices[actor_index],
                     backend,
@@ -929,7 +1011,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             output,
             "{}",
             frame_json_with_native_records(
-                json!({"geometry_domain":inventory.geometry_domain,"triangle_trace":inventory.triangle_trace,"triangle_partition":inventory.triangle_partition,"original_native_observations":false,"frame":frame,"committed_tick":ticks,"time":sim.time,"route":model.presentation_route(),"visual_ads":model.visual_ads_amount(),"ammo":sim.player.ammo,"shots":sim.stats.shots,"companion_catalog_vra":source.path,"companion_crc32":source.checksums,"source_triangles":expected,"outside_bottom":inventory.outside_bottom,"hidden_source_triangles":hidden_triangles,"unclassified_triangles":unresolved,"classification":if unresolved==0 {"expected_empty_under_profile"}else{"potentially_visible_unresolved"},"maximum_bottom_upper":inventory.maximum_bottom_upper,"meshes":inventory.meshes,"expected_draw_inventory":expected_draw_inventory,"unsupported_clip_triangles":samples.unsupported,"possible_support_complete":samples.unsupported==0,"required_contrast_samples":required_count,"possible_samples":possible_count,"required_contrast_runs":runs(&required),"possible_support_runs":runs(&samples.possible),"acceptance_verdict":null}),
+                json!({"triangle_chunks":inventory.triangle_chunks,"geometry_inputs":inventory.geometry_inputs,"geometry_domain":inventory.geometry_domain,"triangle_trace":inventory.triangle_trace,"triangle_partition":inventory.triangle_partition,"original_native_observations":false,"frame":frame,"committed_tick":ticks,"time":sim.time,"route":model.presentation_route(),"visual_ads":model.visual_ads_amount(),"ammo":sim.player.ammo,"shots":sim.stats.shots,"companion_catalog_vra":source.path,"companion_crc32":source.checksums,"source_triangles":expected,"outside_bottom":inventory.outside_bottom,"hidden_source_triangles":hidden_triangles,"unclassified_triangles":unresolved,"classification":if unresolved==0 {"expected_empty_under_profile"}else{"potentially_visible_unresolved"},"maximum_bottom_upper":inventory.maximum_bottom_upper,"meshes":inventory.meshes,"expected_draw_inventory":expected_draw_inventory,"expected_ordered_draw_input_sha256":rust_duty_launcher::bytes_hash(&expected_ordered_draw_inputs.into_values().flatten().collect::<Vec<_>>()),"unsupported_clip_triangles":samples.unsupported,"possible_support_complete":samples.unsupported==0,"required_contrast_samples":required_count,"possible_samples":possible_count,"required_contrast_runs":runs(&required),"possible_support_runs":runs(&samples.possible),"acceptance_verdict":null}),
                 native_gameplay_telemetry(Some(&model), &sim),
                 native_time_telemetry(frame, &cfg)
             )
@@ -970,8 +1052,11 @@ mod tests {
             0,
             &[0, 1, 2],
             &positions,
+            &[[0.; 2]; 3],
             &colors,
-            [[255, 255]; 3],
+            &[],
+            0,
+            0,
             Mat4::IDENTITY,
             Mat4::IDENTITY,
             Backend::OpenGl,
@@ -983,8 +1068,11 @@ mod tests {
             1,
             &[0, 1, 2],
             &positions,
+            &[[0.; 2]; 3],
             &colors,
-            [[255, 255]; 3],
+            &[],
+            0,
+            0,
             Mat4::IDENTITY,
             Mat4::from_translation(Vec3::new(0., -3., 0.)),
             Backend::OpenGl,
@@ -996,8 +1084,11 @@ mod tests {
             2,
             &[0, 1, 2],
             &positions,
+            &[[0.; 2]; 3],
             &colors,
-            [[255, 255]; 3],
+            &[],
+            0,
+            0,
             Mat4::IDENTITY,
             Mat4::IDENTITY,
             Backend::OpenGl,
@@ -1005,6 +1096,9 @@ mod tests {
             1.,
         );
         assert_eq!(inventory.triangle_partition.len(), 3);
+        assert_eq!(inventory.geometry_inputs.len(), 3);
+        assert_eq!(inventory.geometry_inputs[2]["visible"], false);
+        assert_eq!(inventory.geometry_inputs[2]["triangles"], 1);
         assert_eq!(
             inventory.triangle_partition[0]["traced_runs"],
             json!([[0, 1]])
@@ -1023,6 +1117,203 @@ mod tests {
         assert_eq!(inventory.triangle_trace.len(), 1);
         assert_eq!(inventory.geometry_domain.len(), 2);
         assert_eq!(index_runs(&[0, 1, 3, 5, 6]), vec![[0, 2], [3, 1], [5, 2]]);
+    }
+    #[test]
+    fn compact_inputs_expand_only_the_traced_tail_chunk() {
+        let positions = [
+            Vec3::new(-0.2, -3.2, 0.),
+            Vec3::new(0.2, -3.2, 0.),
+            Vec3::new(0., -2.8, 0.),
+            Vec3::new(-0.2, -0.2, 0.),
+            Vec3::new(0.2, -0.2, 0.),
+            Vec3::new(0., 0.2, 0.),
+        ];
+        let mut indices = [0, 1, 2].repeat(TRIANGLE_CHUNK_SIZE);
+        indices.extend_from_slice(&[3, 4, 5]);
+        let uvs = [[0., 0.]; 6];
+        let colors = [[70, 80, 90, 255]; 6];
+        let mut ordered_inputs = std::collections::BTreeMap::new();
+        let expected = expected_mesh(
+            "rigid",
+            0,
+            &indices,
+            &positions,
+            &uvs,
+            &colors,
+            &[],
+            0,
+            0,
+            Mat4::IDENTITY,
+            Mat4::IDENTITY,
+            Backend::OpenGl,
+            true,
+            1.,
+            &mut ordered_inputs,
+        );
+        assert!(expected.get("triangle_sha256").is_none());
+        assert_eq!(expected["triangle_chunk_sha256"].as_array().unwrap().len(), 2);
+        assert!(expected.to_string().len() < 4096);
+        assert_eq!(ordered_inputs[&(1, 0)].len(), 257 * 128);
+        for visible in [true, false] {
+            let mut inventory = Inventory::new();
+            inventory.mesh(
+                "rigid",
+                0,
+                &indices,
+                &positions,
+                &uvs,
+                &colors,
+                &[],
+                0,
+                0,
+                Mat4::IDENTITY,
+                Mat4::IDENTITY,
+                Backend::OpenGl,
+                visible,
+                1.,
+            );
+            assert_eq!(
+                inventory.geometry_inputs[0]["triangle_stream_sha256"],
+                expected["triangle_stream_sha256"]
+            );
+            if visible {
+                assert_eq!(inventory.triangle_trace.len(), 1);
+                assert_eq!(inventory.triangle_trace[0]["triangle"], 256);
+                assert_eq!(inventory.triangle_chunks.len(), 1);
+                let chunk = &inventory.triangle_chunks[0];
+                assert_eq!(chunk["chunk"], 1);
+                assert_eq!(chunk["triangle_sha256"].as_array().unwrap().len(), 1);
+                let digest = chunk["triangle_sha256"][0].as_str().unwrap();
+                assert_eq!(
+                    rust_duty_launcher::bytes_hash(digest.as_bytes()),
+                    expected["triangle_chunk_sha256"][1]
+                );
+            } else {
+                assert!(inventory.triangle_trace.is_empty());
+                assert!(inventory.triangle_chunks.is_empty());
+            }
+        }
+    }
+    #[test]
+    fn actual_proof_inputs_bind_original_triangles_transforms_and_texture() {
+        let positions = [
+            Vec3::new(-0.2, -0.2, 0.),
+            Vec3::new(0.2, -0.2, 0.),
+            Vec3::new(0., 0.2, 0.),
+        ];
+        let uvs = [[0., 0.], [1., 0.], [0., 1.]];
+        let colors = [[70, 80, 90, 255]; 3];
+        let rgba = [100, 120, 130, 0];
+        let mut ordered_inputs = std::collections::BTreeMap::new();
+        let expected = expected_mesh(
+            "rigid",
+            0,
+            &[0, 1, 2],
+            &positions,
+            &uvs,
+            &colors,
+            &rgba,
+            1,
+            1,
+            Mat4::IDENTITY,
+            Mat4::IDENTITY,
+            Backend::OpenGl,
+            true,
+            1.,
+            &mut ordered_inputs,
+        );
+        let input = |positions: &[Vec3], uvs: &[[f32; 2]], colors: &[[u8; 4]], projection, model| {
+            let mut inventory = Inventory::new();
+            inventory.mesh(
+                "rigid",
+                0,
+                &[0, 1, 2],
+                positions,
+                uvs,
+                colors,
+                &rgba,
+                1,
+                1,
+                projection,
+                model,
+                Backend::OpenGl,
+                true,
+                1.,
+            );
+            inventory.geometry_inputs.remove(0)
+        };
+        let actual = input(&positions, &uvs, &colors, Mat4::IDENTITY, Mat4::IDENTITY);
+        for field in [
+            "triangles",
+            "triangle_stream_sha256",
+            "visible",
+            "opacity_bits",
+            "texture",
+            "view_projection_bits",
+            "model_bits",
+            "upload_transform_bits",
+        ] {
+            assert_eq!(actual[field], expected[field], "{field}");
+        }
+        assert_eq!(
+            actual["texture_bounds"],
+            json!([[100, 100], [120, 120], [130, 130]])
+        );
+        assert_eq!(
+            actual["texture"]["rgba8_sha256"],
+            rust_duty_launcher::bytes_hash(&[100, 120, 130, 255])
+        );
+        let stream = source_triangle_hashes(&[0, 1, 2], &positions, &uvs, &colors).concat();
+        assert_eq!(
+            actual["triangle_stream_sha256"],
+            rust_duty_launcher::bytes_hash(stream.as_bytes())
+        );
+        let shrunk = positions.map(|position| position * 0.1);
+        let mut changed_uv = uvs;
+        changed_uv[0][0] = 0.5;
+        let mut changed_color = colors;
+        changed_color[0][0] = 0;
+        for changed in [
+            input(&shrunk, &uvs, &colors, Mat4::IDENTITY, Mat4::IDENTITY),
+            input(
+                &positions,
+                &changed_uv,
+                &colors,
+                Mat4::IDENTITY,
+                Mat4::IDENTITY,
+            ),
+            input(
+                &positions,
+                &uvs,
+                &changed_color,
+                Mat4::IDENTITY,
+                Mat4::IDENTITY,
+            ),
+        ] {
+            assert_ne!(
+                changed["triangle_stream_sha256"],
+                actual["triangle_stream_sha256"]
+            );
+        }
+        let changed_projection = input(
+            &positions,
+            &uvs,
+            &colors,
+            Mat4::from_scale(Vec3::splat(0.5)),
+            Mat4::IDENTITY,
+        );
+        assert_ne!(
+            changed_projection["view_projection_bits"],
+            actual["view_projection_bits"]
+        );
+        let changed_model = input(
+            &positions,
+            &uvs,
+            &colors,
+            Mat4::IDENTITY,
+            Mat4::from_scale(Vec3::splat(0.5)),
+        );
+        assert_ne!(changed_model["model_bits"], actual["model_bits"]);
     }
     #[test]
     fn robust_samples_exclude_witness_and_unsafe_occluders() {
@@ -1216,8 +1507,11 @@ mod tests {
                 0,
                 &ids,
                 &points,
+                &[[0.; 2]; 3],
                 &[[255; 4]; 3],
-                [[255; 2]; 3],
+                &[],
+                0,
+                0,
                 projection,
                 Mat4::IDENTITY,
                 Backend::OpenGl,

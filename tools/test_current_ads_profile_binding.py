@@ -52,6 +52,9 @@ class CurrentProfileTests(unittest.TestCase):
         current.verify_shader_semantics(shader)
         current.verify_shader_semantics(shader + b'\n// unrelated renderer commentary\n')
         for before, after in ((b'transform.mvp * vec4<f32>(input.position,1.0)', b'vec4<f32>(0.,0.,0.,1.)'),
+                              (b'@location(0) position: vec3<f32>', b'@location(3) position: vec3<f32>'),
+                              (b'@location(0) uv: vec2<f32>', b'@location(2) uv: vec2<f32>'),
+                              (b'@group(1) @binding(0) var color_texture', b'@group(2) @binding(0) var color_texture'),
                               (b'return textureSample(color_texture,color_sampler,input.uv) * input.color;',
                                b'discard; return vec4<f32>(0.);')):
             with self.assertRaisesRegex(ValueError, 'operation graph'):

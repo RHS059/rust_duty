@@ -59,6 +59,107 @@ pub fn triangle_hashes(vertices: &[Vertex], indices: &[u16]) -> Result<Vec<Strin
         .collect())
 }
 
+fn require_sha256(value: &str) -> Result<(), String> {
+    if value.len() != 64
+        || !value
+            .bytes()
+            .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
+    {
+        return Err("visibility digest is not lowercase SHA256".into());
+    }
+    Ok(())
+}
+
+/// Compact ordered geometry identity: hash the concatenated fixed-width ASCII
+/// triangle digests, without separators, sorting or deduplication.
+pub fn triangle_stream_sha256(triangle_sha256: &[String]) -> Result<String, String> {
+    let mut bytes = Vec::with_capacity(triangle_sha256.len() * 64);
+    for digest in triangle_sha256 {
+        require_sha256(digest)?;
+        bytes.extend_from_slice(digest.as_bytes());
+    }
+    Ok(rust_duty_launcher::bytes_hash(&bytes))
+}
+
+/// Canonical draw-input state shared with the independent source oracle only as
+/// a serialization contract. Domain bytes end in NUL; matrices are column-major
+/// u32 LE bits, followed by upload presence and optional matrix, texture extent
+/// u32 LE, filter (nearest=0/linear=1), wraps (clamp=0/repeat=1), and 64 ASCII
+/// texture-content SHA256 bytes. Unsupported texture kinds fail closed.
+pub fn draw_input_state_sha256(
+    view_projection: Mat4,
+    model: Mat4,
+    upload_transform: Option<Mat4>,
+    texture: &Value,
+) -> Result<String, String> {
+    if !view_projection.is_finite()
+        || !model.is_finite()
+        || upload_transform.is_some_and(|matrix| !matrix.is_finite())
+    {
+        return Err("visibility draw-input state has a non-finite matrix".into());
+    }
+    if texture["kind"] != "rgba8" {
+        return Err("visibility draw-input state requires an RGBA8 source texture".into());
+    }
+    let mut bytes = b"rust-duty-draw-input-state/v1\0".to_vec();
+    for matrix in [view_projection, model] {
+        for bits in matrix_bits(matrix) {
+            bytes.extend_from_slice(&bits.to_le_bytes());
+        }
+    }
+    bytes.push(u8::from(upload_transform.is_some()));
+    if let Some(matrix) = upload_transform {
+        for bits in matrix_bits(matrix) {
+            bytes.extend_from_slice(&bits.to_le_bytes());
+        }
+    }
+    for axis in ["width", "height"] {
+        let extent = texture[axis]
+            .as_u64()
+            .and_then(|value| u32::try_from(value).ok())
+            .filter(|&value| value != 0)
+            .ok_or("visibility draw-input state has an invalid texture extent")?;
+        bytes.extend_from_slice(&extent.to_le_bytes());
+    }
+    bytes.push(match texture["sampler"]["filter"].as_str() {
+        Some("nearest") => 0,
+        Some("linear") => 1,
+        _ => return Err("visibility draw-input state has an unsupported filter".into()),
+    });
+    for axis in ["wrap_x", "wrap_y"] {
+        bytes.push(match texture["sampler"][axis].as_str() {
+            Some("clamp") => 0,
+            Some("repeat") => 1,
+            _ => return Err("visibility draw-input state has an unsupported wrap".into()),
+        });
+    }
+    let digest = texture["rgba8_sha256"]
+        .as_str()
+        .ok_or("visibility draw-input state has no texture-content digest")?;
+    require_sha256(digest)?;
+    bytes.extend_from_slice(digest.as_bytes());
+    Ok(rust_duty_launcher::bytes_hash(&bytes))
+}
+
+/// Append fixed 128-byte records (state SHA256 ASCII, triangle SHA256 ASCII).
+/// Hashing this frame-wide buffer binds complete ordered inputs independently
+/// of physical draw splits. Witness triangles must not enter this accumulator.
+pub fn append_ordered_draw_inputs(
+    bytes: &mut Vec<u8>,
+    state_sha256: &str,
+    triangle_sha256: &[String],
+) -> Result<(), String> {
+    require_sha256(state_sha256)?;
+    for digest in triangle_sha256 {
+        require_sha256(digest)?;
+    }
+    for digest in triangle_sha256 {
+        bytes.extend_from_slice(state_sha256.as_bytes());
+        bytes.extend_from_slice(digest.as_bytes());
+    }
+    Ok(())
+}
+
 /// Content identity, not process-local resource identity. This helper is shared
 /// with the source oracle only as a byte serialization contract.
 pub fn texture_identity(texture: Option<&Texture>) -> Value {
@@ -145,6 +246,7 @@ pub(crate) struct FrameReceipt {
     backend: String,
     events: Vec<Value>,
     draws: Vec<Value>,
+    ordered_draw_inputs: Vec<u8>,
     textures: HashMap<Option<super::ResourceId>, Value>,
     witness_hashes: Vec<String>,
     witness_count: usize,
@@ -166,6 +268,7 @@ impl FrameReceipt {
                     backend: backend.into(),
                     events: Vec::new(),
                     draws: Vec::new(),
+                    ordered_draw_inputs: Vec::new(),
                     textures: HashMap::new(),
                     witness_hashes: triangle_hashes(&witness.vertices, &witness.indices)
                         .expect("valid witness"),
@@ -251,16 +354,24 @@ impl FrameReceipt {
             "fragment":if associated {"associated"} else if blend==BlendMode::Opaque {"associate-straight"} else {"straight"},
             "target_format":"rgba8unorm","observed_gl":observed_gl_state,
         });
-        let draw = json!({"triangle_count":triangle_sha256.len(),"triangle_sha256":triangle_sha256,
+        let mut draw = json!({"triangle_count":triangle_sha256.len(),
             "view_projection_bits":matrix_bits(view_projection),"model_bits":matrix_bits(model),
             "upload_transform_bits":upload_transform.map(matrix_bits),"texture":texture,"state":state});
         if is_witness {
+            draw["triangle_sha256"] = json!(triangle_sha256);
             self.witness_count += 1;
             self.events.push(json!({"kind":"witness","draw":draw}));
         } else {
             if self.witness_count != 0 {
                 return Err("scene draw follows frame witness before Capture".into());
             }
+            let state_sha256 =
+                draw_input_state_sha256(view_projection, model, upload_transform, &texture)?;
+            append_ordered_draw_inputs(
+                &mut self.ordered_draw_inputs,
+                &state_sha256,
+                &triangle_sha256,
+            )?;
             self.events
                 .push(json!({"kind":"draw","draw_index":self.draws.len()}));
             self.draws.push(draw);
@@ -304,6 +415,7 @@ impl FrameReceipt {
             "target":{"resource_id":target.id.0,"width":target.width,"height":target.height,"depth":matches!(target.source,TextureSource::Target {depth:true})},
             "witness_exclusion":[0,0,super::frame_witness::WIDTH,super::frame_witness::HEIGHT],
             "witness_count":self.witness_count,"triangle_count":self.draws.iter().map(|d|d["triangle_count"].as_u64().unwrap_or(0)).sum::<u64>(),
+            "ordered_draw_input_sha256":rust_duty_launcher::bytes_hash(&self.ordered_draw_inputs),
             "draws":self.draws,"events":self.events,"submission_complete":true,"capture_complete":true,
         });
         let path = sidecar(&self.request.path);
@@ -761,6 +873,7 @@ mod tests {
             backend: "Dx12".into(),
             events: Vec::new(),
             draws: Vec::new(),
+            ordered_draw_inputs: Vec::new(),
             textures: HashMap::new(),
             witness_hashes: triangle_hashes(&witness.vertices, &witness.indices).unwrap(),
             witness_count: 0,
@@ -878,6 +991,130 @@ mod tests {
         );
         assert!(triangle_hashes(&original, &[0, 1]).is_err());
         assert!(triangle_hashes(&original, &[0, 1, 3]).is_err());
+    }
+    #[test]
+    fn compact_input_state_has_fixed_bytes_and_binds_every_input() {
+        let texture = texture_identity(None);
+        let original = draw_input_state_sha256(
+            Mat4::IDENTITY,
+            Mat4::IDENTITY,
+            Some(Mat4::IDENTITY),
+            &texture,
+        )
+        .unwrap();
+        assert_eq!(
+            original,
+            "07821c444dd5613337ff95c79afa993f95ab10a7c6df9fdcdc78f61e4c9361b2"
+        );
+        let changed = Mat4::from_scale(Vec3::splat(0.5));
+        for (projection, model, upload) in [
+            (changed, Mat4::IDENTITY, Some(Mat4::IDENTITY)),
+            (Mat4::IDENTITY, changed, Some(Mat4::IDENTITY)),
+            (Mat4::IDENTITY, Mat4::IDENTITY, Some(changed)),
+            (Mat4::IDENTITY, Mat4::IDENTITY, None),
+        ] {
+            assert_ne!(
+                draw_input_state_sha256(projection, model, upload, &texture).unwrap(),
+                original
+            );
+        }
+        for (pointer, value) in [
+            ("/width", json!(2)),
+            ("/height", json!(2)),
+            ("/sampler/filter", json!("nearest")),
+            ("/sampler/wrap_x", json!("repeat")),
+            ("/sampler/wrap_y", json!("repeat")),
+            ("/rgba8_sha256", json!("00".repeat(32))),
+        ] {
+            let mut changed = texture.clone();
+            *changed.pointer_mut(pointer).unwrap() = value;
+            assert_ne!(
+                draw_input_state_sha256(
+                    Mat4::IDENTITY,
+                    Mat4::IDENTITY,
+                    Some(Mat4::IDENTITY),
+                    &changed,
+                )
+                .unwrap(),
+                original
+            );
+        }
+        for (pointer, value) in [
+            ("/kind", json!("render-target")),
+            ("/width", json!(0)),
+            ("/height", json!(u64::MAX)),
+            ("/sampler/filter", json!("unknown")),
+            ("/sampler/wrap_x", json!("unknown")),
+            ("/rgba8_sha256", json!("AA".repeat(32))),
+        ] {
+            let mut invalid = texture.clone();
+            *invalid.pointer_mut(pointer).unwrap() = value;
+            assert!(draw_input_state_sha256(
+                Mat4::IDENTITY,
+                Mat4::IDENTITY,
+                Some(Mat4::IDENTITY),
+                &invalid,
+            )
+            .is_err());
+        }
+    }
+    #[test]
+    fn compact_stream_preserves_order_multiplicity_and_state_across_splits() {
+        let hashes = vec!["11".repeat(32), "22".repeat(32), "11".repeat(32)];
+        let state = "33".repeat(32);
+        let mut whole = Vec::new();
+        append_ordered_draw_inputs(&mut whole, &state, &hashes).unwrap();
+        let mut split = Vec::new();
+        append_ordered_draw_inputs(&mut split, &state, &hashes[..1]).unwrap();
+        append_ordered_draw_inputs(&mut split, &state, &hashes[1..]).unwrap();
+        assert_eq!(whole, split);
+        assert_eq!(whole.len(), 3 * 128);
+        assert_eq!(
+            triangle_stream_sha256(&hashes).unwrap(),
+            rust_duty_launcher::bytes_hash(hashes.concat().as_bytes())
+        );
+        let expected = rust_duty_launcher::bytes_hash(&whole);
+        for changed in [
+            hashes[..2].to_vec(),
+            vec![hashes[1].clone(), hashes[0].clone(), hashes[2].clone()],
+            vec![hashes[0].clone(), hashes[1].clone(), "44".repeat(32)],
+        ] {
+            let mut bytes = Vec::new();
+            append_ordered_draw_inputs(&mut bytes, &state, &changed).unwrap();
+            assert_ne!(rust_duty_launcher::bytes_hash(&bytes), expected);
+            assert_ne!(
+                triangle_stream_sha256(&changed).unwrap(),
+                triangle_stream_sha256(&hashes).unwrap()
+            );
+        }
+        let mut changed_state = Vec::new();
+        append_ordered_draw_inputs(&mut changed_state, &"55".repeat(32), &hashes).unwrap();
+        assert_ne!(rust_duty_launcher::bytes_hash(&changed_state), expected);
+        assert!(append_ordered_draw_inputs(&mut whole, &state, &["invalid".into()]).is_err());
+        assert!(triangle_stream_sha256(&["invalid".into()]).is_err());
+        assert_eq!(whole, split);
+    }
+    #[test]
+    fn compact_scene_receipts_exclude_exact_witness_from_ordered_input_digest() {
+        let mut current = receipt(7);
+        scene(&mut current);
+        let before_witness = current.ordered_draw_inputs.clone();
+        assert_eq!(before_witness.len(), 128);
+        assert!(current.draws[0].get("triangle_sha256").is_none());
+        assert!(current.draws[0].get("triangle_stream_sha256").is_none());
+        assert_eq!(current.draws[0]["triangle_count"], 1);
+        witness(
+            &mut current,
+            7,
+            super::super::Camera::screen(960, 540).view_projection,
+        );
+        assert_eq!(current.ordered_draw_inputs, before_witness);
+        let witness = &current.events.last().unwrap()["draw"];
+        assert_eq!(
+            witness["triangle_sha256"].as_array().unwrap().len(),
+            current.witness_hashes.len()
+        );
+        assert!(witness.get("triangle_stream_sha256").is_none());
     }
     #[test]
     fn actual_upload_ranges_bind_geometry_and_matrix_mutations() {

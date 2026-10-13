@@ -42,7 +42,9 @@ FALSE_FLAGS = ('profile_native_verified', 'native_geometry_profile_verified',
                'trace_execution_binding_verified', 'source_packet_inventory_binding_verified',
                'acceptance_complete')
 TRACE_EXTRAS = {'geometry_domain', 'triangle_trace', 'triangle_partition',
-                'original_native_observations'}
+                'geometry_inputs', 'triangle_chunks', 'original_native_observations'}
+REQUIRED_TRACE_EXTRAS = TRACE_EXTRAS - {'geometry_inputs', 'triangle_chunks'}
+TRIANGLE_CHUNK_SIZE = 256
 HEADER_EXTRAS = {'source_certificate_schema', 'requested_frames', 'original_native_observations'}
 SOURCE_FIELDS = {'frame', 'committed_tick', 'time', 'route', 'visual_ads', 'ammo', 'shots',
                  'companion_catalog_vra', 'companion_crc32', 'source_triangles', 'outside_bottom',
@@ -275,7 +277,98 @@ def safe_contrast(colors, texture):
     return False
 
 
+def is_sha256(value):
+    return type(value) is str and re.fullmatch('[0-9a-f]{64}', value) is not None
+
+
+def triangle_chunk_memberships(row, expected):
+    """Expand only trace-touched source chunks, bound to the complete inventory."""
+    if not expected:
+        return {}
+    require(type(row.get('triangle_chunks')) is list, 'missing actual source triangle chunks')
+    result = {}
+    for chunk in row['triangle_chunks']:
+        key = mesh_key(chunk, 'source triangle chunk')
+        require(set(chunk) == {'kind', 'mesh', 'chunk', 'triangle_sha256'}
+                and key in expected, 'source triangle chunk field or mesh inventory differs')
+        original = expected[key]
+        index = integer(chunk['chunk'], 'source triangle chunk index')
+        require(index < len(original['triangle_chunk_sha256']) and (*key, index) not in result,
+                'duplicate or out-of-range source triangle chunk')
+        hashes = chunk['triangle_sha256']
+        length = min(TRIANGLE_CHUNK_SIZE, original['triangles'] - index * TRIANGLE_CHUNK_SIZE)
+        require(type(hashes) is list and len(hashes) == length and all(is_sha256(value) for value in hashes),
+                'source triangle chunk full/tail length or canonical digest differs')
+        equal(hashlib.sha256(''.join(hashes).encode('ascii')).hexdigest(),
+              original['triangle_chunk_sha256'][index], 'independent expected source triangle chunk')
+        result[(*key, index)] = hashes
+    return result
+
+
+def geometry_input_identity(row, meshes, domains):
+    """Bind the proof owner's actual inputs to independent native expectations.
+
+    Legacy/synthetic conditional-only rows can omit both inventories. A current
+    native-inventory claim must bind every mesh, including hidden/separated ones.
+    """
+    if 'expected_draw_inventory' not in row:
+        require('geometry_inputs' not in row and 'triangle_chunks' not in row,
+                'geometry inputs lack independent expected inventory')
+        return {}, {}
+    expected = keyed_meshes(row['expected_draw_inventory'], 'expected geometry inputs')
+    actual = keyed_meshes(row.get('geometry_inputs'), 'actual geometry inputs')
+    require(set(expected) == set(actual) == set(meshes), 'complete actual geometry input mesh inventory differs')
+    fields = ('triangles', 'visible', 'opacity_bits', 'view_projection_bits', 'model_bits',
+              'upload_transform_bits', 'texture')
+    for key, original in expected.items():
+        supplied = actual[key]
+        require(set(supplied) == {'kind', 'mesh', 'vertices', 'triangle_stream_sha256',
+                'texture_bounds', *fields}, 'actual geometry input field inventory differs')
+        count = integer(original.get('triangles'), 'expected input triangle count')
+        hashes = original.get('triangle_chunk_sha256')
+        require(type(hashes) is list and len(hashes) == (count + TRIANGLE_CHUNK_SIZE - 1) // TRIANGLE_CHUNK_SIZE
+                and all(is_sha256(value) for value in hashes)
+                and is_sha256(original.get('triangle_stream_sha256'))
+                and 'triangle_sha256' not in original,
+                'independent expected canonical triangle chunk inventory is incomplete')
+        equal(supplied['triangle_stream_sha256'], original['triangle_stream_sha256'],
+              'actual geometry input canonical triangle stream')
+        equal({name: supplied.get(name) for name in fields},
+              {name: original.get(name) for name in fields}, 'actual geometry input state')
+        require(count == meshes[key]['triangles'] and type(original.get('visible')) is bool
+                and original['visible'] == (meshes[key]['state'] == 'enumerated'),
+                'actual geometry input visibility or triangle count differs')
+        integer(supplied['vertices'], 'actual geometry input vertices', 1)
+        for field in ('view_projection_bits', 'model_bits'):
+            f32_bits(supplied[field], 16, 'actual geometry input ' + field)
+        f32_bits([supplied['opacity_bits']], 1, 'actual geometry input opacity')
+        if supplied['upload_transform_bits'] is not None:
+            f32_bits(supplied['upload_transform_bits'], 16, 'actual geometry input upload')
+        bounds = supplied['texture_bounds']
+        require(type(bounds) is list and len(bounds) == 3
+                and all(type(pair) is list and len(pair) == 2
+                        and all(type(value) is int and 0 <= value <= 255 for value in pair)
+                        and pair[0] <= pair[1] for pair in bounds), 'actual texture bounds are invalid')
+        if key in domains:
+            equal(domains[key]['domain']['positions'], supplied['vertices'], 'actual geometry domain input vertex count')
+    return expected, actual
+
+
+def canonical_trace_triangle(triangle):
+    """The exact 72-byte native receipt triangle format, preserving signed zero."""
+    require(type(triangle.get('uv_bits')) is list and len(triangle['uv_bits']) == 3,
+            'actual trace triangle UV bits missing')
+    raw = bytearray()
+    for position, uv, color in zip(triangle['position_bits'], triangle['uv_bits'], triangle['colors']):
+        f32_bits(uv, 2, 'actual trace triangle UV bits')
+        raw.extend(struct.pack('<5I4B', *position, *uv, *color))
+    return hashlib.sha256(raw).hexdigest()
+
+
 def triangles_and_partition(row, meshes, domains):
+    expected_inputs, actual_inputs = geometry_input_identity(row, meshes, domains)
+    chunks = triangle_chunk_memberships(row, expected_inputs)
+    touched_chunks = set()
     require(type(row['triangle_trace']) is list, 'missing triangle trace')
     triangles, per_mesh, states, vertices = {}, {}, {}, {}
     for original in row['triangle_trace']:
@@ -304,6 +397,16 @@ def triangles_and_partition(row, meshes, domains):
                             and all(type(c) is int and 0 <= c <= 255 for c in v) for v in value),
                     f'{name}: invalid source color/texture inventory')
         require(all(lo <= hi for lo, hi in triangle['texture_bounds']), 'reversed source texture bound')
+        if expected_inputs:
+            original, supplied = expected_inputs[key], actual_inputs[key]
+            chunk_key = (*key, tid // TRIANGLE_CHUNK_SIZE)
+            require(chunk_key in chunks, 'actual trace triangle lacks source chunk membership')
+            touched_chunks.add(chunk_key)
+            equal(canonical_trace_triangle(triangle), chunks[chunk_key][tid % TRIANGLE_CHUNK_SIZE],
+                  'actual trace canonical source triangle')
+            equal(triangle['projection_bits'], supplied['view_projection_bits'], 'actual trace proof projection')
+            equal(triangle['model_bits'], supplied['model_bits'], 'actual trace proof model')
+            equal(triangle['texture_bounds'], supplied['texture_bounds'], 'actual trace proof texture bounds')
         require(type(triangle.get('safe_contrast')) is bool
                 and triangle['safe_contrast'] == safe_contrast(triangle['colors'], triangle['texture_bounds']),
                 'source contrast flag differs from recomputed color/texture separation')
@@ -318,6 +421,7 @@ def triangles_and_partition(row, meshes, domains):
             vertices[(*key, vertex)] = value
         triangles[(*key, tid)] = triangle
         per_mesh.setdefault(key, set()).add(tid)
+    require(set(chunks) == touched_chunks, 'source triangle chunk set differs from traced inputs')
     partition = keyed_meshes(row['triangle_partition'], 'triangle partition')
     require(set(partition) == set(meshes), 'complete triangle partition mesh inventory differs')
     separated_count = hidden_count = 0
@@ -355,7 +459,8 @@ def triangles_and_partition(row, meshes, domains):
     return list(triangles.values()), {'source_triangles': row['source_triangles'],
         'traced_triangles': len(triangles), 'strictly_separated_triangles': separated_count,
         'source_hidden_triangles': hidden_count, 'complete_mesh_count': len(meshes),
-        'geometry_domain_mesh_count': len(domains), 'complete_triangle_partition': True}
+        'geometry_domain_mesh_count': len(domains), 'complete_triangle_partition': True,
+        'source_geometry_inputs_bound': bool(expected_inputs)}
 
 
 def bounded_geometry(row, triangles, inventory):
@@ -436,7 +541,7 @@ def validate_gl_proof(expected_rows, trace_rows, *, frames=None, expected_header
     rows, geometry_frames, fragment_frames = [], [], []
     for frame in frames:
         row, original = trace[frame], expected[frame]
-        require(SOURCE_FIELDS <= set(original) and TRACE_EXTRAS <= set(row),
+        require(SOURCE_FIELDS <= set(original) and REQUIRED_TRACE_EXTRAS <= set(row),
                 f'frame {frame}: missing full current source state or geometry trace')
         source_keys = set(original)
         if 'expected_draw_inventory' not in row:

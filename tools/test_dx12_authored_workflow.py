@@ -25,6 +25,21 @@ class AuthoredWorkflowTests(unittest.TestCase):
         return [step for step in self.steps(job)
                 if step.get('uses') == 'actions/upload-artifact@v4']
 
+    def test_current_proof_dependencies_are_installed_in_shared_ci(self):
+        root = self.path.parents[2]
+        requirements = (root / 'tools/requirements-assets.txt').read_text(encoding='utf-8')
+        self.assertIn('numpy==2.2.6', requirements.splitlines())
+        for job in ('authored-inputs', 'authored-capture', 'authored-aggregate'):
+            installs = [step.get('run', '') for step in self.steps(job)]
+            self.assertTrue(any('pip install -r tools/requirements-assets.txt' in command
+                                for command in installs), job)
+        for name in ('build.yml', 'native-validation.yml'):
+            workflow = yaml.safe_load((self.path.parent / name).read_text(encoding='utf-8'))
+            installs = [step.get('run', '') for job in workflow['jobs'].values()
+                        for step in job.get('steps', [])]
+            self.assertTrue(any('pip install -r tools/requirements-assets.txt' in command
+                                for command in installs), name)
+
     def test_closed_nine_scenario_matrix_and_measured_budgets(self):
         strategy = self.jobs['authored-capture']['strategy']
         self.assertIs(strategy['fail-fast'], False)
@@ -255,6 +270,16 @@ class AuthoredWorkflowTests(unittest.TestCase):
         for historical in ('--reviewed-class', '--expected-class-sha256', 'finite_ads_gpu_cpu_class.json',
                            '--conditional-diagnostic'):
             self.assertNotIn(historical, producer['run'])
+
+    def test_current_native_input_and_pipeline_mutation_controls_execute(self):
+        steps = self.steps('authored-inputs')
+        tests = next(s for s in steps if '--lib visibility' in s.get('run', ''))
+        self.assertEqual(tests['if'], "env.CURRENT_ADS_SOURCE_PROOF == 'true'")
+        self.assertEqual(tests['run'].split(), ['cargo', 'test', '--locked', '--release',
+            '--no-default-features', '--features', 'legacy-macroquad,wgpu-runtime', '--lib', 'visibility'])
+        prepare = next(s for s in steps if s.get('id') == 'prepare-current-profile')
+        self.assertLess(steps.index(tests), steps.index(prepare))
+        self.assertNotIn('continue-on-error', tests)
 
     def test_current_profile_diagnostics_are_preserved_without_changing_native_artifacts(self):
         diagnostics = next(s for s in self.uploads('authored-inputs')

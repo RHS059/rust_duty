@@ -16,7 +16,10 @@ use vector_range::{
     animation_manifest::AnimationManifest,
     asset::WeaponAsset,
     draw::facade::{Color, FilterMode, Mat4, Sampler, Texture, Vec2, Vec3, Vec4, Vertex, WrapMode},
-    draw::visibility_receipt::{matrix_bits, texture_identity, triangle_sha256},
+    draw::visibility_receipt::{
+        append_ordered_draw_inputs, draw_input_state_sha256, matrix_bits, texture_identity,
+        triangle_sha256, triangle_stream_sha256,
+    },
     scene_lighting::SceneLighting,
     settings::Settings,
     sim::{Simulation, FIXED_DT},
@@ -24,6 +27,7 @@ use vector_range::{
     viewmodel_animation::{game_model_root, AnimationSet},
     weapon_sway,
 };
+const TRIANGLE_CHUNK_SIZE: usize = 256;
 const U: f64 = 1.0 / 8_388_608.0;
 fn gamma(n: f64, u: f64) -> f64 {
     n * u / (1.0 - n * u)
@@ -315,31 +319,8 @@ impl Samples {
             .collect()
     }
 }
-/// Independent pre-submission inventory. This enumerates original asset indices,
-/// including hidden meshes; it never learns expected geometry from draw commands.
-#[allow(clippy::too_many_arguments)]
-fn expected_mesh(
-    kind: &str,
-    mesh: usize,
-    indices: &[u32],
-    positions: &[Vec3],
-    uvs: &[[f32; 2]],
-    colors: &[[u8; 4]],
-    rgba: &[u8],
-    texture_width: u32,
-    texture_height: u32,
-    projection: Mat4,
-    model: Mat4,
-    backend: Backend,
-    visible: bool,
-    opacity: f32,
-) -> serde_json::Value {
-    assert_eq!(positions.len(), uvs.len());
-    assert_eq!(positions.len(), colors.len());
-    assert!(positions.iter().all(|position| position.is_finite()));
-    assert!(projection.is_finite() && model.is_finite() && opacity.is_finite());
-    assert!(indices.len().is_multiple_of(3));
-    let texture = if rgba.is_empty() {
+fn source_texture(rgba: &[u8], texture_width: u32, texture_height: u32) -> Option<Texture> {
+    if rgba.is_empty() {
         None
     } else {
         let mut pixels = rgba.to_vec();
@@ -359,8 +340,16 @@ fn expected_mesh(
             )
             .expect("validated source texture"),
         )
-    };
-    let triangles: Vec<_> = indices
+    }
+}
+/// This is the same canonical byte serialization used by issued draw receipts.
+fn source_triangle_hashes(
+    indices: &[u32],
+    positions: &[Vec3],
+    uvs: &[[f32; 2]],
+    colors: &[[u8; 4]],
+) -> Vec<String> {
+    indices
         .as_chunks::<3>()
         .0
         .iter()
@@ -376,17 +365,61 @@ fn expected_mesh(
             });
             triangle_sha256(&vertices)
         })
-        .collect();
+        .collect()
+}
+/// Independent pre-submission inventory. This enumerates original asset indices,
+/// including hidden meshes; it never learns expected geometry from draw commands.
+#[allow(clippy::too_many_arguments)]
+fn expected_mesh(
+    kind: &str,
+    mesh: usize,
+    indices: &[u32],
+    positions: &[Vec3],
+    uvs: &[[f32; 2]],
+    colors: &[[u8; 4]],
+    rgba: &[u8],
+    texture_width: u32,
+    texture_height: u32,
+    projection: Mat4,
+    model: Mat4,
+    backend: Backend,
+    visible: bool,
+    opacity: f32,
+    ordered_inputs: &mut std::collections::BTreeMap<(u8, usize), Vec<u8>>,
+) -> serde_json::Value {
+    assert_eq!(positions.len(), uvs.len());
+    assert_eq!(positions.len(), colors.len());
+    assert!(positions.iter().all(|position| position.is_finite()));
+    assert!(projection.is_finite() && model.is_finite() && opacity.is_finite());
+    assert!(indices.len().is_multiple_of(3));
+    let texture = source_texture(rgba, texture_width, texture_height);
+    let triangles = source_triangle_hashes(indices, positions, uvs, colors);
     // The production facade records the actual view multiplication, including
     // signed-zero bits, even for the identity reference camera.
     let view_projection = projection * Mat4::look_at_rh(Vec3::ZERO, -Vec3::Z, Vec3::Y);
+    let texture = texture_identity(texture.as_ref());
+    let upload_transform =
+        (backend == Backend::Dx12).then(|| dx12_remap() * view_projection * model);
+    if visible {
+        let state = draw_input_state_sha256(view_projection, model, upload_transform, &texture)
+            .expect("finite original source draw state");
+        let mut inputs = Vec::new();
+        append_ordered_draw_inputs(&mut inputs, &state, &triangles)
+            .expect("original canonical source triangles");
+        assert!(ordered_inputs
+            .insert((u8::from(kind != "skin"), mesh), inputs)
+            .is_none());
+    }
+    let chunks: Vec<_> = triangles
+        .chunks(TRIANGLE_CHUNK_SIZE)
+        .map(|chunk| triangle_stream_sha256(chunk).expect("canonical source chunk"))
+        .collect();
     json!({"kind":kind,"mesh":mesh,"triangles":triangles.len(),
            "visible":visible,"opacity_bits":opacity.to_bits(),
-           "triangle_sha256":triangles,"texture":texture_identity(texture.as_ref()),
+           "triangle_stream_sha256":triangle_stream_sha256(&triangles).expect("canonical source stream"),
+           "triangle_chunk_sha256":chunks,"texture":texture,
            "view_projection_bits":matrix_bits(view_projection),"model_bits":matrix_bits(model),
-           "upload_transform_bits":if backend==Backend::Dx12 {
-               Some(matrix_bits(dx12_remap() * view_projection * model))
-           } else { None }})
+           "upload_transform_bits":upload_transform.map(matrix_bits)})
 }
 struct Source {
     path: PathBuf,
@@ -447,6 +480,7 @@ impl Inventory {
         assert!(indices.len().is_multiple_of(3));
         assert!(positions.iter().all(|p| p.is_finite()));
         assert!(opacity.is_finite());
+        let projection = projection * Mat4::look_at_rh(Vec3::ZERO, -Vec3::Z, Vec3::Y);
         let count = indices.len() / 3;
         self.triangles += count;
         if !visible {
@@ -671,6 +705,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let normals: Vec<_> = palette.iter().map(|m| m.inverse().transpose()).collect();
         let mut inventory = Inventory::new();
         let mut expected_draw_inventory = Vec::new();
+        let mut expected_ordered_draw_inputs = std::collections::BTreeMap::new();
         for (index, part) in source.skin.meshes.iter().enumerate() {
             let positions: Vec<_> = part
                 .vertices
@@ -733,6 +768,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 backend,
                 true,
                 1.,
+                &mut expected_ordered_draw_inputs,
             ));
             inventory.mesh(
                 "skin",
@@ -812,6 +848,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     backend,
                     visible,
                     alpha,
+                    &mut expected_ordered_draw_inputs,
                 ));
                 inventory.mesh(
                     "rigid",
@@ -854,7 +891,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             output,
             "{}",
             frame_json_with_native_records(
-                json!({"frame":frame,"committed_tick":ticks,"time":sim.time,"route":model.presentation_route(),"visual_ads":model.visual_ads_amount(),"ammo":sim.player.ammo,"shots":sim.stats.shots,"companion_catalog_vra":source.path,"companion_crc32":source.checksums,"source_triangles":expected,"outside_bottom":inventory.outside_bottom,"hidden_source_triangles":hidden_triangles,"unclassified_triangles":unresolved,"classification":if unresolved==0 {"expected_empty_under_profile"}else{"potentially_visible_unresolved"},"maximum_bottom_upper":inventory.maximum_bottom_upper,"meshes":inventory.meshes,"expected_draw_inventory":expected_draw_inventory,"unsupported_clip_triangles":samples.unsupported,"possible_support_complete":samples.unsupported==0,"required_contrast_samples":required_count,"possible_samples":possible_count,"required_contrast_runs":runs(&required),"possible_support_runs":runs(&samples.possible),"acceptance_verdict":null}),
+                json!({"frame":frame,"committed_tick":ticks,"time":sim.time,"route":model.presentation_route(),"visual_ads":model.visual_ads_amount(),"ammo":sim.player.ammo,"shots":sim.stats.shots,"companion_catalog_vra":source.path,"companion_crc32":source.checksums,"source_triangles":expected,"outside_bottom":inventory.outside_bottom,"hidden_source_triangles":hidden_triangles,"unclassified_triangles":unresolved,"classification":if unresolved==0 {"expected_empty_under_profile"}else{"potentially_visible_unresolved"},"maximum_bottom_upper":inventory.maximum_bottom_upper,"meshes":inventory.meshes,"expected_draw_inventory":expected_draw_inventory,"expected_ordered_draw_input_sha256":rust_duty_launcher::bytes_hash(&expected_ordered_draw_inputs.into_values().flatten().collect::<Vec<_>>()),"unsupported_clip_triangles":samples.unsupported,"possible_support_complete":samples.unsupported==0,"required_contrast_samples":required_count,"possible_samples":possible_count,"required_contrast_runs":runs(&required),"possible_support_runs":runs(&samples.possible),"acceptance_verdict":null}),
                 native_gameplay_telemetry(Some(&model), &sim),
                 native_time_telemetry(frame, &cfg)
             )

@@ -90,6 +90,67 @@ def synthetic_trace(frame=17, *, empty=False):
     return row
 
 
+def with_native_input_identity(row):
+    """Synthetic independent canonical source inputs for the identity boundary."""
+    identity = [bits(1.0 if i % 5 == 0 else 0.0) for i in range(16)]
+    uv_bits = [[bits(0), bits(0)], [bits(1), bits(0)], [bits(0), bits(1)]]
+    triangle = {'position_bits': [[bits(x), bits(y), bits(0)]
+                    for x, y in [(-0.1, -0.1), (0.1, -0.1), (0, 0.1)]],
+                'uv_bits': uv_bits, 'colors': [[70, 70, 70, 255]] * 3}
+    digest = proof.canonical_trace_triangle(triangle)
+    texture = {'kind': 'rgba8', 'width': 1, 'height': 1,
+               'rgba8_sha256': hashlib.sha256(bytes([255] * 4)).hexdigest(),
+               'sampler': {'filter': 'linear', 'wrap_x': 'clamp', 'wrap_y': 'clamp'}}
+    row['expected_draw_inventory'], row['geometry_inputs'], row['triangle_chunks'] = [], [], []
+    for mesh in row['meshes']:
+        model = identity[:]
+        if mesh['state'] == 'enumerated' and mesh.get('unclassified') == 0:
+            model[13] = bits(-3)
+        expected = {'kind': mesh['kind'], 'mesh': mesh['mesh'], 'triangles': 1,
+                    'visible': mesh['state'] == 'enumerated', 'opacity_bits': bits(mesh['opacity']),
+                    'triangle_stream_sha256': hashlib.sha256(digest.encode('ascii')).hexdigest(),
+                    'triangle_chunk_sha256': [hashlib.sha256(digest.encode('ascii')).hexdigest()],
+                    'texture': deepcopy(texture),
+                    'view_projection_bits': identity[:], 'model_bits': model,
+                    'upload_transform_bits': None}
+        row['expected_draw_inventory'].append(expected)
+        actual = {key: deepcopy(value) for key, value in expected.items() if key != 'triangle_chunk_sha256'}
+        actual.update(vertices=3, triangle_stream_sha256=hashlib.sha256(digest.encode('ascii')).hexdigest(),
+                      texture_bounds=[[255, 255]] * 3)
+        row['geometry_inputs'].append(actual)
+    for trace in row['triangle_trace']:
+        trace['uv_bits'] = deepcopy(uv_bits)
+        row['triangle_chunks'].append({'kind': trace['kind'], 'mesh': trace['mesh'],
+                                      'chunk': 0, 'triangle_sha256': [digest]})
+    return row
+
+
+
+def with_chunk_boundary_identity(traced_index):
+    row = with_native_input_identity(synthetic_trace())
+    count = 257
+    original = row['expected_draw_inventory'][1]
+    digest = row['triangle_chunks'][0]['triangle_sha256'][0]
+    hashes = ['0' * 64] * count
+    hashes[traced_index] = digest
+    original['triangles'] = row['geometry_inputs'][1]['triangles'] = count
+    original['triangle_stream_sha256'] = row['geometry_inputs'][1]['triangle_stream_sha256'] = (
+        hashlib.sha256(''.join(hashes).encode('ascii')).hexdigest())
+    original['triangle_chunk_sha256'] = [hashlib.sha256(''.join(hashes[start:start + 256]).encode('ascii')).hexdigest()
+                                         for start in range(0, count, 256)]
+    row['source_triangles'], row['outside_bottom'] = count + 2, count
+    row['meshes'][1].update(triangles=count, outside_bottom=count - 1)
+    row['triangle_trace'][0]['triangle'] = traced_index
+    runs = [[start, length] for start, length in ((0, traced_index), (traced_index + 1, count - traced_index - 1))
+            if length]
+    row['triangle_partition'][1].update(triangles=count, traced_runs=[[traced_index, 1]], separated=[
+        {'axis': 1, 'sign': 1, 'runs': runs, 'maximum_plane_upper': -0.1}])
+    chunk = traced_index // 256
+    row['triangle_chunks'] = [{'kind': 'rigid', 'mesh': 0, 'chunk': chunk,
+                              'triangle_sha256': hashes[chunk * 256:(chunk + 1) * 256]}]
+    return row
+
+
 def expected_from_trace(row):
     return {key: deepcopy(value) for key, value in row.items() if key not in proof.TRACE_EXTRAS}
 
@@ -140,7 +201,127 @@ class SyntheticPureRecomputation(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'trace lacks'):
             self.calculate(row, expected)
         row['expected_draw_inventory'] = deepcopy(expected['expected_draw_inventory'])
-        self.assertTrue(self.calculate(row, expected)['conditional_source_proof_complete'])
+        with self.assertRaisesRegex(ValueError, 'expected geometry inputs'):
+            self.calculate(row, expected)
+        row = with_native_input_identity(synthetic_trace())
+        self.assertTrue(self.calculate(row)['frames'][0]['source_geometry_inputs_bound'])
+
+    def test_current_inputs_bind_visible_separated_and_hidden_meshes(self):
+        for empty in (False, True):
+            row = with_native_input_identity(synthetic_trace(empty=empty))
+            self.assertTrue(self.calculate(row)['frames'][0]['source_geometry_inputs_bound'])
+            for key in ('geometry_inputs', 'expected_draw_inventory'):
+                changed = deepcopy(row)
+                changed.pop(key)
+                with self.subTest(empty=empty, key=key), self.assertRaises(ValueError):
+                    self.calculate(changed)
+            for index in range(3):
+                changed = deepcopy(row)
+                changed['geometry_inputs'][index]['triangle_stream_sha256'] = hashlib.sha256(b'shrunken source').hexdigest()
+                with self.subTest(empty=empty, mesh=index), self.assertRaisesRegex(ValueError, 'canonical triangle stream'):
+                    self.calculate(changed)
+
+    def test_shrunken_actual_proof_positions_cannot_copy_expected_source_summary(self):
+        row = with_native_input_identity(synthetic_trace())
+        expected = expected_from_trace(row)
+        row['triangle_trace'][0]['position_bits'][0][0] = bits(-0.01)
+        # Even a self-consistent new proof-owned mesh stream cannot replace the
+        # independent expected draw inventory retained in the original source.
+        shrunk = proof.canonical_trace_triangle(row['triangle_trace'][0])
+        row['geometry_inputs'][1]['triangle_stream_sha256'] = hashlib.sha256(shrunk.encode('ascii')).hexdigest()
+        with self.assertRaisesRegex(ValueError, 'canonical triangle stream'):
+            self.calculate(row, expected)
+
+    def test_swapped_actual_proof_matrices_fail_for_visible_and_empty_frames(self):
+        for empty in (False, True):
+            for key in ('view_projection_bits', 'model_bits'):
+                row = with_native_input_identity(synthetic_trace(empty=empty))
+                row['geometry_inputs'][1][key][0] = bits(0.1)
+                with self.subTest(empty=empty, key=key), self.assertRaisesRegex(ValueError, 'actual geometry input state'):
+                    self.calculate(row)
+        for key in ('projection_bits', 'model_bits'):
+            row = with_native_input_identity(synthetic_trace())
+            row['triangle_trace'][0][key][0] = bits(0.1)
+            with self.subTest(key=key), self.assertRaisesRegex(ValueError, 'actual trace proof'):
+                self.calculate(row)
+
+    def test_per_triangle_positions_uv_and_color_match_native_canonical_bytes(self):
+        for key, value in (('position_bits', bits(0.01)), ('uv_bits', bits(0.5)), ('colors', 90)):
+            row = with_native_input_identity(synthetic_trace())
+            row['triangle_trace'][0][key][0][0] = value
+            with self.subTest(key=key), self.assertRaisesRegex(ValueError, 'actual trace canonical source triangle'):
+                self.calculate(row)
+        row = with_native_input_identity(synthetic_trace())
+        del row['triangle_trace'][0]['uv_bits']
+        with self.assertRaisesRegex(ValueError, 'UV bits'):
+            self.calculate(row)
+
+    def test_proof_texture_object_and_derived_bounds_cannot_drift(self):
+        row = with_native_input_identity(synthetic_trace())
+        row['geometry_inputs'][1]['texture']['rgba8_sha256'] = 'a' * 64
+        with self.assertRaisesRegex(ValueError, 'actual geometry input state'):
+            self.calculate(row)
+        row = with_native_input_identity(synthetic_trace())
+        row['triangle_trace'][0]['texture_bounds'] = [[250, 255]] * 3
+        with self.assertRaisesRegex(ValueError, 'actual trace proof texture bounds'):
+            self.calculate(row)
+
+    def test_compact_source_chunks_bind_full_and_tail_membership(self):
+        for index in (0, 255, 256):
+            row = with_chunk_boundary_identity(index)
+            self.assertEqual(len(row['expected_draw_inventory'][1]['triangle_chunk_sha256']), 2)
+            self.assertNotIn('triangle_sha256', row['expected_draw_inventory'][1])
+            self.assertTrue(self.calculate(row)['frames'][0]['source_geometry_inputs_bound'])
+        row = with_native_input_identity(synthetic_trace(empty=True))
+        self.assertEqual(row['triangle_chunks'], [])
+        self.calculate(row)
+
+    def test_compact_chunks_reject_missing_duplicate_extra_and_swapped_membership(self):
+        for mutation in ('missing', 'duplicate', 'extra', 'wrong-index', 'short-full', 'long-tail', 'wrong-hash'):
+            row = with_chunk_boundary_identity(255 if mutation == 'short-full' else 256)
+            chunks = row['triangle_chunks']
+            if mutation == 'missing':
+                chunks.clear()
+            elif mutation == 'duplicate':
+                chunks.append(deepcopy(chunks[0]))
+            elif mutation == 'extra':
+                chunks.append({'kind': 'rigid', 'mesh': 0, 'chunk': 0, 'triangle_sha256': ['0' * 64] * 256})
+            elif mutation == 'wrong-index':
+                chunks[0]['chunk'] = 0
+            elif mutation == 'short-full':
+                chunks[0]['triangle_sha256'].pop()
+            elif mutation == 'long-tail':
+                chunks[0]['triangle_sha256'].append('0' * 64)
+            else:
+                chunks[0]['triangle_sha256'][0] = '1' * 64
+            with self.subTest(mutation=mutation), self.assertRaises(ValueError):
+                self.calculate(row)
+
+    def test_compact_chunks_do_not_allow_rehashed_shrunken_proof_input(self):
+        row = with_chunk_boundary_identity(256)
+        row['triangle_trace'][0]['position_bits'][0][0] = bits(-0.01)
+        row['triangle_chunks'][0]['triangle_sha256'][0] = proof.canonical_trace_triangle(row['triangle_trace'][0])
+        with self.assertRaisesRegex(ValueError, 'independent expected source triangle chunk'):
+            self.calculate(row)
+        row = with_native_input_identity(synthetic_trace(empty=True))
+        row['triangle_chunks'] = [{'kind': 'rigid', 'mesh': 0, 'chunk': 0, 'triangle_sha256': ['0' * 64]}]
+        with self.assertRaises(ValueError):
+            self.calculate(row)
+
+    def test_compact_source_requires_complete_valid_chunk_inventory(self):
+        for mutation in ('missing', 'truncated', 'wrong-type', 'legacy-full'):
+            row = with_chunk_boundary_identity(256)
+            original = row['expected_draw_inventory'][1]
+            if mutation == 'missing':
+                del original['triangle_chunk_sha256']
+            elif mutation == 'truncated':
+                original['triangle_chunk_sha256'].pop()
+            elif mutation == 'wrong-type':
+                original['triangle_chunk_sha256'][0] = 0
+            else:
+                original['triangle_sha256'] = ['0' * 64] * 257
+            with self.subTest(mutation=mutation), self.assertRaisesRegex(ValueError, 'chunk inventory'):
+                self.calculate(row)
 
     def test_full_source_state_checks_nested_gameplay_time_and_types(self):
         for field, key, value in [('native_gameplay', 'ammo', 11), ('native_gameplay', 'ammo', 12.0),

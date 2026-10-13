@@ -201,6 +201,37 @@ def verify_witness_draw(draw, role, frame, identity):
     _draw_state(draw['state'], role, witness=True)
 
 
+def draw_input_state_sha256(state):
+    """Independent implementation of the native fixed-width input-state codec."""
+    data = bytearray(b'rust-duty-draw-input-state/v1\0')
+    for field in ('view_projection_bits', 'model_bits'):
+        data.extend(struct.pack('<16I', *_bits(state[field], 16, field)))
+    upload = state['upload_transform_bits']
+    data.append(int(upload is not None))
+    if upload is not None:
+        data.extend(struct.pack('<16I', *_bits(upload, 16, 'upload transform')))
+    texture = state['texture']
+    _texture(texture)
+    require(texture['width'] < 2**32 and texture['height'] < 2**32, 'texture extent exceeds native u32')
+    data.extend(struct.pack('<II', texture['width'], texture['height']))
+    sampler = texture['sampler']
+    data.extend((int(sampler['filter'] == 'linear'), int(sampler['wrap_x'] == 'repeat'),
+                 int(sampler['wrap_y'] == 'repeat')))
+    data.extend(texture['rgba8_sha256'].encode('ascii'))
+    return hashlib.sha256(data).hexdigest()
+
+
+def ordered_draw_input_sha256(draws):
+    """Hash test/reference input streams without retaining flattened triangles."""
+    digest = hashlib.sha256()
+    for state, triangles in draws:
+        state_hash = draw_input_state_sha256(state).encode('ascii')
+        for triangle in triangles:
+            digest.update(state_hash)
+            digest.update(_sha(triangle, 'canonical triangle').encode('ascii'))
+    return digest.hexdigest()
+
+
 def expected_triangles(row):
     """Validate complete asset inventory before considering any native draws."""
     inventory = row.get('expected_draw_inventory')
@@ -212,16 +243,18 @@ def expected_triangles(row):
     require(len(source_meshes) == len(row['meshes']), 'duplicate source classification mesh')
     for mesh in inventory:
         source.shared._exact_keys(mesh, ('kind', 'mesh', 'triangles', 'visible', 'opacity_bits',
-            'triangle_sha256', 'texture', 'view_projection_bits', 'model_bits', 'upload_transform_bits'),
-            'source expected mesh')
+            'triangle_stream_sha256', 'triangle_chunk_sha256', 'texture', 'view_projection_bits',
+            'model_bits', 'upload_transform_bits'), 'source expected mesh')
         require(mesh['kind'] in ('skin', 'rigid'), 'unexpected source mesh kind')
         key = (mesh['kind'], _integer(mesh['mesh'], 'source mesh ordinal'))
         keys.append(key)
         count = _integer(mesh['triangles'], 'source triangle count', 1)
-        require(type(mesh['triangle_sha256']) is list and len(mesh['triangle_sha256']) == count,
-                'source triangle content inventory incomplete')
-        for digest in mesh['triangle_sha256']:
-            _sha(digest, 'source triangle')
+        _sha(mesh['triangle_stream_sha256'], 'complete source triangle stream')
+        chunks = mesh['triangle_chunk_sha256']
+        require(type(chunks) is list and len(chunks) == (count + 255) // 256,
+                'source triangle chunk inventory incomplete')
+        for digest in chunks:
+            _sha(digest, 'source triangle chunk')
         require(type(mesh['visible']) is bool, 'source visibility is not boolean')
         _bits([mesh['opacity_bits']], 1, 'source opacity')
         opacity = struct.unpack('<f', struct.pack('<I', mesh['opacity_bits']))[0]
@@ -239,7 +272,7 @@ def expected_triangles(row):
         total += count
         if mesh['visible']:
             state = {name: mesh[name] for name in ('view_projection_bits', 'model_bits', 'upload_transform_bits', 'texture')}
-            obligations.extend((digest, state) for digest in mesh['triangle_sha256'])
+            obligations.append((count, state))
         else:
             hidden += count
     require(len(set(keys)) == len(keys) and set(keys) == set(source_meshes), 'source mesh partition incomplete')
@@ -259,7 +292,7 @@ def verify_receipt(row, receipt, *, role, frame, capture_identity, capture_sha25
     expected = expected_triangles(row)
     source.shared._exact_keys(receipt, ('schema', 'capture_identity', 'frame_index', 'backend', 'capture_path',
         'capture_sha256', 'target', 'witness_exclusion', 'witness_count', 'triangle_count', 'draws', 'events',
-        'submission_complete', 'capture_complete'), 'native visibility receipt')
+        'submission_complete', 'capture_complete', 'ordered_draw_input_sha256'), 'native visibility receipt')
     for key, value in {'schema': SCHEMA, 'capture_identity': capture_identity, 'frame_index': frame,
         'backend': source.BACKENDS[role][1], 'capture_path': f'{frame:04}.png', 'capture_sha256': capture_sha256,
         'witness_exclusion': [0, 0, 64, 22], 'witness_count': 1,
@@ -274,18 +307,32 @@ def verify_receipt(row, receipt, *, role, frame, capture_identity, capture_sha25
     require(type(draws) is list and draws, 'missing native draws')
     actual = []
     for draw in draws:
-        source.shared._exact_keys(draw, ('triangle_count', 'triangle_sha256', 'view_projection_bits',
+        source.shared._exact_keys(draw, ('triangle_count', 'view_projection_bits',
             'model_bits', 'upload_transform_bits', 'texture', 'state'), 'native draw')
         count = _integer(draw['triangle_count'], 'native draw triangle count', 1)
-        require(type(draw['triangle_sha256']) is list and len(draw['triangle_sha256']) == count,
-                'missing native triangle receipt')
         _draw_state(draw['state'], role)
         state = {key: draw[key] for key in ('view_projection_bits', 'model_bits', 'upload_transform_bits', 'texture')}
-        actual.extend((digest, state) for digest in draw['triangle_sha256'])
-    equal(len(actual), receipt['triangle_count'], 'native receipt triangle count')
-    equal(len(actual), len(expected), 'missing or extra source-owned native triangles')
-    for ordinal, (submitted, obligation) in enumerate(zip(actual, expected)):
-        equal(submitted, obligation, f'native triangle/input mismatch at ordinal {ordinal}')
+        actual.append((count, state))
+    total = sum(count for count, _ in actual)
+    equal(total, receipt['triangle_count'], 'native receipt triangle count')
+    equal(total, sum(count for count, _ in expected), 'missing or extra source-owned native triangles')
+    # Compare ordered state ranges without allocating a tuple for every triangle.
+    # A backend may split meshes, but cannot change state or omit any geometry.
+    index, remaining = 0, expected[0][0]
+    ordinal = 0
+    for count, state in actual:
+        while count:
+            equal(state, expected[index][1], f'native triangle/input mismatch at ordinal {ordinal}')
+            consumed = min(count, remaining)
+            ordinal, count, remaining = ordinal + consumed, count - consumed, remaining - consumed
+            if remaining == 0:
+                index += 1
+                if index < len(expected):
+                    remaining = expected[index][0]
+    equal(index, len(expected), 'complete source input range inventory')
+    equal(_sha(receipt['ordered_draw_input_sha256'], 'native ordered draw inputs'),
+          _sha(row.get('expected_ordered_draw_input_sha256'), 'independent expected ordered draw inputs'),
+          'complete ordered native geometry/input stream')
     events = receipt['events']
     require(type(events) is list and len(events) == len(draws) + 3, 'native clear/draw/witness/capture sequence differs')
     equal(events[0], {'kind': 'clear', 'rgba_bits': [_float_bits(v) for v in (0.14, 0.19, 0.24, 1)],
@@ -296,7 +343,7 @@ def verify_receipt(row, receipt, *, role, frame, capture_identity, capture_sha25
             'native witness checkpoint missing')
     verify_witness_draw(events[-2]['draw'], role, frame, capture_identity)
     equal(events[-1], {'kind': 'capture'}, 'native ordered capture checkpoint')
-    return {'frame': frame, 'triangles': len(actual), 'hidden_source_triangles': row['hidden_source_triangles'],
+    return {'frame': frame, 'triangles': total, 'hidden_source_triangles': row['hidden_source_triangles'],
             'native_input_binding_verified': True, 'visibility_verified': False}
 
 
