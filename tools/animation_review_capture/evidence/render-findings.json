@@ -1,0 +1,51 @@
+{
+  "schema": "rust-duty-capture-tooling-render-findings/v1",
+  "as_of_utc": "2026-10-13T18:26:00Z",
+  "acceptance": false,
+  "native_frame_corpus": false,
+  "source_sha256": "6b95bdcdfa78e8127ef4b4fa5ac88e4cf9a0654bd0a1271c9916b903f6ee4e79",
+  "canonical_source_bytes_unchanged": true,
+  "attempts": [
+    {
+      "method": "Foreground Eevee render.opengl first primer",
+      "result": "process killed before first PNG",
+      "exit_status": 137,
+      "root_cause": "unproven"
+    },
+    {
+      "method": "Same operator with command-local LP_NUM_THREADS=2",
+      "result": "process killed before first PNG",
+      "exit_status": 137,
+      "last_rss_kib": 1810868,
+      "root_cause": "unproven"
+    },
+    {
+      "method": "Live Eevee viewport-only smaller camera display",
+      "result": "textured source visible in JPEG capability evidence; clean exit with preservation checks"
+    },
+    {
+      "method": "Exact1280x720 camera border within1364x1024 viewport",
+      "result": "projection verified; process killed before screenshot",
+      "exit_status": 137
+    },
+    {
+      "method": "Exact1280x720 border within1284x724 viewport, Blender window PNG",
+      "result": "clean exit; all three screenshots uniformly black; rejected despite equal hashes",
+      "exit_status": 0,
+      "png_dimensions": [
+        1284,
+        724
+      ],
+      "rgb_colors": 1,
+      "sole_rgb": [
+        0,
+        0,
+        0
+      ],
+      "proof_sha256": "7d323f435d99fbd2377468935fc339568bdd7d9e6475eee9a375d8317b16ac51",
+      "visual_rejection_sha256": "ac7d5bd6a9aac3717fbd19d82f5eacd3208cd1126d8d6a50168772cbf8caa207"
+    }
+  ],
+  "requirement": "Nonempty/uniform guard plus independent visible-content review are mandatory. Equality alone never proves warmed materials or correctness.",
+  "active_experimental_transport": "OS screenshot transport diagnosis is outside this sealed publication snapshot; no result claimed."
+}

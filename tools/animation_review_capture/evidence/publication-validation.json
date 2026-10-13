@@ -1,0 +1,51 @@
+{
+  "schema": "rust-duty-capture-publication-validation/v1",
+  "review_date": "2026-10-13",
+  "python": "3.12.14",
+  "frozen_input_manifest_sha256": "833c6421f8f863faa07cd8b3afb184000b665593fc980ed334082d26162a929e",
+  "tests": {
+    "command": "python3 -m unittest discover -s tools -p 'test_*.py' -v",
+    "scope": "Isolated additive publication staging. Discovers the package exactly as the repository Python lane will; does not claim the full repository suite ran locally.",
+    "passed": 28,
+    "failed": 0,
+    "skipped": 0,
+    "log_sha256": "fefc6a9b94a7c505898d37f3e0ed4ccddb753ccf2dfbdd671d9e406fc9b01045"
+  },
+  "blender": {
+    "version": "4.3.2",
+    "command": "blender --background --factory-startup --disable-autoexec --python-exit-code 1 --python tools/animation_review_capture/capture_viewport.py -- --input-root <private-input-root> --validate-all --output <new-output.json>",
+    "exit_code": 0,
+    "takes_passed": 11,
+    "sample_mappings": 599,
+    "unique_playback_samples": 591,
+    "closure_witnesses": 8,
+    "rendered": false,
+    "source_saved": false,
+    "receipt": "portable-no-render-receipt.json"
+  },
+  "other_checks": {
+    "all_python_ast_parse": "passed",
+    "unchanged_helper_hashes": "passed",
+    "no_asset_or_binary_uploads": "passed",
+    "Rust_gameplay_and_full_repository_suite": "not run locally: no gameplay/runtime edits; exact commit CI tracked separately",
+    "foreground_native_corpus": "pending",
+    "artistic_review": "pending"
+  },
+  "publication_revisions": [
+    "Portable CLI --input-root and RUST_DUTY_CAPTURE_INPUT_ROOT, colocated helpers, asset-free unittest package discovery",
+    "Source verification defaults to strict; metadata mapping is independently testable without private assets",
+    "Reject optimized Python, blank/nonstring review notes, malformed camera rectangles",
+    "Crop extraction pins vault source/action/frame one, independently compares settled crop bytes before writing outputs; existing black/rejection guards retained"
+  ],
+  "tested_python_sha256": {
+    "__init__.py": "38548e2ebed0a8915d9cc162cb0c96e6513bffbc4516f675f5f337f35b2ebb0b",
+    "capture_common.py": "f8b6e124a5811ca05acec3506a94d7c5c61ac876a9c7f4442aaa524d0ebb6e56",
+    "capture_viewport.py": "ca3523f871b3c51d26990c03587782e146ab263ce4bf9882f7825ee45240d348",
+    "extract_camera_crop.py": "57dba6ed289abd42ceeff116d1360982bdfef097fef4b6a63bc7ee6abe4e9c28",
+    "helpers/source_integrity.py": "d22ae8dcc117e29ffb7d746772efce015010407cbb1ddce22924a31746e831ca",
+    "helpers/validate_source_structure.py": "8f1deb2883eafd5e7a76cf48109a33c010690aa197150369df60773b5b593816",
+    "test_capture_adapters.py": "fb885449a703819800a4a0c71d2e794dbc46769b1358ef9fb7708dd290b82ec0",
+    "test_portability_and_crop.py": "74bd8ffe394a92d9bab69f2586c537cd0904c6d75c81f210144bd9a8b6e05fc9",
+    "viewport_pixel_plan.py": "85ff6f1379331831f782940eb9f323b4354d5e594b29179ecb3e4bacaf3a11a4"
+  }
+}

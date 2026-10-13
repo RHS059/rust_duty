@@ -1,0 +1,8 @@
+__pycache__/
+inputs/
+*.blend
+*.blend1
+*.png
+*.jpg
+*.mp4
+*.zip
