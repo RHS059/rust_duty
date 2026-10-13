@@ -359,12 +359,20 @@ class MaterializationTests(unittest.TestCase):
             self.materialize()
 
     def test_case_aliased_or_symlinked_runtime_inputs_fail_before_staging(self):
+        original = self.source / 'assets/animations.cfg'
         alias = self.source / 'assets/ANIMATIONS.cfg'
-        write(alias, b'case alias')
-        with self.assertRaises(ValueError):
+        # A second write would merely reopen the same file on Windows. Rename
+        # through a distinct spelling so the real directory entry changes case.
+        intermediate = original.with_name('case-rename.tmp')
+        original.rename(intermediate)
+        intermediate.rename(alias)
+        self.assertIn('ANIMATIONS.cfg', {path.name for path in alias.parent.iterdir()})
+        self.assertNotIn('animations.cfg', {path.name for path in alias.parent.iterdir()})
+        with self.assertRaisesRegex(ValueError, 'missing original runtime input: assets/animations.cfg'):
             self.materialize()
         self.assertFalse(self.output.exists())
-        alias.unlink()
+        alias.rename(intermediate)
+        intermediate.rename(original)
         path = self.source / 'assets/reload/asset.vra'
         outside = self.base / 'outside.vra'
         path.rename(outside)
@@ -480,10 +488,14 @@ class DownloadInventoryTests(unittest.TestCase):
     def test_postdownload_file_symlink_and_case_alias_fail(self):
         path = self.root / 'source/original.bin'
         alias = path.with_name('ORIGINAL.bin')
-        write(alias, path.read_bytes())
-        with self.assertRaises(ValueError):
+        intermediate = path.with_name('case-rename.tmp')
+        path.rename(intermediate)
+        intermediate.rename(alias)
+        self.assertEqual({item.name for item in alias.parent.iterdir()}, {'ORIGINAL.bin'})
+        with self.assertRaisesRegex(ValueError, 'files inventory mismatch'):
             self.verify()
-        alias.unlink()
+        alias.rename(intermediate)
+        intermediate.rename(path)
         outside = self.root / 'outside.bin'
         path.rename(outside)
         try:
@@ -952,6 +964,20 @@ class ArchiveTests(unittest.TestCase):
         raw = self.archive.read_bytes()
         return {'size_in_bytes': len(raw), 'digest': 'sha256:' + sha(raw)}
 
+    def raw_name_archive(self, name, raw=b'original synthetic member'):
+        # ZipInfo normalizes backslashes on Windows and truncates NUL names on
+        # every platform. Replace equal-length names in both actual ZIP headers
+        # and honestly recompute archive metadata so the path guard is exercised.
+        placeholder = 'x' * len(name.encode('ascii'))
+        self.make_archive(((placeholder, raw),))
+        data = self.archive.read_bytes()
+        self.assertEqual(data.count(placeholder.encode('ascii')), 2)
+        data = data.replace(placeholder.encode('ascii'), name.encode('ascii'))
+        self.archive.write_bytes(data)
+        with zipfile.ZipFile(self.archive) as bundle:
+            self.assertEqual(bundle.infolist()[0].orig_filename, name)
+        return {'size_in_bytes': len(data), 'digest': 'sha256:' + sha(data)}
+
     def extract(self, metadata):
         with patch.object(adapter.subprocess, 'run', side_effect=AssertionError('native execution forbidden')):
             return adapter.extract_archive(self.archive, self.destination, metadata)
@@ -975,11 +1001,28 @@ class ArchiveTests(unittest.TestCase):
     def test_path_escape_absolute_windows_and_alias_spellings_are_rejected(self):
         for name in ('../escape', '/absolute', 'C:/escape', 'frames\\escape.png', './same.json',
                      'frames/../escape', 'frames//escape', 'CON', 'frames/name.', 'frames/name:stream'):
-            metadata = self.make_archive(((name, b'unsafe'),))
+            metadata = self.raw_name_archive(name)
             with self.subTest(name=name), self.assertRaises(ValueError):
                 self.extract(metadata)
             self.assertFalse(self.destination.exists())
         self.assertFalse((self.root / 'escape').exists())
+
+    def test_nul_truncation_is_rejected_before_creating_destination(self):
+        metadata = self.raw_name_archive('same.json\0hidden')
+        with self.assertRaisesRegex(ValueError, 'NUL/aliased ZIP filename'):
+            self.extract(metadata)
+        self.assertFalse(self.destination.exists())
+
+    def test_windows_backslash_normalization_cannot_hide_raw_member_spelling(self):
+        metadata = self.raw_name_archive('frames\\escape.png')
+        # Only the standard ZIP name normalizer is given Windows separators;
+        # this is a synthetic parser test, not a Windows execution claim.
+        with patch.object(zipfile.os, 'sep', '\\'):
+            with zipfile.ZipFile(self.archive) as bundle:
+                self.assertEqual(bundle.infolist()[0].filename, 'frames/escape.png')
+            with self.assertRaisesRegex(ValueError, 'NUL/aliased ZIP filename'):
+                self.extract(metadata)
+        self.assertFalse(self.destination.exists())
 
     def test_duplicate_case_alias_and_file_parent_collisions_are_rejected(self):
         for entries in ((('same.json', b'a'), ('same.json', b'b')),
@@ -1037,7 +1080,7 @@ class ArchiveTests(unittest.TestCase):
             elif mutation == 'total':
                 entries = [deepcopy(entries[0]) for _ in range(33)]
                 for index, entry in enumerate(entries):
-                    entry.filename = f'file-{index}'
+                    entry.orig_filename = entry.filename = f'file-{index}'
                     entry.file_size = 256 * 1024**2
             return entries
         for mutation in ('member', 'encrypted', 'count', 'total'):

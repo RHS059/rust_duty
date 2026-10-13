@@ -74,7 +74,7 @@ class ContractTests(unittest.TestCase):
         self.assertFalse(any(word in {"curl", "wget", "git", "cargo", "render", "--render-frame", "--render-anim"}
                              for argv in commands for word in argv))
         jump = next(s for s in plan if s["name"] == "build-jump")["argv"]
-        self.assertEqual(jump[jump.index("--source-dir") + 1], str(self.jump))
+        self.assertEqual(jump[jump.index("--source-dir") + 1], str(self.jump.resolve()))
 
     def test_missing_or_modified_inputs_fail_before_external_execution(self):
         for kind in ("missing", "changed"):
@@ -94,7 +94,7 @@ class ContractTests(unittest.TestCase):
         with mock.patch.object(build.subprocess, "run", return_value=subprocess.CompletedProcess([], 0, "Blender 4.3.21\n", "")) as run:
             with self.assertRaisesRegex(build.BuildFailure, "exact Blender"):
                 build.preflight(build.parse_args(self.argv))
-            self.assertEqual(run.call_args.args[0], [str(self.blender), "--version"])
+            self.assertEqual(run.call_args.args[0], [str(self.blender.resolve()), "--version"])
             self.assertEqual(run.call_count, 1)
         self.assertFalse(self.output.exists())
 
@@ -196,7 +196,9 @@ class ContractTests(unittest.TestCase):
         process.wait.side_effect = [subprocess.TimeoutExpired(["producer"], 5400), 0]
         process.poll.return_value = None
         with mock.patch.object(build.subprocess, "Popen", return_value=process) as popen:
-            with mock.patch.object(build.os, "killpg") as kill:
+            # This Linux-only producer's POSIX cleanup is simulated, including
+            # on Windows where os.killpg is not a real host API.
+            with mock.patch.object(build.os, "killpg", create=True) as kill:
                 with self.assertRaisesRegex(build.BuildFailure, "exceeded 5400"):
                     build.run_logged_command(["producer"], self.source, io.BytesIO(), {})
                 kill.assert_called_once_with(12345, build.signal.SIGTERM)
