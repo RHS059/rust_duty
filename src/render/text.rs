@@ -14,6 +14,7 @@ pub(crate) const FONT_BYTES: &[u8] = include_bytes!("font/BarlowCondensed-SemiBo
 
 /// Control characters advance like a space in every backend, as with the
 /// previous bitmap font, instead of drawing Barlow's missing-glyph box.
+#[cfg(any(feature = "legacy-macroquad", test))]
 pub(crate) fn printable(text: &str) -> std::borrow::Cow<'_, str> {
     if text.chars().any(char::is_control) {
         text.chars()
