@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""Replay a precompiled current-main CPU oracle against immutable native ADS.
+"""Replay a precompiled current-build CPU oracle against immutable native ADS.
 
 This path has no historical artifact lookup, source overlay, compiler invocation,
-game rebuild or rendering. A separately anchored authored-input build supplies
-the executable. All consumed runtime bytes come from the same native manifest.
+game rebuild. Separately anchored authored-input builds supply the source and
+current-profile executables. Optional fresh finite profile diagnostics run only
+for reproduced generic failures. All runtime bytes share the native manifest.
 Only a completed leaf correction produces an optional nine-shard supplement;
 the original native verdicts remain untouched and acceptance remains incomplete.
 """
@@ -20,15 +21,16 @@ import ads_source_visibility_binding as binding
 import aggregate_dx12_authored as aggregate
 import build_ads_source_packet as producer
 import collect_ads_offset_evidence as collector
+from current_ads_build_context import REPOSITORY, current_build_identity, check_build_checkout
 import dx12_authored_shards as shared
 import prepare_ads_source_oracle as prepared
 import revalidate_ads_offset as leaf
 import run_dx12_authored_shard as shard
+import run_current_ads_profile as current_profile
 from verify_capture_telemetry import _compare, read_record
 
 
 SCHEMA = 'rust-duty-current-ads-source-oracle/v1'
-REPOSITORY = 'RHS059/rust_duty'
 
 
 def require(value, message):
@@ -37,21 +39,8 @@ def require(value, message):
 
 
 def current_main_context():
-    """Only the actual currently executing main build can use this mode."""
-    context = shared.context()
-    for name, expected in {
-        'GITHUB_ACTIONS': 'true', 'GITHUB_REPOSITORY': REPOSITORY,
-        'GITHUB_REF': 'refs/heads/main',
-        'GITHUB_WORKFLOW_REF': REPOSITORY + '/.github/workflows/build.yml@refs/heads/main',
-        'GITHUB_WORKFLOW_SHA': context['source_commit'],
-        'RUNNER_OS': 'Windows', 'RUNNER_ARCH': 'X64',
-    }.items():
-        require(os.environ.get(name) == expected, f'current main identity differs: {name}')
-    require(os.environ.get('GITHUB_EVENT_NAME') in ('push', 'workflow_dispatch'),
-            'current source oracle requires a main push or dispatch')
-    require(sys.platform == 'win32' and platform.machine() in ('AMD64', 'x86_64'),
-            'current source oracle requires native Windows x86_64')
-    return context
+    """Compatibility entry point for the actual current main or same-repo PR build."""
+    return current_build_identity()['capture_context']
 
 
 def check_checkout(root, context):
@@ -59,8 +48,12 @@ def check_checkout(root, context):
                                    text=True, timeout=60).strip() == context['source_commit'],
             'current source checkout differs from actual GitHub commit')
     paths = prepared.implementation_paths(root)
-    for name in ('tools/current_ads_source_oracle.py', 'tools/collect_ads_offset_evidence.py',
-                 'tools/finite_ads_profile_binding.py'):
+    for name in ('tools/current_ads_source_oracle.py', 'tools/current_ads_build_context.py',
+                 'tools/collect_ads_offset_evidence.py',
+                 'tools/finite_ads_profile_binding.py',
+                 'tools/current_ads_native_binding.py', 'tools/current_ads_profile_proof.py',
+                 'tools/current_ads_profile_binding.py',
+                 'tools/prepare_current_ads_profile.py', 'tools/run_current_ads_profile.py'):
         paths[name] = root / name
     subprocess.check_output(['git', '-C', str(root), 'ls-files', '--error-unmatch', '--', *paths], timeout=60)
     require(not subprocess.check_output(['git', '-C', str(root), 'diff', '--name-only', 'HEAD', '--', *paths],
@@ -124,16 +117,27 @@ def emit_outputs(**values):
 
 
 def assemble(*, root, input_manifest, shards, oracle, expected_oracle_receipt_sha256,
-             capture_rustc_sha256, evidence, receipt_anchor, reviewed_class=None, expected_class_sha256=None):
+             capture_rustc_sha256, evidence, receipt_anchor, reviewed_class=None, expected_class_sha256=None,
+             current_profile_oracle=None, current_profile_receipt_sha256=None):
     root, input_manifest, shards, oracle = (Path(path).absolute() for path in (root, input_manifest, shards, oracle))
     evidence, receipt_anchor = Path(evidence).absolute(), Path(receipt_anchor).absolute()
-    context = current_main_context()
+    build_identity = current_build_identity()
+    context = build_identity['capture_context']
+    require((current_profile_oracle is None) == (current_profile_receipt_sha256 is None),
+            'current profile oracle and independent receipt SHA256 are both required')
+    require(current_profile_oracle is None or (reviewed_class is None and expected_class_sha256 is None),
+            'current profile oracle cannot be combined with a historical reviewed class')
     check_paths(root, input_manifest, shards, oracle, evidence, receipt_anchor)
+    if current_profile_oracle is not None:
+        current_profile_oracle = Path(current_profile_oracle).absolute()
+        check_paths(root, input_manifest, shards, current_profile_oracle, evidence, receipt_anchor)
     evidence.mkdir(parents=True)
     report = {'schema': SCHEMA, 'passed': False, 'acceptance_complete': False,
-              'capture_context': context, 'verifier_context': context, 'phase': 'verify-current-build',
+              'capture_context': context, 'verifier_context': context,
+              'build_identity': deepcopy(build_identity), 'phase': 'verify-current-build',
               'needs_supplement': False, 'bounded_ads_profile_established': False}
     try:
+        check_build_checkout(root, build_identity)
         implementation = check_checkout(root, context)
         manifest = leaf.manifest_binding(input_manifest, context)
         native = shared.verify_input_manifest(manifest, root / 'target/release/vector-range.exe',
@@ -155,6 +159,9 @@ def assemble(*, root, input_manifest, shards, oracle, expected_oracle_receipt_sh
         _compare(immutable, producer.inventory({path: Path(path) for path in immutable}),
                  'original native inputs changed during collection inspection')
         if eligibility is None:
+            _compare(current_build_identity(), build_identity, 'current execution identity changed')
+            check_build_checkout(root, build_identity)
+            check_checkout(root, context)
             report.update(passed=True, phase='original-offset-passed')
             emit_outputs(supplement_path='', source_receipt_sha256='', capture_rustc_sha256=capture_rustc_sha256)
             return report
@@ -210,7 +217,8 @@ def assemble(*, root, input_manifest, shards, oracle, expected_oracle_receipt_sh
             outputs[role] = relative
         after = producer.inventory(implementation)
         _compare(before, after, 'current source implementation/executable/inputs changed during replay')
-        _compare(current_main_context(), context, 'current execution context changed')
+        _compare(current_build_identity(), build_identity, 'current execution identity changed')
+        check_build_checkout(root, build_identity)
         check_checkout(root, context)
         prepared.verify_precompiled(oracle, root, input_manifest, expected_oracle_receipt_sha256, capture_rustc_sha256)
         producer.validate_consumed_inputs(root, manifest, offset)
@@ -252,7 +260,8 @@ def assemble(*, root, input_manifest, shards, oracle, expected_oracle_receipt_sh
         print(f'INDEPENDENT_SOURCE_RECEIPT_SHA256={receipt_sha}', flush=True)
         emit_outputs(source_receipt_sha256=receipt_sha, capture_rustc_sha256=capture_rustc_sha256)
         report['phase'] = 'bind-finite-ads-profile'
-        require(reviewed_class is not None and expected_class_sha256 is not None,
+        require(current_profile_oracle is not None or
+                (reviewed_class is not None and expected_class_sha256 is not None),
                 'completed independently bound finite ADS profile is required')
         frame_dirs = {role: shards / 'ads-offset' / reports['ads-offset']['capture_paths'][role]
                       for role in binding.ROLES}
@@ -260,6 +269,19 @@ def assemble(*, root, input_manifest, shards, oracle, expected_oracle_receipt_sh
             expected_compiler_sha256=capture_rustc_sha256, native_binding=native,
             original_invocations=invocations, native_frame_dirs=frame_dirs,
             native_offset_settings=offset)
+        if current_profile_oracle is not None:
+            report['phase'] = 'establish-current-finite-ads-profile'
+            fallback_frames = {role: [row['frame'] for row in
+                eligibility['images'][role]['typed_structure_failures']] for role in binding.ROLES}
+            proof = current_profile.run(root=root, input_manifest=input_manifest,
+                source_packet=packet_path, bound_source=packet, source_receipt_sha256=receipt_sha,
+                profile_oracle=current_profile_oracle,
+                profile_oracle_receipt_sha256=current_profile_receipt_sha256,
+                capture_rustc_sha256=capture_rustc_sha256, fallback_frames=fallback_frames,
+                evidence=evidence / 'current-profile', build_identity=deepcopy(build_identity))
+            reviewed_class, expected_class_sha256 = proof['path'], proof['sha256']
+            report['current_profile_manifest'] = str(reviewed_class)
+            report['current_profile_manifest_sha256'] = expected_class_sha256
         profile = leaf.bind_bounded_profile(packet, packet_path, reviewed_class, expected_class_sha256,
                                            shards / 'ads-offset')
         profile_identity = leaf.bounded_profile_summary(profile)
@@ -284,6 +306,9 @@ def assemble(*, root, input_manifest, shards, oracle, expected_oracle_receipt_sh
         for scenario, saved in reports.items():
             shared.verify_files(shards / scenario, saved['files'])
         profile.verify_unchanged()
+        _compare(current_build_identity(), build_identity, 'current execution identity changed')
+        check_build_checkout(root, build_identity)
+        check_checkout(root, context)
         request = {'leaf_summary': (leaf_evidence / 'summary.json').as_posix(), 'source_packet': packet_path.as_posix(),
                    'source_receipt_sha256': receipt_sha, 'capture_rustc_sha256': capture_rustc_sha256,
                    'capture_context': deepcopy(context), 'leaf_verifier_context': deepcopy(context),
@@ -310,6 +335,10 @@ def main(argv=None):
     parser.add_argument('--capture-rustc-sha256', required=True)
     parser.add_argument('--reviewed-class', type=Path)
     parser.add_argument('--expected-class-sha256', help='Independent digest of the completed reviewed finite ADS profile class.')
+    parser.add_argument('--current-profile-oracle', type=Path,
+                        help='Same-attempt precompiled current finite profile diagnostics.')
+    parser.add_argument('--current-profile-receipt-sha256',
+                        help='Independent authored-input job output for the current profile package.')
     args = vars(parser.parse_args(argv))
     print(json.dumps(aggregate.plain(assemble(**args)), indent=2, allow_nan=False))
     return 0

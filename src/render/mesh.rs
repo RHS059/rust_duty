@@ -87,12 +87,179 @@ struct PipelineKey {
     blend: u8,
     fragment: FragmentKind,
 }
+/// Capture-only snapshot of the exact descriptor passed to pipeline creation.
+/// This is retained beside its existing cache entry, never reconstructed from
+/// requested draw flags. Ordinary play does not allocate these snapshots.
+#[derive(Clone, Debug, PartialEq)]
+struct VisibilityVertexBuffer {
+    stride: u64,
+    step: wgpu::VertexStepMode,
+    attributes: Vec<wgpu::VertexAttribute>,
+}
+#[derive(Clone, Debug, PartialEq)]
+struct VisibilityPipelineDescriptor {
+    owned_shader_bound: bool,
+    owned_layout_bound: bool,
+    vertex_entry: Option<String>,
+    vertex_buffers: Vec<Option<VisibilityVertexBuffer>>,
+    vertex_constants_empty: bool,
+    fragment_constants_empty: bool,
+    fragment_entry: Option<String>,
+    primitive: wgpu::PrimitiveState,
+    depth_stencil: Option<wgpu::DepthStencilState>,
+    multisample: wgpu::MultisampleState,
+    targets: Vec<Option<wgpu::ColorTargetState>>,
+    multiview: bool,
+}
+impl VisibilityPipelineDescriptor {
+    fn capture(
+        descriptor: &wgpu::RenderPipelineDescriptor<'_>,
+        shader: &wgpu::ShaderModule,
+        layout: &wgpu::PipelineLayout,
+        shader_source_bound: bool,
+    ) -> Self {
+        let fragment = descriptor.fragment.as_ref();
+        Self {
+            owned_shader_bound: shader_source_bound
+                && std::ptr::eq(descriptor.vertex.module, shader)
+                && fragment.is_some_and(|state| std::ptr::eq(state.module, shader)),
+            owned_layout_bound: descriptor
+                .layout
+                .is_some_and(|bound| std::ptr::eq(bound, layout)),
+            vertex_entry: descriptor.vertex.entry_point.map(str::to_owned),
+            vertex_buffers: descriptor
+                .vertex
+                .buffers
+                .iter()
+                .map(|buffer| {
+                    buffer.as_ref().map(|buffer| VisibilityVertexBuffer {
+                        stride: buffer.array_stride,
+                        step: buffer.step_mode,
+                        attributes: buffer.attributes.to_vec(),
+                    })
+                })
+                .collect(),
+            vertex_constants_empty: descriptor.vertex.compilation_options.constants.is_empty(),
+            fragment_constants_empty: fragment
+                .is_some_and(|state| state.compilation_options.constants.is_empty()),
+            fragment_entry: fragment
+                .and_then(|state| state.entry_point)
+                .map(str::to_owned),
+            primitive: descriptor.primitive,
+            depth_stencil: descriptor.depth_stencil.clone(),
+            multisample: descriptor.multisample,
+            targets: fragment.map_or_else(Vec::new, |state| state.targets.to_vec()),
+            multiview: descriptor.multiview_mask.is_some(),
+        }
+    }
+    fn validate(
+        &self,
+        depth: bool,
+        blend: BlendMode,
+        fragment: FragmentKind,
+    ) -> Result<(), String> {
+        let witness = match (depth, blend, fragment) {
+            (true, BlendMode::Alpha, FragmentKind::Straight) => false,
+            (false, BlendMode::Opaque, FragmentKind::AssociateStraight) => true,
+            _ => return Err("visibility receipt does not support this WGPU draw pipeline".into()),
+        };
+        // Independent canonical byte layout: do not compare against the same
+        // GpuVertex constants whose accidental drift this check must detect.
+        let attributes = [
+            wgpu::VertexAttribute {
+                format: wgpu::VertexFormat::Float32x3,
+                offset: 0,
+                shader_location: 0,
+            },
+            wgpu::VertexAttribute {
+                format: wgpu::VertexFormat::Float32x2,
+                offset: 12,
+                shader_location: 1,
+            },
+            wgpu::VertexAttribute {
+                format: wgpu::VertexFormat::Unorm8x4,
+                offset: 20,
+                shader_location: 2,
+            },
+            wgpu::VertexAttribute {
+                format: wgpu::VertexFormat::Float32x4,
+                offset: 24,
+                shader_location: 3,
+            },
+        ];
+        let [Some(vertex)] = self.vertex_buffers.as_slice() else {
+            return Err("visibility WGPU pipeline requires one vertex buffer".into());
+        };
+        let [Some(target)] = self.targets.as_slice() else {
+            return Err("visibility WGPU pipeline requires one color target".into());
+        };
+        let expected_depth = (!witness).then_some(wgpu::DepthStencilState {
+            format: wgpu::TextureFormat::Depth32Float,
+            depth_write_enabled: Some(true),
+            depth_compare: Some(wgpu::CompareFunction::LessEqual),
+            stencil: Default::default(),
+            bias: Default::default(),
+        });
+        let expected_blend = (!witness).then_some(wgpu::BlendState {
+            color: wgpu::BlendComponent {
+                src_factor: wgpu::BlendFactor::SrcAlpha,
+                dst_factor: wgpu::BlendFactor::OneMinusSrcAlpha,
+                operation: wgpu::BlendOperation::Add,
+            },
+            alpha: wgpu::BlendComponent {
+                src_factor: wgpu::BlendFactor::One,
+                dst_factor: wgpu::BlendFactor::OneMinusSrcAlpha,
+                operation: wgpu::BlendOperation::Add,
+            },
+        });
+        if !self.owned_shader_bound
+            || !self.owned_layout_bound
+            || self.vertex_entry.as_deref() != Some("vs_main")
+            || self.fragment_entry.as_deref()
+                != Some(if witness {
+                    "fs_associate_straight"
+                } else {
+                    "fs_straight"
+                })
+            || !self.vertex_constants_empty
+            || !self.fragment_constants_empty
+            || vertex.stride != 40
+            || vertex.step != wgpu::VertexStepMode::Vertex
+            || vertex.attributes.as_slice() != attributes
+            || self.primitive
+                != (wgpu::PrimitiveState {
+                    topology: wgpu::PrimitiveTopology::TriangleList,
+                    front_face: wgpu::FrontFace::Ccw,
+                    cull_mode: None,
+                    ..Default::default()
+                })
+            || self.depth_stencil != expected_depth
+            || self.multisample != wgpu::MultisampleState::default()
+            || target.format != wgpu::TextureFormat::Rgba8Unorm
+            || target.blend != expected_blend
+            || target.write_mask != wgpu::ColorWrites::ALL
+            || self.multiview
+        {
+            return Err(
+                "visibility WGPU creation descriptor differs from supported submitted state".into(),
+            );
+        }
+        Ok(())
+    }
+}
+struct CachedPipeline {
+    pipeline: wgpu::RenderPipeline,
+    visibility: Option<Box<VisibilityPipelineDescriptor>>,
+}
+
 pub(crate) struct Pipelines {
     pub texture_layout: wgpu::BindGroupLayout,
     transform_layout: wgpu::BindGroupLayout,
     layout: wgpu::PipelineLayout,
     shader: wgpu::ShaderModule,
-    pipelines: HashMap<PipelineKey, wgpu::RenderPipeline>,
+    pipelines: HashMap<PipelineKey, CachedPipeline>,
+    capture_receipts: bool,
+    shader_source_bound: bool,
 }
 pub(crate) struct FrameGeometry {
     pub vertices: wgpu::Buffer,
@@ -140,16 +307,26 @@ impl Pipelines {
             bind_group_layouts: &[Some(&transform_layout), Some(&texture_layout)],
             immediate_size: 0,
         });
-        let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+        // Capture receipts start after warm-up, so retain creation inputs for
+        // explicit witness runs even before their first frame request exists.
+        let capture_receipts = cfg!(all(windows, target_arch = "x86_64"))
+            && std::env::args().any(|arg| arg.starts_with("--capture-frame-witness="));
+        let shader_descriptor = wgpu::ShaderModuleDescriptor {
             label: Some("CPU-lit mesh shader"),
             source: wgpu::ShaderSource::Wgsl(include_str!("mesh.wgsl").into()),
-        });
+        };
+        let shader_source_bound = capture_receipts
+            && matches!(&shader_descriptor.source,
+                wgpu::ShaderSource::Wgsl(source) if source.as_ref() == include_str!("mesh.wgsl"));
+        let shader = device.create_shader_module(shader_descriptor);
         Self {
             texture_layout,
             transform_layout,
             layout,
             shader,
             pipelines: HashMap::new(),
+            capture_receipts,
+            shader_source_bound,
         }
     }
     pub fn pipeline(
@@ -161,6 +338,38 @@ impl Pipelines {
         blend: BlendMode,
         fragment: FragmentKind,
     ) -> wgpu::RenderPipeline {
+        self.cached_pipeline(device, format, depth, lines, blend, fragment)
+            .pipeline
+            .clone()
+    }
+    /// Return the exact cache entry whose actual creation descriptor passed the
+    /// capture contract. A missing or unsupported snapshot never emits evidence.
+    pub fn visibility_pipeline(
+        &mut self,
+        device: &wgpu::Device,
+        format: wgpu::TextureFormat,
+        depth: bool,
+        lines: bool,
+        blend: BlendMode,
+        fragment: FragmentKind,
+    ) -> Result<wgpu::RenderPipeline, String> {
+        let cached = self.cached_pipeline(device, format, depth, lines, blend, fragment);
+        cached
+            .visibility
+            .as_ref()
+            .ok_or("visibility pipeline lacks capture-time creation snapshot")?
+            .validate(depth, blend, fragment)?;
+        Ok(cached.pipeline.clone())
+    }
+    fn cached_pipeline(
+        &mut self,
+        device: &wgpu::Device,
+        format: wgpu::TextureFormat,
+        depth: bool,
+        lines: bool,
+        blend: BlendMode,
+        fragment: FragmentKind,
+    ) -> &CachedPipeline {
         let key = PipelineKey {
             format,
             depth,
@@ -172,49 +381,60 @@ impl Pipelines {
                 BlendMode::Additive => 2,
             },
         };
-        self.pipelines
-            .entry(key)
-            .or_insert_with(|| {
-                device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-                    label: Some("CPU-lit mesh pipeline"),
-                    layout: Some(&self.layout),
-                    vertex: wgpu::VertexState {
-                        module: &self.shader,
-                        entry_point: Some("vs_main"),
-                        compilation_options: Default::default(),
-                        buffers: &[Some(wgpu::VertexBufferLayout {
-                            array_stride: GpuVertex::STRIDE,
-                            step_mode: wgpu::VertexStepMode::Vertex,
-                            attributes: &GpuVertex::ATTRIBUTES,
-                        })],
+        self.pipelines.entry(key).or_insert_with(|| {
+            let vertex_buffers = [Some(wgpu::VertexBufferLayout {
+                array_stride: GpuVertex::STRIDE,
+                step_mode: wgpu::VertexStepMode::Vertex,
+                attributes: &GpuVertex::ATTRIBUTES,
+            })];
+            let targets = [Some(wgpu::ColorTargetState {
+                format,
+                blend: blend_state(blend, fragment),
+                write_mask: wgpu::ColorWrites::ALL,
+            })];
+            let descriptor = wgpu::RenderPipelineDescriptor {
+                label: Some("CPU-lit mesh pipeline"),
+                layout: Some(&self.layout),
+                vertex: wgpu::VertexState {
+                    module: &self.shader,
+                    entry_point: Some("vs_main"),
+                    compilation_options: Default::default(),
+                    buffers: &vertex_buffers,
+                },
+                primitive: wgpu::PrimitiveState {
+                    topology: if lines {
+                        wgpu::PrimitiveTopology::LineList
+                    } else {
+                        wgpu::PrimitiveTopology::TriangleList
                     },
-                    primitive: wgpu::PrimitiveState {
-                        topology: if lines {
-                            wgpu::PrimitiveTopology::LineList
-                        } else {
-                            wgpu::PrimitiveTopology::TriangleList
-                        },
-                        front_face: wgpu::FrontFace::Ccw,
-                        cull_mode: None,
-                        ..Default::default()
-                    },
-                    depth_stencil: depth_state(depth, blend),
-                    multisample: Default::default(),
-                    fragment: Some(wgpu::FragmentState {
-                        module: &self.shader,
-                        entry_point: Some(fragment.entry_point()),
-                        compilation_options: Default::default(),
-                        targets: &[Some(wgpu::ColorTargetState {
-                            format,
-                            blend: blend_state(blend, fragment),
-                            write_mask: wgpu::ColorWrites::ALL,
-                        })],
-                    }),
-                    multiview_mask: None,
-                    cache: None,
-                })
-            })
-            .clone()
+                    front_face: wgpu::FrontFace::Ccw,
+                    cull_mode: None,
+                    ..Default::default()
+                },
+                depth_stencil: depth_state(depth, blend),
+                multisample: Default::default(),
+                fragment: Some(wgpu::FragmentState {
+                    module: &self.shader,
+                    entry_point: Some(fragment.entry_point()),
+                    compilation_options: Default::default(),
+                    targets: &targets,
+                }),
+                multiview_mask: None,
+                cache: None,
+            };
+            let visibility = self.capture_receipts.then(|| {
+                Box::new(VisibilityPipelineDescriptor::capture(
+                    &descriptor,
+                    &self.shader,
+                    &self.layout,
+                    self.shader_source_bound,
+                ))
+            });
+            CachedPipeline {
+                pipeline: device.create_render_pipeline(&descriptor),
+                visibility,
+            }
+        })
     }
     /// Later finite corroboration only. Reuse the production VS module, layout,
     /// primitive state and single-sample target; change only the fragment stage
@@ -313,6 +533,118 @@ mod tests {
     use crate::draw::Vertex;
     use glam::{Mat4, Vec2, Vec3, Vec4};
     use std::mem::{offset_of, size_of};
+    fn visibility_descriptor(witness: bool) -> VisibilityPipelineDescriptor {
+        let blend = if witness {
+            BlendMode::Opaque
+        } else {
+            BlendMode::Alpha
+        };
+        let fragment = if witness {
+            FragmentKind::AssociateStraight
+        } else {
+            FragmentKind::Straight
+        };
+        VisibilityPipelineDescriptor {
+            owned_shader_bound: true,
+            owned_layout_bound: true,
+            vertex_entry: Some("vs_main".into()),
+            vertex_buffers: vec![Some(VisibilityVertexBuffer {
+                stride: GpuVertex::STRIDE,
+                step: wgpu::VertexStepMode::Vertex,
+                attributes: GpuVertex::ATTRIBUTES.to_vec(),
+            })],
+            vertex_constants_empty: true,
+            fragment_constants_empty: true,
+            fragment_entry: Some(fragment.entry_point().into()),
+            primitive: wgpu::PrimitiveState {
+                topology: wgpu::PrimitiveTopology::TriangleList,
+                front_face: wgpu::FrontFace::Ccw,
+                cull_mode: None,
+                ..Default::default()
+            },
+            depth_stencil: depth_state(!witness, blend),
+            multisample: Default::default(),
+            targets: vec![Some(wgpu::ColorTargetState {
+                format: super::super::target::COLOR_FORMAT,
+                blend: blend_state(blend, fragment),
+                write_mask: wgpu::ColorWrites::ALL,
+            })],
+            multiview: false,
+        }
+    }
+    #[test]
+    fn visibility_descriptor_accepts_only_scene_and_witness_contracts() {
+        visibility_descriptor(false)
+            .validate(true, BlendMode::Alpha, FragmentKind::Straight)
+            .unwrap();
+        visibility_descriptor(true)
+            .validate(false, BlendMode::Opaque, FragmentKind::AssociateStraight)
+            .unwrap();
+        assert!(visibility_descriptor(false)
+            .validate(false, BlendMode::Alpha, FragmentKind::Straight)
+            .is_err());
+        assert!(visibility_descriptor(false)
+            .validate(true, BlendMode::Additive, FragmentKind::Straight)
+            .is_err());
+        assert!(visibility_descriptor(false)
+            .validate(true, BlendMode::Alpha, FragmentKind::Associated)
+            .is_err());
+        assert!(visibility_descriptor(true)
+            .validate(false, BlendMode::Opaque, FragmentKind::Present)
+            .is_err());
+    }
+    #[test]
+    fn visibility_descriptor_rejects_creation_layout_shader_and_raster_drift() {
+        let mutations: &[fn(&mut VisibilityPipelineDescriptor)] = &[
+            |state| state.owned_shader_bound = false,
+            |state| state.owned_layout_bound = false,
+            |state| state.vertex_entry = Some("other_vertex".into()),
+            |state| state.fragment_entry = Some("fs_associated".into()),
+            |state| state.vertex_constants_empty = false,
+            |state| state.fragment_constants_empty = false,
+            |state| state.vertex_buffers[0].as_mut().unwrap().stride = 24,
+            |state| state.vertex_buffers[0].as_mut().unwrap().step = wgpu::VertexStepMode::Instance,
+            |state| state.vertex_buffers[0].as_mut().unwrap().attributes[0].offset = 4,
+            |state| state.vertex_buffers[0].as_mut().unwrap().attributes[2].shader_location = 3,
+            |state| {
+                state.vertex_buffers[0].as_mut().unwrap().attributes[2].format =
+                    wgpu::VertexFormat::Uint8x4;
+            },
+            |state| state.vertex_buffers.clear(),
+            |state| state.primitive.cull_mode = Some(wgpu::Face::Back),
+            |state| state.primitive.topology = wgpu::PrimitiveTopology::LineList,
+            |state| state.primitive.unclipped_depth = true,
+            |state| state.depth_stencil.as_mut().unwrap().depth_write_enabled = Some(false),
+            |state| {
+                state.depth_stencil.as_mut().unwrap().depth_compare =
+                    Some(wgpu::CompareFunction::Always);
+            },
+            |state| state.depth_stencil.as_mut().unwrap().bias.constant = 1,
+            |state| state.targets[0].as_mut().unwrap().format = wgpu::TextureFormat::Bgra8Unorm,
+            |state| state.targets[0].as_mut().unwrap().blend = None,
+            |state| state.targets[0].as_mut().unwrap().write_mask = wgpu::ColorWrites::empty(),
+            |state| state.targets.clear(),
+            |state| state.multisample.count = 4,
+            |state| state.multisample.mask = 0,
+            |state| state.multisample.alpha_to_coverage_enabled = true,
+            |state| state.multiview = true,
+        ];
+        for (index, mutate) in mutations.iter().enumerate() {
+            let mut descriptor = visibility_descriptor(false);
+            mutate(&mut descriptor);
+            assert!(
+                descriptor
+                    .validate(true, BlendMode::Alpha, FragmentKind::Straight)
+                    .is_err(),
+                "descriptor mutation {index} unexpectedly accepted"
+            );
+        }
+        let mut witness = visibility_descriptor(true);
+        witness.depth_stencil = depth_state(true, BlendMode::Opaque);
+        assert!(witness
+            .validate(false, BlendMode::Opaque, FragmentKind::AssociateStraight)
+            .is_err());
+    }
     #[test]
     fn packed_vertex_has_exact_offsets_and_no_glam_padding() {
         assert_eq!(size_of::<GpuVertex>(), 40);

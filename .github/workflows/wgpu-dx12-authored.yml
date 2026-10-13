@@ -1,13 +1,19 @@
 name: Authored DX12 WARP acceptance (no distribution)
 on:
   workflow_call:
+    inputs:
+      source_proof_admitted:
+        required: true
+        type: boolean
 permissions:
   contents: read
 env:
   GIT_CONFIG_COUNT: '1'
   GIT_CONFIG_KEY_0: core.autocrlf
   GIT_CONFIG_VALUE_0: 'false'
-  CURRENT_ADS_SOURCE_PROOF: ${{ github.repository == 'RHS059/rust_duty' && github.ref == 'refs/heads/main' && github.workflow_ref == 'RHS059/rust_duty/.github/workflows/build.yml@refs/heads/main' }}
+  # The ordinary caller's early strict identity check is the sole activation
+  # output. This job rechecks its own actual caller/SHA/raw merge parents below.
+  CURRENT_ADS_SOURCE_PROOF: ${{ inputs.source_proof_admitted }}
 # Same-run artifact downloads intentionally have no repository/run-id/token override.
 # Historical Linux artifacts remain exact diagnostics; strict renderer parity uses
 # a same-Windows, same-binary OpenGl reference. A partial attempt rerun without
@@ -16,9 +22,10 @@ env:
 jobs:
   authored-inputs:
     runs-on: windows-latest
-    timeout-minutes: 60
+    timeout-minutes: 120
     outputs:
       oracle_receipt_sha256: ${{ steps.prepare-oracle.outputs.receipt_sha256 }}
+      profile_receipt_sha256: ${{ steps.prepare-current-profile.outputs.receipt_sha256 }}
       oracle_compiler_sha256: ${{ steps.authored-rust-version.outputs.hash }}
     steps:
       - uses: actions/checkout@v4
@@ -30,6 +37,11 @@ jobs:
           python-version: '3.12'
       - name: Install capture and materialization dependencies
         run: python -m pip install -r tools/requirements-assets.txt
+      - name: Report sanitized current source-proof admission diagnostics
+        run: python tools/current_ads_build_context.py --root . --diagnostics-only
+      - name: Verify current source-proof caller and exact merge parents
+        if: env.CURRENT_ADS_SOURCE_PROOF == 'true'
+        run: python tools/current_ads_build_context.py --root .
       - name: Fetch validated reload companions from this run
         uses: actions/download-artifact@v4
         with:
@@ -126,6 +138,12 @@ jobs:
           cargo build --locked --release --no-default-features
           --features legacy-macroquad,wgpu-runtime
           --bin vector-range --example renderer_contract
+      - name: Test actual capture input and pipeline descriptor contracts
+        if: env.CURRENT_ADS_SOURCE_PROOF == 'true'
+        timeout-minutes: 20
+        run: >-
+          cargo test --locked --release --no-default-features
+          --features legacy-macroquad,wgpu-runtime --lib visibility
       - name: Stage pinned official app-local Mesa reference
         shell: pwsh
         timeout-minutes: 10
@@ -164,7 +182,10 @@ jobs:
       - name: Test current-run oracle preparation receipts
         env:
           PYTHONPATH: tools
-        run: python -m unittest -v test_prepare_ads_source_oracle
+        run: >-
+          python -m unittest -v test_prepare_ads_source_oracle test_current_ads_source_oracle
+          test_prepare_current_ads_profile test_current_ads_native_binding
+          test_current_ads_profile_proof test_current_ads_profile_binding
       - name: Prepare one source oracle using the captured Windows compiler
         id: prepare-oracle
         if: env.CURRENT_ADS_SOURCE_PROOF == 'true'
@@ -191,6 +212,34 @@ jobs:
             evidence/ads-source-oracle-build/prepare-summary.json
             evidence/ads-source-oracle-build/independent-receipt.sha256
             evidence/ads-source-oracle-build/logs/
+          if-no-files-found: warn
+          retention-days: 7
+      - name: Prepare current profile diagnostics with the captured Windows compiler
+        id: prepare-current-profile
+        if: env.CURRENT_ADS_SOURCE_PROOF == 'true'
+        timeout-minutes: 45
+        run: >-
+          python tools/prepare_current_ads_profile.py --root .
+          --input-manifest evidence/authored-inputs/input-manifest.json
+          --evidence evidence/current-ads-profile-build
+          --capture-rustc-sha256 ${{ steps.authored-rust-version.outputs.hash }}
+      - name: Retain current profile diagnostics with their independent receipt
+        if: env.CURRENT_ADS_SOURCE_PROOF == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: dx12-authored-precompiled-current-profile-attempt-${{ github.run_attempt }}
+          path: evidence/current-ads-profile-build/package/
+          if-no-files-found: error
+          retention-days: 7
+      - name: Retain current profile preparation diagnostics
+        if: always() && env.CURRENT_ADS_SOURCE_PROOF == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: dx12-authored-current-profile-build-diagnostics-attempt-${{ github.run_attempt }}
+          path: |
+            evidence/current-ads-profile-build/prepare-summary.json
+            evidence/current-ads-profile-build/independent-receipt.sha256
+            evidence/current-ads-profile-build/logs/
           if-no-files-found: warn
           retention-days: 7
 
@@ -441,12 +490,19 @@ jobs:
         with:
           name: dx12-authored-precompiled-oracle-attempt-${{ github.run_attempt }}
           path: evidence/precompiled-ads-oracle
+      - name: Fetch this attempt's independently bound current profile diagnostics
+        if: env.CURRENT_ADS_SOURCE_PROOF == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          name: dx12-authored-precompiled-current-profile-attempt-${{ github.run_attempt }}
+          path: evidence/precompiled-current-ads-profile
       - name: Require current-run source proof for any deferred offset coverage
         id: current-source-oracle
         if: always() && env.CURRENT_ADS_SOURCE_PROOF == 'true'
         timeout-minutes: 90
         env:
           ORACLE_BUILD_RECEIPT_SHA256: ${{ needs.authored-inputs.outputs.oracle_receipt_sha256 }}
+          PROFILE_BUILD_RECEIPT_SHA256: ${{ needs.authored-inputs.outputs.profile_receipt_sha256 }}
           CAPTURE_COMPILER_SHA256: ${{ needs.authored-inputs.outputs.oracle_compiler_sha256 }}
         shell: pwsh
         run: >-
@@ -455,8 +511,8 @@ jobs:
           --shards evidence/authored-shards --oracle evidence/precompiled-ads-oracle
           --expected-oracle-receipt-sha256 "$env:ORACLE_BUILD_RECEIPT_SHA256"
           --capture-rustc-sha256 "$env:CAPTURE_COMPILER_SHA256"
-          --reviewed-class tools/finite_ads_gpu_cpu_class.json
-          --expected-class-sha256 91bd0030157ff8e1b4e70127b028e57543d8fc91fb3b6cc1202c4707491fb798
+          --current-profile-oracle evidence/precompiled-current-ads-profile
+          --current-profile-receipt-sha256 "$env:PROFILE_BUILD_RECEIPT_SHA256"
           --evidence evidence/current-ads-source --receipt-anchor evidence/current-ads-source-receipt.sha256
       - name: Require every full shard, exact same-Windows parity and existing pair validators
         if: always()

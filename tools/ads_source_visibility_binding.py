@@ -238,7 +238,10 @@ class BoundSourcePacket:
                  'invalid role/frame index')
         path = Path(path).absolute()
         _require(path == self._frames[role][index], 'frame path differs from bound capture')
-        for suffix in ('', '.json', '.gameplay.json', '.time.json'):
+        suffixes = ('', '.json', '.gameplay.json', '.time.json')
+        if self.headers_by_role[role].get('native_draw_inventory_schema') is not None:
+            suffixes += ('.visibility.json',)
+        for suffix in suffixes:
             self._remember(Path(str(path) + suffix))
         row = self.rows_by_role[role][index]
         _native_telemetry_shape(row['native_gameplay'], row['native_time'], f'{role}/{index}')
@@ -442,8 +445,12 @@ def bind_source_packet(packet_path, *, native_binding, original_invocations,
         for entry in sources:
             telemetry._compare(entry.get('companion_crc32'), catalog[_recorded_path(entry['vra'])], 'source companion CRC')
         folder, _ = shared._checked_root(Path(native_frame_dirs[role]).absolute())
-        expected = {f'{index:04}.png{suffix}' for index in range(FRAME_COUNT)
-                    for suffix in ('', '.json', '.gameplay.json', '.time.json')}
+        suffixes = ('', '.json', '.gameplay.json', '.time.json')
+        if 'native_draw_inventory_schema' in header:
+            _require(header['native_draw_inventory_schema'] == 'rust-duty-native-visibility-receipt/v1',
+                     'unsupported native draw inventory schema')
+            suffixes += ('.visibility.json',)
+        expected = {f'{index:04}.png{suffix}' for index in range(FRAME_COUNT) for suffix in suffixes}
         actual = {key for key, _ in shared._walk_files(folder)}
         _require(actual - {'verification.json'} == expected, f'{role}: incomplete or unexpected native frame files')
         result._roots[folder] = expected
@@ -461,6 +468,11 @@ def bind_source_packet(packet_path, *, native_binding, original_invocations,
             metadata = result._json(Path(str(image) + '.json'))
             _require(metadata.get('backend') == native_backend and metadata.get('requested') == renderer,
                      f'{role}/{index}: native backend mismatch')
+            if 'native_draw_inventory_schema' in header:
+                telemetry._compare(metadata.get('visibility_receipt_schema'), header['native_draw_inventory_schema'],
+                                   f'{role}/{index}: missing native draw receipt declaration')
+                _require(type(row.get('expected_draw_inventory')) is list and row['expected_draw_inventory'],
+                         f'{role}/{index}: complete expected pre-submission inventory missing')
             _require(type(metadata.get('width')) is int and type(metadata.get('height')) is int
                      and (metadata['width'], metadata['height']) == (960, 540), f'{role}/{index}: native extent mismatch')
             result.verify_frame_binding(image, role, index)
