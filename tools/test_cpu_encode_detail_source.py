@@ -4,15 +4,13 @@ from pathlib import Path
 import subprocess
 import tempfile
 import unittest
-import zipfile
 
 import performance_matrix as matrix
+from historical_source_test_fixture import skin_stage_sources
 
 ROOT = Path(__file__).resolve().parents[1]
 OLD_CANDIDATE = '9b7ae93be3a4d4aed9b662d0c27ff18d0b1e12e99c4dc916422c98e0c5eae3c6'
 OLD_BASELINE = 'dbabe2822dd73410a7f05c0f03807aa80d5720351c4a9c13ebdee1276fecc195'
-HISTORICAL_SOURCE = ROOT / 'tools/test_fixtures/skin-stage-source-663d191.zip'
-HISTORICAL_SOURCE_SHA256 = 'f534904b8dae31637d6983576679e3d16f477a5ff0026da921e18ad1299e2c4d'
 
 
 def commit(root):
@@ -26,11 +24,7 @@ class CpuEncodeDetailSourceTests(unittest.TestCase):
     def historical_files(self):
         # Original committed source bytes, never an allowlist patched to admit
         # today's checkout. The fixture also works with shallow CI history.
-        self.assertEqual(matrix.sha256(HISTORICAL_SOURCE), HISTORICAL_SOURCE_SHA256)
-        with zipfile.ZipFile(HISTORICAL_SOURCE) as archive:
-            self.assertEqual(len(archive.namelist()), len(matrix.ARITHMETIC_SOURCE_PATHS))
-            self.assertEqual(set(archive.namelist()), set(matrix.ARITHMETIC_SOURCE_PATHS))
-            files = {name: archive.read(name) for name in matrix.ARITHMETIC_SOURCE_PATHS}
+        files = skin_stage_sources()
         hashes = {name: hashlib.sha256(data).hexdigest() for name, data in files.items()}
         self.assertEqual(matrix.canonical_hash(hashes), matrix.AUDITED_SKIN_STAGE_CANDIDATE_MANIFEST)
         return files

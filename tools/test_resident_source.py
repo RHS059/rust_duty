@@ -3,19 +3,30 @@ import tempfile
 from pathlib import Path
 import subprocess
 import unittest
+import hashlib
 import performance_matrix as matrix
+from historical_source_test_fixture import skin_stage_sources
 ROOT=Path(__file__).resolve().parents[1]
 def git(root,*args): return subprocess.run(['git','-C',str(root),*args],check=True,capture_output=True)
 def commit(root):
     git(root,'add','.')
     git(root,'-c','user.name=Synthetic Test','-c','user.email=test@example.invalid','commit','-qm','Synthetic source')
 class SourceTests(unittest.TestCase):
-    def checkout(self):
+    def checkout(self, *, current=False):
         temp=tempfile.TemporaryDirectory();self.addCleanup(temp.cleanup);root=Path(temp.name)
         git(root,'init','-q');git(root,'config','core.autocrlf','false')
-        for name in matrix.ARITHMETIC_SOURCE_PATHS:
-            p=root/name;p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes((ROOT/name).read_bytes())
+        files=({name:(ROOT/name).read_bytes() for name in matrix.ARITHMETIC_SOURCE_PATHS}
+               if current else skin_stage_sources())
+        for name,data in files.items():
+            p=root/name;p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes(data)
         commit(root);return root
+    def test_current_source_cannot_adopt_or_export_historical_resident_identity(self):
+        root=self.checkout(current=True)
+        with self.assertRaisesRegex(ValueError,'Arithmetic source changed; cannot fall back'):
+            matrix.source_identity(root)
+        with self.assertRaisesRegex(ValueError,'Arithmetic source changed; cannot fall back'):
+            matrix.export_witness(root,root/'witness')
+        self.assertFalse((root/'witness').exists())
     def test_exact_candidate_and_control_witnesses(self):
         root=self.checkout()
         source=matrix.source_identity(root)
@@ -66,7 +77,8 @@ class SourceTests(unittest.TestCase):
         self.assertEqual(matrix.audited_inventory(matrix.AUDITED_AUTHORED_DEDUP_MANIFEST),matrix.LOADER_SOURCE_PATHS)
         self.assertEqual(matrix.audited_inventory(matrix.AUDITED_ARENA_SERIALIZATION_MANIFEST),matrix.UPLOAD_REUSE_SOURCE_PATHS)
     def test_measured_exact_unorm_classes_keep_exact_historical_bytes(self):
-        hashes={name:matrix.sha256(ROOT/name) for name in matrix.ARITHMETIC_SOURCE_PATHS}
+        files=skin_stage_sources()
+        hashes={name:hashlib.sha256(files[name]).hexdigest() for name in matrix.ARITHMETIC_SOURCE_PATHS}
         hashes['src/render/resident_vertex_probe.rs']='e18bd71b9836fe9398050873da1458383f2c3e0b2468bad02f291bc0f8255179'
         self.assertEqual(matrix.canonical_hash(hashes), matrix.AUDITED_EXACT_UNORM_CANDIDATE_MANIFEST)
         self.assertEqual(matrix.AUDITED_EXACT_UNORM_CANDIDATE_MANIFEST,
@@ -75,8 +87,7 @@ class SourceTests(unittest.TestCase):
             ('src/frame_staging_policy.rs', matrix.AUDITED_EXACT_UNORM_STAGING_CONTROL_MANIFEST),
             ('src/frame_resident_policy.rs', matrix.AUDITED_EXACT_UNORM_RESIDENT_CPU_CONTROL_MANIFEST),
         ):
-            import hashlib
-            control=hashes.copy();raw=(ROOT/name).read_bytes()
+            control=hashes.copy();raw=files[name]
             self.assertEqual(raw.count(b'ENABLED: bool = true;'),1)
             control[name]=hashlib.sha256(raw.replace(b'ENABLED: bool = true;',b'ENABLED: bool = false;')).hexdigest()
             self.assertEqual(matrix.canonical_hash(control),expected)
@@ -85,7 +96,8 @@ class SourceTests(unittest.TestCase):
                          matrix.ARITHMETIC_SOURCE_PATHS)
 
     def test_measured_arithmetic_classes_keep_exact_historical_bytes(self):
-        hashes={name:matrix.sha256(ROOT/name) for name in matrix.ARITHMETIC_SOURCE_PATHS}
+        files=skin_stage_sources()
+        hashes={name:hashlib.sha256(files[name]).hexdigest() for name in matrix.ARITHMETIC_SOURCE_PATHS}
         hashes.update({
             'src/render/resident.rs':'8d1c10b1f51e60d1db6e6260f6dfdc1c4f7511a5fb827dd966bdb87b84888887',
             'src/render/resident.wgsl':'90acbcd974685c4f0cf18c67a4efd0b6b980b86f554181fcc7b0a1f67d5db25a',
@@ -100,8 +112,7 @@ class SourceTests(unittest.TestCase):
             ('src/frame_resident_policy.rs', b'ENABLED: bool = true;',
              matrix.AUDITED_ARITHMETIC_RESIDENT_CPU_CONTROL_MANIFEST),
         ):
-            import hashlib
-            control=hashes.copy(); raw=(ROOT/name).read_bytes()
+            control=hashes.copy(); raw=files[name]
             self.assertEqual(raw.count(token), 1)
             control[name]=hashlib.sha256(raw.replace(token,token.replace(b'true',b'false'))).hexdigest()
             self.assertEqual(matrix.canonical_hash(control), expected)
@@ -111,7 +122,8 @@ class SourceTests(unittest.TestCase):
     def test_historical_staging_digest_is_not_rebound_to_arithmetic_bytes(self):
         # These immutable old file hashes make this test independent of Git fetch
         # depth while retaining the exact previous inventory and class identity.
-        hashes={name:matrix.sha256(ROOT/name) for name in matrix.STAGING_SOURCE_PATHS}
+        files=skin_stage_sources()
+        hashes={name:hashlib.sha256(files[name]).hexdigest() for name in matrix.STAGING_SOURCE_PATHS}
         hashes.update({
             'src/render/mod.rs':'b4784d74d2a8623bce0ac22f1c261662e4a76b3efdb7e834fece61fde320c153',
             'src/render/resident.rs':'5f5d286ea67f26b2bacc24a0f79c19f3e39bec1bdb691f3042a501bb303deef4',

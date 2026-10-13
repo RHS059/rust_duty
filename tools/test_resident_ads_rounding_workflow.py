@@ -1,8 +1,11 @@
 """Keep the diagnostic route bounded, source-bound and separate from acceptance."""
 from pathlib import Path
 import unittest
+import tempfile
+import subprocess
 from unittest.mock import patch
 import run_resident_ads_rounding as diagnostic
+from historical_source_test_fixture import resident_ads_sources
 import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -34,15 +37,30 @@ class WorkflowTests(unittest.TestCase):
         self.assertIn('!/assets/weapons/',checkout['with']['sparse-checkout'])
         self.assertFalse(checkout['with']['persist-credentials'])
 
-    def test_source_admission_accepts_current_and_skips_changed_production(self):
-        production=diagnostic.pair.read_sources(ROOT,'HEAD',diagnostic.pair.PRODUCTION_PATHS)
-        self.assertTrue(diagnostic.admit(ROOT))
+    def test_source_admission_accepts_immutable_history_and_skips_changed_production(self):
+        production=resident_ads_sources()
+        self.assertEqual(diagnostic.matrix.canonical_hash(diagnostic.pair.hashes(production)),
+                         diagnostic.PRODUCTION_MANIFEST)
+        with tempfile.TemporaryDirectory() as directory:
+            root=Path(directory)
+            subprocess.run(['git','init','-q',str(root)],check=True,capture_output=True)
+            subprocess.run(['git','-C',str(root),'config','core.autocrlf','false'],check=True,capture_output=True)
+            for name,data in production.items():
+                path=root/name;path.parent.mkdir(parents=True,exist_ok=True);path.write_bytes(data)
+            subprocess.run(['git','-C',str(root),'add','.'],check=True,capture_output=True)
+            subprocess.run(['git','-C',str(root),'-c','user.name=Synthetic Test',
+                            '-c','user.email=test@example.invalid','commit','-qm','Historical source fixture'],
+                           check=True,capture_output=True)
+            self.assertTrue(diagnostic.admit(root))
         changed={**production,'src/main.rs':production['src/main.rs']+b'\n// unreviewed change\n'}
         with patch.object(diagnostic.pair,'read_sources',return_value=changed):
             self.assertFalse(diagnostic.admit(ROOT))
         with patch.object(diagnostic.pair,'read_sources',side_effect=OSError('Git read failed')):
             with self.assertRaises(OSError):
                 diagnostic.admit(ROOT)
+
+    def test_current_source_is_not_admitted_to_historical_ads_diagnostic(self):
+        self.assertFalse(diagnostic.admit(ROOT))
 
     def test_every_expensive_job_requires_explicit_source_admission(self):
         for name,job in self.workflow['jobs'].items():

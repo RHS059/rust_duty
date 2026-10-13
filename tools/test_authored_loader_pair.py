@@ -19,6 +19,7 @@ import run_authored_loader_pair as loader
 import run_windows_cpu_profile as profile
 import test_performance_matrix as matrix_tests
 import test_geometry_profile_pair as geometry_tests
+from historical_source_test_fixture import skin_stage_sources
 
 
 RECEIPT = 'a' * 64
@@ -299,22 +300,24 @@ class HistoricalLoaderWitnessTests(unittest.TestCase):
                 matrix.source_identity(self.repository)
 
 
-class CurrentLoaderWitnessTests(unittest.TestCase):
-    def checkout(self):
+class ExpandedLoaderWitnessTests(unittest.TestCase):
+    def checkout(self, *, current=False):
         temporary = tempfile.TemporaryDirectory()
         self.addCleanup(temporary.cleanup)
         root = Path(temporary.name)
         subprocess.run(['git', 'init', '-q', str(root)], check=True, capture_output=True)
         subprocess.run(['git', '-C', str(root), 'config', 'core.autocrlf', 'false'], check=True, capture_output=True)
-        current = Path(matrix.__file__).resolve().parents[1]
-        for name in matrix.ARITHMETIC_SOURCE_PATHS:
+        repository = Path(matrix.__file__).resolve().parents[1]
+        files = ({name: (repository / name).read_bytes() for name in matrix.ARITHMETIC_SOURCE_PATHS}
+                 if current else skin_stage_sources())
+        for name, data in files.items():
             path = root / name
             path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_bytes((current / name).read_bytes())
+            path.write_bytes(data)
         commit_fixture(root)
         return root
 
-    def test_current_expanded_source_bytes_and_retained_witness_roundtrip(self):
+    def test_historical_expanded_source_bytes_and_retained_witness_roundtrip(self):
         root = self.checkout()
         source = matrix.source_identity(root)
         self.assertEqual(len(source['runtime_files_sha256']), 48)
@@ -333,6 +336,14 @@ class CurrentLoaderWitnessTests(unittest.TestCase):
         (output / 'SOURCE_WITNESS.json').write_text(json.dumps(value))
         with self.assertRaises(ValueError):
             matrix.artifact_source(output, matrix.sha256(output / 'SOURCE_WITNESS.json'))
+
+    def test_current_expanded_source_cannot_adopt_historical_witness(self):
+        root = self.checkout(current=True)
+        with self.assertRaisesRegex(ValueError, 'Arithmetic source changed; cannot fall back'):
+            matrix.source_identity(root)
+        with self.assertRaisesRegex(ValueError, 'Arithmetic source changed; cannot fall back'):
+            matrix.export_witness(root, root / 'witness')
+        self.assertFalse((root / 'witness').exists())
 
 
 class LoaderOutputTests(unittest.TestCase):
