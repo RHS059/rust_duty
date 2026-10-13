@@ -346,20 +346,37 @@ fn expected_mesh(
         for alpha in pixels.iter_mut().skip(3).step_by(4) {
             *alpha = 255;
         }
-        Some(Texture::rgba8(texture_width, texture_height, &pixels, Sampler {
-            filter: FilterMode::Linear,
-            wrap_x: WrapMode::Repeat,
-            wrap_y: WrapMode::Repeat,
-        }).expect("validated source texture"))
+        Some(
+            Texture::rgba8(
+                texture_width,
+                texture_height,
+                &pixels,
+                Sampler {
+                    filter: FilterMode::Linear,
+                    wrap_x: WrapMode::Repeat,
+                    wrap_y: WrapMode::Repeat,
+                },
+            )
+            .expect("validated source texture"),
+        )
     };
-    let triangles: Vec<_> = indices.as_chunks::<3>().0.iter().map(|indices| {
-        let vertices = indices.map(|index| {
-            let index = index as usize;
-            Vertex { position: positions[index], uv: Vec2::from_array(uvs[index]),
-                     color: colors[index], normal: Vec4::ZERO }
-        });
-        triangle_sha256(&vertices)
-    }).collect();
+    let triangles: Vec<_> = indices
+        .as_chunks::<3>()
+        .0
+        .iter()
+        .map(|indices| {
+            let vertices = indices.map(|index| {
+                let index = index as usize;
+                Vertex {
+                    position: positions[index],
+                    uv: Vec2::from_array(uvs[index]),
+                    color: colors[index],
+                    normal: Vec4::ZERO,
+                }
+            });
+            triangle_sha256(&vertices)
+        })
+        .collect();
     // The production facade records the actual view multiplication, including
     // signed-zero bits, even for the identity reference camera.
     let view_projection = projection * Mat4::look_at_rh(Vec3::ZERO, -Vec3::Z, Vec3::Y);
@@ -698,10 +715,24 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 })
                 .collect();
             expected_draw_inventory.push(expected_mesh(
-                "skin", index, &part.indices, &positions,
-                &part.vertices.iter().map(|vertex| vertex.uv).collect::<Vec<_>>(),
-                &colors, &part.rgba, part.texture_width, part.texture_height,
-                projection, Mat4::IDENTITY, backend, true, 1.,
+                "skin",
+                index,
+                &part.indices,
+                &positions,
+                &part
+                    .vertices
+                    .iter()
+                    .map(|vertex| vertex.uv)
+                    .collect::<Vec<_>>(),
+                &colors,
+                &part.rgba,
+                part.texture_width,
+                part.texture_height,
+                projection,
+                Mat4::IDENTITY,
+                backend,
+                true,
+                1.,
             ));
             inventory.mesh(
                 "skin",
@@ -763,10 +794,24 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     })
                     .collect();
                 expected_draw_inventory.push(expected_mesh(
-                    "rigid", index, &part.indices, &positions,
-                    &part.vertices.iter().map(|vertex| vertex.uv).collect::<Vec<_>>(),
-                    &colors, &part.rgba, part.texture_width, part.texture_height,
-                    projection, snapshot.root * matrices[actor_index], backend, visible, alpha,
+                    "rigid",
+                    index,
+                    &part.indices,
+                    &positions,
+                    &part
+                        .vertices
+                        .iter()
+                        .map(|vertex| vertex.uv)
+                        .collect::<Vec<_>>(),
+                    &colors,
+                    &part.rgba,
+                    part.texture_width,
+                    part.texture_height,
+                    projection,
+                    snapshot.root * matrices[actor_index],
+                    backend,
+                    visible,
+                    alpha,
                 ));
                 inventory.mesh(
                     "rigid",
@@ -786,8 +831,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         if ownership.iter().any(|&count| count != 1) {
             return Err("source rigid mesh missing or multiply owned".into());
         }
-        expected_draw_inventory.sort_by_key(|entry| (
-            if entry["kind"] == "skin" { 0 } else { 1 }, entry["mesh"].as_u64().unwrap()));
+        expected_draw_inventory.sort_by_key(|entry| {
+            (
+                if entry["kind"] == "skin" { 0 } else { 1 },
+                entry["mesh"].as_u64().unwrap(),
+            )
+        });
         let expected: usize = source
             .skin
             .meshes

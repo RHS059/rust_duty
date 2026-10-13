@@ -363,20 +363,37 @@ fn expected_mesh(
         for alpha in pixels.iter_mut().skip(3).step_by(4) {
             *alpha = 255;
         }
-        Some(Texture::rgba8(texture_width, texture_height, &pixels, Sampler {
-            filter: FilterMode::Linear,
-            wrap_x: WrapMode::Repeat,
-            wrap_y: WrapMode::Repeat,
-        }).expect("validated source texture"))
+        Some(
+            Texture::rgba8(
+                texture_width,
+                texture_height,
+                &pixels,
+                Sampler {
+                    filter: FilterMode::Linear,
+                    wrap_x: WrapMode::Repeat,
+                    wrap_y: WrapMode::Repeat,
+                },
+            )
+            .expect("validated source texture"),
+        )
     };
-    let triangles: Vec<_> = indices.as_chunks::<3>().0.iter().map(|indices| {
-        let vertices = indices.map(|index| {
-            let index = index as usize;
-            Vertex { position: positions[index], uv: Vec2::from_array(uvs[index]),
-                     color: colors[index], normal: Vec4::ZERO }
-        });
-        triangle_sha256(&vertices)
-    }).collect();
+    let triangles: Vec<_> = indices
+        .as_chunks::<3>()
+        .0
+        .iter()
+        .map(|indices| {
+            let vertices = indices.map(|index| {
+                let index = index as usize;
+                Vertex {
+                    position: positions[index],
+                    uv: Vec2::from_array(uvs[index]),
+                    color: colors[index],
+                    normal: Vec4::ZERO,
+                }
+            });
+            triangle_sha256(&vertices)
+        })
+        .collect();
     // The production facade records the actual view multiplication, including
     // signed-zero bits, even for the identity reference camera.
     let view_projection = projection * Mat4::look_at_rh(Vec3::ZERO, -Vec3::Z, Vec3::Y);
@@ -496,7 +513,9 @@ impl Inventory {
             outside += usize::from(value < 0.);
             maximum = maximum.max(value);
             if value < 0. {
-                let group = separated.entry((1, 1)).or_insert_with(|| (Vec::new(), f64::NEG_INFINITY));
+                let group = separated
+                    .entry((1, 1))
+                    .or_insert_with(|| (Vec::new(), f64::NEG_INFINITY));
                 group.0.push(triangle_index);
                 group.1 = group.1.max(value);
             }
@@ -511,13 +530,22 @@ impl Inventory {
                         && t.iter().any(|v| v[1].lo <= HEIGHT as f64)
                 });
                 if !possible_viewport {
-                    let separator = (0..3).find_map(|axis| {
-                        [-1, 1].into_iter().find_map(|sign| {
-                            let upper = vertices.iter().map(|v| v[3].add(v[axis].mul(Bound::point(f64::from(sign)))).hi).fold(f64::NEG_INFINITY, f64::max);
-                            (upper < 0.).then_some((axis, sign, upper))
+                    let separator = (0..3)
+                        .find_map(|axis| {
+                            [-1, 1].into_iter().find_map(|sign| {
+                                let upper = vertices
+                                    .iter()
+                                    .map(|v| {
+                                        v[3].add(v[axis].mul(Bound::point(f64::from(sign)))).hi
+                                    })
+                                    .fold(f64::NEG_INFINITY, f64::max);
+                                (upper < 0.).then_some((axis, sign, upper))
+                            })
                         })
-                    }).expect("trace viewport cull lacks a strict homogeneous separator");
-                    let group = separated.entry((separator.0, separator.1)).or_insert_with(|| (Vec::new(), f64::NEG_INFINITY));
+                        .expect("trace viewport cull lacks a strict homogeneous separator");
+                    let group = separated
+                        .entry((separator.0, separator.1))
+                        .or_insert_with(|| (Vec::new(), f64::NEG_INFINITY));
                     group.0.push(triangle_index);
                     group.1 = group.1.max(separator.2);
                 }
@@ -607,8 +635,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         _ => return Err("unsupported backend profile".into()),
     };
     let requested_frames: Vec<u64> = serde_json::from_slice(&fs::read(&args[5])?)?;
-    if requested_frames.is_empty() || requested_frames.iter().any(|&frame| frame >= 553)
-        || requested_frames.windows(2).any(|pair| pair[0] >= pair[1]) {
+    if requested_frames.is_empty()
+        || requested_frames.iter().any(|&frame| frame >= 553)
+        || requested_frames.windows(2).any(|pair| pair[0] >= pair[1])
+    {
         return Err("invalid fallback frame scope".into());
     }
     let manifest_path = Path::new(&args[1]);
@@ -760,10 +790,24 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 })
                 .collect();
             expected_draw_inventory.push(expected_mesh(
-                "skin", index, &part.indices, &positions,
-                &part.vertices.iter().map(|vertex| vertex.uv).collect::<Vec<_>>(),
-                &colors, &part.rgba, part.texture_width, part.texture_height,
-                projection, Mat4::IDENTITY, backend, true, 1.,
+                "skin",
+                index,
+                &part.indices,
+                &positions,
+                &part
+                    .vertices
+                    .iter()
+                    .map(|vertex| vertex.uv)
+                    .collect::<Vec<_>>(),
+                &colors,
+                &part.rgba,
+                part.texture_width,
+                part.texture_height,
+                projection,
+                Mat4::IDENTITY,
+                backend,
+                true,
+                1.,
             ));
             inventory.mesh(
                 "skin",
@@ -825,10 +869,24 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     })
                     .collect();
                 expected_draw_inventory.push(expected_mesh(
-                    "rigid", index, &part.indices, &positions,
-                    &part.vertices.iter().map(|vertex| vertex.uv).collect::<Vec<_>>(),
-                    &colors, &part.rgba, part.texture_width, part.texture_height,
-                    projection, snapshot.root * matrices[actor_index], backend, visible, alpha,
+                    "rigid",
+                    index,
+                    &part.indices,
+                    &positions,
+                    &part
+                        .vertices
+                        .iter()
+                        .map(|vertex| vertex.uv)
+                        .collect::<Vec<_>>(),
+                    &colors,
+                    &part.rgba,
+                    part.texture_width,
+                    part.texture_height,
+                    projection,
+                    snapshot.root * matrices[actor_index],
+                    backend,
+                    visible,
+                    alpha,
                 ));
                 inventory.mesh(
                     "rigid",
@@ -848,8 +906,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         if ownership.iter().any(|&count| count != 1) {
             return Err("source rigid mesh missing or multiply owned".into());
         }
-        expected_draw_inventory.sort_by_key(|entry| (
-            if entry["kind"] == "skin" { 0 } else { 1 }, entry["mesh"].as_u64().unwrap()));
+        expected_draw_inventory.sort_by_key(|entry| {
+            (
+                if entry["kind"] == "skin" { 0 } else { 1 },
+                entry["mesh"].as_u64().unwrap(),
+            )
+        });
         let expected: usize = source
             .skin
             .meshes
@@ -896,20 +958,71 @@ mod tests {
     }
     #[test]
     fn complete_triangle_partition_retains_visible_separated_and_hidden_meshes() {
-        let positions = [Vec3::new(-0.2,-0.2,0.),Vec3::new(0.2,-0.2,0.),Vec3::new(0.,0.2,0.)];
-        let colors = [[0,0,0,255];3];
+        let positions = [
+            Vec3::new(-0.2, -0.2, 0.),
+            Vec3::new(0.2, -0.2, 0.),
+            Vec3::new(0., 0.2, 0.),
+        ];
+        let colors = [[0, 0, 0, 255]; 3];
         let mut inventory = Inventory::new();
-        inventory.mesh("rigid",0,&[0,1,2],&positions,&colors,[[255,255];3],Mat4::IDENTITY,Mat4::IDENTITY,Backend::OpenGl,true,1.);
-        inventory.mesh("rigid",1,&[0,1,2],&positions,&colors,[[255,255];3],Mat4::IDENTITY,Mat4::from_translation(Vec3::new(0.,-3.,0.)),Backend::OpenGl,true,1.);
-        inventory.mesh("rigid",2,&[0,1,2],&positions,&colors,[[255,255];3],Mat4::IDENTITY,Mat4::IDENTITY,Backend::OpenGl,false,1.);
-        assert_eq!(inventory.triangle_partition.len(),3);
-        assert_eq!(inventory.triangle_partition[0]["traced_runs"],json!([[0,1]]));
-        assert_eq!(inventory.triangle_partition[1]["separated"][0]["runs"],json!([[0,1]]));
-        assert!(inventory.triangle_partition[1]["separated"][0]["maximum_plane_upper"].as_f64().unwrap()<0.);
-        assert_eq!(inventory.triangle_partition[2]["source_hidden"],true);
-        assert_eq!(inventory.triangle_trace.len(),1);
-        assert_eq!(inventory.geometry_domain.len(),2);
-        assert_eq!(index_runs(&[0,1,3,5,6]),vec![[0,2],[3,1],[5,2]]);
+        inventory.mesh(
+            "rigid",
+            0,
+            &[0, 1, 2],
+            &positions,
+            &colors,
+            [[255, 255]; 3],
+            Mat4::IDENTITY,
+            Mat4::IDENTITY,
+            Backend::OpenGl,
+            true,
+            1.,
+        );
+        inventory.mesh(
+            "rigid",
+            1,
+            &[0, 1, 2],
+            &positions,
+            &colors,
+            [[255, 255]; 3],
+            Mat4::IDENTITY,
+            Mat4::from_translation(Vec3::new(0., -3., 0.)),
+            Backend::OpenGl,
+            true,
+            1.,
+        );
+        inventory.mesh(
+            "rigid",
+            2,
+            &[0, 1, 2],
+            &positions,
+            &colors,
+            [[255, 255]; 3],
+            Mat4::IDENTITY,
+            Mat4::IDENTITY,
+            Backend::OpenGl,
+            false,
+            1.,
+        );
+        assert_eq!(inventory.triangle_partition.len(), 3);
+        assert_eq!(
+            inventory.triangle_partition[0]["traced_runs"],
+            json!([[0, 1]])
+        );
+        assert_eq!(
+            inventory.triangle_partition[1]["separated"][0]["runs"],
+            json!([[0, 1]])
+        );
+        assert!(
+            inventory.triangle_partition[1]["separated"][0]["maximum_plane_upper"]
+                .as_f64()
+                .unwrap()
+                < 0.
+        );
+        assert_eq!(inventory.triangle_partition[2]["source_hidden"], true);
+        assert_eq!(inventory.triangle_trace.len(), 1);
+        assert_eq!(inventory.geometry_domain.len(), 2);
+        assert_eq!(index_runs(&[0, 1, 3, 5, 6]), vec![[0, 2], [3, 1], [5, 2]]);
     }
     #[test]
     fn robust_samples_exclude_witness_and_unsafe_occluders() {

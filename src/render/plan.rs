@@ -207,7 +207,9 @@ impl FramePlan {
             blend,
             lines,
             geometry,
-            receipt_matrices: self.receipt_requested.then(|| Box::new((camera.view_projection, model))),
+            receipt_matrices: self
+                .receipt_requested
+                .then(|| Box::new((camera.view_projection, model))),
         }));
         Ok(())
     }

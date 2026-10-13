@@ -237,10 +237,15 @@ impl LegacyRenderer {
         if self.capture_identity.is_some() {
             // Record the exact successful load_material arguments with this
             // renderer-owned material identity. Hashing is capture-only.
-            let id = 1 + (u32::from(key.0) | (u32::from(depth) << 2)
-                | (u32::from(associated) << 3) | (u32::from(lines) << 4));
-            self.material_sources.insert(key, visibility_receipt::MaterialSource::created(
-                id, vertex_source, fragment_source));
+            let id = 1
+                + (u32::from(key.0)
+                    | (u32::from(depth) << 2)
+                    | (u32::from(associated) << 3)
+                    | (u32::from(lines) << 4));
+            self.material_sources.insert(
+                key,
+                visibility_receipt::MaterialSource::created(id, vertex_source, fragment_source),
+            );
         }
         self.materials.insert(key, loaded.clone());
         Ok(loaded)
@@ -252,8 +257,14 @@ impl LegacyRenderer {
         let mut active = draw::Camera::screen(list.width, list.height);
         camera::set_camera(&LegacyCamera::new(&active, None));
         for (index, command) in list.commands.iter().enumerate() {
-            self.execute_command(command, &mut active, (list.width, list.height), &mut output, &mut receipt)
-                .map_err(|error| format!("legacy command {index}: {error}"))?;
+            self.execute_command(
+                command,
+                &mut active,
+                (list.width, list.height),
+                &mut output,
+                &mut receipt,
+            )
+            .map_err(|error| format!("legacy command {index}: {error}"))?;
         }
         if let Some(receipt) = receipt {
             visibility_receipt::check_gl_error()?;
@@ -284,7 +295,9 @@ impl LegacyRenderer {
                 // first so previous captures/targets and command order survive.
                 flush();
                 window::clear_background(associated_clear(*color));
-                if let Some(receipt) = receipt { receipt.clear(active.target.as_ref(), *color); }
+                if let Some(receipt) = receipt {
+                    receipt.clear(active.target.as_ref(), *color);
+                }
             }
             Command::Mesh { mesh, model, blend } => {
                 mesh.validate()?;
@@ -298,14 +311,27 @@ impl LegacyRenderer {
                 let material = self.material(*blend, active.depth_test, associated, false)?;
                 material::gl_use_material(&material);
                 let mut receipt_error = None;
-                let mut creation = if receipt.as_ref().is_some_and(|r| r.selects(active.target.as_ref())) {
-                    self.material_sources.get_mut(&(blend_key(*blend), active.depth_test, associated, false))
-                } else { None };
+                let mut creation = if receipt
+                    .as_ref()
+                    .is_some_and(|r| r.selects(active.target.as_ref()))
+                {
+                    self.material_sources.get_mut(&(
+                        blend_key(*blend),
+                        active.depth_test,
+                        associated,
+                        false,
+                    ))
+                } else {
+                    None
+                };
                 with_model(*model, || {
                     for indices in mesh.indices.chunks(BATCH_INDICES) {
                         let batch = mesh_batch(mesh, indices, texture.clone());
                         models::draw_mesh(&batch);
-                        if let Some(receipt) = receipt.as_mut().filter(|r| r.selects(active.target.as_ref())) {
+                        if let Some(receipt) = receipt
+                            .as_mut()
+                            .filter(|r| r.selects(active.target.as_ref()))
+                        {
                             // Capture-only: drain this exact bounded chunk into
                             // GL before observing its live shader/state bindings.
                             // Readback later fences these ordered draw calls.
@@ -316,14 +342,33 @@ impl LegacyRenderer {
                                 let (projection, actual_model, state) = visibility_receipt::observe_gl(
                                     target.texture.width, target.texture.height, *blend, active.depth_test, associated,
                                     creation.as_deref_mut().ok_or("visibility selected material lacks creation input provenance")?)?;
-                                let vertices: Vec<_> = batch.vertices.iter().map(|v| draw::Vertex {
-                                    position:v.position, uv:v.uv, color:v.color, normal:v.normal,
-                                }).collect();
-                                receipt.record_draw(active.target.as_ref(), projection, actual_model, None,
-                                    mesh.texture.as_ref(), *blend, active.depth_test, false,
-                                    visibility_receipt::triangle_hashes(&vertices, &batch.indices)?, Some(state))
+                                let vertices: Vec<_> = batch
+                                    .vertices
+                                    .iter()
+                                    .map(|v| draw::Vertex {
+                                        position: v.position,
+                                        uv: v.uv,
+                                        color: v.color,
+                                        normal: v.normal,
+                                    })
+                                    .collect();
+                                receipt.record_draw(
+                                    active.target.as_ref(),
+                                    projection,
+                                    actual_model,
+                                    None,
+                                    mesh.texture.as_ref(),
+                                    *blend,
+                                    active.depth_test,
+                                    false,
+                                    visibility_receipt::triangle_hashes(&vertices, &batch.indices)?,
+                                    Some(state),
+                                )
                             })();
-                            if let Err(error) = result { receipt_error = Some(error); break; }
+                            if let Err(error) = result {
+                                receipt_error = Some(error);
+                                break;
+                            }
                         }
                     }
                 });
@@ -334,7 +379,9 @@ impl LegacyRenderer {
                 material::gl_use_default_material();
             }
             Command::Lines { lines, model } => {
-                if let Some(receipt) = receipt { receipt.unsupported(active.target.as_ref(), "lines")?; }
+                if let Some(receipt) = receipt {
+                    receipt.unsupported(active.target.as_ref(), "lines")?;
+                }
                 validate_model(*model)?;
                 if lines
                     .iter()
@@ -352,7 +399,9 @@ impl LegacyRenderer {
                 material::gl_use_default_material();
             }
             Command::Rect { rect, color } => {
-                if let Some(receipt) = receipt { receipt.unsupported(active.target.as_ref(), "rect")?; }
+                if let Some(receipt) = receipt {
+                    receipt.unsupported(active.target.as_ref(), "rect")?;
+                }
                 self.with_screen_camera(active, extent, false, || {
                     macroquad::shapes::draw_rectangle(
                         rect.x,
@@ -368,7 +417,9 @@ impl LegacyRenderer {
                 destination,
                 tint,
             } => {
-                if let Some(receipt) = receipt { receipt.unsupported(active.target.as_ref(), "sprite")?; }
+                if let Some(receipt) = receipt {
+                    receipt.unsupported(active.target.as_ref(), "sprite")?;
+                }
                 reject_feedback(Some(descriptor), active)?;
                 let texture = self.texture(descriptor)?;
                 self.with_screen_camera(
@@ -398,7 +449,9 @@ impl LegacyRenderer {
                 size,
                 color,
             } => {
-                if let Some(receipt) = receipt { receipt.unsupported(active.target.as_ref(), "text")?; }
+                if let Some(receipt) = receipt {
+                    receipt.unsupported(active.target.as_ref(), "text")?;
+                }
                 prepare_default_text(text, *size)?;
                 self.with_screen_camera(active, extent, false, || {
                     macroquad::text::draw_text(
@@ -411,7 +464,9 @@ impl LegacyRenderer {
                 })?;
             }
             Command::Capture { target, path } => {
-                if let Some(receipt) = receipt { receipt.capture(target.as_ref(), path)?; }
+                if let Some(receipt) = receipt {
+                    receipt.capture(target.as_ref(), path)?;
+                }
                 let diagnostic = target.is_some();
                 #[cfg(all(windows, target_arch = "x86_64"))]
                 let capture_descriptor = target.as_ref().map(|t| t.texture.clone());

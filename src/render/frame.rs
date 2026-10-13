@@ -33,7 +33,14 @@ impl WgpuRenderer {
     fn submit_before_present(
         &mut self,
         list: &DrawList,
-    ) -> Result<(FrameOutput, Option<wgpu::SurfaceTexture>, Option<FrameReceipt>), String> {
+    ) -> Result<
+        (
+            FrameOutput,
+            Option<wgpu::SurfaceTexture>,
+            Option<FrameReceipt>,
+        ),
+        String,
+    > {
         // Take ownership up front: failures drop this surface texture, and no
         // command path can acquire another texture after app/input advance.
         let presentation = super::backend::take_presentation(
@@ -77,7 +84,14 @@ impl WgpuRenderer {
         &mut self,
         list: &DrawList,
         presentation: Option<wgpu::SurfaceTexture>,
-    ) -> Result<(Vec<Readback>, Option<wgpu::SurfaceTexture>, Option<FrameReceipt>), String> {
+    ) -> Result<
+        (
+            Vec<Readback>,
+            Option<wgpu::SurfaceTexture>,
+            Option<FrameReceipt>,
+        ),
+        String,
+    > {
         if self.main.descriptor.width != list.width || self.main.descriptor.height != list.height {
             self.main = Arc::new(GpuTexture::new(
                 &self.gpu.device,
@@ -120,7 +134,9 @@ impl WgpuRenderer {
                 PreparedCommand::Clear { target, color } => {
                     let output = self.output(target.as_ref())?;
                     clear(&mut encoder, &output, *color);
-                    if let Some(receipt) = &mut receipt { receipt.clear(target.as_ref(), *color); }
+                    if let Some(receipt) = &mut receipt {
+                        receipt.clear(target.as_ref(), *color);
+                    }
                 }
                 PreparedCommand::Draw(draw) => {
                     consumed = draw_run_len(commands);
@@ -135,7 +151,9 @@ impl WgpuRenderer {
                 }
                 PreparedCommand::Capture { target, path } => {
                     let output = self.output(target.as_ref())?;
-                    if let Some(receipt) = &mut receipt { receipt.capture(target.as_ref(), path)?; }
+                    if let Some(receipt) = &mut receipt {
+                        receipt.capture(target.as_ref(), path)?;
+                    }
                     // Capture remains an in-order GPU copy, before later draws
                     // or clears. All maps still finish after the same submission.
                     readbacks.push(Readback::encode(
@@ -293,16 +311,32 @@ impl WgpuRenderer {
             // same slices and dynamic offset just passed to draw_indexed.
             let slice = &draw.geometry.range;
             let [vertices, indices, matrices] = arenas[draw.geometry.arena_index]
-                .buffer_contents().ok_or("visibility draw has no uploaded buffers")?;
+                .buffer_contents()
+                .ok_or("visibility draw has no uploaded buffers")?;
             let indices = &indices[slice.indices.start as usize..slice.indices.end as usize];
-            if indices.len() != slice.count as usize * 2 { return Err("visibility issued index count differs from upload".into()); }
+            if indices.len() != slice.count as usize * 2 {
+                return Err("visibility issued index count differs from upload".into());
+            }
             let vertices = &vertices[slice.vertices.start as usize..slice.vertices.end as usize];
             let matrix_offset = slice.matrix_offset as usize;
-            let upload = visibility_receipt::packed_matrix(&matrices[matrix_offset..matrix_offset + 64])?;
-            let (view_projection, model) = **draw.receipt_matrices.as_ref().ok_or("visibility draw lacks matrix factors")?;
-            receipt.record_draw(draw.target.as_ref(), view_projection, model, Some(upload),
-                draw.texture.as_ref().map(|_| &texture.descriptor), draw.blend, draw.depth_test,
-                draw.lines, visibility_receipt::packed_triangle_hashes(vertices, indices, 40)?, None)?;
+            let upload =
+                visibility_receipt::packed_matrix(&matrices[matrix_offset..matrix_offset + 64])?;
+            let (view_projection, model) = **draw
+                .receipt_matrices
+                .as_ref()
+                .ok_or("visibility draw lacks matrix factors")?;
+            receipt.record_draw(
+                draw.target.as_ref(),
+                view_projection,
+                model,
+                Some(upload),
+                draw.texture.as_ref().map(|_| &texture.descriptor),
+                draw.blend,
+                draw.depth_test,
+                draw.lines,
+                visibility_receipt::packed_triangle_hashes(vertices, indices, 40)?,
+                None,
+            )?;
         }
         Ok(())
     }
