@@ -21,6 +21,14 @@ SCHEMA = 'rust-duty-current-ads-profile/v1'
 require = source._require
 
 
+def geometry_command(executable, manifest, settings, backend, trace, frames):
+    # The Rust catalog preserves the manifest's path spelling. Match the
+    # primary source oracle's argv exactly, including on native Windows; the
+    # proof must still reject any genuinely different catalog or path target.
+    return [executable.as_posix(), manifest.as_posix(), settings.as_posix(),
+            backend, trace.as_posix(), frames.as_posix()]
+
+
 def run(*, root, input_manifest, source_packet, bound_source, source_receipt_sha256,
         profile_oracle, profile_oracle_receipt_sha256, capture_rustc_sha256,
         fallback_frames, evidence, build_identity):
@@ -58,10 +66,10 @@ def run(*, root, input_manifest, source_packet, bound_source, source_receipt_sha
         selections[role] = f'{backend}-frames.json'
         producer.write_json(evidence / selections[role], frames)
         trace = evidence / f'{backend}-trace.jsonl'
-        command = [str(package / prepared.EXECUTABLES['source_visibility_geometry_probe']),
-                   str(root / 'assets/animations.cfg'),
-                   str(bound_source._portable(source_packet.parent, descriptor['files'][descriptor['input_files']['ads-offset.cfg']])),
-                   backend, str(trace), str(evidence / selections[role])]
+        command = geometry_command(package / prepared.EXECUTABLES['source_visibility_geometry_probe'],
+                   root / 'assets/animations.cfg',
+                   bound_source._portable(source_packet.parent, descriptor['files'][descriptor['input_files']['ads-offset.cfg']]),
+                   backend, trace, evidence / selections[role])
         prepared.verify_precompiled(package, root, input_manifest, profile_oracle_receipt_sha256, capture_rustc_sha256)
         executions[backend + '-geometry'] = producer.process(command, root, env,
                                                              evidence / 'logs' / (backend + '-geometry'), 2700)

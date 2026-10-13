@@ -1,7 +1,7 @@
 """Current-certificate boundary tests. Synthetic receipts are never native proof."""
 from copy import deepcopy
 import json
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 import tempfile
 import unittest
 from unittest.mock import Mock, patch
@@ -18,6 +18,55 @@ class CurrentProfileTests(unittest.TestCase):
         self.path = self.root / 'current-profile.json'
         self.path.write_text(json.dumps({'schema': current.SCHEMA}))
         self.packet = current.source.BoundSourcePacket()
+
+    def test_geometry_argv_matches_primary_windows_manifest_spelling(self):
+        root = PureWindowsPath(r'D:\a\rust_duty\rust_duty')
+        manifest = root / 'assets/animations.cfg'
+        args = (root / 'geometry.exe', manifest, root / 'ads-offset.cfg',
+                'opengl', root / 'trace.jsonl', root / 'frames.json')
+        command = current.runner.geometry_command(*args)
+        # These refer to the same Windows file; the old str(Path) spelling
+        # leaked into Rust source catalogs and failed exact header equality.
+        self.assertEqual(PureWindowsPath(command[1]), manifest)
+        self.assertNotEqual(command[1], str(manifest))
+        self.assertEqual(command[1], manifest.as_posix())
+        self.assertEqual(command, [value if type(value) is str else value.as_posix() for value in args])
+
+    def test_geometry_target_cannot_change_even_when_manifest_bytes_match(self):
+        manifest = self.root / 'animations.cfg'
+        alternate = self.root / 'different-animations.cfg'
+        manifest.write_bytes(b'identical synthetic manifest bytes')
+        alternate.write_bytes(manifest.read_bytes())
+        self.assertEqual(current.source.shared._read_regular(manifest), current.source.shared._read_regular(alternate))
+        recorded_root = PureWindowsPath('D:/source')
+        command = current.runner.geometry_command(recorded_root / 'geometry.exe', recorded_root / manifest.name,
+            recorded_root / 'ads-offset.cfg', 'opengl', recorded_root / 'trace.jsonl', recorded_root / 'frames.json')
+        receipt = {'command': command, 'cwd': recorded_root.as_posix(), 'exit_code': 0,
+                   'environment': current.source.ORACLE_ENVIRONMENT}
+        ledger = Mock()
+        ledger._json.return_value = receipt
+        current._process(ledger, self.root, 'geometry', receipt, command, recorded_root)
+        wrong = deepcopy(receipt)
+        wrong['command'][1] = (recorded_root / alternate.name).as_posix()
+        ledger._json.return_value = wrong
+        with self.assertRaisesRegex(ValueError, 'exact execution argv'):
+            current._process(ledger, self.root, 'geometry', wrong, command, recorded_root)
+
+    def test_catalog_comparison_remains_exact_after_argv_spelling_fix(self):
+        from test_current_ads_profile_proof import synthetic_header, trace_header
+        expected, trace = synthetic_header(), trace_header([17])
+        canonical = 'D:/a/rust_duty/rust_duty/assets\\locomotion/asset.vra'
+        expected['sources'][0]['vra'] = canonical
+        trace['sources'][0]['vra'] = canonical
+        current.gl.header_pair(expected, trace, [17])
+        # Matching byte checksums do not excuse different recorded path targets
+        # or revive the old mixed-spelling invocation through a loose verifier.
+        for path in (r'D:\a\rust_duty\rust_duty\assets\locomotion/asset.vra',
+                     'D:/other/assets/locomotion/asset.vra'):
+            changed = deepcopy(trace)
+            changed['sources'][0]['vra'] = path
+            with self.subTest(path=path), self.assertRaisesRegex(ValueError, 'source header'):
+                current.gl.header_pair(expected, changed, [17])
 
     def test_unbound_external_boolean_cannot_become_a_profile(self):
         with self.assertRaisesRegex(ValueError, 'not established'):
