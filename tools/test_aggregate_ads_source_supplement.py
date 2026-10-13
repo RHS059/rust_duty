@@ -89,6 +89,9 @@ class AggregateSupplementTests(unittest.TestCase):
         cls.temp = tempfile.TemporaryDirectory()
         cls.addClassCleanup(cls.temp.cleanup)
         cls.base = Path(cls.temp.name)
+        # The real dispatcher reads the type before this orchestration fixture
+        # delegates native evidence validation to its separately tested stub.
+        write(cls.base / 'profile/class.json', {'schema': leaf.finite_profile.SCHEMA})
         # Native profile evidence ingestion has separate real-binder controls.
         # Preserve the expensive nine-shard fixture as a caller orchestration test.
         profile_stub = patch.object(leaf.finite_profile, 'bind_finite_ads_profile',

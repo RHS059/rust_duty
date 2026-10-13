@@ -1,19 +1,26 @@
 //! Commands are encoded in list order, including copies at mid-frame capture checkpoints.
 use super::{
-    arena::DrawSlice,
+    arena::{DrawSlice, FrameArena},
     capture::{CaptureEncoding, Readback},
     mesh::{FragmentKind, FrameGeometry},
     plan::{draw_run_len, FramePlan, PreparedCommand, PreparedDraw},
     target::{self, GpuTexture},
     WgpuRenderer,
 };
+use crate::draw::visibility_receipt::{self, FrameReceipt};
 use crate::draw::{BlendMode, Color, Command, DrawList, FrameOutput, RenderTarget, TextureSource};
 use crate::{frame_performance::CpuFrameStage, frame_performance_session as performance};
 use std::sync::Arc;
 
+type EncodedFrame = (
+    Vec<Readback>,
+    Option<wgpu::SurfaceTexture>,
+    Option<FrameReceipt>,
+);
+
 impl WgpuRenderer {
     pub(super) fn submit_frame(&mut self, list: &DrawList) -> Result<FrameOutput, String> {
-        let (output, presentation) =
+        let (output, presentation, receipt) =
             performance::measure_cpu_stage(CpuFrameStage::RendererSubmit, || {
                 self.submit_before_present(list)
             })?;
@@ -23,13 +30,23 @@ impl WgpuRenderer {
             });
         }
         self.gpu.check_errors()?;
+        if let Some(receipt) = receipt {
+            receipt.finish(&output.captures)?;
+        }
         Ok(output)
     }
 
     fn submit_before_present(
         &mut self,
         list: &DrawList,
-    ) -> Result<(FrameOutput, Option<wgpu::SurfaceTexture>), String> {
+    ) -> Result<
+        (
+            FrameOutput,
+            Option<wgpu::SurfaceTexture>,
+            Option<FrameReceipt>,
+        ),
+        String,
+    > {
         // Take ownership up front: failures drop this surface texture, and no
         // command path can acquire another texture after app/input advance.
         let presentation = super::backend::take_presentation(
@@ -62,18 +79,18 @@ impl WgpuRenderer {
             return Err(format!("frame validation: {error}"));
         }
         self.gpu.check_errors()?;
-        let (readbacks, presentation) = encoded?;
+        let (readbacks, presentation, receipt) = encoded?;
         let mut output = FrameOutput::default();
         for readback in readbacks {
             output.captures.push(readback.finish(&self.gpu.device)?);
         }
-        Ok((output, presentation))
+        Ok((output, presentation, receipt))
     }
     fn encode_frame(
         &mut self,
         list: &DrawList,
         presentation: Option<wgpu::SurfaceTexture>,
-    ) -> Result<(Vec<Readback>, Option<wgpu::SurfaceTexture>), String> {
+    ) -> Result<EncodedFrame, String> {
         if self.main.descriptor.width != list.width || self.main.descriptor.height != list.height {
             self.main = Arc::new(GpuTexture::new(
                 &self.gpu.device,
@@ -90,6 +107,7 @@ impl WgpuRenderer {
             limits.max_buffer_size,
             presentation.is_some(),
         )?;
+        let mut receipt = FrameReceipt::begin(&self.gpu.info.backend);
         let geometry: Vec<_> = plan
             .arenas
             .iter()
@@ -115,6 +133,9 @@ impl WgpuRenderer {
                 PreparedCommand::Clear { target, color } => {
                     let output = self.output(target.as_ref())?;
                     clear(&mut encoder, &output, *color);
+                    if let Some(receipt) = &mut receipt {
+                        receipt.clear(target.as_ref(), *color);
+                    }
                 }
                 PreparedCommand::Draw(draw) => {
                     consumed = draw_run_len(commands);
@@ -123,10 +144,15 @@ impl WgpuRenderer {
                         &geometry,
                         draw,
                         &following[..consumed - 1],
+                        &plan.arenas,
+                        &mut receipt,
                     )?;
                 }
                 PreparedCommand::Capture { target, path } => {
                     let output = self.output(target.as_ref())?;
+                    if let Some(receipt) = &mut receipt {
+                        receipt.capture(target.as_ref(), path)?;
+                    }
                     // Capture remains an in-order GPU copy, before later draws
                     // or clears. All maps still finish after the same submission.
                     readbacks.push(Readback::encode(
@@ -185,7 +211,7 @@ impl WgpuRenderer {
             );
         }
         self.gpu.queue.submit([encoder.finish()]);
-        Ok((readbacks, presentation))
+        Ok((readbacks, presentation, receipt))
     }
     fn output(&mut self, target: Option<&RenderTarget>) -> Result<Arc<GpuTexture>, String> {
         match target {
@@ -199,6 +225,8 @@ impl WgpuRenderer {
         geometry: &[Option<FrameGeometry>],
         first: &PreparedDraw,
         following: &[PreparedCommand],
+        arenas: &[FrameArena],
+        receipt: &mut Option<FrameReceipt>,
     ) -> Result<(), String> {
         let output = self.output(first.target.as_ref())?;
         let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
@@ -229,12 +257,12 @@ impl WgpuRenderer {
             },
             ..Default::default()
         });
-        self.draw_prepared_mesh(&mut pass, geometry, first)?;
+        self.draw_prepared_mesh(&mut pass, geometry, first, arenas, receipt)?;
         for command in following {
             let PreparedCommand::Draw(draw) = command else {
                 unreachable!("draw run ends before non-draw commands")
             };
-            self.draw_prepared_mesh(&mut pass, geometry, draw)?;
+            self.draw_prepared_mesh(&mut pass, geometry, draw, arenas, receipt)?;
         }
         Ok(())
     }
@@ -243,6 +271,8 @@ impl WgpuRenderer {
         pass: &mut wgpu::RenderPass<'_>,
         geometry: &[Option<FrameGeometry>],
         draw: &PreparedDraw,
+        arenas: &[FrameArena],
+        receipt: &mut Option<FrameReceipt>,
     ) -> Result<(), String> {
         // Resolve and validate each draw at its original command position. The
         // cached owned handles remain valid while wgpu records their use; no
@@ -258,14 +288,29 @@ impl WgpuRenderer {
         if draw.depth_test && output.depth.is_none() {
             return Err("depth-enabled camera requires a target with depth storage".into());
         }
-        let pipeline = self.pipelines.pipeline(
-            &self.gpu.device,
-            target::COLOR_FORMAT,
-            draw.depth_test,
-            draw.lines,
-            draw.blend,
-            FragmentKind::for_source(&texture.descriptor.source, draw.blend),
-        );
+        let fragment = FragmentKind::for_source(&texture.descriptor.source, draw.blend);
+        let pipeline = if receipt
+            .as_ref()
+            .is_some_and(|r| r.selects(draw.target.as_ref()))
+        {
+            self.pipelines.visibility_pipeline(
+                &self.gpu.device,
+                target::COLOR_FORMAT,
+                draw.depth_test,
+                draw.lines,
+                draw.blend,
+                fragment,
+            )?
+        } else {
+            self.pipelines.pipeline(
+                &self.gpu.device,
+                target::COLOR_FORMAT,
+                draw.depth_test,
+                draw.lines,
+                draw.blend,
+                fragment,
+            )
+        };
         issue(
             pass,
             &pipeline,
@@ -275,6 +320,38 @@ impl WgpuRenderer {
             &draw.geometry.range,
             &texture.binding,
         );
+        if let Some(receipt) = receipt.as_mut().filter(|r| r.selects(draw.target.as_ref())) {
+            // Read the immutable byte arrays used by upload_geometry, with the
+            // same slices and dynamic offset just passed to draw_indexed.
+            let slice = &draw.geometry.range;
+            let [vertices, indices, matrices] = arenas[draw.geometry.arena_index]
+                .buffer_contents()
+                .ok_or("visibility draw has no uploaded buffers")?;
+            let indices = &indices[slice.indices.start as usize..slice.indices.end as usize];
+            if indices.len() != slice.count as usize * 2 {
+                return Err("visibility issued index count differs from upload".into());
+            }
+            let vertices = &vertices[slice.vertices.start as usize..slice.vertices.end as usize];
+            let matrix_offset = slice.matrix_offset as usize;
+            let upload =
+                visibility_receipt::packed_matrix(&matrices[matrix_offset..matrix_offset + 64])?;
+            let (view_projection, model) = **draw
+                .receipt_matrices
+                .as_ref()
+                .ok_or("visibility draw lacks matrix factors")?;
+            receipt.record_draw(
+                draw.target.as_ref(),
+                view_projection,
+                model,
+                Some(upload),
+                draw.texture.as_ref().map(|_| &texture.descriptor),
+                draw.blend,
+                draw.depth_test,
+                draw.lines,
+                visibility_receipt::packed_triangle_hashes(vertices, indices, 40)?,
+                None,
+            )?;
+        }
         Ok(())
     }
 }
@@ -448,6 +525,7 @@ mod tests {
             texture: None,
             blend: BlendMode::Alpha,
             lines: false,
+            receipt_matrices: None,
             geometry: super::super::plan::GeometrySlice {
                 arena_index: 0,
                 range: DrawSlice {

@@ -11,6 +11,7 @@ from pathlib import Path
 import sys
 
 import aggregate_dx12_authored as aggregate
+from current_ads_build_context import current_build_identity
 import dx12_authored_shards as shared
 import revalidate_ads_offset as leaf
 import run_dx12_authored as authored
@@ -27,16 +28,8 @@ def require(value, message):
 
 
 def current_context():
-    require(os.environ.get('GITHUB_ACTIONS') == 'true', 'collection requires the actual GitHub runner')
-    require(os.environ.get('GITHUB_REPOSITORY') == 'RHS059/rust_duty', 'collection requires the assigned repository')
-    require(os.environ.get('GITHUB_REF') == 'refs/heads/main', 'collection requires current main')
-    require(os.environ.get('GITHUB_WORKFLOW_REF') ==
-            'RHS059/rust_duty/.github/workflows/build.yml@refs/heads/main',
-            'collection requires the ordinary current build workflow')
-    context = shared.context()
-    require(os.environ.get('GITHUB_WORKFLOW_SHA') == context['source_commit'],
-            'collection workflow differs from the current captured source')
-    return context
+    """Use the same actual main/PR admission contract as source revalidation."""
+    return current_build_identity()['capture_context']
 
 
 def inspect_offset_collection(folder, binding, *, expected_context):

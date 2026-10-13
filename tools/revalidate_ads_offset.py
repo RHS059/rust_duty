@@ -125,21 +125,28 @@ def native_gl_profile(folder, binding, adapter, invocation):
 
 def bind_bounded_profile(packet, packet_path, reviewed_class, expected_class_sha256, offset_shard):
     """Bind reviewed profile evidence to this already validated native packet."""
+    import current_ads_profile_binding as current_profile
     require(reviewed_class is not None and expected_class_sha256 is not None,
             'completed independently bound finite ADS profile is required')
-    result = finite_profile.bind_finite_ads_profile(
+    # Current certificates have fresh source/native execution proofs; historical
+    # reviewed equivalence classes retain their original strict loader unchanged.
+    descriptor = read_record(Path(reviewed_class))
+    binder = (current_profile.bind_current_ads_profile if descriptor.get('schema') == current_profile.SCHEMA
+              else finite_profile.bind_finite_ads_profile)
+    result = binder(
         source_packet=packet, source_packet_path=Path(packet_path),
         reviewed_class=Path(reviewed_class), expected_class_sha256=expected_class_sha256,
         native_runtime_logs={role: Path(offset_shard) / 'logs' / f'{role}-capture/stderr.log'
                              for role in ROLES})
-    require(type(result) is finite_profile.BoundFiniteAdsProfile
+    require(type(result) in (finite_profile.BoundFiniteAdsProfile, current_profile.BoundCurrentAdsProfile)
             and result.bounded_ads_profile_established is True
             and result.source_packet is packet, 'finite ADS profile binding is not established')
     return result
 
 
 def bounded_profile_summary(profile):
-    require(type(profile) is finite_profile.BoundFiniteAdsProfile
+    import current_ads_profile_binding as current_profile
+    require(type(profile) in (finite_profile.BoundFiniteAdsProfile, current_profile.BoundCurrentAdsProfile)
             and profile.bounded_ads_profile_established is True,
             'finite ADS profile binding is not established')
     summary = profile.summary()

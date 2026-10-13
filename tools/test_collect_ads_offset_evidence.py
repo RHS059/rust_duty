@@ -1,12 +1,14 @@
 """Collection-only controls using complete synthetic native capture inventories."""
 from copy import deepcopy
 import os
+import json
 from pathlib import Path
 import tempfile
 import unittest
 from unittest.mock import patch
 
 import collect_ads_offset_evidence as collector
+import current_ads_build_context as build_context
 import test_revalidate_ads_offset as fixtures
 from verify_capture_telemetry import read_record
 
@@ -134,19 +136,45 @@ class CollectionTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.inspect()
 
-    def test_collector_rejects_other_repo_branch_and_workflow_contexts(self):
-        environment = {'GITHUB_ACTIONS': 'true', 'GITHUB_REPOSITORY': 'RHS059/rust_duty', 'GITHUB_REF': 'refs/heads/main',
-                       'GITHUB_WORKFLOW_REF': 'RHS059/rust_duty/.github/workflows/build.yml@refs/heads/main',
-                       'GITHUB_SHA': self.context['source_commit'], 'GITHUB_WORKFLOW_SHA': self.context['source_commit'],
-                       'GITHUB_RUN_ID': self.context['run_id'],
-                       'GITHUB_RUN_ATTEMPT': self.context['run_attempt']}
-        with patch.dict(os.environ, environment):
-            self.assertEqual(collector.current_context(), self.context)
-        for key, value in [('GITHUB_ACTIONS', 'false'), ('GITHUB_WORKFLOW_SHA', '9' * 40),
-                           ('GITHUB_REPOSITORY', 'other/repo'), ('GITHUB_REF', 'refs/heads/other'),
-                           ('GITHUB_WORKFLOW_REF', 'RHS059/rust_duty/.github/workflows/other.yml@refs/heads/main')]:
-            with patch.dict(os.environ, {**environment, key: value}):
-                with self.assertRaises(ValueError):
+
+class CollectionContextTests(unittest.TestCase):
+    def test_collector_shares_strict_main_and_same_repository_pr_admission(self):
+        context = {'source_commit': '1' * 40, 'run_id': '1234', 'run_attempt': '2'}
+        repository = {'full_name': build_context.REPOSITORY, 'id': 7654321, 'fork': False}
+        environment = {'GITHUB_ACTIONS': 'true', 'GITHUB_REPOSITORY': build_context.REPOSITORY,
+                       'GITHUB_REPOSITORY_ID': '7654321', 'GITHUB_REF': 'refs/heads/main',
+                       'GITHUB_WORKFLOW_REF': build_context.REPOSITORY + '/.github/workflows/build.yml@refs/heads/main',
+                       'GITHUB_SHA': context['source_commit'], 'GITHUB_WORKFLOW_SHA': context['source_commit'],
+                       'GITHUB_RUN_ID': context['run_id'], 'GITHUB_RUN_ATTEMPT': context['run_attempt'],
+                       'GITHUB_EVENT_NAME': 'push', 'RUNNER_OS': 'Windows', 'RUNNER_ARCH': 'X64'}
+        event = {'repository': repository, 'ref': 'refs/heads/main', 'after': context['source_commit'], 'deleted': False}
+        with tempfile.TemporaryDirectory() as temp, patch.object(collector.sys, 'platform', 'win32'), \
+                patch.object(build_context.platform, 'machine', return_value='AMD64'):
+            path = Path(temp) / 'event.json'
+            path.write_text(json.dumps(event))
+            environment['GITHUB_EVENT_PATH'] = str(path)
+            with patch.dict(os.environ, environment, clear=True):
+                self.assertEqual(collector.current_context(), context)
+            for key, value in [('GITHUB_ACTIONS', 'false'), ('GITHUB_WORKFLOW_SHA', '9' * 40),
+                               ('GITHUB_REPOSITORY', 'other/repo'), ('GITHUB_REF', 'refs/heads/other'),
+                               ('GITHUB_EVENT_NAME', 'pull_request_target'),
+                               ('GITHUB_WORKFLOW_REF', build_context.REPOSITORY + '/.github/workflows/other.yml@refs/heads/main')]:
+                with self.subTest(key=key), patch.dict(os.environ, {**environment, key: value}, clear=True), self.assertRaises(ValueError):
+                    collector.current_context()
+            environment.update(GITHUB_EVENT_NAME='pull_request', GITHUB_REF='refs/pull/401/merge',
+                GITHUB_WORKFLOW_REF=build_context.REPOSITORY + '/.github/workflows/build.yml@refs/pull/401/merge',
+                GITHUB_HEAD_REF='topic', GITHUB_BASE_REF='main')
+            event = {'repository': repository, 'action': 'opened', 'number': 401,
+                     'pull_request': {'number': 401, 'state': 'open', 'merged': False,
+                        'merge_commit_sha': context['source_commit'],
+                        'head': {'ref': 'topic', 'sha': '2' * 40, 'repo': repository.copy()},
+                        'base': {'ref': 'main', 'sha': '3' * 40, 'repo': repository.copy()}}}
+            path.write_text(json.dumps(event))
+            with patch.dict(os.environ, environment, clear=True):
+                self.assertEqual(collector.current_context(), context)
+                event['pull_request']['head']['repo']['fork'] = True
+                path.write_text(json.dumps(event))
+                with self.assertRaisesRegex(ValueError, 'fork'):
                     collector.current_context()
 
 

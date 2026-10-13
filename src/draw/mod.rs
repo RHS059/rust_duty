@@ -10,6 +10,7 @@ use std::{
 pub mod facade;
 pub mod frame_witness;
 pub mod geometry;
+pub mod visibility_receipt;
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Color {
     pub r: f32,

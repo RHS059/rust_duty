@@ -252,13 +252,19 @@ def sequence_inventory(folder, backend, *, expected_witness_identity=None):
     images = sorted(folder.glob('*.png'))
     if not images or [p.name for p in images] != [f'{i:04}.png' for i in range(len(images))]:
         raise ValueError(f'{folder}: missing or noncontiguous zero-based captures')
-    expected = {image.name + suffix for image in images
-                for suffix in ('', '.json', '.time.json', '.gameplay.json')}
+    records = [capture_metadata(image, backend) for image in images]
+    receipt_schema = 'rust-duty-native-visibility-receipt/v1'
+    has_receipts = any('visibility_receipt_schema' in row for row in records)
+    if has_receipts and any(row.get('visibility_receipt_schema') != receipt_schema for row in records):
+        raise ValueError(f'{folder}: incomplete or unsupported visibility receipt declaration')
+    suffixes = ('', '.json', '.time.json', '.gameplay.json')
+    if has_receipts:
+        suffixes += ('.visibility.json',)
+    expected = {image.name + suffix for image in images for suffix in suffixes}
     actual = {path.name for path in folder.iterdir()}
     # Existing native validators write this report after successful inspection.
     if actual - {'verification.json'} != expected:
         raise ValueError(f'{folder}: missing/orphan/unexpected image or sidecar')
-    records = [capture_metadata(image, backend) for image in images]
     witnessed = expected_witness_identity is not None or any('frame_witness' in row for row in records)
     # Historical images may be unmarked. A declared marker is always checked,
     # while current native callers supply the independent invocation identity.

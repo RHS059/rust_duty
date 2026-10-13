@@ -86,6 +86,18 @@ pub(crate) fn write_frame(frame: CaptureFrame<'_>) -> Result<bool, String> {
         };
         let witness = vector_range::draw::frame_witness::requested_identity(std::env::args())?;
         let frame_index = u32::try_from(frames - 8).map_err(|_| "invalid capture frame index")?;
+        let visibility_receipt = cfg!(all(windows, target_arch = "x86_64"))
+            && capture_sequence == Some("gameplay-ads")
+            && framing.reference
+            && witness.is_some();
+        if visibility_receipt {
+            vector_range::draw::visibility_receipt::request(
+                output,
+                target,
+                frame_index,
+                witness.as_deref().expect("witness checked"),
+            )?;
+        }
         if let Some(identity) = &witness {
             capture_png_with_frame_witness(
                 framing.reference.then_some(target),
@@ -105,6 +117,10 @@ pub(crate) fn write_frame(frame: CaptureFrame<'_>) -> Result<bool, String> {
             sim.player.ads,
             presentation_reload,
         );
+        if visibility_receipt {
+            metadata["visibility_receipt_schema"] =
+                serde_json::json!(vector_range::draw::visibility_receipt::SCHEMA);
+        }
         if let Some(identity) = witness {
             metadata["frame_witness"] = serde_json::json!({
                 "schema": vector_range::draw::frame_witness::SCHEMA,

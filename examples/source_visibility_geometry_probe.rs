@@ -17,7 +17,11 @@ use std::{
 use vector_range::{
     animation_manifest::AnimationManifest,
     asset::WeaponAsset,
-    draw::facade::{Color, Mat4, Vec3, Vec4},
+    draw::facade::{Color, FilterMode, Mat4, Sampler, Texture, Vec2, Vec3, Vec4, Vertex, WrapMode},
+    draw::visibility_receipt::{
+        append_ordered_draw_inputs, draw_input_state_sha256, matrix_bits, texture_identity,
+        triangle_sha256, triangle_stream_sha256,
+    },
     scene_lighting::SceneLighting,
     settings::Settings,
     sim::{Simulation, FIXED_DT},
@@ -25,6 +29,7 @@ use vector_range::{
     viewmodel_animation::{game_model_root, AnimationSet},
     weapon_sway,
 };
+const TRIANGLE_CHUNK_SIZE: usize = 256;
 const U: f64 = 1.0 / 8_388_608.0;
 fn gamma(n: f64, u: f64) -> f64 {
     n * u / (1.0 - n * u)
@@ -192,6 +197,21 @@ fn runs(mask: &[u8]) -> Vec<[usize; 2]> {
     }
     out
 }
+/// Canonical run encoding of ordered source triangle IDs; unrelated to pixels.
+fn index_runs(ids: &[usize]) -> Vec<[usize; 2]> {
+    let mut result: Vec<[usize; 2]> = Vec::new();
+    for &id in ids {
+        if let Some(last) = result.last_mut() {
+            assert!(id >= last[0] + last[1]);
+            if id == last[0] + last[1] {
+                last[1] += 1;
+                continue;
+            }
+        }
+        result.push([id, 1]);
+    }
+    result
+}
 fn texture_bounds(rgba: &[u8]) -> [[u8; 2]; 3] {
     if rgba.is_empty() {
         return [[255, 255]; 3];
@@ -316,6 +336,108 @@ impl Samples {
             .collect()
     }
 }
+fn source_texture(rgba: &[u8], texture_width: u32, texture_height: u32) -> Option<Texture> {
+    if rgba.is_empty() {
+        None
+    } else {
+        let mut pixels = rgba.to_vec();
+        for alpha in pixels.iter_mut().skip(3).step_by(4) {
+            *alpha = 255;
+        }
+        Some(
+            Texture::rgba8(
+                texture_width,
+                texture_height,
+                &pixels,
+                Sampler {
+                    filter: FilterMode::Linear,
+                    wrap_x: WrapMode::Repeat,
+                    wrap_y: WrapMode::Repeat,
+                },
+            )
+            .expect("validated source texture"),
+        )
+    }
+}
+/// This is the same canonical byte serialization used by issued draw receipts.
+fn source_triangle_hashes(
+    indices: &[u32],
+    positions: &[Vec3],
+    uvs: &[[f32; 2]],
+    colors: &[[u8; 4]],
+) -> Vec<String> {
+    indices
+        .as_chunks::<3>()
+        .0
+        .iter()
+        .map(|indices| {
+            let vertices = indices.map(|index| {
+                let index = index as usize;
+                Vertex {
+                    position: positions[index],
+                    uv: Vec2::from_array(uvs[index]),
+                    color: colors[index],
+                    normal: Vec4::ZERO,
+                }
+            });
+            triangle_sha256(&vertices)
+        })
+        .collect()
+}
+/// Independent pre-submission inventory. This enumerates original asset indices,
+/// including hidden meshes; it never learns expected geometry from draw commands.
+#[allow(clippy::too_many_arguments)]
+fn expected_mesh(
+    kind: &str,
+    mesh: usize,
+    indices: &[u32],
+    positions: &[Vec3],
+    uvs: &[[f32; 2]],
+    colors: &[[u8; 4]],
+    rgba: &[u8],
+    texture_width: u32,
+    texture_height: u32,
+    projection: Mat4,
+    model: Mat4,
+    backend: Backend,
+    visible: bool,
+    opacity: f32,
+    ordered_inputs: &mut std::collections::BTreeMap<(u8, usize), Vec<u8>>,
+) -> serde_json::Value {
+    assert_eq!(positions.len(), uvs.len());
+    assert_eq!(positions.len(), colors.len());
+    assert!(positions.iter().all(|position| position.is_finite()));
+    assert!(projection.is_finite() && model.is_finite() && opacity.is_finite());
+    assert!(indices.len().is_multiple_of(3));
+    let texture = source_texture(rgba, texture_width, texture_height);
+    let triangles = source_triangle_hashes(indices, positions, uvs, colors);
+    // The production facade records the actual view multiplication, including
+    // signed-zero bits, even for the identity reference camera.
+    let view_projection = projection * Mat4::look_at_rh(Vec3::ZERO, -Vec3::Z, Vec3::Y);
+    let texture = texture_identity(texture.as_ref());
+    let upload_transform =
+        (backend == Backend::Dx12).then(|| dx12_remap() * view_projection * model);
+    if visible {
+        let state = draw_input_state_sha256(view_projection, model, upload_transform, &texture)
+            .expect("finite original source draw state");
+        let mut inputs = Vec::new();
+        append_ordered_draw_inputs(&mut inputs, &state, &triangles)
+            .expect("original canonical source triangles");
+        assert!(ordered_inputs
+            .insert((u8::from(kind != "skin"), mesh), inputs)
+            .is_none());
+    }
+    let chunks: Vec<_> = triangles
+        .chunks(TRIANGLE_CHUNK_SIZE)
+        .map(|chunk| triangle_stream_sha256(chunk).expect("canonical source chunk"))
+        .collect();
+    json!({"kind":kind,"mesh":mesh,"triangles":triangles.len(),
+           "visible":visible,"opacity_bits":opacity.to_bits(),
+           "triangle_stream_sha256":triangle_stream_sha256(&triangles).expect("canonical source stream"),
+           "triangle_chunk_sha256":chunks,"texture":texture,
+           "view_projection_bits":matrix_bits(view_projection),"model_bits":matrix_bits(model),
+           "upload_transform_bits":upload_transform.map(matrix_bits)})
+}
 struct Source {
     path: PathBuf,
     checksums: (u32, u32),
@@ -344,7 +466,10 @@ impl Source {
 #[derive(Default)]
 struct Inventory {
     geometry_domain: Vec<serde_json::Value>,
+    geometry_inputs: Vec<serde_json::Value>,
+    triangle_chunks: Vec<serde_json::Value>,
     triangle_trace: Vec<serde_json::Value>,
+    triangle_partition: Vec<serde_json::Value>,
     triangles: usize,
     outside_bottom: usize,
     maximum_bottom_upper: f64,
@@ -366,8 +491,11 @@ impl Inventory {
         index: usize,
         indices: &[u32],
         positions: &[Vec3],
+        uvs: &[[f32; 2]],
         colors: &[[u8; 4]],
-        texture: [[u8; 2]; 3],
+        rgba: &[u8],
+        texture_width: u32,
+        texture_height: u32,
         projection: Mat4,
         model: Mat4,
         backend: Backend,
@@ -377,9 +505,27 @@ impl Inventory {
         assert!(indices.len().is_multiple_of(3));
         assert!(positions.iter().all(|p| p.is_finite()));
         assert!(opacity.is_finite());
+        assert_eq!(positions.len(), uvs.len());
+        assert_eq!(positions.len(), colors.len());
+        let projection = projection * Mat4::look_at_rh(Vec3::ZERO, -Vec3::Z, Vec3::Y);
+        let actual_texture = source_texture(rgba, texture_width, texture_height);
+        let texture = match actual_texture.as_ref().map(|texture| &texture.source) {
+            Some(vector_range::draw::TextureSource::Rgba8(bytes)) => texture_bounds(bytes),
+            None => texture_bounds(&[]),
+            Some(vector_range::draw::TextureSource::Target { .. }) => {
+                unreachable!("source texture cannot be a target")
+            }
+        };
+        let triangle_hashes = source_triangle_hashes(indices, positions, uvs, colors);
+        self.geometry_inputs.push(json!({"kind":kind,"mesh":index,"vertices":positions.len(),
+            "triangles":triangle_hashes.len(),"triangle_stream_sha256":triangle_stream_sha256(&triangle_hashes).expect("canonical proof input stream"),
+            "visible":visible,"opacity_bits":opacity.to_bits(),"texture":texture_identity(actual_texture.as_ref()),
+            "texture_bounds":texture,"view_projection_bits":matrix_bits(projection),"model_bits":matrix_bits(model),
+            "upload_transform_bits":if backend == Backend::Dx12 {Some(matrix_bits(dx12_remap() * projection * model))} else {None}}));
         let count = indices.len() / 3;
         self.triangles += count;
         if !visible {
+            self.triangle_partition.push(json!({"kind":kind,"mesh":index,"triangles":count,"source_hidden":true,"traced_runs":[],"separated":[]}));
             self.meshes.push(json!({"kind":kind,"mesh":index,"triangles":count,"state":"source_actor_hidden","opacity":opacity}));
             return;
         }
@@ -412,6 +558,8 @@ impl Inventory {
         assert!(upper.iter().all(|v| v.is_finite()));
         let mut outside = 0;
         let mut maximum = f64::NEG_INFINITY;
+        let mut traced = Vec::new();
+        let mut separated = std::collections::BTreeMap::<(usize, i32), (Vec<usize>, f64)>::new();
         for (triangle_index, triangle) in indices.as_chunks::<3>().0.iter().enumerate() {
             let value = triangle
                 .iter()
@@ -419,6 +567,13 @@ impl Inventory {
                 .fold(f64::NEG_INFINITY, f64::max);
             outside += usize::from(value < 0.);
             maximum = maximum.max(value);
+            if value < 0. {
+                let group = separated
+                    .entry((1, 1))
+                    .or_insert_with(|| (Vec::new(), f64::NEG_INFINITY));
+                group.0.push(triangle_index);
+                group.1 = group.1.max(value);
+            }
             if value >= 0. {
                 let vertices = triangle.map(|i| clip[i as usize]);
                 let colors = triangle.map(|i| colors[i as usize]);
@@ -430,15 +585,28 @@ impl Inventory {
                         && t.iter().any(|v| v[1].lo <= HEIGHT as f64)
                 });
                 if !possible_viewport {
-                    assert!(
-                        (0..3).any(|axis| [-1., 1.].into_iter().any(|sign| vertices
-                            .iter()
-                            .all(|v| v[3].add(v[axis].mul(Bound::point(sign))).hi < 0.))),
-                        "trace viewport cull lacks a strict homogeneous separator"
-                    );
+                    let separator = (0..3)
+                        .find_map(|axis| {
+                            [-1, 1].into_iter().find_map(|sign| {
+                                let upper = vertices
+                                    .iter()
+                                    .map(|v| {
+                                        v[3].add(v[axis].mul(Bound::point(f64::from(sign)))).hi
+                                    })
+                                    .fold(f64::NEG_INFINITY, f64::max);
+                                (upper < 0.).then_some((axis, sign, upper))
+                            })
+                        })
+                        .expect("trace viewport cull lacks a strict homogeneous separator");
+                    let group = separated
+                        .entry((separator.0, separator.1))
+                        .or_insert_with(|| (Vec::new(), f64::NEG_INFINITY));
+                    group.0.push(triangle_index);
+                    group.1 = group.1.max(separator.2);
                 }
                 if possible_viewport {
-                    self.triangle_trace.push(json!({"kind":kind,"mesh":index,"triangle":triangle_index,"indices":triangle,"clip":vertices.map(|v|v.map(|b|[b.lo,b.hi])),"screen":screens.unwrap().iter().map(|v|v.map(|b|[b.lo,b.hi])).collect::<Vec<_>>(),"colors":colors,"texture_bounds":texture,"safe_contrast":contrast(colors,texture),"projection_bits":projection.to_cols_array().map(f32::to_bits),"model_bits":model.to_cols_array().map(f32::to_bits),"position_bits":triangle.map(|i|positions[i as usize].to_array().map(f32::to_bits))}));
+                    traced.push(triangle_index);
+                    self.triangle_trace.push(json!({"kind":kind,"mesh":index,"triangle":triangle_index,"indices":triangle,"clip":vertices.map(|v|v.map(|b|[b.lo,b.hi])),"screen":screens.unwrap().iter().map(|v|v.map(|b|[b.lo,b.hi])).collect::<Vec<_>>(),"colors":colors,"texture_bounds":texture,"safe_contrast":contrast(colors,texture),"projection_bits":projection.to_cols_array().map(f32::to_bits),"model_bits":model.to_cols_array().map(f32::to_bits),"position_bits":triangle.map(|i|positions[i as usize].to_array().map(f32::to_bits)),"uv_bits":triangle.map(|i|uvs[i as usize].map(f32::to_bits))}));
                 }
                 self.samples
                     .as_mut()
@@ -446,6 +614,20 @@ impl Inventory {
                     .triangle(vertices, contrast(colors, texture));
             }
         }
+        let touched_chunks: std::collections::BTreeSet<_> = traced
+            .iter()
+            .map(|triangle| triangle / TRIANGLE_CHUNK_SIZE)
+            .collect();
+        for chunk in touched_chunks {
+            let start = chunk * TRIANGLE_CHUNK_SIZE;
+            let end = (start + TRIANGLE_CHUNK_SIZE).min(triangle_hashes.len());
+            self.triangle_chunks
+                .push(json!({"kind":kind,"mesh":index,"chunk":chunk,
+                "triangle_sha256":&triangle_hashes[start..end]}));
+        }
+        let separated_count: usize = separated.values().map(|(ids, _)| ids.len()).sum();
+        assert_eq!(traced.len() + separated_count, count);
+        self.triangle_partition.push(json!({"kind":kind,"mesh":index,"triangles":count,"source_hidden":false,"traced_runs":index_runs(&traced),"separated":separated.into_iter().map(|((axis,sign),(ids,upper))|json!({"axis":axis,"sign":sign,"runs":index_runs(&ids),"maximum_plane_upper":upper})).collect::<Vec<_>>()}));
         self.outside_bottom += outside;
         self.maximum_bottom_upper = self.maximum_bottom_upper.max(maximum);
         self.meshes.push(json!({"kind":kind,"mesh":index,"triangles":count,"state":"enumerated","outside_bottom":outside,"unclassified":count-outside,"maximum_bottom_upper":maximum,"opacity":opacity}));
@@ -519,7 +701,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         _ => return Err("unsupported backend profile".into()),
     };
     let requested_frames: Vec<u64> = serde_json::from_slice(&fs::read(&args[5])?)?;
-    if requested_frames.is_empty() || requested_frames.iter().any(|&frame| frame >= 553) {
+    if requested_frames.is_empty()
+        || requested_frames.iter().any(|&frame| frame >= 553)
+        || requested_frames.windows(2).any(|pair| pair[0] >= pair[1])
+    {
         return Err("invalid fallback frame scope".into());
     }
     let manifest_path = Path::new(&args[1]);
@@ -558,7 +743,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     writeln!(
         output,
         "{}",
-        json!({"schema":"rust-duty-source-geometry-probe/v1","source_certificate_schema":"rust-duty-source-visibility-certificate-diagnostic/v2","requested_frames":requested_frames,"original_native_observations":false,"backend_profile":if backend==Backend::OpenGl {"opengl: Projection*Model*position; gamma17"} else {"dx12: CPU (remap*Projection)*Model upload then shader MVP*position; gamma24"},"backend_native_upload_identity_verified":false,"raster_profile":"single sample at pixel center; at least 8 subpixel bits, displacement <=1/256 pixel; no culling; opaque depth winner; no alpha discard; x/y clipping produces coverage identical to the interval-bounded unclipped triangle inside the viewport (both interior and possible support)","fragment_profile":"RGB result differs from exact convex vertex/texture interpolation and multiplication by <=3 byte levels per channel; source texture alpha is overwritten to 255 as in adapter","profile_assumptions_independently_established":false,"scenario":"ads-offset","expected_frames":553,"extent":[960,540],"capture_hz":"60000/1001 as f32","profile":"m4a1","weapon_id":"hk416a5","initial_ammo":12,"horizontal_fov_degrees":76,"near":0.01,"far":5.0,"fixed_dt_bits":format!("{:08x}",FIXED_DT.to_bits()),"native_invocation_binding_verified":false,"numeric_profile":"conditional normal-finite or exact-zero operations, no underflow/flush-to-zero/overflow, relative operation error <=2^-23, equivalent-or-tighter FMA; GL two matrix/vector stages or expanded16terms gamma17; DX12 two CPU four-term matrix products then GPU four-term dot gamma24; outward host allowance","profile_native_verified":false,"source_sha_binding":"requires independently verified before/after SHA256 input receipt","acceptance_verdict":null,"sources":sources.iter().map(|s|json!({"vra":s.path,"companion_crc32":s.checksums,"skin_meshes":s.skin.meshes.len(),"rigid_meshes":s.rigid.meshes.len()})).collect::<Vec<_>>()})
+        json!({"schema":"rust-duty-source-geometry-probe/v1","source_certificate_schema":"rust-duty-source-visibility-certificate-diagnostic/v2","requested_frames":requested_frames,"original_native_observations":false,"backend_profile":if backend==Backend::OpenGl {"opengl: Projection*Model*position; gamma17"} else {"dx12: CPU (remap*Projection)*Model upload then shader MVP*position; gamma24"},"backend_native_upload_identity_verified":false,"raster_profile":"single sample at pixel center; at least 8 subpixel bits, displacement <=1/256 pixel; no culling; opaque depth winner; no alpha discard; x/y clipping produces coverage identical to the interval-bounded unclipped triangle inside the viewport (both interior and possible support)","fragment_profile":"RGB result differs from exact convex vertex/texture interpolation and multiplication by <=3 byte levels per channel; source texture alpha is overwritten to 255 as in adapter","profile_assumptions_independently_established":false,"scenario":"ads-offset","expected_frames":553,"extent":[960,540],"capture_hz":"60000/1001 as f32","profile":"m4a1","weapon_id":"hk416a5","initial_ammo":12,"horizontal_fov_degrees":76,"near":0.01,"far":5.0,"fixed_dt_bits":format!("{:08x}",FIXED_DT.to_bits()),"native_invocation_binding_verified":false,"numeric_profile":"conditional normal-finite or exact-zero operations, no underflow/flush-to-zero/overflow, relative operation error <=2^-23, equivalent-or-tighter FMA; GL two matrix/vector stages or expanded16terms gamma17; DX12 two CPU four-term matrix products then GPU four-term dot gamma24; outward host allowance","profile_native_verified":false,"source_sha_binding":"requires independently verified before/after SHA256 input receipt","native_draw_inventory_schema":"rust-duty-native-visibility-receipt/v1","acceptance_verdict":null,"sources":sources.iter().map(|s|json!({"vra":s.path,"companion_crc32":s.checksums,"skin_meshes":s.skin.meshes.len(),"rigid_meshes":s.rigid.meshes.len()})).collect::<Vec<_>>()})
     )?;
     let mut model = authored_viewmodel::AuthoredViewmodel::load_manifest(manifest_path)?;
     let mut sim = Simulation::new();
@@ -626,6 +811,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let lighting = SceneLighting::range().in_view(sim.player.direction());
         let normals: Vec<_> = palette.iter().map(|m| m.inverse().transpose()).collect();
         let mut inventory = Inventory::new();
+        let mut expected_draw_inventory = Vec::new();
+        let mut expected_ordered_draw_inputs = std::collections::BTreeMap::new();
         for (index, part) in source.skin.meshes.iter().enumerate() {
             let positions: Vec<_> = part
                 .vertices
@@ -669,13 +856,41 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     .into()
                 })
                 .collect();
+            expected_draw_inventory.push(expected_mesh(
+                "skin",
+                index,
+                &part.indices,
+                &positions,
+                &part
+                    .vertices
+                    .iter()
+                    .map(|vertex| vertex.uv)
+                    .collect::<Vec<_>>(),
+                &colors,
+                &part.rgba,
+                part.texture_width,
+                part.texture_height,
+                projection,
+                Mat4::IDENTITY,
+                backend,
+                true,
+                1.,
+                &mut expected_ordered_draw_inputs,
+            ));
             inventory.mesh(
                 "skin",
                 index,
                 &part.indices,
                 &positions,
+                &part
+                    .vertices
+                    .iter()
+                    .map(|vertex| vertex.uv)
+                    .collect::<Vec<_>>(),
                 &colors,
-                texture_bounds(&part.rgba),
+                &part.rgba,
+                part.texture_width,
+                part.texture_height,
                 projection,
                 Mat4::IDENTITY,
                 backend,
@@ -728,13 +943,41 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         color
                     })
                     .collect();
+                expected_draw_inventory.push(expected_mesh(
+                    "rigid",
+                    index,
+                    &part.indices,
+                    &positions,
+                    &part
+                        .vertices
+                        .iter()
+                        .map(|vertex| vertex.uv)
+                        .collect::<Vec<_>>(),
+                    &colors,
+                    &part.rgba,
+                    part.texture_width,
+                    part.texture_height,
+                    projection,
+                    snapshot.root * matrices[actor_index],
+                    backend,
+                    visible,
+                    alpha,
+                    &mut expected_ordered_draw_inputs,
+                ));
                 inventory.mesh(
                     "rigid",
                     index,
                     &part.indices,
                     &positions,
+                    &part
+                        .vertices
+                        .iter()
+                        .map(|vertex| vertex.uv)
+                        .collect::<Vec<_>>(),
                     &colors,
-                    texture_bounds(&part.rgba),
+                    &part.rgba,
+                    part.texture_width,
+                    part.texture_height,
                     projection,
                     snapshot.root * matrices[actor_index],
                     backend,
@@ -746,6 +989,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         if ownership.iter().any(|&count| count != 1) {
             return Err("source rigid mesh missing or multiply owned".into());
         }
+        expected_draw_inventory.sort_by_key(|entry| {
+            (
+                if entry["kind"] == "skin" { 0 } else { 1 },
+                entry["mesh"].as_u64().unwrap(),
+            )
+        });
         let expected: usize = source
             .skin
             .meshes
@@ -763,7 +1012,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             output,
             "{}",
             frame_json_with_native_records(
-                json!({"geometry_domain":inventory.geometry_domain,"triangle_trace":inventory.triangle_trace,"original_native_observations":false,"frame":frame,"committed_tick":ticks,"time":sim.time,"route":model.presentation_route(),"visual_ads":model.visual_ads_amount(),"ammo":sim.player.ammo,"shots":sim.stats.shots,"companion_catalog_vra":source.path,"companion_crc32":source.checksums,"source_triangles":expected,"outside_bottom":inventory.outside_bottom,"hidden_source_triangles":hidden_triangles,"unclassified_triangles":unresolved,"classification":if unresolved==0 {"expected_empty_under_profile"}else{"potentially_visible_unresolved"},"maximum_bottom_upper":inventory.maximum_bottom_upper,"meshes":inventory.meshes,"unsupported_clip_triangles":samples.unsupported,"possible_support_complete":samples.unsupported==0,"required_contrast_samples":required_count,"possible_samples":possible_count,"required_contrast_runs":runs(&required),"possible_support_runs":runs(&samples.possible),"acceptance_verdict":null}),
+                json!({"triangle_chunks":inventory.triangle_chunks,"geometry_inputs":inventory.geometry_inputs,"geometry_domain":inventory.geometry_domain,"triangle_trace":inventory.triangle_trace,"triangle_partition":inventory.triangle_partition,"original_native_observations":false,"frame":frame,"committed_tick":ticks,"time":sim.time,"route":model.presentation_route(),"visual_ads":model.visual_ads_amount(),"ammo":sim.player.ammo,"shots":sim.stats.shots,"companion_catalog_vra":source.path,"companion_crc32":source.checksums,"source_triangles":expected,"outside_bottom":inventory.outside_bottom,"hidden_source_triangles":hidden_triangles,"unclassified_triangles":unresolved,"classification":if unresolved==0 {"expected_empty_under_profile"}else{"potentially_visible_unresolved"},"maximum_bottom_upper":inventory.maximum_bottom_upper,"meshes":inventory.meshes,"expected_draw_inventory":expected_draw_inventory,"expected_ordered_draw_input_sha256":rust_duty_launcher::bytes_hash(&expected_ordered_draw_inputs.into_values().flatten().collect::<Vec<_>>()),"unsupported_clip_triangles":samples.unsupported,"possible_support_complete":samples.unsupported==0,"required_contrast_samples":required_count,"possible_samples":possible_count,"required_contrast_runs":runs(&required),"possible_support_runs":runs(&samples.possible),"acceptance_verdict":null}),
                 native_gameplay_telemetry(Some(&model), &sim),
                 native_time_telemetry(frame, &cfg)
             )
@@ -789,6 +1038,287 @@ mod tests {
                 Bound::point(1.),
             ]
         })
+    }
+    #[test]
+    fn complete_triangle_partition_retains_visible_separated_and_hidden_meshes() {
+        let positions = [
+            Vec3::new(-0.2, -0.2, 0.),
+            Vec3::new(0.2, -0.2, 0.),
+            Vec3::new(0., 0.2, 0.),
+        ];
+        let colors = [[0, 0, 0, 255]; 3];
+        let mut inventory = Inventory::new();
+        inventory.mesh(
+            "rigid",
+            0,
+            &[0, 1, 2],
+            &positions,
+            &[[0.; 2]; 3],
+            &colors,
+            &[],
+            0,
+            0,
+            Mat4::IDENTITY,
+            Mat4::IDENTITY,
+            Backend::OpenGl,
+            true,
+            1.,
+        );
+        inventory.mesh(
+            "rigid",
+            1,
+            &[0, 1, 2],
+            &positions,
+            &[[0.; 2]; 3],
+            &colors,
+            &[],
+            0,
+            0,
+            Mat4::IDENTITY,
+            Mat4::from_translation(Vec3::new(0., -3., 0.)),
+            Backend::OpenGl,
+            true,
+            1.,
+        );
+        inventory.mesh(
+            "rigid",
+            2,
+            &[0, 1, 2],
+            &positions,
+            &[[0.; 2]; 3],
+            &colors,
+            &[],
+            0,
+            0,
+            Mat4::IDENTITY,
+            Mat4::IDENTITY,
+            Backend::OpenGl,
+            false,
+            1.,
+        );
+        assert_eq!(inventory.triangle_partition.len(), 3);
+        assert_eq!(inventory.geometry_inputs.len(), 3);
+        assert_eq!(inventory.geometry_inputs[2]["visible"], false);
+        assert_eq!(inventory.geometry_inputs[2]["triangles"], 1);
+        assert_eq!(
+            inventory.triangle_partition[0]["traced_runs"],
+            json!([[0, 1]])
+        );
+        assert_eq!(
+            inventory.triangle_partition[1]["separated"][0]["runs"],
+            json!([[0, 1]])
+        );
+        assert!(
+            inventory.triangle_partition[1]["separated"][0]["maximum_plane_upper"]
+                .as_f64()
+                .unwrap()
+                < 0.
+        );
+        assert_eq!(inventory.triangle_partition[2]["source_hidden"], true);
+        assert_eq!(inventory.triangle_trace.len(), 1);
+        assert_eq!(inventory.geometry_domain.len(), 2);
+        assert_eq!(index_runs(&[0, 1, 3, 5, 6]), vec![[0, 2], [3, 1], [5, 2]]);
+    }
+    #[test]
+    fn compact_inputs_expand_only_the_traced_tail_chunk() {
+        let positions = [
+            Vec3::new(-0.2, -3.2, 0.),
+            Vec3::new(0.2, -3.2, 0.),
+            Vec3::new(0., -2.8, 0.),
+            Vec3::new(-0.2, -0.2, 0.),
+            Vec3::new(0.2, -0.2, 0.),
+            Vec3::new(0., 0.2, 0.),
+        ];
+        let mut indices = [0, 1, 2].repeat(TRIANGLE_CHUNK_SIZE);
+        indices.extend_from_slice(&[3, 4, 5]);
+        let uvs = [[0., 0.]; 6];
+        let colors = [[70, 80, 90, 255]; 6];
+        let mut ordered_inputs = std::collections::BTreeMap::new();
+        let expected = expected_mesh(
+            "rigid",
+            0,
+            &indices,
+            &positions,
+            &uvs,
+            &colors,
+            &[],
+            0,
+            0,
+            Mat4::IDENTITY,
+            Mat4::IDENTITY,
+            Backend::OpenGl,
+            true,
+            1.,
+            &mut ordered_inputs,
+        );
+        assert!(expected.get("triangle_sha256").is_none());
+        assert_eq!(
+            expected["triangle_chunk_sha256"].as_array().unwrap().len(),
+            2
+        );
+        assert!(expected.to_string().len() < 4096);
+        assert_eq!(ordered_inputs[&(1, 0)].len(), 257 * 128);
+        for visible in [true, false] {
+            let mut inventory = Inventory::new();
+            inventory.mesh(
+                "rigid",
+                0,
+                &indices,
+                &positions,
+                &uvs,
+                &colors,
+                &[],
+                0,
+                0,
+                Mat4::IDENTITY,
+                Mat4::IDENTITY,
+                Backend::OpenGl,
+                visible,
+                1.,
+            );
+            assert_eq!(
+                inventory.geometry_inputs[0]["triangle_stream_sha256"],
+                expected["triangle_stream_sha256"]
+            );
+            if visible {
+                assert_eq!(inventory.triangle_trace.len(), 1);
+                assert_eq!(inventory.triangle_trace[0]["triangle"], 256);
+                assert_eq!(inventory.triangle_chunks.len(), 1);
+                let chunk = &inventory.triangle_chunks[0];
+                assert_eq!(chunk["chunk"], 1);
+                assert_eq!(chunk["triangle_sha256"].as_array().unwrap().len(), 1);
+                let digest = chunk["triangle_sha256"][0].as_str().unwrap();
+                assert_eq!(
+                    rust_duty_launcher::bytes_hash(digest.as_bytes()),
+                    expected["triangle_chunk_sha256"][1]
+                );
+            } else {
+                assert!(inventory.triangle_trace.is_empty());
+                assert!(inventory.triangle_chunks.is_empty());
+            }
+        }
+    }
+    #[test]
+    fn actual_proof_inputs_bind_original_triangles_transforms_and_texture() {
+        let positions = [
+            Vec3::new(-0.2, -0.2, 0.),
+            Vec3::new(0.2, -0.2, 0.),
+            Vec3::new(0., 0.2, 0.),
+        ];
+        let uvs = [[0., 0.], [1., 0.], [0., 1.]];
+        let colors = [[70, 80, 90, 255]; 3];
+        let rgba = [100, 120, 130, 0];
+        let mut ordered_inputs = std::collections::BTreeMap::new();
+        let expected = expected_mesh(
+            "rigid",
+            0,
+            &[0, 1, 2],
+            &positions,
+            &uvs,
+            &colors,
+            &rgba,
+            1,
+            1,
+            Mat4::IDENTITY,
+            Mat4::IDENTITY,
+            Backend::OpenGl,
+            true,
+            1.,
+            &mut ordered_inputs,
+        );
+        let input =
+            |positions: &[Vec3], uvs: &[[f32; 2]], colors: &[[u8; 4]], projection, model| {
+                let mut inventory = Inventory::new();
+                inventory.mesh(
+                    "rigid",
+                    0,
+                    &[0, 1, 2],
+                    positions,
+                    uvs,
+                    colors,
+                    &rgba,
+                    1,
+                    1,
+                    projection,
+                    model,
+                    Backend::OpenGl,
+                    true,
+                    1.,
+                );
+                inventory.geometry_inputs.remove(0)
+            };
+        let actual = input(&positions, &uvs, &colors, Mat4::IDENTITY, Mat4::IDENTITY);
+        for field in [
+            "triangles",
+            "triangle_stream_sha256",
+            "visible",
+            "opacity_bits",
+            "texture",
+            "view_projection_bits",
+            "model_bits",
+            "upload_transform_bits",
+        ] {
+            assert_eq!(actual[field], expected[field], "{field}");
+        }
+        assert_eq!(
+            actual["texture_bounds"],
+            json!([[100, 100], [120, 120], [130, 130]])
+        );
+        assert_eq!(
+            actual["texture"]["rgba8_sha256"],
+            rust_duty_launcher::bytes_hash(&[100, 120, 130, 255])
+        );
+        let stream = source_triangle_hashes(&[0, 1, 2], &positions, &uvs, &colors).concat();
+        assert_eq!(
+            actual["triangle_stream_sha256"],
+            rust_duty_launcher::bytes_hash(stream.as_bytes())
+        );
+        let shrunk = positions.map(|position| position * 0.1);
+        let mut changed_uv = uvs;
+        changed_uv[0][0] = 0.5;
+        let mut changed_color = colors;
+        changed_color[0][0] = 0;
+        for changed in [
+            input(&shrunk, &uvs, &colors, Mat4::IDENTITY, Mat4::IDENTITY),
+            input(
+                &positions,
+                &changed_uv,
+                &colors,
+                Mat4::IDENTITY,
+                Mat4::IDENTITY,
+            ),
+            input(
+                &positions,
+                &uvs,
+                &changed_color,
+                Mat4::IDENTITY,
+                Mat4::IDENTITY,
+            ),
+        ] {
+            assert_ne!(
+                changed["triangle_stream_sha256"],
+                actual["triangle_stream_sha256"]
+            );
+        }
+        let changed_projection = input(
+            &positions,
+            &uvs,
+            &colors,
+            Mat4::from_scale(Vec3::splat(0.5)),
+            Mat4::IDENTITY,
+        );
+        assert_ne!(
+            changed_projection["view_projection_bits"],
+            actual["view_projection_bits"]
+        );
+        let changed_model = input(
+            &positions,
+            &uvs,
+            &colors,
+            Mat4::IDENTITY,
+            Mat4::from_scale(Vec3::splat(0.5)),
+        );
+        assert_ne!(changed_model["model_bits"], actual["model_bits"]);
     }
     #[test]
     fn robust_samples_exclude_witness_and_unsafe_occluders() {
@@ -982,8 +1512,11 @@ mod tests {
                 0,
                 &ids,
                 &points,
+                &[[0.; 2]; 3],
                 &[[255; 4]; 3],
-                [[255; 2]; 3],
+                &[],
+                0,
+                0,
                 projection,
                 Mat4::IDENTITY,
                 Backend::OpenGl,

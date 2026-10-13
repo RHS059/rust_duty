@@ -25,6 +25,21 @@ class AuthoredWorkflowTests(unittest.TestCase):
         return [step for step in self.steps(job)
                 if step.get('uses') == 'actions/upload-artifact@v4']
 
+    def test_current_proof_dependencies_are_installed_in_shared_ci(self):
+        root = self.path.parents[2]
+        requirements = (root / 'tools/requirements-assets.txt').read_text(encoding='utf-8')
+        self.assertIn('numpy==2.2.6', requirements.splitlines())
+        for job in ('authored-inputs', 'authored-capture', 'authored-aggregate'):
+            installs = [step.get('run', '') for step in self.steps(job)]
+            self.assertTrue(any('pip install -r tools/requirements-assets.txt' in command
+                                for command in installs), job)
+        for name in ('build.yml', 'native-validation.yml'):
+            workflow = yaml.safe_load((self.path.parent / name).read_text(encoding='utf-8'))
+            installs = [step.get('run', '') for job in workflow['jobs'].values()
+                        for step in job.get('steps', [])]
+            self.assertTrue(any('pip install -r tools/requirements-assets.txt' in command
+                                for command in installs), name)
+
     def test_closed_nine_scenario_matrix_and_measured_budgets(self):
         strategy = self.jobs['authored-capture']['strategy']
         self.assertIs(strategy['fail-fast'], False)
@@ -178,12 +193,16 @@ class AuthoredWorkflowTests(unittest.TestCase):
                     self.assertTrue(step['with']['name'].startswith('dx12-authored-'))
         text = self.path.read_text(encoding='utf-8')
         self.assertNotIn('run_dx12_authored.py\n', text)
-        self.assertNotIn('workflow_dispatch', text)
+        # PyYAML's YAML 1.1 loader maps the `on` key to True. The reusable
+        # workflow itself stays call-only; caller event names occur in guards.
+        self.assertEqual(self.workflow.get('on', self.workflow.get(True)), {'workflow_call': {
+            'inputs': {'source_proof_admitted': {'required': True, 'type': 'boolean'}}}})
 
     def test_oracle_receipt_anchors_are_job_outputs_and_companions_are_not_redistributed(self):
         outputs = self.jobs['authored-inputs']['outputs']
         self.assertEqual(outputs, {
             'oracle_receipt_sha256': '${{ steps.prepare-oracle.outputs.receipt_sha256 }}',
+            'profile_receipt_sha256': '${{ steps.prepare-current-profile.outputs.receipt_sha256 }}',
             'oracle_compiler_sha256': '${{ steps.authored-rust-version.outputs.hash }}'})
         steps = self.steps('authored-inputs')
         prepare = next(s for s in steps if s.get('id') == 'prepare-oracle')
@@ -217,29 +236,138 @@ class AuthoredWorkflowTests(unittest.TestCase):
         self.assertLess(steps.index(producer), steps.index(final))
         self.assertEqual(producer['env'], {
             'ORACLE_BUILD_RECEIPT_SHA256': '${{ needs.authored-inputs.outputs.oracle_receipt_sha256 }}',
+            'PROFILE_BUILD_RECEIPT_SHA256': '${{ needs.authored-inputs.outputs.profile_receipt_sha256 }}',
             'CAPTURE_COMPILER_SHA256': '${{ needs.authored-inputs.outputs.oracle_compiler_sha256 }}'})
         self.assertEqual(final['env'], {'ADS_SOURCE_SUPPLEMENT_PATH': '${{ steps.current-source-oracle.outputs.supplement_path }}'})
         self.assertIn("@('--ads-source-supplement', $env:ADS_SOURCE_SUPPLEMENT_PATH)", final['run'])
         self.assertEqual(final['if'], 'always()')
         self.assertEqual(final['timeout-minutes'], 45)
 
-    def test_current_correction_pins_independently_reviewed_finite_class(self):
-        import hashlib
-        expected = '91bd0030157ff8e1b4e70127b028e57543d8fc91fb3b6cc1202c4707491fb798'
-        producer = next(s for s in self.steps('authored-aggregate') if s.get('id') == 'current-source-oracle')
-        self.assertIn('--reviewed-class tools/finite_ads_gpu_cpu_class.json', producer['run'])
-        self.assertIn('--expected-class-sha256 ' + expected, producer['run'])
-        self.assertNotIn('--conditional-diagnostic', producer['run'])
-        descriptor = self.path.parents[2] / 'tools/finite_ads_gpu_cpu_class.json'
-        self.assertEqual(hashlib.sha256(descriptor.read_bytes()).hexdigest(), expected)
-
-    def test_only_the_original_main_caller_activates_source_correction(self):
-        self.assertEqual(self.workflow['env']['CURRENT_ADS_SOURCE_PROOF'],
-            "${{ github.repository == 'RHS059/rust_duty' && github.ref == 'refs/heads/main' && github.workflow_ref == 'RHS059/rust_duty/.github/workflows/build.yml@refs/heads/main' }}")
-        prepare = next(s for s in self.steps('authored-inputs') if s.get('id') == 'prepare-oracle')
+    def test_current_correction_requires_this_attempts_independent_profile_package(self):
+        steps = self.steps('authored-inputs')
+        prepare = next(s for s in steps if s.get('id') == 'prepare-current-profile')
+        native = next(s for s in steps if 'run_dx12_authored_shard.py prepare' in s.get('run', ''))
+        self.assertLess(steps.index(native), steps.index(prepare))
         self.assertEqual(prepare['if'], "env.CURRENT_ADS_SOURCE_PROOF == 'true'")
+        self.assertEqual(prepare['timeout-minutes'], 45)
+        self.assertIn('python tools/prepare_current_ads_profile.py --root .', prepare['run'])
+        self.assertIn('--input-manifest evidence/authored-inputs/input-manifest.json', prepare['run'])
+        self.assertIn('--capture-rustc-sha256 ${{ steps.authored-rust-version.outputs.hash }}', prepare['run'])
+        package = next(s for s in self.uploads('authored-inputs') if 'precompiled-current-profile' in s['with']['name'])
+        self.assertEqual(package['if'], "env.CURRENT_ADS_SOURCE_PROOF == 'true'")
+        self.assertEqual(package['with'], {
+            'name': 'dx12-authored-precompiled-current-profile-attempt-${{ github.run_attempt }}',
+            'path': 'evidence/current-ads-profile-build/package/', 'if-no-files-found': 'error', 'retention-days': 7})
+        aggregate = self.steps('authored-aggregate')
+        download = next(s for s in aggregate if 'precompiled-current-profile' in s.get('with', {}).get('name', ''))
+        self.assertEqual(download['if'], "env.CURRENT_ADS_SOURCE_PROOF == 'true'")
+        self.assertEqual(download['with'], {'name': package['with']['name'],
+                                           'path': 'evidence/precompiled-current-ads-profile'})
+        self.assertNotIn(download['with'], self.downloads('authored-capture'))
+        producer = next(s for s in aggregate if s.get('id') == 'current-source-oracle')
+        self.assertLess(aggregate.index(download), aggregate.index(producer))
+        self.assertIn('--current-profile-oracle evidence/precompiled-current-ads-profile', producer['run'])
+        self.assertIn('--current-profile-receipt-sha256 "$env:PROFILE_BUILD_RECEIPT_SHA256"', producer['run'])
+        for historical in ('--reviewed-class', '--expected-class-sha256', 'finite_ads_gpu_cpu_class.json',
+                           '--conditional-diagnostic'):
+            self.assertNotIn(historical, producer['run'])
+
+    def test_current_native_input_and_pipeline_mutation_controls_execute(self):
+        steps = self.steps('authored-inputs')
+        tests = next(s for s in steps if '--lib visibility' in s.get('run', ''))
+        self.assertEqual(tests['if'], "env.CURRENT_ADS_SOURCE_PROOF == 'true'")
+        self.assertEqual(tests['run'].split(), ['cargo', 'test', '--locked', '--release',
+            '--no-default-features', '--features', 'legacy-macroquad,wgpu-runtime', '--lib', 'visibility'])
+        prepare = next(s for s in steps if s.get('id') == 'prepare-current-profile')
+        self.assertLess(steps.index(tests), steps.index(prepare))
+        self.assertNotIn('continue-on-error', tests)
+
+    def test_current_profile_diagnostics_are_preserved_without_changing_native_artifacts(self):
+        diagnostics = next(s for s in self.uploads('authored-inputs')
+                           if s['with']['name'].startswith('dx12-authored-current-profile-build-diagnostics'))
+        self.assertEqual(diagnostics['if'], "always() && env.CURRENT_ADS_SOURCE_PROOF == 'true'")
+        self.assertEqual(diagnostics['with']['path'].splitlines(), [
+            'evidence/current-ads-profile-build/prepare-summary.json',
+            'evidence/current-ads-profile-build/independent-receipt.sha256',
+            'evidence/current-ads-profile-build/logs/'])
+        tests = next(s for s in self.steps('authored-inputs') if 'test_prepare_ads_source_oracle' in s.get('run', ''))
+        self.assertEqual(tests['env'], {'PYTHONPATH': 'tools'})
+        for name in ('test_current_ads_source_oracle', 'test_prepare_current_ads_profile',
+                     'test_current_ads_native_binding', 'test_current_ads_profile_proof',
+                     'test_current_ads_profile_binding'):
+            self.assertIn(name, tests['run'].split())
+        self.assertEqual(self.jobs['authored-inputs']['timeout-minutes'], 120)
+
+    def test_only_the_original_main_or_same_repo_pr_caller_activates_source_correction(self):
+        self.assertEqual(self.workflow['env']['CURRENT_ADS_SOURCE_PROOF'], '${{ inputs.source_proof_admitted }}')
+        steps = self.steps('authored-inputs')
+        prepare = next(s for s in steps if s.get('id') == 'prepare-oracle')
+        self.assertEqual(prepare['if'], "env.CURRENT_ADS_SOURCE_PROOF == 'true'")
+        admission = next(s for s in steps if s.get('run') == 'python tools/current_ads_build_context.py --root .')
+        self.assertEqual(admission['if'], "env.CURRENT_ADS_SOURCE_PROOF == 'true'")
+        self.assertEqual(admission['run'], 'python tools/current_ads_build_context.py --root .')
+        self.assertLess(steps.index(admission), steps.index(prepare))
+        diagnostics = next(s for s in steps if s.get('run') ==
+                           'python tools/current_ads_build_context.py --root . --diagnostics-only')
+        self.assertNotIn('if', diagnostics)
+        self.assertLess(steps.index(diagnostics), steps.index(admission))
+        self.assertNotIn('merge_commit_sha', self.workflow['env']['CURRENT_ADS_SOURCE_PROOF'])
+        tests = next(s for s in steps if 'test_prepare_ads_source_oracle' in s.get('run', ''))
+        self.assertIn('test_current_ads_source_oracle', tests['run'].split())
         download = next(s for s in self.steps('authored-aggregate') if 'precompiled-oracle' in s.get('with', {}).get('name', ''))
         self.assertEqual(download['if'], "env.CURRENT_ADS_SOURCE_PROOF == 'true'")
+
+    def test_early_admission_is_bounded_read_only_and_is_the_only_activation_output(self):
+        caller = yaml.safe_load((self.path.parent / 'build.yml').read_text(encoding='utf-8'))
+        job = caller['jobs']['current-ads-admission']
+        self.assertNotIn('needs', job)
+        self.assertEqual(job['runs-on'], 'windows-latest')
+        self.assertEqual(job['timeout-minutes'], 10)
+        self.assertEqual(job['permissions'], {'contents': 'read'})
+        expected_route = """github.repository == 'RHS059/rust_duty' &&
+            (((github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main') ||
+            (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository &&
+            github.event.pull_request.base.repo.full_name == github.repository && github.base_ref == 'main'))"""
+        self.assertEqual(job['if'], ' '.join(expected_route.split()))
+        self.assertEqual(job['outputs'], {'admitted': '${{ steps.admission.outputs.admitted }}'})
+        self.assertEqual(job['steps'][0], {'uses': 'actions/checkout@v4', 'with': {'persist-credentials': False}})
+        commands = [step.get('run', '') for step in job['steps']]
+        self.assertEqual([command for command in commands if command], [
+            'python -m pip install -r tools/requirements-assets.txt',
+            'python -m unittest -v test_current_ads_source_oracle.CurrentContextTests',
+            'python tools/current_ads_build_context.py --root . --diagnostics --emit-admission-output'])
+        fixtures = next(step for step in job['steps'] if '.CurrentContextTests' in step.get('run', ''))
+        self.assertEqual(fixtures['env'], {'PYTHONPATH': 'tools'})
+        self.assertNotIn('continue-on-error', fixtures)
+        admission = next(step for step in job['steps'] if step.get('id') == 'admission')
+        self.assertNotIn('if', admission)
+        self.assertNotIn('continue-on-error', admission)
+        authored = caller['jobs']['dx12-authored-validation']
+        self.assertEqual(authored['needs'], ['animation-assets', 'walk-assets', 'ads-assets',
+            'directional-assets', 'jump-assets', 'native-validation', 'current-ads-admission'])
+        self.assertEqual(authored['with'], {
+            'source_proof_admitted': "${{ needs.current-ads-admission.outputs.admitted == 'true' }}"})
+        self.assertEqual(authored['uses'], './.github/workflows/wgpu-dx12-authored.yml')
+
+    def test_skipped_admission_preserves_ineligible_strict_captures_but_failure_blocks_them(self):
+        caller = yaml.safe_load((self.path.parent / 'build.yml').read_text(encoding='utf-8'))
+        authored = caller['jobs']['dx12-authored-validation']
+        expected_gate = """always() && !cancelled() && needs.animation-assets.result == 'success' && needs.walk-assets.result == 'success' &&
+            needs.ads-assets.result == 'success' && needs.directional-assets.result == 'success' &&
+            needs.jump-assets.result == 'success' && needs.native-validation.result == 'success' &&
+            (needs.current-ads-admission.result == 'success' || needs.current-ads-admission.result == 'skipped')"""
+        self.assertEqual(authored['if'], ' '.join(expected_gate.split()))
+        self.assertNotIn('continue-on-error', caller['jobs']['current-ads-admission'])
+
+    def test_source_proof_preserves_read_only_default_merge_checkout(self):
+        self.assertEqual(self.workflow['permissions'], {'contents': 'read'})
+        for job in ('authored-inputs', 'authored-capture', 'authored-aggregate'):
+            checkouts = [s for s in self.steps(job) if s.get('uses') == 'actions/checkout@v4']
+            self.assertEqual(len(checkouts), 1)
+            self.assertEqual(checkouts[0]['with'], {'persist-credentials': False})
+            self.assertNotIn('permissions', self.jobs[job])
+            for download in self.downloads(job):
+                self.assertFalse({'github-token', 'run-id', 'repository'} & set(download))
 
 
 if __name__ == '__main__':
