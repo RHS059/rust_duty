@@ -87,6 +87,22 @@ class AuthoredDx12Tests(unittest.TestCase):
                 authored.validate_sequence(self.captures)
             path.unlink()
 
+    def test_visibility_receipts_are_all_or_nothing(self):
+        schema = 'rust-duty-native-visibility-receipt/v1'
+        for index in range(3):
+            self.edit('.json', 'visibility_receipt_schema', schema, index=index)
+            authored.write_json(self.captures / f'{index:04}.png.visibility.json', {'schema': schema})
+        self.assertEqual(len(authored.sequence_inventory(self.captures, 'Dx12')[0]), 3)
+        missing = self.captures / '0001.png.visibility.json'
+        raw = missing.read_bytes()
+        missing.unlink()
+        with self.assertRaisesRegex(ValueError, 'missing/orphan/unexpected'):
+            authored.sequence_inventory(self.captures, 'Dx12')
+        missing.write_bytes(raw)
+        self.edit('.json', 'visibility_receipt_schema', 'invented', index=1)
+        with self.assertRaisesRegex(ValueError, 'incomplete or unsupported'):
+            authored.sequence_inventory(self.captures, 'Dx12')
+
     def test_wrong_backend_request_adapter_and_extent_fail(self):
         original = (self.captures / '0001.png.json').read_bytes()
         for field, value in [('backend', 'OpenGl'), ('backend', 'Vulkan'), ('requested', 'auto'),

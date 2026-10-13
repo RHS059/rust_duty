@@ -18,6 +18,8 @@ pub(crate) struct PreparedDraw {
     pub blend: BlendMode,
     pub lines: bool,
     pub geometry: GeometrySlice,
+    /// Captured factors are metadata only; receipts read the actual upload slot.
+    pub receipt_matrices: Option<Box<(Mat4, Mat4)>>,
 }
 pub(crate) enum PreparedCommand {
     Camera(Camera),
@@ -54,6 +56,7 @@ pub(crate) struct FramePlan {
     max_buffer_size: u64,
     pub commands: Vec<PreparedCommand>,
     pub present: Option<GeometrySlice>,
+    receipt_requested: bool,
 }
 impl FramePlan {
     pub fn new(
@@ -69,6 +72,7 @@ impl FramePlan {
             max_buffer_size,
             commands: Vec::new(),
             present: None,
+            receipt_requested: crate::draw::visibility_receipt::requested(),
         };
         let mut camera = Camera::screen(list.width, list.height);
         let mut commands = list.commands.as_slice();
@@ -203,6 +207,7 @@ impl FramePlan {
             blend,
             lines,
             geometry,
+            receipt_matrices: self.receipt_requested.then(|| Box::new((camera.view_projection, model))),
         }));
         Ok(())
     }

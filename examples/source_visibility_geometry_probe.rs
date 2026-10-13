@@ -17,7 +17,8 @@ use std::{
 use vector_range::{
     animation_manifest::AnimationManifest,
     asset::WeaponAsset,
-    draw::facade::{Color, Mat4, Vec3, Vec4},
+    draw::facade::{Color, FilterMode, Mat4, Sampler, Texture, Vec2, Vec3, Vec4, Vertex, WrapMode},
+    draw::visibility_receipt::{matrix_bits, texture_identity, triangle_sha256},
     scene_lighting::SceneLighting,
     settings::Settings,
     sim::{Simulation, FIXED_DT},
@@ -192,6 +193,21 @@ fn runs(mask: &[u8]) -> Vec<[usize; 2]> {
     }
     out
 }
+/// Canonical run encoding of ordered source triangle IDs; unrelated to pixels.
+fn index_runs(ids: &[usize]) -> Vec<[usize; 2]> {
+    let mut result: Vec<[usize; 2]> = Vec::new();
+    for &id in ids {
+        if let Some(last) = result.last_mut() {
+            assert!(id >= last[0] + last[1]);
+            if id == last[0] + last[1] {
+                last[1] += 1;
+                continue;
+            }
+        }
+        result.push([id, 1]);
+    }
+    result
+}
 fn texture_bounds(rgba: &[u8]) -> [[u8; 2]; 3] {
     if rgba.is_empty() {
         return [[255, 255]; 3];
@@ -316,6 +332,62 @@ impl Samples {
             .collect()
     }
 }
+/// Independent pre-submission inventory. This enumerates original asset indices,
+/// including hidden meshes; it never learns expected geometry from draw commands.
+#[allow(clippy::too_many_arguments)]
+fn expected_mesh(
+    kind: &str,
+    mesh: usize,
+    indices: &[u32],
+    positions: &[Vec3],
+    uvs: &[[f32; 2]],
+    colors: &[[u8; 4]],
+    rgba: &[u8],
+    texture_width: u32,
+    texture_height: u32,
+    projection: Mat4,
+    model: Mat4,
+    backend: Backend,
+    visible: bool,
+    opacity: f32,
+) -> serde_json::Value {
+    assert_eq!(positions.len(), uvs.len());
+    assert_eq!(positions.len(), colors.len());
+    assert!(positions.iter().all(|position| position.is_finite()));
+    assert!(projection.is_finite() && model.is_finite() && opacity.is_finite());
+    assert!(indices.len().is_multiple_of(3));
+    let texture = if rgba.is_empty() {
+        None
+    } else {
+        let mut pixels = rgba.to_vec();
+        for alpha in pixels.iter_mut().skip(3).step_by(4) {
+            *alpha = 255;
+        }
+        Some(Texture::rgba8(texture_width, texture_height, &pixels, Sampler {
+            filter: FilterMode::Linear,
+            wrap_x: WrapMode::Repeat,
+            wrap_y: WrapMode::Repeat,
+        }).expect("validated source texture"))
+    };
+    let triangles: Vec<_> = indices.as_chunks::<3>().0.iter().map(|indices| {
+        let vertices = indices.map(|index| {
+            let index = index as usize;
+            Vertex { position: positions[index], uv: Vec2::from_array(uvs[index]),
+                     color: colors[index], normal: Vec4::ZERO }
+        });
+        triangle_sha256(&vertices)
+    }).collect();
+    // The production facade records the actual view multiplication, including
+    // signed-zero bits, even for the identity reference camera.
+    let view_projection = projection * Mat4::look_at_rh(Vec3::ZERO, -Vec3::Z, Vec3::Y);
+    json!({"kind":kind,"mesh":mesh,"triangles":triangles.len(),
+           "visible":visible,"opacity_bits":opacity.to_bits(),
+           "triangle_sha256":triangles,"texture":texture_identity(texture.as_ref()),
+           "view_projection_bits":matrix_bits(view_projection),"model_bits":matrix_bits(model),
+           "upload_transform_bits":if backend==Backend::Dx12 {
+               Some(matrix_bits(dx12_remap() * view_projection * model))
+           } else { None }})
+}
 struct Source {
     path: PathBuf,
     checksums: (u32, u32),
@@ -345,6 +417,7 @@ impl Source {
 struct Inventory {
     geometry_domain: Vec<serde_json::Value>,
     triangle_trace: Vec<serde_json::Value>,
+    triangle_partition: Vec<serde_json::Value>,
     triangles: usize,
     outside_bottom: usize,
     maximum_bottom_upper: f64,
@@ -380,6 +453,7 @@ impl Inventory {
         let count = indices.len() / 3;
         self.triangles += count;
         if !visible {
+            self.triangle_partition.push(json!({"kind":kind,"mesh":index,"triangles":count,"source_hidden":true,"traced_runs":[],"separated":[]}));
             self.meshes.push(json!({"kind":kind,"mesh":index,"triangles":count,"state":"source_actor_hidden","opacity":opacity}));
             return;
         }
@@ -412,6 +486,8 @@ impl Inventory {
         assert!(upper.iter().all(|v| v.is_finite()));
         let mut outside = 0;
         let mut maximum = f64::NEG_INFINITY;
+        let mut traced = Vec::new();
+        let mut separated = std::collections::BTreeMap::<(usize, i32), (Vec<usize>, f64)>::new();
         for (triangle_index, triangle) in indices.as_chunks::<3>().0.iter().enumerate() {
             let value = triangle
                 .iter()
@@ -419,6 +495,11 @@ impl Inventory {
                 .fold(f64::NEG_INFINITY, f64::max);
             outside += usize::from(value < 0.);
             maximum = maximum.max(value);
+            if value < 0. {
+                let group = separated.entry((1, 1)).or_insert_with(|| (Vec::new(), f64::NEG_INFINITY));
+                group.0.push(triangle_index);
+                group.1 = group.1.max(value);
+            }
             if value >= 0. {
                 let vertices = triangle.map(|i| clip[i as usize]);
                 let colors = triangle.map(|i| colors[i as usize]);
@@ -430,14 +511,18 @@ impl Inventory {
                         && t.iter().any(|v| v[1].lo <= HEIGHT as f64)
                 });
                 if !possible_viewport {
-                    assert!(
-                        (0..3).any(|axis| [-1., 1.].into_iter().any(|sign| vertices
-                            .iter()
-                            .all(|v| v[3].add(v[axis].mul(Bound::point(sign))).hi < 0.))),
-                        "trace viewport cull lacks a strict homogeneous separator"
-                    );
+                    let separator = (0..3).find_map(|axis| {
+                        [-1, 1].into_iter().find_map(|sign| {
+                            let upper = vertices.iter().map(|v| v[3].add(v[axis].mul(Bound::point(f64::from(sign)))).hi).fold(f64::NEG_INFINITY, f64::max);
+                            (upper < 0.).then_some((axis, sign, upper))
+                        })
+                    }).expect("trace viewport cull lacks a strict homogeneous separator");
+                    let group = separated.entry((separator.0, separator.1)).or_insert_with(|| (Vec::new(), f64::NEG_INFINITY));
+                    group.0.push(triangle_index);
+                    group.1 = group.1.max(separator.2);
                 }
                 if possible_viewport {
+                    traced.push(triangle_index);
                     self.triangle_trace.push(json!({"kind":kind,"mesh":index,"triangle":triangle_index,"indices":triangle,"clip":vertices.map(|v|v.map(|b|[b.lo,b.hi])),"screen":screens.unwrap().iter().map(|v|v.map(|b|[b.lo,b.hi])).collect::<Vec<_>>(),"colors":colors,"texture_bounds":texture,"safe_contrast":contrast(colors,texture),"projection_bits":projection.to_cols_array().map(f32::to_bits),"model_bits":model.to_cols_array().map(f32::to_bits),"position_bits":triangle.map(|i|positions[i as usize].to_array().map(f32::to_bits))}));
                 }
                 self.samples
@@ -446,6 +531,9 @@ impl Inventory {
                     .triangle(vertices, contrast(colors, texture));
             }
         }
+        let separated_count: usize = separated.values().map(|(ids, _)| ids.len()).sum();
+        assert_eq!(traced.len() + separated_count, count);
+        self.triangle_partition.push(json!({"kind":kind,"mesh":index,"triangles":count,"source_hidden":false,"traced_runs":index_runs(&traced),"separated":separated.into_iter().map(|((axis,sign),(ids,upper))|json!({"axis":axis,"sign":sign,"runs":index_runs(&ids),"maximum_plane_upper":upper})).collect::<Vec<_>>()}));
         self.outside_bottom += outside;
         self.maximum_bottom_upper = self.maximum_bottom_upper.max(maximum);
         self.meshes.push(json!({"kind":kind,"mesh":index,"triangles":count,"state":"enumerated","outside_bottom":outside,"unclassified":count-outside,"maximum_bottom_upper":maximum,"opacity":opacity}));
@@ -519,7 +607,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         _ => return Err("unsupported backend profile".into()),
     };
     let requested_frames: Vec<u64> = serde_json::from_slice(&fs::read(&args[5])?)?;
-    if requested_frames.is_empty() || requested_frames.iter().any(|&frame| frame >= 553) {
+    if requested_frames.is_empty() || requested_frames.iter().any(|&frame| frame >= 553)
+        || requested_frames.windows(2).any(|pair| pair[0] >= pair[1]) {
         return Err("invalid fallback frame scope".into());
     }
     let manifest_path = Path::new(&args[1]);
@@ -558,7 +647,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     writeln!(
         output,
         "{}",
-        json!({"schema":"rust-duty-source-geometry-probe/v1","source_certificate_schema":"rust-duty-source-visibility-certificate-diagnostic/v2","requested_frames":requested_frames,"original_native_observations":false,"backend_profile":if backend==Backend::OpenGl {"opengl: Projection*Model*position; gamma17"} else {"dx12: CPU (remap*Projection)*Model upload then shader MVP*position; gamma24"},"backend_native_upload_identity_verified":false,"raster_profile":"single sample at pixel center; at least 8 subpixel bits, displacement <=1/256 pixel; no culling; opaque depth winner; no alpha discard; x/y clipping produces coverage identical to the interval-bounded unclipped triangle inside the viewport (both interior and possible support)","fragment_profile":"RGB result differs from exact convex vertex/texture interpolation and multiplication by <=3 byte levels per channel; source texture alpha is overwritten to 255 as in adapter","profile_assumptions_independently_established":false,"scenario":"ads-offset","expected_frames":553,"extent":[960,540],"capture_hz":"60000/1001 as f32","profile":"m4a1","weapon_id":"hk416a5","initial_ammo":12,"horizontal_fov_degrees":76,"near":0.01,"far":5.0,"fixed_dt_bits":format!("{:08x}",FIXED_DT.to_bits()),"native_invocation_binding_verified":false,"numeric_profile":"conditional normal-finite or exact-zero operations, no underflow/flush-to-zero/overflow, relative operation error <=2^-23, equivalent-or-tighter FMA; GL two matrix/vector stages or expanded16terms gamma17; DX12 two CPU four-term matrix products then GPU four-term dot gamma24; outward host allowance","profile_native_verified":false,"source_sha_binding":"requires independently verified before/after SHA256 input receipt","acceptance_verdict":null,"sources":sources.iter().map(|s|json!({"vra":s.path,"companion_crc32":s.checksums,"skin_meshes":s.skin.meshes.len(),"rigid_meshes":s.rigid.meshes.len()})).collect::<Vec<_>>()})
+        json!({"schema":"rust-duty-source-geometry-probe/v1","source_certificate_schema":"rust-duty-source-visibility-certificate-diagnostic/v2","requested_frames":requested_frames,"original_native_observations":false,"backend_profile":if backend==Backend::OpenGl {"opengl: Projection*Model*position; gamma17"} else {"dx12: CPU (remap*Projection)*Model upload then shader MVP*position; gamma24"},"backend_native_upload_identity_verified":false,"raster_profile":"single sample at pixel center; at least 8 subpixel bits, displacement <=1/256 pixel; no culling; opaque depth winner; no alpha discard; x/y clipping produces coverage identical to the interval-bounded unclipped triangle inside the viewport (both interior and possible support)","fragment_profile":"RGB result differs from exact convex vertex/texture interpolation and multiplication by <=3 byte levels per channel; source texture alpha is overwritten to 255 as in adapter","profile_assumptions_independently_established":false,"scenario":"ads-offset","expected_frames":553,"extent":[960,540],"capture_hz":"60000/1001 as f32","profile":"m4a1","weapon_id":"hk416a5","initial_ammo":12,"horizontal_fov_degrees":76,"near":0.01,"far":5.0,"fixed_dt_bits":format!("{:08x}",FIXED_DT.to_bits()),"native_invocation_binding_verified":false,"numeric_profile":"conditional normal-finite or exact-zero operations, no underflow/flush-to-zero/overflow, relative operation error <=2^-23, equivalent-or-tighter FMA; GL two matrix/vector stages or expanded16terms gamma17; DX12 two CPU four-term matrix products then GPU four-term dot gamma24; outward host allowance","profile_native_verified":false,"source_sha_binding":"requires independently verified before/after SHA256 input receipt","native_draw_inventory_schema":"rust-duty-native-visibility-receipt/v1","acceptance_verdict":null,"sources":sources.iter().map(|s|json!({"vra":s.path,"companion_crc32":s.checksums,"skin_meshes":s.skin.meshes.len(),"rigid_meshes":s.rigid.meshes.len()})).collect::<Vec<_>>()})
     )?;
     let mut model = authored_viewmodel::AuthoredViewmodel::load_manifest(manifest_path)?;
     let mut sim = Simulation::new();
@@ -626,6 +715,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let lighting = SceneLighting::range().in_view(sim.player.direction());
         let normals: Vec<_> = palette.iter().map(|m| m.inverse().transpose()).collect();
         let mut inventory = Inventory::new();
+        let mut expected_draw_inventory = Vec::new();
         for (index, part) in source.skin.meshes.iter().enumerate() {
             let positions: Vec<_> = part
                 .vertices
@@ -669,6 +759,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     .into()
                 })
                 .collect();
+            expected_draw_inventory.push(expected_mesh(
+                "skin", index, &part.indices, &positions,
+                &part.vertices.iter().map(|vertex| vertex.uv).collect::<Vec<_>>(),
+                &colors, &part.rgba, part.texture_width, part.texture_height,
+                projection, Mat4::IDENTITY, backend, true, 1.,
+            ));
             inventory.mesh(
                 "skin",
                 index,
@@ -728,6 +824,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         color
                     })
                     .collect();
+                expected_draw_inventory.push(expected_mesh(
+                    "rigid", index, &part.indices, &positions,
+                    &part.vertices.iter().map(|vertex| vertex.uv).collect::<Vec<_>>(),
+                    &colors, &part.rgba, part.texture_width, part.texture_height,
+                    projection, snapshot.root * matrices[actor_index], backend, visible, alpha,
+                ));
                 inventory.mesh(
                     "rigid",
                     index,
@@ -746,6 +848,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         if ownership.iter().any(|&count| count != 1) {
             return Err("source rigid mesh missing or multiply owned".into());
         }
+        expected_draw_inventory.sort_by_key(|entry| (
+            if entry["kind"] == "skin" { 0 } else { 1 }, entry["mesh"].as_u64().unwrap()));
         let expected: usize = source
             .skin
             .meshes
@@ -763,7 +867,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             output,
             "{}",
             frame_json_with_native_records(
-                json!({"geometry_domain":inventory.geometry_domain,"triangle_trace":inventory.triangle_trace,"original_native_observations":false,"frame":frame,"committed_tick":ticks,"time":sim.time,"route":model.presentation_route(),"visual_ads":model.visual_ads_amount(),"ammo":sim.player.ammo,"shots":sim.stats.shots,"companion_catalog_vra":source.path,"companion_crc32":source.checksums,"source_triangles":expected,"outside_bottom":inventory.outside_bottom,"hidden_source_triangles":hidden_triangles,"unclassified_triangles":unresolved,"classification":if unresolved==0 {"expected_empty_under_profile"}else{"potentially_visible_unresolved"},"maximum_bottom_upper":inventory.maximum_bottom_upper,"meshes":inventory.meshes,"unsupported_clip_triangles":samples.unsupported,"possible_support_complete":samples.unsupported==0,"required_contrast_samples":required_count,"possible_samples":possible_count,"required_contrast_runs":runs(&required),"possible_support_runs":runs(&samples.possible),"acceptance_verdict":null}),
+                json!({"geometry_domain":inventory.geometry_domain,"triangle_trace":inventory.triangle_trace,"triangle_partition":inventory.triangle_partition,"original_native_observations":false,"frame":frame,"committed_tick":ticks,"time":sim.time,"route":model.presentation_route(),"visual_ads":model.visual_ads_amount(),"ammo":sim.player.ammo,"shots":sim.stats.shots,"companion_catalog_vra":source.path,"companion_crc32":source.checksums,"source_triangles":expected,"outside_bottom":inventory.outside_bottom,"hidden_source_triangles":hidden_triangles,"unclassified_triangles":unresolved,"classification":if unresolved==0 {"expected_empty_under_profile"}else{"potentially_visible_unresolved"},"maximum_bottom_upper":inventory.maximum_bottom_upper,"meshes":inventory.meshes,"expected_draw_inventory":expected_draw_inventory,"unsupported_clip_triangles":samples.unsupported,"possible_support_complete":samples.unsupported==0,"required_contrast_samples":required_count,"possible_samples":possible_count,"required_contrast_runs":runs(&required),"possible_support_runs":runs(&samples.possible),"acceptance_verdict":null}),
                 native_gameplay_telemetry(Some(&model), &sim),
                 native_time_telemetry(frame, &cfg)
             )
@@ -789,6 +893,23 @@ mod tests {
                 Bound::point(1.),
             ]
         })
+    }
+    #[test]
+    fn complete_triangle_partition_retains_visible_separated_and_hidden_meshes() {
+        let positions = [Vec3::new(-0.2,-0.2,0.),Vec3::new(0.2,-0.2,0.),Vec3::new(0.,0.2,0.)];
+        let colors = [[0,0,0,255];3];
+        let mut inventory = Inventory::new();
+        inventory.mesh("rigid",0,&[0,1,2],&positions,&colors,[[255,255];3],Mat4::IDENTITY,Mat4::IDENTITY,Backend::OpenGl,true,1.);
+        inventory.mesh("rigid",1,&[0,1,2],&positions,&colors,[[255,255];3],Mat4::IDENTITY,Mat4::from_translation(Vec3::new(0.,-3.,0.)),Backend::OpenGl,true,1.);
+        inventory.mesh("rigid",2,&[0,1,2],&positions,&colors,[[255,255];3],Mat4::IDENTITY,Mat4::IDENTITY,Backend::OpenGl,false,1.);
+        assert_eq!(inventory.triangle_partition.len(),3);
+        assert_eq!(inventory.triangle_partition[0]["traced_runs"],json!([[0,1]]));
+        assert_eq!(inventory.triangle_partition[1]["separated"][0]["runs"],json!([[0,1]]));
+        assert!(inventory.triangle_partition[1]["separated"][0]["maximum_plane_upper"].as_f64().unwrap()<0.);
+        assert_eq!(inventory.triangle_partition[2]["source_hidden"],true);
+        assert_eq!(inventory.triangle_trace.len(),1);
+        assert_eq!(inventory.geometry_domain.len(),2);
+        assert_eq!(index_runs(&[0,1,3,5,6]),vec![[0,2],[3,1],[5,2]]);
     }
     #[test]
     fn robust_samples_exclude_witness_and_unsafe_occluders() {

@@ -1,7 +1,8 @@
 //! Bounded later DX12/WARP corroboration of source-declared sample sets.
 //!
 //! No candidate capture is read. Required/possible masks must equal the pinned
-//! original source JSONL before a GPU is initialized. This does not change any
+//! original source JSONL, or independently receipt-bound current source JSONL.
+//! Current traces also account for every source triangle before probing. This does not change any
 //! original diagnostic flag or establish universal shader/raster correctness.
 use super::{
     arena::{clip_matrix, DrawSlice, FrameArena, GpuVertex},
@@ -309,6 +310,105 @@ struct Frame {
     possible: Vec<u8>,
     triangles: Vec<Triangle>,
     source_sha256: String,
+}
+/// Current traces must account for every original source triangle, including
+/// source-hidden actors and strictly separated triangles omitted from raster work.
+/// Separating bounds are source-probe claims, not GPU observations: the caller
+/// still binds this trace to its compiled native producer and capture receipts.
+fn verify_current_partition(trace: &Value, expected: &Value) -> Result<()> {
+    for key in ["frame", "time", "committed_tick", "route", "visual_ads", "ammo", "shots",
+        "companion_crc32", "source_triangles", "outside_bottom", "hidden_source_triangles",
+        "unclassified_triangles", "classification", "maximum_bottom_upper", "meshes",
+        "unsupported_clip_triangles", "possible_support_complete", "required_contrast_samples",
+        "possible_samples", "required_contrast_runs", "possible_support_runs", "native_gameplay", "native_time"] {
+        ensure(!expected[key].is_null() && trace[key] == expected[key], &format!("current trace differs from source at {key}"))?;
+    }
+    ensure(usize_at(&expected["required_contrast_samples"])? > 0
+        && expected["possible_support_complete"] == true && expected["unsupported_clip_triangles"] == 0,
+        "current WARP scope requires resolved visible source support")?;
+    ensure(expected["classification"] == "potentially_visible_unresolved"
+        && usize_at(&expected["unclassified_triangles"])? > 0,
+        "current WARP frame is not a visible source obligation")?;
+    let mut meshes = BTreeMap::new();
+    let mut total = 0usize;
+    let mut hidden_total = 0usize;
+    for mesh in expected["meshes"].as_array().ok_or("source mesh inventory missing")? {
+        let kind = mesh["kind"].as_str().filter(|v| *v == "skin" || *v == "rigid").ok_or("unknown source mesh kind")?;
+        let index = usize_at(&mesh["mesh"])?;
+        let count = usize_at(&mesh["triangles"])?;
+        let hidden = mesh["state"] == "source_actor_hidden";
+        ensure(hidden || mesh["state"] == "enumerated", "unknown source mesh state")?;
+        ensure(meshes.insert((kind.to_owned(), index), (count, hidden)).is_none(), "duplicate expected source mesh")?;
+        total = total.checked_add(count).ok_or("source triangle count overflow")?;
+        if hidden { hidden_total = hidden_total.checked_add(count).ok_or("hidden triangle count overflow")?; }
+    }
+    ensure(total == usize_at(&expected["source_triangles"])? && hidden_total == usize_at(&expected["hidden_source_triangles"])?, "source mesh triangle totals differ")?;
+    let mut seen = BTreeSet::new();
+    let mut traced = BTreeSet::new();
+    for part in trace["triangle_partition"].as_array().ok_or("complete current triangle partition missing")? {
+        let kind = part["kind"].as_str().ok_or("partition mesh kind missing")?.to_owned();
+        let index = usize_at(&part["mesh"])?;
+        let key = (kind.clone(), index);
+        ensure(seen.insert(key.clone()), "duplicate partition mesh")?;
+        let &(count, hidden) = meshes.get(&key).ok_or("unknown partition mesh")?;
+        ensure(part["triangles"] == count && part["source_hidden"] == hidden, "partition mesh count or source visibility differs")?;
+        let runs = part["traced_runs"].as_array().ok_or("traced triangle runs missing")?;
+        let separated = part["separated"].as_array().ok_or("separated triangle groups missing")?;
+        if hidden {
+            ensure(runs.is_empty() && separated.is_empty(), "hidden source mesh contains traced or separated triangles")?;
+            continue;
+        }
+        let mut covered = vec![false; count];
+        for id in triangle_ids(&part["traced_runs"], count)? {
+            covered[id] = true;
+            traced.insert((kind.clone(), index, id));
+        }
+        let mut planes = BTreeSet::new();
+        for group in separated {
+            let axis = usize_at(&group["axis"])?;
+            let sign = group["sign"].as_i64().ok_or("separator sign missing")?;
+            ensure(axis < 3 && (sign == -1 || sign == 1) && planes.insert((axis, sign)), "invalid or duplicate separator plane")?;
+            ensure(group["maximum_plane_upper"].as_f64().is_some_and(|v| v.is_finite() && v < 0.), "omitted triangle lacks strict separator")?;
+            let ids = triangle_ids(&group["runs"], count)?;
+            ensure(!ids.is_empty(), "empty separator group")?;
+            for id in ids {
+                ensure(!covered[id], "source triangle classified more than once")?;
+                covered[id] = true;
+            }
+        }
+        ensure(covered.iter().all(|v| *v), "missing source triangle classification")?;
+    }
+    ensure(seen == meshes.keys().cloned().collect(), "missing source mesh partition")?;
+    let mut observed = BTreeSet::new();
+    for triangle in trace["triangle_trace"].as_array().ok_or("current triangle trace missing")? {
+        let key = (triangle["kind"].as_str().ok_or("trace triangle kind missing")?.to_owned(), usize_at(&triangle["mesh"])?, usize_at(&triangle["triangle"])?);
+        ensure(observed.insert(key), "duplicate traced source triangle")?;
+    }
+    ensure(observed == traced, "traced triangles differ from complete source partition")?;
+    let expected_domains: BTreeSet<_> = meshes.iter().filter(|(_, (_, hidden))| !hidden).map(|(key, _)| key.clone()).collect();
+    let mut domains = BTreeSet::new();
+    for entry in trace["geometry_domain"].as_array().ok_or("current arithmetic domain inventory missing")? {
+        let key = (entry["kind"].as_str().ok_or("domain mesh kind missing")?.to_owned(), usize_at(&entry["mesh"])?);
+        ensure(domains.insert(key), "duplicate arithmetic domain mesh")?;
+        let domain = &entry["domain"];
+        ensure(domain["normal_or_exact_zero_no_overflow"] == true && domain["unsupported_domain_nodes"] == 0
+            && usize_at(&domain["checked_abstract_nodes"])? > 0, "unresolved current arithmetic domain")?;
+    }
+    ensure(domains == expected_domains, "incomplete arithmetic domain mesh inventory")
+}
+fn triangle_ids(value: &Value, limit: usize) -> Result<Vec<usize>> {
+    let mut result = Vec::new();
+    let mut previous = None;
+    for run in value.as_array().ok_or("triangle runs missing")? {
+        let pair = array::<2>(run)?;
+        let start = usize_at(&pair[0])?;
+        let length = usize_at(&pair[1])?;
+        let end = start.checked_add(length).ok_or("triangle run overflow")?;
+        ensure(length > 0 && end <= limit && previous.is_none_or(|last| start > last), "overlapping, noncanonical or out-of-range triangle runs")?;
+        result.extend(start..end);
+        previous = Some(end);
+    }
+    Ok(result)
 }
 fn load_frame(
     trace: &Value,
@@ -1197,6 +1297,8 @@ struct Options {
     source_root: PathBuf,
     output: PathBuf,
     native: bool,
+    current_receipt_sha256: Option<String>,
+    frames_json: Option<PathBuf>,
 }
 impl Options {
     fn parse(args: impl IntoIterator<Item = String>) -> Result<Self> {
@@ -1218,6 +1320,8 @@ impl Options {
                     "--source-receipt",
                     "--source-root",
                     "--output-dir",
+                    "--current-source-receipt-sha256",
+                    "--frames-json",
                 ]
                 .contains(&key.as_str()),
                 "unknown finite probe argument",
@@ -1230,6 +1334,13 @@ impl Options {
                 options.insert(key, value).is_none(),
                 "duplicate finite probe argument",
             )?;
+        }
+        let current_receipt_sha256 = options.remove("--current-source-receipt-sha256");
+        let frames_json = options.remove("--frames-json").map(PathBuf::from);
+        ensure(current_receipt_sha256.is_some() == frames_json.is_some(),
+            "current mode requires both receipt anchor and frames JSON")?;
+        if let Some(sha) = &current_receipt_sha256 {
+            ensure(valid_sha256(sha), "invalid independent current source receipt SHA-256")?;
         }
         let mut path = |key: &str| -> Result<PathBuf> {
             options
@@ -1244,8 +1355,13 @@ impl Options {
             source_root: path("--source-root")?,
             output: path("--output-dir")?,
             native: mode.ok_or("specify --native or --plan-only")?,
+            current_receipt_sha256,
+            frames_json,
         })
     }
+}
+fn valid_sha256(value: &str) -> bool {
+    value.len() == 64 && value.bytes().all(|c| c.is_ascii_digit() || (b'a'..=b'f').contains(&c))
 }
 fn validate_layout(stride: u64, attributes: &[wgpu::VertexAttribute]) -> Result<()> {
     let expected = wgpu::vertex_attr_array![0=>Float32x3,1=>Float32x2,2=>Unorm8x4,3=>Float32x4];
@@ -1257,28 +1373,64 @@ fn validate_layout(stride: u64, attributes: &[wgpu::VertexAttribute]) -> Result<
 fn sources(options: &Options, receipt: &Value) -> Result<(BTreeMap<u32, WeaponAsset>, Value)> {
     let mut assets = BTreeMap::new();
     let mut records = Vec::new();
-    for relative in ["assets/locomotion/asset.vrm", "assets/reload/asset.vrm"] {
-        let path = options.source_root.join(relative);
+    let current = options.current_receipt_sha256.is_some();
+    let relative_paths = if current {
+        receipt["inputs_and_implementation_before"].as_object().ok_or("missing current source inventory")?
+            .keys().filter(|key| key.starts_with("assets/") && key.ends_with(".vrm")).cloned().collect::<Vec<_>>()
+    } else {
+        vec!["assets/locomotion/asset.vrm".into(), "assets/reload/asset.vrm".into()]
+    };
+    ensure(!relative_paths.is_empty(), "no bound VRM companions")?;
+    let mut seen = BTreeMap::new();
+    for relative in relative_paths {
+        ensure(relative.split('/').all(|part| !part.is_empty() && part != "." && part != "..") && !relative.contains('\\'), "unsafe source asset path")?;
+        let path = options.source_root.join(&relative);
         let bytes = fs::read(&path).map_err(error)?;
         let sha = bytes_hash(&bytes);
-        let before = &receipt["inputs_and_implementation_before"][relative];
-        let after = &receipt["inputs_and_implementation_after"][relative];
+        let before = &receipt["inputs_and_implementation_before"][&relative];
+        let after = &receipt["inputs_and_implementation_after"][&relative];
         ensure(
             before["sha256"] == sha && before["bytes"] == bytes.len() && before == after,
             "VRM bytes differ from original before/after receipt",
         )?;
         let crc = crate::asset::crc32(&bytes);
         let decoded = WeaponAsset::decode(&bytes).map_err(error)?;
-        ensure(
-            assets.insert(crc, decoded).is_none(),
-            "duplicate source CRC",
-        )?;
+        if let Some(previous) = seen.insert(crc, sha.clone()) {
+            ensure(current && previous == sha, "duplicate or ambiguous source CRC")?;
+        } else {
+            assets.insert(crc, decoded);
+        }
         records
             .push(json!({"relative_path":relative,"sha256":sha,"bytes":bytes.len(),"crc32":crc}));
     }
     Ok((assets, json!(records)))
 }
-fn verify_production_source(receipt: &Value) -> Result<()> {
+fn verify_production_source(receipt: &Value, current: bool) -> Result<()> {
+    if current {
+        let files: &[(&str, &[u8])] = &[
+            ("Cargo.lock", include_bytes!("../../Cargo.lock")),
+            ("Cargo.toml", include_bytes!("../../Cargo.toml")),
+            ("src/render/mesh.wgsl", include_bytes!("mesh.wgsl")),
+            ("src/render/arena.rs", include_bytes!("arena.rs")),
+            ("src/render/target.rs", include_bytes!("target.rs")),
+            ("src/render/device.rs", include_bytes!("device.rs")),
+            ("src/draw/mod.rs", include_bytes!("../draw/mod.rs")),
+            ("src/render/mesh.rs", include_bytes!("mesh.rs")),
+            ("src/render/frame.rs", include_bytes!("frame.rs")),
+            ("src/render/plan.rs", include_bytes!("plan.rs")),
+            ("src/render/backend.rs", include_bytes!("backend.rs")),
+            ("src/render/capture.rs", include_bytes!("capture.rs")),
+            ("src/render/mod.rs", include_bytes!("mod.rs")),
+            ("src/render/finite_warp_probe.rs", include_bytes!("finite_warp_probe.rs")),
+        ];
+        for &(name, bytes) in files {
+            let before = &receipt["inputs_and_implementation_before"][name];
+            ensure(before["sha256"] == bytes_hash(bytes) && before["bytes"] == bytes.len()
+                && before == &receipt["inputs_and_implementation_after"][name],
+                &format!("compiled current production source differs from receipt: {name}"))?;
+        }
+        return Ok(());
+    }
     let mesh = include_str!("mesh.rs");
     let start = mesh
         .find("    /// Later finite corroboration only.")
@@ -1313,32 +1465,48 @@ fn source_files() -> Value {
 /// on other operating systems or when the actual adapter is not DX12 CPU WARP.
 pub fn run(args: impl IntoIterator<Item = String>) -> Result<()> {
     let options = Options::parse(args)?;
-    ensure(
-        hash_file(&options.original)? == ORIGINAL,
-        "original source JSONL digest mismatch",
-    )?;
-    ensure(
-        hash_file(&options.receipt)? == RECEIPT,
-        "original source receipt digest mismatch",
-    )?;
+    let current = options.current_receipt_sha256.is_some();
+    let receipt_sha256 = options.current_receipt_sha256.as_deref().unwrap_or(RECEIPT);
+    ensure(hash_file(&options.receipt)? == receipt_sha256, "source receipt digest mismatch")?;
     validate_layout(GpuVertex::STRIDE, &GpuVertex::ATTRIBUTES)?;
-    let receipt: Value =
-        serde_json::from_slice(&fs::read(&options.receipt).map_err(error)?).map_err(error)?;
-    verify_production_source(&receipt)?;
+    let receipt: Value = serde_json::from_slice(&fs::read(&options.receipt).map_err(error)?).map_err(error)?;
+    let original_sha256 = if current {
+        ensure(receipt["schema"] == "rust-duty-source-visibility-certificates-binding/v1"
+            && receipt["inputs_and_implementation_before"].is_object()
+            && receipt["inputs_and_implementation_before"] == receipt["inputs_and_implementation_after"],
+            "current source receipt inventory missing or changed")?;
+        let value = receipt["backend_reports"]["dx12"]["output"]["sha256"].as_str().ok_or("current expected source output identity missing")?;
+        ensure(valid_sha256(value), "current expected source output SHA-256 invalid")?;
+        ensure(receipt["backend_reports"]["dx12"]["output"]["bytes"] == fs::metadata(&options.original).map_err(error)?.len(), "current expected source output length differs")?;
+        value
+    } else { ORIGINAL };
+    ensure(hash_file(&options.original)? == original_sha256, "expected source JSONL digest mismatch")?;
+    verify_production_source(&receipt, current)?;
     let (assets, asset_receipts) = sources(&options, &receipt)?;
-    let originals = read_rows(&options.original)?
-        .into_iter()
-        .filter(|r| {
-            r["frame"]
-                .as_u64()
-                .is_some_and(|id| FINITE_FRAMES.contains(&(id as usize)))
-        })
-        .map(|r| Ok((usize_at(&r["frame"])?, r)))
-        .collect::<Result<BTreeMap<_, _>>>()?;
-    ensure(
-        originals.len() == 50,
-        "original source does not identify exactly fifty visible states",
-    )?;
+    let (frame_ids, frames_sha256) = if let Some(path) = &options.frames_json {
+        let raw = fs::read(path).map_err(error)?;
+        let ids: Vec<usize> = serde_json::from_slice(&raw).map_err(error)?;
+        ensure(!ids.is_empty() && ids.iter().all(|id| *id < 553) && ids.windows(2).all(|p| p[0] < p[1]), "current visible frame scope must be nonempty, sorted, unique and in range")?;
+        (ids, Some(bytes_hash(&raw)))
+    } else { (FINITE_FRAMES.to_vec(), None) };
+    let source_rows = read_rows(&options.original)?;
+    if current {
+        ensure(source_rows.first().is_some_and(|h| h["expected_frames"] == 553
+            && h["extent"] == json!([WIDTH, HEIGHT])
+            && h["backend_profile"].as_str().is_some_and(|profile| profile.starts_with("dx12:"))
+            && h["profile_native_verified"] == false && h["acceptance_verdict"].is_null()),
+            "current expected source header differs")?;
+        ensure(source_rows.len() == 554 && source_rows.iter().skip(1).enumerate().all(|(i,r)| r["frame"] == i), "current expected source frame inventory incomplete, duplicated or reordered")?;
+    }
+    let mut originals = BTreeMap::new();
+    for row in source_rows {
+        if let Some(id) = row["frame"].as_u64().and_then(|n| usize::try_from(n).ok()) {
+            if frame_ids.contains(&id) {
+                ensure(originals.insert(id, row).is_none(), "duplicate expected source frame")?;
+            }
+        }
+    }
+    ensure(originals.len() == frame_ids.len(), "expected source does not identify every selected visible state")?;
     ensure(
         !options.output.exists(),
         "output must be a new directory; stale evidence cannot pass",
@@ -1355,6 +1523,12 @@ pub fn run(args: impl IntoIterator<Item = String>) -> Result<()> {
                 .is_some_and(|s| s.starts_with("dx12:")),
         "trace is not the finite DX12 viewport profile",
     )?;
+    if current {
+        ensure(header["schema"] == "rust-duty-source-geometry-probe/v1"
+            && header["requested_frames"] == json!(frame_ids)
+            && header["expected_frames"] == 553,
+            "current geometry trace scope differs from selected frames")?;
+    }
     let gpu = if options.native {
         ensure(
             cfg!(target_os = "windows"),
@@ -1385,6 +1559,9 @@ pub fn run(args: impl IntoIterator<Item = String>) -> Result<()> {
         let value: Value = serde_json::from_str(&row.map_err(error)?).map_err(error)?;
         let id = usize_at(&value["frame"])?;
         ensure(frame_ids.insert(id), "duplicate finite state")?;
+        if current {
+            verify_current_partition(&value, originals.get(&id).ok_or("unexpected current state")?)?;
+        }
         let frame = load_frame(
             &value,
             originals.get(&id).ok_or("unexpected finite state")?,
@@ -1422,8 +1599,9 @@ pub fn run(args: impl IntoIterator<Item = String>) -> Result<()> {
     )?;
     ensure(
         hash_file(&options.trace)? == trace_sha256
-            && hash_file(&options.original)? == ORIGINAL
-            && hash_file(&options.receipt)? == RECEIPT,
+            && hash_file(&options.original)? == original_sha256
+            && hash_file(&options.receipt)? == receipt_sha256
+            && options.frames_json.as_ref().map(|p| hash_file(p)).transpose()? == frames_sha256,
         "source inputs changed during probe",
     )?;
     let (_, after_assets) = sources(&options, &receipt)?;
@@ -1438,7 +1616,10 @@ pub fn run(args: impl IntoIterator<Item = String>) -> Result<()> {
     } else {
         Value::Null
     };
-    let report = json!({"schema":"rust-duty-finite-warp-corroboration/v1","status":if options.native {"passed"} else {"source_plan_verified"},"native_execution":options.native,"later_corroboration":true,"original_capture_reproduced":false,"original_native_upload_identity_verified":false,"original_profile_flags_modified":false,"universal_profile_verified":false,"acceptance_verdict":null,"created_unix_seconds":SystemTime::now().duration_since(UNIX_EPOCH).map_err(error)?.as_secs(),"source_receipt_sha256":RECEIPT,"original_dx12_jsonl_sha256":ORIGINAL,"trace_sha256":trace_sha256,"source_assets":asset_receipts,"implementation_sha256":source_files(),"executable_sha256":hash_file(&std::env::current_exe().map_err(error)?)?,"build_configuration":{"legacy_macroquad":cfg!(feature="legacy-macroquad"),"wgpu_runtime":cfg!(feature="wgpu-runtime"),"audio":cfg!(feature="audio"),"debug_assertions":cfg!(debug_assertions),"required_rust_toolchain":"1.99.0","compiler_build_provenance":"external build receipt must bind rustc-Vv and this executable digest"},"native_identity":native_identity,"viewport":[0,0,WIDTH,HEIGHT],"target_format":"Rgba8Unorm","sample_count":1,"depth_enabled":false,"blend_modes":["disabled","production_alpha_over_opaque_black","production_alpha_over_opaque_white"],"fragment_entry_point":"fs_straight","required_mask_changed":false,"possible_mask_changed":false,"frame_witness_excluded":[0,0,64,22],"source_triangle_count":triangle_count,"support_guard_draw_count":triangle_count,"color_probe_triangle_count":selected_count,"compact_color_readback_bytes":transfer_bytes,"coverage_union_readback_bytes":50*PIXELS*4,"frames":records,"scope":"finite source-declared triangles and required/possible sample sets only; modified PS/depth/blend isolation is later corroboration, never original native pipeline receipts"});
+    let mut report = json!({"schema":if current {"rust-duty-current-warp-corroboration/v1"} else {"rust-duty-finite-warp-corroboration/v1"},"status":if options.native {"passed"} else {"source_plan_verified"},"native_execution":options.native,"later_corroboration":true,"original_capture_reproduced":false,"original_native_upload_identity_verified":false,"original_profile_flags_modified":false,"universal_profile_verified":false,"acceptance_verdict":null,"created_unix_seconds":SystemTime::now().duration_since(UNIX_EPOCH).map_err(error)?.as_secs(),"source_receipt_sha256":receipt_sha256,"original_dx12_jsonl_sha256":original_sha256,"trace_sha256":trace_sha256,"source_assets":asset_receipts,"implementation_sha256":source_files(),"executable_sha256":hash_file(&std::env::current_exe().map_err(error)?)?,"build_configuration":{"legacy_macroquad":cfg!(feature="legacy-macroquad"),"wgpu_runtime":cfg!(feature="wgpu-runtime"),"audio":cfg!(feature="audio"),"debug_assertions":cfg!(debug_assertions),"required_rust_toolchain":if current {receipt["toolchain"].clone()} else {json!("1.99.0")},"compiler_build_provenance":"external build receipt must bind rustc-Vv and this executable digest"},"native_identity":native_identity,"viewport":[0,0,WIDTH,HEIGHT],"target_format":"Rgba8Unorm","sample_count":1,"depth_enabled":false,"blend_modes":["disabled","production_alpha_over_opaque_black","production_alpha_over_opaque_white"],"fragment_entry_point":"fs_straight","required_mask_changed":false,"possible_mask_changed":false,"frame_witness_excluded":[0,0,64,22],"source_triangle_count":triangle_count,"support_guard_draw_count":triangle_count,"color_probe_triangle_count":selected_count,"compact_color_readback_bytes":transfer_bytes,"coverage_union_readback_bytes":frame_ids.len()*PIXELS*4,"frames":records,"scope":"finite source-declared triangles and required/possible sample sets only; modified PS/depth/blend isolation is later corroboration, never original native pipeline receipts"});
+    if current {
+        report["current_source_scope"] = json!({"frames":frame_ids,"frames_json_sha256":frames_sha256,"complete_source_partitions_checked":true,"receipt_anchor_origin":"independent caller argument","source_expectations_receipt_bound":true,"native_capture_upload_identity_verified":false});
+    }
     fs::write(
         options.output.join("report.json"),
         serde_json::to_vec_pretty(&report).map_err(error)?,
@@ -1594,6 +1775,66 @@ mod tests {
                 }
             }
         }
+    }
+    fn current_partition_fixture() -> (Value, Value) {
+        let expected = json!({"frame":1,"time":0.25,"committed_tick":3,"route":"synthetic",
+            "visual_ads":0.0,"ammo":12,"shots":0,"companion_crc32":[1,2],"source_triangles":3,
+            "outside_bottom":1,"hidden_source_triangles":1,"unclassified_triangles":1,
+            "classification":"potentially_visible_unresolved","maximum_bottom_upper":1.0,
+            "meshes":[{"kind":"rigid","mesh":0,"triangles":2,"state":"enumerated"},
+                {"kind":"rigid","mesh":1,"triangles":1,"state":"source_actor_hidden"}],
+            "unsupported_clip_triangles":0,"possible_support_complete":true,
+            "required_contrast_samples":1,"possible_samples":1,
+            "required_contrast_runs":[[1000,1]],"possible_support_runs":[[1000,1]],
+            "native_gameplay":{"synthetic":true},"native_time":{"synthetic":true}});
+        let mut trace = expected.clone();
+        trace["triangle_partition"] = json!([
+            {"kind":"rigid","mesh":0,"triangles":2,"source_hidden":false,"traced_runs":[[0,1]],
+             "separated":[{"axis":1,"sign":1,"runs":[[1,1]],"maximum_plane_upper":-0.5}]},
+            {"kind":"rigid","mesh":1,"triangles":1,"source_hidden":true,"traced_runs":[],"separated":[]}]);
+        trace["triangle_trace"] = json!([{"kind":"rigid","mesh":0,"triangle":0}]);
+        trace["geometry_domain"] = json!([{"kind":"rigid","mesh":0,"domain":{
+            "normal_or_exact_zero_no_overflow":true,"unsupported_domain_nodes":0,"checked_abstract_nodes":10}}]);
+        (trace, expected)
+    }
+    #[test]
+    fn current_partition_rejects_missing_false_hidden_and_unresolved_inputs() {
+        let (trace, expected) = current_partition_fixture();
+        verify_current_partition(&trace, &expected).unwrap();
+        for pointer in ["/triangle_partition", "/triangle_trace", "/geometry_domain"] {
+            let mut changed = trace.clone();
+            *changed.pointer_mut(pointer).unwrap() = json!([]);
+            assert!(verify_current_partition(&changed, &expected).is_err(), "{pointer}");
+        }
+        for (pointer, value) in [
+            ("/triangle_partition/0/source_hidden", json!(true)),
+            ("/triangle_partition/0/separated/0/maximum_plane_upper", json!(0.0)),
+            ("/triangle_partition/0/separated/0/runs", json!([[0,1]])),
+            ("/triangle_partition/0/traced_runs", json!([])),
+            ("/geometry_domain/0/domain/normal_or_exact_zero_no_overflow", json!(false)),
+            ("/geometry_domain/0/domain/unsupported_domain_nodes", json!(1)),
+            ("/native_time", Value::Null),
+        ] {
+            let mut changed = trace.clone();
+            *changed.pointer_mut(pointer).unwrap() = value;
+            assert!(verify_current_partition(&changed, &expected).is_err(), "{pointer}");
+        }
+    }
+    #[test]
+    fn current_mode_requires_separate_anchor_and_frames_without_changing_legacy_mode() {
+        let args = ["--plan-only","--trace","trace","--original-jsonl","expected",
+            "--source-receipt","receipt","--source-root","root","--output-dir","output"];
+        let legacy = Options::parse(args.map(str::to_owned)).unwrap();
+        assert!(legacy.current_receipt_sha256.is_none());
+        let current_args = |extra: Vec<String>| args.iter().map(|v| (*v).to_owned()).chain(extra).collect::<Vec<_>>();
+        assert!(Options::parse(current_args(vec!["--frames-json".into(),"frames".into()])).is_err());
+        assert!(Options::parse(current_args(vec!["--current-source-receipt-sha256".into(),"a".repeat(64)])).is_err());
+        let current = Options::parse(current_args(vec!["--current-source-receipt-sha256".into(),"a".repeat(64),"--frames-json".into(),"frames".into()])).unwrap();
+        assert_eq!(current.current_receipt_sha256, Some("a".repeat(64)));
+        assert_eq!(triangle_ids(&json!([[0,2],[3,1]]),4).unwrap(), vec![0,1,3]);
+        assert!(triangle_ids(&json!([[0,2],[2,1]]),4).is_err());
+        assert!(triangle_ids(&json!([[3,2]]),4).is_err());
+        assert!(!valid_sha256(&"G".repeat(64)));
     }
     #[test]
     fn explicit_native_or_plan_mode_and_fresh_output_are_required() {

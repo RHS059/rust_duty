@@ -132,6 +132,7 @@ class FiniteProfileGateTests(unittest.TestCase):
         self.assertFalse(result['checks'])
 
     def test_binder_receives_independent_anchor_original_logs_and_packet(self):
+        (self.root / 'class.json').write_text('{"schema":"rust-duty-finite-ads-reviewed-class/v1"}')
         with patch.object(leaf.finite_profile, 'bind_finite_ads_profile', return_value=self.profile) as bind:
             actual = leaf.bind_bounded_profile(self.bound, self.root / 'source-packet.json',
                                               self.root / 'class.json', 'd' * 64, self.root / 'offset')
