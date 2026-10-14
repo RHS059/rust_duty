@@ -219,11 +219,36 @@ class Dx12PreviewTests(unittest.TestCase):
 
 
 class Dx12PreviewWorkflowTests(unittest.TestCase):
+    def assert_audio_enabled_game_build(self, workflow):
+        marker = '      - name: Build one audio-enabled dual-runtime game for smoke and preview\n'
+        self.assertEqual(workflow.count(marker), 1)
+        build_step = workflow.split(marker, 1)[1].split('\n      - ', 1)[0]
+        self.assertIn('run: ' + ' '.join(preview.BUILD_COMMAND) + '\n', build_step + '\n')
+        self.assertNotIn('--no-default-features', build_step)
+
+    def test_game_build_cannot_disable_defaults_even_when_lighting_bake_does(self):
+        workflow = (ROOT / '.github/workflows/wgpu-dx12-smoke.yml').read_text()
+        self.assertIn('cargo run --locked --release --no-default-features --example bake_level_lighting', workflow)
+        self.assert_audio_enabled_game_build(workflow)
+        command = ' '.join(preview.BUILD_COMMAND)
+        for suffix in (' --no-default-features', '\n          --no-default-features'):
+            with self.subTest(suffix=suffix):
+                changed = workflow.replace('run: ' + command, 'run: ' + command + suffix)
+                with self.assertRaises(AssertionError):
+                    self.assert_audio_enabled_game_build(changed)
+
+    def test_missing_game_build_cannot_be_hidden_by_command_in_another_step(self):
+        workflow = (ROOT / '.github/workflows/wgpu-dx12-smoke.yml').read_text()
+        command = ' '.join(preview.BUILD_COMMAND)
+        changed = workflow.replace('run: ' + command, 'run: echo missing game build')
+        changed += '\n      - name: Unrelated step\n        run: ' + command + '\n'
+        with self.assertRaises(AssertionError):
+            self.assert_audio_enabled_game_build(changed)
+
     def test_preview_reuses_smoke_binary_and_keeps_stable_aliases_separate(self):
         workflow = (ROOT / '.github/workflows/wgpu-dx12-smoke.yml').read_text()
-        self.assertIn(' '.join(preview.BUILD_COMMAND), workflow)
+        self.assert_audio_enabled_game_build(workflow)
         self.assertEqual(workflow.count('cargo build '), 1)
-        self.assertNotIn('--no-default-features', workflow)
         self.assertLess(workflow.index('tools/run_dx12_smoke.py'), workflow.index('tools/stage_dx12_preview.py'))
         self.assertIn('Rust-Duty-${{ steps.identity.outputs.label }}-DX12-Preview-Windows-x64', workflow)
         self.assertNotIn('vector-range-windows-x64', workflow)
