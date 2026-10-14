@@ -14,6 +14,9 @@ from PIL import Image, ImageChops, ImageDraw, ImageStat
 
 RENDERERS = ('auto', 'dx12', 'vulkan', 'metal', 'gl')
 
+# Explicit source contract for SceneLighting::range; never inferred from sidecars.
+WORLD_LIGHT_DIRECTION = (-0.45, 0.78, 0.43)
+
 VIEWS = [('front', -90, 0), ('right', 0, 0), ('back', 90, 0),
          ('left', 180, 0), ('up', -90, 35), ('down', -90, -35)]
 
@@ -21,6 +24,26 @@ VIEWS = [('front', -90, 0), ('right', 0, 0), ('back', 90, 0),
 def difference(a, b, box):
     diff = ImageChops.difference(a.crop(box), b.crop(box))
     return sum(ImageStat.Stat(diff).mean[:3]) / 3
+
+
+def verify_direction(data, yaw, pitch):
+    """Check frozen camera metadata against the independently pinned world light."""
+    if abs(data['yaw_degrees'] - yaw) > 0.001 or abs(data['pitch_degrees'] - pitch) > 0.001:
+        raise ValueError('capture did not use the requested camera direction')
+    if data['simulation_time'] != 0:
+        raise ValueError('lighting capture changed animation time')
+    # Independent closed-form world-to-camera basis, not copied sidecars.
+    y, p = math.radians(yaw), math.radians(pitch)
+    forward = (math.cos(y)*math.cos(p), math.sin(p), math.sin(y)*math.cos(p))
+    right = (-math.sin(y), 0, math.cos(y))
+    up = (-math.cos(y)*math.sin(p), math.cos(p), -math.sin(y)*math.sin(p))
+    length = math.sqrt(sum(component * component for component in WORLD_LIGHT_DIRECTION))
+    world = [component / length for component in WORLD_LIGHT_DIRECTION]
+    expected = [sum(a*b for a,b in zip(axis, world)) for axis in [right, up, [-x for x in forward]]]
+    if max(abs(a-b) for a,b in zip(expected, data['view_light'])) > 1e-5:
+        raise ValueError('view light does not match the fixed world light')
+    if max(abs(a-b) for a,b in zip(world, data['world_light'])) > 1e-5:
+        raise ValueError('level light rotated with the camera')
 
 
 def verify(folder):
@@ -35,21 +58,7 @@ def verify(folder):
                  for name, image in images.items()}
         for name, yaw, pitch in VIEWS:
             data = json.loads((folder / f'{pose}_{name}.png.lighting.json').read_text())
-            if abs(data['yaw_degrees'] - yaw) > 0.001 or abs(data['pitch_degrees'] - pitch) > 0.001:
-                raise ValueError('capture did not use the requested camera direction')
-            if data['simulation_time'] != 0:
-                raise ValueError('lighting capture changed animation time')
-            # Independent closed-form world-to-camera basis, not copied sidecars.
-            y, p = math.radians(yaw), math.radians(pitch)
-            forward = (math.cos(y)*math.cos(p), math.sin(p), math.sin(y)*math.cos(p))
-            right = (-math.sin(y), 0, math.cos(y))
-            up = (-math.cos(y)*math.sin(p), math.cos(p), -math.sin(y)*math.sin(p))
-            world = [-.3 / math.sqrt(.98), .8 / math.sqrt(.98), .5 / math.sqrt(.98)]
-            expected = [sum(a*b for a,b in zip(axis, world)) for axis in [right, up, [-x for x in forward]]]
-            if max(abs(a-b) for a,b in zip(expected, data['view_light'])) > 1e-5:
-                raise ValueError('view light does not match the fixed world light')
-            if max(abs(a-b) for a,b in zip(world, data['world_light'])) > 1e-5:
-                raise ValueError('level light rotated with the camera')
+            verify_direction(data, yaw, pitch)
             same = sum(a == b for a,b in zip(masks['front'], masks[name])) / (960*540)
             if same < .999:
                 raise ValueError(f'{pose}/{name}: pose silhouette changed during a lighting-only capture')
