@@ -15,6 +15,7 @@ class QualityChecksTests(unittest.TestCase):
         self.assertIn('--all-targets', lanes['game'][0])
         self.assertEqual(lanes['game'][0][-2:], ['-D', 'warnings'])
         self.assertIn('--release', lanes['game'][2])
+        self.assertEqual(lanes['game'][2][-2:], ['--features', 'wgpu-runtime'])
 
     def test_native_validation_retains_game_and_python_without_duplicate_updater(self):
         lanes = checks.pipelines(native_validation=True)
