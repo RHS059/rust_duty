@@ -97,8 +97,10 @@ fn shipped_city_loads_and_player_walks_into_a_shop_and_up_its_stairs() {
     assert!(sim.targets.is_empty() && sim.ramps.is_empty());
     let original_colliders = sim.blocks.len();
     sim.player.position = point(&entry["path"][0]);
-    let mut cfg = Settings::default();
-    cfg.walk_speed = 1.5;
+    let cfg = Settings {
+        walk_speed: 1.5,
+        ..Settings::default()
+    };
     walk_route(&mut sim, &cfg, entry);
     walk_route(&mut sim, &cfg, &building["stairs"][0]);
     walk_route(&mut sim, &cfg, upper_room);
