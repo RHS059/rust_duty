@@ -14,3 +14,5 @@ The original test range remains available with `--level=range`.
 [Level guide and controls](docs/CEDAR_JUNCTION.md) ·
 [Geometry review images](assets/levels/cedar_junction/review/) ·
 [Build and validate the city](.github/workflows/build-city.yml)
+
+![Cedar Junction overview](assets/levels/cedar_junction/review/overview.jpg)
