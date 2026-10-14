@@ -276,7 +276,8 @@ fn decode_meshes_mode(bytes: &[u8], unlit: bool) -> Result<Vec<CityChunk>, Strin
     };
     let mut reader = Reader { bytes, offset: 0 };
     let magic = reader.take::<8>()?;
-    let baked = magic == *b"RDCITY02";
+    let compact = magic == *b"RDCITY03";
+    let baked = compact || magic == *b"RDCITY02";
     if !baked && magic != *b"RDCITY01" {
         return Err("invalid city mesh magic".into());
     }
@@ -304,15 +305,19 @@ fn decode_meshes_mode(bytes: &[u8], unlit: bool) -> Result<Vec<CityChunk>, Strin
         {
             return Err(format!("invalid geometry count for chunk {chunk_index}"));
         }
-        let required = vertex_count * 40 + index_count * 2;
+        let required = vertex_count * if compact { 16 } else { 40 } + index_count * 2;
         if required > bytes.len() - reader.offset {
             return Err("truncated city geometry".into());
         }
         let mut vertices = Vec::with_capacity(vertex_count);
         for _ in 0..vertex_count {
             let position = reader.vec3()?;
-            let normal = reader.vec3()?;
-            let rgba = [reader.f32()?, reader.f32()?, reader.f32()?, reader.f32()?];
+            let normal = if compact { Vec3::ZERO } else { reader.vec3()? };
+            let rgba = if compact {
+                reader.take::<4>()?.map(|c| c as f32 / 255.)
+            } else {
+                [reader.f32()?, reader.f32()?, reader.f32()?, reader.f32()?]
+            };
             if !position.cmpge(bounds.min - Vec3::splat(0.01)).all()
                 || !position.cmple(bounds.max + Vec3::splat(0.01)).all()
             {

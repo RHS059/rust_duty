@@ -36,7 +36,11 @@ def load(path):
     b=path.read_bytes();b=gzip.decompress(b) if b[:2]==b'\x1f\x8b' else b;count=struct.unpack_from('<I',b,8)[0];off=12;vs=[];fs=[];start=0
     for _ in range(count):
         *bounds,n,m=struct.unpack_from('<6fII',b,off);off+=32
-        v=np.frombuffer(b,'<f4',n*10,off).reshape(n,10).copy();off+=n*40
+        if b[:8]==b'RDCITY03':
+            packed=np.frombuffer(b,np.dtype([('p','<f4',3),('c','u1',4)]),n,off);off+=n*16
+            v=np.zeros((n,10),dtype=np.float32);v[:,:3]=packed['p'];v[:,6:10]=packed['c']/255.
+        else:
+            v=np.frombuffer(b,'<f4',n*10,off).reshape(n,10).copy();off+=n*40
         f=np.frombuffer(b,'<u2',m,off).reshape(-1,3).astype(np.int64)+start;off+=m*2;start+=n
         vs.append(v);fs.append(f)
     return np.concatenate(vs),np.concatenate(fs)
