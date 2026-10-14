@@ -85,13 +85,24 @@ asset.prone-pair.json and the exact bytes of asset.prone-camera.json.
 - 21 new Python paired matrix/identity/grid/rest tests passed.
 - 12 existing importer tests passed.
 - Python compilation/CLI checks and actual immutable sidecar validation passed.
-- 32 new source-free Rust contracts are included; Rust formatting completed.
-  Rust contract execution was initially
-  blocked before game compilation by the shared filesystem running out of space.
-  Only the new disposable build cache was removed. This is not a Rust test pass.
+- At cf64590c3b544f9cd6b0a860aa94d2ffb7088a1f, the existing
+  [runtime contracts CI](https://github.com/RHS059/rust_duty/actions/runs/38517942517/job/115700867088)
+  passed all-target Clippy with warnings denied and the complete
+  cargo test --locked --no-default-features suite, including all 32 new prone
+  integration contracts. The separate existing sampler CI also passed.
+- This revision adds one direct paired-renderer phase/draw unit test, exercised
+  through the existing source_triangle_completeness suite. Its fresh CI result
+  is pending; the earlier green result is not attributed to this newer revision.
+- The initial local Rust build stopped before game compilation because the shared
+  filesystem ran out of space. Only its newly generated disposable cache was
+  removed; subsequent verification used the existing remote CI.
 - No private Blender/FBX conversion, Eevee capture, native runtime visual pass,
   artistic pass, packaged build or ship claim.
 
 The existing Cargo/Python suites remain the test route; no new CI workflow is
 introduced. Source changes are based on main 601b7fc416d7feaf677b002354f7130b0f8a8c8f
 and preserve its approved Jump r8 integration.
+
+A separate semantics-preserving city test initializer fix is included solely to
+unblock the existing all-target Clippy suite. Its first failure was in unchanged
+tests/city_level_contract.rs, not a prone-specific compilation failure.

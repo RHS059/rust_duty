@@ -536,6 +536,24 @@ impl AuthoredViewmodel {
     pub fn warning(&self) -> Option<&str> {
         self.warning.as_deref()
     }
+    fn update_prone_pose(
+        &mut self,
+        sample: Option<vector_range::authored_prone::ProneSample>,
+    ) -> Result<(), String> {
+        self.prone_pose = match (self.prone_index, sample) {
+            (Some(index), Some(sample)) => {
+                let renderer = &self.reload_renderers[index];
+                Some(
+                    renderer
+                        .animation
+                        .sample_clamped(&renderer.clip, sample.seconds as f32)
+                        .map_err(|error| error.to_string())?,
+                )
+            }
+            _ => None,
+        };
+        Ok(())
+    }
     /// Exactly one committed observer, shared by real keyboard and replay input.
     pub fn committed_step(&mut self, start: f64, simulation: &vector_range::sim::Simulation) {
         if self.error.is_some() {
@@ -543,19 +561,9 @@ impl AuthoredViewmodel {
         }
         // The simulation's accepted transition is the sole paired clock. No
         // generic 60ms entry crossfade may modify protected source frames 1–11.
-        self.prone_pose = None;
-        if let (Some(index), Some(sample)) = (self.prone_index, simulation.prone_sample()) {
-            let renderer = &self.reload_renderers[index];
-            match renderer
-                .animation
-                .sample_clamped(&renderer.clip, sample.seconds as f32)
-            {
-                Ok(pose) => self.prone_pose = Some(pose),
-                Err(error) => {
-                    self.error = Some(error.to_string());
-                    return;
-                }
-            }
+        if let Err(error) = self.update_prone_pose(simulation.prone_sample()) {
+            self.error = Some(error);
+            return;
         }
         let previous_pose = self.locomotion.as_ref().map(|layers| layers.pose().clone());
         let previous_ads = self.visual_ads_amount();
@@ -971,6 +979,10 @@ mod tests {
     };
 
     fn contact_fixture() -> AuthoredViewmodel {
+        contact_fixture_frames(false)
+    }
+
+    fn contact_fixture_frames(animated: bool) -> AuthoredViewmodel {
         fn words(bytes: &mut Vec<u8>, values: &[u32]) {
             bytes.extend(values.iter().flat_map(|value| value.to_le_bytes()));
         }
@@ -994,12 +1006,22 @@ mod tests {
         floats(&mut payload, &inverse_bind);
         words(&mut payload, &[1]);
         name(&mut payload, "contact");
-        words(&mut payload, &[0, 1]); // Non-looping, one frame.
-        floats(&mut payload, &[0.]);
-        for _ in 0..2 {
-            floats(&mut payload, &[3., 0., 0., 0., 0., 0., 1., 1., 1., 1.]);
+        let frames = if animated {
+            vec![
+                (0., 2.),
+                (vector_range::authored_prone::ENTRY_SECONDS as f32, 3.),
+            ]
+        } else {
+            vec![(0., 3.)]
+        };
+        words(&mut payload, &[0, frames.len() as u32]); // Non-looping.
+        for (time, x) in frames {
+            floats(&mut payload, &[time]);
+            for _ in 0..2 {
+                floats(&mut payload, &[x, 0., 0., 0., 0., 0., 1., 1., 1., 1.]);
+            }
+            payload.push(1); // Visible actor.
         }
-        payload.push(1); // Visible actor.
         let mut bytes = b"VRANIM01".to_vec();
         words(&mut bytes, &[1, payload.len() as u32, crc32(&payload), 0]);
         bytes.extend(payload);
@@ -1088,6 +1110,50 @@ mod tests {
             reload_presentation: None,
             cant: 0.,
         }
+    }
+
+    #[test]
+    fn paired_prone_renderer_uses_exact_committed_phase_without_entry_blend() {
+        use vector_range::authored_prone::{ProneSample, ENTRY_SECONDS, PRONE_EYE_HEIGHT};
+        let mut model = contact_fixture();
+        model.prone_index = Some(0);
+        model.reload_renderers.push(contact_fixture_frames(true));
+        for frame in [1., 1.5, 2., 5., 11., 35., 69.] {
+            let seconds = (frame - 1.) / 60.;
+            model
+                .update_prone_pose(Some(ProneSample {
+                    seconds,
+                    frame,
+                    eye_height: PRONE_EYE_HEIGHT,
+                    orientation: Quat::IDENTITY,
+                }))
+                .unwrap();
+            let expected_x = 2. + seconds as f32 / ENTRY_SECONDS as f32;
+            for render_time in [0., 10., 200.] {
+                let snapshot = model
+                    .source_pose_snapshot(render_time, Mat4::IDENTITY)
+                    .unwrap();
+                assert!((snapshot.pose.sample_time - seconds as f32).abs() < 1e-6);
+                assert!((snapshot.pose.bone_locals[0].translation.x - expected_x).abs() < 1e-6);
+                assert_eq!(snapshot.pose.bone_locals[0], snapshot.pose.actor_globals[0]);
+                assert_eq!(snapshot.pose.actor_visible, [true]);
+            }
+            begin_frame(640, 480, 1.).unwrap();
+            model
+                .draw_checked(500., SceneLighting::range(), Mat4::IDENTITY)
+                .unwrap();
+            let list = take_draw_list().unwrap();
+            let mesh_count = list
+                .commands
+                .iter()
+                .filter(|command| matches!(command, Command::Mesh { .. }))
+                .count();
+            assert_eq!(mesh_count, 2, "one paired skin and one paired rigid actor");
+        }
+        model.update_prone_pose(None).unwrap();
+        assert!(model.prone_pose.is_none());
+        model.reset(0.);
+        assert!(model.prone_pose.is_none());
     }
 
     #[test]
