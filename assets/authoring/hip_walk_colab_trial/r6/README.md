@@ -18,6 +18,21 @@ and all protected source/scene data were preserved. No render or runtime check r
 Keep this failed WIP as evidence and revise it. Do not widen the guard, relabel the
 failure as a visual pass, replace r5, or promote the candidate as accepted.
 
+## Bounded wrist-distribution probe
+
+`probe_wrist_distribution.py` subsequently tested only the existing left
+`wrist_twist` control at -6, -3, 0, +3 and +6 degrees, every quarter frame over
+f26–38. It changed no guard definitions, Actions or source bytes and saved no BLEND.
+This hypothesis also failed: even the best tested setting at each sampled frame
+left a 2.8289-degree peak guard error at f32. Stop this family; do not expand it
+into a broad search. `wrist_distribution_summary.json` records the result.
+
+The probe's raw `hand_goal_matrix_error` field compares different native bone
+bases. It is excluded from the summary and must not be used as a contact metric.
+The rejection is supported by guard-versus-attachment-goal rotation, which uses
+the same anatomical basis. The next bounded revision reduces late added roll to
++3 degrees and retains an explicit 3-degree residual for native visual review.
+
 ## Authority and immutable inputs
 
 - Review: https://github.com/RHS059/rust_duty/pull/41#issuecomment-6158919419
