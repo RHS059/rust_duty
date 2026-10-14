@@ -1,0 +1,1166 @@
+{
+  "name": "Cedar Junction",
+  "colliders": 7475,
+  "buildings": 16,
+  "entrances": 32,
+  "stair_connections": 25,
+  "multistory_buildings": 14,
+  "route_count": 189,
+  "route_samples": 22757,
+  "routes": [
+    {
+      "name": "B01/entrance-0",
+      "samples": 32,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B01/entrance-1",
+      "samples": 32,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B01/stairs-0",
+      "samples": 156,
+      "largest_step": 0.2,
+      "minimum_headroom": 2.6
+    },
+    {
+      "name": "B01/stairs-0-descent",
+      "samples": 156,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.6
+    },
+    {
+      "name": "B01/interior-0",
+      "samples": 171,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B01/interior-1",
+      "samples": 180,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B01/interior-2",
+      "samples": 167,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B01/interior-3",
+      "samples": 67,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B01/interior-4",
+      "samples": 98,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B02/entrance-0",
+      "samples": 32,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B02/entrance-1",
+      "samples": 32,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B02/stairs-0",
+      "samples": 156,
+      "largest_step": 0.2,
+      "minimum_headroom": 2.6
+    },
+    {
+      "name": "B02/stairs-0-descent",
+      "samples": 156,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.6
+    },
+    {
+      "name": "B02/stairs-1",
+      "samples": 156,
+      "largest_step": 0.2,
+      "minimum_headroom": 2.6
+    },
+    {
+      "name": "B02/stairs-1-descent",
+      "samples": 156,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.6
+    },
+    {
+      "name": "B02/interior-0",
+      "samples": 171,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B02/interior-1",
+      "samples": 180,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B02/interior-2",
+      "samples": 167,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B02/interior-3",
+      "samples": 67,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B02/interior-4",
+      "samples": 98,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B02/interior-5",
+      "samples": 167,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B02/interior-6",
+      "samples": 67,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B02/interior-7",
+      "samples": 98,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B03/entrance-0",
+      "samples": 32,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B03/entrance-1",
+      "samples": 32,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B03/interior-0",
+      "samples": 171,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B03/interior-1",
+      "samples": 180,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B04/entrance-0",
+      "samples": 32,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B04/entrance-1",
+      "samples": 32,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B04/stairs-0",
+      "samples": 156,
+      "largest_step": 0.2,
+      "minimum_headroom": 2.6
+    },
+    {
+      "name": "B04/stairs-0-descent",
+      "samples": 156,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.6
+    },
+    {
+      "name": "B04/stairs-1",
+      "samples": 156,
+      "largest_step": 0.2,
+      "minimum_headroom": 2.6
+    },
+    {
+      "name": "B04/stairs-1-descent",
+      "samples": 156,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.6
+    },
+    {
+      "name": "B04/stairs-2",
+      "samples": 156,
+      "largest_step": 0.2,
+      "minimum_headroom": 2.6
+    },
+    {
+      "name": "B04/stairs-2-descent",
+      "samples": 156,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.6
+    },
+    {
+      "name": "B04/interior-0",
+      "samples": 171,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B04/interior-1",
+      "samples": 180,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B04/interior-2",
+      "samples": 167,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B04/interior-3",
+      "samples": 67,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B04/interior-4",
+      "samples": 98,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B04/interior-5",
+      "samples": 167,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B04/interior-6",
+      "samples": 67,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B04/interior-7",
+      "samples": 98,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B04/interior-8",
+      "samples": 167,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B04/interior-9",
+      "samples": 67,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B04/interior-10",
+      "samples": 98,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B05/entrance-0",
+      "samples": 31,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B05/entrance-1",
+      "samples": 31,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B05/stairs-0",
+      "samples": 156,
+      "largest_step": 0.2,
+      "minimum_headroom": 2.6
+    },
+    {
+      "name": "B05/stairs-0-descent",
+      "samples": 156,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.6
+    },
+    {
+      "name": "B05/interior-0",
+      "samples": 171,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B05/interior-1",
+      "samples": 180,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B05/interior-2",
+      "samples": 168,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B05/interior-3",
+      "samples": 68,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B05/interior-4",
+      "samples": 99,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B06/entrance-0",
+      "samples": 31,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B06/entrance-1",
+      "samples": 31,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B06/stairs-0",
+      "samples": 156,
+      "largest_step": 0.2,
+      "minimum_headroom": 2.6
+    },
+    {
+      "name": "B06/stairs-0-descent",
+      "samples": 156,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.6
+    },
+    {
+      "name": "B06/stairs-1",
+      "samples": 156,
+      "largest_step": 0.2,
+      "minimum_headroom": 2.6
+    },
+    {
+      "name": "B06/stairs-1-descent",
+      "samples": 156,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.6
+    },
+    {
+      "name": "B06/interior-0",
+      "samples": 171,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B06/interior-1",
+      "samples": 180,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B06/interior-2",
+      "samples": 168,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B06/interior-3",
+      "samples": 68,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B06/interior-4",
+      "samples": 99,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B06/interior-5",
+      "samples": 168,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B06/interior-6",
+      "samples": 68,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B06/interior-7",
+      "samples": 99,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B07/entrance-0",
+      "samples": 31,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B07/entrance-1",
+      "samples": 31,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B07/stairs-0",
+      "samples": 156,
+      "largest_step": 0.2,
+      "minimum_headroom": 2.6
+    },
+    {
+      "name": "B07/stairs-0-descent",
+      "samples": 156,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.6
+    },
+    {
+      "name": "B07/interior-0",
+      "samples": 171,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B07/interior-1",
+      "samples": 180,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B07/interior-2",
+      "samples": 168,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B07/interior-3",
+      "samples": 68,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B07/interior-4",
+      "samples": 99,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B08/entrance-0",
+      "samples": 31,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B08/entrance-1",
+      "samples": 31,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B08/interior-0",
+      "samples": 171,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B08/interior-1",
+      "samples": 180,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B09/entrance-0",
+      "samples": 31,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B09/entrance-1",
+      "samples": 31,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B09/stairs-0",
+      "samples": 156,
+      "largest_step": 0.2,
+      "minimum_headroom": 2.6
+    },
+    {
+      "name": "B09/stairs-0-descent",
+      "samples": 156,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.6
+    },
+    {
+      "name": "B09/stairs-1",
+      "samples": 156,
+      "largest_step": 0.2,
+      "minimum_headroom": 2.6
+    },
+    {
+      "name": "B09/stairs-1-descent",
+      "samples": 156,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.6
+    },
+    {
+      "name": "B09/interior-0",
+      "samples": 171,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B09/interior-1",
+      "samples": 180,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B09/interior-2",
+      "samples": 168,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B09/interior-3",
+      "samples": 68,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B09/interior-4",
+      "samples": 99,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B09/interior-5",
+      "samples": 168,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B09/interior-6",
+      "samples": 68,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B09/interior-7",
+      "samples": 99,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B10/entrance-0",
+      "samples": 31,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B10/entrance-1",
+      "samples": 31,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B10/stairs-0",
+      "samples": 156,
+      "largest_step": 0.2,
+      "minimum_headroom": 2.6
+    },
+    {
+      "name": "B10/stairs-0-descent",
+      "samples": 156,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.6
+    },
+    {
+      "name": "B10/interior-0",
+      "samples": 171,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B10/interior-1",
+      "samples": 180,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B10/interior-2",
+      "samples": 168,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B10/interior-3",
+      "samples": 68,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B10/interior-4",
+      "samples": 99,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B11/entrance-0",
+      "samples": 31,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B11/entrance-1",
+      "samples": 31,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B11/stairs-0",
+      "samples": 156,
+      "largest_step": 0.2,
+      "minimum_headroom": 2.6
+    },
+    {
+      "name": "B11/stairs-0-descent",
+      "samples": 156,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.6
+    },
+    {
+      "name": "B11/stairs-1",
+      "samples": 156,
+      "largest_step": 0.2,
+      "minimum_headroom": 2.6
+    },
+    {
+      "name": "B11/stairs-1-descent",
+      "samples": 156,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.6
+    },
+    {
+      "name": "B11/stairs-2",
+      "samples": 156,
+      "largest_step": 0.2,
+      "minimum_headroom": 2.6
+    },
+    {
+      "name": "B11/stairs-2-descent",
+      "samples": 156,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.6
+    },
+    {
+      "name": "B11/interior-0",
+      "samples": 171,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B11/interior-1",
+      "samples": 180,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B11/interior-2",
+      "samples": 168,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B11/interior-3",
+      "samples": 68,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B11/interior-4",
+      "samples": 99,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B11/interior-5",
+      "samples": 168,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B11/interior-6",
+      "samples": 68,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B11/interior-7",
+      "samples": 99,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B11/interior-8",
+      "samples": 168,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B11/interior-9",
+      "samples": 68,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B11/interior-10",
+      "samples": 99,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B12/entrance-0",
+      "samples": 31,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B12/entrance-1",
+      "samples": 31,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B12/stairs-0",
+      "samples": 156,
+      "largest_step": 0.2,
+      "minimum_headroom": 2.6
+    },
+    {
+      "name": "B12/stairs-0-descent",
+      "samples": 156,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.6
+    },
+    {
+      "name": "B12/interior-0",
+      "samples": 171,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B12/interior-1",
+      "samples": 180,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B12/interior-2",
+      "samples": 168,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B12/interior-3",
+      "samples": 68,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B12/interior-4",
+      "samples": 99,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B13/entrance-0",
+      "samples": 32,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B13/entrance-1",
+      "samples": 32,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B13/stairs-0",
+      "samples": 156,
+      "largest_step": 0.2,
+      "minimum_headroom": 2.6
+    },
+    {
+      "name": "B13/stairs-0-descent",
+      "samples": 156,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.6
+    },
+    {
+      "name": "B13/stairs-1",
+      "samples": 156,
+      "largest_step": 0.2,
+      "minimum_headroom": 2.6
+    },
+    {
+      "name": "B13/stairs-1-descent",
+      "samples": 156,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.6
+    },
+    {
+      "name": "B13/stairs-2",
+      "samples": 156,
+      "largest_step": 0.2,
+      "minimum_headroom": 2.6
+    },
+    {
+      "name": "B13/stairs-2-descent",
+      "samples": 156,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.6
+    },
+    {
+      "name": "B13/interior-0",
+      "samples": 171,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B13/interior-1",
+      "samples": 180,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B13/interior-2",
+      "samples": 167,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B13/interior-3",
+      "samples": 67,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B13/interior-4",
+      "samples": 98,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B13/interior-5",
+      "samples": 167,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B13/interior-6",
+      "samples": 67,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B13/interior-7",
+      "samples": 98,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B13/interior-8",
+      "samples": 167,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B13/interior-9",
+      "samples": 67,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B13/interior-10",
+      "samples": 98,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B14/entrance-0",
+      "samples": 32,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B14/entrance-1",
+      "samples": 32,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B14/stairs-0",
+      "samples": 156,
+      "largest_step": 0.2,
+      "minimum_headroom": 2.6
+    },
+    {
+      "name": "B14/stairs-0-descent",
+      "samples": 156,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.6
+    },
+    {
+      "name": "B14/interior-0",
+      "samples": 171,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B14/interior-1",
+      "samples": 180,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B14/interior-2",
+      "samples": 167,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B14/interior-3",
+      "samples": 67,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B14/interior-4",
+      "samples": 98,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B15/entrance-0",
+      "samples": 32,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B15/entrance-1",
+      "samples": 32,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B15/stairs-0",
+      "samples": 156,
+      "largest_step": 0.2,
+      "minimum_headroom": 2.6
+    },
+    {
+      "name": "B15/stairs-0-descent",
+      "samples": 156,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.6
+    },
+    {
+      "name": "B15/stairs-1",
+      "samples": 156,
+      "largest_step": 0.2,
+      "minimum_headroom": 2.6
+    },
+    {
+      "name": "B15/stairs-1-descent",
+      "samples": 156,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.6
+    },
+    {
+      "name": "B15/interior-0",
+      "samples": 171,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B15/interior-1",
+      "samples": 180,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B15/interior-2",
+      "samples": 167,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B15/interior-3",
+      "samples": 67,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B15/interior-4",
+      "samples": 98,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B15/interior-5",
+      "samples": 167,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B15/interior-6",
+      "samples": 67,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B15/interior-7",
+      "samples": 98,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B16/entrance-0",
+      "samples": 32,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B16/entrance-1",
+      "samples": 32,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B16/stairs-0",
+      "samples": 156,
+      "largest_step": 0.2,
+      "minimum_headroom": 2.6
+    },
+    {
+      "name": "B16/stairs-0-descent",
+      "samples": 156,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.6
+    },
+    {
+      "name": "B16/stairs-1",
+      "samples": 156,
+      "largest_step": 0.2,
+      "minimum_headroom": 2.6
+    },
+    {
+      "name": "B16/stairs-1-descent",
+      "samples": 156,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.6
+    },
+    {
+      "name": "B16/interior-0",
+      "samples": 171,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B16/interior-1",
+      "samples": 180,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B16/interior-2",
+      "samples": 167,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B16/interior-3",
+      "samples": 67,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B16/interior-4",
+      "samples": 98,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B16/interior-5",
+      "samples": 167,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B16/interior-6",
+      "samples": 67,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    },
+    {
+      "name": "B16/interior-7",
+      "samples": 98,
+      "largest_step": 0.0,
+      "minimum_headroom": 2.15
+    }
+  ],
+  "schema": "rust-duty-city-validation/v1",
+  "level_sha256": "e6bf2b57b346bd0154ccbd4ae9b06ae01ab86dba563705fbd8e9ff5c7e02e568",
+  "mesh": {
+    "chunks": 269,
+    "vertices": 5740304,
+    "triangles": 2740498,
+    "bytes": 38405227,
+    "decoded_bytes": 246063768,
+    "sha256": "7f64d0c429e6e41577e555c514bcae08a33b1de62f9741ff848d45bec2717967"
+  },
+  "provenance": {
+    "repository": "RHS059/low_poly_items",
+    "commit": "3a87b1f2611c56fcfbfc7b39adaf914ab5359446",
+    "unique_assets": 125,
+    "asset_instances": 5387,
+    "source_bytes_checked": true,
+    "source_lock_sha256": "0ab8d763c1e800af38bd85b77f4bd39c9d48d80120602324287435895e7ab03f"
+  },
+  "passed": true,
+  "scope": "CPU geometry and standing route clearance; no native visual acceptance"
+}
