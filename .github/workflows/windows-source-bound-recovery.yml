@@ -109,7 +109,7 @@ jobs:
       - name: Bake level lighting for the exact preview source
         if: matrix.lane == 'build-preview'
         working-directory: evidence/runtime-root
-        run: cargo run --locked --release --no-default-features --example bake_level_lighting
+        run: python tools/ensure_level_lighting.py
       - name: Verify actual current DX12 smoke before packaging
         if: matrix.lane == 'build-preview'
         working-directory: evidence/runtime-root
