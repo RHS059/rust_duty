@@ -7,7 +7,7 @@
     ]
   },
   "cargo_lock_hash_policy": "CRLF converted to LF; no other changes",
-  "cargo_lock_sha256": "2aa35ed5561b7e40f515520ec36cb7eaa5c4175f12f0fcf9c764dd0ae6cbdeef",
+  "cargo_lock_sha256": "b2cdee8e961c5be4d5d7a49204c59718702f12c0fbc1ea17a5435998ebbb17f1",
   "notice_bytes": 2429607,
   "notice_sha256": "f14caa8bf7f5047df6c147c9b695fbd30c8cebf8903006bcf3a79149264a2e19",
   "packages": [
