@@ -1,0 +1,215 @@
+{
+  "schema": "rust-duty-walk-r6-numeric-wip/v1",
+  "status": "diagnostic; numeric FAIL",
+  "blender": "4.3.2",
+  "pure_python_tests": {
+    "passed": 5,
+    "failed": 0
+  },
+  "candidate_sha256": "c072976d9e3846a6b0d9229984994f9e4b21ae1a28cdc6692279ac259e2dc7d9",
+  "source_sha256": "f7d6e76d387a07508f61b2ade708fa930b93bd73b167110469a43c88ecf8eaf4",
+  "source_commit": "6a1c145ca63143e99bbf694a76f9d19bd31becf5",
+  "authoring_script_sha256": {
+    "author_walk_r6.py": "3c2c71102d4ae924691eccc7dc659909ee44e1388092fc99416ba9bb12147253",
+    "correction_profiles.py": "32f5ecdae3fb718c025f8145c6aa74572f23309d31463f67112b2a2c12ab2ea0",
+    "protected_scene.py": "7eaebcd628524c0b7e1f2e82987a757eaa751393f7ee423aaeaf143c5a6476d7",
+    "inputs/source_integrity.py": "caca8b49c6fe646162753d51878c978921ef3f9904d2c333e2545d4a15570178",
+    "inputs/validate_directional_source.py": "4e83681e0f7b7d15b8bf1f3507c7f1b8e08011109b1d91b3acead10338058bc1"
+  },
+  "verifier_sha256": "e59d9f0bfe7ddc5c1308965b8780433d0549061485a1cafeebab76e1b66ca4d4",
+  "checks": {
+    "exact_authoring_script_bytes": true,
+    "reopened_object_defaults": true,
+    "reopened_nla": true,
+    "reopened_packed_images": true,
+    "reopened_drivers": true,
+    "reopened_original_actions": true,
+    "reopened_actions_metadata": true,
+    "reopened_pose_channel_defaults": true,
+    "reopened_actions_extended": true,
+    "reopened_meshes": true,
+    "reopened_armatures": true,
+    "reopened_objects_and_bindings": true,
+    "reopened_materials": true,
+    "reopened_cameras": true,
+    "exactly_two_new_actions": true,
+    "camera_object_matrix": true,
+    "camera_lens_shift": true,
+    "fixed_resolution_fps": true,
+    "forward_copied_other_curves": true,
+    "forward_protected_key_records": true,
+    "hip_walk_forward_r5_timing": true,
+    "hip_walk_forward_r5_wrist": true,
+    "hip_walk_forward_r5_guard": true,
+    "hip_walk_forward_r5_relative_contact": true,
+    "hip_walk_forward_r5_exact_loop": true,
+    "hip_walk_forward_r5_drivers": true,
+    "hip_walk_forward_elara_r6_timing": true,
+    "hip_walk_forward_elara_r6_wrist": true,
+    "hip_walk_forward_elara_r6_guard": true,
+    "hip_walk_forward_elara_r6_relative_contact": true,
+    "hip_walk_forward_elara_r6_exact_loop": true,
+    "hip_walk_forward_elara_r6_drivers": true,
+    "forward_same_source_grasp_matrices": true,
+    "forward_dense_x_bound": false,
+    "forward_dense_y_bound": true,
+    "forward_dense_roll_bound": true,
+    "forward_dense_signed_roll_profile": true,
+    "forward_dense_depth_preserved": true,
+    "forward_dense_no_off_axis_rotation": true,
+    "forward_dense_no_scale_change": true,
+    "forward_dense_root_step_bounded": true,
+    "forward_dense_final_root_displacement_bounded": true,
+    "forward_dense_same_source_grasp": true,
+    "forward_dense_same_source_actor_attachment": true,
+    "forward_requested_receiver_displacement": true,
+    "forward_preserved_last_unique_seam": true,
+    "backward_copied_other_curves": true,
+    "hip_walk_backward_r5_timing": true,
+    "hip_walk_backward_r5_wrist": true,
+    "hip_walk_backward_r5_guard": true,
+    "hip_walk_backward_r5_relative_contact": true,
+    "hip_walk_backward_r5_exact_loop": true,
+    "hip_walk_backward_r5_drivers": true,
+    "hip_walk_backward_elara_r6_timing": true,
+    "hip_walk_backward_elara_r6_wrist": true,
+    "hip_walk_backward_elara_r6_guard": false,
+    "hip_walk_backward_elara_r6_relative_contact": false,
+    "hip_walk_backward_elara_r6_exact_loop": true,
+    "hip_walk_backward_elara_r6_drivers": true,
+    "backward_same_source_grasp_matrices": true,
+    "backward_dense_x_bound": true,
+    "backward_dense_y_bound": true,
+    "backward_dense_roll_bound": true,
+    "backward_dense_signed_roll_profile": true,
+    "backward_dense_depth_preserved": true,
+    "backward_dense_no_off_axis_rotation": true,
+    "backward_dense_no_scale_change": true,
+    "backward_dense_root_step_bounded": true,
+    "backward_dense_final_root_displacement_bounded": true,
+    "backward_dense_same_source_grasp": false,
+    "backward_dense_same_source_actor_attachment": true,
+    "backward_requested_receiver_displacement": true,
+    "backward_receiver_seam_under_3px": true,
+    "source_bytes_unchanged": true,
+    "candidate_bytes_unchanged": true
+  },
+  "passed_checks": 71,
+  "total_checks": 75,
+  "samples_480hz": 1332,
+  "private_blend_uploaded": false,
+  "rendered": false,
+  "runtime_activated": false,
+  "actions": {
+    "hip_walk_forward_r5": {
+      "samples_480hz": 305,
+      "max_wrist_error_m": [
+        5.703953518099548e-07,
+        4.2173182064547854e-07
+      ],
+      "max_guard_error_degrees": [
+        0.0,
+        0.0
+      ],
+      "max_hand_relative_root_matrix_drift": [
+        1.0132789611816406e-06,
+        7.748603820800781e-07
+      ],
+      "loop_endpoint_errors": {
+        "root": 0.0,
+        "actor": 0.0,
+        "hands": 0.0
+      },
+      "receiver_last_unique_to_first_px": 4.881881739164892,
+      "max_root_translation_step_480hz_m": 0.0007034338082329456,
+      "invalid_drivers": []
+    },
+    "hip_walk_forward_elara_r6": {
+      "samples_480hz": 305,
+      "max_wrist_error_m": [
+        6.023922273724424e-07,
+        4.0122604423273384e-07
+      ],
+      "max_guard_error_degrees": [
+        0.0,
+        0.0
+      ],
+      "max_hand_relative_root_matrix_drift": [
+        1.3113021850585938e-06,
+        9.5367431640625e-07
+      ],
+      "loop_endpoint_errors": {
+        "root": 0.0,
+        "actor": 0.0,
+        "hands": 0.0
+      },
+      "receiver_last_unique_to_first_px": 4.881881739164892,
+      "max_root_translation_step_480hz_m": 0.0011607975800592423,
+      "invalid_drivers": [],
+      "dense_delta_limits": {
+        "xy_interpolation_tolerance_px": 0.1,
+        "roll_off_axis_tolerance_degrees": 0.02,
+        "depth_tolerance_m": 1e-05,
+        "root_translation_step_480hz_m": 0.01
+      },
+      "maximum_receiver_delta_x_px": 28.236236572265625,
+      "maximum_source_grasp_matrix_error": 7.152557373046875e-07,
+      "maximum_requested_integer_displacement_error_px": 0.0006082065518845673
+    },
+    "hip_walk_backward_r5": {
+      "samples_480hz": 361,
+      "max_wrist_error_m": [
+        7.165182144295007e-07,
+        4.445443716697782e-07
+      ],
+      "max_guard_error_degrees": [
+        0.0,
+        0.0
+      ],
+      "max_hand_relative_root_matrix_drift": [
+        9.5367431640625e-07,
+        8.940696716308594e-07
+      ],
+      "loop_endpoint_errors": {
+        "root": 0.0,
+        "actor": 0.0,
+        "hands": 0.0
+      },
+      "receiver_last_unique_to_first_px": 4.600261310756637,
+      "max_root_translation_step_480hz_m": 0.0003665827466384813,
+      "invalid_drivers": []
+    },
+    "hip_walk_backward_elara_r6": {
+      "samples_480hz": 361,
+      "max_wrist_error_m": [
+        6.602308569662615e-07,
+        4.3926843920301425e-07
+      ],
+      "max_guard_error_degrees": [
+        2.8316431775177846,
+        0.0
+      ],
+      "max_hand_relative_root_matrix_drift": [
+        0.042051851749420166,
+        1.2814998626708984e-06
+      ],
+      "loop_endpoint_errors": {
+        "root": 0.0,
+        "actor": 0.0,
+        "hands": 0.0
+      },
+      "receiver_last_unique_to_first_px": 2.000092514980055,
+      "max_root_translation_step_480hz_m": 0.0007380173680991162,
+      "invalid_drivers": [],
+      "dense_delta_limits": {
+        "xy_interpolation_tolerance_px": 0.1,
+        "roll_off_axis_tolerance_degrees": 0.02,
+        "depth_tolerance_m": 1e-05,
+        "root_translation_step_480hz_m": 0.01
+      },
+      "maximum_receiver_delta_x_px": 17.028884887695312,
+      "maximum_source_grasp_matrix_error": 0.04205229878425598,
+      "maximum_requested_integer_displacement_error_px": 0.0004705207832558973
+    }
+  }
+}
