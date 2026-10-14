@@ -47,6 +47,9 @@ pub struct AuthoredViewmodel {
     walk_index: Option<usize>,
     ads_index: Option<usize>,
     jump_index: Option<usize>,
+    prone_index: Option<usize>,
+    prone_camera: Option<std::sync::Arc<vector_range::authored_prone::ProneCameraTrack>>,
+    prone_pose: Option<ViewmodelPose>,
     return_map: Option<PoseReturnMap>,
     return_blend: Option<AnchoredPoseBlend>,
     reload_presentation: Option<ReloadPresentation>,
@@ -87,6 +90,14 @@ impl AuthoredViewmodel {
         }
         if !simulation_time.is_finite() || !root.is_finite() || self.cant != 0. {
             return Err("source pose diagnostic requires finite time/root and zero cant".into());
+        }
+        if let (Some(index), Some(pose)) = (self.prone_index, &self.prone_pose) {
+            return Ok(SourcePoseSnapshot {
+                animation: &self.reload_renderers[index].animation,
+                pose: pose.clone(),
+                root,
+                actor_opacity: None,
+            });
         }
         if let Some(visual) = &self.reload_presentation {
             let renderer = &self.reload_renderers[visual.index];
@@ -207,6 +218,9 @@ impl AuthoredViewmodel {
             walk_index: None,
             ads_index: None,
             jump_index: None,
+            prone_index: None,
+            prone_camera: None,
+            prone_pose: None,
             return_map: None,
             return_blend: None,
             reload_presentation: None,
@@ -293,6 +307,30 @@ impl AuthoredViewmodel {
             model.jump_index = Some(model.reload_renderers.len());
             model.reload_renderers.push(renderer);
         }
+        if let Some(pair) = &manifest.prone_entry {
+            let camera = vector_range::authored_prone::ProneCameraTrack::load(
+                &pair.asset,
+                &pair.camera,
+                &pair.receipt,
+                &pair.clip,
+            )?;
+            let renderer = Self::load(&asset_name(&pair.asset)?, &pair.clip, Some(0.))?;
+            let clip = renderer
+                .animation
+                .clips()
+                .iter()
+                .find(|clip| clip.name == pair.clip)
+                .ok_or("missing paired prone clip")?;
+            if clip.looping
+                || (clip.duration() as f64 - vector_range::authored_prone::ENTRY_SECONDS).abs()
+                    > 1e-6
+            {
+                return Err("paired prone must be a nonlooping 68/60 second clip".into());
+            }
+            model.prone_camera = Some(std::sync::Arc::new(camera));
+            model.prone_index = Some(model.reload_renderers.len());
+            model.reload_renderers.push(renderer);
+        }
         let ready_clip = manifest.locomotion.ready_clip.clone();
         model.locomotion = Some(
             LayeredLocomotion::new(
@@ -370,8 +408,13 @@ impl AuthoredViewmodel {
             missing.insert(0, "regular walk");
         }
         model.warning = Some(format!(
-            "Authored WIP: {} clips unavailable; reload pose crossfades",
-            missing.join(", ")
+            "Authored WIP: {} clips unavailable; reload pose crossfades{}",
+            missing.join(", "),
+            if model.prone_index.is_some() {
+                "; paired prone r6 is unapproved WIP"
+            } else {
+                ""
+            }
         ));
         Ok(model)
     }
@@ -379,6 +422,11 @@ impl AuthoredViewmodel {
         self.locomotion
             .as_ref()
             .and_then(LayeredLocomotion::jump_sample)
+    }
+    pub fn prone_camera_track(
+        &self,
+    ) -> Option<std::sync::Arc<vector_range::authored_prone::ProneCameraTrack>> {
+        self.prone_camera.clone()
     }
     pub fn reload_sample(&self) -> Option<vector_range::authored_reload::ReloadSample> {
         self.reload.as_ref().and_then(AuthoredReload::sample)
@@ -407,6 +455,9 @@ impl AuthoredViewmodel {
             .map_or(0., LayeredLocomotion::run_weight)
     }
     pub fn visual_ads_amount(&self) -> f32 {
+        if self.prone_pose.is_some() {
+            return 0.;
+        }
         if let Some(visual) = &self.reload_presentation {
             return visual.visible_ads;
         }
@@ -485,9 +536,33 @@ impl AuthoredViewmodel {
     pub fn warning(&self) -> Option<&str> {
         self.warning.as_deref()
     }
+    fn update_prone_pose(
+        &mut self,
+        sample: Option<vector_range::authored_prone::ProneSample>,
+    ) -> Result<(), String> {
+        self.prone_pose = match (self.prone_index, sample) {
+            (Some(index), Some(sample)) => {
+                let renderer = &self.reload_renderers[index];
+                Some(
+                    renderer
+                        .animation
+                        .sample_clamped(&renderer.clip, sample.seconds as f32)
+                        .map_err(|error| error.to_string())?,
+                )
+            }
+            _ => None,
+        };
+        Ok(())
+    }
     /// Exactly one committed observer, shared by real keyboard and replay input.
     pub fn committed_step(&mut self, start: f64, simulation: &vector_range::sim::Simulation) {
         if self.error.is_some() {
+            return;
+        }
+        // The simulation's accepted transition is the sole paired clock. No
+        // generic 60ms entry crossfade may modify protected source frames 1–11.
+        if let Err(error) = self.update_prone_pose(simulation.prone_sample()) {
+            self.error = Some(error);
             return;
         }
         let previous_pose = self.locomotion.as_ref().map(|layers| layers.pose().clone());
@@ -725,7 +800,9 @@ impl AuthoredViewmodel {
         })
     }
     pub fn presented_anchor(&self) -> Option<Vec3> {
-        let (set, pose) = if let Some(visual) = &self.reload_presentation {
+        let (set, pose) = if let (Some(index), Some(pose)) = (self.prone_index, &self.prone_pose) {
+            (&self.reload_renderers[index].animation, pose)
+        } else if let Some(visual) = &self.reload_presentation {
             (&self.reload_renderers[visual.index].animation, &visual.pose)
         } else {
             (&self.animation, self.locomotion.as_ref()?.pose())
@@ -737,6 +814,7 @@ impl AuthoredViewmodel {
         Some(game_model_root().transform_point3(pose.actor_globals[index].translation))
     }
     pub fn reset(&mut self, time: f64) {
+        self.prone_pose = None;
         self.reload_presentation = None;
         if let Some(reload) = &mut self.reload {
             reload.reset(time);
@@ -772,6 +850,11 @@ impl AuthoredViewmodel {
         lighting: SceneLighting,
         root: Mat4,
     ) -> Result<(), String> {
+        if let (Some(index), Some(pose)) = (self.prone_index, &self.prone_pose) {
+            let pose = pose.clone();
+            // No procedural cant/reload/run layer changes the authored pair.
+            return self.reload_renderers[index].draw_pose(&pose, lighting, root);
+        }
         if let Some(visual) = &self.reload_presentation {
             let renderer = &mut self.reload_renderers[visual.index];
             renderer.cant = self.cant;
@@ -896,6 +979,10 @@ mod tests {
     };
 
     fn contact_fixture() -> AuthoredViewmodel {
+        contact_fixture_frames(false)
+    }
+
+    fn contact_fixture_frames(animated: bool) -> AuthoredViewmodel {
         fn words(bytes: &mut Vec<u8>, values: &[u32]) {
             bytes.extend(values.iter().flat_map(|value| value.to_le_bytes()));
         }
@@ -919,12 +1006,22 @@ mod tests {
         floats(&mut payload, &inverse_bind);
         words(&mut payload, &[1]);
         name(&mut payload, "contact");
-        words(&mut payload, &[0, 1]); // Non-looping, one frame.
-        floats(&mut payload, &[0.]);
-        for _ in 0..2 {
-            floats(&mut payload, &[3., 0., 0., 0., 0., 0., 1., 1., 1., 1.]);
+        let frames = if animated {
+            vec![
+                (0., 2.),
+                (vector_range::authored_prone::ENTRY_SECONDS as f32, 3.),
+            ]
+        } else {
+            vec![(0., 3.)]
+        };
+        words(&mut payload, &[0, frames.len() as u32]); // Non-looping.
+        for (time, x) in frames {
+            floats(&mut payload, &[time]);
+            for _ in 0..2 {
+                floats(&mut payload, &[x, 0., 0., 0., 0., 0., 1., 1., 1., 1.]);
+            }
+            payload.push(1); // Visible actor.
         }
-        payload.push(1); // Visible actor.
         let mut bytes = b"VRANIM01".to_vec();
         words(&mut bytes, &[1, payload.len() as u32, crc32(&payload), 0]);
         bytes.extend(payload);
@@ -1005,11 +1102,58 @@ mod tests {
             walk_index: None,
             ads_index: None,
             jump_index: None,
+            prone_index: None,
+            prone_camera: None,
+            prone_pose: None,
             return_map: None,
             return_blend: None,
             reload_presentation: None,
             cant: 0.,
         }
+    }
+
+    #[test]
+    fn paired_prone_renderer_uses_exact_committed_phase_without_entry_blend() {
+        use vector_range::authored_prone::{ProneSample, ENTRY_SECONDS, PRONE_EYE_HEIGHT};
+        let mut model = contact_fixture();
+        model.prone_index = Some(0);
+        model.reload_renderers.push(contact_fixture_frames(true));
+        for frame in [1., 1.5, 2., 5., 11., 35., 69.] {
+            let seconds = (frame - 1.) / 60.;
+            model
+                .update_prone_pose(Some(ProneSample {
+                    seconds,
+                    frame,
+                    eye_height: PRONE_EYE_HEIGHT,
+                    orientation: Quat::IDENTITY,
+                }))
+                .unwrap();
+            let expected_x = 2. + seconds as f32 / ENTRY_SECONDS as f32;
+            for render_time in [0., 10., 200.] {
+                let snapshot = model
+                    .source_pose_snapshot(render_time, Mat4::IDENTITY)
+                    .unwrap();
+                assert!((snapshot.pose.sample_time - seconds as f32).abs() < 1e-6);
+                assert!((snapshot.pose.bone_locals[0].translation.x - expected_x).abs() < 1e-6);
+                assert_eq!(snapshot.pose.bone_locals[0], snapshot.pose.actor_globals[0]);
+                assert_eq!(snapshot.pose.actor_visible, [true]);
+            }
+            begin_frame(640, 480, 1.).unwrap();
+            model
+                .draw_checked(500., SceneLighting::range(), Mat4::IDENTITY)
+                .unwrap();
+            let list = take_draw_list().unwrap();
+            let mesh_count = list
+                .commands
+                .iter()
+                .filter(|command| matches!(command, Command::Mesh { .. }))
+                .count();
+            assert_eq!(mesh_count, 2, "one paired skin and one paired rigid actor");
+        }
+        model.update_prone_pose(None).unwrap();
+        assert!(model.prone_pose.is_none());
+        model.reset(0.);
+        assert!(model.prone_pose.is_none());
     }
 
     #[test]

@@ -315,6 +315,11 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
     } else {
         None
     };
+    sim.set_prone_camera_track(
+        authored
+            .as_ref()
+            .and_then(|model| model.prone_camera_track()),
+    );
     let model_missing = authored_path.is_none()
         && matches!(
             &model_source,
@@ -853,8 +858,7 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
                                 "procedural"
                             },
                             framing.reference,
-                            capture,
-                            capture_sequence,
+                            (capture, capture_sequence),
                             demo,
                         );
                         let trace = start_frame_trace(
@@ -1212,6 +1216,14 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
             }
         }
         notice_timer = (notice_timer - dt).max(0.);
+        if authored
+            .as_ref()
+            .is_some_and(|model| model.error().is_some())
+            && sim.prone_sample().is_some()
+        {
+            // A renderer failure must never leave the camera half of a pair active.
+            sim.set_prone_camera_track(None);
+        }
         set_default_camera();
         clear_background(Color::new(0.32, 0.49, 0.68, 1.));
         // Sky gradient tracks pitch; lighting itself is world fixed.
@@ -1233,7 +1245,11 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
             screen_width() / screen_height()
         };
         let eye = sim.player.eye();
-        let forward = sim.player.direction();
+        let (forward, camera_up) = vector_range::authored_prone::camera_axes(
+            sim.player.direction(),
+            sim.player.camera_up(cfg.action.lean_roll),
+            sim.prone_sample(),
+        );
         let fov = cfg.fov
             + (cfg.ads_fov - cfg.fov)
                 * vector_range::reference_motion::visual_world_ads(sim.player.ads);
@@ -1241,7 +1257,7 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
             position: eye,
             target: eye + forward,
             // Lean rolls the world camera; the viewmodel stays fixed to the view.
-            up: sim.player.camera_up(cfg.action.lean_roll),
+            up: camera_up,
             fovy: h_fov_to_v(fov, aspect),
             aspect: Some(aspect),
             z_near: 0.035,
@@ -1466,10 +1482,10 @@ fn frame_trace_scene(
     weapon_id: &str,
     presentation: &str,
     reference: bool,
-    capture: bool,
-    capture_sequence: Option<&str>,
+    capture_mode: (bool, Option<&str>),
     demo: bool,
 ) -> serde_json::Value {
+    let (capture, capture_sequence) = capture_mode;
     serde_json::json!({
         "name": level_name,
         "profile_base": profile,
@@ -1649,13 +1665,6 @@ mod tests {
     fn performance_eligibility_preserves_active_hitches_and_explicit_exclusions() {
         let focus = vector_range::session::FocusState::default();
         let mut session = vector_range::session::SessionController::default();
-        if !args
-            .iter()
-            .any(|a| a.starts_with("--capture") || a == "--demo")
-        {
-            session.set_active(true);
-            initial = false;
-        }
         session.set_active(true);
         let transition = session.step(vector_range::session::SessionInput {
             dt: 1.0,
@@ -1760,11 +1769,38 @@ mod tests {
                 "hk416a5",
                 "authored_viewmodel",
                 false,
-                false,
-                None,
+                (false, None),
                 false,
             ),
         )
+    }
+
+    #[test]
+    fn performance_scene_identity_preserves_named_choices_and_capture_mode() {
+        for (capture, sequence) in [(false, None), (true, Some("walk"))] {
+            let scene = frame_trace_scene(
+                "cedar_junction",
+                "m4a1",
+                "hk416a5",
+                "authored_viewmodel",
+                true,
+                (capture, sequence),
+                true,
+            );
+            assert_eq!(
+                scene,
+                serde_json::json!({
+                    "name": "cedar_junction",
+                    "profile_base": "m4a1",
+                    "weapon_id": "hk416a5",
+                    "presentation": "authored_viewmodel",
+                    "reference_viewport": true,
+                    "diagnostic_capture": capture,
+                    "capture_sequence": sequence,
+                    "demo": true,
+                })
+            );
+        }
     }
 
     #[test]
