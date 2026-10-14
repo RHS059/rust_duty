@@ -1,0 +1,232 @@
+name: Independent DX12 renderer contract
+on:
+  workflow_call:
+permissions:
+  contents: read
+jobs:
+  renderer-contract:
+    runs-on: windows-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install PNG verification dependency
+        run: python -m pip install Pillow==11.3.0
+      - name: Test renderer-contract evidence guards with synthetic fixtures
+        id: fixture-guards
+        env:
+          PYTHONPATH: tools
+        run: >-
+          python -m unittest -v test_renderer_contract
+          test_dx12_contract_process test_dx12_contract_example
+          test_world_primitives_contract test_renderer_frame_identity
+          test_ui_theme_contract test_effects_contract
+      - name: Execute actual renderer-owned DX12 WARP fixture and verify every case
+        run: >-
+          python tools/run_renderer_contract.py
+          --root .
+          --evidence evidence/renderer-contract-run
+          --output evidence/renderer-contract
+          --timeout 1200
+      - name: Build additional renderer-owned examples from this revision
+        id: additional-fixtures
+        if: ${{ !cancelled() && steps.fixture-guards.outcome == 'success' }}
+        timeout-minutes: 15
+        run: >-
+          cargo build --locked --no-default-features --features wgpu-runtime
+          --example world_primitives_contract --example renderer_frame_identity
+          --example ui_theme_contract --example effects_contract
+      - name: Verify actual DX12 WARP world primitives
+        if: ${{ !cancelled() && steps.additional-fixtures.outcome == 'success' }}
+        run: >-
+          python tools/run_dx12_contract_example.py --fixture world-primitives
+          --executable target/debug/examples/world_primitives_contract.exe --root .
+          --evidence evidence/world-primitives-run --output evidence/world-primitives
+          --timeout 180
+      - name: Verify actual DX12 WARP consecutive frame identities
+        if: ${{ !cancelled() && steps.additional-fixtures.outcome == 'success' }}
+        run: >-
+          python tools/run_dx12_contract_example.py --fixture frame-identity
+          --executable target/debug/examples/renderer_frame_identity.exe --root .
+          --evidence evidence/renderer-frame-identity-run --output evidence/renderer-frame-identity
+          --timeout 180
+      - name: Verify actual DX12 WARP typed UI themes and reloads
+        if: ${{ !cancelled() && steps.additional-fixtures.outcome == 'success' }}
+        run: >-
+          python tools/run_dx12_contract_example.py --fixture ui-theme
+          --executable target/debug/examples/ui_theme_contract.exe --root .
+          --evidence evidence/ui-theme-dx12-run --output evidence/ui-theme-dx12
+          --timeout 180
+      - name: Verify actual DX12 WARP public muzzle effects and state restoration
+        if: ${{ !cancelled() && steps.additional-fixtures.outcome == 'success' }}
+        run: >-
+          python tools/run_dx12_contract_example.py --fixture effects
+          --executable target/debug/examples/effects_contract.exe --root .
+          --evidence evidence/effects-contract-run --output evidence/effects-contract
+          --timeout 180
+      - name: Retain this attempt's fixture reports, captures and process logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dx12-renderer-contract-attempt-${{ github.run_attempt }}
+          path: |
+            evidence/renderer-contract/
+            evidence/renderer-contract-run/
+            evidence/world-primitives/
+            evidence/world-primitives-run/
+            evidence/renderer-frame-identity/
+            evidence/renderer-frame-identity-run/
+            evidence/ui-theme-dx12/
+            evidence/ui-theme-dx12-run/
+            evidence/effects-contract/
+            evidence/effects-contract-run/
+          if-no-files-found: error
+          retention-days: 7
+  game-ui-contract:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install independent PNG verifier
+        run: python -m pip install Pillow==11.3.0
+      - name: Test production UI evidence guards
+        env:
+          PYTHONPATH: tools
+        run: python -m unittest -v test_dx12_game_ui_fixture
+      - name: Build real game UI fixture from this revision
+        run: cargo build --locked --no-default-features --features wgpu-runtime --example game_ui_contract
+      - name: Verify production UI on Windows DX12 WARP
+        run: >-
+          python tools/run_dx12_game_ui_fixture.py
+          --executable target/debug/examples/game_ui_contract.exe --root .
+          --evidence evidence/game-ui-run --output evidence/game-ui
+          --timeout 600
+      - name: Retain UI captures and process evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dx12-game-ui-contract-attempt-${{ github.run_attempt }}
+          path: |
+            evidence/game-ui/
+            evidence/game-ui-run/
+          if-no-files-found: error
+          retention-days: 7
+  game-ui-gl-contract:
+    runs-on: windows-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install independent PNG verifier
+        run: python -m pip install Pillow==11.3.0 PyYAML==6.0.3
+      - name: Test GL UI process evidence guards
+        env:
+          PYTHONPATH: tools
+        run: python -m unittest -v test_windows_gl_game_ui test_calibrated_presentation test_windows_gl_capture_contract test_game_ui_workflow
+      - name: Build production UI with both backends
+        id: gl-fixtures-build
+        run: cargo build --locked --no-default-features --features legacy-macroquad,wgpu-runtime --example game_ui_contract --example legacy_capture_contract --bin vector-range
+      - name: Stage pinned app-local official Mesa
+        id: gl-runtime-stage
+        shell: pwsh
+        timeout-minutes: 10
+        run: |
+          New-Item -ItemType Directory -Path evidence -Force | Out-Null
+          ./tools/stage_windows_gl_reference.ps1 -Manifest tools/windows_gl_reference_lock.json -OutputDirectory evidence/game-ui-gl-runtime
+      - name: Verify production UI through legacy Windows GL
+        run: >-
+          python tools/run_windows_gl_game_ui.py
+          --executable target/debug/examples/game_ui_contract.exe
+          --runtime evidence/game-ui-gl-runtime --manifest tools/windows_gl_reference_lock.json
+          --root . --evidence evidence/game-ui-gl-run --output evidence/game-ui-gl
+          --timeout 600
+      - name: Retain GL UI captures and process evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gl-game-ui-contract-attempt-${{ github.run_attempt }}
+          path: |
+            evidence/game-ui-gl/
+            evidence/game-ui-gl-run/
+            evidence/game-ui-gl-runtime/staging-receipt.json
+          if-no-files-found: error
+          retention-days: 7
+      - name: Verify documented static HK416 landmarks on both native backends
+        run: >-
+          python tools/run_calibrated_presentation.py
+          --executable target/debug/vector-range.exe --root .
+          --runtime evidence/game-ui-gl-runtime
+          --evidence evidence/calibrated-static --timeout 180
+      - name: Retain calibrated static captures and exact process evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: calibrated-static-presentation-attempt-${{ github.run_attempt }}
+          path: evidence/calibrated-static/
+          if-no-files-found: error
+          retention-days: 7
+      - name: Check compact calibrated evidence transfer budget
+        id: calibrated-raw-budget
+        if: always()
+        shell: python
+        run: |
+          from pathlib import Path
+          import json
+          import stat
+          root = Path('evidence/calibrated-static')
+          selected = [root / name for name in ('captures', 'logs', 'summary.json', 'input-manifest.json', 'calibration-settings.cfg')]
+          files = [file for path in selected for file in (path.rglob('*') if path.is_dir() else [path]) if file.is_file()]
+          if not files or any(file.is_symlink() or not stat.S_ISREG(file.lstat().st_mode) for file in files):
+              raise SystemExit('Compact evidence is missing or contains non-regular input')
+          total = sum(file.stat().st_size for file in files)
+          if total > 24 * 1024 * 1024:
+              raise SystemExit('Compact evidence exceeds 24 MiB; the full packet remains retained')
+          print(json.dumps({'raw_files': len(files), 'uncompressed_bytes': total, 'maximum_bytes': 24 * 1024 * 1024}))
+      - name: Retain bounded raw calibrated evidence for inspection
+        if: always() && steps.calibrated-raw-budget.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: calibrated-static-raw-attempt-${{ github.run_attempt }}
+          path: |
+            evidence/calibrated-static/captures/
+            evidence/calibrated-static/logs/
+            evidence/calibrated-static/summary.json
+            evidence/calibrated-static/input-manifest.json
+            evidence/calibrated-static/calibration-settings.cfg
+          if-no-files-found: error
+          retention-days: 7
+      - name: Verify same-submission GL screenshot neutrality
+        if: ${{ !cancelled() && steps.gl-fixtures-build.outcome == 'success' && steps.gl-runtime-stage.outcome == 'success' }}
+        run: >-
+          python tools/run_windows_gl_capture_contract.py
+          --executable target/debug/examples/legacy_capture_contract.exe
+          --runtime evidence/game-ui-gl-runtime --root .
+          --evidence evidence/legacy-capture-contract --timeout 180
+      - name: Retain GL screenshot neutrality captures and process evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gl-capture-neutrality-attempt-${{ github.run_attempt }}
+          path: |
+            evidence/legacy-capture-contract/captures/
+            evidence/legacy-capture-contract/process/
+            evidence/legacy-capture-contract/summary.json
+            evidence/legacy-capture-contract/runtime/staging-receipt.json
+          if-no-files-found: error
+          retention-days: 7

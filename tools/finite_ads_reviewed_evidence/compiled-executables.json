@@ -1,0 +1,10 @@
+{
+  "finite_warp_probe": {
+    "bytes": 7559680,
+    "sha256": "5b4d0ba1de7d418ccf54b025720b4d4469c643e2eb0742d8617faa98ed96dbb8"
+  },
+  "source_visibility_geometry_probe": {
+    "bytes": 914432,
+    "sha256": "2dd563d7fef66db50cf925b43fff00fe519c0d483c56e55a311989b7316b8af3"
+  }
+}

@@ -43,18 +43,49 @@ jobs:
         run: python tools/build_blender_assets.py --verify-sampler target/release/examples/sample_viewmodel_clip --output build-assets
       - name: Revalidate source hashes and every cached or fresh companion
         run: python tools/check_generated_assets.py --kind reload --directory build-assets/reload
-      - name: Upload source and parity diagnostics
+      - name: Archive this attempt - Upload source and parity diagnostics
         if: always()
+        id: archive_attempt_1
         uses: actions/upload-artifact@v4
         with:
+          name: blender-export-diagnostics-attempt-${{ github.run_attempt }}
+          path: |
+            build-assets/reload/**/*.json
+            build-assets/fbx/export-manifest.json
+          if-no-files-found: warn
+      - name: Upload source and parity diagnostics
+        if: ${{ (always()) && steps.archive_attempt_1.outcome == 'success' && steps.archive_attempt_1.outputs.artifact-id != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          overwrite: true
           name: blender-export-diagnostics
           path: |
             build-assets/reload/**/*.json
             build-assets/fbx/export-manifest.json
           if-no-files-found: warn
-      - name: Publish validated generated companions for this run only
+      - name: Archive this attempt - Publish validated generated companions for this run only
+        id: archive_attempt_2
         uses: actions/upload-artifact@v4
         with:
+          name: generated-reload-runtime-attempt-${{ github.run_attempt }}
+          path: |
+            build-assets/reload/asset.vra
+            build-assets/reload/asset.vrs
+            build-assets/reload/asset.vrm
+            build-assets/reload/manifest.json
+            build-assets/reload/export-manifest.json
+            build-assets/reload/source.json
+            build-assets/reload/parity.json
+            build-assets/reload/alternates/*/asset.vra
+            build-assets/reload/alternates/*/asset.vrs
+            build-assets/reload/alternates/*/asset.vrm
+            build-assets/reload/alternates/*/*.json
+          if-no-files-found: error
+      - name: Publish validated generated companions for this run only
+        if: ${{ (success()) && steps.archive_attempt_2.outcome == 'success' && steps.archive_attempt_2.outputs.artifact-id != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          overwrite: true
           name: generated-reload-runtime
           path: |
             build-assets/reload/asset.vra

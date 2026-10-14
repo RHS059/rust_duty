@@ -1,2 +1,5 @@
 # Optional: needed only when the GLB has embedded PNG/JPEG base-color textures.
 Pillow>=10.4,<13
+# Required by the current-frame ADS geometry/fragment proof and its CI tests.
+# Match the already reviewed finite-WARP proof environment.
+numpy==2.2.6

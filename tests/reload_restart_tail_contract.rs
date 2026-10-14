@@ -1,6 +1,6 @@
 //! Exercise the presentation adapter and actual CPU arm solver across reload
 //! restarts and the live-fire tail, independently of private art or a GPU.
-use macroquad::math::{vec2, EulerRot, Mat4, Quat, Vec3};
+use glam::{vec2, EulerRot, Mat4, Quat, Vec3};
 use vector_range::{
     arms::ArmModel,
     reference_motion::visual_duration,

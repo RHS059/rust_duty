@@ -1,0 +1,30 @@
+{
+  "status": "Blender4.3.2 opened compact source; original native data and evaluated witnesses compared",
+  "original_sha256": "4de3a9001f0aed96123d566e30259119453e9beba253352a783f598bb739c8d3",
+  "compact_sha256": "094c54c25815126479ca30051a15b8e8dd8f0b4f7bab0767ba96599534652c62",
+  "checks": {
+    "actions": true,
+    "nla": true,
+    "packed_images": true,
+    "drivers": true,
+    "rest_all": true,
+    "all_meshes": true,
+    "cameras": true,
+    "evaluated_pose_witnesses_exact": true
+  },
+  "all_actions_count": 68,
+  "evaluated_frames": [
+    1,
+    9,
+    33,
+    41.75,
+    42,
+    42.25,
+    55,
+    79,
+    104,
+    126
+  ],
+  "all_pass": true,
+  "claim": "Compression changed; native source file bytes are not identical. Decoded native-stream identity is checked separately. No motion or geometry revision."
+}

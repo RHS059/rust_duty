@@ -126,7 +126,7 @@ struct Behavior {
 }
 pub(crate) struct Server {
     port: u16,
-    bodies: Arc<Mutex<HashMap<String, Vec<u8>>>>,
+    bodies: Arc<Mutex<HashMap<String, Arc<Vec<u8>>>>>,
     requests: Arc<Mutex<Vec<Request>>>,
     behavior: Arc<Mutex<Behavior>>,
     stop: Arc<AtomicBool>,
@@ -194,7 +194,10 @@ impl Server {
         Source::loopback(self.port).unwrap()
     }
     pub(crate) fn put(&self, name: &str, body: Vec<u8>) {
-        self.bodies.lock().unwrap().insert(name.into(), body);
+        self.bodies
+            .lock()
+            .unwrap()
+            .insert(name.into(), Arc::new(body));
     }
     fn logs(&self) -> Vec<Request> {
         self.requests.lock().unwrap().clone()
@@ -210,7 +213,7 @@ impl Drop for Server {
 }
 fn serve(
     mut stream: TcpStream,
-    bodies: Arc<Mutex<HashMap<String, Vec<u8>>>>,
+    bodies: Arc<Mutex<HashMap<String, Arc<Vec<u8>>>>>,
     requests: Arc<Mutex<Vec<Request>>>,
     behavior: Arc<Mutex<Behavior>>,
 ) -> std::io::Result<()> {
@@ -1122,7 +1125,7 @@ fn http_fixture_restores_blocking_mode_for_inherited_nonblocking_sockets() {
     let body = random_bytes(512 * 1024);
     let bodies = Arc::new(Mutex::new(HashMap::from([(
         "fixture.rdb".into(),
-        body.clone(),
+        Arc::new(body.clone()),
     )])));
     let (accepted_tx, accepted_rx) = mpsc::channel();
     let (done_tx, done_rx) = mpsc::channel();
@@ -1536,4 +1539,342 @@ fn bootstrap_does_not_scan_or_overwrite_existing_launcher() {
         .unwrap(),
         None
     );
+}
+
+#[test]
+fn content_update_reuses_running_executable_and_does_not_switch_version() {
+    let root = tempfile::tempdir().unwrap();
+    let executable = b"UNCHANGED-LAUNCHER".repeat(20_000);
+    let installed = bundle_files(&[
+        ("assets/note.txt", 0, b"old content"),
+        ("game", 1, &executable),
+    ]);
+    let baseline = bundle_files(&[("game", 1, &executable)]);
+    let updated = bundle_files(&[
+        ("assets/note.txt", 0, b"new content for this update"),
+        ("game", 1, &executable),
+    ]);
+    assert_ne!(bytes_hash(&installed), bytes_hash(&baseline));
+    let patch = make_patch(root.path(), &baseline, &updated);
+    assert!(
+        patch.len() < executable.len(),
+        "content patch must be smaller than the running executable"
+    );
+    assert!(
+        !patch
+            .windows(executable.len())
+            .any(|window| window == executable.as_slice()),
+        "content patch must not embed another copy of the running executable"
+    );
+    let store = old_store(root.path(), &installed);
+    let mut release = manifest(&updated);
+    release.deltas.push(Delta {
+        base_version: version("1.0.0"),
+        base_sha256: bytes_hash(&baseline),
+        asset: asset("content.rdd", &patch),
+    });
+    let server = Server::new();
+    server.put(&format!("update-{TARGET}.json"), manifest_bytes(&release));
+    server.put("content.rdd", patch);
+    server.put(&release.bundle.name, updated.clone());
+    let verified = store.check(&server.source(), &trust(), TARGET).unwrap();
+    let staged = store.stage(&server.source(), &verified).unwrap();
+    assert_eq!(fs::read(store.bundle_path(&staged)).unwrap(), updated);
+    assert!(
+        !server
+            .logs()
+            .iter()
+            .any(|request| request.path.ends_with(&release.bundle.name)),
+        "matching content delta must not download a new copy of the bundle or its executable"
+    );
+    // Staging leaves the active version in place. Switching still happens only
+    // after the game process exits and the caller activates the staged build.
+    assert_eq!(
+        store.state().unwrap().active.unwrap().version,
+        version("1.0.0")
+    );
+}
+
+#[test]
+fn content_delta_rebuilds_missing_one_file_baseline_without_activation() {
+    let root = tempfile::tempdir().unwrap();
+    let executable = random_bytes(100_000);
+    let baseline = bundle_files(&[("game", 1, &executable)]);
+    let mut changed_executable = executable.clone();
+    changed_executable[200..220].fill(42);
+    let updated = bundle_files(&[
+        ("assets/note.txt", 0, b"new"),
+        ("game", 1, &changed_executable),
+    ]);
+    let patch = make_patch(root.path(), &baseline, &updated);
+    let store = old_store(root.path(), &baseline);
+    let active = store.state().unwrap().active.unwrap();
+    fs::remove_file(store.bundle_path(&active)).unwrap();
+    let mut release = manifest(&updated);
+    release.deltas.push(Delta {
+        base_version: version("1.0.0"),
+        base_sha256: bytes_hash(&baseline),
+        asset: asset("content.rdb.rdd", &patch),
+    });
+    let server = Server::new();
+    server.put("content.rdb.rdd", patch);
+    server.put(&release.bundle.name, updated.clone());
+    let staged = store.stage(&server.source(), &release).unwrap();
+    assert_eq!(fs::read(store.bundle_path(&staged)).unwrap(), updated);
+    assert!(!server
+        .logs()
+        .iter()
+        .any(|r| r.path.ends_with(&release.bundle.name)));
+    assert_eq!(
+        store.state().unwrap().active.unwrap().version,
+        version("1.0.0")
+    );
+}
+
+#[test]
+fn full_update_does_not_read_executable_without_eligible_delta() {
+    let root = tempfile::tempdir().unwrap();
+    let store = old_store(root.path(), &bundle(b"old"));
+    let active = store.state().unwrap().active.unwrap();
+    // Full update recovery must not fail while attempting an irrelevant zero-size baseline.
+    fs::write(store.version_dir(&active).join("game"), b"").unwrap();
+    let updated = bundle(b"new");
+    let release = manifest(&updated);
+    let server = Server::new();
+    server.put(&release.bundle.name, updated.clone());
+    let staged = store.stage(&server.source(), &release).unwrap();
+    assert_eq!(fs::read(store.bundle_path(&staged)).unwrap(), updated);
+    assert_eq!(
+        store.state().unwrap().active.unwrap().version,
+        version("1.0.0")
+    );
+}
+
+#[test]
+fn optional_executable_baseline_rejects_unsafe_paths_but_skips_changed_or_unreadable_input() {
+    use crate::install::optional_executable_baseline;
+    let mut output = Vec::new();
+    assert!(optional_executable_baseline("game", &mut &b"abc"[..], 3, &mut output).unwrap());
+    for (bytes, declared) in [(&b"ab"[..], 3), (&b"abcd"[..], 3)] {
+        assert!(
+            !optional_executable_baseline("game", &mut &*bytes, declared, &mut Vec::new()).unwrap()
+        );
+    }
+    struct Unreadable;
+    impl Read for Unreadable {
+        fn read(&mut self, _: &mut [u8]) -> std::io::Result<usize> {
+            Err(std::io::Error::new(
+                std::io::ErrorKind::PermissionDenied,
+                "fixture denied",
+            ))
+        }
+    }
+    assert!(!optional_executable_baseline("game", &mut Unreadable, 3, &mut Vec::new()).unwrap());
+    assert!(optional_executable_baseline("../game", &mut &b"abc"[..], 3, &mut Vec::new()).is_err());
+}
+
+#[test]
+fn unusable_optional_executable_base_falls_back_to_full_without_activating() {
+    let root = tempfile::tempdir().unwrap();
+    let store = old_store(root.path(), &bundle(b"old"));
+    let active = store.state().unwrap().active.unwrap();
+    fs::write(store.version_dir(&active).join("game"), b"").unwrap();
+    let updated = bundle(&random_bytes(1000));
+    let mut release = manifest(&updated);
+    release.deltas.push(Delta {
+        base_version: active.version.clone(),
+        base_sha256: "a".repeat(64),
+        asset: asset("unused.rdd", b"unused"),
+    });
+    let server = Server::new();
+    server.put(&release.bundle.name, updated.clone());
+    let staged = store.stage(&server.source(), &release).unwrap();
+    assert_eq!(fs::read(store.bundle_path(&staged)).unwrap(), updated);
+    assert!(!server.logs().iter().any(|r| r.path.ends_with("unused.rdd")));
+    assert_eq!(
+        store.state().unwrap().active.unwrap().version,
+        active.version
+    );
+}
+
+/// Real release bytes over the existing test-only loopback Source. Production
+/// binaries retain the fixed GitHub origin; actual game relaunch is a later live smoke.
+#[test]
+#[ignore = "requires real published 0.1.9 and candidate Windows 0.1.11 artifacts"]
+fn actual_windows_release_candidate_preflight() {
+    assert_eq!(TARGET, "x86_64-pc-windows-msvc");
+    let inputs = PathBuf::from(std::env::var("RUST_DUTY_PREFLIGHT").expect("preflight directory"));
+    let baseline_manifest: Manifest = trust()
+        .verify(
+            &fs::read(inputs.join("baseline/update-x86_64-pc-windows-msvc.json")).unwrap(),
+            TARGET,
+        )
+        .unwrap();
+    let candidate: Manifest = trust()
+        .verify(
+            &fs::read(inputs.join("candidate/update-x86_64-pc-windows-msvc.json")).unwrap(),
+            TARGET,
+        )
+        .unwrap();
+    assert_eq!(baseline_manifest.version, version("0.1.9"));
+    assert_eq!(candidate.version, version("0.1.11"));
+    assert_eq!(candidate.sequence, 11);
+    let baseline = inputs.join("baseline").join(&baseline_manifest.bundle.name);
+    assert_eq!(
+        file_hash(&baseline).unwrap(),
+        baseline_manifest.bundle.sha256
+    );
+    let target = inputs.join("candidate").join(&candidate.bundle.name);
+    assert_eq!(file_hash(&target).unwrap(), candidate.bundle.sha256);
+    let temp = tempfile::tempdir().unwrap();
+    let source_store = Store::open(&temp.path().join("extract-baseline")).unwrap();
+    source_store
+        .install_local(
+            &baseline,
+            baseline_manifest.version.clone(),
+            &candidate.entrypoint,
+        )
+        .unwrap();
+    let original = source_store.state().unwrap().active.unwrap();
+    let executable = fs::read(
+        source_store
+            .version_dir(&original)
+            .join(&candidate.entrypoint),
+    )
+    .unwrap();
+    let one_file = bundle_files(&[(&candidate.entrypoint, 1, &executable)]);
+    let one_path = write(temp.path(), "one-file.rdb", &one_file);
+    let full_delta = candidate
+        .deltas
+        .iter()
+        .find(|d| d.base_sha256 == baseline_manifest.bundle.sha256)
+        .expect("full baseline delta");
+    let exe_delta = candidate
+        .deltas
+        .iter()
+        .find(|d| d.base_sha256 == bytes_hash(&one_file))
+        .expect("executable baseline delta");
+    let selected_case = std::env::var("RUST_DUTY_PREFLIGHT_CASE").ok();
+    let cases = [
+        "full",
+        "one-file",
+        "recover-one-file",
+        "mismatch",
+        "unusable",
+        "corrupt-delta",
+    ];
+    assert!(
+        selected_case
+            .as_ref()
+            .is_none_or(|name| cases.contains(&name.as_str())),
+        "unknown preflight case"
+    );
+    for case in cases {
+        if selected_case.as_ref().is_some_and(|name| name != case) {
+            continue;
+        }
+        let case_started = Instant::now();
+        println!("real-release preflight {case}: started");
+        let store = Store::open(&temp.path().join(case)).unwrap();
+        let initial = if case == "full" { &baseline } else { &one_path };
+        store
+            .install_local(
+                initial,
+                baseline_manifest.version.clone(),
+                &candidate.entrypoint,
+            )
+            .unwrap();
+        let active = store.state().unwrap().active.unwrap();
+        if ["recover-one-file", "mismatch", "unusable"].contains(&case) {
+            fs::remove_file(store.bundle_path(&active)).unwrap();
+        }
+        let active_exe = store.version_dir(&active).join(&candidate.entrypoint);
+        if case == "mismatch" {
+            fs::write(&active_exe, b"mismatched optional base").unwrap();
+        }
+        if case == "unusable" {
+            fs::write(&active_exe, b"").unwrap();
+        }
+        let sentinels = [
+            ("settings.cfg", b"settings sentinel".as_slice()),
+            (
+                "private-model.vrs",
+                b"synthetic private sentinel".as_slice(),
+            ),
+        ];
+        for (name, value) in sentinels {
+            fs::write(store.root.join(name), value).unwrap();
+        }
+        let server = Server::new();
+        server.put(&format!("update-{TARGET}.json"), manifest_bytes(&candidate));
+        server.put(&candidate.bundle.name, fs::read(&target).unwrap());
+        for delta in &candidate.deltas {
+            let mut bytes = fs::read(inputs.join("candidate").join(&delta.asset.name)).unwrap();
+            if case == "corrupt-delta" {
+                bytes[0] ^= 1;
+            }
+            server.put(&delta.asset.name, bytes);
+        }
+        let verified = store.check(&server.source(), &trust(), TARGET).unwrap();
+        let staged = store.stage(&server.source(), &verified).unwrap();
+        assert_eq!(
+            store.state().unwrap().active.unwrap().version,
+            baseline_manifest.version,
+            "{case}: stage must not activate"
+        );
+        assert_eq!(
+            file_hash(&store.bundle_path(&staged)).unwrap(),
+            candidate.bundle.sha256
+        );
+        let paths: Vec<_> = server.logs().iter().map(|r| r.path.clone()).collect();
+        let used_full = paths.iter().any(|p| p.ends_with(&candidate.bundle.name));
+        if ["mismatch", "unusable", "corrupt-delta"].contains(&case) {
+            assert!(used_full, "{case}: full fallback required");
+        } else {
+            assert!(
+                !used_full,
+                "{case}: matching delta must avoid full transfer"
+            );
+            let expected = if case == "full" {
+                full_delta
+            } else {
+                exe_delta
+            };
+            assert!(
+                paths.iter().any(|p| p.ends_with(&expected.asset.name)),
+                "{case}: expected delta"
+            );
+        }
+        store.activate(staged.clone()).unwrap();
+        assert_eq!(
+            store.state().unwrap().active.unwrap().version,
+            candidate.version
+        );
+        let output = Command::new(store.version_dir(&staged).join(&candidate.entrypoint))
+            .arg("--build-version")
+            .output()
+            .unwrap();
+        assert!(output.status.success());
+        assert_eq!(String::from_utf8(output.stdout).unwrap().trim(), "0.1.11");
+        for (name, value) in sentinels {
+            assert_eq!(fs::read(store.root.join(name)).unwrap(), value);
+        }
+        assert!(
+            store.check_newer(&candidate).is_err(),
+            "{case}: replay rejected"
+        );
+        store.rollback().unwrap();
+        assert_eq!(
+            store.state().unwrap().active.unwrap().version,
+            baseline_manifest.version
+        );
+        assert!(
+            store.activate(staged).is_err(),
+            "{case}: rollback retains anti-replay high-water mark"
+        );
+        println!(
+            "real-release preflight {case}: passed in {:.3}s; requests={paths:?}",
+            case_started.elapsed().as_secs_f64()
+        );
+    }
 }

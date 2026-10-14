@@ -3,6 +3,7 @@
 #[allow(dead_code)]
 #[path = "src/asset.rs"]
 mod asset;
+mod build_number;
 use std::{env, fs, io::Read, path::PathBuf};
 fn main() {
     // Cargo.toml is the release version. Do not let a stale workflow pin override it.
@@ -20,6 +21,15 @@ fn main() {
         "RUST_DUTY_BUILD_VERSION must be a stable MAJOR.MINOR.PATCH version"
     );
     println!("cargo:rustc-env=RUST_DUTY_BUILD_VERSION={version}");
+    for key in ["GITHUB_RUN_ID", "GITHUB_RUN_ATTEMPT", "GITHUB_ACTIONS"] {
+        println!("cargo:rerun-if-env-changed={key}");
+    }
+    println!("cargo:rerun-if-changed=build_number.rs");
+    println!("cargo:rerun-if-changed=src");
+    println!("cargo:rerun-if-changed=Cargo.lock");
+    let number = build_number::current();
+    println!("cargo:rustc-env=RUST_DUTY_BUILD_NUMBER={number}");
+    println!("cargo:rustc-env=RUST_DUTY_BUILD_LABEL={version}+build.{number}");
     println!("cargo:rerun-if-env-changed=VR_WEAPON_ASSET");
     println!("cargo:rerun-if-env-changed=CI");
     println!("cargo:rerun-if-changed=src/asset.rs");

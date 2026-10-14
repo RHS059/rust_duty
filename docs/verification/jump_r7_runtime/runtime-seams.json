@@ -1,0 +1,80 @@
+{
+  "schema": "rust-duty-jump-runtime-seams/v1",
+  "backend": "Rust CPU sampler",
+  "asset_sha256": "4e16c54684098b34ff5a1d53fb1f73952c0cd8c5588d3c9c23ee01df66fe34e5",
+  "declared_position_limit_m": 0.001,
+  "checks": [
+    {
+      "name": "ready_takeoff",
+      "left": [
+        "normal_ready",
+        0
+      ],
+      "right": [
+        "jump_takeoff",
+        0
+      ],
+      "max_vertex_error_m": 5.534040115749162e-07,
+      "visibility_matches": true,
+      "passed": true
+    },
+    {
+      "name": "takeoff_air",
+      "left": [
+        "jump_takeoff",
+        0.18333333333333332
+      ],
+      "right": [
+        "jump_air",
+        0
+      ],
+      "max_vertex_error_m": 4.318854014697075e-07,
+      "visibility_matches": true,
+      "passed": true
+    },
+    {
+      "name": "air_land",
+      "left": [
+        "jump_air",
+        0.38333333333333336
+      ],
+      "right": [
+        "jump_land",
+        0
+      ],
+      "max_vertex_error_m": 0.0,
+      "visibility_matches": true,
+      "passed": true
+    },
+    {
+      "name": "land_ready",
+      "left": [
+        "jump_land",
+        0.4666666666666667
+      ],
+      "right": [
+        "normal_ready",
+        0
+      ],
+      "max_vertex_error_m": 6.391056250649636e-07,
+      "visibility_matches": true,
+      "passed": true
+    },
+    {
+      "name": "air_endpoint_hold",
+      "left": [
+        "jump_air",
+        0.38333333333333336
+      ],
+      "right": [
+        "jump_air",
+        3.3833333333333333
+      ],
+      "max_vertex_error_m": 0.0,
+      "visibility_matches": true,
+      "passed": true
+    }
+  ],
+  "passed": true,
+  "scope": "Exact endpoint positions and clamped air hold only. Velocity, visual approval, and native gameplay are separate evidence."
+}

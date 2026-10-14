@@ -1,6 +1,6 @@
 //! Regression targets from the reviewed native tactical captures. These keep
 //! the weapon-IK hierarchy change from replacing the fitted reload gestures.
-use macroquad::math::{EulerRot, Mat4, Quat, Vec3};
+use glam::{EulerRot, Mat4, Quat, Vec3};
 use vector_range::arms::{ArmFreeHandPose, ArmModel};
 use vector_range::skinned_asset::{Bone, SkinnedAsset};
 use vector_range::view_animation::{HandPresentationFrames, ViewAnimation, WeaponFrame};

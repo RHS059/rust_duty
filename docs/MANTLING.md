@@ -53,13 +53,14 @@ ledge itself, is ignored. Thin intermediate walls and overhead obstructions
 cannot be skipped between sampled poses.
 
 Only static axis-aligned block tops are mantle candidates. Ramps remain normal
-walk/slide geometry and can obstruct mantles. There are no airborne ledge grabs,
-hanging states, moving-platform traversal, crouched mantles, vaults, skeletal
-hand-placement matching, or arbitrary-mesh ledges. Live support removal, a newly
-blocked landing, or a newly blocked path cancels traversal at the last verified
-pose. Arbitrary geometry insertion already overlapping the player is outside
-the static collision map contract; this is not a dynamic-world depenetration
-system.
+walk/slide geometry and can obstruct mantles. There are no moving-platform
+traversals, crouched mantles, vaults, skeletal hand-placement matching, or
+arbitrary-mesh ledges. Airborne ledge catch, hanging and pull-up are separate
+states built on these rules; see [traversal](TRAVERSAL.md). Live support removal,
+a newly blocked landing, or a newly blocked path cancels traversal at the last
+verified pose. Arbitrary geometry insertion already overlapping the player is
+outside the static collision map contract; this is not a dynamic-world
+depenetration system.
 
 ## Movement, weapon, and cancellation behavior
 

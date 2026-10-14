@@ -1,4 +1,4 @@
-use macroquad::math::vec2;
+use glam::vec2;
 use vector_range::{
     settings::Settings,
     sim::{Input, Simulation, FIXED_DT},

@@ -1,0 +1,127 @@
+{
+  "acceptance_verdict": null,
+  "batching_class": {
+    "bytes": 1218,
+    "path": "finite_ads_pass_batching_class.json",
+    "sha256": "2895c1f4f0039f5a850c7b30196c5d77f4b2e563bc211f8b9fb51ca15f639c4c"
+  },
+  "class_id": "ads-offset-8f571464-finite-gpu-cpu-v1",
+  "native_comparison": null,
+  "schema": "rust-duty-finite-ads-gpu-cpu-class/v1",
+  "source_variants": {
+    "baseline": {
+      "production": {
+        "src/app.rs": {
+          "bytes": 73361,
+          "sha256": "244d6a65fa6534abbc3dcc42e2ef57f0592bd5976e053083449f4cb2254ca472"
+        },
+        "src/frame_performance.rs": {
+          "bytes": 26106,
+          "sha256": "d32746635a4ef297ce6c1e22514d3a18cf9b57975e79f4db9e0102965cb8ac22"
+        },
+        "src/frame_performance_session.rs": {
+          "bytes": 15320,
+          "sha256": "60773c62527d99ca27fa4315eb360121eec14b3645504e5c6a5bc2e4f59aee5f"
+        },
+        "src/graphics_device.rs": null,
+        "src/lib.rs": {
+          "bytes": 1701,
+          "sha256": "090d44a59fb9b4d6de1a98e6199f157afce88ed81a1930395675ee542d6217cc"
+        },
+        "src/main.rs": {
+          "bytes": 6126,
+          "sha256": "c4018780c2db8c7fb5681d7ea65656e78217b4dbac870cab928f589e5a8d472f"
+        },
+        "src/pause_menu.rs": {
+          "bytes": 42678,
+          "sha256": "509ac8fc2787454e0a7af657eff40bab8fe9b5f3d7e8d4328fd213581377fce2"
+        },
+        "src/render/backend.rs": {
+          "bytes": 8609,
+          "sha256": "2ffa4502d858c3e291c599bb50e0ec50d3187b7473005d28858a7914a76b3ed0"
+        },
+        "src/render/device.rs": {
+          "bytes": 23610,
+          "sha256": "02dd7452dcc310276ee3eb03c2a96d84c2c97c29a6282cbc4cff627ff2227723"
+        },
+        "src/render/frame.rs": {
+          "bytes": 25184,
+          "sha256": "d0bdefd2fe79f77c33e2ac4183346cccfcbae3a3d1fac6c7e2130e7d6648d91e"
+        },
+        "src/render/mod.rs": {
+          "bytes": 713,
+          "sha256": "81c52fb079336e131299091a0445353b7bfe566517621ec1516922e19f2047db"
+        },
+        "src/render/runtime.rs": {
+          "bytes": 19444,
+          "sha256": "f1372755c241bad6aba2109a0a86f0396537e79dbe7651f24ec2d872fbb393ee"
+        }
+      },
+      "reviewed_additions": {
+        "src/render/mod.rs": {
+          "bytes": 872,
+          "sha256": "201b223624a59e84f73cc3d114c6e6e7e797b6d1d121a781301f195867a6ac74"
+        }
+      }
+    },
+    "candidate": {
+      "production": {
+        "src/app.rs": {
+          "bytes": 75655,
+          "sha256": "c282e402b35b0edee452eff30741251b729a936e90431c94387eb14c3cb918da"
+        },
+        "src/frame_performance.rs": {
+          "bytes": 31117,
+          "sha256": "dfd68b9970a9b38cfef2b60a8b75238350c89466fc6e5a0d9d54413758c415bd"
+        },
+        "src/frame_performance_session.rs": {
+          "bytes": 19408,
+          "sha256": "4b72fe3910f08d2a4dd7e9dcaea7557675451275010c72c75da7b37d654d577c"
+        },
+        "src/graphics_device.rs": {
+          "bytes": 18112,
+          "sha256": "731d3ad664ed8b8cc358e19f7ec321646af8fbe50872ccf63322128264418e8b"
+        },
+        "src/lib.rs": {
+          "bytes": 1726,
+          "sha256": "d99219a4e4fcc06d73d3841b0b6d6fa40edcb4ac2aa5e1882cd5f66cda7284b1"
+        },
+        "src/main.rs": {
+          "bytes": 6421,
+          "sha256": "04f2c0ce85c2ceac6ccf9b215e043df097107749a676dfa3d2661334b6463f41"
+        },
+        "src/pause_menu.rs": {
+          "bytes": 65356,
+          "sha256": "c08e8fc87407bc9cfda5cfadf7f92eb5802e7abb625e0b66e9d96c5d8f0bca9e"
+        },
+        "src/render/backend.rs": {
+          "bytes": 8833,
+          "sha256": "4a9c1efab9ecb5a462cd55f2a2b9bb10959f2e4d318f53dd439d75a01b6c8603"
+        },
+        "src/render/device.rs": {
+          "bytes": 28061,
+          "sha256": "fe742b814bcc55ab3b5d13ad70a03dcef54e5369a7b3a82665a016eec16a6763"
+        },
+        "src/render/frame.rs": {
+          "bytes": 25738,
+          "sha256": "aad7d066764a658b3dc8a3dbd1eaed2fb3bb69708effbbffe16a9b6fc07d8628"
+        },
+        "src/render/mod.rs": {
+          "bytes": 724,
+          "sha256": "b5fce38c777a6619526f578bf3970bc31c38420ec1b6b57f10413647b2dbfb2f"
+        },
+        "src/render/runtime.rs": {
+          "bytes": 20650,
+          "sha256": "67af6a5ee23d3db06a526abe3b5df6dc5e325365dce436562e1e4e31381a3e48"
+        }
+      },
+      "reviewed_additions": {
+        "src/render/mod.rs": {
+          "bytes": 883,
+          "sha256": "c78768f1c1144a14618960975fe43027293fa1a8a21cb147eea9bef6e44c7bae"
+        }
+      }
+    }
+  },
+  "status": "pending_independent_native_review"
+}

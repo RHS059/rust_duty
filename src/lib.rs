@@ -1,8 +1,21 @@
 //! Original deterministic simulation. No original-game source or assets are used.
 /// The release identity assigned to this exact CI build; local builds use Cargo's version.
 pub const BUILD_VERSION: &str = env!("RUST_DUTY_BUILD_VERSION");
+/// Unique CI run and attempt, or an explicitly local compilation identifier.
+pub const BUILD_NUMBER: &str = env!("RUST_DUTY_BUILD_NUMBER");
+/// Human-facing identity. Do not pass this metadata label to the updater.
+pub const BUILD_LABEL: &str = env!("RUST_DUTY_BUILD_LABEL");
+pub mod graphics_device;
 pub mod settings;
 pub mod sim;
+
+pub mod action;
+
+pub mod weapon_sway;
+
+pub mod body_presentation;
+
+pub mod traversal_replay;
 
 pub mod control;
 
@@ -37,6 +50,7 @@ pub mod authored_locomotion_path;
 pub mod authored_locomotion_adapter;
 
 pub mod animation_manifest;
+pub mod authored_pose_return;
 pub mod authored_reload;
 
 pub mod authored_walk;
@@ -48,3 +62,25 @@ pub mod authored_ads;
 pub mod layered_locomotion;
 
 pub mod muzzle_fx;
+
+pub mod authored_jump;
+
+pub mod input_frame;
+pub mod platform;
+
+pub mod draw;
+#[cfg(feature = "legacy-macroquad")]
+pub mod legacy_macroquad;
+pub mod render;
+pub mod ui_theme;
+
+pub mod gpu_telemetry;
+
+pub mod frame_performance;
+pub mod frame_performance_session;
+
+// Public production UI paths are shared with native render fixtures.
+pub mod field_ui;
+pub mod game_update;
+pub mod hud;
+pub mod pause_menu;

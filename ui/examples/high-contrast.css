@@ -1,0 +1,31 @@
+/* High-contrast example theme for Rust Duty's native UI.
+   Select it with --ui-theme=ui/examples/high-contrast.css, then press F7 to
+   reload after edits. Only documented scopes, classes and properties are used.
+   See docs/UI_THEME_EXAMPLES.md. */
+
+/* Class-only rules apply in every scope. */
+.label { color: #ffffff; }
+.muted { color: #d8d8d8; }
+.accent { color: #ffe100; }
+.warning { color: #ff5c5c; }
+
+.panel {
+  background-color: #000000f2;
+  border-color: #ffffff;
+  border-width: 2px;
+}
+.button {
+  background-color: #000000;
+  border-color: #ffe100;
+  border-width: 2px;
+}
+.slider {
+  background-color: #1a1a1a;
+  border-color: #ffffff;
+  border-width: 1px;
+}
+
+/* Scope + class beats class alone. */
+#hud .muted { color: #ffffff; }
+#ammo-hint .accent { color: #00ffff; }
+#updater-panel .warning { color: #ff8a00; }

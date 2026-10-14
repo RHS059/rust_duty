@@ -1,0 +1,230 @@
+{
+  "acceptance_complete": false,
+  "acceptance_verdict": null,
+  "artifact": {
+    "archive_sha256": "f29ff7c9fada89478e86f3bae86e0382350d1ac249771116dc920274de5b8994",
+    "artifact_id": "11422371812",
+    "run_attempt": "1",
+    "run_id": "37482428571"
+  },
+  "build_receipts": {
+    "bytes": 1248,
+    "sha256": "5e19b7e724f2df9e31c579505eac0ee152dbc078520ed7965ae9d1a66a43b1e3"
+  },
+  "commits": {
+    "baseline": "17023450076b668c279539e0e450b8cb58a7c1a2",
+    "candidate": "5abf2bca825a252fb7ad6665c444c89861ee8ef9"
+  },
+  "comparison": {
+    "capture_count": 21,
+    "channel_tolerance": 0,
+    "channels": "RGBA"
+  },
+  "exact_pixels": {
+    "bytes": 6618,
+    "sha256": "ce56e1e1df2a923630b366d8d292522c9d697f9cc10042b09c71d584a9862434"
+  },
+  "native_execution": true,
+  "original_class_sha256": "96dfb631be9d59f6cf35d87e4f3c17a4a4303d74787bb773a8c47672efb53331",
+  "original_profile_flags_modified": false,
+  "schema": "rust-duty-pass-batching-native-review/v1",
+  "status": "passed",
+  "summary": {
+    "bytes": 15692,
+    "sha256": "dc32a7c7d40b4d774599183cf775f4b2d73bc64ec963b952b33b984041027497"
+  },
+  "variants": {
+    "baseline": {
+      "compiler_sha256": "5477f9bad65b15c4c5b31fc050fc72feba651ea1b330bc75cf356a4d6b0fbc80",
+      "contract_executable": {
+        "bytes": 9134592,
+        "sha256": "6a9359cddc5675d071691a13ca92cdd5a398e0d6cfe530d4befd16f36172a4f3"
+      },
+      "contract_log": {
+        "bytes": 470,
+        "sha256": "3204d81df3337f17e30df0e661e20249af798e92e15097ca4dd4a1540595bca2"
+      },
+      "contract_report": {
+        "bytes": 41799,
+        "sha256": "3d92a40fd62293cabab8e4b20ce92a37f5ae91144a6bc870bf87cff269c793f2"
+      },
+      "fixed_contract_validation": {
+        "adapter": "Microsoft Basic Render Driver",
+        "backend": "Dx12",
+        "build_number": "37482428571.1",
+        "build_version": "0.1.11",
+        "captures": 21,
+        "passed": true,
+        "schema": "rust-duty-renderer-contract-validation/v1",
+        "scope": "headless DX12 renderer contract; not window presentation, native DPI, gameplay, performance or artistic approval"
+      },
+      "png_sha256": {
+        "after-errors.png": "e620b9ca33c0a94b9d270ad3223ea8bd8dc1dd43b3c3b4b8d30b8ff6ad6c68c7",
+        "alpha-clear.png": "5eb235cc66343a893d08832489440967411d5ecd629beb2bc271e9ffdff74f9e",
+        "alpha-composite.png": "4d87a7e7a7e5d4acc66a296b2af30010645ac260b84da04f1d760d88a8f55ca2",
+        "alpha-main-display.png": "4d87a7e7a7e5d4acc66a296b2af30010645ac260b84da04f1d760d88a8f55ca2",
+        "alpha-opaque-source.png": "70b63ce29cb240c203d3b7b8b796d5553460480be01700b7dfd44ddd73d378f6",
+        "alpha-target.png": "a2cc5e0c525809d6c3a2176455b89843b0d7eb4299592d597fe9318bb309f323",
+        "alpha-tinted-composite.png": "73a099ddc8a7489c40a73ef478b990ee91fd56c20261f33a8916782c06c87eec",
+        "depth-disabled.png": "2d8800f8281edb696cfa91658d226293b815ae6374eda6d6724fbf433d7f1473",
+        "depth-main-near.png": "a92d3fd1102a3cf85fe8e882bdbd85e15e3ad3c8e79287585d9cf54f5c6d45ed",
+        "depth-main-preserved.png": "a92d3fd1102a3cf85fe8e882bdbd85e15e3ad3c8e79287585d9cf54f5c6d45ed",
+        "depth-main-reset.png": "ae76355a76ff392f9a1c2fb33ec77bc41ed004550070f26f85cbd3afa5d8f56a",
+        "depth-target-near.png": "2d8800f8281edb696cfa91658d226293b815ae6374eda6d6724fbf433d7f1473",
+        "depth-target-reset.png": "817fb1a69a61fe71cabf7abe8d073487bfe4874bb645911415a145fc46dd7ae1",
+        "ordered-a-red.png": "a92d3fd1102a3cf85fe8e882bdbd85e15e3ad3c8e79287585d9cf54f5c6d45ed",
+        "ordered-b-green.png": "ae76355a76ff392f9a1c2fb33ec77bc41ed004550070f26f85cbd3afa5d8f56a",
+        "quadrant-target-composite.png": "2670862e83ad8cc0f74aad21d95d2be3e6c5da316085a2dcf871fc1bbdb880fa",
+        "quadrant-target.png": "2670862e83ad8cc0f74aad21d95d2be3e6c5da316085a2dcf871fc1bbdb880fa",
+        "quadrant.png": "2670862e83ad8cc0f74aad21d95d2be3e6c5da316085a2dcf871fc1bbdb880fa",
+        "readback-width-65.png": "22b66129978b75d6e9e102f0b373e6d4473714275166d9cb23f48b7cf2343ec9",
+        "text-100-percent.png": "3993300b4103f4f581835b6d962ab198411403559e2af47d6f7aaf13fe42906e",
+        "text-200-percent.png": "1ed36fbe49bf783096f103f74f3a0b79297987740e3256144302f24132c2eb72"
+      },
+      "process_exit_code": 0,
+      "rgba_sha256": {
+        "after-errors.png": "0b3b4eba5c7d53beec5ac1aa3b64c56188bcbf52906e124e5ab3e77a96fdd9cd",
+        "alpha-clear.png": "8c8362c09e7c37cf08d4d8d2b5b308f9d187a07803516cf2331e15661653ebdb",
+        "alpha-composite.png": "53cfd2953d24236697069c46913d33916b6f66f45b9dd770d6a8288dd6a3dd5f",
+        "alpha-main-display.png": "53cfd2953d24236697069c46913d33916b6f66f45b9dd770d6a8288dd6a3dd5f",
+        "alpha-opaque-source.png": "57186da88bb33b9356edefe0b2c6b7353de0aa324e88c50661268838431a408d",
+        "alpha-target.png": "e4459f2c75a7cb4d73e88971292dd0411d2304d741fe8606d3330e382743cecb",
+        "alpha-tinted-composite.png": "fd9d816f0b6ebb2f07ba7b27e6cbdbdae3bdb5e126928781608779f2d64d89b6",
+        "depth-disabled.png": "1be09dc593e8b4f8cfbebf6a3d45b80c43af4e00bbf8b4a0819a097c7aea83b2",
+        "depth-main-near.png": "662200a192785c77ab1c05592edf37ebb5d2cc5efb42622f3660afa795be0af0",
+        "depth-main-preserved.png": "662200a192785c77ab1c05592edf37ebb5d2cc5efb42622f3660afa795be0af0",
+        "depth-main-reset.png": "e99edded3201bb91c618dab11edc16d6f02f4151028985d3fb963b9f5d077206",
+        "depth-target-near.png": "1be09dc593e8b4f8cfbebf6a3d45b80c43af4e00bbf8b4a0819a097c7aea83b2",
+        "depth-target-reset.png": "b58c763a56ed8e324a39263ec3f821c6b862acfd25591e5b573a89b00671506d",
+        "ordered-a-red.png": "662200a192785c77ab1c05592edf37ebb5d2cc5efb42622f3660afa795be0af0",
+        "ordered-b-green.png": "e99edded3201bb91c618dab11edc16d6f02f4151028985d3fb963b9f5d077206",
+        "quadrant-target-composite.png": "3a58c1192ea5fad826484ac96c86a1c5fc8e4822a9ee83a56f3d3ce2459609db",
+        "quadrant-target.png": "3a58c1192ea5fad826484ac96c86a1c5fc8e4822a9ee83a56f3d3ce2459609db",
+        "quadrant.png": "3a58c1192ea5fad826484ac96c86a1c5fc8e4822a9ee83a56f3d3ce2459609db",
+        "readback-width-65.png": "cb73565fdf12d855edaea1860a68e7c3a9f8f2847765cb18e4373e860a4862e9",
+        "text-100-percent.png": "9d86a5b1ccd262a221b129cdd2ed89832faab45597959a4b768b69dffb347fba",
+        "text-200-percent.png": "f6ce531cf547dc5de8ab5b331457e0527bcddaac838a3d4c447866149e9fd643"
+      },
+      "runtime_identity": {
+        "adapter": "Microsoft Basic Render Driver",
+        "backend": "Dx12",
+        "compiler": "Fxc",
+        "device_id": 140,
+        "device_type": "Cpu",
+        "driver": "10.0.26100.33438",
+        "driver_info": "",
+        "vendor_id": 5140
+      },
+      "source_pair": {
+        "src/render/frame.rs": {
+          "bytes": 15694,
+          "sha256": "6791f92af105eff40835d710aea7ee4dd5edd8f3e263067564333cf42887b9e3"
+        },
+        "src/render/plan.rs": {
+          "bytes": 21875,
+          "sha256": "5e81c060a90c95d6b1a90c2d0a8951219c47df7330f0aae6447166e20d1f3acf"
+        }
+      },
+      "source_receipt": {
+        "bytes": 12154,
+        "sha256": "9dca5d6bfc45b9941fbd38571c03008429b3b92e78e79abb8e294b830758e00f"
+      }
+    },
+    "candidate": {
+      "compiler_sha256": "5477f9bad65b15c4c5b31fc050fc72feba651ea1b330bc75cf356a4d6b0fbc80",
+      "contract_executable": {
+        "bytes": 9136128,
+        "sha256": "140666c5f0191f4b819c175abeda18880b2a0ea567ba224c0a3fc070d1cc0e7e"
+      },
+      "contract_log": {
+        "bytes": 471,
+        "sha256": "0ed56b880d9bda5c212d29301b5a4b925829d9fd2ae0ad0ccf4bf5fd3f8ddfba"
+      },
+      "contract_report": {
+        "bytes": 41801,
+        "sha256": "5f94eb4b80a629cc29da05424fff4176e9d024615636b4a54bdf264d8a22d0b1"
+      },
+      "fixed_contract_validation": {
+        "adapter": "Microsoft Basic Render Driver",
+        "backend": "Dx12",
+        "build_number": "37482428571.1",
+        "build_version": "0.1.11",
+        "captures": 21,
+        "passed": true,
+        "schema": "rust-duty-renderer-contract-validation/v1",
+        "scope": "headless DX12 renderer contract; not window presentation, native DPI, gameplay, performance or artistic approval"
+      },
+      "png_sha256": {
+        "after-errors.png": "e620b9ca33c0a94b9d270ad3223ea8bd8dc1dd43b3c3b4b8d30b8ff6ad6c68c7",
+        "alpha-clear.png": "5eb235cc66343a893d08832489440967411d5ecd629beb2bc271e9ffdff74f9e",
+        "alpha-composite.png": "4d87a7e7a7e5d4acc66a296b2af30010645ac260b84da04f1d760d88a8f55ca2",
+        "alpha-main-display.png": "4d87a7e7a7e5d4acc66a296b2af30010645ac260b84da04f1d760d88a8f55ca2",
+        "alpha-opaque-source.png": "70b63ce29cb240c203d3b7b8b796d5553460480be01700b7dfd44ddd73d378f6",
+        "alpha-target.png": "a2cc5e0c525809d6c3a2176455b89843b0d7eb4299592d597fe9318bb309f323",
+        "alpha-tinted-composite.png": "73a099ddc8a7489c40a73ef478b990ee91fd56c20261f33a8916782c06c87eec",
+        "depth-disabled.png": "2d8800f8281edb696cfa91658d226293b815ae6374eda6d6724fbf433d7f1473",
+        "depth-main-near.png": "a92d3fd1102a3cf85fe8e882bdbd85e15e3ad3c8e79287585d9cf54f5c6d45ed",
+        "depth-main-preserved.png": "a92d3fd1102a3cf85fe8e882bdbd85e15e3ad3c8e79287585d9cf54f5c6d45ed",
+        "depth-main-reset.png": "ae76355a76ff392f9a1c2fb33ec77bc41ed004550070f26f85cbd3afa5d8f56a",
+        "depth-target-near.png": "2d8800f8281edb696cfa91658d226293b815ae6374eda6d6724fbf433d7f1473",
+        "depth-target-reset.png": "817fb1a69a61fe71cabf7abe8d073487bfe4874bb645911415a145fc46dd7ae1",
+        "ordered-a-red.png": "a92d3fd1102a3cf85fe8e882bdbd85e15e3ad3c8e79287585d9cf54f5c6d45ed",
+        "ordered-b-green.png": "ae76355a76ff392f9a1c2fb33ec77bc41ed004550070f26f85cbd3afa5d8f56a",
+        "quadrant-target-composite.png": "2670862e83ad8cc0f74aad21d95d2be3e6c5da316085a2dcf871fc1bbdb880fa",
+        "quadrant-target.png": "2670862e83ad8cc0f74aad21d95d2be3e6c5da316085a2dcf871fc1bbdb880fa",
+        "quadrant.png": "2670862e83ad8cc0f74aad21d95d2be3e6c5da316085a2dcf871fc1bbdb880fa",
+        "readback-width-65.png": "22b66129978b75d6e9e102f0b373e6d4473714275166d9cb23f48b7cf2343ec9",
+        "text-100-percent.png": "3993300b4103f4f581835b6d962ab198411403559e2af47d6f7aaf13fe42906e",
+        "text-200-percent.png": "1ed36fbe49bf783096f103f74f3a0b79297987740e3256144302f24132c2eb72"
+      },
+      "process_exit_code": 0,
+      "rgba_sha256": {
+        "after-errors.png": "0b3b4eba5c7d53beec5ac1aa3b64c56188bcbf52906e124e5ab3e77a96fdd9cd",
+        "alpha-clear.png": "8c8362c09e7c37cf08d4d8d2b5b308f9d187a07803516cf2331e15661653ebdb",
+        "alpha-composite.png": "53cfd2953d24236697069c46913d33916b6f66f45b9dd770d6a8288dd6a3dd5f",
+        "alpha-main-display.png": "53cfd2953d24236697069c46913d33916b6f66f45b9dd770d6a8288dd6a3dd5f",
+        "alpha-opaque-source.png": "57186da88bb33b9356edefe0b2c6b7353de0aa324e88c50661268838431a408d",
+        "alpha-target.png": "e4459f2c75a7cb4d73e88971292dd0411d2304d741fe8606d3330e382743cecb",
+        "alpha-tinted-composite.png": "fd9d816f0b6ebb2f07ba7b27e6cbdbdae3bdb5e126928781608779f2d64d89b6",
+        "depth-disabled.png": "1be09dc593e8b4f8cfbebf6a3d45b80c43af4e00bbf8b4a0819a097c7aea83b2",
+        "depth-main-near.png": "662200a192785c77ab1c05592edf37ebb5d2cc5efb42622f3660afa795be0af0",
+        "depth-main-preserved.png": "662200a192785c77ab1c05592edf37ebb5d2cc5efb42622f3660afa795be0af0",
+        "depth-main-reset.png": "e99edded3201bb91c618dab11edc16d6f02f4151028985d3fb963b9f5d077206",
+        "depth-target-near.png": "1be09dc593e8b4f8cfbebf6a3d45b80c43af4e00bbf8b4a0819a097c7aea83b2",
+        "depth-target-reset.png": "b58c763a56ed8e324a39263ec3f821c6b862acfd25591e5b573a89b00671506d",
+        "ordered-a-red.png": "662200a192785c77ab1c05592edf37ebb5d2cc5efb42622f3660afa795be0af0",
+        "ordered-b-green.png": "e99edded3201bb91c618dab11edc16d6f02f4151028985d3fb963b9f5d077206",
+        "quadrant-target-composite.png": "3a58c1192ea5fad826484ac96c86a1c5fc8e4822a9ee83a56f3d3ce2459609db",
+        "quadrant-target.png": "3a58c1192ea5fad826484ac96c86a1c5fc8e4822a9ee83a56f3d3ce2459609db",
+        "quadrant.png": "3a58c1192ea5fad826484ac96c86a1c5fc8e4822a9ee83a56f3d3ce2459609db",
+        "readback-width-65.png": "cb73565fdf12d855edaea1860a68e7c3a9f8f2847765cb18e4373e860a4862e9",
+        "text-100-percent.png": "9d86a5b1ccd262a221b129cdd2ed89832faab45597959a4b768b69dffb347fba",
+        "text-200-percent.png": "f6ce531cf547dc5de8ab5b331457e0527bcddaac838a3d4c447866149e9fd643"
+      },
+      "runtime_identity": {
+        "adapter": "Microsoft Basic Render Driver",
+        "backend": "Dx12",
+        "compiler": "Fxc",
+        "device_id": 140,
+        "device_type": "Cpu",
+        "driver": "10.0.26100.33438",
+        "driver_info": "",
+        "vendor_id": 5140
+      },
+      "source_pair": {
+        "src/render/frame.rs": {
+          "bytes": 25184,
+          "sha256": "d0bdefd2fe79f77c33e2ac4183346cccfcbae3a3d1fac6c7e2130e7d6648d91e"
+        },
+        "src/render/plan.rs": {
+          "bytes": 22649,
+          "sha256": "c23e97a848435a610f5be0c72341ef8e5090fa2cd66846cda1b29159558a4c7e"
+        }
+      },
+      "source_receipt": {
+        "bytes": 12213,
+        "sha256": "617cd692b47b865f0852517df3306df2928f7166901c321faf990296d1d0cc7c"
+      }
+    }
+  }
+}

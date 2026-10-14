@@ -1,0 +1,54 @@
+{
+  "schema": "rust-duty-mesa-package-source-binding/v1",
+  "reviewed_at": "2026-10-06T09:03:00Z",
+  "capture_context": {
+    "source_commit": "8f571464be706d0abde862e124582a188f633baf",
+    "run_id": "37415102452",
+    "run_attempt": "1"
+  },
+  "native_input_manifest_sha256": "67b4116706f49eb8f8a7883474002055407227288d7b65ae6532b12eda45da9f",
+  "gl_reference_lock": {
+    "original_git_blob_sha256": "4c0e0033797ed12bacf7f3055fb66d680f4d2eda40491e108642cf8d8d943d8b",
+    "native_crlf_reconstruction_sha256": "d33d42c7e859e75aae2475494103c12691f4cda81335fc6783ebe1bafad268dd",
+    "matches_original_native_manifest": true,
+    "method": "Original8f committed lock converted LF to CRLF; exact resulting digest matches independently retained native manifest."
+  },
+  "package": {
+    "url": "https://repo.msys2.org/mingw/ucrt64/mingw-w64-ucrt-x86_64-mesa-26.2.4-1-any.pkg.tar.zst",
+    "sha256": "82a30042848b6393f2a21cdee66b164e4cf4fe15a9721a5f1d1c7280e004ebdc",
+    "bytes": 13736008,
+    "buildinfo_sha256": "a513fc93b5398ceeacd9db6807569c801159e7400eaddb22325ef311b8375470",
+    "pkginfo_sha256": "7fe60dab4ed88b035ff459cf552d3aab227a0f9316f7deb281951fa88b173938",
+    "upstream_build_job": "https://github.com/msys2/msys2-autobuild/actions/runs/37140713296/job/111254412113"
+  },
+  "recipe": {
+    "url": "https://raw.githubusercontent.com/msys2/MINGW-packages/master/mingw-w64-mesa/PKGBUILD",
+    "sha256": "ccdd1282167328984429b2275813015efd4e11d3a108f06ac116ca74bba61932",
+    "identity_matched_package_buildinfo": true,
+    "upstream_source_sha256": "bce5f7fbebb934373b86c999a064d52fb5065878dc57f287f95346648ec832e9",
+    "source_patches": [],
+    "configured_driver": "llvmpipe",
+    "build_type": "release",
+    "llvm": "enabled",
+    "shared_llvm": "enabled",
+    "gles1": "disabled",
+    "gles2": "disabled"
+  },
+  "binary_members_match_original_manifest": [
+    {
+      "name": "libgallium_wgl.dll",
+      "member": "ucrt64/bin/libgallium_wgl.dll",
+      "bytes": 23835212,
+      "sha256": "42362a4b7063591ad1f2bf5d1dbf26fb808ac49cb419ac237d63c8f1cb49bc75"
+    },
+    {
+      "name": "opengl32.dll",
+      "member": "ucrt64/bin/opengl32.dll",
+      "bytes": 131693,
+      "sha256": "f73078a77b51c634faa36f616a8eb9f7f1b30f82b21d689267b9146dbbc8b943"
+    }
+  ],
+  "scope": "Official package/build recipe/source and original staged DLL identity. No binary was executed for this review; no claim of reproducible compilation or new native observation. Existing live app-local precision receipt supplies separate runtime context.",
+  "native_profile_verified": false,
+  "acceptance_complete": false
+}

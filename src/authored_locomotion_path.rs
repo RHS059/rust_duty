@@ -458,9 +458,8 @@ impl AuthoredLocomotionPath {
             if relative.w < 0. {
                 relative = -relative;
             }
-            target.rotation = (macroquad::math::Quat::IDENTITY.slerp(relative, weight)
-                * target.rotation)
-                .normalize();
+            target.rotation =
+                (glam::Quat::IDENTITY.slerp(relative, weight) * target.rotation).normalize();
         }
         // Reuse the decoder's finite, unit-rotation and positive-scale guards;
         // weight zero performs validation only and returns the corrected pose.

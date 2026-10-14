@@ -1,6 +1,6 @@
 //! Frozen author oracle for the active v4 WIP basis/math, not reference-fidelity approval.
 #![allow(clippy::excessive_precision)]
-use macroquad::math::Mat4;
+use glam::Mat4;
 use vector_range::authored_walk::receiver_v4_offset;
 #[test]
 fn receiver_mapping_matches_all_twenty_four_author_camera_and_asset_witnesses() {
