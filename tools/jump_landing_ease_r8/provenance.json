@@ -1,0 +1,73 @@
+{
+  "schema": "rust-duty-jump-r8-text-checkpoint-provenance/v1",
+  "repository": "RHS059/rust_duty",
+  "prior_pr": 20,
+  "prior_pr_head": "e9317f90ea171976306e2f17c111325d948ea357",
+  "source_assets_included": false,
+  "original_authoring_script": {
+    "path": "refine_jump_landing.py",
+    "sha256": "fd5e7933660705765a686e0b745b16160b331dc0b4b8795114d5edf99e9152ee",
+    "unchanged": true
+  },
+  "original_reopen_script_sha256": "85f894fb62f892cdc82a386410bd41a51fd1a3c5869e1109c1ceff4f69f3b2f5",
+  "candidate": {
+    "filename": "halcyon_jump_r8_ease_candidate.blend",
+    "sha256": "db30e98a8d63cb4e9075ec2930cd5d34d385780ab374e1d6386f42d1e0fe7b3b",
+    "included": false,
+    "download_or_media_publication": false
+  },
+  "inputs": [
+    {
+      "filename": "halcyon_jump.blend",
+      "repository_path": "assets/authoring/jump/halcyon_jump.blend",
+      "commit": "e9317f90ea171976306e2f17c111325d948ea357",
+      "immutable_url": "https://github.com/RHS059/rust_duty/blob/e9317f90ea171976306e2f17c111325d948ea357/assets/authoring/jump/halcyon_jump.blend",
+      "included": false,
+      "sha256": "a2c4b2bbe98da1a608450bba92404cb39008eae5861bcf8fc3f5d2f978df0e3b",
+      "sha256_verification": "Historical authoring and saved-source reopen checks; not rerun during publication."
+    },
+    {
+      "filename": "authored_root_keys.json",
+      "repository_path": "assets/authoring/jump/authored_root_keys.json",
+      "commit": "e9317f90ea171976306e2f17c111325d948ea357",
+      "immutable_url": "https://github.com/RHS059/rust_duty/blob/e9317f90ea171976306e2f17c111325d948ea357/assets/authoring/jump/authored_root_keys.json",
+      "included": false,
+      "sha256": "afef5b604a883353f11db1c4147719f00a247a8e033615426c6aa799d6c963e3",
+      "git_blob_sha1": "a200764a8831b9d8bcc5efe248aca550b7049066"
+    },
+    {
+      "filename": "reference_geometry.json",
+      "repository_path": "assets/authoring/jump/reference_geometry.json",
+      "commit": "e9317f90ea171976306e2f17c111325d948ea357",
+      "immutable_url": "https://github.com/RHS059/rust_duty/blob/e9317f90ea171976306e2f17c111325d948ea357/assets/authoring/jump/reference_geometry.json",
+      "included": false,
+      "sha256": "540d1a25dfe903f55d2a179aa60aba0371a5c11e391508025c5b690017e7953a",
+      "git_blob_sha1": "1c7788de0a5c2c2ece77811144a6f80d4277a384"
+    },
+    {
+      "filename": "front_sight_geometry.json",
+      "repository_path": "assets/authoring/jump/front_sight_geometry.json",
+      "commit": "e9317f90ea171976306e2f17c111325d948ea357",
+      "immutable_url": "https://github.com/RHS059/rust_duty/blob/e9317f90ea171976306e2f17c111325d948ea357/assets/authoring/jump/front_sight_geometry.json",
+      "included": false,
+      "sha256": "12fd8bb3cf124d1766416cb1b5203afe69251ea24a018aade8a2a311bcb26f85",
+      "git_blob_sha1": "2f15c175e9e125fc4c24d45a25eecc1dbd3b63b9"
+    }
+  ],
+  "reopen_portability_changes": [
+    "Explicit --source, --reports, optional --candidate and new --output path",
+    "Reject optimized Python and write new output evidence exclusively; no verification computation changed"
+  ],
+  "original_reopen_function_sha256": {
+    "sha": "452dca73f0c03024f1b37c1334a1d3066a7fe36748642a70b164d5c2c9bfcc47",
+    "digest": "dc72dfceb78b53341e6bac0ff7d9c65231c8b7557738288710d98dd81d249a7a",
+    "curve_record": "5edd5bb5660ec966713cb4f805363fb7db88b67dedf0a9cc03756aa74cbb0757",
+    "action_record": "6b9b62829ae1593bf7b400e5bf9eab76e42f1a2661646b138361c215c0f30961",
+    "scalar": "3e89e417a57077b42c6f0821d89fc6fc460fc2d4e246108e9561e535fa0373b7",
+    "props": "98b0d8d2d7c5502c55ae84df8466e8a94973a269a7fe299c41556a2a51c46b55",
+    "structure": "7e4f11a57ae92881c3822913c5b2b8f4b2f9b5bea9e670ee430eb3115810fe56",
+    "prepare": "44781a4dca195eb464f0bd22b4e661b4452f71c05bfe81e63bd1ee9ce42e137c",
+    "pose_matches": "02e969ce2544678368184f8c23f0209e48d2a7231cad417ad44f6f8e016638b0",
+    "hand_skin": "ca945be11fe8f7f1615dd6df36b8ec00d356b4496d114623baa2005c99e99772"
+  }
+}

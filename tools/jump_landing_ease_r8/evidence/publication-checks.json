@@ -1,0 +1,52 @@
+{
+  "schema": "rust-duty-jump-r8-publication-checks/v1",
+  "date_utc": "2026-10-14",
+  "scope": "Code/text checkpoint. No fresh private-source Blender validation, native capture, export or integration was run by this publication task.",
+  "initial_source_free_run": {
+    "command": "python3 -m unittest discover -s tools/jump_landing_ease_r8 -p 'test_*.py' -v",
+    "tests": 18,
+    "passed": 17,
+    "failed": 1,
+    "elapsed_seconds": 0.131,
+    "log_sha256": "0699f75f3b1611b65dedd8a7510d510d8c9bd53f08743a48fba6b4d212d9769b",
+    "failure": {
+      "test": "OriginalHermiteMath.test_both_original_endpoint_values_and_tangents",
+      "actual_endpoint_slope": 2.775819661054969,
+      "expected_endpoint_slope": 2.7758196610549684,
+      "cause": "The test used exact tuple equality for a floating-point Hermite derivative; difference is one ULP. The original authoring function was unchanged."
+    }
+  },
+  "changes_after_initial_run": [
+    "Use 12-decimal-place endpoint comparisons, retaining the exact original target function.",
+    "Compare original script bytes directly and enforce LF checkouts with .gitattributes.",
+    "Reserve new authoring output exclusively and write reopen evidence with exclusive creation.",
+    "Add a source-free concurrent-output guard fixture; current suite has 19 tests."
+  ],
+  "corrected_source_free_rerun": {
+    "status": "pending at checkpoint creation",
+    "reason": "Live GUI capture owns the machine; no follow-on test execution until the capture owner releases a quiet window."
+  },
+  "static_review": {
+    "result": "No correction/provenance discrepancy found. Output-race and wording recommendations addressed.",
+    "tests_executed_by_reviewer": false,
+    "original_author_script_byte_identical": true,
+    "reopen_computation_functions_unchanged": true,
+    "historical_report_hashes_match": true,
+    "no_private_asset_or_geometry_contents": true,
+    "no_operational_absolute_paths": true
+  },
+  "historical_blender_evidence": "See evidence/author-checks.json; original authoring and saved-file reopen receipts are historical, not a new publication run.",
+  "ci": "Remote checks must be read for the actual PR head and checkout; no CI pass claimed by this receipt.",
+  "artistic_approval": false,
+  "runtime_integration": false,
+  "excluded": [
+    "BLEND files",
+    "meshes",
+    "textures",
+    "private calibration contents",
+    "full curve dumps",
+    "screenshots",
+    "videos",
+    "credentials"
+  ]
+}
