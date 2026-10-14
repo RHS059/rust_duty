@@ -629,6 +629,27 @@ fn accepted_entry_freezes_actual_pre_ease_height_instead_of_a_stance_constant() 
 }
 
 #[test]
+fn accepted_entry_absorbs_visible_landing_kick_once_without_a_second_height_track() {
+    let mut sim = configured();
+    ticks(&mut sim, crouch(), 30);
+    sim.player.landing_kick = 0.06;
+    let visible_height = sim.player.eye().y - sim.player.position.y;
+    tick(&mut sim, prone());
+    close(
+        sim.player.eye().y as f64 - sim.player.position.y as f64,
+        visible_height as f64,
+        1e-6,
+    );
+    assert_eq!(sim.player.landing_kick, 0.);
+    ticks(&mut sim, prone(), 20);
+    close(
+        sim.player.eye().y as f64 - sim.player.position.y as f64,
+        visible_height as f64,
+        1e-6,
+    );
+}
+
+#[test]
 fn simulation_commits_one_native_clock_and_holds_the_endpoint_without_restarting() {
     let mut sim = configured();
     let height = enter(&mut sim);

@@ -28,7 +28,9 @@ finite, rigid and right-handed, and all 545 clock samples must be present.
 
 The simulation starts one paired clock only when the ordinary stance controller
 accepts entry into prone. A standing request still passes through crouch. The
-accepted commit owns frame 1 and freezes the actual entry eye height. The camera
+accepted commit owns frame 1 and freezes the actual visible entry eye height,
+absorbing any residual landing kick once so it cannot add another height track.
+The camera
 height replaces generic stance easing while the pair owns presentation:
 
     height = entry_height + depth_fraction * (0.2794 - entry_height)
@@ -90,7 +92,8 @@ asset.prone-pair.json and the exact bytes of asset.prone-camera.json.
   passed all-target Clippy with warnings denied and the complete
   cargo test --locked --no-default-features suite, including all 32 new prone
   integration contracts. The separate existing sampler CI also passed.
-- This revision adds one direct paired-renderer phase/draw unit test, exercised
+- This revision adds a visible-landing-kick entry contract and one direct
+  paired-renderer phase/draw unit test, exercised
   through the existing source_triangle_completeness suite. Its fresh CI result
   is pending; the earlier green result is not attributed to this newer revision.
 - The initial local Rust build stopped before game compilation because the shared

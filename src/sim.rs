@@ -1183,7 +1183,11 @@ impl Simulation {
                 {
                     // The accepted transition's committed boundary owns f1.
                     // Standing requests pass through crouch before reaching here.
-                    self.prone_entry = Some((time + dt as f64, p.eye_height));
+                    // Absorb any visible landing kick once: letting it decay
+                    // underneath this height owner would move protected f1–11.
+                    let entry_height = p.eye_height - p.landing_kick;
+                    p.landing_kick = 0.;
+                    self.prone_entry = Some((time + dt as f64, entry_height));
                 } else {
                     self.prone_entry = None;
                     self.prone_sample = None;
