@@ -64,7 +64,7 @@ actor and skeleton arguments remain required.
 Additional pins:
 
 - --pair-sidecar: immutable camera_motion_samples.json
-- --pair-sidecar-sha256: d87a195fff6e65ab78961b6ec8afaecd78e65fd22d0bff892afbb05c004abe2b
+- --pair-sidecar-sha256: 19098b693b94a5a0b2421cff9dd25f5dda949506be87bc76eb84dfe23499fbfa
 - --pair-candidate-source: private candidate BLEND path (hashed only, not opened)
 - --pair-rig-action-fingerprint: 2a860a55decb8f0fa06226f55a2ace85e9629a21b54ff827cb275b244da8d41f
 - --pair-camera-action-fingerprint: 7006eeec2a3a9c83ca6eec27290692db81554ecb219afc656f8da413aa311c82
@@ -208,3 +208,58 @@ The new main lighting code, baked assets, picker and approved Jump packaging are
 preserved. No authored pose was modified. PR65 remains separately owned; this
 draft reuse does not mark it ready or merge it. Current-base checks must run again
 for this exact branch, and the unresolved calibrated DX12 timeouts remain failures.
+
+## Byte-exact local reconstruction preparation
+
+The immutable camera sidecar has no trailing newline. Its SHA256 is
+19098b693b94a5a0b2421cff9dd25f5dda949506be87bc76eb84dfe23499fbfa, as recorded
+in the authoring SHA256SUMS. An earlier staging copy added a newline and produced
+d87a195f; the explicit export config now pins the original bytes. JSON whitespace
+must not be normalized when transporting a hash-bound sidecar.
+
+If the private r6 attachment is unavailable, tools/prepare_prone_reconstruction.py
+can prepare the published recipe from the exact existing private r5 input:
+
+    python tools/prepare_prone_reconstruction.py prepare \
+      --contract /private/pristine-entry-r6-contract \
+      --source /private/halcyon_prone_crawl_r5.blend \
+      --work /private/new-r6-reconstruction --blender blender
+
+This command never launches Blender. It verifies the immutable manifest anchor
+and every source-free file, hashes the existing r5 input without copying it,
+and creates separate immutable/execution copies outside the source tree.
+Historical generated receipts are omitted from the execution copy. The emitted
+plan lists three clean Blender 4.3.2 processes: author, fresh-reopen verification,
+and all-69-frame paired-binding/restoration test. Resource coordination is required
+before a caller launches them.
+
+Both historical Action fingerprints must be reproduced exactly. The recipe uses
+fixed timestamps and no randomness, but Blender's evaluated floating-point solve
+cannot be certified by source inspection alone. A mismatch is a reconstruction
+failure, not permission to label different motion as the same r6.
+
+After the caller records actual successful commands, times, exit codes, local log
+hashes and stage-output hashes in the emitted per-run process-results format:
+
+    python tools/prepare_prone_reconstruction.py accept \
+      --work /private/new-r6-reconstruction \
+      --process-results /private/new-r6-reconstruction/process_results.json
+
+Acceptance verifies fresh preservation/contact/geometry/545-sample checks,
+all 69 binding/restoration frames, exact historical Action and camera-motion
+identity, original input preservation, and the disclosed strict wrist failure.
+Successful process evidence is mandatory because the historical verifier writes
+its JSON files before its final assertion. Caller process receipts are explicit
+attestations, not proof against fabricated caller evidence.
+
+Only then is a separate accepted/prone_pair_r6_export.local.json emitted with
+the measured local candidate and sidecar byte hashes. The historical export
+config stays unchanged. Use this separate config for the existing export adapter;
+actual FBX round-trip, native paired presentation and artistic review still remain.
+A successful reconstruction does not fix or approve the r6 wrist defect.
+
+Preparation was exercised against the exact private r5 hash without launching
+Blender. The 26 self-contained reconstruction tests and 54 focused export/import
+tests pass (80 total). These tests use original synthetic fixtures and require
+no private source or external snapshot in CI. Actual reconstruction remains
+unexecuted until the capture resource window is released.

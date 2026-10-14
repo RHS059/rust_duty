@@ -61,6 +61,14 @@ def synthetic_inputs():
 
 
 class ExportConfigTests(unittest.TestCase):
+    def test_historical_sidecar_pin_preserves_original_no_newline_bytes(self):
+        # entry_r6/SHA256SUMS at the immutable 659fd15e contract. The JSON
+        # has no trailing newline; staging must not silently normalize bytes.
+        self.assertEqual(config()['camera_sidecar_sha256'],
+                         '19098b693b94a5a0b2421cff9dd25f5dda949506be87bc76eb84dfe23499fbfa')
+        self.assertNotEqual(config()['camera_sidecar_sha256'],
+                            'd87a195fff6e65ab78961b6ec8afaecd78e65fd22d0bff892afbb05c004abe2b')
+
     def test_explicit_r6_config_passes_without_mutation(self):
         original = config()
         saved = copy.deepcopy(original)
