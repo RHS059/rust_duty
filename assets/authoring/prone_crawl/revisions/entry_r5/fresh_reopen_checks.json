@@ -1,0 +1,29 @@
+{
+  "source_sha256": "67cf025fc31d9804cb0259432a91e496d7d8f84d1d4ac6be2b1914a6a98510ad",
+  "early_f1_to_41_all_bones_max_difference": 0.0,
+  "all_545_subframe_bone_matrices_finite": true,
+  "contact_480hz_max_m": {
+    "l": 8.285933347739454e-06,
+    "r": 6.05288029062447e-07
+  },
+  "contact_240hz_max_m": {
+    "l": 5.203738529376729e-06,
+    "r": 5.666361254999502e-07
+  },
+  "action_count": 112,
+  "no_render": true,
+  "fresh_reopen_preservation": {
+    "extra.actions_extended": true,
+    "extra.actions_metadata": true,
+    "extra.armatures": true,
+    "extra.cameras": true,
+    "extra.materials": true,
+    "extra.meshes": true,
+    "extra.objects_and_bindings": true,
+    "extra.pose_channel_defaults": true,
+    "snapshot.actions": true,
+    "snapshot.drivers": true,
+    "snapshot.nla": true,
+    "snapshot.packed_images": true
+  }
+}
