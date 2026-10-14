@@ -1,0 +1,9 @@
+__pycache__/
+candidate/
+*.blend
+*.blend1
+*.log
+baseline_inventory.json
+baseline_geometry.json
+baseline/
+publication*.json

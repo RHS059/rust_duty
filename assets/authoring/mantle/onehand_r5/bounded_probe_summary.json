@@ -1,0 +1,110 @@
+{
+  "shoulder_probe.json": {
+    "candidate_sha256": "f6d8cf85c065f703cfd7d480303568fad3ebba5246fc3068600f4804f3d703bb",
+    "samples": 40,
+    "families": [
+      {
+        "family": "keep",
+        "max_guard_delta_deg": 22.752929361274283,
+        "min_axis_margin_deg": -18.90515395427157,
+        "max_weapon_matrix_delta": 0.0
+      },
+      {
+        "family": "remove_r3",
+        "max_guard_delta_deg": 39.82922703164844,
+        "min_axis_margin_deg": -35.84627876587658,
+        "max_weapon_matrix_delta": 0.0
+      },
+      {
+        "family": "removed_plus_y-0.06_z-0.06",
+        "max_guard_delta_deg": 55.26344648026127,
+        "min_axis_margin_deg": -54.345852963045296,
+        "max_weapon_matrix_delta": 0.0
+      },
+      {
+        "family": "removed_plus_y-0.06_z+0.00",
+        "max_guard_delta_deg": 46.293464911215665,
+        "min_axis_margin_deg": -43.89174983453136,
+        "max_weapon_matrix_delta": 0.0
+      },
+      {
+        "family": "removed_plus_y-0.06_z+0.06",
+        "max_guard_delta_deg": 36.48493418757842,
+        "min_axis_margin_deg": -31.660096804710797,
+        "max_weapon_matrix_delta": 0.0
+      },
+      {
+        "family": "removed_plus_y+0.00_z-0.06",
+        "max_guard_delta_deg": 49.5906977519043,
+        "min_axis_margin_deg": -47.317724910885566,
+        "max_weapon_matrix_delta": 0.0
+      },
+      {
+        "family": "removed_plus_y+0.00_z+0.06",
+        "max_guard_delta_deg": 30.25652566457881,
+        "min_axis_margin_deg": -23.717222007578776,
+        "max_weapon_matrix_delta": 0.0
+      },
+      {
+        "family": "removed_plus_y+0.06_z-0.06",
+        "max_guard_delta_deg": 40.394070015630156,
+        "min_axis_margin_deg": -34.82821857951867,
+        "max_weapon_matrix_delta": 0.0
+      },
+      {
+        "family": "removed_plus_y+0.06_z+0.00",
+        "max_guard_delta_deg": 30.786746419657728,
+        "min_axis_margin_deg": -23.660224078955018,
+        "max_weapon_matrix_delta": 0.0
+      },
+      {
+        "family": "removed_plus_y+0.06_z+0.06",
+        "max_guard_delta_deg": 22.752929361274283,
+        "min_axis_margin_deg": -18.90515395427157,
+        "max_weapon_matrix_delta": 0.0
+      }
+    ],
+    "saved": false,
+    "rendered": false,
+    "angle_convention": "Shortest quaternion angle; q and -q are equivalent."
+  },
+  "barrel_roll_probe.json": {
+    "candidate_sha256": "f6d8cf85c065f703cfd7d480303568fad3ebba5246fc3068600f4804f3d703bb",
+    "samples": 20,
+    "families": [
+      {
+        "barrel_roll_delta_deg": -30,
+        "max_guard_delta_deg": 71.38778846998326,
+        "min_axis_margin_deg": -61.06934091784411,
+        "max_landmark_shift_px": 0.0003860202221885229
+      },
+      {
+        "barrel_roll_delta_deg": -15,
+        "max_guard_delta_deg": 44.231560574383046,
+        "min_axis_margin_deg": -32.0637268337127,
+        "max_landmark_shift_px": 0.0002516543960948279
+      },
+      {
+        "barrel_roll_delta_deg": 0,
+        "max_guard_delta_deg": 22.752965219767425,
+        "min_axis_margin_deg": -18.905171029744494,
+        "max_landmark_shift_px": 0.0003860202221885229
+      },
+      {
+        "barrel_roll_delta_deg": 15,
+        "max_guard_delta_deg": 4.548172168779539,
+        "min_axis_margin_deg": -4.548270488728601,
+        "max_landmark_shift_px": 0.0004443426446094066
+      },
+      {
+        "barrel_roll_delta_deg": 30,
+        "max_guard_delta_deg": 0.0,
+        "min_axis_margin_deg": 6.453803165648156,
+        "max_landmark_shift_px": 0.0005526968468101451
+      }
+    ],
+    "saved": false,
+    "rendered": false,
+    "angle_convention": "Shortest quaternion angle; q and -q are equivalent."
+  }
+}

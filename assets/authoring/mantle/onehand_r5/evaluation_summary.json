@@ -1,0 +1,72 @@
+{
+  "status": "diagnostic",
+  "input_sha256": "f6d8cf85c065f703cfd7d480303568fad3ebba5246fc3068600f4804f3d703bb",
+  "source_sha256": "ce9e7f5aa89f47201b7a95ab8c731a40a82e6eb854264cfe7814de458879e1df",
+  "action": "aella_mantle_onehand_r5",
+  "source_window": [
+    7787,
+    7883
+  ],
+  "fps": [
+    60,
+    1
+  ],
+  "frames": 96,
+  "prior_actions_preserved": true,
+  "structure_preserved": true,
+  "protected_pose_max_delta": 8.940696716308594e-07,
+  "protected_weapon_max_delta": 5.960464477539063e-08,
+  "all_skin_finite": true,
+  "all_bones_finite": true,
+  "all_drivers_valid": true,
+  "skin_vertex_samples": 3899154,
+  "samples": 1563,
+  "support_follow_at_65": 1.0,
+  "max_wrist_target_mm": 0.0005155760051804487,
+  "max_attached_guard_delta_deg": 0,
+  "max_right_guard_delta_deg": 0,
+  "min_free_guard_margin_deg": 6.453832767111164,
+  "max_switch_position_mm": 0.0,
+  "max_switch_rotation_deg": 0.0,
+  "switches": {
+    "44": {
+      "position_mm": 0.0,
+      "rotation_deg": 0.0
+    },
+    "48": {
+      "position_mm": 0.0,
+      "rotation_deg": 0.0
+    },
+    "58": {
+      "position_mm": 0.0,
+      "rotation_deg": 0.0
+    },
+    "65": {
+      "position_mm": 0.0,
+      "rotation_deg": 0.0
+    },
+    "85": {
+      "position_mm": 0.0,
+      "rotation_deg": 0.0
+    },
+    "88": {
+      "position_mm": 0.0,
+      "rotation_deg": 0.0
+    },
+    "89": {
+      "position_mm": 0.0,
+      "rotation_deg": 0.0
+    }
+  },
+  "reopened": true,
+  "rendered": false,
+  "visual_acceptance": null,
+  "runtime_verified": false,
+  "technical_failures": [],
+  "technical_passed": true,
+  "unit_test_count": 9,
+  "unit_tests_passed": true,
+  "prior_action_count": 88,
+  "action_count": 89,
+  "source_publication_boundary": "Original scripts, tests, design and diagnostic summary only; private source assets remain local."
+}
