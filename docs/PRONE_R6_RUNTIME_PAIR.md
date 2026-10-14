@@ -84,9 +84,9 @@ asset.prone-pair.json and the exact bytes of asset.prone-camera.json.
 
 ## Evidence at this checkpoint
 
-- 19 new source-free export-adapter tests passed, including success/error
+- 20 new source-free export-adapter tests passed, including success/error
   restoration of temporary bindings. The existing tools discovery suite passed
-  all 52 tests after this adapter revision.
+  all 53 tests after this adapter revision.
 - 21 new Python paired matrix/identity/grid/rest tests passed.
 - 12 existing importer tests passed.
 - Python compilation/CLI checks and actual immutable sidecar validation passed.

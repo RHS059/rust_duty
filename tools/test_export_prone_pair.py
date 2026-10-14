@@ -8,9 +8,11 @@ from fractions import Fraction
 import hashlib
 import json
 from pathlib import Path
+import sys
 import tempfile
 from types import SimpleNamespace
 import unittest
+from unittest import mock
 
 import export_prone_pair as exporter
 import prone_camera_pair
@@ -249,6 +251,35 @@ class ExportPathsTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as root:
             with self.assertRaises((vrpack.AssetError, FileNotFoundError)):
                 exporter.preflight_paths(Path(root)/'missing.blend', Path(root)/'output')
+
+    def test_disposable_process_flags_must_precede_the_candidate(self):
+        with tempfile.TemporaryDirectory() as root:
+            root = Path(root)
+            source = root/'candidate.blend'
+            source.write_bytes(b'original synthetic fixture')
+            args = SimpleNamespace(config=Path(__file__).with_name('prone_pair_r6_export.json'),
+                                   output_dir=root/'output')
+            fake_bpy = SimpleNamespace(app=SimpleNamespace(background=True, version_string='4.3.2'),
+                                       data=SimpleNamespace(filepath=str(source)))
+            valid = ['blender', '--background', '--factory-startup', '--disable-autoexec', str(source)]
+            invalid = [
+                [value for value in valid if value != '--factory-startup'],
+                [value for value in valid if value != '--disable-autoexec'],
+                ['blender', '--background', str(source), '--factory-startup', '--disable-autoexec'],
+                ['blender', '--background', '--factory-startup', str(source), '--disable-autoexec'],
+            ]
+            with mock.patch.dict(sys.modules, {'bpy': fake_bpy}):
+                for argv in invalid:
+                    with self.subTest(argv=argv), mock.patch.object(sys, 'argv', argv), \
+                            self.assertRaises(vrpack.AssetError):
+                        exporter.export(args)
+                # Stop immediately after process/path preflight. No real source
+                # evaluation, bpy implementation or export tool can be reached.
+                with mock.patch.object(sys, 'argv', valid), \
+                        mock.patch.object(exporter, 'file_hash', side_effect=RuntimeError('preflight passed')), \
+                        self.assertRaisesRegex(RuntimeError, 'preflight passed'):
+                    exporter.export(args)
+            self.assertFalse(args.output_dir.exists())
 
 
 class FakeObject:
