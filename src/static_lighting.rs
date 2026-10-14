@@ -57,7 +57,7 @@ impl BakeScene {
     pub fn new(meshes: &[Mesh], lamps: Vec<Vec3>) -> Self {
         let mut triangles = Vec::new();
         for mesh in meshes {
-            for ids in mesh.indices.chunks_exact(3) {
+            for ids in mesh.indices.as_chunks::<3>().0 {
                 let a = &mesh.vertices[ids[0] as usize];
                 let b = &mesh.vertices[ids[1] as usize];
                 let c = &mesh.vertices[ids[2] as usize];
@@ -257,6 +257,7 @@ impl BakeScene {
         Color::new(rgb.x, rgb.y, rgb.z, albedo.a)
     }
     pub fn bake(&self, mesh: &mut Mesh) {
+        let albedos: Vec<_> = mesh.vertices.iter().map(|v| v.color).collect();
         for v in &mut mesh.vertices {
             let c = v.color;
             v.color = self
@@ -272,6 +273,72 @@ impl BakeScene {
                 )
                 .into();
         }
+        filter_irradiance(mesh, &albedos);
+    }
+}
+// Suppress sampling/triangulation patterns on coplanar surfaces while keeping
+// material boundaries, opposing faces and hard normals completely separate.
+fn filter_irradiance(mesh: &mut Mesh, albedos: &[[u8; 4]]) {
+    const R: f32 = 0.38;
+    let cell = |p: Vec3| ((p / R).floor().as_ivec3()).to_array();
+    let mut bins: std::collections::HashMap<([i32; 3], [u8; 4]), Vec<usize>> =
+        std::collections::HashMap::new();
+    for (i, v) in mesh.vertices.iter().enumerate() {
+        bins.entry((cell(v.position), albedos[i]))
+            .or_default()
+            .push(i);
+    }
+    let source: Vec<_> = mesh.vertices.iter().map(|v| v.color).collect();
+    let mut output = source.clone();
+    for (i, v) in mesh.vertices.iter().enumerate() {
+        let n = v.normal.truncate().normalize_or_zero();
+        let c = cell(v.position);
+        let mut sum = Vec3::ZERO;
+        let mut weight = 0.;
+        for x in -1..=1 {
+            for y in -1..=1 {
+                for z in -1..=1 {
+                    if let Some(candidates) =
+                        bins.get(&([c[0] + x, c[1] + y, c[2] + z], albedos[i]))
+                    {
+                        for &j in candidates {
+                            let other = &mesh.vertices[j];
+                            let delta = other.position - v.position;
+                            let distance = delta.length_squared();
+                            if distance > R * R
+                                || delta.dot(n).abs() > 0.005
+                                || n.dot(other.normal.truncate().normalize_or_zero()) < 0.995
+                            {
+                                continue;
+                            }
+                            let w = (-distance / (R * R * 0.55)).exp();
+                            let rgb = Vec3::new(
+                                source[j][0] as f32,
+                                source[j][1] as f32,
+                                source[j][2] as f32,
+                            ) / 255.;
+                            sum += linear(rgb) * w;
+                            weight += w;
+                        }
+                    }
+                }
+            }
+        }
+        if weight > 0. {
+            let rgb = (sum / weight).to_array().map(|v| {
+                if v <= 0.0031308 {
+                    v * 12.92
+                } else {
+                    1.055 * v.powf(1. / 2.4) - 0.055
+                }
+            });
+            for k in 0..3 {
+                output[i][k] = (rgb[k] * 255.).round().clamp(0., 255.) as u8;
+            }
+        }
+    }
+    for (v, color) in mesh.vertices.iter_mut().zip(output) {
+        v.color = color;
     }
 }
 /// Split only large triangles. Detailed assets keep their original geometry.
@@ -337,7 +404,7 @@ pub fn subdivide(mesh: &Mesh, max_edge: f32) -> Vec<Mesh> {
         indices: Vec::new(),
         texture: None,
     };
-    for f in mesh.indices.chunks_exact(3) {
+    for f in mesh.indices.as_chunks::<3>().0 {
         let a = mesh.vertices[f[0] as usize];
         let b = mesh.vertices[f[1] as usize];
         let c = mesh.vertices[f[2] as usize];
@@ -375,7 +442,7 @@ pub fn write_meshes(path: &std::path::Path, meshes: &[Mesh]) -> Result<(), Strin
     let file = std::fs::File::create(path).map_err(|e| e.to_string())?;
     let mut out = flate2::write::GzEncoder::new(file, flate2::Compression::default());
     let result = (|| -> std::io::Result<()> {
-        out.write_all(b"RDCITY02")?;
+        out.write_all(b"RDCITY03")?;
         out.write_all(&(meshes.len() as u32).to_le_bytes())?;
         for mesh in meshes {
             let mut lo = Vec3::splat(f32::INFINITY);
@@ -390,15 +457,10 @@ pub fn write_meshes(path: &std::path::Path, meshes: &[Mesh]) -> Result<(), Strin
             out.write_all(&(mesh.vertices.len() as u32).to_le_bytes())?;
             out.write_all(&(mesh.indices.len() as u32).to_le_bytes())?;
             for v in &mesh.vertices {
-                for f in v
-                    .position
-                    .to_array()
-                    .into_iter()
-                    .chain(v.normal.truncate().to_array())
-                    .chain(v.color.map(|c| c as f32 / 255.))
-                {
+                for f in v.position.to_array() {
                     out.write_all(&f.to_le_bytes())?;
                 }
+                out.write_all(&v.color)?;
             }
             for i in &mesh.indices {
                 out.write_all(&i.to_le_bytes())?;
@@ -409,10 +471,47 @@ pub fn write_meshes(path: &std::path::Path, meshes: &[Mesh]) -> Result<(), Strin
     })();
     result.map_err(|e| e.to_string())
 }
+/// Share identical baked vertices and discard unreferenced source vertices.
+/// Color is part of the key so a lighting discontinuity cannot be welded away.
+pub fn compact(mesh: &mut Mesh) {
+    let mut unique = std::collections::HashMap::new();
+    let mut vertices = Vec::new();
+    for index in &mut mesh.indices {
+        let v = mesh.vertices[*index as usize];
+        let key = (
+            v.position.to_array().map(f32::to_bits),
+            v.normal.to_array().map(f32::to_bits),
+            v.color,
+        );
+        *index = *unique.entry(key).or_insert_with(|| {
+            let id = vertices.len() as u16;
+            vertices.push(v);
+            id
+        });
+    }
+    mesh.vertices = vertices;
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::scene_lighting::SceneLighting;
+    #[test]
+    fn compact_bake_round_trips_without_relighting() {
+        let mesh =
+            SceneLighting::range().cube_mesh(Vec3::ZERO, Vec3::ONE, Color::new(0.6, 0.4, 0.2, 1.));
+        let path =
+            std::env::temp_dir().join(format!("rd-lighting-roundtrip-{}.bin", std::process::id()));
+        write_meshes(&path, std::slice::from_ref(&mesh)).unwrap();
+        let bytes = std::fs::read(&path).unwrap();
+        std::fs::remove_file(path).unwrap();
+        let decoded = crate::city_level::decode_meshes(&bytes).unwrap();
+        for (a, b) in mesh.vertices.iter().zip(&decoded[0].mesh.vertices) {
+            assert_eq!(a.position, b.position);
+            assert_eq!(a.color, b.color);
+        }
+        assert_eq!(mesh.indices, decoded[0].mesh.indices);
+    }
     #[test]
     fn roof_blocks_sun_and_sky() {
         let roof = SceneLighting::range().cube_mesh(
@@ -441,7 +540,7 @@ mod tests {
         let area: f32 = meshes
             .iter()
             .flat_map(|m| {
-                m.indices.chunks_exact(3).map(|f| {
+                m.indices.as_chunks::<3>().0.iter().map(|f| {
                     let a = m.vertices[f[0] as usize].position;
                     let b = m.vertices[f[1] as usize].position;
                     let c = m.vertices[f[2] as usize].position;
@@ -451,25 +550,4 @@ mod tests {
             .sum();
         assert!((area - 8.).abs() < 1e-5);
     }
-}
-
-/// Share identical baked vertices and discard unreferenced source vertices.
-/// Color is part of the key so a lighting discontinuity cannot be welded away.
-pub fn compact(mesh: &mut Mesh) {
-    let mut unique = std::collections::HashMap::new();
-    let mut vertices = Vec::new();
-    for index in &mut mesh.indices {
-        let v = mesh.vertices[*index as usize];
-        let key = (
-            v.position.to_array().map(f32::to_bits),
-            v.normal.to_array().map(f32::to_bits),
-            v.color,
-        );
-        *index = *unique.entry(key).or_insert_with(|| {
-            let id = vertices.len() as u16;
-            vertices.push(v);
-            id
-        });
-    }
-    mesh.vertices = vertices;
 }

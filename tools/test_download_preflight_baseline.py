@@ -151,7 +151,7 @@ class PreflightBaselineTests(unittest.TestCase):
 
     def test_workflow_keeps_fixed_download_before_existing_verification(self):
         workflow = (Path(__file__).resolve().parents[1] / '.github/workflows/build.yml').read_text()
-        step = workflow.split('      - name: Prepare real Windows 0.1.9 to 0.1.11 update preflight\n')[1]
+        step = workflow.split('      - name: Prepare real Windows 0.1.9 to 0.1.12 update preflight\n')[1]
         step = step.split('      - name:', 1)[0]
         self.assertIn('          GH_TOKEN: ${{ github.token }}', step)
         self.assertIn('          mkdir -p preflight/baseline\n'
@@ -161,7 +161,7 @@ class PreflightBaselineTests(unittest.TestCase):
                       '--target x86_64-pc-windows-msvc', step)
         self.assertIn('--previous preflight/baseline/rust-duty-0.1.9-x86_64-pc-windows-msvc.rdb '
                       '--previous-version 0.1.9', step)
-        self.assertIn('--assets-dir preflight/candidate --version 0.1.11 --target x86_64-pc-windows-msvc', step)
+        self.assertIn('--assets-dir preflight/candidate --version 0.1.12 --target x86_64-pc-windows-msvc', step)
 
 
 if __name__ == '__main__':
