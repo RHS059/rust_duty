@@ -302,6 +302,11 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
     } else {
         None
     };
+    sim.set_prone_camera_track(
+        authored
+            .as_ref()
+            .and_then(|model| model.prone_camera_track()),
+    );
     let model_missing = authored_path.is_none()
         && matches!(
             &model_source,
@@ -1199,6 +1204,14 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
             }
         }
         notice_timer = (notice_timer - dt).max(0.);
+        if authored
+            .as_ref()
+            .is_some_and(|model| model.error().is_some())
+            && sim.prone_sample().is_some()
+        {
+            // A renderer failure must never leave the camera half of a pair active.
+            sim.set_prone_camera_track(None);
+        }
         clear_background(if city.is_some() {
             Color::new(0.64, 0.77, 0.87, 1.)
         } else {
@@ -1210,7 +1223,11 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
             screen_width() / screen_height()
         };
         let eye = sim.player.eye();
-        let forward = sim.player.direction();
+        let (forward, camera_up) = vector_range::authored_prone::camera_axes(
+            sim.player.direction(),
+            sim.player.camera_up(cfg.action.lean_roll),
+            sim.prone_sample(),
+        );
         let fov = cfg.fov
             + (cfg.ads_fov - cfg.fov)
                 * vector_range::reference_motion::visual_world_ads(sim.player.ads);
@@ -1218,7 +1235,7 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
             position: eye,
             target: eye + forward,
             // Lean rolls the world camera; the viewmodel stays fixed to the view.
-            up: sim.player.camera_up(cfg.action.lean_roll),
+            up: camera_up,
             fovy: h_fov_to_v(fov, aspect),
             aspect: Some(aspect),
             z_near: 0.035,

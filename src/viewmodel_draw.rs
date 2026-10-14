@@ -134,7 +134,13 @@ pub(crate) fn weapon(
     if let Some(authored) = authored {
         authored.set_cant(cant);
         // One rigid root for arms and weapon: sway/action layers keep grips attached.
-        let root = vector_range::weapon_sway::compose(view_offset, layers);
+        let root = if sim.prone_sample().is_some() {
+            // The paired entry is already authored in camera space. Procedural
+            // sway/action offsets would change its protected source poses.
+            Mat4::from_translation(view_offset)
+        } else {
+            vector_range::weapon_sway::compose(view_offset, layers)
+        };
         authored.draw(sim.time, lighting, root);
         composite_viewmodel(rt);
         return;
