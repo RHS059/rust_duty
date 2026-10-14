@@ -1,0 +1,42 @@
+{
+ "revision": "r8",
+ "source": "537d2ced951a18411f6d4aa727df2708ccf94821b0d1b175b463401ef51a35f2",
+ "zip": "41304efdf2edc879bc23381abbcd4f02a130a6c22375d30fe154eeb6cdbfc828",
+ "mp4": "af5e501b11581595283ab33bcde2d3c67e3172d44e9b92685b3fd824cc346713",
+ "elara_reproduced_centroids": {
+  "40": [
+   6.8,
+   700.4
+  ],
+  "41": [
+   137.0,
+   596.1
+  ],
+  "42": [
+   212.5,
+   597.4
+  ],
+  "43": [
+   286.7,
+   588.9
+  ],
+  "44": [
+   331.6,
+   601.5
+  ]
+ },
+ "steps_px": {
+  "40->41": 167.97,
+  "41->42": 75.76,
+  "42->43": 74.66,
+  "43->44": 46.51
+ },
+ "r8_vs_r7_mean_abs_diff": {
+  "f37-40 cand": "0.34-0.44",
+  "f41 leftROI": 13.01,
+  "f42 leftROI": 6.2,
+  "f43-44 leftROI": "0.39-0.51",
+  "right side all frames": "0.43-0.59"
+ },
+ "method": "max abs RGB diff vs f39 >=16 in x<420, largest component; same as packet"
+}
