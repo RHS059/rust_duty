@@ -41,7 +41,7 @@ jobs:
           git add assets/levels/*/lighting-cache.json assets/levels/*/lighting.bin assets/levels/*/lighting.json assets/levels/*/lighting_review
           if ! git diff --cached --quiet; then
             git commit -m "Bake sun, sky and interior lighting for both levels"
-            git pull --rebase origin main
+            git pull --rebase --autostash origin main
             git push origin HEAD:main
           fi
       - uses: actions/upload-artifact@v4
@@ -121,5 +121,5 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add assets/levels/review
           git commit -m "Record actual DX12 lighting and level picker captures" || true
-          git pull --rebase origin main
+          git pull --rebase --autostash origin main
           git push origin HEAD:main
