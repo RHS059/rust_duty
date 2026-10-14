@@ -88,3 +88,5 @@ pub mod pause_menu;
 
 pub mod range_geometry;
 pub mod static_lighting;
+
+pub mod lighting_mesh;

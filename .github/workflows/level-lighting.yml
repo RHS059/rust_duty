@@ -4,6 +4,8 @@ on:
   push:
     branches: [main]
     paths:
+      - src/lighting_mesh.rs
+      - tools/ensure_level_lighting.py
       - src/static_lighting.rs
       - src/range_geometry.rs
       - src/level_menu.rs
@@ -25,7 +27,7 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           cache-on-failure: true
-      - run: cargo test --locked --no-default-features --lib static_lighting
+      - run: cargo test --locked --no-default-features --lib lighting
       - run: python tools/ensure_level_lighting.py
       - uses: actions/setup-python@v5
         with:

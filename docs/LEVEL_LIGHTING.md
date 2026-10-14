@@ -25,3 +25,5 @@ The bake is diffuse-only and static: it does not add moving actor shadows, specu
 - [Epic: CPU Lightmass](https://dev.epicgames.com/documentation/en-us/unreal-engine/cpu-lightmass-global-illumination-in-unreal-engine): area shadows, color bleeding, sky occlusion, character lighting and lightmap resolution.
 - [Epic: Lumen](https://dev.epicgames.com/documentation/en-us/unreal-engine/lumen-global-illumination-and-reflections-in-unreal-engine): dynamic GI and reflections, including sky shadowing for interiors.
 - [Epic: filmic tone mapping](https://dev.epicgames.com/documentation/en-us/unreal-engine/color-grading-and-the-filmic-tonemapper-in-unreal-engine): exposure and highlight response.
+
+Baked meshes collapse redundant coplanar subdivision edges without moving vertices. The accumulated interpolation error is bounded to 2/255 at the original lighting samples. Explicit software-adapter captures drain each submitted frame to bound upload memory; hardware gameplay remains asynchronous.
