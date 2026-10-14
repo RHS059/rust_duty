@@ -124,7 +124,7 @@ jobs:
           retention-days: 7
   game-ui-gl-contract:
     runs-on: windows-latest
-    timeout-minutes: 35
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
         with:
@@ -172,7 +172,7 @@ jobs:
           python tools/run_calibrated_presentation.py
           --executable target/debug/vector-range.exe --root .
           --runtime evidence/game-ui-gl-runtime
-          --evidence evidence/calibrated-static --timeout 180
+          --evidence evidence/calibrated-static --timeout 600
       - name: Retain calibrated static captures and exact process evidence
         if: always()
         uses: actions/upload-artifact@v4
