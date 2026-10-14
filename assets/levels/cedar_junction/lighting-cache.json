@@ -1,0 +1,15 @@
+{
+  "schema": "rust-duty-lighting-cache/v1",
+  "inputs": {
+    "src/static_lighting.rs": "4ceaef61c372f33341e387711c2f519d90f0f53ea1ad16b519a618e2ccbb4d94",
+    "src/range_geometry.rs": "3a667e3103134fcae8cd006206ede10199104eeef4035e146286520c133d6abd",
+    "src/sim.rs": "7e9b135dd0b52c734c762fcb440eeceb2a65c904b96b27ed1a405b474ef049d8",
+    "examples/bake_level_lighting.rs": "594f6b3ce8d16847f0d44e7d529b223f2981bde1149a7b36a2e5276d65439ddb",
+    "src/scene_lighting.rs": "21b2b1025a000e1c8abbb890e2bfb37a3b7e2228db145537bad5c250c2090272",
+    "src/city_level.rs": "7612a02e134430e43a808a1c9406cd91f343eb4ed4c06a0eb5597e879d5dac81",
+    "src/draw/mod.rs": "5f5aa0d67e6997957780430269efea89b6c9c5c0afda33432903f8ea47de36f9",
+    "assets/levels/cedar_junction/level.json": "e6bf2b57b346bd0154ccbd4ae9b06ae01ab86dba563705fbd8e9ff5c7e02e568",
+    "assets/levels/cedar_junction/meshes.bin": "7f64d0c429e6e41577e555c514bcae08a33b1de62f9741ff848d45bec2717967"
+  },
+  "output_sha256": "5da0a11ea172f03228f0ddf757a13bd1c029f5d3d25b396f75b83b90c7084911"
+}

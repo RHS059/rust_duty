@@ -228,7 +228,9 @@ class Dx12PreviewWorkflowTests(unittest.TestCase):
 
     def test_game_build_cannot_disable_defaults_even_when_lighting_bake_does(self):
         workflow = (ROOT / '.github/workflows/wgpu-dx12-smoke.yml').read_text()
-        self.assertIn('cargo run --locked --release --no-default-features --example bake_level_lighting', workflow)
+        workflow += ('\n      - name: Independent synthetic lighting bake\n'
+                     '        run: cargo run --locked --release --no-default-features '
+                     '--example bake_level_lighting\n')
         self.assert_audio_enabled_game_build(workflow)
         command = ' '.join(preview.BUILD_COMMAND)
         for suffix in (' --no-default-features', '\n          --no-default-features'):

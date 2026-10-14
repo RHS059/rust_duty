@@ -14,7 +14,9 @@ Epic's Lightmass documentation describes precomputed area shadows, sky occlusion
 - Static geometry is lit once and stored in `assets/levels/<level>/lighting.bin`; it is never lit a second time by the loader. The compact RDCITY03 stream stores positions and RGBA8 lighting; runtime-unused normals are omitted without reducing color precision. The unlit source geometry is retained separately.
 - Held weapons sample sun/sky occlusion from world collision at the player's position. This conservative dynamic approximation does not use the static triangle bake.
 
-Build with `cargo run --release --no-default-features --example bake_level_lighting`. Append `range` or `cedar_junction` to rebuild one level. Rebuild after changing geometry, sun, fixture placement or lighting parameters. Packaging includes both baked files; normal CI rebuilds them from its exact source revision. The dedicated lighting workflow commits the bake and CPU review images and captures both levels and the picker under Windows DX12 WARP.
+Normal CI uses `python tools/ensure_level_lighting.py` to verify input/output hashes and reuse an unchanged committed bake. Geometry or lighting-code changes invalidate that cache.
+
+Force a fresh bake with `cargo run --release --no-default-features --example bake_level_lighting`. Append `range` or `cedar_junction` to rebuild one level. Rebuild after changing geometry, sun, fixture placement or lighting parameters. Packaging includes both baked files; normal CI rebuilds them from its exact source revision. The dedicated lighting workflow commits the bake and CPU review images and captures both levels and the picker under Windows DX12 WARP.
 
 The bake is diffuse-only and static: it does not add moving actor shadows, specular reflections, real-time GI, dynamic light changes or automatic exposure. Fine shadow detail is limited by vertex sampling. CPU geometry reviews are labeled separately from actual DX12 captures.
 

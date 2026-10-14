@@ -35,7 +35,7 @@ jobs:
         run: python tools/validate_city.py --source city-source --output assets/levels/cedar_junction/review/validation.json
       - uses: dtolnay/rust-toolchain@stable
       - name: Rebuild lighting against regenerated geometry
-        run: cargo run --locked --release --no-default-features --example bake_level_lighting cedar_junction
+        run: python tools/ensure_level_lighting.py
       - name: Render exact runtime geometry for review
         run: python tools/render_city.py
       - name: Commit generated level and evidence
