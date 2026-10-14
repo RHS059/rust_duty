@@ -90,7 +90,9 @@ jobs:
       - name: Fetch immutable animation packs for the lighting build
         env:
           GITHUB_TOKEN: ${{ github.token }}
-        run: python tools/fetch_source_bound_companions.py --lock tools/source_bound_companion_reuse_lock.json --output evidence/original-inputs
+        run: |
+          python tools/fetch_source_bound_companions.py --lock tools/source_bound_companion_reuse_lock.json --output evidence/original-inputs
+          python tools/fetch_lighting_jump.py
       - name: Stage complete Windows game with baked levels
         shell: pwsh
         run: |
