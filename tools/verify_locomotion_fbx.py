@@ -101,6 +101,10 @@ def main():
             'source_fbx_sha256':meta['fbx_sha256'],'maxima':maxima,'declared_position_limit_m':args.position_limit_m,
             'visibility_failures':sum(not r['visibility_matches'] for r in records),'records':records,
             'scope':'Exact immutable source witness times, including off-key and switch neighborhoods. No visual, missing-gap or whole-clip approval.'}
+    # Carry an export-time authored Action derivation without misidentifying the
+    # immutable BLEND or the actual FBX bytes used by the converter.
+    if 'source_action_patch' in meta:
+        report['source_action_patch'] = meta['source_action_patch']
     args.report.write_text(json.dumps(report,indent=2)+'\n')
     print(json.dumps({k:v for k,v in report.items() if k!='records'},indent=2))
     if failures:raise SystemExit(1)

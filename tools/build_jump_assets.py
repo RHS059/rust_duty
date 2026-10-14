@@ -11,6 +11,7 @@ import sys
 import vrview
 from vrpack import require
 from merge_walk_clip import clip_offset, merge
+from jump_landing_patch import PATCH_PROVENANCE
 
 CLIPS = [('jump_takeoff', False, 12), ('jump_air', False, 24), ('jump_land', False, 29)]
 
@@ -47,6 +48,9 @@ def main():
     run([args.blender, '--background', '--factory-startup', '--disable-autoexec', source / 'halcyon_jump.blend',
          '--python-exit-code', '1', '--python', root / 'tools/export_jump_fbx.py', '--',
          '--config', root / 'assets/authoring/jump/export_config.json', '--output-dir', exported])
+    oracle = json.loads((exported / 'native_oracle.json').read_text())
+    require(oracle.get('source_action_patch') == PATCH_PROVENANCE,
+            'missing exact approved r8 Action derivation')
     base = root / 'assets/walk/asset.vra'; original = base.read_bytes(); data = original
     vrs = base.with_suffix('.vrs').read_bytes(); vrm = base.with_suffix('.vrm').read_bytes()
     fbx_digest = digest(exported / 'jump.fbx'); source_digest = digest(source / 'halcyon_jump.blend')
@@ -76,6 +80,8 @@ def main():
              '--clip', take['name'], '--canonical-companions', '--sampler', args.sampler.resolve(), '--report', parity])
         report = json.loads(parity.read_text())
         require(report['passed'] and report['backend'] == 'Rust CPU sampler', 'jump Rust parity failed')
+        require(report.get('source_action_patch') == PATCH_PROVENANCE,
+                'jump Rust parity lacks exact approved r8 Action derivation')
         reports[take['name']] = {key: report[key] for key in ['samples', 'maxima', 'visibility_failures']}
     seam_report = work / 'runtime-seams.json'
     run([sys.executable, root / 'tools/verify_jump_seams.py', merged / 'asset.vra',
@@ -90,12 +96,12 @@ def main():
     (output / 'asset.vrs.gz').write_bytes(gzip.compress(vrs, mtime=0))
     (output / 'asset.vra.gz').write_bytes(gzip.compress(data, mtime=0))
     pack = vrview.decode_vra(data, vrs=vrs, vrm=vrm)
-    manifest = {'schema': 'rust-duty-authored-jump-distribution/v1', 'clip_count': 47,
+    manifest = {'schema': 'rust-duty-authored-jump-distribution/v2', 'clip_count': 47,
         'clip_names': [c['name'] for c in pack['clips']],
         'jump_clips': [{'name': c['name'], 'loop': c['loop'], 'duration': (c['frame_end']-1)/60,
                        'action': c['action'], 'frame_start': c['frame_start'], 'frame_end': c['frame_end']} for c in takes],
         'source': {'file': 'assets/authoring/jump/halcyon_jump.blend', **source_digest, 'fps': 60,
-                   'bake_hz': 480, 'fbx': fbx_digest},
+                   'bake_hz': 480, 'fbx': fbx_digest, 'action_patch': oracle['source_action_patch']},
         'files': {f'asset.{ext}': digest(output / f'asset.{ext}') for ext in ('vra', 'vrs', 'vrm')},
         'preservation': {'original_walk_vra_sha256': digest(base)['sha256'], 'clip_payloads_byte_identical': 44,
                          'canonical_skin_byte_identical': True, 'canonical_rigid_byte_identical': True},
@@ -104,7 +110,7 @@ def main():
             **digest(output / (name + '.gz')), 'decoded_bytes': len(raw),
             'decoded_sha256': hashlib.sha256(raw).hexdigest()}
             for name, raw in [('asset.vra', data), ('asset.vrs', vrs)]},
-        'scope': 'New source-authored jump takeoff/air/landing; source Actions and canonical walk44 retained. Numerical parity is not artistic approval.'}
+        'scope': 'Original r7 takeoff/air and exact approved r8 landing Action; source Actions and canonical walk44 retained. Full Action digest binds the reviewed correction; numerical parity is not a new artistic review.'}
     (output / 'manifest.json').write_text(json.dumps(manifest, indent=2) + '\n')
     print(json.dumps(manifest, indent=2))
 
