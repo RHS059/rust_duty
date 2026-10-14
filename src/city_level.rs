@@ -12,7 +12,7 @@ use serde_json::Value;
 use std::path::{Path, PathBuf};
 
 pub const CITY_FAR_PLANE: f32 = 400.;
-const MAX_FILE_BYTES: usize = 256 * 1024 * 1024;
+const MAX_FILE_BYTES: usize = 768 * 1024 * 1024;
 const MAX_CHUNKS: usize = 16_384;
 const MAX_VERTICES: usize = 60_000;
 
@@ -142,7 +142,13 @@ impl CityLevel {
             {
                 return Err("spawn overlaps solid collision".into());
             }
-            let meshes = read_limited(&path.with_file_name(mesh_name), MAX_FILE_BYTES)?;
+            let baked = path.with_file_name("lighting.bin");
+            let mesh_path = if baked.exists() {
+                baked
+            } else {
+                path.with_file_name(mesh_name)
+            };
+            let meshes = read_limited(&mesh_path, MAX_FILE_BYTES)?;
             let chunks = decode_meshes(&meshes)?;
             Ok(Self {
                 name,
@@ -240,6 +246,12 @@ impl<'a> Reader<'a> {
 }
 
 pub fn decode_meshes(bytes: &[u8]) -> Result<Vec<CityChunk>, String> {
+    decode_meshes_mode(bytes, false)
+}
+pub fn decode_meshes_unlit(bytes: &[u8]) -> Result<Vec<CityChunk>, String> {
+    decode_meshes_mode(bytes, true)
+}
+fn decode_meshes_mode(bytes: &[u8], unlit: bool) -> Result<Vec<CityChunk>, String> {
     if bytes.len() > MAX_FILE_BYTES {
         return Err("city mesh file is too large".into());
     }
@@ -263,7 +275,9 @@ pub fn decode_meshes(bytes: &[u8]) -> Result<Vec<CityChunk>, String> {
         bytes
     };
     let mut reader = Reader { bytes, offset: 0 };
-    if reader.take::<8>()? != *b"RDCITY01" {
+    let magic = reader.take::<8>()?;
+    let baked = magic == *b"RDCITY02";
+    if !baked && magic != *b"RDCITY01" {
         return Err("invalid city mesh magic".into());
     }
     let count = reader.u32()?;
@@ -310,7 +324,11 @@ pub fn decode_meshes(bytes: &[u8]) -> Result<Vec<CityChunk>, String> {
             let mut vertex = Vertex::new2(
                 position,
                 Vec2::ZERO,
-                lighting.shade(Color::new(rgba[0], rgba[1], rgba[2], rgba[3]), normal),
+                if baked || unlit {
+                    Color::new(rgba[0], rgba[1], rgba[2], rgba[3])
+                } else {
+                    lighting.shade(Color::new(rgba[0], rgba[1], rgba[2], rgba[3]), normal)
+                },
             );
             vertex.normal = normal.extend(0.);
             vertices.push(vertex);
@@ -370,6 +388,16 @@ mod tests {
         sim::{Input, FIXED_DT},
     };
 
+    #[test]
+    fn prelit_format_is_not_lit_twice() {
+        let mut bytes = triangle();
+        bytes[..8].copy_from_slice(b"RDCITY02");
+        let chunks = decode_meshes(&bytes).unwrap();
+        assert_eq!(
+            chunks[0].mesh.vertices[0].color,
+            Into::<[u8; 4]>::into(Color::new(0.8, 0.5, 0.2, 1.))
+        );
+    }
     fn triangle() -> Vec<u8> {
         let mut bytes = b"RDCITY01".to_vec();
         bytes.extend(1_u32.to_le_bytes());

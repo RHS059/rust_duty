@@ -39,6 +39,7 @@ NOTICES = ("LICENSE", "THIRD_PARTY_LICENSES.txt",
 # builds and managed update bundles. User-selected external themes are not copied.
 RUNTIME_FILES = (
     "assets/levels/cedar_junction/level.json", "assets/levels/cedar_junction/meshes.bin",
+    "assets/levels/cedar_junction/lighting.bin", "assets/levels/range/lighting.bin",
     "docs/CEDAR_JUNCTION.md",
     "ui/theme.css", "docs/UI_THEME.md",
     "ui/examples/high-contrast.css", "ui/examples/large-type.css",

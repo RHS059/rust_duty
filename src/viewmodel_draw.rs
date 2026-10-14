@@ -100,7 +100,7 @@ pub(crate) fn weapon(
     barrel_flash: bool,
     layers: &[LayerOffset],
 ) {
-    let lighting = SceneLighting::range().in_view(sim.player.direction());
+    let lighting = SceneLighting::at(sim.player.eye(), &sim.blocks).in_view(sim.player.direction());
     set_camera(&Camera3D {
         position: Vec3::ZERO,
         target: vec3(0., 0., -1.),

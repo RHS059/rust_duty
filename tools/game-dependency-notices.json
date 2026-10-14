@@ -7,7 +7,7 @@
     ]
   },
   "cargo_lock_hash_policy": "CRLF converted to LF; no other changes",
-  "cargo_lock_sha256": "b2cdee8e961c5be4d5d7a49204c59718702f12c0fbc1ea17a5435998ebbb17f1",
+  "cargo_lock_sha256": "36766838cbc61e7e05044ac5dc81955aa5180f5c14d4958c0128662f9380cc4d",
   "notice_bytes": 2429607,
   "notice_sha256": "f14caa8bf7f5047df6c147c9b695fbd30c8cebf8903006bcf3a79149264a2e19",
   "packages": [
@@ -7794,7 +7794,7 @@
   ],
   "root_package": {
     "name": "vector-range",
-    "version": "0.1.11"
+    "version": "0.1.12"
   },
   "schema": "rust-duty-game-dependency-notices/v1",
   "supplement_manifest_sha256": "587ac53700c9c115becfa40e678e425629b47085aed00a636dca5367b7aecfc2",

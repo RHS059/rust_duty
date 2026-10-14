@@ -142,7 +142,7 @@ class GameUiFixtureTests(unittest.TestCase):
         self.write(fixture.REPORT, {
             'schema_version': 2, 'status': 'passed', 'native_execution': True, 'requested': 'dx12',
             'backend': 'Dx12', 'adapter': fixture.WARP, 'force_fallback_adapter': True, 'platform': 'windows',
-            'build_version': '0.1.11', 'build_number': '37339601251', 'live_logical_viewport': [960, 540],
+            'build_version': fixture.build_identity.package_version(), 'build_number': '37339601251', 'live_logical_viewport': [960, 540],
             'scales_percent': [100, 200], 'cases': list(fixture.CASES), 'captures': captures,
             'elements_covered': fixture.ELEMENTS_COVERED,
             'compiler_identity_source': fixture.COMPILER_SOURCE, 'scope': fixture.SCOPE,
@@ -355,7 +355,7 @@ class GameUiFixtureTests(unittest.TestCase):
             self.edit(fixture.REPORT, build_version=version)
             with self.subTest(version=version):
                 self.rejects('build identity')
-        self.edit(fixture.REPORT, build_version='0.1.11', build_number='1.1')
+        self.edit(fixture.REPORT, build_version=fixture.build_identity.package_version(), build_number='1.1')
         env = {'GITHUB_ACTIONS': 'true', 'GITHUB_REPOSITORY': 'RHS059/rust_duty', 'GITHUB_RUN_NUMBER': '7',
                'GITHUB_RUN_ID': '37339601251', 'GITHUB_RUN_ATTEMPT': '2', 'GITHUB_SHA': 'a' * 40,
                'GITHUB_REF_NAME': 'aella/wgpu-renderer-port'}

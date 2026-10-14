@@ -55,6 +55,8 @@ jobs:
         run: python tools/package_game.py materialize --root . --include-walk --include-ads --include-directional --include-jump --require-generated
       - name: Build one audio-enabled dual-runtime game for smoke and preview
         run: cargo build --locked --release --features wgpu-runtime --bin vector-range
+      - name: Bake level lighting for the packaged DX12 preview
+        run: cargo run --locked --release --no-default-features --example bake_level_lighting
       - name: Capture actual DX12 WARP gameplay and validate all evidence
         run: >-
           python tools/run_dx12_smoke.py
