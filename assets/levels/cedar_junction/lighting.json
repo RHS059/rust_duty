@@ -1,0 +1,21 @@
+{
+  "chunks": 753,
+  "diffuse_bounces": 1,
+  "hemisphere_samples": 32,
+  "interior_lights": 107,
+  "limitations": [
+    "Static geometry and lights only",
+    "No dynamic actor shadows or specular reflections"
+  ],
+  "method": "triangle-raytraced vertex irradiance",
+  "schema": "rust-duty-static-lighting/v1",
+  "sun_direction": [
+    -0.45,
+    0.78,
+    0.43
+  ],
+  "sun_samples": 8,
+  "target_triangle_edge_m": 0.65,
+  "tone_map": "ACES fitted curve, sRGB output",
+  "vertices": 7509210
+}
