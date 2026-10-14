@@ -115,7 +115,7 @@ jobs:
           LIBGL_ALWAYS_SOFTWARE: '1'
         run: |
           mkdir -p evidence/jump-gameplay
-          timeout 420s xvfb-run -a -s "-screen 0 1920x1080x24" ./vector-range --no-update --reference-viewport --capture-sequence=gameplay-jump --capture-hz=60 --output=evidence/jump-gameplay
+          timeout 420s xvfb-run -a -s "-screen 0 1920x1080x24" ./vector-range --renderer=gl --no-update --reference-viewport --capture-sequence=gameplay-jump --capture-hz=60 --output=evidence/jump-gameplay
           python tools/verify_jump_capture.py evidence/jump-gameplay
       - name: Archive this attempt - Retain native common Jump WIP evidence
         if: runner.os == 'Linux' && always()
@@ -141,7 +141,7 @@ jobs:
           LIBGL_ALWAYS_SOFTWARE: '1'
         run: |
           mkdir -p evidence/reload-gameplay
-          timeout 300s xvfb-run -a -s "-screen 0 1920x1080x24" ./vector-range --no-update --reference-viewport --capture-sequence=gameplay-reload --output=evidence/reload-gameplay
+          timeout 300s xvfb-run -a -s "-screen 0 1920x1080x24" ./vector-range --renderer=gl --no-update --reference-viewport --capture-sequence=gameplay-reload --output=evidence/reload-gameplay
           python tools/verify_gameplay_capture.py evidence/reload-gameplay
       - name: Archive this attempt - Upload native gameplay frames and simulation evidence
         if: runner.os == 'Linux' && always()
@@ -167,7 +167,7 @@ jobs:
           LIBGL_ALWAYS_SOFTWARE: '1'
         run: |
           mkdir -p evidence/walk-gameplay
-          timeout 300s xvfb-run -a -s "-screen 0 1920x1080x24" ./vector-range --no-update --reference-viewport --capture-sequence=gameplay-walk --output=evidence/walk-gameplay
+          timeout 300s xvfb-run -a -s "-screen 0 1920x1080x24" ./vector-range --renderer=gl --no-update --reference-viewport --capture-sequence=gameplay-walk --output=evidence/walk-gameplay
           python tools/verify_gameplay_walk_capture.py evidence/walk-gameplay
       - name: Archive this attempt - Upload native authored walk frames and movement evidence
         if: runner.os == 'Linux' && always()
@@ -193,7 +193,7 @@ jobs:
           LIBGL_ALWAYS_SOFTWARE: '1'
         run: |
           mkdir -p evidence/ads-gameplay
-          timeout 660s xvfb-run -a -s "-screen 0 1920x1080x24" ./vector-range --no-update --reference-viewport --capture-sequence=gameplay-ads --output=evidence/ads-gameplay
+          timeout 660s xvfb-run -a -s "-screen 0 1920x1080x24" ./vector-range --renderer=gl --no-update --reference-viewport --capture-sequence=gameplay-ads --output=evidence/ads-gameplay
           python tools/verify_gameplay_ads_capture.py evidence/ads-gameplay
       - name: Archive this attempt - Upload native authored ADS frames and interruption evidence
         if: runner.os == 'Linux' && always()
@@ -220,7 +220,7 @@ jobs:
         run: |
           mkdir -p evidence/ads-offset
           python -c "from pathlib import Path; Path('evidence/ads-offset.cfg').write_text(Path('settings.cfg').read_text() + '\nviewmodel_x = 0.20\nviewmodel_y = -0.20\nviewmodel_z = 0.20\n')"
-          timeout 660s xvfb-run -a -s "-screen 0 1920x1080x24" ./vector-range --no-update --reference-viewport --capture-sequence=gameplay-ads --settings=evidence/ads-offset.cfg --output=evidence/ads-offset
+          timeout 660s xvfb-run -a -s "-screen 0 1920x1080x24" ./vector-range --renderer=gl --no-update --reference-viewport --capture-sequence=gameplay-ads --settings=evidence/ads-offset.cfg --output=evidence/ads-offset
           python tools/verify_ads_placement_capture.py evidence/ads-gameplay evidence/ads-offset > evidence/ads-offset-verification.json
       - name: Archive this attempt - Upload native ADS placement comparison
         if: runner.os == 'Linux' && always()
@@ -253,7 +253,7 @@ jobs:
         run: |
           for hz in 30 60; do
             mkdir -p evidence/layered-$hz
-            timeout 300s xvfb-run -a -s "-screen 0 1920x1080x24" ./vector-range --no-update --reference-viewport --capture-sequence=gameplay-layered --capture-hz=$hz --output=evidence/layered-$hz
+            timeout 300s xvfb-run -a -s "-screen 0 1920x1080x24" ./vector-range --renderer=gl --no-update --reference-viewport --capture-sequence=gameplay-layered --capture-hz=$hz --output=evidence/layered-$hz
           done
           python tools/verify_layered_locomotion_capture.py evidence/layered-30 evidence/layered-60 > evidence/layered-rate-verification.json
       - name: Archive this attempt - Upload native layered input and sampling-rate evidence
@@ -286,7 +286,7 @@ jobs:
           LIBGL_ALWAYS_SOFTWARE: '1'
         run: |
           mkdir -p evidence/reload-return
-          timeout 420s xvfb-run -a -s "-screen 0 1920x1080x24" ./vector-range --no-update --reference-viewport --capture-sequence=gameplay-return --capture-hz=60 --output=evidence/reload-return
+          timeout 420s xvfb-run -a -s "-screen 0 1920x1080x24" ./vector-range --renderer=gl --no-update --reference-viewport --capture-sequence=gameplay-return --capture-hz=60 --output=evidence/reload-return
           python tools/verify_reload_return_capture.py evidence/reload-return
       - name: Archive this attempt - Upload native reload return evidence
         if: runner.os == 'Linux' && always()
@@ -310,7 +310,7 @@ jobs:
         shell: bash
         env:
           LIBGL_ALWAYS_SOFTWARE: '1'
-        run: xvfb-run -a -s "-screen 0 1920x1080x24" python tools/verify_lighting_capture.py evidence/lighting --binary ./vector-range
+        run: xvfb-run -a -s "-screen 0 1920x1080x24" python tools/verify_lighting_capture.py evidence/lighting --binary ./vector-range --renderer gl
       - name: Archive this attempt - Upload directional native lighting evidence
         if: runner.os == 'Linux' && always()
         id: archive_attempt_10
