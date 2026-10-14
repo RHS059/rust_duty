@@ -101,6 +101,16 @@ asset.prone-pair.json and the exact bytes of asset.prone-camera.json.
   existing source-conversion, GL/DX12 UI, renderer and same-platform return
   checks. A Windows dependency-notice provenance failure belongs to the separate
   release repair; it does not establish paired-prone native presentation.
+- At 0f4bedbbff5e808b86bd71be048570cca6495255, the updated-base
+  [runtime contracts CI](https://github.com/RHS059/rust_duty/actions/runs/38530583133/job/115741240520)
+  passed all-target no-default-feature Clippy and all 917 Rust tests, with zero
+  failures and two existing ignored. All 33 prone contracts passed again.
+- At 966c22cec58d819a50085e6a3db2300ed0b69dd5, the generic
+  [actual DX12 WARP gameplay capture](https://github.com/RHS059/rust_duty/actions/runs/38531454092/job/115746216645)
+  passed; subsequent notice verification failed on inherited stale inventory.
+  That run also exposed newer-main formatting/iterator failures. Calibrated
+  OpenGL HIP/ADS captures passed, while both DX12 calibrated captures timed out.
+  These results do not validate the opt-in prone pair or waive the DX12 failures.
 - The source-only paired-export adapter below is a later revision. Its source-free
   checks do not constitute an actual Blender/FBX export result.
 - The initial local Rust build stopped before game compilation because the shared
@@ -111,9 +121,9 @@ asset.prone-pair.json and the exact bytes of asset.prone-camera.json.
 
 The existing Cargo/Python suites remain the test route; no new CI workflow is
 introduced. Source changes started from main 601b7fc416d7feaf677b002354f7130b0f8a8c8f.
-The branch now incorporates main 8bafc77276d025a97c39e2a09b456cec76dd948a,
+The branch now incorporates main 5b1d6d400f14ddaa60f27c4766cb3b3078424973,
 preserving approved Jump r8, the city picker and new level/weapon lighting.
-Earlier green Rust evidence does not certify this updated-base revision.
+The refreshed-base revision requires fresh CI; earlier green evidence remains source-specific.
 
 A separate semantics-preserving city test initializer fix is included solely to
 unblock the existing all-target Clippy suite. Its first failure was in unchanged
@@ -180,12 +190,21 @@ outstanding authoring work.
 
 ## Draft-only inherited build repairs
 
-To test this branch against the current main, it reuses the minimal original Rust
-repairs from PR65 at 918d3b316bc9f6eab1cb76c54b8c626fba2934e5: the copied app
-test-block removal, equivalent private frame-trace capture tuple with exact JSON
-regression, collapsed range condition, and lighting iterator/test-module ordering
-fixes. The existing city Settings initializer is identical in both drafts.
-Their owning source blobs were verified unchanged on main before reuse. No
-lighting behavior or authored pose was modified. PR65 remains separately owned;
-this draft reuse does not mark it ready, merge it, or include its packaging
-fixtures. Current-base Rust checks must run again for this exact branch.
+To test this branch against the current main, it reuses coordinated original
+build repairs from PR65 at 4d2e37d035f9aeef2fe4ee9fe4d1bf9eb4e50d15:
+
+- Copied app test-block removal and equivalent private frame-trace capture tuple
+  with an exact JSON regression.
+- Equivalent range/lighting iterator and test-module ordering fixes, plus
+  rustfmt-only capture/frame/world-draw changes.
+- The identical city Settings initializer.
+- The unchanged license collector's refreshed Cargo.lock provenance inventory.
+- Preview default-feature assertions scoped to the actual game-build step, with
+  two negative probes; mandatory lighting files in packaging test fixtures and
+  the preview inventory.
+
+The current source blobs and complete main tree were checked before draft reuse.
+The new main lighting code, baked assets, picker and approved Jump packaging are
+preserved. No authored pose was modified. PR65 remains separately owned; this
+draft reuse does not mark it ready or merge it. Current-base checks must run again
+for this exact branch, and the unresolved calibrated DX12 timeouts remain failures.

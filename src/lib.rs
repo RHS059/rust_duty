@@ -52,6 +52,7 @@ pub mod authored_locomotion_adapter;
 
 pub mod animation_manifest;
 pub mod authored_pose_return;
+pub mod authored_prone;
 pub mod authored_reload;
 
 pub mod authored_walk;
@@ -65,7 +66,6 @@ pub mod layered_locomotion;
 pub mod muzzle_fx;
 
 pub mod authored_jump;
-pub mod authored_prone;
 
 pub mod input_frame;
 pub mod platform;
@@ -89,3 +89,5 @@ pub mod pause_menu;
 
 pub mod range_geometry;
 pub mod static_lighting;
+
+pub mod lighting_mesh;

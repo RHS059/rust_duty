@@ -211,6 +211,22 @@ impl WgpuRenderer {
             );
         }
         self.gpu.queue.submit([encoder.finish()]);
+        // Software capture must not retain several city-sized upload arenas at
+        // once. Drain each submitted frame; normal gameplay stays asynchronous.
+        let args: Vec<_> = std::env::args().collect();
+        if args.iter().any(|a| a == "--force-fallback-adapter")
+            && args.iter().any(|a| a.starts_with("--capture"))
+        {
+            drop(plan);
+            drop(geometry);
+            self.gpu
+                .device
+                .poll(wgpu::PollType::Wait {
+                    submission_index: None,
+                    timeout: Some(std::time::Duration::from_secs(120)),
+                })
+                .map_err(|e| format!("software capture frame completion: {e}"))?;
+        }
         Ok((readbacks, presentation, receipt))
     }
     fn output(&mut self, target: Option<&RenderTarget>) -> Result<Arc<GpuTexture>, String> {

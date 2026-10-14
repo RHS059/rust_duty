@@ -4,6 +4,8 @@ on:
   push:
     branches: [main]
     paths:
+      - src/lighting_mesh.rs
+      - tools/ensure_level_lighting.py
       - src/static_lighting.rs
       - src/range_geometry.rs
       - src/level_menu.rs
@@ -25,7 +27,7 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           cache-on-failure: true
-      - run: cargo test --locked --no-default-features --lib static_lighting
+      - run: cargo test --locked --no-default-features --lib lighting
       - run: python tools/ensure_level_lighting.py
       - uses: actions/setup-python@v5
         with:
@@ -39,7 +41,7 @@ jobs:
           git add assets/levels/*/lighting-cache.json assets/levels/*/lighting.bin assets/levels/*/lighting.json assets/levels/*/lighting_review
           if ! git diff --cached --quiet; then
             git commit -m "Bake sun, sky and interior lighting for both levels"
-            git pull --rebase origin main
+            git pull --rebase --autostash origin main
             git push origin HEAD:main
           fi
       - uses: actions/upload-artifact@v4
@@ -88,7 +90,9 @@ jobs:
       - name: Fetch immutable animation packs for the lighting build
         env:
           GITHUB_TOKEN: ${{ github.token }}
-        run: python tools/fetch_source_bound_companions.py --lock tools/source_bound_companion_reuse_lock.json --output evidence/original-inputs
+        run: |
+          python tools/fetch_source_bound_companions.py --lock tools/source_bound_companion_reuse_lock.json --output evidence/original-inputs
+          python tools/fetch_lighting_jump.py
       - name: Stage complete Windows game with baked levels
         shell: pwsh
         run: |
@@ -117,5 +121,5 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add assets/levels/review
           git commit -m "Record actual DX12 lighting and level picker captures" || true
-          git pull --rebase origin main
+          git pull --rebase --autostash origin main
           git push origin HEAD:main

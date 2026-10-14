@@ -9,5 +9,9 @@
     "src/city_level.rs": "7612a02e134430e43a808a1c9406cd91f343eb4ed4c06a0eb5597e879d5dac81",
     "src/draw/mod.rs": "5f5aa0d67e6997957780430269efea89b6c9c5c0afda33432903f8ea47de36f9"
   },
-  "output_sha256": "79e18a5b95d32228aaa45d46864a5966e60e85c6a6f23c60dd0b0ddf47f34a85"
+  "optimization": {
+    "src/lighting_mesh.rs": "155813ff0bcf15addc7a2ea692bded5d681fcd0534f5191ee8158c87477623a8",
+    "examples/compact_level_lighting.rs": "be3674c238bd057ac2c9683891febf234ba71f9d26b0e77b98c7b08de46d78b0"
+  },
+  "output_sha256": "07552c746c230eba1b74cf6f3b88c861816a339abf87138c1f9853a64da04e96"
 }
