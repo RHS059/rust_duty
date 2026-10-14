@@ -1,8 +1,9 @@
 //! In-game HUD on the FIELD design system (RHS059/game_pd_ui, Operator theme):
-//! title-safe clusters on feathered scrim shades, a haloed reticle, and FIELD type tokens.
+//! title-safe clusters on hard-edged scrim panels, a haloed reticle, and FIELD type
+//! sizes on a 4 px grid.
 use crate::action::ActionPhase;
 use crate::draw::facade::*;
-use crate::field_ui::{self as field, size, type_px};
+use crate::field_ui::{self as field};
 use crate::platform::runtime::{get_fps, screen_height, screen_width};
 use crate::ui_theme::{self, UiClass, UiScope, UiStyle};
 use crate::{
@@ -77,7 +78,7 @@ fn centered_plated(text: &str, cx: f32, baseline: f32, px: f32, color: Color, s:
 fn draw_notice(notice: &str, screen_width: f32, screen_height: f32) {
     let s = field::scale(screen_height);
     let (inset_x, _) = field::safe_inset(screen_width, screen_height);
-    let px = type_px(size::LABEL, s);
+    let px = fpx(20., s);
     let baseline = screen_height * 0.42;
     let plate = plated(notice, inset_x, baseline, px, field::TEXT, s);
     // Category rule on the leading edge (FIELD `.h-notes`: objective tone).
@@ -147,7 +148,7 @@ pub fn action_hud(sim: &Simulation, w: f32, h: f32) {
             ),
             inset_x,
             h - inset_y - 200. * s,
-            type_px(size::SMALL, s),
+            fpx(16., s),
             field::WARNING,
         );
     }
@@ -157,21 +158,14 @@ pub fn action_hud(sim: &Simulation, w: f32, h: f32) {
         _ => None,
     };
     if let Some(hint) = hint {
-        centered_plated(
-            hint,
-            w * 0.5,
-            h * 0.62,
-            type_px(size::LABEL, s),
-            field::TEXT,
-            s,
-        );
+        centered_plated(hint, w * 0.5, h * 0.62, fpx(20., s), field::TEXT, s);
     }
     if p.obstruction.fire_blocked {
         centered_plated(
             "WEAPON BLOCKED",
             w * 0.5,
             h * 0.5 + 160. * s,
-            type_px(size::LABEL, s),
+            fpx(20., s),
             field::WARNING,
             s,
         );
@@ -194,7 +188,7 @@ pub fn action_hud(sim: &Simulation, w: f32, h: f32) {
             &format!("DOWN  {:.1}", (sim.time - since).max(0.)),
             w * 0.5,
             h * 0.5 - 160. * s,
-            type_px(size::H1, s),
+            fpx(40., s),
             field::TEXT,
             s,
         );
@@ -203,7 +197,19 @@ pub fn action_hud(sim: &Simulation, w: f32, h: f32) {
 /// FIELD showcase type size: a reference-px token at this screen scale, with the
 /// legibility floor. (The showcase sizes its HUD at 1:1 reference px.)
 fn fpx(token: f32, s: f32) -> f32 {
-    (token * s).max(field::MIN_TEXT_PX)
+    grid(token * s).max(field::MIN_TEXT_PX)
+}
+/// Snap a physical length to the 4 px grid; a non-zero length is at least 4 px.
+fn grid(v: f32) -> f32 {
+    if v <= 0. {
+        0.
+    } else {
+        ((v / 4.).round() * 4.).max(4.)
+    }
+}
+/// Spacing token in reference px (a multiple of 4) at this scale, on the 4 px grid.
+fn g(token: f32, s: f32) -> f32 {
+    grid(token * s)
 }
 /// HUD shape colour under the HUD scope's theme opacity.
 fn shade_of(color: Color) -> Color {
@@ -233,7 +239,7 @@ fn chevron(cx: f32, top: f32, width: f32, height: f32, color: Color, s: f32) {
 /// Keyboard glyph (FIELD `.glyph`): key text in a 2 ref-px box of its colour.
 fn key_glyph(key: &str, cx: f32, top: f32, px: f32, color: Color, s: f32) -> f32 {
     let dims = label_style(color).measure(key, px);
-    let pad = 5. * s;
+    let pad = g(4., s);
     let bw = (dims.width + 2. * pad).max(px * 1.4);
     let bh = dims.height + 2. * pad;
     let x = cx - bw * 0.5;
@@ -286,7 +292,7 @@ pub fn hud(
     draw_minimap(sim, inset_x, inset_y, s);
     draw_compass(sim, w, inset_y, s);
     draw_score(sim, w, inset_x, inset_y, s);
-    draw_feed(sim, w, inset_x, inset_y + 76. * s, s);
+    draw_feed(sim, w, inset_x, inset_y + g(56., s), s);
 
     // Centre: reticle (§7.1) and hit feedback (§7.2), showcase geometry.
     let (x, y) = (w * 0.5, h * 0.5);
@@ -344,7 +350,7 @@ pub fn hud(
         "[Esc] Pause   [F1] Telemetry   [F2] Reset",
         w * 0.5,
         h - inset_y,
-        fpx(20., s),
+        fpx(16., s),
         MUTED,
         s,
     );
@@ -352,10 +358,10 @@ pub fn hud(
         draw_notice(notice, w, h);
     }
     if debug {
-        let px = fpx(20., s);
-        let row = px * 1.25;
+        let px = fpx(16., s);
+        let row = grid(px * 1.25);
         // Below the minimap.
-        let top = inset_y + 290. * s;
+        let top = inset_y + g(272., s);
         let rows = [
             format!("SIM 120 Hz   RENDER {} fps", get_fps()),
             format!(
@@ -389,7 +395,7 @@ pub fn hud(
             .iter()
             .map(|r| label_style(MUTED).measure(r, px).width)
             .fold(0., f32::max);
-        let gap = 8. * s;
+        let gap = g(8., s);
         field::cluster_shade(
             Rect::new(
                 inset_x - gap,
@@ -433,7 +439,7 @@ fn draw_markers(sim: &Simulation, cfg: &Settings, w: f32, h: f32, s: f32) {
     }
     let eye = p.eye();
     let view_projection = world_view_projection(sim, cfg, w, h);
-    let px = fpx(26., s);
+    let px = fpx(20., s);
     let color = Color::new(field::ENEMY.r, field::ENEMY.g, field::ENEMY.b, alpha);
     for (_, t) in live_targets(sim) {
         let anchor = vec3(
@@ -460,7 +466,7 @@ fn draw_markers(sim: &Simulation, cfg: &Settings, w: f32, h: f32, s: f32) {
         let text = format!("{:.0} m", (anchor - eye).length());
         let dims = label_style(color).measure(&text, px);
         let baseline = (sy - dims.height + dims.offset_y).round();
-        let (pad_x, pad_y) = (8. * s, 4. * s);
+        let (pad_x, pad_y) = (g(8., s), g(4., s));
         let plate = Rect::new(
             (sx - dims.width * 0.5).round() - pad_x,
             baseline - dims.offset_y - pad_y,
@@ -481,18 +487,18 @@ fn draw_markers(sim: &Simulation, cfg: &Settings, w: f32, h: f32, s: f32) {
             )),
         );
         label(&text, (sx - dims.width * 0.5).round(), baseline, px, color);
-        chevron(sx, plate.y - 26. * s, 24. * s, 20. * s, color, s);
+        chevron(sx, plate.y - g(28., s), 24. * s, 20. * s, color, s);
     }
 }
 
 /// Minimap (§7.7): player-up, 250 ref-px square, live targets as enemy chevrons.
 fn draw_minimap(sim: &Simulation, x: f32, y: f32, s: f32) {
-    let size = 250. * s;
+    let size = g(240., s);
     let p = &sim.player;
     field::cluster_shade(Rect::new(x, y, size, size), s);
     let grid = shade_of(Color::new(field::TEXT.r, field::TEXT.g, field::TEXT.b, 0.1));
     for i in 1..5 {
-        let o = i as f32 * 50. * s;
+        let o = i as f32 * size / 5.;
         draw_rectangle(x + o, y, 1., size, grid);
         draw_rectangle(x, y + o, size, 1., grid);
     }
@@ -509,7 +515,7 @@ fn draw_minimap(sim: &Simulation, x: f32, y: f32, s: f32) {
     let right = vec2(-forward.y, forward.x);
     // 2.5 ref px per metre: the map edge is 50 m out.
     let per_metre = 2.5 * s;
-    let pad = 12. * s;
+    let pad = g(12., s);
     for (_, t) in live_targets(sim) {
         let c = t.bounds.center();
         let d = vec2(c.x - p.position.x, c.z - p.position.z);
@@ -532,13 +538,18 @@ fn draw_minimap(sim: &Simulation, x: f32, y: f32, s: f32) {
 fn draw_compass(sim: &Simulation, w: f32, top: f32, s: f32) {
     let width = 720. * s;
     let left = w * 0.5 - width * 0.5;
-    let line_y = top + 30. * s;
-    let px = fpx(26., s);
+    let line_y = top + g(24., s);
+    let px = fpx(20., s);
     let heading = heading_degrees(sim.player.yaw);
     let per_degree = width / 180.;
     let offset = |bearing: f32| (bearing - heading + 540.).rem_euclid(360.) - 180.;
     field::cluster_shade(
-        Rect::new(left - 24. * s, top - 26. * s, width + 48. * s, 76. * s),
+        Rect::new(
+            left - g(24., s),
+            top - g(20., s),
+            width + g(48., s),
+            g(72., s),
+        ),
         s,
     );
     draw_rectangle(
@@ -562,16 +573,16 @@ fn draw_compass(sim: &Simulation, w: f32, top: f32, s: f32) {
             label(
                 text,
                 (cx - dims.width * 0.5).round(),
-                (line_y - 4. * s - dims.height + dims.offset_y).round(),
+                (line_y - g(4., s) - dims.height + dims.offset_y).round(),
                 px,
                 field::TEXT,
             );
         } else {
             draw_rectangle(
                 cx - s,
-                line_y - 10. * s,
+                line_y - g(8., s),
                 (2. * s).max(1.),
-                10. * s,
+                g(8., s),
                 shade_of(field::TEXT2),
             );
         }
@@ -581,7 +592,7 @@ fn draw_compass(sim: &Simulation, w: f32, top: f32, s: f32) {
         if d.abs() <= 88. {
             chevron(
                 w * 0.5 + d * per_degree,
-                top - 22. * s,
+                top - g(16., s),
                 16. * s,
                 14. * s,
                 field::ENEMY,
@@ -594,17 +605,17 @@ fn draw_compass(sim: &Simulation, w: f32, top: f32, s: f32) {
     let value = format!("{:03.0}°", heading.round() % 360.);
     let d1 = label_style(MUTED).measure(dir, px);
     let d2 = label_style(field::TEXT).measure(&value, px);
-    let gap = 8. * s;
+    let gap = g(8., s);
     let x = w * 0.5 - (d1.width + gap + d2.width) * 0.5;
-    let base = (line_y + 10. * s + d1.offset_y.max(d2.offset_y)).round();
+    let base = (line_y + g(8., s) + d1.offset_y.max(d2.offset_y)).round();
     label(dir, x, base, px, MUTED);
     label(&value, x + d1.width + gap, base, px, field::TEXT);
 }
 
 /// Score (top right): targets down in the friendly tone, session clock, accuracy.
 fn draw_score(sim: &Simulation, w: f32, inset_x: f32, top: f32, s: f32) {
-    let big = fpx(40., s);
-    let small = fpx(28., s);
+    let big = fpx(28., s);
+    let small = fpx(20., s);
     let acc = if sim.stats.shots > 0 {
         sim.stats.hits as f32 / sim.stats.shots as f32 * 100.
     } else {
@@ -620,7 +631,7 @@ fn draw_score(sim: &Simulation, w: f32, inset_x: f32, top: f32, s: f32) {
         ),
         (format!("{acc:.0}%"), big, field::TEXT2),
     ];
-    let gap = 16. * s;
+    let gap = g(16., s);
     let dims: Vec<_> = parts
         .iter()
         .map(|(t, px, c)| label_style(*c).measure(t, *px))
@@ -634,10 +645,10 @@ fn draw_score(sim: &Simulation, w: f32, inset_x: f32, top: f32, s: f32) {
     let mut x = w - inset_x - width;
     field::cluster_shade(
         Rect::new(
-            x - 16. * s,
-            top - 10. * s,
-            width + 32. * s,
-            ascent + descent + 20. * s,
+            x - g(16., s),
+            top - g(8., s),
+            width + g(32., s),
+            ascent + descent + g(16., s),
         ),
         s,
     );
@@ -650,8 +661,8 @@ fn draw_score(sim: &Simulation, w: f32, inset_x: f32, top: f32, s: f32) {
 
 /// Kill feed (§7.8): recent kills, newest first, while the target is down.
 fn draw_feed(sim: &Simulation, w: f32, inset_x: f32, top: f32, s: f32) {
-    let px = fpx(26., s);
-    let (pad_x, pad_y, row_gap) = (12. * s, 5. * s, 6. * s);
+    let px = fpx(20., s);
+    let (pad_x, pad_y, row_gap) = (g(12., s), g(4., s), g(8., s));
     let mut y = top;
     let mut down: Vec<_> = sim
         .targets
@@ -673,8 +684,8 @@ fn draw_feed(sim: &Simulation, w: f32, inset_x: f32, top: f32, s: f32) {
         let victim = format!("TARGET {}", i + 1);
         let d1 = label_style(you).measure("YOU", px);
         let d2 = label_style(enemy).measure(&victim, px);
-        let arrow = 22. * s;
-        let gap = 8. * s;
+        let arrow = g(24., s);
+        let gap = g(8., s);
         let inner = d1.width + gap + arrow + gap + d2.width;
         let ascent = d1.offset_y.max(d2.offset_y);
         let row_h = ascent + (d1.height - d1.offset_y).max(d2.height - d2.offset_y) + 2. * pad_y;
@@ -744,11 +755,11 @@ fn draw_bottom_clusters(sim: &Simulation, cfg: &Settings, w: f32, h: f32, weapon
     let s = field::scale(h);
     let (inset_x, _) = field::safe_inset(w, h);
     let p = &sim.player;
-    let bottom = h - 64. * s;
-    let lbl_px = fpx(26., s);
+    let bottom = h - g(64., s);
+    let lbl_px = fpx(20., s);
     // Bottom right: ability slots, magazine, reserve, status and weapon (§7.5).
     {
-        let mag_px = fpx(96., s);
+        let mag_px = fpx(64., s);
         let mag = format!("{}", p.ammo);
         let reserve = format!("/ {}", p.reserve);
         let (mag_color, status) = if p.ammo == 0 {
@@ -773,19 +784,19 @@ fn draw_bottom_clusters(sim: &Simulation, cfg: &Settings, w: f32, h: f32, weapon
         let dr = label_style(MUTED).measure(&reserve, lbl_px);
         let dw = label_style(MUTED).measure(weapon_label, lbl_px);
         let ds = line.map(|(t, c)| label_style(c).measure(t, lbl_px));
-        let row = |d: &TextDimensions| d.height.max(lbl_px * 0.75) + 4. * s;
+        let row = |d: &TextDimensions| grid(d.height.max(lbl_px * 0.75)) + g(4., s);
         // Stack bottom-up: weapon, status, reserve, magazine, slots.
         let wpn_top = bottom - row(&dw);
         let status_top = ds.as_ref().map_or(wpn_top, |d| wpn_top - row(d));
         let res_top = status_top - row(&dr);
-        let mag_top = res_top - dm.height - 4. * s;
+        let mag_top = res_top - grid(dm.height) - g(4., s);
         let tac = (p.tac_charge / cfg.action.tac_sprint_duration.max(1e-3)).clamp(0., 1.);
         let slots = [
             ("MOUNT", "V", p.mount.is_some(), 1.),
             ("TAC", "2x", p.tac_sprint.is_some() || tac >= 1., tac),
         ];
-        let slot_px = fpx(20., s);
-        let pad = 5. * s;
+        let slot_px = fpx(16., s);
+        let pad = g(4., s);
         // 84 ref px, grown to fit its text where the legibility floor applies.
         let slot = slots
             .iter()
@@ -796,9 +807,9 @@ fn draw_bottom_clusters(sim: &Simulation, cfg: &Settings, w: f32, h: f32, weapon
                     .max(dn.height + dk.height + 8. * pad)
                     .max(dk.width + 6. * pad)
             })
-            .fold(84. * s, f32::max);
-        let slot_gap = 10. * s;
-        let slots_top = mag_top - 12. * s - slot;
+            .fold(g(84., s), f32::max);
+        let slot_gap = g(8., s);
+        let slots_top = mag_top - g(12., s) - slot;
         let width = [
             dm.width,
             dr.width,
@@ -810,10 +821,10 @@ fn draw_bottom_clusters(sim: &Simulation, cfg: &Settings, w: f32, h: f32, weapon
         .fold(0., f32::max);
         field::cluster_shade(
             Rect::new(
-                right - width - 16. * s,
-                slots_top - 10. * s,
-                width + 32. * s,
-                bottom - slots_top + 20. * s,
+                right - width - g(16., s),
+                slots_top - g(8., s),
+                width + g(32., s),
+                bottom - slots_top + g(16., s),
             ),
             s,
         );
@@ -857,7 +868,7 @@ fn draw_bottom_clusters(sim: &Simulation, cfg: &Settings, w: f32, h: f32, weapon
             draw_rectangle_lines(sx, slots_top, slot, slot, bw.max(1.), shade_of(border));
             let dn = label_style(MUTED).measure(name, slot_px);
             let glyph_h = label_style(field::TEXT).measure(key, slot_px).height + 2. * pad;
-            let block = dn.height + 4. * s + glyph_h;
+            let block = dn.height + g(4., s) + glyph_h;
             let t0 = slots_top + (slot - block) * 0.5;
             label(
                 name,
@@ -869,7 +880,7 @@ fn draw_bottom_clusters(sim: &Simulation, cfg: &Settings, w: f32, h: f32, weapon
             key_glyph(
                 key,
                 sx + slot * 0.5,
-                t0 + dn.height + 4. * s,
+                t0 + dn.height + g(4., s),
                 slot_px,
                 field::TEXT,
                 s,
@@ -913,7 +924,7 @@ fn draw_bottom_clusters(sim: &Simulation, cfg: &Settings, w: f32, h: f32, weapon
             None
         };
         if let Some(progress) = progress {
-            let bar_y = res_top - 3. * s;
+            let bar_y = res_top - g(4., s);
             let bar_w = width.max(dm.width);
             hud_rectangle(right - bar_w, bar_y, bar_w, (4. * s).max(1.), field::TRACK);
             hud_rectangle(
@@ -956,8 +967,8 @@ fn draw_bottom_clusters(sim: &Simulation, cfg: &Settings, w: f32, h: f32, weapon
             "STANDING"
         };
         let x = inset_x;
-        let seg_w = 78. * s;
-        let gap = 5. * s;
+        let seg_w = g(76., s);
+        let gap = g(4., s);
         let width = seg_w * 4. + gap * 3.;
         let hp = p.health.clamp(0., 100.);
         let hp_color = if hp <= 25. {
@@ -971,21 +982,21 @@ fn draw_bottom_clusters(sim: &Simulation, cfg: &Settings, w: f32, h: f32, weapon
         let speed = format!("{} · {:.1} m/s", stance, p.speed());
         let dh = label_style(MUTED).measure(&health, lbl_px);
         let dsp = label_style(MUTED).measure(&speed, lbl_px);
-        let bar_h = 12. * s;
+        let bar_h = g(12., s);
         let hp_bar = bottom - bar_h;
         let hp_top = hp_bar - gap - dh.height;
-        let st_bar = hp_top - 8. * s - 8. * s;
+        let st_bar = hp_top - g(8., s) - g(8., s);
         let sp_top = st_bar - gap - dsp.height;
-        let critical_px = fpx(28., s);
+        let critical_px = fpx(20., s);
         let dc = label_style(field::CRITICAL).measure("CRITICAL", critical_px);
         // Reserve room for HEALTH and CRITICAL side by side, so they never overlap.
         let full = width.max(dh.width + 2. * gap + dc.width).max(dsp.width);
         field::cluster_shade(
             Rect::new(
-                x - 16. * s,
-                sp_top - 10. * s,
-                full + 32. * s,
-                bottom - sp_top + 20. * s,
+                x - g(16., s),
+                sp_top - g(8., s),
+                full + g(32., s),
+                bottom - sp_top + g(16., s),
             ),
             s,
         );
@@ -997,7 +1008,7 @@ fn draw_bottom_clusters(sim: &Simulation, cfg: &Settings, w: f32, h: f32, weapon
             field::ACCENT
         };
         field::segmented_bar(
-            Rect::new(x, st_bar, width * 0.75, 8. * s),
+            Rect::new(x, st_bar, width * 0.75, g(8., s)),
             3,
             stamina,
             fill,
@@ -1128,6 +1139,40 @@ mod tests {
     }
 
     #[test]
+    fn hud_text_sizes_sit_on_the_4px_grid_at_every_resolution() {
+        let _reset = ThemeReset;
+        ui_theme::set_theme(ui_theme::UiTheme::default());
+        for (w, h) in [
+            (1280, 720),
+            (1440, 900),
+            (1920, 1080),
+            (2560, 1440),
+            (3840, 2160),
+        ] {
+            let s = field::scale(h as f32);
+            for token in [16., 20., 28., 40., 64.] {
+                let px = fpx(token, s);
+                assert!(
+                    px >= field::MIN_TEXT_PX && px % 4. == 0.,
+                    "{token} at {h}p is {px}px"
+                );
+            }
+            for token in [4., 8., 12., 16., 24., 64.] {
+                assert_eq!(g(token, s) % 4., 0., "spacing {token} at {h}p");
+            }
+            let mut sim = Simulation::new();
+            sim.player.health = 20.;
+            begin_frame(w, h, 1.).unwrap();
+            draw_bottom_clusters(&sim, &Settings::default(), w as f32, h as f32, "HK416");
+            for command in take_draw_list().unwrap().commands {
+                if let crate::draw::Command::Text { text, size, .. } = command {
+                    assert!(size % 4. == 0., "{text:?} at {w}x{h} is {size}px");
+                }
+            }
+        }
+    }
+
+    #[test]
     fn persistent_telemetry_indicator_stays_inside_tiny_viewports() {
         use crate::draw::Command;
         let _reset = ThemeReset;
@@ -1205,7 +1250,7 @@ mod tests {
             Command::Rect {rect, color} if *color == field::SCRIM_86 && rect.x < 96. && rect.y < 1080. * 0.42)));
         assert!(list.commands.iter().any(|command| matches!(command,
             Command::Text {baseline, size, ..} if *baseline == vec2(96., (1080_f32 * 0.42).round())
-                && *size == type_px(size::LABEL, 1.))));
+                && *size == fpx(20., 1.))));
     }
     #[test]
     fn themed_notice_panel_contains_actual_cpu_glyph_quads_at_accepted_sizes() {
