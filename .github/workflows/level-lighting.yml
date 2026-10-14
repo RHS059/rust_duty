@@ -13,7 +13,7 @@ permissions:
   contents: write
 concurrency:
   group: level-lighting
-  cancel-in-progress: false
+  cancel-in-progress: true
 jobs:
   bake:
     runs-on: ubuntu-latest
