@@ -1,0 +1,632 @@
+{
+  "repository": "RHS059/low_poly_items",
+  "commit": "3a87b1f2611c56fcfbfc7b39adaf914ab5359446",
+  "coordinate_system": "Y up; meters; glTF coordinates preserved",
+  "assets": [
+    {
+      "id": "b01_backless_boardwalk_bench",
+      "path": "exports/b01_backless_boardwalk_bench.glb",
+      "sha256": "6e718c890a69bbdde7e9b56818bdda2024d75b17c7a57c70fa6ff6ef8d1265a6"
+    },
+    {
+      "id": "b01_cast_iron_park_bench",
+      "path": "exports/b01_cast_iron_park_bench.glb",
+      "sha256": "db3e67661f4b426367b974e6f4c788fb726495601fa1a783c0feadac79f3e1b6"
+    },
+    {
+      "id": "b01_classic_aframe_picnic_table",
+      "path": "exports/b01_classic_aframe_picnic_table.glb",
+      "sha256": "8ad515a7669ad1fbc97fef38062e1f4c44b562da527bce26b76f70f28159a95b"
+    },
+    {
+      "id": "b01_glass_flat_roof_bus_shelter",
+      "path": "exports/b01_glass_flat_roof_bus_shelter.glb",
+      "sha256": "16a6400c0e849e86ca0e4ab8570f4f7cfbbee4006e5a89425041703d209cf95b"
+    },
+    {
+      "id": "b01_memorial_wood_bench",
+      "path": "exports/b01_memorial_wood_bench.glb",
+      "sha256": "39efc3047beb31bb9cda18bfe8f50aaa817bd8f8b4fe910a8bf1d16c52d28324"
+    },
+    {
+      "id": "b01_stone_spout_fountain",
+      "path": "exports/b01_stone_spout_fountain.glb",
+      "sha256": "4fb17038d7576da346491d2ed0f2ee0d1d8220b8cbe3bf6a9a3c33027c16f229"
+    },
+    {
+      "id": "b02_bus_stop_sign",
+      "path": "exports/b02_bus_stop_sign.glb",
+      "sha256": "87801c0b5359711c79e8f63337bb1b3fbf4d4fb528e8e42d098f4548ae13ba45"
+    },
+    {
+      "id": "b02_concrete_jersey_barrier",
+      "path": "exports/b02_concrete_jersey_barrier.glb",
+      "sha256": "2142aaaee5bc03af148bc66487d848ef2923ba750219827e5a5888846ef25147"
+    },
+    {
+      "id": "b02_parking_pay_station",
+      "path": "exports/b02_parking_pay_station.glb",
+      "sha256": "2084e9862b53f1c5c348512128b6f8c6ebb90c14e8c7b4b6b78d370bfc86eb7d"
+    },
+    {
+      "id": "b02_public_parking_sign",
+      "path": "exports/b02_public_parking_sign.glb",
+      "sha256": "6bc822b646bb5f092e7a32a0f3eca108089795a3510ac5278460f58ef8b02829"
+    },
+    {
+      "id": "b02_single_parking_meter",
+      "path": "exports/b02_single_parking_meter.glb",
+      "sha256": "9d3d35cd333ffb0824174e9c2e9608444b5155e9575a4b25f3b9891ab6846558"
+    },
+    {
+      "id": "b02_stop_sign",
+      "path": "exports/b02_stop_sign.glb",
+      "sha256": "f8ffa34e5e5259d45d3a3d65aa958ecdd11e66776011503888a590ca0642ba42"
+    },
+    {
+      "id": "b02_street_name_pair",
+      "path": "exports/b02_street_name_pair.glb",
+      "sha256": "149933f553e7748ae30dacfac451cf341f1ef7b78336af6baf7a06b86d3448b7"
+    },
+    {
+      "id": "b03_classic_muscle_coupe",
+      "path": "exports/b03_classic_muscle_coupe.glb",
+      "sha256": "38e78284fe5a837cf1f414c0b8a6913fec348faeb487bf55bbb2f74552ebd637"
+    },
+    {
+      "id": "b03_compact_station_wagon",
+      "path": "exports/b03_compact_station_wagon.glb",
+      "sha256": "6b85f46493a57653ce44020e808efaa076092ed153af68d46671c1ddda04ec1e"
+    },
+    {
+      "id": "b03_family_minivan",
+      "path": "exports/b03_family_minivan.glb",
+      "sha256": "26fa9c9ebb205a74dd4cbd6c5a762df52032cc7f6090e5e73faf0d856df265a1"
+    },
+    {
+      "id": "b03_midsize_sedan",
+      "path": "exports/b03_midsize_sedan.glb",
+      "sha256": "5e5eba4c6dfe46077bc425c393af4c9b631ab4da3467c16e71b6433b4b3ff232"
+    },
+    {
+      "id": "b03_regular_cab_work_pickup",
+      "path": "exports/b03_regular_cab_work_pickup.glb",
+      "sha256": "58b0a5040419a733ea4d096c3f62c09f119f6456f19a9d5596262a4166148f56"
+    },
+    {
+      "id": "b03_three_door_city_hatchback",
+      "path": "exports/b03_three_door_city_hatchback.glb",
+      "sha256": "4e4fbe65581d205e94ee989facb4de9a32b89f4dbe830d381d5f7a4e1c04d99b"
+    },
+    {
+      "id": "b03_three_row_family_suv",
+      "path": "exports/b03_three_row_family_suv.glb",
+      "sha256": "8a21e9bc2ead8e5eb95d24c9b810df51ba4fb51a9d471b6e42f8c890381b4138"
+    },
+    {
+      "id": "b04_front_load_commercial_dumpster",
+      "path": "exports/b04_front_load_commercial_dumpster.glb",
+      "sha256": "5373e2a77cdc07557b98e5ce8475055d8d25fb19888902f4e9042c88b7f5130a"
+    },
+    {
+      "id": "b05_classic_fire_hydrant",
+      "path": "exports/b05_classic_fire_hydrant.glb",
+      "sha256": "9bdd40903cb67c032bc7d4a24f7f1c2696c077641ce884d5437df467a5271cac"
+    },
+    {
+      "id": "b05_mushroom_roof_exhaust",
+      "path": "exports/b05_mushroom_roof_exhaust.glb",
+      "sha256": "d0dc6a3b169a3289a04702a1cf55df4eb21918095087038bf5e13e6c6b37545a"
+    },
+    {
+      "id": "b05_rooftop_packaged_hvac",
+      "path": "exports/b05_rooftop_packaged_hvac.glb",
+      "sha256": "e3145d10304a08272b026bcfb3b700317ae7a6b3800d2c4165946c83a503ad07"
+    },
+    {
+      "id": "b06_adjustable_wrench",
+      "path": "exports/b06_adjustable_wrench.glb",
+      "sha256": "659caf30b4f8e64b4d631cf37772642d1600214390557335248da18d8be0238d"
+    },
+    {
+      "id": "b06_retractable_tape_measure",
+      "path": "exports/b06_retractable_tape_measure.glb",
+      "sha256": "b5937138c21ae8edaaf4af2df88b9aa6f156bbb5f3521816e1b72de785ad2b0c"
+    },
+    {
+      "id": "b08_american_elm",
+      "path": "exports/b08_american_elm.glb",
+      "sha256": "029a8fa050887dedb35d78a9da2068efbde15ef476f460d1d971b22b59733da4"
+    },
+    {
+      "id": "b08_eastern_white_pine",
+      "path": "exports/b08_eastern_white_pine.glb",
+      "sha256": "423a42e98dbf2dd76ec049d702247b93e72ff328817c95bb71f5d4af1c35160a"
+    },
+    {
+      "id": "b08_flowering_cherry",
+      "path": "exports/b08_flowering_cherry.glb",
+      "sha256": "9013b23f21398e0c4df73cdf4a400e7a92b12c423c844dbf0a513c9378c81cb5"
+    },
+    {
+      "id": "b08_honeylocust",
+      "path": "exports/b08_honeylocust.glb",
+      "sha256": "0399ea68dc4805e2a67907687167442164883f71b654ce4359f8861499f2316d"
+    },
+    {
+      "id": "b08_raised_perennial_bed",
+      "path": "exports/b08_raised_perennial_bed.glb",
+      "sha256": "1b37807de52a0776522341b9623d4136a216d3c9368fb70c91719d45c4e4509c"
+    },
+    {
+      "id": "b08_staked_young_street_tree",
+      "path": "exports/b08_staked_young_street_tree.glb",
+      "sha256": "c043d9599f2313d4a26288da87a9f292dc887f2be2e9d4b80f71e8c6402fb64a"
+    },
+    {
+      "id": "b08_sugar_maple",
+      "path": "exports/b08_sugar_maple.glb",
+      "sha256": "9b6548f3bf4851ba10c7aab0e524bd18c20caf593e701cca53dc9dcddda39af4"
+    },
+    {
+      "id": "b09_basketball_gooseneck_pole",
+      "path": "exports/b09_basketball_gooseneck_pole.glb",
+      "sha256": "287190c6026674feba7d5e982fea138749a39f2e01d1dc7556cc3267519cba2c"
+    },
+    {
+      "id": "b09_double_swing",
+      "path": "exports/b09_double_swing.glb",
+      "sha256": "a8a6d43ac71e4ead447fe25048d569e487673c6688c8228793c4fad5a211c549"
+    },
+    {
+      "id": "b09_four_row_bleachers",
+      "path": "exports/b09_four_row_bleachers.glb",
+      "sha256": "7ad9b1e2db6ae093488746109831682ee69b109dbd6382ce6c033acb2ae733b3"
+    },
+    {
+      "id": "b09_roofed_play_tower",
+      "path": "exports/b09_roofed_play_tower.glb",
+      "sha256": "c294443aa77bc8f32de02e6b9d961a517bfc95733870a191c284c71632c67149"
+    },
+    {
+      "id": "b10_bakery_sidewalk_glass_case",
+      "path": "exports/b10_bakery_sidewalk_glass_case.glb",
+      "sha256": "d2f233326e6a9952e329ec9f12e54f4515c87ba96d2ddabe6caa54235fbb142e"
+    },
+    {
+      "id": "b10_bottled_drink_vending_machine",
+      "path": "exports/b10_bottled_drink_vending_machine.glb",
+      "sha256": "a953bd481b9ef5674c067a8c5e371e64700720fa2db79e7edc42c67b675794a2"
+    },
+    {
+      "id": "b10_bulk_nut_dispenser_stand",
+      "path": "exports/b10_bulk_nut_dispenser_stand.glb",
+      "sha256": "0b43782321d59efd27bf51294f79533a62ad27de01565ebfcbd5018e461582c9"
+    },
+    {
+      "id": "b10_cafe_bar_stool_with_back",
+      "path": "exports/b10_cafe_bar_stool_with_back.glb",
+      "sha256": "d1e57256dcbccd6cbbd61150fd7d65cf21b589cc83da4d5797c4106231d8e2ad"
+    },
+    {
+      "id": "b10_commercial_flat_top_griddle_cart",
+      "path": "exports/b10_commercial_flat_top_griddle_cart.glb",
+      "sha256": "a6c161c40f1637211abc46da7e54ab6d8611712e5fa00858bb82eb94e73fe529"
+    },
+    {
+      "id": "b10_donut_shop_display_counter",
+      "path": "exports/b10_donut_shop_display_counter.glb",
+      "sha256": "90413585bba2bfb0dc8459802c9a32dd572795c6d7ee21fed7e588b91c8318ac"
+    },
+    {
+      "id": "b10_farmers_market_canvas_stall",
+      "path": "exports/b10_farmers_market_canvas_stall.glb",
+      "sha256": "a59408c83d74df3a5a3ad38adb6e4220aa568377bc159200eb4dc1ec3cf81dc4"
+    },
+    {
+      "id": "b10_florist_bucket_sidewalk_display",
+      "path": "exports/b10_florist_bucket_sidewalk_display.glb",
+      "sha256": "9c3729a53edb1f833a7cfe59680df1fe6a3f7f75ad623aac1da5f3231d3e0c87"
+    },
+    {
+      "id": "b10_greeting_card_spinner_rack",
+      "path": "exports/b10_greeting_card_spinner_rack.glb",
+      "sha256": "d7c59157c6661feb2ab69b703935f49b643f7b2d016125e3913276ad221fdf96"
+    },
+    {
+      "id": "b10_hot_dog_pushcart",
+      "path": "exports/b10_hot_dog_pushcart.glb",
+      "sha256": "f8624f7cc63afe65a3e9df2a78669652edb89a3efa161e6b13b260babd0620a1"
+    },
+    {
+      "id": "b10_outdoor_bookshop_cart",
+      "path": "exports/b10_outdoor_bookshop_cart.glb",
+      "sha256": "e57351945a9bd32dc9d80fffa2f7f2a037a9f92f4aa6c3600648b4e6aa8d2d36"
+    },
+    {
+      "id": "b10_portable_commercial_handwash_sink",
+      "path": "exports/b10_portable_commercial_handwash_sink.glb",
+      "sha256": "df7b3f740420958f7eff20b0d573c2cd9d12a23367923915082864a79c29af55"
+    },
+    {
+      "id": "b10_restaurant_hostess_station",
+      "path": "exports/b10_restaurant_hostess_station.glb",
+      "sha256": "9c8994a2c1fc37f2f782329d24ce25fc267366a1ecf10c03fa56d726cf5e9748"
+    },
+    {
+      "id": "b10_rolling_sidewalk_garment_rack",
+      "path": "exports/b10_rolling_sidewalk_garment_rack.glb",
+      "sha256": "f6a81f1d4898adb610da26c36cc577720f7e7bddfd09bedfc9dcc2569ae03cb8"
+    },
+    {
+      "id": "b10_rotating_sunglasses_display",
+      "path": "exports/b10_rotating_sunglasses_display.glb",
+      "sha256": "44cf74c6524e448a42d5d846fb13ca18b4674690b16559cb3f2a2eb813d65ea4"
+    },
+    {
+      "id": "b10_round_bistro_pedestal_table",
+      "path": "exports/b10_round_bistro_pedestal_table.glb",
+      "sha256": "3fc3f2e9481aae931126cb477c9e01c7e32a062928bd4ca482dfba8cb9d4ad35"
+    },
+    {
+      "id": "b10_sidewalk_coffee_kiosk",
+      "path": "exports/b10_sidewalk_coffee_kiosk.glb",
+      "sha256": "6ebc7f74ad185143e6f90557e47dc2ab21f1e208ce1ea7c0176274dbaf28cb68"
+    },
+    {
+      "id": "b10_sidewalk_condiment_service_station",
+      "path": "exports/b10_sidewalk_condiment_service_station.glb",
+      "sha256": "0da42fd172bf8a4dc06a5076903c9511668521a04cc83bf9b76f2afddb94bbfb"
+    },
+    {
+      "id": "b10_sidewalk_magazine_ladder",
+      "path": "exports/b10_sidewalk_magazine_ladder.glb",
+      "sha256": "0d4dfe072bf4e49134528e2222649b8daf8a5a8c016428d70eaefebcd9293b6b"
+    },
+    {
+      "id": "b10_square_cafe_umbrella_table",
+      "path": "exports/b10_square_cafe_umbrella_table.glb",
+      "sha256": "469ce92be1588dfd0285d9ae3898d055b431997e957f8b9fc59dde6c6ada0402"
+    },
+    {
+      "id": "b10_taco_preparation_service_station",
+      "path": "exports/b10_taco_preparation_service_station.glb",
+      "sha256": "9109aa03e812cf07161d7b8846496ecd4437384bbc0a96568272ebe3e83bc7d6"
+    },
+    {
+      "id": "b10_tiered_sidewalk_produce_stand",
+      "path": "exports/b10_tiered_sidewalk_produce_stand.glb",
+      "sha256": "a8a9acc7d33a71ba89a801c9e4111720fc5d7410b7cd58345a25f1e68682cbb7"
+    },
+    {
+      "id": "b10_woven_metal_cafe_chair",
+      "path": "exports/b10_woven_metal_cafe_chair.glb",
+      "sha256": "8328e4c264fd404b72b9482fb57bafc4ef61ef6fbbb9db3fab03283b214b983a"
+    },
+    {
+      "id": "b11_woven_patio_armchair",
+      "path": "exports/b11_woven_patio_armchair.glb",
+      "sha256": "5d4759833d243cd6a5b260afb327df420caf393675fae8980a2e2e77f51502d1"
+    },
+    {
+      "id": "b12_canvas_wedge_shop_awning",
+      "path": "exports/b12_canvas_wedge_shop_awning.glb",
+      "sha256": "59cc4e5ccc79365384094fc9728203f3262a424fec745b6729edac9393b2ea56"
+    },
+    {
+      "id": "b12_dentil_cornice_section",
+      "path": "exports/b12_dentil_cornice_section.glb",
+      "sha256": "27a502893570ffe28ce677a6b2eaab326b7e83eccc013f5c9f4615263b77eda7"
+    },
+    {
+      "id": "b12_masonry_chimney_stack",
+      "path": "exports/b12_masonry_chimney_stack.glb",
+      "sha256": "d5a8026d95c81799e295a43e52d4f0ffe7060a6db145740d347a24d2ae8a3ae8"
+    },
+    {
+      "id": "b12_retractable_shop_awning",
+      "path": "exports/b12_retractable_shop_awning.glb",
+      "sha256": "a340516f8e09761ac40aba6c32acc9fcab44ef3c4c1c60106ff4841662777300"
+    },
+    {
+      "id": "b14_braced_wood_shipping_crate",
+      "path": "exports/b14_braced_wood_shipping_crate.glb",
+      "sha256": "26343e61cbccacd24797d940fd18912ab6f8bf704cf96d798d8f9fdafc7691c1"
+    },
+    {
+      "id": "b14_countertop_parcel_postage_scale",
+      "path": "exports/b14_countertop_parcel_postage_scale.glb",
+      "sha256": "01411c3005a0dba4a4e813ea73c18040e238e98b1191a4c905c4f4b4983eb299"
+    },
+    {
+      "id": "b14_electronic_parcel_locker",
+      "path": "exports/b14_electronic_parcel_locker.glb",
+      "sha256": "0b37d222175802e6b923af3fc9e6a4ed24af27c2793ae66ef4989eb44b431fc0"
+    },
+    {
+      "id": "b14_mail_sack_sorting_stand",
+      "path": "exports/b14_mail_sack_sorting_stand.glb",
+      "sha256": "04437996a4e859e48f0a13cd19d66311e8a14a2de1dd0f4d29043a7cd5f21fbd"
+    },
+    {
+      "id": "b14_mobile_letter_sorting_cubbies",
+      "path": "exports/b14_mobile_letter_sorting_cubbies.glb",
+      "sha256": "163ee4788c2360b924735c71530d8651b2e0970fc09a506ac2215ad3be3e7ce6"
+    },
+    {
+      "id": "b14_open_slatted_parts_crate",
+      "path": "exports/b14_open_slatted_parts_crate.glb",
+      "sha256": "538b631ad805d499dda212e69c83f326a3d6ac9c2b5182048e673c0cc91cb172"
+    },
+    {
+      "id": "b14_pallet_carton_stack",
+      "path": "exports/b14_pallet_carton_stack.glb",
+      "sha256": "a3be8bbfb8e8884621ccb1cf3a913d4a55499e75f091d031394c417f834c6c88"
+    },
+    {
+      "id": "b14_pallet_lumber_bundle",
+      "path": "exports/b14_pallet_lumber_bundle.glb",
+      "sha256": "59572ebd83571272ae87917fc227baec6073983d589431809f19b24fd866827d"
+    },
+    {
+      "id": "b14_parcel_hand_truck",
+      "path": "exports/b14_parcel_hand_truck.glb",
+      "sha256": "48ea3e6524c451dd79347ee45a4e20d95cd27869bfc666fc02da890ead9839e1"
+    },
+    {
+      "id": "b14_postal_collection_drop_box",
+      "path": "exports/b14_postal_collection_drop_box.glb",
+      "sha256": "86e25d20fadb6cc7812ee2571aa8d77f6ef43ed7dd7184ed772bb71ac96794f0"
+    },
+    {
+      "id": "b14_postal_rolling_canvas_hamper",
+      "path": "exports/b14_postal_rolling_canvas_hamper.glb",
+      "sha256": "6502b4e1b6be444cdf2dc241fef94fb44af92416ef4cb3be7df9d321bf3239fc"
+    },
+    {
+      "id": "b14_recessed_apartment_mail_wall",
+      "path": "exports/b14_recessed_apartment_mail_wall.glb",
+      "sha256": "5180552254ba83785a55b27ab156e8244ee12fc5d68f4bb6699428430bb39608"
+    },
+    {
+      "id": "b14_stackable_attached_lid_delivery_tote",
+      "path": "exports/b14_stackable_attached_lid_delivery_tote.glb",
+      "sha256": "64732313cf0115b9b3953ae848fa1cb0193d7d7f9f1a7138213800949bc97a52"
+    },
+    {
+      "id": "b14_twenty_foot_freight_container",
+      "path": "exports/b14_twenty_foot_freight_container.glb",
+      "sha256": "7d074b1380cee2bc6aba0b4e03cfd4ced1dd7bb0c5032142a7dbd400e9a6e696"
+    },
+    {
+      "id": "b15_bucket_utility_truck",
+      "path": "exports/b15_bucket_utility_truck.glb",
+      "sha256": "df149380b0c0f2c1c54019dcf6174be1d12a07e0223a9384be0cd13fc3539374"
+    },
+    {
+      "id": "b15_low_floor_transit_bus",
+      "path": "exports/b15_low_floor_transit_bus.glb",
+      "sha256": "6e11c517b3f894cc9a9a35bacfa13879fc057d97889417b00976db80aaba7ec5"
+    },
+    {
+      "id": "b15_municipal_dump_truck",
+      "path": "exports/b15_municipal_dump_truck.glb",
+      "sha256": "81d46bd2f52981cb6cf9a14e0f6462fed19bb7aada1acc203c3150b1812df26b"
+    },
+    {
+      "id": "b15_parcel_step_van",
+      "path": "exports/b15_parcel_step_van.glb",
+      "sha256": "f014aa098c36ab69dd2303c43340f0e09e09f37cc4a6eb37027cf2d6b52f9867"
+    },
+    {
+      "id": "b16_baguette_in_paper_sleeve",
+      "path": "exports/b16_baguette_in_paper_sleeve.glb",
+      "sha256": "17b83a9356e9328ccd632e951707162ed9d071e455fd7c6b21684e52ed35297c"
+    },
+    {
+      "id": "b16_fluted_paper_plate",
+      "path": "exports/b16_fluted_paper_plate.glb",
+      "sha256": "5bc7ba3fb37fa233d20082895430f76bfc7eec519d7bb05a70439335909b06cb"
+    },
+    {
+      "id": "b16_folded_newspaper",
+      "path": "exports/b16_folded_newspaper.glb",
+      "sha256": "96fb7965961e05561f11685273aa1f68962260c6c3cda2efbdc4491b38b41914"
+    },
+    {
+      "id": "b16_gable_top_milk_carton",
+      "path": "exports/b16_gable_top_milk_carton.glb",
+      "sha256": "c975e641c041ae3ba3c53aa602c6a3cd3175436b49786bb10fcf0bcc477aa0be"
+    },
+    {
+      "id": "b16_juice_box_with_straw",
+      "path": "exports/b16_juice_box_with_straw.glb",
+      "sha256": "257e7bb1d66a4f6996140dcd9724322fcee7755198ba94e257a9843ad56e1fc8"
+    },
+    {
+      "id": "b16_ribbed_water_bottle",
+      "path": "exports/b16_ribbed_water_bottle.glb",
+      "sha256": "fa42b6ad433e5788988e6babf593d648c0356b30155119b8adeb61640d3a3ab6"
+    },
+    {
+      "id": "b16_sealed_potato_chip_bag",
+      "path": "exports/b16_sealed_potato_chip_bag.glb",
+      "sha256": "8e25eb85c92692365092bf5a50490c0c272e9a7b2e0177a3d7d6a1b5928fe804"
+    },
+    {
+      "id": "b16_six_egg_carton",
+      "path": "exports/b16_six_egg_carton.glb",
+      "sha256": "c7689dd98c02b5df8a0fe27404d6293dced74ce724be6358593b00cf2fec261f"
+    },
+    {
+      "id": "b16_square_juice_bottle",
+      "path": "exports/b16_square_juice_bottle.glb",
+      "sha256": "1acf532e698f76d9c7dc023e7869afc8e7aeef8799239dbbce243aa2c1212ef1"
+    },
+    {
+      "id": "b16_takeaway_coffee_cup",
+      "path": "exports/b16_takeaway_coffee_cup.glb",
+      "sha256": "3b8e591c9cf04a100372d1310f2778d9b35cfe571a39b69943aef18a655156f4"
+    },
+    {
+      "id": "b17_baseball_fielders_glove",
+      "path": "exports/b17_baseball_fielders_glove.glb",
+      "sha256": "18d6af0a87dc6537ed7142f2de66976b8b86a1c11796e5479f6a587a5ae21236"
+    },
+    {
+      "id": "b17_folded_picnic_blanket",
+      "path": "exports/b17_folded_picnic_blanket.glb",
+      "sha256": "41b1f39bebc9af44cf020876237f61ec6d54971175644d635be2503458a32594"
+    },
+    {
+      "id": "b17_handheld_torch_flashlight",
+      "path": "exports/b17_handheld_torch_flashlight.glb",
+      "sha256": "2e0680ae49f80a5624261fedaa62669ee1d9a581662a9abf7d6fc5708f89fafd"
+    },
+    {
+      "id": "b17_laced_american_football",
+      "path": "exports/b17_laced_american_football.glb",
+      "sha256": "446c7d1f9a3eca57dc50e41a64e18bcf11de8e33ae34e8dc89653a61ef4b914a"
+    },
+    {
+      "id": "b17_outdoor_two_way_radio",
+      "path": "exports/b17_outdoor_two_way_radio.glb",
+      "sha256": "b2c8e77dc9a3782d00933e0346282610ead2910a5fc30cf8762de3cecedd3f11"
+    },
+    {
+      "id": "b17_ribbed_rolling_suitcase",
+      "path": "exports/b17_ribbed_rolling_suitcase.glb",
+      "sha256": "d2376030133f9bc1fa5713c76f1261d8344b92208b5d634af4366e532ccb301a"
+    },
+    {
+      "id": "b17_seamed_basketball",
+      "path": "exports/b17_seamed_basketball.glb",
+      "sha256": "67c728fdcc1f8331bda1ea08ed3a89135c641e691b48fce0f916f60046a11d0a"
+    },
+    {
+      "id": "b17_stitched_baseball",
+      "path": "exports/b17_stitched_baseball.glb",
+      "sha256": "39087dfccdde3e8072d32a65c1208b11660f6941bcd9eb439a049c441b0c3d47"
+    },
+    {
+      "id": "b17_vented_bicycle_helmet",
+      "path": "exports/b17_vented_bicycle_helmet.glb",
+      "sha256": "76ab2efdc19eead59e70fd415af46f59401ed8173745d188986d2b8d7ba45e9a"
+    },
+    {
+      "id": "b17_zippered_day_backpack",
+      "path": "exports/b17_zippered_day_backpack.glb",
+      "sha256": "555a73f3e943b1b28b141b0ea26948eb33d70ff5a94e8e05a1020d5399416a26"
+    },
+    {
+      "id": "b18_coach_house_wall_lantern",
+      "path": "exports/b18_coach_house_wall_lantern.glb",
+      "sha256": "702d518a4597aaaab2922bacc2415d6798e8cfe51c72a9df23cc8044ccc2d4e8"
+    },
+    {
+      "id": "b18_interlocking_steel_ribbon_sculpture",
+      "path": "exports/b18_interlocking_steel_ribbon_sculpture.glb",
+      "sha256": "9438a7d3ae100df53057d1f85f480c6c385cf54bba09f0a80bb626bd699a9697"
+    },
+    {
+      "id": "b18_tapered_lantern_avenue_lamp",
+      "path": "exports/b18_tapered_lantern_avenue_lamp.glb",
+      "sha256": "53fc877c82fcfd2fd4add32eca1009dc0dd73c51d1decca3d0c71182a9d22d92"
+    },
+    {
+      "id": "b18_twin_shoebox_parking_lamp",
+      "path": "exports/b18_twin_shoebox_parking_lamp.glb",
+      "sha256": "716b7dce4c068247d03dcca3d0af1f359182ca4f857b5ad6cdde7ed540682a79"
+    },
+    {
+      "id": "b20_folding_banquet_service_table",
+      "path": "exports/b20_folding_banquet_service_table.glb",
+      "sha256": "72a127ef8b23712fefcfd10e24dfffc285c6884eea9b621558c261758aca1afb"
+    },
+    {
+      "id": "b20_pa_loudspeaker_on_tripod",
+      "path": "exports/b20_pa_loudspeaker_on_tripod.glb",
+      "sha256": "3c65720aaa2b32feee35e4bd7fdb2515fee71d6405b24172d145d7464069f0e8"
+    },
+    {
+      "id": "b20_portable_audio_mixing_console",
+      "path": "exports/b20_portable_audio_mixing_console.glb",
+      "sha256": "0b25b9c14c9b11f4ae30e92637345d106168c6e301b2e1522ec2de7e7cca1373"
+    },
+    {
+      "id": "b20_stage_floor_monitor_wedge",
+      "path": "exports/b20_stage_floor_monitor_wedge.glb",
+      "sha256": "9a13355a931d99c2cbd92944ae8c9d7babe30e1567a2afde05a2b4205f4f5543"
+    },
+    {
+      "id": "b21_ceiling_plain_4x4m",
+      "path": "exports/b21_ceiling_plain_4x4m.glb",
+      "sha256": "aed263f280376a2955efb72f3c1642a4712e7fc89bf6937a0c3319e03cb384c8"
+    },
+    {
+      "id": "b21_door_empty_frame_1m",
+      "path": "exports/b21_door_empty_frame_1m.glb",
+      "sha256": "65998bfaafc5e4f692e992047e3b45f9b4d757a64a7d176e885f1ab80d72cf7c"
+    },
+    {
+      "id": "b21_floor_concrete_4x4m",
+      "path": "exports/b21_floor_concrete_4x4m.glb",
+      "sha256": "c06bb6116682c0aad5e54b07166a8116ce08e77218d91b0c7e77d37646792b95"
+    },
+    {
+      "id": "b21_floor_timber_4x4m",
+      "path": "exports/b21_floor_timber_4x4m.glb",
+      "sha256": "ec530b1b93c65c8dbfc75a68dffd54a166a0c2ecde7b32b62782105b341f1e55"
+    },
+    {
+      "id": "b21_wall_double_door_opening_4m",
+      "path": "exports/b21_wall_double_door_opening_4m.glb",
+      "sha256": "f0732b18e5e0cb7dbb8d96d1674a1d8af2eab038a1353f3b99d502a5ed8388d4"
+    },
+    {
+      "id": "b21_wall_solid_2m",
+      "path": "exports/b21_wall_solid_2m.glb",
+      "sha256": "8d9f26a3290baab2fc0acaabff070e2e762d3df2c2c62b414611b2d067c0788c"
+    },
+    {
+      "id": "b21_wall_solid_4m",
+      "path": "exports/b21_wall_solid_4m.glb",
+      "sha256": "d8ace500fe888b2feef15009de681d2998d6270d440a2fa036f3602f179ed67f"
+    },
+    {
+      "id": "b21_wall_storefront_opening_4m",
+      "path": "exports/b21_wall_storefront_opening_4m.glb",
+      "sha256": "d7f0113baab670fe4e43014527f68d6d0bad184b5f241e3648a16e644d3f33f6"
+    },
+    {
+      "id": "b21_wall_window_opening_4m",
+      "path": "exports/b21_wall_window_opening_4m.glb",
+      "sha256": "405f54b30c42f7f2b9d7843cea8eca073be7fcbd5978ef91d8525af8ae298db5"
+    },
+    {
+      "id": "b21_window_fixed_2m",
+      "path": "exports/b21_window_fixed_2m.glb",
+      "sha256": "15182f43329c2469beaec61149fa99c4fd2f4902c6ec607db07c5d8f3ed03e40"
+    },
+    {
+      "id": "b21_window_paired_2m",
+      "path": "exports/b21_window_paired_2m.glb",
+      "sha256": "eec8e4ad440fffaa82ff47338ecdfd06cf597d8a3f686dc4b088d18951c1fa22"
+    },
+    {
+      "id": "b21_window_shopfront_3_6m",
+      "path": "exports/b21_window_shopfront_3_6m.glb",
+      "sha256": "e48e61b71e2c66e12487b0676d14a78d244bf813181565522441fae23de42186"
+    },
+    {
+      "id": "b21_window_sill_2m",
+      "path": "exports/b21_window_sill_2m.glb",
+      "sha256": "d82ec620f0bbd9aab49301256ca38ab7534bee75de9e2db9903ecf5d6ce5d6bb"
+    },
+    {
+      "id": "b21_window_sliding_2m",
+      "path": "exports/b21_window_sliding_2m.glb",
+      "sha256": "5929b9f202c7b40aa15571500b897db4cb1688bfc0190e944264269d629ffe65"
+    }
+  ]
+}

@@ -619,11 +619,11 @@ impl PauseMenu {
             3. * layout.scale,
             ui_theme::style(UiScope::PauseMenu, &[UiClass::Accent]).tint(accent),
         );
-        text("VECTOR RANGE", 32., 52., 34., WHITE);
+        text("RUST DUTY", 32., 52., 34., WHITE);
         text(crate::BUILD_LABEL, 33., 77., 16., muted);
         button(RESUME);
         button_text(
-            if initial { "ENTER THE RANGE" } else { "RESUME" },
+            if initial { "ENTER WORLD" } else { "RESUME" },
             48.,
             129.,
             23.,

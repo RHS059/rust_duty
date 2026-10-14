@@ -3234,6 +3234,7 @@ name = "vector-range"
 version = "0.1.11"
 dependencies = [
  "cssparser",
+ "flate2",
  "fontdue",
  "glam",
  "image",

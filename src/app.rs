@@ -1,9 +1,10 @@
 use crate::viewmodel_draw::*;
 use crate::world_draw::{
-    draw_body_placeholder, grid_texture, register_supply, supply_focus, world,
+    city_world, draw_body_placeholder, grid_texture, register_supply, supply_focus, world,
 };
 use crate::{authored_viewmodel, sound, weapon_model};
 use std::io::Write;
+use vector_range::city_level::{CityLevel, LevelSelection, CITY_FAR_PLANE};
 use vector_range::draw::facade::*;
 use vector_range::frame_performance::{BoundaryReason, Eligibility};
 use vector_range::frame_performance_session as frame_trace;
@@ -139,6 +140,22 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
     let mut locomotion_state =
         vector_range::locomotion_presentation::LocomotionPresentation::default();
     let mut sim = Simulation::new();
+    let level_selection =
+        LevelSelection::from_options(&args, std::env::var("RUST_DUTY_LEVEL").ok().as_deref())?;
+    let city = match level_selection {
+        LevelSelection::CedarJunction => {
+            let city = CityLevel::load(&CityLevel::resolve(&authored_executable))?;
+            city.install(&mut sim);
+            eprintln!(
+                "Loaded {}: {} mesh chunks, {} colliders",
+                city.name,
+                city.chunks.len(),
+                city.colliders.len()
+            );
+            Some(city)
+        }
+        LevelSelection::Range => None,
+    };
     let mut startup_notice = theme_error;
     {
         // Authored action clips retime gameplay gates; unavailable slots keep
@@ -178,6 +195,9 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
     let mut body = BodyPresentation::default();
     let body_tuning = BodyTuning::default();
     let mut supply = vector_range::ammo_supply::AmmoSupply::default();
+    if let Some(city) = &city {
+        supply.floor_center = city.supply_position;
+    }
     register_supply(&mut sim, &supply);
     let texture = grid_texture();
     let target = render_target_ex(
@@ -694,7 +714,10 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
             traces.clear();
             impacts.clear();
             muzzle_fx.clear();
-            notice = "Range reset. Fresh magazine, clean telemetry.".into();
+            notice = format!(
+                "{} reset. Fresh magazine, clean telemetry.",
+                city.as_ref().map_or("Range", |city| city.name.as_str())
+            );
             notice_timer = 3.;
         }
         if focus_input.is_key_pressed(KeyCode::F9) {
@@ -804,6 +827,7 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
                     Ok(export) => {
                         telemetry_csv_error = None;
                         let scene = frame_trace_scene(
+                            level_selection.scene_name(),
                             profile,
                             weapon_id,
                             if model_error.is_some() {
@@ -1175,7 +1199,11 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
             }
         }
         notice_timer = (notice_timer - dt).max(0.);
-        clear_background(Color::new(0.66, 0.76, 0.78, 1.));
+        clear_background(if city.is_some() {
+            Color::new(0.64, 0.77, 0.87, 1.)
+        } else {
+            Color::new(0.66, 0.76, 0.78, 1.)
+        });
         let aspect = if framing.reference {
             16. / 9.
         } else {
@@ -1186,17 +1214,29 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
         let fov = cfg.fov
             + (cfg.ads_fov - cfg.fov)
                 * vector_range::reference_motion::visual_world_ads(sim.player.ads);
-        set_camera(&Camera3D {
+        let world_camera = Camera3D {
             position: eye,
             target: eye + forward,
             // Lean rolls the world camera; the viewmodel stays fixed to the view.
             up: sim.player.camera_up(cfg.action.lean_roll),
             fovy: h_fov_to_v(fov, aspect),
+            aspect: Some(aspect),
             z_near: 0.035,
-            z_far: 200.,
+            z_far: if city.is_some() { CITY_FAR_PLANE } else { 200. },
             ..Default::default()
-        });
-        world(&sim, &texture);
+        };
+        set_camera(&world_camera);
+        if let Some(city) = &city {
+            let view_projection = Mat4::perspective_rh_gl(
+                world_camera.fovy,
+                aspect,
+                world_camera.z_near,
+                world_camera.z_far,
+            ) * Mat4::look_at_rh(eye, eye + forward, world_camera.up);
+            city_world(city, &sim, view_projection, &supply);
+        } else {
+            world(&sim, &texture);
+        }
         let body_frame = body.update(&sim, if active { dt } else { 0. }, &body_tuning);
         if !capture_lighting && capture_sequence.is_none() {
             draw_body_placeholder(&body_frame);
@@ -1392,6 +1432,7 @@ fn frame_trace_eligibility(
 /// Deliberately accept named runtime choices, never filesystem paths or the
 /// unfiltered CLI. An explicit/private asset path must not enter trace identity.
 fn frame_trace_scene(
+    level_name: &str,
     profile: &str,
     weapon_id: &str,
     presentation: &str,
@@ -1401,7 +1442,7 @@ fn frame_trace_scene(
     demo: bool,
 ) -> serde_json::Value {
     serde_json::json!({
-        "name": "vector_range_default_range",
+        "name": level_name,
         "profile_base": profile,
         "weapon_id": weapon_id,
         "presentation": presentation,
@@ -1678,6 +1719,7 @@ mod tests {
                 mode: WindowMode::Windowed,
             },
             frame_trace_scene(
+                vector_range::city_level::LevelSelection::Range.scene_name(),
                 "m4a1",
                 "hk416a5",
                 "authored_viewmodel",

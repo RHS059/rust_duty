@@ -68,7 +68,7 @@ fn main() {
         .unwrap_or_else(|error| fatal(error));
     let reference = args.iter().any(|arg| arg == "--reference-viewport");
     let (width, height) = if reference { (960, 540) } else { (1440, 900) };
-    let title = format!("VECTOR RANGE | {}", vector_range::BUILD_LABEL);
+    let title = format!("RUST DUTY | {}", vector_range::BUILD_LABEL);
     match runtime {
         RuntimeChoice::Legacy => {
             #[cfg(feature = "legacy-macroquad")]

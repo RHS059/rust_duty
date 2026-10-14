@@ -1,0 +1,68 @@
+name: Build Cedar Junction city
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - tools/build_city.py
+      - tools/city_buildings.py
+      - tools/render_city.py
+      - tools/validate_city.py
+      - src/city_level.rs
+      - .github/workflows/build-city.yml
+permissions:
+  contents: write
+concurrency:
+  group: cedar-junction-build
+  cancel-in-progress: false
+jobs:
+  assemble:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: RHS059/low_poly_items
+          ref: 3a87b1f2611c56fcfbfc7b39adaf914ab5359446
+          path: city-source
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install numpy==2.2.6 Pillow==11.3.0 numba==0.61.2
+      - name: Assemble actual catalog geometry and collision
+        run: python tools/build_city.py --source city-source
+      - name: Check geometry, source hashes, every entrance and staircase
+        run: python tools/validate_city.py --source city-source --output assets/levels/cedar_junction/review/validation.json
+      - name: Render exact runtime geometry for review
+        run: python tools/render_city.py
+      - name: Commit generated level and evidence
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add assets/levels/cedar_junction tools/city_source_lock.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Publish assembled Cedar Junction city and geometry review"
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cedar-junction-level
+          path: assets/levels/cedar_junction/
+  windows-runtime:
+    needs: assemble
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: cedar-junction-dx12
+      - name: Check native WGPU Windows integration
+        run: cargo check --locked --no-default-features --features wgpu-runtime --bin vector-range
+      - name: Test level decoder, selector and reset contracts
+        run: cargo test --locked --no-default-features --features wgpu-runtime --lib city_level
+      - name: Walk the shipped city with real player physics
+        run: cargo test --locked --no-default-features --features wgpu-runtime --test city_level_contract

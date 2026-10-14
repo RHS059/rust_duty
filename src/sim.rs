@@ -519,6 +519,13 @@ fn swept_ramp(start: Vec3, end: Vec3, r: Ramp, height: f32) -> bool {
     enter < exit
 }
 
+#[derive(Clone)]
+struct LevelState {
+    blocks: Vec<Block>,
+    spawn_position: Vec3,
+    spawn_yaw: f32,
+}
+
 pub struct Simulation {
     pub player: Player,
     pub blocks: Vec<Block>,
@@ -535,6 +542,7 @@ pub struct Simulation {
     pub time: f64,
     spread_seed: u32,
     recoil_seed: u32,
+    level: Option<LevelState>,
 }
 impl Default for Simulation {
     fn default() -> Self {
@@ -646,6 +654,7 @@ impl Simulation {
             time: 0.,
             spread_seed: 0x91e10da5,
             recoil_seed: 0xa735813c,
+            level: None,
         }
     }
     fn random(seed: &mut u32) -> f32 {
@@ -657,9 +666,34 @@ impl Simulation {
     pub fn reset(&mut self) {
         let timings = std::mem::take(&mut self.timings);
         let loadout = self.loadout;
+        let level = self.level.take();
         *self = Self::new();
         self.timings = timings;
         self.loadout = loadout;
+        if let Some(level) = level {
+            self.install_level(level.blocks, level.spawn_position, level.spawn_yaw);
+        }
+    }
+    /// Install static level collision and its restart/respawn location. Render
+    /// geometry is owned separately so neither reset nor death reloads meshes.
+    pub fn install_level(&mut self, blocks: Vec<Block>, spawn_position: Vec3, spawn_yaw: f32) {
+        self.level = Some(LevelState {
+            blocks: blocks.clone(),
+            spawn_position,
+            spawn_yaw,
+        });
+        self.blocks = blocks;
+        self.ramps.clear();
+        self.targets.clear();
+        self.player = self.spawn_player();
+    }
+    fn spawn_player(&self) -> Player {
+        let mut player = Player::default();
+        if let Some(level) = &self.level {
+            player.position = level.spawn_position;
+            player.yaw = level.spawn_yaw;
+        }
+        player
     }
     fn emit(&mut self, kind: ActionEventKind) {
         self.action_events.push(ActionEvent {

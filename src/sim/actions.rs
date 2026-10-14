@@ -254,7 +254,7 @@ impl Simulation {
             self.player = Player {
                 health: cfg.action.max_health,
                 tac_charge: cfg.action.tac_sprint_duration,
-                ..Player::default()
+                ..self.spawn_player()
             };
             self.emit(ActionEventKind::Respawned);
         }

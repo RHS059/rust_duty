@@ -29,6 +29,12 @@ UI_RESOURCES = {
     "ui/examples/field-dread.css": (ROOT / "ui/examples/field-dread.css").read_bytes(),
     "docs/UI_THEME_EXAMPLES.md": b"# Theme examples fixture\nHigh contrast uses 95%-opaque black panels.\n",
 }
+CITY_RESOURCES = {
+    "docs/CEDAR_JUNCTION.md": b"# Cedar Junction runtime asset layout and controls\n",
+    "assets/levels/cedar_junction/level.json": b'{"schema":"rust-duty-city/v1","mesh_file":"meshes.bin"}\n',
+    "assets/levels/cedar_junction/meshes.bin": b"RDCITY01" + struct.pack("<I", 0),
+}
+RUNTIME_RESOURCES = {**UI_RESOURCES, **CITY_RESOURCES}
 
 
 class PackageGameTests(unittest.TestCase):
@@ -47,7 +53,7 @@ class PackageGameTests(unittest.TestCase):
             path = self.root / relative
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_bytes(b"fixture")
-        for relative, contents in UI_RESOURCES.items():
+        for relative, contents in RUNTIME_RESOURCES.items():
             path = self.root / relative
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_bytes(contents)
@@ -166,17 +172,21 @@ class PackageGameTests(unittest.TestCase):
         self.add_distribution_files()
         unlisted_theme = "ui/examples/private-custom.css"
         (self.root / unlisted_theme).write_text("unlisted local theme must not ship")
+        unlisted_city_source = "assets/levels/cedar_junction/source_glb/private-source.glb"
+        (self.root / unlisted_city_source).parent.mkdir()
+        (self.root / unlisted_city_source).write_bytes(b"source file must not ship")
         build = self.base / "build"
         package.stage(self.root, "target/release/vector-range", build)
         self.assertTrue((build / "vector-range").is_file())
         self.assertTrue((build / "settings.cfg").is_file())
         self.assertFalse((build / "target").exists())
         self.assertFalse((build / unlisted_theme).exists())
+        self.assertFalse((build / unlisted_city_source).exists())
         update = self.base / "update"
         package.stage(build, "vector-range", update, update=True)
         self.assertFalse((update / "settings.cfg").exists())
         self.assertFalse((update / unlisted_theme).exists())
-        for relative in UI_RESOURCES:
+        for relative in RUNTIME_RESOURCES:
             expected = (self.root / relative).read_bytes()
             self.assertEqual((build / relative).read_bytes(), expected)
             self.assertEqual((update / relative).read_bytes(), expected)
@@ -200,16 +210,17 @@ class PackageGameTests(unittest.TestCase):
         for name in package.COMPANIONS:
             relative = (package.ASSET_DIR / name).as_posix()
             self.assertEqual(included[relative], (self.root / relative).read_bytes())
-        for relative in UI_RESOURCES:
+        for relative in RUNTIME_RESOURCES:
             self.assertEqual(included[relative], (self.root / relative).read_bytes())
         self.assertEqual(included["docs/GPU_TELEMETRY.md"], UI_RESOURCES["docs/GPU_TELEMETRY.md"])
         self.assertNotIn("settings.cfg", included)
         self.assertNotIn(unlisted_theme, included)
+        self.assertNotIn(unlisted_city_source, included)
         self.assertEqual((self.root / "ui/theme.css").read_bytes(), UI_RESOURCES["ui/theme.css"])
 
-    def test_missing_ui_resources_fail_before_build_or_update_output(self):
+    def test_missing_runtime_resources_fail_before_build_or_update_output(self):
         self.add_distribution_files()
-        for relative in UI_RESOURCES:
+        for relative in RUNTIME_RESOURCES:
             path = self.root / relative
             original = path.read_bytes()
             path.unlink()
@@ -221,11 +232,11 @@ class PackageGameTests(unittest.TestCase):
                     self.assertFalse(output.exists())
             path.write_bytes(original)
 
-    def test_ui_resource_symlinks_are_rejected_without_copying_external_data(self):
+    def test_runtime_resource_symlinks_are_rejected_without_copying_external_data(self):
         self.add_distribution_files()
         target = self.base / "external-theme.css"
         target.write_text("private external theme")
-        for relative, original in UI_RESOURCES.items():
+        for relative, original in RUNTIME_RESOURCES.items():
             path = self.root / relative
             path.unlink()
             try:

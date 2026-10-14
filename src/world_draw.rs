@@ -222,6 +222,36 @@ pub(crate) fn world(sim: &Simulation, tex: &Texture2D) {
         draw_cube_wires(c, t.bounds.size() + Vec3::splat(0.008), INK);
     }
 }
+pub(crate) fn city_world(
+    city: &vector_range::city_level::CityLevel,
+    sim: &Simulation,
+    view_projection: Mat4,
+    supply: &vector_range::ammo_supply::AmmoSupply,
+) {
+    city.draw(sim.player.eye(), view_projection);
+    let lighting = SceneLighting::range();
+    let bounds = supply.bounds();
+    lighting.draw_cube(
+        bounds.center(),
+        bounds.size(),
+        None,
+        Color::new(0.22, 0.26, 0.28, 1.),
+    );
+    for x in [-0.26, 0.26] {
+        lighting.draw_cube(
+            bounds.center() + vec3(x, 0.257, 0.),
+            vec3(0.06, 0.025, 0.51),
+            None,
+            ACCENT,
+        );
+    }
+    lighting.draw_cube(
+        bounds.center() + vec3(0., 0.04, -0.26),
+        vec3(0.22, 0.10, 0.025),
+        None,
+        ACCENT,
+    );
+}
 pub(crate) fn draw_body_placeholder(frame: &BodyFrame) {
     if frame.pose == BodyPose::Dead {
         return;

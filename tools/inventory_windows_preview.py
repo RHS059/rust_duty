@@ -22,6 +22,8 @@ REQUIRED_FILES = (
     'ui/examples/field-dread.css',
     'docs/UI_THEME.md', 'docs/UI_THEME_EXAMPLES.md', 'docs/FRAME_PERFORMANCE.md',
     'docs/GPU_TELEMETRY.md', 'assets/animations.cfg',
+    'assets/levels/cedar_junction/level.json', 'assets/levels/cedar_junction/meshes.bin',
+    'docs/CEDAR_JUNCTION.md',
 )
 LAUNCHER = '@echo off\ncd /d "%~dp0"\n"%~dp0vector-range.exe" --renderer=dx12 --no-update\nexit /b %ERRORLEVEL%\n'
 MAX_TOTAL_BYTES = 4 * 1024**3

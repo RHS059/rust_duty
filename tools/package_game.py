@@ -38,6 +38,8 @@ NOTICES = ("LICENSE", "THIRD_PARTY_LICENSES.txt",
 # Shipped defaults/documentation belong beside the executable in both fresh
 # builds and managed update bundles. User-selected external themes are not copied.
 RUNTIME_FILES = (
+    "assets/levels/cedar_junction/level.json", "assets/levels/cedar_junction/meshes.bin",
+    "docs/CEDAR_JUNCTION.md",
     "ui/theme.css", "docs/UI_THEME.md",
     "ui/examples/high-contrast.css", "ui/examples/large-type.css",
     "ui/examples/field-spartan.css", "ui/examples/field-arena.css",
