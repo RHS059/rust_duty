@@ -1,0 +1,24 @@
+{
+  "chunks": 116,
+  "diffuse_bounces": 1,
+  "hemisphere_samples": 32,
+  "interior_lights": 8,
+  "limitations": [
+    "Static geometry and lights only",
+    "No dynamic actor shadows or specular reflections"
+  ],
+  "method": "triangle-raytraced vertex irradiance",
+  "schema": "rust-duty-static-lighting/v1",
+  "spatial_filter_radius_m": 0.38,
+  "sun_direction": [
+    -0.45,
+    0.78,
+    0.43
+  ],
+  "sun_samples": 8,
+  "target_triangle_edge_m": 0.25,
+  "tone_map": "ACES fitted curve, sRGB output",
+  "vertex_storage": "position-f32-rgba8",
+  "vertical_surface_edge_m": 0.25,
+  "vertices": 399508
+}
