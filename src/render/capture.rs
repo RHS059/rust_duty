@@ -125,7 +125,9 @@ impl Readback {
         device
             .poll(wgpu::PollType::Wait {
                 submission_index: None,
-                timeout: Some(Duration::from_secs(30)),
+                // Explicit software-adapter captures can take much longer than hardware.
+                timeout: Some(Duration::from_secs(if std::env::args()
+                    .any(|arg| arg == "--force-fallback-adapter") { 120 } else { 30 })),
             })
             .map_err(|e| format!("capture GPU wait: {e}"))?;
         receiver
