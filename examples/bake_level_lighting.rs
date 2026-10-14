@@ -89,7 +89,7 @@ fn main() -> Result<(), String> {
         }
         let vertices: usize = output.iter().map(|m| m.vertices.len()).sum();
         write_meshes(&directory.join("lighting.bin"), &output)?;
-        std::fs::write(directory.join("lighting.json"),serde_json::to_vec_pretty(&serde_json::json!({"schema":"rust-duty-static-lighting/v1","method":"triangle-raytraced vertex irradiance","sun_samples":8,"hemisphere_samples":32,"diffuse_bounces":1,"target_triangle_edge_m":if name=="range"{0.25}else{0.65},"vertical_surface_edge_m":0.25,"vertices":vertices,"chunks":output.len(),"interior_lights":scene.lamps.len(),"sun_direction":[-0.45,0.78,0.43],"tone_map":"ACES fitted curve, sRGB output","limitations":["Static geometry and lights only","No dynamic actor shadows or specular reflections"]})).unwrap()).map_err(|e|e.to_string())?;
+        std::fs::write(directory.join("lighting.json"),serde_json::to_vec_pretty(&serde_json::json!({"schema":"rust-duty-static-lighting/v1","method":"triangle-raytraced vertex irradiance","vertex_storage":"position-f32-rgba8","spatial_filter_radius_m":0.38,"sun_samples":8,"hemisphere_samples":32,"diffuse_bounces":1,"target_triangle_edge_m":if name=="range"{0.25}else{0.65},"vertical_surface_edge_m":0.25,"vertices":vertices,"chunks":output.len(),"interior_lights":scene.lamps.len(),"sun_direction":[-0.45,0.78,0.43],"tone_map":"ACES fitted curve, sRGB output","limitations":["Static geometry and lights only","No dynamic actor shadows or specular reflections"]})).unwrap()).map_err(|e|e.to_string())?;
         eprintln!("{name}: saved lighting.bin");
     }
     Ok(())

@@ -1,0 +1,13 @@
+{
+  "schema": "rust-duty-lighting-cache/v1",
+  "inputs": {
+    "src/static_lighting.rs": "4ceaef61c372f33341e387711c2f519d90f0f53ea1ad16b519a618e2ccbb4d94",
+    "src/range_geometry.rs": "3a667e3103134fcae8cd006206ede10199104eeef4035e146286520c133d6abd",
+    "src/sim.rs": "7e9b135dd0b52c734c762fcb440eeceb2a65c904b96b27ed1a405b474ef049d8",
+    "examples/bake_level_lighting.rs": "594f6b3ce8d16847f0d44e7d529b223f2981bde1149a7b36a2e5276d65439ddb",
+    "src/scene_lighting.rs": "21b2b1025a000e1c8abbb890e2bfb37a3b7e2228db145537bad5c250c2090272",
+    "src/city_level.rs": "7612a02e134430e43a808a1c9406cd91f343eb4ed4c06a0eb5597e879d5dac81",
+    "src/draw/mod.rs": "5f5aa0d67e6997957780430269efea89b6c9c5c0afda33432903f8ea47de36f9"
+  },
+  "output_sha256": "79e18a5b95d32228aaa45d46864a5966e60e85c6a6f23c60dd0b0ddf47f34a85"
+}

@@ -858,8 +858,7 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
                                 "procedural"
                             },
                             framing.reference,
-                            capture,
-                            capture_sequence,
+                            (capture, capture_sequence),
                             demo,
                         );
                         let trace = start_frame_trace(
@@ -1483,10 +1482,10 @@ fn frame_trace_scene(
     weapon_id: &str,
     presentation: &str,
     reference: bool,
-    capture: bool,
-    capture_sequence: Option<&str>,
+    capture_mode: (bool, Option<&str>),
     demo: bool,
 ) -> serde_json::Value {
+    let (capture, capture_sequence) = capture_mode;
     serde_json::json!({
         "name": level_name,
         "profile_base": profile,
@@ -1666,13 +1665,6 @@ mod tests {
     fn performance_eligibility_preserves_active_hitches_and_explicit_exclusions() {
         let focus = vector_range::session::FocusState::default();
         let mut session = vector_range::session::SessionController::default();
-        if !args
-            .iter()
-            .any(|a| a.starts_with("--capture") || a == "--demo")
-        {
-            session.set_active(true);
-            initial = false;
-        }
         session.set_active(true);
         let transition = session.step(vector_range::session::SessionInput {
             dt: 1.0,
@@ -1777,11 +1769,38 @@ mod tests {
                 "hk416a5",
                 "authored_viewmodel",
                 false,
-                false,
-                None,
+                (false, None),
                 false,
             ),
         )
+    }
+
+    #[test]
+    fn performance_scene_identity_preserves_named_choices_and_capture_mode() {
+        for (capture, sequence) in [(false, None), (true, Some("walk"))] {
+            let scene = frame_trace_scene(
+                "cedar_junction",
+                "m4a1",
+                "hk416a5",
+                "authored_viewmodel",
+                true,
+                (capture, sequence),
+                true,
+            );
+            assert_eq!(
+                scene,
+                serde_json::json!({
+                    "name": "cedar_junction",
+                    "profile_base": "m4a1",
+                    "weapon_id": "hk416a5",
+                    "presentation": "authored_viewmodel",
+                    "reference_viewport": true,
+                    "diagnostic_capture": capture,
+                    "capture_sequence": sequence,
+                    "demo": true,
+                })
+            );
+        }
     }
 
     #[test]

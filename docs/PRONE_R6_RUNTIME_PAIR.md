@@ -86,7 +86,7 @@ asset.prone-pair.json and the exact bytes of asset.prone-camera.json.
 
 - 20 new source-free export-adapter tests passed, including success/error
   restoration of temporary bindings. The existing tools discovery suite passed
-  all 53 tests after this adapter revision.
+  all 53 focused local Python tests after this adapter revision.
 - 21 new Python paired matrix/identity/grid/rest tests passed.
 - 12 existing importer tests passed.
 - Python compilation/CLI checks and actual immutable sidecar validation passed.
@@ -111,7 +111,7 @@ asset.prone-pair.json and the exact bytes of asset.prone-camera.json.
 
 The existing Cargo/Python suites remain the test route; no new CI workflow is
 introduced. Source changes started from main 601b7fc416d7feaf677b002354f7130b0f8a8c8f.
-The branch now incorporates main f3d66e9bf590b5710a6f9d3f9f55d434e3fbd73c,
+The branch now incorporates main 8bafc77276d025a97c39e2a09b456cec76dd948a,
 preserving approved Jump r8, the city picker and new level/weapon lighting.
 Earlier green Rust evidence does not certify this updated-base revision.
 
@@ -177,3 +177,15 @@ schema and native timing only. Renamed Actions or another timing/coordinate
 contract need an explicit reviewed adapter/runtime revision, not an alias.
 Hal's wrist correction and genuine paired Eevee/art review remain separate
 outstanding authoring work.
+
+## Draft-only inherited build repairs
+
+To test this branch against the current main, it reuses the minimal original Rust
+repairs from PR65 at 918d3b316bc9f6eab1cb76c54b8c626fba2934e5: the copied app
+test-block removal, equivalent private frame-trace capture tuple with exact JSON
+regression, collapsed range condition, and lighting iterator/test-module ordering
+fixes. The existing city Settings initializer is identical in both drafts.
+Their owning source blobs were verified unchanged on main before reuse. No
+lighting behavior or authored pose was modified. PR65 remains separately owned;
+this draft reuse does not mark it ready, merge it, or include its packaging
+fixtures. Current-base Rust checks must run again for this exact branch.

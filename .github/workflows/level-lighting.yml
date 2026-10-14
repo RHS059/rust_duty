@@ -11,6 +11,7 @@ on:
       - .github/workflows/level-lighting.yml
 permissions:
   contents: write
+  actions: read
 concurrency:
   group: level-lighting
   cancel-in-progress: true
@@ -22,8 +23,10 @@ jobs:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
+        with:
+          cache-on-failure: true
       - run: cargo test --locked --no-default-features --lib static_lighting
-      - run: cargo run --locked --release --no-default-features --example bake_level_lighting
+      - run: python tools/ensure_level_lighting.py
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -33,7 +36,7 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add assets/levels/*/lighting.bin assets/levels/*/lighting.json assets/levels/*/lighting_review
+          git add assets/levels/*/lighting-cache.json assets/levels/*/lighting.bin assets/levels/*/lighting.json assets/levels/*/lighting_review
           if ! git diff --cached --quiet; then
             git commit -m "Bake sun, sky and interior lighting for both levels"
             git pull --rebase origin main
@@ -46,6 +49,10 @@ jobs:
             assets/levels/*/lighting.bin
             assets/levels/*/lighting.json
   windows:
+    env:
+      GIT_CONFIG_COUNT: '1'
+      GIT_CONFIG_KEY_0: core.autocrlf
+      GIT_CONFIG_VALUE_0: 'false'
     needs: bake
     runs-on: windows-latest
     timeout-minutes: 25
@@ -55,6 +62,8 @@ jobs:
           ref: main
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
+        with:
+          cache-on-failure: true
       - run: cargo test --locked --no-default-features --features wgpu-runtime --lib scene_lighting
       - run: cargo test --locked --no-default-features --features wgpu-runtime --test city_level_contract
       - run: cargo build --locked --release --no-default-features --features wgpu-runtime,audio --bin vector-range
@@ -63,23 +72,30 @@ jobs:
         run: |
           New-Item -ItemType Directory -Force evidence/lighting
           foreach ($level in @('range','cedar_junction')) {
-            & target/release/vector-range.exe --renderer=dx12 --force-fallback-adapter --no-update --procedural-weapon --capture-lighting --level=$level --output=evidence/lighting/$level.png
+            & target/release/vector-range.exe --renderer=dx12 --force-fallback-adapter --reference-viewport --no-update --procedural-weapon --capture-lighting --level=$level --output=evidence/lighting/$level.png
             if ($LASTEXITCODE -ne 0) { throw "DX12 $level capture failed" }
           }
-          & target/release/vector-range.exe --renderer=dx12 --force-fallback-adapter --no-update --capture-level-menu --output=evidence/lighting/level-menu.png
+          & target/release/vector-range.exe --renderer=dx12 --force-fallback-adapter --reference-viewport --no-update --capture-level-menu --output=evidence/lighting/level-menu.png
           if ($LASTEXITCODE -ne 0) { throw 'DX12 picker capture failed' }
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: level-lighting-DX12-evidence
           path: evidence/lighting/
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Fetch immutable animation packs for the lighting build
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python tools/fetch_source_bound_companions.py --lock tools/source_bound_companion_reuse_lock.json --output evidence/original-inputs
       - name: Stage complete Windows game with baked levels
         shell: pwsh
         run: |
           python -m pip install -r tools/requirements-assets.txt
           if ($LASTEXITCODE -ne 0) { throw 'Packaging dependencies failed' }
+          python tools/stage_lighting_animation_packs.py
+          if ($LASTEXITCODE -ne 0) { throw 'Existing animation pack validation failed' }
           python tools/package_game.py materialize --root . --include-walk --include-ads --include-directional --include-jump --require-generated
           if ($LASTEXITCODE -ne 0) { throw 'Asset verification failed' }
           cargo fetch --manifest-path updater/Cargo.toml --locked
@@ -87,6 +103,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'License collection failed' }
           python tools/package_game.py stage --root . --binary target/release/vector-range.exe --output dist/Rust-Duty-Windows --require-generated
           if ($LASTEXITCODE -ne 0) { throw 'Game staging failed' }
+          Copy-Item evidence/LIGHTING_BUILD_ANIMATION_ORIGIN.json dist/Rust-Duty-Windows/
       - uses: actions/upload-artifact@v4
         with:
           name: Rust-Duty-0.1.12-Lighting-Windows

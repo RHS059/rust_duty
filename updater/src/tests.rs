@@ -1700,7 +1700,7 @@ fn unusable_optional_executable_base_falls_back_to_full_without_activating() {
 /// Real release bytes over the existing test-only loopback Source. Production
 /// binaries retain the fixed GitHub origin; actual game relaunch is a later live smoke.
 #[test]
-#[ignore = "requires real published 0.1.9 and candidate Windows 0.1.11 artifacts"]
+#[ignore = "requires real published 0.1.9 and candidate Windows 0.1.12 artifacts"]
 fn actual_windows_release_candidate_preflight() {
     assert_eq!(TARGET, "x86_64-pc-windows-msvc");
     let inputs = PathBuf::from(std::env::var("RUST_DUTY_PREFLIGHT").expect("preflight directory"));
@@ -1717,8 +1717,8 @@ fn actual_windows_release_candidate_preflight() {
         )
         .unwrap();
     assert_eq!(baseline_manifest.version, version("0.1.9"));
-    assert_eq!(candidate.version, version("0.1.11"));
-    assert_eq!(candidate.sequence, 11);
+    assert_eq!(candidate.version, version("0.1.12"));
+    assert_eq!(candidate.sequence, 12);
     let baseline = inputs.join("baseline").join(&baseline_manifest.bundle.name);
     assert_eq!(
         file_hash(&baseline).unwrap(),
@@ -1855,7 +1855,7 @@ fn actual_windows_release_candidate_preflight() {
             .output()
             .unwrap();
         assert!(output.status.success());
-        assert_eq!(String::from_utf8(output.stdout).unwrap().trim(), "0.1.11");
+        assert_eq!(String::from_utf8(output.stdout).unwrap().trim(), "0.1.12");
         for (name, value) in sentinels {
             assert_eq!(fs::read(store.root.join(name)).unwrap(), value);
         }
