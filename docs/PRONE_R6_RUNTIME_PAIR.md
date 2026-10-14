@@ -84,18 +84,25 @@ asset.prone-pair.json and the exact bytes of asset.prone-camera.json.
 
 ## Evidence at this checkpoint
 
+- 19 new source-free export-adapter tests passed, including success/error
+  restoration of temporary bindings. The existing tools discovery suite passed
+  all 52 tests after this adapter revision.
 - 21 new Python paired matrix/identity/grid/rest tests passed.
 - 12 existing importer tests passed.
 - Python compilation/CLI checks and actual immutable sidecar validation passed.
-- At cf64590c3b544f9cd6b0a860aa94d2ffb7088a1f, the existing
-  [runtime contracts CI](https://github.com/RHS059/rust_duty/actions/runs/38517942517/job/115700867088)
+- At 6afba2da812aba19c862c97189b9ca1cfce50640, the existing
+  [runtime contracts CI](https://github.com/RHS059/rust_duty/actions/runs/38518527667/job/115702686273)
   passed all-target Clippy with warnings denied and the complete
-  cargo test --locked --no-default-features suite, including all 32 new prone
-  integration contracts. The separate existing sampler CI also passed.
-- This revision adds a visible-landing-kick entry contract and one direct
-  paired-renderer phase/draw unit test, exercised
-  through the existing source_triangle_completeness suite. Its fresh CI result
-  is pending; the earlier green result is not attributed to this newer revision.
+  cargo test --locked --no-default-features suite: 913 passed, zero failed,
+  two existing ignored. This includes all 33 new prone contracts and the direct
+  paired-renderer phase/draw test in source_triangle_completeness.
+- The [existing sampler CI](https://github.com/RHS059/rust_duty/actions/runs/38518527676/job/115702686530)
+  passed at the same source head. Broader CI built the game and passed its
+  existing source-conversion, GL/DX12 UI, renderer and same-platform return
+  checks. A Windows dependency-notice provenance failure belongs to the separate
+  release repair; it does not establish paired-prone native presentation.
+- The source-only paired-export adapter below is a later revision. Its source-free
+  checks do not constitute an actual Blender/FBX export result.
 - The initial local Rust build stopped before game compilation because the shared
   filesystem ran out of space. Only its newly generated disposable cache was
   removed; subsequent verification used the existing remote CI.
@@ -109,3 +116,62 @@ and preserve its approved Jump r8 integration.
 A separate semantics-preserving city test initializer fix is included solely to
 unblock the existing all-target Clippy suite. Its first failure was in unchanged
 tests/city_level_contract.rs, not a prone-specific compilation failure.
+
+## Explicit paired export adapter
+
+The historical PR34 five-take exporter remains untouched, including its frozen
+r1 source snapshot, actions and hash. Use tools/export_prone_pair.py with the
+separate tools/prone_pair_r6_export.json for this pair. The config pins exact
+candidate bytes, both Action fingerprints, the camera sidecar, action count,
+object selection and the complete native clock. It is intentionally diagnostic.
+
+The adapter binds both Actions concurrently and checks evaluated camera matrices
+and common rig-object motion at every one of the 545 sidecar times. It emits a
+single global-scene FBX stack; NLA-strip and all-Action export are disabled.
+The camera stays bound but is excluded from the ARMATURE/MESH FBX selection.
+Common motion is retained in the FBX for the importer to remove exactly once.
+Rigid actors with Armature modifiers are rejected because that FBX route would
+omit their object animation. Source files are never saved, existing output
+locations are refused, and temporary bindings are restored even on failure.
+
+This timing choice follows Blender 4.3.2's
+[global-scene bake implementation](https://github.com/blender/blender/blob/v4.3.2/scripts/addons_core/io_scene_fbx/export_fbx_bin.py):
+it retains absolute frame times and names the stack after the scene. The adapter
+sets that temporary scene name to prone_crawl_enter_r6. With the existing
+importer's explicit anim_offset=0, source frames 1..69 map to native crop 0..68
+using --imported-frame-offset 1. This must not be replaced by the historical
+zero-based NLA timing convention.
+
+When the native capture resource window is free, the remaining actual export
+step is to run a fresh private Blender 4.3.2 process, without rendering:
+
+    blender --background --factory-startup --disable-autoexec /private/candidate.blend \
+      --python-exit-code 1 --python tools/export_prone_pair.py -- \
+      --config tools/prone_pair_r6_export.json \
+      --sidecar /private/entry_r6/camera_motion_samples.json \
+      --output-dir /private/new-paired-export
+
+That produces a private FBX, exact sidecar/config copies, a normalized evaluated
+bone/actor source oracle, and export_receipt.json. The receipt is written only
+after all identity/evaluated checks, export and source-byte/Action preservation
+checks pass. It records no artistic approval or runtime-import claim.
+
+Then run the existing import_fbx_viewmodel.py in another clean Blender process,
+with --take prone_crawl_enter_r6 --name prone_crawl_enter_r6 --fps 60
+--native-start 0 --native-end 68 --subdivisions 8 --imported-frame-offset 1,
+the actual emitted FBX hash, the existing canonical skeleton VRA and rigid actors,
+and every --pair-* pin listed above. Use a new output directory. Reimported rig
+object motion must match the sidecar at every time; no fallback normalizes a
+fixed rig or folds a missing object track into root bones. Actual source/FBX
+witness comparison and paired native presentation remain required for this new
+export/runtime boundary. The default manifest stays off until a complete pair
+is available.
+
+For a revised source, create a separate explicit config and matching sidecar
+with the revised source hash, both fingerprints, exact Action count and source
+contract commit. Do not replace the checked-in r6 config or weaken any historical
+pin. This adapter currently accepts the r6-compatible Action names, sidecar
+schema and native timing only. Renamed Actions or another timing/coordinate
+contract need an explicit reviewed adapter/runtime revision, not an alias.
+Hal's wrist correction and genuine paired Eevee/art review remain separate
+outstanding authoring work.
