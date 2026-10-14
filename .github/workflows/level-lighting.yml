@@ -1,0 +1,85 @@
+name: Bake level lighting and validate DX12
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - src/static_lighting.rs
+      - src/range_geometry.rs
+      - src/level_menu.rs
+      - examples/bake_level_lighting.rs
+      - .github/workflows/level-lighting.yml
+permissions:
+  contents: write
+concurrency:
+  group: level-lighting
+  cancel-in-progress: false
+jobs:
+  bake:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo test --locked --no-default-features --lib static_lighting
+      - run: cargo run --locked --release --no-default-features --example bake_level_lighting
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install numpy==2.2.6 Pillow==11.3.0 numba==0.61.2
+      - run: python tools/render_level_lighting.py
+      - name: Commit baked lighting and visual evidence
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add assets/levels/*/lighting.bin assets/levels/*/lighting.json assets/levels/*/lighting_review
+          if ! git diff --cached --quiet; then
+            git commit -m "Bake sun, sky and interior lighting for both levels"
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: baked-level-lighting
+          path: |
+            assets/levels/*/lighting.bin
+            assets/levels/*/lighting.json
+  windows:
+    needs: bake
+    runs-on: windows-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo test --locked --no-default-features --features wgpu-runtime --lib scene_lighting
+      - run: cargo test --locked --no-default-features --features wgpu-runtime --test city_level_contract
+      - run: cargo build --locked --release --no-default-features --features wgpu-runtime,audio --bin vector-range
+      - name: Capture both levels and picker using DX12 WARP
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force evidence/lighting
+          foreach ($level in @('range','cedar_junction')) {
+            & target/release/vector-range.exe --renderer=dx12 --force-fallback-adapter --no-update --procedural-weapon --capture-lighting --level=$level --output=evidence/lighting/$level.png
+            if ($LASTEXITCODE -ne 0) { throw "DX12 $level capture failed" }
+          }
+          & target/release/vector-range.exe --renderer=dx12 --force-fallback-adapter --no-update --capture-level-menu --output=evidence/lighting/level-menu.png
+          if ($LASTEXITCODE -ne 0) { throw 'DX12 picker capture failed' }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: level-lighting-DX12-evidence
+          path: evidence/lighting/
+      - name: Save runtime captures
+        shell: bash
+        run: |
+          mkdir -p assets/levels/review
+          cp evidence/lighting/*.png assets/levels/review/
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add assets/levels/review
+          git commit -m "Record actual DX12 lighting and level picker captures" || true
+          git pull --rebase origin main
+          git push origin HEAD:main

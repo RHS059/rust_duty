@@ -18,10 +18,35 @@ impl SceneLighting {
     /// The cyan fixture strips remain decorative; this is not a shadow system.
     pub fn range() -> Self {
         Self {
-            direction_to_light: vec3(-0.3, 0.8, 0.5).normalize(),
+            direction_to_light: vec3(-0.45, 0.78, 0.43).normalize(),
             ambient: 0.35,
             diffuse: 0.65,
         }
+    }
+
+    /// Dynamic actors sample the same sun and occluded sky as the static bake.
+    /// Collision solids are a conservative proxy here; static bake rays use triangles.
+    pub fn at(position: Vec3, blocks: &[crate::sim::Block]) -> Self {
+        let mut light = Self::range();
+        let blocked = |direction| {
+            blocks
+                .iter()
+                .any(|b| b.bounds.ray(position, direction, 180.).is_some())
+        };
+        if blocked(light.direction_to_light) {
+            light.diffuse = 0.08;
+        }
+        let sky = [
+            Vec3::Y,
+            vec3(0.7, 0.7, 0.),
+            vec3(-0.7, 0.7, 0.),
+            vec3(0., 0.7, 0.7),
+            vec3(0., 0.7, -0.7),
+        ];
+        let visible =
+            sky.iter().filter(|d| !blocked(d.normalize())).count() as f32 / sky.len() as f32;
+        light.ambient = 0.16 + 0.19 * visible;
+        light
     }
 
     /// The offscreen viewmodel camera stays at the origin looking down -Z.
@@ -122,7 +147,7 @@ mod tests {
         let world = SceneLighting::range();
         let front = world.in_view(direction(-FRAC_PI_2, 0.));
         let back = world.in_view(direction(FRAC_PI_2, 0.));
-        assert!((front.irradiance(Vec3::Z) - back.irradiance(Vec3::Z)).abs() > 0.3);
+        assert!((front.irradiance(Vec3::Z) - back.irradiance(Vec3::Z)).abs() > 0.25);
         assert!((front.irradiance(Vec3::Y) - back.irradiance(Vec3::Y)).abs() < 1e-6);
         let up = world.in_view(direction(-FRAC_PI_2, 0.6));
         let down = world.in_view(direction(-FRAC_PI_2, -0.6));

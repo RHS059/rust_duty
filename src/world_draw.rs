@@ -66,7 +66,67 @@ pub(crate) fn register_supply(
         kind: 4,
     });
 }
-pub(crate) fn world(sim: &Simulation, tex: &Texture2D) {
+pub(crate) fn world(
+    sim: &Simulation,
+    tex: &Texture2D,
+    chunks: &[vector_range::city_level::CityChunk],
+    view_projection: Mat4,
+) {
+    if chunks.is_empty() {
+        legacy_world(sim, tex);
+        return;
+    }
+    for chunk in chunks {
+        if vector_range::city_level::chunk_visible(chunk.bounds, sim.player.eye(), view_projection)
+        {
+            draw_mesh(&chunk.mesh);
+        }
+    }
+    let lighting = SceneLighting::at(sim.player.eye(), &sim.blocks);
+    for b in &sim.blocks {
+        if b.kind == 4 {
+            lighting.draw_cube(
+                b.bounds.center(),
+                b.bounds.size(),
+                Some(tex),
+                Color::new(0.22, 0.26, 0.28, 1.),
+            );
+        }
+    }
+    for t in &sim.targets {
+        let c = t.bounds.center();
+        lighting.draw_cube(vec3(c.x, 0.18, c.z), vec3(1.2, 0.36, 0.65), None, INK);
+        lighting.draw_cube(
+            vec3(c.x, 1.10, c.z + 0.18),
+            vec3(0.09, 2., 0.09),
+            None,
+            MUTED,
+        );
+        if t.health <= 0. {
+            continue;
+        }
+        lighting.draw_cube(
+            c,
+            t.bounds.size(),
+            Some(tex),
+            if t.flash > 0. { WHITE } else { ACCENT },
+        );
+        lighting.draw_cube(
+            vec3(c.x, c.y - 0.05, c.z + 0.135),
+            vec3(0.28, 0.42, 0.018),
+            None,
+            INK,
+        );
+        lighting.draw_cube(
+            vec3(c.x, c.y + 0.64, c.z + 0.135),
+            vec3(0.34, 0.30, 0.018),
+            None,
+            INK,
+        );
+        draw_cube_wires(c, t.bounds.size() + Vec3::splat(0.008), INK);
+    }
+}
+fn legacy_world(sim: &Simulation, tex: &Texture2D) {
     let lighting = SceneLighting::range();
     for b in &sim.blocks {
         let color = match b.kind {

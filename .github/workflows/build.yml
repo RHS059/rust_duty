@@ -178,6 +178,8 @@ jobs:
         run: |
           rustc --test build_number.rs -o build-number-tests.exe
           ./build-number-tests.exe
+      - name: Bake lighting for this exact source revision
+        run: cargo run --locked --release --no-default-features --example bake_level_lighting
       - name: Run full Python, game and updater checks in independent lanes
         run: python tools/ci_quality_checks.py
         env:

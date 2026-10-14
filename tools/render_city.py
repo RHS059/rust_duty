@@ -29,7 +29,7 @@ def raster(points, colors, triangles, width, height, perspective):
                 z=1/(u/a[2]+v/b[2]+w/c[2]) if perspective else u*a[2]+v*b[2]+w*c[2]
                 if z<depth[y,x]:
                     depth[y,x]=z
-                    for k in range(3):out[y,x,k]=int(min(255,max(0,colors[f[0],k]*255)))
+                    for k in range(3):out[y,x,k]=int(min(255,max(0,(u*colors[f[0],k]+v*colors[f[1],k]+w*colors[f[2],k])*255)))
     return out
 
 def load(path):
@@ -40,12 +40,12 @@ def load(path):
         f=np.frombuffer(b,'<u2',m,off).reshape(-1,3).astype(np.int64)+start;off+=m*2;start+=n
         vs.append(v);fs.append(f)
     return np.concatenate(vs),np.concatenate(fs)
-def render(v,f,eye,target,path,title,ortho=None):
+def render(v,f,eye,target,path,title,ortho=None,baked=False):
     eye=np.array(eye);forward=np.array(target)-eye;forward=forward/np.linalg.norm(forward)
     right=np.cross(forward,[0,1,0]);right/=np.linalg.norm(right);up=np.cross(right,forward)
     local=v[:,:3]-eye;p=np.column_stack((local@right,local@up,local@forward));W,H=1600,1000
     light=np.array([-.3,.8,.5]);light/=np.linalg.norm(light)
-    col=v[:,6:9]*(.35+.65*np.maximum(0,v[:,3:6]@light))[:,None]
+    col=v[:,6:9] if baked else v[:,6:9]*(.35+.65*np.maximum(0,v[:,3:6]@light))[:,None]
     if not ortho:
         visible=p[f,2]>=.06
         keep=f[visible.all(axis=1)];extra=[];ec=[];ef=[]
