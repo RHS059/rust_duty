@@ -52,13 +52,34 @@ class ReuseTests(unittest.TestCase):
         self.assertEqual(28, len(self.lock['artifacts'][0]['members']))
         self.assertEqual(75, sum(len(a['members']) for a in self.lock['artifacts']))
 
-    def test_current_package_staging_pin_matches_distribution_source(self):
+    def test_historical_r7_package_pin_rejects_current_r8_distribution_source(self):
+        # This lock deliberately remains historical. Rewriting its package pin
+        # would incorrectly admit old r7 artifacts under the new r8 contract.
         row = next(row for row in self.lock['source_files'] if row['path'] == 'tools/package_game.py')
         path = LOCK_PATH.with_name('package_game.py')
         raw = path.read_bytes()
-        self.assertEqual(reuse.digest(path), {'bytes': row['bytes'], 'sha256': row['sha256']})
-        self.assertEqual(hashlib.sha1(b'blob ' + str(len(raw)).encode() + b'\0' + raw).hexdigest(), row['git_blob'])
+        self.assertEqual({'bytes': row['bytes'], 'sha256': row['sha256'], 'git_blob': row['git_blob']}, {
+            'bytes': 47851,
+            'sha256': '284c5b81ec10a3a481abe36bca69e600b13d6d2994d2b6ebc4caa9fd93f80fb7',
+            'git_blob': 'd1630e9cf21a905b27b6a858f1455977286f8175',
+        })
+        self.assertNotEqual(reuse.digest(path), {'bytes': row['bytes'], 'sha256': row['sha256']})
+        current_blob = hashlib.sha1(b'blob ' + str(len(raw)).encode() + b'\0' + raw).hexdigest()
+        self.assertNotEqual(current_blob, row['git_blob'])
         self.assertIn(b'"docs/GPU_TELEMETRY.md"', raw)
+        source = self.root / 'r8-source'
+        (source / 'tools').mkdir(parents=True)
+        (source / row['path']).write_bytes(raw)
+        lock = copy.deepcopy(self.lock)
+        lock['source_files'] = [row]
+        # Exercise both independent production guards: current Git identity and
+        # current worktree bytes. No old artifact or private source is opened.
+        for blob, error in ((current_blob, 'current source Git identity mismatch'),
+                            (row['git_blob'], 'byte/hash mismatch')):
+            answers = ['2' * 40, lock['eligible_assets_tree'], blob]
+            with mock.patch.object(reuse, 'git', side_effect=answers):
+                with self.assertRaisesRegex(ValueError, error):
+                    reuse.verify_source(source, '2' * 40, self.root / 'unused-source.blend', lock)
 
     def test_metadata_wrong_origin_and_artifact(self):
         for where, key, value in [('origin', 'run_id', 1), ('origin', 'run_attempt', 2),

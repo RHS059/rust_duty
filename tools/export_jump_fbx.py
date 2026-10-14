@@ -8,6 +8,10 @@ from pathlib import Path
 import numpy as np
 from mathutils import Matrix
 
+# Blender's --python entry does not consistently add the script directory.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from jump_landing_patch import apply_patch
+
 parser=argparse.ArgumentParser()
 parser.add_argument('--output-dir',type=Path,required=True)
 parser.add_argument('--config',type=Path,required=True)
@@ -25,12 +29,13 @@ skin_names=config['skin_objects']
 actor_names=config['rigid_actors']
 names=[config['armature']]+skin_names+actor_names
 clips=[(row['name'],row['action'],row['frame_start'],row['frame_end'],row['loop']) for row in config['source_takes']]
-assert [(c[0], c[1], c[2], c[3]) for c in clips] == [('jump_takeoff', 'jump_takeoff_r7', 1, 12), ('jump_air', 'jump_air_r7', 1, 24), ('jump_land', 'jump_land_r7', 1, 29)]
+assert [(c[0], c[1], c[2], c[3]) for c in clips] == [('jump_takeoff', 'jump_takeoff_r7', 1, 12), ('jump_air', 'jump_air_r7', 1, 24), ('jump_land', 'jump_land_r8_ease_candidate', 1, 29)]
 assert all(row['role']=='gameplay' for row in config['source_takes'])
 assert [c[4] for c in clips] == [False, False, False]
 source_file=Path(bpy.data.filepath)
 source_hash=hashlib.sha256(source_file.read_bytes()).hexdigest()
 assert source_hash==config['source_sha256'], 'Unexpected source bytes'
+patch_provenance=apply_patch(bpy.data.actions, source_hash)
 hashes={config['source_file']:source_hash}
 assert all(not (OUT/name).exists() for name in ('jump.fbx','native_oracle.json','native_oracle.npz')), 'Refuse overwrite'
 assert all(action in bpy.data.actions for _,action,*_ in clips), 'Missing source Action'
@@ -83,6 +88,7 @@ def positions(o,deps):
  eo.to_mesh_clear();return ans
 
 meta={'schema':'rust-duty-native-locomotion-oracle/v1','source_files_sha256':hashes,
+      'source_action_patch':patch_provenance,
       'blender':bpy.app.version_string,'fps':FPS,'bake_hz':BAKE_HZ,'selected_loop':None,
       'clip_names':[c[0] for c in clips],'deform_bones':deform,'skin_objects':skin_names,
       'actors':actor_names,'excluded_actor':'hk416_magazine_outgoing: reload-only duplicate has zero scale throughout locomotion',
@@ -94,6 +100,7 @@ for name,source,start,end,loop in clips:
  # Both exact bake frames and intervening half-steps, independently reevaluated.
  exact=sorted(set([start,end]+[start+(end-start)*i/12 for i in range(13)]))
  exact=[round((f-start)*4)/4+start for f in exact]
+ if name=='jump_land':exact=sorted(set(exact+[4.,4.5,5.,5.5,6.,6.5,7.,12.]))
  if name=='normal_diagnostic_sequence':exact=sorted(set(exact+[31.,55.,90.,125.,160.,169.,193.]))
  half_step=FPS/BAKE_HZ/2
  mid=[f+half_step for f in exact[:-1] if f+half_step<end]

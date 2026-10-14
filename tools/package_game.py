@@ -358,19 +358,22 @@ def jump_bound(root: Path) -> bool:
 
 
 def verify_jump(root: Path, folder: Path = JUMP_DIR, require_transports: bool = False) -> dict:
+    # Non-Jump packaging entry points keep their existing standalone imports.
+    from jump_landing_patch import PATCH_PROVENANCE
     root = Path(root)
     manifest = json.loads(regular_file(root, folder / 'manifest.json').read_text())
     source = manifest.get('source', {})
     names = [*CLIPS, 'normal_walk_r1', *JUMP_CLIPS]
     jump = manifest.get('jump_clips', [])
-    if (manifest.get('schema') != 'rust-duty-authored-jump-distribution/v1'
+    if (manifest.get('schema') != 'rust-duty-authored-jump-distribution/v2'
             or manifest.get('clip_count') != 47 or manifest.get('clip_names') != names
             or set(manifest.get('files', {})) != set(COMPANIONS)
             or source.get('file') != 'assets/authoring/jump/halcyon_jump.blend'
             or source.get('sha256') != 'a2c4b2bbe98da1a608450bba92404cb39008eae5861bcf8fc3f5d2f978df0e3b'
             or source.get('fps') != 60 or source.get('bake_hz') != 480
+            or source.get('action_patch') != PATCH_PROVENANCE
             or [c.get('name') for c in jump] != list(JUMP_CLIPS)
-            or [c.get('action') for c in jump] != [clip + '_r7' for clip in JUMP_CLIPS]
+            or [c.get('action') for c in jump] != ['jump_takeoff_r7', 'jump_air_r7', 'jump_land_r8_ease_candidate']
             or [c.get('loop') for c in jump] != [False, False, False]
             or [c.get('duration') for c in jump] != [11/60, 23/60, 28/60]
             or any(c.get('frame_start') != 1 for c in jump)
@@ -414,6 +417,7 @@ def verify_jump(root: Path, folder: Path = JUMP_DIR, require_transports: bool = 
                 or parity.get('asset_sha256') != manifest['files']['asset.vra']['sha256']
                 or parity.get('source_sha256', {}).get('halcyon_jump.blend') != source.get('sha256')
                 or parity.get('source_fbx_sha256') != source.get('fbx', {}).get('sha256')
+                or parity.get('source_action_patch') != PATCH_PROVENANCE
                 or parity.get('clip') != clip or parity.get('samples', 0) < 25
                 or parity.get('visibility_failures') != 0
                 or parity.get('declared_position_limit_m') != .001
@@ -425,6 +429,9 @@ def verify_jump(root: Path, folder: Path = JUMP_DIR, require_transports: bool = 
                 or conversion.get('timing_policy', {}).get('subdivisions') != 8
                 or conversion.get('timing_policy', {}).get('samples') != (end - 1) * 8 + 1):
             raise ValueError('JUMP lacks matching successful source/Rust parity')
+        if clip == 'jump_land' and not {4., 4.5, 5., 5.0625, 5.5, 6., 6.0625, 6.5, 7., 12.}.issubset(
+                {record.get('native_frame') for record in parity.get('records', [])}):
+            raise ValueError('JUMP lacks changed-interval source/Rust parity samples')
         samples += parity['samples']
     seams = json.loads(regular_file(root, folder / 'runtime-seams.json').read_text())
     if (seams.get('backend') != 'Rust CPU sampler' or seams.get('passed') is not True
@@ -440,7 +447,7 @@ def verify_jump(root: Path, folder: Path = JUMP_DIR, require_transports: bool = 
         if len(data) != source['bytes'] or hashlib.sha256(data).hexdigest() != source['sha256']:
             raise ValueError('JUMP differs from committed Blender source')
     return {'clips': list(JUMP_CLIPS), 'clip_count': 47, 'original_clips_preserved': 44,
-            'source_sha256': source['sha256'], 'parity_samples': samples}
+            'source_sha256': source['sha256'], 'source_action_patch': source['action_patch'], 'parity_samples': samples}
 
 
 DIRECTIONAL_DIR = Path('assets/directional')

@@ -62,13 +62,20 @@ class PackageGameTests(unittest.TestCase):
         ])
         script = self.base / "package_game.py"
         script.write_bytes(original)
-        reuse.check_digest(script, row)
-        # Changing validator code, even at the same byte length, must not inherit
-        # approval from the reviewed RUNTIME_FILES-only addition.
+        # The r7 reuse lock is historical and must reject the r8 packager. Do
+        # not repin old generated artifacts to make a current-code test pass.
+        with self.assertRaisesRegex(ValueError, "byte/hash mismatch"):
+            reuse.check_digest(script, row)
+        # A fixture-only current-byte pin exercises the positive control and
+        # same-length drift guard. It is never written to the production lock.
+        current_fixture_pin = reuse.digest(script)
+        reuse.check_digest(script, current_fixture_pin)
         altered = original.replace(b"unsafe distribution path", b"unsafe distribution PATH", 1)
         self.assertNotEqual(altered, original)
         self.assertEqual(len(altered), len(original))
         script.write_bytes(altered)
+        with self.assertRaisesRegex(ValueError, "byte/hash mismatch"):
+            reuse.check_digest(script, current_fixture_pin)
         with self.assertRaisesRegex(ValueError, "byte/hash mismatch"):
             reuse.check_digest(script, row)
 

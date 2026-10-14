@@ -45,7 +45,7 @@
     },
     {
       "name": "jump_land",
-      "action": "jump_land_r7",
+      "action": "jump_land_r8_ease_candidate",
       "frame_start": 1,
       "frame_end": 29,
       "loop": false,
