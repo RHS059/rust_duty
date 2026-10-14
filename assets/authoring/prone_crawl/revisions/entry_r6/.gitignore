@@ -1,0 +1,12 @@
+*.blend
+*.blend1
+*.mp4
+*.png
+*.jpg
+__pycache__/
+baseline_preservation.json
+revision_report.json
+contact_precheck.json
+authoring.log
+verification.log
+capture_pair_test.log

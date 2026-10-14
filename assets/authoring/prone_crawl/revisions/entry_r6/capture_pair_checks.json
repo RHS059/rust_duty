@@ -1,0 +1,22 @@
+{
+  "checks": {
+    "snapshot.actions": true,
+    "snapshot.nla": true,
+    "snapshot.packed_images": true,
+    "snapshot.drivers": true,
+    "extra.actions_metadata": true,
+    "extra.pose_channel_defaults": true,
+    "extra.actions_extended": true,
+    "extra.meshes": true,
+    "extra.armatures": true,
+    "extra.objects_and_bindings": true,
+    "extra.materials": true,
+    "extra.cameras": true,
+    "object_defaults": true,
+    "scene": true,
+    "camera_unbound": true,
+    "depth": true
+  },
+  "rendered": false,
+  "frames_exercised": 69
+}
