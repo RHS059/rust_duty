@@ -2,13 +2,13 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
-from ensure_level_lighting import CODE, fresh, inputs, record
+from ensure_level_lighting import CODE, OPTIMIZER, fresh, inputs, record
 
 class LightingCacheTests(unittest.TestCase):
     def test_input_and_output_edits_invalidate_cached_bake(self):
         with tempfile.TemporaryDirectory() as directory:
             root=Path(directory)
-            for name in CODE:
+            for name in (*CODE, *OPTIMIZER):
                 p=root/name;p.parent.mkdir(parents=True,exist_ok=True);p.write_text('source')
             folder=root/'assets/levels/range';folder.mkdir(parents=True)
             output=folder/'lighting.bin';output.write_bytes(b'baked fixture')
@@ -24,7 +24,7 @@ class LightingCacheTests(unittest.TestCase):
     def test_source_race_cannot_be_cached(self):
         with tempfile.TemporaryDirectory() as directory:
             root=Path(directory)
-            for name in CODE:
+            for name in (*CODE, *OPTIMIZER):
                 p=root/name;p.parent.mkdir(parents=True,exist_ok=True);p.write_text('source')
             before=inputs(root,'range')
             (root/CODE[0]).write_text('changed')

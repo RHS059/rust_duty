@@ -11,5 +11,9 @@
     "assets/levels/cedar_junction/level.json": "e6bf2b57b346bd0154ccbd4ae9b06ae01ab86dba563705fbd8e9ff5c7e02e568",
     "assets/levels/cedar_junction/meshes.bin": "7f64d0c429e6e41577e555c514bcae08a33b1de62f9741ff848d45bec2717967"
   },
-  "output_sha256": "5da0a11ea172f03228f0ddf757a13bd1c029f5d3d25b396f75b83b90c7084911"
+  "optimization": {
+    "src/lighting_mesh.rs": "155813ff0bcf15addc7a2ea692bded5d681fcd0534f5191ee8158c87477623a8",
+    "examples/compact_level_lighting.rs": "be3674c238bd057ac2c9683891febf234ba71f9d26b0e77b98c7b08de46d78b0"
+  },
+  "output_sha256": "5fc13c7fa36e193daa044fe92e97ad843ff7c24ebcb7c8701376109810600458"
 }

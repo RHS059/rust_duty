@@ -3,6 +3,7 @@
   "diffuse_bounces": 1,
   "hemisphere_samples": 32,
   "interior_lights": 107,
+  "lighting_sample_error_bound_rgba8": 2,
   "limitations": [
     "Static geometry and lights only",
     "No dynamic actor shadows or specular reflections"
@@ -18,7 +19,9 @@
   "sun_samples": 8,
   "target_triangle_edge_m": 0.65,
   "tone_map": "ACES fitted curve, sRGB output",
+  "topology_optimization": "coplanar subdivision collapse; no vertex displacement",
+  "triangles": 4980302,
   "vertex_storage": "position-f32-rgba8",
   "vertical_surface_edge_m": 0.25,
-  "vertices": 9282561
+  "vertices": 6757779
 }

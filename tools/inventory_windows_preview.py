@@ -23,6 +23,7 @@ REQUIRED_FILES = (
     'docs/UI_THEME.md', 'docs/UI_THEME_EXAMPLES.md', 'docs/FRAME_PERFORMANCE.md',
     'docs/GPU_TELEMETRY.md', 'assets/animations.cfg',
     'assets/levels/cedar_junction/level.json', 'assets/levels/cedar_junction/meshes.bin',
+    'assets/levels/cedar_junction/lighting.bin', 'assets/levels/range/lighting.bin',
     'docs/CEDAR_JUNCTION.md',
 )
 LAUNCHER = '@echo off\ncd /d "%~dp0"\n"%~dp0vector-range.exe" --renderer=dx12 --no-update\nexit /b %ERRORLEVEL%\n'

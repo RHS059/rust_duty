@@ -1,0 +1,25 @@
+{
+  "artifact_id": 11877512359,
+  "name": "generated-jump-runtime",
+  "run_id": 38530583468,
+  "head_sha": "0f4bedbbff5e808b86bd71be048570cca6495255",
+  "zip_sha256": "7308adb749250b64f27a6db6b033f7e918e632e4f27da032e20c682c3b8ccb15",
+  "size_bytes": 21573102,
+  "url": "https://github.com/RHS059/rust_duty/actions/runs/38530583468/artifacts/11877512359",
+  "kind": "jump",
+  "members": [
+    "asset.vra",
+    "asset.vra.gz",
+    "asset.vrm",
+    "asset.vrs",
+    "asset.vrs.gz",
+    "conversion-jump_air.json",
+    "conversion-jump_land.json",
+    "conversion-jump_takeoff.json",
+    "manifest.json",
+    "parity-jump_air.json",
+    "parity-jump_land.json",
+    "parity-jump_takeoff.json",
+    "runtime-seams.json"
+  ]
+}

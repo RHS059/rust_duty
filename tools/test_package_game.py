@@ -33,6 +33,8 @@ CITY_RESOURCES = {
     "docs/CEDAR_JUNCTION.md": b"# Cedar Junction runtime asset layout and controls\n",
     "assets/levels/cedar_junction/level.json": b'{"schema":"rust-duty-city/v1","mesh_file":"meshes.bin"}\n',
     "assets/levels/cedar_junction/meshes.bin": b"RDCITY01" + struct.pack("<I", 0),
+    "assets/levels/cedar_junction/lighting.bin": b"RDCITY03" + struct.pack("<I", 0),
+    "assets/levels/range/lighting.bin": b"RDCITY03" + struct.pack("<I", 0),
 }
 RUNTIME_RESOURCES = {**UI_RESOURCES, **CITY_RESOURCES}
 
