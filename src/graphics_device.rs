@@ -430,7 +430,10 @@ mod tests {
         prepare_launch(&args, &mut options).unwrap();
         assert_eq!(
             options.runtime(true, true).unwrap(),
-            crate::platform::launch::RuntimeChoice::Legacy
+            crate::platform::launch::RuntimeChoice::Wgpu {
+                requested: "auto".into(),
+                force_fallback: false
+            }
         );
         Preference::Adapter(id("RTX 3080 Ti")).save(&path).unwrap();
         prepare_launch(&args, &mut options).unwrap();
