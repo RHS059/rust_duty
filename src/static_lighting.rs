@@ -341,6 +341,16 @@ pub fn subdivide(mesh: &Mesh, max_edge: f32) -> Vec<Mesh> {
         let a = mesh.vertices[f[0] as usize];
         let b = mesh.vertices[f[1] as usize];
         let c = mesh.vertices[f[2] as usize];
+        // Wall/window contact shadows need denser sampling than broad terrain.
+        let normal = (a.normal + b.normal + c.normal)
+            .truncate()
+            .try_normalize()
+            .unwrap_or(Vec3::Y);
+        let max_edge = if normal.y.abs() < 0.6 {
+            max_edge.min(0.25)
+        } else {
+            max_edge
+        };
         if a.position
             .distance(b.position)
             .max(b.position.distance(c.position))

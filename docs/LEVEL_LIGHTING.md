@@ -9,7 +9,7 @@ Epic's Lightmass documentation describes precomputed area shadows, sky occlusion
 - Eight directional samples approximate a finite sun disk, with warm daylight.
 - Thirty-two cosine-weighted hemisphere rays provide occluded cool sky illumination and one diffuse bounce using cached radiance on source triangles. Wall colors affect bounced light.
 - Interior room lights have inverse-square attenuation and shadow rays. The range has lights at its overhead fixtures. Warm visible ceiling panels mark the sources.
-- Adaptive triangle subdivision samples large surfaces; an area threshold prevents thin trim from accumulating unnecessary triangles. Identical baked vertices are merged afterward.
+- Adaptive triangle subdivision samples large surfaces (0.25 m targets on walls/windows and the range, 0.65 m on broad city terrain); an area threshold prevents thin trim from accumulating unnecessary triangles. Identical baked vertices are merged afterward.
 - Linear-light calculations precede an ACES-fitted highlight curve and sRGB encoding. This is a fixed exposure bake, not Unreal's complete ACES pipeline.
 - Static geometry is lit once and stored in `assets/levels/<level>/lighting.bin`; it is never lit a second time by the loader. The unlit source geometry is retained separately.
 - Held weapons sample sun/sky occlusion from world collision at the player's position. This conservative dynamic approximation does not use the static triangle bake.
