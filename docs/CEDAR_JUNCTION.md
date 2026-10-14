@@ -79,3 +79,18 @@ visual quality, controller feel, sound, or performance on a player's GPU.
 The level layout and supporting code are newly authored for this game. Source
 asset provenance remains tied to `low_poly_items`; conversion does not create a
 new license or extend the source collection's usage rights.
+
+## Committed level review
+
+The city uses 125 unique catalogue models in 5,387 placements. The independent
+clearance audit passes 189 routes sampled at 22,757 positions. A separate Rust
+integration test loads the shipped geometry and moves the real player through a
+shop entrance, up a switchback staircase, and into an upstairs room, then checks
+that reset restores the city spawn.
+
+The following are depth-tested CPU renders of the runtime geometry, not native
+Windows screenshots. Native GPU performance has not been measured.
+
+![Main Street](../assets/levels/cedar_junction/review/main_street.jpg)
+
+![Union Coffee interior](../assets/levels/cedar_junction/review/coffee_interior.jpg)

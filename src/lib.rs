@@ -86,3 +86,6 @@ pub mod field_ui;
 pub mod game_update;
 pub mod hud;
 pub mod pause_menu;
+
+pub mod range_geometry;
+pub mod static_lighting;

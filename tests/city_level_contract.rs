@@ -70,8 +70,11 @@ fn shipped_city_loads_and_player_walks_into_a_shop_and_up_its_stairs() {
     let metadata: Value = serde_json::from_slice(&std::fs::read(&path).unwrap()).unwrap();
     assert_eq!(city.name, "Cedar Junction");
     assert!(city.chunks.len() > 1, "city uses spatial mesh batches");
-    let vertices: usize = city
-        .chunks
+    let source_chunks = vector_range::city_level::decode_meshes_unlit(
+        &std::fs::read(path.with_file_name("meshes.bin")).unwrap(),
+    )
+    .unwrap();
+    let vertices: usize = source_chunks
         .iter()
         .map(|chunk| chunk.mesh.vertices.len())
         .sum();

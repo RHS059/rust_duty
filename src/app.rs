@@ -4,7 +4,7 @@ use crate::world_draw::{
 };
 use crate::{authored_viewmodel, sound, weapon_model};
 use std::io::Write;
-use vector_range::city_level::{CityLevel, LevelSelection, CITY_FAR_PLANE};
+use vector_range::city_level::{CityLevel, CITY_FAR_PLANE};
 use vector_range::draw::facade::*;
 use vector_range::frame_performance::{BoundaryReason, Eligibility};
 use vector_range::frame_performance_session as frame_trace;
@@ -140,22 +140,11 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
     let mut locomotion_state =
         vector_range::locomotion_presentation::LocomotionPresentation::default();
     let mut sim = Simulation::new();
-    let level_selection =
-        LevelSelection::from_options(&args, std::env::var("RUST_DUTY_LEVEL").ok().as_deref())?;
-    let city = match level_selection {
-        LevelSelection::CedarJunction => {
-            let city = CityLevel::load(&CityLevel::resolve(&authored_executable))?;
-            city.install(&mut sim);
-            eprintln!(
-                "Loaded {}: {} mesh chunks, {} colliders",
-                city.name,
-                city.chunks.len(),
-                city.colliders.len()
-            );
-            Some(city)
-        }
-        LevelSelection::Range => None,
-    };
+    let (level_selection, city) =
+        crate::level_menu::choose(&args, &authored_executable, &mut game_update).await?;
+    if let Some(city) = &city {
+        city.install(&mut sim);
+    }
     let mut startup_notice = theme_error;
     {
         // Authored action clips retime gameplay gates; unavailable slots keep
@@ -199,6 +188,23 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
         supply.floor_center = city.supply_position;
     }
     register_supply(&mut sim, &supply);
+    let range_chunks = if city.is_none() {
+        let path = CityLevel::resolve(&authored_executable)
+            .parent()
+            .unwrap()
+            .parent()
+            .unwrap()
+            .join("range/lighting.bin");
+        if path.exists() {
+            vector_range::city_level::decode_meshes(
+                &std::fs::read(path).map_err(|e| e.to_string())?,
+            )?
+        } else {
+            Vec::new()
+        }
+    } else {
+        Vec::new()
+    };
     let texture = grid_texture();
     let target = render_target_ex(
         if framing.reference { 960 } else { 1440 },
@@ -207,6 +213,13 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
     )?;
     let mut initial = true;
     let mut session = vector_range::session::SessionController::default();
+    if !args
+        .iter()
+        .any(|a| a.starts_with("--capture") || a == "--demo")
+    {
+        session.set_active(true);
+        initial = false;
+    }
     let mut focus_input = vector_range::session::FocusInput::new();
     let mut cursor_captured = false;
     let mut debug = false;
@@ -1212,11 +1225,21 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
             // A renderer failure must never leave the camera half of a pair active.
             sim.set_prone_camera_track(None);
         }
-        clear_background(if city.is_some() {
-            Color::new(0.64, 0.77, 0.87, 1.)
-        } else {
-            Color::new(0.66, 0.76, 0.78, 1.)
-        });
+        set_default_camera();
+        clear_background(Color::new(0.32, 0.49, 0.68, 1.));
+        // Sky gradient tracks pitch; lighting itself is world fixed.
+        let horizon = 0.52 + sim.player.pitch * 0.55;
+        for strip in 0..48 {
+            let y = strip as f32 / 48.;
+            let t = (y / horizon.max(0.1)).clamp(0., 1.);
+            draw_rectangle(
+                0.,
+                y * screen_height(),
+                screen_width(),
+                screen_height() / 48. + 1.,
+                Color::new(0.25 + 0.46 * t, 0.43 + 0.35 * t, 0.65 + 0.18 * t, 1.),
+            );
+        }
         let aspect = if framing.reference {
             16. / 9.
         } else {
@@ -1252,7 +1275,13 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
             ) * Mat4::look_at_rh(eye, eye + forward, world_camera.up);
             city_world(city, &sim, view_projection, &supply);
         } else {
-            world(&sim, &texture);
+            let view_projection = Mat4::perspective_rh_gl(
+                world_camera.fovy,
+                aspect,
+                world_camera.z_near,
+                world_camera.z_far,
+            ) * Mat4::look_at_rh(eye, eye + forward, world_camera.up);
+            world(&sim, &texture, &range_chunks, view_projection);
         }
         let body_frame = body.update(&sim, if active { dt } else { 0. }, &body_tuning);
         if !capture_lighting && capture_sequence.is_none() {
@@ -1637,6 +1666,13 @@ mod tests {
     fn performance_eligibility_preserves_active_hitches_and_explicit_exclusions() {
         let focus = vector_range::session::FocusState::default();
         let mut session = vector_range::session::SessionController::default();
+        if !args
+            .iter()
+            .any(|a| a.starts_with("--capture") || a == "--demo")
+        {
+            session.set_active(true);
+            initial = false;
+        }
         session.set_active(true);
         let transition = session.step(vector_range::session::SessionInput {
             dt: 1.0,

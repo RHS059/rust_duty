@@ -110,8 +110,10 @@ asset.prone-pair.json and the exact bytes of asset.prone-camera.json.
   artistic pass, packaged build or ship claim.
 
 The existing Cargo/Python suites remain the test route; no new CI workflow is
-introduced. Source changes are based on main 601b7fc416d7feaf677b002354f7130b0f8a8c8f
-and preserve its approved Jump r8 integration.
+introduced. Source changes started from main 601b7fc416d7feaf677b002354f7130b0f8a8c8f.
+The branch now incorporates main f3d66e9bf590b5710a6f9d3f9f55d434e3fbd73c,
+preserving approved Jump r8, the city picker and new level/weapon lighting.
+Earlier green Rust evidence does not certify this updated-base revision.
 
 A separate semantics-preserving city test initializer fix is included solely to
 unblock the existing all-target Clippy suite. Its first failure was in unchanged
