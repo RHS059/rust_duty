@@ -13,11 +13,12 @@ impl FixedClock {
         self.remainder = 0.;
     }
     pub fn advance(&mut self, elapsed: f64) -> Option<usize> {
-        if !elapsed.is_finite() || !(0.0..=Self::MAX_FRAME).contains(&elapsed) {
+        if !elapsed.is_finite() || elapsed < 0. {
             self.clear();
             return None;
         }
-        self.remainder += elapsed;
+        // Slow frames advance at most MAX_FRAME (slow motion) instead of freezing play.
+        self.remainder += elapsed.min(Self::MAX_FRAME);
         let ticks = ((self.remainder + Self::ENDPOINT_EPSILON) / Self::STEP).floor() as usize;
         self.remainder -= ticks as f64 * Self::STEP;
         Some(ticks)
@@ -103,7 +104,10 @@ mod tests {
     fn hitch_budget_and_reset_do_not_leave_backlog() {
         let mut c = FixedClock::default();
         assert_eq!(c.advance(0.1), Some(12));
-        assert_eq!(c.advance(0.4), None);
+        // Over-budget frames are clamped to MAX_FRAME (30 ticks), never dropped.
+        assert_eq!(c.advance(0.4), Some(30));
+        assert_eq!(c.advance(-0.01), None);
+        assert_eq!(c.advance(f64::NAN), None);
         assert_eq!(c.advance(FixedClock::STEP), Some(1));
         c.advance(0.003);
         c.clear();

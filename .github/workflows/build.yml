@@ -178,8 +178,8 @@ jobs:
         run: |
           rustc --test build_number.rs -o build-number-tests.exe
           ./build-number-tests.exe
-      - name: Bake lighting for this exact source revision
-        run: python tools/ensure_level_lighting.py
+      - name: Verify committed level lighting (never bakes)
+        run: python tools/ensure_level_lighting.py --check
       - name: Run full Python, game and updater checks in independent lanes
         run: python tools/ci_quality_checks.py
         env:

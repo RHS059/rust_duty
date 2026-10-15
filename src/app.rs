@@ -1655,7 +1655,7 @@ mod tests {
             dt: 1.0,
             ..Default::default()
         });
-        assert!(transition.active && transition.discard_timing);
+        assert!(transition.active && !transition.discard_timing);
         assert_eq!(
             frame_trace_eligibility(transition.active, false, focus, false),
             Eligibility::Eligible

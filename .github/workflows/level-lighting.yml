@@ -3,13 +3,12 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
+    # Rebake only when level data or the explicit BAKE_VERSION/OPTIMIZER_VERSION
+    # in ensure_level_lighting.py change; source refactors never trigger a bake.
     paths:
-      - src/lighting_mesh.rs
       - tools/ensure_level_lighting.py
-      - src/static_lighting.rs
-      - src/range_geometry.rs
-      - src/level_menu.rs
-      - examples/bake_level_lighting.rs
+      - assets/levels/cedar_junction/level.json
+      - assets/levels/cedar_junction/meshes.bin
       - .github/workflows/level-lighting.yml
 permissions:
   contents: write
