@@ -10,6 +10,7 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 import json
 from pathlib import Path
+import os
 import subprocess
 import sys
 import time
@@ -34,6 +35,12 @@ def pipelines(python=sys.executable, *, native_validation=False):
     if native_validation:
         del lanes['updater']  # Windows retains all updater checks; Linux only hosts native evidence.
     return lanes
+
+
+def selected(lanes, names):
+    """Keep only the comma-separated lanes a pull request touches; empty keeps all."""
+    wanted = {name.strip() for name in names.split(',') if name.strip()}
+    return {name: commands for name, commands in lanes.items() if not wanted or name in wanted}
 
 
 def run_lane(name, commands, root, output, runner=None):
@@ -89,5 +96,6 @@ if __name__ == '__main__':
     parser.add_argument('--native-validation', action='store_true')
     args = parser.parse_args()
     result = run_all(root, root / 'evidence/quality-checks',
-                     pipelines(native_validation=args.native_validation))
+                     selected(pipelines(native_validation=args.native_validation),
+                              os.environ.get('RUST_DUTY_CI_LANES', '')))
     raise SystemExit(0 if result['passed'] else 1)

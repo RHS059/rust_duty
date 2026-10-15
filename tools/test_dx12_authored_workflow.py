@@ -343,7 +343,7 @@ class AuthoredWorkflowTests(unittest.TestCase):
         self.assertNotIn('if', admission)
         self.assertNotIn('continue-on-error', admission)
         authored = caller['jobs']['dx12-authored-validation']
-        self.assertEqual(authored['needs'], ['animation-assets', 'walk-assets', 'ads-assets',
+        self.assertEqual(authored['needs'], ['changes', 'animation-assets', 'walk-assets', 'ads-assets',
             'directional-assets', 'jump-assets', 'native-validation', 'current-ads-admission'])
         self.assertEqual(authored['with'], {
             'source_proof_admitted': "${{ needs.current-ads-admission.outputs.admitted == 'true' }}"})
@@ -352,7 +352,7 @@ class AuthoredWorkflowTests(unittest.TestCase):
     def test_skipped_admission_preserves_ineligible_strict_captures_but_failure_blocks_them(self):
         caller = yaml.safe_load((self.path.parent / 'build.yml').read_text(encoding='utf-8'))
         authored = caller['jobs']['dx12-authored-validation']
-        expected_gate = """always() && !cancelled() && needs.animation-assets.result == 'success' && needs.walk-assets.result == 'success' &&
+        expected_gate = """always() && !cancelled() && needs.changes.outputs.authored == 'true' && needs.animation-assets.result == 'success' && needs.walk-assets.result == 'success' &&
             needs.ads-assets.result == 'success' && needs.directional-assets.result == 'success' &&
             needs.jump-assets.result == 'success' && needs.native-validation.result == 'success' &&
             (needs.current-ads-admission.result == 'success' || needs.current-ads-admission.result == 'skipped')"""

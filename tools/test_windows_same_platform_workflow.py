@@ -24,7 +24,8 @@ class WorkflowTests(unittest.TestCase):
     def test_caller_waits_for_all_five_current_producers_only(self):
         caller = (ROOT / '.github/workflows/build.yml').read_text()
         expected = ('  windows-same-platform-return:\n'
-                    '    needs: [animation-assets, walk-assets, ads-assets, directional-assets, jump-assets]\n'
+                    '    needs: [changes, animation-assets, walk-assets, ads-assets, directional-assets, jump-assets]\n'
+                    "    if: needs.changes.outputs.updater == 'true' || needs.changes.outputs.tools == 'true'\n"
                     '    uses: ./.github/workflows/windows-same-platform-return.yml\n')
         self.assertEqual(caller.count(expected), 1)
 
