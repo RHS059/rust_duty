@@ -1,8 +1,8 @@
 {
   "schema": "rust-duty-lighting-cache/v1",
   "inputs": {
-    "src/static_lighting.rs": "4ceaef61c372f33341e387711c2f519d90f0f53ea1ad16b519a618e2ccbb4d94",
-    "src/range_geometry.rs": "3a667e3103134fcae8cd006206ede10199104eeef4035e146286520c133d6abd",
+    "src/static_lighting.rs": "2507e81c75dfe21467260612e7c67334653c780f91621a5ba74c356c0efa0dae",
+    "src/range_geometry.rs": "02d4e79643f7e0ae07bb7ff5f00d2816c5d50e7bee0c3a38874c9755442e28cf",
     "src/sim.rs": "7e9b135dd0b52c734c762fcb440eeceb2a65c904b96b27ed1a405b474ef049d8",
     "examples/bake_level_lighting.rs": "594f6b3ce8d16847f0d44e7d529b223f2981bde1149a7b36a2e5276d65439ddb",
     "src/scene_lighting.rs": "21b2b1025a000e1c8abbb890e2bfb37a3b7e2228db145537bad5c250c2090272",
@@ -12,7 +12,7 @@
     "assets/levels/cedar_junction/meshes.bin": "7f64d0c429e6e41577e555c514bcae08a33b1de62f9741ff848d45bec2717967"
   },
   "optimization": {
-    "src/lighting_mesh.rs": "155813ff0bcf15addc7a2ea692bded5d681fcd0534f5191ee8158c87477623a8",
+    "src/lighting_mesh.rs": "d8ba4377ea1f313d9d29555675f0fe4def184a4781d90558e1b5897bc75edee8",
     "examples/compact_level_lighting.rs": "be3674c238bd057ac2c9683891febf234ba71f9d26b0e77b98c7b08de46d78b0"
   },
   "output_sha256": "5fc13c7fa36e193daa044fe92e97ad843ff7c24ebcb7c8701376109810600458"
