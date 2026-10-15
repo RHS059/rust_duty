@@ -106,10 +106,10 @@ jobs:
         if: matrix.lane == 'build-preview'
         working-directory: evidence/runtime-root
         run: cargo build --locked --release --features wgpu-runtime --bin vector-range
-      - name: Bake level lighting for the exact preview source
+      - name: Verify committed level lighting for the exact preview source
         if: matrix.lane == 'build-preview'
         working-directory: evidence/runtime-root
-        run: python tools/ensure_level_lighting.py
+        run: python tools/ensure_level_lighting.py --check
       - name: Verify actual current DX12 smoke before packaging
         if: matrix.lane == 'build-preview'
         working-directory: evidence/runtime-root

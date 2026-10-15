@@ -44,12 +44,13 @@ fn static_wiring_guard_accepts_crlf_but_rejects_broken_control_flow() {
 #[test]
 fn live_input_boundaries_still_interrupt_firing_but_capture_does_not() {
     // Exercise all combinations, including real pause/resume and focus edges.
-    for bits in 0..16 {
+    for bits in 0..32 {
         let transition = SessionTransition {
             active: true,
             paused: bits & 1 != 0,
             resumed: bits & 2 != 0,
             discard_timing: bits & 4 != 0,
+            hitch: bits & 16 != 0,
         };
         let focus_changed = bits & 8 != 0;
         assert_eq!(
@@ -79,7 +80,7 @@ fn an_actual_live_render_hitch_still_interrupts_the_committed_burst() {
         dt: 2.4,
         ..SessionInput::default()
     });
-    assert!(transition.active && transition.discard_timing);
+    assert!(transition.active && transition.hitch && !transition.discard_timing);
     assert!(!transition.paused && !transition.resumed);
     if transition.interrupts_firing_sequence(false, false) {
         sim.player.firing_sequence = false;

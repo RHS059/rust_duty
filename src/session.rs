@@ -1,7 +1,7 @@
 //! Presentation-frame pause/resume state, independent of the renderer and OS.
 //!
-//! A slow render frame invalidates simulation time; it does not change whether
-//! the player is playing. In particular, cursor recapture may itself produce a
+//! A slow render frame is clamped by the fixed clock (slow motion); only an invalid
+//! timer reading discards time. Neither changes whether the player is playing. In particular, cursor recapture may itself produce a
 //! slow frame on Windows, so making a hitch pause the game traps users in menus.
 
 use crate::clock::FixedClock;
@@ -43,6 +43,9 @@ pub struct SessionTransition {
     /// Clear the fixed clock and queued gameplay input, and skip catch-up.
     /// This does not, by itself, request a pause or change cursor capture.
     pub discard_timing: bool,
+    /// The frame took longer than FixedClock::MAX_FRAME. Play continues (the
+    /// clock clamps it), but a live hitch still interrupts held firing.
+    pub hitch: bool,
 }
 
 impl SessionTransition {
@@ -50,7 +53,8 @@ impl SessionTransition {
     /// committed tick input, so rendering hitches and native focus changes must
     /// not restart their simulation-owned burst cadence between capture frames.
     pub fn interrupts_firing_sequence(self, gameplay_capture: bool, focus_changed: bool) -> bool {
-        !gameplay_capture && (self.paused || self.resumed || focus_changed || self.discard_timing)
+        !gameplay_capture
+            && (self.paused || self.resumed || focus_changed || self.discard_timing || self.hitch)
     }
 }
 
@@ -116,8 +120,9 @@ impl SessionController {
 
         let resumed = !was_active && self.active;
         let paused = was_active && !self.active;
-        let invalid_time =
-            !input.dt.is_finite() || !(0.0..=FixedClock::MAX_FRAME).contains(&input.dt);
+        // Slow frames still simulate (FixedClock clamps them); discarding them froze
+        // play entirely whenever a level rendered below 4 FPS.
+        let invalid_time = !input.dt.is_finite() || input.dt < 0.0;
         SessionTransition {
             active: self.active,
             resumed,
@@ -128,6 +133,7 @@ impl SessionController {
                 || input.window_unfocused
                 || refocused
                 || invalid_time,
+            hitch: input.dt > FixedClock::MAX_FRAME,
         }
     }
 }
@@ -310,17 +316,17 @@ mod tests {
         let mut session = SessionController::default();
         session.step(enter());
         let state = session.step(SessionInput { dt: 0.8, ..idle() });
-        assert!(state.active && state.discard_timing);
+        assert!(state.active && state.hitch && !state.discard_timing);
         assert!(!state.paused && !state.resumed);
         assert!(session.step(idle()).active);
     }
 
     #[test]
-    fn persistently_low_fps_never_pauses_play() {
+    fn persistently_low_fps_never_pauses_or_freezes_play() {
         let mut session = running();
         for _ in 0..120 {
             let state = session.step(SessionInput { dt: 0.5, ..idle() });
-            assert!(state.active && state.discard_timing);
+            assert!(state.active && !state.discard_timing);
             assert!(!state.paused);
         }
     }
