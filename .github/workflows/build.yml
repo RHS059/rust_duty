@@ -18,6 +18,37 @@ concurrency:
   # Other development branches still replace stale work. Eligible draft publication stays protected.
   cancel-in-progress: ${{ (github.head_ref || github.ref_name) != 'main' && (github.event_name != 'push' || github.ref != 'refs/heads/aella/automatic-game-updates-r1') }}
 jobs:
+  changes:
+    # Pull requests run only the areas they touch; pushes, manual runs and CI edits run everything.
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      any: ${{ steps.areas.outputs.any }}
+      game: ${{ steps.areas.outputs.game }}
+      tools: ${{ steps.areas.outputs.tools }}
+      updater: ${{ steps.areas.outputs.updater }}
+      render: ${{ steps.areas.outputs.render }}
+      authored: ${{ steps.areas.outputs.authored }}
+      lanes: ${{ steps.lanes.outputs.lanes }}
+      native_lanes: ${{ steps.lanes.outputs.native_lanes }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Detect touched areas
+        id: areas
+        run: python3 tools/ci_changes.py --base "${{ github.event.pull_request.base.sha }}" --head "${{ github.event.pull_request.head.sha || github.sha }}"
+      - name: Select quality lanes
+        id: lanes
+        shell: bash
+        run: |
+          # The game lane always runs where a build runs: it produces the packaged executable.
+          lanes=game; native=game
+          if [ "${{ steps.areas.outputs.tools }}" = true ]; then lanes="$lanes,python"; native="$native,python"; fi
+          if [ "${{ steps.areas.outputs.updater }}" = true ]; then lanes="$lanes,updater"; fi
+          echo "lanes=$lanes" >> "$GITHUB_OUTPUT"
+          echo "native_lanes=$native" >> "$GITHUB_OUTPUT"
   current-ads-admission:
     # Run before asset/native work so rejected caller identity is visible early.
     # Ineligible branches/forks retain their original strict authored checks.
@@ -59,12 +90,13 @@ jobs:
       actions: read
     uses: ./.github/workflows/windows-source-bound-recovery.yml
   windows-same-platform-return:
-    needs: [animation-assets, walk-assets, ads-assets, directional-assets, jump-assets]
+    needs: [changes, animation-assets, walk-assets, ads-assets, directional-assets, jump-assets]
+    if: needs.changes.outputs.updater == 'true' || needs.changes.outputs.tools == 'true'
     uses: ./.github/workflows/windows-same-platform-return.yml
   dx12-authored-validation:
-    needs: [animation-assets, walk-assets, ads-assets, directional-assets, jump-assets, native-validation, current-ads-admission]
+    needs: [changes, animation-assets, walk-assets, ads-assets, directional-assets, jump-assets, native-validation, current-ads-admission]
     if: >-
-      always() && !cancelled() && needs.animation-assets.result == 'success' && needs.walk-assets.result == 'success' &&
+      always() && !cancelled() && needs.changes.outputs.authored == 'true' && needs.animation-assets.result == 'success' && needs.walk-assets.result == 'success' &&
       needs.ads-assets.result == 'success' && needs.directional-assets.result == 'success' &&
       needs.jump-assets.result == 'success' && needs.native-validation.result == 'success' &&
       (needs.current-ads-admission.result == 'success' || needs.current-ads-admission.result == 'skipped')
@@ -72,8 +104,12 @@ jobs:
     with:
       source_proof_admitted: ${{ needs.current-ads-admission.outputs.admitted == 'true' }}
   animation-assets:
+    needs: [changes]
+    if: needs.changes.outputs.any == 'true'
     uses: ./.github/workflows/blender-assets.yml
   walk-assets:
+    needs: [changes]
+    if: needs.changes.outputs.any == 'true'
     uses: ./.github/workflows/walk-assets.yml
   directional-assets:
     needs: [walk-assets]
@@ -85,15 +121,22 @@ jobs:
     needs: [walk-assets]
     uses: ./.github/workflows/jump-assets.yml
   native-validation:
-    needs: [animation-assets, walk-assets, ads-assets, directional-assets, jump-assets]
+    needs: [changes, animation-assets, walk-assets, ads-assets, directional-assets, jump-assets]
+    if: needs.changes.outputs.game == 'true' || needs.changes.outputs.tools == 'true'
     uses: ./.github/workflows/native-validation.yml
+    with:
+      lanes: ${{ needs.changes.outputs.native_lanes }}
   dx12-warp-smoke:
-    needs: [animation-assets, walk-assets, ads-assets, directional-assets, jump-assets]
+    needs: [changes, animation-assets, walk-assets, ads-assets, directional-assets, jump-assets]
+    if: needs.changes.outputs.game == 'true'
     uses: ./.github/workflows/wgpu-dx12-smoke.yml
   dx12-renderer-contract:
+    needs: [changes]
+    if: needs.changes.outputs.render == 'true'
     uses: ./.github/workflows/wgpu-renderer-contract.yml
   build:
-    needs: [animation-assets, walk-assets, ads-assets, directional-assets, jump-assets]
+    needs: [changes, animation-assets, walk-assets, ads-assets, directional-assets, jump-assets]
+    if: needs.changes.outputs.any == 'true'
     name: windows-latest
     runs-on: windows-latest
     # Source-bound guards compare checkout bytes with immutable Git blobs.
@@ -184,6 +227,7 @@ jobs:
         run: python tools/ci_quality_checks.py
         env:
           RUST_DUTY_ANIMATION_MANIFEST: assets/animations.cfg
+          RUST_DUTY_CI_LANES: ${{ needs.changes.outputs.lanes }}
       - name: Archive this attempt - Retain every quality-check log and measured lane timing
         if: always()
         id: archive_attempt_2
@@ -211,6 +255,7 @@ jobs:
         if: runner.os == 'Windows'
         run: python tools/build_identity.py --root dist/game --platform windows
       - name: Prepare real Windows 0.1.9 to 0.1.12 update preflight
+        if: needs.changes.outputs.updater == 'true' || needs.changes.outputs.tools == 'true'
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
@@ -227,21 +272,27 @@ jobs:
           python tools/release_update.py verify --manifest preflight/candidate/update-x86_64-pc-windows-msvc.json \
             --assets-dir preflight/candidate --version 0.1.12 --target x86_64-pc-windows-msvc
       - name: Real Windows update preflight - full
+        if: needs.changes.outputs.updater == 'true' || needs.changes.outputs.tools == 'true'
         timeout-minutes: 12
         run: python tools/run_preflight_case.py --case full
       - name: Real Windows update preflight - one-file
+        if: needs.changes.outputs.updater == 'true' || needs.changes.outputs.tools == 'true'
         timeout-minutes: 12
         run: python tools/run_preflight_case.py --case one-file
       - name: Real Windows update preflight - recover-one-file
+        if: needs.changes.outputs.updater == 'true' || needs.changes.outputs.tools == 'true'
         timeout-minutes: 12
         run: python tools/run_preflight_case.py --case recover-one-file
       - name: Real Windows update preflight - mismatch
+        if: needs.changes.outputs.updater == 'true' || needs.changes.outputs.tools == 'true'
         timeout-minutes: 12
         run: python tools/run_preflight_case.py --case mismatch
       - name: Real Windows update preflight - unusable
+        if: needs.changes.outputs.updater == 'true' || needs.changes.outputs.tools == 'true'
         timeout-minutes: 12
         run: python tools/run_preflight_case.py --case unusable
       - name: Real Windows update preflight - corrupt-delta
+        if: needs.changes.outputs.updater == 'true' || needs.changes.outputs.tools == 'true'
         timeout-minutes: 12
         run: python tools/run_preflight_case.py --case corrupt-delta
       - name: Archive immutable preflight evidence

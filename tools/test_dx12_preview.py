@@ -235,7 +235,7 @@ class Dx12PreviewWorkflowTests(unittest.TestCase):
         self.assertNotIn('github-token:', workflow)
         caller = (ROOT / '.github/workflows/build.yml').read_text()
         preview_job = caller.split('  dx12-warp-smoke:\n')[1].split('  build:\n')[0]
-        self.assertIn('needs: [animation-assets, walk-assets, ads-assets, directional-assets, jump-assets]', preview_job)
+        self.assertIn('needs: [changes, animation-assets, walk-assets, ads-assets, directional-assets, jump-assets]', preview_job)
         publisher = caller.split('  publish-game-update:\n')[1]
         self.assertIn('needs: [build]', publisher)
         self.assertNotIn('dx12', publisher)

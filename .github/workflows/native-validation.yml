@@ -1,6 +1,12 @@
 name: Linux-hosted native validation (no game distribution)
 on:
   workflow_call:
+    inputs:
+      lanes:
+        description: 'Comma-separated quality lanes to run; empty runs every lane'
+        type: string
+        required: false
+        default: ''
 permissions:
   contents: read
 jobs:
@@ -89,6 +95,7 @@ jobs:
         run: python tools/ci_quality_checks.py --native-validation
         env:
           RUST_DUTY_ANIMATION_MANIFEST: assets/animations.cfg
+          RUST_DUTY_CI_LANES: ${{ inputs.lanes }}
       - name: Archive this attempt - Retain every quality-check log and measured lane timing
         if: always()
         id: archive_attempt_2
