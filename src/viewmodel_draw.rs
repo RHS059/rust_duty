@@ -132,9 +132,22 @@ pub(crate) fn weapon(
     // Hip cant only: the simulation fades it out as ADS comes in.
     let cant = sim.player.cant_visual() * cfg.action.cant_angle.to_radians();
     if let Some(authored) = authored {
-        authored.set_cant(cant);
-        // One rigid root for arms and weapon: sway/action layers keep grips attached.
-        let root = vector_range::weapon_sway::compose(view_offset, layers);
+        // The native low-vault clip already owns the complete arms/weapon pose.
+        // Its outgoing blend restores live ADS placement, cant and root layers.
+        let weight = authored.low_vault_underlying_weight();
+        authored.set_cant(cant * weight);
+        let returning_layers = LayerOffset {
+            translation: layers.iter().map(|layer| layer.translation).sum::<Vec3>() * weight,
+            rotation: layers.iter().map(|layer| layer.rotation).sum::<Vec3>() * weight,
+        };
+        let root = vector_range::weapon_sway::compose(
+            view_offset,
+            if weight == 1. {
+                layers
+            } else {
+                std::slice::from_ref(&returning_layers)
+            },
+        );
         authored.draw(sim.time, lighting, root);
         composite_viewmodel(rt);
         return;

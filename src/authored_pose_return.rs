@@ -149,6 +149,7 @@ pub struct PoseReturn {
     from: ViewmodelPose,
     opacity: Vec<f32>,
     began: f64,
+    duration: f64,
 }
 impl PoseReturn {
     pub fn new(from: ViewmodelPose, opacity: Vec<f32>, began: f64) -> Self {
@@ -156,10 +157,27 @@ impl PoseReturn {
             from,
             opacity,
             began,
+            duration: RETURN_SECONDS,
         }
     }
+    pub fn with_duration(
+        from: ViewmodelPose,
+        opacity: Vec<f32>,
+        began: f64,
+        duration: f64,
+    ) -> Result<Self> {
+        if !began.is_finite() || !duration.is_finite() || duration <= 0. {
+            return Err(AnimationError("invalid return duration".into()));
+        }
+        Ok(Self {
+            from,
+            opacity,
+            began,
+            duration,
+        })
+    }
     pub fn weight(&self, time: f64) -> f32 {
-        let t = ((time - self.began) / RETURN_SECONDS).clamp(0., 1.);
+        let t = ((time - self.began) / self.duration).clamp(0., 1.);
         (t * t * (3. - 2. * t)) as f32
     }
     pub fn pose(
@@ -169,6 +187,24 @@ impl PoseReturn {
         target: &ViewmodelPose,
         time: f64,
     ) -> Result<(ViewmodelPose, Vec<f32>)> {
+        self.pose_with_opacity(animation, blend, target, None, time)
+    }
+    pub fn pose_with_opacity(
+        &self,
+        animation: &AnimationSet,
+        blend: &AnchoredPoseBlend,
+        target: &ViewmodelPose,
+        target_opacity: Option<&[f32]>,
+        time: f64,
+    ) -> Result<(ViewmodelPose, Vec<f32>)> {
+        if target_opacity.is_some_and(|values| {
+            values.len() != target.actor_visible.len()
+                || values
+                    .iter()
+                    .any(|v| !v.is_finite() || !(0. ..=1.).contains(v))
+        }) {
+            return Err(AnimationError("invalid target return opacity".into()));
+        }
         if !time.is_finite()
             || !self.began.is_finite()
             || self.opacity.len() != target.actor_visible.len()
@@ -183,7 +219,9 @@ impl PoseReturn {
         let mut pose = blend.blend(animation, &self.from, target, weight)?;
         let mut opacity = Vec::with_capacity(target.actor_visible.len());
         for (i, &visible) in target.actor_visible.iter().enumerate() {
-            let alpha = self.opacity[i] + (f32::from(u8::from(visible)) - self.opacity[i]) * weight;
+            let target_alpha =
+                target_opacity.map_or(f32::from(u8::from(visible)), |values| values[i]);
+            let alpha = self.opacity[i] + (target_alpha - self.opacity[i]) * weight;
             // Visibility changes fade at the actual old/new transform instead
             // of interpolating an invisible actor's identity placeholder.
             if !visible {

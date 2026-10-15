@@ -65,6 +65,7 @@ pub mod layered_locomotion;
 pub mod muzzle_fx;
 
 pub mod authored_jump;
+pub mod authored_low_vault;
 
 pub mod input_frame;
 pub mod platform;
