@@ -217,8 +217,8 @@ class AuthoredDx12Tests(unittest.TestCase):
         folder = self.root / 'lighting-fixture'
         folder.mkdir()
         # Independent closed-form expected cardinal/pitched basis vectors.
-        scale = math.sqrt(0.98)
-        x, y, z = -0.3 / scale, 0.8 / scale, 0.5 / scale
+        scale = math.sqrt(0.45 ** 2 + 0.78 ** 2 + 0.43 ** 2)
+        x, y, z = -0.45 / scale, 0.78 / scale, 0.43 / scale
         sine, cosine = math.sin(math.radians(35)), math.cos(math.radians(35))
         directions = [('front', -90, 0, [x, y, z], 100),
                       ('right', 0, 0, [z, y, -x], 110),

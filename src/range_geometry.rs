@@ -86,10 +86,8 @@ pub fn meshes(sim: &Simulation) -> Vec<Mesh> {
             let mut n = (p[ids[1]] - p[ids[0]])
                 .cross(p[ids[2]] - p[ids[0]])
                 .normalize();
-            if ids == [0, 1, 2] || ids == [1, 3, 2] {
-                if n.y < 0. {
-                    n = -n;
-                }
+            if (ids == [0, 1, 2] || ids == [1, 3, 2]) && n.y < 0. {
+                n = -n;
             }
             for id in ids {
                 let mut v = Vertex::new2(p[id], Vec2::ZERO, Color::new(0.33, 0.84, 0.87, 1.));

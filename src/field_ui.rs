@@ -68,31 +68,10 @@ pub fn safe_inset(w: f32, h: f32) -> (f32, f32) {
     (w * 0.05, h * 0.05)
 }
 
-/// Cluster shade (§3.3): a solid 86 % scrim core under the content, feathered
-/// 40 reference px outside it. Drawn outermost first, in four steps.
-pub fn cluster_shade(core: Rect, s: f32) {
-    let style = ui_theme::style(UiScope::Hud, &[UiClass::Panel]);
-    let feather = 40. * s;
-    // Twelve thin steps so the falloff reads as a soft edge over bright scenes.
-    const STEPS: usize = 12;
-    for i in 0..STEPS {
-        let step = 1. - i as f32 / STEPS as f32;
-        let alpha = 0.07;
-        let d = feather * step;
-        draw_rectangle(
-            core.x - d,
-            core.y - d,
-            core.w + 2. * d,
-            core.h + 2. * d,
-            // Preserve the feather's relative density after resolving the theme.
-            {
-                let mut color = style.background(SCRIM_86);
-                color.a *= alpha / SCRIM_ALPHA;
-                color
-            },
-        );
-    }
-    style.rect(core, SCRIM_86, TEXT3, 1.);
+/// Cluster shade (§3.3): a solid 86 % scrim panel under the content, with a
+/// hard edge (no feathered falloff into the scene).
+pub fn cluster_shade(core: Rect, _s: f32) {
+    ui_theme::style(UiScope::Hud, &[UiClass::Panel]).rect(core, SCRIM_86, TEXT3, 1.);
 }
 
 /// Tag plate (§3.3): single mid-screen label on 86 % scrim, 8 ref-px side padding.

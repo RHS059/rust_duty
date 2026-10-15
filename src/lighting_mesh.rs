@@ -60,7 +60,7 @@ fn merge(a: Triangle, b: Triangle) -> Option<Triangle> {
 
 pub fn simplify(mesh: &mut Mesh) {
     let mut stack: Vec<Triangle> = Vec::new();
-    for indices in mesh.indices.chunks_exact(3) {
+    for indices in mesh.indices.as_chunks::<3>().0 {
         stack.push(Triangle {
             v: [
                 mesh.vertices[indices[0] as usize],

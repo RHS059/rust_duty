@@ -62,7 +62,7 @@ class GameUiWorkflowTests(unittest.TestCase):
         runner = next(step for step in steps if 'run_calibrated_presentation.py' in step.get('run', ''))
         self.assertIn('--executable target/debug/vector-range.exe --root .', runner['run'])
         self.assertIn('--runtime evidence/game-ui-gl-runtime', runner['run'])
-        self.assertIn('--evidence evidence/calibrated-static --timeout 180', runner['run'])
+        self.assertIn('--evidence evidence/calibrated-static --timeout 600', runner['run'])
         self.assertNotIn('continue-on-error', runner)
         ui = next(step for step in steps if 'run_windows_gl_game_ui.py' in step.get('run', ''))
         self.assertLess(steps.index(ui), steps.index(runner))

@@ -1460,6 +1460,7 @@ fn frame_trace_eligibility(
 
 /// Deliberately accept named runtime choices, never filesystem paths or the
 /// unfiltered CLI. An explicit/private asset path must not enter trace identity.
+#[allow(clippy::too_many_arguments)]
 fn frame_trace_scene(
     level_name: &str,
     profile: &str,
@@ -1649,13 +1650,6 @@ mod tests {
     fn performance_eligibility_preserves_active_hitches_and_explicit_exclusions() {
         let focus = vector_range::session::FocusState::default();
         let mut session = vector_range::session::SessionController::default();
-        if !args
-            .iter()
-            .any(|a| a.starts_with("--capture") || a == "--demo")
-        {
-            session.set_active(true);
-            initial = false;
-        }
         session.set_active(true);
         let transition = session.step(vector_range::session::SessionInput {
             dt: 1.0,

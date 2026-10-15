@@ -290,7 +290,9 @@ pub(crate) fn city_world(
 ) {
     // Opaque near surfaces reject hidden fragments before distant buildings shade.
     let eye = sim.player.eye();
-    let mut visible: Vec<_> = city.chunks.iter()
+    let mut visible: Vec<_> = city
+        .chunks
+        .iter()
         .filter(|chunk| vector_range::city_level::chunk_visible(chunk.bounds, eye, view_projection))
         .collect();
     visible.sort_by(|a, b| {

@@ -219,10 +219,13 @@ impl WgpuRenderer {
         {
             drop(plan);
             drop(geometry);
-            self.gpu.device.poll(wgpu::PollType::Wait {
-                submission_index: None,
-                timeout: Some(std::time::Duration::from_secs(120)),
-            }).map_err(|e| format!("software capture frame completion: {e}"))?;
+            self.gpu
+                .device
+                .poll(wgpu::PollType::Wait {
+                    submission_index: None,
+                    timeout: Some(std::time::Duration::from_secs(120)),
+                })
+                .map_err(|e| format!("software capture frame completion: {e}"))?;
         }
         Ok((readbacks, presentation, receipt))
     }

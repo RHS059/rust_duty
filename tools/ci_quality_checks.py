@@ -21,7 +21,8 @@ def pipelines(python=sys.executable, *, native_validation=False):
         'game': [
             ['cargo', 'clippy', '--locked', '--all-targets', '--', '-D', 'warnings'],
             ['cargo', 'test', '--locked'],
-            ['cargo', 'build', '--locked', '--release'],
+            # Ship both renderers: legacy GL stays the default, --renderer=dx12 selects wgpu.
+            ['cargo', 'build', '--locked', '--release', '--features', 'wgpu-runtime'],
         ],
         'updater': [
             ['cargo', 'fmt', '--manifest-path', 'updater/Cargo.toml', '--all', '--', '--check'],

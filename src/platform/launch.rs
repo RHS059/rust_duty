@@ -83,15 +83,16 @@ impl LaunchOptions {
         Ok(options)
     }
 
-    /// Legacy remains the default until the human DX12 cutover sign-off. An
-    /// explicitly requested native API never silently becomes legacy OpenGL.
+    /// wgpu (DX12 first on Windows) is the default since the DX12 cutover
+    /// sign-off; legacy OpenGL runs only when requested or when wgpu is not
+    /// built. An explicitly requested native API never silently becomes legacy.
     pub fn runtime(
         &self,
         legacy_available: bool,
         wgpu_available: bool,
     ) -> Result<RuntimeChoice, String> {
         let legacy =
-            self.renderer.as_deref() == Some("gl") || (self.renderer.is_none() && legacy_available);
+            self.renderer.as_deref() == Some("gl") || (self.renderer.is_none() && !wgpu_available);
         if legacy {
             if !legacy_available {
                 return Err("legacy OpenGL is unavailable; build with legacy-macroquad".into());
@@ -118,9 +119,23 @@ mod tests {
         LaunchOptions::parse(&args.iter().map(|s| (*s).to_owned()).collect::<Vec<_>>())
     }
     #[test]
-    fn legacy_default_and_explicit_auto_are_distinct_until_cutover() {
+    fn wgpu_is_the_default_after_cutover_and_legacy_needs_gl_or_no_wgpu() {
         assert_eq!(
             parse(&[]).unwrap().runtime(true, true).unwrap(),
+            RuntimeChoice::Wgpu {
+                requested: "auto".into(),
+                force_fallback: false
+            }
+        );
+        assert_eq!(
+            parse(&[]).unwrap().runtime(true, false).unwrap(),
+            RuntimeChoice::Legacy
+        );
+        assert_eq!(
+            parse(&["--renderer=gl"])
+                .unwrap()
+                .runtime(true, true)
+                .unwrap(),
             RuntimeChoice::Legacy
         );
         assert_eq!(

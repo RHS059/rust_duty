@@ -57,7 +57,7 @@ impl BakeScene {
     pub fn new(meshes: &[Mesh], lamps: Vec<Vec3>) -> Self {
         let mut triangles = Vec::new();
         for mesh in meshes {
-            for ids in mesh.indices.chunks_exact(3) {
+            for ids in mesh.indices.as_chunks::<3>().0 {
                 let a = &mesh.vertices[ids[0] as usize];
                 let b = &mesh.vertices[ids[1] as usize];
                 let c = &mesh.vertices[ids[2] as usize];
@@ -404,7 +404,7 @@ pub fn subdivide(mesh: &Mesh, max_edge: f32) -> Vec<Mesh> {
         indices: Vec::new(),
         texture: None,
     };
-    for f in mesh.indices.chunks_exact(3) {
+    for f in mesh.indices.as_chunks::<3>().0 {
         let a = mesh.vertices[f[0] as usize];
         let b = mesh.vertices[f[1] as usize];
         let c = mesh.vertices[f[2] as usize];
@@ -471,6 +471,27 @@ pub fn write_meshes(path: &std::path::Path, meshes: &[Mesh]) -> Result<(), Strin
     })();
     result.map_err(|e| e.to_string())
 }
+/// Share identical baked vertices and discard unreferenced source vertices.
+/// Color is part of the key so a lighting discontinuity cannot be welded away.
+pub fn compact(mesh: &mut Mesh) {
+    let mut unique = std::collections::HashMap::new();
+    let mut vertices = Vec::new();
+    for index in &mut mesh.indices {
+        let v = mesh.vertices[*index as usize];
+        let key = (
+            v.position.to_array().map(f32::to_bits),
+            v.normal.to_array().map(f32::to_bits),
+            v.color,
+        );
+        *index = *unique.entry(key).or_insert_with(|| {
+            let id = vertices.len() as u16;
+            vertices.push(v);
+            id
+        });
+    }
+    mesh.vertices = vertices;
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -519,7 +540,7 @@ mod tests {
         let area: f32 = meshes
             .iter()
             .flat_map(|m| {
-                m.indices.chunks_exact(3).map(|f| {
+                m.indices.as_chunks::<3>().0.iter().map(|f| {
                     let a = m.vertices[f[0] as usize].position;
                     let b = m.vertices[f[1] as usize].position;
                     let c = m.vertices[f[2] as usize].position;
@@ -529,25 +550,4 @@ mod tests {
             .sum();
         assert!((area - 8.).abs() < 1e-5);
     }
-}
-
-/// Share identical baked vertices and discard unreferenced source vertices.
-/// Color is part of the key so a lighting discontinuity cannot be welded away.
-pub fn compact(mesh: &mut Mesh) {
-    let mut unique = std::collections::HashMap::new();
-    let mut vertices = Vec::new();
-    for index in &mut mesh.indices {
-        let v = mesh.vertices[*index as usize];
-        let key = (
-            v.position.to_array().map(f32::to_bits),
-            v.normal.to_array().map(f32::to_bits),
-            v.color,
-        );
-        *index = *unique.entry(key).or_insert_with(|| {
-            let id = vertices.len() as u16;
-            vertices.push(v);
-            id
-        });
-    }
-    mesh.vertices = vertices;
 }
