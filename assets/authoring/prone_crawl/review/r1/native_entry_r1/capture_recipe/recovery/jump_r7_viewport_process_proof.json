@@ -1,0 +1,448 @@
+{
+  "source_path": "/workspace/shared/jump-animation-20261003/author_r7/halcyon_jump_r7.blend",
+  "source_sha256": "a2c4b2bbe98da1a608450bba92404cb39008eae5861bcf8fc3f5d2f978df0e3b",
+  "source_base_commit": "23978545b8f26ccd3345d30af353c03ad55b9078",
+  "source_commit": null,
+  "status": "reference-guided foreground retarget WIP; Elara review pending",
+  "blender": "4.3.2",
+  "pid": 103218,
+  "background": false,
+  "display": ":0",
+  "engine": "BLENDER_EEVEE_NEXT",
+  "viewport_shading": "RENDERED",
+  "scene_world": true,
+  "scene_lights": true,
+  "camera_view": "CAMERA",
+  "camera": {
+    "name": "RD First Person Review",
+    "matrix_world": [
+      [
+        -1.0,
+        -3.821371353845884e-15,
+        -8.742277657347586e-08,
+        0.0
+      ],
+      [
+        -8.742277657347586e-08,
+        4.371138828673793e-08,
+        1.0,
+        0.0
+      ],
+      [
+        0.0,
+        1.0,
+        -4.371138828673793e-08,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    ],
+    "lens": 23.03894805908203,
+    "sensor_width": 36.0,
+    "sensor_height": 24.0,
+    "sensor_fit": "HORIZONTAL",
+    "shift_x": 0.0,
+    "shift_y": 0.0,
+    "clip_start": 0.0010000000474974513,
+    "clip_end": 1000.0
+  },
+  "camera_matches_hip_r5": true,
+  "source_meshes_match_hip_r5": true,
+  "materials_match_hip_r5": true,
+  "resolution": [
+    1280,
+    720
+  ],
+  "source_fps": 60,
+  "operator": "bpy.ops.render.opengl",
+  "operator_arguments": {
+    "animation": true,
+    "view_context": true,
+    "render_keyed_only": false,
+    "sequencer": false
+  },
+  "window_pointer": 140121477812832,
+  "area_type": "VIEW_3D",
+  "region_type": "WINDOW",
+  "gpu": {
+    "vendor": "Mesa",
+    "renderer": "llvmpipe (LLVM 19.1.7, 256 bits)",
+    "version": "4.5 (Core Profile) Mesa 25.0.7-2+deb13u1",
+    "backend": "OPENGL"
+  },
+  "action_curve_digest_before": "e2c50371480b12cbf27130980a3399b3b325b68ed2f3f30d1b15d73c8e1dfa5e",
+  "source_mesh_digest_before": "095d559efb52d546c921f06afb140fb1de7a0cb6ae417e62de23bd27934b66b4",
+  "material_digest_before": "eb6d1d0648f94023e8ab1be06121d4e71b6e6597db8018272b4dc2520a394b49",
+  "actions": [
+    {
+      "action": "jump_takeoff_r7",
+      "frame_start": 1,
+      "frame_end_inclusive": 12,
+      "native_frames": 12,
+      "duration_intervals": 11,
+      "endpoint_frame": 12,
+      "output_directory": "/workspace/shared/jump-animation-20261003/render/r7/frames/jump_takeoff_r7",
+      "started_utc": "2026-10-04T00:38:04Z",
+      "engine_at_call": "BLENDER_EEVEE_NEXT",
+      "viewport_shading_at_call": "RENDERED",
+      "operator_result": [
+        "FINISHED"
+      ],
+      "output_files": [
+        {
+          "path": "/workspace/shared/jump-animation-20261003/render/r7/frames/jump_takeoff_r7/f0001.png",
+          "sha256": "ccc4ac2f3e64e5b3f8408b1fe346c05f0c90200054df45568b75b04e7815aa6d"
+        },
+        {
+          "path": "/workspace/shared/jump-animation-20261003/render/r7/frames/jump_takeoff_r7/f0002.png",
+          "sha256": "c1c1c651dc84d937ea8fca4b492530ce25f5083cdf64071940cd936729ec75ba"
+        },
+        {
+          "path": "/workspace/shared/jump-animation-20261003/render/r7/frames/jump_takeoff_r7/f0003.png",
+          "sha256": "7cbd2289a8e196e61dbe36fab37e3bb043a700e5458b46fd3ba6560a1addca17"
+        },
+        {
+          "path": "/workspace/shared/jump-animation-20261003/render/r7/frames/jump_takeoff_r7/f0004.png",
+          "sha256": "a2900e61e011e26c1b7767434c7d4a7fce67056754b562c4c2668f598a09f590"
+        },
+        {
+          "path": "/workspace/shared/jump-animation-20261003/render/r7/frames/jump_takeoff_r7/f0005.png",
+          "sha256": "c30b955a850fe551654cfc21ebf2b769593b07c489f3152a82f652678480cd3c"
+        },
+        {
+          "path": "/workspace/shared/jump-animation-20261003/render/r7/frames/jump_takeoff_r7/f0006.png",
+          "sha256": "73182fc45afb57122e8ad4bb3d0e0f2890c2daaf39770e3a74cd19b5613c5680"
+        },
+        {
+          "path": "/workspace/shared/jump-animation-20261003/render/r7/frames/jump_takeoff_r7/f0007.png",
+          "sha256": "8a87cb5c0cb8318b214010a1dd5cb9c6667e3cc9297da34abc42f7e76808c202"
+        },
+        {
+          "path": "/workspace/shared/jump-animation-20261003/render/r7/frames/jump_takeoff_r7/f0008.png",
+          "sha256": "51ce6342085ba4ffcf7e06f45de1b5a76e72da6b7aff11f1f4ea27033bd20304"
+        },
+        {
+          "path": "/workspace/shared/jump-animation-20261003/render/r7/frames/jump_takeoff_r7/f0009.png",
+          "sha256": "88f6eb3e71abc49f7a52db0ae6fab630bac86d8092a68746017a88ab039e28b1"
+        },
+        {
+          "path": "/workspace/shared/jump-animation-20261003/render/r7/frames/jump_takeoff_r7/f0010.png",
+          "sha256": "aec1db98cca513cafca181f96c228ccb9bcece6da67596d367d33012ef89ceae"
+        },
+        {
+          "path": "/workspace/shared/jump-animation-20261003/render/r7/frames/jump_takeoff_r7/f0011.png",
+          "sha256": "2354693d064ccbd87cb3525bc0753003400a5c3c1970b73a7508a8994a943168"
+        },
+        {
+          "path": "/workspace/shared/jump-animation-20261003/render/r7/frames/jump_takeoff_r7/f0012.png",
+          "sha256": "c47cc1a383a510a0ef4ed6adf601d03b408a07443d0da1d766d25ad5745ea12c"
+        }
+      ],
+      "source_bytes_unchanged": true,
+      "camera_unchanged": true,
+      "action_curves_unchanged": true,
+      "source_meshes_unchanged": true,
+      "materials_unchanged": true,
+      "ended_utc": "2026-10-04T00:38:39Z"
+    },
+    {
+      "action": "jump_air_r7",
+      "frame_start": 1,
+      "frame_end_inclusive": 24,
+      "native_frames": 24,
+      "duration_intervals": 23,
+      "endpoint_frame": 24,
+      "output_directory": "/workspace/shared/jump-animation-20261003/render/r7/frames/jump_air_r7",
+      "started_utc": "2026-10-04T00:38:39Z",
+      "engine_at_call": "BLENDER_EEVEE_NEXT",
+      "viewport_shading_at_call": "RENDERED",
+      "operator_result": [
+        "FINISHED"
+      ],
+      "output_files": [
+        {
+          "path": "/workspace/shared/jump-animation-20261003/render/r7/frames/jump_air_r7/f0001.png",
+          "sha256": "7a197af27a95d3b3e1cc0a9c2489f3c181fd5ebad1f62b5c51f41e658c192f8a"
+        },
+        {
+          "path": "/workspace/shared/jump-animation-20261003/render/r7/frames/jump_air_r7/f0002.png",
+          "sha256": "c8d9d0293585e2b9453ff39253deb7fe977639856fd32db28c7ddbcbe74e29c9"
+        },
+        {
+          "path": "/workspace/shared/jump-animation-20261003/render/r7/frames/jump_air_r7/f0003.png",
+          "sha256": "508078749ed4d32ff05db646212e91507b8e924d1eaff0bd84c201874e9fe9c4"
+        },
+        {
+          "path": "/workspace/shared/jump-animation-20261003/render/r7/frames/jump_air_r7/f0004.png",
+          "sha256": "295a9d8830e370b83bc261f5302e4926b92846304d50bb6f06cb9d8d8e095f82"
+        },
+        {
+          "path": "/workspace/shared/jump-animation-20261003/render/r7/frames/jump_air_r7/f0005.png",
+          "sha256": "3dd1d245ecd1fa4fa10f7d62d5587d3b6cf1fd8d6c285616a5fbf22a3a71c92e"
+        },
+        {
+          "path": "/workspace/shared/jump-animation-20261003/render/r7/frames/jump_air_r7/f0006.png",
+          "sha256": "45ec89af4e7cf92c4a90a2c1cf50fdeb2394fe11c3a4960e7e0fd70fa08a69fb"
+        },
+        {
+          "path": "/workspace/shared/jump-animation-20261003/render/r7/frames/jump_air_r7/f0007.png",
+          "sha256": "9d48df526514c690c44dea7d3ab6ba9c8233265636644a3be2ec541414f0df95"
+        },
+        {
+          "path": "/workspace/shared/jump-animation-20261003/render/r7/frames/jump_air_r7/f0008.png",
+          "sha256": "d3da4eee1e57e69f7d453cee565e333ba9e82db71c636c57fee22d3841b61907"
+        },
+        {
+          "path": "/workspace/shared/jump-animation-20261003/render/r7/frames/jump_air_r7/f0009.png",
+          "sha256": "74480a59b9286c4a9a8ba899248a65ac777e38354e21169b05c696e971223bb5"
+        },
+        {
+          "path": "/workspace/shared/jump-animation-20261003/render/r7/frames/jump_air_r7/f0010.png",
+          "sha256": "317443cedba297c46fa629396ffebf5a4772af51855fb52c97e63ca94b9754ec"
+        },
+        {
+          "path": "/workspace/shared/jump-animation-20261003/render/r7/frames/jump_air_r7/f0011.png",
+          "sha256": "04272a56e9efc899a9fceb316e3c2a887b0d352b4046121ca2e11af15b198997"
+        },
+        {
+          "path": "/workspace/shared/jump-animation-20261003/render/r7/frames/jump_air_r7/f0012.png",
+          "sha256": "9634d282dcf37f31456f5d0ee71aace0da494fc053320c0f3facbbaa8b6ba905"
+        },
+        {
+          "path": "/workspace/shared/jump-animation-20261003/render/r7/frames/jump_air_r7/f0013.png",
+          "sha256": "973ab4baf97dc48dc484b2a4c6bd42186d289e231bbbe97451055f1b7c2a8138"
+        },
+        {
+          "path": "/workspace/shared/jump-animation-20261003/render/r7/frames/jump_air_r7/f0014.png",
+          "sha256": "bb12dc9bf70609c0c12532a42ca1dcc3542f76c88e5eb8560d9d1eeff4bbaa5f"
+        },
+        {
+          "path": "/workspace/shared/jump-animation-20261003/render/r7/frames/jump_air_r7/f0015.png",
+          "sha256": "cecbdeabe1339e56f3191133f1545f06d8630a4915150afd79af166d4b3e8f35"
+        },
+        {
+          "path": "/workspace/shared/jump-animation-20261003/render/r7/frames/jump_air_r7/f0016.png",
+          "sha256": "3abc7679f4518a57477f2b746604700499904339af4f8fd86229f908d1ffd0c1"
+        },
+        {
+          "path": "/workspace/shared/jump-animation-20261003/render/r7/frames/jump_air_r7/f0017.png",
+          "sha256": "a0435a63dbd0bf4f9a350cae862d372be7bc94bda1ee88703fa86a277317d16d"
+        },
+        {
+          "path": "/workspace/shared/jump-animation-20261003/render/r7/frames/jump_air_r7/f0018.png",
+          "sha256": "348b20aa82949ed65717b5bbb6da8e075968a6c996864dac71d25e896c0290f5"
+        },
+        {
+          "path": "/workspace/shared/jump-animation-20261003/render/r7/frames/jump_air_r7/f0019.png",
+          "sha256": "75a8a4597d0f396bbb7145a6891b6120c7635de7e53fa79c39a713cfa6d79c11"
+        },
+        {
+          "path": "/workspace/shared/jump-animation-20261003/render/r7/frames/jump_air_r7/f0020.png",
+          "sha256": "f719ebe2a3a0fdb03c89e7a82b9b80ebcaa58db67508dfc7fe03045bc2b4c8ae"
+        },
+        {
+          "path": "/workspace/shared/jump-animation-20261003/render/r7/frames/jump_air_r7/f0021.png",
+          "sha256": "b45dbec0245016c4a34c963a61faec4fd84e7d1c788a1b360df65ce6fcae2534"
+        },
+        {
+          "path": "/workspace/shared/jump-animation-20261003/render/r7/frames/jump_air_r7/f0022.png",
+          "sha256": "774b127949b3cdd9da5c6a55ca394ea86ec67ec628e300e00c1a4951a50892d0"
+        },
+        {
+          "path": "/workspace/shared/jump-animation-20261003/render/r7/frames/jump_air_r7/f0023.png",
+          "sha256": "e88ed516e156aa54b05ad9898dbbb80d113dd43bd8a6d7aa5621e6a96d5f821c"
+        },
+        {
+          "path": "/workspace/shared/jump-animation-20261003/render/r7/frames/jump_air_r7/f0024.png",
+          "sha256": "3c07726fb1be9fc4e12d6ab8e3642fc52ddb830f2c84d186aaa6200c03b294a0"
+        }
+      ],
+      "source_bytes_unchanged": true,
+      "camera_unchanged": true,
+      "action_curves_unchanged": true,
+      "source_meshes_unchanged": true,
+      "materials_unchanged": true,
+      "ended_utc": "2026-10-04T00:39:47Z"
+    },
+    {
+      "action": "jump_land_r7",
+      "frame_start": 1,
+      "frame_end_inclusive": 29,
+      "native_frames": 29,
+      "duration_intervals": 28,
+      "endpoint_frame": 29,
+      "output_directory": "/workspace/shared/jump-animation-20261003/render/r7/frames/jump_land_r7",
+      "started_utc": "2026-10-04T00:39:47Z",
+      "engine_at_call": "BLENDER_EEVEE_NEXT",
+      "viewport_shading_at_call": "RENDERED",
+      "operator_result": [
+        "FINISHED"
+      ],
+      "output_files": [
+        {
+          "path": "/workspace/shared/jump-animation-20261003/render/r7/frames/jump_land_r7/f0001.png",
+          "sha256": "f3cc46e992498a0188d275ef0f4645bcf8984f9de3518e2cb3044f84b3fbfb74"
+        },
+        {
+          "path": "/workspace/shared/jump-animation-20261003/render/r7/frames/jump_land_r7/f0002.png",
+          "sha256": "3a552d686f91fd0500556f38ecfc7f0c13c053b846192d8d56e38a964f851330"
+        },
+        {
+          "path": "/workspace/shared/jump-animation-20261003/render/r7/frames/jump_land_r7/f0003.png",
+          "sha256": "c51eb4064a27bed7d2c91bf31f540245fb0a5b5dfce5461d10223290b5e7c56f"
+        },
+        {
+          "path": "/workspace/shared/jump-animation-20261003/render/r7/frames/jump_land_r7/f0004.png",
+          "sha256": "9eb96a65f041d99543ceea922c1a3b6aa480c3b26c23a2f3b627538e3e0a2c71"
+        },
+        {
+          "path": "/workspace/shared/jump-animation-20261003/render/r7/frames/jump_land_r7/f0005.png",
+          "sha256": "49605c1a27df2d6455e233bc413fbfb36e65542a95e38bfc05143d967d1fe2e5"
+        },
+        {
+          "path": "/workspace/shared/jump-animation-20261003/render/r7/frames/jump_land_r7/f0006.png",
+          "sha256": "a4fd4e0c87440956d870d789ebdd97cbbe7e95c8cbde29651d928ffa25c2b956"
+        },
+        {
+          "path": "/workspace/shared/jump-animation-20261003/render/r7/frames/jump_land_r7/f0007.png",
+          "sha256": "48e4004ccb9d80469c33793d1cd6fbd062037f9ac7cdbf782af47cf1a2cfd303"
+        },
+        {
+          "path": "/workspace/shared/jump-animation-20261003/render/r7/frames/jump_land_r7/f0008.png",
+          "sha256": "412ce8094750de47795408418b100af581ca777b0481d6ae82d56fdcf69e5574"
+        },
+        {
+          "path": "/workspace/shared/jump-animation-20261003/render/r7/frames/jump_land_r7/f0009.png",
+          "sha256": "de29d82730393461449d648695258f25051bf883221e7bfd0e7ae8bac4337fcb"
+        },
+        {
+          "path": "/workspace/shared/jump-animation-20261003/render/r7/frames/jump_land_r7/f0010.png",
+          "sha256": "e189bd774f28f6be052d190c545cf274768e8324b4da97deea882c7b98ac4e3b"
+        },
+        {
+          "path": "/workspace/shared/jump-animation-20261003/render/r7/frames/jump_land_r7/f0011.png",
+          "sha256": "34a33b5ebca337309f7f401e717248e6dbf63fc629cb23dc7939247ceae5498b"
+        },
+        {
+          "path": "/workspace/shared/jump-animation-20261003/render/r7/frames/jump_land_r7/f0012.png",
+          "sha256": "4e3d038cf571517d1b7b51404c32f5a1111c81c106da30edda113c7e39b0c680"
+        },
+        {
+          "path": "/workspace/shared/jump-animation-20261003/render/r7/frames/jump_land_r7/f0013.png",
+          "sha256": "d45efb9794bd87c38495e3dd8367402c181722f351abcefb80237a5564b1bd57"
+        },
+        {
+          "path": "/workspace/shared/jump-animation-20261003/render/r7/frames/jump_land_r7/f0014.png",
+          "sha256": "ce128eb004e255a617f0fc0b59c02da395e65e1518619b780304da37e0432564"
+        },
+        {
+          "path": "/workspace/shared/jump-animation-20261003/render/r7/frames/jump_land_r7/f0015.png",
+          "sha256": "f955815ec8296de576f8773f9e18bd891584521064c7945e204de52ff53c78de"
+        },
+        {
+          "path": "/workspace/shared/jump-animation-20261003/render/r7/frames/jump_land_r7/f0016.png",
+          "sha256": "b84656f2ae1878d0dd18aaca190b31229efd1be541b7e9431eeb5c6d6275dc46"
+        },
+        {
+          "path": "/workspace/shared/jump-animation-20261003/render/r7/frames/jump_land_r7/f0017.png",
+          "sha256": "846af86119b275048639cf28ec4d789d4e37525861e249c0b5e7f65a66573ae1"
+        },
+        {
+          "path": "/workspace/shared/jump-animation-20261003/render/r7/frames/jump_land_r7/f0018.png",
+          "sha256": "a07b32d7f656822686bd9553f74c41436f6db7aaba0f5f2b1c1cd397d8f3a5ae"
+        },
+        {
+          "path": "/workspace/shared/jump-animation-20261003/render/r7/frames/jump_land_r7/f0019.png",
+          "sha256": "638bcb9589666cb3f961a952b1a52ede84153a3d2a19f249d90d77239452a78e"
+        },
+        {
+          "path": "/workspace/shared/jump-animation-20261003/render/r7/frames/jump_land_r7/f0020.png",
+          "sha256": "45534fd6c01c6c98c219dbe21ff31656a40cb6d970c70b0d36a1cf87b8c1e4cb"
+        },
+        {
+          "path": "/workspace/shared/jump-animation-20261003/render/r7/frames/jump_land_r7/f0021.png",
+          "sha256": "d8ec08907cd19f260ac2c63439b6b595b4078cc188d62027b6d75a345be9c8a4"
+        },
+        {
+          "path": "/workspace/shared/jump-animation-20261003/render/r7/frames/jump_land_r7/f0022.png",
+          "sha256": "0a7a24d3a108ed6c547c1f0fe13494443a5f69028924c6e76c4e2fcff8240f70"
+        },
+        {
+          "path": "/workspace/shared/jump-animation-20261003/render/r7/frames/jump_land_r7/f0023.png",
+          "sha256": "d390f3de3538ca0698e7289b62d791ee3a33dcc4833674a441dafcd112871dbb"
+        },
+        {
+          "path": "/workspace/shared/jump-animation-20261003/render/r7/frames/jump_land_r7/f0024.png",
+          "sha256": "1bb5270303d4d73a5880cca8b86205aa072ee8f58d038cdd316b48f494fbdfa9"
+        },
+        {
+          "path": "/workspace/shared/jump-animation-20261003/render/r7/frames/jump_land_r7/f0025.png",
+          "sha256": "89141510228e171f81503be5e581b0d7eb3e0263cbbcc8e7c9d8feb7e77c36b8"
+        },
+        {
+          "path": "/workspace/shared/jump-animation-20261003/render/r7/frames/jump_land_r7/f0026.png",
+          "sha256": "e1aa1f5bdc5936d0d64443edf479d0ebfd401caeb7be6dd79e70fcb324f68a97"
+        },
+        {
+          "path": "/workspace/shared/jump-animation-20261003/render/r7/frames/jump_land_r7/f0027.png",
+          "sha256": "084ad1aaab2a495747e025411c9e38c3b8b070f7f37c3d6637928a5599d19083"
+        },
+        {
+          "path": "/workspace/shared/jump-animation-20261003/render/r7/frames/jump_land_r7/f0028.png",
+          "sha256": "d9a5c23f36bd1c8fe0273ff347654ec18353e2cdf2b3777bef9ab98dbb2094e7"
+        },
+        {
+          "path": "/workspace/shared/jump-animation-20261003/render/r7/frames/jump_land_r7/f0029.png",
+          "sha256": "dac060e384cb06ac88707c2a3ba51e128ce0c1b7c8356325e4cc7d2720b6b184"
+        }
+      ],
+      "source_bytes_unchanged": true,
+      "camera_unchanged": true,
+      "action_curves_unchanged": true,
+      "source_meshes_unchanged": true,
+      "materials_unchanged": true,
+      "ended_utc": "2026-10-04T00:41:06Z"
+    }
+  ],
+  "regular_offline_render_operator_used": false,
+  "no_scoring": true,
+  "motion_origin": "Reference-guided foreground retarget from the recovered Modern Warfare 2022 movement footage; geometry differs and single-view 3D transforms are inferred",
+  "source_saved": false,
+  "object_action_bindings": {
+    "Actual arms mesh 0": null,
+    "Actual arms mesh 1": null,
+    "Actual arms mesh 2": null,
+    "Arms": "RD_00_Supplied_Base_Guarded_Recovered",
+    "hk416_magazine": "hk416_magazineAction",
+    "hk416_magazine_outgoing": null,
+    "hk416_weapon": "hk416_weaponAction.001",
+    "Locomotion preview key": null,
+    "Neutral side view \u2014 Z up, -Y forward": null,
+    "RD First Person Review": null,
+    "RD_REFERENCE_ONLY | Ground": null,
+    "RD_REFERENCE_ONLY | left pillar": null,
+    "RD_REFERENCE_ONLY | right pillar": null,
+    "RD_REFERENCE_ONLY | tower": null,
+    "Shape \u2022 elbow diamond": null,
+    "Shape \u2022 magazine tab": null,
+    "Shape \u2022 weapon box": null,
+    "Shape \u2022 wrist ring": null
+  },
+  "eevee_sample_settings": {
+    "taa_samples": 16,
+    "taa_render_samples": 32,
+    "volumetric_samples": 64,
+    "volumetric_sample_distribution": 0.800000011920929,
+    "volumetric_shadow_samples": 16
+  },
+  "source_bytes_unchanged": true,
+  "camera_unchanged": true,
+  "action_curves_unchanged": true,
+  "source_meshes_unchanged": true,
+  "materials_unchanged": true,
+  "completed": true
+}

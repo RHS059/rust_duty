@@ -1,0 +1,21 @@
+{
+  "status": "Executed with Blender 4.3.2; authoring and fresh-reopen numerical checks passed. Parameters are bounded artistic inference, not COD measurements. Fresh Eevee visual verification pending.",
+  "source_commit": "f230079ccf60f78aebddc702dfeed368615e3dc7",
+  "source_sha256": "9c9aef2f059a14653cd3eb7fddda8505af5b48aeefe29d65a31667f3ef5b6ee8",
+  "additional_roll_degrees": 20.0,
+  "roll_full_frame": 50,
+  "shoulder_start_frame": 49,
+  "shoulder_full_frame": 55,
+  "shoulder_camera_offset_m": [
+    0.0,
+    -0.03,
+    0.015
+  ],
+  "offset_axes": "Unchanged camera axes: +Y up, +Z toward camera. Pull shoulder down/back; retain hand target with local Action-only compensation.",
+  "reference_sha256": "491a1729aa0f32373025d35fff86da76c6c1c8f057c0c553d0fbb5fb6226ff46",
+  "reference_source_range_half_open": [
+    2241,
+    2310
+  ],
+  "reference_evidence": "Pinned reference tracks and REF panel of af797ceac839a3915e2b45ac63e3fbc4148b71ca/review_sbs/2026-10-13/prone_entry_r4_f055.png. Historical CAND panel is not proof of current r4."
+}

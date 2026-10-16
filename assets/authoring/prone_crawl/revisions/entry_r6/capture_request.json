@@ -1,0 +1,45 @@
+{
+  "schema": "prone-entry-r6-capture-request/v1",
+  "source_blend_sha256": "bd65f2eb280a6c08d413fd331a19b3b52b0990089cc4f06e802fc02813b85fd8",
+  "required_bindings": {
+    "Arms": "prone_crawl_enter_r6",
+    "RD First Person Review": "prone_crawl_enter_camera_r6"
+  },
+  "action_fingerprints": {
+    "prone_crawl_enter_r6": "2a860a55decb8f0fa06226f55a2ace85e9629a21b54ff827cb275b244da8d41f",
+    "prone_crawl_enter_camera_r6": "7006eeec2a3a9c83ca6eec27290692db81554ecb219afc656f8da413aa311c82"
+  },
+  "camera": "RD First Person Review",
+  "native_frames": 69,
+  "fps": 60,
+  "reference_source_range_half_open": [
+    2241,
+    2310
+  ],
+  "method": "foreground Blender 4.3.2 Eevee Viewport Render Animation",
+  "pair_helper": "capture_pair.py",
+  "witness_frames": [
+    1,
+    12,
+    20,
+    21,
+    28,
+    32,
+    35,
+    41,
+    45,
+    55,
+    69
+  ],
+  "required_evidence": [
+    "Exact candidate hash and both Action fingerprints",
+    "Both Actions bound together throughout",
+    "Unchanged projection, camera data and environment",
+    "69 native images with hashes and exact output/reference mapping",
+    "Per-frame actual camera and rig matrices",
+    "Repeat-frame stability and complete post-capture preservation audit"
+  ],
+  "rendered": false,
+  "runtime_binding": "not implemented",
+  "important": "No static camera substitution, crop, retime or visual approval claim from numeric checks."
+}

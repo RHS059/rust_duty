@@ -1,0 +1,100 @@
+{
+  "guide_front_camera": [
+    0.0835245568305254,
+    -0.06162866367958486,
+    -0.718215998262167
+  ],
+  "guide_rear_virtual_camera": [
+    0.0835245568305254,
+    -0.06162866367958486,
+    -0.33
+  ],
+  "pivot_camera": [
+    0.00935299787670374,
+    -0.10889146476984024,
+    -0.465015172958374
+  ],
+  "fit": {
+    "forward": {
+      "max_axis_guide_fit_error_px": 0.17828133382737316,
+      "parameter_min": [
+        -0.15027622501065613,
+        -0.09970425940541834,
+        0.0,
+        -42.28824650246532,
+        2.560107717235608,
+        0.0
+      ],
+      "parameter_max": [
+        0.08865074402144218,
+        0.02911882945256955,
+        0.0,
+        17.28061326203917,
+        76.87757229902479,
+        0.0
+      ],
+      "note": "Numerical guide residual only, not an animation score or reviewer judgment"
+    },
+    "backward": {
+      "max_axis_guide_fit_error_px": 0.04942977292796847,
+      "parameter_min": [
+        -0.1515109251277747,
+        -0.07357900659737057,
+        0.0,
+        -29.93016575662078,
+        7.621346359362637,
+        0.0
+      ],
+      "parameter_max": [
+        0.0906501254071701,
+        0.03760749083759664,
+        0.0,
+        25.840419580167875,
+        75.68861644085457,
+        0.0
+      ],
+      "note": "Numerical guide residual only, not an animation score or reviewer judgment"
+    },
+    "right": {
+      "max_axis_guide_fit_error_px": 0.019582234958620118,
+      "parameter_min": [
+        -0.1468718113005527,
+        -0.06018173671965327,
+        0.0,
+        5.593467137886795,
+        -26.781422268161307,
+        0.0
+      ],
+      "parameter_max": [
+        0.22290758757136736,
+        0.04691972524083747,
+        0.0,
+        14.251338641809209,
+        27.889670401364302,
+        0.0
+      ],
+      "note": "Numerical guide residual only, not an animation score or reviewer judgment"
+    },
+    "left": {
+      "max_axis_guide_fit_error_px": 0.008682153465957548,
+      "parameter_min": [
+        -0.2041483706520947,
+        -0.060203906135054955,
+        0.0,
+        3.1715971278381576,
+        0.9644540279349743,
+        0.0
+      ],
+      "parameter_max": [
+        0.06781439120904972,
+        -0.0064257628650779205,
+        0.0,
+        13.788253436538907,
+        34.4330036166326,
+        0.0
+      ],
+      "note": "Numerical guide residual only, not an animation score or reviewer judgment"
+    }
+  },
+  "limits": "Virtual longitudinal guides are animation construction aids, not a three-physical-landmark diagnostic or a fidelity pass. Models differ. No hidden anatomy or alternate-camera claims."
+}

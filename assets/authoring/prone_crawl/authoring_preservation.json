@@ -1,0 +1,29 @@
+{
+  "schema": "rust-duty-prone-entry-source-preservation/v1",
+  "source_sha256": "a2c4b2bbe98da1a608450bba92404cb39008eae5861bcf8fc3f5d2f978df0e3b",
+  "candidate_sha256": "793546897db5634fca6ba6da7cefd5240e3712932c239bbabea7dfaa0f03419e",
+  "source_actions": 103,
+  "candidate_actions": 104,
+  "created_actions": [
+    "prone_crawl_enter_r1"
+  ],
+  "checks": {
+    "all_prior_action_fingerprints": true,
+    "only_expected_new_actions": true,
+    "nla_and_active_actions": true,
+    "drivers": true,
+    "packed_images": true,
+    "actions_metadata": true,
+    "pose_channel_defaults": true,
+    "actions_extended": true,
+    "meshes": true,
+    "armatures": true,
+    "objects_and_bindings": true,
+    "materials": true,
+    "cameras": true
+  },
+  "passed": true,
+  "source_saved": false,
+  "candidate_saved": true,
+  "design_sha256": "70a1de6be895662cfbd60f55eb5472e3706bd04287feaed960b6e0dd2f9e2281"
+}

@@ -1,0 +1,67 @@
+{
+  "schema": "rust-duty-exact-technical-export-parts/v1",
+  "source_sha256": "7807f7e16f6fabb2833d9e61ae5a942ee9a57f455a6c3e40e15ed4e03fa153b4",
+  "archive_sha256": "64b04f8f1360e8a4efc2ed0be5032ffa7488b4ca6a9f0eecf300a4e8eb113225",
+  "archive_bytes": 30235031,
+  "parts": [
+    {
+      "path": "prone_technical_packet.tar.gz.part000",
+      "bytes": 6291456,
+      "sha256": "67db39d515199da1cef0392ece6b8cd2fe2c771ca6a58a46c777bbcd1b8a35ec"
+    },
+    {
+      "path": "prone_technical_packet.tar.gz.part001",
+      "bytes": 6291456,
+      "sha256": "164edab337b22843880e41a9510352d5bc4f959872c5efcfb20b5a5d463205a3"
+    },
+    {
+      "path": "prone_technical_packet.tar.gz.part002",
+      "bytes": 6291456,
+      "sha256": "6ef1d89157c88d9f86dc86d99c6aca6b8d51af4546072a506a91b66575a0b470"
+    },
+    {
+      "path": "prone_technical_packet.tar.gz.part003",
+      "bytes": 6291456,
+      "sha256": "2c19fd0911ba187ee653e434ed927edf8728c2116f6a463cbc50aecc7ac91a6b"
+    },
+    {
+      "path": "prone_technical_packet.tar.gz.part004",
+      "bytes": 5069207,
+      "sha256": "c45974984189ee2ab8030f9861bfafc9baf847e65a0a52b1ca89f27ab1ff6691"
+    }
+  ],
+  "members": [
+    {
+      "path": "export/native_oracle.json",
+      "bytes": 13533800,
+      "sha256": "fce99f6552d2e0a13867aa7e93fd5461db090606f2557da0a5f1b3ef7e20abb4"
+    },
+    {
+      "path": "export/native_oracle.npz",
+      "bytes": 12912140,
+      "sha256": "b5e894e694dbc22a5cc0d10e9851b7970181914022fd66daaaab13f296e92b39"
+    },
+    {
+      "path": "export/prone_handoff.fbx",
+      "bytes": 32139692,
+      "sha256": "a02cb5d57c7112d039d5181670431de3b782811106aa081cc873e41f499573ff"
+    },
+    {
+      "path": "export/textures/arms_00.png",
+      "bytes": 1276573,
+      "sha256": "370b76f77c4cf339dcc0e4ef98e617ffec2a89729091cf29a05ce70d37890d59"
+    },
+    {
+      "path": "export/textures/arms_01.png",
+      "bytes": 962850,
+      "sha256": "0e09be568da16999f79eb85285ffa8c7c3b1d913bd3ecc94f9f61cbfa3e8cdf8"
+    },
+    {
+      "path": "export/textures/arms_02.png",
+      "bytes": 1508540,
+      "sha256": "7e2616335fe41836d7f7e41ecb161a805f4858fb82011bb6c2024d22f035c215"
+    }
+  ],
+  "content": "Actual isolated FBX, native evaluation oracle, packed textures; no render images or video",
+  "production_activation": false
+}

@@ -1,0 +1,32 @@
+{
+  "schema": "rust-duty-prone-entry-technical-artifact-review/v1",
+  "passed": true,
+  "scope": "Technical image/video artifacts only; no similarity score or artistic acceptance",
+  "native_frames_fully_decodable": 69,
+  "native_dimensions": [
+    1280,
+    720
+  ],
+  "inspected_paired_output_indices": [
+    0,
+    4,
+    12,
+    24,
+    36,
+    48,
+    56,
+    63,
+    68
+  ],
+  "manual_checks": {
+    "both_panels_present": true,
+    "labels_outside_native_panels": true,
+    "frame_and_identity_labels_readable": true,
+    "no_black_or_blank_capture": true,
+    "no_ui_or_dialog_baked_into_capture": true,
+    "no_missing_texture_placeholder_visible": true,
+    "same_fixed_model_camera_background": true
+  },
+  "artistic_review": "pending",
+  "capture_script_provenance": "Equivalent reconstruction from original published r7 proof, not recovered original code"
+}

@@ -1,0 +1,22 @@
+test_depth_is_held (test_contracts.DesignTests.test_depth_is_held) ... ok
+test_early_protection (test_contracts.DesignTests.test_early_protection) ... ok
+test_forward_push_only_after_45 (test_contracts.DesignTests.test_forward_push_only_after_45) ... ok
+test_late_motion_does_not_float_high (test_contracts.DesignTests.test_late_motion_does_not_float_high) ... ok
+test_no_envelope_overshoot (test_contracts.DesignTests.test_no_envelope_overshoot) ... ok
+test_no_retiming (test_contracts.DesignTests.test_no_retiming) ... ok
+test_nonfinite_rejected (test_contracts.DesignTests.test_nonfinite_rejected) ... ok
+test_retime_rejected (test_contracts.DesignTests.test_retime_rejected) ... ok
+test_roll_clears_by_45 (test_contracts.DesignTests.test_roll_clears_by_45) ... ok
+test_valid_design (test_contracts.DesignTests.test_valid_design) ... ok
+test_actual_receipt (test_contracts.ReceiptTests.test_actual_receipt) ... ok
+test_artistic_claim_rejected (test_contracts.ReceiptTests.test_artistic_claim_rejected) ... ok
+test_contact_nan_rejected (test_contracts.ReceiptTests.test_contact_nan_rejected) ... ok
+test_guard_failure_rejected (test_contracts.ReceiptTests.test_guard_failure_rejected) ... ok
+test_high_camera_rejected (test_contracts.ReceiptTests.test_high_camera_rejected) ... ok
+test_missing_preservation_rejected (test_contracts.ReceiptTests.test_missing_preservation_rejected) ... ok
+test_pair_required (test_contracts.ReceiptTests.test_pair_required) ... ok
+
+----------------------------------------------------------------------
+Ran 17 tests in 0.087s
+
+OK
