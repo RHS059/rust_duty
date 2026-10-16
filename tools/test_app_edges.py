@@ -218,14 +218,14 @@ class SourceTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.overlay=Path(__file__).absolute().parents[1]
-        cls.contracts=json.loads((cls.overlay/'tools/combined_source_contracts.json').read_text())
+        cls.contracts=json.loads((cls.overlay/'tools/combined_source_contracts.json').read_text(encoding='utf-8'))
     def test_driver_has_no_simulation_writes_or_direct_action_calls(self):
-        source=(self.overlay/'src/high_app_edge_input.rs').read_text().split('#[cfg(test)]')[0]
+        source=(self.overlay/'src/high_app_edge_input.rs').read_text(encoding='utf-8').split('#[cfg(test)]')[0]
         for forbidden in ('&mut Simulation','sim.update(','sim.reset(','sim.cancel_mantle(','sim.damage_player(','.set_binding(','.set_high_mantle_binding(','std::process','Command::'):
             self.assertNotIn(forbidden,source)
         self.assertIn('self.input.key_event(',source);self.assertIn('self.input.mouse_button_event(',source)
     def test_actual_handlers_and_simulation_clock_are_unchanged(self):
-        app=(self.overlay/'src/app.rs').read_text()
+        app=(self.overlay/'src/app.rs').read_text(encoding='utf-8')
         for block in self.contracts['application_blocks']:
             text=app[app.index(block['begin']):app.index(block['end'])]
             self.assertEqual(hashlib.sha256(text.encode()).hexdigest(),block['sha256'])
@@ -236,7 +236,7 @@ class SourceTests(unittest.TestCase):
         self.assertNotIn('set_active(false)',app)
     def test_focus_input_initializers_cover_all_declared_fields(self):
         import re
-        source=(self.overlay/'src/platform/session_focus.rs').read_text()
+        source=(self.overlay/'src/platform/session_focus.rs').read_text(encoding='utf-8')
         def complete(text):
             declaration=text.split('pub struct FocusInput {',1)[1].split('\n}',1)[0]
             fields=set(re.findall(r'^    (\w+):',declaration,re.M))
@@ -256,13 +256,13 @@ class SourceTests(unittest.TestCase):
         self.assertEqual(hashlib.sha256(original.encode()).hexdigest(),self.contracts['unrepaired_focus_sha256'])
         with self.assertRaises(AssertionError):complete(original)
     def test_capture_flags_remain_rejected_and_motion_source_is_untouched(self):
-        opts=(self.overlay/'src/high_app_edge_input.rs').read_text()
+        opts=(self.overlay/'src/high_app_edge_input.rs').read_text(encoding='utf-8')
         for flag in ('--capture','--combined','--onehand','--viewmodel-','--demo','--reference-viewport','--procedural-weapon'):
             self.assertIn('"'+flag+'"',opts)
         for name, expected in self.contracts['unchanged_files'].items():
             self.assertEqual(hashlib.sha256((self.overlay/name).read_bytes()).hexdigest(),expected,name)
-        high=(self.overlay/'src/authored_high_mantle.rs').read_text()
-        sim=(self.overlay/'src/sim.rs').read_text()
+        high=(self.overlay/'src/authored_high_mantle.rs').read_text(encoding='utf-8')
+        sim=(self.overlay/'src/sim.rs').read_text(encoding='utf-8')
         begin=sim.index('    /// The admitted pair identity, never raw unvalidated manifest fields.')
         end=sim.index('    pub fn prone_sample(',begin)
         sim=(sim[:begin]+sim[end:]).replace('        crate::combined_observer::accepted(self);\n','')
@@ -270,7 +270,7 @@ class SourceTests(unittest.TestCase):
         self.assertIn('APPROVED_RUNTIME_PINS: Option<RuntimePins<\'static>> = None;',high)
         self.assertIn('pub const NATIVE_SECONDS: f64 = 95. / 60.;',high)
     def test_renderer_delta_only_observes_existing_samples_and_adds_unrun_test(self):
-        new=(self.overlay/'src/authored_viewmodel.rs').read_text()
+        new=(self.overlay/'src/authored_viewmodel.rs').read_text(encoding='utf-8')
         new=restore_shared_replay_test_binding(new)
         begin=new.index('    /// Distinct source and presented sample times. An outgoing pose is a live')
         end=new.index('    /// Set the hip cant applied at the next draw.',begin)
@@ -287,15 +287,15 @@ class SourceTests(unittest.TestCase):
         new=new.replace('// The library-only admitted fixture calls this helper. The binary also\n// compiles this module for tests, but cannot construct that library test binding.\n#[cfg(test)]\n#[allow(dead_code)]\npub(crate) fn assert_combined_admitted_sync(', '#[cfg(test)]\npub(crate) fn assert_combined_admitted_sync(')
         self.assertEqual(hashlib.sha256(new.encode()).hexdigest(),self.contracts['renderer_before_app_edge_sha256'])
     def test_shared_renderer_replay_binding_is_constructed_only_in_library_tests(self):
-        renderer=(self.overlay/'src/authored_viewmodel.rs').read_text()
-        callers=[((self.overlay/path).read_text(),count) for path,count in
+        renderer=(self.overlay/'src/authored_viewmodel.rs').read_text(encoding='utf-8')
+        callers=[((self.overlay/path).read_text(encoding='utf-8'),count) for path,count in
             (('src/combined_replay.rs',2),('src/combined_observer.rs',1))]
         check_shared_replay_test_scope(renderer,callers)
-        library=(self.overlay/'src/lib.rs').read_text()
+        library=(self.overlay/'src/lib.rs').read_text(encoding='utf-8')
         self.assertIn('#[cfg(test)]\nextern crate self as vector_range;',library)
         self.assertIn('#[cfg(test)]\n#[allow(dead_code)]\nmod authored_viewmodel;',library)
         # This module is also compiled against a non-test library by these targets.
-        main=(self.overlay/'src/main.rs').read_text()
+        main=(self.overlay/'src/main.rs').read_text(encoding='utf-8')
         self.assertIn('#[cfg(any(feature = "legacy-macroquad", feature = "wgpu-runtime"))]\nmod authored_viewmodel;',main)
         for path in ('tests/source_triangle_completeness.rs',
                      'tests/authored_high_mantle_contract.rs',
@@ -304,11 +304,11 @@ class SourceTests(unittest.TestCase):
                      'tests/combined_animation_contract.rs',
                      'examples/source_visibility_certificate.rs',
                      'examples/source_visibility_geometry_probe.rs'):
-            included=(self.overlay/path).read_text()
+            included=(self.overlay/path).read_text(encoding='utf-8')
             self.assertIn('#[path = "../src/authored_viewmodel.rs"]\nmod authored_viewmodel;',included)
     def test_shared_renderer_test_scope_rejects_original_failure_and_duration_mutation(self):
-        renderer=(self.overlay/'src/authored_viewmodel.rs').read_text()
-        callers=[((self.overlay/path).read_text(),count) for path,count in
+        renderer=(self.overlay/'src/authored_viewmodel.rs').read_text(encoding='utf-8')
+        callers=[((self.overlay/path).read_text(encoding='utf-8'),count) for path,count in
             (('src/combined_replay.rs',2),('src/combined_observer.rs',1))]
         with self.assertRaises(AssertionError):
             check_shared_replay_test_scope(restore_shared_replay_test_binding(renderer),callers)
@@ -322,7 +322,7 @@ class SourceTests(unittest.TestCase):
             with self.assertRaises(AssertionError):check_shared_replay_test_scope(renderer,changed)
     def test_python_has_no_launch_or_os_input_route(self):
         for name in ('app_edge_contract.py','verify_app_edges.py','app_edge_synthetic_fixture.py'):
-            text=(self.overlay/'tools'/name).read_text()
+            text=(self.overlay/'tools'/name).read_text(encoding='utf-8')
             for forbidden in ('subprocess','os.system','ctypes','xdotool','Xvfb','pyautogui'):
                 self.assertNotIn(forbidden,text)
 

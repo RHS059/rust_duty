@@ -359,7 +359,7 @@ def verify_config(config,config_sha):
     for r in inventory:ref(root,r)
     entries=list(source_root.rglob('*'))
     need(all(not p.is_symlink() and (p.is_file() or p.is_dir()) for p in entries),'source tree contains symlink or special unlisted input')
-    actual=sorted(str(p.relative_to(root)) for p in entries if p.is_file()
+    actual=sorted(p.relative_to(root).as_posix() for p in entries if p.is_file()
         and not any(part in ('target','.git','__pycache__') for part in p.relative_to(source_root).parts))
     need(sorted(r['path'] for r in inventory)==actual,'source inventory omits/adds actual files')
     need(digest(sorted(inventory,key=lambda r:r['path']))==c['source_fingerprint'],'source fingerprint mismatch')
@@ -420,8 +420,8 @@ def native_output_inventory(folder,case_limits,receipt_name,max_bytes):
     for case,limit in case_limits.items():
         expected.update(case+'/'+name for name in ('observer.jsonl','stdout.log','stderr.log'))
         expected.update(case+'/'+f'{i:04}.png'+suffix for i in range(limit) for suffix in ('','.json'))
-    actual={str(p.relative_to(folder)) for p in entries if p.is_file()}
-    need(actual==expected and {str(p.relative_to(folder)) for p in entries if p.is_dir()}==set(case_limits),
+    actual={p.relative_to(folder).as_posix() for p in entries if p.is_file()}
+    need(actual==expected and {p.relative_to(folder).as_posix() for p in entries if p.is_dir()}==set(case_limits),
         'native output inventory missing/extra/unaccounted file or directory')
     total=sum(p.stat().st_size for p in entries if p.is_file())
     need(total<=max_bytes,'complete native output exceeds reservation')

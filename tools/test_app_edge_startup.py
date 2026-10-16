@@ -8,7 +8,7 @@ import unittest
 
 HERE = Path(__file__).absolute().parents[1]
 NEW = HERE
-CONTRACTS = json.loads((HERE / 'tools/combined_source_contracts.json').read_text())
+CONTRACTS = json.loads((HERE / 'tools/combined_source_contracts.json').read_text(encoding='utf-8'))
 OLD_CALL = '''    let (level_selection, city) =
         crate::level_menu::choose(&args, &authored_executable, &mut game_update).await?;
 '''
@@ -42,7 +42,7 @@ HELPER = '''pub fn starts_without_level_menu(args: &[String], app_edge: Option<&
 
 
 def read(root, name):
-    return (root / 'src' / (name + '.rs')).read_text()
+    return (root / 'src' / (name + '.rs')).read_text(encoding='utf-8')
 
 
 def check_startup(app, menu, library):
@@ -89,9 +89,9 @@ class StartupSourceTests(unittest.TestCase):
         for source in sorted(NEW.rglob('*.rs')):
             relative = source.relative_to(NEW)
             projected = NEW / relative
-            text = (projected if projected.exists() else source).read_text()
+            text = (projected if projected.exists() else source).read_text(encoding='utf-8')
             for _ in re.finditer(r'\blevel_menu\s*::\s*choose\s*\(', text):
-                sites.append(str(relative))
+                sites.append(relative.as_posix())
             self.assertNotRegex(text, r'use\s+[^;]*level_menu[^;]*(?:choose|\*)')
         self.assertEqual(sites, ['src/app.rs'])
         self.assertIn(NEW_CALL, read(NEW, 'app'))
