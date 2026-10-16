@@ -169,24 +169,48 @@ impl PoseReturn {
         target: &ViewmodelPose,
         time: f64,
     ) -> Result<(ViewmodelPose, Vec<f32>)> {
-        if !time.is_finite()
-            || !self.began.is_finite()
+        if !time.is_finite() || !self.began.is_finite() {
+            return Err(AnimationError("invalid return clock".into()));
+        }
+        let opacity: Vec<_> = target
+            .actor_visible
+            .iter()
+            .map(|&v| f32::from(u8::from(v)))
+            .collect();
+        self.pose_with_opacity_at_weight(animation, blend, target, &opacity, self.weight(time))
+    }
+    /// A caller-owned committed weight can coordinate pose, camera and root.
+    /// Fractional live target opacity is retained across nested action returns.
+    pub fn pose_with_opacity_at_weight(
+        &self,
+        animation: &AnimationSet,
+        blend: &AnchoredPoseBlend,
+        target: &ViewmodelPose,
+        target_opacity: &[f32],
+        weight: f32,
+    ) -> Result<(ViewmodelPose, Vec<f32>)> {
+        if !weight.is_finite()
+            || !(0. ..=1.).contains(&weight)
             || self.opacity.len() != target.actor_visible.len()
+            || target_opacity.len() != self.opacity.len()
             || self
                 .opacity
                 .iter()
+                .chain(target_opacity)
                 .any(|v| !v.is_finite() || !(0. ..=1.).contains(v))
+            || target_opacity
+                .iter()
+                .zip(&target.actor_visible)
+                .any(|(&a, &visible)| a > 0. && !visible)
         {
-            return Err(AnimationError("invalid return clock or opacity".into()));
+            return Err(AnimationError("invalid return weight or opacity".into()));
         }
-        let weight = self.weight(time);
         let mut pose = blend.blend(animation, &self.from, target, weight)?;
         let mut opacity = Vec::with_capacity(target.actor_visible.len());
-        for (i, &visible) in target.actor_visible.iter().enumerate() {
-            let alpha = self.opacity[i] + (f32::from(u8::from(visible)) - self.opacity[i]) * weight;
-            // Visibility changes fade at the actual old/new transform instead
-            // of interpolating an invisible actor's identity placeholder.
-            if !visible {
+        for (i, &target_alpha) in target_opacity.iter().enumerate() {
+            let alpha = self.opacity[i] + (target_alpha - self.opacity[i]) * weight;
+            // Invisible placeholders must not pull a fading prop toward identity.
+            if target_alpha == 0. {
                 pose.actor_globals[i] = self.from.actor_globals[i];
             } else if self.opacity[i] == 0. {
                 pose.actor_globals[i] = target.actor_globals[i];

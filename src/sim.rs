@@ -1,6 +1,8 @@
 use crate::action::{ActionEvent, ActionEventKind, ActionSlot, ActionTimings, Loadout};
+use crate::authored_prone::{ProneCameraTrack, ProneReturn, ProneSample, DEFAULT_RETURN_SECONDS};
 use crate::settings::Settings;
 use glam::{vec2, vec3, Vec2, Vec3};
+use std::sync::Arc;
 
 mod actions;
 pub use actions::{
@@ -540,6 +542,11 @@ pub struct Simulation {
     /// Sidearm interface; empty by default. Survives `reset`.
     pub loadout: Loadout,
     pub time: f64,
+    prone_camera: Option<Arc<ProneCameraTrack>>,
+    prone_entry: Option<(f64, f32)>,
+    prone_sample: Option<ProneSample>,
+    prone_return: Option<ProneReturn>,
+    prone_return_seconds: f64,
     spread_seed: u32,
     recoil_seed: u32,
     level: Option<LevelState>,
@@ -652,6 +659,11 @@ impl Simulation {
             timings: ActionTimings::default(),
             loadout: Loadout::default(),
             time: 0.,
+            prone_camera: None,
+            prone_entry: None,
+            prone_sample: None,
+            prone_return: None,
+            prone_return_seconds: DEFAULT_RETURN_SECONDS,
             spread_seed: 0x91e10da5,
             recoil_seed: 0xa735813c,
             level: None,
@@ -666,17 +678,97 @@ impl Simulation {
     pub fn reset(&mut self) {
         let timings = std::mem::take(&mut self.timings);
         let loadout = self.loadout;
+        let prone_camera = self.prone_camera.take();
+        let prone_return_seconds = self.prone_return_seconds;
         let level = self.level.take();
         *self = Self::new();
         self.timings = timings;
         self.loadout = loadout;
+        self.prone_camera = prone_camera;
+        self.prone_return_seconds = prone_return_seconds;
         if let Some(level) = level {
             self.install_level(level.blocks, level.spawn_position, level.spawn_yaw);
+        }
+    }
+    /// Install only after the complete opt-in weapon/camera pair has loaded.
+    pub fn set_prone_camera_track(&mut self, track: Option<Arc<ProneCameraTrack>>) {
+        self.clear_prone_presentation();
+        self.prone_camera = track;
+    }
+    pub fn prone_sample(&self) -> Option<ProneSample> {
+        self.prone_sample
+    }
+    /// Configure future outgoing blends; active return clocks retain their duration.
+    pub fn set_prone_return_seconds(&mut self, seconds: f64) -> Result<(), String> {
+        if !seconds.is_finite() || seconds <= 0. || seconds > 2. {
+            return Err("prone return duration must be finite and in (0, 2] seconds".into());
+        }
+        self.prone_return_seconds = seconds;
+        Ok(())
+    }
+    pub fn prone_return(&self) -> Option<ProneReturn> {
+        self.prone_return.filter(|fade| fade.weight(self.time) < 1.)
+    }
+    pub fn prone_presentation_active(&self) -> bool {
+        self.prone_sample.is_some() || self.prone_return().is_some()
+    }
+    /// Camera-only outgoing residue. Never used as an active source clock or
+    /// added to ordinary stance height, collision or gameplay aim.
+    pub fn prone_camera_sample(&self) -> Option<ProneSample> {
+        self.prone_sample.or_else(|| {
+            self.prone_return().map(|fade| ProneSample {
+                orientation: fade
+                    .sample
+                    .orientation
+                    .slerp(glam::Quat::IDENTITY, fade.weight(self.time))
+                    .normalize(),
+                eye_height: self.player.eye_height,
+                ..fade.sample
+            })
+        })
+    }
+    fn cancel_prone_presentation(&mut self) {
+        if let Some(sample) = self.prone_sample.take() {
+            self.prone_return = Some(ProneReturn {
+                sample,
+                began: self.time,
+                duration: self.prone_return_seconds,
+            });
+            if self.player.prone {
+                // Resume the ordinary height owner from the currently visible height.
+                self.player.eye_from = self.player.eye_height;
+                self.player.stance_progress = 0.;
+                self.player.stance_duration = 0.4;
+            }
+        }
+        self.prone_entry = None;
+    }
+    fn clear_prone_presentation(&mut self) {
+        self.cancel_prone_presentation();
+        self.prone_return = None;
+    }
+    fn reconcile_prone_presentation(&mut self) {
+        if self.player.dead() {
+            self.clear_prone_presentation();
+            return;
+        }
+        let p = &self.player;
+        if !p.prone
+            || !p.grounded
+            || p.dead()
+            || p.mantle.is_some()
+            || !matches!(p.action, Action::None)
+            || p.reload_left > 0.
+            || p.ads_requested
+            || p.ads > 0.
+        {
+            self.cancel_prone_presentation();
         }
     }
     /// Install static level collision and its restart/respawn location. Render
     /// geometry is owned separately so neither reset nor death reloads meshes.
     pub fn install_level(&mut self, blocks: Vec<Block>, spawn_position: Vec3, spawn_yaw: f32) {
+        self.clear_prone_presentation();
         self.level = Some(LevelState {
             blocks: blocks.clone(),
             spawn_position,
@@ -763,6 +855,7 @@ impl Simulation {
             }
         }
         if self.step_death(cfg) {
+            self.clear_prone_presentation();
             self.time += dt as f64;
             return;
         }
@@ -801,9 +894,16 @@ impl Simulation {
         if valid_reload {
             self.begin_reload(cfg);
         }
+        // Release before ordinary movement easing so interruptions cannot first
+        // snap to the stale generic stance curve.
+        if input.ads && before.ads {
+            self.cancel_prone_presentation();
+        }
+        self.reconcile_prone_presentation();
         self.move_player(input, cfg, dt);
         self.after_move(input, cfg, dt);
         if self.player.dead() {
+            self.clear_prone_presentation();
             self.time += dt as f64;
             return;
         }
@@ -862,6 +962,7 @@ impl Simulation {
             }
         }
         self.player.sprint_out = (self.player.sprint_out - dt).max(0.);
+        self.reconcile_prone_presentation();
         self.time += dt as f64;
     }
     /// Cancel traversal without teleporting or retaining upward/forward momentum.
@@ -1123,6 +1224,31 @@ impl Simulation {
                 p.crouched = proposed > 0;
                 p.prone = proposed == 2;
                 p.eye_from = p.eye_height;
+                if proposed == 2
+                    && self.prone_camera.is_some()
+                    && p.grounded
+                    && p.reload_left <= 0.
+                    && p.ads <= 0.
+                    && !input.ads
+                {
+                    // The accepted transition's committed boundary owns f1.
+                    // Standing requests pass through crouch before reaching here.
+                    // Absorb any visible landing kick once: letting it decay
+                    // underneath this height owner would move protected f1–11.
+                    let entry_height = p.eye_height - p.landing_kick;
+                    p.landing_kick = 0.;
+                    self.prone_entry = Some((time + dt as f64, entry_height));
+                    self.prone_return = None;
+                } else {
+                    self.prone_entry = None;
+                    if let Some(sample) = self.prone_sample.take() {
+                        self.prone_return = Some(ProneReturn {
+                            sample,
+                            began: time,
+                            duration: self.prone_return_seconds,
+                        });
+                    }
+                }
                 p.stance_progress = 0.;
                 p.stance_duration = if current == 2 || proposed == 2 {
                     0.4
@@ -1141,6 +1267,13 @@ impl Simulation {
             1.524
         };
         p.eye_height = p.eye_from + (target_eye - p.eye_from) * blend;
+        if let (Some(track), Some((started, height))) = (&self.prone_camera, self.prone_entry) {
+            if p.prone && p.reload_left <= 0. && !input.ads {
+                let sample = track.sample(time + dt as f64 - started, height);
+                p.eye_height = sample.eye_height;
+                self.prone_sample = Some(sample);
+            }
+        }
         // Prevent a shrinking camera from crossing a low ceiling during its eased transition.
         for b in &self.blocks {
             if p.position.x + RADIUS > b.bounds.min.x

@@ -20,6 +20,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import vrpack
 import vrskin
 import vrview
+import prone_camera_pair
 from vrpack import require
 
 
@@ -70,6 +71,36 @@ def flat(matrix):
     return tuple(float(v) for row in matrix for v in row)
 
 
+def paired_contract(args, frames, fps):
+    """The legacy path stays unpaired unless the complete contract is supplied."""
+    fields = ('pair_sidecar', 'pair_sidecar_sha256', 'pair_candidate_source',
+              'pair_rig_action_fingerprint', 'pair_camera_action_fingerprint',
+              'pair_candidate_frame_offset')
+    supplied = [getattr(args, name, None) is not None for name in fields]
+    if not any(supplied):
+        return None
+    require(all(supplied), 'paired prone conversion requires every --pair-* contract argument')
+    require(args.take and not args.loop, 'paired prone entry requires an explicit take and cannot loop')
+    rig_action, camera_action = prone_camera_pair.action_names_for_clip(args.name)
+    is_r15 = rig_action == prone_camera_pair.R15_RIG_ACTION
+    require(args.subdivisions in ((64,) if is_r15 else (1, 2, 4, 8)) and not args.switch,
+            'paired prone subdivisions must match the exact source camera grid')
+    require(not is_r15 or args.take == rig_action, 'r15 requires the exact approved export take')
+    require(math.isfinite(args.imported_frame_offset), 'imported frame offset must be finite')
+    require(hashlib.sha256(args.pair_candidate_source.read_bytes()).hexdigest() == args.source_sha256,
+            'paired candidate source bytes do not match --source-sha256')
+    return prone_camera_pair.load_camera_pair(
+        vrpack.read_limited(args.pair_sidecar),
+        expected_sidecar_sha256=args.pair_sidecar_sha256,
+        candidate_sha256=args.source_sha256,
+        action_fingerprints={
+            rig_action: args.pair_rig_action_fingerprint,
+            camera_action: args.pair_camera_action_fingerprint,
+        },
+        native_start=args.native_start, native_end=args.native_end, fps=fps,
+        candidate_frame_offset=args.pair_candidate_frame_offset, frames=frames)
+
+
 def convert(args):
     import bpy
     import numpy as np
@@ -83,6 +114,7 @@ def convert(args):
     keep = {name for name,_ in skeleton}
     fps = Fraction(args.fps)
     frames,times = sample_grid(args.native_start,args.native_end,args.subdivisions,args.switch,fps)
+    pair = paired_contract(args, frames, fps)
     bpy.ops.wm.read_factory_settings(use_empty=True)
     patches = patch_importer()
     bpy.ops.import_scene.fbx(filepath=str(fbx),use_anim=True,anim_offset=0.,ignore_leaf_bones=False,
@@ -118,19 +150,42 @@ def convert(args):
     bone_names = [b[0] for b in skeleton]
     raw_bones = np.empty((len(frames),len(skeleton),4,4),dtype=np.float64)
     raw_actors = np.empty((len(frames),len(actors),4,4),dtype=np.float64)
+    canonical_worlds = None
     for i,native in enumerate(frames):
         f=float(native)+args.imported_frame_offset; scene.frame_set(math.floor(f),subframe=f-math.floor(f)); arm.update_tag();bpy.context.view_layer.update()
         dg=bpy.context.evaluated_depsgraph_get(); ae=arm.evaluated_get(dg)
-        raw_bones[i]=[basis @ ae.matrix_world @ ae.pose.bones[n].matrix for n in bone_names]
-        raw_actors[i]=[basis @ o.evaluated_get(dg).matrix_world @ inv_basis for o in actors]
+        if pair is None:
+            raw_bones[i]=[basis @ ae.matrix_world @ ae.pose.bones[n].matrix for n in bone_names]
+            raw_actors[i]=[basis @ o.evaluated_get(dg).matrix_world @ inv_basis for o in actors]
+        else:
+            delta = pair.delta_at(native)
+            def without_common_motion(world):
+                values = prone_camera_pair.remove_common_motion(flat(world), delta)
+                return Matrix([values[j:j+4] for j in range(0,16,4)])
+            if canonical_worlds is None:
+                canonical_worlds = {o.name: flat(without_common_motion(o.evaluated_get(dg).matrix_world))
+                                    for o in [arm] + skins}
+            # FBX must preserve the paired armature-object track. A fixed rig
+            # or an already normalized FBX cannot silently get a pair receipt.
+            prone_camera_pair.verify_armature_motion(
+                flat(ae.matrix_world), delta, canonical_worlds[arm.name])
+            raw_bones[i]=[basis @ without_common_motion(ae.matrix_world @ ae.pose.bones[n].matrix)
+                          for n in bone_names]
+            raw_actors[i]=[basis @ without_common_motion(o.evaluated_get(dg).matrix_world) @ inv_basis
+                           for o in actors]
         if i%512==0: print('FBX_SAMPLE',i,len(frames),flush=True)
     # Freeze geometry independently. Prune only unweighted helpers outside the
     # explicitly verified canonical parent closure; no deform rest is altered.
-    rest = {n:flat(arm.matrix_world@arm.data.bones[n].matrix_local) for n in bone_names}
+    rest = {n:flat(arm.matrix_world@arm.data.bones[n].matrix_local) for n in bone_names} if pair is None else None
     actor_rest = {o.name:Matrix.Identity(4) for o in actors}
     for obj in scene.objects:
         obj.animation_data_clear()
     arm.data.pose_position='REST'
+    if pair is not None:
+        bpy.context.view_layer.update()
+        prone_camera_pair.restore_canonical_worlds(
+            [arm] + skins, canonical_worlds, Matrix, bpy.context.view_layer.update)
+        rest = {n:flat(arm.matrix_world@arm.data.bones[n].matrix_local) for n in bone_names}
     for obj in actors:
         obj.parent=None; obj.matrix_world=actor_rest[obj.name]
     bpy.context.view_layer.objects.active=arm
@@ -180,6 +235,12 @@ def convert(args):
                         'actors':actor_values,'visible':visible})
     vra=vrview.encode_vra(output_bones,actor_defs,[{'name':args.name,'loop':args.loop,'frames':encoded}],vrs,vrm)
     for suffix,data in [('vrs',vrs),('vrm',vrm),('vra',vra)]: (args.output/f'asset.{suffix}').write_bytes(data)
+    if pair is not None:
+        receipt = pair.receipt(vra, digest, args.name)
+        receipt['source_take'] = args.take
+        receipt['imported_frame_offset'] = args.imported_frame_offset
+        (args.output/'asset.prone-camera.json').write_bytes(pair.sidecar_bytes)
+        (args.output/'asset.prone-pair.json').write_text(json.dumps(receipt,indent=2)+'\n')
     manifest={'schema':'rust-duty-fbx-segment-diagnostic/v1','status':'diagnostic',
       'source_fbx_sha256':digest,'authoring_master_sha256':args.source_sha256,
       'native_crop':[args.native_start,args.native_end],'native_fps':[fps.numerator,fps.denominator], 'source_take':args.take, 'imported_frame_offset':args.imported_frame_offset,
@@ -189,6 +250,16 @@ def convert(args):
       'source_action_ranges':action_ranges, 'visibility_policy':'all-zero rigid scale maps to invisible STEP with identity placeholder; partial singular scale rejected', 'geometry_transport':'static GLB only; no sampled GLB animation', 'material_source_sha256':args.source_sha256 if args.material_source else None,
       'files':{f'asset.{s}':{'sha256':hashlib.sha256(d).hexdigest(),'bytes':len(d)} for s,d in [('vrs',vrs),('vrm',vrm),('vra',vra)]},
       'scope':'Explicitly selected source range converted as WIP. Review scope is recorded in the source-selection manifest. No runtime parity or gameplay visual approval is implied.'}
+    if pair is not None:
+        manifest['prone_camera_pair'] = {
+            'receipt': 'asset.prone-pair.json', 'sidecar': 'asset.prone-camera.json',
+            'common_motion_removal': prone_camera_pair.REMOVAL,
+            'rest_geometry': 'canonical initial armature and skin object worlds restored before encoding',
+            'action_fingerprints': 'expected fingerprints verified against hash-pinned source sidecar; FBX Actions are not source Actions',
+        }
+        for name in ('asset.prone-pair.json', 'asset.prone-camera.json'):
+            data = (args.output/name).read_bytes()
+            manifest['files'][name] = {'sha256': hashlib.sha256(data).hexdigest(), 'bytes': len(data)}
     (args.output/'manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
     print(json.dumps(manifest,indent=2),flush=True)
 
@@ -201,6 +272,11 @@ def main():
     p.add_argument('--material-source',type=Path);p.add_argument('--armature',default='Arms');p.add_argument('--actor',action='append',required=True)
     p.add_argument('--native-start',type=int,required=True);p.add_argument('--native-end',type=int,required=True)
     p.add_argument('--subdivisions',type=int,default=64);p.add_argument('--switch',action='append',default=[])
+    p.add_argument('--pair-sidecar',type=Path,help='opt in to the exact prone r6 paired-camera contract')
+    p.add_argument('--pair-sidecar-sha256');p.add_argument('--pair-candidate-source',type=Path)
+    p.add_argument('--pair-rig-action-fingerprint');p.add_argument('--pair-camera-action-fingerprint')
+    p.add_argument('--pair-candidate-frame-offset',type=int,
+                   help='candidate frame = native frame + this explicit offset; must span 1..69')
     argv=sys.argv[sys.argv.index('--')+1:] if '--' in sys.argv else sys.argv[1:]
     convert(p.parse_args(argv))
 

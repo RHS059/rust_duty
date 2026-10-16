@@ -315,6 +315,11 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
     } else {
         None
     };
+    sim.set_prone_camera_track(
+        authored
+            .as_ref()
+            .and_then(|model| model.prone_camera_track()),
+    );
     let model_missing = authored_path.is_none()
         && matches!(
             &model_source,
@@ -453,9 +458,13 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
         }
         _ => cfg.ads_time,
     };
-    if capture_sequence.is_some() && !framing.reference {
-        return Err("--capture-sequence requires --reference-viewport".into());
-    }
+    let native_window_capture = args.iter().any(|a| a == "--capture-native-window");
+    validate_capture_output(
+        capture_sequence.is_some(),
+        gameplay_capture,
+        framing.reference,
+        native_window_capture,
+    )?;
     if capture_sequence.is_some() {
         std::fs::create_dir_all(
             args.iter()
@@ -853,8 +862,7 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
                                 "procedural"
                             },
                             framing.reference,
-                            capture,
-                            capture_sequence,
+                            (capture, capture_sequence),
                             demo,
                         );
                         let trace = start_frame_trace(
@@ -1212,6 +1220,14 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
             }
         }
         notice_timer = (notice_timer - dt).max(0.);
+        if authored
+            .as_ref()
+            .is_some_and(|model| model.error().is_some())
+            && sim.prone_presentation_active()
+        {
+            // A renderer failure must never leave the camera half of a pair active.
+            sim.set_prone_camera_track(None);
+        }
         set_default_camera();
         clear_background(Color::new(0.32, 0.49, 0.68, 1.));
         // Sky gradient tracks pitch; lighting itself is world fixed.
@@ -1233,7 +1249,11 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
             screen_width() / screen_height()
         };
         let eye = sim.player.eye();
-        let forward = sim.player.direction();
+        let (forward, camera_up) = vector_range::authored_prone::camera_axes(
+            sim.player.direction(),
+            sim.player.camera_up(cfg.action.lean_roll),
+            sim.prone_camera_sample(),
+        );
         let fov = cfg.fov
             + (cfg.ads_fov - cfg.fov)
                 * vector_range::reference_motion::visual_world_ads(sim.player.ads);
@@ -1241,7 +1261,7 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
             position: eye,
             target: eye + forward,
             // Lean rolls the world camera; the viewmodel stays fixed to the view.
-            up: sim.player.camera_up(cfg.action.lean_roll),
+            up: camera_up,
             fovy: h_fov_to_v(fov, aspect),
             aspect: Some(aspect),
             z_near: 0.035,
@@ -1467,10 +1487,10 @@ fn frame_trace_scene(
     weapon_id: &str,
     presentation: &str,
     reference: bool,
-    capture: bool,
-    capture_sequence: Option<&str>,
+    capture_mode: (bool, Option<&str>),
     demo: bool,
 ) -> serde_json::Value {
+    let (capture, capture_sequence) = capture_mode;
     serde_json::json!({
         "name": level_name,
         "profile_base": profile,
@@ -1604,8 +1624,42 @@ fn resolve_theme_path(
     "ui/theme.css".into()
 }
 
+/// Keep the historical reference-view path unchanged; an actual gameplay
+/// window is a separate, explicit diagnostic output, never a pose override.
+fn validate_capture_output(
+    has_sequence: bool,
+    gameplay: bool,
+    reference: bool,
+    native_window: bool,
+) -> Result<(), String> {
+    if native_window && (!has_sequence || !gameplay || reference) {
+        return Err(
+            "--capture-native-window requires a gameplay sequence and no --reference-viewport"
+                .into(),
+        );
+    }
+    if has_sequence && !reference && !native_window {
+        return Err("--capture-sequence requires --reference-viewport or explicit gameplay --capture-native-window".into());
+    }
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn native_window_capture_is_explicit_and_gameplay_only() {
+        assert!(super::validate_capture_output(true, true, false, true).is_ok());
+        assert!(super::validate_capture_output(true, true, true, false).is_ok());
+        assert!(super::validate_capture_output(false, false, false, false).is_ok());
+        for args in [
+            (true, false, false, true),
+            (true, true, true, true),
+            (false, true, false, true),
+            (true, true, false, false),
+        ] {
+            assert!(super::validate_capture_output(args.0, args.1, args.2, args.3).is_err());
+        }
+    }
     use super::{
         frame_trace_eligibility, frame_trace_identity, frame_trace_scene, next_frame_trace_path,
         request_frame_trace_stop, resolve_theme_path, start_frame_trace,
@@ -1754,11 +1808,38 @@ mod tests {
                 "hk416a5",
                 "authored_viewmodel",
                 false,
-                false,
-                None,
+                (false, None),
                 false,
             ),
         )
+    }
+
+    #[test]
+    fn performance_scene_identity_preserves_named_choices_and_capture_mode() {
+        for (capture, sequence) in [(false, None), (true, Some("walk"))] {
+            let scene = frame_trace_scene(
+                "cedar_junction",
+                "m4a1",
+                "hk416a5",
+                "authored_viewmodel",
+                true,
+                (capture, sequence),
+                true,
+            );
+            assert_eq!(
+                scene,
+                serde_json::json!({
+                    "name": "cedar_junction",
+                    "profile_base": "m4a1",
+                    "weapon_id": "hk416a5",
+                    "presentation": "authored_viewmodel",
+                    "reference_viewport": true,
+                    "diagnostic_capture": capture,
+                    "capture_sequence": sequence,
+                    "demo": true,
+                })
+            );
+        }
     }
 
     #[test]
