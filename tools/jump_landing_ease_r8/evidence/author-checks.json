@@ -1,0 +1,162 @@
+{
+  "schema": "rust-duty-jump-r8-author-checks/v1",
+  "scope": "Historical authoring and independent saved-file numeric checks; no fresh Blender execution by this publication task. These do not establish artistic approval.",
+  "authoring_script_sha256": "fd5e7933660705765a686e0b745b16160b331dc0b4b8795114d5edf99e9152ee",
+  "original_reopen_script_sha256": "85f894fb62f892cdc82a386410bd41a51fd1a3c5869e1109c1ceff4f69f3b2f5",
+  "full_author_report_sha256": "1e4a157d6445dde7bbb08d26508ce357bce9fd0df33d40942ebad6526fbafb1a",
+  "full_reopen_report_sha256": "3b1e6dd91b02d8cce3208c9b54eae81e89cf5da30dc5841c7c6ef0841cc03a6f",
+  "candidate_sha256": "db30e98a8d63cb4e9075ec2930cd5d34d385780ab374e1d6386f42d1e0fe7b3b",
+  "source_sha256": "a2c4b2bbe98da1a608450bba92404cb39008eae5861bcf8fc3f5d2f978df0e3b",
+  "sample_count": 173,
+  "sample_rate": "whole landing 240Hz plus f3-f8 960Hz",
+  "analytical_model_max_error_px": 0.00025759948874792826,
+  "preservation": {
+    "all_original_actions_same_complete_curve_hash": true,
+    "original_action_count": 103,
+    "other_774_candidate_curves_identical": true,
+    "root_translation_curves_identical": true,
+    "max_local_translation_delta": 0.0,
+    "max_world_root_translation_delta": 0.0,
+    "max_world_root_delta_outside_open_4_7": 0.0,
+    "trough_f12_and_closure_f29_world_matrices_unchanged": true,
+    "takeoff_air_actions_untouched": true
+  },
+  "maximum_contact_bone_matrix_delta": 1.6689300537109375e-06,
+  "maximum_companion_matrix_delta": 6.556510925292969e-07,
+  "integer_projected_guide_comparison": [
+    {
+      "land_frame": 3,
+      "reference_frame": 4069,
+      "r7_angle": -10.693158582872798,
+      "candidate_angle": -10.693158582872798,
+      "r7_velocity_previous": 2.8734809591103385,
+      "candidate_velocity_previous": 2.8734809591103385,
+      "r7_rear_y": 319.76650827384145,
+      "candidate_rear_y": 319.76650827384145
+    },
+    {
+      "land_frame": 4,
+      "reference_frame": 4070,
+      "r7_angle": -7.363238298607428,
+      "candidate_angle": -7.363238298607428,
+      "r7_velocity_previous": 3.32992028426537,
+      "candidate_velocity_previous": 3.32992028426537,
+      "r7_rear_y": 333.7304846803787,
+      "candidate_rear_y": 333.7304846803787
+    },
+    {
+      "land_frame": 5,
+      "reference_frame": 4071,
+      "r7_angle": -4.002116532315654,
+      "candidate_angle": -5.270764868777064,
+      "r7_velocity_previous": 3.361121766291774,
+      "candidate_velocity_previous": 2.0924734298303633,
+      "r7_rear_y": 349.2653045562344,
+      "candidate_rear_y": 348.4568177838005
+    },
+    {
+      "land_frame": 6,
+      "reference_frame": 4072,
+      "r7_angle": -4.060971494958551,
+      "candidate_angle": -4.341001340439334,
+      "r7_velocity_previous": -0.058854962642897135,
+      "candidate_velocity_previous": 0.9297635283377303,
+      "r7_rear_y": 367.0881053063133,
+      "candidate_rear_y": 366.90898805881193
+    },
+    {
+      "land_frame": 7,
+      "reference_frame": 4073,
+      "r7_angle": -4.26813403116148,
+      "candidate_angle": -4.26813403116148,
+      "r7_velocity_previous": -0.20716253620292946,
+      "candidate_velocity_previous": 0.07286730927785356,
+      "r7_rear_y": 382.8657655184376,
+      "candidate_rear_y": 382.8657655184376
+    },
+    {
+      "land_frame": 8,
+      "reference_frame": 4074,
+      "r7_angle": -4.300053740905014,
+      "candidate_angle": -4.300053740905014,
+      "r7_velocity_previous": -0.03191970974353353,
+      "candidate_velocity_previous": -0.03191970974353353,
+      "r7_rear_y": 396.1225622655743,
+      "candidate_rear_y": 396.1225622655743
+    },
+    {
+      "land_frame": 9,
+      "reference_frame": 4075,
+      "r7_angle": -4.105949807290756,
+      "candidate_angle": -4.105949807290756,
+      "r7_velocity_previous": 0.19410393361425804,
+      "candidate_velocity_previous": 0.19410393361425804,
+      "r7_rear_y": 404.82798207382683,
+      "candidate_rear_y": 404.82798207382683
+    }
+  ],
+  "dense_motion_summary": {
+    "baseline": {
+      "peak_angle": -3.4110811523070765,
+      "peak_frame": 5.3125,
+      "overshoot_above_f7_degrees": 0.8570528788544038,
+      "min_secant_deg_per_frame": -1.4194678893318269,
+      "max_secant_deg_per_frame": 3.9887562482599606,
+      "max_adjacent_velocity_change_deg_per_frame_at_960hz": 0.9193960165011958
+    },
+    "candidate": {
+      "peak_angle": -4.215794131080088,
+      "peak_frame": 6.5625,
+      "overshoot_above_f7_degrees": 0.05233990008139244,
+      "min_secant_deg_per_frame": -0.23451093380754173,
+      "max_secant_deg_per_frame": 2.7276955005263517,
+      "max_adjacent_velocity_change_deg_per_frame_at_960hz": 0.0924520868484251
+    },
+    "max_added_root_y_degrees": 0.4151068812416406
+  },
+  "reopen": {
+    "status": "saved candidate reopened and numeric witnesses verified; visual review still pending",
+    "candidate_sha256": "db30e98a8d63cb4e9075ec2930cd5d34d385780ab374e1d6386f42d1e0fe7b3b",
+    "source_sha256": "a2c4b2bbe98da1a608450bba92404cb39008eae5861bcf8fc3f5d2f978df0e3b",
+    "static_structure_digests_equal": {
+      "meshes": "a5c33d9b846b683c9fcf34371f22fe14f46c49fceb533b6a2dcfa2367944b912",
+      "materials": "b36e379b137267a7960cddb43825bfb26c133e5d5e2999d740bd12ba6ac13c41",
+      "armature_rest": "05003f8685d468fa55f871c302a2c3e9a9a8992c24fac425838be30e34534006",
+      "cameras": "651953725a31d1a7bc528236c168fccf084024d0a8d951c5aac7869e772de7a8",
+      "constraints": "6ec0429b83836af228846a423e73013ecbf26763ab2f51fe3e8067dd4bfa9740"
+    },
+    "original_action_count_preserved": 103,
+    "all_original_action_curve_hashes_equal": true,
+    "candidate_curves_equal_presave": true,
+    "original_source_evaluated_root_matches_prior_samples": 0,
+    "saved_baseline_evaluated_root_max_delta": 0,
+    "saved_candidate_evaluated_root_max_delta": 0,
+    "sample_count_each": 173,
+    "hand_skin_check": {
+      "selection": "Vertices of actual arms meshes with >0.999 total weight to hand or finger deform bones. This verifies preservation of the baseline contact region, not absolute intersection-free contact or anatomy.",
+      "vertex_counts": {
+        "Actual arms mesh 0": 5694,
+        "Actual arms mesh 1": 0,
+        "Actual arms mesh 2": 10
+      },
+      "samples": 49,
+      "frame_range": [
+        4,
+        7
+      ],
+      "sample_rate_hz": 960,
+      "max_weapon_relative_displacement_m": {
+        "Actual arms mesh 0": 9.842259974253965e-07,
+        "Actual arms mesh 1": 0.0,
+        "Actual arms mesh 2": 4.920847974957046e-07
+      }
+    },
+    "files_unchanged_during_reopen": true,
+    "no_render": true,
+    "no_source_save": true
+  },
+  "rendered_by_author": false,
+  "artistic_approval": false,
+  "fbx_or_runtime_integration": false,
+  "scope_caveat": "Guide angles are measurements of evaluated authored transforms, not newly tracked image pixels. Contact checks preserve baseline relative placement rather than certify absolute clearance or anatomy."
+}

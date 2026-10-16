@@ -1,0 +1,15 @@
+__pycache__/
+inputs/
+outputs/
+*.blend
+*.blend1
+*.png
+*.jpg
+*.mp4
+*.fbx
+*.zip
+dense_evaluation.json
+candidate_action_curves.json
+original_action_hashes.json
+landing_ease_validation.json
+reopen_verification.json

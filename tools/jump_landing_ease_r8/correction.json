@@ -1,0 +1,119 @@
+{
+  "source_sha256": "a2c4b2bbe98da1a608450bba92404cb39008eae5861bcf8fc3f5d2f978df0e3b",
+  "candidate_sha256": "db30e98a8d63cb4e9075ec2930cd5d34d385780ab374e1d6386f42d1e0fe7b3b",
+  "source_action": "jump_land_r7",
+  "candidate_action": "jump_land_r8_ease_candidate",
+  "changed_curves": [
+    {
+      "path": "pose.bones[\"righthand_prop\"].rotation_euler",
+      "index": 1,
+      "changed_frames": [
+        5.0,
+        6.0
+      ]
+    }
+  ],
+  "changes": [
+    {
+      "frame": 5,
+      "native_frame": 4071,
+      "target_angle": -5.270709819376122,
+      "target_slope": 1.4601538628480313,
+      "rotation_y_delta_degrees": 0.34874147667687955,
+      "before": {
+        "co": [
+          5.0,
+          0.047564517706632614
+        ],
+        "left": [
+          4.666666507720947,
+          0.04718858748674393
+        ],
+        "right": [
+          5.333333492279053,
+          0.0479404479265213
+        ]
+      },
+      "after": {
+        "co": [
+          5.0,
+          0.05365120619535446
+        ],
+        "left": [
+          4.666666507720947,
+          0.04917992651462555
+        ],
+        "right": [
+          5.333333492279053,
+          0.058122482150793076
+        ]
+      }
+    },
+    {
+      "frame": 6,
+      "native_frame": 4072,
+      "target_angle": -4.3409506543597205,
+      "target_slope": 0.4503397476935067,
+      "rotation_y_delta_degrees": 0.07604727921585874,
+      "before": {
+        "co": [
+          6.0,
+          0.06944283097982407
+        ],
+        "left": [
+          5.666666507720947,
+          0.06229608505964279
+        ],
+        "right": [
+          6.333333492279053,
+          0.07658957690000534
+        ]
+      },
+      "after": {
+        "co": [
+          6.0,
+          0.07077010720968246
+        ],
+        "left": [
+          5.666666507720947,
+          0.06451913714408875
+        ],
+        "right": [
+          6.333333492279053,
+          0.07702107727527618
+        ]
+      }
+    }
+  ],
+  "target_boundary": {
+    "angle4": -7.363208941073253,
+    "angle7": -4.268079762971638,
+    "slope4": 2.7758196610549684,
+    "slope7": -0.25362268440860647
+  },
+  "target_description": "One cubic Hermite projected guide-angle ease from land f4 to f7, matching the original endpoint values and tangents. Fixed translation and all other Euler channels. This is inferred authoring, not COD measurement.",
+  "schema": "rust-duty-jump-r8-two-key-correction/v1",
+  "action_frames_inclusive": [
+    1,
+    29
+  ],
+  "reference_native_frames_inclusive": [
+    4067,
+    4095
+  ],
+  "fps": [
+    60,
+    1
+  ],
+  "all_frames_in_playback": true,
+  "closure_only_frames": 0,
+  "root_bone": "righthand_prop",
+  "curve": "rotation_euler",
+  "array_index": 1,
+  "preserved_boundary_frames": [
+    4,
+    7
+  ],
+  "preserved_trough_frame": 12,
+  "preserved_endpoint_frame": 29
+}
