@@ -53,12 +53,20 @@ class NativeFixture:
         # Invented source/manifest cannot provide actual admission; isolate the
         # output/process regression from that separately covered strict gate.
         with patch('verify_app_edges.check_source_status_identity'):
-            return v.verify_run(self.folder,self.contract,self.pin,Path(__file__).resolve().parents[3]/'source/tools')
+            return v.verify_run(self.folder,self.contract,self.pin,Path(__file__).resolve().parent)
 
 class NativeReceiptTests(unittest.TestCase):
     def test_complete_invented_output_can_exercise_full_receipt_and_png_path(self):
         with tempfile.TemporaryDirectory() as d:
             f=NativeFixture(Path(d));r=f.verify();self.assertEqual(r['native_png_witnesses_verified'],12)
+    def test_checkout_local_png_helpers_remain_byte_pinned(self):
+        helpers=Path(__file__).resolve().parent
+        for name,pin in v.HELPERS.items():
+            with self.subTest(helper=name):self.assertEqual(v.sha(helpers/name),pin)
+            with tempfile.TemporaryDirectory() as d:
+                f=NativeFixture(Path(d))
+                with patch.dict(v.HELPERS,{name:'f'*64}):
+                    with self.assertRaisesRegex(v.Rejected,'PNG verifier helper changed'):f.verify()
     def reject(self,change,reason):
         with tempfile.TemporaryDirectory() as d:
             f=NativeFixture(Path(d));change(f)

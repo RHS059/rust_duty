@@ -254,7 +254,7 @@ impl Capture {
             .map_err(|e| e.to_string())?;
             capture_png_with_frame_witness(
                 None,
-                &self.output.join(&name),
+                self.output.join(&name),
                 self.pngs,
                 frame_witness::parse_identity(&self.witness)?,
             );

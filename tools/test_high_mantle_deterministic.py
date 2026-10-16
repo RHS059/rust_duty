@@ -1,11 +1,21 @@
 """Synthetic/source-only deterministic complement checks, never native execution."""
-import copy,json,math,sys,unittest
+import copy,json,math,re,sys,unittest
 from pathlib import Path
 HERE=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(HERE/'tools'))
 import verify_high_mantle_deterministic as d
 import verify_high_mantle_observer as v
 from test_high_mantle_observer import complete,state,visual,stamp,BINDING
+
+
+def assert_legacy_capture_routes_gated(test,app):
+    # The single legacy writer must be short-circuited by both bounded routes.
+    # Check the complete condition rather than requiring adjacent old tokens.
+    call=r'crate::capture::write_frame\s*\('
+    test.assertEqual(len(re.findall(call,app)),1)
+    conditions=re.findall(r'\bif\s+([^{};]*?)'+call,app)
+    test.assertEqual([''.join(c.split()) for c in conditions],
+        ['!bounded_onehand&&combined_capture.is_none()&&'])
 
 def fixture(hz):
     original=complete();head=copy.deepcopy(original[0]);head.update(input_route=d.ROUTE,sampling_hz=hz,
@@ -73,7 +83,26 @@ class DeterministicTests(unittest.TestCase):
         self.assertIn('vec3(-8.6, 0., -3.)',replay.split('pub fn duration(',1)[0])
         app=(HERE/'src/app.rs').read_text()
         self.assertIn('Capture::step(input, start, &sim',app)
-        self.assertRegex(app,r'!bounded_onehand\s*&&\s*crate::capture::write_frame\s*\(')
+        assert_legacy_capture_routes_gated(self,app)
+    def test_legacy_capture_guard_rejects_missing_inverted_or_bypassed_routes(self):
+        app=(HERE/'src/app.rs').read_text()
+        assert_legacy_capture_routes_gated(self,app)
+        mutations=(
+            ('!bounded_onehand','bounded_onehand'),
+            ('!bounded_onehand','true'),
+            ('combined_capture.is_none()','combined_capture.is_some()'),
+            ('&& combined_capture.is_none()',''),
+            ('&& combined_capture.is_none()','|| combined_capture.is_none()'),
+            ('&& crate::capture::write_frame','|| crate::capture::write_frame'),
+        )
+        for before,after in mutations:
+            with self.subTest(mutation=(before,after)):
+                changed=app.replace(before,after)
+                self.assertNotEqual(changed,app)
+                with self.assertRaises(AssertionError):assert_legacy_capture_routes_gated(self,changed)
+        with self.assertRaises(AssertionError):
+            assert_legacy_capture_routes_gated(self,app+'\ncrate::capture::write_frame(frame);\n')
+
     def test_only_supported_rate_and_bounded_native_window_command(self):
         import run_high_mantle_deterministic as runner
         command=runner.invocation('/app','/manifest','/output','0'*64,60)

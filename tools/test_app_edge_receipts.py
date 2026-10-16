@@ -1,5 +1,5 @@
 """Invented byte-pinned receipts exercise admission parsing only; no Rust or native execution."""
-import copy, importlib.util, json, tempfile, unittest
+import copy, json, tempfile, unittest
 from unittest.mock import patch
 from pathlib import Path
 from verify_app_edges import (verify_config, sha, digest, Rejected, candidate_identity,
@@ -122,12 +122,28 @@ class RustReceiptTests(unittest.TestCase):
                 with self.assertRaisesRegex(Rejected,'source tree contains symlink'):
                     verify_config(f.root/'contract.json',pin)
     def test_original_reviewer_failed_receipt_reproducer_is_rejected(self):
-        # Execute exactly the reviewer's unchanged tiny fixture, directing only
-        # its verifier reference to v2. No native code or assets are involved.
-        path=Path(__file__).resolve().parents[3]/'app-edge-review-v1/reproduce_findings.py'
-        spec=importlib.util.spec_from_file_location('original_app_edge_review_repro',path)
-        module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
-        module.verify_config=verify_config
-        with self.assertRaises((Rejected,KeyError,TypeError,ValueError)):module.failed_rust_receipt()
+        # Preserve the original reviewer's invented failed receipt locally.
+        # Require the receipt-schema rejection, not an unrelated path/import error.
+        from app_edge_review_fixture import failed_rust_receipt
+        with self.assertRaisesRegex(Rejected,'Rust checks receipt schema fields'):
+            failed_rust_receipt()
+
+    def test_original_reviewer_fixture_preserves_failed_nonterminal_receipt(self):
+        from app_edge_review_fixture import failed_rust_receipt
+        def inspect(config_path,config_pin):
+            self.assertEqual(sha(config_path),config_pin)
+            config=json.loads(config_path.read_text());root=config_path.parent
+            build=json.loads((root/config['build_receipt']['path']).read_text())
+            ref=build['rust_checks_receipt'];path=root/ref['path']
+            self.assertEqual(sha(path),ref['sha256'])
+            self.assertEqual(path.stat().st_size,ref['bytes'])
+            self.assertEqual(json.loads(path.read_text()),dict(completed=False,exit_code=1,
+                rust_tests_passed=False,runtime_checks_passed=False,rust_format_passed=False,
+                note='Deliberately failed/nonterminal checks.'))
+        with patch('app_edge_review_fixture.verify_config',side_effect=inspect) as verifier:
+            result=failed_rust_receipt()
+        verifier.assert_called_once()
+        self.assertEqual(result,dict(admission_accepted=True,checks_receipt_completed=False,
+            checks_receipt_exit_code=1,checks_receipt_all_pass_flags=False))
 
 if __name__=='__main__':unittest.main(verbosity=2)
