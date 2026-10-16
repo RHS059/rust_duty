@@ -334,13 +334,12 @@ impl Replay {
                 }
                 // Continuous coarse travel, then short ordinary button pulses.
                 // Input magnitude is not treated as a speed control by Simulation.
-                if delta.abs() > 0.8
+                if (delta.abs() > 0.8
                     || (s.speed < 0.05 && delta.abs() >= 0.18)
-                    || self.ticks % 24 < 3
+                    || self.ticks % 24 < 3)
+                    && delta.abs() >= 0.18
                 {
-                    if delta.abs() >= 0.18 {
-                        i.movement = vec2(-delta.signum(), 0.);
-                    }
+                    i.movement = vec2(-delta.signum(), 0.);
                 }
             }
             LowApproach | RepeatLowApproach | HighApproach => {
@@ -377,13 +376,16 @@ impl Replay {
         Ok(i)
     }
 }
+/// Committed mantle, high/low endpoints, prone presence/endpoint/return, and phase.
+type CadenceSignature = (Option<MantleKind>, bool, bool, bool, bool, bool, Phase);
+
 /// Nonuniform native presentation budget. Every simulation tick is still
 /// committed and journaled. Sources: 10 Hz; travel: 5 Hz; returns: 30/60 Hz.
 /// An actual committed ownership/endpoint/phase boundary forces a render.
 pub struct Cadence {
     dense_hz: u32,
     stride: u64,
-    signature: Option<(Option<MantleKind>, bool, bool, bool, bool, bool, Phase)>,
+    signature: Option<CadenceSignature>,
     boundary: bool,
 }
 impl Cadence {
@@ -464,8 +466,10 @@ mod tests {
     }
     #[test]
     fn endpoint_is_required_and_does_not_advance_clock() {
-        let mut r = Replay::default();
-        r.phase = Phase::HighRide;
+        let mut r = Replay {
+            phase: Phase::HighRide,
+            ..Replay::default()
+        };
         assert!(r.input(state(1.)).is_err());
         let mut s = state(1.);
         s.high_completed = true;
@@ -476,8 +480,10 @@ mod tests {
     }
     #[test]
     fn route_does_not_walk_through_middle_collider() {
-        let mut r = Replay::default();
-        r.phase = Phase::SouthLane;
+        let mut r = Replay {
+            phase: Phase::SouthLane,
+            ..Replay::default()
+        };
         assert!(r.input(state(0.)).err().unwrap().contains("east lane"));
     }
     #[test]
@@ -489,8 +495,10 @@ mod tests {
     }
     #[test]
     fn only_native_prone_endpoint_finishes_full_entry() {
-        let mut r = Replay::default();
-        r.phase = Phase::ProneFull;
+        let mut r = Replay {
+            phase: Phase::ProneFull,
+            ..Replay::default()
+        };
         let mut s = state(1.);
         s.prone_seconds = Some(0.5);
         assert!(r.input(s).unwrap().prone);
