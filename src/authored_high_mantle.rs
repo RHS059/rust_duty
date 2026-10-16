@@ -11,7 +11,8 @@ pub const ACTION_FINGERPRINT: &str =
     "c7ca6383364e055afe1d0246f443d33689ce86c56677570ba694a924c983ea01";
 pub const GRID_SHA256: &str = "a521b1e779e45f85948d94b8b9aa9f9cad41d935783ba5fcbda34decb6aec08f";
 pub const NATIVE_SECONDS: f64 = 95. / 60.;
-pub const SUBDIVISIONS: usize = 64;
+pub const SUBDIVISIONS: usize = 256;
+pub const SAMPLE_HZ: usize = 60 * SUBDIVISIONS;
 pub const SAMPLE_COUNT: usize = 95 * SUBDIVISIONS + 1;
 pub const ANCHOR: &str = "hk416_weapon";
 const MAX_RECEIPT: usize = 32_768;
@@ -194,7 +195,7 @@ impl HighMantleBinding {
                     .times()
                     .iter()
                     .enumerate()
-                    .all(|(i, &t)| (f64::from(t) - i as f64 / 3840.).abs() < 1e-6),
+                    .all(|(i, &t)| t.to_bits() == ((i as f64 / SAMPLE_HZ as f64) as f32).to_bits()),
             "one-hand requires the complete native nonlooping dense grid",
         )?;
         require(
@@ -392,6 +393,14 @@ mod tests {
         words(out, &[0, 1, 2]);
     }
     fn payload(looping: bool, scale: f32, count: usize) -> (Vec<u8>, Vec<u8>, Vec<u8>) {
+        payload_at_hz(looping, scale, count, SAMPLE_HZ)
+    }
+    fn payload_at_hz(
+        looping: bool,
+        scale: f32,
+        count: usize,
+        sample_hz: usize,
+    ) -> (Vec<u8>, Vec<u8>, Vec<u8>) {
         let mut skin = Vec::new();
         words(&mut skin, &[1]);
         name(&mut skin, "fixture_hand");
@@ -423,7 +432,7 @@ mod tests {
         name(&mut animation, ACTION);
         words(&mut animation, &[u32::from(looping), count as u32]);
         for i in 0..count {
-            let t = i as f32 / 3840. * scale;
+            let t = (i as f64 / sample_hz as f64) as f32 * scale;
             floats(&mut animation, &[t]);
             for _ in 0..4 {
                 floats(&mut animation, &[t, 0., 0., 0., 0., 0., 1., 1., 1., 1.]);
@@ -440,7 +449,7 @@ mod tests {
             "asset_vrm_sha256":rust_duty_launcher::bytes_hash(vrm),"runtime_source_proof_sha256":"2".repeat(64),
             "verification_grid_sha256":GRID_SHA256,"verification_sample_count":4240,"skin_vertex_observations":43392160_u64,
             "native_processes_complete":true,"candidate_frame_range":[1,96],"reference_frame_range_half_open":[7787,7883],
-            "native_fps":[60,1],"native_crop":[0,95],"imported_frame_offset":1,"subdivisions":64,
+            "native_fps":[60,1],"native_crop":[0,95],"imported_frame_offset":1,"subdivisions":SUBDIVISIONS,
             "camera_and_rig_basis":"static","camera_motion_removal":"none","actor_basis":"reload_mesh_local",
             "anchor_actor":ANCHOR,"return_seconds":0.2})
     }
@@ -489,7 +498,7 @@ mod tests {
             (true, 1., SAMPLE_COUNT, false),
             (false, 0.85 / NATIVE_SECONDS as f32, SAMPLE_COUNT, false),
             (false, 1., SAMPLE_COUNT - 1, false),
-            (false, 64., 96, false),
+            (false, SUBDIVISIONS as f32, 96, false),
         ] {
             let (a, s, m) = payload(looping, scale, count);
             assert_eq!(admit_test(&a, &s, &m, &receipt(&a, &s, &m)).is_ok(), passes);
@@ -499,6 +508,49 @@ mod tests {
         let last = s.len() - 1;
         s[last] ^= 1;
         assert!(admit_test(&a, &s, &m, &r).is_err());
+    }
+    #[test]
+    fn native256_full_grid_and_endpoint_match_exact_float32_rational_times() {
+        assert_eq!(SUBDIVISIONS, 256);
+        assert_eq!(SAMPLE_HZ, 15_360);
+        assert_eq!(SAMPLE_COUNT, 24_321);
+        let (a, s, m) = payload(false, 1., SAMPLE_COUNT);
+        let binding = admit_test(&a, &s, &m, &receipt(&a, &s, &m)).unwrap();
+        assert_eq!(binding.return_seconds(), 0.2);
+        let animation = AnimationSet::decode(&a).unwrap();
+        let times = animation.clips()[0].times();
+        assert_eq!(times.len(), 24_321);
+        assert_eq!(times[0].to_bits(), 0f32.to_bits());
+        for (i, &time) in times.iter().enumerate() {
+            assert_eq!(time.to_bits(), ((i as f64 / 15_360.) as f32).to_bits());
+        }
+        assert!(times.windows(2).all(|pair| pair[0] < pair[1]));
+        assert_eq!(
+            times.last().unwrap().to_bits(),
+            (NATIVE_SECONDS as f32).to_bits()
+        );
+        let endpoint = HighMantleSample::at(NATIVE_SECONDS);
+        assert_eq!(endpoint.source_frame, 96.);
+        assert_eq!(endpoint.reference_frame, 7882.);
+    }
+    #[test]
+    fn native64_payload_and_receipt_cannot_be_relabeled_as_native256() {
+        let (a, s, m) = payload_at_hz(false, 1., 95 * 64 + 1, 60 * 64);
+        let mut r = receipt(&a, &s, &m);
+        assert!(admit_test(&a, &s, &m, &r).is_err());
+        r["subdivisions"] = json!(64);
+        assert!(admit_test(&a, &s, &m, &r).is_err());
+        let (a, s, m) = payload(false, 1., SAMPLE_COUNT);
+        let mut r = receipt(&a, &s, &m);
+        r["subdivisions"] = json!(64);
+        assert!(admit_test(&a, &s, &m, &r).is_err());
+    }
+    #[test]
+    fn native256_count_alone_cannot_admit_a_wrong_timestamp_frequency() {
+        for hz in [60 * 64, SAMPLE_HZ - 1, SAMPLE_HZ + 1] {
+            let (a, s, m) = payload_at_hz(false, 1., SAMPLE_COUNT, hz);
+            assert!(admit_test(&a, &s, &m, &receipt(&a, &s, &m)).is_err());
+        }
     }
     #[test]
     fn receipt_cannot_change_source_clock_policy_basis_or_proof() {
@@ -563,7 +615,7 @@ mod tests {
         s.update(input, &Settings::default(), FIXED_DT);
     }
     #[test]
-    fn only_accepted_high_onto_gets_190_ticks_and_exact_endpoint() {
+    fn dense256_preserves_legacy_low_and_native_high_ticks_and_endpoint() {
         for (height, enabled, ticks, duration) in [
             (0.6, false, 72, 0.6),
             (0.6, true, 72, 0.6),
@@ -595,6 +647,7 @@ mod tests {
                 assert_eq!(p.sample.seconds, NATIVE_SECONDS);
                 assert_eq!(p.sample.source_frame, 96.);
                 assert_eq!(p.sample.reference_frame, 7882.);
+                assert_eq!(p.outgoing.unwrap().duration, 0.2);
                 assert_eq!(p.outgoing.unwrap().weight(s.time), 0.);
                 tick(&mut s, Input::default());
                 assert!(
@@ -755,47 +808,49 @@ mod tests {
         }
     }
     #[test]
-    fn high_binding_does_not_hijack_ledge_hang_pullup() {
+    fn dense256_binding_and_inactive_path_preserve_ledge_hang_pullup() {
         use crate::{
             action::ActionSlot,
             sim::{Action, RADIUS},
         };
-        let mut s = scene(2.7, true);
-        s.blocks[1].bounds.max.z = -2.;
-        s.player.position.z = -2. + RADIUS + 0.3;
-        tick(&mut s, request());
-        for _ in 0..180 {
+        for enabled in [false, true] {
+            let mut s = scene(2.7, enabled);
+            s.blocks[1].bounds.max.z = -2.;
+            s.player.position.z = -2. + RADIUS + 0.3;
+            tick(&mut s, request());
+            for _ in 0..180 {
+                tick(
+                    &mut s,
+                    Input {
+                        movement: vec2(0., 1.),
+                        ..Input::default()
+                    },
+                );
+                if matches!(s.player.action, Action::Hang(_)) {
+                    break;
+                }
+            }
+            assert!(matches!(s.player.action, Action::Hang(_)));
+            for _ in 0..60 {
+                tick(&mut s, Input::default());
+            }
             tick(
                 &mut s,
                 Input {
-                    movement: vec2(0., 1.),
+                    jump: true,
                     ..Input::default()
                 },
             );
-            if matches!(s.player.action, Action::Hang(_)) {
-                break;
+            let state = s.player.mantle.unwrap();
+            assert!(state.from_hang);
+            assert_eq!(state.duration(), s.timings.get(ActionSlot::PullUp).duration);
+            while s.player.mantle.is_some() {
+                assert!(s.high_mantle_presentation().is_none());
+                tick(&mut s, Input::default());
             }
-        }
-        assert!(matches!(s.player.action, Action::Hang(_)));
-        for _ in 0..60 {
-            tick(&mut s, Input::default());
-        }
-        tick(
-            &mut s,
-            Input {
-                jump: true,
-                ..Input::default()
-            },
-        );
-        let state = s.player.mantle.unwrap();
-        assert!(state.from_hang);
-        assert_eq!(state.duration(), s.timings.get(ActionSlot::PullUp).duration);
-        while s.player.mantle.is_some() {
+            assert_eq!(s.player.position.y, 2.7);
             assert!(s.high_mantle_presentation().is_none());
-            tick(&mut s, Input::default());
         }
-        assert_eq!(s.player.position.y, 2.7);
-        assert!(s.high_mantle_presentation().is_none());
     }
     #[test]
     fn high_committed_trace_is_identical_across_render_partitions() {

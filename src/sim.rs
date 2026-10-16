@@ -1156,6 +1156,9 @@ impl Simulation {
         p.reload_total = 0.;
         p.reload_credited = false;
         p.reload_empty = false;
+        // Exact accepted source frame 1, before the first ordinary advance.
+        // This is a committed event, never labelled a rendered source frame.
+        crate::high_mantle_observer::event("accepted", self);
     }
     fn advance_mantle(&mut self, input: Input, cfg: &Settings, dt: f32) {
         let Some(mut state) = self.player.mantle else {

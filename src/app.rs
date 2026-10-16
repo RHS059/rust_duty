@@ -470,7 +470,7 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
         framing.reference,
         native_window_capture,
     )?;
-    if capture_sequence.is_some() {
+    if capture_sequence.is_some() && !args.iter().any(|a| a == "--onehand-deterministic") {
         std::fs::create_dir_all(
             args.iter()
                 .find_map(|a| a.strip_prefix("--output="))
@@ -529,7 +529,9 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
             eprintln!("Update startup acknowledgement: {error}");
         }
     }
+    let mut onehand_capture = crate::high_mantle_capture::Capture::open(&args, &sim)?;
     loop {
+        vector_range::high_mantle_observer::check()?;
         if let Some(done) = frame_trace::take_completion_notice() {
             let state = if let Some(error) = done.export_error {
                 format!("FRAME EXPORT ERROR: {error}")
@@ -653,6 +655,21 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
             capture,
         ));
         let active = transition.active;
+        if onehand_capture.is_some() {
+            let mut observed = vector_range::high_mantle_observer::state("platform", &sim);
+            observed["keys"] = serde_json::json!({
+                "escape_pressed":focus_input.is_key_pressed(KeyCode::Escape),
+                "enter_pressed":focus_input.is_key_pressed(KeyCode::Enter),
+                "f2_pressed":focus_input.is_key_pressed(KeyCode::F2),
+                "f9_pressed":focus_input.is_key_pressed(KeyCode::F9),
+                "space_pressed":focus_input.is_key_pressed(KeyCode::Space),
+                "movement":focus_input.frame().movement_axes(),
+                "ads_button":focus_input.is_mouse_button_down(MouseButton::Right)});
+            observed["transition"] = serde_json::json!({"active":active,"paused":transition.paused,
+                "resumed":transition.resumed,"focus_changed":focus_state.changed,
+                "unfocused":focus_state.unfocused,"discard_timing":transition.discard_timing});
+            vector_range::high_mantle_observer::record(observed);
+        }
         // Observe presentation context, never simulation dt. In particular a
         // hitch's discard_timing flag must not hide the actual wall-clock gap.
         let trace_eligibility = frame_trace_eligibility(
@@ -672,7 +689,9 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
         if transition.paused {
             // Includes Escape, focus-shortcut, and asset-block interruptions.
             // A render hitch only discards time and must not cancel traversal.
+            vector_range::high_mantle_observer::event("pause_before", &sim);
             sim.cancel_mantle();
+            vector_range::high_mantle_observer::event("pause_after", &sim);
         }
         if transition.paused || transition.resumed || focus_state.changed {
             initial = false;
@@ -723,6 +742,7 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
         }
         if focus_input.is_key_pressed(KeyCode::F2) {
             frame_trace::log_completion(frame_trace::boundary(BoundaryReason::SceneChanged));
+            vector_range::high_mantle_observer::event("reset_before", &sim);
             sim.reset();
             supply.reset();
             register_supply(&mut sim, &supply);
@@ -746,10 +766,13 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
                 city.as_ref().map_or("Range", |city| city.name.as_str())
             );
             notice_timer = 3.;
+            vector_range::high_mantle_observer::event("reset_after", &sim);
         }
         if focus_input.is_key_pressed(KeyCode::F9) {
             // Debug: kill the player to exercise death/respawn in any state.
+            vector_range::high_mantle_observer::event("debug_death_before", &sim);
             sim.damage_player(cfg.action.max_health);
+            vector_range::high_mantle_observer::event("debug_death_after", &sim);
         }
         if focus_input.is_key_pressed(KeyCode::F11) {
             fullscreen = !fullscreen;
@@ -988,6 +1011,7 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
                 if let Some(viewmodel) = &mut authored {
                     viewmodel.committed_step(authored_step_start, &sim);
                 }
+                crate::high_mantle_capture::Capture::step(input, authored_step_start, &sim, authored.as_ref())?;
                 // Cosmetic targets receive exact simulation timestamps; input
                 // and movement remain fully authoritative and immediate.
                 locomotion_state.sample(sim.time, locomotion_input(&sim));
@@ -1152,6 +1176,7 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
                 if let Some(model) = &mut authored {
                     model.committed_step(start, &sim);
                 }
+                crate::high_mantle_capture::Capture::step(input, start, &sim, authored.as_ref())?;
             }
         }
         if capture_sequence == Some("ads") {
@@ -1438,7 +1463,15 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
             label("HK416 asset missing: extract the whole package beside the EXE (procedural fallback active)",24.,screen_height()-155.,16.,YELLOW);
         }
         telemetry_indicator(&telemetry_status);
-        if crate::capture::write_frame(crate::capture::CaptureFrame {
+        if let Some(observer) = &mut onehand_capture {
+            observer.frame(&sim, &cfg, authored.as_ref(), active)?;
+        }
+        // The narrow observer owns bounded selected native-window PNGs.
+        // Keep the existing deterministic ordinary-Input fixed-step schedule;
+        // do not also emit the legacy all-frame sequence into the working dir.
+        let bounded_onehand = onehand_capture.as_ref().is_some_and(|c| c.deterministic());
+        if bounded_onehand && sequence_elapsed >= sequence_duration { break; }
+        if !bounded_onehand && crate::capture::write_frame(crate::capture::CaptureFrame {
             capture,
             capture_sequence,
             frames,
@@ -1466,6 +1499,7 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
     // The renderer submits after this future resolves. Defer trace export
     // through that final successful present; main handles missing/error exits.
     request_frame_trace_stop();
+    if let Some(observer) = onehand_capture { observer.finish(&sim)?; }
     Ok(())
 }
 

@@ -5,6 +5,11 @@ enabled, copied into this source tree, or approved by these synthetic tests.
 The existing artistic review remains complete; the pending gate is exact runtime
 identity and source-equivalence evidence, not another artistic review.
 
+This r2 revision combines the 256-subdivision admission contract with the
+optional platform observer and deterministic ordinary-Input capture complement.
+It descends from the source-only PR73 revision plus the two Windows test-only
+portability fixes. Both runtime payload approvals remain pending and untouched.
+
 ## Scope and behavior
 
 - Optional ordinary HIGH-ONTO mantle only. An accepted bound high mantle uses the
@@ -51,11 +56,24 @@ learns approval from hashes asserted by the supplied receipt.
 The loader reads and hashes each VRA/VRS/VRM once, decodes those same bytes, checks
 CRC/skeleton/mesh companions, and passes those decoded objects to the renderer.
 There is no time-of-check/path-reread substitution. It requires a single
-nonlooping 6,081-key clip at `i / 3840` seconds, the exact logical source take,
+nonlooping 24,321-key clip at `i / (60 * SUBDIVISIONS)` seconds, with
+`SUBDIVISIONS = 256` and a 15,360 Hz sample grid. Each timestamp must equal the
+exact float32-rounded rational value. The 64-subdivision candidate is rejected,
+even with a relabeled receipt. It also requires the exact logical source take,
 three named rigid actors, static camera/rig basis and the shared weapon anchor.
 All return maps are built before installation. A failed optional payload load
 keeps existing authored paths intact and adds an inactive warning. A malformed
 manifest still follows the existing manifest parser's explicit-error policy.
+
+The 256-subdivision contract is a replacement-candidate proposal. Actual new
+FBX/runtime/session/consumer proof pins remain pending. Increasing sample density
+does not change the 95/60 s native gameplay duration, 190 simulation ticks, or the
+planned 0.20 s outgoing return. It does not establish native parity by itself.
+The failed 64-subdivision candidate remains inactive. A bounded-focus proof of
+the replacement 256-subdivision FBX is pending; final conversion and the complete
+4,240-time proof are still required. The estimated replacement VRA size is
+**73,134,921 bytes**, below the existing 128 MiB decoder cap. That is a sizing
+estimate, not a measured converted artifact or approved runtime pin.
 
 No checked-in manifest enables this path. The optional syntax is:
 
@@ -89,8 +107,9 @@ physics to manufacture interrupt footage.
 3. For an actual interrupt, press Escape during an accepted mantle. Existing
    `app.rs` pause/focus transitions call `sim.cancel_mantle`; resume and record the
    smooth outgoing return. Test focus pause through the existing app path. F2 is
-   the existing reset input. Do not claim death gameplay footage from a direct
-   `kill` assignment; the synthetic death test is separate evidence.
+   the existing reset input. F9 is the existing debug-death input; label its
+   footage debug-death, not combat death. Do not claim death gameplay footage
+   from a direct `kill` assignment; the synthetic death test is separate evidence.
 4. Exercise low mantle and a ledge-hang pull-up through ordinary gameplay inputs
    and verify they retain their own timing/presentation. Repeat high acceptance
    with release/repress and after reset. Verify a missing/invalid optional pack
@@ -105,17 +124,20 @@ physics to manufacture interrupt footage.
    This can be a bounded local JSONL observer attached to the existing recording
    session; it must not drive input or mutate physics.
 
-### Current capture gap
+### Prepared capture routes and remaining evidence gap
 
 The existing F8 gameplay CSV samples approximately every 0.1 seconds and omits
 the one-hand source clock, generation and detailed input/pause events. It cannot
 prove the final committed sample or the exact interrupt path by itself. Existing
 capture-sequence modes generate replay input and do not cover native Escape/F2
-events as actual user input. This patch does not claim to close that harness gap:
-add the read-only per-step/event observer above, or use the supported platform
-input capture with equivalent verified telemetry, before claiming native
-end-to-end acceptance. No game, Blender, graphical capture or Windows validation
-was run for this source patch.
+events as actual user input. The optional read-only observer now records those
+events and every committed step. Separate bounded tools prepare actual platform
+Escape/F2/F9 capture and a clearly labelled 60/30 Hz ordinary-Input replay for
+rendered endpoint/live-return sampling. See [capture contracts and commands](ONEHAND_HIGH_ONTO_CAPTURE.md).
+These routes have source/synthetic tests; neither has executed against an
+admitted one-hand candidate. No game, Blender, graphical capture or Windows
+validation was run for this integrated revision. Missing native evidence must
+not be represented as acceptance.
 
 ## Focused verification
 
