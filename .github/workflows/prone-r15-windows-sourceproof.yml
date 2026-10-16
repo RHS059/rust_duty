@@ -1,0 +1,211 @@
+name: Isolated prone r15 source-only Windows proof
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/prone-r15-windows-sourceproof.yml'
+      - 'tools/*prone*r15*.py'
+      - 'tools/prone_camera_pair.py'
+      - 'tools/import_fbx_viewmodel.py'
+      - 'tools/prone_r15_windows_admission.json'
+      - 'assets/authoring/prone_r15_sourceproof/**'
+      - 'src/**'
+      - 'tests/*prone*'
+      - 'examples/sample_prone_camera.rs'
+      - 'examples/sample_viewmodel_clip.rs'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# This never joins build.yml's game-${branch} group. A new dedicated branch
+# also prevents that independent aggregate from replacing PR71's active run.
+concurrency:
+  group: prone-r15-sourceproof-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: false
+
+env:
+  GIT_CONFIG_COUNT: '1'
+  GIT_CONFIG_KEY_0: core.autocrlf
+  GIT_CONFIG_VALUE_0: 'false'
+
+jobs:
+  admission:
+    if: >-
+      github.repository == 'RHS059/rust_duty' &&
+      ((github.event_name == 'pull_request' &&
+        github.event.pull_request.head.repo.full_name == github.repository &&
+        github.event.pull_request.base.repo.full_name == github.repository &&
+        startsWith(github.head_ref, 'aella/prone-r15-sourceproof-')) ||
+       (github.event_name == 'workflow_dispatch' &&
+        startsWith(github.ref, 'refs/heads/aella/prone-r15-sourceproof-')))
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Test fail-closed orchestration with synthetic fixtures
+        run: python -m unittest discover -s tools -p test_prone_r15_windows_sourceproof.py -v
+      - name: Require actual pinned source-only proof and regenerated consumer
+        # Actual source evidence and consumer code are immutable pins. No
+        # workflow input, repository variable or passed=true can override them.
+        run: python tools/run_prone_r15_windows_sourceproof.py preflight --root .
+
+  reload:
+    needs: admission
+    uses: ./.github/workflows/blender-assets.yml
+  walk:
+    needs: admission
+    uses: ./.github/workflows/walk-assets.yml
+  ads:
+    needs: [admission, walk]
+    uses: ./.github/workflows/ads-assets.yml
+  directional:
+    needs: [admission, walk]
+    uses: ./.github/workflows/directional-assets.yml
+  jump:
+    needs: [admission, walk]
+    uses: ./.github/workflows/jump-assets.yml
+
+  proof:
+    needs: [admission, reload, walk, ads, directional, jump]
+    runs-on: windows-2022
+    timeout-minutes: 240
+    defaults:
+      run:
+        shell: pwsh
+    env:
+      BLENDER_VERSION: '4.3.2'
+      BLENDER_ZIP_SHA256: 933a62a770c941e316535f893629ff106ddd2aa5a956f0081ec557439073d4f6
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Read existing permitted r5 base without republishing it
+        uses: actions/checkout@v4
+        with:
+          ref: 659fd15ec77a7b4df5018bc7c86a54deace5333e
+          path: .prone-r15-base
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: assets/authoring/prone_crawl/revisions/entry_r5/halcyon_prone_crawl_r5.blend
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Install source and capture validation dependencies
+        run: |
+          python -m pip install -r tools/requirements-assets.txt
+          if ($LASTEXITCODE -ne 0) { throw 'Dependency installation failed' }
+      - name: Recheck admission on actual Windows checkout
+        run: |
+          python -m unittest discover -s tools -p test_prone_r15_windows_sourceproof.py -v
+          if ($LASTEXITCODE -ne 0) { throw 'Orchestration tests failed' }
+          python -m unittest discover -s tools -p test_prone_r15_regenerated_runtime.py -v
+          if ($LASTEXITCODE -ne 0) { throw 'Regenerated runtime contract tests failed' }
+          python -m unittest discover -s tools -p test_verify_prone_r15_runtime.py -v
+          if ($LASTEXITCODE -ne 0) { throw 'Original runtime parity regressions failed' }
+          python tools/run_prone_r15_windows_sourceproof.py preflight --root .
+          if ($LASTEXITCODE -ne 0) { throw 'Source-only/consumer admission failed' }
+      - uses: actions/download-artifact@v4
+        with:
+          name: generated-reload-runtime
+          path: assets/reload
+      - uses: actions/download-artifact@v4
+        with:
+          name: generated-walk-runtime
+          path: assets/walk
+      - uses: actions/download-artifact@v4
+        with:
+          name: generated-ads-runtime
+          path: assets/ads
+      - uses: actions/download-artifact@v4
+        with:
+          name: generated-directional-runtime
+          path: assets/directional
+      - uses: actions/download-artifact@v4
+        with:
+          name: generated-jump-runtime
+          path: assets/jump
+      - name: Validate exact-run standard companions
+        run: |
+          python tools/package_game.py materialize --root . --include-walk --include-ads --include-directional --include-jump --require-generated
+          if ($LASTEXITCODE -ne 0) { throw 'Same-run companion validation failed' }
+      - name: Fetch official checksum and require reviewed Blender pin
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $name = "blender-$env:BLENDER_VERSION-windows-x64.zip"
+          $base = 'https://download.blender.org/release/Blender4.3'
+          # Historical secondary corroboration is not fresh vendor verification.
+          # An inaccessible vendor line stops this job; no Scoop/mirror bypass.
+          $checksums = (Invoke-WebRequest "$base/blender-$env:BLENDER_VERSION.sha256").Content
+          $pattern = '(?m)^([0-9a-fA-F]{64})\s+\*?' + [regex]::Escape($name) + '\r?$'
+          $matches = [regex]::Matches($checksums, $pattern)
+          if ($matches.Count -ne 1 -or $matches[0].Groups[1].Value.ToLowerInvariant() -ne $env:BLENDER_ZIP_SHA256) {
+            throw 'Official vendor checksum unavailable, ambiguous, or different from reviewed pin'
+          }
+          $zip = Join-Path $env:RUNNER_TEMP $name
+          Invoke-WebRequest "$base/$name" -OutFile $zip
+          $hash = (Get-FileHash $zip -Algorithm SHA256).Hash.ToLowerInvariant()
+          if ((Get-Item $zip).Length -ne 405138423 -or $hash -ne $env:BLENDER_ZIP_SHA256) {
+            throw 'Official Blender archive size/hash mismatch'
+          }
+          $install = Join-Path $env:RUNNER_TEMP 'prone-r15-blender'
+          Expand-Archive -LiteralPath $zip -DestinationPath $install
+          $home = Join-Path $install "blender-$env:BLENDER_VERSION-windows-x64"
+          $exe = Join-Path $home 'blender.exe'
+          $version = (& $exe --version | Select-Object -First 1)
+          if ($LASTEXITCODE -ne 0 -or $version -ne 'Blender 4.3.2') { throw 'Unexpected Blender version' }
+          $python = Join-Path $home '4.3/python/bin/python.exe'
+          & $python -m ensurepip
+          if ($LASTEXITCODE -ne 0) { throw 'Bundled Python ensurepip failed' }
+          & $python -m pip install Pillow==11.3.0
+          if ($LASTEXITCODE -ne 0) { throw 'Bundled Python dependency installation failed' }
+          $receipt = [ordered]@{
+            schema = 'rust-duty-prone-r15-blender-toolchain/v1'
+            version = '4.3.2'
+            vendor_checksum_url = "$base/blender-$env:BLENDER_VERSION.sha256"
+            archive_url = "$base/$name"
+            vendor_sha256 = $matches[0].Groups[1].Value.ToLowerInvariant()
+            archive_sha256 = $hash
+            archive_bytes = (Get-Item $zip).Length
+            archive_path = $zip
+            executable_sha256 = (Get-FileHash $exe -Algorithm SHA256).Hash.ToLowerInvariant()
+          }
+          $receipt | ConvertTo-Json | Set-Content -Encoding utf8NoBOM (Join-Path $env:RUNNER_TEMP 'prone-r15-blender-toolchain.json')
+          "PRONE_R15_BLENDER=$exe" >> $env:GITHUB_ENV
+      - name: Prepare current lighting and actual Windows game samplers
+        run: |
+          python tools/ensure_level_lighting.py
+          if ($LASTEXITCODE -ne 0) { throw 'Lighting preparation failed' }
+          cargo build --locked --release --no-default-features --features legacy-macroquad,wgpu-runtime --bin vector-range --example sample_viewmodel_clip --example sample_prone_camera
+          if ($LASTEXITCODE -ne 0) { throw 'Windows game/sampler build failed' }
+      - name: Prove reconstructed motion, dense conversion and paired native-window capture
+        run: |
+          python tools/run_prone_r15_windows_sourceproof.py run --root . --base .prone-r15-base/assets/authoring/prone_crawl/revisions/entry_r5/halcyon_prone_crawl_r5.blend --blender "$env:PRONE_R15_BLENDER" --blender-receipt "$env:RUNNER_TEMP/prone-r15-blender-toolchain.json" --work "$env:RUNNER_TEMP/prone-r15-private-work" --evidence evidence/prone-r15-windows-sourceproof
+          if ($LASTEXITCODE -ne 0) { throw 'Prone proof failed; summary describes completed stages only' }
+      - name: Retain only native previews and bounded summary
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: prone-r15-windows-sourceproof-attempt-${{ github.run_attempt }}
+          retention-days: 7
+          if-no-files-found: warn
+          path: |
+            evidence/prone-r15-windows-sourceproof/summary.json
+            evidence/prone-r15-windows-sourceproof/60/*.png
+            evidence/prone-r15-windows-sourceproof/60/*.png.json
+            evidence/prone-r15-windows-sourceproof/60/*.png.prone.json
+            evidence/prone-r15-windows-sourceproof/60/*.png.gameplay.json
+            evidence/prone-r15-windows-sourceproof/60/*.png.time.json
+            evidence/prone-r15-windows-sourceproof/30/*.png
+            evidence/prone-r15-windows-sourceproof/30/*.png.json
+            evidence/prone-r15-windows-sourceproof/30/*.png.prone.json
+            evidence/prone-r15-windows-sourceproof/30/*.png.gameplay.json
+            evidence/prone-r15-windows-sourceproof/30/*.png.time.json
