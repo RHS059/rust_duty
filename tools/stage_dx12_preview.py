@@ -30,7 +30,9 @@ INSTRUCTIONS = """Rust Duty DX12 WIP preview
 Extract the complete folder, then run PLAYTEST_DX12.cmd for the human DX12
 playtest. It requests DX12 with normal adapter selection (no forced WARP) and
 disables release-channel updates for this preview launch. Directly opening
-vector-range.exe still uses the legacy renderer by default until M4 sign-off.
+vector-range.exe uses wgpu auto selection (DX12 first on Windows). Use
+--renderer=gl to request the legacy renderer. Keep using PLAYTEST_DX12.cmd for
+this playtest so the renderer is pinned to DX12 and updates remain disabled.
 
 This exact executable passed the recorded CI DX12 WARP capture smoke before
 packaging. That does not establish real-GPU performance, sound playback, native
@@ -135,12 +137,13 @@ def stage(root, binary, evidence, output, env=None):
         require(identity['executable']['sha256'] == binary_hash, 'preview identity hash mismatch')
         source = context['source']
         provenance = {
-            'schema': 'rust-duty-dx12-wip-preview/v1', 'status': 'WIP preview; M4 approval pending',
+            'schema': 'rust-duty-dx12-wip-preview/v1',
+            'status': 'WIP preview; packaging does not establish M4 acceptance',
             'source': source, 'display_version': context['display_version'],
             'cargo_build_command': BUILD_COMMAND, 'enabled_features': FEATURES,
             'dx12_shader_compiler': 'Fxc',
             'game_dependency_notices': notice_provenance,
-            'executable_sha256': binary_hash, 'default_renderer': 'legacy',
+            'executable_sha256': binary_hash, 'default_renderer': 'auto',
             'human_launch': ['vector-range.exe', '--renderer=dx12', '--no-update'],
             'smoke': {'backend': 'Dx12', 'adapter': smoke.WARP_ADAPTER,
                       'frames': smoke.FRAME_COUNT,
