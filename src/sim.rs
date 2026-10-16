@@ -542,6 +542,7 @@ pub struct Simulation {
     /// Sidearm interface; empty by default. Survives `reset`.
     pub loadout: Loadout,
     pub time: f64,
+    high_mantle: crate::authored_high_mantle::HighMantleController,
     prone_camera: Option<Arc<ProneCameraTrack>>,
     prone_entry: Option<(f64, f32)>,
     prone_sample: Option<ProneSample>,
@@ -659,6 +660,7 @@ impl Simulation {
             timings: ActionTimings::default(),
             loadout: Loadout::default(),
             time: 0.,
+            high_mantle: Default::default(),
             prone_camera: None,
             prone_entry: None,
             prone_sample: None,
@@ -678,16 +680,50 @@ impl Simulation {
     pub fn reset(&mut self) {
         let timings = std::mem::take(&mut self.timings);
         let loadout = self.loadout;
+        let high_mantle_binding = self.high_mantle.binding().cloned();
         let prone_camera = self.prone_camera.take();
         let prone_return_seconds = self.prone_return_seconds;
         let level = self.level.take();
         *self = Self::new();
         self.timings = timings;
         self.loadout = loadout;
+        self.high_mantle.set_binding(high_mantle_binding);
         self.prone_camera = prone_camera;
         self.prone_return_seconds = prone_return_seconds;
         if let Some(level) = level {
             self.install_level(level.blocks, level.spawn_position, level.spawn_yaw);
+        }
+    }
+    /// Install only after full pinned companion and named/rest return validation.
+    /// A replacement cancels the accepted high traversal and clears stale poses.
+    pub fn set_high_mantle_binding(
+        &mut self,
+        binding: Option<crate::authored_high_mantle::HighMantleBinding>,
+    ) {
+        if self.high_mantle.binding() == binding.as_ref() {
+            return;
+        }
+        if self.high_mantle.binding().is_some()
+            && self.player.mantle.is_some_and(|state| {
+                state.kind == MantleKind::High
+                    && !state.from_hang
+                    && state.duration == crate::authored_high_mantle::NATIVE_SECONDS as f32
+            })
+        {
+            self.cancel_mantle();
+        }
+        self.high_mantle.set_binding(binding);
+    }
+    pub fn high_mantle_binding(&self) -> Option<&crate::authored_high_mantle::HighMantleBinding> {
+        self.high_mantle.binding()
+    }
+    pub fn high_mantle_presentation(
+        &self,
+    ) -> Option<crate::authored_high_mantle::HighMantlePresentation> {
+        if self.player.dead() {
+            None
+        } else {
+            self.high_mantle.presentation()
         }
     }
     /// Install only after the complete opt-in weapon/camera pair has loaded.
@@ -769,6 +805,7 @@ impl Simulation {
     /// geometry is owned separately so neither reset nor death reloads meshes.
     pub fn install_level(&mut self, blocks: Vec<Block>, spawn_position: Vec3, spawn_yaw: f32) {
         self.clear_prone_presentation();
+        self.high_mantle.clear();
         self.level = Some(LevelState {
             blocks: blocks.clone(),
             spawn_position,
@@ -831,6 +868,9 @@ impl Simulation {
         hip + (aimed - hip) * p.ads
     }
     pub fn update(&mut self, input: Input, cfg: &Settings, dt: f32) {
+        if self.high_mantle.binding().is_some() && (!dt.is_finite() || dt <= 0.) {
+            return;
+        }
         // Process non-shot milestones before new action requests at this timestamp.
         for t in &mut self.targets {
             t.flash = (t.flash - dt).max(0.);
@@ -856,6 +896,7 @@ impl Simulation {
         }
         if self.step_death(cfg) {
             self.clear_prone_presentation();
+            self.high_mantle.clear();
             self.time += dt as f64;
             return;
         }
@@ -904,6 +945,7 @@ impl Simulation {
         self.after_move(input, cfg, dt);
         if self.player.dead() {
             self.clear_prone_presentation();
+            self.high_mantle.clear();
             self.time += dt as f64;
             return;
         }
@@ -964,6 +1006,7 @@ impl Simulation {
         self.player.sprint_out = (self.player.sprint_out - dt).max(0.);
         self.reconcile_prone_presentation();
         self.time += dt as f64;
+        self.high_mantle.commit(self.time, false);
     }
     /// Cancel traversal without teleporting or retaining upward/forward momentum.
     /// The last verified pose is retained; the next fixed step resolves support
@@ -972,6 +1015,7 @@ impl Simulation {
         if self.player.mantle.take().is_none() {
             return;
         }
+        self.high_mantle.cancel(self.time, false);
         let pos = self.player.position;
         let supported = self.blocks.iter().any(|b| {
             (pos.y - b.bounds.max.y).abs() < 0.00001
@@ -1067,6 +1111,8 @@ impl Simulation {
                 elapsed: 0.,
                 duration: if height <= MANTLE_LOW_HEIGHT {
                     0.60
+                } else if self.high_mantle.binding().is_some() {
+                    crate::authored_high_mantle::NATIVE_SECONDS as f32
                 } else {
                     0.85
                 },
@@ -1087,6 +1133,9 @@ impl Simulation {
             }
         }
         let Some((_, state)) = best else { return };
+        if state.kind == MantleKind::High && !state.from_hang {
+            self.high_mantle.begin(self.time);
+        }
         let p = &mut self.player;
         p.mantle = Some(state);
         p.velocity = Vec3::ZERO;
@@ -1121,7 +1170,15 @@ impl Simulation {
             self.cancel_mantle();
             return;
         }
-        let next_time = state.elapsed + dt;
+        // Native high timing comes from committed f64 simulation time, never
+        // renderer deltas or accumulated f32 clip time. Legacy paths are unchanged.
+        let next_time = if state.kind == MantleKind::High && !state.from_hang {
+            self.high_mantle
+                .elapsed_at(self.time + f64::from(dt))
+                .map_or(state.elapsed + dt, |seconds| seconds as f32)
+        } else {
+            state.elapsed + dt
+        };
         // Round-off must not add a tick to authored 72/102-tick durations.
         let end_time = if next_time + 1e-6 >= state.duration {
             state.duration
@@ -1150,6 +1207,10 @@ impl Simulation {
             if next_time >= end_time {
                 break;
             }
+        }
+        if state.kind == MantleKind::High && !state.from_hang {
+            self.high_mantle
+                .commit(self.time + f64::from(dt), state.elapsed >= state.duration);
         }
         let p = &mut self.player;
         p.velocity = Vec3::ZERO;

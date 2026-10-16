@@ -315,6 +315,11 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
     } else {
         None
     };
+    sim.set_high_mantle_binding(
+        authored
+            .as_ref()
+            .and_then(|model| model.high_mantle_binding()),
+    );
     sim.set_prone_camera_track(
         authored
             .as_ref()
@@ -1227,6 +1232,13 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
         {
             // A renderer failure must never leave the camera half of a pair active.
             sim.set_prone_camera_track(None);
+        }
+        if authored
+            .as_ref()
+            .is_some_and(|model| model.error().is_some())
+            && sim.high_mantle_binding().is_some()
+        {
+            sim.set_high_mantle_binding(None);
         }
         set_default_camera();
         clear_background(Color::new(0.32, 0.49, 0.68, 1.));

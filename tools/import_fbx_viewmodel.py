@@ -21,6 +21,7 @@ import vrpack
 import vrskin
 import vrview
 import prone_camera_pair
+import single_stack_fbx
 from vrpack import require
 
 
@@ -51,7 +52,7 @@ def rigid_transform(matrix):
     return vrview.decompose(vrpack.IDENTITY if hidden else matrix), int(not hidden)
 
 
-def patch_importer():
+def patch_importer(binding_capture=None):
     import bpy
     import io_scene_fbx.import_fbx as imp
     require(bpy.app.version[:3] == (4,3,2), 'FBX importer patches audited only for Blender 4.3.2')
@@ -63,7 +64,12 @@ def patch_importer():
         fn = getattr(imp,name); source = inspect.getsource(fn)
         require(source.count(before) == 1, f'importer patch signature changed: {name}')
         originals[name] = {'sha256':hashlib.sha256(source.encode()).hexdigest(), 'replacement_count':1}
-        exec(source.replace(before,after),imp.__dict__)
+        modified = source.replace(before,after)
+        if binding_capture is not None and name == 'blen_read_animations':
+            modified = single_stack_fbx.instrument_reader(modified)
+            imp.__dict__[single_stack_fbx.HOOK_NAME] = binding_capture
+            originals[name]['single_stack_binding_observer'] = True
+        exec(modified,imp.__dict__)
     return originals
 
 
@@ -115,12 +121,31 @@ def convert(args):
     fps = Fraction(args.fps)
     frames,times = sample_grid(args.native_start,args.native_end,args.subdivisions,args.switch,fps)
     pair = paired_contract(args, frames, fps)
+    binding_capture = None
+    if getattr(args, 'single_stack', False):
+        from io_scene_fbx import parse_fbx
+        require(args.take and not args.loop, 'single-stack mode needs --take and a non-looping clip')
+        require(pair is None, 'single-stack mode is separate from the existing paired-prone path')
+        parsed, _version = parse_fbx.parse(str(fbx))
+        contract = single_stack_fbx.inspect_stack(parsed, args.take, [args.armature, *args.actor])
+        binding_capture = single_stack_fbx.BindingCapture(contract)
+        del parsed
     bpy.ops.wm.read_factory_settings(use_empty=True)
-    patches = patch_importer()
+    if binding_capture is not None:
+        require(len(bpy.data.actions) == 0, 'single-stack import requires an empty fresh Action inventory')
+    patches = patch_importer(binding_capture)
     bpy.ops.import_scene.fbx(filepath=str(fbx),use_anim=True,anim_offset=0.,ignore_leaf_bones=False,
                             automatic_bone_orientation=False,use_prepost_rot=True)
     scene = bpy.context.scene; arm = bpy.data.objects[args.armature]
-    if args.take:
+    single_stack_admission = None
+    if binding_capture is not None:
+        single_stack_admission = binding_capture.verify(
+            [arm, *[bpy.data.objects[n] for n in args.actor]], list(bpy.data.actions),
+            [args.native_start + args.imported_frame_offset,
+             args.native_end + args.imported_frame_offset])
+        require(hashlib.sha256(fbx.read_bytes()).hexdigest() == digest,
+                'FBX changed during single-stack import')
+    if args.take and binding_capture is None:
         # FBX importer creates an owner-specific Action for each stack. Match the
         # full stack suffix; never select a similarly named or first Action.
         for obj in [arm] + [bpy.data.objects[n] for n in args.actor]:
@@ -250,6 +275,8 @@ def convert(args):
       'source_action_ranges':action_ranges, 'visibility_policy':'all-zero rigid scale maps to invisible STEP with identity placeholder; partial singular scale rejected', 'geometry_transport':'static GLB only; no sampled GLB animation', 'material_source_sha256':args.source_sha256 if args.material_source else None,
       'files':{f'asset.{s}':{'sha256':hashlib.sha256(d).hexdigest(),'bytes':len(d)} for s,d in [('vrs',vrs),('vrm',vrm),('vra',vra)]},
       'scope':'Explicitly selected source range converted as WIP. Review scope is recorded in the source-selection manifest. No runtime parity or gameplay visual approval is implied.'}
+    if single_stack_admission is not None:
+        manifest['single_stack_admission'] = single_stack_admission
     if pair is not None:
         manifest['prone_camera_pair'] = {
             'receipt': 'asset.prone-pair.json', 'sidecar': 'asset.prone-camera.json',
@@ -269,6 +296,7 @@ def main():
     for flag in ('fbx','output','skeleton-vra'):p.add_argument('--'+flag,type=Path,required=True)
     for flag in ('fbx-sha256','source-sha256','name'):p.add_argument('--'+flag,required=True)
     p.add_argument('--imported-frame-offset',type=float,default=1.);p.add_argument('--fps',default='60000/1001');p.add_argument('--take');p.add_argument('--loop',action='store_true')
+    p.add_argument('--single-stack',action='store_true',help='require one exact logical FBX stack/layer and observe owner bindings; no Action-name fallback')
     p.add_argument('--material-source',type=Path);p.add_argument('--armature',default='Arms');p.add_argument('--actor',action='append',required=True)
     p.add_argument('--native-start',type=int,required=True);p.add_argument('--native-end',type=int,required=True)
     p.add_argument('--subdivisions',type=int,default=64);p.add_argument('--switch',action='append',default=[])
