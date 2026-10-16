@@ -1,0 +1,2 @@
+# This package is byte-pinned. Do not normalize or convert any package bytes.
+* -text

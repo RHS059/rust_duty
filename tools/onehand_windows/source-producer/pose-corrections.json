@@ -1,0 +1,197 @@
+{
+  "approved_source_sha256": "b5cae854b1e5e21c44e60a0672dd18c26e7b38acb239f4730b681482bc409d77",
+  "base_sha256": "6b95bdcdfa78e8127ef4b4fa5ac88e4cf9a0654bd0a1271c9916b903f6ee4e79",
+  "corrections": [
+    {
+      "after_sha256": "81258062d9a45161a343688ecbb96db905fbb1a1b89e60d5b58744ea85506bd6",
+      "before_sha256": "34fc42d701c31afe23ae796c2556add31db48816c9255ac73d251b9e5e3f0d14",
+      "delta": -1.1920928955078125e-07,
+      "mode": "original_scalar_delta",
+      "path": [
+        "Arms",
+        "MCH_attach_forearm_l",
+        "scale",
+        0
+      ]
+    },
+    {
+      "after_sha256": "81258062d9a45161a343688ecbb96db905fbb1a1b89e60d5b58744ea85506bd6",
+      "before_sha256": "34fc42d701c31afe23ae796c2556add31db48816c9255ac73d251b9e5e3f0d14",
+      "delta": -1.1920928955078125e-07,
+      "mode": "original_scalar_delta",
+      "path": [
+        "Arms",
+        "MCH_attach_forearm_l",
+        "scale",
+        2
+      ]
+    },
+    {
+      "after_sha256": "81258062d9a45161a343688ecbb96db905fbb1a1b89e60d5b58744ea85506bd6",
+      "before_sha256": "34fc42d701c31afe23ae796c2556add31db48816c9255ac73d251b9e5e3f0d14",
+      "delta": -1.1920928955078125e-07,
+      "mode": "original_scalar_delta",
+      "path": [
+        "Arms",
+        "MCH_attach_forearm_r",
+        "scale",
+        0
+      ]
+    },
+    {
+      "after_sha256": "81258062d9a45161a343688ecbb96db905fbb1a1b89e60d5b58744ea85506bd6",
+      "before_sha256": "34fc42d701c31afe23ae796c2556add31db48816c9255ac73d251b9e5e3f0d14",
+      "delta": -1.1920928955078125e-07,
+      "mode": "original_scalar_delta",
+      "path": [
+        "Arms",
+        "MCH_attach_forearm_r",
+        "scale",
+        2
+      ]
+    },
+    {
+      "after_sha256": "81258062d9a45161a343688ecbb96db905fbb1a1b89e60d5b58744ea85506bd6",
+      "before_sha256": "34fc42d701c31afe23ae796c2556add31db48816c9255ac73d251b9e5e3f0d14",
+      "delta": -1.1920928955078125e-07,
+      "mode": "original_scalar_delta",
+      "path": [
+        "Arms",
+        "MCH_forearm_roll_l",
+        "scale",
+        0
+      ]
+    },
+    {
+      "after_sha256": "81258062d9a45161a343688ecbb96db905fbb1a1b89e60d5b58744ea85506bd6",
+      "before_sha256": "34fc42d701c31afe23ae796c2556add31db48816c9255ac73d251b9e5e3f0d14",
+      "delta": -1.1920928955078125e-07,
+      "mode": "original_scalar_delta",
+      "path": [
+        "Arms",
+        "MCH_forearm_roll_l",
+        "scale",
+        2
+      ]
+    },
+    {
+      "after_sha256": "e18f81cd8ab7c5134182f5379769d3d558e5efd1c6673e5597a4ca9ded806248",
+      "before_sha256": "3ed075003e3da75cb1c4e5226e7cf81d4c82d9905a04cae0454363d9f79e95dd",
+      "mode": "unchanged_driver_recompute",
+      "path": [
+        "Arms",
+        "MCH_forearm_roll_r",
+        "rotation_euler",
+        1
+      ]
+    },
+    {
+      "after_sha256": "81258062d9a45161a343688ecbb96db905fbb1a1b89e60d5b58744ea85506bd6",
+      "before_sha256": "34fc42d701c31afe23ae796c2556add31db48816c9255ac73d251b9e5e3f0d14",
+      "delta": -1.1920928955078125e-07,
+      "mode": "original_scalar_delta",
+      "path": [
+        "Arms",
+        "MCH_forearm_roll_r",
+        "scale",
+        0
+      ]
+    },
+    {
+      "after_sha256": "81258062d9a45161a343688ecbb96db905fbb1a1b89e60d5b58744ea85506bd6",
+      "before_sha256": "34fc42d701c31afe23ae796c2556add31db48816c9255ac73d251b9e5e3f0d14",
+      "delta": -1.1920928955078125e-07,
+      "mode": "original_scalar_delta",
+      "path": [
+        "Arms",
+        "MCH_forearm_roll_r",
+        "scale",
+        2
+      ]
+    },
+    {
+      "after_sha256": "1db4a98dd1236537ecf33780886f2692e541cdd1a68ebea314e9f6c678cc5b81",
+      "before_sha256": "a9017ddcc11010146c7d7ba1896612e839e3094592011d858fd54ab9fd7e97e9",
+      "mode": "unchanged_driver_recompute",
+      "path": [
+        "Arms",
+        "MCH_hand_guarded_l",
+        "rotation_euler",
+        1
+      ]
+    },
+    {
+      "after_sha256": "34fc42d701c31afe23ae796c2556add31db48816c9255ac73d251b9e5e3f0d14",
+      "before_sha256": "25165021c732668af5bf7bc35f2730d78f3b7f560f42f0a9d47cab5ab5e50201",
+      "delta": -1.1920928955078125e-07,
+      "mode": "original_scalar_delta",
+      "path": [
+        "Arms",
+        "MCH_hand_guarded_l",
+        "scale",
+        0
+      ]
+    },
+    {
+      "after_sha256": "e0677adc3361505e03dda2822335da8223c9ebf838da38a40f6f79051abed8ce",
+      "before_sha256": "d0ff5974b6aa52cf562bea5921840c032a860a91a3512f7fe8f768f6bbe005f6",
+      "delta": -5.960464477539063e-08,
+      "mode": "original_scalar_delta",
+      "path": [
+        "Arms",
+        "MCH_hand_guarded_l",
+        "scale",
+        2
+      ]
+    },
+    {
+      "after_sha256": "bb921b7beb866a89d22441167ef8fa69837a2588c171c87a804bb842b098b66b",
+      "before_sha256": "42c430d4f8912067a9fe3616cf98fc25a9498c9d09ed3efd750907b158328821",
+      "mode": "unchanged_driver_recompute",
+      "path": [
+        "Arms",
+        "MCH_hand_guarded_r",
+        "rotation_euler",
+        1
+      ]
+    },
+    {
+      "after_sha256": "f62a1d41e7d47ce08ce717979251a8c318446eb641ab8e5461d90c026f181252",
+      "before_sha256": "81258062d9a45161a343688ecbb96db905fbb1a1b89e60d5b58744ea85506bd6",
+      "delta": -1.1920928955078125e-07,
+      "mode": "original_scalar_delta",
+      "path": [
+        "Arms",
+        "MCH_hand_guarded_r",
+        "scale",
+        0
+      ]
+    },
+    {
+      "after_sha256": "8d6519d9930cce4e72c73ac4b0f8856fc9b35c4697397e557e3926afd1b60337",
+      "before_sha256": "a80bd83b5f4362f5be46f6887e73fb2be8d16ce7d02303ee35a40b3af11f694b",
+      "delta": 7.450580596923828e-09,
+      "mode": "original_scalar_delta",
+      "path": [
+        "Arms",
+        "MCH_mag_grip_target_l",
+        "rotation_euler",
+        1
+      ]
+    },
+    {
+      "after_sha256": "7d74654512e4cde0cda3b18534faf9ae4bb7270f72de18950359b6eaf38a325d",
+      "before_sha256": "41c8f20a9acff6e625bb2ed01bada5c769aadda1db80c73775631084e6cc6674",
+      "mode": "unchanged_driver_recompute",
+      "path": [
+        "Arms",
+        "MCH_mag_guide_diagnostics",
+        "custom_properties",
+        "hand_position_error_m"
+      ]
+    }
+  ],
+  "schema": "rust-duty-onehand-v6-pose-correction-scope/v1",
+  "scope": "Twelve original unkeyed scalar differences only; four driven outputs are never written. No inherited pose-default values.",
+  "source_lineage_sha256": "d911f90ddf3d2edb4e2872bbf0adc1359d374f8c4451c5afa26ca8ce28c55316"
+}

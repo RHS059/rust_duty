@@ -1,0 +1,223 @@
+--- a/owner_commands.py
++++ b/owner_commands.py
+@@ -7,8 +7,9 @@
+ sys.dont_write_bytecode = True
+ sys.path.insert(0, str(Path(__file__).resolve().parent))
+ import onehand_v6_source_delta as d
+-from onehand_v6_source_native import validate_recipe
+-from run_onehand_v6_source_proof import verify_pins, validate_replay, compare_chunks
++from onehand_v6_source_native import validate_recipe, producer_hashes
++from run_onehand_v6_source_proof import verify_pins, validate_replay, compare_chunks, verify_saved_equivalence
++from types import SimpleNamespace
+ 
+ HERE = Path(__file__).resolve().parent
+ ROOT = HERE.parents[1]
+@@ -40,6 +41,7 @@
+     if not delta_file.exists():
+         return native("extract", ["extract", "--base", str(BASE), "--approved", str(APPROVED), "--output", str(delta_file)])
+     recipe = d.load_json(delta_file); validate_recipe(recipe); delta_sha = d.sha(delta_file)
++    d.require(recipe["producer_sha256"] == producer_hashes(), "loaded recipe was produced by different current package code")
+     if not replay_file.exists():
+         d.require(not source.exists(), "partial replay source exists without passed receipt; owner inspection required")
+         return native("replay", ["replay", "--base", str(BASE), "--delta", str(delta_file), "--delta-sha256", delta_sha,
+@@ -70,10 +72,13 @@
+                 "--replay-receipt-sha256", d.sha(replay_file), "--witness-index", str(index), "--witness-index-sha256", d.sha(index),
+                 "--output", str(output)], "requires_serialized_native_owner": False,
+                 "scope": "CPU-only strict all-4240 comparison; no runtime/render acceptance."}
+-    proof = d.load_json(output)
+-    d.require(proof.get("passed") is True and proof.get("generated_source_sha256") == generated
+-              and proof.get("sample_count") == 4240 and proof.get("delta_sha256") == delta_sha,
+-              "equivalence output is not the expected complete proof")
++    # Never accept a completion flag or partial/stale summary. Read all 34 sealed
++    # chunks again and reproduce the entire proof, including evidence identities.
++    proof = verify_saved_equivalence(SimpleNamespace(
++        delta=delta_file, delta_sha256=delta_sha,
++        replay_receipt=replay_file, replay_receipt_sha256=d.sha(replay_file),
++        witness_index=index, witness_index_sha256=d.sha(index),
++        directory=root, output=output))
+     return {"stage": "complete", "source_equivalence_sha256": d.sha(output),
+             "source_byte_identity_with_approved": False, "runtime_equivalence_proved": False}
+ 
+--- a/run_onehand_v6_source_proof.py
++++ b/run_onehand_v6_source_proof.py
+@@ -199,8 +199,11 @@
+     return a
+ 
+ 
+-def compare_directory(args):
++def build_equivalence_result(args):
++    """Strict read-only revalidation of every sealed input; creates no files."""
+     recipe = same_hash(args.delta, args.delta_sha256)
++    from onehand_v6_source_native import producer_hashes
++    delta.require(recipe["producer_sha256"] == producer_hashes(), "recipe producer differs from current package code")
+     replay = same_hash(args.replay_receipt, args.replay_receipt_sha256)
+     generated = validate_replay(recipe, replay, args.delta_sha256)
+     index = same_hash(args.witness_index, args.witness_index_sha256)
+@@ -232,6 +235,20 @@
+               "limits": ["Serialized identities are distinct; proof covers exact Action and 4240 sampled evaluations.",
+                          "No continuous-time proof or converted/native runtime acceptance is inferred.",
+                          "No permission to publish private geometry, scene defaults, rest data or full BLEND is inferred."]}
++    return result
++
++
++def verify_saved_equivalence(args):
++    """A saved completion is valid only if its entire proof matches current evidence."""
++    expected = build_equivalence_result(args)
++    saved = delta.load_json(args.output)
++    delta.require(delta.exact_equal(saved, expected),
++                  "saved equivalence proof differs from full current sealed evidence")
++    return expected
++
++
++def compare_directory(args):
++    result = build_equivalence_result(args)
+     delta.write_fresh_json(args.output, result)
+     print("ONEHAND_V6_SOURCE_EQUIVALENCE", delta.sha(args.output))
+ 
+--- a/test_onehand_v6_source_proof.py
++++ b/test_onehand_v6_source_proof.py
+@@ -318,7 +318,7 @@
+                        "target_complete_sha256": h, "base_complete_sha256": h, "settings": {},
+                        "curves": [{"op": "reference", "base_index": 0, "before_sha256": h}]},
+             "metadata": {"after_sha256": h, "before_sha256": h, "properties": {}, "use_fake_user": None}, "action_auxiliary_sha256": h,
+-            "producer_sha256": {name: h for name in CODE_FILES}, "pose_corrections_sha256": d.POSE_CORRECTIONS_SHA,
++            "producer_sha256": {name: d.sha(Path(__file__).with_name(name)) for name in CODE_FILES}, "pose_corrections_sha256": d.POSE_CORRECTIONS_SHA,
+             "scope": "Original final Action deltas and 12 original scalar corrections; inherited content by hash reference only."}
+ 
+ 
+@@ -486,5 +486,117 @@
+             self.assertFalse(args.output.exists())
+ 
+ 
++class CompletionIntegrityTests(unittest.TestCase):
++    """End-to-end planner completion tests with synthetic, sealed 34-file evidence."""
++    @classmethod
++    def setUpClass(cls):
++        from types import SimpleNamespace
++        cls.temp = tempfile.TemporaryDirectory(prefix="completion-tests-", dir=Path(__file__).parent)
++        cls.root = Path(cls.temp.name).resolve()
++        cls.fixture = cls.root / "fixture"; cls.fixture.mkdir()
++        cls.recipe = synthetic_recipe()
++        d.write_fresh_json(cls.fixture / "original-delta.json", cls.recipe)
++        delta_sha = d.sha(cls.fixture / "original-delta.json")
++        replay = synthetic_replay(cls.recipe); replay["delta_sha256"] = delta_sha
++        (cls.fixture / "regenerated-onehand-v6.blend").write_bytes(b"SYNTHETIC SOURCE IDENTITY ONLY")
++        replay["generated_source_sha256"] = d.sha(cls.fixture / "regenerated-onehand-v6.blend")
++        d.write_fresh_json(cls.fixture / "replay-receipt.json", replay)
++        index = {}
++        for i in range(17):
++            for kind in ("approved", "regenerated"):
++                name = f"{kind}-{i:03}.json"
++                d.write_fresh_json(cls.fixture / name, synthetic_witness(cls.recipe, replay, kind, i))
++                index[name] = d.sha(cls.fixture / name)
++        d.write_fresh_json(cls.fixture / "witness-index.json", index)
++        args = cls.evidence_args(cls.fixture)
++        d.write_fresh_json(args.output, runner.build_equivalence_result(args))
++
++    @classmethod
++    def tearDownClass(cls):
++        cls.temp.cleanup()
++
++    @staticmethod
++    def evidence_args(root):
++        from types import SimpleNamespace
++        return SimpleNamespace(delta=root / "original-delta.json", delta_sha256=d.sha(root / "original-delta.json"),
++            replay_receipt=root / "replay-receipt.json", replay_receipt_sha256=d.sha(root / "replay-receipt.json"),
++            witness_index=root / "witness-index.json", witness_index_sha256=d.sha(root / "witness-index.json"),
++            directory=root, output=root / "source-equivalence.json")
++
++    def setUp(self):
++        import shutil
++        self.work = self.root / self._testMethodName
++        shutil.copytree(self.fixture, self.work)
++
++    def write(self, name, value):
++        (self.work / name).write_text(json.dumps(value, indent=2, sort_keys=True) + "\n")
++
++    def next(self):
++        from types import SimpleNamespace
++        import owner_commands as owner
++        real_sha = d.sha
++        base = Path("/synthetic/base.blend"); approved = Path("/synthetic/approved.blend")
++        def source_hash(path):
++            if Path(path) == base: return d.BASE_SHA
++            if Path(path) == approved: return d.APPROVED_SHA
++            return real_sha(path)
++        args = SimpleNamespace(pins_sha256="a" * 64, blender="/synthetic/blender", lock=self.work / "owner.lock",
++                               output_directory=self.work)
++        with patch.object(owner, "verify_pins"), patch.object(owner, "BASE", base), patch.object(owner, "APPROVED", approved), \
++             patch.object(d, "sha", side_effect=source_hash):
++            return owner.next_command(args)
++
++    def test_valid_completion_revalidates_without_writes(self):
++        before = {p.name: (p.stat().st_mtime_ns, d.sha(p)) for p in self.work.iterdir()}
++        self.assertEqual(self.next()["stage"], "complete")
++        self.assertEqual(before, {p.name: (p.stat().st_mtime_ns, d.sha(p)) for p in self.work.iterdir()})
++
++    def test_minimal_four_field_completion_is_rejected(self):
++        proof = d.load_json(self.work / "source-equivalence.json")
++        self.write("source-equivalence.json", {k: proof[k] for k in
++                   ("passed", "generated_source_sha256", "sample_count", "delta_sha256")})
++        with self.assertRaisesRegex(ValueError, "full current sealed evidence"): self.next()
++
++    def test_stale_replay_receipt_identity_is_rejected(self):
++        path = self.work / "replay-receipt.json"
++        # Same semantic replay, different bytes: the saved proof's replay pin is stale.
++        path.write_text(json.dumps(d.load_json(path), separators=(",", ":")))
++        with self.assertRaisesRegex(ValueError, "full current sealed evidence"): self.next()
++
++    def test_stale_witness_index_identity_is_rejected(self):
++        path = self.work / "witness-index.json"
++        path.write_text(json.dumps(d.load_json(path), separators=(",", ":")))
++        with self.assertRaisesRegex(ValueError, "full current sealed evidence"): self.next()
++
++    def mutate_paired_motion(self, reseal):
++        index = d.load_json(self.work / "witness-index.json")
++        for kind in ("approved", "regenerated"):
++            name = f"{kind}-008.json"; witness = d.load_json(self.work / name)
++            witness["motion"]["rows"][0]["geometry"][0]["world_positions_sha256"] = "f" * 64
++            self.write(name, witness)
++            if reseal: index[name] = d.sha(self.work / name)
++        if reseal: self.write("witness-index.json", index)
++
++    def test_coherently_replaced_pair_with_stale_seal_is_rejected(self):
++        self.mutate_paired_motion(reseal=False)
++        with self.assertRaisesRegex(ValueError, "pinned evidence differs"): self.next()
++
++    def test_replaced_pair_and_new_seal_cannot_reuse_old_proof(self):
++        self.mutate_paired_motion(reseal=True)
++        with self.assertRaisesRegex(ValueError, "full current sealed evidence"): self.next()
++
++    def test_stale_producer_under_new_package_is_rejected(self):
++        recipe = d.load_json(self.work / "original-delta.json")
++        recipe["producer_sha256"]["onehand_v6_source_native.py"] = "f" * 64
++        self.write("original-delta.json", recipe)
++        with self.assertRaisesRegex(ValueError, "current package code"): self.next()
++
++    def test_extra_completion_payload_is_rejected(self):
++        proof = d.load_json(self.work / "source-equivalence.json")
++        proof["private_asset_payload"] = [[1., 2., 3.]]
++        self.write("source-equivalence.json", proof)
++        with self.assertRaisesRegex(ValueError, "full current sealed evidence"): self.next()
++
++
+ if __name__ == "__main__":
+     unittest.main()
+--- a/README.md
++++ b/README.md
+@@ -1,4 +1,6 @@
+ # One-hand v6 source-only reconstruction preparation
++
++Revision r2: strict completion revalidation. The original r1 package is preserved unchanged in `prior-r1-pinned/`.
+ 
+ Status: CPU preparation only. No Blender, game, native graphics, rendering, source-input modification, solver rerun, upload or publication was performed. No actual final Action delta, regenerated source, or evaluated source-equivalence receipt exists yet.
+ 
+@@ -75,7 +77,7 @@
+ 3. For each chunk 0–16, generate approved and regenerated hash-only witnesses in that order.
+ 4. Seal the exact 34 witness-file hashes, then run the CPU strict comparison.
+ 
+-Execute a printed native command only when the serialized native owner is free and that specific work is authorized. Run the planner again after each successful stage. The first fully resolved extraction request is in `first-owner-request.json`; its proposed proof-local lock does not coordinate external native jobs by itself. The owner must serialize with those jobs and may substitute its shared lock. All default future outputs stay in this directory's fresh `native-r1/` subdirectory. The planner itself creates no native result directory and launches nothing.
++Execute a printed native command only when the serialized native owner is free and that specific work is authorized. Run the planner again after each successful stage. The first fully resolved extraction request is in `first-owner-request.json`; its proposed proof-local lock does not coordinate external native jobs by itself. The owner must serialize with those jobs and may substitute its shared lock. All default future outputs stay in this directory's fresh `native-r1/` subdirectory. The planner itself creates no native result directory and launches nothing. Its complete path rereads all 34 current witness files, checks them against the current sealed index, validates the current replay and index byte hashes, binds the recipe to the actual current producer code, rebuilds the complete strict equivalence result, and compares the entire saved proof exactly. Minimal summaries, stale proofs, coherently replaced pairs, extra proof fields and stale producer versions fail. A valid completed check writes nothing.
+ 
+ CPU validation:
+ 

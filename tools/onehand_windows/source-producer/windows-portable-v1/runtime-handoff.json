@@ -1,0 +1,44 @@
+{
+  "actors": [
+    "hk416_weapon",
+    "hk416_magazine",
+    "hk416_magazine_outgoing"
+  ],
+  "canonical_sha256": "d02d04d4adb429b6493bf3347b302dc007bb7b99f4761da3c2b314e6d313c6ab",
+  "converter_code_unchanged": true,
+  "converter_relative_directory": "onehand-runtime-20261016-r2/runtime-conversion-v2",
+  "converter_source_sha256": "b5cae854b1e5e21c44e60a0672dd18c26e7b38acb239f4730b681482bc409d77",
+  "fbx_sha256": "5b847bf47cfafdf9a4b4d32f3d5972e677698db3f47cdc7a4a36a4b7698ee2c2",
+  "inspected_converter_code_sha256": {
+    "README.md": "6fcb13f19f7582ec4ecd5f16b95611c74bf78d3825434d90646a46528e748343",
+    "assemble_runtime.py": "01c4d5dd43b56607742ad2c5862c3185460dcb14b4cb5ef079301daae7f45e12",
+    "native_runtime.py": "4c729c2171d23736c3008a087ee7f14a33e7b4883bd059fce659d46a6c4edbc5",
+    "run_bounded.py": "303d34873ed115a5ba321b71b0db8522b2c3d2c63bff11dea00e51b6de7b1b99",
+    "runtime_contract.py": "b84e0bfb3502df4dcca4e3f271d743a3e1b8f1791a5807c057c47470f4041905",
+    "test_assemble_runtime.py": "5b6dce136fac5d681b96d87be74c703ded58dfee2de20fe9c615aeb720b97159",
+    "test_runtime_plan.py": "712f72833a23400711f2a2cff00286be954953cb1ce8e602c3ea163a49e1b2b2"
+  },
+  "inspected_converter_pins_sha256": "6f1d03f86ec0464d0fd249fc2ac82e8d415cd11149f679fe56aa22dbe3922212",
+  "maximum_retained_keys_per_curve": 2051,
+  "new_regenerated_source_substitution_authorized": false,
+  "private_assets_redistributed": false,
+  "relocation_limit": "This adapter does not port the bounded runtime converter or its OS-specific monitor. A Windows converter relocation needs its owner-reviewed revision.",
+  "remaining_runtime_gates": [
+    "Actual Rust nine-time parity including four offkeys.",
+    "Coherent all-4240 source/FBX/runtime proof against final assembled VRA."
+  ],
+  "required_focus_receipt_sha256": "b82cd075546c2c865a9c6736fac0ce946930df9fc4f706f6e2f257f933ea2f34",
+  "required_full_import_control_sha256": "5651c9cf63651130a1250fb96b44d9d040dc0965320d50a363a566665eee3a43",
+  "runtime_blocks": 12,
+  "runtime_bones": 72,
+  "runtime_samples": 24321,
+  "schema": "rust-duty-onehand-source-to-existing-runtime-handoff/v1",
+  "source_equivalence_required": {
+    "pairs": 17,
+    "samples": 4240,
+    "strict_hash_only": true
+  },
+  "source_witness_bones": 148,
+  "status": "boundary only; no runtime or Windows acceptance",
+  "subdivisions": 256
+}

@@ -1,0 +1,69 @@
+{
+  "schema": "rust-duty-owned-process-source-pins/v2",
+  "files": {
+    ".gitattributes": {
+      "bytes": 86,
+      "sha256": "171e9a8b3b5a35df8a0e007415aa96cd02a5ae26ee13b421ea9de761c6f8ddad"
+    },
+    "DEPENDENCIES.json": {
+      "bytes": 2757,
+      "sha256": "5e2c49d629018cf68f4e916d9bf257a5af1b82337facdf541ea4159928a36f6a"
+    },
+    "README.md": {
+      "bytes": 19046,
+      "sha256": "3a8ed00fb3898be1eb48359f3f85797f30d96eae39915f1c237a23d260066eee"
+    },
+    "checkout-fixture-proof.json": {
+      "bytes": 1143,
+      "sha256": "970aed93d4f354fcc51bebf10692c4d3bdc6ffb5a60704e399538b2eabbe8849"
+    },
+    "cpu-test-summary.json": {
+      "bytes": 1285,
+      "sha256": "6163dfb23aa7d8e60b3e6fc002d7a8209ed69bbd8263e12a2a2d30d5c0b2d6d3"
+    },
+    "cpu-tests.log": {
+      "bytes": 10301,
+      "sha256": "7b532b2372f20f23b37f96442b5d2bda5ed855bd139c763cab1c1f3add194ddc"
+    },
+    "minimal-changes.patch": {
+      "bytes": 46858,
+      "sha256": "11dab8fee3fc8be0104f7adc1b73bb06091af7307f369f67d2f7bb2bdda2dd00"
+    },
+    "owned_process.py": {
+      "bytes": 39160,
+      "sha256": "256125ea044c738ac316da841a5acad9c39b1fc2b1666cc4a09ce81828bd191e"
+    },
+    "run_tests.py": {
+      "bytes": 2751,
+      "sha256": "79b3868758640da4918cc8822ee6327401b07a0c597a608fc94cdb488f73d380"
+    },
+    "test_checkout_bytes.py": {
+      "bytes": 2786,
+      "sha256": "1c56b4dde3ae6e1859f9fe4b60ecaf3b21d9e5ec0f0998561afec4e36edb6c54"
+    },
+    "test_lifecycle_regressions.py": {
+      "bytes": 12647,
+      "sha256": "ef501fb4ffa5f1e3ec9117cf98071313bcdc3adcc746f9a927689db273e5adf3"
+    },
+    "test_owned_process.py": {
+      "bytes": 20249,
+      "sha256": "7051141262d6774d43bf0cf791f174432c485d4aca0432bc42f94be7862c963d"
+    },
+    "test_windows_job.py": {
+      "bytes": 9807,
+      "sha256": "a49a9ebf39ff22e22e9e4e215601d107221ca845978276042cba560252ac952e"
+    },
+    "test_windows_native.py": {
+      "bytes": 5843,
+      "sha256": "401061f2e2bbe2317e211b0e9f70c3df2c5ecac6212264d7131c0b6175247ab5"
+    },
+    "windows-process-smoke.workflow.yml": {
+      "bytes": 2249,
+      "sha256": "7ac5a15a8ed4ac9f1f2535e04e800b0e7df2a8d4cf7ccbac39549dbfb3fa301a"
+    },
+    "windows_job.py": {
+      "bytes": 22068,
+      "sha256": "d628c4f7d3136dde11cf6c9d5ba35f3d12302bfd2522918fe1f0229a40f1ba1e"
+    }
+  }
+}

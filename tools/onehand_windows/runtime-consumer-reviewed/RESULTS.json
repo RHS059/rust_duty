@@ -1,0 +1,71 @@
+{
+  "schema": "rust-duty-windows-runtime-consumer-source-results/v1",
+  "status": "frozen_for_independent_B1_correction_review_actual_candidate_and_workflow_proof_pending",
+  "tests": 127,
+  "passed": 127,
+  "failed": 0,
+  "test_scope": "small CPU/source fixtures only, including eight unchanged original scanner fixtures; not actual consumer Windows execution",
+  "math_definitions": 31,
+  "actual_consumer_windows_runs": 0,
+  "blender_runs": 0,
+  "rust_builds": 0,
+  "game_runs": 0,
+  "github_writes": 0,
+  "private_geometry_fixtures": 0,
+  "production_runtime_created": false,
+  "runtime_equivalence_proved": false,
+  "activation_authorized": false,
+  "reviewed_v2_source_pins_sha256": "d9ef5486cbd7d80ec8d4c9d37c556ff7d13d8dc0147cbd7e6244a4154ca79751",
+  "existing_separate_actual_transport_smoke_audit_sha256": "0a10a58145fb2d6d9348ecc8a61d0ad2f8f318e7f644a9b46ce9716d386d6b17",
+  "existing_separate_transport_native_cases": 4,
+  "existing_separate_transport_reported_tests": 78,
+  "existing_separate_transport_posix_skips": 2,
+  "production_blockers": [
+    "This consumer B1 correction independent re-review pending",
+    "Separate workflow/build-controller independent admission pending",
+    "Actual target source/native-control/focus/conversion/assembly inputs absent",
+    "Actual Windows PE Rust sampler/source/compiler/dependency closure absent",
+    "Actual Windows load, frame1, focus, all67chunks and aggregate not run"
+  ],
+  "disk_free_bytes_before_seal": 1438208000,
+  "logical_bytes_before_seal": 239084,
+  "disk_floor_bytes": 1073741824,
+  "source_output_cap_bytes": 10000000,
+  "failure_retention": "Exact input/tool pins and reproduction argv; private raw evidence runner-local and may be lost on runner teardown; no raw upload route",
+  "revision": 3,
+  "correction_review_pins_sha256": "d704d46e75d7f28865bde42aea1ad1ea75a84089600b1a40053d8ae064747b79",
+  "corrections": [
+    "B1 shared strict actual Rust process reconstruction"
+  ],
+  "local_git_checkout_fixture": {
+    "core_autocrlf": true,
+    "core_eol": "crlf",
+    "all_package_files_exact": true,
+    "actual_windows_checkout": false,
+    "commits_or_remote_operations": false
+  },
+  "math_byte_identical_to_v1": true,
+  "reviewed_producer_pins_sha256": "cfc96363113616ce8b2450fe172790270f32538ed3c0660ae8a4d848148e4794",
+  "prior_v2_corrections_preserved": [
+    "C1",
+    "C2",
+    "C3",
+    "C4",
+    "exact-byte Windows checkout policy"
+  ],
+  "unchanged_v2_files": [
+    "MATH_FRAGMENTS.json",
+    "ORIGINAL_PINS.json",
+    "RUST_REFERENCE_PINS.json",
+    "pinned_math.py",
+    "extract_math.py",
+    "consumer.py",
+    "evidence.py",
+    "retirement.py",
+    "build_closure.py"
+  ],
+  "review_repro_contradictions_rejected": 11,
+  "original_successful_windows_smoke_terminal_sha256": "2c1ac9ea61b7e9d8efa89f05bf9514f4fb5f50f8b7a8f9e19c0cb952c0e96acf",
+  "requested_runtime_sample_period_seconds": 0.2,
+  "observed_gap_scope": "sampled coverage only; no continuous-memory or real-time guarantee"
+}

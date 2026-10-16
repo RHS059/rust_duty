@@ -1,0 +1,26 @@
+{
+  "blender_version": [
+    4,
+    3,
+    2
+  ],
+  "files": {
+    "__init__.py": "8af335ff0daba71b9301e076f8c72836f013c012736d59d9e2b6700885d1eb1f",
+    "data_types.py": "1697b26e84cdabdebf8cf8c1dbb6e3b303705917aaf84eab835f0cdad6b26e20",
+    "encode_bin.py": "3322a809e0073947e107de8f7e5839dff0956578271e88506eab7a7627f3323f",
+    "export_fbx_bin.py": "fd494ffc3d8d01e21b028fa05b8bb7739afecfc09e0c8f2e09ef451b5b0e9e05",
+    "fbx2json.py": "4fc62f848f7834e2f376838251db2f64ec1a7856578acb6f152ac78ac5e60616",
+    "fbx_utils.py": "ffabd204b2cce48670b47de6bb77e8dba06daa77b7efab037c4f157f1ffa80b6",
+    "fbx_utils_threading.py": "ddf8d90b87b51e057212c9b5f3c73caea49fddf2915140eb2e3206f7dad757a3",
+    "import_fbx.py": "d3a4232dc9bc7599df4058a4f786fa9c2c9c971809185b811439b64986a7ceac",
+    "json2fbx.py": "d7676c3116e0b16752a6530e42f1b1126ca1e37a61595d0ea84c21d46a97f8c5",
+    "parse_fbx.py": "982c7b5071c293184f974dfb362b7c5f950c91a535d5283d656a8934aacfe5ad"
+  },
+  "functions": {
+    "import_fbx.py": {
+      "blen_read_animations": "757bd21550d94e2190881ec6b0eb0ce80b275d2a230055cf7702044fe6dcc6e2",
+      "blen_store_keyframes_multi": "793a389ebde0e71ec3cec54e731c861753aa08015355904777a8c39b70da3a4e"
+    }
+  },
+  "schema": "rust-duty-logical-official-fbx-pins/v1"
+}

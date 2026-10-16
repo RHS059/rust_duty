@@ -40,6 +40,8 @@ pub struct FocusInput {
     subscriber: Option<usize>,
     state: InputState,
     focus: FocusState,
+    // Explicit diagnostic snapshots only; None preserves ordinary platform input.
+    app_edge_frame: Option<crate::platform::input::InputFrame>,
 }
 
 impl Default for FocusInput {
@@ -55,12 +57,14 @@ impl FocusInput {
         if crate::platform::window::is_active() {
             return Self {
                 subscriber: None,
+                app_edge_frame: None,
                 state: InputState::default(),
                 focus: crate::platform::window::snapshot_input().focus.into(),
             };
         }
         Self {
             subscriber: Some(macroquad::input::utils::register_input_subscriber()),
+            app_edge_frame: None,
             state: InputState::default(),
             focus: FocusState::default(),
         }
@@ -69,6 +73,7 @@ impl FocusInput {
     /// Call once at the start of every render frame, even in startup and menus.
     /// Always drain the subscriber so events cannot queue across a pause.
     pub fn sample(&mut self) -> FocusState {
+        self.app_edge_frame = None;
         #[cfg(feature = "wgpu-runtime")]
         if crate::platform::window::is_active() {
             self.focus = crate::platform::window::snapshot_input().focus.into();
@@ -88,6 +93,9 @@ impl FocusInput {
     /// Pause/reset boundaries may call this as well as clearing gameplay
     /// latches. Held keys must be released and deliberately pressed again.
     pub fn clear(&mut self) {
+        if let Some(frame) = &mut self.app_edge_frame {
+            frame.clear();
+        }
         #[cfg(feature = "wgpu-runtime")]
         if crate::platform::window::is_active() {
             crate::platform::window::clear_input();
@@ -96,8 +104,29 @@ impl FocusInput {
         self.state.clear();
     }
 
+    /// Explicit diagnostic input enters above the unchanged session/hotkey/control
+    /// handlers. Real focus remains authoritative and is never synthesized.
+    pub fn install_app_edge_frame(
+        &mut self,
+        mut frame: crate::platform::input::InputFrame,
+    ) -> Result<(), String> {
+        if self.focus.unfocused || self.focus.changed {
+            return Err("app-edge fixture interrupted by actual focus boundary".into());
+        }
+        frame.focus = crate::platform::input::FocusState {
+            unfocused: self.focus.unfocused,
+            changed: self.focus.changed,
+            native_supported: self.focus.native_supported,
+        };
+        self.app_edge_frame = Some(frame);
+        Ok(())
+    }
+
     /// Snapshot the frame for the backend-neutral intent/control bridge.
     pub fn frame(&self) -> crate::platform::input::InputFrame {
+        if let Some(frame) = &self.app_edge_frame {
+            return frame.clone();
+        }
         #[cfg(feature = "wgpu-runtime")]
         if crate::platform::window::is_active() {
             return crate::platform::window::snapshot_input();
@@ -218,6 +247,9 @@ impl FocusInput {
     }
 
     pub fn is_key_down(&self, key: Key) -> bool {
+        if let Some(frame) = &self.app_edge_frame {
+            return frame.is_key_down(key);
+        }
         #[cfg(feature = "wgpu-runtime")]
         if crate::platform::window::is_active() {
             return crate::platform::window::snapshot_input().is_key_down(key);
@@ -226,6 +258,9 @@ impl FocusInput {
     }
 
     pub fn is_key_pressed(&self, key: Key) -> bool {
+        if let Some(frame) = &self.app_edge_frame {
+            return frame.is_key_pressed(key);
+        }
         #[cfg(feature = "wgpu-runtime")]
         if crate::platform::window::is_active() {
             return crate::platform::window::snapshot_input().is_key_pressed(key);
@@ -234,6 +269,9 @@ impl FocusInput {
     }
 
     pub fn is_mouse_button_down(&self, button: Button) -> bool {
+        if let Some(frame) = &self.app_edge_frame {
+            return frame.is_mouse_button_down(button);
+        }
         #[cfg(feature = "wgpu-runtime")]
         if crate::platform::window::is_active() {
             return crate::platform::window::snapshot_input().is_mouse_button_down(button);
@@ -242,6 +280,9 @@ impl FocusInput {
     }
 
     pub fn is_mouse_button_pressed(&self, button: Button) -> bool {
+        if let Some(frame) = &self.app_edge_frame {
+            return frame.is_mouse_button_pressed(button);
+        }
         #[cfg(feature = "wgpu-runtime")]
         if crate::platform::window::is_active() {
             return crate::platform::window::snapshot_input().is_mouse_button_pressed(button);
@@ -541,6 +582,7 @@ mod tests {
     fn neutral_queries_preserve_legacy_modifier_sides_and_mouse_buttons() {
         let mut input = FocusInput {
             subscriber: None,
+            app_edge_frame: None,
             state: InputState::default(),
             focus: FocusState::default(),
         };

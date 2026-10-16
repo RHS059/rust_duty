@@ -16,15 +16,13 @@ pub(crate) async fn choose(
     args: &[String],
     executable: &Path,
     updater: &mut UpdatePanel,
+    app_edge: Option<&vector_range::high_app_edge_input::Options>,
 ) -> Result<(LevelSelection, Option<CityLevel>), String> {
     let mut selected =
         LevelSelection::from_options(args, std::env::var("RUST_DUTY_LEVEL").ok().as_deref())?;
     let menu_capture = args.iter().any(|a| a == "--capture-level-menu");
     let mut frames = 0;
-    let scripted = !menu_capture
-        && args
-            .iter()
-            .any(|a| a.starts_with("--capture") || a == "--demo");
+    let scripted = vector_range::high_app_edge_input::starts_without_level_menu(args, app_edge);
     if scripted {
         return load(selected, executable);
     }

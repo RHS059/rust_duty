@@ -1,0 +1,14 @@
+{
+  "schema": "rust-duty-runtime-consumer-dependency-review/v1",
+  "producer_pins_sha256": "cfc96363113616ce8b2450fe172790270f32538ed3c0660ae8a4d848148e4794",
+  "independent_review_package": "windows-proof-pair-review-v1",
+  "review_pins_sha256": "d704d46e75d7f28865bde42aea1ad1ea75a84089600b1a40053d8ae064747b79",
+  "review_document_sha256": "163f4d1f7e17ae4cb7f0ccd4bf5e2babe855368a1bc9090c4f52a4e18a1e74f4",
+  "review_reproducer_sha256": "411cb296cabb987062c94646ba950d84274ca8b201d8d51218ee37717f26296b",
+  "producer_correction_source_accepted": true,
+  "reviewed_consumer_revision": "v2",
+  "reviewed_consumer_remaining_blocker": "B1",
+  "this_consumer_v3_independent_review": "pending",
+  "workflow_independent_admission": "separate_required",
+  "actual_rust_build_or_animation_proof": false
+}
