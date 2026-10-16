@@ -315,6 +315,17 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
     } else {
         None
     };
+    // Only a fully loaded renderer/companions plus hash-bound native clock may
+    // opt in. Failure leaves the original 0.60-second low mantle untouched.
+    if let Some(binding) = authored
+        .as_ref()
+        .and_then(|model| model.low_vault_binding())
+        .cloned()
+    {
+        if let Err(error) = sim.set_low_vault_binding(Some(binding)) {
+            model_error = Some(format!("Low-vault binding: {error}"));
+        }
+    }
     let model_missing = authored_path.is_none()
         && matches!(
             &model_source,
@@ -1299,6 +1310,15 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
         }
         // An explicitly requested invalid authored asset never falls through
         // to the legacy procedural renderer while its startup error is shown.
+        if let Some(model) = &mut authored {
+            model.synchronize_low_vault(&sim);
+        }
+        if authored
+            .as_ref()
+            .is_some_and(|model| model.error().is_some())
+        {
+            let _ = sim.set_low_vault_binding(None);
+        }
         let action_pose = sim.action_pose();
         let layers = [
             look_sway.offset(&sway_tuning),

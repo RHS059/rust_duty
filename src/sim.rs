@@ -540,6 +540,8 @@ pub struct Simulation {
     /// Sidearm interface; empty by default. Survives `reset`.
     pub loadout: Loadout,
     pub time: f64,
+    low_vault_binding: Option<crate::authored_low_vault::LowVaultBinding>,
+    low_vault_sample: Option<crate::authored_low_vault::LowVaultSample>,
     spread_seed: u32,
     recoil_seed: u32,
     level: Option<LevelState>,
@@ -652,6 +654,8 @@ impl Simulation {
             timings: ActionTimings::default(),
             loadout: Loadout::default(),
             time: 0.,
+            low_vault_binding: None,
+            low_vault_sample: None,
             spread_seed: 0x91e10da5,
             recoil_seed: 0xa735813c,
             level: None,
@@ -664,14 +668,39 @@ impl Simulation {
         (*seed as f64 / u32::MAX as f64) as f32
     }
     pub fn reset(&mut self) {
+        let low_vault_binding = self.low_vault_binding.take();
         let timings = std::mem::take(&mut self.timings);
         let loadout = self.loadout;
         let level = self.level.take();
         *self = Self::new();
         self.timings = timings;
+        self.low_vault_binding = low_vault_binding;
         self.loadout = loadout;
         if let Some(level) = level {
             self.install_level(level.blocks, level.spawn_position, level.spawn_yaw);
+        }
+    }
+    /// This opt-in retimes only the existing LOW mantle onto a block. It does not
+    /// grant a vault-over path or bypass collision, eligibility, or weapon gates.
+    pub fn set_low_vault_binding(
+        &mut self,
+        binding: Option<crate::authored_low_vault::LowVaultBinding>,
+    ) -> Result<(), String> {
+        if binding.is_some() && self.player.mantle.is_some() {
+            return Err("cannot replace low-vault binding during traversal".into());
+        }
+        self.low_vault_binding = binding;
+        self.low_vault_sample = None;
+        Ok(())
+    }
+    pub fn low_vault_binding(&self) -> Option<&crate::authored_low_vault::LowVaultBinding> {
+        self.low_vault_binding.as_ref()
+    }
+    pub fn low_vault_sample(&self) -> Option<crate::authored_low_vault::LowVaultSample> {
+        if self.player.dead() {
+            None
+        } else {
+            self.low_vault_sample
         }
     }
     /// Install static level collision and its restart/respawn location. Render
@@ -762,6 +791,7 @@ impl Simulation {
                 p.reload_left = 0.;
             }
         }
+        self.low_vault_sample = None;
         if self.step_death(cfg) {
             self.time += dt as f64;
             return;
@@ -868,6 +898,7 @@ impl Simulation {
     /// The last verified pose is retained; the next fixed step resolves support
     /// or a normal fall. This is safe to call repeatedly (including while paused).
     pub fn cancel_mantle(&mut self) {
+        self.low_vault_sample = None;
         if self.player.mantle.take().is_none() {
             return;
         }
@@ -965,7 +996,11 @@ impl Simulation {
                 landing: vec3(landing.x, b.max.y, landing.z),
                 elapsed: 0.,
                 duration: if height <= MANTLE_LOW_HEIGHT {
-                    0.60
+                    if self.low_vault_binding.is_some() {
+                        crate::authored_low_vault::KEY_SPAN_SECONDS as f32
+                    } else {
+                        0.60
+                    }
                 } else {
                     0.85
                 },
@@ -1048,6 +1083,12 @@ impl Simulation {
             state.elapsed = next_time;
             if next_time >= end_time {
                 break;
+            }
+        }
+        if state.kind == MantleKind::Low && !state.from_hang {
+            if let Some(binding) = &self.low_vault_binding {
+                // Only the accepted collision-checked path owns this clock.
+                self.low_vault_sample = binding.sample(state.elapsed).ok();
             }
         }
         let p = &mut self.player;

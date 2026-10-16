@@ -17,6 +17,11 @@ struct SkinBatch {
     source_vertices: Vec<usize>,
     mesh: Mesh,
 }
+struct LowVaultReturn {
+    fade: PoseReturn,
+    weight: f32,
+    opacity: Vec<f32>,
+}
 struct ReloadPresentation {
     index: usize,
     pose: ViewmodelPose,
@@ -47,6 +52,13 @@ pub struct AuthoredViewmodel {
     walk_index: Option<usize>,
     ads_index: Option<usize>,
     jump_index: Option<usize>,
+    low_vault: Option<(
+        vector_range::authored_low_vault::LowVaultBinding,
+        Box<AuthoredViewmodel>,
+    )>,
+    low_vault_pose: Option<ViewmodelPose>,
+    low_vault_return: Option<LowVaultReturn>,
+    low_vault_reload_maps: Vec<Option<PoseReturnMap>>,
     return_map: Option<PoseReturnMap>,
     return_blend: Option<AnchoredPoseBlend>,
     reload_presentation: Option<ReloadPresentation>,
@@ -88,6 +100,21 @@ impl AuthoredViewmodel {
         if !simulation_time.is_finite() || !root.is_finite() || self.cant != 0. {
             return Err("source pose diagnostic requires finite time/root and zero cant".into());
         }
+        if let (Some((_, renderer)), Some(pose)) = (&self.low_vault, &self.low_vault_pose) {
+            return Ok(SourcePoseSnapshot {
+                animation: &renderer.animation,
+                pose: pose.clone(),
+                root,
+                actor_opacity: self.low_vault_return.as_ref().map(|v| v.opacity.clone()),
+            });
+        }
+        self.underlying_pose_snapshot(simulation_time, root)
+    }
+    fn underlying_pose_snapshot(
+        &self,
+        simulation_time: f64,
+        root: Mat4,
+    ) -> Result<SourcePoseSnapshot<'_>, String> {
         if let Some(visual) = &self.reload_presentation {
             let renderer = &self.reload_renderers[visual.index];
             return Ok(SourcePoseSnapshot {
@@ -122,6 +149,15 @@ impl AuthoredViewmodel {
         }
         let (animation, skin, weapon) =
             AnimationSet::load_with_companions(path).map_err(|e| e.to_string())?;
+        Self::from_decoded(animation, skin, weapon, clip, fixed_time)
+    }
+    fn from_decoded(
+        animation: AnimationSet,
+        skin: SkinnedAsset,
+        weapon: vector_range::asset::WeaponAsset,
+        clip: &str,
+        fixed_time: Option<f32>,
+    ) -> Result<Self, String> {
         let sample_clip = clip;
         // Fail before preparing mesh descriptors if the requested clip is absent.
         let initial = animation
@@ -207,6 +243,10 @@ impl AuthoredViewmodel {
             walk_index: None,
             ads_index: None,
             jump_index: None,
+            low_vault: None,
+            low_vault_pose: None,
+            low_vault_return: None,
+            low_vault_reload_maps: Vec::new(),
             return_map: None,
             return_blend: None,
             reload_presentation: None,
@@ -293,6 +333,9 @@ impl AuthoredViewmodel {
             model.jump_index = Some(model.reload_renderers.len());
             model.reload_renderers.push(renderer);
         }
+        if let Some(reference) = &manifest.low_vault {
+            model.bind_low_vault(reference)?;
+        }
         let ready_clip = manifest.locomotion.ready_clip.clone();
         model.locomotion = Some(
             LayeredLocomotion::new(
@@ -375,6 +418,212 @@ impl AuthoredViewmodel {
         ));
         Ok(model)
     }
+    pub fn bind_low_vault(
+        &mut self,
+        reference: &vector_range::animation_manifest::LowVaultReference,
+    ) -> Result<(), String> {
+        let (binding, animation, skin, weapon) =
+            vector_range::authored_low_vault::LowVaultBinding::load_with_companions(
+                &reference.asset,
+                &reference.receipt,
+                &reference.receipt_sha256,
+                &reference.clip,
+            )?;
+        let mut renderer = Self::from_decoded(animation, skin, weapon, &reference.clip, Some(0.))?;
+        let canonical_basis = if binding.uses_reload_actor_basis() {
+            canonical_to_reload_actor_basis()
+        } else {
+            Mat4::IDENTITY
+        };
+        // The outgoing renderer must represent every incoming actor, including
+        // reload-only props. Reject incompatible packs instead of popping them in.
+        let map = |source: &Self, basis: Mat4| -> Result<PoseReturnMap, String> {
+            if !source
+                .animation
+                .actors()
+                .iter()
+                .any(|actor| actor.name == binding.anchor_actor())
+                || source.animation.actors().iter().any(|actor| {
+                    !renderer
+                        .animation
+                        .actors()
+                        .iter()
+                        .any(|low| low.name == actor.name)
+                })
+            {
+                return Err(
+                    "low-vault return requires the shared anchor and all incoming actors".into(),
+                );
+            }
+            PoseReturnMap::new(
+                &source.animation,
+                &source.skin,
+                &renderer.animation,
+                &renderer.skin,
+                basis,
+            )
+            .map_err(|e| e.to_string())
+        };
+        let from_base = map(self, canonical_basis)?;
+        let mut reload_maps = Vec::new();
+        for (index, source) in self.reload_renderers.iter().enumerate() {
+            reload_maps.push(if self.reload_indices.contains(&Some(index)) {
+                Some(map(
+                    source,
+                    canonical_to_reload_actor_basis().inverse() * canonical_basis,
+                )?)
+            } else {
+                None
+            });
+        }
+        renderer.return_blend = Some(
+            AnchoredPoseBlend::new(&renderer.animation, binding.anchor_actor())
+                .map_err(|e| e.to_string())?,
+        );
+        renderer.return_map = Some(from_base);
+        self.low_vault = Some((binding, Box::new(renderer)));
+        self.low_vault_reload_maps = reload_maps;
+        self.low_vault_pose = None;
+        self.low_vault_return = None;
+        Ok(())
+    }
+    /// Synchronize accepted state after pause/cancel/death too; this never advances time.
+    pub fn synchronize_low_vault(&mut self, simulation: &vector_range::sim::Simulation) {
+        if self.error.is_some() || simulation.player.dead() {
+            self.low_vault_pose = None;
+            self.low_vault_return = None;
+            return;
+        }
+        if let Err(error) = self.update_low_vault(simulation) {
+            self.error = Some(error);
+            self.low_vault_pose = None;
+            self.low_vault_return = None;
+        }
+    }
+    fn update_low_vault(
+        &mut self,
+        simulation: &vector_range::sim::Simulation,
+    ) -> Result<(), String> {
+        if let Some(sample) = simulation.low_vault_sample() {
+            let (binding, renderer) = self
+                .low_vault
+                .as_ref()
+                .filter(|(binding, _)| simulation.low_vault_binding() == Some(binding))
+                .ok_or("low-vault simulation/renderer binding mismatch")?;
+            self.low_vault_pose = Some(
+                renderer
+                    .animation
+                    .sample_clamped(binding.clip(), sample.seconds as f32)
+                    .map_err(|e| e.to_string())?,
+            );
+            self.low_vault_return = None;
+            return Ok(());
+        }
+        let Some(previous) = self.low_vault_pose.as_ref() else {
+            return Ok(());
+        };
+        let (binding, renderer) = self
+            .low_vault
+            .as_ref()
+            .ok_or("missing low-vault renderer")?;
+        let underlying = self.underlying_pose_snapshot(simulation.time, Mat4::IDENTITY)?;
+        let map = if let Some(visual) = &self.reload_presentation {
+            self.low_vault_reload_maps
+                .get(visual.index)
+                .and_then(Option::as_ref)
+                .ok_or("missing low-vault reload return map")?
+        } else {
+            renderer
+                .return_map
+                .as_ref()
+                .ok_or("missing low-vault base return map")?
+        };
+        let target = map
+            .pose(
+                underlying.animation,
+                &renderer.animation,
+                &underlying.pose,
+                previous,
+            )
+            .map_err(|e| e.to_string())?;
+        let target_opacity: Vec<f32> =
+            renderer
+                .animation
+                .actors()
+                .iter()
+                .map(|actor| {
+                    underlying
+                        .animation
+                        .actors()
+                        .iter()
+                        .position(|from| from.name == actor.name)
+                        .map_or(0., |i| {
+                            underlying.actor_opacity.as_ref().map_or(
+                                f32::from(u8::from(underlying.pose.actor_visible[i])),
+                                |v| v[i],
+                            )
+                        })
+                })
+                .collect();
+        let visual = self.low_vault_return.get_or_insert(LowVaultReturn {
+            fade: PoseReturn::with_duration(
+                previous.clone(),
+                previous
+                    .actor_visible
+                    .iter()
+                    .map(|&v| f32::from(u8::from(v)))
+                    .collect(),
+                simulation.time,
+                binding.return_seconds(),
+            )
+            .map_err(|e| e.to_string())?,
+            weight: 0.,
+            opacity: Vec::new(),
+        });
+        let (pose, opacity) = visual
+            .fade
+            .pose_with_opacity(
+                &renderer.animation,
+                renderer
+                    .return_blend
+                    .as_ref()
+                    .ok_or("missing low-vault blend")?,
+                &target,
+                Some(&target_opacity),
+                simulation.time,
+            )
+            .map_err(|e| e.to_string())?;
+        visual.weight = visual.fade.weight(simulation.time);
+        visual.opacity = opacity;
+        if visual.weight == 1. {
+            self.low_vault_pose = None;
+            self.low_vault_return = None;
+        } else {
+            self.low_vault_pose = Some(pose);
+        }
+        Ok(())
+    }
+    /// Procedural layers/cant return with the same committed blend weight.
+    pub fn low_vault_underlying_weight(&self) -> f32 {
+        if self.low_vault_active() {
+            self.low_vault_return_weight().unwrap_or(0.)
+        } else {
+            1.
+        }
+    }
+    pub fn low_vault_return_weight(&self) -> Option<f32> {
+        self.low_vault_return.as_ref().map(|v| v.weight)
+    }
+    pub fn low_vault_binding(&self) -> Option<&vector_range::authored_low_vault::LowVaultBinding> {
+        if self.error.is_some() {
+            None
+        } else {
+            self.low_vault.as_ref().map(|(binding, _)| binding)
+        }
+    }
+    pub fn low_vault_active(&self) -> bool {
+        self.error.is_none() && self.low_vault_pose.is_some()
+    }
     pub fn jump_sample(&self) -> Option<vector_range::authored_jump::JumpSample> {
         self.locomotion
             .as_ref()
@@ -407,14 +656,33 @@ impl AuthoredViewmodel {
             .map_or(0., LayeredLocomotion::run_weight)
     }
     pub fn visual_ads_amount(&self) -> f32 {
-        if let Some(visual) = &self.reload_presentation {
-            return visual.visible_ads;
-        }
-        self.locomotion
-            .as_ref()
-            .map_or(0., LayeredLocomotion::visual_ads_amount)
+        let underlying = self.reload_presentation.as_ref().map_or_else(
+            || {
+                self.locomotion
+                    .as_ref()
+                    .map_or(0., LayeredLocomotion::visual_ads_amount)
+            },
+            |visual| visual.visible_ads,
+        );
+        underlying * self.low_vault_underlying_weight()
     }
     pub fn pose_crc32(&self) -> Option<u32> {
+        if let Some(pose) = &self.low_vault_pose {
+            let mut bytes = Vec::new();
+            for transform in pose.bone_locals.iter().chain(&pose.actor_globals) {
+                for value in transform
+                    .translation
+                    .to_array()
+                    .into_iter()
+                    .chain(transform.rotation.to_array())
+                    .chain(transform.scale.to_array())
+                {
+                    bytes.extend(value.to_bits().to_le_bytes());
+                }
+            }
+            bytes.extend(pose.actor_visible.iter().map(|&visible| u8::from(visible)));
+            return Some(vector_range::skinned_asset::crc32(&bytes));
+        }
         self.locomotion.as_ref().map(LayeredLocomotion::pose_crc32)
     }
     pub fn directional_weights(&self) -> Option<[f64; 4]> {
@@ -437,6 +705,13 @@ impl AuthoredViewmodel {
         Some(ads.duration(ads.sample()?.slot))
     }
     pub fn presentation_route(&self) -> &str {
+        if self.low_vault_active() {
+            return if self.low_vault_return.is_some() {
+                "low_vault.return"
+            } else {
+                "low_vault.low_mantle_native_wip"
+            };
+        }
         if self
             .reload_presentation
             .as_ref()
@@ -533,6 +808,7 @@ impl AuthoredViewmodel {
                 }
             }
         }
+        self.synchronize_low_vault(simulation);
     }
     fn update_reload_presentation(
         &mut self,
@@ -725,11 +1001,14 @@ impl AuthoredViewmodel {
         })
     }
     pub fn presented_anchor(&self) -> Option<Vec3> {
-        let (set, pose) = if let Some(visual) = &self.reload_presentation {
-            (&self.reload_renderers[visual.index].animation, &visual.pose)
-        } else {
-            (&self.animation, self.locomotion.as_ref()?.pose())
-        };
+        let (set, pose) =
+            if let (Some((_, renderer)), Some(pose)) = (&self.low_vault, &self.low_vault_pose) {
+                (&renderer.animation, pose)
+            } else if let Some(visual) = &self.reload_presentation {
+                (&self.reload_renderers[visual.index].animation, &visual.pose)
+            } else {
+                (&self.animation, self.locomotion.as_ref()?.pose())
+            };
         let index = set
             .actors()
             .iter()
@@ -737,6 +1016,8 @@ impl AuthoredViewmodel {
         Some(game_model_root().transform_point3(pose.actor_globals[index].translation))
     }
     pub fn reset(&mut self, time: f64) {
+        self.low_vault_pose = None;
+        self.low_vault_return = None;
         self.reload_presentation = None;
         if let Some(reload) = &mut self.reload {
             reload.reset(time);
@@ -772,6 +1053,15 @@ impl AuthoredViewmodel {
         lighting: SceneLighting,
         root: Mat4,
     ) -> Result<(), String> {
+        if let (Some((_, renderer)), Some(pose)) = (&mut self.low_vault, &self.low_vault_pose) {
+            renderer.cant = self.cant;
+            return renderer.draw_pose_opacity(
+                pose,
+                lighting,
+                root,
+                self.low_vault_return.as_ref().map(|v| v.opacity.as_slice()),
+            );
+        }
         if let Some(visual) = &self.reload_presentation {
             let renderer = &mut self.reload_renderers[visual.index];
             renderer.cant = self.cant;
@@ -1005,6 +1295,10 @@ mod tests {
             walk_index: None,
             ads_index: None,
             jump_index: None,
+            low_vault: None,
+            low_vault_pose: None,
+            low_vault_return: None,
+            low_vault_reload_maps: Vec::new(),
             return_map: None,
             return_blend: None,
             reload_presentation: None,
