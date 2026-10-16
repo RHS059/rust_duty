@@ -1,114 +1,119 @@
-name: Guarded original-source one-hand Windows proof
+name: Original-source one-hand Windows source tests and guarded proof
 on:
-  workflow_dispatch:
-    inputs:
-      package_sha256:
-        description: Independently reviewed orchestration PINS.json SHA256
-        required: true
-        type: string
-      materialization_sha256:
-        description: Reviewed exact Git-blob input manifest SHA256
-        required: true
-        type: string
-      layout_sha256:
-        description: Reviewed controller layout SHA256
-        required: true
-        type: string
+  pull_request:
+    branches: [aella/combined-authored-transitions-20261016, main]
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - 'tools/onehand_windows/**'
+      - '.github/workflows/onehand-windows-proof.yml'
 permissions:
   contents: read
 concurrency:
-  group: onehand-windows-private-proof
+  group: onehand-windows-private-proof-${{ github.event.pull_request.number }}
   cancel-in-progress: false
 jobs:
-  proof:
-    # This switch is not evidence or a bypass. Null reviewed dependency pins,
-    # missing source references, and consumer production blockers still fail.
-    if: ${{ vars.ONEHAND_NATIVE_PROOF_ENABLED == 'reviewed' }}
+  source-and-guarded-proof:
+    # Never execute pull_request_target or fork code with repository authority.
+    # No repository variable, secret, workflow dispatch or default merge needed.
+    if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
     runs-on: windows-2022
     timeout-minutes: 360
     defaults:
       run:
         shell: pwsh
     env:
-      PACKAGE: tools/onehand_windows/orchestration-v1
+      PACKAGE: tools/onehand_windows/orchestration-v2
       GIT_CONFIG_COUNT: '2'
       GIT_CONFIG_KEY_0: core.autocrlf
       GIT_CONFIG_VALUE_0: 'false'
       GIT_CONFIG_KEY_1: core.eol
       GIT_CONFIG_VALUE_1: lf
       PYTHONDONTWRITEBYTECODE: '1'
-      PROOF_COMMIT: ${{ github.sha }}
-      EXPECTED_PACKAGE: ${{ inputs.package_sha256 }}
-      EXPECTED_MATERIALIZATION: ${{ inputs.materialization_sha256 }}
-      EXPECTED_LAYOUT: ${{ inputs.layout_sha256 }}
+      PROOF_COMMIT: ${{ github.event.pull_request.head.sha }}
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 0
           persist-credentials: false
           path: git-input
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Export byte-preserving source from exact Git objects
+      - name: Export exact source-only PR bytes without checkout filters
+        timeout-minutes: 10
         run: |
           $ErrorActionPreference='Stop'
-          foreach ($pin in @($env:EXPECTED_PACKAGE,$env:EXPECTED_MATERIALIZATION,$env:EXPECTED_LAYOUT)) { if ($pin -notmatch '^[0-9a-f]{64}$') { throw 'Reviewed expected SHA256 required' } }
+          if ($env:PROOF_COMMIT -notmatch '^[0-9a-f]{40}$') { throw 'Exact immutable event commit required' }
           $repo=Join-Path $env:GITHUB_WORKSPACE 'git-input'
           $work=Join-Path $env:RUNNER_TEMP ("onehand-"+$env:GITHUB_RUN_ID+"-"+$env:GITHUB_RUN_ATTEMPT)
           if (Test-Path -LiteralPath $work) { throw 'Fresh private attempt required' }
           New-Item -ItemType Directory -Path $work | Out-Null
           $git=(Get-Command git.exe -CommandType Application).Source
+          if ((& $git -C $repo cat-file -t $env:PROOF_COMMIT).Trim() -ne 'commit' -or $LASTEXITCODE -ne 0) { throw 'Event SHA is not an actual Git commit' }
           function Export-Blob([string]$Logical,[string]$Output) {
             $p=[Diagnostics.ProcessStartInfo]::new();$p.FileName=$git;$p.UseShellExecute=$false;$p.RedirectStandardOutput=$true;$p.RedirectStandardError=$true
             foreach ($arg in @('-C',$repo,'cat-file','blob',($env:PROOF_COMMIT+':'+$Logical))) { $p.ArgumentList.Add($arg) }
             $proc=[Diagnostics.Process]::Start($p);$stream=[IO.File]::Open($Output,[IO.FileMode]::CreateNew)
             try { $proc.StandardOutput.BaseStream.CopyTo($stream) } finally { $stream.Dispose() }
             $errorText=$proc.StandardError.ReadToEnd();$proc.WaitForExit()
-            if ($proc.ExitCode -ne 0) { throw 'Git blob export failed' }
+            if ($proc.ExitCode -ne 0) { throw 'Exact Git source export failed' }
           }
-          Export-Blob ($env:PACKAGE+'/checkout_bytes.py') (Join-Path $work 'checkout_bytes.py')
-          # This helper hash is frozen by the publication preparation, not read
-          # from an untrusted checkout after newline conversion.
-          $helperSha='161961e1ca472f13d2e2254554a033d68128d1ce9a730ea9d019c377fd1ace46'
-          if ((Get-FileHash (Join-Path $work 'checkout_bytes.py') -Algorithm SHA256).Hash.ToLowerInvariant() -ne $helperSha) { throw 'Reviewed byte-export helper differs' }
-          Export-Blob 'tools/onehand_windows/proof-inputs.json' (Join-Path $work 'proof-inputs.json')
-          & python -I -B (Join-Path $work 'checkout_bytes.py') --git $git --repository $repo --manifest (Join-Path $work 'proof-inputs.json') --manifest-sha256 $env:EXPECTED_MATERIALIZATION --output (Join-Path $work 'materialized') --receipt (Join-Path $work 'byte-checkout.json')
-          if ($LASTEXITCODE -ne 0) { throw 'Exact source materialization failed' }
-          $package=Join-Path $work 'materialized/orchestration'
-          if ((Get-FileHash (Join-Path $package 'PINS.json') -Algorithm SHA256).Hash.ToLowerInvariant() -ne $env:EXPECTED_PACKAGE) { throw 'Orchestration manifest differs' }
-          $pins=Get-Content -Raw (Join-Path $package 'PINS.json') | ConvertFrom-Json -AsHashtable
-          foreach ($name in $pins.Keys) { if ([IO.Path]::GetFileName($name) -ne $name -or (Get-FileHash (Join-Path $package $name) -Algorithm SHA256).Hash.ToLowerInvariant() -ne $pins[$name]) { throw 'Exact source package differs' } }
-          $review=Get-Content -Raw (Join-Path $package 'reviewed-dependencies.json') | ConvertFrom-Json
-          foreach ($name in @('native_producer_pins_sha256','runtime_consumer_pins_sha256','reference_replay_sha256','reference_index_sha256','reference_equivalence_sha256')) { if ($review.$name -notmatch '^[0-9a-f]{64}$') { throw 'Actual completed source/dependency review is still missing' } }
+          foreach ($name in @('source_checkout.py','checkout_bytes.py')) { Export-Blob ($env:PACKAGE+'/'+$name) (Join-Path $work $name) }
+          $sourceHelperSha='e22bc7b7d79837bc1b3b169ea65e0c1be7babeee9bdb6385b31051363f1a4689'
+          $materializerSha='90cc3d18daa0f703eb41a9ed8ca7a61f1487507ee234ad43826af918bc26ea80'
+          if ((Get-FileHash (Join-Path $work 'source_checkout.py') -Algorithm SHA256).Hash.ToLowerInvariant() -ne $sourceHelperSha) { throw 'Reviewed source-only bootstrap differs' }
+          if ((Get-FileHash (Join-Path $work 'checkout_bytes.py') -Algorithm SHA256).Hash.ToLowerInvariant() -ne $materializerSha) { throw 'Reviewed exact materializer differs' }
+          python -I -B (Join-Path $work 'source_checkout.py') --git $git --repository $repo --event-commit $env:PROOF_COMMIT --materializer (Join-Path $work 'checkout_bytes.py') --output (Join-Path $work 'source-materialized') --receipt (Join-Path $work 'source-checkout.json')
+          if ($LASTEXITCODE -ne 0) { throw 'Exact source-only materialization failed' }
           "ONEHAND_WORK=$work" >> $env:GITHUB_ENV
-          "ONEHAND_PACKAGE=$package" >> $env:GITHUB_ENV
-      - name: Install exact Python validation dependencies
+          "ONEHAND_SOURCE_PACKAGE=$(Join-Path $work 'source-materialized/orchestration')" >> $env:GITHUB_ENV
+          "ONEHAND_GIT=$git" >> $env:GITHUB_ENV
+          "ONEHAND_REPOSITORY=$repo" >> $env:GITHUB_ENV
+      - name: Run bounded Windows source tests even while native admission is incomplete
+        timeout-minutes: 10
         run: |
           python -m pip install numpy==2.2.6 Pillow==11.3.0
           if ($LASTEXITCODE -ne 0) { throw 'Official-registry Python dependencies failed' }
-          python -B -m unittest discover -s $env:ONEHAND_PACKAGE -p 'test_*.py' -v
-          if ($LASTEXITCODE -ne 0) { throw 'Source orchestration tests failed' }
-      - name: Initialize installed MSVC environment
+          python -I -B (Join-Path $env:ONEHAND_SOURCE_PACKAGE 'run_source_tests.py') --event-commit $env:PROOF_COMMIT --summary (Join-Path $env:ONEHAND_WORK 'source-evidence/source-tests.json')
+          if ($LASTEXITCODE -ne 0) { throw 'Source-only tests failed; no animation proof claimed' }
+      - name: Verify independent native admission and every input before native installers
+        id: admission
+        timeout-minutes: 20
+        run: |
+          python -I -B (Join-Path $env:ONEHAND_SOURCE_PACKAGE 'preinstall_admission.py') --git $env:ONEHAND_GIT --repository $env:ONEHAND_REPOSITORY --event-commit $env:PROOF_COMMIT --work-root (Join-Path $env:ONEHAND_WORK 'admission') --summary (Join-Path $env:ONEHAND_WORK 'source-evidence/admission.json') --github-output $env:GITHUB_OUTPUT
+          if ($LASTEXITCODE -ne 0) { throw 'Malformed, contradictory or failed native admission; preserve source evidence' }
+      - name: Bind independently admitted identities for native stages
+        if: ${{ steps.admission.outputs.native_ready == 'true' }}
+        run: |
+          $b=Get-Content -Raw (Join-Path $env:ONEHAND_WORK 'admission/accepted-bindings.json') | ConvertFrom-Json
+          "ONEHAND_PACKAGE=$($b.package_root)" >> $env:GITHUB_ENV
+          "ONEHAND_MATERIALIZED=$($b.materialized_root)" >> $env:GITHUB_ENV
+          "ONEHAND_BYTE_CHECKOUT=$($b.byte_checkout.path)" >> $env:GITHUB_ENV
+          "ONEHAND_LAYOUT=$($b.layout.path)" >> $env:GITHUB_ENV
+          "EXPECTED_PACKAGE=$($b.package_pins_sha256)" >> $env:GITHUB_ENV
+          "EXPECTED_LAYOUT=$($b.layout.sha256)" >> $env:GITHUB_ENV
+      - name: Initialize official installed MSVC environment
+        if: ${{ steps.admission.outputs.native_ready == 'true' }}
         run: |
           $vswhere=Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio/Installer/vswhere.exe'
           $vs=(& $vswhere -latest -products '*' -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath).Trim()
           if ($LASTEXITCODE -ne 0 -or !$vs) { throw 'Official installed MSVC toolchain unavailable' }
           $dev=Join-Path $vs 'Common7/Tools/VsDevCmd.bat'
-          # Official fixed script; no workflow input is interpolated as a command.
           $lines=& $env:ComSpec /d /s /c ('""'+$dev+'" -arch=x64 -host_arch=x64 >nul && set"')
           if ($LASTEXITCODE -ne 0) { throw 'MSVC environment initialization failed' }
           foreach ($line in $lines) { if ($line -match '^([^=]+)=(.*)$') { "$($Matches[1])=$($Matches[2])" >> $env:GITHUB_ENV } }
-      - name: Verify vendor checksum and install official Blender and Rust
+      - name: Verify official vendor checksum and install Blender and Rust
+        if: ${{ steps.admission.outputs.native_ready == 'true' }}
         run: |
           & (Join-Path $env:ONEHAND_PACKAGE 'install_official_blender.ps1') -Destination (Join-Path $env:ONEHAND_WORK 'blender-official') -Receipt (Join-Path $env:ONEHAND_WORK 'blender-install.json')
           $review=Get-Content -Raw (Join-Path $env:ONEHAND_PACKAGE 'reviewed-dependencies.json') | ConvertFrom-Json
           & (Join-Path $env:ONEHAND_PACKAGE 'install_official_rust.ps1') -Toolchain $review.rust_toolchain -Receipt (Join-Path $env:ONEHAND_WORK 'rust-install.json')
-      - name: Bind this actual runner and fail-closed preflight
+      - name: Bind actual runner and repeat full fail-closed preflight
+        if: ${{ steps.admission.outputs.native_ready == 'true' }}
         run: |
-          $layout=Join-Path $env:ONEHAND_WORK 'materialized/controller-layout.json'
-          python -I -B (Join-Path $env:ONEHAND_PACKAGE 'prepare_controller.py') --layout $layout --layout-sha256 $env:EXPECTED_LAYOUT --materialized (Join-Path $env:ONEHAND_WORK 'materialized') --byte-checkout-receipt (Join-Path $env:ONEHAND_WORK 'byte-checkout.json') --work-root (Join-Path $env:ONEHAND_WORK 'proof') --blender-install-receipt (Join-Path $env:ONEHAND_WORK 'blender-install.json') --rust-toolchain-receipt (Join-Path $env:ONEHAND_WORK 'rust-install.json') --output (Join-Path $env:ONEHAND_WORK 'controller.json')
-          if ($LASTEXITCODE -ne 0) { throw 'Runner binding failed' }
+          python -I -B (Join-Path $env:ONEHAND_PACKAGE 'prepare_controller.py') --layout $env:ONEHAND_LAYOUT --layout-sha256 $env:EXPECTED_LAYOUT --materialized $env:ONEHAND_MATERIALIZED --byte-checkout-receipt $env:ONEHAND_BYTE_CHECKOUT --work-root (Join-Path $env:ONEHAND_WORK 'proof') --blender-install-receipt (Join-Path $env:ONEHAND_WORK 'blender-install.json') --rust-toolchain-receipt (Join-Path $env:ONEHAND_WORK 'rust-install.json') --output (Join-Path $env:ONEHAND_WORK 'controller.json')
+          if ($LASTEXITCODE -ne 0) { throw 'Actual runner binding failed' }
           $config=Join-Path $env:ONEHAND_WORK 'controller.json'
           $sha=(Get-FileHash $config -Algorithm SHA256).Hash.ToLowerInvariant()
           "ONEHAND_CONFIG=$config" >> $env:GITHUB_ENV
@@ -116,14 +121,18 @@ jobs:
           python -I -B (Join-Path $env:ONEHAND_PACKAGE 'run_proof.py') --package-pins-sha256 $env:EXPECTED_PACKAGE --config $config --config-sha256 $sha preflight
           if ($LASTEXITCODE -ne 0) { throw 'Full original-source/dependency admission failed' }
       - name: Execute exact private native and actual Rust proof
+        if: ${{ steps.admission.outputs.native_ready == 'true' }}
         run: |
           python -I -B (Join-Path $env:ONEHAND_PACKAGE 'run_proof.py') --package-pins-sha256 $env:EXPECTED_PACKAGE --config $env:ONEHAND_CONFIG --config-sha256 $env:ONEHAND_CONFIG_SHA run
           if ($LASTEXITCODE -ne 0) { throw 'Private proof failed; bounded hash-only summary retained if available' }
-      - name: Retain hash-only result only
+      - name: Retain only bounded source-test admission and native hash summaries
         if: ${{ always() }}
         uses: actions/upload-artifact@v4
         with:
-          name: onehand-windows-hash-summary-${{ github.run_id }}-${{ github.run_attempt }}
+          name: onehand-windows-source-and-proof-hashes-${{ github.run_id }}-${{ github.run_attempt }}
           retention-days: 7
           if-no-files-found: warn
-          path: ${{ runner.temp }}/onehand-${{ github.run_id }}-${{ github.run_attempt }}/proof/public-evidence/summary.json
+          path: |
+            ${{ runner.temp }}/onehand-${{ github.run_id }}-${{ github.run_attempt }}/source-evidence/source-tests.json
+            ${{ runner.temp }}/onehand-${{ github.run_id }}-${{ github.run_attempt }}/source-evidence/admission.json
+            ${{ runner.temp }}/onehand-${{ github.run_id }}-${{ github.run_attempt }}/proof/public-evidence/summary.json
