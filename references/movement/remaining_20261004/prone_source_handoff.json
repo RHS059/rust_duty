@@ -1,0 +1,146 @@
+{
+  "schema": "rust-duty-prone-native-source-handoff/v1",
+  "status": "source-only handoff; fixed-camera visible-motion review; no final loop or runtime approval",
+  "interval_semantics": "zero-based half-open native source bounds; outer bounds unchanged",
+  "fps": "60/1",
+  "time_base": "1/15360",
+  "clips": [
+    {
+      "direction": "forward",
+      "clip_id": "R2_prone_crawl_forward_f4932-5173",
+      "source_id": "R2",
+      "source_sha256": "cff413d8d114b611bbe6f50cc553ef109d61eb8eb1fff960425f506b84d6767e",
+      "start_frame": 4932,
+      "end_frame_exclusive": 5173,
+      "frame_count": 241,
+      "duration_rational_seconds": "241/60",
+      "cut_sha256": "231e8b11da55bae2dbc9088f37fd0a4b105b387487a886bdedc733198ac35b16",
+      "verification_sidecar": "verification/R2_prone_crawl_forward_f4932-5173.verification.json",
+      "verification_sidecar_sha256": "d8bad245c078326f41337db61fc7e5c64bec48448b7a8ec7ca491fa90ef44409",
+      "blender_frame_mapping_60fps": "1 + source_frame - 4932",
+      "pixel_equality_verified": true,
+      "source_excerpt_status": "segment-reviewed source excerpt; not animation approval",
+      "exact_outer_endpoints_are_loop_seams": false,
+      "cycle_eligibility": {
+        "status": "complete-cycle candidate inside the longer excerpt; not a certified closed loop",
+        "phase_search_pair_frames": [
+          5005,
+          5086
+        ],
+        "native_neighborhoods_inspected_half_open": [
+          [
+            5003,
+            5008
+          ],
+          [
+            5084,
+            5089
+          ]
+        ],
+        "candidate_period_frames": 81,
+        "observed": "Similar repeated early broad weapon sweep is visible, with comparable direction across the neighborhood.",
+        "limits": "The phase pair is a search witness, not a new approved trim. Remaining middle reviewed at 6-frame stride. Exact prop/hand continuity and seam velocity are unverified; hidden geometry is unscored. Preserve the full native cut so the author can choose a seam without retiming."
+      }
+    },
+    {
+      "direction": "backward",
+      "clip_id": "R2_prone_crawl_backward_f5280-5509",
+      "source_id": "R2",
+      "source_sha256": "cff413d8d114b611bbe6f50cc553ef109d61eb8eb1fff960425f506b84d6767e",
+      "start_frame": 5280,
+      "end_frame_exclusive": 5509,
+      "frame_count": 229,
+      "duration_rational_seconds": "229/60",
+      "cut_sha256": "397d9e5661e5a3c8cb490c5a132d4296286b2e6395bde1eb3824f209f7507a34",
+      "verification_sidecar": "verification/R2_prone_crawl_backward_f5280-5509.verification.json",
+      "verification_sidecar_sha256": "b37b8da776ab210ad8e6610e72eaf25d7fbe784d2a5e506d331c58ed9b1ac7cb",
+      "blender_frame_mapping_60fps": "1 + source_frame - 5280",
+      "pixel_equality_verified": true,
+      "source_excerpt_status": "segment-reviewed source excerpt; not animation approval",
+      "exact_outer_endpoints_are_loop_seams": false,
+      "cycle_eligibility": {
+        "status": "complete-cycle candidate inside the longer excerpt; not a certified closed loop",
+        "phase_search_pair_frames": [
+          5401,
+          5482
+        ],
+        "native_neighborhoods_inspected_half_open": [
+          [
+            5399,
+            5404
+          ],
+          [
+            5480,
+            5485
+          ]
+        ],
+        "candidate_period_frames": 81,
+        "observed": "Repeated late broad weapon sweep is visible, but the prop silhouette and support-hand presentation do not match exactly.",
+        "limits": "The phase pair is a search witness, not a new approved trim. Remaining middle reviewed at 6-frame stride. Exact prop/hand continuity and seam velocity are unverified; hidden geometry is unscored. Preserve the full native cut so the author can choose a seam without retiming."
+      }
+    },
+    {
+      "direction": "right",
+      "clip_id": "R2_prone_crawl_right_f5628-5767",
+      "source_id": "R2",
+      "source_sha256": "cff413d8d114b611bbe6f50cc553ef109d61eb8eb1fff960425f506b84d6767e",
+      "start_frame": 5628,
+      "end_frame_exclusive": 5767,
+      "frame_count": 139,
+      "duration_rational_seconds": "139/60",
+      "cut_sha256": "6ffcf3f42855287ef1eccccd1498ae9442d6c5d40bb8f10e00984d52138db489",
+      "verification_sidecar": "verification/R2_prone_crawl_right_f5628-5767.verification.json",
+      "verification_sidecar_sha256": "b51a0f070d38dffc5cdb67dcc8777d995fc7a7ac1c19cb27f3c0abf543d8b9b9",
+      "blender_frame_mapping_60fps": "1 + source_frame - 5628",
+      "pixel_equality_verified": true,
+      "source_excerpt_status": "segment-reviewed source excerpt; not animation approval",
+      "exact_outer_endpoints_are_loop_seams": false,
+      "cycle_eligibility": {
+        "status": "complete-cycle candidate inside the longer excerpt; not a certified closed loop",
+        "phase_search_pair_frames": [
+          5635,
+          5731
+        ],
+        "native_neighborhoods_inspected_half_open": [
+          [
+            5633,
+            5638
+          ],
+          [
+            5729,
+            5734
+          ]
+        ],
+        "candidate_period_frames": 96,
+        "observed": "Repeated lateral sweep is a candidate; translation, orientation and seam derivative still require author-side fitting.",
+        "limits": "The phase pair is a search witness, not a new approved trim. Remaining middle reviewed at 6-frame stride. Exact prop/hand continuity and seam velocity are unverified; hidden geometry is unscored. Preserve the full native cut so the author can choose a seam without retiming."
+      }
+    },
+    {
+      "direction": "left",
+      "clip_id": "R2_prone_crawl_left_f5844-5899",
+      "source_id": "R2",
+      "source_sha256": "cff413d8d114b611bbe6f50cc553ef109d61eb8eb1fff960425f506b84d6767e",
+      "start_frame": 5844,
+      "end_frame_exclusive": 5899,
+      "frame_count": 55,
+      "duration_rational_seconds": "55/60",
+      "cut_sha256": "446c121b72e58501180ac4d42bd70e01f44ee86a98d356edf3998973ba5c1130",
+      "verification_sidecar": "verification/R2_prone_crawl_left_f5844-5899.verification.json",
+      "verification_sidecar_sha256": "dc39b54a3c93e23ce35a7ddeaaecd834817903a58f1de9155b29d7411aea195f",
+      "blender_frame_mapping_60fps": "1 + source_frame - 5844",
+      "pixel_equality_verified": true,
+      "source_excerpt_status": "segment-reviewed source excerpt; not animation approval",
+      "exact_outer_endpoints_are_loop_seams": false,
+      "cycle_eligibility": {
+        "status": "segment-only; complete recurrence not established in the 55-frame excerpt",
+        "reason": "Clean selected interior ends before a demonstrated full recurrence. Do not force a short loop or mirror the opposite direction.",
+        "longer_context_clip_ids": [
+          "R2_prone_crawl_left_context_f5814-6150",
+          "R1_prone_crawl_left_backup_f4944-5250"
+        ],
+        "context_limits": "R2 longer context has independent moving-player background occlusions. R1 weapon repeatedly leaves frame. Visible foreground can still guide animation; off-screen geometry is not a gate."
+      }
+    }
+  ]
+}

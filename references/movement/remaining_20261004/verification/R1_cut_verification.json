@@ -1,0 +1,38 @@
+[
+  {
+    "id": "R1_prone_entry_f3653-3720",
+    "source_id": "R1",
+    "source_sha256": "5b883e85d1179d06987509e4ede2b18fbc54433c4578b316af355e68d17becf5",
+    "file": "R1_prone_entry_f3653-3720.mp4",
+    "sha256": "8560d149ccfbfac7a1a1ec8944cc8c070f5aebaee8d3fe7888f7d9acc6044822",
+    "bytes": 14104527,
+    "start_frame": 3653,
+    "end_frame_exclusive": 3720,
+    "decoded_frames": 67,
+    "fps": "60/1",
+    "time_base": "1/15360",
+    "duration_rational_seconds": "67/60",
+    "all_decoded_pixels_equal_source": true,
+    "pixel_audit_format": "yuv420p",
+    "audio": "omitted",
+    "status": "source-excerpt-verified; not animation approval"
+  },
+  {
+    "id": "R1_prone_crawl_left_backup_f4944-5250",
+    "source_id": "R1",
+    "source_sha256": "5b883e85d1179d06987509e4ede2b18fbc54433c4578b316af355e68d17becf5",
+    "file": "R1_prone_crawl_left_backup_f4944-5250.mp4",
+    "sha256": "bfd22eb061abd6f3dd32b7ece469148c14e766207ca7f40019eff1b3a89f2f10",
+    "bytes": 65069793,
+    "start_frame": 4944,
+    "end_frame_exclusive": 5250,
+    "decoded_frames": 306,
+    "fps": "60/1",
+    "time_base": "1/15360",
+    "duration_rational_seconds": "306/60",
+    "all_decoded_pixels_equal_source": true,
+    "pixel_audit_format": "yuv420p",
+    "audio": "omitted",
+    "status": "source-excerpt-verified; not animation approval"
+  }
+]
