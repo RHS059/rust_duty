@@ -1,0 +1,50 @@
+name: Isolated Windows GPU-helper CPU contracts
+on:
+  workflow_dispatch:
+  push:
+    branches: ['diagnostic/gpu-timing']
+    paths:
+      - '.github/workflows/gpu-timing-cpu-contract.yml'
+      - 'src/render/gpu_timing.rs'
+      - 'tools/gpu_timing_cpu_contract/**'
+permissions:
+  contents: read
+concurrency:
+  group: isolated-gpu-helper-cpu-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  cpu-contract:
+    if: github.repository == 'RHS059/rust_duty'
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            src/render
+            tools/gpu_timing_cpu_contract
+      - name: Check out the independently owned exact present-policy source
+        uses: actions/checkout@v4
+        with:
+          ref: f97c878f63a72c979ed6033fa72689490cbfd024
+          path: .present-policy-source
+          persist-credentials: false
+          sparse-checkout: src/render/present_policy.rs
+          sparse-checkout-cone-mode: false
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile APIs and run pure CPU contracts without initializing any GPU
+        run: python tools/gpu_timing_cpu_contract/run.py
+      - name: Retain exact source identity, compiler output and every result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: isolated-gpu-helper-cpu-${{ github.run_id }}-${{ github.run_attempt }}
+          path: evidence/gpu-timing-cpu-contract/
+          if-no-files-found: error
+          retention-days: 14

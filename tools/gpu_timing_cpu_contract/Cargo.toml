@@ -1,0 +1,10 @@
+[package]
+name = "rust-duty-gpu-timing-cpu-contract"
+version = "0.0.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+wgpu = "=30.0.1"
+
+[workspace]
