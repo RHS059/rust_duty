@@ -24,8 +24,9 @@ def marker(p,index,identity,extent=(64,22)):
 class NativeFixture:
     def __init__(self,root):
         self.receipts=ReceiptFixture(root);self.c,self.root,self.binary,self.manifest,self.settings=self.receipts.verify()
-        self.contract=root/'contract.json';self.pin=v.sha(self.contract)
-        self.folder=root/'invented-run';self.folder.mkdir();entries=[]
+        # Use the verified canonical root for every absolute output argument.
+        self.contract=self.root/'contract.json';self.pin=v.sha(self.contract)
+        self.folder=self.root/'invented-run';self.folder.mkdir();entries=[]
         for case in v.CASES:
             out=self.folder/case;out.mkdir();identity=v.witness_identity(self.c,case,self.pin);rows=make(case)
             for r in rows:r['binding']=self.c['binding']

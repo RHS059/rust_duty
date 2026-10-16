@@ -7,7 +7,9 @@ from verify_app_edges import (verify_config, sha, digest, Rejected, candidate_id
 
 class ReceiptFixture:
     def __init__(self,root):
-        self.root=root
+        # Match the verifier's exact path identity even when TEMP uses an alias
+        # (for example Windows short names, junctions, or different casing).
+        root=self.root=Path(root).resolve()
         source=self.file('source/example.rs','// Invented, never compiled.\n')
         inventory=[source];source_fp=digest(inventory)
         allow=self.file('allow.json',dict(schema='rust-duty-app-edge-overlay/v1',unapplied=True,files=[dict(path='example.rs',sha256=source['sha256'])]))
