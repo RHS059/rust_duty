@@ -177,6 +177,10 @@ impl PoseReturn {
             duration,
         })
     }
+    /// Read-only committed fade diagnostics; no target sampling or clock writes.
+    pub fn observation(&self) -> (f64, f64, &[f32], &ViewmodelPose) {
+        (self.began, self.duration, &self.opacity, &self.from)
+    }
     pub fn weight(&self, time: f64) -> f32 {
         let t = ((time - self.began) / self.duration).clamp(0., 1.);
         (t * t * (3. - 2. * t)) as f32

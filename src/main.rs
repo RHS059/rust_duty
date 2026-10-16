@@ -5,6 +5,10 @@ mod authored_viewmodel;
 #[cfg(any(feature = "legacy-macroquad", feature = "wgpu-runtime"))]
 mod capture;
 #[cfg(any(feature = "legacy-macroquad", feature = "wgpu-runtime"))]
+mod combined_capture;
+#[cfg(any(feature = "legacy-macroquad", feature = "wgpu-runtime"))]
+mod high_app_edge_capture;
+#[cfg(any(feature = "legacy-macroquad", feature = "wgpu-runtime"))]
 mod high_mantle_capture;
 #[cfg(any(feature = "legacy-macroquad", feature = "wgpu-runtime"))]
 mod level_menu;
@@ -71,7 +75,16 @@ fn main() {
         )
         .unwrap_or_else(|error| fatal(error));
     let reference = args.iter().any(|arg| arg == "--reference-viewport");
-    let (width, height) = if reference { (960, 540) } else { (1440, 900) };
+    // Separately pinned readiness candidate: window/render-cost changes only.
+    // The existing app-edge parser still owns admission and mixed-mode rejection.
+    let app_edge_readiness = args.iter().any(|arg| arg == "--app-edge-case=pause");
+    let (width, height) = if app_edge_readiness {
+        (320, 200)
+    } else if reference {
+        (960, 540)
+    } else {
+        (1440, 900)
+    };
     let title = format!("RUST DUTY | {}", vector_range::BUILD_LABEL);
     match runtime {
         RuntimeChoice::Legacy => {
@@ -83,8 +96,8 @@ fn main() {
                         window_title: title,
                         window_width: width,
                         window_height: height,
-                        high_dpi: !reference,
-                        sample_count: 4,
+                        high_dpi: !reference && !app_edge_readiness,
+                        sample_count: if app_edge_readiness { 1 } else { 4 },
                         ..Default::default()
                     },
                     async move {

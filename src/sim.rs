@@ -776,6 +776,14 @@ impl Simulation {
         self.clear_prone_presentation();
         self.prone_camera = track;
     }
+    /// The admitted pair identity, never raw unvalidated manifest fields.
+    pub fn prone_binding_identity(&self) -> Option<serde_json::Value> {
+        self.prone_camera.as_ref().map(|t| t.binding_identity())
+    }
+    /// Read-only identity of the currently accepted paired entry.
+    pub fn prone_entry_started(&self) -> Option<f64> {
+        self.prone_entry.map(|(began, _)| began)
+    }
     pub fn prone_sample(&self) -> Option<ProneSample> {
         self.prone_sample
     }
@@ -1222,6 +1230,7 @@ impl Simulation {
         // Exact accepted source frame 1, before the first ordinary advance.
         // This is a committed event, never labelled a rendered source frame.
         crate::high_mantle_observer::event("accepted", self);
+        crate::combined_observer::accepted(self);
     }
     fn advance_mantle(&mut self, input: Input, cfg: &Settings, dt: f32) {
         let Some(mut state) = self.player.mantle else {

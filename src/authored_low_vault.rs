@@ -233,6 +233,13 @@ impl LowVaultBinding {
     pub fn clip(&self) -> &str {
         &self.clip
     }
+    /// Validated loaded identities for read-only combined capture telemetry.
+    pub fn asset_sha256(&self) -> &str {
+        &self.asset_sha256
+    }
+    pub fn receipt_sha256(&self) -> &str {
+        &self.receipt_sha256
+    }
     pub fn candidate_sha256(&self) -> &str {
         &self.candidate_sha256
     }

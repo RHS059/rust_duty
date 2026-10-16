@@ -19,6 +19,8 @@ struct HighMantleVisual {
     fade: Option<PoseReturn>,
     generation: Option<u64>,
     return_began: Option<f64>,
+    // Diagnostic observation of the actual mapped target, never an input to motion.
+    mapped_target_pose_seconds: Option<f32>,
     target_maps: Vec<(usize, PoseReturnMap)>,
     return_weight: f32,
     procedural_weight: f32,
@@ -33,6 +35,7 @@ impl HighMantleVisual {
             fade: None,
             generation: None,
             return_began: None,
+            mapped_target_pose_seconds: None,
             target_maps,
             return_weight: 1.,
             procedural_weight: 1.,
@@ -45,6 +48,7 @@ impl HighMantleVisual {
         self.fade = None;
         self.generation = None;
         self.return_began = None;
+        self.mapped_target_pose_seconds = None;
         self.return_weight = 1.;
         self.procedural_weight = 1.;
         self.visible_ads = 0.;
@@ -124,6 +128,103 @@ pub struct SourcePoseSnapshot<'a> {
     pub actor_opacity: Option<Vec<f32>>,
 }
 impl AuthoredViewmodel {
+    /// Read-only observer of the actual selected poses and live return target.
+    /// Checksums cover poses only, not mesh/native raster parity or art quality.
+    pub fn combined_observation(&self, time: f64) -> Result<serde_json::Value, String> {
+        use serde_json::json;
+        fn crc(pose: &ViewmodelPose) -> u32 {
+            let mut bytes = Vec::new();
+            for t in pose.bone_locals.iter().chain(&pose.actor_globals) {
+                for n in t
+                    .translation
+                    .to_array()
+                    .into_iter()
+                    .chain(t.rotation.to_array())
+                    .chain(t.scale.to_array())
+                {
+                    bytes.extend(n.to_bits().to_le_bytes());
+                }
+            }
+            bytes.extend(pose.actor_visible.iter().map(|&v| u8::from(v)));
+            vector_range::skinned_asset::crc32(&bytes)
+        }
+        fn actors(snapshot: &SourcePoseSnapshot<'_>) -> serde_json::Value {
+            json!(snapshot.animation.actors().iter().enumerate().map(|(i,a)|json!({
+                "name":a.name,"opacity":snapshot.actor_opacity.as_ref().map_or(f32::from(u8::from(snapshot.pose.actor_visible[i])),|o|o[i])
+            })).collect::<Vec<_>>())
+        }
+        let high = self.high_mantle.as_ref().filter(|v| v.pose.is_some());
+        let low = self.low_vault_active();
+        let prone = self.prone_pose.is_some();
+        let target_prone = (low || high.is_some()) && prone;
+        let live = if target_prone {
+            self.underlying_pose_snapshot(time, Mat4::IDENTITY)?
+        } else if let Some(v) = &self.reload_presentation {
+            SourcePoseSnapshot {
+                animation: &self.reload_renderers[v.index].animation,
+                pose: v.pose.clone(),
+                root: Mat4::IDENTITY,
+                actor_opacity: Some(v.opacity.clone()),
+            }
+        } else {
+            let pose = if let Some(l) = &self.locomotion {
+                l.pose().clone()
+            } else {
+                self.animation
+                    .sample_clamped(&self.clip, self.fixed_time.unwrap_or(time as f32))
+                    .map_err(|e| e.to_string())?
+            };
+            SourcePoseSnapshot {
+                animation: &self.animation,
+                pose,
+                root: Mat4::IDENTITY,
+                actor_opacity: None,
+            }
+        };
+        let shown = self.source_pose_snapshot(time, Mat4::IDENTITY)?;
+        let fade = if low {
+            self.low_vault_return.as_ref().map(|v| &v.fade)
+        } else if let Some(v) = high {
+            v.fade.as_ref()
+        } else if prone {
+            self.prone_return_pose.as_ref()
+        } else {
+            None
+        };
+        let outgoing = fade.map(|f| {
+            let (began, duration, opacity, frozen) = f.observation();
+            json!({
+            "began":began,"duration":duration,"weight":f.weight(time),"from_opacity":opacity,
+            "frozen_pose_seconds":frozen.sample_time,"frozen_pose_crc32":crc(frozen)})
+        });
+        Ok(
+            json!({"route":self.presentation_route(),"owners":{"high":high.is_some(),"low":low,"prone":prone},
+            "high_generation":high.and_then(|v|v.generation),"low_generation":if low {self.low_vault_generation} else {None},
+            "live_target":if target_prone {"prone"} else if self.reload_presentation.is_some() {"reload"} else {"base"},
+            "live_target_pose_crc32":crc(&live.pose),"live_target_actors":actors(&live),
+            "presented_pose_crc32":crc(&shown.pose),"presented_actors":actors(&shown),"outgoing":outgoing,
+            "visual_ads":self.visual_ads_amount(),"underlying_visual_ads":self.underlying_visual_ads_amount(),
+            "walk_seconds":self.walk_sample(),"walk_weight":self.walk_weight(),
+            "procedural_weight":self.authored_procedural_weight(),"prone_procedural_weight":self.prone_procedural_weight(),
+            "high_return_weight":self.high_mantle_return_weight(),"low_return_weight":self.low_vault_return_weight(),
+            "warning":self.warning(),"renderer_failed":self.error.is_some()}),
+        )
+    }
+    /// Distinct source and presented sample times. An outgoing pose is a live
+    /// blend, so its sample_time must never be mislabeled as frozen source time.
+    pub fn app_edge_high_pose_observation(&self) -> Option<serde_json::Value> {
+        let visual = self.high_mantle.as_ref()?;
+        let pose = visual.pose.as_ref()?;
+        let source_seconds = visual
+            .fade
+            .as_ref()
+            .map_or(pose.sample_time, |fade| fade.observation().3.sample_time);
+        Some(serde_json::json!({
+            "source_pose_seconds": source_seconds,
+            "presented_pose_seconds": pose.sample_time,
+            "mapped_target_pose_seconds": visual.mapped_target_pose_seconds,
+        }))
+    }
     /// Set the hip cant applied at the next draw. Gameplay owns the value.
     pub fn set_cant(&mut self, radians: f32) {
         self.cant = if radians.is_finite() { radians } else { 0. };
@@ -1343,6 +1444,7 @@ impl AuthoredViewmodel {
             visual.opacity = None;
             visual.fade = None;
             visual.return_began = None;
+            visual.mapped_target_pose_seconds = None;
             visual.return_weight = 0.;
             visual.procedural_weight = 0.;
             visual.visible_ads = 0.;
@@ -1427,6 +1529,8 @@ impl AuthoredViewmodel {
                 .collect();
             (target, opacity)
         };
+        // Observe the existing mapped result; do not substitute or resample it.
+        visual.mapped_target_pose_seconds = Some(target.sample_time);
         let weight = clock.weight(time);
         let (pose, opacity) = visual
             .fade
@@ -1926,6 +2030,12 @@ impl AuthoredViewmodel {
             .draw_authored_parts(&transforms, &visibility, &opacity, lighting);
         Ok(())
     }
+}
+
+#[cfg(test)]
+#[allow(dead_code)]
+pub(crate) fn combined_replay_sim() -> vector_range::sim::Simulation {
+    tests::combined_replay_sim()
 }
 
 // The library-only admitted fixture calls this helper. The binary also
@@ -2567,6 +2677,70 @@ mod tests {
         }
     }
     #[test]
+    fn app_edge_distinguishes_frozen_source_and_live_blend_time() {
+        let (mut model, mut visual) = high_mantle_fixture();
+        let mut clock = high_clock(0.45);
+        model
+            .update_high_mantle_visual(&mut visual, clock, 4.)
+            .unwrap();
+        model.high_mantle = Some(visual);
+        let native = model.app_edge_high_pose_observation().unwrap();
+        assert_eq!(
+            native["source_pose_seconds"],
+            native["presented_pose_seconds"]
+        );
+        assert!(native["mapped_target_pose_seconds"].is_null());
+        visual = model.high_mantle.take().unwrap();
+        let target = model.reload_renderers[0]
+            .animation
+            .sample_clamped("contact", 0.2)
+            .unwrap();
+        let target_seconds = target.sample_time;
+        model.reload_presentation = Some(ReloadPresentation {
+            index: 0,
+            pose: target,
+            opacity: vec![1.],
+            fade: None,
+            outgoing: false,
+            from_ads: 0.,
+            visible_ads: 0.,
+            weight: 0.,
+        });
+        clock.outgoing = Some(vector_range::authored_high_mantle::HighMantleReturn {
+            sample: clock.sample,
+            began: 4.,
+            duration: 0.20,
+            completed: false,
+        });
+        let time = 4.05;
+        model
+            .update_high_mantle_visual(&mut visual, clock, time)
+            .unwrap();
+        let weight = clock.outgoing.unwrap().weight(time);
+        let expected = 0.45_f32 * (1. - weight) + target_seconds * weight;
+        model.high_mantle = Some(visual);
+        let observed = model.app_edge_high_pose_observation().unwrap();
+        assert_eq!(
+            observed["source_pose_seconds"].as_f64().unwrap() as f32,
+            0.45
+        );
+        assert_eq!(
+            observed["mapped_target_pose_seconds"].as_f64().unwrap() as f32,
+            target_seconds
+        );
+        assert_eq!(
+            observed["presented_pose_seconds"].as_f64().unwrap() as f32,
+            expected
+        );
+        assert_ne!(
+            observed["source_pose_seconds"],
+            observed["presented_pose_seconds"]
+        );
+        model.reset(0.);
+        assert!(model.app_edge_high_pose_observation().is_none());
+    }
+
+    #[test]
     fn high_mantle_return_tracks_live_pose_opacity_ads_and_resets() {
         let (mut model, mut visual) = high_mantle_fixture();
         let mut clock = high_clock(0.3);
@@ -2842,6 +3016,17 @@ mod tests {
             model.authored_procedural_weight(),
             model.prone_procedural_weight()
         );
+    }
+    pub(super) fn combined_replay_sim() -> vector_range::sim::Simulation {
+        let (mut model, _) = high_mantle_fixture();
+        let mut sim = vector_range::sim::Simulation::new();
+        sim.set_low_vault_binding(Some(combined_install_low(&mut model)))
+            .unwrap();
+        sim.set_high_mantle_binding(Some(
+            vector_range::authored_high_mantle::HighMantleBinding::synthetic(0.20),
+        ));
+        sim.set_prone_camera_track(Some(combined_prone_track()));
+        sim
     }
     include!("../tests/support/combined_presentation_cases.rs");
 }

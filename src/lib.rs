@@ -16,6 +16,8 @@ pub mod weapon_sway;
 
 pub mod body_presentation;
 
+pub mod combined_observer;
+pub mod combined_replay;
 pub mod traversal_replay;
 
 pub mod control;
@@ -56,6 +58,7 @@ pub mod authored_low_vault;
 pub mod authored_pose_return;
 pub mod authored_prone;
 pub mod authored_reload;
+pub mod high_app_edge_input;
 pub mod high_mantle_observer;
 
 pub mod authored_walk;

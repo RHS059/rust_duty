@@ -202,6 +202,7 @@ impl ProneCameraTrack {
             "prone pair metadata exceeds bounds",
         )?;
         let sidecar: Value = serde_json::from_slice(camera).map_err(|e| e.to_string())?;
+        let receipt_sha256 = rust_duty_launcher::bytes_hash(receipt);
         let receipt: Value = serde_json::from_slice(receipt).map_err(|e| e.to_string())?;
         let regenerated = r15 && receipt["schema"] == "rust-duty-prone-camera-pair/v3";
         check(
@@ -331,6 +332,7 @@ impl ProneCameraTrack {
             "camera_sample_hz": track.sample_hz as u32,
             "sidecar_schema": sidecar["schema"],
             "receipt_schema": receipt["schema"],
+            "receipt_sha256": receipt_sha256,
             "common_motion_removal": receipt["common_motion_removal"],
             "native_crop": receipt["native_crop"],
             "candidate_frame_offset": receipt["candidate_frame_offset"],

@@ -6,7 +6,7 @@ use std::{
     io::Write,
     path::Path,
     sync::{
-        atomic::{AtomicBool, Ordering},
+        atomic::{AtomicBool, AtomicU64, Ordering},
         Mutex,
     },
     time::Instant,
@@ -14,6 +14,7 @@ use std::{
 
 static ENABLED: AtomicBool = AtomicBool::new(false);
 static JOURNAL: Mutex<Option<Journal>> = Mutex::new(None);
+static APP_EDGE_FRAME: AtomicU64 = AtomicU64::new(u64::MAX);
 const MAX_RECORDS: u64 = 12_000;
 const MAX_BYTES: usize = 16 * 1024 * 1024;
 struct Journal {
@@ -22,9 +23,29 @@ struct Journal {
     count: u64,
     bytes: usize,
     error: Option<String>,
+    max_records: u64,
+    max_bytes: usize,
+    max_seconds: Option<f64>,
 }
 
 pub fn start(path: &Path) -> Result<(), String> {
+    start_bounded(path, MAX_RECORDS, MAX_BYTES, None)
+}
+/// Tighter limits only. Existing observer defaults remain unchanged.
+pub fn start_bounded(
+    path: &Path,
+    max_records: u64,
+    max_bytes: usize,
+    max_seconds: Option<f64>,
+) -> Result<(), String> {
+    if max_records == 0
+        || max_records > MAX_RECORDS
+        || max_bytes == 0
+        || max_bytes > MAX_BYTES
+        || max_seconds.is_some_and(|v| !v.is_finite() || v <= 0. || v > 600.)
+    {
+        return Err("invalid observer bounds".into());
+    }
     let file = OpenOptions::new()
         .write(true)
         .create_new(true)
@@ -40,9 +61,16 @@ pub fn start(path: &Path) -> Result<(), String> {
         count: 0,
         bytes: 0,
         error: None,
+        max_records,
+        max_bytes,
+        max_seconds,
     });
     ENABLED.store(true, Ordering::Release);
     Ok(())
+}
+/// Optional diagnostic correlation only; never used by gameplay.
+pub fn app_edge_frame(frame: u64) {
+    APP_EDGE_FRAME.store(frame, Ordering::Release);
 }
 pub fn enabled() -> bool {
     ENABLED.load(Ordering::Acquire)
@@ -61,9 +89,19 @@ pub fn record(mut value: Value) {
     if j.error.is_some() {
         return;
     }
-    if j.count >= MAX_RECORDS {
+    if j.count >= j.max_records {
         j.error = Some("one-hand observer record bound exceeded".into());
         return;
+    }
+    if j.max_seconds
+        .is_some_and(|limit| j.start.elapsed().as_secs_f64() > limit)
+    {
+        j.error = Some("observer wall bound exceeded".into());
+        return;
+    }
+    let app_frame = APP_EDGE_FRAME.load(Ordering::Acquire);
+    if app_frame != u64::MAX {
+        value["app_frame"] = json!(app_frame);
     }
     value["schema"] = json!("rust-duty-onehand-observer/v1");
     value["record_index"] = json!(j.count);
@@ -72,7 +110,7 @@ pub fn record(mut value: Value) {
         .map_err(|e| e.to_string())
         .and_then(|mut bytes| {
             bytes.push(b'\n');
-            if bytes.len() > 32_768 || j.bytes + bytes.len() > MAX_BYTES {
+            if bytes.len() > 32_768 || j.bytes + bytes.len() > j.max_bytes {
                 return Err("one-hand observer byte bound exceeded".into());
             }
             j.bytes += bytes.len();
@@ -89,6 +127,12 @@ pub fn check() -> Result<(), String> {
         return Ok(());
     }
     let guard = JOURNAL.lock().map_err(|e| e.to_string())?;
+    if guard.as_ref().is_some_and(|j| {
+        j.max_seconds
+            .is_some_and(|limit| j.start.elapsed().as_secs_f64() > limit)
+    }) {
+        return Err("observer wall bound exceeded".into());
+    }
     match guard.as_ref().and_then(|j| j.error.as_ref()) {
         Some(e) => Err(e.clone()),
         None => Ok(()),

@@ -41,6 +41,7 @@ struct Impact {
 }
 pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), String> {
     let args: Vec<String> = std::env::args().collect();
+    let app_edge_options = vector_range::high_app_edge_input::Options::parse(&args)?;
     let executable =
         std::env::current_exe().unwrap_or_else(|_| std::path::PathBuf::from("vector-range.exe"));
     let authored_executable =
@@ -140,8 +141,13 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
     let mut locomotion_state =
         vector_range::locomotion_presentation::LocomotionPresentation::default();
     let mut sim = Simulation::new();
-    let (level_selection, city) =
-        crate::level_menu::choose(&args, &authored_executable, &mut game_update).await?;
+    let (level_selection, city) = crate::level_menu::choose(
+        &args,
+        &authored_executable,
+        &mut game_update,
+        app_edge_options.as_ref(),
+    )
+    .await?;
     if let Some(city) = &city {
         city.install(&mut sim);
     }
@@ -422,11 +428,14 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
                     | "gameplay-layered"
                     | "gameplay-return"
                     | "gameplay-jump"
+                    | "gameplay-combined"
             ) || vector_range::traversal_replay::SEQUENCES.contains(s)
         });
     let traversal_capture =
         capture_sequence.filter(|s| vector_range::traversal_replay::SEQUENCES.contains(s));
-    let gameplay_capture = traversal_capture.is_some()
+    let combined_sequence = capture_sequence == Some(vector_range::combined_replay::SEQUENCE);
+    let gameplay_capture = combined_sequence
+        || traversal_capture.is_some()
         || matches!(
             capture_sequence,
             Some(
@@ -452,6 +461,7 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
         })
         .unwrap_or(60000. / 1001.);
     let sequence_duration = match capture_sequence {
+        Some("gameplay-combined") => vector_range::combined_replay::MAX_SECONDS,
         Some("gameplay-ads") => 9.0,
         Some("gameplay-layered") => 11.0,
         Some("gameplay-return") => 6.3,
@@ -479,7 +489,10 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
         framing.reference,
         native_window_capture,
     )?;
-    if capture_sequence.is_some() && !args.iter().any(|a| a == "--onehand-deterministic") {
+    if capture_sequence.is_some()
+        && !combined_sequence
+        && !args.iter().any(|a| a == "--onehand-deterministic")
+    {
         std::fs::create_dir_all(
             args.iter()
                 .find_map(|a| a.strip_prefix("--output="))
@@ -506,6 +519,19 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
     }
     if let Some((position, yaw)) = traversal_capture.and_then(vector_range::traversal_replay::start)
     {
+        sim.player.position = position;
+        sim.player.yaw = yaw;
+    }
+    if combined_sequence {
+        // The sole combined fixture write, before any committed simulation tick.
+        let (position, yaw) = vector_range::combined_replay::start();
+        sim.player.position = position;
+        sim.player.yaw = yaw;
+    }
+    if app_edge_options.is_some() {
+        // Sole declared app-edge fixture write, before the first update.
+        // Reset later uses the ordinary shipped-range spawn, never this fixture.
+        let (position, yaw) = vector_range::high_app_edge_input::start();
         sim.player.position = position;
         sim.player.yaw = yaw;
     }
@@ -539,8 +565,15 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
         }
     }
     let mut onehand_capture = crate::high_mantle_capture::Capture::open(&args, &sim)?;
+    let mut combined_capture = crate::combined_capture::Capture::open(&args, &sim)?;
+    let mut app_edge_capture = app_edge_options
+        .map(|options| {
+            crate::high_app_edge_capture::Capture::open(options, &sim, authored.as_ref())
+        })
+        .transpose()?;
     loop {
         vector_range::high_mantle_observer::check()?;
+        vector_range::combined_observer::check()?;
         if let Some(done) = frame_trace::take_completion_notice() {
             let state = if let Some(error) = done.export_error {
                 format!("FRAME EXPORT ERROR: {error}")
@@ -564,6 +597,10 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
             }
         }
         let focus_state = focus_input.sample();
+        if let Some(observer) = &mut app_edge_capture {
+            let frame = observer.input(&sim, session.is_active())?;
+            focus_input.install_app_edge_frame(frame)?;
+        }
         let now = get_time();
         let raw_dt = now - last_frame;
         last_frame = now;
@@ -664,6 +701,16 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
             capture,
         ));
         let active = transition.active;
+        if let Some(observer) = &mut app_edge_capture {
+            observer.session(
+                &sim,
+                &focus_input.frame(),
+                transition,
+                now,
+                raw_dt,
+                model_error.is_some() || startup_blocked || graphics_escape,
+            )?;
+        }
         if onehand_capture.is_some() {
             let mut observed = vector_range::high_mantle_observer::state("platform", &sim);
             observed["keys"] = serde_json::json!({
@@ -934,7 +981,12 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
             viewmodel.set_walk_translation(cfg.walking_translation(weapon_id));
         }
         if active {
-            let mouse = if just_resumed || transition.discard_timing {
+            // Deterministic combined replay has no unjournaled platform look input.
+            let mouse = if combined_capture.is_some()
+                || app_edge_capture.is_some()
+                || just_resumed
+                || transition.discard_timing
+            {
                 Vec2::ZERO
             } else {
                 mouse_delta_position()
@@ -997,6 +1049,9 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
                 sim.player.pitch = 0.;
             }
             let steps = clock.advance(simulation_dt).unwrap_or(0);
+            if let Some(observer) = &mut app_edge_capture {
+                observer.clock(&sim, simulation_dt, steps)?;
+            }
             for _ in 0..steps {
                 let step = intents.take(focus_input.is_mouse_button_down(MouseButton::Left));
                 if step.jump {
@@ -1024,12 +1079,17 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
                     viewmodel.committed_step(authored_step_start, &sim);
                     viewmodel.reconcile_simulation_bindings(&mut sim);
                 }
-                crate::high_mantle_capture::Capture::step(
-                    input,
-                    authored_step_start,
-                    &sim,
-                    authored.as_ref(),
-                )?;
+                if app_edge_capture.is_none() {
+                    crate::high_mantle_capture::Capture::step(
+                        input,
+                        authored_step_start,
+                        &sim,
+                        authored.as_ref(),
+                    )?;
+                }
+                if let Some(observer) = &mut app_edge_capture {
+                    observer.step(input, authored_step_start, &sim, authored.as_ref(), &cfg)?;
+                }
                 // Cosmetic targets receive exact simulation timestamps; input
                 // and movement remain fully authoritative and immediate.
                 locomotion_state.sample(sim.time, locomotion_input(&sim));
@@ -1137,14 +1197,22 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
         if gameplay_capture {
             // Real fixed-step input replay: no pose, velocity, animation-clock,
             // timer or normalized reload-phase overrides are used here.
-            let target_tick = vector_range::clock::capture_tick_target(
-                (frames - 8).max(0) as u64,
-                capture_hz as u32,
-            );
+            let target_tick = combined_capture
+                .as_ref()
+                .map(|c| c.target_tick(frames))
+                .or_else(|| {
+                    vector_range::clock::capture_tick_target(
+                        (frames - 8).max(0) as u64,
+                        capture_hz as u32,
+                    )
+                });
             while target_tick.map_or(
                 sim.time + f64::from(FIXED_DT) <= f64::from(sequence_elapsed) + 1e-7,
                 |target| gameplay_capture_tick < target,
             ) {
+                if combined_capture.as_ref().is_some_and(|c| c.done()) {
+                    break;
+                }
                 let start = sim.time;
                 let reload = capture_sequence == Some("gameplay-reload")
                     && !gameplay_reload_issued
@@ -1156,7 +1224,9 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
                         Vec2::ZERO
                     };
                 gameplay_reload_issued |= reload;
-                let input = if let Some(sequence) = traversal_capture {
+                let input = if let Some(observer) = &mut combined_capture {
+                    observer.input(&sim)?
+                } else if let Some(sequence) = traversal_capture {
                     vector_range::traversal_replay::input(sequence, start)
                 } else if capture_sequence == Some("gameplay-ads") {
                     vector_range::authored_ads::gameplay_ads_replay_input(start)
@@ -1199,6 +1269,12 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
                     model.reconcile_simulation_bindings(&mut sim);
                 }
                 crate::high_mantle_capture::Capture::step(input, start, &sim, authored.as_ref())?;
+                if let Some(observer) = &mut combined_capture {
+                    observer.step(input, start, &sim, authored.as_ref(), &cfg)?;
+                    if observer.boundary() {
+                        break;
+                    }
+                }
             }
         }
         if capture_sequence == Some("ads") {
@@ -1474,8 +1550,29 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
             label("HK416 asset missing: extract the whole package beside the EXE (procedural fallback active)",24.,screen_height()-155.,16.,YELLOW);
         }
         telemetry_indicator(&telemetry_status);
+        if let Some(observer) = &mut app_edge_capture {
+            observer.frame(
+                &sim,
+                &cfg,
+                authored.as_ref(),
+                active,
+                eye,
+                forward,
+                camera_up,
+            )?;
+            if observer.done() {
+                break;
+            }
+        }
         if let Some(observer) = &mut onehand_capture {
             observer.frame(&sim, &cfg, authored.as_ref(), active)?;
+        }
+        if let Some(observer) = &mut combined_capture {
+            observer.frame(&sim, &cfg, authored.as_ref(), eye, forward, camera_up)?;
+            if observer.done() || sim.time >= f64::from(vector_range::combined_replay::MAX_SECONDS)
+            {
+                break;
+            }
         }
         // The narrow observer owns bounded selected native-window PNGs.
         // Keep the existing deterministic ordinary-Input fixed-step schedule;
@@ -1485,6 +1582,7 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
             break;
         }
         if !bounded_onehand
+            && combined_capture.is_none()
             && crate::capture::write_frame(crate::capture::CaptureFrame {
                 capture,
                 capture_sequence,
@@ -1514,6 +1612,12 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
     // The renderer submits after this future resolves. Defer trace export
     // through that final successful present; main handles missing/error exits.
     request_frame_trace_stop();
+    if let Some(observer) = app_edge_capture {
+        observer.finish(&sim)?;
+    }
+    if let Some(observer) = combined_capture {
+        observer.finish(&sim)?;
+    }
     if let Some(observer) = onehand_capture {
         observer.finish(&sim)?;
     }
