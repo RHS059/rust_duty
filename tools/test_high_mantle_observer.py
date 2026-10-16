@@ -115,7 +115,8 @@ class Tests(unittest.TestCase):
         self.assertIn('--no-update',cmd)
         recorder=(HERE/'src/high_mantle_observer.rs').read_text()
         self.assertIn('const MAX_RECORDS: u64 = 12_000',recorder);self.assertIn('const MAX_BYTES: usize = 16 * 1024 * 1024',recorder)
-        capture=(HERE/'src/high_mantle_capture.rs').read_text();self.assertIn('self.index>=12',capture)
+        capture=(HERE/'src/high_mantle_capture.rs').read_text()
+        self.assertRegex(capture,r'if\s+self\.index\s*>=\s*12\s*\{')
     def test_reject_fake_final_source(self):
         r=complete();r[381]['high']['source_frame']=95;self.reject(r,'frame/seconds')
     def test_reject_no_source1(self):
@@ -158,6 +159,7 @@ class Tests(unittest.TestCase):
                       (HERE/'src/authored_high_mantle.rs').read_text())
     def test_observer_rejects_replay_flags_and_uses_native_capture(self):
         text=(HERE/'src/high_mantle_capture.rs').read_text()
-        for marker in ['a.starts_with("--capture")','a == "--demo"','a == "--reference-viewport"','capture_png_with_frame_witness(None,']:
+        for marker in ['a.starts_with("--capture")','a == "--demo"','a == "--reference-viewport"']:
             self.assertIn(marker,text)
+        self.assertRegex(text,r'capture_png_with_frame_witness\s*\(\s*None\s*,')
 if __name__=='__main__':unittest.main()

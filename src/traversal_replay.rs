@@ -46,7 +46,11 @@ pub fn input(sequence: &str, t: f64) -> Input {
         "gameplay-high-onto" => Input {
             // Tick 30 accepts; 190 native ticks end at tick 220, on both
             // ordinary 60 Hz and 30 Hz capture grids. Timing is not retimed.
-            movement: if within(0.15, 2.15) { forward } else { Vec2::ZERO },
+            movement: if within(0.15, 2.15) {
+                forward
+            } else {
+                Vec2::ZERO
+            },
             jump: within(0.25, 0.25 + 1. / 120.),
             ads: within(0.15, 2.7),
             ..Input::default()
@@ -121,7 +125,8 @@ pub fn segment(sequence: &str, t: f64) -> &'static str {
     };
     match sequence {
         "gameplay-high-onto" => at(&[
-            (0.15, "ordinary_forward_ads"), (0.25, "fresh_jump_high_onto"),
+            (0.15, "ordinary_forward_ads"),
+            (0.25, "fresh_jump_high_onto"),
             (0.25 + 95. / 60., "native_endpoint_and_live_return"),
             (2.15, "stationary_live_ads"),
         ]),

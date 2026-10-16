@@ -1011,7 +1011,12 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
                 if let Some(viewmodel) = &mut authored {
                     viewmodel.committed_step(authored_step_start, &sim);
                 }
-                crate::high_mantle_capture::Capture::step(input, authored_step_start, &sim, authored.as_ref())?;
+                crate::high_mantle_capture::Capture::step(
+                    input,
+                    authored_step_start,
+                    &sim,
+                    authored.as_ref(),
+                )?;
                 // Cosmetic targets receive exact simulation timestamps; input
                 // and movement remain fully authoritative and immediate.
                 locomotion_state.sample(sim.time, locomotion_input(&sim));
@@ -1470,28 +1475,32 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
         // Keep the existing deterministic ordinary-Input fixed-step schedule;
         // do not also emit the legacy all-frame sequence into the working dir.
         let bounded_onehand = onehand_capture.as_ref().is_some_and(|c| c.deterministic());
-        if bounded_onehand && sequence_elapsed >= sequence_duration { break; }
-        if !bounded_onehand && crate::capture::write_frame(crate::capture::CaptureFrame {
-            capture,
-            capture_sequence,
-            frames,
-            output,
-            framing: &framing,
-            target: &target,
-            sim: &sim,
-            presentation_reload,
-            sequence_elapsed,
-            sequence_phase,
-            sequence_duration,
-            capture_empty,
-            cfg: &cfg,
-            capture_hz,
-            authored: &authored,
-            gameplay_reload_issued,
-            traversal_capture,
-            look_sway: &look_sway,
-            locomotion_state: &mut locomotion_state,
-        })? {
+        if bounded_onehand && sequence_elapsed >= sequence_duration {
+            break;
+        }
+        if !bounded_onehand
+            && crate::capture::write_frame(crate::capture::CaptureFrame {
+                capture,
+                capture_sequence,
+                frames,
+                output,
+                framing: &framing,
+                target: &target,
+                sim: &sim,
+                presentation_reload,
+                sequence_elapsed,
+                sequence_phase,
+                sequence_duration,
+                capture_empty,
+                cfg: &cfg,
+                capture_hz,
+                authored: &authored,
+                gameplay_reload_issued,
+                traversal_capture,
+                look_sway: &look_sway,
+                locomotion_state: &mut locomotion_state,
+            })?
+        {
             break;
         }
         next_frame().await?;
@@ -1499,7 +1508,9 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
     // The renderer submits after this future resolves. Defer trace export
     // through that final successful present; main handles missing/error exits.
     request_frame_trace_stop();
-    if let Some(observer) = onehand_capture { observer.finish(&sim)?; }
+    if let Some(observer) = onehand_capture {
+        observer.finish(&sim)?;
+    }
     Ok(())
 }
 

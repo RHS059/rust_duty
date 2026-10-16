@@ -73,7 +73,7 @@ class DeterministicTests(unittest.TestCase):
         self.assertIn('vec3(-8.6, 0., -3.)',replay.split('pub fn duration(',1)[0])
         app=(HERE/'src/app.rs').read_text()
         self.assertIn('Capture::step(input, start, &sim',app)
-        self.assertIn('!bounded_onehand && crate::capture::write_frame',app)
+        self.assertRegex(app,r'!bounded_onehand\s*&&\s*crate::capture::write_frame\s*\(')
     def test_only_supported_rate_and_bounded_native_window_command(self):
         import run_high_mantle_deterministic as runner
         command=runner.invocation('/app','/manifest','/output','0'*64,60)

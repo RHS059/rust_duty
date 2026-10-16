@@ -1,49 +1,98 @@
 //! Opt-in, bounded observation only. Never owns input, clocks or gameplay state.
 use crate::sim::Simulation;
 use serde_json::{json, Value};
-use std::{fs::{File, OpenOptions}, io::Write, path::Path, sync::{atomic::{AtomicBool, Ordering}, Mutex}, time::Instant};
+use std::{
+    fs::{File, OpenOptions},
+    io::Write,
+    path::Path,
+    sync::{
+        atomic::{AtomicBool, Ordering},
+        Mutex,
+    },
+    time::Instant,
+};
 
 static ENABLED: AtomicBool = AtomicBool::new(false);
 static JOURNAL: Mutex<Option<Journal>> = Mutex::new(None);
 const MAX_RECORDS: u64 = 12_000;
 const MAX_BYTES: usize = 16 * 1024 * 1024;
-struct Journal { file: File, start: Instant, count: u64, bytes: usize, error: Option<String> }
+struct Journal {
+    file: File,
+    start: Instant,
+    count: u64,
+    bytes: usize,
+    error: Option<String>,
+}
 
 pub fn start(path: &Path) -> Result<(), String> {
-    let file = OpenOptions::new().write(true).create_new(true).open(path)
+    let file = OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .open(path)
         .map_err(|e| format!("create one-hand observer: {e}"))?;
     let mut journal = JOURNAL.lock().map_err(|e| e.to_string())?;
-    if journal.is_some() { return Err("one-hand observer already started".into()); }
-    *journal = Some(Journal { file, start: Instant::now(), count: 0, bytes: 0, error: None });
+    if journal.is_some() {
+        return Err("one-hand observer already started".into());
+    }
+    *journal = Some(Journal {
+        file,
+        start: Instant::now(),
+        count: 0,
+        bytes: 0,
+        error: None,
+    });
     ENABLED.store(true, Ordering::Release);
     Ok(())
 }
-pub fn enabled() -> bool { ENABLED.load(Ordering::Acquire) }
+pub fn enabled() -> bool {
+    ENABLED.load(Ordering::Acquire)
+}
 /// Error is latched and surfaced by the app, never converted into successful evidence.
 pub fn record(mut value: Value) {
-    if !enabled() { return; }
-    let Ok(mut guard) = JOURNAL.lock() else { return; };
-    let Some(j) = guard.as_mut() else { return; };
-    if j.error.is_some() { return; }
-    if j.count >= MAX_RECORDS { j.error = Some("one-hand observer record bound exceeded".into()); return; }
+    if !enabled() {
+        return;
+    }
+    let Ok(mut guard) = JOURNAL.lock() else {
+        return;
+    };
+    let Some(j) = guard.as_mut() else {
+        return;
+    };
+    if j.error.is_some() {
+        return;
+    }
+    if j.count >= MAX_RECORDS {
+        j.error = Some("one-hand observer record bound exceeded".into());
+        return;
+    }
     value["schema"] = json!("rust-duty-onehand-observer/v1");
     value["record_index"] = json!(j.count);
     value["wall_seconds"] = json!(j.start.elapsed().as_secs_f64());
-    let result = serde_json::to_vec(&value).map_err(|e| e.to_string()).and_then(|mut bytes| {
-        bytes.push(b'\n');
-        if bytes.len() > 32_768 || j.bytes + bytes.len() > MAX_BYTES {
-            return Err("one-hand observer byte bound exceeded".into());
-        }
-        j.bytes += bytes.len();
-        j.file.write_all(&bytes).map_err(|e|e.to_string())
-    }).and_then(|_| j.file.flush().map_err(|e| e.to_string()));
-    if let Err(error) = result { j.error = Some(error); }
+    let result = serde_json::to_vec(&value)
+        .map_err(|e| e.to_string())
+        .and_then(|mut bytes| {
+            bytes.push(b'\n');
+            if bytes.len() > 32_768 || j.bytes + bytes.len() > MAX_BYTES {
+                return Err("one-hand observer byte bound exceeded".into());
+            }
+            j.bytes += bytes.len();
+            j.file.write_all(&bytes).map_err(|e| e.to_string())
+        })
+        .and_then(|_| j.file.flush().map_err(|e| e.to_string()));
+    if let Err(error) = result {
+        j.error = Some(error);
+    }
     j.count += 1;
 }
 pub fn check() -> Result<(), String> {
-    if !enabled() { return Ok(()); }
+    if !enabled() {
+        return Ok(());
+    }
     let guard = JOURNAL.lock().map_err(|e| e.to_string())?;
-    match guard.as_ref().and_then(|j| j.error.as_ref()) { Some(e) => Err(e.clone()), None => Ok(()) }
+    match guard.as_ref().and_then(|j| j.error.as_ref()) {
+        Some(e) => Err(e.clone()),
+        None => Ok(()),
+    }
 }
 pub fn state(kind: &str, sim: &Simulation) -> Value {
     let p = &sim.player;
@@ -66,4 +115,8 @@ pub fn state(kind: &str, sim: &Simulation) -> Value {
         "ammo":p.ammo,"reserve":p.reserve,"shots":sim.stats.shots,
         "reload_left":p.reload_left,"reload_credit_at":p.reload_credit_at,"reload_ready_at":p.reload_ready_at})
 }
-pub fn event(kind: &str, sim: &Simulation) { if enabled() { record(state(kind, sim)); } }
+pub fn event(kind: &str, sim: &Simulation) {
+    if enabled() {
+        record(state(kind, sim));
+    }
+}
