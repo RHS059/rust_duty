@@ -1,0 +1,31 @@
+{
+  "schema": "rust-duty-owned-process-freeze/v2",
+  "frozen_at_utc": "2026-10-16T07:55:22.824857+00:00",
+  "pins_sha256": "d9ef5486cbd7d80ec8d4c9d37c556ff7d13d8dc0147cbd7e6244a4154ca79751",
+  "source_tree_sha256": "a5b8a79cc18f79c85ce0c8f7d506721fbd188ac675b01db784b436dd6728e967",
+  "tests": {
+    "discovered": 78,
+    "passed": 74,
+    "failed": 0,
+    "errors": 0,
+    "actual_windows_skipped": 4
+  },
+  "regressions": {
+    "F1_incomplete_streams": "passed",
+    "F2_constructor_ownership_and_cleanup": "passed",
+    "F3_pending_read_storage_lifetime": "passed",
+    "F4_byte_preserving_checkout_fixture": "passed"
+  },
+  "independent_review_status": "pending; v1 blocked; v2 acceptance must be pinned separately",
+  "actual_windows_executed": false,
+  "actual_animation_assets_validated": false,
+  "workflow_dispatched": false,
+  "publication_performed": false,
+  "original_boundaries_unchanged": true,
+  "v1_and_review_evidence_unchanged": true,
+  "all_frozen_pins_verified": true,
+  "direct_child_rss_scope": "3 GiB sampled RSS / Windows working set of the directly launched child only; launch actual Blender/sampler leaves",
+  "remaining_native_gate": "Independent v2 review acceptance, then four guarded Windows Python smoke tests on selected runner; separately admit real producer/build/candidate and animation evidence.",
+  "free_disk_bytes": 1565995008,
+  "package_bytes_before_freeze_record": 201362
+}

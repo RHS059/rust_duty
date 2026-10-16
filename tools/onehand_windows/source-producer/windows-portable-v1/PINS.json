@@ -1,0 +1,10 @@
+{
+  "README.md": "95e3a8ecea7c4cf90fd36b76d1eeb9a2adff6c62fe5f790710db3291740c3373",
+  "cpu-tests.log": "37d532ac3d60f5b1ac6c0eb022800bc50827aa7f9b4b0ea96c88d4f7b05f16f0",
+  "local-evidence-status.json": "52ecf17a3364134309e25bbea5c8f83505d7c37e579459f4ac0099108ea3eeec",
+  "local-input-admission.json": "7edcad9f0a10c0b2d51b28a0a05a34d1dd9af133ec255d59616d25e406cdc1c8",
+  "portable-contract.json": "94fbd11c6fa1bad47977e630ddc672ae72bcde2357a0bae5c5db9133480765e3",
+  "portable_source.py": "c7dd33dcd61e4e4dfa6afe0e370c55d4d35df6ba000fa47a4268476608d99fb1",
+  "runtime-handoff.json": "1af9ade4b150a85c115d93f66282bbf68840c8a5007904eac2f30c22f0fe16f8",
+  "test_portable_source.py": "5b9e1b693d327d74acb4997dd520396ed0501132502bf134e61ac6e2fa774f8d"
+}

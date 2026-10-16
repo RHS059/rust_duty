@@ -1,0 +1,29 @@
+{
+  "schema": "rust-duty-owned-process-checkout-fixture/v1",
+  "git": "git version 2.52.0",
+  "core_autocrlf": true,
+  "core_eol": "crlf",
+  "working_tree_attributes_absent": true,
+  "cached_attribute_check": [
+    "package/lf.txt: text: unset",
+    "package/mixed.dat: text: unset"
+  ],
+  "attributes_sha256": "171e9a8b3b5a35df8a0e007415aa96cd02a5ae26ee13b421ea9de761c6f8ddad",
+  "fixtures": {
+    "lf.txt": {
+      "bytes": 13,
+      "source_sha256": "dbea9325179efe46ea2add94f7b6b745ca983fabb208dc6d34aa064623d7ee23",
+      "index_sha256": "dbea9325179efe46ea2add94f7b6b745ca983fabb208dc6d34aa064623d7ee23",
+      "checkout_sha256": "dbea9325179efe46ea2add94f7b6b745ca983fabb208dc6d34aa064623d7ee23"
+    },
+    "mixed.dat": {
+      "bytes": 21,
+      "source_sha256": "794bd9c7135198c7b01c2208104b45388eab605afcaf2797d08e5c7b386f7646",
+      "index_sha256": "794bd9c7135198c7b01c2208104b45388eab605afcaf2797d08e5c7b386f7646",
+      "checkout_sha256": "794bd9c7135198c7b01c2208104b45388eab605afcaf2797d08e5c7b386f7646"
+    }
+  },
+  "exact_bytes_preserved": true,
+  "actual_windows_checkout": false,
+  "commits_or_remote_operations": false
+}

@@ -1,0 +1,2 @@
+# Every byte-pinned source, report, fixture and allowlist stays exact on checkout.
+* -text

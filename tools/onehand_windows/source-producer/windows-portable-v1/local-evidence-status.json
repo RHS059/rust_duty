@@ -1,0 +1,47 @@
+{
+  "full_equivalence_file_present": false,
+  "full_source_equivalence_admitted": false,
+  "historical_generated_source_sha256": "4362ab61499e463e9d9ecf83ffbeffb40ce6c5662d99d5dc1358918d0d3805d4",
+  "input_delta_sha256": "7be513e2c9fa5d0ff1c00684c542a73354d49fd561fd406a08dad8e05c219a9d",
+  "native_execution_performed_by_this_preparation": false,
+  "observed_utc": "2026-10-16T06:47:09.218880+00:00",
+  "replay_receipt_sha256": "664c471d2d0ca9e1f015d578f50617866b36c68300d42324297f2cc267754646",
+  "required_pairs": 17,
+  "required_samples": 4240,
+  "runtime_equivalence_proved": false,
+  "schema": "rust-duty-onehand-portable-local-status/v1",
+  "verified_pairs": [
+    {
+      "approved_sha256": "70ca412e2d4cae60a5683a8cb83620e645b89a39e9d8dd5564cc93ace7af8f54",
+      "chunk_index": 0,
+      "regenerated_sha256": "4bae9bbef683994678fc2b9bc687fe1458b853b162b64410f674c286a5266005",
+      "samples": 256
+    },
+    {
+      "approved_sha256": "c356fc4ceb6d1d9ef41b814d9d623e5fe234bd22d1d23f81b3c38aba8ca05c9b",
+      "chunk_index": 1,
+      "regenerated_sha256": "617fb87367f8e9b0464f911c954b0d9353e87144266b064080af769b66f796aa",
+      "samples": 256
+    },
+    {
+      "approved_sha256": "4516c64e5317ecb203545b5820f7e07ae29d697b23cbb66f9359c6a2fca13e11",
+      "chunk_index": 2,
+      "regenerated_sha256": "ba10c110021b59ac647364d0796771f6a960224f0832c0cc73b4937bd93f61b7",
+      "samples": 256
+    },
+    {
+      "approved_sha256": "eb4469beb2368ad718051b816e615b82b55fbe8b2863a75fa6dd91000113869d",
+      "chunk_index": 3,
+      "regenerated_sha256": "fc7f37f991ca5db027a732f4750d2386ee7968378978edf203241df0196a02b8",
+      "samples": 256
+    },
+    {
+      "approved_sha256": "07734f02705d5aa66ea79635e143a2876d4f866fbdf7d0d10c5886e2979cf665",
+      "chunk_index": 4,
+      "regenerated_sha256": "9e1b97b8b0f44d9dca9dba393aa22ee3136751b1992f93c460129aa5b76008a3",
+      "samples": 256
+    }
+  ],
+  "verified_samples": 1280,
+  "windows_execution_proved": false
+}
