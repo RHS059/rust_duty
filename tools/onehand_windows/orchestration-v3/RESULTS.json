@@ -1,0 +1,50 @@
+{
+  "actual_candidate_windows_proof": false,
+  "actual_windows_successor_execution": "pending",
+  "failed_predecessor_job": 116971516110,
+  "failed_predecessor_run": 38900572341,
+  "frozen_at_utc": "2026-10-16T12:47:22.061948+00:00",
+  "materialized_source_destinations": 166,
+  "native_steps_conditional_count": 5,
+  "predecessor_pins_sha256": "0f8d652b595d30525933ca378eb45850d84aa2512726e9018a2c3a85a2105d58",
+  "private_or_held_payloads_included": false,
+  "production_admission": false,
+  "publication_destinations": 169,
+  "schema": "rust-duty-onehand-workflow-source-results/v3",
+  "scope": "narrow scalar executable selection successor",
+  "selector_sites": [
+    "git.exe",
+    "rustup.exe",
+    "link.exe",
+    "cl.exe",
+    "lib.exe"
+  ],
+  "tests": {
+    "compiler_installer_blender_or_game_launched": false,
+    "discovered": 89,
+    "errors": 0,
+    "failures": 0,
+    "passed": 88,
+    "skipped": 1,
+    "skipped_case": "actual PowerShell invocation on non-Windows preparation host; required on Windows CI"
+  },
+  "unchanged_executable_sources": [
+    "prepare_controller.py",
+    "probe_blender.py",
+    "owned_commands.py",
+    "run_proof.py",
+    "install_official_blender.ps1",
+    "publication_inventory.py",
+    "test_workflow.py",
+    "workflow_core.py",
+    "run_source_tests.py",
+    "preinstall_admission.py",
+    "checkout_bytes.py",
+    "test_trigger_admission.py",
+    "host_tools.py",
+    "orchestrate.py",
+    "test_build_creator_integration.py",
+    "verify_freeze.py",
+    "build_rust.py"
+  ]
+}

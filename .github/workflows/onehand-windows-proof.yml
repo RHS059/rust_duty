@@ -22,7 +22,7 @@ jobs:
       run:
         shell: pwsh
     env:
-      PACKAGE: tools/onehand_windows/orchestration-v2
+      PACKAGE: tools/onehand_windows/orchestration-v3
       GIT_CONFIG_COUNT: '2'
       GIT_CONFIG_KEY_0: core.autocrlf
       GIT_CONFIG_VALUE_0: 'false'
@@ -49,7 +49,17 @@ jobs:
           $work=Join-Path $env:RUNNER_TEMP ("onehand-"+$env:GITHUB_RUN_ID+"-"+$env:GITHUB_RUN_ATTEMPT)
           if (Test-Path -LiteralPath $work) { throw 'Fresh private attempt required' }
           New-Item -ItemType Directory -Path $work | Out-Null
-          $git=(Get-Command git.exe -CommandType Application).Source
+          # BEGIN single application selection
+          function Resolve-Application([string]$Name) {
+            # Get-Command -All emits applications in PATH execution-precedence order.
+            $command = Get-Command -Name $Name -CommandType Application -All -ErrorAction Stop | Select-Object -First 1
+            if ($null -eq $command -or $command.Source -isnot [string] -or [string]::IsNullOrWhiteSpace($command.Source)) { throw 'One nonempty application path required' }
+            $path = $command.Source
+            if (!(Test-Path -LiteralPath $path -PathType Leaf)) { throw 'Application path must be an existing file' }
+            return $path
+          }
+          # END single application selection
+          $git=Resolve-Application 'git.exe'
           if ((& $git -C $repo cat-file -t $env:PROOF_COMMIT).Trim() -ne 'commit' -or $LASTEXITCODE -ne 0) { throw 'Event SHA is not an actual Git commit' }
           function Export-Blob([string]$Logical,[string]$Output) {
             $p=[Diagnostics.ProcessStartInfo]::new();$p.FileName=$git;$p.UseShellExecute=$false;$p.RedirectStandardOutput=$true;$p.RedirectStandardError=$true
@@ -60,7 +70,7 @@ jobs:
             if ($proc.ExitCode -ne 0) { throw 'Exact Git source export failed' }
           }
           foreach ($name in @('source_checkout.py','checkout_bytes.py')) { Export-Blob ($env:PACKAGE+'/'+$name) (Join-Path $work $name) }
-          $sourceHelperSha='e22bc7b7d79837bc1b3b169ea65e0c1be7babeee9bdb6385b31051363f1a4689'
+          $sourceHelperSha='f99bb2ae8ed6375c8bc55f02011a87eaf92547695f80e91161f578abcfa91b7e'
           $materializerSha='90cc3d18daa0f703eb41a9ed8ca7a61f1487507ee234ad43826af918bc26ea80'
           if ((Get-FileHash (Join-Path $work 'source_checkout.py') -Algorithm SHA256).Hash.ToLowerInvariant() -ne $sourceHelperSha) { throw 'Reviewed source-only bootstrap differs' }
           if ((Get-FileHash (Join-Path $work 'checkout_bytes.py') -Algorithm SHA256).Hash.ToLowerInvariant() -ne $materializerSha) { throw 'Reviewed exact materializer differs' }
