@@ -91,7 +91,54 @@ live target contact. Actual Rust CPU parity must independently compare all
 `sample_prone_camera`, using fixed frame-one geometry correspondence. No
 Python animation substitute or per-frame remapping is acceptable.
 
-The separate Linux GL/llvmpipe gameplay capture establishes only that named
-backend and exact pinned private pack. Windows DX12 validation and the
-private build delivery route remain required before a shipped-runtime claim.
-Source art approval and export success do not replace either check.
+### Completed original-candidate evidence (2026-10-16)
+
+The actual Rust CPU probes passed all 1,944 source times, including every
+source skin vertex and independently witnessed rigid geometry. Correspondence
+is fixed at frame one and bidirectional; no frame-dependent reassignment is
+used. Maximum skin error is 6.157 micrometres, rigid-vertex error 1.624
+micrometres, bone-head error 5.837 micrometres and camera-position error 0.196
+micrometres. Position and matrix-element gates remain respectively 0.0001 m
+and 0.0001. All final evidence/probe hashes passed; visibility failures: zero.
+
+- CPU report SHA-256: `06ec721d9dee61d3540b868f384dce399fa0095a8723efbf22ea130735a7c526`
+- CPU verifier: `tools/verify_prone_r15_runtime.py` (24 focused tests)
+- Runtime closure: 72 canonical bones, 10,234 skin vertices and three actors.
+  All 148 source bones are covered by the separate fresh-FBX check. The 76
+  unweighted helpers outside the runtime closure are not CPU-runtime probes.
+
+Actual native-window gameplay on Linux OpenGL/llvmpipe passed both deterministic
+sampling cadences: 283 PNGs at 60 samples/s and 142 PNGs at 30 samples/s.
+All 425 original pixel witnesses and structure checks passed. All 121 inputs
+remained unchanged, with the actual approved pair bound. All 142 shared
+timestamps have identical committed state. Matched scene pixels agree outside
+the embedded witness and FPS text. The first entry reaches and holds source
+frame 69; the second is interrupted by ADS at source frame 30.5000015. The
+shared smooth return, resumed live ADS/walk, and no automatic restart pass.
+
+- Gameplay report SHA-256: `ad2d19cdbc2eb6d77587f35b683748cb942b070b978c08a441ffdefce21a7347`
+- Gameplay verifier: `tools/verify_prone_gameplay_capture.py` (17 focused tests)
+- Tested game source: PR #71 head `b9d07be18aa0b4fd383516ca0786e7f5f792d0d8`
+- Native executable SHA-256: `afae906f1984462cc3153216bb3269e159871943cf8767510aa4d24e9907938b`
+- Explicit private manifest SHA-256: `9a824c14bb355c57e19586e063eb7db2ffc466912cdf2cc0898e0101b11b1b6d`
+
+These are simulation sampling cadences, not sustained rendering FPS. The runs
+took 345.590 and 187.245 wall-clock seconds including startup and writes
+(about 0.819 and 0.758 captured frames/s). Inspected HUD samples show 0 and
+1 FPS. No performance acceptance is inferred. Captures establish the named
+Linux backend and exact private pack only; they do not establish Windows DX12
+behavior or a new artistic/contact approval.
+
+The full local Cargo suite encountered linker disk exhaustion; focused Rust
+suites and Clippy passed. The failed run is retained rather than reported as
+a full pass. Windows CI is tracked against its exact head separately.
+
+### Remaining delivery boundary
+
+Windows DX12 validation of the actual pair and the private build delivery
+route remain open. Existing CI using ordinary packaged inputs cannot stand
+in for this candidate. The ordinary manifest remains unchanged. A portable
+source-only producer must prove exact approved-motion equivalence over all
+1,944 times while reporting a distinct generated source hash; it must never
+relabel regenerated BLEND bytes with the original `cbed...` identity. Existing
+base-file provenance does not authorize republishing private geometry.
