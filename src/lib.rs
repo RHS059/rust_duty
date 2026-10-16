@@ -51,9 +51,11 @@ pub mod authored_locomotion_path;
 pub mod authored_locomotion_adapter;
 
 pub mod animation_manifest;
+pub mod authored_high_mantle;
 pub mod authored_pose_return;
 pub mod authored_prone;
 pub mod authored_reload;
+pub mod high_mantle_observer;
 
 pub mod authored_walk;
 

@@ -12,6 +12,44 @@ use vector_range::{
     viewmodel_animation::{game_model_root, AnimationSet, ViewmodelPose},
 };
 
+struct HighMantleVisual {
+    index: usize,
+    pose: Option<ViewmodelPose>,
+    opacity: Option<Vec<f32>>,
+    fade: Option<PoseReturn>,
+    generation: Option<u64>,
+    return_began: Option<f64>,
+    target_maps: Vec<(usize, PoseReturnMap)>,
+    return_weight: f32,
+    procedural_weight: f32,
+    visible_ads: f32,
+}
+impl HighMantleVisual {
+    fn new(index: usize, target_maps: Vec<(usize, PoseReturnMap)>) -> Self {
+        Self {
+            index,
+            pose: None,
+            opacity: None,
+            fade: None,
+            generation: None,
+            return_began: None,
+            target_maps,
+            return_weight: 1.,
+            procedural_weight: 1.,
+            visible_ads: 0.,
+        }
+    }
+    fn clear(&mut self) {
+        self.pose = None;
+        self.opacity = None;
+        self.fade = None;
+        self.generation = None;
+        self.return_began = None;
+        self.return_weight = 1.;
+        self.procedural_weight = 1.;
+        self.visible_ads = 0.;
+    }
+}
 struct SkinBatch {
     source_mesh: usize,
     source_vertices: Vec<usize>,
@@ -47,6 +85,8 @@ pub struct AuthoredViewmodel {
     walk_index: Option<usize>,
     ads_index: Option<usize>,
     jump_index: Option<usize>,
+    high_mantle_binding: Option<vector_range::authored_high_mantle::HighMantleBinding>,
+    high_mantle: Option<HighMantleVisual>,
     prone_index: Option<usize>,
     prone_camera: Option<std::sync::Arc<vector_range::authored_prone::ProneCameraTrack>>,
     prone_pose: Option<ViewmodelPose>,
@@ -96,6 +136,14 @@ impl AuthoredViewmodel {
         if !simulation_time.is_finite() || !root.is_finite() || self.cant != 0. {
             return Err("source pose diagnostic requires finite time/root and zero cant".into());
         }
+        if let Some(visual) = self.high_mantle.as_ref().filter(|v| v.pose.is_some()) {
+            return Ok(SourcePoseSnapshot {
+                animation: &self.reload_renderers[visual.index].animation,
+                pose: visual.pose.as_ref().unwrap().clone(),
+                root,
+                actor_opacity: visual.opacity.clone(),
+            });
+        }
         if let (Some(index), Some(pose)) = (self.prone_index, &self.prone_pose) {
             return Ok(SourcePoseSnapshot {
                 animation: &self.reload_renderers[index].animation,
@@ -138,6 +186,16 @@ impl AuthoredViewmodel {
         }
         let (animation, skin, weapon) =
             AnimationSet::load_with_companions(path).map_err(|e| e.to_string())?;
+        Self::from_loaded(animation, skin, weapon, clip, fixed_time)
+    }
+    /// Construct the renderer from the exact already hash-admitted byte decode.
+    fn from_loaded(
+        animation: AnimationSet,
+        skin: SkinnedAsset,
+        weapon: vector_range::asset::WeaponAsset,
+        clip: &str,
+        fixed_time: Option<f32>,
+    ) -> Result<Self, String> {
         let sample_clip = clip;
         // Fail before preparing mesh descriptors if the requested clip is absent.
         let initial = animation
@@ -223,6 +281,8 @@ impl AuthoredViewmodel {
             walk_index: None,
             ads_index: None,
             jump_index: None,
+            high_mantle_binding: None,
+            high_mantle: None,
             prone_index: None,
             prone_camera: None,
             prone_pose: None,
@@ -380,6 +440,12 @@ impl AuthoredViewmodel {
             model.prone_index = Some(model.reload_renderers.len());
             model.reload_renderers.push(renderer);
         }
+        // Optional admission failure leaves all previously loaded authored paths intact.
+        let high_mantle_error = manifest.high_mantle.as_ref().and_then(|reference| {
+            model
+                .install_high_mantle(reference, &manifest.layer_anchor_actor)
+                .err()
+        });
         let ready_clip = manifest.locomotion.ready_clip.clone();
         model.locomotion = Some(
             LayeredLocomotion::new(
@@ -465,12 +531,90 @@ impl AuthoredViewmodel {
                 ""
             }
         ));
+        if let Some(error) = high_mantle_error {
+            model
+                .warning
+                .as_mut()
+                .unwrap()
+                .push_str(&format!("; high mantle inactive: {error}"));
+        }
         Ok(model)
+    }
+    /// Complete admission and all return maps before changing any renderer state.
+    fn install_high_mantle(
+        &mut self,
+        reference: &vector_range::animation_manifest::HighMantleReference,
+        anchor: &str,
+    ) -> Result<(), String> {
+        let (binding, animation, skin, mesh) =
+            vector_range::authored_high_mantle::HighMantleBinding::load_with_companions(
+                &reference.asset,
+                &reference.receipt,
+                &reference.receipt_sha256,
+                &reference.clip,
+            )?;
+        if anchor != vector_range::authored_high_mantle::ANCHOR {
+            return Err("one-hand must share the live weapon anchor".into());
+        }
+        let mut renderer = Self::from_loaded(animation, skin, mesh, &reference.clip, Some(0.))?;
+        renderer.return_map = Some(
+            PoseReturnMap::new(
+                &self.animation,
+                &self.skin,
+                &renderer.animation,
+                &renderer.skin,
+                canonical_to_reload_actor_basis(),
+            )
+            .map_err(|e| e.to_string())?,
+        );
+        renderer.return_blend =
+            Some(AnchoredPoseBlend::new(&renderer.animation, anchor).map_err(|e| e.to_string())?);
+        let mut maps = Vec::new();
+        for index in self
+            .reload_indices
+            .into_iter()
+            .flatten()
+            .chain(self.prone_index)
+        {
+            if maps.iter().any(|(i, _)| *i == index) {
+                continue;
+            }
+            let source = &self.reload_renderers[index];
+            if source.animation.actors().iter().any(|actor| {
+                !renderer
+                    .animation
+                    .actors()
+                    .iter()
+                    .any(|a| a.name == actor.name)
+            }) {
+                return Err("one-hand return pack is missing a live target actor".into());
+            }
+            maps.push((
+                index,
+                PoseReturnMap::new(
+                    &source.animation,
+                    &source.skin,
+                    &renderer.animation,
+                    &renderer.skin,
+                    Mat4::IDENTITY,
+                )
+                .map_err(|e| e.to_string())?,
+            ));
+        }
+        self.high_mantle_binding = Some(binding);
+        self.high_mantle = Some(HighMantleVisual::new(self.reload_renderers.len(), maps));
+        self.reload_renderers.push(renderer);
+        Ok(())
     }
     pub fn jump_sample(&self) -> Option<vector_range::authored_jump::JumpSample> {
         self.locomotion
             .as_ref()
             .and_then(LayeredLocomotion::jump_sample)
+    }
+    pub fn high_mantle_binding(
+        &self,
+    ) -> Option<vector_range::authored_high_mantle::HighMantleBinding> {
+        self.high_mantle_binding.clone()
     }
     pub fn prone_camera_track(
         &self,
@@ -504,6 +648,9 @@ impl AuthoredViewmodel {
             .map_or(0., LayeredLocomotion::run_weight)
     }
     pub fn visual_ads_amount(&self) -> f32 {
+        if let Some(visual) = self.high_mantle.as_ref().filter(|v| v.pose.is_some()) {
+            return visual.visible_ads;
+        }
         if self.prone_pose.is_some() {
             return self.prone_visible_ads;
         }
@@ -540,6 +687,13 @@ impl AuthoredViewmodel {
         Some(ads.duration(ads.sample()?.slot))
     }
     pub fn presentation_route(&self) -> &str {
+        if let Some(visual) = self.high_mantle.as_ref().filter(|v| v.pose.is_some()) {
+            return if visual.fade.is_some() {
+                "high_mantle.return"
+            } else {
+                "high_mantle.native"
+            };
+        }
         if self.prone_pose.is_some() {
             return if self.prone_return_pose.is_some() {
                 "prone.return"
@@ -594,6 +748,19 @@ impl AuthoredViewmodel {
     }
     pub fn warning(&self) -> Option<&str> {
         self.warning.as_deref()
+    }
+    pub fn authored_procedural_weight(&self) -> f32 {
+        self.high_mantle
+            .as_ref()
+            .filter(|v| v.pose.is_some())
+            .map_or(self.prone_procedural_weight, |v| v.procedural_weight)
+    }
+    #[allow(dead_code)]
+    pub fn high_mantle_return_weight(&self) -> Option<f32> {
+        self.high_mantle
+            .as_ref()
+            .filter(|v| v.fade.is_some())
+            .map(|v| v.return_weight)
     }
     pub fn prone_procedural_weight(&self) -> f32 {
         self.prone_procedural_weight
@@ -734,6 +901,172 @@ impl AuthoredViewmodel {
         self.prone_visible_ads = self.underlying_visual_ads_amount() * weight;
         Ok(())
     }
+    fn update_high_mantle_presentation(
+        &mut self,
+        simulation: &vector_range::sim::Simulation,
+    ) -> Result<(), String> {
+        let Some(mut visual) = self.high_mantle.take() else {
+            return Ok(());
+        };
+        let result = if simulation.player.dead() || simulation.high_mantle_presentation().is_none()
+        {
+            visual.clear();
+            Ok(())
+        } else if self.high_mantle_binding.as_ref() != simulation.high_mantle_binding() {
+            visual.clear();
+            Err("one-hand simulation/renderer binding changed".into())
+        } else {
+            self.update_high_mantle_visual(
+                &mut visual,
+                simulation.high_mantle_presentation().unwrap(),
+                simulation.time,
+            )
+        };
+        if result.is_err() {
+            visual.clear();
+        }
+        self.high_mantle = Some(visual);
+        result
+    }
+    fn update_high_mantle_visual(
+        &self,
+        visual: &mut HighMantleVisual,
+        presentation: vector_range::authored_high_mantle::HighMantlePresentation,
+        time: f64,
+    ) -> Result<(), String> {
+        if visual.generation != Some(presentation.generation) {
+            visual.clear();
+            visual.generation = Some(presentation.generation);
+        }
+        let renderer = &self.reload_renderers[visual.index];
+        let sample = || {
+            renderer
+                .animation
+                .sample_clamped(&renderer.clip, presentation.sample.seconds as f32)
+                .map_err(|e| e.to_string())
+        };
+        let Some(clock) = presentation.outgoing else {
+            visual.pose = Some(sample()?);
+            visual.opacity = None;
+            visual.fade = None;
+            visual.return_began = None;
+            visual.return_weight = 0.;
+            visual.procedural_weight = 0.;
+            visual.visible_ads = 0.;
+            return Ok(());
+        };
+        if visual.fade.is_none() || visual.return_began != Some(clock.began) {
+            // A completed source must expose the native endpoint before return.
+            // On cancellation preserve the last complete displayed pose once.
+            if clock.completed || visual.pose.is_none() {
+                visual.pose = Some(sample()?);
+                visual.opacity = None;
+            }
+            let pose = visual.pose.as_ref().unwrap().clone();
+            let opacity = visual.opacity.clone().unwrap_or_else(|| {
+                pose.actor_visible
+                    .iter()
+                    .map(|&v| f32::from(u8::from(v)))
+                    .collect()
+            });
+            visual.fade = Some(PoseReturn::new(pose, opacity, clock.began));
+            visual.return_began = Some(clock.began);
+        }
+        let template = visual
+            .pose
+            .as_ref()
+            .ok_or("missing one-hand return template")?;
+        // Select the same live underlying route that drawing would expose when
+        // this return is absent, including paired prone during a long return.
+        let paired = self.prone_index.zip(self.prone_pose.as_ref());
+        let live_target = paired
+            .map(|(index, pose)| (index, pose, self.prone_opacity.as_deref()))
+            .or_else(|| {
+                self.reload_presentation
+                    .as_ref()
+                    .map(|live| (live.index, &live.pose, Some(live.opacity.as_slice())))
+            });
+        let (target, target_opacity) = if let Some((index, pose, opacity)) = live_target {
+            let source = &self.reload_renderers[index];
+            let map = &visual
+                .target_maps
+                .iter()
+                .find(|(i, _)| *i == index)
+                .ok_or("missing one-hand live target mapping")?
+                .1;
+            let target = map
+                .pose(&source.animation, &renderer.animation, pose, template)
+                .map_err(|e| e.to_string())?;
+            let opacity = renderer
+                .animation
+                .actors()
+                .iter()
+                .map(|actor| {
+                    source
+                        .animation
+                        .actors()
+                        .iter()
+                        .position(|a| a.name == actor.name)
+                        .map_or(0., |i| {
+                            opacity.map_or(f32::from(u8::from(pose.actor_visible[i])), |values| {
+                                values[i]
+                            })
+                        })
+                })
+                .collect::<Vec<_>>();
+            (target, opacity)
+        } else {
+            let live = self
+                .locomotion
+                .as_ref()
+                .ok_or("missing live one-hand return target")?
+                .pose();
+            let target = renderer
+                .return_map
+                .as_ref()
+                .ok_or("missing one-hand return mapping")?
+                .pose(&self.animation, &renderer.animation, live, template)
+                .map_err(|e| e.to_string())?;
+            let opacity = target
+                .actor_visible
+                .iter()
+                .map(|&v| f32::from(u8::from(v)))
+                .collect();
+            (target, opacity)
+        };
+        let weight = clock.weight(time);
+        let (pose, opacity) = visual
+            .fade
+            .as_ref()
+            .unwrap()
+            .pose_with_opacity_at_weight(
+                &renderer.animation,
+                renderer
+                    .return_blend
+                    .as_ref()
+                    .ok_or("missing one-hand return anchor")?,
+                &target,
+                &target_opacity,
+                weight,
+            )
+            .map_err(|e| e.to_string())?;
+        visual.pose = Some(pose);
+        visual.opacity = Some(opacity);
+        visual.return_weight = weight;
+        visual.procedural_weight = weight
+            * if paired.is_some() {
+                self.prone_procedural_weight
+            } else {
+                1.
+            };
+        visual.visible_ads = weight
+            * if paired.is_some() {
+                self.prone_visible_ads
+            } else {
+                self.underlying_visual_ads_amount()
+            };
+        Ok(())
+    }
     /// Exactly one committed observer, shared by real keyboard and replay input.
     pub fn committed_step(&mut self, start: f64, simulation: &vector_range::sim::Simulation) {
         if self.error.is_some() {
@@ -786,6 +1119,11 @@ impl AuthoredViewmodel {
         // Active source frames receive no entry crossfade or procedural edits.
         if self.error.is_none() {
             if let Err(error) = self.update_prone_presentation(simulation) {
+                self.error = Some(error);
+            }
+        }
+        if self.error.is_none() {
+            if let Err(error) = self.update_high_mantle_presentation(simulation) {
                 self.error = Some(error);
             }
         }
@@ -981,13 +1319,19 @@ impl AuthoredViewmodel {
         })
     }
     pub fn presented_anchor(&self) -> Option<Vec3> {
-        let (set, pose) = if let (Some(index), Some(pose)) = (self.prone_index, &self.prone_pose) {
-            (&self.reload_renderers[index].animation, pose)
-        } else if let Some(visual) = &self.reload_presentation {
-            (&self.reload_renderers[visual.index].animation, &visual.pose)
-        } else {
-            (&self.animation, self.locomotion.as_ref()?.pose())
-        };
+        let (set, pose) =
+            if let Some(visual) = self.high_mantle.as_ref().filter(|v| v.pose.is_some()) {
+                (
+                    &self.reload_renderers[visual.index].animation,
+                    visual.pose.as_ref().unwrap(),
+                )
+            } else if let (Some(index), Some(pose)) = (self.prone_index, &self.prone_pose) {
+                (&self.reload_renderers[index].animation, pose)
+            } else if let Some(visual) = &self.reload_presentation {
+                (&self.reload_renderers[visual.index].animation, &visual.pose)
+            } else {
+                (&self.animation, self.locomotion.as_ref()?.pose())
+            };
         let index = set
             .actors()
             .iter()
@@ -995,6 +1339,9 @@ impl AuthoredViewmodel {
         Some(game_model_root().transform_point3(pose.actor_globals[index].translation))
     }
     pub fn reset(&mut self, time: f64) {
+        if let Some(visual) = &mut self.high_mantle {
+            visual.clear();
+        }
         self.prone_pose = None;
         self.prone_opacity = None;
         self.prone_return_pose = None;
@@ -1035,6 +1382,16 @@ impl AuthoredViewmodel {
         lighting: SceneLighting,
         root: Mat4,
     ) -> Result<(), String> {
+        if let Some(visual) = self.high_mantle.as_ref().filter(|v| v.pose.is_some()) {
+            let renderer = &mut self.reload_renderers[visual.index];
+            renderer.cant = self.cant * visual.procedural_weight;
+            return renderer.draw_pose_opacity(
+                visual.pose.as_ref().unwrap(),
+                lighting,
+                root,
+                visual.opacity.as_deref(),
+            );
+        }
         if let (Some(index), Some(pose)) = (self.prone_index, &self.prone_pose) {
             let pose = pose.clone();
             let renderer = &mut self.reload_renderers[index];
@@ -1174,6 +1531,10 @@ mod tests {
     }
 
     fn contact_fixture_frames(animated: bool) -> AuthoredViewmodel {
+        contact_fixture_duration(animated, vector_range::authored_prone::ENTRY_SECONDS)
+    }
+
+    fn contact_fixture_duration(animated: bool, duration: f64) -> AuthoredViewmodel {
         fn words(bytes: &mut Vec<u8>, values: &[u32]) {
             bytes.extend(values.iter().flat_map(|value| value.to_le_bytes()));
         }
@@ -1198,10 +1559,7 @@ mod tests {
         words(&mut payload, &[7]);
         name(&mut payload, "contact");
         let frames = if animated {
-            vec![
-                (0., 2.),
-                (vector_range::authored_prone::ENTRY_SECONDS as f32, 3.),
-            ]
+            vec![(0., 2.), (duration as f32, 3.)]
         } else {
             vec![(0., 3.)]
         };
@@ -1311,6 +1669,8 @@ mod tests {
             walk_index: None,
             ads_index: None,
             jump_index: None,
+            high_mantle_binding: None,
+            high_mantle: None,
             prone_index: None,
             prone_camera: None,
             prone_pose: None,
@@ -1738,5 +2098,323 @@ mod tests {
             snapshot.animation,
             &model.reload_renderers[0].animation
         ));
+    }
+    fn high_mantle_fixture() -> (AuthoredViewmodel, HighMantleVisual) {
+        let mut model = layered_contact_fixture();
+        let target = contact_fixture();
+        let mut native =
+            contact_fixture_duration(true, vector_range::authored_high_mantle::NATIVE_SECONDS);
+        native.return_map = Some(
+            PoseReturnMap::new(
+                &model.animation,
+                &model.skin,
+                &native.animation,
+                &native.skin,
+                Mat4::IDENTITY,
+            )
+            .unwrap(),
+        );
+        native.return_blend =
+            Some(AnchoredPoseBlend::new(&native.animation, "fixture_prop").unwrap());
+        let map = PoseReturnMap::new(
+            &target.animation,
+            &target.skin,
+            &native.animation,
+            &native.skin,
+            Mat4::IDENTITY,
+        )
+        .unwrap();
+        model.reload_renderers.push(target);
+        model.reload_renderers.push(native);
+        (model, HighMantleVisual::new(1, vec![(0, map)]))
+    }
+    fn high_clock(seconds: f64) -> vector_range::authored_high_mantle::HighMantlePresentation {
+        use vector_range::authored_high_mantle::{HighMantlePresentation, HighMantleSample};
+        HighMantlePresentation {
+            generation: 1,
+            sample: HighMantleSample {
+                seconds,
+                source_frame: 1. + seconds * 60.,
+                reference_frame: 7787. + seconds * 60.,
+            },
+            outgoing: None,
+        }
+    }
+    #[test]
+    fn high_mantle_return_tracks_live_pose_opacity_ads_and_resets() {
+        let (mut model, mut visual) = high_mantle_fixture();
+        let mut clock = high_clock(0.3);
+        model
+            .update_high_mantle_visual(&mut visual, clock, 4.)
+            .unwrap();
+        let frozen = visual.pose.clone().unwrap();
+        let from_x = frozen.actor_globals[0].translation.x;
+        clock.outgoing = Some(vector_range::authored_high_mantle::HighMantleReturn {
+            sample: clock.sample,
+            began: 4.,
+            duration: 0.4,
+            completed: false,
+        });
+        for (time, x, alpha) in [(4., 5., 0.4), (4.1, 6., 0.3), (4.2, 7., 0.25)] {
+            let mut target = model.reload_renderers[0]
+                .animation
+                .sample_clamped("contact", 0.)
+                .unwrap();
+            target.actor_globals[0].translation.x = x;
+            target.bone_locals[0].translation.x = x;
+            model.reload_presentation = Some(ReloadPresentation {
+                index: 0,
+                pose: target,
+                opacity: vec![alpha],
+                fade: None,
+                outgoing: true,
+                from_ads: 0.8,
+                visible_ads: 0.8,
+                weight: 0.2,
+            });
+            model
+                .update_high_mantle_visual(&mut visual, clock, time)
+                .unwrap();
+            let w = clock.outgoing.unwrap().weight(time);
+            let pose = visual.pose.as_ref().unwrap();
+            assert!(
+                (pose.actor_globals[0].translation.x - (from_x + (x - from_x) * w)).abs() < 1e-5
+            );
+            assert_eq!(pose.bone_locals[0], pose.actor_globals[0]);
+            assert!((visual.opacity.as_ref().unwrap()[0] - (1. + (alpha - 1.) * w)).abs() < 1e-6);
+            assert_eq!(visual.procedural_weight, w);
+            assert!((visual.visible_ads - 0.8 * w).abs() < 1e-6);
+            let before = visual.pose.clone();
+            model
+                .update_high_mantle_visual(&mut visual, clock, time)
+                .unwrap();
+            assert_eq!(
+                before, visual.pose,
+                "same committed time cannot refreeze or advance"
+            );
+        }
+        model.reload_presentation = None;
+        model
+            .update_high_mantle_visual(&mut visual, clock, 4.3)
+            .unwrap();
+        let w = clock.outgoing.unwrap().weight(4.3);
+        assert!(
+            (visual.pose.as_ref().unwrap().actor_globals[0].translation.x
+                - (from_x + (3. - from_x) * w))
+                .abs()
+                < 1e-5
+        );
+        model
+            .update_high_mantle_visual(&mut visual, clock, 4.4)
+            .unwrap();
+        assert_eq!(
+            visual.pose.as_ref().unwrap().bone_locals,
+            model.locomotion.as_ref().unwrap().pose().bone_locals
+        );
+        model.high_mantle = Some(visual);
+        model.reset(0.);
+        let visual = model.high_mantle.as_ref().unwrap();
+        assert!(visual.pose.is_none());
+        assert!(visual.fade.is_none());
+    }
+    #[test]
+    fn high_mantle_final_sample_is_retained_before_return_even_if_render_skipped() {
+        let (mut model, mut visual) = high_mantle_fixture();
+        model
+            .update_high_mantle_visual(&mut visual, high_clock(0.1), 0.1)
+            .unwrap();
+        let mut completed = high_clock(vector_range::authored_high_mantle::NATIVE_SECONDS);
+        completed.outgoing = Some(vector_range::authored_high_mantle::HighMantleReturn {
+            sample: completed.sample,
+            began: 2.,
+            duration: 0.2,
+            completed: true,
+        });
+        model
+            .update_high_mantle_visual(&mut visual, completed, 2.)
+            .unwrap();
+        let expected = model.reload_renderers[1]
+            .animation
+            .sample_clamped("contact", completed.sample.seconds as f32)
+            .unwrap();
+        assert_eq!(
+            visual.pose.as_ref().unwrap().bone_locals,
+            expected.bone_locals
+        );
+        assert_eq!(
+            visual.pose.as_ref().unwrap().actor_globals,
+            expected.actor_globals
+        );
+        assert_eq!(visual.procedural_weight, 0.);
+        model.high_mantle = Some(visual);
+        let before = model.high_mantle.as_ref().unwrap().pose.clone();
+        let lighting = SceneLighting {
+            direction_to_light: Vec3::Y,
+            ambient: 0.5,
+            diffuse: 0.5,
+        };
+        for render_time in [2., 2., 20., 0.] {
+            begin_frame(640, 480, 1.).unwrap();
+            model
+                .draw_checked(render_time, lighting, Mat4::IDENTITY)
+                .unwrap();
+            let _ = take_draw_list().unwrap();
+            assert_eq!(
+                model.high_mantle.as_ref().unwrap().pose,
+                before,
+                "render time must not own authored time"
+            );
+            assert_eq!(model.high_mantle_return_weight(), Some(0.));
+        }
+        let mut visual = model.high_mantle.take().unwrap();
+        let mut restart = high_clock(0.);
+        restart.generation = 2;
+        model
+            .update_high_mantle_visual(&mut visual, restart, 3.)
+            .unwrap();
+        assert!(visual.fade.is_none());
+        assert_eq!(visual.pose.as_ref().unwrap().sample_time, 0.);
+    }
+    #[test]
+    fn high_mantle_incompatible_return_rest_or_actor_mapping_fails_closed() {
+        let (model, mut visual) = high_mantle_fixture();
+        model
+            .update_high_mantle_visual(&mut visual, high_clock(0.3), 1.)
+            .unwrap();
+        let mut incompatible = contact_fixture();
+        incompatible.skin.bones[0].inverse_bind[12] += 1.;
+        assert!(PoseReturnMap::new(
+            &model.animation,
+            &model.skin,
+            &incompatible.animation,
+            &incompatible.skin,
+            Mat4::IDENTITY
+        )
+        .is_err());
+        let (mut model, mut visual) = high_mantle_fixture();
+        visual.target_maps.clear();
+        let target = model.reload_renderers[0]
+            .animation
+            .sample_clamped("contact", 0.)
+            .unwrap();
+        model.reload_presentation = Some(ReloadPresentation {
+            index: 0,
+            pose: target,
+            opacity: vec![1.],
+            fade: None,
+            outgoing: false,
+            from_ads: 0.,
+            visible_ads: 0.,
+            weight: 0.,
+        });
+        let mut clock = high_clock(0.3);
+        clock.outgoing = Some(vector_range::authored_high_mantle::HighMantleReturn {
+            sample: clock.sample,
+            began: 1.,
+            duration: 0.2,
+            completed: false,
+        });
+        assert!(model
+            .update_high_mantle_visual(&mut visual, clock, 1.)
+            .is_err());
+    }
+    #[test]
+    fn high_mantle_unapproved_optional_pack_keeps_existing_renderer_intact() {
+        use vector_range::animation_manifest::HighMantleReference;
+        let mut model = layered_contact_fixture();
+        let before = model.source_pose_snapshot(0., Mat4::IDENTITY).unwrap().pose;
+        let reference = HighMantleReference {
+            asset: "missing.vra".into(),
+            receipt: "missing.json".into(),
+            receipt_sha256: "1".repeat(64),
+            clip: vector_range::authored_high_mantle::ACTION.into(),
+        };
+        let error = model
+            .install_high_mantle(&reference, vector_range::authored_high_mantle::ANCHOR)
+            .unwrap_err();
+        assert!(error.contains("pending native verification"));
+        assert!(model.high_mantle_binding().is_none());
+        assert!(model.high_mantle.is_none());
+        assert!(model.error().is_none());
+        assert_eq!(
+            model.source_pose_snapshot(0., Mat4::IDENTITY).unwrap().pose,
+            before
+        );
+    }
+    #[test]
+    fn high_mantle_long_return_tracks_live_paired_prone_and_nested_root_weight() {
+        let (mut model, mut visual) = high_mantle_fixture();
+        let paired = contact_fixture();
+        let map = PoseReturnMap::new(
+            &paired.animation,
+            &paired.skin,
+            &model.reload_renderers[1].animation,
+            &model.reload_renderers[1].skin,
+            Mat4::IDENTITY,
+        )
+        .unwrap();
+        model.reload_renderers.push(paired);
+        model.prone_index = Some(2);
+        visual.target_maps.push((2, map));
+        let mut clock = high_clock(0.3);
+        model
+            .update_high_mantle_visual(&mut visual, clock, 2.)
+            .unwrap();
+        let from_x = visual.pose.as_ref().unwrap().actor_globals[0].translation.x;
+        clock.outgoing = Some(vector_range::authored_high_mantle::HighMantleReturn {
+            sample: clock.sample,
+            began: 2.,
+            duration: 1.,
+            completed: false,
+        });
+        for (time, x, root_weight, alpha) in [
+            (2.25, 5., 0., 1.),
+            (2.5, 6., 0., 0.8),
+            (2.75, 7., 0.4, 0.6),
+            (3., 8., 0.8, 0.4),
+        ] {
+            let mut pose = model.reload_renderers[2]
+                .animation
+                .sample_clamped("contact", 0.)
+                .unwrap();
+            pose.actor_globals[0].translation.x = x;
+            pose.bone_locals[0].translation.x = x;
+            model.prone_pose = Some(pose);
+            model.prone_opacity = Some(vec![alpha]);
+            model.prone_procedural_weight = root_weight;
+            model.prone_visible_ads = 0.5 * root_weight;
+            model
+                .update_high_mantle_visual(&mut visual, clock, time)
+                .unwrap();
+            let w = clock.outgoing.unwrap().weight(time);
+            assert!(
+                (visual.pose.as_ref().unwrap().actor_globals[0].translation.x
+                    - (from_x + (x - from_x) * w))
+                    .abs()
+                    < 1e-5
+            );
+            assert!((visual.opacity.as_ref().unwrap()[0] - (1. + (alpha - 1.) * w)).abs() < 1e-6);
+            assert_eq!(visual.return_weight, w);
+            assert_eq!(visual.procedural_weight, w * root_weight);
+            assert_eq!(visual.visible_ads, w * model.prone_visible_ads);
+        }
+        assert_eq!(
+            visual.pose.as_ref().unwrap().bone_locals,
+            model.prone_pose.as_ref().unwrap().bone_locals
+        );
+        assert!(
+            (visual.opacity.as_ref().unwrap()[0] - model.prone_opacity.as_ref().unwrap()[0]).abs()
+                < 1e-6
+        );
+        model.high_mantle = Some(visual);
+        let before = model.source_pose_snapshot(3., Mat4::IDENTITY).unwrap().pose;
+        model.high_mantle.as_mut().unwrap().clear();
+        let after = model.source_pose_snapshot(3., Mat4::IDENTITY).unwrap().pose;
+        assert_eq!(before.bone_locals, after.bone_locals);
+        assert_eq!(before.actor_globals, after.actor_globals);
+        assert_eq!(
+            model.authored_procedural_weight(),
+            model.prone_procedural_weight()
+        );
     }
 }

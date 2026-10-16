@@ -220,6 +220,7 @@ impl Simulation {
         if matches!(self.player.action, Action::Hang(h) if h.pistol != PistolPhase::Holstered) {
             self.emit(ActionEventKind::PistolInterrupted);
         }
+        self.high_mantle.clear();
         let p = &mut self.player;
         p.health = 0.;
         p.dead_since = Some(self.time);

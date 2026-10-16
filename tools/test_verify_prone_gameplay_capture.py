@@ -2,7 +2,7 @@
 import copy
 import hashlib
 import math
-from pathlib import Path
+from pathlib import Path, PurePosixPath, PureWindowsPath
 import tempfile
 import unittest
 
@@ -119,11 +119,15 @@ class GameplayVerificationTests(unittest.TestCase):
         for name,digest in v.HELPER_SHAS.items():self.assertEqual(v.sha(here/name),digest)
 
     def test_exact_invocation_has_explicit_pair_and_native_window(self):
-        cmd=v.expected_command(Path('/root'),Path('/root/out'),60,'1'*64)
-        self.assertEqual(cmd,['/root/out/frozen-vector-range','--renderer=gl','--level=range','--capture',
-                             '--capture-native-window','--capture-sequence=gameplay-prone','--capture-hz=60',
-                             '--animation-manifest=/root/private-runtime-pack-v1/animations.cfg',
-                             '--capture-frame-witness='+'1'*64,'--output=/root/out/60'])
+        # Exercise both path syntaxes on every host without weakening exact flags.
+        for root in (PurePosixPath('/root'), PureWindowsPath('C:/root')):
+            with self.subTest(path_type=type(root).__name__):
+                folder=root/'out'
+                cmd=v.expected_command(root,folder,60,'1'*64)
+                self.assertEqual(cmd,[str(folder/'frozen-vector-range'),'--renderer=gl','--level=range','--capture',
+                                     '--capture-native-window','--capture-sequence=gameplay-prone','--capture-hz=60',
+                                     '--animation-manifest='+str(root/'private-runtime-pack-v1'/'animations.cfg'),
+                                     '--capture-frame-witness='+'1'*64,'--output='+str(folder/'60')])
 
 
 class SyntheticWitnessTests(unittest.TestCase):

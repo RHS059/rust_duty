@@ -113,7 +113,8 @@ class PrimitiveTests(unittest.TestCase):
     def test_oracle_paths_cannot_escape(self):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
-            self.assertEqual(v.bounded_path(root, "sample-rows/0000.json", "row"), root / "sample-rows/0000.json")
+            self.assertEqual(v.bounded_path(root, "sample-rows/0000.json", "row"),
+                             root.resolve() / "sample-rows/0000.json")
             with self.assertRaises(v.VerificationError):
                 v.bounded_path(root, "../outside.json", "row")
 
