@@ -536,7 +536,9 @@ mod tests {
     fn combined_replay_source_free_shipped_range_route_completes() {
         // Original synthetic binding data only. This is CPU gameplay reachability,
         // not a loaded production package, native rendering, or art acceptance.
-        let mut s = crate::authored_viewmodel::combined_replay_sim();
+        let mut s = crate::authored_viewmodel::combined_replay_sim(
+            crate::authored_high_mantle::HighMantleBinding::synthetic(0.20),
+        );
         let (position, yaw) = start();
         s.player.position = position;
         s.player.yaw = yaw;
@@ -583,7 +585,9 @@ mod tests {
     #[test]
     fn combined_replay_sparse_cadence_retains_boundaries_and_dense_returns() {
         for hz in [30, 60] {
-            let mut s = crate::authored_viewmodel::combined_replay_sim();
+            let mut s = crate::authored_viewmodel::combined_replay_sim(
+                crate::authored_high_mantle::HighMantleBinding::synthetic(0.20),
+            );
             let (p, y) = start();
             s.player.position = p;
             s.player.yaw = y;

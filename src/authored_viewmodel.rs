@@ -2034,8 +2034,10 @@ impl AuthoredViewmodel {
 
 #[cfg(test)]
 #[allow(dead_code)]
-pub(crate) fn combined_replay_sim() -> vector_range::sim::Simulation {
-    tests::combined_replay_sim()
+pub(crate) fn combined_replay_sim(
+    binding: vector_range::authored_high_mantle::HighMantleBinding,
+) -> vector_range::sim::Simulation {
+    tests::combined_replay_sim(binding)
 }
 
 // The library-only admitted fixture calls this helper. The binary also
@@ -3017,14 +3019,14 @@ mod tests {
             model.prone_procedural_weight()
         );
     }
-    pub(super) fn combined_replay_sim() -> vector_range::sim::Simulation {
+    pub(super) fn combined_replay_sim(
+        binding: vector_range::authored_high_mantle::HighMantleBinding,
+    ) -> vector_range::sim::Simulation {
         let (mut model, _) = high_mantle_fixture();
         let mut sim = vector_range::sim::Simulation::new();
         sim.set_low_vault_binding(Some(combined_install_low(&mut model)))
             .unwrap();
-        sim.set_high_mantle_binding(Some(
-            vector_range::authored_high_mantle::HighMantleBinding::synthetic(0.20),
-        ));
+        sim.set_high_mantle_binding(Some(binding));
         sim.set_prone_camera_track(Some(combined_prone_track()));
         sim
     }

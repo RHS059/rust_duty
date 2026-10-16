@@ -21,7 +21,7 @@
   "native_manifest_sha256": "ecc8bf3e3663276178fa24578f3be57cb3ab96857cfa453be068574914209026",
   "published_parent": "71857605d1d7f81f1fe96d23cc6f630939c643eb",
   "renderer_before_app_edge_sha256": "07242fcab1d23d92a23748e27525efa8440fe11724115c562c6c477fb1d6c23e",
-  "repository_renderer_sha256": "bd35217f9dad23cdabfea992b01f96728671760112dfc12c2fe3744872971f5d",
+  "repository_renderer_sha256": "766a537955269db8318f8cb4dcf8f8f87add3b9692fa5e3354643297c23cd43a",
   "schema": "rust-duty-consolidated-source-contracts/v1",
   "simulation_before_observers_sha256": "d543d8739ce33316be2d6ec39a67abbad01ba7c70ffc0ca632db9d4d3ec5479e",
   "startup_base_app_sha256": "ed1721419d597515cd78acf91af9da72ccf952168c57a38c2fd778f69f6bc0fe",

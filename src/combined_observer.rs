@@ -103,7 +103,9 @@ mod tests {
     use super::*;
     #[test]
     fn combined_observer_states_report_current_admitted_bindings() {
-        let mut sim = crate::authored_viewmodel::combined_replay_sim();
+        let mut sim = crate::authored_viewmodel::combined_replay_sim(
+            crate::authored_high_mantle::HighMantleBinding::synthetic(0.20),
+        );
         let initial = bindings(&sim);
         assert!(["high", "low", "prone"]
             .iter()

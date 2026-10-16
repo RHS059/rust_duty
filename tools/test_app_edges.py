@@ -1,9 +1,52 @@
 """Synthetic/static only. Never builds or executes Rust or opens a window."""
-import copy, hashlib, json, struct, tempfile, unittest
+import copy, hashlib, json, re, struct, tempfile, unittest
 from unittest.mock import patch
 from pathlib import Path
 from app_edge_synthetic_fixture import make, BINDING, IDENTITY, CONTRACT
 from verify_app_edges import validate, Rejected, FIELDS, png_extent, loads, verify_config, verify_run, invocation, sha, digest
+
+def restore_shared_replay_test_binding(source):
+    """Undo only the test-only binding injection for the immutable renderer pin."""
+    changes = (
+        (
+            'pub(crate) fn combined_replay_sim(\n'
+            '    binding: vector_range::authored_high_mantle::HighMantleBinding,\n'
+            ') -> vector_range::sim::Simulation {\n'
+            '    tests::combined_replay_sim(binding)\n}',
+            'pub(crate) fn combined_replay_sim() -> vector_range::sim::Simulation {\n'
+            '    tests::combined_replay_sim()\n}',
+        ),
+        (
+            '    pub(super) fn combined_replay_sim(\n'
+            '        binding: vector_range::authored_high_mantle::HighMantleBinding,\n'
+            '    ) -> vector_range::sim::Simulation {',
+            '    pub(super) fn combined_replay_sim() -> vector_range::sim::Simulation {',
+        ),
+        (
+            '        sim.set_high_mantle_binding(Some(binding));',
+            '        sim.set_high_mantle_binding(Some(\n'
+            '            vector_range::authored_high_mantle::HighMantleBinding::synthetic(0.20),\n'
+            '        ));',
+        ),
+    )
+    for current, previous in changes:
+        assert source.count(current) == 1, 'shared replay binding injection changed'
+        source = source.replace(current, previous)
+    return source
+
+
+def check_shared_replay_test_scope(renderer, callers):
+    assert 'HighMantleBinding::synthetic' not in renderer, 'shared renderer cannot construct a library-only binding'
+    restore_shared_replay_test_binding(renderer)
+    for source, expected in callers:
+        production, tests = source.split('#[cfg(test)]\nmod tests {', 1)
+        assert 'HighMantleBinding::synthetic' not in production
+        assert tests.count('crate::authored_viewmodel::combined_replay_sim(') == expected
+        assert len(re.findall(
+            r'crate::authored_viewmodel::combined_replay_sim\(\s*'
+            r'crate::authored_high_mantle::HighMantleBinding::synthetic\(0\.20\),\s*\)',
+            tests)) == expected, 'library tests must inject the unchanged 0.20-second binding'
+
 
 class TraceTests(unittest.TestCase):
     def rows(self,case='pause',hz=60):return make(case,hz)
@@ -228,6 +271,7 @@ class SourceTests(unittest.TestCase):
         self.assertIn('pub const NATIVE_SECONDS: f64 = 95. / 60.;',high)
     def test_renderer_delta_only_observes_existing_samples_and_adds_unrun_test(self):
         new=(self.overlay/'src/authored_viewmodel.rs').read_text()
+        new=restore_shared_replay_test_binding(new)
         begin=new.index('    /// Distinct source and presented sample times. An outgoing pose is a live')
         end=new.index('    /// Set the hip cant applied at the next draw.',begin)
         new=new[:begin]+new[end:]
@@ -242,6 +286,40 @@ class SourceTests(unittest.TestCase):
         new=new.replace('#[cfg(test)]\n#[allow(dead_code)]\npub(crate) fn combined_replay_sim()', '#[cfg(test)]\npub(crate) fn combined_replay_sim()')
         new=new.replace('// The library-only admitted fixture calls this helper. The binary also\n// compiles this module for tests, but cannot construct that library test binding.\n#[cfg(test)]\n#[allow(dead_code)]\npub(crate) fn assert_combined_admitted_sync(', '#[cfg(test)]\npub(crate) fn assert_combined_admitted_sync(')
         self.assertEqual(hashlib.sha256(new.encode()).hexdigest(),self.contracts['renderer_before_app_edge_sha256'])
+    def test_shared_renderer_replay_binding_is_constructed_only_in_library_tests(self):
+        renderer=(self.overlay/'src/authored_viewmodel.rs').read_text()
+        callers=[((self.overlay/path).read_text(),count) for path,count in
+            (('src/combined_replay.rs',2),('src/combined_observer.rs',1))]
+        check_shared_replay_test_scope(renderer,callers)
+        library=(self.overlay/'src/lib.rs').read_text()
+        self.assertIn('#[cfg(test)]\nextern crate self as vector_range;',library)
+        self.assertIn('#[cfg(test)]\n#[allow(dead_code)]\nmod authored_viewmodel;',library)
+        # This module is also compiled against a non-test library by these targets.
+        main=(self.overlay/'src/main.rs').read_text()
+        self.assertIn('#[cfg(any(feature = "legacy-macroquad", feature = "wgpu-runtime"))]\nmod authored_viewmodel;',main)
+        for path in ('tests/source_triangle_completeness.rs',
+                     'tests/authored_high_mantle_contract.rs',
+                     'tests/authored_low_vault_contract.rs',
+                     'tests/authored_low_vault_presentation.rs',
+                     'tests/combined_animation_contract.rs',
+                     'examples/source_visibility_certificate.rs',
+                     'examples/source_visibility_geometry_probe.rs'):
+            included=(self.overlay/path).read_text()
+            self.assertIn('#[path = "../src/authored_viewmodel.rs"]\nmod authored_viewmodel;',included)
+    def test_shared_renderer_test_scope_rejects_original_failure_and_duration_mutation(self):
+        renderer=(self.overlay/'src/authored_viewmodel.rs').read_text()
+        callers=[((self.overlay/path).read_text(),count) for path,count in
+            (('src/combined_replay.rs',2),('src/combined_observer.rs',1))]
+        with self.assertRaises(AssertionError):
+            check_shared_replay_test_scope(restore_shared_replay_test_binding(renderer),callers)
+        broken=renderer.replace('sim.set_high_mantle_binding(Some(binding));',
+            'sim.set_high_mantle_binding(Some(vector_range::authored_high_mantle::HighMantleBinding::synthetic(0.20)));')
+        with self.assertRaises(AssertionError):check_shared_replay_test_scope(broken,callers)
+        for at in range(len(callers)):
+            changed=callers.copy();source,count=changed[at]
+            changed[at]=(source.replace('HighMantleBinding::synthetic(0.20)',
+                'HighMantleBinding::synthetic(0.21)',1),count)
+            with self.assertRaises(AssertionError):check_shared_replay_test_scope(renderer,changed)
     def test_python_has_no_launch_or_os_input_route(self):
         for name in ('app_edge_contract.py','verify_app_edges.py','app_edge_synthetic_fixture.py'):
             text=(self.overlay/'tools'/name).read_text()
