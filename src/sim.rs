@@ -1,6 +1,8 @@
 use crate::action::{ActionEvent, ActionEventKind, ActionSlot, ActionTimings, Loadout};
+use crate::authored_prone::{ProneCameraTrack, ProneReturn, ProneSample, DEFAULT_RETURN_SECONDS};
 use crate::settings::Settings;
 use glam::{vec2, vec3, Vec2, Vec3};
+use std::sync::Arc;
 
 mod actions;
 pub use actions::{
@@ -540,6 +542,17 @@ pub struct Simulation {
     /// Sidearm interface; empty by default. Survives `reset`.
     pub loadout: Loadout,
     pub time: f64,
+    high_mantle: crate::authored_high_mantle::HighMantleController,
+    low_vault_binding: Option<crate::authored_low_vault::LowVaultBinding>,
+    low_vault_sample: Option<crate::authored_low_vault::LowVaultSample>,
+    low_vault_began: Option<f64>,
+    /// Invalidates renderer-owned outgoing state on reset, rebind or supersession.
+    low_vault_generation: u64,
+    prone_camera: Option<Arc<ProneCameraTrack>>,
+    prone_entry: Option<(f64, f32)>,
+    prone_sample: Option<ProneSample>,
+    prone_return: Option<ProneReturn>,
+    prone_return_seconds: f64,
     spread_seed: u32,
     recoil_seed: u32,
     level: Option<LevelState>,
@@ -652,6 +665,16 @@ impl Simulation {
             timings: ActionTimings::default(),
             loadout: Loadout::default(),
             time: 0.,
+            high_mantle: Default::default(),
+            low_vault_binding: None,
+            low_vault_sample: None,
+            low_vault_began: None,
+            low_vault_generation: 0,
+            prone_camera: None,
+            prone_entry: None,
+            prone_sample: None,
+            prone_return: None,
+            prone_return_seconds: DEFAULT_RETURN_SECONDS,
             spread_seed: 0x91e10da5,
             recoil_seed: 0xa735813c,
             level: None,
@@ -666,17 +689,169 @@ impl Simulation {
     pub fn reset(&mut self) {
         let timings = std::mem::take(&mut self.timings);
         let loadout = self.loadout;
+        let high_mantle_binding = self.high_mantle.binding().cloned();
+        let low_vault_binding = self.low_vault_binding.take();
+        let low_vault_generation = self.low_vault_generation.wrapping_add(1);
+        let prone_camera = self.prone_camera.take();
+        let prone_return_seconds = self.prone_return_seconds;
         let level = self.level.take();
         *self = Self::new();
         self.timings = timings;
         self.loadout = loadout;
+        self.high_mantle.set_binding(high_mantle_binding);
+        self.low_vault_binding = low_vault_binding;
+        self.low_vault_generation = low_vault_generation;
+        self.prone_camera = prone_camera;
+        self.prone_return_seconds = prone_return_seconds;
         if let Some(level) = level {
             self.install_level(level.blocks, level.spawn_position, level.spawn_yaw);
+        }
+    }
+    /// Opts in only the existing LOW mantle onto a block, never vault-over.
+    /// Replacement during an accepted traversal is rejected atomically. Disabling
+    /// clears presentation but preserves that already accepted collision duration.
+    pub fn set_low_vault_binding(
+        &mut self,
+        binding: Option<crate::authored_low_vault::LowVaultBinding>,
+    ) -> Result<(), String> {
+        if binding.is_some() && self.player.mantle.is_some() {
+            return Err("cannot replace low-vault binding during traversal".into());
+        }
+        self.clear_low_vault_presentation();
+        self.low_vault_binding = binding;
+        Ok(())
+    }
+    pub fn low_vault_binding(&self) -> Option<&crate::authored_low_vault::LowVaultBinding> {
+        self.low_vault_binding.as_ref()
+    }
+    pub fn low_vault_sample(&self) -> Option<crate::authored_low_vault::LowVaultSample> {
+        if self.player.dead() {
+            None
+        } else {
+            self.low_vault_sample
+        }
+    }
+    pub fn low_vault_generation(&self) -> u64 {
+        self.low_vault_generation
+    }
+    fn clear_low_vault_presentation(&mut self) {
+        self.low_vault_sample = None;
+        self.low_vault_began = None;
+        self.low_vault_generation = self.low_vault_generation.wrapping_add(1);
+    }
+    /// Install only after full pinned companion and named/rest return validation.
+    /// A replacement cancels the accepted high traversal and clears stale poses.
+    pub fn set_high_mantle_binding(
+        &mut self,
+        binding: Option<crate::authored_high_mantle::HighMantleBinding>,
+    ) {
+        if self.high_mantle.binding() == binding.as_ref() {
+            return;
+        }
+        if self.high_mantle.binding().is_some()
+            && self.player.mantle.is_some_and(|state| {
+                state.kind == MantleKind::High
+                    && !state.from_hang
+                    && state.duration == crate::authored_high_mantle::NATIVE_SECONDS as f32
+            })
+        {
+            self.cancel_mantle();
+        }
+        self.high_mantle.set_binding(binding);
+    }
+    pub fn high_mantle_binding(&self) -> Option<&crate::authored_high_mantle::HighMantleBinding> {
+        self.high_mantle.binding()
+    }
+    pub fn high_mantle_presentation(
+        &self,
+    ) -> Option<crate::authored_high_mantle::HighMantlePresentation> {
+        if self.player.dead() {
+            None
+        } else {
+            self.high_mantle.presentation()
+        }
+    }
+    /// Install only after the complete opt-in weapon/camera pair has loaded.
+    pub fn set_prone_camera_track(&mut self, track: Option<Arc<ProneCameraTrack>>) {
+        self.clear_prone_presentation();
+        self.prone_camera = track;
+    }
+    pub fn prone_sample(&self) -> Option<ProneSample> {
+        self.prone_sample
+    }
+    /// Configure future outgoing blends; active return clocks retain their duration.
+    pub fn set_prone_return_seconds(&mut self, seconds: f64) -> Result<(), String> {
+        if !seconds.is_finite() || seconds <= 0. || seconds > 2. {
+            return Err("prone return duration must be finite and in (0, 2] seconds".into());
+        }
+        self.prone_return_seconds = seconds;
+        Ok(())
+    }
+    pub fn prone_return(&self) -> Option<ProneReturn> {
+        self.prone_return.filter(|fade| fade.weight(self.time) < 1.)
+    }
+    pub fn prone_presentation_active(&self) -> bool {
+        self.prone_sample.is_some() || self.prone_return().is_some()
+    }
+    /// Camera-only outgoing residue. Never used as an active source clock or
+    /// added to ordinary stance height, collision or gameplay aim.
+    pub fn prone_camera_sample(&self) -> Option<ProneSample> {
+        self.prone_sample.or_else(|| {
+            self.prone_return().map(|fade| ProneSample {
+                orientation: fade
+                    .sample
+                    .orientation
+                    .slerp(glam::Quat::IDENTITY, fade.weight(self.time))
+                    .normalize(),
+                eye_height: self.player.eye_height,
+                ..fade.sample
+            })
+        })
+    }
+    fn cancel_prone_presentation(&mut self) {
+        if let Some(sample) = self.prone_sample.take() {
+            self.prone_return = Some(ProneReturn {
+                sample,
+                began: self.time,
+                duration: self.prone_return_seconds,
+            });
+            if self.player.prone {
+                // Resume the ordinary height owner from the currently visible height.
+                self.player.eye_from = self.player.eye_height;
+                self.player.stance_progress = 0.;
+                self.player.stance_duration = 0.4;
+            }
+        }
+        self.prone_entry = None;
+    }
+    fn clear_prone_presentation(&mut self) {
+        self.cancel_prone_presentation();
+        self.prone_return = None;
+    }
+    fn reconcile_prone_presentation(&mut self) {
+        if self.player.dead() {
+            self.clear_prone_presentation();
+            return;
+        }
+        let p = &self.player;
+        if !p.prone
+            || !p.grounded
+            || p.dead()
+            || p.mantle.is_some()
+            || !matches!(p.action, Action::None)
+            || p.reload_left > 0.
+            || p.ads_requested
+            || p.ads > 0.
+        {
+            self.cancel_prone_presentation();
         }
     }
     /// Install static level collision and its restart/respawn location. Render
     /// geometry is owned separately so neither reset nor death reloads meshes.
     pub fn install_level(&mut self, blocks: Vec<Block>, spawn_position: Vec3, spawn_yaw: f32) {
+        self.clear_prone_presentation();
+        self.high_mantle.clear();
+        self.clear_low_vault_presentation();
         self.level = Some(LevelState {
             blocks: blocks.clone(),
             spawn_position,
@@ -739,6 +914,11 @@ impl Simulation {
         hip + (aimed - hip) * p.ads
     }
     pub fn update(&mut self, input: Input, cfg: &Settings, dt: f32) {
+        if (self.high_mantle.binding().is_some() || self.low_vault_binding.is_some())
+            && (!dt.is_finite() || dt <= 0.)
+        {
+            return;
+        }
         // Process non-shot milestones before new action requests at this timestamp.
         for t in &mut self.targets {
             t.flash = (t.flash - dt).max(0.);
@@ -762,7 +942,11 @@ impl Simulation {
                 p.reload_left = 0.;
             }
         }
+        self.low_vault_sample = None;
         if self.step_death(cfg) {
+            self.clear_prone_presentation();
+            self.high_mantle.clear();
+            self.clear_low_vault_presentation();
             self.time += dt as f64;
             return;
         }
@@ -801,9 +985,18 @@ impl Simulation {
         if valid_reload {
             self.begin_reload(cfg);
         }
+        // Release before ordinary movement easing so interruptions cannot first
+        // snap to the stale generic stance curve.
+        if input.ads && before.ads {
+            self.cancel_prone_presentation();
+        }
+        self.reconcile_prone_presentation();
         self.move_player(input, cfg, dt);
         self.after_move(input, cfg, dt);
         if self.player.dead() {
+            self.clear_prone_presentation();
+            self.high_mantle.clear();
+            self.clear_low_vault_presentation();
             self.time += dt as f64;
             return;
         }
@@ -862,15 +1055,20 @@ impl Simulation {
             }
         }
         self.player.sprint_out = (self.player.sprint_out - dt).max(0.);
+        self.reconcile_prone_presentation();
         self.time += dt as f64;
+        self.high_mantle.commit(self.time, false);
     }
     /// Cancel traversal without teleporting or retaining upward/forward momentum.
     /// The last verified pose is retained; the next fixed step resolves support
     /// or a normal fall. This is safe to call repeatedly (including while paused).
     pub fn cancel_mantle(&mut self) {
+        self.low_vault_sample = None;
+        self.low_vault_began = None;
         if self.player.mantle.take().is_none() {
             return;
         }
+        self.high_mantle.cancel(self.time, false);
         let pos = self.player.position;
         let supported = self.blocks.iter().any(|b| {
             (pos.y - b.bounds.max.y).abs() < 0.00001
@@ -965,7 +1163,13 @@ impl Simulation {
                 landing: vec3(landing.x, b.max.y, landing.z),
                 elapsed: 0.,
                 duration: if height <= MANTLE_LOW_HEIGHT {
-                    0.60
+                    if self.low_vault_binding.is_some() {
+                        crate::authored_low_vault::KEY_SPAN_SECONDS as f32
+                    } else {
+                        0.60
+                    }
+                } else if self.high_mantle.binding().is_some() {
+                    crate::authored_high_mantle::NATIVE_SECONDS as f32
                 } else {
                     0.85
                 },
@@ -986,6 +1190,15 @@ impl Simulation {
             }
         }
         let Some((_, state)) = best else { return };
+        // A newly accepted traversal supersedes either stale outgoing tail.
+        // Returns never target each other, so there is one presentation owner.
+        self.high_mantle.clear();
+        self.clear_low_vault_presentation();
+        if state.kind == MantleKind::High && !state.from_hang {
+            self.high_mantle.begin(self.time);
+        } else if state.kind == MantleKind::Low && self.low_vault_binding.is_some() {
+            self.low_vault_began = Some(self.time);
+        }
         let p = &mut self.player;
         p.mantle = Some(state);
         p.velocity = Vec3::ZERO;
@@ -1006,6 +1219,9 @@ impl Simulation {
         p.reload_total = 0.;
         p.reload_credited = false;
         p.reload_empty = false;
+        // Exact accepted source frame 1, before the first ordinary advance.
+        // This is a committed event, never labelled a rendered source frame.
+        crate::high_mantle_observer::event("accepted", self);
     }
     fn advance_mantle(&mut self, input: Input, cfg: &Settings, dt: f32) {
         let Some(mut state) = self.player.mantle else {
@@ -1020,7 +1236,19 @@ impl Simulation {
             self.cancel_mantle();
             return;
         }
-        let next_time = state.elapsed + dt;
+        // Native high timing comes from committed f64 simulation time, never
+        // renderer deltas or accumulated f32 clip time. Legacy paths are unchanged.
+        let next_time = if state.kind == MantleKind::High && !state.from_hang {
+            self.high_mantle
+                .elapsed_at(self.time + f64::from(dt))
+                .map_or(state.elapsed + dt, |seconds| seconds as f32)
+        } else if state.kind == MantleKind::Low && !state.from_hang {
+            self.low_vault_began.map_or(state.elapsed + dt, |began| {
+                (self.time + f64::from(dt) - began) as f32
+            })
+        } else {
+            state.elapsed + dt
+        };
         // Round-off must not add a tick to authored 72/102-tick durations.
         let end_time = if next_time + 1e-6 >= state.duration {
             state.duration
@@ -1049,6 +1277,15 @@ impl Simulation {
             if next_time >= end_time {
                 break;
             }
+        }
+        if state.kind == MantleKind::Low && !state.from_hang {
+            if let Some(binding) = &self.low_vault_binding {
+                self.low_vault_sample = binding.sample(state.elapsed).ok();
+            }
+        }
+        if state.kind == MantleKind::High && !state.from_hang {
+            self.high_mantle
+                .commit(self.time + f64::from(dt), state.elapsed >= state.duration);
         }
         let p = &mut self.player;
         p.velocity = Vec3::ZERO;
@@ -1123,6 +1360,31 @@ impl Simulation {
                 p.crouched = proposed > 0;
                 p.prone = proposed == 2;
                 p.eye_from = p.eye_height;
+                if proposed == 2
+                    && self.prone_camera.is_some()
+                    && p.grounded
+                    && p.reload_left <= 0.
+                    && p.ads <= 0.
+                    && !input.ads
+                {
+                    // The accepted transition's committed boundary owns f1.
+                    // Standing requests pass through crouch before reaching here.
+                    // Absorb any visible landing kick once: letting it decay
+                    // underneath this height owner would move protected f1–11.
+                    let entry_height = p.eye_height - p.landing_kick;
+                    p.landing_kick = 0.;
+                    self.prone_entry = Some((time + dt as f64, entry_height));
+                    self.prone_return = None;
+                } else {
+                    self.prone_entry = None;
+                    if let Some(sample) = self.prone_sample.take() {
+                        self.prone_return = Some(ProneReturn {
+                            sample,
+                            began: time,
+                            duration: self.prone_return_seconds,
+                        });
+                    }
+                }
                 p.stance_progress = 0.;
                 p.stance_duration = if current == 2 || proposed == 2 {
                     0.4
@@ -1141,6 +1403,13 @@ impl Simulation {
             1.524
         };
         p.eye_height = p.eye_from + (target_eye - p.eye_from) * blend;
+        if let (Some(track), Some((started, height))) = (&self.prone_camera, self.prone_entry) {
+            if p.prone && p.reload_left <= 0. && !input.ads {
+                let sample = track.sample(time + dt as f64 - started, height);
+                p.eye_height = sample.eye_height;
+                self.prone_sample = Some(sample);
+            }
+        }
         // Prevent a shrinking camera from crossing a low ceiling during its eased transition.
         for b in &self.blocks {
             if p.position.x + RADIUS > b.bounds.min.x

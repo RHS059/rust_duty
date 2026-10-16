@@ -5,6 +5,8 @@ mod authored_viewmodel;
 #[cfg(any(feature = "legacy-macroquad", feature = "wgpu-runtime"))]
 mod capture;
 #[cfg(any(feature = "legacy-macroquad", feature = "wgpu-runtime"))]
+mod high_mantle_capture;
+#[cfg(any(feature = "legacy-macroquad", feature = "wgpu-runtime"))]
 mod level_menu;
 #[cfg(any(feature = "legacy-macroquad", feature = "wgpu-runtime"))]
 mod sound;

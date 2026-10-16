@@ -11,6 +11,22 @@ pub struct ClipReference {
     pub asset: PathBuf,
     pub clip: String,
 }
+/// Independently pinned optional HIGH-ONTO policy. The legacy mantle slot stays unavailable.
+#[derive(Clone, Debug)]
+pub struct HighMantleReference {
+    pub asset: PathBuf,
+    pub clip: String,
+    pub receipt: PathBuf,
+    pub receipt_sha256: String,
+}
+/// Explicit experimental pair; no camera-only or weapon-only activation.
+#[derive(Clone, Debug)]
+pub struct PronePairReference {
+    pub asset: PathBuf,
+    pub clip: String,
+    pub camera: PathBuf,
+    pub receipt: PathBuf,
+}
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct DirectionalWalkClips {
     pub forward: String,
@@ -39,6 +55,13 @@ pub struct ActionClipBinding {
     pub events: Vec<(String, f32)>,
 }
 #[derive(Clone, Debug)]
+pub struct LowVaultReference {
+    pub asset: PathBuf,
+    pub clip: String,
+    pub receipt: PathBuf,
+    pub receipt_sha256: String,
+}
+#[derive(Clone, Debug)]
 pub struct AnimationManifest {
     pub locomotion_asset: PathBuf,
     pub locomotion: AuthoredLocomotionPathConfig,
@@ -51,6 +74,9 @@ pub struct AnimationManifest {
     pub ads: Option<AdsReference>,
     /// Optional common jump; absent in legacy and unreviewed asset bundles.
     pub jump_asset: Option<PathBuf>,
+    pub prone_entry: Option<PronePairReference>,
+    pub high_mantle: Option<HighMantleReference>,
+    pub low_vault: Option<LowVaultReference>,
     pub receiver_ads_wip: bool,
     pub forward_ads_v9_wip: bool,
     pub ads_visual_transition_seconds: Option<f64>,
@@ -151,6 +177,27 @@ impl AnimationManifest {
         for slot in ["fire", "mantle"] {
             policy(&mut values, slot, "unavailable")?;
         }
+        let low_vault = if values.keys().any(|key| key.starts_with("low_vault.")) {
+            policy(
+                &mut values,
+                "low_vault.policy",
+                crate::authored_low_vault::POLICY,
+            )?;
+            let reference = reference(&mut values, "low_vault", directory)?;
+            let receipt = asset(&mut values, "low_vault.receipt", directory)?;
+            let receipt_sha256 = take(&mut values, "low_vault.receipt_sha256")?;
+            if !crate::authored_low_vault::valid_digest(&receipt_sha256) {
+                return Err("invalid low-vault receipt fingerprint".into());
+            }
+            Some(LowVaultReference {
+                asset: reference.asset,
+                clip: reference.clip,
+                receipt,
+                receipt_sha256,
+            })
+        } else {
+            None
+        };
         let jump_asset = if values.contains_key("jump") {
             policy(&mut values, "jump", "unavailable")?;
             None
@@ -171,6 +218,48 @@ impl AnimationManifest {
                 hold_clip: take(&mut values, "ads.hold.clip")?,
                 exit_clip: take(&mut values, "ads.exit.clip")?,
             })
+        };
+        let high_mantle = if values.keys().any(|key| key.starts_with("high_mantle.")) {
+            policy(
+                &mut values,
+                "high_mantle.policy",
+                crate::authored_high_mantle::POLICY,
+            )?;
+            let clip = take(&mut values, "high_mantle.clip")?;
+            let receipt_sha256 = take(&mut values, "high_mantle.receipt_sha256")?;
+            if clip != crate::authored_high_mantle::ACTION
+                || !crate::authored_high_mantle::valid_digest(&receipt_sha256)
+            {
+                return Err("invalid one-hand high mantle identity".into());
+            }
+            Some(HighMantleReference {
+                asset: asset(&mut values, "high_mantle.asset", directory)?,
+                receipt: asset(&mut values, "high_mantle.receipt", directory)?,
+                clip,
+                receipt_sha256,
+            })
+        } else {
+            None
+        };
+        let prone_entry = if values.keys().any(|key| key.starts_with("prone_entry.")) {
+            let paired_policy = take(&mut values, "prone_entry.policy")?;
+            let clip = take(&mut values, "prone_entry.clip")?;
+            let expected = match paired_policy.as_str() {
+                "paired_r6_wip" => crate::authored_prone::RIG_ACTION,
+                "paired_r15_wip" => crate::authored_prone::R15_RIG_ACTION,
+                _ => return Err("unsupported paired prone policy".into()),
+            };
+            if clip != expected {
+                return Err("paired prone policy and clip identity differ".into());
+            }
+            Some(PronePairReference {
+                asset: asset(&mut values, "prone_entry.asset", directory)?,
+                clip,
+                camera: asset(&mut values, "prone_entry.camera", directory)?,
+                receipt: asset(&mut values, "prone_entry.receipt", directory)?,
+            })
+        } else {
+            None
         };
         let (receiver_ads_wip, forward_ads_v9_wip) =
             match values.remove("layers.ads_walk").as_deref() {
@@ -303,6 +392,9 @@ impl AnimationManifest {
             empty,
             ads,
             jump_asset,
+            prone_entry,
+            high_mantle,
+            low_vault,
             receiver_ads_wip,
             forward_ads_v9_wip,
             ads_visual_transition_seconds,

@@ -5,7 +5,9 @@
 use crate::sim::Input;
 use glam::{vec2, vec3, Vec2, Vec3};
 
-pub const SEQUENCES: [&str; 4] = [
+pub const SEQUENCES: [&str; 6] = [
+    "gameplay-high-onto",
+    "gameplay-prone",
     "gameplay-slide",
     "gameplay-hang",
     "gameplay-obstruct",
@@ -16,7 +18,10 @@ pub const SEQUENCES: [&str; 4] = [
 pub fn start(sequence: &str) -> Option<(Vec3, f32)> {
     let north = -std::f32::consts::FRAC_PI_2;
     match sequence {
-        "gameplay-slide" | "gameplay-sway" => Some((vec3(0., 0., 9.), north)),
+        // Immutable capture-scene spawn in the shipped range, before any tick.
+        // The existing 1.8 m block is west; no in-run position/camera override.
+        "gameplay-high-onto" => Some((vec3(-8.6, 0., -3.), std::f32::consts::PI)),
+        "gameplay-prone" | "gameplay-slide" | "gameplay-sway" => Some((vec3(0., 0., 9.), north)),
         "gameplay-hang" => Some((vec3(-24., 0., 5. + crate::sim::RADIUS + 0.3), north)),
         "gameplay-obstruct" => Some((vec3(17., 0., -38.), north)),
         _ => None,
@@ -25,6 +30,8 @@ pub fn start(sequence: &str) -> Option<(Vec3, f32)> {
 
 pub fn duration(sequence: &str) -> f32 {
     match sequence {
+        "gameplay-high-onto" => 2.7,
+        "gameplay-prone" => 4.5,
         "gameplay-slide" => 5.5,
         "gameplay-hang" => 4.5,
         "gameplay-obstruct" => 4.0,
@@ -36,6 +43,29 @@ pub fn input(sequence: &str, t: f64) -> Input {
     let forward = vec2(0., 1.);
     let within = |a: f64, b: f64| (a..b).contains(&t);
     match sequence {
+        "gameplay-high-onto" => Input {
+            // Tick 30 accepts; 190 native ticks end at tick 220, on both
+            // ordinary 60 Hz and 30 Hz capture grids. Timing is not retimed.
+            movement: if within(0.15, 2.15) {
+                forward
+            } else {
+                Vec2::ZERO
+            },
+            jump: within(0.25, 0.25 + 1. / 120.),
+            ads: within(0.15, 2.7),
+            ..Input::default()
+        },
+        "gameplay-prone" => Input {
+            crouch: within(0.15, 0.55) || within(2.3, 2.7),
+            prone: within(0.55, 1.85) || within(2.7, 4.1),
+            ads: within(3.2, 3.8),
+            movement: if within(3.6, 4.0) {
+                forward
+            } else {
+                Vec2::ZERO
+            },
+            ..Input::default()
+        },
         "gameplay-slide" => Input {
             movement: if within(0.25, 2.2) || within(2.6, 3.6) {
                 forward
@@ -94,6 +124,23 @@ pub fn segment(sequence: &str, t: f64) -> &'static str {
             .map_or("ready", |(_, name)| *name)
     };
     match sequence {
+        "gameplay-high-onto" => at(&[
+            (0.15, "ordinary_forward_ads"),
+            (0.25, "fresh_jump_high_onto"),
+            (0.25 + 95. / 60., "native_endpoint_and_live_return"),
+            (2.15, "stationary_live_ads"),
+        ]),
+        "gameplay-prone" => at(&[
+            (0.15, "crouch"),
+            (0.55, "prone_entry_hold"),
+            (1.85, "stance_return"),
+            (2.3, "second_crouch"),
+            (2.7, "second_prone_entry"),
+            (3.2, "ads_interrupt_return"),
+            (3.6, "live_ads_walk"),
+            (3.8, "live_walk"),
+            (4.1, "stance_exit"),
+        ]),
         "gameplay-slide" => at(&[
             (0.25, "sprint"),
             (1.0, "slide"),
@@ -139,6 +186,27 @@ mod tests {
             each(&s);
         }
         s
+    }
+
+    #[test]
+    fn prone_script_uses_two_ordinary_stance_entries_and_live_ads() {
+        let (mut entries, mut previous, mut ads, mut moved) = (0, false, false, false);
+        let s = replay("gameplay-prone", |s| {
+            if s.player.prone && !previous {
+                entries += 1;
+            }
+            previous = s.player.prone;
+            ads |= s.player.ads_requested;
+            moved |= s.player.speed() > 0.1;
+            assert!(s.player.position.is_finite() && s.player.eye_height.is_finite());
+            assert!(
+                s.prone_sample().is_none(),
+                "unbound baseline must retain ordinary stance"
+            );
+        });
+        assert_eq!(entries, 2);
+        assert!(ads && moved);
+        assert!(!s.player.prone);
     }
 
     #[test]

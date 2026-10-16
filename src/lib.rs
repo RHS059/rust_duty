@@ -51,8 +51,12 @@ pub mod authored_locomotion_path;
 pub mod authored_locomotion_adapter;
 
 pub mod animation_manifest;
+pub mod authored_high_mantle;
+pub mod authored_low_vault;
 pub mod authored_pose_return;
+pub mod authored_prone;
 pub mod authored_reload;
+pub mod high_mantle_observer;
 
 pub mod authored_walk;
 
@@ -90,3 +94,23 @@ pub mod range_geometry;
 pub mod static_lighting;
 
 pub mod lighting_mesh;
+
+// Same-crate synthetic test harness only. Production optional pin admission is
+// unchanged; integration tests cannot access the private synthetic high binding.
+#[cfg(test)]
+extern crate self as vector_range;
+#[cfg(test)]
+#[allow(dead_code)]
+mod authored_viewmodel;
+#[cfg(test)]
+#[allow(dead_code)]
+mod weapon_model;
+#[cfg(test)]
+mod combined_admitted_tests {
+    #[test]
+    fn all_three_routes_share_one_live_presentation_owner() {
+        crate::authored_viewmodel::assert_combined_admitted_sync(
+            crate::authored_high_mantle::HighMantleBinding::synthetic(0.8),
+        );
+    }
+}
