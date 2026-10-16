@@ -1,0 +1,137 @@
+{
+  "hip_walk_forward_colab_visual_v1": {
+    "hypothesis": "Second support-hand dip is weaker/later in r5 than source ordering around Actions30\u201332.",
+    "operation": "3.5pixel maximum native-cuff downward pulse, zero outside26\u201335, plateau30\u201332",
+    "max_cuff_vertical_edit_px": 3.5,
+    "envelope_action_frames": [
+      26,
+      30,
+      32,
+      35
+    ],
+    "protected_camera_controls": [
+      "X",
+      "depth",
+      "pitch",
+      "yaw",
+      "roll"
+    ],
+    "protected_action_frames": "1\u201326 and35\u2013closure unchanged",
+    "source_action": "hip_walk_forward_r5",
+    "candidate_action": "hip_walk_forward_colab_visual_v1",
+    "unique_frames": 38,
+    "source_window_half_open": [
+      48,
+      86
+    ],
+    "source_sha256": "cff413d8d114b611bbe6f50cc553ef109d61eb8eb1fff960425f506b84d6767e",
+    "max_camera_translation_edit_m": 0.0019807979115282707,
+    "max_camera_angle_edit_degrees": 0.0,
+    "camera_locked": true,
+    "key_times_unchanged": true,
+    "phase_map_unchanged": true,
+    "reference_alignment_unchanged": true,
+    "status": "visual hypothesis; genuine Eevee before-after review required"
+  },
+  "hip_walk_backward_colab_visual_v1": {
+    "hypothesis": "Support-hand down motion peaks too early versus later source trough; receiver already swings deeply.",
+    "operation": "Spatial redistribution at fixed frames: reduce early dip by\u22643px around26\u201329; retain\u22643px more down displacement34\u201338; no global retiming/amplitude multiplier",
+    "max_cuff_vertical_edit_px": 3.0,
+    "early_envelope_action_frames": [
+      23,
+      26,
+      29,
+      32
+    ],
+    "late_envelope_action_frames": [
+      30,
+      34,
+      38,
+      42
+    ],
+    "protected_camera_controls": [
+      "X",
+      "depth",
+      "pitch",
+      "yaw",
+      "roll"
+    ],
+    "source_action": "hip_walk_backward_r5",
+    "candidate_action": "hip_walk_backward_colab_visual_v1",
+    "unique_frames": 45,
+    "source_window_half_open": [
+      211,
+      256
+    ],
+    "source_sha256": "cff413d8d114b611bbe6f50cc553ef109d61eb8eb1fff960425f506b84d6767e",
+    "max_camera_translation_edit_m": 0.001694623859153149,
+    "max_camera_angle_edit_degrees": 0.0,
+    "camera_locked": true,
+    "key_times_unchanged": true,
+    "phase_map_unchanged": true,
+    "reference_alignment_unchanged": true,
+    "status": "visual hypothesis; genuine Eevee before-after review required"
+  },
+  "hip_strafe_left_colab_visual_v1": {
+    "hypothesis": "Late rail-axis change is visibly stronger/flatter than source barrel-axis change; compare angle change only.",
+    "operation": "Reduce late camera-angle excursion7.5% relative to initial pose; quintic envelope24\u219233/42\u219249; XY compensation holds native cuff path",
+    "gain_at_plateau": 0.925,
+    "envelope_action_frames": [
+      24,
+      33,
+      42,
+      49
+    ],
+    "protected_camera_controls": [
+      "depth"
+    ],
+    "native_rail_delta_note": "Manual baseline~23deg\u21926deg versus source~43deg\u219235deg; \u00b12\u20133deg angular uncertainty, different weapon geometry; no absolute-angle alignment.",
+    "source_action": "hip_strafe_left_r5",
+    "candidate_action": "hip_strafe_left_colab_visual_v1",
+    "unique_frames": 49,
+    "source_window_half_open": [
+      886,
+      935
+    ],
+    "source_sha256": "cff413d8d114b611bbe6f50cc553ef109d61eb8eb1fff960425f506b84d6767e",
+    "max_camera_translation_edit_m": 0.0001372227929737832,
+    "max_camera_angle_edit_degrees": 0.23729739472165134,
+    "camera_locked": true,
+    "key_times_unchanged": true,
+    "phase_map_unchanged": true,
+    "reference_alignment_unchanged": true,
+    "status": "visual hypothesis; genuine Eevee before-after review required"
+  },
+  "hip_strafe_right_colab_visual_v1": {
+    "hypothesis": "Reduce excessive lateral hand/receiver sweep against observed R1frames373\u2013397; no exact cross-model ratio target.",
+    "operation": "0.875 horizontal camera-translation excursion around fixed baseline mean",
+    "fixed_mean_camera_dx_m": 1.2836239183993333e-06,
+    "gain": 0.875,
+    "protected_camera_controls": [
+      "Y",
+      "depth",
+      "pitch",
+      "yaw",
+      "roll"
+    ],
+    "reviewed_window_action_frames": [
+      13,
+      37
+    ],
+    "source_action": "hip_strafe_right_r5",
+    "candidate_action": "hip_strafe_right_colab_visual_v1",
+    "unique_frames": 49,
+    "source_window_half_open": [
+      361,
+      410
+    ],
+    "source_sha256": "5b883e85d1179d06987509e4ede2b18fbc54433c4578b316af355e68d17becf5",
+    "max_camera_translation_edit_m": 0.0022076780298719272,
+    "max_camera_angle_edit_degrees": 0.0,
+    "camera_locked": true,
+    "key_times_unchanged": true,
+    "phase_map_unchanged": true,
+    "reference_alignment_unchanged": true,
+    "status": "visual hypothesis; genuine Eevee before-after review required"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "status": "diagnostic",
+  "input_sha256": "36d76491c2cf6238b8a1e10069dddd5b0d63e199063e1f4012b34f3fd4b1e18d",
+  "output_sha256": "f7d6e76d387a07508f61b2ade708fa930b93bd73b167110469a43c88ecf8eaf4",
+  "blender_runtime": "4.3.0",
+  "source_authoring_blender": "4.3.2",
+  "approved_action_count_preserved": 82,
+  "new_actions": [
+    "hip_walk_forward_colab_visual_v1",
+    "hip_walk_backward_colab_visual_v1",
+    "hip_strafe_left_colab_visual_v1",
+    "hip_strafe_right_colab_visual_v1"
+  ],
+  "old_actions_unchanged": true,
+  "camera_mesh_rig_bindings_materials_pose_defaults_preserved": true,
+  "nla_drivers_packed_images_preserved": true,
+  "source_bytes_unchanged": true,
+  "rendered": false
+}

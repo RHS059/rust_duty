@@ -1,0 +1,45 @@
+{
+  "status": "rejected feasibility hypothesis",
+  "source_sha256": "c072976d9e3846a6b0d9229984994f9e4b21ae1a28cdc6692279ac259e2dc7d9",
+  "fixed_probe_values_degrees": [
+    -6.0,
+    -3.0,
+    0.0,
+    3.0,
+    6.0
+  ],
+  "frames_inclusive": [
+    26,
+    38
+  ],
+  "sample_step_frames": 0.25,
+  "summary": {
+    "-6.0": {
+      "max_guard_error_degrees": 2.9734948940781365,
+      "max_wrist_position_error_m": 6.670064399913001e-07
+    },
+    "-3.0": {
+      "max_guard_error_degrees": 2.8569618349973753,
+      "max_wrist_position_error_m": 6.120851485755156e-07
+    },
+    "0.0": {
+      "max_guard_error_degrees": 2.8288773777907523,
+      "max_wrist_position_error_m": 6.602308569662615e-07
+    },
+    "3.0": {
+      "max_guard_error_degrees": 2.9155420196310478,
+      "max_wrist_position_error_m": 6.649408391405724e-07
+    },
+    "6.0": {
+      "max_guard_error_degrees": 3.602490216395784,
+      "max_wrist_position_error_m": 6.351811136587594e-07
+    }
+  },
+  "best_of_five_worst_guard_degrees": 2.8288773777907523,
+  "worst_frame": 32.0,
+  "guard_definitions_changed": false,
+  "actions_changed": false,
+  "source_saved": false,
+  "excluded_measurement": "hand_goal_matrix_error compared different native bone bases and is not a contact or acceptance metric; do not use it",
+  "conclusion": "No tested existing wrist-twist setting removes the left-wrist guard hit; do not broaden this family into an unbounded search."
+}

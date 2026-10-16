@@ -1,0 +1,9 @@
+{
+  "distribution": "official BlenderFoundation bpy on PyPI",
+  "bpy_version": "4.3.0",
+  "source_authoring_version": "4.3.2",
+  "version_difference": "explicit compatibility trial; parity against local4.3.2 required",
+  "uv_version": "0.12.23",
+  "numpy_version": "1.26.4",
+  "numpy_abi_probe_passed": true
+}

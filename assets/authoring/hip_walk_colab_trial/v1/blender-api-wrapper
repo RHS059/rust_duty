@@ -1,0 +1,11 @@
+#!/content/hip-r5-trial/bpy-env/bin/python
+import sys,runpy,bpy
+assert bpy.app.version_string=='4.3.0'
+bpy.context.preferences.filepaths.use_scripts_auto_execute=False
+args=sys.argv[1:]
+source=next(x for x in args if x.endswith('.blend'))
+script=args[args.index('--python')+1]
+rest=args[args.index('--')+1:]
+bpy.ops.wm.open_mainfile(filepath=source,load_ui=False,use_scripts=False)
+sys.argv=['blender-api-wrapper','--',*rest]
+runpy.run_path(script,run_name='__main__')

@@ -1,0 +1,14 @@
+{
+  "source_sha256": "36d76491c2cf6238b8a1e10069dddd5b0d63e199063e1f4012b34f3fd4b1e18d",
+  "candidate_sha256": "f7d6e76d387a07508f61b2ade708fa930b93bd73b167110469a43c88ecf8eaf4",
+  "preserved_actions": 82,
+  "preserved_nla_tracks": 8,
+  "preserved_drivers": 185,
+  "created_actions": [
+    "hip_walk_forward_colab_visual_v1",
+    "hip_walk_backward_colab_visual_v1",
+    "hip_strafe_left_colab_visual_v1",
+    "hip_strafe_right_colab_visual_v1"
+  ],
+  "original_nla_active_driver_texture_snapshots_equal": true
+}

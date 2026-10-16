@@ -1,0 +1,161 @@
+{
+  "schema": "hip-colab-visual-v1-render-contract/v1",
+  "status": "candidate authored and reopened; awaiting actual Eevee visual review",
+  "source_sha256": "36d76491c2cf6238b8a1e10069dddd5b0d63e199063e1f4012b34f3fd4b1e18d",
+  "source_runtime_commit": "eedd2910d339e1b6df6dae23bc9878e43478cc0c",
+  "render_method": "Genuine foreground Eevee Viewport Render Animation only; no offline/Cycles/offscreen substitution",
+  "camera": "Preserve the saved source camera and1280x720 framing exactly",
+  "fps": 60,
+  "comparison": "Use original r5 Action and copied visual-v1 Action in the same supplied candidate BLEND. Do not align/warp/retime to improve appearance. Source paired baseline MP4s at e8206ee are available as historical pixel evidence; decoded crops are not lossless original PNGs.",
+  "original_actions_unchanged": true,
+  "publish_or_runtime_replacement": false,
+  "takes": [
+    {
+      "direction": "forward",
+      "baseline_action": "hip_walk_forward_r5",
+      "candidate_action": "hip_walk_forward_colab_visual_v1",
+      "inclusive_range": [
+        1,
+        39
+      ],
+      "unique_range_half_open": [
+        1,
+        39
+      ],
+      "closure_witness": 39,
+      "reference_id": "5KM0XSKxTWw",
+      "source_range_half_open": [
+        48,
+        86
+      ],
+      "source_closure": 86,
+      "pts_ticks_per_frame": 256,
+      "time_base": "1/15360"
+    },
+    {
+      "direction": "backward",
+      "baseline_action": "hip_walk_backward_r5",
+      "candidate_action": "hip_walk_backward_colab_visual_v1",
+      "inclusive_range": [
+        1,
+        46
+      ],
+      "unique_range_half_open": [
+        1,
+        46
+      ],
+      "closure_witness": 46,
+      "reference_id": "5KM0XSKxTWw",
+      "source_range_half_open": [
+        211,
+        256
+      ],
+      "source_closure": 256,
+      "pts_ticks_per_frame": 256,
+      "time_base": "1/15360"
+    },
+    {
+      "direction": "left",
+      "baseline_action": "hip_strafe_left_r5",
+      "candidate_action": "hip_strafe_left_colab_visual_v1",
+      "inclusive_range": [
+        1,
+        50
+      ],
+      "unique_range_half_open": [
+        1,
+        50
+      ],
+      "closure_witness": 50,
+      "reference_id": "5KM0XSKxTWw",
+      "source_range_half_open": [
+        886,
+        935
+      ],
+      "source_closure": 935,
+      "pts_ticks_per_frame": 256,
+      "time_base": "1/15360"
+    },
+    {
+      "direction": "right",
+      "baseline_action": "hip_strafe_right_r5",
+      "candidate_action": "hip_strafe_right_colab_visual_v1",
+      "inclusive_range": [
+        1,
+        50
+      ],
+      "unique_range_half_open": [
+        1,
+        50
+      ],
+      "closure_witness": 50,
+      "reference_id": "9RRgXvRx43s",
+      "source_range_half_open": [
+        361,
+        410
+      ],
+      "source_closure": 410,
+      "pts_ticks_per_frame": 256,
+      "time_base": "1/15360"
+    }
+  ],
+  "priority_review_witnesses": {
+    "forward": [
+      1,
+      12,
+      25,
+      26,
+      29,
+      30,
+      31,
+      32,
+      33,
+      35,
+      38,
+      39
+    ],
+    "backward": [
+      1,
+      23,
+      26,
+      28,
+      29,
+      32,
+      34,
+      36,
+      38,
+      42,
+      45,
+      46
+    ],
+    "left": [
+      1,
+      24,
+      25,
+      30,
+      33,
+      36,
+      39,
+      42,
+      46,
+      49,
+      50
+    ],
+    "right": [
+      1,
+      13,
+      18,
+      23,
+      28,
+      33,
+      37,
+      43,
+      49,
+      50
+    ]
+  },
+  "candidate_sha256": "f7d6e76d387a07508f61b2ade708fa930b93bd73b167110469a43c88ecf8eaf4",
+  "candidate_file": "hip_four_walks_colab_visual_v1.blend",
+  "blender_authoring_runtime": "4.3.0 bpy on actual Colab, NumPy1.26.4",
+  "source_authoring_blender": "4.3.2"
+}
