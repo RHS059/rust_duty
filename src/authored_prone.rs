@@ -15,6 +15,10 @@ pub const R15_RIG_FINGERPRINT: &str =
     "93ffbed2bd91d33bb2d6e1788ce3c3d95f915c228b8ce7f3c17af05b265c9640";
 pub const R15_CAMERA_FINGERPRINT: &str =
     "6872ef8f4301690dfd340ec9479f4a533fba743f1dc23b6a3691cd85c9e08844";
+/// Hash-only evidence for one reviewed source recipe and its exact full-motion
+/// witness. Regenerated BLEND serialization is never labelled as the original.
+pub const R15_EQUIVALENCE_CONTRACT: &str =
+    include_str!("../tools/prone_r15_equivalence_contract.json");
 pub const DEFAULT_RETURN_SECONDS: f64 = 0.20;
 const MAX_R15_CAMERA_BYTES: usize = 16 * 1024 * 1024;
 pub const REMOVAL_POLICY: &str =
@@ -82,6 +86,49 @@ fn digest(value: &Value) -> Result<&str, String> {
         "invalid prone fingerprint",
     )?;
     Ok(text)
+}
+
+fn validate_r15_equivalence_descriptor(proof: &Value, candidate: &Value) -> Result<(), String> {
+    let contract: Value = serde_json::from_str(R15_EQUIVALENCE_CONTRACT)
+        .map_err(|_| "invalid compiled r15 equivalence contract")?;
+    let contract = contract
+        .as_object()
+        .ok_or("invalid compiled r15 equivalence contract")?;
+    let fields = proof
+        .as_object()
+        .ok_or("missing r15 source equivalence descriptor")?;
+    let dynamic = [
+        "generated_source_sha256",
+        "source_equivalence_sha256",
+        "regenerated_witness_sha256",
+        "replay_receipt_sha256",
+    ];
+    check(
+        fields.len() == contract.len() + dynamic.len(),
+        "unsupported r15 source equivalence descriptor fields",
+    )?;
+    for (key, expected) in contract {
+        check(
+            fields.get(key) == Some(expected),
+            &format!("r15 source equivalence contract mismatch: {key}"),
+        )?;
+    }
+    for key in dynamic {
+        digest(&proof[key])?;
+    }
+    let candidate = digest(candidate)?;
+    check(
+        candidate != R15_SOURCE_SHA && candidate != contract["base_sha256"].as_str().unwrap_or(""),
+        "regenerated source identity must be distinct from original and base",
+    )?;
+    check(
+        digest(&proof["generated_source_sha256"])? == candidate,
+        "r15 source equivalence generated source mismatch",
+    )?;
+    check(
+        proof["regenerated_witness_sha256"] != proof["approved_witness_sha256"],
+        "r15 source equivalence reuses the original witness",
+    )
 }
 
 fn matrix(value: &Value) -> Result<Mat4, String> {
@@ -156,13 +203,15 @@ impl ProneCameraTrack {
         )?;
         let sidecar: Value = serde_json::from_slice(camera).map_err(|e| e.to_string())?;
         let receipt: Value = serde_json::from_slice(receipt).map_err(|e| e.to_string())?;
+        let regenerated = r15 && receipt["schema"] == "rust-duty-prone-camera-pair/v3";
         check(
-            receipt["schema"]
-                == if r15 {
-                    "rust-duty-prone-camera-pair/v2"
-                } else {
-                    "rust-duty-prone-camera-pair/v1"
-                },
+            regenerated
+                || receipt["schema"]
+                    == if r15 {
+                        "rust-duty-prone-camera-pair/v2"
+                    } else {
+                        "rust-duty-prone-camera-pair/v1"
+                    },
             "unsupported prone pair receipt",
         )?;
         check(
@@ -190,13 +239,28 @@ impl ProneCameraTrack {
         }
         if r15 {
             check(
-                digest(&sidecar["candidate_sha256"])? == R15_SOURCE_SHA
-                    && digest(&sidecar["action_fingerprints"][R15_RIG_ACTION])?
-                        == R15_RIG_FINGERPRINT
+                digest(&sidecar["action_fingerprints"][R15_RIG_ACTION])? == R15_RIG_FINGERPRINT
                     && digest(&sidecar["action_fingerprints"][R15_CAMERA_ACTION])?
                         == R15_CAMERA_FINGERPRINT,
                 "r15 requires the exact approved source and paired Actions",
             )?;
+            if regenerated {
+                validate_r15_equivalence_descriptor(
+                    &sidecar["source_equivalence"],
+                    &sidecar["candidate_sha256"],
+                )?;
+                check(
+                    receipt["source_equivalence"] == sidecar["source_equivalence"],
+                    "r15 receipt/sidecar source equivalence mismatch",
+                )?;
+            } else {
+                check(
+                    digest(&sidecar["candidate_sha256"])? == R15_SOURCE_SHA
+                        && sidecar.get("source_equivalence").is_none()
+                        && receipt.get("source_equivalence").is_none(),
+                    "r15 requires the exact approved source and paired Actions",
+                )?;
+            }
             check(
                 sidecar["action_fingerprints"]
                     .as_object()
@@ -252,7 +316,7 @@ impl ProneCameraTrack {
                 "r15 requires native crop 0..68 and imported/source offset 1",
             )?;
         }
-        let mut track = Self::parse_camera(&sidecar, r15)?;
+        let mut track = Self::parse_camera(&sidecar, r15, regenerated)?;
         // Cache only identities measured/validated by this successful complete load.
         track.binding_identity = serde_json::json!({
             "schema": "rust-duty-prone-loaded-binding/v1",
@@ -271,19 +335,26 @@ impl ProneCameraTrack {
             "native_crop": receipt["native_crop"],
             "candidate_frame_offset": receipt["candidate_frame_offset"],
         });
+        if regenerated {
+            // Preserve the validated actual/original identity and all proof pins
+            // in telemetry. Do not re-read an unvalidated report at render time.
+            track.binding_identity["source_equivalence"] = sidecar["source_equivalence"].clone();
+        }
         Ok(track)
     }
     pub fn binding_identity(&self) -> Value {
         self.binding_identity.clone()
     }
 
-    fn parse_camera(source: &Value, r15: bool) -> Result<Self, String> {
+    fn parse_camera(source: &Value, r15: bool, regenerated: bool) -> Result<Self, String> {
         let subdivisions = if r15 { 64 } else { 8 };
         let sample_hz = 60 * subdivisions;
         let last = 68 * subdivisions;
         check(
             source["schema"]
-                == if r15 {
+                == if regenerated {
+                    "prone-entry-r15-camera-motion/v2"
+                } else if r15 {
                     "prone-entry-r15-camera-motion/v1"
                 } else {
                     "prone-entry-r6-camera-motion/v1"

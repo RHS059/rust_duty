@@ -8,6 +8,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from fractions import Fraction
+from pathlib import Path
+import copy
 import hashlib
 import json
 
@@ -24,6 +26,8 @@ MATRIX_TOLERANCE = 1e-5
 MAX_SIDECAR_BYTES = 16 * 1024 * 1024
 R15_SIDECAR_SCHEMA = 'prone-entry-r15-camera-motion/v1'
 R15_RECEIPT_SCHEMA = 'rust-duty-prone-camera-pair/v2'
+R15_REGENERATED_SIDECAR_SCHEMA = 'prone-entry-r15-camera-motion/v2'
+R15_REGENERATED_RECEIPT_SCHEMA = 'rust-duty-prone-camera-pair/v3'
 R15_RIG_ACTION = 'aella_prone_crawl_enter_r15_roll_v1'
 R15_CAMERA_ACTION = 'aella_prone_crawl_enter_camera_r9_viewray_v3'
 R15_SOURCE_SHA = 'cbed3051bb8c4bbdb78f72a49a7a51bd585db33636ddc5312dde38b05a2a86c4'
@@ -31,6 +35,94 @@ R15_FINGERPRINTS = {
     R15_RIG_ACTION: '93ffbed2bd91d33bb2d6e1788ce3c3d95f915c228b8ce7f3c17af05b265c9640',
     R15_CAMERA_ACTION: '6872ef8f4301690dfd340ec9479f4a533fba743f1dc23b6a3691cd85c9e08844',
 }
+# Hash-only, reviewed evidence pins shared with the Rust receipt consumer. This
+# contract covers one exact replay recipe and strict 1,944-sample motion witness.
+# A new recipe or approved motion requires an explicit source revision.
+R15_EQUIVALENCE_CONTRACT = json.loads(
+    Path(__file__).with_name('prone_r15_equivalence_contract.json').read_text())
+R15_EQUIVALENCE_DYNAMIC_FIELDS = frozenset((
+    'generated_source_sha256', 'source_equivalence_sha256',
+    'regenerated_witness_sha256', 'replay_receipt_sha256'))
+
+
+def validate_r15_equivalence_descriptor(descriptor, candidate_sha256):
+    """Validate a bounded, exact contract, not a self-asserted pass boolean.
+
+    The runtime consumes this checked evidence binding; it cannot reopen BLEND.
+    The source-proof pipeline separately measures and compares both witnesses.
+    """
+    candidate_sha256 = sha256(candidate_sha256, 'generated source hash')
+    require(candidate_sha256 not in (R15_SOURCE_SHA, R15_EQUIVALENCE_CONTRACT['base_sha256']),
+            'regenerated source identity must be distinct from original and base')
+    require(isinstance(descriptor, dict) and
+            set(descriptor) == set(R15_EQUIVALENCE_CONTRACT) | R15_EQUIVALENCE_DYNAMIC_FIELDS,
+            'missing or unsupported r15 source equivalence descriptor')
+    for key, expected in R15_EQUIVALENCE_CONTRACT.items():
+        # Canonical JSON equality also rejects True standing in for an integer.
+        require(json.dumps(descriptor[key], sort_keys=True, allow_nan=False) ==
+                json.dumps(expected, sort_keys=True, allow_nan=False),
+                'r15 source equivalence contract mismatch: ' + key)
+    for key in R15_EQUIVALENCE_DYNAMIC_FIELDS:
+        sha256(descriptor[key], key)
+    require(descriptor['generated_source_sha256'] == candidate_sha256,
+            'r15 source equivalence generated source mismatch')
+    require(descriptor['regenerated_witness_sha256'] != descriptor['approved_witness_sha256'],
+            'r15 source equivalence reuses the original witness')
+    return copy.deepcopy(descriptor)
+
+
+def r15_equivalence_descriptor(report, report_sha256, candidate_sha256):
+    """Bind an explicitly pinned strict comparison report to actual source bytes."""
+    sha256(report_sha256, 'source equivalence report hash')
+    require(isinstance(report, dict) and
+            report.get('schema') == 'rust-duty-prone-r15-source-equivalence/v1',
+            'unsupported r15 source equivalence report')
+    for key in ('passed', 'exact_complete_actions_proved', 'non_action_preservation_proved',
+                'evaluated_pair_equivalence_proved'):
+        require(report.get(key) is True, 'r15 source equivalence incomplete: ' + key)
+    for key in ('source_byte_identity_with_approved', 'runtime_equivalence_proved', 'rendered'):
+        require(report.get(key) is False, 'r15 source equivalence scope differs: ' + key)
+    require(report.get('rig_action') == R15_RIG_ACTION and
+            report.get('camera_action') == R15_CAMERA_ACTION and
+            report.get('rig_action_fingerprint') == R15_FINGERPRINTS[R15_RIG_ACTION] and
+            report.get('camera_action_fingerprint') == R15_FINGERPRINTS[R15_CAMERA_ACTION],
+            'r15 source equivalence paired Actions differ')
+    evidence = report.get('evidence_sha256')
+    require(isinstance(evidence, dict) and set(evidence) == {
+        'approved_witness', 'regenerated_witness', 'replay_receipt', 'delta'},
+        'r15 source equivalence evidence is missing')
+    for key, value in evidence.items():
+        sha256(value, key + ' evidence hash')
+    descriptor = {key: report.get(key) for key in R15_EQUIVALENCE_CONTRACT}
+    descriptor.update(
+        schema=R15_EQUIVALENCE_CONTRACT['schema'],
+        recipe_sha256=report.get('delta_sha256'),
+        approved_witness_sha256=evidence['approved_witness'],
+        action_fingerprints={R15_RIG_ACTION: report.get('rig_action_fingerprint'),
+                             R15_CAMERA_ACTION: report.get('camera_action_fingerprint')},
+        generated_source_sha256=report.get('generated_source_sha256'),
+        source_equivalence_sha256=report_sha256,
+        regenerated_witness_sha256=evidence['regenerated_witness'],
+        replay_receipt_sha256=evidence['replay_receipt'])
+    require(evidence['delta'] == descriptor['recipe_sha256'],
+            'r15 source equivalence recipe evidence differs')
+    return validate_r15_equivalence_descriptor(descriptor, candidate_sha256)
+
+
+def load_r15_equivalence_report(path, expected_sha256, candidate_sha256):
+    """Read only an explicit small report whose actual byte hash is pinned."""
+    sha256(expected_sha256, 'source equivalence report hash')
+    with Path(path).open('rb') as stream:
+        data = stream.read(65537)
+    require(0 < len(data) <= 65536, 'r15 source equivalence report exceeds file bound')
+    require(hashlib.sha256(data).hexdigest() == expected_sha256,
+            'r15 source equivalence report hash mismatch')
+    try:
+        report = json.loads(data, object_pairs_hook=vrpack._no_duplicate_keys,
+                            parse_constant=vrpack._bad_constant)
+    except (UnicodeDecodeError, ValueError, RecursionError) as exc:
+        raise vrpack.AssetError(f'invalid r15 source equivalence report: {exc}') from exc
+    return r15_equivalence_descriptor(report, expected_sha256, candidate_sha256)
 
 def action_names_for_clip(clip):
     require(clip in (RIG_ACTION, R15_RIG_ACTION), 'unknown paired prone clip')
@@ -142,6 +234,7 @@ class CameraPair:
     candidate_frame_offset: int
     sample_hz: int = 480
     sidecar_schema: str = SIDECAR_SCHEMA
+    source_equivalence: dict | None = None
 
     def delta_at(self, native_frame):
         candidate = Fraction(native_frame) + self.candidate_frame_offset
@@ -167,9 +260,13 @@ class CameraPair:
             'common_motion_removal': REMOVAL,
             'canonical_rest_frame': 1,
         }
-        if self.sidecar_schema == R15_SIDECAR_SCHEMA:
+        if self.sidecar_schema in (R15_SIDECAR_SCHEMA, R15_REGENERATED_SIDECAR_SCHEMA):
             receipt.update(schema=R15_RECEIPT_SCHEMA, camera_sample_hz=self.sample_hz,
                            source_rig_action=R15_RIG_ACTION, source_camera_action=R15_CAMERA_ACTION)
+        if self.sidecar_schema == R15_REGENERATED_SIDECAR_SCHEMA:
+            receipt.update(schema=R15_REGENERATED_RECEIPT_SCHEMA,
+                           source_equivalence=validate_r15_equivalence_descriptor(
+                               self.source_equivalence, self.candidate_sha256))
         return receipt
 
 
@@ -187,9 +284,11 @@ def load_camera_pair(sidecar_bytes, *, expected_sidecar_sha256, candidate_sha256
                               parse_constant=vrpack._bad_constant)
     except (UnicodeDecodeError, ValueError, RecursionError) as exc:
         raise vrpack.AssetError(f'invalid camera sidecar: {exc}') from exc
-    require(isinstance(document, dict) and document.get('schema') in (SIDECAR_SCHEMA, R15_SIDECAR_SCHEMA),
+    require(isinstance(document, dict) and document.get('schema') in (
+            SIDECAR_SCHEMA, R15_SIDECAR_SCHEMA, R15_REGENERATED_SIDECAR_SCHEMA),
             'invalid prone camera sidecar schema')
-    is_r15 = document['schema'] == R15_SIDECAR_SCHEMA
+    is_regenerated = document['schema'] == R15_REGENERATED_SIDECAR_SCHEMA
+    is_r15 = document['schema'] in (R15_SIDECAR_SCHEMA, R15_REGENERATED_SIDECAR_SCHEMA)
     require(is_r15 or len(sidecar_bytes) <= 2 * 1024 * 1024, 'r6 sidecar exceeds 2 MiB')
     subdivision = 64 if is_r15 else 8
     sample_hz = 60 * subdivision
@@ -201,9 +300,16 @@ def load_camera_pair(sidecar_bytes, *, expected_sidecar_sha256, candidate_sha256
             'both paired Action fingerprints are required')
     for name, fingerprint in action_fingerprints.items():
         sha256(fingerprint, name + ' fingerprint')
+    source_equivalence = None
     if is_r15:
-        require(candidate_sha256 == R15_SOURCE_SHA and action_fingerprints == R15_FINGERPRINTS,
+        require(action_fingerprints == R15_FINGERPRINTS,
                 'r15 requires the exact approved source and paired Actions')
+        if is_regenerated:
+            source_equivalence = validate_r15_equivalence_descriptor(
+                document.get('source_equivalence'), candidate_sha256)
+        else:
+            require(candidate_sha256 == R15_SOURCE_SHA and 'source_equivalence' not in document,
+                    'r15 requires the exact approved source and paired Actions')
     require(document.get('action_fingerprints') == action_fingerprints,
             'camera Action fingerprint mismatch')
     require(type(native_start) is int and type(native_end) is int and
@@ -211,6 +317,9 @@ def load_camera_pair(sidecar_bytes, *, expected_sidecar_sha256, candidate_sha256
             native_start + candidate_frame_offset == 1 and
             native_end + candidate_frame_offset == 69,
             'paired clip requires explicit complete candidate frame range 1..69')
+    if is_regenerated:
+        require((native_start, native_end, candidate_frame_offset) == (0, 68, 1),
+                'regenerated r15 requires native crop 0..68 and source offset 1')
     require(fps == Fraction(60) and document.get('fps') == 60 and
             document.get('sample_hz') == sample_hz, 'paired camera sample clock mismatch')
     require(document.get('units') == 'metres and radians; Blender world +Z up' and
@@ -238,7 +347,7 @@ def load_camera_pair(sidecar_bytes, *, expected_sidecar_sha256, candidate_sha256
         deltas[candidate] = expected
     pair = CameraPair(sidecar_bytes, expected_sidecar_sha256, candidate_sha256,
                       dict(action_fingerprints), deltas, native_start, native_end,
-                      candidate_frame_offset, sample_hz, document['schema'])
+                      candidate_frame_offset, sample_hz, document['schema'], source_equivalence)
     frames = list(frames)
     require(frames and frames[0] == native_start and frames[-1] == native_end and
             all(b > a for a, b in zip(frames, frames[1:])),

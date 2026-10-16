@@ -282,8 +282,8 @@ def exact_time(value, time, label):
     require(abs(numeric(value, label) - float(np.float32(time))) <= TIME_LIMIT, f"{label} mismatch")
 
 
-def validate_source(witness, canonical):
-    for key, expected in {"source_sha256": SOURCE_SHA, "rig_action": ACTION,
+def validate_source(witness, canonical, *, source_sha256=SOURCE_SHA):
+    for key, expected in {"source_sha256": source_sha256, "rig_action": ACTION,
                           "camera_action": CAMERA_ACTION,
                           "rig_action_fingerprint": FINGERPRINTS[ACTION],
                           "camera_action_fingerprint": FINGERPRINTS[CAMERA_ACTION]}.items():
@@ -346,10 +346,10 @@ def load_source_row(root, descriptor, bone_names):
     return row, skin
 
 
-def validate_manifest(manifest, pack, blobs, canonical):
+def validate_manifest(manifest, pack, blobs, canonical, *, source_sha256=SOURCE_SHA, fbx_sha256=FBX_SHA):
     for field, expected in {
         "schema": "rust-duty-fbx-segment-diagnostic/v1", "status": "diagnostic",
-        "source_fbx_sha256": FBX_SHA, "authoring_master_sha256": SOURCE_SHA,
+        "source_fbx_sha256": fbx_sha256, "authoring_master_sha256": source_sha256,
         "native_crop": [0, 68], "native_fps": [60, 1], "source_take": ACTION,
         "imported_frame_offset": 1, "bones": 72, "actors": list(ACTORS),
     }.items():
@@ -384,30 +384,38 @@ def validate_manifest(manifest, pack, blobs, canonical):
         require(len(matches) == 1 and matches[0].get("frame_range") == [1, 69], f"source take range mismatch: {owner}")
 
 
-def validate_pair(blobs):
+def validate_pair(blobs, provenance=None):
+    source_sha = SOURCE_SHA if provenance is None else provenance["generated_source_sha256"]
+    camera_sha = CAMERA_SHA if provenance is None else provenance["camera_sidecar_sha256"]
+    fbx_sha = FBX_SHA if provenance is None else provenance["source_fbx_sha256"]
+    receipt_schema = pair.R15_RECEIPT_SCHEMA if provenance is None else "rust-duty-prone-camera-pair/v3"
     camera_data = blobs["asset.prone-camera.json"]
-    require(hashlib.sha256(camera_data).hexdigest() == CAMERA_SHA, "camera sidecar differs from exact approved source sample")
+    require(hashlib.sha256(camera_data).hexdigest() == camera_sha, "camera sidecar differs from exact approved source sample")
     camera = json_loads(camera_data.decode())
-    pair.load_camera_pair(camera_data, expected_sidecar_sha256=CAMERA_SHA, candidate_sha256=SOURCE_SHA,
+    pair.load_camera_pair(camera_data, expected_sidecar_sha256=camera_sha, candidate_sha256=source_sha,
                           action_fingerprints=FINGERPRINTS, native_start=0, native_end=68, fps=Fraction(60),
                           candidate_frame_offset=1, frames=[Fraction(i, 64) for i in range(RUNTIME_KEYS)])
     receipt = json_loads(blobs["asset.prone-pair.json"].decode())
     for field, expected in {
-        "schema": pair.R15_RECEIPT_SCHEMA, "asset_vra_sha256": hashlib.sha256(blobs["asset.vra"]).hexdigest(),
-        "camera_sidecar_sha256": CAMERA_SHA, "candidate_sha256": SOURCE_SHA,
-        "action_fingerprints": FINGERPRINTS, "source_fbx_sha256": FBX_SHA, "clip_name": ACTION,
+        "schema": receipt_schema, "asset_vra_sha256": hashlib.sha256(blobs["asset.vra"]).hexdigest(),
+        "camera_sidecar_sha256": camera_sha, "candidate_sha256": source_sha,
+        "action_fingerprints": FINGERPRINTS, "source_fbx_sha256": fbx_sha, "clip_name": ACTION,
         "native_crop": [0, 68], "native_fps": [60, 1], "candidate_frame_offset": 1,
         "candidate_frame_range": [1, 69], "common_motion_removal": pair.REMOVAL,
         "canonical_rest_frame": 1, "camera_sample_hz": 3840, "source_rig_action": ACTION,
         "source_camera_action": CAMERA_ACTION, "source_take": ACTION, "imported_frame_offset": 1,
     }.items():
         require(receipt.get(field) == expected, f"pair receipt {field} mismatch")
+    if provenance is not None:
+        require(camera.get("schema") == "prone-entry-r15-camera-motion/v2" and
+                camera.get("source_equivalence") == receipt.get("source_equivalence") == provenance["source_equivalence_descriptor"],
+                "regenerated camera/receipt proof identity differs")
     return camera
 
 
-def validate_rigid(witness, grid, initial_source):
+def validate_rigid(witness, grid, initial_source, *, source_sha256=SOURCE_SHA):
     for field, expected in {"schema": "rust-duty-private-prone-rigid-oracle/v1", "passed": True,
-                            "source_sha256": SOURCE_SHA, "action_fingerprints": FINGERPRINTS,
+                            "source_sha256": source_sha256, "action_fingerprints": FINGERPRINTS,
                             "sample_grid_sha256": GRID_SHA, "source_frames": grid,
                             "sample_count": SAMPLE_COUNT,
                             "basis": "Blender evaluated mesh local; world_at_frame1 is Blender world"}.items():
@@ -648,20 +656,70 @@ def rust_samples(command):
                     process.wait()
 
 
+def rust_sample_batches(prefix, times, suffix=(), max_samples=256, max_units=24000):
+    """Keep exact clock/order while fitting Windows' UTF-16 command-line bound.
+
+    Each actual Rust process loads the same immutable companions. A batch failure
+    remains fatal and no sample is omitted, rounded, substituted or interpolated.
+    """
+    require(type(max_samples) is int and 1 <= max_samples <= 256, "invalid probe batch size")
+    require(type(max_units) is int and 1024 <= max_units <= 24000, "invalid probe command bound")
+    prefix, suffix = list(map(str, prefix)), list(map(str, suffix))
+    batch = []
+    def units(values):
+        return len(subprocess.list2cmdline(values).encode("utf-16-le")) // 2 + 1
+    for time in times:
+        value = str(time)
+        require(units(prefix + [value] + suffix) <= max_units, "single probe exceeds Windows command bound")
+        if batch and (len(batch) >= max_samples or units(prefix + batch + [value] + suffix) > max_units):
+            with closing(rust_samples(prefix + batch + suffix)) as samples:
+                yield from samples
+            batch = []
+        batch.append(value)
+    if batch:
+        with closing(rust_samples(prefix + batch + suffix)) as samples:
+            yield from samples
+
+
 def verify(args, report):
     source = args.source_witnesses.resolve()
     index_path = source / "source-samples.json"
-    witness = load_hashed_json(index_path, ORACLE_SHA)
+    provenance = None
+    export_root = source
+    index_sha, oracle_source_sha, runtime_source_sha = ORACLE_SHA, SOURCE_SHA, SOURCE_SHA
+    fbx_sha, evidence_pins = FBX_SHA, EVIDENCE_PINS
+    if getattr(args, "regenerated_provenance", None) is not None:
+        from prone_r15_regenerated_contract import load_runtime_provenance
+        provenance = load_runtime_provenance(args.regenerated_provenance, args.regenerated_provenance_sha256,
+                                             args.generated_source, args.source_equivalence, args.source_equivalence_sha256)
+        require(args.export_witnesses is not None, "regenerated provenance requires independent export witnesses")
+        export_root = args.export_witnesses.resolve()
+        index_sha = provenance["source_witness_sha256"]
+        oracle_source_sha = provenance["source_witness_source_sha256"]
+        runtime_source_sha = provenance["generated_source_sha256"]
+        fbx_sha, evidence_pins = provenance["source_fbx_sha256"], provenance["export_evidence_sha256"]
+        require(args.rigid_witness is not None and args.rigid_witness_sha256 == provenance["rigid_witness_sha256"],
+                "regenerated verification requires the pinned independent rigid oracle")
+        report["regenerated_source_provenance"] = provenance
+    else:
+        require(not any(getattr(args, name, None) is not None for name in
+                        ("regenerated_provenance_sha256", "generated_source", "source_equivalence",
+                         "source_equivalence_sha256", "export_witnesses")), "partial regenerated provenance is forbidden")
+    witness = load_hashed_json(index_path, index_sha)
     canonical = vrview.decode_vra(hashed_bytes(args.skeleton_vra, CANONICAL_SHA))["bones"]
-    grid = validate_source(witness, canonical)
-    verified = {"source-samples.json": ORACLE_SHA, **EVIDENCE_PINS, ACTION + ".fbx": FBX_SHA}
-    for name, digest in verified.items():
-        pinned(source / name, digest)
-    receipt = load_hashed_json(source / "export-receipt.json", EVIDENCE_PINS["export-receipt.json"])
+    grid = validate_source(witness, canonical, source_sha256=oracle_source_sha)
+    export_verified = {**evidence_pins, ACTION + ".fbx": fbx_sha}
+    verified = {"source-samples.json": index_sha, **export_verified}
+    for name, digest in export_verified.items():
+        pinned(export_root / name, digest)
+    receipt = load_hashed_json(export_root / "export-receipt.json", evidence_pins["export-receipt.json"])
     require(receipt.get("source_sample_count") == SAMPLE_COUNT and receipt.get("sample_grid_sha256") == GRID_SHA,
             "export receipt sample grid mismatch")
-    parity = load_hashed_json(source / "fresh-import-parity.json", EVIDENCE_PINS["fresh-import-parity.json"])
+    parity = load_hashed_json(export_root / "fresh-import-parity.json", evidence_pins["fresh-import-parity.json"])
     require(parity.get("passed") is True and parity.get("samples") == SAMPLE_COUNT, "independent fresh FBX gate did not pass")
+    if provenance is not None:
+        from prone_r15_regenerated_contract import validate_dense_evidence
+        validate_dense_evidence(receipt, parity, provenance)
     require(args.asset.name == "asset.vra", "expected converter output asset.vra")
     names = ["asset.vra", "asset.vrs", "asset.vrm", "asset.prone-camera.json", "asset.prone-pair.json"]
     blobs = {name: (args.asset.parent / name).read_bytes() for name in names}
@@ -669,8 +727,9 @@ def verify(args, report):
     pack = vrview.decode_vra(blobs["asset.vra"], vrs=blobs["asset.vrs"], vrm=blobs["asset.vrm"])
     manifest_path = args.asset.parent / "manifest.json"
     manifest_hash = sha256(manifest_path)
-    validate_manifest(load_hashed_json(manifest_path, manifest_hash), pack, blobs, canonical)
-    camera = validate_pair(blobs)
+    validate_manifest(load_hashed_json(manifest_path, manifest_hash), pack, blobs, canonical,
+                      source_sha256=runtime_source_sha, fbx_sha256=fbx_sha)
+    camera = validate_pair(blobs, provenance)
     bones, skin_counts, rigid = read_geometry(blobs["asset.vrs"], blobs["asset.vrm"])
     first, _ = load_source_row(source, next(iter(witness["frames"].values())), witness["source_rest_world"])
     require(np.max(np.abs(matrix(first["camera_world"], "initial source camera")
@@ -679,7 +738,7 @@ def verify(args, report):
     rigid_source = None
     if args.rigid_witness is not None:
         require(args.rigid_witness_sha256 is not None, "rigid witness needs independently recorded --rigid-witness-sha256")
-        rigid_source = validate_rigid(load_hashed_json(args.rigid_witness, args.rigid_witness_sha256), grid, first)
+        rigid_source = validate_rigid(load_hashed_json(args.rigid_witness, args.rigid_witness_sha256), grid, first, source_sha256=oracle_source_sha)
     else:
         report["not_measured"].append("Independent rigid geometry is absent; this run cannot be complete or pass")
     checker = ParityChecker(pack, bones, skin_counts, rigid, witness, camera, rigid_source)
@@ -690,10 +749,10 @@ def verify(args, report):
                          "runtime_keys": RUNTIME_KEYS, "source_oracle_samples": SAMPLE_COUNT,
                          "grid_sha256": GRID_SHA, "loop": False})
     times = [repr((frame - 1) / 60) for frame in grid]
-    animation_command = [args.sampler.resolve(), args.asset.resolve(), ACTION, *times, "--clamp"]
+    animation_command = [args.sampler.resolve(), args.asset.resolve(), ACTION]
     camera_command = [args.camera_sampler.resolve(), args.asset.resolve(), (args.asset.parent / "asset.prone-camera.json").resolve(),
-                      (args.asset.parent / "asset.prone-pair.json").resolve(), ACTION, *times]
-    with closing(rust_samples(animation_command)) as poses, closing(rust_samples(camera_command)) as cameras:
+                      (args.asset.parent / "asset.prone-pair.json").resolve(), ACTION]
+    with closing(rust_sample_batches(animation_command, times, ["--clamp"])) as poses, closing(rust_sample_batches(camera_command, times)) as cameras:
         for descriptor in witness["frames"].values():
             pose, sampled_camera = next(poses, None), next(cameras, None)
             require(pose is not None and sampled_camera is not None, "Rust probe ended before all 1,944 samples")
@@ -714,8 +773,12 @@ def verify(args, report):
     pinned(args.camera_sampler, report["camera_sampler_sha256"])
     pinned(args.skeleton_vra, CANONICAL_SHA)
     pinned(Path(__file__), report["verifier_sha256"])
-    for name, digest in verified.items():
-        pinned(source / name, digest)
+    pinned(index_path, index_sha)
+    for name, digest in export_verified.items():
+        pinned(export_root / name, digest)
+    if provenance is not None:
+        load_runtime_provenance(args.regenerated_provenance, args.regenerated_provenance_sha256,
+                                args.generated_source, args.source_equivalence, args.source_equivalence_sha256)
     if args.rigid_witness is not None:
         pinned(args.rigid_witness, args.rigid_witness_sha256)
 
@@ -730,12 +793,22 @@ def main(argv=None):
     parser.add_argument("--rigid-witness", type=Path)
     parser.add_argument("--rigid-witness-sha256", dest="rigid_witness_sha256")
     parser.add_argument("--report", type=Path, required=True)
+    parser.add_argument("--regenerated-provenance", type=Path)
+    parser.add_argument("--regenerated-provenance-sha256")
+    parser.add_argument("--generated-source", type=Path)
+    parser.add_argument("--source-equivalence", type=Path)
+    parser.add_argument("--source-equivalence-sha256")
+    parser.add_argument("--export-witnesses", type=Path)
     args = parser.parse_args(argv)
     protected = [args.sampler.resolve(), args.camera_sampler.resolve(), args.skeleton_vra.resolve(), Path(__file__).resolve()]
     protected += [(args.asset.parent / name).resolve() for name in ("asset.vra", "asset.vrs", "asset.vrm", "manifest.json",
                                                                    "asset.prone-camera.json", "asset.prone-pair.json")]
     if args.rigid_witness is not None:
         protected.append(args.rigid_witness.resolve())
+    protected += [value.resolve() for value in (args.regenerated_provenance, args.generated_source, args.source_equivalence)
+                  if value is not None]
+    require(args.export_witnesses is None or not args.report.resolve().is_relative_to(args.export_witnesses.resolve()),
+            "report must not enter immutable export evidence")
     require(args.report.resolve() not in protected and not args.report.resolve().is_relative_to(args.source_witnesses.resolve()),
             "report must not overwrite or enter immutable input paths")
     report = {"schema": "rust-duty-prone-r15-cpu-parity/v1", "backend": "actual Rust CPU animation and camera probes",
