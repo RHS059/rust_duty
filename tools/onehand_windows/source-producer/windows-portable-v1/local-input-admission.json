@@ -1,0 +1,21 @@
+{
+  "adapter_sha256": "c7dd33dcd61e4e4dfa6afe0e370c55d4d35df6ba000fa47a4268476608d99fb1",
+  "approved_source_sha256": "b5cae854b1e5e21c44e60a0672dd18c26e7b38acb239f4730b681482bc409d77",
+  "baseline_sha256": "6b95bdcdfa78e8127ef4b4fa5ac88e4cf9a0654bd0a1271c9916b903f6ee4e79",
+  "grid_sha256": "a521b1e779e45f85948d94b8b9aa9f9cad41d935783ba5fcbda34decb6aec08f",
+  "native_execution_performed": false,
+  "original_delta_sha256": "7be513e2c9fa5d0ff1c00684c542a73354d49fd561fd406a08dad8e05c219a9d",
+  "original_scalar_corrections": 12,
+  "private_inputs_copied": false,
+  "producer_sha256": {
+    "dense-times.json": "a521b1e779e45f85948d94b8b9aa9f9cad41d935783ba5fcbda34decb6aec08f",
+    "onehand_v6_source_delta.py": "1d8fde8db44543b4ab31a6da57b0b6c5bc80fd8b10ff5ccf528b4551330d24c3",
+    "onehand_v6_source_native.py": "36e6755f1bbc2e185f3a97b2944bad272509b7433494059398aa27ff52adb422",
+    "pose-corrections.json": "08e25bf4c8731c073ace8749e2225f60d3e95a06eec6627239d7a9ba57aba58c",
+    "run_onehand_v6_source_proof.py": "44b3815e0837fa697d5404f8f553da7c1685bfd7211bd73e17bd70d3f0edff8f"
+  },
+  "publication_authorized": false,
+  "schema": "rust-duty-onehand-portable-input-admission/v1",
+  "source_package_pins_sha256": "0c7e6e1ef7a2f0c3637e7eb800d0fc7a1bd196c69bdb3c377db76680e0663a5f",
+  "unchanged_driver_outputs": 4
+}

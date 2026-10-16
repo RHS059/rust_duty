@@ -376,6 +376,8 @@ fn combined_pause_sync_clears_all_stale_optional_presentations_after_death() {
     }
 }
 
+// Used by the library admitted-binding test; also compiled by the binary test target.
+#[allow(dead_code)]
 fn combined_prone_track() -> std::sync::Arc<vector_range::authored_prone::ProneCameraTrack> {
     use serde_json::json;
     use vector_range::authored_prone::{
@@ -409,6 +411,8 @@ fn combined_prone_track() -> std::sync::Arc<vector_range::authored_prone::ProneC
     }).clone()
 }
 
+// Used by the library admitted-binding test; also compiled by the binary test target.
+#[allow(dead_code)]
 fn combined_admitted_fixture(
     high_binding: vector_range::authored_high_mantle::HighMantleBinding,
     height: f32,
@@ -484,6 +488,8 @@ fn combined_admitted_fixture(
     (model, sim)
 }
 
+// Used by the library admitted-binding test; also compiled by the binary test target.
+#[allow(dead_code)]
 fn combined_committed_tick(
     model: &mut AuthoredViewmodel,
     sim: &mut vector_range::sim::Simulation,
@@ -501,6 +507,8 @@ fn combined_committed_tick(
     assert!(model.error().is_none(), "{:?}", model.error());
 }
 
+// Used by the library admitted-binding test; also compiled by the binary test target.
+#[allow(dead_code)]
 fn combined_assert_native_owner(
     model: &AuthoredViewmodel,
     sim: &vector_range::sim::Simulation,
@@ -545,6 +553,8 @@ fn combined_assert_native_owner(
 
 // The caller supplies a cfg(test)-only high binding. There is no production
 // constructor or admission bypass, and no actual source/native-art evidence.
+// Used by the library admitted-binding test; also compiled by the binary test target.
+#[allow(dead_code)]
 pub(super) fn assert_combined_admitted_sync(
     high_binding: vector_range::authored_high_mantle::HighMantleBinding,
 ) {

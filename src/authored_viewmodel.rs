@@ -1928,7 +1928,10 @@ impl AuthoredViewmodel {
     }
 }
 
+// The library-only admitted fixture calls this helper. The binary also
+// compiles this module for tests, but cannot construct that library test binding.
 #[cfg(test)]
+#[allow(dead_code)]
 pub(crate) fn assert_combined_admitted_sync(
     binding: vector_range::authored_high_mantle::HighMantleBinding,
 ) {

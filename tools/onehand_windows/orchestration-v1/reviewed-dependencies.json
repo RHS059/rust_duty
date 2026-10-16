@@ -1,0 +1,12 @@
+{
+  "schema": "rust-duty-onehand-orchestration-review/v1",
+  "native_producer_pins_sha256": null,
+  "runtime_consumer_pins_sha256": null,
+  "reference_replay_sha256": null,
+  "reference_index_sha256": null,
+  "reference_equivalence_sha256": null,
+  "published_original_delta_path": null,
+  "rust_source_revision": null,
+  "rust_toolchain": null,
+  "note": "Missing identities are hard blockers. A separately reviewed immutable revision must pin actual completed evidence and code. No CLI flag, fixture or receipt may fill these from observed unknown input bytes."
+}

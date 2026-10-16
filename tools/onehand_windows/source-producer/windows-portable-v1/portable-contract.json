@@ -1,0 +1,25 @@
+{
+  "adapter_native_launches": 0,
+  "blender_version": "4.3.2",
+  "chunk_pairs": 17,
+  "exact_action_fingerprint": "c7ca6383364e055afe1d0246f443d33689ce86c56677570ba694a924c983ea01",
+  "expected_windows_tool_hashes": null,
+  "full_geometry_hash_only": true,
+  "generated_output_sha256": "owner records actual bytes after save/fresh reopen; never inferred from historical Linux identity",
+  "grid_sha256": "a521b1e779e45f85948d94b8b9aa9f9cad41d935783ba5fcbda34decb6aec08f",
+  "input_assets_in_package": false,
+  "new_output_directory_created": false,
+  "original_scalar_corrections": 12,
+  "prior_actions": 88,
+  "publication_approval_claimed": false,
+  "required_inputs": {
+    "approved_source_sha256": "b5cae854b1e5e21c44e60a0672dd18c26e7b38acb239f4730b681482bc409d77",
+    "baseline_sha256": "6b95bdcdfa78e8127ef4b4fa5ac88e4cf9a0654bd0a1271c9916b903f6ee4e79",
+    "original_delta_sha256": "7be513e2c9fa5d0ff1c00684c542a73354d49fd561fd406a08dad8e05c219a9d"
+  },
+  "result_actions": 89,
+  "samples": 4240,
+  "schema": "rust-duty-onehand-portable-preparation-contract/v1",
+  "source_package_pins_sha256": "0c7e6e1ef7a2f0c3637e7eb800d0fc7a1bd196c69bdb3c377db76680e0663a5f",
+  "unchanged_driven_outputs": 4
+}

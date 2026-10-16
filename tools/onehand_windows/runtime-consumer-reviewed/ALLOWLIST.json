@@ -1,0 +1,32 @@
+{
+  "schema": "rust-duty-source-only-allowlist/v1",
+  "files": [
+    ".gitattributes",
+    "ALLOWLIST.json",
+    "CORRECTIONS.md",
+    "DEPENDENCY_REVIEW.json",
+    "MATH_FRAGMENTS.json",
+    "NATIVE_INVOCATION.md",
+    "ORIGINAL_PINS.json",
+    "PINS.json",
+    "README.md",
+    "RESULTS.json",
+    "RUST_REFERENCE_PINS.json",
+    "build_closure.py",
+    "consumer.py",
+    "cpu-tests.log",
+    "evidence.py",
+    "extract_math.py",
+    "pinned_math.py",
+    "retirement.py",
+    "runtime_context.py",
+    "test_checkout_bytes.py",
+    "test_process_reconstruction.py",
+    "test_revision.py",
+    "test_runtime_consumer.py",
+    "transport.py",
+    "verify_freeze.py"
+  ],
+  "private_assets_included": false,
+  "publication_authorized": false
+}

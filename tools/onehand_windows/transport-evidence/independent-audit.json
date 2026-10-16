@@ -1,0 +1,62 @@
+{
+  "schema": "windows-owned-process-independent-audit/v1",
+  "verified_at": "2026-10-16T08:11:45.499837+00:00",
+  "passed": true,
+  "scope": "actual Windows Python process transport only",
+  "animation_proof": false,
+  "head_sha": "52443ac9e777e896a66515ca46778a0d44e7e2f2",
+  "merge_sha": "990a27ede8a793bdf534bacd5271a62d84c9beaa",
+  "run_id": 38871908839,
+  "job_id": 116877734219,
+  "artifact_id": 12033374176,
+  "artifact_sha256": "da3c26d8880d0e008e64af88900c715cd6ce97e7d611dd14d322233e56c89c62",
+  "summary_sha256": "b14b01a539920f34eec064a1bec1ec2799840c31e89a36e841831a3960c90fa2",
+  "adapter_pins_sha256": "d9ef5486cbd7d80ec8d4c9d37c556ff7d13d8dc0147cbd7e6244a4154ca79751",
+  "adapter_build_sha256": "8f0df884fc16cf3299db83c5f32477c28b624607ff8b60c4473892ababf241b2",
+  "tests_run": 78,
+  "posix_only_skipped": 2,
+  "native_windows_test_count": 4,
+  "attempts": [
+    {
+      "test": "test_windows_failure_receipt",
+      "terminal_sha256": "9c9c6caa3696d725be59d2cf358fbbfa43146e2ab1d07bd8e969a7044fad36d7",
+      "completed": false,
+      "exit_code": 7,
+      "stop_reason": "child_exit_failure",
+      "cleanup_complete": true,
+      "windows_job_empty_verified": true,
+      "peak_sampled_rss_bytes": 1748992
+    },
+    {
+      "test": "test_windows_normal_bytes_and_argument_roundtrip",
+      "terminal_sha256": "2c1ac9ea61b7e9d8efa89f05bf9514f4fb5f50f8b7a8f9e19c0cb952c0e96acf",
+      "completed": true,
+      "exit_code": 0,
+      "stop_reason": null,
+      "cleanup_complete": true,
+      "windows_job_empty_verified": true,
+      "peak_sampled_rss_bytes": 9998336
+    },
+    {
+      "test": "test_windows_oversize_row_and_bounded_queue",
+      "terminal_sha256": "e3edec7b15866a40f86e5d380c7076c30165748882a6c1727a5eab772639e3a6",
+      "completed": false,
+      "exit_code": 3758096385,
+      "stop_reason": "stdout_row_limit",
+      "cleanup_complete": true,
+      "windows_job_empty_verified": true,
+      "peak_sampled_rss_bytes": 1748992
+    },
+    {
+      "test": "test_windows_owned_job_descendants_only",
+      "terminal_sha256": "e7105236eb6e3f63437d59bcb14302162ab1df303db4d0f0f0bfcc3635037568",
+      "completed": false,
+      "exit_code": 3758096385,
+      "stop_reason": "own_child_timeout",
+      "cleanup_complete": true,
+      "windows_job_empty_verified": true,
+      "peak_sampled_rss_bytes": 11100160
+    }
+  ],
+  "limits": "Sampled direct-child working set only; no continuous or aggregate process-tree memory claim."
+}

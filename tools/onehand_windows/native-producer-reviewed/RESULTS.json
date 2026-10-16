@@ -1,0 +1,109 @@
+{
+  "actual_generated_source_admitted": false,
+  "actual_transport_smoke": {
+    "all_four_retained_attempts_reverified": true,
+    "animation_proof": false,
+    "audit_sha256": "0a10a58145fb2d6d9348ecc8a61d0ad2f8f318e7f644a9b46ce9716d386d6b17",
+    "native_cases": 4,
+    "posix_only_skips": 2,
+    "run_id": 38871908839,
+    "summary_sha256": "b14b01a539920f34eec064a1bec1ec2799840c31e89a36e841831a3960c90fa2"
+  },
+  "audited_ast_relocations": {
+    "legacy_search_path_removals": 2,
+    "recipe_identity_replacements": 1
+  },
+  "audited_fragments": 34,
+  "blender_runs": 0,
+  "bootstrap_correction": {
+    "control_gate_stages": [
+      "control-export",
+      "control-full",
+      "control-bounded"
+    ],
+    "control_keys": 6081,
+    "control_source": "same admitted generated Windows source",
+    "control_subdivisions": 64,
+    "inherited_linux_control_required": false,
+    "new_stage": "control-export",
+    "production_subdivisions_unchanged": 256
+  },
+  "byte_preserving_windows_checkout": {
+    "details": "BYTE_PRESERVATION.md; all imported dependencies must retain exact bytes in fresh Windows checkout/extraction; test planned workflow under core.autocrlf=true",
+    "established_by_this_package": false,
+    "required": true
+  },
+  "context_pins_sha256": "cee1e6fc907638c6eaa363fd301b722b145767ae1d19131519a53b9b74c9d378",
+  "disk_floor_bytes": 1073741824,
+  "disk_free_bytes_before_seal": 1482911744,
+  "failure_retention": "Private BLEND/FBX/raw geometry and failed raw rows remain runner-local; raw survival after runner teardown is not guaranteed. Only authorized hash-only failures/pins/argv may be retained in CI.",
+  "game_runs": 0,
+  "github_writes": 0,
+  "host_schema": "rust-duty-windows-native-host/v2",
+  "logical_output_bytes_before_seal": 251095,
+  "native_animation_proof": false,
+  "native_environment_bound_to_host": true,
+  "native_jobs_launched": 0,
+  "native_stage_kinds": [
+    "export",
+    "control-export",
+    "source-focus",
+    "source-chunk",
+    "rigid-frame1",
+    "rigid-chunk",
+    "rigid-focus",
+    "control-full",
+    "control-bounded",
+    "focus-import",
+    "chunk-import",
+    "geometry",
+    "block"
+  ],
+  "pending": [
+    "Independent v3 producer-interface review and matching consumer/orchestrator admission",
+    "Byte-preserving fresh Windows dependency materialization and every pin check",
+    "Actual target authored/generated source and native bundle/host/environment admission",
+    "Actual target source control-export/full/bounded/nine-time focus/geometry/all12blocks",
+    "Separately reviewed final assembly caller and actual Windows runtime consumer/renderer evidence"
+  ],
+  "prior_v1_all_files_unchanged": true,
+  "prior_v1_freeze_sha256": "22adda32482a35a439f2ee9afc5b5fff6e44d4b418a8de171d69a530f7509144",
+  "prior_v2_all_files_unchanged": true,
+  "prior_v2_freeze_sha256": "aad2a9113d83d6cbc61dbcc580ff286c0b8a6cbfbd241526de0c642f2ca74d96",
+  "production_fbx_created": false,
+  "production_runtime_created": false,
+  "renders": 0,
+  "retained_stage_api": "verify_retained_stage(..., retired_files=exact_full_source_chunk_row_skin_map); independently validated retirement plan/journal required; all other evidence remains mandatory",
+  "review_corrections": {
+    "P1": "Exact platform-generated source descriptors serialized to POSIX after unchanged source_rows; array and row bytes/hash/order preserved",
+    "P2": "Retained resources reconstructed from bounded samples; full supervisor/limits/environment/host/argv/cwd/process/predecessor consistency verified",
+    "P3": "Real helper namespace supplies standard-library bisect; original helper unchanged"
+  },
+  "review_v2_freeze_sha256": "a878a413cee0199abffcf5293948c3e3213fbbadf960b28e10331fd93aedd34a",
+  "runtime_parity_verified": false,
+  "rust_builds": 0,
+  "sampled_resource_scope": {
+    "continuous_memory_coverage_proved": false,
+    "deadline_seconds": 1800.0,
+    "direct_child_rss_ceiling_bytes": 3221225472,
+    "disk_floor_bytes": 1073741824,
+    "hard_scheduler_latency_guarantee": false,
+    "observed_maximum_gap_reported": true,
+    "requested_period_seconds": 0.2
+  },
+  "schema": "rust-duty-windows-native-producer-source-results/v3",
+  "source_only_output_cap_bytes": 10000000,
+  "status": "source_frozen_pending_independent_native_interface_review",
+  "tests": {
+    "count": 139,
+    "failed": 0,
+    "log": "cpu-tests.log",
+    "passed": 139,
+    "scope": "synthetic CPU, exact unchanged numerical AST, Windows-semantics descriptor to actual frozen consumer, read-only actual transport semantic reconstruction, resealed negative process/predecessor mutations, retained inventory boundary",
+    "seconds": 4.423
+  },
+  "transport_pins_sha256": "d9ef5486cbd7d80ec8d4c9d37c556ff7d13d8dc0147cbd7e6244a4154ca79751",
+  "transport_review_sha256": "820c10f716aadfb3ee9f7e3e3c8e176b446df0568f4196dce4fd0b7c08cf6527",
+  "unchanged_original_source_files": 19,
+  "windows_jobs_launched": 0
+}
