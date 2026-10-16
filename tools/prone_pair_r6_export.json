@@ -1,0 +1,29 @@
+{
+  "schema": "rust-duty-prone-paired-export/v1",
+  "status": "diagnostic_wip",
+  "source_contract_commit": "659fd15ec77a7b4df5018bc7c86a54deace5333e",
+  "blender_version": "4.3.2",
+  "source_sha256": "bd65f2eb280a6c08d413fd331a19b3b52b0990089cc4f06e802fc02813b85fd8",
+  "camera_sidecar_sha256": "19098b693b94a5a0b2421cff9dd25f5dda949506be87bc76eb84dfe23499fbfa",
+  "action_fingerprints": {
+    "prone_crawl_enter_r6": "2a860a55decb8f0fa06226f55a2ace85e9629a21b54ff827cb275b244da8d41f",
+    "prone_crawl_enter_camera_r6": "7006eeec2a3a9c83ca6eec27290692db81554ecb219afc656f8da413aa311c82"
+  },
+  "armature": "Arms",
+  "camera": "RD First Person Review",
+  "base_action": "RD_00_Supplied_Base_Guarded_Recovered",
+  "skin_objects": ["Actual arms mesh 0", "Actual arms mesh 1", "Actual arms mesh 2"],
+  "rigid_actors": ["hk416_weapon", "hk416_magazine"],
+  "deform_bone_count": 72,
+  "action_count": 114,
+  "source_fps": 60,
+  "bake_hz": 480,
+  "candidate_frames": [1, 69],
+  "native_crop": [0, 68],
+  "candidate_frame_offset": 1,
+  "imported_frame_offset": 1,
+  "source_take": "prone_crawl_enter_r6",
+  "runtime_clip": "prone_crawl_enter_r6",
+  "loop": false,
+  "hold_after_end": true
+}

@@ -134,7 +134,11 @@ pub(crate) fn weapon(
     if let Some(authored) = authored {
         authored.set_cant(cant);
         // One rigid root for arms and weapon: sway/action layers keep grips attached.
-        let root = vector_range::weapon_sway::compose(view_offset, layers);
+        let root = vector_range::authored_prone::procedural_root(
+            view_offset,
+            vector_range::weapon_sway::compose(view_offset, layers),
+            authored.prone_procedural_weight(),
+        );
         authored.draw(sim.time, lighting, root);
         composite_viewmodel(rt);
         return;

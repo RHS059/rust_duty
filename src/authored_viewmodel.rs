@@ -47,6 +47,14 @@ pub struct AuthoredViewmodel {
     walk_index: Option<usize>,
     ads_index: Option<usize>,
     jump_index: Option<usize>,
+    prone_index: Option<usize>,
+    prone_camera: Option<std::sync::Arc<vector_range::authored_prone::ProneCameraTrack>>,
+    prone_pose: Option<ViewmodelPose>,
+    prone_opacity: Option<Vec<f32>>,
+    prone_return_pose: Option<PoseReturn>,
+    prone_reload_maps: Vec<(usize, PoseReturnMap)>,
+    prone_procedural_weight: f32,
+    prone_visible_ads: f32,
     return_map: Option<PoseReturnMap>,
     return_blend: Option<AnchoredPoseBlend>,
     reload_presentation: Option<ReloadPresentation>,
@@ -87,6 +95,14 @@ impl AuthoredViewmodel {
         }
         if !simulation_time.is_finite() || !root.is_finite() || self.cant != 0. {
             return Err("source pose diagnostic requires finite time/root and zero cant".into());
+        }
+        if let (Some(index), Some(pose)) = (self.prone_index, &self.prone_pose) {
+            return Ok(SourcePoseSnapshot {
+                animation: &self.reload_renderers[index].animation,
+                pose: pose.clone(),
+                root,
+                actor_opacity: self.prone_opacity.clone(),
+            });
         }
         if let Some(visual) = &self.reload_presentation {
             let renderer = &self.reload_renderers[visual.index];
@@ -207,6 +223,14 @@ impl AuthoredViewmodel {
             walk_index: None,
             ads_index: None,
             jump_index: None,
+            prone_index: None,
+            prone_camera: None,
+            prone_pose: None,
+            prone_opacity: None,
+            prone_return_pose: None,
+            prone_reload_maps: Vec::new(),
+            prone_procedural_weight: 1.,
+            prone_visible_ads: 0.,
             return_map: None,
             return_blend: None,
             reload_presentation: None,
@@ -293,6 +317,69 @@ impl AuthoredViewmodel {
             model.jump_index = Some(model.reload_renderers.len());
             model.reload_renderers.push(renderer);
         }
+        if let Some(pair) = &manifest.prone_entry {
+            let camera = vector_range::authored_prone::ProneCameraTrack::load(
+                &pair.asset,
+                &pair.camera,
+                &pair.receipt,
+                &pair.clip,
+            )?;
+            let mut renderer = Self::load(&asset_name(&pair.asset)?, &pair.clip, Some(0.))?;
+            let clip = renderer
+                .animation
+                .clips()
+                .iter()
+                .find(|clip| clip.name == pair.clip)
+                .ok_or("missing paired prone clip")?;
+            if clip.looping
+                || (clip.duration() as f64 - vector_range::authored_prone::ENTRY_SECONDS).abs()
+                    > 1e-6
+            {
+                return Err("paired prone must be a nonlooping 68/60 second clip".into());
+            }
+            renderer.return_map = Some(
+                PoseReturnMap::new(
+                    &model.animation,
+                    &model.skin,
+                    &renderer.animation,
+                    &renderer.skin,
+                    canonical_to_reload_actor_basis(),
+                )
+                .map_err(|e| e.to_string())?,
+            );
+            renderer.return_blend = Some(
+                AnchoredPoseBlend::new(&renderer.animation, &manifest.layer_anchor_actor)
+                    .map_err(|e| e.to_string())?,
+            );
+            // During a return this pack must be able to draw every live target actor.
+            for index in model.reload_indices.into_iter().flatten() {
+                if model.prone_reload_maps.iter().any(|(i, _)| *i == index) {
+                    continue;
+                }
+                let target = &model.reload_renderers[index];
+                if target.animation.actors().iter().any(|actor| {
+                    !renderer
+                        .animation
+                        .actors()
+                        .iter()
+                        .any(|a| a.name == actor.name)
+                }) {
+                    return Err("prone return pack is missing a live reload actor".into());
+                }
+                let map = PoseReturnMap::new(
+                    &target.animation,
+                    &target.skin,
+                    &renderer.animation,
+                    &renderer.skin,
+                    Mat4::IDENTITY,
+                )
+                .map_err(|e| e.to_string())?;
+                model.prone_reload_maps.push((index, map));
+            }
+            model.prone_camera = Some(std::sync::Arc::new(camera));
+            model.prone_index = Some(model.reload_renderers.len());
+            model.reload_renderers.push(renderer);
+        }
         let ready_clip = manifest.locomotion.ready_clip.clone();
         model.locomotion = Some(
             LayeredLocomotion::new(
@@ -370,8 +457,13 @@ impl AuthoredViewmodel {
             missing.insert(0, "regular walk");
         }
         model.warning = Some(format!(
-            "Authored WIP: {} clips unavailable; reload pose crossfades",
-            missing.join(", ")
+            "Authored WIP: {} clips unavailable; reload pose crossfades{}",
+            missing.join(", "),
+            if model.prone_index.is_some() {
+                "; paired prone runtime remains opt-in WIP"
+            } else {
+                ""
+            }
         ));
         Ok(model)
     }
@@ -379,6 +471,11 @@ impl AuthoredViewmodel {
         self.locomotion
             .as_ref()
             .and_then(LayeredLocomotion::jump_sample)
+    }
+    pub fn prone_camera_track(
+        &self,
+    ) -> Option<std::sync::Arc<vector_range::authored_prone::ProneCameraTrack>> {
+        self.prone_camera.clone()
     }
     pub fn reload_sample(&self) -> Option<vector_range::authored_reload::ReloadSample> {
         self.reload.as_ref().and_then(AuthoredReload::sample)
@@ -407,6 +504,12 @@ impl AuthoredViewmodel {
             .map_or(0., LayeredLocomotion::run_weight)
     }
     pub fn visual_ads_amount(&self) -> f32 {
+        if self.prone_pose.is_some() {
+            return self.prone_visible_ads;
+        }
+        self.underlying_visual_ads_amount()
+    }
+    fn underlying_visual_ads_amount(&self) -> f32 {
         if let Some(visual) = &self.reload_presentation {
             return visual.visible_ads;
         }
@@ -437,6 +540,13 @@ impl AuthoredViewmodel {
         Some(ads.duration(ads.sample()?.slot))
     }
     pub fn presentation_route(&self) -> &str {
+        if self.prone_pose.is_some() {
+            return if self.prone_return_pose.is_some() {
+                "prone.return"
+            } else {
+                "prone.entry_hold"
+            };
+        }
         if self
             .reload_presentation
             .as_ref()
@@ -485,13 +595,152 @@ impl AuthoredViewmodel {
     pub fn warning(&self) -> Option<&str> {
         self.warning.as_deref()
     }
+    pub fn prone_procedural_weight(&self) -> f32 {
+        self.prone_procedural_weight
+    }
+    fn update_prone_pose(
+        &mut self,
+        sample: Option<vector_range::authored_prone::ProneSample>,
+    ) -> Result<(), String> {
+        self.prone_pose = match (self.prone_index, sample) {
+            (Some(index), Some(sample)) => {
+                let renderer = &self.reload_renderers[index];
+                Some(
+                    renderer
+                        .animation
+                        .sample_clamped(&renderer.clip, sample.seconds as f32)
+                        .map_err(|error| error.to_string())?,
+                )
+            }
+            _ => None,
+        };
+        self.prone_opacity = None;
+        self.prone_return_pose = None;
+        self.prone_procedural_weight = if self.prone_pose.is_some() { 0. } else { 1. };
+        self.prone_visible_ads = 0.;
+        Ok(())
+    }
+    fn update_prone_presentation(
+        &mut self,
+        simulation: &vector_range::sim::Simulation,
+    ) -> Result<(), String> {
+        if simulation.player.dead() {
+            return self.update_prone_pose(None);
+        }
+        if let Some(sample) = simulation.prone_sample() {
+            return self.update_prone_pose(Some(sample));
+        }
+        let (Some(index), Some(clock)) = (self.prone_index, simulation.prone_return()) else {
+            return self.update_prone_pose(None);
+        };
+        self.update_prone_return(index, clock, simulation.time)
+    }
+    fn update_prone_return(
+        &mut self,
+        index: usize,
+        clock: vector_range::authored_prone::ProneReturn,
+        time: f64,
+    ) -> Result<(), String> {
+        if self.prone_return_pose.is_none() {
+            if self.prone_pose.is_none() {
+                self.update_prone_pose(Some(clock.sample))?;
+            }
+            let pose = self
+                .prone_pose
+                .as_ref()
+                .ok_or("missing outgoing prone pose")?
+                .clone();
+            let opacity = self.prone_opacity.clone().unwrap_or_else(|| {
+                pose.actor_visible
+                    .iter()
+                    .map(|&v| f32::from(u8::from(v)))
+                    .collect()
+            });
+            self.prone_return_pose = Some(PoseReturn::new(pose, opacity, clock.began));
+        }
+        let renderer = &self.reload_renderers[index];
+        let template = self
+            .prone_pose
+            .as_ref()
+            .ok_or("missing prone return template")?;
+        let (target, opacity) = if let Some(visual) = &self.reload_presentation {
+            let source = &self.reload_renderers[visual.index];
+            let map = &self
+                .prone_reload_maps
+                .iter()
+                .find(|(i, _)| *i == visual.index)
+                .ok_or("missing live reload to prone return map")?
+                .1;
+            let target = map
+                .pose(
+                    &source.animation,
+                    &renderer.animation,
+                    &visual.pose,
+                    template,
+                )
+                .map_err(|e| e.to_string())?;
+            let opacity = renderer
+                .animation
+                .actors()
+                .iter()
+                .map(|actor| {
+                    source
+                        .animation
+                        .actors()
+                        .iter()
+                        .position(|a| a.name == actor.name)
+                        .map_or(0., |i| visual.opacity[i])
+                })
+                .collect::<Vec<_>>();
+            (target, opacity)
+        } else {
+            let live = self
+                .locomotion
+                .as_ref()
+                .ok_or("missing live prone return target")?
+                .pose();
+            let target = renderer
+                .return_map
+                .as_ref()
+                .ok_or("missing prone return map")?
+                .pose(&self.animation, &renderer.animation, live, template)
+                .map_err(|e| e.to_string())?;
+            let opacity = target
+                .actor_visible
+                .iter()
+                .map(|&v| f32::from(u8::from(v)))
+                .collect();
+            (target, opacity)
+        };
+        let weight = clock.weight(time);
+        let (pose, opacity) = self
+            .prone_return_pose
+            .as_ref()
+            .unwrap()
+            .pose_with_opacity_at_weight(
+                &renderer.animation,
+                renderer
+                    .return_blend
+                    .as_ref()
+                    .ok_or("missing prone anchor blend")?,
+                &target,
+                &opacity,
+                weight,
+            )
+            .map_err(|e| e.to_string())?;
+        self.prone_pose = Some(pose);
+        self.prone_opacity = Some(opacity);
+        self.prone_procedural_weight = weight;
+        self.prone_visible_ads = self.underlying_visual_ads_amount() * weight;
+        Ok(())
+    }
     /// Exactly one committed observer, shared by real keyboard and replay input.
     pub fn committed_step(&mut self, start: f64, simulation: &vector_range::sim::Simulation) {
         if self.error.is_some() {
             return;
         }
         let previous_pose = self.locomotion.as_ref().map(|layers| layers.pose().clone());
-        let previous_ads = self.visual_ads_amount();
+        let previous_ads = self.underlying_visual_ads_amount();
         if let Some(reload) = &mut self.reload {
             if let Err(error) = reload.committed_step(start, simulation) {
                 self.error = Some(error.to_string());
@@ -531,6 +780,13 @@ impl AuthoredViewmodel {
                 ) {
                     self.error = Some(error);
                 }
+            }
+        }
+        // Update the live underlying target first, then the exclusive paired pose.
+        // Active source frames receive no entry crossfade or procedural edits.
+        if self.error.is_none() {
+            if let Err(error) = self.update_prone_presentation(simulation) {
+                self.error = Some(error);
             }
         }
     }
@@ -725,7 +981,9 @@ impl AuthoredViewmodel {
         })
     }
     pub fn presented_anchor(&self) -> Option<Vec3> {
-        let (set, pose) = if let Some(visual) = &self.reload_presentation {
+        let (set, pose) = if let (Some(index), Some(pose)) = (self.prone_index, &self.prone_pose) {
+            (&self.reload_renderers[index].animation, pose)
+        } else if let Some(visual) = &self.reload_presentation {
             (&self.reload_renderers[visual.index].animation, &visual.pose)
         } else {
             (&self.animation, self.locomotion.as_ref()?.pose())
@@ -737,6 +995,11 @@ impl AuthoredViewmodel {
         Some(game_model_root().transform_point3(pose.actor_globals[index].translation))
     }
     pub fn reset(&mut self, time: f64) {
+        self.prone_pose = None;
+        self.prone_opacity = None;
+        self.prone_return_pose = None;
+        self.prone_procedural_weight = 1.;
+        self.prone_visible_ads = 0.;
         self.reload_presentation = None;
         if let Some(reload) = &mut self.reload {
             reload.reset(time);
@@ -772,6 +1035,17 @@ impl AuthoredViewmodel {
         lighting: SceneLighting,
         root: Mat4,
     ) -> Result<(), String> {
+        if let (Some(index), Some(pose)) = (self.prone_index, &self.prone_pose) {
+            let pose = pose.clone();
+            let renderer = &mut self.reload_renderers[index];
+            renderer.cant = self.cant * self.prone_procedural_weight;
+            return renderer.draw_pose_opacity(
+                &pose,
+                lighting,
+                root,
+                self.prone_opacity.as_deref(),
+            );
+        }
         if let Some(visual) = &self.reload_presentation {
             let renderer = &mut self.reload_renderers[visual.index];
             renderer.cant = self.cant;
@@ -896,6 +1170,10 @@ mod tests {
     };
 
     fn contact_fixture() -> AuthoredViewmodel {
+        contact_fixture_frames(false)
+    }
+
+    fn contact_fixture_frames(animated: bool) -> AuthoredViewmodel {
         fn words(bytes: &mut Vec<u8>, values: &[u32]) {
             bytes.extend(values.iter().flat_map(|value| value.to_le_bytes()));
         }
@@ -917,14 +1195,42 @@ mod tests {
         name(&mut payload, "fixture_prop");
         words(&mut payload, &[1, 0]); // Actor binds rigid mesh zero.
         floats(&mut payload, &inverse_bind);
-        words(&mut payload, &[1]);
+        words(&mut payload, &[7]);
         name(&mut payload, "contact");
-        words(&mut payload, &[0, 1]); // Non-looping, one frame.
-        floats(&mut payload, &[0.]);
-        for _ in 0..2 {
-            floats(&mut payload, &[3., 0., 0., 0., 0., 0., 1., 1., 1., 1.]);
+        let frames = if animated {
+            vec![
+                (0., 2.),
+                (vector_range::authored_prone::ENTRY_SECONDS as f32, 3.),
+            ]
+        } else {
+            vec![(0., 3.)]
+        };
+        words(&mut payload, &[0, frames.len() as u32]); // Non-looping.
+        for (time, x) in frames {
+            floats(&mut payload, &[time]);
+            for _ in 0..2 {
+                floats(&mut payload, &[x, 0., 0., 0., 0., 0., 1., 1., 1., 1.]);
+            }
+            payload.push(1); // Visible actor.
         }
-        payload.push(1); // Visible actor.
+        for (clip, looping) in [
+            ("run_in", false),
+            ("run", true),
+            ("bridge0", false),
+            ("bridge1", false),
+            ("run_out", false),
+            ("settle", false),
+        ] {
+            name(&mut payload, clip);
+            words(&mut payload, &[u32::from(looping), 2]);
+            for time in [0., 0.1] {
+                floats(&mut payload, &[time]);
+                for _ in 0..2 {
+                    floats(&mut payload, &[3., 0., 0., 0., 0., 0., 1., 1., 1., 1.]);
+                }
+                payload.push(1);
+            }
+        }
         let mut bytes = b"VRANIM01".to_vec();
         words(&mut bytes, &[1, payload.len() as u32, crc32(&payload), 0]);
         bytes.extend(payload);
@@ -1005,11 +1311,225 @@ mod tests {
             walk_index: None,
             ads_index: None,
             jump_index: None,
+            prone_index: None,
+            prone_camera: None,
+            prone_pose: None,
+            prone_opacity: None,
+            prone_return_pose: None,
+            prone_reload_maps: Vec::new(),
+            prone_procedural_weight: 1.,
+            prone_visible_ads: 0.,
             return_map: None,
             return_blend: None,
             reload_presentation: None,
             cant: 0.,
         }
+    }
+
+    #[test]
+    fn prone_outgoing_tracks_live_reload_opacity_then_live_base_without_contact_reset() {
+        use vector_range::authored_locomotion_path::AuthoredLocomotionPathConfig;
+        use vector_range::authored_prone::{ProneReturn, ProneSample, PRONE_EYE_HEIGHT};
+        let mut model = contact_fixture();
+        model.locomotion = Some(
+            LayeredLocomotion::new(
+                LayerSources {
+                    locomotion: &model.animation,
+                    walk: None,
+                    ads: None,
+                    jump: None,
+                },
+                AuthoredLocomotionPathConfig {
+                    ready_clip: "contact".into(),
+                    entry_clip: "run_in".into(),
+                    loop_clip: "run".into(),
+                    exit_bridge_clips: vec!["bridge0".into(), "bridge1".into()],
+                    exit_clip: "run_out".into(),
+                    settle_clip: "settle".into(),
+                    rate_response_seconds: 0.05,
+                    residual_decay_seconds: 0.03,
+                },
+                None,
+                None,
+                "fixture_prop",
+            )
+            .unwrap(),
+        );
+        let target = contact_fixture();
+        let mut paired = contact_fixture_frames(true);
+        paired.return_map = Some(
+            PoseReturnMap::new(
+                &model.animation,
+                &model.skin,
+                &paired.animation,
+                &paired.skin,
+                Mat4::IDENTITY,
+            )
+            .unwrap(),
+        );
+        paired.return_blend =
+            Some(AnchoredPoseBlend::new(&paired.animation, "fixture_prop").unwrap());
+        let map = PoseReturnMap::new(
+            &target.animation,
+            &target.skin,
+            &paired.animation,
+            &paired.skin,
+            Mat4::IDENTITY,
+        )
+        .unwrap();
+        model.reload_renderers.push(target);
+        model.reload_renderers.push(paired);
+        model.prone_index = Some(1);
+        model.prone_reload_maps.push((0, map));
+        let source = ProneSample {
+            seconds: 0.3,
+            frame: 19.,
+            eye_height: PRONE_EYE_HEIGHT,
+            orientation: Quat::from_rotation_z(0.1),
+        };
+        let clock = ProneReturn {
+            sample: source,
+            began: 4.,
+            duration: 0.2,
+        };
+        model.update_prone_pose(Some(source)).unwrap();
+        let frozen = model.prone_pose.clone().unwrap();
+        let from_x = frozen.actor_globals[0].translation.x;
+        for (time, x, alpha) in [(4., 5., 0.4), (4.05, 6., 0.3), (4.1, 7., 0.25)] {
+            let mut target = model.reload_renderers[0]
+                .animation
+                .sample_clamped("contact", 0.)
+                .unwrap();
+            target.actor_globals[0].translation.x = x;
+            target.bone_locals[0].translation.x = x;
+            model.reload_presentation = Some(ReloadPresentation {
+                index: 0,
+                pose: target,
+                opacity: vec![alpha],
+                fade: None,
+                outgoing: true,
+                from_ads: 0.8,
+                visible_ads: 0.8,
+                weight: 0.2,
+            });
+            model.update_prone_return(1, clock, time).unwrap();
+            let w = clock.weight(time);
+            let snapshot = model.source_pose_snapshot(99., Mat4::IDENTITY).unwrap();
+            assert!(
+                (snapshot.pose.actor_globals[0].translation.x - (from_x + (x - from_x) * w)).abs()
+                    < 1e-5
+            );
+            assert_eq!(snapshot.pose.bone_locals[0], snapshot.pose.actor_globals[0]);
+            assert!((snapshot.actor_opacity.unwrap()[0] - (1. + (alpha - 1.) * w)).abs() < 1e-6);
+            assert!((model.visual_ads_amount() - 0.8 * w).abs() < 1e-6);
+            assert_eq!(model.prone_procedural_weight(), w);
+            assert_eq!(model.presentation_route(), "prone.return");
+            let before = model.prone_pose.clone();
+            model.update_prone_return(1, clock, time).unwrap();
+            assert_eq!(
+                model.prone_pose, before,
+                "pause must not advance or refreeze the source"
+            );
+        }
+        model.reload_presentation = None;
+        model.update_prone_return(1, clock, 4.15).unwrap();
+        let w = clock.weight(4.15);
+        assert!(
+            (model.prone_pose.as_ref().unwrap().actor_globals[0]
+                .translation
+                .x
+                - (from_x + (3. - from_x) * w))
+                .abs()
+                < 1e-5
+        );
+        model.update_prone_return(1, clock, 4.2).unwrap();
+        let returned = model.prone_pose.clone().unwrap();
+        assert_eq!(
+            returned.bone_locals,
+            model.locomotion.as_ref().unwrap().pose().bone_locals
+        );
+        assert_eq!(
+            returned.actor_globals,
+            model.locomotion.as_ref().unwrap().pose().actor_globals
+        );
+        model.update_prone_pose(None).unwrap();
+        let live = model.source_pose_snapshot(4.2, Mat4::IDENTITY).unwrap();
+        assert_eq!(live.pose.actor_globals, returned.actor_globals);
+        assert_eq!(model.prone_procedural_weight(), 1.);
+        model.reset(0.);
+        assert!(model.prone_return_pose.is_none());
+        assert!(model.prone_opacity.is_none());
+    }
+
+    #[test]
+    fn fractional_pose_return_validates_opacity_and_preserves_hidden_actor_transform() {
+        let model = contact_fixture();
+        let mut from = model.animation.sample_clamped("contact", 0.).unwrap();
+        from.actor_globals[0].translation.x = 8.;
+        from.bone_locals[0].translation.x = 8.;
+        let blend = AnchoredPoseBlend::new(&model.animation, "fixture_prop").unwrap();
+        let fade = PoseReturn::new(from.clone(), vec![0.8], 0.);
+        let mut target = model.animation.sample_clamped("contact", 0.).unwrap();
+        target.actor_visible[0] = false;
+        let (pose, opacity) = fade
+            .pose_with_opacity_at_weight(&model.animation, &blend, &target, &[0.], 0.5)
+            .unwrap();
+        assert_eq!(pose.actor_globals[0], from.actor_globals[0]);
+        assert!((opacity[0] - 0.4).abs() < 1e-6);
+        for invalid in [vec![], vec![f32::NAN], vec![1.1], vec![-0.1], vec![0.2]] {
+            assert!(fade
+                .pose_with_opacity_at_weight(&model.animation, &blend, &target, &invalid, 0.5)
+                .is_err());
+        }
+        for w in [-0.1, 1.1, f32::NAN] {
+            assert!(fade
+                .pose_with_opacity_at_weight(&model.animation, &blend, &target, &[0.], w)
+                .is_err());
+        }
+    }
+
+    #[test]
+    fn paired_prone_renderer_uses_exact_committed_phase_without_entry_blend() {
+        use vector_range::authored_prone::{ProneSample, ENTRY_SECONDS, PRONE_EYE_HEIGHT};
+        let mut model = contact_fixture();
+        model.prone_index = Some(0);
+        model.reload_renderers.push(contact_fixture_frames(true));
+        for frame in [1., 1.5, 2., 5., 11., 35., 69.] {
+            let seconds = (frame - 1.) / 60.;
+            model
+                .update_prone_pose(Some(ProneSample {
+                    seconds,
+                    frame,
+                    eye_height: PRONE_EYE_HEIGHT,
+                    orientation: Quat::IDENTITY,
+                }))
+                .unwrap();
+            let expected_x = 2. + seconds as f32 / ENTRY_SECONDS as f32;
+            for render_time in [0., 10., 200.] {
+                let snapshot = model
+                    .source_pose_snapshot(render_time, Mat4::IDENTITY)
+                    .unwrap();
+                assert!((snapshot.pose.sample_time - seconds as f32).abs() < 1e-6);
+                assert!((snapshot.pose.bone_locals[0].translation.x - expected_x).abs() < 1e-6);
+                assert_eq!(snapshot.pose.bone_locals[0], snapshot.pose.actor_globals[0]);
+                assert_eq!(snapshot.pose.actor_visible, [true]);
+            }
+            begin_frame(640, 480, 1.).unwrap();
+            model
+                .draw_checked(500., SceneLighting::range(), Mat4::IDENTITY)
+                .unwrap();
+            let list = take_draw_list().unwrap();
+            let mesh_count = list
+                .commands
+                .iter()
+                .filter(|command| matches!(command, Command::Mesh { .. }))
+                .count();
+            assert_eq!(mesh_count, 2, "one paired skin and one paired rigid actor");
+        }
+        model.update_prone_pose(None).unwrap();
+        assert!(model.prone_pose.is_none());
+        model.reset(0.);
+        assert!(model.prone_pose.is_none());
     }
 
     #[test]

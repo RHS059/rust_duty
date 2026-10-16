@@ -11,6 +11,14 @@ pub struct ClipReference {
     pub asset: PathBuf,
     pub clip: String,
 }
+/// Explicit experimental pair; no camera-only or weapon-only activation.
+#[derive(Clone, Debug)]
+pub struct PronePairReference {
+    pub asset: PathBuf,
+    pub clip: String,
+    pub camera: PathBuf,
+    pub receipt: PathBuf,
+}
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct DirectionalWalkClips {
     pub forward: String,
@@ -51,6 +59,7 @@ pub struct AnimationManifest {
     pub ads: Option<AdsReference>,
     /// Optional common jump; absent in legacy and unreviewed asset bundles.
     pub jump_asset: Option<PathBuf>,
+    pub prone_entry: Option<PronePairReference>,
     pub receiver_ads_wip: bool,
     pub forward_ads_v9_wip: bool,
     pub ads_visual_transition_seconds: Option<f64>,
@@ -171,6 +180,26 @@ impl AnimationManifest {
                 hold_clip: take(&mut values, "ads.hold.clip")?,
                 exit_clip: take(&mut values, "ads.exit.clip")?,
             })
+        };
+        let prone_entry = if values.keys().any(|key| key.starts_with("prone_entry.")) {
+            let paired_policy = take(&mut values, "prone_entry.policy")?;
+            let clip = take(&mut values, "prone_entry.clip")?;
+            let expected = match paired_policy.as_str() {
+                "paired_r6_wip" => crate::authored_prone::RIG_ACTION,
+                "paired_r15_wip" => crate::authored_prone::R15_RIG_ACTION,
+                _ => return Err("unsupported paired prone policy".into()),
+            };
+            if clip != expected {
+                return Err("paired prone policy and clip identity differ".into());
+            }
+            Some(PronePairReference {
+                asset: asset(&mut values, "prone_entry.asset", directory)?,
+                clip,
+                camera: asset(&mut values, "prone_entry.camera", directory)?,
+                receipt: asset(&mut values, "prone_entry.receipt", directory)?,
+            })
+        } else {
+            None
         };
         let (receiver_ads_wip, forward_ads_v9_wip) =
             match values.remove("layers.ads_walk").as_deref() {
@@ -303,6 +332,7 @@ impl AnimationManifest {
             empty,
             ads,
             jump_asset,
+            prone_entry,
             receiver_ads_wip,
             forward_ads_v9_wip,
             ads_visual_transition_seconds,
