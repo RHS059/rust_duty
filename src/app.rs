@@ -315,6 +315,15 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
     } else {
         None
     };
+    // Optional timing follows actual renderer admission, never manifest intent alone.
+    if let Err(error) = sim.set_low_vault_binding(
+        authored
+            .as_ref()
+            .and_then(|model| model.low_vault_binding())
+            .cloned(),
+    ) {
+        model_error = Some(format!("Low-vault binding: {error}"));
+    }
     sim.set_high_mantle_binding(
         authored
             .as_ref()
@@ -1007,9 +1016,13 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
                 input.mount = action.mount;
                 input.sidearm = action.sidearm;
                 let authored_step_start = sim.time;
+                if let Some(viewmodel) = &authored {
+                    viewmodel.reconcile_simulation_bindings(&mut sim);
+                }
                 sim.update(input, &cfg, FIXED_DT);
                 if let Some(viewmodel) = &mut authored {
                     viewmodel.committed_step(authored_step_start, &sim);
+                    viewmodel.reconcile_simulation_bindings(&mut sim);
                 }
                 crate::high_mantle_capture::Capture::step(
                     input,
@@ -1166,6 +1179,9 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
                     sim.player.yaw -=
                         vector_range::traversal_replay::sway_yaw_rate(start) * FIXED_DT;
                 }
+                if let Some(viewmodel) = &authored {
+                    viewmodel.reconcile_simulation_bindings(&mut sim);
+                }
                 sim.update(input, &cfg, FIXED_DT);
                 if traversal_capture.is_some() {
                     look_sway.update(
@@ -1180,6 +1196,7 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
                 gameplay_capture_tick += 1;
                 if let Some(model) = &mut authored {
                     model.committed_step(start, &sim);
+                    model.reconcile_simulation_bindings(&mut sim);
                 }
                 crate::high_mantle_capture::Capture::step(input, start, &sim, authored.as_ref())?;
             }
@@ -1255,20 +1272,9 @@ pub(crate) async fn run(ui_theme: Option<std::path::PathBuf>) -> Result<(), Stri
             }
         }
         notice_timer = (notice_timer - dt).max(0.);
-        if authored
-            .as_ref()
-            .is_some_and(|model| model.error().is_some())
-            && sim.prone_presentation_active()
-        {
-            // A renderer failure must never leave the camera half of a pair active.
-            sim.set_prone_camera_track(None);
-        }
-        if authored
-            .as_ref()
-            .is_some_and(|model| model.error().is_some())
-            && sim.high_mantle_binding().is_some()
-        {
-            sim.set_high_mantle_binding(None);
+        if let Some(model) = &mut authored {
+            model.synchronize_traversal_presentation(&sim);
+            model.reconcile_simulation_bindings(&mut sim);
         }
         set_default_camera();
         clear_background(Color::new(0.32, 0.49, 0.68, 1.));

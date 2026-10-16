@@ -543,6 +543,11 @@ pub struct Simulation {
     pub loadout: Loadout,
     pub time: f64,
     high_mantle: crate::authored_high_mantle::HighMantleController,
+    low_vault_binding: Option<crate::authored_low_vault::LowVaultBinding>,
+    low_vault_sample: Option<crate::authored_low_vault::LowVaultSample>,
+    low_vault_began: Option<f64>,
+    /// Invalidates renderer-owned outgoing state on reset, rebind or supersession.
+    low_vault_generation: u64,
     prone_camera: Option<Arc<ProneCameraTrack>>,
     prone_entry: Option<(f64, f32)>,
     prone_sample: Option<ProneSample>,
@@ -661,6 +666,10 @@ impl Simulation {
             loadout: Loadout::default(),
             time: 0.,
             high_mantle: Default::default(),
+            low_vault_binding: None,
+            low_vault_sample: None,
+            low_vault_began: None,
+            low_vault_generation: 0,
             prone_camera: None,
             prone_entry: None,
             prone_sample: None,
@@ -681,6 +690,8 @@ impl Simulation {
         let timings = std::mem::take(&mut self.timings);
         let loadout = self.loadout;
         let high_mantle_binding = self.high_mantle.binding().cloned();
+        let low_vault_binding = self.low_vault_binding.take();
+        let low_vault_generation = self.low_vault_generation.wrapping_add(1);
         let prone_camera = self.prone_camera.take();
         let prone_return_seconds = self.prone_return_seconds;
         let level = self.level.take();
@@ -688,11 +699,45 @@ impl Simulation {
         self.timings = timings;
         self.loadout = loadout;
         self.high_mantle.set_binding(high_mantle_binding);
+        self.low_vault_binding = low_vault_binding;
+        self.low_vault_generation = low_vault_generation;
         self.prone_camera = prone_camera;
         self.prone_return_seconds = prone_return_seconds;
         if let Some(level) = level {
             self.install_level(level.blocks, level.spawn_position, level.spawn_yaw);
         }
+    }
+    /// Opts in only the existing LOW mantle onto a block, never vault-over.
+    /// Replacement during an accepted traversal is rejected atomically. Disabling
+    /// clears presentation but preserves that already accepted collision duration.
+    pub fn set_low_vault_binding(
+        &mut self,
+        binding: Option<crate::authored_low_vault::LowVaultBinding>,
+    ) -> Result<(), String> {
+        if binding.is_some() && self.player.mantle.is_some() {
+            return Err("cannot replace low-vault binding during traversal".into());
+        }
+        self.clear_low_vault_presentation();
+        self.low_vault_binding = binding;
+        Ok(())
+    }
+    pub fn low_vault_binding(&self) -> Option<&crate::authored_low_vault::LowVaultBinding> {
+        self.low_vault_binding.as_ref()
+    }
+    pub fn low_vault_sample(&self) -> Option<crate::authored_low_vault::LowVaultSample> {
+        if self.player.dead() {
+            None
+        } else {
+            self.low_vault_sample
+        }
+    }
+    pub fn low_vault_generation(&self) -> u64 {
+        self.low_vault_generation
+    }
+    fn clear_low_vault_presentation(&mut self) {
+        self.low_vault_sample = None;
+        self.low_vault_began = None;
+        self.low_vault_generation = self.low_vault_generation.wrapping_add(1);
     }
     /// Install only after full pinned companion and named/rest return validation.
     /// A replacement cancels the accepted high traversal and clears stale poses.
@@ -806,6 +851,7 @@ impl Simulation {
     pub fn install_level(&mut self, blocks: Vec<Block>, spawn_position: Vec3, spawn_yaw: f32) {
         self.clear_prone_presentation();
         self.high_mantle.clear();
+        self.clear_low_vault_presentation();
         self.level = Some(LevelState {
             blocks: blocks.clone(),
             spawn_position,
@@ -868,7 +914,9 @@ impl Simulation {
         hip + (aimed - hip) * p.ads
     }
     pub fn update(&mut self, input: Input, cfg: &Settings, dt: f32) {
-        if self.high_mantle.binding().is_some() && (!dt.is_finite() || dt <= 0.) {
+        if (self.high_mantle.binding().is_some() || self.low_vault_binding.is_some())
+            && (!dt.is_finite() || dt <= 0.)
+        {
             return;
         }
         // Process non-shot milestones before new action requests at this timestamp.
@@ -894,9 +942,11 @@ impl Simulation {
                 p.reload_left = 0.;
             }
         }
+        self.low_vault_sample = None;
         if self.step_death(cfg) {
             self.clear_prone_presentation();
             self.high_mantle.clear();
+            self.clear_low_vault_presentation();
             self.time += dt as f64;
             return;
         }
@@ -946,6 +996,7 @@ impl Simulation {
         if self.player.dead() {
             self.clear_prone_presentation();
             self.high_mantle.clear();
+            self.clear_low_vault_presentation();
             self.time += dt as f64;
             return;
         }
@@ -1012,6 +1063,8 @@ impl Simulation {
     /// The last verified pose is retained; the next fixed step resolves support
     /// or a normal fall. This is safe to call repeatedly (including while paused).
     pub fn cancel_mantle(&mut self) {
+        self.low_vault_sample = None;
+        self.low_vault_began = None;
         if self.player.mantle.take().is_none() {
             return;
         }
@@ -1110,7 +1163,11 @@ impl Simulation {
                 landing: vec3(landing.x, b.max.y, landing.z),
                 elapsed: 0.,
                 duration: if height <= MANTLE_LOW_HEIGHT {
-                    0.60
+                    if self.low_vault_binding.is_some() {
+                        crate::authored_low_vault::KEY_SPAN_SECONDS as f32
+                    } else {
+                        0.60
+                    }
                 } else if self.high_mantle.binding().is_some() {
                     crate::authored_high_mantle::NATIVE_SECONDS as f32
                 } else {
@@ -1133,8 +1190,14 @@ impl Simulation {
             }
         }
         let Some((_, state)) = best else { return };
+        // A newly accepted traversal supersedes either stale outgoing tail.
+        // Returns never target each other, so there is one presentation owner.
+        self.high_mantle.clear();
+        self.clear_low_vault_presentation();
         if state.kind == MantleKind::High && !state.from_hang {
             self.high_mantle.begin(self.time);
+        } else if state.kind == MantleKind::Low && self.low_vault_binding.is_some() {
+            self.low_vault_began = Some(self.time);
         }
         let p = &mut self.player;
         p.mantle = Some(state);
@@ -1179,6 +1242,10 @@ impl Simulation {
             self.high_mantle
                 .elapsed_at(self.time + f64::from(dt))
                 .map_or(state.elapsed + dt, |seconds| seconds as f32)
+        } else if state.kind == MantleKind::Low && !state.from_hang {
+            self.low_vault_began.map_or(state.elapsed + dt, |began| {
+                (self.time + f64::from(dt) - began) as f32
+            })
         } else {
             state.elapsed + dt
         };
@@ -1209,6 +1276,11 @@ impl Simulation {
             state.elapsed = next_time;
             if next_time >= end_time {
                 break;
+            }
+        }
+        if state.kind == MantleKind::Low && !state.from_hang {
+            if let Some(binding) = &self.low_vault_binding {
+                self.low_vault_sample = binding.sample(state.elapsed).ok();
             }
         }
         if state.kind == MantleKind::High && !state.from_hang {

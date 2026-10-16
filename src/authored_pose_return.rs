@@ -149,6 +149,7 @@ pub struct PoseReturn {
     from: ViewmodelPose,
     opacity: Vec<f32>,
     began: f64,
+    duration: f64,
 }
 impl PoseReturn {
     pub fn new(from: ViewmodelPose, opacity: Vec<f32>, began: f64) -> Self {
@@ -156,10 +157,28 @@ impl PoseReturn {
             from,
             opacity,
             began,
+            duration: RETURN_SECONDS,
         }
     }
+    /// Duration belongs to the outgoing source; native source frames are never retimed.
+    pub fn with_duration(
+        from: ViewmodelPose,
+        opacity: Vec<f32>,
+        began: f64,
+        duration: f64,
+    ) -> Result<Self> {
+        if !began.is_finite() || !duration.is_finite() || duration <= 0. {
+            return Err(AnimationError("invalid return duration".into()));
+        }
+        Ok(Self {
+            from,
+            opacity,
+            began,
+            duration,
+        })
+    }
     pub fn weight(&self, time: f64) -> f32 {
-        let t = ((time - self.began) / RETURN_SECONDS).clamp(0., 1.);
+        let t = ((time - self.began) / self.duration).clamp(0., 1.);
         (t * t * (3. - 2. * t)) as f32
     }
     pub fn pose(

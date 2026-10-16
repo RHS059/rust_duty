@@ -890,4 +890,5 @@ mod tests {
             }
         }
     }
+    include!("../tests/support/combined_clock_cases.rs");
 }

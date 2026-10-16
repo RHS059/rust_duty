@@ -55,6 +55,13 @@ pub struct ActionClipBinding {
     pub events: Vec<(String, f32)>,
 }
 #[derive(Clone, Debug)]
+pub struct LowVaultReference {
+    pub asset: PathBuf,
+    pub clip: String,
+    pub receipt: PathBuf,
+    pub receipt_sha256: String,
+}
+#[derive(Clone, Debug)]
 pub struct AnimationManifest {
     pub locomotion_asset: PathBuf,
     pub locomotion: AuthoredLocomotionPathConfig,
@@ -69,6 +76,7 @@ pub struct AnimationManifest {
     pub jump_asset: Option<PathBuf>,
     pub prone_entry: Option<PronePairReference>,
     pub high_mantle: Option<HighMantleReference>,
+    pub low_vault: Option<LowVaultReference>,
     pub receiver_ads_wip: bool,
     pub forward_ads_v9_wip: bool,
     pub ads_visual_transition_seconds: Option<f64>,
@@ -169,6 +177,27 @@ impl AnimationManifest {
         for slot in ["fire", "mantle"] {
             policy(&mut values, slot, "unavailable")?;
         }
+        let low_vault = if values.keys().any(|key| key.starts_with("low_vault.")) {
+            policy(
+                &mut values,
+                "low_vault.policy",
+                crate::authored_low_vault::POLICY,
+            )?;
+            let reference = reference(&mut values, "low_vault", directory)?;
+            let receipt = asset(&mut values, "low_vault.receipt", directory)?;
+            let receipt_sha256 = take(&mut values, "low_vault.receipt_sha256")?;
+            if !crate::authored_low_vault::valid_digest(&receipt_sha256) {
+                return Err("invalid low-vault receipt fingerprint".into());
+            }
+            Some(LowVaultReference {
+                asset: reference.asset,
+                clip: reference.clip,
+                receipt,
+                receipt_sha256,
+            })
+        } else {
+            None
+        };
         let jump_asset = if values.contains_key("jump") {
             policy(&mut values, "jump", "unavailable")?;
             None
@@ -365,6 +394,7 @@ impl AnimationManifest {
             jump_asset,
             prone_entry,
             high_mantle,
+            low_vault,
             receiver_ads_wip,
             forward_ads_v9_wip,
             ads_visual_transition_seconds,
