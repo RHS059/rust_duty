@@ -1,0 +1,38 @@
+{
+  "method": "Fresh GitHub-only shallow clone, no local alternates, then git show of exact remote blob and fresh Blender reopen evaluation",
+  "remote_commit": "133d005370d169e32d43a5f2778f4a68e6d5e168",
+  "remote_blob_sha1": "31f9a6f4e4a37fd3e9638275a895aa679dd215c5",
+  "retrieved_bytes": 10099150,
+  "sha256": "740e7e2b16d6947075c321467cfe21d36314f68b93829cf8a2d954b4d382cdb5",
+  "fresh_reopen": {
+    "status": "diagnostic",
+    "source_sha256": "740e7e2b16d6947075c321467cfe21d36314f68b93829cf8a2d954b4d382cdb5",
+    "samples": 1021,
+    "finite_skin_vertex_samples": 2589202,
+    "all_finite": true,
+    "all_drivers_valid": true,
+    "weapon_matrix_max_component_delta": 0,
+    "max_wrist_target_mm": 0.0005657660079814274,
+    "max_attached_guard_delta_deg": 0,
+    "min_free_guard_margin_deg": 2.011895179748535,
+    "max_hand_step_mm_and_interval": [
+      3.7071669825712137,
+      7329.375,
+      7329.4375
+    ],
+    "switches": {
+      "7291": {
+        "position_mm": 0.005454274099862754,
+        "rotation_deg": 0.0
+      },
+      "7332": {
+        "position_mm": 0.0,
+        "rotation_deg": 0.0
+      }
+    },
+    "rendered": false,
+    "visual_acceptance": null
+  },
+  "actual_gate_failures": [],
+  "rendered": false
+}

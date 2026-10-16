@@ -1,0 +1,12 @@
+{
+  "status": "diagnostic",
+  "source_sha256": "deffb1f460fe609e4a532112e7a5c9395451914901b948474c0258737359bc93",
+  "input_sha256": "f289c6d404a6c9c276baac3089887f77a15ac2d18029e1aa39f66d6e335081df",
+  "input_action_count": 87,
+  "output_action_count": 88,
+  "prior_actions_preserved": true,
+  "structure_drivers_nla_preserved": true,
+  "max_target_error_m": 1.4057727354849284e-07,
+  "render_performed": false,
+  "baseline": "Preserves all87 prior Actions, including frozen vault r2 and one-hand r3; no canonical source replacement"
+}

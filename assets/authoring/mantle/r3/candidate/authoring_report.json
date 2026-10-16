@@ -1,0 +1,17 @@
+{
+  "status": "diagnostic",
+  "source_sha256": "6b95bdcdfa78e8127ef4b4fa5ac88e4cf9a0654bd0a1271c9916b903f6ee4e79",
+  "input_sha256": "f289c6d404a6c9c276baac3089887f77a15ac2d18029e1aa39f66d6e335081df",
+  "input_action_count": 87,
+  "output_action_count": 88,
+  "prior_actions_preserved": true,
+  "structure_drivers_nla_preserved": true,
+  "max_target_error_m": 1.7120130796843852e-07,
+  "render_performed": false,
+  "baseline": "Preserves all87 prior Actions, including frozen vault r2 and one-hand r3; no canonical source replacement",
+  "metadata_only_update": {
+    "previous_sha256": "18d7d0a6a1dfcf25b6e07db28434d35aeeafcf47f8ae5603ca6bfa6b357647cb",
+    "field": "aella_vault_low_r3.render_status",
+    "all_action_curves_and_source_structure_unchanged": true
+  }
+}

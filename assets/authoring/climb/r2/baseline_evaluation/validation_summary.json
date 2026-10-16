@@ -1,0 +1,35 @@
+{
+  "source_sha256": "baca19e147f8384bdebcb78b54837ad559b4882a3992deab503190f21040d593",
+  "status": "diagnostic",
+  "clips": [
+    {
+      "action": "aella_climb_roof_r1",
+      "quarter_frame_samples": 301,
+      "max_wrist_solve_error_mm": 14.70772127910533,
+      "max_guard_error_degrees": 336.6489319627164,
+      "min_reach_margin_mm": -14.705520372074844,
+      "claims": "Native diagnostics only. Visible reference phases show the weapon/hands together; hidden mid-climb contact and body trajectory are unknown. No reference score or surface-contact approval."
+    }
+  ],
+  "scene": "Neutral stance \u2014 Arms and Weapon",
+  "scene_objects": [
+    "RD First Person Review",
+    "RD_REFERENCE_ONLY | tower",
+    "RD_REFERENCE_ONLY | left pillar",
+    "RD_REFERENCE_ONLY | right pillar",
+    "RD_REFERENCE_ONLY | Ground",
+    "hk416_magazine_outgoing",
+    "Actual arms mesh 0",
+    "Actual arms mesh 1",
+    "Actual arms mesh 2",
+    "Arms",
+    "hk416_magazine",
+    "hk416_weapon",
+    "Neutral side view \u2014 Z up, -Y forward",
+    "Shape \u2022 wrist ring",
+    "Shape \u2022 elbow diamond",
+    "Shape \u2022 weapon box",
+    "Shape \u2022 magazine tab",
+    "Locomotion preview key"
+  ]
+}

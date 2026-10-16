@@ -1,0 +1,17 @@
+{
+  "note": "Normalize the earlier raw quaternion angle to shortest orientation distance: min(theta,360-theta). Raw evidence remains unchanged; no guard threshold or pose was altered.",
+  "peaks": {
+    "l": {
+      "max_shortest_guard_error_deg": 47.54130313390766,
+      "at_native_frame": 8531.0,
+      "min_reach_margin_mm": 32.674418190899445,
+      "max_wrist_solve_error_mm": 0.0014082976997745824
+    },
+    "r": {
+      "max_shortest_guard_error_deg": 11.421040202707937,
+      "at_native_frame": 8540.25,
+      "min_reach_margin_mm": -14.705520372074844,
+      "max_wrist_solve_error_mm": 14.70772127910533
+    }
+  }
+}

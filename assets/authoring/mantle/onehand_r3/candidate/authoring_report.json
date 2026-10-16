@@ -1,0 +1,12 @@
+{
+  "status": "diagnostic",
+  "source_sha256": "f289c6d404a6c9c276baac3089887f77a15ac2d18029e1aa39f66d6e335081df",
+  "input_sha256": "11502d04b39758faa4c11d312e8d55d777b7119b5a88ca491dd27bfa3546f6f8",
+  "input_action_count": 86,
+  "output_action_count": 87,
+  "prior_actions_preserved": true,
+  "structure_drivers_nla_preserved": true,
+  "max_target_error_m": 1.519626234052415e-07,
+  "render_performed": false,
+  "baseline": "Preserves86 Actions including frozen low-vault r2 and failed one-hand r2; no canonical Jump/Prone replacement"
+}

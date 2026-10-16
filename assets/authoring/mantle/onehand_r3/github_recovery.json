@@ -1,0 +1,38 @@
+{
+  "method": "GitHub-only recovery clone with no local alternates; fetched exact immutable commit and read published BLEND blob, then reopened in Blender4.3.2 without rendering",
+  "commit": "48b746f1da127fdc23f877f0b52af076f4a9628e",
+  "blob_sha1": "c3139974990799c3b9b4a088ef022904bfbdfa5a",
+  "bytes": 10392275,
+  "sha256": "f289c6d404a6c9c276baac3089887f77a15ac2d18029e1aa39f66d6e335081df",
+  "fresh_saved_source_evaluation": {
+    "status": "diagnostic",
+    "source_sha256": "f289c6d404a6c9c276baac3089887f77a15ac2d18029e1aa39f66d6e335081df",
+    "samples": 1533,
+    "finite_skin_vertex_samples": 3899154,
+    "all_finite": true,
+    "all_drivers_valid": true,
+    "weapon_matrix_max_component_delta": 0,
+    "max_wrist_target_mm": 0.0007957833959352188,
+    "max_attached_guard_delta_deg": 0,
+    "min_free_guard_margin_deg": 6.453816052294422,
+    "max_hand_step_mm_and_interval": [
+      4.11667058215437,
+      7794.375,
+      7794.4375
+    ],
+    "switches": {
+      "7830": {
+        "position_mm": 0.0,
+        "rotation_deg": 0.0
+      },
+      "7874": {
+        "position_mm": 0.0,
+        "rotation_deg": 0.0
+      }
+    },
+    "rendered": false,
+    "visual_acceptance": null
+  },
+  "technical_gate_failures": [],
+  "authoring_gate_failures": []
+}
