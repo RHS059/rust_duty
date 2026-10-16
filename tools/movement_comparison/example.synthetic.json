@@ -1,0 +1,889 @@
+{
+  "schema": "rust-duty-weapon-comparison/v1",
+  "action": "synthetic-event",
+  "kind": "event",
+  "rubric_version": "event-amendment-pending",
+  "source": {
+    "artifact": {
+      "name": "source.mp4",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+    },
+    "viewport": [
+      1280,
+      720
+    ],
+    "time_base": [
+      1,
+      15360
+    ],
+    "window_frames": [
+      100,
+      112
+    ]
+  },
+  "candidate": {
+    "artifact": {
+      "name": "candidate.blend",
+      "sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+    },
+    "viewport": [
+      1280,
+      720
+    ],
+    "space": "evaluated-camera-pixels",
+    "author": "synthetic author"
+  },
+  "registration": {
+    "mode": "frozen-unwarped",
+    "source_scale": 1,
+    "candidate_scale": 1,
+    "source_anchor_pts": 25600,
+    "candidate_anchor_time": [
+      0,
+      1
+    ],
+    "phase_offset": [
+      0,
+      1
+    ],
+    "frozen_record": "synthetic fixture only"
+  },
+  "normalization": {
+    "L_px": 250,
+    "definition": "synthetic fixed axis length"
+  },
+  "metrics_stride": 3,
+  "baseline_frame": 100,
+  "landmarks": [
+    {
+      "id": "muzzle",
+      "physical_point": "center of muzzle opening"
+    },
+    {
+      "id": "receiver",
+      "physical_point": "top rear receiver corner"
+    },
+    {
+      "id": "sight",
+      "physical_point": "top sight center"
+    }
+  ],
+  "axis_landmarks": [
+    "muzzle",
+    "receiver"
+  ],
+  "samples": [
+    {
+      "frame": 100,
+      "source_pts": 25600,
+      "candidate_time": [
+        0,
+        60
+      ],
+      "reference": {
+        "muzzle": {
+          "xy": [
+            100,
+            100
+          ],
+          "state": "visible",
+          "uncertainty_px": 0.1,
+          "method": "synthetic known coordinates"
+        },
+        "receiver": {
+          "xy": [
+            350,
+            100
+          ],
+          "state": "visible",
+          "uncertainty_px": 0.1,
+          "method": "synthetic known coordinates"
+        },
+        "sight": {
+          "xy": [
+            325,
+            80
+          ],
+          "state": "visible",
+          "uncertainty_px": 0.1,
+          "method": "synthetic known coordinates"
+        }
+      },
+      "candidate": {
+        "muzzle": {
+          "xy": [
+            100,
+            100
+          ],
+          "state": "visible",
+          "uncertainty_px": 0.1,
+          "method": "synthetic known coordinates"
+        },
+        "receiver": {
+          "xy": [
+            350,
+            100
+          ],
+          "state": "visible",
+          "uncertainty_px": 0.1,
+          "method": "synthetic known coordinates"
+        },
+        "sight": {
+          "xy": [
+            325,
+            80
+          ],
+          "state": "visible",
+          "uncertainty_px": 0.1,
+          "method": "synthetic known coordinates"
+        }
+      }
+    },
+    {
+      "frame": 101,
+      "source_pts": 25856,
+      "candidate_time": [
+        1,
+        60
+      ],
+      "reference": {
+        "muzzle": {
+          "xy": [
+            102,
+            101
+          ],
+          "state": "visible",
+          "uncertainty_px": 0.1,
+          "method": "synthetic known coordinates"
+        },
+        "receiver": {
+          "xy": [
+            352,
+            101
+          ],
+          "state": "visible",
+          "uncertainty_px": 0.1,
+          "method": "synthetic known coordinates"
+        },
+        "sight": {
+          "xy": [
+            327,
+            81
+          ],
+          "state": "visible",
+          "uncertainty_px": 0.1,
+          "method": "synthetic known coordinates"
+        }
+      },
+      "candidate": {
+        "muzzle": {
+          "xy": [
+            102,
+            101
+          ],
+          "state": "visible",
+          "uncertainty_px": 0.1,
+          "method": "synthetic known coordinates"
+        },
+        "receiver": {
+          "xy": [
+            352,
+            101
+          ],
+          "state": "visible",
+          "uncertainty_px": 0.1,
+          "method": "synthetic known coordinates"
+        },
+        "sight": {
+          "xy": [
+            327,
+            81
+          ],
+          "state": "visible",
+          "uncertainty_px": 0.1,
+          "method": "synthetic known coordinates"
+        }
+      }
+    },
+    {
+      "frame": 102,
+      "source_pts": 26112,
+      "candidate_time": [
+        2,
+        60
+      ],
+      "reference": {
+        "muzzle": {
+          "xy": [
+            104,
+            102
+          ],
+          "state": "visible",
+          "uncertainty_px": 0.1,
+          "method": "synthetic known coordinates"
+        },
+        "receiver": {
+          "xy": [
+            354,
+            102
+          ],
+          "state": "visible",
+          "uncertainty_px": 0.1,
+          "method": "synthetic known coordinates"
+        },
+        "sight": {
+          "xy": [
+            329,
+            82
+          ],
+          "state": "visible",
+          "uncertainty_px": 0.1,
+          "method": "synthetic known coordinates"
+        }
+      },
+      "candidate": {
+        "muzzle": {
+          "xy": [
+            104,
+            102
+          ],
+          "state": "visible",
+          "uncertainty_px": 0.1,
+          "method": "synthetic known coordinates"
+        },
+        "receiver": {
+          "xy": [
+            354,
+            102
+          ],
+          "state": "visible",
+          "uncertainty_px": 0.1,
+          "method": "synthetic known coordinates"
+        },
+        "sight": {
+          "xy": [
+            329,
+            82
+          ],
+          "state": "visible",
+          "uncertainty_px": 0.1,
+          "method": "synthetic known coordinates"
+        }
+      }
+    },
+    {
+      "frame": 103,
+      "source_pts": 26368,
+      "candidate_time": [
+        3,
+        60
+      ],
+      "reference": {
+        "muzzle": {
+          "xy": [
+            106,
+            103
+          ],
+          "state": "visible",
+          "uncertainty_px": 0.1,
+          "method": "synthetic known coordinates"
+        },
+        "receiver": {
+          "xy": [
+            356,
+            103
+          ],
+          "state": "visible",
+          "uncertainty_px": 0.1,
+          "method": "synthetic known coordinates"
+        },
+        "sight": {
+          "xy": [
+            331,
+            83
+          ],
+          "state": "visible",
+          "uncertainty_px": 0.1,
+          "method": "synthetic known coordinates"
+        }
+      },
+      "candidate": {
+        "muzzle": {
+          "xy": [
+            106,
+            103
+          ],
+          "state": "visible",
+          "uncertainty_px": 0.1,
+          "method": "synthetic known coordinates"
+        },
+        "receiver": {
+          "xy": [
+            356,
+            103
+          ],
+          "state": "visible",
+          "uncertainty_px": 0.1,
+          "method": "synthetic known coordinates"
+        },
+        "sight": {
+          "xy": [
+            331,
+            83
+          ],
+          "state": "visible",
+          "uncertainty_px": 0.1,
+          "method": "synthetic known coordinates"
+        }
+      }
+    },
+    {
+      "frame": 104,
+      "source_pts": 26624,
+      "candidate_time": [
+        4,
+        60
+      ],
+      "reference": {
+        "muzzle": {
+          "xy": [
+            108,
+            104
+          ],
+          "state": "visible",
+          "uncertainty_px": 0.1,
+          "method": "synthetic known coordinates"
+        },
+        "receiver": {
+          "xy": [
+            358,
+            104
+          ],
+          "state": "visible",
+          "uncertainty_px": 0.1,
+          "method": "synthetic known coordinates"
+        },
+        "sight": {
+          "xy": [
+            333,
+            84
+          ],
+          "state": "visible",
+          "uncertainty_px": 0.1,
+          "method": "synthetic known coordinates"
+        }
+      },
+      "candidate": {
+        "muzzle": {
+          "xy": [
+            108,
+            104
+          ],
+          "state": "visible",
+          "uncertainty_px": 0.1,
+          "method": "synthetic known coordinates"
+        },
+        "receiver": {
+          "xy": [
+            358,
+            104
+          ],
+          "state": "visible",
+          "uncertainty_px": 0.1,
+          "method": "synthetic known coordinates"
+        },
+        "sight": {
+          "xy": [
+            333,
+            84
+          ],
+          "state": "visible",
+          "uncertainty_px": 0.1,
+          "method": "synthetic known coordinates"
+        }
+      }
+    },
+    {
+      "frame": 105,
+      "source_pts": 26880,
+      "candidate_time": [
+        5,
+        60
+      ],
+      "reference": {
+        "muzzle": {
+          "xy": [
+            110,
+            105
+          ],
+          "state": "visible",
+          "uncertainty_px": 0.1,
+          "method": "synthetic known coordinates"
+        },
+        "receiver": {
+          "xy": [
+            360,
+            105
+          ],
+          "state": "visible",
+          "uncertainty_px": 0.1,
+          "method": "synthetic known coordinates"
+        },
+        "sight": {
+          "xy": [
+            335,
+            85
+          ],
+          "state": "visible",
+          "uncertainty_px": 0.1,
+          "method": "synthetic known coordinates"
+        }
+      },
+      "candidate": {
+        "muzzle": {
+          "xy": [
+            110,
+            105
+          ],
+          "state": "visible",
+          "uncertainty_px": 0.1,
+          "method": "synthetic known coordinates"
+        },
+        "receiver": {
+          "xy": [
+            360,
+            105
+          ],
+          "state": "visible",
+          "uncertainty_px": 0.1,
+          "method": "synthetic known coordinates"
+        },
+        "sight": {
+          "xy": [
+            335,
+            85
+          ],
+          "state": "visible",
+          "uncertainty_px": 0.1,
+          "method": "synthetic known coordinates"
+        }
+      }
+    },
+    {
+      "frame": 106,
+      "source_pts": 27136,
+      "candidate_time": [
+        6,
+        60
+      ],
+      "reference": {
+        "muzzle": {
+          "xy": [
+            112,
+            106
+          ],
+          "state": "visible",
+          "uncertainty_px": 0.1,
+          "method": "synthetic known coordinates"
+        },
+        "receiver": {
+          "xy": [
+            362,
+            106
+          ],
+          "state": "visible",
+          "uncertainty_px": 0.1,
+          "method": "synthetic known coordinates"
+        },
+        "sight": {
+          "xy": [
+            337,
+            86
+          ],
+          "state": "visible",
+          "uncertainty_px": 0.1,
+          "method": "synthetic known coordinates"
+        }
+      },
+      "candidate": {
+        "muzzle": {
+          "xy": [
+            112,
+            106
+          ],
+          "state": "visible",
+          "uncertainty_px": 0.1,
+          "method": "synthetic known coordinates"
+        },
+        "receiver": {
+          "xy": [
+            362,
+            106
+          ],
+          "state": "visible",
+          "uncertainty_px": 0.1,
+          "method": "synthetic known coordinates"
+        },
+        "sight": {
+          "xy": [
+            337,
+            86
+          ],
+          "state": "visible",
+          "uncertainty_px": 0.1,
+          "method": "synthetic known coordinates"
+        }
+      }
+    },
+    {
+      "frame": 107,
+      "source_pts": 27392,
+      "candidate_time": [
+        7,
+        60
+      ],
+      "reference": {
+        "muzzle": {
+          "xy": [
+            114,
+            107
+          ],
+          "state": "visible",
+          "uncertainty_px": 0.1,
+          "method": "synthetic known coordinates"
+        },
+        "receiver": {
+          "xy": [
+            364,
+            107
+          ],
+          "state": "visible",
+          "uncertainty_px": 0.1,
+          "method": "synthetic known coordinates"
+        },
+        "sight": {
+          "xy": [
+            339,
+            87
+          ],
+          "state": "visible",
+          "uncertainty_px": 0.1,
+          "method": "synthetic known coordinates"
+        }
+      },
+      "candidate": {
+        "muzzle": {
+          "xy": [
+            114,
+            107
+          ],
+          "state": "visible",
+          "uncertainty_px": 0.1,
+          "method": "synthetic known coordinates"
+        },
+        "receiver": {
+          "xy": [
+            364,
+            107
+          ],
+          "state": "visible",
+          "uncertainty_px": 0.1,
+          "method": "synthetic known coordinates"
+        },
+        "sight": {
+          "xy": [
+            339,
+            87
+          ],
+          "state": "visible",
+          "uncertainty_px": 0.1,
+          "method": "synthetic known coordinates"
+        }
+      }
+    },
+    {
+      "frame": 108,
+      "source_pts": 27648,
+      "candidate_time": [
+        8,
+        60
+      ],
+      "reference": {
+        "muzzle": {
+          "xy": [
+            116,
+            108
+          ],
+          "state": "visible",
+          "uncertainty_px": 0.1,
+          "method": "synthetic known coordinates"
+        },
+        "receiver": {
+          "xy": [
+            366,
+            108
+          ],
+          "state": "visible",
+          "uncertainty_px": 0.1,
+          "method": "synthetic known coordinates"
+        },
+        "sight": {
+          "xy": [
+            341,
+            88
+          ],
+          "state": "visible",
+          "uncertainty_px": 0.1,
+          "method": "synthetic known coordinates"
+        }
+      },
+      "candidate": {
+        "muzzle": {
+          "xy": [
+            116,
+            108
+          ],
+          "state": "visible",
+          "uncertainty_px": 0.1,
+          "method": "synthetic known coordinates"
+        },
+        "receiver": {
+          "xy": [
+            366,
+            108
+          ],
+          "state": "visible",
+          "uncertainty_px": 0.1,
+          "method": "synthetic known coordinates"
+        },
+        "sight": {
+          "xy": [
+            341,
+            88
+          ],
+          "state": "visible",
+          "uncertainty_px": 0.1,
+          "method": "synthetic known coordinates"
+        }
+      }
+    },
+    {
+      "frame": 109,
+      "source_pts": 27904,
+      "candidate_time": [
+        9,
+        60
+      ],
+      "reference": {
+        "muzzle": {
+          "xy": [
+            118,
+            109
+          ],
+          "state": "visible",
+          "uncertainty_px": 0.1,
+          "method": "synthetic known coordinates"
+        },
+        "receiver": {
+          "xy": [
+            368,
+            109
+          ],
+          "state": "visible",
+          "uncertainty_px": 0.1,
+          "method": "synthetic known coordinates"
+        },
+        "sight": {
+          "xy": [
+            343,
+            89
+          ],
+          "state": "visible",
+          "uncertainty_px": 0.1,
+          "method": "synthetic known coordinates"
+        }
+      },
+      "candidate": {
+        "muzzle": {
+          "xy": [
+            118,
+            109
+          ],
+          "state": "visible",
+          "uncertainty_px": 0.1,
+          "method": "synthetic known coordinates"
+        },
+        "receiver": {
+          "xy": [
+            368,
+            109
+          ],
+          "state": "visible",
+          "uncertainty_px": 0.1,
+          "method": "synthetic known coordinates"
+        },
+        "sight": {
+          "xy": [
+            343,
+            89
+          ],
+          "state": "visible",
+          "uncertainty_px": 0.1,
+          "method": "synthetic known coordinates"
+        }
+      }
+    },
+    {
+      "frame": 110,
+      "source_pts": 28160,
+      "candidate_time": [
+        10,
+        60
+      ],
+      "reference": {
+        "muzzle": {
+          "xy": [
+            120,
+            110
+          ],
+          "state": "visible",
+          "uncertainty_px": 0.1,
+          "method": "synthetic known coordinates"
+        },
+        "receiver": {
+          "xy": [
+            370,
+            110
+          ],
+          "state": "visible",
+          "uncertainty_px": 0.1,
+          "method": "synthetic known coordinates"
+        },
+        "sight": {
+          "xy": [
+            345,
+            90
+          ],
+          "state": "visible",
+          "uncertainty_px": 0.1,
+          "method": "synthetic known coordinates"
+        }
+      },
+      "candidate": {
+        "muzzle": {
+          "xy": [
+            120,
+            110
+          ],
+          "state": "visible",
+          "uncertainty_px": 0.1,
+          "method": "synthetic known coordinates"
+        },
+        "receiver": {
+          "xy": [
+            370,
+            110
+          ],
+          "state": "visible",
+          "uncertainty_px": 0.1,
+          "method": "synthetic known coordinates"
+        },
+        "sight": {
+          "xy": [
+            345,
+            90
+          ],
+          "state": "visible",
+          "uncertainty_px": 0.1,
+          "method": "synthetic known coordinates"
+        }
+      }
+    },
+    {
+      "frame": 111,
+      "source_pts": 28416,
+      "candidate_time": [
+        11,
+        60
+      ],
+      "reference": {
+        "muzzle": {
+          "xy": [
+            122,
+            111
+          ],
+          "state": "visible",
+          "uncertainty_px": 0.1,
+          "method": "synthetic known coordinates"
+        },
+        "receiver": {
+          "xy": [
+            372,
+            111
+          ],
+          "state": "visible",
+          "uncertainty_px": 0.1,
+          "method": "synthetic known coordinates"
+        },
+        "sight": {
+          "xy": [
+            347,
+            91
+          ],
+          "state": "visible",
+          "uncertainty_px": 0.1,
+          "method": "synthetic known coordinates"
+        }
+      },
+      "candidate": {
+        "muzzle": {
+          "xy": [
+            122,
+            111
+          ],
+          "state": "visible",
+          "uncertainty_px": 0.1,
+          "method": "synthetic known coordinates"
+        },
+        "receiver": {
+          "xy": [
+            372,
+            111
+          ],
+          "state": "visible",
+          "uncertainty_px": 0.1,
+          "method": "synthetic known coordinates"
+        },
+        "sight": {
+          "xy": [
+            347,
+            91
+          ],
+          "state": "visible",
+          "uncertainty_px": 0.1,
+          "method": "synthetic known coordinates"
+        }
+      }
+    }
+  ],
+  "events": [
+    {
+      "name": "dip",
+      "observation": "visible minimum, synthetic only",
+      "source_frame_interval": [
+        105,
+        106
+      ],
+      "candidate_time_interval": [
+        [
+          5,
+          60
+        ],
+        [
+          6,
+          60
+        ]
+      ]
+    }
+  ]
+}

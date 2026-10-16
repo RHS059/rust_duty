@@ -1,0 +1,148 @@
+{
+  "raw": {
+    "rms": 68.9448694572321,
+    "p95": 80.81906222378919,
+    "max": 82.91101166839903,
+    "count": 100
+  },
+  "centered": {
+    "rms": 6.660364499879335,
+    "p95": 13.395385140920054,
+    "max": 16.73739676523042,
+    "count": 100
+  },
+  "baseline": {
+    "rms": 6.79145662112803,
+    "p95": 13.636217872745586,
+    "max": 16.558491939835527,
+    "count": 100
+  },
+  "amplitudes": {
+    "x": {
+      "reference_px": 57.9532470703125,
+      "candidate_px": 53.7242431640625,
+      "error_px": 4.22900390625,
+      "error_bound_px": 20,
+      "threshold_px": null,
+      "threshold_interval_px": [
+        null,
+        null
+      ],
+      "threshold_state": "unsupported"
+    },
+    "y": {
+      "reference_px": 154.0987548828125,
+      "candidate_px": 170.40359497070312,
+      "error_px": 16.304840087890625,
+      "error_bound_px": 20,
+      "threshold_px": null,
+      "threshold_interval_px": [
+        null,
+        null
+      ],
+      "threshold_state": "unsupported"
+    }
+  },
+  "coverage": {
+    "planned": 100,
+    "source_visible": 100,
+    "candidate_valid_when_source_visible": 100,
+    "source_visible_over_planned": 1.0,
+    "candidate_valid_over_source_visible": 1.0,
+    "comparable_over_planned": 1.0,
+    "noncomparable_intervals_half_open": []
+  },
+  "largest_baseline_residuals": [
+    [
+      4045,
+      [
+        0.914794921875,
+        16.533203125
+      ]
+    ],
+    [
+      4042,
+      [
+        3.829833984375,
+        14.93798828125
+      ]
+    ],
+    [
+      4113,
+      [
+        -2.27801513671875,
+        -14.46044921875
+      ]
+    ],
+    [
+      4112,
+      [
+        -2.765380859375,
+        -13.999755859375
+      ]
+    ],
+    [
+      4044,
+      [
+        0.11578369140625,
+        13.85546875
+      ]
+    ],
+    [
+      4111,
+      [
+        -2.774169921875,
+        -13.3392333984375
+      ]
+    ],
+    [
+      4046,
+      [
+        -1.32830810546875,
+        13.1072998046875
+      ]
+    ],
+    [
+      4047,
+      [
+        -1.31268310546875,
+        13.0179443359375
+      ]
+    ],
+    [
+      4110,
+      [
+        -2.931396484375,
+        -12.73614501953125
+      ]
+    ],
+    [
+      4043,
+      [
+        0.84423828125,
+        12.98126220703125
+      ]
+    ]
+  ],
+  "provenance": {
+    "source": {
+      "name": "R3-original.mp4",
+      "sha256": "491a1729aa0f32373025d35fff86da76c6c1c8f057c0c553d0fbb5fb6226ff46",
+      "bytes_verified": true
+    },
+    "candidate": {
+      "name": "jump_r7_native_frames.zip",
+      "sha256": "12e5aee93e50a2bc2f5b1763ee5e5afee9b4fe2477102cd07db85469e8a7e504",
+      "bytes_verified": true
+    }
+  },
+  "unsupported": [
+    "physical_muzzle: native comparable coverage below 80%, inspect phase gaps",
+    "physical_muzzle: comparable sample coverage below 80%",
+    "third_rigid_anchor: native comparable coverage below 80%, inspect phase gaps",
+    "third_rigid_anchor: comparable sample coverage below 80%",
+    "Reference normalization L unavailable; normalized spatial thresholds unsupported",
+    "reference: third weapon landmark has no observed noncollinear geometry",
+    "candidate: third weapon landmark has no observed noncollinear geometry"
+  ]
+}
