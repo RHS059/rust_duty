@@ -1,0 +1,42 @@
+{
+  "schema": "rust-duty-low-vault-runtime/v1",
+  "presentation_policy": "low_mantle_native_wip",
+  "clip_name": "aella_vault_low_entry_reconstructed_v3",
+  "source_action": "aella_vault_low_entry_reconstructed_v3",
+  "export_take": "aella_vault_low_entry_reconstructed_v3",
+  "candidate_sha256": "6dacee1ee12970fc530700897c7862644d365fb79aa3a110c04dcbdb422338f3",
+  "source_action_fingerprint": "f20f46a05fba3eb9b9191574e76cc5a277be7fc30b0066e3c86beda9abe6f7eb",
+  "source_fbx_sha256": "2211a8b882ba60163fb612f7ab23d1a5e869757093737e2a1576d030b1baf88b",
+  "asset_vra_sha256": "e64b02de580cce2bf6f59ff9a81dbcd31544a64537c137ab69875b71d3120460",
+  "candidate_frame_range": [
+    1,
+    64
+  ],
+  "reference_frame_range_half_open": [
+    7284,
+    7348
+  ],
+  "native_fps": [
+    60,
+    1
+  ],
+  "native_crop": [
+    0,
+    63
+  ],
+  "imported_frame_offset": 1,
+  "subdivisions": 8,
+  "return_seconds": 0.2,
+  "actor_basis": "reload_mesh_local",
+  "anchor_actor": "hk416_weapon",
+  "artistic_approval": true,
+  "status": "art_approved_native_validation_pending",
+  "artistic_review": {
+    "reviewer": "Elara",
+    "score": 83,
+    "result": "PASS",
+    "reviewed_at_utc": "2026-10-15T15:55:05Z",
+    "discord_message_id": "1560320117416665170"
+  },
+  "default_runtime_activation": false
+}

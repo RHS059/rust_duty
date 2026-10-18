@@ -304,8 +304,8 @@ impl Files {
         if mask & PRONE != 0 {
             text += &format!("prone_entry.policy=paired_r15_wip\nprone_entry.asset=prone.vra\nprone_entry.clip={R15_RIG_ACTION}\nprone_entry.camera=prone.camera.json\nprone_entry.receipt=prone.receipt.json\n");
         }
-        // Deliberately unresolved: production pins are pending, so high must not
-        // read or admit even apparently valid file references in this contract.
+        // Deliberately unresolved: this fixture supplies no high payload files.
+        // Approved runtime pins do not make missing or corrupt files loadable.
         if mask & HIGH != 0 {
             text += &format!("high_mantle.policy={}\nhigh_mantle.asset=high.vra\nhigh_mantle.clip={}\nhigh_mantle.receipt=high.receipt.json\nhigh_mantle.receipt_sha256={}\n",vector_range::authored_high_mantle::POLICY,vector_range::authored_high_mantle::ACTION,"1".repeat(64));
         }
@@ -510,7 +510,7 @@ fn all_eight_optional_configurations_keep_admitted_routes_and_high_gate_independ
         );
         assert!(
             model.high_mantle_binding().is_none(),
-            "unreviewed high enabled for mask {mask}"
+            "missing high payload enabled for mask {mask}"
         );
         assert_eq!(
             model.warning().unwrap().contains("high mantle inactive"),
