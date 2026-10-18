@@ -1,0 +1,24 @@
+# Consumer v2 and v3 correction record
+
+Input review: `windows-runtime-consumer-review-v1/PINS.json`, SHA256 `2adb355864f63170dfd06e91a0800b3158e350a648a5f78df46dbdf826a3df79`.
+Prior frozen consumer v1 PINS: `8fa2339c5a3f51076f6dea32696aae64409f7793cb2b7ac803addac805f10aba`. No prior frozen package was edited.
+
+- C1: `inventory` no longer prunes any directory name. Actual Cargo manifest and target source paths must be members of exactly one current pinned tree. Cargo output uses a disjoint explicit target directory. `build_closure.py` verifies every actual compiler-artifact's dep-info, crate root, source/dependency membership and generated-input records linked to the supervised Cargo process and observed build-script OUT_DIR. No inner build-script execution is fabricated.
+- C2: consumer keeps exact canonical POSIX relative row/skin paths. Producer v3 implements serialization normalization outside the unchanged mathematical fragment. Tiny source-index regression accepts POSIX and rejects Windows backslash, traversal and redundant-separator descriptors.
+- C3: retained plan schema/flags/binding/index, original current-chunk hash, every exact preserved record, started receipt and full journal are verified nonmutatingly. Replacement of only the current chunk/retirement receipt cannot bypass the unchanged original plan. Any partial presence or failure marker blocks success. Authorization strings remain traces; caller approval is a separate prerequisite.
+- C4: exact bundle schema/kind/index and nonempty role set are checked before iterating. Fixed stage receipt/terminal paths, expected stage/index/envelope claims and bindings are checked. After independent retained-plan validation only source-chunk goes through producer v3 `verify_retained_stage`, sharing its full default envelope/context/process/resource/dependency checks and allowing only the complete exact absent row+skin inventory.
+- Windows checkout: package `.gitattributes` protects every file with `* -text`. Real local Git index/checkout regression sets core.autocrlf=true and core.eol=crlf, removes working-tree attributes to exercise the indexed rule, and compares all source/index/checkout bytes. External frozen roles require separately hash-preserving materialization, documented in NATIVE_INVOCATION.md.
+
+At the v2 freeze, 107 CPU/source tests passed. These include 75 v1 tests with the retirement fixture upgraded to the strict schema, 31 new correction cases, and one actual local Git checkout case. The eight original small scanner fixtures are still extracted unchanged. Numerical fragments, original pins, Rust reference pins and the pinned-math loader remain byte-identical to v1. No private geometry, native/Blender process, Rust build or Windows consumer run was used.
+
+At the v2 freeze, producer v3 API integration was source-only and `REVIEWED_PRODUCER_PINS_SHA` remained None. A separately reviewed revision must pin accepted producer bytes before production. The earlier exact Windows transport-only smoke is retained as a distinct dependency. Full target native source/Rust/asset/grid proof remains pending.
+
+## v3 sole B1 correction
+
+Input: frozen pair-review PINS `d704d46e75d7f28865bde42aea1ad1ea75a84089600b1a40053d8ae064747b79`, review document SHA256 `163f4d1f7e17ae4cb7f0ccd4bf5e2babe855368a1bc9090c4f52a4e18a1e74f4`, repro source SHA256 `411cb296cabb987062c94646ba950d84274ca8b201d8d51218ee37717f26296b`. The original review and frozen consumer v1/v2 remain unchanged.
+
+The actual Rust receipt path now uses the exact unchanged producer v3 strict `verify_completed_process`, with a mandatory externally selected terminal hash and complete admitted expected process identity. The old consumer partial resource/terminal reconstruction was removed. Derived resources remain explicit sampled-only coverage, with observed scheduling gaps, requested period 0.2 seconds, sampled RSS 3 GiB, disk floor 1 GiB and deadline 1,800 seconds unchanged.
+
+127 small CPU tests pass. Twenty new focused tests cover the eleven resealed contradictions, existing nonfinite rejection, consistent synthetic admission at the low-level boundary, exact original successful Windows transport-only receipt, observed-gap reporting, mandatory external terminal pin, actual tool byte lengths, shared-reader failure propagation and producer/review pins. The independent reproduction setup is adapted only to current explicit local synthetic tool pins and current producer roles; no test fixture can reach production admission.
+
+The producer v3 acceptance pin is now explicit, anchored to the independent pair review. This consumer correction and the separate workflow/build creator still require independent review. All real target roles and full native/runtime proof remain absent. There was no native launch, Rust build, asset operation, GitHub write or publication.

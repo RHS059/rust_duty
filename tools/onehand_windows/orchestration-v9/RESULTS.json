@@ -1,0 +1,31 @@
+{
+  "actual_windows_native_proof": false,
+  "controller_and_adapter_environment_hash_domains_verified": true,
+  "early_dependency_source_tests": {
+    "context_profile": 27,
+    "errors": 0,
+    "failures": 0,
+    "native_dependency_selection": 5,
+    "native_host_identity": 27,
+    "runtime_dependency_selection": 6,
+    "skipped": 0
+  },
+  "errors": 0,
+  "failures": 0,
+  "focused_diagnostic_tests": 49,
+  "focused_host_collection_tests": 27,
+  "independent_exact_successor_admission": "pending",
+  "materialized_fixture_correction": "Native test_host_identity explicitly resolves the CI sibling orchestration directory; authored-layout and materialized-layout tests remain distinct.",
+  "native_execution_performed": false,
+  "predecessor_logs_preserved": [
+    "cpu-tests.log",
+    "completed-tests.log"
+  ],
+  "publication_performed": false,
+  "schema": "rust-duty-host-binding-source-results/v1",
+  "skip_reason": "Inherited actual Windows-only PowerShell application-selection fixture; not an actual Windows pass.",
+  "skipped": 1,
+  "source_closure_checked": true,
+  "state": "prepared-source-tests-passed-native-admission-pending",
+  "tests_run": 241
+}
