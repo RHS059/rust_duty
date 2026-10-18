@@ -1,0 +1,23 @@
+{
+  "schema": "rust-duty-onehand-controller-layout/v1",
+  "roots": {
+    "audited_source": "audited",
+    "source_package": "source-producer",
+    "reference": "hash-only-reference",
+    "context_package": "context-v2",
+    "process_adapter": "process-v2",
+    "native_producer": "native-producer-reviewed",
+    "runtime_consumer": "runtime-consumer-reviewed",
+    "rust_source": "rust-source"
+  },
+  "inputs": {
+    "baseline": "existing-public/r3.blend",
+    "original_delta": "original-source/original-delta.json",
+    "canonical": "existing-public/locomotion.vra",
+    "transport_review": "transport-evidence/independent-review.json",
+    "transport_smoke": "transport-evidence/independent-audit.json",
+    "transport_smoke_summary": "transport-evidence/test-summary.json"
+  },
+  "authored_bridge": "authored-bridge/authored_bridge.py",
+  "rust_features": []
+}

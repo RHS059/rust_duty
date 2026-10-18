@@ -24,7 +24,7 @@ jobs:
       run:
         shell: pwsh
     env:
-      PACKAGE: tools/onehand_windows/orchestration-v5
+      PACKAGE: tools/onehand_windows/orchestration-v6
       GIT_CONFIG_COUNT: '2'
       GIT_CONFIG_KEY_0: core.autocrlf
       GIT_CONFIG_VALUE_0: 'false'
@@ -72,7 +72,7 @@ jobs:
             if ($proc.ExitCode -ne 0) { throw 'Exact Git source export failed' }
           }
           foreach ($name in @('source_checkout.py','checkout_bytes.py')) { Export-Blob ($env:PACKAGE+'/'+$name) (Join-Path $work $name) }
-          $sourceHelperSha='f210617fe3faf0b1beeb51276352371355a837bf53fc4e84cff8c21c34da5ecf'
+          $sourceHelperSha='8ad4b6db52bfa35ed99fc5ffbd8648529219c12514824bd199575de28db589e3'
           $materializerSha='935ca9997b68778cf7b3a073598b3dfaa236816d610fc9440e86fb4c51db077c'
           if ((Get-FileHash (Join-Path $work 'source_checkout.py') -Algorithm SHA256).Hash.ToLowerInvariant() -ne $sourceHelperSha) { throw 'Reviewed source-only bootstrap differs' }
           if ((Get-FileHash (Join-Path $work 'checkout_bytes.py') -Algorithm SHA256).Hash.ToLowerInvariant() -ne $materializerSha) { throw 'Reviewed exact materializer differs' }
@@ -89,6 +89,8 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Official-registry Python dependencies failed' }
           python -I -B (Join-Path $env:ONEHAND_SOURCE_PACKAGE 'run_source_tests.py') --event-commit $env:PROOF_COMMIT --summary (Join-Path $env:ONEHAND_WORK 'source-evidence/source-tests.json')
           if ($LASTEXITCODE -ne 0) { throw 'Source-only tests failed; no animation proof claimed' }
+          python -I -B (Join-Path $env:ONEHAND_SOURCE_PACKAGE 'command_contract.py') --event-commit $env:PROOF_COMMIT --output (Join-Path $env:ONEHAND_WORK 'command-contract') --summary (Join-Path $env:ONEHAND_WORK 'source-evidence/command-contract.json')
+          if ($LASTEXITCODE -ne 0) { throw 'Windows owned-command receipt contract failed before native installers' }
       - name: Export and test the exact dormant or independently admitted game continuation
         id: game_admission
         timeout-minutes: 10
@@ -96,17 +98,20 @@ jobs:
           $ErrorActionPreference='Stop'
           $helper=Join-Path $env:ONEHAND_WORK 'game-preflight.py'
           $p=[Diagnostics.ProcessStartInfo]::new();$p.FileName=$env:ONEHAND_GIT;$p.UseShellExecute=$false;$p.RedirectStandardOutput=$true;$p.RedirectStandardError=$true
-          foreach ($arg in @('-C',$env:ONEHAND_REPOSITORY,'cat-file','blob',($env:PROOF_COMMIT+':tools/onehand_windows/game-continuation-v3/preflight_game.py'))) { $p.ArgumentList.Add($arg) }
+          foreach ($arg in @('-C',$env:ONEHAND_REPOSITORY,'cat-file','blob',($env:PROOF_COMMIT+':tools/onehand_windows/game-continuation-v4/preflight_game.py'))) { $p.ArgumentList.Add($arg) }
           $proc=[Diagnostics.Process]::Start($p);$stream=[IO.File]::Open($helper,[IO.FileMode]::CreateNew)
           try { $proc.StandardOutput.BaseStream.CopyTo($stream) } finally { $stream.Dispose() }
           $discard=$proc.StandardError.ReadToEnd();$proc.WaitForExit()
           if ($proc.ExitCode -ne 0) { throw 'Exact game bootstrap export failed' }
-          if ((Get-FileHash $helper -Algorithm SHA256).Hash.ToLowerInvariant() -ne 'afc7b7c3fbebf0faa1afa58a72ad098ece6defe25a6bd2512bb6386cb813361f') { throw 'Reviewed game bootstrap differs' }
-          python -I -B $helper --git $env:ONEHAND_GIT --repository $env:ONEHAND_REPOSITORY --event-commit $env:PROOF_COMMIT --package-pins-sha256 '4835d62cbd301e6a1528e622a32a068dd30dd2c1d7b652204fcadf32a7351f24' --output (Join-Path $env:ONEHAND_WORK 'game-admission') --summary (Join-Path $env:ONEHAND_WORK 'source-evidence/game-admission.json') --github-output $env:GITHUB_OUTPUT
+          if ((Get-FileHash $helper -Algorithm SHA256).Hash.ToLowerInvariant() -ne 'd7cfb9b9caa83f12de1cd7732a4aac0d9eb3b7452ddf2f568adbf52193d4f3eb') { throw 'Reviewed game bootstrap differs' }
+          python -I -B $helper --git $env:ONEHAND_GIT --repository $env:ONEHAND_REPOSITORY --event-commit $env:PROOF_COMMIT --package-pins-sha256 '7de72cb030a6cb996be77b454b5533356a832788bbd2f43bedd83ce33a378172' --output (Join-Path $env:ONEHAND_WORK 'game-admission') --summary (Join-Path $env:ONEHAND_WORK 'source-evidence/game-admission.json') --github-output $env:GITHUB_OUTPUT
           if ($LASTEXITCODE -ne 0) { throw 'Game source or independent admission failed before native work' }
           $game=Join-Path $env:ONEHAND_WORK 'game-admission/package'
-          python -I -B (Join-Path $game 'execute_continuation.py') --package-pins-sha256 '4835d62cbd301e6a1528e622a32a068dd30dd2c1d7b652204fcadf32a7351f24' --source-tests
+          python -I -B (Join-Path $game 'execute_continuation.py') --package-pins-sha256 '7de72cb030a6cb996be77b454b5533356a832788bbd2f43bedd83ce33a378172' --source-tests
           if ($LASTEXITCODE -ne 0) { throw 'Game continuation source-only tests failed' }
+          $sourceRoot=Split-Path -Parent $env:ONEHAND_SOURCE_PACKAGE
+          python -I -B (Join-Path $game 'test_game_command_contract.py') --orchestration $env:ONEHAND_SOURCE_PACKAGE --adapter (Join-Path $sourceRoot 'process-v2') --producer (Join-Path $sourceRoot 'native-producer-reviewed')
+          if ($LASTEXITCODE -ne 0) { throw 'Game source-only transport contract tests failed' }
       - name: Export and test the separately frozen source inventory measurement
         timeout-minutes: 10
         run: |
@@ -247,6 +252,7 @@ jobs:
           if-no-files-found: warn
           path: |
             ${{ runner.temp }}/onehand-${{ github.run_id }}-${{ github.run_attempt }}/source-evidence/source-tests.json
+            ${{ runner.temp }}/onehand-${{ github.run_id }}-${{ github.run_attempt }}/source-evidence/command-contract.json
             ${{ runner.temp }}/onehand-${{ github.run_id }}-${{ github.run_attempt }}/source-evidence/admission.json
             ${{ runner.temp }}/onehand-${{ github.run_id }}-${{ github.run_attempt }}/proof/public-evidence/summary.json
             ${{ runner.temp }}/onehand-${{ github.run_id }}-${{ github.run_attempt }}/source-evidence/game-admission.json

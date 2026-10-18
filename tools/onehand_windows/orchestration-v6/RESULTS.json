@@ -1,0 +1,14 @@
+{
+  "cpu_tests_discovered": 157,
+  "cpu_tests_errors": 0,
+  "cpu_tests_failures": 0,
+  "cpu_tests_passed": 156,
+  "cpu_tests_skipped": 1,
+  "game_capture_performed": false,
+  "independent_exact_successor_admission": "pending",
+  "native_animation_execution": false,
+  "new_portable_contract_tests_passed": 10,
+  "publication": false,
+  "schema": "onehand-transport-contract-preparation/v1",
+  "windows_actual_subprocess_regression": "prepared; not run on this Linux host"
+}
