@@ -1,0 +1,32 @@
+test_collection_keeps_same_executable_runtime_environment (test_host_identity_collection.Collection.test_collection_keeps_same_executable_runtime_environment) ... ok
+test_collection_retains_role_specific_host_and_owned_probe (test_host_identity_collection.Collection.test_collection_retains_role_specific_host_and_owned_probe) ... ok
+test_cross_role_version_rejection_does_not_write_binding (test_host_identity_collection.Collection.test_cross_role_version_rejection_does_not_write_binding) ... ok
+test_invalid_observed_host_rejects (test_host_identity_collection.Collection.test_invalid_observed_host_rejects) ... ok
+test_invalid_outer_host_rejects_before_any_command (test_host_identity_collection.Collection.test_invalid_outer_host_rejects_before_any_command) ... ok
+test_invalid_platform_or_pointer_shape_rejects (test_host_identity_collection.Collection.test_invalid_platform_or_pointer_shape_rejects) ... ok
+test_missing_extra_probe_fields_and_old_schema_reject (test_host_identity_collection.Collection.test_missing_extra_probe_fields_and_old_schema_reject) ... ok
+test_tool_bytes_and_unsafe_probe_actions_reject (test_host_identity_collection.Collection.test_tool_bytes_and_unsafe_probe_actions_reject) ... ok
+test_absent_architecture_fails_without_guessing (test_host_identity_collection.Environment.test_absent_architecture_fails_without_guessing) ... ok
+test_bad_architecture_fails (test_host_identity_collection.Environment.test_bad_architecture_fails) ... ok
+test_bad_optional_architecture_fails (test_host_identity_collection.Environment.test_bad_optional_architecture_fails) ... ok
+test_case_duplicate_allowed_key_fails (test_host_identity_collection.Environment.test_case_duplicate_allowed_key_fails) ... ok
+test_exact_amd64_is_retained (test_host_identity_collection.Environment.test_exact_amd64_is_retained) ... ok
+test_fixed_behavior_stays_exact (test_host_identity_collection.Environment.test_fixed_behavior_stays_exact) ... ok
+test_noncanonical_architecture_key_fails (test_host_identity_collection.Environment.test_noncanonical_architecture_key_fails) ... ok
+test_optional_amd64_is_retained (test_host_identity_collection.Environment.test_optional_amd64_is_retained) ... ok
+test_overrides_are_filtered_without_replacement (test_host_identity_collection.Environment.test_overrides_are_filtered_without_replacement) ... ok
+test_system_environment_still_required (test_host_identity_collection.Environment.test_system_environment_still_required) ... ok
+test_actual_native_modules_do_not_use_ambient_helper (test_host_identity_collection.Loader.test_actual_native_modules_do_not_use_ambient_helper) ... ok
+test_native_helper_load_order_is_before_consumers (test_host_identity_collection.Loader.test_native_helper_load_order_is_before_consumers) ... ok
+test_exact_native_platform_observation (test_host_identity_collection.Probe.test_exact_native_platform_observation) ... ok
+test_invalid_release_and_version_fail (test_host_identity_collection.Probe.test_invalid_release_and_version_fail) ... ok
+test_machine_aliases_and_wrong_system_fail (test_host_identity_collection.Probe.test_machine_aliases_and_wrong_system_fail) ... ok
+test_missing_empty_unknown_observation_fails (test_host_identity_collection.Probe.test_missing_empty_unknown_observation_fails) ... ok
+test_nonwin32_and_32bit_fail (test_host_identity_collection.Probe.test_nonwin32_and_32bit_fail) ... ok
+test_schema_and_safe_read_proof_flags_are_explicit (test_host_identity_collection.Probe.test_schema_and_safe_read_proof_flags_are_explicit) ... ok
+test_source_import_does_not_import_blender (test_host_identity_collection.Probe.test_source_import_does_not_import_blender) ... ok
+
+----------------------------------------------------------------------
+Ran 27 tests in 0.077s
+
+OK

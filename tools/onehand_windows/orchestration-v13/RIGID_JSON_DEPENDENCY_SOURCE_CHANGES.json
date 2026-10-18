@@ -1,0 +1,75 @@
+{
+  "files": {
+    "command_contract.py": [
+      {
+        "new_lines": [
+          "PRODUCER_SHA='ed4cf3ff99e94b8c86e4239c083689d4b86ef082ab08033719df0788a509033a'\n"
+        ],
+        "new_start": 15,
+        "old_lines": [
+          "PRODUCER_SHA='cffa746f9bdd4433ad2bc738a51e1b435f720cb9a16ffc0399f28fb0cd99b327'\n"
+        ]
+      }
+    ],
+    "onehand-windows-proof.yml": [
+      {
+        "new_lines": [
+          "      PACKAGE: tools/onehand_windows/orchestration-v11\n"
+        ],
+        "new_start": 26,
+        "old_lines": [
+          "      PACKAGE: tools/onehand_windows/orchestration-v10\n"
+        ]
+      },
+      {
+        "new_lines": [
+          "          $sourceHelperSha='d91831626cb86bfcce2671706b929d1725353e6fc631a9c66f9d37e9d38ba328'\n"
+        ],
+        "new_start": 84,
+        "old_lines": [
+          "          $sourceHelperSha='1503100e5a165637f0ab1261f59f6232a8b35d63f718c15a0df59e28c744b75a'\n"
+        ]
+      },
+      {
+        "new_lines": [
+          "          $native=Join-Path (Split-Path -Parent $env:ONEHAND_SOURCE_PACKAGE) 'native-producer-reviewed'\n",
+          "          python -I -B (Join-Path $native 'run_rigid_json_regression.py') --report (Join-Path $env:ONEHAND_WORK 'source-evidence/native-rigid-json-regression.json')\n",
+          "          if ($LASTEXITCODE -ne 0) { throw 'Exact production rigid-frame JSON boundary regressions failed before native installers' }\n"
+        ],
+        "new_start": 117,
+        "old_lines": []
+      },
+      {
+        "new_lines": [
+          "            ${{ runner.temp }}/onehand-${{ github.run_id }}-${{ github.run_attempt }}/source-evidence/native-rigid-json-regression.json\n"
+        ],
+        "new_start": 330,
+        "old_lines": []
+      }
+    ],
+    "run_source_tests.py": [
+      {
+        "new_lines": [
+          "    packages=orchestrate.load_packages(config,{'native_producer_pins_sha256':declared['native_v8'],'runtime_consumer_pins_sha256':declared['consumer_v9']})\n"
+        ],
+        "new_start": 16,
+        "old_lines": [
+          "    packages=orchestrate.load_packages(config,{'native_producer_pins_sha256':declared['native_v7'],'runtime_consumer_pins_sha256':declared['consumer_v8']})\n"
+        ]
+      }
+    ],
+    "source_checkout.py": [
+      {
+        "new_lines": [
+          "PACKAGE='tools/onehand_windows/orchestration-v11'\n"
+        ],
+        "new_start": 7,
+        "old_lines": [
+          "PACKAGE='tools/onehand_windows/orchestration-v10'\n"
+        ]
+      }
+    ]
+  },
+  "native_execution_performed": false,
+  "schema": "rust-duty-rigid-json-dependency-source-changes/v1"
+}

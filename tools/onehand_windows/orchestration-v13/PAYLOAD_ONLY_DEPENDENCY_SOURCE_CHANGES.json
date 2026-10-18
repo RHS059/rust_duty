@@ -1,0 +1,190 @@
+{
+  "files": {
+    "command_contract.py": [
+      {
+        "new_lines": [
+          "PRODUCER_SHA='03fdc69c859ecf762a1b23a35a0edbe63e0b20a3ccaa941aa6756232f14bf989'\n"
+        ],
+        "new_start": 15,
+        "old_lines": [
+          "PRODUCER_SHA='ed4cf3ff99e94b8c86e4239c083689d4b86ef082ab08033719df0788a509033a'\n"
+        ]
+      }
+    ],
+    "failure_diagnostics.py": [
+      {
+        "new_lines": [
+          "def controller_traceback_projection(error, registry):\n",
+          "    \"\"\"Project actual in-process traceback locations, never locals or raw text.\n",
+          "\n",
+          "    Controller admission can fail after a successful child. Child streams do\n",
+          "    not contain that traceback. Exact file pins and public AST declarations\n",
+          "    gate every location and static message exposed here.\n",
+          "    \"\"\"\n",
+          "    frames, templates = [], []\n",
+          "    unknown, truncated = 0, False\n",
+          "    tb = error.__traceback__\n",
+          "    visited = 0\n",
+          "    while tb is not None:\n",
+          "        if visited >= MAX_FRAMES:\n",
+          "            truncated = True\n",
+          "            break\n",
+          "        visited += 1\n",
+          "        try:\n",
+          "            frame = source_frame(tb.tb_frame.f_code.co_filename, tb.tb_lineno, registry)\n",
+          "        except Exception:\n",
+          "            frame = None\n",
+          "        if frame is None:\n",
+          "            unknown += 1\n",
+          "        else:\n",
+          "            frames.append(frame)\n",
+          "            templates.extend(frame['static_error_templates'])\n",
+          "        tb = tb.tb_next\n",
+          "    message = str(error)\n",
+          "    exact = message if message in templates and '<dynamic>' not in message else None\n",
+          "    return {'category': type(error).__name__ if type(error).__name__ in ERRORS else 'unrecognized',\n",
+          "            'message_sha256': identity(message.encode())['sha256'],\n",
+          "            'verified_static_message': exact, 'frames': frames,\n",
+          "            'unknown_frames': unknown, 'truncated': truncated,\n",
+          "            'scope': 'controller exception; distinct from child lifecycle and streams',\n",
+          "            'source_templates_are_declarations_not_dynamic_values': True}\n",
+          "\n",
+          "\n",
+          "def capture_controller_failure(error, *, command, roots=None):\n",
+          "    \"\"\"Fallback for controller failures outside an owned-command wrapper.\"\"\"\n",
+          "    try:\n",
+          "        if public_failure(error) is not None:\n",
+          "            return\n",
+          "        check(command in ('preflight', 'run'))\n",
+          "        try:\n",
+          "            registry = source_index(roots or {})\n",
+          "        except Exception:\n",
+          "            registry = {}\n",
+          "        value = {'schema': 'rust-duty-owned-failure-public/v1',\n",
+          "                 'kind': 'controller', 'role': command, 'stage': None, 'index': None,\n",
+          "                 'diagnostic_status': 'controller-source-projection',\n",
+          "                 'receipt_binding_verified': False, 'native_proof': False,\n",
+          "                 'original_outcome': 'failed',\n",
+          "                 'original_error_category': type(error).__name__ if type(error).__name__ in ERRORS else 'unrecognized',\n",
+          "                 'original_error_sha256': identity(str(error).encode())['sha256'],\n",
+          "                 'identities': None, 'lifecycle': None, 'tracebacks': None,\n",
+          "                 'controller_exception': controller_traceback_projection(error, registry)}\n",
+          "        error._onehand_failure_projection = _Projection(value)\n",
+          "    except BaseException:\n",
+          "        pass\n",
+          "\n",
+          "\n"
+        ],
+        "new_start": 423,
+        "old_lines": []
+      },
+      {
+        "new_lines": [
+          "            value = dict(value, tracebacks=None, controller_exception=None, traceback_status='public-projection-cap')\n"
+        ],
+        "new_start": 487,
+        "old_lines": [
+          "            value = dict(value, tracebacks=None, traceback_status='public-projection-cap')\n"
+        ]
+      },
+      {
+        "new_lines": [
+          "                 'identities': None, 'lifecycle': None, 'tracebacks': None,\n",
+          "                 'controller_exception': None}\n",
+          "        try:\n",
+          "            registry = source_index(roots or {})\n",
+          "        except Exception:\n",
+          "            registry = {}\n",
+          "        value['controller_exception'] = controller_traceback_projection(error, registry)\n"
+        ],
+        "new_start": 501,
+        "old_lines": [
+          "                 'identities': None, 'lifecycle': None, 'tracebacks': None}\n"
+        ]
+      },
+      {
+        "new_lines": [],
+        "new_start": 512,
+        "old_lines": [
+          "            try:\n",
+          "                registry = source_index(roots or {})\n",
+          "            except Exception:\n",
+          "                registry = {}\n"
+        ]
+      }
+    ],
+    "onehand-windows-proof.yml": [
+      {
+        "new_lines": [
+          "      PACKAGE: tools/onehand_windows/orchestration-v12\n"
+        ],
+        "new_start": 26,
+        "old_lines": [
+          "      PACKAGE: tools/onehand_windows/orchestration-v11\n"
+        ]
+      },
+      {
+        "new_lines": [
+          "          $sourceHelperSha='afef0c837ed4eea7dc7051375b965776118c7a51ad4fb45d11e70cc8093bd4f1'\n"
+        ],
+        "new_start": 84,
+        "old_lines": [
+          "          $sourceHelperSha='d91831626cb86bfcce2671706b929d1725353e6fc631a9c66f9d37e9d38ba328'\n"
+        ]
+      },
+      {
+        "new_lines": [
+          "          python -I -B (Join-Path $native 'run_payload_only_regression.py') --report (Join-Path $env:ONEHAND_WORK 'source-evidence/native-payload-only-regression.json')\n",
+          "          if ($LASTEXITCODE -ne 0) { throw 'Exact production payload-only receipt regressions failed before native installers' }\n"
+        ],
+        "new_start": 120,
+        "old_lines": []
+      },
+      {
+        "new_lines": [
+          "            ${{ runner.temp }}/onehand-${{ github.run_id }}-${{ github.run_attempt }}/source-evidence/native-payload-only-regression.json\n"
+        ],
+        "new_start": 333,
+        "old_lines": []
+      }
+    ],
+    "orchestrate.py": [
+      {
+        "new_lines": [
+          "    except Exception as exc:\n",
+          "        error=exc\n",
+          "        failure_diagnostics.capture_controller_failure(exc,command=args.command,roots=config.get('roots',{}))\n",
+          "        print(json.dumps({'passed':False,'error_type':type(exc).__name__,'error_sha256':hashlib.sha256(str(exc).encode()).hexdigest()}));return 1\n"
+        ],
+        "new_start": 192,
+        "old_lines": [
+          "    except Exception as exc:error=exc;print(json.dumps({'passed':False,'error_type':type(exc).__name__,'error_sha256':hashlib.sha256(str(exc).encode()).hexdigest()}));return 1\n"
+        ]
+      }
+    ],
+    "run_source_tests.py": [
+      {
+        "new_lines": [
+          "    packages=orchestrate.load_packages(config,{'native_producer_pins_sha256':declared['native_v9'],'runtime_consumer_pins_sha256':declared['consumer_v10']})\n"
+        ],
+        "new_start": 16,
+        "old_lines": [
+          "    packages=orchestrate.load_packages(config,{'native_producer_pins_sha256':declared['native_v8'],'runtime_consumer_pins_sha256':declared['consumer_v9']})\n"
+        ]
+      }
+    ],
+    "source_checkout.py": [
+      {
+        "new_lines": [
+          "PACKAGE='tools/onehand_windows/orchestration-v12'\n"
+        ],
+        "new_start": 7,
+        "old_lines": [
+          "PACKAGE='tools/onehand_windows/orchestration-v11'\n"
+        ]
+      }
+    ]
+  },
+  "native_execution_performed": false,
+  "schema": "rust-duty-payload-only-dependency-source-changes/v1"
+}

@@ -1,0 +1,23 @@
+{
+  "authored_bridge": "authored-bridge/authored_bridge.py",
+  "inputs": {
+    "baseline": "existing-public/r3.blend",
+    "canonical": "existing-public/locomotion.vra",
+    "original_delta": "original-source/original-delta.json",
+    "transport_review": "transport-evidence/independent-review.json",
+    "transport_smoke": "transport-evidence/independent-audit.json",
+    "transport_smoke_summary": "transport-evidence/test-summary.json"
+  },
+  "roots": {
+    "audited_source": "audited",
+    "context_package": "context-v3",
+    "native_producer": "native-producer-reviewed",
+    "process_adapter": "process-v2",
+    "reference": "hash-only-reference",
+    "runtime_consumer": "runtime-consumer-reviewed",
+    "rust_source": "rust-source",
+    "source_package": "source-producer"
+  },
+  "rust_features": [],
+  "schema": "rust-duty-onehand-controller-layout/v1"
+}

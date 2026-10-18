@@ -1,0 +1,35 @@
+{
+  "allowed_cargo_target_dependency_changes": [
+    "build_rust.py",
+    "onehand-windows-proof.yml",
+    "source_checkout.py"
+  ],
+  "files": {
+    "SOURCE_CLOSURE.json": "14c52fc3a46f8cca2ae17a2a4db43c4a6f4d184a560e0d5c37f22a88238f0d22",
+    "build_rust.py": "bb1d213030a427133b852410d629df9128c8ceb127846322f0528177454caf1b",
+    "checkout_bytes.py": "935ca9997b68778cf7b3a073598b3dfaa236816d610fc9440e86fb4c51db077c",
+    "command_contract.py": "c3d4a5ec4a89f881a32972f3dd3fde2fee268485958ee2e29d44ce216e173bd0",
+    "failure_diagnostics.py": "c08937d4e40f47d02f3cd54df7f1c452d66d17569b1996acf77c40bc3e146de6",
+    "host_tools.py": "52bb2e44c6e86074f337f365723ed1fc3121af8b9d3eb9a41616201c235c24b0",
+    "onehand-windows-proof.yml": "e82dcfcb9754a9f335b729b72fbf23c51670478e3346c19100a8a6af5ccdfb66",
+    "orchestrate.py": "0e63750707bd5223fe237c0a2a4d815ff5df42edeb4baae138019c7fc0c7ea48",
+    "owned_commands.py": "20104c58b947b9d1032ccf162e1504620f949fdd274b5fbcc2fe5707e14c0e65",
+    "parts_transport.py": "758ff9aec16bf3dbfe7c7799e27268f94e6b05294943aad943aad1e5797aecce",
+    "preinstall_admission.py": "05b8c41c557cb0274d8caaf913bfb454277df1301a14df47b004517bc66c2a14",
+    "prepare_controller.py": "9e8db6b4b069d9786bcae524e352ce8d06290c04fbf39566420e57182e6b3a64",
+    "probe_blender.py": "cef34876a036fec04d520e835d95f8a3fea7a51cad23bb9140efdae13694a350",
+    "projection_binding.py": "92e4bbe3088be679de5696646d117d91e0c7681d6659d88910ed9d0c30000ab8",
+    "publication_inventory.py": "67040460d4357d15d167f54ec6d6e957b7e6f88c7eb4127ff922f0c2830077b4",
+    "run_proof.py": "ac03cae91856c3fc2243837da3ec6914c891844ad39b803a8e747df14b6f3fa9",
+    "run_source_tests.py": "a420ea9fd01ec7c506f1635f40ce916197c50f906c2477b07b7dccb14bf6f002",
+    "source_checkout.py": "afef0c837ed4eea7dc7051375b965776118c7a51ad4fb45d11e70cc8093bd4f1",
+    "source_selection.py": "9cb318b8108882658e79cf564793efdddaae0500a12fcc1dccd758caf0871256",
+    "source_transport.py": "e00395bb674f78ba6da77a2e8b56f59fd7cda1a3b5d4bf8d0559e44ca1baeea6",
+    "verify_freeze.py": "059a14d1d70cfa20b5842d8e50e8a7d829df8d0dc96d4e71fcd7ae897d637479",
+    "workflow_core.py": "e5bae5b323ca1503f1fb6851f9d90cc98d452b137aaf5810af5c3fcddec30428"
+  },
+  "independent_acceptance": false,
+  "package_path": "tools/onehand_windows/orchestration-v12",
+  "package_pins_sha256": "86d434c9ac8eec8b68c716196f1e0fb14d9c1e7e3e0d06ce96633d70fb3fd04e",
+  "schema": "rust-duty-cargo-target-dependency-predecessor/v1"
+}
