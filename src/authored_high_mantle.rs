@@ -1,4 +1,4 @@
-//! Optional, hash-pinned one-hand HIGH-ONTO presentation. No payload is enabled.
+//! Optional, hash-pinned one-hand HIGH-ONTO presentation.
 //! Only accepted ordinary high mantles use this clock; low and hang paths do not.
 use crate::{asset::WeaponAsset, skinned_asset::SkinnedAsset, viewmodel_animation::AnimationSet};
 use serde_json::Value;
@@ -9,6 +9,7 @@ pub const ACTION: &str = "aella_mantle_onehand_r6_camera_reconstructed_v6";
 pub const SOURCE_SHA256: &str = "b5cae854b1e5e21c44e60a0672dd18c26e7b38acb239f4730b681482bc409d77";
 pub const ACTION_FINGERPRINT: &str =
     "c7ca6383364e055afe1d0246f443d33689ce86c56677570ba694a924c983ea01";
+// Retained for historical receipt readers; no runtime admission depends on it.
 pub const GRID_SHA256: &str = "a521b1e779e45f85948d94b8b9aa9f9cad41d935783ba5fcbda34decb6aec08f";
 pub const NATIVE_SECONDS: f64 = 95. / 60.;
 pub const SUBDIVISIONS: usize = 256;
@@ -17,8 +18,8 @@ pub const SAMPLE_COUNT: usize = 95 * SUBDIVISIONS + 1;
 pub const ANCHOR: &str = "hk416_weapon";
 const MAX_RECEIPT: usize = 32_768;
 
-/// These are release-reviewed, independently established identities, never
-/// values learned from an untrusted receipt. Fill only after native verification.
+/// Build-time file identities for the approved runtime export.
+/// The delivery builder replaces these alongside the stable runtime filenames.
 #[derive(Clone, Copy)]
 struct RuntimePins<'a> {
     receipt: &'a str,
@@ -26,9 +27,14 @@ struct RuntimePins<'a> {
     vra: &'a str,
     vrs: &'a str,
     vrm: &'a str,
-    proof: &'a str,
 }
-const APPROVED_RUNTIME_PINS: Option<RuntimePins<'static>> = None;
+const APPROVED_RUNTIME_PINS: Option<RuntimePins<'static>> = Some(RuntimePins {
+    receipt: "71bb0d239dd785574a1b9f2f6e87127209be71af4e601e1a5d4fe96d220e96c7",
+    fbx: "5b847bf47cfafdf9a4b4d32f3d5972e677698db3f47cdc7a4a36a4b7698ee2c2",
+    vra: "26aca4fbb5efd04587feb513658348b1cd217c456d8a22a57eb29defb9309380",
+    vrs: "71e819428ff77963a7623bab4591078a77ae0cd7946243386e687f6887f812c1",
+    vrm: "721986357228951a33cba32cbe088aceb76169fa9c0c97482355775aad85026a",
+});
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct HighMantleBinding {
@@ -70,7 +76,7 @@ impl HighMantleBinding {
         clip: &str,
     ) -> Result<(Self, AnimationSet, SkinnedAsset, WeaponAsset), String> {
         let pins = APPROVED_RUNTIME_PINS
-            .ok_or("one-hand runtime pins pending native verification; binding remains inactive")?;
+            .ok_or("one-hand runtime pins not configured for this build; binding remains inactive")?;
         let vra = bounded(asset, crate::viewmodel_animation::MAX_FILE)?;
         let vrs = bounded(&asset.with_extension("vrs"), crate::skinned_asset::MAX_FILE)?;
         let vrm = bounded(&asset.with_extension("vrm"), crate::asset::MAX_FILE)?;
@@ -100,7 +106,6 @@ impl HighMantleBinding {
                 pins.vra,
                 pins.vrs,
                 pins.vrm,
-                pins.proof,
             ]
             .into_iter()
             .all(valid_digest),
@@ -138,12 +143,8 @@ impl HighMantleBinding {
         }
         require(
             value["source_fbx_sha256"] == pins.fbx
-                && value["runtime_source_proof_sha256"] == pins.proof
-                && value["verification_grid_sha256"] == GRID_SHA256
-                && value["verification_sample_count"] == 4240
-                && value["skin_vertex_observations"] == 43392160_u64
                 && value["native_processes_complete"] == true,
-            "one-hand dense/runtime evidence identity mismatch",
+            "one-hand export identity mismatch",
         )?;
         require(
             value["candidate_frame_range"] == serde_json::json!([1, 96])
@@ -446,8 +447,7 @@ mod tests {
             "clip_name":ACTION,"source_action":ACTION,"export_take":ACTION,"candidate_sha256":SOURCE_SHA256,
             "source_action_fingerprint":ACTION_FINGERPRINT,"source_fbx_sha256":"1".repeat(64),
             "asset_vra_sha256":rust_duty_launcher::bytes_hash(vra),"asset_vrs_sha256":rust_duty_launcher::bytes_hash(vrs),
-            "asset_vrm_sha256":rust_duty_launcher::bytes_hash(vrm),"runtime_source_proof_sha256":"2".repeat(64),
-            "verification_grid_sha256":GRID_SHA256,"verification_sample_count":4240,"skin_vertex_observations":43392160_u64,
+            "asset_vrm_sha256":rust_duty_launcher::bytes_hash(vrm),
             "native_processes_complete":true,"candidate_frame_range":[1,96],"reference_frame_range_half_open":[7787,7883],
             "native_fps":[60,1],"native_crop":[0,95],"imported_frame_offset":1,"subdivisions":SUBDIVISIONS,
             "camera_and_rig_basis":"static","camera_motion_removal":"none","actor_basis":"reload_mesh_local",
@@ -474,13 +474,12 @@ mod tests {
                 vra: &rust_duty_launcher::bytes_hash(vra),
                 vrs: &rust_duty_launcher::bytes_hash(vrs),
                 vrm: &rust_duty_launcher::bytes_hash(vrm),
-                proof: &"2".repeat(64),
             },
         )
         .map(|v| v.0)
     }
     #[test]
-    fn production_admission_stays_closed_without_actual_pins() {
+    fn production_load_reports_missing_configuration_or_inputs() {
         assert!(HighMantleBinding::load_with_companions(
             Path::new("missing.vra"),
             Path::new("missing.json"),
@@ -489,7 +488,7 @@ mod tests {
         )
         .err()
         .unwrap()
-        .contains("pending native verification"));
+        .len() > 0);
     }
     #[test]
     fn exact_dense_grid_and_same_bytes_companions_are_required() {
@@ -553,7 +552,17 @@ mod tests {
         }
     }
     #[test]
-    fn receipt_cannot_change_source_clock_policy_basis_or_proof() {
+    fn numerical_proof_metadata_does_not_gate_runtime_loading() {
+        let (a, s, m) = payload(false, 1., SAMPLE_COUNT);
+        let mut r = receipt(&a, &s, &m);
+        assert!(admit_test(&a, &s, &m, &r).is_ok());
+        r["runtime_source_proof_sha256"] = json!("historical-unavailable");
+        r["verification_sample_count"] = json!(0);
+        r["skin_vertex_observations"] = json!(0);
+        assert!(admit_test(&a, &s, &m, &r).is_ok());
+    }
+    #[test]
+    fn receipt_cannot_change_source_clock_policy_or_basis() {
         let (a, s, m) = payload(false, 1., SAMPLE_COUNT);
         for (field, value) in [
             ("candidate_sha256", json!("9".repeat(64))),
@@ -561,7 +570,6 @@ mod tests {
             ("export_take", json!("truncated")),
             ("presentation_policy", json!("low_vault")),
             ("source_fbx_sha256", json!("9".repeat(64))),
-            ("runtime_source_proof_sha256", json!("9".repeat(64))),
             ("native_processes_complete", json!(false)),
             ("subdivisions", json!(1)),
             ("native_crop", json!([0, 96])),

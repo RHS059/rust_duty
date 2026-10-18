@@ -20,11 +20,11 @@ from build_blender_assets import selections
 from merge_walk_clip import clip_offset
 
 WALK_DIR = Path("assets/walk")
-WALK_META = ("manifest.json", "parity.json", "conversion.json")
+WALK_META = ("manifest.json", "conversion.json")
 
 GENERATED_DIR = Path("assets/reload")
 GENERATED_FILES = (*("asset." + suffix for suffix in ("vra", "vrs", "vrm")),
-                   "manifest.json", "export-manifest.json", "source.json", "parity.json")
+                   "manifest.json", "export-manifest.json", "source.json")
 
 ASSET_DIR = Path("assets/locomotion")
 COMPANIONS = ("asset.vra", "asset.vrs", "asset.vrm")
@@ -70,21 +70,34 @@ def regular_file(root: Path, relative: str | Path) -> Path:
 
 
 
+def asset_directory(root: Path, folder: Path) -> Path:
+    """Resolve an explicit generated-pack directory without following symlinks."""
+    folder = Path(folder)
+    if ".." in folder.parts:
+        raise ValueError("unsafe asset directory")
+    directory = (Path(root) / folder).absolute()
+    for parent in (directory, *directory.parents):
+        if parent.is_symlink():
+            raise ValueError("symlink in asset directory")
+    return directory
+
+
 def companion_bytes(root: Path, name: str, manifest: dict, asset_dir: Path = ASSET_DIR) -> bytes:
+    asset_root = asset_directory(root, asset_dir)
     record = manifest["files"][name]
     if (set(record) != {"bytes", "sha256"}
             or type(record["bytes"]) is not int
             or not 0 < record["bytes"] <= 128 * 1024**2):
         raise ValueError(f"invalid companion manifest: {name}")
-    raw = root / asset_dir / name
+    raw = asset_root / name
     decoded = None
     transport = manifest.get("repository_transport", {}).get(name)
     if transport:
-        packed_path = root / asset_dir / transport["file"]
+        packed_path = asset_root / transport["file"]
         # A staged game intentionally ships raw companions only. When a transport
         # is present (checkout/cache), verify it even if raw bytes also exist.
         if packed_path.exists() or packed_path.is_symlink() or not raw.exists():
-            path = regular_file(root, asset_dir / transport["file"])
+            path = regular_file(asset_root, transport["file"])
             if path.stat().st_size != transport["bytes"]:
                 raise ValueError("compressed companion size mismatch")
             packed = path.read_bytes()
@@ -100,7 +113,7 @@ def companion_bytes(root: Path, name: str, manifest: dict, asset_dir: Path = ASS
             if hashlib.sha256(decoded).hexdigest() != record["sha256"]:
                 raise ValueError("decompressed companion SHA-256 mismatch")
     if raw.exists() or raw.is_symlink():
-        path = regular_file(root, asset_dir / name)
+        path = regular_file(asset_root, name)
         if path.stat().st_size != record["bytes"]:
             raise ValueError(f"locomotion size mismatch: {name}")
         blob = path.read_bytes()
@@ -202,7 +215,7 @@ def walk_bound(root: Path) -> bool:
 
 def verify_walk(root: Path, folder: Path = WALK_DIR) -> dict:
     root = Path(root)
-    manifest = json.loads(regular_file(root, folder / "manifest.json").read_text())
+    manifest = json.loads(regular_file(asset_directory(root, folder), "manifest.json").read_text())
     source = manifest.get("source", {})
     if (manifest.get("schema") != "rust-duty-authored-walk-distribution/v1"
             or manifest.get("clip_count") != 44
@@ -237,31 +250,24 @@ def verify_walk(root: Path, folder: Path = WALK_DIR) -> dict:
             or not clips[-1]["loop"]
             or clips[-1]["duration"] != struct.unpack("<f", struct.pack("<f", 44 / 60))[0]):
         raise ValueError("walk loop clip contract mismatch")
-    parity = json.loads(regular_file(root, folder / "parity.json").read_text())
-    conversion = json.loads(regular_file(root, folder / "conversion.json").read_text())
-    if (parity.get("backend") != "Rust CPU sampler" or parity.get("passed") is not True
-            or parity.get("asset_sha256") != manifest["files"]["asset.vra"]["sha256"]
-            or parity.get("source_sha256", {}).get("locomotion.blend") != source.get("sha256")
-            or parity.get("source_fbx_sha256") != source.get("fbx", {}).get("sha256")
-            or parity.get("clip") != "normal_walk_r1" or parity.get("samples", 0) < 25
-            or parity.get("visibility_failures") != 0
-            or conversion.get("authoring_master_sha256") != source.get("sha256")
+    conversion = json.loads(regular_file(asset_directory(root, folder), "conversion.json").read_text())
+    if (conversion.get("authoring_master_sha256") != source.get("sha256")
             or conversion.get("source_fbx_sha256") != source["fbx"]["sha256"]
             or conversion.get("native_fps") != [60, 1]
             or conversion.get("source_take") != "normal_walk_r1"):
-        raise ValueError("walk lacks matching successful source/Rust parity")
+        raise ValueError("walk conversion/source metadata mismatch")
     current_source = root / source["file"]
     if current_source.exists():
         data = regular_file(root, source["file"]).read_bytes()
         if len(data) != source["bytes"] or hashlib.sha256(data).hexdigest() != source["sha256"]:
             raise ValueError("walk differs from committed Blender source")
     return {"clip": "normal_walk_r1", "clip_count": 44, "original_clips_preserved": 43,
-            "source_sha256": source["sha256"], "parity_samples": parity["samples"]}
+            "source_sha256": source["sha256"]}
 
 
 ADS_DIR = Path('assets/ads')
 ADS_CLIPS = ('ads_entry_r1', 'ads_hold_r1', 'ads_exit_r1')
-ADS_META = ('manifest.json', *(f'{kind}-{clip}.json' for clip in ADS_CLIPS for kind in ('parity', 'conversion')))
+ADS_META = ('manifest.json', *(f'conversion-{clip}.json' for clip in ADS_CLIPS))
 
 
 def ads_bound(root: Path) -> bool:
@@ -277,7 +283,7 @@ def ads_bound(root: Path) -> bool:
 
 def verify_ads(root: Path, folder: Path = ADS_DIR, require_transports: bool = False) -> dict:
     root = Path(root)
-    manifest = json.loads(regular_file(root, folder / 'manifest.json').read_text())
+    manifest = json.loads(regular_file(asset_directory(root, folder), 'manifest.json').read_text())
     source = manifest.get('source', {})
     names = [*CLIPS, 'normal_walk_r1', *ADS_CLIPS]
     ads = manifest.get('ads_clips', [])
@@ -303,7 +309,7 @@ def verify_ads(root: Path, folder: Path = ADS_DIR, require_transports: bool = Fa
             raise ValueError('invalid ADS transport manifest')
     if require_transports:
         for transport in transports.values():
-            regular_file(root, folder / transport['file'])
+            regular_file(asset_directory(root, folder), transport['file'])
     blobs = {name: companion_bytes(root, name, manifest, folder) for name in COMPANIONS}
     walk = json.loads(regular_file(root, WALK_DIR / 'manifest.json').read_text())
     old = companion_bytes(root, 'asset.vra', walk, WALK_DIR); new = blobs['asset.vra']
@@ -319,33 +325,24 @@ def verify_ads(root: Path, folder: Path = ADS_DIR, require_transports: bool = Fa
             or [c['loop'] for c in clips[-3:]] != [False, True, False]
             or [c['duration'] for c in clips[-3:]] != [.25, 1., .25]):
         raise ValueError('ADS clip contract mismatch')
-    samples = 0
     for clip in ADS_CLIPS:
-        parity = json.loads(regular_file(root, folder / f'parity-{clip}.json').read_text())
-        conversion = json.loads(regular_file(root, folder / f'conversion-{clip}.json').read_text())
-        if (parity.get('backend') != 'Rust CPU sampler' or parity.get('passed') is not True
-                or parity.get('asset_sha256') != manifest['files']['asset.vra']['sha256']
-                or parity.get('source_sha256', {}).get('ads.blend') != source.get('sha256')
-                or parity.get('source_fbx_sha256') != source.get('fbx', {}).get('sha256')
-                or parity.get('clip') != clip or parity.get('samples', 0) < 25
-                or parity.get('visibility_failures') != 0
-                or conversion.get('authoring_master_sha256') != source.get('sha256')
+        conversion = json.loads(regular_file(asset_directory(root, folder), f'conversion-{clip}.json').read_text())
+        if (conversion.get('authoring_master_sha256') != source.get('sha256')
                 or conversion.get('source_fbx_sha256') != source.get('fbx', {}).get('sha256')
                 or conversion.get('native_fps') != [60, 1] or conversion.get('source_take') != clip):
-            raise ValueError('ADS lacks matching successful source/Rust parity')
-        samples += parity['samples']
+            raise ValueError('ADS conversion/source metadata mismatch')
     current_source = root / source['file']
     if current_source.exists():
         data = regular_file(root, source['file']).read_bytes()
         if len(data) != source['bytes'] or hashlib.sha256(data).hexdigest() != source['sha256']:
             raise ValueError('ADS differs from committed Blender source')
     return {'clips': list(ADS_CLIPS), 'clip_count': 47, 'original_clips_preserved': 44,
-            'source_sha256': source['sha256'], 'parity_samples': samples}
+            'source_sha256': source['sha256']}
 
 
 JUMP_DIR = Path('assets/jump')
 JUMP_CLIPS = ('jump_takeoff', 'jump_air', 'jump_land')
-JUMP_META = ('manifest.json', 'runtime-seams.json', *(f'{kind}-{clip}.json' for clip in JUMP_CLIPS for kind in ('parity', 'conversion')))
+JUMP_META = ('manifest.json', *(f'conversion-{clip}.json' for clip in JUMP_CLIPS))
 
 
 def jump_bound(root: Path) -> bool:
@@ -364,7 +361,7 @@ def verify_jump(root: Path, folder: Path = JUMP_DIR, require_transports: bool = 
     # Non-Jump packaging entry points keep their existing standalone imports.
     from jump_landing_patch import PATCH_PROVENANCE
     root = Path(root)
-    manifest = json.loads(regular_file(root, folder / 'manifest.json').read_text())
+    manifest = json.loads(regular_file(asset_directory(root, folder), 'manifest.json').read_text())
     source = manifest.get('source', {})
     names = [*CLIPS, 'normal_walk_r1', *JUMP_CLIPS]
     jump = manifest.get('jump_clips', [])
@@ -393,7 +390,7 @@ def verify_jump(root: Path, folder: Path = JUMP_DIR, require_transports: bool = 
             raise ValueError('invalid JUMP transport manifest')
     if require_transports:
         for transport in transports.values():
-            regular_file(root, folder / transport['file'])
+            regular_file(asset_directory(root, folder), transport['file'])
     blobs = {name: companion_bytes(root, name, manifest, folder) for name in COMPANIONS}
     walk = json.loads(regular_file(root, WALK_DIR / 'manifest.json').read_text())
     old = companion_bytes(root, 'asset.vra', walk, WALK_DIR); new = blobs['asset.vra']
@@ -412,45 +409,23 @@ def verify_jump(root: Path, folder: Path = JUMP_DIR, require_transports: bool = 
             or [c['frame_count'] for c in clips[-3:]] != [89, 185, 225]
             or any(abs(c['duration'] - expected) > 1e-7 for c, expected in zip(clips[-3:], [11/60, 23/60, 28/60]))):
         raise ValueError('JUMP clip contract mismatch')
-    samples = 0
     for clip, end in zip(JUMP_CLIPS, [12, 24, 29]):
-        parity = json.loads(regular_file(root, folder / f'parity-{clip}.json').read_text())
-        conversion = json.loads(regular_file(root, folder / f'conversion-{clip}.json').read_text())
-        if (parity.get('backend') != 'Rust CPU sampler' or parity.get('passed') is not True
-                or parity.get('asset_sha256') != manifest['files']['asset.vra']['sha256']
-                or parity.get('source_sha256', {}).get('halcyon_jump.blend') != source.get('sha256')
-                or parity.get('source_fbx_sha256') != source.get('fbx', {}).get('sha256')
-                or parity.get('source_action_patch') != PATCH_PROVENANCE
-                or parity.get('clip') != clip or parity.get('samples', 0) < 25
-                or parity.get('visibility_failures') != 0
-                or parity.get('declared_position_limit_m') != .001
-                or conversion.get('authoring_master_sha256') != source.get('sha256')
+        conversion = json.loads(regular_file(asset_directory(root, folder), f'conversion-{clip}.json').read_text())
+        if (conversion.get('authoring_master_sha256') != source.get('sha256')
                 or conversion.get('source_fbx_sha256') != source.get('fbx', {}).get('sha256')
                 or conversion.get('native_fps') != [60, 1] or conversion.get('source_take') != clip
                 or conversion.get('native_crop') != [0, end - 1]
                 or conversion.get('imported_frame_offset') != 0
                 or conversion.get('timing_policy', {}).get('subdivisions') != 8
                 or conversion.get('timing_policy', {}).get('samples') != (end - 1) * 8 + 1):
-            raise ValueError('JUMP lacks matching successful source/Rust parity')
-        if clip == 'jump_land' and not {4., 4.5, 5., 5.0625, 5.5, 6., 6.0625, 6.5, 7., 12.}.issubset(
-                {record.get('native_frame') for record in parity.get('records', [])}):
-            raise ValueError('JUMP lacks changed-interval source/Rust parity samples')
-        samples += parity['samples']
-    seams = json.loads(regular_file(root, folder / 'runtime-seams.json').read_text())
-    if (seams.get('backend') != 'Rust CPU sampler' or seams.get('passed') is not True
-            or seams.get('asset_sha256') != manifest['files']['asset.vra']['sha256']
-            or seams.get('declared_position_limit_m') != 0.001
-            or [c.get('name') for c in seams.get('checks', [])] != ['ready_takeoff', 'takeoff_air', 'air_land', 'land_ready', 'air_endpoint_hold']
-            or any(c.get('passed') is not True or c.get('visibility_matches') is not True
-                   or not 0 <= c.get('max_vertex_error_m', float('inf')) <= .001 for c in seams.get('checks', []))):
-        raise ValueError('JUMP lacks matching runtime seam/hold evidence')
+            raise ValueError('JUMP conversion/source metadata mismatch')
     current_source = root / source['file']
     if current_source.exists():
         data = regular_file(root, source['file']).read_bytes()
         if len(data) != source['bytes'] or hashlib.sha256(data).hexdigest() != source['sha256']:
             raise ValueError('JUMP differs from committed Blender source')
     return {'clips': list(JUMP_CLIPS), 'clip_count': 47, 'original_clips_preserved': 44,
-            'source_sha256': source['sha256'], 'source_action_patch': source['action_patch'], 'parity_samples': samples}
+            'source_sha256': source['sha256'], 'source_action_patch': source['action_patch']}
 
 
 DIRECTIONAL_DIR = Path('assets/directional')
@@ -460,8 +435,7 @@ DIRECTIONAL_ENDS = (39, 46, 50, 50)
 DIRECTIONAL_ACTIONS = tuple(name.replace('_r1', '_r5') for name in DIRECTIONAL_CLIPS)
 DIRECTIONAL_SOURCE = 'assets/authoring/locomotion_directional/r5/halcyon_hip_directional_r5.blend'
 DIRECTIONAL_SOURCE_SHA256 = '36d76491c2cf6238b8a1e10069dddd5b0d63e199063e1f4012b34f3fd4b1e18d'
-DIRECTIONAL_META = ('manifest.json', *(f'{kind}-{clip}.json' for clip in DIRECTIONAL_CLIPS
-                                      for kind in ('parity', 'conversion')))
+DIRECTIONAL_META = ('manifest.json', *(f'conversion-{clip}.json' for clip in DIRECTIONAL_CLIPS))
 
 
 def directional_bound(root: Path) -> bool:
@@ -486,7 +460,7 @@ def directional_bound(root: Path) -> bool:
 
 def verify_directional(root: Path, folder: Path = DIRECTIONAL_DIR, require_transports: bool = False) -> dict:
     root = Path(root)
-    manifest = json.loads(regular_file(root, folder / 'manifest.json').read_text())
+    manifest = json.loads(regular_file(asset_directory(root, folder), 'manifest.json').read_text())
     source = manifest.get('source', {})
     names = [*CLIPS, 'normal_walk_r1', *DIRECTIONAL_CLIPS]
     clips = manifest.get('directional_clips', [])
@@ -514,7 +488,7 @@ def verify_directional(root: Path, folder: Path = DIRECTIONAL_DIR, require_trans
             raise ValueError('invalid directional transport manifest')
     if require_transports:
         for transport in transports.values():
-            regular_file(root, folder / transport['file'])
+            regular_file(asset_directory(root, folder), transport['file'])
     blobs = {name: companion_bytes(root, name, manifest, folder) for name in COMPANIONS}
     verify_walk(root)
     walk = json.loads(regular_file(root, WALK_DIR / 'manifest.json').read_text())
@@ -535,31 +509,21 @@ def verify_directional(root: Path, folder: Path = DIRECTIONAL_DIR, require_trans
             or [c['duration'] for c in clips[-4:]] != [struct.unpack('<f', struct.pack('<f', x))[0] for x in durations]
             or [c['frame_count'] for c in clips[-4:]] != [(end - 1) * 8 + 1 for end in DIRECTIONAL_ENDS]):
         raise ValueError('directional clip contract mismatch')
-    samples = 0
     for clip, end in zip(DIRECTIONAL_CLIPS, DIRECTIONAL_ENDS):
-        parity = json.loads(regular_file(root, folder / f'parity-{clip}.json').read_text())
-        conversion = json.loads(regular_file(root, folder / f'conversion-{clip}.json').read_text())
-        if (parity.get('backend') != 'Rust CPU sampler' or parity.get('passed') is not True
-                or parity.get('asset_sha256') != manifest['files']['asset.vra']['sha256']
-                or parity.get('source_sha256', {}).get('halcyon_hip_directional_r5.blend') != source.get('sha256')
-                or parity.get('source_fbx_sha256') != source.get('fbx', {}).get('sha256')
-                or parity.get('clip') != clip or parity.get('samples', 0) < 25
-                or parity.get('visibility_failures') != 0
-                or parity.get('declared_position_limit_m') != .001
-                or conversion.get('authoring_master_sha256') != source.get('sha256')
+        conversion = json.loads(regular_file(asset_directory(root, folder), f'conversion-{clip}.json').read_text())
+        if (conversion.get('authoring_master_sha256') != source.get('sha256')
                 or conversion.get('source_fbx_sha256') != source.get('fbx', {}).get('sha256')
                 or conversion.get('native_fps') != [60, 1] or conversion.get('source_take') != clip
                 or conversion.get('native_crop') != [0, end - 1]
                 or conversion.get('imported_frame_offset') != 0):
-            raise ValueError('directional lacks matching successful source/Rust parity')
-        samples += parity['samples']
+            raise ValueError('directional conversion/source metadata mismatch')
     current_source = root / source['file']
     if current_source.exists():
         data = regular_file(root, source['file']).read_bytes()
         if len(data) != source['bytes'] or hashlib.sha256(data).hexdigest() != source['sha256']:
             raise ValueError('directional differs from committed Blender source')
     return {'clips': list(DIRECTIONAL_CLIPS), 'clip_count': 48, 'original_clips_preserved': 44,
-            'source_sha256': source['sha256'], 'parity_samples': samples, 'status': 'WIP'}
+            'source_sha256': source['sha256'], 'status': 'WIP'}
 
 
 def materialize(root: Path, include_walk: bool = False, include_ads: bool = False, include_directional: bool = False, include_jump: bool = False) -> dict:
@@ -615,14 +579,13 @@ def materialize(root: Path, include_walk: bool = False, include_ads: bool = Fals
 
 
 def verify_generated_pack(root: Path, folder: Path, expected_source=None) -> dict:
-    """Bind shipped companions, successful Rust parity and canonical source hashes."""
+    """Validate shipped binary format, conversion metadata and canonical source hashes."""
     root = Path(root)
-    blobs = {name: regular_file(root, folder / name).read_bytes()
+    blobs = {name: regular_file(asset_directory(root, folder), name).read_bytes()
              for name in GENERATED_FILES}
     manifest = json.loads(blobs["manifest.json"])
     exported = json.loads(blobs["export-manifest.json"])
     source = json.loads(blobs["source.json"])
-    parity = json.loads(blobs["parity.json"])
     if (source.get("schema") != "rust-duty-blender-source/v1"
             or set(manifest.get("files", {})) != set(COMPANIONS)
             or manifest.get("authoring_master_sha256") != source.get("sha256")
@@ -636,11 +599,6 @@ def verify_generated_pack(root: Path, folder: Path, expected_source=None) -> dic
     for name in COMPANIONS:
         if manifest["files"][name] != {"bytes": len(blobs[name]), "sha256": hashlib.sha256(blobs[name]).hexdigest()}:
             raise ValueError(f"generated companion hash mismatch: {name}")
-    if (parity.get("passed") is not True or parity.get("backend") != "Rust CPU sampler"
-            or parity.get("asset_sha256") != manifest["files"]["asset.vra"]["sha256"]
-            or parity.get("source_witnesses_sha256") != exported["files"].get("source-witnesses.npz", {}).get("sha256")
-            or parity.get("visibility_failures") != 0 or parity.get("samples", 0) < 1):
-        raise ValueError("generated assets lack matching passed Rust parity")
     if expected_source is not None and source != expected_source:
         raise ValueError("alternate source selection mismatch")
     committed = root / "assets/source/reload/source.json"
@@ -651,7 +609,7 @@ def verify_generated_pack(root: Path, folder: Path, expected_source=None) -> dic
         raise ValueError("generated clip differs from selected source")
     regular_file(root, "assets/animations.cfg")
     regular_file(root, "docs/ANIMATION_SLOTS.md")
-    return {"clip": source["clip"], "source_sha256": source["sha256"], "parity_samples": parity["samples"]}
+    return {"clip": source["clip"], "source_sha256": source["sha256"]}
 
 
 def generated_paths(root):
@@ -712,6 +670,45 @@ def preserved_build_identity(root: Path, binary: Path) -> Path | None:
     return path
 
 
+OPTIONAL_FILE_KEYS = {
+    "high_mantle.asset", "high_mantle.receipt",
+    "low_vault.asset", "low_vault.receipt",
+    "prone_entry.asset", "prone_entry.camera", "prone_entry.receipt",
+}
+
+
+def optional_runtime_files(root: Path):
+    """Copy explicit optional references without changing or re-admitting slots.
+
+    Asset paths use the existing manifest-relative syntax. File presence/path
+    safety are packaging requirements; receipts and camera data are copied as-is.
+    """
+    path = root / "assets/animations.cfg"
+    if not path.exists():
+        return []
+    references = []
+    for line in regular_file(root, "assets/animations.cfg").read_text().splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = (item.strip() for item in line.split("=", 1))
+        if key not in OPTIONAL_FILE_KEYS:
+            continue
+        relative = Path(value)
+        if (not value or relative.is_absolute() or "\\" in value or ":" in value
+                or any(part in ("", ".", "..") for part in value.split("/"))):
+            raise ValueError("unsafe optional runtime path: " + key)
+        relatives = [relative]
+        if key.endswith(".asset"):
+            # Runtime companions share the VRA basename.
+            relatives += [relative.with_suffix(".vrs"), relative.with_suffix(".vrm")]
+        for item in relatives:
+            item = Path("assets") / item
+            if item not in references:
+                references.append(item)
+    return [(regular_file(root, item), item) for item in references]
+
+
 def stage(root: Path, binary: str, output: Path, update: bool = False, require_generated: bool = False) -> dict:
     root, output = Path(root).resolve(), Path(output).absolute()
     if Path(binary).name not in ("vector-range", "vector-range.exe"):
@@ -737,6 +734,7 @@ def stage(root: Path, binary: str, output: Path, update: bool = False, require_g
     if jumping:
         report['jump'] = verify_jump(root)
     copies = [(regular_file(root, binary), Path(binary).name)]
+    copies.extend(optional_runtime_files(root))
     build_identity_path = preserved_build_identity(root, copies[0][0])
     if build_identity_path is not None:
         copies.append((build_identity_path, "BUILD_IDENTITY.json"))

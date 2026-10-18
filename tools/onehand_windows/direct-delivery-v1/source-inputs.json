@@ -1,0 +1,2483 @@
+{
+  "schema": "rust-duty-direct-source-inputs/v1",
+  "source_commit": "4548c39e3211324d3df49ba8d6c3a82eac4bd21d",
+  "previous_head": "250f1bf27ad8c638def6d31a26d828af1dac609b",
+  "files": [
+    {
+      "canonical": {
+        "bytes": 6868,
+        "sha256": "d861b7d4c0254df4424f590b76c55f106276b571ce7fdd0a7d9aad53c1546f00"
+      },
+      "destination": "audited/onehand-runtime-20261016-r2/native-dense/dense_backend.py",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "f1c2466324b2c7b5b1ec8315531d36a8a324c242",
+        "bytes": 6868,
+        "ref": "c61dbd67039a4961d0c56f0a3c7e478c431d1ced",
+        "repository_path": "tools/onehand_windows/audited/onehand-runtime-20261016-r2/native-dense/dense_backend.py",
+        "sha256": "d861b7d4c0254df4424f590b76c55f106276b571ce7fdd0a7d9aad53c1546f00"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 2068,
+        "sha256": "d22be88ab1c850a52356fdae476ee7ddd827fd22152e17b0f8e2473866f27251"
+      },
+      "destination": "audited/onehand-runtime-20261016-r2/native-rigid-v2/rigid_bytes.py",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "610b32b30dfa2f73269070ca497335b84506b1a9",
+        "bytes": 2068,
+        "ref": "c61dbd67039a4961d0c56f0a3c7e478c431d1ced",
+        "repository_path": "tools/onehand_windows/audited/onehand-runtime-20261016-r2/native-rigid-v2/rigid_bytes.py",
+        "sha256": "d22be88ab1c850a52356fdae476ee7ddd827fd22152e17b0f8e2473866f27251"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 828,
+        "sha256": "61da740dbb3f23e5438a75f7acdde0581c0f24a5308a7c2341c00a880d207813"
+      },
+      "destination": "audited/onehand-runtime-20261016-r2/native-rigid-v2/rigid_geometry.py",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "59fcf306f9381f267e62729153d48a054f7b5fc4",
+        "bytes": 828,
+        "ref": "c61dbd67039a4961d0c56f0a3c7e478c431d1ced",
+        "repository_path": "tools/onehand_windows/audited/onehand-runtime-20261016-r2/native-rigid-v2/rigid_geometry.py",
+        "sha256": "61da740dbb3f23e5438a75f7acdde0581c0f24a5308a7c2341c00a880d207813"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 8948,
+        "sha256": "b7e7924b0a9e9f366daa898df671b8021e8a79826ba091bac0fb65ce78351692"
+      },
+      "destination": "audited/onehand-runtime-20261016-r2/native-rigid-v2/sample_rigid.py",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "256849c1cad7ab6bf57b9211364b18d9113cd3d8",
+        "bytes": 8948,
+        "ref": "c61dbd67039a4961d0c56f0a3c7e478c431d1ced",
+        "repository_path": "tools/onehand_windows/audited/onehand-runtime-20261016-r2/native-rigid-v2/sample_rigid.py",
+        "sha256": "b7e7924b0a9e9f366daa898df671b8021e8a79826ba091bac0fb65ce78351692"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 13776,
+        "sha256": "a7e915ad048dbe73ee81615b4235fd50e943a97d6976ebd7f9f3532bf8e7c802"
+      },
+      "destination": "audited/onehand-runtime-20261016-r2/native-window-v2/sample_source.py",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "76b538671d2e1e2cd2e9f713cad2bf81a1fbae41",
+        "bytes": 13776,
+        "ref": "c61dbd67039a4961d0c56f0a3c7e478c431d1ced",
+        "repository_path": "tools/onehand_windows/audited/onehand-runtime-20261016-r2/native-window-v2/sample_source.py",
+        "sha256": "a7e915ad048dbe73ee81615b4235fd50e943a97d6976ebd7f9f3532bf8e7c802"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 13085,
+        "sha256": "aad42caca2c1ab872ee48b006a797362d7dac54ce8bd485455ae4eb8cdb066a4"
+      },
+      "destination": "audited/onehand-runtime-20261016-r2/native-window-v2/verify_window.py",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "708101c99b58ee44012ecc8e1ae427044cd12de6",
+        "bytes": 13085,
+        "ref": "c61dbd67039a4961d0c56f0a3c7e478c431d1ced",
+        "repository_path": "tools/onehand_windows/audited/onehand-runtime-20261016-r2/native-window-v2/verify_window.py",
+        "sha256": "aad42caca2c1ab872ee48b006a797362d7dac54ce8bd485455ae4eb8cdb066a4"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 3547,
+        "sha256": "60089bc486d89689bbc79d8adc13826e7cd502c2fbcf8e862b669737a8800172"
+      },
+      "destination": "audited/onehand-runtime-20261016-r2/native-window-v2/window_contract.py",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "2e450e9eb71a4502cbd625df4b09c0c287b5f974",
+        "bytes": 3547,
+        "ref": "c61dbd67039a4961d0c56f0a3c7e478c431d1ced",
+        "repository_path": "tools/onehand_windows/audited/onehand-runtime-20261016-r2/native-window-v2/window_contract.py",
+        "sha256": "60089bc486d89689bbc79d8adc13826e7cd502c2fbcf8e862b669737a8800172"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 7093,
+        "sha256": "99a640e2825fc140a998e7329eafc9b472e72bf4ff2968310bb54474bc5686c3"
+      },
+      "destination": "audited/onehand-runtime-20261016-r2/native-window-v2/window_import.py",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "eab26083f4b415e6f7090e6a8ac97753740c740c",
+        "bytes": 7093,
+        "ref": "c61dbd67039a4961d0c56f0a3c7e478c431d1ced",
+        "repository_path": "tools/onehand_windows/audited/onehand-runtime-20261016-r2/native-window-v2/window_import.py",
+        "sha256": "99a640e2825fc140a998e7329eafc9b472e72bf4ff2968310bb54474bc5686c3"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 26136,
+        "sha256": "01c4d5dd43b56607742ad2c5862c3185460dcb14b4cb5ef079301daae7f45e12"
+      },
+      "destination": "audited/onehand-runtime-20261016-r2/runtime-conversion-v2/assemble_runtime.py",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "3ad73cdb3e20d9133c752942815cdf11b5ab53a4",
+        "bytes": 26136,
+        "ref": "c61dbd67039a4961d0c56f0a3c7e478c431d1ced",
+        "repository_path": "tools/onehand_windows/audited/onehand-runtime-20261016-r2/runtime-conversion-v2/assemble_runtime.py",
+        "sha256": "01c4d5dd43b56607742ad2c5862c3185460dcb14b4cb5ef079301daae7f45e12"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 9351,
+        "sha256": "4c729c2171d23736c3008a087ee7f14a33e7b4883bd059fce659d46a6c4edbc5"
+      },
+      "destination": "audited/onehand-runtime-20261016-r2/runtime-conversion-v2/native_runtime.py",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "b24600c50bfc1e8401645b548db1d7bd1eabea8c",
+        "bytes": 9351,
+        "ref": "c61dbd67039a4961d0c56f0a3c7e478c431d1ced",
+        "repository_path": "tools/onehand_windows/audited/onehand-runtime-20261016-r2/runtime-conversion-v2/native_runtime.py",
+        "sha256": "4c729c2171d23736c3008a087ee7f14a33e7b4883bd059fce659d46a6c4edbc5"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 12601,
+        "sha256": "d846b0d77637a86654433ffea4cbd4479edc9a13d2dbb26006a38fcdab12b282"
+      },
+      "destination": "audited/onehand-runtime-20261016-r2/runtime-parity/admit_candidate.py",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "4b8ac2829a002645402ece4889e303079f154093",
+        "bytes": 12601,
+        "ref": "c61dbd67039a4961d0c56f0a3c7e478c431d1ced",
+        "repository_path": "tools/onehand_windows/audited/onehand-runtime-20261016-r2/runtime-parity/admit_candidate.py",
+        "sha256": "d846b0d77637a86654433ffea4cbd4479edc9a13d2dbb26006a38fcdab12b282"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 5548,
+        "sha256": "6a7e3b5996485c9e917e040c86f6909066bf3fa0b31cd43321b4c25b36b40da3"
+      },
+      "destination": "audited/onehand-runtime-20261016-r2/runtime-parity/bounded_vra.py",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "f0c3ab84ac9b3326e43373081e26d321c26bd24a",
+        "bytes": 5548,
+        "ref": "c61dbd67039a4961d0c56f0a3c7e478c431d1ced",
+        "repository_path": "tools/onehand_windows/audited/onehand-runtime-20261016-r2/runtime-parity/bounded_vra.py",
+        "sha256": "6a7e3b5996485c9e917e040c86f6909066bf3fa0b31cd43321b4c25b36b40da3"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 10174,
+        "sha256": "500ab92baf5ab38721ad924cf4b25d26ac34a8c9585493e9fce0e40f31d33b7a"
+      },
+      "destination": "audited/onehand-runtime-20261016-r2/runtime-parity/conversion_admission.py",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "bbcb0e940f7c06c89bb8a29251453b243e3a933a",
+        "bytes": 10174,
+        "ref": "c61dbd67039a4961d0c56f0a3c7e478c431d1ced",
+        "repository_path": "tools/onehand_windows/audited/onehand-runtime-20261016-r2/runtime-parity/conversion_admission.py",
+        "sha256": "500ab92baf5ab38721ad924cf4b25d26ac34a8c9585493e9fce0e40f31d33b7a"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 9197,
+        "sha256": "b917c07b472303f922e7b91521c96bf1f81e95ee043e1bd5c01f96244182b96e"
+      },
+      "destination": "audited/onehand-runtime-20261016-r2/runtime-parity/focused_runtime.py",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "c4615ddfb525326999b37520c4288156e73152b9",
+        "bytes": 9197,
+        "ref": "c61dbd67039a4961d0c56f0a3c7e478c431d1ced",
+        "repository_path": "tools/onehand_windows/audited/onehand-runtime-20261016-r2/runtime-parity/focused_runtime.py",
+        "sha256": "b917c07b472303f922e7b91521c96bf1f81e95ee043e1bd5c01f96244182b96e"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 17837,
+        "sha256": "cae111fc9f0a6a056d369c1cd831e2926e77356c26bcef4ebbd3fdd9e483167a"
+      },
+      "destination": "audited/onehand-runtime-20261016-r2/runtime-parity/onehand_r2_common.py",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "21647dcfdc11ff461e491483ddafe718982e4ba8",
+        "bytes": 17837,
+        "ref": "c61dbd67039a4961d0c56f0a3c7e478c431d1ced",
+        "repository_path": "tools/onehand_windows/audited/onehand-runtime-20261016-r2/runtime-parity/onehand_r2_common.py",
+        "sha256": "cae111fc9f0a6a056d369c1cd831e2926e77356c26bcef4ebbd3fdd9e483167a"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 17765,
+        "sha256": "eaa588c9b7ab16adbd9075c9cff9d40f3ee93d7b062dd5c804f4276318498044"
+      },
+      "destination": "audited/onehand-runtime-20261016-r2/runtime-parity/serial_r2.py",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "8c7be07cbf80e768160f91354b8f4d1f9c14f1e8",
+        "bytes": 17765,
+        "ref": "c61dbd67039a4961d0c56f0a3c7e478c431d1ced",
+        "repository_path": "tools/onehand_windows/audited/onehand-runtime-20261016-r2/runtime-parity/serial_r2.py",
+        "sha256": "eaa588c9b7ab16adbd9075c9cff9d40f3ee93d7b062dd5c804f4276318498044"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 6301,
+        "sha256": "a2033c073dc56cdb70d59156c1e51e36b9697c385343dff4bdc526815cfc042b"
+      },
+      "destination": "audited/onehand-runtime-20261016-r2/runtime-parity/test_bounded_vra.py",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "63864466d3aaa69028e25237080b9a3eea5a3e97",
+        "bytes": 6301,
+        "ref": "c61dbd67039a4961d0c56f0a3c7e478c431d1ced",
+        "repository_path": "tools/onehand_windows/audited/onehand-runtime-20261016-r2/runtime-parity/test_bounded_vra.py",
+        "sha256": "a2033c073dc56cdb70d59156c1e51e36b9697c385343dff4bdc526815cfc042b"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 63300,
+        "sha256": "968e98ab5e0d9ced460eddd23dc2013a7e07d37317c33d65eb5c8e77c1298342"
+      },
+      "destination": "audited/onehand-runtime-20261016-r2/runtime-parity/verify_onehand_r2.py",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "80a76e741f49ad8473ede66e78ce66ea7599d614",
+        "bytes": 63300,
+        "ref": "c61dbd67039a4961d0c56f0a3c7e478c431d1ced",
+        "repository_path": "tools/onehand_windows/audited/onehand-runtime-20261016-r2/runtime-parity/verify_onehand_r2.py",
+        "sha256": "968e98ab5e0d9ced460eddd23dc2013a7e07d37317c33d65eb5c8e77c1298342"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 10042,
+        "sha256": "7c777e1b6981e966c33e14c7abf6437a67bd84ae30e7af3b236c5584265e3372"
+      },
+      "destination": "audited/onehand-runtime-20261016-r2/runtime-parity/window_admission.py",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "b5a15a81d328c5ca69f327344e94d330b93a43d9",
+        "bytes": 10042,
+        "ref": "c61dbd67039a4961d0c56f0a3c7e478c431d1ced",
+        "repository_path": "tools/onehand_windows/audited/onehand-runtime-20261016-r2/runtime-parity/window_admission.py",
+        "sha256": "7c777e1b6981e966c33e14c7abf6437a67bd84ae30e7af3b236c5584265e3372"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 16819,
+        "sha256": "dd39c05bbe8c2ac557020261e360da8f7e5debedb652daa75b223de2667f93cd"
+      },
+      "destination": "audited/onehand-runtime-20261016/importer-patch/tools/export_viewmodel.py",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "79c984be8d1f624860a6e32a0cd1a0c7ec84f31c",
+        "bytes": 16819,
+        "ref": "c61dbd67039a4961d0c56f0a3c7e478c431d1ced",
+        "repository_path": "tools/onehand_windows/audited/onehand-runtime-20261016/importer-patch/tools/export_viewmodel.py",
+        "sha256": "dd39c05bbe8c2ac557020261e360da8f7e5debedb652daa75b223de2667f93cd"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 19678,
+        "sha256": "83074cd5ac30404b2be1e1679b04c3e9784a2e4ce4884969bb65d80e3d90fb79"
+      },
+      "destination": "audited/onehand-runtime-20261016/importer-patch/tools/import_fbx_viewmodel.py",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "0ef5de54719989f7f3feb3484a70f64316143d7e",
+        "bytes": 19678,
+        "ref": "c61dbd67039a4961d0c56f0a3c7e478c431d1ced",
+        "repository_path": "tools/onehand_windows/audited/onehand-runtime-20261016/importer-patch/tools/import_fbx_viewmodel.py",
+        "sha256": "83074cd5ac30404b2be1e1679b04c3e9784a2e4ce4884969bb65d80e3d90fb79"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 12460,
+        "sha256": "6fb12a0b53e0400ca0404784d3e2aae550f59e3611fa23e40f134e9bc2230045"
+      },
+      "destination": "audited/onehand-runtime-20261016/importer-patch/tools/prone_camera_pair.py",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "a284636c995ffea16f11d9008ea9af2ef3f0eccf",
+        "bytes": 12460,
+        "ref": "c61dbd67039a4961d0c56f0a3c7e478c431d1ced",
+        "repository_path": "tools/onehand_windows/audited/onehand-runtime-20261016/importer-patch/tools/prone_camera_pair.py",
+        "sha256": "6fb12a0b53e0400ca0404784d3e2aae550f59e3611fa23e40f134e9bc2230045"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 6336,
+        "sha256": "5fa48bfe1c4688923435a01668aba882393282fd917f0c77d18e24b3763ea326"
+      },
+      "destination": "audited/onehand-runtime-20261016/importer-patch/tools/single_stack_fbx.py",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "6f22ce104c913961564e1aeb4b46053c30d5e0d0",
+        "bytes": 6336,
+        "ref": "c61dbd67039a4961d0c56f0a3c7e478c431d1ced",
+        "repository_path": "tools/onehand_windows/audited/onehand-runtime-20261016/importer-patch/tools/single_stack_fbx.py",
+        "sha256": "5fa48bfe1c4688923435a01668aba882393282fd917f0c77d18e24b3763ea326"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 30543,
+        "sha256": "28a23ed9a9b0fe0123405a9800473e57d04419596deae8789c66c744ad05b685"
+      },
+      "destination": "audited/onehand-runtime-20261016/importer-patch/tools/vrpack.py",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "4f947f6feb03a8a2e8f2a37c68417da6be7a472d",
+        "bytes": 30543,
+        "ref": "c61dbd67039a4961d0c56f0a3c7e478c431d1ced",
+        "repository_path": "tools/onehand_windows/audited/onehand-runtime-20261016/importer-patch/tools/vrpack.py",
+        "sha256": "28a23ed9a9b0fe0123405a9800473e57d04419596deae8789c66c744ad05b685"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 19574,
+        "sha256": "e6aff7f5278bb8e6dd09ca75e69b8761b1b71bd30b3feddf84f8380cd88a5e14"
+      },
+      "destination": "audited/onehand-runtime-20261016/importer-patch/tools/vrskin.py",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "8351887d08a6a7d98afa2f50eeb67c1d6cee65c6",
+        "bytes": 19574,
+        "ref": "c61dbd67039a4961d0c56f0a3c7e478c431d1ced",
+        "repository_path": "tools/onehand_windows/audited/onehand-runtime-20261016/importer-patch/tools/vrskin.py",
+        "sha256": "e6aff7f5278bb8e6dd09ca75e69b8761b1b71bd30b3feddf84f8380cd88a5e14"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 34515,
+        "sha256": "eefd755f6ef0943a4d8bf443ddfec601bc1336ec90ece722d017c9c4b6d73568"
+      },
+      "destination": "audited/onehand-runtime-20261016/importer-patch/tools/vrview.py",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "54b53c111276df54cc4c7c907b0d280d0513b56a",
+        "bytes": 34515,
+        "ref": "c61dbd67039a4961d0c56f0a3c7e478c431d1ced",
+        "repository_path": "tools/onehand_windows/audited/onehand-runtime-20261016/importer-patch/tools/vrview.py",
+        "sha256": "eefd755f6ef0943a4d8bf443ddfec601bc1336ec90ece722d017c9c4b6d73568"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 51047,
+        "sha256": "b8bbc01d16e703934626ceff88f328a19345ded859a01f36f0918dbadd470d8b"
+      },
+      "destination": "audited/prone-r15-runtime-20261016/source/tools/verify_prone_r15_runtime.py",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "991fa69c4125ef6cedbdea1f33c61b8cb00c83cf",
+        "bytes": 51047,
+        "ref": "c61dbd67039a4961d0c56f0a3c7e478c431d1ced",
+        "repository_path": "tools/onehand_windows/audited/prone-r15-runtime-20261016/source/tools/verify_prone_r15_runtime.py",
+        "sha256": "b8bbc01d16e703934626ceff88f328a19345ded859a01f36f0918dbadd470d8b"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 2898,
+        "sha256": "d22ae8dcc117e29ffb7d746772efce015010407cbb1ddce22924a31746e831ca"
+      },
+      "destination": "audited/recovery/animation-queue/runs/onehand-r5-from-reconstructed-r4/integrity/source_integrity.py",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "2fad432188d4d6d0224feacd222c06755779589d",
+        "bytes": 2898,
+        "ref": "c61dbd67039a4961d0c56f0a3c7e478c431d1ced",
+        "repository_path": "tools/onehand_windows/audited/recovery/animation-queue/runs/onehand-r5-from-reconstructed-r4/integrity/source_integrity.py",
+        "sha256": "d22ae8dcc117e29ffb7d746772efce015010407cbb1ddce22924a31746e831ca"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 9678,
+        "sha256": "8f1deb2883eafd5e7a76cf48109a33c010690aa197150369df60773b5b593816"
+      },
+      "destination": "audited/recovery/animation-queue/runs/onehand-r5-from-reconstructed-r4/integrity/validate_directional_source.py",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "00d8e7d7be8783e80fbcf2e06ec799778c8f5bb5",
+        "bytes": 9678,
+        "ref": "c61dbd67039a4961d0c56f0a3c7e478c431d1ced",
+        "repository_path": "tools/onehand_windows/audited/recovery/animation-queue/runs/onehand-r5-from-reconstructed-r4/integrity/validate_directional_source.py",
+        "sha256": "8f1deb2883eafd5e7a76cf48109a33c010690aa197150369df60773b5b593816"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 870,
+        "sha256": "03f3dc6d7430d63c28b31c3da276c8a88dc562b125111e27aba256499286f399"
+      },
+      "destination": "context-v3/ALLOWLIST.json",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "9e0e6503fb13dd4bd8dbfb1839b35f48b76aa423",
+        "bytes": 870,
+        "ref": "2aa09ee2c98c32fb9a7446ae57479c9c3f904995",
+        "repository_path": "tools/onehand_windows/context-v3/ALLOWLIST.json",
+        "sha256": "03f3dc6d7430d63c28b31c3da276c8a88dc562b125111e27aba256499286f399"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 997,
+        "sha256": "e2d78fbf137f946c345e76fc6dfc6c54f91f200c9dc1d9a5d19b4d10b1b3f678"
+      },
+      "destination": "context-v3/LOADED_SOURCE_EVIDENCE.json",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "bf8c92dd2c3689e7c3da81f1697d286cb3023f17",
+        "bytes": 997,
+        "ref": "2aa09ee2c98c32fb9a7446ae57479c9c3f904995",
+        "repository_path": "tools/onehand_windows/context-v3/LOADED_SOURCE_EVIDENCE.json",
+        "sha256": "e2d78fbf137f946c345e76fc6dfc6c54f91f200c9dc1d9a5d19b4d10b1b3f678"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 3140,
+        "sha256": "f509b539e89253ab69b815964bf23cf5b7c2698bc8df78fdd8e96a171d10fd09"
+      },
+      "destination": "context-v3/MINIMAL_DIFF.json",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "eb72544fd10f4fe2309bef1d442a2eafc67feff6",
+        "bytes": 3140,
+        "ref": "2aa09ee2c98c32fb9a7446ae57479c9c3f904995",
+        "repository_path": "tools/onehand_windows/context-v3/MINIMAL_DIFF.json",
+        "sha256": "f509b539e89253ab69b815964bf23cf5b7c2698bc8df78fdd8e96a171d10fd09"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 825,
+        "sha256": "ebf3e1868fc2ea8c6e729bcbd351aa283a259822b19cdb06fb605cdaac2f7aed"
+      },
+      "destination": "context-v3/NATIVE_HELPER_PINS.json",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "97309e34aeadcdf913004712ee4ccf3f5eb30fea",
+        "bytes": 825,
+        "ref": "2aa09ee2c98c32fb9a7446ae57479c9c3f904995",
+        "repository_path": "tools/onehand_windows/context-v3/NATIVE_HELPER_PINS.json",
+        "sha256": "ebf3e1868fc2ea8c6e729bcbd351aa283a259822b19cdb06fb605cdaac2f7aed"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 3812,
+        "sha256": "710ac9f97ba798dda2b4091232215bf0d973a03a07703448d184b420f5addb4f"
+      },
+      "destination": "context-v3/OFFICIAL_ADDON_PINS.json",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "99ae1d68085e4d4aca521ec6e65d03abd44df279",
+        "bytes": 3812,
+        "ref": "2aa09ee2c98c32fb9a7446ae57479c9c3f904995",
+        "repository_path": "tools/onehand_windows/context-v3/OFFICIAL_ADDON_PINS.json",
+        "sha256": "710ac9f97ba798dda2b4091232215bf0d973a03a07703448d184b420f5addb4f"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 2401,
+        "sha256": "8702d486bc36a649924c3d844ea5eab445600f93995ec8367ea02d94e250c48a"
+      },
+      "destination": "context-v3/PINS.json",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "21199e279a63da458fe39442dac5d90db9d1b8f5",
+        "bytes": 2401,
+        "ref": "2aa09ee2c98c32fb9a7446ae57479c9c3f904995",
+        "repository_path": "tools/onehand_windows/context-v3/PINS.json",
+        "sha256": "8702d486bc36a649924c3d844ea5eab445600f93995ec8367ea02d94e250c48a"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 611,
+        "sha256": "d9401edd7c9550e35bc90fd8ac54ae160889f08828fb2c2c1cc3aa3773364984"
+      },
+      "destination": "context-v3/PREPARATION_PROVENANCE.json",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "c0caf4920d65d17007ebd2b4bc7a479bce68d6f8",
+        "bytes": 611,
+        "ref": "2aa09ee2c98c32fb9a7446ae57479c9c3f904995",
+        "repository_path": "tools/onehand_windows/context-v3/PREPARATION_PROVENANCE.json",
+        "sha256": "d9401edd7c9550e35bc90fd8ac54ae160889f08828fb2c2c1cc3aa3773364984"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 6254,
+        "sha256": "8d7571047b06812410322bc84dec0245a9ee160089fd52d7633f88ffc559f304"
+      },
+      "destination": "context-v3/README.md",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "63e80c47d6e4cf63077d1793d58d77c56c5ba7b8",
+        "bytes": 6254,
+        "ref": "2aa09ee2c98c32fb9a7446ae57479c9c3f904995",
+        "repository_path": "tools/onehand_windows/context-v3/README.md",
+        "sha256": "8d7571047b06812410322bc84dec0245a9ee160089fd52d7633f88ffc559f304"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 5122,
+        "sha256": "4ff382f7dfc8c29e7306bcb54e8fd130efe5cbd045d14ec3304565b548e677ee"
+      },
+      "destination": "context-v3/RECONSTRUCTION_EVIDENCE.json",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "74a3cecbe3a0ee2a5d694473c06abd8ecca96eae",
+        "bytes": 5122,
+        "ref": "2aa09ee2c98c32fb9a7446ae57479c9c3f904995",
+        "repository_path": "tools/onehand_windows/context-v3/RECONSTRUCTION_EVIDENCE.json",
+        "sha256": "4ff382f7dfc8c29e7306bcb54e8fd130efe5cbd045d14ec3304565b548e677ee"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 1476,
+        "sha256": "77fd2f418044f99887e829d51ea029734101a9401fbcd11240e4fa222619daeb"
+      },
+      "destination": "context-v3/RESULTS.json",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "eb3d30365a5622bc70961471b281efadafea634a",
+        "bytes": 1476,
+        "ref": "2aa09ee2c98c32fb9a7446ae57479c9c3f904995",
+        "repository_path": "tools/onehand_windows/context-v3/RESULTS.json",
+        "sha256": "77fd2f418044f99887e829d51ea029734101a9401fbcd11240e4fa222619daeb"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 67702,
+        "sha256": "7d4539c658c1ad256a6bb4510cf01551810d01b7db8bf4c779339349ac9e419e"
+      },
+      "destination": "context-v3/SOURCE_DIFF.patch",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "b08e937a39af740c699be9672bc42dddf10045e8",
+        "bytes": 67702,
+        "ref": "2aa09ee2c98c32fb9a7446ae57479c9c3f904995",
+        "repository_path": "tools/onehand_windows/context-v3/SOURCE_DIFF.patch",
+        "sha256": "7d4539c658c1ad256a6bb4510cf01551810d01b7db8bf4c779339349ac9e419e"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 9545,
+        "sha256": "e552e182ec5d82e6f0891dc94d4390e60cfc814bb777183689795e8cf2737d31"
+      },
+      "destination": "context-v3/addon_resolver.py",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "37a589ff921970b719e4f4d533074132eb01a48d",
+        "bytes": 9545,
+        "ref": "2aa09ee2c98c32fb9a7446ae57479c9c3f904995",
+        "repository_path": "tools/onehand_windows/context-v3/addon_resolver.py",
+        "sha256": "e552e182ec5d82e6f0891dc94d4390e60cfc814bb777183689795e8cf2737d31"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 21439,
+        "sha256": "6698b94ed4ff8f385ddd3d18a676f6fd27b8234b473c352b829a0597b28398f7"
+      },
+      "destination": "context-v3/candidate_context.py",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "0cb817ba3935cf965c5b2752dc1ce7f9daf19be0",
+        "bytes": 21439,
+        "ref": "2aa09ee2c98c32fb9a7446ae57479c9c3f904995",
+        "repository_path": "tools/onehand_windows/context-v3/candidate_context.py",
+        "sha256": "6698b94ed4ff8f385ddd3d18a676f6fd27b8234b473c352b829a0597b28398f7"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 15013,
+        "sha256": "94b61466c3d4d759916e56eaa75860bfd20e75f9d3cc307cbc41c58cf6707206"
+      },
+      "destination": "context-v3/cpu-tests.log",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "b750574ec9c02b2b7f9083211aa6abf8a57f8689",
+        "bytes": 15013,
+        "ref": "2aa09ee2c98c32fb9a7446ae57479c9c3f904995",
+        "repository_path": "tools/onehand_windows/context-v3/cpu-tests.log",
+        "sha256": "94b61466c3d4d759916e56eaa75860bfd20e75f9d3cc307cbc41c58cf6707206"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 2763,
+        "sha256": "6a9afcc7a9de9b7215b2b3000f77e7d7a61d12543918adc93dbf8ca6973cb6cf"
+      },
+      "destination": "context-v3/pinned_assembler.py",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "fe556537993628f50405fae1a7a8a96114a8831d",
+        "bytes": 2763,
+        "ref": "2aa09ee2c98c32fb9a7446ae57479c9c3f904995",
+        "repository_path": "tools/onehand_windows/context-v3/pinned_assembler.py",
+        "sha256": "6a9afcc7a9de9b7215b2b3000f77e7d7a61d12543918adc93dbf8ca6973cb6cf"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 1734,
+        "sha256": "d261450937cf709a62fdbe6e0a61056c19c3d6ffb7e897dc8e68484fc231d1b7"
+      },
+      "destination": "context-v3/pinned_transport.py",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "6006552cdfe07866a8a49a0f36b608974014d146",
+        "bytes": 1734,
+        "ref": "2aa09ee2c98c32fb9a7446ae57479c9c3f904995",
+        "repository_path": "tools/onehand_windows/context-v3/pinned_transport.py",
+        "sha256": "d261450937cf709a62fdbe6e0a61056c19c3d6ffb7e897dc8e68484fc231d1b7"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 3762,
+        "sha256": "bc4fcb941310a688c8b1edc1657e21ecfa3d3b65415ef0e69d78fe4b8dc15628"
+      },
+      "destination": "context-v3/portable-tests.log",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "d790937f4b042b8a2cff272013f8db791653850a",
+        "bytes": 3762,
+        "ref": "2aa09ee2c98c32fb9a7446ae57479c9c3f904995",
+        "repository_path": "tools/onehand_windows/context-v3/portable-tests.log",
+        "sha256": "bc4fcb941310a688c8b1edc1657e21ecfa3d3b65415ef0e69d78fe4b8dc15628"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 20812,
+        "sha256": "afb0cf30903a6d083e300271a84a439cde8cd3036b7da6ea4e914b660f1d56eb"
+      },
+      "destination": "context-v3/production_assembler.py",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "1bfa84e3f43ef4c5aca6a7b4d9c71da492fe3709",
+        "bytes": 20812,
+        "ref": "2aa09ee2c98c32fb9a7446ae57479c9c3f904995",
+        "repository_path": "tools/onehand_windows/context-v3/production_assembler.py",
+        "sha256": "afb0cf30903a6d083e300271a84a439cde8cd3036b7da6ea4e914b660f1d56eb"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 6841,
+        "sha256": "b54cce200fcbedd148a6d0a23ae99accf8e9dbdde9b9579fadc0b24060b3ad3c"
+      },
+      "destination": "context-v3/reconstruct_windows_profile.py",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "590cf8f2ae9a02f61bf23401b120d296e86668e3",
+        "bytes": 6841,
+        "ref": "2aa09ee2c98c32fb9a7446ae57479c9c3f904995",
+        "repository_path": "tools/onehand_windows/context-v3/reconstruct_windows_profile.py",
+        "sha256": "b54cce200fcbedd148a6d0a23ae99accf8e9dbdde9b9579fadc0b24060b3ad3c"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 2181,
+        "sha256": "332a9cc6d8b011e80dd712ab1551a57f074702af2665269d4658a77980d3c5c8"
+      },
+      "destination": "context-v3/reconstruction-tests.log",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "8e18b325f504f03c2441b3f4112304d07ea28d28",
+        "bytes": 2181,
+        "ref": "2aa09ee2c98c32fb9a7446ae57479c9c3f904995",
+        "repository_path": "tools/onehand_windows/context-v3/reconstruction-tests.log",
+        "sha256": "332a9cc6d8b011e80dd712ab1551a57f074702af2665269d4658a77980d3c5c8"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 2483,
+        "sha256": "fb2ad00b0692b552aa467321619ab303a9a7440d5454f15bc4f92f75e24aaced"
+      },
+      "destination": "context-v3/run_source_preparation_tests.py",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "9c1a767a4629371a4b83304dee865d1c9e96258c",
+        "bytes": 2483,
+        "ref": "2aa09ee2c98c32fb9a7446ae57479c9c3f904995",
+        "repository_path": "tools/onehand_windows/context-v3/run_source_preparation_tests.py",
+        "sha256": "fb2ad00b0692b552aa467321619ab303a9a7440d5454f15bc4f92f75e24aaced"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 22819,
+        "sha256": "7bef047b0491764b4b491d19955efb982f8dcf6c89a51235f88d2f00a856e155"
+      },
+      "destination": "context-v3/test_candidate_context.py",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "ad0283f880ced5c82b3a4322ac4a9df17e9745af",
+        "bytes": 22819,
+        "ref": "2aa09ee2c98c32fb9a7446ae57479c9c3f904995",
+        "repository_path": "tools/onehand_windows/context-v3/test_candidate_context.py",
+        "sha256": "7bef047b0491764b4b491d19955efb982f8dcf6c89a51235f88d2f00a856e155"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 5956,
+        "sha256": "5e68d3e9b82203ead7afad91fb27ee110c4d0802f4147f49feabae61a641bb90"
+      },
+      "destination": "context-v3/test_metadata_projection.py",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "5c4e24288fefc744b0b556b37c7b136054c4b795",
+        "bytes": 5956,
+        "ref": "2aa09ee2c98c32fb9a7446ae57479c9c3f904995",
+        "repository_path": "tools/onehand_windows/context-v3/test_metadata_projection.py",
+        "sha256": "5e68d3e9b82203ead7afad91fb27ee110c4d0802f4147f49feabae61a641bb90"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 8705,
+        "sha256": "b6e160df096b05a196c734f9283c131b16cc81686f4904968a41a7447752f481"
+      },
+      "destination": "context-v3/test_reconstruction_and_preservation.py",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "0d5f68b534f0bde3f6fe6a0fa437c2916d85d042",
+        "bytes": 8705,
+        "ref": "2aa09ee2c98c32fb9a7446ae57479c9c3f904995",
+        "repository_path": "tools/onehand_windows/context-v3/test_reconstruction_and_preservation.py",
+        "sha256": "b6e160df096b05a196c734f9283c131b16cc81686f4904968a41a7447752f481"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 14642,
+        "sha256": "65ca197da8026a286b30763d3147ede25a616bb4cde3a351533a42850cd05c68"
+      },
+      "destination": "context-v3/test_windows_addon_profile.py",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "8ddc5306e9d7daab6dd1d224dd99f4b7cdb425df",
+        "bytes": 14642,
+        "ref": "2aa09ee2c98c32fb9a7446ae57479c9c3f904995",
+        "repository_path": "tools/onehand_windows/context-v3/test_windows_addon_profile.py",
+        "sha256": "65ca197da8026a286b30763d3147ede25a616bb4cde3a351533a42850cd05c68"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 1298,
+        "sha256": "5b88650607feb34a5a280d4ddd0495027d9f0f50ab1d6ef8639fdd5845b8cd12"
+      },
+      "destination": "context-v3/verify_freeze.py",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "e968501798a543ae62c92e35ac86bd553cc2bea1",
+        "bytes": 1298,
+        "ref": "2aa09ee2c98c32fb9a7446ae57479c9c3f904995",
+        "repository_path": "tools/onehand_windows/context-v3/verify_freeze.py",
+        "sha256": "5b88650607feb34a5a280d4ddd0495027d9f0f50ab1d6ef8639fdd5845b8cd12"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 10736787,
+        "sha256": "d02d04d4adb429b6493bf3347b302dc007bb7b99f4761da3c2b314e6d313c6ab"
+      },
+      "destination": "existing-public/locomotion.vra",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "040ee91073c40a063fb12c15a0e1f4f7452a8a3e",
+        "bytes": 10736787,
+        "ref": "1daee9ff0d250b6ad926dedaab4977663f560406",
+        "repository_path": "assets/locomotion/asset.vra",
+        "sha256": "d02d04d4adb429b6493bf3347b302dc007bb7b99f4761da3c2b314e6d313c6ab"
+      },
+      "kind": "existing-public-canonical"
+    },
+    {
+      "canonical": {
+        "bytes": 10502070,
+        "sha256": "6b95bdcdfa78e8127ef4b4fa5ac88e4cf9a0654bd0a1271c9916b903f6ee4e79"
+      },
+      "destination": "existing-public/r3.blend",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "4e76056c7aa85590ed55cc209ccaf516da86166f",
+        "bytes": 10502070,
+        "ref": "1daee9ff0d250b6ad926dedaab4977663f560406",
+        "repository_path": "assets/authoring/mantle/r3/candidate/aella_mantle_r3.blend",
+        "sha256": "6b95bdcdfa78e8127ef4b4fa5ac88e4cf9a0654bd0a1271c9916b903f6ee4e79"
+      },
+      "kind": "existing-public-baseline"
+    },
+    {
+      "canonical": {
+        "bytes": 8,
+        "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da"
+      },
+      "destination": "native-producer-reviewed/.gitattributes",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "fa1385d99a319b43c06f5309d1aae9fdd3adea46",
+        "bytes": 8,
+        "ref": "264f7202c317d3f98ae1aaf7d06b56f8b5c34531",
+        "repository_path": "tools/onehand_windows/native-producer-v9/.gitattributes",
+        "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 1502,
+        "sha256": "83dba7b28e22ab154369c1b3960a443770bce25289531e887f8b20c15dd85330"
+      },
+      "destination": "native-producer-reviewed/ALLOWLIST.json",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "bd39f36d154efb2b02dc2e2ae92e21c42846e794",
+        "bytes": 1502,
+        "ref": "264f7202c317d3f98ae1aaf7d06b56f8b5c34531",
+        "repository_path": "tools/onehand_windows/native-producer-v9/ALLOWLIST.json",
+        "sha256": "83dba7b28e22ab154369c1b3960a443770bce25289531e887f8b20c15dd85330"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 3439,
+        "sha256": "ef1190ac0af1cc16341b1c763185517b45a0d28d936a5921372505c189df32e2"
+      },
+      "destination": "native-producer-reviewed/AST_COMPATIBILITY.md",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "d09f7c6b6614c00d8e378da5d05180f523c0a203",
+        "bytes": 3439,
+        "ref": "264f7202c317d3f98ae1aaf7d06b56f8b5c34531",
+        "repository_path": "tools/onehand_windows/native-producer-v9/AST_COMPATIBILITY.md",
+        "sha256": "ef1190ac0af1cc16341b1c763185517b45a0d28d936a5921372505c189df32e2"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 1224,
+        "sha256": "5a016c244076b719ebc0b55b1e28bba9064623c4298d7ab7d122a8c2efde72c7"
+      },
+      "destination": "native-producer-reviewed/AST_COMPAT_CHANGE.json",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "3702eba3a66e59b19417b99fb0268cc42c860e86",
+        "bytes": 1224,
+        "ref": "264f7202c317d3f98ae1aaf7d06b56f8b5c34531",
+        "repository_path": "tools/onehand_windows/native-producer-v9/AST_COMPAT_CHANGE.json",
+        "sha256": "5a016c244076b719ebc0b55b1e28bba9064623c4298d7ab7d122a8c2efde72c7"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 3122,
+        "sha256": "d28f5b0bd436b730011bb981fb4230226c2b427f0fc0b23fdd21280fb4d5482f"
+      },
+      "destination": "native-producer-reviewed/AST_COMPAT_PREDECESSOR.json",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "b31e56a25c51e3ab4fe43d0684d2b7bf472c95a2",
+        "bytes": 3122,
+        "ref": "264f7202c317d3f98ae1aaf7d06b56f8b5c34531",
+        "repository_path": "tools/onehand_windows/native-producer-v9/AST_COMPAT_PREDECESSOR.json",
+        "sha256": "d28f5b0bd436b730011bb981fb4230226c2b427f0fc0b23fdd21280fb4d5482f"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 66154,
+        "sha256": "3a2d0c7ea5fcc0dfab7ec615dbb78e0b7d9f907c1d1a48bc2f90da14933952b5"
+      },
+      "destination": "native-producer-reviewed/AUDITED_FRAGMENTS.json",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "bf6dd55c0d8cb511ed810d042d2edef78cb891b5",
+        "bytes": 66154,
+        "ref": "264f7202c317d3f98ae1aaf7d06b56f8b5c34531",
+        "repository_path": "tools/onehand_windows/native-producer-v9/AUDITED_FRAGMENTS.json",
+        "sha256": "3a2d0c7ea5fcc0dfab7ec615dbb78e0b7d9f907c1d1a48bc2f90da14933952b5"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 2480,
+        "sha256": "fbdfb5448774a7b777dd48b9c48cd715efdee7cb13378433f9bbf6ece393d477"
+      },
+      "destination": "native-producer-reviewed/BOUNDARY_ADAPTATIONS.json",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "4b9985667c122fe97340a48f829024921d918256",
+        "bytes": 2480,
+        "ref": "264f7202c317d3f98ae1aaf7d06b56f8b5c34531",
+        "repository_path": "tools/onehand_windows/native-producer-v9/BOUNDARY_ADAPTATIONS.json",
+        "sha256": "fbdfb5448774a7b777dd48b9c48cd715efdee7cb13378433f9bbf6ece393d477"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 2736,
+        "sha256": "ebdb63e437c68148f46e6e845f796bffc7449b4a0a7ecf3e1de7816a0e8667cc"
+      },
+      "destination": "native-producer-reviewed/BYTE_PRESERVATION.md",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "0e36c097ecd0ed35ad6e984709fcdb90a03b31db",
+        "bytes": 2736,
+        "ref": "264f7202c317d3f98ae1aaf7d06b56f8b5c34531",
+        "repository_path": "tools/onehand_windows/native-producer-v9/BYTE_PRESERVATION.md",
+        "sha256": "ebdb63e437c68148f46e6e845f796bffc7449b4a0a7ecf3e1de7816a0e8667cc"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 2215,
+        "sha256": "df004b6af63ff4a65e02bde6eeda040740dde7b91105b1c95b757ae89a350a1b"
+      },
+      "destination": "native-producer-reviewed/HOST_BINDING_CHANGE.json",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "e8a4423b8879a1e430ed90c5666007b06c3f20a9",
+        "bytes": 2215,
+        "ref": "264f7202c317d3f98ae1aaf7d06b56f8b5c34531",
+        "repository_path": "tools/onehand_windows/native-producer-v9/HOST_BINDING_CHANGE.json",
+        "sha256": "df004b6af63ff4a65e02bde6eeda040740dde7b91105b1c95b757ae89a350a1b"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 2764,
+        "sha256": "d9edf9906196e898f1216281e7cf7f7e19d0b8ce4588f13d51ff41e06125a603"
+      },
+      "destination": "native-producer-reviewed/HOST_BINDING_PREDECESSOR.json",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "e30b88a69369c70e444a1cce6809e5220f9c376d",
+        "bytes": 2764,
+        "ref": "264f7202c317d3f98ae1aaf7d06b56f8b5c34531",
+        "repository_path": "tools/onehand_windows/native-producer-v9/HOST_BINDING_PREDECESSOR.json",
+        "sha256": "d9edf9906196e898f1216281e7cf7f7e19d0b8ce4588f13d51ff41e06125a603"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 3832,
+        "sha256": "77e7ffcefbaa9ad0cac376078322030b289bcdefdf413d19d2d6f847c43f99a3"
+      },
+      "destination": "native-producer-reviewed/MINIMAL_DIFF.json",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "974418837228bed9a7fac41ac504dccf535213a4",
+        "bytes": 3832,
+        "ref": "264f7202c317d3f98ae1aaf7d06b56f8b5c34531",
+        "repository_path": "tools/onehand_windows/native-producer-v9/MINIMAL_DIFF.json",
+        "sha256": "77e7ffcefbaa9ad0cac376078322030b289bcdefdf413d19d2d6f847c43f99a3"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 560,
+        "sha256": "84e563e67f852485c437cca291b1df348a14213286f6ca1ef77ad7bf2b33fbfd"
+      },
+      "destination": "native-producer-reviewed/PAYLOAD_ONLY_CHANGE.json",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "cca5a8dd255ff9543d8185ca7fa0f4a72f285474",
+        "bytes": 560,
+        "ref": "264f7202c317d3f98ae1aaf7d06b56f8b5c34531",
+        "repository_path": "tools/onehand_windows/native-producer-v9/PAYLOAD_ONLY_CHANGE.json",
+        "sha256": "84e563e67f852485c437cca291b1df348a14213286f6ca1ef77ad7bf2b33fbfd"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 1508,
+        "sha256": "4b78ed11a41ee2a47a33c35fff926c2654f35d231b5d83b21ba0a2788680f061"
+      },
+      "destination": "native-producer-reviewed/PAYLOAD_ONLY_CHANGE.md",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "0649de2dae62fce3373efb0db2f12a9f1560fd4b",
+        "bytes": 1508,
+        "ref": "264f7202c317d3f98ae1aaf7d06b56f8b5c34531",
+        "repository_path": "tools/onehand_windows/native-producer-v9/PAYLOAD_ONLY_CHANGE.md",
+        "sha256": "4b78ed11a41ee2a47a33c35fff926c2654f35d231b5d83b21ba0a2788680f061"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 956,
+        "sha256": "c0bb9dc7e379b9394e178c5bcf65ed42610ac66ff980e45fb6b90e59a185f496"
+      },
+      "destination": "native-producer-reviewed/PAYLOAD_ONLY_DIFF.patch",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "e48a13205ea5d89aa2d3ae9a246f30f00a9a7239",
+        "bytes": 956,
+        "ref": "264f7202c317d3f98ae1aaf7d06b56f8b5c34531",
+        "repository_path": "tools/onehand_windows/native-producer-v9/PAYLOAD_ONLY_DIFF.patch",
+        "sha256": "c0bb9dc7e379b9394e178c5bcf65ed42610ac66ff980e45fb6b90e59a185f496"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 4019,
+        "sha256": "f5d9d6015179b21dbb178f020162865f229c3cb5266c1b03b5ce3682f1788ad1"
+      },
+      "destination": "native-producer-reviewed/PAYLOAD_ONLY_PREDECESSOR.json",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "56255c0c5036352ebfed6a563f7b9dff16bf004e",
+        "bytes": 4019,
+        "ref": "264f7202c317d3f98ae1aaf7d06b56f8b5c34531",
+        "repository_path": "tools/onehand_windows/native-producer-v9/PAYLOAD_ONLY_PREDECESSOR.json",
+        "sha256": "f5d9d6015179b21dbb178f020162865f229c3cb5266c1b03b5ce3682f1788ad1"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 952,
+        "sha256": "c22a9f390c768ba6a9397f1d725d7890105d32cf607ce0e65e6e23601b8b968b"
+      },
+      "destination": "native-producer-reviewed/PAYLOAD_ONLY_RESULTS.json",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "b7ee84d0972415bcdeadee0efbaf7556985b9ef8",
+        "bytes": 952,
+        "ref": "264f7202c317d3f98ae1aaf7d06b56f8b5c34531",
+        "repository_path": "tools/onehand_windows/native-producer-v9/PAYLOAD_ONLY_RESULTS.json",
+        "sha256": "c22a9f390c768ba6a9397f1d725d7890105d32cf607ce0e65e6e23601b8b968b"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 6282,
+        "sha256": "da524d4b508b297ad0ff16741807800d302318d6c96db1dc713d4cc444ae65b5"
+      },
+      "destination": "native-producer-reviewed/PENDING_NATIVE_COMMANDS.md",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "3df6b508b77d0b01913eb6345a985c74d4762527",
+        "bytes": 6282,
+        "ref": "264f7202c317d3f98ae1aaf7d06b56f8b5c34531",
+        "repository_path": "tools/onehand_windows/native-producer-v9/PENDING_NATIVE_COMMANDS.md",
+        "sha256": "da524d4b508b297ad0ff16741807800d302318d6c96db1dc713d4cc444ae65b5"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 4485,
+        "sha256": "03fdc69c859ecf762a1b23a35a0edbe63e0b20a3ccaa941aa6756232f14bf989"
+      },
+      "destination": "native-producer-reviewed/PINS.json",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "76bfbfe2c07c60f798bca0b48e39fc2adf276eaf",
+        "bytes": 4485,
+        "ref": "264f7202c317d3f98ae1aaf7d06b56f8b5c34531",
+        "repository_path": "tools/onehand_windows/native-producer-v9/PINS.json",
+        "sha256": "03fdc69c859ecf762a1b23a35a0edbe63e0b20a3ccaa941aa6756232f14bf989"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 1599,
+        "sha256": "cf004a008e63d8a7fcc06afcf3e5c9839b37d0e1148eb12e7d68a6dd43ad28e8"
+      },
+      "destination": "native-producer-reviewed/PREDECESSOR_SELECTED_SOURCE.json",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "2a724ad9e5b60fd969d49c33d8a7eb91f8531c15",
+        "bytes": 1599,
+        "ref": "264f7202c317d3f98ae1aaf7d06b56f8b5c34531",
+        "repository_path": "tools/onehand_windows/native-producer-v9/PREDECESSOR_SELECTED_SOURCE.json",
+        "sha256": "cf004a008e63d8a7fcc06afcf3e5c9839b37d0e1148eb12e7d68a6dd43ad28e8"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 4695,
+        "sha256": "487872e0ed6e05c4b90a1b5116291e311c16ffe7ff71c66e15549bd8be505d17"
+      },
+      "destination": "native-producer-reviewed/README.md",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "57c965be9220cb2baac3c4ec9a529705e1651c22",
+        "bytes": 4695,
+        "ref": "264f7202c317d3f98ae1aaf7d06b56f8b5c34531",
+        "repository_path": "tools/onehand_windows/native-producer-v9/README.md",
+        "sha256": "487872e0ed6e05c4b90a1b5116291e311c16ffe7ff71c66e15549bd8be505d17"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 12373,
+        "sha256": "1563e92fb1349117b833edaa800188752a4d161c2c74d8d0918e62ba5570a09f"
+      },
+      "destination": "native-producer-reviewed/RESULTS.json",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "fd525685f050daca11b2c18ae531d9a227e9c8c7",
+        "bytes": 12373,
+        "ref": "264f7202c317d3f98ae1aaf7d06b56f8b5c34531",
+        "repository_path": "tools/onehand_windows/native-producer-v9/RESULTS.json",
+        "sha256": "1563e92fb1349117b833edaa800188752a4d161c2c74d8d0918e62ba5570a09f"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 1653,
+        "sha256": "3cc9adbfceb0f1995a97617ea4a03f6058787a618183b72c6919e4e775632e9b"
+      },
+      "destination": "native-producer-reviewed/RIGID_JSON_CAP_CHANGE.json",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "c4415021f0f19710cce509528735e8cddce9d85a",
+        "bytes": 1653,
+        "ref": "264f7202c317d3f98ae1aaf7d06b56f8b5c34531",
+        "repository_path": "tools/onehand_windows/native-producer-v9/RIGID_JSON_CAP_CHANGE.json",
+        "sha256": "3cc9adbfceb0f1995a97617ea4a03f6058787a618183b72c6919e4e775632e9b"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 723,
+        "sha256": "1e123925fbc8a6e37b84cdc35c6fd341642adf2795d2c05b536ee388191ceb31"
+      },
+      "destination": "native-producer-reviewed/RIGID_JSON_CAP_DIFF.patch",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "7ff6019d68d2a7fc8bcb473ba1886a87d3a2a4b8",
+        "bytes": 723,
+        "ref": "264f7202c317d3f98ae1aaf7d06b56f8b5c34531",
+        "repository_path": "tools/onehand_windows/native-producer-v9/RIGID_JSON_CAP_DIFF.patch",
+        "sha256": "1e123925fbc8a6e37b84cdc35c6fd341642adf2795d2c05b536ee388191ceb31"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 3747,
+        "sha256": "c6a6a69d2baacbaa9a114fdb3a198dc62c6daea12ae8614f68ffd3de081a9e93"
+      },
+      "destination": "native-producer-reviewed/RIGID_JSON_CAP_PREDECESSOR.json",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "6c9654624b6e9c82fe1fa27b98517e1731f66682",
+        "bytes": 3747,
+        "ref": "264f7202c317d3f98ae1aaf7d06b56f8b5c34531",
+        "repository_path": "tools/onehand_windows/native-producer-v9/RIGID_JSON_CAP_PREDECESSOR.json",
+        "sha256": "c6a6a69d2baacbaa9a114fdb3a198dc62c6daea12ae8614f68ffd3de081a9e93"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 25391,
+        "sha256": "c71efc29f7b6a105116c3ac1819acb05b1de441f45802c2f09ad5ba65ced36c2"
+      },
+      "destination": "native-producer-reviewed/admission.py",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "28a6d827189ef1d6ecf2aeb3f14a744eecf1fc99",
+        "bytes": 25391,
+        "ref": "264f7202c317d3f98ae1aaf7d06b56f8b5c34531",
+        "repository_path": "tools/onehand_windows/native-producer-v9/admission.py",
+        "sha256": "c71efc29f7b6a105116c3ac1819acb05b1de441f45802c2f09ad5ba65ced36c2"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 18408,
+        "sha256": "d4ca7010f932d4d0033148dcf40ae21cdf6c495258e0fb1fa414f22299969a59"
+      },
+      "destination": "native-producer-reviewed/cpu-tests.log",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "66444d7662f0fee11d189c29f9704fc1988471c7",
+        "bytes": 18408,
+        "ref": "264f7202c317d3f98ae1aaf7d06b56f8b5c34531",
+        "repository_path": "tools/onehand_windows/native-producer-v9/cpu-tests.log",
+        "sha256": "d4ca7010f932d4d0033148dcf40ae21cdf6c495258e0fb1fa414f22299969a59"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 4345,
+        "sha256": "5960f27c112ae4b83ae729c5cbd1d2eba4fe5f4bf5b0fb7afa5c33dfe7a7d10c"
+      },
+      "destination": "native-producer-reviewed/extract_helpers.py",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "85084a54c2da0e8c4d6caf257f8ee5ef52d988eb",
+        "bytes": 4345,
+        "ref": "264f7202c317d3f98ae1aaf7d06b56f8b5c34531",
+        "repository_path": "tools/onehand_windows/native-producer-v9/extract_helpers.py",
+        "sha256": "5960f27c112ae4b83ae729c5cbd1d2eba4fe5f4bf5b0fb7afa5c33dfe7a7d10c"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 8441,
+        "sha256": "ba555aeeb188cf4d594c0b36ecf5a1003f3d3379c601a2b258ec4cfd475c6184"
+      },
+      "destination": "native-producer-reviewed/host_identity.py",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "2868e4312077c749ab0c8081c69ef0b0c6e1e938",
+        "bytes": 8441,
+        "ref": "264f7202c317d3f98ae1aaf7d06b56f8b5c34531",
+        "repository_path": "tools/onehand_windows/native-producer-v9/host_identity.py",
+        "sha256": "ba555aeeb188cf4d594c0b36ecf5a1003f3d3379c601a2b258ec4cfd475c6184"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 3357,
+        "sha256": "035fd24eff1f5e0f007160295bb14418171997945c7c7a7a982ddd911a313d0b"
+      },
+      "destination": "native-producer-reviewed/launch_stage.py",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "d6dbb8083ea274a260bb4ee0990648fe9283dd51",
+        "bytes": 3357,
+        "ref": "264f7202c317d3f98ae1aaf7d06b56f8b5c34531",
+        "repository_path": "tools/onehand_windows/native-producer-v9/launch_stage.py",
+        "sha256": "035fd24eff1f5e0f007160295bb14418171997945c7c7a7a982ddd911a313d0b"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 3919,
+        "sha256": "55edc392b90578e1bb3a1a03c12c093a9edc5467afaf5d9b0d169c67d24b829f"
+      },
+      "destination": "native-producer-reviewed/native_entry.py",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "ffacbe3cd3b0e5dbeeddee2c55432d308e5cfb15",
+        "bytes": 3919,
+        "ref": "264f7202c317d3f98ae1aaf7d06b56f8b5c34531",
+        "repository_path": "tools/onehand_windows/native-producer-v9/native_entry.py",
+        "sha256": "55edc392b90578e1bb3a1a03c12c093a9edc5467afaf5d9b0d169c67d24b829f"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 22131,
+        "sha256": "3d74bba53db207188647d27e77573b0c02fc9de634235ac3b575d8eefb8ef9aa"
+      },
+      "destination": "native-producer-reviewed/native_stages.py",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "071270187223ed615a304bf868283db071ab25a7",
+        "bytes": 22131,
+        "ref": "264f7202c317d3f98ae1aaf7d06b56f8b5c34531",
+        "repository_path": "tools/onehand_windows/native-producer-v9/native_stages.py",
+        "sha256": "3d74bba53db207188647d27e77573b0c02fc9de634235ac3b575d8eefb8ef9aa"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 9904,
+        "sha256": "4060a2d02762f1b70539cbbf94f76c63ee59e8aa0fc7b1e7166ab60170f9ae42"
+      },
+      "destination": "native-producer-reviewed/pinned_code.py",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "387dd920cb4cda8c878e811b216f8d7e13f9e813",
+        "bytes": 9904,
+        "ref": "264f7202c317d3f98ae1aaf7d06b56f8b5c34531",
+        "repository_path": "tools/onehand_windows/native-producer-v9/pinned_code.py",
+        "sha256": "4060a2d02762f1b70539cbbf94f76c63ee59e8aa0fc7b1e7166ab60170f9ae42"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 2313,
+        "sha256": "e7bccd65dde3c34c46224e2325bcf01c6e980bf67ffd33a7eab1919a2e8e0db2"
+      },
+      "destination": "native-producer-reviewed/planner.py",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "1abd7f9c6950ed381b7150c30eec6c583fa62190",
+        "bytes": 2313,
+        "ref": "264f7202c317d3f98ae1aaf7d06b56f8b5c34531",
+        "repository_path": "tools/onehand_windows/native-producer-v9/planner.py",
+        "sha256": "e7bccd65dde3c34c46224e2325bcf01c6e980bf67ffd33a7eab1919a2e8e0db2"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 11829,
+        "sha256": "b42edd7f757a5876bee2f600bfb35f56f80867255b21693a8444b365305e6a51"
+      },
+      "destination": "native-producer-reviewed/process_evidence.py",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "fb299b48e1fcfdbcd25301a5240ec5584a4a5387",
+        "bytes": 11829,
+        "ref": "264f7202c317d3f98ae1aaf7d06b56f8b5c34531",
+        "repository_path": "tools/onehand_windows/native-producer-v9/process_evidence.py",
+        "sha256": "b42edd7f757a5876bee2f600bfb35f56f80867255b21693a8444b365305e6a51"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 3239,
+        "sha256": "634ebf5794614b026727e05d70ef7b2850a657a22a5582ff3904964d13219d02"
+      },
+      "destination": "native-producer-reviewed/run_fragment_compatibility.py",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "39e3b87e5452bdb1961af6b78bb4860194ced961",
+        "bytes": 3239,
+        "ref": "264f7202c317d3f98ae1aaf7d06b56f8b5c34531",
+        "repository_path": "tools/onehand_windows/native-producer-v9/run_fragment_compatibility.py",
+        "sha256": "634ebf5794614b026727e05d70ef7b2850a657a22a5582ff3904964d13219d02"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 2171,
+        "sha256": "78c1408c9d49b0161143f3aa6e3fafbff8c6e53e94b40a510236964f75f28896"
+      },
+      "destination": "native-producer-reviewed/run_payload_only_regression.py",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "2f251d5d332a52341e1c4ba3f3bf0d7b7498e6ad",
+        "bytes": 2171,
+        "ref": "264f7202c317d3f98ae1aaf7d06b56f8b5c34531",
+        "repository_path": "tools/onehand_windows/native-producer-v9/run_payload_only_regression.py",
+        "sha256": "78c1408c9d49b0161143f3aa6e3fafbff8c6e53e94b40a510236964f75f28896"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 2901,
+        "sha256": "82cd6dbd77fac8796c498f733f2ea61bdf0b933979468772df3c6d20ac7b9c6e"
+      },
+      "destination": "native-producer-reviewed/run_rigid_json_regression.py",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "577b05f523ac3d37ce646887fee108c04404773c",
+        "bytes": 2901,
+        "ref": "264f7202c317d3f98ae1aaf7d06b56f8b5c34531",
+        "repository_path": "tools/onehand_windows/native-producer-v9/run_rigid_json_regression.py",
+        "sha256": "82cd6dbd77fac8796c498f733f2ea61bdf0b933979468772df3c6d20ac7b9c6e"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 10383,
+        "sha256": "3fde606b79903fa6d8b82e2b43999ed7d92f06547d097c84a5c719513c98f809"
+      },
+      "destination": "native-producer-reviewed/stage_context.py",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "6257ca2bffb1e6a683a349e21b6bb250aa369bec",
+        "bytes": 10383,
+        "ref": "264f7202c317d3f98ae1aaf7d06b56f8b5c34531",
+        "repository_path": "tools/onehand_windows/native-producer-v9/stage_context.py",
+        "sha256": "3fde606b79903fa6d8b82e2b43999ed7d92f06547d097c84a5c719513c98f809"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 3261,
+        "sha256": "0704eda18e3589f7405479ef126e6a19963f2915f74eab3c68b03170d3be1834"
+      },
+      "destination": "native-producer-reviewed/test_dependency_selection.py",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "61838fe479ea537c4e40b0c1e8cc307aae237a60",
+        "bytes": 3261,
+        "ref": "264f7202c317d3f98ae1aaf7d06b56f8b5c34531",
+        "repository_path": "tools/onehand_windows/native-producer-v9/test_dependency_selection.py",
+        "sha256": "0704eda18e3589f7405479ef126e6a19963f2915f74eab3c68b03170d3be1834"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 10558,
+        "sha256": "67f54ec1de075109ffed3276b4618f6d4440a641bae25a1acdfa8e7fb55dc7b4"
+      },
+      "destination": "native-producer-reviewed/test_fragment_ast.py",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "2ba72adcf2939d1a285af3107cb9ccaee78649bf",
+        "bytes": 10558,
+        "ref": "264f7202c317d3f98ae1aaf7d06b56f8b5c34531",
+        "repository_path": "tools/onehand_windows/native-producer-v9/test_fragment_ast.py",
+        "sha256": "67f54ec1de075109ffed3276b4618f6d4440a641bae25a1acdfa8e7fb55dc7b4"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 18321,
+        "sha256": "3d80ca088c4a3537b6bb522539f7a5234a46a57f0fcd02d968e2a307d9c81307"
+      },
+      "destination": "native-producer-reviewed/test_host_identity.py",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "0ad1e43949b7e84c699a9e1c5a5eef4d9b7ddf6d",
+        "bytes": 18321,
+        "ref": "264f7202c317d3f98ae1aaf7d06b56f8b5c34531",
+        "repository_path": "tools/onehand_windows/native-producer-v9/test_host_identity.py",
+        "sha256": "3d80ca088c4a3537b6bb522539f7a5234a46a57f0fcd02d968e2a307d9c81307"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 22063,
+        "sha256": "51061cd39edb74c2b60b775ba815c7c2967fedf2a3fbb84845ab5cc4cc6758c0"
+      },
+      "destination": "native-producer-reviewed/test_native_producer.py",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "a75a11236e98fc45eae32c5b17a7ccab57aaba3b",
+        "bytes": 22063,
+        "ref": "264f7202c317d3f98ae1aaf7d06b56f8b5c34531",
+        "repository_path": "tools/onehand_windows/native-producer-v9/test_native_producer.py",
+        "sha256": "51061cd39edb74c2b60b775ba815c7c2967fedf2a3fbb84845ab5cc4cc6758c0"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 16077,
+        "sha256": "430c52647323ee0ddf5d71ac427c6619018b147b2d54765a5869f9d8ab275a3a"
+      },
+      "destination": "native-producer-reviewed/test_payload_only_inventory.py",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "42e83139574edc26ff09659e31605d2c1e669300",
+        "bytes": 16077,
+        "ref": "264f7202c317d3f98ae1aaf7d06b56f8b5c34531",
+        "repository_path": "tools/onehand_windows/native-producer-v9/test_payload_only_inventory.py",
+        "sha256": "430c52647323ee0ddf5d71ac427c6619018b147b2d54765a5869f9d8ab275a3a"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 3373,
+        "sha256": "5fc23c94f5ba3bf376572949f659a9e007e039592cbe06220fd8456f72a8c9a4"
+      },
+      "destination": "native-producer-reviewed/test_projection_dependency.py",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "049827a2f5c66835899e2200df73bd942193c6e8",
+        "bytes": 3373,
+        "ref": "264f7202c317d3f98ae1aaf7d06b56f8b5c34531",
+        "repository_path": "tools/onehand_windows/native-producer-v9/test_projection_dependency.py",
+        "sha256": "5fc23c94f5ba3bf376572949f659a9e007e039592cbe06220fd8456f72a8c9a4"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 19702,
+        "sha256": "0fef00119ab0c1e1e257c298b4d3d7c0226afc7cd4b523a485d3cfea52a2aaf7"
+      },
+      "destination": "native-producer-reviewed/test_review_regressions.py",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "c27bc95b606dfa5f2c55aacc59a003a3e85623b9",
+        "bytes": 19702,
+        "ref": "264f7202c317d3f98ae1aaf7d06b56f8b5c34531",
+        "repository_path": "tools/onehand_windows/native-producer-v9/test_review_regressions.py",
+        "sha256": "0fef00119ab0c1e1e257c298b4d3d7c0226afc7cd4b523a485d3cfea52a2aaf7"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 12010,
+        "sha256": "6d483a9090d7bcb028a013a24527371bc5a003c031d12bec2b9cb5bd1b8bce1f"
+      },
+      "destination": "native-producer-reviewed/test_rigid_json_cap.py",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "2a992abc7948bc4598472ebf9ee6ae288f7f103d",
+        "bytes": 12010,
+        "ref": "264f7202c317d3f98ae1aaf7d06b56f8b5c34531",
+        "repository_path": "tools/onehand_windows/native-producer-v9/test_rigid_json_cap.py",
+        "sha256": "6d483a9090d7bcb028a013a24527371bc5a003c031d12bec2b9cb5bd1b8bce1f"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 4140,
+        "sha256": "1c2b851d68cdf7c4da8813f1d504ae9be5649e65b5fc01feb332d557ae4f7a5e"
+      },
+      "destination": "native-producer-reviewed/transport_binding.py",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "9b4f63193de5d17291b757d5eca7eb5aa7315119",
+        "bytes": 4140,
+        "ref": "264f7202c317d3f98ae1aaf7d06b56f8b5c34531",
+        "repository_path": "tools/onehand_windows/native-producer-v9/transport_binding.py",
+        "sha256": "1c2b851d68cdf7c4da8813f1d504ae9be5649e65b5fc01feb332d557ae4f7a5e"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 800,
+        "sha256": "2456c9b00aee29eaa55dbb1f37a25506914562e446edbced48c71e2f794a2752"
+      },
+      "destination": "native-producer-reviewed/verify_freeze.py",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "f55a153fe0943b6aa4bfa0bdb37657708a446789",
+        "bytes": 800,
+        "ref": "264f7202c317d3f98ae1aaf7d06b56f8b5c34531",
+        "repository_path": "tools/onehand_windows/native-producer-v9/verify_freeze.py",
+        "sha256": "2456c9b00aee29eaa55dbb1f37a25506914562e446edbced48c71e2f794a2752"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 20262532,
+        "sha256": "3a6a244d560e3688742e03133ce2d6afe065128ef231e37b3b55339abee582c8"
+      },
+      "destination": "original-source/original-delta.json",
+      "encoding": "gzip-single-member",
+      "git": {
+        "parts": [
+          {
+            "blob_sha1": "9c81b59d2dbb88ba243f2214c8a6c313cd626be0",
+            "bytes": 65536,
+            "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
+            "repository_path": "tools/onehand_windows/source-transport-v4/parts/original-delta.json/000.gzpart",
+            "sha256": "66844c339534edd91f582b849e68ce6c69a30165910e14a5a36c3738299346cf"
+          },
+          {
+            "blob_sha1": "56e4fe411fcad3653121f6e1e9716571c09ef3a5",
+            "bytes": 65536,
+            "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
+            "repository_path": "tools/onehand_windows/source-transport-v4/parts/original-delta.json/001.gzpart",
+            "sha256": "d20bda5de9a944c87b1885232149d82cc5a43cd21a96fa69949d60d785493779"
+          },
+          {
+            "blob_sha1": "2d24c050a64f3440d3a5e9967f2dfb1203acfde2",
+            "bytes": 65536,
+            "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
+            "repository_path": "tools/onehand_windows/source-transport-v4/parts/original-delta.json/002.gzpart",
+            "sha256": "68be2261673e15498d5aa4f53eea6a3e43a14a2b267be02a329bd00ba7b9c103"
+          },
+          {
+            "blob_sha1": "f8d05aa61a91711696f5baffb4c96b40e4a4b24c",
+            "bytes": 65536,
+            "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
+            "repository_path": "tools/onehand_windows/source-transport-v4/parts/original-delta.json/003.gzpart",
+            "sha256": "f9bf87d6948ef9363d0d958c9f106235153bfd0dd3b01ad09e12656bd14b04d4"
+          },
+          {
+            "blob_sha1": "0e5601eb0fe34f12c31c62ead6e4706f5d43d267",
+            "bytes": 65536,
+            "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
+            "repository_path": "tools/onehand_windows/source-transport-v4/parts/original-delta.json/004.gzpart",
+            "sha256": "ecd36641b3ba71ad2c35050abf61ae319763259442437cf052a2f4208c8edffe"
+          },
+          {
+            "blob_sha1": "c8de1709d3ec187b3215edf39aef1ef519f9876b",
+            "bytes": 65536,
+            "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
+            "repository_path": "tools/onehand_windows/source-transport-v4/parts/original-delta.json/005.gzpart",
+            "sha256": "41268e740c51c3369151b842eb5269b0c998287f1353986339461912f0295a5c"
+          },
+          {
+            "blob_sha1": "1c7ffe5afbbda09bd11e8d66fc24e441815c6356",
+            "bytes": 65536,
+            "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
+            "repository_path": "tools/onehand_windows/source-transport-v4/parts/original-delta.json/006.gzpart",
+            "sha256": "84fc0089b41de08378bdcfeed4a51800b45cfb83bcc90fea01df6aa628ad8136"
+          },
+          {
+            "blob_sha1": "83091fa5c4f015951f93a9a39cae578c7ed56e0f",
+            "bytes": 65536,
+            "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
+            "repository_path": "tools/onehand_windows/source-transport-v4/parts/original-delta.json/007.gzpart",
+            "sha256": "d6686c08b1f4d09b3e361db18b815d77bad0adbcc1d4057de59269f03656b5cc"
+          },
+          {
+            "blob_sha1": "c571d2c93dbbee31a0f7108d2b5bc0cfb70286cb",
+            "bytes": 65536,
+            "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
+            "repository_path": "tools/onehand_windows/source-transport-v4/parts/original-delta.json/008.gzpart",
+            "sha256": "040b4e97de9c810f01f2d8300b8d1094949e4c5a4f9caef8f2887a7d54480cbf"
+          },
+          {
+            "blob_sha1": "0af04c92c8bc19eedb7390cbe5906db7e5b94269",
+            "bytes": 65536,
+            "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
+            "repository_path": "tools/onehand_windows/source-transport-v4/parts/original-delta.json/009.gzpart",
+            "sha256": "9c4d1e237a10a2522ca01e75d7d240c96d6e1c24a540f0331e9182b24c84117b"
+          },
+          {
+            "blob_sha1": "ffa2739f48ee8c063fe538778e6132c06986d720",
+            "bytes": 65536,
+            "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
+            "repository_path": "tools/onehand_windows/source-transport-v4/parts/original-delta.json/010.gzpart",
+            "sha256": "7a93c04445e2e3da0e5df6d6b7fc3b3e45508e3c3c0c322cd557936e7909321b"
+          },
+          {
+            "blob_sha1": "e0887505fac7ecda2d7e9fe03c84eda016fbf1b6",
+            "bytes": 65536,
+            "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
+            "repository_path": "tools/onehand_windows/source-transport-v4/parts/original-delta.json/011.gzpart",
+            "sha256": "7b6b9d504ba62b329ab393e5877786d191db7e7daf6a058691e2f59a1fd1e04d"
+          },
+          {
+            "blob_sha1": "e2bd848e3aa9895e56610b19e8e3fe76dedf5dbc",
+            "bytes": 65536,
+            "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
+            "repository_path": "tools/onehand_windows/source-transport-v4/parts/original-delta.json/012.gzpart",
+            "sha256": "2dda00bfc9a8327dffaa064c79369aa4ae9482d42d29c9de6bdb27e3350a176f"
+          },
+          {
+            "blob_sha1": "f538287482c6e095528db1a37afa60cc67f3e866",
+            "bytes": 65536,
+            "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
+            "repository_path": "tools/onehand_windows/source-transport-v4/parts/original-delta.json/013.gzpart",
+            "sha256": "bdba8af8bab655c15492c60d9715c8046de1fd66c44dff8d21609d1274eb0548"
+          },
+          {
+            "blob_sha1": "75c55da3556a768720d258bdb39316441698b743",
+            "bytes": 65536,
+            "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
+            "repository_path": "tools/onehand_windows/source-transport-v4/parts/original-delta.json/014.gzpart",
+            "sha256": "70913bc6ea939d160c66014810a37e271215464b4b7942c021417a82a62774b1"
+          },
+          {
+            "blob_sha1": "5dea2c6dfed0e90f764c8cedb7cfb14adb42eaa5",
+            "bytes": 65536,
+            "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
+            "repository_path": "tools/onehand_windows/source-transport-v4/parts/original-delta.json/015.gzpart",
+            "sha256": "33b8d4a76804c76bbf02d787cc49084c3b56ca7b6f66d298173b3bea48508200"
+          },
+          {
+            "blob_sha1": "d72c210681d9b45278d90c825d15a80f4a5fb8ff",
+            "bytes": 65536,
+            "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
+            "repository_path": "tools/onehand_windows/source-transport-v4/parts/original-delta.json/016.gzpart",
+            "sha256": "292742b53f0adc6515a6c47a254017e56871d1b2ef155f297d1f90586694347b"
+          },
+          {
+            "blob_sha1": "033ec6ebb1bd3e539cfbd271629b4e2f8fc41b74",
+            "bytes": 65536,
+            "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
+            "repository_path": "tools/onehand_windows/source-transport-v4/parts/original-delta.json/017.gzpart",
+            "sha256": "bb38617d9a8974a6f65ee6fcc13ed0384c88489a6d2693a0455daac6519a2827"
+          },
+          {
+            "blob_sha1": "010ce2bd1b492ba5636b8c171771f116d9342dd5",
+            "bytes": 65536,
+            "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
+            "repository_path": "tools/onehand_windows/source-transport-v4/parts/original-delta.json/018.gzpart",
+            "sha256": "a6c0b560c6e2527184012cbbad9b8d5053cd01df08b381c13edb0140ed6972a8"
+          },
+          {
+            "blob_sha1": "762623a8830a7824cd6d7c9571880cce6390cc51",
+            "bytes": 65536,
+            "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
+            "repository_path": "tools/onehand_windows/source-transport-v4/parts/original-delta.json/019.gzpart",
+            "sha256": "aa04126b1f0f4165e5242f0829bdf02c6899ed52a9c216413b2ed8b8e887b1aa"
+          },
+          {
+            "blob_sha1": "8b5063e75a89aa30ceec47708375a401e2ee95ac",
+            "bytes": 65536,
+            "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
+            "repository_path": "tools/onehand_windows/source-transport-v4/parts/original-delta.json/020.gzpart",
+            "sha256": "25f717a45b18543f168da732e78fe223612f831cbe39d9553a2d14ac41a1803a"
+          },
+          {
+            "blob_sha1": "f924b8533eb03ec48234591581010fb22d218943",
+            "bytes": 56476,
+            "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
+            "repository_path": "tools/onehand_windows/source-transport-v4/parts/original-delta.json/021.gzpart",
+            "sha256": "49a5f8b8fd9888e76da729e02166126479fe23045473318bed39f2277c4e9a98"
+          }
+        ]
+      },
+      "kind": "original-action-delta",
+      "transport": {
+        "bytes": 1432732,
+        "manifest_repository_path": "tools/onehand_windows/source-transport-v4/TRANSPORT_PARTS.json",
+        "sha256": "8d5a3bab2020de8c07e83de1454fcc29e5c83adf8e2c589f1f7035213e09106f"
+      }
+    },
+    {
+      "canonical": {
+        "bytes": 86,
+        "sha256": "171e9a8b3b5a35df8a0e007415aa96cd02a5ae26ee13b421ea9de761c6f8ddad"
+      },
+      "destination": "process-v2/.gitattributes",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "39c41eb3df78db088ad5d956dbf8e49114ae9538",
+        "bytes": 86,
+        "ref": "c61dbd67039a4961d0c56f0a3c7e478c431d1ced",
+        "repository_path": "tools/onehand_windows/process-v2/.gitattributes",
+        "sha256": "171e9a8b3b5a35df8a0e007415aa96cd02a5ae26ee13b421ea9de761c6f8ddad"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 2757,
+        "sha256": "5e2c49d629018cf68f4e916d9bf257a5af1b82337facdf541ea4159928a36f6a"
+      },
+      "destination": "process-v2/DEPENDENCIES.json",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "8b55396bfc4b1b5ba25c85bdebdca1723a573259",
+        "bytes": 2757,
+        "ref": "c61dbd67039a4961d0c56f0a3c7e478c431d1ced",
+        "repository_path": "tools/onehand_windows/process-v2/DEPENDENCIES.json",
+        "sha256": "5e2c49d629018cf68f4e916d9bf257a5af1b82337facdf541ea4159928a36f6a"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 2326,
+        "sha256": "d9ef5486cbd7d80ec8d4c9d37c556ff7d13d8dc0147cbd7e6244a4154ca79751"
+      },
+      "destination": "process-v2/PINS.json",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "41a2e0249699d6229cd685d78e03e90f7ef37872",
+        "bytes": 2326,
+        "ref": "c61dbd67039a4961d0c56f0a3c7e478c431d1ced",
+        "repository_path": "tools/onehand_windows/process-v2/PINS.json",
+        "sha256": "d9ef5486cbd7d80ec8d4c9d37c556ff7d13d8dc0147cbd7e6244a4154ca79751"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 19046,
+        "sha256": "3a8ed00fb3898be1eb48359f3f85797f30d96eae39915f1c237a23d260066eee"
+      },
+      "destination": "process-v2/README.md",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "d4738d3fcf39d8c5806e96c9619bbb71e73b1558",
+        "bytes": 19046,
+        "ref": "c61dbd67039a4961d0c56f0a3c7e478c431d1ced",
+        "repository_path": "tools/onehand_windows/process-v2/README.md",
+        "sha256": "3a8ed00fb3898be1eb48359f3f85797f30d96eae39915f1c237a23d260066eee"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 1143,
+        "sha256": "970aed93d4f354fcc51bebf10692c4d3bdc6ffb5a60704e399538b2eabbe8849"
+      },
+      "destination": "process-v2/checkout-fixture-proof.json",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "43db70a2cde23e94cee7a5e1d8407e459844e364",
+        "bytes": 1143,
+        "ref": "c61dbd67039a4961d0c56f0a3c7e478c431d1ced",
+        "repository_path": "tools/onehand_windows/process-v2/checkout-fixture-proof.json",
+        "sha256": "970aed93d4f354fcc51bebf10692c4d3bdc6ffb5a60704e399538b2eabbe8849"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 1285,
+        "sha256": "6163dfb23aa7d8e60b3e6fc002d7a8209ed69bbd8263e12a2a2d30d5c0b2d6d3"
+      },
+      "destination": "process-v2/cpu-test-summary.json",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "66bb9720ba777daf49f568ae0712fc6c954a002d",
+        "bytes": 1285,
+        "ref": "c61dbd67039a4961d0c56f0a3c7e478c431d1ced",
+        "repository_path": "tools/onehand_windows/process-v2/cpu-test-summary.json",
+        "sha256": "6163dfb23aa7d8e60b3e6fc002d7a8209ed69bbd8263e12a2a2d30d5c0b2d6d3"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 10301,
+        "sha256": "7b532b2372f20f23b37f96442b5d2bda5ed855bd139c763cab1c1f3add194ddc"
+      },
+      "destination": "process-v2/cpu-tests.log",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "b005cdcb879614c789abb828dbf39fc3e3cd1615",
+        "bytes": 10301,
+        "ref": "c61dbd67039a4961d0c56f0a3c7e478c431d1ced",
+        "repository_path": "tools/onehand_windows/process-v2/cpu-tests.log",
+        "sha256": "7b532b2372f20f23b37f96442b5d2bda5ed855bd139c763cab1c1f3add194ddc"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 46858,
+        "sha256": "11dab8fee3fc8be0104f7adc1b73bb06091af7307f369f67d2f7bb2bdda2dd00"
+      },
+      "destination": "process-v2/minimal-changes.patch",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "7d5dc346bd4e107d132deb94618953e63e4b4823",
+        "bytes": 46858,
+        "ref": "c61dbd67039a4961d0c56f0a3c7e478c431d1ced",
+        "repository_path": "tools/onehand_windows/process-v2/minimal-changes.patch",
+        "sha256": "11dab8fee3fc8be0104f7adc1b73bb06091af7307f369f67d2f7bb2bdda2dd00"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 39160,
+        "sha256": "256125ea044c738ac316da841a5acad9c39b1fc2b1666cc4a09ce81828bd191e"
+      },
+      "destination": "process-v2/owned_process.py",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "367bea802ebd8c87157fc2f525b8ad64c35dc6a2",
+        "bytes": 39160,
+        "ref": "c61dbd67039a4961d0c56f0a3c7e478c431d1ced",
+        "repository_path": "tools/onehand_windows/process-v2/owned_process.py",
+        "sha256": "256125ea044c738ac316da841a5acad9c39b1fc2b1666cc4a09ce81828bd191e"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 2751,
+        "sha256": "79b3868758640da4918cc8822ee6327401b07a0c597a608fc94cdb488f73d380"
+      },
+      "destination": "process-v2/run_tests.py",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "742a0f81702d2a0bcc7c84c7874a2272f3640129",
+        "bytes": 2751,
+        "ref": "c61dbd67039a4961d0c56f0a3c7e478c431d1ced",
+        "repository_path": "tools/onehand_windows/process-v2/run_tests.py",
+        "sha256": "79b3868758640da4918cc8822ee6327401b07a0c597a608fc94cdb488f73d380"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 2786,
+        "sha256": "1c56b4dde3ae6e1859f9fe4b60ecaf3b21d9e5ec0f0998561afec4e36edb6c54"
+      },
+      "destination": "process-v2/test_checkout_bytes.py",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "e1aec371b5aeac410d15f6233835f936aebcb99a",
+        "bytes": 2786,
+        "ref": "c61dbd67039a4961d0c56f0a3c7e478c431d1ced",
+        "repository_path": "tools/onehand_windows/process-v2/test_checkout_bytes.py",
+        "sha256": "1c56b4dde3ae6e1859f9fe4b60ecaf3b21d9e5ec0f0998561afec4e36edb6c54"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 12647,
+        "sha256": "ef501fb4ffa5f1e3ec9117cf98071313bcdc3adcc746f9a927689db273e5adf3"
+      },
+      "destination": "process-v2/test_lifecycle_regressions.py",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "1468e75607aa7b91d00245c3c90319332ae4fb62",
+        "bytes": 12647,
+        "ref": "c61dbd67039a4961d0c56f0a3c7e478c431d1ced",
+        "repository_path": "tools/onehand_windows/process-v2/test_lifecycle_regressions.py",
+        "sha256": "ef501fb4ffa5f1e3ec9117cf98071313bcdc3adcc746f9a927689db273e5adf3"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 20249,
+        "sha256": "7051141262d6774d43bf0cf791f174432c485d4aca0432bc42f94be7862c963d"
+      },
+      "destination": "process-v2/test_owned_process.py",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "bdbebab95a70bbf30681887a155e892fe7c8160a",
+        "bytes": 20249,
+        "ref": "c61dbd67039a4961d0c56f0a3c7e478c431d1ced",
+        "repository_path": "tools/onehand_windows/process-v2/test_owned_process.py",
+        "sha256": "7051141262d6774d43bf0cf791f174432c485d4aca0432bc42f94be7862c963d"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 9807,
+        "sha256": "a49a9ebf39ff22e22e9e4e215601d107221ca845978276042cba560252ac952e"
+      },
+      "destination": "process-v2/test_windows_job.py",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "1a392063a94655c7100c15521ab3b646f1bde7ea",
+        "bytes": 9807,
+        "ref": "c61dbd67039a4961d0c56f0a3c7e478c431d1ced",
+        "repository_path": "tools/onehand_windows/process-v2/test_windows_job.py",
+        "sha256": "a49a9ebf39ff22e22e9e4e215601d107221ca845978276042cba560252ac952e"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 5843,
+        "sha256": "401061f2e2bbe2317e211b0e9f70c3df2c5ecac6212264d7131c0b6175247ab5"
+      },
+      "destination": "process-v2/test_windows_native.py",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "70921a30e65de0869c3f8cdb81da2f6e06669785",
+        "bytes": 5843,
+        "ref": "c61dbd67039a4961d0c56f0a3c7e478c431d1ced",
+        "repository_path": "tools/onehand_windows/process-v2/test_windows_native.py",
+        "sha256": "401061f2e2bbe2317e211b0e9f70c3df2c5ecac6212264d7131c0b6175247ab5"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 2249,
+        "sha256": "7ac5a15a8ed4ac9f1f2535e04e800b0e7df2a8d4cf7ccbac39549dbfb3fa301a"
+      },
+      "destination": "process-v2/windows-process-smoke.workflow.yml",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "66999bf8bb0f284ff615d24434822d74b677f97f",
+        "bytes": 2249,
+        "ref": "c61dbd67039a4961d0c56f0a3c7e478c431d1ced",
+        "repository_path": "tools/onehand_windows/process-v2/windows-process-smoke.workflow.yml",
+        "sha256": "7ac5a15a8ed4ac9f1f2535e04e800b0e7df2a8d4cf7ccbac39549dbfb3fa301a"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 22068,
+        "sha256": "d628c4f7d3136dde11cf6c9d5ba35f3d12302bfd2522918fe1f0229a40f1ba1e"
+      },
+      "destination": "process-v2/windows_job.py",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "fca876d83ae8c69da8baa66f183ce53d0b6628f5",
+        "bytes": 22068,
+        "ref": "c61dbd67039a4961d0c56f0a3c7e478c431d1ced",
+        "repository_path": "tools/onehand_windows/process-v2/windows_job.py",
+        "sha256": "d628c4f7d3136dde11cf6c9d5ba35f3d12302bfd2522918fe1f0229a40f1ba1e"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 770,
+        "sha256": "d6383d997d1150f5e70cf15355404bf808c2ec8e80d1eb58ea1b61ea4c9a51e6"
+      },
+      "destination": "source-producer/FUNCTION_DIFF.json",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "5b88dc87a621ccb4a8b71d0475c93104afaf3cdd",
+        "bytes": 770,
+        "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
+        "repository_path": "tools/onehand_windows/source-producer-privacy-v1/FUNCTION_DIFF.json",
+        "sha256": "d6383d997d1150f5e70cf15355404bf808c2ec8e80d1eb58ea1b61ea4c9a51e6"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 1701,
+        "sha256": "3b52a15fe761b9b1ae30b88caab7be132ad635f9aa2d070b6bb2f6d3133fbd71"
+      },
+      "destination": "source-producer/PINS.json",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "74eef79adaac0fc5b1a4129e4947afdaa553b86a",
+        "bytes": 1701,
+        "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
+        "repository_path": "tools/onehand_windows/source-producer-privacy-v1/PINS.json",
+        "sha256": "3b52a15fe761b9b1ae30b88caab7be132ad635f9aa2d070b6bb2f6d3133fbd71"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 5207,
+        "sha256": "4bf38952b5ff765ad65c8fab2c985303287b570b4a0d897eac28bf78e73bec1b"
+      },
+      "destination": "source-producer/PROJECTION.json",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "3865d7a239e8e664de92da709a05ad5b5306c938",
+        "bytes": 5207,
+        "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
+        "repository_path": "tools/onehand_windows/source-producer-privacy-v1/PROJECTION.json",
+        "sha256": "4bf38952b5ff765ad65c8fab2c985303287b570b4a0d897eac28bf78e73bec1b"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 2887,
+        "sha256": "0cc30a0b278326272eae9d20f143c454a232226f77f70096559c4a3725060e9a"
+      },
+      "destination": "source-producer/README.md",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "69765939339173c9dbd698ef2e745f6d803e078e",
+        "bytes": 2887,
+        "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
+        "repository_path": "tools/onehand_windows/source-producer-privacy-v1/README.md",
+        "sha256": "0cc30a0b278326272eae9d20f143c454a232226f77f70096559c4a3725060e9a"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 326,
+        "sha256": "b47fea0ff32626ce6a767aa4323a1344a90e9283dab610947b0b9f202e15213c"
+      },
+      "destination": "source-producer/RESULTS.json",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "a3e068791d483af6adc90cc57528ff771c09331b",
+        "bytes": 326,
+        "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
+        "repository_path": "tools/onehand_windows/source-producer-privacy-v1/RESULTS.json",
+        "sha256": "b47fea0ff32626ce6a767aa4323a1344a90e9283dab610947b0b9f202e15213c"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 676,
+        "sha256": "07bee6030fe46fe957306c7b2bb554071155364e27cf523ef29c1de9497c44a9"
+      },
+      "destination": "source-producer/UNCHANGED_MATH.json",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "5c55daf6d9230663e0cbdb934ae9a123383f0ea5",
+        "bytes": 676,
+        "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
+        "repository_path": "tools/onehand_windows/source-producer-privacy-v1/UNCHANGED_MATH.json",
+        "sha256": "07bee6030fe46fe957306c7b2bb554071155364e27cf523ef29c1de9497c44a9"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 9383,
+        "sha256": "4a90c79652225d2be96d78402dfee443834539d2e6af09156aa6bea0444454e6"
+      },
+      "destination": "source-producer/cpu-tests.log",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "2ee175fbb66f70f6f9f44b6dab9c0d9319d4e2ee",
+        "bytes": 9383,
+        "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
+        "repository_path": "tools/onehand_windows/source-producer-privacy-v1/cpu-tests.log",
+        "sha256": "4a90c79652225d2be96d78402dfee443834539d2e6af09156aa6bea0444454e6"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 40293,
+        "sha256": "a521b1e779e45f85948d94b8b9aa9f9cad41d935783ba5fcbda34decb6aec08f"
+      },
+      "destination": "source-producer/dense-times.json",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "2cd75f81d5a3509c4180c43fb8c4a7a6264da6bf",
+        "bytes": 40293,
+        "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
+        "repository_path": "tools/onehand_windows/source-producer-privacy-v1/dense-times.json",
+        "sha256": "a521b1e779e45f85948d94b8b9aa9f9cad41d935783ba5fcbda34decb6aec08f"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 12893,
+        "sha256": "eee8e072c0083f67e8aa296c78a6126ca30ded5ea86f5b3d0293cf8e9381d9dd"
+      },
+      "destination": "source-producer/historical_reference.py",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "8a9a85f56c1ff7500e47b11a25dacc438f136ff0",
+        "bytes": 12893,
+        "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
+        "repository_path": "tools/onehand_windows/source-producer-privacy-v1/historical_reference.py",
+        "sha256": "eee8e072c0083f67e8aa296c78a6126ca30ded5ea86f5b3d0293cf8e9381d9dd"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 30826,
+        "sha256": "02be12e5bfb6503810ec9729cb03ed6edcfc0a154c087402845dd6a9d36ce7b0"
+      },
+      "destination": "source-producer/onehand_v6_source_delta.py",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "291a2c3f3b524609fe02940623e55068487f6961",
+        "bytes": 30826,
+        "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
+        "repository_path": "tools/onehand_windows/source-producer-privacy-v1/onehand_v6_source_delta.py",
+        "sha256": "02be12e5bfb6503810ec9729cb03ed6edcfc0a154c087402845dd6a9d36ce7b0"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 32612,
+        "sha256": "0ae5da70398aad7e045354ab2f5734afd668a0cf8fafedca98fee7ccba2b76f2"
+      },
+      "destination": "source-producer/onehand_v6_source_native.py",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "1e748e8ff07e5bfdd95c228d2f329972b7a001d2",
+        "bytes": 32612,
+        "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
+        "repository_path": "tools/onehand_windows/source-producer-privacy-v1/onehand_v6_source_native.py",
+        "sha256": "0ae5da70398aad7e045354ab2f5734afd668a0cf8fafedca98fee7ccba2b76f2"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 6364,
+        "sha256": "08e25bf4c8731c073ace8749e2225f60d3e95a06eec6627239d7a9ba57aba58c"
+      },
+      "destination": "source-producer/pose-corrections.json",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "384c48dccdaf57a76bb2678779b83fa6b262121a",
+        "bytes": 6364,
+        "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
+        "repository_path": "tools/onehand_windows/source-producer-privacy-v1/pose-corrections.json",
+        "sha256": "08e25bf4c8731c073ace8749e2225f60d3e95a06eec6627239d7a9ba57aba58c"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 7632,
+        "sha256": "7d88d3b32c9ddf2e2525ce1f9e0dcfe68a4319bc44d144d37e7760de8aed2f92"
+      },
+      "destination": "source-producer/privacy_projection.py",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "418c021e4c597b9fb38856933684a07c3890a1cd",
+        "bytes": 7632,
+        "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
+        "repository_path": "tools/onehand_windows/source-producer-privacy-v1/privacy_projection.py",
+        "sha256": "7d88d3b32c9ddf2e2525ce1f9e0dcfe68a4319bc44d144d37e7760de8aed2f92"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 1865,
+        "sha256": "9ea5622e301da7c8eb94ba8295c0b72e95a34d15fe1d093fa1ecdf3d3bcb39cc"
+      },
+      "destination": "source-producer/project_original.py",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "16375875a738262feaa3e22bd960102da7c14c52",
+        "bytes": 1865,
+        "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
+        "repository_path": "tools/onehand_windows/source-producer-privacy-v1/project_original.py",
+        "sha256": "9ea5622e301da7c8eb94ba8295c0b72e95a34d15fe1d093fa1ecdf3d3bcb39cc"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 19069,
+        "sha256": "0e803821851d1daa11e92e264c4264c31c11a601dedbcf3b1dd27df9b5be888a"
+      },
+      "destination": "source-producer/run_onehand_v6_source_proof.py",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "240e07ada68e02a3822b2e5d15bd00ab8409c485",
+        "bytes": 19069,
+        "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
+        "repository_path": "tools/onehand_windows/source-producer-privacy-v1/run_onehand_v6_source_proof.py",
+        "sha256": "0e803821851d1daa11e92e264c4264c31c11a601dedbcf3b1dd27df9b5be888a"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 6939,
+        "sha256": "1d0e4dda2abb67f76cfd2ba879ac847097bd60a8706e9515d593b4b6d8ec3f70"
+      },
+      "destination": "source-producer/test_privacy_projection.py",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "c1f09ec09209a77aeb36f7e1b260c878ceb1495c",
+        "bytes": 6939,
+        "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
+        "repository_path": "tools/onehand_windows/source-producer-privacy-v1/test_privacy_projection.py",
+        "sha256": "1d0e4dda2abb67f76cfd2ba879ac847097bd60a8706e9515d593b4b6d8ec3f70"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 4024,
+        "sha256": "cb01b0dfae22f1d943d3a54497a84cc2c7af72030f3bee0207048cae9089e86e"
+      },
+      "destination": "source-producer/test_projected_receipts.py",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "63289aec2868dd321c8ba7c6487383dcf108c17a",
+        "bytes": 4024,
+        "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
+        "repository_path": "tools/onehand_windows/source-producer-privacy-v1/test_projected_receipts.py",
+        "sha256": "cb01b0dfae22f1d943d3a54497a84cc2c7af72030f3bee0207048cae9089e86e"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 16576,
+        "sha256": "5ca9c04bd080ef8fb8a99a3be96373ff76af371e067f655a3b4deb2fab85c373"
+      },
+      "destination": "source-producer/test_unchanged_source_math.py",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "e11e63880d74f9c57b43c760989d65533823a4aa",
+        "bytes": 16576,
+        "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
+        "repository_path": "tools/onehand_windows/source-producer-privacy-v1/test_unchanged_source_math.py",
+        "sha256": "5ca9c04bd080ef8fb8a99a3be96373ff76af371e067f655a3b4deb2fab85c373"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 505,
+        "sha256": "6159677e6192f3b53e21f415332b4d3d6450619a0f31b956b76241dd58f041cd"
+      },
+      "destination": "source-producer/verify_freeze.py",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "f798fe119d7365e21f4c84ed51547a30c56ce4a3",
+        "bytes": 505,
+        "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
+        "repository_path": "tools/onehand_windows/source-producer-privacy-v1/verify_freeze.py",
+        "sha256": "6159677e6192f3b53e21f415332b4d3d6450619a0f31b956b76241dd58f041cd"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 178,
+        "sha256": "95d3c851639283cc07ba27a461251635c62352b4b8219a29ac16d30bb7e15187"
+      },
+      "destination": "source-producer/windows-portable-v2/PINS.json",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "7314f9adf77e55e6118d37b8a845cd6d6dfed8e3",
+        "bytes": 178,
+        "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
+        "repository_path": "tools/onehand_windows/source-producer-privacy-v1/windows-portable-v2/PINS.json",
+        "sha256": "95d3c851639283cc07ba27a461251635c62352b4b8219a29ac16d30bb7e15187"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 357,
+        "sha256": "8936d42abf6f5eac53da7d5bfe1108b6a0f312fb479d8f315076a1aa2600e708"
+      },
+      "destination": "source-producer/windows-portable-v2/README.md",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "5d36f2d04c1ef49b91b4e8819e820c2e0cc47b09",
+        "bytes": 357,
+        "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
+        "repository_path": "tools/onehand_windows/source-producer-privacy-v1/windows-portable-v2/README.md",
+        "sha256": "8936d42abf6f5eac53da7d5bfe1108b6a0f312fb479d8f315076a1aa2600e708"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 18827,
+        "sha256": "ac6cbb7f61666542d8d39db1014803ab3cb78625a5d375dcfdeaa8321444972a"
+      },
+      "destination": "source-producer/windows-portable-v2/portable_source.py",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "90900ee4c35f176b15adefda60a9a3c31e920e0a",
+        "bytes": 18827,
+        "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
+        "repository_path": "tools/onehand_windows/source-producer-privacy-v1/windows-portable-v2/portable_source.py",
+        "sha256": "ac6cbb7f61666542d8d39db1014803ab3cb78625a5d375dcfdeaa8321444972a"
+      },
+      "kind": "original-source"
+    }
+  ]
+}

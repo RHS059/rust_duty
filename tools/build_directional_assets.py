@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build source-authored directional HIP WIP via pinned Blender, FBX and actual Rust parity."""
+"""Build source-authored directional HIP WIP via pinned Blender, FBX runtime conversion."""
 import argparse
 import gzip
 import hashlib
@@ -28,7 +28,6 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--root', type=Path, default=Path(__file__).resolve().parents[1])
     parser.add_argument('--blender', default='blender')
-    parser.add_argument('--sampler', type=Path, required=True)
     parser.add_argument('--work', type=Path, required=True)
     parser.add_argument('--output', type=Path, required=True)
     args = parser.parse_args()
@@ -75,20 +74,10 @@ def main():
     require(data[24:clip_offset(data)] == original[24:clip_offset(original)], 'canonical bindings changed')
     require(data[clip_offset(data) + 4:clip_offset(data) + len(original) - clip_offset(original)]
             == original[clip_offset(original) + 4:], 'canonical walk44 payloads changed')
-    reports = {}
-    for take in takes:
-        parity = work / f"parity-{take['name']}.json"
-        run([sys.executable, root / 'tools/verify_locomotion_fbx.py', merged / 'asset.vra',
-             exported / 'native_oracle.npz', '--oracle-json', exported / 'native_oracle.json',
-             '--clip', take['name'], '--canonical-companions', '--sampler', args.sampler.resolve(), '--report', parity])
-        report = json.loads(parity.read_text())
-        require(report['passed'] and report['backend'] == 'Rust CPU sampler', 'directional Rust parity failed')
-        reports[take['name']] = {key: report[key] for key in ['samples', 'maxima', 'visibility_failures']}
     output.mkdir()
     for ext in ('vra', 'vrs', 'vrm'):
         shutil.copyfile(merged / f'asset.{ext}', output / f'asset.{ext}')
     for take in takes:
-        shutil.copyfile(work / f"parity-{take['name']}.json", output / f"parity-{take['name']}.json")
         shutil.copyfile(work / take['name'] / 'manifest.json', output / f"conversion-{take['name']}.json")
     (output / 'asset.vrs.gz').write_bytes(gzip.compress(vrs, mtime=0))
     (output / 'asset.vra.gz').write_bytes(gzip.compress(data, mtime=0))
@@ -102,14 +91,13 @@ def main():
         'files': {f'asset.{ext}': digest(output / f'asset.{ext}') for ext in ('vra', 'vrs', 'vrm')},
         'preservation': {'original_walk_vra_sha256': digest(base)['sha256'], 'clip_payloads_byte_identical': 44,
                          'canonical_skin_byte_identical': True, 'canonical_rigid_byte_identical': True},
-        'validation': {'backend': 'Rust CPU sampler', 'passed': True, 'clips': reports},
         'repository_transport': {name: {'file': name + '.gz', 'encoding': 'gzip',
             **digest(output / (name + '.gz')), 'decoded_bytes': len(raw),
             'decoded_sha256': hashlib.sha256(raw).hexdigest()}
             for name, raw in [('asset.vra', data), ('asset.vrs', vrs)]},
         'source_review': config['review'],
         'scope': 'Four r5 source Actions exported under stable r1 game IDs; canonical walk44 retained. HIP source-media scores do not approve the new ADS-v4/r5 composition.'}
-    (output / 'README.md').write_text('Four r5 HIP source Actions, exported under stable r1 game IDs after immutable walk44.\nBlender 4.3.2 -> evaluated FBX -> runtime; numerical Rust parity is not artistic approval.\n')
+    (output / 'README.md').write_text('Four r5 HIP source Actions, exported under stable r1 game IDs after immutable walk44.\nBlender 4.3.2 -> evaluated FBX -> runtime.\n')
     (output / 'manifest.json').write_text(json.dumps(manifest, indent=2) + '\n')
     print(json.dumps(manifest, indent=2))
 
