@@ -243,6 +243,8 @@ impl Capture {
 }
 fn add_visual(row: &mut serde_json::Value, model: Option<&AuthoredViewmodel>) {
     row["route"] = json!(model.map_or("unavailable", |m| m.presentation_route()));
+    row["warning"] = json!(model.and_then(|m| m.warning()));
+    row["candidate_visual"] = json!(model.and_then(|m| m.high_candidate_observation()));
     row["renderer_failed"] = json!(model.is_none_or(|m| m.error().is_some()));
     row["visual_ads"] = json!(model.map_or(0., |m| m.visual_ads_amount()));
     row["procedural_weight"] = json!(model.map_or(1., |m| m.authored_procedural_weight()));

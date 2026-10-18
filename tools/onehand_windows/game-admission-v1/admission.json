@@ -1,0 +1,10 @@
+{
+  "schema": "rust-duty-onehand-game-continuation-admission/v1",
+  "enabled": false,
+  "package_pins_sha256": "2ddc2f15747c364e36159ee7fca00bc9432892c87657bc986fe744acb7a3f0c1",
+  "orchestration_pins_sha256": "2a39125dba25460e66d0f76ef6c871d2abb01e64073b7e419e1c1892345bdee5",
+  "game_source_revision": null,
+  "game_source_spec": null,
+  "independent_review": null,
+  "reserve_bytes": 8589934592
+}

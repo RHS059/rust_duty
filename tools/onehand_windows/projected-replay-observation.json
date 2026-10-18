@@ -1,0 +1,59 @@
+{
+  "action_hashes": {
+    "auxiliary": "dbd5acaf970d43c4671854f740b29559e0f4fdfc1fe4dd88eb08e5ccabe968bf",
+    "complete": "0c7bca15dbbcf0affa147786164e353f946597e35147ae6fe9b98fef03030a52",
+    "legacy": "c7ca6383364e055afe1d0246f443d33689ce86c56677570ba694a924c983ea01",
+    "metadata": "9a49d9509c5380aed51326b25774690407b0a0584fc1afd3892496da48c6b732"
+  },
+  "blender_version": "4.3.2",
+  "coordinator_audit_sha256": "8871615219a90d0cc888e31fccd7ed80c73994eab58f2b5dfea5eb3a3857f076",
+  "cross_platform_float64_equality_proved": false,
+  "evaluated_equivalence_proved": false,
+  "fresh_reopen_passed": true,
+  "generated_source_sha256": "71faaf95039c49197fec3b29919b01f4bbf156ac54b5b06aea4c1e9e9ddbdeb0",
+  "limits": [
+    "The approved source and this newly serialized source have distinct identities.",
+    "Historical full metadata and projected full metadata have distinct identities.",
+    "This observation is evidence only, not native admission or Windows animation proof.",
+    "Fresh guarded Windows execution must derive and bind its own actual replay, export and runtime identities under the reviewed contract."
+  ],
+  "metadata_projection": {
+    "historical_reference_resampled": false,
+    "metadata_recipe_sha256": "24f8bb1872d2185d2ce550d701b87f10b42b55fcda15dff9f00faf6a49930906",
+    "omitted_keys": [
+      "acceptance",
+      "acceptance_status",
+      "animated_control",
+      "compensation_model",
+      "hand_contact_status",
+      "hidden_motion_inference_scope",
+      "known_residuals",
+      "reconstruction_status",
+      "render_status"
+    ],
+    "original_delta_sha256": "7be513e2c9fa5d0ff1c00684c542a73354d49fd561fd406a08dad8e05c219a9d",
+    "original_metadata_sha256": "ec83945277b5938e4b7287be63e7c91f6aebbdff9d03c291102c905c402ed24e",
+    "projected_metadata_sha256": "9a49d9509c5380aed51326b25774690407b0a0584fc1afd3892496da48c6b732",
+    "projection_sha256": "4bf38952b5ff765ad65c8fab2c985303287b570b4a0d897eac28bf78e73bec1b",
+    "schema": "rust-duty-onehand-metadata-projection-binding/v1"
+  },
+  "native_grouping_diagnostic_count": 26,
+  "native_grouping_diagnostic_text": "ERROR: F-Curve already belongs to this group",
+  "native_process_receipt_sha256": "fa4e7cc6c448386c0cfd684568d07ad00ec85ff701eb5f35ab7bb6468b517d2e",
+  "observed_utc": "2026-10-18T04:11:51Z",
+  "original_scalar_corrections_applied": 12,
+  "platform": "Linux",
+  "prior_actions_preserved": 88,
+  "purpose": "Record an observed projected metadata identity after actual replay, save and fresh reopen.",
+  "rendered": false,
+  "replay_receipt_sha256": "0a1774b4660844311e78bbf809e5ad1231c92acccd0cb76a6a937bd583cec4a0",
+  "result_action_count": 89,
+  "runtime_equivalence_proved": false,
+  "schema": "rust-duty-onehand-projected-replay-observation/v1",
+  "source_input": {
+    "approved_source_sha256": "b5cae854b1e5e21c44e60a0672dd18c26e7b38acb239f4730b681482bc409d77",
+    "baseline_sha256": "6b95bdcdfa78e8127ef4b4fa5ac88e4cf9a0654bd0a1271c9916b903f6ee4e79",
+    "projected_delta_sha256": "3a6a244d560e3688742e03133ce2d6afe065128ef231e37b3b55339abee582c8"
+  },
+  "unchanged_driven_outputs_recomputed": 4
+}

@@ -225,6 +225,20 @@ impl AuthoredViewmodel {
             "mapped_target_pose_seconds": visual.mapped_target_pose_seconds,
         }))
     }
+    /// Observe the actual admitted renderer/clip; never changes any motion state.
+    pub fn high_candidate_observation(&self) -> Option<serde_json::Value> {
+        let visual = self.high_mantle.as_ref()?;
+        let renderer = self.reload_renderers.get(visual.index)?;
+        let binding = self.high_mantle_binding.as_ref()?;
+        Some(serde_json::json!({
+            "clip": renderer.clip,
+            "asset_sha256": binding.asset_sha256(),
+            "receipt_sha256": binding.receipt_sha256(),
+            "pose": self.app_edge_high_pose_observation(),
+            "warning": renderer.warning(),
+            "renderer_failed": renderer.error().is_some(),
+        }))
+    }
     /// Set the hip cant applied at the next draw. Gameplay owns the value.
     pub fn set_cant(&mut self, radians: f32) {
         self.cant = if radians.is_finite() { radians } else { 0. };
@@ -2222,6 +2236,15 @@ mod tests {
             reload_presentation: None,
             cant: 0.,
         }
+    }
+
+    #[test]
+    fn candidate_observation_is_absent_without_an_admitted_binding() {
+        let model = contact_fixture();
+        assert!(model.high_candidate_observation().is_none());
+        let (mut model, visual) = high_mantle_fixture();
+        model.high_mantle = Some(visual);
+        assert!(model.high_candidate_observation().is_none());
     }
 
     #[test]
