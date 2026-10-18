@@ -2695,57 +2695,57 @@
       "git": {
         "blob_sha1": "fa1385d99a319b43c06f5309d1aae9fdd3adea46",
         "bytes": 8,
-        "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
-        "repository_path": "tools/onehand_windows/orchestration-v5/.gitattributes",
+        "ref": "d6faf36a2a474728cf09671b03e73221c9f3313e",
+        "repository_path": "tools/onehand_windows/orchestration-v6/.gitattributes",
         "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da"
       },
       "kind": "original-source"
     },
     {
       "canonical": {
-        "bytes": 1345,
-        "sha256": "4fce9e91ed35cdcf08b43fe0a27b0484fd84265f4561823d2152e0cc17c5b1b6"
+        "bytes": 1404,
+        "sha256": "858cec3e3b645c3fa15a7da6398813a1fda9df69d9141d865387088a2ebd9552"
       },
       "destination": "orchestration/ALLOWLIST.json",
       "encoding": "identity",
       "git": {
-        "blob_sha1": "215eb219d96a2b50d8c51219c94d3d6aead1af13",
-        "bytes": 1345,
-        "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
-        "repository_path": "tools/onehand_windows/orchestration-v5/ALLOWLIST.json",
-        "sha256": "4fce9e91ed35cdcf08b43fe0a27b0484fd84265f4561823d2152e0cc17c5b1b6"
+        "blob_sha1": "1db8109911792c56dd5dd7d949c453eac509178b",
+        "bytes": 1404,
+        "ref": "d6faf36a2a474728cf09671b03e73221c9f3313e",
+        "repository_path": "tools/onehand_windows/orchestration-v6/ALLOWLIST.json",
+        "sha256": "858cec3e3b645c3fa15a7da6398813a1fda9df69d9141d865387088a2ebd9552"
       },
       "kind": "original-source"
     },
     {
       "canonical": {
-        "bytes": 848,
-        "sha256": "f2d5157c5419c12e98452ef66cd11c308742e29d3e0d71fdcb3c1c24ef4af7c0"
+        "bytes": 1314,
+        "sha256": "b11d334c6e8ac6256ea96455abf509fed66cfe193d9fa321f571f1df77142a3c"
       },
       "destination": "orchestration/CHANGE_MANIFEST.json",
       "encoding": "identity",
       "git": {
-        "blob_sha1": "a9c916568c16905acdc71f74824e250757d88c81",
-        "bytes": 848,
-        "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
-        "repository_path": "tools/onehand_windows/orchestration-v5/CHANGE_MANIFEST.json",
-        "sha256": "f2d5157c5419c12e98452ef66cd11c308742e29d3e0d71fdcb3c1c24ef4af7c0"
+        "blob_sha1": "640fc827b9cd16cbf0638fb322ea7de0d4baf1c7",
+        "bytes": 1314,
+        "ref": "d6faf36a2a474728cf09671b03e73221c9f3313e",
+        "repository_path": "tools/onehand_windows/orchestration-v6/CHANGE_MANIFEST.json",
+        "sha256": "b11d334c6e8ac6256ea96455abf509fed66cfe193d9fa321f571f1df77142a3c"
       },
       "kind": "original-source"
     },
     {
       "canonical": {
-        "bytes": 1213,
-        "sha256": "340219627aa46efb7550f28eb57a5f72d150e839af861c8a2ff8653baa56d4b8"
+        "bytes": 1065,
+        "sha256": "5d15868df6d88963ad7167ff83a682b78815f07589ba6f9295eef8df05177aae"
       },
       "destination": "orchestration/CORRECTIONS.md",
       "encoding": "identity",
       "git": {
-        "blob_sha1": "4d7a4601ef5c325ff0b5e138ae73992a4478cbc4",
-        "bytes": 1213,
-        "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
-        "repository_path": "tools/onehand_windows/orchestration-v5/CORRECTIONS.md",
-        "sha256": "340219627aa46efb7550f28eb57a5f72d150e839af861c8a2ff8653baa56d4b8"
+        "blob_sha1": "89ba3559bf3022b16b276e5b2eaa233f2730998d",
+        "bytes": 1065,
+        "ref": "d6faf36a2a474728cf09671b03e73221c9f3313e",
+        "repository_path": "tools/onehand_windows/orchestration-v6/CORRECTIONS.md",
+        "sha256": "5d15868df6d88963ad7167ff83a682b78815f07589ba6f9295eef8df05177aae"
       },
       "kind": "original-source"
     },
@@ -2759,57 +2759,57 @@
       "git": {
         "blob_sha1": "b7aa3a301014b304bbdc6d165eaa4afbb4d3f82b",
         "bytes": 45881,
-        "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
-        "repository_path": "tools/onehand_windows/orchestration-v5/DEPENDENCIES.json",
+        "ref": "d6faf36a2a474728cf09671b03e73221c9f3313e",
+        "repository_path": "tools/onehand_windows/orchestration-v6/DEPENDENCIES.json",
         "sha256": "fc3eb45fab345c234cce5c115a55661a4c044d69138a457b11532e5904635dce"
       },
       "kind": "original-source"
     },
     {
       "canonical": {
-        "bytes": 4897,
-        "sha256": "4dd1c1a375223ac89a3c37c6cbd918994b48aacce39b003bc9ed846962115f6f"
+        "bytes": 5355,
+        "sha256": "b003e9cab674a8f8b1eb766711c106356ce8365ccb6d76797ce1e6a726661fa0"
       },
       "destination": "orchestration/NEXT_CAPTURE_HANDOFF.md",
       "encoding": "identity",
       "git": {
-        "blob_sha1": "dfa3de080f737e16a58ef26206a24367fcf38183",
-        "bytes": 4897,
-        "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
-        "repository_path": "tools/onehand_windows/orchestration-v5/NEXT_CAPTURE_HANDOFF.md",
-        "sha256": "4dd1c1a375223ac89a3c37c6cbd918994b48aacce39b003bc9ed846962115f6f"
+        "blob_sha1": "6bc3e60f8dc695f1ebb174071011d669c7924df2",
+        "bytes": 5355,
+        "ref": "d6faf36a2a474728cf09671b03e73221c9f3313e",
+        "repository_path": "tools/onehand_windows/orchestration-v6/NEXT_CAPTURE_HANDOFF.md",
+        "sha256": "b003e9cab674a8f8b1eb766711c106356ce8365ccb6d76797ce1e6a726661fa0"
       },
       "kind": "original-source"
     },
     {
       "canonical": {
-        "bytes": 4413,
-        "sha256": "2a39125dba25460e66d0f76ef6c871d2abb01e64073b7e419e1c1892345bdee5"
+        "bytes": 4604,
+        "sha256": "04b7d2a2d1f7bf913ae360f365e88877675cf13e5f56ddbd5b6ac66f19efff7f"
       },
       "destination": "orchestration/PINS.json",
       "encoding": "identity",
       "git": {
-        "blob_sha1": "39784a026d7a5e75ec9bc72415674f8f2bbcc64f",
-        "bytes": 4413,
-        "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
-        "repository_path": "tools/onehand_windows/orchestration-v5/PINS.json",
-        "sha256": "2a39125dba25460e66d0f76ef6c871d2abb01e64073b7e419e1c1892345bdee5"
+        "blob_sha1": "9de3275b6578a06a6f286b60df0c50f84a0931b8",
+        "bytes": 4604,
+        "ref": "d6faf36a2a474728cf09671b03e73221c9f3313e",
+        "repository_path": "tools/onehand_windows/orchestration-v6/PINS.json",
+        "sha256": "04b7d2a2d1f7bf913ae360f365e88877675cf13e5f56ddbd5b6ac66f19efff7f"
       },
       "kind": "original-source"
     },
     {
       "canonical": {
-        "bytes": 82891,
-        "sha256": "0d872e3d253ce65387820aa6f3162f5e40110540cd7482183f8dce021f15654e"
+        "bytes": 83565,
+        "sha256": "bf8534b77bda007249f697e7fd5cb48112d478a43cc84066c3c7b46a2a31ab22"
       },
       "destination": "orchestration/PUBLICATION_LAYOUT.json",
       "encoding": "identity",
       "git": {
-        "blob_sha1": "728f2e310f8cb71048bb95c837649a07b9e568fb",
-        "bytes": 82891,
-        "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
-        "repository_path": "tools/onehand_windows/orchestration-v5/PUBLICATION_LAYOUT.json",
-        "sha256": "0d872e3d253ce65387820aa6f3162f5e40110540cd7482183f8dce021f15654e"
+        "blob_sha1": "f447450f96e4fe5efc60adfb5e2fb2bd636e019f",
+        "bytes": 83565,
+        "ref": "d6faf36a2a474728cf09671b03e73221c9f3313e",
+        "repository_path": "tools/onehand_windows/orchestration-v6/PUBLICATION_LAYOUT.json",
+        "sha256": "bf8534b77bda007249f697e7fd5cb48112d478a43cc84066c3c7b46a2a31ab22"
       },
       "kind": "original-source"
     },
@@ -2823,41 +2823,41 @@
       "git": {
         "blob_sha1": "12eafb3e615ff2f2058f293f66d194de9805524f",
         "bytes": 9969,
-        "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
-        "repository_path": "tools/onehand_windows/orchestration-v5/RAW_INPUT_PINS.json",
+        "ref": "d6faf36a2a474728cf09671b03e73221c9f3313e",
+        "repository_path": "tools/onehand_windows/orchestration-v6/RAW_INPUT_PINS.json",
         "sha256": "135250e7fd259bbb50d4295639ca6e80a2c10e6a298a35510513bc8ddb50679c"
       },
       "kind": "original-source"
     },
     {
       "canonical": {
-        "bytes": 3313,
-        "sha256": "63d2b4f3855ca8538c7b2e163856d681611b83688a53d93db01344e018ab4350"
+        "bytes": 3009,
+        "sha256": "c9dc68c6721d1573cdaaaa1441dd5266d76c854667de368c862ae9111a6ff80f"
       },
       "destination": "orchestration/README.md",
       "encoding": "identity",
       "git": {
-        "blob_sha1": "21f4f0a1452b1a2c9d566c8784cee72ae030a8a2",
-        "bytes": 3313,
-        "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
-        "repository_path": "tools/onehand_windows/orchestration-v5/README.md",
-        "sha256": "63d2b4f3855ca8538c7b2e163856d681611b83688a53d93db01344e018ab4350"
+        "blob_sha1": "15670c7e42719de1219d544cc07133a738362b0a",
+        "bytes": 3009,
+        "ref": "d6faf36a2a474728cf09671b03e73221c9f3313e",
+        "repository_path": "tools/onehand_windows/orchestration-v6/README.md",
+        "sha256": "c9dc68c6721d1573cdaaaa1441dd5266d76c854667de368c862ae9111a6ff80f"
       },
       "kind": "original-source"
     },
     {
       "canonical": {
-        "bytes": 387,
-        "sha256": "38b056ab6fa5438ff5961054114fb62bb7970b25db1702a7c37ee76171073c07"
+        "bytes": 474,
+        "sha256": "a9e06f02c4691a2e4784d367bd17a6c35aa506d5222b347193917fca622a10e7"
       },
       "destination": "orchestration/RESULTS.json",
       "encoding": "identity",
       "git": {
-        "blob_sha1": "4aa48a3525580cf4dc3035bf1d9b331504df8705",
-        "bytes": 387,
-        "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
-        "repository_path": "tools/onehand_windows/orchestration-v5/RESULTS.json",
-        "sha256": "38b056ab6fa5438ff5961054114fb62bb7970b25db1702a7c37ee76171073c07"
+        "blob_sha1": "81c9b5bd4a0673d3a3665426d6b178738375a751",
+        "bytes": 474,
+        "ref": "d6faf36a2a474728cf09671b03e73221c9f3313e",
+        "repository_path": "tools/onehand_windows/orchestration-v6/RESULTS.json",
+        "sha256": "a9e06f02c4691a2e4784d367bd17a6c35aa506d5222b347193917fca622a10e7"
       },
       "kind": "original-source"
     },
@@ -2871,8 +2871,8 @@
       "git": {
         "blob_sha1": "c2ca064f37e4a15da84e710d1d4e37783ca74216",
         "bytes": 49051,
-        "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
-        "repository_path": "tools/onehand_windows/orchestration-v5/SOURCE_CLOSURE.json",
+        "ref": "d6faf36a2a474728cf09671b03e73221c9f3313e",
+        "repository_path": "tools/onehand_windows/orchestration-v6/SOURCE_CLOSURE.json",
         "sha256": "14c52fc3a46f8cca2ae17a2a4db43c4a6f4d184a560e0d5c37f22a88238f0d22"
       },
       "kind": "original-source"
@@ -2887,8 +2887,8 @@
       "git": {
         "blob_sha1": "ba7f1a1ac1957a793da4875295e4a4a18dd6bde8",
         "bytes": 19766,
-        "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
-        "repository_path": "tools/onehand_windows/orchestration-v5/TRANSPORT_MANIFEST.json",
+        "ref": "d6faf36a2a474728cf09671b03e73221c9f3313e",
+        "repository_path": "tools/onehand_windows/orchestration-v6/TRANSPORT_MANIFEST.json",
         "sha256": "294adc658cf108fc8eefce80000fe85c7ed394812ff98f493c60e777a325ea70"
       },
       "kind": "original-source"
@@ -2903,8 +2903,8 @@
       "git": {
         "blob_sha1": "524d272e9717b5217a68f83564e61f9a7e4c8763",
         "bytes": 52665,
-        "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
-        "repository_path": "tools/onehand_windows/orchestration-v5/TRANSPORT_PARTS.json",
+        "ref": "d6faf36a2a474728cf09671b03e73221c9f3313e",
+        "repository_path": "tools/onehand_windows/orchestration-v6/TRANSPORT_PARTS.json",
         "sha256": "01e836880e04df5211424549f21efd66078d75baa9829dbc50b5b3f8c3f4045e"
       },
       "kind": "original-source"
@@ -2919,8 +2919,8 @@
       "git": {
         "blob_sha1": "331e8a3d6cabe4597feb6db6aaa13836d139cc56",
         "bytes": 183,
-        "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
-        "repository_path": "tools/onehand_windows/orchestration-v5/admission.template.json",
+        "ref": "d6faf36a2a474728cf09671b03e73221c9f3313e",
+        "repository_path": "tools/onehand_windows/orchestration-v6/admission.template.json",
         "sha256": "21782759add4271358fbf70acac839f92d6df0d8e46201ef097359cde209dc8a"
       },
       "kind": "original-source"
@@ -2935,8 +2935,8 @@
       "git": {
         "blob_sha1": "6b741d5b62e173860473fba23b0b652d20fbca8e",
         "bytes": 10713,
-        "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
-        "repository_path": "tools/onehand_windows/orchestration-v5/build_rust.py",
+        "ref": "d6faf36a2a474728cf09671b03e73221c9f3313e",
+        "repository_path": "tools/onehand_windows/orchestration-v6/build_rust.py",
         "sha256": "bb1d213030a427133b852410d629df9128c8ceb127846322f0528177454caf1b"
       },
       "kind": "original-source"
@@ -2951,8 +2951,8 @@
       "git": {
         "blob_sha1": "5484bf38514d704ff21249f35de4c07fea20aaa8",
         "bytes": 15041,
-        "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
-        "repository_path": "tools/onehand_windows/orchestration-v5/checkout_bytes.py",
+        "ref": "d6faf36a2a474728cf09671b03e73221c9f3313e",
+        "repository_path": "tools/onehand_windows/orchestration-v6/checkout_bytes.py",
         "sha256": "935ca9997b68778cf7b3a073598b3dfaa236816d610fc9440e86fb4c51db077c"
       },
       "kind": "original-source"
@@ -2967,8 +2967,8 @@
       "git": {
         "blob_sha1": "67a3fcd69446ffe14b676dacfee08bf7a5b61a38",
         "bytes": 1846,
-        "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
-        "repository_path": "tools/onehand_windows/orchestration-v5/completed-tests.log",
+        "ref": "d6faf36a2a474728cf09671b03e73221c9f3313e",
+        "repository_path": "tools/onehand_windows/orchestration-v6/completed-tests.log",
         "sha256": "61c515447ebc895dd3fac1f7da78189524ad42c38471f83ace92fbf6b34f726a"
       },
       "kind": "original-source"
@@ -2983,41 +2983,41 @@
       "git": {
         "blob_sha1": "1240eb41ead1416abbfa43fdd7c95177e7ed57fb",
         "bytes": 865,
-        "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
-        "repository_path": "tools/onehand_windows/orchestration-v5/controller-layout.template.json",
+        "ref": "d6faf36a2a474728cf09671b03e73221c9f3313e",
+        "repository_path": "tools/onehand_windows/orchestration-v6/controller-layout.template.json",
         "sha256": "e751974e1563fc5bcb738cea72895daaf9d47f6383984eda364f6d7d31edeaf8"
       },
       "kind": "original-source"
     },
     {
       "canonical": {
-        "bytes": 16699,
-        "sha256": "0d90bd2b8d95f59daead4c4812921fd0ea561741f41d8598d5765e25fa0c6599"
+        "bytes": 18339,
+        "sha256": "7fb24832742af493b20535ad6e8a3c948a7758a106744ec3cd6191f2f6ca77ba"
       },
       "destination": "orchestration/cpu-tests.log",
       "encoding": "identity",
       "git": {
-        "blob_sha1": "f340da27b7399885852c74f4ae920b607ccc948f",
-        "bytes": 16699,
-        "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
-        "repository_path": "tools/onehand_windows/orchestration-v5/cpu-tests.log",
-        "sha256": "0d90bd2b8d95f59daead4c4812921fd0ea561741f41d8598d5765e25fa0c6599"
+        "blob_sha1": "42e494c018f9a908fbebdbaa9cb83f7557532618",
+        "bytes": 18339,
+        "ref": "d6faf36a2a474728cf09671b03e73221c9f3313e",
+        "repository_path": "tools/onehand_windows/orchestration-v6/cpu-tests.log",
+        "sha256": "7fb24832742af493b20535ad6e8a3c948a7758a106744ec3cd6191f2f6ca77ba"
       },
       "kind": "original-source"
     },
     {
       "canonical": {
-        "bytes": 6478,
-        "sha256": "84f2894693e61591aeda25fa251097df238c83f10eb375d781c895cc63ecf97b"
+        "bytes": 6590,
+        "sha256": "eaeafe40d816a12927fb7073f25122f7ab2ee6d6db570605df4b7d0a7186d2f9"
       },
       "destination": "orchestration/host_tools.py",
       "encoding": "identity",
       "git": {
-        "blob_sha1": "480f1206a6e3629ab35d7598102771956a5eb4b8",
-        "bytes": 6478,
-        "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
-        "repository_path": "tools/onehand_windows/orchestration-v5/host_tools.py",
-        "sha256": "84f2894693e61591aeda25fa251097df238c83f10eb375d781c895cc63ecf97b"
+        "blob_sha1": "24871e68d5a10d0878848e8d2f4869443bce75db",
+        "bytes": 6590,
+        "ref": "d6faf36a2a474728cf09671b03e73221c9f3313e",
+        "repository_path": "tools/onehand_windows/orchestration-v6/host_tools.py",
+        "sha256": "eaeafe40d816a12927fb7073f25122f7ab2ee6d6db570605df4b7d0a7186d2f9"
       },
       "kind": "original-source"
     },
@@ -3031,8 +3031,8 @@
       "git": {
         "blob_sha1": "facaea89781bfd847b90c93e217a52857ec311bc",
         "bytes": 2369,
-        "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
-        "repository_path": "tools/onehand_windows/orchestration-v5/install_official_blender.ps1",
+        "ref": "d6faf36a2a474728cf09671b03e73221c9f3313e",
+        "repository_path": "tools/onehand_windows/orchestration-v6/install_official_blender.ps1",
         "sha256": "ba6a08417170e593cdb3637b5c3e072778aa063927d6e47ec482bce71fd2b9ea"
       },
       "kind": "original-source"
@@ -3047,25 +3047,25 @@
       "git": {
         "blob_sha1": "36d4db38aec590d9b3e7f33b6ff710f0cc3c8e2a",
         "bytes": 3595,
-        "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
-        "repository_path": "tools/onehand_windows/orchestration-v5/install_official_rust.ps1",
+        "ref": "d6faf36a2a474728cf09671b03e73221c9f3313e",
+        "repository_path": "tools/onehand_windows/orchestration-v6/install_official_rust.ps1",
         "sha256": "8d79ea742b199aacfa73e0376595a15144c8faa928881ebf3aea0f9f784fc5db"
       },
       "kind": "original-source"
     },
     {
       "canonical": {
-        "bytes": 10779,
-        "sha256": "1266182ecc6a77509786eab543df13fa2d23c0be28a5c9559455bc4eb55a8cca"
+        "bytes": 20958,
+        "sha256": "da85eac2eb216f5b0e2905f9c27697bd6d1e9c0a872e48a66b4f1ce122b16743"
       },
       "destination": "orchestration/onehand-windows-proof.yml",
       "encoding": "identity",
       "git": {
-        "blob_sha1": "3b11720ab9c2329e9bc0ee328b299ea4f9925e8d",
-        "bytes": 10779,
-        "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
-        "repository_path": "tools/onehand_windows/orchestration-v5/onehand-windows-proof.yml",
-        "sha256": "1266182ecc6a77509786eab543df13fa2d23c0be28a5c9559455bc4eb55a8cca"
+        "blob_sha1": "516856d72206fb780042134c297089941c6147d6",
+        "bytes": 20958,
+        "ref": "d6faf36a2a474728cf09671b03e73221c9f3313e",
+        "repository_path": "tools/onehand_windows/orchestration-v6/onehand-windows-proof.yml",
+        "sha256": "da85eac2eb216f5b0e2905f9c27697bd6d1e9c0a872e48a66b4f1ce122b16743"
       },
       "kind": "original-source"
     },
@@ -3079,25 +3079,25 @@
       "git": {
         "blob_sha1": "9384c7b6bde8a1f9f79ee7518125483cb7843ea2",
         "bytes": 21856,
-        "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
-        "repository_path": "tools/onehand_windows/orchestration-v5/orchestrate.py",
+        "ref": "d6faf36a2a474728cf09671b03e73221c9f3313e",
+        "repository_path": "tools/onehand_windows/orchestration-v6/orchestrate.py",
         "sha256": "07818423ed32b4e8a404ab6d042d55a3c6eba5474d35407f01e809af3c86a79d"
       },
       "kind": "original-source"
     },
     {
       "canonical": {
-        "bytes": 3531,
-        "sha256": "e88d4886a2657eaf53cfe9f744cb93b77f28621efad84d7981ca2145d065c41c"
+        "bytes": 3918,
+        "sha256": "737ad898105051bf35017ffcd58b3e11d6d1e989b7fa17a076cf272ddc38d1a0"
       },
       "destination": "orchestration/owned_commands.py",
       "encoding": "identity",
       "git": {
-        "blob_sha1": "8875e16567cf9b9059f71531a320c12e44a26098",
-        "bytes": 3531,
-        "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
-        "repository_path": "tools/onehand_windows/orchestration-v5/owned_commands.py",
-        "sha256": "e88d4886a2657eaf53cfe9f744cb93b77f28621efad84d7981ca2145d065c41c"
+        "blob_sha1": "cd5d8092779f8811b2bd7555017d8781a7dbdce0",
+        "bytes": 3918,
+        "ref": "d6faf36a2a474728cf09671b03e73221c9f3313e",
+        "repository_path": "tools/onehand_windows/orchestration-v6/owned_commands.py",
+        "sha256": "737ad898105051bf35017ffcd58b3e11d6d1e989b7fa17a076cf272ddc38d1a0"
       },
       "kind": "original-source"
     },
@@ -3111,8 +3111,8 @@
       "git": {
         "blob_sha1": "c5d84a03119bec351740f13d0a794419863db5e5",
         "bytes": 4530,
-        "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
-        "repository_path": "tools/onehand_windows/orchestration-v5/parts_transport.py",
+        "ref": "d6faf36a2a474728cf09671b03e73221c9f3313e",
+        "repository_path": "tools/onehand_windows/orchestration-v6/parts_transport.py",
         "sha256": "758ff9aec16bf3dbfe7c7799e27268f94e6b05294943aad943aad1e5797aecce"
       },
       "kind": "original-source"
@@ -3127,8 +3127,8 @@
       "git": {
         "blob_sha1": "f0c1a7c1ad26e98c8d43c92b1dda527ec46373a0",
         "bytes": 11216,
-        "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
-        "repository_path": "tools/onehand_windows/orchestration-v5/preinstall_admission.py",
+        "ref": "d6faf36a2a474728cf09671b03e73221c9f3313e",
+        "repository_path": "tools/onehand_windows/orchestration-v6/preinstall_admission.py",
         "sha256": "05b8c41c557cb0274d8caaf913bfb454277df1301a14df47b004517bc66c2a14"
       },
       "kind": "original-source"
@@ -3143,8 +3143,8 @@
       "git": {
         "blob_sha1": "920cd0d673285904c29fa77fb088f34913bd7131",
         "bytes": 4191,
-        "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
-        "repository_path": "tools/onehand_windows/orchestration-v5/prepare_controller.py",
+        "ref": "d6faf36a2a474728cf09671b03e73221c9f3313e",
+        "repository_path": "tools/onehand_windows/orchestration-v6/prepare_controller.py",
         "sha256": "42e969bbbaaafef1473e191db750133ce185d8bd8c10374c0920e26bcecc7ef1"
       },
       "kind": "original-source"
@@ -3159,8 +3159,8 @@
       "git": {
         "blob_sha1": "351abdf9c19b60249de1c370ac26044a7fea8966",
         "bytes": 1655,
-        "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
-        "repository_path": "tools/onehand_windows/orchestration-v5/probe_blender.py",
+        "ref": "d6faf36a2a474728cf09671b03e73221c9f3313e",
+        "repository_path": "tools/onehand_windows/orchestration-v6/probe_blender.py",
         "sha256": "618eeef21e353a43e90855c2914c32b89d6c66e6b51a902b49825dfb958e57b1"
       },
       "kind": "original-source"
@@ -3175,8 +3175,8 @@
       "git": {
         "blob_sha1": "b0f4157153f5bf75d6dfa5fd7f1b7872a92bbeb9",
         "bytes": 342,
-        "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
-        "repository_path": "tools/onehand_windows/orchestration-v5/projection_binding.py",
+        "ref": "d6faf36a2a474728cf09671b03e73221c9f3313e",
+        "repository_path": "tools/onehand_windows/orchestration-v6/projection_binding.py",
         "sha256": "92e4bbe3088be679de5696646d117d91e0c7681d6659d88910ed9d0c30000ab8"
       },
       "kind": "original-source"
@@ -3191,8 +3191,8 @@
       "git": {
         "blob_sha1": "0c289a25e75fbb291b90ff23e8d1ecb23d2ecc4d",
         "bytes": 1995,
-        "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
-        "repository_path": "tools/onehand_windows/orchestration-v5/publication_inventory.py",
+        "ref": "d6faf36a2a474728cf09671b03e73221c9f3313e",
+        "repository_path": "tools/onehand_windows/orchestration-v6/publication_inventory.py",
         "sha256": "67040460d4357d15d167f54ec6d6e957b7e6f88c7eb4127ff922f0c2830077b4"
       },
       "kind": "original-source"
@@ -3207,8 +3207,8 @@
       "git": {
         "blob_sha1": "2b7f23b257ec63f535a557f9a22b784f65990e91",
         "bytes": 1258,
-        "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
-        "repository_path": "tools/onehand_windows/orchestration-v5/reviewed-dependencies.json",
+        "ref": "d6faf36a2a474728cf09671b03e73221c9f3313e",
+        "repository_path": "tools/onehand_windows/orchestration-v6/reviewed-dependencies.json",
         "sha256": "8ad4d17da4378024d74814bf7bc0857e1aa91c24fb7ff55e0f600c747a08ab19"
       },
       "kind": "original-source"
@@ -3223,8 +3223,8 @@
       "git": {
         "blob_sha1": "8d6e0f992ed4264845db853055a4c561d109d608",
         "bytes": 1210,
-        "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
-        "repository_path": "tools/onehand_windows/orchestration-v5/run_proof.py",
+        "ref": "d6faf36a2a474728cf09671b03e73221c9f3313e",
+        "repository_path": "tools/onehand_windows/orchestration-v6/run_proof.py",
         "sha256": "ac03cae91856c3fc2243837da3ec6914c891844ad39b803a8e747df14b6f3fa9"
       },
       "kind": "original-source"
@@ -3239,8 +3239,8 @@
       "git": {
         "blob_sha1": "3a7c6b28da149582883e7a79db70753dbb4c7980",
         "bytes": 2200,
-        "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
-        "repository_path": "tools/onehand_windows/orchestration-v5/run_source_tests.py",
+        "ref": "d6faf36a2a474728cf09671b03e73221c9f3313e",
+        "repository_path": "tools/onehand_windows/orchestration-v6/run_source_tests.py",
         "sha256": "c64e42cd80d194dcc96f7869d920484d01c8373b1c371845ad725362f9af5971"
       },
       "kind": "original-source"
@@ -3248,16 +3248,16 @@
     {
       "canonical": {
         "bytes": 4360,
-        "sha256": "f210617fe3faf0b1beeb51276352371355a837bf53fc4e84cff8c21c34da5ecf"
+        "sha256": "8ad4b6db52bfa35ed99fc5ffbd8648529219c12514824bd199575de28db589e3"
       },
       "destination": "orchestration/source_checkout.py",
       "encoding": "identity",
       "git": {
-        "blob_sha1": "12670f5d26a3f50f5a8394df33059b3a7f7500fa",
+        "blob_sha1": "e4556d8e07f60a4e485d334054bc9c67a47b3b41",
         "bytes": 4360,
-        "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
-        "repository_path": "tools/onehand_windows/orchestration-v5/source_checkout.py",
-        "sha256": "f210617fe3faf0b1beeb51276352371355a837bf53fc4e84cff8c21c34da5ecf"
+        "ref": "d6faf36a2a474728cf09671b03e73221c9f3313e",
+        "repository_path": "tools/onehand_windows/orchestration-v6/source_checkout.py",
+        "sha256": "8ad4b6db52bfa35ed99fc5ffbd8648529219c12514824bd199575de28db589e3"
       },
       "kind": "original-source"
     },
@@ -3271,8 +3271,8 @@
       "git": {
         "blob_sha1": "b991132367d5f408ab681af76ead47c86456fa9c",
         "bytes": 1374,
-        "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
-        "repository_path": "tools/onehand_windows/orchestration-v5/source_selection.py",
+        "ref": "d6faf36a2a474728cf09671b03e73221c9f3313e",
+        "repository_path": "tools/onehand_windows/orchestration-v6/source_selection.py",
         "sha256": "9cb318b8108882658e79cf564793efdddaae0500a12fcc1dccd758caf0871256"
       },
       "kind": "original-source"
@@ -3287,8 +3287,8 @@
       "git": {
         "blob_sha1": "8d9e7959de9bb98462dc869a88f6ca6f8edf035b",
         "bytes": 9828,
-        "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
-        "repository_path": "tools/onehand_windows/orchestration-v5/source_transport.py",
+        "ref": "d6faf36a2a474728cf09671b03e73221c9f3313e",
+        "repository_path": "tools/onehand_windows/orchestration-v6/source_transport.py",
         "sha256": "e00395bb674f78ba6da77a2e8b56f59fd7cda1a3b5d4bf8d0559e44ca1baeea6"
       },
       "kind": "original-source"
@@ -3303,8 +3303,8 @@
       "git": {
         "blob_sha1": "a242e1f3aea48f881ef9812e0a0c7bc72b357772",
         "bytes": 6981,
-        "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
-        "repository_path": "tools/onehand_windows/orchestration-v5/test_application_selection.py",
+        "ref": "d6faf36a2a474728cf09671b03e73221c9f3313e",
+        "repository_path": "tools/onehand_windows/orchestration-v6/test_application_selection.py",
         "sha256": "a6fdba0596f83c6fa4c3c92d5e6ed4a4c399023340526c62d25a54ffbd677b5d"
       },
       "kind": "original-source"
@@ -3319,8 +3319,8 @@
       "git": {
         "blob_sha1": "0f710320c1e9eb7852868c58a24beca9219dc0da",
         "bytes": 3401,
-        "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
-        "repository_path": "tools/onehand_windows/orchestration-v5/test_build_creator_integration.py",
+        "ref": "d6faf36a2a474728cf09671b03e73221c9f3313e",
+        "repository_path": "tools/onehand_windows/orchestration-v6/test_build_creator_integration.py",
         "sha256": "803be1ee81f90d9e1f3d70ed4b95fcdce7a4fbf82f5ecd0a4294487e97dde248"
       },
       "kind": "original-source"
@@ -3335,8 +3335,8 @@
       "git": {
         "blob_sha1": "d6b7b670eb402d8bcc9f7f001b2d871792cd5b9c",
         "bytes": 6756,
-        "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
-        "repository_path": "tools/onehand_windows/orchestration-v5/test_completed_inputs.py",
+        "ref": "d6faf36a2a474728cf09671b03e73221c9f3313e",
+        "repository_path": "tools/onehand_windows/orchestration-v6/test_completed_inputs.py",
         "sha256": "e04fba45dba5daf8f300225670c226f582b87e3a23c523fe8f79cd5497dbb4e0"
       },
       "kind": "original-source"
@@ -3351,8 +3351,8 @@
       "git": {
         "blob_sha1": "d62594479c65f8ec48acf1112e95cf741c76ee62",
         "bytes": 5036,
-        "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
-        "repository_path": "tools/onehand_windows/orchestration-v5/test_parts_transport.py",
+        "ref": "d6faf36a2a474728cf09671b03e73221c9f3313e",
+        "repository_path": "tools/onehand_windows/orchestration-v6/test_parts_transport.py",
         "sha256": "662e3c7180f461222a9dc38a859a7236ba385a515d364737d316d8a47fc173bb"
       },
       "kind": "original-source"
@@ -3367,8 +3367,8 @@
       "git": {
         "blob_sha1": "fce5827a193b8de582f58f16f8470bce31ae1e26",
         "bytes": 1252,
-        "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
-        "repository_path": "tools/onehand_windows/orchestration-v5/test_privacy_admission.py",
+        "ref": "d6faf36a2a474728cf09671b03e73221c9f3313e",
+        "repository_path": "tools/onehand_windows/orchestration-v6/test_privacy_admission.py",
         "sha256": "9accbc4b05926b30fe19709c3dec160453d546b412817afda8fd636663ba43c2"
       },
       "kind": "original-source"
@@ -3383,8 +3383,8 @@
       "git": {
         "blob_sha1": "9755b175123e6ec0c78c864dc43219695d53f7d6",
         "bytes": 12300,
-        "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
-        "repository_path": "tools/onehand_windows/orchestration-v5/test_source_transport.py",
+        "ref": "d6faf36a2a474728cf09671b03e73221c9f3313e",
+        "repository_path": "tools/onehand_windows/orchestration-v6/test_source_transport.py",
         "sha256": "690c8d4651794725e7c5eb22ce757280ff527afd800365c0ddc42a11b7d494ad"
       },
       "kind": "original-source"
@@ -3399,25 +3399,25 @@
       "git": {
         "blob_sha1": "573c06ab9bec451bb0181ba48cbdf965cf58f2ef",
         "bytes": 9322,
-        "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
-        "repository_path": "tools/onehand_windows/orchestration-v5/test_trigger_admission.py",
+        "ref": "d6faf36a2a474728cf09671b03e73221c9f3313e",
+        "repository_path": "tools/onehand_windows/orchestration-v6/test_trigger_admission.py",
         "sha256": "f0161cd5221e7ddc07624b4c07592ce074d99c44c9bebdd3118e15fb704a3830"
       },
       "kind": "original-source"
     },
     {
       "canonical": {
-        "bytes": 18144,
-        "sha256": "cfc5b1ac6cac5c7b3ed7586f103b820561f25dbec69dd84de4e8bba6bc69d63a"
+        "bytes": 18147,
+        "sha256": "6bd7c033bbd22a4de4d8dd23a6f65cb94591dd5781f604d1a3dc6d206a989d85"
       },
       "destination": "orchestration/test_workflow.py",
       "encoding": "identity",
       "git": {
-        "blob_sha1": "ec3162201f69934306ae8f783de1b4a405001409",
-        "bytes": 18144,
-        "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
-        "repository_path": "tools/onehand_windows/orchestration-v5/test_workflow.py",
-        "sha256": "cfc5b1ac6cac5c7b3ed7586f103b820561f25dbec69dd84de4e8bba6bc69d63a"
+        "blob_sha1": "bac1fab21b44eb9e09b3c62027045266b501f8ca",
+        "bytes": 18147,
+        "ref": "d6faf36a2a474728cf09671b03e73221c9f3313e",
+        "repository_path": "tools/onehand_windows/orchestration-v6/test_workflow.py",
+        "sha256": "6bd7c033bbd22a4de4d8dd23a6f65cb94591dd5781f604d1a3dc6d206a989d85"
       },
       "kind": "original-source"
     },
@@ -3431,8 +3431,8 @@
       "git": {
         "blob_sha1": "8699efb7652f79b47ddac80f1321d03ace49fb26",
         "bytes": 1005,
-        "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
-        "repository_path": "tools/onehand_windows/orchestration-v5/verify_freeze.py",
+        "ref": "d6faf36a2a474728cf09671b03e73221c9f3313e",
+        "repository_path": "tools/onehand_windows/orchestration-v6/verify_freeze.py",
         "sha256": "059a14d1d70cfa20b5842d8e50e8a7d829df8d0dc96d4e71fcd7ae897d637479"
       },
       "kind": "original-source"
@@ -3447,8 +3447,8 @@
       "git": {
         "blob_sha1": "398ab9049b6ecddb9619162c9a1cdaaaba569e5f",
         "bytes": 7080,
-        "ref": "2a50a5f5ff16678bddac5996409dd902ff68af26",
-        "repository_path": "tools/onehand_windows/orchestration-v5/workflow_core.py",
+        "ref": "d6faf36a2a474728cf09671b03e73221c9f3313e",
+        "repository_path": "tools/onehand_windows/orchestration-v6/workflow_core.py",
         "sha256": "e5bae5b323ca1503f1fb6851f9d90cc98d452b137aaf5810af5c3fcddec30428"
       },
       "kind": "original-source"
@@ -8184,6 +8184,38 @@
         "sha256": "b14b01a539920f34eec064a1bec1ec2799840c31e89a36e841831a3960c90fa2"
       },
       "kind": "hash-only-reference"
+    },
+    {
+      "canonical": {
+        "bytes": 3499,
+        "sha256": "9ab8d46abff056dd54495db95bbebeacf8df129f828405e9211e9cd2f79e0c3a"
+      },
+      "destination": "orchestration/command_contract.py",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "4deaddbcf59dc77916b0e873ca003ad4b20a392b",
+        "bytes": 3499,
+        "ref": "d6faf36a2a474728cf09671b03e73221c9f3313e",
+        "repository_path": "tools/onehand_windows/orchestration-v6/command_contract.py",
+        "sha256": "9ab8d46abff056dd54495db95bbebeacf8df129f828405e9211e9cd2f79e0c3a"
+      },
+      "kind": "original-source"
+    },
+    {
+      "canonical": {
+        "bytes": 8784,
+        "sha256": "d33fa5ff4687500e7a331e7546c51ade6b075f054c543edcef658d115ec481ae"
+      },
+      "destination": "orchestration/test_command_contract.py",
+      "encoding": "identity",
+      "git": {
+        "blob_sha1": "fe721e0185d520b385c8561800cf23d2f15a2b7a",
+        "bytes": 8784,
+        "ref": "d6faf36a2a474728cf09671b03e73221c9f3313e",
+        "repository_path": "tools/onehand_windows/orchestration-v6/test_command_contract.py",
+        "sha256": "d33fa5ff4687500e7a331e7546c51ade6b075f054c543edcef658d115ec481ae"
+      },
+      "kind": "original-source"
     }
   ],
   "schema": "rust-duty-onehand-byte-materialization/v2"
