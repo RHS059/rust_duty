@@ -6,6 +6,13 @@ from app_edge_synthetic_fixture import make, BINDING, IDENTITY, CONTRACT
 from app_edge_renderer_overlay_v1 import restore_renderer_overlay
 from verify_app_edges import validate, Rejected, FIELDS, png_extent, loads, verify_config, verify_run, invocation, sha, digest
 
+# Current direct-delivery composition. The historical consolidated contract is
+# immutable; only these two intentionally changed files supersede its old pins.
+DIRECT_DELIVERY_SOURCE_SHA256 = {
+    'assets/animations.cfg': 'ecc8bf3e3663276178fa24578f3be57cb3ab96857cfa453be068574914209026',
+    'src/authored_high_mantle.rs': 'e77b48d239025f0d100a1a432a108962f66472c7e634615e9af7a8ff64b5b929',
+}
+
 def restore_shared_replay_test_binding(source):
     """Undo only the test-only binding injection for the immutable renderer pin."""
     changes = (
@@ -256,11 +263,12 @@ class SourceTests(unittest.TestCase):
         self.assertNotEqual(original,source)
         self.assertEqual(hashlib.sha256(original.encode()).hexdigest(),self.contracts['unrepaired_focus_sha256'])
         with self.assertRaises(AssertionError):complete(original)
-    def test_capture_flags_remain_rejected_and_motion_source_is_untouched(self):
+    def test_capture_flags_remain_rejected_and_direct_delivery_composition_is_exact(self):
         opts=(self.overlay/'src/high_app_edge_input.rs').read_text(encoding='utf-8')
         for flag in ('--capture','--combined','--onehand','--viewmodel-','--demo','--reference-viewport','--procedural-weapon'):
             self.assertIn('"'+flag+'"',opts)
-        for name, expected in self.contracts['unchanged_files'].items():
+        current_files = {**self.contracts['unchanged_files'], **DIRECT_DELIVERY_SOURCE_SHA256}
+        for name, expected in current_files.items():
             self.assertEqual(hashlib.sha256((self.overlay/name).read_bytes()).hexdigest(),expected,name)
         high=(self.overlay/'src/authored_high_mantle.rs').read_text(encoding='utf-8')
         sim=(self.overlay/'src/sim.rs').read_text(encoding='utf-8')
@@ -268,8 +276,17 @@ class SourceTests(unittest.TestCase):
         end=sim.index('    pub fn prone_sample(',begin)
         sim=(sim[:begin]+sim[end:]).replace('        crate::combined_observer::accepted(self);\n','')
         self.assertEqual(hashlib.sha256(sim.encode()).hexdigest(),self.contracts['simulation_before_observers_sha256'])
-        self.assertIn('APPROVED_RUNTIME_PINS: Option<RuntimePins<\'static>> = None;',high)
+        self.assertIn('APPROVED_RUNTIME_PINS: Option<RuntimePins<\'static>> = Some(RuntimePins {',high)
         self.assertIn('pub const NATIVE_SECONDS: f64 = 95. / 60.;',high)
+    def test_direct_delivery_composition_rejects_config_and_binding_byte_changes(self):
+        read_bytes = Path.read_bytes
+        for name in DIRECT_DELIVERY_SOURCE_SHA256:
+            def changed_bytes(path):
+                raw = read_bytes(path)
+                return raw + b'\n// Unreviewed source change.\n' if path == self.overlay/name else raw
+            with self.subTest(name=name), patch.object(Path, 'read_bytes', changed_bytes):
+                with self.assertRaises(AssertionError):
+                    self.test_capture_flags_remain_rejected_and_direct_delivery_composition_is_exact()
     def test_renderer_delta_only_observes_existing_samples_and_adds_unrun_test(self):
         # Reverse the exact versioned successor before the unchanged historical delta.
         current=(self.overlay/'src/authored_viewmodel.rs').read_bytes()

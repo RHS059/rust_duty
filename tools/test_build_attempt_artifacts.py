@@ -45,7 +45,7 @@ class AttemptArtifactContracts(unittest.TestCase):
                 else:
                     self.assertIsNotNone(item['id'])
                     previous[item['id']] = item
-        self.assertGreater(count, 20)
+        self.assertEqual(count, 16)  # Capture-only uploads no longer belong to ordinary Linux CI.
 
     def test_attempt_archives_keep_distinct_matrix_and_attempt_names(self):
         for osname in ('Linux', 'Windows'):
@@ -63,7 +63,7 @@ class AttemptArtifactContracts(unittest.TestCase):
                   for n in names if '${{ runner.os }}' in n]
         self.assertEqual(len(matrix), len(set(matrix)))
 
-    def test_partial_rerun_reuses_only_same_run_validated_generated_aliases(self):
+    def test_historical_producers_reuse_same_run_aliases_outside_ordinary_delivery(self):
         producers = {x['name'] for workflow in WORKFLOWS for x in uploads(workflow)
                      if x['overwrite'] == 'true' and x['name'].startswith('generated-')}
         count = 0
@@ -74,6 +74,7 @@ class AttemptArtifactContracts(unittest.TestCase):
                     continue
                 name = re.search(r'^          name: (.+)$', block, re.M).group(1)
                 if name.startswith('generated-'):
+                    self.assertNotIn(workflow, ('build', 'native-validation'))
                     count += 1
                     self.assertIn(name, producers)
                     self.assertNotIn('run-id:', block)  # Default scope is the current run.
@@ -84,7 +85,7 @@ class AttemptArtifactContracts(unittest.TestCase):
                 self.assertLess(text.index('tools/check_generated_assets.py'),
                                 min(item['position'] for item in uploads(workflow)
                                     if item['name'].startswith('generated-')))
-        self.assertGreaterEqual(count, 5)
+        self.assertEqual(count, 3)  # ADS, directional and jump retain their historical walk input.
 
     def test_game_aliases_are_gated_by_full_visible_numbered_downloads(self):
         items = uploads('build')

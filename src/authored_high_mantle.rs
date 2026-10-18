@@ -75,8 +75,9 @@ impl HighMantleBinding {
         expected_receipt: &str,
         clip: &str,
     ) -> Result<(Self, AnimationSet, SkinnedAsset, WeaponAsset), String> {
-        let pins = APPROVED_RUNTIME_PINS
-            .ok_or("one-hand runtime pins not configured for this build; binding remains inactive")?;
+        let pins = APPROVED_RUNTIME_PINS.ok_or(
+            "one-hand runtime pins not configured for this build; binding remains inactive",
+        )?;
         let vra = bounded(asset, crate::viewmodel_animation::MAX_FILE)?;
         let vrs = bounded(&asset.with_extension("vrs"), crate::skinned_asset::MAX_FILE)?;
         let vrm = bounded(&asset.with_extension("vrm"), crate::asset::MAX_FILE)?;
@@ -100,15 +101,9 @@ impl HighMantleBinding {
             "one-hand inputs exceed bound",
         )?;
         require(
-            [
-                pins.receipt,
-                pins.fbx,
-                pins.vra,
-                pins.vrs,
-                pins.vrm,
-            ]
-            .into_iter()
-            .all(valid_digest),
+            [pins.receipt, pins.fbx, pins.vra, pins.vrs, pins.vrm]
+                .into_iter()
+                .all(valid_digest),
             "invalid one-hand approved pins",
         )?;
         require(
@@ -142,8 +137,7 @@ impl HighMantleBinding {
             )?;
         }
         require(
-            value["source_fbx_sha256"] == pins.fbx
-                && value["native_processes_complete"] == true,
+            value["source_fbx_sha256"] == pins.fbx && value["native_processes_complete"] == true,
             "one-hand export identity mismatch",
         )?;
         require(
@@ -480,15 +474,17 @@ mod tests {
     }
     #[test]
     fn production_load_reports_missing_configuration_or_inputs() {
-        assert!(HighMantleBinding::load_with_companions(
-            Path::new("missing.vra"),
-            Path::new("missing.json"),
-            &"0".repeat(64),
-            ACTION
-        )
-        .err()
-        .unwrap()
-        .len() > 0);
+        assert!(
+            !HighMantleBinding::load_with_companions(
+                Path::new("missing.vra"),
+                Path::new("missing.json"),
+                &"0".repeat(64),
+                ACTION
+            )
+            .err()
+            .unwrap()
+            .is_empty()
+        );
     }
     #[test]
     fn exact_dense_grid_and_same_bytes_companions_are_required() {
