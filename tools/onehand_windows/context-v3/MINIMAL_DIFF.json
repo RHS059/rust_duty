@@ -1,0 +1,59 @@
+{
+  "added_source_files": {
+    "reconstruct_windows_profile.py": "b54cce200fcbedd148a6d0a23ae99accf8e9dbdde9b9579fadc0b24060b3ad3c",
+    "run_source_preparation_tests.py": "fb2ad00b0692b552aa467321619ab303a9a7440d5454f15bc4f92f75e24aaced",
+    "test_reconstruction_and_preservation.py": "b6e160df096b05a196c734f9283c131b16cc81686f4904968a41a7447752f481",
+    "test_windows_addon_profile.py": "65ca197da8026a286b30763d3147ede25a616bb4cde3a351533a42850cd05c68"
+  },
+  "byte_identical_files": {
+    "NATIVE_HELPER_PINS.json": "ebf3e1868fc2ea8c6e729bcbd351aa283a259822b19cdb06fb605cdaac2f7aed",
+    "candidate_context.py": "6698b94ed4ff8f385ddd3d18a676f6fd27b8234b473c352b829a0597b28398f7",
+    "pinned_assembler.py": "6a9afcc7a9de9b7215b2b3000f77e7d7a61d12543918adc93dbf8ca6973cb6cf",
+    "pinned_transport.py": "d261450937cf709a62fdbe6e0a61056c19c3d6ffb7e897dc8e68484fc231d1b7",
+    "production_assembler.py": "afb0cf30903a6d083e300271a84a439cde8cd3036b7da6ea4e914b660f1d56eb",
+    "verify_freeze.py": "5b88650607feb34a5a280d4ddd0495027d9f0f50ab1d6ef8639fdd5845b8cd12"
+  },
+  "candidate_context_and_numerical_source_byte_identical": true,
+  "changed_files": {
+    "OFFICIAL_ADDON_PINS.json": {
+      "after_sha256": "710ac9f97ba798dda2b4091232215bf0d973a03a07703448d184b420f5addb4f",
+      "before_sha256": "2716811db4b591c14d0044458c608c961aa2dfcad5958f9da6d0b4da8d67dace"
+    },
+    "README.md": {
+      "after_sha256": "8d7571047b06812410322bc84dec0245a9ee160089fd52d7633f88ffc559f304",
+      "before_sha256": "91738c3e0615a7f500224e02cef5d69194e1a3b1cb9076e1954aa4e0a7a1cb26"
+    },
+    "addon_resolver.py": {
+      "after_sha256": "e552e182ec5d82e6f0891dc94d4390e60cfc814bb777183689795e8cf2737d31",
+      "before_sha256": "b19ffad6fec645865ccb924328d9d53c0a6c989bbd062cbc7ec23a0d6c180d2a"
+    },
+    "test_candidate_context.py": {
+      "after_sha256": "7bef047b0491764b4b491d19955efb982f8dcf6c89a51235f88d2f00a856e155",
+      "before_sha256": "e4e5b5201faf16a5e06940788284d19220852a256c9aa3839422a3036c59522f"
+    },
+    "test_metadata_projection.py": {
+      "after_sha256": "5e68d3e9b82203ead7afad91fb27ee110c4d0802f4147f49feabae61a641bb90",
+      "before_sha256": "f55be8a438038043e45a9842fe294b7cd5d2fa8f52251c26606e2aa8d71db873"
+    }
+  },
+  "generated_artifacts_excluded_from_comparison": [
+    "ALLOWLIST.json",
+    "LOADED_SOURCE_EVIDENCE.json",
+    "MINIMAL_DIFF.json",
+    "PINS.json",
+    "PREPARATION_PROVENANCE.json",
+    "RECONSTRUCTION_EVIDENCE.json",
+    "RESULTS.json",
+    "SOURCE_DIFF.patch",
+    "cpu-tests.log",
+    "portable-tests.log",
+    "reconstruction-tests.log"
+  ],
+  "historical_reference_resampled": false,
+  "predecessor": "published tools/onehand_windows/context-v2",
+  "predecessor_pins_sha256": "3162a4c5bbc50daa13ec1c84972b0e4b56c2221a909d1aa2c10617c912b0d801",
+  "production_change": "single exact Windows raw addon profile with distinct raw AST/loaded inspect domains and same-runtime compile-only live code check",
+  "removed_source_files": {},
+  "schema": "rust-duty-source-successor-minimal-diff/v2",
+  "source_diff_sha256": "7d4539c658c1ad256a6bb4510cf01551810d01b7db8bf4c779339349ac9e419e"
+}

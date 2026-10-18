@@ -1,0 +1,17 @@
+test_actual_audited_inspect_hashes_keep_original_loaded_pins (__main__.ReconstructionAndPreservationTests.test_actual_audited_inspect_hashes_keep_original_loaded_pins) ... ok
+test_all_ten_reconstructed_raw_files_and_receipt_are_exact (__main__.ReconstructionAndPreservationTests.test_all_ten_reconstructed_raw_files_and_receipt_are_exact) ... ok
+test_bad_lf_source_rejected_before_any_function_derivation (__main__.ReconstructionAndPreservationTests.test_bad_lf_source_rejected_before_any_function_derivation) ... ok
+test_bad_observation_bytes_rejected_before_any_derivation (__main__.ReconstructionAndPreservationTests.test_bad_observation_bytes_rejected_before_any_derivation) ... ok
+test_both_predecessor_package_freezes_remain_exact (__main__.ReconstructionAndPreservationTests.test_both_predecessor_package_freezes_remain_exact) ... ok
+test_each_of_ten_whole_raw_files_rejects_a_one_byte_mutation (__main__.ReconstructionAndPreservationTests.test_each_of_ten_whole_raw_files_rejects_a_one_byte_mutation) ... ok
+test_entire_linux_profile_rejected_by_windows_resolver (__main__.ReconstructionAndPreservationTests.test_entire_linux_profile_rejected_by_windows_resolver) ... ok
+test_exact_windows_reconstruction_accepts_without_modifying_source (__main__.ReconstructionAndPreservationTests.test_exact_windows_reconstruction_accepts_without_modifying_source) ... ok
+test_hash_only_evidence_contains_no_addon_source_or_private_url (__main__.ReconstructionAndPreservationTests.test_hash_only_evidence_contains_no_addon_source_or_private_url) ... ok
+test_original_context_metadata_math_wrappers_and_helper_pins_are_byte_identical (__main__.ReconstructionAndPreservationTests.test_original_context_metadata_math_wrappers_and_helper_pins_are_byte_identical) ... ok
+test_raw_function_hashes_match_exact_recorded_line_ranges (__main__.ReconstructionAndPreservationTests.test_raw_function_hashes_match_exact_recorded_line_ranges) ... ok
+test_reconstruction_has_no_write_or_native_routes (__main__.ReconstructionAndPreservationTests.test_reconstruction_has_no_write_or_native_routes) ... ok
+
+----------------------------------------------------------------------
+Ran 12 tests in 0.288s
+
+OK

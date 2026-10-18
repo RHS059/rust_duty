@@ -24,7 +24,7 @@ jobs:
       run:
         shell: pwsh
     env:
-      PACKAGE: tools/onehand_windows/orchestration-v6
+      PACKAGE: tools/onehand_windows/orchestration-v7
       GIT_CONFIG_COUNT: '2'
       GIT_CONFIG_KEY_0: core.autocrlf
       GIT_CONFIG_VALUE_0: 'false'
@@ -72,7 +72,7 @@ jobs:
             if ($proc.ExitCode -ne 0) { throw 'Exact Git source export failed' }
           }
           foreach ($name in @('source_checkout.py','checkout_bytes.py')) { Export-Blob ($env:PACKAGE+'/'+$name) (Join-Path $work $name) }
-          $sourceHelperSha='8ad4b6db52bfa35ed99fc5ffbd8648529219c12514824bd199575de28db589e3'
+          $sourceHelperSha='c2206d9a87865f3e805ba4fbd736d5953376c0633205b1443692298e8de0aaf8'
           $materializerSha='935ca9997b68778cf7b3a073598b3dfaa236816d610fc9440e86fb4c51db077c'
           if ((Get-FileHash (Join-Path $work 'source_checkout.py') -Algorithm SHA256).Hash.ToLowerInvariant() -ne $sourceHelperSha) { throw 'Reviewed source-only bootstrap differs' }
           if ((Get-FileHash (Join-Path $work 'checkout_bytes.py') -Algorithm SHA256).Hash.ToLowerInvariant() -ne $materializerSha) { throw 'Reviewed exact materializer differs' }
@@ -89,6 +89,13 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Official-registry Python dependencies failed' }
           python -I -B (Join-Path $env:ONEHAND_SOURCE_PACKAGE 'run_source_tests.py') --event-commit $env:PROOF_COMMIT --summary (Join-Path $env:ONEHAND_WORK 'source-evidence/source-tests.json')
           if ($LASTEXITCODE -ne 0) { throw 'Source-only tests failed; no animation proof claimed' }
+          $profileSourceRoot=Split-Path -Parent $env:ONEHAND_SOURCE_PACKAGE
+          python -I -B -c 'import sys,unittest;sys.path.insert(0,sys.argv[1]);suite=unittest.defaultTestLoader.loadTestsFromName(sys.argv[2]);assert suite.countTestCases()==int(sys.argv[3]);result=unittest.TextTestRunner(verbosity=2).run(suite);raise SystemExit(not result.wasSuccessful() or bool(result.skipped))' (Join-Path $profileSourceRoot 'context-v3') 'test_windows_addon_profile' 27
+          if ($LASTEXITCODE -ne 0) { throw 'Exact context-v3 Windows-profile source regressions failed before native installers' }
+          python -I -B -c 'import sys,unittest;sys.path.insert(0,sys.argv[1]);suite=unittest.defaultTestLoader.loadTestsFromName(sys.argv[2]);assert suite.countTestCases()==int(sys.argv[3]);result=unittest.TextTestRunner(verbosity=2).run(suite);raise SystemExit(not result.wasSuccessful() or bool(result.skipped))' (Join-Path $profileSourceRoot 'native-producer-reviewed') 'test_dependency_selection' 5
+          if ($LASTEXITCODE -ne 0) { throw 'Exact native-producer-reviewed Windows-profile source regressions failed before native installers' }
+          python -I -B -c 'import sys,unittest;sys.path.insert(0,sys.argv[1]);suite=unittest.defaultTestLoader.loadTestsFromName(sys.argv[2]);assert suite.countTestCases()==int(sys.argv[3]);result=unittest.TextTestRunner(verbosity=2).run(suite);raise SystemExit(not result.wasSuccessful() or bool(result.skipped))' (Join-Path $profileSourceRoot 'runtime-consumer-reviewed') 'test_dependency_selection' 6
+          if ($LASTEXITCODE -ne 0) { throw 'Exact runtime-consumer-reviewed Windows-profile source regressions failed before native installers' }
           python -I -B (Join-Path $env:ONEHAND_SOURCE_PACKAGE 'command_contract.py') --event-commit $env:PROOF_COMMIT --output (Join-Path $env:ONEHAND_WORK 'command-contract') --summary (Join-Path $env:ONEHAND_WORK 'source-evidence/command-contract.json')
           if ($LASTEXITCODE -ne 0) { throw 'Windows owned-command receipt contract failed before native installers' }
       - name: Export and test the exact dormant or independently admitted game continuation
@@ -98,17 +105,19 @@ jobs:
           $ErrorActionPreference='Stop'
           $helper=Join-Path $env:ONEHAND_WORK 'game-preflight.py'
           $p=[Diagnostics.ProcessStartInfo]::new();$p.FileName=$env:ONEHAND_GIT;$p.UseShellExecute=$false;$p.RedirectStandardOutput=$true;$p.RedirectStandardError=$true
-          foreach ($arg in @('-C',$env:ONEHAND_REPOSITORY,'cat-file','blob',($env:PROOF_COMMIT+':tools/onehand_windows/game-continuation-v4/preflight_game.py'))) { $p.ArgumentList.Add($arg) }
+          foreach ($arg in @('-C',$env:ONEHAND_REPOSITORY,'cat-file','blob',($env:PROOF_COMMIT+':tools/onehand_windows/game-continuation-v5/preflight_game.py'))) { $p.ArgumentList.Add($arg) }
           $proc=[Diagnostics.Process]::Start($p);$stream=[IO.File]::Open($helper,[IO.FileMode]::CreateNew)
           try { $proc.StandardOutput.BaseStream.CopyTo($stream) } finally { $stream.Dispose() }
           $discard=$proc.StandardError.ReadToEnd();$proc.WaitForExit()
           if ($proc.ExitCode -ne 0) { throw 'Exact game bootstrap export failed' }
-          if ((Get-FileHash $helper -Algorithm SHA256).Hash.ToLowerInvariant() -ne 'd7cfb9b9caa83f12de1cd7732a4aac0d9eb3b7452ddf2f568adbf52193d4f3eb') { throw 'Reviewed game bootstrap differs' }
-          python -I -B $helper --git $env:ONEHAND_GIT --repository $env:ONEHAND_REPOSITORY --event-commit $env:PROOF_COMMIT --package-pins-sha256 '7de72cb030a6cb996be77b454b5533356a832788bbd2f43bedd83ce33a378172' --output (Join-Path $env:ONEHAND_WORK 'game-admission') --summary (Join-Path $env:ONEHAND_WORK 'source-evidence/game-admission.json') --github-output $env:GITHUB_OUTPUT
+          if ((Get-FileHash $helper -Algorithm SHA256).Hash.ToLowerInvariant() -ne 'f5f87a75fb3f64b6818551ddeae6bf51a45d6f5fa692c725c70e9e58197a0908') { throw 'Reviewed game bootstrap differs' }
+          python -I -B $helper --git $env:ONEHAND_GIT --repository $env:ONEHAND_REPOSITORY --event-commit $env:PROOF_COMMIT --package-pins-sha256 '749def92bc08191a526c7cac51d3f48e95d9a498c53511f43607ec3b2748dc44' --output (Join-Path $env:ONEHAND_WORK 'game-admission') --summary (Join-Path $env:ONEHAND_WORK 'source-evidence/game-admission.json') --github-output $env:GITHUB_OUTPUT
           if ($LASTEXITCODE -ne 0) { throw 'Game source or independent admission failed before native work' }
           $game=Join-Path $env:ONEHAND_WORK 'game-admission/package'
-          python -I -B (Join-Path $game 'execute_continuation.py') --package-pins-sha256 '7de72cb030a6cb996be77b454b5533356a832788bbd2f43bedd83ce33a378172' --source-tests
+          python -I -B (Join-Path $game 'execute_continuation.py') --package-pins-sha256 '749def92bc08191a526c7cac51d3f48e95d9a498c53511f43607ec3b2748dc44' --source-tests
           if ($LASTEXITCODE -ne 0) { throw 'Game continuation source-only tests failed' }
+          python -I -B -c 'import sys,unittest;sys.path.insert(0,sys.argv[1]);suite=unittest.defaultTestLoader.loadTestsFromName(sys.argv[2]);assert suite.countTestCases()==int(sys.argv[3]);result=unittest.TextTestRunner(verbosity=2).run(suite);raise SystemExit(not result.wasSuccessful() or bool(result.skipped))' $game 'test_dependency_binding' 5
+          if ($LASTEXITCODE -ne 0) { throw 'Exact game successor dependency tests failed before native installers' }
           $sourceRoot=Split-Path -Parent $env:ONEHAND_SOURCE_PACKAGE
           python -I -B (Join-Path $game 'test_game_command_contract.py') --orchestration $env:ONEHAND_SOURCE_PACKAGE --adapter (Join-Path $sourceRoot 'process-v2') --producer (Join-Path $sourceRoot 'native-producer-reviewed')
           if ($LASTEXITCODE -ne 0) { throw 'Game source-only transport contract tests failed' }
@@ -166,13 +175,14 @@ jobs:
           if (Test-Path -LiteralPath $observer) { throw 'Fresh addon observation helper directory required' }
           New-Item -ItemType Directory -Path $observer | Out-Null
           $pins=[ordered]@{
-            'observe_official_addon.py'='7811b9f2a9360bba5147f726e12cb8599f5760e7fb439f0604db3f4768d48eb5'
-            'test_observe_official_addon.py'='05fa51676b9775adbc2367d087b136dac75f21cd1f5cad3ec160bc85eb421604'
+            'observe_official_addon.py'='4836036d36b294a9b1c8f8c7d89d11b4b02e999131e6bfe9a9b4a983a77b96a0'
+            'test_observe_official_addon.py'='e518269b6cc9f7d39f1bffd7b4fa62ab2c433514892fa258a34379b24678b35c'
+            'test_windows_profile.py'='91a5b84cdf37c2ff761032a311e002adf79e93b568dee46123a13f2208106853'
           }
           foreach ($name in $pins.Keys) {
             $output=Join-Path $observer $name
             $p=[Diagnostics.ProcessStartInfo]::new();$p.FileName=$env:ONEHAND_GIT;$p.UseShellExecute=$false;$p.RedirectStandardOutput=$true;$p.RedirectStandardError=$true
-            foreach ($arg in @('-C',$env:ONEHAND_REPOSITORY,'cat-file','blob',($env:PROOF_COMMIT+':tools/onehand_windows/official-addon-observation-v3/'+$name))) { $p.ArgumentList.Add($arg) }
+            foreach ($arg in @('-C',$env:ONEHAND_REPOSITORY,'cat-file','blob',($env:PROOF_COMMIT+':tools/onehand_windows/official-addon-observation-v4/'+$name))) { $p.ArgumentList.Add($arg) }
             $proc=[Diagnostics.Process]::Start($p);$stream=[IO.File]::Open($output,[IO.FileMode]::CreateNew)
             try { $proc.StandardOutput.BaseStream.CopyTo($stream) } finally { $stream.Dispose() }
             $discard=$proc.StandardError.ReadToEnd();$proc.WaitForExit()
@@ -181,6 +191,8 @@ jobs:
           }
           python -I -B (Join-Path $observer 'test_observe_official_addon.py')
           if ($LASTEXITCODE -ne 0) { throw 'Source-only addon observation regressions failed before native installers' }
+          python -I -B -c 'import sys,unittest;sys.path.insert(0,sys.argv[1]);suite=unittest.defaultTestLoader.loadTestsFromName(sys.argv[2]);assert suite.countTestCases()==int(sys.argv[3]);result=unittest.TextTestRunner(verbosity=2).run(suite);raise SystemExit(not result.wasSuccessful() or bool(result.skipped))' $observer 'test_windows_profile' 19
+          if ($LASTEXITCODE -ne 0) { throw 'Exact observer Windows-profile tests failed before native installers' }
           "ONEHAND_ADDON_OBSERVER=$(Join-Path $observer 'observe_official_addon.py')" >> $env:GITHUB_ENV
       - name: Verify independent native admission and every input before native installers
         id: admission
@@ -272,7 +284,7 @@ jobs:
         timeout-minutes: 10
         run: |
           $ErrorActionPreference='Stop'
-          if ((Get-FileHash -LiteralPath $env:ONEHAND_ADDON_OBSERVER -Algorithm SHA256).Hash.ToLowerInvariant() -ne '7811b9f2a9360bba5147f726e12cb8599f5760e7fb439f0604db3f4768d48eb5') { throw 'Reviewed addon observer changed after source tests' }
+          if ((Get-FileHash -LiteralPath $env:ONEHAND_ADDON_OBSERVER -Algorithm SHA256).Hash.ToLowerInvariant() -ne '4836036d36b294a9b1c8f8c7d89d11b4b02e999131e6bfe9a9b4a983a77b96a0') { throw 'Reviewed addon observer changed after source tests' }
           python -I -B $env:ONEHAND_ADDON_OBSERVER --work-root $env:ONEHAND_WORK --config $env:ONEHAND_CONFIG --config-sha256 $env:ONEHAND_CONFIG_SHA --run-id $env:GITHUB_RUN_ID --run-attempt $env:GITHUB_RUN_ATTEMPT
           if ($LASTEXITCODE -ne 0) { throw 'Read-only addon observation unavailable; original native outcome remains unchanged' }
       - name: Retain only bounded source-test admission and native hash summaries

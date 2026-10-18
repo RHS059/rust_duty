@@ -1,0 +1,12 @@
+{
+  "incomplete_lost_successor_byte_identity_claimed": false,
+  "kind": "fresh source successor after workspace replacement",
+  "native_execution": false,
+  "predecessor_package": "tools/onehand_windows/context-v2",
+  "predecessor_pins_sha256": "3162a4c5bbc50daa13ec1c84972b0e4b56c2221a909d1aa2c10617c912b0d801",
+  "predecessor_publication_commit": "01e3d821d197799a342b7738b84e835b11197f24",
+  "publication_performed": false,
+  "restored_observation_sha256": "5ee21d576be9af34c7b4095352aca1b4fde329eca23b79b6f12a189edc9d800a",
+  "schema": "rust-duty-context-preparation-provenance/v1",
+  "source_only": true
+}

@@ -1,0 +1,22 @@
+{
+  "actual_audited_functions_defined_without_calling_or_importing_addon": true,
+  "blender_executed": false,
+  "historical_loaded_function_pins_unchanged": true,
+  "loaded_functions_sha256": {
+    "import_fbx.py": {
+      "blen_read_animations": "757bd21550d94e2190881ec6b0eb0ce80b275d2a230055cf7702044fe6dcc6e2",
+      "blen_store_keyframes_multi": "793a389ebde0e71ec3cec54e731c861753aa08015355904777a8c39b70da3a4e"
+    }
+  },
+  "native_windows_proof": false,
+  "note": "Local CPU source-domain demonstration, not observed Windows runtime evidence.",
+  "official_addon_imported": false,
+  "python_platform": "linux",
+  "python_version": "3.12.14",
+  "schema": "rust-duty-loaded-source-domain-demonstration/v1",
+  "source_file_unchanged": true,
+  "tiny_loaded_source_sha256": "fc5dd3cc151d620bcf9574c8387a78a4545e07ca198ebad3ae442edfbfe6362f",
+  "tiny_module_bytes": 50,
+  "tiny_module_raw_sha256": "1151db63afffb2a850305ebadb57b01e3116c6f369027c0209dcaab59299b85f",
+  "tiny_module_result": 12
+}

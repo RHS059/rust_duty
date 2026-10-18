@@ -1,0 +1,21 @@
+{
+  "actual_windows_native_proof": false,
+  "baseline_orchestration_tests_preserved": 157,
+  "independent_exact_successor_admission": "pending",
+  "new_dependency_tests": 8,
+  "platform_skip": "Inherited actual Windows-only leaf-process fixture; required on the actual Windows lane.",
+  "platform_skip_count": 1,
+  "portable_materialized_profile_tests": {
+    "consumer": 6,
+    "context": 27,
+    "errors": 0,
+    "failures": 0,
+    "native": 5,
+    "skipped": 0
+  },
+  "publication_performed": false,
+  "schema": "rust-duty-windows-addon-profile-workflow-results/v1",
+  "source_closure_checked": true,
+  "source_tests_passed": true,
+  "tests_run": 165
+}

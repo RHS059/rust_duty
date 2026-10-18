@@ -1,0 +1,32 @@
+test_all_raw_files_checked_before_function_source (__main__.WindowsAddonProfileTests.test_all_raw_files_checked_before_function_source) ... ok
+test_changed_raw_file_after_resolution_is_rejected_before_inspect (__main__.WindowsAddonProfileTests.test_changed_raw_file_after_resolution_is_rejected_before_inspect) ... ok
+test_every_raw_file_rejects_tamper_and_newline_conversion (__main__.WindowsAddonProfileTests.test_every_raw_file_rejects_tamper_and_newline_conversion) ... ok
+test_expected_raw_and_loaded_domains_are_separate (__main__.WindowsAddonProfileTests.test_expected_raw_and_loaded_domains_are_separate) ... ok
+test_function_inventory_and_raw_source_are_exact (__main__.WindowsAddonProfileTests.test_function_inventory_and_raw_source_are_exact) ... ok
+test_incomplete_raw_inventory_is_rejected (__main__.WindowsAddonProfileTests.test_incomplete_raw_inventory_is_rejected) ... ok
+test_list_of_accepted_hash_alternatives_is_rejected (__main__.WindowsAddonProfileTests.test_list_of_accepted_hash_alternatives_is_rejected) ... ok
+test_loaded_hash_cannot_replace_raw_function_pin (__main__.WindowsAddonProfileTests.test_loaded_hash_cannot_replace_raw_function_pin) ... ok
+test_manifest_inventory_is_exact (__main__.WindowsAddonProfileTests.test_manifest_inventory_is_exact) ... ok
+test_manifest_raw_pin_is_mandatory (__main__.WindowsAddonProfileTests.test_manifest_raw_pin_is_mandatory) ... ok
+test_missing_required_module_is_rejected (__main__.WindowsAddonProfileTests.test_missing_required_module_is_rejected) ... ok
+test_path_escape_is_rejected (__main__.WindowsAddonProfileTests.test_path_escape_is_rejected) ... ok
+test_raw_hash_cannot_replace_loaded_function_pin (__main__.WindowsAddonProfileTests.test_raw_hash_cannot_replace_loaded_function_pin) ... ok
+test_raw_metadata_is_strict_and_not_boolean_counts (__main__.WindowsAddonProfileTests.test_raw_metadata_is_strict_and_not_boolean_counts) ... ok
+test_real_crlf_module_loaded_source_is_lf_and_raw_unchanged (__main__.WindowsAddonProfileTests.test_real_crlf_module_loaded_source_is_lf_and_raw_unchanged) ... ok
+test_recorded_tiny_module_evidence_is_reproducible (__main__.WindowsAddonProfileTests.test_recorded_tiny_module_evidence_is_reproducible) ... ok
+test_runtime_resolver_has_no_reconstruction_or_writing_route (__main__.WindowsAddonProfileTests.test_runtime_resolver_has_no_reconstruction_or_writing_route) ... ok
+test_same_origin_code_constant_mutation_is_rejected (__main__.WindowsAddonProfileTests.test_same_origin_code_constant_mutation_is_rejected) ... ok
+test_shadow_function_code_filename_is_rejected (__main__.WindowsAddonProfileTests.test_shadow_function_code_filename_is_rejected) ... ok
+test_shadow_module_file_is_rejected (__main__.WindowsAddonProfileTests.test_shadow_module_file_is_rejected) ... ok
+test_shadow_spec_origin_is_rejected (__main__.WindowsAddonProfileTests.test_shadow_spec_origin_is_rejected) ... ok
+test_symlink_file_is_rejected (__main__.WindowsAddonProfileTests.test_symlink_file_is_rejected) ... ok
+test_unknown_module_is_rejected (__main__.WindowsAddonProfileTests.test_unknown_module_is_rejected) ... ok
+test_unknown_or_missing_fields_fail (__main__.WindowsAddonProfileTests.test_unknown_or_missing_fields_fail) ... ok
+test_verification_compiles_but_never_executes_raw_module (__main__.WindowsAddonProfileTests.test_verification_compiles_but_never_executes_raw_module) ... ok
+test_wrong_or_collapsed_domain_labels_fail (__main__.WindowsAddonProfileTests.test_wrong_or_collapsed_domain_labels_fail) ... ok
+test_wrong_profile_schema_distribution_or_version_fails (__main__.WindowsAddonProfileTests.test_wrong_profile_schema_distribution_or_version_fails) ... ok
+
+----------------------------------------------------------------------
+Ran 27 tests in 0.040s
+
+OK

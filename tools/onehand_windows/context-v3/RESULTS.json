@@ -1,0 +1,32 @@
+{
+  "actual_windows_proof": false,
+  "animation_proof": false,
+  "available_tests_passed": true,
+  "complete_historical_suite_rerun": false,
+  "context_math_source_byte_identical": true,
+  "errors": 0,
+  "explicit_omissions": {
+    "test_candidate_context.AssemblerIntegrationTests.test_explicit_generated_identity_with_unchanged_small_stream": "Exact original test_assemble_runtime.py fixture is absent from the immutable published tree.",
+    "test_candidate_context.ContextTests.test_transport_readonly_verifier_pin_and_missing_evidence": "Historical process-v1 PINS and owned_process.py are absent from the immutable published tree."
+  },
+  "failures": 0,
+  "historical_reference_resampled": false,
+  "local_reconstruction_tests_passed": 12,
+  "missing_dynamic_suite": {
+    "historical_tests": 73,
+    "reason": "Exact original fixture is unavailable; no synthetic replacement is used.",
+    "source_sha256": "5b6dce136fac5d681b96d87be74c703ded58dfee2de20fe9c615aeb720b97159",
+    "suite": "test_assemble_runtime.StreamAssemblyTests"
+  },
+  "native_admission": false,
+  "native_execution": false,
+  "passed": 96,
+  "portable_profile_tests_passed": 27,
+  "profile_manifest_sha256": "710ac9f97ba798dda2b4091232215bf0d973a03a07703448d184b420f5addb4f",
+  "publication_performed": false,
+  "recovered_context_metadata_assembler_tests_passed": 57,
+  "schema": "rust-duty-windows-candidate-context-results/v3",
+  "skipped": 0,
+  "test_log": "cpu-tests.log",
+  "tests_run": 96
+}
