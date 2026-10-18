@@ -1,0 +1,36 @@
+{
+  "onehand_v6_source_delta.py": {
+    "changed_functions": [
+      "apply_metadata_delta",
+      "validate_metadata_shape"
+    ],
+    "unchanged_function_count": 29,
+    "new_functions": []
+  },
+  "onehand_v6_source_native.py": {
+    "changed_functions": [
+      "check_replayed",
+      "extract",
+      "main",
+      "replay",
+      "validate_recipe",
+      "witness"
+    ],
+    "unchanged_function_count": 20,
+    "new_functions": [
+      "install_projected_metadata"
+    ]
+  },
+  "run_onehand_v6_source_proof.py": {
+    "changed_functions": [
+      "build_equivalence_result",
+      "expected_action_hashes",
+      "run_native",
+      "same_hash",
+      "validate_replay",
+      "verify_pins"
+    ],
+    "unchanged_function_count": 8,
+    "new_functions": []
+  }
+}

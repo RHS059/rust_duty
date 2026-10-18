@@ -1,0 +1,15 @@
+{
+  "onehand-runtime-20261016-r2/runtime-parity/onehand_r2_common.py": "cae111fc9f0a6a056d369c1cd831e2926e77356c26bcef4ebbd3fdd9e483167a",
+  "onehand-runtime-20261016-r2/runtime-parity/verify_onehand_r2.py": "968e98ab5e0d9ced460eddd23dc2013a7e07d37317c33d65eb5c8e77c1298342",
+  "prone-r15-runtime-20261016/source/tools/verify_prone_r15_runtime.py": "b8bbc01d16e703934626ceff88f328a19345ded859a01f36f0918dbadd470d8b",
+  "onehand-runtime-20261016-r2/runtime-parity/bounded_vra.py": "6a7e3b5996485c9e917e040c86f6909066bf3fa0b31cd43321b4c25b36b40da3",
+  "onehand-runtime-20261016-r2/runtime-parity/window_admission.py": "7c777e1b6981e966c33e14c7abf6437a67bd84ae30e7af3b236c5584265e3372",
+  "onehand-runtime-20261016/importer-patch/tools/vrpack.py": "28a23ed9a9b0fe0123405a9800473e57d04419596deae8789c66c744ad05b685",
+  "onehand-runtime-20261016/importer-patch/tools/vrskin.py": "e6aff7f5278bb8e6dd09ca75e69b8761b1b71bd30b3feddf84f8380cd88a5e14",
+  "onehand-runtime-20261016/importer-patch/tools/vrview.py": "eefd755f6ef0943a4d8bf443ddfec601bc1336ec90ece722d017c9c4b6d73568",
+  "onehand-runtime-20261016-r2/runtime-parity/admit_candidate.py": "d846b0d77637a86654433ffea4cbd4479edc9a13d2dbb26006a38fcdab12b282",
+  "onehand-runtime-20261016-r2/runtime-parity/focused_runtime.py": "b917c07b472303f922e7b91521c96bf1f81e95ee043e1bd5c01f96244182b96e",
+  "onehand-runtime-20261016-r2/runtime-parity/serial_r2.py": "eaa588c9b7ab16adbd9075c9cff9d40f3ee93d7b062dd5c804f4276318498044",
+  "onehand-runtime-20261016-r2/runtime-parity/conversion_admission.py": "500ab92baf5ab38721ad924cf4b25d26ac34a8c9585493e9fce0e40f31d33b7a",
+  "onehand-runtime-20261016-r2/runtime-parity/test_bounded_vra.py": "a2033c073dc56cdb70d59156c1e51e36b9697c385343dff4bdc526815cfc042b"
+}

@@ -1,0 +1,10 @@
+{
+  "cpu_tests": 65,
+  "failures": 0,
+  "full_projected_metadata_sha256": null,
+  "native_execution": false,
+  "publication": false,
+  "review_status": "focused review found no design blocker; exact frozen acceptance pending",
+  "schema": "onehand-projection-source-preparation/v1",
+  "source_blend_read_or_modified": false
+}

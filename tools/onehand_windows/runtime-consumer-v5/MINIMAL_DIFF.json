@@ -1,0 +1,72 @@
+{
+  "added_source_files": [],
+  "all_numerical_process_fragments_byte_identical": true,
+  "byte_identical_files": {
+    ".gitattributes": "065ef7bd73cabfd8caae7a31362f680c15c52ead4741d03eb9a903f702825c52",
+    "CORRECTIONS.md": "ced1de5f5c1845ed257d64a43c55279fc3c1dd95b080b6657f71a915b44b983c",
+    "MATH_FRAGMENTS.json": "71d796ea79752c4740df4087295e7f614be9a0b9ddde4615fc8fad359ade3af5",
+    "ORIGINAL_PINS.json": "a83de47e3f9dd24e0f6fc4d2d4328ec731db9d357a74e7a4347551efc43f9b7a",
+    "PREDECESSOR_CODE_PINS.json": "040e0a45baef8b61eb5b565d307b57553a66911a68c33c17a715825540b6130c",
+    "RUST_REFERENCE_PINS.json": "031c1f76d15cf84a89e1c8923f27c75687b874fab270f92ff0d8486ef089be92",
+    "SOURCE_CLOSURE.json": "14c52fc3a46f8cca2ae17a2a4db43c4a6f4d184a560e0d5c37f22a88238f0d22",
+    "SOURCE_CLOSURE_REVIEW.md": "ec1e891cf547b512e0208fe5b29dbd71db699ebbe84071cafa691526ee5e08f3",
+    "build_closure.py": "e94a94316cf30d63f9e18e5aad90931ad1f31bf1f3f9d0611dbbe9db8e5e4f56",
+    "consumer.py": "de28e7d27fc26a87a2e24906a5d68fd8c9e107ad09b44676eee8dd1e6cfd926a",
+    "evidence.py": "cc05e41a526064326d7904b4123ba909cd17e9624688cbd32b5bea13b9a96e15",
+    "extract_math.py": "33137f95c5e0f0b2beb7fe865f60a79ccbb4a277af9ba32eafa790222f7b0dbc",
+    "retirement.py": "003d161c1061b0d14bb86417eee3339810659759e3dd3df49513811c05655f09",
+    "test_checkout_bytes.py": "570b7bc63c03503971ed720d74049b35f902863e01ce67258b885571f558a8d6",
+    "test_revision.py": "150d802cd42bb1d0f21d3edae4dddc77d403400920781a715538a6ac6649bc90",
+    "transport.py": "1cfd4163207df4666d3197d97409e6f0212691bd815e06d2af724915fb4ebad2",
+    "verify_freeze.py": "e1a2cb07d5ad4822f9addb35eebe2d0ce2154f5a3c9547be44a88141f87a3f64"
+  },
+  "changed_files": {
+    "DEPENDENCY_REVIEW.json": {
+      "after_sha256": "e37dc5204b3a11a5a24d879cea47d96396d71c918314bfd8b458d96c92387d0a",
+      "before_sha256": "42a1a9b5f4428dac54c207ee9052863be43c53f4d8c68e41496154dfe31b97d8"
+    },
+    "NATIVE_INVOCATION.md": {
+      "after_sha256": "13436ca783791161ff94c867eba9878dc05014492da422a170fbb1877e7e14f7",
+      "before_sha256": "df3916c9d7fc07e48c28a2c585334c8039866f73ae1c3ba460a661f12f84cbaf"
+    },
+    "README.md": {
+      "after_sha256": "285e2a5f059088be2ae07787fdc474fb85566b5729dd0f80cdfa56bab969597d",
+      "before_sha256": "151dcca6e83f67ddec256917a96474998eb6bc6675823dfdc654b556003d8a88"
+    },
+    "pinned_math.py": {
+      "after_sha256": "87e28a6e45942e5132e7c8b42979836890c666d0a17b005bea3ea112bf8a602e",
+      "before_sha256": "590377325f1aa1f64b5265cf1ca919400f61851a0296dd3ea3fbe717988281b3"
+    },
+    "runtime_context.py": {
+      "after_sha256": "d13e94b414e71c341f64b92f40968971836767ecffa7326c11a6a1de5511a922",
+      "before_sha256": "e4749128a4ccc2e531ba6c5509761a76ce6240755204cacb78f33f5c6c17e503"
+    },
+    "test_process_reconstruction.py": {
+      "after_sha256": "f69737001ee4ad00cf288dba1e7eba514a09f880c4d326a2467c739702582e28",
+      "before_sha256": "633a1c3c3be36a36c2821ad2199a5e24aeb184655bb7be03d47ba52c8b158140"
+    },
+    "test_runtime_consumer.py": {
+      "after_sha256": "f302c54d323e97edab66c030fc14ecbbc087e763a83d855502616e1f5956e9b3",
+      "before_sha256": "1fd923841106d126be6c2ae04487d48f46d05dd330505ab7e329df853586d28c"
+    },
+    "test_source_selection.py": {
+      "after_sha256": "95747737b07108c7c198a16c638391ada46d59dfc6bd11ed29afc16638a5c149",
+      "before_sha256": "b0dafaa8c285f8c60bb0666702c65e44526d4e59d3eb1346ef0006fbffd1a290"
+    }
+  },
+  "function_class_asts_unchanged_except_selection_name_and_diagnostic": true,
+  "generated_artifacts_excluded_from_comparison": [
+    "ALLOWLIST.json",
+    "MINIMAL_DIFF.json",
+    "PINS.json",
+    "RESULTS.json",
+    "cpu-tests.log"
+  ],
+  "historical_reference_resampled": false,
+  "predecessor": "windows-runtime-consumer-v4",
+  "predecessor_pins_sha256": "b0d96367417522034c56cd376a2437915602e3e37c0b489cb75a6aa076c809b4",
+  "production_change": "context dependency pin in pinned_math.py; selected producer dependency pin/name and diagnostic in runtime_context.py",
+  "runtime_context_schema_unchanged": true,
+  "rust_source_closure_and_reference_pins_byte_identical": true,
+  "schema": "rust-duty-source-successor-minimal-diff/v1"
+}

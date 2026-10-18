@@ -1,0 +1,45 @@
+{
+  "adaptations": {
+    "admission.py:_verify_stage": {
+      "ast_sha256": "3db7a2b9a9a7a00e5ba7dd1f2c32d45cb2b0caa65114168b43911dd08f527a79",
+      "source_sha256": "89b7e01abaa4e81509f3049f6b02b1609863b07b12e862ca6ac71d0a3ad09dec"
+    },
+    "admission.py:host_build": {
+      "ast_sha256": "cf00b4fb4d1a281977f100ebdf8517ca26dd619f197ba2daffb6a2bae46fac79",
+      "source_sha256": "3dfd761d6e1f53a4baea997fcace543c4020e7a898deb334fff051449c00c3d4"
+    },
+    "admission.py:validate_output_links": {
+      "ast_sha256": "ef04cf564dda73cb628d7c2f0d03a9e60017bc68c7d3739f0f7613ddb777f8b2",
+      "source_sha256": "d05c6d8164f24bf4b96c27f793ca86bbaa138b381244ee0511a01a166adbbc6a"
+    },
+    "admission.py:verify_output_inventory": {
+      "ast_sha256": "250faa5080f12635bb039d4c42180955fbcf44131979455f46dc1966d0d2281b",
+      "source_sha256": "026cda5650d1cca40da42b68869500d771f796a78e6e9c313299f7872376484f"
+    },
+    "admission.py:verify_retained_stage": {
+      "ast_sha256": "c13fe959501b81a35211a9f180c31a555dd32498a4f1c05808b3342c980965d9",
+      "source_sha256": "c789f4fce0a09f73a6472c7494ddcbf362d64c3dd0733e0aeb296b23e9bfbad0"
+    },
+    "admission.py:verify_stage": {
+      "ast_sha256": "708d8edaa2cb31fcca67db7fe73272f1e507f37baf72c86ade40760e9e04cd06",
+      "source_sha256": "1480fe80e3c22feec74d4565561ed992498a0561e9dd397aad2cb89f76132141"
+    },
+    "native_stages.py:canonical_source_descriptors": {
+      "ast_sha256": "e5cdf2178f85c745daee26d17dbd28a1a42a8489f37bb1f46c3bf590f1c267bd",
+      "source_sha256": "623664036f8a87d655a3d13836374f928a3edd4ba2e26c62fa2e23155e80f326"
+    },
+    "native_stages.py:environment": {
+      "ast_sha256": "7f8fc0e812a26a3cfbde075d52997f6cada915a98a59e28f649a251b31cf8dfc",
+      "source_sha256": "c4f2cf5262db241419a26024ce54ffdf2210704c2f0180d0bb1448387b448400"
+    },
+    "process_evidence.py:verify_completed_process": {
+      "ast_sha256": "8f885eee3fe9ccd36cbbaf8a8b96fe88bc7f670b11d2eab17466930274c889cb",
+      "source_sha256": "e0cccea40ed6613bd8fd31ff10d0c17af43629825d5904b17dbfb900f790a6a2"
+    }
+  },
+  "numeric_fragments_changed": false,
+  "prior_producer_pins_sha256": "aad2a9113d83d6cbc61dbcc580ff286c0b8a6cbfbd241526de0c642f2ca74d96",
+  "review_freeze_sha256": "a878a413cee0199abffcf5293948c3e3213fbbadf960b28e10331fd93aedd34a",
+  "schema": "rust-duty-windows-native-boundary-adaptations/v1",
+  "unchanged_audited_fragments_sha256": "3a2d0c7ea5fcc0dfab7ec615dbb78e0b7d9f907c1d1a48bc2f90da14933952b5"
+}

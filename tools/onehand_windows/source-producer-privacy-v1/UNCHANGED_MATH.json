@@ -1,0 +1,11 @@
+{
+  "historical_reference_functions_ast_sha256": {
+    "compare_chunks": "16d78c26500d1800937fbbd84a1e55b2177dd10898cbdcbc17122ff1e9308954",
+    "validate_chunk": "c18a2cd54186695f01666740c323143d6c4009d683a3570aa1fa1d6042138207",
+    "validate_geometry": "eac8bc5d53a2fe0709778b8a2945c4c033fac8f4f4fabce10e09917d22117936"
+  },
+  "pose_corrections_sha256": "08e25bf4c8731c073ace8749e2225f60d3e95a06eec6627239d7a9ba57aba58c",
+  "predecessor_source_pins_sha256": "0c7e6e1ef7a2f0c3637e7eb800d0fc7a1bd196c69bdb3c377db76680e0663a5f",
+  "schema": "onehand-privacy-unchanged-functions/v1",
+  "source_grid_sha256": "a521b1e779e45f85948d94b8b9aa9f9cad41d935783ba5fcbda34decb6aec08f"
+}

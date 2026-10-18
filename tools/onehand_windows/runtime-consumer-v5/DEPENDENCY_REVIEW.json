@@ -1,0 +1,14 @@
+{
+  "actual_windows_provenance": false,
+  "decision": "prepared-independent-review-required",
+  "historical_producer_v3_review_pins_sha256": "d704d46e75d7f28865bde42aea1ad1ea75a84089600b1a40053d8ae064747b79",
+  "historical_review_does_not_approve_successor": true,
+  "native_admission": false,
+  "predecessor_consumer_pins_sha256": "b0d96367417522034c56cd376a2437915602e3e37c0b489cb75a6aa076c809b4",
+  "schema": "rust-duty-runtime-consumer-dependency-selection/v5",
+  "selected_context_pins_sha256": "3162a4c5bbc50daa13ec1c84972b0e4b56c2221a909d1aa2c10617c912b0d801",
+  "selected_producer_pins_sha256": "69df50d663778b43c4512b81b92edd3cf9ed0e560e0779fef1587de7c7370fa2",
+  "selected_rust_source_revision": "c61dbd67039a4961d0c56f0a3c7e478c431d1ced",
+  "source_selection_sha256": "14c52fc3a46f8cca2ae17a2a4db43c4a6f4d184a560e0d5c37f22a88238f0d22",
+  "source_selection_unchanged": true
+}

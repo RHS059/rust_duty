@@ -1,0 +1,11 @@
+{
+  "schema": "onehand-privacy-orchestration-change-scope/v1",
+  "predecessor_pins_sha256": "e11cf423d23402d44b26d4ec2875a8442bc2bbb2af9f61945bddd82c1e4509ae",
+  "changes": ["explicit comment-projected source and bridge/context dependency pins", "new canonical projected delta and bounded part catalog identities", "independent acceptance explicitly binds projection and metadata construction identities", "complete publication layout and source-only dependency closure", "honest runner-local candidate retention handoff"],
+  "numeric_process_threshold_grid_changes": false,
+  "rust_sampler_revision": "c61dbd67039a4961d0c56f0a3c7e478c431d1ced",
+  "eventual_publication_base": "a6f9c0450231a7addffbee3b54338d02f5136f1a",
+  "game_capture_binding_reviewed": false,
+  "game_capture_performed": false,
+  "runtime_assets_publication_performed": false
+}

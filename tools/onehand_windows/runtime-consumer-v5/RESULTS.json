@@ -1,0 +1,23 @@
+{
+  "actual_windows_proof": false,
+  "errors": 0,
+  "failures": 0,
+  "historical_reference_resampled": false,
+  "native_admission": false,
+  "passed": 130,
+  "preparation_disk_floor_bytes": 1288490189,
+  "publication_performed": false,
+  "rust_builds": 0,
+  "sampled_peak_branch_bytes_during_full_test_run": 1330584,
+  "schema": "rust-duty-runtime-consumer-results/v5",
+  "scope": "CPU, exact frozen process reconstruction, source selection and local byte-preserving Git index/checkout; no native process or Git publication",
+  "selected_context_pins_sha256": "3162a4c5bbc50daa13ec1c84972b0e4b56c2221a909d1aa2c10617c912b0d801",
+  "selected_producer_pins_sha256": "69df50d663778b43c4512b81b92edd3cf9ed0e560e0779fef1587de7c7370fa2",
+  "selected_source_files": 213,
+  "skipped": 0,
+  "source_only_output_cap_bytes": 3145728,
+  "test_log": "cpu-tests.log",
+  "tests_run": 130,
+  "unchanged_math_process_files": 8,
+  "unchanged_reference_inputs": 9
+}
