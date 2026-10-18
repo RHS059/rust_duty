@@ -1,0 +1,54 @@
+{
+  "actual_failed_field_values_recovered": false,
+  "changed_production_files": [
+    "admission.py",
+    "native_entry.py",
+    "launch_stage.py"
+  ],
+  "completed_owned_probe_revalidated": true,
+  "environment_hash_domains": {
+    "controller_environment_sha256": "SHA256 canonical JSON without newline, same config native environment",
+    "native_environment_sha256": "unchanged process adapter SHA256 canonical JSON plus newline, same config native environment"
+  },
+  "exact_cross_role_fields": [
+    "system",
+    "version",
+    "machine"
+  ],
+  "exact_same_native_role_fields": [
+    "system",
+    "release",
+    "version",
+    "machine"
+  ],
+  "host_manifest_schema": "rust-duty-windows-native-host/v3",
+  "launcher_exception": "Original outer-host/process/transport-environment checks retained verbatim; one additional controller-domain actual environment digest check before capacity/side effects.",
+  "native_execution": false,
+  "new_production_files": [
+    "host_identity.py"
+  ],
+  "normalization_or_alias_acceptance": false,
+  "outer_host_dictionary_and_process_v2_unchanged": true,
+  "predecessor_commit": "9439dc0701e34c74c371be77985930926b836fc9",
+  "predecessor_package_pins_sha256": "8be8fd72f44e2baf160e5b86f01b835907396889dc78c4e811ff7818b7f3fd04",
+  "private_assets_included": false,
+  "probe_schema": "rust-duty-official-blender-host-observation/v2",
+  "probe_source_sha256": "cef34876a036fec04d520e835d95f8a3fea7a51cad23bb9140efdae13694a350",
+  "retained_probe_evidence": [
+    "probe",
+    "command_context",
+    "process_terminal",
+    "probe_source"
+  ],
+  "schema": "rust-duty-native-host-role-change/v1",
+  "source_mechanisms_proven": [
+    "Python3.11.9 machine environment dependence with filtered variables",
+    "Python3.11.9/3.12.10 Windows Server release labels differ"
+  ],
+  "source_only": true,
+  "upstream_source_urls": [
+    "https://github.com/python/cpython/blob/de54cf5be371a6f5e2e9f208c38def5f81d3ef02/Lib/platform.py",
+    "https://github.com/python/cpython/blob/0cc81280367df838c4b199f8f0378837165071c2/Lib/platform.py",
+    "https://github.com/blender/blender/blob/32f5fdce0a0a571a39198edf8d7b5d719bf59f2c/build_files/build_environment/cmake/versions.cmake"
+  ]
+}
