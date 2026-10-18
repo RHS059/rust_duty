@@ -167,12 +167,12 @@ jobs:
           New-Item -ItemType Directory -Path $observer | Out-Null
           $pins=[ordered]@{
             'observe_official_addon.py'='7811b9f2a9360bba5147f726e12cb8599f5760e7fb439f0604db3f4768d48eb5'
-            'test_observe_official_addon.py'='6e7354040d5086aac66336db6da9a89015a88235425b4147c9df323f1b83c843'
+            'test_observe_official_addon.py'='05fa51676b9775adbc2367d087b136dac75f21cd1f5cad3ec160bc85eb421604'
           }
           foreach ($name in $pins.Keys) {
             $output=Join-Path $observer $name
             $p=[Diagnostics.ProcessStartInfo]::new();$p.FileName=$env:ONEHAND_GIT;$p.UseShellExecute=$false;$p.RedirectStandardOutput=$true;$p.RedirectStandardError=$true
-            foreach ($arg in @('-C',$env:ONEHAND_REPOSITORY,'cat-file','blob',($env:PROOF_COMMIT+':tools/onehand_windows/official-addon-observation-v2/'+$name))) { $p.ArgumentList.Add($arg) }
+            foreach ($arg in @('-C',$env:ONEHAND_REPOSITORY,'cat-file','blob',($env:PROOF_COMMIT+':tools/onehand_windows/official-addon-observation-v3/'+$name))) { $p.ArgumentList.Add($arg) }
             $proc=[Diagnostics.Process]::Start($p);$stream=[IO.File]::Open($output,[IO.FileMode]::CreateNew)
             try { $proc.StandardOutput.BaseStream.CopyTo($stream) } finally { $stream.Dispose() }
             $discard=$proc.StandardError.ReadToEnd();$proc.WaitForExit()
