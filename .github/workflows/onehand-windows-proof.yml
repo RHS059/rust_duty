@@ -171,14 +171,35 @@ jobs:
           "EXPECTED_LAYOUT=$($b.layout.sha256)" >> $env:GITHUB_ENV
       - name: Initialize official installed MSVC environment
         if: ${{ steps.admission.outputs.native_ready == 'true' }}
+        timeout-minutes: 5
         run: |
+          $ErrorActionPreference='Stop'
+          $msvc=Join-Path $env:ONEHAND_WORK 'msvc-environment'
+          if (Test-Path -LiteralPath $msvc) { throw 'Fresh MSVC bootstrap directory required' }
+          New-Item -ItemType Directory -Path $msvc | Out-Null
+          $pins=[ordered]@{
+            'initialize_msvc.ps1'='8719aff1a539e5df91c4be56213e64a0079ef5c955f94a505c39ebbb22809566'
+            'test_initialize_msvc.ps1'='94110bc99a5a05b7e39ff751e8d6ca62625be4e116d423274e5ba70f869ac599'
+          }
+          foreach ($name in $pins.Keys) {
+            $output=Join-Path $msvc $name
+            $p=[Diagnostics.ProcessStartInfo]::new();$p.FileName=$env:ONEHAND_GIT;$p.UseShellExecute=$false;$p.RedirectStandardOutput=$true;$p.RedirectStandardError=$true
+            foreach ($arg in @('-C',$env:ONEHAND_REPOSITORY,'cat-file','blob',($env:PROOF_COMMIT+':tools/onehand_windows/msvc-environment-v1/'+$name))) { $p.ArgumentList.Add($arg) }
+            $proc=[Diagnostics.Process]::Start($p);$stream=[IO.File]::Open($output,[IO.FileMode]::CreateNew)
+            try { $proc.StandardOutput.BaseStream.CopyTo($stream) } finally { $stream.Dispose() }
+            $discard=$proc.StandardError.ReadToEnd();$proc.WaitForExit()
+            if ($proc.ExitCode -ne 0) { throw 'Exact MSVC bootstrap export failed' }
+            if ((Get-FileHash -LiteralPath $output -Algorithm SHA256).Hash.ToLowerInvariant() -ne $pins[$name]) { throw 'Reviewed MSVC bootstrap differs' }
+          }
+          $initializer=Join-Path $msvc 'initialize_msvc.ps1'
+          & (Join-Path $msvc 'test_initialize_msvc.ps1') -Initializer $initializer
           $vswhere=Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio/Installer/vswhere.exe'
-          $vs=(& $vswhere -latest -products '*' -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath).Trim()
-          if ($LASTEXITCODE -ne 0 -or !$vs) { throw 'Official installed MSVC toolchain unavailable' }
+          if (!(Test-Path -LiteralPath $vswhere -PathType Leaf)) { throw 'Official installed MSVC locator unavailable' }
+          $locations=@(& $vswhere -latest -products '*' -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath)
+          if ($LASTEXITCODE -ne 0 -or $locations.Count -ne 1 -or [string]::IsNullOrWhiteSpace($locations[0])) { throw 'Official installed MSVC toolchain unavailable' }
+          $vs=$locations[0].Trim()
           $dev=Join-Path $vs 'Common7/Tools/VsDevCmd.bat'
-          $lines=& $env:ComSpec /d /s /c ('""'+$dev+'" -arch=x64 -host_arch=x64 >nul && set"')
-          if ($LASTEXITCODE -ne 0) { throw 'MSVC environment initialization failed' }
-          foreach ($line in $lines) { if ($line -match '^([^=]+)=(.*)$') { "$($Matches[1])=$($Matches[2])" >> $env:GITHUB_ENV } }
+          & $initializer -DeveloperCommandPath $dev -EnvironmentFile $env:GITHUB_ENV
       - name: Verify official vendor checksum and install Blender and Rust
         if: ${{ steps.admission.outputs.native_ready == 'true' }}
         run: |
