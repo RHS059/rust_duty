@@ -1,7 +1,7 @@
 {
   "schema": "rust-duty-fbx-segment-diagnostic/v1",
   "status": "diagnostic",
-  "source_fbx_sha256": "4d01e1574f130123576c4fcbbe4776908d352c27481e583454815068eaff4057",
+  "source_fbx_sha256": "831c4b3c35d7d26dd420075af62984d9867ae5dcd0b0aa775098145e987c5c2b",
   "authoring_master_sha256": "3acdf3e2d04757d719ba59ede08decdf8bad48e2e87d9448046fe8edcbba4f58",
   "native_crop": [
     0,
@@ -30,6 +30,11 @@
     "hk416_magazine"
   ],
   "weights": {
+    "Actual arms mesh 2": {
+      "vertices": 570,
+      "maximum_influences": 3,
+      "vertices_over_four": 0
+    },
     "Actual arms mesh 1": {
       "vertices": 3954,
       "maximum_influences": 6,
@@ -39,11 +44,6 @@
       "vertices": 5710,
       "maximum_influences": 5,
       "vertices_over_four": 4
-    },
-    "Actual arms mesh 2": {
-      "vertices": 570,
-      "maximum_influences": 3,
-      "vertices_over_four": 0
     }
   },
   "importer_patches": {
@@ -126,7 +126,7 @@
   "material_source_sha256": "3acdf3e2d04757d719ba59ede08decdf8bad48e2e87d9448046fe8edcbba4f58",
   "files": {
     "asset.vrs": {
-      "sha256": "08f4a46a2ccaf890159403dd79e88cda73082f049009ca809441bebdf219ac07",
+      "sha256": "4b11ff4137def642fe761c1a74778145e0b528c34801427b396a3368c600d7e2",
       "bytes": 13605994
     },
     "asset.vrm": {
@@ -134,7 +134,7 @@
       "bytes": 3901372
     },
     "asset.vra": {
-      "sha256": "56de7ddb0ed819b5d2959294721f5e85d6c3ee37aceb4779efdc748c1ffada96",
+      "sha256": "a232ac56e67704630887e2eb86f094620b0217d1c293beee0e1de98a3d3916a3",
       "bytes": 360420
     }
   },

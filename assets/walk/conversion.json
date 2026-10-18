@@ -1,7 +1,7 @@
 {
   "schema": "rust-duty-fbx-segment-diagnostic/v1",
   "status": "diagnostic",
-  "source_fbx_sha256": "86beba0299fbd0a4c8088255a5ac43275ec4e41851364c528a032d151055d0d2",
+  "source_fbx_sha256": "78657caee7a66cdea8254b15c20068b1ea8b62d96d6a7e5365eab3bcae3b31da",
   "authoring_master_sha256": "1b01f49d7fe92f39c7bd180823ee4556a0074dd9ff8ef9c10b3fb4d3f3059e43",
   "native_crop": [
     0,
@@ -30,20 +30,20 @@
     "hk416_magazine"
   ],
   "weights": {
-    "Actual arms mesh 2": {
-      "vertices": 570,
-      "maximum_influences": 3,
-      "vertices_over_four": 0
+    "Actual arms mesh 1": {
+      "vertices": 3954,
+      "maximum_influences": 6,
+      "vertices_over_four": 93
     },
     "Actual arms mesh 0": {
       "vertices": 5710,
       "maximum_influences": 5,
       "vertices_over_four": 4
     },
-    "Actual arms mesh 1": {
-      "vertices": 3954,
-      "maximum_influences": 6,
-      "vertices_over_four": 93
+    "Actual arms mesh 2": {
+      "vertices": 570,
+      "maximum_influences": 3,
+      "vertices_over_four": 0
     }
   },
   "importer_patches": {
@@ -987,7 +987,7 @@
   "material_source_sha256": "1b01f49d7fe92f39c7bd180823ee4556a0074dd9ff8ef9c10b3fb4d3f3059e43",
   "files": {
     "asset.vrs": {
-      "sha256": "08f4a46a2ccaf890159403dd79e88cda73082f049009ca809441bebdf219ac07",
+      "sha256": "4b11ff4137def642fe761c1a74778145e0b528c34801427b396a3368c600d7e2",
       "bytes": 13605994
     },
     "asset.vrm": {
@@ -995,7 +995,7 @@
       "bytes": 3901372
     },
     "asset.vra": {
-      "sha256": "511b16dddb08d2090e4e91f22c2883f00c6dcf2c61b34071300c6dc769dff4d6",
+      "sha256": "715773644829ee1437c8e12c5237f3853e9c485e2f855faa043558c60fdb58af",
       "bytes": 1048534
     }
   },

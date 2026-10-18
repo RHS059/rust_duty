@@ -474,17 +474,15 @@ mod tests {
     }
     #[test]
     fn production_load_reports_missing_configuration_or_inputs() {
-        assert!(
-            !HighMantleBinding::load_with_companions(
-                Path::new("missing.vra"),
-                Path::new("missing.json"),
-                &"0".repeat(64),
-                ACTION
-            )
-            .err()
-            .unwrap()
-            .is_empty()
-        );
+        assert!(!HighMantleBinding::load_with_companions(
+            Path::new("missing.vra"),
+            Path::new("missing.json"),
+            &"0".repeat(64),
+            ACTION
+        )
+        .err()
+        .unwrap()
+        .is_empty());
     }
     #[test]
     fn exact_dense_grid_and_same_bytes_companions_are_required() {

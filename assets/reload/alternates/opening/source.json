@@ -1,0 +1,26 @@
+{
+  "schema": "rust-duty-blender-source/v1",
+  "file": "current.blend",
+  "sha256": "8cec36c6bfcc4967cb80629b40ecdced3c0b5507914aec7eb3d2d614f2d758fd",
+  "bytes": 8247987,
+  "blender": "4.3.2",
+  "action": "RD_Reload_Tactical_Hands_Opening_WIP",
+  "clip": "reload_opening_wip",
+  "native_range": [
+    0,
+    30
+  ],
+  "native_fps": [
+    60000,
+    1001
+  ],
+  "status": "Separate current opening WIP; not joined to primary",
+  "reviewed_subranges": [
+    [
+      0,
+      30
+    ]
+  ],
+  "provenance": "Exact immutable current authored two-hand reload source supplied for the Rust Duty game; committed directly in GitHub at the user's request. No external asset lookup is used.",
+  "id": "opening"
+}

@@ -10,8 +10,18 @@ from verify_app_edges import validate, Rejected, FIELDS, png_extent, loads, veri
 # immutable; only these two intentionally changed files supersede its old pins.
 DIRECT_DELIVERY_SOURCE_SHA256 = {
     'assets/animations.cfg': 'ecc8bf3e3663276178fa24578f3be57cb3ab96857cfa453be068574914209026',
-    'src/authored_high_mantle.rs': 'e77b48d239025f0d100a1a432a108962f66472c7e634615e9af7a8ff64b5b929',
+    'src/authored_high_mantle.rs': '9ca00f560119dda829a010a00d4a5367ff87a08138cadcfabf79deaaa32757dc',
 }
+
+def restore_optional_pack_fixture(current):
+    """Reverse only the v1 missing-pack test correction before immutable history."""
+    assert hashlib.sha256(current).hexdigest() == '743697450fd7aead518c2a8b0c55d289342441b64c0b85b1426eae74fea82d4d', 'current optional-pack fixture bytes changed'
+    new = b'assert!(error.starts_with("one-hand missing.vra: "));'
+    old = b'assert!(error.contains("pending native verification"));'
+    assert current.count(new) == 1, 'optional-pack fixture correction changed'
+    historical = current.replace(new, old, 1)
+    assert hashlib.sha256(historical).hexdigest() == '56cb0b9338a0c10d3879a389c43049439b8eea85d95073d6cd49a1475cd09e76', 'historical renderer bytes changed'
+    return historical
 
 def restore_shared_replay_test_binding(source):
     """Undo only the test-only binding injection for the immutable renderer pin."""
@@ -291,6 +301,7 @@ class SourceTests(unittest.TestCase):
         # Reverse the exact versioned successor before the unchanged historical delta.
         current=(self.overlay/'src/authored_viewmodel.rs').read_bytes()
         provenance=(self.overlay/'tools/combined_source_contracts.json').read_bytes()
+        current=restore_optional_pack_fixture(current)
         new=restore_renderer_overlay(current,provenance).decode('utf-8')
         new=restore_shared_replay_test_binding(new)
         begin=new.index('    /// Distinct source and presented sample times. An outgoing pose is a live')
@@ -307,6 +318,23 @@ class SourceTests(unittest.TestCase):
         new=new.replace('#[cfg(test)]\n#[allow(dead_code)]\npub(crate) fn combined_replay_sim()', '#[cfg(test)]\npub(crate) fn combined_replay_sim()')
         new=new.replace('// The library-only admitted fixture calls this helper. The binary also\n// compiles this module for tests, but cannot construct that library test binding.\n#[cfg(test)]\n#[allow(dead_code)]\npub(crate) fn assert_combined_admitted_sync(', '#[cfg(test)]\npub(crate) fn assert_combined_admitted_sync(')
         self.assertEqual(hashlib.sha256(new.encode()).hexdigest(),self.contracts['renderer_before_app_edge_sha256'])
+    def test_missing_optional_pack_expectation_changes_only_the_test_and_rejects_mutation(self):
+        current=(self.overlay/'src/authored_viewmodel.rs').read_bytes()
+        historical=restore_optional_pack_fixture(current)
+        marker=b'#[cfg(test)]\nmod tests {'
+        self.assertIn(marker,current)
+        self.assertEqual(current.split(marker,1)[0],historical.split(marker,1)[0])
+        body=current.split(b'fn high_mantle_unapproved_optional_pack_keeps_existing_renderer_intact()',1)[1].split(b'    #[test]',1)[0]
+        for expected in (b'error.starts_with("one-hand missing.vra: ")',
+                         b'assert!(model.high_mantle_binding().is_none());',
+                         b'assert!(model.high_mantle.is_none());',
+                         b'assert!(model.error().is_none());',
+                         b'model.source_pose_snapshot(0., Mat4::IDENTITY).unwrap().pose,\n            before'):
+            self.assertIn(expected,body)
+        for changed in (historical, current+b'\n',
+                        current.replace(b'visual.pose = Some(pose);',b'visual.pose = None;',1),
+                        current.replace(b'one-hand missing.vra: ',b'unrelated failure: ',1)):
+            with self.assertRaises(AssertionError):restore_optional_pack_fixture(changed)
     def test_shared_renderer_replay_binding_is_constructed_only_in_library_tests(self):
         renderer=(self.overlay/'src/authored_viewmodel.rs').read_text(encoding='utf-8')
         callers=[((self.overlay/path).read_text(encoding='utf-8'),count) for path,count in

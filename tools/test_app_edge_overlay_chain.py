@@ -8,13 +8,15 @@ from unittest.mock import patch
 
 import app_edge_renderer_overlay_v1 as overlay
 import verify_app_edges as verifier
+from test_app_edges import restore_optional_pack_fixture
 
 
 class RendererOverlayChainTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.root = Path(__file__).resolve().parents[1]
-        cls.current = (cls.root / 'src/authored_viewmodel.rs').read_bytes()
+        cls.composed = (cls.root / 'src/authored_viewmodel.rs').read_bytes()
+        cls.current = restore_optional_pack_fixture(cls.composed)
         cls.provenance = (cls.root / 'tools/combined_source_contracts.json').read_bytes()
         cls.contract = overlay.load_overlay()
         cls.parent = overlay.restore_renderer_overlay(cls.current, cls.provenance)
@@ -102,7 +104,7 @@ class RendererOverlayChainTests(unittest.TestCase):
                 operation(source.replace(b'\n', b'\r\n'), self.provenance)
 
     def test_current_and_parent_renderers_remain_rejected_as_historical_native_proof(self):
-        for source in (self.current, self.parent):
+        for source in (self.composed, self.current, self.parent):
             config = dict(source_root='candidate',
                           source_files=[dict(path='candidate/src/authored_viewmodel.rs',
                                              sha256=hashlib.sha256(source).hexdigest())],

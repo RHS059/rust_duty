@@ -2957,7 +2957,7 @@ mod tests {
         let error = model
             .install_high_mantle(&reference, vector_range::authored_high_mantle::ANCHOR)
             .unwrap_err();
-        assert!(error.contains("pending native verification"));
+        assert!(error.starts_with("one-hand missing.vra: "));
         assert!(model.high_mantle_binding().is_none());
         assert!(model.high_mantle.is_none());
         assert!(model.error().is_none());

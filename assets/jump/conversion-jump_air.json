@@ -1,0 +1,142 @@
+{
+  "schema": "rust-duty-fbx-segment-diagnostic/v1",
+  "status": "diagnostic",
+  "source_fbx_sha256": "9678aca375665a4db71cc6999d28fb11b8d997ce7448deaefeceefc2d7bfb9aa",
+  "authoring_master_sha256": "a2c4b2bbe98da1a608450bba92404cb39008eae5861bcf8fc3f5d2f978df0e3b",
+  "native_crop": [
+    0,
+    23
+  ],
+  "native_fps": [
+    60,
+    1
+  ],
+  "source_take": "jump_air",
+  "imported_frame_offset": 0.0,
+  "timing_policy": {
+    "kind": "explicit-rational-resampling",
+    "subdivisions": 8,
+    "switches": [],
+    "switch_neighbor_offset_native": [
+      1,
+      65536
+    ],
+    "float32_collision_policy": "reject",
+    "samples": 185
+  },
+  "bones": 72,
+  "actors": [
+    "hk416_weapon",
+    "hk416_magazine"
+  ],
+  "weights": {
+    "Actual arms mesh 2": {
+      "vertices": 570,
+      "maximum_influences": 3,
+      "vertices_over_four": 0
+    },
+    "Actual arms mesh 0": {
+      "vertices": 5710,
+      "maximum_influences": 5,
+      "vertices_over_four": 4
+    },
+    "Actual arms mesh 1": {
+      "vertices": 3954,
+      "maximum_influences": 6,
+      "vertices_over_four": 93
+    }
+  },
+  "importer_patches": {
+    "blen_read_animations": {
+      "sha256": "757bd21550d94e2190881ec6b0eb0ce80b275d2a230055cf7702044fe6dcc6e2",
+      "replacement_count": 1
+    },
+    "blen_store_keyframes_multi": {
+      "sha256": "793a389ebde0e71ec3cec54e731c861753aa08015355904777a8c39b70da3a4e",
+      "replacement_count": 1
+    }
+  },
+  "source_action_ranges": [
+    {
+      "name": "Arms|jump_air",
+      "frame_range": [
+        0.0,
+        23.0
+      ]
+    },
+    {
+      "name": "Arms|jump_land",
+      "frame_range": [
+        0.0,
+        28.0
+      ]
+    },
+    {
+      "name": "Arms|jump_takeoff",
+      "frame_range": [
+        0.0,
+        11.0
+      ]
+    },
+    {
+      "name": "hk416_magazine|jump_air",
+      "frame_range": [
+        0.0,
+        23.0
+      ]
+    },
+    {
+      "name": "hk416_magazine|jump_land",
+      "frame_range": [
+        0.0,
+        28.0
+      ]
+    },
+    {
+      "name": "hk416_magazine|jump_takeoff",
+      "frame_range": [
+        0.0,
+        11.0
+      ]
+    },
+    {
+      "name": "hk416_weapon|jump_air",
+      "frame_range": [
+        0.0,
+        23.0
+      ]
+    },
+    {
+      "name": "hk416_weapon|jump_land",
+      "frame_range": [
+        0.0,
+        28.0
+      ]
+    },
+    {
+      "name": "hk416_weapon|jump_takeoff",
+      "frame_range": [
+        0.0,
+        11.0
+      ]
+    }
+  ],
+  "visibility_policy": "all-zero rigid scale maps to invisible STEP with identity placeholder; partial singular scale rejected",
+  "geometry_transport": "static GLB only; no sampled GLB animation",
+  "material_source_sha256": "a2c4b2bbe98da1a608450bba92404cb39008eae5861bcf8fc3f5d2f978df0e3b",
+  "files": {
+    "asset.vrs": {
+      "sha256": "4b11ff4137def642fe761c1a74778145e0b528c34801427b396a3368c600d7e2",
+      "bytes": 13605994
+    },
+    "asset.vrm": {
+      "sha256": "e6d0afc10a9ccbb8e7a4c341fb2e11517f8aa0712075d86cc07d893a76aeeedf",
+      "bytes": 3901372
+    },
+    "asset.vra": {
+      "sha256": "3f4495fcca4f6d554a62ca15ac66570c2b3cea12089fe43aaf9ce95b7fd567d6",
+      "bytes": 550240
+    }
+  },
+  "scope": "Explicitly selected source range converted as WIP. Review scope is recorded in the source-selection manifest. No runtime parity or gameplay visual approval is implied."
+}
