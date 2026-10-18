@@ -3,6 +3,7 @@ import copy, hashlib, json, re, struct, tempfile, unittest
 from unittest.mock import patch
 from pathlib import Path
 from app_edge_synthetic_fixture import make, BINDING, IDENTITY, CONTRACT
+from app_edge_renderer_overlay_v1 import restore_renderer_overlay
 from verify_app_edges import validate, Rejected, FIELDS, png_extent, loads, verify_config, verify_run, invocation, sha, digest
 
 def restore_shared_replay_test_binding(source):
@@ -270,7 +271,10 @@ class SourceTests(unittest.TestCase):
         self.assertIn('APPROVED_RUNTIME_PINS: Option<RuntimePins<\'static>> = None;',high)
         self.assertIn('pub const NATIVE_SECONDS: f64 = 95. / 60.;',high)
     def test_renderer_delta_only_observes_existing_samples_and_adds_unrun_test(self):
-        new=(self.overlay/'src/authored_viewmodel.rs').read_text(encoding='utf-8')
+        # Reverse the exact versioned successor before the unchanged historical delta.
+        current=(self.overlay/'src/authored_viewmodel.rs').read_bytes()
+        provenance=(self.overlay/'tools/combined_source_contracts.json').read_bytes()
+        new=restore_renderer_overlay(current,provenance).decode('utf-8')
         new=restore_shared_replay_test_binding(new)
         begin=new.index('    /// Distinct source and presented sample times. An outgoing pose is a live')
         end=new.index('    /// Set the hip cant applied at the next draw.',begin)

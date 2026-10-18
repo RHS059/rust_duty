@@ -107,8 +107,25 @@ jobs:
           $game=Join-Path $env:ONEHAND_WORK 'game-admission/package'
           python -I -B (Join-Path $game 'execute_continuation.py') --package-pins-sha256 '2ddc2f15747c364e36159ee7fca00bc9432892c87657bc986fe744acb7a3f0c1' --source-tests
           if ($LASTEXITCODE -ne 0) { throw 'Game continuation source-only tests failed' }
+      - name: Export and test the separately frozen source inventory measurement
+        timeout-minutes: 10
+        run: |
+          $ErrorActionPreference='Stop'
+          $helper=Join-Path $env:ONEHAND_WORK 'source-inventory-export.py'
+          $p=[Diagnostics.ProcessStartInfo]::new();$p.FileName=$env:ONEHAND_GIT;$p.UseShellExecute=$false;$p.RedirectStandardOutput=$true;$p.RedirectStandardError=$true
+          foreach ($arg in @('-C',$env:ONEHAND_REPOSITORY,'cat-file','blob',($env:PROOF_COMMIT+':tools/onehand_windows/game-continuation-v2/export_source_inventory.py'))) { $p.ArgumentList.Add($arg) }
+          $proc=[Diagnostics.Process]::Start($p);$stream=[IO.File]::Open($helper,[IO.FileMode]::CreateNew)
+          try { $proc.StandardOutput.BaseStream.CopyTo($stream) } finally { $stream.Dispose() }
+          $discard=$proc.StandardError.ReadToEnd();$proc.WaitForExit()
+          if ($proc.ExitCode -ne 0) { throw 'Exact source inventory bootstrap export failed' }
+          if ((Get-FileHash $helper -Algorithm SHA256).Hash.ToLowerInvariant() -ne '4f577d2dbd64cb242a7c5435247439ab04bf663439fcf5600e8d4d7c39783d50') { throw 'Reviewed source inventory bootstrap differs' }
+          $inventory=Join-Path $env:ONEHAND_WORK 'source-inventory/package'
+          python -I -B $helper --git $env:ONEHAND_GIT --repository $env:ONEHAND_REPOSITORY --event-commit $env:PROOF_COMMIT --package-pins-sha256 'c08e53fe26ff933500e1e6cecc1c05a8935be36b705d555b3ca76eb613878f09' --output $inventory
+          if ($LASTEXITCODE -ne 0) { throw 'Exact source inventory package export failed' }
+          python -I -B (Join-Path $inventory 'execute_continuation.py') --package-pins-sha256 'c08e53fe26ff933500e1e6cecc1c05a8935be36b705d555b3ca76eb613878f09' --source-tests
+          if ($LASTEXITCODE -ne 0) { throw 'Source inventory regression tests failed' }
+          "ONEHAND_INVENTORY_PACKAGE=$inventory" >> $env:GITHUB_ENV
       - name: Read the established immutable Jump authoring source for this same workflow
-        if: ${{ steps.game_admission.outputs.game_ready == 'true' }}
         uses: actions/checkout@v4
         with:
           ref: e9317f90ea171976306e2f17c111325d948ea357
@@ -116,6 +133,26 @@ jobs:
           persist-credentials: false
           sparse-checkout-cone-mode: false
           sparse-checkout: assets/authoring/jump/halcyon_jump.blend
+      - name: Measure exact event and immutable Jump source inventory without native admission
+        id: source_inventory
+        timeout-minutes: 20
+        run: |
+          $ErrorActionPreference='Stop'
+          $output=Join-Path $env:ONEHAND_WORK 'source-inventory/evidence'
+          if (Test-Path -LiteralPath $output) { throw 'Fresh source inventory evidence required' }
+          New-Item -ItemType Directory -Path $output | Out-Null
+          python -I -B (Join-Path $env:ONEHAND_INVENTORY_PACKAGE 'execute_continuation.py') --package-pins-sha256 'c08e53fe26ff933500e1e6cecc1c05a8935be36b705d555b3ca76eb613878f09' --measure-source --git $env:ONEHAND_GIT --repository $env:ONEHAND_REPOSITORY --event-commit $env:PROOF_COMMIT --jump-repository (Join-Path $env:GITHUB_WORKSPACE 'onehand-jump-input') --output-directory $output --github-output $env:GITHUB_OUTPUT
+          if ($LASTEXITCODE -ne 0) { throw 'Source inventory measurement failed; no native admission granted' }
+      - name: Retain only measured hash inventory and source-only provenance
+        if: ${{ steps.source_inventory.outputs.source_inventory_measured == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: onehand-windows-game-source-inventory-${{ github.run_id }}-${{ github.run_attempt }}
+          retention-days: 7
+          if-no-files-found: error
+          path: |
+            ${{ runner.temp }}/onehand-${{ github.run_id }}-${{ github.run_attempt }}/source-inventory/evidence/game-source-spec.json
+            ${{ runner.temp }}/onehand-${{ github.run_id }}-${{ github.run_attempt }}/source-inventory/evidence/game-source-spec-receipt.json
       - name: Verify independent native admission and every input before native installers
         id: admission
         timeout-minutes: 20
@@ -193,3 +230,4 @@ jobs:
             ${{ runner.temp }}/onehand-${{ github.run_id }}-${{ github.run_attempt }}/proof/public-evidence/summary.json
             ${{ runner.temp }}/onehand-${{ github.run_id }}-${{ github.run_attempt }}/source-evidence/game-admission.json
             ${{ runner.temp }}/onehand-${{ github.run_id }}-${{ github.run_attempt }}/source-evidence/game-summary.json
+            ${{ runner.temp }}/onehand-${{ github.run_id }}-${{ github.run_attempt }}/source-inventory/evidence/game-source-spec-failure.json

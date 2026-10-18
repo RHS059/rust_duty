@@ -1,0 +1,16 @@
+{
+  "build_game.py": "96ca0cd67ea59c3180cd506611f8ad4482284bbff6964352f49ef8dd9b22c0ad",
+  "continuation_core.py": "248bf8a754498948f3ff0dcd928681404aebcdb0e0aa9d8807153cd39386c2cc",
+  "execute_continuation.py": "fdbf7531ccb2a0e90a0606a35ff7c00e3959333c3fca142be0a9b190e956e805",
+  "export_source_inventory.py": "4f577d2dbd64cb242a7c5435247439ab04bf663439fcf5600e8d4d7c39783d50",
+  "game_commands.py": "3247f5d1d63892fb734e3573e8ad0bbac65b361605c917e3bed75a5122e47a50",
+  "game_plan.py": "793361cb8cfb707c2262b6b67c8ce112e7b70eb537dda249db335cd02851c162",
+  "game_source.py": "1dc4136ecf8aa4ac014aed5ff4b1af7baae708814a83d921b6b9b7d64a24e89d",
+  "measure_source_spec.py": "d215701b68509f6466f0bdb26720099431c0c2ae5d5f2e359d5821a173203c5b",
+  "preflight_game.py": "3119d307a84dc46f6f84bf07edde34b64d8a31e641ca96f52f3946939897e905",
+  "prepare_game_spec.py": "9e173611d376a0dca3ae1806fba146b6be41614f555fa755a5246d5326a5ae01",
+  "run_continuation.py": "ce9ff81b292e306b038c2697dd4b21e79ee5c9daa70b7b7bfea6601845e807aa",
+  "test_continuation.py": "c599630df3c49d44b880db1a002ed6566d51b5ac7439082ad618310764e6e788",
+  "test_source_measurement.py": "f7b733cc6df4e921b0457d342a4dafca63d9069f3a11fe31300a6f753c4f0d4c",
+  "verify_dx12.py": "8e523431af78a00facb77a264af4b2c712321870268b8ef6376030442a9c11ce"
+}

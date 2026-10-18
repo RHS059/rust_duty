@@ -1,0 +1,21 @@
+{
+  "schema": "rust-duty-app-edge-renderer-diagnostic-overlay/v1",
+  "source_commit": "d3bcc87bbed39115be11429c0610fa4a989a05ce",
+  "repository_path": "src/authored_viewmodel.rs",
+  "parent_sha256": "766a537955269db8318f8cb4dcf8f8f87add3b9692fa5e3354643297c23cd43a",
+  "current_sha256": "56cb0b9338a0c10d3879a389c43049439b8eea85d95073d6cd49a1475cd09e76",
+  "historical_contract_sha256": "772ac58692cfb00578bd2af552fcbc7e312c78f6000a6caa5b18911981b338ee",
+  "scope": "exact additive diagnostic method and inactive-binding test only; no native evidence",
+  "insertions": [
+    {
+      "name": "read-only-candidate-observation",
+      "before": "    /// Set the hip cant applied at the next draw. Gameplay owns the value.\n",
+      "insert": "    /// Observe the actual admitted renderer/clip; never changes any motion state.\n    pub fn high_candidate_observation(&self) -> Option<serde_json::Value> {\n        let visual = self.high_mantle.as_ref()?;\n        let renderer = self.reload_renderers.get(visual.index)?;\n        let binding = self.high_mantle_binding.as_ref()?;\n        Some(serde_json::json!({\n            \"clip\": renderer.clip,\n            \"asset_sha256\": binding.asset_sha256(),\n            \"receipt_sha256\": binding.receipt_sha256(),\n            \"pose\": self.app_edge_high_pose_observation(),\n            \"warning\": renderer.warning(),\n            \"renderer_failed\": renderer.error().is_some(),\n        }))\n    }\n"
+    },
+    {
+      "name": "inactive-binding-test",
+      "before": "    #[test]\n    fn prone_outgoing_tracks_live_reload_opacity_then_live_base_without_contact_reset() {",
+      "insert": "    #[test]\n    fn candidate_observation_is_absent_without_an_admitted_binding() {\n        let model = contact_fixture();\n        assert!(model.high_candidate_observation().is_none());\n        let (mut model, visual) = high_mantle_fixture();\n        model.high_mantle = Some(visual);\n        assert!(model.high_candidate_observation().is_none());\n    }\n\n"
+    }
+  ]
+}

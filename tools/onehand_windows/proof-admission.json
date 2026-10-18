@@ -1,5 +1,5 @@
 {
-  "schema": "rust-duty-onehand-native-source-admission/v2",
+  "schema": "rust-duty-onehand-native-source-admission/v4",
   "orchestration_pins_sha256": null,
   "proof_inputs": null,
   "controller_layout": null,
