@@ -166,13 +166,13 @@ jobs:
           if (Test-Path -LiteralPath $observer) { throw 'Fresh addon observation helper directory required' }
           New-Item -ItemType Directory -Path $observer | Out-Null
           $pins=[ordered]@{
-            'observe_official_addon.py'='617c9cbc826d79fe170140d5e37dbbf1604b7344157498c3124cabd3fb009a56'
-            'test_observe_official_addon.py'='6fc58def2870376822d5882b292477cc4327abbcef466ecdc4f28fafdcaef0ea'
+            'observe_official_addon.py'='7811b9f2a9360bba5147f726e12cb8599f5760e7fb439f0604db3f4768d48eb5'
+            'test_observe_official_addon.py'='6e7354040d5086aac66336db6da9a89015a88235425b4147c9df323f1b83c843'
           }
           foreach ($name in $pins.Keys) {
             $output=Join-Path $observer $name
             $p=[Diagnostics.ProcessStartInfo]::new();$p.FileName=$env:ONEHAND_GIT;$p.UseShellExecute=$false;$p.RedirectStandardOutput=$true;$p.RedirectStandardError=$true
-            foreach ($arg in @('-C',$env:ONEHAND_REPOSITORY,'cat-file','blob',($env:PROOF_COMMIT+':tools/onehand_windows/official-addon-observation-v1/'+$name))) { $p.ArgumentList.Add($arg) }
+            foreach ($arg in @('-C',$env:ONEHAND_REPOSITORY,'cat-file','blob',($env:PROOF_COMMIT+':tools/onehand_windows/official-addon-observation-v2/'+$name))) { $p.ArgumentList.Add($arg) }
             $proc=[Diagnostics.Process]::Start($p);$stream=[IO.File]::Open($output,[IO.FileMode]::CreateNew)
             try { $proc.StandardOutput.BaseStream.CopyTo($stream) } finally { $stream.Dispose() }
             $discard=$proc.StandardError.ReadToEnd();$proc.WaitForExit()
@@ -272,7 +272,7 @@ jobs:
         timeout-minutes: 10
         run: |
           $ErrorActionPreference='Stop'
-          if ((Get-FileHash -LiteralPath $env:ONEHAND_ADDON_OBSERVER -Algorithm SHA256).Hash.ToLowerInvariant() -ne '617c9cbc826d79fe170140d5e37dbbf1604b7344157498c3124cabd3fb009a56') { throw 'Reviewed addon observer changed after source tests' }
+          if ((Get-FileHash -LiteralPath $env:ONEHAND_ADDON_OBSERVER -Algorithm SHA256).Hash.ToLowerInvariant() -ne '7811b9f2a9360bba5147f726e12cb8599f5760e7fb439f0604db3f4768d48eb5') { throw 'Reviewed addon observer changed after source tests' }
           python -I -B $env:ONEHAND_ADDON_OBSERVER --work-root $env:ONEHAND_WORK --config $env:ONEHAND_CONFIG --config-sha256 $env:ONEHAND_CONFIG_SHA --run-id $env:GITHUB_RUN_ID --run-attempt $env:GITHUB_RUN_ATTEMPT
           if ($LASTEXITCODE -ne 0) { throw 'Read-only addon observation unavailable; original native outcome remains unchanged' }
       - name: Retain only bounded source-test admission and native hash summaries
