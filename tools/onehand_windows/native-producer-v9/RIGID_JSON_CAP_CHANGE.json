@@ -1,0 +1,41 @@
+{
+  "all_old_production_bytes_reconstructable": true,
+  "context_default_changed": false,
+  "exact_failed_windows_witness_bytes": null,
+  "failed_commit": "40e31df9d46cfe4b6972fc3705489953f6aac96d",
+  "failed_run_id": 39123407457,
+  "failed_summary_sha256": "2277e99deabc0723a865231e4325ae62bd09c6411d423a3478ec848141df3d96",
+  "geometry_payload_changed": false,
+  "historical_assertion_reconstruction_tests": [
+    "test_fragment_ast.py",
+    "test_dependency_selection.py",
+    "test_projection_dependency.py",
+    "test_host_identity.py"
+  ],
+  "inferred_failed_windows_witness_byte_range": {
+    "maximum": 33554432,
+    "minimum": 2097153
+  },
+  "input_role": "rigid_frame1",
+  "native_execution_performed": false,
+  "new_reader_cap_bytes": 33554432,
+  "numerical_checks_changed": false,
+  "old_reader_cap_bytes": 2097152,
+  "production_changes": {
+    "native_stages.py": {
+      "new_call": "ctx.cc.strict_json(ctx.pin('rigid_frame1').verify(),32*MIB)",
+      "new_sha256": "3d74bba53db207188647d27e77573b0c02fc9de634235ac3b575d8eefb8ef9aa",
+      "old_call": "ctx.cc.strict_json(ctx.pin('rigid_frame1').verify())",
+      "old_sha256": "ecc58db55b78c9a178fa3bbbd07baa6fb5398dc961cbb636b4fa42fa27e1367d"
+    }
+  },
+  "schema": "rust-duty-rigid-json-cap-change/v1",
+  "size_range_basis": "Pinned read hit2MiB cap after admitted rigid-frame1 stage whose unchanged writer and total output cap are32MiB; exact private witness was not uploaded.",
+  "stages": [
+    "rigid-focus",
+    "rigid-chunk"
+  ],
+  "unchanged_runtime_consumer_cap_bytes": 67108864,
+  "unchanged_stage_total_output_cap_bytes": 33554432,
+  "unchanged_writer_cap_bytes": 33554432
+}

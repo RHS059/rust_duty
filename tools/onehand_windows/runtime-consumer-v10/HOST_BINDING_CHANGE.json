@@ -1,0 +1,15 @@
+{
+  "changed_production_files": {
+    "evidence.py": "explicit private host_identity loader node only",
+    "runtime_context.py": "exact SELECTED_PRODUCER_PINS_SHA only"
+  },
+  "mathematical_source_unchanged": true,
+  "native_execution": false,
+  "outer_host_context_and_transport_unchanged": true,
+  "predecessor_commit": "9439dc0701e34c74c371be77985930926b836fc9",
+  "predecessor_package_pins_sha256": "1d1c2d1343eebd3bc0a53637a1b2a5ce5e3820486ba352b700fc1020066b0eac",
+  "private_assets_included": false,
+  "schema": "rust-duty-runtime-host-role-dependency-change/v1",
+  "selected_producer_pins_sha256": "fbf3b0f7221b34b6dca29b885c7b1ab2f965ed76049c77504b9d504032e5bc9e",
+  "source_only": true
+}

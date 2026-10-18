@@ -1,0 +1,119 @@
+{
+  "files": {
+    "command_contract.py": [
+      {
+        "new_lines": [
+          "PRODUCER_SHA='cffa746f9bdd4433ad2bc738a51e1b435f720cb9a16ffc0399f28fb0cd99b327'\n"
+        ],
+        "new_start": 15,
+        "old_lines": [
+          "PRODUCER_SHA='fbf3b0f7221b34b6dca29b885c7b1ab2f965ed76049c77504b9d504032e5bc9e'\n"
+        ]
+      }
+    ],
+    "onehand-windows-proof.yml": [
+      {
+        "new_lines": [
+          "      PACKAGE: tools/onehand_windows/orchestration-v10\n"
+        ],
+        "new_start": 26,
+        "old_lines": [
+          "      PACKAGE: tools/onehand_windows/orchestration-v9\n"
+        ]
+      },
+      {
+        "new_lines": [
+          "      - name: Set up the exact controller Python\n",
+          "        id: controller_python312\n",
+          "        uses: actions/setup-python@v5\n"
+        ],
+        "new_start": 41,
+        "old_lines": [
+          "      - uses: actions/setup-python@v5\n"
+        ]
+      },
+      {
+        "new_lines": [
+          "          python-version: '3.12.10'\n",
+          "          architecture: 'x64'\n",
+          "      - name: Set up the exact native-parser compatibility Python\n",
+          "        id: native_ast_python311\n",
+          "        uses: actions/setup-python@v5\n",
+          "        with:\n",
+          "          python-version: '3.11.9'\n",
+          "          architecture: 'x64'\n",
+          "          update-environment: false\n"
+        ],
+        "new_start": 45,
+        "old_lines": [
+          "          python-version: '3.12'\n"
+        ]
+      },
+      {
+        "new_lines": [
+          "          $sourceHelperSha='1503100e5a165637f0ab1261f59f6232a8b35d63f718c15a0df59e28c744b75a'\n"
+        ],
+        "new_start": 84,
+        "old_lines": [
+          "          $sourceHelperSha='f619fe5c82ea7845ba7f94740d07d3dccafefcf6547a0668e9a1976b4a5233dc'\n"
+        ]
+      },
+      {
+        "new_lines": [
+          "      - name: Verify all frozen native fragment identities in both exact interpreters\n",
+          "        timeout-minutes: 10\n",
+          "        run: |\n",
+          "          $ErrorActionPreference='Stop'\n",
+          "          $native=Join-Path (Split-Path -Parent $env:ONEHAND_SOURCE_PACKAGE) 'native-producer-reviewed'\n",
+          "          $python311='${{ steps.native_ast_python311.outputs.python-path }}'\n",
+          "          $python312='${{ steps.controller_python312.outputs.python-path }}'\n",
+          "          & $python311 -I -B -c 'import sys;assert sys.version_info[:3]==(3,11,9)'\n",
+          "          if ($LASTEXITCODE -ne 0) { throw 'Exact native-parser Python3.11.9 required' }\n",
+          "          & $python312 -I -B -c 'import sys;assert sys.version_info[:3]==(3,12,10)'\n",
+          "          if ($LASTEXITCODE -ne 0) { throw 'Exact controller Python3.12.10 required' }\n",
+          "          python -I -B -c 'import os,sys;assert sys.version_info[:3]==(3,12,10);assert os.path.samefile(sys.executable,sys.argv[1])' $python312\n",
+          "          if ($LASTEXITCODE -ne 0) { throw 'Controller interpreter changed during compatibility setup' }\n",
+          "          & $python311 -I -B (Join-Path $native 'run_fragment_compatibility.py') --report (Join-Path $env:ONEHAND_WORK 'source-evidence/native-fragments-python311.json')\n",
+          "          $native311Exit=$LASTEXITCODE\n",
+          "          & $python312 -I -B (Join-Path $native 'run_fragment_compatibility.py') --report (Join-Path $env:ONEHAND_WORK 'source-evidence/native-fragments-python312.json')\n",
+          "          $native312Exit=$LASTEXITCODE\n",
+          "          if ($native311Exit -ne 0 -or $native312Exit -ne 0) { throw 'Exact cross-interpreter native fragment checks failed before vendor installation' }\n"
+        ],
+        "new_start": 94,
+        "old_lines": []
+      },
+      {
+        "new_lines": [
+          "            ${{ runner.temp }}/onehand-${{ github.run_id }}-${{ github.run_attempt }}/source-evidence/native-fragments-python311.json\n",
+          "            ${{ runner.temp }}/onehand-${{ github.run_id }}-${{ github.run_attempt }}/source-evidence/native-fragments-python312.json\n"
+        ],
+        "new_start": 325,
+        "old_lines": []
+      }
+    ],
+    "run_source_tests.py": [
+      {
+        "new_lines": [
+          "    packages=orchestrate.load_packages(config,{'native_producer_pins_sha256':declared['native_v7'],'runtime_consumer_pins_sha256':declared['consumer_v8']})\n"
+        ],
+        "new_start": 16,
+        "old_lines": [
+          "    packages=orchestrate.load_packages(config,{'native_producer_pins_sha256':declared['native_v6'],'runtime_consumer_pins_sha256':declared['consumer_v7']})\n"
+        ]
+      }
+    ],
+    "source_checkout.py": [
+      {
+        "new_lines": [
+          "PACKAGE='tools/onehand_windows/orchestration-v10'\n"
+        ],
+        "new_start": 7,
+        "old_lines": [
+          "PACKAGE='tools/onehand_windows/orchestration-v9'\n"
+        ]
+      }
+    ]
+  },
+  "native_execution_performed": false,
+  "schema": "rust-duty-ast-dependency-source-changes/v1"
+}

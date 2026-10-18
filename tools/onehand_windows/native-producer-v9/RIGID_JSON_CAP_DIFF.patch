@@ -1,0 +1,11 @@
+--- native-producer-v7/native_stages.py
++++ native-producer-v8/native_stages.py
+@@ -117,7 +117,7 @@
+         actors[name]={**r,
+                       'buffers':buffers.digests(),'world_at_frame1':e['mat'](bpy.data.objects[name].matrix_world),'hide_render':False}
+     if ctx.stage in ('rigid-chunk','rigid-focus'):
+-        baseline=ctx.cc.strict_json(ctx.pin('rigid_frame1').verify())
++        baseline=ctx.cc.strict_json(ctx.pin('rigid_frame1').verify(),32*MIB)
+         require(baseline['schema']=='rust-duty-windows-rigid-frame1/v1' and baseline['binding']==ctx.binding,'fresh same-target frame1 required')
+         require(baseline['actors']==actors,'frame1 geometry differs from actual target witness')
+     rows=[]

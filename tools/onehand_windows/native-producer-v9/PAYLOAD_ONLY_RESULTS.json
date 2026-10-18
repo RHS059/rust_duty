@@ -1,0 +1,39 @@
+{
+  "full_windows_pipeline_proved": false,
+  "legacy_harness_limitation": "test_projection_dependency imports historical test_native_producer fixture requiring unavailable onehand-runtime-20261016/windows-candidate-context-v2; not claimed passed",
+  "native_execution_performed": false,
+  "schema": "rust-duty-payload-only-cpu-results/v1",
+  "source_only": true,
+  "suites": {
+    "test_dependency_selection": {
+      "errors": 0,
+      "failures": 0,
+      "skips": 0,
+      "tests": 5
+    },
+    "test_fragment_ast": {
+      "errors": 0,
+      "failures": 0,
+      "skips": 0,
+      "tests": 23
+    },
+    "test_host_identity": {
+      "errors": 0,
+      "failures": 0,
+      "skips": 0,
+      "tests": 27
+    },
+    "test_payload_only_inventory": {
+      "errors": 0,
+      "failures": 0,
+      "skips": 0,
+      "tests": 12
+    },
+    "test_rigid_json_cap": {
+      "errors": 0,
+      "failures": 0,
+      "skips": 0,
+      "tests": 19
+    }
+  }
+}

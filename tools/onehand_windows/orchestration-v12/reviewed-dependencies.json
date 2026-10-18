@@ -1,0 +1,13 @@
+{
+  "native_producer_pins_sha256": "03fdc69c859ecf762a1b23a35a0edbe63e0b20a3ccaa941aa6756232f14bf989",
+  "note": "Proposed exact dependency contract for independent review, not acceptance or actual Windows provenance. Native admission and unpublished input/review refs remain null; final gate requires genuine independent acceptance bound to this exact package.",
+  "preparation_note": "Exact candidate dependency identities only; original private comments excluded by explicit source projection. Final independent completed-input acceptance and native admission remain unset.",
+  "published_original_delta_path": "tools/onehand_windows/source-transport-v4/TRANSPORT_PARTS.json",
+  "reference_equivalence_sha256": "0edade60bd2a9b277f0577a37f4392c47ec6d69e4954b52bff1adb395317b773",
+  "reference_index_sha256": "482e235a9f2be27173c63ff92ffa8a1ed3c31367f39e06a322d89e34152e7f91",
+  "reference_replay_sha256": "664c471d2d0ca9e1f015d578f50617866b36c68300d42324297f2cc267754646",
+  "runtime_consumer_pins_sha256": "bd1506f15d8f644ab42c6736b07c88f21be413ff225ac4a98cb4265f53de4e8d",
+  "rust_source_revision": "c61dbd67039a4961d0c56f0a3c7e478c431d1ced",
+  "rust_toolchain": "1.99.0-x86_64-pc-windows-msvc",
+  "schema": "rust-duty-onehand-orchestration-review/v1"
+}
