@@ -1,0 +1,36 @@
+{
+  "allowed_ast_dependency_changes": [
+    "command_contract.py",
+    "onehand-windows-proof.yml",
+    "run_source_tests.py",
+    "source_checkout.py"
+  ],
+  "files": {
+    "SOURCE_CLOSURE.json": "14c52fc3a46f8cca2ae17a2a4db43c4a6f4d184a560e0d5c37f22a88238f0d22",
+    "build_rust.py": "bb1d213030a427133b852410d629df9128c8ceb127846322f0528177454caf1b",
+    "checkout_bytes.py": "935ca9997b68778cf7b3a073598b3dfaa236816d610fc9440e86fb4c51db077c",
+    "command_contract.py": "126ec3b2c810c8d387ffd11a50dbef060a9b8c0d66e1cd304262d5fe590e369e",
+    "failure_diagnostics.py": "d979c605aa2eca54b87bdff0bee47c56febcc3a98fa95564cd41a4956caa5044",
+    "host_tools.py": "52bb2e44c6e86074f337f365723ed1fc3121af8b9d3eb9a41616201c235c24b0",
+    "onehand-windows-proof.yml": "036cde7df8fa95b6af3aeb489d31fc0c8c246429c07888a4571ad66322738018",
+    "orchestrate.py": "91d8898d521070aa09958ef8d8c283909244e9430a26ae8187313bfb3c8573a6",
+    "owned_commands.py": "20104c58b947b9d1032ccf162e1504620f949fdd274b5fbcc2fe5707e14c0e65",
+    "parts_transport.py": "758ff9aec16bf3dbfe7c7799e27268f94e6b05294943aad943aad1e5797aecce",
+    "preinstall_admission.py": "05b8c41c557cb0274d8caaf913bfb454277df1301a14df47b004517bc66c2a14",
+    "prepare_controller.py": "9e8db6b4b069d9786bcae524e352ce8d06290c04fbf39566420e57182e6b3a64",
+    "probe_blender.py": "cef34876a036fec04d520e835d95f8a3fea7a51cad23bb9140efdae13694a350",
+    "projection_binding.py": "92e4bbe3088be679de5696646d117d91e0c7681d6659d88910ed9d0c30000ab8",
+    "publication_inventory.py": "67040460d4357d15d167f54ec6d6e957b7e6f88c7eb4127ff922f0c2830077b4",
+    "run_proof.py": "ac03cae91856c3fc2243837da3ec6914c891844ad39b803a8e747df14b6f3fa9",
+    "run_source_tests.py": "e42103331de19a5e711350c44ade8e41a63bc4525631f48ede4b21a3a1d363af",
+    "source_checkout.py": "f619fe5c82ea7845ba7f94740d07d3dccafefcf6547a0668e9a1976b4a5233dc",
+    "source_selection.py": "9cb318b8108882658e79cf564793efdddaae0500a12fcc1dccd758caf0871256",
+    "source_transport.py": "e00395bb674f78ba6da77a2e8b56f59fd7cda1a3b5d4bf8d0559e44ca1baeea6",
+    "verify_freeze.py": "059a14d1d70cfa20b5842d8e50e8a7d829df8d0dc96d4e71fcd7ae897d637479",
+    "workflow_core.py": "e5bae5b323ca1503f1fb6851f9d90cc98d452b137aaf5810af5c3fcddec30428"
+  },
+  "independent_acceptance": false,
+  "package_path": "tools/onehand_windows/orchestration-v9",
+  "package_pins_sha256": "8fa01a10f034e4f17c026daf80173c43b2f1c2f0971e15991a2fcc4386b94381",
+  "schema": "rust-duty-ast-dependency-predecessor/v1"
+}

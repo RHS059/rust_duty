@@ -24,7 +24,7 @@ jobs:
       run:
         shell: pwsh
     env:
-      PACKAGE: tools/onehand_windows/orchestration-v9
+      PACKAGE: tools/onehand_windows/orchestration-v10
       GIT_CONFIG_COUNT: '2'
       GIT_CONFIG_KEY_0: core.autocrlf
       GIT_CONFIG_VALUE_0: 'false'
@@ -39,9 +39,19 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
           path: git-input
-      - uses: actions/setup-python@v5
+      - name: Set up the exact controller Python
+        id: controller_python312
+        uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: '3.12.10'
+          architecture: 'x64'
+      - name: Set up the exact native-parser compatibility Python
+        id: native_ast_python311
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11.9'
+          architecture: 'x64'
+          update-environment: false
       - name: Export exact source-only PR bytes without checkout filters
         timeout-minutes: 10
         run: |
@@ -72,7 +82,7 @@ jobs:
             if ($proc.ExitCode -ne 0) { throw 'Exact Git source export failed' }
           }
           foreach ($name in @('source_checkout.py','checkout_bytes.py')) { Export-Blob ($env:PACKAGE+'/'+$name) (Join-Path $work $name) }
-          $sourceHelperSha='f619fe5c82ea7845ba7f94740d07d3dccafefcf6547a0668e9a1976b4a5233dc'
+          $sourceHelperSha='1503100e5a165637f0ab1261f59f6232a8b35d63f718c15a0df59e28c744b75a'
           $materializerSha='935ca9997b68778cf7b3a073598b3dfaa236816d610fc9440e86fb4c51db077c'
           if ((Get-FileHash (Join-Path $work 'source_checkout.py') -Algorithm SHA256).Hash.ToLowerInvariant() -ne $sourceHelperSha) { throw 'Reviewed source-only bootstrap differs' }
           if ((Get-FileHash (Join-Path $work 'checkout_bytes.py') -Algorithm SHA256).Hash.ToLowerInvariant() -ne $materializerSha) { throw 'Reviewed exact materializer differs' }
@@ -82,6 +92,24 @@ jobs:
           "ONEHAND_SOURCE_PACKAGE=$(Join-Path $work 'source-materialized/orchestration')" >> $env:GITHUB_ENV
           "ONEHAND_GIT=$git" >> $env:GITHUB_ENV
           "ONEHAND_REPOSITORY=$repo" >> $env:GITHUB_ENV
+      - name: Verify all frozen native fragment identities in both exact interpreters
+        timeout-minutes: 10
+        run: |
+          $ErrorActionPreference='Stop'
+          $native=Join-Path (Split-Path -Parent $env:ONEHAND_SOURCE_PACKAGE) 'native-producer-reviewed'
+          $python311='${{ steps.native_ast_python311.outputs.python-path }}'
+          $python312='${{ steps.controller_python312.outputs.python-path }}'
+          & $python311 -I -B -c 'import sys;assert sys.version_info[:3]==(3,11,9)'
+          if ($LASTEXITCODE -ne 0) { throw 'Exact native-parser Python3.11.9 required' }
+          & $python312 -I -B -c 'import sys;assert sys.version_info[:3]==(3,12,10)'
+          if ($LASTEXITCODE -ne 0) { throw 'Exact controller Python3.12.10 required' }
+          python -I -B -c 'import os,sys;assert sys.version_info[:3]==(3,12,10);assert os.path.samefile(sys.executable,sys.argv[1])' $python312
+          if ($LASTEXITCODE -ne 0) { throw 'Controller interpreter changed during compatibility setup' }
+          & $python311 -I -B (Join-Path $native 'run_fragment_compatibility.py') --report (Join-Path $env:ONEHAND_WORK 'source-evidence/native-fragments-python311.json')
+          $native311Exit=$LASTEXITCODE
+          & $python312 -I -B (Join-Path $native 'run_fragment_compatibility.py') --report (Join-Path $env:ONEHAND_WORK 'source-evidence/native-fragments-python312.json')
+          $native312Exit=$LASTEXITCODE
+          if ($native311Exit -ne 0 -or $native312Exit -ne 0) { throw 'Exact cross-interpreter native fragment checks failed before vendor installation' }
       - name: Run bounded Windows source tests even while native admission is incomplete
         timeout-minutes: 10
         run: |
@@ -111,16 +139,16 @@ jobs:
           $ErrorActionPreference='Stop'
           $helper=Join-Path $env:ONEHAND_WORK 'game-preflight.py'
           $p=[Diagnostics.ProcessStartInfo]::new();$p.FileName=$env:ONEHAND_GIT;$p.UseShellExecute=$false;$p.RedirectStandardOutput=$true;$p.RedirectStandardError=$true
-          foreach ($arg in @('-C',$env:ONEHAND_REPOSITORY,'cat-file','blob',($env:PROOF_COMMIT+':tools/onehand_windows/game-continuation-v7/preflight_game.py'))) { $p.ArgumentList.Add($arg) }
+          foreach ($arg in @('-C',$env:ONEHAND_REPOSITORY,'cat-file','blob',($env:PROOF_COMMIT+':tools/onehand_windows/game-continuation-v8/preflight_game.py'))) { $p.ArgumentList.Add($arg) }
           $proc=[Diagnostics.Process]::Start($p);$stream=[IO.File]::Open($helper,[IO.FileMode]::CreateNew)
           try { $proc.StandardOutput.BaseStream.CopyTo($stream) } finally { $stream.Dispose() }
           $discard=$proc.StandardError.ReadToEnd();$proc.WaitForExit()
           if ($proc.ExitCode -ne 0) { throw 'Exact game bootstrap export failed' }
-          if ((Get-FileHash $helper -Algorithm SHA256).Hash.ToLowerInvariant() -ne 'bf304c8b93adaa5d57c409abbef32c666191c6aec2d6219091187fe95115085a') { throw 'Reviewed game bootstrap differs' }
-          python -I -B $helper --git $env:ONEHAND_GIT --repository $env:ONEHAND_REPOSITORY --event-commit $env:PROOF_COMMIT --package-pins-sha256 '97f45f2ba90a240ae452a08098b7f102cd0ddf041decd69d4ed5834512c4324e' --output (Join-Path $env:ONEHAND_WORK 'game-admission') --summary (Join-Path $env:ONEHAND_WORK 'source-evidence/game-admission.json') --github-output $env:GITHUB_OUTPUT
+          if ((Get-FileHash $helper -Algorithm SHA256).Hash.ToLowerInvariant() -ne 'c38a52b1c39869902f78edf2296f1424c3621039a05e6baefc7f288a3997a312') { throw 'Reviewed game bootstrap differs' }
+          python -I -B $helper --git $env:ONEHAND_GIT --repository $env:ONEHAND_REPOSITORY --event-commit $env:PROOF_COMMIT --package-pins-sha256 '7818fec4c202083ad59ab5c0d0bcbda06c13376fb4fcf4cb0be04e3303987966' --output (Join-Path $env:ONEHAND_WORK 'game-admission') --summary (Join-Path $env:ONEHAND_WORK 'source-evidence/game-admission.json') --github-output $env:GITHUB_OUTPUT
           if ($LASTEXITCODE -ne 0) { throw 'Game source or independent admission failed before native work' }
           $game=Join-Path $env:ONEHAND_WORK 'game-admission/package'
-          python -I -B (Join-Path $game 'execute_continuation.py') --package-pins-sha256 '97f45f2ba90a240ae452a08098b7f102cd0ddf041decd69d4ed5834512c4324e' --source-tests
+          python -I -B (Join-Path $game 'execute_continuation.py') --package-pins-sha256 '7818fec4c202083ad59ab5c0d0bcbda06c13376fb4fcf4cb0be04e3303987966' --source-tests
           if ($LASTEXITCODE -ne 0) { throw 'Game continuation source-only tests failed' }
           python -I -B -c 'import sys,unittest;sys.path.insert(0,sys.argv[1]);suite=unittest.defaultTestLoader.loadTestsFromName(sys.argv[2]);assert suite.countTestCases()==int(sys.argv[3]);result=unittest.TextTestRunner(verbosity=2).run(suite);raise SystemExit(not result.wasSuccessful() or bool(result.skipped))' $game 'test_dependency_binding' 5
           if ($LASTEXITCODE -ne 0) { throw 'Exact game successor dependency tests failed before native installers' }
@@ -183,14 +211,15 @@ jobs:
           if (Test-Path -LiteralPath $observer) { throw 'Fresh addon observation helper directory required' }
           New-Item -ItemType Directory -Path $observer | Out-Null
           $pins=[ordered]@{
-            'observe_official_addon.py'='0c94fab5aff55dfe1073a2b51de43076aec0d19a3de15bd47c61ae379e1dbfce'
-            'test_observe_official_addon.py'='e518269b6cc9f7d39f1bffd7b4fa62ab2c433514892fa258a34379b24678b35c'
+            'observe_official_addon.py'='568007391b4a27715c7898f1b2924691fc0c2a0a5b6699bbd5261d49f0b83ab8'
+            'test_observe_official_addon.py'='3afc8ae17f871ec6c49bc62f0f8a215bae8373a9b8c542ef9a149f11d4e0c1d1'
             'test_windows_profile.py'='91a5b84cdf37c2ff761032a311e002adf79e93b568dee46123a13f2208106853'
+            'test_probe_contract.py'='ec05590ae5a2f7658d1f78bf0bab7115910f7092c73d29f225c5eb079c3f3987'
           }
           foreach ($name in $pins.Keys) {
             $output=Join-Path $observer $name
             $p=[Diagnostics.ProcessStartInfo]::new();$p.FileName=$env:ONEHAND_GIT;$p.UseShellExecute=$false;$p.RedirectStandardOutput=$true;$p.RedirectStandardError=$true
-            foreach ($arg in @('-C',$env:ONEHAND_REPOSITORY,'cat-file','blob',($env:PROOF_COMMIT+':tools/onehand_windows/official-addon-observation-v6/'+$name))) { $p.ArgumentList.Add($arg) }
+            foreach ($arg in @('-C',$env:ONEHAND_REPOSITORY,'cat-file','blob',($env:PROOF_COMMIT+':tools/onehand_windows/official-addon-observation-v7/'+$name))) { $p.ArgumentList.Add($arg) }
             $proc=[Diagnostics.Process]::Start($p);$stream=[IO.File]::Open($output,[IO.FileMode]::CreateNew)
             try { $proc.StandardOutput.BaseStream.CopyTo($stream) } finally { $stream.Dispose() }
             $discard=$proc.StandardError.ReadToEnd();$proc.WaitForExit()
@@ -201,6 +230,8 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Source-only addon observation regressions failed before native installers' }
           python -I -B -c 'import sys,unittest;sys.path.insert(0,sys.argv[1]);suite=unittest.defaultTestLoader.loadTestsFromName(sys.argv[2]);assert suite.countTestCases()==int(sys.argv[3]);result=unittest.TextTestRunner(verbosity=2).run(suite);raise SystemExit(not result.wasSuccessful() or bool(result.skipped))' $observer 'test_windows_profile' 19
           if ($LASTEXITCODE -ne 0) { throw 'Exact observer Windows-profile tests failed before native installers' }
+          python -I -B (Join-Path $observer 'test_probe_contract.py') --orchestration $env:ONEHAND_SOURCE_PACKAGE
+          if ($LASTEXITCODE -ne 0) { throw 'Exact probe-to-observer source regressions failed before native installers' }
           "ONEHAND_ADDON_OBSERVER=$(Join-Path $observer 'observe_official_addon.py')" >> $env:GITHUB_ENV
       - name: Verify independent native admission and every input before native installers
         id: admission
@@ -292,9 +323,22 @@ jobs:
         timeout-minutes: 10
         run: |
           $ErrorActionPreference='Stop'
-          if ((Get-FileHash -LiteralPath $env:ONEHAND_ADDON_OBSERVER -Algorithm SHA256).Hash.ToLowerInvariant() -ne '0c94fab5aff55dfe1073a2b51de43076aec0d19a3de15bd47c61ae379e1dbfce') { throw 'Reviewed addon observer changed after source tests' }
-          python -I -B $env:ONEHAND_ADDON_OBSERVER --work-root $env:ONEHAND_WORK --config $env:ONEHAND_CONFIG --config-sha256 $env:ONEHAND_CONFIG_SHA --run-id $env:GITHUB_RUN_ID --run-attempt $env:GITHUB_RUN_ATTEMPT
-          if ($LASTEXITCODE -ne 0) { throw 'Read-only addon observation unavailable; original native outcome remains unchanged' }
+          if ((Get-FileHash -LiteralPath $env:ONEHAND_ADDON_OBSERVER -Algorithm SHA256).Hash.ToLowerInvariant() -ne '568007391b4a27715c7898f1b2924691fc0c2a0a5b6699bbd5261d49f0b83ab8') { throw 'Reviewed addon observer changed after source tests' }
+          $observationLines=@(& python -I -B $env:ONEHAND_ADDON_OBSERVER --work-root $env:ONEHAND_WORK --config $env:ONEHAND_CONFIG --config-sha256 $env:ONEHAND_CONFIG_SHA --run-id $env:GITHUB_RUN_ID --run-attempt $env:GITHUB_RUN_ATTEMPT 2>$null)
+          $observerExitCode=$LASTEXITCODE
+          if ($observerExitCode -ne 0) {
+            if ($observationLines.Count -ne 1 -or $observationLines[0] -isnot [string] -or [Text.Encoding]::UTF8.GetByteCount($observationLines[0]) -gt 4096) { throw 'Bounded observer failure projection unavailable; original native outcome remains unchanged' }
+            try { $failure=$observationLines[0] | ConvertFrom-Json -AsHashtable -ErrorAction Stop } catch { throw 'Observer failure projection is not JSON; original native outcome remains unchanged' }
+            $expectedKeys=@('schema','observation_complete','diagnostic_only','native_admission','native_outcome_modified','error_code','error_category','error_type','observation_error_sha256','error_hash_available','source_frames')
+            if ($failure -isnot [System.Collections.IDictionary] -or @(Compare-Object @($failure.Keys | Sort-Object) @($expectedKeys | Sort-Object)).Count -ne 0 -or $failure.schema -cne 'rust-duty-official-addon-observation-failure/v1' -or $failure.observation_complete -isnot [bool] -or $failure.observation_complete -ne $false -or $failure.diagnostic_only -ne $true -or $failure.native_admission -ne $false -or $failure.native_outcome_modified -ne $false) { throw 'Observer failure projection contract differs; original native outcome remains unchanged' }
+            $failurePath=Join-Path $env:ONEHAND_WORK 'source-evidence/official-addon-observation-failure.json'
+            $failureBytes=[Text.Encoding]::UTF8.GetBytes($observationLines[0]+"`n")
+            $stream=[IO.File]::Open($failurePath,[IO.FileMode]::CreateNew,[IO.FileAccess]::Write,[IO.FileShare]::None)
+            try { $stream.Write($failureBytes,0,$failureBytes.Length);$stream.Flush($true) } finally { $stream.Dispose() }
+            Write-Output $observationLines[0]
+            throw 'Read-only addon observation unavailable; bounded diagnostic retained; original native outcome remains unchanged'
+          }
+          foreach ($line in $observationLines) { Write-Output $line }
       - name: Retain only bounded source-test admission and native hash summaries
         if: ${{ always() }}
         uses: actions/upload-artifact@v4
@@ -304,10 +348,13 @@ jobs:
           if-no-files-found: warn
           path: |
             ${{ runner.temp }}/onehand-${{ github.run_id }}-${{ github.run_attempt }}/source-evidence/source-tests.json
+            ${{ runner.temp }}/onehand-${{ github.run_id }}-${{ github.run_attempt }}/source-evidence/native-fragments-python311.json
+            ${{ runner.temp }}/onehand-${{ github.run_id }}-${{ github.run_attempt }}/source-evidence/native-fragments-python312.json
             ${{ runner.temp }}/onehand-${{ github.run_id }}-${{ github.run_attempt }}/source-evidence/command-contract.json
             ${{ runner.temp }}/onehand-${{ github.run_id }}-${{ github.run_attempt }}/source-evidence/admission.json
             ${{ runner.temp }}/onehand-${{ github.run_id }}-${{ github.run_attempt }}/proof/public-evidence/summary.json
             ${{ runner.temp }}/onehand-${{ github.run_id }}-${{ github.run_attempt }}/proof/public-evidence/official-addon-observation.json
+            ${{ runner.temp }}/onehand-${{ github.run_id }}-${{ github.run_attempt }}/source-evidence/official-addon-observation-failure.json
             ${{ runner.temp }}/onehand-${{ github.run_id }}-${{ github.run_attempt }}/source-evidence/game-admission.json
             ${{ runner.temp }}/onehand-${{ github.run_id }}-${{ github.run_attempt }}/source-evidence/game-summary.json
             ${{ runner.temp }}/onehand-${{ github.run_id }}-${{ github.run_attempt }}/source-inventory/evidence/game-source-spec-failure.json

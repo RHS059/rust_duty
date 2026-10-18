@@ -1,0 +1,29 @@
+{
+  "base_pins_sha256": "8f8d9289fa50d19fff8e2df34a8f0f462c3df21710ed51fac9a57ba822a882c0",
+  "controller_environment_field": "controller_environment_sha256",
+  "cross_role_exact_fields": [
+    "system",
+    "version",
+    "machine"
+  ],
+  "environment_hash_domains_preserved": true,
+  "environment_hashes_derived_from_same_actual_dictionary": true,
+  "environment_values_guessed": false,
+  "native_execution_performed": false,
+  "native_producer_pins_sha256": "fbf3b0f7221b34b6dca29b885c7b1ab2f965ed76049c77504b9d504032e5bc9e",
+  "native_proof": false,
+  "publication_performed": false,
+  "role_specific_exact_field": "release",
+  "runtime_consumer_pins_sha256": "3319eddedad5ac30734911f0855534289daa8a7c9d421110a49cd3a0a91ba55e",
+  "runtime_or_binding_changes": [
+    "command_contract.py",
+    "host_tools.py",
+    "onehand-windows-proof.yml",
+    "orchestrate.py",
+    "prepare_controller.py",
+    "probe_blender.py",
+    "run_source_tests.py",
+    "source_checkout.py"
+  ],
+  "schema": "rust-duty-host-binding-change-manifest/v1"
+}
