@@ -1,11 +1,21 @@
 {
-  "acceptance_scope": "Independent source and contract admission for the exact immutable failure-diagnostics successor and actual proof bindings. Existing guarded execution must still establish native animation, audio-enabled Windows game compilation and 30/60 Hz DX12 capture. No native success or historical failure cause is claimed.",
+  "acceptance_scope": "Independent exact source/contract review of role-specific host binding and actual immutable S/proof inputs. Existing guarded native, compiler, gameplay and audio/capture gates remain mandatory; no execution success is claimed.",
   "accepted": true,
   "actual_game_capture_performed": false,
   "actual_native_animation_proof": false,
   "actual_windows_game_compilation_proved": false,
   "audible_output_proved": false,
   "base_companion_producers_reviewed": true,
+  "coverage_limits": {
+    "actual_windows_tests_claimed": false,
+    "native_available_tests_passed": 113,
+    "native_historical_fixture_omissions": 60,
+    "orchestration_tests_run": 241,
+    "orchestration_windows_only_skip": 1,
+    "original_runtime_mismatch_fields_recovered": false,
+    "runtime_available_tests_passed": 115,
+    "runtime_historical_fixture_omissions": 21
+  },
   "full4240_gates_preserved": true,
   "game_features": [
     "audio",
@@ -15,19 +25,19 @@
   "game_source_revision": "dd1d2cb4bae6e0b2d2509edfc8e8c301184cf4f4",
   "game_source_spec_sha256": "cfe0a1d8b821f278055ad0be3557c5a8756f2c09309c65c1f091b080de92e594",
   "native_admission_granted_by_review": false,
-  "orchestration_pins_sha256": "8f8d9289fa50d19fff8e2df34a8f0f462c3df21710ed51fac9a57ba822a882c0",
-  "package_pins_sha256": "dd680a7b11affb17261af6e0949b484ef4b1c2df831ed8ca16eb4209fe4624d2",
+  "orchestration_pins_sha256": "8fa01a10f034e4f17c026daf80173c43b2f1c2f0971e15991a2fcc4386b94381",
+  "package_pins_sha256": "97f45f2ba90a240ae452a08098b7f102cd0ddf041decd69d4ed5834512c4324e",
   "public_defaults_inactive": true,
   "reserve_bytes": 8589934592,
-  "reviewed_utc": "2026-10-18T09:26:58.700006+00:00",
-  "reviewer": "independent-native-failure-diagnostics-and-binding-review",
+  "reviewed_utc": "2026-10-18T10:30:45.236523+00:00",
+  "reviewer": "independent-host-identity-contract-and-publication-review",
   "runner_local_patch_reviewed": true,
   "sampler_features": [],
   "schema": "rust-duty-onehand-game-continuation-review/v1",
   "source_inventory": {
     "files": 957,
     "fresh_bulk_asset_content_rehash_performed": false,
-    "full_content_sha256_origin": "Exact immutable previously measured source-spec bytes retained; current review independently verifies all source Git blob/size membership using direct immutable Git tree readbacks without reading geometry bytes.",
+    "full_content_sha256_origin": "Unchanged previously measured source-spec; direct immutable S, game revision and jump Git tree readbacks independently establish exact blob and size membership. No geometry bytes read.",
     "game_revision": "dd1d2cb4bae6e0b2d2509edfc8e8c301184cf4f4",
     "input_bytes": 265961235,
     "main_tree_membership_verified": 956,
@@ -36,27 +46,15 @@
     "tree_membership_independently_verified": true
   },
   "source_review": {
-    "actual_source_readback_receipt_sha256": "48f37d44a50dc7e517586f9deb019b89d3ddd1e3b2cd84bf2a6804ddec8b8565",
+    "actual_source_readback_receipt_sha256": "15af9ea98e9a082f35a725ab3d9491e2e92a37d736223834267fa266dd9f8b55",
     "controller_layout_sha256": "d9023abb4766d80120309003b14f3558658d747520259ad8298545494e9eaf46",
-    "proof_inputs_sha256": "ccb7b2a127b2be468cedad928347e191ed3cc9f8d978a4edc68e9d5f3d8dc9c2",
-    "source_chain_review_sha256": "34772e235684fddc14c2caa49f9fe9c188f2629c89ca14e709c0e64a1b958b0c",
-    "source_snapshot_review_sha256": "62ffa23c0ba517474e0a139a196b761f96a97b61457b6c288615b175536be779",
-    "successor_orchestration_pins_sha256": "8f8d9289fa50d19fff8e2df34a8f0f462c3df21710ed51fac9a57ba822a882c0",
-    "successor_package_pins_sha256": "dd680a7b11affb17261af6e0949b484ef4b1c2df831ed8ca16eb4209fe4624d2",
-    "successor_source_commit": "d613cf10e3d51c15d052f07befa166bccc467b86",
-    "successor_source_tree": "1b01291d53aee9bb983eab02f414ae0c751b43d7",
-    "successor_workflow_sha256": "01ef7e73a0370d4d19cbce2e8f7ce10e61d946ff61d93168915857d61cae18f1"
-  },
-  "source_test_coverage": {
-    "actual_windows_tests_claimed": false,
-    "game_observer_composition_skips": 0,
-    "game_observer_composition_tests": 179,
-    "independent_adversarial_privacy_tests": 36,
-    "orchestration_errors": 0,
-    "orchestration_failures": 0,
-    "orchestration_inherited_powershell_application_selection_skip": 1,
-    "orchestration_run": 213,
-    "unchanged_context_native_consumer_tests": 38
+    "implementation_review_sha256": "756a563d096f80fc3c85ce633d3b4a7875c1f855610839e463b05e4def6f2842",
+    "proof_inputs_sha256": "a1af5d8b49aa11529a5259b1d54cb7b6973a13259a3bb3c8085a14d7c9831484",
+    "successor_orchestration_pins_sha256": "8fa01a10f034e4f17c026daf80173c43b2f1c2f0971e15991a2fcc4386b94381",
+    "successor_package_pins_sha256": "97f45f2ba90a240ae452a08098b7f102cd0ddf041decd69d4ed5834512c4324e",
+    "successor_source_commit": "6328c150b75b4504ac49313a3d754958460f28a6",
+    "successor_source_tree": "deb8e06d5129c69a06c1d667de5a613d990cd13e",
+    "successor_workflow_sha256": "dbc8b24f9e5e954f8d3c0197824ba1cecc15a6ebd0698b1937d44ce026ad90f6"
   },
   "windows_capture_contract_reviewed": true
 }
