@@ -7,16 +7,16 @@
   },
   "independent_review": {
     "bytes": 968,
-    "ref": "e71b373db1b291c0bde7ac00131ed66d42d55034",
+    "ref": "46e7ef98b1bfd9f0e479e5d6629e2aca52926187",
     "repository_path": "tools/onehand_windows/independent-native-acceptance.json",
-    "sha256": "9a9d751780b2f64cc990511a81bf099d520c5902c7e12220665bdf02108115a3"
+    "sha256": "3ad754578694a10787c695c14c5c26af0e7ac8d95f84b319430b58c2e1fa3e69"
   },
-  "orchestration_pins_sha256": "86d434c9ac8eec8b68c716196f1e0fb14d9c1e7e3e0d06ce96633d70fb3fd04e",
+  "orchestration_pins_sha256": "3894ee5b595271716f84f06040674e3ae31effb08a4b56b2616cabffc7005e20",
   "proof_inputs": {
-    "bytes": 363333,
-    "ref": "e71b373db1b291c0bde7ac00131ed66d42d55034",
+    "bytes": 365298,
+    "ref": "46e7ef98b1bfd9f0e479e5d6629e2aca52926187",
     "repository_path": "tools/onehand_windows/proof-inputs.json",
-    "sha256": "4a4497f9a39c197c451222f0df02b45909c430c437a0b949b045892b4fd52412"
+    "sha256": "c545eac935a46b21d437bfa51bad3cafce8a0bab61feb0445478268332af3046"
   },
   "schema": "rust-duty-onehand-native-source-admission/v4"
 }
