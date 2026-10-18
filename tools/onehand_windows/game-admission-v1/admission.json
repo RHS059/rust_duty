@@ -7,10 +7,10 @@
   },
   "independent_review": {
     "path": "game-continuation-acceptance.json",
-    "sha256": "97c146aa108955a1306a15418a8aadebdb149f3b97571e3bb1b3c7cc417df726"
+    "sha256": "98cbe2be6e58d762299829d1ee03786c75969be08a99b806f16f0441cb30dacf"
   },
-  "orchestration_pins_sha256": "8ca4838bb8effd0754324fafe48ea63e663b46c35a6602197e67821efa01e0fb",
-  "package_pins_sha256": "9b6f2a14d4df2e2f13502ae4a14890a1f559c9fc9b873f08795ac10a38255467",
+  "orchestration_pins_sha256": "86d434c9ac8eec8b68c716196f1e0fb14d9c1e7e3e0d06ce96633d70fb3fd04e",
+  "package_pins_sha256": "afac9d3a2a3b3d2a32af57062b9c79bb708893a316d9d700cddf25275e062645",
   "reserve_bytes": 8589934592,
   "schema": "rust-duty-onehand-game-continuation-admission/v1"
 }
