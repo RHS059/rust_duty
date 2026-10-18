@@ -1,10 +1,16 @@
 {
-  "schema": "rust-duty-onehand-game-continuation-admission/v1",
-  "enabled": false,
-  "package_pins_sha256": "2ddc2f15747c364e36159ee7fca00bc9432892c87657bc986fe744acb7a3f0c1",
+  "enabled": true,
+  "game_source_revision": "dd1d2cb4bae6e0b2d2509edfc8e8c301184cf4f4",
+  "game_source_spec": {
+    "path": "game-source-spec.json",
+    "sha256": "cfe0a1d8b821f278055ad0be3557c5a8756f2c09309c65c1f091b080de92e594"
+  },
+  "independent_review": {
+    "path": "game-continuation-acceptance.json",
+    "sha256": "01dab8c651d29d576f2245db37c6ea7fdb93ec44aa418baa5c45b53785b5de28"
+  },
   "orchestration_pins_sha256": "2a39125dba25460e66d0f76ef6c871d2abb01e64073b7e419e1c1892345bdee5",
-  "game_source_revision": null,
-  "game_source_spec": null,
-  "independent_review": null,
-  "reserve_bytes": 8589934592
+  "package_pins_sha256": "4835d62cbd301e6a1528e622a32a068dd30dd2c1d7b652204fcadf32a7351f24",
+  "reserve_bytes": 8589934592,
+  "schema": "rust-duty-onehand-game-continuation-admission/v1"
 }

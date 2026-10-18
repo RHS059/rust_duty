@@ -96,16 +96,16 @@ jobs:
           $ErrorActionPreference='Stop'
           $helper=Join-Path $env:ONEHAND_WORK 'game-preflight.py'
           $p=[Diagnostics.ProcessStartInfo]::new();$p.FileName=$env:ONEHAND_GIT;$p.UseShellExecute=$false;$p.RedirectStandardOutput=$true;$p.RedirectStandardError=$true
-          foreach ($arg in @('-C',$env:ONEHAND_REPOSITORY,'cat-file','blob',($env:PROOF_COMMIT+':tools/onehand_windows/game-continuation-v1/preflight_game.py'))) { $p.ArgumentList.Add($arg) }
+          foreach ($arg in @('-C',$env:ONEHAND_REPOSITORY,'cat-file','blob',($env:PROOF_COMMIT+':tools/onehand_windows/game-continuation-v3/preflight_game.py'))) { $p.ArgumentList.Add($arg) }
           $proc=[Diagnostics.Process]::Start($p);$stream=[IO.File]::Open($helper,[IO.FileMode]::CreateNew)
           try { $proc.StandardOutput.BaseStream.CopyTo($stream) } finally { $stream.Dispose() }
           $discard=$proc.StandardError.ReadToEnd();$proc.WaitForExit()
           if ($proc.ExitCode -ne 0) { throw 'Exact game bootstrap export failed' }
-          if ((Get-FileHash $helper -Algorithm SHA256).Hash.ToLowerInvariant() -ne '3119d307a84dc46f6f84bf07edde34b64d8a31e641ca96f52f3946939897e905') { throw 'Reviewed game bootstrap differs' }
-          python -I -B $helper --git $env:ONEHAND_GIT --repository $env:ONEHAND_REPOSITORY --event-commit $env:PROOF_COMMIT --package-pins-sha256 '2ddc2f15747c364e36159ee7fca00bc9432892c87657bc986fe744acb7a3f0c1' --output (Join-Path $env:ONEHAND_WORK 'game-admission') --summary (Join-Path $env:ONEHAND_WORK 'source-evidence/game-admission.json') --github-output $env:GITHUB_OUTPUT
+          if ((Get-FileHash $helper -Algorithm SHA256).Hash.ToLowerInvariant() -ne 'afc7b7c3fbebf0faa1afa58a72ad098ece6defe25a6bd2512bb6386cb813361f') { throw 'Reviewed game bootstrap differs' }
+          python -I -B $helper --git $env:ONEHAND_GIT --repository $env:ONEHAND_REPOSITORY --event-commit $env:PROOF_COMMIT --package-pins-sha256 '4835d62cbd301e6a1528e622a32a068dd30dd2c1d7b652204fcadf32a7351f24' --output (Join-Path $env:ONEHAND_WORK 'game-admission') --summary (Join-Path $env:ONEHAND_WORK 'source-evidence/game-admission.json') --github-output $env:GITHUB_OUTPUT
           if ($LASTEXITCODE -ne 0) { throw 'Game source or independent admission failed before native work' }
           $game=Join-Path $env:ONEHAND_WORK 'game-admission/package'
-          python -I -B (Join-Path $game 'execute_continuation.py') --package-pins-sha256 '2ddc2f15747c364e36159ee7fca00bc9432892c87657bc986fe744acb7a3f0c1' --source-tests
+          python -I -B (Join-Path $game 'execute_continuation.py') --package-pins-sha256 '4835d62cbd301e6a1528e622a32a068dd30dd2c1d7b652204fcadf32a7351f24' --source-tests
           if ($LASTEXITCODE -ne 0) { throw 'Game continuation source-only tests failed' }
       - name: Export and test the separately frozen source inventory measurement
         timeout-minutes: 10
