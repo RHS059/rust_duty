@@ -158,6 +158,30 @@ jobs:
           path: |
             ${{ runner.temp }}/onehand-${{ github.run_id }}-${{ github.run_attempt }}/source-inventory/evidence/game-source-spec.json
             ${{ runner.temp }}/onehand-${{ github.run_id }}-${{ github.run_attempt }}/source-inventory/evidence/game-source-spec-receipt.json
+      - name: Export and test the separately pinned read-only addon observer
+        timeout-minutes: 5
+        run: |
+          $ErrorActionPreference='Stop'
+          $observer=Join-Path $env:ONEHAND_WORK 'addon-observation-helper'
+          if (Test-Path -LiteralPath $observer) { throw 'Fresh addon observation helper directory required' }
+          New-Item -ItemType Directory -Path $observer | Out-Null
+          $pins=[ordered]@{
+            'observe_official_addon.py'='617c9cbc826d79fe170140d5e37dbbf1604b7344157498c3124cabd3fb009a56'
+            'test_observe_official_addon.py'='6fc58def2870376822d5882b292477cc4327abbcef466ecdc4f28fafdcaef0ea'
+          }
+          foreach ($name in $pins.Keys) {
+            $output=Join-Path $observer $name
+            $p=[Diagnostics.ProcessStartInfo]::new();$p.FileName=$env:ONEHAND_GIT;$p.UseShellExecute=$false;$p.RedirectStandardOutput=$true;$p.RedirectStandardError=$true
+            foreach ($arg in @('-C',$env:ONEHAND_REPOSITORY,'cat-file','blob',($env:PROOF_COMMIT+':tools/onehand_windows/official-addon-observation-v1/'+$name))) { $p.ArgumentList.Add($arg) }
+            $proc=[Diagnostics.Process]::Start($p);$stream=[IO.File]::Open($output,[IO.FileMode]::CreateNew)
+            try { $proc.StandardOutput.BaseStream.CopyTo($stream) } finally { $stream.Dispose() }
+            $discard=$proc.StandardError.ReadToEnd();$proc.WaitForExit()
+            if ($proc.ExitCode -ne 0) { throw 'Exact addon observation source export failed' }
+            if ((Get-FileHash -LiteralPath $output -Algorithm SHA256).Hash.ToLowerInvariant() -ne $pins[$name]) { throw 'Reviewed addon observation source differs' }
+          }
+          python -I -B (Join-Path $observer 'test_observe_official_addon.py')
+          if ($LASTEXITCODE -ne 0) { throw 'Source-only addon observation regressions failed before native installers' }
+          "ONEHAND_ADDON_OBSERVER=$(Join-Path $observer 'observe_official_addon.py')" >> $env:GITHUB_ENV
       - name: Verify independent native admission and every input before native installers
         id: admission
         timeout-minutes: 20
@@ -243,6 +267,14 @@ jobs:
           retention-days: 7
           if-no-files-found: error
           path: ${{ steps.game_capture.outputs.delivery_root }}
+      - name: Observe retained official addon bytes after terminal native work
+        if: ${{ always() && env.ONEHAND_ADDON_OBSERVER != '' && env.ONEHAND_CONFIG != '' && env.ONEHAND_CONFIG_SHA != '' }}
+        timeout-minutes: 10
+        run: |
+          $ErrorActionPreference='Stop'
+          if ((Get-FileHash -LiteralPath $env:ONEHAND_ADDON_OBSERVER -Algorithm SHA256).Hash.ToLowerInvariant() -ne '617c9cbc826d79fe170140d5e37dbbf1604b7344157498c3124cabd3fb009a56') { throw 'Reviewed addon observer changed after source tests' }
+          python -I -B $env:ONEHAND_ADDON_OBSERVER --work-root $env:ONEHAND_WORK --config $env:ONEHAND_CONFIG --config-sha256 $env:ONEHAND_CONFIG_SHA --run-id $env:GITHUB_RUN_ID --run-attempt $env:GITHUB_RUN_ATTEMPT
+          if ($LASTEXITCODE -ne 0) { throw 'Read-only addon observation unavailable; original native outcome remains unchanged' }
       - name: Retain only bounded source-test admission and native hash summaries
         if: ${{ always() }}
         uses: actions/upload-artifact@v4
@@ -255,6 +287,7 @@ jobs:
             ${{ runner.temp }}/onehand-${{ github.run_id }}-${{ github.run_attempt }}/source-evidence/command-contract.json
             ${{ runner.temp }}/onehand-${{ github.run_id }}-${{ github.run_attempt }}/source-evidence/admission.json
             ${{ runner.temp }}/onehand-${{ github.run_id }}-${{ github.run_attempt }}/proof/public-evidence/summary.json
+            ${{ runner.temp }}/onehand-${{ github.run_id }}-${{ github.run_attempt }}/proof/public-evidence/official-addon-observation.json
             ${{ runner.temp }}/onehand-${{ github.run_id }}-${{ github.run_attempt }}/source-evidence/game-admission.json
             ${{ runner.temp }}/onehand-${{ github.run_id }}-${{ github.run_attempt }}/source-evidence/game-summary.json
             ${{ runner.temp }}/onehand-${{ github.run_id }}-${{ github.run_attempt }}/source-inventory/evidence/game-source-spec-failure.json
