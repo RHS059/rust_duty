@@ -1,0 +1,83 @@
+test_package_attributes_preserve_indexed_and_checkout_bytes (test_checkout_bytes.CheckoutByteTests.test_package_attributes_preserve_indexed_and_checkout_bytes) ... ok
+test_f1_bytes_cancelled_stdout_and_stderr_not_success (test_lifecycle_regressions.LifecycleRegressionTests.test_f1_bytes_cancelled_stdout_and_stderr_not_success) ... ok
+test_f1_jsonl_cancelled_stderr_not_success (test_lifecycle_regressions.LifecycleRegressionTests.test_f1_jsonl_cancelled_stderr_not_success) ... ok
+test_f1_jsonl_cancelled_stdout_not_success (test_lifecycle_regressions.LifecycleRegressionTests.test_f1_jsonl_cancelled_stdout_not_success) ... ok
+test_f2_attribute_cleanup_failure_keeps_created_process_identity (test_lifecycle_regressions.LifecycleRegressionTests.test_f2_attribute_cleanup_failure_keeps_created_process_identity) ... ok
+test_f2_event_construction_failure_can_verify_full_cleanup (test_lifecycle_regressions.LifecycleRegressionTests.test_f2_event_construction_failure_can_verify_full_cleanup) ... ok
+test_f2_job_close_failure_attempts_remaining_cleanup (test_lifecycle_regressions.LifecycleRegressionTests.test_f2_job_close_failure_attempts_remaining_cleanup) ... ok
+test_f2_nul_close_failure_retains_actual_owner (test_lifecycle_regressions.LifecycleRegressionTests.test_f2_nul_close_failure_retains_actual_owner) ... ok
+test_f2_process_close_failure_attempts_remaining_cleanup (test_lifecycle_regressions.LifecycleRegressionTests.test_f2_process_close_failure_attempts_remaining_cleanup) ... ok
+test_f2_reader_close_failure_attempts_other_independent_closes (test_lifecycle_regressions.LifecycleRegressionTests.test_f2_reader_close_failure_attempts_other_independent_closes) ... ok
+test_f2_second_reader_construction_failure_closes_first (test_lifecycle_regressions.LifecycleRegressionTests.test_f2_second_reader_construction_failure_closes_first) ... ok
+test_f2_stderr_writer_close_failure_retains_actual_owner (test_lifecycle_regressions.LifecycleRegressionTests.test_f2_stderr_writer_close_failure_retains_actual_owner) ... ok
+test_f2_stdout_writer_close_failure_retains_actual_owner (test_lifecycle_regressions.LifecycleRegressionTests.test_f2_stdout_writer_close_failure_retains_actual_owner) ... ok
+test_f2_termination_failure_does_not_release_lock (test_lifecycle_regressions.LifecycleRegressionTests.test_f2_termination_failure_does_not_release_lock) ... ok
+test_f2_thread_close_failure_retains_actual_owner (test_lifecycle_regressions.LifecycleRegressionTests.test_f2_thread_close_failure_retains_actual_owner) ... ok
+test_f2_uncertain_prelaunch_setup_handle_retains_lock (test_lifecycle_regressions.LifecycleRegressionTests.test_f2_uncertain_prelaunch_setup_handle_retains_lock) ... ok
+test_f3_completion_api_exception_keeps_storage (test_lifecycle_regressions.LifecycleRegressionTests.test_f3_completion_api_exception_keeps_storage) ... ok
+test_f3_failed_cancel_and_pending_completion_keep_storage (test_lifecycle_regressions.LifecycleRegressionTests.test_f3_failed_cancel_and_pending_completion_keep_storage) ... ok
+test_f3_failed_wait_cancels_and_observes_before_storage_release (test_lifecycle_regressions.LifecycleRegressionTests.test_f3_failed_wait_cancels_and_observes_before_storage_release) ... ok
+test_f3_pending_completion_timeout_keeps_storage (test_lifecycle_regressions.LifecycleRegressionTests.test_f3_pending_completion_timeout_keeps_storage) ... ok
+test_f3_pending_read_reaches_supervisor_as_incomplete_cleanup (test_lifecycle_regressions.LifecycleRegressionTests.test_f3_pending_read_reaches_supervisor_as_incomplete_cleanup) ... ok
+test_byte_bound_and_put_timeout (test_owned_process.QueueTests.test_byte_bound_and_put_timeout) ... ok
+test_record_size_rejected_before_creation (test_owned_process.QueueTests.test_record_size_rejected_before_creation) ... ok
+test_consumer_exception_stops_child (test_owned_process.TransportTests.test_consumer_exception_stops_child) ... ok
+test_context_digest_is_required (test_owned_process.TransportTests.test_context_digest_is_required) ... ok
+test_early_break_is_not_completion (test_owned_process.TransportTests.test_early_break_is_not_completion) ... ok
+test_executable_identity_change_fails (test_owned_process.TransportTests.test_executable_identity_change_fails) ... ok
+test_foreign_lock_preserved (test_owned_process.TransportTests.test_foreign_lock_preserved) ... ok
+test_foreign_output_preserved (test_owned_process.TransportTests.test_foreign_output_preserved) ... ok
+test_global_serial_guard (test_owned_process.TransportTests.test_global_serial_guard) ... ok
+test_host_binding_rejects_mismatch (test_owned_process.TransportTests.test_host_binding_rejects_mismatch) ... ok
+test_initial_memory_guard (test_owned_process.TransportTests.test_initial_memory_guard) ... ok
+test_initial_retention_disk_guard (test_owned_process.TransportTests.test_initial_retention_disk_guard) ... ok
+test_json_depth_limit (test_owned_process.TransportTests.test_json_depth_limit) ... ok
+test_launch_api_failure_retained (test_owned_process.TransportTests.test_launch_api_failure_retained) ... ok
+test_launch_failure_retained (test_owned_process.TransportTests.test_launch_failure_retained) ... ok
+test_limit_relaxation_and_unbounded_input_rejected (test_owned_process.TransportTests.test_limit_relaxation_and_unbounded_input_rejected) ... ok
+test_live_resource_api_failure (test_owned_process.TransportTests.test_live_resource_api_failure) ... ok
+test_malformed_nonfinite_duplicate_and_bad_utf8 (test_owned_process.TransportTests.test_malformed_nonfinite_duplicate_and_bad_utf8) ... ok
+test_missing_resource_fails_closed (test_owned_process.TransportTests.test_missing_resource_fails_closed) ... ok
+test_no_consumer_bounded_backpressure (test_owned_process.TransportTests.test_no_consumer_bounded_backpressure) ... ok
+test_no_newline_row_limit (test_owned_process.TransportTests.test_no_newline_row_limit) ... ok
+test_nonzero_exit (test_owned_process.TransportTests.test_nonzero_exit) ... ok
+test_normal_jsonl_exact_argv_and_hashes (test_owned_process.TransportTests.test_normal_jsonl_exact_argv_and_hashes) ... ok
+test_own_descendant_cleanup_foreign_process_survives (test_owned_process.TransportTests.test_own_descendant_cleanup_foreign_process_survives) ... ok
+test_partial_row (test_owned_process.TransportTests.test_partial_row) ... ok
+test_public_interface_bytes_stage (test_owned_process.TransportTests.test_public_interface_bytes_stage) ... ok
+test_receipt_tampering_is_detectable (test_owned_process.TransportTests.test_receipt_tampering_is_detectable) ... ok
+test_repeated_attempt_never_overwrites (test_owned_process.TransportTests.test_repeated_attempt_never_overwrites) ... ok
+test_replaced_lock_preserved (test_owned_process.TransportTests.test_replaced_lock_preserved) ... ok
+test_row_count_limit (test_owned_process.TransportTests.test_row_count_limit) ... ok
+test_row_limit (test_owned_process.TransportTests.test_row_limit) ... ok
+test_running_disk_guard (test_owned_process.TransportTests.test_running_disk_guard) ... ok
+test_sampled_rss_guard (test_owned_process.TransportTests.test_sampled_rss_guard) ... ok
+test_signal_exit (test_owned_process.TransportTests.test_signal_exit) ... ok
+test_slow_consumer_within_bounded_queue (test_owned_process.TransportTests.test_slow_consumer_within_bounded_queue) ... ok
+test_stderr_limit (test_owned_process.TransportTests.test_stderr_limit) ... ok
+test_stdout_total_limit (test_owned_process.TransportTests.test_stdout_total_limit) ... ok
+test_timeout (test_owned_process.TransportTests.test_timeout) ... ok
+test_unsupported_os_fails_closed (test_owned_process.TransportTests.test_unsupported_os_fails_closed) ... ok
+test_verify_attempt_accepts_intact_and_rejects_tampering (test_owned_process.TransportTests.test_verify_attempt_accepts_intact_and_rejects_tampering) ... ok
+test_available_memory_and_working_set_field (test_windows_job.APIMocks.test_available_memory_and_working_set_field) ... ok
+test_exact_handle_list_job_list_and_flags (test_windows_job.APIMocks.test_exact_handle_list_job_list_and_flags) ... ok
+test_windows_exit_259_is_exit_when_handle_signalled (test_windows_job.APIMocks.test_windows_exit_259_is_exit_when_handle_signalled) ... ok
+test_64bit_structure_layout (test_windows_job.OwnershipMocks.test_64bit_structure_layout) ... ok
+test_atomic_job_before_execution_and_only_own_job_stopped (test_windows_job.OwnershipMocks.test_atomic_job_before_execution_and_only_own_job_stopped) ... ok
+test_close_job_precedes_problematic_pipe_close (test_windows_job.OwnershipMocks.test_close_job_precedes_problematic_pipe_close) ... ok
+test_failed_membership_stops_exact_created_child_and_job (test_windows_job.OwnershipMocks.test_failed_membership_stops_exact_created_child_and_job) ... ok
+test_reader_construction_failure_still_closes_job (test_windows_job.OwnershipMocks.test_reader_construction_failure_still_closes_job) ... ok
+test_rejected_nested_assignment_no_breakaway_or_retry (test_windows_job.OwnershipMocks.test_rejected_nested_assignment_no_breakaway_or_retry) ... ok
+test_cancel_does_not_free_before_completion (test_windows_job.PipeMocks.test_cancel_does_not_free_before_completion) ... ok
+test_immediate_overlapped_result (test_windows_job.PipeMocks.test_immediate_overlapped_result) ... ok
+test_pending_overlapped_result (test_windows_job.PipeMocks.test_pending_overlapped_result) ... ok
+test_zero_write_not_eof (test_windows_job.PipeMocks.test_zero_write_not_eof) ... ok
+test_windows_failure_receipt (test_windows_native.NativeWindowsSmoke.test_windows_failure_receipt) ... skipped 'actual Windows execution required; not validated on Linux'
+test_windows_normal_bytes_and_argument_roundtrip (test_windows_native.NativeWindowsSmoke.test_windows_normal_bytes_and_argument_roundtrip) ... skipped 'actual Windows execution required; not validated on Linux'
+test_windows_oversize_row_and_bounded_queue (test_windows_native.NativeWindowsSmoke.test_windows_oversize_row_and_bounded_queue) ... skipped 'actual Windows execution required; not validated on Linux'
+test_windows_owned_job_descendants_only (test_windows_native.NativeWindowsSmoke.test_windows_owned_job_descendants_only) ... skipped 'actual Windows execution required; not validated on Linux'
+
+----------------------------------------------------------------------
+Ran 78 tests in 4.957s
+
+OK (skipped=4)

@@ -1,0 +1,68 @@
+{
+  "schema": "rust-duty-owned-process-dependencies/v2",
+  "files": {
+    "onehand-runtime-20261016-r2/native-window-v2/run_window.py": {
+      "bytes": 5897,
+      "sha256": "ccdf75d3274b4aad0b2499b4f4558d69758e0319d73ca66f7e475b4983967967",
+      "read_only": true
+    },
+    "onehand-runtime-20261016-r2/runtime-parity/verify_onehand_r2.py": {
+      "bytes": 63300,
+      "sha256": "968e98ab5e0d9ced460eddd23dc2013a7e07d37317c33d65eb5c8e77c1298342",
+      "read_only": true
+    },
+    "onehand-runtime-20261016-r2/runtime-parity/serial_r2.py": {
+      "bytes": 17765,
+      "sha256": "eaa588c9b7ab16adbd9075c9cff9d40f3ee93d7b062dd5c804f4276318498044",
+      "read_only": true
+    },
+    "onehand-runtime-20261016/windows-proof-preparation-v1/NEXT_ADAPTERS.md": {
+      "bytes": 3645,
+      "sha256": "3a86f2f94132aa4a0bc8856a98dfb4fc161871a7d36b0c4bdb8399115585ffb6",
+      "read_only": true
+    },
+    "onehand-runtime-20261016/windows-proof-preparation-v1/PORTABILITY_CONTRACT.md": {
+      "bytes": 12540,
+      "sha256": "526c06959f70078c7706ff8f4bc2ea01e1385b696b151f56f6cc850dae32f094",
+      "read_only": true
+    },
+    "onehand-runtime-20261016/windows-proof-preparation-v1/PINS.json": {
+      "bytes": 839,
+      "sha256": "d7cc687f3437973eb5da7fbbf098f84a8befec560d78559aec6e5bacbaaf0dad",
+      "read_only": true
+    },
+    "onehand-runtime-20261016/windows-process-adapter-v1/PINS.json": {
+      "bytes": 1607,
+      "sha256": "a5c9ad4ab20f45c5f1d90e3011ef74d07388f2daca11e2faf8966794fe2f0d00",
+      "read_only": true
+    },
+    "onehand-runtime-20261016/windows-process-adapter-v1/FREEZE.json": {
+      "bytes": 1012,
+      "sha256": "be8d090be2d69193dd46d5050075d2f85c4b85e57743dad6cb4eb604c4f1f6c7",
+      "read_only": true
+    },
+    "onehand-runtime-20261016/windows-process-review-v1/REVIEW_FREEZE.json": {
+      "bytes": 5067,
+      "sha256": "c92a89ee1ebb4c3f000c5874d5bdedaa764f2947f69cf4b6b95f527d70219e1a",
+      "read_only": true
+    },
+    "onehand-runtime-20261016/windows-process-review-v1/REVIEW.md": {
+      "bytes": 11041,
+      "sha256": "fcfbbb7c57b9127c8471fc2e74cb03bbb7f0a7d97213b26d015fa305a7b18af8",
+      "read_only": true
+    },
+    "onehand-runtime-20261016/windows-process-review-v1/reproduce_findings.py": {
+      "bytes": 3083,
+      "sha256": "f5576de3de1217c34987d4330ef7d48a883903f4e2e10243858348ddedef9bb2",
+      "read_only": true
+    },
+    "onehand-runtime-20261016/windows-process-review-v1/reproduce_overlapped_wait_failure.py": {
+      "bytes": 1166,
+      "sha256": "9a77e60a653004185ab62ea2b633ef534f868327979c3ea81b24250660264792",
+      "read_only": true
+    }
+  },
+  "old_transport_boundaries_unchanged": true,
+  "no_assets_read_or_copied": true,
+  "v1_and_independent_review_unchanged": true
+}

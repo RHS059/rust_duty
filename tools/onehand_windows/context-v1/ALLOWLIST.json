@@ -1,0 +1,21 @@
+{
+  "files": [
+    "ALLOWLIST.json",
+    "NATIVE_HELPER_PINS.json",
+    "OFFICIAL_ADDON_PINS.json",
+    "PINS.json",
+    "README.md",
+    "RESULTS.json",
+    "addon_resolver.py",
+    "candidate_context.py",
+    "cpu-tests-final.log",
+    "cpu-tests-post-review.log",
+    "pinned_assembler.py",
+    "pinned_transport.py",
+    "production_assembler.py",
+    "test_candidate_context.py",
+    "verify_freeze.py"
+  ],
+  "publication_authorized": false,
+  "schema": "rust-duty-source-only-allowlist/v1"
+}

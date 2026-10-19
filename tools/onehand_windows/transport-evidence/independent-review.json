@@ -1,0 +1,32 @@
+{
+  "schema": "windows-owned-process-independent-correction-review/v2",
+  "frozen_at_utc": "2026-10-16T07:58:28.441884+00:00",
+  "decision": "accepted for source-only publication and guarded Windows Python transport smoke",
+  "source_pins_sha256": "d9ef5486cbd7d80ec8d4c9d37c556ff7d13d8dc0147cbd7e6244a4154ca79751",
+  "source_freeze_sha256": "6f6efc8f26db3700ddad811bb650c6a5deaa20dbef51f085938e388dfd3514a0",
+  "actual_windows_executed": false,
+  "production_animation_admitted": false,
+  "blocking_findings": [],
+  "files": {
+    "REVIEW.md": {
+      "bytes": 4546,
+      "sha256": "fc78c7285b8487fd0cc17043348fed35c0f3fccff059a8ed083f8495a45505fd"
+    },
+    "dependencies-verified.json": {
+      "bytes": 48,
+      "sha256": "31ffb01e7ebc73acd2b62944132c04b85edc1bd402819627f44f286d7c0ea89f"
+    },
+    "independent-test-summary.json": {
+      "bytes": 1284,
+      "sha256": "7ba2c76ec9d29e788f5a899d98c94b89949db74cc396f25e6850cb48d4d8ea12"
+    },
+    "independent-tests.log": {
+      "bytes": 10301,
+      "sha256": "585eb7f4db0a0bb5105a9d7e68b15c94a3e51162c74e99a33270e3ab37b25d10"
+    },
+    "unchanged-and-pins.json": {
+      "bytes": 677,
+      "sha256": "e4de4dc0e86a7488a157a1bcf804cae7df41aeb52aa75654a10c46129f6ecde1"
+    }
+  }
+}

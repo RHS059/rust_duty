@@ -207,6 +207,51 @@ pub(crate) fn write_frame(frame: CaptureFrame<'_>) -> Result<bool, String> {
                 p.position.x, p.position.y, p.position.z, p.eye_height, p.speed(), p.grounded,
                 sway.x, sway.y, sim.stats.shots))?;
         }
+        if capture_sequence == Some("gameplay-prone") {
+            let model = authored.as_ref();
+            let sample = sim.prone_sample();
+            let camera = sim.prone_camera_sample();
+            let outgoing = sim.prone_return();
+            let track = model.and_then(|m| m.prone_camera_track());
+            let (forward, up) = vector_range::authored_prone::camera_axes(
+                sim.player.direction(),
+                sim.player.camera_up(cfg.action.lean_roll),
+                camera,
+            );
+            if !sim.time.is_finite()
+                || !sim.player.eye().is_finite()
+                || !forward.is_finite()
+                || !up.is_finite()
+                || camera.is_some_and(|v| !v.orientation.is_finite() || !v.eye_height.is_finite())
+            {
+                return Err("non-finite paired prone capture telemetry".into());
+            }
+            let metadata = serde_json::json!({
+                "schema": "rust-duty-prone-gameplay-capture/v1",
+                "simulation_time": sim.time,
+                "segment": vector_range::traversal_replay::segment("gameplay-prone", sim.time),
+                "sampling_hz": capture_hz,
+                "route": model.map_or("unavailable", |m| m.presentation_route()),
+                "binding": track.as_ref().map(|t| t.binding_identity()),
+                "renderer_failed": model.is_none_or(|m| m.error().is_some()),
+                "source_clock": sample.map(|v| serde_json::json!({"seconds":v.seconds,"frame":v.frame})),
+                "return": outgoing.map(|v| serde_json::json!({"began":v.began,"duration":v.duration,
+                    "weight":v.weight(sim.time),"frozen_source_frame":v.sample.frame})),
+                "camera_orientation_xyzw": camera.map(|v| v.orientation.to_array()),
+                "camera_forward": forward.to_array(), "camera_up": up.to_array(),
+                "camera_eye": sim.player.eye().to_array(), "eye_height":sim.player.eye_height,
+                "position":sim.player.position.to_array(), "velocity":sim.player.velocity.to_array(),
+                "gameplay_direction":sim.player.direction().to_array(),
+                "prone":sim.player.prone,"crouched":sim.player.crouched,"grounded":sim.player.grounded,
+                "ads_requested":sim.player.ads_requested,"simulation_ads":sim.player.ads,
+                "visual_ads":model.map_or(0., |m| m.visual_ads_amount()),
+                "procedural_weight":model.map_or(1., |m| m.prone_procedural_weight()),
+                "ammo":sim.player.ammo,"reserve":sim.player.reserve,"shots":sim.stats.shots,
+                "reload_left":sim.player.reload_left,"reload_ready_at":sim.player.reload_ready_at,
+                "input_only_replay":true
+            });
+            write_sidecar(format!("{output}.prone.json"), metadata.to_string())?;
+        }
         if capture_sequence == Some("gameplay-return") {
             let model = authored.as_ref();
             let anchor = model

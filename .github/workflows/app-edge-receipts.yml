@@ -1,0 +1,64 @@
+name: Fast Windows app-edge receipt checks
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/app-edge-receipts.yml'
+      - '.gitattributes'
+      - '**/*.rs'
+      - 'tools/**'
+      - 'assets/animations.cfg'
+  push:
+    branches: [main, 'aella/**', 'halcyon/**', '!aella/release-channel']
+    paths:
+      - '.github/workflows/app-edge-receipts.yml'
+      - '.gitattributes'
+      - '**/*.rs'
+      - 'tools/**'
+      - 'assets/animations.cfg'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: app-edge-receipts-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  receipts:
+    name: Windows app-edge receipts (early feedback)
+    runs-on: windows-latest
+    timeout-minutes: 10
+    # Independent feedback only. build.yml retains its complete required suite.
+    env:
+      # Preserve source bytes before checkout, just as the authoritative build does.
+      GIT_CONFIG_COUNT: '1'
+      GIT_CONFIG_KEY_0: core.autocrlf
+      GIT_CONFIG_VALUE_0: 'false'
+      # Console output only; leave Python's actual Windows file/text locale intact.
+      PYTHONIOENCODING: utf-8
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install existing PNG fixture dependency
+        working-directory: ${{ github.workspace }}
+        # Same exact pin used by wgpu-renderer-contract.yml; no asset toolchain.
+        run: 'python -m pip install --only-binary=:all: Pillow==11.3.0'
+      - name: Run every checkout-local app-edge test
+        working-directory: ${{ github.workspace }}
+        shell: python
+        run: |
+          import unittest
+
+          # Keep the runner's real TEMP and platform semantics, including aliases.
+          suite = unittest.defaultTestLoader.discover('tools', pattern='test_app_edge*.py')
+          if suite.countTestCases() == 0:
+              raise SystemExit('No app-edge tests discovered')
+          result = unittest.TextTestRunner(verbosity=2).run(suite)
+          raise SystemExit(not result.wasSuccessful())

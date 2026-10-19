@@ -1,0 +1,26 @@
+{
+  "schema": "rust-duty-owned-process-tests/v1",
+  "host": "Windows-2022Server-10.0.20348-SP0",
+  "python": "3.12.10 (tags/v3.12.10:0cc8128, Apr  8 2025, 12:21:36) [MSC v.1943 64 bit (AMD64)]",
+  "tests_run": 78,
+  "failures": 0,
+  "errors": 0,
+  "skipped": [
+    {
+      "test": "test_owned_process.TransportTests.test_own_descendant_cleanup_foreign_process_survives",
+      "reason": "Linux process-group cleanup test"
+    },
+    {
+      "test": "test_owned_process.TransportTests.test_signal_exit",
+      "reason": "POSIX signal exit test"
+    }
+  ],
+  "duration_seconds": 7.0,
+  "all_executed_tests_passed": true,
+  "actual_windows_transport_smoke_passed": true,
+  "actual_windows_animation_proof": false,
+  "blender_game_or_assets_executed": false,
+  "source_revision": "990a27ede8a793bdf534bacd5271a62d84c9beaa",
+  "native_windows_tests_defined": 4,
+  "pins_verified": true
+}

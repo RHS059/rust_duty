@@ -1,0 +1,861 @@
+--- windows-process-adapter-v1/.gitattributes
++++ windows-process-adapter-v2/.gitattributes
+@@ -0,0 +1,2 @@
++# This package is byte-pinned. Do not normalize or convert any package bytes.
++* -text
+--- windows-process-adapter-v1/README.md
++++ windows-process-adapter-v2/README.md
+@@ -1,10 +1,47 @@
+-# Bounded owned-process adapter v1
++# Bounded owned-process adapter v2
+ 
+ Original, standard-library source-only transport for the Rust Duty Windows proof.
+ It is a separate deliverable from `windows-proof-preparation-v1`. No frozen
+ producer, numerical algorithm, asset, native executable or existing receipt was
+ edited. **Actual Windows execution is unverified.** Linux synthetic tests and
+ mocked Win32 tests are not Windows-native or animation-proof evidence.
++
++## v2 lifecycle corrections and review status
++
++v1 is explicitly blocked by the independent review. Its package and review
++artifacts remain unchanged. This separate v2 fixes the reproduced cases, but
++**v2 independent acceptance and actual Windows execution remain unverified**.
++
++- F1: drain cancellation is an explicit incomplete-stream failure. Both public
++  consumption modes and terminal sealing require genuine stdout AND stderr EOF,
++  no truncation, equal observed/retained byte counts/hashes, and verified cleanup.
++  A canceled reader cannot turn a partial attempt into completed evidence.
++- F2: every acquired Windows handle is tracked through constructor failure.
++  Created-child ownership transfers before startup-attribute cleanup. Parent
++  writer/NUL/thread close errors cannot escape cleanup. Independent closes are
++  all attempted; uncertain handles are not blindly closed again. Failed launch
++  exceptions carry actual PID, launch state, job-empty observation and cleanup
++  outcome back to Running. Unverified cleanup retains both ownership locks and
++  strong references to the remaining owned state. This is an inspection stop,
++  not an automatic recovery/retry route.
++- F3: the pipe object owns pending OVERLAPPED/buffer storage across exceptions.
++  Failed waits request cancellation and observe completion through the API.
++  Cancellation alone is insufficient. If completion cannot be established in a
++  bounded grace, storage and handles are quarantined rather than freed/closed;
++  incomplete cleanup propagates to the supervisor and keeps its ownership lock.
++- F4: this package's `.gitattributes` applies `* -text` only below this directory.
++  The local Git fixture checks identical source/index/checkout hashes with
++  core.autocrlf=true and core.eol=crlf, including indexed attributes absent from
++  the working tree. This is Linux fixture evidence, not an actual Windows
++  checkout. Windows smoke still runs `--verify-pins` against the frozen bytes.
++
++The exact review cases and neighboring lifecycle failures are in
++`test_lifecycle_regressions.py`; `test_checkout_bytes.py` verifies the checkout
++policy. Tests that intentionally retain a lock dispose only their mock-owned
++fixture state afterward. Production code exposes no lock-reset API.
++`minimal-changes.patch` records the source/test/documentation changes from v1.
++Resource limits, direct-child RSS scope, public HostBinding/run/verifier
++interfaces and numerical boundaries are unchanged.
+ 
+ ## Public interface
+ 
+@@ -113,7 +150,7 @@
+    On termination API failure, owned kill-on-close is attempted; success is not
+    claimed and the owner lock remains for inspection.
+ 
+-The Windows implementation is source-reviewed and mocked, **not yet exercised
++The Windows implementation has mocked regression evidence and awaits v2 independent acceptance; it is **not yet exercised
+ against a Windows kernel**. The guarded smoke tests must pass on the selected
+ runner before it becomes a production dependency. They check a descendant's
+ actual process handle is signalled and an unrelated Python process survives.
+@@ -213,7 +250,7 @@
+ Run locally with an installed Python, without installing anything:
+ 
+ ```text
+-python -B -m unittest discover -s onehand-runtime-20261016/windows-process-adapter-v1 -p "test_*.py" -v
++python -B -m unittest discover -s onehand-runtime-20261016/windows-process-adapter-v2 -p "test_*.py" -v
+ ```
+ 
+ `run_tests.py --verify-pins --summary <fresh-file>` produces a bounded machine
+--- windows-process-adapter-v1/owned_process.py
++++ windows-process-adapter-v2/owned_process.py
+@@ -27,6 +27,7 @@
+ 
+ GIB, MIB = 1024**3, 1024**2
+ SERIAL = threading.Lock()
++INCOMPLETE_ATTEMPTS = []
+ HEX = re.compile(r'^[0-9a-f]{64}$')
+ 
+ class AdapterError(RuntimeError): pass
+@@ -403,9 +404,17 @@
+             self.monitor.start()
+             return self
+         except BaseException as exc:
++            partial_owner = getattr(exc, 'owned_process', None)
++            if partial_owner is not None:
++                # A failed constructor can already own a launched process. Its
++                # verified or incomplete cleanup state crosses the API boundary.
++                self.process = partial_owner
++                self.started = partial_owner.pid is not None
++                self.exit_code = partial_owner.last_exit_code
++                self.cleanup_complete = partial_owner.constructor_cleanup_complete
+             self.fail(str(exc) if isinstance(exc, AdapterError) else 'launch_failure', exc)
+             try:
+-                if self.process: self.finish_process()
++                if self.process and partial_owner is None: self.finish_process()
+                 if self.root_created: self.finalize()
+             finally:
+                 self.release()
+@@ -509,10 +518,14 @@
+             if self.exit_code is None: raise AdapterError('owned child did not terminate')
+             for thread in self.readers:
+                 thread.join(max(0, end-time.monotonic()))
++            if any(thread.is_alive() for thread in self.readers):
++                self.fail('incomplete_stream_drain')
+             self.cancel.set()
+             for thread in self.readers: thread.join(.25)
+             if any(thread.is_alive() for thread in self.readers):
+                 self.cleanup_complete = False; self.fail('reader_cleanup_incomplete'); return
++            if not self.streams_complete(('stdout','stderr')):
++                self.fail('incomplete_stream_retention')
+             self.process.close()
+         except BaseException as exc:
+             self.cleanup_complete = False; self.fail('owned_cleanup_failure', exc)
+@@ -524,6 +537,22 @@
+                 pass
+             self.cancel.set()
+             for thread in self.readers: thread.join(.25)
++
++    def streams_complete(self, names=None):
++        names = tuple(self.streams) if names is None else names
++        if not names: return False
++        return all(name in self.streams and self.streams[name].eof
++            and not self.streams[name].truncated
++            and self.streams[name].bytes == self.streams[name].observed
++            and self.streams[name].hash.digest() == self.streams[name].observed_hash.digest()
++            for name in names)
++
++    def ensure_transport_complete(self):
++        if not self.streams_complete(('stdout','stderr')):
++            self.fail('incomplete_stream_retention')
++        if not self.cleanup_complete: self.fail('owned_cleanup_failure')
++        if self.reason or self.exit_code != 0:
++            raise AdapterError(self.reason or 'child_exit_failure')
+ 
+     def jsonl(self):
+         if not self.started or self.limits.stdout_mode != 'jsonl' or self.iterator_used:
+@@ -546,9 +575,7 @@
+                     self.fail('stdout_row_count_limit'); raise AdapterError('row count exceeded')
+                 yield value
+             self.done.wait()
+-            if self.reason or self.exit_code != 0:
+-                raise AdapterError(self.reason or 'child_exit_failure')
+-            if not self.streams['stdout'].eof: raise AdapterError('stdout EOF missing')
++            self.ensure_transport_complete()
+             self.iterator_complete = True
+         except GeneratorExit:
+             self.fail('consumer_incomplete'); raise
+@@ -560,15 +587,15 @@
+         if self.limits.stdout_mode != 'bytes':
+             raise AdapterError('JSONL stages must exhaust jsonl()')
+         self.done.wait()
++        self.ensure_transport_complete()
+         self.iterator_complete = True
+-        if self.reason or self.exit_code != 0: raise AdapterError(self.reason or 'child_exit_failure')
+         return self.exit_code
+ 
+     def result_record(self, state):
+         completed = (state == 'completed' and self.reason is None and self.exit_code == 0
+-                     and self.iterator_complete and self.cleanup_complete)
++                     and self.iterator_complete and self.cleanup_complete and self.streams_complete())
+         return {**self.base_record(), 'state':state, 'completed':completed,
+-            'started':self.started, 'exit_code':self.exit_code,
++            'started':self.started, 'pid':getattr(self.process,'pid',None), 'exit_code':self.exit_code,
+             'signal':-self.exit_code if platform.system()=='Linux' and self.exit_code is not None and self.exit_code<0 else None,
+             'timed_out':self.reason == 'own_child_timeout', 'resource_stop_reason':self.reason,
+             'error_type':self.error, 'finished_unix':time.time(), 'duration_seconds':time.monotonic()-self.t0,
+@@ -576,6 +603,7 @@
+             'peak_sampled_rss_bytes':self.peak_rss, 'rss_ceiling_bytes':self.limits.rss_bytes,
+             'sample_count':self.sample_count, 'rows':self.rows, 'consumer_complete':self.iterator_complete,
+             'cleanup_complete':self.cleanup_complete,
++            'constructor_cleanup_complete':getattr(self.process,'constructor_cleanup_complete',None),
+             'windows_job_empty_verified':getattr(self.process,'tree_empty_verified',None),
+             'parent_already_in_windows_job':getattr(self.process,'parent_in_job',None),
+             'executable_before':self.executable_before,
+@@ -589,7 +617,8 @@
+         if any(thread.is_alive() for thread in self.readers):
+             raise AdapterError('cannot seal evidence while a reader remains live')
+         for record in self.streams.values(): record.close()
+-        complete = self.reason is None and self.exit_code == 0 and self.iterator_complete
++        complete = (self.reason is None and self.exit_code == 0 and self.iterator_complete
++                    and self.cleanup_complete and self.streams_complete())
+         partial = self.started and (not self.iterator_complete or any(v.truncated or not v.eof for k,v in self.streams.items() if k!='samples'))
+         state = 'completed' if complete else ('partial' if partial else 'failed')
+         self.receipt = self.result_record(state)
+@@ -608,6 +637,8 @@
+             return stream.read(len(self.lock_data)+1)
+ 
+     def release(self):
++        if not self.cleanup_complete and self not in INCOMPLETE_ATTEMPTS:
++            INCOMPLETE_ATTEMPTS.append(self)  # Retain owned state/storage until inspection.
+         try:
+             if self.lock_held:
+                 self.check_lock()
+--- windows-process-adapter-v1/test_checkout_bytes.py
++++ windows-process-adapter-v2/test_checkout_bytes.py
+@@ -0,0 +1,49 @@
++"""Small local index/checkout fixture; no commits, remotes, network or publication."""
++import hashlib
++import os
++from pathlib import Path
++import shutil
++import subprocess
++import tempfile
++import unittest
++
++HERE=Path(__file__).resolve().parent
++
++
++def checkout_fixture():
++    git=shutil.which('git')
++    if not git:raise AssertionError('Git is required for the pinned-byte checkout fixture')
++    with tempfile.TemporaryDirectory(prefix='owned-v2-checkout-') as folder:
++        root=Path(folder);repo=root/'repo';repo.mkdir();target=root/'checkout';target.mkdir()
++        env=dict(os.environ,GIT_CONFIG_NOSYSTEM='1',GIT_CONFIG_GLOBAL=os.devnull)
++        def run(*args):
++            return subprocess.run([git,*args],cwd=repo,env=env,check=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE).stdout
++        run('init','--quiet')
++        package=repo/'package';package.mkdir()
++        attributes=(HERE/'.gitattributes').read_bytes();(package/'.gitattributes').write_bytes(attributes)
++        fixtures={'lf.txt':b'first\nsecond\n','mixed.dat':b'first\r\nsecond\n\x00last\r\n'}
++        for name,data in fixtures.items():(package/name).write_bytes(data)
++        run('-c','core.autocrlf=true','add','--','package')
++        check=run('check-attr','--cached','text','--','package/lf.txt','package/mixed.dat').decode()
++        assert check.count('text: unset')==2,check
++        # Leave the attributes only in the index. Checkout must still use them.
++        (package/'.gitattributes').unlink()
++        run('-c','core.autocrlf=true','-c','core.eol=crlf','checkout-index',
++            '--prefix='+str(target)+os.sep,'--','package/lf.txt','package/mixed.dat')
++        records={}
++        for name,original in fixtures.items():
++            indexed=run('show',':package/'+name);checked=(target/'package'/name).read_bytes()
++            assert original==indexed==checked,name
++            records[name]={'bytes':len(original),'source_sha256':hashlib.sha256(original).hexdigest(),
++                'index_sha256':hashlib.sha256(indexed).hexdigest(),'checkout_sha256':hashlib.sha256(checked).hexdigest()}
++        return {'schema':'rust-duty-owned-process-checkout-fixture/v1','git':run('--version').decode().strip(),
++            'core_autocrlf':True,'core_eol':'crlf','working_tree_attributes_absent':True,
++            'cached_attribute_check':check.splitlines(),'attributes_sha256':hashlib.sha256(attributes).hexdigest(),
++            'fixtures':records,'exact_bytes_preserved':True,'actual_windows_checkout':os.name=='nt',
++            'commits_or_remote_operations':False}
++
++class CheckoutByteTests(unittest.TestCase):
++    def test_package_attributes_preserve_indexed_and_checkout_bytes(self):
++        self.assertTrue(checkout_fixture()['exact_bytes_preserved'])
++
++if __name__=='__main__':unittest.main(verbosity=2)
+--- windows-process-adapter-v1/test_lifecycle_regressions.py
++++ windows-process-adapter-v2/test_lifecycle_regressions.py
+@@ -0,0 +1,208 @@
++"""Exact reviewer failures plus adjacent ownership edges. Mocks only.
++
++These tests deliberately retain a production lock on unverified cleanup, assert
++that outcome, then dispose ONLY their synthetic locks/quarantine state. They do
++not provide a production lock-stealing or recovery API.
++"""
++import ctypes as C
++import json
++from pathlib import Path
++import sys
++import tempfile
++import threading
++import unittest
++from unittest import mock
++
++from owned_process import Running, verify_attempt, AdapterError, SERIAL, INCOMPLETE_ATTEMPTS
++from test_owned_process import binding, small_limits, SyntheticResources
++from test_windows_job import FakeAPI, FakePipe, PipeKernel, AttributeKernel
++import windows_job as W
++
++class SlowPipe:
++    def __init__(self,immediate=False): self.immediate=immediate; self.closed=False
++    def read(self,size,cancel):
++        if not self.immediate: cancel.wait()
++        return b''
++    def close(self): self.closed=True
++
++class EndedProcess:
++    kind='reviewer-mock-only';pid=123;tree_empty_verified=True
++    def __init__(self,immediate_stdout=False,immediate_stderr=False):
++        self.stdout=SlowPipe(immediate_stdout);self.stderr=SlowPipe(immediate_stderr)
++    def poll(self):return 0
++    def rss(self):return 0
++    def stop_tree(self):pass
++    def reap(self):return 0
++    def close(self):self.stdout.close();self.stderr.close()
++
++class FailureAPI(FakeAPI):
++    def __init__(self,failed_handle=None,termination_failure=False):
++        super().__init__(); self.failed_handle=failed_handle;self.termination_failure=termination_failure
++    def close(self,handle):
++        super().close(handle)
++        if handle==self.failed_handle:raise OSError('injected owned CloseHandle failure')
++    def terminate(self,job):
++        super().terminate(job)
++        if self.termination_failure:raise OSError('injected owned job termination failure')
++
++class LifecycleRegressionTests(unittest.TestCase):
++    def setUp(self):
++        self.temp=tempfile.TemporaryDirectory(prefix='owned-v2-regression-');self.root=Path(self.temp.name)
++        self.original_attempts=len(INCOMPLETE_ATTEMPTS)
++        self.original_owners=len(W.INCOMPLETE_OWNERS);self.original_pipes=len(W.PENDING_PIPES)
++    def tearDown(self):
++        # Every launcher/pipe in this file is a pure mock. This cleanup is not
++        # available through the adapter and cannot operate on real owned jobs.
++        if SERIAL.locked():SERIAL.release()
++        del INCOMPLETE_ATTEMPTS[self.original_attempts:]
++        del W.INCOMPLETE_OWNERS[self.original_owners:]
++        del W.PENDING_PIPES[self.original_pipes:]
++        self.temp.cleanup()
++    def run_mock(self,launcher,mode='jsonl'):
++        return Running([sys.executable,'-c','pass'],self.root,
++            small_limits(stdout_mode=mode,drain_seconds=.01),self.root/'attempt',binding(self.root),
++            resources=SyntheticResources(),launcher=launcher)
++    def assert_incomplete_stream(self,mode,stdout=False,stderr=False):
++        process=EndedProcess(stdout,stderr);run=self.run_mock(lambda *args:process,mode)
++        with self.assertRaises(AdapterError):
++            with run:
++                if mode=='jsonl':list(run.jsonl())
++                else:run.wait()
++        self.assertFalse(run.receipt['completed']);self.assertEqual(run.receipt['state'],'partial')
++        self.assertIn(run.receipt['resource_stop_reason'],('incomplete_stream_drain','incomplete_stream_retention'))
++        with self.assertRaises(AdapterError):verify_attempt(self.root/'attempt',require_completed=True)
++        self.assertFalse(verify_attempt(self.root/'attempt')['completed'])
++        self.assertTrue(process.stdout.closed);self.assertTrue(process.stderr.closed)
++        self.assertFalse(SERIAL.locked());self.assertFalse((self.root/'owner.lock').exists())
++    def test_f1_bytes_cancelled_stdout_and_stderr_not_success(self):self.assert_incomplete_stream('bytes')
++    def test_f1_jsonl_cancelled_stderr_not_success(self):self.assert_incomplete_stream('jsonl',stdout=True)
++    def test_f1_jsonl_cancelled_stdout_not_success(self):self.assert_incomplete_stream('jsonl',stderr=True)
++
++    def constructor_failure(self,handle,pipe_factory=FakePipe,termination_failure=False):
++        api=FailureAPI(handle,termination_failure)
++        run=self.run_mock(lambda *args:W.WindowsProcess(*args,api=api,pipe_factory=pipe_factory))
++        with self.assertRaises(W.WindowsLaunchError):
++            with run:list(run.jsonl())
++        self.assertTrue(run.receipt['started']);self.assertEqual(run.receipt['pid'],123)
++        self.assertFalse(run.receipt['completed']);self.assertFalse(run.receipt['cleanup_complete'])
++        self.assertIn(('terminate_job',1),api.events);self.assertIn(('active',1),api.events)
++        self.assertIn(('close',1),api.events)
++        self.assertTrue((self.root/'owner.lock').exists());self.assertTrue(SERIAL.locked())
++        self.assertIn(run,INCOMPLETE_ATTEMPTS);self.assertIn(run.process,W.INCOMPLETE_OWNERS)
++        with self.assertRaises(AdapterError):verify_attempt(self.root/'attempt',require_completed=True)
++        # Every independent handle is attempted, even after an earlier failure.
++        for expected in (1,2,3,4,12,13,14,15):self.assertIn(('close',expected),api.events)
++        self.assertEqual(sum(e==('close',handle) for e in api.events),1)
++        return api,run
++    def test_f2_stdout_writer_close_failure_retains_actual_owner(self):self.constructor_failure(13)
++    def test_f2_stderr_writer_close_failure_retains_actual_owner(self):self.constructor_failure(15)
++    def test_f2_nul_close_failure_retains_actual_owner(self):self.constructor_failure(2)
++    def test_f2_thread_close_failure_retains_actual_owner(self):self.constructor_failure(4)
++    def test_f2_job_close_failure_attempts_remaining_cleanup(self):
++        def broken(api,handle):raise RuntimeError('event construction failed')
++        self.constructor_failure(1,broken)
++    def test_f2_process_close_failure_attempts_remaining_cleanup(self):
++        def broken(api,handle):raise RuntimeError('event construction failed')
++        self.constructor_failure(3,broken)
++    def test_f2_termination_failure_does_not_release_lock(self):self.constructor_failure(13,termination_failure=True)
++    def test_f2_event_construction_failure_can_verify_full_cleanup(self):
++        api=FakeAPI()
++        def broken(api,handle):raise RuntimeError('event construction failed')
++        run=self.run_mock(lambda *args:W.WindowsProcess(*args,api=api,pipe_factory=broken))
++        with self.assertRaises(W.WindowsLaunchError):
++            with run:list(run.jsonl())
++        self.assertTrue(run.receipt['started']);self.assertTrue(run.receipt['cleanup_complete'])
++        self.assertTrue(run.receipt['windows_job_empty_verified'])
++        self.assertFalse(run.receipt['completed']);self.assertFalse(SERIAL.locked())
++        self.assertFalse((self.root/'owner.lock').exists())
++    def test_f2_second_reader_construction_failure_closes_first(self):
++        api=FakeAPI();calls=[0]
++        def second_fails(api,handle):
++            calls[0]+=1
++            if calls[0]==2:raise RuntimeError('second event construction failed')
++            return FakePipe(api,handle)
++        with self.assertRaises(W.WindowsLaunchError) as caught:
++            W.WindowsProcess(['x'],'y',{},api=api,pipe_factory=second_fails)
++        self.assertTrue(caught.exception.owned_process.constructor_cleanup_complete)
++        self.assertEqual(sorted(e[1] for e in api.events if e[0]=='close'),[1,2,3,4,12,13,14,15])
++
++    def test_f2_reader_close_failure_attempts_other_independent_closes(self):
++        class BrokenReader(FakePipe):
++            def close(self):
++                self.api.close(self.handle)
++                if self.handle==12:raise OSError('reader close failed')
++                self.handle=None
++        self.constructor_failure(13,BrokenReader)
++    def test_f2_attribute_cleanup_failure_keeps_created_process_identity(self):
++        api=FakeAPI();api.k=AttributeKernel();api.check=W.WinAPI.check
++        def fail_delete(*args):raise OSError('attribute cleanup failed')
++        api.k.DeleteProcThreadAttributeList=fail_delete
++        api.create_in_job=W.WinAPI.create_in_job.__get__(api)
++        run=self.run_mock(lambda *args:W.WindowsProcess(*args,api=api,pipe_factory=FakePipe))
++        with self.assertRaises(W.WindowsLaunchError):
++            with run:list(run.jsonl())
++        self.assertTrue(run.receipt['started']);self.assertEqual(run.receipt['pid'],123)
++        self.assertTrue(run.receipt['windows_job_empty_verified'])
++        self.assertTrue(run.receipt['cleanup_complete']);self.assertFalse(SERIAL.locked())
++        self.assertIn(('terminate_job',1),api.events)
++    def test_f2_uncertain_prelaunch_setup_handle_retains_lock(self):
++        api=FakeAPI()
++        def bad_pipe():raise W.HandleSetupError(12,OSError('reader setup close failed'))
++        api.pipe=bad_pipe
++        run=self.run_mock(lambda *args:W.WindowsProcess(*args,api=api,pipe_factory=FakePipe))
++        with self.assertRaises(W.WindowsLaunchError):
++            with run:list(run.jsonl())
++        self.assertFalse(run.receipt['started']);self.assertFalse(run.receipt['cleanup_complete'])
++        self.assertTrue(SERIAL.locked());self.assertTrue((self.root/'owner.lock').exists())
++        self.assertEqual(run.process.handles['uncertain_setup_0'],12)
++        self.assertIn(('close',1),api.events)
++
++    def pipe(self,kernel):
++        api=W.WinAPI.__new__(W.WinAPI);api.k=kernel;api.close=lambda handle:kernel.events.append(('close',handle))
++        pipe=W.WindowsPipe(api,11);pipe.cancellation_grace_seconds=.01
++        return pipe
++    def test_f3_failed_wait_cancels_and_observes_before_storage_release(self):
++        kernel=PipeKernel(pending=True);kernel.WaitForSingleObject=lambda *args:0xFFFFFFFF
++        pipe=self.pipe(kernel)
++        with mock.patch.object(C,'get_last_error',lambda:kernel.error,create=True),self.assertRaises(OSError):
++            pipe.read(64,threading.Event())
++        self.assertIn('cancel',kernel.events);self.assertIn('result',kernel.events)
++        self.assertLess(kernel.events.index('cancel'),kernel.events.index('result'))
++        self.assertIsNone(pipe.pending);pipe.close()
++        self.assertIn(('close',11),kernel.events);self.assertIn(('close',20),kernel.events)
++    def pending_failure(self,cancel_failure=False,result_exception=False):
++        kernel=PipeKernel(pending=True);kernel.WaitForSingleObject=lambda *args:0xFFFFFFFF
++        def cancel(*args):
++            kernel.events.append('cancel')
++            if cancel_failure:raise OSError('cancel failed')
++            return 1
++        def result(*args):
++            kernel.events.append('result')
++            if result_exception:raise OSError('completion observation failed')
++            kernel.error=W.ERROR_IO_INCOMPLETE;return 0
++        kernel.CancelIoEx=cancel;kernel.GetOverlappedResult=result
++        pipe=self.pipe(kernel)
++        with mock.patch.object(C,'get_last_error',lambda:kernel.error,create=True),self.assertRaises(W.PendingReadError):
++            pipe.read(64,threading.Event())
++        self.assertIsNotNone(pipe.pending);self.assertIn(pipe,W.PENDING_PIPES)
++        self.assertIn('cancel',kernel.events);self.assertIn('result',kernel.events)
++        with self.assertRaises(W.PendingReadError):pipe.close()
++        self.assertFalse(any(isinstance(e,tuple) and e[0]=='close' for e in kernel.events))
++        return pipe,kernel
++    def test_f3_failed_cancel_and_pending_completion_keep_storage(self):self.pending_failure(cancel_failure=True)
++    def test_f3_pending_completion_timeout_keeps_storage(self):self.pending_failure()
++    def test_f3_completion_api_exception_keeps_storage(self):self.pending_failure(result_exception=True)
++    def test_f3_pending_read_reaches_supervisor_as_incomplete_cleanup(self):
++        kernel=PipeKernel(pending=True);kernel.WaitForSingleObject=lambda *args:0xFFFFFFFF
++        def result(*args):kernel.events.append('result');kernel.error=W.ERROR_IO_INCOMPLETE;return 0
++        kernel.GetOverlappedResult=result
++        pipe=self.pipe(kernel);process=EndedProcess(True,True);process.stdout=pipe
++        run=self.run_mock(lambda *args:process)
++        with mock.patch.object(C,'get_last_error',lambda:kernel.error,create=True),self.assertRaises(AdapterError):
++            with run:list(run.jsonl())
++        self.assertFalse(run.receipt['cleanup_complete']);self.assertFalse(run.receipt['completed'])
++        self.assertIsNotNone(pipe.pending);self.assertIn(pipe,W.PENDING_PIPES)
++        self.assertTrue(SERIAL.locked());self.assertTrue((self.root/'owner.lock').exists())
++        self.assertIn(run,INCOMPLETE_ATTEMPTS)
++
++if __name__=='__main__':unittest.main(verbosity=2)
+--- windows-process-adapter-v1/test_windows_job.py
++++ windows-process-adapter-v2/test_windows_job.py
+@@ -19,10 +19,12 @@
+     def pipe(self):
+         self.next+=2; self.events.append(('pipe',self.next,self.next+1)); return self.next,self.next+1
+     def nul(self): self.events.append(('nul',2)); return 2
+-    def create_in_job(self,*args):
++    def create_in_job(self,*args,adopt=None):
+         self.events.append(('atomic_create',args))
+         if self.failure: raise OSError('nested job or creation refused')
+-        return SimpleNamespace(process=3,thread=4,pid=123)
++        info=SimpleNamespace(process=3,thread=4,pid=123)
++        if adopt is not None:adopt(info)
++        return info
+     def in_job(self,process,job): self.events.append(('membership',process,job)); return self.associated
+     def close(self,handle):
+         if handle: self.events.append(('close',handle))
+@@ -56,14 +58,14 @@
+ 
+     def test_failed_membership_stops_exact_created_child_and_job(self):
+         api=FakeAPI(associated=False)
+-        with self.assertRaises(RuntimeError): W.WindowsProcess(['x'],'y',{},api=api,pipe_factory=FakePipe)
++        with self.assertRaises(W.WindowsLaunchError): W.WindowsProcess(['x'],'y',{},api=api,pipe_factory=FakePipe)
+         self.assertIn(('terminate_child',3),api.events); self.assertIn(('terminate_job',1),api.events)
+         self.assertIn(('close',1),api.events)
+ 
+     def test_reader_construction_failure_still_closes_job(self):
+         api=FakeAPI()
+         def broken(api,handle): raise RuntimeError('synthetic event creation failure')
+-        with self.assertRaises(RuntimeError): W.WindowsProcess(['x'],'y',{},api=api,pipe_factory=broken)
++        with self.assertRaises(W.WindowsLaunchError): W.WindowsProcess(['x'],'y',{},api=api,pipe_factory=broken)
+         self.assertIn(('terminate_job',1),api.events)
+         self.assertEqual(sorted(e[1] for e in api.events if e[0]=='close'),[1,2,3,4,12,13,14,15])
+ 
+--- windows-process-adapter-v1/windows-process-smoke.workflow.yml
++++ windows-process-adapter-v2/windows-process-smoke.workflow.yml
+@@ -5,7 +5,7 @@
+ on:
+   pull_request:
+     paths:
+-      - 'onehand-runtime-20261016/windows-process-adapter-v1/**'
++      - 'onehand-runtime-20261016/windows-process-adapter-v2/**'
+       - '.github/workflows/windows-process-smoke.yml'
+ permissions:
+   contents: read
+@@ -32,12 +32,12 @@
+           submodules: false
+           sparse-checkout-cone-mode: false
+           sparse-checkout: |
+-            /onehand-runtime-20261016/windows-process-adapter-v1/
++            /onehand-runtime-20261016/windows-process-adapter-v2/
+       - name: Run actual Windows Python transport tests with preinstalled Python
+         run: |
+           $ErrorActionPreference = 'Stop'
+           New-Item -ItemType Directory -Path $env:OWNED_ADAPTER_EVIDENCE_ROOT -ErrorAction Stop | Out-Null
+-          $package = 'onehand-runtime-20261016/windows-process-adapter-v1'
++          $package = 'onehand-runtime-20261016/windows-process-adapter-v2'
+           python -B "$package/run_tests.py" --require-windows --verify-pins --summary "$env:OWNED_ADAPTER_EVIDENCE_ROOT/test-summary.json"
+           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+       - name: Retain synthetic receipts only, even on a test failure
+--- windows-process-adapter-v1/windows_job.py
++++ windows-process-adapter-v2/windows_job.py
+@@ -57,6 +57,23 @@
+ JOB_LIST, HANDLE_LIST = 0x2000D, 0x20002
+ KILL_ON_CLOSE = 0x2000
+ ERROR_IO_PENDING, ERROR_BROKEN_PIPE, ERROR_OPERATION_ABORTED = 997, 109, 995
++ERROR_IO_INCOMPLETE = 996
++# Quarantine is deliberate: pending kernel storage/uncertain handles stay owned.
++INCOMPLETE_OWNERS = []
++PENDING_PIPES = []
++
++class WindowsLaunchError(OSError):
++    def __init__(self, owner, cause):
++        super().__init__("owned Windows launch failed: " + type(cause).__name__)
++        self.owned_process = owner
++
++class PendingReadError(OSError): pass
++
++class HandleSetupError(OSError):
++    def __init__(self, handle, cause):
++        super().__init__("owned setup handle close failed")
++        self.owned_handles = [handle]
++
+ INFINITE, WAIT_TIMEOUT, WAIT_OBJECT_0 = 0xFFFFFFFF, 258, 0
+ INVALID_HANDLE = C.c_void_p(-1).value
+ 
+@@ -116,7 +133,8 @@
+             self.check(self.k.SetInformationJobObject(job, 9, C.byref(value), C.sizeof(value)),
+                        'SetInformationJobObject(KILL_ON_JOB_CLOSE)')
+         except BaseException:
+-            self.k.CloseHandle(job)
++            try: self.close(job)
++            except BaseException as close_error: raise HandleSetupError(job, close_error)
+             raise
+         return job
+ 
+@@ -136,8 +154,10 @@
+         security = Security(C.sizeof(Security), None, True)
+         writer = self.k.CreateFileW(name, 0x40000000, 0, C.byref(security), 3, 0x80, None)
+         if writer == INVALID_HANDLE:
+-            self.k.CloseHandle(reader)
+-            raise OSError(C.get_last_error(), 'CreateFileW(pipe writer)')
++            error = C.get_last_error()
++            try: self.close(reader)
++            except BaseException as close_error: raise HandleSetupError(reader, close_error)
++            raise OSError(error, 'CreateFileW(pipe writer)')
+         return reader, writer
+ 
+     def nul(self):
+@@ -147,7 +167,7 @@
+             raise OSError(C.get_last_error(), 'CreateFileW(NUL)')
+         return handle
+ 
+-    def create_in_job(self, job, argv, cwd, env, stdin, stdout, stderr):
++    def create_in_job(self, job, argv, cwd, env, stdin, stdout, stderr, *, adopt=None):
+         size = SIZE()
+         self.k.InitializeProcThreadAttributeList(None, 2, 0, C.byref(size))
+         if not size.value or size.value > 65536:
+@@ -172,6 +192,8 @@
+             self.check(self.k.CreateProcessW(argv[0], command, None, None, True,
+                 0x80000 | 0x400 | 0x08000000, environment, cwd, C.byref(startup), C.byref(info)),
+                 'CreateProcessW(atomic JOB_LIST; no fallback/breakaway)')
++            # Transfer ownership before attribute-list cleanup can raise.
++            if adopt is not None: adopt(info)
+             # CREATE_NO_WINDOW | CREATE_UNICODE_ENVIRONMENT | EXTENDED_STARTUPINFO_PRESENT.
+             return info
+         finally:
+@@ -215,9 +237,15 @@
+ 
+ 
+ class WindowsPipe:
++    cancellation_grace_seconds = 1.0
++
+     def __init__(self, api, handle):
+         self.api, self.handle = api, handle
+         self.event = api.check(api.k.CreateEventW(None, True, False, None), 'CreateEventW')
++        self.pending = None
++        self.cancellation_attempted = False
++        self.quarantined = False
++        self.close_failed = set()
+ 
+     def read(self, count, cancel):
+         while not cancel.is_set():
+@@ -225,104 +253,191 @@
+             if value is not None: return value
+         return b''
+ 
++    def _cancel_and_observe(self):
++        """Never release pending buffer/OVERLAPPED merely because cancel returned."""
++        if self.pending is None: return True
++        if self.quarantined: return False
++        buffer, operation = self.pending
++        if not self.cancellation_attempted:
++            self.cancellation_attempted = True
++            try: self.api.k.CancelIoEx(self.handle, C.byref(operation))
++            except BaseException: pass  # Completion still must be observed.
++        end = time.monotonic() + self.cancellation_grace_seconds
++        while True:
++            got = U32()
++            try:
++                complete = self.api.k.GetOverlappedResult(self.handle, C.byref(operation), C.byref(got), False)
++                error = 0 if complete else C.get_last_error()
++            except BaseException:
++                break
++            if complete or error in (ERROR_OPERATION_ABORTED, ERROR_BROKEN_PIPE):
++                self.pending = None
++                return True
++            if error != ERROR_IO_INCOMPLETE or time.monotonic() >= end: break
++            time.sleep(.01)
++        if not self.quarantined:
++            self.quarantined = True
++            PENDING_PIPES.append(self)  # Strong ownership survives exception/GC.
++        return False
++
+     def _read_once(self, count, cancel):
++        if self.pending is not None: raise PendingReadError('previous read still pending')
+         api = self.api
+         buffer = C.create_string_buffer(count)
+         got = U32(); operation = Overlapped(); operation.event = self.event
+         api.check(api.k.ResetEvent(self.event), 'ResetEvent')
+-        if not api.k.ReadFile(self.handle, buffer, count, None, C.byref(operation)):
+-            error = C.get_last_error()
+-            if error == ERROR_BROKEN_PIPE:
+-                return b''
+-            if error != ERROR_IO_PENDING:
+-                raise OSError(error, 'ReadFile')
+-            while True:
+-                wait = api.k.WaitForSingleObject(self.event, 20)
+-                if wait == WAIT_OBJECT_0:
+-                    break
+-                if wait != WAIT_TIMEOUT:
+-                    raise OSError(C.get_last_error(), 'pipe wait')
+-                if cancel.is_set():
+-                    # Keep OVERLAPPED and its buffer alive until cancellation completes.
+-                    api.k.CancelIoEx(self.handle, C.byref(operation))
+-        if not api.k.GetOverlappedResult(self.handle, C.byref(operation), C.byref(got), False):
+-            error = C.get_last_error()
+-            if error in (ERROR_BROKEN_PIPE, ERROR_OPERATION_ABORTED):
+-                return b''
+-            raise OSError(error, 'GetOverlappedResult')
+-        # A successful zero-byte write is not pipe EOF. Only broken-pipe is EOF.
+-        return buffer.raw[:got.value] if got.value else None
++        self.pending = (buffer, operation)
++        self.cancellation_attempted = False
++        submitted = True  # Conservatively own the operation across call exceptions.
++        try:
++            ready = api.k.ReadFile(self.handle, buffer, count, None, C.byref(operation))
++            if not ready:
++                error = C.get_last_error()
++                if error == ERROR_BROKEN_PIPE:
++                    self.pending = None
++                    return b''
++                if error != ERROR_IO_PENDING:
++                    self.pending = None
++                    raise OSError(error, 'ReadFile')
++                submitted = True
++                while True:
++                    wait = api.k.WaitForSingleObject(self.event, 20)
++                    if wait == WAIT_OBJECT_0: break
++                    if wait != WAIT_TIMEOUT: raise OSError(C.get_last_error(), 'pipe wait')
++                    if cancel.is_set():
++                        if not self._cancel_and_observe():
++                            raise PendingReadError('pipe cancellation completion unverified')
++                        return b''
++            else:
++                submitted = True
++            if not api.k.GetOverlappedResult(self.handle, C.byref(operation), C.byref(got), False):
++                error = C.get_last_error()
++                if error in (ERROR_BROKEN_PIPE, ERROR_OPERATION_ABORTED):
++                    self.pending = None
++                    return b''
++                raise OSError(error, 'GetOverlappedResult')
++            self.pending = None
++            return buffer.raw[:got.value] if got.value else None
++        except BaseException as exc:
++            if submitted and self.pending is not None:
++                if not self._cancel_and_observe():
++                    raise PendingReadError('pending read storage and handles retained') from exc
++            elif not submitted:
++                self.pending = None
++            raise
+ 
+     def close(self):
+-        self.api.close(self.event); self.event = None
+-        self.api.close(self.handle); self.handle = None
++        if self.pending is not None:
++            # An unverified operation owns both handles and its storage. Closing
++            # either handle or freeing storage here would hide the lifecycle bug.
++            raise PendingReadError('cannot close handles while read completion is unverified')
++        errors = []
++        for name in ('handle', 'event'):
++            handle = getattr(self, name)
++            if not handle: continue
++            if name in self.close_failed:
++                errors.append(OSError('previous close outcome unverified')); continue
++            try: self.api.close(handle); setattr(self, name, None)
++            except BaseException as exc:
++                self.close_failed.add(name); errors.append(exc)
++        if errors:
++            if not self.quarantined: self.quarantined = True; PENDING_PIPES.append(self)
++            raise errors[0]
+ 
+ 
+ class WindowsProcess:
+-    """Injectable API makes ownership/start/cleanup logic testable on Linux."""
+-    kind = 'windows-job-list-overlapped-v1'
++    """Every acquired handle belongs to the object, including failed launches."""
++    kind = 'windows-job-list-overlapped-v2'
+     def __init__(self, argv, cwd, env, api=None, pipe_factory=WindowsPipe):
+         self.api = api or WinAPI()
+         self.pid = None; self.process = None; self.job = None
+-        self.stdout = self.stderr = None; self.parent_in_job = False; self.tree_empty_verified = False
+-        writers, readers = [], []
++        self.stdout = self.stderr = None
++        self.parent_in_job = False; self.tree_empty_verified = False
++        self.last_exit_code = None; self.constructor_cleanup_complete = None
++        self.handles = {}; self.close_failed = set(); self.cleanup_errors = []
+         try:
+             self.parent_in_job = self.api.inherited_job()
+-            self.job = self.api.create_job()
+-            for _ in range(2):
+-                reader, writer = self.api.pipe(); readers.append(reader); writers.append(writer)
+-            stdin = self.api.nul(); writers.append(stdin)
+-            info = self.api.create_in_job(self.job, argv, cwd, env, stdin, writers[0], writers[1])
+-            self.process, self.pid = info.process, int(info.pid)
+-            self.api.close(info.thread)
++            self.job = self.api.create_job(); self.handles['job'] = self.job
++            for name in ('stdout', 'stderr'):
++                reader, writer = self.api.pipe()
++                self.handles[name+'_reader'] = reader; self.handles[name+'_writer'] = writer
++            stdin = self.api.nul(); self.handles['stdin'] = stdin
++            info = self.api.create_in_job(self.job, argv, cwd, env, stdin,
++                self.handles['stdout_writer'], self.handles['stderr_writer'], adopt=self._adopt_created)
++            self._adopt_created(info)
++            error = self._close_slot('thread')
++            if error: raise error
+             if not self.api.in_job(self.process, self.job):
+                 self.api.terminate_process(self.process)
+                 raise RuntimeError('atomic job association not observed')
+-            self.stdout = pipe_factory(self.api, readers[0]); readers[0] = None
+-            self.stderr = pipe_factory(self.api, readers[1]); readers[1] = None
+-        except BaseException:
+-            # Closing the only job handle also kills an assigned process if another
+-            # cleanup API fails. Never terminate any ancestor/inherited job.
+-            try:
+-                if self.process and self.job:
+-                    self.api.terminate(self.job)
+-            finally:
+-                self.close()
+-            raise
+-        finally:
+-            for handle in writers + readers:
+-                if handle:
+-                    self.api.close(handle)
++            for name in ('stdout', 'stderr'):
++                pipe = pipe_factory(self.api, self.handles[name+'_reader'])
++                setattr(self, name, pipe); self.handles[name+'_reader'] = None
++            # All independent parent standard handles are attempted. An error is
++            # inside this ownership try, not an escaping constructor finally.
++            errors = [self._close_slot(name) for name in ('stdout_writer','stderr_writer','stdin')]
++            if any(errors): raise next(error for error in errors if error)
++        except BaseException as exc:
++            for index, handle in enumerate(getattr(exc, 'owned_handles', [])):
++                name = 'uncertain_setup_'+str(index)
++                self.handles[name] = handle; self.close_failed.add(name)
++            self._cleanup_failed_launch()
++            if not self.constructor_cleanup_complete: INCOMPLETE_OWNERS.append(self)
++            raise WindowsLaunchError(self, exc) from exc
++
++    def _adopt_created(self, info):
++        self.process, self.pid = info.process, int(info.pid)
++        self.handles['process'] = self.process; self.handles['thread'] = info.thread
++
++    def _close_slot(self, name):
++        handle = self.handles.get(name)
++        if not handle: return None
++        if name in self.close_failed: return OSError('previous owned handle close failed: '+name)
++        try:
++            self.api.close(handle); self.handles[name] = None
++            if name in ('job','process'): setattr(self,name,None)
++            return None
++        except BaseException as exc:
++            self.close_failed.add(name)
++            return exc
++
++    def _cleanup_failed_launch(self):
++        if self.process is not None:
++            try: self.stop_tree()
++            except BaseException as exc: self.cleanup_errors.append(type(exc).__name__)
++            try: self.last_exit_code = self.reap()
++            except BaseException as exc: self.cleanup_errors.append(type(exc).__name__)
++        try: self.close()
++        except BaseException as exc: self.cleanup_errors.append(type(exc).__name__)
++        self.constructor_cleanup_complete = (not self.cleanup_errors and not self.close_failed
++            and not any(self.handles.values()) and self.stdout is None and self.stderr is None
++            and (self.pid is None or self.tree_empty_verified))
+ 
+     def poll(self): return self.api.poll(self.process)
+     def rss(self): return self.api.rss(self.process)
+     def stop_tree(self):
+-        if self.job:
+-            self.api.terminate(self.job)
++        if self.job: self.api.terminate(self.job)
+     def emergency_stop(self):
+-        # Kill-on-close is an owned-job fallback, never an ancestor/foreign job.
+-        if self.job:
+-            self.api.close(self.job); self.job = None
+-
++        error = self._close_slot('job')
++        if error: raise error
+     def reap(self):
+         end = time.monotonic() + 5
+         while time.monotonic() < end:
+             code = self.poll()
+             if code is not None and self.api.active_processes(self.job) == 0:
+-                self.tree_empty_verified = True
++                self.tree_empty_verified = True; self.last_exit_code = code
+                 return code
+             time.sleep(.01)
+         raise RuntimeError('owned job did not become empty within cleanup bound')
+     def close(self):
+         errors = []
+-        # Job first: kill-on-close remains effective even if another close fails.
+-        for name in ('job', 'process'):
+-            try:
+-                self.api.close(getattr(self, name)); setattr(self, name, None)
+-            except BaseException as exc: errors.append(exc)
+-        for name in ('stdout', 'stderr'):
+-            pipe = getattr(self, name)
++        # Job first gives kill-on-close fallback even when termination failed.
++        for name in ('job','process',*tuple(k for k in self.handles if k not in ('job','process'))):
++            error = self._close_slot(name)
++            if error: errors.append(error)
++        for name in ('stdout','stderr'):
++            pipe = getattr(self,name)
+             if pipe:
+-                try: pipe.close(); setattr(self, name, None)
++                try: pipe.close(); setattr(self,name,None)
+                 except BaseException as exc: errors.append(exc)
+         if errors: raise errors[0]

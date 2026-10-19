@@ -1,0 +1,16 @@
+{
+  "native_dense": {
+    "dense_backend.py": "d861b7d4c0254df4424f590b76c55f106276b571ce7fdd0a7d9aad53c1546f00",
+    "dense_contract.py": "d37542c01ecce86d4cb24a88b6b205b6c8a10cdfe491852b73511bbb527f8dd9"
+  },
+  "native_window": {
+    "window_contract.py": "60089bc486d89689bbc79d8adc13826e7cd502c2fbcf8e862b669737a8800172",
+    "window_import.py": "99a640e2825fc140a998e7329eafc9b472e72bf4ff2968310bb54474bc5686c3"
+  },
+  "tools": {
+    "export_viewmodel.py": "dd39c05bbe8c2ac557020261e360da8f7e5debedb652daa75b223de2667f93cd",
+    "import_fbx_viewmodel.py": "83074cd5ac30404b2be1e1679b04c3e9784a2e4ce4884969bb65d80e3d90fb79",
+    "prone_camera_pair.py": "6fb12a0b53e0400ca0404784d3e2aae550f59e3611fa23e40f134e9bc2230045",
+    "single_stack_fbx.py": "5fa48bfe1c4688923435a01668aba882393282fd917f0c77d18e24b3763ea326"
+  }
+}

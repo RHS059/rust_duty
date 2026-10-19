@@ -1,0 +1,54 @@
+test_absent_payloads_are_blocked (test_candidate_context.ContextTests.test_absent_payloads_are_blocked) ... ok
+test_authored_cross_platform_claim_rejected (test_candidate_context.ContextTests.test_authored_cross_platform_claim_rejected) ... ok
+test_authored_mixed_candidate_rejected (test_candidate_context.ContextTests.test_authored_mixed_candidate_rejected) ... ok
+test_authored_schema_validation_is_not_execution (test_candidate_context.ContextTests.test_authored_schema_validation_is_not_execution) ... ok
+test_authored_unknown_payload_rejected (test_candidate_context.ContextTests.test_authored_unknown_payload_rejected) ... ok
+test_block_pair_location_fails (test_candidate_context.ContextTests.test_block_pair_location_fails) ... ok
+test_bool_does_not_impersonate_count (test_candidate_context.ContextTests.test_bool_does_not_impersonate_count) ... ok
+test_case_alias_fails (test_candidate_context.ContextTests.test_case_alias_fails) ... ok
+test_context_record_cannot_mutate_original_invariants (test_candidate_context.ContextTests.test_context_record_cannot_mutate_original_invariants) ... ok
+test_exclusive_owner_keeps_foreign_lock (test_candidate_context.ContextTests.test_exclusive_owner_keeps_foreign_lock) ... ok
+test_exclusive_owner_preserves_changed_lock (test_candidate_context.ContextTests.test_exclusive_owner_preserves_changed_lock) ... ok
+test_exclusive_owner_releases_only_own_lock (test_candidate_context.ContextTests.test_exclusive_owner_releases_only_own_lock) ... ok
+test_focus_preserves_strict_bounds_and_coverage (test_candidate_context.ContextTests.test_focus_preserves_strict_bounds_and_coverage) ... ok
+test_foreign_candidate_fails (test_candidate_context.ContextTests.test_foreign_candidate_fails) ... ok
+test_foreign_session_fails (test_candidate_context.ContextTests.test_foreign_session_fails) ... ok
+test_generated_identity_cannot_be_approved (test_candidate_context.ContextTests.test_generated_identity_cannot_be_approved) ... ok
+test_generated_identity_cannot_be_baseline (test_candidate_context.ContextTests.test_generated_identity_cannot_be_baseline) ... ok
+test_hardlink_alias_fails (test_candidate_context.ContextTests.test_hardlink_alias_fails) ... ok
+test_linux_host_cannot_be_windows (test_candidate_context.ContextTests.test_linux_host_cannot_be_windows) ... ok
+test_malformed_pin_fails (test_candidate_context.ContextTests.test_malformed_pin_fails) ... ok
+test_missing_admission_pin_fails (test_candidate_context.ContextTests.test_missing_admission_pin_fails) ... ok
+test_original_grid_is_hash_pinned_without_reconstruction (test_candidate_context.ContextTests.test_original_grid_is_hash_pinned_without_reconstruction) ... ok
+test_original_invariants_cannot_change (test_candidate_context.ContextTests.test_original_invariants_cannot_change) ... ok
+test_prerequisite_mixed_identity_fails_before_read (test_candidate_context.ContextTests.test_prerequisite_mixed_identity_fails_before_read) ... ok
+test_process_binding_identity (test_candidate_context.ContextTests.test_process_binding_identity) ... ok
+test_production_rejects_current_non_windows_host (test_candidate_context.ContextTests.test_production_rejects_current_non_windows_host) ... ok
+test_relative_root_fails (test_candidate_context.ContextTests.test_relative_root_fails) ... ok
+test_reparse_point_fails (test_candidate_context.ContextTests.test_reparse_point_fails) ... ok
+test_review_denied_transport_cannot_admit_production (test_candidate_context.ContextTests.test_review_denied_transport_cannot_admit_production) ... ok
+test_role_alias_fails (test_candidate_context.ContextTests.test_role_alias_fails) ... ok
+test_round_trip_and_stable_binding (test_candidate_context.ContextTests.test_round_trip_and_stable_binding) ... ok
+test_symlink_root_fails (test_candidate_context.ContextTests.test_symlink_root_fails) ... ok
+test_transport_readonly_verifier_pin_and_missing_evidence (test_candidate_context.ContextTests.test_transport_readonly_verifier_pin_and_missing_evidence) ... ok
+test_unknown_fields_fail (test_candidate_context.ContextTests.test_unknown_fields_fail) ... ok
+test_unknown_host_field_fails (test_candidate_context.ContextTests.test_unknown_host_field_fails) ... ok
+test_unknown_roles_fail (test_candidate_context.ContextTests.test_unknown_roles_fail) ... ok
+test_unsupported_candidate_mode_fails (test_candidate_context.ContextTests.test_unsupported_candidate_mode_fails) ... ok
+test_windows_alias_components_rejected (test_candidate_context.ContextTests.test_windows_alias_components_rejected) ... ok
+test_changed_newlines_fail_exact_bytes (test_candidate_context.AddonTests.test_changed_newlines_fail_exact_bytes) ... ok
+test_function_hash_cannot_be_relaxed (test_candidate_context.AddonTests.test_function_hash_cannot_be_relaxed) ... ok
+test_official_existing_bytes_and_function_pins (test_candidate_context.AddonTests.test_official_existing_bytes_and_function_pins) ... ok
+test_path_escape_rejected (test_candidate_context.AddonTests.test_path_escape_rejected) ... ok
+test_shadow_module_rejected_without_importing_blender (test_candidate_context.AddonTests.test_shadow_module_rejected_without_importing_blender) ... ok
+test_symlink_file_rejected (test_candidate_context.AddonTests.test_symlink_file_rejected) ... ok
+test_synthetic_logical_resolution (test_candidate_context.AddonTests.test_synthetic_logical_resolution) ... ok
+test_explicit_generated_identity_with_unchanged_small_stream (test_candidate_context.AssemblerIntegrationTests.test_explicit_generated_identity_with_unchanged_small_stream) ... ok
+test_generated_production_contract_keeps_original_layout (test_candidate_context.AssemblerIntegrationTests.test_generated_production_contract_keeps_original_layout) ... ok
+test_untrusted_helper_environment_and_modules_cannot_shadow (test_candidate_context.AssemblerIntegrationTests.test_untrusted_helper_environment_and_modules_cannot_shadow) ... ok
+test_wrong_assembler_bytes_rejected (test_candidate_context.AssemblerIntegrationTests.test_wrong_assembler_bytes_rejected) ... ok
+
+----------------------------------------------------------------------
+Ran 49 tests in 0.557s
+
+OK

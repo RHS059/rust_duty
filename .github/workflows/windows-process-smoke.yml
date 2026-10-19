@@ -1,0 +1,52 @@
+# Source-only Windows transport verification; no animation admission is implied.
+# No Blender, game, compiler, animation assets, private payload or asset upload.
+name: Windows owned-process source smoke
+on:
+  pull_request:
+    paths:
+      - 'onehand-runtime-20261016/windows-process-adapter-v2/**'
+      - '.github/workflows/windows-process-smoke.yml'
+permissions:
+  contents: read
+concurrency:
+  group: owned-process-smoke-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+jobs:
+  python-transport-only:
+    runs-on: windows-2022
+    timeout-minutes: 8
+    defaults:
+      run:
+        shell: pwsh
+    env:
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - name: Check out only the original adapter source and tests
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+          lfs: false
+          submodules: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /onehand-runtime-20261016/windows-process-adapter-v2/
+      - name: Run actual Windows Python transport tests with preinstalled Python
+        env:
+          OWNED_ADAPTER_EVIDENCE_ROOT: ${{ runner.temp }}/owned-process-synthetic-evidence
+        run: |
+          $ErrorActionPreference = 'Stop'
+          New-Item -ItemType Directory -Path $env:OWNED_ADAPTER_EVIDENCE_ROOT -ErrorAction Stop | Out-Null
+          $package = 'onehand-runtime-20261016/windows-process-adapter-v2'
+          python -B "$package/run_tests.py" --require-windows --verify-pins --summary "$env:OWNED_ADAPTER_EVIDENCE_ROOT/test-summary.json"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Retain synthetic receipts only, even on a test failure
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: windows-owned-process-synthetic-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/owned-process-synthetic-evidence/
+          if-no-files-found: error
+          retention-days: 7
+          overwrite: false
+          include-hidden-files: false

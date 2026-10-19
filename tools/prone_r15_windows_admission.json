@@ -1,0 +1,78 @@
+{
+  "approved_source_sha256": "cbed3051bb8c4bbdb78f72a49a7a51bd585db33636ddc5312dde38b05a2a86c4",
+  "base_sha256": "67cf025fc31d9804cb0259432a91e496d7d8f84d1d4ac6be2b1914a6a98510ad",
+  "code_sha256": {
+    "examples/sample_prone_camera.rs": "6157d859ccb35e99a32115a7b00b377310bf7b46aa7acdbc62014efc40848434",
+    "examples/sample_viewmodel_clip.rs": "82123dbb8be6db54a3780a2b18079a809738cd2559f89de7dcee0aac1d31e22b",
+    "src/animation_manifest.rs": "382bad9a75fe8ffc7b12ac2f0c4feb423c26d8cf1bfab5e351623a2f2fc674f9",
+    "src/app.rs": "0bfa319b5e7b4f7e324905bfc88c58f9781d2fcfefa74c38c0e97f7f9481b994",
+    "src/authored_pose_return.rs": "af42eca6d8428c79ff3fbedbe2b975e7ad6bee0787ac6abe522681a84abf08e5",
+    "src/authored_prone.rs": "d55ee37e1e62e1d96ca3916f0eb9262f998de914aa0775d52a67e3ecec854e18",
+    "src/authored_viewmodel.rs": "7d6fa5c080f7e1e93eb3cc3644395a7427532f93df1f29060cc1d726edd0207e",
+    "src/capture.rs": "d50ad891a0ff1dfa04dff698a4c332e91d796d3e1a443588f077043b5ef06869",
+    "src/draw/facade.rs": "48f7dc359e20286096d7c3d11c2f62fbc7391c54b8249c42ef2d33ce792c6118",
+    "src/main.rs": "b7d8cf8876cc2d9a36d69855b488c964023a51af807dd80b57bfb7cc31e6f5e0",
+    "src/platform/window.rs": "485b038b385a5a2f6ff74ee1f57c6a94a902c32bf6ab954a5f86bccd85e085d8",
+    "src/render/frame.rs": "d6a00fa29a303a1a00ff5a81fac03db46bb239c8269dda9dedfd59f4d7217ac3",
+    "src/render/runtime.rs": "67af6a5ee23d3db06a526abe3b5df6dc5e325365dce436562e1e4e31381a3e48",
+    "src/sim.rs": "8539a71fe356d51e8c13cbae690c4545f21ef69100f746ff9063e717f6d8d88e",
+    "src/traversal_replay.rs": "d386fcc9bf1ed72d061375b094ba1fa2ba49b809a217ce28621003f6525c41bb",
+    "src/viewmodel_draw.rs": "2587e18738c68173acc3062fa6c858a858f1864c083138fc752ae094c4b92e13",
+    "tests/authored_prone_contract.rs": "3e728d2f361fa41ee284c2b7f66bb2ce69e71a0d20ee61f5d8a99c0f6efcdfc6",
+    "tests/prone_regenerated_contract.rs": "bdb6c12d86a39f0a646d72483a59b437aa4bf286d5050a9577141443660d307c",
+    "tools/export_prone_pair.py": "dbf4ef012cab64c1c9cdd413805c077e919c799b189c004acc2427cd5cdd6846",
+    "tools/export_prone_r15_regenerated_dense.py": "4c154a24d77a918e67a93f862b0c17a3b7d7a11f14d51b80ec8b5d789287ca39",
+    "tools/export_viewmodel.py": "dd39c05bbe8c2ac557020261e360da8f7e5debedb652daa75b223de2667f93cd",
+    "tools/import_fbx_viewmodel.py": "d63488176905ccd2a03a261556da6c7b74769d40878e6a6326fc2f855d64437d",
+    "tools/produce_prone_r15_regenerated_runtime.py": "f6615851dc5c6eaa52f7fbca854da26a9ede23051a284bd64dae66fd47501ab7",
+    "tools/prone_camera_pair.py": "d454764dcbacfa0fc541111c45fc7ed572fbbb19c95eca3552a0db982a8ef1b8",
+    "tools/prone_r15_delta_transport.py": "54021da7e4400548603ffb1e5bc455dd6f2abc7c0fec2c986c072ecafbf7b7b5",
+    "tools/prone_r15_equivalence_contract.json": "313f980a3fcf4d24676c5b48a79fb5c2b032cd3cbef225c24c0c13c986e5e93b",
+    "tools/prone_r15_regenerated_contract.py": "95121e8ddafcbb647ae9c8dc40950809b964f1890b99ec4d73d7b85104e68722",
+    "tools/prone_r15_source_delta.py": "cb5f78aef2b0a77b3513d767dc19c77916e20522f0ba768a0d02081c83564ff1",
+    "tools/prone_r15_source_native.py": "28b004a9461292802f6410ebd97d1d219c0f548576b4d067099ff5432172a50a",
+    "tools/run_prone_r15_source_proof.py": "d9ce89d8cab3018644482971ea8498a6bca12d906e89ecf938fa542bc70a937c",
+    "tools/sample_prone_r15_camera.py": "e34dfc047b9c681d246a6553cf14e6fab4c84d49754660a99e43bbc683394a5e",
+    "tools/sample_prone_r15_regenerated_rigid.py": "e6fad0c4d664688e89c0e3c24a81e7809df88add10f00a9510f3dfbf2d5853ee",
+    "tools/test_prone_camera_pair.py": "672528d824236ad51e30c9e54a27d67996377b3c357c44f38f2f9141ecfe2501",
+    "tools/test_prone_camera_pair_r15.py": "a2cc54533b7be5e582d39fb5d43dbedfce64fdc6657aabe18a4a1db7bae6e5bd",
+    "tools/test_prone_r15_delta_transport.py": "d65ce34062de528ea67b18da51dbe275a2adb645d0d8397c3602f191de48d847",
+    "tools/test_prone_r15_equivalence_admission.py": "a147f9e2f8fa5a23108d052f06f18fe592f0fabb13b55c685a3d25e79f068656",
+    "tools/test_prone_r15_regenerated_runtime.py": "21c49d744108ea635b1934ce4d55cb06fd7a1a44e42fb354cca87ff75048e1f4",
+    "tools/test_prone_r15_source_delta.py": "e87465c26ef5fd83d796c35a47166a5d2a9c24d3786d60c25b3026c9b5e35e15",
+    "tools/test_prone_r15_windows_sourceproof.py": "1e5648435713007bcea66bb99f3ddee4c995ce76e295649a8f26dd79614ebd42",
+    "tools/test_verify_prone_gameplay_capture.py": "f6bc8e6adeba1ceea030d733050fa47afc20994fc6367485526f439f86facbb7",
+    "tools/test_verify_prone_r15_runtime.py": "f28c32b22d6532363ddbc79c1aed312495a38b797dd2087013bb1073dd215369",
+    "tools/verify_capture_frame_witness.py": "00011d1904499e1c2c0ea93b4cb74e389d1bf7b78cb0459567b3ae7f65f0f678",
+    "tools/verify_prone_gameplay_capture.py": "5bdaf20b8bc4899a80dcae4ae77474ad95d43bec2fd996e404200dcb481e9f04",
+    "tools/verify_prone_r15_runtime.py": "b8bbc01d16e703934626ceff88f328a19345ded859a01f36f0918dbadd470d8b",
+    "tools/verify_render_capture.py": "6bea6d0c9ebabe48bf50c8e45a370652d93bf926bbba3e8326bc754cbff395af",
+    "tools/vrpack.py": "28a23ed9a9b0fe0123405a9800473e57d04419596deae8789c66c744ad05b685",
+    "tools/vrskin.py": "e6aff7f5278bb8e6dd09ca75e69b8761b1b71bd30b3feddf84f8380cd88a5e14",
+    "tools/vrview.py": "eefd755f6ef0943a4d8bf443ddfec601bc1336ec90ece722d017c9c4b6d73568"
+  },
+  "inputs": {
+    "approved_witness": {
+      "path": "assets/authoring/prone_r15_sourceproof/approved-witness.json",
+      "sha256": "1cc01d075fa2b917b9890f53afb1d98c896ed34bbc6b3bbc27a5e49cdde0301c"
+    },
+    "delta": {
+      "manifest_path": "assets/authoring/prone_r15_sourceproof/delta/manifest.json",
+      "manifest_sha256": "22e33e608b56f56fad650e2c37f496dce419193057d52790ce0c5b3ae419fb8a",
+      "sha256": "4754fd25badc05af6763df2e139e364554171963e89e184e216eee6d948a4843"
+    },
+    "regenerated_witness": {
+      "path": "assets/authoring/prone_r15_sourceproof/regenerated-witness.json",
+      "sha256": "ea15eda6e4bcc7b157342ea16af2638c9703ec49ea5928a9b50d9446f52c58f3"
+    },
+    "replay_receipt": {
+      "path": "assets/authoring/prone_r15_sourceproof/replay-receipt.json",
+      "sha256": "4afbc1d381713589e5f913d413b37d1c895feca2e5eb88ef81d599272fa53ab3"
+    },
+    "source_equivalence": {
+      "path": "assets/authoring/prone_r15_sourceproof/source-equivalence-v1.json",
+      "sha256": "3a9fd4f50480992b6eac30f01269c1036998fef5f6b851f86cccb0ba49f046fb"
+    }
+  },
+  "schema": "rust-duty-prone-r15-windows-admission/v1"
+}

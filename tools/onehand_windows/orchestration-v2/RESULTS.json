@@ -1,0 +1,124 @@
+{
+  "confirmed_corrections": {
+    "B1": "Same-repository pull_request on actual stacked PR74 base or main runs bounded source tests before incomplete native admission. No dispatch/default-merge/repository-variable prerequisite. Complete independent acceptance and all actual source identities are verified before native installers.",
+    "B3": "Every materialization/event ref must resolve to an actual Git commit. Tree/blob/annotated-tag substitutions reject before blob read."
+  },
+  "frozen_at_utc": "2026-10-16T09:41:48Z",
+  "implemented_proof_route_unchanged": {
+    "actual_output_pins_required": true,
+    "bounded_blocks": 12,
+    "focus_samples": 9,
+    "honest_supervised_cargo_build_producer": true,
+    "immutable_successor_contexts": true,
+    "native_stages": 222,
+    "original_grid_samples": 4240,
+    "raw_cli_errors_private": true,
+    "runtime_keys": 24321,
+    "runtime_tick_hz": 15360,
+    "rust_chunks": 67
+  },
+  "inspected_interfaces": {
+    "consumer_v3": "d69f8d766b3f1c19ffc79a98166598292e1db7d94ee8730645f62b61deaf427b",
+    "native_v3": "cfc96363113616ce8b2450fe172790270f32538ed3c0660ae8a4d848148e4794"
+  },
+  "predecessor_pins_sha256": "c027871c70b741e5b0d13edcb724e7170c45df952d678b446bb092f209629270",
+  "predecessor_unchanged_verified": true,
+  "production_admission": false,
+  "publication": {
+    "concrete_inventory_command": "python -I -B publication_inventory.py --package-pins-sha256 <independently expected package PINS SHA256>",
+    "held_payloads_included": false,
+    "live_proof_inputs_manifest_included": false,
+    "materialized_source_destinations": 165,
+    "null_global_admission_template_included": true,
+    "original_delta_included": false,
+    "performed": false,
+    "private_assets_included": false,
+    "source_only_destinations": 168
+  },
+  "required_before_game_capture": [
+    "separately reviewed target-source versus approved-lineage game binding",
+    "actual final native and Rust proof completion",
+    "actual game-side capture route; no default activation from None"
+  ],
+  "required_before_native_execution": [
+    "independent successor orchestration acceptance and exact accepted package/dependency pins",
+    "legitimate complete proof-admission.json with actual immutable proof-input/layout/review references",
+    "all completed34 Linux reference witnesses plus real replay/index/equivalence pins",
+    "separately published exact original delta and accepted destination",
+    "reviewed Rust source commit satisfying frozen references and exact official toolchain choice",
+    "full actual input materialization and bridge/transport/Rust preinstaller checks",
+    "actual official vendor checksum verification"
+  ],
+  "retention": "Only explicit bounded source-test, admission and actual native hash-summary files are proposed CI artifacts. Private source/intermediates/raw rows/logs remain runner-local and may vanish; no persistent credential or raw-upload route.",
+  "schema": "rust-duty-onehand-workflow-source-results/v2",
+  "scope": "source-only PR trigger/admission and commit-object correction",
+  "source_only_integration_fixture": {
+    "actual_source_integrity_loaders_passed": true,
+    "actual_windows_execution": false,
+    "all_source_bytes_preserved": true,
+    "fixture_used_current_v2_source_with_synthetic_freeze_result_metadata": true,
+    "git_autocrlf": true,
+    "git_eol": "crlf",
+    "materialized_destinations": 165,
+    "native_execution": false,
+    "native_ready": false,
+    "null_admission_status": "blocked-incomplete-admission",
+    "real_local_git_repository": true,
+    "tests_from_materialized_publication_layout": 85
+  },
+  "static_checks": {
+    "conditional_native_steps": 5,
+    "dependencies_verified": 132,
+    "dependency_bytes": 1538452,
+    "json_files_in_final_freeze": 8,
+    "missing_or_all_null_admission_blocks_native_without_blocking_source_tests": true,
+    "partial_or_malformed_admission_fails": true,
+    "python_ast_files": 17,
+    "source_packages_cache_free": true,
+    "workflow_yaml_steps": 11
+  },
+  "tests": {
+    "actual_cargo_build_performed": false,
+    "actual_consumer_v3_build_closure_validator_exercised": true,
+    "animation_or_compiler_processes": 0,
+    "command": "PYTHONDONTWRITEBYTECODE=1 python -B -m unittest discover -s onehand-runtime-20261016/windows-workflow-preparation-v2 -p 'test_*.py' -v",
+    "errors": 0,
+    "failures": 0,
+    "passed": 85,
+    "tiny_local_git_objects_exercised": true
+  },
+  "trigger": {
+    "base_branches": [
+      "aella/combined-authored-transitions-20261016",
+      "main"
+    ],
+    "event": "pull_request",
+    "exact_event_head_commit_checkout": true,
+    "manual_dispatch_or_default_branch_merge_required": false,
+    "preinstall_admission_timeout_minutes": 20,
+    "read_only_contents": true,
+    "same_repository_only": true,
+    "secrets_or_repository_variables_required": false,
+    "source_export_timeout_minutes": 10,
+    "source_tests_timeout_minutes": 10
+  },
+  "unchanged_boundaries": {
+    "activation_authorized": false,
+    "cross_platform_float64_identity_claimed": false,
+    "disk_floor_bytes": 1073741824,
+    "old_candidate_context_production_hardblock_bypassed": false,
+    "per_process_timeout_seconds": 1800,
+    "sampled_direct_child_rss_bytes": 3221225472,
+    "source_rest_restoration_enforced_by_native_package": true
+  },
+  "unexecuted": [
+    "actual GitHub Windows source CI",
+    "PowerShell parsing/execution (pwsh unavailable)",
+    "official vendor checksum retrieval/download/install",
+    "Blender host probe/replay/all producer stages",
+    "Cargo vendor/metadata/build and real compiler closure",
+    "actual Rust loading/focus/chunks/aggregate",
+    "native gameplay/capture",
+    "GitHub publication"
+  ]
+}

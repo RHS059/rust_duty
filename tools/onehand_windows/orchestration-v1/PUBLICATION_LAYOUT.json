@@ -1,0 +1,1437 @@
+{
+  "excluded_until_separate_real_admission": [
+    "original-delta.json",
+    "proof-inputs.json",
+    "all34 complete Linux witnesses and final reference records",
+    "all private source/FBX/raw rows/runtime candidate assets",
+    "previously public baseline/canonical assets (existing identity may be referenced later; no republishing here)",
+    "new Rust source snapshot/toolchain choice and final accepted review pins"
+  ],
+  "files": [
+    {
+      "bytes": 6868,
+      "kind": "original-source",
+      "materialized_path": "audited/onehand-runtime-20261016-r2/native-dense/dense_backend.py",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/audited/onehand-runtime-20261016-r2/native-dense/dense_backend.py",
+      "sha256": "d861b7d4c0254df4424f590b76c55f106276b571ce7fdd0a7d9aad53c1546f00",
+      "source": "onehand-runtime-20261016-r2/native-dense/dense_backend.py"
+    },
+    {
+      "bytes": 2068,
+      "kind": "original-source",
+      "materialized_path": "audited/onehand-runtime-20261016-r2/native-rigid-v2/rigid_bytes.py",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/audited/onehand-runtime-20261016-r2/native-rigid-v2/rigid_bytes.py",
+      "sha256": "d22be88ab1c850a52356fdae476ee7ddd827fd22152e17b0f8e2473866f27251",
+      "source": "onehand-runtime-20261016-r2/native-rigid-v2/rigid_bytes.py"
+    },
+    {
+      "bytes": 828,
+      "kind": "original-source",
+      "materialized_path": "audited/onehand-runtime-20261016-r2/native-rigid-v2/rigid_geometry.py",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/audited/onehand-runtime-20261016-r2/native-rigid-v2/rigid_geometry.py",
+      "sha256": "61da740dbb3f23e5438a75f7acdde0581c0f24a5308a7c2341c00a880d207813",
+      "source": "onehand-runtime-20261016-r2/native-rigid-v2/rigid_geometry.py"
+    },
+    {
+      "bytes": 8948,
+      "kind": "original-source",
+      "materialized_path": "audited/onehand-runtime-20261016-r2/native-rigid-v2/sample_rigid.py",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/audited/onehand-runtime-20261016-r2/native-rigid-v2/sample_rigid.py",
+      "sha256": "b7e7924b0a9e9f366daa898df671b8021e8a79826ba091bac0fb65ce78351692",
+      "source": "onehand-runtime-20261016-r2/native-rigid-v2/sample_rigid.py"
+    },
+    {
+      "bytes": 13776,
+      "kind": "original-source",
+      "materialized_path": "audited/onehand-runtime-20261016-r2/native-window-v2/sample_source.py",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/audited/onehand-runtime-20261016-r2/native-window-v2/sample_source.py",
+      "sha256": "a7e915ad048dbe73ee81615b4235fd50e943a97d6976ebd7f9f3532bf8e7c802",
+      "source": "onehand-runtime-20261016-r2/native-window-v2/sample_source.py"
+    },
+    {
+      "bytes": 13085,
+      "kind": "original-source",
+      "materialized_path": "audited/onehand-runtime-20261016-r2/native-window-v2/verify_window.py",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/audited/onehand-runtime-20261016-r2/native-window-v2/verify_window.py",
+      "sha256": "aad42caca2c1ab872ee48b006a797362d7dac54ce8bd485455ae4eb8cdb066a4",
+      "source": "onehand-runtime-20261016-r2/native-window-v2/verify_window.py"
+    },
+    {
+      "bytes": 3547,
+      "kind": "original-source",
+      "materialized_path": "audited/onehand-runtime-20261016-r2/native-window-v2/window_contract.py",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/audited/onehand-runtime-20261016-r2/native-window-v2/window_contract.py",
+      "sha256": "60089bc486d89689bbc79d8adc13826e7cd502c2fbcf8e862b669737a8800172",
+      "source": "onehand-runtime-20261016-r2/native-window-v2/window_contract.py"
+    },
+    {
+      "bytes": 7093,
+      "kind": "original-source",
+      "materialized_path": "audited/onehand-runtime-20261016-r2/native-window-v2/window_import.py",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/audited/onehand-runtime-20261016-r2/native-window-v2/window_import.py",
+      "sha256": "99a640e2825fc140a998e7329eafc9b472e72bf4ff2968310bb54474bc5686c3",
+      "source": "onehand-runtime-20261016-r2/native-window-v2/window_import.py"
+    },
+    {
+      "bytes": 26136,
+      "kind": "original-source",
+      "materialized_path": "audited/onehand-runtime-20261016-r2/runtime-conversion-v2/assemble_runtime.py",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/audited/onehand-runtime-20261016-r2/runtime-conversion-v2/assemble_runtime.py",
+      "sha256": "01c4d5dd43b56607742ad2c5862c3185460dcb14b4cb5ef079301daae7f45e12",
+      "source": "onehand-runtime-20261016-r2/runtime-conversion-v2/assemble_runtime.py"
+    },
+    {
+      "bytes": 9351,
+      "kind": "original-source",
+      "materialized_path": "audited/onehand-runtime-20261016-r2/runtime-conversion-v2/native_runtime.py",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/audited/onehand-runtime-20261016-r2/runtime-conversion-v2/native_runtime.py",
+      "sha256": "4c729c2171d23736c3008a087ee7f14a33e7b4883bd059fce659d46a6c4edbc5",
+      "source": "onehand-runtime-20261016-r2/runtime-conversion-v2/native_runtime.py"
+    },
+    {
+      "bytes": 12601,
+      "kind": "original-source",
+      "materialized_path": "audited/onehand-runtime-20261016-r2/runtime-parity/admit_candidate.py",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/audited/onehand-runtime-20261016-r2/runtime-parity/admit_candidate.py",
+      "sha256": "d846b0d77637a86654433ffea4cbd4479edc9a13d2dbb26006a38fcdab12b282",
+      "source": "onehand-runtime-20261016-r2/runtime-parity/admit_candidate.py"
+    },
+    {
+      "bytes": 5548,
+      "kind": "original-source",
+      "materialized_path": "audited/onehand-runtime-20261016-r2/runtime-parity/bounded_vra.py",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/audited/onehand-runtime-20261016-r2/runtime-parity/bounded_vra.py",
+      "sha256": "6a7e3b5996485c9e917e040c86f6909066bf3fa0b31cd43321b4c25b36b40da3",
+      "source": "onehand-runtime-20261016-r2/runtime-parity/bounded_vra.py"
+    },
+    {
+      "bytes": 10174,
+      "kind": "original-source",
+      "materialized_path": "audited/onehand-runtime-20261016-r2/runtime-parity/conversion_admission.py",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/audited/onehand-runtime-20261016-r2/runtime-parity/conversion_admission.py",
+      "sha256": "500ab92baf5ab38721ad924cf4b25d26ac34a8c9585493e9fce0e40f31d33b7a",
+      "source": "onehand-runtime-20261016-r2/runtime-parity/conversion_admission.py"
+    },
+    {
+      "bytes": 9197,
+      "kind": "original-source",
+      "materialized_path": "audited/onehand-runtime-20261016-r2/runtime-parity/focused_runtime.py",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/audited/onehand-runtime-20261016-r2/runtime-parity/focused_runtime.py",
+      "sha256": "b917c07b472303f922e7b91521c96bf1f81e95ee043e1bd5c01f96244182b96e",
+      "source": "onehand-runtime-20261016-r2/runtime-parity/focused_runtime.py"
+    },
+    {
+      "bytes": 17837,
+      "kind": "original-source",
+      "materialized_path": "audited/onehand-runtime-20261016-r2/runtime-parity/onehand_r2_common.py",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/audited/onehand-runtime-20261016-r2/runtime-parity/onehand_r2_common.py",
+      "sha256": "cae111fc9f0a6a056d369c1cd831e2926e77356c26bcef4ebbd3fdd9e483167a",
+      "source": "onehand-runtime-20261016-r2/runtime-parity/onehand_r2_common.py"
+    },
+    {
+      "bytes": 17765,
+      "kind": "original-source",
+      "materialized_path": "audited/onehand-runtime-20261016-r2/runtime-parity/serial_r2.py",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/audited/onehand-runtime-20261016-r2/runtime-parity/serial_r2.py",
+      "sha256": "eaa588c9b7ab16adbd9075c9cff9d40f3ee93d7b062dd5c804f4276318498044",
+      "source": "onehand-runtime-20261016-r2/runtime-parity/serial_r2.py"
+    },
+    {
+      "bytes": 6301,
+      "kind": "original-source",
+      "materialized_path": "audited/onehand-runtime-20261016-r2/runtime-parity/test_bounded_vra.py",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/audited/onehand-runtime-20261016-r2/runtime-parity/test_bounded_vra.py",
+      "sha256": "a2033c073dc56cdb70d59156c1e51e36b9697c385343dff4bdc526815cfc042b",
+      "source": "onehand-runtime-20261016-r2/runtime-parity/test_bounded_vra.py"
+    },
+    {
+      "bytes": 63300,
+      "kind": "original-source",
+      "materialized_path": "audited/onehand-runtime-20261016-r2/runtime-parity/verify_onehand_r2.py",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/audited/onehand-runtime-20261016-r2/runtime-parity/verify_onehand_r2.py",
+      "sha256": "968e98ab5e0d9ced460eddd23dc2013a7e07d37317c33d65eb5c8e77c1298342",
+      "source": "onehand-runtime-20261016-r2/runtime-parity/verify_onehand_r2.py"
+    },
+    {
+      "bytes": 10042,
+      "kind": "original-source",
+      "materialized_path": "audited/onehand-runtime-20261016-r2/runtime-parity/window_admission.py",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/audited/onehand-runtime-20261016-r2/runtime-parity/window_admission.py",
+      "sha256": "7c777e1b6981e966c33e14c7abf6437a67bd84ae30e7af3b236c5584265e3372",
+      "source": "onehand-runtime-20261016-r2/runtime-parity/window_admission.py"
+    },
+    {
+      "bytes": 16819,
+      "kind": "original-source",
+      "materialized_path": "audited/onehand-runtime-20261016/importer-patch/tools/export_viewmodel.py",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/audited/onehand-runtime-20261016/importer-patch/tools/export_viewmodel.py",
+      "sha256": "dd39c05bbe8c2ac557020261e360da8f7e5debedb652daa75b223de2667f93cd",
+      "source": "onehand-runtime-20261016/importer-patch/tools/export_viewmodel.py"
+    },
+    {
+      "bytes": 19678,
+      "kind": "original-source",
+      "materialized_path": "audited/onehand-runtime-20261016/importer-patch/tools/import_fbx_viewmodel.py",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/audited/onehand-runtime-20261016/importer-patch/tools/import_fbx_viewmodel.py",
+      "sha256": "83074cd5ac30404b2be1e1679b04c3e9784a2e4ce4884969bb65d80e3d90fb79",
+      "source": "onehand-runtime-20261016/importer-patch/tools/import_fbx_viewmodel.py"
+    },
+    {
+      "bytes": 12460,
+      "kind": "original-source",
+      "materialized_path": "audited/onehand-runtime-20261016/importer-patch/tools/prone_camera_pair.py",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/audited/onehand-runtime-20261016/importer-patch/tools/prone_camera_pair.py",
+      "sha256": "6fb12a0b53e0400ca0404784d3e2aae550f59e3611fa23e40f134e9bc2230045",
+      "source": "onehand-runtime-20261016/importer-patch/tools/prone_camera_pair.py"
+    },
+    {
+      "bytes": 6336,
+      "kind": "original-source",
+      "materialized_path": "audited/onehand-runtime-20261016/importer-patch/tools/single_stack_fbx.py",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/audited/onehand-runtime-20261016/importer-patch/tools/single_stack_fbx.py",
+      "sha256": "5fa48bfe1c4688923435a01668aba882393282fd917f0c77d18e24b3763ea326",
+      "source": "onehand-runtime-20261016/importer-patch/tools/single_stack_fbx.py"
+    },
+    {
+      "bytes": 30543,
+      "kind": "original-source",
+      "materialized_path": "audited/onehand-runtime-20261016/importer-patch/tools/vrpack.py",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/audited/onehand-runtime-20261016/importer-patch/tools/vrpack.py",
+      "sha256": "28a23ed9a9b0fe0123405a9800473e57d04419596deae8789c66c744ad05b685",
+      "source": "onehand-runtime-20261016/importer-patch/tools/vrpack.py"
+    },
+    {
+      "bytes": 19574,
+      "kind": "original-source",
+      "materialized_path": "audited/onehand-runtime-20261016/importer-patch/tools/vrskin.py",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/audited/onehand-runtime-20261016/importer-patch/tools/vrskin.py",
+      "sha256": "e6aff7f5278bb8e6dd09ca75e69b8761b1b71bd30b3feddf84f8380cd88a5e14",
+      "source": "onehand-runtime-20261016/importer-patch/tools/vrskin.py"
+    },
+    {
+      "bytes": 34515,
+      "kind": "original-source",
+      "materialized_path": "audited/onehand-runtime-20261016/importer-patch/tools/vrview.py",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/audited/onehand-runtime-20261016/importer-patch/tools/vrview.py",
+      "sha256": "eefd755f6ef0943a4d8bf443ddfec601bc1336ec90ece722d017c9c4b6d73568",
+      "source": "onehand-runtime-20261016/importer-patch/tools/vrview.py"
+    },
+    {
+      "bytes": 875,
+      "kind": "original-source",
+      "materialized_path": "source-producer/PINS.json",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/source-producer/PINS.json",
+      "sha256": "0c7e6e1ef7a2f0c3637e7eb800d0fc7a1bd196c69bdb3c377db76680e0663a5f",
+      "source": "onehand-runtime-20261016/source-producer-preparation/PINS.json"
+    },
+    {
+      "bytes": 10341,
+      "kind": "original-source",
+      "materialized_path": "source-producer/README.md",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/source-producer/README.md",
+      "sha256": "90db4d6223f9b07d7cf02b3b13370147ebac228f4834ef364d0fe26b8fd8c69a",
+      "source": "onehand-runtime-20261016/source-producer-preparation/README.md"
+    },
+    {
+      "bytes": 40293,
+      "kind": "original-source",
+      "materialized_path": "source-producer/dense-times.json",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/source-producer/dense-times.json",
+      "sha256": "a521b1e779e45f85948d94b8b9aa9f9cad41d935783ba5fcbda34decb6aec08f",
+      "source": "onehand-runtime-20261016/source-producer-preparation/dense-times.json"
+    },
+    {
+      "bytes": 30475,
+      "kind": "original-source",
+      "materialized_path": "source-producer/onehand_v6_source_delta.py",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/source-producer/onehand_v6_source_delta.py",
+      "sha256": "1d8fde8db44543b4ab31a6da57b0b6c5bc80fd8b10ff5ccf528b4551330d24c3",
+      "source": "onehand-runtime-20261016/source-producer-preparation/onehand_v6_source_delta.py"
+    },
+    {
+      "bytes": 37383,
+      "kind": "original-source",
+      "materialized_path": "source-producer/onehand_v6_source_native.py",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/source-producer/onehand_v6_source_native.py",
+      "sha256": "36e6755f1bbc2e185f3a97b2944bad272509b7433494059398aa27ff52adb422",
+      "source": "onehand-runtime-20261016/source-producer-preparation/onehand_v6_source_native.py"
+    },
+    {
+      "bytes": 6004,
+      "kind": "original-source",
+      "materialized_path": "source-producer/owner_commands.py",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/source-producer/owner_commands.py",
+      "sha256": "86ef2710dc3d7f808ef4277a4caf2da5a9c6cfbc6dec332bbc45a566aec5d5e3",
+      "source": "onehand-runtime-20261016/source-producer-preparation/owner_commands.py"
+    },
+    {
+      "bytes": 6364,
+      "kind": "original-source",
+      "materialized_path": "source-producer/pose-corrections.json",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/source-producer/pose-corrections.json",
+      "sha256": "08e25bf4c8731c073ace8749e2225f60d3e95a06eec6627239d7a9ba57aba58c",
+      "source": "onehand-runtime-20261016/source-producer-preparation/pose-corrections.json"
+    },
+    {
+      "bytes": 13645,
+      "kind": "original-source",
+      "materialized_path": "source-producer/r2-completion-integrity.patch",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/source-producer/r2-completion-integrity.patch",
+      "sha256": "3e43af97f9062f9c5e49bf2334bdba7ff2ba4e5b94bfda78855637131b715448",
+      "source": "onehand-runtime-20261016/source-producer-preparation/r2-completion-integrity.patch"
+    },
+    {
+      "bytes": 18679,
+      "kind": "original-source",
+      "materialized_path": "source-producer/run_onehand_v6_source_proof.py",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/source-producer/run_onehand_v6_source_proof.py",
+      "sha256": "44b3815e0837fa697d5404f8f553da7c1685bfd7211bd73e17bd70d3f0edff8f",
+      "source": "onehand-runtime-20261016/source-producer-preparation/run_onehand_v6_source_proof.py"
+    },
+    {
+      "bytes": 34275,
+      "kind": "original-source",
+      "materialized_path": "source-producer/test_onehand_v6_source_proof.py",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/source-producer/test_onehand_v6_source_proof.py",
+      "sha256": "d28b30b4c6ece073d3a19f2792631d86ea3f55499bc42dfcfd67d80e88b702c6",
+      "source": "onehand-runtime-20261016/source-producer-preparation/test_onehand_v6_source_proof.py"
+    },
+    {
+      "bytes": 752,
+      "kind": "original-source",
+      "materialized_path": "source-producer/windows-portable-v1/PINS.json",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/source-producer/windows-portable-v1/PINS.json",
+      "sha256": "3a7dfc3f96a83b530f125f239dc8e5aac0052030366e30ef55fe45ca9950bb8d",
+      "source": "onehand-runtime-20261016/source-producer-preparation/windows-portable-v1/PINS.json"
+    },
+    {
+      "bytes": 10769,
+      "kind": "original-source",
+      "materialized_path": "source-producer/windows-portable-v1/README.md",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/source-producer/windows-portable-v1/README.md",
+      "sha256": "95e3a8ecea7c4cf90fd36b76d1eeb9a2adff6c62fe5f790710db3291740c3373",
+      "source": "onehand-runtime-20261016/source-producer-preparation/windows-portable-v1/README.md"
+    },
+    {
+      "bytes": 4928,
+      "kind": "original-source",
+      "materialized_path": "source-producer/windows-portable-v1/cpu-tests.log",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/source-producer/windows-portable-v1/cpu-tests.log",
+      "sha256": "37d532ac3d60f5b1ac6c0eb022800bc50827aa7f9b4b0ea96c88d4f7b05f16f0",
+      "source": "onehand-runtime-20261016/source-producer-preparation/windows-portable-v1/cpu-tests.log"
+    },
+    {
+      "bytes": 1973,
+      "kind": "original-source",
+      "materialized_path": "source-producer/windows-portable-v1/local-evidence-status.json",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/source-producer/windows-portable-v1/local-evidence-status.json",
+      "sha256": "52ecf17a3364134309e25bbea5c8f83505d7c37e579459f4ac0099108ea3eeec",
+      "source": "onehand-runtime-20261016/source-producer-preparation/windows-portable-v1/local-evidence-status.json"
+    },
+    {
+      "bytes": 1322,
+      "kind": "original-source",
+      "materialized_path": "source-producer/windows-portable-v1/local-input-admission.json",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/source-producer/windows-portable-v1/local-input-admission.json",
+      "sha256": "7edcad9f0a10c0b2d51b28a0a05a34d1dd9af133ec255d59616d25e406cdc1c8",
+      "source": "onehand-runtime-20261016/source-producer-preparation/windows-portable-v1/local-input-admission.json"
+    },
+    {
+      "bytes": 1207,
+      "kind": "original-source",
+      "materialized_path": "source-producer/windows-portable-v1/portable-contract.json",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/source-producer/windows-portable-v1/portable-contract.json",
+      "sha256": "94fbd11c6fa1bad47977e630ddc672ae72bcde2357a0bae5c5db9133480765e3",
+      "source": "onehand-runtime-20261016/source-producer-preparation/windows-portable-v1/portable-contract.json"
+    },
+    {
+      "bytes": 17884,
+      "kind": "original-source",
+      "materialized_path": "source-producer/windows-portable-v1/portable_source.py",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/source-producer/windows-portable-v1/portable_source.py",
+      "sha256": "c7dd33dcd61e4e4dfa6afe0e370c55d4d35df6ba000fa47a4268476608d99fb1",
+      "source": "onehand-runtime-20261016/source-producer-preparation/windows-portable-v1/portable_source.py"
+    },
+    {
+      "bytes": 2365,
+      "kind": "original-source",
+      "materialized_path": "source-producer/windows-portable-v1/runtime-handoff.json",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/source-producer/windows-portable-v1/runtime-handoff.json",
+      "sha256": "1af9ade4b150a85c115d93f66282bbf68840c8a5007904eac2f30c22f0fe16f8",
+      "source": "onehand-runtime-20261016/source-producer-preparation/windows-portable-v1/runtime-handoff.json"
+    },
+    {
+      "bytes": 18618,
+      "kind": "original-source",
+      "materialized_path": "source-producer/windows-portable-v1/test_portable_source.py",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/source-producer/windows-portable-v1/test_portable_source.py",
+      "sha256": "5b9e1b693d327d74acb4997dd520396ed0501132502bf134e61ac6e2fa774f8d",
+      "source": "onehand-runtime-20261016/source-producer-preparation/windows-portable-v1/test_portable_source.py"
+    },
+    {
+      "bytes": 499,
+      "kind": "original-source",
+      "materialized_path": "context-v1/ALLOWLIST.json",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/context-v1/ALLOWLIST.json",
+      "sha256": "e2c324274c13a67e103e7f3c8b45643cb6db45299527da0da6126657ec45c7e4",
+      "source": "onehand-runtime-20261016/windows-candidate-context-v1/ALLOWLIST.json"
+    },
+    {
+      "bytes": 825,
+      "kind": "original-source",
+      "materialized_path": "context-v1/NATIVE_HELPER_PINS.json",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/context-v1/NATIVE_HELPER_PINS.json",
+      "sha256": "ebf3e1868fc2ea8c6e729bcbd351aa283a259822b19cdb06fb605cdaac2f7aed",
+      "source": "onehand-runtime-20261016/windows-candidate-context-v1/NATIVE_HELPER_PINS.json"
+    },
+    {
+      "bytes": 1269,
+      "kind": "original-source",
+      "materialized_path": "context-v1/OFFICIAL_ADDON_PINS.json",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/context-v1/OFFICIAL_ADDON_PINS.json",
+      "sha256": "2716811db4b591c14d0044458c608c961aa2dfcad5958f9da6d0b4da8d67dace",
+      "source": "onehand-runtime-20261016/windows-candidate-context-v1/OFFICIAL_ADDON_PINS.json"
+    },
+    {
+      "bytes": 1304,
+      "kind": "original-source",
+      "materialized_path": "context-v1/PINS.json",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/context-v1/PINS.json",
+      "sha256": "cee1e6fc907638c6eaa363fd301b722b145767ae1d19131519a53b9b74c9d378",
+      "source": "onehand-runtime-20261016/windows-candidate-context-v1/PINS.json"
+    },
+    {
+      "bytes": 11675,
+      "kind": "original-source",
+      "materialized_path": "context-v1/README.md",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/context-v1/README.md",
+      "sha256": "3bc0c3446e8fe29ee60c3b7f6c5ad3cce241deead1e1228e3cbc10bb0fb1e45c",
+      "source": "onehand-runtime-20261016/windows-candidate-context-v1/README.md"
+    },
+    {
+      "bytes": 3794,
+      "kind": "original-source",
+      "materialized_path": "context-v1/RESULTS.json",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/context-v1/RESULTS.json",
+      "sha256": "af9c696e53412b1b65c5d118ef1a200fd957bebad5589fa3b3a006d7e8ab220c",
+      "source": "onehand-runtime-20261016/windows-candidate-context-v1/RESULTS.json"
+    },
+    {
+      "bytes": 5253,
+      "kind": "original-source",
+      "materialized_path": "context-v1/addon_resolver.py",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/context-v1/addon_resolver.py",
+      "sha256": "b19ffad6fec645865ccb924328d9d53c0a6c989bbd062cbc7ec23a0d6c180d2a",
+      "source": "onehand-runtime-20261016/windows-candidate-context-v1/addon_resolver.py"
+    },
+    {
+      "bytes": 19528,
+      "kind": "original-source",
+      "materialized_path": "context-v1/candidate_context.py",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/context-v1/candidate_context.py",
+      "sha256": "f1e7b362445548ededceb64a5bc79e502eb77cae8192eec3f5cc22b23d651c45",
+      "source": "onehand-runtime-20261016/windows-candidate-context-v1/candidate_context.py"
+    },
+    {
+      "bytes": 16270,
+      "kind": "original-source",
+      "materialized_path": "context-v1/cpu-tests-final.log",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/context-v1/cpu-tests-final.log",
+      "sha256": "1a6013550bb9f528287b87e718fe2bf64dd31883a828e3bd76d9d6144a8c95d2",
+      "source": "onehand-runtime-20261016/windows-candidate-context-v1/cpu-tests-final.log"
+    },
+    {
+      "bytes": 6114,
+      "kind": "original-source",
+      "materialized_path": "context-v1/cpu-tests-post-review.log",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/context-v1/cpu-tests-post-review.log",
+      "sha256": "21e7b34c7a73c6c4938312670449183354e10b18c8db8eb4dec98b875e75af6d",
+      "source": "onehand-runtime-20261016/windows-candidate-context-v1/cpu-tests-post-review.log"
+    },
+    {
+      "bytes": 2763,
+      "kind": "original-source",
+      "materialized_path": "context-v1/pinned_assembler.py",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/context-v1/pinned_assembler.py",
+      "sha256": "6a9afcc7a9de9b7215b2b3000f77e7d7a61d12543918adc93dbf8ca6973cb6cf",
+      "source": "onehand-runtime-20261016/windows-candidate-context-v1/pinned_assembler.py"
+    },
+    {
+      "bytes": 1734,
+      "kind": "original-source",
+      "materialized_path": "context-v1/pinned_transport.py",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/context-v1/pinned_transport.py",
+      "sha256": "d261450937cf709a62fdbe6e0a61056c19c3d6ffb7e897dc8e68484fc231d1b7",
+      "source": "onehand-runtime-20261016/windows-candidate-context-v1/pinned_transport.py"
+    },
+    {
+      "bytes": 20812,
+      "kind": "original-source",
+      "materialized_path": "context-v1/production_assembler.py",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/context-v1/production_assembler.py",
+      "sha256": "afb0cf30903a6d083e300271a84a439cde8cd3036b7da6ea4e914b660f1d56eb",
+      "source": "onehand-runtime-20261016/windows-candidate-context-v1/production_assembler.py"
+    },
+    {
+      "bytes": 22526,
+      "kind": "original-source",
+      "materialized_path": "context-v1/test_candidate_context.py",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/context-v1/test_candidate_context.py",
+      "sha256": "5354f3bb56e2f98f5a767ba0b8b4744ddffcb43579cb285312ed4747ca29b0bc",
+      "source": "onehand-runtime-20261016/windows-candidate-context-v1/test_candidate_context.py"
+    },
+    {
+      "bytes": 1298,
+      "kind": "original-source",
+      "materialized_path": "context-v1/verify_freeze.py",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/context-v1/verify_freeze.py",
+      "sha256": "5b88650607feb34a5a280d4ddd0495027d9f0f50ab1d6ef8639fdd5845b8cd12",
+      "source": "onehand-runtime-20261016/windows-candidate-context-v1/verify_freeze.py"
+    },
+    {
+      "bytes": 8,
+      "kind": "original-source",
+      "materialized_path": "native-producer-reviewed/.gitattributes",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/native-producer-reviewed/.gitattributes",
+      "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da",
+      "source": "onehand-runtime-20261016/windows-native-producer-v3/.gitattributes"
+    },
+    {
+      "bytes": 673,
+      "kind": "original-source",
+      "materialized_path": "native-producer-reviewed/ALLOWLIST.json",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/native-producer-reviewed/ALLOWLIST.json",
+      "sha256": "1f50100b659257838eed2b9405fec5ba1f23d110988e251fbc003812a09162a2",
+      "source": "onehand-runtime-20261016/windows-native-producer-v3/ALLOWLIST.json"
+    },
+    {
+      "bytes": 66154,
+      "kind": "original-source",
+      "materialized_path": "native-producer-reviewed/AUDITED_FRAGMENTS.json",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/native-producer-reviewed/AUDITED_FRAGMENTS.json",
+      "sha256": "3a2d0c7ea5fcc0dfab7ec615dbb78e0b7d9f907c1d1a48bc2f90da14933952b5",
+      "source": "onehand-runtime-20261016/windows-native-producer-v3/AUDITED_FRAGMENTS.json"
+    },
+    {
+      "bytes": 2480,
+      "kind": "original-source",
+      "materialized_path": "native-producer-reviewed/BOUNDARY_ADAPTATIONS.json",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/native-producer-reviewed/BOUNDARY_ADAPTATIONS.json",
+      "sha256": "259caee2b8265e77f3d45eb7b70462fd062b13a9e1435c6d7457ab377de80ee0",
+      "source": "onehand-runtime-20261016/windows-native-producer-v3/BOUNDARY_ADAPTATIONS.json"
+    },
+    {
+      "bytes": 2736,
+      "kind": "original-source",
+      "materialized_path": "native-producer-reviewed/BYTE_PRESERVATION.md",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/native-producer-reviewed/BYTE_PRESERVATION.md",
+      "sha256": "ebdb63e437c68148f46e6e845f796bffc7449b4a0a7ecf3e1de7816a0e8667cc",
+      "source": "onehand-runtime-20261016/windows-native-producer-v3/BYTE_PRESERVATION.md"
+    },
+    {
+      "bytes": 6134,
+      "kind": "original-source",
+      "materialized_path": "native-producer-reviewed/PENDING_NATIVE_COMMANDS.md",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/native-producer-reviewed/PENDING_NATIVE_COMMANDS.md",
+      "sha256": "22ec0952cf064494e5662320c9ad0ee31b1b385c3aa18c73b67bab7b94bba900",
+      "source": "onehand-runtime-20261016/windows-native-producer-v3/PENDING_NATIVE_COMMANDS.md"
+    },
+    {
+      "bytes": 2006,
+      "kind": "original-source",
+      "materialized_path": "native-producer-reviewed/PINS.json",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/native-producer-reviewed/PINS.json",
+      "sha256": "cfc96363113616ce8b2450fe172790270f32538ed3c0660ae8a4d848148e4794",
+      "source": "onehand-runtime-20261016/windows-native-producer-v3/PINS.json"
+    },
+    {
+      "bytes": 17564,
+      "kind": "original-source",
+      "materialized_path": "native-producer-reviewed/README.md",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/native-producer-reviewed/README.md",
+      "sha256": "45eb4294e1b156b410965f089ef20e487019ef3caf1c77e2b36477cde576baab",
+      "source": "onehand-runtime-20261016/windows-native-producer-v3/README.md"
+    },
+    {
+      "bytes": 4937,
+      "kind": "original-source",
+      "materialized_path": "native-producer-reviewed/RESULTS.json",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/native-producer-reviewed/RESULTS.json",
+      "sha256": "95c567894e3965fad82b2c4e3de9c3f453ad1b01ea26e2e1512cdba7e6d14574",
+      "source": "onehand-runtime-20261016/windows-native-producer-v3/RESULTS.json"
+    },
+    {
+      "bytes": 24684,
+      "kind": "original-source",
+      "materialized_path": "native-producer-reviewed/admission.py",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/native-producer-reviewed/admission.py",
+      "sha256": "131ecf0044132b851aac3a7a14bd1056a1dff37f73db75054fa296457823f24d",
+      "source": "onehand-runtime-20261016/windows-native-producer-v3/admission.py"
+    },
+    {
+      "bytes": 15705,
+      "kind": "original-source",
+      "materialized_path": "native-producer-reviewed/cpu-tests.log",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/native-producer-reviewed/cpu-tests.log",
+      "sha256": "b44ade2d47f62ad60f1759ba5fa1e9c9d4b252a1b6e5bb903ddd344b4aa7a2b4",
+      "source": "onehand-runtime-20261016/windows-native-producer-v3/cpu-tests.log"
+    },
+    {
+      "bytes": 4345,
+      "kind": "original-source",
+      "materialized_path": "native-producer-reviewed/extract_helpers.py",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/native-producer-reviewed/extract_helpers.py",
+      "sha256": "5960f27c112ae4b83ae729c5cbd1d2eba4fe5f4bf5b0fb7afa5c33dfe7a7d10c",
+      "source": "onehand-runtime-20261016/windows-native-producer-v3/extract_helpers.py"
+    },
+    {
+      "bytes": 3233,
+      "kind": "original-source",
+      "materialized_path": "native-producer-reviewed/launch_stage.py",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/native-producer-reviewed/launch_stage.py",
+      "sha256": "98e0b468bc1185e11eb23de12c6e2479e843067dfe75c64c3e66ad212bdfa2eb",
+      "source": "onehand-runtime-20261016/windows-native-producer-v3/launch_stage.py"
+    },
+    {
+      "bytes": 3951,
+      "kind": "original-source",
+      "materialized_path": "native-producer-reviewed/native_entry.py",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/native-producer-reviewed/native_entry.py",
+      "sha256": "e1f4a4140e12d0f288dfd84b09837335eafbeb72f1d4b5b83b3777149d82d5d5",
+      "source": "onehand-runtime-20261016/windows-native-producer-v3/native_entry.py"
+    },
+    {
+      "bytes": 22124,
+      "kind": "original-source",
+      "materialized_path": "native-producer-reviewed/native_stages.py",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/native-producer-reviewed/native_stages.py",
+      "sha256": "ecc58db55b78c9a178fa3bbbd07baa6fb5398dc961cbb636b4fa42fa27e1367d",
+      "source": "onehand-runtime-20261016/windows-native-producer-v3/native_stages.py"
+    },
+    {
+      "bytes": 5500,
+      "kind": "original-source",
+      "materialized_path": "native-producer-reviewed/pinned_code.py",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/native-producer-reviewed/pinned_code.py",
+      "sha256": "31cab2dc38dd84c99dcc9eee36882016bd53b63381dd938bb881b2c445bc7b02",
+      "source": "onehand-runtime-20261016/windows-native-producer-v3/pinned_code.py"
+    },
+    {
+      "bytes": 2313,
+      "kind": "original-source",
+      "materialized_path": "native-producer-reviewed/planner.py",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/native-producer-reviewed/planner.py",
+      "sha256": "e7bccd65dde3c34c46224e2325bcf01c6e980bf67ffd33a7eab1919a2e8e0db2",
+      "source": "onehand-runtime-20261016/windows-native-producer-v3/planner.py"
+    },
+    {
+      "bytes": 11829,
+      "kind": "original-source",
+      "materialized_path": "native-producer-reviewed/process_evidence.py",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/native-producer-reviewed/process_evidence.py",
+      "sha256": "b42edd7f757a5876bee2f600bfb35f56f80867255b21693a8444b365305e6a51",
+      "source": "onehand-runtime-20261016/windows-native-producer-v3/process_evidence.py"
+    },
+    {
+      "bytes": 10383,
+      "kind": "original-source",
+      "materialized_path": "native-producer-reviewed/stage_context.py",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/native-producer-reviewed/stage_context.py",
+      "sha256": "3fde606b79903fa6d8b82e2b43999ed7d92f06547d097c84a5c719513c98f809",
+      "source": "onehand-runtime-20261016/windows-native-producer-v3/stage_context.py"
+    },
+    {
+      "bytes": 22063,
+      "kind": "original-source",
+      "materialized_path": "native-producer-reviewed/test_native_producer.py",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/native-producer-reviewed/test_native_producer.py",
+      "sha256": "d1d5fa955da40d1da06a0e27b9ac881aff3c5447c3a308544b51f805b34934d8",
+      "source": "onehand-runtime-20261016/windows-native-producer-v3/test_native_producer.py"
+    },
+    {
+      "bytes": 19702,
+      "kind": "original-source",
+      "materialized_path": "native-producer-reviewed/test_review_regressions.py",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/native-producer-reviewed/test_review_regressions.py",
+      "sha256": "0fef00119ab0c1e1e257c298b4d3d7c0226afc7cd4b523a485d3cfea52a2aaf7",
+      "source": "onehand-runtime-20261016/windows-native-producer-v3/test_review_regressions.py"
+    },
+    {
+      "bytes": 4140,
+      "kind": "original-source",
+      "materialized_path": "native-producer-reviewed/transport_binding.py",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/native-producer-reviewed/transport_binding.py",
+      "sha256": "1c2b851d68cdf7c4da8813f1d504ae9be5649e65b5fc01feb332d557ae4f7a5e",
+      "source": "onehand-runtime-20261016/windows-native-producer-v3/transport_binding.py"
+    },
+    {
+      "bytes": 800,
+      "kind": "original-source",
+      "materialized_path": "native-producer-reviewed/verify_freeze.py",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/native-producer-reviewed/verify_freeze.py",
+      "sha256": "2456c9b00aee29eaa55dbb1f37a25506914562e446edbced48c71e2f794a2752",
+      "source": "onehand-runtime-20261016/windows-native-producer-v3/verify_freeze.py"
+    },
+    {
+      "bytes": 86,
+      "kind": "original-source",
+      "materialized_path": "process-v2/.gitattributes",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/process-v2/.gitattributes",
+      "sha256": "171e9a8b3b5a35df8a0e007415aa96cd02a5ae26ee13b421ea9de761c6f8ddad",
+      "source": "onehand-runtime-20261016/windows-process-adapter-v2/.gitattributes"
+    },
+    {
+      "bytes": 2757,
+      "kind": "original-source",
+      "materialized_path": "process-v2/DEPENDENCIES.json",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/process-v2/DEPENDENCIES.json",
+      "sha256": "5e2c49d629018cf68f4e916d9bf257a5af1b82337facdf541ea4159928a36f6a",
+      "source": "onehand-runtime-20261016/windows-process-adapter-v2/DEPENDENCIES.json"
+    },
+    {
+      "bytes": 2326,
+      "kind": "original-source",
+      "materialized_path": "process-v2/PINS.json",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/process-v2/PINS.json",
+      "sha256": "d9ef5486cbd7d80ec8d4c9d37c556ff7d13d8dc0147cbd7e6244a4154ca79751",
+      "source": "onehand-runtime-20261016/windows-process-adapter-v2/PINS.json"
+    },
+    {
+      "bytes": 19046,
+      "kind": "original-source",
+      "materialized_path": "process-v2/README.md",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/process-v2/README.md",
+      "sha256": "3a8ed00fb3898be1eb48359f3f85797f30d96eae39915f1c237a23d260066eee",
+      "source": "onehand-runtime-20261016/windows-process-adapter-v2/README.md"
+    },
+    {
+      "bytes": 1143,
+      "kind": "original-source",
+      "materialized_path": "process-v2/checkout-fixture-proof.json",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/process-v2/checkout-fixture-proof.json",
+      "sha256": "970aed93d4f354fcc51bebf10692c4d3bdc6ffb5a60704e399538b2eabbe8849",
+      "source": "onehand-runtime-20261016/windows-process-adapter-v2/checkout-fixture-proof.json"
+    },
+    {
+      "bytes": 1285,
+      "kind": "original-source",
+      "materialized_path": "process-v2/cpu-test-summary.json",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/process-v2/cpu-test-summary.json",
+      "sha256": "6163dfb23aa7d8e60b3e6fc002d7a8209ed69bbd8263e12a2a2d30d5c0b2d6d3",
+      "source": "onehand-runtime-20261016/windows-process-adapter-v2/cpu-test-summary.json"
+    },
+    {
+      "bytes": 10301,
+      "kind": "original-source",
+      "materialized_path": "process-v2/cpu-tests.log",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/process-v2/cpu-tests.log",
+      "sha256": "7b532b2372f20f23b37f96442b5d2bda5ed855bd139c763cab1c1f3add194ddc",
+      "source": "onehand-runtime-20261016/windows-process-adapter-v2/cpu-tests.log"
+    },
+    {
+      "bytes": 46858,
+      "kind": "original-source",
+      "materialized_path": "process-v2/minimal-changes.patch",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/process-v2/minimal-changes.patch",
+      "sha256": "11dab8fee3fc8be0104f7adc1b73bb06091af7307f369f67d2f7bb2bdda2dd00",
+      "source": "onehand-runtime-20261016/windows-process-adapter-v2/minimal-changes.patch"
+    },
+    {
+      "bytes": 39160,
+      "kind": "original-source",
+      "materialized_path": "process-v2/owned_process.py",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/process-v2/owned_process.py",
+      "sha256": "256125ea044c738ac316da841a5acad9c39b1fc2b1666cc4a09ce81828bd191e",
+      "source": "onehand-runtime-20261016/windows-process-adapter-v2/owned_process.py"
+    },
+    {
+      "bytes": 2751,
+      "kind": "original-source",
+      "materialized_path": "process-v2/run_tests.py",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/process-v2/run_tests.py",
+      "sha256": "79b3868758640da4918cc8822ee6327401b07a0c597a608fc94cdb488f73d380",
+      "source": "onehand-runtime-20261016/windows-process-adapter-v2/run_tests.py"
+    },
+    {
+      "bytes": 2786,
+      "kind": "original-source",
+      "materialized_path": "process-v2/test_checkout_bytes.py",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/process-v2/test_checkout_bytes.py",
+      "sha256": "1c56b4dde3ae6e1859f9fe4b60ecaf3b21d9e5ec0f0998561afec4e36edb6c54",
+      "source": "onehand-runtime-20261016/windows-process-adapter-v2/test_checkout_bytes.py"
+    },
+    {
+      "bytes": 12647,
+      "kind": "original-source",
+      "materialized_path": "process-v2/test_lifecycle_regressions.py",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/process-v2/test_lifecycle_regressions.py",
+      "sha256": "ef501fb4ffa5f1e3ec9117cf98071313bcdc3adcc746f9a927689db273e5adf3",
+      "source": "onehand-runtime-20261016/windows-process-adapter-v2/test_lifecycle_regressions.py"
+    },
+    {
+      "bytes": 20249,
+      "kind": "original-source",
+      "materialized_path": "process-v2/test_owned_process.py",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/process-v2/test_owned_process.py",
+      "sha256": "7051141262d6774d43bf0cf791f174432c485d4aca0432bc42f94be7862c963d",
+      "source": "onehand-runtime-20261016/windows-process-adapter-v2/test_owned_process.py"
+    },
+    {
+      "bytes": 9807,
+      "kind": "original-source",
+      "materialized_path": "process-v2/test_windows_job.py",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/process-v2/test_windows_job.py",
+      "sha256": "a49a9ebf39ff22e22e9e4e215601d107221ca845978276042cba560252ac952e",
+      "source": "onehand-runtime-20261016/windows-process-adapter-v2/test_windows_job.py"
+    },
+    {
+      "bytes": 5843,
+      "kind": "original-source",
+      "materialized_path": "process-v2/test_windows_native.py",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/process-v2/test_windows_native.py",
+      "sha256": "401061f2e2bbe2317e211b0e9f70c3df2c5ecac6212264d7131c0b6175247ab5",
+      "source": "onehand-runtime-20261016/windows-process-adapter-v2/test_windows_native.py"
+    },
+    {
+      "bytes": 2249,
+      "kind": "original-source",
+      "materialized_path": "process-v2/windows-process-smoke.workflow.yml",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/process-v2/windows-process-smoke.workflow.yml",
+      "sha256": "7ac5a15a8ed4ac9f1f2535e04e800b0e7df2a8d4cf7ccbac39549dbfb3fa301a",
+      "source": "onehand-runtime-20261016/windows-process-adapter-v2/windows-process-smoke.workflow.yml"
+    },
+    {
+      "bytes": 22068,
+      "kind": "original-source",
+      "materialized_path": "process-v2/windows_job.py",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/process-v2/windows_job.py",
+      "sha256": "d628c4f7d3136dde11cf6c9d5ba35f3d12302bfd2522918fe1f0229a40f1ba1e",
+      "source": "onehand-runtime-20261016/windows-process-adapter-v2/windows_job.py"
+    },
+    {
+      "bytes": 1244,
+      "kind": "hash-only-reference",
+      "materialized_path": "transport-evidence/independent-review.json",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/transport-evidence/independent-review.json",
+      "sha256": "820c10f716aadfb3ee9f7e3e3c8e176b446df0568f4196dce4fd0b7c08cf6527",
+      "source": "onehand-runtime-20261016/windows-process-review-v2/REVIEW_FREEZE.json"
+    },
+    {
+      "bytes": 17053,
+      "kind": "original-source",
+      "materialized_path": "authored-bridge/authored_bridge.py",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/authored-bridge/authored_bridge.py",
+      "sha256": "3453dcd587a5869a061420f8bf702a4c7968336876a4ec0a7e371767c9d213de",
+      "source": "onehand-runtime-20261016/windows-proof-preparation-v1/authored_bridge.py"
+    },
+    {
+      "bytes": 91,
+      "kind": "original-source",
+      "materialized_path": "runtime-consumer-reviewed/.gitattributes",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/runtime-consumer-reviewed/.gitattributes",
+      "sha256": "065ef7bd73cabfd8caae7a31362f680c15c52ead4741d03eb9a903f702825c52",
+      "source": "onehand-runtime-20261016/windows-runtime-consumer-v3/.gitattributes"
+    },
+    {
+      "bytes": 747,
+      "kind": "original-source",
+      "materialized_path": "runtime-consumer-reviewed/ALLOWLIST.json",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/runtime-consumer-reviewed/ALLOWLIST.json",
+      "sha256": "16f70eb59989b60a6eba1d26e2a8ae833343ea2c00a3c71f7302980790c87d91",
+      "source": "onehand-runtime-20261016/windows-runtime-consumer-v3/ALLOWLIST.json"
+    },
+    {
+      "bytes": 4848,
+      "kind": "original-source",
+      "materialized_path": "runtime-consumer-reviewed/CORRECTIONS.md",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/runtime-consumer-reviewed/CORRECTIONS.md",
+      "sha256": "ced1de5f5c1845ed257d64a43c55279fc3c1dd95b080b6657f71a915b44b983c",
+      "source": "onehand-runtime-20261016/windows-runtime-consumer-v3/CORRECTIONS.md"
+    },
+    {
+      "bytes": 800,
+      "kind": "original-source",
+      "materialized_path": "runtime-consumer-reviewed/DEPENDENCY_REVIEW.json",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/runtime-consumer-reviewed/DEPENDENCY_REVIEW.json",
+      "sha256": "e16968f53f3d72bd626adffa33c34f57e683ade7e023290bd9eb042807a8c3c3",
+      "source": "onehand-runtime-20261016/windows-runtime-consumer-v3/DEPENDENCY_REVIEW.json"
+    },
+    {
+      "bytes": 47500,
+      "kind": "original-source",
+      "materialized_path": "runtime-consumer-reviewed/MATH_FRAGMENTS.json",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/runtime-consumer-reviewed/MATH_FRAGMENTS.json",
+      "sha256": "71d796ea79752c4740df4087295e7f614be9a0b9ddde4615fc8fad359ade3af5",
+      "source": "onehand-runtime-20261016/windows-runtime-consumer-v3/MATH_FRAGMENTS.json"
+    },
+    {
+      "bytes": 11617,
+      "kind": "original-source",
+      "materialized_path": "runtime-consumer-reviewed/NATIVE_INVOCATION.md",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/runtime-consumer-reviewed/NATIVE_INVOCATION.md",
+      "sha256": "df3916c9d7fc07e48c28a2c585334c8039866f73ae1c3ba460a661f12f84cbaf",
+      "source": "onehand-runtime-20261016/windows-runtime-consumer-v3/NATIVE_INVOCATION.md"
+    },
+    {
+      "bytes": 1747,
+      "kind": "original-source",
+      "materialized_path": "runtime-consumer-reviewed/ORIGINAL_PINS.json",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/runtime-consumer-reviewed/ORIGINAL_PINS.json",
+      "sha256": "a83de47e3f9dd24e0f6fc4d2d4328ec731db9d357a74e7a4347551efc43f9b7a",
+      "source": "onehand-runtime-20261016/windows-runtime-consumer-v3/ORIGINAL_PINS.json"
+    },
+    {
+      "bytes": 2176,
+      "kind": "original-source",
+      "materialized_path": "runtime-consumer-reviewed/PINS.json",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/runtime-consumer-reviewed/PINS.json",
+      "sha256": "d69f8d766b3f1c19ffc79a98166598292e1db7d94ee8730645f62b61deaf427b",
+      "source": "onehand-runtime-20261016/windows-runtime-consumer-v3/PINS.json"
+    },
+    {
+      "bytes": 11417,
+      "kind": "original-source",
+      "materialized_path": "runtime-consumer-reviewed/README.md",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/runtime-consumer-reviewed/README.md",
+      "sha256": "aa45a945901b5d9cadb1d2c3ee138cdfbc204c1fc88c981b8908be83172f9fc3",
+      "source": "onehand-runtime-20261016/windows-runtime-consumer-v3/README.md"
+    },
+    {
+      "bytes": 2989,
+      "kind": "original-source",
+      "materialized_path": "runtime-consumer-reviewed/RESULTS.json",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/runtime-consumer-reviewed/RESULTS.json",
+      "sha256": "2b0eb5dfc56b86e83ee3f38601d6309875eb14247dfd5f2a264b5fa990b68761",
+      "source": "onehand-runtime-20261016/windows-runtime-consumer-v3/RESULTS.json"
+    },
+    {
+      "bytes": 813,
+      "kind": "original-source",
+      "materialized_path": "runtime-consumer-reviewed/RUST_REFERENCE_PINS.json",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/runtime-consumer-reviewed/RUST_REFERENCE_PINS.json",
+      "sha256": "8773e79e71c416c10ddb5682f81b1adf4f13e05d80ef7140726ecd1db9b9f896",
+      "source": "onehand-runtime-20261016/windows-runtime-consumer-v3/RUST_REFERENCE_PINS.json"
+    },
+    {
+      "bytes": 8754,
+      "kind": "original-source",
+      "materialized_path": "runtime-consumer-reviewed/build_closure.py",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/runtime-consumer-reviewed/build_closure.py",
+      "sha256": "e94a94316cf30d63f9e18e5aad90931ad1f31bf1f3f9d0611dbbe9db8e5e4f56",
+      "source": "onehand-runtime-20261016/windows-runtime-consumer-v3/build_closure.py"
+    },
+    {
+      "bytes": 20714,
+      "kind": "original-source",
+      "materialized_path": "runtime-consumer-reviewed/consumer.py",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/runtime-consumer-reviewed/consumer.py",
+      "sha256": "de28e7d27fc26a87a2e24906a5d68fd8c9e107ad09b44676eee8dd1e6cfd926a",
+      "source": "onehand-runtime-20261016/windows-runtime-consumer-v3/consumer.py"
+    },
+    {
+      "bytes": 14699,
+      "kind": "original-source",
+      "materialized_path": "runtime-consumer-reviewed/cpu-tests.log",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/runtime-consumer-reviewed/cpu-tests.log",
+      "sha256": "5c0a6c90723e9fd6ef0e3cc84adcd56d6f6e976737d4e8d42bca1bf2d6cc0d90",
+      "source": "onehand-runtime-20261016/windows-runtime-consumer-v3/cpu-tests.log"
+    },
+    {
+      "bytes": 15324,
+      "kind": "original-source",
+      "materialized_path": "runtime-consumer-reviewed/evidence.py",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/runtime-consumer-reviewed/evidence.py",
+      "sha256": "cc05e41a526064326d7904b4123ba909cd17e9624688cbd32b5bea13b9a96e15",
+      "source": "onehand-runtime-20261016/windows-runtime-consumer-v3/evidence.py"
+    },
+    {
+      "bytes": 2514,
+      "kind": "original-source",
+      "materialized_path": "runtime-consumer-reviewed/extract_math.py",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/runtime-consumer-reviewed/extract_math.py",
+      "sha256": "33137f95c5e0f0b2beb7fe865f60a79ccbb4a277af9ba32eafa790222f7b0dbc",
+      "source": "onehand-runtime-20261016/windows-runtime-consumer-v3/extract_math.py"
+    },
+    {
+      "bytes": 6150,
+      "kind": "original-source",
+      "materialized_path": "runtime-consumer-reviewed/pinned_math.py",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/runtime-consumer-reviewed/pinned_math.py",
+      "sha256": "590377325f1aa1f64b5265cf1ca919400f61851a0296dd3ea3fbe717988281b3",
+      "source": "onehand-runtime-20261016/windows-runtime-consumer-v3/pinned_math.py"
+    },
+    {
+      "bytes": 9635,
+      "kind": "original-source",
+      "materialized_path": "runtime-consumer-reviewed/retirement.py",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/runtime-consumer-reviewed/retirement.py",
+      "sha256": "003d161c1061b0d14bb86417eee3339810659759e3dd3df49513811c05655f09",
+      "source": "onehand-runtime-20261016/windows-runtime-consumer-v3/retirement.py"
+    },
+    {
+      "bytes": 19714,
+      "kind": "original-source",
+      "materialized_path": "runtime-consumer-reviewed/runtime_context.py",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/runtime-consumer-reviewed/runtime_context.py",
+      "sha256": "e4749128a4ccc2e531ba6c5509761a76ce6240755204cacb78f33f5c6c17e503",
+      "source": "onehand-runtime-20261016/windows-runtime-consumer-v3/runtime_context.py"
+    },
+    {
+      "bytes": 2955,
+      "kind": "original-source",
+      "materialized_path": "runtime-consumer-reviewed/test_checkout_bytes.py",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/runtime-consumer-reviewed/test_checkout_bytes.py",
+      "sha256": "570b7bc63c03503971ed720d74049b35f902863e01ce67258b885571f558a8d6",
+      "source": "onehand-runtime-20261016/windows-runtime-consumer-v3/test_checkout_bytes.py"
+    },
+    {
+      "bytes": 10902,
+      "kind": "original-source",
+      "materialized_path": "runtime-consumer-reviewed/test_process_reconstruction.py",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/runtime-consumer-reviewed/test_process_reconstruction.py",
+      "sha256": "633a1c3c3be36a36c2821ad2199a5e24aeb184655bb7be03d47ba52c8b158140",
+      "source": "onehand-runtime-20261016/windows-runtime-consumer-v3/test_process_reconstruction.py"
+    },
+    {
+      "bytes": 16867,
+      "kind": "original-source",
+      "materialized_path": "runtime-consumer-reviewed/test_revision.py",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/runtime-consumer-reviewed/test_revision.py",
+      "sha256": "150d802cd42bb1d0f21d3edae4dddc77d403400920781a715538a6ac6649bc90",
+      "source": "onehand-runtime-20261016/windows-runtime-consumer-v3/test_revision.py"
+    },
+    {
+      "bytes": 21514,
+      "kind": "original-source",
+      "materialized_path": "runtime-consumer-reviewed/test_runtime_consumer.py",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/runtime-consumer-reviewed/test_runtime_consumer.py",
+      "sha256": "1fd923841106d126be6c2ae04487d48f46d05dd330505ab7e329df853586d28c",
+      "source": "onehand-runtime-20261016/windows-runtime-consumer-v3/test_runtime_consumer.py"
+    },
+    {
+      "bytes": 4810,
+      "kind": "original-source",
+      "materialized_path": "runtime-consumer-reviewed/transport.py",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/runtime-consumer-reviewed/transport.py",
+      "sha256": "1cfd4163207df4666d3197d97409e6f0212691bd815e06d2af724915fb4ebad2",
+      "source": "onehand-runtime-20261016/windows-runtime-consumer-v3/transport.py"
+    },
+    {
+      "bytes": 858,
+      "kind": "original-source",
+      "materialized_path": "runtime-consumer-reviewed/verify_freeze.py",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/runtime-consumer-reviewed/verify_freeze.py",
+      "sha256": "e1a2cb07d5ad4822f9addb35eebe2d0ce2154f5a3c9547be44a88141f87a3f64",
+      "source": "onehand-runtime-20261016/windows-runtime-consumer-v3/verify_freeze.py"
+    },
+    {
+      "bytes": 883,
+      "kind": "hash-only-reference",
+      "materialized_path": "transport-evidence/test-summary.json",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/transport-evidence/test-summary.json",
+      "sha256": "b14b01a539920f34eec064a1bec1ec2799840c31e89a36e841831a3960c90fa2",
+      "source": "onehand-runtime-20261016/windows-smoke-38871908839/files/test-summary.json"
+    },
+    {
+      "bytes": 2462,
+      "kind": "hash-only-reference",
+      "materialized_path": "transport-evidence/independent-audit.json",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/transport-evidence/independent-audit.json",
+      "sha256": "0a10a58145fb2d6d9348ecc8a61d0ad2f8f318e7f644a9b46ce9716d386d6b17",
+      "source": "onehand-runtime-20261016/windows-smoke-38871908839/independent-audit.json"
+    },
+    {
+      "bytes": 51047,
+      "kind": "original-source",
+      "materialized_path": "audited/prone-r15-runtime-20261016/source/tools/verify_prone_r15_runtime.py",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/audited/prone-r15-runtime-20261016/source/tools/verify_prone_r15_runtime.py",
+      "sha256": "b8bbc01d16e703934626ceff88f328a19345ded859a01f36f0918dbadd470d8b",
+      "source": "prone-r15-runtime-20261016/source/tools/verify_prone_r15_runtime.py"
+    },
+    {
+      "bytes": 2898,
+      "kind": "original-source",
+      "materialized_path": "audited/recovery/animation-queue/runs/onehand-r5-from-reconstructed-r4/integrity/source_integrity.py",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/audited/recovery/animation-queue/runs/onehand-r5-from-reconstructed-r4/integrity/source_integrity.py",
+      "sha256": "d22ae8dcc117e29ffb7d746772efce015010407cbb1ddce22924a31746e831ca",
+      "source": "recovery/animation-queue/runs/onehand-r5-from-reconstructed-r4/integrity/source_integrity.py"
+    },
+    {
+      "bytes": 9678,
+      "kind": "original-source",
+      "materialized_path": "audited/recovery/animation-queue/runs/onehand-r5-from-reconstructed-r4/integrity/validate_directional_source.py",
+      "origin": "dependency",
+      "repository_path": "tools/onehand_windows/audited/recovery/animation-queue/runs/onehand-r5-from-reconstructed-r4/integrity/validate_directional_source.py",
+      "sha256": "8f1deb2883eafd5e7a76cf48109a33c010690aa197150369df60773b5b593816",
+      "source": "recovery/animation-queue/runs/onehand-r5-from-reconstructed-r4/integrity/validate_directional_source.py"
+    },
+    {
+      "hash_from": "PINS.json#.gitattributes",
+      "kind": "original-source",
+      "materialized_path": "orchestration/.gitattributes",
+      "origin": "orchestration",
+      "repository_path": "tools/onehand_windows/orchestration-v1/.gitattributes",
+      "source": ".gitattributes"
+    },
+    {
+      "hash_from": "PINS.json#ALLOWLIST.json",
+      "kind": "original-source",
+      "materialized_path": "orchestration/ALLOWLIST.json",
+      "origin": "orchestration",
+      "repository_path": "tools/onehand_windows/orchestration-v1/ALLOWLIST.json",
+      "source": "ALLOWLIST.json"
+    },
+    {
+      "hash_from": "PINS.json#DEPENDENCIES.json",
+      "kind": "original-source",
+      "materialized_path": "orchestration/DEPENDENCIES.json",
+      "origin": "orchestration",
+      "repository_path": "tools/onehand_windows/orchestration-v1/DEPENDENCIES.json",
+      "source": "DEPENDENCIES.json"
+    },
+    {
+      "hash_from": "expected_package_sha256",
+      "kind": "original-source",
+      "materialized_path": "orchestration/PINS.json",
+      "origin": "orchestration",
+      "repository_path": "tools/onehand_windows/orchestration-v1/PINS.json",
+      "source": "PINS.json"
+    },
+    {
+      "hash_from": "PINS.json#PUBLICATION_LAYOUT.json",
+      "kind": "original-source",
+      "materialized_path": "orchestration/PUBLICATION_LAYOUT.json",
+      "origin": "orchestration",
+      "repository_path": "tools/onehand_windows/orchestration-v1/PUBLICATION_LAYOUT.json",
+      "source": "PUBLICATION_LAYOUT.json"
+    },
+    {
+      "hash_from": "PINS.json#README.md",
+      "kind": "original-source",
+      "materialized_path": "orchestration/README.md",
+      "origin": "orchestration",
+      "repository_path": "tools/onehand_windows/orchestration-v1/README.md",
+      "source": "README.md"
+    },
+    {
+      "hash_from": "PINS.json#RESULTS.json",
+      "kind": "original-source",
+      "materialized_path": "orchestration/RESULTS.json",
+      "origin": "orchestration",
+      "repository_path": "tools/onehand_windows/orchestration-v1/RESULTS.json",
+      "source": "RESULTS.json"
+    },
+    {
+      "hash_from": "PINS.json#build_rust.py",
+      "kind": "original-source",
+      "materialized_path": "orchestration/build_rust.py",
+      "origin": "orchestration",
+      "repository_path": "tools/onehand_windows/orchestration-v1/build_rust.py",
+      "source": "build_rust.py"
+    },
+    {
+      "hash_from": "PINS.json#checkout_bytes.py",
+      "kind": "original-source",
+      "materialized_path": "orchestration/checkout_bytes.py",
+      "origin": "orchestration",
+      "repository_path": "tools/onehand_windows/orchestration-v1/checkout_bytes.py",
+      "source": "checkout_bytes.py"
+    },
+    {
+      "hash_from": "PINS.json#controller-layout.template.json",
+      "kind": "original-source",
+      "materialized_path": "orchestration/controller-layout.template.json",
+      "origin": "orchestration",
+      "repository_path": "tools/onehand_windows/orchestration-v1/controller-layout.template.json",
+      "source": "controller-layout.template.json"
+    },
+    {
+      "hash_from": "PINS.json#cpu-tests.log",
+      "kind": "original-source",
+      "materialized_path": "orchestration/cpu-tests.log",
+      "origin": "orchestration",
+      "repository_path": "tools/onehand_windows/orchestration-v1/cpu-tests.log",
+      "source": "cpu-tests.log"
+    },
+    {
+      "hash_from": "PINS.json#host_tools.py",
+      "kind": "original-source",
+      "materialized_path": "orchestration/host_tools.py",
+      "origin": "orchestration",
+      "repository_path": "tools/onehand_windows/orchestration-v1/host_tools.py",
+      "source": "host_tools.py"
+    },
+    {
+      "hash_from": "PINS.json#install_official_blender.ps1",
+      "kind": "original-source",
+      "materialized_path": "orchestration/install_official_blender.ps1",
+      "origin": "orchestration",
+      "repository_path": "tools/onehand_windows/orchestration-v1/install_official_blender.ps1",
+      "source": "install_official_blender.ps1"
+    },
+    {
+      "hash_from": "PINS.json#install_official_rust.ps1",
+      "kind": "original-source",
+      "materialized_path": "orchestration/install_official_rust.ps1",
+      "origin": "orchestration",
+      "repository_path": "tools/onehand_windows/orchestration-v1/install_official_rust.ps1",
+      "source": "install_official_rust.ps1"
+    },
+    {
+      "hash_from": "PINS.json#onehand-windows-proof.yml",
+      "kind": "original-source",
+      "materialized_path": "orchestration/onehand-windows-proof.yml",
+      "origin": "orchestration",
+      "repository_path": "tools/onehand_windows/orchestration-v1/onehand-windows-proof.yml",
+      "source": "onehand-windows-proof.yml"
+    },
+    {
+      "hash_from": "PINS.json#orchestrate.py",
+      "kind": "original-source",
+      "materialized_path": "orchestration/orchestrate.py",
+      "origin": "orchestration",
+      "repository_path": "tools/onehand_windows/orchestration-v1/orchestrate.py",
+      "source": "orchestrate.py"
+    },
+    {
+      "hash_from": "PINS.json#owned_commands.py",
+      "kind": "original-source",
+      "materialized_path": "orchestration/owned_commands.py",
+      "origin": "orchestration",
+      "repository_path": "tools/onehand_windows/orchestration-v1/owned_commands.py",
+      "source": "owned_commands.py"
+    },
+    {
+      "hash_from": "PINS.json#prepare_controller.py",
+      "kind": "original-source",
+      "materialized_path": "orchestration/prepare_controller.py",
+      "origin": "orchestration",
+      "repository_path": "tools/onehand_windows/orchestration-v1/prepare_controller.py",
+      "source": "prepare_controller.py"
+    },
+    {
+      "hash_from": "PINS.json#probe_blender.py",
+      "kind": "original-source",
+      "materialized_path": "orchestration/probe_blender.py",
+      "origin": "orchestration",
+      "repository_path": "tools/onehand_windows/orchestration-v1/probe_blender.py",
+      "source": "probe_blender.py"
+    },
+    {
+      "hash_from": "PINS.json#publication_inventory.py",
+      "kind": "original-source",
+      "materialized_path": "orchestration/publication_inventory.py",
+      "origin": "orchestration",
+      "repository_path": "tools/onehand_windows/orchestration-v1/publication_inventory.py",
+      "source": "publication_inventory.py"
+    },
+    {
+      "hash_from": "PINS.json#reviewed-dependencies.json",
+      "kind": "original-source",
+      "materialized_path": "orchestration/reviewed-dependencies.json",
+      "origin": "orchestration",
+      "repository_path": "tools/onehand_windows/orchestration-v1/reviewed-dependencies.json",
+      "source": "reviewed-dependencies.json"
+    },
+    {
+      "hash_from": "PINS.json#run_proof.py",
+      "kind": "original-source",
+      "materialized_path": "orchestration/run_proof.py",
+      "origin": "orchestration",
+      "repository_path": "tools/onehand_windows/orchestration-v1/run_proof.py",
+      "source": "run_proof.py"
+    },
+    {
+      "hash_from": "PINS.json#test_build_creator_integration.py",
+      "kind": "original-source",
+      "materialized_path": "orchestration/test_build_creator_integration.py",
+      "origin": "orchestration",
+      "repository_path": "tools/onehand_windows/orchestration-v1/test_build_creator_integration.py",
+      "source": "test_build_creator_integration.py"
+    },
+    {
+      "hash_from": "PINS.json#test_workflow.py",
+      "kind": "original-source",
+      "materialized_path": "orchestration/test_workflow.py",
+      "origin": "orchestration",
+      "repository_path": "tools/onehand_windows/orchestration-v1/test_workflow.py",
+      "source": "test_workflow.py"
+    },
+    {
+      "hash_from": "PINS.json#verify_freeze.py",
+      "kind": "original-source",
+      "materialized_path": "orchestration/verify_freeze.py",
+      "origin": "orchestration",
+      "repository_path": "tools/onehand_windows/orchestration-v1/verify_freeze.py",
+      "source": "verify_freeze.py"
+    },
+    {
+      "hash_from": "PINS.json#workflow_core.py",
+      "kind": "original-source",
+      "materialized_path": "orchestration/workflow_core.py",
+      "origin": "orchestration",
+      "repository_path": "tools/onehand_windows/orchestration-v1/workflow_core.py",
+      "source": "workflow_core.py"
+    },
+    {
+      "hash_from": "PINS.json#onehand-windows-proof.yml",
+      "kind": "original-source",
+      "materialized_path": null,
+      "origin": "orchestration",
+      "repository_path": ".github/workflows/onehand-windows-proof.yml",
+      "source": "onehand-windows-proof.yml"
+    },
+    {
+      "hash_from": "PINS.json#.gitattributes",
+      "kind": "original-source",
+      "materialized_path": null,
+      "origin": "orchestration",
+      "repository_path": "tools/onehand_windows/.gitattributes",
+      "source": ".gitattributes"
+    },
+    {
+      "hash_from": "PINS.json#controller-layout.template.json",
+      "kind": "original-source",
+      "materialized_path": "controller-layout.json",
+      "origin": "orchestration",
+      "repository_path": "tools/onehand_windows/controller-layout.json",
+      "source": "controller-layout.template.json"
+    }
+  ],
+  "orchestration_hash_rule": "Each orchestration source file is resolved against frozen PINS.json; PINS.json itself is bound by the caller-supplied independent final package SHA256. publication_inventory.py emits all actual SHA256/size records without circular self hashes.",
+  "private_or_held_payloads_included": false,
+  "publication_performed": false,
+  "schema": "rust-duty-onehand-source-publication-layout/v1",
+  "source_only": true
+}

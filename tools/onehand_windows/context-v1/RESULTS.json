@@ -1,0 +1,66 @@
+{
+  "allocated_output_bytes_before_seal": 8122368,
+  "audited_importer_functions": 2,
+  "blender_runs": 0,
+  "blocked_transport_reasons": [
+    "Premature EOF may be reported completed",
+    "Writer CloseHandle failure may escape cleanup",
+    "Pending OVERLAPPED wait failure lacks cancel/drain"
+  ],
+  "blocked_transport_sha256": "fc9487442489c0e444f03afb549c815e444aec4b76d0e1ed4d4f3160f7d63baa",
+  "disk_floor_bytes": 1073741824,
+  "disk_free_bytes_before_seal": 1484275712,
+  "full_cpu_suite": {
+    "failed": 0,
+    "log": "cpu-tests-final.log",
+    "note": "Before subsequent fail-closed transport review gate; unchanged assembler and its 73 fixture tests remain byte-pinned.",
+    "passed": 121,
+    "seconds": 0.704,
+    "tests": 121
+  },
+  "github_writes": 0,
+  "logical_output_bytes_before_seal": 1382154,
+  "native_runs": 0,
+  "next_native_interfaces": [
+    "Native entry points accept immutable stage context plus explicit source/FBX/canonical/grid/addon/evidence paths; no import of frozen top-level Blender scripts",
+    "Export helper calls unchanged dense_backend official backend and exact grid with generated-source role",
+    "Import/geometry/block helpers call unchanged window_import and geometry helpers with explicit identities, exact 12-block plan and full-transform-before-selection semantics",
+    "Consumers bind one candidate/session/host and fresh Windows executable to target-native control/focus, load/endpoints, frame-1 mapping, 67 chunks and full 4240 grid; no old source constant reassignment"
+  ],
+  "official_addon_files": 10,
+  "original_dependency_sha256": {
+    "onehand-runtime-20261016-r2/native-dense/pins.json": "d026a870b0c1f3539435ce4127129c46665081b3e5699efb8c8fcbf81a1a3fbd",
+    "onehand-runtime-20261016-r2/runtime-conversion-v2/assemble_runtime.py": "01c4d5dd43b56607742ad2c5862c3185460dcb14b4cb5ef079301daae7f45e12",
+    "onehand-runtime-20261016-r2/runtime-conversion-v2/pins.json": "6f1d03f86ec0464d0fd249fc2ac82e8d415cd11149f679fe56aa22dbe3922212",
+    "onehand-runtime-20261016-r2/runtime-conversion-v2/test_assemble_runtime.py": "5b6dce136fac5d681b96d87be74c703ded58dfee2de20fe9c615aeb720b97159",
+    "onehand-runtime-20261016/importer-patch/tools/vrpack.py": "28a23ed9a9b0fe0123405a9800473e57d04419596deae8789c66c744ad05b685",
+    "onehand-runtime-20261016/importer-patch/tools/vrskin.py": "e6aff7f5278bb8e6dd09ca75e69b8761b1b71bd30b3feddf84f8380cd88a5e14",
+    "onehand-runtime-20261016/importer-patch/tools/vrview.py": "eefd755f6ef0943a4d8bf443ddfec601bc1336ec90ece722d017c9c4b6d73568"
+  },
+  "post_review_final_code_tests": {
+    "failed": 0,
+    "log": "cpu-tests-post-review.log",
+    "note": "All added context/addon/production wrapper tests after blocking transport v1, including explicit cannot-admit test.",
+    "passed": 49,
+    "seconds": 0.557,
+    "tests": 49
+  },
+  "production_runtime_created": false,
+  "production_transport_admitted": false,
+  "python_source_parse_passed": true,
+  "runtime_parity_verified": false,
+  "rust_builds": 0,
+  "schema": "rust-duty-windows-candidate-context-source-results/v1",
+  "source_only_output_cap_bytes": 10000000,
+  "status": "source_frozen_production_transport_blocked",
+  "unique_test_cases": 122,
+  "v2_dependency_update_points": [
+    "New reviewed versioned context revision, never mutate frozen v1",
+    "pinned_transport.py TRANSPORT_SHA and TRANSPORT_PINS_SHA; retain exact verifier signature checks",
+    "Replace require_production_transport hard block only after reviewed v2 admission",
+    "ProofContext roots.process_adapter to reviewed v2 directory",
+    "Recheck production_assembler._process_receipt field/schema assumptions and rerun all CPU tests; actual Windows evidence remains separately required"
+  ],
+  "windows_execution_proved": false,
+  "windows_jobs": 0
+}
