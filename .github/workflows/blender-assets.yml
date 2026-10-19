@@ -16,17 +16,12 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - uses: dtolnay/rust-toolchain@stable
-      - name: Fingerprint exact Rust compiler
-        id: rust-version
-        shell: bash
-        run: python -c "import hashlib,subprocess; print('hash='+hashlib.sha256(subprocess.check_output(['rustc','-Vv'])).hexdigest())" >> "$GITHUB_OUTPUT"
       - name: Reuse only exact-input validated reload output
         id: asset-cache
         uses: actions/cache@v4
         with:
           path: build-assets/reload
-          key: reload-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust-version.outputs.hash }}-${{ hashFiles('assets/source/reload/current.blend', 'assets/source/reload/source.json', 'assets/locomotion/asset.vra', 'tools/export_reload_wip_fbx.py', 'tools/import_fbx_viewmodel.py', 'tools/build_blender_assets.py', 'tools/verify_fbx_segment.py', 'tools/vr*.py', 'tools/requirements-assets.txt', 'src/viewmodel_animation.rs', 'src/skinned_asset.rs', 'src/asset.rs', 'examples/sample_viewmodel_clip.rs', 'Cargo.toml', 'Cargo.lock', 'build.rs', '.github/actions/setup-blender/action.yml', '.github/workflows/blender-assets.yml') }}
+          key: reload-v2-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('assets/source/reload/current.blend', 'assets/source/reload/source.json', 'assets/locomotion/asset.vra', 'tools/export_reload_wip_fbx.py', 'tools/import_fbx_viewmodel.py', 'tools/prone_camera_pair.py', 'tools/single_stack_fbx.py', 'tools/build_blender_assets.py', 'tools/check_generated_assets.py', 'tools/package_game.py', 'tools/merge_walk_clip.py', 'assets/animations.cfg', 'docs/ANIMATION_SLOTS.md', 'tools/vr*.py', 'tools/requirements-assets.txt', '.github/actions/setup-blender/action.yml', '.github/workflows/blender-assets.yml') }}
       - name: Install pinned asset toolchain on cache miss
         if: steps.asset-cache.outputs.cache-hit != 'true'
         uses: ./.github/actions/setup-blender
@@ -35,15 +30,9 @@ jobs:
       - name: Export selected full WIP Action to FBX and convert evaluated FBX
         if: steps.asset-cache.outputs.cache-hit != 'true'
         run: python tools/build_blender_assets.py --blender blender --output build-assets
-      - name: Build actual game CPU sampler
-        if: steps.asset-cache.outputs.cache-hit != 'true'
-        run: cargo build --locked --release --no-default-features --example sample_viewmodel_clip
-      - name: Compare generated runtime assets against immutable source witnesses
-        if: steps.asset-cache.outputs.cache-hit != 'true'
-        run: python tools/build_blender_assets.py --verify-sampler target/release/examples/sample_viewmodel_clip --output build-assets
       - name: Revalidate source hashes and every cached or fresh companion
         run: python tools/check_generated_assets.py --kind reload --directory build-assets/reload
-      - name: Archive this attempt - Upload source and parity diagnostics
+      - name: Archive this attempt - Upload source and conversion diagnostics
         if: always()
         id: archive_attempt_1
         uses: actions/upload-artifact@v4
@@ -53,7 +42,7 @@ jobs:
             build-assets/reload/**/*.json
             build-assets/fbx/export-manifest.json
           if-no-files-found: warn
-      - name: Upload source and parity diagnostics
+      - name: Upload source and conversion diagnostics
         if: ${{ (always()) && steps.archive_attempt_1.outcome == 'success' && steps.archive_attempt_1.outputs.artifact-id != '' }}
         uses: actions/upload-artifact@v4
         with:
@@ -75,7 +64,6 @@ jobs:
             build-assets/reload/manifest.json
             build-assets/reload/export-manifest.json
             build-assets/reload/source.json
-            build-assets/reload/parity.json
             build-assets/reload/alternates/*/asset.vra
             build-assets/reload/alternates/*/asset.vrs
             build-assets/reload/alternates/*/asset.vrm
@@ -94,7 +82,6 @@ jobs:
             build-assets/reload/manifest.json
             build-assets/reload/export-manifest.json
             build-assets/reload/source.json
-            build-assets/reload/parity.json
             build-assets/reload/alternates/*/asset.vra
             build-assets/reload/alternates/*/asset.vrs
             build-assets/reload/alternates/*/asset.vrm

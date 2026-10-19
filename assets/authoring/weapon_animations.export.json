@@ -2813,7 +2813,8 @@
         "Arms.008",
         "hk416_magazine.008",
         "hk416_weapon.008",
-        "RD First Person Review.008"
+        "RD First Person Review.008",
+        "hk416_magazine_outgoing.008"
       ],
       "object_name_map": {
         "Actual arms mesh 0.008": "Actual arms mesh 0",
@@ -2822,7 +2823,8 @@
         "Arms.008": "Arms",
         "hk416_magazine.008": "hk416_magazine",
         "hk416_weapon.008": "hk416_weapon",
-        "RD First Person Review.008": "RD First Person Review"
+        "RD First Person Review.008": "RD First Person Review",
+        "hk416_magazine_outgoing.008": "hk416_magazine_outgoing"
       },
       "status": "full authored WIP; not approved finished reload",
       "companion_tracks": [

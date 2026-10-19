@@ -8,6 +8,8 @@ on:
       - 'examples/renderer_contract.rs'
       - 'tools/run_graphics_cpu_contract.py'
       - 'tools/test_graphics_cpu_contract.py'
+      - 'tools/check_graphics_cpu_applicability.py'
+      - 'tools/test_graphics_cpu_applicability.py'
       - 'tools/test_graphics_cpu_workflow.py'
       - 'tools/run_pass_submission_benchmark.py'
       - 'tools/summarize_frame_performance.py'
@@ -64,8 +66,14 @@ jobs:
       - name: Verify source, provider, pixel and workflow guards
         env:
           PYTHONPATH: tools
-        run: python -m unittest -v test_graphics_cpu_contract test_pass_submission_benchmark test_graphics_cpu_workflow
+        run: python -m unittest -v test_graphics_cpu_contract test_pass_submission_benchmark test_graphics_cpu_workflow test_graphics_cpu_applicability
+      # The native runner compiles the frozen ebf production source. A later
+      # checkout cannot be relabeled as that source merely to keep this green.
+      - name: Check applicability of the frozen production comparison
+        id: applicability
+        run: python tools/check_graphics_cpu_applicability.py --repository . --output graphics-cpu-applicability.json
       - name: Retain actual metadata for the single reviewed baseline artifact
+        if: steps.applicability.outputs.applicable == 'true'
         uses: actions/github-script@v7
         with:
           script: |
@@ -75,10 +83,12 @@ jobs:
             });
             fs.writeFileSync('baseline-provider.json', JSON.stringify(artifact.data, null, 2) + '\n');
       - name: Validate exact provider identity before downloading
+        if: steps.applicability.outputs.applicable == 'true'
         env:
           PYTHONPATH: tools
         run: python -c "from pathlib import Path; from run_graphics_cpu_contract import baseline_provider,read_json; baseline_provider(read_json(Path('baseline-provider.json')))"
       - name: Download only the reviewed historical batching baseline
+        if: steps.applicability.outputs.applicable == 'true'
         uses: actions/download-artifact@v4
         with:
           artifact-ids: '11422371812'
@@ -88,11 +98,13 @@ jobs:
           path: downloaded/batching-baseline
           merge-multiple: true
       - name: Install the exact comparison compiler
+        if: steps.applicability.outputs.applicable == 'true'
         shell: pwsh
         run: |
           rustup toolchain install 1.99.0-x86_64-pc-windows-msvc --profile minimal
           if ($LASTEXITCODE -ne 0) { throw 'Pinned compiler installation failed' }
       - name: Require actual renderer equality and all six native controls
+        if: steps.applicability.outputs.applicable == 'true'
         timeout-minutes: 30
         run: >-
           python tools/run_graphics_cpu_contract.py --repository . --verifier-root .
@@ -104,6 +116,7 @@ jobs:
         with:
           name: graphics-cpu-full-attempt-${{ github.run_attempt }}
           path: |
+            graphics-cpu-applicability.json
             baseline-provider.json
             evidence/graphics-cpu/**
             !evidence/graphics-cpu/target/**
@@ -117,6 +130,7 @@ jobs:
         with:
           name: graphics-cpu-review-attempt-${{ github.run_attempt }}
           path: |
+            graphics-cpu-applicability.json
             baseline-provider.json
             evidence/graphics-cpu/*.json
             evidence/graphics-cpu/*.bin

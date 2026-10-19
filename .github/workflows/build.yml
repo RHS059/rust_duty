@@ -50,8 +50,12 @@ jobs:
     uses: ./.github/workflows/native-validation.yml
     with:
       lanes: ${{ needs.changes.outputs.native_lanes }}
-  build:
+  canonical-runtime:
     needs: [changes]
+    if: needs.changes.outputs.any == 'true'
+    uses: ./.github/workflows/canonical-weapon-nla.yml
+  build:
+    needs: [changes, canonical-runtime]
     if: needs.changes.outputs.any == 'true'
     name: windows-latest
     runs-on: windows-latest
@@ -142,6 +146,13 @@ jobs:
       - name: Stage complete Windows game
         if: runner.os == 'Windows'
         run: python tools/package_game.py stage --root . --binary target/release/vector-range.exe --output dist/game --require-generated
+      - name: Download this run's canonical runtime overlay
+        uses: actions/download-artifact@v4
+        with:
+          name: canonical-weapon-runtime
+          path: build-assets/canonical-runtime
+      - name: Apply verified canonical animations to the staged game
+        run: python tools/canonical_runtime_package.py --root . --overlay build-assets/canonical-runtime --destination dist/game
       - name: Verify embedded Windows build identity
         if: runner.os == 'Windows'
         run: python tools/build_identity.py --root dist/game --platform windows
@@ -155,8 +166,9 @@ jobs:
           python tools/download_preflight_baseline.py --output preflight/baseline
           python tools/release_update.py verify --manifest preflight/baseline/update-x86_64-pc-windows-msvc.json \
             --assets-dir preflight/baseline --bundle-only --version 0.1.9 --target x86_64-pc-windows-msvc
-          python tools/package_game.py stage --root dist/game --binary vector-range.exe \
+          python tools/package_game.py stage --root . --binary target/release/vector-range.exe \
             --output preflight/payload --update --require-generated
+          python tools/canonical_runtime_package.py --root . --overlay build-assets/canonical-runtime --destination preflight/payload
           python tools/release_update.py prepare --input preflight/payload --output preflight/candidate \
             --version 0.1.12 --sequence 12 --target x86_64-pc-windows-msvc --entrypoint vector-range.exe \
             --previous preflight/baseline/rust-duty-0.1.9-x86_64-pc-windows-msvc.rdb --previous-version 0.1.9

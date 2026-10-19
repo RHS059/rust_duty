@@ -327,7 +327,8 @@ class AuthoredWorkflowTests(unittest.TestCase):
     def test_ordinary_compile_and_packaging_do_not_wait_for_capture_results(self):
         caller = yaml.safe_load((self.path.parent / 'build.yml').read_text(encoding='utf-8'))
         for name in ('build', 'native-validation'):
-            self.assertEqual(caller['jobs'][name]['needs'], ['changes'])
+            self.assertEqual(caller['jobs'][name]['needs'],
+                             ['changes', 'canonical-runtime'] if name == 'build' else ['changes'])
             self.assertNotIn('continue-on-error', caller['jobs'][name])
         self.assertEqual(caller['jobs']['publish-game-update']['needs'], ['build'])
         # The historical capture workflow retains its strict aggregate internally.

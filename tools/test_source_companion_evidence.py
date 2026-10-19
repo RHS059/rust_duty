@@ -71,6 +71,8 @@ class EvidenceTests(unittest.TestCase):
         self.addCleanup(self.temporary.cleanup)
         self.root = Path(self.temporary.name)
         self.pack = test_blender_pipeline.BlenderPipelineTests().fixture(self.root)
+        # Current producer has no numerical parity stage or parity.json output.
+        (self.pack / "parity.json").unlink()
         source_dir = self.root / "assets/source/reload"
         source_dir.mkdir(parents=True)
         blend = b"public authored test source"
@@ -127,6 +129,13 @@ class EvidenceTests(unittest.TestCase):
             self.assertLessEqual(sum(p.stat().st_size for p in part.iterdir()), evidence.MAX_PART_BYTES)
         self.assertEqual(receipt["input_files"], {name: evidence.digest(data) for name, data in before.items()})
         self.assertEqual(before, {name: (self.pack / name).read_bytes() for name in evidence.FILES})
+
+    def test_current_producer_output_needs_no_historical_parity_report(self):
+        self.assertFalse((self.pack / "parity.json").exists())
+        receipt = self.package()
+        self.assertEqual(set(receipt["input_files"]), set(evidence.FILES))
+        self.assertNotIn("parity.json", receipt["input_files"])
+        self.assertIn("No numerical parity", receipt["scope"])
 
     def test_total_part_bound_counts_metadata_and_does_not_leave_output(self):
         sizes = [(self.pack / name).stat().st_size for name in evidence.FILES]
@@ -232,12 +241,14 @@ class EvidenceTests(unittest.TestCase):
 
     def test_historical_failed_parity_is_retained_without_blocking_publication(self):
         parity_path = self.pack / "parity.json"
-        parity = json.loads(parity_path.read_text())
-        parity["passed"] = False
+        parity = {"passed": False, "scope": "historical optional diagnostic"}
         parity_path.write_text(json.dumps(parity))
         receipt = self.package()
         self.assertEqual(receipt['input_files']['parity.json'],
                          evidence.digest(parity_path.read_bytes()))
+        for suffix in ('vra', 'vrs', 'vrm'):
+            self.assertEqual((self.root / 'evidence/parts' / suffix / 'parity.json').read_bytes(),
+                             parity_path.read_bytes())
 
     def test_corrupt_companion_cannot_publish(self):
         (self.pack / "asset.vrs").write_bytes(b"corrupt")
@@ -266,7 +277,7 @@ class EvidenceTests(unittest.TestCase):
         selected = list(evidence.selections(self.contract))[1][1]
         self.save_selection(alternate, selected)
         receipt = self.package()
-        self.assertEqual(len(receipt["input_files"]), 14)
+        self.assertEqual(len(receipt["input_files"]), 12)
         self.assertIn("alternates/opening/asset.vra", receipt["input_files"])
         self.assertFalse(any(path.name == "alternates" for path in (self.root / "evidence/parts").rglob("*")))
         (alternate / "asset.vrm").unlink()
@@ -328,7 +339,7 @@ class WorkflowTests(unittest.TestCase):
         self.assertEqual(set(trigger), {"push", "workflow_dispatch"})
         self.assertEqual(trigger["push"]["branches"], ["main"])
         self.assertEqual(set(trigger["push"]["paths"]), {
-            evidence.WORKFLOW, "tools/package_source_companion_evidence.py",
+            evidence.WORKFLOW, evidence.PRODUCER, "tools/package_source_companion_evidence.py",
             "tools/test_source_companion_evidence.py"})
         self.assertEqual(workflow["permissions"], {"contents": "read"})
         jobs = workflow["jobs"]

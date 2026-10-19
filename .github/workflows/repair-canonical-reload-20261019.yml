@@ -1,0 +1,33 @@
+name: Publish canonical authoring usability repair
+on:
+  push:
+    branches: [recovery/canonical-runtime-integration-20261019]
+    paths: ['tools/canonical_source_repair_20261019/repair_authoring.py', '.github/workflows/repair-canonical-reload-20261019.yml']
+permissions:
+  contents: write
+concurrency:
+  group: canonical-reload-repair-20261019
+  cancel-in-progress: false
+jobs:
+  repair:
+    if: github.repository == 'RHS059/rust_duty' && github.ref == 'refs/heads/recovery/canonical-runtime-integration-20261019'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 2
+      - name: Require exact clean bootstrap ancestry
+        shell: bash
+        run: |
+          test "$(git rev-parse HEAD^)" = d133ec0fb21aad521895d3f715c85382c088159c
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test -z "$(git status --porcelain)"
+      - uses: ./.github/actions/setup-blender
+      - name: Enable NLA editor playback and reopen the single canonical source
+        run: blender --background --disable-autoexec --python-exit-code 1 --python tools/canonical_source_repair_20261019/repair_authoring.py -- --root .
+      - name: Publish only verified source and matching sidecars
+        env:
+          CANONICAL_PUSH_TOKEN: ${{ github.token }}
+        run: python tools/canonical_source_repair_20261019/publish_authoring.py

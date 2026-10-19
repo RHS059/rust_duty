@@ -96,13 +96,21 @@ class Dx12PreviewTests(unittest.TestCase):
         metadata = json.loads((self.output / 'DX12_PREVIEW.json').read_text())
         self.assertEqual(metadata['source']['commit'], self.env['GITHUB_SHA'])
         self.assertEqual(metadata['enabled_features'], ['audio', 'legacy-macroquad', 'wgpu-runtime'])
-        self.assertEqual(metadata['default_renderer'], 'legacy')
+        self.assertEqual(metadata['default_renderer'], 'auto')
         self.assertEqual(metadata['smoke']['summary_sha256'], preview.digest(self.evidence / 'summary.json'))
         self.assertEqual(metadata['human_launch'], ['vector-range.exe', '--renderer=dx12', '--no-update'])
         launcher = (self.output / 'PLAYTEST_DX12.cmd').read_text()
         self.assertIn('--renderer=dx12 --no-update', launcher)
         self.assertNotIn('--force-fallback-adapter', launcher)
-        self.assertIn('WIP', (self.output / 'DX12_PREVIEW_README.txt').read_text())
+        readme = (self.output / 'DX12_PREVIEW_README.txt').read_text()
+        self.assertIn('wgpu auto selection (DX12 first on Windows)', readme)
+        self.assertIn('--renderer=gl to request the legacy renderer', readme)
+        self.assertIn('renderer is pinned to DX12 and updates remain disabled', readme)
+        self.assertEqual(metadata['status'],
+                         'WIP preview; packaging does not establish M4 acceptance')
+        self.assertIn('WIP', readme)
+        self.assertIn('does not establish real-GPU performance, sound playback, native\n'
+                      'interaction correctness, visual approval, or M4 cutover acceptance', readme)
         self.assertTrue((self.output / 'ui/theme.css').exists())
         self.packager.assert_called_once()
         self.stamper.assert_called_once()
@@ -238,7 +246,7 @@ class Dx12PreviewWorkflowTests(unittest.TestCase):
         caller = (ROOT / '.github/workflows/build.yml').read_text()
         self.assertNotIn('uses: ./.github/workflows/wgpu-dx12-smoke.yml', caller)
         build = caller.split('  build:\n')[1].split('  publish-game-update:\n')[0]
-        self.assertIn('needs: [changes]', build)
+        self.assertIn('needs: [changes, canonical-runtime]', build)
         self.assertNotIn('dx12-warp-smoke', build)
         publisher = caller.split('  publish-game-update:\n')[1]
         self.assertIn('needs: [build]', publisher)

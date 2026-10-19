@@ -1,6 +1,9 @@
-import bpy,json,hashlib
+import bpy,json,hashlib,sys
 from pathlib import Path
 p=Path(bpy.data.filepath).parent
+sys.path.insert(0,str(Path(__file__).resolve().parent))
+import canonical_authoring_usability as usability
+usability.verify(bpy)
 m=json.loads(bpy.data.texts['EXPORT_MANIFEST'].as_string());inventory=json.loads(bpy.data.texts['ALL_ANIMATION_INVENTORY'].as_string())
 assert m['schema']=='rust-duty-weapon-nla/v1';assert len(m['clips'])==67
 assert len(set(c['id'] for c in m['clips']))==len(m['clips'])
@@ -10,8 +13,10 @@ for c in m['clips']:
  assert len(t.strips)==1 and t.strips[0].action.name==c['action']
  assert set(c['objects']).issubset(set(o.name for o in s.objects))
  assert isinstance(c['frame_start'],int) and isinstance(c['frame_end'],int)
- assert len(c['objects'])==7 and set(c['object_name_map'])==set(c['objects'])
- assert set(c['object_name_map'].values())=={'Arms','Actual arms mesh 0','Actual arms mesh 1','Actual arms mesh 2','hk416_weapon','hk416_magazine','RD First Person Review'}
+ expected_names={'Arms','Actual arms mesh 0','Actual arms mesh 1','Actual arms mesh 2','hk416_weapon','hk416_magazine','RD First Person Review'}
+ if c['id']=='reload_current_wip':expected_names.add('hk416_magazine_outgoing')
+ assert len(c['objects'])==len(expected_names) and set(c['object_name_map'])==set(c['objects'])
+ assert set(c['object_name_map'].values())==expected_names
  assert len([o for o in s.objects if o.name in c['objects'] and o.type=='ARMATURE'])==1
  if c.get('camera_track_name'):assert s.objects[c['camera']].animation_data.nla_tracks[c['camera_track_name']].strips[0].action.name==c['camera_action']
  for comp in c['companion_tracks']:assert s.objects[comp['object']].animation_data.nla_tracks[comp['track_name']].strips[0].action.name==comp['action']

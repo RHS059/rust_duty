@@ -17,10 +17,12 @@ def load(name):
 
 
 def assert_ordinary_closure(case, build, linux):
-    case.assertEqual(set(build['jobs']), {'changes', 'native-validation', 'build', 'publish-game-update'})
+    case.assertEqual(set(build['jobs']), {'changes', 'native-validation', 'canonical-runtime', 'build', 'publish-game-update'})
     case.assertEqual(build['jobs']['native-validation']['uses'], './.github/workflows/native-validation.yml')
-    for name in ('native-validation', 'build'):
-        case.assertEqual(build['jobs'][name]['needs'], ['changes'])
+    case.assertEqual(build['jobs']['canonical-runtime']['uses'], './.github/workflows/canonical-weapon-nla.yml')
+    for name in ('native-validation', 'build', 'canonical-runtime'):
+        case.assertEqual(build['jobs'][name]['needs'],
+                         ['changes', 'canonical-runtime'] if name == 'build' else ['changes'])
         case.assertNotIn('continue-on-error', build['jobs'][name])
     case.assertEqual(set(linux['jobs']), {'validate'})
     for job in (build['jobs']['build'], linux['jobs']['validate']):
@@ -29,7 +31,10 @@ def assert_ordinary_closure(case, build, linux):
         case.assertTrue(any('tools/ci_quality_checks.py' in command for command in commands))
         for step in job['steps']:
             case.assertNotIn('continue-on-error', step)
-            case.assertNotEqual(step.get('uses'), 'actions/download-artifact@v4')
+            if step.get('uses') == 'actions/download-artifact@v4':
+                case.assertIs(job, build['jobs']['build'])
+                case.assertEqual(step.get('with'), {'name': 'canonical-weapon-runtime',
+                                                   'path': 'build-assets/canonical-runtime'})
             command = step.get('run', '')
             for forbidden in ('--sampler', '--verify-sampler', 'sample_viewmodel_clip',
                               '--capture', 'run_dx12_', 'run_windows_same_platform_return',
@@ -39,7 +44,7 @@ def assert_ordinary_closure(case, build, linux):
 
 
 class OrdinaryDeliveryWorkflowTests(unittest.TestCase):
-    def test_windows_and_linux_consume_committed_runtime_without_proof_jobs(self):
+    def test_windows_consumes_canonical_overlay_without_proof_jobs(self):
         assert_ordinary_closure(self, load('build.yml'), load('native-validation.yml'))
 
     def test_capture_or_generator_reintroduction_is_detected(self):
@@ -52,6 +57,19 @@ class OrdinaryDeliveryWorkflowTests(unittest.TestCase):
                 assert_ordinary_closure(self, build, linux)
         build, linux = load('build.yml'), load('native-validation.yml')
         build['jobs']['animation-assets'] = {'uses': './.github/workflows/blender-assets.yml'}
+        with self.assertRaises(AssertionError):
+            assert_ordinary_closure(self, build, linux)
+
+    def test_canonical_artifact_must_be_same_run_and_exact_producer(self):
+        for change in ('run-id', 'github-token', 'name'):
+            build, linux = load('build.yml'), load('native-validation.yml')
+            step = next(s for s in build['jobs']['build']['steps']
+                        if s.get('uses') == 'actions/download-artifact@v4')
+            step['with'][change] = 'untrusted-other-run'
+            with self.subTest(change=change), self.assertRaises(AssertionError):
+                assert_ordinary_closure(self, build, linux)
+        build, linux = load('build.yml'), load('native-validation.yml')
+        build['jobs']['canonical-runtime']['uses'] = './.github/workflows/blender-assets.yml'
         with self.assertRaises(AssertionError):
             assert_ordinary_closure(self, build, linux)
 

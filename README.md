@@ -16,3 +16,10 @@ The original test range remains available with `--level=range`.
 [Build and validate the city](.github/workflows/build-city.yml)
 
 ![Cedar Junction overview](assets/levels/cedar_junction/review/overview.jpg)
+
+## Weapon animation authoring
+
+Update the same [canonical weapon BLEND](assets/authoring/weapon_animations.blend).
+The [NLA export and runtime guide](tools/nla_export/README.md) explains per-track
+FBX export, automatic runtime coverage, playback ranges, and inspecting preserved
+historical Actions.

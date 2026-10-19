@@ -1,4 +1,4 @@
-"""The current native controls reuse only reviewed baseline bytes and keep all gates."""
+"""Frozen native controls keep all gates and declare source applicability first."""
 from pathlib import Path
 import unittest
 import yaml
@@ -28,13 +28,19 @@ class GraphicsCpuWorkflowTests(unittest.TestCase):
 
     def test_guarded_exact_artifact_and_compiler_precede_single_native_invocation(self):
         guard = next(s for s in self.steps if 'python -m unittest' in s.get('run', ''))
+        applicability = next(s for s in self.steps if s.get('id') == 'applicability')
+        self.assertIn('test_graphics_cpu_applicability', guard['run'])
+        self.assertEqual(applicability['run'], 'python tools/check_graphics_cpu_applicability.py --repository . --output graphics-cpu-applicability.json')
+        self.assertNotIn('if', applicability)
         metadata = next(s for s in self.steps if s.get('uses') == 'actions/github-script@v7')
         provider = next(s for s in self.steps if 'baseline_provider(read_json' in s.get('run', ''))
         download = next(s for s in self.steps if s.get('uses') == 'actions/download-artifact@v4')
         compiler = next(s for s in self.steps if 'rustup toolchain install' in s.get('run', ''))
         native = next(s for s in self.steps if 'python tools/run_graphics_cpu_contract.py' in s.get('run', ''))
-        positions = [self.steps.index(s) for s in (guard, metadata, provider, download, compiler, native)]
+        positions = [self.steps.index(s) for s in (guard, applicability, metadata, provider, download, compiler, native)]
         self.assertEqual(positions, sorted(positions))
+        for step in (metadata, provider, download, compiler, native):
+            self.assertEqual(step['if'], "steps.applicability.outputs.applicable == 'true'")
         self.assertIn('artifact_id: 11422371812', metadata['with']['script'])
         self.assertEqual(download['with']['artifact-ids'], '11422371812')
         self.assertEqual(download['with']['run-id'], '37482428571')
@@ -49,6 +55,7 @@ class GraphicsCpuWorkflowTests(unittest.TestCase):
         self.assertEqual(len(uploads), 2)
         self.assertTrue(all(s['if'] == 'always()' and s['with']['include-hidden-files'] == 'true' for s in uploads))
         full, review = [s['with']['path'] for s in uploads]
+        self.assertTrue(all('graphics-cpu-applicability.json' in path for path in (full, review)))
         self.assertIn('!evidence/graphics-cpu/target/**', full)
         self.assertIn('!evidence/graphics-cpu/temp/**', full)
         for part in ('baseline-provider.json', '*-source/**', 'baseline-original/**',
