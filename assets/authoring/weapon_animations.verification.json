@@ -9,12 +9,28 @@
   "default_scene": "LIBRARY | VAULT",
   "source_files_unchanged": true,
   "canonical_file": "assets/authoring/weapon_animations.blend",
-  "canonical_sha256": "d86fcb25ef625922c4cce4dcec1ec9fb228d4ea6fd769647e424f2b6eec43d2e",
+  "canonical_sha256": "8acf0745f23234b41f28c3ff13d1e449323ad46c2316894ff4f4642ce6e26c00",
   "metadata_repair": {
     "input_sha256": "e1388c5a6fd96de54ccb75e70d8ba1860b02d65eced327342b4fcc40c36d8c8d",
     "clip": "reload_current_wip",
     "added_object": "hk416_magazine_outgoing.008",
     "exported_name": "hk416_magazine_outgoing",
     "scope": "Retained outgoing magazine added to explicit export selection only; no authored motion edited."
+  },
+  "authoring_usability_repair": {
+    "input_sha256": "d86fcb25ef625922c4cce4dcec1ec9fb228d4ea6fd769647e424f2b6eec43d2e",
+    "enabled_nla_owners": [
+      "Arms",
+      "Arms.001",
+      "Arms.002",
+      "Arms.003",
+      "Arms.004",
+      "Arms.007"
+    ],
+    "labeled_actions": 66,
+    "saved_reopen": "PASS",
+    "manifest_unchanged": true,
+    "historical_properties_preserved": true,
+    "scope": "Enable declared NLA owners without active Action mixing; add manifest-derived labels and editor guidance only."
   }
 }
