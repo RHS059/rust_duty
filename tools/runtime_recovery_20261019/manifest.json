@@ -1,0 +1,284 @@
+{
+  "schema": "rust-duty-runtime-recovery/v1",
+  "branch": "aella/onehand-windows-inputs-20261018",
+  "base_commit": "b6e9a4b819e1f53f1da0cb34abd0a9ca13f2ccfa",
+  "archives": [
+    {
+      "name": "PROJECT_WORK_01.zip",
+      "bytes": 64768142,
+      "sha256": "e4d0a9a43fe181eabf571bf7eed3fc084eb1af2976dae077275a61967d72a6ec",
+      "members": 35,
+      "expanded_bytes": 203192889,
+      "drive_id": "1Do8uCmjrYdSKXGk-JkgCCTHSlUGgf5NQ"
+    },
+    {
+      "name": "PROJECT_WORK_02.zip",
+      "bytes": 217471377,
+      "sha256": "966264d0faf646af0e475cd2027b3c1cbd9bcdf15005a579e8bcc97d873ca4b7",
+      "members": 27,
+      "expanded_bytes": 384122672,
+      "drive_id": "1sIBIThKrxX3VJAVT0_3h9kDa7kHjWiYX"
+    },
+    {
+      "name": "PROJECT_WORK_03.zip",
+      "bytes": 185647831,
+      "sha256": "5bb4430433ef4728f24d34ec6f5181b8cb3fb257231d850fd77e679c8f8d690e",
+      "members": 132,
+      "expanded_bytes": 402505978,
+      "drive_id": "1K6wsauQ8mUE7wPlRN1Y7fpfohp4snvrT"
+    }
+  ],
+  "objects": [
+    {
+      "git_sha": "5fb5ff6f216047b9474c35e087f8e375547a0f56",
+      "bytes": 16090557,
+      "sha256": "edfce707a0b7aebc795e3100e4a2d12b5c585b106986318d4ba83238384ba2d9",
+      "destinations": [
+        {
+          "path": "assets/directional/asset.vra",
+          "operation": "add",
+          "head_git_sha": null
+        }
+      ],
+      "archive": "PROJECT_WORK_03.zip",
+      "member": "objects/edfce707a0b7aebc795e3100e4a2d12b5c585b106986318d4ba83238384ba2d9"
+    },
+    {
+      "git_sha": "bd39c74c04ebb0d12fa9ffefce1932ec6fc20f5d",
+      "bytes": 16663274,
+      "sha256": "b38b7f823ddf7bd6f032ed98d33f055cd444caf51558146911b7a678c6e3ce92",
+      "destinations": [
+        {
+          "path": "assets/directional/asset.vrs",
+          "operation": "add",
+          "head_git_sha": null
+        },
+        {
+          "path": "assets/jump/asset.vrs",
+          "operation": "add",
+          "head_git_sha": null
+        }
+      ],
+      "archive": "PROJECT_WORK_02.zip",
+      "member": "objects/b38b7f823ddf7bd6f032ed98d33f055cd444caf51558146911b7a678c6e3ce92"
+    },
+    {
+      "git_sha": "c108e643a0d2b6c4dd7a667e7f950a645bc9b188",
+      "bytes": 13263902,
+      "sha256": "d838f0f172bd9a593bd3f7593be99429035ea3a0806eccf8cc842553ca3f5ad6",
+      "destinations": [
+        {
+          "path": "assets/jump/asset.vra",
+          "operation": "add",
+          "head_git_sha": null
+        }
+      ],
+      "archive": "PROJECT_WORK_03.zip",
+      "member": "objects/d838f0f172bd9a593bd3f7593be99429035ea3a0806eccf8cc842553ca3f5ad6"
+    },
+    {
+      "git_sha": "7dec47be0b64f0c8a5dd90d0c10417e36e0071a5",
+      "bytes": 5778092,
+      "sha256": "2033e78e2a43d5c7a2fbcf099f81cb31f5b3bdea0ffc9aafce1aa7895c843255",
+      "destinations": [
+        {
+          "path": "assets/reload/alternates/opening/asset.vra",
+          "operation": "add",
+          "head_git_sha": null
+        }
+      ],
+      "archive": "PROJECT_WORK_03.zip",
+      "member": "objects/2033e78e2a43d5c7a2fbcf099f81cb31f5b3bdea0ffc9aafce1aa7895c843255"
+    },
+    {
+      "git_sha": "b9b49aeb7f097ad182b04df1a8103b451e40e6a8",
+      "bytes": 4156248,
+      "sha256": "721986357228951a33cba32cbe088aceb76169fa9c0c97482355775aad85026a",
+      "destinations": [
+        {
+          "path": "assets/reload/alternates/opening/asset.vrm",
+          "operation": "add",
+          "head_git_sha": null
+        },
+        {
+          "path": "assets/reload/alternates/pickup/asset.vrm",
+          "operation": "add",
+          "head_git_sha": null
+        },
+        {
+          "path": "assets/reload/alternates/reset/asset.vrm",
+          "operation": "add",
+          "head_git_sha": null
+        },
+        {
+          "path": "assets/reload/asset.vrm",
+          "operation": "add",
+          "head_git_sha": null
+        },
+        {
+          "path": "assets/prone_entry/asset.vrm",
+          "operation": "add",
+          "head_git_sha": null
+        },
+        {
+          "path": "assets/low_vault/asset.vrm",
+          "operation": "add",
+          "head_git_sha": null
+        },
+        {
+          "path": "assets/onehand/asset.vrm",
+          "operation": "add",
+          "head_git_sha": null
+        }
+      ],
+      "archive": "PROJECT_WORK_03.zip",
+      "member": "objects/721986357228951a33cba32cbe088aceb76169fa9c0c97482355775aad85026a"
+    },
+    {
+      "git_sha": "a537a0bdb9f6277d85fa4f8f0fd6673a6ab4c3c6",
+      "bytes": 13605994,
+      "sha256": "c2b585cb8dcc68652fb523bad976730d2d3db88f6442c5efc69f009ceb2b20d7",
+      "destinations": [
+        {
+          "path": "assets/reload/alternates/opening/asset.vrs",
+          "operation": "add",
+          "head_git_sha": null
+        },
+        {
+          "path": "assets/reload/alternates/pickup/asset.vrs",
+          "operation": "add",
+          "head_git_sha": null
+        },
+        {
+          "path": "assets/reload/alternates/reset/asset.vrs",
+          "operation": "add",
+          "head_git_sha": null
+        },
+        {
+          "path": "assets/reload/asset.vrs",
+          "operation": "add",
+          "head_git_sha": null
+        }
+      ],
+      "archive": "PROJECT_WORK_03.zip",
+      "member": "objects/c2b585cb8dcc68652fb523bad976730d2d3db88f6442c5efc69f009ceb2b20d7"
+    },
+    {
+      "git_sha": "87c8b54ce663f30465dcd4696f07f7314398d3d4",
+      "bytes": 30041575,
+      "sha256": "09d39c9c5d2c75448d871548cae3ecade01eb7e36c22de6f059e4173a54e4a9a",
+      "destinations": [
+        {
+          "path": "assets/reload/asset.vra",
+          "operation": "add",
+          "head_git_sha": null
+        }
+      ],
+      "archive": "PROJECT_WORK_02.zip",
+      "member": "objects/09d39c9c5d2c75448d871548cae3ecade01eb7e36c22de6f059e4173a54e4a9a"
+    },
+    {
+      "git_sha": "9ec2d92b96a60ba560da149c745a2fa4fd77cca9",
+      "bytes": 3874666,
+      "sha256": "cbc1815fe5fb8a0319588feffe87d89d1b03c60943317e7a4b7102b4a96a6eb2",
+      "destinations": [
+        {
+          "path": "assets/ads/asset.vra.gz",
+          "operation": "replace",
+          "head_git_sha": "0d2680c16cc2201604c7d781a0de022a98848db5"
+        }
+      ],
+      "archive": "PROJECT_WORK_03.zip",
+      "member": "objects/cbc1815fe5fb8a0319588feffe87d89d1b03c60943317e7a4b7102b4a96a6eb2"
+    },
+    {
+      "git_sha": "851857aba2c7059c64f7a85d4dc02f2210b75438",
+      "bytes": 2548757,
+      "sha256": "9b91331d264444fec48813a769f67d02273ba96d8d922d49e50f7497e6ee22f9",
+      "destinations": [
+        {
+          "path": "assets/prone_entry/asset.prone-camera.json",
+          "operation": "add",
+          "head_git_sha": null
+        }
+      ],
+      "archive": "PROJECT_WORK_03.zip",
+      "member": "objects/9b91331d264444fec48813a769f67d02273ba96d8d922d49e50f7497e6ee22f9"
+    },
+    {
+      "git_sha": "05113dfaf4e4b24f405dd65e5da5693a987ef43f",
+      "bytes": 13091133,
+      "sha256": "53e360817acd58e4f826ae0be7c316a55f699a5c46d211dbbaf6256e779bec86",
+      "destinations": [
+        {
+          "path": "assets/prone_entry/asset.vra",
+          "operation": "add",
+          "head_git_sha": null
+        }
+      ],
+      "archive": "PROJECT_WORK_03.zip",
+      "member": "objects/53e360817acd58e4f826ae0be7c316a55f699a5c46d211dbbaf6256e779bec86"
+    },
+    {
+      "git_sha": "7e13bb59e34ed4a51a088a84e7e3612e1d3eb7cb",
+      "bytes": 13605994,
+      "sha256": "73963ddac6d0aae55bc3b93d0c2b7cbed04d2cd73e35f14c4f9a6e60fb894a85",
+      "destinations": [
+        {
+          "path": "assets/prone_entry/asset.vrs",
+          "operation": "add",
+          "head_git_sha": null
+        }
+      ],
+      "archive": "PROJECT_WORK_03.zip",
+      "member": "objects/73963ddac6d0aae55bc3b93d0c2b7cbed04d2cd73e35f14c4f9a6e60fb894a85"
+    },
+    {
+      "git_sha": "6c4198177bc1479f0633fd56452e995e343433e8",
+      "bytes": 1520200,
+      "sha256": "e64b02de580cce2bf6f59ff9a81dbcd31544a64537c137ab69875b71d3120460",
+      "destinations": [
+        {
+          "path": "assets/low_vault/asset.vra",
+          "operation": "add",
+          "head_git_sha": null
+        }
+      ],
+      "archive": "PROJECT_WORK_03.zip",
+      "member": "objects/e64b02de580cce2bf6f59ff9a81dbcd31544a64537c137ab69875b71d3120460"
+    },
+    {
+      "git_sha": "3fb5e193a86c54791893d11b3c642860d9244260",
+      "bytes": 13605994,
+      "sha256": "71e819428ff77963a7623bab4591078a77ae0cd7946243386e687f6887f812c1",
+      "destinations": [
+        {
+          "path": "assets/low_vault/asset.vrs",
+          "operation": "add",
+          "head_git_sha": null
+        },
+        {
+          "path": "assets/onehand/asset.vrs",
+          "operation": "add",
+          "head_git_sha": null
+        }
+      ],
+      "archive": "PROJECT_WORK_03.zip",
+      "member": "objects/71e819428ff77963a7623bab4591078a77ae0cd7946243386e687f6887f812c1"
+    },
+    {
+      "git_sha": "b4445902853c13718c3f4df6603332da4141ee55",
+      "bytes": 73134921,
+      "sha256": "26aca4fbb5efd04587feb513658348b1cd217c456d8a22a57eb29defb9309380",
+      "destinations": [
+        {
+          "path": "assets/onehand/asset.vra",
+          "operation": "add",
+          "head_git_sha": null
+        }
+      ],
+      "archive": "PROJECT_WORK_01.zip",
+      "member": "objects/26aca4fbb5efd04587feb513658348b1cd217c456d8a22a57eb29defb9309380"
+    }
+  ]
+}
