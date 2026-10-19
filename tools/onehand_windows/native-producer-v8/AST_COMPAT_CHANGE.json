@@ -1,0 +1,39 @@
+{
+  "actual_311_execution_performed": false,
+  "actual_windows_execution_performed": false,
+  "affected_fragments": 28,
+  "definition_nodes": 37,
+  "exact_grammar_node_kinds": 73,
+  "failed_candidate": "39120010389",
+  "failed_summary_sha256": "8d9b030ca6a983210e46b22cf04b6a656ce25e61cd98145f512420a3b4ccb20c",
+  "field_projection": {
+    "execution_tree_modified": false,
+    "field": "type_params",
+    "from": "3.11",
+    "kinds": [
+      "ClassDef",
+      "FunctionDef"
+    ],
+    "to": "3.12",
+    "value": []
+  },
+  "frozen_fragment_count": 34,
+  "independent_native_acceptance": false,
+  "local_test_runtime": "CPython3.12.14",
+  "original_source_and_ast_hashes_preserved": true,
+  "predecessor_commit": "f0d888f6003a0a582e64970075973c395a0fc3ad",
+  "predecessor_pins_sha256": "fbf3b0f7221b34b6dca29b885c7b1ab2f965ed76049c77504b9d504032e5bc9e",
+  "production_files_changed": [
+    "pinned_code.py"
+  ],
+  "required_early_ci_runtimes": [
+    "CPython3.11.9",
+    "CPython3.12.10"
+  ],
+  "schema": "rust-duty-frozen-fragment-ast-change/v1",
+  "supported_cpython_minor_versions": [
+    "3.11",
+    "3.12"
+  ],
+  "unchanged_audited_fragments_sha256": "3a2d0c7ea5fcc0dfab7ec615dbb78e0b7d9f907c1d1a48bc2f90da14933952b5"
+}

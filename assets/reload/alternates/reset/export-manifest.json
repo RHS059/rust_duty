@@ -1,0 +1,320 @@
+{
+  "schema": "rust-duty-current-reload-fbx/v1",
+  "status": "WIP",
+  "source_sha256": "8cec36c6bfcc4967cb80629b40ecdced3c0b5507914aec7eb3d2d614f2d758fd",
+  "action": "RD_00_Supplied_Base_Guarded_Recovered",
+  "source_action": {
+    "name": "RD_00_Supplied_Base_Guarded_Recovered",
+    "stored_range": [
+      1.0,
+      1.0
+    ],
+    "curve_sha256": "67e4f3263de590b577e77ec1acbf6379f68391fd63086beef917811571a6ee7c",
+    "fcurves": 775
+  },
+  "action_inventory": [
+    {
+      "name": "hk416_magazineAction",
+      "stored_range": [
+        1.0,
+        1.0
+      ],
+      "curve_sha256": "053e123c4848614ac0a6008176e296d76f3f6f11c3d56b74c37b8d25f6f13ac2",
+      "fcurves": 4
+    },
+    {
+      "name": "hk416_weaponAction.001",
+      "stored_range": [
+        1.0,
+        1.0
+      ],
+      "curve_sha256": "4d6ab914725e4e085465aa382524a886942b278f5969a212c71930fe3904aedc",
+      "fcurves": 6
+    },
+    {
+      "name": "hk416a5_controls",
+      "stored_range": [
+        1.0,
+        1.0
+      ],
+      "curve_sha256": "4603a415fba7e745a296cb685d323ad1886c4740e0232df46612acf43a076a3e",
+      "fcurves": 753
+    },
+    {
+      "name": "hk416a5_ik",
+      "stored_range": [
+        1.0,
+        1.0
+      ],
+      "curve_sha256": "4cc670686979a17ba9dea3640dec07cf51051a5e3b31f6c711d3ec0fcfad61dc",
+      "fcurves": 694
+    },
+    {
+      "name": "RD_00_Supplied_Base_Guarded_Recovered",
+      "stored_range": [
+        1.0,
+        1.0
+      ],
+      "curve_sha256": "67e4f3263de590b577e77ec1acbf6379f68391fd63086beef917811571a6ee7c",
+      "fcurves": 775
+    },
+    {
+      "name": "RD_00_Supplied_Base_Recovered",
+      "stored_range": [
+        1.0,
+        1.0
+      ],
+      "curve_sha256": "cd23a1cf4c539a56d91c8264b6d402a5e9597c6e1f5b03afb3b4d2b13ce01747",
+      "fcurves": 767
+    },
+    {
+      "name": "RD_Pose_Tactical_Pickup54_Guarded",
+      "stored_range": [
+        1.0,
+        157.0
+      ],
+      "curve_sha256": "e93aa59f045e6143908d1c08298c1fd2a39263ac320ae284483edcc9246bac53",
+      "fcurves": 781
+    },
+    {
+      "name": "RD_Reload_Tactical_HandApproach_AndReturn_WIP",
+      "stored_range": [
+        1.0,
+        157.0
+      ],
+      "curve_sha256": "2684f80dfcd4fe885833cc53da7adc40c2ed711a90c3b1224f746a3017ad4033",
+      "fcurves": 781
+    },
+    {
+      "name": "RD_Reload_Tactical_Hands_Opening_WIP",
+      "stored_range": [
+        1.0,
+        157.0
+      ],
+      "curve_sha256": "3dfaf9a1989a75466349ce54ed45539de7aa7a7c2463696b566bbcc279619108",
+      "fcurves": 772
+    },
+    {
+      "name": "RD_Reload_Tactical_Magazine_Locked_Reconstructed_v1",
+      "stored_range": [
+        1.0,
+        157.0
+      ],
+      "curve_sha256": "830d2afe838cf68ddf59413ce271992f278b079be4325614f15b08dc5458f211",
+      "fcurves": 767
+    },
+    {
+      "name": "RD_Reload_Tactical_Magazine_Locked_Reconstructed_v2",
+      "stored_range": [
+        1.0,
+        157.0
+      ],
+      "curve_sha256": "770079ea75499ccf88507416060f953e1d22c274ff6fae50425261265149ecee",
+      "fcurves": 767
+    },
+    {
+      "name": "RD_Reload_Tactical_RightArm_Clearance_Checkpoint",
+      "stored_range": [
+        1.0,
+        157.0
+      ],
+      "curve_sha256": "921af4801656c6b975ad59f774084e3719e895b45f5fc3f7489ae16c96612267",
+      "fcurves": 768
+    },
+    {
+      "name": "RD_Reload_Tactical_Weapon_Locked_Reconstructed_v1",
+      "stored_range": [
+        1.0,
+        157.0
+      ],
+      "curve_sha256": "13942d356bfae755a47c8dec67ce3a68da41743aabe287b76bb9c9a13f3fd54c",
+      "fcurves": 767
+    }
+  ],
+  "action_stored_range": [
+    1.0,
+    1.0
+  ],
+  "native_requested_range": [
+    0,
+    0
+  ],
+  "native_fps": [
+    60000,
+    1001
+  ],
+  "reviewed_subranges": [],
+  "review_scope_note": "Review ranges belong to this exact Action only. Opening is a separate current Action; full HandApproach keeps its authored base-to-48 prefix. Stored extents do not imply approval.",
+  "scope": "Direct evaluation of a single canonical Action across requested full WIP range. No reconstructed gap, joined clips, or full-motion approval.",
+  "bones": [
+    "root",
+    "pelvis",
+    "spine_01",
+    "spine_02",
+    "spine_03",
+    "neck_01",
+    "head",
+    "clavicle_l",
+    "upperarm_l",
+    "lowerarm_l",
+    "hand_l",
+    "index_01_l",
+    "index_02_l",
+    "index_03_l",
+    "thumb_01_l",
+    "thumb_02_l",
+    "thumb_03_l",
+    "middle_01_l",
+    "middle_02_l",
+    "middle_03_l",
+    "ring_01_l",
+    "ring_02_l",
+    "ring_03_l",
+    "pinky_01_l",
+    "pinky_02_l",
+    "pinky_03_l",
+    "lowerarm_twist_01_l",
+    "upperarm_twist_01_l",
+    "clavicle_r",
+    "upperarm_r",
+    "lowerarm_r",
+    "hand_r",
+    "index_01_r",
+    "index_02_r",
+    "index_03_r",
+    "thumb_01_r",
+    "thumb_02_r",
+    "thumb_03_r",
+    "middle_01_r",
+    "middle_02_r",
+    "middle_03_r",
+    "ring_01_r",
+    "ring_02_r",
+    "ring_03_r",
+    "pinky_01_r",
+    "pinky_02_r",
+    "pinky_03_r",
+    "lowerarm_twist_01_r",
+    "upperarm_twist_01_r",
+    "thigh_l",
+    "calf_l",
+    "foot_l",
+    "ball_l",
+    "calf_twist_01_l",
+    "thigh_twist_01_l",
+    "thigh_r",
+    "calf_r",
+    "foot_r",
+    "ball_r",
+    "calf_twist_01_r",
+    "thigh_twist_01_r",
+    "ik_foot_root",
+    "ik_foot_l",
+    "ik_foot_r",
+    "ik_hand_root",
+    "ik_hand_gun",
+    "ik_hand_l",
+    "ik_hand_r",
+    "righthand_prop",
+    "MCH_mag_socket",
+    "MCH_mag_insertion_depth",
+    "lefthand_prop",
+    "righthand_prop_righthand",
+    "MCH_attach_goal_r",
+    "righthand_prop_lefthand",
+    "MCH_upperarm_r",
+    "MCH_lowerarm_r",
+    "MCH_forearm_roll_r",
+    "OUT_lowerarm_r",
+    "MCH_wrist_anatomy_r",
+    "MCH_hand_guarded_r",
+    "OUT_hand_r",
+    "MCH_attach_reference_r",
+    "MCH_attach_relative_r",
+    "MCH_attach_forearm_r",
+    "MCH_attach_wrist_r",
+    "OUT_upperarm_r",
+    "elbow_pole_r",
+    "MCH_curl_thumb_01_r",
+    "MCH_curl_thumb_02_r",
+    "MCH_curl_thumb_03_r",
+    "MCH_curl_index_01_r",
+    "MCH_curl_index_02_r",
+    "MCH_curl_index_03_r",
+    "MCH_curl_middle_01_r",
+    "MCH_curl_middle_02_r",
+    "MCH_curl_middle_03_r",
+    "MCH_curl_ring_01_r",
+    "MCH_curl_ring_02_r",
+    "MCH_curl_ring_03_r",
+    "MCH_curl_pinky_01_r",
+    "MCH_curl_pinky_02_r",
+    "MCH_curl_pinky_03_r",
+    "MCH_upperarm_l",
+    "MCH_lowerarm_l",
+    "MCH_forearm_roll_l",
+    "OUT_lowerarm_l",
+    "MCH_wrist_anatomy_l",
+    "MCH_hand_guarded_l",
+    "OUT_hand_l",
+    "MCH_attach_reference_l",
+    "MCH_attach_relative_l",
+    "MCH_attach_forearm_l",
+    "MCH_attach_wrist_l",
+    "OUT_upperarm_l",
+    "elbow_pole_l",
+    "MCH_curl_thumb_01_l",
+    "MCH_curl_thumb_02_l",
+    "MCH_curl_thumb_03_l",
+    "MCH_curl_index_01_l",
+    "MCH_curl_index_02_l",
+    "MCH_curl_index_03_l",
+    "MCH_curl_middle_01_l",
+    "MCH_curl_middle_02_l",
+    "MCH_curl_middle_03_l",
+    "MCH_curl_ring_01_l",
+    "MCH_curl_ring_02_l",
+    "MCH_curl_ring_03_l",
+    "MCH_curl_pinky_01_l",
+    "MCH_curl_pinky_02_l",
+    "MCH_curl_pinky_03_l",
+    "MCH_spread_thumb_r",
+    "MCH_spread_index_r",
+    "MCH_spread_middle_r",
+    "MCH_spread_ring_r",
+    "MCH_spread_pinky_r",
+    "MCH_spread_thumb_l",
+    "MCH_spread_index_l",
+    "MCH_spread_middle_l",
+    "MCH_spread_ring_l",
+    "MCH_spread_pinky_l",
+    "OUT_magazine_guided",
+    "MCH_mag_grip_target_l",
+    "magazine_drop_prop",
+    "OUT_magazine_outgoing",
+    "OUT_hand_target_l",
+    "MCH_attach_goal_l",
+    "MCH_mag_guide_diagnostics"
+  ],
+  "skin_objects": [
+    "Actual arms mesh 0",
+    "Actual arms mesh 1",
+    "Actual arms mesh 2"
+  ],
+  "actors": [
+    "hk416_weapon",
+    "hk416_magazine",
+    "hk416_magazine_outgoing"
+  ],
+  "source_witness_samples": 1,
+  "files": {
+    "current-full-wip.fbx": {
+      "sha256": "1e8e29e63a75a62ca6942f29adf1b87e4aed055db8c8f50b08cc503992798de9",
+      "bytes": 5285804
+    },
+    "source-witnesses.npz": {
+      "sha256": "ce00dc6b60ec533d4dd7a83997becc99a9837d9b524ec232b8d956d99a192749",
+      "bytes": 212104
+    }
+  }
+}

@@ -1,0 +1,18 @@
+test_bad_git_bytes_fail_before_decode (test_completed_inputs.CompletedInputs.test_bad_git_bytes_fail_before_decode) ... ok
+test_canonical_gzip_or_git_hash_mismatch (test_completed_inputs.CompletedInputs.test_canonical_gzip_or_git_hash_mismatch) ... ok
+test_encoded_blob_hash_checked_before_decode (test_completed_inputs.CompletedInputs.test_encoded_blob_hash_checked_before_decode) ... ok
+test_encoded_staging_namespace_reserved (test_completed_inputs.CompletedInputs.test_encoded_staging_namespace_reserved) ... ok
+test_existing_destination_refused (test_completed_inputs.CompletedInputs.test_existing_destination_refused) ... ok
+test_fixed_complete_real_manifest_requires_38_gzip_inputs (test_completed_inputs.CompletedInputs.test_fixed_complete_real_manifest_requires_38_gzip_inputs) ... ok
+test_full_reservation_failure_creates_no_root (test_completed_inputs.CompletedInputs.test_full_reservation_failure_creates_no_root) ... ok
+test_mixed_identity_and_encoded_sources (test_completed_inputs.CompletedInputs.test_mixed_identity_and_encoded_sources) ... ok
+test_nonfinite_duplicate_json_fail (test_completed_inputs.CompletedInputs.test_nonfinite_duplicate_json_fail) ... ok
+test_small_success_has_distinct_git_and_canonical_receipt (test_completed_inputs.CompletedInputs.test_small_success_has_distinct_git_and_canonical_receipt) ... ok
+test_swapped_missing_duplicate_extra_and_wrong_encoding (test_completed_inputs.CompletedInputs.test_swapped_missing_duplicate_extra_and_wrong_encoding) ... ok
+test_actual_compiler_cannot_be_linux_or_moving_stable (test_completed_inputs.SourceSelection.test_actual_compiler_cannot_be_linux_or_moving_stable) ... ok
+test_exact_c61_closure (test_completed_inputs.SourceSelection.test_exact_c61_closure) ... ok
+
+----------------------------------------------------------------------
+Ran 13 tests in 0.040s
+
+OK

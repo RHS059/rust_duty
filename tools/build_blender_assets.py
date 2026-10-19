@@ -7,7 +7,6 @@ import json
 from pathlib import Path
 import shutil
 import subprocess
-import sys
 import re
 
 
@@ -71,32 +70,13 @@ def export_selection(blender, root, output, source, key, contract):
     (runtime / "source.json").write_text(json.dumps(contract, indent=2) + "\n")
 
 
-def verify(root: Path, output: Path, sampler: Path):
-    contract = json.loads((root / "assets/source/reload/source.json").read_text())
-    for key, selected in selections(contract):
-        runtime = output / "reload"
-        if key:
-            runtime = runtime / "alternates" / key
-        fbx = output / ("fbx-" + key if key else "fbx")
-        subprocess.run([sys.executable, str(root / "tools/verify_fbx_segment.py"),
-            str(runtime / "asset.vra"), str(fbx / "source-witnesses.npz"),
-            "--native-start", str(selected["native_range"][0]), "--clip", selected["clip"],
-            "--sampler", str(sampler), "--report", str(runtime / "parity.json")], check=True)
-
-
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--blender")
-    parser.add_argument("--verify-sampler", type=Path)
+    parser.add_argument("--blender", required=True)
     parser.add_argument("--root", type=Path, default=Path("."))
     parser.add_argument("--output", type=Path, default=Path("build-assets"))
     args = parser.parse_args()
-    if args.verify_sampler:
-        verify(args.root, args.output, args.verify_sampler)
-    elif args.blender:
-        print(build(args.blender, args.root, args.output))
-    else:
-        parser.error("choose --blender or --verify-sampler")
+    print(build(args.blender, args.root, args.output))
 
 
 if __name__ == "__main__":

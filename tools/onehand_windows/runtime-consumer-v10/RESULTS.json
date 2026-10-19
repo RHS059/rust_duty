@@ -1,0 +1,95 @@
+{
+  "actual_windows_proof": false,
+  "external_current_test_receipts": "payload-only-publication-preparation-v1",
+  "historical_fixture_tests_not_run": [
+    {
+      "reason": "historical consumer-v4 SOURCE_CLOSURE and RUST_REFERENCE_PINS files unavailable; immediate published predecessor preservation is separately tested",
+      "test": "test_source_selection.SelectedSource.test_math_process_and_threshold_source_unchanged"
+    },
+    {
+      "reason": "retained Windows smoke attempt fixture unavailable",
+      "test": "test_process_reconstruction.PairedProcessBoundary.test_actual_original_successful_windows_fixture_unchanged"
+    },
+    {
+      "reason": "retained Windows smoke attempt fixture unavailable",
+      "test": "test_process_reconstruction.PairedProcessBoundary.test_attempt_wrong_context_rejected_by_consumer"
+    },
+    {
+      "reason": "retained Windows smoke attempt fixture unavailable",
+      "test": "test_process_reconstruction.PairedProcessBoundary.test_boolean_sample_count_rejected_by_consumer"
+    },
+    {
+      "reason": "retained Windows smoke attempt fixture unavailable",
+      "test": "test_process_reconstruction.PairedProcessBoundary.test_empty_initial_memory_reserve_rejected_by_consumer"
+    },
+    {
+      "reason": "retained Windows smoke attempt fixture unavailable",
+      "test": "test_process_reconstruction.PairedProcessBoundary.test_external_terminal_pin_required"
+    },
+    {
+      "reason": "retained Windows smoke attempt fixture unavailable",
+      "test": "test_process_reconstruction.PairedProcessBoundary.test_extra_resource_field_rejected_by_consumer"
+    },
+    {
+      "reason": "retained Windows smoke attempt fixture unavailable",
+      "test": "test_process_reconstruction.PairedProcessBoundary.test_incomplete_final_resource_line_rejected_by_consumer"
+    },
+    {
+      "reason": "retained Windows smoke attempt fixture unavailable",
+      "test": "test_process_reconstruction.PairedProcessBoundary.test_negative_elapsed_rejected_by_consumer"
+    },
+    {
+      "reason": "retained Windows smoke attempt fixture unavailable",
+      "test": "test_process_reconstruction.PairedProcessBoundary.test_positive_fixture_validates_both"
+    },
+    {
+      "reason": "retained Windows smoke attempt fixture unavailable",
+      "test": "test_process_reconstruction.PairedProcessBoundary.test_producer_reports_observed_scheduling_gap_honestly"
+    },
+    {
+      "reason": "retained Windows smoke attempt fixture unavailable",
+      "test": "test_process_reconstruction.PairedProcessBoundary.test_rss_after_exit_rejected_by_consumer"
+    },
+    {
+      "reason": "retained Windows smoke attempt fixture unavailable",
+      "test": "test_process_reconstruction.PairedProcessBoundary.test_samples_after_process_end_rejected_by_consumer"
+    },
+    {
+      "reason": "retained Windows smoke attempt fixture unavailable",
+      "test": "test_process_reconstruction.PairedProcessBoundary.test_selected_producer_and_historical_review_pins"
+    },
+    {
+      "reason": "retained Windows smoke attempt fixture unavailable",
+      "test": "test_process_reconstruction.PairedProcessBoundary.test_shared_reader_failure_is_not_bypassed"
+    },
+    {
+      "reason": "retained Windows smoke attempt fixture unavailable",
+      "test": "test_process_reconstruction.PairedProcessBoundary.test_started_wrong_command_rejected_by_consumer"
+    },
+    {
+      "reason": "retained Windows smoke attempt fixture unavailable",
+      "test": "test_process_reconstruction.PairedProcessBoundary.test_terminal_deadline_overrun_rejected_by_consumer"
+    },
+    {
+      "reason": "retained Windows smoke attempt fixture unavailable",
+      "test": "test_process_reconstruction.PairedProcessBoundary.test_terminal_nonfinite_duration_rejected_by_consumer"
+    },
+    {
+      "reason": "retained Windows smoke attempt fixture unavailable",
+      "test": "test_process_reconstruction.PairedProcessBoundary.test_transport_wrong_supervisor_rejected_by_consumer"
+    },
+    {
+      "reason": "retained Windows smoke attempt fixture unavailable",
+      "test": "test_process_reconstruction.PairedProcessBoundary.test_wrong_expected_sampler_length_rejected"
+    },
+    {
+      "reason": "retained Windows smoke attempt fixture unavailable",
+      "test": "test_process_reconstruction.PairedProcessBoundary.test_wrong_expected_supervisor_length_rejected"
+    }
+  ],
+  "native_execution_performed": false,
+  "predecessor_cpu_log_sha256": "c9e9366c37e860cb3b8b65af7bd5bb996ab08c543d7a617b0d345099e7d53189",
+  "predecessor_results_sha256": "c2acdc4d7e0204c3a3edb71821dd5d6abcb80b10fc19b695af0e2bc098a9818c",
+  "schema": "rust-duty-payload-only-dependent-source-results/v1",
+  "state": "prepared-source-validation-pending"
+}

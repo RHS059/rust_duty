@@ -1,0 +1,32 @@
+{
+  "files": [
+    "ALLOWLIST.json",
+    "LOADED_SOURCE_EVIDENCE.json",
+    "MINIMAL_DIFF.json",
+    "NATIVE_HELPER_PINS.json",
+    "OFFICIAL_ADDON_PINS.json",
+    "PINS.json",
+    "PREPARATION_PROVENANCE.json",
+    "README.md",
+    "RECONSTRUCTION_EVIDENCE.json",
+    "RESULTS.json",
+    "SOURCE_DIFF.patch",
+    "addon_resolver.py",
+    "candidate_context.py",
+    "cpu-tests.log",
+    "pinned_assembler.py",
+    "pinned_transport.py",
+    "portable-tests.log",
+    "production_assembler.py",
+    "reconstruct_windows_profile.py",
+    "reconstruction-tests.log",
+    "run_source_preparation_tests.py",
+    "test_candidate_context.py",
+    "test_metadata_projection.py",
+    "test_reconstruction_and_preservation.py",
+    "test_windows_addon_profile.py",
+    "verify_freeze.py"
+  ],
+  "publication_authorized": false,
+  "schema": "rust-duty-source-only-allowlist/v1"
+}

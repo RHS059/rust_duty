@@ -1,0 +1,41 @@
+{
+  "actor_basis": "reload_mesh_local",
+  "anchor_actor": "hk416_weapon",
+  "asset_vra_sha256": "26aca4fbb5efd04587feb513658348b1cd217c456d8a22a57eb29defb9309380",
+  "asset_vrm_sha256": "721986357228951a33cba32cbe088aceb76169fa9c0c97482355775aad85026a",
+  "asset_vrs_sha256": "71e819428ff77963a7623bab4591078a77ae0cd7946243386e687f6887f812c1",
+  "camera_and_rig_basis": "static",
+  "camera_motion_removal": "none",
+  "candidate_frame_range": [
+    1,
+    96
+  ],
+  "candidate_sha256": "b5cae854b1e5e21c44e60a0672dd18c26e7b38acb239f4730b681482bc409d77",
+  "clip_name": "aella_mantle_onehand_r6_camera_reconstructed_v6",
+  "export_take": "aella_mantle_onehand_r6_camera_reconstructed_v6",
+  "imported_frame_offset": 1,
+  "native_crop": [
+    0,
+    95
+  ],
+  "native_fps": [
+    60,
+    1
+  ],
+  "native_processes_complete": true,
+  "presentation_policy": "high_onto_onehand_v6_native",
+  "reference_frame_range_half_open": [
+    7787,
+    7883
+  ],
+  "return_seconds": 0.2,
+  "runtime_source_proof_sha256": "0619ac6b361c6dcfdebadf0636f669bb46cd48c9a635915defc794ebd4299b7b",
+  "schema": "rust-duty-high-onto-onehand/v1",
+  "skin_vertex_observations": 43392160,
+  "source_action": "aella_mantle_onehand_r6_camera_reconstructed_v6",
+  "source_action_fingerprint": "c7ca6383364e055afe1d0246f443d33689ce86c56677570ba694a924c983ea01",
+  "source_fbx_sha256": "5b847bf47cfafdf9a4b4d32f3d5972e677698db3f47cdc7a4a36a4b7698ee2c2",
+  "subdivisions": 256,
+  "verification_grid_sha256": "a521b1e779e45f85948d94b8b9aa9f9cad41d935783ba5fcbda34decb6aec08f",
+  "verification_sample_count": 4240
+}

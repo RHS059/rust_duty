@@ -83,14 +83,14 @@
     "fps": 60,
     "bake_hz": 480,
     "fbx": {
-      "bytes": 11725996,
-      "sha256": "4d01e1574f130123576c4fcbbe4776908d352c27481e583454815068eaff4057"
+      "bytes": 11725884,
+      "sha256": "831c4b3c35d7d26dd420075af62984d9867ae5dcd0b0aa775098145e987c5c2b"
     }
   },
   "files": {
     "asset.vra": {
       "bytes": 13928291,
-      "sha256": "a5c0df74499358a04122fd1eee284a7d15dcb3434576f17c59369b933daa50a0"
+      "sha256": "3244ede0726e767fc3f30d04fbb80d4e31b41a12a9185baabd707ad6ce91a02a"
     },
     "asset.vrs": {
       "bytes": 16663274,
@@ -102,7 +102,7 @@
     }
   },
   "preservation": {
-    "original_walk_vra_sha256": "184b4c173efc8cca187c7f19a3572fbaa27d094b4cf79328fef0de69ffac789a",
+    "original_walk_vra_sha256": "a217f3dd622cfce96001f6f23e8443d30de109a3258cf95e34d27dd205796952",
     "clip_payloads_byte_identical": 44,
     "canonical_skin_byte_identical": true,
     "canonical_rigid_byte_identical": true
@@ -114,9 +114,9 @@
       "ads_entry_r1": {
         "samples": 25,
         "maxima": {
-          "skin_error_m": 5.198328262675017e-06,
+          "skin_error_m": 5.205527760174336e-06,
           "visible_prop_origin_error_m": 4.26968268444687e-06,
-          "visible_rigid_vertex_error_m": 4.479599408022692e-06,
+          "visible_rigid_vertex_error_m": 4.4796009841570565e-06,
           "visible_prop_matrix_error": 4.060301914216025e-06
         },
         "visibility_failures": 0
@@ -124,7 +124,7 @@
       "ads_hold_r1": {
         "samples": 25,
         "maxima": {
-          "skin_error_m": 1.2330002246305617e-06,
+          "skin_error_m": 1.1614886667602036e-06,
           "visible_prop_origin_error_m": 4.053260012283658e-09,
           "visible_rigid_vertex_error_m": 1.7959387955864358e-07,
           "visible_prop_matrix_error": 3.0187001798614503e-07
@@ -134,7 +134,7 @@
       "ads_exit_r1": {
         "samples": 25,
         "maxima": {
-          "skin_error_m": 5.249080902346825e-06,
+          "skin_error_m": 5.306595502277258e-06,
           "visible_prop_origin_error_m": 4.255285002285793e-06,
           "visible_rigid_vertex_error_m": 4.472621541654372e-06,
           "visible_prop_matrix_error": 4.03565940856887e-06
@@ -144,6 +144,14 @@
     }
   },
   "repository_transport": {
+    "asset.vra": {
+      "file": "asset.vra.gz",
+      "encoding": "gzip",
+      "bytes": 3874666,
+      "sha256": "cbc1815fe5fb8a0319588feffe87d89d1b03c60943317e7a4b7102b4a96a6eb2",
+      "decoded_bytes": 13928291,
+      "decoded_sha256": "3244ede0726e767fc3f30d04fbb80d4e31b41a12a9185baabd707ad6ce91a02a"
+    },
     "asset.vrs": {
       "file": "asset.vrs.gz",
       "encoding": "gzip",
@@ -151,14 +159,6 @@
       "sha256": "93a536de71b537b3f319bf97fe9c77235af10884f949c328858ec6cdf61956d1",
       "decoded_bytes": 16663274,
       "decoded_sha256": "b38b7f823ddf7bd6f032ed98d33f055cd444caf51558146911b7a678c6e3ce92"
-    },
-    "asset.vra": {
-      "file": "asset.vra.gz",
-      "encoding": "gzip",
-      "bytes": 3874853,
-      "sha256": "dae0aa402e913585ab810c6922bcccda827f8dbccf38d327beed44ba992e234b",
-      "decoded_bytes": 13928291,
-      "decoded_sha256": "a5c0df74499358a04122fd1eee284a7d15dcb3434576f17c59369b933daa50a0"
     }
   },
   "scope": "New source-authored ADS entry/hold/exit; source Actions and canonical walk44 retained. Numerical parity is not artistic approval."

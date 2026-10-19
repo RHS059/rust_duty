@@ -1,0 +1,257 @@
+name: Original-source one-hand Windows source tests and guarded proof
+on:
+  pull_request:
+    branches: [aella/combined-authored-transitions-20261016, aella/combined-diagnostic-source-wip-20261016, main]
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - 'tools/onehand_windows/**'
+      - 'src/authored_viewmodel.rs'
+      - 'src/high_mantle_capture.rs'
+      - '.github/workflows/onehand-windows-proof.yml'
+permissions:
+  contents: read
+concurrency:
+  group: onehand-windows-private-proof-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+jobs:
+  source-and-guarded-proof:
+    # Never execute pull_request_target or fork code with repository authority.
+    # No repository variable, secret, workflow dispatch or default merge needed.
+    if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on: windows-2022
+    timeout-minutes: 360
+    defaults:
+      run:
+        shell: pwsh
+    env:
+      PACKAGE: tools/onehand_windows/orchestration-v6
+      GIT_CONFIG_COUNT: '2'
+      GIT_CONFIG_KEY_0: core.autocrlf
+      GIT_CONFIG_VALUE_0: 'false'
+      GIT_CONFIG_KEY_1: core.eol
+      GIT_CONFIG_VALUE_1: lf
+      PYTHONDONTWRITEBYTECODE: '1'
+      PROOF_COMMIT: ${{ github.event.pull_request.head.sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+          path: git-input
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Export exact source-only PR bytes without checkout filters
+        timeout-minutes: 10
+        run: |
+          $ErrorActionPreference='Stop'
+          if ($env:PROOF_COMMIT -notmatch '^[0-9a-f]{40}$') { throw 'Exact immutable event commit required' }
+          $repo=Join-Path $env:GITHUB_WORKSPACE 'git-input'
+          $work=Join-Path $env:RUNNER_TEMP ("onehand-"+$env:GITHUB_RUN_ID+"-"+$env:GITHUB_RUN_ATTEMPT)
+          if (Test-Path -LiteralPath $work) { throw 'Fresh private attempt required' }
+          New-Item -ItemType Directory -Path $work | Out-Null
+          # BEGIN single application selection
+          function Resolve-Application([string]$Name) {
+            # Get-Command -All emits applications in PATH execution-precedence order.
+            $command = Get-Command -Name $Name -CommandType Application -All -ErrorAction Stop | Select-Object -First 1
+            if ($null -eq $command -or $command.Source -isnot [string] -or [string]::IsNullOrWhiteSpace($command.Source)) { throw 'One nonempty application path required' }
+            $path = $command.Source
+            if (!(Test-Path -LiteralPath $path -PathType Leaf)) { throw 'Application path must be an existing file' }
+            return $path
+          }
+          # END single application selection
+          $git=Resolve-Application 'git.exe'
+          if ((& $git -C $repo cat-file -t $env:PROOF_COMMIT).Trim() -ne 'commit' -or $LASTEXITCODE -ne 0) { throw 'Event SHA is not an actual Git commit' }
+          function Export-Blob([string]$Logical,[string]$Output) {
+            $p=[Diagnostics.ProcessStartInfo]::new();$p.FileName=$git;$p.UseShellExecute=$false;$p.RedirectStandardOutput=$true;$p.RedirectStandardError=$true
+            foreach ($arg in @('-C',$repo,'cat-file','blob',($env:PROOF_COMMIT+':'+$Logical))) { $p.ArgumentList.Add($arg) }
+            $proc=[Diagnostics.Process]::Start($p);$stream=[IO.File]::Open($Output,[IO.FileMode]::CreateNew)
+            try { $proc.StandardOutput.BaseStream.CopyTo($stream) } finally { $stream.Dispose() }
+            $errorText=$proc.StandardError.ReadToEnd();$proc.WaitForExit()
+            if ($proc.ExitCode -ne 0) { throw 'Exact Git source export failed' }
+          }
+          foreach ($name in @('source_checkout.py','checkout_bytes.py')) { Export-Blob ($env:PACKAGE+'/'+$name) (Join-Path $work $name) }
+          $sourceHelperSha='8ad4b6db52bfa35ed99fc5ffbd8648529219c12514824bd199575de28db589e3'
+          $materializerSha='935ca9997b68778cf7b3a073598b3dfaa236816d610fc9440e86fb4c51db077c'
+          if ((Get-FileHash (Join-Path $work 'source_checkout.py') -Algorithm SHA256).Hash.ToLowerInvariant() -ne $sourceHelperSha) { throw 'Reviewed source-only bootstrap differs' }
+          if ((Get-FileHash (Join-Path $work 'checkout_bytes.py') -Algorithm SHA256).Hash.ToLowerInvariant() -ne $materializerSha) { throw 'Reviewed exact materializer differs' }
+          python -I -B (Join-Path $work 'source_checkout.py') --git $git --repository $repo --event-commit $env:PROOF_COMMIT --materializer (Join-Path $work 'checkout_bytes.py') --output (Join-Path $work 'source-materialized') --receipt (Join-Path $work 'source-checkout.json')
+          if ($LASTEXITCODE -ne 0) { throw 'Exact source-only materialization failed' }
+          "ONEHAND_WORK=$work" >> $env:GITHUB_ENV
+          "ONEHAND_SOURCE_PACKAGE=$(Join-Path $work 'source-materialized/orchestration')" >> $env:GITHUB_ENV
+          "ONEHAND_GIT=$git" >> $env:GITHUB_ENV
+          "ONEHAND_REPOSITORY=$repo" >> $env:GITHUB_ENV
+      - name: Run bounded Windows source tests even while native admission is incomplete
+        timeout-minutes: 10
+        run: |
+          python -m pip install numpy==2.2.6 Pillow==11.3.0
+          if ($LASTEXITCODE -ne 0) { throw 'Official-registry Python dependencies failed' }
+          python -I -B (Join-Path $env:ONEHAND_SOURCE_PACKAGE 'run_source_tests.py') --event-commit $env:PROOF_COMMIT --summary (Join-Path $env:ONEHAND_WORK 'source-evidence/source-tests.json')
+          if ($LASTEXITCODE -ne 0) { throw 'Source-only tests failed; no animation proof claimed' }
+          python -I -B (Join-Path $env:ONEHAND_SOURCE_PACKAGE 'command_contract.py') --event-commit $env:PROOF_COMMIT --output (Join-Path $env:ONEHAND_WORK 'command-contract') --summary (Join-Path $env:ONEHAND_WORK 'source-evidence/command-contract.json')
+          if ($LASTEXITCODE -ne 0) { throw 'Windows owned-command receipt contract failed before native installers' }
+      - name: Export and test the exact dormant or independently admitted game continuation
+        id: game_admission
+        timeout-minutes: 10
+        run: |
+          $ErrorActionPreference='Stop'
+          $helper=Join-Path $env:ONEHAND_WORK 'game-preflight.py'
+          $p=[Diagnostics.ProcessStartInfo]::new();$p.FileName=$env:ONEHAND_GIT;$p.UseShellExecute=$false;$p.RedirectStandardOutput=$true;$p.RedirectStandardError=$true
+          foreach ($arg in @('-C',$env:ONEHAND_REPOSITORY,'cat-file','blob',($env:PROOF_COMMIT+':tools/onehand_windows/game-continuation-v3/preflight_game.py'))) { $p.ArgumentList.Add($arg) }
+          $proc=[Diagnostics.Process]::Start($p);$stream=[IO.File]::Open($helper,[IO.FileMode]::CreateNew)
+          try { $proc.StandardOutput.BaseStream.CopyTo($stream) } finally { $stream.Dispose() }
+          $discard=$proc.StandardError.ReadToEnd();$proc.WaitForExit()
+          if ($proc.ExitCode -ne 0) { throw 'Exact game bootstrap export failed' }
+          if ((Get-FileHash $helper -Algorithm SHA256).Hash.ToLowerInvariant() -ne 'afc7b7c3fbebf0faa1afa58a72ad098ece6defe25a6bd2512bb6386cb813361f') { throw 'Reviewed game bootstrap differs' }
+          python -I -B $helper --git $env:ONEHAND_GIT --repository $env:ONEHAND_REPOSITORY --event-commit $env:PROOF_COMMIT --package-pins-sha256 '4835d62cbd301e6a1528e622a32a068dd30dd2c1d7b652204fcadf32a7351f24' --output (Join-Path $env:ONEHAND_WORK 'game-admission') --summary (Join-Path $env:ONEHAND_WORK 'source-evidence/game-admission.json') --github-output $env:GITHUB_OUTPUT
+          if ($LASTEXITCODE -ne 0) { throw 'Game source or independent admission failed before native work' }
+          $game=Join-Path $env:ONEHAND_WORK 'game-admission/package'
+          python -I -B (Join-Path $game 'execute_continuation.py') --package-pins-sha256 '4835d62cbd301e6a1528e622a32a068dd30dd2c1d7b652204fcadf32a7351f24' --source-tests
+          if ($LASTEXITCODE -ne 0) { throw 'Game continuation source-only tests failed' }
+      - name: Export and test the separately frozen source inventory measurement
+        timeout-minutes: 10
+        run: |
+          $ErrorActionPreference='Stop'
+          $helper=Join-Path $env:ONEHAND_WORK 'source-inventory-export.py'
+          $p=[Diagnostics.ProcessStartInfo]::new();$p.FileName=$env:ONEHAND_GIT;$p.UseShellExecute=$false;$p.RedirectStandardOutput=$true;$p.RedirectStandardError=$true
+          foreach ($arg in @('-C',$env:ONEHAND_REPOSITORY,'cat-file','blob',($env:PROOF_COMMIT+':tools/onehand_windows/game-continuation-v2/export_source_inventory.py'))) { $p.ArgumentList.Add($arg) }
+          $proc=[Diagnostics.Process]::Start($p);$stream=[IO.File]::Open($helper,[IO.FileMode]::CreateNew)
+          try { $proc.StandardOutput.BaseStream.CopyTo($stream) } finally { $stream.Dispose() }
+          $discard=$proc.StandardError.ReadToEnd();$proc.WaitForExit()
+          if ($proc.ExitCode -ne 0) { throw 'Exact source inventory bootstrap export failed' }
+          if ((Get-FileHash $helper -Algorithm SHA256).Hash.ToLowerInvariant() -ne '4f577d2dbd64cb242a7c5435247439ab04bf663439fcf5600e8d4d7c39783d50') { throw 'Reviewed source inventory bootstrap differs' }
+          $inventory=Join-Path $env:ONEHAND_WORK 'source-inventory/package'
+          python -I -B $helper --git $env:ONEHAND_GIT --repository $env:ONEHAND_REPOSITORY --event-commit $env:PROOF_COMMIT --package-pins-sha256 'c08e53fe26ff933500e1e6cecc1c05a8935be36b705d555b3ca76eb613878f09' --output $inventory
+          if ($LASTEXITCODE -ne 0) { throw 'Exact source inventory package export failed' }
+          python -I -B (Join-Path $inventory 'execute_continuation.py') --package-pins-sha256 'c08e53fe26ff933500e1e6cecc1c05a8935be36b705d555b3ca76eb613878f09' --source-tests
+          if ($LASTEXITCODE -ne 0) { throw 'Source inventory regression tests failed' }
+          "ONEHAND_INVENTORY_PACKAGE=$inventory" >> $env:GITHUB_ENV
+      - name: Read the established immutable Jump authoring source for this same workflow
+        uses: actions/checkout@v4
+        with:
+          ref: e9317f90ea171976306e2f17c111325d948ea357
+          path: onehand-jump-input
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: assets/authoring/jump/halcyon_jump.blend
+      - name: Measure exact event and immutable Jump source inventory without native admission
+        id: source_inventory
+        timeout-minutes: 20
+        run: |
+          $ErrorActionPreference='Stop'
+          $output=Join-Path $env:ONEHAND_WORK 'source-inventory/evidence'
+          if (Test-Path -LiteralPath $output) { throw 'Fresh source inventory evidence required' }
+          New-Item -ItemType Directory -Path $output | Out-Null
+          python -I -B (Join-Path $env:ONEHAND_INVENTORY_PACKAGE 'execute_continuation.py') --package-pins-sha256 'c08e53fe26ff933500e1e6cecc1c05a8935be36b705d555b3ca76eb613878f09' --measure-source --git $env:ONEHAND_GIT --repository $env:ONEHAND_REPOSITORY --event-commit $env:PROOF_COMMIT --jump-repository (Join-Path $env:GITHUB_WORKSPACE 'onehand-jump-input') --output-directory $output --github-output $env:GITHUB_OUTPUT
+          if ($LASTEXITCODE -ne 0) { throw 'Source inventory measurement failed; no native admission granted' }
+      - name: Retain only measured hash inventory and source-only provenance
+        if: ${{ steps.source_inventory.outputs.source_inventory_measured == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: onehand-windows-game-source-inventory-${{ github.run_id }}-${{ github.run_attempt }}
+          retention-days: 7
+          if-no-files-found: error
+          path: |
+            ${{ runner.temp }}/onehand-${{ github.run_id }}-${{ github.run_attempt }}/source-inventory/evidence/game-source-spec.json
+            ${{ runner.temp }}/onehand-${{ github.run_id }}-${{ github.run_attempt }}/source-inventory/evidence/game-source-spec-receipt.json
+      - name: Verify independent native admission and every input before native installers
+        id: admission
+        timeout-minutes: 20
+        run: |
+          python -I -B (Join-Path $env:ONEHAND_SOURCE_PACKAGE 'preinstall_admission.py') --git $env:ONEHAND_GIT --repository $env:ONEHAND_REPOSITORY --event-commit $env:PROOF_COMMIT --work-root (Join-Path $env:ONEHAND_WORK 'admission') --summary (Join-Path $env:ONEHAND_WORK 'source-evidence/admission.json') --github-output $env:GITHUB_OUTPUT
+          if ($LASTEXITCODE -ne 0) { throw 'Malformed, contradictory or failed native admission; preserve source evidence' }
+      - name: Bind independently admitted identities for native stages
+        if: ${{ steps.admission.outputs.native_ready == 'true' }}
+        run: |
+          $b=Get-Content -Raw (Join-Path $env:ONEHAND_WORK 'admission/accepted-bindings.json') | ConvertFrom-Json
+          "ONEHAND_PACKAGE=$($b.package_root)" >> $env:GITHUB_ENV
+          "ONEHAND_MATERIALIZED=$($b.materialized_root)" >> $env:GITHUB_ENV
+          "ONEHAND_BYTE_CHECKOUT=$($b.byte_checkout.path)" >> $env:GITHUB_ENV
+          "ONEHAND_LAYOUT=$($b.layout.path)" >> $env:GITHUB_ENV
+          "EXPECTED_PACKAGE=$($b.package_pins_sha256)" >> $env:GITHUB_ENV
+          "EXPECTED_LAYOUT=$($b.layout.sha256)" >> $env:GITHUB_ENV
+      - name: Initialize official installed MSVC environment
+        if: ${{ steps.admission.outputs.native_ready == 'true' }}
+        timeout-minutes: 5
+        run: |
+          $ErrorActionPreference='Stop'
+          $msvc=Join-Path $env:ONEHAND_WORK 'msvc-environment'
+          if (Test-Path -LiteralPath $msvc) { throw 'Fresh MSVC bootstrap directory required' }
+          New-Item -ItemType Directory -Path $msvc | Out-Null
+          $pins=[ordered]@{
+            'initialize_msvc.ps1'='8719aff1a539e5df91c4be56213e64a0079ef5c955f94a505c39ebbb22809566'
+            'test_initialize_msvc.ps1'='94110bc99a5a05b7e39ff751e8d6ca62625be4e116d423274e5ba70f869ac599'
+          }
+          foreach ($name in $pins.Keys) {
+            $output=Join-Path $msvc $name
+            $p=[Diagnostics.ProcessStartInfo]::new();$p.FileName=$env:ONEHAND_GIT;$p.UseShellExecute=$false;$p.RedirectStandardOutput=$true;$p.RedirectStandardError=$true
+            foreach ($arg in @('-C',$env:ONEHAND_REPOSITORY,'cat-file','blob',($env:PROOF_COMMIT+':tools/onehand_windows/msvc-environment-v1/'+$name))) { $p.ArgumentList.Add($arg) }
+            $proc=[Diagnostics.Process]::Start($p);$stream=[IO.File]::Open($output,[IO.FileMode]::CreateNew)
+            try { $proc.StandardOutput.BaseStream.CopyTo($stream) } finally { $stream.Dispose() }
+            $discard=$proc.StandardError.ReadToEnd();$proc.WaitForExit()
+            if ($proc.ExitCode -ne 0) { throw 'Exact MSVC bootstrap export failed' }
+            if ((Get-FileHash -LiteralPath $output -Algorithm SHA256).Hash.ToLowerInvariant() -ne $pins[$name]) { throw 'Reviewed MSVC bootstrap differs' }
+          }
+          $initializer=Join-Path $msvc 'initialize_msvc.ps1'
+          & (Join-Path $msvc 'test_initialize_msvc.ps1') -Initializer $initializer
+          $vswhere=Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio/Installer/vswhere.exe'
+          if (!(Test-Path -LiteralPath $vswhere -PathType Leaf)) { throw 'Official installed MSVC locator unavailable' }
+          $locations=@(& $vswhere -latest -products '*' -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath)
+          if ($LASTEXITCODE -ne 0 -or $locations.Count -ne 1 -or [string]::IsNullOrWhiteSpace($locations[0])) { throw 'Official installed MSVC toolchain unavailable' }
+          $vs=$locations[0].Trim()
+          $dev=Join-Path $vs 'Common7/Tools/VsDevCmd.bat'
+          & $initializer -DeveloperCommandPath $dev -EnvironmentFile $env:GITHUB_ENV
+      - name: Verify official vendor checksum and install Blender and Rust
+        if: ${{ steps.admission.outputs.native_ready == 'true' }}
+        run: |
+          & (Join-Path $env:ONEHAND_PACKAGE 'install_official_blender.ps1') -Destination (Join-Path $env:ONEHAND_WORK 'blender-official') -Receipt (Join-Path $env:ONEHAND_WORK 'blender-install.json')
+          $review=Get-Content -Raw (Join-Path $env:ONEHAND_PACKAGE 'reviewed-dependencies.json') | ConvertFrom-Json
+          & (Join-Path $env:ONEHAND_PACKAGE 'install_official_rust.ps1') -Toolchain $review.rust_toolchain -Receipt (Join-Path $env:ONEHAND_WORK 'rust-install.json')
+      - name: Bind actual runner and repeat full fail-closed preflight
+        if: ${{ steps.admission.outputs.native_ready == 'true' }}
+        run: |
+          python -I -B (Join-Path $env:ONEHAND_PACKAGE 'prepare_controller.py') --layout $env:ONEHAND_LAYOUT --layout-sha256 $env:EXPECTED_LAYOUT --materialized $env:ONEHAND_MATERIALIZED --byte-checkout-receipt $env:ONEHAND_BYTE_CHECKOUT --work-root (Join-Path $env:ONEHAND_WORK 'proof') --blender-install-receipt (Join-Path $env:ONEHAND_WORK 'blender-install.json') --rust-toolchain-receipt (Join-Path $env:ONEHAND_WORK 'rust-install.json') --output (Join-Path $env:ONEHAND_WORK 'controller.json')
+          if ($LASTEXITCODE -ne 0) { throw 'Actual runner binding failed' }
+          $config=Join-Path $env:ONEHAND_WORK 'controller.json'
+          $sha=(Get-FileHash $config -Algorithm SHA256).Hash.ToLowerInvariant()
+          "ONEHAND_CONFIG=$config" >> $env:GITHUB_ENV
+          "ONEHAND_CONFIG_SHA=$sha" >> $env:GITHUB_ENV
+          python -I -B (Join-Path $env:ONEHAND_PACKAGE 'run_proof.py') --package-pins-sha256 $env:EXPECTED_PACKAGE --config $config --config-sha256 $sha preflight
+          if ($LASTEXITCODE -ne 0) { throw 'Full original-source/dependency admission failed' }
+      - name: Execute exact private native and actual Rust proof
+        if: ${{ steps.admission.outputs.native_ready == 'true' }}
+        run: |
+          python -I -B (Join-Path $env:ONEHAND_PACKAGE 'run_proof.py') --package-pins-sha256 $env:EXPECTED_PACKAGE --config $env:ONEHAND_CONFIG --config-sha256 $env:ONEHAND_CONFIG_SHA run
+          if ($LASTEXITCODE -ne 0) { throw 'Private proof failed; bounded hash-only summary retained if available' }
+      - name: Build bind and capture this exact proved candidate before runner teardown
+        id: game_capture
+        if: ${{ steps.admission.outputs.native_ready == 'true' && steps.game_admission.outputs.game_ready == 'true' }}
+        run: |
+          $ErrorActionPreference='Stop'
+          $b=Get-Content -Raw (Join-Path $env:ONEHAND_WORK 'game-admission/accepted-bindings.json') | ConvertFrom-Json
+          python -I -B (Join-Path $b.package_root 'execute_continuation.py') --package-pins-sha256 $b.package_pins_sha256 --admission $b.admission.path --admission-sha256 $b.admission.sha256 --game-revision $b.game_revision --event-commit $env:PROOF_COMMIT --config $env:ONEHAND_CONFIG --config-sha256 $env:ONEHAND_CONFIG_SHA --orchestration $env:ONEHAND_PACKAGE --git $env:ONEHAND_GIT --repository $env:ONEHAND_REPOSITORY --jump-repository (Join-Path $env:GITHUB_WORKSPACE 'onehand-jump-input') --public-summary (Join-Path $env:ONEHAND_WORK 'source-evidence/game-summary.json') --github-output $env:GITHUB_OUTPUT
+          if ($LASTEXITCODE -ne 0) { throw 'Same-candidate game build/capture failed; only hash summary may be retained' }
+      - name: Deliver only the actually captured playable game package
+        if: ${{ steps.game_capture.outputs.game_capture_passed == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: rust-duty-onehand-windows-captured-game-${{ github.run_id }}-${{ github.run_attempt }}
+          retention-days: 7
+          if-no-files-found: error
+          path: ${{ steps.game_capture.outputs.delivery_root }}
+      - name: Retain only bounded source-test admission and native hash summaries
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: onehand-windows-source-and-proof-hashes-${{ github.run_id }}-${{ github.run_attempt }}
+          retention-days: 7
+          if-no-files-found: warn
+          path: |
+            ${{ runner.temp }}/onehand-${{ github.run_id }}-${{ github.run_attempt }}/source-evidence/source-tests.json
+            ${{ runner.temp }}/onehand-${{ github.run_id }}-${{ github.run_attempt }}/source-evidence/command-contract.json
+            ${{ runner.temp }}/onehand-${{ github.run_id }}-${{ github.run_attempt }}/source-evidence/admission.json
+            ${{ runner.temp }}/onehand-${{ github.run_id }}-${{ github.run_attempt }}/proof/public-evidence/summary.json
+            ${{ runner.temp }}/onehand-${{ github.run_id }}-${{ github.run_attempt }}/source-evidence/game-admission.json
+            ${{ runner.temp }}/onehand-${{ github.run_id }}-${{ github.run_attempt }}/source-evidence/game-summary.json
+            ${{ runner.temp }}/onehand-${{ github.run_id }}-${{ github.run_attempt }}/source-inventory/evidence/game-source-spec-failure.json

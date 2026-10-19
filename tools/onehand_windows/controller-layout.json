@@ -4,7 +4,7 @@
     "audited_source": "audited",
     "source_package": "source-producer",
     "reference": "hash-only-reference",
-    "context_package": "context-v1",
+    "context_package": "context-v3",
     "process_adapter": "process-v2",
     "native_producer": "native-producer-reviewed",
     "runtime_consumer": "runtime-consumer-reviewed",

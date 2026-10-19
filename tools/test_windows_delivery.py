@@ -79,10 +79,16 @@ class WindowsWorkflowTests(unittest.TestCase):
         self.assertIn('vector-range-windows-x64', build)
         native = (ROOT/'.github/workflows/native-validation.yml').read_text()
         self.assertIn('runs-on: ubuntu-latest', native)
+        self.assertIn('python tools/ci_quality_checks.py --native-validation', native)
+        self.assertIn('RUST_DUTY_CI_LANES: ${{ inputs.lanes }}', native)
+        self.assertIn('cargo fmt --all', native)
+        self.assertIn('git diff --exit-code -- build.rs src tests examples benches', native)
+        # Native compile/integration coverage remains; captures are no longer
+        # required delivery gates for approved runtime exports.
         for capture in ('verify_jump_capture', 'verify_gameplay_capture', 'verify_gameplay_walk_capture',
                         'verify_gameplay_ads_capture', 'verify_ads_placement_capture',
                         'verify_layered_locomotion_capture', 'verify_reload_return_capture', 'verify_lighting_capture'):
-            self.assertIn(capture, native)
+            self.assertNotIn(capture, native)
         self.assertNotIn('package_game.py stage', native)
         self.assertNotIn('path: dist/game/', native)
         self.assertNotIn('dist/game', native)

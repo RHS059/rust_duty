@@ -1,0 +1,8 @@
+{
+  "cpu_tests": 9,
+  "failures": 0,
+  "independent_full_closure_review": "pending",
+  "native_execution": false,
+  "publication": false,
+  "schema": "onehand-privacy-successor-source-results/v1"
+}

@@ -1,0 +1,13 @@
+{
+  "actual_windows_native_proof": false,
+  "context_pins_sha256": "8702d486bc36a649924c3d844ea5eab445600f93995ec8367ea02d94e250c48a",
+  "independent_exact_successor_admission": "pending",
+  "native_producer_pins_sha256": "8be8fd72f44e2baf160e5b86f01b835907396889dc78c4e811ff7818b7f3fd04",
+  "numeric_process_threshold_grid_changes": false,
+  "predecessor_commit": "01e3d821d197799a342b7738b84e835b11197f24",
+  "predecessor_pins_sha256": "04b7d2a2d1f7bf913ae360f365e88877675cf13e5f56ddbd5b6ac66f19efff7f",
+  "publication_performed": false,
+  "runtime_consumer_pins_sha256": "1d1c2d1343eebd3bc0a53637a1b2a5ce5e3820486ba352b700fc1020066b0eac",
+  "schema": "rust-duty-windows-addon-profile-dependency-change/v1",
+  "source_motion_private_asset_changes": false
+}

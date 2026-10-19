@@ -1,0 +1,12 @@
+{
+  "files": [
+    "ALLOWLIST.json",
+    "PINS.json",
+    "README.md",
+    "RESULTS.json",
+    "authored_bridge.py",
+    "cpu-tests.log",
+    "test_projection_bridge.py",
+    "verify_freeze.py"
+  ]
+}

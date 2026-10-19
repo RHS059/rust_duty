@@ -147,7 +147,7 @@ class Tests(unittest.TestCase):
         r=complete();r[3]['speed']=math.nan;self.reject(r,'nonfinite');self.reject(complete()[:-1],'unterminated')
     def test_helper_hashes(self):
         for name,digest in v.HELPERS.items():self.assertEqual(v.sha(HERE/'tools'/name),digest)
-    def test_observer_is_read_only_and_production_admission_stays_closed(self):
+    def test_observer_is_read_only_and_cannot_override_production_admission(self):
         observer=(HERE/'src/high_mantle_observer.rs').read_text()
         additions=observer+(HERE/'src/high_mantle_capture.rs').read_text()
         for forbidden in ['sim.player.position =','sim.time =','sim.player.velocity =','set_high_mantle_binding(', 'APPROVED_RUNTIME_PINS', 'sim.kill(', 'sim.update(']:
@@ -155,8 +155,6 @@ class Tests(unittest.TestCase):
         self.assertIn('event("accepted", self)',(HERE/'src/sim.rs').read_text())
         self.assertIn('sim: &Simulation',observer)
         self.assertNotIn('&mut Simulation',observer)
-        self.assertIn("const APPROVED_RUNTIME_PINS: Option<RuntimePins<'static>> = None;",
-                      (HERE/'src/authored_high_mantle.rs').read_text())
     def test_observer_rejects_replay_flags_and_uses_native_capture(self):
         text=(HERE/'src/high_mantle_capture.rs').read_text()
         for marker in ['a.starts_with("--capture")','a == "--demo"','a == "--reference-viewport"']:

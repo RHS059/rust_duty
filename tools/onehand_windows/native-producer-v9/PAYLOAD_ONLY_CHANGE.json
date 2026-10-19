@@ -1,0 +1,19 @@
+{
+  "all_other_roles_count": [
+    1,
+    150
+  ],
+  "empty_output_roles": [
+    "rigid-focus",
+    "rigid-chunk"
+  ],
+  "error_sha256": "45592e59a669386ffc00c05d739f18f18fc77387e982df7c926715fecf129422",
+  "failure_head": "15273a43d0287521f9ef5f507f41ae60a6dcccf9",
+  "failure_run": 39126616057,
+  "native_execution_performed": false,
+  "original_failure_receipts_edited": false,
+  "publication_performed": false,
+  "schema": "rust-duty-payload-only-change/v1",
+  "unchanged_numeric_fragments": true,
+  "verified_static_message": "bounded output inventory"
+}

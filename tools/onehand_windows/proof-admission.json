@@ -1,7 +1,22 @@
 {
-  "schema": "rust-duty-onehand-native-source-admission/v2",
-  "orchestration_pins_sha256": null,
-  "proof_inputs": null,
-  "controller_layout": null,
-  "independent_review": null
+  "controller_layout": {
+    "bytes": 865,
+    "ref": "2aa09ee2c98c32fb9a7446ae57479c9c3f904995",
+    "repository_path": "tools/onehand_windows/controller-layout.json",
+    "sha256": "d9023abb4766d80120309003b14f3558658d747520259ad8298545494e9eaf46"
+  },
+  "independent_review": {
+    "bytes": 968,
+    "ref": "46e7ef98b1bfd9f0e479e5d6629e2aca52926187",
+    "repository_path": "tools/onehand_windows/independent-native-acceptance.json",
+    "sha256": "3ad754578694a10787c695c14c5c26af0e7ac8d95f84b319430b58c2e1fa3e69"
+  },
+  "orchestration_pins_sha256": "3894ee5b595271716f84f06040674e3ae31effb08a4b56b2616cabffc7005e20",
+  "proof_inputs": {
+    "bytes": 365298,
+    "ref": "46e7ef98b1bfd9f0e479e5d6629e2aca52926187",
+    "repository_path": "tools/onehand_windows/proof-inputs.json",
+    "sha256": "c545eac935a46b21d437bfa51bad3cafce8a0bab61feb0445478268332af3046"
+  },
+  "schema": "rust-duty-onehand-native-source-admission/v4"
 }

@@ -1,0 +1,4 @@
+"""Explicit privacy construction identities for independent complete-input review."""
+PROJECTION_SHA='4bf38952b5ff765ad65c8fab2c985303287b570b4a0d897eac28bf78e73bec1b'
+METADATA_RECIPE_SHA='24f8bb1872d2185d2ce550d701b87f10b42b55fcda15dff9f00faf6a49930906'
+PROJECTED_DELTA_SHA='3a6a244d560e3688742e03133ce2d6afe065128ef231e37b3b55339abee582c8'

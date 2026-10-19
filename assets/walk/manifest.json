@@ -58,14 +58,14 @@
     "frame_end": 45,
     "fps": 60,
     "fbx": {
-      "bytes": 47113692,
-      "sha256": "86beba0299fbd0a4c8088255a5ac43275ec4e41851364c528a032d151055d0d2"
+      "bytes": 47108508,
+      "sha256": "78657caee7a66cdea8254b15c20068b1ea8b62d96d6a7e5365eab3bcae3b31da"
     }
   },
   "files": {
     "asset.vra": {
       "bytes": 11783809,
-      "sha256": "184b4c173efc8cca187c7f19a3572fbaa27d094b4cf79328fef0de69ffac789a"
+      "sha256": "a217f3dd622cfce96001f6f23e8443d30de109a3258cf95e34d27dd205796952"
     },
     "asset.vrs": {
       "bytes": 16663274,
@@ -89,7 +89,7 @@
     "samples": 25,
     "passed": true,
     "maxima": {
-      "skin_error_m": 2.3771946107155895e-06,
+      "skin_error_m": 2.45817191314211e-06,
       "visible_prop_origin_error_m": 1.3258332646457439e-06,
       "visible_rigid_vertex_error_m": 2.7257996768686415e-06,
       "visible_prop_matrix_error": 5.398121257785271e-06

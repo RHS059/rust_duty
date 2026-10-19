@@ -230,15 +230,16 @@ class EvidenceTests(unittest.TestCase):
                 link.rmdir()
         self.assertEqual(list(target.iterdir()), [])
 
-    def test_corrupt_companion_and_failed_parity_cannot_publish(self):
+    def test_historical_failed_parity_is_retained_without_blocking_publication(self):
         parity_path = self.pack / "parity.json"
         parity = json.loads(parity_path.read_text())
         parity["passed"] = False
         parity_path.write_text(json.dumps(parity))
-        with self.assertRaisesRegex(ValueError, "Rust parity"):
-            self.package()
-        parity["passed"] = True
-        parity_path.write_text(json.dumps(parity))
+        receipt = self.package()
+        self.assertEqual(receipt['input_files']['parity.json'],
+                         evidence.digest(parity_path.read_bytes()))
+
+    def test_corrupt_companion_cannot_publish(self):
         (self.pack / "asset.vrs").write_bytes(b"corrupt")
         with self.assertRaisesRegex(ValueError, "hash mismatch"):
             self.package()

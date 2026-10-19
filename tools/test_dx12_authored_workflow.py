@@ -317,47 +317,22 @@ class AuthoredWorkflowTests(unittest.TestCase):
         download = next(s for s in self.steps('authored-aggregate') if 'precompiled-oracle' in s.get('with', {}).get('name', ''))
         self.assertEqual(download['if'], "env.CURRENT_ADS_SOURCE_PROOF == 'true'")
 
-    def test_early_admission_is_bounded_read_only_and_is_the_only_activation_output(self):
+    def test_ordinary_delivery_does_not_activate_historical_source_proof(self):
         caller = yaml.safe_load((self.path.parent / 'build.yml').read_text(encoding='utf-8'))
-        job = caller['jobs']['current-ads-admission']
-        self.assertNotIn('needs', job)
-        self.assertEqual(job['runs-on'], 'windows-latest')
-        self.assertEqual(job['timeout-minutes'], 10)
-        self.assertEqual(job['permissions'], {'contents': 'read'})
-        expected_route = """github.repository == 'RHS059/rust_duty' &&
-            (((github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main') ||
-            (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository &&
-            github.event.pull_request.base.repo.full_name == github.repository && github.base_ref == 'main'))"""
-        self.assertEqual(job['if'], ' '.join(expected_route.split()))
-        self.assertEqual(job['outputs'], {'admitted': '${{ steps.admission.outputs.admitted }}'})
-        self.assertEqual(job['steps'][0], {'uses': 'actions/checkout@v4', 'with': {'persist-credentials': False}})
-        commands = [step.get('run', '') for step in job['steps']]
-        self.assertEqual([command for command in commands if command], [
-            'python -m pip install -r tools/requirements-assets.txt',
-            'python -m unittest -v test_current_ads_source_oracle.CurrentContextTests',
-            'python tools/current_ads_build_context.py --root . --diagnostics --emit-admission-output'])
-        fixtures = next(step for step in job['steps'] if '.CurrentContextTests' in step.get('run', ''))
-        self.assertEqual(fixtures['env'], {'PYTHONPATH': 'tools'})
-        self.assertNotIn('continue-on-error', fixtures)
-        admission = next(step for step in job['steps'] if step.get('id') == 'admission')
-        self.assertNotIn('if', admission)
-        self.assertNotIn('continue-on-error', admission)
-        authored = caller['jobs']['dx12-authored-validation']
-        self.assertEqual(authored['needs'], ['changes', 'animation-assets', 'walk-assets', 'ads-assets',
-            'directional-assets', 'jump-assets', 'native-validation', 'current-ads-admission'])
-        self.assertEqual(authored['with'], {
-            'source_proof_admitted': "${{ needs.current-ads-admission.outputs.admitted == 'true' }}"})
-        self.assertEqual(authored['uses'], './.github/workflows/wgpu-dx12-authored.yml')
+        self.assertNotIn('current-ads-admission', caller['jobs'])
+        self.assertNotIn('dx12-authored-validation', caller['jobs'])
+        self.assertFalse(any(job.get('uses', '').endswith('/wgpu-dx12-authored.yml')
+                             for job in caller['jobs'].values()))
 
-    def test_skipped_admission_preserves_ineligible_strict_captures_but_failure_blocks_them(self):
+    def test_ordinary_compile_and_packaging_do_not_wait_for_capture_results(self):
         caller = yaml.safe_load((self.path.parent / 'build.yml').read_text(encoding='utf-8'))
-        authored = caller['jobs']['dx12-authored-validation']
-        expected_gate = """always() && !cancelled() && needs.changes.outputs.authored == 'true' && needs.animation-assets.result == 'success' && needs.walk-assets.result == 'success' &&
-            needs.ads-assets.result == 'success' && needs.directional-assets.result == 'success' &&
-            needs.jump-assets.result == 'success' && needs.native-validation.result == 'success' &&
-            (needs.current-ads-admission.result == 'success' || needs.current-ads-admission.result == 'skipped')"""
-        self.assertEqual(authored['if'], ' '.join(expected_gate.split()))
-        self.assertNotIn('continue-on-error', caller['jobs']['current-ads-admission'])
+        for name in ('build', 'native-validation'):
+            self.assertEqual(caller['jobs'][name]['needs'], ['changes'])
+            self.assertNotIn('continue-on-error', caller['jobs'][name])
+        self.assertEqual(caller['jobs']['publish-game-update']['needs'], ['build'])
+        # The historical capture workflow retains its strict aggregate internally.
+        self.assertEqual(self.jobs['authored-aggregate']['needs'], ['authored-inputs', 'authored-capture'])
+        self.assertEqual(self.jobs['authored-aggregate']['if'], 'always()')
 
     def test_source_proof_preserves_read_only_default_merge_checkout(self):
         self.assertEqual(self.workflow['permissions'], {'contents': 'read'})

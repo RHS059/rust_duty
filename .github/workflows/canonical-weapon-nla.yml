@@ -1,0 +1,44 @@
+name: Export canonical weapon NLA tracks
+on:
+  push:
+    paths:
+      - 'assets/authoring/weapon_animations.blend'
+      - 'tools/nla_export/**'
+      - '.github/workflows/canonical-weapon-nla.yml'
+      - '.github/actions/setup-blender/action.yml'
+  workflow_dispatch:
+  workflow_call:
+permissions:
+  contents: read
+concurrency:
+  group: canonical-weapon-nla-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  export:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          lfs: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Test manifest and selection mechanics
+        run: python -B -m unittest discover -s tools/nla_export -p 'test_*.py' -v
+      - name: Install official checksum-pinned Blender 4.3.2
+        uses: ./.github/actions/setup-blender
+      - name: Export one FBX per declared NLA track from the single source
+        run: >-
+          blender --background --disable-autoexec --python-exit-code 1
+          --python tools/nla_export/export.py --
+          --source assets/authoring/weapon_animations.blend
+          --output build-assets/weapon-fbx
+      - name: Publish per-track FBXs and timing manifest
+        uses: actions/upload-artifact@v4
+        with:
+          name: canonical-weapon-fbx
+          overwrite: true
+          path: build-assets/weapon-fbx/
+          if-no-files-found: error

@@ -1,0 +1,6121 @@
+{
+  "sources": [
+    {
+      "tag": "VAULT",
+      "source": "low-vault-current.blend",
+      "bytes": 10876997,
+      "sha256": "6dacee1ee12970fc530700897c7862644d365fb79aa3a110c04dcbdb422338f3",
+      "scenes": [
+        "LIBRARY | VAULT"
+      ],
+      "actions": {
+        "RD_Reload_Tactical_Weapon_Locked_Reconstructed_v1": "RD_Reload_Tactical_Weapon_Locked_Reconstructed_v1",
+        "RD_Reload_Tactical_RightArm_Clearance_Checkpoint": "RD_Reload_Tactical_RightArm_Clearance_Checkpoint",
+        "RD_Reload_Tactical_Magazine_Locked_Reconstructed_v2": "RD_Reload_Tactical_Magazine_Locked_Reconstructed_v2",
+        "RD_Reload_Tactical_Magazine_Locked_Reconstructed_v1": "RD_Reload_Tactical_Magazine_Locked_Reconstructed_v1",
+        "RD_Reload_Tactical_Hands_Opening_WIP": "RD_Reload_Tactical_Hands_Opening_WIP",
+        "RD_Reload_Tactical_HandApproach_AndReturn_WIP": "RD_Reload_Tactical_HandApproach_AndReturn_WIP",
+        "RD_Pose_Tactical_Pickup54_Guarded": "RD_Pose_Tactical_Pickup54_Guarded",
+        "RD_Normal_LoopToExit": "RD_Normal_LoopToExit",
+        "RD_Normal_Exit_Connected": "RD_Normal_Exit_Connected",
+        "RD_Normal_Exit_Bridge_034": "RD_Normal_Exit_Bridge_034",
+        "RD_Normal_Exit_Bridge_033": "RD_Normal_Exit_Bridge_033",
+        "RD_Normal_Exit_Bridge_032": "RD_Normal_Exit_Bridge_032",
+        "RD_Normal_Exit_Bridge_031": "RD_Normal_Exit_Bridge_031",
+        "RD_Normal_Exit_Bridge_030": "RD_Normal_Exit_Bridge_030",
+        "RD_Normal_Exit_Bridge_029": "RD_Normal_Exit_Bridge_029",
+        "RD_Normal_Exit_Bridge_028": "RD_Normal_Exit_Bridge_028",
+        "RD_Normal_Exit_Bridge_027": "RD_Normal_Exit_Bridge_027",
+        "RD_Normal_Exit_Bridge_026": "RD_Normal_Exit_Bridge_026",
+        "RD_Normal_Exit_Bridge_025": "RD_Normal_Exit_Bridge_025",
+        "RD_Normal_Exit_Bridge_024": "RD_Normal_Exit_Bridge_024",
+        "RD_Normal_Exit_Bridge_023": "RD_Normal_Exit_Bridge_023",
+        "RD_Normal_Exit_Bridge_022": "RD_Normal_Exit_Bridge_022",
+        "RD_Normal_Exit_Bridge_021": "RD_Normal_Exit_Bridge_021",
+        "RD_Normal_Exit_Bridge_020": "RD_Normal_Exit_Bridge_020",
+        "RD_Normal_Exit_Bridge_019": "RD_Normal_Exit_Bridge_019",
+        "RD_Normal_Exit_Bridge_018": "RD_Normal_Exit_Bridge_018",
+        "RD_Normal_Exit_Bridge_017": "RD_Normal_Exit_Bridge_017",
+        "RD_Normal_Exit_Bridge_016": "RD_Normal_Exit_Bridge_016",
+        "RD_Normal_Exit_Bridge_015": "RD_Normal_Exit_Bridge_015",
+        "RD_Normal_Exit_Bridge_014": "RD_Normal_Exit_Bridge_014",
+        "RD_Normal_Exit_Bridge_013": "RD_Normal_Exit_Bridge_013",
+        "RD_Normal_Exit_Bridge_012": "RD_Normal_Exit_Bridge_012",
+        "RD_Normal_Exit_Bridge_011": "RD_Normal_Exit_Bridge_011",
+        "RD_Normal_Exit_Bridge_010": "RD_Normal_Exit_Bridge_010",
+        "RD_Normal_Exit_Bridge_009": "RD_Normal_Exit_Bridge_009",
+        "RD_Normal_Exit_Bridge_008": "RD_Normal_Exit_Bridge_008",
+        "RD_Normal_Exit_Bridge_007": "RD_Normal_Exit_Bridge_007",
+        "RD_Normal_Exit_Bridge_006": "RD_Normal_Exit_Bridge_006",
+        "RD_Normal_Exit_Bridge_005": "RD_Normal_Exit_Bridge_005",
+        "RD_Normal_Exit_Bridge_004": "RD_Normal_Exit_Bridge_004",
+        "RD_Normal_Exit_Bridge_003": "RD_Normal_Exit_Bridge_003",
+        "RD_Normal_Exit_Bridge_002": "RD_Normal_Exit_Bridge_002",
+        "RD_Normal_Exit_Bridge_001": "RD_Normal_Exit_Bridge_001",
+        "RD_Normal_Exit_Bridge_000": "RD_Normal_Exit_Bridge_000",
+        "RD_Normal_Entry_Connected": "RD_Normal_Entry_Connected",
+        "RD_Normal_Diagnostic_Sequence": "RD_Normal_Diagnostic_Sequence",
+        "RD_Locomotion_Normal_Loop_AngleFix_WIP": "RD_Locomotion_Normal_Loop_AngleFix_WIP",
+        "RD_Locomotion_Normal_Exit_4917_4932_WIP3": "RD_Locomotion_Normal_Exit_4917_4932_WIP3",
+        "RD_Locomotion_Normal_Entry_4419_4434_WIP2": "RD_Locomotion_Normal_Entry_4419_4434_WIP2",
+        "RD_Loco_Pose4464_Low_WIP": "RD_Loco_Pose4464_Low_WIP",
+        "RD_Loco_Pose4464_Low_RollMinus15_Candidate": "RD_Loco_Pose4464_Low_RollMinus15_Candidate",
+        "RD_Loco_Pose4434_Entry_WIP2": "RD_Loco_Pose4434_Entry_WIP2",
+        "RD_Loco_Pose4431_Entry_WIP2": "RD_Loco_Pose4431_Entry_WIP2",
+        "RD_Loco_Pose4425_Dip_WIP": "RD_Loco_Pose4425_Dip_WIP",
+        "RD_Loco_Pose4419_Ready_WIP": "RD_Loco_Pose4419_Ready_WIP",
+        "RD_00_Supplied_Base_Recovered": "RD_00_Supplied_Base_Recovered",
+        "RD_00_Supplied_Base_Guarded_Recovered": "RD_00_Supplied_Base_Guarded_Recovered",
+        "normal_walk_r1": "normal_walk_r1",
+        "hk416a5_ik": "hk416a5_ik",
+        "hk416a5_controls": "hk416a5_controls",
+        "hk416_weaponAction.001": "hk416_weaponAction.001",
+        "hk416_magazineAction": "hk416_magazineAction",
+        "hip_walk_forward_r5": "hip_walk_forward_r5",
+        "hip_walk_forward_r4": "hip_walk_forward_r4",
+        "hip_walk_forward_r3": "hip_walk_forward_r3",
+        "hip_walk_forward_r2": "hip_walk_forward_r2",
+        "hip_walk_forward_r1": "hip_walk_forward_r1",
+        "hip_walk_backward_r5": "hip_walk_backward_r5",
+        "hip_walk_backward_r4": "hip_walk_backward_r4",
+        "hip_walk_backward_r3": "hip_walk_backward_r3",
+        "hip_walk_backward_r2": "hip_walk_backward_r2",
+        "hip_walk_backward_r1": "hip_walk_backward_r1",
+        "hip_strafe_right_r5": "hip_strafe_right_r5",
+        "hip_strafe_right_r4": "hip_strafe_right_r4",
+        "hip_strafe_right_r3": "hip_strafe_right_r3",
+        "hip_strafe_right_r2": "hip_strafe_right_r2",
+        "hip_strafe_right_r1": "hip_strafe_right_r1",
+        "hip_strafe_left_r5": "hip_strafe_left_r5",
+        "hip_strafe_left_r4": "hip_strafe_left_r4",
+        "hip_strafe_left_r3": "hip_strafe_left_r3",
+        "hip_strafe_left_r2": "hip_strafe_left_r2",
+        "hip_strafe_left_r1": "hip_strafe_left_r1",
+        "aella_vault_low_takeover_r5": "aella_vault_low_takeover_r5",
+        "aella_vault_low_r3": "aella_vault_low_r3",
+        "aella_vault_low_r2": "aella_vault_low_r2",
+        "aella_vault_low_r1": "aella_vault_low_r1",
+        "aella_vault_low_entry_reconstructed_v3": "aella_vault_low_entry_reconstructed_v3",
+        "aella_vault_low_entry_reconstructed_v2": "aella_vault_low_entry_reconstructed_v2",
+        "aella_vault_low_entry_reconstructed_v1": "aella_vault_low_entry_reconstructed_v1",
+        "aella_mantle_onehand_r3": "aella_mantle_onehand_r3",
+        "aella_mantle_onehand_r2": "aella_mantle_onehand_r2",
+        "aella_mantle_onehand_r1": "aella_mantle_onehand_r1"
+      }
+    },
+    {
+      "tag": "ONEHAND",
+      "source": "onehand-current.blend",
+      "bytes": 12542254,
+      "sha256": "b5cae854b1e5e21c44e60a0672dd18c26e7b38acb239f4730b681482bc409d77",
+      "scenes": [
+        "LIBRARY | ONEHAND"
+      ],
+      "actions": {
+        "RD_Reload_Tactical_Weapon_Locked_Reconstructed_v1": "RD_Reload_Tactical_Weapon_Locked_Reconstructed_v1.001",
+        "RD_Reload_Tactical_RightArm_Clearance_Checkpoint": "RD_Reload_Tactical_RightArm_Clearance_Checkpoint.001",
+        "RD_Reload_Tactical_Magazine_Locked_Reconstructed_v2": "RD_Reload_Tactical_Magazine_Locked_Reconstructed_v2.001",
+        "RD_Reload_Tactical_Magazine_Locked_Reconstructed_v1": "RD_Reload_Tactical_Magazine_Locked_Reconstructed_v1.001",
+        "RD_Reload_Tactical_Hands_Opening_WIP": "RD_Reload_Tactical_Hands_Opening_WIP.001",
+        "RD_Reload_Tactical_HandApproach_AndReturn_WIP": "RD_Reload_Tactical_HandApproach_AndReturn_WIP.001",
+        "RD_Pose_Tactical_Pickup54_Guarded": "RD_Pose_Tactical_Pickup54_Guarded.001",
+        "RD_Normal_LoopToExit": "RD_Normal_LoopToExit.001",
+        "RD_Normal_Exit_Connected": "RD_Normal_Exit_Connected.001",
+        "RD_Normal_Exit_Bridge_034": "RD_Normal_Exit_Bridge_034.001",
+        "RD_Normal_Exit_Bridge_033": "RD_Normal_Exit_Bridge_033.001",
+        "RD_Normal_Exit_Bridge_032": "RD_Normal_Exit_Bridge_032.001",
+        "RD_Normal_Exit_Bridge_031": "RD_Normal_Exit_Bridge_031.001",
+        "RD_Normal_Exit_Bridge_030": "RD_Normal_Exit_Bridge_030.001",
+        "RD_Normal_Exit_Bridge_029": "RD_Normal_Exit_Bridge_029.001",
+        "RD_Normal_Exit_Bridge_028": "RD_Normal_Exit_Bridge_028.001",
+        "RD_Normal_Exit_Bridge_027": "RD_Normal_Exit_Bridge_027.001",
+        "RD_Normal_Exit_Bridge_026": "RD_Normal_Exit_Bridge_026.001",
+        "RD_Normal_Exit_Bridge_025": "RD_Normal_Exit_Bridge_025.001",
+        "RD_Normal_Exit_Bridge_024": "RD_Normal_Exit_Bridge_024.001",
+        "RD_Normal_Exit_Bridge_023": "RD_Normal_Exit_Bridge_023.001",
+        "RD_Normal_Exit_Bridge_022": "RD_Normal_Exit_Bridge_022.001",
+        "RD_Normal_Exit_Bridge_021": "RD_Normal_Exit_Bridge_021.001",
+        "RD_Normal_Exit_Bridge_020": "RD_Normal_Exit_Bridge_020.001",
+        "RD_Normal_Exit_Bridge_019": "RD_Normal_Exit_Bridge_019.001",
+        "RD_Normal_Exit_Bridge_018": "RD_Normal_Exit_Bridge_018.001",
+        "RD_Normal_Exit_Bridge_017": "RD_Normal_Exit_Bridge_017.001",
+        "RD_Normal_Exit_Bridge_016": "RD_Normal_Exit_Bridge_016.001",
+        "RD_Normal_Exit_Bridge_015": "RD_Normal_Exit_Bridge_015.001",
+        "RD_Normal_Exit_Bridge_014": "RD_Normal_Exit_Bridge_014.001",
+        "RD_Normal_Exit_Bridge_013": "RD_Normal_Exit_Bridge_013.001",
+        "RD_Normal_Exit_Bridge_012": "RD_Normal_Exit_Bridge_012.001",
+        "RD_Normal_Exit_Bridge_011": "RD_Normal_Exit_Bridge_011.001",
+        "RD_Normal_Exit_Bridge_010": "RD_Normal_Exit_Bridge_010.001",
+        "RD_Normal_Exit_Bridge_009": "RD_Normal_Exit_Bridge_009.001",
+        "RD_Normal_Exit_Bridge_008": "RD_Normal_Exit_Bridge_008.001",
+        "RD_Normal_Exit_Bridge_007": "RD_Normal_Exit_Bridge_007.001",
+        "RD_Normal_Exit_Bridge_006": "RD_Normal_Exit_Bridge_006.001",
+        "RD_Normal_Exit_Bridge_005": "RD_Normal_Exit_Bridge_005.001",
+        "RD_Normal_Exit_Bridge_004": "RD_Normal_Exit_Bridge_004.001",
+        "RD_Normal_Exit_Bridge_003": "RD_Normal_Exit_Bridge_003.001",
+        "RD_Normal_Exit_Bridge_002": "RD_Normal_Exit_Bridge_002.001",
+        "RD_Normal_Exit_Bridge_001": "RD_Normal_Exit_Bridge_001.001",
+        "RD_Normal_Exit_Bridge_000": "RD_Normal_Exit_Bridge_000.001",
+        "RD_Normal_Entry_Connected": "RD_Normal_Entry_Connected.001",
+        "RD_Normal_Diagnostic_Sequence": "RD_Normal_Diagnostic_Sequence.001",
+        "RD_Locomotion_Normal_Loop_AngleFix_WIP": "RD_Locomotion_Normal_Loop_AngleFix_WIP.001",
+        "RD_Locomotion_Normal_Exit_4917_4932_WIP3": "RD_Locomotion_Normal_Exit_4917_4932_WIP3.001",
+        "RD_Locomotion_Normal_Entry_4419_4434_WIP2": "RD_Locomotion_Normal_Entry_4419_4434_WIP2.001",
+        "RD_Loco_Pose4464_Low_WIP": "RD_Loco_Pose4464_Low_WIP.001",
+        "RD_Loco_Pose4464_Low_RollMinus15_Candidate": "RD_Loco_Pose4464_Low_RollMinus15_Candidate.001",
+        "RD_Loco_Pose4434_Entry_WIP2": "RD_Loco_Pose4434_Entry_WIP2.001",
+        "RD_Loco_Pose4431_Entry_WIP2": "RD_Loco_Pose4431_Entry_WIP2.001",
+        "RD_Loco_Pose4425_Dip_WIP": "RD_Loco_Pose4425_Dip_WIP.001",
+        "RD_Loco_Pose4419_Ready_WIP": "RD_Loco_Pose4419_Ready_WIP.001",
+        "RD_00_Supplied_Base_Recovered": "RD_00_Supplied_Base_Recovered.001",
+        "RD_00_Supplied_Base_Guarded_Recovered": "RD_00_Supplied_Base_Guarded_Recovered.001",
+        "normal_walk_r1": "normal_walk_r1.001",
+        "hk416a5_ik": "hk416a5_ik.001",
+        "hk416a5_controls": "hk416a5_controls.001",
+        "hk416_weaponAction.001": "hk416_weaponAction.002",
+        "hk416_magazineAction": "hk416_magazineAction.001",
+        "hip_walk_forward_r5": "hip_walk_forward_r5.001",
+        "hip_walk_forward_r4": "hip_walk_forward_r4.001",
+        "hip_walk_forward_r3": "hip_walk_forward_r3.001",
+        "hip_walk_forward_r2": "hip_walk_forward_r2.001",
+        "hip_walk_forward_r1": "hip_walk_forward_r1.001",
+        "hip_walk_backward_r5": "hip_walk_backward_r5.001",
+        "hip_walk_backward_r4": "hip_walk_backward_r4.001",
+        "hip_walk_backward_r3": "hip_walk_backward_r3.001",
+        "hip_walk_backward_r2": "hip_walk_backward_r2.001",
+        "hip_walk_backward_r1": "hip_walk_backward_r1.001",
+        "hip_strafe_right_r5": "hip_strafe_right_r5.001",
+        "hip_strafe_right_r4": "hip_strafe_right_r4.001",
+        "hip_strafe_right_r3": "hip_strafe_right_r3.001",
+        "hip_strafe_right_r2": "hip_strafe_right_r2.001",
+        "hip_strafe_right_r1": "hip_strafe_right_r1.001",
+        "hip_strafe_left_r5": "hip_strafe_left_r5.001",
+        "hip_strafe_left_r4": "hip_strafe_left_r4.001",
+        "hip_strafe_left_r3": "hip_strafe_left_r3.001",
+        "hip_strafe_left_r2": "hip_strafe_left_r2.001",
+        "hip_strafe_left_r1": "hip_strafe_left_r1.001",
+        "aella_vault_low_r3": "aella_vault_low_r3.001",
+        "aella_vault_low_r2": "aella_vault_low_r2.001",
+        "aella_vault_low_r1": "aella_vault_low_r1.001",
+        "aella_mantle_onehand_r6_camera_reconstructed_v6": "aella_mantle_onehand_r6_camera_reconstructed_v6",
+        "aella_mantle_onehand_r6_camera_reconstructed_v5": "aella_mantle_onehand_r6_camera_reconstructed_v5",
+        "aella_mantle_onehand_r6_camera_reconstructed_v4": "aella_mantle_onehand_r6_camera_reconstructed_v4",
+        "aella_mantle_onehand_r6_camera_reconstructed_v3_fullcomp": "aella_mantle_onehand_r6_camera_reconstructed_v3_fullcomp",
+        "aella_mantle_onehand_r6_camera_reconstructed_v2": "aella_mantle_onehand_r6_camera_reconstructed_v2",
+        "aella_mantle_onehand_r5": "aella_mantle_onehand_r5",
+        "aella_mantle_onehand_r4": "aella_mantle_onehand_r4",
+        "aella_mantle_onehand_r3": "aella_mantle_onehand_r3.001",
+        "aella_mantle_onehand_r2": "aella_mantle_onehand_r2.001",
+        "aella_mantle_onehand_r1": "aella_mantle_onehand_r1.001"
+      }
+    },
+    {
+      "tag": "PRONE",
+      "source": "prone-entry-current.blend",
+      "bytes": 12031242,
+      "sha256": "cbed3051bb8c4bbdb78f72a49a7a51bd585db33636ddc5312dde38b05a2a86c4",
+      "scenes": [
+        "LIBRARY | PRONE"
+      ],
+      "actions": {
+        "RD_Reload_Tactical_Weapon_Locked_Reconstructed_v1": "RD_Reload_Tactical_Weapon_Locked_Reconstructed_v1.002",
+        "RD_Reload_Tactical_RightArm_Clearance_Checkpoint": "RD_Reload_Tactical_RightArm_Clearance_Checkpoint.002",
+        "RD_Reload_Tactical_Magazine_Locked_Reconstructed_v2": "RD_Reload_Tactical_Magazine_Locked_Reconstructed_v2.002",
+        "RD_Reload_Tactical_Magazine_Locked_Reconstructed_v1": "RD_Reload_Tactical_Magazine_Locked_Reconstructed_v1.002",
+        "RD_Reload_Tactical_Hands_Opening_WIP": "RD_Reload_Tactical_Hands_Opening_WIP.002",
+        "RD_Reload_Tactical_HandApproach_AndReturn_WIP": "RD_Reload_Tactical_HandApproach_AndReturn_WIP.002",
+        "RD_Pose_Tactical_Pickup54_Guarded": "RD_Pose_Tactical_Pickup54_Guarded.002",
+        "RD_Normal_LoopToExit": "RD_Normal_LoopToExit.002",
+        "RD_Normal_Exit_Connected": "RD_Normal_Exit_Connected.002",
+        "RD_Normal_Exit_Bridge_034": "RD_Normal_Exit_Bridge_034.002",
+        "RD_Normal_Exit_Bridge_033": "RD_Normal_Exit_Bridge_033.002",
+        "RD_Normal_Exit_Bridge_032": "RD_Normal_Exit_Bridge_032.002",
+        "RD_Normal_Exit_Bridge_031": "RD_Normal_Exit_Bridge_031.002",
+        "RD_Normal_Exit_Bridge_030": "RD_Normal_Exit_Bridge_030.002",
+        "RD_Normal_Exit_Bridge_029": "RD_Normal_Exit_Bridge_029.002",
+        "RD_Normal_Exit_Bridge_028": "RD_Normal_Exit_Bridge_028.002",
+        "RD_Normal_Exit_Bridge_027": "RD_Normal_Exit_Bridge_027.002",
+        "RD_Normal_Exit_Bridge_026": "RD_Normal_Exit_Bridge_026.002",
+        "RD_Normal_Exit_Bridge_025": "RD_Normal_Exit_Bridge_025.002",
+        "RD_Normal_Exit_Bridge_024": "RD_Normal_Exit_Bridge_024.002",
+        "RD_Normal_Exit_Bridge_023": "RD_Normal_Exit_Bridge_023.002",
+        "RD_Normal_Exit_Bridge_022": "RD_Normal_Exit_Bridge_022.002",
+        "RD_Normal_Exit_Bridge_021": "RD_Normal_Exit_Bridge_021.002",
+        "RD_Normal_Exit_Bridge_020": "RD_Normal_Exit_Bridge_020.002",
+        "RD_Normal_Exit_Bridge_019": "RD_Normal_Exit_Bridge_019.002",
+        "RD_Normal_Exit_Bridge_018": "RD_Normal_Exit_Bridge_018.002",
+        "RD_Normal_Exit_Bridge_017": "RD_Normal_Exit_Bridge_017.002",
+        "RD_Normal_Exit_Bridge_016": "RD_Normal_Exit_Bridge_016.002",
+        "RD_Normal_Exit_Bridge_015": "RD_Normal_Exit_Bridge_015.002",
+        "RD_Normal_Exit_Bridge_014": "RD_Normal_Exit_Bridge_014.002",
+        "RD_Normal_Exit_Bridge_013": "RD_Normal_Exit_Bridge_013.002",
+        "RD_Normal_Exit_Bridge_012": "RD_Normal_Exit_Bridge_012.002",
+        "RD_Normal_Exit_Bridge_011": "RD_Normal_Exit_Bridge_011.002",
+        "RD_Normal_Exit_Bridge_010": "RD_Normal_Exit_Bridge_010.002",
+        "RD_Normal_Exit_Bridge_009": "RD_Normal_Exit_Bridge_009.002",
+        "RD_Normal_Exit_Bridge_008": "RD_Normal_Exit_Bridge_008.002",
+        "RD_Normal_Exit_Bridge_007": "RD_Normal_Exit_Bridge_007.002",
+        "RD_Normal_Exit_Bridge_006": "RD_Normal_Exit_Bridge_006.002",
+        "RD_Normal_Exit_Bridge_005": "RD_Normal_Exit_Bridge_005.002",
+        "RD_Normal_Exit_Bridge_004": "RD_Normal_Exit_Bridge_004.002",
+        "RD_Normal_Exit_Bridge_003": "RD_Normal_Exit_Bridge_003.002",
+        "RD_Normal_Exit_Bridge_002": "RD_Normal_Exit_Bridge_002.002",
+        "RD_Normal_Exit_Bridge_001": "RD_Normal_Exit_Bridge_001.002",
+        "RD_Normal_Exit_Bridge_000": "RD_Normal_Exit_Bridge_000.002",
+        "RD_Normal_Entry_Connected": "RD_Normal_Entry_Connected.002",
+        "RD_Normal_Diagnostic_Sequence": "RD_Normal_Diagnostic_Sequence.002",
+        "RD_Locomotion_Normal_Loop_AngleFix_WIP": "RD_Locomotion_Normal_Loop_AngleFix_WIP.002",
+        "RD_Locomotion_Normal_Exit_4917_4932_WIP3": "RD_Locomotion_Normal_Exit_4917_4932_WIP3.002",
+        "RD_Locomotion_Normal_Entry_4419_4434_WIP2": "RD_Locomotion_Normal_Entry_4419_4434_WIP2.002",
+        "RD_Loco_Pose4464_Low_WIP": "RD_Loco_Pose4464_Low_WIP.002",
+        "RD_Loco_Pose4464_Low_RollMinus15_Candidate": "RD_Loco_Pose4464_Low_RollMinus15_Candidate.002",
+        "RD_Loco_Pose4434_Entry_WIP2": "RD_Loco_Pose4434_Entry_WIP2.002",
+        "RD_Loco_Pose4431_Entry_WIP2": "RD_Loco_Pose4431_Entry_WIP2.002",
+        "RD_Loco_Pose4425_Dip_WIP": "RD_Loco_Pose4425_Dip_WIP.002",
+        "RD_Loco_Pose4419_Ready_WIP": "RD_Loco_Pose4419_Ready_WIP.002",
+        "RD_00_Supplied_Base_Recovered": "RD_00_Supplied_Base_Recovered.002",
+        "RD_00_Supplied_Base_Guarded_Recovered": "RD_00_Supplied_Base_Guarded_Recovered.002",
+        "prone_crawl_right_segment_r1": "prone_crawl_right_segment_r1",
+        "prone_crawl_left_segment_r1": "prone_crawl_left_segment_r1",
+        "prone_crawl_forward_segment_r1": "prone_crawl_forward_segment_r1",
+        "prone_crawl_enter_r6": "prone_crawl_enter_r6",
+        "prone_crawl_enter_r5": "prone_crawl_enter_r5",
+        "prone_crawl_enter_r4": "prone_crawl_enter_r4",
+        "prone_crawl_enter_r3": "prone_crawl_enter_r3",
+        "prone_crawl_enter_r2": "prone_crawl_enter_r2",
+        "prone_crawl_enter_r1": "prone_crawl_enter_r1",
+        "prone_crawl_enter_camera_r6": "prone_crawl_enter_camera_r6",
+        "prone_crawl_backward_segment_r1": "prone_crawl_backward_segment_r1",
+        "normal_walk_r1": "normal_walk_r1.002",
+        "jump_takeoff_r7": "jump_takeoff_r7",
+        "jump_takeoff_r6": "jump_takeoff_r6",
+        "jump_takeoff_r5": "jump_takeoff_r5",
+        "jump_takeoff_r4": "jump_takeoff_r4",
+        "jump_takeoff_r3": "jump_takeoff_r3",
+        "jump_takeoff_r2": "jump_takeoff_r2",
+        "jump_takeoff_r1": "jump_takeoff_r1",
+        "jump_land_r7": "jump_land_r7",
+        "jump_land_r6": "jump_land_r6",
+        "jump_land_r5": "jump_land_r5",
+        "jump_land_r4": "jump_land_r4",
+        "jump_land_r3": "jump_land_r3",
+        "jump_land_r2": "jump_land_r2",
+        "jump_land_r1": "jump_land_r1",
+        "jump_air_r7": "jump_air_r7",
+        "jump_air_r6": "jump_air_r6",
+        "jump_air_r5": "jump_air_r5",
+        "jump_air_r4": "jump_air_r4",
+        "jump_air_r3": "jump_air_r3",
+        "jump_air_r2": "jump_air_r2",
+        "jump_air_r1": "jump_air_r1",
+        "hk416a5_ik": "hk416a5_ik.002",
+        "hk416a5_controls": "hk416a5_controls.002",
+        "hk416_weaponAction.001": "hk416_weaponAction.003",
+        "hk416_magazineAction": "hk416_magazineAction.002",
+        "hip_walk_forward_r5": "hip_walk_forward_r5.002",
+        "hip_walk_forward_r4": "hip_walk_forward_r4.002",
+        "hip_walk_forward_r3": "hip_walk_forward_r3.002",
+        "hip_walk_forward_r2": "hip_walk_forward_r2.002",
+        "hip_walk_forward_r1": "hip_walk_forward_r1.002",
+        "hip_walk_backward_r5": "hip_walk_backward_r5.002",
+        "hip_walk_backward_r4": "hip_walk_backward_r4.002",
+        "hip_walk_backward_r3": "hip_walk_backward_r3.002",
+        "hip_walk_backward_r2": "hip_walk_backward_r2.002",
+        "hip_walk_backward_r1": "hip_walk_backward_r1.002",
+        "hip_strafe_right_r5": "hip_strafe_right_r5.002",
+        "hip_strafe_right_r4": "hip_strafe_right_r4.002",
+        "hip_strafe_right_r3": "hip_strafe_right_r3.002",
+        "hip_strafe_right_r2": "hip_strafe_right_r2.002",
+        "hip_strafe_right_r1": "hip_strafe_right_r1.002",
+        "hip_strafe_left_r5": "hip_strafe_left_r5.002",
+        "hip_strafe_left_r4": "hip_strafe_left_r4.002",
+        "hip_strafe_left_r3": "hip_strafe_left_r3.002",
+        "hip_strafe_left_r2": "hip_strafe_left_r2.002",
+        "hip_strafe_left_r1": "hip_strafe_left_r1.002",
+        "aella_prone_crawl_enter_r9_viewray_v3": "aella_prone_crawl_enter_r9_viewray_v3",
+        "aella_prone_crawl_enter_r8_bounded_v1": "aella_prone_crawl_enter_r8_bounded_v1",
+        "aella_prone_crawl_enter_r7_wrist_candidate": "aella_prone_crawl_enter_r7_wrist_candidate",
+        "aella_prone_crawl_enter_r15_roll_v1": "aella_prone_crawl_enter_r15_roll_v1",
+        "aella_prone_crawl_enter_r14_coupled_v1": "aella_prone_crawl_enter_r14_coupled_v1",
+        "aella_prone_crawl_enter_r10_hold_v1": "aella_prone_crawl_enter_r10_hold_v1",
+        "aella_prone_crawl_enter_camera_r9_viewray_v3": "aella_prone_crawl_enter_camera_r9_viewray_v3",
+        "aella_prone_crawl_enter_camera_r8_bounded_v1": "aella_prone_crawl_enter_camera_r8_bounded_v1"
+      }
+    },
+    {
+      "tag": "ADS",
+      "source": "repo-assets__authoring__ads__ads.blend",
+      "bytes": 9446001,
+      "sha256": "3acdf3e2d04757d719ba59ede08decdf8bad48e2e87d9448046fe8edcbba4f58",
+      "scenes": [
+        "LIBRARY | ADS"
+      ],
+      "actions": {
+        "RD_Reload_Tactical_Weapon_Locked_Reconstructed_v1": "RD_Reload_Tactical_Weapon_Locked_Reconstructed_v1.003",
+        "RD_Reload_Tactical_RightArm_Clearance_Checkpoint": "RD_Reload_Tactical_RightArm_Clearance_Checkpoint.003",
+        "RD_Reload_Tactical_Magazine_Locked_Reconstructed_v2": "RD_Reload_Tactical_Magazine_Locked_Reconstructed_v2.003",
+        "RD_Reload_Tactical_Magazine_Locked_Reconstructed_v1": "RD_Reload_Tactical_Magazine_Locked_Reconstructed_v1.003",
+        "RD_Reload_Tactical_Hands_Opening_WIP": "RD_Reload_Tactical_Hands_Opening_WIP.003",
+        "RD_Reload_Tactical_HandApproach_AndReturn_WIP": "RD_Reload_Tactical_HandApproach_AndReturn_WIP.003",
+        "RD_Pose_Tactical_Pickup54_Guarded": "RD_Pose_Tactical_Pickup54_Guarded.003",
+        "RD_Normal_LoopToExit": "RD_Normal_LoopToExit.003",
+        "RD_Normal_Exit_Connected": "RD_Normal_Exit_Connected.003",
+        "RD_Normal_Exit_Bridge_034": "RD_Normal_Exit_Bridge_034.003",
+        "RD_Normal_Exit_Bridge_033": "RD_Normal_Exit_Bridge_033.003",
+        "RD_Normal_Exit_Bridge_032": "RD_Normal_Exit_Bridge_032.003",
+        "RD_Normal_Exit_Bridge_031": "RD_Normal_Exit_Bridge_031.003",
+        "RD_Normal_Exit_Bridge_030": "RD_Normal_Exit_Bridge_030.003",
+        "RD_Normal_Exit_Bridge_029": "RD_Normal_Exit_Bridge_029.003",
+        "RD_Normal_Exit_Bridge_028": "RD_Normal_Exit_Bridge_028.003",
+        "RD_Normal_Exit_Bridge_027": "RD_Normal_Exit_Bridge_027.003",
+        "RD_Normal_Exit_Bridge_026": "RD_Normal_Exit_Bridge_026.003",
+        "RD_Normal_Exit_Bridge_025": "RD_Normal_Exit_Bridge_025.003",
+        "RD_Normal_Exit_Bridge_024": "RD_Normal_Exit_Bridge_024.003",
+        "RD_Normal_Exit_Bridge_023": "RD_Normal_Exit_Bridge_023.003",
+        "RD_Normal_Exit_Bridge_022": "RD_Normal_Exit_Bridge_022.003",
+        "RD_Normal_Exit_Bridge_021": "RD_Normal_Exit_Bridge_021.003",
+        "RD_Normal_Exit_Bridge_020": "RD_Normal_Exit_Bridge_020.003",
+        "RD_Normal_Exit_Bridge_019": "RD_Normal_Exit_Bridge_019.003",
+        "RD_Normal_Exit_Bridge_018": "RD_Normal_Exit_Bridge_018.003",
+        "RD_Normal_Exit_Bridge_017": "RD_Normal_Exit_Bridge_017.003",
+        "RD_Normal_Exit_Bridge_016": "RD_Normal_Exit_Bridge_016.003",
+        "RD_Normal_Exit_Bridge_015": "RD_Normal_Exit_Bridge_015.003",
+        "RD_Normal_Exit_Bridge_014": "RD_Normal_Exit_Bridge_014.003",
+        "RD_Normal_Exit_Bridge_013": "RD_Normal_Exit_Bridge_013.003",
+        "RD_Normal_Exit_Bridge_012": "RD_Normal_Exit_Bridge_012.003",
+        "RD_Normal_Exit_Bridge_011": "RD_Normal_Exit_Bridge_011.003",
+        "RD_Normal_Exit_Bridge_010": "RD_Normal_Exit_Bridge_010.003",
+        "RD_Normal_Exit_Bridge_009": "RD_Normal_Exit_Bridge_009.003",
+        "RD_Normal_Exit_Bridge_008": "RD_Normal_Exit_Bridge_008.003",
+        "RD_Normal_Exit_Bridge_007": "RD_Normal_Exit_Bridge_007.003",
+        "RD_Normal_Exit_Bridge_006": "RD_Normal_Exit_Bridge_006.003",
+        "RD_Normal_Exit_Bridge_005": "RD_Normal_Exit_Bridge_005.003",
+        "RD_Normal_Exit_Bridge_004": "RD_Normal_Exit_Bridge_004.003",
+        "RD_Normal_Exit_Bridge_003": "RD_Normal_Exit_Bridge_003.003",
+        "RD_Normal_Exit_Bridge_002": "RD_Normal_Exit_Bridge_002.003",
+        "RD_Normal_Exit_Bridge_001": "RD_Normal_Exit_Bridge_001.003",
+        "RD_Normal_Exit_Bridge_000": "RD_Normal_Exit_Bridge_000.003",
+        "RD_Normal_Entry_Connected": "RD_Normal_Entry_Connected.003",
+        "RD_Normal_Diagnostic_Sequence": "RD_Normal_Diagnostic_Sequence.003",
+        "RD_Locomotion_Normal_Loop_AngleFix_WIP": "RD_Locomotion_Normal_Loop_AngleFix_WIP.003",
+        "RD_Locomotion_Normal_Exit_4917_4932_WIP3": "RD_Locomotion_Normal_Exit_4917_4932_WIP3.003",
+        "RD_Locomotion_Normal_Entry_4419_4434_WIP2": "RD_Locomotion_Normal_Entry_4419_4434_WIP2.003",
+        "RD_Loco_Pose4464_Low_WIP": "RD_Loco_Pose4464_Low_WIP.003",
+        "RD_Loco_Pose4464_Low_RollMinus15_Candidate": "RD_Loco_Pose4464_Low_RollMinus15_Candidate.003",
+        "RD_Loco_Pose4434_Entry_WIP2": "RD_Loco_Pose4434_Entry_WIP2.003",
+        "RD_Loco_Pose4431_Entry_WIP2": "RD_Loco_Pose4431_Entry_WIP2.003",
+        "RD_Loco_Pose4425_Dip_WIP": "RD_Loco_Pose4425_Dip_WIP.003",
+        "RD_Loco_Pose4419_Ready_WIP": "RD_Loco_Pose4419_Ready_WIP.003",
+        "RD_00_Supplied_Base_Recovered": "RD_00_Supplied_Base_Recovered.003",
+        "RD_00_Supplied_Base_Guarded_Recovered": "RD_00_Supplied_Base_Guarded_Recovered.003",
+        "normal_walk_r1": "normal_walk_r1.003",
+        "hk416a5_ik": "hk416a5_ik.003",
+        "hk416a5_controls": "hk416a5_controls.003",
+        "hk416_weaponAction.001": "hk416_weaponAction.004",
+        "hk416_magazineAction": "hk416_magazineAction.003",
+        "ads_hold_r1": "ads_hold_r1",
+        "ads_exit_r1": "ads_exit_r1",
+        "ads_entry_r1": "ads_entry_r1"
+      }
+    },
+    {
+      "tag": "LOCOMOTION",
+      "source": "repo-assets__authoring__locomotion__locomotion.blend",
+      "bytes": 9352824,
+      "sha256": "1b01f49d7fe92f39c7bd180823ee4556a0074dd9ff8ef9c10b3fb4d3f3059e43",
+      "scenes": [
+        "LIBRARY | LOCOMOTION"
+      ],
+      "actions": {
+        "RD_Reload_Tactical_Weapon_Locked_Reconstructed_v1": "RD_Reload_Tactical_Weapon_Locked_Reconstructed_v1.004",
+        "RD_Reload_Tactical_RightArm_Clearance_Checkpoint": "RD_Reload_Tactical_RightArm_Clearance_Checkpoint.004",
+        "RD_Reload_Tactical_Magazine_Locked_Reconstructed_v2": "RD_Reload_Tactical_Magazine_Locked_Reconstructed_v2.004",
+        "RD_Reload_Tactical_Magazine_Locked_Reconstructed_v1": "RD_Reload_Tactical_Magazine_Locked_Reconstructed_v1.004",
+        "RD_Reload_Tactical_Hands_Opening_WIP": "RD_Reload_Tactical_Hands_Opening_WIP.004",
+        "RD_Reload_Tactical_HandApproach_AndReturn_WIP": "RD_Reload_Tactical_HandApproach_AndReturn_WIP.004",
+        "RD_Pose_Tactical_Pickup54_Guarded": "RD_Pose_Tactical_Pickup54_Guarded.004",
+        "RD_Normal_LoopToExit": "RD_Normal_LoopToExit.004",
+        "RD_Normal_Exit_Connected": "RD_Normal_Exit_Connected.004",
+        "RD_Normal_Exit_Bridge_034": "RD_Normal_Exit_Bridge_034.004",
+        "RD_Normal_Exit_Bridge_033": "RD_Normal_Exit_Bridge_033.004",
+        "RD_Normal_Exit_Bridge_032": "RD_Normal_Exit_Bridge_032.004",
+        "RD_Normal_Exit_Bridge_031": "RD_Normal_Exit_Bridge_031.004",
+        "RD_Normal_Exit_Bridge_030": "RD_Normal_Exit_Bridge_030.004",
+        "RD_Normal_Exit_Bridge_029": "RD_Normal_Exit_Bridge_029.004",
+        "RD_Normal_Exit_Bridge_028": "RD_Normal_Exit_Bridge_028.004",
+        "RD_Normal_Exit_Bridge_027": "RD_Normal_Exit_Bridge_027.004",
+        "RD_Normal_Exit_Bridge_026": "RD_Normal_Exit_Bridge_026.004",
+        "RD_Normal_Exit_Bridge_025": "RD_Normal_Exit_Bridge_025.004",
+        "RD_Normal_Exit_Bridge_024": "RD_Normal_Exit_Bridge_024.004",
+        "RD_Normal_Exit_Bridge_023": "RD_Normal_Exit_Bridge_023.004",
+        "RD_Normal_Exit_Bridge_022": "RD_Normal_Exit_Bridge_022.004",
+        "RD_Normal_Exit_Bridge_021": "RD_Normal_Exit_Bridge_021.004",
+        "RD_Normal_Exit_Bridge_020": "RD_Normal_Exit_Bridge_020.004",
+        "RD_Normal_Exit_Bridge_019": "RD_Normal_Exit_Bridge_019.004",
+        "RD_Normal_Exit_Bridge_018": "RD_Normal_Exit_Bridge_018.004",
+        "RD_Normal_Exit_Bridge_017": "RD_Normal_Exit_Bridge_017.004",
+        "RD_Normal_Exit_Bridge_016": "RD_Normal_Exit_Bridge_016.004",
+        "RD_Normal_Exit_Bridge_015": "RD_Normal_Exit_Bridge_015.004",
+        "RD_Normal_Exit_Bridge_014": "RD_Normal_Exit_Bridge_014.004",
+        "RD_Normal_Exit_Bridge_013": "RD_Normal_Exit_Bridge_013.004",
+        "RD_Normal_Exit_Bridge_012": "RD_Normal_Exit_Bridge_012.004",
+        "RD_Normal_Exit_Bridge_011": "RD_Normal_Exit_Bridge_011.004",
+        "RD_Normal_Exit_Bridge_010": "RD_Normal_Exit_Bridge_010.004",
+        "RD_Normal_Exit_Bridge_009": "RD_Normal_Exit_Bridge_009.004",
+        "RD_Normal_Exit_Bridge_008": "RD_Normal_Exit_Bridge_008.004",
+        "RD_Normal_Exit_Bridge_007": "RD_Normal_Exit_Bridge_007.004",
+        "RD_Normal_Exit_Bridge_006": "RD_Normal_Exit_Bridge_006.004",
+        "RD_Normal_Exit_Bridge_005": "RD_Normal_Exit_Bridge_005.004",
+        "RD_Normal_Exit_Bridge_004": "RD_Normal_Exit_Bridge_004.004",
+        "RD_Normal_Exit_Bridge_003": "RD_Normal_Exit_Bridge_003.004",
+        "RD_Normal_Exit_Bridge_002": "RD_Normal_Exit_Bridge_002.004",
+        "RD_Normal_Exit_Bridge_001": "RD_Normal_Exit_Bridge_001.004",
+        "RD_Normal_Exit_Bridge_000": "RD_Normal_Exit_Bridge_000.004",
+        "RD_Normal_Entry_Connected": "RD_Normal_Entry_Connected.004",
+        "RD_Normal_Diagnostic_Sequence": "RD_Normal_Diagnostic_Sequence.004",
+        "RD_Locomotion_Normal_Loop_AngleFix_WIP": "RD_Locomotion_Normal_Loop_AngleFix_WIP.004",
+        "RD_Locomotion_Normal_Exit_4917_4932_WIP3": "RD_Locomotion_Normal_Exit_4917_4932_WIP3.004",
+        "RD_Locomotion_Normal_Entry_4419_4434_WIP2": "RD_Locomotion_Normal_Entry_4419_4434_WIP2.004",
+        "RD_Loco_Pose4464_Low_WIP": "RD_Loco_Pose4464_Low_WIP.004",
+        "RD_Loco_Pose4464_Low_RollMinus15_Candidate": "RD_Loco_Pose4464_Low_RollMinus15_Candidate.004",
+        "RD_Loco_Pose4434_Entry_WIP2": "RD_Loco_Pose4434_Entry_WIP2.004",
+        "RD_Loco_Pose4431_Entry_WIP2": "RD_Loco_Pose4431_Entry_WIP2.004",
+        "RD_Loco_Pose4425_Dip_WIP": "RD_Loco_Pose4425_Dip_WIP.004",
+        "RD_Loco_Pose4419_Ready_WIP": "RD_Loco_Pose4419_Ready_WIP.004",
+        "RD_00_Supplied_Base_Recovered": "RD_00_Supplied_Base_Recovered.004",
+        "RD_00_Supplied_Base_Guarded_Recovered": "RD_00_Supplied_Base_Guarded_Recovered.004",
+        "normal_walk_r1": "normal_walk_r1.004",
+        "hk416a5_ik": "hk416a5_ik.004",
+        "hk416a5_controls": "hk416a5_controls.004",
+        "hk416_weaponAction.001": "hk416_weaponAction.005",
+        "hk416_magazineAction": "hk416_magazineAction.004"
+      }
+    },
+    {
+      "tag": "ADS_V9",
+      "source": "repo-assets__authoring__locomotion_ads__v9__ads_v9_depthphase_public47_hipr5_diagnostic.blend",
+      "bytes": 11971011,
+      "sha256": "094c54c25815126479ca30051a15b8e8dd8f0b4f7bab0767ba96599534652c62",
+      "scenes": [
+        "LIBRARY | ADS_V9 | 1",
+        "LIBRARY | ADS_V9 | 2"
+      ],
+      "actions": {
+        "RD_Reload_Tactical_Weapon_Locked_Reconstructed_v1": "RD_Reload_Tactical_Weapon_Locked_Reconstructed_v1.005",
+        "RD_Reload_Tactical_RightArm_Clearance_Checkpoint": "RD_Reload_Tactical_RightArm_Clearance_Checkpoint.005",
+        "RD_Reload_Tactical_Magazine_Locked_Reconstructed_v2": "RD_Reload_Tactical_Magazine_Locked_Reconstructed_v2.005",
+        "RD_Reload_Tactical_Magazine_Locked_Reconstructed_v1": "RD_Reload_Tactical_Magazine_Locked_Reconstructed_v1.005",
+        "RD_Reload_Tactical_Hands_Opening_WIP": "RD_Reload_Tactical_Hands_Opening_WIP.005",
+        "RD_Reload_Tactical_HandApproach_AndReturn_WIP": "RD_Reload_Tactical_HandApproach_AndReturn_WIP.005",
+        "RD_Pose_Tactical_Pickup54_Guarded": "RD_Pose_Tactical_Pickup54_Guarded.005",
+        "RD_Normal_LoopToExit": "RD_Normal_LoopToExit.005",
+        "RD_Normal_Exit_Connected": "RD_Normal_Exit_Connected.005",
+        "RD_Normal_Exit_Bridge_034": "RD_Normal_Exit_Bridge_034.005",
+        "RD_Normal_Exit_Bridge_033": "RD_Normal_Exit_Bridge_033.005",
+        "RD_Normal_Exit_Bridge_032": "RD_Normal_Exit_Bridge_032.005",
+        "RD_Normal_Exit_Bridge_031": "RD_Normal_Exit_Bridge_031.005",
+        "RD_Normal_Exit_Bridge_030": "RD_Normal_Exit_Bridge_030.005",
+        "RD_Normal_Exit_Bridge_029": "RD_Normal_Exit_Bridge_029.005",
+        "RD_Normal_Exit_Bridge_028": "RD_Normal_Exit_Bridge_028.005",
+        "RD_Normal_Exit_Bridge_027": "RD_Normal_Exit_Bridge_027.005",
+        "RD_Normal_Exit_Bridge_026": "RD_Normal_Exit_Bridge_026.005",
+        "RD_Normal_Exit_Bridge_025": "RD_Normal_Exit_Bridge_025.005",
+        "RD_Normal_Exit_Bridge_024": "RD_Normal_Exit_Bridge_024.005",
+        "RD_Normal_Exit_Bridge_023": "RD_Normal_Exit_Bridge_023.005",
+        "RD_Normal_Exit_Bridge_022": "RD_Normal_Exit_Bridge_022.005",
+        "RD_Normal_Exit_Bridge_021": "RD_Normal_Exit_Bridge_021.005",
+        "RD_Normal_Exit_Bridge_020": "RD_Normal_Exit_Bridge_020.005",
+        "RD_Normal_Exit_Bridge_019": "RD_Normal_Exit_Bridge_019.005",
+        "RD_Normal_Exit_Bridge_018": "RD_Normal_Exit_Bridge_018.005",
+        "RD_Normal_Exit_Bridge_017": "RD_Normal_Exit_Bridge_017.005",
+        "RD_Normal_Exit_Bridge_016": "RD_Normal_Exit_Bridge_016.005",
+        "RD_Normal_Exit_Bridge_015": "RD_Normal_Exit_Bridge_015.005",
+        "RD_Normal_Exit_Bridge_014": "RD_Normal_Exit_Bridge_014.005",
+        "RD_Normal_Exit_Bridge_013": "RD_Normal_Exit_Bridge_013.005",
+        "RD_Normal_Exit_Bridge_012": "RD_Normal_Exit_Bridge_012.005",
+        "RD_Normal_Exit_Bridge_011": "RD_Normal_Exit_Bridge_011.005",
+        "RD_Normal_Exit_Bridge_010": "RD_Normal_Exit_Bridge_010.005",
+        "RD_Normal_Exit_Bridge_009": "RD_Normal_Exit_Bridge_009.005",
+        "RD_Normal_Exit_Bridge_008": "RD_Normal_Exit_Bridge_008.005",
+        "RD_Normal_Exit_Bridge_007": "RD_Normal_Exit_Bridge_007.005",
+        "RD_Normal_Exit_Bridge_006": "RD_Normal_Exit_Bridge_006.005",
+        "RD_Normal_Exit_Bridge_005": "RD_Normal_Exit_Bridge_005.005",
+        "RD_Normal_Exit_Bridge_004": "RD_Normal_Exit_Bridge_004.005",
+        "RD_Normal_Exit_Bridge_003": "RD_Normal_Exit_Bridge_003.005",
+        "RD_Normal_Exit_Bridge_002": "RD_Normal_Exit_Bridge_002.005",
+        "RD_Normal_Exit_Bridge_001": "RD_Normal_Exit_Bridge_001.005",
+        "RD_Normal_Exit_Bridge_000": "RD_Normal_Exit_Bridge_000.005",
+        "RD_Normal_Entry_Connected": "RD_Normal_Entry_Connected.005",
+        "RD_Normal_Diagnostic_Sequence": "RD_Normal_Diagnostic_Sequence.005",
+        "RD_Locomotion_Normal_Loop_AngleFix_WIP": "RD_Locomotion_Normal_Loop_AngleFix_WIP.005",
+        "RD_Locomotion_Normal_Exit_4917_4932_WIP3": "RD_Locomotion_Normal_Exit_4917_4932_WIP3.005",
+        "RD_Locomotion_Normal_Entry_4419_4434_WIP2": "RD_Locomotion_Normal_Entry_4419_4434_WIP2.005",
+        "RD_Loco_Pose4464_Low_WIP": "RD_Loco_Pose4464_Low_WIP.005",
+        "RD_Loco_Pose4464_Low_RollMinus15_Candidate": "RD_Loco_Pose4464_Low_RollMinus15_Candidate.005",
+        "RD_Loco_Pose4434_Entry_WIP2": "RD_Loco_Pose4434_Entry_WIP2.005",
+        "RD_Loco_Pose4431_Entry_WIP2": "RD_Loco_Pose4431_Entry_WIP2.005",
+        "RD_Loco_Pose4425_Dip_WIP": "RD_Loco_Pose4425_Dip_WIP.005",
+        "RD_Loco_Pose4419_Ready_WIP": "RD_Loco_Pose4419_Ready_WIP.005",
+        "RD_00_Supplied_Base_Recovered": "RD_00_Supplied_Base_Recovered.005",
+        "RD_00_Supplied_Base_Guarded_Recovered": "RD_00_Supplied_Base_Guarded_Recovered.005",
+        "normal_walk_r1": "normal_walk_r1.005",
+        "hk416a5_ik": "hk416a5_ik.005",
+        "hk416a5_controls": "hk416a5_controls.005",
+        "hk416_weaponAction.001": "hk416_weaponAction.006",
+        "hk416_magazineAction": "hk416_magazineAction.005",
+        "DIAG_v9_hk416_weapon_output": "DIAG_v9_hk416_weapon_output",
+        "DIAG_v9_hk416_magazine_output": "DIAG_v9_hk416_magazine_output",
+        "DIAG_v9_forward_native15_output": "DIAG_v9_forward_native15_output",
+        "ads_hold_r1": "ads_hold_r1.001",
+        "ads_exit_r1": "ads_exit_r1.001",
+        "ads_entry_r1": "ads_entry_r1.001"
+      }
+    },
+    {
+      "tag": "HIP_R1",
+      "source": "repo-assets__authoring__locomotion_directional__halcyon_hip_directional_r1.blend",
+      "bytes": 9485443,
+      "sha256": "6d6d5c6a150bd8d74f24b29bf18b192e2f5fe2cd93a531c77b7a1e5ce93a8b35",
+      "scenes": [
+        "LIBRARY | HIP_R1"
+      ],
+      "actions": {
+        "RD_Reload_Tactical_Weapon_Locked_Reconstructed_v1": "RD_Reload_Tactical_Weapon_Locked_Reconstructed_v1.006",
+        "RD_Reload_Tactical_RightArm_Clearance_Checkpoint": "RD_Reload_Tactical_RightArm_Clearance_Checkpoint.006",
+        "RD_Reload_Tactical_Magazine_Locked_Reconstructed_v2": "RD_Reload_Tactical_Magazine_Locked_Reconstructed_v2.006",
+        "RD_Reload_Tactical_Magazine_Locked_Reconstructed_v1": "RD_Reload_Tactical_Magazine_Locked_Reconstructed_v1.006",
+        "RD_Reload_Tactical_Hands_Opening_WIP": "RD_Reload_Tactical_Hands_Opening_WIP.006",
+        "RD_Reload_Tactical_HandApproach_AndReturn_WIP": "RD_Reload_Tactical_HandApproach_AndReturn_WIP.006",
+        "RD_Pose_Tactical_Pickup54_Guarded": "RD_Pose_Tactical_Pickup54_Guarded.006",
+        "RD_Normal_LoopToExit": "RD_Normal_LoopToExit.006",
+        "RD_Normal_Exit_Connected": "RD_Normal_Exit_Connected.006",
+        "RD_Normal_Exit_Bridge_034": "RD_Normal_Exit_Bridge_034.006",
+        "RD_Normal_Exit_Bridge_033": "RD_Normal_Exit_Bridge_033.006",
+        "RD_Normal_Exit_Bridge_032": "RD_Normal_Exit_Bridge_032.006",
+        "RD_Normal_Exit_Bridge_031": "RD_Normal_Exit_Bridge_031.006",
+        "RD_Normal_Exit_Bridge_030": "RD_Normal_Exit_Bridge_030.006",
+        "RD_Normal_Exit_Bridge_029": "RD_Normal_Exit_Bridge_029.006",
+        "RD_Normal_Exit_Bridge_028": "RD_Normal_Exit_Bridge_028.006",
+        "RD_Normal_Exit_Bridge_027": "RD_Normal_Exit_Bridge_027.006",
+        "RD_Normal_Exit_Bridge_026": "RD_Normal_Exit_Bridge_026.006",
+        "RD_Normal_Exit_Bridge_025": "RD_Normal_Exit_Bridge_025.006",
+        "RD_Normal_Exit_Bridge_024": "RD_Normal_Exit_Bridge_024.006",
+        "RD_Normal_Exit_Bridge_023": "RD_Normal_Exit_Bridge_023.006",
+        "RD_Normal_Exit_Bridge_022": "RD_Normal_Exit_Bridge_022.006",
+        "RD_Normal_Exit_Bridge_021": "RD_Normal_Exit_Bridge_021.006",
+        "RD_Normal_Exit_Bridge_020": "RD_Normal_Exit_Bridge_020.006",
+        "RD_Normal_Exit_Bridge_019": "RD_Normal_Exit_Bridge_019.006",
+        "RD_Normal_Exit_Bridge_018": "RD_Normal_Exit_Bridge_018.006",
+        "RD_Normal_Exit_Bridge_017": "RD_Normal_Exit_Bridge_017.006",
+        "RD_Normal_Exit_Bridge_016": "RD_Normal_Exit_Bridge_016.006",
+        "RD_Normal_Exit_Bridge_015": "RD_Normal_Exit_Bridge_015.006",
+        "RD_Normal_Exit_Bridge_014": "RD_Normal_Exit_Bridge_014.006",
+        "RD_Normal_Exit_Bridge_013": "RD_Normal_Exit_Bridge_013.006",
+        "RD_Normal_Exit_Bridge_012": "RD_Normal_Exit_Bridge_012.006",
+        "RD_Normal_Exit_Bridge_011": "RD_Normal_Exit_Bridge_011.006",
+        "RD_Normal_Exit_Bridge_010": "RD_Normal_Exit_Bridge_010.006",
+        "RD_Normal_Exit_Bridge_009": "RD_Normal_Exit_Bridge_009.006",
+        "RD_Normal_Exit_Bridge_008": "RD_Normal_Exit_Bridge_008.006",
+        "RD_Normal_Exit_Bridge_007": "RD_Normal_Exit_Bridge_007.006",
+        "RD_Normal_Exit_Bridge_006": "RD_Normal_Exit_Bridge_006.006",
+        "RD_Normal_Exit_Bridge_005": "RD_Normal_Exit_Bridge_005.006",
+        "RD_Normal_Exit_Bridge_004": "RD_Normal_Exit_Bridge_004.006",
+        "RD_Normal_Exit_Bridge_003": "RD_Normal_Exit_Bridge_003.006",
+        "RD_Normal_Exit_Bridge_002": "RD_Normal_Exit_Bridge_002.006",
+        "RD_Normal_Exit_Bridge_001": "RD_Normal_Exit_Bridge_001.006",
+        "RD_Normal_Exit_Bridge_000": "RD_Normal_Exit_Bridge_000.006",
+        "RD_Normal_Entry_Connected": "RD_Normal_Entry_Connected.006",
+        "RD_Normal_Diagnostic_Sequence": "RD_Normal_Diagnostic_Sequence.006",
+        "RD_Locomotion_Normal_Loop_AngleFix_WIP": "RD_Locomotion_Normal_Loop_AngleFix_WIP.006",
+        "RD_Locomotion_Normal_Exit_4917_4932_WIP3": "RD_Locomotion_Normal_Exit_4917_4932_WIP3.006",
+        "RD_Locomotion_Normal_Entry_4419_4434_WIP2": "RD_Locomotion_Normal_Entry_4419_4434_WIP2.006",
+        "RD_Loco_Pose4464_Low_WIP": "RD_Loco_Pose4464_Low_WIP.006",
+        "RD_Loco_Pose4464_Low_RollMinus15_Candidate": "RD_Loco_Pose4464_Low_RollMinus15_Candidate.006",
+        "RD_Loco_Pose4434_Entry_WIP2": "RD_Loco_Pose4434_Entry_WIP2.006",
+        "RD_Loco_Pose4431_Entry_WIP2": "RD_Loco_Pose4431_Entry_WIP2.006",
+        "RD_Loco_Pose4425_Dip_WIP": "RD_Loco_Pose4425_Dip_WIP.006",
+        "RD_Loco_Pose4419_Ready_WIP": "RD_Loco_Pose4419_Ready_WIP.006",
+        "RD_00_Supplied_Base_Recovered": "RD_00_Supplied_Base_Recovered.006",
+        "RD_00_Supplied_Base_Guarded_Recovered": "RD_00_Supplied_Base_Guarded_Recovered.006",
+        "normal_walk_r1": "normal_walk_r1.006",
+        "hk416a5_ik": "hk416a5_ik.006",
+        "hk416a5_controls": "hk416a5_controls.006",
+        "hk416_weaponAction.001": "hk416_weaponAction.007",
+        "hk416_magazineAction": "hk416_magazineAction.006",
+        "hip_walk_forward_r1": "hip_walk_forward_r1.003",
+        "hip_walk_backward_r1": "hip_walk_backward_r1.003",
+        "hip_strafe_right_r1": "hip_strafe_right_r1.003",
+        "hip_strafe_left_r1": "hip_strafe_left_r1.003"
+      }
+    },
+    {
+      "tag": "HIP_R5",
+      "source": "repo-assets__authoring__locomotion_directional__r5__halcyon_hip_directional_r5.blend",
+      "bytes": 9922429,
+      "sha256": "36d76491c2cf6238b8a1e10069dddd5b0d63e199063e1f4012b34f3fd4b1e18d",
+      "scenes": [
+        "LIBRARY | HIP_R5"
+      ],
+      "actions": {
+        "RD_Reload_Tactical_Weapon_Locked_Reconstructed_v1": "RD_Reload_Tactical_Weapon_Locked_Reconstructed_v1.007",
+        "RD_Reload_Tactical_RightArm_Clearance_Checkpoint": "RD_Reload_Tactical_RightArm_Clearance_Checkpoint.007",
+        "RD_Reload_Tactical_Magazine_Locked_Reconstructed_v2": "RD_Reload_Tactical_Magazine_Locked_Reconstructed_v2.007",
+        "RD_Reload_Tactical_Magazine_Locked_Reconstructed_v1": "RD_Reload_Tactical_Magazine_Locked_Reconstructed_v1.007",
+        "RD_Reload_Tactical_Hands_Opening_WIP": "RD_Reload_Tactical_Hands_Opening_WIP.007",
+        "RD_Reload_Tactical_HandApproach_AndReturn_WIP": "RD_Reload_Tactical_HandApproach_AndReturn_WIP.007",
+        "RD_Pose_Tactical_Pickup54_Guarded": "RD_Pose_Tactical_Pickup54_Guarded.007",
+        "RD_Normal_LoopToExit": "RD_Normal_LoopToExit.007",
+        "RD_Normal_Exit_Connected": "RD_Normal_Exit_Connected.007",
+        "RD_Normal_Exit_Bridge_034": "RD_Normal_Exit_Bridge_034.007",
+        "RD_Normal_Exit_Bridge_033": "RD_Normal_Exit_Bridge_033.007",
+        "RD_Normal_Exit_Bridge_032": "RD_Normal_Exit_Bridge_032.007",
+        "RD_Normal_Exit_Bridge_031": "RD_Normal_Exit_Bridge_031.007",
+        "RD_Normal_Exit_Bridge_030": "RD_Normal_Exit_Bridge_030.007",
+        "RD_Normal_Exit_Bridge_029": "RD_Normal_Exit_Bridge_029.007",
+        "RD_Normal_Exit_Bridge_028": "RD_Normal_Exit_Bridge_028.007",
+        "RD_Normal_Exit_Bridge_027": "RD_Normal_Exit_Bridge_027.007",
+        "RD_Normal_Exit_Bridge_026": "RD_Normal_Exit_Bridge_026.007",
+        "RD_Normal_Exit_Bridge_025": "RD_Normal_Exit_Bridge_025.007",
+        "RD_Normal_Exit_Bridge_024": "RD_Normal_Exit_Bridge_024.007",
+        "RD_Normal_Exit_Bridge_023": "RD_Normal_Exit_Bridge_023.007",
+        "RD_Normal_Exit_Bridge_022": "RD_Normal_Exit_Bridge_022.007",
+        "RD_Normal_Exit_Bridge_021": "RD_Normal_Exit_Bridge_021.007",
+        "RD_Normal_Exit_Bridge_020": "RD_Normal_Exit_Bridge_020.007",
+        "RD_Normal_Exit_Bridge_019": "RD_Normal_Exit_Bridge_019.007",
+        "RD_Normal_Exit_Bridge_018": "RD_Normal_Exit_Bridge_018.007",
+        "RD_Normal_Exit_Bridge_017": "RD_Normal_Exit_Bridge_017.007",
+        "RD_Normal_Exit_Bridge_016": "RD_Normal_Exit_Bridge_016.007",
+        "RD_Normal_Exit_Bridge_015": "RD_Normal_Exit_Bridge_015.007",
+        "RD_Normal_Exit_Bridge_014": "RD_Normal_Exit_Bridge_014.007",
+        "RD_Normal_Exit_Bridge_013": "RD_Normal_Exit_Bridge_013.007",
+        "RD_Normal_Exit_Bridge_012": "RD_Normal_Exit_Bridge_012.007",
+        "RD_Normal_Exit_Bridge_011": "RD_Normal_Exit_Bridge_011.007",
+        "RD_Normal_Exit_Bridge_010": "RD_Normal_Exit_Bridge_010.007",
+        "RD_Normal_Exit_Bridge_009": "RD_Normal_Exit_Bridge_009.007",
+        "RD_Normal_Exit_Bridge_008": "RD_Normal_Exit_Bridge_008.007",
+        "RD_Normal_Exit_Bridge_007": "RD_Normal_Exit_Bridge_007.007",
+        "RD_Normal_Exit_Bridge_006": "RD_Normal_Exit_Bridge_006.007",
+        "RD_Normal_Exit_Bridge_005": "RD_Normal_Exit_Bridge_005.007",
+        "RD_Normal_Exit_Bridge_004": "RD_Normal_Exit_Bridge_004.007",
+        "RD_Normal_Exit_Bridge_003": "RD_Normal_Exit_Bridge_003.007",
+        "RD_Normal_Exit_Bridge_002": "RD_Normal_Exit_Bridge_002.007",
+        "RD_Normal_Exit_Bridge_001": "RD_Normal_Exit_Bridge_001.007",
+        "RD_Normal_Exit_Bridge_000": "RD_Normal_Exit_Bridge_000.007",
+        "RD_Normal_Entry_Connected": "RD_Normal_Entry_Connected.007",
+        "RD_Normal_Diagnostic_Sequence": "RD_Normal_Diagnostic_Sequence.007",
+        "RD_Locomotion_Normal_Loop_AngleFix_WIP": "RD_Locomotion_Normal_Loop_AngleFix_WIP.007",
+        "RD_Locomotion_Normal_Exit_4917_4932_WIP3": "RD_Locomotion_Normal_Exit_4917_4932_WIP3.007",
+        "RD_Locomotion_Normal_Entry_4419_4434_WIP2": "RD_Locomotion_Normal_Entry_4419_4434_WIP2.007",
+        "RD_Loco_Pose4464_Low_WIP": "RD_Loco_Pose4464_Low_WIP.007",
+        "RD_Loco_Pose4464_Low_RollMinus15_Candidate": "RD_Loco_Pose4464_Low_RollMinus15_Candidate.007",
+        "RD_Loco_Pose4434_Entry_WIP2": "RD_Loco_Pose4434_Entry_WIP2.007",
+        "RD_Loco_Pose4431_Entry_WIP2": "RD_Loco_Pose4431_Entry_WIP2.007",
+        "RD_Loco_Pose4425_Dip_WIP": "RD_Loco_Pose4425_Dip_WIP.007",
+        "RD_Loco_Pose4419_Ready_WIP": "RD_Loco_Pose4419_Ready_WIP.007",
+        "RD_00_Supplied_Base_Recovered": "RD_00_Supplied_Base_Recovered.007",
+        "RD_00_Supplied_Base_Guarded_Recovered": "RD_00_Supplied_Base_Guarded_Recovered.007",
+        "normal_walk_r1": "normal_walk_r1.007",
+        "hk416a5_ik": "hk416a5_ik.007",
+        "hk416a5_controls": "hk416a5_controls.007",
+        "hk416_weaponAction.001": "hk416_weaponAction.008",
+        "hk416_magazineAction": "hk416_magazineAction.007",
+        "hip_walk_forward_r5": "hip_walk_forward_r5.003",
+        "hip_walk_forward_r4": "hip_walk_forward_r4.003",
+        "hip_walk_forward_r3": "hip_walk_forward_r3.003",
+        "hip_walk_forward_r2": "hip_walk_forward_r2.003",
+        "hip_walk_forward_r1": "hip_walk_forward_r1.004",
+        "hip_walk_backward_r5": "hip_walk_backward_r5.003",
+        "hip_walk_backward_r4": "hip_walk_backward_r4.003",
+        "hip_walk_backward_r3": "hip_walk_backward_r3.003",
+        "hip_walk_backward_r2": "hip_walk_backward_r2.003",
+        "hip_walk_backward_r1": "hip_walk_backward_r1.004",
+        "hip_strafe_right_r5": "hip_strafe_right_r5.003",
+        "hip_strafe_right_r4": "hip_strafe_right_r4.003",
+        "hip_strafe_right_r3": "hip_strafe_right_r3.003",
+        "hip_strafe_right_r2": "hip_strafe_right_r2.003",
+        "hip_strafe_right_r1": "hip_strafe_right_r1.004",
+        "hip_strafe_left_r5": "hip_strafe_left_r5.003",
+        "hip_strafe_left_r4": "hip_strafe_left_r4.003",
+        "hip_strafe_left_r3": "hip_strafe_left_r3.003",
+        "hip_strafe_left_r2": "hip_strafe_left_r2.003",
+        "hip_strafe_left_r1": "hip_strafe_left_r1.004"
+      }
+    },
+    {
+      "tag": "RELOAD",
+      "source": "repo-assets__source__reload__current.blend",
+      "bytes": 8247987,
+      "sha256": "8cec36c6bfcc4967cb80629b40ecdced3c0b5507914aec7eb3d2d614f2d758fd",
+      "scenes": [
+        "LIBRARY | RELOAD"
+      ],
+      "actions": {
+        "RD_Reload_Tactical_Weapon_Locked_Reconstructed_v1": "RD_Reload_Tactical_Weapon_Locked_Reconstructed_v1.008",
+        "RD_Reload_Tactical_RightArm_Clearance_Checkpoint": "RD_Reload_Tactical_RightArm_Clearance_Checkpoint.008",
+        "RD_Reload_Tactical_Magazine_Locked_Reconstructed_v2": "RD_Reload_Tactical_Magazine_Locked_Reconstructed_v2.008",
+        "RD_Reload_Tactical_Magazine_Locked_Reconstructed_v1": "RD_Reload_Tactical_Magazine_Locked_Reconstructed_v1.008",
+        "RD_Reload_Tactical_Hands_Opening_WIP": "RD_Reload_Tactical_Hands_Opening_WIP.008",
+        "RD_Reload_Tactical_HandApproach_AndReturn_WIP": "RD_Reload_Tactical_HandApproach_AndReturn_WIP.008",
+        "RD_Pose_Tactical_Pickup54_Guarded": "RD_Pose_Tactical_Pickup54_Guarded.008",
+        "RD_00_Supplied_Base_Recovered": "RD_00_Supplied_Base_Recovered.008",
+        "RD_00_Supplied_Base_Guarded_Recovered": "RD_00_Supplied_Base_Guarded_Recovered.008",
+        "hk416a5_ik": "hk416a5_ik.008",
+        "hk416a5_controls": "hk416a5_controls.008",
+        "hk416_weaponAction.001": "hk416_weaponAction.009",
+        "hk416_magazineAction": "hk416_magazineAction.008"
+      }
+    }
+  ],
+  "actions": [
+    {
+      "name": "ads_entry_r1",
+      "frames": [
+        1.0,
+        16.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "ads_entry_r1.001",
+      "frames": [
+        1.0,
+        16.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "ads_exit_r1",
+      "frames": [
+        1.0,
+        16.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "ads_exit_r1.001",
+      "frames": [
+        1.0,
+        16.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "ads_hold_r1",
+      "frames": [
+        1.0,
+        61.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "ads_hold_r1.001",
+      "frames": [
+        1.0,
+        61.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "aella_mantle_onehand_r1",
+      "frames": [
+        1.0,
+        96.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "aella_mantle_onehand_r1.001",
+      "frames": [
+        1.0,
+        96.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "aella_mantle_onehand_r2",
+      "frames": [
+        1.0,
+        96.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "aella_mantle_onehand_r2.001",
+      "frames": [
+        1.0,
+        96.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "aella_mantle_onehand_r3",
+      "frames": [
+        1.0,
+        96.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "aella_mantle_onehand_r3.001",
+      "frames": [
+        1.0,
+        96.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "aella_mantle_onehand_r4",
+      "frames": [
+        1.0,
+        96.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "aella_mantle_onehand_r5",
+      "frames": [
+        1.0,
+        96.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "aella_mantle_onehand_r6_camera_reconstructed_v2",
+      "frames": [
+        1.0,
+        96.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "aella_mantle_onehand_r6_camera_reconstructed_v3_fullcomp",
+      "frames": [
+        1.0,
+        96.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "aella_mantle_onehand_r6_camera_reconstructed_v4",
+      "frames": [
+        1.0,
+        96.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "aella_mantle_onehand_r6_camera_reconstructed_v5",
+      "frames": [
+        1.0,
+        96.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "aella_mantle_onehand_r6_camera_reconstructed_v6",
+      "frames": [
+        1.0,
+        96.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "aella_prone_crawl_enter_camera_r8_bounded_v1",
+      "frames": [
+        1.0,
+        69.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "aella_prone_crawl_enter_camera_r9_viewray_v3",
+      "frames": [
+        1.0,
+        69.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "aella_prone_crawl_enter_r10_hold_v1",
+      "frames": [
+        1.0,
+        69.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "aella_prone_crawl_enter_r14_coupled_v1",
+      "frames": [
+        1.0,
+        69.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "aella_prone_crawl_enter_r15_roll_v1",
+      "frames": [
+        1.0,
+        69.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "aella_prone_crawl_enter_r7_wrist_candidate",
+      "frames": [
+        1.0,
+        69.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "aella_prone_crawl_enter_r8_bounded_v1",
+      "frames": [
+        1.0,
+        69.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "aella_prone_crawl_enter_r9_viewray_v3",
+      "frames": [
+        1.0,
+        69.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "aella_vault_low_entry_reconstructed_v1",
+      "frames": [
+        1.0,
+        64.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "aella_vault_low_entry_reconstructed_v2",
+      "frames": [
+        1.0,
+        64.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "aella_vault_low_entry_reconstructed_v3",
+      "frames": [
+        1.0,
+        64.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "aella_vault_low_r1",
+      "frames": [
+        1.0,
+        64.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "aella_vault_low_r1.001",
+      "frames": [
+        1.0,
+        64.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "aella_vault_low_r2",
+      "frames": [
+        1.0,
+        64.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "aella_vault_low_r2.001",
+      "frames": [
+        1.0,
+        64.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "aella_vault_low_r3",
+      "frames": [
+        1.0,
+        64.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "aella_vault_low_r3.001",
+      "frames": [
+        1.0,
+        64.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "aella_vault_low_takeover_r5",
+      "frames": [
+        1.0,
+        64.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "DIAG_v9_forward_native15_output",
+      "frames": [
+        1.0,
+        126.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "DIAG_v9_hk416_magazine_output",
+      "frames": [
+        1.0,
+        126.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "DIAG_v9_hk416_weapon_output",
+      "frames": [
+        1.0,
+        126.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hip_strafe_left_r1",
+      "frames": [
+        1.0,
+        50.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hip_strafe_left_r1.001",
+      "frames": [
+        1.0,
+        50.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hip_strafe_left_r1.002",
+      "frames": [
+        1.0,
+        50.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hip_strafe_left_r1.003",
+      "frames": [
+        1.0,
+        50.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hip_strafe_left_r1.004",
+      "frames": [
+        1.0,
+        50.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hip_strafe_left_r2",
+      "frames": [
+        1.0,
+        50.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hip_strafe_left_r2.001",
+      "frames": [
+        1.0,
+        50.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hip_strafe_left_r2.002",
+      "frames": [
+        1.0,
+        50.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hip_strafe_left_r2.003",
+      "frames": [
+        1.0,
+        50.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hip_strafe_left_r3",
+      "frames": [
+        1.0,
+        50.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hip_strafe_left_r3.001",
+      "frames": [
+        1.0,
+        50.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hip_strafe_left_r3.002",
+      "frames": [
+        1.0,
+        50.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hip_strafe_left_r3.003",
+      "frames": [
+        1.0,
+        50.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hip_strafe_left_r4",
+      "frames": [
+        1.0,
+        50.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hip_strafe_left_r4.001",
+      "frames": [
+        1.0,
+        50.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hip_strafe_left_r4.002",
+      "frames": [
+        1.0,
+        50.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hip_strafe_left_r4.003",
+      "frames": [
+        1.0,
+        50.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hip_strafe_left_r5",
+      "frames": [
+        1.0,
+        50.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hip_strafe_left_r5.001",
+      "frames": [
+        1.0,
+        50.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hip_strafe_left_r5.002",
+      "frames": [
+        1.0,
+        50.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hip_strafe_left_r5.003",
+      "frames": [
+        1.0,
+        50.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hip_strafe_right_r1",
+      "frames": [
+        1.0,
+        50.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hip_strafe_right_r1.001",
+      "frames": [
+        1.0,
+        50.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hip_strafe_right_r1.002",
+      "frames": [
+        1.0,
+        50.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hip_strafe_right_r1.003",
+      "frames": [
+        1.0,
+        50.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hip_strafe_right_r1.004",
+      "frames": [
+        1.0,
+        50.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hip_strafe_right_r2",
+      "frames": [
+        1.0,
+        50.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hip_strafe_right_r2.001",
+      "frames": [
+        1.0,
+        50.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hip_strafe_right_r2.002",
+      "frames": [
+        1.0,
+        50.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hip_strafe_right_r2.003",
+      "frames": [
+        1.0,
+        50.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hip_strafe_right_r3",
+      "frames": [
+        1.0,
+        50.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hip_strafe_right_r3.001",
+      "frames": [
+        1.0,
+        50.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hip_strafe_right_r3.002",
+      "frames": [
+        1.0,
+        50.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hip_strafe_right_r3.003",
+      "frames": [
+        1.0,
+        50.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hip_strafe_right_r4",
+      "frames": [
+        1.0,
+        50.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hip_strafe_right_r4.001",
+      "frames": [
+        1.0,
+        50.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hip_strafe_right_r4.002",
+      "frames": [
+        1.0,
+        50.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hip_strafe_right_r4.003",
+      "frames": [
+        1.0,
+        50.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hip_strafe_right_r5",
+      "frames": [
+        1.0,
+        50.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hip_strafe_right_r5.001",
+      "frames": [
+        1.0,
+        50.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hip_strafe_right_r5.002",
+      "frames": [
+        1.0,
+        50.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hip_strafe_right_r5.003",
+      "frames": [
+        1.0,
+        50.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hip_walk_backward_r1",
+      "frames": [
+        1.0,
+        46.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hip_walk_backward_r1.001",
+      "frames": [
+        1.0,
+        46.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hip_walk_backward_r1.002",
+      "frames": [
+        1.0,
+        46.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hip_walk_backward_r1.003",
+      "frames": [
+        1.0,
+        46.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hip_walk_backward_r1.004",
+      "frames": [
+        1.0,
+        46.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hip_walk_backward_r2",
+      "frames": [
+        1.0,
+        46.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hip_walk_backward_r2.001",
+      "frames": [
+        1.0,
+        46.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hip_walk_backward_r2.002",
+      "frames": [
+        1.0,
+        46.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hip_walk_backward_r2.003",
+      "frames": [
+        1.0,
+        46.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hip_walk_backward_r3",
+      "frames": [
+        1.0,
+        46.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hip_walk_backward_r3.001",
+      "frames": [
+        1.0,
+        46.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hip_walk_backward_r3.002",
+      "frames": [
+        1.0,
+        46.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hip_walk_backward_r3.003",
+      "frames": [
+        1.0,
+        46.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hip_walk_backward_r4",
+      "frames": [
+        1.0,
+        46.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hip_walk_backward_r4.001",
+      "frames": [
+        1.0,
+        46.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hip_walk_backward_r4.002",
+      "frames": [
+        1.0,
+        46.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hip_walk_backward_r4.003",
+      "frames": [
+        1.0,
+        46.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hip_walk_backward_r5",
+      "frames": [
+        1.0,
+        46.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hip_walk_backward_r5.001",
+      "frames": [
+        1.0,
+        46.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hip_walk_backward_r5.002",
+      "frames": [
+        1.0,
+        46.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hip_walk_backward_r5.003",
+      "frames": [
+        1.0,
+        46.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hip_walk_forward_r1",
+      "frames": [
+        1.0,
+        39.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hip_walk_forward_r1.001",
+      "frames": [
+        1.0,
+        39.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hip_walk_forward_r1.002",
+      "frames": [
+        1.0,
+        39.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hip_walk_forward_r1.003",
+      "frames": [
+        1.0,
+        39.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hip_walk_forward_r1.004",
+      "frames": [
+        1.0,
+        39.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hip_walk_forward_r2",
+      "frames": [
+        1.0,
+        39.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hip_walk_forward_r2.001",
+      "frames": [
+        1.0,
+        39.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hip_walk_forward_r2.002",
+      "frames": [
+        1.0,
+        39.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hip_walk_forward_r2.003",
+      "frames": [
+        1.0,
+        39.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hip_walk_forward_r3",
+      "frames": [
+        1.0,
+        39.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hip_walk_forward_r3.001",
+      "frames": [
+        1.0,
+        39.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hip_walk_forward_r3.002",
+      "frames": [
+        1.0,
+        39.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hip_walk_forward_r3.003",
+      "frames": [
+        1.0,
+        39.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hip_walk_forward_r4",
+      "frames": [
+        1.0,
+        39.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hip_walk_forward_r4.001",
+      "frames": [
+        1.0,
+        39.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hip_walk_forward_r4.002",
+      "frames": [
+        1.0,
+        39.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hip_walk_forward_r4.003",
+      "frames": [
+        1.0,
+        39.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hip_walk_forward_r5",
+      "frames": [
+        1.0,
+        39.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hip_walk_forward_r5.001",
+      "frames": [
+        1.0,
+        39.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hip_walk_forward_r5.002",
+      "frames": [
+        1.0,
+        39.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hip_walk_forward_r5.003",
+      "frames": [
+        1.0,
+        39.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hk416_magazineAction",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hk416_magazineAction.001",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hk416_magazineAction.002",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hk416_magazineAction.003",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hk416_magazineAction.004",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hk416_magazineAction.005",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hk416_magazineAction.006",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hk416_magazineAction.007",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hk416_magazineAction.008",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hk416_weaponAction.001",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hk416_weaponAction.002",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hk416_weaponAction.003",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hk416_weaponAction.004",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hk416_weaponAction.005",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hk416_weaponAction.006",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hk416_weaponAction.007",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hk416_weaponAction.008",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hk416_weaponAction.009",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hk416a5_controls",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hk416a5_controls.001",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hk416a5_controls.002",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hk416a5_controls.003",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hk416a5_controls.004",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hk416a5_controls.005",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hk416a5_controls.006",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hk416a5_controls.007",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hk416a5_controls.008",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hk416a5_ik",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hk416a5_ik.001",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hk416a5_ik.002",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hk416a5_ik.003",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hk416a5_ik.004",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hk416a5_ik.005",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hk416a5_ik.006",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hk416a5_ik.007",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "hk416a5_ik.008",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "jump_air_r1",
+      "frames": [
+        1.0,
+        2.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "jump_air_r2",
+      "frames": [
+        1.0,
+        2.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "jump_air_r3",
+      "frames": [
+        1.0,
+        2.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "jump_air_r4",
+      "frames": [
+        1.0,
+        24.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "jump_air_r5",
+      "frames": [
+        1.0,
+        24.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "jump_air_r6",
+      "frames": [
+        1.0,
+        24.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "jump_air_r7",
+      "frames": [
+        1.0,
+        24.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "jump_land_r1",
+      "frames": [
+        1.0,
+        17.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "jump_land_r2",
+      "frames": [
+        1.0,
+        17.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "jump_land_r3",
+      "frames": [
+        1.0,
+        17.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "jump_land_r4",
+      "frames": [
+        1.0,
+        29.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "jump_land_r5",
+      "frames": [
+        1.0,
+        29.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "jump_land_r6",
+      "frames": [
+        1.0,
+        29.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "jump_land_r7",
+      "frames": [
+        1.0,
+        29.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "jump_land_r8_ease_candidate",
+      "frames": [
+        1.0,
+        29.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "jump_takeoff_r1",
+      "frames": [
+        1.0,
+        11.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "jump_takeoff_r2",
+      "frames": [
+        1.0,
+        11.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "jump_takeoff_r3",
+      "frames": [
+        1.0,
+        11.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "jump_takeoff_r4",
+      "frames": [
+        1.0,
+        12.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "jump_takeoff_r5",
+      "frames": [
+        1.0,
+        12.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "jump_takeoff_r6",
+      "frames": [
+        1.0,
+        12.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "jump_takeoff_r7",
+      "frames": [
+        1.0,
+        12.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "normal_walk_r1",
+      "frames": [
+        1.0,
+        45.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "normal_walk_r1.001",
+      "frames": [
+        1.0,
+        45.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "normal_walk_r1.002",
+      "frames": [
+        1.0,
+        45.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "normal_walk_r1.003",
+      "frames": [
+        1.0,
+        45.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "normal_walk_r1.004",
+      "frames": [
+        1.0,
+        45.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "normal_walk_r1.005",
+      "frames": [
+        1.0,
+        45.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "normal_walk_r1.006",
+      "frames": [
+        1.0,
+        45.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "normal_walk_r1.007",
+      "frames": [
+        1.0,
+        45.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "prone_crawl_backward_segment_r1",
+      "frames": [
+        1.0,
+        229.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "prone_crawl_enter_camera_r6",
+      "frames": [
+        1.0,
+        69.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "prone_crawl_enter_r1",
+      "frames": [
+        1.0,
+        69.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "prone_crawl_enter_r2",
+      "frames": [
+        1.0,
+        69.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "prone_crawl_enter_r3",
+      "frames": [
+        1.0,
+        69.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "prone_crawl_enter_r4",
+      "frames": [
+        1.0,
+        69.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "prone_crawl_enter_r5",
+      "frames": [
+        1.0,
+        69.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "prone_crawl_enter_r6",
+      "frames": [
+        1.0,
+        69.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "prone_crawl_forward_segment_r1",
+      "frames": [
+        1.0,
+        241.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "prone_crawl_left_segment_r1",
+      "frames": [
+        1.0,
+        55.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "prone_crawl_right_segment_r1",
+      "frames": [
+        1.0,
+        139.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_00_Supplied_Base_Guarded_Recovered",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_00_Supplied_Base_Guarded_Recovered.001",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_00_Supplied_Base_Guarded_Recovered.002",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_00_Supplied_Base_Guarded_Recovered.003",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_00_Supplied_Base_Guarded_Recovered.004",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_00_Supplied_Base_Guarded_Recovered.005",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_00_Supplied_Base_Guarded_Recovered.006",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_00_Supplied_Base_Guarded_Recovered.007",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_00_Supplied_Base_Guarded_Recovered.008",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_00_Supplied_Base_Recovered",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_00_Supplied_Base_Recovered.001",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_00_Supplied_Base_Recovered.002",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_00_Supplied_Base_Recovered.003",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_00_Supplied_Base_Recovered.004",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_00_Supplied_Base_Recovered.005",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_00_Supplied_Base_Recovered.006",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_00_Supplied_Base_Recovered.007",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_00_Supplied_Base_Recovered.008",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Loco_Pose4419_Ready_WIP",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Loco_Pose4419_Ready_WIP.001",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Loco_Pose4419_Ready_WIP.002",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Loco_Pose4419_Ready_WIP.003",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Loco_Pose4419_Ready_WIP.004",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Loco_Pose4419_Ready_WIP.005",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Loco_Pose4419_Ready_WIP.006",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Loco_Pose4419_Ready_WIP.007",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Loco_Pose4425_Dip_WIP",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Loco_Pose4425_Dip_WIP.001",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Loco_Pose4425_Dip_WIP.002",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Loco_Pose4425_Dip_WIP.003",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Loco_Pose4425_Dip_WIP.004",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Loco_Pose4425_Dip_WIP.005",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Loco_Pose4425_Dip_WIP.006",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Loco_Pose4425_Dip_WIP.007",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Loco_Pose4431_Entry_WIP2",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Loco_Pose4431_Entry_WIP2.001",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Loco_Pose4431_Entry_WIP2.002",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Loco_Pose4431_Entry_WIP2.003",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Loco_Pose4431_Entry_WIP2.004",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Loco_Pose4431_Entry_WIP2.005",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Loco_Pose4431_Entry_WIP2.006",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Loco_Pose4431_Entry_WIP2.007",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Loco_Pose4434_Entry_WIP2",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Loco_Pose4434_Entry_WIP2.001",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Loco_Pose4434_Entry_WIP2.002",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Loco_Pose4434_Entry_WIP2.003",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Loco_Pose4434_Entry_WIP2.004",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Loco_Pose4434_Entry_WIP2.005",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Loco_Pose4434_Entry_WIP2.006",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Loco_Pose4434_Entry_WIP2.007",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Loco_Pose4464_Low_RollMinus15_Candidate",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Loco_Pose4464_Low_RollMinus15_Candidate.001",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Loco_Pose4464_Low_RollMinus15_Candidate.002",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Loco_Pose4464_Low_RollMinus15_Candidate.003",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Loco_Pose4464_Low_RollMinus15_Candidate.004",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Loco_Pose4464_Low_RollMinus15_Candidate.005",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Loco_Pose4464_Low_RollMinus15_Candidate.006",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Loco_Pose4464_Low_RollMinus15_Candidate.007",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Loco_Pose4464_Low_WIP",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Loco_Pose4464_Low_WIP.001",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Loco_Pose4464_Low_WIP.002",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Loco_Pose4464_Low_WIP.003",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Loco_Pose4464_Low_WIP.004",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Loco_Pose4464_Low_WIP.005",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Loco_Pose4464_Low_WIP.006",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Loco_Pose4464_Low_WIP.007",
+      "frames": [
+        1.0,
+        1.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Locomotion_Normal_Entry_4419_4434_WIP2",
+      "frames": [
+        1.0,
+        16.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Locomotion_Normal_Entry_4419_4434_WIP2.001",
+      "frames": [
+        1.0,
+        16.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Locomotion_Normal_Entry_4419_4434_WIP2.002",
+      "frames": [
+        1.0,
+        16.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Locomotion_Normal_Entry_4419_4434_WIP2.003",
+      "frames": [
+        1.0,
+        16.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Locomotion_Normal_Entry_4419_4434_WIP2.004",
+      "frames": [
+        1.0,
+        16.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Locomotion_Normal_Entry_4419_4434_WIP2.005",
+      "frames": [
+        1.0,
+        16.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Locomotion_Normal_Entry_4419_4434_WIP2.006",
+      "frames": [
+        1.0,
+        16.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Locomotion_Normal_Entry_4419_4434_WIP2.007",
+      "frames": [
+        1.0,
+        16.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Locomotion_Normal_Exit_4917_4932_WIP3",
+      "frames": [
+        1.0,
+        16.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Locomotion_Normal_Exit_4917_4932_WIP3.001",
+      "frames": [
+        1.0,
+        16.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Locomotion_Normal_Exit_4917_4932_WIP3.002",
+      "frames": [
+        1.0,
+        16.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Locomotion_Normal_Exit_4917_4932_WIP3.003",
+      "frames": [
+        1.0,
+        16.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Locomotion_Normal_Exit_4917_4932_WIP3.004",
+      "frames": [
+        1.0,
+        16.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Locomotion_Normal_Exit_4917_4932_WIP3.005",
+      "frames": [
+        1.0,
+        16.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Locomotion_Normal_Exit_4917_4932_WIP3.006",
+      "frames": [
+        1.0,
+        16.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Locomotion_Normal_Exit_4917_4932_WIP3.007",
+      "frames": [
+        1.0,
+        16.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Locomotion_Normal_Loop_AngleFix_WIP",
+      "frames": [
+        1.0,
+        36.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Locomotion_Normal_Loop_AngleFix_WIP.001",
+      "frames": [
+        1.0,
+        36.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Locomotion_Normal_Loop_AngleFix_WIP.002",
+      "frames": [
+        1.0,
+        36.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Locomotion_Normal_Loop_AngleFix_WIP.003",
+      "frames": [
+        1.0,
+        36.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Locomotion_Normal_Loop_AngleFix_WIP.004",
+      "frames": [
+        1.0,
+        36.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Locomotion_Normal_Loop_AngleFix_WIP.005",
+      "frames": [
+        1.0,
+        36.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Locomotion_Normal_Loop_AngleFix_WIP.006",
+      "frames": [
+        1.0,
+        36.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Locomotion_Normal_Loop_AngleFix_WIP.007",
+      "frames": [
+        1.0,
+        36.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Diagnostic_Sequence",
+      "frames": [
+        1.0,
+        223.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Diagnostic_Sequence.001",
+      "frames": [
+        1.0,
+        223.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Diagnostic_Sequence.002",
+      "frames": [
+        1.0,
+        223.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Diagnostic_Sequence.003",
+      "frames": [
+        1.0,
+        223.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Diagnostic_Sequence.004",
+      "frames": [
+        1.0,
+        223.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Diagnostic_Sequence.005",
+      "frames": [
+        1.0,
+        223.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Diagnostic_Sequence.006",
+      "frames": [
+        1.0,
+        223.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Diagnostic_Sequence.007",
+      "frames": [
+        1.0,
+        223.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Entry_Connected",
+      "frames": [
+        1.0,
+        25.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Entry_Connected.001",
+      "frames": [
+        1.0,
+        25.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Entry_Connected.002",
+      "frames": [
+        1.0,
+        25.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Entry_Connected.003",
+      "frames": [
+        1.0,
+        25.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Entry_Connected.004",
+      "frames": [
+        1.0,
+        25.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Entry_Connected.005",
+      "frames": [
+        1.0,
+        25.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Entry_Connected.006",
+      "frames": [
+        1.0,
+        25.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Entry_Connected.007",
+      "frames": [
+        1.0,
+        25.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_000",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_000.001",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_000.002",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_000.003",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_000.004",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_000.005",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_000.006",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_000.007",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_001",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_001.001",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_001.002",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_001.003",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_001.004",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_001.005",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_001.006",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_001.007",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_002",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_002.001",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_002.002",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_002.003",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_002.004",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_002.005",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_002.006",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_002.007",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_003",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_003.001",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_003.002",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_003.003",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_003.004",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_003.005",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_003.006",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_003.007",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_004",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_004.001",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_004.002",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_004.003",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_004.004",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_004.005",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_004.006",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_004.007",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_005",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_005.001",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_005.002",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_005.003",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_005.004",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_005.005",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_005.006",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_005.007",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_006",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_006.001",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_006.002",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_006.003",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_006.004",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_006.005",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_006.006",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_006.007",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_007",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_007.001",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_007.002",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_007.003",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_007.004",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_007.005",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_007.006",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_007.007",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_008",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_008.001",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_008.002",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_008.003",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_008.004",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_008.005",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_008.006",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_008.007",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_009",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_009.001",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_009.002",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_009.003",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_009.004",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_009.005",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_009.006",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_009.007",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_010",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_010.001",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_010.002",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_010.003",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_010.004",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_010.005",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_010.006",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_010.007",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_011",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_011.001",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_011.002",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_011.003",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_011.004",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_011.005",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_011.006",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_011.007",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_012",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_012.001",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_012.002",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_012.003",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_012.004",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_012.005",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_012.006",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_012.007",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_013",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_013.001",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_013.002",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_013.003",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_013.004",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_013.005",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_013.006",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_013.007",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_014",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_014.001",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_014.002",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_014.003",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_014.004",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_014.005",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_014.006",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_014.007",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_015",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_015.001",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_015.002",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_015.003",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_015.004",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_015.005",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_015.006",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_015.007",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_016",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_016.001",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_016.002",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_016.003",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_016.004",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_016.005",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_016.006",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_016.007",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_017",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_017.001",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_017.002",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_017.003",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_017.004",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_017.005",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_017.006",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_017.007",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_018",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_018.001",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_018.002",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_018.003",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_018.004",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_018.005",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_018.006",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_018.007",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_019",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_019.001",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_019.002",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_019.003",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_019.004",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_019.005",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_019.006",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_019.007",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_020",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_020.001",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_020.002",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_020.003",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_020.004",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_020.005",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_020.006",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_020.007",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_021",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_021.001",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_021.002",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_021.003",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_021.004",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_021.005",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_021.006",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_021.007",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_022",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_022.001",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_022.002",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_022.003",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_022.004",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_022.005",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_022.006",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_022.007",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_023",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_023.001",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_023.002",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_023.003",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_023.004",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_023.005",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_023.006",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_023.007",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_024",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_024.001",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_024.002",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_024.003",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_024.004",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_024.005",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_024.006",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_024.007",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_025",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_025.001",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_025.002",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_025.003",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_025.004",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_025.005",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_025.006",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_025.007",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_026",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_026.001",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_026.002",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_026.003",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_026.004",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_026.005",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_026.006",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_026.007",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_027",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_027.001",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_027.002",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_027.003",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_027.004",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_027.005",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_027.006",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_027.007",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_028",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_028.001",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_028.002",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_028.003",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_028.004",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_028.005",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_028.006",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_028.007",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_029",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_029.001",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_029.002",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_029.003",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_029.004",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_029.005",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_029.006",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_029.007",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_030",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_030.001",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_030.002",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_030.003",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_030.004",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_030.005",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_030.006",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_030.007",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_031",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_031.001",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_031.002",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_031.003",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_031.004",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_031.005",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_031.006",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_031.007",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_032",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_032.001",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_032.002",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_032.003",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_032.004",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_032.005",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_032.006",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_032.007",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_033",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_033.001",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_033.002",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_033.003",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_033.004",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_033.005",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_033.006",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_033.007",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_034",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_034.001",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_034.002",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_034.003",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_034.004",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_034.005",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_034.006",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Bridge_034.007",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Connected",
+      "frames": [
+        1.0,
+        25.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Connected.001",
+      "frames": [
+        1.0,
+        25.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Connected.002",
+      "frames": [
+        1.0,
+        25.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Connected.003",
+      "frames": [
+        1.0,
+        25.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Connected.004",
+      "frames": [
+        1.0,
+        25.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Connected.005",
+      "frames": [
+        1.0,
+        25.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Connected.006",
+      "frames": [
+        1.0,
+        25.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_Exit_Connected.007",
+      "frames": [
+        1.0,
+        25.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_LoopToExit",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_LoopToExit.001",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_LoopToExit.002",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_LoopToExit.003",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_LoopToExit.004",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_LoopToExit.005",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_LoopToExit.006",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Normal_LoopToExit.007",
+      "frames": [
+        1.0,
+        10.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Pose_Tactical_Pickup54_Guarded",
+      "frames": [
+        1.0,
+        157.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Pose_Tactical_Pickup54_Guarded.001",
+      "frames": [
+        1.0,
+        157.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Pose_Tactical_Pickup54_Guarded.002",
+      "frames": [
+        1.0,
+        157.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Pose_Tactical_Pickup54_Guarded.003",
+      "frames": [
+        1.0,
+        157.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Pose_Tactical_Pickup54_Guarded.004",
+      "frames": [
+        1.0,
+        157.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Pose_Tactical_Pickup54_Guarded.005",
+      "frames": [
+        1.0,
+        157.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Pose_Tactical_Pickup54_Guarded.006",
+      "frames": [
+        1.0,
+        157.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Pose_Tactical_Pickup54_Guarded.007",
+      "frames": [
+        1.0,
+        157.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Pose_Tactical_Pickup54_Guarded.008",
+      "frames": [
+        1.0,
+        157.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Reload_Tactical_HandApproach_AndReturn_WIP",
+      "frames": [
+        1.0,
+        157.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Reload_Tactical_HandApproach_AndReturn_WIP.001",
+      "frames": [
+        1.0,
+        157.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Reload_Tactical_HandApproach_AndReturn_WIP.002",
+      "frames": [
+        1.0,
+        157.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Reload_Tactical_HandApproach_AndReturn_WIP.003",
+      "frames": [
+        1.0,
+        157.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Reload_Tactical_HandApproach_AndReturn_WIP.004",
+      "frames": [
+        1.0,
+        157.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Reload_Tactical_HandApproach_AndReturn_WIP.005",
+      "frames": [
+        1.0,
+        157.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Reload_Tactical_HandApproach_AndReturn_WIP.006",
+      "frames": [
+        1.0,
+        157.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Reload_Tactical_HandApproach_AndReturn_WIP.007",
+      "frames": [
+        1.0,
+        157.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Reload_Tactical_HandApproach_AndReturn_WIP.008",
+      "frames": [
+        1.0,
+        157.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Reload_Tactical_Hands_Opening_WIP",
+      "frames": [
+        1.0,
+        157.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Reload_Tactical_Hands_Opening_WIP.001",
+      "frames": [
+        1.0,
+        157.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Reload_Tactical_Hands_Opening_WIP.002",
+      "frames": [
+        1.0,
+        157.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Reload_Tactical_Hands_Opening_WIP.003",
+      "frames": [
+        1.0,
+        157.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Reload_Tactical_Hands_Opening_WIP.004",
+      "frames": [
+        1.0,
+        157.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Reload_Tactical_Hands_Opening_WIP.005",
+      "frames": [
+        1.0,
+        157.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Reload_Tactical_Hands_Opening_WIP.006",
+      "frames": [
+        1.0,
+        157.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Reload_Tactical_Hands_Opening_WIP.007",
+      "frames": [
+        1.0,
+        157.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Reload_Tactical_Hands_Opening_WIP.008",
+      "frames": [
+        1.0,
+        157.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Reload_Tactical_Magazine_Locked_Reconstructed_v1",
+      "frames": [
+        1.0,
+        157.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Reload_Tactical_Magazine_Locked_Reconstructed_v1.001",
+      "frames": [
+        1.0,
+        157.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Reload_Tactical_Magazine_Locked_Reconstructed_v1.002",
+      "frames": [
+        1.0,
+        157.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Reload_Tactical_Magazine_Locked_Reconstructed_v1.003",
+      "frames": [
+        1.0,
+        157.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Reload_Tactical_Magazine_Locked_Reconstructed_v1.004",
+      "frames": [
+        1.0,
+        157.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Reload_Tactical_Magazine_Locked_Reconstructed_v1.005",
+      "frames": [
+        1.0,
+        157.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Reload_Tactical_Magazine_Locked_Reconstructed_v1.006",
+      "frames": [
+        1.0,
+        157.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Reload_Tactical_Magazine_Locked_Reconstructed_v1.007",
+      "frames": [
+        1.0,
+        157.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Reload_Tactical_Magazine_Locked_Reconstructed_v1.008",
+      "frames": [
+        1.0,
+        157.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Reload_Tactical_Magazine_Locked_Reconstructed_v2",
+      "frames": [
+        1.0,
+        157.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Reload_Tactical_Magazine_Locked_Reconstructed_v2.001",
+      "frames": [
+        1.0,
+        157.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Reload_Tactical_Magazine_Locked_Reconstructed_v2.002",
+      "frames": [
+        1.0,
+        157.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Reload_Tactical_Magazine_Locked_Reconstructed_v2.003",
+      "frames": [
+        1.0,
+        157.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Reload_Tactical_Magazine_Locked_Reconstructed_v2.004",
+      "frames": [
+        1.0,
+        157.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Reload_Tactical_Magazine_Locked_Reconstructed_v2.005",
+      "frames": [
+        1.0,
+        157.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Reload_Tactical_Magazine_Locked_Reconstructed_v2.006",
+      "frames": [
+        1.0,
+        157.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Reload_Tactical_Magazine_Locked_Reconstructed_v2.007",
+      "frames": [
+        1.0,
+        157.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Reload_Tactical_Magazine_Locked_Reconstructed_v2.008",
+      "frames": [
+        1.0,
+        157.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Reload_Tactical_RightArm_Clearance_Checkpoint",
+      "frames": [
+        1.0,
+        157.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Reload_Tactical_RightArm_Clearance_Checkpoint.001",
+      "frames": [
+        1.0,
+        157.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Reload_Tactical_RightArm_Clearance_Checkpoint.002",
+      "frames": [
+        1.0,
+        157.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Reload_Tactical_RightArm_Clearance_Checkpoint.003",
+      "frames": [
+        1.0,
+        157.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Reload_Tactical_RightArm_Clearance_Checkpoint.004",
+      "frames": [
+        1.0,
+        157.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Reload_Tactical_RightArm_Clearance_Checkpoint.005",
+      "frames": [
+        1.0,
+        157.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Reload_Tactical_RightArm_Clearance_Checkpoint.006",
+      "frames": [
+        1.0,
+        157.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Reload_Tactical_RightArm_Clearance_Checkpoint.007",
+      "frames": [
+        1.0,
+        157.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Reload_Tactical_RightArm_Clearance_Checkpoint.008",
+      "frames": [
+        1.0,
+        157.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Reload_Tactical_Weapon_Locked_Reconstructed_v1",
+      "frames": [
+        1.0,
+        157.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Reload_Tactical_Weapon_Locked_Reconstructed_v1.001",
+      "frames": [
+        1.0,
+        157.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Reload_Tactical_Weapon_Locked_Reconstructed_v1.002",
+      "frames": [
+        1.0,
+        157.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Reload_Tactical_Weapon_Locked_Reconstructed_v1.003",
+      "frames": [
+        1.0,
+        157.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Reload_Tactical_Weapon_Locked_Reconstructed_v1.004",
+      "frames": [
+        1.0,
+        157.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Reload_Tactical_Weapon_Locked_Reconstructed_v1.005",
+      "frames": [
+        1.0,
+        157.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Reload_Tactical_Weapon_Locked_Reconstructed_v1.006",
+      "frames": [
+        1.0,
+        157.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Reload_Tactical_Weapon_Locked_Reconstructed_v1.007",
+      "frames": [
+        1.0,
+        157.0
+      ],
+      "fake_user": true
+    },
+    {
+      "name": "RD_Reload_Tactical_Weapon_Locked_Reconstructed_v1.008",
+      "frames": [
+        1.0,
+        157.0
+      ],
+      "fake_user": true
+    }
+  ],
+  "action_count": 666,
+  "scene_count": 10,
+  "object_count": 167,
+  "export_clip_count": 67,
+  "packed_image_count": 27,
+  "missing_images": [],
+  "jump_patch": {
+    "schema": "rust-duty-jump-r8-in-memory-action-patch/v1",
+    "source_sha256": "a2c4b2bbe98da1a608450bba92404cb39008eae5861bcf8fc3f5d2f978df0e3b",
+    "approved_candidate_sha256": "db30e98a8d63cb4e9075ec2930cd5d34d385780ab374e1d6386f42d1e0fe7b3b",
+    "source_action": "jump_land_r7",
+    "candidate_action": "jump_land_r8_ease_candidate",
+    "source_action_sha256": "c492d72146c1d23e054599137e40c936c1bb2b2766862d858af8316f092d6bda",
+    "candidate_action_sha256": "6e8daff6b1e0d81780336733cc397c965d65c2a9b5eb908cbeb5346a51965d56",
+    "curve_path": "pose.bones[\"righthand_prop\"].rotation_euler",
+    "curve_index": 1,
+    "changed_keys": "5,6",
+    "original_action_count": 103,
+    "action_curve_count": 775,
+    "derivation": "in-memory Action copy; no whole-BLEND byte reproduction",
+    "review_url": "https://github.com/RHS059/rust_duty/pull/20#pullrequestreview-5511992220"
+  }
+}

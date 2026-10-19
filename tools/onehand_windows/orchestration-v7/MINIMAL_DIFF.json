@@ -1,0 +1,118 @@
+{
+  "actual_native_execution": false,
+  "added_files": [
+    "MINIMAL_DIFF.json",
+    "PREDECESSOR_SELECTED_SOURCE.json",
+    "test_addon_profile_dependencies.py"
+  ],
+  "byte_identical_files": {
+    ".gitattributes": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da",
+    "RAW_INPUT_PINS.json": "135250e7fd259bbb50d4295639ca6e80a2c10e6a298a35510513bc8ddb50679c",
+    "SOURCE_CLOSURE.json": "14c52fc3a46f8cca2ae17a2a4db43c4a6f4d184a560e0d5c37f22a88238f0d22",
+    "TRANSPORT_MANIFEST.json": "294adc658cf108fc8eefce80000fe85c7ed394812ff98f493c60e777a325ea70",
+    "TRANSPORT_PARTS.json": "01e836880e04df5211424549f21efd66078d75baa9829dbc50b5b3f8c3f4045e",
+    "admission.template.json": "21782759add4271358fbf70acac839f92d6df0d8e46201ef097359cde209dc8a",
+    "build_rust.py": "bb1d213030a427133b852410d629df9128c8ceb127846322f0528177454caf1b",
+    "checkout_bytes.py": "935ca9997b68778cf7b3a073598b3dfaa236816d610fc9440e86fb4c51db077c",
+    "host_tools.py": "eaeafe40d816a12927fb7073f25122f7ab2ee6d6db570605df4b7d0a7186d2f9",
+    "install_official_blender.ps1": "ba6a08417170e593cdb3637b5c3e072778aa063927d6e47ec482bce71fd2b9ea",
+    "install_official_rust.ps1": "8d79ea742b199aacfa73e0376595a15144c8faa928881ebf3aea0f9f784fc5db",
+    "owned_commands.py": "737ad898105051bf35017ffcd58b3e11d6d1e989b7fa17a076cf272ddc38d1a0",
+    "parts_transport.py": "758ff9aec16bf3dbfe7c7799e27268f94e6b05294943aad943aad1e5797aecce",
+    "preinstall_admission.py": "05b8c41c557cb0274d8caaf913bfb454277df1301a14df47b004517bc66c2a14",
+    "prepare_controller.py": "42e969bbbaaafef1473e191db750133ce185d8bd8c10374c0920e26bcecc7ef1",
+    "probe_blender.py": "618eeef21e353a43e90855c2914c32b89d6c66e6b51a902b49825dfb958e57b1",
+    "projection_binding.py": "92e4bbe3088be679de5696646d117d91e0c7681d6659d88910ed9d0c30000ab8",
+    "publication_inventory.py": "67040460d4357d15d167f54ec6d6e957b7e6f88c7eb4127ff922f0c2830077b4",
+    "run_proof.py": "ac03cae91856c3fc2243837da3ec6914c891844ad39b803a8e747df14b6f3fa9",
+    "source_selection.py": "9cb318b8108882658e79cf564793efdddaae0500a12fcc1dccd758caf0871256",
+    "source_transport.py": "e00395bb674f78ba6da77a2e8b56f59fd7cda1a3b5d4bf8d0559e44ca1baeea6",
+    "test_application_selection.py": "a6fdba0596f83c6fa4c3c92d5e6ed4a4c399023340526c62d25a54ffbd677b5d",
+    "test_completed_inputs.py": "e04fba45dba5daf8f300225670c226f582b87e3a23c523fe8f79cd5497dbb4e0",
+    "test_parts_transport.py": "662e3c7180f461222a9dc38a859a7236ba385a515d364737d316d8a47fc173bb",
+    "test_privacy_admission.py": "9accbc4b05926b30fe19709c3dec160453d546b412817afda8fd636663ba43c2",
+    "test_source_transport.py": "690c8d4651794725e7c5eb22ce757280ff527afd800365c0ddc42a11b7d494ad",
+    "test_trigger_admission.py": "f0161cd5221e7ddc07624b4c07592ce074d99c44c9bebdd3118e15fb704a3830",
+    "verify_freeze.py": "059a14d1d70cfa20b5842d8e50e8a7d829df8d0dc96d4e71fcd7ae897d637479",
+    "workflow_core.py": "e5bae5b323ca1503f1fb6851f9d90cc98d452b137aaf5810af5c3fcddec30428"
+  },
+  "changed_files": {
+    "CHANGE_MANIFEST.json": {
+      "after_sha256": "780b28e50b21d5a2dec2455b99f3fa34139a5acb373a1002abf7a945b25505cc",
+      "before_sha256": "b11d334c6e8ac6256ea96455abf509fed66cfe193d9fa321f571f1df77142a3c"
+    },
+    "CORRECTIONS.md": {
+      "after_sha256": "2b4b0044621dc7f319bf425971d07bcf8e6b69a11819a344678be254e9f6e875",
+      "before_sha256": "5d15868df6d88963ad7167ff83a682b78815f07589ba6f9295eef8df05177aae"
+    },
+    "DEPENDENCIES.json": {
+      "after_sha256": "8407af05f6907911e612d155a336cdd32d1f7751fbc13d6086bccccbc4d4541e",
+      "before_sha256": "fc3eb45fab345c234cce5c115a55661a4c044d69138a457b11532e5904635dce"
+    },
+    "NEXT_CAPTURE_HANDOFF.md": {
+      "after_sha256": "6b6f6d2b7b6342cf039efa670b694e7f92eedebbdbf9afe164551a0c4990ae06",
+      "before_sha256": "b003e9cab674a8f8b1eb766711c106356ce8365ccb6d76797ce1e6a726661fa0"
+    },
+    "PUBLICATION_LAYOUT.json": {
+      "after_sha256": "4f3f1f325b672eb086cbdc7586fba9c54453cf60c41c8b72b09246d4d8b389f8",
+      "before_sha256": "bf8534b77bda007249f697e7fd5cb48112d478a43cc84066c3c7b46a2a31ab22"
+    },
+    "README.md": {
+      "after_sha256": "d4c721899bc060456e4935964f9ed53dba6fae04fa43d517c0a08eb943db0842",
+      "before_sha256": "c9dc68c6721d1573cdaaaa1441dd5266d76c854667de368c862ae9111a6ff80f"
+    },
+    "command_contract.py": {
+      "after_sha256": "ef226bb5b03c6e13289e711d5cc7418ad5978a3943a4fb9caf4dee7b4299f352",
+      "before_sha256": "9ab8d46abff056dd54495db95bbebeacf8df129f828405e9211e9cd2f79e0c3a"
+    },
+    "controller-layout.template.json": {
+      "after_sha256": "7c10b56866047fea91a851ce4c53de7b16c8d2617f3f7b2abdb4daff123947c7",
+      "before_sha256": "e751974e1563fc5bcb738cea72895daaf9d47f6383984eda364f6d7d31edeaf8"
+    },
+    "onehand-windows-proof.yml": {
+      "after_sha256": "00efc1d24425a62d1af0c90fdea78476b1ecb8407dfff1990539f6917379f8bf",
+      "before_sha256": "da85eac2eb216f5b0e2905f9c27697bd6d1e9c0a872e48a66b4f1ce122b16743"
+    },
+    "orchestrate.py": {
+      "after_sha256": "75a6399929fc34645c4a37219c39864c62f525c7cb071802d7fa7f81fbde881f",
+      "before_sha256": "07818423ed32b4e8a404ab6d042d55a3c6eba5474d35407f01e809af3c86a79d"
+    },
+    "reviewed-dependencies.json": {
+      "after_sha256": "2b9b273f0a91ded21ee5d7af3ebb21d1cdcc821592c1498064b1f5f91f406045",
+      "before_sha256": "8ad4d17da4378024d74814bf7bc0857e1aa91c24fb7ff55e0f600c747a08ab19"
+    },
+    "run_source_tests.py": {
+      "after_sha256": "beb55ec424349129fae4efbe8d4b7e8aee2ac9aa6d5ce5b741241d9095508e75",
+      "before_sha256": "c64e42cd80d194dcc96f7869d920484d01c8373b1c371845ad725362f9af5971"
+    },
+    "source_checkout.py": {
+      "after_sha256": "c2206d9a87865f3e805ba4fbd736d5953376c0633205b1443692298e8de0aaf8",
+      "before_sha256": "8ad4b6db52bfa35ed99fc5ffbd8648529219c12514824bd199575de28db589e3"
+    },
+    "test_build_creator_integration.py": {
+      "after_sha256": "7a800769c4190a1d76a13af8fc84eb61eeead4c1481373fbafb22af4c4b541d2",
+      "before_sha256": "803be1ee81f90d9e1f3d70ed4b95fcdce7a4fbf82f5ecd0a4294487e97dde248"
+    },
+    "test_command_contract.py": {
+      "after_sha256": "103add06bda9f0a391a45647085371b584600fc6b0980b4c6b8e562c1120edc3",
+      "before_sha256": "d33fa5ff4687500e7a331e7546c51ade6b075f054c543edcef658d115ec481ae"
+    },
+    "test_workflow.py": {
+      "after_sha256": "8d475866e9fc8e586e1abdaa14cc42026425eb447a2aa533d1b2c3982db308e4",
+      "before_sha256": "6bd7c033bbd22a4de4d8dd23a6f65cb94591dd5781f604d1a3dc6d206a989d85"
+    }
+  },
+  "generated_artifacts_excluded": [
+    "ALLOWLIST.json",
+    "MINIMAL_DIFF.json",
+    "PINS.json",
+    "RESULTS.json",
+    "completed-tests.log",
+    "cpu-tests.log"
+  ],
+  "independent_acceptance": false,
+  "predecessor_commit": "01e3d821d197799a342b7738b84e835b11197f24",
+  "predecessor_package": "tools/onehand_windows/orchestration-v6",
+  "predecessor_pins_sha256": "04b7d2a2d1f7bf913ae360f365e88877675cf13e5f56ddbd5b6ac66f19efff7f",
+  "schema": "rust-duty-source-dependency-successor-diff/v1"
+}

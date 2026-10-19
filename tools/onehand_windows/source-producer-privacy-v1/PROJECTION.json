@@ -1,0 +1,120 @@
+{
+  "historical_reference_resampled": false,
+  "metadata_recipe_sha256": "24f8bb1872d2185d2ce550d701b87f10b42b55fcda15dff9f00faf6a49930906",
+  "numeric_process_coverage_changed": false,
+  "omitted_keys": [
+    "acceptance",
+    "acceptance_status",
+    "animated_control",
+    "compensation_model",
+    "hand_contact_status",
+    "hidden_motion_inference_scope",
+    "known_residuals",
+    "reconstruction_status",
+    "render_status"
+  ],
+  "omitted_operations": {
+    "acceptance": {
+      "before_sha256": null,
+      "original_value_sha256": "49de0dc013ae521776d716af2a105ce225718a9ac7d823b4650d34968f6aa48f"
+    },
+    "acceptance_status": {
+      "before_sha256": null,
+      "original_value_sha256": "97e4fea41e58e6d7dc148025f6a258e86006af839891ca495491dc113d7cc967"
+    },
+    "animated_control": {
+      "before_sha256": null,
+      "original_value_sha256": "0e279872445bfa13f167f5c847159d0266414c924397d6ab209b6d88c4c0a27b"
+    },
+    "compensation_model": {
+      "before_sha256": null,
+      "original_value_sha256": "4b303eab905c65daa74f286e04e16a7ed4b5ec1dc962d4819551ec641a362e1e"
+    },
+    "hand_contact_status": {
+      "before_sha256": "0a7c4d8bea31972b63a7d153931ca805e993af644e58e153dcebcaab1fa713dc",
+      "original_value_sha256": "b2cfdc6ef7aead03ba18223df1cbc3f1c243e6f79b72f8c246b323dd2dcddb98"
+    },
+    "hidden_motion_inference_scope": {
+      "before_sha256": null,
+      "original_value_sha256": "17271be659516d8eda5e3fbad8c766a680217f57863321facd96c254541bb191"
+    },
+    "known_residuals": {
+      "before_sha256": null,
+      "original_value_sha256": "0469efaf52d47ce2cbb1180d8d435e2b49b93be6d178ae1184a27783c6400fb5"
+    },
+    "reconstruction_status": {
+      "before_sha256": null,
+      "original_value_sha256": "4ebd211e538389a98946fba28612b1995d8024e4cfcc643f92aa10b851329bee"
+    },
+    "render_status": {
+      "before_sha256": "ae6cc3fe9d8b7fa96a2772da09db72465ef6b42d479ad8bb4df914e2784bc947",
+      "original_value_sha256": "2b58aac5aa6256d689ae62a047ae49ad0fdeaa7b610f2126d76e1a3c07e85d16"
+    }
+  },
+  "original_delta": {
+    "bytes": 20263458,
+    "sha256": "7be513e2c9fa5d0ff1c00684c542a73354d49fd561fd406a08dad8e05c219a9d"
+  },
+  "original_metadata_after_sha256": "ec83945277b5938e4b7287be63e7c91f6aebbdff9d03c291102c905c402ed24e",
+  "original_metadata_before_sha256": "ee7c355abd9812d7599f9b23afd35ee5755c67fdf545ebdf8ed97684786c30d6",
+  "original_metadata_patch_sha256": "c3b130c8e1c169a240598d7ecefca5200cb783b24c2e5effca07163d95b930e0",
+  "original_producer_sha256": {
+    "dense-times.json": "a521b1e779e45f85948d94b8b9aa9f9cad41d935783ba5fcbda34decb6aec08f",
+    "onehand_v6_source_delta.py": "1d8fde8db44543b4ab31a6da57b0b6c5bc80fd8b10ff5ccf528b4551330d24c3",
+    "onehand_v6_source_native.py": "36e6755f1bbc2e185f3a97b2944bad272509b7433494059398aa27ff52adb422",
+    "pose-corrections.json": "08e25bf4c8731c073ace8749e2225f60d3e95a06eec6627239d7a9ba57aba58c",
+    "run_onehand_v6_source_proof.py": "44b3815e0837fa697d5404f8f553da7c1685bfd7211bd73e17bd70d3f0edff8f"
+  },
+  "preserved_recipe_sha256": "2ab8b71f5faa10d28f68b785670c5f5408952249ce6fe812ffcfeb1761cac4e5",
+  "projected_full_metadata_identity_source": "computed from pinned baseline and exact projection in actual native replay; compared before save and after fresh reopen",
+  "projected_full_metadata_sha256": null,
+  "retained_keys": [
+    "base_action",
+    "baseline_action_count",
+    "baseline_sha256",
+    "hidden_motion_inferred",
+    "source_end_frame",
+    "source_range_convention",
+    "source_start_frame"
+  ],
+  "retained_operations": {
+    "base_action": {
+      "before_sha256": null,
+      "value_sha256": "e77587b5228b7cfd94e6d841bc73ae202fa598c3973fca046728f1234bddd9d1",
+      "value_type": "str"
+    },
+    "baseline_action_count": {
+      "before_sha256": "434c9b5ae514646bbd91b50032ca579efec8f22bf0b4aac12e65997c418e0dd6",
+      "value_sha256": "e3d6c4d4599e00882384ca981ee287ed961fa5f3828e2adb5e9ea890ab0d0525",
+      "value_type": "int"
+    },
+    "baseline_sha256": {
+      "before_sha256": null,
+      "value_sha256": "1700d10b144bbf9c188a345254104130f0af76fb64dc0556760cf221c3e5d2d7",
+      "value_type": "str"
+    },
+    "hidden_motion_inferred": {
+      "before_sha256": "fcbcf165908dd18a9e49f7ff27810176db8e9f63b4352213741664245224f8aa",
+      "value_sha256": "b5bea41b6c623f7c09f1bf24dcae58ebab3c0cdd90ad966bc43a45b44867e12b",
+      "value_type": "bool"
+    },
+    "source_end_frame": {
+      "before_sha256": "17df374b296fed0a524ae8cc3765280acd2e168c9bce0e7403064998ffc6d640",
+      "value_sha256": "fc2cd6cb85339b6c15848a08e7713f73cf55148b21cb32fb78cdf5ff44c90634",
+      "value_type": "int"
+    },
+    "source_range_convention": {
+      "before_sha256": null,
+      "value_sha256": "c1d0d81fc23b292e3254fc0fa3b6dd3bacbff24225a28cbf151c9b699149c873",
+      "value_type": "str"
+    },
+    "source_start_frame": {
+      "before_sha256": "1fc2789c839ba5e3700b66b672e10f89ae591f6b8f5fa23af47b809be4a518a5",
+      "value_sha256": "2672c5e0b4b0aa159c51aca55e56c467b5c4596908e17b247178d44f29a82e76",
+      "value_type": "int"
+    }
+  },
+  "schema": "rust-duty-onehand-comment-projection/v1",
+  "source_blend_modified": false,
+  "use_fake_user_operation": null
+}

@@ -1,0 +1,16 @@
+{
+  "enabled": true,
+  "game_source_revision": "dd1d2cb4bae6e0b2d2509edfc8e8c301184cf4f4",
+  "game_source_spec": {
+    "path": "game-source-spec.json",
+    "sha256": "cfe0a1d8b821f278055ad0be3557c5a8756f2c09309c65c1f091b080de92e594"
+  },
+  "independent_review": {
+    "path": "game-continuation-acceptance.json",
+    "sha256": "d107d0aeb9913700d276eea39d8f9a77bc38ba4ae74c7cc169dd1cd948e9097b"
+  },
+  "orchestration_pins_sha256": "3894ee5b595271716f84f06040674e3ae31effb08a4b56b2616cabffc7005e20",
+  "package_pins_sha256": "07339b1cef1ef45b3a4c03ca3de56eef1bab6c345318ee8a00b62aac3ed194e6",
+  "reserve_bytes": 8589934592,
+  "schema": "rust-duty-onehand-game-continuation-admission/v1"
+}

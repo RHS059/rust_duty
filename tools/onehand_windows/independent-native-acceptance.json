@@ -1,0 +1,14 @@
+{
+  "animation_proof": false,
+  "blocking_findings": [],
+  "controller_layout_sha256": "d9023abb4766d80120309003b14f3558658d747520259ad8298545494e9eaf46",
+  "decision": "accepted-for-guarded-native-proof",
+  "metadata_recipe_sha256": "24f8bb1872d2185d2ce550d701b87f10b42b55fcda15dff9f00faf6a49930906",
+  "orchestration_pins_sha256": "3894ee5b595271716f84f06040674e3ae31effb08a4b56b2616cabffc7005e20",
+  "proof_inputs_sha256": "c545eac935a46b21d437bfa51bad3cafce8a0bab61feb0445478268332af3046",
+  "reviewed_dependencies_sha256": "72430ec96f6187e321ef1e70e907341ad3a3490cb7eede5f6143b4a4784dfd00",
+  "rust_source_selection_sha256": "14c52fc3a46f8cca2ae17a2a4db43c4a6f4d184a560e0d5c37f22a88238f0d22",
+  "schema": "rust-duty-onehand-workflow-independent-acceptance/v4",
+  "source_projection_sha256": "4bf38952b5ff765ad65c8fab2c985303287b570b4a0d897eac28bf78e73bec1b",
+  "source_transport_parts_sha256": "01e836880e04df5211424549f21efd66078d75baa9829dbc50b5b3f8c3f4045e"
+}

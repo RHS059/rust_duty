@@ -1,0 +1,18 @@
+{
+  "actual_windows_proof": false,
+  "errors": 0,
+  "failures": 0,
+  "historical_reference_resampled": false,
+  "native_admission": false,
+  "passed": 132,
+  "preparation_disk_floor_bytes": 1288490189,
+  "projected_full_metadata_sha256": null,
+  "publication_performed": false,
+  "sampled_peak_branch_bytes_prior_131_test_run": 1205831,
+  "schema": "rust-duty-windows-candidate-context-results/v2",
+  "scope": "synthetic CPU plus exact upstream source-projection interface; no native input payloads",
+  "skipped": 0,
+  "source_only_output_cap_bytes": 3145728,
+  "test_log": "cpu-tests.log",
+  "tests_run": 132
+}

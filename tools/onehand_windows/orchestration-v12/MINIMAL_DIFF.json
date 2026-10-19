@@ -1,0 +1,124 @@
+{
+  "added_files": [
+    "PAYLOAD_ONLY_DEPENDENCY_PREDECESSOR.json",
+    "PAYLOAD_ONLY_DEPENDENCY_SOURCE_CHANGES.json"
+  ],
+  "byte_identical_files": {
+    ".gitattributes": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da",
+    "AST_DEPENDENCY_PREDECESSOR.json": "21e440690a05278a63c70f1b05a3381f15f8232bf155e1e321139882fac4889c",
+    "AST_DEPENDENCY_SOURCE_CHANGES.json": "a63b50c17755a5c796a2ba3ec498c848bd5446f8f23be45addd448a932e0d32b",
+    "CHANGE_MANIFEST.json": "9e1b0e97c68eaaa7c3a867c67def52c92e58955b9ab4cb1c30eacb871f121b75",
+    "CORRECTIONS.md": "6dc2477cee381d2ae847ac524e379d67b9256c9f7dc660a365d233a4196bc033",
+    "DIAGNOSTIC_SOURCE_CHANGES.json": "85632e677fb4a9fe9bc5f4724f33c452ace74c5a3512f6c2821f75b6a5f47460",
+    "HISTORICAL_V6_SELECTED_SOURCE.json": "e29fd75f64b736597ad210b3bede3033c7d0181ea133f765963a0387117be62a",
+    "HISTORICAL_V7_SELECTED_SOURCE.json": "239195520ac20dfd9b9882991fd6dd2f712af25a619aec7413a0426dd3c2cc6b",
+    "HOST_BINDING_SOURCE_CHANGES.json": "28d2fc0629e4469b0171002e617f9f38aace70848ecb1083dc121f7bb5f9f58d",
+    "NEXT_CAPTURE_HANDOFF.md": "c9aa9dc06d3d3ad1aedce15d0959bb8a5c64d36f197839a6b40b5da838683f59",
+    "PREDECESSOR_SELECTED_SOURCE.json": "941b762d6c36c2f394dc949f0ae1357f2b28fe06b1fd0c467b061481909d0f22",
+    "RAW_INPUT_PINS.json": "135250e7fd259bbb50d4295639ca6e80a2c10e6a298a35510513bc8ddb50679c",
+    "README.md": "2f2a913c00d0a240a36ccc7ccc1457fbdb1cdfeaf97c8abc044d4ebde43e8cd4",
+    "RIGID_JSON_DEPENDENCY_PREDECESSOR.json": "e7b624c3f9ff82202b58d193eed099446654c80a59c72600d6ca1642b62cafc8",
+    "RIGID_JSON_DEPENDENCY_SOURCE_CHANGES.json": "1e1a68289234337955cd2f18a729327132c82af4f5e067a600546a7b5c4509fe",
+    "SOURCE_CLOSURE.json": "14c52fc3a46f8cca2ae17a2a4db43c4a6f4d184a560e0d5c37f22a88238f0d22",
+    "TRANSPORT_MANIFEST.json": "294adc658cf108fc8eefce80000fe85c7ed394812ff98f493c60e777a325ea70",
+    "TRANSPORT_PARTS.json": "01e836880e04df5211424549f21efd66078d75baa9829dbc50b5b3f8c3f4045e",
+    "admission.template.json": "21782759add4271358fbf70acac839f92d6df0d8e46201ef097359cde209dc8a",
+    "build_rust.py": "bb1d213030a427133b852410d629df9128c8ceb127846322f0528177454caf1b",
+    "checkout_bytes.py": "935ca9997b68778cf7b3a073598b3dfaa236816d610fc9440e86fb4c51db077c",
+    "completed-tests.log": "21e8bf9154738acb199abf1ff0d1e6fba67920b8ff2961247d8778258a36c790",
+    "controller-layout.template.json": "7c10b56866047fea91a851ce4c53de7b16c8d2617f3f7b2abdb4daff123947c7",
+    "cpu-tests.log": "f521added5330aa6d41d9740491cbb8cbe4790de758b0bf089f00c04bc530627",
+    "diagnostic-tests.log": "f9505da78191a869d69af3f6504362ad9d03f52cb12296887e31aa477edf9636",
+    "host-tests.log": "111d034157b93141c471771b5171ebccb28d60b0c187f2bef51700102cbb3a24",
+    "host_tools.py": "52bb2e44c6e86074f337f365723ed1fc3121af8b9d3eb9a41616201c235c24b0",
+    "install_official_blender.ps1": "ba6a08417170e593cdb3637b5c3e072778aa063927d6e47ec482bce71fd2b9ea",
+    "install_official_rust.ps1": "8d79ea742b199aacfa73e0376595a15144c8faa928881ebf3aea0f9f784fc5db",
+    "owned_commands.py": "20104c58b947b9d1032ccf162e1504620f949fdd274b5fbcc2fe5707e14c0e65",
+    "parts_transport.py": "758ff9aec16bf3dbfe7c7799e27268f94e6b05294943aad943aad1e5797aecce",
+    "preinstall_admission.py": "05b8c41c557cb0274d8caaf913bfb454277df1301a14df47b004517bc66c2a14",
+    "prepare_controller.py": "9e8db6b4b069d9786bcae524e352ce8d06290c04fbf39566420e57182e6b3a64",
+    "probe_blender.py": "cef34876a036fec04d520e835d95f8a3fea7a51cad23bb9140efdae13694a350",
+    "projection_binding.py": "92e4bbe3088be679de5696646d117d91e0c7681d6659d88910ed9d0c30000ab8",
+    "publication_inventory.py": "67040460d4357d15d167f54ec6d6e957b7e6f88c7eb4127ff922f0c2830077b4",
+    "run_proof.py": "ac03cae91856c3fc2243837da3ec6914c891844ad39b803a8e747df14b6f3fa9",
+    "source-tests.log": "e01c9eb30d9f37bd0a0b6e66650f85e02a13051653a155f21404efc5103f40bf",
+    "source_selection.py": "9cb318b8108882658e79cf564793efdddaae0500a12fcc1dccd758caf0871256",
+    "source_transport.py": "e00395bb674f78ba6da77a2e8b56f59fd7cda1a3b5d4bf8d0559e44ca1baeea6",
+    "test_application_selection.py": "a6fdba0596f83c6fa4c3c92d5e6ed4a4c399023340526c62d25a54ffbd677b5d",
+    "test_command_contract.py": "2e488ef7d57ac021c12c343a156d4f21780b86ebcd86798851b60ebb8e4527aa",
+    "test_completed_inputs.py": "e04fba45dba5daf8f300225670c226f582b87e3a23c523fe8f79cd5497dbb4e0",
+    "test_fragment_dependency.py": "45723d99515209f85d4678c2c1716728a1296c937195b9578f37b4bc09f931f6",
+    "test_parts_transport.py": "662e3c7180f461222a9dc38a859a7236ba385a515d364737d316d8a47fc173bb",
+    "test_privacy_admission.py": "9accbc4b05926b30fe19709c3dec160453d546b412817afda8fd636663ba43c2",
+    "test_source_transport.py": "690c8d4651794725e7c5eb22ce757280ff527afd800365c0ddc42a11b7d494ad",
+    "test_trigger_admission.py": "f0161cd5221e7ddc07624b4c07592ce074d99c44c9bebdd3118e15fb704a3830",
+    "test_workflow.py": "8d475866e9fc8e586e1abdaa14cc42026425eb447a2aa533d1b2c3982db308e4",
+    "verify_freeze.py": "059a14d1d70cfa20b5842d8e50e8a7d829df8d0dc96d4e71fcd7ae897d637479",
+    "workflow_core.py": "e5bae5b323ca1503f1fb6851f9d90cc98d452b137aaf5810af5c3fcddec30428"
+  },
+  "changed_files": {
+    "DEPENDENCIES.json": {
+      "after_sha256": "cad816141fb4cd8d7c04cbe8edf72234d3d9f884ea1f6db4b08fc6caac5afc4a",
+      "before_sha256": "1a77f10b2322e9acbb380c2ccf6ca8130dac10a0bc4b30970f37de6392de33cd"
+    },
+    "DIAGNOSTIC_SOURCE_PINS.json": {
+      "after_sha256": "9ac83f36c8d541f9463e4e9030827cdf946a9e4138757ef0cb38fd5aac3dfaa3",
+      "before_sha256": "bcb7245b7ffee68267af97e3dc5cbffc8544facfb2ab9ae2c22bbe97b1874266"
+    },
+    "command_contract.py": {
+      "after_sha256": "c3d4a5ec4a89f881a32972f3dd3fde2fee268485958ee2e29d44ce216e173bd0",
+      "before_sha256": "a39795386f906cdf3bd3fa641c16f8d9ad6f96c94e19751a43e4841d5b1c4278"
+    },
+    "failure_diagnostics.py": {
+      "after_sha256": "c08937d4e40f47d02f3cd54df7f1c452d66d17569b1996acf77c40bc3e146de6",
+      "before_sha256": "d979c605aa2eca54b87bdff0bee47c56febcc3a98fa95564cd41a4956caa5044"
+    },
+    "onehand-windows-proof.yml": {
+      "after_sha256": "e82dcfcb9754a9f335b729b72fbf23c51670478e3346c19100a8a6af5ccdfb66",
+      "before_sha256": "614f8ae4c219d92e757cb3b3cdc0f99a58fa38779be3ab85fe0a3c9cd0c1c82b"
+    },
+    "orchestrate.py": {
+      "after_sha256": "0e63750707bd5223fe237c0a2a4d815ff5df42edeb4baae138019c7fc0c7ea48",
+      "before_sha256": "91d8898d521070aa09958ef8d8c283909244e9430a26ae8187313bfb3c8573a6"
+    },
+    "reviewed-dependencies.json": {
+      "after_sha256": "72430ec96f6187e321ef1e70e907341ad3a3490cb7eede5f6143b4a4784dfd00",
+      "before_sha256": "e45c60b8e8b6e2e8cdc19236abd69badbfb00177562c46ffe54edc39192df1b9"
+    },
+    "run_source_tests.py": {
+      "after_sha256": "a420ea9fd01ec7c506f1635f40ce916197c50f906c2477b07b7dccb14bf6f002",
+      "before_sha256": "42102bd7249a8896cf7359b18dd85fa81ed61f00e3e09daf2120e299e71d7879"
+    },
+    "source_checkout.py": {
+      "after_sha256": "afef0c837ed4eea7dc7051375b965776118c7a51ad4fb45d11e70cc8093bd4f1",
+      "before_sha256": "d91831626cb86bfcce2671706b929d1725353e6fc631a9c66f9d37e9d38ba328"
+    },
+    "test_addon_profile_dependencies.py": {
+      "after_sha256": "36d2afa2cf9dcea917e2d31b6e38a8b0deeaf7c5dac403b04a95401a5122ff38",
+      "before_sha256": "181a176a135267e19f3b6719d29b9830c7fca70e9160614ab81be8a59c919de1"
+    },
+    "test_build_creator_integration.py": {
+      "after_sha256": "51fec2af509e5ce51c47e59fc08d00e16c1f98aff036127cf5bfdd245d7758ef",
+      "before_sha256": "9a1d83353a704e993db591e05e46df0788b171275cee0a443b65320d1b754fd1"
+    },
+    "test_failure_diagnostics.py": {
+      "after_sha256": "2c5cf999f2f6027e0915f766387eb51ffb98811d5c49910dfdd16e3435784cc2",
+      "before_sha256": "41f37b961fed18c02437ef4da646e3f035f85cbcbfb21e0f9314df1ea5d36680"
+    },
+    "test_host_identity_collection.py": {
+      "after_sha256": "c62c76d23f298c5b68112aeea835aa72f18eaeaa76af6192b9da4808740c30df",
+      "before_sha256": "d3bfa00806b8e4387df49e162ad05e318e82c2695e673bf911cff5801623ce9d"
+    }
+  },
+  "excluded_metadata": [
+    "PINS.json",
+    "ALLOWLIST.json",
+    "MINIMAL_DIFF.json",
+    "RESULTS.json",
+    "PUBLICATION_LAYOUT.json"
+  ],
+  "native_execution_performed": false,
+  "predecessor_pins_sha256": "8ca4838bb8effd0754324fafe48ea63e663b46c35a6602197e67821efa01e0fb",
+  "publication_performed": false,
+  "schema": "rust-duty-payload-only-dependent-source-diff/v1"
+}

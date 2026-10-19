@@ -31,14 +31,12 @@ class RecoveryWorkflowTests(unittest.TestCase):
                       'test_current_ads_source_oracle.CurrentContextTests'):
             self.assertIn(suite, guards['run'].split())
 
-    def test_recovery_is_independent_and_branch_bounded(self):
-        caller = (ROOT / '.github/workflows/build.yml').read_text()
-        block = caller.split('  windows-source-bound-recovery:\n', 1)[1].split('  windows-same-platform-return:', 1)[0]
-        self.assertNotIn('needs:', block)
-        self.assertIn("github.head_ref == 'aella/wgpu-renderer-port'", block)
-        self.assertIn('actions: read', block)
-        self.assertNotIn('write', block)
-        self.assertIn('uses: ./.github/workflows/windows-source-bound-recovery.yml', block)
+    def test_historical_recovery_is_not_an_ordinary_delivery_dependency(self):
+        caller = yaml.load((ROOT / '.github/workflows/build.yml').read_text(), Loader=yaml.BaseLoader)
+        self.assertNotIn('windows-source-bound-recovery', caller['jobs'])
+        self.assertEqual(caller['on']['workflow_dispatch'], '')
+        self.assertFalse(any(job.get('uses', '').endswith('/windows-source-bound-recovery.yml')
+                             for job in caller['jobs'].values()))
 
     def test_quality_and_wip_build_are_independent_without_waiving_readiness(self):
         body = (ROOT / '.github/workflows/windows-source-bound-recovery.yml').read_text()
@@ -50,8 +48,8 @@ class RecoveryWorkflowTests(unittest.TestCase):
         self.assertIn('final_readiness_requires_all_checks=$true', body)
         self.assertIn('QUALITY_SCOPE.json', body)
         caller = (ROOT / '.github/workflows/build.yml').read_text()
-        self.assertIn("github.event_name == 'workflow_dispatch' && inputs.source_bound_recovery", caller)
-        self.assertIn('default: false', caller)
+        self.assertNotIn('inputs.source_bound_recovery', caller)
+        self.assertNotIn('  windows-source-bound-recovery:', caller)
 
     def test_inputs_verified_before_any_game_execution(self):
         body = (ROOT / '.github/workflows/windows-source-bound-recovery.yml').read_text()

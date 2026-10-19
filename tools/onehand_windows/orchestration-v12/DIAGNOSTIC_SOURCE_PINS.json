@@ -1,0 +1,531 @@
+{
+  "files": [
+    {
+      "bytes": 6868,
+      "relative_path": "onehand-runtime-20261016-r2/native-dense/dense_backend.py",
+      "root_role": "audited_source",
+      "sha256": "d861b7d4c0254df4424f590b76c55f106276b571ce7fdd0a7d9aad53c1546f00",
+      "source_id": "audited/onehand-runtime-20261016-r2/native-dense/dense_backend.py"
+    },
+    {
+      "bytes": 2068,
+      "relative_path": "onehand-runtime-20261016-r2/native-rigid-v2/rigid_bytes.py",
+      "root_role": "audited_source",
+      "sha256": "d22be88ab1c850a52356fdae476ee7ddd827fd22152e17b0f8e2473866f27251",
+      "source_id": "audited/onehand-runtime-20261016-r2/native-rigid-v2/rigid_bytes.py"
+    },
+    {
+      "bytes": 828,
+      "relative_path": "onehand-runtime-20261016-r2/native-rigid-v2/rigid_geometry.py",
+      "root_role": "audited_source",
+      "sha256": "61da740dbb3f23e5438a75f7acdde0581c0f24a5308a7c2341c00a880d207813",
+      "source_id": "audited/onehand-runtime-20261016-r2/native-rigid-v2/rigid_geometry.py"
+    },
+    {
+      "bytes": 8948,
+      "relative_path": "onehand-runtime-20261016-r2/native-rigid-v2/sample_rigid.py",
+      "root_role": "audited_source",
+      "sha256": "b7e7924b0a9e9f366daa898df671b8021e8a79826ba091bac0fb65ce78351692",
+      "source_id": "audited/onehand-runtime-20261016-r2/native-rigid-v2/sample_rigid.py"
+    },
+    {
+      "bytes": 13776,
+      "relative_path": "onehand-runtime-20261016-r2/native-window-v2/sample_source.py",
+      "root_role": "audited_source",
+      "sha256": "a7e915ad048dbe73ee81615b4235fd50e943a97d6976ebd7f9f3532bf8e7c802",
+      "source_id": "audited/onehand-runtime-20261016-r2/native-window-v2/sample_source.py"
+    },
+    {
+      "bytes": 13085,
+      "relative_path": "onehand-runtime-20261016-r2/native-window-v2/verify_window.py",
+      "root_role": "audited_source",
+      "sha256": "aad42caca2c1ab872ee48b006a797362d7dac54ce8bd485455ae4eb8cdb066a4",
+      "source_id": "audited/onehand-runtime-20261016-r2/native-window-v2/verify_window.py"
+    },
+    {
+      "bytes": 3547,
+      "relative_path": "onehand-runtime-20261016-r2/native-window-v2/window_contract.py",
+      "root_role": "audited_source",
+      "sha256": "60089bc486d89689bbc79d8adc13826e7cd502c2fbcf8e862b669737a8800172",
+      "source_id": "audited/onehand-runtime-20261016-r2/native-window-v2/window_contract.py"
+    },
+    {
+      "bytes": 7093,
+      "relative_path": "onehand-runtime-20261016-r2/native-window-v2/window_import.py",
+      "root_role": "audited_source",
+      "sha256": "99a640e2825fc140a998e7329eafc9b472e72bf4ff2968310bb54474bc5686c3",
+      "source_id": "audited/onehand-runtime-20261016-r2/native-window-v2/window_import.py"
+    },
+    {
+      "bytes": 26136,
+      "relative_path": "onehand-runtime-20261016-r2/runtime-conversion-v2/assemble_runtime.py",
+      "root_role": "audited_source",
+      "sha256": "01c4d5dd43b56607742ad2c5862c3185460dcb14b4cb5ef079301daae7f45e12",
+      "source_id": "audited/onehand-runtime-20261016-r2/runtime-conversion-v2/assemble_runtime.py"
+    },
+    {
+      "bytes": 9351,
+      "relative_path": "onehand-runtime-20261016-r2/runtime-conversion-v2/native_runtime.py",
+      "root_role": "audited_source",
+      "sha256": "4c729c2171d23736c3008a087ee7f14a33e7b4883bd059fce659d46a6c4edbc5",
+      "source_id": "audited/onehand-runtime-20261016-r2/runtime-conversion-v2/native_runtime.py"
+    },
+    {
+      "bytes": 12601,
+      "relative_path": "onehand-runtime-20261016-r2/runtime-parity/admit_candidate.py",
+      "root_role": "audited_source",
+      "sha256": "d846b0d77637a86654433ffea4cbd4479edc9a13d2dbb26006a38fcdab12b282",
+      "source_id": "audited/onehand-runtime-20261016-r2/runtime-parity/admit_candidate.py"
+    },
+    {
+      "bytes": 5548,
+      "relative_path": "onehand-runtime-20261016-r2/runtime-parity/bounded_vra.py",
+      "root_role": "audited_source",
+      "sha256": "6a7e3b5996485c9e917e040c86f6909066bf3fa0b31cd43321b4c25b36b40da3",
+      "source_id": "audited/onehand-runtime-20261016-r2/runtime-parity/bounded_vra.py"
+    },
+    {
+      "bytes": 10174,
+      "relative_path": "onehand-runtime-20261016-r2/runtime-parity/conversion_admission.py",
+      "root_role": "audited_source",
+      "sha256": "500ab92baf5ab38721ad924cf4b25d26ac34a8c9585493e9fce0e40f31d33b7a",
+      "source_id": "audited/onehand-runtime-20261016-r2/runtime-parity/conversion_admission.py"
+    },
+    {
+      "bytes": 9197,
+      "relative_path": "onehand-runtime-20261016-r2/runtime-parity/focused_runtime.py",
+      "root_role": "audited_source",
+      "sha256": "b917c07b472303f922e7b91521c96bf1f81e95ee043e1bd5c01f96244182b96e",
+      "source_id": "audited/onehand-runtime-20261016-r2/runtime-parity/focused_runtime.py"
+    },
+    {
+      "bytes": 17837,
+      "relative_path": "onehand-runtime-20261016-r2/runtime-parity/onehand_r2_common.py",
+      "root_role": "audited_source",
+      "sha256": "cae111fc9f0a6a056d369c1cd831e2926e77356c26bcef4ebbd3fdd9e483167a",
+      "source_id": "audited/onehand-runtime-20261016-r2/runtime-parity/onehand_r2_common.py"
+    },
+    {
+      "bytes": 17765,
+      "relative_path": "onehand-runtime-20261016-r2/runtime-parity/serial_r2.py",
+      "root_role": "audited_source",
+      "sha256": "eaa588c9b7ab16adbd9075c9cff9d40f3ee93d7b062dd5c804f4276318498044",
+      "source_id": "audited/onehand-runtime-20261016-r2/runtime-parity/serial_r2.py"
+    },
+    {
+      "bytes": 63300,
+      "relative_path": "onehand-runtime-20261016-r2/runtime-parity/verify_onehand_r2.py",
+      "root_role": "audited_source",
+      "sha256": "968e98ab5e0d9ced460eddd23dc2013a7e07d37317c33d65eb5c8e77c1298342",
+      "source_id": "audited/onehand-runtime-20261016-r2/runtime-parity/verify_onehand_r2.py"
+    },
+    {
+      "bytes": 10042,
+      "relative_path": "onehand-runtime-20261016-r2/runtime-parity/window_admission.py",
+      "root_role": "audited_source",
+      "sha256": "7c777e1b6981e966c33e14c7abf6437a67bd84ae30e7af3b236c5584265e3372",
+      "source_id": "audited/onehand-runtime-20261016-r2/runtime-parity/window_admission.py"
+    },
+    {
+      "bytes": 16819,
+      "relative_path": "onehand-runtime-20261016/importer-patch/tools/export_viewmodel.py",
+      "root_role": "audited_source",
+      "sha256": "dd39c05bbe8c2ac557020261e360da8f7e5debedb652daa75b223de2667f93cd",
+      "source_id": "audited/onehand-runtime-20261016/importer-patch/tools/export_viewmodel.py"
+    },
+    {
+      "bytes": 19678,
+      "relative_path": "onehand-runtime-20261016/importer-patch/tools/import_fbx_viewmodel.py",
+      "root_role": "audited_source",
+      "sha256": "83074cd5ac30404b2be1e1679b04c3e9784a2e4ce4884969bb65d80e3d90fb79",
+      "source_id": "audited/onehand-runtime-20261016/importer-patch/tools/import_fbx_viewmodel.py"
+    },
+    {
+      "bytes": 12460,
+      "relative_path": "onehand-runtime-20261016/importer-patch/tools/prone_camera_pair.py",
+      "root_role": "audited_source",
+      "sha256": "6fb12a0b53e0400ca0404784d3e2aae550f59e3611fa23e40f134e9bc2230045",
+      "source_id": "audited/onehand-runtime-20261016/importer-patch/tools/prone_camera_pair.py"
+    },
+    {
+      "bytes": 6336,
+      "relative_path": "onehand-runtime-20261016/importer-patch/tools/single_stack_fbx.py",
+      "root_role": "audited_source",
+      "sha256": "5fa48bfe1c4688923435a01668aba882393282fd917f0c77d18e24b3763ea326",
+      "source_id": "audited/onehand-runtime-20261016/importer-patch/tools/single_stack_fbx.py"
+    },
+    {
+      "bytes": 30543,
+      "relative_path": "onehand-runtime-20261016/importer-patch/tools/vrpack.py",
+      "root_role": "audited_source",
+      "sha256": "28a23ed9a9b0fe0123405a9800473e57d04419596deae8789c66c744ad05b685",
+      "source_id": "audited/onehand-runtime-20261016/importer-patch/tools/vrpack.py"
+    },
+    {
+      "bytes": 19574,
+      "relative_path": "onehand-runtime-20261016/importer-patch/tools/vrskin.py",
+      "root_role": "audited_source",
+      "sha256": "e6aff7f5278bb8e6dd09ca75e69b8761b1b71bd30b3feddf84f8380cd88a5e14",
+      "source_id": "audited/onehand-runtime-20261016/importer-patch/tools/vrskin.py"
+    },
+    {
+      "bytes": 34515,
+      "relative_path": "onehand-runtime-20261016/importer-patch/tools/vrview.py",
+      "root_role": "audited_source",
+      "sha256": "eefd755f6ef0943a4d8bf443ddfec601bc1336ec90ece722d017c9c4b6d73568",
+      "source_id": "audited/onehand-runtime-20261016/importer-patch/tools/vrview.py"
+    },
+    {
+      "bytes": 51047,
+      "relative_path": "prone-r15-runtime-20261016/source/tools/verify_prone_r15_runtime.py",
+      "root_role": "audited_source",
+      "sha256": "b8bbc01d16e703934626ceff88f328a19345ded859a01f36f0918dbadd470d8b",
+      "source_id": "audited/prone-r15-runtime-20261016/source/tools/verify_prone_r15_runtime.py"
+    },
+    {
+      "bytes": 2898,
+      "relative_path": "recovery/animation-queue/runs/onehand-r5-from-reconstructed-r4/integrity/source_integrity.py",
+      "root_role": "audited_source",
+      "sha256": "d22ae8dcc117e29ffb7d746772efce015010407cbb1ddce22924a31746e831ca",
+      "source_id": "audited/recovery/animation-queue/runs/onehand-r5-from-reconstructed-r4/integrity/source_integrity.py"
+    },
+    {
+      "bytes": 9678,
+      "relative_path": "recovery/animation-queue/runs/onehand-r5-from-reconstructed-r4/integrity/validate_directional_source.py",
+      "root_role": "audited_source",
+      "sha256": "8f1deb2883eafd5e7a76cf48109a33c010690aa197150369df60773b5b593816",
+      "source_id": "audited/recovery/animation-queue/runs/onehand-r5-from-reconstructed-r4/integrity/validate_directional_source.py"
+    },
+    {
+      "bytes": 9545,
+      "relative_path": "addon_resolver.py",
+      "root_role": "context_package",
+      "sha256": "e552e182ec5d82e6f0891dc94d4390e60cfc814bb777183689795e8cf2737d31",
+      "source_id": "context-v3/addon_resolver.py"
+    },
+    {
+      "bytes": 21439,
+      "relative_path": "candidate_context.py",
+      "root_role": "context_package",
+      "sha256": "6698b94ed4ff8f385ddd3d18a676f6fd27b8234b473c352b829a0597b28398f7",
+      "source_id": "context-v3/candidate_context.py"
+    },
+    {
+      "bytes": 2763,
+      "relative_path": "pinned_assembler.py",
+      "root_role": "context_package",
+      "sha256": "6a9afcc7a9de9b7215b2b3000f77e7d7a61d12543918adc93dbf8ca6973cb6cf",
+      "source_id": "context-v3/pinned_assembler.py"
+    },
+    {
+      "bytes": 1734,
+      "relative_path": "pinned_transport.py",
+      "root_role": "context_package",
+      "sha256": "d261450937cf709a62fdbe6e0a61056c19c3d6ffb7e897dc8e68484fc231d1b7",
+      "source_id": "context-v3/pinned_transport.py"
+    },
+    {
+      "bytes": 20812,
+      "relative_path": "production_assembler.py",
+      "root_role": "context_package",
+      "sha256": "afb0cf30903a6d083e300271a84a439cde8cd3036b7da6ea4e914b660f1d56eb",
+      "source_id": "context-v3/production_assembler.py"
+    },
+    {
+      "bytes": 6841,
+      "relative_path": "reconstruct_windows_profile.py",
+      "root_role": "context_package",
+      "sha256": "b54cce200fcbedd148a6d0a23ae99accf8e9dbdde9b9579fadc0b24060b3ad3c",
+      "source_id": "context-v3/reconstruct_windows_profile.py"
+    },
+    {
+      "bytes": 2483,
+      "relative_path": "run_source_preparation_tests.py",
+      "root_role": "context_package",
+      "sha256": "fb2ad00b0692b552aa467321619ab303a9a7440d5454f15bc4f92f75e24aaced",
+      "source_id": "context-v3/run_source_preparation_tests.py"
+    },
+    {
+      "bytes": 1298,
+      "relative_path": "verify_freeze.py",
+      "root_role": "context_package",
+      "sha256": "5b88650607feb34a5a280d4ddd0495027d9f0f50ab1d6ef8639fdd5845b8cd12",
+      "source_id": "context-v3/verify_freeze.py"
+    },
+    {
+      "bytes": 25391,
+      "relative_path": "admission.py",
+      "root_role": "native_producer",
+      "sha256": "c71efc29f7b6a105116c3ac1819acb05b1de441f45802c2f09ad5ba65ced36c2",
+      "source_id": "native-producer-reviewed/admission.py"
+    },
+    {
+      "bytes": 4345,
+      "relative_path": "extract_helpers.py",
+      "root_role": "native_producer",
+      "sha256": "5960f27c112ae4b83ae729c5cbd1d2eba4fe5f4bf5b0fb7afa5c33dfe7a7d10c",
+      "source_id": "native-producer-reviewed/extract_helpers.py"
+    },
+    {
+      "bytes": 8441,
+      "relative_path": "host_identity.py",
+      "root_role": "native_producer",
+      "sha256": "ba555aeeb188cf4d594c0b36ecf5a1003f3d3379c601a2b258ec4cfd475c6184",
+      "source_id": "native-producer-reviewed/host_identity.py"
+    },
+    {
+      "bytes": 3357,
+      "relative_path": "launch_stage.py",
+      "root_role": "native_producer",
+      "sha256": "035fd24eff1f5e0f007160295bb14418171997945c7c7a7a982ddd911a313d0b",
+      "source_id": "native-producer-reviewed/launch_stage.py"
+    },
+    {
+      "bytes": 3919,
+      "relative_path": "native_entry.py",
+      "root_role": "native_producer",
+      "sha256": "55edc392b90578e1bb3a1a03c12c093a9edc5467afaf5d9b0d169c67d24b829f",
+      "source_id": "native-producer-reviewed/native_entry.py"
+    },
+    {
+      "bytes": 22131,
+      "relative_path": "native_stages.py",
+      "root_role": "native_producer",
+      "sha256": "3d74bba53db207188647d27e77573b0c02fc9de634235ac3b575d8eefb8ef9aa",
+      "source_id": "native-producer-reviewed/native_stages.py"
+    },
+    {
+      "bytes": 9904,
+      "relative_path": "pinned_code.py",
+      "root_role": "native_producer",
+      "sha256": "4060a2d02762f1b70539cbbf94f76c63ee59e8aa0fc7b1e7166ab60170f9ae42",
+      "source_id": "native-producer-reviewed/pinned_code.py"
+    },
+    {
+      "bytes": 2313,
+      "relative_path": "planner.py",
+      "root_role": "native_producer",
+      "sha256": "e7bccd65dde3c34c46224e2325bcf01c6e980bf67ffd33a7eab1919a2e8e0db2",
+      "source_id": "native-producer-reviewed/planner.py"
+    },
+    {
+      "bytes": 11829,
+      "relative_path": "process_evidence.py",
+      "root_role": "native_producer",
+      "sha256": "b42edd7f757a5876bee2f600bfb35f56f80867255b21693a8444b365305e6a51",
+      "source_id": "native-producer-reviewed/process_evidence.py"
+    },
+    {
+      "bytes": 10383,
+      "relative_path": "stage_context.py",
+      "root_role": "native_producer",
+      "sha256": "3fde606b79903fa6d8b82e2b43999ed7d92f06547d097c84a5c719513c98f809",
+      "source_id": "native-producer-reviewed/stage_context.py"
+    },
+    {
+      "bytes": 4140,
+      "relative_path": "transport_binding.py",
+      "root_role": "native_producer",
+      "sha256": "1c2b851d68cdf7c4da8813f1d504ae9be5649e65b5fc01feb332d557ae4f7a5e",
+      "source_id": "native-producer-reviewed/transport_binding.py"
+    },
+    {
+      "bytes": 800,
+      "relative_path": "verify_freeze.py",
+      "root_role": "native_producer",
+      "sha256": "2456c9b00aee29eaa55dbb1f37a25506914562e446edbced48c71e2f794a2752",
+      "source_id": "native-producer-reviewed/verify_freeze.py"
+    },
+    {
+      "bytes": 10713,
+      "relative_path": "build_rust.py",
+      "root_role": "orchestration",
+      "sha256": "bb1d213030a427133b852410d629df9128c8ceb127846322f0528177454caf1b",
+      "source_id": "orchestration/build_rust.py"
+    },
+    {
+      "bytes": 25695,
+      "relative_path": "failure_diagnostics.py",
+      "root_role": "orchestration",
+      "sha256": "c08937d4e40f47d02f3cd54df7f1c452d66d17569b1996acf77c40bc3e146de6",
+      "source_id": "orchestration/failure_diagnostics.py"
+    },
+    {
+      "bytes": 8262,
+      "relative_path": "host_tools.py",
+      "root_role": "orchestration",
+      "sha256": "52bb2e44c6e86074f337f365723ed1fc3121af8b9d3eb9a41616201c235c24b0",
+      "source_id": "orchestration/host_tools.py"
+    },
+    {
+      "bytes": 22718,
+      "relative_path": "orchestrate.py",
+      "root_role": "orchestration",
+      "sha256": "0e63750707bd5223fe237c0a2a4d815ff5df42edeb4baae138019c7fc0c7ea48",
+      "source_id": "orchestration/orchestrate.py"
+    },
+    {
+      "bytes": 4728,
+      "relative_path": "owned_commands.py",
+      "root_role": "orchestration",
+      "sha256": "20104c58b947b9d1032ccf162e1504620f949fdd274b5fbcc2fe5707e14c0e65",
+      "source_id": "orchestration/owned_commands.py"
+    },
+    {
+      "bytes": 2706,
+      "relative_path": "probe_blender.py",
+      "root_role": "orchestration",
+      "sha256": "cef34876a036fec04d520e835d95f8a3fea7a51cad23bb9140efdae13694a350",
+      "source_id": "orchestration/probe_blender.py"
+    },
+    {
+      "bytes": 7080,
+      "relative_path": "workflow_core.py",
+      "root_role": "orchestration",
+      "sha256": "e5bae5b323ca1503f1fb6851f9d90cc98d452b137aaf5810af5c3fcddec30428",
+      "source_id": "orchestration/workflow_core.py"
+    },
+    {
+      "bytes": 39160,
+      "relative_path": "owned_process.py",
+      "root_role": "process_adapter",
+      "sha256": "256125ea044c738ac316da841a5acad9c39b1fc2b1666cc4a09ce81828bd191e",
+      "source_id": "process-v2/owned_process.py"
+    },
+    {
+      "bytes": 2751,
+      "relative_path": "run_tests.py",
+      "root_role": "process_adapter",
+      "sha256": "79b3868758640da4918cc8822ee6327401b07a0c597a608fc94cdb488f73d380",
+      "source_id": "process-v2/run_tests.py"
+    },
+    {
+      "bytes": 22068,
+      "relative_path": "windows_job.py",
+      "root_role": "process_adapter",
+      "sha256": "d628c4f7d3136dde11cf6c9d5ba35f3d12302bfd2522918fe1f0229a40f1ba1e",
+      "source_id": "process-v2/windows_job.py"
+    },
+    {
+      "bytes": 8754,
+      "relative_path": "build_closure.py",
+      "root_role": "runtime_consumer",
+      "sha256": "e94a94316cf30d63f9e18e5aad90931ad1f31bf1f3f9d0611dbbe9db8e5e4f56",
+      "source_id": "runtime-consumer-reviewed/build_closure.py"
+    },
+    {
+      "bytes": 20714,
+      "relative_path": "consumer.py",
+      "root_role": "runtime_consumer",
+      "sha256": "de28e7d27fc26a87a2e24906a5d68fd8c9e107ad09b44676eee8dd1e6cfd926a",
+      "source_id": "runtime-consumer-reviewed/consumer.py"
+    },
+    {
+      "bytes": 15340,
+      "relative_path": "evidence.py",
+      "root_role": "runtime_consumer",
+      "sha256": "398005bc413ad3383add91ccb06800657c585ce918f220eebd4026cedecd8fdf",
+      "source_id": "runtime-consumer-reviewed/evidence.py"
+    },
+    {
+      "bytes": 2514,
+      "relative_path": "extract_math.py",
+      "root_role": "runtime_consumer",
+      "sha256": "33137f95c5e0f0b2beb7fe865f60a79ccbb4a277af9ba32eafa790222f7b0dbc",
+      "source_id": "runtime-consumer-reviewed/extract_math.py"
+    },
+    {
+      "bytes": 6150,
+      "relative_path": "pinned_math.py",
+      "root_role": "runtime_consumer",
+      "sha256": "2c4aa004c633bcc7782079051697d75e839aa76bcabae72a5e98b9ced01ee6e9",
+      "source_id": "runtime-consumer-reviewed/pinned_math.py"
+    },
+    {
+      "bytes": 9635,
+      "relative_path": "retirement.py",
+      "root_role": "runtime_consumer",
+      "sha256": "003d161c1061b0d14bb86417eee3339810659759e3dd3df49513811c05655f09",
+      "source_id": "runtime-consumer-reviewed/retirement.py"
+    },
+    {
+      "bytes": 19766,
+      "relative_path": "runtime_context.py",
+      "root_role": "runtime_consumer",
+      "sha256": "b2e91e99a277d19a275e8f5434c6f404a83d3b153663d676f43568a7b1e82361",
+      "source_id": "runtime-consumer-reviewed/runtime_context.py"
+    },
+    {
+      "bytes": 4810,
+      "relative_path": "transport.py",
+      "root_role": "runtime_consumer",
+      "sha256": "1cfd4163207df4666d3197d97409e6f0212691bd815e06d2af724915fb4ebad2",
+      "source_id": "runtime-consumer-reviewed/transport.py"
+    },
+    {
+      "bytes": 858,
+      "relative_path": "verify_freeze.py",
+      "root_role": "runtime_consumer",
+      "sha256": "e1a2cb07d5ad4822f9addb35eebe2d0ce2154f5a3c9547be44a88141f87a3f64",
+      "source_id": "runtime-consumer-reviewed/verify_freeze.py"
+    },
+    {
+      "bytes": 12893,
+      "relative_path": "historical_reference.py",
+      "root_role": "source_package",
+      "sha256": "eee8e072c0083f67e8aa296c78a6126ca30ded5ea86f5b3d0293cf8e9381d9dd",
+      "source_id": "source-producer/historical_reference.py"
+    },
+    {
+      "bytes": 30826,
+      "relative_path": "onehand_v6_source_delta.py",
+      "root_role": "source_package",
+      "sha256": "02be12e5bfb6503810ec9729cb03ed6edcfc0a154c087402845dd6a9d36ce7b0",
+      "source_id": "source-producer/onehand_v6_source_delta.py"
+    },
+    {
+      "bytes": 32612,
+      "relative_path": "onehand_v6_source_native.py",
+      "root_role": "source_package",
+      "sha256": "0ae5da70398aad7e045354ab2f5734afd668a0cf8fafedca98fee7ccba2b76f2",
+      "source_id": "source-producer/onehand_v6_source_native.py"
+    },
+    {
+      "bytes": 7632,
+      "relative_path": "privacy_projection.py",
+      "root_role": "source_package",
+      "sha256": "7d88d3b32c9ddf2e2525ce1f9e0dcfe68a4319bc44d144d37e7760de8aed2f92",
+      "source_id": "source-producer/privacy_projection.py"
+    },
+    {
+      "bytes": 1865,
+      "relative_path": "project_original.py",
+      "root_role": "source_package",
+      "sha256": "9ea5622e301da7c8eb94ba8295c0b72e95a34d15fe1d093fa1ecdf3d3bcb39cc",
+      "source_id": "source-producer/project_original.py"
+    },
+    {
+      "bytes": 19069,
+      "relative_path": "run_onehand_v6_source_proof.py",
+      "root_role": "source_package",
+      "sha256": "0e803821851d1daa11e92e264c4264c31c11a601dedbcf3b1dd27df9b5be888a",
+      "source_id": "source-producer/run_onehand_v6_source_proof.py"
+    },
+    {
+      "bytes": 505,
+      "relative_path": "verify_freeze.py",
+      "root_role": "source_package",
+      "sha256": "6159677e6192f3b53e21f415332b4d3d6450619a0f31b956b76241dd58f041cd",
+      "source_id": "source-producer/verify_freeze.py"
+    },
+    {
+      "bytes": 18827,
+      "relative_path": "windows-portable-v2/portable_source.py",
+      "root_role": "source_package",
+      "sha256": "ac6cbb7f61666542d8d39db1014803ab3cb78625a5d375dcfdeaa8321444972a",
+      "source_id": "source-producer/windows-portable-v2/portable_source.py"
+    }
+  ],
+  "schema": "rust-duty-public-diagnostic-source-pins/v1",
+  "scope": "Exact original published Python source only; excludes installed libraries, private assets, dynamic values and environment."
+}

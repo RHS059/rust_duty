@@ -1,0 +1,9 @@
+{
+  "actual_windows_native_proof": false,
+  "external_current_test_receipts": "payload-only-publication-preparation-v1",
+  "historical_logs_preserved": true,
+  "native_execution_performed": false,
+  "predecessor_results_sha256": "28894cfed9b11c771e0b30d0e8f427ae30a38ba061a9a622308c516e9152ed08",
+  "schema": "rust-duty-payload-only-dependent-source-results/v1",
+  "state": "prepared-source-validation-pending"
+}

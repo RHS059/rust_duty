@@ -1,0 +1,9 @@
+{
+  "actual_windows_native_proof": false,
+  "external_current_test_receipts": "rigid-json-publication-preparation-v1",
+  "historical_logs_preserved": true,
+  "native_execution_performed": false,
+  "predecessor_results_sha256": "ced33d520b9636b0649458bbb0c7c0311b70b06ddc7a54423f88d8b98e836edc",
+  "schema": "rust-duty-rigid-json-dependent-source-results/v1",
+  "state": "prepared-source-validation-pending"
+}

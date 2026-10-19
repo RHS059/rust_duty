@@ -1,0 +1,15 @@
+--- native-producer-v8/admission.py
++++ native-producer-v9/admission.py
+@@ -267,7 +267,11 @@
+ def verify_output_inventory(ctx,env,*,retired_files=None):
+     """Same exact present inventory, except independently retired source rows."""
+     c=ctx.cc;files=env['output_files']
+-    require(type(files) is dict and 1<=len(files)<=150,'bounded output inventory')
++    # ctx.stage is already validated against the immutable context and exact
++    # receipt binding by _verify_stage. These two roles keep their complete
++    # rigid witnesses in the envelope payload, with no standalone output file.
++    payload_only=ctx.stage in ('rigid-focus','rigid-chunk')
++    require(type(files) is dict and (len(files)==0 if payload_only else 1<=len(files)<=150),'bounded output inventory')
+     retired={} if retired_files is None else retired_files
+     if retired_files is not None:
+         require(ctx.stage=='source-chunk','only source-chunk rows may be retired')

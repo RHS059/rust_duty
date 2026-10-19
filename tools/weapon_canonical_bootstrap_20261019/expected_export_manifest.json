@@ -1,0 +1,3041 @@
+{
+  "schema": "rust-duty-weapon-nla/v1",
+  "clips": [
+    {
+      "id": "normal_ready",
+      "scene": "LIBRARY | LOCOMOTION",
+      "rig": "Arms.004",
+      "track_name": "EXPORT::normal_ready",
+      "action": "RD_Locomotion_Normal_Entry_4419_4434_WIP2.004",
+      "source_action": "RD_Locomotion_Normal_Entry_4419_4434_WIP2",
+      "source_file": "repo-assets__authoring__locomotion__locomotion.blend",
+      "frame_start": 1,
+      "frame_end": 2,
+      "fps": 60,
+      "fps_base": 1.0,
+      "objects": [
+        "Actual arms mesh 0.004",
+        "Actual arms mesh 1.004",
+        "Actual arms mesh 2.004",
+        "Arms.004",
+        "hk416_magazine.004",
+        "hk416_weapon.004",
+        "RD First Person Review.004"
+      ],
+      "object_name_map": {
+        "Actual arms mesh 0.004": "Actual arms mesh 0",
+        "Actual arms mesh 1.004": "Actual arms mesh 1",
+        "Actual arms mesh 2.004": "Actual arms mesh 2",
+        "Arms.004": "Arms",
+        "hk416_magazine.004": "hk416_magazine",
+        "hk416_weapon.004": "hk416_weapon",
+        "RD First Person Review.004": "RD First Person Review"
+      },
+      "status": "gameplay",
+      "companion_tracks": [
+        {
+          "object": "hk416_magazine.004",
+          "action": "hk416_magazineAction.004",
+          "track_name": "EXPORT::normal_ready"
+        },
+        {
+          "object": "hk416_weapon.004",
+          "action": "hk416_weaponAction.005",
+          "track_name": "EXPORT::normal_ready"
+        }
+      ],
+      "freeze_at_source_frame": 1,
+      "camera": "RD First Person Review.004"
+    },
+    {
+      "id": "normal_entry",
+      "scene": "LIBRARY | LOCOMOTION",
+      "rig": "Arms.004",
+      "track_name": "EXPORT::normal_entry",
+      "action": "RD_Locomotion_Normal_Entry_4419_4434_WIP2.004",
+      "source_action": "RD_Locomotion_Normal_Entry_4419_4434_WIP2",
+      "source_file": "repo-assets__authoring__locomotion__locomotion.blend",
+      "frame_start": 1,
+      "frame_end": 16,
+      "fps": 60,
+      "fps_base": 1.0,
+      "objects": [
+        "Actual arms mesh 0.004",
+        "Actual arms mesh 1.004",
+        "Actual arms mesh 2.004",
+        "Arms.004",
+        "hk416_magazine.004",
+        "hk416_weapon.004",
+        "RD First Person Review.004"
+      ],
+      "object_name_map": {
+        "Actual arms mesh 0.004": "Actual arms mesh 0",
+        "Actual arms mesh 1.004": "Actual arms mesh 1",
+        "Actual arms mesh 2.004": "Actual arms mesh 2",
+        "Arms.004": "Arms",
+        "hk416_magazine.004": "hk416_magazine",
+        "hk416_weapon.004": "hk416_weapon",
+        "RD First Person Review.004": "RD First Person Review"
+      },
+      "status": "gameplay",
+      "companion_tracks": [
+        {
+          "object": "hk416_magazine.004",
+          "action": "hk416_magazineAction.004",
+          "track_name": "EXPORT::normal_entry"
+        },
+        {
+          "object": "hk416_weapon.004",
+          "action": "hk416_weaponAction.005",
+          "track_name": "EXPORT::normal_entry"
+        }
+      ],
+      "camera": "RD First Person Review.004"
+    },
+    {
+      "id": "normal_loop",
+      "scene": "LIBRARY | LOCOMOTION",
+      "rig": "Arms.004",
+      "track_name": "EXPORT::normal_loop",
+      "action": "RD_Locomotion_Normal_Loop_AngleFix_WIP.004",
+      "source_action": "RD_Locomotion_Normal_Loop_AngleFix_WIP",
+      "source_file": "repo-assets__authoring__locomotion__locomotion.blend",
+      "frame_start": 1,
+      "frame_end": 36,
+      "fps": 60,
+      "fps_base": 1.0,
+      "objects": [
+        "Actual arms mesh 0.004",
+        "Actual arms mesh 1.004",
+        "Actual arms mesh 2.004",
+        "Arms.004",
+        "hk416_magazine.004",
+        "hk416_weapon.004",
+        "RD First Person Review.004"
+      ],
+      "object_name_map": {
+        "Actual arms mesh 0.004": "Actual arms mesh 0",
+        "Actual arms mesh 1.004": "Actual arms mesh 1",
+        "Actual arms mesh 2.004": "Actual arms mesh 2",
+        "Arms.004": "Arms",
+        "hk416_magazine.004": "hk416_magazine",
+        "hk416_weapon.004": "hk416_weapon",
+        "RD First Person Review.004": "RD First Person Review"
+      },
+      "status": "gameplay",
+      "companion_tracks": [
+        {
+          "object": "hk416_magazine.004",
+          "action": "hk416_magazineAction.004",
+          "track_name": "EXPORT::normal_loop"
+        },
+        {
+          "object": "hk416_weapon.004",
+          "action": "hk416_weaponAction.005",
+          "track_name": "EXPORT::normal_loop"
+        }
+      ],
+      "camera": "RD First Person Review.004"
+    },
+    {
+      "id": "normal_exit",
+      "scene": "LIBRARY | LOCOMOTION",
+      "rig": "Arms.004",
+      "track_name": "EXPORT::normal_exit",
+      "action": "RD_Locomotion_Normal_Exit_4917_4932_WIP3.004",
+      "source_action": "RD_Locomotion_Normal_Exit_4917_4932_WIP3",
+      "source_file": "repo-assets__authoring__locomotion__locomotion.blend",
+      "frame_start": 1,
+      "frame_end": 16,
+      "fps": 60,
+      "fps_base": 1.0,
+      "objects": [
+        "Actual arms mesh 0.004",
+        "Actual arms mesh 1.004",
+        "Actual arms mesh 2.004",
+        "Arms.004",
+        "hk416_magazine.004",
+        "hk416_weapon.004",
+        "RD First Person Review.004"
+      ],
+      "object_name_map": {
+        "Actual arms mesh 0.004": "Actual arms mesh 0",
+        "Actual arms mesh 1.004": "Actual arms mesh 1",
+        "Actual arms mesh 2.004": "Actual arms mesh 2",
+        "Arms.004": "Arms",
+        "hk416_magazine.004": "hk416_magazine",
+        "hk416_weapon.004": "hk416_weapon",
+        "RD First Person Review.004": "RD First Person Review"
+      },
+      "status": "gameplay",
+      "companion_tracks": [
+        {
+          "object": "hk416_magazine.004",
+          "action": "hk416_magazineAction.004",
+          "track_name": "EXPORT::normal_exit"
+        },
+        {
+          "object": "hk416_weapon.004",
+          "action": "hk416_weaponAction.005",
+          "track_name": "EXPORT::normal_exit"
+        }
+      ],
+      "camera": "RD First Person Review.004"
+    },
+    {
+      "id": "normal_entry_connected",
+      "scene": "LIBRARY | LOCOMOTION",
+      "rig": "Arms.004",
+      "track_name": "EXPORT::normal_entry_connected",
+      "action": "RD_Normal_Entry_Connected.004",
+      "source_action": "RD_Normal_Entry_Connected",
+      "source_file": "repo-assets__authoring__locomotion__locomotion.blend",
+      "frame_start": 1,
+      "frame_end": 25,
+      "fps": 60,
+      "fps_base": 1.0,
+      "objects": [
+        "Actual arms mesh 0.004",
+        "Actual arms mesh 1.004",
+        "Actual arms mesh 2.004",
+        "Arms.004",
+        "hk416_magazine.004",
+        "hk416_weapon.004",
+        "RD First Person Review.004"
+      ],
+      "object_name_map": {
+        "Actual arms mesh 0.004": "Actual arms mesh 0",
+        "Actual arms mesh 1.004": "Actual arms mesh 1",
+        "Actual arms mesh 2.004": "Actual arms mesh 2",
+        "Arms.004": "Arms",
+        "hk416_magazine.004": "hk416_magazine",
+        "hk416_weapon.004": "hk416_weapon",
+        "RD First Person Review.004": "RD First Person Review"
+      },
+      "status": "gameplay",
+      "companion_tracks": [
+        {
+          "object": "hk416_magazine.004",
+          "action": "hk416_magazineAction.004",
+          "track_name": "EXPORT::normal_entry_connected"
+        },
+        {
+          "object": "hk416_weapon.004",
+          "action": "hk416_weaponAction.005",
+          "track_name": "EXPORT::normal_entry_connected"
+        }
+      ],
+      "camera": "RD First Person Review.004"
+    },
+    {
+      "id": "normal_loop_to_exit",
+      "scene": "LIBRARY | LOCOMOTION",
+      "rig": "Arms.004",
+      "track_name": "EXPORT::normal_loop_to_exit",
+      "action": "RD_Normal_LoopToExit.004",
+      "source_action": "RD_Normal_LoopToExit",
+      "source_file": "repo-assets__authoring__locomotion__locomotion.blend",
+      "frame_start": 1,
+      "frame_end": 10,
+      "fps": 60,
+      "fps_base": 1.0,
+      "objects": [
+        "Actual arms mesh 0.004",
+        "Actual arms mesh 1.004",
+        "Actual arms mesh 2.004",
+        "Arms.004",
+        "hk416_magazine.004",
+        "hk416_weapon.004",
+        "RD First Person Review.004"
+      ],
+      "object_name_map": {
+        "Actual arms mesh 0.004": "Actual arms mesh 0",
+        "Actual arms mesh 1.004": "Actual arms mesh 1",
+        "Actual arms mesh 2.004": "Actual arms mesh 2",
+        "Arms.004": "Arms",
+        "hk416_magazine.004": "hk416_magazine",
+        "hk416_weapon.004": "hk416_weapon",
+        "RD First Person Review.004": "RD First Person Review"
+      },
+      "status": "gameplay",
+      "companion_tracks": [
+        {
+          "object": "hk416_magazine.004",
+          "action": "hk416_magazineAction.004",
+          "track_name": "EXPORT::normal_loop_to_exit"
+        },
+        {
+          "object": "hk416_weapon.004",
+          "action": "hk416_weaponAction.005",
+          "track_name": "EXPORT::normal_loop_to_exit"
+        }
+      ],
+      "camera": "RD First Person Review.004"
+    },
+    {
+      "id": "normal_exit_connected",
+      "scene": "LIBRARY | LOCOMOTION",
+      "rig": "Arms.004",
+      "track_name": "EXPORT::normal_exit_connected",
+      "action": "RD_Normal_Exit_Connected.004",
+      "source_action": "RD_Normal_Exit_Connected",
+      "source_file": "repo-assets__authoring__locomotion__locomotion.blend",
+      "frame_start": 1,
+      "frame_end": 25,
+      "fps": 60,
+      "fps_base": 1.0,
+      "objects": [
+        "Actual arms mesh 0.004",
+        "Actual arms mesh 1.004",
+        "Actual arms mesh 2.004",
+        "Arms.004",
+        "hk416_magazine.004",
+        "hk416_weapon.004",
+        "RD First Person Review.004"
+      ],
+      "object_name_map": {
+        "Actual arms mesh 0.004": "Actual arms mesh 0",
+        "Actual arms mesh 1.004": "Actual arms mesh 1",
+        "Actual arms mesh 2.004": "Actual arms mesh 2",
+        "Arms.004": "Arms",
+        "hk416_magazine.004": "hk416_magazine",
+        "hk416_weapon.004": "hk416_weapon",
+        "RD First Person Review.004": "RD First Person Review"
+      },
+      "status": "gameplay",
+      "companion_tracks": [
+        {
+          "object": "hk416_magazine.004",
+          "action": "hk416_magazineAction.004",
+          "track_name": "EXPORT::normal_exit_connected"
+        },
+        {
+          "object": "hk416_weapon.004",
+          "action": "hk416_weaponAction.005",
+          "track_name": "EXPORT::normal_exit_connected"
+        }
+      ],
+      "camera": "RD First Person Review.004"
+    },
+    {
+      "id": "normal_diagnostic_sequence",
+      "scene": "LIBRARY | LOCOMOTION",
+      "rig": "Arms.004",
+      "track_name": "EXPORT::normal_diagnostic_sequence",
+      "action": "RD_Normal_Diagnostic_Sequence.004",
+      "source_action": "RD_Normal_Diagnostic_Sequence",
+      "source_file": "repo-assets__authoring__locomotion__locomotion.blend",
+      "frame_start": 1,
+      "frame_end": 223,
+      "fps": 60,
+      "fps_base": 1.0,
+      "objects": [
+        "Actual arms mesh 0.004",
+        "Actual arms mesh 1.004",
+        "Actual arms mesh 2.004",
+        "Arms.004",
+        "hk416_magazine.004",
+        "hk416_weapon.004",
+        "RD First Person Review.004"
+      ],
+      "object_name_map": {
+        "Actual arms mesh 0.004": "Actual arms mesh 0",
+        "Actual arms mesh 1.004": "Actual arms mesh 1",
+        "Actual arms mesh 2.004": "Actual arms mesh 2",
+        "Arms.004": "Arms",
+        "hk416_magazine.004": "hk416_magazine",
+        "hk416_weapon.004": "hk416_weapon",
+        "RD First Person Review.004": "RD First Person Review"
+      },
+      "status": "diagnostic",
+      "companion_tracks": [
+        {
+          "object": "hk416_magazine.004",
+          "action": "hk416_magazineAction.004",
+          "track_name": "EXPORT::normal_diagnostic_sequence"
+        },
+        {
+          "object": "hk416_weapon.004",
+          "action": "hk416_weaponAction.005",
+          "track_name": "EXPORT::normal_diagnostic_sequence"
+        }
+      ],
+      "camera": "RD First Person Review.004"
+    },
+    {
+      "id": "normal_exit_bridge_000",
+      "scene": "LIBRARY | LOCOMOTION",
+      "rig": "Arms.004",
+      "track_name": "EXPORT::normal_exit_bridge_000",
+      "action": "RD_Normal_Exit_Bridge_000.004",
+      "source_action": "RD_Normal_Exit_Bridge_000",
+      "source_file": "repo-assets__authoring__locomotion__locomotion.blend",
+      "frame_start": 1,
+      "frame_end": 10,
+      "fps": 60,
+      "fps_base": 1.0,
+      "objects": [
+        "Actual arms mesh 0.004",
+        "Actual arms mesh 1.004",
+        "Actual arms mesh 2.004",
+        "Arms.004",
+        "hk416_magazine.004",
+        "hk416_weapon.004",
+        "RD First Person Review.004"
+      ],
+      "object_name_map": {
+        "Actual arms mesh 0.004": "Actual arms mesh 0",
+        "Actual arms mesh 1.004": "Actual arms mesh 1",
+        "Actual arms mesh 2.004": "Actual arms mesh 2",
+        "Arms.004": "Arms",
+        "hk416_magazine.004": "hk416_magazine",
+        "hk416_weapon.004": "hk416_weapon",
+        "RD First Person Review.004": "RD First Person Review"
+      },
+      "status": "gameplay",
+      "companion_tracks": [
+        {
+          "object": "hk416_magazine.004",
+          "action": "hk416_magazineAction.004",
+          "track_name": "EXPORT::normal_exit_bridge_000"
+        },
+        {
+          "object": "hk416_weapon.004",
+          "action": "hk416_weaponAction.005",
+          "track_name": "EXPORT::normal_exit_bridge_000"
+        }
+      ],
+      "camera": "RD First Person Review.004"
+    },
+    {
+      "id": "normal_exit_bridge_001",
+      "scene": "LIBRARY | LOCOMOTION",
+      "rig": "Arms.004",
+      "track_name": "EXPORT::normal_exit_bridge_001",
+      "action": "RD_Normal_Exit_Bridge_001.004",
+      "source_action": "RD_Normal_Exit_Bridge_001",
+      "source_file": "repo-assets__authoring__locomotion__locomotion.blend",
+      "frame_start": 1,
+      "frame_end": 10,
+      "fps": 60,
+      "fps_base": 1.0,
+      "objects": [
+        "Actual arms mesh 0.004",
+        "Actual arms mesh 1.004",
+        "Actual arms mesh 2.004",
+        "Arms.004",
+        "hk416_magazine.004",
+        "hk416_weapon.004",
+        "RD First Person Review.004"
+      ],
+      "object_name_map": {
+        "Actual arms mesh 0.004": "Actual arms mesh 0",
+        "Actual arms mesh 1.004": "Actual arms mesh 1",
+        "Actual arms mesh 2.004": "Actual arms mesh 2",
+        "Arms.004": "Arms",
+        "hk416_magazine.004": "hk416_magazine",
+        "hk416_weapon.004": "hk416_weapon",
+        "RD First Person Review.004": "RD First Person Review"
+      },
+      "status": "gameplay",
+      "companion_tracks": [
+        {
+          "object": "hk416_magazine.004",
+          "action": "hk416_magazineAction.004",
+          "track_name": "EXPORT::normal_exit_bridge_001"
+        },
+        {
+          "object": "hk416_weapon.004",
+          "action": "hk416_weaponAction.005",
+          "track_name": "EXPORT::normal_exit_bridge_001"
+        }
+      ],
+      "camera": "RD First Person Review.004"
+    },
+    {
+      "id": "normal_exit_bridge_002",
+      "scene": "LIBRARY | LOCOMOTION",
+      "rig": "Arms.004",
+      "track_name": "EXPORT::normal_exit_bridge_002",
+      "action": "RD_Normal_Exit_Bridge_002.004",
+      "source_action": "RD_Normal_Exit_Bridge_002",
+      "source_file": "repo-assets__authoring__locomotion__locomotion.blend",
+      "frame_start": 1,
+      "frame_end": 10,
+      "fps": 60,
+      "fps_base": 1.0,
+      "objects": [
+        "Actual arms mesh 0.004",
+        "Actual arms mesh 1.004",
+        "Actual arms mesh 2.004",
+        "Arms.004",
+        "hk416_magazine.004",
+        "hk416_weapon.004",
+        "RD First Person Review.004"
+      ],
+      "object_name_map": {
+        "Actual arms mesh 0.004": "Actual arms mesh 0",
+        "Actual arms mesh 1.004": "Actual arms mesh 1",
+        "Actual arms mesh 2.004": "Actual arms mesh 2",
+        "Arms.004": "Arms",
+        "hk416_magazine.004": "hk416_magazine",
+        "hk416_weapon.004": "hk416_weapon",
+        "RD First Person Review.004": "RD First Person Review"
+      },
+      "status": "gameplay",
+      "companion_tracks": [
+        {
+          "object": "hk416_magazine.004",
+          "action": "hk416_magazineAction.004",
+          "track_name": "EXPORT::normal_exit_bridge_002"
+        },
+        {
+          "object": "hk416_weapon.004",
+          "action": "hk416_weaponAction.005",
+          "track_name": "EXPORT::normal_exit_bridge_002"
+        }
+      ],
+      "camera": "RD First Person Review.004"
+    },
+    {
+      "id": "normal_exit_bridge_003",
+      "scene": "LIBRARY | LOCOMOTION",
+      "rig": "Arms.004",
+      "track_name": "EXPORT::normal_exit_bridge_003",
+      "action": "RD_Normal_Exit_Bridge_003.004",
+      "source_action": "RD_Normal_Exit_Bridge_003",
+      "source_file": "repo-assets__authoring__locomotion__locomotion.blend",
+      "frame_start": 1,
+      "frame_end": 10,
+      "fps": 60,
+      "fps_base": 1.0,
+      "objects": [
+        "Actual arms mesh 0.004",
+        "Actual arms mesh 1.004",
+        "Actual arms mesh 2.004",
+        "Arms.004",
+        "hk416_magazine.004",
+        "hk416_weapon.004",
+        "RD First Person Review.004"
+      ],
+      "object_name_map": {
+        "Actual arms mesh 0.004": "Actual arms mesh 0",
+        "Actual arms mesh 1.004": "Actual arms mesh 1",
+        "Actual arms mesh 2.004": "Actual arms mesh 2",
+        "Arms.004": "Arms",
+        "hk416_magazine.004": "hk416_magazine",
+        "hk416_weapon.004": "hk416_weapon",
+        "RD First Person Review.004": "RD First Person Review"
+      },
+      "status": "gameplay",
+      "companion_tracks": [
+        {
+          "object": "hk416_magazine.004",
+          "action": "hk416_magazineAction.004",
+          "track_name": "EXPORT::normal_exit_bridge_003"
+        },
+        {
+          "object": "hk416_weapon.004",
+          "action": "hk416_weaponAction.005",
+          "track_name": "EXPORT::normal_exit_bridge_003"
+        }
+      ],
+      "camera": "RD First Person Review.004"
+    },
+    {
+      "id": "normal_exit_bridge_004",
+      "scene": "LIBRARY | LOCOMOTION",
+      "rig": "Arms.004",
+      "track_name": "EXPORT::normal_exit_bridge_004",
+      "action": "RD_Normal_Exit_Bridge_004.004",
+      "source_action": "RD_Normal_Exit_Bridge_004",
+      "source_file": "repo-assets__authoring__locomotion__locomotion.blend",
+      "frame_start": 1,
+      "frame_end": 10,
+      "fps": 60,
+      "fps_base": 1.0,
+      "objects": [
+        "Actual arms mesh 0.004",
+        "Actual arms mesh 1.004",
+        "Actual arms mesh 2.004",
+        "Arms.004",
+        "hk416_magazine.004",
+        "hk416_weapon.004",
+        "RD First Person Review.004"
+      ],
+      "object_name_map": {
+        "Actual arms mesh 0.004": "Actual arms mesh 0",
+        "Actual arms mesh 1.004": "Actual arms mesh 1",
+        "Actual arms mesh 2.004": "Actual arms mesh 2",
+        "Arms.004": "Arms",
+        "hk416_magazine.004": "hk416_magazine",
+        "hk416_weapon.004": "hk416_weapon",
+        "RD First Person Review.004": "RD First Person Review"
+      },
+      "status": "gameplay",
+      "companion_tracks": [
+        {
+          "object": "hk416_magazine.004",
+          "action": "hk416_magazineAction.004",
+          "track_name": "EXPORT::normal_exit_bridge_004"
+        },
+        {
+          "object": "hk416_weapon.004",
+          "action": "hk416_weaponAction.005",
+          "track_name": "EXPORT::normal_exit_bridge_004"
+        }
+      ],
+      "camera": "RD First Person Review.004"
+    },
+    {
+      "id": "normal_exit_bridge_005",
+      "scene": "LIBRARY | LOCOMOTION",
+      "rig": "Arms.004",
+      "track_name": "EXPORT::normal_exit_bridge_005",
+      "action": "RD_Normal_Exit_Bridge_005.004",
+      "source_action": "RD_Normal_Exit_Bridge_005",
+      "source_file": "repo-assets__authoring__locomotion__locomotion.blend",
+      "frame_start": 1,
+      "frame_end": 10,
+      "fps": 60,
+      "fps_base": 1.0,
+      "objects": [
+        "Actual arms mesh 0.004",
+        "Actual arms mesh 1.004",
+        "Actual arms mesh 2.004",
+        "Arms.004",
+        "hk416_magazine.004",
+        "hk416_weapon.004",
+        "RD First Person Review.004"
+      ],
+      "object_name_map": {
+        "Actual arms mesh 0.004": "Actual arms mesh 0",
+        "Actual arms mesh 1.004": "Actual arms mesh 1",
+        "Actual arms mesh 2.004": "Actual arms mesh 2",
+        "Arms.004": "Arms",
+        "hk416_magazine.004": "hk416_magazine",
+        "hk416_weapon.004": "hk416_weapon",
+        "RD First Person Review.004": "RD First Person Review"
+      },
+      "status": "gameplay",
+      "companion_tracks": [
+        {
+          "object": "hk416_magazine.004",
+          "action": "hk416_magazineAction.004",
+          "track_name": "EXPORT::normal_exit_bridge_005"
+        },
+        {
+          "object": "hk416_weapon.004",
+          "action": "hk416_weaponAction.005",
+          "track_name": "EXPORT::normal_exit_bridge_005"
+        }
+      ],
+      "camera": "RD First Person Review.004"
+    },
+    {
+      "id": "normal_exit_bridge_006",
+      "scene": "LIBRARY | LOCOMOTION",
+      "rig": "Arms.004",
+      "track_name": "EXPORT::normal_exit_bridge_006",
+      "action": "RD_Normal_Exit_Bridge_006.004",
+      "source_action": "RD_Normal_Exit_Bridge_006",
+      "source_file": "repo-assets__authoring__locomotion__locomotion.blend",
+      "frame_start": 1,
+      "frame_end": 10,
+      "fps": 60,
+      "fps_base": 1.0,
+      "objects": [
+        "Actual arms mesh 0.004",
+        "Actual arms mesh 1.004",
+        "Actual arms mesh 2.004",
+        "Arms.004",
+        "hk416_magazine.004",
+        "hk416_weapon.004",
+        "RD First Person Review.004"
+      ],
+      "object_name_map": {
+        "Actual arms mesh 0.004": "Actual arms mesh 0",
+        "Actual arms mesh 1.004": "Actual arms mesh 1",
+        "Actual arms mesh 2.004": "Actual arms mesh 2",
+        "Arms.004": "Arms",
+        "hk416_magazine.004": "hk416_magazine",
+        "hk416_weapon.004": "hk416_weapon",
+        "RD First Person Review.004": "RD First Person Review"
+      },
+      "status": "gameplay",
+      "companion_tracks": [
+        {
+          "object": "hk416_magazine.004",
+          "action": "hk416_magazineAction.004",
+          "track_name": "EXPORT::normal_exit_bridge_006"
+        },
+        {
+          "object": "hk416_weapon.004",
+          "action": "hk416_weaponAction.005",
+          "track_name": "EXPORT::normal_exit_bridge_006"
+        }
+      ],
+      "camera": "RD First Person Review.004"
+    },
+    {
+      "id": "normal_exit_bridge_007",
+      "scene": "LIBRARY | LOCOMOTION",
+      "rig": "Arms.004",
+      "track_name": "EXPORT::normal_exit_bridge_007",
+      "action": "RD_Normal_Exit_Bridge_007.004",
+      "source_action": "RD_Normal_Exit_Bridge_007",
+      "source_file": "repo-assets__authoring__locomotion__locomotion.blend",
+      "frame_start": 1,
+      "frame_end": 10,
+      "fps": 60,
+      "fps_base": 1.0,
+      "objects": [
+        "Actual arms mesh 0.004",
+        "Actual arms mesh 1.004",
+        "Actual arms mesh 2.004",
+        "Arms.004",
+        "hk416_magazine.004",
+        "hk416_weapon.004",
+        "RD First Person Review.004"
+      ],
+      "object_name_map": {
+        "Actual arms mesh 0.004": "Actual arms mesh 0",
+        "Actual arms mesh 1.004": "Actual arms mesh 1",
+        "Actual arms mesh 2.004": "Actual arms mesh 2",
+        "Arms.004": "Arms",
+        "hk416_magazine.004": "hk416_magazine",
+        "hk416_weapon.004": "hk416_weapon",
+        "RD First Person Review.004": "RD First Person Review"
+      },
+      "status": "gameplay",
+      "companion_tracks": [
+        {
+          "object": "hk416_magazine.004",
+          "action": "hk416_magazineAction.004",
+          "track_name": "EXPORT::normal_exit_bridge_007"
+        },
+        {
+          "object": "hk416_weapon.004",
+          "action": "hk416_weaponAction.005",
+          "track_name": "EXPORT::normal_exit_bridge_007"
+        }
+      ],
+      "camera": "RD First Person Review.004"
+    },
+    {
+      "id": "normal_exit_bridge_008",
+      "scene": "LIBRARY | LOCOMOTION",
+      "rig": "Arms.004",
+      "track_name": "EXPORT::normal_exit_bridge_008",
+      "action": "RD_Normal_Exit_Bridge_008.004",
+      "source_action": "RD_Normal_Exit_Bridge_008",
+      "source_file": "repo-assets__authoring__locomotion__locomotion.blend",
+      "frame_start": 1,
+      "frame_end": 10,
+      "fps": 60,
+      "fps_base": 1.0,
+      "objects": [
+        "Actual arms mesh 0.004",
+        "Actual arms mesh 1.004",
+        "Actual arms mesh 2.004",
+        "Arms.004",
+        "hk416_magazine.004",
+        "hk416_weapon.004",
+        "RD First Person Review.004"
+      ],
+      "object_name_map": {
+        "Actual arms mesh 0.004": "Actual arms mesh 0",
+        "Actual arms mesh 1.004": "Actual arms mesh 1",
+        "Actual arms mesh 2.004": "Actual arms mesh 2",
+        "Arms.004": "Arms",
+        "hk416_magazine.004": "hk416_magazine",
+        "hk416_weapon.004": "hk416_weapon",
+        "RD First Person Review.004": "RD First Person Review"
+      },
+      "status": "gameplay",
+      "companion_tracks": [
+        {
+          "object": "hk416_magazine.004",
+          "action": "hk416_magazineAction.004",
+          "track_name": "EXPORT::normal_exit_bridge_008"
+        },
+        {
+          "object": "hk416_weapon.004",
+          "action": "hk416_weaponAction.005",
+          "track_name": "EXPORT::normal_exit_bridge_008"
+        }
+      ],
+      "camera": "RD First Person Review.004"
+    },
+    {
+      "id": "normal_exit_bridge_009",
+      "scene": "LIBRARY | LOCOMOTION",
+      "rig": "Arms.004",
+      "track_name": "EXPORT::normal_exit_bridge_009",
+      "action": "RD_Normal_Exit_Bridge_009.004",
+      "source_action": "RD_Normal_Exit_Bridge_009",
+      "source_file": "repo-assets__authoring__locomotion__locomotion.blend",
+      "frame_start": 1,
+      "frame_end": 10,
+      "fps": 60,
+      "fps_base": 1.0,
+      "objects": [
+        "Actual arms mesh 0.004",
+        "Actual arms mesh 1.004",
+        "Actual arms mesh 2.004",
+        "Arms.004",
+        "hk416_magazine.004",
+        "hk416_weapon.004",
+        "RD First Person Review.004"
+      ],
+      "object_name_map": {
+        "Actual arms mesh 0.004": "Actual arms mesh 0",
+        "Actual arms mesh 1.004": "Actual arms mesh 1",
+        "Actual arms mesh 2.004": "Actual arms mesh 2",
+        "Arms.004": "Arms",
+        "hk416_magazine.004": "hk416_magazine",
+        "hk416_weapon.004": "hk416_weapon",
+        "RD First Person Review.004": "RD First Person Review"
+      },
+      "status": "gameplay",
+      "companion_tracks": [
+        {
+          "object": "hk416_magazine.004",
+          "action": "hk416_magazineAction.004",
+          "track_name": "EXPORT::normal_exit_bridge_009"
+        },
+        {
+          "object": "hk416_weapon.004",
+          "action": "hk416_weaponAction.005",
+          "track_name": "EXPORT::normal_exit_bridge_009"
+        }
+      ],
+      "camera": "RD First Person Review.004"
+    },
+    {
+      "id": "normal_exit_bridge_010",
+      "scene": "LIBRARY | LOCOMOTION",
+      "rig": "Arms.004",
+      "track_name": "EXPORT::normal_exit_bridge_010",
+      "action": "RD_Normal_Exit_Bridge_010.004",
+      "source_action": "RD_Normal_Exit_Bridge_010",
+      "source_file": "repo-assets__authoring__locomotion__locomotion.blend",
+      "frame_start": 1,
+      "frame_end": 10,
+      "fps": 60,
+      "fps_base": 1.0,
+      "objects": [
+        "Actual arms mesh 0.004",
+        "Actual arms mesh 1.004",
+        "Actual arms mesh 2.004",
+        "Arms.004",
+        "hk416_magazine.004",
+        "hk416_weapon.004",
+        "RD First Person Review.004"
+      ],
+      "object_name_map": {
+        "Actual arms mesh 0.004": "Actual arms mesh 0",
+        "Actual arms mesh 1.004": "Actual arms mesh 1",
+        "Actual arms mesh 2.004": "Actual arms mesh 2",
+        "Arms.004": "Arms",
+        "hk416_magazine.004": "hk416_magazine",
+        "hk416_weapon.004": "hk416_weapon",
+        "RD First Person Review.004": "RD First Person Review"
+      },
+      "status": "gameplay",
+      "companion_tracks": [
+        {
+          "object": "hk416_magazine.004",
+          "action": "hk416_magazineAction.004",
+          "track_name": "EXPORT::normal_exit_bridge_010"
+        },
+        {
+          "object": "hk416_weapon.004",
+          "action": "hk416_weaponAction.005",
+          "track_name": "EXPORT::normal_exit_bridge_010"
+        }
+      ],
+      "camera": "RD First Person Review.004"
+    },
+    {
+      "id": "normal_exit_bridge_011",
+      "scene": "LIBRARY | LOCOMOTION",
+      "rig": "Arms.004",
+      "track_name": "EXPORT::normal_exit_bridge_011",
+      "action": "RD_Normal_Exit_Bridge_011.004",
+      "source_action": "RD_Normal_Exit_Bridge_011",
+      "source_file": "repo-assets__authoring__locomotion__locomotion.blend",
+      "frame_start": 1,
+      "frame_end": 10,
+      "fps": 60,
+      "fps_base": 1.0,
+      "objects": [
+        "Actual arms mesh 0.004",
+        "Actual arms mesh 1.004",
+        "Actual arms mesh 2.004",
+        "Arms.004",
+        "hk416_magazine.004",
+        "hk416_weapon.004",
+        "RD First Person Review.004"
+      ],
+      "object_name_map": {
+        "Actual arms mesh 0.004": "Actual arms mesh 0",
+        "Actual arms mesh 1.004": "Actual arms mesh 1",
+        "Actual arms mesh 2.004": "Actual arms mesh 2",
+        "Arms.004": "Arms",
+        "hk416_magazine.004": "hk416_magazine",
+        "hk416_weapon.004": "hk416_weapon",
+        "RD First Person Review.004": "RD First Person Review"
+      },
+      "status": "gameplay",
+      "companion_tracks": [
+        {
+          "object": "hk416_magazine.004",
+          "action": "hk416_magazineAction.004",
+          "track_name": "EXPORT::normal_exit_bridge_011"
+        },
+        {
+          "object": "hk416_weapon.004",
+          "action": "hk416_weaponAction.005",
+          "track_name": "EXPORT::normal_exit_bridge_011"
+        }
+      ],
+      "camera": "RD First Person Review.004"
+    },
+    {
+      "id": "normal_exit_bridge_012",
+      "scene": "LIBRARY | LOCOMOTION",
+      "rig": "Arms.004",
+      "track_name": "EXPORT::normal_exit_bridge_012",
+      "action": "RD_Normal_Exit_Bridge_012.004",
+      "source_action": "RD_Normal_Exit_Bridge_012",
+      "source_file": "repo-assets__authoring__locomotion__locomotion.blend",
+      "frame_start": 1,
+      "frame_end": 10,
+      "fps": 60,
+      "fps_base": 1.0,
+      "objects": [
+        "Actual arms mesh 0.004",
+        "Actual arms mesh 1.004",
+        "Actual arms mesh 2.004",
+        "Arms.004",
+        "hk416_magazine.004",
+        "hk416_weapon.004",
+        "RD First Person Review.004"
+      ],
+      "object_name_map": {
+        "Actual arms mesh 0.004": "Actual arms mesh 0",
+        "Actual arms mesh 1.004": "Actual arms mesh 1",
+        "Actual arms mesh 2.004": "Actual arms mesh 2",
+        "Arms.004": "Arms",
+        "hk416_magazine.004": "hk416_magazine",
+        "hk416_weapon.004": "hk416_weapon",
+        "RD First Person Review.004": "RD First Person Review"
+      },
+      "status": "gameplay",
+      "companion_tracks": [
+        {
+          "object": "hk416_magazine.004",
+          "action": "hk416_magazineAction.004",
+          "track_name": "EXPORT::normal_exit_bridge_012"
+        },
+        {
+          "object": "hk416_weapon.004",
+          "action": "hk416_weaponAction.005",
+          "track_name": "EXPORT::normal_exit_bridge_012"
+        }
+      ],
+      "camera": "RD First Person Review.004"
+    },
+    {
+      "id": "normal_exit_bridge_013",
+      "scene": "LIBRARY | LOCOMOTION",
+      "rig": "Arms.004",
+      "track_name": "EXPORT::normal_exit_bridge_013",
+      "action": "RD_Normal_Exit_Bridge_013.004",
+      "source_action": "RD_Normal_Exit_Bridge_013",
+      "source_file": "repo-assets__authoring__locomotion__locomotion.blend",
+      "frame_start": 1,
+      "frame_end": 10,
+      "fps": 60,
+      "fps_base": 1.0,
+      "objects": [
+        "Actual arms mesh 0.004",
+        "Actual arms mesh 1.004",
+        "Actual arms mesh 2.004",
+        "Arms.004",
+        "hk416_magazine.004",
+        "hk416_weapon.004",
+        "RD First Person Review.004"
+      ],
+      "object_name_map": {
+        "Actual arms mesh 0.004": "Actual arms mesh 0",
+        "Actual arms mesh 1.004": "Actual arms mesh 1",
+        "Actual arms mesh 2.004": "Actual arms mesh 2",
+        "Arms.004": "Arms",
+        "hk416_magazine.004": "hk416_magazine",
+        "hk416_weapon.004": "hk416_weapon",
+        "RD First Person Review.004": "RD First Person Review"
+      },
+      "status": "gameplay",
+      "companion_tracks": [
+        {
+          "object": "hk416_magazine.004",
+          "action": "hk416_magazineAction.004",
+          "track_name": "EXPORT::normal_exit_bridge_013"
+        },
+        {
+          "object": "hk416_weapon.004",
+          "action": "hk416_weaponAction.005",
+          "track_name": "EXPORT::normal_exit_bridge_013"
+        }
+      ],
+      "camera": "RD First Person Review.004"
+    },
+    {
+      "id": "normal_exit_bridge_014",
+      "scene": "LIBRARY | LOCOMOTION",
+      "rig": "Arms.004",
+      "track_name": "EXPORT::normal_exit_bridge_014",
+      "action": "RD_Normal_Exit_Bridge_014.004",
+      "source_action": "RD_Normal_Exit_Bridge_014",
+      "source_file": "repo-assets__authoring__locomotion__locomotion.blend",
+      "frame_start": 1,
+      "frame_end": 10,
+      "fps": 60,
+      "fps_base": 1.0,
+      "objects": [
+        "Actual arms mesh 0.004",
+        "Actual arms mesh 1.004",
+        "Actual arms mesh 2.004",
+        "Arms.004",
+        "hk416_magazine.004",
+        "hk416_weapon.004",
+        "RD First Person Review.004"
+      ],
+      "object_name_map": {
+        "Actual arms mesh 0.004": "Actual arms mesh 0",
+        "Actual arms mesh 1.004": "Actual arms mesh 1",
+        "Actual arms mesh 2.004": "Actual arms mesh 2",
+        "Arms.004": "Arms",
+        "hk416_magazine.004": "hk416_magazine",
+        "hk416_weapon.004": "hk416_weapon",
+        "RD First Person Review.004": "RD First Person Review"
+      },
+      "status": "gameplay",
+      "companion_tracks": [
+        {
+          "object": "hk416_magazine.004",
+          "action": "hk416_magazineAction.004",
+          "track_name": "EXPORT::normal_exit_bridge_014"
+        },
+        {
+          "object": "hk416_weapon.004",
+          "action": "hk416_weaponAction.005",
+          "track_name": "EXPORT::normal_exit_bridge_014"
+        }
+      ],
+      "camera": "RD First Person Review.004"
+    },
+    {
+      "id": "normal_exit_bridge_015",
+      "scene": "LIBRARY | LOCOMOTION",
+      "rig": "Arms.004",
+      "track_name": "EXPORT::normal_exit_bridge_015",
+      "action": "RD_Normal_Exit_Bridge_015.004",
+      "source_action": "RD_Normal_Exit_Bridge_015",
+      "source_file": "repo-assets__authoring__locomotion__locomotion.blend",
+      "frame_start": 1,
+      "frame_end": 10,
+      "fps": 60,
+      "fps_base": 1.0,
+      "objects": [
+        "Actual arms mesh 0.004",
+        "Actual arms mesh 1.004",
+        "Actual arms mesh 2.004",
+        "Arms.004",
+        "hk416_magazine.004",
+        "hk416_weapon.004",
+        "RD First Person Review.004"
+      ],
+      "object_name_map": {
+        "Actual arms mesh 0.004": "Actual arms mesh 0",
+        "Actual arms mesh 1.004": "Actual arms mesh 1",
+        "Actual arms mesh 2.004": "Actual arms mesh 2",
+        "Arms.004": "Arms",
+        "hk416_magazine.004": "hk416_magazine",
+        "hk416_weapon.004": "hk416_weapon",
+        "RD First Person Review.004": "RD First Person Review"
+      },
+      "status": "gameplay",
+      "companion_tracks": [
+        {
+          "object": "hk416_magazine.004",
+          "action": "hk416_magazineAction.004",
+          "track_name": "EXPORT::normal_exit_bridge_015"
+        },
+        {
+          "object": "hk416_weapon.004",
+          "action": "hk416_weaponAction.005",
+          "track_name": "EXPORT::normal_exit_bridge_015"
+        }
+      ],
+      "camera": "RD First Person Review.004"
+    },
+    {
+      "id": "normal_exit_bridge_016",
+      "scene": "LIBRARY | LOCOMOTION",
+      "rig": "Arms.004",
+      "track_name": "EXPORT::normal_exit_bridge_016",
+      "action": "RD_Normal_Exit_Bridge_016.004",
+      "source_action": "RD_Normal_Exit_Bridge_016",
+      "source_file": "repo-assets__authoring__locomotion__locomotion.blend",
+      "frame_start": 1,
+      "frame_end": 10,
+      "fps": 60,
+      "fps_base": 1.0,
+      "objects": [
+        "Actual arms mesh 0.004",
+        "Actual arms mesh 1.004",
+        "Actual arms mesh 2.004",
+        "Arms.004",
+        "hk416_magazine.004",
+        "hk416_weapon.004",
+        "RD First Person Review.004"
+      ],
+      "object_name_map": {
+        "Actual arms mesh 0.004": "Actual arms mesh 0",
+        "Actual arms mesh 1.004": "Actual arms mesh 1",
+        "Actual arms mesh 2.004": "Actual arms mesh 2",
+        "Arms.004": "Arms",
+        "hk416_magazine.004": "hk416_magazine",
+        "hk416_weapon.004": "hk416_weapon",
+        "RD First Person Review.004": "RD First Person Review"
+      },
+      "status": "gameplay",
+      "companion_tracks": [
+        {
+          "object": "hk416_magazine.004",
+          "action": "hk416_magazineAction.004",
+          "track_name": "EXPORT::normal_exit_bridge_016"
+        },
+        {
+          "object": "hk416_weapon.004",
+          "action": "hk416_weaponAction.005",
+          "track_name": "EXPORT::normal_exit_bridge_016"
+        }
+      ],
+      "camera": "RD First Person Review.004"
+    },
+    {
+      "id": "normal_exit_bridge_017",
+      "scene": "LIBRARY | LOCOMOTION",
+      "rig": "Arms.004",
+      "track_name": "EXPORT::normal_exit_bridge_017",
+      "action": "RD_Normal_Exit_Bridge_017.004",
+      "source_action": "RD_Normal_Exit_Bridge_017",
+      "source_file": "repo-assets__authoring__locomotion__locomotion.blend",
+      "frame_start": 1,
+      "frame_end": 10,
+      "fps": 60,
+      "fps_base": 1.0,
+      "objects": [
+        "Actual arms mesh 0.004",
+        "Actual arms mesh 1.004",
+        "Actual arms mesh 2.004",
+        "Arms.004",
+        "hk416_magazine.004",
+        "hk416_weapon.004",
+        "RD First Person Review.004"
+      ],
+      "object_name_map": {
+        "Actual arms mesh 0.004": "Actual arms mesh 0",
+        "Actual arms mesh 1.004": "Actual arms mesh 1",
+        "Actual arms mesh 2.004": "Actual arms mesh 2",
+        "Arms.004": "Arms",
+        "hk416_magazine.004": "hk416_magazine",
+        "hk416_weapon.004": "hk416_weapon",
+        "RD First Person Review.004": "RD First Person Review"
+      },
+      "status": "gameplay",
+      "companion_tracks": [
+        {
+          "object": "hk416_magazine.004",
+          "action": "hk416_magazineAction.004",
+          "track_name": "EXPORT::normal_exit_bridge_017"
+        },
+        {
+          "object": "hk416_weapon.004",
+          "action": "hk416_weaponAction.005",
+          "track_name": "EXPORT::normal_exit_bridge_017"
+        }
+      ],
+      "camera": "RD First Person Review.004"
+    },
+    {
+      "id": "normal_exit_bridge_018",
+      "scene": "LIBRARY | LOCOMOTION",
+      "rig": "Arms.004",
+      "track_name": "EXPORT::normal_exit_bridge_018",
+      "action": "RD_Normal_Exit_Bridge_018.004",
+      "source_action": "RD_Normal_Exit_Bridge_018",
+      "source_file": "repo-assets__authoring__locomotion__locomotion.blend",
+      "frame_start": 1,
+      "frame_end": 10,
+      "fps": 60,
+      "fps_base": 1.0,
+      "objects": [
+        "Actual arms mesh 0.004",
+        "Actual arms mesh 1.004",
+        "Actual arms mesh 2.004",
+        "Arms.004",
+        "hk416_magazine.004",
+        "hk416_weapon.004",
+        "RD First Person Review.004"
+      ],
+      "object_name_map": {
+        "Actual arms mesh 0.004": "Actual arms mesh 0",
+        "Actual arms mesh 1.004": "Actual arms mesh 1",
+        "Actual arms mesh 2.004": "Actual arms mesh 2",
+        "Arms.004": "Arms",
+        "hk416_magazine.004": "hk416_magazine",
+        "hk416_weapon.004": "hk416_weapon",
+        "RD First Person Review.004": "RD First Person Review"
+      },
+      "status": "gameplay",
+      "companion_tracks": [
+        {
+          "object": "hk416_magazine.004",
+          "action": "hk416_magazineAction.004",
+          "track_name": "EXPORT::normal_exit_bridge_018"
+        },
+        {
+          "object": "hk416_weapon.004",
+          "action": "hk416_weaponAction.005",
+          "track_name": "EXPORT::normal_exit_bridge_018"
+        }
+      ],
+      "camera": "RD First Person Review.004"
+    },
+    {
+      "id": "normal_exit_bridge_019",
+      "scene": "LIBRARY | LOCOMOTION",
+      "rig": "Arms.004",
+      "track_name": "EXPORT::normal_exit_bridge_019",
+      "action": "RD_Normal_Exit_Bridge_019.004",
+      "source_action": "RD_Normal_Exit_Bridge_019",
+      "source_file": "repo-assets__authoring__locomotion__locomotion.blend",
+      "frame_start": 1,
+      "frame_end": 10,
+      "fps": 60,
+      "fps_base": 1.0,
+      "objects": [
+        "Actual arms mesh 0.004",
+        "Actual arms mesh 1.004",
+        "Actual arms mesh 2.004",
+        "Arms.004",
+        "hk416_magazine.004",
+        "hk416_weapon.004",
+        "RD First Person Review.004"
+      ],
+      "object_name_map": {
+        "Actual arms mesh 0.004": "Actual arms mesh 0",
+        "Actual arms mesh 1.004": "Actual arms mesh 1",
+        "Actual arms mesh 2.004": "Actual arms mesh 2",
+        "Arms.004": "Arms",
+        "hk416_magazine.004": "hk416_magazine",
+        "hk416_weapon.004": "hk416_weapon",
+        "RD First Person Review.004": "RD First Person Review"
+      },
+      "status": "gameplay",
+      "companion_tracks": [
+        {
+          "object": "hk416_magazine.004",
+          "action": "hk416_magazineAction.004",
+          "track_name": "EXPORT::normal_exit_bridge_019"
+        },
+        {
+          "object": "hk416_weapon.004",
+          "action": "hk416_weaponAction.005",
+          "track_name": "EXPORT::normal_exit_bridge_019"
+        }
+      ],
+      "camera": "RD First Person Review.004"
+    },
+    {
+      "id": "normal_exit_bridge_020",
+      "scene": "LIBRARY | LOCOMOTION",
+      "rig": "Arms.004",
+      "track_name": "EXPORT::normal_exit_bridge_020",
+      "action": "RD_Normal_Exit_Bridge_020.004",
+      "source_action": "RD_Normal_Exit_Bridge_020",
+      "source_file": "repo-assets__authoring__locomotion__locomotion.blend",
+      "frame_start": 1,
+      "frame_end": 10,
+      "fps": 60,
+      "fps_base": 1.0,
+      "objects": [
+        "Actual arms mesh 0.004",
+        "Actual arms mesh 1.004",
+        "Actual arms mesh 2.004",
+        "Arms.004",
+        "hk416_magazine.004",
+        "hk416_weapon.004",
+        "RD First Person Review.004"
+      ],
+      "object_name_map": {
+        "Actual arms mesh 0.004": "Actual arms mesh 0",
+        "Actual arms mesh 1.004": "Actual arms mesh 1",
+        "Actual arms mesh 2.004": "Actual arms mesh 2",
+        "Arms.004": "Arms",
+        "hk416_magazine.004": "hk416_magazine",
+        "hk416_weapon.004": "hk416_weapon",
+        "RD First Person Review.004": "RD First Person Review"
+      },
+      "status": "gameplay",
+      "companion_tracks": [
+        {
+          "object": "hk416_magazine.004",
+          "action": "hk416_magazineAction.004",
+          "track_name": "EXPORT::normal_exit_bridge_020"
+        },
+        {
+          "object": "hk416_weapon.004",
+          "action": "hk416_weaponAction.005",
+          "track_name": "EXPORT::normal_exit_bridge_020"
+        }
+      ],
+      "camera": "RD First Person Review.004"
+    },
+    {
+      "id": "normal_exit_bridge_021",
+      "scene": "LIBRARY | LOCOMOTION",
+      "rig": "Arms.004",
+      "track_name": "EXPORT::normal_exit_bridge_021",
+      "action": "RD_Normal_Exit_Bridge_021.004",
+      "source_action": "RD_Normal_Exit_Bridge_021",
+      "source_file": "repo-assets__authoring__locomotion__locomotion.blend",
+      "frame_start": 1,
+      "frame_end": 10,
+      "fps": 60,
+      "fps_base": 1.0,
+      "objects": [
+        "Actual arms mesh 0.004",
+        "Actual arms mesh 1.004",
+        "Actual arms mesh 2.004",
+        "Arms.004",
+        "hk416_magazine.004",
+        "hk416_weapon.004",
+        "RD First Person Review.004"
+      ],
+      "object_name_map": {
+        "Actual arms mesh 0.004": "Actual arms mesh 0",
+        "Actual arms mesh 1.004": "Actual arms mesh 1",
+        "Actual arms mesh 2.004": "Actual arms mesh 2",
+        "Arms.004": "Arms",
+        "hk416_magazine.004": "hk416_magazine",
+        "hk416_weapon.004": "hk416_weapon",
+        "RD First Person Review.004": "RD First Person Review"
+      },
+      "status": "gameplay",
+      "companion_tracks": [
+        {
+          "object": "hk416_magazine.004",
+          "action": "hk416_magazineAction.004",
+          "track_name": "EXPORT::normal_exit_bridge_021"
+        },
+        {
+          "object": "hk416_weapon.004",
+          "action": "hk416_weaponAction.005",
+          "track_name": "EXPORT::normal_exit_bridge_021"
+        }
+      ],
+      "camera": "RD First Person Review.004"
+    },
+    {
+      "id": "normal_exit_bridge_022",
+      "scene": "LIBRARY | LOCOMOTION",
+      "rig": "Arms.004",
+      "track_name": "EXPORT::normal_exit_bridge_022",
+      "action": "RD_Normal_Exit_Bridge_022.004",
+      "source_action": "RD_Normal_Exit_Bridge_022",
+      "source_file": "repo-assets__authoring__locomotion__locomotion.blend",
+      "frame_start": 1,
+      "frame_end": 10,
+      "fps": 60,
+      "fps_base": 1.0,
+      "objects": [
+        "Actual arms mesh 0.004",
+        "Actual arms mesh 1.004",
+        "Actual arms mesh 2.004",
+        "Arms.004",
+        "hk416_magazine.004",
+        "hk416_weapon.004",
+        "RD First Person Review.004"
+      ],
+      "object_name_map": {
+        "Actual arms mesh 0.004": "Actual arms mesh 0",
+        "Actual arms mesh 1.004": "Actual arms mesh 1",
+        "Actual arms mesh 2.004": "Actual arms mesh 2",
+        "Arms.004": "Arms",
+        "hk416_magazine.004": "hk416_magazine",
+        "hk416_weapon.004": "hk416_weapon",
+        "RD First Person Review.004": "RD First Person Review"
+      },
+      "status": "gameplay",
+      "companion_tracks": [
+        {
+          "object": "hk416_magazine.004",
+          "action": "hk416_magazineAction.004",
+          "track_name": "EXPORT::normal_exit_bridge_022"
+        },
+        {
+          "object": "hk416_weapon.004",
+          "action": "hk416_weaponAction.005",
+          "track_name": "EXPORT::normal_exit_bridge_022"
+        }
+      ],
+      "camera": "RD First Person Review.004"
+    },
+    {
+      "id": "normal_exit_bridge_023",
+      "scene": "LIBRARY | LOCOMOTION",
+      "rig": "Arms.004",
+      "track_name": "EXPORT::normal_exit_bridge_023",
+      "action": "RD_Normal_Exit_Bridge_023.004",
+      "source_action": "RD_Normal_Exit_Bridge_023",
+      "source_file": "repo-assets__authoring__locomotion__locomotion.blend",
+      "frame_start": 1,
+      "frame_end": 10,
+      "fps": 60,
+      "fps_base": 1.0,
+      "objects": [
+        "Actual arms mesh 0.004",
+        "Actual arms mesh 1.004",
+        "Actual arms mesh 2.004",
+        "Arms.004",
+        "hk416_magazine.004",
+        "hk416_weapon.004",
+        "RD First Person Review.004"
+      ],
+      "object_name_map": {
+        "Actual arms mesh 0.004": "Actual arms mesh 0",
+        "Actual arms mesh 1.004": "Actual arms mesh 1",
+        "Actual arms mesh 2.004": "Actual arms mesh 2",
+        "Arms.004": "Arms",
+        "hk416_magazine.004": "hk416_magazine",
+        "hk416_weapon.004": "hk416_weapon",
+        "RD First Person Review.004": "RD First Person Review"
+      },
+      "status": "gameplay",
+      "companion_tracks": [
+        {
+          "object": "hk416_magazine.004",
+          "action": "hk416_magazineAction.004",
+          "track_name": "EXPORT::normal_exit_bridge_023"
+        },
+        {
+          "object": "hk416_weapon.004",
+          "action": "hk416_weaponAction.005",
+          "track_name": "EXPORT::normal_exit_bridge_023"
+        }
+      ],
+      "camera": "RD First Person Review.004"
+    },
+    {
+      "id": "normal_exit_bridge_024",
+      "scene": "LIBRARY | LOCOMOTION",
+      "rig": "Arms.004",
+      "track_name": "EXPORT::normal_exit_bridge_024",
+      "action": "RD_Normal_Exit_Bridge_024.004",
+      "source_action": "RD_Normal_Exit_Bridge_024",
+      "source_file": "repo-assets__authoring__locomotion__locomotion.blend",
+      "frame_start": 1,
+      "frame_end": 10,
+      "fps": 60,
+      "fps_base": 1.0,
+      "objects": [
+        "Actual arms mesh 0.004",
+        "Actual arms mesh 1.004",
+        "Actual arms mesh 2.004",
+        "Arms.004",
+        "hk416_magazine.004",
+        "hk416_weapon.004",
+        "RD First Person Review.004"
+      ],
+      "object_name_map": {
+        "Actual arms mesh 0.004": "Actual arms mesh 0",
+        "Actual arms mesh 1.004": "Actual arms mesh 1",
+        "Actual arms mesh 2.004": "Actual arms mesh 2",
+        "Arms.004": "Arms",
+        "hk416_magazine.004": "hk416_magazine",
+        "hk416_weapon.004": "hk416_weapon",
+        "RD First Person Review.004": "RD First Person Review"
+      },
+      "status": "gameplay",
+      "companion_tracks": [
+        {
+          "object": "hk416_magazine.004",
+          "action": "hk416_magazineAction.004",
+          "track_name": "EXPORT::normal_exit_bridge_024"
+        },
+        {
+          "object": "hk416_weapon.004",
+          "action": "hk416_weaponAction.005",
+          "track_name": "EXPORT::normal_exit_bridge_024"
+        }
+      ],
+      "camera": "RD First Person Review.004"
+    },
+    {
+      "id": "normal_exit_bridge_025",
+      "scene": "LIBRARY | LOCOMOTION",
+      "rig": "Arms.004",
+      "track_name": "EXPORT::normal_exit_bridge_025",
+      "action": "RD_Normal_Exit_Bridge_025.004",
+      "source_action": "RD_Normal_Exit_Bridge_025",
+      "source_file": "repo-assets__authoring__locomotion__locomotion.blend",
+      "frame_start": 1,
+      "frame_end": 10,
+      "fps": 60,
+      "fps_base": 1.0,
+      "objects": [
+        "Actual arms mesh 0.004",
+        "Actual arms mesh 1.004",
+        "Actual arms mesh 2.004",
+        "Arms.004",
+        "hk416_magazine.004",
+        "hk416_weapon.004",
+        "RD First Person Review.004"
+      ],
+      "object_name_map": {
+        "Actual arms mesh 0.004": "Actual arms mesh 0",
+        "Actual arms mesh 1.004": "Actual arms mesh 1",
+        "Actual arms mesh 2.004": "Actual arms mesh 2",
+        "Arms.004": "Arms",
+        "hk416_magazine.004": "hk416_magazine",
+        "hk416_weapon.004": "hk416_weapon",
+        "RD First Person Review.004": "RD First Person Review"
+      },
+      "status": "gameplay",
+      "companion_tracks": [
+        {
+          "object": "hk416_magazine.004",
+          "action": "hk416_magazineAction.004",
+          "track_name": "EXPORT::normal_exit_bridge_025"
+        },
+        {
+          "object": "hk416_weapon.004",
+          "action": "hk416_weaponAction.005",
+          "track_name": "EXPORT::normal_exit_bridge_025"
+        }
+      ],
+      "camera": "RD First Person Review.004"
+    },
+    {
+      "id": "normal_exit_bridge_026",
+      "scene": "LIBRARY | LOCOMOTION",
+      "rig": "Arms.004",
+      "track_name": "EXPORT::normal_exit_bridge_026",
+      "action": "RD_Normal_Exit_Bridge_026.004",
+      "source_action": "RD_Normal_Exit_Bridge_026",
+      "source_file": "repo-assets__authoring__locomotion__locomotion.blend",
+      "frame_start": 1,
+      "frame_end": 10,
+      "fps": 60,
+      "fps_base": 1.0,
+      "objects": [
+        "Actual arms mesh 0.004",
+        "Actual arms mesh 1.004",
+        "Actual arms mesh 2.004",
+        "Arms.004",
+        "hk416_magazine.004",
+        "hk416_weapon.004",
+        "RD First Person Review.004"
+      ],
+      "object_name_map": {
+        "Actual arms mesh 0.004": "Actual arms mesh 0",
+        "Actual arms mesh 1.004": "Actual arms mesh 1",
+        "Actual arms mesh 2.004": "Actual arms mesh 2",
+        "Arms.004": "Arms",
+        "hk416_magazine.004": "hk416_magazine",
+        "hk416_weapon.004": "hk416_weapon",
+        "RD First Person Review.004": "RD First Person Review"
+      },
+      "status": "gameplay",
+      "companion_tracks": [
+        {
+          "object": "hk416_magazine.004",
+          "action": "hk416_magazineAction.004",
+          "track_name": "EXPORT::normal_exit_bridge_026"
+        },
+        {
+          "object": "hk416_weapon.004",
+          "action": "hk416_weaponAction.005",
+          "track_name": "EXPORT::normal_exit_bridge_026"
+        }
+      ],
+      "camera": "RD First Person Review.004"
+    },
+    {
+      "id": "normal_exit_bridge_027",
+      "scene": "LIBRARY | LOCOMOTION",
+      "rig": "Arms.004",
+      "track_name": "EXPORT::normal_exit_bridge_027",
+      "action": "RD_Normal_Exit_Bridge_027.004",
+      "source_action": "RD_Normal_Exit_Bridge_027",
+      "source_file": "repo-assets__authoring__locomotion__locomotion.blend",
+      "frame_start": 1,
+      "frame_end": 10,
+      "fps": 60,
+      "fps_base": 1.0,
+      "objects": [
+        "Actual arms mesh 0.004",
+        "Actual arms mesh 1.004",
+        "Actual arms mesh 2.004",
+        "Arms.004",
+        "hk416_magazine.004",
+        "hk416_weapon.004",
+        "RD First Person Review.004"
+      ],
+      "object_name_map": {
+        "Actual arms mesh 0.004": "Actual arms mesh 0",
+        "Actual arms mesh 1.004": "Actual arms mesh 1",
+        "Actual arms mesh 2.004": "Actual arms mesh 2",
+        "Arms.004": "Arms",
+        "hk416_magazine.004": "hk416_magazine",
+        "hk416_weapon.004": "hk416_weapon",
+        "RD First Person Review.004": "RD First Person Review"
+      },
+      "status": "gameplay",
+      "companion_tracks": [
+        {
+          "object": "hk416_magazine.004",
+          "action": "hk416_magazineAction.004",
+          "track_name": "EXPORT::normal_exit_bridge_027"
+        },
+        {
+          "object": "hk416_weapon.004",
+          "action": "hk416_weaponAction.005",
+          "track_name": "EXPORT::normal_exit_bridge_027"
+        }
+      ],
+      "camera": "RD First Person Review.004"
+    },
+    {
+      "id": "normal_exit_bridge_028",
+      "scene": "LIBRARY | LOCOMOTION",
+      "rig": "Arms.004",
+      "track_name": "EXPORT::normal_exit_bridge_028",
+      "action": "RD_Normal_Exit_Bridge_028.004",
+      "source_action": "RD_Normal_Exit_Bridge_028",
+      "source_file": "repo-assets__authoring__locomotion__locomotion.blend",
+      "frame_start": 1,
+      "frame_end": 10,
+      "fps": 60,
+      "fps_base": 1.0,
+      "objects": [
+        "Actual arms mesh 0.004",
+        "Actual arms mesh 1.004",
+        "Actual arms mesh 2.004",
+        "Arms.004",
+        "hk416_magazine.004",
+        "hk416_weapon.004",
+        "RD First Person Review.004"
+      ],
+      "object_name_map": {
+        "Actual arms mesh 0.004": "Actual arms mesh 0",
+        "Actual arms mesh 1.004": "Actual arms mesh 1",
+        "Actual arms mesh 2.004": "Actual arms mesh 2",
+        "Arms.004": "Arms",
+        "hk416_magazine.004": "hk416_magazine",
+        "hk416_weapon.004": "hk416_weapon",
+        "RD First Person Review.004": "RD First Person Review"
+      },
+      "status": "gameplay",
+      "companion_tracks": [
+        {
+          "object": "hk416_magazine.004",
+          "action": "hk416_magazineAction.004",
+          "track_name": "EXPORT::normal_exit_bridge_028"
+        },
+        {
+          "object": "hk416_weapon.004",
+          "action": "hk416_weaponAction.005",
+          "track_name": "EXPORT::normal_exit_bridge_028"
+        }
+      ],
+      "camera": "RD First Person Review.004"
+    },
+    {
+      "id": "normal_exit_bridge_029",
+      "scene": "LIBRARY | LOCOMOTION",
+      "rig": "Arms.004",
+      "track_name": "EXPORT::normal_exit_bridge_029",
+      "action": "RD_Normal_Exit_Bridge_029.004",
+      "source_action": "RD_Normal_Exit_Bridge_029",
+      "source_file": "repo-assets__authoring__locomotion__locomotion.blend",
+      "frame_start": 1,
+      "frame_end": 10,
+      "fps": 60,
+      "fps_base": 1.0,
+      "objects": [
+        "Actual arms mesh 0.004",
+        "Actual arms mesh 1.004",
+        "Actual arms mesh 2.004",
+        "Arms.004",
+        "hk416_magazine.004",
+        "hk416_weapon.004",
+        "RD First Person Review.004"
+      ],
+      "object_name_map": {
+        "Actual arms mesh 0.004": "Actual arms mesh 0",
+        "Actual arms mesh 1.004": "Actual arms mesh 1",
+        "Actual arms mesh 2.004": "Actual arms mesh 2",
+        "Arms.004": "Arms",
+        "hk416_magazine.004": "hk416_magazine",
+        "hk416_weapon.004": "hk416_weapon",
+        "RD First Person Review.004": "RD First Person Review"
+      },
+      "status": "gameplay",
+      "companion_tracks": [
+        {
+          "object": "hk416_magazine.004",
+          "action": "hk416_magazineAction.004",
+          "track_name": "EXPORT::normal_exit_bridge_029"
+        },
+        {
+          "object": "hk416_weapon.004",
+          "action": "hk416_weaponAction.005",
+          "track_name": "EXPORT::normal_exit_bridge_029"
+        }
+      ],
+      "camera": "RD First Person Review.004"
+    },
+    {
+      "id": "normal_exit_bridge_030",
+      "scene": "LIBRARY | LOCOMOTION",
+      "rig": "Arms.004",
+      "track_name": "EXPORT::normal_exit_bridge_030",
+      "action": "RD_Normal_Exit_Bridge_030.004",
+      "source_action": "RD_Normal_Exit_Bridge_030",
+      "source_file": "repo-assets__authoring__locomotion__locomotion.blend",
+      "frame_start": 1,
+      "frame_end": 10,
+      "fps": 60,
+      "fps_base": 1.0,
+      "objects": [
+        "Actual arms mesh 0.004",
+        "Actual arms mesh 1.004",
+        "Actual arms mesh 2.004",
+        "Arms.004",
+        "hk416_magazine.004",
+        "hk416_weapon.004",
+        "RD First Person Review.004"
+      ],
+      "object_name_map": {
+        "Actual arms mesh 0.004": "Actual arms mesh 0",
+        "Actual arms mesh 1.004": "Actual arms mesh 1",
+        "Actual arms mesh 2.004": "Actual arms mesh 2",
+        "Arms.004": "Arms",
+        "hk416_magazine.004": "hk416_magazine",
+        "hk416_weapon.004": "hk416_weapon",
+        "RD First Person Review.004": "RD First Person Review"
+      },
+      "status": "gameplay",
+      "companion_tracks": [
+        {
+          "object": "hk416_magazine.004",
+          "action": "hk416_magazineAction.004",
+          "track_name": "EXPORT::normal_exit_bridge_030"
+        },
+        {
+          "object": "hk416_weapon.004",
+          "action": "hk416_weaponAction.005",
+          "track_name": "EXPORT::normal_exit_bridge_030"
+        }
+      ],
+      "camera": "RD First Person Review.004"
+    },
+    {
+      "id": "normal_exit_bridge_031",
+      "scene": "LIBRARY | LOCOMOTION",
+      "rig": "Arms.004",
+      "track_name": "EXPORT::normal_exit_bridge_031",
+      "action": "RD_Normal_Exit_Bridge_031.004",
+      "source_action": "RD_Normal_Exit_Bridge_031",
+      "source_file": "repo-assets__authoring__locomotion__locomotion.blend",
+      "frame_start": 1,
+      "frame_end": 10,
+      "fps": 60,
+      "fps_base": 1.0,
+      "objects": [
+        "Actual arms mesh 0.004",
+        "Actual arms mesh 1.004",
+        "Actual arms mesh 2.004",
+        "Arms.004",
+        "hk416_magazine.004",
+        "hk416_weapon.004",
+        "RD First Person Review.004"
+      ],
+      "object_name_map": {
+        "Actual arms mesh 0.004": "Actual arms mesh 0",
+        "Actual arms mesh 1.004": "Actual arms mesh 1",
+        "Actual arms mesh 2.004": "Actual arms mesh 2",
+        "Arms.004": "Arms",
+        "hk416_magazine.004": "hk416_magazine",
+        "hk416_weapon.004": "hk416_weapon",
+        "RD First Person Review.004": "RD First Person Review"
+      },
+      "status": "gameplay",
+      "companion_tracks": [
+        {
+          "object": "hk416_magazine.004",
+          "action": "hk416_magazineAction.004",
+          "track_name": "EXPORT::normal_exit_bridge_031"
+        },
+        {
+          "object": "hk416_weapon.004",
+          "action": "hk416_weaponAction.005",
+          "track_name": "EXPORT::normal_exit_bridge_031"
+        }
+      ],
+      "camera": "RD First Person Review.004"
+    },
+    {
+      "id": "normal_exit_bridge_032",
+      "scene": "LIBRARY | LOCOMOTION",
+      "rig": "Arms.004",
+      "track_name": "EXPORT::normal_exit_bridge_032",
+      "action": "RD_Normal_Exit_Bridge_032.004",
+      "source_action": "RD_Normal_Exit_Bridge_032",
+      "source_file": "repo-assets__authoring__locomotion__locomotion.blend",
+      "frame_start": 1,
+      "frame_end": 10,
+      "fps": 60,
+      "fps_base": 1.0,
+      "objects": [
+        "Actual arms mesh 0.004",
+        "Actual arms mesh 1.004",
+        "Actual arms mesh 2.004",
+        "Arms.004",
+        "hk416_magazine.004",
+        "hk416_weapon.004",
+        "RD First Person Review.004"
+      ],
+      "object_name_map": {
+        "Actual arms mesh 0.004": "Actual arms mesh 0",
+        "Actual arms mesh 1.004": "Actual arms mesh 1",
+        "Actual arms mesh 2.004": "Actual arms mesh 2",
+        "Arms.004": "Arms",
+        "hk416_magazine.004": "hk416_magazine",
+        "hk416_weapon.004": "hk416_weapon",
+        "RD First Person Review.004": "RD First Person Review"
+      },
+      "status": "gameplay",
+      "companion_tracks": [
+        {
+          "object": "hk416_magazine.004",
+          "action": "hk416_magazineAction.004",
+          "track_name": "EXPORT::normal_exit_bridge_032"
+        },
+        {
+          "object": "hk416_weapon.004",
+          "action": "hk416_weaponAction.005",
+          "track_name": "EXPORT::normal_exit_bridge_032"
+        }
+      ],
+      "camera": "RD First Person Review.004"
+    },
+    {
+      "id": "normal_exit_bridge_033",
+      "scene": "LIBRARY | LOCOMOTION",
+      "rig": "Arms.004",
+      "track_name": "EXPORT::normal_exit_bridge_033",
+      "action": "RD_Normal_Exit_Bridge_033.004",
+      "source_action": "RD_Normal_Exit_Bridge_033",
+      "source_file": "repo-assets__authoring__locomotion__locomotion.blend",
+      "frame_start": 1,
+      "frame_end": 10,
+      "fps": 60,
+      "fps_base": 1.0,
+      "objects": [
+        "Actual arms mesh 0.004",
+        "Actual arms mesh 1.004",
+        "Actual arms mesh 2.004",
+        "Arms.004",
+        "hk416_magazine.004",
+        "hk416_weapon.004",
+        "RD First Person Review.004"
+      ],
+      "object_name_map": {
+        "Actual arms mesh 0.004": "Actual arms mesh 0",
+        "Actual arms mesh 1.004": "Actual arms mesh 1",
+        "Actual arms mesh 2.004": "Actual arms mesh 2",
+        "Arms.004": "Arms",
+        "hk416_magazine.004": "hk416_magazine",
+        "hk416_weapon.004": "hk416_weapon",
+        "RD First Person Review.004": "RD First Person Review"
+      },
+      "status": "gameplay",
+      "companion_tracks": [
+        {
+          "object": "hk416_magazine.004",
+          "action": "hk416_magazineAction.004",
+          "track_name": "EXPORT::normal_exit_bridge_033"
+        },
+        {
+          "object": "hk416_weapon.004",
+          "action": "hk416_weaponAction.005",
+          "track_name": "EXPORT::normal_exit_bridge_033"
+        }
+      ],
+      "camera": "RD First Person Review.004"
+    },
+    {
+      "id": "normal_exit_bridge_034",
+      "scene": "LIBRARY | LOCOMOTION",
+      "rig": "Arms.004",
+      "track_name": "EXPORT::normal_exit_bridge_034",
+      "action": "RD_Normal_Exit_Bridge_034.004",
+      "source_action": "RD_Normal_Exit_Bridge_034",
+      "source_file": "repo-assets__authoring__locomotion__locomotion.blend",
+      "frame_start": 1,
+      "frame_end": 10,
+      "fps": 60,
+      "fps_base": 1.0,
+      "objects": [
+        "Actual arms mesh 0.004",
+        "Actual arms mesh 1.004",
+        "Actual arms mesh 2.004",
+        "Arms.004",
+        "hk416_magazine.004",
+        "hk416_weapon.004",
+        "RD First Person Review.004"
+      ],
+      "object_name_map": {
+        "Actual arms mesh 0.004": "Actual arms mesh 0",
+        "Actual arms mesh 1.004": "Actual arms mesh 1",
+        "Actual arms mesh 2.004": "Actual arms mesh 2",
+        "Arms.004": "Arms",
+        "hk416_magazine.004": "hk416_magazine",
+        "hk416_weapon.004": "hk416_weapon",
+        "RD First Person Review.004": "RD First Person Review"
+      },
+      "status": "gameplay",
+      "companion_tracks": [
+        {
+          "object": "hk416_magazine.004",
+          "action": "hk416_magazineAction.004",
+          "track_name": "EXPORT::normal_exit_bridge_034"
+        },
+        {
+          "object": "hk416_weapon.004",
+          "action": "hk416_weaponAction.005",
+          "track_name": "EXPORT::normal_exit_bridge_034"
+        }
+      ],
+      "camera": "RD First Person Review.004"
+    },
+    {
+      "id": "normal_walk_r1",
+      "scene": "LIBRARY | LOCOMOTION",
+      "rig": "Arms.004",
+      "track_name": "EXPORT::normal_walk_r1",
+      "action": "normal_walk_r1.004",
+      "source_action": "normal_walk_r1",
+      "source_file": "repo-assets__authoring__locomotion__locomotion.blend",
+      "frame_start": 1,
+      "frame_end": 45,
+      "fps": 60,
+      "fps_base": 1.0,
+      "objects": [
+        "Actual arms mesh 0.004",
+        "Actual arms mesh 1.004",
+        "Actual arms mesh 2.004",
+        "Arms.004",
+        "hk416_magazine.004",
+        "hk416_weapon.004",
+        "RD First Person Review.004"
+      ],
+      "object_name_map": {
+        "Actual arms mesh 0.004": "Actual arms mesh 0",
+        "Actual arms mesh 1.004": "Actual arms mesh 1",
+        "Actual arms mesh 2.004": "Actual arms mesh 2",
+        "Arms.004": "Arms",
+        "hk416_magazine.004": "hk416_magazine",
+        "hk416_weapon.004": "hk416_weapon",
+        "RD First Person Review.004": "RD First Person Review"
+      },
+      "status": "gameplay",
+      "companion_tracks": [
+        {
+          "object": "hk416_magazine.004",
+          "action": "hk416_magazineAction.004",
+          "track_name": "EXPORT::normal_walk_r1"
+        },
+        {
+          "object": "hk416_weapon.004",
+          "action": "hk416_weaponAction.005",
+          "track_name": "EXPORT::normal_walk_r1"
+        }
+      ],
+      "camera": "RD First Person Review.004"
+    },
+    {
+      "id": "ads_entry_r1",
+      "scene": "LIBRARY | ADS",
+      "rig": "Arms.003",
+      "track_name": "EXPORT::ads_entry_r1",
+      "action": "ads_entry_r1",
+      "source_action": "ads_entry_r1",
+      "source_file": "repo-assets__authoring__ads__ads.blend",
+      "frame_start": 1,
+      "frame_end": 16,
+      "fps": 60,
+      "fps_base": 1.0,
+      "objects": [
+        "Actual arms mesh 0.003",
+        "Actual arms mesh 1.003",
+        "Actual arms mesh 2.003",
+        "Arms.003",
+        "hk416_magazine.003",
+        "hk416_weapon.003",
+        "RD First Person Review.003"
+      ],
+      "object_name_map": {
+        "Actual arms mesh 0.003": "Actual arms mesh 0",
+        "Actual arms mesh 1.003": "Actual arms mesh 1",
+        "Actual arms mesh 2.003": "Actual arms mesh 2",
+        "Arms.003": "Arms",
+        "hk416_magazine.003": "hk416_magazine",
+        "hk416_weapon.003": "hk416_weapon",
+        "RD First Person Review.003": "RD First Person Review"
+      },
+      "status": "gameplay",
+      "companion_tracks": [
+        {
+          "object": "hk416_magazine.003",
+          "action": "hk416_magazineAction.003",
+          "track_name": "EXPORT::ads_entry_r1"
+        },
+        {
+          "object": "hk416_weapon.003",
+          "action": "hk416_weaponAction.004",
+          "track_name": "EXPORT::ads_entry_r1"
+        }
+      ],
+      "camera": "RD First Person Review.003"
+    },
+    {
+      "id": "ads_hold_r1",
+      "scene": "LIBRARY | ADS",
+      "rig": "Arms.003",
+      "track_name": "EXPORT::ads_hold_r1",
+      "action": "ads_hold_r1",
+      "source_action": "ads_hold_r1",
+      "source_file": "repo-assets__authoring__ads__ads.blend",
+      "frame_start": 1,
+      "frame_end": 61,
+      "fps": 60,
+      "fps_base": 1.0,
+      "objects": [
+        "Actual arms mesh 0.003",
+        "Actual arms mesh 1.003",
+        "Actual arms mesh 2.003",
+        "Arms.003",
+        "hk416_magazine.003",
+        "hk416_weapon.003",
+        "RD First Person Review.003"
+      ],
+      "object_name_map": {
+        "Actual arms mesh 0.003": "Actual arms mesh 0",
+        "Actual arms mesh 1.003": "Actual arms mesh 1",
+        "Actual arms mesh 2.003": "Actual arms mesh 2",
+        "Arms.003": "Arms",
+        "hk416_magazine.003": "hk416_magazine",
+        "hk416_weapon.003": "hk416_weapon",
+        "RD First Person Review.003": "RD First Person Review"
+      },
+      "status": "gameplay",
+      "companion_tracks": [
+        {
+          "object": "hk416_magazine.003",
+          "action": "hk416_magazineAction.003",
+          "track_name": "EXPORT::ads_hold_r1"
+        },
+        {
+          "object": "hk416_weapon.003",
+          "action": "hk416_weaponAction.004",
+          "track_name": "EXPORT::ads_hold_r1"
+        }
+      ],
+      "camera": "RD First Person Review.003"
+    },
+    {
+      "id": "ads_exit_r1",
+      "scene": "LIBRARY | ADS",
+      "rig": "Arms.003",
+      "track_name": "EXPORT::ads_exit_r1",
+      "action": "ads_exit_r1",
+      "source_action": "ads_exit_r1",
+      "source_file": "repo-assets__authoring__ads__ads.blend",
+      "frame_start": 1,
+      "frame_end": 16,
+      "fps": 60,
+      "fps_base": 1.0,
+      "objects": [
+        "Actual arms mesh 0.003",
+        "Actual arms mesh 1.003",
+        "Actual arms mesh 2.003",
+        "Arms.003",
+        "hk416_magazine.003",
+        "hk416_weapon.003",
+        "RD First Person Review.003"
+      ],
+      "object_name_map": {
+        "Actual arms mesh 0.003": "Actual arms mesh 0",
+        "Actual arms mesh 1.003": "Actual arms mesh 1",
+        "Actual arms mesh 2.003": "Actual arms mesh 2",
+        "Arms.003": "Arms",
+        "hk416_magazine.003": "hk416_magazine",
+        "hk416_weapon.003": "hk416_weapon",
+        "RD First Person Review.003": "RD First Person Review"
+      },
+      "status": "gameplay",
+      "companion_tracks": [
+        {
+          "object": "hk416_magazine.003",
+          "action": "hk416_magazineAction.003",
+          "track_name": "EXPORT::ads_exit_r1"
+        },
+        {
+          "object": "hk416_weapon.003",
+          "action": "hk416_weaponAction.004",
+          "track_name": "EXPORT::ads_exit_r1"
+        }
+      ],
+      "camera": "RD First Person Review.003"
+    },
+    {
+      "id": "hip_walk_forward_r5",
+      "scene": "LIBRARY | HIP_R5",
+      "rig": "Arms.007",
+      "track_name": "EXPORT::hip_walk_forward_r5",
+      "action": "hip_walk_forward_r5.003",
+      "source_action": "hip_walk_forward_r5",
+      "source_file": "repo-assets__authoring__locomotion_directional__r5__halcyon_hip_directional_r5.blend",
+      "frame_start": 1,
+      "frame_end": 39,
+      "fps": 60,
+      "fps_base": 1.0,
+      "objects": [
+        "Actual arms mesh 0.007",
+        "Actual arms mesh 1.007",
+        "Actual arms mesh 2.007",
+        "Arms.007",
+        "hk416_magazine.007",
+        "hk416_weapon.007",
+        "RD First Person Review.007"
+      ],
+      "object_name_map": {
+        "Actual arms mesh 0.007": "Actual arms mesh 0",
+        "Actual arms mesh 1.007": "Actual arms mesh 1",
+        "Actual arms mesh 2.007": "Actual arms mesh 2",
+        "Arms.007": "Arms",
+        "hk416_magazine.007": "hk416_magazine",
+        "hk416_weapon.007": "hk416_weapon",
+        "RD First Person Review.007": "RD First Person Review"
+      },
+      "status": "preview",
+      "companion_tracks": [
+        {
+          "object": "hk416_magazine.007",
+          "action": "hk416_magazineAction.007",
+          "track_name": "EXPORT::hip_walk_forward_r5"
+        },
+        {
+          "object": "hk416_weapon.007",
+          "action": "hk416_weaponAction.008",
+          "track_name": "EXPORT::hip_walk_forward_r5"
+        }
+      ],
+      "camera": "RD First Person Review.007"
+    },
+    {
+      "id": "hip_walk_backward_r5",
+      "scene": "LIBRARY | HIP_R5",
+      "rig": "Arms.007",
+      "track_name": "EXPORT::hip_walk_backward_r5",
+      "action": "hip_walk_backward_r5.003",
+      "source_action": "hip_walk_backward_r5",
+      "source_file": "repo-assets__authoring__locomotion_directional__r5__halcyon_hip_directional_r5.blend",
+      "frame_start": 1,
+      "frame_end": 46,
+      "fps": 60,
+      "fps_base": 1.0,
+      "objects": [
+        "Actual arms mesh 0.007",
+        "Actual arms mesh 1.007",
+        "Actual arms mesh 2.007",
+        "Arms.007",
+        "hk416_magazine.007",
+        "hk416_weapon.007",
+        "RD First Person Review.007"
+      ],
+      "object_name_map": {
+        "Actual arms mesh 0.007": "Actual arms mesh 0",
+        "Actual arms mesh 1.007": "Actual arms mesh 1",
+        "Actual arms mesh 2.007": "Actual arms mesh 2",
+        "Arms.007": "Arms",
+        "hk416_magazine.007": "hk416_magazine",
+        "hk416_weapon.007": "hk416_weapon",
+        "RD First Person Review.007": "RD First Person Review"
+      },
+      "status": "preview",
+      "companion_tracks": [
+        {
+          "object": "hk416_magazine.007",
+          "action": "hk416_magazineAction.007",
+          "track_name": "EXPORT::hip_walk_backward_r5"
+        },
+        {
+          "object": "hk416_weapon.007",
+          "action": "hk416_weaponAction.008",
+          "track_name": "EXPORT::hip_walk_backward_r5"
+        }
+      ],
+      "camera": "RD First Person Review.007"
+    },
+    {
+      "id": "hip_strafe_left_r5",
+      "scene": "LIBRARY | HIP_R5",
+      "rig": "Arms.007",
+      "track_name": "EXPORT::hip_strafe_left_r5",
+      "action": "hip_strafe_left_r5.003",
+      "source_action": "hip_strafe_left_r5",
+      "source_file": "repo-assets__authoring__locomotion_directional__r5__halcyon_hip_directional_r5.blend",
+      "frame_start": 1,
+      "frame_end": 50,
+      "fps": 60,
+      "fps_base": 1.0,
+      "objects": [
+        "Actual arms mesh 0.007",
+        "Actual arms mesh 1.007",
+        "Actual arms mesh 2.007",
+        "Arms.007",
+        "hk416_magazine.007",
+        "hk416_weapon.007",
+        "RD First Person Review.007"
+      ],
+      "object_name_map": {
+        "Actual arms mesh 0.007": "Actual arms mesh 0",
+        "Actual arms mesh 1.007": "Actual arms mesh 1",
+        "Actual arms mesh 2.007": "Actual arms mesh 2",
+        "Arms.007": "Arms",
+        "hk416_magazine.007": "hk416_magazine",
+        "hk416_weapon.007": "hk416_weapon",
+        "RD First Person Review.007": "RD First Person Review"
+      },
+      "status": "preview",
+      "companion_tracks": [
+        {
+          "object": "hk416_magazine.007",
+          "action": "hk416_magazineAction.007",
+          "track_name": "EXPORT::hip_strafe_left_r5"
+        },
+        {
+          "object": "hk416_weapon.007",
+          "action": "hk416_weaponAction.008",
+          "track_name": "EXPORT::hip_strafe_left_r5"
+        }
+      ],
+      "camera": "RD First Person Review.007"
+    },
+    {
+      "id": "hip_strafe_right_r5",
+      "scene": "LIBRARY | HIP_R5",
+      "rig": "Arms.007",
+      "track_name": "EXPORT::hip_strafe_right_r5",
+      "action": "hip_strafe_right_r5.003",
+      "source_action": "hip_strafe_right_r5",
+      "source_file": "repo-assets__authoring__locomotion_directional__r5__halcyon_hip_directional_r5.blend",
+      "frame_start": 1,
+      "frame_end": 50,
+      "fps": 60,
+      "fps_base": 1.0,
+      "objects": [
+        "Actual arms mesh 0.007",
+        "Actual arms mesh 1.007",
+        "Actual arms mesh 2.007",
+        "Arms.007",
+        "hk416_magazine.007",
+        "hk416_weapon.007",
+        "RD First Person Review.007"
+      ],
+      "object_name_map": {
+        "Actual arms mesh 0.007": "Actual arms mesh 0",
+        "Actual arms mesh 1.007": "Actual arms mesh 1",
+        "Actual arms mesh 2.007": "Actual arms mesh 2",
+        "Arms.007": "Arms",
+        "hk416_magazine.007": "hk416_magazine",
+        "hk416_weapon.007": "hk416_weapon",
+        "RD First Person Review.007": "RD First Person Review"
+      },
+      "status": "preview",
+      "companion_tracks": [
+        {
+          "object": "hk416_magazine.007",
+          "action": "hk416_magazineAction.007",
+          "track_name": "EXPORT::hip_strafe_right_r5"
+        },
+        {
+          "object": "hk416_weapon.007",
+          "action": "hk416_weaponAction.008",
+          "track_name": "EXPORT::hip_strafe_right_r5"
+        }
+      ],
+      "camera": "RD First Person Review.007"
+    },
+    {
+      "id": "jump_takeoff",
+      "scene": "LIBRARY | PRONE",
+      "rig": "Arms.002",
+      "track_name": "EXPORT::jump_takeoff",
+      "action": "jump_takeoff_r7",
+      "source_action": "jump_takeoff_r7",
+      "source_file": "prone-entry-current.blend",
+      "frame_start": 1,
+      "frame_end": 12,
+      "fps": 60,
+      "fps_base": 1.0,
+      "objects": [
+        "Actual arms mesh 0.002",
+        "Actual arms mesh 1.002",
+        "Actual arms mesh 2.002",
+        "Arms.002",
+        "hk416_magazine.002",
+        "hk416_weapon.002",
+        "RD First Person Review.002"
+      ],
+      "object_name_map": {
+        "Actual arms mesh 0.002": "Actual arms mesh 0",
+        "Actual arms mesh 1.002": "Actual arms mesh 1",
+        "Actual arms mesh 2.002": "Actual arms mesh 2",
+        "Arms.002": "Arms",
+        "hk416_magazine.002": "hk416_magazine",
+        "hk416_weapon.002": "hk416_weapon",
+        "RD First Person Review.002": "RD First Person Review"
+      },
+      "status": "gameplay",
+      "companion_tracks": [
+        {
+          "object": "hk416_magazine.002",
+          "action": "hk416_magazineAction.002",
+          "track_name": "EXPORT::jump_takeoff"
+        },
+        {
+          "object": "hk416_weapon.002",
+          "action": "hk416_weaponAction.003",
+          "track_name": "EXPORT::jump_takeoff"
+        }
+      ],
+      "camera": "RD First Person Review.002"
+    },
+    {
+      "id": "jump_air",
+      "scene": "LIBRARY | PRONE",
+      "rig": "Arms.002",
+      "track_name": "EXPORT::jump_air",
+      "action": "jump_air_r7",
+      "source_action": "jump_air_r7",
+      "source_file": "prone-entry-current.blend",
+      "frame_start": 1,
+      "frame_end": 24,
+      "fps": 60,
+      "fps_base": 1.0,
+      "objects": [
+        "Actual arms mesh 0.002",
+        "Actual arms mesh 1.002",
+        "Actual arms mesh 2.002",
+        "Arms.002",
+        "hk416_magazine.002",
+        "hk416_weapon.002",
+        "RD First Person Review.002"
+      ],
+      "object_name_map": {
+        "Actual arms mesh 0.002": "Actual arms mesh 0",
+        "Actual arms mesh 1.002": "Actual arms mesh 1",
+        "Actual arms mesh 2.002": "Actual arms mesh 2",
+        "Arms.002": "Arms",
+        "hk416_magazine.002": "hk416_magazine",
+        "hk416_weapon.002": "hk416_weapon",
+        "RD First Person Review.002": "RD First Person Review"
+      },
+      "status": "gameplay",
+      "companion_tracks": [
+        {
+          "object": "hk416_magazine.002",
+          "action": "hk416_magazineAction.002",
+          "track_name": "EXPORT::jump_air"
+        },
+        {
+          "object": "hk416_weapon.002",
+          "action": "hk416_weaponAction.003",
+          "track_name": "EXPORT::jump_air"
+        }
+      ],
+      "camera": "RD First Person Review.002"
+    },
+    {
+      "id": "jump_land",
+      "scene": "LIBRARY | PRONE",
+      "rig": "Arms.002",
+      "track_name": "EXPORT::jump_land",
+      "action": "jump_land_r8_ease_candidate",
+      "source_action": "jump_land_r8_ease_candidate",
+      "source_file": "prone-entry-current.blend",
+      "frame_start": 1,
+      "frame_end": 29,
+      "fps": 60,
+      "fps_base": 1.0,
+      "objects": [
+        "Actual arms mesh 0.002",
+        "Actual arms mesh 1.002",
+        "Actual arms mesh 2.002",
+        "Arms.002",
+        "hk416_magazine.002",
+        "hk416_weapon.002",
+        "RD First Person Review.002"
+      ],
+      "object_name_map": {
+        "Actual arms mesh 0.002": "Actual arms mesh 0",
+        "Actual arms mesh 1.002": "Actual arms mesh 1",
+        "Actual arms mesh 2.002": "Actual arms mesh 2",
+        "Arms.002": "Arms",
+        "hk416_magazine.002": "hk416_magazine",
+        "hk416_weapon.002": "hk416_weapon",
+        "RD First Person Review.002": "RD First Person Review"
+      },
+      "status": "gameplay",
+      "companion_tracks": [
+        {
+          "object": "hk416_magazine.002",
+          "action": "hk416_magazineAction.002",
+          "track_name": "EXPORT::jump_land"
+        },
+        {
+          "object": "hk416_weapon.002",
+          "action": "hk416_weaponAction.003",
+          "track_name": "EXPORT::jump_land"
+        }
+      ],
+      "camera": "RD First Person Review.002"
+    },
+    {
+      "id": "normal_settle",
+      "scene": "LIBRARY | LOCOMOTION",
+      "rig": "Arms.004",
+      "track_name": "EXPORT::normal_settle",
+      "action": "RD_Normal_Exit_Connected.004",
+      "source_action": "RD_Normal_Exit_Connected",
+      "source_file": "repo-assets__authoring__locomotion__locomotion.blend",
+      "frame_start": 1,
+      "frame_end": 25,
+      "fps": 60,
+      "fps_base": 1.0,
+      "objects": [
+        "Actual arms mesh 0.004",
+        "Actual arms mesh 1.004",
+        "Actual arms mesh 2.004",
+        "Arms.004",
+        "hk416_magazine.004",
+        "hk416_weapon.004",
+        "RD First Person Review.004"
+      ],
+      "object_name_map": {
+        "Actual arms mesh 0.004": "Actual arms mesh 0",
+        "Actual arms mesh 1.004": "Actual arms mesh 1",
+        "Actual arms mesh 2.004": "Actual arms mesh 2",
+        "Arms.004": "Arms",
+        "hk416_magazine.004": "hk416_magazine",
+        "hk416_weapon.004": "hk416_weapon",
+        "RD First Person Review.004": "RD First Person Review"
+      },
+      "status": "existing runtime alias of normal_exit_connected",
+      "companion_tracks": [
+        {
+          "object": "hk416_magazine.004",
+          "action": "hk416_magazineAction.004",
+          "track_name": "EXPORT::normal_settle"
+        },
+        {
+          "object": "hk416_weapon.004",
+          "action": "hk416_weaponAction.005",
+          "track_name": "EXPORT::normal_settle"
+        }
+      ],
+      "camera": "RD First Person Review.004"
+    },
+    {
+      "id": "low_vault",
+      "scene": "LIBRARY | VAULT",
+      "rig": "Arms",
+      "track_name": "EXPORT::low_vault",
+      "action": "aella_vault_low_entry_reconstructed_v3",
+      "source_action": "aella_vault_low_entry_reconstructed_v3",
+      "source_file": "low-vault-current.blend",
+      "frame_start": 1,
+      "frame_end": 64,
+      "fps": 60,
+      "fps_base": 1.0,
+      "objects": [
+        "Actual arms mesh 0",
+        "Actual arms mesh 1",
+        "Actual arms mesh 2",
+        "Arms",
+        "hk416_magazine",
+        "hk416_weapon",
+        "RD First Person Review"
+      ],
+      "object_name_map": {
+        "Actual arms mesh 0": "Actual arms mesh 0",
+        "Actual arms mesh 1": "Actual arms mesh 1",
+        "Actual arms mesh 2": "Actual arms mesh 2",
+        "Arms": "Arms",
+        "hk416_magazine": "hk416_magazine",
+        "hk416_weapon": "hk416_weapon",
+        "RD First Person Review": "RD First Person Review"
+      },
+      "status": "Elara83 PASS",
+      "companion_tracks": [
+        {
+          "object": "hk416_magazine",
+          "action": "hk416_magazineAction",
+          "track_name": "EXPORT::low_vault"
+        },
+        {
+          "object": "hk416_weapon",
+          "action": "hk416_weaponAction.001",
+          "track_name": "EXPORT::low_vault"
+        }
+      ],
+      "camera": "RD First Person Review"
+    },
+    {
+      "id": "onehand_mantle",
+      "scene": "LIBRARY | ONEHAND",
+      "rig": "Arms.001",
+      "track_name": "EXPORT::onehand_mantle",
+      "action": "aella_mantle_onehand_r6_camera_reconstructed_v6",
+      "source_action": "aella_mantle_onehand_r6_camera_reconstructed_v6",
+      "source_file": "onehand-current.blend",
+      "frame_start": 1,
+      "frame_end": 96,
+      "fps": 60,
+      "fps_base": 1.0,
+      "objects": [
+        "Actual arms mesh 0.001",
+        "Actual arms mesh 1.001",
+        "Actual arms mesh 2.001",
+        "Arms.001",
+        "hk416_magazine.001",
+        "hk416_weapon.001",
+        "RD First Person Review.001"
+      ],
+      "object_name_map": {
+        "Actual arms mesh 0.001": "Actual arms mesh 0",
+        "Actual arms mesh 1.001": "Actual arms mesh 1",
+        "Actual arms mesh 2.001": "Actual arms mesh 2",
+        "Arms.001": "Arms",
+        "hk416_magazine.001": "hk416_magazine",
+        "hk416_weapon.001": "hk416_weapon",
+        "RD First Person Review.001": "RD First Person Review"
+      },
+      "status": "Elara81 PASS",
+      "companion_tracks": [
+        {
+          "object": "hk416_magazine.001",
+          "action": "hk416_magazineAction.001",
+          "track_name": "EXPORT::onehand_mantle"
+        },
+        {
+          "object": "hk416_weapon.001",
+          "action": "hk416_weaponAction.002",
+          "track_name": "EXPORT::onehand_mantle"
+        }
+      ],
+      "camera": "RD First Person Review.001"
+    },
+    {
+      "id": "prone_entry",
+      "scene": "LIBRARY | PRONE",
+      "rig": "Arms.002",
+      "track_name": "EXPORT::prone_entry",
+      "action": "aella_prone_crawl_enter_r15_roll_v1",
+      "source_action": "aella_prone_crawl_enter_r15_roll_v1",
+      "source_file": "prone-entry-current.blend",
+      "frame_start": 1,
+      "frame_end": 69,
+      "fps": 60,
+      "fps_base": 1.0,
+      "objects": [
+        "Actual arms mesh 0.002",
+        "Actual arms mesh 1.002",
+        "Actual arms mesh 2.002",
+        "Arms.002",
+        "hk416_magazine.002",
+        "hk416_weapon.002",
+        "RD First Person Review.002"
+      ],
+      "object_name_map": {
+        "Actual arms mesh 0.002": "Actual arms mesh 0",
+        "Actual arms mesh 1.002": "Actual arms mesh 1",
+        "Actual arms mesh 2.002": "Actual arms mesh 2",
+        "Arms.002": "Arms",
+        "hk416_magazine.002": "hk416_magazine",
+        "hk416_weapon.002": "hk416_weapon",
+        "RD First Person Review.002": "RD First Person Review"
+      },
+      "status": "Elara82 PASS",
+      "companion_tracks": [
+        {
+          "object": "hk416_magazine.002",
+          "action": "hk416_magazineAction.002",
+          "track_name": "EXPORT::prone_entry"
+        },
+        {
+          "object": "hk416_weapon.002",
+          "action": "hk416_weaponAction.003",
+          "track_name": "EXPORT::prone_entry"
+        }
+      ],
+      "camera": "RD First Person Review.002",
+      "camera_track_name": "EXPORT::prone_entry",
+      "camera_action": "aella_prone_crawl_enter_camera_r9_viewray_v3"
+    },
+    {
+      "id": "prone_crawl_forward_segment_r1",
+      "scene": "LIBRARY | PRONE",
+      "rig": "Arms.002",
+      "track_name": "EXPORT::prone_crawl_forward_segment_r1",
+      "action": "prone_crawl_forward_segment_r1",
+      "source_action": "prone_crawl_forward_segment_r1",
+      "source_file": "prone-entry-current.blend",
+      "frame_start": 1,
+      "frame_end": 241,
+      "fps": 60,
+      "fps_base": 1.0,
+      "objects": [
+        "Actual arms mesh 0.002",
+        "Actual arms mesh 1.002",
+        "Actual arms mesh 2.002",
+        "Arms.002",
+        "hk416_magazine.002",
+        "hk416_weapon.002",
+        "RD First Person Review.002"
+      ],
+      "object_name_map": {
+        "Actual arms mesh 0.002": "Actual arms mesh 0",
+        "Actual arms mesh 1.002": "Actual arms mesh 1",
+        "Actual arms mesh 2.002": "Actual arms mesh 2",
+        "Arms.002": "Arms",
+        "hk416_magazine.002": "hk416_magazine",
+        "hk416_weapon.002": "hk416_weapon",
+        "RD First Person Review.002": "RD First Person Review"
+      },
+      "status": "existing authored crawl segment",
+      "companion_tracks": [
+        {
+          "object": "hk416_magazine.002",
+          "action": "hk416_magazineAction.002",
+          "track_name": "EXPORT::prone_crawl_forward_segment_r1"
+        },
+        {
+          "object": "hk416_weapon.002",
+          "action": "hk416_weaponAction.003",
+          "track_name": "EXPORT::prone_crawl_forward_segment_r1"
+        }
+      ],
+      "camera": "RD First Person Review.002"
+    },
+    {
+      "id": "prone_crawl_backward_segment_r1",
+      "scene": "LIBRARY | PRONE",
+      "rig": "Arms.002",
+      "track_name": "EXPORT::prone_crawl_backward_segment_r1",
+      "action": "prone_crawl_backward_segment_r1",
+      "source_action": "prone_crawl_backward_segment_r1",
+      "source_file": "prone-entry-current.blend",
+      "frame_start": 1,
+      "frame_end": 229,
+      "fps": 60,
+      "fps_base": 1.0,
+      "objects": [
+        "Actual arms mesh 0.002",
+        "Actual arms mesh 1.002",
+        "Actual arms mesh 2.002",
+        "Arms.002",
+        "hk416_magazine.002",
+        "hk416_weapon.002",
+        "RD First Person Review.002"
+      ],
+      "object_name_map": {
+        "Actual arms mesh 0.002": "Actual arms mesh 0",
+        "Actual arms mesh 1.002": "Actual arms mesh 1",
+        "Actual arms mesh 2.002": "Actual arms mesh 2",
+        "Arms.002": "Arms",
+        "hk416_magazine.002": "hk416_magazine",
+        "hk416_weapon.002": "hk416_weapon",
+        "RD First Person Review.002": "RD First Person Review"
+      },
+      "status": "existing authored crawl segment",
+      "companion_tracks": [
+        {
+          "object": "hk416_magazine.002",
+          "action": "hk416_magazineAction.002",
+          "track_name": "EXPORT::prone_crawl_backward_segment_r1"
+        },
+        {
+          "object": "hk416_weapon.002",
+          "action": "hk416_weaponAction.003",
+          "track_name": "EXPORT::prone_crawl_backward_segment_r1"
+        }
+      ],
+      "camera": "RD First Person Review.002"
+    },
+    {
+      "id": "prone_crawl_left_segment_r1",
+      "scene": "LIBRARY | PRONE",
+      "rig": "Arms.002",
+      "track_name": "EXPORT::prone_crawl_left_segment_r1",
+      "action": "prone_crawl_left_segment_r1",
+      "source_action": "prone_crawl_left_segment_r1",
+      "source_file": "prone-entry-current.blend",
+      "frame_start": 1,
+      "frame_end": 55,
+      "fps": 60,
+      "fps_base": 1.0,
+      "objects": [
+        "Actual arms mesh 0.002",
+        "Actual arms mesh 1.002",
+        "Actual arms mesh 2.002",
+        "Arms.002",
+        "hk416_magazine.002",
+        "hk416_weapon.002",
+        "RD First Person Review.002"
+      ],
+      "object_name_map": {
+        "Actual arms mesh 0.002": "Actual arms mesh 0",
+        "Actual arms mesh 1.002": "Actual arms mesh 1",
+        "Actual arms mesh 2.002": "Actual arms mesh 2",
+        "Arms.002": "Arms",
+        "hk416_magazine.002": "hk416_magazine",
+        "hk416_weapon.002": "hk416_weapon",
+        "RD First Person Review.002": "RD First Person Review"
+      },
+      "status": "existing authored crawl segment",
+      "companion_tracks": [
+        {
+          "object": "hk416_magazine.002",
+          "action": "hk416_magazineAction.002",
+          "track_name": "EXPORT::prone_crawl_left_segment_r1"
+        },
+        {
+          "object": "hk416_weapon.002",
+          "action": "hk416_weaponAction.003",
+          "track_name": "EXPORT::prone_crawl_left_segment_r1"
+        }
+      ],
+      "camera": "RD First Person Review.002"
+    },
+    {
+      "id": "prone_crawl_right_segment_r1",
+      "scene": "LIBRARY | PRONE",
+      "rig": "Arms.002",
+      "track_name": "EXPORT::prone_crawl_right_segment_r1",
+      "action": "prone_crawl_right_segment_r1",
+      "source_action": "prone_crawl_right_segment_r1",
+      "source_file": "prone-entry-current.blend",
+      "frame_start": 1,
+      "frame_end": 139,
+      "fps": 60,
+      "fps_base": 1.0,
+      "objects": [
+        "Actual arms mesh 0.002",
+        "Actual arms mesh 1.002",
+        "Actual arms mesh 2.002",
+        "Arms.002",
+        "hk416_magazine.002",
+        "hk416_weapon.002",
+        "RD First Person Review.002"
+      ],
+      "object_name_map": {
+        "Actual arms mesh 0.002": "Actual arms mesh 0",
+        "Actual arms mesh 1.002": "Actual arms mesh 1",
+        "Actual arms mesh 2.002": "Actual arms mesh 2",
+        "Arms.002": "Arms",
+        "hk416_magazine.002": "hk416_magazine",
+        "hk416_weapon.002": "hk416_weapon",
+        "RD First Person Review.002": "RD First Person Review"
+      },
+      "status": "existing authored crawl segment",
+      "companion_tracks": [
+        {
+          "object": "hk416_magazine.002",
+          "action": "hk416_magazineAction.002",
+          "track_name": "EXPORT::prone_crawl_right_segment_r1"
+        },
+        {
+          "object": "hk416_weapon.002",
+          "action": "hk416_weaponAction.003",
+          "track_name": "EXPORT::prone_crawl_right_segment_r1"
+        }
+      ],
+      "camera": "RD First Person Review.002"
+    },
+    {
+      "id": "reload_current_wip",
+      "scene": "LIBRARY | RELOAD",
+      "rig": "Arms.008",
+      "track_name": "EXPORT::reload_current_wip",
+      "action": "RD_Reload_Tactical_HandApproach_AndReturn_WIP.008",
+      "source_action": "RD_Reload_Tactical_HandApproach_AndReturn_WIP",
+      "source_file": "repo-assets__source__reload__current.blend",
+      "frame_start": 1,
+      "frame_end": 157,
+      "fps": 60,
+      "fps_base": 1.0010000467300415,
+      "objects": [
+        "Actual arms mesh 0.008",
+        "Actual arms mesh 1.008",
+        "Actual arms mesh 2.008",
+        "Arms.008",
+        "hk416_magazine.008",
+        "hk416_weapon.008",
+        "RD First Person Review.008"
+      ],
+      "object_name_map": {
+        "Actual arms mesh 0.008": "Actual arms mesh 0",
+        "Actual arms mesh 1.008": "Actual arms mesh 1",
+        "Actual arms mesh 2.008": "Actual arms mesh 2",
+        "Arms.008": "Arms",
+        "hk416_magazine.008": "hk416_magazine",
+        "hk416_weapon.008": "hk416_weapon",
+        "RD First Person Review.008": "RD First Person Review"
+      },
+      "status": "full authored WIP; not approved finished reload",
+      "companion_tracks": [
+        {
+          "object": "hk416_magazine.008",
+          "action": "hk416_magazineAction.008",
+          "track_name": "EXPORT::reload_current_wip"
+        },
+        {
+          "object": "hk416_weapon.008",
+          "action": "hk416_weaponAction.009",
+          "track_name": "EXPORT::reload_current_wip"
+        }
+      ],
+      "camera": "RD First Person Review.008"
+    },
+    {
+      "id": "reload_opening_wip",
+      "scene": "LIBRARY | RELOAD",
+      "rig": "Arms.008",
+      "track_name": "EXPORT::reload_opening_wip",
+      "action": "RD_Reload_Tactical_Hands_Opening_WIP.008",
+      "source_action": "RD_Reload_Tactical_Hands_Opening_WIP",
+      "source_file": "repo-assets__source__reload__current.blend",
+      "frame_start": 1,
+      "frame_end": 31,
+      "fps": 60,
+      "fps_base": 1.0010000467300415,
+      "objects": [
+        "Actual arms mesh 0.008",
+        "Actual arms mesh 1.008",
+        "Actual arms mesh 2.008",
+        "Arms.008",
+        "hk416_magazine.008",
+        "hk416_weapon.008",
+        "RD First Person Review.008"
+      ],
+      "object_name_map": {
+        "Actual arms mesh 0.008": "Actual arms mesh 0",
+        "Actual arms mesh 1.008": "Actual arms mesh 1",
+        "Actual arms mesh 2.008": "Actual arms mesh 2",
+        "Arms.008": "Arms",
+        "hk416_magazine.008": "hk416_magazine",
+        "hk416_weapon.008": "hk416_weapon",
+        "RD First Person Review.008": "RD First Person Review"
+      },
+      "status": "separate authored opening WIP",
+      "companion_tracks": [
+        {
+          "object": "hk416_magazine.008",
+          "action": "hk416_magazineAction.008",
+          "track_name": "EXPORT::reload_opening_wip"
+        },
+        {
+          "object": "hk416_weapon.008",
+          "action": "hk416_weaponAction.009",
+          "track_name": "EXPORT::reload_opening_wip"
+        }
+      ],
+      "camera": "RD First Person Review.008"
+    },
+    {
+      "id": "canonical_reset",
+      "scene": "LIBRARY | RELOAD",
+      "rig": "Arms.008",
+      "track_name": "EXPORT::canonical_reset",
+      "action": "RD_00_Supplied_Base_Guarded_Recovered.008",
+      "source_action": "RD_00_Supplied_Base_Guarded_Recovered",
+      "source_file": "repo-assets__source__reload__current.blend",
+      "frame_start": 1,
+      "frame_end": 1,
+      "fps": 60,
+      "fps_base": 1.0010000467300415,
+      "objects": [
+        "Actual arms mesh 0.008",
+        "Actual arms mesh 1.008",
+        "Actual arms mesh 2.008",
+        "Arms.008",
+        "hk416_magazine.008",
+        "hk416_weapon.008",
+        "RD First Person Review.008"
+      ],
+      "object_name_map": {
+        "Actual arms mesh 0.008": "Actual arms mesh 0",
+        "Actual arms mesh 1.008": "Actual arms mesh 1",
+        "Actual arms mesh 2.008": "Actual arms mesh 2",
+        "Arms.008": "Arms",
+        "hk416_magazine.008": "hk416_magazine",
+        "hk416_weapon.008": "hk416_weapon",
+        "RD First Person Review.008": "RD First Person Review"
+      },
+      "status": "static reset",
+      "companion_tracks": [
+        {
+          "object": "hk416_magazine.008",
+          "action": "hk416_magazineAction.008",
+          "track_name": "EXPORT::canonical_reset"
+        },
+        {
+          "object": "hk416_weapon.008",
+          "action": "hk416_weaponAction.009",
+          "track_name": "EXPORT::canonical_reset"
+        }
+      ],
+      "camera": "RD First Person Review.008"
+    },
+    {
+      "id": "pickup_pose_inspection",
+      "scene": "LIBRARY | RELOAD",
+      "rig": "Arms.008",
+      "track_name": "EXPORT::pickup_pose_inspection",
+      "action": "RD_Pose_Tactical_Pickup54_Guarded.008",
+      "source_action": "RD_Pose_Tactical_Pickup54_Guarded",
+      "source_file": "repo-assets__source__reload__current.blend",
+      "frame_start": 55,
+      "frame_end": 55,
+      "fps": 60,
+      "fps_base": 1.0010000467300415,
+      "objects": [
+        "Actual arms mesh 0.008",
+        "Actual arms mesh 1.008",
+        "Actual arms mesh 2.008",
+        "Arms.008",
+        "hk416_magazine.008",
+        "hk416_weapon.008",
+        "RD First Person Review.008"
+      ],
+      "object_name_map": {
+        "Actual arms mesh 0.008": "Actual arms mesh 0",
+        "Actual arms mesh 1.008": "Actual arms mesh 1",
+        "Actual arms mesh 2.008": "Actual arms mesh 2",
+        "Arms.008": "Arms",
+        "hk416_magazine.008": "hk416_magazine",
+        "hk416_weapon.008": "hk416_weapon",
+        "RD First Person Review.008": "RD First Person Review"
+      },
+      "status": "static pose",
+      "companion_tracks": [
+        {
+          "object": "hk416_magazine.008",
+          "action": "hk416_magazineAction.008",
+          "track_name": "EXPORT::pickup_pose_inspection"
+        },
+        {
+          "object": "hk416_weapon.008",
+          "action": "hk416_weaponAction.009",
+          "track_name": "EXPORT::pickup_pose_inspection"
+        }
+      ],
+      "camera": "RD First Person Review.008"
+    },
+    {
+      "id": "ads_walk_forward_v9_diagnostic",
+      "scene": "LIBRARY | ADS_V9 | 2",
+      "rig": "DIAG_V9_Arms",
+      "track_name": "EXPORT::ads_walk_forward_v9_diagnostic",
+      "action": "DIAG_v9_forward_native15_output",
+      "source_action": "DIAG_v9_forward_native15_output",
+      "source_file": "repo-assets__authoring__locomotion_ads__v9__ads_v9_depthphase_public47_hipr5_diagnostic.blend",
+      "frame_start": 1,
+      "frame_end": 126,
+      "fps": 60,
+      "fps_base": 1.0,
+      "objects": [
+        "DIAG_V9_Arms",
+        "DIAG_V9_Actual arms mesh 0",
+        "DIAG_V9_Actual arms mesh 1",
+        "DIAG_V9_Actual arms mesh 2",
+        "DIAG_V9_hk416_weapon",
+        "DIAG_V9_hk416_magazine",
+        "RD First Person Review.005"
+      ],
+      "object_name_map": {
+        "DIAG_V9_Arms": "Arms",
+        "DIAG_V9_Actual arms mesh 0": "Actual arms mesh 0",
+        "DIAG_V9_Actual arms mesh 1": "Actual arms mesh 1",
+        "DIAG_V9_Actual arms mesh 2": "Actual arms mesh 2",
+        "DIAG_V9_hk416_weapon": "hk416_weapon",
+        "DIAG_V9_hk416_magazine": "hk416_magazine",
+        "RD First Person Review.005": "RD First Person Review"
+      },
+      "status": "unreviewed existing diagnostic WIP; not artistic approval",
+      "companion_tracks": [
+        {
+          "object": "DIAG_V9_hk416_weapon",
+          "action": "DIAG_v9_hk416_weapon_output",
+          "track_name": "EXPORT::ads_walk_forward_v9_diagnostic"
+        },
+        {
+          "object": "DIAG_V9_hk416_magazine",
+          "action": "DIAG_v9_hk416_magazine_output",
+          "track_name": "EXPORT::ads_walk_forward_v9_diagnostic"
+        }
+      ],
+      "camera": "RD First Person Review.005"
+    }
+  ],
+  "unavailable_not_authored": [
+    "fire",
+    "empty_reload",
+    "tactical_sprint",
+    "slide",
+    "dive",
+    "mount",
+    "ledge",
+    "pistol",
+    "pull_up",
+    "hang_drop"
+  ],
+  "notes": [
+    "All historical source Actions retained with fake users. ARCHIVE tracks are not canonical exports.",
+    "Approved deterministic jump landing r8 recipe materialized on a copy; original r7 retained.",
+    "normal_settle is an existing runtime alias, not new animation.",
+    "Authored WIP and diagnostic status is retained honestly. No new artistic or gameplay approval."
+  ]
+}

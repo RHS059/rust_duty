@@ -1,0 +1,14 @@
+test_exact_source_and_portable_pins (test_projection_bridge.BridgeTests.test_exact_source_and_portable_pins) ... ok
+test_generated_identity_pin_not_optional (test_projection_bridge.BridgeTests.test_generated_identity_pin_not_optional) ... ok
+test_linux_cannot_claim_windows (test_projection_bridge.BridgeTests.test_linux_cannot_claim_windows) ... ok
+test_no_native_import_or_execution (test_projection_bridge.BridgeTests.test_no_native_import_or_execution) ... ok
+test_same_buffer_rejects_changed_json (test_projection_bridge.BridgeTests.test_same_buffer_rejects_changed_json) ... ok
+test_static_historical_identity_not_dropped (test_projection_bridge.BridgeTests.test_static_historical_identity_not_dropped) ... ok
+test_strict_projection_carried_into_bridge_v2 (test_projection_bridge.BridgeTests.test_strict_projection_carried_into_bridge_v2) ... ok
+test_target_replay_pin_rechecked (test_projection_bridge.BridgeTests.test_target_replay_pin_rechecked) ... ok
+test_unknown_or_duplicate_json_rejected (test_projection_bridge.BridgeTests.test_unknown_or_duplicate_json_rejected) ... ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 0.203s
+
+OK

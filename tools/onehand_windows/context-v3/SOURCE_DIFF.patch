@@ -1,0 +1,1078 @@
+--- context-v2/OFFICIAL_ADDON_PINS.json
++++ context-v3/OFFICIAL_ADDON_PINS.json
+@@ -4,23 +4,112 @@
+     3,
+     2
+   ],
++  "distribution": {
++    "bytes": 405138423,
++    "filename": "blender-4.3.2-windows-x64.zip",
++    "sha256": "933a62a770c941e316535f893629ff106ddd2aa5a956f0081ec557439073d4f6"
++  },
++  "file_metadata": {
++    "__init__.py": {
++      "bare_cr_count": 0,
++      "bare_lf_count": 0,
++      "bytes": 27535,
++      "crlf_count": 733
++    },
++    "data_types.py": {
++      "bare_cr_count": 0,
++      "bare_lf_count": 0,
++      "bytes": 1726,
++      "crlf_count": 62
++    },
++    "encode_bin.py": {
++      "bare_cr_count": 0,
++      "bare_lf_count": 0,
++      "bytes": 15209,
++      "crlf_count": 434
++    },
++    "export_fbx_bin.py": {
++      "bare_cr_count": 0,
++      "bare_lf_count": 0,
++      "bytes": 187901,
++      "crlf_count": 3754
++    },
++    "fbx2json.py": {
++      "bare_cr_count": 0,
++      "bare_lf_count": 0,
++      "bytes": 10031,
++      "crlf_count": 341
++    },
++    "fbx_utils.py": {
++      "bare_cr_count": 0,
++      "bare_lf_count": 0,
++      "bytes": 90187,
++      "crlf_count": 1931
++    },
++    "fbx_utils_threading.py": {
++      "bare_cr_count": 0,
++      "bare_lf_count": 0,
++      "bytes": 11779,
++      "crlf_count": 194
++    },
++    "import_fbx.py": {
++      "bare_cr_count": 0,
++      "bare_lf_count": 0,
++      "bytes": 191900,
++      "crlf_count": 4024
++    },
++    "json2fbx.py": {
++      "bare_cr_count": 0,
++      "bare_lf_count": 0,
++      "bytes": 3794,
++      "crlf_count": 165
++    },
++    "parse_fbx.py": {
++      "bare_cr_count": 0,
++      "bare_lf_count": 0,
++      "bytes": 11409,
++      "crlf_count": 274
++    }
++  },
+   "files": {
+-    "__init__.py": "8af335ff0daba71b9301e076f8c72836f013c012736d59d9e2b6700885d1eb1f",
+-    "data_types.py": "1697b26e84cdabdebf8cf8c1dbb6e3b303705917aaf84eab835f0cdad6b26e20",
+-    "encode_bin.py": "3322a809e0073947e107de8f7e5839dff0956578271e88506eab7a7627f3323f",
+-    "export_fbx_bin.py": "fd494ffc3d8d01e21b028fa05b8bb7739afecfc09e0c8f2e09ef451b5b0e9e05",
+-    "fbx2json.py": "4fc62f848f7834e2f376838251db2f64ec1a7856578acb6f152ac78ac5e60616",
+-    "fbx_utils.py": "ffabd204b2cce48670b47de6bb77e8dba06daa77b7efab037c4f157f1ffa80b6",
+-    "fbx_utils_threading.py": "ddf8d90b87b51e057212c9b5f3c73caea49fddf2915140eb2e3206f7dad757a3",
+-    "import_fbx.py": "d3a4232dc9bc7599df4058a4f786fa9c2c9c971809185b811439b64986a7ceac",
+-    "json2fbx.py": "d7676c3116e0b16752a6530e42f1b1126ca1e37a61595d0ea84c21d46a97f8c5",
+-    "parse_fbx.py": "982c7b5071c293184f974dfb362b7c5f950c91a535d5283d656a8934aacfe5ad"
++    "__init__.py": "95b5a069a2b25312b61a2bf42e4a1d7b0fa37e149e17b27aafee550c41464ae3",
++    "data_types.py": "24328144f5b60338b1b47cc47ff76e8aee5c97c89ca4a419482978bb961f18fa",
++    "encode_bin.py": "5de48173bc0206e1a724c1a8ffc740c1449acfeaa8ecc75087d9a6ad5e2c889c",
++    "export_fbx_bin.py": "0fb51fa4f54b8a892cd00f8dca176891f931e907a5d37803c671f28129e74768",
++    "fbx2json.py": "25155f32e9397418948c67922aced3de9dc89b6f30bab8d40ceed257410198ac",
++    "fbx_utils.py": "cc97d1260a623df23940b02b6ea60c4bbfe74ce4bcf2c2a703b4325808abdfe0",
++    "fbx_utils_threading.py": "b298c446704de85107b06653f9da3c68a87fe3cba30d52f10becbd1c643a9ef1",
++    "import_fbx.py": "0ac789d249bf0cf24bb6b1fbd1f3791aa02d954ffed6137d6f2cee1ebab2b534",
++    "json2fbx.py": "9a4d23c12624fa91be9d0c1d8190ca231a6ec0666cc039b0096f9750e0ede2e9",
++    "parse_fbx.py": "8252e933c94934b2271b72b31045683fcb56ead4804ff1d8f3a851ae2dad6241"
+   },
+-  "functions": {
++  "hash_domains": {
++    "files": "sha256(raw-file-bytes)",
++    "loaded_functions_sha256": "sha256(utf8(inspect.getsource(function)))",
++    "raw_functions_sha256": "sha256(utf8(raw-AST-function-slice-with-original-line-endings))"
++  },
++  "loaded_functions_sha256": {
+     "import_fbx.py": {
+       "blen_read_animations": "757bd21550d94e2190881ec6b0eb0ce80b275d2a230055cf7702044fe6dcc6e2",
+       "blen_store_keyframes_multi": "793a389ebde0e71ec3cec54e731c861753aa08015355904777a8c39b70da3a4e"
+     }
+   },
+-  "schema": "rust-duty-logical-official-fbx-pins/v1"
++  "observation": {
++    "artifact_bytes": 5181,
++    "artifact_sha256": "2e23f39ca4a7f42f27338e34a51970237bdf04242e9770b346876ef36ed5e9c0",
++    "head_sha": "01e3d821d197799a342b7738b84e835b11197f24",
++    "job_id": "117615400667",
++    "report_bytes": 9422,
++    "report_sha256": "5ee21d576be9af34c7b4095352aca1b4fde329eca23b79b6f12a189edc9d800a",
++    "run_id": "39107154529",
++    "vendor_checksum_file_sha256": "eee745a32c28b3e6ae90d246474dacfde6d2e05291c118b153d8ef72cff45c7f"
++  },
++  "profile_id": "blender-4.3.2-windows-x64-official-crlf-v1",
++  "raw_functions_sha256": {
++    "import_fbx.py": {
++      "blen_read_animations": "d4a7f77069ec1c25036cf6760558dc42ceed0b4e63fc0ffa2524e5fc5f267264",
++      "blen_store_keyframes_multi": "d4ff67c4e021e56d0252bee2b71e32667764620ab6faa8899a11bd2778c6ec44"
++    }
++  },
++  "schema": "rust-duty-windows-official-fbx-pins/v2"
+ }
+--- context-v2/README.md
++++ context-v3/README.md
+@@ -1,15 +1,37 @@
+-# Windows candidate context v2: explicit metadata projection
++# Context v3 source preparation: exact official Windows addon profile
+ 
+-LOCAL ONLY. Source preparation and synthetic CPU validation do not establish Windows execution, native admission, evaluated parity, artistic approval or activation. No publication or native process was performed.
++This is fresh source preparation in the replacement workspace. It is derived from the complete hash-verified published context-v2 at immutable commit `01e3d821d197799a342b7738b84e835b11197f24`; it is not asserted byte-identical to the lost incomplete preparation. The context-v1/v2 packages remain unchanged.
+ 
+-This successor retains context-v1 role sets, lineage fields, all numerical invariants, native helper/addon pins, the full streaming assembler, and the deliberately blocked legacy transport-v1 assembler entry. It changes only the candidate context schema to v2, exact source/delta/bridge identities and strict authored bridge admission. The original_delta file role now points to the exact projected delta; ORIGINAL_DELTA_SHA separately preserves the historical identity. Do not treat that role name as an assertion of byte identity.
++## Exact evidence and profile
+ 
+-The only accepted authored bridge is rust-duty-onehand-authored-input-bridge/v2, with source_relation equal to "exact authored motion and structured state; explicit nine-key comment exclusion". Its mandatory metadata_projection object binds the exact projection record, original delta, original full metadata, metadata construction recipe, exact nine omitted keys and actual projected full-metadata hash. The latter must match lineage.action_hashes.metadata. It is computed by genuine pinned-baseline replay with full preconditions, before-save comparison and fresh reopen. A subset of changed properties cannot establish that full hash; this source package never guesses it. historical_reference_resampled must be the boolean false.
++The diagnostic report from run `39107154529`, job `117615400667`, is 9,422 bytes with SHA-256 `5ee21d576be9af34c7b4095352aca1b4fde329eca23b79b6f12a189edc9d800a`. Its retained artifact is 5,181 bytes with SHA-256 `2e23f39ca4a7f42f27338e34a51970237bdf04242e9770b346876ef36ed5e9c0`. The report proves that all ten installed raw addon files equal the exact official Windows ZIP members. The ZIP is `blender-4.3.2-windows-x64.zip`, 405,138,423 bytes, SHA-256 `933a62a770c941e316535f893629ff106ddd2aa5a956f0081ec557439073d4f6`; the observed vendor-checksum-file identity is retained in the profile.
+ 
+-Omitted keys: acceptance, acceptance_status, animated_control, compensation_model, hand_contact_status, hidden_motion_inference_scope, known_residuals, reconstruction_status, render_status. No additional key deletion, metadata relabeling, unknown field, omitted identity or resampling claim is accepted. Original motion, complete/auxiliary Action fingerprints and static state remain separate mandatory lineage identities.
++The only runtime profile is `blender-4.3.2-windows-x64-official-crlf-v1`, schema `rust-duty-windows-official-fbx-pins/v2`. Its ten whole raw hashes and exact byte/newline counts are fixed. Linux LF files are rejected by this profile. Historical Linux profiles are preserved in predecessors. No normalized raw hashes, hash alternatives, platform autodetection, on-run pin generation, or installed-file repair are accepted.
+ 
+-All original 4,240 times, 67 chunks, 12 blocks, nine focus times/four offkeys and strict 1e-4 position/matrix and 1e-5 projection limits remain unchanged. The shared full bridge validator is also used unchanged at the native StageContext and RuntimeContext boundary through the context-v2 pin. No lineage field or stage/runtime schema extension is needed.
++`reconstruct_windows_profile.py` is an explicit local evidence-preparation tool, never called by the runtime resolver. It verifies the predecessor freeze and exact observation, reads exact historical LF source, reconstructs CRLF in memory, and requires all ten entire raw hashes, sizes, CRLF counts and zero bare LF/CR counts to match the observed archive before deriving any function slices. It does not write installed files. `RECONSTRUCTION_EVIDENCE.json` contains only hashes/counts; no full addon source is included in this package.
+ 
+-CPU checks: PYTHONDONTWRITEBYTECODE=1 python -B -m unittest -v test_candidate_context test_metadata_projection
++## Raw-data versus runtime-source contract
+ 
+-Fresh results are in RESULTS.json and cpu-tests.log. MINIMAL_DIFF.json records exact predecessor/current file hashes and exclusions; PINS.json and ALLOWLIST.json freeze only this successor. Predecessor context-v1 remains unchanged. This package grants no publication or native-run authorization.
++- `files`: SHA-256 of entire raw file bytes.
++- `raw_functions_sha256`: SHA-256 of UTF-8-encoded AST line slices, including original CRLF and decorators, from the first decorator/function line through `end_lineno`.
++- `loaded_functions_sha256`: SHA-256 of the UTF-8 result of `inspect.getsource(function)`. Python's source loader returns universal-newline text; this distinct runtime-source domain retains the two original loaded hashes.
++
++The raw function hashes are `d4ff67c4e021e56d0252bee2b71e32667764620ab6faa8899a11bd2778c6ec44` for `blen_store_keyframes_multi` and `d4a7f77069ec1c25036cf6760558dc42ceed0b4e63fc0ffa2524e5fc5f267264` for `blen_read_animations`. Their loaded-source hashes remain `793a389ebde0e71ec3cec54e731c861753aa08015355904777a8c39b70da3a4e` and `757bd21550d94e2190881ec6b0eb0ce80b275d2a230055cf7702044fe6dcc6e2`, respectively.
++
++All whole raw files are verified before raw slices; raw files are rechecked before loaded origins/functions. The resolver rejects shadow file/spec/code origins. It additionally compiles the entire exact verified importer without executing it and compares the selected top-level code objects with live functions on the same interpreter, with `dont_inherit=True, optimize=0`. This rejects same-origin in-memory code mutation. There is no stored bytecode hash or cross-Python-version bytecode expectation. The existing `functions_sha256` return field continues to mean the loaded-source map; separate raw/profile/domain fields and `live_function_code_checked` make the distinction explicit.
++
++`LOADED_SOURCE_EVIDENCE.json` and the tests demonstrate a real bounded authored CRLF module import whose `inspect.getsource` bytes use LF while its on-disk bytes stay CRLF. The two audited functions are separately checked using code objects compiled from the exact entire reconstructed file without executing the addon module or calling either function. This is source-domain compatibility evidence, not actual Windows execution or animation proof.
++
++## Unchanged production contract
++
++`candidate_context.py`, `production_assembler.py`, `pinned_assembler.py`, `pinned_transport.py`, `NATIVE_HELPER_PINS.json` and `verify_freeze.py` are byte-identical to context-v2. Candidate-context schema remains v2. Metadata projection, authored/source/art contracts, all 4,240 times, 67 chunks, 12 blocks, nine focus times/four offkeys and strict numerical bounds remain unchanged. No motion proof was rerun. Native producer/helper and runtime consumer loaded-function receipt constants require no changes; their package dependency pins must bind this fresh source freeze separately.
++
++## Verification and limits
++
++Portable source CI invocation, from this package: `PYTHONDONTWRITEBYTECODE=1 python -B test_windows_addon_profile.py`. It uses only tiny authored temporary modules, without Blender or historical source payloads.
++
++Local recovered-source invocation: `PYTHONDONTWRITEBYTECODE=1 python -B run_source_preparation_tests.py`. The runner verifies the available recovered context, metadata, assembler boundary, Windows-profile and reconstruction tests. The original complete 132-test historical suite was **not** rerun: 73 dynamic assembler tests and two direct dependent tests require exact unpublished historical fixtures absent from the restored immutable tree. Those omissions are recorded in `RESULTS.json` and never counted as passing or replaced with mocks. Existing strict assertions remain in the retained test source. Local fixture path adaptations are test-only.
++
++`SOURCE_DIFF.patch` records the exact source/document difference from context-v2. `MINIMAL_DIFF.json` binds before/after identities and additions; generated records/logs are separately identified. `ALLOWLIST.json` and `PINS.json` freeze the complete flat source-only publication candidate. The allowlist's false authorization marker means this package does not itself grant publication permission. No private URLs, full addon files, assets, installed binaries, or native outputs are included.
++
++No installation, Blender/native execution, CI dispatch, publication, native admission, runtime parity, artistic approval or activation was performed. Fresh independent review and actual Windows source/runtime admission remain separate gates.
+--- context-v2/addon_resolver.py
++++ context-v3/addon_resolver.py
+@@ -1,26 +1,66 @@
+-"""Resolve logical official FBX files under an explicitly inspected bundle.
++"""Resolve one frozen official Windows FBX profile without changing installed files.
+ 
+-No import, package search, newline normalization, patching, Blender or rendering.
+-The optional live-module check must be called inside the future native wrapper.
++Whole files and raw AST slices retain CRLF. inspect.getsource has a separate
++loaded-source domain. Its hash is never accepted as a raw-file/slice alternative.
+ """
+ from __future__ import annotations
+ import ast
+ import hashlib
+ import inspect
+ from pathlib import Path
+-from types import ModuleType
+-from candidate_context import ContextError, exact_keys, file_sha, ordinary, require, strict_json
++from types import CodeType, ModuleType
++from candidate_context import ContextError, exact_keys, file_sha, ordinary, require, sha, strict_json
+ 
+-PIN_FILE_SHA = '2716811db4b591c14d0044458c608c961aa2dfcad5958f9da6d0b4da8d67dace'
++PIN_FILE_SHA = '710ac9f97ba798dda2b4091232215bf0d973a03a07703448d184b420f5addb4f'
++PROFILE_ID = 'blender-4.3.2-windows-x64-official-crlf-v1'
++SCHEMA = 'rust-duty-windows-official-fbx-pins/v2'
++DISTRIBUTION = {'filename': 'blender-4.3.2-windows-x64.zip', 'bytes': 405138423,
++                'sha256': '933a62a770c941e316535f893629ff106ddd2aa5a956f0081ec557439073d4f6'}
++HASH_DOMAINS = {
++    'files': 'sha256(raw-file-bytes)',
++    'raw_functions_sha256': 'sha256(utf8(raw-AST-function-slice-with-original-line-endings))',
++    'loaded_functions_sha256': 'sha256(utf8(inspect.getsource(function)))',
++}
++
++
++def _validate_pins(data):
++    exact_keys(data, ('schema', 'profile_id', 'blender_version', 'distribution', 'observation',
++                     'hash_domains', 'files', 'file_metadata', 'raw_functions_sha256',
++                     'loaded_functions_sha256'), 'addon pins')
++    require(data['schema'] == SCHEMA, 'addon pin schema differs')
++    require(data['profile_id'] == PROFILE_ID and data['blender_version'] == [4, 3, 2] and
++            data['distribution'] == DISTRIBUTION, 'exact Windows distribution profile differs')
++    require(data['hash_domains'] == HASH_DOMAINS, 'function hash domains differ')
++    require(type(data['files']) is dict and data['files'], 'raw file inventory required')
++    require(type(data['file_metadata']) is dict and set(data['file_metadata']) == set(data['files']),
++            'complete raw file metadata required')
++    for name, expected in data['files'].items():
++        require(type(name) is str and Path(name).name == name and name.endswith('.py'),
++                'unsafe logical addon filename')
++        sha(expected)
++        metadata = data['file_metadata'][name]
++        exact_keys(metadata, ('bytes', 'crlf_count', 'bare_lf_count', 'bare_cr_count'), 'raw file metadata')
++        require(all(type(n) is int for n in metadata.values()) and
++                0 < metadata['bytes'] <= 1024 * 1024 and 0 < metadata['crlf_count'] <= metadata['bytes'] // 2 and
++                metadata['bare_lf_count'] == metadata['bare_cr_count'] == 0, 'exact CRLF metadata differs')
++    raw, loaded = data['raw_functions_sha256'], data['loaded_functions_sha256']
++    require(type(raw) is dict and type(loaded) is dict and raw and set(raw) == set(loaded),
++            'complete distinct function domains required')
++    for name, functions in raw.items():
++        require(name in data['files'] and type(functions) is dict and functions and
++                type(loaded[name]) is dict and set(functions) == set(loaded[name]), 'function inventory differs')
++        for function, expected in functions.items():
++            require(type(function) is str and function.isidentifier(), 'invalid audited function name')
++            sha(expected); sha(loaded[name][function])
++    return data
+ 
+ 
+ def official_pins():
+     path = Path(__file__).absolute().parent / 'OFFICIAL_ADDON_PINS.json'
+-    require(file_sha(path) == PIN_FILE_SHA, 'official logical pin manifest differs')
++    require(file_sha(path) == PIN_FILE_SHA, 'official Windows pin manifest differs')
+     data = strict_json(path)
+-    exact_keys(data, ('schema', 'blender_version', 'files', 'functions'), 'addon pins')
+-    require(data['schema'] == 'rust-duty-logical-official-fbx-pins/v1', 'addon pin schema differs')
+-    return data
++    require(file_sha(path) == PIN_FILE_SHA, 'official Windows pin manifest changed during read')
++    return _validate_pins(data)
+ 
+ 
+ def _relative(value):
+@@ -31,51 +71,61 @@
+     return path
+ 
+ 
++def _raw_metadata(raw):
++    crlf = raw.count(b'\r\n')
++    return {'bytes': len(raw), 'crlf_count': crlf,
++            'bare_lf_count': raw.count(b'\n') - crlf, 'bare_cr_count': raw.count(b'\r') - crlf}
++
++
++def _verified_raw(path, name, pins):
++    path = ordinary(path, existing=True)
++    require(file_sha(path) == pins['files'][name], 'official addon exact bytes differ: ' + name)
++    with path.open('rb') as stream:
++        raw = stream.read(pins['file_metadata'][name]['bytes'] + 1)
++    require(hashlib.sha256(raw).hexdigest() == pins['files'][name], 'addon changed during raw read: ' + name)
++    require(_raw_metadata(raw) == pins['file_metadata'][name], 'raw addon byte/newline metadata differs: ' + name)
++    return raw
++
++
+ def resolve_addon(bundle_root, addon_relative):
+-    """Return verified file paths, not an execution or official-host assertion."""
+-    pins = official_pins()
+-    return _resolve(bundle_root, addon_relative, pins)
++    """Return exact-profile paths; this alone proves no host execution."""
++    return _resolve(bundle_root, addon_relative, official_pins())
+ 
+ 
+ def _resolve(bundle_root, addon_relative, pins):
+-    """Mechanism shared with tiny synthetic fixtures; production pins stay fixed."""
++    """Private fixture seam; the production entry always loads the fixed manifest."""
++    _validate_pins(pins)
+     bundle = ordinary(bundle_root, existing=True)
+     root = ordinary(bundle / _relative(addon_relative), existing=True)
+     require(root.is_dir() and root.name == 'io_scene_fbx', 'inspected io_scene_fbx directory required')
+-    found = {}
+-    for name, expected in pins['files'].items():
+-        require(Path(name).name == name and name.endswith('.py'), 'unsafe logical addon filename')
++    found, payloads = {}, {}
++    for name in pins['files']:
+         path = ordinary(root / name, existing=True)
+-        require(file_sha(path) == expected, 'official addon exact bytes differ: ' + name)
+-        found[name] = path
+-    # Exact bytes first: no CRLF repair or source rewriting can preserve this pin.
+-    for name, functions in pins['functions'].items():
+-        require(name in found, 'function file not pinned')
+-        raw = found[name].read_bytes()
+-        text = raw.decode('utf-8')
+-        lines = text.splitlines(keepends=True)
+-        tree = ast.parse(text, filename=str(found[name]))
++        payloads[name] = _verified_raw(path, name, pins); found[name] = path
++    # All whole raw files first, then exact raw AST slices. Never normalize.
++    for name, functions in pins['raw_functions_sha256'].items():
++        text = payloads[name].decode('utf-8'); lines = text.splitlines(keepends=True)
+         nodes = {}
+-        for node in tree.body:
++        for node in ast.parse(text, filename=str(found[name])).body:
+             if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+-                require(node.name not in nodes, 'duplicate function name')
+-                nodes[node.name] = node
++                require(node.name not in nodes, 'duplicate function name'); nodes[node.name] = node
+         for function, expected in functions.items():
+             require(function in nodes, 'audited function absent: ' + function)
+-            node = nodes[function]
+-            start = min([node.lineno, *[d.lineno for d in node.decorator_list]])
++            node = nodes[function]; start = min([node.lineno, *[d.lineno for d in node.decorator_list]])
+             source = ''.join(lines[start - 1:node.end_lineno]).encode('utf-8')
+-            require(hashlib.sha256(source).hexdigest() == expected, 'audited function source differs: ' + function)
++            require(hashlib.sha256(source).hexdigest() == expected, 'raw audited function source differs: ' + function)
+     return found
+ 
+ 
+ def verify_loaded_modules(files, modules):
+-    """Reject shadow imports in a future native Blender process. Never imports one."""
++    """Recheck raw files, reject shadow origins, then verify inspect's own domain.
++
++    Python's source loader supplies universal newlines to inspect.getsource.
++    This function never rewrites installed bytes or relaxes the raw-file domain.
++    """
+     pins = official_pins()
+     require(set(files) == set(pins['files']), 'complete pinned addon inventory required')
+-    for name, path in files.items():
+-        ordinary(path, existing=True)
+-        require(file_sha(path) == pins['files'][name], 'addon changed after resolution')
++    raw_files = {name: _verified_raw(path, name, pins) for name, path in files.items()}
+     for module_name, module in modules.items():
+         require(module_name == 'io_scene_fbx' or module_name.startswith('io_scene_fbx.'), 'unexpected addon module')
+         require(isinstance(module, ModuleType), 'actual module object required')
+@@ -87,11 +137,25 @@
+         require(spec is not None and ordinary(spec.origin, existing=True) == origin, 'module spec origin differs')
+     require('io_scene_fbx' in modules and 'io_scene_fbx.import_fbx' in modules, 'official package/importer must be observed')
+     importer = modules['io_scene_fbx.import_fbx']
+-    for name, expected in pins['functions']['import_fbx.py'].items():
++    # Compile exact verified source in THIS interpreter; never execute the module.
++    # No persisted bytecode pins or cross-Python-version equality assumptions.
++    compiled = compile(raw_files['import_fbx.py'], str(files['import_fbx.py']), 'exec',
++                       dont_inherit=True, optimize=0)
++    expected_codes = {}
++    for code in compiled.co_consts:
++        if isinstance(code, CodeType) and code.co_name in pins['loaded_functions_sha256']['import_fbx.py']:
++            require(code.co_name not in expected_codes, 'duplicate compiled audited function')
++            expected_codes[code.co_name] = code
++    require(set(expected_codes) == set(pins['loaded_functions_sha256']['import_fbx.py']),
++            'complete compiled audited function inventory required')
++    for name, expected in pins['loaded_functions_sha256']['import_fbx.py'].items():
+         function = getattr(importer, name, None)
+         require(inspect.isfunction(function) and ordinary(function.__code__.co_filename, existing=True) == files['import_fbx.py'],
+                 'shadow or replaced importer function: ' + name)
++        require(function.__code__ == expected_codes[name], 'live audited function code differs: ' + name)
+         require(hashlib.sha256(inspect.getsource(function).encode('utf-8')).hexdigest() == expected,
+                 'live audited function source differs: ' + name)
+-    return {'files_sha256': dict(pins['files']), 'functions_sha256': pins['functions'],
+-            'live_module_origins_checked': True, 'windows_execution_proved': False}
++    return {'profile_id': pins['profile_id'], 'files_sha256': dict(pins['files']),
++            'raw_functions_sha256': pins['raw_functions_sha256'],
++            'functions_sha256': pins['loaded_functions_sha256'], 'hash_domains': pins['hash_domains'],
++            'live_module_origins_checked': True, 'live_function_code_checked': True, 'windows_execution_proved': False}
+--- /dev/null
++++ context-v3/reconstruct_windows_profile.py
+@@ -0,0 +1,111 @@
++"""Read-only preparation evidence; never a native resolver or installed-file repair.
++
++Reconstruct in memory only, prove every entire file equals the observed official
++Windows archive, then derive raw AST slices. Return hashes, not addon source.
++"""
++import ast
++import hashlib
++from pathlib import Path
++from candidate_context import file_sha, ordinary, require, strict_json
++
++PREDECESSOR_SHA = '3162a4c5bbc50daa13ec1c84972b0e4b56c2221a909d1aa2c10617c912b0d801'
++LINUX_PINS_SHA = '2716811db4b591c14d0044458c608c961aa2dfcad5958f9da6d0b4da8d67dace'
++OBSERVATION_SHA = '5ee21d576be9af34c7b4095352aca1b4fde329eca23b79b6f12a189edc9d800a'
++OBSERVATION_BYTES = 9422
++ARCHIVE_SHA = '933a62a770c941e316535f893629ff106ddd2aa5a956f0081ec557439073d4f6'
++ARCHIVE_BYTES = 405138423
++
++
++def digest(raw):
++    return hashlib.sha256(raw).hexdigest()
++
++
++def raw_metadata(raw):
++    n = raw.count(b'\r\n')
++    return {'bytes': len(raw), 'crlf_count': n, 'bare_lf_count': raw.count(b'\n') - n,
++            'bare_cr_count': raw.count(b'\r') - n}
++
++
++def function_slices(raw, names):
++    text = raw.decode('utf-8'); lines = text.splitlines(keepends=True); found = {}
++    for node in ast.parse(text).body:
++        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.name in names:
++            require(node.name not in found, 'duplicate audited function')
++            start = min([node.lineno, *[d.lineno for d in node.decorator_list]])
++            source = ''.join(lines[start - 1:node.end_lineno]).encode('utf-8')
++            found[node.name] = {'raw_sha256': digest(source), **raw_metadata(source),
++                                'start_line': start, 'end_line': node.end_lineno}
++    require(set(found) == set(names), 'audited function inventory differs')
++    return found
++
++
++def reconstruct(lf_root, observation_path, predecessor_root):
++    predecessor = ordinary(predecessor_root, existing=True)
++    require(file_sha(predecessor / 'PINS.json') == PREDECESSOR_SHA, 'predecessor freeze differs')
++    freeze = strict_json(predecessor / 'PINS.json')
++    for name, expected in freeze.items():
++        require(Path(name).name == name and file_sha(predecessor / name) == expected,
++                'predecessor source differs: ' + name)
++    require(file_sha(predecessor / 'OFFICIAL_ADDON_PINS.json') == LINUX_PINS_SHA, 'Linux profile differs')
++    linux = strict_json(predecessor / 'OFFICIAL_ADDON_PINS.json')
++    path = ordinary(observation_path, existing=True)
++    require(path.stat().st_size == OBSERVATION_BYTES and file_sha(path) == OBSERVATION_SHA,
++            'observed report exact bytes differ')
++    observed = strict_json(path, 32 * 1024)
++    require(observed['schema'] == 'rust-duty-official-addon-observation/v1' and
++            observed['status'] == 'observed_diagnostic_only' and observed['diagnostic_only'] is True and
++            observed['native_admission'] is False and observed['animation_proof'] is False and
++            observed['normalized_hash_acceptance'] is False, 'diagnostic evidence contract differs')
++    require(observed['context_pins_sha256'] == PREDECESSOR_SHA and observed['addon_pins_sha256'] == LINUX_PINS_SHA,
++            'observation predecessor binding differs')
++    require(observed['provenance']['official_archive_sha256'] == ARCHIVE_SHA and
++            observed['provenance']['official_archive_bytes'] == ARCHIVE_BYTES,
++            'official Windows distribution identity differs')
++    rows = observed['files']
++    require(type(rows) is list and len(rows) == len(linux['files']) == 10, 'complete ten-file observation required')
++    require(len({r['relative_filename'] for r in rows}) == 10 and
++            {r['relative_filename'] for r in rows} == set(linux['files']), 'observation file inventory differs')
++    root = ordinary(lf_root, existing=True); reconstructed, records = {}, {}; total = 0
++    for row in rows:
++        name = row['relative_filename']
++        require(Path(name).name == name and name.endswith('.py'), 'unsafe observed filename')
++        expected_lf = linux['files'][name]; archive, installed = row['archive'], row['installed']
++        require(row['archive_equals_installed'] is True and archive == installed, 'archive/installed mismatch')
++        require(row['expected_raw_sha256'] == expected_lf and row['archive_raw_matches_expected'] is False and
++                row['installed_raw_matches_expected'] is False, 'historical mismatch evidence differs')
++        require(archive['bare_cr_count'] == archive['bare_lf_count'] == 0 and archive['crlf_count'] > 0 and
++                archive['diagnostic_crlf_to_lf_sha256'] == expected_lf, 'exact CRLF reconstruction premise differs')
++        source = ordinary(root / name, existing=True)
++        with source.open('rb') as stream:
++            lf = stream.read(1024 * 1024 + 1)
++        require(len(lf) <= 1024 * 1024 and digest(lf) == expected_lf and b'\r' not in lf,
++                'historical exact LF source differs: ' + name)
++        windows = lf.replace(b'\n', b'\r\n'); total += len(windows)
++        require(total <= 2 * 1024 * 1024, 'reconstruction byte cap exceeded')
++        metadata = raw_metadata(windows)
++        require(metadata == {k: archive[k] for k in metadata} and digest(windows) == archive['raw_sha256'],
++                'reconstructed whole raw archive member differs: ' + name)
++        reconstructed[name] = windows
++        records[name] = {'historical_lf_sha256': expected_lf, 'historical_lf_bytes': len(lf),
++                         'observed_archive_raw_sha256': archive['raw_sha256'], **metadata}
++    # All ten entire files have matched before any function pin is derived.
++    functions = {name: function_slices(reconstructed[name], names) for name, names in linux['functions'].items()}
++    return reconstructed, {'schema': 'rust-duty-windows-addon-reconstruction/v1',
++        'predecessor_context_pins_sha256': PREDECESSOR_SHA, 'predecessor_addon_pins_sha256': LINUX_PINS_SHA,
++        'observation_sha256': OBSERVATION_SHA, 'observation_bytes': OBSERVATION_BYTES,
++        'archive_sha256': ARCHIVE_SHA, 'archive_bytes': ARCHIVE_BYTES,
++        'all_ten_whole_raw_files_verified_before_function_derivation': True,
++        'reconstructed_total_bytes': total, 'files': records, 'raw_function_slices': functions,
++        'installed_files_modified': False, 'normalization_accepted_for_admission': False,
++        'addon_imported': False, 'native_execution': False, 'animation_proof': False}
++
++
++if __name__ == '__main__':
++    import argparse, json
++    p = argparse.ArgumentParser(description=__doc__)
++    p.add_argument('--lf-root', type=Path, required=True)
++    p.add_argument('--observation', type=Path, required=True)
++    p.add_argument('--predecessor', type=Path, required=True)
++    args = p.parse_args()
++    _, result = reconstruct(args.lf_root, args.observation, args.predecessor)
++    print(json.dumps(result, indent=2, sort_keys=True))
+--- /dev/null
++++ context-v3/run_source_preparation_tests.py
+@@ -0,0 +1,47 @@
++"""Run available recovered source checks with explicit, non-passing omissions.
++
++The original 132-test historical suite is NOT complete in this restored scope.
++Missing original fixtures are recorded, never regenerated or replaced by mocks.
++"""
++import json
++from pathlib import Path
++import sys
++import unittest
++import test_candidate_context as context
++import test_metadata_projection as metadata
++import test_windows_addon_profile as profile
++import test_reconstruction_and_preservation as reconstruction
++
++OMITTED = {
++    'test_candidate_context.ContextTests.test_transport_readonly_verifier_pin_and_missing_evidence':
++        'Historical process-v1 PINS and owned_process.py are absent from the immutable published tree.',
++    'test_candidate_context.AssemblerIntegrationTests.test_explicit_generated_identity_with_unchanged_small_stream':
++        'Exact original test_assemble_runtime.py fixture is absent from the immutable published tree.',
++}
++MISSING_DYNAMIC_SUITE = {'suite': 'test_assemble_runtime.StreamAssemblyTests', 'historical_tests': 73,
++    'source_sha256': '5b6dce136fac5d681b96d87be74c703ded58dfee2de20fe9c615aeb720b97159',
++    'reason': 'Exact original fixture is unavailable; no synthetic replacement is used.'}
++
++
++def run():
++    loader = unittest.TestLoader(); suite = unittest.TestSuite()
++    classes = (context.ContextTests, context.AddonTests, context.AssemblerIntegrationTests,
++               metadata.MetadataProjectionTests, profile.WindowsAddonProfileTests,
++               reconstruction.ReconstructionAndPreservationTests)
++    for cls in classes:
++        for test in loader.loadTestsFromTestCase(cls):
++            if test.id() not in OMITTED: suite.addTest(test)
++    result = unittest.TextTestRunner(verbosity=2).run(suite)
++    summary = {'schema': 'rust-duty-context-source-preparation-tests/v1',
++        'tests_run': result.testsRun, 'failures': len(result.failures), 'errors': len(result.errors),
++        'skipped': len(result.skipped), 'passed': result.testsRun - len(result.failures) - len(result.errors) - len(result.skipped),
++        'available_tests_passed': result.wasSuccessful(), 'complete_historical_suite_rerun': False,
++        'explicit_omissions': OMITTED, 'missing_dynamic_suite': MISSING_DYNAMIC_SUITE,
++        'native_execution': False, 'animation_proof': False}
++    print(json.dumps(summary, indent=2, sort_keys=True))
++    return summary
++
++
++if __name__ == '__main__':
++    result = run()
++    sys.exit(0 if result['available_tests_passed'] else 1)
+--- context-v2/test_candidate_context.py
++++ context-v3/test_candidate_context.py
+@@ -18,7 +18,8 @@
+ from pinned_assembler import load_assembler, PINS
+ from pinned_transport import load_verifier, load_integrity_reader
+ HERE = Path(__file__).absolute().parent
+-WORKSPACE = HERE.parents[1]
++PUBLISHED = HERE.parent / 'published-pr77/tools/onehand_windows'
++WORKSPACE = PUBLISHED / 'audited'
+ ASSEMBLER = WORKSPACE / 'onehand-runtime-20261016-r2/runtime-conversion-v2'
+ TOOLS = WORKSPACE / 'onehand-runtime-20261016/importer-patch/tools'
+ TEST_ROOT = HERE / 'fixture-results'
+@@ -190,7 +191,7 @@
+             with production.exclusive_owner(self.ctx): self.ctx.owner_lock.write_bytes(b'replaced')
+         self.assertEqual(self.ctx.owner_lock.read_bytes(), b'replaced')
+     def test_transport_readonly_verifier_pin_and_missing_evidence(self):
+-        verifier = load_integrity_reader(WORKSPACE / 'onehand-runtime-20261016/windows-process-adapter-v1')
++        verifier = load_integrity_reader(HERE.parent / 'context-historical-test-inputs/process-v1')
+         with self.assertRaises((FileNotFoundError, ValueError, RuntimeError)): verifier(self.root, require_completed=True)
+ 
+     def test_focus_preserves_strict_bounds_and_coverage(self):
+@@ -215,7 +216,7 @@
+         with self.assertRaises(c.ContextError): production.verify_focus_report(self.ctx, changed)
+ 
+     def test_review_denied_transport_cannot_admit_production(self):
+-        package = WORKSPACE / 'onehand-runtime-20261016/windows-process-adapter-v1'
++        package = HERE.parent / 'context-historical-test-inputs/process-v1'
+         with self.assertRaisesRegex(c.ContextError, 'transport v1 blocked'):
+             load_verifier(package)
+         with mock.patch.object(c.HostBuildBinding, 'require_current_host'), \
+@@ -224,36 +225,39 @@
+                 production.assemble_production(self.ctx)
+ 
+     def test_original_grid_is_hash_pinned_without_reconstruction(self):
+-        path = WORKSPACE / 'recovery/onehand-v6-integration-handoff/dense-times.json'
++        path = PUBLISHED / 'source-producer-privacy-v1/dense-times.json'
+         self.assertEqual(c.file_sha(path), c.GRID_SHA); values = c.strict_json(path)
+         self.assertEqual(len(values), 4240); self.assertTrue(all(a < b for a, b in zip(values, values[1:])))
+         self.assertEqual((values[0], values[-1]), (1, 96))
+ 
+ class AddonTests(unittest.TestCase):
+     def setUp(self):
+-        self.bundle = tmp(); self.root = self.bundle / 'scripts' / 'io_scene_fbx'; self.root.mkdir(parents=True)
+-        self.source = b'def audited(value):\n    return value + 1\n'; (self.root / 'import_fbx.py').write_bytes(self.source)
+-        self.pins = {'files': {'import_fbx.py': hashlib.sha256(self.source).hexdigest()},
+-                     'functions': {'import_fbx.py': {'audited': hashlib.sha256(self.source).hexdigest()}}}
++        from test_windows_addon_profile import fixture, SOURCE
++        self.bundle = tmp(); self.root, self.pins = fixture(self.bundle); self.source = SOURCE
+     def test_synthetic_logical_resolution(self):
+         result = addons._resolve(self.bundle, 'scripts/io_scene_fbx', self.pins)
+         self.assertEqual(result['import_fbx.py'], self.root / 'import_fbx.py')
+     def test_changed_newlines_fail_exact_bytes(self):
+-        (self.root / 'import_fbx.py').write_bytes(self.source.replace(b'\n', b'\r\n'))
++        (self.root / 'import_fbx.py').write_bytes(self.source.replace(b'\r\n', b'\n'))
+         with self.assertRaisesRegex(c.ContextError, 'exact bytes'): addons._resolve(self.bundle, 'scripts/io_scene_fbx', self.pins)
+     def test_function_hash_cannot_be_relaxed(self):
+-        self.pins['functions']['import_fbx.py']['audited'] = '0' * 64
++        self.pins['raw_functions_sha256']['import_fbx.py']['audited'] = '0' * 64
+         with self.assertRaisesRegex(c.ContextError, 'function source'): addons._resolve(self.bundle, 'scripts/io_scene_fbx', self.pins)
+     def test_path_escape_rejected(self):
+         with self.assertRaisesRegex(c.ContextError, 'unsafe logical'): addons._resolve(self.bundle, '../io_scene_fbx', self.pins)
+     def test_symlink_file_rejected(self):
+         target = self.root / 'import_fbx.py'; moved = self.bundle / 'moved.py'; target.rename(moved); target.symlink_to(moved)
+         with self.assertRaisesRegex(c.ContextError, 'symlink'): addons._resolve(self.bundle, 'scripts/io_scene_fbx', self.pins)
+-    def test_official_existing_bytes_and_function_pins(self):
+-        result = addons.resolve_addon(Path('/usr/share/blender'), 'scripts/addons_core/io_scene_fbx')
+-        self.assertEqual(len(result), 10); self.assertEqual(len(addons.official_pins()['functions']['import_fbx.py']), 2)
++    def test_official_reconstructed_windows_bytes_and_function_pins(self):
++        from test_reconstruction_and_preservation import reconstructed_bundle
++        bundle, _ = reconstructed_bundle(self.bundle / 'official')
++        result = addons.resolve_addon(bundle, 'scripts/io_scene_fbx')
++        self.assertEqual(len(result), 10)
++        self.assertEqual(len(addons.official_pins()['raw_functions_sha256']['import_fbx.py']), 2)
+     def test_shadow_module_rejected_without_importing_blender(self):
+-        files = addons.resolve_addon(Path('/usr/share/blender'), 'scripts/addons_core/io_scene_fbx')
++        from test_reconstruction_and_preservation import reconstructed_bundle
++        bundle, _ = reconstructed_bundle(self.bundle / 'official')
++        files = addons.resolve_addon(bundle, 'scripts/io_scene_fbx')
+         shadow = ModuleType('io_scene_fbx'); shadow.__file__ = str(self.root / 'import_fbx.py')
+         shadow.__spec__ = importlib.machinery.ModuleSpec('io_scene_fbx', None, origin=shadow.__file__)
+         with self.assertRaisesRegex(c.ContextError, 'shadow addon'): addons.verify_loaded_modules(files, {'io_scene_fbx': shadow})
+@@ -299,7 +303,7 @@
+ 
+ def fixture_module():
+     """Load unchanged tiny fixtures in an isolated verified namespace."""
+-    path = ASSEMBLER / 'test_assemble_runtime.py'
++    path = HERE.parent / 'context-historical-test-inputs/test_assemble_runtime.py'
+     c.require(c.file_sha(path) == '5b6dce136fac5d681b96d87be74c703ded58dfee2de20fe9c615aeb720b97159', 'original fixture bytes differ')
+     assembler = load_assembler(ASSEMBLER, TOOLS); module = ModuleType('_unchanged_assembler_fixture_tests')
+     def imports(name, globals=None, locals=None, fromlist=(), level=0):
+--- context-v2/test_metadata_projection.py
++++ context-v3/test_metadata_projection.py
+@@ -8,6 +8,7 @@
+ from test_candidate_context import synthetic_context, synthetic_authored, tmp
+ 
+ HERE = Path(__file__).absolute().parent
++PUBLISHED = HERE.parent / 'published-pr77/tools/onehand_windows'
+ 
+ class MetadataProjectionTests(unittest.TestCase):
+     def setUp(self):
+@@ -75,7 +76,7 @@
+ 
+     def test_source_projection_binding_matches_exact_context_interface(self):
+         from types import ModuleType
+-        root=HERE.parent/'source-producer-privacy-v1'
++        root=PUBLISHED/'source-producer-privacy-v1'
+         self.assertEqual(c.file_sha(root/'PINS.json'),c.SOURCE_PINS_SHA)
+         for name,want in c.strict_json(root/'PINS.json').items():
+             self.assertEqual(c.file_sha(root/name),want,name)
+@@ -83,13 +84,13 @@
+         exec(compile((root/'privacy_projection.py').read_bytes(),module.__file__,'exec'),module.__dict__)
+         value=dict(self.ctx.action_hashes)['metadata']
+         self.assertEqual(module.binding(value),c.metadata_projection_binding(value))
+-        bridge=HERE.parent/'windows-privacy-bridge-v1/authored_bridge.py'
++        bridge=PUBLISHED/'authored-bridge-privacy-v1/authored_bridge.py'
+         self.assertEqual(c.file_sha(bridge),c.BRIDGE_SHA)
+ 
+     def test_numerical_invariants_and_wrappers_remain_unchanged(self):
+-        previous = HERE.parent / 'windows-candidate-context-v1'
++        previous = PUBLISHED / 'context-v2'
+         for name in ('production_assembler.py', 'pinned_assembler.py', 'pinned_transport.py',
+-                     'addon_resolver.py', 'NATIVE_HELPER_PINS.json', 'OFFICIAL_ADDON_PINS.json'):
++                     'candidate_context.py', 'NATIVE_HELPER_PINS.json'):
+             self.assertEqual((HERE / name).read_bytes(), (previous / name).read_bytes(), name)
+         import ast
+         old_tree = ast.parse((previous / 'candidate_context.py').read_bytes())
+--- /dev/null
++++ context-v3/test_reconstruction_and_preservation.py
+@@ -0,0 +1,152 @@
++"""Local recovery-source evidence tests; never native or motion-proof execution."""
++import ast
++import copy
++import hashlib
++import importlib.machinery
++import inspect
++import json
++import linecache
++from pathlib import Path
++import tempfile
++from types import CodeType, FunctionType, ModuleType
++import unittest
++from unittest import mock
++import addon_resolver as a
++import reconstruct_windows_profile as r
++from candidate_context import ContextError
++
++HERE = Path(__file__).absolute().parent
++PUBLISHED = HERE.parent / 'published-pr77/tools/onehand_windows'
++PREDECESSOR = PUBLISHED / 'context-v2'
++OBSERVATION = HERE.parent / 'actual-windows-observation-v3/artifact-json/proof/public-evidence/official-addon-observation.json'
++LF_ROOT = Path('/usr/share/blender/scripts/addons_core/io_scene_fbx')
++
++
++def reconstruct():
++    return r.reconstruct(LF_ROOT, OBSERVATION, PREDECESSOR)
++
++
++def reconstructed_bundle(root):
++    raw, receipt = reconstruct()
++    root = Path(root); addon = root / 'scripts/io_scene_fbx'; addon.mkdir(parents=True)
++    for name, value in raw.items(): (addon / name).write_bytes(value)
++    return root, receipt
++
++
++def isolated_audited_functions(path, names):
++    """Define only two audited functions without invoking their bodies or addon imports."""
++    tree = ast.parse(path.read_bytes())
++    nodes = [n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name in names]
++    assert len(nodes) == len(names)
++    assert all(not n.decorator_list and not n.returns and
++               all(arg.annotation is None for arg in (*n.args.posonlyargs, *n.args.args, *n.args.kwonlyargs)) and
++               all(isinstance(d, ast.Constant) for d in n.args.defaults) and not n.args.kw_defaults for n in nodes)
++    module = ModuleType('io_scene_fbx.import_fbx'); module.__file__ = str(path)
++    module.__spec__ = importlib.machinery.ModuleSpec(module.__name__, None, origin=str(path))
++    compiled = compile(path.read_bytes(), str(path), 'exec', dont_inherit=True, optimize=0)
++    codes = {code.co_name: code for code in compiled.co_consts if isinstance(code, CodeType) and code.co_name in names}
++    assert set(codes) == set(names)
++    for name, code in codes.items():
++        setattr(module, name, FunctionType(code, module.__dict__, name))
++    return module
++
++
++class ReconstructionAndPreservationTests(unittest.TestCase):
++    def setUp(self):
++        self.temp = tempfile.TemporaryDirectory(prefix='rd-reconstruction-')
++        self.addCleanup(self.temp.cleanup); self.addCleanup(linecache.clearcache)
++        self.root = Path(self.temp.name).absolute()
++
++    def test_all_ten_reconstructed_raw_files_and_receipt_are_exact(self):
++        raw, receipt = reconstruct(); pins = a.official_pins()
++        self.assertEqual(len(raw), 10)
++        self.assertEqual(receipt, json.loads((HERE / 'RECONSTRUCTION_EVIDENCE.json').read_bytes()))
++        for name, value in raw.items():
++            self.assertEqual(r.digest(value), pins['files'][name])
++            self.assertEqual(r.raw_metadata(value), pins['file_metadata'][name])
++        self.assertEqual(sum(map(len, raw.values())), 551471)
++
++    def test_entire_linux_profile_rejected_by_windows_resolver(self):
++        with self.assertRaisesRegex(ContextError, 'exact bytes'):
++            a.resolve_addon(Path('/usr/share/blender'), 'scripts/addons_core/io_scene_fbx')
++
++    def test_exact_windows_reconstruction_accepts_without_modifying_source(self):
++        bundle, _ = reconstructed_bundle(self.root / 'official')
++        before = {p.name: p.read_bytes() for p in LF_ROOT.glob('*.py')}
++        files = a.resolve_addon(bundle, 'scripts/io_scene_fbx')
++        self.assertEqual(len(files), 10)
++        for name, raw in before.items(): self.assertEqual((LF_ROOT / name).read_bytes(), raw)
++
++    def test_each_of_ten_whole_raw_files_rejects_a_one_byte_mutation(self):
++        bundle, _ = reconstructed_bundle(self.root / 'official'); files = a.resolve_addon(bundle, 'scripts/io_scene_fbx')
++        for name, path in files.items():
++            original = path.read_bytes(); path.write_bytes(b'X' + original[1:])
++            try:
++                with self.subTest(name=name):
++                    with self.assertRaisesRegex(ContextError, 'exact bytes'):
++                        a.resolve_addon(bundle, 'scripts/io_scene_fbx')
++            finally: path.write_bytes(original)
++
++    def test_raw_function_hashes_match_exact_recorded_line_ranges(self):
++        raw, receipt = reconstruct(); pins = a.official_pins()
++        for name, funcs in receipt['raw_function_slices'].items():
++            for func, record in funcs.items():
++                source = b''.join(raw[name].splitlines(keepends=True)[record['start_line'] - 1:record['end_line']])
++                self.assertEqual(r.digest(source), pins['raw_functions_sha256'][name][func])
++                self.assertEqual(r.raw_metadata(source), {k: record[k] for k in r.raw_metadata(source)})
++
++    def test_actual_audited_inspect_hashes_keep_original_loaded_pins(self):
++        bundle, _ = reconstructed_bundle(self.root / 'official'); files = a.resolve_addon(bundle, 'scripts/io_scene_fbx')
++        pins = a.official_pins(); path = files['import_fbx.py']; before = path.read_bytes()
++        importer = isolated_audited_functions(path, pins['loaded_functions_sha256']['import_fbx.py'])
++        package = ModuleType('io_scene_fbx'); package.__file__ = str(files['__init__.py'])
++        package.__spec__ = importlib.machinery.ModuleSpec(package.__name__, None, origin=package.__file__)
++        result = a.verify_loaded_modules(files, {'io_scene_fbx': package, 'io_scene_fbx.import_fbx': importer})
++        old = json.loads((PREDECESSOR / 'OFFICIAL_ADDON_PINS.json').read_bytes())
++        self.assertEqual(result['functions_sha256'], old['functions'])
++        for name, expected in old['functions']['import_fbx.py'].items():
++            source = inspect.getsource(getattr(importer, name)).encode()
++            self.assertEqual(r.digest(source), expected); self.assertNotIn(b'\r', source)
++        self.assertEqual(path.read_bytes(), before)
++        self.assertFalse(result['windows_execution_proved'])
++
++    def test_bad_lf_source_rejected_before_any_function_derivation(self):
++        copied = self.root / 'lf'; copied.mkdir()
++        for path in LF_ROOT.glob('*.py'): (copied / path.name).write_bytes(path.read_bytes())
++        (copied / 'parse_fbx.py').write_bytes(b'# bad\n')
++        with mock.patch.object(r, 'function_slices', side_effect=AssertionError('must not derive')):
++            with self.assertRaisesRegex(ContextError, 'historical exact LF'):
++                r.reconstruct(copied, OBSERVATION, PREDECESSOR)
++
++    def test_bad_observation_bytes_rejected_before_any_derivation(self):
++        path = self.root / 'observation.json'; path.write_bytes(OBSERVATION.read_bytes() + b'\n')
++        with mock.patch.object(r, 'function_slices', side_effect=AssertionError('must not derive')):
++            with self.assertRaisesRegex(ContextError, 'report exact bytes'):
++                r.reconstruct(LF_ROOT, path, PREDECESSOR)
++
++    def test_reconstruction_has_no_write_or_native_routes(self):
++        tree = ast.parse((HERE / 'reconstruct_windows_profile.py').read_bytes())
++        for node in ast.walk(tree):
++            if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute):
++                self.assertNotIn(node.func.attr, {'write_bytes', 'write_text', 'unlink', 'mkdir', 'Popen', 'run'})
++
++    def test_original_context_metadata_math_wrappers_and_helper_pins_are_byte_identical(self):
++        for name in ('candidate_context.py', 'production_assembler.py', 'pinned_assembler.py',
++                     'pinned_transport.py', 'NATIVE_HELPER_PINS.json', 'verify_freeze.py'):
++            self.assertEqual((HERE / name).read_bytes(), (PREDECESSOR / name).read_bytes(), name)
++
++    def test_both_predecessor_package_freezes_remain_exact(self):
++        for name, expected in [('context-v1', 'cee1e6fc907638c6eaa363fd301b722b145767ae1d19131519a53b9b74c9d378'),
++                               ('context-v2', r.PREDECESSOR_SHA)]:
++            root = PUBLISHED / name; self.assertEqual(r.digest((root / 'PINS.json').read_bytes()), expected)
++            for file, wanted in json.loads((root / 'PINS.json').read_bytes()).items():
++                self.assertEqual(r.digest((root / file).read_bytes()), wanted)
++
++    def test_hash_only_evidence_contains_no_addon_source_or_private_url(self):
++        for filename in ('OFFICIAL_ADDON_PINS.json', 'RECONSTRUCTION_EVIDENCE.json', 'LOADED_SOURCE_EVIDENCE.json'):
++            raw = (HERE / filename).read_bytes()
++            self.assertNotIn(b'https://', raw); self.assertNotIn(b'def blen_', raw)
++            json.loads(raw)
++
++
++if __name__ == '__main__': unittest.main(verbosity=2)
+--- /dev/null
++++ context-v3/test_windows_addon_profile.py
+@@ -0,0 +1,259 @@
++"""Portable CPU-only Windows-profile checks. No Blender or original addon import.
++
++Run directly on any Python host, including the future Windows source-test job.
++Tiny authored CRLF modules are temporary and are removed after each test.
++"""
++import ast
++import copy
++import hashlib
++import importlib.util
++import inspect
++import json
++import linecache
++from pathlib import Path
++import tempfile
++from types import ModuleType
++import unittest
++from unittest import mock
++import addon_resolver as a
++from candidate_context import ContextError
++
++HERE = Path(__file__).absolute().parent
++SOURCE = b'def audited(value):\r\n    return value + 7\r\n'
++PACKAGE = b'# Authored synthetic package fixture.\r\n'
++
++
++def digest(raw):
++    return hashlib.sha256(raw).hexdigest()
++
++
++def fixture(root, source=SOURCE):
++    root = Path(root); addon = root / 'scripts/io_scene_fbx'; addon.mkdir(parents=True)
++    payloads = {'__init__.py': PACKAGE, 'import_fbx.py': source}
++    for name, raw in payloads.items():
++        (addon / name).write_bytes(raw)
++    pins = copy.deepcopy(a.official_pins())
++    pins['files'] = {name: digest(raw) for name, raw in payloads.items()}
++    pins['file_metadata'] = {name: a._raw_metadata(raw) for name, raw in payloads.items()}
++    pins['raw_functions_sha256'] = {'import_fbx.py': {'audited': digest(source)}}
++    pins['loaded_functions_sha256'] = {'import_fbx.py': {'audited': digest(source.replace(b'\r\n', b'\n'))}}
++    return addon, pins
++
++
++def load_fixture_module(name, path):
++    spec = importlib.util.spec_from_file_location(name, path)
++    module = importlib.util.module_from_spec(spec)
++    spec.loader.exec_module(module)
++    return module
++
++
++class WindowsAddonProfileTests(unittest.TestCase):
++    def setUp(self):
++        self.temp = tempfile.TemporaryDirectory(prefix='rd-source-profile-')
++        self.addCleanup(self.temp.cleanup)
++        self.addCleanup(linecache.clearcache)
++        self.bundle = Path(self.temp.name).absolute()
++        self.root, self.pins = fixture(self.bundle)
++        self.files = a._resolve(self.bundle, 'scripts/io_scene_fbx', self.pins)
++        self.modules = {'io_scene_fbx': load_fixture_module('_rd_fixture_package', self.root / '__init__.py'),
++                        'io_scene_fbx.import_fbx': load_fixture_module('_rd_fixture_importer', self.root / 'import_fbx.py')}
++
++    def verify(self):
++        with mock.patch.object(a, 'official_pins', return_value=self.pins):
++            return a.verify_loaded_modules(self.files, self.modules)
++
++    def test_real_crlf_module_loaded_source_is_lf_and_raw_unchanged(self):
++        fn = self.modules['io_scene_fbx.import_fbx'].audited
++        self.assertEqual(fn(5), 12)
++        self.assertEqual(inspect.getsource(fn).encode(), SOURCE.replace(b'\r\n', b'\n'))
++        self.assertEqual((self.root / 'import_fbx.py').read_bytes(), SOURCE)
++        self.assertNotEqual(digest(SOURCE), digest(inspect.getsource(fn).encode()))
++        result = self.verify()
++        self.assertEqual(result['functions_sha256'], self.pins['loaded_functions_sha256'])
++        self.assertEqual(result['raw_functions_sha256'], self.pins['raw_functions_sha256'])
++        self.assertFalse(result['windows_execution_proved'])
++        self.assertTrue(result['live_function_code_checked'])
++
++    def test_recorded_tiny_module_evidence_is_reproducible(self):
++        evidence = json.loads((HERE / 'LOADED_SOURCE_EVIDENCE.json').read_bytes())
++        raw = b'def authored_probe(value):\r\n    return value + 7\r\n'
++        path = self.bundle / 'authored_probe.py'; path.write_bytes(raw)
++        module = load_fixture_module('_rd_recorded_domain_probe', path)
++        self.assertEqual(len(raw), evidence['tiny_module_bytes'])
++        self.assertEqual(digest(raw), evidence['tiny_module_raw_sha256'])
++        self.assertEqual(digest(inspect.getsource(module.authored_probe).encode()), evidence['tiny_loaded_source_sha256'])
++        self.assertEqual(module.authored_probe(5), evidence['tiny_module_result'])
++        self.assertEqual(path.read_bytes(), raw)
++
++    def test_expected_raw_and_loaded_domains_are_separate(self):
++        pins = a.official_pins()
++        self.assertNotEqual(pins['raw_functions_sha256'], pins['loaded_functions_sha256'])
++        self.assertEqual(pins['loaded_functions_sha256'], {'import_fbx.py': {
++            'blen_read_animations': '757bd21550d94e2190881ec6b0eb0ce80b275d2a230055cf7702044fe6dcc6e2',
++            'blen_store_keyframes_multi': '793a389ebde0e71ec3cec54e731c861753aa08015355904777a8c39b70da3a4e'}})
++        self.assertEqual(pins['raw_functions_sha256'], {'import_fbx.py': {
++            'blen_read_animations': 'd4a7f77069ec1c25036cf6760558dc42ceed0b4e63fc0ffa2524e5fc5f267264',
++            'blen_store_keyframes_multi': 'd4ff67c4e021e56d0252bee2b71e32667764620ab6faa8899a11bd2778c6ec44'}})
++
++    def test_every_raw_file_rejects_tamper_and_newline_conversion(self):
++        for name in self.files:
++            original = self.files[name].read_bytes()
++            variants = [original.replace(b'\r\n', b'\n'), original.replace(b'\r\n', b'\n', 1),
++                        original + b'\r\n', b'X' + original[1:]]
++            for changed in variants:
++                with self.subTest(name=name, sha=digest(changed)):
++                    self.files[name].write_bytes(changed)
++                    try:
++                        with self.assertRaisesRegex(ContextError, 'exact bytes'):
++                            a._resolve(self.bundle, 'scripts/io_scene_fbx', self.pins)
++                    finally:
++                        self.files[name].write_bytes(original)
++
++    def test_changed_raw_file_after_resolution_is_rejected_before_inspect(self):
++        self.files['__init__.py'].write_bytes(PACKAGE.replace(b'\r\n', b'\n'))
++        with mock.patch.object(inspect, 'getsource', side_effect=AssertionError('must not inspect')):
++            with self.assertRaisesRegex(ContextError, 'exact bytes'): self.verify()
++
++    def test_loaded_hash_cannot_replace_raw_function_pin(self):
++        self.pins['raw_functions_sha256'] = copy.deepcopy(self.pins['loaded_functions_sha256'])
++        with self.assertRaisesRegex(ContextError, 'raw audited function source'):
++            a._resolve(self.bundle, 'scripts/io_scene_fbx', self.pins)
++
++    def test_raw_hash_cannot_replace_loaded_function_pin(self):
++        self.pins['loaded_functions_sha256'] = copy.deepcopy(self.pins['raw_functions_sha256'])
++        with self.assertRaisesRegex(ContextError, 'live audited function source'): self.verify()
++
++    def test_wrong_profile_schema_distribution_or_version_fails(self):
++        for key, value in [('schema', 'rust-duty-logical-official-fbx-pins/v1'),
++                           ('profile_id', 'linux-or-any-normalized-profile'),
++                           ('blender_version', [4, 3, 3]),
++                           ('distribution', {**a.DISTRIBUTION, 'sha256': '0' * 64})]:
++            with self.subTest(key=key):
++                pins = copy.deepcopy(self.pins); pins[key] = value
++                with self.assertRaises(ContextError): a._resolve(self.bundle, 'scripts/io_scene_fbx', pins)
++
++    def test_wrong_or_collapsed_domain_labels_fail(self):
++        for domain in a.HASH_DOMAINS:
++            pins = copy.deepcopy(self.pins); pins['hash_domains'][domain] = 'normalized-or-alternative-hash'
++            with self.assertRaisesRegex(ContextError, 'hash domains'):
++                a._resolve(self.bundle, 'scripts/io_scene_fbx', pins)
++        pins = copy.deepcopy(self.pins); pins['functions'] = pins.pop('raw_functions_sha256')
++        with self.assertRaisesRegex(ContextError, 'missing or unknown'):
++            a._resolve(self.bundle, 'scripts/io_scene_fbx', pins)
++
++    def test_list_of_accepted_hash_alternatives_is_rejected(self):
++        self.pins['files']['import_fbx.py'] = [digest(SOURCE), digest(SOURCE.replace(b'\r\n', b'\n'))]
++        with self.assertRaises(ContextError): a._resolve(self.bundle, 'scripts/io_scene_fbx', self.pins)
++
++    def test_raw_metadata_is_strict_and_not_boolean_counts(self):
++        for key, bad in [('bytes', len(SOURCE) + 1), ('crlf_count', 1), ('crlf_count', True),
++                         ('bare_cr_count', 1), ('bare_lf_count', 1)]:
++            pins = copy.deepcopy(self.pins); pins['file_metadata']['import_fbx.py'][key] = bad
++            with self.subTest(key=key, bad=bad):
++                with self.assertRaises(ContextError): a._resolve(self.bundle, 'scripts/io_scene_fbx', pins)
++
++    def test_manifest_raw_pin_is_mandatory(self):
++        with mock.patch.object(a, 'PIN_FILE_SHA', '0' * 64):
++            with self.assertRaisesRegex(ContextError, 'pin manifest differs'): a.official_pins()
++
++    def test_manifest_inventory_is_exact(self):
++        pins = a.official_pins()
++        self.assertEqual(len(pins['files']), 10)
++        self.assertEqual(set(pins['files']), set(pins['file_metadata']))
++        self.assertEqual(set(pins['raw_functions_sha256']['import_fbx.py']),
++                         {'blen_read_animations', 'blen_store_keyframes_multi'})
++        self.assertEqual(pins['observation']['report_sha256'],
++                         '5ee21d576be9af34c7b4095352aca1b4fde329eca23b79b6f12a189edc9d800a')
++
++    def test_unknown_or_missing_fields_fail(self):
++        for field in ('raw_functions_sha256', 'loaded_functions_sha256', 'file_metadata', 'profile_id'):
++            pins = copy.deepcopy(self.pins); del pins[field]
++            with self.assertRaises(ContextError): a._resolve(self.bundle, 'scripts/io_scene_fbx', pins)
++        pins = copy.deepcopy(self.pins); pins['normalize'] = True
++        with self.assertRaises(ContextError): a._resolve(self.bundle, 'scripts/io_scene_fbx', pins)
++
++    def test_function_inventory_and_raw_source_are_exact(self):
++        for replacement in ({'missing': digest(SOURCE)}, {'audited': '0' * 64}):
++            pins = copy.deepcopy(self.pins); pins['raw_functions_sha256']['import_fbx.py'] = replacement
++            if 'missing' in replacement:
++                pins['loaded_functions_sha256']['import_fbx.py'] = replacement
++            with self.assertRaises(ContextError): a._resolve(self.bundle, 'scripts/io_scene_fbx', pins)
++
++    def test_all_raw_files_checked_before_function_source(self):
++        self.files['__init__.py'].write_bytes(b'# Wrong.\r\n')
++        with mock.patch.object(ast, 'parse', side_effect=AssertionError('must not derive functions')):
++            with self.assertRaisesRegex(ContextError, 'exact bytes'):
++                a._resolve(self.bundle, 'scripts/io_scene_fbx', self.pins)
++
++    def test_shadow_module_file_is_rejected(self):
++        shadow = self.bundle / 'shadow.py'; shadow.write_bytes(PACKAGE)
++        self.modules['io_scene_fbx'].__file__ = str(shadow)
++        with self.assertRaisesRegex(ContextError, 'shadow addon module'): self.verify()
++
++    def test_shadow_spec_origin_is_rejected(self):
++        self.modules['io_scene_fbx'].__spec__.origin = str(self.files['import_fbx.py'])
++        with self.assertRaisesRegex(ContextError, 'spec origin'): self.verify()
++
++    def test_shadow_function_code_filename_is_rejected(self):
++        self.modules['io_scene_fbx.import_fbx'].audited = lambda value: value + 7
++        with self.assertRaisesRegex(ContextError, 'shadow or replaced'): self.verify()
++
++    def test_same_origin_code_constant_mutation_is_rejected(self):
++        function = self.modules['io_scene_fbx.import_fbx'].audited
++        expected_source = inspect.getsource(function)
++        function.__code__ = function.__code__.replace(co_consts=(None, 999))
++        self.assertEqual(function(5), 1004)
++        self.assertEqual(inspect.getsource(function), expected_source)
++        self.assertEqual((self.root / 'import_fbx.py').read_bytes(), SOURCE)
++        with self.assertRaisesRegex(ContextError, 'live audited function code differs'): self.verify()
++
++    def test_verification_compiles_but_never_executes_raw_module(self):
++        # Module-level execution would fail. Define the function from its AST only.
++        raw = SOURCE + b"\r\nraise AssertionError('must not execute module')\r\n"
++        path = self.files['import_fbx.py']; path.write_bytes(raw)
++        self.pins['files']['import_fbx.py'] = digest(raw)
++        self.pins['file_metadata']['import_fbx.py'] = a._raw_metadata(raw)
++        node = next(n for n in ast.parse(raw).body if isinstance(n, ast.FunctionDef))
++        module = self.modules['io_scene_fbx.import_fbx']
++        exec(compile(ast.Module(body=[node], type_ignores=[]), str(path), 'exec', dont_inherit=True), module.__dict__)
++        result = self.verify()
++        self.assertTrue(result['live_function_code_checked'])
++
++    def test_missing_required_module_is_rejected(self):
++        del self.modules['io_scene_fbx.import_fbx']
++        with self.assertRaisesRegex(ContextError, 'must be observed'): self.verify()
++
++    def test_unknown_module_is_rejected(self):
++        self.modules['io_scene_fbx.unknown'] = ModuleType('unknown')
++        with self.assertRaisesRegex(ContextError, 'unreviewed addon submodule'): self.verify()
++
++    def test_incomplete_raw_inventory_is_rejected(self):
++        del self.files['__init__.py']
++        with self.assertRaisesRegex(ContextError, 'complete pinned'): self.verify()
++
++    def test_path_escape_is_rejected(self):
++        for rel in ('../io_scene_fbx', '/io_scene_fbx', 'scripts\\io_scene_fbx', 'scripts/./io_scene_fbx'):
++            with self.subTest(rel=rel):
++                with self.assertRaises(ContextError): a._resolve(self.bundle, rel, self.pins)
++
++    def test_symlink_file_is_rejected(self):
++        target = self.files['import_fbx.py']; other = self.bundle / 'other.py'; target.rename(other)
++        try:
++            target.symlink_to(other)
++        except OSError as e:
++            # Windows hosts without symlink privilege still execute all other checks.
++            self.skipTest('host does not permit synthetic symlink creation: ' + type(e).__name__)
++        with self.assertRaisesRegex(ContextError, 'symlink'):
++            a._resolve(self.bundle, 'scripts/io_scene_fbx', self.pins)
++
++    def test_runtime_resolver_has_no_reconstruction_or_writing_route(self):
++        tree = ast.parse((HERE / 'addon_resolver.py').read_bytes())
++        for node in ast.walk(tree):
++            if isinstance(node, (ast.Import, ast.ImportFrom)):
++                names = [x.name for x in node.names] if isinstance(node, ast.Import) else [node.module]
++                self.assertFalse(set(names) & {'bpy', 'subprocess', 'reconstruct_windows_profile'})
++            if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute):
++                self.assertNotIn(node.func.attr, {'replace', 'write_bytes', 'write_text', 'mkdir', 'unlink'})
++
++
++if __name__ == '__main__': unittest.main(verbosity=2)

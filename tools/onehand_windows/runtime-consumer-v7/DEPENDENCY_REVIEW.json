@@ -1,0 +1,15 @@
+{
+  "actual_windows_provenance": false,
+  "decision": "prepared-independent-review-required",
+  "historical_producer_v3_review_pins_sha256": "d704d46e75d7f28865bde42aea1ad1ea75a84089600b1a40053d8ae064747b79",
+  "historical_review_does_not_approve_successor": true,
+  "native_admission": false,
+  "predecessor_consumer_pins_sha256": "ce25429351c948921aefab783a9a6378c6801a0a1df1469ad8d35f3e0c2be8b4",
+  "schema": "rust-duty-runtime-consumer-dependency-selection/v6",
+  "selected_context_pins_sha256": "8702d486bc36a649924c3d844ea5eab445600f93995ec8367ea02d94e250c48a",
+  "selected_producer_pins_sha256": "fbf3b0f7221b34b6dca29b885c7b1ab2f965ed76049c77504b9d504032e5bc9e",
+  "selected_rust_source_revision": "c61dbd67039a4961d0c56f0a3c7e478c431d1ced",
+  "source_selection_sha256": "14c52fc3a46f8cca2ae17a2a4db43c4a6f4d184a560e0d5c37f22a88238f0d22",
+  "source_selection_unchanged": true,
+  "successor_scope": "native host role binding and explicit pinned helper load only"
+}

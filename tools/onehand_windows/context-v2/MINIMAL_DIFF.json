@@ -1,0 +1,50 @@
+{
+  "added_source_files": [
+    "test_metadata_projection.py"
+  ],
+  "byte_identical_files": {
+    "NATIVE_HELPER_PINS.json": "ebf3e1868fc2ea8c6e729bcbd351aa283a259822b19cdb06fb605cdaac2f7aed",
+    "OFFICIAL_ADDON_PINS.json": "2716811db4b591c14d0044458c608c961aa2dfcad5958f9da6d0b4da8d67dace",
+    "addon_resolver.py": "b19ffad6fec645865ccb924328d9d53c0a6c989bbd062cbc7ec23a0d6c180d2a",
+    "pinned_assembler.py": "6a9afcc7a9de9b7215b2b3000f77e7d7a61d12543918adc93dbf8ca6973cb6cf",
+    "pinned_transport.py": "d261450937cf709a62fdbe6e0a61056c19c3d6ffb7e897dc8e68484fc231d1b7",
+    "production_assembler.py": "afb0cf30903a6d083e300271a84a439cde8cd3036b7da6ea4e914b660f1d56eb",
+    "verify_freeze.py": "5b88650607feb34a5a280d4ddd0495027d9f0f50ab1d6ef8639fdd5845b8cd12"
+  },
+  "changed_files": {
+    "README.md": {
+      "after_sha256": "91738c3e0615a7f500224e02cef5d69194e1a3b1cb9076e1954aa4e0a7a1cb26",
+      "before_sha256": "3bc0c3446e8fe29ee60c3b7f6c5ad3cce241deead1e1228e3cbc10bb0fb1e45c"
+    },
+    "candidate_context.py": {
+      "after_sha256": "6698b94ed4ff8f385ddd3d18a676f6fd27b8234b473c352b829a0597b28398f7",
+      "before_sha256": "f1e7b362445548ededceb64a5bc79e502eb77cae8192eec3f5cc22b23d651c45"
+    },
+    "test_candidate_context.py": {
+      "after_sha256": "e4e5b5201faf16a5e06940788284d19220852a256c9aa3839422a3036c59522f",
+      "before_sha256": "5354f3bb56e2f98f5a767ba0b8b4744ddffcb43579cb285312ed4747ca29b0bc"
+    }
+  },
+  "generated_artifacts_excluded_from_comparison": [
+    "ALLOWLIST.json",
+    "MINIMAL_DIFF.json",
+    "PINS.json",
+    "RESULTS.json",
+    "cpu-tests.log"
+  ],
+  "historical_reference_resampled": false,
+  "numerical_invariants_ast_unchanged": true,
+  "predecessor": "windows-candidate-context-v1",
+  "predecessor_logs_not_reused": [
+    "assembler-wrapper-tests.log",
+    "cpu-tests-final.log",
+    "cpu-tests-post-review.log",
+    "cpu-tests.log",
+    "focus-summary-tests.log",
+    "focused-tests-final.log",
+    "focused-tests.log"
+  ],
+  "predecessor_pins_sha256": "cee1e6fc907638c6eaa363fd301b722b145767ae1d19131519a53b9b74c9d378",
+  "production_change": "candidate context v2 schema and exact strict metadata-projection bridge admission only",
+  "schema": "rust-duty-source-successor-minimal-diff/v1"
+}

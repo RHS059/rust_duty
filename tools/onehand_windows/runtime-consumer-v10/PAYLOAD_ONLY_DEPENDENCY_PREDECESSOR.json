@@ -1,0 +1,17 @@
+{
+  "package_path": "tools/onehand_windows/runtime-consumer-v9",
+  "pins_sha256": "d0edb29a29b4b0d14399c398d79c809b598b9c3aba01d5e88ffa7b0f7d693e4a",
+  "production_files": {
+    "build_closure.py": "e94a94316cf30d63f9e18e5aad90931ad1f31bf1f3f9d0611dbbe9db8e5e4f56",
+    "consumer.py": "de28e7d27fc26a87a2e24906a5d68fd8c9e107ad09b44676eee8dd1e6cfd926a",
+    "evidence.py": "398005bc413ad3383add91ccb06800657c585ce918f220eebd4026cedecd8fdf",
+    "extract_math.py": "33137f95c5e0f0b2beb7fe865f60a79ccbb4a277af9ba32eafa790222f7b0dbc",
+    "pinned_math.py": "2c4aa004c633bcc7782079051697d75e839aa76bcabae72a5e98b9ced01ee6e9",
+    "retirement.py": "003d161c1061b0d14bb86417eee3339810659759e3dd3df49513811c05655f09",
+    "runtime_context.py": "d0da89bcc98e241aa573e233eaa109036c4bb62cfb48ebc582ce10e8098d4533",
+    "transport.py": "1cfd4163207df4666d3197d97409e6f0212691bd815e06d2af724915fb4ebad2",
+    "verify_freeze.py": "e1a2cb07d5ad4822f9addb35eebe2d0ce2154f5a3c9547be44a88141f87a3f64"
+  },
+  "schema": "rust-duty-payload-only-dependency-predecessor/v1",
+  "selected_producer_pins_sha256": "ed4cf3ff99e94b8c86e4239c083689d4b86ef082ab08033719df0788a509033a"
+}

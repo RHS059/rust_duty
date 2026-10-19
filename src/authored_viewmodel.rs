@@ -225,6 +225,20 @@ impl AuthoredViewmodel {
             "mapped_target_pose_seconds": visual.mapped_target_pose_seconds,
         }))
     }
+    /// Observe the actual admitted renderer/clip; never changes any motion state.
+    pub fn high_candidate_observation(&self) -> Option<serde_json::Value> {
+        let visual = self.high_mantle.as_ref()?;
+        let renderer = self.reload_renderers.get(visual.index)?;
+        let binding = self.high_mantle_binding.as_ref()?;
+        Some(serde_json::json!({
+            "clip": renderer.clip,
+            "asset_sha256": binding.asset_sha256(),
+            "receipt_sha256": binding.receipt_sha256(),
+            "pose": self.app_edge_high_pose_observation(),
+            "warning": renderer.warning(),
+            "renderer_failed": renderer.error().is_some(),
+        }))
+    }
     /// Set the hip cant applied at the next draw. Gameplay owns the value.
     pub fn set_cant(&mut self, radians: f32) {
         self.cant = if radians.is_finite() { radians } else { 0. };
@@ -2225,6 +2239,15 @@ mod tests {
     }
 
     #[test]
+    fn candidate_observation_is_absent_without_an_admitted_binding() {
+        let model = contact_fixture();
+        assert!(model.high_candidate_observation().is_none());
+        let (mut model, visual) = high_mantle_fixture();
+        model.high_mantle = Some(visual);
+        assert!(model.high_candidate_observation().is_none());
+    }
+
+    #[test]
     fn prone_outgoing_tracks_live_reload_opacity_then_live_base_without_contact_reset() {
         use vector_range::authored_locomotion_path::AuthoredLocomotionPathConfig;
         use vector_range::authored_prone::{ProneReturn, ProneSample, PRONE_EYE_HEIGHT};
@@ -2934,7 +2957,7 @@ mod tests {
         let error = model
             .install_high_mantle(&reference, vector_range::authored_high_mantle::ANCHOR)
             .unwrap_err();
-        assert!(error.contains("pending native verification"));
+        assert!(error.starts_with("one-hand missing.vra: "));
         assert!(model.high_mantle_binding().is_none());
         assert!(model.high_mantle.is_none());
         assert!(model.error().is_none());

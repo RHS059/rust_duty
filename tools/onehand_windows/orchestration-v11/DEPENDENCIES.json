@@ -1,0 +1,1308 @@
+{
+  "embedded_blender_requirement": "Pillow==11.3.0",
+  "eventual_publication_base": "a6f9c0450231a7addffbee3b54338d02f5136f1a",
+  "files": {
+    "integration-recovery-20261018T0751/published-pr77/tools/onehand_windows/audited/onehand-runtime-20261016-r2/native-dense/dense_backend.py": {
+      "bytes": 6868,
+      "sha256": "d861b7d4c0254df4424f590b76c55f106276b571ce7fdd0a7d9aad53c1546f00",
+      "used_by": [
+        "unchanged original native AST/math closure"
+      ]
+    },
+    "integration-recovery-20261018T0751/published-pr77/tools/onehand_windows/audited/onehand-runtime-20261016-r2/native-rigid-v2/rigid_bytes.py": {
+      "bytes": 2068,
+      "sha256": "d22be88ab1c850a52356fdae476ee7ddd827fd22152e17b0f8e2473866f27251",
+      "used_by": [
+        "unchanged original native AST/math closure"
+      ]
+    },
+    "integration-recovery-20261018T0751/published-pr77/tools/onehand_windows/audited/onehand-runtime-20261016-r2/native-rigid-v2/rigid_geometry.py": {
+      "bytes": 828,
+      "sha256": "61da740dbb3f23e5438a75f7acdde0581c0f24a5308a7c2341c00a880d207813",
+      "used_by": [
+        "unchanged original native AST/math closure"
+      ]
+    },
+    "integration-recovery-20261018T0751/published-pr77/tools/onehand_windows/audited/onehand-runtime-20261016-r2/native-rigid-v2/sample_rigid.py": {
+      "bytes": 8948,
+      "sha256": "b7e7924b0a9e9f366daa898df671b8021e8a79826ba091bac0fb65ce78351692",
+      "used_by": [
+        "unchanged original native AST/math closure"
+      ]
+    },
+    "integration-recovery-20261018T0751/published-pr77/tools/onehand_windows/audited/onehand-runtime-20261016-r2/native-window-v2/sample_source.py": {
+      "bytes": 13776,
+      "sha256": "a7e915ad048dbe73ee81615b4235fd50e943a97d6976ebd7f9f3532bf8e7c802",
+      "used_by": [
+        "unchanged original native AST/math closure"
+      ]
+    },
+    "integration-recovery-20261018T0751/published-pr77/tools/onehand_windows/audited/onehand-runtime-20261016-r2/native-window-v2/verify_window.py": {
+      "bytes": 13085,
+      "sha256": "aad42caca2c1ab872ee48b006a797362d7dac54ce8bd485455ae4eb8cdb066a4",
+      "used_by": [
+        "unchanged original native AST/math closure"
+      ]
+    },
+    "integration-recovery-20261018T0751/published-pr77/tools/onehand_windows/audited/onehand-runtime-20261016-r2/native-window-v2/window_contract.py": {
+      "bytes": 3547,
+      "sha256": "60089bc486d89689bbc79d8adc13826e7cd502c2fbcf8e862b669737a8800172",
+      "used_by": [
+        "unchanged original native AST/math closure"
+      ]
+    },
+    "integration-recovery-20261018T0751/published-pr77/tools/onehand_windows/audited/onehand-runtime-20261016-r2/native-window-v2/window_import.py": {
+      "bytes": 7093,
+      "sha256": "99a640e2825fc140a998e7329eafc9b472e72bf4ff2968310bb54474bc5686c3",
+      "used_by": [
+        "unchanged original native AST/math closure"
+      ]
+    },
+    "integration-recovery-20261018T0751/published-pr77/tools/onehand_windows/audited/onehand-runtime-20261016-r2/runtime-conversion-v2/assemble_runtime.py": {
+      "bytes": 26136,
+      "sha256": "01c4d5dd43b56607742ad2c5862c3185460dcb14b4cb5ef079301daae7f45e12",
+      "used_by": [
+        "unchanged original native AST/math closure",
+        "unchanged generic streaming assembler"
+      ]
+    },
+    "integration-recovery-20261018T0751/published-pr77/tools/onehand_windows/audited/onehand-runtime-20261016-r2/runtime-conversion-v2/native_runtime.py": {
+      "bytes": 9351,
+      "sha256": "4c729c2171d23736c3008a087ee7f14a33e7b4883bd059fce659d46a6c4edbc5",
+      "used_by": [
+        "unchanged original native AST/math closure"
+      ]
+    },
+    "integration-recovery-20261018T0751/published-pr77/tools/onehand_windows/audited/onehand-runtime-20261016-r2/runtime-parity/admit_candidate.py": {
+      "bytes": 12601,
+      "sha256": "d846b0d77637a86654433ffea4cbd4479edc9a13d2dbb26006a38fcdab12b282",
+      "used_by": [
+        "unchanged original CPU math closure"
+      ]
+    },
+    "integration-recovery-20261018T0751/published-pr77/tools/onehand_windows/audited/onehand-runtime-20261016-r2/runtime-parity/bounded_vra.py": {
+      "bytes": 5548,
+      "sha256": "6a7e3b5996485c9e917e040c86f6909066bf3fa0b31cd43321b4c25b36b40da3",
+      "used_by": [
+        "unchanged original CPU math closure"
+      ]
+    },
+    "integration-recovery-20261018T0751/published-pr77/tools/onehand_windows/audited/onehand-runtime-20261016-r2/runtime-parity/conversion_admission.py": {
+      "bytes": 10174,
+      "sha256": "500ab92baf5ab38721ad924cf4b25d26ac34a8c9585493e9fce0e40f31d33b7a",
+      "used_by": [
+        "unchanged original CPU math closure"
+      ]
+    },
+    "integration-recovery-20261018T0751/published-pr77/tools/onehand_windows/audited/onehand-runtime-20261016-r2/runtime-parity/focused_runtime.py": {
+      "bytes": 9197,
+      "sha256": "b917c07b472303f922e7b91521c96bf1f81e95ee043e1bd5c01f96244182b96e",
+      "used_by": [
+        "unchanged original CPU math closure"
+      ]
+    },
+    "integration-recovery-20261018T0751/published-pr77/tools/onehand_windows/audited/onehand-runtime-20261016-r2/runtime-parity/onehand_r2_common.py": {
+      "bytes": 17837,
+      "sha256": "cae111fc9f0a6a056d369c1cd831e2926e77356c26bcef4ebbd3fdd9e483167a",
+      "used_by": [
+        "unchanged original CPU math closure"
+      ]
+    },
+    "integration-recovery-20261018T0751/published-pr77/tools/onehand_windows/audited/onehand-runtime-20261016-r2/runtime-parity/serial_r2.py": {
+      "bytes": 17765,
+      "sha256": "eaa588c9b7ab16adbd9075c9cff9d40f3ee93d7b062dd5c804f4276318498044",
+      "used_by": [
+        "unchanged original CPU math closure"
+      ]
+    },
+    "integration-recovery-20261018T0751/published-pr77/tools/onehand_windows/audited/onehand-runtime-20261016-r2/runtime-parity/test_bounded_vra.py": {
+      "bytes": 6301,
+      "sha256": "a2033c073dc56cdb70d59156c1e51e36b9697c385343dff4bdc526815cfc042b",
+      "used_by": [
+        "unchanged original CPU math closure"
+      ]
+    },
+    "integration-recovery-20261018T0751/published-pr77/tools/onehand_windows/audited/onehand-runtime-20261016-r2/runtime-parity/verify_onehand_r2.py": {
+      "bytes": 63300,
+      "sha256": "968e98ab5e0d9ced460eddd23dc2013a7e07d37317c33d65eb5c8e77c1298342",
+      "used_by": [
+        "unchanged original CPU math closure"
+      ]
+    },
+    "integration-recovery-20261018T0751/published-pr77/tools/onehand_windows/audited/onehand-runtime-20261016-r2/runtime-parity/window_admission.py": {
+      "bytes": 10042,
+      "sha256": "7c777e1b6981e966c33e14c7abf6437a67bd84ae30e7af3b236c5584265e3372",
+      "used_by": [
+        "unchanged original CPU math closure"
+      ]
+    },
+    "integration-recovery-20261018T0751/published-pr77/tools/onehand_windows/audited/onehand-runtime-20261016/importer-patch/tools/export_viewmodel.py": {
+      "bytes": 16819,
+      "sha256": "dd39c05bbe8c2ac557020261e360da8f7e5debedb652daa75b223de2667f93cd",
+      "used_by": [
+        "unchanged original native AST/math closure"
+      ]
+    },
+    "integration-recovery-20261018T0751/published-pr77/tools/onehand_windows/audited/onehand-runtime-20261016/importer-patch/tools/import_fbx_viewmodel.py": {
+      "bytes": 19678,
+      "sha256": "83074cd5ac30404b2be1e1679b04c3e9784a2e4ce4884969bb65d80e3d90fb79",
+      "used_by": [
+        "unchanged original native AST/math closure"
+      ]
+    },
+    "integration-recovery-20261018T0751/published-pr77/tools/onehand_windows/audited/onehand-runtime-20261016/importer-patch/tools/prone_camera_pair.py": {
+      "bytes": 12460,
+      "sha256": "6fb12a0b53e0400ca0404784d3e2aae550f59e3611fa23e40f134e9bc2230045",
+      "used_by": [
+        "unchanged original native AST/math closure"
+      ]
+    },
+    "integration-recovery-20261018T0751/published-pr77/tools/onehand_windows/audited/onehand-runtime-20261016/importer-patch/tools/single_stack_fbx.py": {
+      "bytes": 6336,
+      "sha256": "5fa48bfe1c4688923435a01668aba882393282fd917f0c77d18e24b3763ea326",
+      "used_by": [
+        "unchanged original native AST/math closure"
+      ]
+    },
+    "integration-recovery-20261018T0751/published-pr77/tools/onehand_windows/audited/onehand-runtime-20261016/importer-patch/tools/vrpack.py": {
+      "bytes": 30543,
+      "sha256": "28a23ed9a9b0fe0123405a9800473e57d04419596deae8789c66c744ad05b685",
+      "used_by": [
+        "unchanged original native AST/math closure",
+        "unchanged original CPU math closure",
+        "unchanged format implementation"
+      ]
+    },
+    "integration-recovery-20261018T0751/published-pr77/tools/onehand_windows/audited/onehand-runtime-20261016/importer-patch/tools/vrskin.py": {
+      "bytes": 19574,
+      "sha256": "e6aff7f5278bb8e6dd09ca75e69b8761b1b71bd30b3feddf84f8380cd88a5e14",
+      "used_by": [
+        "unchanged original native AST/math closure",
+        "unchanged original CPU math closure",
+        "unchanged format implementation"
+      ]
+    },
+    "integration-recovery-20261018T0751/published-pr77/tools/onehand_windows/audited/onehand-runtime-20261016/importer-patch/tools/vrview.py": {
+      "bytes": 34515,
+      "sha256": "eefd755f6ef0943a4d8bf443ddfec601bc1336ec90ece722d017c9c4b6d73568",
+      "used_by": [
+        "unchanged original native AST/math closure",
+        "unchanged original CPU math closure",
+        "unchanged format implementation"
+      ]
+    },
+    "integration-recovery-20261018T0751/published-pr77/tools/onehand_windows/audited/prone-r15-runtime-20261016/source/tools/verify_prone_r15_runtime.py": {
+      "bytes": 51047,
+      "sha256": "b8bbc01d16e703934626ceff88f328a19345ded859a01f36f0918dbadd470d8b",
+      "used_by": [
+        "unchanged original CPU math closure"
+      ]
+    },
+    "integration-recovery-20261018T0751/published-pr77/tools/onehand_windows/audited/recovery/animation-queue/runs/onehand-r5-from-reconstructed-r4/integrity/source_integrity.py": {
+      "bytes": 2898,
+      "sha256": "d22ae8dcc117e29ffb7d746772efce015010407cbb1ddce22924a31746e831ca",
+      "used_by": [
+        "unchanged original native AST/math closure"
+      ]
+    },
+    "integration-recovery-20261018T0751/published-pr77/tools/onehand_windows/audited/recovery/animation-queue/runs/onehand-r5-from-reconstructed-r4/integrity/validate_directional_source.py": {
+      "bytes": 9678,
+      "sha256": "8f1deb2883eafd5e7a76cf48109a33c010690aa197150369df60773b5b593816",
+      "used_by": [
+        "unchanged original native AST/math closure"
+      ]
+    },
+    "integration-recovery-20261018T0751/published-pr77/tools/onehand_windows/authored-bridge-privacy-v1/ALLOWLIST.json": {
+      "bytes": 200,
+      "sha256": "829de6985c19eee30d350f1d13cef6bcf790e03860a084639902344e08a19425",
+      "used_by": [
+        "explicit comment-projection dependency closure; unchanged motion/process math"
+      ]
+    },
+    "integration-recovery-20261018T0751/published-pr77/tools/onehand_windows/authored-bridge-privacy-v1/PINS.json": {
+      "bytes": 628,
+      "sha256": "72277f9d99dcd72085263ace639891c8396a0b30063dfbcef38fe51101bc2428",
+      "used_by": [
+        "explicit comment-projection dependency closure; unchanged motion/process math"
+      ]
+    },
+    "integration-recovery-20261018T0751/published-pr77/tools/onehand_windows/authored-bridge-privacy-v1/README.md": {
+      "bytes": 1206,
+      "sha256": "50d1aabd4e4cf7f5f152ff6f646f5215eceaa3b2d23052809ca83d9665636723",
+      "used_by": [
+        "explicit comment-projection dependency closure; unchanged motion/process math"
+      ]
+    },
+    "integration-recovery-20261018T0751/published-pr77/tools/onehand_windows/authored-bridge-privacy-v1/RESULTS.json": {
+      "bytes": 198,
+      "sha256": "ef92368f3a67b3fbcd4f8420c6b5761bd2e585cd21047dd630e72b752329c8e6",
+      "used_by": [
+        "explicit comment-projection dependency closure; unchanged motion/process math"
+      ]
+    },
+    "integration-recovery-20261018T0751/published-pr77/tools/onehand_windows/authored-bridge-privacy-v1/authored_bridge.py": {
+      "bytes": 17238,
+      "sha256": "bc995d517728052b5dc4694342b09dabb7466077746258f9513f234b439ceb05",
+      "used_by": [
+        "explicit comment-projection dependency closure; unchanged motion/process math"
+      ]
+    },
+    "integration-recovery-20261018T0751/published-pr77/tools/onehand_windows/authored-bridge-privacy-v1/cpu-tests.log": {
+      "bytes": 1184,
+      "sha256": "535bf7985fbdf44e8cd51ff5377f9ca8b8c6ddd30eb13de8abf20c1970b3f6f5",
+      "used_by": [
+        "explicit comment-projection dependency closure; unchanged motion/process math"
+      ]
+    },
+    "integration-recovery-20261018T0751/published-pr77/tools/onehand_windows/authored-bridge-privacy-v1/test_projection_bridge.py": {
+      "bytes": 3737,
+      "sha256": "b9747793a2999ecb92950cad513f7d32447115bca9d4cfd3e99736fddc507705",
+      "used_by": [
+        "explicit comment-projection dependency closure; unchanged motion/process math"
+      ]
+    },
+    "integration-recovery-20261018T0751/published-pr77/tools/onehand_windows/authored-bridge-privacy-v1/verify_freeze.py": {
+      "bytes": 505,
+      "sha256": "6159677e6192f3b53e21f415332b4d3d6450619a0f31b956b76241dd58f041cd",
+      "used_by": [
+        "explicit comment-projection dependency closure; unchanged motion/process math"
+      ]
+    },
+    "integration-recovery-20261018T0751/published-pr77/tools/onehand_windows/process-v2/.gitattributes": {
+      "bytes": 86,
+      "sha256": "171e9a8b3b5a35df8a0e007415aa96cd02a5ae26ee13b421ea9de761c6f8ddad",
+      "used_by": [
+        "reviewed owned Windows process transport"
+      ]
+    },
+    "integration-recovery-20261018T0751/published-pr77/tools/onehand_windows/process-v2/DEPENDENCIES.json": {
+      "bytes": 2757,
+      "sha256": "5e2c49d629018cf68f4e916d9bf257a5af1b82337facdf541ea4159928a36f6a",
+      "used_by": [
+        "reviewed owned Windows process transport"
+      ]
+    },
+    "integration-recovery-20261018T0751/published-pr77/tools/onehand_windows/process-v2/PINS.json": {
+      "bytes": 2326,
+      "sha256": "d9ef5486cbd7d80ec8d4c9d37c556ff7d13d8dc0147cbd7e6244a4154ca79751",
+      "used_by": [
+        "reviewed owned Windows process transport"
+      ]
+    },
+    "integration-recovery-20261018T0751/published-pr77/tools/onehand_windows/process-v2/README.md": {
+      "bytes": 19046,
+      "sha256": "3a8ed00fb3898be1eb48359f3f85797f30d96eae39915f1c237a23d260066eee",
+      "used_by": [
+        "reviewed owned Windows process transport"
+      ]
+    },
+    "integration-recovery-20261018T0751/published-pr77/tools/onehand_windows/process-v2/checkout-fixture-proof.json": {
+      "bytes": 1143,
+      "sha256": "970aed93d4f354fcc51bebf10692c4d3bdc6ffb5a60704e399538b2eabbe8849",
+      "used_by": [
+        "reviewed owned Windows process transport"
+      ]
+    },
+    "integration-recovery-20261018T0751/published-pr77/tools/onehand_windows/process-v2/cpu-test-summary.json": {
+      "bytes": 1285,
+      "sha256": "6163dfb23aa7d8e60b3e6fc002d7a8209ed69bbd8263e12a2a2d30d5c0b2d6d3",
+      "used_by": [
+        "reviewed owned Windows process transport"
+      ]
+    },
+    "integration-recovery-20261018T0751/published-pr77/tools/onehand_windows/process-v2/cpu-tests.log": {
+      "bytes": 10301,
+      "sha256": "7b532b2372f20f23b37f96442b5d2bda5ed855bd139c763cab1c1f3add194ddc",
+      "used_by": [
+        "reviewed owned Windows process transport"
+      ]
+    },
+    "integration-recovery-20261018T0751/published-pr77/tools/onehand_windows/process-v2/minimal-changes.patch": {
+      "bytes": 46858,
+      "sha256": "11dab8fee3fc8be0104f7adc1b73bb06091af7307f369f67d2f7bb2bdda2dd00",
+      "used_by": [
+        "reviewed owned Windows process transport"
+      ]
+    },
+    "integration-recovery-20261018T0751/published-pr77/tools/onehand_windows/process-v2/owned_process.py": {
+      "bytes": 39160,
+      "sha256": "256125ea044c738ac316da841a5acad9c39b1fc2b1666cc4a09ce81828bd191e",
+      "used_by": [
+        "reviewed owned Windows process transport"
+      ]
+    },
+    "integration-recovery-20261018T0751/published-pr77/tools/onehand_windows/process-v2/run_tests.py": {
+      "bytes": 2751,
+      "sha256": "79b3868758640da4918cc8822ee6327401b07a0c597a608fc94cdb488f73d380",
+      "used_by": [
+        "reviewed owned Windows process transport"
+      ]
+    },
+    "integration-recovery-20261018T0751/published-pr77/tools/onehand_windows/process-v2/test_checkout_bytes.py": {
+      "bytes": 2786,
+      "sha256": "1c56b4dde3ae6e1859f9fe4b60ecaf3b21d9e5ec0f0998561afec4e36edb6c54",
+      "used_by": [
+        "reviewed owned Windows process transport"
+      ]
+    },
+    "integration-recovery-20261018T0751/published-pr77/tools/onehand_windows/process-v2/test_lifecycle_regressions.py": {
+      "bytes": 12647,
+      "sha256": "ef501fb4ffa5f1e3ec9117cf98071313bcdc3adcc746f9a927689db273e5adf3",
+      "used_by": [
+        "reviewed owned Windows process transport"
+      ]
+    },
+    "integration-recovery-20261018T0751/published-pr77/tools/onehand_windows/process-v2/test_owned_process.py": {
+      "bytes": 20249,
+      "sha256": "7051141262d6774d43bf0cf791f174432c485d4aca0432bc42f94be7862c963d",
+      "used_by": [
+        "reviewed owned Windows process transport"
+      ]
+    },
+    "integration-recovery-20261018T0751/published-pr77/tools/onehand_windows/process-v2/test_windows_job.py": {
+      "bytes": 9807,
+      "sha256": "a49a9ebf39ff22e22e9e4e215601d107221ca845978276042cba560252ac952e",
+      "used_by": [
+        "reviewed owned Windows process transport"
+      ]
+    },
+    "integration-recovery-20261018T0751/published-pr77/tools/onehand_windows/process-v2/test_windows_native.py": {
+      "bytes": 5843,
+      "sha256": "401061f2e2bbe2317e211b0e9f70c3df2c5ecac6212264d7131c0b6175247ab5",
+      "used_by": [
+        "reviewed owned Windows process transport"
+      ]
+    },
+    "integration-recovery-20261018T0751/published-pr77/tools/onehand_windows/process-v2/windows-process-smoke.workflow.yml": {
+      "bytes": 2249,
+      "sha256": "7ac5a15a8ed4ac9f1f2535e04e800b0e7df2a8d4cf7ccbac39549dbfb3fa301a",
+      "used_by": [
+        "reviewed owned Windows process transport"
+      ]
+    },
+    "integration-recovery-20261018T0751/published-pr77/tools/onehand_windows/process-v2/windows_job.py": {
+      "bytes": 22068,
+      "sha256": "d628c4f7d3136dde11cf6c9d5ba35f3d12302bfd2522918fe1f0229a40f1ba1e",
+      "used_by": [
+        "reviewed owned Windows process transport"
+      ]
+    },
+    "integration-recovery-20261018T0751/published-pr77/tools/onehand_windows/source-producer-privacy-v1/FUNCTION_DIFF.json": {
+      "bytes": 770,
+      "sha256": "d6383d997d1150f5e70cf15355404bf808c2ec8e80d1eb58ea1b61ea4c9a51e6",
+      "used_by": [
+        "explicit comment-projection dependency closure; unchanged motion/process math"
+      ]
+    },
+    "integration-recovery-20261018T0751/published-pr77/tools/onehand_windows/source-producer-privacy-v1/PINS.json": {
+      "bytes": 1701,
+      "sha256": "3b52a15fe761b9b1ae30b88caab7be132ad635f9aa2d070b6bb2f6d3133fbd71",
+      "used_by": [
+        "explicit comment-projection dependency closure; unchanged motion/process math"
+      ]
+    },
+    "integration-recovery-20261018T0751/published-pr77/tools/onehand_windows/source-producer-privacy-v1/PROJECTION.json": {
+      "bytes": 5207,
+      "sha256": "4bf38952b5ff765ad65c8fab2c985303287b570b4a0d897eac28bf78e73bec1b",
+      "used_by": [
+        "explicit comment-projection dependency closure; unchanged motion/process math"
+      ]
+    },
+    "integration-recovery-20261018T0751/published-pr77/tools/onehand_windows/source-producer-privacy-v1/README.md": {
+      "bytes": 2887,
+      "sha256": "0cc30a0b278326272eae9d20f143c454a232226f77f70096559c4a3725060e9a",
+      "used_by": [
+        "explicit comment-projection dependency closure; unchanged motion/process math"
+      ]
+    },
+    "integration-recovery-20261018T0751/published-pr77/tools/onehand_windows/source-producer-privacy-v1/RESULTS.json": {
+      "bytes": 326,
+      "sha256": "b47fea0ff32626ce6a767aa4323a1344a90e9283dab610947b0b9f202e15213c",
+      "used_by": [
+        "explicit comment-projection dependency closure; unchanged motion/process math"
+      ]
+    },
+    "integration-recovery-20261018T0751/published-pr77/tools/onehand_windows/source-producer-privacy-v1/UNCHANGED_MATH.json": {
+      "bytes": 676,
+      "sha256": "07bee6030fe46fe957306c7b2bb554071155364e27cf523ef29c1de9497c44a9",
+      "used_by": [
+        "explicit comment-projection dependency closure; unchanged motion/process math"
+      ]
+    },
+    "integration-recovery-20261018T0751/published-pr77/tools/onehand_windows/source-producer-privacy-v1/cpu-tests.log": {
+      "bytes": 9383,
+      "sha256": "4a90c79652225d2be96d78402dfee443834539d2e6af09156aa6bea0444454e6",
+      "used_by": [
+        "explicit comment-projection dependency closure; unchanged motion/process math"
+      ]
+    },
+    "integration-recovery-20261018T0751/published-pr77/tools/onehand_windows/source-producer-privacy-v1/dense-times.json": {
+      "bytes": 40293,
+      "sha256": "a521b1e779e45f85948d94b8b9aa9f9cad41d935783ba5fcbda34decb6aec08f",
+      "used_by": [
+        "explicit comment-projection dependency closure; unchanged motion/process math"
+      ]
+    },
+    "integration-recovery-20261018T0751/published-pr77/tools/onehand_windows/source-producer-privacy-v1/historical_reference.py": {
+      "bytes": 12893,
+      "sha256": "eee8e072c0083f67e8aa296c78a6126ca30ded5ea86f5b3d0293cf8e9381d9dd",
+      "used_by": [
+        "explicit comment-projection dependency closure; unchanged motion/process math"
+      ]
+    },
+    "integration-recovery-20261018T0751/published-pr77/tools/onehand_windows/source-producer-privacy-v1/onehand_v6_source_delta.py": {
+      "bytes": 30826,
+      "sha256": "02be12e5bfb6503810ec9729cb03ed6edcfc0a154c087402845dd6a9d36ce7b0",
+      "used_by": [
+        "explicit comment-projection dependency closure; unchanged motion/process math"
+      ]
+    },
+    "integration-recovery-20261018T0751/published-pr77/tools/onehand_windows/source-producer-privacy-v1/onehand_v6_source_native.py": {
+      "bytes": 32612,
+      "sha256": "0ae5da70398aad7e045354ab2f5734afd668a0cf8fafedca98fee7ccba2b76f2",
+      "used_by": [
+        "explicit comment-projection dependency closure; unchanged motion/process math"
+      ]
+    },
+    "integration-recovery-20261018T0751/published-pr77/tools/onehand_windows/source-producer-privacy-v1/pose-corrections.json": {
+      "bytes": 6364,
+      "sha256": "08e25bf4c8731c073ace8749e2225f60d3e95a06eec6627239d7a9ba57aba58c",
+      "used_by": [
+        "explicit comment-projection dependency closure; unchanged motion/process math"
+      ]
+    },
+    "integration-recovery-20261018T0751/published-pr77/tools/onehand_windows/source-producer-privacy-v1/privacy_projection.py": {
+      "bytes": 7632,
+      "sha256": "7d88d3b32c9ddf2e2525ce1f9e0dcfe68a4319bc44d144d37e7760de8aed2f92",
+      "used_by": [
+        "explicit comment-projection dependency closure; unchanged motion/process math"
+      ]
+    },
+    "integration-recovery-20261018T0751/published-pr77/tools/onehand_windows/source-producer-privacy-v1/project_original.py": {
+      "bytes": 1865,
+      "sha256": "9ea5622e301da7c8eb94ba8295c0b72e95a34d15fe1d093fa1ecdf3d3bcb39cc",
+      "used_by": [
+        "explicit comment-projection dependency closure; unchanged motion/process math"
+      ]
+    },
+    "integration-recovery-20261018T0751/published-pr77/tools/onehand_windows/source-producer-privacy-v1/run_onehand_v6_source_proof.py": {
+      "bytes": 19069,
+      "sha256": "0e803821851d1daa11e92e264c4264c31c11a601dedbcf3b1dd27df9b5be888a",
+      "used_by": [
+        "explicit comment-projection dependency closure; unchanged motion/process math"
+      ]
+    },
+    "integration-recovery-20261018T0751/published-pr77/tools/onehand_windows/source-producer-privacy-v1/test_privacy_projection.py": {
+      "bytes": 6939,
+      "sha256": "1d0e4dda2abb67f76cfd2ba879ac847097bd60a8706e9515d593b4b6d8ec3f70",
+      "used_by": [
+        "explicit comment-projection dependency closure; unchanged motion/process math"
+      ]
+    },
+    "integration-recovery-20261018T0751/published-pr77/tools/onehand_windows/source-producer-privacy-v1/test_projected_receipts.py": {
+      "bytes": 4024,
+      "sha256": "cb01b0dfae22f1d943d3a54497a84cc2c7af72030f3bee0207048cae9089e86e",
+      "used_by": [
+        "explicit comment-projection dependency closure; unchanged motion/process math"
+      ]
+    },
+    "integration-recovery-20261018T0751/published-pr77/tools/onehand_windows/source-producer-privacy-v1/test_unchanged_source_math.py": {
+      "bytes": 16576,
+      "sha256": "5ca9c04bd080ef8fb8a99a3be96373ff76af371e067f655a3b4deb2fab85c373",
+      "used_by": [
+        "explicit comment-projection dependency closure; unchanged motion/process math"
+      ]
+    },
+    "integration-recovery-20261018T0751/published-pr77/tools/onehand_windows/source-producer-privacy-v1/verify_freeze.py": {
+      "bytes": 505,
+      "sha256": "6159677e6192f3b53e21f415332b4d3d6450619a0f31b956b76241dd58f041cd",
+      "used_by": [
+        "explicit comment-projection dependency closure; unchanged motion/process math"
+      ]
+    },
+    "integration-recovery-20261018T0751/published-pr77/tools/onehand_windows/source-producer-privacy-v1/windows-portable-v2/PINS.json": {
+      "bytes": 178,
+      "sha256": "95d3c851639283cc07ba27a461251635c62352b4b8219a29ac16d30bb7e15187",
+      "used_by": [
+        "explicit comment-projection dependency closure; unchanged motion/process math"
+      ]
+    },
+    "integration-recovery-20261018T0751/published-pr77/tools/onehand_windows/source-producer-privacy-v1/windows-portable-v2/README.md": {
+      "bytes": 357,
+      "sha256": "8936d42abf6f5eac53da7d5bfe1108b6a0f312fb479d8f315076a1aa2600e708",
+      "used_by": [
+        "explicit comment-projection dependency closure; unchanged motion/process math"
+      ]
+    },
+    "integration-recovery-20261018T0751/published-pr77/tools/onehand_windows/source-producer-privacy-v1/windows-portable-v2/portable_source.py": {
+      "bytes": 18827,
+      "sha256": "ac6cbb7f61666542d8d39db1014803ab3cb78625a5d375dcfdeaa8321444972a",
+      "used_by": [
+        "explicit comment-projection dependency closure; unchanged motion/process math"
+      ]
+    },
+    "integration-recovery-20261018T0751/published-pr77/tools/onehand_windows/transport-evidence/independent-audit.json": {
+      "bytes": 2462,
+      "sha256": "0a10a58145fb2d6d9348ecc8a61d0ad2f8f318e7f644a9b46ce9716d386d6b17",
+      "used_by": [
+        "actual completed transport evidence; hash-only source records"
+      ]
+    },
+    "integration-recovery-20261018T0751/published-pr77/tools/onehand_windows/transport-evidence/independent-review.json": {
+      "bytes": 1244,
+      "sha256": "820c10f716aadfb3ee9f7e3e3c8e176b446df0568f4196dce4fd0b7c08cf6527",
+      "used_by": [
+        "actual completed transport evidence; hash-only source records"
+      ]
+    },
+    "integration-recovery-20261018T0751/published-pr77/tools/onehand_windows/transport-evidence/test-summary.json": {
+      "bytes": 883,
+      "sha256": "b14b01a539920f34eec064a1bec1ec2799840c31e89a36e841831a3960c90fa2",
+      "used_by": [
+        "actual completed transport evidence; hash-only source records"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-context-preparation-v3/ALLOWLIST.json": {
+      "bytes": 870,
+      "sha256": "03f3dc6d7430d63c28b31c3da276c8a88dc562b125111e27aba256499286f399",
+      "used_by": [
+        "exact reviewed Windows profile dependency selection; original motion/process/math unchanged"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-context-preparation-v3/LOADED_SOURCE_EVIDENCE.json": {
+      "bytes": 997,
+      "sha256": "e2d78fbf137f946c345e76fc6dfc6c54f91f200c9dc1d9a5d19b4d10b1b3f678",
+      "used_by": [
+        "exact reviewed Windows profile dependency selection; original motion/process/math unchanged"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-context-preparation-v3/MINIMAL_DIFF.json": {
+      "bytes": 3140,
+      "sha256": "f509b539e89253ab69b815964bf23cf5b7c2698bc8df78fdd8e96a171d10fd09",
+      "used_by": [
+        "exact reviewed Windows profile dependency selection; original motion/process/math unchanged"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-context-preparation-v3/NATIVE_HELPER_PINS.json": {
+      "bytes": 825,
+      "sha256": "ebf3e1868fc2ea8c6e729bcbd351aa283a259822b19cdb06fb605cdaac2f7aed",
+      "used_by": [
+        "exact reviewed Windows profile dependency selection; original motion/process/math unchanged"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-context-preparation-v3/OFFICIAL_ADDON_PINS.json": {
+      "bytes": 3812,
+      "sha256": "710ac9f97ba798dda2b4091232215bf0d973a03a07703448d184b420f5addb4f",
+      "used_by": [
+        "exact reviewed Windows profile dependency selection; original motion/process/math unchanged"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-context-preparation-v3/PINS.json": {
+      "bytes": 2401,
+      "sha256": "8702d486bc36a649924c3d844ea5eab445600f93995ec8367ea02d94e250c48a",
+      "used_by": [
+        "exact reviewed Windows profile dependency selection; original motion/process/math unchanged"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-context-preparation-v3/PREPARATION_PROVENANCE.json": {
+      "bytes": 611,
+      "sha256": "d9401edd7c9550e35bc90fd8ac54ae160889f08828fb2c2c1cc3aa3773364984",
+      "used_by": [
+        "exact reviewed Windows profile dependency selection; original motion/process/math unchanged"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-context-preparation-v3/README.md": {
+      "bytes": 6254,
+      "sha256": "8d7571047b06812410322bc84dec0245a9ee160089fd52d7633f88ffc559f304",
+      "used_by": [
+        "exact reviewed Windows profile dependency selection; original motion/process/math unchanged"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-context-preparation-v3/RECONSTRUCTION_EVIDENCE.json": {
+      "bytes": 5122,
+      "sha256": "4ff382f7dfc8c29e7306bcb54e8fd130efe5cbd045d14ec3304565b548e677ee",
+      "used_by": [
+        "exact reviewed Windows profile dependency selection; original motion/process/math unchanged"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-context-preparation-v3/RESULTS.json": {
+      "bytes": 1476,
+      "sha256": "77fd2f418044f99887e829d51ea029734101a9401fbcd11240e4fa222619daeb",
+      "used_by": [
+        "exact reviewed Windows profile dependency selection; original motion/process/math unchanged"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-context-preparation-v3/SOURCE_DIFF.patch": {
+      "bytes": 67702,
+      "sha256": "7d4539c658c1ad256a6bb4510cf01551810d01b7db8bf4c779339349ac9e419e",
+      "used_by": [
+        "exact reviewed Windows profile dependency selection; original motion/process/math unchanged"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-context-preparation-v3/addon_resolver.py": {
+      "bytes": 9545,
+      "sha256": "e552e182ec5d82e6f0891dc94d4390e60cfc814bb777183689795e8cf2737d31",
+      "used_by": [
+        "exact reviewed Windows profile dependency selection; original motion/process/math unchanged"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-context-preparation-v3/candidate_context.py": {
+      "bytes": 21439,
+      "sha256": "6698b94ed4ff8f385ddd3d18a676f6fd27b8234b473c352b829a0597b28398f7",
+      "used_by": [
+        "exact reviewed Windows profile dependency selection; original motion/process/math unchanged"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-context-preparation-v3/cpu-tests.log": {
+      "bytes": 15013,
+      "sha256": "94b61466c3d4d759916e56eaa75860bfd20e75f9d3cc307cbc41c58cf6707206",
+      "used_by": [
+        "exact reviewed Windows profile dependency selection; original motion/process/math unchanged"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-context-preparation-v3/pinned_assembler.py": {
+      "bytes": 2763,
+      "sha256": "6a9afcc7a9de9b7215b2b3000f77e7d7a61d12543918adc93dbf8ca6973cb6cf",
+      "used_by": [
+        "exact reviewed Windows profile dependency selection; original motion/process/math unchanged"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-context-preparation-v3/pinned_transport.py": {
+      "bytes": 1734,
+      "sha256": "d261450937cf709a62fdbe6e0a61056c19c3d6ffb7e897dc8e68484fc231d1b7",
+      "used_by": [
+        "exact reviewed Windows profile dependency selection; original motion/process/math unchanged"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-context-preparation-v3/portable-tests.log": {
+      "bytes": 3762,
+      "sha256": "bc4fcb941310a688c8b1edc1657e21ecfa3d3b65415ef0e69d78fe4b8dc15628",
+      "used_by": [
+        "exact reviewed Windows profile dependency selection; original motion/process/math unchanged"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-context-preparation-v3/production_assembler.py": {
+      "bytes": 20812,
+      "sha256": "afb0cf30903a6d083e300271a84a439cde8cd3036b7da6ea4e914b660f1d56eb",
+      "used_by": [
+        "exact reviewed Windows profile dependency selection; original motion/process/math unchanged"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-context-preparation-v3/reconstruct_windows_profile.py": {
+      "bytes": 6841,
+      "sha256": "b54cce200fcbedd148a6d0a23ae99accf8e9dbdde9b9579fadc0b24060b3ad3c",
+      "used_by": [
+        "exact reviewed Windows profile dependency selection; original motion/process/math unchanged"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-context-preparation-v3/reconstruction-tests.log": {
+      "bytes": 2181,
+      "sha256": "332a9cc6d8b011e80dd712ab1551a57f074702af2665269d4658a77980d3c5c8",
+      "used_by": [
+        "exact reviewed Windows profile dependency selection; original motion/process/math unchanged"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-context-preparation-v3/run_source_preparation_tests.py": {
+      "bytes": 2483,
+      "sha256": "fb2ad00b0692b552aa467321619ab303a9a7440d5454f15bc4f92f75e24aaced",
+      "used_by": [
+        "exact reviewed Windows profile dependency selection; original motion/process/math unchanged"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-context-preparation-v3/test_candidate_context.py": {
+      "bytes": 22819,
+      "sha256": "7bef047b0491764b4b491d19955efb982f8dcf6c89a51235f88d2f00a856e155",
+      "used_by": [
+        "exact reviewed Windows profile dependency selection; original motion/process/math unchanged"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-context-preparation-v3/test_metadata_projection.py": {
+      "bytes": 5956,
+      "sha256": "5e68d3e9b82203ead7afad91fb27ee110c4d0802f4147f49feabae61a641bb90",
+      "used_by": [
+        "exact reviewed Windows profile dependency selection; original motion/process/math unchanged"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-context-preparation-v3/test_reconstruction_and_preservation.py": {
+      "bytes": 8705,
+      "sha256": "b6e160df096b05a196c734f9283c131b16cc81686f4904968a41a7447752f481",
+      "used_by": [
+        "exact reviewed Windows profile dependency selection; original motion/process/math unchanged"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-context-preparation-v3/test_windows_addon_profile.py": {
+      "bytes": 14642,
+      "sha256": "65ca197da8026a286b30763d3147ede25a616bb4cde3a351533a42850cd05c68",
+      "used_by": [
+        "exact reviewed Windows profile dependency selection; original motion/process/math unchanged"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-context-preparation-v3/verify_freeze.py": {
+      "bytes": 1298,
+      "sha256": "5b88650607feb34a5a280d4ddd0495027d9f0f50ab1d6ef8639fdd5845b8cd12",
+      "used_by": [
+        "exact reviewed Windows profile dependency selection; original motion/process/math unchanged"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-native-producer-v8/.gitattributes": {
+      "bytes": 8,
+      "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da",
+      "used_by": [
+        "Exact rigid JSON role-reader dependency; numerical, host and process gates preserved"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-native-producer-v8/ALLOWLIST.json": {
+      "bytes": 1263,
+      "sha256": "60c52a8a9fe473ae59466d4efdcc9a9c1f2c79b22ea6c88506397689e6ab16ed",
+      "used_by": [
+        "Exact rigid JSON role-reader dependency; numerical, host and process gates preserved"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-native-producer-v8/AST_COMPATIBILITY.md": {
+      "bytes": 3439,
+      "sha256": "ef1190ac0af1cc16341b1c763185517b45a0d28d936a5921372505c189df32e2",
+      "used_by": [
+        "Exact rigid JSON role-reader dependency; numerical, host and process gates preserved"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-native-producer-v8/AST_COMPAT_CHANGE.json": {
+      "bytes": 1224,
+      "sha256": "5a016c244076b719ebc0b55b1e28bba9064623c4298d7ab7d122a8c2efde72c7",
+      "used_by": [
+        "Exact rigid JSON role-reader dependency; numerical, host and process gates preserved"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-native-producer-v8/AST_COMPAT_PREDECESSOR.json": {
+      "bytes": 3122,
+      "sha256": "d28f5b0bd436b730011bb981fb4230226c2b427f0fc0b23fdd21280fb4d5482f",
+      "used_by": [
+        "Exact rigid JSON role-reader dependency; numerical, host and process gates preserved"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-native-producer-v8/AUDITED_FRAGMENTS.json": {
+      "bytes": 66154,
+      "sha256": "3a2d0c7ea5fcc0dfab7ec615dbb78e0b7d9f907c1d1a48bc2f90da14933952b5",
+      "used_by": [
+        "Exact rigid JSON role-reader dependency; numerical, host and process gates preserved"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-native-producer-v8/BOUNDARY_ADAPTATIONS.json": {
+      "bytes": 2480,
+      "sha256": "259caee2b8265e77f3d45eb7b70462fd062b13a9e1435c6d7457ab377de80ee0",
+      "used_by": [
+        "Exact rigid JSON role-reader dependency; numerical, host and process gates preserved"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-native-producer-v8/BYTE_PRESERVATION.md": {
+      "bytes": 2736,
+      "sha256": "ebdb63e437c68148f46e6e845f796bffc7449b4a0a7ecf3e1de7816a0e8667cc",
+      "used_by": [
+        "Exact rigid JSON role-reader dependency; numerical, host and process gates preserved"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-native-producer-v8/HOST_BINDING_CHANGE.json": {
+      "bytes": 2215,
+      "sha256": "df004b6af63ff4a65e02bde6eeda040740dde7b91105b1c95b757ae89a350a1b",
+      "used_by": [
+        "Exact rigid JSON role-reader dependency; numerical, host and process gates preserved"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-native-producer-v8/HOST_BINDING_PREDECESSOR.json": {
+      "bytes": 2764,
+      "sha256": "d9edf9906196e898f1216281e7cf7f7e19d0b8ce4588f13d51ff41e06125a603",
+      "used_by": [
+        "Exact rigid JSON role-reader dependency; numerical, host and process gates preserved"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-native-producer-v8/MINIMAL_DIFF.json": {
+      "bytes": 3832,
+      "sha256": "77e7ffcefbaa9ad0cac376078322030b289bcdefdf413d19d2d6f847c43f99a3",
+      "used_by": [
+        "Exact rigid JSON role-reader dependency; numerical, host and process gates preserved"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-native-producer-v8/PENDING_NATIVE_COMMANDS.md": {
+      "bytes": 6282,
+      "sha256": "da524d4b508b297ad0ff16741807800d302318d6c96db1dc713d4cc444ae65b5",
+      "used_by": [
+        "Exact rigid JSON role-reader dependency; numerical, host and process gates preserved"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-native-producer-v8/PINS.json": {
+      "bytes": 3784,
+      "sha256": "ed4cf3ff99e94b8c86e4239c083689d4b86ef082ab08033719df0788a509033a",
+      "used_by": [
+        "Exact rigid JSON role-reader dependency; numerical, host and process gates preserved"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-native-producer-v8/PREDECESSOR_SELECTED_SOURCE.json": {
+      "bytes": 1599,
+      "sha256": "cf004a008e63d8a7fcc06afcf3e5c9839b37d0e1148eb12e7d68a6dd43ad28e8",
+      "used_by": [
+        "Exact rigid JSON role-reader dependency; numerical, host and process gates preserved"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-native-producer-v8/README.md": {
+      "bytes": 4695,
+      "sha256": "487872e0ed6e05c4b90a1b5116291e311c16ffe7ff71c66e15549bd8be505d17",
+      "used_by": [
+        "Exact rigid JSON role-reader dependency; numerical, host and process gates preserved"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-native-producer-v8/RESULTS.json": {
+      "bytes": 12373,
+      "sha256": "1563e92fb1349117b833edaa800188752a4d161c2c74d8d0918e62ba5570a09f",
+      "used_by": [
+        "Exact rigid JSON role-reader dependency; numerical, host and process gates preserved"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-native-producer-v8/RIGID_JSON_CAP_CHANGE.json": {
+      "bytes": 1653,
+      "sha256": "3cc9adbfceb0f1995a97617ea4a03f6058787a618183b72c6919e4e775632e9b",
+      "used_by": [
+        "Exact rigid JSON role-reader dependency; numerical, host and process gates preserved"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-native-producer-v8/RIGID_JSON_CAP_DIFF.patch": {
+      "bytes": 723,
+      "sha256": "1e123925fbc8a6e37b84cdc35c6fd341642adf2795d2c05b536ee388191ceb31",
+      "used_by": [
+        "Exact rigid JSON role-reader dependency; numerical, host and process gates preserved"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-native-producer-v8/RIGID_JSON_CAP_PREDECESSOR.json": {
+      "bytes": 3747,
+      "sha256": "c6a6a69d2baacbaa9a114fdb3a198dc62c6daea12ae8614f68ffd3de081a9e93",
+      "used_by": [
+        "Exact rigid JSON role-reader dependency; numerical, host and process gates preserved"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-native-producer-v8/admission.py": {
+      "bytes": 25062,
+      "sha256": "2d0a7c5a21fc0155abd75787b2d8f87a1029a1798db8b0b4703d5060955c3db2",
+      "used_by": [
+        "Exact rigid JSON role-reader dependency; numerical, host and process gates preserved"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-native-producer-v8/cpu-tests.log": {
+      "bytes": 18408,
+      "sha256": "d4ca7010f932d4d0033148dcf40ae21cdf6c495258e0fb1fa414f22299969a59",
+      "used_by": [
+        "Exact rigid JSON role-reader dependency; numerical, host and process gates preserved"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-native-producer-v8/extract_helpers.py": {
+      "bytes": 4345,
+      "sha256": "5960f27c112ae4b83ae729c5cbd1d2eba4fe5f4bf5b0fb7afa5c33dfe7a7d10c",
+      "used_by": [
+        "Exact rigid JSON role-reader dependency; numerical, host and process gates preserved"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-native-producer-v8/host_identity.py": {
+      "bytes": 8441,
+      "sha256": "ba555aeeb188cf4d594c0b36ecf5a1003f3d3379c601a2b258ec4cfd475c6184",
+      "used_by": [
+        "Exact rigid JSON role-reader dependency; numerical, host and process gates preserved"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-native-producer-v8/launch_stage.py": {
+      "bytes": 3357,
+      "sha256": "035fd24eff1f5e0f007160295bb14418171997945c7c7a7a982ddd911a313d0b",
+      "used_by": [
+        "Exact rigid JSON role-reader dependency; numerical, host and process gates preserved"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-native-producer-v8/native_entry.py": {
+      "bytes": 3919,
+      "sha256": "55edc392b90578e1bb3a1a03c12c093a9edc5467afaf5d9b0d169c67d24b829f",
+      "used_by": [
+        "Exact rigid JSON role-reader dependency; numerical, host and process gates preserved"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-native-producer-v8/native_stages.py": {
+      "bytes": 22131,
+      "sha256": "3d74bba53db207188647d27e77573b0c02fc9de634235ac3b575d8eefb8ef9aa",
+      "used_by": [
+        "Exact rigid JSON role-reader dependency; numerical, host and process gates preserved"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-native-producer-v8/pinned_code.py": {
+      "bytes": 9904,
+      "sha256": "4060a2d02762f1b70539cbbf94f76c63ee59e8aa0fc7b1e7166ab60170f9ae42",
+      "used_by": [
+        "Exact rigid JSON role-reader dependency; numerical, host and process gates preserved"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-native-producer-v8/planner.py": {
+      "bytes": 2313,
+      "sha256": "e7bccd65dde3c34c46224e2325bcf01c6e980bf67ffd33a7eab1919a2e8e0db2",
+      "used_by": [
+        "Exact rigid JSON role-reader dependency; numerical, host and process gates preserved"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-native-producer-v8/process_evidence.py": {
+      "bytes": 11829,
+      "sha256": "b42edd7f757a5876bee2f600bfb35f56f80867255b21693a8444b365305e6a51",
+      "used_by": [
+        "Exact rigid JSON role-reader dependency; numerical, host and process gates preserved"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-native-producer-v8/run_fragment_compatibility.py": {
+      "bytes": 3239,
+      "sha256": "634ebf5794614b026727e05d70ef7b2850a657a22a5582ff3904964d13219d02",
+      "used_by": [
+        "Exact rigid JSON role-reader dependency; numerical, host and process gates preserved"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-native-producer-v8/run_rigid_json_regression.py": {
+      "bytes": 2901,
+      "sha256": "82cd6dbd77fac8796c498f733f2ea61bdf0b933979468772df3c6d20ac7b9c6e",
+      "used_by": [
+        "Exact rigid JSON role-reader dependency; numerical, host and process gates preserved"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-native-producer-v8/stage_context.py": {
+      "bytes": 10383,
+      "sha256": "3fde606b79903fa6d8b82e2b43999ed7d92f06547d097c84a5c719513c98f809",
+      "used_by": [
+        "Exact rigid JSON role-reader dependency; numerical, host and process gates preserved"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-native-producer-v8/test_dependency_selection.py": {
+      "bytes": 3261,
+      "sha256": "0704eda18e3589f7405479ef126e6a19963f2915f74eab3c68b03170d3be1834",
+      "used_by": [
+        "Exact rigid JSON role-reader dependency; numerical, host and process gates preserved"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-native-producer-v8/test_fragment_ast.py": {
+      "bytes": 10439,
+      "sha256": "10bd86f473ea6b2c99ff9607fa57968e48eb67322a1dac43a5af33572d51d0d8",
+      "used_by": [
+        "Exact rigid JSON role-reader dependency; numerical, host and process gates preserved"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-native-producer-v8/test_host_identity.py": {
+      "bytes": 18321,
+      "sha256": "3d80ca088c4a3537b6bb522539f7a5234a46a57f0fcd02d968e2a307d9c81307",
+      "used_by": [
+        "Exact rigid JSON role-reader dependency; numerical, host and process gates preserved"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-native-producer-v8/test_native_producer.py": {
+      "bytes": 22063,
+      "sha256": "51061cd39edb74c2b60b775ba815c7c2967fedf2a3fbb84845ab5cc4cc6758c0",
+      "used_by": [
+        "Exact rigid JSON role-reader dependency; numerical, host and process gates preserved"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-native-producer-v8/test_projection_dependency.py": {
+      "bytes": 1653,
+      "sha256": "1d9cd9210328d56e92588756c57090ea6743a5f52e26eec1aafc0d77e658c979",
+      "used_by": [
+        "Exact rigid JSON role-reader dependency; numerical, host and process gates preserved"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-native-producer-v8/test_review_regressions.py": {
+      "bytes": 19702,
+      "sha256": "0fef00119ab0c1e1e257c298b4d3d7c0226afc7cd4b523a485d3cfea52a2aaf7",
+      "used_by": [
+        "Exact rigid JSON role-reader dependency; numerical, host and process gates preserved"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-native-producer-v8/test_rigid_json_cap.py": {
+      "bytes": 11891,
+      "sha256": "c417e501347b55cc90bb9810097721716e0d2ca4af35c11a7572429c7384f024",
+      "used_by": [
+        "Exact rigid JSON role-reader dependency; numerical, host and process gates preserved"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-native-producer-v8/transport_binding.py": {
+      "bytes": 4140,
+      "sha256": "1c2b851d68cdf7c4da8813f1d504ae9be5649e65b5fc01feb332d557ae4f7a5e",
+      "used_by": [
+        "Exact rigid JSON role-reader dependency; numerical, host and process gates preserved"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-native-producer-v8/verify_freeze.py": {
+      "bytes": 800,
+      "sha256": "2456c9b00aee29eaa55dbb1f37a25506914562e446edbced48c71e2f794a2752",
+      "used_by": [
+        "Exact rigid JSON role-reader dependency; numerical, host and process gates preserved"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-runtime-consumer-v9/.gitattributes": {
+      "bytes": 91,
+      "sha256": "065ef7bd73cabfd8caae7a31362f680c15c52ead4741d03eb9a903f702825c52",
+      "used_by": [
+        "Exact rigid JSON role-reader dependency; numerical, host and process gates preserved"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-runtime-consumer-v9/ALLOWLIST.json": {
+      "bytes": 1006,
+      "sha256": "7f78aa1b4d74419290727fd493cbe0b07bc3e9497d616341dca64ab44ab3680a",
+      "used_by": [
+        "Exact rigid JSON role-reader dependency; numerical, host and process gates preserved"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-runtime-consumer-v9/AST_DEPENDENCY_PREDECESSOR.json": {
+      "bytes": 1147,
+      "sha256": "11d7c4366100b3c2ff21dc85f9514889d4013d4f264e22247040d5eba3e73265",
+      "used_by": [
+        "Exact rigid JSON role-reader dependency; numerical, host and process gates preserved"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-runtime-consumer-v9/CORRECTIONS.md": {
+      "bytes": 4848,
+      "sha256": "ced1de5f5c1845ed257d64a43c55279fc3c1dd95b080b6657f71a915b44b983c",
+      "used_by": [
+        "Exact rigid JSON role-reader dependency; numerical, host and process gates preserved"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-runtime-consumer-v9/DEPENDENCY_REVIEW.json": {
+      "bytes": 1012,
+      "sha256": "e472f6894f748c720dffeb4062b2df124daef97ee1138f1ca8c9af364490811b",
+      "used_by": [
+        "Exact rigid JSON role-reader dependency; numerical, host and process gates preserved"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-runtime-consumer-v9/HOST_BINDING_CHANGE.json": {
+      "bytes": 699,
+      "sha256": "5dff74b8f87143debb229a08e3f6b7c92dec1175405e004252bc9e9094aeb212",
+      "used_by": [
+        "Exact rigid JSON role-reader dependency; numerical, host and process gates preserved"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-runtime-consumer-v9/HOST_BINDING_PREDECESSOR.json": {
+      "bytes": 3334,
+      "sha256": "659137e06b73cc7a5275f25ea5e1b8d01d765a6a273640809235c60c32d88c84",
+      "used_by": [
+        "Exact rigid JSON role-reader dependency; numerical, host and process gates preserved"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-runtime-consumer-v9/MATH_FRAGMENTS.json": {
+      "bytes": 47500,
+      "sha256": "71d796ea79752c4740df4087295e7f614be9a0b9ddde4615fc8fad359ade3af5",
+      "used_by": [
+        "Exact rigid JSON role-reader dependency; numerical, host and process gates preserved"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-runtime-consumer-v9/MINIMAL_DIFF.json": {
+      "bytes": 3800,
+      "sha256": "4c18fe65fd13e64aed4dc5dc8bd4d6d556c3be79163bf43db88ab5a89116b27b",
+      "used_by": [
+        "Exact rigid JSON role-reader dependency; numerical, host and process gates preserved"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-runtime-consumer-v9/NATIVE_INVOCATION.md": {
+      "bytes": 11641,
+      "sha256": "13436ca783791161ff94c867eba9878dc05014492da422a170fbb1877e7e14f7",
+      "used_by": [
+        "Exact rigid JSON role-reader dependency; numerical, host and process gates preserved"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-runtime-consumer-v9/ORIGINAL_PINS.json": {
+      "bytes": 1747,
+      "sha256": "a83de47e3f9dd24e0f6fc4d2d4328ec731db9d357a74e7a4347551efc43f9b7a",
+      "used_by": [
+        "Exact rigid JSON role-reader dependency; numerical, host and process gates preserved"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-runtime-consumer-v9/PINS.json": {
+      "bytes": 3282,
+      "sha256": "d0edb29a29b4b0d14399c398d79c809b598b9c3aba01d5e88ffa7b0f7d693e4a",
+      "used_by": [
+        "Exact rigid JSON role-reader dependency; numerical, host and process gates preserved"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-runtime-consumer-v9/PREDECESSOR_CODE_PINS.json": {
+      "bytes": 890,
+      "sha256": "040e0a45baef8b61eb5b565d307b57553a66911a68c33c17a715825540b6130c",
+      "used_by": [
+        "Exact rigid JSON role-reader dependency; numerical, host and process gates preserved"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-runtime-consumer-v9/PREDECESSOR_SELECTED_SOURCE.json": {
+      "bytes": 1614,
+      "sha256": "c9f016fdd9f5f96a85dbfacc53bcab4de8b8fedc189bfe91f8326f2cec721d3c",
+      "used_by": [
+        "Exact rigid JSON role-reader dependency; numerical, host and process gates preserved"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-runtime-consumer-v9/README.md": {
+      "bytes": 1197,
+      "sha256": "0a524132738457886696c12bf3141e0b3a33ecc4bbb879a489c2d5ca527b274e",
+      "used_by": [
+        "Exact rigid JSON role-reader dependency; numerical, host and process gates preserved"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-runtime-consumer-v9/RESULTS.json": {
+      "bytes": 4737,
+      "sha256": "c2acdc4d7e0204c3a3edb71821dd5d6abcb80b10fc19b695af0e2bc098a9818c",
+      "used_by": [
+        "Exact rigid JSON role-reader dependency; numerical, host and process gates preserved"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-runtime-consumer-v9/RIGID_JSON_DEPENDENCY_PREDECESSOR.json": {
+      "bytes": 1154,
+      "sha256": "71b27d3d133feb12f16592990da4ead4d32c69bdbe93a2a5941c8d4398dd4f95",
+      "used_by": [
+        "Exact rigid JSON role-reader dependency; numerical, host and process gates preserved"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-runtime-consumer-v9/RUST_REFERENCE_PINS.json": {
+      "bytes": 813,
+      "sha256": "031c1f76d15cf84a89e1c8923f27c75687b874fab270f92ff0d8486ef089be92",
+      "used_by": [
+        "Exact rigid JSON role-reader dependency; numerical, host and process gates preserved"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-runtime-consumer-v9/SOURCE_CLOSURE.json": {
+      "bytes": 49051,
+      "sha256": "14c52fc3a46f8cca2ae17a2a4db43c4a6f4d184a560e0d5c37f22a88238f0d22",
+      "used_by": [
+        "Exact rigid JSON role-reader dependency; numerical, host and process gates preserved"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-runtime-consumer-v9/SOURCE_CLOSURE_REVIEW.md": {
+      "bytes": 4179,
+      "sha256": "ec1e891cf547b512e0208fe5b29dbd71db699ebbe84071cafa691526ee5e08f3",
+      "used_by": [
+        "Exact rigid JSON role-reader dependency; numerical, host and process gates preserved"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-runtime-consumer-v9/build_closure.py": {
+      "bytes": 8754,
+      "sha256": "e94a94316cf30d63f9e18e5aad90931ad1f31bf1f3f9d0611dbbe9db8e5e4f56",
+      "used_by": [
+        "Exact rigid JSON role-reader dependency; numerical, host and process gates preserved"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-runtime-consumer-v9/consumer.py": {
+      "bytes": 20714,
+      "sha256": "de28e7d27fc26a87a2e24906a5d68fd8c9e107ad09b44676eee8dd1e6cfd926a",
+      "used_by": [
+        "Exact rigid JSON role-reader dependency; numerical, host and process gates preserved"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-runtime-consumer-v9/cpu-tests.log": {
+      "bytes": 12871,
+      "sha256": "c9e9366c37e860cb3b8b65af7bd5bb996ab08c543d7a617b0d345099e7d53189",
+      "used_by": [
+        "Exact rigid JSON role-reader dependency; numerical, host and process gates preserved"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-runtime-consumer-v9/evidence.py": {
+      "bytes": 15340,
+      "sha256": "398005bc413ad3383add91ccb06800657c585ce918f220eebd4026cedecd8fdf",
+      "used_by": [
+        "Exact rigid JSON role-reader dependency; numerical, host and process gates preserved"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-runtime-consumer-v9/extract_math.py": {
+      "bytes": 2514,
+      "sha256": "33137f95c5e0f0b2beb7fe865f60a79ccbb4a277af9ba32eafa790222f7b0dbc",
+      "used_by": [
+        "Exact rigid JSON role-reader dependency; numerical, host and process gates preserved"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-runtime-consumer-v9/pinned_math.py": {
+      "bytes": 6150,
+      "sha256": "2c4aa004c633bcc7782079051697d75e839aa76bcabae72a5e98b9ced01ee6e9",
+      "used_by": [
+        "Exact rigid JSON role-reader dependency; numerical, host and process gates preserved"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-runtime-consumer-v9/retirement.py": {
+      "bytes": 9635,
+      "sha256": "003d161c1061b0d14bb86417eee3339810659759e3dd3df49513811c05655f09",
+      "used_by": [
+        "Exact rigid JSON role-reader dependency; numerical, host and process gates preserved"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-runtime-consumer-v9/runtime_context.py": {
+      "bytes": 19766,
+      "sha256": "d0da89bcc98e241aa573e233eaa109036c4bb62cfb48ebc582ce10e8098d4533",
+      "used_by": [
+        "Exact rigid JSON role-reader dependency; numerical, host and process gates preserved"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-runtime-consumer-v9/test_checkout_bytes.py": {
+      "bytes": 2955,
+      "sha256": "570b7bc63c03503971ed720d74049b35f902863e01ce67258b885571f558a8d6",
+      "used_by": [
+        "Exact rigid JSON role-reader dependency; numerical, host and process gates preserved"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-runtime-consumer-v9/test_dependency_selection.py": {
+      "bytes": 3941,
+      "sha256": "0ead84cc1ca3fd9a4e7a80f87eac86c40914d9dd9666a94afe62108c7ee8d34b",
+      "used_by": [
+        "Exact rigid JSON role-reader dependency; numerical, host and process gates preserved"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-runtime-consumer-v9/test_process_reconstruction.py": {
+      "bytes": 10901,
+      "sha256": "f69737001ee4ad00cf288dba1e7eba514a09f880c4d326a2467c739702582e28",
+      "used_by": [
+        "Exact rigid JSON role-reader dependency; numerical, host and process gates preserved"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-runtime-consumer-v9/test_revision.py": {
+      "bytes": 16867,
+      "sha256": "150d802cd42bb1d0f21d3edae4dddc77d403400920781a715538a6ac6649bc90",
+      "used_by": [
+        "Exact rigid JSON role-reader dependency; numerical, host and process gates preserved"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-runtime-consumer-v9/test_runtime_consumer.py": {
+      "bytes": 21514,
+      "sha256": "f302c54d323e97edab66c030fc14ecbbc087e763a83d855502616e1f5956e9b3",
+      "used_by": [
+        "Exact rigid JSON role-reader dependency; numerical, host and process gates preserved"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-runtime-consumer-v9/test_source_selection.py": {
+      "bytes": 3217,
+      "sha256": "95747737b07108c7c198a16c638391ada46d59dfc6bd11ed29afc16638a5c149",
+      "used_by": [
+        "Exact rigid JSON role-reader dependency; numerical, host and process gates preserved"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-runtime-consumer-v9/transport.py": {
+      "bytes": 4810,
+      "sha256": "1cfd4163207df4666d3197d97409e6f0212691bd815e06d2af724915fb4ebad2",
+      "used_by": [
+        "Exact rigid JSON role-reader dependency; numerical, host and process gates preserved"
+      ]
+    },
+    "integration-recovery-20261018T0751/windows-runtime-consumer-v9/verify_freeze.py": {
+      "bytes": 858,
+      "sha256": "e1a2cb07d5ad4822f9addb35eebe2d0ce2154f5a3c9547be44a88141f87a3f64",
+      "used_by": [
+        "Exact rigid JSON role-reader dependency; numerical, host and process gates preserved"
+      ]
+    }
+  },
+  "frozen_inspected_interfaces": {
+    "consumer_v9": "d0edb29a29b4b0d14399c398d79c809b598b9c3aba01d5e88ffa7b0f7d693e4a",
+    "native_v8": "ed4cf3ff99e94b8c86e4239c083689d4b86ef082ab08033719df0788a509033a"
+  },
+  "not_bundled": [
+    "38 encoded payloads, existing public baseline/canonical, and actual source snapshot are separate complete-input manifest references",
+    "Actual official Windows compiler/SDK/vendor/generated-input provenance remains required",
+    "Independent completed-input acceptance and all final public commit refs remain unset"
+  ],
+  "predecessor_source_commit": "01e3d821d197799a342b7738b84e835b11197f24",
+  "privacy_projection_sha256": "4bf38952b5ff765ad65c8fab2c985303287b570b4a0d897eac28bf78e73bec1b",
+  "production_admission": false,
+  "publication_rule": "Inventory contains hashes and logical source paths only. It does not publish files or authorize new private raw assets.",
+  "python_requirements": [
+    "numpy==2.2.6",
+    "Pillow==11.3.0"
+  ],
+  "schema": "rust-duty-onehand-workflow-source-dependencies/v1",
+  "source_only": true,
+  "source_selection_sha256": "14c52fc3a46f8cca2ae17a2a4db43c4a6f4d184a560e0d5c37f22a88238f0d22",
+  "source_transport_v4_pins_sha256": "dca167156a846171dac720e453e640fab20e90a3bbf045028efa04d4071029c2"
+}

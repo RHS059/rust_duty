@@ -213,13 +213,17 @@ fn receipt_identity_and_every_clock_pin_fail_closed() {
     );
 }
 #[test]
-fn shipped_manifest_stays_inactive_and_partial_or_unsafe_opt_in_is_rejected() {
-    let shipped = include_str!("../assets/animations.cfg");
-    assert!(AnimationManifest::parse(shipped, Path::new("assets"))
+fn omitted_low_vault_stays_inactive_and_partial_or_unsafe_opt_in_is_rejected() {
+    let inactive = include_str!("../assets/animations.cfg")
+        .lines()
+        .filter(|line| !line.starts_with("low_vault."))
+        .collect::<Vec<_>>()
+        .join("\n");
+    assert!(AnimationManifest::parse(&inactive, Path::new("assets"))
         .unwrap()
         .low_vault
         .is_none());
-    let good=format!("{shipped}\nlow_vault.policy={POLICY}\nlow_vault.asset=low/asset.vra\nlow_vault.clip=native_low\nlow_vault.receipt=low/receipt.json\nlow_vault.receipt_sha256={}\n","0".repeat(64));
+    let good=format!("{inactive}\nlow_vault.policy={POLICY}\nlow_vault.asset=low/asset.vra\nlow_vault.clip=native_low\nlow_vault.receipt=low/receipt.json\nlow_vault.receipt_sha256={}\n","0".repeat(64));
     assert!(AnimationManifest::parse(&good, Path::new("assets"))
         .unwrap()
         .low_vault
@@ -228,7 +232,7 @@ fn shipped_manifest_stays_inactive_and_partial_or_unsafe_opt_in_is_rejected() {
         good.replace("low/asset.vra", "../asset.vra"),
         good.replace(POLICY, "vault_over"),
         good.replace("low_vault.receipt=low/receipt.json\n", ""),
-        format!("{shipped}\nlow_vault.clip=native_low\n"),
+        format!("{inactive}\nlow_vault.clip=native_low\n"),
     ] {
         assert!(AnimationManifest::parse(&text, Path::new("assets")).is_err());
     }

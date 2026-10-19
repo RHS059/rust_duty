@@ -1,0 +1,13 @@
+{
+  "actual_projected_full_metadata_sha256": null,
+  "cpu_tests": 147,
+  "failures": 0,
+  "game_capture_binding_reviewed": false,
+  "game_capture_performed": false,
+  "independent_exact_complete_input_acceptance": "pending",
+  "native_execution": false,
+  "passed": 146,
+  "publication": false,
+  "schema": "onehand-projected-orchestration-preparation/v1",
+  "windows_only_skipped": 1
+}

@@ -2,7 +2,9 @@
 import copy,json,unittest
 from pathlib import Path
 import verify_app_edges as v
+from app_edge_renderer_overlay_v1 import restore_renderer_overlay, sha256
 from app_edge_synthetic_fixture import make,BINDING,IDENTITY,CONTRACT
+from test_app_edges import restore_optional_pack_fixture
 class SourceStatusTests(unittest.TestCase):
     def test_exact_real_source_status_now_passes_each_synthetic_case(self):
         for case in v.CASES:
@@ -38,8 +40,10 @@ class SourceStatusTests(unittest.TestCase):
     def test_exact_source_derivation_and_rust_guards_are_pinned(self):
         prep=Path(__file__).absolute().parents[1]
         source=prep/'src/authored_viewmodel.rs'
-        provenance=json.loads((prep/'tools/combined_source_contracts.json').read_text())
-        self.assertEqual(v.sha(source),provenance['repository_renderer_sha256'])
+        provenance_raw=(prep/'tools/combined_source_contracts.json').read_bytes()
+        provenance=json.loads(provenance_raw)
+        historical_renderer=restore_renderer_overlay(restore_optional_pack_fixture(source.read_bytes()),provenance_raw)
+        self.assertEqual(sha256(historical_renderer),provenance['repository_renderer_sha256'])
         self.assertEqual(provenance['historical_native_renderer_sha256'],v.STATUS_SOURCE_SHA256)
         self.assertEqual(provenance['native_manifest_sha256'],v.STATUS_MANIFEST_SHA256)
         self.assertEqual(provenance['exact_required_real_visual_status'],v.REQUIRED_RENDER_STATUS)

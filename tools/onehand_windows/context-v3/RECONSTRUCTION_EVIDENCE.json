@@ -1,0 +1,130 @@
+{
+  "addon_imported": false,
+  "all_ten_whole_raw_files_verified_before_function_derivation": true,
+  "animation_proof": false,
+  "archive_bytes": 405138423,
+  "archive_sha256": "933a62a770c941e316535f893629ff106ddd2aa5a956f0081ec557439073d4f6",
+  "files": {
+    "__init__.py": {
+      "bare_cr_count": 0,
+      "bare_lf_count": 0,
+      "bytes": 27535,
+      "crlf_count": 733,
+      "historical_lf_bytes": 26802,
+      "historical_lf_sha256": "8af335ff0daba71b9301e076f8c72836f013c012736d59d9e2b6700885d1eb1f",
+      "observed_archive_raw_sha256": "95b5a069a2b25312b61a2bf42e4a1d7b0fa37e149e17b27aafee550c41464ae3"
+    },
+    "data_types.py": {
+      "bare_cr_count": 0,
+      "bare_lf_count": 0,
+      "bytes": 1726,
+      "crlf_count": 62,
+      "historical_lf_bytes": 1664,
+      "historical_lf_sha256": "1697b26e84cdabdebf8cf8c1dbb6e3b303705917aaf84eab835f0cdad6b26e20",
+      "observed_archive_raw_sha256": "24328144f5b60338b1b47cc47ff76e8aee5c97c89ca4a419482978bb961f18fa"
+    },
+    "encode_bin.py": {
+      "bare_cr_count": 0,
+      "bare_lf_count": 0,
+      "bytes": 15209,
+      "crlf_count": 434,
+      "historical_lf_bytes": 14775,
+      "historical_lf_sha256": "3322a809e0073947e107de8f7e5839dff0956578271e88506eab7a7627f3323f",
+      "observed_archive_raw_sha256": "5de48173bc0206e1a724c1a8ffc740c1449acfeaa8ecc75087d9a6ad5e2c889c"
+    },
+    "export_fbx_bin.py": {
+      "bare_cr_count": 0,
+      "bare_lf_count": 0,
+      "bytes": 187901,
+      "crlf_count": 3754,
+      "historical_lf_bytes": 184147,
+      "historical_lf_sha256": "fd494ffc3d8d01e21b028fa05b8bb7739afecfc09e0c8f2e09ef451b5b0e9e05",
+      "observed_archive_raw_sha256": "0fb51fa4f54b8a892cd00f8dca176891f931e907a5d37803c671f28129e74768"
+    },
+    "fbx2json.py": {
+      "bare_cr_count": 0,
+      "bare_lf_count": 0,
+      "bytes": 10031,
+      "crlf_count": 341,
+      "historical_lf_bytes": 9690,
+      "historical_lf_sha256": "4fc62f848f7834e2f376838251db2f64ec1a7856578acb6f152ac78ac5e60616",
+      "observed_archive_raw_sha256": "25155f32e9397418948c67922aced3de9dc89b6f30bab8d40ceed257410198ac"
+    },
+    "fbx_utils.py": {
+      "bare_cr_count": 0,
+      "bare_lf_count": 0,
+      "bytes": 90187,
+      "crlf_count": 1931,
+      "historical_lf_bytes": 88256,
+      "historical_lf_sha256": "ffabd204b2cce48670b47de6bb77e8dba06daa77b7efab037c4f157f1ffa80b6",
+      "observed_archive_raw_sha256": "cc97d1260a623df23940b02b6ea60c4bbfe74ce4bcf2c2a703b4325808abdfe0"
+    },
+    "fbx_utils_threading.py": {
+      "bare_cr_count": 0,
+      "bare_lf_count": 0,
+      "bytes": 11779,
+      "crlf_count": 194,
+      "historical_lf_bytes": 11585,
+      "historical_lf_sha256": "ddf8d90b87b51e057212c9b5f3c73caea49fddf2915140eb2e3206f7dad757a3",
+      "observed_archive_raw_sha256": "b298c446704de85107b06653f9da3c68a87fe3cba30d52f10becbd1c643a9ef1"
+    },
+    "import_fbx.py": {
+      "bare_cr_count": 0,
+      "bare_lf_count": 0,
+      "bytes": 191900,
+      "crlf_count": 4024,
+      "historical_lf_bytes": 187876,
+      "historical_lf_sha256": "d3a4232dc9bc7599df4058a4f786fa9c2c9c971809185b811439b64986a7ceac",
+      "observed_archive_raw_sha256": "0ac789d249bf0cf24bb6b1fbd1f3791aa02d954ffed6137d6f2cee1ebab2b534"
+    },
+    "json2fbx.py": {
+      "bare_cr_count": 0,
+      "bare_lf_count": 0,
+      "bytes": 3794,
+      "crlf_count": 165,
+      "historical_lf_bytes": 3629,
+      "historical_lf_sha256": "d7676c3116e0b16752a6530e42f1b1126ca1e37a61595d0ea84c21d46a97f8c5",
+      "observed_archive_raw_sha256": "9a4d23c12624fa91be9d0c1d8190ca231a6ec0666cc039b0096f9750e0ede2e9"
+    },
+    "parse_fbx.py": {
+      "bare_cr_count": 0,
+      "bare_lf_count": 0,
+      "bytes": 11409,
+      "crlf_count": 274,
+      "historical_lf_bytes": 11135,
+      "historical_lf_sha256": "982c7b5071c293184f974dfb362b7c5f950c91a535d5283d656a8934aacfe5ad",
+      "observed_archive_raw_sha256": "8252e933c94934b2271b72b31045683fcb56ead4804ff1d8f3a851ae2dad6241"
+    }
+  },
+  "installed_files_modified": false,
+  "native_execution": false,
+  "normalization_accepted_for_admission": false,
+  "observation_bytes": 9422,
+  "observation_sha256": "5ee21d576be9af34c7b4095352aca1b4fde329eca23b79b6f12a189edc9d800a",
+  "predecessor_addon_pins_sha256": "2716811db4b591c14d0044458c608c961aa2dfcad5958f9da6d0b4da8d67dace",
+  "predecessor_context_pins_sha256": "3162a4c5bbc50daa13ec1c84972b0e4b56c2221a909d1aa2c10617c912b0d801",
+  "raw_function_slices": {
+    "import_fbx.py": {
+      "blen_read_animations": {
+        "bare_cr_count": 0,
+        "bare_lf_count": 0,
+        "bytes": 3700,
+        "crlf_count": 62,
+        "end_line": 1121,
+        "raw_sha256": "d4a7f77069ec1c25036cf6760558dc42ceed0b4e63fc0ffa2524e5fc5f267264",
+        "start_line": 1060
+      },
+      "blen_store_keyframes_multi": {
+        "bare_cr_count": 0,
+        "bare_lf_count": 0,
+        "bytes": 1895,
+        "crlf_count": 36,
+        "end_line": 893,
+        "raw_sha256": "d4ff67c4e021e56d0252bee2b71e32667764620ab6faa8899a11bd2778c6ec44",
+        "start_line": 858
+      }
+    }
+  },
+  "reconstructed_total_bytes": 551471,
+  "schema": "rust-duty-windows-addon-reconstruction/v1"
+}

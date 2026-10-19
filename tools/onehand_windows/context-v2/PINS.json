@@ -1,0 +1,17 @@
+{
+  "ALLOWLIST.json": "5de2dbf139ab48ff56734e0ffc790459e8459675ed1e5b96d47bf70344113c08",
+  "MINIMAL_DIFF.json": "6f3a5488cf6d487611c958a10c15f8026e073af37de17d75c096266119862205",
+  "NATIVE_HELPER_PINS.json": "ebf3e1868fc2ea8c6e729bcbd351aa283a259822b19cdb06fb605cdaac2f7aed",
+  "OFFICIAL_ADDON_PINS.json": "2716811db4b591c14d0044458c608c961aa2dfcad5958f9da6d0b4da8d67dace",
+  "README.md": "91738c3e0615a7f500224e02cef5d69194e1a3b1cb9076e1954aa4e0a7a1cb26",
+  "RESULTS.json": "a49f3dcdd638cfe05e3d41c822f36495b9761ce1a85f331ddcc74813b2bf2bc2",
+  "addon_resolver.py": "b19ffad6fec645865ccb924328d9d53c0a6c989bbd062cbc7ec23a0d6c180d2a",
+  "candidate_context.py": "6698b94ed4ff8f385ddd3d18a676f6fd27b8234b473c352b829a0597b28398f7",
+  "cpu-tests.log": "1cc9e1e26819e9da007c81c2220e9264a41c6a61a3c1c9ed6bf3865dedfc3692",
+  "pinned_assembler.py": "6a9afcc7a9de9b7215b2b3000f77e7d7a61d12543918adc93dbf8ca6973cb6cf",
+  "pinned_transport.py": "d261450937cf709a62fdbe6e0a61056c19c3d6ffb7e897dc8e68484fc231d1b7",
+  "production_assembler.py": "afb0cf30903a6d083e300271a84a439cde8cd3036b7da6ea4e914b660f1d56eb",
+  "test_candidate_context.py": "e4e5b5201faf16a5e06940788284d19220852a256c9aa3839422a3036c59522f",
+  "test_metadata_projection.py": "f55be8a438038043e45a9842fe294b7cd5d2fa8f52251c26606e2aa8d71db873",
+  "verify_freeze.py": "5b88650607feb34a5a280d4ddd0495027d9f0f50ab1d6ef8639fdd5845b8cd12"
+}

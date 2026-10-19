@@ -1,0 +1,8 @@
+{
+  "actual_windows_native_proof": false,
+  "external_current_test_receipts": "cargo-target-publication-preparation-v1",
+  "native_execution_performed": false,
+  "predecessor_results_sha256": "ebdf8015bfe448ce5274e123cfa025fd30e36297efde59e5f011c23736aef605",
+  "schema": "rust-duty-cargo-target-source-results/v1",
+  "state": "prepared-source-validation-pending"
+}

@@ -9,6 +9,7 @@ import zlib
 import tempfile
 import unittest
 import package_game as package
+from distribution_test_fixtures import add_test_transports
 
 ROOT = Path(__file__).resolve().parents[1]
 BINDINGS = '\n'.join([
@@ -57,14 +58,17 @@ class DirectionalDistributionTests(unittest.TestCase):
 
     def test_exact48_preserves44_and_materializes_compressed_companions(self):
         folder = self.root / package.DIRECTIONAL_DIR
-        manifest = json.loads((folder / 'manifest.json').read_text())
+        manifest = add_test_transports(self.root, package.DIRECTIONAL_DIR)
+        package.verify_directional(self.root, require_transports=True)
         for name in ('asset.vra', 'asset.vrs'):
             (folder / name).unlink(missing_ok=True)
         report = package.materialize(self.root, include_directional=True)['directional']
         self.assertEqual(report['clip_count'], 48)
         self.assertEqual(report['original_clips_preserved'], 44)
-        self.assertEqual(report['parity_samples'], 100)
+        self.assertEqual(report['clips'], list(package.DIRECTIONAL_CLIPS))
+        self.assertEqual(report['source_sha256'], manifest['source']['sha256'])
         for name in ('asset.vra', 'asset.vrs'):
+            self.assertEqual((folder / name).stat().st_size, manifest['files'][name]['bytes'])
             self.assertEqual(hashlib.sha256((folder / name).read_bytes()).hexdigest(), manifest['files'][name]['sha256'])
 
     def test_manifest_rejects_missing_clip_wrong_duration_and_old_payload_claim(self):
@@ -81,23 +85,38 @@ class DirectionalDistributionTests(unittest.TestCase):
                 package.verify_directional(self.root)
         path.write_text(original)
 
-    def test_every_parity_report_must_bind_final48_and_source(self):
-        for clip in package.DIRECTIONAL_CLIPS:
-            path = self.root / package.DIRECTIONAL_DIR / f'parity-{clip}.json'
+    def test_every_conversion_binds_source_and_native_clock(self):
+        for clip, end in zip(package.DIRECTIONAL_CLIPS, package.DIRECTIONAL_ENDS):
+            path = self.root / package.DIRECTIONAL_DIR / f'conversion-{clip}.json'
             original = path.read_text()
-            value = json.loads(original)
-            value['asset_sha256'] = 'intermediate-pack-is-not-final48'
-            path.write_text(json.dumps(value))
-            with self.assertRaisesRegex(ValueError, 'Rust parity'):
-                package.verify_directional(self.root)
+            for key, value in (('authoring_master_sha256', 'wrong'),
+                               ('source_fbx_sha256', 'wrong'),
+                               ('native_fps', [30, 1]), ('source_take', 'wrong'),
+                               ('native_crop', [1, end]), ('imported_frame_offset', 1)):
+                with self.subTest(clip=clip, field=key):
+                    data = json.loads(original); data[key] = value
+                    path.write_text(json.dumps(data))
+                    with self.assertRaisesRegex(ValueError, 'directional conversion/source metadata'):
+                        package.verify_directional(self.root)
             path.write_text(original)
+        package.verify_directional(self.root)
+
+    def test_delivery_does_not_require_numerical_parity_reports(self):
+        paths = [self.root / package.DIRECTIONAL_DIR / f'parity-{clip}.json'
+                 for clip in package.DIRECTIONAL_CLIPS]
+        for path in paths:
+            path.unlink(missing_ok=True)
+        expected = package.verify_directional(self.root)
+        for path in paths:
+            path.write_text('not a numerical parity report')
+        self.assertEqual(package.verify_directional(self.root), expected)
 
     def test_rehashed_valid_payload_cannot_modify_old44_bytes(self):
         folder = self.root / package.DIRECTIONAL_DIR
         manifest_path = folder / 'manifest.json'
         manifest = json.loads(manifest_path.read_text())
         old = (self.root / package.WALK_DIR / 'asset.vra').read_bytes()
-        data = bytearray((folder / 'asset.vra').read_bytes())
+        data = bytearray(package.companion_bytes(self.root, 'asset.vra', manifest, package.DIRECTIONAL_DIR))
         # Last old clip byte is an actor visibility flag: keep the VRA valid,
         # but prove preservation is checked independently of manifest hashes.
         data[len(old) - 1] ^= 1
@@ -106,7 +125,7 @@ class DirectionalDistributionTests(unittest.TestCase):
         digest = hashlib.sha256(data).hexdigest()
         manifest['files']['asset.vra']['sha256'] = digest
         manifest['repository_transport']['asset.vra']['decoded_sha256'] = digest
-        (folder / 'asset.vra.gz').unlink()
+        (folder / 'asset.vra.gz').unlink(missing_ok=True)
         manifest_path.write_text(json.dumps(manifest))
         with self.assertRaisesRegex(ValueError, 'original walk44 clip bytes'):
             package.verify_directional(self.root)
@@ -114,7 +133,7 @@ class DirectionalDistributionTests(unittest.TestCase):
     def test_missing_directional_companion_blocks_packaging(self):
         folder = self.root / package.DIRECTIONAL_DIR
         (folder / 'asset.vra').unlink(missing_ok=True)
-        (folder / 'asset.vra.gz').unlink()
+        (folder / 'asset.vra.gz').unlink(missing_ok=True)
         with self.assertRaisesRegex(ValueError, 'missing'):
             package.verify_directional(self.root)
 
@@ -126,13 +145,20 @@ class DirectionalDistributionTests(unittest.TestCase):
             package.verify_directional(self.root)
 
     def test_raw_companions_cannot_hide_corrupt_transport(self):
-        path = self.root / package.DIRECTIONAL_DIR / 'asset.vra.gz'
-        original = path.read_bytes()
-        path.write_bytes(bytes([original[0] ^ 1]) + original[1:])
-        with self.assertRaisesRegex(ValueError, 'compressed companion SHA-256'):
-            package.verify_directional(self.root)
+        add_test_transports(self.root, package.DIRECTIONAL_DIR)
+        package.verify_directional(self.root, require_transports=True)
+        for name in ('asset.vra.gz', 'asset.vrs.gz'):
+            with self.subTest(companion=name):
+                path = self.root / package.DIRECTIONAL_DIR / name
+                original = path.read_bytes()
+                path.write_bytes(bytes([original[0] ^ 1]) + original[1:])
+                with self.assertRaisesRegex(ValueError, 'compressed companion SHA-256'):
+                    package.verify_directional(self.root)
+                path.write_bytes(original)
 
     def test_cache_requires_transport_but_raw_only_distribution_does_not(self):
+        add_test_transports(self.root, package.DIRECTIONAL_DIR)
+        package.verify_directional(self.root, require_transports=True)
         folder = self.root / package.DIRECTIONAL_DIR
         for name in ('asset.vra.gz', 'asset.vrs.gz'):
             (folder / name).unlink()
@@ -157,12 +183,21 @@ class DirectionalDistributionTests(unittest.TestCase):
                            and not line.startswith('regular_walk.clip=')
                            and not line.startswith('regular_walk.direction.')) + '\n' + BINDINGS
         (self.root / 'assets/animations.cfg').write_text(config)
+        # The production config may also bind traversal packs. Include its
+        # explicit files so this staging fixture represents a complete game.
+        optional_files = package.optional_runtime_files(ROOT)
+        for source, relative in optional_files:
+            target = self.root / relative
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(source, target)
         for relative in (*package.NOTICES, *package.RUNTIME_FILES, *package.BUILD_FILES, 'docs/ANIMATION_SLOTS.md', 'target/release/vector-range'):
             path = self.root / relative
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_bytes(b'packaging fixture')
         destination = self.root / 'staged'
         package.stage(self.root, 'target/release/vector-range', destination, require_generated=True)
+        for source, relative in optional_files:
+            self.assertEqual((destination / relative).read_bytes(), source.read_bytes())
         for folder, verifier in ((package.WALK_DIR, package.verify_walk),
                                  (package.ADS_DIR, package.verify_ads),
                                  (package.DIRECTIONAL_DIR, package.verify_directional)):

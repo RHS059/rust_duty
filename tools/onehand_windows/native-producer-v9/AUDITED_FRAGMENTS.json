@@ -1,0 +1,332 @@
+{
+  "files": {
+    "onehand-runtime-20261016-r2/native-dense/dense_backend.py": "d861b7d4c0254df4424f590b76c55f106276b571ce7fdd0a7d9aad53c1546f00",
+    "onehand-runtime-20261016-r2/native-rigid-v2/rigid_bytes.py": "d22be88ab1c850a52356fdae476ee7ddd827fd22152e17b0f8e2473866f27251",
+    "onehand-runtime-20261016-r2/native-rigid-v2/rigid_geometry.py": "61da740dbb3f23e5438a75f7acdde0581c0f24a5308a7c2341c00a880d207813",
+    "onehand-runtime-20261016-r2/native-rigid-v2/sample_rigid.py": "b7e7924b0a9e9f366daa898df671b8021e8a79826ba091bac0fb65ce78351692",
+    "onehand-runtime-20261016-r2/native-window-v2/sample_source.py": "a7e915ad048dbe73ee81615b4235fd50e943a97d6976ebd7f9f3532bf8e7c802",
+    "onehand-runtime-20261016-r2/native-window-v2/verify_window.py": "aad42caca2c1ab872ee48b006a797362d7dac54ce8bd485455ae4eb8cdb066a4",
+    "onehand-runtime-20261016-r2/native-window-v2/window_contract.py": "60089bc486d89689bbc79d8adc13826e7cd502c2fbcf8e862b669737a8800172",
+    "onehand-runtime-20261016-r2/native-window-v2/window_import.py": "99a640e2825fc140a998e7329eafc9b472e72bf4ff2968310bb54474bc5686c3",
+    "onehand-runtime-20261016-r2/runtime-conversion-v2/assemble_runtime.py": "01c4d5dd43b56607742ad2c5862c3185460dcb14b4cb5ef079301daae7f45e12",
+    "onehand-runtime-20261016-r2/runtime-conversion-v2/native_runtime.py": "4c729c2171d23736c3008a087ee7f14a33e7b4883bd059fce659d46a6c4edbc5",
+    "onehand-runtime-20261016/importer-patch/tools/export_viewmodel.py": "dd39c05bbe8c2ac557020261e360da8f7e5debedb652daa75b223de2667f93cd",
+    "onehand-runtime-20261016/importer-patch/tools/import_fbx_viewmodel.py": "83074cd5ac30404b2be1e1679b04c3e9784a2e4ce4884969bb65d80e3d90fb79",
+    "onehand-runtime-20261016/importer-patch/tools/prone_camera_pair.py": "6fb12a0b53e0400ca0404784d3e2aae550f59e3611fa23e40f134e9bc2230045",
+    "onehand-runtime-20261016/importer-patch/tools/single_stack_fbx.py": "5fa48bfe1c4688923435a01668aba882393282fd917f0c77d18e24b3763ea326",
+    "onehand-runtime-20261016/importer-patch/tools/vrpack.py": "28a23ed9a9b0fe0123405a9800473e57d04419596deae8789c66c744ad05b685",
+    "onehand-runtime-20261016/importer-patch/tools/vrskin.py": "e6aff7f5278bb8e6dd09ca75e69b8761b1b71bd30b3feddf84f8380cd88a5e14",
+    "onehand-runtime-20261016/importer-patch/tools/vrview.py": "eefd755f6ef0943a4d8bf443ddfec601bc1336ec90ece722d017c9c4b6d73568",
+    "recovery/animation-queue/runs/onehand-r5-from-reconstructed-r4/integrity/source_integrity.py": "d22ae8dcc117e29ffb7d746772efce015010407cbb1ddce22924a31746e831ca",
+    "recovery/animation-queue/runs/onehand-r5-from-reconstructed-r4/integrity/validate_directional_source.py": "8f1deb2883eafd5e7a76cf48109a33c010690aa197150369df60773b5b593816"
+  },
+  "fragments": {
+    "GeometryBytes": {
+      "file": "onehand-runtime-20261016-r2/native-rigid-v2/rigid_bytes.py",
+      "original_ast_sha256": "80d957bc2dd8bd03ec9c7504da81355d105ba7b0ead9e9c558ddad9f81f3ee14",
+      "original_source_segments_sha256": "ba8383fc4f098f715a8ae8372aeb6fabd24fecc9072c06e438832f9662082925",
+      "remove_legacy_search_path": false,
+      "replace_recipe_identity": false,
+      "source": "@dataclass(frozen=True)\nclass GeometryBytes:\n    vertex_count: int\n    polygon_count: int\n    loop_count: int\n    vertices: bytes\n    starts: bytes\n    sizes: bytes\n    indices: bytes\n\n    def polygons(self):\n        starts = np.frombuffer(self.starts, dtype='<i8')\n        sizes = np.frombuffer(self.sizes, dtype='<i8')\n        indices = np.frombuffer(self.indices, dtype='<i8')\n        return [indices[start:start + size].tolist() for start, size in zip(starts, sizes)]\n\n    def digests(self):\n        return {'float64_le_vertices_sha256': hashlib.sha256(self.vertices).hexdigest(), 'int64_le_topology_sha256': hashlib.sha256(self.starts + self.sizes + self.indices).hexdigest()}\n",
+      "source_sha256": "619a04300ad81a963a691998ff3f09cc30f7fa8a01918c0c7ff5bcae4d858d9d"
+    },
+    "action_fingerprint": {
+      "file": "recovery/animation-queue/runs/onehand-r5-from-reconstructed-r4/integrity/source_integrity.py",
+      "original_ast_sha256": "aff90ea58bd6d18114234306757aa1b8026e0afa1f181175ea225327d09b962d",
+      "original_source_segments_sha256": "e571a4c5fd4112b60f080981d79b6f783ce7b2ffcadbbd7159e5c4e606794113",
+      "remove_legacy_search_path": false,
+      "replace_recipe_identity": false,
+      "source": "def action_fingerprint(action):\n    return digest([(curve.data_path, curve.array_index, [(list(key.co), list(key.handle_left), list(key.handle_right), key.interpolation) for key in curve.keyframe_points]) for curve in action.fcurves])\n",
+      "source_sha256": "77ac4ac9f9f63e8798041fccb138925c53a168b5e69060c80f6d4ca21bc042ef"
+    },
+    "array_hash": {
+      "file": "onehand-runtime-20261016-r2/native-window-v2/window_contract.py",
+      "original_ast_sha256": "0ddb9625cedd28df726c6ae4e0043e9b5727dc40ef38eca5bea04a769030cde4",
+      "original_source_segments_sha256": "3fca4d29d5ac8a84ca040a7d7f4494d68a7c8bcdb225b4ff3d31aa86a2a28d3d",
+      "remove_legacy_search_path": false,
+      "replace_recipe_identity": false,
+      "source": "def array_hash(value, dtype):\n    return hashlib.sha256(np.asarray(value, dtype=dtype).tobytes()).hexdigest()\n",
+      "source_sha256": "672444c4d87c5f0da51cbb9f00f8ae02f112e8cfa9a7b6bc6b25cb4b15cd48af"
+    },
+    "atom": {
+      "file": "recovery/animation-queue/runs/onehand-r5-from-reconstructed-r4/integrity/validate_directional_source.py",
+      "original_ast_sha256": "011eef0fe1f4e35e4d7ae8a8dbff9e1d791a99e93a462526ccda4566c1457b75",
+      "original_source_segments_sha256": "c5bdfa13c62875f39741d4021f4028e759360dde8f9709ed8106bb71be7f61a3",
+      "remove_legacy_search_path": false,
+      "replace_recipe_identity": false,
+      "source": "def atom(v):\n    if isinstance(v, (str, int, float, bool)) or v is None:\n        return v\n    if isinstance(v, bpy.types.ID):\n        return {'id_type': type(v).__name__, 'name': v.name}\n    try:\n        return [atom(x) for x in v]\n    except TypeError:\n        return str(v)\n",
+      "source_sha256": "16d0c463fa7256ac925c27ab586f01a223c5e3ae50467cbcfd4b0639f4a45025"
+    },
+    "bounded_control_compare": {
+      "file": "onehand-runtime-20261016-r2/native-window-v2/verify_window.py",
+      "original_ast_sha256": "1d1b3a90da5d6341de054e1bb0053c108a451e661f78fe044f8886daec8c24d8",
+      "original_source_segments_sha256": "0411a2efe3ccfd16e9d4f5a80da6bc40fc9b7246003411f324c30ee745723e02",
+      "remove_legacy_search_path": false,
+      "replace_recipe_identity": false,
+      "source": "mismatches = []\nmaximum = 0.0\nchecked = 0\nrows = []\nfor f, wanted in zip(FRAMES, expected['samples']):\n    set_frame(f)\n    actual = {b.name: mat(A.matrix_world @ b.matrix @ rest[b.name].inverted()) for b in A.pose.bones}\n    require(set(actual) == set(wanted['deformation_world']) and len(actual) == 148, 'control bone coverage differs')\n    for name, m in actual.items():\n        for i in range(4):\n            for j in range(4):\n                x = wanted['deformation_world'][name][i][j]\n                y = m[i][j]\n                checked += 1\n                maximum = max(maximum, abs(x - y))\n                if struct.pack('<d', x) != struct.pack('<d', y):\n                    mismatches.append({'source_frame': f, 'bone': name, 'row': i, 'column': j, 'full': x, 'bounded': y, 'difference': y - x})\n    focus = {}\n    for name in wanted['focus_bones']:\n        b = A.pose.bones[name]\n        local = b.parent.matrix.inverted() @ b.matrix if b.parent else b.matrix\n        loc, rot, scale = local.decompose()\n        focus[name] = {'parent': b.parent.name if b.parent else None, 'rotation_mode': b.rotation_mode, 'location': list(b.location), 'rotation_quaternion': list(b.rotation_quaternion), 'rotation_euler': list(b.rotation_euler), 'scale': list(b.scale), 'matrix_basis': mat(b.matrix_basis), 'pose_parent_relative': mat(local), 'pose_parent_relative_decomposition': {'location': list(loc), 'rotation_quaternion': list(rot), 'scale': list(scale)}}\n\n    def compare_values(x, y, path):\n        if isinstance(x, dict):\n            require(set(x) == set(y), 'focus channel structure differs')\n            for key in x:\n                compare_values(x[key], y[key], path + '/' + key)\n        elif isinstance(x, list):\n            require(len(x) == len(y), 'focus channel length differs')\n            for i, (a0, b0) in enumerate(zip(x, y)):\n                compare_values(a0, b0, path + '/' + str(i))\n        elif isinstance(x, float):\n            if struct.pack('<d', x) != struct.pack('<d', y):\n                mismatches.append({'source_frame': f, 'focus_channel': path, 'full': x, 'bounded': y, 'difference': y - x})\n        elif x != y:\n            mismatches.append({'source_frame': f, 'focus_channel': path, 'full': x, 'bounded': y})\n    compare_values(wanted['focus_bones'], focus, 'focus_bones')\n    rows.append({'source_frame': f, 'deformation_world': actual, 'focus_bones': focus})\n",
+      "source_sha256": "9f2a49fecf62892f35b69c16027f7e4a8ff3efc979e351d2ffef896e2aa76082"
+    },
+    "camera_projection": {
+      "file": "onehand-runtime-20261016-r2/native-window-v2/sample_source.py",
+      "original_ast_sha256": "489c8c730031752c759342ea3c22f95743a9574d90ff6ded23ca957c6c0a047c",
+      "original_source_segments_sha256": "7780bc313872d34747440377816a402b1bd7c3d7f77327d6862283743fdd7495",
+      "remove_legacy_search_path": false,
+      "replace_recipe_identity": false,
+      "source": "def camera_projection(C, S):\n    return {'ray_directions': [list(v.normalized()) for v in C.data.view_frame(scene=S)], 'type': C.data.type, 'lens': C.data.lens, 'sensor_fit': C.data.sensor_fit, 'sensor_width': C.data.sensor_width, 'sensor_height': C.data.sensor_height, 'shift_x': C.data.shift_x, 'shift_y': C.data.shift_y, 'clip_start': C.data.clip_start, 'clip_end': C.data.clip_end, 'resolution': [S.render.resolution_x, S.render.resolution_y, S.render.resolution_percentage], 'pixel_aspect': [S.render.pixel_aspect_x, S.render.pixel_aspect_y]}\n",
+      "source_sha256": "5b962d88d95a4c30e31c07e572ed0862e6cd1dc4e2437b18bd11811f1892859f"
+    },
+    "canonical_buffers": {
+      "file": "onehand-runtime-20261016-r2/native-rigid-v2/rigid_bytes.py",
+      "original_ast_sha256": "8c75b80fa87d0c4e3afdd889e12d450be2a0bef2c724d8dd294a21b66713eb49",
+      "original_source_segments_sha256": "87b3c841b6c619cb4147911b259e639de730d58c4095294d3ee2ed3659d487ed",
+      "remove_legacy_search_path": false,
+      "replace_recipe_identity": false,
+      "source": "def canonical_buffers(vertices, starts, sizes, indices):\n    vertices = np.asarray(vertices, dtype='<f8', order='C')\n    if vertices.ndim != 2 or vertices.shape[1] != 3 or len(vertices) == 0 or (not np.isfinite(vertices).all()):\n        raise ValueError('invalid/nonfinite rigid coordinates')\n    values = []\n    for original in (starts, sizes, indices):\n        array = np.asarray(original)\n        if array.ndim != 1 or array.dtype.kind not in 'iu' or (array < 0).any() or (array > 2 ** 62).any():\n            raise ValueError('invalid rigid integer topology')\n        values.append(np.asarray(array, dtype='<i8', order='C'))\n    starts, sizes, indices = values\n    if len(starts) == 0 or len(starts) != len(sizes) or (sizes < 3).any() or (len(indices) == 0):\n        raise ValueError('invalid rigid polygon layout')\n    expected = np.concatenate((np.array([0], dtype='<i8'), np.cumsum(sizes[:-1], dtype='<i8')))\n    if not np.array_equal(starts, expected) or int(sizes.sum()) != len(indices) or (indices >= len(vertices)).any():\n        raise ValueError('invalid rigid loop/index coverage')\n    return GeometryBytes(len(vertices), len(starts), len(indices), vertices.tobytes(order='C'), starts.tobytes(order='C'), sizes.tobytes(order='C'), indices.tobytes(order='C'))\n",
+      "source_sha256": "14ee5f06abeffd90e3797ad68a3e6aa90c35e274cfc2e9ad89f1cf2398f1a013"
+    },
+    "digest": {
+      "file": "recovery/animation-queue/runs/onehand-r5-from-reconstructed-r4/integrity/source_integrity.py",
+      "original_ast_sha256": "a76b0d80c642f8b3c69b4184dd7c5639ec293aba18fc8a5fbe17701383aebf35",
+      "original_source_segments_sha256": "ec6f3c87096031f184892f704d93ee1d9d102d0aaf4a8dffe1c2621e6148cf69",
+      "remove_legacy_search_path": false,
+      "replace_recipe_identity": false,
+      "source": "def digest(value):\n    return hashlib.sha256(json.dumps(value, sort_keys=True).encode()).hexdigest()\n",
+      "source_sha256": "8a124feba5a7c495993d53546a8093acfde9ad66ea318d9c3ad27ede7adbede0"
+    },
+    "export_exact_grid": {
+      "file": "onehand-runtime-20261016-r2/native-dense/dense_backend.py",
+      "original_ast_sha256": "aea79c37560fcffb1334324629596f7d0924d4802aed0aee7b8b9dc9cb51246f",
+      "original_source_segments_sha256": "ea5d82e7b71f3504730d76bee4b55575231e26fe8849850d089403004976214e",
+      "remove_legacy_search_path": false,
+      "replace_recipe_identity": false,
+      "source": "def export_exact_grid(path, settings):\n    import bpy\n    from mathutils import Matrix\n    from bpy_extras.io_utils import axis_conversion\n    from io_scene_fbx import export_fbx_bin\n    require(bpy.app.version[:3] == (4, 3, 2), 'export backend audited only for 4.3.2')\n    props = bpy.ops.export_scene.fbx.get_rna_type().properties\n    require(props['bake_anim_step'].hard_min > 1 / 256, 'reinspect changed RNA sampling clamp')\n    kwargs = operator_defaults(props)\n    kwargs.update(settings)\n    kwargs['filepath'] = str(path)\n    require(kwargs['bake_anim_step'] == 1 / 256 and kwargs['bake_anim_simplify_factor'] == 0, 'exact unsimplified sampling required')\n    kwargs['global_matrix'] = axis_conversion(to_forward=kwargs['axis_forward'], to_up=kwargs['axis_up']).to_4x4() if kwargs['use_space_transform'] else Matrix()\n    reports = []\n\n    class Reporter:\n\n        def report(self, level, message):\n            reports.append({'level': sorted(level), 'message': message})\n            require('ERROR' not in level, 'official FBX exporter error: ' + message)\n    result = export_fbx_bin.save(Reporter(), bpy.context, **kwargs)\n    return (result, {'route': 'installed official export_fbx_bin.save with operator RNA defaults', 'operator_minimum_step': props['bake_anim_step'].hard_min, 'effective_step': kwargs['bake_anim_step'], 'effective_kwargs': {k: sorted(v) if isinstance(v, set) else [list(r) for r in v] if k == 'global_matrix' else v for k, v in kwargs.items()}, 'reports': reports, 'exporter_file_sha256': file_sha(Path(export_fbx_bin.__file__))})\n",
+      "source_sha256": "abeb225d1a5164b3dee2c8c0b85fd3cdac91062c7745da28d19c7014744ad5ec"
+    },
+    "extra_snapshot": {
+      "file": "recovery/animation-queue/runs/onehand-r5-from-reconstructed-r4/integrity/validate_directional_source.py",
+      "original_ast_sha256": "b805992521d9989e38022ff707019f93198b1c30d9ce47f469d39c0d0ad2d23d",
+      "original_source_segments_sha256": "a5581d9947cf4a423cd5f6e51dada1a77ab0270e7407923e945c4efbbe0104e8",
+      "remove_legacy_search_path": false,
+      "replace_recipe_identity": false,
+      "source": "def extra_snapshot():\n    meshes = {}\n    for m in bpy.data.meshes:\n        value = {'vertices': [list(v.co) for v in m.vertices], 'edges': [list(e.vertices) for e in m.edges], 'polygons': [{'vertices': list(p.vertices), 'material_index': p.material_index, 'use_smooth': p.use_smooth} for p in m.polygons], 'uv': {l.name: [list(v.uv) for v in l.data] for l in m.uv_layers}, 'materials': [x.name if x else None for x in m.materials]}\n        meshes[m.name] = {'sha256': digest(value), 'vertices': len(m.vertices), 'polygons': len(m.polygons)}\n    armatures = {}\n    for a in bpy.data.armatures:\n        val = [{'name': b.name, 'parent': b.parent.name if b.parent else None, 'rest_matrix': matrix(b.matrix_local), 'use_deform': b.use_deform, 'use_connect': b.use_connect, 'inherit_scale': b.inherit_scale, 'head': list(b.head_local), 'tail': list(b.tail_local)} for b in a.bones]\n        armatures[a.name] = {'sha256': digest(val), 'bones': len(val), 'deform_order': [b.name for b in a.bones if b.use_deform]}\n    objects = {}\n    for o in bpy.data.objects:\n        v = {'type': o.type, 'data': o.data.name if o.data else None, 'parent': o.parent.name if o.parent else None, 'parent_type': o.parent_type, 'parent_bone': o.parent_bone, 'matrix_parent_inverse': matrix(o.matrix_parent_inverse), 'modifiers': [{'type': m.type, 'props': props(m)} for m in o.modifiers], 'constraints': [{'type': c.type, 'props': props(c)} for c in o.constraints], 'vertex_groups': [g.name for g in o.vertex_groups]}\n        if o.type == 'MESH':\n            v['weights'] = [[(g.group, g.weight) for g in vert.groups] for vert in o.data.vertices]\n        if o.pose:\n            v['pose_constraints'] = {b.name: [{'type': c.type, 'props': props(c)} for c in b.constraints] for b in o.pose.bones}\n        objects[o.name] = {'sha256': digest(v), 'type': o.type, 'data': v['data']}\n    materials = {}\n    for m in bpy.data.materials:\n        val = {'diffuse_color': list(m.diffuse_color), 'use_nodes': m.use_nodes}\n        if m.node_tree:\n            val['nodes'] = [{'name': n.name, 'type': n.bl_idname, 'image': n.image.name if hasattr(n, 'image') and n.image else None, 'inputs': [(x.name, atom(x.default_value)) for x in n.inputs if hasattr(x, 'default_value')]} for n in m.node_tree.nodes]\n            val['links'] = [(l.from_node.name, l.from_socket.name, l.to_node.name, l.to_socket.name) for l in m.node_tree.links]\n        materials[m.name] = digest(val)\n    actions_extended = {a.name: digest([{'data_path': f.data_path, 'index': f.array_index, 'extrapolation': f.extrapolation, 'mute': f.mute, 'modifiers': [props(m) for m in f.modifiers], 'key_handle_types': [(k.handle_left_type, k.handle_right_type, k.easing) for k in f.keyframe_points]} for f in a.fcurves]) for a in bpy.data.actions}\n    pose_channels = {o.name: {b.name: {'rotation_mode': b.rotation_mode, 'location': list(b.location), 'rotation_euler': list(b.rotation_euler), 'rotation_quaternion': list(b.rotation_quaternion), 'rotation_axis_angle': list(b.rotation_axis_angle), 'scale': list(b.scale), 'custom_properties': {k: atom(b[k]) for k in b.keys() if k != '_RNA_UI'}} for b in o.pose.bones} for o in bpy.data.objects if o.pose}\n    return {'actions_metadata': {a.name: {'use_fake_user': a.use_fake_user, 'properties': {k: atom(a[k]) for k in a.keys()}} for a in bpy.data.actions}, 'pose_channel_defaults': pose_channels, 'actions_extended': actions_extended, 'meshes': meshes, 'armatures': armatures, 'objects_and_bindings': objects, 'materials': materials, 'cameras': {c.name: digest(props(c)) for c in bpy.data.cameras}}\n",
+      "source_sha256": "e75f5eb066bade4c2e6bf7dffd29471c83ea3324dfed830e72add48a3ac1025f"
+    },
+    "focus_measure": {
+      "file": "onehand-runtime-20261016-r2/native-window-v2/verify_window.py",
+      "original_ast_sha256": "41ac254436cf08e2137b48ec564ffe814e820ac84465441eaa881bcba9fd86fc",
+      "original_source_segments_sha256": "b8e4e978c3d0f03089c418592f5f66da7d087ac2ab9fadc92ed9f4cbd152de02",
+      "remove_legacy_search_path": false,
+      "replace_recipe_identity": false,
+      "source": "def camera_projection(C, S):\n    return {'ray_directions': [list(v.normalized()) for v in C.data.view_frame(scene=S)], 'type': C.data.type, 'lens': C.data.lens, 'sensor_fit': C.data.sensor_fit, 'sensor_width': C.data.sensor_width, 'sensor_height': C.data.sensor_height, 'shift_x': C.data.shift_x, 'shift_y': C.data.shift_y, 'clip_start': C.data.clip_start, 'clip_end': C.data.clip_end, 'resolution': [S.render.resolution_x, S.render.resolution_y, S.render.resolution_percentage], 'pixel_aspect': [S.render.pixel_aspect_x, S.render.pixel_aspect_y]}\n\ndef mesh_samples(dg):\n    samples = {}\n    topology = {}\n    for name in SKINS:\n        obj = bpy.data.objects[name].evaluated_get(dg)\n        mesh = obj.to_mesh()\n        try:\n            local = np.empty(len(mesh.vertices) * 3, dtype=np.float64)\n            mesh.vertices.foreach_get('co', local)\n            local = local.reshape(-1, 3)\n            M = np.asarray(obj.matrix_world, dtype=np.float64)\n            world = local @ M[:3, :3].T + M[:3, 3]\n            require(np.isfinite(world).all(), 'nonfinite skin')\n            samples[name] = world\n            topology[name] = {'vertices': len(mesh.vertices), 'edges': len(mesh.edges), 'polygons': len(mesh.polygons)}\n        finally:\n            obj.to_mesh_clear()\n    return (samples, topology)\nx, y, percent = expected['projection']['resolution']\nS.render.resolution_x = x\nS.render.resolution_y = y\nS.render.resolution_percentage = percent\nS.render.pixel_aspect_x, S.render.pixel_aspect_y = expected['projection']['pixel_aspect']\nnames = set(expected['source_rest_world'])\nhierarchy = {b.name: b.parent.name if b.parent else None for b in A.data.bones}\nchecks = {'bone_inventory': set(A.pose.bones.keys()) == names and len(names) == 148, 'hierarchy': hierarchy == expected['hierarchy'], 'animated_camera_bound': C.animation_data is not None and C.animation_data.action is not None, 'animated_rig_bound': A.animation_data is not None and A.animation_data.action is not None, 'single_exact_take': window['single_stack_admission']['logical_stack'] == ACTION, 'bounded_window_admitted': window['passed']}\nrequire(all(checks.values()), 'fresh-import inventory failed')\nprojection = camera_projection(C, S)\nray_error = float(np.max(np.abs(np.array(projection['ray_directions']) - np.array(expected['projection']['ray_directions']))))\nmaxima = {k: 0.0 for k in MAXIMA}\nworst = {}\nfinite = True\ncount = 0\ntopology = None\n\ndef record(k, v, where):\n    require(math.isfinite(v) and v >= 0, 'nonfinite measured metric')\n    if v > maxima[k]:\n        maxima[k] = v\n        worst[k] = where\nfor f in FRAMES:\n    dg = set_frame(f)\n    entry = expected['frames'][str(f)]\n    rp = output / entry['row_path']\n    sp = output / entry['skin_path']\n    require(rp.resolve().is_relative_to(output) and sp.resolve().is_relative_to(output), 'oracle path escapes')\n    require(sha(rp) == entry['row_sha256'] and sha(sp) == entry['skin_sha256'], 'oracle bytes differ')\n    row = json.loads(rp.read_text())\n    require(row['source_frame'] == f, 'oracle time differs')\n    skin = np.load(sp, allow_pickle=False)\n    EC = Matrix(row['camera_world'])\n    CI = C.matrix_world.inverted()\n    ECI = EC.inverted()\n    record('camera_world_matrix', err(C.matrix_world, EC), f)\n    record('rig_world_matrix', err(A.matrix_world, Matrix(row['rig_world'])), f)\n    for b in A.pose.bones:\n        world = A.matrix_world @ b.matrix\n        deform = world @ rest[b.name].inverted()\n        wanted = Matrix(row['bone_deformation_world'][b.name])\n        record('bone_deformation_world_matrix', err(deform, wanted), [f, b.name])\n        record('bone_head_world_m', (world.translation - (wanted @ Matrix(expected['source_rest_world'][b.name])).translation).length, [f, b.name])\n        finite &= all((math.isfinite(v) for rr in world for v in rr))\n    for name in ACTORS:\n        W = bpy.data.objects[name].matrix_world\n        finite &= all((math.isfinite(v) for rr in W for v in rr))\n        record('actor_world_matrix', err(W, Matrix(row['actors_world'][name])), [f, name])\n        record('actor_camera_relative_matrix', err(CI @ W, Matrix(row['actors_camera_relative'][name])), [f, name])\n    samples, top = mesh_samples(dg)\n    if topology is None:\n        topology = top\n    require(top == topology, 'skin topology changed')\n    ci = np.array(CI)\n    eci = np.array(ECI)\n    for i, name in enumerate(SKINS):\n        actual = samples[name]\n        wanted = skin[f'm{i}']\n        require(actual.shape == wanted.shape, 'skin shape differs')\n        count += len(actual)\n        dist = np.linalg.norm(actual - wanted, axis=1)\n        record('skin_world_m', float(dist.max()), [f, name, int(np.argmax(dist))])\n        view = actual @ ci[:3, :3].T + ci[:3, 3]\n        ref = wanted @ eci[:3, :3].T + eci[:3, 3]\n        vd = np.linalg.norm(view - ref, axis=1)\n        record('skin_camera_relative_m', float(vd.max()), [f, name, int(np.argmax(vd))])\n    skin.close()\n    finite &= all((math.isfinite(v) for M in (C.matrix_world, A.matrix_world) for rr in M for v in rr))\n    require(camera_projection(C, S) == projection, 'animated projection')\nchecks.update({k: v < 0.0001 for k, v in maxima.items()})\n",
+      "source_sha256": "35c3d124a7bb4df2786fd8c8afcbbc6f623e3fdbd8ae59ece29283d586594304"
+    },
+    "geometry": {
+      "file": "onehand-runtime-20261016-r2/native-rigid-v2/sample_rigid.py",
+      "original_ast_sha256": "c29eef49594195fb9f70089de364ad55b9b883dbf9b5691315851af00565736e",
+      "original_source_segments_sha256": "23af15a63da62f9bb8ad97a63dddb46a517ca29b6e41fe98c7ca1089e6d014b1",
+      "remove_legacy_search_path": false,
+      "replace_recipe_identity": false,
+      "source": "def geometry(name, dg):\n    obj = bpy.data.objects[name]\n    assert obj.type == 'MESH' and (not any((m.type == 'ARMATURE' for m in obj.modifiers)))\n    evaluated = obj.evaluated_get(dg)\n    mesh = evaluated.to_mesh()\n    try:\n        local = np.empty(len(mesh.vertices) * 3, dtype=np.float64)\n        mesh.vertices.foreach_get('co', local)\n        local = local.reshape(-1, 3)\n        starts = np.empty(len(mesh.polygons), dtype=np.int32)\n        mesh.polygons.foreach_get('loop_start', starts)\n        sizes = np.empty(len(mesh.polygons), dtype=np.int32)\n        mesh.polygons.foreach_get('loop_total', sizes)\n        indices = np.empty(len(mesh.loops), dtype=np.int32)\n        mesh.loops.foreach_get('vertex_index', indices)\n        return (local, canonical_buffers(local, starts, sizes, indices))\n    finally:\n        evaluated.to_mesh_clear()\n",
+      "source_sha256": "6e3b998ac254d401b0309b07c214a63d11ea9dbb10da8b204141914f14c547d1"
+    },
+    "geometry_record": {
+      "file": "onehand-runtime-20261016-r2/native-rigid-v2/rigid_geometry.py",
+      "original_ast_sha256": "cefa308b34924c9794caf9b4d99ca6aa1695d9376d955161c8eae8dd70d944d7",
+      "original_source_segments_sha256": "849d526f0daec70fdbcf1a558b95c2c320d332db81247024db16d87cb953f3bc",
+      "remove_legacy_search_path": false,
+      "replace_recipe_identity": false,
+      "source": "def geometry_record(vertices, polygons):\n    if not vertices or any((len(v) != 3 or any((not math.isfinite(c) for c in v)) for v in vertices)):\n        raise ValueError('invalid/empty rigid local vertices')\n    if not polygons or any((len(p) < 3 or any((type(i) is not int or i < 0 or i >= len(vertices) for i in p)) for p in polygons)):\n        raise ValueError('invalid/empty rigid polygons')\n    content = {'vertices_local': vertices, 'polygons': polygons}\n    encoded = json.dumps(content, sort_keys=True, separators=(',', ':'), allow_nan=False).encode()\n    return {**content, 'vertex_count': len(vertices), 'polygon_count': len(polygons), 'geometry_sha256': hashlib.sha256(encoded).hexdigest()}\n",
+      "source_sha256": "3d320cb58bd80c04ee29ff164d95b55e8b918620e854a750a5c014211b35650d"
+    },
+    "import_exact_grid": {
+      "file": "onehand-runtime-20261016-r2/native-dense/dense_backend.py",
+      "original_ast_sha256": "714ad7891d18cbcbafe42edd185096bd8736ef0f3388aaa1444d7e506d762e6c",
+      "original_source_segments_sha256": "9d66d34679082824c4b0002539f19da76b48e880561bf6936a2957e2d4cc347a",
+      "remove_legacy_search_path": true,
+      "replace_recipe_identity": false,
+      "source": "def import_exact_grid(path):\n    import bpy\n    import io_scene_fbx.import_fbx as imp\n    sys.path.insert(0, str(ROOT / 'onehand-runtime-20261016/importer-patch/tools'))\n    import import_fbx_viewmodel as converter\n    import single_stack_fbx\n    from io_scene_fbx import parse_fbx\n    tree, _ = parse_fbx.parse(str(path))\n    contract = single_stack_fbx.inspect_stack(tree, ACTION, ['Arms', *ACTORS, CAMERA])\n    del tree\n    for name, digest in EXPECTED_PATCHES.items():\n        require(hashlib.sha256(inspect.getsource(getattr(imp, name)).encode()).hexdigest() == digest, 'audited importer function hash differs: ' + name)\n    capture = single_stack_fbx.BindingCapture(contract)\n    patches = converter.patch_importer(capture)\n    require({n: d['sha256'] for n, d in patches.items()} == EXPECTED_PATCHES, 'importer patch identities differ')\n    result = bpy.ops.import_scene.fbx(filepath=str(path), use_anim=True, anim_offset=0.0, ignore_leaf_bones=False, automatic_bone_orientation=False, use_prepost_rot=True)\n    require('FINISHED' in result, 'fresh FBX import failed')\n    admission = capture.verify([bpy.data.objects[n] for n in ['Arms', *ACTORS, CAMERA]], list(bpy.data.actions), [1.0, 96.0])\n    return {'patches': patches, 'single_stack_admission': admission, 'semantics': 'same audited dense-key preservation and exact owner binding as runtime conversion'}\n",
+      "source_sha256": "e0136fa84cb14cd83845bee71276c35c72c8cee03bfa7418b90994b4171b7996"
+    },
+    "import_pose_setup": {
+      "file": "onehand-runtime-20261016-r2/native-window-v2/verify_window.py",
+      "original_ast_sha256": "0038ada95befb7bcca1856e652b2682d3f04c8f62a4510fa5491117229d5553c",
+      "original_source_segments_sha256": "d2539605f1f4d264723576d21a234b75e835d2861371a27ee3602b1d44198646",
+      "remove_legacy_search_path": false,
+      "replace_recipe_identity": false,
+      "source": "A = bpy.data.objects['Arms']\nC = bpy.data.objects[CAMERA]\nS.camera = C\nmat = lambda m: [list(r) for r in m]\nerr = lambda x, y: max((abs(x[i][j] - y[i][j]) for i in range(4) for j in range(4)))\n\ndef set_frame(f):\n    require(f in window['allowed_evaluation_frames'], 'sample outside admitted exact window')\n    S.frame_set(math.floor(f), subframe=f - math.floor(f))\n    A.update_tag()\n    C.update_tag()\n    bpy.context.view_layer.update()\n    dg = bpy.context.evaluated_depsgraph_get()\n    dg.update()\n    return dg\nset_frame(1.0)\nrest = {b.name: A.matrix_world @ b.matrix_local for b in A.data.bones}\n",
+      "source_sha256": "256b2d3a314ba1467b429c2672023f68ee2be50ede1226cee0f036264d8a56fb"
+    },
+    "import_window": {
+      "file": "onehand-runtime-20261016-r2/native-window-v2/window_import.py",
+      "original_ast_sha256": "87bfacb584fe6c022d45f0ed9807b1cdc1d82227cabccac5266082fcc6545d61",
+      "original_source_segments_sha256": "43bfcc838eefbad9ea292ce025adac01403493b499980ee9e1c71c54d02674db",
+      "remove_legacy_search_path": true,
+      "replace_recipe_identity": true,
+      "source": "def import_window(path, expected_sha, n, frames):\n    import bpy\n    import io_scene_fbx.import_fbx as imp\n    from io_scene_fbx import parse_fbx\n    sys.path.insert(0, str(ROOT / 'onehand-runtime-20261016/importer-patch/tools'))\n    import single_stack_fbx, import_fbx_viewmodel as converter\n    require(sha(path) == expected_sha, 'exact FBX input differs')\n    require(bpy.app.version[:3] == (4, 3, 2), 'audited Blender version required')\n    plan = selection(frames, n)\n    indices = np.asarray(plan['retained_indices'], dtype=np.int64)\n    expected = native_grid(n)\n    state = {'parse_calls': 0, 'capture': None, 'raw_curves': [], 'stored_curves': []}\n    original_parse = parse_fbx.parse\n    for name, value in PATCH_SHA.items():\n        require(hashlib.sha256(inspect.getsource(getattr(imp, name)).encode()).hexdigest() == value, 'import signature differs: ' + name)\n\n    def parse_once(filepath, *args, **kwargs):\n        require(Path(filepath).resolve() == Path(path).resolve() and state['parse_calls'] == 0, 'unexpected/duplicate parse')\n        state['parse_calls'] += 1\n        tree, version = original_parse(filepath, *args, **kwargs)\n        state['capture'] = single_stack_fbx.BindingCapture(single_stack_fbx.inspect_stack(tree, ACTION, OWNERS))\n        objects = [x for x in tree.elems if x.id == b'Objects']\n        require(len(objects) == 1, 'ambiguous Objects')\n        curves = [x for x in objects[0].elems if x.id == b'AnimationCurve']\n        require(len(curves) == RAW_CURVES, 'raw curve count differs')\n        ids = set()\n        for curve in curves:\n            require(curve.props[0] not in ids, 'duplicate raw curve UUID')\n            ids.add(curve.props[0])\n            parts = {x.id: x.props for x in curve.elems}\n            require(len(parts) == len(curve.elems), 'duplicate raw curve field')\n            require(set(parts) == {b'Default', b'KeyVer', b'KeyTime', b'KeyValueFloat', b'KeyAttrFlags', b'KeyAttrDataFloat', b'KeyAttrRefCount'}, 'raw curve schema differs')\n            require(parts[b'KeyVer'] == [4008] and len(parts[b'Default']) == 1 and np.isfinite(parts[b'Default']).all(), 'raw curve version/default invalid')\n            require(list(parts[b'KeyAttrDataFloat'][0]) == [0.0, 0.0, 9.419963346924634e-30, 0.0], 'raw attribute payload differs')\n            record = validate_arrays(parts[b'KeyTime'][0], parts[b'KeyValueFloat'][0], n, parts[b'KeyAttrFlags'][0], parts[b'KeyAttrRefCount'][0])\n            state['raw_curves'].append({'curve_uuid': curve.props[0], **record})\n        state['fbx_version'] = version\n        return (tree, version)\n\n    def observe(*args):\n        require(state['capture'] is not None, 'binding before raw admission')\n        state['capture'](*args)\n    patches = converter.patch_importer(observe)\n    store = imp.blen_store_keyframes_multi\n\n    def bounded_store(fbx_key_times, pairs, blen_start_offset, fps, fbx_ktime, fbx_start_offset=0):\n        converted = imp._convert_fbx_time_to_blender_time(fbx_key_times, blen_start_offset, fbx_start_offset, fps, fbx_ktime).astype(np.float32)\n        require(np.array_equal(converted, expected), 'full transformed input clock differs')\n        kept = []\n        for fc, values in pairs:\n            values = np.asarray(values)\n            require(values.ndim == 1 and len(values) == len(expected) and np.isfinite(values).all(), 'full transformed values invalid')\n            state['stored_curves'].append({'owner_action': fc.id_data.name, 'data_path': fc.data_path, 'array_index': fc.array_index, 'full_key_count': len(values), 'full_time_sha256': array_hash(converted, '<f4'), 'full_value_sha256': array_hash(values, '<f4'), 'retained_value_sha256': array_hash(values[indices], '<f4')})\n            kept.append((fc, values[indices]))\n        store(fbx_key_times[indices], kept, blen_start_offset, fps, fbx_ktime, fbx_start_offset)\n    parse_fbx.parse = parse_once\n    imp.blen_store_keyframes_multi = bounded_store\n    try:\n        require('FINISHED' in bpy.ops.import_scene.fbx(filepath=str(path), use_anim=True, anim_offset=0.0, ignore_leaf_bones=False, automatic_bone_orientation=False, use_prepost_rot=True), 'bounded import failed')\n    finally:\n        parse_fbx.parse = original_parse\n        imp.blen_store_keyframes_multi = store\n    require(state['parse_calls'] == 1, 'exact one full raw parse required')\n    admission = state['capture'].verify([bpy.data.objects[x] for x in OWNERS], list(bpy.data.actions), [1.0, 96.0])\n    require(len(bpy.data.actions) == 6, 'Action inventory differs')\n    count = 0\n    actual_keys = expected[indices]\n    actions = []\n    stored_by_key = {}\n    for r in state['stored_curves']:\n        key = (r['owner_action'], r['data_path'], r['array_index'])\n        require(key not in stored_by_key, 'duplicate stored curve identity')\n        stored_by_key[key] = r\n    for action in bpy.data.actions:\n        require(len(action.fcurves) > 0, 'empty Action')\n        for fc in action.fcurves:\n            require(len(fc.keyframe_points) == len(indices), 'retained key count differs')\n            pairs = np.empty(len(indices) * 2, dtype=np.float32)\n            fc.keyframe_points.foreach_get('co', pairs)\n            require(np.array_equal(pairs[::2], actual_keys) and np.isfinite(pairs).all(), 'retained exact clock/values differ')\n            key = (action.name, fc.data_path, fc.array_index)\n            require(key in stored_by_key, 'retained curve missing input identity')\n            require(array_hash(pairs[1::2], '<f4') == stored_by_key[key]['retained_value_sha256'], 'retained values changed during storage')\n            require(all((k.interpolation == 'LINEAR' for k in fc.keyframe_points)), 'retained interpolation differs')\n            count += 1\n        actions.append({'action': action.name, 'curves': len(action.fcurves), 'frame_range': list(action.frame_range)})\n    require(count == len(state['stored_curves']), 'stored curve coverage mismatch')\n    raw = {'passed': True, 'fbx_sha256': expected_sha, 'fbx_version': state['fbx_version'], 'curve_count': RAW_CURVES, 'key_count': len(expected), 'subdivisions': n, 'all_times_values_finite_checked': True, 'linear_flags': 24836, 'curves': state['raw_curves']}\n    stored = {'passed': True, 'curve_count': count, 'actions': actions, 'curves': state['stored_curves'], 'full_transform_sequence_preserved_before_selection': True, 'all_full_input_times_values_checked': True}\n    receipt = {'schema': 'rust-duty-fbx-bounded-key-window/v1', 'passed': True, 'fbx_sha256': expected_sha, **plan, 'full_raw_admission': raw, 'full_raw_admission_sha256': digest(raw), 'full_transformed_admission': stored, 'full_transformed_admission_sha256': digest(stored), 'retained_native_grid_sha256': array_hash(actual_keys, '<f4'), 'imported_curve_count': count, 'actions': actions, 'linear_interpolation': True, 'partial_instantiation_only': True, 'full_clip_instantiated': False, 'selection_stage': 'after complete official transformation/hemisphere/unwrap sequence', 'patches': patches, 'single_stack_admission': admission, 'recipe_pins_sha256': sha(HERE / 'pins.json')}\n    require(sha(path) == expected_sha, 'FBX changed during import')\n    return receipt\n",
+      "source_sha256": "5604636a5e353647b812eddd0adfdaeaddc3d718caa948a8e83b83829484db4c"
+    },
+    "linear_value": {
+      "file": "onehand-runtime-20261016-r2/native-window-v2/window_contract.py",
+      "original_ast_sha256": "c544203d5a34db9532b9a51f2d63f1e042abaa904c0bab719638380425890320",
+      "original_source_segments_sha256": "2c7a99fa243953eb0e8daae3b2abc88b0c98a8282f3ccb29525509930cd38e69",
+      "remove_legacy_search_path": false,
+      "replace_recipe_identity": false,
+      "source": "def linear_value(times, values, f):\n    i = bisect.bisect_left(times, f)\n    if i < len(times) and times[i] == f:\n        return values[i]\n    require(0 < i < len(times), 'sample outside interpolation coverage')\n    a, b = times[i - 1:i + 1]\n    v, w = values[i - 1:i + 1]\n    return v + (w - v) * ((f - a) / (b - a))\n",
+      "source_sha256": "f755ab5e69c9831965e241efb2f38c6d58605d8ecef6aa120aca257a56f20f7d"
+    },
+    "matrix": {
+      "file": "recovery/animation-queue/runs/onehand-r5-from-reconstructed-r4/integrity/validate_directional_source.py",
+      "original_ast_sha256": "52572de87ad22a72d7473e1d7de193194bbed85c19fa61db0cba7ae77ed61ed5",
+      "original_source_segments_sha256": "9ca2af528ef7d45b6fd964dc389fa192a979e9b14cb11d540fc17dfbc935a227",
+      "remove_legacy_search_path": false,
+      "replace_recipe_identity": false,
+      "source": "def matrix(m):\n    return [list(r) for r in m]\n",
+      "source_sha256": "7d1069962469e1d3572e65b3248b57d7271f4705b3de3cc3e2a979ad09a27677"
+    },
+    "mesh_samples": {
+      "file": "onehand-runtime-20261016-r2/native-window-v2/sample_source.py",
+      "original_ast_sha256": "c135d0ef897d23c99fb50955f89402d292b8b64dd28565b059b1902954a3f9ea",
+      "original_source_segments_sha256": "dbaaefc8365616a0a07cdd7cb581ea089cfee9fe36ae6b24e970c26576c23bf8",
+      "remove_legacy_search_path": false,
+      "replace_recipe_identity": false,
+      "source": "def mesh_samples(dg):\n    samples = {}\n    topology = {}\n    for name in SKINS:\n        obj = bpy.data.objects[name].evaluated_get(dg)\n        mesh = obj.to_mesh()\n        try:\n            local = np.empty(len(mesh.vertices) * 3, dtype=np.float64)\n            mesh.vertices.foreach_get('co', local)\n            local = local.reshape(-1, 3)\n            M = np.asarray(obj.matrix_world, dtype=np.float64)\n            world = local @ M[:3, :3].T + M[:3, 3]\n            assert np.isfinite(world).all()\n            samples[name] = world\n            topology[name] = {'vertices': len(mesh.vertices), 'edges': len(mesh.edges), 'polygons': len(mesh.polygons)}\n        finally:\n            obj.to_mesh_clear()\n    return (samples, topology)\n",
+      "source_sha256": "daa41ecb808f90fa2cd88c2413c1e926162d736614abf4edc436d5fac8b96a3c"
+    },
+    "native_grid": {
+      "file": "onehand-runtime-20261016-r2/native-window-v2/window_contract.py",
+      "original_ast_sha256": "a4c06b5dd27f6d265d4f2c65ff8dab83dd078de458b4a4dc03c4173584000d87",
+      "original_source_segments_sha256": "c7ee2e544dcf12dc230bca9b03d35e2c7c97e60f4e4dc1d8f145bd3187c1a80b",
+      "remove_legacy_search_path": false,
+      "replace_recipe_identity": false,
+      "source": "def native_grid(n):\n    return 1 + np.arange(95 * n + 1, dtype=np.float32) / n\n",
+      "source_sha256": "d70facfd23cb6a8f06ce59183a30f5ac83a1f41156917b5ded9e80f5b1b0505a"
+    },
+    "nla_snapshot": {
+      "file": "recovery/animation-queue/runs/onehand-r5-from-reconstructed-r4/integrity/source_integrity.py",
+      "original_ast_sha256": "d0c349fdbdd2f940edd5004c126ebcfde1b37fb18168898107d73c9efb233493",
+      "original_source_segments_sha256": "454f35dd458da39bc286699a83083ad26c6be8a7ba46082b59c777861cc46c8a",
+      "remove_legacy_search_path": false,
+      "replace_recipe_identity": false,
+      "source": "def nla_snapshot(bpy):\n    result = {}\n    for obj in bpy.data.objects:\n        data = obj.animation_data\n        if data is None:\n            continue\n        result[obj.name] = {'action': data.action.name if data.action else None, 'use_nla': data.use_nla, 'tracks': [{'name': track.name, 'mute': track.mute, 'is_solo': track.is_solo, 'strips': [{'name': strip.name, 'action': strip.action.name if strip.action else None, **{key: getattr(strip, key) for key in ('frame_start', 'frame_end', 'action_frame_start', 'action_frame_end', 'scale', 'repeat', 'blend_type', 'extrapolation', 'influence', 'mute', 'use_auto_blend', 'blend_in', 'blend_out')}} for strip in track.strips]} for track in data.nla_tracks]}\n    return result\n",
+      "source_sha256": "35f6f7d13d5f9e5661c8ca8eb1783c51e29149cadd76ee2b73a9b357236924f4"
+    },
+    "operator_defaults": {
+      "file": "onehand-runtime-20261016-r2/native-dense/dense_backend.py",
+      "original_ast_sha256": "21ff6d5e3469980a7ae41cd98c9efb5ab41989fdb8fe062077f93b5eaa27abfe",
+      "original_source_segments_sha256": "3fe1bee7545884f93a62d35ea84cee44967b6413db817e05c97a0d316cb7311b",
+      "remove_legacy_search_path": false,
+      "replace_recipe_identity": false,
+      "source": "def operator_defaults(properties):\n    result = {}\n    for prop in properties:\n        if prop.identifier in ('rna_type', 'check_existing', 'filter_glob', 'ui_tab'):\n            continue\n        require(prop.type in ('BOOLEAN', 'INT', 'FLOAT', 'STRING', 'ENUM'), 'unexpected exporter RNA property: ' + prop.identifier)\n        if prop.type == 'ENUM' and prop.is_enum_flag:\n            value = set(prop.default_flag)\n        elif getattr(prop, 'is_array', False):\n            value = tuple(prop.default_array)\n        else:\n            value = prop.default\n        result[prop.identifier] = value\n    return result\n",
+      "source_sha256": "7d79f4ba2ff4da893f8b357c44e26352c75a40e96728190358d273043b509a42"
+    },
+    "props": {
+      "file": "recovery/animation-queue/runs/onehand-r5-from-reconstructed-r4/integrity/validate_directional_source.py",
+      "original_ast_sha256": "6dd60d23210f5b97901e32a6e17e4d2caa4e076eb914c6da59328341496f7d70",
+      "original_source_segments_sha256": "76ecdc77f90b5313a9037245818ccc1d6bc3359410aacdabb78a07faffd690ff",
+      "remove_legacy_search_path": false,
+      "replace_recipe_identity": false,
+      "source": "def props(obj):\n    out = {}\n    for p in obj.bl_rna.properties:\n        k = p.identifier\n        if k == 'rna_type' or p.type == 'COLLECTION' or p.is_readonly:\n            continue\n        try:\n            out[k] = atom(getattr(obj, k))\n        except (AttributeError, TypeError, ValueError):\n            pass\n    return out\n",
+      "source_sha256": "29d66be6480ba4378f9ab261d12bfa7d133242083ea053585550b081afa0c167"
+    },
+    "raw_key_grid": {
+      "file": "onehand-runtime-20261016-r2/native-dense/dense_backend.py",
+      "original_ast_sha256": "f3bdea6ad2068112463e54f9b62ccf678fbde67eaac595df9b1a77462164830a",
+      "original_source_segments_sha256": "3358796ed663f0469d9eb0b1107e91b9f1eff4f64e7553ab3d1b2d482d30418e",
+      "remove_legacy_search_path": false,
+      "replace_recipe_identity": false,
+      "source": "def raw_key_grid(path):\n    import numpy as np\n    from io_scene_fbx import parse_fbx\n    tree, version = parse_fbx.parse(str(path))\n    objects = [n for n in tree.elems if n.id == b'Objects']\n    require(len(objects) == 1, 'FBX Objects ambiguity')\n    stacks = [n.props[1].split(b'\\x00\\x01')[0].decode() for n in objects[0].elems if n.id == b'AnimationStack']\n    require(stacks == [ACTION], 'FBX exact sole stack differs')\n    curves = [n for n in objects[0].elems if n.id == b'AnimationCurve']\n    require(len(curves) == EXPECTED_CURVES, 'FBX curve inventory differs')\n    expected = 1 + np.arange(KEY_COUNT, dtype=np.float64) / SUBDIVISIONS\n    max_error = 0.0\n    groups = {}\n    for curve in curves:\n        arrays = {n.id: n.props for n in curve.elems}\n        times = np.asarray(arrays[b'KeyTime'][0], dtype=np.int64)\n        require(len(times) == KEY_COUNT and len(arrays[b'KeyValueFloat'][0]) == KEY_COUNT, 'FBX key count differs')\n        require(np.all(np.diff(times) > 0), 'FBX times not strictly increasing')\n        error = float(np.max(np.abs(times.astype(np.float64) * 60 / 46186158000 - expected)))\n        require(error <= 2 * 60 / 46186158000, 'FBX rational time grid differs beyond integer ktime rounding')\n        require(list(arrays[b'KeyAttrFlags'][0]) == [24836], 'FBX linear interpolation flags differ')\n        max_error = max(max_error, error)\n        digest = hashlib.sha256(times.astype('<i8', copy=False).tobytes()).hexdigest()\n        groups[digest] = groups.get(digest, 0) + 1\n    return {'passed': True, 'fbx_version': version, 'logical_stack': ACTION, 'curve_count': len(curves), 'key_count': KEY_COUNT, 'subdivisions': SUBDIVISIONS, 'maximum_native_frame_ktime_rounding': max_error, 'ktime_grid_hashes': groups}\n",
+      "source_sha256": "ca257acf28dc5d661ebebc4a52364f6094bea6c85b0830bf74cee6d201789293"
+    },
+    "runtime_block": {
+      "file": "onehand-runtime-20261016-r2/runtime-conversion-v2/native_runtime.py",
+      "original_ast_sha256": "b7d4afeab09973ceaf2a4f107d8d4f1a7166060b735144f7899c4cf8c481c393",
+      "original_source_segments_sha256": "66a8791ddae04f02e042bfd9d84bcec6c6be0d9112356978a9afb42689655df7",
+      "remove_legacy_search_path": false,
+      "replace_recipe_identity": false,
+      "source": "bones = metadata['bones']\nrequire(len(bones) == 72 and {x[0] for x in bones} == keep, 'encoded skeleton differs')\nrequire(not folder.exists(), 'fresh runtime block required')\nfolder.mkdir(parents=True)\nwith (folder / 'frames.bin').open('xb') as stream:\n    for tick, f in zip(range(lo, hi + 1), frames):\n        dg = set_frame(f)\n        ae = A.evaluated_get(dg)\n        require(flat(A.matrix_world) == rig_world, 'static rig changed')\n        require(all((flat(o.evaluated_get(dg).matrix_world) == skin_world[o.name] for o in skins)), 'static skin object world changed')\n        worlds = [flat(B @ ae.matrix_world @ ae.pose.bones[name].matrix) for name, _ in bones]\n        locals_ = [vrpack.matmul(vrview.inverse(worlds[parent]), world) if parent >= 0 else world for (_, parent), world in zip(bones, worlds)]\n        values = [vrview.decompose(m) for m in locals_]\n        visibility = []\n        for obj in actors:\n            m = flat(B @ obj.evaluated_get(dg).matrix_world @ BI)\n            hidden = max((abs(m[r * 4 + c]) for r in range(3) for c in range(3))) < 1e-10\n            values.append(vrview.decompose(vrpack.IDENTITY if hidden else m))\n            visibility.append(int(not hidden))\n        record = struct.pack('<f', tick / 15360) + b''.join((vrview.TRANSFORM.pack(*vrview.validate_transform(v)) for v in values)) + bytes(visibility)\n        require(len(record) == FRAME_BYTES, 'runtime record size differs')\n        stream.write(record)\n    stream.flush()\n",
+      "source_sha256": "b8f83307c97dcdc89761152f2675323b957b5ccb15ef6fb4a1342097f7f7f3ca"
+    },
+    "runtime_geometry": {
+      "file": "onehand-runtime-20261016-r2/runtime-conversion-v2/native_runtime.py",
+      "original_ast_sha256": "b937fb2de42943756e217ba0652983d96929debedf1fd15b881f904cf5ca5795",
+      "original_source_segments_sha256": "f1f318d82e77b90ddb89aa442d1609276b38e58360d516cfb25e901297700fb0",
+      "remove_legacy_search_path": false,
+      "replace_recipe_identity": false,
+      "source": "require(not output.exists(), 'fresh runtime geometry directory required')\nfor obj in S.objects:\n    obj.animation_data_clear()\nA.data.pose_position = 'REST'\nfor obj in actors:\n    obj.parent = None\n    obj.matrix_world = Matrix.Identity(4)\nbpy.context.view_layer.objects.active = A\nbpy.ops.object.select_all(action='DESELECT')\nA.select_set(True)\nbpy.ops.object.mode_set(mode='EDIT')\nfor bone in list(A.data.edit_bones):\n    if bone.name not in keep:\n        A.data.edit_bones.remove(bone)\nbpy.ops.object.mode_set(mode='OBJECT')\nrequire(all((max((abs(a - b) for a, b in zip(rest[n], flat(A.matrix_world @ A.data.bones[n].matrix_local)))) < 1e-06 for n in keep)), 'rest changed during helper pruning')\nfor obj in skins + actors + [A]:\n    obj.hide_set(False)\n    obj.select_set(True)\nslots = {o.name: [m.name if m else None for m in o.data.materials] for o in skins + actors}\nwanted = sorted({n for names in slots.values() for n in names if n})\nwith bpy.data.libraries.load(str(SOURCE), link=False) as (available, loaded):\n    require(set(wanted) <= set(available.materials), 'material source missing slot')\n    loaded.materials = list(wanted)\nrestored = dict(zip(wanted, loaded.materials))\nfor obj in skins + actors:\n    for i, name in enumerate(slots[obj.name]):\n        if name:\n            obj.data.materials[i] = restored[name]\noutput.mkdir()\nglb = output / 'geometry-only.glb'\nexport_viewmodel.export_glb(bpy, glb, animation=False)\ndoc, blob = vrpack.parse_glb(glb.read_bytes())\nrequire(not doc.get('animations'), 'geometry has animation')\ngeometry = vrview.Scene(doc, blob, armature=A.name, base_color_only=True, single_sided_materials=True)\nvrs, vrm, definitions = geometry.companions(ACTORS)\nbones = geometry.skin.bones\nrequire({b[0] for b in bones} == keep, 'companion skeleton selection differs')\nfor name in keep:\n    expected = B @ A.matrix_world @ A.data.bones[name].matrix_local\n    actual = geometry.rest_globals[geometry.node_named(name)]\n    require(max((abs(x - y) for x, y in zip(flat(expected), actual))) < 1e-05, 'companion joint rest/basis differs')\nfor name, data in [('asset.vrs', vrs), ('asset.vrm', vrm)]:\n    with (output / name).open('xb') as f:\n        f.write(data)\n",
+      "source_sha256": "6fb84bcdfca3ea0947e18161eb344d29336b407893ff922626270bbe97cd2547"
+    },
+    "runtime_static": {
+      "file": "onehand-runtime-20261016-r2/runtime-conversion-v2/native_runtime.py",
+      "original_ast_sha256": "543d2199abb92351a9649ed21b12fca967d8092f619347dc2d0f2e7679f89263",
+      "original_source_segments_sha256": "21c26165b403efa5c0041751eb5976e11afa26b8495f9be88df1c5652b6cea55",
+      "remove_legacy_search_path": false,
+      "replace_recipe_identity": false,
+      "source": "A = bpy.data.objects['Arms']\nactors = [bpy.data.objects[n] for n in ACTORS]\nskins = [bpy.data.objects[n] for n in SKINS]\nskeleton = vrview.decode_vra(CANONICAL.read_bytes())['bones']\nkeep = {n for n, _ in skeleton}\nrequire(len(skeleton) == 72, 'canonical72 required')\nfor name, parent in skeleton:\n    b = A.data.bones[name]\n    require((b.parent.name if b.parent else None) == (skeleton[parent][0] if parent >= 0 else None), 'canonical parent differs')\nB = Matrix(BASIS)\nBI = B.inverted()\nflat = lambda m: tuple((float(v) for row in m for v in row))\n\ndef set_frame(f):\n    require(f in window['allowed_evaluation_frames'], 'runtime sample outside admitted key window')\n    S.frame_set(math.floor(f), subframe=f - math.floor(f))\n    A.update_tag()\n    bpy.context.view_layer.update()\n    dg = bpy.context.evaluated_depsgraph_get()\n    dg.update()\n    return dg\nset_frame(1.0)\nrig_world = flat(A.matrix_world)\nrest = {n: flat(A.matrix_world @ A.data.bones[n].matrix_local) for n, _ in skeleton}\nweights = {}\ngeometry_signature = {}\nweight_digests = {}\nskin_world = {o.name: flat(o.matrix_world) for o in skins}\nfor obj in skins + actors:\n    require(obj.type == 'MESH', 'required geometry missing')\n    mesh = obj.data\n    parts = []\n    for collection, attr, dtype, width in ((mesh.vertices, 'co', '<f4', 3), (mesh.loops, 'vertex_index', '<i4', 1), (mesh.polygons, 'loop_start', '<i4', 1), (mesh.polygons, 'loop_total', '<i4', 1)):\n        values = np.empty(len(collection) * width, dtype=dtype)\n        collection.foreach_get(attr, values)\n        require(np.isfinite(values).all(), 'nonfinite static geometry')\n        parts.append(__import__('hashlib').sha256(values.tobytes()).hexdigest())\n    geometry_signature[obj.name] = {'vertices': len(mesh.vertices), 'polygons': len(mesh.polygons), 'arrays_sha256': parts}\n    if obj in skins:\n        rows = [[(obj.vertex_groups[g.group].name, g.weight) for g in v.groups if g.weight > 0] for v in mesh.vertices]\n        require(all((n in keep for row in rows for n, w in row)), 'weighted noncanonical bone')\n        maximum = max(map(len, rows))\n        require(maximum <= 8, 'unsupported influence count')\n        weight_digests[obj.name] = digest(rows)\n        weights[obj.name] = {'vertices': len(rows), 'maximum_influences': maximum, 'vertices_over_four': sum((len(r) > 4 for r in rows))}\nrequire(sum((v['vertices'] for v in weights.values())) == 10234, 'three-skin coverage differs')\nstatic = {'canonical_bones': [list(x) for x in skeleton], 'rest_world': rest, 'rig_world': rig_world, 'geometry': geometry_signature, 'weights': weights, 'skin_weight_sha256': weight_digests, 'skin_object_world': skin_world}\nstatic_sha = digest(static)\n",
+      "source_sha256": "a1cefc95190c78f38f960b24a707934acd82e16001f45263c0eb1524d7665d4a"
+    },
+    "selection": {
+      "file": "onehand-runtime-20261016-r2/native-window-v2/window_contract.py",
+      "original_ast_sha256": "5903075f0815543d0e2e77e168c44c2300c90d57c2faa02748ee49326b37cb56",
+      "original_source_segments_sha256": "61909fb2c1264f869ed4823514aae9400c9715a88d222447a0633f217c646cb3",
+      "remove_legacy_search_path": false,
+      "replace_recipe_identity": false,
+      "source": "def selection(frames, n):\n    require(type(n) is int and n in (64, 256), 'unsupported immutable grid')\n    require(frames and all((type(f) in (float, int) and math.isfinite(f) and (1 <= f <= 96) for f in frames)), 'invalid requested frame')\n    require(list(frames) == sorted(set(frames)), 'requested samples must be ordered unique')\n    keep = {0, 95 * n}\n    brackets = []\n    for f in frames:\n        pos = (f - 1) * n\n        lo = math.floor(pos)\n        hi = math.ceil(pos)\n        keep.update((lo, hi))\n        brackets.append({'source_frame': f, 'lower_index': lo, 'upper_index': hi, 'lower_frame': 1 + lo / n, 'upper_frame': 1 + hi / n})\n    indices = sorted(keep)\n    require(len(indices) <= KEY_CAP, 'retained key cap exceeded')\n    return {'requested_source_frames': list(frames), 'allowed_evaluation_frames': sorted(set([1.0, *frames])), 'retained_indices': indices, 'retained_source_frames': [1 + i / n for i in indices], 'sample_brackets': brackets, 'retained_key_count': len(indices), 'full_key_count': 95 * n + 1, 'subdivisions': n}\n",
+      "source_sha256": "9327a581f7b789b43c239ec4233b0f0e919264c8c68aa9aafe9bbf5abf912c53"
+    },
+    "snapshot": {
+      "file": "recovery/animation-queue/runs/onehand-r5-from-reconstructed-r4/integrity/source_integrity.py",
+      "original_ast_sha256": "7be39f9fbcc584bc9b00d23cd30e90226cffe49b78f81c2a6563ac9a78d680e4",
+      "original_source_segments_sha256": "17266666172eb4964baad9062e87ddbb0ab69b3bfb4b265e458778d2e167a3f8",
+      "remove_legacy_search_path": false,
+      "replace_recipe_identity": false,
+      "source": "def snapshot(bpy):\n    return {'actions': {action.name: action_fingerprint(action) for action in bpy.data.actions}, 'nla': nla_snapshot(bpy), 'packed_images': {image.name: hashlib.sha256(bytes(image.packed_file.data)).hexdigest() for image in bpy.data.images if image.packed_file}, 'drivers': {obj.name: [{'data_path': curve.data_path, 'array_index': curve.array_index, 'type': curve.driver.type, 'expression': curve.driver.expression, 'variables': [{'name': variable.name, 'type': variable.type, 'targets': [{'id': target.id.name if target.id else None, **{key: getattr(target, key) for key in ('data_path', 'bone_target', 'transform_type', 'transform_space', 'rotation_mode')}} for target in variable.targets]} for variable in curve.driver.variables]} for curve in obj.animation_data.drivers] for obj in bpy.data.objects if obj.animation_data and obj.animation_data.drivers}}\n",
+      "source_sha256": "6cafd9a79f85395ea927bf3ed0591be44c9c5f0b719347385a4840a432405081"
+    },
+    "source_capture": {
+      "file": "onehand-runtime-20261016-r2/native-window-v2/sample_source.py",
+      "original_ast_sha256": "c804471a9e9b20cb9bfb8c1c96a1fe6c57334a5802a64e43e30f391d071509f9",
+      "original_source_segments_sha256": "96117321c45361a7c3a6dfc4f0718e747695ff46b6538af92c276f4c64028b9a",
+      "remove_legacy_search_path": false,
+      "replace_recipe_identity": false,
+      "source": "fields = ('location', 'rotation_euler', 'rotation_quaternion', 'rotation_axis_angle', 'scale')\nbefore = json.loads(json.dumps({'snapshot': snapshot(bpy), 'extra': extra_snapshot()}, sort_keys=True))\nframe_saved = (S.frame_current, S.frame_subframe)\nscene_saved = {'name': S.name, 'frame_start': S.frame_start, 'frame_end': S.frame_end, 'frame_step': S.frame_step}\nobj_saved = {o.name: {k: tuple(getattr(o, k)) for k in fields} for o in bpy.data.objects}\npose_saved = {b.name: ({k: tuple(getattr(b, k)) for k in fields}, {k: atom(v) for k, v in b.items() if k != '_RNA_UI'}) for b in A.pose.bones}\nad_saved = {o.name: (o.animation_data.action, o.animation_data.use_nla, [(t, t.mute, t.is_solo) for t in o.animation_data.nla_tracks]) for o in bpy.data.objects if o.animation_data}\nselected_saved = {o.name: o.select_get() for o in bpy.data.objects}\nactive_saved = bpy.context.view_layer.objects.active\n",
+      "source_sha256": "ed4262189210ec1c8735536e876e253756b448b8ca04002c8b5bca7a81212c34"
+    },
+    "source_restore": {
+      "file": "onehand-runtime-20261016-r2/native-window-v2/sample_source.py",
+      "original_ast_sha256": "3c64af67609742f89a1907fa92522ebd1a667fcfc09abf74cbff94c8b78876d5",
+      "original_source_segments_sha256": "89b80a95660f3d526a2b89211a31ab29dd2a36e81f1547091abfd70c7c38a7bd",
+      "remove_legacy_search_path": false,
+      "replace_recipe_identity": false,
+      "source": "for o in bpy.data.objects:\n    if o.name not in ad_saved and o.animation_data:\n        o.animation_data_clear()\nfor n, (act, nla, tracks) in ad_saved.items():\n    ad = bpy.data.objects[n].animation_data\n    ad.action = act\n    ad.use_nla = nla\n    for t, m, solo in tracks:\n        t.mute = m\n        t.is_solo = solo\nfor o in bpy.data.objects:\n    for k, v in obj_saved[o.name].items():\n        setattr(o, k, v)\n    o.select_set(selected_saved[o.name])\nfor b in A.pose.bones:\n    for k, v in pose_saved[b.name][0].items():\n        setattr(b, k, v)\n    for k, v in pose_saved[b.name][1].items():\n        b[k] = v\nfor k, v in scene_saved.items():\n    setattr(S, k, v)\nbpy.context.view_layer.objects.active = active_saved\nS.frame_set(frame_saved[0], subframe=frame_saved[1])\nA.update_tag()\nC.update_tag()\nbpy.context.view_layer.update()\nbpy.context.evaluated_depsgraph_get().update()\n",
+      "source_sha256": "cc64ba16250b1e10ab4b5492560abae7edf0984abfba1146f37ed03030c07f87"
+    },
+    "source_rows": {
+      "file": "onehand-runtime-20261016-r2/native-window-v2/sample_source.py",
+      "original_ast_sha256": "4c5f91d0c00391a20c9ad0f03585e7fac55663776351053b4111a1d6ff89ea2f",
+      "original_source_segments_sha256": "67fe33f077512bb94cbdaed4ff9afbee38a3312ad954270192746f465fdcc42f",
+      "remove_legacy_search_path": false,
+      "replace_recipe_identity": false,
+      "source": "(P / 'sample-rows').mkdir()\n(P / 'skin-rows').mkdir()\nfor idx, f in enumerate(FRAMES):\n    assert_free(P, ROW_BUDGET)\n    S.frame_set(math.floor(f), subframe=f - math.floor(f))\n    A.update_tag()\n    C.update_tag()\n    bpy.context.view_layer.update()\n    dg = bpy.context.evaluated_depsgraph_get()\n    dg.update()\n    CW = C.matrix_world.copy()\n    CI = CW.inverted()\n    row = {'source_frame': f, 'time_seconds': (f - 1) / 60, 'reference_frame_position': 7786 + f, 'camera_world': mat(CW), 'rig_world': mat(A.matrix_world), 'camera_world_delta_from_frame1': mat(CW @ C0.inverted()), 'rig_world_delta_from_frame1': mat(A.matrix_world @ R0.inverted()), 'bone_world': {b.name: mat(A.matrix_world @ b.matrix) for b in A.pose.bones}, 'bone_deformation_world': {b.name: mat(A.matrix_world @ b.matrix @ rest[b.name].inverted()) for b in A.pose.bones}, 'actors_world': {n: mat(bpy.data.objects[n].matrix_world) for n in ACTORS}, 'actors_camera_relative': {n: mat(CI @ bpy.data.objects[n].matrix_world) for n in ACTORS}}\n    assert camera_projection(C, S) == projection, 'Animated lens/projection requires explicit per-frame contract'\n    assert err(CW, C0) == 0 and err(A.matrix_world, R0) == 0, 'This one-hand export requires unchanged static camera and rig world basis'\n    samples, top = mesh_samples(dg)\n    if topology is None:\n        topology = top\n    assert topology == top\n    skin = {f'm{i}': samples[n] for i, n in enumerate(SKINS)}\n    assert sum((top[n]['vertices'] for n in SKINS)) == 10234\n    assert all((math.isfinite(v) for mm in row['bone_world'].values() for rr in mm for v in rr))\n    rp = P / 'sample-rows' / f'{idx:04d}.json'\n    sp = P / 'skin-rows' / f'{idx:04d}.npz'\n    data = (json.dumps(row, separators=(',', ':')) + '\\n').encode()\n    assert len(data) <= ROW_JSON_BUDGET\n    rp.write_bytes(data)\n    np.savez_compressed(sp, **skin)\n    assert sp.stat().st_size <= ROW_SKIN_BUDGET\n    rows[str(f)] = {'source_frame': f, 'row_path': str(rp.relative_to(P)), 'row_sha256': sha(rp), 'skin_path': str(sp.relative_to(P)), 'skin_sha256': sha(sp)}\n    print('DENSE_SOURCE', idx + 1, len(FRAMES), flush=True)\n",
+      "source_sha256": "995f8fb02bee41a93dba91c1fa2018105c245635762c4d315a1b1471b1f325ce"
+    },
+    "source_select": {
+      "file": "onehand-runtime-20261016-r2/native-window-v2/sample_source.py",
+      "original_ast_sha256": "70ffc2f4e75ff9dab009b5c27cd7ba3608fd98c363c7c956e4373770ac5a3961",
+      "original_source_segments_sha256": "ad83d52b46a3fa503fd3a989932e9f3934e56f1139988d65ad029c9e9b76db64",
+      "remove_legacy_search_path": false,
+      "replace_recipe_identity": false,
+      "source": "for o in bpy.data.objects:\n    if o.animation_data:\n        o.animation_data.use_nla = False\n        for t in o.animation_data.nla_tracks:\n            t.mute = True\n            t.is_solo = False\nA.animation_data.action = bpy.data.actions['RD_00_Supplied_Base_Guarded_Recovered']\nS.frame_set(1)\nA.update_tag()\nbpy.context.view_layer.update()\nbpy.context.evaluated_depsgraph_get().update()\nA.animation_data.action = bpy.data.actions[ACTION]\nC.animation_data_create()\nC.animation_data.use_nla = False\nC.animation_data.action = None\nS.name = ACTION\nS.frame_start = 1\nS.frame_end = 96\nS.frame_step = 1\nS.frame_set(1)\nA.update_tag()\nC.update_tag()\nbpy.context.view_layer.update()\nbpy.context.evaluated_depsgraph_get().update()\nC0 = C.matrix_world.copy()\nR0 = A.matrix_world.copy()\nrest = {b.name: A.matrix_world @ b.matrix_local for b in A.data.bones}\nprojection = camera_projection(C, S)\nrows = {}\nskin = {}\ntopology = None\nfailure = None\nresult = None\n",
+      "source_sha256": "0380a4816dc687aafeb62d39471d060de32a4b7ee907dfae8bd34ed85a5b3339"
+    },
+    "validate_arrays": {
+      "file": "onehand-runtime-20261016-r2/native-window-v2/window_contract.py",
+      "original_ast_sha256": "51003d91f4cfdc99c8ce5ba231691fb163716dff47c3330ad94da98c30d8884e",
+      "original_source_segments_sha256": "1d7c64a2a7d7fe4d1676ca79db29fd09d1f2fa2b81e1b8179c68e4604a273175",
+      "remove_legacy_search_path": false,
+      "replace_recipe_identity": false,
+      "source": "def validate_arrays(times, values, n, flags=(24836,), refs=None):\n    count = 95 * n + 1\n    t = np.asarray(times)\n    v = np.asarray(values)\n    require(t.ndim == v.ndim == 1 and len(t) == len(v) == count, 'raw array count/shape differs')\n    require(np.issubdtype(t.dtype, np.integer) and np.all(np.diff(t) > 0), 'raw times invalid')\n    require(np.isfinite(v).all(), 'nonfinite raw values')\n    require(list(flags) == [24836] and list(refs or [count]) == [count], 'nonlinear or malformed attribute/refcount')\n    frames = t.astype(np.float64) * 60 / 46186158000\n    require(np.max(np.abs(frames - native_grid(n).astype(np.float64))) <= 2 * 60 / 46186158000, 'raw rational grid differs')\n    return {'key_count': count, 'time_sha256': array_hash(t, '<i8'), 'value_sha256': array_hash(v, '<f4')}\n",
+      "source_sha256": "50bae93ddf1952cae70eacb2da2e145e1bcfc74acbffd03607b851794b150b62"
+    }
+  },
+  "schema": "rust-duty-native-audited-fragments/v1"
+}

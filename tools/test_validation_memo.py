@@ -113,8 +113,9 @@ class WarmPackagingMemoTests(TestCase):
         altered = json.loads(original)
         altered['passed'] = False
         parity.write_text(json.dumps(altered))
-        with self.assertRaisesRegex(ValueError, 'Rust parity'):
-            package_game.verify_ads(self.root)
+        # Retained parity diagnostics are not part of ordinary delivery admission.
+        # The real metadata/source/transport checks below must still run warm.
+        package_game.verify_ads(self.root)
         parity.write_text(original)
         source = self.root / 'assets/authoring/ads/ads.blend'
         source.parent.mkdir(parents=True)

@@ -1,0 +1,18 @@
+{
+  "schema": "rust-duty-runtime-recovery-result/v1",
+  "runtime_commit": "48f2bb479fd8f03049c2ffcac52564f91b1c903d",
+  "recovery_run": "https://github.com/RHS059/rust_duty/actions/runs/39273924557",
+  "restored_objects": 14,
+  "changed_runtime_paths": 25,
+  "remote_tree_git_identities_verified": true,
+  "archive_and_member_sha256_verified": true,
+  "ordinary_asset_materialization": "passed",
+  "optional_runtime_file_count": 13,
+  "recovery_guard_tests": 17,
+  "direct_delivery_tests": 11,
+  "packaging_fixture_tests": 13,
+  "windows_game_build": "pending",
+  "gameplay_capture_performed": false,
+  "canonical_all_animation_blend_pipeline": "separate_follow_up",
+  "historical_blob_calls": "Original unreferenced blob-call terminal outcomes remain unknown; recovery did not replay them."
+}

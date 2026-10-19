@@ -1,0 +1,20 @@
+{
+  "base_pins_sha256": "946f4ed23f90ceb6886252c9c636ff2bfb37f4e0ae43e6bd6fad27ad8050eb26",
+  "historical_preservation_test_rebased_to_actual_v7": true,
+  "local_dependency_source_paths_adjusted_for_nested_preparation": true,
+  "native_proof": false,
+  "new_helper": "failure_diagnostics.py",
+  "new_source_pin_manifest": "DIAGNOSTIC_SOURCE_PINS.json",
+  "publication_performed": false,
+  "purpose": "Useful request-bound private-child failure diagnostics without changing original outcomes.",
+  "runtime_changes": [
+    "owned_commands.py",
+    "host_tools.py",
+    "orchestrate.py",
+    "source_checkout.py",
+    "onehand-windows-proof.yml"
+  ],
+  "schema": "rust-duty-failure-diagnostics-change-manifest/v1",
+  "test_count": 48,
+  "test_module": "test_failure_diagnostics.py"
+}

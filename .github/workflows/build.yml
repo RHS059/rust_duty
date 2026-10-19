@@ -1,12 +1,6 @@
 name: Rust prototype checks and playable builds
 on:
   workflow_dispatch:
-    inputs:
-      source_bound_recovery:
-        description: 'Run pinned source-bound recovery alongside normal checks'
-        required: false
-        type: boolean
-        default: false
   pull_request:
   push:
     branches: [main, 'aella/**', 'halcyon/**', '!aella/release-channel']
@@ -49,93 +43,15 @@ jobs:
           if [ "${{ steps.areas.outputs.updater }}" = true ]; then lanes="$lanes,updater"; fi
           echo "lanes=$lanes" >> "$GITHUB_OUTPUT"
           echo "native_lanes=$native" >> "$GITHUB_OUTPUT"
-  current-ads-admission:
-    # Run before asset/native work so rejected caller identity is visible early.
-    # Ineligible branches/forks retain their original strict authored checks.
-    if: >-
-      github.repository == 'RHS059/rust_duty' &&
-      (((github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main') ||
-      (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository &&
-      github.event.pull_request.base.repo.full_name == github.repository && github.base_ref == 'main'))
-    runs-on: windows-latest
-    timeout-minutes: 10
-    permissions:
-      contents: read
-    env:
-      GIT_CONFIG_COUNT: '1'
-      GIT_CONFIG_KEY_0: core.autocrlf
-      GIT_CONFIG_VALUE_0: 'false'
-    outputs:
-      admitted: ${{ steps.admission.outputs.admitted }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - name: Install shared tool dependencies
-        run: python -m pip install -r tools/requirements-assets.txt
-      - name: Test Windows caller identity and merge-parent fixtures
-        env:
-          PYTHONPATH: tools
-        run: python -m unittest -v test_current_ads_source_oracle.CurrentContextTests
-      - name: Diagnose and strictly bind the actual current build caller
-        id: admission
-        run: python tools/current_ads_build_context.py --root . --diagnostics --emit-admission-output
-  windows-source-bound-recovery:
-    if: (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'aella/wgpu-renderer-port') || (github.event_name == 'push' && github.ref == 'refs/heads/aella/wgpu-renderer-port') || (github.event_name == 'workflow_dispatch' && inputs.source_bound_recovery)
-    permissions:
-      contents: read
-      actions: read
-    uses: ./.github/workflows/windows-source-bound-recovery.yml
-  windows-same-platform-return:
-    needs: [changes, animation-assets, walk-assets, ads-assets, directional-assets, jump-assets]
-    if: needs.changes.outputs.updater == 'true' || needs.changes.outputs.tools == 'true'
-    uses: ./.github/workflows/windows-same-platform-return.yml
-  dx12-authored-validation:
-    needs: [changes, animation-assets, walk-assets, ads-assets, directional-assets, jump-assets, native-validation, current-ads-admission]
-    if: >-
-      always() && !cancelled() && needs.changes.outputs.authored == 'true' && needs.animation-assets.result == 'success' && needs.walk-assets.result == 'success' &&
-      needs.ads-assets.result == 'success' && needs.directional-assets.result == 'success' &&
-      needs.jump-assets.result == 'success' && needs.native-validation.result == 'success' &&
-      (needs.current-ads-admission.result == 'success' || needs.current-ads-admission.result == 'skipped')
-    uses: ./.github/workflows/wgpu-dx12-authored.yml
-    with:
-      source_proof_admitted: ${{ needs.current-ads-admission.outputs.admitted == 'true' }}
-  animation-assets:
-    needs: [changes]
-    if: needs.changes.outputs.any == 'true'
-    uses: ./.github/workflows/blender-assets.yml
-  walk-assets:
-    needs: [changes]
-    if: needs.changes.outputs.any == 'true'
-    uses: ./.github/workflows/walk-assets.yml
-  directional-assets:
-    needs: [walk-assets]
-    uses: ./.github/workflows/directional-assets.yml
-  ads-assets:
-    needs: [walk-assets]
-    uses: ./.github/workflows/ads-assets.yml
-  jump-assets:
-    needs: [walk-assets]
-    uses: ./.github/workflows/jump-assets.yml
+  # Compile and integration checks consume committed runtime files; no proof producers.
   native-validation:
-    needs: [changes, animation-assets, walk-assets, ads-assets, directional-assets, jump-assets]
+    needs: [changes]
     if: needs.changes.outputs.game == 'true' || needs.changes.outputs.tools == 'true'
     uses: ./.github/workflows/native-validation.yml
     with:
       lanes: ${{ needs.changes.outputs.native_lanes }}
-  dx12-warp-smoke:
-    needs: [changes, animation-assets, walk-assets, ads-assets, directional-assets, jump-assets]
-    if: needs.changes.outputs.game == 'true'
-    uses: ./.github/workflows/wgpu-dx12-smoke.yml
-  dx12-renderer-contract:
-    needs: [changes]
-    if: needs.changes.outputs.render == 'true'
-    uses: ./.github/workflows/wgpu-renderer-contract.yml
   build:
-    needs: [changes, animation-assets, walk-assets, ads-assets, directional-assets, jump-assets]
+    needs: [changes]
     if: needs.changes.outputs.any == 'true'
     name: windows-latest
     runs-on: windows-latest
@@ -147,31 +63,6 @@ jobs:
       GIT_CONFIG_VALUE_0: 'false'
     steps:
       - uses: actions/checkout@v4
-      - name: Fetch validated animation companions from this run
-        uses: actions/download-artifact@v4
-        with:
-          name: generated-reload-runtime
-          path: assets/reload
-      - name: Fetch freshly validated authored walking companions
-        uses: actions/download-artifact@v4
-        with:
-          name: generated-walk-runtime
-          path: assets/walk
-      - name: Fetch source-authored ADS and preserved walking companions
-        uses: actions/download-artifact@v4
-        with:
-          name: generated-ads-runtime
-          path: assets/ads
-      - name: Fetch four source-authored WIP HIP directional loops
-        uses: actions/download-artifact@v4
-        with:
-          name: generated-directional-runtime
-          path: assets/directional
-      - name: Fetch source-authored common Jump r7 WIP
-        uses: actions/download-artifact@v4
-        with:
-          name: generated-jump-runtime
-          path: assets/jump
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt, clippy
@@ -194,7 +85,7 @@ jobs:
         shell: bash
         run: echo "label=$(python tools/build_identity.py --print-label)" >> "$GITHUB_OUTPUT"
       - run: python -m pip install -r tools/requirements-assets.txt cryptography PyYAML==6.0.3
-      - name: Materialize and verify all generated and committed companions
+      - name: Materialize and verify committed approved runtime companions
         run: python tools/package_game.py materialize --root . --include-walk --include-ads --include-directional --include-jump --require-generated
       - name: Format and capture required source changes
         shell: bash

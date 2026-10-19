@@ -1,0 +1,254 @@
+{
+  "actual_windows_proof": false,
+  "baseline_methods_preserved": 141,
+  "historical_fixture_relocation": "Available exact published fixture paths relocated only in an external test harness; package test bytes remain preserved.",
+  "historical_fixture_tests_not_run": [
+    {
+      "reason": "retained Windows smoke attempt inventory unavailable",
+      "test": "test_native_producer.GateCpu.test_actual_smoke_admission_readonly"
+    },
+    {
+      "reason": "historical dense_contract.py unavailable",
+      "test": "test_native_producer.SourceEquivalence.test_exact_export_settings"
+    },
+    {
+      "reason": "historical native-producer-v1/v2 and independent review fixtures unavailable",
+      "test": "test_review_regressions.BoundaryAuditRegression.test_exact_boundary_function_hashes"
+    },
+    {
+      "reason": "historical native-producer-v1/v2 and independent review fixtures unavailable",
+      "test": "test_review_regressions.BoundaryAuditRegression.test_prior_frozen_packages_unchanged"
+    },
+    {
+      "reason": "historical native-producer-v1/v2 and independent review fixtures unavailable",
+      "test": "test_review_regressions.BoundaryAuditRegression.test_review_freeze_unchanged"
+    },
+    {
+      "reason": "retained Windows smoke attempt fixture unavailable",
+      "test": "test_review_regressions.ProcessConsistencyRegression.test_actual_original_smoke_semantics_and_gap_report"
+    },
+    {
+      "reason": "retained Windows smoke attempt fixture unavailable",
+      "test": "test_review_regressions.ProcessConsistencyRegression.test_exact_native_launcher_limits"
+    },
+    {
+      "reason": "retained Windows smoke attempt fixture unavailable",
+      "test": "test_review_regressions.ProcessConsistencyRegression.test_reject_all_null_rss"
+    },
+    {
+      "reason": "retained Windows smoke attempt fixture unavailable",
+      "test": "test_review_regressions.ProcessConsistencyRegression.test_reject_attempt_cwd"
+    },
+    {
+      "reason": "retained Windows smoke attempt fixture unavailable",
+      "test": "test_review_regressions.ProcessConsistencyRegression.test_reject_bool_rss"
+    },
+    {
+      "reason": "retained Windows smoke attempt fixture unavailable",
+      "test": "test_review_regressions.ProcessConsistencyRegression.test_reject_bool_sample_count"
+    },
+    {
+      "reason": "retained Windows smoke attempt fixture unavailable",
+      "test": "test_review_regressions.ProcessConsistencyRegression.test_reject_changed_build_all_predecessors"
+    },
+    {
+      "reason": "retained Windows smoke attempt fixture unavailable",
+      "test": "test_review_regressions.ProcessConsistencyRegression.test_reject_changed_context_all_predecessors"
+    },
+    {
+      "reason": "retained Windows smoke attempt fixture unavailable",
+      "test": "test_review_regressions.ProcessConsistencyRegression.test_reject_changed_host_all_predecessors"
+    },
+    {
+      "reason": "retained Windows smoke attempt fixture unavailable",
+      "test": "test_review_regressions.ProcessConsistencyRegression.test_reject_clock_beyond_duration"
+    },
+    {
+      "reason": "retained Windows smoke attempt fixture unavailable",
+      "test": "test_review_regressions.ProcessConsistencyRegression.test_reject_decreasing_clock"
+    },
+    {
+      "reason": "retained Windows smoke attempt fixture unavailable",
+      "test": "test_review_regressions.ProcessConsistencyRegression.test_reject_disk_below_floor"
+    },
+    {
+      "reason": "retained Windows smoke attempt fixture unavailable",
+      "test": "test_review_regressions.ProcessConsistencyRegression.test_reject_environment_all_predecessors"
+    },
+    {
+      "reason": "retained Windows smoke attempt fixture unavailable",
+      "test": "test_review_regressions.ProcessConsistencyRegression.test_reject_environment_keys_all_predecessors"
+    },
+    {
+      "reason": "retained Windows smoke attempt fixture unavailable",
+      "test": "test_review_regressions.ProcessConsistencyRegression.test_reject_extra_resource_field"
+    },
+    {
+      "reason": "retained Windows smoke attempt fixture unavailable",
+      "test": "test_review_regressions.ProcessConsistencyRegression.test_reject_extra_terminal_field"
+    },
+    {
+      "reason": "retained Windows smoke attempt fixture unavailable",
+      "test": "test_review_regressions.ProcessConsistencyRegression.test_reject_initial_available_guard"
+    },
+    {
+      "reason": "retained Windows smoke attempt fixture unavailable",
+      "test": "test_review_regressions.ProcessConsistencyRegression.test_reject_initial_disk_guard"
+    },
+    {
+      "reason": "retained Windows smoke attempt fixture unavailable",
+      "test": "test_review_regressions.ProcessConsistencyRegression.test_reject_missing_resource_field"
+    },
+    {
+      "reason": "retained Windows smoke attempt fixture unavailable",
+      "test": "test_review_regressions.ProcessConsistencyRegression.test_reject_negative_available"
+    },
+    {
+      "reason": "retained Windows smoke attempt fixture unavailable",
+      "test": "test_review_regressions.ProcessConsistencyRegression.test_reject_negative_terminal_duration"
+    },
+    {
+      "reason": "retained Windows smoke attempt fixture unavailable",
+      "test": "test_review_regressions.ProcessConsistencyRegression.test_reject_nonfinite_clock"
+    },
+    {
+      "reason": "retained Windows smoke attempt fixture unavailable",
+      "test": "test_review_regressions.ProcessConsistencyRegression.test_reject_process_duration_before_samples"
+    },
+    {
+      "reason": "retained Windows smoke attempt fixture unavailable",
+      "test": "test_review_regressions.ProcessConsistencyRegression.test_reject_queue_peak_over_limit"
+    },
+    {
+      "reason": "retained Windows smoke attempt fixture unavailable",
+      "test": "test_review_regressions.ProcessConsistencyRegression.test_reject_resource_stop_claim"
+    },
+    {
+      "reason": "retained Windows smoke attempt fixture unavailable",
+      "test": "test_review_regressions.ProcessConsistencyRegression.test_reject_rss_above_ceiling"
+    },
+    {
+      "reason": "retained Windows smoke attempt fixture unavailable",
+      "test": "test_review_regressions.ProcessConsistencyRegression.test_reject_rss_after_exit"
+    },
+    {
+      "reason": "retained Windows smoke attempt fixture unavailable",
+      "test": "test_review_regressions.ProcessConsistencyRegression.test_reject_sample_deadline"
+    },
+    {
+      "reason": "retained Windows smoke attempt fixture unavailable",
+      "test": "test_review_regressions.ProcessConsistencyRegression.test_reject_started_command"
+    },
+    {
+      "reason": "retained Windows smoke attempt fixture unavailable",
+      "test": "test_review_regressions.ProcessConsistencyRegression.test_reject_supervisor_bytes"
+    },
+    {
+      "reason": "retained Windows smoke attempt fixture unavailable",
+      "test": "test_review_regressions.ProcessConsistencyRegression.test_reject_terminal_before_transport"
+    },
+    {
+      "reason": "retained Windows smoke attempt fixture unavailable",
+      "test": "test_review_regressions.ProcessConsistencyRegression.test_reject_terminal_deadline"
+    },
+    {
+      "reason": "retained Windows smoke attempt fixture unavailable",
+      "test": "test_review_regressions.ProcessConsistencyRegression.test_reject_terminal_limits_changed"
+    },
+    {
+      "reason": "retained Windows smoke attempt fixture unavailable",
+      "test": "test_review_regressions.ProcessConsistencyRegression.test_reject_transport_constructor_failure"
+    },
+    {
+      "reason": "retained Windows smoke attempt fixture unavailable",
+      "test": "test_review_regressions.ProcessConsistencyRegression.test_reject_transport_not_started"
+    },
+    {
+      "reason": "retained Windows smoke attempt fixture unavailable",
+      "test": "test_review_regressions.ProcessConsistencyRegression.test_reject_transport_run"
+    },
+    {
+      "reason": "retained Windows smoke attempt fixture unavailable",
+      "test": "test_review_regressions.ProcessConsistencyRegression.test_reject_wrong_backend"
+    },
+    {
+      "reason": "retained Windows smoke attempt fixture unavailable",
+      "test": "test_review_regressions.ProcessConsistencyRegression.test_reject_wrong_child_pid"
+    },
+    {
+      "reason": "retained Windows smoke attempt fixture unavailable",
+      "test": "test_review_regressions.ProcessConsistencyRegression.test_reject_wrong_executable"
+    },
+    {
+      "reason": "retained Windows smoke attempt fixture unavailable",
+      "test": "test_review_regressions.ProcessConsistencyRegression.test_reject_wrong_peak"
+    },
+    {
+      "reason": "retained Windows smoke attempt fixture unavailable",
+      "test": "test_review_regressions.ProcessConsistencyRegression.test_reject_wrong_sample_count"
+    },
+    {
+      "reason": "retained Windows smoke attempt fixture unavailable",
+      "test": "test_review_regressions.ProcessConsistencyRegression.test_reject_wrong_start_clock"
+    },
+    {
+      "reason": "retained Windows smoke attempt fixture unavailable",
+      "test": "test_review_regressions.ProcessConsistencyRegression.test_reject_wrong_supervisor_all_predecessors"
+    },
+    {
+      "reason": "retained Windows smoke attempt fixture unavailable",
+      "test": "test_review_regressions.ProcessConsistencyRegression.test_reject_wrong_transport_sample_count"
+    },
+    {
+      "reason": "retained Windows smoke attempt fixture unavailable",
+      "test": "test_review_regressions.ProcessConsistencyRegression.test_reject_wrong_transport_stream"
+    },
+    {
+      "reason": "retained Windows smoke attempt fixture unavailable",
+      "test": "test_review_regressions.ProcessConsistencyRegression.test_resealed_started_attempt_reference_contradiction"
+    },
+    {
+      "reason": "retained Windows smoke attempt fixture unavailable",
+      "test": "test_review_regressions.ProcessConsistencyRegression.test_resealed_transport_started_reference_contradiction"
+    },
+    {
+      "reason": "retained Windows smoke attempt fixture unavailable",
+      "test": "test_review_regressions.ProcessConsistencyRegression.test_reviewer_combined_resealed_mutation"
+    },
+    {
+      "reason": "retained Windows smoke attempt fixture unavailable",
+      "test": "test_review_regressions.ProcessConsistencyRegression.test_valid_resealed_synthetic_fixture"
+    },
+    {
+      "reason": "historical runtime-consumer-v1/native-producer-v2 fixtures unavailable",
+      "test": "test_review_regressions.WindowsDescriptorRegression.test_actual_helper_environment_has_bisect"
+    },
+    {
+      "reason": "historical runtime-consumer-v1/native-producer-v2 fixtures unavailable",
+      "test": "test_review_regressions.WindowsDescriptorRegression.test_adapter_rejects_traversal_wrong_index_arbitrary_replacement"
+    },
+    {
+      "reason": "historical runtime-consumer-v1/native-producer-v2 fixtures unavailable",
+      "test": "test_review_regressions.WindowsDescriptorRegression.test_original_windows_descriptor_reproduction"
+    },
+    {
+      "reason": "historical runtime-consumer-v1/native-producer-v2 fixtures unavailable",
+      "test": "test_review_regressions.WindowsDescriptorRegression.test_windows_64row_chunk_to_actual_consumer"
+    },
+    {
+      "reason": "historical runtime-consumer-v1/native-producer-v2 fixtures unavailable",
+      "test": "test_review_regressions.WindowsDescriptorRegression.test_windows_export_to_actual_consumer"
+    },
+    {
+      "reason": "historical runtime-consumer-v1/native-producer-v2 fixtures unavailable",
+      "test": "test_review_regressions.WindowsDescriptorRegression.test_windows_nine_focus_to_actual_consumer"
+    }
+  ],
+  "independent_exact_successor_admission": "pending",
+  "native_admission": false,
+  "new_portable_dependency_tests": 5,
+  "publication_performed": false,
+  "schema": "rust-duty-windows-native-producer-source-results/v5",
+  "source_tests_passed": true,
+  "tests_run": 86
+}

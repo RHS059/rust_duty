@@ -53,7 +53,7 @@ class BlenderPipelineTests(unittest.TestCase):
         (root / 'docs/ANIMATION_SLOTS.md').write_text('fixture')
         return folder
 
-    def test_generated_pack_matches_hashes_and_rust_parity(self):
+    def test_generated_pack_matches_hashes_and_declared_clip(self):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
             self.fixture(root)
@@ -67,7 +67,7 @@ class BlenderPipelineTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, 'hash mismatch'):
                 package_game.verify_generated(root)
 
-    def test_python_only_or_failed_or_wrong_source_parity_fails(self):
+    def test_historical_parity_does_not_gate_approved_runtime_pack(self):
         for field, value in [('backend', 'Python diagnostic only'), ('passed', False),
                              ('source_witnesses_sha256', 'wrong'), ('asset_sha256', 'wrong')]:
             with self.subTest(field=field), tempfile.TemporaryDirectory() as temp:
@@ -77,7 +77,10 @@ class BlenderPipelineTests(unittest.TestCase):
                 parity = json.loads(path.read_text())
                 parity[field] = value
                 path.write_text(json.dumps(parity))
-                with self.assertRaisesRegex(ValueError, 'Rust parity'):
+                self.assertEqual(package_game.verify_generated(root)['clip'], 'reload_current_wip')
+                # Historical diagnostics do not replace current byte integrity.
+                (folder / 'asset.vra').write_bytes(b'corrupt')
+                with self.assertRaisesRegex(ValueError, 'hash mismatch'):
                     package_game.verify_generated(root)
 
     def test_missing_generated_fails(self):

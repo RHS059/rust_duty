@@ -96,7 +96,7 @@ class WindowsPortabilityTests(unittest.TestCase):
     def test_literal_source_hashes_hold_under_cp1252_default_and_crlf_text_streams(self):
         edges.SourceTests.setUpClass()
         cases = ((startup.StartupSourceTests, 'test_only_call_argument_and_menu_policy_changed'),
-                 (edges.SourceTests, 'test_capture_flags_remain_rejected_and_motion_source_is_untouched'))
+                 (edges.SourceTests, 'test_capture_flags_remain_rejected_and_direct_delivery_composition_is_exact'))
         for crlf in (False, True):
             for case, method in cases:
                 with self.subTest(crlf=crlf, method=method), windows_text_reads(crlf=crlf):
@@ -106,7 +106,7 @@ class WindowsPortabilityTests(unittest.TestCase):
         edges.SourceTests.setUpClass()
         for name, case, method in (
             ('level_menu.rs', startup.StartupSourceTests, 'test_only_call_argument_and_menu_policy_changed'),
-            ('sim.rs', edges.SourceTests, 'test_capture_flags_remain_rejected_and_motion_source_is_untouched'),
+            ('sim.rs', edges.SourceTests, 'test_capture_flags_remain_rejected_and_direct_delivery_composition_is_exact'),
         ):
             def mutation(path, text):
                 return text + '// Unreviewed source change.\n' if path.name == name else text

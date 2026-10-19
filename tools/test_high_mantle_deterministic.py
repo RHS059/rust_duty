@@ -114,7 +114,8 @@ class DeterministicTests(unittest.TestCase):
         self.assertIn('deterministic_ordinary_input',capture)
         self.assertIn('else {"platform"}',capture)
         self.assertIn('--onehand-deterministic',capture)
-        self.assertIn("const APPROVED_RUNTIME_PINS: Option<RuntimePins<'static>> = None;",
-                      (HERE/'src/authored_high_mantle.rs').read_text())
+        # Capture routing does not own or override production asset admission.
+        self.assertNotIn('APPROVED_RUNTIME_PINS',capture)
+        self.assertNotIn('set_high_mantle_binding(',capture)
 
 if __name__=='__main__':unittest.main()

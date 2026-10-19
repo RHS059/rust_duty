@@ -1,0 +1,163 @@
+{
+  "schema": "rust-duty-fbx-segment-diagnostic/v1",
+  "status": "diagnostic",
+  "source_fbx_sha256": "92615a11d90e3921b80b9027a77871fc8c9955141f695b45761131a5f36c9b52",
+  "authoring_master_sha256": "36d76491c2cf6238b8a1e10069dddd5b0d63e199063e1f4012b34f3fd4b1e18d",
+  "native_crop": [
+    0,
+    49
+  ],
+  "native_fps": [
+    60,
+    1
+  ],
+  "source_take": "hip_strafe_right_r1",
+  "imported_frame_offset": 0.0,
+  "timing_policy": {
+    "kind": "explicit-rational-resampling",
+    "subdivisions": 8,
+    "switches": [],
+    "switch_neighbor_offset_native": [
+      1,
+      65536
+    ],
+    "float32_collision_policy": "reject",
+    "samples": 393
+  },
+  "bones": 72,
+  "actors": [
+    "hk416_weapon",
+    "hk416_magazine"
+  ],
+  "weights": {
+    "Actual arms mesh 2": {
+      "vertices": 570,
+      "maximum_influences": 3,
+      "vertices_over_four": 0
+    },
+    "Actual arms mesh 1": {
+      "vertices": 3954,
+      "maximum_influences": 6,
+      "vertices_over_four": 93
+    },
+    "Actual arms mesh 0": {
+      "vertices": 5710,
+      "maximum_influences": 5,
+      "vertices_over_four": 4
+    }
+  },
+  "importer_patches": {
+    "blen_read_animations": {
+      "sha256": "757bd21550d94e2190881ec6b0eb0ce80b275d2a230055cf7702044fe6dcc6e2",
+      "replacement_count": 1
+    },
+    "blen_store_keyframes_multi": {
+      "sha256": "793a389ebde0e71ec3cec54e731c861753aa08015355904777a8c39b70da3a4e",
+      "replacement_count": 1
+    }
+  },
+  "source_action_ranges": [
+    {
+      "name": "Arms|hip_strafe_left_r1",
+      "frame_range": [
+        0.0,
+        49.0
+      ]
+    },
+    {
+      "name": "Arms|hip_strafe_right_r1",
+      "frame_range": [
+        0.0,
+        49.0
+      ]
+    },
+    {
+      "name": "Arms|hip_walk_backward_r1",
+      "frame_range": [
+        0.0,
+        45.0
+      ]
+    },
+    {
+      "name": "Arms|hip_walk_forward_r1",
+      "frame_range": [
+        0.0,
+        38.0
+      ]
+    },
+    {
+      "name": "hk416_magazine|hip_strafe_left_r1",
+      "frame_range": [
+        0.0,
+        49.0
+      ]
+    },
+    {
+      "name": "hk416_magazine|hip_strafe_right_r1",
+      "frame_range": [
+        0.0,
+        49.0
+      ]
+    },
+    {
+      "name": "hk416_magazine|hip_walk_backward_r1",
+      "frame_range": [
+        0.0,
+        45.0
+      ]
+    },
+    {
+      "name": "hk416_magazine|hip_walk_forward_r1",
+      "frame_range": [
+        0.0,
+        38.0
+      ]
+    },
+    {
+      "name": "hk416_weapon|hip_strafe_left_r1",
+      "frame_range": [
+        0.0,
+        49.0
+      ]
+    },
+    {
+      "name": "hk416_weapon|hip_strafe_right_r1",
+      "frame_range": [
+        0.0,
+        49.0
+      ]
+    },
+    {
+      "name": "hk416_weapon|hip_walk_backward_r1",
+      "frame_range": [
+        0.0,
+        45.0
+      ]
+    },
+    {
+      "name": "hk416_weapon|hip_walk_forward_r1",
+      "frame_range": [
+        0.0,
+        38.0
+      ]
+    }
+  ],
+  "visibility_policy": "all-zero rigid scale maps to invisible STEP with identity placeholder; partial singular scale rejected",
+  "geometry_transport": "static GLB only; no sampled GLB animation",
+  "material_source_sha256": "36d76491c2cf6238b8a1e10069dddd5b0d63e199063e1f4012b34f3fd4b1e18d",
+  "files": {
+    "asset.vrs": {
+      "sha256": "4b11ff4137def642fe761c1a74778145e0b528c34801427b396a3368c600d7e2",
+      "bytes": 13605994
+    },
+    "asset.vrm": {
+      "sha256": "e6d0afc10a9ccbb8e7a4c341fb2e11517f8aa0712075d86cc07d893a76aeeedf",
+      "bytes": 3901372
+    },
+    "asset.vra": {
+      "sha256": "670a91f2380714744235a06f0810f1f77cad826291c694670756b0e3ae03747a",
+      "bytes": 1167179
+    }
+  },
+  "scope": "Explicitly selected source range converted as WIP. Review scope is recorded in the source-selection manifest. No runtime parity or gameplay visual approval is implied."
+}

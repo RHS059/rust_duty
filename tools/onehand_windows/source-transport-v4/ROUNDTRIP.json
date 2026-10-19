@@ -1,0 +1,319 @@
+{
+  "schema": "onehand-projection-transport-roundtrip/v1",
+  "files": [
+    {
+      "name": "original-delta.json",
+      "canonical": {
+        "sha256": "3a6a244d560e3688742e03133ce2d6afe065128ef231e37b3b55339abee582c8",
+        "bytes": 20262532
+      },
+      "encoded_bytes": 1432732
+    },
+    {
+      "name": "replay-receipt.json",
+      "canonical": {
+        "sha256": "664c471d2d0ca9e1f015d578f50617866b36c68300d42324297f2cc267754646",
+        "bytes": 3195
+      },
+      "encoded_bytes": 1790
+    },
+    {
+      "name": "witness-index.json",
+      "canonical": {
+        "sha256": "482e235a9f2be27173c63ff92ffa8a1ed3c31367f39e06a322d89e34152e7f91",
+        "bytes": 3148
+      },
+      "encoded_bytes": 1479
+    },
+    {
+      "name": "source-equivalence.json",
+      "canonical": {
+        "sha256": "0edade60bd2a9b277f0577a37f4392c47ec6d69e4954b52bff1adb395317b773",
+        "bytes": 2581
+      },
+      "encoded_bytes": 1413
+    },
+    {
+      "name": "approved-000.json",
+      "canonical": {
+        "sha256": "70ca412e2d4cae60a5683a8cb83620e645b89a39e9d8dd5564cc93ace7af8f54",
+        "bytes": 851865
+      },
+      "encoded_bytes": 97490
+    },
+    {
+      "name": "approved-001.json",
+      "canonical": {
+        "sha256": "c356fc4ceb6d1d9ef41b814d9d623e5fe234bd22d1d23f81b3c38aba8ca05c9b",
+        "bytes": 852121
+      },
+      "encoded_bytes": 136454
+    },
+    {
+      "name": "approved-002.json",
+      "canonical": {
+        "sha256": "4516c64e5317ecb203545b5820f7e07ae29d697b23cbb66f9359c6a2fca13e11",
+        "bytes": 852306
+      },
+      "encoded_bytes": 136453
+    },
+    {
+      "name": "approved-003.json",
+      "canonical": {
+        "sha256": "eb4469beb2368ad718051b816e615b82b55fbe8b2863a75fa6dd91000113869d",
+        "bytes": 853140
+      },
+      "encoded_bytes": 136669
+    },
+    {
+      "name": "approved-004.json",
+      "canonical": {
+        "sha256": "07734f02705d5aa66ea79635e143a2876d4f866fbdf7d0d10c5886e2979cf665",
+        "bytes": 853328
+      },
+      "encoded_bytes": 136544
+    },
+    {
+      "name": "approved-005.json",
+      "canonical": {
+        "sha256": "bab2a07c91d5be7c771b2bc7cb6765e53f1dc169c419efb8293bcea979aabd5b",
+        "bytes": 853126
+      },
+      "encoded_bytes": 136613
+    },
+    {
+      "name": "approved-006.json",
+      "canonical": {
+        "sha256": "81804a29c001ab454adf8ba95001ef2ad6608a4f42c40db040bad67cf748bbbc",
+        "bytes": 853124
+      },
+      "encoded_bytes": 136574
+    },
+    {
+      "name": "approved-007.json",
+      "canonical": {
+        "sha256": "338139337074f4b7626e730b8dcd239ce79e4576b27f5485355b3f6067e78cc4",
+        "bytes": 853119
+      },
+      "encoded_bytes": 136666
+    },
+    {
+      "name": "approved-008.json",
+      "canonical": {
+        "sha256": "74a4b66e82962d16cdef2d7ea803afbf9b369bbc647580bb238e9a1a1707d543",
+        "bytes": 853285
+      },
+      "encoded_bytes": 136678
+    },
+    {
+      "name": "approved-009.json",
+      "canonical": {
+        "sha256": "3c20d73c31e175404676dfe73b1d73b5b7350d0af4a59d5b4662894a5e63a843",
+        "bytes": 853373
+      },
+      "encoded_bytes": 136732
+    },
+    {
+      "name": "approved-010.json",
+      "canonical": {
+        "sha256": "defcae1055e9eae4360cd599130db0e959f5bbf8dbb524154fb97fd455fc3abc",
+        "bytes": 853374
+      },
+      "encoded_bytes": 136684
+    },
+    {
+      "name": "approved-011.json",
+      "canonical": {
+        "sha256": "e3a926e867bd544fc06d89a2f404d631ebec0ffa8f1f03c3e0bca89927bb4b0f",
+        "bytes": 853374
+      },
+      "encoded_bytes": 136677
+    },
+    {
+      "name": "approved-012.json",
+      "canonical": {
+        "sha256": "9455a6892a6516ac5e2e68016db10fc3a9cdb5c9e18b06aa28ebbae8bf86e02e",
+        "bytes": 853374
+      },
+      "encoded_bytes": 136639
+    },
+    {
+      "name": "approved-013.json",
+      "canonical": {
+        "sha256": "bd73e5e27e8c40b1f3f384c1b0a31afd20a89ddb88f189134e1be3dd2c857e35",
+        "bytes": 853049
+      },
+      "encoded_bytes": 136544
+    },
+    {
+      "name": "approved-014.json",
+      "canonical": {
+        "sha256": "9b8df0c4aa33fc21e0e7ef2f0372e90bc2c55d91370bc4df5ede96fa8b3a1892",
+        "bytes": 852694
+      },
+      "encoded_bytes": 136510
+    },
+    {
+      "name": "approved-015.json",
+      "canonical": {
+        "sha256": "fb3f2452c4ef4be41424a15b909e12b25b80975010c33cfe9aab11baf980a4fd",
+        "bytes": 852380
+      },
+      "encoded_bytes": 136551
+    },
+    {
+      "name": "approved-016.json",
+      "canonical": {
+        "sha256": "af547f8fdad028b0d900dc983d4e0bbca966d99a367c6ebd6e833a3560239ac4",
+        "bytes": 482318
+      },
+      "encoded_bytes": 78464
+    },
+    {
+      "name": "regenerated-000.json",
+      "canonical": {
+        "sha256": "4bae9bbef683994678fc2b9bc687fe1458b853b162b64410f674c286a5266005",
+        "bytes": 851868
+      },
+      "encoded_bytes": 97495
+    },
+    {
+      "name": "regenerated-001.json",
+      "canonical": {
+        "sha256": "617fb87367f8e9b0464f911c954b0d9353e87144266b064080af769b66f796aa",
+        "bytes": 852124
+      },
+      "encoded_bytes": 136459
+    },
+    {
+      "name": "regenerated-002.json",
+      "canonical": {
+        "sha256": "ba10c110021b59ac647364d0796771f6a960224f0832c0cc73b4937bd93f61b7",
+        "bytes": 852309
+      },
+      "encoded_bytes": 136460
+    },
+    {
+      "name": "regenerated-003.json",
+      "canonical": {
+        "sha256": "fc7f37f991ca5db027a732f4750d2386ee7968378978edf203241df0196a02b8",
+        "bytes": 853143
+      },
+      "encoded_bytes": 136675
+    },
+    {
+      "name": "regenerated-004.json",
+      "canonical": {
+        "sha256": "9e1b97b8b0f44d9dca9dba393aa22ee3136751b1992f93c460129aa5b76008a3",
+        "bytes": 853331
+      },
+      "encoded_bytes": 136549
+    },
+    {
+      "name": "regenerated-005.json",
+      "canonical": {
+        "sha256": "36cb73da7f09894b27624a16b477a5016c50676d20a7ee2e793d6831618336ed",
+        "bytes": 853129
+      },
+      "encoded_bytes": 136619
+    },
+    {
+      "name": "regenerated-006.json",
+      "canonical": {
+        "sha256": "c24383090844039d4e9cd6bde91fc7e6d18ad654a750f51b26b9a4888eb0c01b",
+        "bytes": 853127
+      },
+      "encoded_bytes": 136577
+    },
+    {
+      "name": "regenerated-007.json",
+      "canonical": {
+        "sha256": "bc7bdc8fe9b572ad6be55401c56a8e323aeb0ec5f6d6c1fde8163e292ed3a445",
+        "bytes": 853122
+      },
+      "encoded_bytes": 136671
+    },
+    {
+      "name": "regenerated-008.json",
+      "canonical": {
+        "sha256": "8784448787fbd3a0cd5df863f4039e9bda448c50869d67ca2efe4cf50d6a3aa0",
+        "bytes": 853288
+      },
+      "encoded_bytes": 136681
+    },
+    {
+      "name": "regenerated-009.json",
+      "canonical": {
+        "sha256": "83f1cdca6214fa51c2673f269fd8ab7aabe3a092e9e273809b6fb7bde781418a",
+        "bytes": 853376
+      },
+      "encoded_bytes": 136738
+    },
+    {
+      "name": "regenerated-010.json",
+      "canonical": {
+        "sha256": "586083c9cc9da2df9d6594b48b74ee8eb1ddb359b65f764ba518e46998db63d4",
+        "bytes": 853377
+      },
+      "encoded_bytes": 136689
+    },
+    {
+      "name": "regenerated-011.json",
+      "canonical": {
+        "sha256": "becd7b3823de907b901f622df1dc2a776b7aacb224e2ccf589dd3db7141c7e4c",
+        "bytes": 853377
+      },
+      "encoded_bytes": 136686
+    },
+    {
+      "name": "regenerated-012.json",
+      "canonical": {
+        "sha256": "0b3d96c1419b4e52ab86e2e78c5df8362991f0bd94320d001ae5383306b88a74",
+        "bytes": 853377
+      },
+      "encoded_bytes": 136643
+    },
+    {
+      "name": "regenerated-013.json",
+      "canonical": {
+        "sha256": "0973cebc648c1465647941638e95009267c8f7107c11dc8c93064cccd376ec71",
+        "bytes": 853052
+      },
+      "encoded_bytes": 136549
+    },
+    {
+      "name": "regenerated-014.json",
+      "canonical": {
+        "sha256": "ab12072d51cade79764da5cbfdff2707109c11599db1ce20d491bf9fb7243346",
+        "bytes": 852697
+      },
+      "encoded_bytes": 136514
+    },
+    {
+      "name": "regenerated-015.json",
+      "canonical": {
+        "sha256": "8c6cc739a446b8bc8f3ac49176b2d2a49f7edc3f3f6fc35970cf7ea1bd61bc53",
+        "bytes": 852383
+      },
+      "encoded_bytes": 136555
+    },
+    {
+      "name": "regenerated-016.json",
+      "canonical": {
+        "sha256": "760c8ab9e2fedb6d2e14c74e54e48359dd7b1e1175ed1c2bc6aaba9026ad8b19",
+        "bytes": 482321
+      },
+      "encoded_bytes": 78470
+    }
+  ],
+  "file_count": 38,
+  "part_count": 123,
+  "original_to_projected_reproduction_passed": true,
+  "unchanged_historical_inputs": 37,
+  "same_buffer_pinning_preserved": true,
+  "bounded_decode_and_independent_gzip_passed": true,
+  "raw_decoded_copies_written": 0,
+  "maximum_transient_encoded_file_bytes": 1432732,
+  "temporary_files_removed": true,
+  "native_admission": false
+}

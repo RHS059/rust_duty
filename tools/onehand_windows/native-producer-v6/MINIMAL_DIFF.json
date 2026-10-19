@@ -1,0 +1,68 @@
+{
+  "actual_native_execution": false,
+  "added_files": [
+    "HOST_BINDING_CHANGE.json",
+    "HOST_BINDING_PREDECESSOR.json",
+    "host_identity.py",
+    "test_host_identity.py"
+  ],
+  "byte_identical_files": {
+    ".gitattributes": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da",
+    "AUDITED_FRAGMENTS.json": "3a2d0c7ea5fcc0dfab7ec615dbb78e0b7d9f907c1d1a48bc2f90da14933952b5",
+    "BOUNDARY_ADAPTATIONS.json": "259caee2b8265e77f3d45eb7b70462fd062b13a9e1435c6d7457ab377de80ee0",
+    "BYTE_PRESERVATION.md": "ebdb63e437c68148f46e6e845f796bffc7449b4a0a7ecf3e1de7816a0e8667cc",
+    "PENDING_NATIVE_COMMANDS.md": "da524d4b508b297ad0ff16741807800d302318d6c96db1dc713d4cc444ae65b5",
+    "PREDECESSOR_SELECTED_SOURCE.json": "cf004a008e63d8a7fcc06afcf3e5c9839b37d0e1148eb12e7d68a6dd43ad28e8",
+    "extract_helpers.py": "5960f27c112ae4b83ae729c5cbd1d2eba4fe5f4bf5b0fb7afa5c33dfe7a7d10c",
+    "native_stages.py": "ecc58db55b78c9a178fa3bbbd07baa6fb5398dc961cbb636b4fa42fa27e1367d",
+    "pinned_code.py": "193c247bea1c7c48fd4a9e16b5d2b88111472353fedeb6622f5a3e1392fe61fd",
+    "planner.py": "e7bccd65dde3c34c46224e2325bcf01c6e980bf67ffd33a7eab1919a2e8e0db2",
+    "process_evidence.py": "b42edd7f757a5876bee2f600bfb35f56f80867255b21693a8444b365305e6a51",
+    "stage_context.py": "3fde606b79903fa6d8b82e2b43999ed7d92f06547d097c84a5c719513c98f809",
+    "test_native_producer.py": "51061cd39edb74c2b60b775ba815c7c2967fedf2a3fbb84845ab5cc4cc6758c0",
+    "test_review_regressions.py": "0fef00119ab0c1e1e257c298b4d3d7c0226afc7cd4b523a485d3cfea52a2aaf7",
+    "transport_binding.py": "1c2b851d68cdf7c4da8813f1d504ae9be5649e65b5fc01feb332d557ae4f7a5e",
+    "verify_freeze.py": "2456c9b00aee29eaa55dbb1f37a25506914562e446edbced48c71e2f794a2752"
+  },
+  "changed_files": {
+    "README.md": {
+      "after_sha256": "70f681a4fa3290d6b136be8fc3e9847d1b3776b347db71874f81fd72c557e7d5",
+      "before_sha256": "51e255ee16122c8ddaab649d4f02cac453b5f9a79147f0782453e6626b959006"
+    },
+    "admission.py": {
+      "after_sha256": "2d0a7c5a21fc0155abd75787b2d8f87a1029a1798db8b0b4703d5060955c3db2",
+      "before_sha256": "131ecf0044132b851aac3a7a14bd1056a1dff37f73db75054fa296457823f24d"
+    },
+    "launch_stage.py": {
+      "after_sha256": "035fd24eff1f5e0f007160295bb14418171997945c7c7a7a982ddd911a313d0b",
+      "before_sha256": "98e0b468bc1185e11eb23de12c6e2479e843067dfe75c64c3e66ad212bdfa2eb"
+    },
+    "native_entry.py": {
+      "after_sha256": "55edc392b90578e1bb3a1a03c12c093a9edc5467afaf5d9b0d169c67d24b829f",
+      "before_sha256": "e1f4a4140e12d0f288dfd84b09837335eafbeb72f1d4b5b83b3777149d82d5d5"
+    },
+    "test_dependency_selection.py": {
+      "after_sha256": "293d0625b9a2bef6ea6e7317876935291ecf93184c69f27436dd061479850917",
+      "before_sha256": "03f0d68eb1b389da4f6b93bf3c2aa5f59088764ca421cc35724fbb076d92d696"
+    },
+    "test_projection_dependency.py": {
+      "after_sha256": "65f32dacfbc65d6c06d4c103fcc687340eff3358ce19435a6e0749a097626c58",
+      "before_sha256": "054859ca8bf6c120db83ce2970b6497dc8d5304f8c28ba2ec003dc9978625f80"
+    }
+  },
+  "exact_probe_environment_consistency": "Separate controller_environment_sha256(no newline) and unchanged native_environment_sha256(adapter newline) derived together; context and actual launcher check the former, process and launcher check latter.",
+  "generated_artifacts_excluded": [
+    "ALLOWLIST.json",
+    "MINIMAL_DIFF.json",
+    "PINS.json",
+    "RESULTS.json",
+    "cpu-tests.log"
+  ],
+  "independent_acceptance": false,
+  "launcher_boundary_exception": "One additional controller-domain environment digest comparison before capacity; original outer host and transport digest/key checks preserved verbatim.",
+  "predecessor_commit": "9439dc0701e34c74c371be77985930926b836fc9",
+  "predecessor_package": "tools/onehand_windows/native-producer-v5",
+  "predecessor_pins_sha256": "8be8fd72f44e2baf160e5b86f01b835907396889dc78c4e811ff7818b7f3fd04",
+  "schema": "rust-duty-host-binding-successor-diff/v1",
+  "test_layout_correction": "test_host_identity includes authored, versioned-publication and actual materialized orchestration sibling names; production code unchanged by correction"
+}

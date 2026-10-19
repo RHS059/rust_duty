@@ -1,0 +1,40 @@
+{
+  "active_workflow_composed_separately": true,
+  "added_runtime": [
+    "failure_diagnostics.py",
+    "DIAGNOSTIC_SOURCE_PINS.json"
+  ],
+  "admission_or_math_or_recipe_changes": false,
+  "base_orchestration_pins_sha256": "946f4ed23f90ceb6886252c9c636ff2bfb37f4e0ae43e6bd6fad27ad8050eb26",
+  "runtime_and_binding_changes": {
+    "host_tools.py": {
+      "after_sha256": "6c931d5e93214f829ea5b4e3faa3e1c98c5aa923e76c87c2af1fdf36276953d4",
+      "before_sha256": "eaeafe40d816a12927fb7073f25122f7ab2ee6d6db570605df4b7d0a7186d2f9"
+    },
+    "onehand-windows-proof.yml": {
+      "after_sha256": "891f001348568fc214abc420eb4545ae1f68d21294dbf2b3134b1e29823bdf9e",
+      "before_sha256": "00efc1d24425a62d1af0c90fdea78476b1ecb8407dfff1990539f6917379f8bf"
+    },
+    "orchestrate.py": {
+      "after_sha256": "c4f16118769bec27eb028f86605f3214501df97fec13e17f676cce0ffa576e44",
+      "before_sha256": "75a6399929fc34645c4a37219c39864c62f525c7cb071802d7fa7f81fbde881f"
+    },
+    "owned_commands.py": {
+      "after_sha256": "20104c58b947b9d1032ccf162e1504620f949fdd274b5fbcc2fe5707e14c0e65",
+      "before_sha256": "737ad898105051bf35017ffcd58b3e11d6d1e989b7fa17a076cf272ddc38d1a0"
+    },
+    "source_checkout.py": {
+      "after_sha256": "44046ada0835874de62b130a152f643153c6a4b95a03dfa2bc2c93e0c3fbac4e",
+      "before_sha256": "c2206d9a87865f3e805ba4fbd736d5953376c0633205b1443692298e8de0aaf8"
+    }
+  },
+  "schema": "rust-duty-failure-diagnostics-minimal-diff/v1",
+  "unchanged_proof_dependencies": [
+    "context-v3",
+    "native-producer-reviewed",
+    "runtime-consumer-reviewed",
+    "process-v2",
+    "source-producer",
+    "authored-bridge"
+  ]
+}

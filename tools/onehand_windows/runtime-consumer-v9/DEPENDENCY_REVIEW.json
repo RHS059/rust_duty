@@ -1,0 +1,15 @@
+{
+  "actual_windows_provenance": false,
+  "decision": "prepared-independent-review-required",
+  "historical_producer_v3_review_pins_sha256": "d704d46e75d7f28865bde42aea1ad1ea75a84089600b1a40053d8ae064747b79",
+  "historical_review_does_not_approve_successor": true,
+  "native_admission": false,
+  "predecessor_consumer_pins_sha256": "ce25429351c948921aefab783a9a6378c6801a0a1df1469ad8d35f3e0c2be8b4",
+  "schema": "rust-duty-runtime-consumer-dependency-selection/v6",
+  "selected_context_pins_sha256": "8702d486bc36a649924c3d844ea5eab445600f93995ec8367ea02d94e250c48a",
+  "selected_producer_pins_sha256": "ed4cf3ff99e94b8c86e4239c083689d4b86ef082ab08033719df0788a509033a",
+  "selected_rust_source_revision": "c61dbd67039a4961d0c56f0a3c7e478c431d1ced",
+  "source_selection_sha256": "14c52fc3a46f8cca2ae17a2a4db43c4a6f4d184a560e0d5c37f22a88238f0d22",
+  "source_selection_unchanged": true,
+  "successor_scope": "Only exact N8 producer selection; inherited loader and numerical/controller contracts byte-identical."
+}

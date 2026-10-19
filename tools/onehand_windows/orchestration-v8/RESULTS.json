@@ -1,0 +1,26 @@
+{
+  "actual_windows_native_proof": false,
+  "errors": 0,
+  "failures": 0,
+  "focused_diagnostic_tests": 48,
+  "independent_exact_successor_admission": "pending",
+  "native_execution_performed": false,
+  "portable_profile_tests": {
+    "consumer": 6,
+    "context": 27,
+    "errors": 0,
+    "failures": 0,
+    "native": 5,
+    "skipped": 0
+  },
+  "predecessor_logs_preserved": [
+    "cpu-tests.log",
+    "completed-tests.log"
+  ],
+  "publication_performed": false,
+  "schema": "rust-duty-failure-diagnostics-source-results/v1",
+  "skip_reason": "Inherited actual Windows-only PowerShell application-selection fixture; not an actual Windows pass.",
+  "skipped": 1,
+  "source_closure_checked": true,
+  "tests_run": 213
+}

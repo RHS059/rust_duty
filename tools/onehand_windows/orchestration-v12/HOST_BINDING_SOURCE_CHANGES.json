@@ -1,0 +1,231 @@
+{
+  "files": {
+    "command_contract.py": [
+      {
+        "new_lines": [
+          "PRODUCER_SHA='fbf3b0f7221b34b6dca29b885c7b1ab2f965ed76049c77504b9d504032e5bc9e'\n"
+        ],
+        "new_start": 15,
+        "old_lines": [
+          "PRODUCER_SHA='8be8fd72f44e2baf160e5b86f01b835907396889dc78c4e811ff7818b7f3fd04'\n"
+        ]
+      }
+    ],
+    "host_tools.py": [
+      {
+        "new_lines": [
+          "def validate_probe(value,outer,exe,host_identity):\n",
+          "    fields={'schema','observed_host','sys_platform','pointer_bits','blender_version','blender_build_hash','blender_binary','blender_binary_sha256','python_runtime','python_runtime_sha256','fbx_addon_file','background','autoexec_disabled','source_saved','rendered'}\n",
+          "    require(type(value) is dict and set(value)==fields,'host probe fields differ')\n",
+          "    require(value['schema']=='rust-duty-official-blender-host-observation/v2','host probe schema differs')\n",
+          "    require(value['sys_platform']=='win32' and type(value['pointer_bits']) is int and value['pointer_bits']==64,'native 64-bit Windows host probe required')\n",
+          "    native=host_identity.validate_observed_host(value['observed_host'])\n",
+          "    host_identity.compare_cross_role(outer,native)\n",
+          "    require(value['blender_version']==[4,3,2] and value['blender_binary_sha256']==sha(exe),'observed Blender binary/version differs')\n",
+          "    require(value['blender_binary']==str(exe),'observed Blender executable path differs')\n",
+          "    require(type(value['blender_build_hash']) is str and bool(value['blender_build_hash'].strip()),'observed Blender build hash absent')\n",
+          "    require(value['background'] is True and value['autoexec_disabled'] is True and value['source_saved'] is False and value['rendered'] is False,'unexpected host probe action')\n",
+          "    pin(value['python_runtime'],value['python_runtime_sha256'])\n",
+          "    return native\n",
+          "\n",
+          "def collect(config,adapter,cc,candidate,process_validator,host_identity):\n",
+          "    require(sys.platform=='win32' and ctypes.sizeof(ctypes.c_void_p)==8,'actual native 64-bit Windows controller required')\n",
+          "    observed_host={k:getattr(platform,k)() for k in ('system','release','version','machine')}\n",
+          "    host_identity.validate_observed_host(observed_host)\n"
+        ],
+        "new_start": 30,
+        "old_lines": [
+          "def collect(config,adapter,cc,candidate,process_validator):\n",
+          "    require(sys.platform=='win32' and platform.system()=='Windows','actual Windows controller required')\n"
+        ]
+      },
+      {
+        "new_lines": [
+          "    host={'runner_id':config['runner_id'],'run_id':config['run_id'],**observed_host,'build_sha256':digest({'install_receipt':file_pin(config['blender_install_receipt']),'python':file_pin(sys.executable),'python_runtime':file_pin(python_runtime())})}\n"
+        ],
+        "new_start": 49,
+        "old_lines": [
+          "    host={'runner_id':config['runner_id'],'run_id':config['run_id'],**{k:getattr(platform,k)() for k in ('system','release','version','machine')},'build_sha256':digest({'install_receipt':file_pin(config['blender_install_receipt']),'python':file_pin(sys.executable),'python_runtime':file_pin(python_runtime())})}\n"
+        ]
+      },
+      {
+        "new_lines": [
+          "    value=strict_json(probe);native_observed_host=validate_probe(value,observed_host,exe,host_identity)\n",
+          "    native_observation={'probe':file_pin(probe),'command_context':result['context'],'process_terminal':result['terminal'],'probe_source':file_pin(HERE/'probe_blender.py')}\n"
+        ],
+        "new_start": 61,
+        "old_lines": [
+          "    value=strict_json(probe);require(value['blender_version']==[4,3,2] and value['blender_binary_sha256']==sha(exe),'observed Blender binary/version differs')\n",
+          "    require(value['blender_binary']==str(exe) and value['source_saved'] is False and value['rendered'] is False,'unexpected host probe action')\n"
+        ]
+      },
+      {
+        "new_lines": [
+          "    result={'schema':'rust-duty-windows-native-host/v3','candidate_id':config['candidate_id'],'session_id':config['session_id'],'runner_id':config['runner_id'],'run_id':config['run_id'],'observed_host':observed_host,'native_observed_host':native_observed_host,'native_observation':native_observation,'tools':{'python':file_pin(sys.executable),'python_runtime':file_pin(python_runtime()),'blender':file_pin(exe),'blender_python_runtime':file_pin(value['python_runtime'])},'blender_version':[4,3,2],'blender_build_hash':value['blender_build_hash'],'blender_libraries':[file_pin(p) for p in dlls],'addon_relative':addon.relative_to(bundle).as_posix(),'addon_pins_sha256':resolver.PIN_FILE_SHA,'context_pins_sha256':config['pins']['context'],'producer_pins_sha256':config['pins']['producer'],'gltf_source_files':gltf_files,'controller_environment_sha256':digest(config['native_environment']),'native_environment_sha256':transport_env['environment_sha256'],'native_environment_keys':transport_env['environment_keys']}\n"
+        ],
+        "new_start": 69,
+        "old_lines": [
+          "    result={'schema':'rust-duty-windows-native-host/v2','candidate_id':config['candidate_id'],'session_id':config['session_id'],'runner_id':config['runner_id'],'run_id':config['run_id'],'observed_host':{k:host[k] for k in ('system','release','version','machine')},'tools':{'python':file_pin(sys.executable),'python_runtime':file_pin(python_runtime()),'blender':file_pin(exe),'blender_python_runtime':file_pin(value['python_runtime'])},'blender_version':[4,3,2],'blender_build_hash':value['blender_build_hash'],'blender_libraries':[file_pin(p) for p in dlls],'addon_relative':addon.relative_to(bundle).as_posix(),'addon_pins_sha256':resolver.PIN_FILE_SHA,'context_pins_sha256':config['pins']['context'],'producer_pins_sha256':config['pins']['producer'],'gltf_source_files':gltf_files,'native_environment_sha256':transport_env['environment_sha256'],'native_environment_keys':transport_env['environment_keys']}\n"
+        ]
+      }
+    ],
+    "onehand-windows-proof.yml": [
+      {
+        "new_lines": [
+          "      PACKAGE: tools/onehand_windows/orchestration-v9\n"
+        ],
+        "new_start": 26,
+        "old_lines": [
+          "      PACKAGE: tools/onehand_windows/orchestration-v8\n"
+        ]
+      },
+      {
+        "new_lines": [
+          "          $sourceHelperSha='f619fe5c82ea7845ba7f94740d07d3dccafefcf6547a0668e9a1976b4a5233dc'\n"
+        ],
+        "new_start": 74,
+        "old_lines": [
+          "          $sourceHelperSha='44046ada0835874de62b130a152f643153c6a4b95a03dfa2bc2c93e0c3fbac4e'\n"
+        ]
+      },
+      {
+        "new_lines": [
+          "          python -I -B -c 'import sys,unittest;sys.path.insert(0,sys.argv[1]);suite=unittest.defaultTestLoader.loadTestsFromName(sys.argv[2]);assert suite.countTestCases()==int(sys.argv[3]);result=unittest.TextTestRunner(verbosity=2).run(suite);raise SystemExit(not result.wasSuccessful() or bool(result.skipped))' $env:ONEHAND_SOURCE_PACKAGE 'test_host_identity_collection' 27\n",
+          "          if ($LASTEXITCODE -ne 0) { throw 'Exact host/environment source regressions failed before native installers' }\n"
+        ],
+        "new_start": 91,
+        "old_lines": []
+      },
+      {
+        "new_lines": [
+          "          python -I -B -c 'import sys,unittest;sys.path.insert(0,sys.argv[1]);suite=unittest.defaultTestLoader.loadTestsFromName(sys.argv[2]);assert suite.countTestCases()==int(sys.argv[3]);result=unittest.TextTestRunner(verbosity=2).run(suite);raise SystemExit(not result.wasSuccessful() or bool(result.skipped))' (Join-Path $profileSourceRoot 'native-producer-reviewed') 'test_host_identity' 27\n",
+          "          if ($LASTEXITCODE -ne 0) { throw 'Exact native host-identity source regressions failed before native installers' }\n"
+        ],
+        "new_start": 94,
+        "old_lines": []
+      }
+    ],
+    "orchestrate.py": [
+      {
+        "new_lines": [
+          "    native=modules(roots['native_producer'],('pinned_code','host_identity','stage_context','transport_binding','planner','native_stages','process_evidence','admission','launch_stage'))\n"
+        ],
+        "new_start": 37,
+        "old_lines": [
+          "    native=modules(roots['native_producer'],('pinned_code','stage_context','transport_binding','planner','native_stages','process_evidence','admission','launch_stage'))\n"
+        ]
+      },
+      {
+        "new_lines": [
+          "    host,host_pin,commands=host_tools.collect(config,p.adapter,p.cc,candidate,p.native.process_evidence.verify_completed_process,p.native.host_identity);files['host_binding']=host_pin\n"
+        ],
+        "new_start": 172,
+        "old_lines": [
+          "    host,host_pin,commands=host_tools.collect(config,p.adapter,p.cc,candidate,p.native.process_evidence.verify_completed_process);files['host_binding']=host_pin\n"
+        ]
+      }
+    ],
+    "prepare_controller.py": [
+      {
+        "new_lines": [
+          "    allowed={'SYSTEMROOT','WINDIR','SYSTEMDRIVE','COMSPEC','TEMP','TMP','PATH','PATHEXT','USERPROFILE','APPDATA','LOCALAPPDATA','PROGRAMDATA','PROGRAMFILES','PROGRAMFILES(X86)','COMMONPROGRAMFILES','VCTOOLSINSTALLDIR','VCINSTALLDIR','VSINSTALLDIR','WINDOWSSDKDIR','WINDOWSSDKVERSION','WINDOWSSDKBINPATH','WINDOWSSDKVERBINPATH','UNIVERSALCRTSDKDIR','UCRTVERSION','INCLUDE','LIB','LIBPATH','VSCMD_ARG_TGT_ARCH','VSCMD_ARG_HOST_ARCH','PROCESSOR_ARCHITECTURE','PROCESSOR_ARCHITEW6432'}\n",
+          "    # Preserve the observed Windows architecture; never guess or synthesize it.\n",
+          "    # Windows keys are case-insensitive. Reject ambiguous spellings instead of\n",
+          "    # silently selecting a different value while serializing the pinned env.\n",
+          "    architecture={'PROCESSOR_ARCHITECTURE','PROCESSOR_ARCHITEW6432'}\n",
+          "    for key in os.environ:\n",
+          "        require(key.upper() not in architecture or key in architecture,'architecture environment ambiguous')\n",
+          "    require('PROCESSOR_ARCHITECTURE' in os.environ,'architecture environment absent')\n",
+          "    require(os.environ['PROCESSOR_ARCHITECTURE']=='AMD64','architecture environment unsupported')\n",
+          "    require('PROCESSOR_ARCHITEW6432' not in os.environ or os.environ['PROCESSOR_ARCHITEW6432']=='AMD64','architecture environment unsupported')\n"
+        ],
+        "new_start": 18,
+        "old_lines": [
+          "    allowed={'SYSTEMROOT','WINDIR','SYSTEMDRIVE','COMSPEC','TEMP','TMP','PATH','PATHEXT','USERPROFILE','APPDATA','LOCALAPPDATA','PROGRAMDATA','PROGRAMFILES','PROGRAMFILES(X86)','COMMONPROGRAMFILES','VCTOOLSINSTALLDIR','VCINSTALLDIR','VSINSTALLDIR','WINDOWSSDKDIR','WINDOWSSDKVERSION','WINDOWSSDKBINPATH','WINDOWSSDKVERBINPATH','UNIVERSALCRTSDKDIR','UCRTVERSION','INCLUDE','LIB','LIBPATH','VSCMD_ARG_TGT_ARCH','VSCMD_ARG_HOST_ARCH'}\n"
+        ]
+      },
+      {
+        "new_lines": [
+          "    require(len({k.upper() for k in result})==len(result),'architecture environment ambiguous')\n"
+        ],
+        "new_start": 29,
+        "old_lines": []
+      }
+    ],
+    "probe_blender.py": [
+      {
+        "new_lines": [
+          "import ctypes,hashlib,json,os,platform,re,sys\n"
+        ],
+        "new_start": 1,
+        "old_lines": [
+          "import ctypes,hashlib,json,os,sys\n"
+        ]
+      },
+      {
+        "new_lines": [
+          "\n",
+          "def observe_host():\n",
+          "    if sys.platform!='win32' or ctypes.sizeof(ctypes.c_void_p)!=8:\n",
+          "        raise ValueError('actual native 64-bit Windows Blender required')\n",
+          "    value={k:getattr(platform,k)() for k in ('system','release','version','machine')}\n",
+          "    if any(type(v) is not str or not 1<=len(v)<=128 or '\\0' in v or not v.strip() or v.strip().casefold()=='unknown' for v in value.values()):\n",
+          "        raise ValueError('complete native host observation required')\n",
+          "    if value['system']!='Windows' or value['machine']!='AMD64':\n",
+          "        raise ValueError('actual native AMD64 Windows Blender required')\n",
+          "    if re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9._-]{0,127}',value['release']) is None:\n",
+          "        raise ValueError('native host release invalid')\n",
+          "    if re.fullmatch(r'[0-9]{1,5}\\.[0-9]{1,5}\\.[0-9]{1,10}',value['version']) is None:\n",
+          "        raise ValueError('native host version invalid')\n",
+          "    return value\n"
+        ],
+        "new_start": 3,
+        "old_lines": [
+          "import bpy,io_scene_fbx\n"
+        ]
+      },
+      {
+        "new_lines": [
+          "    import bpy,io_scene_fbx\n",
+          "    observed_host=observe_host()\n"
+        ],
+        "new_start": 25,
+        "old_lines": []
+      },
+      {
+        "new_lines": [
+          "    value={'schema':'rust-duty-official-blender-host-observation/v2','observed_host':observed_host,'sys_platform':sys.platform,'pointer_bits':ctypes.sizeof(ctypes.c_void_p)*8,'blender_version':list(bpy.app.version[:3]),'blender_build_hash':bpy.app.build_hash.decode(),'blender_binary':str(Path(bpy.app.binary_path)),'blender_binary_sha256':sha(bpy.app.binary_path),'python_runtime':str(Path(buffer.value)),'python_runtime_sha256':sha(buffer.value),'fbx_addon_file':str(Path(io_scene_fbx.__file__)),'background':True,'autoexec_disabled':True,'source_saved':False,'rendered':False}\n"
+        ],
+        "new_start": 35,
+        "old_lines": [
+          "    value={'schema':'rust-duty-official-blender-host-observation/v1','blender_version':list(bpy.app.version[:3]),'blender_build_hash':bpy.app.build_hash.decode(),'blender_binary':str(Path(bpy.app.binary_path)),'blender_binary_sha256':sha(bpy.app.binary_path),'python_runtime':str(Path(buffer.value)),'python_runtime_sha256':sha(buffer.value),'fbx_addon_file':str(Path(io_scene_fbx.__file__)),'background':True,'autoexec_disabled':True,'source_saved':False,'rendered':False}\n"
+        ]
+      }
+    ],
+    "run_source_tests.py": [
+      {
+        "new_lines": [
+          "    packages=orchestrate.load_packages(config,{'native_producer_pins_sha256':declared['native_v6'],'runtime_consumer_pins_sha256':declared['consumer_v7']})\n"
+        ],
+        "new_start": 16,
+        "old_lines": [
+          "    packages=orchestrate.load_packages(config,{'native_producer_pins_sha256':declared['native_v5'],'runtime_consumer_pins_sha256':declared['consumer_v6']})\n"
+        ]
+      }
+    ],
+    "source_checkout.py": [
+      {
+        "new_lines": [
+          "PACKAGE='tools/onehand_windows/orchestration-v9'\n"
+        ],
+        "new_start": 7,
+        "old_lines": [
+          "PACKAGE='tools/onehand_windows/orchestration-v8'\n"
+        ]
+      }
+    ]
+  },
+  "native_execution_performed": false,
+  "predecessor_pins_sha256": "8f8d9289fa50d19fff8e2df34a8f0f462c3df21710ed51fac9a57ba822a882c0",
+  "schema": "rust-duty-host-binding-source-changes/v1"
+}

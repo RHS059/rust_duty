@@ -1,0 +1,25 @@
+{
+  "allowed_dependency_only_changes": [
+    "pinned_code.py"
+  ],
+  "commit": "01e3d821d197799a342b7738b84e835b11197f24",
+  "files": {
+    "AUDITED_FRAGMENTS.json": "3a2d0c7ea5fcc0dfab7ec615dbb78e0b7d9f907c1d1a48bc2f90da14933952b5",
+    "BOUNDARY_ADAPTATIONS.json": "259caee2b8265e77f3d45eb7b70462fd062b13a9e1435c6d7457ab377de80ee0",
+    "admission.py": "131ecf0044132b851aac3a7a14bd1056a1dff37f73db75054fa296457823f24d",
+    "extract_helpers.py": "5960f27c112ae4b83ae729c5cbd1d2eba4fe5f4bf5b0fb7afa5c33dfe7a7d10c",
+    "launch_stage.py": "98e0b468bc1185e11eb23de12c6e2479e843067dfe75c64c3e66ad212bdfa2eb",
+    "native_entry.py": "e1f4a4140e12d0f288dfd84b09837335eafbeb72f1d4b5b83b3777149d82d5d5",
+    "native_stages.py": "ecc58db55b78c9a178fa3bbbd07baa6fb5398dc961cbb636b4fa42fa27e1367d",
+    "pinned_code.py": "4a8188e0980a7886590c23044c8a968bc53cd1d745ed9ceb6472952e1dbd2e8e",
+    "planner.py": "e7bccd65dde3c34c46224e2325bcf01c6e980bf67ffd33a7eab1919a2e8e0db2",
+    "process_evidence.py": "b42edd7f757a5876bee2f600bfb35f56f80867255b21693a8444b365305e6a51",
+    "stage_context.py": "3fde606b79903fa6d8b82e2b43999ed7d92f06547d097c84a5c719513c98f809",
+    "transport_binding.py": "1c2b851d68cdf7c4da8813f1d504ae9be5649e65b5fc01feb332d557ae4f7a5e",
+    "verify_freeze.py": "2456c9b00aee29eaa55dbb1f37a25506914562e446edbced48c71e2f794a2752"
+  },
+  "independent_acceptance": false,
+  "package_path": "tools/onehand_windows/native-producer-v4",
+  "package_pins_sha256": "69df50d663778b43c4512b81b92edd3cf9ed0e560e0779fef1587de7c7370fa2",
+  "schema": "rust-duty-source-only-predecessor-selection/v1"
+}

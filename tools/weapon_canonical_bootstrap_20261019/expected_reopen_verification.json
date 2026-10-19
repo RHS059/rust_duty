@@ -1,0 +1,12 @@
+{
+  "status": "PASS",
+  "scope": "Saved-file reopen, source preservation, export mapping and dependency presence only. No numerical motion/runtime certification.",
+  "source_sets": 9,
+  "scene_count": 10,
+  "action_count": 666,
+  "export_clip_count": 67,
+  "packed_image_count": 27,
+  "default_scene": "LIBRARY | VAULT",
+  "source_files_unchanged": true,
+  "canonical_file": "assets/authoring/weapon_animations.blend"
+}

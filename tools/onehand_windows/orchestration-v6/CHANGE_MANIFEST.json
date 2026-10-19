@@ -1,0 +1,28 @@
+{
+  "actual_windows_contract_run_performed": false,
+  "changes": [
+    "Commands expected transport environment uses adapter newline-terminated canonical digest",
+    "Native host environment uses same unchanged adapter digest",
+    "10 portable contract regressions and separately invoked actual-Windows Python-leaf preinstaller contract",
+    "Versioned source-checkout and source-layout mapping; active workflow composition kept separate to avoid hash cycle"
+  ],
+  "independent_exact_successor_admission": "pending",
+  "motion_or_private_asset_changes": false,
+  "native_producer_or_runtime_consumer_changes": false,
+  "numeric_process_threshold_grid_changes": false,
+  "observed_error_sha256": "255c614ba75ddc6ba26bcb310ffa6f021ee9b7f27be300370ae5faa1974b8587",
+  "observed_failure_head": "4a4640e0c99fc8722ea89520d5dff405f2619931",
+  "observed_failure_run": 39101135007,
+  "predecessor_pins_sha256": "2a39125dba25460e66d0f76ef6c871d2abb01e64073b7e419e1c1892345bdee5",
+  "publication_performed": false,
+  "rust_sampler_revision": "c61dbd67039a4961d0c56f0a3c7e478c431d1ced",
+  "schema": "onehand-transport-environment-change-scope/v1",
+  "unchanged_code": [
+    "workflow_core.py",
+    "orchestrate.py",
+    "build_rust.py",
+    "prepare_controller.py",
+    "run_proof.py",
+    "preinstall_admission.py"
+  ]
+}
