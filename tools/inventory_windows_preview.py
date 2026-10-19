@@ -108,8 +108,12 @@ def _identity(preview, identity, executable, notices_hash, reuse=None):
     require(identity.get('build_number') == number and identity.get('display_version') == f'{version}+build.{number}'
             and preview.get('display_version') == identity['display_version'], 'build display identity mismatch')
     require(type(identity.get('sequence')) is int and identity['sequence'] > 0, 'invalid build sequence')
-    require(preview.get('status') == 'WIP preview; M4 approval pending' and preview.get('default_renderer') == 'legacy',
-            'preview must remain WIP with legacy default')
+    # Historical pre-cutover archives remain inspectable. Accept only the two
+    # exact producer contracts, never cross-paired defaults/statuses or approval.
+    require((preview.get('status'), preview.get('default_renderer')) in (
+                ('WIP preview; M4 approval pending', 'legacy'),
+                ('WIP preview; packaging does not establish M4 acceptance', 'auto')),
+            'unsupported preview status/default renderer contract')
     require(preview.get('human_launch') == ['vector-range.exe', '--renderer=dx12', '--no-update'], 'unsafe declared human launcher')
     require(preview.get('enabled_features') == ['audio', 'legacy-macroquad', 'wgpu-runtime']
             and preview.get('dx12_shader_compiler') == 'Fxc', 'unexpected preview feature/compiler contract')

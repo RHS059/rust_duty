@@ -50,6 +50,9 @@ def add(tag,id,action,start=None,end=None,cam=None,freeze=None,status='existing 
  objs=[o for o in s.objects if original_name(o) in base_names and (o.name.startswith('DIAG_V9_') if tag=='ADS_V9' else not o.name.startswith('DIAG_V9_'))]
  assert len(objs)==6
  if s.camera and s.camera not in objs:objs.append(s.camera)
+ if id=='reload_current_wip':
+  outgoing=next(o for o in s.objects if original_name(o)=='hk416_magazine_outgoing')
+  objs.append(outgoing)
  companions=[]
  for o in objs:
   if o==rig or o==s.camera:continue
@@ -91,6 +94,9 @@ report={'sources':records,'actions':allactions,'action_count':len(allactions),'s
 for name,data in [('EXPORT_MANIFEST',manifest),('ALL_ANIMATION_INVENTORY',report)]:
  t=bpy.data.texts.new(name);t.write(json.dumps(data,indent=2));(P/(name+'.json')).write_text(json.dumps(data,indent=2))
 t=bpy.data.texts.new('WEAPON_LIBRARY_README');t.write('AUTHORITATIVE EDITABLE WEAPON ANIMATION LIBRARY\n\nThis single file retains all recovered source sets and revisions. Use the Scene selector to choose a library family. EXPORT::<id> tracks are the canonical per-FBX selections; ARCHIVE::<name> tracks preserve source history. Solo one export track at a time with its same-named weapon/magazine/camera companions. Each clip and exact object list is embedded in EXPORT_MANIFEST. All Actions have fake users. Original source BLENDs remain unchanged.\n\nCurrent authored families: ready, sprint and transitions/bridges, walking, HIP directions, ADS entry/hold/exit, ADS forward diagnostic, jump including approved r8 landing, tactical reload WIP and opening/poses, low vault, prone entry/camera/crawl, onehand mantle. Features explicitly marked unavailable in the runtime manifest have no invented animation. WIP/diagnostic labels remain WIP/diagnostic.\n\nNine recovered source inputs; all images packed if available. No retargeting or new motion design. Reopen/structural validation only, not gameplay certification.\n')
+import canonical_authoring_usability as usability
+usability.apply(bpy)
+usability.verify(bpy)
 bpy.context.preferences.filepaths.save_version=0
 bpy.ops.wm.save_as_mainfile(filepath=str(P/'weapon_animations.blend'),compress=True)
 print('CANONICAL',len(clips),'clips',len(allactions),'Actions',len(bpy.data.scenes),'scenes',len(missing),'missing images')

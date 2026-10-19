@@ -2,8 +2,8 @@
 """Split this run's validated public primary reload pack into bounded evidence.
 
 This tool has no retrieval or export path. The caller supplies only the output
-of its same-run, unchanged Blender producer. Existing full artifacts survive;
-these parts do not claim fresh export/parity on a validated producer cache hit.
+of its same-run Blender producer. Existing full artifacts survive; these parts
+do not claim fresh export on a validated producer cache hit or numerical parity.
 """
 from __future__ import annotations
 
@@ -25,7 +25,8 @@ REPOSITORY = "RHS059/rust_duty"
 WORKFLOW = ".github/workflows/renderer-source-companion-evidence.yml"
 PRODUCER = ".github/workflows/blender-assets.yml"
 COMPANIONS = ("asset.vra", "asset.vrs", "asset.vrm")
-REPORTS = ("source.json", "manifest.json", "export-manifest.json", "parity.json")
+REPORTS = ("source.json", "manifest.json", "export-manifest.json")
+OPTIONAL_REPORTS = ("parity.json",)  # Historical diagnostics are retained only when present.
 FILES = (*COMPANIONS, *REPORTS)
 MAX_PART_BYTES = 31 * 1024**2
 MAX_REPORT_BYTES = 1024**2
@@ -117,9 +118,11 @@ def github_identity(root, environ):
 
 def inventory(directory, contract):
     expected = {name for name in FILES}
+    optional = set(OPTIONAL_REPORTS)
     for key, _ in selections(contract):
         if key:
             expected.update(f"alternates/{key}/{name}" for name in FILES)
+            optional.update(f"alternates/{key}/{name}" for name in OPTIONAL_REPORTS)
     expected_dirs = {parent.as_posix() for name in expected for parent in Path(name).parents
                      if str(parent) != "."}
     if not directory.is_dir():
@@ -134,14 +137,14 @@ def inventory(directory, contract):
         for name in files:
             path = safe_path(Path(folder) / name)
             relative = path.relative_to(directory).as_posix()
-            if relative not in expected:
+            if relative not in expected | optional:
                 raise ValueError(f"unexpected input file: {relative}")
             actual.add(relative)
-    if actual != expected:
+    if not expected <= actual:
         raise ValueError(f"missing generated files: {sorted(expected - actual)}")
     return {name: digest(read_regular(directory / name,
                                      MAX_REPORT_BYTES if name.endswith(".json") else MAX_PART_BYTES))
-            for name in sorted(expected)}
+            for name in sorted(actual)}
 
 
 def package(root, directory, output, identity):
@@ -171,9 +174,10 @@ def package(root, directory, output, identity):
         raise ValueError("validation receipt misses selected packs")
     if inventory(source, contract) != before:
         raise ValueError("generated input changed during validation")
+    primary_reports = (*REPORTS, *(name for name in OPTIONAL_REPORTS if name in before))
     originals = {name: read_regular(source / name,
-                                   MAX_REPORT_BYTES if name in REPORTS else MAX_PART_BYTES)
-                 for name in FILES}
+                                   MAX_REPORT_BYTES if name in primary_reports else MAX_PART_BYTES)
+                 for name in (*COMPANIONS, *primary_reports)}
     if any(digest(value) != before[name] for name, value in originals.items()):
         raise ValueError("primary input changed after validation")
     if json.loads(originals["source.json"]) != contract:
@@ -192,11 +196,12 @@ def package(root, directory, output, identity):
             "artifact": f"renderer-source-reload-{name.rsplit('.', 1)[1]}-attempt-{identity['run_attempt']}",
         } for name in COMPANIONS},
         "scope": "Exact primary bytes and original reports from current-run producer output. "
-                 "Original full artifacts are retained. Cache reuse does not rerun source-oracle "
-                 "parity. No renderer, gameplay, visual or human approval claim.",
+                 "Original full artifacts are retained. Historical parity diagnostics are optional "
+                 "and do not gate publication. No numerical parity, renderer, gameplay, visual "
+                 "or human approval claim.",
     }
     receipt_bytes = (json.dumps(receipt, indent=2, sort_keys=True) + "\n").encode()
-    shared = {name: originals[name] for name in REPORTS}
+    shared = {name: originals[name] for name in primary_reports}
     shared.update({"revalidation.json": validation, "receipt.json": receipt_bytes})
     shared_size = sum(map(len, shared.values()))
     if any(len(originals[name]) + shared_size > MAX_PART_BYTES for name in COMPANIONS):

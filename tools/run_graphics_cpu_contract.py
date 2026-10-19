@@ -56,8 +56,8 @@ def read_json(path):
     return json.loads(Path(path).read_bytes(), object_pairs_hook=unique,
                       parse_constant=lambda v: (_ for _ in ()).throw(ValueError('nonfinite JSON: ' + v)))
 
-def git_sources(repository, commit):
-    require(commit in (BASELINE_SOURCE, CANDIDATE_SOURCE), 'unreviewed source revision')
+def read_git_sources(repository, commit):
+    """Read and bound a Git source inventory without assigning a native verdict."""
     names = subprocess.check_output(['git', '-C', str(repository), 'ls-tree', '-r', '--name-only',
                                       commit, '--', *SOURCE_PATHS]).decode().splitlines()
     require({'Cargo.toml', 'Cargo.lock', 'examples/renderer_contract.rs', 'src/render/frame.rs'} <= set(names),
@@ -75,6 +75,10 @@ def git_sources(repository, commit):
             result[item.name] = archive.extractfile(item).read()
     require(sum(map(len, result.values())) <= MAX_SOURCE_BYTES, 'source byte bound exceeded')
     return result
+
+def git_sources(repository, commit):
+    require(commit in (BASELINE_SOURCE, CANDIDATE_SOURCE), 'unreviewed source revision')
+    return read_git_sources(repository, commit)
 
 def source_pair(baseline, candidate):
     require(set(candidate) - set(baseline) == ADDED and not set(baseline) - set(candidate),

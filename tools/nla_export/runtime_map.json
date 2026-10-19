@@ -1,0 +1,350 @@
+{
+  "schema": "rust-duty-canonical-runtime-map/v1",
+  "clips": [
+    {
+      "id": "normal_ready",
+      "name": "normal_ready",
+      "bundle": "locomotion",
+      "loop": false
+    },
+    {
+      "id": "normal_entry",
+      "name": "normal_entry",
+      "bundle": "locomotion",
+      "loop": false
+    },
+    {
+      "id": "normal_loop",
+      "name": "normal_loop",
+      "bundle": "locomotion",
+      "loop": true
+    },
+    {
+      "id": "normal_exit",
+      "name": "normal_exit",
+      "bundle": "locomotion",
+      "loop": false
+    },
+    {
+      "id": "normal_entry_connected",
+      "name": "normal_entry_connected",
+      "bundle": "locomotion",
+      "loop": false
+    },
+    {
+      "id": "normal_loop_to_exit",
+      "name": "normal_loop_to_exit",
+      "bundle": "locomotion",
+      "loop": false
+    },
+    {
+      "id": "normal_exit_connected",
+      "name": "normal_exit_connected",
+      "bundle": "locomotion",
+      "loop": false
+    },
+    {
+      "id": "normal_exit_bridge_000",
+      "name": "normal_exit_bridge_000",
+      "bundle": "locomotion",
+      "loop": false
+    },
+    {
+      "id": "normal_exit_bridge_001",
+      "name": "normal_exit_bridge_001",
+      "bundle": "locomotion",
+      "loop": false
+    },
+    {
+      "id": "normal_exit_bridge_002",
+      "name": "normal_exit_bridge_002",
+      "bundle": "locomotion",
+      "loop": false
+    },
+    {
+      "id": "normal_exit_bridge_003",
+      "name": "normal_exit_bridge_003",
+      "bundle": "locomotion",
+      "loop": false
+    },
+    {
+      "id": "normal_exit_bridge_004",
+      "name": "normal_exit_bridge_004",
+      "bundle": "locomotion",
+      "loop": false
+    },
+    {
+      "id": "normal_exit_bridge_005",
+      "name": "normal_exit_bridge_005",
+      "bundle": "locomotion",
+      "loop": false
+    },
+    {
+      "id": "normal_exit_bridge_006",
+      "name": "normal_exit_bridge_006",
+      "bundle": "locomotion",
+      "loop": false
+    },
+    {
+      "id": "normal_exit_bridge_007",
+      "name": "normal_exit_bridge_007",
+      "bundle": "locomotion",
+      "loop": false
+    },
+    {
+      "id": "normal_exit_bridge_008",
+      "name": "normal_exit_bridge_008",
+      "bundle": "locomotion",
+      "loop": false
+    },
+    {
+      "id": "normal_exit_bridge_009",
+      "name": "normal_exit_bridge_009",
+      "bundle": "locomotion",
+      "loop": false
+    },
+    {
+      "id": "normal_exit_bridge_010",
+      "name": "normal_exit_bridge_010",
+      "bundle": "locomotion",
+      "loop": false
+    },
+    {
+      "id": "normal_exit_bridge_011",
+      "name": "normal_exit_bridge_011",
+      "bundle": "locomotion",
+      "loop": false
+    },
+    {
+      "id": "normal_exit_bridge_012",
+      "name": "normal_exit_bridge_012",
+      "bundle": "locomotion",
+      "loop": false
+    },
+    {
+      "id": "normal_exit_bridge_013",
+      "name": "normal_exit_bridge_013",
+      "bundle": "locomotion",
+      "loop": false
+    },
+    {
+      "id": "normal_exit_bridge_014",
+      "name": "normal_exit_bridge_014",
+      "bundle": "locomotion",
+      "loop": false
+    },
+    {
+      "id": "normal_exit_bridge_015",
+      "name": "normal_exit_bridge_015",
+      "bundle": "locomotion",
+      "loop": false
+    },
+    {
+      "id": "normal_exit_bridge_016",
+      "name": "normal_exit_bridge_016",
+      "bundle": "locomotion",
+      "loop": false
+    },
+    {
+      "id": "normal_exit_bridge_017",
+      "name": "normal_exit_bridge_017",
+      "bundle": "locomotion",
+      "loop": false
+    },
+    {
+      "id": "normal_exit_bridge_018",
+      "name": "normal_exit_bridge_018",
+      "bundle": "locomotion",
+      "loop": false
+    },
+    {
+      "id": "normal_exit_bridge_019",
+      "name": "normal_exit_bridge_019",
+      "bundle": "locomotion",
+      "loop": false
+    },
+    {
+      "id": "normal_exit_bridge_020",
+      "name": "normal_exit_bridge_020",
+      "bundle": "locomotion",
+      "loop": false
+    },
+    {
+      "id": "normal_exit_bridge_021",
+      "name": "normal_exit_bridge_021",
+      "bundle": "locomotion",
+      "loop": false
+    },
+    {
+      "id": "normal_exit_bridge_022",
+      "name": "normal_exit_bridge_022",
+      "bundle": "locomotion",
+      "loop": false
+    },
+    {
+      "id": "normal_exit_bridge_023",
+      "name": "normal_exit_bridge_023",
+      "bundle": "locomotion",
+      "loop": false
+    },
+    {
+      "id": "normal_exit_bridge_024",
+      "name": "normal_exit_bridge_024",
+      "bundle": "locomotion",
+      "loop": false
+    },
+    {
+      "id": "normal_exit_bridge_025",
+      "name": "normal_exit_bridge_025",
+      "bundle": "locomotion",
+      "loop": false
+    },
+    {
+      "id": "normal_exit_bridge_026",
+      "name": "normal_exit_bridge_026",
+      "bundle": "locomotion",
+      "loop": false
+    },
+    {
+      "id": "normal_exit_bridge_027",
+      "name": "normal_exit_bridge_027",
+      "bundle": "locomotion",
+      "loop": false
+    },
+    {
+      "id": "normal_exit_bridge_028",
+      "name": "normal_exit_bridge_028",
+      "bundle": "locomotion",
+      "loop": false
+    },
+    {
+      "id": "normal_exit_bridge_029",
+      "name": "normal_exit_bridge_029",
+      "bundle": "locomotion",
+      "loop": false
+    },
+    {
+      "id": "normal_exit_bridge_030",
+      "name": "normal_exit_bridge_030",
+      "bundle": "locomotion",
+      "loop": false
+    },
+    {
+      "id": "normal_exit_bridge_031",
+      "name": "normal_exit_bridge_031",
+      "bundle": "locomotion",
+      "loop": false
+    },
+    {
+      "id": "normal_exit_bridge_032",
+      "name": "normal_exit_bridge_032",
+      "bundle": "locomotion",
+      "loop": false
+    },
+    {
+      "id": "normal_exit_bridge_033",
+      "name": "normal_exit_bridge_033",
+      "bundle": "locomotion",
+      "loop": false
+    },
+    {
+      "id": "normal_exit_bridge_034",
+      "name": "normal_exit_bridge_034",
+      "bundle": "locomotion",
+      "loop": false
+    },
+    {
+      "id": "normal_settle",
+      "name": "normal_settle",
+      "bundle": "locomotion",
+      "loop": false
+    },
+    {
+      "id": "ads_entry_r1",
+      "name": "ads_entry_r1",
+      "bundle": "ads",
+      "loop": false
+    },
+    {
+      "id": "ads_hold_r1",
+      "name": "ads_hold_r1",
+      "bundle": "ads",
+      "loop": true
+    },
+    {
+      "id": "ads_exit_r1",
+      "name": "ads_exit_r1",
+      "bundle": "ads",
+      "loop": false
+    },
+    {
+      "id": "jump_takeoff",
+      "name": "jump_takeoff",
+      "bundle": "jump",
+      "loop": false
+    },
+    {
+      "id": "jump_air",
+      "name": "jump_air",
+      "bundle": "jump",
+      "loop": false
+    },
+    {
+      "id": "jump_land",
+      "name": "jump_land",
+      "bundle": "jump",
+      "loop": false
+    },
+    {
+      "id": "hip_walk_forward_r5",
+      "name": "hip_walk_forward_r1",
+      "bundle": "directional",
+      "loop": true
+    },
+    {
+      "id": "hip_walk_backward_r5",
+      "name": "hip_walk_backward_r1",
+      "bundle": "directional",
+      "loop": true
+    },
+    {
+      "id": "hip_strafe_left_r5",
+      "name": "hip_strafe_left_r1",
+      "bundle": "directional",
+      "loop": true
+    },
+    {
+      "id": "hip_strafe_right_r5",
+      "name": "hip_strafe_right_r1",
+      "bundle": "directional",
+      "loop": true
+    },
+    {
+      "id": "normal_walk_r1",
+      "name": "normal_walk_r1",
+      "bundle": "walk",
+      "loop": true
+    },
+    {
+      "id": "reload_current_wip",
+      "name": "reload_current_wip",
+      "bundle": "reload",
+      "loop": false,
+      "status": "wip"
+    }
+  ],
+  "excluded": {
+    "normal_diagnostic_sequence": "unbound diagnostic or WIP export; no new gameplay binding",
+    "low_vault": "specialized runtime/camera conversion retained",
+    "onehand_mantle": "specialized runtime/camera conversion retained",
+    "prone_entry": "specialized runtime/camera conversion retained",
+    "prone_crawl_forward_segment_r1": "unbound diagnostic or WIP export; no new gameplay binding",
+    "prone_crawl_backward_segment_r1": "unbound diagnostic or WIP export; no new gameplay binding",
+    "prone_crawl_left_segment_r1": "unbound diagnostic or WIP export; no new gameplay binding",
+    "prone_crawl_right_segment_r1": "unbound diagnostic or WIP export; no new gameplay binding",
+    "reload_opening_wip": "unbound diagnostic or WIP export; no new gameplay binding",
+    "canonical_reset": "unbound diagnostic or WIP export; no new gameplay binding",
+    "pickup_pose_inspection": "unbound diagnostic or WIP export; no new gameplay binding",
+    "ads_walk_forward_v9_diagnostic": "unbound diagnostic or WIP export; no new gameplay binding"
+  }
+}

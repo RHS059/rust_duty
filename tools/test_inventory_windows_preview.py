@@ -45,6 +45,14 @@ class PreviewInventoryTests(unittest.TestCase):
             fixture.doCleanups()
 
     def test_revalidated_preview_requires_honest_matching_reuse_record(self):
+        self.check_revalidated_preview_reuse_record()
+
+    def test_historical_revalidated_preview_preserves_reuse_checks(self):
+        self.mutate_json('DX12_PREVIEW.json', lambda r: r.update(
+            status='WIP preview; M4 approval pending', default_renderer='legacy'))
+        self.check_revalidated_preview_reuse_record()
+
+    def check_revalidated_preview_reuse_record(self):
         preview = json.loads(self.entries['DX12_PREVIEW.json'])
         preview['companion_reuse_record'] = 'COMPANION_REUSE.json'
         preview['smoke']['evidence_artifact'] = f"windows-recovery-native-evidence-attempt-{preview['source']['run_attempt']}"
@@ -124,6 +132,41 @@ class PreviewInventoryTests(unittest.TestCase):
         self.entries = dict(self.control)
         self.entries['vector-range.exe.fake'] = self.entries.pop('vector-range.exe')
         self.invalid()
+
+    def test_current_and_historical_provenance_require_exact_pairs(self):
+        historical = 'WIP preview; M4 approval pending'
+        current = 'WIP preview; packaging does not establish M4 acceptance'
+        # The unchanged archive checks apply to both documented producer eras.
+        for status, renderer in ((historical, 'legacy'), (current, 'auto')):
+            with self.subTest(status=status, renderer=renderer):
+                self.entries = dict(self.control)
+                self.mutate_json('DX12_PREVIEW.json',
+                                 lambda r: r.update(status=status, default_renderer=renderer))
+                report = inventory.validate_zip_archive(self.archive(), strict=True)
+                self.assertTrue(report['valid'], report)
+                self.assertEqual(report['status'], status)
+                self.assertIn('No executable was run', report['scope'])
+        for status, renderer in ((historical, 'auto'), (current, 'legacy'),
+                                 (historical, 'dx12'), (current, 'dx12'),
+                                 ('M4 approved', 'auto'), (None, 'auto'),
+                                 (current, None), (current, ['auto'])):
+            with self.subTest(status=status, renderer=renderer):
+                self.entries = dict(self.control)
+                self.mutate_json('DX12_PREVIEW.json',
+                                 lambda r: r.update(status=status, default_renderer=renderer))
+                self.invalid('unsupported preview status/default renderer contract')
+
+    def test_each_field_preset_is_required_by_exact_name(self):
+        for name in ('field-spartan.css', 'field-arena.css', 'field-dread.css'):
+            path = 'ui/examples/' + name
+            self.assertIn(path, inventory.REQUIRED_FILES)
+            for replacement in (None, path + '.fake'):
+                with self.subTest(preset=path, replacement=replacement):
+                    self.entries = dict(self.control)
+                    contents = self.entries.pop(path)
+                    if replacement:
+                        self.entries[replacement] = contents
+                    self.invalid(path)
 
     def test_hash_size_source_and_notice_binding(self):
         mutations = [

@@ -2,7 +2,7 @@
 import argparse,importlib.util,json,shutil
 from pathlib import Path
 HERE=Path(__file__).resolve().parent
-FILES=['assemble_weapon_library.py','verify_weapon_library.py','REPOSITORY_SOURCE_INPUTS.json','jump_landing_patch.py','locomotion-export-config.json','ads-export-config.json','directional-export-config.json','jump-export-config.json']
+FILES=['canonical_authoring_usability.py','assemble_weapon_library.py','verify_weapon_library.py','REPOSITORY_SOURCE_INPUTS.json','jump_landing_patch.py','locomotion-export-config.json','ads-export-config.json','directional-export-config.json','jump-export-config.json']
 def main():
  p=argparse.ArgumentParser();p.add_argument('--repo',type=Path,required=True);p.add_argument('--output',type=Path,required=True);p.add_argument('--accept-drive-warning',action='store_true');a=p.parse_args()
  repo=a.repo.resolve();out=a.output.resolve();out.mkdir(parents=True,exist_ok=True)

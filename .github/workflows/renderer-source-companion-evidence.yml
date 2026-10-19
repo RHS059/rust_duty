@@ -4,6 +4,7 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/renderer-source-companion-evidence.yml'
+      - '.github/workflows/blender-assets.yml'
       - 'tools/package_source_companion_evidence.py'
       - 'tools/test_source_companion_evidence.py'
   workflow_dispatch:

@@ -22,7 +22,7 @@ def pipelines(python=sys.executable, *, native_validation=False):
         'game': [
             ['cargo', 'clippy', '--locked', '--all-targets', '--', '-D', 'warnings'],
             ['cargo', 'test', '--locked'],
-            # Ship both renderers: legacy GL stays the default, --renderer=dx12 selects wgpu.
+            # Ship both renderers: wgpu defaults to auto (DX12 first on Windows); --renderer=gl selects legacy.
             ['cargo', 'build', '--locked', '--release', '--features', 'wgpu-runtime'],
         ],
         'updater': [

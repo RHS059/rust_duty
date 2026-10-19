@@ -42,3 +42,15 @@ jobs:
           overwrite: true
           path: build-assets/weapon-fbx/
           if-no-files-found: error
+      - name: Convert explicitly mapped existing gameplay clips
+        run: >-
+          python tools/nla_export/runtime.py
+          --exports build-assets/weapon-fbx
+          --output build-assets/weapon-runtime
+      - name: Publish runtime overlay and explicit coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: canonical-weapon-runtime
+          overwrite: true
+          path: build-assets/weapon-runtime/
+          if-no-files-found: error
