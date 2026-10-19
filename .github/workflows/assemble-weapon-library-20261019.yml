@@ -1,0 +1,58 @@
+name: Publish single canonical weapon animation library
+on:
+  push:
+    branches: [aella/onehand-windows-inputs-20261018]
+    paths:
+      - '.github/workflows/assemble-weapon-library-20261019.yml'
+      - 'tools/weapon_canonical_bootstrap_20261019/**'
+permissions:
+  contents: read
+concurrency:
+  group: pr77-single-weapon-library-publication
+  cancel-in-progress: false
+jobs:
+  assemble:
+    if: github.repository == 'RHS059/rust_duty'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: write
+    env:
+      PYTHONDONTWRITEBYTECODE: '1'
+      EXPECTED_HEAD: ${{ github.sha }}
+      EXPECTED_BASE: 7399601ab7da763ea74a87f35ce84ff80b99b459
+      ASSEMBLY_PACKAGE: tools/weapon_canonical_bootstrap_20261019
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 2
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12.10'
+      - name: Require exact one-time branch parent
+        shell: bash
+        run: |
+          test "$(git rev-parse HEAD)" = "$EXPECTED_HEAD"
+          test "$(git rev-parse HEAD^)" = "$EXPECTED_BASE"
+          test -z "$(git status --porcelain)"
+          test "$(git ls-remote origin refs/heads/aella/onehand-windows-inputs-20261018 | cut -f1)" = "$EXPECTED_HEAD"
+          echo "ASSEMBLY_WORK=$RUNNER_TEMP/weapon-library-${{ github.run_id }}-${{ github.run_attempt }}" >> "$GITHUB_ENV"
+      - name: Prepare nine pinned existing sources
+        shell: bash
+        run: |
+          test ! -e "$ASSEMBLY_WORK"
+          python -B "$ASSEMBLY_PACKAGE/prepare_inputs.py" --repo "$GITHUB_WORKSPACE" --output "$ASSEMBLY_WORK" --accept-drive-warning
+      - uses: ./.github/actions/setup-blender
+      - name: Assemble the single editable library
+        shell: bash
+        run: blender --background --disable-autoexec --python-exit-code 1 --python "$ASSEMBLY_WORK/assemble_weapon_library.py"
+      - name: Reopen and verify source preservation and export inventory
+        shell: bash
+        run: blender --background --disable-autoexec "$ASSEMBLY_WORK/weapon_animations.blend" --python-exit-code 1 --python "$ASSEMBLY_WORK/verify_weapon_library.py"
+      - name: Publish the canonical file and inventories
+        env:
+          CANONICAL_PUSH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: python -B "$ASSEMBLY_PACKAGE/publish_canonical.py" --root "$GITHUB_WORKSPACE" --work "$ASSEMBLY_WORK" --expected-head "$EXPECTED_HEAD" --expected-base "$EXPECTED_BASE"
