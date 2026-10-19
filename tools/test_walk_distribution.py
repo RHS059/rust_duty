@@ -26,13 +26,26 @@ class WalkDistributionTests(unittest.TestCase):
         package.materialize(self.root, include_walk=True)
         self.assertEqual(skin.stat().st_size, 16663274)
 
-    def test_parity_must_be_rust_and_bind_same_output(self):
+    def test_conversion_binds_source_and_native_clock(self):
+        path = self.root / package.WALK_DIR / 'conversion.json'
+        original = path.read_text()
+        for key, value in (('authoring_master_sha256', 'wrong'),
+                           ('source_fbx_sha256', 'wrong'),
+                           ('native_fps', [30, 1]), ('source_take', 'wrong')):
+            with self.subTest(field=key):
+                data = json.loads(original); data[key] = value
+                path.write_text(json.dumps(data))
+                with self.assertRaisesRegex(ValueError, 'walk conversion/source metadata'):
+                    package.verify_walk(self.root)
+        path.write_text(original)
+        package.verify_walk(self.root)
+
+    def test_delivery_does_not_require_numerical_parity_report(self):
         path = self.root / package.WALK_DIR / 'parity.json'
-        data = json.loads(path.read_text())
-        data['asset_sha256'] = 'wrong'
-        path.write_text(json.dumps(data))
-        with self.assertRaisesRegex(ValueError, 'Rust parity'):
-            package.verify_walk(self.root)
+        path.unlink(missing_ok=True)
+        expected = package.verify_walk(self.root)
+        path.write_text('not a numerical parity report')
+        self.assertEqual(package.verify_walk(self.root), expected)
 
     def test_source_change_requires_regeneration(self):
         source = self.root / 'assets/authoring/locomotion/locomotion.blend'

@@ -1,4 +1,4 @@
-"""ADS distribution binds source, canonical walk44 and native Rust parity."""
+"""ADS delivery binds source, native timing and unchanged canonical walk44."""
 import hashlib
 import json
 from pathlib import Path
@@ -6,6 +6,7 @@ import shutil
 import tempfile
 import unittest
 import package_game as package
+from distribution_test_fixtures import add_test_transports
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -28,18 +29,21 @@ class AdsDistributionTests(unittest.TestCase):
         report = package.verify_ads(self.root)
         self.assertEqual(report['original_clips_preserved'], 44)
         self.assertEqual(report['clip_count'], 47)
-        self.assertGreaterEqual(report['parity_samples'], 75)
+        self.assertEqual(report['clips'], list(package.ADS_CLIPS))
+        manifest = json.loads((self.root / package.ADS_DIR / 'manifest.json').read_text())
+        self.assertEqual(report['source_sha256'], manifest['source']['sha256'])
 
     def test_compressed_vra_materializes_exact_verified_runtime_bytes(self):
         vra = self.root / package.ADS_DIR / 'asset.vra'
-        expected = json.loads((self.root / package.ADS_DIR / 'manifest.json').read_text())['files']['asset.vra']
+        expected = add_test_transports(self.root, package.ADS_DIR)['files']['asset.vra']
         vra.unlink(missing_ok=True)
         package.materialize(self.root, include_ads=True)
-        import hashlib
         self.assertEqual(vra.stat().st_size, expected['bytes'])
         self.assertEqual(hashlib.sha256(vra.read_bytes()).hexdigest(), expected['sha256'])
 
     def test_raw_companions_cannot_hide_corrupt_compressed_transports(self):
+        add_test_transports(self.root, package.ADS_DIR)
+        package.verify_ads(self.root, require_transports=True)
         for name in ('asset.vra.gz', 'asset.vrs.gz'):
             path = self.root / package.ADS_DIR / name
             original = path.read_bytes()
@@ -49,6 +53,7 @@ class AdsDistributionTests(unittest.TestCase):
             path.write_bytes(original)
 
     def test_cache_requires_transports_but_raw_only_package_does_not(self):
+        add_test_transports(self.root, package.ADS_DIR)
         folder = self.root / package.ADS_DIR
         raw = folder / 'asset.vra'
         # Construct the raw-only package from verified transport bytes rather
@@ -65,15 +70,29 @@ class AdsDistributionTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'missing'):
             package.verify_ads(self.root)
 
-    def test_matching_rust_parity_required_for_every_clip(self):
+    def test_every_conversion_binds_source_and_native_clock(self):
         for clip in package.ADS_CLIPS:
-            path = self.root / package.ADS_DIR / f'parity-{clip}.json'
-            original = path.read_text(); data = json.loads(original)
-            data['asset_sha256'] = 'wrong'
-            path.write_text(json.dumps(data))
-            with self.assertRaisesRegex(ValueError, 'Rust parity'):
-                package.verify_ads(self.root)
+            path = self.root / package.ADS_DIR / f'conversion-{clip}.json'
+            original = path.read_text()
+            for key, value in (('authoring_master_sha256', 'wrong'),
+                               ('source_fbx_sha256', 'wrong'),
+                               ('native_fps', [30, 1]), ('source_take', 'wrong')):
+                with self.subTest(clip=clip, field=key):
+                    data = json.loads(original); data[key] = value
+                    path.write_text(json.dumps(data))
+                    with self.assertRaisesRegex(ValueError, 'ADS conversion/source metadata'):
+                        package.verify_ads(self.root)
             path.write_text(original)
+        package.verify_ads(self.root)
+
+    def test_delivery_does_not_require_numerical_parity_reports(self):
+        paths = [self.root / package.ADS_DIR / f'parity-{clip}.json' for clip in package.ADS_CLIPS]
+        for path in paths:
+            path.unlink(missing_ok=True)
+        expected = package.verify_ads(self.root)
+        for path in paths:
+            path.write_text('not a numerical parity report')
+        self.assertEqual(package.verify_ads(self.root), expected)
 
     def test_source_change_requires_regeneration(self):
         source = self.root / 'assets/authoring/ads/ads.blend'
@@ -84,14 +103,18 @@ class AdsDistributionTests(unittest.TestCase):
 
     def test_manifest_cannot_change_loop_or_duration(self):
         path = self.root / package.ADS_DIR / 'manifest.json'
-        data = json.loads(path.read_text()); data['ads_clips'][0]['loop'] = True
-        path.write_text(json.dumps(data))
-        with self.assertRaisesRegex(ValueError, 'ADS manifest'):
-            package.verify_ads(self.root)
+        original = path.read_text()
+        for index in range(len(package.ADS_CLIPS)):
+            for key, value in (('loop', index != 1), ('duration', 2.)):
+                with self.subTest(clip=index, field=key):
+                    data = json.loads(original); data['ads_clips'][index][key] = value
+                    path.write_text(json.dumps(data))
+                    with self.assertRaisesRegex(ValueError, 'ADS manifest'):
+                        package.verify_ads(self.root)
 
     def test_missing_companion_blocks_package(self):
         (self.root / package.ADS_DIR / 'asset.vra').unlink(missing_ok=True)
-        (self.root / package.ADS_DIR / 'asset.vra.gz').unlink()
+        (self.root / package.ADS_DIR / 'asset.vra.gz').unlink(missing_ok=True)
         with self.assertRaisesRegex(ValueError, 'missing'):
             package.verify_ads(self.root)
 

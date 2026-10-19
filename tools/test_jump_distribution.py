@@ -1,4 +1,5 @@
-"""JUMP distribution binds source, canonical walk44 and native Rust parity."""
+"""JUMP delivery binds source, native timing and unchanged canonical walk44."""
+import hashlib
 import json
 from pathlib import Path
 import shutil
@@ -6,6 +7,7 @@ import tempfile
 import unittest
 import package_game as package
 from jump_landing_patch import PATCH_PROVENANCE
+from distribution_test_fixtures import add_test_transports
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -28,19 +30,23 @@ class JumpDistributionTests(unittest.TestCase):
         report = package.verify_jump(self.root)
         self.assertEqual(report['original_clips_preserved'], 44)
         self.assertEqual(report['clip_count'], 47)
-        self.assertGreaterEqual(report['parity_samples'], 75)
+        self.assertEqual(report['clips'], list(package.JUMP_CLIPS))
+        manifest = json.loads((self.root / package.JUMP_DIR / 'manifest.json').read_text())
+        self.assertEqual(report['source_sha256'], manifest['source']['sha256'])
         self.assertEqual(report['source_action_patch'], PATCH_PROVENANCE)
 
     def test_compressed_vra_materializes_exact_verified_runtime_bytes(self):
         vra = self.root / package.JUMP_DIR / 'asset.vra'
-        expected = json.loads((self.root / package.JUMP_DIR / 'manifest.json').read_text())['files']['asset.vra']
+        expected = add_test_transports(self.root, package.JUMP_DIR)['files']['asset.vra']
+        package.verify_jump(self.root, require_transports=True)
         vra.unlink(missing_ok=True)
         package.materialize(self.root, include_jump=True)
-        import hashlib
         self.assertEqual(vra.stat().st_size, expected['bytes'])
         self.assertEqual(hashlib.sha256(vra.read_bytes()).hexdigest(), expected['sha256'])
 
     def test_raw_companions_cannot_hide_corrupt_compressed_transports(self):
+        add_test_transports(self.root, package.JUMP_DIR)
+        package.verify_jump(self.root, require_transports=True)
         for name in ('asset.vra.gz', 'asset.vrs.gz'):
             path = self.root / package.JUMP_DIR / name
             original = path.read_bytes()
@@ -50,20 +56,28 @@ class JumpDistributionTests(unittest.TestCase):
             path.write_bytes(original)
 
     def test_cache_requires_transports_but_raw_only_package_does_not(self):
-        (self.root / package.JUMP_DIR / 'asset.vra.gz').unlink()
+        add_test_transports(self.root, package.JUMP_DIR)
+        package.verify_jump(self.root, require_transports=True)
+        for name in ('asset.vra.gz', 'asset.vrs.gz'):
+            (self.root / package.JUMP_DIR / name).unlink()
         package.verify_jump(self.root)
         with self.assertRaisesRegex(ValueError, 'missing'):
             package.verify_jump(self.root, require_transports=True)
 
-    def test_matching_rust_parity_required_for_every_clip(self):
+    def test_every_conversion_binds_source_and_native_clock(self):
         for clip in package.JUMP_CLIPS:
-            path = self.root / package.JUMP_DIR / f'parity-{clip}.json'
-            original = path.read_text(); data = json.loads(original)
-            data['asset_sha256'] = 'wrong'
-            path.write_text(json.dumps(data))
-            with self.assertRaisesRegex(ValueError, 'Rust parity'):
-                package.verify_jump(self.root)
+            path = self.root / package.JUMP_DIR / f'conversion-{clip}.json'
+            original = path.read_text()
+            for key, value in (('authoring_master_sha256', 'wrong'),
+                               ('source_fbx_sha256', 'wrong'),
+                               ('native_fps', [30, 1]), ('source_take', 'wrong')):
+                with self.subTest(clip=clip, field=key):
+                    data = json.loads(original); data[key] = value
+                    path.write_text(json.dumps(data))
+                    with self.assertRaisesRegex(ValueError, 'JUMP conversion/source metadata'):
+                        package.verify_jump(self.root)
             path.write_text(original)
+        package.verify_jump(self.root)
 
     def test_source_change_requires_regeneration(self):
         source = self.root / 'assets/authoring/jump/halcyon_jump.blend'
@@ -74,14 +88,18 @@ class JumpDistributionTests(unittest.TestCase):
 
     def test_manifest_cannot_change_loop_or_duration(self):
         path = self.root / package.JUMP_DIR / 'manifest.json'
-        data = json.loads(path.read_text()); data['jump_clips'][0]['loop'] = True
-        path.write_text(json.dumps(data))
-        with self.assertRaisesRegex(ValueError, 'JUMP manifest'):
-            package.verify_jump(self.root)
+        original = path.read_text()
+        for index in range(len(package.JUMP_CLIPS)):
+            for key, value in (('loop', True), ('duration', 2.)):
+                with self.subTest(clip=index, field=key):
+                    data = json.loads(original); data['jump_clips'][index][key] = value
+                    path.write_text(json.dumps(data))
+                    with self.assertRaisesRegex(ValueError, 'JUMP manifest'):
+                        package.verify_jump(self.root)
 
     def test_missing_companion_blocks_package(self):
         (self.root / package.JUMP_DIR / 'asset.vra').unlink(missing_ok=True)
-        (self.root / package.JUMP_DIR / 'asset.vra.gz').unlink()
+        (self.root / package.JUMP_DIR / 'asset.vra.gz').unlink(missing_ok=True)
         with self.assertRaisesRegex(ValueError, 'missing'):
             package.verify_jump(self.root)
 
@@ -90,16 +108,15 @@ class JumpDistributionTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'unsupported'):
             package.jump_bound(self.root)
 
-    def test_stale_or_failed_seam_evidence_blocks_packaging(self):
-        path = self.root / package.JUMP_DIR / 'runtime-seams.json'
-        original = path.read_text()
-        for key, value in [('asset_sha256', 'stale'), ('passed', False), ('checks', [])]:
-            data = json.loads(original); data[key] = value
-            path.write_text(json.dumps(data))
-            with self.assertRaisesRegex(ValueError, 'seam/hold evidence'):
-                package.verify_jump(self.root)
-        path.write_text(original)
-        package.verify_jump(self.root)
+    def test_delivery_does_not_require_numerical_parity_or_seam_reports(self):
+        paths = [self.root / package.JUMP_DIR / name for name in
+                 ('runtime-seams.json', *(f'parity-{clip}.json' for clip in package.JUMP_CLIPS))]
+        for path in paths:
+            path.unlink(missing_ok=True)
+        expected = package.verify_jump(self.root)
+        for path in paths:
+            path.write_text('not a numerical parity or seam report')
+        self.assertEqual(package.verify_jump(self.root), expected)
 
     def test_wrong_source_action_crop_or_density_blocks_cached_pack(self):
         manifest = self.root / package.JUMP_DIR / 'manifest.json'
@@ -109,14 +126,18 @@ class JumpDistributionTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'JUMP manifest'):
             package.verify_jump(self.root)
         manifest.write_text(original)
-        path = self.root / package.JUMP_DIR / 'conversion-jump_takeoff.json'
-        original = path.read_text()
-        for key, value in [('native_crop', [1,12]), ('imported_frame_offset', 1),
-                           ('timing_policy', {'subdivisions': 1, 'samples': 12})]:
-            data = json.loads(original); data[key] = value; path.write_text(json.dumps(data))
-            with self.assertRaisesRegex(ValueError, 'Rust parity'):
-                package.verify_jump(self.root)
-        path.write_text(original)
+        for clip, end in zip(package.JUMP_CLIPS, (12, 24, 29)):
+            path = self.root / package.JUMP_DIR / f'conversion-{clip}.json'
+            original = path.read_text()
+            for key, value in (
+                    ('native_crop', [1, end]), ('imported_frame_offset', 1),
+                    ('timing_policy', {'subdivisions': 1, 'samples': (end - 1) * 8 + 1}),
+                    ('timing_policy', {'subdivisions': 8, 'samples': end})):
+                with self.subTest(clip=clip, field=key, value=value):
+                    data = json.loads(original); data[key] = value; path.write_text(json.dumps(data))
+                    with self.assertRaisesRegex(ValueError, 'JUMP conversion/source metadata'):
+                        package.verify_jump(self.root)
+            path.write_text(original)
         package.verify_jump(self.root)
 
     def test_old_r7_or_changed_patch_manifest_is_rejected(self):
@@ -143,30 +164,31 @@ class JumpDistributionTests(unittest.TestCase):
         path.write_text(original)
         package.verify_jump(self.root)
 
-    def test_every_parity_report_binds_approved_action_patch(self):
+    def test_missing_conversion_metadata_blocks_delivery(self):
         for clip in package.JUMP_CLIPS:
-            path = self.root / package.JUMP_DIR / f'parity-{clip}.json'
+            path = self.root / package.JUMP_DIR / f'conversion-{clip}.json'
             original = path.read_text()
-            for patch in (None, {}, {'candidate_action': 'jump_land_r7'}):
-                data = json.loads(original)
-                data['source_action_patch'] = patch
-                path.write_text(json.dumps(data))
-                with self.assertRaisesRegex(ValueError, 'Rust parity'):
+            path.unlink()
+            with self.subTest(clip=clip):
+                with self.assertRaisesRegex(ValueError, 'required distribution file missing'):
                     package.verify_jump(self.root)
             path.write_text(original)
         package.verify_jump(self.root)
 
-    def test_changed_keys_boundaries_and_trough_have_direct_parity_samples(self):
-        path = self.root / package.JUMP_DIR / 'parity-jump_land.json'
-        original = path.read_text()
-        for frame in (4., 4.5, 5., 5.0625, 5.5, 6., 6.0625, 6.5, 7., 12.):
-            data = json.loads(original)
-            data['records'] = [r for r in data['records'] if r['native_frame'] != frame]
-            path.write_text(json.dumps(data))
-            with self.assertRaisesRegex(ValueError, 'changed-interval source/Rust parity'):
-                package.verify_jump(self.root)
-        path.write_text(original)
-        package.verify_jump(self.root)
+    def test_rehashed_invalid_vra_still_fails_binary_validation(self):
+        folder = self.root / package.JUMP_DIR
+        path = folder / 'manifest.json'
+        manifest = json.loads(path.read_text())
+        data = bytearray(package.companion_bytes(self.root, 'asset.vra', manifest, package.JUMP_DIR))
+        data[0] ^= 1
+        (folder / 'asset.vra').write_bytes(data)
+        (folder / 'asset.vra.gz').unlink(missing_ok=True)
+        digest = hashlib.sha256(data).hexdigest()
+        manifest['files']['asset.vra']['sha256'] = digest
+        manifest['repository_transport']['asset.vra']['decoded_sha256'] = digest
+        path.write_text(json.dumps(manifest))
+        with self.assertRaisesRegex(ValueError, 'VRA magic/version'):
+            package.verify_jump(self.root)
 
     def test_spaced_manifest_key_still_requires_jump_assets(self):
         config = self.root / 'assets/animations.cfg'

@@ -1,4 +1,4 @@
-"""Portable source-only r2 admission/capture checks; no native execution or assets."""
+"""Portable parser/clock/capture checks, independent of shipped asset approval."""
 import importlib.util
 from pathlib import Path, PurePosixPath, PureWindowsPath
 import re
@@ -14,12 +14,11 @@ from verify_high_mantle_observer import EvidenceError
 
 
 class RevisionContractTests(unittest.TestCase):
-    def test_source_requires_complete_256_grid_and_stays_inactive(self):
+    def test_source_preserves_native_runtime_timestamp_contract(self):
         text = (ROOT/'src/authored_high_mantle.rs').read_text()
         self.assertIn('pub const SUBDIVISIONS: usize = 256;', text)
         self.assertIn('pub const SAMPLE_HZ: usize = 60 * SUBDIVISIONS;', text)
         self.assertIn('pub const SAMPLE_COUNT: usize = 95 * SUBDIVISIONS + 1;', text)
-        self.assertIn("const APPROVED_RUNTIME_PINS: Option<RuntimePins<'static>> = None;", text)
         self.assertIn('t.to_bits() == ((i as f64 / SAMPLE_HZ as f64) as f32).to_bits()', text)
         self.assertIn('native64_payload_and_receipt_cannot_be_relabeled_as_native256', text)
         self.assertNotIn('/ 3840.', text)
@@ -70,14 +69,13 @@ class RevisionContractTests(unittest.TestCase):
             self.assertLess(text.index('require_native_platform()\n    from platform_x11_input'),
                             text.index("output.mkdir(mode=0o700)"))
 
-    def test_capture_payload_configs_are_not_bundled(self):
-        # Capture preparation must not add payloads or learned approval hashes.
-        self.assertFalse((ROOT/'assets/onehand').exists())
-        self.assertFalse((ROOT/'tools/high_mantle_runtime_pins.json').exists())
+    def test_capture_cannot_configure_or_mutate_runtime_admission(self):
+        # Shipped exports can change independently of this read-only observer.
         text = (ROOT/'src/high_mantle_capture.rs').read_text()
         self.assertNotIn('set_high_mantle_binding(', text)
         self.assertNotIn('APPROVED_RUNTIME_PINS', text)
         self.assertIn('sim: &Simulation', text)
+        self.assertNotIn('&mut Simulation', text)
 
 
 if __name__ == '__main__':

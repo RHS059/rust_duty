@@ -219,7 +219,7 @@ class Dx12PreviewTests(unittest.TestCase):
 
 
 class Dx12PreviewWorkflowTests(unittest.TestCase):
-    def test_preview_reuses_smoke_binary_and_keeps_stable_aliases_separate(self):
+    def test_optional_preview_reuses_smoke_binary_and_keeps_stable_aliases_separate(self):
         workflow = (ROOT / '.github/workflows/wgpu-dx12-smoke.yml').read_text()
         self.assertIn(' '.join(preview.BUILD_COMMAND), workflow)
         self.assertEqual(workflow.count('cargo build '), 1)
@@ -233,9 +233,13 @@ class Dx12PreviewWorkflowTests(unittest.TestCase):
             self.assertIn(f'name: generated-{artifact}-runtime', workflow)
         self.assertNotIn('run-id:', workflow)
         self.assertNotIn('github-token:', workflow)
+
+    def test_windows_delivery_does_not_require_optional_dx12_capture(self):
         caller = (ROOT / '.github/workflows/build.yml').read_text()
-        preview_job = caller.split('  dx12-warp-smoke:\n')[1].split('  build:\n')[0]
-        self.assertIn('needs: [changes, animation-assets, walk-assets, ads-assets, directional-assets, jump-assets]', preview_job)
+        self.assertNotIn('uses: ./.github/workflows/wgpu-dx12-smoke.yml', caller)
+        build = caller.split('  build:\n')[1].split('  publish-game-update:\n')[0]
+        self.assertIn('needs: [changes]', build)
+        self.assertNotIn('dx12-warp-smoke', build)
         publisher = caller.split('  publish-game-update:\n')[1]
         self.assertIn('needs: [build]', publisher)
         self.assertNotIn('dx12', publisher)
