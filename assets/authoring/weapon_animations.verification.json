@@ -8,5 +8,13 @@
   "packed_image_count": 27,
   "default_scene": "LIBRARY | VAULT",
   "source_files_unchanged": true,
-  "canonical_file": "assets/authoring/weapon_animations.blend"
+  "canonical_file": "assets/authoring/weapon_animations.blend",
+  "canonical_sha256": "d86fcb25ef625922c4cce4dcec1ec9fb228d4ea6fd769647e424f2b6eec43d2e",
+  "metadata_repair": {
+    "input_sha256": "e1388c5a6fd96de54ccb75e70d8ba1860b02d65eced327342b4fcc40c36d8c8d",
+    "clip": "reload_current_wip",
+    "added_object": "hk416_magazine_outgoing.008",
+    "exported_name": "hk416_magazine_outgoing",
+    "scope": "Retained outgoing magazine added to explicit export selection only; no authored motion edited."
+  }
 }
