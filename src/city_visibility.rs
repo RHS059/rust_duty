@@ -8,6 +8,8 @@ use std::collections::{HashMap, HashSet};
 
 const MAX_CELLS: usize = 1024;
 const MAX_PORTALS: usize = 16384;
+// Match the authored topology validator's positional tolerance.
+const PORTAL_BOUNDARY_TOLERANCE: f32 = 0.0001;
 const BOUNDARY_MARGIN: f32 = 0.08;
 const CAMERA_PORTAL_MARGIN: f32 = 0.25;
 
@@ -113,6 +115,26 @@ impl InteriorVisibility {
                 return Err("degenerate portal opening".into());
             }
             let center = bounds.center();
+            let axis = if normal.x != 0. {
+                0
+            } else if normal.y != 0. {
+                1
+            } else {
+                2
+            };
+            let on_boundary = |cell: Aabb, outward: f32| {
+                let boundary = if outward > 0. {
+                    cell.max[axis]
+                } else {
+                    cell.min[axis]
+                };
+                (center[axis] - boundary).abs() <= PORTAL_BOUNDARY_TOLERANCE
+            };
+            if !on_boundary(cells[from].bounds, normal[axis])
+                || to != exterior && !on_boundary(cells[to].bounds, -normal[axis])
+            {
+                return Err("portal plane does not match connected cell boundaries".into());
+            }
             if normal.dot(cells[from].bounds.center() - center) >= -BOUNDARY_MARGIN
                 || to != exterior
                     && normal.dot(cells[to].bounds.center() - center) <= BOUNDARY_MARGIN
@@ -455,6 +477,48 @@ mod tests {
             scene.record_visible(0, &scene.frame(eye, &camera)),
             "portal testing omits the near-plane clip"
         );
+    }
+
+    #[test]
+    fn portal_plane_must_match_its_source_boundary() {
+        let target = Vec3::new(-1.75, 1.7, -8.5);
+        let chunks = [chunk(target, Some("A"))];
+        let mut source = manifest(true, false);
+        let eye = Vec3::new(7., 1.7, -6.);
+        let camera = Frustum::new(
+            Mat4::perspective_rh_gl(5_f32.to_radians(), 16. / 9., 0.035, 400.)
+                * Mat4::look_at_rh(eye, target, Vec3::Y),
+        );
+        assert!(camera.intersects(chunks[0].bounds));
+        let scene = InteriorVisibility::from_manifest(&source, &chunks).unwrap();
+        assert!(scene.record_visible(0, &scene.frame(eye, &camera)));
+
+        source["visibility"]["portals"][1]["min"][2] = (-9.01).into();
+        source["visibility"]["portals"][1]["max"][2] = (-8.99).into();
+        assert!(
+            !camera.intersects_portal(read_bounds(&source["visibility"]["portals"][1]).unwrap())
+        );
+        assert!(InteriorVisibility::from_manifest(&source, &chunks).is_none());
+    }
+
+    #[test]
+    fn portal_plane_must_match_the_opposite_destination_boundary() {
+        let chunks = [chunk(Vec3::new(0., 6., -10.), Some("A"))];
+        let mut source = manifest(false, true);
+        assert!(InteriorVisibility::from_manifest(&source, &chunks).is_some());
+        // Still inside the broad adjacency margin, with no cell overlap, but
+        // no longer the shared floor surface promised by this stair portal.
+        source["visibility"]["cells"][1]["min"][1] = 4.04.into();
+        assert!(InteriorVisibility::from_manifest(&source, &chunks).is_none());
+    }
+
+    #[test]
+    fn shared_portal_boundary_allows_exporter_rounding_tolerance() {
+        let chunks = [chunk(Vec3::new(0., 6., -10.), Some("A"))];
+        let mut source = manifest(false, true);
+        source["visibility"]["portals"][1]["min"][1] = 3.99005.into();
+        source["visibility"]["portals"][1]["max"][1] = 4.01005.into();
+        assert!(InteriorVisibility::from_manifest(&source, &chunks).is_some());
     }
 
     #[test]
