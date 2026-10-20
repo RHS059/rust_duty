@@ -255,6 +255,116 @@ def walk_route(points, colliders, label):
             'minimum_headroom': None if lowest_headroom is None else round(lowest_headroom, 6)}
 
 
+def verify_visibility(level):
+    """Audit explicit topology; absent/incomplete metadata stays disabled."""
+    visibility = level.get('visibility')
+    if visibility is None:
+        return {'status': 'absent', 'complete': False, 'cells': 0, 'portals': 0}
+    require(isinstance(visibility, dict)
+            and visibility.get('schema') == 'rust-duty-city-visibility/v1',
+            'invalid visibility schema')
+    complete = visibility.get('complete')
+    require(type(complete) is bool, 'invalid visibility completeness flag')
+    cells, portals = visibility.get('cells'), visibility.get('portals')
+    require(isinstance(cells, list) and len(cells) <= 1024 and (cells or not complete),
+            'invalid visibility cells')
+    require(isinstance(portals, list) and len(portals) <= 16384 and (portals or not complete),
+            'invalid visibility portals')
+    require(type(visibility.get('portal_count')) is int and visibility['portal_count'] == len(portals),
+            'visibility portal count mismatch')
+    buildings = {row['id']: row for row in level.get('buildings', [])}
+    by_id = {}
+    for cell in cells:
+        require(isinstance(cell, dict), 'invalid visibility cell')
+        identity, building = cell.get('id'), cell.get('building')
+        require(isinstance(identity, str) and identity.strip() and identity not in by_id,
+                'missing/duplicate visibility cell id')
+        require(isinstance(building, str) and building in buildings, 'unknown visibility building')
+        low, high = vector(cell.get('min'), 'cell min'), vector(cell.get('max'), 'cell max')
+        require(all(a < b for a, b in zip(low, high)), 'invalid visibility cell bounds')
+        by_id[identity] = cell
+
+    def close(first, second):
+        return all(abs(a - b) <= EPS for a, b in zip(first, second))
+
+    expected_ids = set()
+    if complete:
+        for building in buildings.values():
+            for floor, y in enumerate(building['floor_levels']):
+                identity = f"{building['id']}:{floor}"
+                expected_ids.add(identity)
+                require(identity in by_id, 'missing visibility floor cell')
+                cell = by_id[identity]
+                cx, _, cz = building['center']
+                low = [cx - building['width'] / 2, y, cz - building['depth'] / 2]
+                high = [cx + building['width'] / 2, y + 3.2, cz + building['depth'] / 2]
+                require(cell['building'] == building['id'] and close(cell['min'], low) and close(cell['max'], high),
+                        'visibility cell differs from whole-floor volume')
+        require(set(by_id) == expected_ids, 'unexpected visibility floor/roof cell')
+    exterior, stairs = [], []
+    seen_portals = set()
+    for portal in portals:
+        require(isinstance(portal, dict), 'invalid visibility portal')
+        source, target = portal.get('from'), portal.get('to')
+        require(isinstance(source, str) and source in by_id, 'unknown visibility portal source')
+        require('to' in portal and (target is None or isinstance(target, str) and target in by_id),
+                'unknown visibility portal destination')
+        require(target != source, 'self-linked visibility portal')
+        low, high = vector(portal.get('min'), 'portal min'), vector(portal.get('max'), 'portal max')
+        require(all(a < b for a, b in zip(low, high)), 'invalid visibility portal bounds')
+        normal = vector(portal.get('normal'), 'portal normal')
+        axes = [axis for axis, value in enumerate(normal) if value != 0]
+        require(len(axes) == 1 and abs(normal[axes[0]]) == 1,
+                'visibility portal normal must be a unit axis')
+        key = (source, target, tuple(low), tuple(high), tuple(normal))
+        require(key not in seen_portals, 'duplicate visibility portal')
+        seen_portals.add(key)
+        axis = axes[0]
+        require(abs(high[axis] - low[axis] - .02) <= EPS, 'invalid visibility portal thickness')
+        plane = (low[axis] + high[axis]) / 2
+        cell = by_id[source]
+        boundary = cell['max' if normal[axis] > 0 else 'min'][axis]
+        require(abs(plane - boundary) <= EPS, 'visibility portal is not on outward source boundary')
+        require(all(low[n] >= cell['min'][n] - .051 and high[n] <= cell['max'][n] + .051
+                    for n in range(3) if n != axis), 'visibility portal exceeds its source cell')
+        if target is None:
+            require(axis in (0, 2), 'exterior visibility portal must be on a wall')
+            exterior.append(portal)
+        else:
+            destination = by_id[target]
+            require(normal == [0, 1, 0] and cell['building'] == destination['building']
+                    and abs(destination['min'][1] - plane) <= EPS,
+                    'visibility stair portal must connect adjacent floors upward')
+            stairs.append(portal)
+    if complete:
+        require(all(any(portal['from'] == identity for portal in exterior) for identity in by_id),
+                'visibility floor lacks exterior openings')
+        expected_stairs = []
+        for building in buildings.values():
+            tag = building['id']
+            for hole in building.get('floor_holes', []):
+                floor = hole['level']
+                require(0 < floor < len(building['floor_levels']), 'invalid visibility stair-hole floor')
+                low = [hole['min'][0] - .05, hole['min'][1] - .01, hole['min'][2] - .05]
+                high = [hole['max'][0] + .05, hole['max'][1] + .01, hole['max'][2] + .05]
+                expected_stairs.append((f'{tag}:{floor - 1}', f'{tag}:{floor}', low, high))
+            for entrance in building.get('entrances', []):
+                point, inward = entrance['position'], entrance['inward']
+                require(any(by_id[portal['from']]['building'] == tag
+                            and all(abs(portal['normal'][axis] + inward[axis]) <= EPS for axis in range(3))
+                            and all(portal['min'][axis] - EPS <= point[axis] <= portal['max'][axis] + EPS
+                                    for axis in range(3)) for portal in exterior),
+                        'visibility entrance is missing its exterior portal')
+        require(len(stairs) == len(expected_stairs), 'visibility stair portal count mismatch')
+        for source, target, low, high in expected_stairs:
+            require(sum(portal['from'] == source and portal['to'] == target
+                        and close(portal['min'], low) and close(portal['max'], high) for portal in stairs) == 1,
+                    'visibility stair hole missing or duplicated')
+    return {'status': 'complete' if complete else 'incomplete', 'complete': complete,
+            'cells': len(cells), 'portals': len(portals),
+            'exterior_portals': len(exterior), 'stair_portals': len(stairs)}
+
+
 def verify_level(level, mesh_file):
     require(level.get('schema') == 'rust-duty-city/v1', 'wrong city level schema')
     require(isinstance(level.get('name'), str) and level['name'].strip(), 'city name missing')
@@ -325,7 +435,8 @@ def verify_level(level, mesh_file):
         routes.append(walk_route(path, boxes, f'city/route-{i}'))
     return {'name': level['name'], 'colliders': collider_count, 'buildings': len(buildings),
             'entrances': doors, 'stair_connections': stairs, 'multistory_buildings': multistory,
-            'route_count': len(routes), 'route_samples': sum(r['samples'] for r in routes), 'routes': routes}
+            'route_count': len(routes), 'route_samples': sum(r['samples'] for r in routes), 'routes': routes,
+            'visibility': verify_visibility(level)}
 
 
 def verify_provenance(root, level, source=None):

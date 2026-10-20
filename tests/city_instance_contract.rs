@@ -50,5 +50,43 @@ fn regenerated_city_loads_real_instances_and_culls_with_the_runtime_bvh() {
     let original_count = visible.len();
     visible.dedup();
     assert_eq!(visible.len(), original_count, "no duplicate submissions");
+    let manifest: serde_json::Value =
+        serde_json::from_slice(&std::fs::read(&path).unwrap()).unwrap();
+    if !manifest["visibility"].is_null() {
+        assert!(
+            stats.interior_occlusion_enabled,
+            "complete authored graph must be admitted"
+        );
+        let mut largest_rejection = 0;
+        for building in manifest["buildings"].as_array().unwrap() {
+            let center = &building["center"];
+            let center = Vec3::new(
+                center[0].as_f64().unwrap() as f32,
+                1.7,
+                center[2].as_f64().unwrap() as f32,
+            );
+            for direction in [Vec3::X, -Vec3::X, Vec3::Z, -Vec3::Z] {
+                for offset in [-4., 0., 4.] {
+                    let target = center + Vec3::new(-direction.z, 0., direction.x) * offset;
+                    let eye = target + direction * 9.5;
+                    let matrix = Mat4::perspective_rh_gl(
+                        30_f32.to_radians(),
+                        16. / 9.,
+                        0.035,
+                        CITY_FAR_PLANE,
+                    ) * Mat4::look_at_rh(eye, target, Vec3::Y);
+                    let stats = level.visit_visible(eye, matrix, |_| {});
+                    largest_rejection = largest_rejection.max(stats.occlusion_culled_records);
+                }
+            }
+        }
+        assert!(
+            largest_rejection > 0,
+            "authored portals reject actual hidden interior candidates"
+        );
+        eprintln!(
+            "largest rejected interior candidate set over 192 exterior views: {largest_rejection}"
+        );
+    }
     eprintln!("regenerated city runtime visibility: {stats:?}");
 }

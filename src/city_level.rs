@@ -11,6 +11,10 @@ use glam::{Mat4, Vec2, Vec3};
 use serde_json::Value;
 use std::path::{Path, PathBuf};
 
+#[path = "city_visibility.rs"]
+mod interior;
+use interior::InteriorVisibility;
+
 pub const CITY_FAR_PLANE: f32 = 400.;
 const MAX_FILE_BYTES: usize = 768 * 1024 * 1024;
 const MAX_CHUNKS: usize = 16_384;
@@ -73,6 +77,7 @@ pub struct CityLevel {
     pub colliders: Vec<Block>,
     pub chunks: Vec<StaticCityChunk>,
     visibility: VisibilityBvh,
+    interior_visibility: Option<InteriorVisibility>,
     mesh_source_path: PathBuf,
 }
 
@@ -192,6 +197,7 @@ impl CityLevel {
                     })
                     .collect(),
             );
+            let interior_visibility = InteriorVisibility::from_manifest(&value, &chunks);
             Ok(Self {
                 name,
                 spawn_position,
@@ -200,6 +206,7 @@ impl CityLevel {
                 colliders,
                 chunks,
                 visibility,
+                interior_visibility,
                 mesh_source_path: mesh_path,
             })
         })();
@@ -240,7 +247,23 @@ impl CityLevel {
         view_projection: Mat4,
         visitor: impl FnMut(usize),
     ) -> VisibilityStats {
-        self.visibility.visit(eye, view_projection, visitor)
+        let Some(interior) = &self.interior_visibility else {
+            return self.visibility.visit(eye, view_projection, visitor);
+        };
+        let frame = interior.frame(eye, &Frustum::new(view_projection));
+        let mut visitor = visitor;
+        let mut occluded = 0;
+        let mut stats = self.visibility.visit(eye, view_projection, |index| {
+            if interior.record_visible(index, &frame) {
+                visitor(index);
+            } else {
+                occluded += 1;
+            }
+        });
+        stats.visible_records -= occluded;
+        stats.occlusion_culled_records = occluded;
+        stats.interior_occlusion_enabled = true;
+        stats
     }
 }
 
@@ -635,15 +658,15 @@ pub fn write_geometry(path: &Path, geometry: &[CityGeometry]) -> Result<(), Stri
         Some(i) => serde_json::json!({"id":i.id,"asset":i.asset,"building":i.building,"max_distance":i.max_distance}),
         None => Value::Null,
     }).collect();
+    for value in &metadata {
+        parse_instance(value)?;
+    }
     let metadata = serde_json::to_vec(&metadata).map_err(|e| e.to_string())?;
     if metadata.len() > 32 * 1024 * 1024 {
         return Err("city metadata exceeds size limit".into());
     }
-    let mut bytes = b"RDCITY04".to_vec();
-    bytes.extend(3_u32.to_le_bytes());
-    bytes.extend((metadata.len() as u32).to_le_bytes());
-    bytes.extend(metadata);
-    bytes.extend((geometry.len() as u32).to_le_bytes());
+    let mut decoded_bytes = 20 + metadata.len();
+    let mut bounds = Vec::with_capacity(geometry.len());
     for g in geometry {
         if g.vertices.is_empty()
             || g.vertices.len() > 4_000_000
@@ -653,37 +676,63 @@ pub fn write_geometry(path: &Path, geometry: &[CityGeometry]) -> Result<(), Stri
         {
             return Err("invalid city geometry count".into());
         }
-        let bounds = geometry_bounds(&g.vertices);
-        for f in bounds
-            .min
-            .to_array()
-            .into_iter()
-            .chain(bounds.max.to_array())
-        {
-            bytes.extend(f.to_le_bytes());
+        if g.vertices.iter().any(|v| !v.position.is_finite()) {
+            return Err("non-finite city vertex".into());
         }
-        bytes.extend((g.vertices.len() as u32).to_le_bytes());
-        bytes.extend((g.indices.len() as u32).to_le_bytes());
-        for v in &g.vertices {
-            for f in v.position.to_array() {
-                bytes.extend(f.to_le_bytes());
-            }
-            bytes.extend(v.color);
+        if g.indices.iter().any(|&i| i as usize >= g.vertices.len()) {
+            return Err("city index outside vertices".into());
         }
-        for &i in &g.indices {
-            bytes.extend(i.to_le_bytes());
-        }
-        if bytes.len() > MAX_FILE_BYTES {
+        decoded_bytes += 32 + g.vertices.len() * 16 + g.indices.len() * 4;
+        if decoded_bytes > MAX_FILE_BYTES {
             return Err("city mesh file is too large".into());
         }
+        bounds.push(geometry_bounds(&g.vertices));
     }
-    // Exercise the production parser before replacing an existing bake.
-    decode_geometry(&bytes)?;
+    // All framing, metadata and geometry is validated before touching the
+    // destination. Stream the bake; never allocate or decode a second scene.
     let temporary = path.with_extension("bin.tmp");
     let file = std::fs::File::create(&temporary).map_err(|e| e.to_string())?;
-    let mut encoder = flate2::write::GzEncoder::new(file, flate2::Compression::default());
-    encoder.write_all(&bytes).map_err(|e| e.to_string())?;
-    encoder.finish().map_err(|e| e.to_string())?;
+    let encoder = flate2::write::GzEncoder::new(file, flate2::Compression::default());
+    let mut out = std::io::BufWriter::with_capacity(64 * 1024, encoder);
+    let write_result = (|| -> std::io::Result<()> {
+        out.write_all(b"RDCITY04")?;
+        out.write_all(&3_u32.to_le_bytes())?;
+        out.write_all(&(metadata.len() as u32).to_le_bytes())?;
+        out.write_all(&metadata)?;
+        out.write_all(&(geometry.len() as u32).to_le_bytes())?;
+        for (g, bounds) in geometry.iter().zip(bounds) {
+            for f in bounds
+                .min
+                .to_array()
+                .into_iter()
+                .chain(bounds.max.to_array())
+            {
+                out.write_all(&f.to_le_bytes())?;
+            }
+            out.write_all(&(g.vertices.len() as u32).to_le_bytes())?;
+            out.write_all(&(g.indices.len() as u32).to_le_bytes())?;
+            for v in &g.vertices {
+                for f in v.position.to_array() {
+                    out.write_all(&f.to_le_bytes())?;
+                }
+                out.write_all(&v.color)?;
+            }
+            for &i in &g.indices {
+                out.write_all(&i.to_le_bytes())?;
+            }
+        }
+        Ok(())
+    })();
+    write_result.map_err(|e| e.to_string())?;
+    let file = out
+        .into_inner()
+        .map_err(|e| e.to_string())?
+        .finish()
+        .map_err(|e| e.to_string())?;
+    if file.metadata().map_err(|e| e.to_string())?.len() > MAX_FILE_BYTES as u64 {
+        return Err("compressed city mesh file is too large".into());
+    }
+    drop(file);
     std::fs::rename(temporary, path).map_err(|e| e.to_string())
 }
 
@@ -693,6 +742,8 @@ pub struct VisibilityStats {
     pub visited_nodes: usize,
     pub tested_records: usize,
     pub distance_culled_records: usize,
+    pub occlusion_culled_records: usize,
+    pub interior_occlusion_enabled: bool,
     pub visible_records: usize,
 }
 
@@ -830,7 +881,18 @@ impl Frustum {
         }
     }
     fn intersects(&self, bounds: Aabb) -> bool {
-        self.planes.iter().all(|p| {
+        self.intersects_planes(bounds, false)
+    }
+    /// A visible ray may cross an opening before reaching the camera near
+    /// plane. Rejecting that opening would incorrectly hide geometry beyond it.
+    fn intersects_portal(&self, bounds: Aabb) -> bool {
+        self.intersects_planes(bounds, true)
+    }
+    fn intersects_planes(&self, bounds: Aabb, omit_near: bool) -> bool {
+        self.planes.iter().enumerate().all(|(index, p)| {
+            if omit_near && index == 4 {
+                return true;
+            }
             let vertex = Vec3::new(
                 if p.x >= 0. {
                     bounds.max.x
@@ -998,6 +1060,69 @@ mod tests {
             || clip.iter().all(|p| p.y > p.w)
             || clip.iter().all(|p| p.z < -p.w)
             || clip.iter().all(|p| p.z > p.w))
+    }
+
+    #[test]
+    fn streaming_writer_validates_before_touching_existing_bake() {
+        let path = std::env::temp_dir().join(format!(
+            "rust-duty-city-writer-{}-{}.bin",
+            std::process::id(),
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+        ));
+        std::fs::write(&path, b"previous bake").unwrap();
+        for case in 0..5 {
+            let mut geometry = decode_geometry_unlit(&triangle()).unwrap();
+            match case {
+                0 => geometry[0].indices[2] = 3,
+                1 => geometry[0].vertices[0].position.x = f32::NAN,
+                2 => geometry[0].indices.pop().map(|_| ()).unwrap(),
+                3 | 4 => {
+                    geometry[0].instance = Some(InstanceMetadata {
+                        id: 1,
+                        asset: if case == 3 {
+                            "fixture".into()
+                        } else {
+                            "é".repeat(257)
+                        },
+                        building: None,
+                        max_distance: if case == 3 { f32::NAN } else { 0. },
+                    })
+                }
+                _ => unreachable!(),
+            }
+            assert!(write_geometry(&path, &geometry).is_err());
+            assert_eq!(std::fs::read(&path).unwrap(), b"previous bake");
+            assert!(
+                !path.with_extension("bin.tmp").exists(),
+                "invalid input never opens the temporary output"
+            );
+        }
+        let mut geometry = Vec::new();
+        for index in 0..3 {
+            let mut record = decode_geometry_unlit(&triangle()).unwrap().pop().unwrap();
+            record.instance = (index != 0).then(|| InstanceMetadata {
+                id: index,
+                asset: "fixture".into(),
+                building: (index == 2).then(|| "B01".into()),
+                max_distance: 0.,
+            });
+            geometry.push(record);
+        }
+        write_geometry(&path, &geometry).unwrap();
+        let restored = decode_geometry(&std::fs::read(&path).unwrap()).unwrap();
+        assert_eq!(restored.len(), geometry.len());
+        for (written, read) in geometry.iter().zip(&restored) {
+            assert_eq!(written.instance, read.instance);
+            assert_eq!(written.indices, read.indices);
+            for (a, b) in written.vertices.iter().zip(&read.vertices) {
+                assert_eq!(a.position, b.position);
+                assert_eq!(a.color, b.color, "compact prelit data is not relit");
+            }
+        }
+        let _ = std::fs::remove_file(path);
     }
 
     #[test]
