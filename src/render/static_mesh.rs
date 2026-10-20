@@ -223,6 +223,22 @@ mod tests {
         assert!(!uploaded);
         let path =
             std::env::temp_dir().join(format!("rust-duty-static-u32-{}.png", std::process::id()));
+        // Prove the high-u32 path before any dynamic geometry is submitted.
+        // An overlapping dynamic triangle would mask a missing static draw.
+        assert!(list
+            .commands
+            .iter()
+            .all(|command| !matches!(command, crate::draw::Command::Mesh { .. })));
+        list.capture_png(None, &path);
+        renderer.submit(&list).unwrap();
+        let pixels = image::open(&path).unwrap().to_rgba8();
+        assert_eq!(pixels.get_pixel(8, 8).0, [255; 4]);
+        assert_eq!(pixels.get_pixel(30, 30).0, [0, 0, 0, 255]);
+        std::fs::remove_file(&path).unwrap();
+        assert!(matches!(
+            list.commands.pop(),
+            Some(crate::draw::Command::Capture { .. })
+        ));
         list.draw_mesh(
             &crate::draw::Mesh {
                 vertices: mesh.vertices()[65_536..].to_vec(),
@@ -232,7 +248,6 @@ mod tests {
             Mat4::IDENTITY,
             BlendMode::Opaque,
         );
-        list.capture_png(None, &path);
         renderer.submit(&list).unwrap();
         let metrics = renderer.last_frame_metrics().unwrap();
         assert_eq!((metrics.draw_calls, metrics.triangles), (3, 3));
@@ -244,10 +259,6 @@ mod tests {
             ),
             (120, 6, matrix_step * 2 + 64)
         );
-        let pixels = image::open(&path).unwrap().to_rgba8();
-        assert_eq!(pixels.get_pixel(8, 8).0, [255; 4]);
-        assert_eq!(pixels.get_pixel(30, 30).0, [0, 0, 0, 255]);
-        std::fs::remove_file(&path).unwrap();
         drop(mesh);
         renderer.static_meshes.retire_unused();
         assert!(renderer.static_meshes.meshes.contains_key(&id));
