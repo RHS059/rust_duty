@@ -1,0 +1,489 @@
+{
+  "schema": "rust-duty-cedar-stage1-comparison-summary/v1",
+  "status": "complete",
+  "measured_date_utc": "2026-10-20",
+  "before_source": {
+    "build_label": "0.1.12+build.local.1792458828482372345.3147",
+    "dirty": "false",
+    "revision": "7a493e7707e17f5b2687beb33b087f206e3b24b1",
+    "tree": "acc6434bfcdeaadd93af05c6c50c1c4f33fe9b7a"
+  },
+  "after_source": {
+    "build_label": "0.1.12+build.local.1792459288790256479.30",
+    "dirty": "false",
+    "revision": "28b8d9f5cdf0570f21c62a166eb582eac60da70c",
+    "tree": "a14a9edd59a10b6a16f9a7aab86c01e4de6d3365"
+  },
+  "reports": {
+    "baseline": {
+      "name": "stage0-swiftshader-v2-1280x720-720frames.json",
+      "bytes": 477875,
+      "sha256": "1fbdc45ef7d30895abf9942989413d947f2409b10b7155dc99292451c708ad47"
+    },
+    "candidate": {
+      "name": "stage1-swiftshader-v2-1280x720-720frames.json",
+      "bytes": 459494,
+      "sha256": "e74226ca70d1dcbcea9e83c8fb8bd20327c34add06cfa85adb83b661f8cc0db9"
+    },
+    "comparison": {
+      "name": "stage0-to-stage1-swiftshader-v2-720frames-comparison.json",
+      "bytes": 8676,
+      "sha256": "58d023ee90956e7ccd94cdc46d4c1f61683724cb24004501cb2fec3e10bfa255"
+    }
+  },
+  "host": {
+    "arch": "x86_64",
+    "machine_label": "dot-cloud-swiftshader-2026-10-20",
+    "os": "linux",
+    "profile": "release",
+    "kernel": "Linux 6.18.55 x86_64",
+    "rustc": "1.99.1 (58cf8f9c3 2026-10-13)"
+  },
+  "adapter": {
+    "actual_fingerprint": {
+      "backend": "vulkan",
+      "device_id": 49374,
+      "device_type": "Cpu",
+      "name": "SwiftShader Device (Subzero)",
+      "vendor_id": 6880
+    },
+    "backend": "Vulkan",
+    "device_id": 49374,
+    "device_type": "Cpu",
+    "driver": "SwiftShader driver",
+    "driver_info": "",
+    "force_fallback_requested": false,
+    "name": "SwiftShader Device (Subzero)",
+    "present_mode": null,
+    "requested_fingerprint": null,
+    "selection_mode": "automatic",
+    "vendor_id": 6880
+  },
+  "config": {
+    "frames": 720,
+    "gpu_completion_fence_per_frame": true,
+    "height": 720,
+    "presentation": false,
+    "warmup_frames": 60,
+    "width": 1280
+  },
+  "path": {
+    "cycle_frames": 720,
+    "far": 400.0,
+    "fovy_degrees": 70,
+    "id": "cedar-junction-streets-v2",
+    "near": 0.05,
+    "waypoints": [
+      [
+        0.0,
+        2.0,
+        38.0
+      ],
+      [
+        0.0,
+        2.0,
+        -32.0
+      ],
+      [
+        32.0,
+        3.0,
+        -32.0
+      ],
+      [
+        32.0,
+        3.0,
+        32.0
+      ],
+      [
+        0.0,
+        8.0,
+        32.0
+      ],
+      [
+        -32.0,
+        3.0,
+        32.0
+      ],
+      [
+        -32.0,
+        3.0,
+        -32.0
+      ],
+      [
+        0.0,
+        8.0,
+        -32.0
+      ],
+      [
+        0.0,
+        2.0,
+        38.0
+      ]
+    ]
+  },
+  "scene": {
+    "assets": [
+      {
+        "bytes": 1868550,
+        "fnv1a64": "4b59159644d6f8f8",
+        "name": "level.json"
+      },
+      {
+        "bytes": 54926812,
+        "fnv1a64": "16f0809ac7865679",
+        "name": "lighting.bin"
+      }
+    ],
+    "chunks": 885,
+    "name": "Cedar Junction"
+  },
+  "validation": {
+    "strict_same_assets_comparison": true,
+    "gpu_timestamp_samples_baseline": 720,
+    "gpu_timestamp_samples_candidate": 720,
+    "exact_draw_count_equal_frames": 720,
+    "exact_triangle_count_equal_frames": 720,
+    "candidate_first_use_geometry_upload_frames": 3,
+    "candidate_matrix_only_frames": 717
+  },
+  "metrics": {
+    "cpu_record_ns": {
+      "before": {
+        "available_samples": 720,
+        "total_samples": 720,
+        "mean": 16817037.208333332,
+        "p50": 15821839,
+        "p95": 26914962,
+        "min": 6073661,
+        "max": 58373103
+      },
+      "after": {
+        "available_samples": 720,
+        "total_samples": 720,
+        "mean": 47228.115277777775,
+        "p50": 43725,
+        "p95": 71295,
+        "min": 24045,
+        "max": 220377
+      },
+      "mean_delta": -16769809.093055554,
+      "mean_delta_percent": -99.7191650663984
+    },
+    "cpu_submit_ns": {
+      "before": {
+        "available_samples": 720,
+        "total_samples": 720,
+        "mean": 190338199.30833334,
+        "p50": 186477235,
+        "p95": 282550914,
+        "min": 68569508,
+        "max": 638558418
+      },
+      "after": {
+        "available_samples": 720,
+        "total_samples": 720,
+        "mean": 1060568.9722222222,
+        "p50": 805028,
+        "p95": 1718889,
+        "min": 442095,
+        "max": 77579667
+      },
+      "mean_delta": -189277630.33611113,
+      "mean_delta_percent": -99.44279762229748
+    },
+    "cpu_frame_ns": {
+      "before": {
+        "available_samples": 720,
+        "total_samples": 720,
+        "mean": 207155598.64305556,
+        "p50": 202063125,
+        "p95": 310001529,
+        "min": 75343396,
+        "max": 696931761
+      },
+      "after": {
+        "available_samples": 720,
+        "total_samples": 720,
+        "mean": 1107976.9944444445,
+        "p50": 853849,
+        "p95": 1764179,
+        "min": 466230,
+        "max": 77660266
+      },
+      "mean_delta": -206047621.64861113,
+      "mean_delta_percent": -99.46514745355566
+    },
+    "cpu_gpu_wait_ns": {
+      "before": {
+        "available_samples": 720,
+        "total_samples": 720,
+        "mean": 208383929.05972221,
+        "p50": 182436387,
+        "p95": 374122738,
+        "min": 67236300,
+        "max": 2257563923
+      },
+      "after": {
+        "available_samples": 720,
+        "total_samples": 720,
+        "mean": 196645191.80277777,
+        "p50": 183055982,
+        "p95": 331660488,
+        "min": 50062386,
+        "max": 1627754823
+      },
+      "mean_delta": -11738737.256944448,
+      "mean_delta_percent": -5.633225801007025
+    },
+    "gpu_timestamp_ns": {
+      "before": {
+        "available_samples": 720,
+        "total_samples": 720,
+        "mean": 187711770.51944444,
+        "p50": 160896035.0,
+        "p95": 354561901.0,
+        "min": 58065719.0,
+        "max": 2198673808.0
+      },
+      "after": {
+        "available_samples": 720,
+        "total_samples": 720,
+        "mean": 196353991.99583334,
+        "p50": 183357537.0,
+        "p95": 331330970.0,
+        "min": 49839480.0,
+        "max": 1627388099.0
+      },
+      "mean_delta": 8642221.476388901,
+      "mean_delta_percent": 4.603984850003683
+    },
+    "recorded_draws": {
+      "before": {
+        "available_samples": 720,
+        "total_samples": 720,
+        "mean": 338.6902777777778,
+        "p50": 325,
+        "p95": 510,
+        "min": 149,
+        "max": 565
+      },
+      "after": {
+        "available_samples": 720,
+        "total_samples": 720,
+        "mean": 338.6902777777778,
+        "p50": 325,
+        "p95": 510,
+        "min": 149,
+        "max": 565
+      },
+      "mean_delta": 0.0,
+      "mean_delta_percent": 0.0
+    },
+    "recorded_triangles": {
+      "before": {
+        "available_samples": 720,
+        "total_samples": 720,
+        "mean": 1969971.134722222,
+        "p50": 1903934,
+        "p95": 3048272,
+        "min": 778758,
+        "max": 3329390
+      },
+      "after": {
+        "available_samples": 720,
+        "total_samples": 720,
+        "mean": 1969971.134722222,
+        "p50": 1903934,
+        "p95": 3048272,
+        "min": 778758,
+        "max": 3329390
+      },
+      "mean_delta": 0.0,
+      "mean_delta_percent": 0.0
+    },
+    "draw_calls": {
+      "before": {
+        "available_samples": 720,
+        "total_samples": 720,
+        "mean": 338.6902777777778,
+        "p50": 325,
+        "p95": 510,
+        "min": 149,
+        "max": 565
+      },
+      "after": {
+        "available_samples": 720,
+        "total_samples": 720,
+        "mean": 338.6902777777778,
+        "p50": 325,
+        "p95": 510,
+        "min": 149,
+        "max": 565
+      },
+      "mean_delta": 0.0,
+      "mean_delta_percent": 0.0
+    },
+    "triangles": {
+      "before": {
+        "available_samples": 720,
+        "total_samples": 720,
+        "mean": 1969971.134722222,
+        "p50": 1903934,
+        "p95": 3048272,
+        "min": 778758,
+        "max": 3329390
+      },
+      "after": {
+        "available_samples": 720,
+        "total_samples": 720,
+        "mean": 1969971.134722222,
+        "p50": 1903934,
+        "p95": 3048272,
+        "min": 778758,
+        "max": 3329390
+      },
+      "mean_delta": 0.0,
+      "mean_delta_percent": 0.0
+    },
+    "line_segments": {
+      "before": {
+        "available_samples": 720,
+        "total_samples": 720,
+        "mean": 0.0,
+        "p50": 0,
+        "p95": 0,
+        "min": 0,
+        "max": 0
+      },
+      "after": {
+        "available_samples": 720,
+        "total_samples": 720,
+        "mean": 0.0,
+        "p50": 0,
+        "p95": 0,
+        "min": 0,
+        "max": 0
+      },
+      "mean_delta": 0.0,
+      "mean_delta_percent": null
+    },
+    "upload_bytes": {
+      "before": {
+        "available_samples": 720,
+        "total_samples": 720,
+        "mean": 115807733.63055556,
+        "p50": 113080408,
+        "p95": 179867368,
+        "min": 44010884,
+        "max": 198280788
+      },
+      "after": {
+        "available_samples": 720,
+        "total_samples": 720,
+        "mean": 267539.65555555554,
+        "p50": 83008,
+        "p95": 131136,
+        "min": 37952,
+        "max": 95729332
+      },
+      "mean_delta": -115540193.975,
+      "mean_delta_percent": -99.76897945658013
+    },
+    "vertex_upload_bytes": {
+      "before": {
+        "available_samples": 720,
+        "total_samples": 720,
+        "mean": 103901394.1111111,
+        "p50": 101591200,
+        "p95": 161340480,
+        "min": 39299360,
+        "max": 178160000
+      },
+      "after": {
+        "available_samples": 720,
+        "total_samples": 720,
+        "mean": 148826.44444444444,
+        "p50": 0,
+        "p95": 0,
+        "min": 0,
+        "max": 78513720
+      },
+      "mean_delta": -103752567.66666666,
+      "mean_delta_percent": -99.85676184066858
+    },
+    "index_upload_bytes": {
+      "before": {
+        "available_samples": 720,
+        "total_samples": 720,
+        "mean": 11819826.808333334,
+        "p50": 11423604,
+        "p95": 18289632,
+        "min": 4672548,
+        "max": 19976340
+      },
+      "after": {
+        "available_samples": 720,
+        "total_samples": 720,
+        "mean": 32200.5,
+        "p50": 0,
+        "p95": 0,
+        "min": 0,
+        "max": 17077308
+      },
+      "mean_delta": -11787626.308333334,
+      "mean_delta_percent": -99.72757215040326
+    },
+    "uniform_upload_bytes": {
+      "before": {
+        "available_samples": 720,
+        "total_samples": 720,
+        "mean": 86512.71111111112,
+        "p50": 83008,
+        "p95": 130368,
+        "min": 37952,
+        "max": 144448
+      },
+      "after": {
+        "available_samples": 720,
+        "total_samples": 720,
+        "mean": 86512.71111111112,
+        "p50": 83008,
+        "p95": 130368,
+        "min": 37952,
+        "max": 144448
+      },
+      "mean_delta": 0.0,
+      "mean_delta_percent": 0.0
+    },
+    "texture_upload_bytes": {
+      "before": {
+        "available_samples": 720,
+        "total_samples": 720,
+        "mean": 0.0,
+        "p50": 0,
+        "p95": 0,
+        "min": 0,
+        "max": 0
+      },
+      "after": {
+        "available_samples": 720,
+        "total_samples": 720,
+        "mean": 0.0,
+        "p50": 0,
+        "p95": 0,
+        "min": 0,
+        "max": 0
+      },
+      "mean_delta": 0.0,
+      "mean_delta_percent": null
+    }
+  },
+  "interpretation": [
+    "GPU workloads ran sequentially on SwiftShader software Vulkan; this is not hardware GPU performance or gameplay FPS.",
+    "Other release builds ran on the shared host during parts of baseline measurement; CPU and software GPU times are contention-sensitive. Repeat on an otherwise idle machine before an isolated timing speedup claim.",
+    "Primitive counts and upload bytes give the structural comparison: all 720 frame draw/triangle counts match exactly.",
+    "First-use static uploads in 3 frames are included; the remaining 717 frames upload transforms only.",
+    "GPU mean timestamp increased 4.604%; this result does not establish a GPU speedup.",
+    "Selected assets are identical baked lighting.bin and level.json; raw v1/v4 geometry comparisons need a separate raw baseline and explicit parity."
+  ]
+}
