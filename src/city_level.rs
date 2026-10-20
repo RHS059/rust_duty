@@ -67,6 +67,52 @@ pub struct StaticCityChunk {
     pub bounds: Aabb,
     pub mesh: StaticMesh,
     pub instance: Option<InstanceMetadata>,
+    /// Immutable reduced meshes, generated once during level loading.
+    pub lods: Vec<StaticMesh>,
+}
+
+impl StaticCityChunk {
+    pub fn mesh_for_view(&self, eye: Vec3, view_projection: Mat4) -> &StaticMesh {
+        let level = crate::city_lod::select(self.bounds, eye, view_projection, self.lods.len());
+        if level == 0 {
+            &self.mesh
+        } else {
+            &self.lods[level - 1]
+        }
+    }
+
+    fn from_geometry(record: CityGeometry) -> Result<Self, String> {
+        // Procedural trim, lettering and building-kit openings stay exact.
+        // Legacy material batches have no trustworthy per-asset identity.
+        let lods = if record
+            .instance
+            .as_ref()
+            .is_some_and(|i| lod_asset(&i.asset))
+        {
+            crate::city_lod::generate(&record.vertices, &record.indices)?
+                .into_iter()
+                .map(|lod| StaticMesh::new(lod.vertices, lod.indices, None))
+                .collect::<Result<Vec<_>, _>>()?
+        } else {
+            Vec::new()
+        };
+        Ok(Self {
+            bounds: record.bounds,
+            mesh: StaticMesh::new(record.vertices, record.indices, None)?,
+            instance: record.instance,
+            lods,
+        })
+    }
+}
+
+fn lod_asset(asset: &str) -> bool {
+    let bytes = asset.as_bytes();
+    bytes.len() > 4
+        && bytes[0] == b'b'
+        && bytes[1].is_ascii_digit()
+        && bytes[2].is_ascii_digit()
+        && bytes[3] == b'_'
+        && !asset.starts_with("b21_")
 }
 
 pub struct CityLevel {
@@ -180,13 +226,7 @@ impl CityLevel {
             }
             let chunks = geometry
                 .into_iter()
-                .map(|record| {
-                    Ok(StaticCityChunk {
-                        bounds: record.bounds,
-                        mesh: StaticMesh::new(record.vertices, record.indices, None)?,
-                        instance: record.instance,
-                    })
-                })
+                .map(StaticCityChunk::from_geometry)
                 .collect::<Result<Vec<_>, String>>()?;
             let visibility = VisibilityBvh::new(
                 chunks
@@ -232,7 +272,7 @@ impl CityLevel {
     pub fn draw(&self, eye: Vec3, view_projection: Mat4) {
         self.visit_visible(eye, view_projection, |index| {
             draw_static_mesh_transformed(
-                &self.chunks[index].mesh,
+                self.chunks[index].mesh_for_view(eye, view_projection),
                 Mat4::IDENTITY,
                 BlendMode::Opaque,
             );
@@ -931,6 +971,65 @@ mod tests {
         settings::Settings,
         sim::{Input, FIXED_DT},
     };
+
+    #[test]
+    fn lod_policy_preserves_architecture_procedural_and_legacy_geometry() {
+        assert!(lod_asset("b16_takeaway_coffee_cup"));
+        assert!(lod_asset("b09_honeylocust"));
+        for asset in [
+            "b21_wall",
+            "ground",
+            "B01/facade_pilaster",
+            "store lettering",
+            "bxx_unknown",
+        ] {
+            assert!(!lod_asset(asset), "{asset}");
+        }
+        let record = decode_geometry_unlit(&triangle()).unwrap().remove(0);
+        let chunk = StaticCityChunk::from_geometry(record).unwrap();
+        assert!(chunk.lods.is_empty());
+        assert_eq!(chunk.mesh.indices().len(), 3);
+    }
+
+    #[test]
+    fn city_asset_lods_are_persistent_and_selected_by_projection() {
+        let mut vertices = Vec::new();
+        for y in 0..=20 {
+            for x in 0..=20 {
+                vertices.push(Vertex::new2(
+                    Vec3::new(x as f32 / 10. - 1., y as f32 / 10. - 1., -50.),
+                    Vec2::ZERO,
+                    Color::WHITE,
+                ));
+            }
+        }
+        let mut indices = Vec::new();
+        for y in 0..20 {
+            for x in 0..20 {
+                let a = y * 21 + x;
+                indices.extend([a, a + 1, a + 21, a + 1, a + 22, a + 21]);
+            }
+        }
+        let chunk = StaticCityChunk::from_geometry(CityGeometry {
+            bounds: geometry_bounds(&vertices),
+            vertices,
+            indices,
+            instance: Some(InstanceMetadata {
+                id: 1,
+                asset: "b16_fixture".into(),
+                building: None,
+                max_distance: 0.,
+            }),
+        })
+        .unwrap();
+        assert_eq!(chunk.lods.len(), 2);
+        let wide = Mat4::perspective_rh_gl(70_f32.to_radians(), 16. / 9., 0.05, 400.);
+        let close = Mat4::perspective_rh_gl(5_f32.to_radians(), 16. / 9., 0.05, 400.);
+        let far_mesh = chunk.mesh_for_view(Vec3::ZERO, wide);
+        assert_eq!(far_mesh.id(), chunk.lods[1].id());
+        assert_eq!(chunk.mesh_for_view(Vec3::ZERO, wide).id(), far_mesh.id());
+        assert_eq!(chunk.mesh_for_view(Vec3::ZERO, close).id(), chunk.mesh.id());
+    }
 
     fn v4_triangle(metadata: Value, flags: u32) -> Vec<u8> {
         let metadata = serde_json::to_vec(&metadata).unwrap();

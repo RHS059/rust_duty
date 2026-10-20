@@ -265,6 +265,7 @@ mod tests {
         ];
         StaticCityChunk {
             bounds,
+            lods: Vec::new(),
             mesh: StaticMesh::new(
                 positions
                     .into_iter()
