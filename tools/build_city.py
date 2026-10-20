@@ -61,6 +61,8 @@ def glb_mesh(path):
 class City:
     def __init__(self,source):
         self.source=source;self.meshes={};self.parts=[];self.instances=[];self.colliders=[];self.buildings=[]
+        self.visibility = {'schema': 'rust-duty-city-visibility/v1', 'complete': False,
+                           'cells': [], 'portals': [], 'portal_count': 0}
         self.catalog={x['name']:x for x in json.loads((source/'manifest.json').read_text())['assets']}
     def collision(self,label,lo,hi):
         self.colliders.append({'label':label,'min':list(map(float,lo)),'max':list(map(float,hi)),'kind':0})
@@ -129,6 +131,7 @@ class City:
                 f.write(i.astype('<u4').tobytes())
         (out/'meshes.bin.tmp').replace(out/'meshes.bin')
         level={'schema':'rust-duty-city/v1','name':'Cedar Junction','geometry_format':'RDCITY04','mesh_file':'meshes.bin','spawn':{'position':[0,0,38],'yaw_degrees':-90},'supply_position':[8,.15,38], 'bounds':{'min':[-110,-1,-110],'max':[110,20,110]},'colliders':self.colliders,'buildings':self.buildings,'landmarks':[{'name':'Cedar Commons','position':[86,.15,32]},{'name':'Municipal parking','position':[-86,.15,32]},{'name':'Market Square','position':[32,.15,86]}], 'statistics':{'buildings':len(self.buildings),'asset_instances':len(self.instances),'unique_assets':len(self.meshes),'render_chunks':len(self.parts),'vertices':sum(len(p.vertices) for p in self.parts),'triangles':sum(len(p.indices)//3 for p in self.parts),'colliders':len(self.colliders)},'mesh_sha256':hashlib.sha256((out/'meshes.bin').read_bytes()).hexdigest()}
+        level['visibility'] = self.visibility
         (out/'level.json').write_text(json.dumps(level,indent=2)+'\n')
         (out/'layout.json').write_text(json.dumps({'instances':self.instances,'buildings':self.buildings},indent=2)+'\n')
         if write_source_lock:
@@ -280,6 +283,6 @@ def main():
     args=ap.parse_args()
     c=City(args.source);streets(c)
     from city_buildings import build
-    build(c.asset,c.box,c.buildings);dressing(c);signage(c)
+    build(c.asset,c.box,c.buildings,visibility=c.visibility);dressing(c);signage(c)
     c.write(args.out,write_source_lock=args.write_source_lock)
 if __name__=='__main__':main()

@@ -3,7 +3,9 @@
 Coordinates and callback arguments use game-space Y-up metres.  Source assets are
 bottom-centred, while add_box takes centre and dimensions.  Boxes prefixed
 COLLIDER:: are collision-only; all other boxes are visible geometry.  No asset
-bounds are used as wall or floor collision proxies.
+bounds are used as wall or floor collision proxies. Optional visibility metadata
+is collected from the same exterior openings and stair holes, in whole-floor
+cells; interior partitions never claim to be exterior occluders.
 """
 from math import pi, ceil, degrees
 
@@ -12,6 +14,8 @@ STORY = 3.2
 WALL_HEIGHT = 3.0
 STAIR_RISE = 0.2
 STAIR_TREAD = 0.36
+PORTAL_PADDING = 0.05
+PORTAL_HALF_THICKNESS = 0.01
 
 # Names are exposed to the caller for storefront lettering / navigation.
 SPECS = [
@@ -35,7 +39,7 @@ SPECS = [
 
 
 class Building:
-    def __init__(self, asset, box, records, index, cx, cz, south, spec):
+    def __init__(self, asset, box, records, index, cx, cz, south, spec, *, visibility=None):
         self.add_asset, self.add_box = asset, box
         self.cx, self.cz = cx, cz
         self.flip = -1 if south else 1
@@ -48,6 +52,43 @@ class Building:
                          stories=self.stories, floor_levels=[FLOOR_Y+STORY*n for n in range(self.stories)],
                          entrances=[], stairs=[], floor_holes=[], rooms=[], routes=[], signs=[])
         records.append(self.meta)
+        self.visibility = visibility
+        self.visibility_complete = True
+        if visibility is not None:
+            for floor in range(self.stories):
+                y = FLOOR_Y + floor * STORY
+                visibility['cells'].append({'id': self.cell_id(floor), 'building': self.tag,
+                                            'min': [cx - 8, y, cz - 8],
+                                            'max': [cx + 8, y + STORY, cz + 8]})
+
+    def cell_id(self, floor):
+        return f'{self.tag}:{floor}'
+
+    def portal(self, floor, to_floor, center, half_size, normal):
+        if self.visibility is None:
+            return
+        self.visibility['portals'].append({
+            'from': self.cell_id(floor),
+            'to': None if to_floor is None else self.cell_id(to_floor),
+            'min': [p - h for p, h in zip(center, half_size)],
+            'max': [p + h for p, h in zip(center, half_size)], 'normal': normal})
+        self.visibility['portal_count'] = len(self.visibility['portals'])
+
+    def exterior_portal(self, x, y, z, width, sill, height, side):
+        """Record every real shell opening, including glazed windows/shopfronts."""
+        floor = round((y - FLOOR_Y) / STORY)
+        boundary = x if side else z
+        if (abs(abs(boundary) - 8) > 1e-6 or not 0 <= floor < self.stories
+                or abs(y - (FLOOR_Y + floor * STORY)) > 1e-6):
+            # An unrecognized shell layout must disable this topology, never
+            # guess an opening's owning cell or omit it from a complete graph.
+            self.visibility_complete = False
+            return
+        direction = self.flip * (1 if boundary > 0 else -1)
+        half = ([PORTAL_HALF_THICKNESS, height / 2 + PORTAL_PADDING, width / 2 + PORTAL_PADDING]
+                if side else [width / 2 + PORTAL_PADDING, height / 2 + PORTAL_PADDING, PORTAL_HALF_THICKNESS])
+        normal = [direction, 0, 0] if side else [0, 0, direction]
+        self.portal(floor, None, self.p(x, y + sill + height / 2, z), half, normal)
 
     def p(self, x, y, z):
         return [self.cx+self.flip*x, y, self.cz+self.flip*z]
@@ -63,7 +104,7 @@ class Building:
     def c(self, label, x, y, z, w, h, d):
         self.add_box(f"COLLIDER::{self.tag}/{label}", self.p(x, y, z), [w, h, d], (.66, .62, .55), solid=True, building=self.tag)
 
-    def wall(self, x, y, z, width=4, style="solid", side=False):
+    def wall(self, x, y, z, width=4, style="solid", side=False, *, exterior=False):
         """One true kitwall; exact independent boxes follow opening topology."""
         if style == "window":
             model, opening = f"b21_wall_window_opening_{width}m", (2 if width == 4 else 1, .9, 1.4)
@@ -85,6 +126,8 @@ class Building:
             block("wall", 0, 1.5, width, 3.)
         else:
             ow, sill, oh = opening
+            if exterior:
+                self.exterior_portal(x, y, z, ow, sill, oh, side)
             for sign in (-1, 1):
                 block("wall_jamb", sign*(width+ow)/4, 1.5, (width-ow)/2, 3.)
             if sill:
@@ -129,6 +172,13 @@ class Building:
                 self.floor_region(*rect, y, timber, level > 0)
             p0,p1=self.p(2.8,y,1.6),self.p(7.2,y,6.9)
             self.meta['floor_holes'].append(dict(level=level, min=[min(a,b) for a,b in zip(p0,p1)], max=[max(a,b) for a,b in zip(p0,p1)]))
+            if 0 < level < self.stories:
+                self.portal(level - 1, level, [(a + b) / 2 for a, b in zip(p0, p1)],
+                            [abs(p1[0] - p0[0]) / 2 + PORTAL_PADDING, PORTAL_HALF_THICKNESS,
+                             abs(p1[2] - p0[2]) / 2 + PORTAL_PADDING],
+                            [0, 1, 0])
+            else:
+                self.visibility_complete = False
         else:
             self.floor_region(-8, 8, -8, 8, y, timber, level > 0)
 
@@ -137,11 +187,11 @@ class Building:
             y = FLOOR_Y+n*STORY
             self.floor(n, n > 0)
             for j, x in enumerate((-6, -2, 2, 6)):
-                self.wall(x, y, -8, style=("door" if j == 2 else "store") if n == 0 else "window")
-                self.wall(x, y, 8, style="door" if n == 0 and j == 1 else "window")
+                self.wall(x, y, -8, style=("door" if j == 2 else "store") if n == 0 else "window", exterior=True)
+                self.wall(x, y, 8, style="door" if n == 0 and j == 1 else "window", exterior=True)
             for x in (-8, 8):
                 for z in (-6, -2, 2, 6):
-                    self.wall(x, y, z, style="window" if n > 0 or z < 0 else "solid", side=True)
+                    self.wall(x, y, z, style="window" if n > 0 or z < 0 else "solid", side=True, exterior=True)
             # Colored masonry piers and projecting belt courses distinguish every address.
             for x in (-8, -4, 0, 4, 8):
                 self.b("facade_pilaster", x, y+1.5, -8.14, .24, 3, .17, self.accent)
@@ -366,11 +416,20 @@ class Building:
         self.upper_rooms()
 
 
-def build(add_asset, add_box, buildings):
+def build(add_asset, add_box, buildings, *, visibility=None):
     """Append sixteen complete buildings and their physical-navigation metadata."""
+    if visibility is not None:
+        visibility.update(schema='rust-duty-city-visibility/v1', complete=False,
+                          cells=[], portals=[], portal_count=0)
+    complete = True
     i=0
     for cz in (-44,-20,20,44):
         for cx in (-44,-20,20,44):
-            Building(add_asset,add_box,buildings,i,cx,cz,cz in (-20,44),SPECS[i]).build()
+            building = Building(add_asset,add_box,buildings,i,cx,cz,cz in (-20,44),SPECS[i], visibility=visibility)
+            building.build()
+            complete = complete and building.visibility_complete
             i+=1
+    if visibility is not None:
+        visibility['complete'] = complete
+        visibility['portal_count'] = len(visibility['portals'])
     return buildings
