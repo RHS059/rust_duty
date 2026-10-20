@@ -35,7 +35,9 @@ the *actual selected* mesh file and level document, with size and FNV-1a-64
 content identity (not an authenticity/security digest). Do not accidentally
 compare baked subdivided lighting geometry with the smaller unlit source.
 
-The canonical path lasts 720 frames, with nine fixed waypoints (eight street and
+The canonical v2 path stays on the authored 0/±32 m street corridors; v1 crossed
+outer building footprints and must not be compared with v2. It lasts 720 frames,
+with nine fixed waypoints (eight street and
 raised-overview segments), 70-degree vertical field of view and the production
 400 m far plane. Warmup frames are excluded from samples. Measured frame zero
 always restarts path zero regardless of warmup count. Counts below 720 are

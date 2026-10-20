@@ -17,17 +17,19 @@ use vector_range::{
     render::{BackendSelection, WgpuRenderer},
 };
 
-const PATH_ID: &str = "cedar-junction-streets-v1";
+const PATH_ID: &str = "cedar-junction-streets-v2";
 const PATH_FRAMES: u32 = 720;
+// Authored building rows occupy x/z [12,28] and [36,52] (and negatives).
+// The 0/±32 corridors keep the route in streets rather than through buildings.
 const WAYPOINTS: [[f32; 3]; 9] = [
     [0., 2., 38.],
-    [0., 2., -38.],
-    [38., 3., -38.],
-    [38., 3., 38.],
-    [0., 8., 68.],
-    [-38., 3., 38.],
-    [-38., 3., -38.],
-    [0., 8., -68.],
+    [0., 2., -32.],
+    [32., 3., -32.],
+    [32., 3., 32.],
+    [0., 8., 32.],
+    [-32., 3., 32.],
+    [-32., 3., -32.],
+    [0., 8., -32.],
     [0., 2., 38.],
 ];
 #[derive(Debug)]
@@ -59,6 +61,11 @@ impl Options {
         let mut seen = std::collections::HashSet::new();
         let mut args = args.into_iter();
         while let Some(key) = args.next() {
+            let key = if key == "--level-file" {
+                "--level".to_owned()
+            } else {
+                key
+            };
             if !seen.insert(key.clone()) {
                 return Err(format!("duplicate option {key}"));
             }
@@ -72,7 +79,7 @@ impl Options {
             match key.as_str() {
                 "--mode" => out.mode = value,
                 "--output" => out.output = value.into(),
-                "--level" | "--level-file" => out.level = value.into(),
+                "--level" => out.level = value.into(),
                 "--renderer" => out.renderer = value,
                 "--width" => out.width = value.parse().map_err(|_| "invalid width")?,
                 "--height" => out.height = value.parse().map_err(|_| "invalid height")?,
@@ -313,10 +320,31 @@ mod tests {
             assert_eq!(a.position, b.position);
             assert_eq!(a.target, b.target);
             assert!(a.position.is_finite() && a.target.is_finite());
+            assert!(
+                a.position.x == 0. || a.position.x.abs() == 32. || a.position.z.abs() == 32.,
+                "route must stay on authored street centerlines"
+            );
             assert!((a.target - a.position).cross(a.up).length_squared() > 0.);
         }
         assert_eq!(camera_at(0).position, Vec3::new(0., 2., 38.));
-        assert_eq!(camera_at(90).position, Vec3::new(0., 2., -38.));
+        assert_eq!(camera_at(90).position, Vec3::new(0., 2., -32.));
+    }
+    #[test]
+    fn every_sample_avoids_frozen_authored_building_footprints() {
+        // Cedar layout.json: sixteen 16m-square footprints centered on this
+        // signed grid. Check every interpolated sample, not just waypoints.
+        let centers = [-44_f32, -20., 20., 44.];
+        for frame in 0..PATH_FRAMES {
+            let position = camera_at(frame).position;
+            for x in centers {
+                for z in centers {
+                    assert!(
+                        (position.x - x).abs() > 8. || (position.z - z).abs() > 8.,
+                        "frame {frame} enters building footprint centered at ({x},{z})"
+                    );
+                }
+            }
+        }
     }
     #[test]
     fn options_reject_zero_samples_duplicate_and_gpu_options_in_cpu_mode() {
