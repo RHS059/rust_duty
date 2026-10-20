@@ -38,6 +38,37 @@ fn regenerated_city_loads_real_instances_and_culls_with_the_runtime_bvh() {
         359
     );
     assert!(level.chunks.iter().all(|c| c.instance.is_some()));
+    let reduced_records = level
+        .chunks
+        .iter()
+        .filter(|c| c.lods.iter().any(Option::is_some))
+        .count();
+    assert!(
+        reduced_records > 100,
+        "catalog asset instances have real reduced meshes"
+    );
+    for chunk in &level.chunks {
+        if chunk
+            .instance
+            .as_ref()
+            .is_some_and(|i| i.asset.starts_with("b21_"))
+        {
+            assert!(
+                chunk.lods.iter().all(Option::is_none),
+                "architectural openings remain exact"
+            );
+        }
+        let mut last = chunk.mesh.indices().len();
+        for lod in chunk.lods.iter().flatten() {
+            assert!(lod.indices().len() < last);
+            assert!(lod
+                .indices()
+                .iter()
+                .all(|&i| (i as usize) < lod.vertices().len()));
+            last = lod.indices().len();
+        }
+    }
+    eprintln!("authored records with reduced LODs: {reduced_records}");
     let eye = level.spawn_position + Vec3::Y * 1.7;
     let matrix = Mat4::perspective_rh_gl(60_f32.to_radians(), 16. / 9., 0.035, CITY_FAR_PLANE)
         * Mat4::look_at_rh(eye, eye - Vec3::Z, Vec3::Y);

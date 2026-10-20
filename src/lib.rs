@@ -6,6 +6,7 @@ pub const BUILD_NUMBER: &str = env!("RUST_DUTY_BUILD_NUMBER");
 /// Human-facing identity. Do not pass this metadata label to the updater.
 pub const BUILD_LABEL: &str = env!("RUST_DUTY_BUILD_LABEL");
 pub mod city_level;
+pub mod city_lod;
 pub mod graphics_device;
 pub mod settings;
 pub mod sim;
