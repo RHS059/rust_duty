@@ -13,9 +13,10 @@ pub struct ReducedLod {
 }
 
 /// Attempt half- and quarter-triangle meshes, always relative to the original.
-/// Tiny or topology-constrained assets may retain fewer distinct LODs rather
-/// than forcing holes or reporting identical buffers as a quality reduction.
-pub fn generate(vertices: &[Vertex], indices: &[u32]) -> Result<Vec<ReducedLod>, String> {
+/// The half-detail (0.5% error) and quarter-detail (1.5% error) attempts keep
+/// fixed slots, even when one produces no reduction. A missing finer tier must
+/// never promote the coarser mesh to its nearer screen-size threshold.
+pub fn generate(vertices: &[Vertex], indices: &[u32]) -> Result<[Option<ReducedLod>; 2], String> {
     if vertices.is_empty()
         || vertices.len() > u32::MAX as usize
         || indices.is_empty()
@@ -30,7 +31,7 @@ pub fn generate(vertices: &[Vertex], indices: &[u32]) -> Result<Vec<ReducedLod>,
         return Err("invalid city LOD source geometry".into());
     }
     if indices.len() < 24 {
-        return Ok(Vec::new());
+        return Ok([None, None]);
     }
     let positions: Vec<_> = vertices.iter().map(|v| v.position.to_array()).collect();
     // Colored faceted city meshes have duplicated attribute seams. Preserve
@@ -54,9 +55,9 @@ pub fn generate(vertices: &[Vertex], indices: &[u32]) -> Result<Vec<ReducedLod>,
         .collect();
     let locks = vec![false; vertices.len()];
     let weights = [0.25, 0.25, 0.25, 1., 1., 1., 1., 1., 1.];
-    let mut lods = Vec::with_capacity(2);
+    let mut lods = [None, None];
     let mut previous_count = indices.len();
-    for (ratio, error_limit) in [(0.5, 0.005), (0.25, 0.015)] {
+    for (slot, (ratio, error_limit)) in [(0.5, 0.005), (0.25, 0.015)].into_iter().enumerate() {
         let target = (((indices.len() as f64 * ratio) as usize / 3) * 3).max(3);
         let mut relative_error = 0.;
         let simplified = meshopt::simplify_with_attributes_and_locks_decoder(
@@ -85,7 +86,7 @@ pub fn generate(vertices: &[Vertex], indices: &[u32]) -> Result<Vec<ReducedLod>,
         let optimized = meshopt::optimize_vertex_cache(&simplified, vertices.len());
         let (compact_vertices, compact_indices) = compact(vertices, &optimized);
         previous_count = compact_indices.len();
-        lods.push(ReducedLod {
+        lods[slot] = Some(ReducedLod {
             vertices: compact_vertices,
             indices: compact_indices,
             relative_error,
@@ -166,17 +167,17 @@ pub fn screen_fraction(bounds: Aabb, eye: Vec3, view_projection: Mat4) -> f32 {
 }
 
 /// 0 is full detail, 1 and 2 are reduced meshes. Selection depends on screen
-/// size, never raw distance; use at most the levels actually generated.
-pub fn select(bounds: Aabb, eye: Vec3, view_projection: Mat4, reduced_count: usize) -> usize {
+/// size, never raw distance. This is the requested tier; missing meshes must
+/// fall back to the next finer available tier, never a coarser one.
+pub fn select(bounds: Aabb, eye: Vec3, view_projection: Mat4) -> usize {
     let fraction = screen_fraction(bounds, eye, view_projection);
-    let level = if fraction < 0.06 {
+    if fraction < 0.06 {
         2
     } else if fraction < 0.18 {
         1
     } else {
         0
-    };
-    level.min(reduced_count.min(2))
+    }
 }
 
 #[cfg(test)]
@@ -207,9 +208,9 @@ mod tests {
     fn generates_two_distinct_compact_lods_without_inventing_vertex_samples() {
         let (vertices, indices) = grid(20);
         let lods = generate(&vertices, &indices).unwrap();
-        assert_eq!(lods.len(), 2);
+        assert!(lods.iter().all(Option::is_some));
         let mut previous = indices.len();
-        for lod in lods {
+        for lod in lods.into_iter().flatten() {
             assert!(lod.indices.len() < previous);
             assert!(lod.vertices.len() < vertices.len());
             assert!(lod.vertices.iter().all(|v| vertices.contains(v)));
@@ -238,16 +239,14 @@ mod tests {
     fn screen_size_selection_keeps_close_and_near_plane_objects_detailed() {
         let projection = Mat4::perspective_rh_gl(60_f32.to_radians(), 16. / 9., 0.1, 400.);
         let bounds = |z| Aabb::from_center(Vec3::new(0., 0., z), Vec3::splat(2.));
-        assert_eq!(select(bounds(-4.), Vec3::ZERO, projection, 2), 0);
-        assert_eq!(select(bounds(-20.), Vec3::ZERO, projection, 2), 1);
-        assert_eq!(select(bounds(-100.), Vec3::ZERO, projection, 2), 2);
-        assert_eq!(select(bounds(-100.), Vec3::ZERO, projection, 1), 1);
-        assert_eq!(select(bounds(0.), Vec3::ZERO, projection, 2), 0);
-        assert_eq!(select(bounds(3.), Vec3::ZERO, projection, 2), 0);
+        assert_eq!(select(bounds(-4.), Vec3::ZERO, projection), 0);
+        assert_eq!(select(bounds(-20.), Vec3::ZERO, projection), 1);
+        assert_eq!(select(bounds(-100.), Vec3::ZERO, projection), 2);
+        assert_eq!(select(bounds(0.), Vec3::ZERO, projection), 0);
+        assert_eq!(select(bounds(3.), Vec3::ZERO, projection), 0);
         let zoomed = Mat4::perspective_rh_gl(12_f32.to_radians(), 16. / 9., 0.1, 400.);
         assert!(
-            select(bounds(-20.), Vec3::ZERO, zoomed, 2)
-                < select(bounds(-20.), Vec3::ZERO, projection, 2)
+            select(bounds(-20.), Vec3::ZERO, zoomed) < select(bounds(-20.), Vec3::ZERO, projection)
         );
     }
 }

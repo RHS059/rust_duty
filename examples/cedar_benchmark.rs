@@ -212,11 +212,7 @@ fn collect(options: &Options) -> Result<Value, String> {
         city.chunks
             .iter()
             .map(|chunk| {
-                let mesh = if level == 0 || chunk.lods.is_empty() {
-                    &chunk.mesh
-                } else {
-                    &chunk.lods[(level - 1).min(chunk.lods.len() - 1)]
-                };
+                let mesh = chunk.mesh_for_lod(level);
                 mesh.indices().len() as u64 / 3
             })
             .sum::<u64>()
@@ -315,7 +311,7 @@ fn collect(options: &Options) -> Result<Value, String> {
         "source":{"revision":option_env!("RUST_DUTY_BENCH_REVISION"), "dirty":option_env!("RUST_DUTY_BENCH_DIRTY"), "build_label":vector_range::BUILD_LABEL},
         "host":{"os":std::env::consts::OS, "arch":std::env::consts::ARCH, "machine_label":std::env::var("RUST_DUTY_BENCH_MACHINE").ok(), "profile":if cfg!(debug_assertions) {"debug"} else {"release"}},
         "scene":{"name":city.name, "assets":assets, "chunks":city.chunks.len()},
-        "startup":{"scene_load_ns":scene_load_ns,"lod_inventory_triangles":lod_inventory,"records_with_reduced_lods":city.chunks.iter().filter(|c| !c.lods.is_empty()).count()},
+        "startup":{"scene_load_ns":scene_load_ns,"lod_inventory_triangles":lod_inventory,"records_with_reduced_lods":city.chunks.iter().filter(|c| c.lods.iter().any(Option::is_some)).count()},
         "path":{"id":PATH_ID, "cycle_frames":PATH_FRAMES, "waypoints":WAYPOINTS, "fovy_degrees":70, "near":0.05, "far":CITY_FAR_PLANE},
         "config":{"width":options.width, "height":options.height, "frames":options.frames, "warmup_frames":options.warmup, "presentation":false, "gpu_completion_fence_per_frame":options.mode=="headless-gpu"},
         "adapter":adapter, "gpu_timestamps_available":gpu_timestamps_available,

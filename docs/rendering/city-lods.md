@@ -26,14 +26,18 @@ Selection is based on projected AABB size with a conservative bounding-sphere
 floor, measured as a fraction of viewport height. Level 1 starts below 18%;
 level 2 below 6%. Zooming changes detail selection. Camera-inside, near-plane
 intersection, invalid projection and behind-camera cases retain full detail.
-The renderer uses only levels actually generated.
+The two reduction attempts keep fixed half/quarter slots. If the stricter
+half-detail attempt cannot simplify but the quarter-detail attempt can, the
+quarter mesh still starts only below 6%; it is never promoted to the 18%
+threshold. An unavailable tier falls back to the next finer available mesh,
+including the unchanged original.
 
 Generation happens outside frame recording. Startup generation costs must be
 reported separately from steady-state render measurements. There is no
 per-frame simplification and no quality/FPS claim from a triangle-count change.
 The benchmark reports `startup.scene_load_ns` separately and includes the
 full-scene triangle inventory at each available level (falling back to the
-last available level), plus the number of records with reduced geometry.
+next finer available level), plus the number of records with reduced geometry.
 Review distant silhouettes, color boundaries and transitions on the target
 GPU before accepting visual quality. Large coarse legacy chunks do not imply
 per-asset LOD identity; the instance exporter is required for that claim.
@@ -42,7 +46,8 @@ per-asset LOD identity; the instance exporter is required for that claim.
 
 The focused Rust suite exercises two distinct reductions, exact preservation
 of vertex samples, compact index validity, malformed-input rejection before
-FFI, zoom-sensitive screen selection, near-plane and camera-inside behavior.
+FFI, zoom-sensitive screen selection, near-plane and camera-inside behavior, and all four half/quarter availability
+combinations through both runtime projection and benchmark inventory selection.
 An exploratory native CPU run on three public source assets produced:
 
 | Asset | Full triangles | LOD 1 | LOD 2 |

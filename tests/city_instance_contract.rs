@@ -38,7 +38,11 @@ fn regenerated_city_loads_real_instances_and_culls_with_the_runtime_bvh() {
         359
     );
     assert!(level.chunks.iter().all(|c| c.instance.is_some()));
-    let reduced_records = level.chunks.iter().filter(|c| !c.lods.is_empty()).count();
+    let reduced_records = level
+        .chunks
+        .iter()
+        .filter(|c| c.lods.iter().any(Option::is_some))
+        .count();
     assert!(
         reduced_records > 100,
         "catalog asset instances have real reduced meshes"
@@ -49,10 +53,13 @@ fn regenerated_city_loads_real_instances_and_culls_with_the_runtime_bvh() {
             .as_ref()
             .is_some_and(|i| i.asset.starts_with("b21_"))
         {
-            assert!(chunk.lods.is_empty(), "architectural openings remain exact");
+            assert!(
+                chunk.lods.iter().all(Option::is_none),
+                "architectural openings remain exact"
+            );
         }
         let mut last = chunk.mesh.indices().len();
-        for lod in &chunk.lods {
+        for lod in chunk.lods.iter().flatten() {
             assert!(lod.indices().len() < last);
             assert!(lod
                 .indices()
