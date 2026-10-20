@@ -1,0 +1,550 @@
+{
+  "schema": "rust-duty-cedar-stage-comparison-evidence/v1",
+  "stage": "Task B stage 2, measured against original-geometry stage 1",
+  "measurement_status": "complete",
+  "assessment": "Triangle submission decreased; draw calls, upload bytes, CPU recording/submission and observed software GPU timings increased. This is not a net performance pass.",
+  "source_trees": {
+    "baseline": "a14a9edd59a10b6a16f9a7aab86c01e4de6d3365",
+    "candidate": "cd903dfe34045dd154a10ca2e3a96e6bc758e1ac"
+  },
+  "raw_reports": {
+    "baseline": {
+      "name": "stage1-raw-swiftshader-v2-1280x720-720frames.json",
+      "bytes": 457211,
+      "sha256": "18d51c75572d9c75a2cd27acca50a1f027eb47753843883fec75f5992a5f3930"
+    },
+    "candidate": {
+      "name": "stage2-raw-swiftshader-v2-1280x720-720frames.json",
+      "bytes": 463362,
+      "sha256": "015c3903d19ffdd97d60bf792ef97c9aa7d43ebfc94e34861f24a022d3fb7ad5"
+    },
+    "comparison": {
+      "name": "stage1-raw-to-stage2-comparison.json",
+      "bytes": 9178,
+      "sha256": "c11c9ffdce27cbd59e3f3b2d9843b67d045f5693960fea5b5b1c1262a334ef99"
+    },
+    "geometry_parity": {
+      "name": "stage1-raw-to-stage2-geometry-parity.json",
+      "bytes": 1422,
+      "sha256": "1af86ef4f4aff1e6eb5eef47ec00c6cffe6a832afdcd5a759c577715a13df6e3"
+    }
+  },
+  "host": {
+    "arch": "x86_64",
+    "machine_label": "dot-cloud-swiftshader-2026-10-20",
+    "os": "linux",
+    "profile": "release"
+  },
+  "adapter": {
+    "actual_fingerprint": {
+      "backend": "vulkan",
+      "device_id": 49374,
+      "device_type": "Cpu",
+      "name": "SwiftShader Device (Subzero)",
+      "vendor_id": 6880
+    },
+    "backend": "Vulkan",
+    "device_id": 49374,
+    "device_type": "Cpu",
+    "driver": "SwiftShader driver",
+    "driver_info": "",
+    "force_fallback_requested": false,
+    "name": "SwiftShader Device (Subzero)",
+    "present_mode": null,
+    "requested_fingerprint": null,
+    "selection_mode": "automatic",
+    "vendor_id": 6880
+  },
+  "config": {
+    "frames": 720,
+    "gpu_completion_fence_per_frame": true,
+    "height": 720,
+    "presentation": false,
+    "warmup_frames": 60,
+    "width": 1280
+  },
+  "path": {
+    "cycle_frames": 720,
+    "far": 400.0,
+    "fovy_degrees": 70,
+    "id": "cedar-junction-streets-v2",
+    "near": 0.05,
+    "waypoints": [
+      [
+        0.0,
+        2.0,
+        38.0
+      ],
+      [
+        0.0,
+        2.0,
+        -32.0
+      ],
+      [
+        32.0,
+        3.0,
+        -32.0
+      ],
+      [
+        32.0,
+        3.0,
+        32.0
+      ],
+      [
+        0.0,
+        8.0,
+        32.0
+      ],
+      [
+        -32.0,
+        3.0,
+        32.0
+      ],
+      [
+        -32.0,
+        3.0,
+        -32.0
+      ],
+      [
+        0.0,
+        8.0,
+        -32.0
+      ],
+      [
+        0.0,
+        2.0,
+        38.0
+      ]
+    ]
+  },
+  "scene_inputs": {
+    "baseline": {
+      "assets": [
+        {
+          "bytes": 1868550,
+          "fnv1a64": "4b59159644d6f8f8",
+          "name": "level.json"
+        },
+        {
+          "bytes": 38405227,
+          "fnv1a64": "7342e39069dceb51",
+          "name": "meshes.bin"
+        }
+      ],
+      "chunks": 269,
+      "name": "Cedar Junction"
+    },
+    "candidate": {
+      "assets": [
+        {
+          "bytes": 2057352,
+          "fnv1a64": "1900a649da1f9ecf",
+          "name": "level.json"
+        },
+        {
+          "bytes": 38459157,
+          "fnv1a64": "eec12305256315a9",
+          "name": "meshes.bin"
+        }
+      ],
+      "chunks": 12464,
+      "name": "Cedar Junction"
+    }
+  },
+  "independent_geometry_parity": {
+    "schema": "rust-duty-city-geometry-parity/v1",
+    "baseline": {
+      "format": "RDCITY01",
+      "records": 269,
+      "vertices": 5740304,
+      "triangles": 2740498,
+      "sorted_triangle_hashes_sha256": "f434d7bcaf38b6e70b47cb4193c5a590191be6e5ba8c2a0609b123fc75f35cf8",
+      "mesh_sha256": "7f64d0c429e6e41577e555c514bcae08a33b1de62f9741ff848d45bec2717967"
+    },
+    "candidate": {
+      "format": "RDCITY04",
+      "records": 12464,
+      "vertices": 5740304,
+      "triangles": 2740498,
+      "sorted_triangle_hashes_sha256": "f434d7bcaf38b6e70b47cb4193c5a590191be6e5ba8c2a0609b123fc75f35cf8",
+      "mesh_sha256": "5ac00d08df6d87283fbf486cf3d87e829f3585897fccf094a27e223f77e99653"
+    },
+    "comparison": "Sorted BLAKE2b-128 multiset over 120 raw bytes per ordered triangle: positions, normals and RGBA. No winding normalization or float tolerance.",
+    "vertex_count_equal": true,
+    "placement_metadata_checked": true,
+    "checks": {
+      "winding_sensitive_triangle_vertex_normal_rgba_multiset_equal": true,
+      "original_level_colliders_fields_equal": true,
+      "original_level_buildings_fields_equal": true,
+      "original_level_spawn_fields_equal": true,
+      "original_level_supply_position_fields_equal": true,
+      "original_level_landmarks_fields_equal": true,
+      "original_level_bounds_fields_equal": true,
+      "original_layout_buildings_fields_equal": true,
+      "original_layout_instances_fields_equal": true
+    },
+    "passed": true
+  },
+  "comparison": {
+    "schema": "rust-duty-cedar-comparison/v1",
+    "before_source": {
+      "build_label": "0.1.12+build.local.1792459288790256479.30",
+      "dirty": "false",
+      "revision": "28b8d9f5cdf0570f21c62a166eb582eac60da70c"
+    },
+    "after_source": {
+      "build_label": "0.1.12+build.local.1792459841256050912.72",
+      "dirty": "false",
+      "revision": "0d2e71ba789d622912b87bf7eef3b4dce0ee99c1"
+    },
+    "mode": "headless-gpu",
+    "metrics": {
+      "cpu_record_ns": {
+        "before": {
+          "available_samples": 720,
+          "total_samples": 720,
+          "mean": 24681.2,
+          "p50": 20651,
+          "p95": 40109,
+          "min": 12007,
+          "max": 206596
+        },
+        "after": {
+          "available_samples": 720,
+          "total_samples": 720,
+          "mean": 750007.0583333333,
+          "p50": 691475,
+          "p95": 1385654,
+          "min": 146147,
+          "max": 3137252
+        },
+        "mean_delta": 725325.8583333334,
+        "mean_delta_percent": 2938.7787398235637
+      },
+      "cpu_submit_ns": {
+        "before": {
+          "available_samples": 720,
+          "total_samples": 720,
+          "mean": 596121.7680555555,
+          "p50": 370329,
+          "p95": 1185705,
+          "min": 213997,
+          "max": 65638126
+        },
+        "after": {
+          "available_samples": 720,
+          "total_samples": 720,
+          "mean": 7893887.288888888,
+          "p50": 6461231,
+          "p95": 12230183,
+          "min": 1164680,
+          "max": 712460400
+        },
+        "mean_delta": 7297765.520833333,
+        "mean_delta_percent": 1224.207185830063
+      },
+      "cpu_frame_ns": {
+        "before": {
+          "available_samples": 720,
+          "total_samples": 720,
+          "mean": 620912.8597222222,
+          "p50": 396016,
+          "p95": 1209180,
+          "min": 226666,
+          "max": 65662812
+        },
+        "after": {
+          "available_samples": 720,
+          "total_samples": 720,
+          "mean": 8644019.615277778,
+          "p50": 7198469,
+          "p95": 13589862,
+          "min": 1310927,
+          "max": 714029456
+        },
+        "mean_delta": 8023106.755555556,
+        "mean_delta_percent": 1292.146978425419
+      },
+      "cpu_gpu_wait_ns": {
+        "before": {
+          "available_samples": 720,
+          "total_samples": 720,
+          "mean": 119717097.91666667,
+          "p50": 113359099,
+          "p95": 173617246,
+          "min": 45158078,
+          "max": 506081037
+        },
+        "after": {
+          "available_samples": 720,
+          "total_samples": 720,
+          "mean": 124151288.76111111,
+          "p50": 120215908,
+          "p95": 205618869,
+          "min": 38040468,
+          "max": 339168194
+        },
+        "mean_delta": 4434190.844444439,
+        "mean_delta_percent": 3.703891024430791
+      },
+      "gpu_timestamp_ns": {
+        "before": {
+          "available_samples": 720,
+          "total_samples": 720,
+          "mean": 119592004.67083333,
+          "p50": 113162318.0,
+          "p95": 173650494.0,
+          "min": 45033163.0,
+          "max": 506863885.0
+        },
+        "after": {
+          "available_samples": 720,
+          "total_samples": 720,
+          "mean": 121864907.5875,
+          "p50": 117577306.0,
+          "p95": 203410473.0,
+          "min": 37594545.0,
+          "max": 335244917.0
+        },
+        "mean_delta": 2272902.9166666716,
+        "mean_delta_percent": 1.9005475515881187
+      },
+      "recorded_draws": {
+        "before": {
+          "available_samples": 720,
+          "total_samples": 720,
+          "mean": 104.23472222222222,
+          "p50": 101,
+          "p95": 152,
+          "min": 49,
+          "max": 167
+        },
+        "after": {
+          "available_samples": 720,
+          "total_samples": 720,
+          "mean": 3562.4694444444444,
+          "p50": 3376,
+          "p95": 6387,
+          "min": 348,
+          "max": 7633
+        },
+        "mean_delta": 3458.2347222222224,
+        "mean_delta_percent": 3317.7377446734804
+      },
+      "recorded_triangles": {
+        "before": {
+          "available_samples": 720,
+          "total_samples": 720,
+          "mean": 1150023.2194444444,
+          "p50": 1142610,
+          "p95": 1704432,
+          "min": 501008,
+          "max": 1824068
+        },
+        "after": {
+          "available_samples": 720,
+          "total_samples": 720,
+          "mean": 797538.4833333333,
+          "p50": 767538,
+          "p95": 1349944,
+          "min": 163060,
+          "max": 1580450
+        },
+        "mean_delta": -352484.7361111111,
+        "mean_delta_percent": -30.650227765087227
+      },
+      "draw_calls": {
+        "before": {
+          "available_samples": 720,
+          "total_samples": 720,
+          "mean": 104.23472222222222,
+          "p50": 101,
+          "p95": 152,
+          "min": 49,
+          "max": 167
+        },
+        "after": {
+          "available_samples": 720,
+          "total_samples": 720,
+          "mean": 3562.4694444444444,
+          "p50": 3376,
+          "p95": 6387,
+          "min": 348,
+          "max": 7633
+        },
+        "mean_delta": 3458.2347222222224,
+        "mean_delta_percent": 3317.7377446734804
+      },
+      "triangles": {
+        "before": {
+          "available_samples": 720,
+          "total_samples": 720,
+          "mean": 1150023.2194444444,
+          "p50": 1142610,
+          "p95": 1704432,
+          "min": 501008,
+          "max": 1824068
+        },
+        "after": {
+          "available_samples": 720,
+          "total_samples": 720,
+          "mean": 797538.4833333333,
+          "p50": 767538,
+          "p95": 1349944,
+          "min": 163060,
+          "max": 1580450
+        },
+        "mean_delta": -352484.7361111111,
+        "mean_delta_percent": -30.650227765087227
+      },
+      "line_segments": {
+        "before": {
+          "available_samples": 720,
+          "total_samples": 720,
+          "mean": 0.0,
+          "p50": 0,
+          "p95": 0,
+          "min": 0,
+          "max": 0
+        },
+        "after": {
+          "available_samples": 720,
+          "total_samples": 720,
+          "mean": 0.0,
+          "p50": 0,
+          "p95": 0,
+          "min": 0,
+          "max": 0
+        },
+        "mean_delta": 0.0,
+        "mean_delta_percent": null
+      },
+      "upload_bytes": {
+        "before": {
+          "available_samples": 720,
+          "total_samples": 720,
+          "mean": 163711.17777777778,
+          "p50": 25664,
+          "p95": 38720,
+          "min": 12352,
+          "max": 71455096
+        },
+        "after": {
+          "available_samples": 720,
+          "total_samples": 720,
+          "mean": 1086585.7333333334,
+          "p50": 867648,
+          "p95": 1638976,
+          "min": 88896,
+          "max": 94282816
+        },
+        "mean_delta": 922874.5555555556,
+        "mean_delta_percent": 563.7211631378459
+      },
+      "vertex_upload_bytes": {
+        "before": {
+          "available_samples": 720,
+          "total_samples": 720,
+          "mean": 119939.55555555556,
+          "p50": 0,
+          "p95": 0,
+          "min": 0,
+          "max": 62414000
+        },
+        "after": {
+          "available_samples": 720,
+          "total_samples": 720,
+          "mean": 152791.55555555556,
+          "p50": 0,
+          "p95": 0,
+          "min": 0,
+          "max": 80963920
+        },
+        "mean_delta": 32852.0,
+        "mean_delta_percent": 27.39046334449945
+      },
+      "index_upload_bytes": {
+        "before": {
+          "available_samples": 720,
+          "total_samples": 720,
+          "mean": 17279.533333333333,
+          "p50": 0,
+          "p95": 0,
+          "min": 0,
+          "max": 9000072
+        },
+        "after": {
+          "available_samples": 720,
+          "total_samples": 720,
+          "mean": 21994.0,
+          "p50": 0,
+          "p95": 0,
+          "min": 0,
+          "max": 11575728
+        },
+        "mean_delta": 4714.466666666667,
+        "mean_delta_percent": 27.283530033604308
+      },
+      "uniform_upload_bytes": {
+        "before": {
+          "available_samples": 720,
+          "total_samples": 720,
+          "mean": 26492.088888888888,
+          "p50": 25664,
+          "p95": 38720,
+          "min": 12352,
+          "max": 42560
+        },
+        "after": {
+          "available_samples": 720,
+          "total_samples": 720,
+          "mean": 911800.1777777778,
+          "p50": 864064,
+          "p95": 1634880,
+          "min": 88896,
+          "max": 1953856
+        },
+        "mean_delta": 885308.088888889,
+        "mean_delta_percent": 3341.7828718678284
+      },
+      "texture_upload_bytes": {
+        "before": {
+          "available_samples": 720,
+          "total_samples": 720,
+          "mean": 0.0,
+          "p50": 0,
+          "p95": 0,
+          "min": 0,
+          "max": 0
+        },
+        "after": {
+          "available_samples": 720,
+          "total_samples": 720,
+          "mean": 0.0,
+          "p50": 0,
+          "p95": 0,
+          "min": 0,
+          "max": 0
+        },
+        "mean_delta": 0.0,
+        "mean_delta_percent": null
+      }
+    },
+    "scene_reencoding_evidence": {
+      "schema": "rust-duty-city-geometry-parity/v1",
+      "freshly_verified": true,
+      "placement_metadata_checked": true,
+      "baseline_mesh_sha256": "7f64d0c429e6e41577e555c514bcae08a33b1de62f9741ff848d45bec2717967",
+      "candidate_mesh_sha256": "5ac00d08df6d87283fbf486cf3d87e829f3585897fccf094a27e223f77e99653",
+      "sorted_triangle_hashes_sha256": "f434d7bcaf38b6e70b47cb4193c5a590191be6e5ba8c2a0609b123fc75f35cf8"
+    },
+    "interpretation": "Negative deltas mean less time/work/upload traffic. Null is unavailable, never zero. p50/p95 use nearest rank. Per-frame fence/readback affects throughput; no gameplay FPS, display cadence or performance pass is inferred."
+  },
+  "limitations": [
+    "SwiftShader is a software CPU adapter; no physical GPU, gameplay FPS or display cadence claim.",
+    "GPU runs were serialized; other compilation and CPU work occurred on the shared host, so timings are contention-sensitive.",
+    "Candidate source is exactly stage 2. It ignores the added stage 3 visibility metadata in the final fixed input manifest.",
+    "No screenshot or native gameplay validation was performed in this measurement task.",
+    "Baseline/candidate contain identical source triangle content and original placement fields, verified afresh; visible per-frame triangle counts intentionally differ."
+  ]
+}
