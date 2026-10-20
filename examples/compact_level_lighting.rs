@@ -15,17 +15,22 @@ fn main() -> Result<(), String> {
             vector_range::lighting_mesh::simplify(&mut c.mesh);
         }
         let after: usize = chunks.iter().map(|c| c.mesh.indices.len() / 3).sum();
-        let meshes: Vec<_> = chunks.into_iter().map(|c| c.mesh).collect();
-        vector_range::static_lighting::write_meshes(&dir.join("lighting.bin"), &meshes)?;
+        let vertices: usize = chunks.iter().map(|c| c.mesh.vertices.len()).sum();
+        if chunks.iter().any(|c| c.instance.is_some()) {
+            let geometry: Vec<_> = chunks
+                .into_iter()
+                .map(vector_range::city_level::CityGeometry::from_chunk)
+                .collect();
+            vector_range::city_level::write_geometry(&dir.join("lighting.bin"), &geometry)?;
+        } else {
+            let meshes: Vec<_> = chunks.into_iter().map(|c| c.mesh).collect();
+            vector_range::static_lighting::write_meshes(&dir.join("lighting.bin"), &meshes)?;
+        }
         let path = dir.join("lighting.json");
         let mut info: serde_json::Value =
             serde_json::from_slice(&std::fs::read(&path).map_err(|e| e.to_string())?)
                 .map_err(|e| e.to_string())?;
-        info["vertices"] = meshes
-            .iter()
-            .map(|m| m.vertices.len())
-            .sum::<usize>()
-            .into();
+        info["vertices"] = vertices.into();
         info["triangles"] = after.into();
         info["lighting_sample_error_bound_rgba8"] = 2.into();
         info["topology_optimization"] =

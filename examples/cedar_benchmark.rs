@@ -206,13 +206,12 @@ fn run(options: Options) -> Result<(), String> {
 }
 fn collect(options: &Options) -> Result<Value, String> {
     let city = CityLevel::load(&options.level)?;
-    let mesh_path = options.level.with_file_name("lighting.bin");
-    let mesh_path = if mesh_path.exists() {
-        mesh_path
-    } else {
-        options.level.with_file_name("meshes.bin")
-    };
-    let assets = json!([file_identity(&options.level)?, file_identity(&mesh_path)?]);
+    // Fingerprint the actual source chosen by the production loader, including
+    // its instance-aware fallback when an old coarse lighting bake is stale.
+    let assets = json!([
+        file_identity(&options.level)?,
+        file_identity(city.mesh_source_path())?
+    ]);
     #[cfg(feature = "wgpu-runtime")]
     let mut renderer = if options.mode == "headless-gpu" {
         Some(pollster::block_on(WgpuRenderer::new_headless_profiled(
@@ -401,34 +400,50 @@ mod tests {
     #[test]
     fn source_recording_uses_real_city_culling_and_facade() {
         use vector_range::{
-            city_level::StaticCityChunk,
-            draw::{Color, StaticMesh, Vertex},
+            city_level::{write_geometry, CityGeometry},
+            draw::{Color, Vertex},
             sim::Aabb,
         };
-        let triangle = StaticMesh::new(
-            vec![
-                Vertex::new(-1., 0., 0., 0., 0., Color::WHITE),
-                Vertex::new(1., 0., 0., 0., 0., Color::WHITE),
-                Vertex::new(0., 3., 0., 0., 0., Color::WHITE),
-            ],
-            vec![0, 1, 2],
-            None,
+        let directory = std::env::temp_dir().join(format!(
+            "cedar-benchmark-fixture-{}-{}",
+            std::process::id(),
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+        ));
+        std::fs::create_dir_all(&directory).unwrap();
+        struct Cleanup(std::path::PathBuf);
+        impl Drop for Cleanup {
+            fn drop(&mut self) {
+                let _ = std::fs::remove_dir_all(&self.0);
+            }
+        }
+        let _cleanup = Cleanup(directory.clone());
+        write_geometry(
+            &directory.join("meshes.bin"),
+            &[CityGeometry {
+                bounds: Aabb {
+                    min: Vec3::new(-1., 0., 0.),
+                    max: Vec3::new(1., 3., 0.),
+                },
+                vertices: vec![
+                    Vertex::new(-1., 0., 0., 0., 0., Color::WHITE),
+                    Vertex::new(1., 0., 0., 0., 0., Color::WHITE),
+                    Vertex::new(0., 3., 0., 0., 0., Color::WHITE),
+                ],
+                indices: vec![0, 1, 2],
+                instance: None,
+            }],
         )
         .unwrap();
-        let city = CityLevel {
-            name: "fixture".into(),
-            spawn_position: Vec3::ZERO,
-            spawn_yaw: 0.,
-            supply_position: Vec3::ZERO,
-            colliders: vec![],
-            chunks: vec![StaticCityChunk {
-                bounds: Aabb {
-                    min: Vec3::new(-1., 0., -0.1),
-                    max: Vec3::new(1., 3., 0.1),
-                },
-                mesh: triangle,
-            }],
-        };
+        let level_path = directory.join("level.json");
+        let manifest = json!({"schema":"rust-duty-city/v1", "name":"fixture", "mesh_file":"meshes.bin",
+            "spawn":{"position":[0.,0.,38.],"yaw_degrees":0.},
+            "colliders":[{"min":[-100.,-1.,-100.],"max":[100.,0.,100.]}]});
+        std::fs::write(&level_path, serde_json::to_vec(&manifest).unwrap()).unwrap();
+        let city = CityLevel::load(&level_path).unwrap();
+        assert_eq!(city.mesh_source_path(), directory.join("meshes.bin"));
         let first = record(&city, 0, 1280, 720).unwrap();
         let repeated = record(&city, PATH_FRAMES, 1280, 720).unwrap();
         assert_eq!(recorded_counts(&first), (1, 1));

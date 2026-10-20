@@ -1,7 +1,10 @@
 //! Bake once in release mode; no renderer or GPU required.
 use glam::Vec3;
 use vector_range::{
-    city_level::decode_meshes_unlit,
+    city_level::{
+        decode_meshes_unlit, geometry_bounds, write_geometry, CityChunk, CityGeometry,
+        InstanceMetadata,
+    },
     draw::Mesh,
     range_geometry,
     sim::Simulation,
@@ -16,40 +19,47 @@ fn main() -> Result<(), String> {
         }
         let directory = root.join("assets/levels").join(name);
         std::fs::create_dir_all(&directory).map_err(|e| e.to_string())?;
-        let (meshes, lamps): (Vec<Mesh>, Vec<Vec3>) = if name == "range" {
-            (
-                range_geometry::meshes(&Simulation::new()),
-                range_geometry::lamps(),
-            )
-        } else {
-            let bytes = std::fs::read(directory.join("meshes.bin")).map_err(|e| e.to_string())?;
-            let doc: serde_json::Value =
-                serde_json::from_slice(&std::fs::read(directory.join("level.json")).unwrap())
-                    .unwrap();
-            let mut lamps = Vec::new();
-            for b in doc["buildings"].as_array().unwrap() {
-                for room in b["rooms"].as_array().unwrap() {
-                    let p = room["center"].as_array().unwrap();
-                    lamps.push(Vec3::new(
-                        p[0].as_f64().unwrap() as f32,
-                        p[1].as_f64().unwrap() as f32 + 2.65,
-                        p[2].as_f64().unwrap() as f32,
-                    ));
+        let (meshes, lamps, identities): (Vec<Mesh>, Vec<Vec3>, Vec<Option<InstanceMetadata>>) =
+            if name == "range" {
+                (
+                    range_geometry::meshes(&Simulation::new()),
+                    range_geometry::lamps(),
+                    Vec::new(),
+                )
+            } else {
+                let bytes =
+                    std::fs::read(directory.join("meshes.bin")).map_err(|e| e.to_string())?;
+                let doc: serde_json::Value =
+                    serde_json::from_slice(&std::fs::read(directory.join("level.json")).unwrap())
+                        .unwrap();
+                let mut lamps = Vec::new();
+                for b in doc["buildings"].as_array().unwrap() {
+                    for room in b["rooms"].as_array().unwrap() {
+                        let p = room["center"].as_array().unwrap();
+                        lamps.push(Vec3::new(
+                            p[0].as_f64().unwrap() as f32,
+                            p[1].as_f64().unwrap() as f32 + 2.65,
+                            p[2].as_f64().unwrap() as f32,
+                        ));
+                    }
                 }
-            }
-            (
-                decode_meshes_unlit(&bytes)?
-                    .into_iter()
-                    .map(|c| c.mesh)
-                    .collect(),
-                lamps,
-            )
-        };
+                let decoded = decode_meshes_unlit(&bytes)?;
+                let (identities, meshes) =
+                    decoded.into_iter().map(|c| (c.instance, c.mesh)).unzip();
+                (meshes, lamps, identities)
+            };
         eprintln!("{name}: building triangle acceleration structure");
         let scene = BakeScene::new(&meshes, lamps);
         let mut output = Vec::new();
-        for mesh in &meshes {
-            output.extend(subdivide(mesh, if name == "range" { 0.25 } else { 0.65 }));
+        let per_instance = identities.iter().any(Option::is_some);
+        let mut output_identities = Vec::new();
+        for (index, mesh) in meshes.iter().enumerate() {
+            let pieces = subdivide(mesh, if name == "range" { 0.25 } else { 0.65 });
+            output_identities.extend(std::iter::repeat_n(
+                identities.get(index).cloned().flatten(),
+                pieces.len(),
+            ));
+            output.extend(pieces);
         }
         drop(meshes);
         for mesh in &mut output {
@@ -81,6 +91,7 @@ fn main() -> Result<(), String> {
             ..vector_range::scene_lighting::SceneLighting::range()
         };
         for lamp in &scene.lamps {
+            output_identities.push(None);
             output.push(unlit.cube_mesh(
                 *lamp + Vec3::Y * 0.05,
                 Vec3::new(0.65, 0.06, 0.65),
@@ -88,8 +99,24 @@ fn main() -> Result<(), String> {
             ));
         }
         let vertices: usize = output.iter().map(|m| m.vertices.len()).sum();
-        write_meshes(&directory.join("lighting.bin"), &output)?;
-        std::fs::write(directory.join("lighting.json"),serde_json::to_vec_pretty(&serde_json::json!({"schema":"rust-duty-static-lighting/v1","method":"triangle-raytraced vertex irradiance","vertex_storage":"position-f32-rgba8","spatial_filter_radius_m":0.38,"sun_samples":8,"hemisphere_samples":32,"diffuse_bounces":1,"target_triangle_edge_m":if name=="range"{0.25}else{0.65},"vertical_surface_edge_m":0.25,"vertices":vertices,"chunks":output.len(),"interior_lights":scene.lamps.len(),"sun_direction":[-0.45,0.78,0.43],"tone_map":"ACES fitted curve, sRGB output","limitations":["Static geometry and lights only","No dynamic actor shadows or specular reflections"]})).unwrap()).map_err(|e|e.to_string())?;
+        let chunk_count = output.len();
+        if per_instance {
+            let geometry: Vec<_> = output
+                .into_iter()
+                .zip(output_identities)
+                .map(|(mesh, instance)| {
+                    CityGeometry::from_chunk(CityChunk {
+                        bounds: geometry_bounds(&mesh.vertices),
+                        mesh,
+                        instance,
+                    })
+                })
+                .collect();
+            write_geometry(&directory.join("lighting.bin"), &geometry)?;
+        } else {
+            write_meshes(&directory.join("lighting.bin"), &output)?;
+        }
+        std::fs::write(directory.join("lighting.json"),serde_json::to_vec_pretty(&serde_json::json!({"schema":"rust-duty-static-lighting/v1","method":"triangle-raytraced vertex irradiance","vertex_storage":"position-f32-rgba8","spatial_filter_radius_m":0.38,"sun_samples":8,"hemisphere_samples":32,"diffuse_bounces":1,"target_triangle_edge_m":if name=="range"{0.25}else{0.65},"vertical_surface_edge_m":0.25,"vertices":vertices,"chunks":chunk_count,"interior_lights":scene.lamps.len(),"sun_direction":[-0.45,0.78,0.43],"tone_map":"ACES fitted curve, sRGB output","limitations":["Static geometry and lights only","No dynamic actor shadows or specular reflections"]})).unwrap()).map_err(|e|e.to_string())?;
         eprintln!("{name}: saved lighting.bin");
     }
     Ok(())

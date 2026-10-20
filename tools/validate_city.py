@@ -23,6 +23,11 @@ RADIUS = .381
 HEIGHT = 1.778
 STEP = .4573
 EPS = .0001
+MAX_MESH_BYTES = 768 * 1024**2
+MAX_METADATA_BYTES = 32 * 1024**2
+MAX_INSTANCES = 262144
+MAX_INSTANCE_VERTICES = 4_000_000
+MAX_INSTANCE_INDICES = 12_000_000
 
 
 def require(condition, message):
@@ -37,60 +42,130 @@ def vector(value, label):
     return value
 
 
-def read_json(path):
+def parse_json(text):
     def unique(pairs):
         result = {}
         for key, value in pairs:
             require(key not in result, f'duplicate JSON key: {key}')
             result[key] = value
         return result
-    data = json.loads(path.read_text(encoding='utf-8'), object_pairs_hook=unique)
+    data = json.loads(text, object_pairs_hook=unique)
     json.dumps(data, allow_nan=False)
     return data
 
 
+def read_json(path):
+    return parse_json(path.read_text(encoding='utf-8'))
+
+
+def verify_instance_metadata(metadata):
+    require(isinstance(metadata, list) and 0 < len(metadata) <= MAX_INSTANCES,
+            'invalid city instance metadata array')
+    for index, row in enumerate(metadata):
+        label = f'instance {index}'
+        # Generated lighting panels have no authored source identity. The Rust
+        # writer also emits explicit null for absent optional fields.
+        if row is None:
+            continue
+        require(isinstance(row, dict), f'{label}: metadata must be an object')
+        require(type(row.get('id')) is int and 0 <= row['id'] <= 0xffffffff,
+                f'{label}: invalid source instance id')
+        require(isinstance(row.get('asset'), str)
+                and 0 < len(row['asset'].encode('utf-8')) <= 512,
+                f'{label}: missing asset identity')
+        if row.get('building') is not None:
+            require(isinstance(row['building'], str)
+                    and 0 < len(row['building'].encode('utf-8')) <= 128,
+                    f'{label}: invalid building identity')
+        distance = row.get('max_distance')
+        if distance is None:
+            distance = 0.
+        require(type(distance) in (int, float) and 0 <= distance <= 400
+                and math.isfinite(distance),
+                f'{label}: invalid maximum draw distance')
+    # Baking can split one authored source identity into several mesh records.
+    # Repeated IDs are intentional and are not a duplicate-object error.
+
+
 def verify_mesh(path):
     size = path.stat().st_size
-    require(12 <= size <= 256 * 1024**2, 'mesh file outside bounded size')
+    require(12 <= size <= MAX_MESH_BYTES, 'mesh file outside bounded size')
     packed = path.read_bytes()
     if packed[:2] == b'\x1f\x8b':
         try:
             with gzip.GzipFile(fileobj=io.BytesIO(packed)) as stream:
-                data = stream.read(256 * 1024**2 + 1)
+                data = stream.read(MAX_MESH_BYTES + 1)
         except (OSError, EOFError) as error:
             raise ValueError('invalid compressed city mesh') from error
-        require(len(data) <= 256 * 1024**2, 'decoded mesh exceeds size limit')
+        require(len(data) <= MAX_MESH_BYTES, 'decoded mesh exceeds size limit')
     else:
         data = packed
     size = len(data)
-    require(data[:8] == b'RDCITY01', 'wrong city mesh signature')
-    chunks, = struct.unpack_from('<I', data, 8)
-    require(0 < chunks <= 16384, 'invalid city mesh chunk count')
-    offset, vertices, triangles = 12, 0, 0
+    require(size >= 12, 'truncated city mesh header')
+    magic = data[:8]
+    require(magic in (b'RDCITY01', b'RDCITY02', b'RDCITY03', b'RDCITY04'),
+            'wrong city mesh signature')
+    instanced = magic == b'RDCITY04'
+    metadata = None
+    offset = 8
+    if instanced:
+        require(offset + 8 <= size, 'truncated city instance header')
+        flags, metadata_bytes = struct.unpack_from('<II', data, offset)
+        offset += 8
+        require(flags in (0, 1, 3), 'invalid city instance flags')
+        require(0 < metadata_bytes <= MAX_METADATA_BYTES,
+                'invalid city instance metadata size')
+        require(offset + metadata_bytes + 4 <= size, 'truncated city instance metadata')
+        try:
+            metadata = parse_json(data[offset:offset + metadata_bytes].decode('utf-8'))
+        except (UnicodeError, ValueError, RecursionError) as error:
+            raise ValueError(f'invalid city instance metadata: {error}') from error
+        verify_instance_metadata(metadata)
+        offset += metadata_bytes
+        compact = bool(flags & 2)
+        prelit = bool(flags & 1)
+    else:
+        compact = magic == b'RDCITY03'
+        prelit = magic != b'RDCITY01'
+    chunks, = struct.unpack_from('<I', data, offset)
+    offset += 4
+    require(0 < chunks <= (MAX_INSTANCES if instanced else 16384),
+            'invalid city mesh chunk count')
+    if metadata is not None:
+        require(len(metadata) == chunks, 'city instance metadata/geometry count mismatch')
+    vertex_stride = 16 if compact else 40
+    index_stride = 4 if instanced else 2
+    vertex_limit = MAX_INSTANCE_VERTICES if instanced else 60000
+    index_limit = MAX_INSTANCE_INDICES if instanced else 360000
+    vertices, triangles = 0, 0
     for chunk in range(chunks):
         require(offset + 32 <= size, 'truncated mesh chunk header')
         *bounds, vc, ic = struct.unpack_from('<6fII', data, offset)
         offset += 32
         require(all(math.isfinite(n) for n in bounds), 'nonfinite mesh bounds')
         require(all(bounds[n] <= bounds[n + 3] for n in range(3)), 'inverted mesh bounds')
-        require(0 < vc <= 60000 and 0 < ic <= 65535 and ic % 3 == 0,
+        require(0 < vc <= vertex_limit and 0 < ic <= index_limit and ic % 3 == 0,
                 f'chunk {chunk}: invalid vertex/index count')
-        require(offset + vc * 40 + ic * 2 <= size, 'truncated mesh chunk data')
-        for row in struct.iter_unpack('<10f', data[offset:offset + vc * 40]):
+        vertex_end = offset + vc * vertex_stride
+        index_end = vertex_end + ic * index_stride
+        require(index_end <= size, 'truncated mesh chunk data')
+        for row in struct.iter_unpack('<3f4B' if compact else '<10f', data[offset:vertex_end]):
             require(all(math.isfinite(n) for n in row), f'chunk {chunk}: nonfinite vertex')
             require(all(bounds[n] - .01 <= row[n] <= bounds[n + 3] + .01 for n in range(3)),
                     f'chunk {chunk}: vertex outside bounds')
-            require(all(0 <= n <= 1 for n in row[6:]), f'chunk {chunk}: color outside range')
-            normal_length = sum(n * n for n in row[3:6]) ** .5
-            require(.9 <= normal_length <= 1.1, f'chunk {chunk}: non-unit normal')
-        offset += vc * 40
-        for index, in struct.iter_unpack('<H', data[offset:offset + ic * 2]):
+            if not compact:
+                require(all(0 <= n <= 1 for n in row[6:]), f'chunk {chunk}: color outside range')
+                normal_length = sum(n * n for n in row[3:6]) ** .5
+                require(.9 <= normal_length <= 1.1, f'chunk {chunk}: non-unit normal')
+        offset = vertex_end
+        for index, in struct.iter_unpack('<I' if instanced else '<H', data[offset:index_end]):
             require(index < vc, f'chunk {chunk}: out of range index')
-        offset += ic * 2
+        offset = index_end
         vertices += vc
         triangles += ic // 3
     require(offset == size, 'trailing mesh data')
     return {'chunks': chunks, 'vertices': vertices, 'triangles': triangles,
+            'format': magic.decode('ascii'), 'prelit': prelit, 'compact': compact,
             'bytes': len(packed), 'decoded_bytes': size, 'sha256': hashlib.sha256(packed).hexdigest()}
 
 
@@ -302,6 +377,9 @@ def verify(root, source=None):
     result['level_sha256'] = hashlib.sha256((folder / 'level.json').read_bytes()).hexdigest()
     result['mesh'] = verify_mesh(folder / 'meshes.bin')
     require(level.get('mesh_sha256') == result['mesh']['sha256'], 'level/mesh SHA-256 mismatch')
+    if 'geometry_format' in level:
+        require(level['geometry_format'] == result['mesh']['format'],
+                'level/mesh geometry format mismatch')
     result['provenance'] = verify_provenance(root, level, Path(source) if source else None)
     expected = {key: result[key] for key in ('buildings', 'colliders')}
     expected.update({key: result['provenance'][key] for key in ('unique_assets', 'asset_instances')})

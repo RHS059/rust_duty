@@ -288,20 +288,8 @@ pub(crate) fn city_world(
     view_projection: Mat4,
     supply: &vector_range::ammo_supply::AmmoSupply,
 ) {
-    // Opaque near surfaces reject hidden fragments before distant buildings shade.
-    let eye = sim.player.eye();
-    let mut visible: Vec<_> = city
-        .chunks
-        .iter()
-        .filter(|chunk| vector_range::city_level::chunk_visible(chunk.bounds, eye, view_projection))
-        .collect();
-    visible.sort_by(|a, b| {
-        eye.distance_squared(eye.clamp(a.bounds.min, a.bounds.max))
-            .total_cmp(&eye.distance_squared(eye.clamp(b.bounds.min, b.bounds.max)))
-    });
-    for chunk in visible {
-        draw_static_mesh_transformed(&chunk.mesh, Mat4::IDENTITY, BlendMode::Opaque);
-    }
+    // One visibility owner handles the spatial hierarchy and instance policies.
+    city.draw(sim.player.eye(), view_projection);
     let lighting = SceneLighting::range();
     let bounds = supply.bounds();
     lighting.draw_cube(
