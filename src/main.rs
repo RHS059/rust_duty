@@ -1,31 +1,61 @@
-#[cfg(any(feature = "legacy-macroquad", feature = "wgpu-runtime"))]
+#[cfg(feature = "wgpu-runtime")]
 mod app;
-#[cfg(any(feature = "legacy-macroquad", feature = "wgpu-runtime"))]
+#[cfg(feature = "wgpu-runtime")]
 mod authored_viewmodel;
-#[cfg(any(feature = "legacy-macroquad", feature = "wgpu-runtime"))]
+#[cfg(feature = "wgpu-runtime")]
 mod capture;
-#[cfg(any(feature = "legacy-macroquad", feature = "wgpu-runtime"))]
+#[cfg(feature = "wgpu-runtime")]
 mod combined_capture;
-#[cfg(any(feature = "legacy-macroquad", feature = "wgpu-runtime"))]
+#[cfg(feature = "wgpu-runtime")]
 mod high_app_edge_capture;
-#[cfg(any(feature = "legacy-macroquad", feature = "wgpu-runtime"))]
+#[cfg(feature = "wgpu-runtime")]
 mod high_mantle_capture;
-#[cfg(any(feature = "legacy-macroquad", feature = "wgpu-runtime"))]
+#[cfg(feature = "wgpu-runtime")]
 mod level_menu;
-#[cfg(any(feature = "legacy-macroquad", feature = "wgpu-runtime"))]
+#[cfg(feature = "wgpu-runtime")]
 mod sound;
-#[cfg(any(feature = "legacy-macroquad", feature = "wgpu-runtime"))]
+#[cfg(feature = "wgpu-runtime")]
 mod telemetry_export;
-#[cfg(any(feature = "legacy-macroquad", feature = "wgpu-runtime"))]
+#[cfg(feature = "wgpu-runtime")]
 mod viewmodel_draw;
-#[cfg(any(feature = "legacy-macroquad", feature = "wgpu-runtime"))]
+#[cfg(feature = "wgpu-runtime")]
 mod weapon_model;
-#[cfg(any(feature = "legacy-macroquad", feature = "wgpu-runtime"))]
+#[cfg(feature = "wgpu-runtime")]
 mod world_draw;
 use vector_range::platform::launch::{LaunchOptions, RuntimeChoice};
 
-/// Helper and metadata commands must complete before creating either window.
+/// Helper and metadata commands must complete before creating the native window.
 fn dispatch_before_window() {
+    if std::env::args().any(|arg| arg == "--renderer-build-info") {
+        #[cfg(feature = "wgpu-runtime")]
+        let native_backends: Vec<_> = {
+            let enabled = wgpu::Instance::enabled_backend_features();
+            [
+                ("dx12", wgpu::Backends::DX12),
+                ("vulkan", wgpu::Backends::VULKAN),
+                ("metal", wgpu::Backends::METAL),
+                ("gl", wgpu::Backends::GL),
+                ("browser-webgpu", wgpu::Backends::BROWSER_WEBGPU),
+            ]
+            .into_iter()
+            .filter_map(|(name, backend)| enabled.intersects(backend).then_some(name))
+            .collect()
+        };
+        #[cfg(not(feature = "wgpu-runtime"))]
+        let native_backends: Vec<&str> = Vec::new();
+        println!(
+            "{}",
+            serde_json::json!({
+                "schema": "rust-duty-renderer-build/v1",
+                "build_version": vector_range::BUILD_VERSION,
+                "build_number": vector_range::BUILD_NUMBER,
+                "wgpu_runtime": cfg!(feature = "wgpu-runtime"),
+                "debug_assertions": cfg!(debug_assertions),
+                "native_backends": native_backends,
+            })
+        );
+        std::process::exit(0);
+    }
     if std::env::args().any(|arg| arg == "--build-label") {
         println!("{}", vector_range::BUILD_LABEL);
         std::process::exit(0);
@@ -69,10 +99,7 @@ fn main() {
         .unwrap_or_else(|error| fatal(error));
     vector_range::graphics_device::initialize(graphics);
     let runtime = options
-        .runtime(
-            cfg!(feature = "legacy-macroquad"),
-            cfg!(feature = "wgpu-runtime"),
-        )
+        .runtime(cfg!(feature = "wgpu-runtime"))
         .unwrap_or_else(|error| fatal(error));
     let reference = args.iter().any(|arg| arg == "--reference-viewport");
     // Separately pinned readiness candidate: window/render-cost changes only.
@@ -86,78 +113,36 @@ fn main() {
         (1440, 900)
     };
     let title = format!("RUST DUTY | {}", vector_range::BUILD_LABEL);
-    match runtime {
-        RuntimeChoice::Legacy => {
-            #[cfg(feature = "legacy-macroquad")]
-            {
-                let requested = options.renderer.unwrap_or_else(|| "legacy-default".into());
-                macroquad::Window::from_config(
-                    macroquad::prelude::Conf {
-                        window_title: title,
-                        window_width: width,
-                        window_height: height,
-                        high_dpi: !reference && !app_edge_readiness,
-                        sample_count: if app_edge_readiness { 1 } else { 4 },
-                        ..Default::default()
-                    },
-                    async move {
-                        use vector_range::legacy_macroquad::runtime;
-                        runtime::initialize(requested).unwrap_or_else(|error| fatal(error));
-                        let info = vector_range::draw::facade::backend_info()
-                            .unwrap_or_else(|error| fatal(error));
-                        eprintln!(
-                            "renderer requested={} backend={} adapter={}",
-                            info.requested, info.backend, info.adapter
-                        );
-                        vector_range::graphics_device::update_actual(info, serde_json::Value::Null);
-                        let app_result = app::run(options.ui_theme).await;
-                        // Captures on the final application frame must complete
-                        // even when no further next_frame await occurs.
-                        let finish_result = runtime::shutdown();
-                        vector_range::frame_performance_session::log_completion(
-                            vector_range::frame_performance_session::shutdown(),
-                        );
-                        app_result
-                            .and(finish_result)
-                            .unwrap_or_else(|error| fatal(error));
-                    },
-                );
-            }
-            #[cfg(not(feature = "legacy-macroquad"))]
-            fatal("legacy OpenGL is unavailable; build with legacy-macroquad");
-        }
-        RuntimeChoice::Wgpu {
-            requested,
-            force_fallback,
-        } => {
-            #[cfg(feature = "wgpu-runtime")]
-            {
-                let selection = requested.parse().unwrap_or_else(|error| fatal(error));
-                let run_result = vector_range::platform::window::run(
-                    &title,
-                    width as u32,
-                    height as u32,
-                    move |window| {
-                        vector_range::render::runtime::create_frame_hooks(
-                            window,
-                            selection,
-                            force_fallback,
-                        )
-                    },
-                    app::run(options.ui_theme),
-                );
-                // Successful deferred stops were consumed by the renderer.
-                // Native-close/error exits without that present remain incomplete.
-                vector_range::frame_performance_session::log_completion(
-                    vector_range::frame_performance_session::shutdown(),
-                );
-                run_result.unwrap_or_else(|error| fatal(error));
-            }
-            #[cfg(not(feature = "wgpu-runtime"))]
-            {
-                let _ = (requested, force_fallback, width, height, title);
-                fatal("requested renderer is unavailable; build with wgpu-runtime");
-            }
-        }
+    let RuntimeChoice::Wgpu {
+        requested,
+        force_fallback,
+    } = runtime;
+    #[cfg(feature = "wgpu-runtime")]
+    {
+        let selection = requested.parse().unwrap_or_else(|error| fatal(error));
+        let run_result = vector_range::platform::window::run(
+            &title,
+            width as u32,
+            height as u32,
+            move |window| {
+                vector_range::render::runtime::create_frame_hooks(
+                    window,
+                    selection,
+                    force_fallback,
+                )
+            },
+            app::run(options.ui_theme),
+        );
+        // Successful deferred stops were consumed by the renderer.
+        // Native-close/error exits without that present remain incomplete.
+        vector_range::frame_performance_session::log_completion(
+            vector_range::frame_performance_session::shutdown(),
+        );
+        run_result.unwrap_or_else(|error| fatal(error));
+    }
+    #[cfg(not(feature = "wgpu-runtime"))]
+    {
+        let _ = (requested, force_fallback, width, height, title);
+        fatal("requested renderer is unavailable; build with wgpu-runtime");
     }
 }

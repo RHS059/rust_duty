@@ -33,20 +33,44 @@ fn executable_rejects_invalid_or_ambiguous_selection_before_window_creation() {
 
 #[cfg(not(feature = "wgpu-runtime"))]
 #[test]
-fn executable_cannot_satisfy_explicit_dx12_with_the_legacy_build() {
+fn executable_cannot_satisfy_explicit_dx12_without_the_runtime_feature() {
     rejected_launch(
         &["--renderer=dx12"],
         "requested renderer is unavailable; build with wgpu-runtime",
     );
 }
 
-#[cfg(not(feature = "legacy-macroquad"))]
 #[test]
-fn executable_cannot_satisfy_explicit_legacy_with_the_wgpu_build() {
-    rejected_launch(
-        &["--renderer=gl"],
-        "legacy OpenGL is unavailable; build with legacy-macroquad",
-    );
+fn executable_rejects_removed_renderer_before_window_creation() {
+    rejected_launch(&["--renderer=gl"], "unknown renderer");
+    rejected_launch(&["--renderer", "gl"], "unknown renderer");
+}
+
+#[test]
+fn renderer_build_info_is_a_headless_query_of_compiled_backends() {
+    let output = Command::new(env!("CARGO_BIN_EXE_vector-range"))
+        .arg("--renderer-build-info")
+        .output()
+        .expect("query compiled renderer features without a window");
+    assert!(output.status.success(), "{output:?}");
+    let info: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
+    assert_eq!(info["schema"], "rust-duty-renderer-build/v1");
+    assert_eq!(info["wgpu_runtime"], cfg!(feature = "wgpu-runtime"));
+    let backends = info["native_backends"].as_array().unwrap();
+    assert!(!backends.iter().any(|backend| backend == "gl"));
+    assert!(!backends.iter().any(|backend| backend == "browser-webgpu"));
+    #[cfg(all(feature = "wgpu-runtime", target_os = "windows"))]
+    assert!(backends.iter().any(|backend| backend == "dx12"));
+    #[cfg(all(feature = "wgpu-runtime", target_os = "linux"))]
+    assert!(backends.iter().any(|backend| backend == "vulkan"));
+    #[cfg(not(feature = "wgpu-runtime"))]
+    assert!(backends.is_empty());
+}
+
+#[cfg(feature = "wgpu-runtime")]
+#[test]
+fn runtime_has_no_compiled_opengl_backend() {
+    assert!(!wgpu::Instance::enabled_backend_features().intersects(wgpu::Backends::GL));
 }
 
 #[cfg(all(feature = "wgpu-runtime", target_os = "linux"))]

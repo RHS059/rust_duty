@@ -272,8 +272,8 @@ pub fn prepare_launch(args: &[String], options: &mut LaunchOptions) -> Result<Se
     })
 }
 
-/// Native catalogs are already surface-checked. Legacy discovery is lazy so it cannot
-/// change default startup timing or diagnostic captures, and validates presentation on restart.
+/// Native catalogs are surface-checked. Software diagnostic launches cannot
+/// choose a persistent GPU until restarted without the fallback flag.
 pub fn ensure_catalog() {
     let state = snapshot();
     if state.catalog_ready {
@@ -291,12 +291,12 @@ pub fn ensure_catalog() {
     #[cfg(feature = "wgpu-runtime")]
     {
         let state = snapshot();
-        if state.renderer_override.as_deref() == Some("gl") || state.forced_fallback {
+        if state.forced_fallback {
             SESSION.with(|s| {
                 let mut s = s.borrow_mut();
                 s.catalog_ready = true;
                 s.catalog_error = Some(
-                    "Explicit GL/software launch: restart without that flag to choose a GPU".into(),
+                    "Explicit software launch: restart without that flag to choose a GPU".into(),
                 );
             });
             return;
@@ -429,7 +429,7 @@ mod tests {
         let mut options = LaunchOptions::default();
         prepare_launch(&args, &mut options).unwrap();
         assert_eq!(
-            options.runtime(true, true).unwrap(),
+            options.runtime(true).unwrap(),
             crate::platform::launch::RuntimeChoice::Wgpu {
                 requested: "auto".into(),
                 force_fallback: false
@@ -438,7 +438,7 @@ mod tests {
         Preference::Adapter(id("RTX 3080 Ti")).save(&path).unwrap();
         prepare_launch(&args, &mut options).unwrap();
         assert_eq!(options.renderer.as_deref(), Some("dx12"));
-        for renderer in ["vulkan", "gl"] {
+        for renderer in ["vulkan", "metal"] {
             let mut conflicting = LaunchOptions {
                 renderer: Some(renderer.into()),
                 ..Default::default()

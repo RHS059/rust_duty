@@ -1,0 +1,43 @@
+name: Prepare wgpu-only source inputs
+on:
+  push:
+    branches: ['task/remove-opengl-20261020']
+    paths: ['Cargo.toml', 'src/**', 'examples/**', 'tests/**', 'tools/collect_game_licenses.py', '.github/workflows/task-a-prepare.yml']
+permissions:
+  contents: read
+jobs:
+  prepare:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Resolve only changed dependency selection and retain original versions
+        shell: bash
+        run: cargo metadata --format-version=1 --filter-platform x86_64-pc-windows-msvc --features wgpu-runtime > prepared-metadata.json
+      - name: Format source and regenerate exact Windows notices
+        run: |
+          cargo fmt --all
+          python tools/collect_game_licenses.py --metadata prepared-metadata.json
+      - name: Preserve generated source patch
+        if: always()
+        shell: bash
+        run: git diff --binary > task-a-generated.patch
+      - name: Retain exact generated source inputs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: task-a-prepared-source-attempt-${{ github.run_attempt }}
+          path: |
+            task-a-generated.patch
+            prepared-metadata.json
+          if-no-files-found: error
+      - name: Check CPU-only tool compilation without a window backend
+        run: cargo check --locked --no-default-features --all-targets

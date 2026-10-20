@@ -1,4 +1,4 @@
-//! Application runtime selection before either window backend is initialized.
+//! Application runtime selection before the native window is initialized.
 
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct LaunchOptions {
@@ -9,7 +9,6 @@ pub struct LaunchOptions {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum RuntimeChoice {
-    Legacy,
     Wgpu {
         requested: String,
         force_fallback: bool,
@@ -56,9 +55,9 @@ impl LaunchOptions {
                 if options.renderer.is_some() {
                     return Err("--renderer may be specified only once".into());
                 }
-                if !matches!(renderer, "auto" | "dx12" | "vulkan" | "metal" | "gl") {
+                if !matches!(renderer, "auto" | "dx12" | "vulkan" | "metal") {
                     return Err(format!(
-                        "unknown renderer {renderer:?}; expected auto|dx12|vulkan|metal|gl"
+                        "unknown renderer {renderer:?}; expected auto|dx12|vulkan|metal"
                     ));
                 }
                 options.renderer = Some(renderer.to_owned());
@@ -83,25 +82,9 @@ impl LaunchOptions {
         Ok(options)
     }
 
-    /// wgpu (DX12 first on Windows) is the default since the DX12 cutover
-    /// sign-off; legacy OpenGL runs only when requested or when wgpu is not
-    /// built. An explicitly requested native API never silently becomes legacy.
-    pub fn runtime(
-        &self,
-        legacy_available: bool,
-        wgpu_available: bool,
-    ) -> Result<RuntimeChoice, String> {
-        let legacy =
-            self.renderer.as_deref() == Some("gl") || (self.renderer.is_none() && !wgpu_available);
-        if legacy {
-            if !legacy_available {
-                return Err("legacy OpenGL is unavailable; build with legacy-macroquad".into());
-            }
-            if self.force_fallback_adapter {
-                return Err("--force-fallback-adapter requires an explicit wgpu renderer, such as --renderer=dx12".into());
-            }
-            return Ok(RuntimeChoice::Legacy);
-        }
+    /// wgpu is the only window runtime. An unavailable explicit native API
+    /// fails closed; it never falls back to a removed renderer.
+    pub fn runtime(&self, wgpu_available: bool) -> Result<RuntimeChoice, String> {
         if !wgpu_available {
             return Err("requested renderer is unavailable; build with wgpu-runtime".into());
         }
@@ -119,42 +102,19 @@ mod tests {
         LaunchOptions::parse(&args.iter().map(|s| (*s).to_owned()).collect::<Vec<_>>())
     }
     #[test]
-    fn wgpu_is_the_default_after_cutover_and_legacy_needs_gl_or_no_wgpu() {
-        assert_eq!(
-            parse(&[]).unwrap().runtime(true, true).unwrap(),
-            RuntimeChoice::Wgpu {
-                requested: "auto".into(),
-                force_fallback: false
-            }
-        );
-        assert_eq!(
-            parse(&[]).unwrap().runtime(true, false).unwrap(),
-            RuntimeChoice::Legacy
-        );
-        assert_eq!(
-            parse(&["--renderer=gl"])
-                .unwrap()
-                .runtime(true, true)
-                .unwrap(),
-            RuntimeChoice::Legacy
-        );
-        assert_eq!(
-            parse(&["--renderer=auto"])
-                .unwrap()
-                .runtime(true, true)
-                .unwrap(),
-            RuntimeChoice::Wgpu {
-                requested: "auto".into(),
-                force_fallback: false
-            }
-        );
-        assert_eq!(
-            parse(&[]).unwrap().runtime(false, true).unwrap(),
-            RuntimeChoice::Wgpu {
-                requested: "auto".into(),
-                force_fallback: false
-            }
-        );
+    fn wgpu_is_the_only_default_and_requires_its_feature() {
+        for args in [vec![], vec!["--renderer=auto"]] {
+            assert_eq!(
+                parse(&args).unwrap().runtime(true).unwrap(),
+                RuntimeChoice::Wgpu {
+                    requested: "auto".into(),
+                    force_fallback: false
+                }
+            );
+            assert!(parse(&args).unwrap().runtime(false).is_err());
+        }
+        assert!(parse(&["--renderer=gl"]).is_err());
+        assert!(parse(&["--renderer", "gl"]).is_err());
     }
     #[test]
     fn explicit_dx12_and_software_request_are_preserved() {
@@ -167,13 +127,13 @@ mod tests {
         ])
         .unwrap();
         assert_eq!(
-            options.runtime(true, true).unwrap(),
+            options.runtime(true).unwrap(),
             RuntimeChoice::Wgpu {
                 requested: "dx12".into(),
                 force_fallback: true
             }
         );
-        assert!(options.runtime(true, false).is_err());
+        assert!(options.runtime(false).is_err());
     }
     #[test]
     fn boolean_flag_rejects_value_forms_and_duplicates() {
@@ -184,10 +144,7 @@ mod tests {
         ] {
             assert!(parse(&args).is_err(), "{args:?}");
         }
-        assert!(parse(&["--renderer=gl", "--force-fallback-adapter"])
-            .unwrap()
-            .runtime(true, true)
-            .is_err());
+        assert!(parse(&["--renderer=gl", "--force-fallback-adapter"]).is_err());
     }
     #[test]
     fn unknown_missing_and_repeated_backends_fail_closed() {
@@ -199,11 +156,8 @@ mod tests {
         ] {
             assert!(parse(&args).is_err(), "{args:?}");
         }
-        assert!(parse(&["--renderer=gl"])
-            .unwrap()
-            .runtime(false, true)
-            .is_err());
-        assert!(parse(&[]).unwrap().runtime(false, false).is_err());
+        assert!(parse(&["--renderer=gl"]).is_err());
+        assert!(parse(&[]).unwrap().runtime(false).is_err());
     }
     #[test]
     fn theme_paths_are_explicit_bounded_options_without_consuming_other_flags() {

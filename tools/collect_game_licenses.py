@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Append verified game dependency notices without changing existing notices.
 
-Uses the exact Windows audio+legacy+wgpu Cargo resolution and original license
+Uses the exact Windows audio+wgpu Cargo resolution and original license
 files from cached registry archives whose SHA-256 matches Cargo.lock. No network
 downloads, invented attribution, updater-collector changes, or legal certification.
 Missing/unverifiable inputs fail before either output is changed.
@@ -160,8 +160,8 @@ def generate(metadata, lock_contents, current_notices, supplements=None, source_
     locked = {(p['name'], p['version'], p.get('source')): p for p in lock['package']}
     root, selected, nodes = selected_packages(metadata)
     root_features = set(nodes[root['id']]['features'])
-    require({'audio', 'legacy-macroquad', 'wgpu-runtime'} <= root_features,
-            'metadata must select default audio+legacy and explicit wgpu-runtime')
+    require({'audio', 'wgpu-runtime'} <= root_features and 'legacy-macroquad' not in root_features,
+            'metadata must select default audio+wgpu-runtime without the retired legacy feature')
     supplement_map = {}
     if supplements is not None:
         require(supplements.get('schema') == 'rust-duty-game-notice-supplements/v1', 'unsupported notice supplement schema')
@@ -219,7 +219,7 @@ def generate(metadata, lock_contents, current_notices, supplements=None, source_
             emitted.add(sha(raw))
             additions.extend([f'\n--- Original packaged file: {path} ---\n'.encode('utf-8'), raw, b'\n'])
     preamble = (f'Exact target: {TARGET}\n'
-                'Root selection: default features plus wgpu-runtime (audio and legacy retained).\n'
+                'Root selection: default audio+wgpu-runtime features; legacy OpenGL is retired.\n'
                 'Includes the reachable dependency closure, including build/proc-macro crates, as a conservative superset.\n'
                 'Existing notices above are preserved byte-for-byte. Additional texts below are copied from original locked registry archives.\n'
                 'Versioned source-package links identify the corresponding source; no dependency source was modified for this collection.\n'

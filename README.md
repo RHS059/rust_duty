@@ -23,3 +23,16 @@ Update the same [canonical weapon BLEND](assets/authoring/weapon_animations.blen
 The [NLA export and runtime guide](tools/nla_export/README.md) explains per-track
 FBX export, automatic runtime coverage, playback ranges, and inspecting preserved
 historical Actions.
+
+## Native renderer
+
+The game uses wgpu exclusively: DX12 by default on Windows, with explicit
+`--renderer=auto|dx12|vulkan|metal` selection. OpenGL and Macroquad have been
+removed, including wgpu's optional GLES backend. `--renderer=gl` is rejected
+before a window is opened. CPU asset tools remain available with
+`--no-default-features`; ordinary game builds default to `audio,wgpu-runtime`.
+
+`--renderer-build-info` prints the compiled backend set without opening a window.
+Windows CI checks that exact release executable, its selected Cargo dependency
+closure, and known GL loader/library markers before packaging. The receipt is
+retained in the quality-check artifact as `wgpu-only-release.json`.
