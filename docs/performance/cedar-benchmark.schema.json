@@ -1,0 +1,297 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Rust Duty Cedar Junction benchmark v1",
+  "type": "object",
+  "oneOf": [
+    {
+      "required": [
+        "schema",
+        "status",
+        "mode",
+        "error"
+      ],
+      "properties": {
+        "schema": {
+          "const": "rust-duty-cedar-benchmark/v1"
+        },
+        "status": {
+          "const": "failed"
+        },
+        "mode": {
+          "enum": [
+            "cpu-scene",
+            "headless-gpu"
+          ]
+        },
+        "error": {
+          "type": "string"
+        }
+      }
+    },
+    {
+      "required": [
+        "schema",
+        "status",
+        "mode",
+        "source",
+        "host",
+        "scene",
+        "path",
+        "config",
+        "adapter",
+        "gpu_timestamps_available",
+        "interpretation",
+        "samples"
+      ],
+      "properties": {
+        "schema": {
+          "const": "rust-duty-cedar-benchmark/v1"
+        },
+        "status": {
+          "const": "complete"
+        },
+        "mode": {
+          "enum": [
+            "cpu-scene",
+            "headless-gpu"
+          ]
+        },
+        "source": {
+          "type": "object",
+          "required": [
+            "revision",
+            "dirty",
+            "build_label"
+          ]
+        },
+        "host": {
+          "type": "object",
+          "required": [
+            "os",
+            "arch",
+            "machine_label",
+            "profile"
+          ]
+        },
+        "scene": {
+          "type": "object",
+          "required": [
+            "name",
+            "assets",
+            "chunks"
+          ]
+        },
+        "path": {
+          "type": "object",
+          "required": [
+            "id",
+            "cycle_frames",
+            "waypoints",
+            "fovy_degrees",
+            "near",
+            "far"
+          ]
+        },
+        "config": {
+          "type": "object",
+          "required": [
+            "width",
+            "height",
+            "frames",
+            "warmup_frames",
+            "presentation",
+            "gpu_completion_fence_per_frame"
+          ],
+          "properties": {
+            "width": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "height": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "frames": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100000
+            },
+            "warmup_frames": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 100000
+            },
+            "presentation": {
+              "const": false
+            },
+            "gpu_completion_fence_per_frame": {
+              "type": "boolean"
+            }
+          }
+        },
+        "adapter": {
+          "type": [
+            "object",
+            "null"
+          ]
+        },
+        "gpu_timestamps_available": {
+          "type": "boolean"
+        },
+        "interpretation": {
+          "type": "string"
+        },
+        "samples": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "cpu_record_ns",
+              "cpu_submit_ns",
+              "cpu_frame_ns",
+              "cpu_gpu_wait_ns",
+              "gpu_timestamp_ns",
+              "recorded_draws",
+              "recorded_triangles",
+              "draw_calls",
+              "triangles",
+              "line_segments",
+              "upload_bytes",
+              "vertex_upload_bytes",
+              "index_upload_bytes",
+              "uniform_upload_bytes",
+              "texture_upload_bytes",
+              "frame_index",
+              "path_frame",
+              "camera_position"
+            ],
+            "properties": {
+              "cpu_record_ns": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0
+              },
+              "cpu_submit_ns": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0
+              },
+              "cpu_frame_ns": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0
+              },
+              "cpu_gpu_wait_ns": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0
+              },
+              "gpu_timestamp_ns": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0
+              },
+              "recorded_draws": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0
+              },
+              "recorded_triangles": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0
+              },
+              "draw_calls": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0
+              },
+              "triangles": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0
+              },
+              "line_segments": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0
+              },
+              "upload_bytes": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0
+              },
+              "vertex_upload_bytes": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0
+              },
+              "index_upload_bytes": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0
+              },
+              "uniform_upload_bytes": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0
+              },
+              "texture_upload_bytes": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0
+              },
+              "frame_index": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "path_frame": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "camera_position": {
+                "type": "array",
+                "minItems": 3,
+                "maxItems": 3,
+                "items": {
+                  "type": "number"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

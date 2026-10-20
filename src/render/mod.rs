@@ -16,6 +16,10 @@ mod lines;
 #[cfg(feature = "wgpu-runtime")]
 mod mesh;
 #[cfg(feature = "wgpu-runtime")]
+mod metrics;
+#[cfg(feature = "wgpu-runtime")]
+pub use metrics::FrameMetrics;
+#[cfg(feature = "wgpu-runtime")]
 mod plan;
 #[cfg(feature = "wgpu-runtime")]
 pub mod runtime;

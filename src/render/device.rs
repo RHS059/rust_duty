@@ -93,6 +93,7 @@ pub(crate) struct Gpu {
     pub device: wgpu::Device,
     pub queue: wgpu::Queue,
     pub info: BackendInfo,
+    pub evidence: serde_json::Value,
     pub surface: Option<Surface>,
     failures: DeviceFailures,
     // Keep instance and window ownership alive through surface teardown.
@@ -206,6 +207,16 @@ impl Gpu {
         width: u32,
         height: u32,
     ) -> Result<Self, String> {
+        Self::new_with_timestamps(selection, force_fallback, window, width, height, false).await
+    }
+    pub async fn new_with_timestamps(
+        selection: BackendSelection,
+        force_fallback: bool,
+        window: Option<Arc<winit::window::Window>>,
+        width: u32,
+        height: u32,
+        timestamps: bool,
+    ) -> Result<Self, String> {
         if width == 0 || height == 0 {
             return Err("renderer extent must be nonzero".into());
         }
@@ -226,10 +237,10 @@ impl Gpu {
                 selection,
                 false,
                 window,
-                width,
-                height,
+                (width, height),
                 backend.backends(),
                 Some(id),
+                timestamps,
             )
             .await;
         }
@@ -238,10 +249,10 @@ impl Gpu {
                 selection,
                 force_fallback,
                 window.clone(),
-                width,
-                height,
+                (width, height),
                 backends,
                 None,
+                timestamps,
             )
         })
         .await
@@ -251,10 +262,10 @@ impl Gpu {
         selection: BackendSelection,
         force_fallback: bool,
         window: Option<Arc<winit::window::Window>>,
-        width: u32,
-        height: u32,
+        (width, height): (u32, u32),
         backends: wgpu::Backends,
         preferred: Option<Fingerprint>,
+        timestamps: bool,
     ) -> Result<Self, String> {
         if !backends.intersects(wgpu::Instance::enabled_backend_features()) {
             return Err(format!("{backends:?} is not available in this build"));
@@ -326,6 +337,15 @@ impl Gpu {
             .request_device(&wgpu::DeviceDescriptor {
                 label: Some("Rust Duty render device"),
                 required_limits: limits,
+                required_features: if timestamps
+                    && adapter
+                        .features()
+                        .contains(super::metrics::timestamp_features())
+                {
+                    super::metrics::timestamp_features()
+                } else {
+                    wgpu::Features::empty()
+                },
                 ..Default::default()
             })
             .await
@@ -401,7 +421,7 @@ impl Gpu {
         );
         eprintln!("renderer graphics_device_evidence={evidence}");
         if surface.is_some() {
-            graphics_device::update_actual(info.clone(), evidence);
+            graphics_device::update_actual(info.clone(), evidence.clone());
         }
         if adapter_info.backend == wgpu::Backend::Dx12 {
             eprintln!("renderer dx12_shader_compiler=Fxc");
@@ -410,6 +430,7 @@ impl Gpu {
             device,
             queue,
             info,
+            evidence,
             surface,
             failures,
             _instance: instance,

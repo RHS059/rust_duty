@@ -23,3 +23,9 @@ Update the same [canonical weapon BLEND](assets/authoring/weapon_animations.blen
 The [NLA export and runtime guide](tools/nla_export/README.md) explains per-track
 FBX export, automatic runtime coverage, playback ranges, and inspecting preserved
 historical Actions.
+
+## Deterministic renderer benchmark
+
+See [Cedar Junction benchmark](docs/performance/CEDAR_BENCHMARK.md) for the fixed
+fly-through, exact submission/upload counters, optional GPU queries and strict
+before/after comparison. CPU-only scene evidence is explicitly separate.

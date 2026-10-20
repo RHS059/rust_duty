@@ -15,6 +15,8 @@ pub struct WgpuRenderer {
     textures: HashMap<ResourceId, Arc<target::GpuTexture>>,
     pub(super) text: text::TextRenderer,
     pub(super) prepared: Option<PreparedFrame>,
+    pub(super) metrics: Option<super::metrics::FrameMetrics>,
+    pub(super) timestamps: Option<super::metrics::TimestampQueries>,
 }
 pub(super) struct PreparedFrame<T = wgpu::SurfaceTexture> {
     pub width: u32,
@@ -53,7 +55,7 @@ impl WgpuRenderer {
         selection: BackendSelection,
         force_fallback: bool,
     ) -> Result<Self, String> {
-        Self::new(width, height, selection, force_fallback, None).await
+        Self::new(width, height, selection, force_fallback, None, false).await
     }
     /// The surface owns an Arc clone, so the window cannot disappear while it is presented.
     pub async fn new_windowed(
@@ -68,8 +70,21 @@ impl WgpuRenderer {
             selection,
             force_fallback,
             Some(window),
+            false,
         )
         .await
+    }
+    /// Headless benchmark mode. Requests timestamps only when the adapter
+    /// supports them; counters remain available when GPU timing is unavailable.
+    pub async fn new_headless_profiled(
+        width: u32,
+        height: u32,
+        selection: BackendSelection,
+        force_fallback: bool,
+    ) -> Result<Self, String> {
+        let mut renderer = Self::new(width, height, selection, force_fallback, None, true).await?;
+        renderer.enable_metrics();
+        Ok(renderer)
     }
     async fn new(
         width: u32,
@@ -77,8 +92,17 @@ impl WgpuRenderer {
         selection: BackendSelection,
         force_fallback: bool,
         window: Option<Arc<winit::window::Window>>,
+        profile: bool,
     ) -> Result<Self, String> {
-        let gpu = device::Gpu::new(selection, force_fallback, window, width, height).await?;
+        let gpu = device::Gpu::new_with_timestamps(
+            selection,
+            force_fallback,
+            window,
+            width,
+            height,
+            profile,
+        )
+        .await?;
         let error_scope = gpu.device.push_error_scope(wgpu::ErrorFilter::Validation);
         let result = (|| {
             let pipelines = mesh::Pipelines::new(&gpu.device);
@@ -102,6 +126,9 @@ impl WgpuRenderer {
         }
         gpu.check_errors()?;
         let (pipelines, main, white, text) = result?;
+        let timestamps = profile
+            .then(|| super::metrics::TimestampQueries::new(&gpu.device))
+            .flatten();
         Ok(Self {
             gpu,
             pipelines,
@@ -110,7 +137,36 @@ impl WgpuRenderer {
             text,
             textures: HashMap::new(),
             prepared: None,
+            metrics: None,
+            timestamps,
         })
+    }
+    /// Enable exact per-submission counters; normal gameplay leaves this off.
+    pub fn enable_metrics(&mut self) {
+        self.metrics = Some(super::metrics::FrameMetrics::default());
+    }
+    pub fn last_frame_metrics(&self) -> Option<&super::metrics::FrameMetrics> {
+        self.metrics.as_ref()
+    }
+    pub fn gpu_timestamps_available(&self) -> bool {
+        self.timestamps.is_some()
+    }
+    pub fn adapter_evidence(&self) -> &serde_json::Value {
+        &self.gpu.evidence
+    }
+    /// Explicit diagnostic fence. Keep this outside CPU recording/submit spans.
+    /// A CPU fence duration must never be interpreted as GPU execution time.
+    pub fn wait_for_frame(&mut self) -> Result<(), String> {
+        if let Some(timestamps) = &mut self.timestamps {
+            let duration =
+                timestamps.finish(&self.gpu.device, self.gpu.queue.get_timestamp_period())?;
+            if let Some(metrics) = &mut self.metrics {
+                metrics.gpu_timestamp_ns = duration;
+            }
+        } else {
+            super::metrics::wait(&self.gpu.device)?;
+        }
+        self.gpu.check_errors()
     }
     /// Acquire before input is consumed or the application future is polled.
     /// A timeout, occlusion, or minimized extent retains no frame and is safe to retry.
@@ -165,6 +221,11 @@ impl WgpuRenderer {
             &self.pipelines.texture_layout,
             descriptor,
         )?);
+        if let (Some(metrics), crate::draw::TextureSource::Rgba8(bytes)) =
+            (&mut self.metrics, &descriptor.source)
+        {
+            metrics.texture_upload_bytes += bytes.len() as u64;
+        }
         self.textures.insert(descriptor.id, texture.clone());
         Ok(texture)
     }

@@ -20,6 +20,9 @@ type EncodedFrame = (
 
 impl WgpuRenderer {
     pub(super) fn submit_frame(&mut self, list: &DrawList) -> Result<FrameOutput, String> {
+        if self.metrics.is_some() {
+            self.metrics = Some(super::metrics::FrameMetrics::default());
+        }
         let (output, presentation, receipt) =
             performance::measure_cpu_stage(CpuFrameStage::RendererSubmit, || {
                 self.submit_before_present(list)
@@ -119,6 +122,18 @@ impl WgpuRenderer {
             .create_command_encoder(&wgpu::CommandEncoderDescriptor {
                 label: Some("ordered presentation frame"),
             });
+        if let Some(timestamps) = &self.timestamps {
+            timestamps.begin(&mut encoder)?;
+        }
+        if let Some(metrics) = &mut self.metrics {
+            for arena in &plan.arenas {
+                if let Some([vertices, indices, matrices]) = arena.buffer_contents() {
+                    metrics.vertex_upload_bytes += vertices.len() as u64;
+                    metrics.index_upload_bytes += indices.len() as u64;
+                    metrics.uniform_upload_bytes += matrices.len() as u64;
+                }
+            }
+        }
         clear(&mut encoder, &self.main, Color::TRANSPARENT);
         let mut readbacks = Vec::new();
         let mut commands = plan.commands.as_slice();
@@ -209,6 +224,12 @@ impl WgpuRenderer {
                 &present.range,
                 &self.main.binding,
             );
+            if let Some(metrics) = &mut self.metrics {
+                metrics.record_draw(present.range.count, false);
+            }
+        }
+        if let Some(timestamps) = &mut self.timestamps {
+            timestamps.end(&mut encoder);
         }
         self.gpu.queue.submit([encoder.finish()]);
         // Software capture must not retain several city-sized upload arenas at
@@ -336,6 +357,9 @@ impl WgpuRenderer {
             &draw.geometry.range,
             &texture.binding,
         );
+        if let Some(metrics) = &mut self.metrics {
+            metrics.record_draw(draw.geometry.range.count, draw.lines);
+        }
         if let Some(receipt) = receipt.as_mut().filter(|r| r.selects(draw.target.as_ref())) {
             // Read the immutable byte arrays used by upload_geometry, with the
             // same slices and dynamic offset just passed to draw_indexed.

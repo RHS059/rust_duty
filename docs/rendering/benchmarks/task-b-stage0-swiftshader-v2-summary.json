@@ -1,0 +1,268 @@
+{
+  "schema": "rust-duty-cedar-baseline-summary/v1",
+  "status": "complete",
+  "measured_source": {
+    "build_label": "0.1.12+build.local.1792458828482372345.3147",
+    "dirty": "false",
+    "revision": "7a493e7707e17f5b2687beb33b087f206e3b24b1",
+    "tree": "acc6434bfcdeaadd93af05c6c50c1c4f33fe9b7a"
+  },
+  "full_report": {
+    "name": "stage0-swiftshader-v2-1280x720-720frames.json",
+    "bytes": 477875,
+    "sha256": "1fbdc45ef7d30895abf9942989413d947f2409b10b7155dc99292451c708ad47",
+    "samples": 720
+  },
+  "host": {
+    "arch": "x86_64",
+    "machine_label": "dot-cloud-swiftshader-2026-10-20",
+    "os": "linux",
+    "profile": "release",
+    "kernel": "Linux 6.18.55 x86_64",
+    "rustc": "1.99.1 (58cf8f9c3 2026-10-13)"
+  },
+  "scene": {
+    "assets": [
+      {
+        "bytes": 1868550,
+        "fnv1a64": "4b59159644d6f8f8",
+        "name": "level.json"
+      },
+      {
+        "bytes": 54926812,
+        "fnv1a64": "16f0809ac7865679",
+        "name": "lighting.bin"
+      }
+    ],
+    "chunks": 885,
+    "name": "Cedar Junction"
+  },
+  "path": {
+    "cycle_frames": 720,
+    "far": 400.0,
+    "fovy_degrees": 70,
+    "id": "cedar-junction-streets-v2",
+    "near": 0.05,
+    "waypoints": [
+      [
+        0.0,
+        2.0,
+        38.0
+      ],
+      [
+        0.0,
+        2.0,
+        -32.0
+      ],
+      [
+        32.0,
+        3.0,
+        -32.0
+      ],
+      [
+        32.0,
+        3.0,
+        32.0
+      ],
+      [
+        0.0,
+        8.0,
+        32.0
+      ],
+      [
+        -32.0,
+        3.0,
+        32.0
+      ],
+      [
+        -32.0,
+        3.0,
+        -32.0
+      ],
+      [
+        0.0,
+        8.0,
+        -32.0
+      ],
+      [
+        0.0,
+        2.0,
+        38.0
+      ]
+    ]
+  },
+  "config": {
+    "frames": 720,
+    "gpu_completion_fence_per_frame": true,
+    "height": 720,
+    "presentation": false,
+    "warmup_frames": 60,
+    "width": 1280
+  },
+  "adapter": {
+    "actual_fingerprint": {
+      "backend": "vulkan",
+      "device_id": 49374,
+      "device_type": "Cpu",
+      "name": "SwiftShader Device (Subzero)",
+      "vendor_id": 6880
+    },
+    "backend": "Vulkan",
+    "device_id": 49374,
+    "device_type": "Cpu",
+    "driver": "SwiftShader driver",
+    "driver_info": "",
+    "force_fallback_requested": false,
+    "name": "SwiftShader Device (Subzero)",
+    "present_mode": null,
+    "requested_fingerprint": null,
+    "selection_mode": "automatic",
+    "vendor_id": 6880
+  },
+  "gpu_timestamps_available": true,
+  "metrics": {
+    "cpu_record_ns": {
+      "available_samples": 720,
+      "total_samples": 720,
+      "mean": 16817037.208333332,
+      "p50": 15821839,
+      "p95": 26914962,
+      "min": 6073661,
+      "max": 58373103
+    },
+    "cpu_submit_ns": {
+      "available_samples": 720,
+      "total_samples": 720,
+      "mean": 190338199.30833334,
+      "p50": 186477235,
+      "p95": 282550914,
+      "min": 68569508,
+      "max": 638558418
+    },
+    "cpu_frame_ns": {
+      "available_samples": 720,
+      "total_samples": 720,
+      "mean": 207155598.64305556,
+      "p50": 202063125,
+      "p95": 310001529,
+      "min": 75343396,
+      "max": 696931761
+    },
+    "cpu_gpu_wait_ns": {
+      "available_samples": 720,
+      "total_samples": 720,
+      "mean": 208383929.05972221,
+      "p50": 182436387,
+      "p95": 374122738,
+      "min": 67236300,
+      "max": 2257563923
+    },
+    "gpu_timestamp_ns": {
+      "available_samples": 720,
+      "total_samples": 720,
+      "mean": 187711770.51944444,
+      "p50": 160896035.0,
+      "p95": 354561901.0,
+      "min": 58065719.0,
+      "max": 2198673808.0
+    },
+    "recorded_draws": {
+      "available_samples": 720,
+      "total_samples": 720,
+      "mean": 338.6902777777778,
+      "p50": 325,
+      "p95": 510,
+      "min": 149,
+      "max": 565
+    },
+    "recorded_triangles": {
+      "available_samples": 720,
+      "total_samples": 720,
+      "mean": 1969971.134722222,
+      "p50": 1903934,
+      "p95": 3048272,
+      "min": 778758,
+      "max": 3329390
+    },
+    "draw_calls": {
+      "available_samples": 720,
+      "total_samples": 720,
+      "mean": 338.6902777777778,
+      "p50": 325,
+      "p95": 510,
+      "min": 149,
+      "max": 565
+    },
+    "triangles": {
+      "available_samples": 720,
+      "total_samples": 720,
+      "mean": 1969971.134722222,
+      "p50": 1903934,
+      "p95": 3048272,
+      "min": 778758,
+      "max": 3329390
+    },
+    "line_segments": {
+      "available_samples": 720,
+      "total_samples": 720,
+      "mean": 0.0,
+      "p50": 0,
+      "p95": 0,
+      "min": 0,
+      "max": 0
+    },
+    "upload_bytes": {
+      "available_samples": 720,
+      "total_samples": 720,
+      "mean": 115807733.63055556,
+      "p50": 113080408,
+      "p95": 179867368,
+      "min": 44010884,
+      "max": 198280788
+    },
+    "vertex_upload_bytes": {
+      "available_samples": 720,
+      "total_samples": 720,
+      "mean": 103901394.1111111,
+      "p50": 101591200,
+      "p95": 161340480,
+      "min": 39299360,
+      "max": 178160000
+    },
+    "index_upload_bytes": {
+      "available_samples": 720,
+      "total_samples": 720,
+      "mean": 11819826.808333334,
+      "p50": 11423604,
+      "p95": 18289632,
+      "min": 4672548,
+      "max": 19976340
+    },
+    "uniform_upload_bytes": {
+      "available_samples": 720,
+      "total_samples": 720,
+      "mean": 86512.71111111112,
+      "p50": 83008,
+      "p95": 130368,
+      "min": 37952,
+      "max": 144448
+    },
+    "texture_upload_bytes": {
+      "available_samples": 720,
+      "total_samples": 720,
+      "mean": 0.0,
+      "p50": 0,
+      "p95": 0,
+      "min": 0,
+      "max": 0
+    }
+  },
+  "interpretation": "CPU spans are monotonic host wall time, never GPU time. cpu_frame_ns covers recording and renderer submit, excluding explicit wait and report/count bookkeeping. cpu_gpu_wait_ns is host fence/readback wait, not GPU duration. GPU timestamps bracket encoded frame commands, excluding host upload/planning, query resolve/readback and presentation. Uploads count actual payload bytes including transform alignment, excluding allocation padding and initialization. cpu-scene has no issued/GPU/upload metrics. No gameplay FPS or display cadence claim.",
+  "limitations": [
+    "Software CPU adapter, not a physical GPU or gameplay/display FPS run.",
+    "Other release compilation occurred on the shared host; CPU and software GPU timings are contention-sensitive and are not an isolated speedup proof.",
+    "Deterministic issued-work and upload payload counts are the primary structural baseline.",
+    "Canonical v2 path replaced an interrupted v1 path; no v1 timing is used.",
+    "All 720 post-warmup frames completed; all 720 GPU timestamps were available."
+  ]
+}
