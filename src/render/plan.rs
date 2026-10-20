@@ -60,6 +60,7 @@ pub(crate) struct FramePlan {
     pub commands: Vec<PreparedCommand>,
     pub present: Option<GeometrySlice>,
     receipt_requested: bool,
+    last_static_matrix: Option<([u32; 16], usize, u32)>,
 }
 impl FramePlan {
     pub fn new(
@@ -76,11 +77,15 @@ impl FramePlan {
             commands: Vec::new(),
             present: None,
             receipt_requested: crate::draw::visibility_receipt::requested(),
+            last_static_matrix: None,
         };
         let mut camera = Camera::screen(list.width, list.height);
         let mut commands = list.commands.as_slice();
         while let Some((command, following)) = commands.split_first() {
             commands = following;
+            if !matches!(command, Command::StaticMesh { .. }) {
+                plan.last_static_matrix = None;
+            }
             match command {
                 Command::Camera(next) => {
                     camera = next.clone();
@@ -203,18 +208,28 @@ impl FramePlan {
             return Ok(());
         }
         let transform = clip_matrix(camera.view_projection, model);
-        let mut arena_index = self.arenas.len() - 1;
-        let matrix_offset = match self.arenas[arena_index].try_append_matrix(transform)? {
-            Some(offset) => offset,
-            None => {
-                let mut next = FrameArena::new(self.matrix_alignment, self.max_buffer_size)?;
-                let offset = next
-                    .try_append_matrix(transform)?
-                    .ok_or("static mesh matrix exceeds adapter buffer limit")?;
-                self.arenas.push(next);
-                arena_index += 1;
-                offset
-            }
+        let key = transform.to_cols_array().map(f32::to_bits);
+        let (arena_index, matrix_offset) = if let Some((_, arena, offset)) = self
+            .last_static_matrix
+            .filter(|(previous, _, _)| *previous == key)
+        {
+            (arena, offset)
+        } else {
+            let mut arena = self.arenas.len() - 1;
+            let offset = match self.arenas[arena].try_append_matrix(transform)? {
+                Some(offset) => offset,
+                None => {
+                    let mut next = FrameArena::new(self.matrix_alignment, self.max_buffer_size)?;
+                    let offset = next
+                        .try_append_matrix(transform)?
+                        .ok_or("static mesh matrix exceeds adapter buffer limit")?;
+                    self.arenas.push(next);
+                    arena += 1;
+                    offset
+                }
+            };
+            self.last_static_matrix = Some((key, arena, offset));
+            (arena, offset)
         };
         self.commands.push(PreparedCommand::Draw(PreparedDraw {
             target: camera.target.clone(),
@@ -321,7 +336,7 @@ mod tests {
             let [vertices, indices, matrices] = plan.arenas[0].buffer_contents().unwrap();
             assert!(vertices.is_empty());
             assert!(indices.is_empty());
-            assert_eq!(matrices.len(), 320);
+            assert_eq!(matrices.len(), 64);
             for command in &plan.commands {
                 let PreparedCommand::Draw(draw) = command else {
                     panic!("draw missing")
@@ -340,6 +355,35 @@ mod tests {
             }
         }
     }
+    #[test]
+    fn static_matrix_reuse_stops_at_transform_and_command_boundaries() {
+        let dynamic = mesh();
+        let mesh = StaticMesh::new(dynamic.vertices.clone(), vec![0, 1, 2], None).unwrap();
+        let mut list = DrawList::new(64, 64);
+        list.draw_static_mesh(&mesh, Mat4::IDENTITY, BlendMode::Opaque);
+        list.draw_static_mesh(&mesh, Mat4::IDENTITY, BlendMode::Alpha);
+        list.draw_static_mesh(&mesh, Mat4::from_translation(Vec3::X), BlendMode::Opaque);
+        list.draw_static_mesh(&mesh, Mat4::IDENTITY, BlendMode::Opaque);
+        list.draw_mesh(&dynamic, Mat4::IDENTITY, BlendMode::Opaque);
+        list.draw_static_mesh(&mesh, Mat4::IDENTITY, BlendMode::Opaque);
+        list.camera(Camera::screen(64, 64));
+        list.draw_static_mesh(&mesh, Mat4::IDENTITY, BlendMode::Opaque);
+        list.capture_png(None, "barrier.png");
+        list.draw_static_mesh(&mesh, Mat4::IDENTITY, BlendMode::Opaque);
+        list.clear(Color::WHITE);
+        list.draw_static_mesh(&mesh, Mat4::IDENTITY, BlendMode::Opaque);
+        let plan = prepare(&list, false);
+        let offsets: Vec<_> = plan
+            .commands
+            .iter()
+            .filter_map(|command| match command {
+                PreparedCommand::Draw(draw) => Some(draw.geometry.range.matrix_offset),
+                _ => None,
+            })
+            .collect();
+        assert_eq!(offsets, [0, 0, 256, 512, 768, 1024, 1280, 1536, 1792]);
+    }
+
     #[test]
     fn static_and_dynamic_draws_preserve_order_and_split_only_matrices() {
         let dynamic = mesh();

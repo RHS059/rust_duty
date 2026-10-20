@@ -1,0 +1,541 @@
+{
+  "schema": "rust-duty-cedar-stage-comparison-evidence/v1",
+  "stage": "Task B stage 3, measured against stage 2 with identical raw geometry",
+  "measurement_status": "complete",
+  "assessment": "This street route shows a very small structural reduction and increased CPU recording/submission. Observed software GPU time decreased, but contention-sensitive timing is not a net performance pass.",
+  "source_trees": {
+    "baseline": "cd903dfe34045dd154a10ca2e3a96e6bc758e1ac",
+    "candidate": "4e5519125150ad48463d1f6b462d5e4516bfd558"
+  },
+  "raw_reports": {
+    "baseline": {
+      "name": "stage2-raw-swiftshader-v2-1280x720-720frames.json",
+      "bytes": 463362,
+      "sha256": "015c3903d19ffdd97d60bf792ef97c9aa7d43ebfc94e34861f24a022d3fb7ad5"
+    },
+    "candidate": {
+      "name": "stage3-raw-swiftshader-v2-1280x720-720frames.json",
+      "bytes": 463402,
+      "sha256": "3fbcda46464e45a736bdc7b6d16a513aaa2547f5b626efc45cb8299201994cd4"
+    },
+    "comparison": {
+      "name": "stage2-to-stage3-comparison.json",
+      "bytes": 8753,
+      "sha256": "5747a5a3370d15350bd95cba76f0e10c1e7bf0035ee2c33c5d453a7e0bf629cc"
+    }
+  },
+  "candidate_binary": {
+    "name": "cedar_benchmark_stage3",
+    "bytes": 6569304,
+    "sha256": "9e0e4853bc0bed2579e2bac0aaf95043997bdbc5d2450e1c439b16a93d14dc66"
+  },
+  "host": {
+    "arch": "x86_64",
+    "machine_label": "dot-cloud-swiftshader-2026-10-20",
+    "os": "linux",
+    "profile": "release"
+  },
+  "adapter": {
+    "actual_fingerprint": {
+      "backend": "vulkan",
+      "device_id": 49374,
+      "device_type": "Cpu",
+      "name": "SwiftShader Device (Subzero)",
+      "vendor_id": 6880
+    },
+    "backend": "Vulkan",
+    "device_id": 49374,
+    "device_type": "Cpu",
+    "driver": "SwiftShader driver",
+    "driver_info": "",
+    "force_fallback_requested": false,
+    "name": "SwiftShader Device (Subzero)",
+    "present_mode": null,
+    "requested_fingerprint": null,
+    "selection_mode": "automatic",
+    "vendor_id": 6880
+  },
+  "config": {
+    "frames": 720,
+    "gpu_completion_fence_per_frame": true,
+    "height": 720,
+    "presentation": false,
+    "warmup_frames": 60,
+    "width": 1280
+  },
+  "path": {
+    "cycle_frames": 720,
+    "far": 400.0,
+    "fovy_degrees": 70,
+    "id": "cedar-junction-streets-v2",
+    "near": 0.05,
+    "waypoints": [
+      [
+        0.0,
+        2.0,
+        38.0
+      ],
+      [
+        0.0,
+        2.0,
+        -32.0
+      ],
+      [
+        32.0,
+        3.0,
+        -32.0
+      ],
+      [
+        32.0,
+        3.0,
+        32.0
+      ],
+      [
+        0.0,
+        8.0,
+        32.0
+      ],
+      [
+        -32.0,
+        3.0,
+        32.0
+      ],
+      [
+        -32.0,
+        3.0,
+        -32.0
+      ],
+      [
+        0.0,
+        8.0,
+        -32.0
+      ],
+      [
+        0.0,
+        2.0,
+        38.0
+      ]
+    ]
+  },
+  "scene_inputs": {
+    "baseline": {
+      "assets": [
+        {
+          "bytes": 2057352,
+          "fnv1a64": "1900a649da1f9ecf",
+          "name": "level.json"
+        },
+        {
+          "bytes": 38459157,
+          "fnv1a64": "eec12305256315a9",
+          "name": "meshes.bin"
+        }
+      ],
+      "chunks": 12464,
+      "name": "Cedar Junction"
+    },
+    "candidate": {
+      "assets": [
+        {
+          "bytes": 2057352,
+          "fnv1a64": "1900a649da1f9ecf",
+          "name": "level.json"
+        },
+        {
+          "bytes": 38459157,
+          "fnv1a64": "eec12305256315a9",
+          "name": "meshes.bin"
+        }
+      ],
+      "chunks": 12464,
+      "name": "Cedar Junction"
+    },
+    "sha256_files": [
+      {
+        "name": "level.json",
+        "bytes": 2057352,
+        "sha256": "adf33ccdcf9b3d08281a02498231726844576eb0cf8031ba92e1b65ff561c618"
+      },
+      {
+        "name": "meshes.bin",
+        "bytes": 38459157,
+        "sha256": "5ac00d08df6d87283fbf486cf3d87e829f3585897fccf094a27e223f77e99653"
+      },
+      {
+        "name": "layout.json",
+        "bytes": 1661654,
+        "sha256": "cdedbea3346709654dce58df4504695df682eaabe474a858b6c793d6083fb2b9"
+      }
+    ],
+    "lighting_bin_present": false
+  },
+  "paired_counter_observations": {
+    "frames_with_fewer_issued_draws": 83,
+    "frames_with_more_issued_draws": 0,
+    "max_issued_draw_reduction": 88,
+    "max_submitted_triangle_reduction": 11928,
+    "candidate_frames_with_geometry_uploads": 3
+  },
+  "comparison": {
+    "schema": "rust-duty-cedar-comparison/v1",
+    "before_source": {
+      "build_label": "0.1.12+build.local.1792459841256050912.72",
+      "dirty": "false",
+      "revision": "0d2e71ba789d622912b87bf7eef3b4dce0ee99c1"
+    },
+    "after_source": {
+      "build_label": "0.1.12+build.local.1792460442346251627.69",
+      "dirty": "false",
+      "revision": "ba686b6cddb49e9915430b8a0e02263083d264da"
+    },
+    "mode": "headless-gpu",
+    "metrics": {
+      "cpu_record_ns": {
+        "before": {
+          "available_samples": 720,
+          "total_samples": 720,
+          "mean": 750007.0583333333,
+          "p50": 691475,
+          "p95": 1385654,
+          "min": 146147,
+          "max": 3137252
+        },
+        "after": {
+          "available_samples": 720,
+          "total_samples": 720,
+          "mean": 867536.6263888889,
+          "p50": 802412,
+          "p95": 1564213,
+          "min": 161200,
+          "max": 3915515
+        },
+        "mean_delta": 117529.56805555557,
+        "mean_delta_percent": 15.67046159761882
+      },
+      "cpu_submit_ns": {
+        "before": {
+          "available_samples": 720,
+          "total_samples": 720,
+          "mean": 7893887.288888888,
+          "p50": 6461231,
+          "p95": 12230183,
+          "min": 1164680,
+          "max": 712460400
+        },
+        "after": {
+          "available_samples": 720,
+          "total_samples": 720,
+          "mean": 9780866.258333333,
+          "p50": 7322546,
+          "p95": 14323335,
+          "min": 1422312,
+          "max": 1193608217
+        },
+        "mean_delta": 1886978.9694444444,
+        "mean_delta_percent": 23.904305957097698
+      },
+      "cpu_frame_ns": {
+        "before": {
+          "available_samples": 720,
+          "total_samples": 720,
+          "mean": 8644019.615277778,
+          "p50": 7198469,
+          "p95": 13589862,
+          "min": 1310927,
+          "max": 714029456
+        },
+        "after": {
+          "available_samples": 720,
+          "total_samples": 720,
+          "mean": 10648572.129166666,
+          "p50": 8120762,
+          "p95": 15639179,
+          "min": 1583632,
+          "max": 1197086182
+        },
+        "mean_delta": 2004552.513888888,
+        "mean_delta_percent": 23.19005049856624
+      },
+      "cpu_gpu_wait_ns": {
+        "before": {
+          "available_samples": 720,
+          "total_samples": 720,
+          "mean": 124151288.76111111,
+          "p50": 120215908,
+          "p95": 205618869,
+          "min": 38040468,
+          "max": 339168194
+        },
+        "after": {
+          "available_samples": 720,
+          "total_samples": 720,
+          "mean": 113663111.57083334,
+          "p50": 105087384,
+          "p95": 193519319,
+          "min": 35533878,
+          "max": 394533507
+        },
+        "mean_delta": -10488177.19027777,
+        "mean_delta_percent": -8.447900376176413
+      },
+      "gpu_timestamp_ns": {
+        "before": {
+          "available_samples": 720,
+          "total_samples": 720,
+          "mean": 121864907.5875,
+          "p50": 117577306.0,
+          "p95": 203410473.0,
+          "min": 37594545.0,
+          "max": 335244917.0
+        },
+        "after": {
+          "available_samples": 720,
+          "total_samples": 720,
+          "mean": 110199810.49027778,
+          "p50": 101527006.0,
+          "p95": 188520344.0,
+          "min": 34860208.0,
+          "max": 388209795.0
+        },
+        "mean_delta": -11665097.097222224,
+        "mean_delta_percent": -9.572154386484549
+      },
+      "recorded_draws": {
+        "before": {
+          "available_samples": 720,
+          "total_samples": 720,
+          "mean": 3562.4694444444444,
+          "p50": 3376,
+          "p95": 6387,
+          "min": 348,
+          "max": 7633
+        },
+        "after": {
+          "available_samples": 720,
+          "total_samples": 720,
+          "mean": 3560.226388888889,
+          "p50": 3376,
+          "p95": 6387,
+          "min": 348,
+          "max": 7633
+        },
+        "mean_delta": -2.2430555555556566,
+        "mean_delta_percent": -0.0629635030008083
+      },
+      "recorded_triangles": {
+        "before": {
+          "available_samples": 720,
+          "total_samples": 720,
+          "mean": 797538.4833333333,
+          "p50": 767538,
+          "p95": 1349944,
+          "min": 163060,
+          "max": 1580450
+        },
+        "after": {
+          "available_samples": 720,
+          "total_samples": 720,
+          "mean": 797227.7944444445,
+          "p50": 767538,
+          "p95": 1349944,
+          "min": 163060,
+          "max": 1580450
+        },
+        "mean_delta": -310.6888888888061,
+        "mean_delta_percent": -0.03895597458699092
+      },
+      "draw_calls": {
+        "before": {
+          "available_samples": 720,
+          "total_samples": 720,
+          "mean": 3562.4694444444444,
+          "p50": 3376,
+          "p95": 6387,
+          "min": 348,
+          "max": 7633
+        },
+        "after": {
+          "available_samples": 720,
+          "total_samples": 720,
+          "mean": 3560.226388888889,
+          "p50": 3376,
+          "p95": 6387,
+          "min": 348,
+          "max": 7633
+        },
+        "mean_delta": -2.2430555555556566,
+        "mean_delta_percent": -0.0629635030008083
+      },
+      "triangles": {
+        "before": {
+          "available_samples": 720,
+          "total_samples": 720,
+          "mean": 797538.4833333333,
+          "p50": 767538,
+          "p95": 1349944,
+          "min": 163060,
+          "max": 1580450
+        },
+        "after": {
+          "available_samples": 720,
+          "total_samples": 720,
+          "mean": 797227.7944444445,
+          "p50": 767538,
+          "p95": 1349944,
+          "min": 163060,
+          "max": 1580450
+        },
+        "mean_delta": -310.6888888888061,
+        "mean_delta_percent": -0.03895597458699092
+      },
+      "line_segments": {
+        "before": {
+          "available_samples": 720,
+          "total_samples": 720,
+          "mean": 0.0,
+          "p50": 0,
+          "p95": 0,
+          "min": 0,
+          "max": 0
+        },
+        "after": {
+          "available_samples": 720,
+          "total_samples": 720,
+          "mean": 0.0,
+          "p50": 0,
+          "p95": 0,
+          "min": 0,
+          "max": 0
+        },
+        "mean_delta": 0.0,
+        "mean_delta_percent": null
+      },
+      "upload_bytes": {
+        "before": {
+          "available_samples": 720,
+          "total_samples": 720,
+          "mean": 1086585.7333333334,
+          "p50": 867648,
+          "p95": 1638976,
+          "min": 88896,
+          "max": 94282816
+        },
+        "after": {
+          "available_samples": 720,
+          "total_samples": 720,
+          "mean": 1086011.5111111111,
+          "p50": 867648,
+          "p95": 1638976,
+          "min": 88896,
+          "max": 94256976
+        },
+        "mean_delta": -574.2222222222481,
+        "mean_delta_percent": -0.052846471714726
+      },
+      "vertex_upload_bytes": {
+        "before": {
+          "available_samples": 720,
+          "total_samples": 720,
+          "mean": 152791.55555555556,
+          "p50": 0,
+          "p95": 0,
+          "min": 0,
+          "max": 80963920
+        },
+        "after": {
+          "available_samples": 720,
+          "total_samples": 720,
+          "mean": 152791.55555555556,
+          "p50": 0,
+          "p95": 0,
+          "min": 0,
+          "max": 80945680
+        },
+        "mean_delta": 0.0,
+        "mean_delta_percent": 0.0
+      },
+      "index_upload_bytes": {
+        "before": {
+          "available_samples": 720,
+          "total_samples": 720,
+          "mean": 21994.0,
+          "p50": 0,
+          "p95": 0,
+          "min": 0,
+          "max": 11575728
+        },
+        "after": {
+          "available_samples": 720,
+          "total_samples": 720,
+          "mean": 21994.0,
+          "p50": 0,
+          "p95": 0,
+          "min": 0,
+          "max": 11572992
+        },
+        "mean_delta": 0.0,
+        "mean_delta_percent": 0.0
+      },
+      "uniform_upload_bytes": {
+        "before": {
+          "available_samples": 720,
+          "total_samples": 720,
+          "mean": 911800.1777777778,
+          "p50": 864064,
+          "p95": 1634880,
+          "min": 88896,
+          "max": 1953856
+        },
+        "after": {
+          "available_samples": 720,
+          "total_samples": 720,
+          "mean": 911225.9555555555,
+          "p50": 864064,
+          "p95": 1634880,
+          "min": 88896,
+          "max": 1953856
+        },
+        "mean_delta": -574.2222222222481,
+        "mean_delta_percent": -0.0629767613800791
+      },
+      "texture_upload_bytes": {
+        "before": {
+          "available_samples": 720,
+          "total_samples": 720,
+          "mean": 0.0,
+          "p50": 0,
+          "p95": 0,
+          "min": 0,
+          "max": 0
+        },
+        "after": {
+          "available_samples": 720,
+          "total_samples": 720,
+          "mean": 0.0,
+          "p50": 0,
+          "p95": 0,
+          "min": 0,
+          "max": 0
+        },
+        "mean_delta": 0.0,
+        "mean_delta_percent": null
+      }
+    },
+    "scene_reencoding_evidence": null,
+    "interpretation": "Negative deltas mean less time/work/upload traffic. Null is unavailable, never zero. p50/p95 use nearest rank. Per-frame fence/readback affects throughput; no gameplay FPS, display cadence or performance pass is inferred."
+  },
+  "validation": {
+    "strict_same_input_cli_comparison": "passed; no geometry-parity exception",
+    "report_json_schema": "passed",
+    "ordered_complete_samples": "passed, 720 measured frames after 60 excluded warmup frames",
+    "gpu_timestamp_samples": 720,
+    "comparator_tests": "11 passed on the measured source checkout"
+  },
+  "limitations": [
+    "SwiftShader CPU software Vulkan; no physical GPU measurement.",
+    "Timings on a shared CPU host are contention-sensitive and do not establish display cadence or gameplay FPS.",
+    "One canonical street-path run per source, with explicit per-frame completion fence; this path does not establish the interior visibility benefit for all viewpoints.",
+    "Correctness of portal visibility is covered separately by source tests; these counts are not a pixel-equivalence or artistic review.",
+    "First-use geometry uploads after warmup remain included in the actual upload metric."
+  ]
+}
