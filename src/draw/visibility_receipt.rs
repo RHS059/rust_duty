@@ -480,6 +480,46 @@ pub(crate) fn packed_triangle_hashes(
         .collect()
 }
 
+/// Static meshes retain native u32 indices; receipt hashing preserves their
+/// ordered triangles directly rather than truncating or silently dropping them.
+#[cfg(any(feature = "wgpu-runtime", test))]
+pub(crate) fn packed_triangle_hashes_u32(
+    vertices: &[u8],
+    indices: &[u8],
+    stride: usize,
+) -> Result<Vec<String>, String> {
+    if stride < 24 || !vertices.len().is_multiple_of(stride) || !indices.len().is_multiple_of(12) {
+        return Err("visibility packed u32 triangle extent is invalid".into());
+    }
+    indices
+        .as_chunks::<12>()
+        .0
+        .iter()
+        .map(|triangle| {
+            let mut bytes = [0_u8; 72];
+            for (out, index) in bytes
+                .as_chunks_mut::<24>()
+                .0
+                .iter_mut()
+                .zip(triangle.as_chunks::<4>().0)
+            {
+                let offset = (u32::from_le_bytes(*index) as usize)
+                    .checked_mul(stride)
+                    .ok_or("visibility packed u32 index overflow")?;
+                let end = offset
+                    .checked_add(24)
+                    .ok_or("visibility packed u32 index overflow")?;
+                out.copy_from_slice(
+                    vertices
+                        .get(offset..end)
+                        .ok_or("visibility packed u32 index out of range")?,
+                );
+            }
+            Ok(rust_duty_launcher::bytes_hash(&bytes))
+        })
+        .collect()
+}
+
 #[cfg(feature = "legacy-macroquad")]
 pub(crate) fn check_gl_error() -> Result<(), String> {
     // SAFETY: called only by LegacyRenderer on its verified current GL thread.
@@ -1135,6 +1175,15 @@ mod tests {
         let indices = [0, 0, 1, 0, 2, 0];
         let expected = packed_triangle_hashes(&packed, &indices, 40).unwrap();
         assert_eq!(expected, vec![triangle_sha256(&original)]);
+        let indices_u32: Vec<_> = [0_u32, 1, 2]
+            .into_iter()
+            .flat_map(u32::to_le_bytes)
+            .collect();
+        assert_eq!(
+            packed_triangle_hashes_u32(&packed, &indices_u32, 40).unwrap(),
+            expected
+        );
+        assert!(packed_triangle_hashes_u32(&packed, &indices_u32[..8], 40).is_err());
         packed[40..44].copy_from_slice(&0.5_f32.to_le_bytes());
         assert_ne!(
             packed_triangle_hashes(&packed, &indices, 40).unwrap(),

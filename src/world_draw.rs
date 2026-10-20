@@ -300,7 +300,7 @@ pub(crate) fn city_world(
             .total_cmp(&eye.distance_squared(eye.clamp(b.bounds.min, b.bounds.max)))
     });
     for chunk in visible {
-        draw_mesh_transformed(&chunk.mesh, Mat4::IDENTITY, BlendMode::Opaque);
+        draw_static_mesh_transformed(&chunk.mesh, Mat4::IDENTITY, BlendMode::Opaque);
     }
     let lighting = SceneLighting::range();
     let bounds = supply.bounds();

@@ -849,9 +849,20 @@ fn pass_clear(
     pass.set_bind_group(1, &white.binding, &[]);
     for slice in slices {
         pass.set_bind_group(0, &geometry.transform, &[slice.matrix_offset]);
-        pass.set_vertex_buffer(0, geometry.vertices.slice(slice.vertices.clone()));
+        pass.set_vertex_buffer(
+            0,
+            geometry
+                .vertices
+                .as_ref()
+                .expect("probe vertex buffer")
+                .slice(slice.vertices.clone()),
+        );
         pass.set_index_buffer(
-            geometry.indices.slice(slice.indices.clone()),
+            geometry
+                .indices
+                .as_ref()
+                .expect("probe index buffer")
+                .slice(slice.indices.clone()),
             wgpu::IndexFormat::Uint16,
         );
         pass.draw_indexed(0..slice.count, 0, 0..1);
@@ -1017,9 +1028,20 @@ fn guard_batch(
         for (i, (slice, mask)) in slices.iter().zip(&masks).enumerate() {
             pass.set_bind_group(0, &geometry.transform, &[slice.matrix_offset]);
             pass.set_bind_group(1, &mask.binding, &[]);
-            pass.set_vertex_buffer(0, geometry.vertices.slice(slice.vertices.clone()));
+            pass.set_vertex_buffer(
+                0,
+                geometry
+                    .vertices
+                    .as_ref()
+                    .expect("probe vertex buffer")
+                    .slice(slice.vertices.clone()),
+            );
             pass.set_index_buffer(
-                geometry.indices.slice(slice.indices.clone()),
+                geometry
+                    .indices
+                    .as_ref()
+                    .expect("probe index buffer")
+                    .slice(slice.indices.clone()),
                 wgpu::IndexFormat::Uint16,
             );
             pass.begin_occlusion_query(i as u32);

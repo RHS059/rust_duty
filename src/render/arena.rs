@@ -144,6 +144,34 @@ impl FrameArena {
         }))
     }
 
+    /// Static geometry needs only a per-frame transform; it never enters the
+    /// vertex/index arena. Failure to fit leaves this chunk unchanged.
+    pub fn try_append_matrix(&mut self, transform: Mat4) -> Result<Option<u32>, String> {
+        if !transform.is_finite() {
+            return Err("invalid static geometry transform".into());
+        }
+        let Some((offset, end)) = matrix_slot(self.matrices.len() as u64, self.matrix_alignment)
+        else {
+            return Ok(None);
+        };
+        if align_up(end, 4)? > self.max_buffer_size || usize::try_from(end).is_err() {
+            return Ok(None);
+        }
+        let draws = self
+            .draws
+            .checked_add(1)
+            .ok_or("frame draw count overflow")?;
+        self.matrices
+            .try_reserve(end as usize - self.matrices.len())
+            .map_err(|_| "cannot reserve frame matrices")?;
+        self.matrices.resize(offset as usize, 0);
+        for value in transform.to_cols_array() {
+            self.matrices.extend(value.to_le_bytes());
+        }
+        self.draws = draws;
+        Ok(Some(offset))
+    }
+
     #[cfg(test)]
     fn append(
         &mut self,
@@ -155,8 +183,9 @@ impl FrameArena {
             .ok_or_else(|| "draw requires a new arena".into())
     }
 
-    /// The renderer creates exactly these three buffers once, or none for a
-    /// clear/capture-only headless frame. There is no per-draw upload operation.
+    /// Dynamic vertex/index payloads and aligned matrix bytes for this chunk.
+    /// Static-only chunks leave the first two payloads empty and upload only
+    /// matrices; clear/capture-only headless frames have no upload buffers.
     pub fn buffer_contents(&self) -> Option<[&[u8]; 3]> {
         (self.draws != 0).then_some([&self.vertices, &self.indices, &self.matrices])
     }
@@ -203,6 +232,24 @@ mod tests {
             .into_iter()
             .flat_map(f32::to_le_bytes)
             .collect()
+    }
+    #[test]
+    fn static_transforms_never_copy_geometry_and_failed_append_is_atomic() {
+        let mut arena = FrameArena::new(256, 320).unwrap();
+        let first = Mat4::from_translation(Vec3::X);
+        assert_eq!(arena.try_append_matrix(first).unwrap(), Some(0));
+        assert_eq!(arena.try_append_matrix(Mat4::IDENTITY).unwrap(), Some(256));
+        let before = arena.buffer_contents().unwrap().map(<[u8]>::to_vec);
+        assert_eq!(arena.try_append_matrix(Mat4::IDENTITY).unwrap(), None);
+        assert_eq!(
+            arena.buffer_contents().unwrap(),
+            before.each_ref().map(Vec::as_slice)
+        );
+        let [vertices, indices, matrices] = arena.buffer_contents().unwrap();
+        assert!(vertices.is_empty());
+        assert!(indices.is_empty());
+        assert_eq!(matrices.len(), 320);
+        assert_eq!(&matrices[..64], matrix_bytes(first));
     }
     #[test]
     fn distinct_draws_preserve_bytes_local_indices_and_aligned_matrices() {

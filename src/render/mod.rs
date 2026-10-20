@@ -26,6 +26,8 @@ pub mod runtime;
 #[cfg(feature = "wgpu-runtime")]
 mod sprite2d;
 #[cfg(feature = "wgpu-runtime")]
+mod static_mesh;
+#[cfg(feature = "wgpu-runtime")]
 mod target;
 
 #[cfg(feature = "wgpu-runtime")]

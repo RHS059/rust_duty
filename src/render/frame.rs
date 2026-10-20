@@ -60,6 +60,7 @@ impl WgpuRenderer {
         )?;
         self.gpu.check_errors()?;
         validate(list, &self.gpu.device.limits())?;
+        self.static_meshes.retire_unused();
         // Retire only glyphs absent from the complete frame, before encoding
         // any commands. Dropping cached GPU handles does not rewrite textures
         // retained by older in-flight submissions or recorded CPU meshes.
@@ -348,15 +349,49 @@ impl WgpuRenderer {
                 fragment,
             )
         };
-        issue(
-            pass,
-            &pipeline,
-            geometry[draw.geometry.arena_index]
-                .as_ref()
-                .expect("prepared draw has frame buffers"),
-            &draw.geometry.range,
-            &texture.binding,
-        );
+        let selected_receipt = receipt
+            .as_ref()
+            .is_some_and(|r| r.selects(draw.target.as_ref()));
+        let static_geometry = draw
+            .geometry
+            .static_mesh
+            .as_ref()
+            .map(|mesh| {
+                self.static_meshes
+                    .resolve(&self.gpu.device, mesh, selected_receipt)
+            })
+            .transpose()?;
+        let frame_geometry = geometry[draw.geometry.arena_index]
+            .as_ref()
+            .expect("prepared draw has frame buffers");
+        if let Some((static_geometry, uploaded)) = &static_geometry {
+            if *uploaded {
+                if let Some(metrics) = &mut self.metrics {
+                    // Static vertex/index payloads are naturally four-byte
+                    // aligned (40 and 4 bytes), so buffer sizes are exact.
+                    metrics.vertex_upload_bytes += static_geometry.vertices.size();
+                    metrics.index_upload_bytes += static_geometry.indices.size();
+                }
+            }
+            let slice = &draw.geometry.range;
+            pass.set_pipeline(&pipeline);
+            pass.set_bind_group(0, &frame_geometry.transform, &[slice.matrix_offset]);
+            pass.set_bind_group(1, &texture.binding, &[]);
+            pass.set_vertex_buffer(0, static_geometry.vertices.slice(slice.vertices.clone()));
+            pass.set_index_buffer(
+                static_geometry.indices.slice(slice.indices.clone()),
+                wgpu::IndexFormat::Uint32,
+            );
+            pass.draw_indexed(0..slice.count, 0, 0..1);
+        } else {
+            issue(
+                pass,
+                &pipeline,
+                frame_geometry,
+                &draw.geometry.range,
+                &texture.binding,
+            );
+        }
         if let Some(metrics) = &mut self.metrics {
             metrics.record_draw(draw.geometry.range.count, draw.lines);
         }
@@ -367,11 +402,26 @@ impl WgpuRenderer {
             let [vertices, indices, matrices] = arenas[draw.geometry.arena_index]
                 .buffer_contents()
                 .ok_or("visibility draw has no uploaded buffers")?;
+            let (vertices, indices, index_size) = match &static_geometry {
+                Some((geometry, _)) => {
+                    let (vertices, indices) = geometry
+                        .receipt_bytes
+                        .as_ref()
+                        .ok_or("visibility static draw lacks actual uploaded bytes")?;
+                    (vertices.as_slice(), indices.as_slice(), 4)
+                }
+                None => (vertices, indices, 2),
+            };
             let indices = &indices[slice.indices.start as usize..slice.indices.end as usize];
-            if indices.len() != slice.count as usize * 2 {
+            if indices.len() != slice.count as usize * index_size {
                 return Err("visibility issued index count differs from upload".into());
             }
             let vertices = &vertices[slice.vertices.start as usize..slice.vertices.end as usize];
+            let triangle_hashes = if index_size == 4 {
+                visibility_receipt::packed_triangle_hashes_u32(vertices, indices, 40)?
+            } else {
+                visibility_receipt::packed_triangle_hashes(vertices, indices, 40)?
+            };
             let matrix_offset = slice.matrix_offset as usize;
             let upload =
                 visibility_receipt::packed_matrix(&matrices[matrix_offset..matrix_offset + 64])?;
@@ -388,7 +438,7 @@ impl WgpuRenderer {
                 draw.blend,
                 draw.depth_test,
                 draw.lines,
-                visibility_receipt::packed_triangle_hashes(vertices, indices, 40)?,
+                triangle_hashes,
                 None,
             )?;
         }
@@ -405,9 +455,20 @@ fn issue(
     pass.set_pipeline(pipeline);
     pass.set_bind_group(0, &geometry.transform, &[slice.matrix_offset]);
     pass.set_bind_group(1, texture, &[]);
-    pass.set_vertex_buffer(0, geometry.vertices.slice(slice.vertices.clone()));
+    pass.set_vertex_buffer(
+        0,
+        geometry
+            .vertices
+            .as_ref()
+            .expect("dynamic vertex buffer")
+            .slice(slice.vertices.clone()),
+    );
     pass.set_index_buffer(
-        geometry.indices.slice(slice.indices.clone()),
+        geometry
+            .indices
+            .as_ref()
+            .expect("dynamic index buffer")
+            .slice(slice.indices.clone()),
         wgpu::IndexFormat::Uint16,
     );
     pass.draw_indexed(0..slice.count, 0, 0..1);
@@ -491,6 +552,21 @@ fn validate(list: &DrawList, limits: &wgpu::Limits) -> Result<(), String> {
                     target::validate(texture, limits)?;
                 }
             }
+            Command::StaticMesh { mesh, model, .. } => {
+                // Constructor validated immutable vertices and u32 indices once.
+                if !model.is_finite() {
+                    return Err("non-finite static model transform".into());
+                }
+                if mesh.vertices().len() as u64 * super::mesh::GpuVertex::STRIDE
+                    > limits.max_buffer_size
+                    || mesh.indices().len() as u64 * 4 > limits.max_buffer_size
+                {
+                    return Err("static mesh exceeds adapter buffer limit".into());
+                }
+                if let Some(texture) = mesh.texture() {
+                    target::validate(texture, limits)?;
+                }
+            }
             Command::Lines { lines, model } => {
                 if !model.is_finite() {
                     return Err("non-finite line transform".into());
@@ -568,6 +644,7 @@ mod tests {
             receipt_matrices: None,
             geometry: super::super::plan::GeometrySlice {
                 arena_index: 0,
+                static_mesh: None,
                 range: DrawSlice {
                     vertices: u64::from(index) * 120..u64::from(index + 1) * 120,
                     indices: u64::from(index) * 6..u64::from(index + 1) * 6,
