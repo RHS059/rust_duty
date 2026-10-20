@@ -4,19 +4,47 @@ use super::{
     capture::{CaptureEncoding, Readback},
     mesh::{FragmentKind, FrameGeometry},
     plan::{draw_run_len, FramePlan, PreparedCommand, PreparedDraw},
+    static_mesh::StaticGeometry,
     target::{self, GpuTexture},
     WgpuRenderer,
 };
 use crate::draw::visibility_receipt::{self, FrameReceipt};
 use crate::draw::{BlendMode, Color, Command, DrawList, FrameOutput, RenderTarget, TextureSource};
 use crate::{frame_performance::CpuFrameStage, frame_performance_session as performance};
-use std::sync::Arc;
+use std::{ops::Range, sync::Arc};
 
 type EncodedFrame = (
     Vec<Readback>,
     Option<wgpu::SurfaceTexture>,
     Option<FrameReceipt>,
 );
+
+/// Only consecutively submitted, adjacent atlas ranges may coalesce. Keeping
+/// the first geometry alive also pins its page while this range is encoded.
+struct AtlasDraw {
+    geometry: Arc<StaticGeometry>,
+    indices: Range<u32>,
+    arena_index: usize,
+    matrix_offset: u32,
+}
+impl AtlasDraw {
+    fn extend(&mut self, geometry: &Arc<StaticGeometry>, arena: usize, matrix: u32) -> bool {
+        if !Arc::ptr_eq(&self.geometry.page, &geometry.page)
+            || self.arena_index != arena
+            || self.matrix_offset != matrix
+        {
+            return false;
+        }
+        join_adjacent(&mut self.indices, &geometry.index_range)
+    }
+}
+fn join_adjacent(current: &mut Range<u32>, next: &Range<u32>) -> bool {
+    if current.end != next.start || next.is_empty() {
+        return false;
+    }
+    current.end = next.end;
+    true
+}
 
 impl WgpuRenderer {
     pub(super) fn submit_frame(&mut self, list: &DrawList) -> Result<FrameOutput, String> {
@@ -295,14 +323,106 @@ impl WgpuRenderer {
             },
             ..Default::default()
         });
-        self.draw_prepared_mesh(&mut pass, geometry, first, arenas, receipt)?;
-        for command in following {
+        let mut pending: Option<AtlasDraw> = None;
+        for draw in std::iter::once(first).chain(following.iter().map(|command| {
             let PreparedCommand::Draw(draw) = command else {
                 unreachable!("draw run ends before non-draw commands")
             };
-            self.draw_prepared_mesh(&mut pass, geometry, draw, arenas, receipt)?;
+            draw
+        })) {
+            // Initially restrict coalescing to opaque untextured triangles.
+            // Dynamic/alpha/textured draws and receipt targets retain the exact
+            // individual draw path and are hard ordering/state boundaries.
+            let batchable = draw.blend == BlendMode::Opaque
+                && draw.texture.is_none()
+                && !draw.lines
+                && !receipt
+                    .as_ref()
+                    .is_some_and(|r| r.selects(draw.target.as_ref()));
+            if let Some(mesh) = draw.geometry.static_mesh.as_ref().filter(|_| batchable) {
+                if draw.depth_test && output.depth.is_none() {
+                    return Err("depth-enabled camera requires a target with depth storage".into());
+                }
+                let cached = self.resolve_static(mesh, false)?;
+                let arena = draw.geometry.arena_index;
+                let matrix = draw.geometry.range.matrix_offset;
+                if pending
+                    .as_mut()
+                    .is_some_and(|previous| previous.extend(&cached, arena, matrix))
+                {
+                    continue;
+                }
+                if let Some(previous) = pending.take() {
+                    self.draw_atlas_range(&mut pass, geometry, previous, first.depth_test);
+                }
+                pending = Some(AtlasDraw {
+                    indices: cached.index_range.clone(),
+                    geometry: cached,
+                    arena_index: arena,
+                    matrix_offset: matrix,
+                });
+            } else {
+                if let Some(previous) = pending.take() {
+                    self.draw_atlas_range(&mut pass, geometry, previous, first.depth_test);
+                }
+                self.draw_prepared_mesh(&mut pass, geometry, draw, arenas, receipt)?;
+            }
+        }
+        if let Some(previous) = pending {
+            self.draw_atlas_range(&mut pass, geometry, previous, first.depth_test);
         }
         Ok(())
+    }
+    fn resolve_static(
+        &mut self,
+        mesh: &crate::draw::StaticMesh,
+        receipt: bool,
+    ) -> Result<Arc<StaticGeometry>, String> {
+        let (geometry, uploaded) =
+            self.static_meshes
+                .resolve(&self.gpu.device, &self.gpu.queue, mesh, receipt)?;
+        if uploaded {
+            if let Some(metrics) = &mut self.metrics {
+                metrics.vertex_upload_bytes += geometry.vertex_bytes;
+                metrics.index_upload_bytes += geometry.index_bytes;
+            }
+        }
+        Ok(geometry)
+    }
+    fn draw_atlas_range(
+        &mut self,
+        pass: &mut wgpu::RenderPass<'_>,
+        frames: &[Option<FrameGeometry>],
+        draw: AtlasDraw,
+        depth: bool,
+    ) {
+        let pipeline = self.pipelines.pipeline(
+            &self.gpu.device,
+            target::COLOR_FORMAT,
+            depth,
+            false,
+            BlendMode::Opaque,
+            FragmentKind::AssociateStraight,
+        );
+        pass.set_pipeline(&pipeline);
+        pass.set_bind_group(
+            0,
+            &frames[draw.arena_index]
+                .as_ref()
+                .expect("static draw has matrix buffer")
+                .transform,
+            &[draw.matrix_offset],
+        );
+        pass.set_bind_group(1, &self.white.binding, &[]);
+        pass.set_vertex_buffer(0, draw.geometry.page.vertices.slice(..));
+        pass.set_index_buffer(
+            draw.geometry.page.indices.slice(..),
+            wgpu::IndexFormat::Uint32,
+        );
+        pass.draw_indexed(draw.indices.clone(), 0, 0..1);
+        if let Some(metrics) = &mut self.metrics {
+            metrics.record_draw(draw.indices.end - draw.indices.start, false);
+        }
     }
     fn draw_prepared_mesh(
         &mut self,
@@ -356,33 +476,22 @@ impl WgpuRenderer {
             .geometry
             .static_mesh
             .as_ref()
-            .map(|mesh| {
-                self.static_meshes
-                    .resolve(&self.gpu.device, mesh, selected_receipt)
-            })
+            .map(|mesh| self.resolve_static(mesh, selected_receipt))
             .transpose()?;
         let frame_geometry = geometry[draw.geometry.arena_index]
             .as_ref()
             .expect("prepared draw has frame buffers");
-        if let Some((static_geometry, uploaded)) = &static_geometry {
-            if *uploaded {
-                if let Some(metrics) = &mut self.metrics {
-                    // Static vertex/index payloads are naturally four-byte
-                    // aligned (40 and 4 bytes), so buffer sizes are exact.
-                    metrics.vertex_upload_bytes += static_geometry.vertices.size();
-                    metrics.index_upload_bytes += static_geometry.indices.size();
-                }
-            }
+        if let Some(static_geometry) = &static_geometry {
             let slice = &draw.geometry.range;
             pass.set_pipeline(&pipeline);
             pass.set_bind_group(0, &frame_geometry.transform, &[slice.matrix_offset]);
             pass.set_bind_group(1, &texture.binding, &[]);
-            pass.set_vertex_buffer(0, static_geometry.vertices.slice(slice.vertices.clone()));
+            pass.set_vertex_buffer(0, static_geometry.page.vertices.slice(..));
             pass.set_index_buffer(
-                static_geometry.indices.slice(slice.indices.clone()),
+                static_geometry.page.indices.slice(..),
                 wgpu::IndexFormat::Uint32,
             );
-            pass.draw_indexed(0..slice.count, 0, 0..1);
+            pass.draw_indexed(static_geometry.index_range.clone(), 0, 0..1);
         } else {
             issue(
                 pass,
@@ -403,7 +512,7 @@ impl WgpuRenderer {
                 .buffer_contents()
                 .ok_or("visibility draw has no uploaded buffers")?;
             let (vertices, indices, index_size) = match &static_geometry {
-                Some((geometry, _)) => {
+                Some(geometry) => {
                     let (vertices, indices) = geometry
                         .receipt_bytes
                         .as_ref()
@@ -418,7 +527,15 @@ impl WgpuRenderer {
             }
             let vertices = &vertices[slice.vertices.start as usize..slice.vertices.end as usize];
             let triangle_hashes = if index_size == 4 {
-                visibility_receipt::packed_triangle_hashes_u32(vertices, indices, 40)?
+                visibility_receipt::packed_triangle_hashes_u32_at(
+                    vertices,
+                    indices,
+                    40,
+                    static_geometry
+                        .as_ref()
+                        .expect("static receipt")
+                        .base_vertex,
+                )?
             } else {
                 visibility_receipt::packed_triangle_hashes(vertices, indices, 40)?
             };
@@ -666,6 +783,19 @@ mod tests {
             position += count.max(1);
         }
         runs
+    }
+
+    #[test]
+    fn atlas_join_requires_forward_contiguity_and_keeps_visibility_holes() {
+        let mut range = 0..3;
+        for next in [6..9, 0..3, 0..0, 3..3, 1..4] {
+            assert!(!join_adjacent(&mut range, &next));
+            assert_eq!(range, 0..3);
+        }
+        assert!(join_adjacent(&mut range, &(3..6)));
+        assert_eq!(range, 0..6);
+        assert!(!join_adjacent(&mut range, &(0..3)));
+        assert_eq!(range, 0..6);
     }
 
     #[test]

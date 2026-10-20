@@ -482,11 +482,23 @@ pub(crate) fn packed_triangle_hashes(
 
 /// Static meshes retain native u32 indices; receipt hashing preserves their
 /// ordered triangles directly rather than truncating or silently dropping them.
-#[cfg(any(feature = "wgpu-runtime", test))]
+#[cfg(test)]
 pub(crate) fn packed_triangle_hashes_u32(
     vertices: &[u8],
     indices: &[u8],
     stride: usize,
+) -> Result<Vec<String>, String> {
+    packed_triangle_hashes_u32_at(vertices, indices, stride, 0)
+}
+
+/// Global atlas indices are relative to the beginning of the bound page; the
+/// retained vertex payload begins at this mesh's immutable page offset.
+#[cfg(any(feature = "wgpu-runtime", test))]
+pub(crate) fn packed_triangle_hashes_u32_at(
+    vertices: &[u8],
+    indices: &[u8],
+    stride: usize,
+    base_vertex: u32,
 ) -> Result<Vec<String>, String> {
     if stride < 24 || !vertices.len().is_multiple_of(stride) || !indices.len().is_multiple_of(12) {
         return Err("visibility packed u32 triangle extent is invalid".into());
@@ -503,7 +515,10 @@ pub(crate) fn packed_triangle_hashes_u32(
                 .iter_mut()
                 .zip(triangle.as_chunks::<4>().0)
             {
-                let offset = (u32::from_le_bytes(*index) as usize)
+                let local_index = u32::from_le_bytes(*index)
+                    .checked_sub(base_vertex)
+                    .ok_or("visibility packed index precedes atlas payload")?;
+                let offset = (local_index as usize)
                     .checked_mul(stride)
                     .ok_or("visibility packed u32 index overflow")?;
                 let end = offset
