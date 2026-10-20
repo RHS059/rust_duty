@@ -3,13 +3,16 @@ use super::{
     arena::{clip_matrix, DrawSlice, FrameArena},
     text::TextRenderer,
 };
-use crate::draw::{BlendMode, Camera, Color, Command, DrawList, Mesh, Rect, RenderTarget, Texture};
+use crate::draw::{
+    BlendMode, Camera, Color, Command, DrawList, Mesh, Rect, RenderTarget, StaticMesh, Texture,
+};
 use glam::Mat4;
 use std::path::PathBuf;
 
 pub(crate) struct GeometrySlice {
     pub arena_index: usize,
     pub range: DrawSlice,
+    pub static_mesh: Option<StaticMesh>,
 }
 pub(crate) struct PreparedDraw {
     pub target: Option<RenderTarget>,
@@ -90,6 +93,9 @@ impl FramePlan {
                 Command::Mesh { mesh, model, blend } => {
                     plan.draw(&camera, mesh, *model, *blend, false)?
                 }
+                Command::StaticMesh { mesh, model, blend } => {
+                    plan.draw_static(&camera, mesh, *model, *blend)?
+                }
                 Command::Lines { lines, model } => {
                     let (consumed, batches) =
                         super::lines::adjacent_batches(lines, *model, commands);
@@ -169,6 +175,7 @@ impl FramePlan {
             return Ok(GeometrySlice {
                 arena_index: last,
                 range,
+                static_mesh: None,
             });
         }
         // Capacity is not a frame error: preserve every individually valid draw
@@ -182,7 +189,54 @@ impl FramePlan {
         Ok(GeometrySlice {
             arena_index: last + 1,
             range,
+            static_mesh: None,
         })
+    }
+    fn draw_static(
+        &mut self,
+        camera: &Camera,
+        mesh: &StaticMesh,
+        model: Mat4,
+        blend: BlendMode,
+    ) -> Result<(), String> {
+        if mesh.indices().is_empty() {
+            return Ok(());
+        }
+        let transform = clip_matrix(camera.view_projection, model);
+        let mut arena_index = self.arenas.len() - 1;
+        let matrix_offset = match self.arenas[arena_index].try_append_matrix(transform)? {
+            Some(offset) => offset,
+            None => {
+                let mut next = FrameArena::new(self.matrix_alignment, self.max_buffer_size)?;
+                let offset = next
+                    .try_append_matrix(transform)?
+                    .ok_or("static mesh matrix exceeds adapter buffer limit")?;
+                self.arenas.push(next);
+                arena_index += 1;
+                offset
+            }
+        };
+        self.commands.push(PreparedCommand::Draw(PreparedDraw {
+            target: camera.target.clone(),
+            depth_test: camera.depth_test,
+            texture: mesh.texture().cloned(),
+            blend,
+            lines: false,
+            geometry: GeometrySlice {
+                arena_index,
+                range: DrawSlice {
+                    vertices: 0..mesh.vertices().len() as u64 * 40,
+                    indices: 0..mesh.indices().len() as u64 * 4,
+                    matrix_offset,
+                    count: mesh.indices().len() as u32,
+                },
+                static_mesh: Some(mesh.clone()),
+            },
+            receipt_matrices: self
+                .receipt_requested
+                .then(|| Box::new((camera.view_projection, model))),
+        }));
+        Ok(())
     }
     fn draw(
         &mut self,
@@ -249,6 +303,62 @@ mod tests {
             present,
         )
         .unwrap()
+    }
+    #[test]
+    fn static_u32_geometry_only_uploads_transforms_across_frames() {
+        let static_mesh = StaticMesh::new(
+            vec![mesh().vertices[0]; 65_539],
+            vec![65_536, 65_537, 65_538],
+            None,
+        )
+        .unwrap();
+        let mut list = DrawList::new(64, 64);
+        list.draw_static_mesh(&static_mesh, Mat4::IDENTITY, BlendMode::Alpha);
+        list.draw_static_mesh(&static_mesh, Mat4::IDENTITY, BlendMode::Alpha);
+        for _ in 0..2 {
+            let plan = prepare(&list, false);
+            assert_eq!(plan.commands.len(), 2);
+            let [vertices, indices, matrices] = plan.arenas[0].buffer_contents().unwrap();
+            assert!(vertices.is_empty());
+            assert!(indices.is_empty());
+            assert_eq!(matrices.len(), 320);
+            for command in &plan.commands {
+                let PreparedCommand::Draw(draw) = command else {
+                    panic!("draw missing")
+                };
+                assert_eq!(draw.geometry.range.count, 3);
+                assert_eq!(draw.geometry.range.indices, 0..12);
+                assert_eq!(
+                    draw.geometry
+                        .static_mesh
+                        .as_ref()
+                        .unwrap()
+                        .vertices()
+                        .as_ptr(),
+                    static_mesh.vertices().as_ptr()
+                );
+            }
+        }
+    }
+    #[test]
+    fn static_and_dynamic_draws_preserve_order_and_split_only_matrices() {
+        let dynamic = mesh();
+        let static_mesh = StaticMesh::new(dynamic.vertices.clone(), vec![0, 1, 2], None).unwrap();
+        let mut list = DrawList::new(64, 64);
+        list.draw_mesh(&dynamic, Mat4::IDENTITY, BlendMode::Alpha);
+        list.capture_png(None, "between.png");
+        list.draw_static_mesh(&static_mesh, Mat4::IDENTITY, BlendMode::Alpha);
+        let plan =
+            FramePlan::new(&list, &mut TextRenderer::new().unwrap(), 256, 256, false).unwrap();
+        assert_eq!(plan.arenas.len(), 2);
+        assert!(matches!(plan.commands[1], PreparedCommand::Capture { .. }));
+        let [vertices, indices, matrices] = plan.arenas[0].buffer_contents().unwrap();
+        assert_eq!(
+            (vertices.len(), indices.len(), matrices.len()),
+            (120, 6, 64)
+        );
+        let [vertices, indices, matrices] = plan.arenas[1].buffer_contents().unwrap();
+        assert_eq!((vertices.len(), indices.len(), matrices.len()), (0, 0, 64));
     }
     #[test]
     fn captures_clears_targets_and_blends_stay_in_exact_order() {

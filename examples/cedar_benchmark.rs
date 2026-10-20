@@ -144,9 +144,14 @@ fn record(city: &CityLevel, frame: u32, width: u32, height: u32) -> Result<DrawL
 fn recorded_counts(list: &DrawList) -> (u64, u64) {
     let mut counts = (0, 0);
     for command in &list.commands {
-        if let Command::Mesh { mesh, .. } = command {
+        let indices = match command {
+            Command::Mesh { mesh, .. } => mesh.indices.len(),
+            Command::StaticMesh { mesh, .. } => mesh.indices().len(),
+            _ => continue,
+        };
+        if indices != 0 {
             counts.0 += 1;
-            counts.1 += mesh.indices.len() as u64 / 3;
+            counts.1 += indices as u64 / 3;
         }
     }
     counts
@@ -374,28 +379,49 @@ mod tests {
         assert_eq!(options.warmup, 0);
     }
     #[test]
+    fn recorded_inventory_counts_static_dynamic_and_empty_meshes() {
+        use vector_range::draw::{BlendMode, Color, Mesh, StaticMesh, Vertex};
+        let vertices = vec![Vertex::new(0., 0., 0., 0., 0., Color::WHITE); 65_539];
+        let mesh = StaticMesh::new(vertices, vec![65_536, 65_537, 65_538], None).unwrap();
+        let mut list = DrawList::new(64, 64);
+        list.draw_static_mesh(&mesh, glam::Mat4::IDENTITY, BlendMode::Opaque);
+        list.draw_static_mesh(&mesh, glam::Mat4::IDENTITY, BlendMode::Opaque);
+        list.draw_mesh(
+            &Mesh {
+                vertices: mesh.vertices()[65_536..].to_vec(),
+                indices: vec![0, 1, 2],
+                texture: None,
+            },
+            glam::Mat4::IDENTITY,
+            BlendMode::Opaque,
+        );
+        list.draw_mesh(&Mesh::default(), glam::Mat4::IDENTITY, BlendMode::Opaque);
+        assert_eq!(recorded_counts(&list), (3, 3));
+    }
+    #[test]
     fn source_recording_uses_real_city_culling_and_facade() {
         use vector_range::{
-            city_level::CityChunk,
-            draw::{Color, Mesh, Vertex},
+            city_level::StaticCityChunk,
+            draw::{Color, StaticMesh, Vertex},
             sim::Aabb,
         };
-        let triangle = Mesh {
-            vertices: vec![
+        let triangle = StaticMesh::new(
+            vec![
                 Vertex::new(-1., 0., 0., 0., 0., Color::WHITE),
                 Vertex::new(1., 0., 0., 0., 0., Color::WHITE),
                 Vertex::new(0., 3., 0., 0., 0., Color::WHITE),
             ],
-            indices: vec![0, 1, 2],
-            texture: None,
-        };
+            vec![0, 1, 2],
+            None,
+        )
+        .unwrap();
         let city = CityLevel {
             name: "fixture".into(),
             spawn_position: Vec3::ZERO,
             spawn_yaw: 0.,
             supply_position: Vec3::ZERO,
             colliders: vec![],
-            chunks: vec![CityChunk {
+            chunks: vec![StaticCityChunk {
                 bounds: Aabb {
                     min: Vec3::new(-1., 0., -0.1),
                     max: Vec3::new(1., 3., 0.1),

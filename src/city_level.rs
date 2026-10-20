@@ -3,7 +3,7 @@
 //! Meshes are decoded and lit once at startup. Spatial chunks are culled against
 //! the world camera before being submitted through either rendering backend.
 use crate::{
-    draw::{facade::draw_mesh_transformed, BlendMode, Color, Mesh, Vertex},
+    draw::{facade::draw_static_mesh_transformed, BlendMode, Color, Mesh, StaticMesh, Vertex},
     scene_lighting::SceneLighting,
     sim::{Aabb, Block, Simulation},
 };
@@ -55,13 +55,20 @@ pub struct CityChunk {
     pub mesh: Mesh,
 }
 
+/// Runtime geometry is immutable and has a stable renderer resource identity.
+/// CPU-only lighting tools retain the mutable `CityChunk` decoder below.
+pub struct StaticCityChunk {
+    pub bounds: Aabb,
+    pub mesh: StaticMesh,
+}
+
 pub struct CityLevel {
     pub name: String,
     pub spawn_position: Vec3,
     pub spawn_yaw: f32,
     pub supply_position: Vec3,
     pub colliders: Vec<Block>,
-    pub chunks: Vec<CityChunk>,
+    pub chunks: Vec<StaticCityChunk>,
 }
 
 impl CityLevel {
@@ -149,7 +156,19 @@ impl CityLevel {
                 path.with_file_name(mesh_name)
             };
             let meshes = read_limited(&mesh_path, MAX_FILE_BYTES)?;
-            let chunks = decode_meshes(&meshes)?;
+            let chunks = decode_meshes(&meshes)?
+                .into_iter()
+                .map(|chunk| {
+                    Ok(StaticCityChunk {
+                        bounds: chunk.bounds,
+                        mesh: StaticMesh::new(
+                            chunk.mesh.vertices,
+                            chunk.mesh.indices.into_iter().map(u32::from).collect(),
+                            chunk.mesh.texture,
+                        )?,
+                    })
+                })
+                .collect::<Result<Vec<_>, String>>()?;
             Ok(Self {
                 name,
                 spawn_position,
@@ -176,7 +195,7 @@ impl CityLevel {
     pub fn draw(&self, eye: Vec3, view_projection: Mat4) {
         for chunk in &self.chunks {
             if chunk_visible(chunk.bounds, eye, view_projection) {
-                draw_mesh_transformed(&chunk.mesh, Mat4::IDENTITY, BlendMode::Opaque);
+                draw_static_mesh_transformed(&chunk.mesh, Mat4::IDENTITY, BlendMode::Opaque);
             }
         }
     }

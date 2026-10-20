@@ -1,5 +1,5 @@
 //! Native GPU implementation; CPU text stays available without this feature.
-use super::{device, mesh, target, text, BackendSelection};
+use super::{device, mesh, static_mesh::StaticMeshCache, target, text, BackendSelection};
 use crate::draw::{
     BackendInfo, DrawList, FrameOutput, RenderTarget, Renderer, ResourceId, Sampler,
     TextDimensions, Texture,
@@ -13,6 +13,7 @@ pub struct WgpuRenderer {
     pub(super) main: Arc<target::GpuTexture>,
     pub(super) white: Arc<target::GpuTexture>,
     textures: HashMap<ResourceId, Arc<target::GpuTexture>>,
+    pub(super) static_meshes: StaticMeshCache,
     pub(super) text: text::TextRenderer,
     pub(super) prepared: Option<PreparedFrame>,
     pub(super) metrics: Option<super::metrics::FrameMetrics>,
@@ -136,6 +137,7 @@ impl WgpuRenderer {
             white,
             text,
             textures: HashMap::new(),
+            static_meshes: StaticMeshCache::default(),
             prepared: None,
             metrics: None,
             timestamps,

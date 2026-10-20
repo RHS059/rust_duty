@@ -160,6 +160,65 @@ impl Mesh {
         Ok(())
     }
 }
+/// Immutable, validated geometry. Cloning a command shares storage in O(1).
+/// A different vertex, index, or texture requires a new handle and resource ID.
+#[derive(Clone, Debug)]
+pub struct StaticMesh(Arc<StaticMeshData>);
+#[derive(Debug)]
+pub(crate) struct StaticMeshData {
+    id: ResourceId,
+    vertices: Box<[Vertex]>,
+    indices: Box<[u32]>,
+    texture: Option<Texture>,
+}
+impl StaticMesh {
+    pub fn new(
+        vertices: Vec<Vertex>,
+        indices: Vec<u32>,
+        texture: Option<Texture>,
+    ) -> Result<Self, String> {
+        if vertices.len() > u32::MAX as usize || indices.len() > u32::MAX as usize {
+            return Err("static mesh count exceeds u32".into());
+        }
+        if !indices.len().is_multiple_of(3) {
+            return Err("triangle index count is not divisible by three".into());
+        }
+        if indices
+            .iter()
+            .any(|&index| index as usize >= vertices.len())
+        {
+            return Err("static mesh index out of range".into());
+        }
+        if vertices
+            .iter()
+            .any(|v| !v.position.is_finite() || !v.uv.is_finite() || !v.normal.is_finite())
+        {
+            return Err("non-finite static mesh vertex".into());
+        }
+        Ok(Self(Arc::new(StaticMeshData {
+            id: resource_id(),
+            vertices: vertices.into_boxed_slice(),
+            indices: indices.into_boxed_slice(),
+            texture,
+        })))
+    }
+    pub fn id(&self) -> ResourceId {
+        self.0.id
+    }
+    pub fn vertices(&self) -> &[Vertex] {
+        &self.0.vertices
+    }
+    pub fn indices(&self) -> &[u32] {
+        &self.0.indices
+    }
+    pub fn texture(&self) -> Option<&Texture> {
+        self.0.texture.as_ref()
+    }
+    #[cfg(any(feature = "wgpu-runtime", test))]
+    pub(crate) fn downgrade(&self) -> std::sync::Weak<StaticMeshData> {
+        Arc::downgrade(&self.0)
+    }
+}
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum BlendMode {
     Opaque,
@@ -222,6 +281,11 @@ pub enum Command {
         model: Mat4,
         blend: BlendMode,
     },
+    StaticMesh {
+        mesh: StaticMesh,
+        model: Mat4,
+        blend: BlendMode,
+    },
     Lines {
         lines: Vec<Line>,
         model: Mat4,
@@ -269,6 +333,13 @@ impl DrawList {
     }
     pub fn draw_mesh(&mut self, mesh: &Mesh, model: Mat4, blend: BlendMode) {
         self.commands.push(Command::Mesh {
+            mesh: mesh.clone(),
+            model,
+            blend,
+        });
+    }
+    pub fn draw_static_mesh(&mut self, mesh: &StaticMesh, model: Mat4, blend: BlendMode) {
+        self.commands.push(Command::StaticMesh {
             mesh: mesh.clone(),
             model,
             blend,
@@ -326,6 +397,43 @@ pub trait Renderer {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn static_commands_share_immutable_storage_and_keep_it_alive() {
+        let vertices = vec![Vertex::new2(Vec3::ZERO, Vec2::ZERO, Color::WHITE); 65_539];
+        let mesh = StaticMesh::new(vertices, vec![65_536, 65_537, 65_538], None).unwrap();
+        let weak = mesh.downgrade();
+        let mut list = DrawList::new(64, 64);
+        list.draw_static_mesh(&mesh, Mat4::IDENTITY, BlendMode::Alpha);
+        let cloned = list.clone();
+        let Command::StaticMesh { mesh: recorded, .. } = &cloned.commands[0] else {
+            panic!("static command missing")
+        };
+        assert_eq!(recorded.id(), mesh.id());
+        assert_eq!(recorded.vertices().as_ptr(), mesh.vertices().as_ptr());
+        assert_eq!(recorded.indices().as_ptr(), mesh.indices().as_ptr());
+        assert_eq!(recorded.indices(), [65_536, 65_537, 65_538]);
+        drop(mesh);
+        drop(list);
+        assert!(weak.upgrade().is_some());
+        drop(cloned);
+        assert!(weak.upgrade().is_none());
+    }
+    #[test]
+    fn static_constructor_rejects_invalid_geometry_and_assigns_fresh_identity() {
+        let vertex = Vertex::new2(Vec3::ZERO, Vec2::ZERO, Color::WHITE);
+        assert!(StaticMesh::new(vec![vertex], vec![0, 0], None).is_err());
+        assert!(StaticMesh::new(vec![vertex], vec![0, 0, 1], None).is_err());
+        let mut invalid = vertex;
+        invalid.normal.x = f32::NAN;
+        assert!(StaticMesh::new(vec![invalid], vec![0, 0, 0], None).is_err());
+        invalid = vertex;
+        invalid.uv.y = f32::INFINITY;
+        assert!(StaticMesh::new(vec![invalid], vec![0, 0, 0], None).is_err());
+        let a = StaticMesh::new(vec![vertex], vec![0, 0, 0], None).unwrap();
+        let b = StaticMesh::new(vec![vertex], vec![0, 0, 0], None).unwrap();
+        assert_ne!(a.id(), b.id());
+        assert!(StaticMesh::new(vec![], vec![], None).is_ok());
+    }
     #[test]
     fn draws_snapshot_skinned_vertices_and_capture_order() {
         let mut mesh = Mesh {

@@ -262,8 +262,8 @@ pub(crate) struct Pipelines {
     shader_source_bound: bool,
 }
 pub(crate) struct FrameGeometry {
-    pub vertices: wgpu::Buffer,
-    pub indices: wgpu::Buffer,
+    pub vertices: Option<wgpu::Buffer>,
+    pub indices: Option<wgpu::Buffer>,
     pub transform: wgpu::BindGroup,
 }
 impl Pipelines {
@@ -484,7 +484,8 @@ impl Pipelines {
             cache: None,
         })
     }
-    /// Three immutable buffers and one transform binding per nonempty chunk.
+    /// Up to three immutable buffers and one transform binding per chunk.
+    /// Static-only chunks allocate the matrix buffer, never empty geometry.
     /// No storage is shared with a subsequent frame. wgpu retains all buffers
     /// referenced by recorded commands until their submission is finished.
     pub fn upload_geometry(
@@ -493,18 +494,18 @@ impl Pipelines {
         arena: &FrameArena,
     ) -> Option<FrameGeometry> {
         let [vertices, indices, matrices] = arena.buffer_contents()?;
-        let [vertices, indices, uniform] = [
-            ("frame vertices", vertices, wgpu::BufferUsages::VERTEX),
-            ("frame indices", indices, wgpu::BufferUsages::INDEX),
-            ("frame transforms", matrices, wgpu::BufferUsages::UNIFORM),
-        ]
-        .map(|(label, contents, usage)| {
+        let upload = |label, contents: &[u8], usage| {
             device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
                 label: Some(label),
                 contents,
                 usage,
             })
-        });
+        };
+        let vertices = (!vertices.is_empty())
+            .then(|| upload("frame vertices", vertices, wgpu::BufferUsages::VERTEX));
+        let indices = (!indices.is_empty())
+            .then(|| upload("frame indices", indices, wgpu::BufferUsages::INDEX));
+        let uniform = upload("frame transforms", matrices, wgpu::BufferUsages::UNIFORM);
         let transform = device.create_bind_group(&wgpu::BindGroupDescriptor {
             label: Some("frame chunk transform slots"),
             layout: &self.transform_layout,

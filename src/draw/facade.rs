@@ -6,8 +6,8 @@
 
 use super::{geometry, Camera, DrawList, Line, TextureSource};
 pub use super::{
-    BackendInfo, BlendMode, Color, FilterMode, Mesh, Rect, RenderTarget, Sampler, TextDimensions,
-    Texture, Texture as Texture2D, Vertex, WrapMode,
+    BackendInfo, BlendMode, Color, FilterMode, Mesh, Rect, RenderTarget, Sampler, StaticMesh,
+    TextDimensions, Texture, Texture as Texture2D, Vertex, WrapMode,
 };
 use crate::render::text::TextRenderer;
 pub use glam::*;
@@ -160,6 +160,26 @@ impl FrameRecorder {
                 }
                 self.list.draw_mesh(&batch, model, blend);
             }
+        }
+        Ok(())
+    }
+
+    fn static_mesh(
+        &mut self,
+        mesh: &StaticMesh,
+        model: Mat4,
+        blend: BlendMode,
+    ) -> Result<(), String> {
+        // Geometry is validated once by StaticMesh::new and cannot be mutated.
+        finite_matrix(model)?;
+        if !(self.camera.view_projection * model).is_finite() {
+            return Err("camera-model transform overflow".into());
+        }
+        if let Some(texture) = mesh.texture() {
+            self.validate_sample(texture)?;
+        }
+        if !mesh.indices().is_empty() {
+            self.list.draw_static_mesh(mesh, model, blend);
         }
         Ok(())
     }
@@ -493,6 +513,14 @@ pub fn draw_mesh_transformed(mesh: &Mesh, model: Mat4, blend: BlendMode) {
         frame.mesh(mesh, frame.model * model, blend)
     });
 }
+pub fn draw_static_mesh(mesh: &StaticMesh) {
+    draw_static_mesh_transformed(mesh, Mat4::IDENTITY, BlendMode::Alpha);
+}
+pub fn draw_static_mesh_transformed(mesh: &StaticMesh, model: Mat4, blend: BlendMode) {
+    record("draw_static_mesh", |frame| {
+        frame.static_mesh(mesh, frame.model * model, blend)
+    });
+}
 pub fn draw_cube(position: Vec3, size: Vec3, texture: Option<&Texture2D>, color: Color) {
     record("draw_cube", |frame| {
         finite_color(color)?;
@@ -800,6 +828,31 @@ mod tests {
     use super::*;
     use crate::draw::Command;
 
+    #[test]
+    fn static_facade_preserves_u32_geometry_and_model_without_batching() {
+        let mesh = StaticMesh::new(
+            vec![Vertex::new2(Vec3::ZERO, Vec2::ZERO, WHITE); 65_539],
+            vec![65_536, 65_537, 65_538],
+            None,
+        )
+        .unwrap();
+        begin_frame(64, 64, 1.).unwrap();
+        draw_static_mesh_transformed(&mesh, Mat4::from_translation(Vec3::X), BlendMode::Opaque);
+        let list = take_draw_list().unwrap();
+        assert_eq!(list.commands.len(), 2);
+        let Command::StaticMesh {
+            mesh: recorded,
+            model,
+            blend,
+        } = &list.commands[1]
+        else {
+            panic!("missing static mesh")
+        };
+        assert_eq!(recorded.indices(), mesh.indices());
+        assert_eq!(recorded.vertices().as_ptr(), mesh.vertices().as_ptr());
+        assert_eq!(*model, Mat4::from_translation(Vec3::X));
+        assert_eq!(*blend, BlendMode::Opaque);
+    }
     #[test]
     fn frame_witness_is_drawn_before_readback_and_restores_camera() {
         begin(2.0);

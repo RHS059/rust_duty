@@ -304,6 +304,40 @@ impl LegacyRenderer {
                     receipt.clear(active.target.as_ref(), *color);
                 }
             }
+            Command::StaticMesh { mesh, model, blend } => {
+                // Compatibility only: OpenGL cannot consume this native u32
+                // path. Remap complete triangles without truncation or omission.
+                for indices in mesh.indices().chunks(BATCH_INDICES) {
+                    let mut remap = std::collections::HashMap::new();
+                    let mut batch = draw::Mesh {
+                        texture: mesh.texture().cloned(),
+                        ..Default::default()
+                    };
+                    for &index in indices {
+                        let mapped = if let Some(&mapped) = remap.get(&index) {
+                            mapped
+                        } else {
+                            let mapped = u16::try_from(batch.vertices.len())
+                                .map_err(|_| "legacy static batch exceeds u16")?;
+                            batch.vertices.push(mesh.vertices()[index as usize]);
+                            remap.insert(index, mapped);
+                            mapped
+                        };
+                        batch.indices.push(mapped);
+                    }
+                    self.execute_command(
+                        &Command::Mesh {
+                            mesh: batch,
+                            model: *model,
+                            blend: *blend,
+                        },
+                        active,
+                        extent,
+                        output,
+                        receipt,
+                    )?;
+                }
+            }
             Command::Mesh { mesh, model, blend } => {
                 mesh.validate()?;
                 validate_model(*model)?;
