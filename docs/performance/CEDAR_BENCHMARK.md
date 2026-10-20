@@ -115,3 +115,24 @@ explicitly with an available native or software adapter. Optional GPU timestamp
 availability is reported, not required to make the adapter test pass.
 
 Schema: [cedar-benchmark.schema.json](cedar-benchmark.schema.json).
+
+### Explicit source-geometry reencoding comparisons
+
+After stage 2 adds the independent geometry verifier, an intentional raw v1/v4
+reencoding can be compared with an explicit, bound parity report:
+
+```sh
+python3 scripts/compare_cedar_benchmark.py raw-v1.json raw-v4.json \
+  --geometry-parity geometry_parity.json \
+  --baseline-city /path/to/raw-v1-city --candidate-city /path/to/raw-v4-city
+```
+
+The comparator requires benchmark level.json and meshes.bin FNV/size identities
+match those exact directories, binds each mesh SHA256 to the parity report, and
+reruns the repository geometry/placement verifier on the actual files. Every
+fresh result must equal the supplied report, including unchanged original
+placement fields. A JSON `passed:true` claim alone cannot unlock comparison.
+Lighting/source substitution, stale files, failed or missing placement checks,
+and changed winding-sensitive triangle content fail closed. This operation
+requires the stage 2 verifier and its NumPy dependency. It does not demand equal
+visible/per-frame triangle counts: tighter culling is an intended outcome.
