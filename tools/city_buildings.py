@@ -53,15 +53,15 @@ class Building:
         return [self.cx+self.flip*x, y, self.cz+self.flip*z]
 
     def a(self, name, x, y, z, yaw=0, scale=(1, 1, 1), collider=False):
-        self.add_asset(name, *self.p(x, y, z), yaw=degrees(self.yaw+yaw), scale=scale, collider=collider)
+        self.add_asset(name, *self.p(x, y, z), yaw=degrees(self.yaw+yaw), scale=scale, collider=collider, building=self.tag)
 
     def b(self, label, x, y, z, w, h, d, color=(.64, .61, .54), solid=True):
         if min(w, h, d) <= 0:
             return
-        self.add_box(f"{self.tag}/{label}", self.p(x, y, z), [w, h, d], color, solid=solid)
+        self.add_box(f"{self.tag}/{label}", self.p(x, y, z), [w, h, d], color, solid=solid, building=self.tag)
 
     def c(self, label, x, y, z, w, h, d):
-        self.add_box(f"COLLIDER::{self.tag}/{label}", self.p(x, y, z), [w, h, d], (.66, .62, .55), solid=True)
+        self.add_box(f"COLLIDER::{self.tag}/{label}", self.p(x, y, z), [w, h, d], (.66, .62, .55), solid=True, building=self.tag)
 
     def wall(self, x, y, z, width=4, style="solid", side=False):
         """One true kitwall; exact independent boxes follow opening topology."""

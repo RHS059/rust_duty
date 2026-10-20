@@ -3,11 +3,35 @@
 Run: python tools/build_city.py --source ../low_poly_items
 Requires numpy. Runtime files contain actual source mesh geometry, not proxies.
 """
-import argparse, collections, gzip, hashlib, json, math, struct
+import argparse, gzip, hashlib, json, math, struct
+from dataclasses import dataclass
 from pathlib import Path
 import numpy as np
 ROOT=Path(__file__).resolve().parents[1]
 SOURCE_COMMIT='3a87b1f2611c56fcfbfc7b39adaf914ab5359446'
+DEFAULT_OUT = ROOT / 'assets/levels/cedar_junction'
+# Reviewed small dressing props only. Architecture, streets, and unknown assets
+# retain their full world draw distance; geometry size is never a proxy for LOD.
+SMALL_PROP_ASSETS = frozenset({
+    'b16_baguette_in_paper_sleeve', 'b16_fluted_paper_plate',
+    'b16_folded_newspaper', 'b16_gable_top_milk_carton',
+    'b16_juice_box_with_straw', 'b16_ribbed_water_bottle',
+    'b16_sealed_potato_chip_bag', 'b16_six_egg_carton',
+    'b16_square_juice_bottle', 'b16_takeaway_coffee_cup',
+    'b17_baseball_fielders_glove', 'b17_folded_picnic_blanket',
+    'b17_handheld_torch_flashlight', 'b17_laced_american_football',
+    'b17_outdoor_two_way_radio', 'b17_ribbed_rolling_suitcase',
+    'b17_seamed_basketball', 'b17_stitched_baseball',
+    'b17_vented_bicycle_helmet', 'b17_zippered_day_backpack',
+})
+
+
+@dataclass
+class CityPart:
+    vertices: np.ndarray
+    indices: np.ndarray
+    metadata: dict
+
 
 def glb_mesh(path):
     data=path.read_bytes(); off=12; doc=None; binary=None
@@ -30,7 +54,8 @@ def glb_mesh(path):
             # Source factors are linear; framebuffer facade uses display-space vertex colors.
             rgb=np.array(color[:3]);rgb=np.where(rgb<=.0031308,rgb*12.92,1.055*rgb**(1/2.4)-.055)
             col=np.tile([*rgb,1.],(len(pos),1));verts.append(np.column_stack((pos,norm,col)))
-            indices.append(acc(p['indices']).ravel()+count);count+=len(pos)
+            # Widen before adding the primitive offset: u16 arithmetic can wrap.
+            indices.append(acc(p['indices']).ravel().astype(np.uint32)+count);count+=len(pos)
     return np.concatenate(verts).astype('<f4'),np.concatenate(indices).astype(np.uint32)
 
 class City:
@@ -39,15 +64,23 @@ class City:
         self.catalog={x['name']:x for x in json.loads((source/'manifest.json').read_text())['assets']}
     def collision(self,label,lo,hi):
         self.colliders.append({'label':label,'min':list(map(float,lo)),'max':list(map(float,hi)),'kind':0})
-    def asset(self,id,x,y,z,yaw=0,scale=(1,1,1),collider=False):
+    def add_part(self, vertices, indices, asset, building=None, max_distance=0.):
+        metadata = {'id': len(self.parts), 'asset': asset, 'max_distance': max_distance}
+        if building is not None:
+            metadata['building'] = building
+        self.parts.append(CityPart(vertices, indices, metadata))
+        return metadata
+
+    def asset(self,id,x,y,z,yaw=0,scale=(1,1,1),collider=False,*,building=None):
         if id not in self.meshes:self.meshes[id]=glb_mesh(self.source/self.catalog[id]['glb'])
         v,ind=self.meshes[id];v=v.copy();a=math.radians(yaw);c,s=math.cos(a),math.sin(a)
         rot=np.array([[c,0,s],[0,1,0],[-s,0,c]])
         v[:,:3]=(v[:,:3]*scale)@rot.T+np.array([x,y,z]);v[:,3:6]=(v[:,3:6]/scale)@rot.T
         v[:,3:6]/=np.maximum(np.linalg.norm(v[:,3:6],axis=1,keepdims=True),1e-12)
-        self.parts.append((v,ind));self.instances.append({'asset':id,'position':[x,y,z],'yaw':yaw,'scale':list(scale)})
+        metadata = self.add_part(v, ind, id, building, 120. if id in SMALL_PROP_ASSETS else 0.)
+        self.instances.append({**metadata, 'position':[x,y,z], 'yaw':yaw, 'scale':list(scale)})
         if collider:self.collision(id,v[:,:3].min(axis=0),v[:,:3].max(axis=0))
-    def box(self,label,center,size,color,solid=True):
+    def box(self,label,center,size,color,solid=True,*,building=None):
         center=np.array(center);size=np.array(size);v=[];inds=[]
         if label.startswith("COLLIDER::"):
             if solid:self.collision(label,center-size/2,center+size/2)
@@ -57,33 +90,50 @@ class City:
             for a,b in [(-1,-1),(1,-1),(1,1),(-1,1)]:
                 p=center+(normal+a*u+b*w)*size*.5;v.append([*p,*normal,*color[:3],1])
             inds.extend([start,start+1,start+2,start,start+2,start+3])
-        self.parts.append((np.array(v,dtype='<f4'),np.array(inds,dtype=np.uint32)))
+        self.add_part(np.array(v,dtype='<f4'),np.array(inds,dtype=np.uint32),label,building)
         if solid:self.collision(label,center-size/2,center+size/2)
-    def write(self,out):
+    def write(self,out,*,write_source_lock=None):
+        """Write complete authored parts, never bucket/merge or narrow indices.
+
+        Alternate output directories leave the tracked provenance lock alone by
+        default. Production output retains the existing source-lock update.
+        """
+        out = Path(out)
+        if write_source_lock is None:
+            write_source_lock = out.resolve() == DEFAULT_OUT.resolve()
+        metadata = json.dumps([part.metadata for part in self.parts],
+                              separators=(',', ':'), allow_nan=False).encode('utf-8')
+        if not 0 < len(self.parts) <= 262144 or len(metadata) > 32 * 1024**2:
+            raise ValueError('city instance count/metadata outside format limits')
+        decoded_bytes = 20 + len(metadata)
+        for part in self.parts:
+            v, i = part.vertices, part.indices
+            if (v.ndim != 2 or v.shape[1] != 10 or not 0 < len(v) <= 4_000_000
+                    or i.ndim != 1 or not 0 < len(i) <= 12_000_000 or len(i) % 3
+                    or not np.issubdtype(i.dtype, np.integer)
+                    or i.min() < 0 or i.max() >= len(v)):
+                raise ValueError('invalid city instance geometry')
+            decoded_bytes += 32 + len(v) * 40 + len(i) * 4
+        if decoded_bytes > 768 * 1024**2:
+            raise ValueError('city instance geometry exceeds file limit')
         out.mkdir(parents=True,exist_ok=True)
-        buckets=collections.defaultdict(list)
-        for v,i in self.parts:
-            center=(v[:,:3].min(axis=0)+v[:,:3].max(axis=0))*.5
-            buckets[(int(math.floor(center[0]/24)), int(math.floor(center[2]/24)), int(math.floor(center[1]/3.2)))].append((v,i))
-        chunks=[]
-        for key,parts in sorted(buckets.items()):
-            vs=[];ins=[];count=0;index_count=0
-            for v,i in parts:
-                if count+len(v)>60000 or index_count+len(i)>65000:
-                    chunks.append((np.concatenate(vs),np.concatenate(ins)));vs=[];ins=[];count=0;index_count=0
-                vs.append(v);ins.append(i+count);count+=len(v);index_count+=len(i)
-            if vs:chunks.append((np.concatenate(vs),np.concatenate(ins)))
         with (out/'meshes.bin.tmp').open('wb') as raw, gzip.GzipFile(filename='', mode='wb', fileobj=raw, mtime=0, compresslevel=6) as f:
-            f.write(b'RDCITY01');f.write(struct.pack('<I',len(chunks)))
-            for v,i in chunks:
+            f.write(b'RDCITY04')
+            f.write(struct.pack('<II', 0, len(metadata)))
+            f.write(metadata)
+            f.write(struct.pack('<I', len(self.parts)))
+            for part in self.parts:
+                v, i = part.vertices, part.indices
                 f.write(struct.pack('<6fII',*v[:,:3].min(axis=0),*v[:,:3].max(axis=0),len(v),len(i)))
-                f.write(v.astype('<f4').tobytes());f.write(i.astype('<u2').tobytes())
+                f.write(v.astype('<f4').tobytes())
+                f.write(i.astype('<u4').tobytes())
         (out/'meshes.bin.tmp').replace(out/'meshes.bin')
-        level={'schema':'rust-duty-city/v1','name':'Cedar Junction','mesh_file':'meshes.bin','spawn':{'position':[0,0,38],'yaw_degrees':-90},'supply_position':[8,.15,38], 'bounds':{'min':[-110,-1,-110],'max':[110,20,110]},'colliders':self.colliders,'buildings':self.buildings,'landmarks':[{'name':'Cedar Commons','position':[86,.15,32]},{'name':'Municipal parking','position':[-86,.15,32]},{'name':'Market Square','position':[32,.15,86]}], 'statistics':{'buildings':len(self.buildings),'asset_instances':len(self.instances),'unique_assets':len(self.meshes),'render_chunks':len(chunks),'vertices':sum(len(v) for v,i in chunks),'triangles':sum(len(i)//3 for v,i in chunks),'colliders':len(self.colliders)},'mesh_sha256':hashlib.sha256((out/'meshes.bin').read_bytes()).hexdigest()}
+        level={'schema':'rust-duty-city/v1','name':'Cedar Junction','geometry_format':'RDCITY04','mesh_file':'meshes.bin','spawn':{'position':[0,0,38],'yaw_degrees':-90},'supply_position':[8,.15,38], 'bounds':{'min':[-110,-1,-110],'max':[110,20,110]},'colliders':self.colliders,'buildings':self.buildings,'landmarks':[{'name':'Cedar Commons','position':[86,.15,32]},{'name':'Municipal parking','position':[-86,.15,32]},{'name':'Market Square','position':[32,.15,86]}], 'statistics':{'buildings':len(self.buildings),'asset_instances':len(self.instances),'unique_assets':len(self.meshes),'render_chunks':len(self.parts),'vertices':sum(len(p.vertices) for p in self.parts),'triangles':sum(len(p.indices)//3 for p in self.parts),'colliders':len(self.colliders)},'mesh_sha256':hashlib.sha256((out/'meshes.bin').read_bytes()).hexdigest()}
         (out/'level.json').write_text(json.dumps(level,indent=2)+'\n')
         (out/'layout.json').write_text(json.dumps({'instances':self.instances,'buildings':self.buildings},indent=2)+'\n')
-        lock={'repository':'RHS059/low_poly_items','commit':SOURCE_COMMIT,'coordinate_system':'Y up; meters; glTF coordinates preserved','assets':[{'id':id,'path':self.catalog[id]['glb'],'sha256':hashlib.sha256((self.source/self.catalog[id]['glb']).read_bytes()).hexdigest()} for id in sorted(self.meshes)]}
-        (ROOT/'tools/city_source_lock.json').write_text(json.dumps(lock,indent=2)+'\n')
+        if write_source_lock:
+            lock={'repository':'RHS059/low_poly_items','commit':SOURCE_COMMIT,'coordinate_system':'Y up; meters; glTF coordinates preserved','assets':[{'id':id,'path':self.catalog[id]['glb'],'sha256':hashlib.sha256((self.source/self.catalog[id]['glb']).read_bytes()).hexdigest()} for id in sorted(self.meshes)]}
+            (ROOT/'tools/city_source_lock.json').write_text(json.dumps(lock,indent=2)+'\n')
         print(json.dumps(level['statistics'],indent=2))
 
 def streets(c):
@@ -217,13 +267,19 @@ def signage(c):
                     end=col+1
                     while end<a.shape[1] and a[row,end]>128:end+=1
                     dx=((col+end)/2-a.shape[1]/2)*unit
-                    c.box('store lettering',(x-flip*dx,y+(a.shape[0]/2-row-.5)*unit,z-flip*.013),((end-col)*unit,unit,.016),(.94,.89,.72),False)
+                    c.box('store lettering',(x-flip*dx,y+(a.shape[0]/2-row-.5)*unit,z-flip*.013),((end-col)*unit,unit,.016),(.94,.89,.72),False,building=building['id'])
                     col=end
 
 def main():
-    ap=argparse.ArgumentParser();ap.add_argument('--source',type=Path,required=True);args=ap.parse_args()
+    ap=argparse.ArgumentParser(description=__doc__)
+    ap.add_argument('--source',type=Path,required=True)
+    ap.add_argument('--out',type=Path,default=DEFAULT_OUT,
+                    help='Output directory; defaults to the production city assets')
+    ap.add_argument('--write-source-lock',action=argparse.BooleanOptionalAction,default=None,
+                    help='Update tracked provenance lock (default: only for production --out)')
+    args=ap.parse_args()
     c=City(args.source);streets(c)
     from city_buildings import build
     build(c.asset,c.box,c.buildings);dressing(c);signage(c)
-    c.write(ROOT/'assets/levels/cedar_junction')
+    c.write(args.out,write_source_lock=args.write_source_lock)
 if __name__=='__main__':main()
